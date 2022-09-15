@@ -44,7 +44,7 @@ namespace bs
 			return TID_Viewport;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() 
 		{
 			return Viewport::CreateEmpty();
 		}

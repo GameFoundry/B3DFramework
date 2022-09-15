@@ -85,13 +85,13 @@ namespace bs
 		template<class P>
 		void RttiEnumFields(P p, ActorDirtyFlags flags = ActorDirtyFlag::Everything)
 		{
-			if (flags.isSetAny(ActorDirtyFlag::Transform | ActorDirtyFlag::Everything))
+			if (flags.IsSetAny(ActorDirtyFlag::Transform | ActorDirtyFlag::Everything))
 				p(mTransform);
 
-			if (flags.isSetAny(ActorDirtyFlag::Active | ActorDirtyFlag::Everything))
+			if (flags.IsSetAny(ActorDirtyFlag::Active | ActorDirtyFlag::Everything))
 				p(mActive);
 
-			if (flags.isSetAny(ActorDirtyFlag::Mobility | ActorDirtyFlag::Everything))
+			if (flags.IsSetAny(ActorDirtyFlag::Mobility | ActorDirtyFlag::Everything))
 				p(mMobility);
 		}
 

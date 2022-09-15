@@ -1181,7 +1181,7 @@ namespace bs { namespace ct
 				DeferredIBLSetupMat* mat = DeferredIBLSetupMat::getVariation(isMSAA, true);
 				mat->bind(gbuffer, perViewBuffer, ssrNode->output, ssaoNode->output, reflProbeParams.buffer);
 
-				gRendererUtility().drawScreenQuad();
+				gRendererUtility().DrawScreenQuad();
 
 				// Draw pixels requiring per-sample evaluation
 				if (isMSAA)
@@ -1189,7 +1189,7 @@ namespace bs { namespace ct
 					DeferredIBLSetupMat* msaaMat = DeferredIBLSetupMat::getVariation(true, false);
 					msaaMat->bind(gbuffer, perViewBuffer, ssrNode->output, ssaoNode->output, reflProbeParams.buffer);
 
-					gRendererUtility().drawScreenQuad();
+					gRendererUtility().DrawScreenQuad();
 				}
 			}
 
@@ -1215,7 +1215,7 @@ namespace bs { namespace ct
 					DeferredIBLSkyMat* skymat = DeferredIBLSkyMat::getVariation(isMSAA, true);
 					skymat->bind(gbuffer, perViewBuffer, skybox, reflProbeParams.buffer);
 
-					gRendererUtility().drawScreenQuad();
+					gRendererUtility().DrawScreenQuad();
 
 					// Draw pixels requiring per-sample evaluation
 					if (isMSAA)
@@ -1223,7 +1223,7 @@ namespace bs { namespace ct
 						DeferredIBLSkyMat* msaaMat = DeferredIBLSkyMat::getVariation(true, false);
 						msaaMat->bind(gbuffer, perViewBuffer, skybox, reflProbeParams.buffer);
 
-						gRendererUtility().drawScreenQuad();
+						gRendererUtility().DrawScreenQuad();
 					}
 				}
 			}
@@ -1236,7 +1236,7 @@ namespace bs { namespace ct
 				mat->bind(gbuffer, perViewBuffer, iblRadianceTex->texture, RendererTextures::preintegratedEnvGF,
 					reflProbeParams.buffer);
 
-				gRendererUtility().drawScreenQuad();
+				gRendererUtility().DrawScreenQuad();
 
 				// Draw pixels requiring per-sample evaluation
 				if (isMSAA)
@@ -1245,7 +1245,7 @@ namespace bs { namespace ct
 					msaaMat->bind(gbuffer, perViewBuffer, iblRadianceTex->texture, RendererTextures::preintegratedEnvGF,
 						reflProbeParams.buffer);
 
-					gRendererUtility().drawScreenQuad();
+					gRendererUtility().DrawScreenQuad();
 				}
 			}
 

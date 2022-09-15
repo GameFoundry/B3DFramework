@@ -238,7 +238,7 @@ namespace bs
 	template<class T, class Alloc>
 	T* bs_newN(size_t count)
 	{
-		T* ptr = (T*)MemoryAllocator<Alloc>::allocate(sizeof(T) * count);
+		T* ptr = (T*)MemoryAllocator<Alloc>::Allocate(sizeof(T) * count);
 
 		for(size_t i = 0; i < count; ++i)
 			new (&ptr[i]) T;
@@ -292,7 +292,7 @@ namespace bs
 		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
 
-		MemoryAllocator<Alloc>::free(ptr);
+		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
 	/*****************************************************************************/
@@ -441,7 +441,7 @@ namespace bs
 		}
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }
-		static constexpr void Destroy(pointer p) { p->~T(); }
+		static constexpr void destroy(pointer p) { p->~T(); }
 
 		template<class... Args>
 		static void construct(pointer p, Args&&... args) { new(p) T(std::forward<Args>(args)...); }

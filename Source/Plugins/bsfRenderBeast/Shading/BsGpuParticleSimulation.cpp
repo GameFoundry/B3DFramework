@@ -1191,12 +1191,12 @@ namespace bs { namespace ct
 		if(depthCollisions)
 		{
 			if(localSpace)
-				return get(getVariation<2>());
+				return Get(getVariation<2>());
 
-			return get(getVariation<1>());
+			return Get(getVariation<1>());
 		}
 
-		return get(getVariation<0>());
+		return Get(getVariation<0>());
 	}
 
 	GpuParticleBoundsMat::GpuParticleBoundsMat()

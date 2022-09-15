@@ -47,7 +47,7 @@ namespace bs
 	public:
 		friend class PlainTextRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		virtual RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

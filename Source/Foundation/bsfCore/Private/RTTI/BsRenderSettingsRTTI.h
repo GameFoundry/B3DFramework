@@ -71,7 +71,7 @@ namespace bs
 			return TID_TonemappingSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<TonemappingSettings>();
 		}
@@ -97,7 +97,7 @@ namespace bs
 			return TID_WhiteBalanceSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<WhiteBalanceSettings>();
 		}
@@ -125,7 +125,7 @@ namespace bs
 			return TID_ColorGradingSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ColorGradingSettings>();
 		}
@@ -166,7 +166,7 @@ namespace bs
 			return TID_DepthOfFieldSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<DepthOfFieldSettings>();
 		}
@@ -198,7 +198,7 @@ namespace bs
 			return TID_AmbientOcclusionSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<AmbientOcclusionSettings>();
 		}
@@ -227,7 +227,7 @@ namespace bs
 			return TID_MotionBlurSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<MotionBlurSettings>();
 		}
@@ -254,7 +254,7 @@ namespace bs
 			return TID_TemporalAASettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<TemporalAASettings>();
 		}
@@ -282,7 +282,7 @@ namespace bs
 			return TID_ScreenSpaceReflectionsSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ScreenSpaceReflectionsSettings>();
 		}
@@ -312,7 +312,7 @@ namespace bs
 			return TID_BloomSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<BloomSettings>();
 		}
@@ -352,7 +352,7 @@ namespace bs
 			return TID_ScreenSpaceLensFlareSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ScreenSpaceLensFlareSettings>();
 		}
@@ -380,7 +380,7 @@ namespace bs
 			return TID_ChromaticAberrationSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ChromaticAberrationSettings>();
 		}
@@ -407,7 +407,7 @@ namespace bs
 			return TID_FilmGrainSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<FilmGrainSettings>();
 		}
@@ -435,7 +435,7 @@ namespace bs
 			return TID_ShadowSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ShadowSettings>();
 		}
@@ -485,7 +485,7 @@ namespace bs
 			return TID_RenderSettings;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<RenderSettings>();
 		}

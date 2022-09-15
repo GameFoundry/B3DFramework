@@ -33,7 +33,7 @@ namespace bs
 			return TID_CPlaneCollider;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CPlaneCollider>();
 		}

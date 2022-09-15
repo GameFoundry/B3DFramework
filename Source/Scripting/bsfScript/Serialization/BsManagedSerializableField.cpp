@@ -1138,7 +1138,7 @@ namespace bs
 
 	size_t ManagedSerializableFieldDataResourceRef::GetHash()
 	{
-		return bs_hash(value.getUUID());
+		return bs_hash(value.GetUuid());
 	}
 
 	size_t ManagedSerializableFieldDataGameObjectRef::GetHash()
@@ -1266,7 +1266,7 @@ namespace bs
 		return ManagedSerializableFieldDataBoolRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataBool::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataBool::GetRtti() const
 	{
 		return ManagedSerializableFieldDataBool::GetRttiStatic();
 	}
@@ -1276,7 +1276,7 @@ namespace bs
 		return ManagedSerializableFieldDataCharRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataChar::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataChar::GetRtti() const
 	{
 		return ManagedSerializableFieldDataChar::GetRttiStatic();
 	}
@@ -1286,7 +1286,7 @@ namespace bs
 		return ManagedSerializableFieldDataI8RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataI8::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataI8::GetRtti() const
 	{
 		return ManagedSerializableFieldDataI8::GetRttiStatic();
 	}
@@ -1296,7 +1296,7 @@ namespace bs
 		return ManagedSerializableFieldDataU8RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataU8::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataU8::GetRtti() const
 	{
 		return ManagedSerializableFieldDataU8::GetRttiStatic();
 	}
@@ -1306,7 +1306,7 @@ namespace bs
 		return ManagedSerializableFieldDataI16RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataI16::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataI16::GetRtti() const
 	{
 		return ManagedSerializableFieldDataI16::GetRttiStatic();
 	}
@@ -1316,7 +1316,7 @@ namespace bs
 		return ManagedSerializableFieldDataU16RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataU16::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataU16::GetRtti() const
 	{
 		return ManagedSerializableFieldDataU16::GetRttiStatic();
 	}
@@ -1326,7 +1326,7 @@ namespace bs
 		return ManagedSerializableFieldDataI32RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataI32::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataI32::GetRtti() const
 	{
 		return ManagedSerializableFieldDataI32::GetRttiStatic();
 	}
@@ -1336,7 +1336,7 @@ namespace bs
 		return ManagedSerializableFieldDataU32RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataU32::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataU32::GetRtti() const
 	{
 		return ManagedSerializableFieldDataU32::GetRttiStatic();
 	}
@@ -1346,7 +1346,7 @@ namespace bs
 		return ManagedSerializableFieldDataI64RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataI64::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataI64::GetRtti() const
 	{
 		return ManagedSerializableFieldDataI64::GetRttiStatic();
 	}
@@ -1356,7 +1356,7 @@ namespace bs
 		return ManagedSerializableFieldDataU64RTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataU64::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataU64::GetRtti() const
 	{
 		return ManagedSerializableFieldDataU64::GetRttiStatic();
 	}
@@ -1366,7 +1366,7 @@ namespace bs
 		return ManagedSerializableFieldDataFloatRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataFloat::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataFloat::GetRtti() const
 	{
 		return ManagedSerializableFieldDataFloat::GetRttiStatic();
 	}
@@ -1376,7 +1376,7 @@ namespace bs
 		return ManagedSerializableFieldDataDoubleRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataDouble::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataDouble::GetRtti() const
 	{
 		return ManagedSerializableFieldDataDouble::GetRttiStatic();
 	}
@@ -1386,7 +1386,7 @@ namespace bs
 		return ManagedSerializableFieldDataStringRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataString::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataString::GetRtti() const
 	{
 		return ManagedSerializableFieldDataString::GetRttiStatic();
 	}
@@ -1396,7 +1396,7 @@ namespace bs
 		return ManagedSerializableFieldDataResourceRefRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataResourceRef::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataResourceRef::GetRtti() const
 	{
 		return ManagedSerializableFieldDataResourceRef::GetRttiStatic();
 	}
@@ -1406,7 +1406,7 @@ namespace bs
 		return ManagedSerializableFieldDataGameObjectRefRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataGameObjectRef::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataGameObjectRef::GetRtti() const
 	{
 		return ManagedSerializableFieldDataGameObjectRef::GetRttiStatic();
 	}
@@ -1416,7 +1416,7 @@ namespace bs
 		return ManagedSerializableFieldDataReflectableRefRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataReflectableRef::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataReflectableRef::GetRtti() const
 	{
 		return ManagedSerializableFieldDataReflectableRef::GetRttiStatic();
 	}
@@ -1426,7 +1426,7 @@ namespace bs
 		return ManagedSerializableFieldDataObjectRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataObject::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataObject::GetRtti() const
 	{
 		return ManagedSerializableFieldDataObject::GetRttiStatic();
 	}
@@ -1436,7 +1436,7 @@ namespace bs
 		return ManagedSerializableFieldDataArrayRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataArray::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataArray::GetRtti() const
 	{
 		return ManagedSerializableFieldDataArray::GetRttiStatic();
 	}
@@ -1446,7 +1446,7 @@ namespace bs
 		return ManagedSerializableFieldDataListRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataList::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataList::GetRtti() const
 	{
 		return ManagedSerializableFieldDataList::GetRttiStatic();
 	}
@@ -1456,7 +1456,7 @@ namespace bs
 		return ManagedSerializableFieldDataDictionaryRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldDataDictionary::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldDataDictionary::GetRtti() const
 	{
 		return ManagedSerializableFieldDataDictionary::GetRttiStatic();
 	}

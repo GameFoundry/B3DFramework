@@ -77,9 +77,9 @@ namespace bs { namespace ct
 		bind();
 
 		if (MSAA)
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.GetWidth(), (float)rtProps.GetHeight()));
+			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.GetWidth(), (float)rtProps.GetHeight()));
 		else
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -99,16 +99,16 @@ namespace bs { namespace ct
 		if(quality == 0)
 		{
 			if (msaa)
-				return get(getVariation<0, true>());
+				return Get(getVariation<0, true>());
 			else
-				return get(getVariation<0, false>());
+				return Get(getVariation<0, false>());
 		}
 		else
 		{
 			if (msaa)
-				return get(getVariation<1, true>());
+				return Get(getVariation<1, true>());
 			else
-				return get(getVariation<1, false>());
+				return Get(getVariation<1, false>());
 		}
 	}
 
@@ -227,7 +227,7 @@ namespace bs { namespace ct
 		bind();
 
 		Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
-		gRendererUtility().drawScreenQuad(drawUV);
+		gRendererUtility().DrawScreenQuad(drawUV);
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -269,7 +269,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -341,7 +341,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -390,7 +390,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -450,7 +450,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -500,9 +500,9 @@ namespace bs { namespace ct
 	CreateTonemapLUTMat* CreateTonemapLUTMat::GetVariation(bool is3D)
 	{
 		if(is3D)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	TonemappingParamDef gTonemappingParamDef;
@@ -550,7 +550,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	TonemappingMat* TonemappingMat::GetVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA)
@@ -562,16 +562,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return get(getVariation<true, true, true, true>());
+						return Get(getVariation<true, true, true, true>());
 					else
-						return get(getVariation<true, true, true, false>());
+						return Get(getVariation<true, true, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return get(getVariation<true, true, false, true>());
+						return Get(getVariation<true, true, false, true>());
 					else
-						return get(getVariation<true, true, false, false>());
+						return Get(getVariation<true, true, false, false>());
 				}
 			}
 			else
@@ -579,16 +579,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return get(getVariation<true, false, true, true>());
+						return Get(getVariation<true, false, true, true>());
 					else
-						return get(getVariation<true, false, true, false>());
+						return Get(getVariation<true, false, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return get(getVariation<true, false, false, true>());
+						return Get(getVariation<true, false, false, true>());
 					else
-						return get(getVariation<true, false, false, false>());
+						return Get(getVariation<true, false, false, false>());
 				}
 			}
 		}
@@ -599,16 +599,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return get(getVariation<false, true, true, true>());
+						return Get(getVariation<false, true, true, true>());
 					else
-						return get(getVariation<false, true, true, false>());
+						return Get(getVariation<false, true, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return get(getVariation<false, true, false, true>());
+						return Get(getVariation<false, true, false, true>());
 					else
-						return get(getVariation<false, true, false, false>());
+						return Get(getVariation<false, true, false, false>());
 				}
 			}
 			else
@@ -616,16 +616,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return get(getVariation<false, false, true, true>());
+						return Get(getVariation<false, false, true, true>());
 					else
-						return get(getVariation<false, false, true, false>());
+						return Get(getVariation<false, false, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return get(getVariation<false, false, false, true>());
+						return Get(getVariation<false, false, false, true>());
 					else
-						return get(getVariation<false, false, false, false>());
+						return Get(getVariation<false, false, false, false>());
 				}
 			}
 		}
@@ -660,15 +660,15 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
 	{
 		if (autoExposure)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
@@ -705,7 +705,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
@@ -715,24 +715,24 @@ namespace bs { namespace ct
 			if(haloAspect)
 			{
 				if(chromaticAberration)
-					return get(getVariation<1, true>());
+					return Get(getVariation<1, true>());
 				
-				return get(getVariation<1, false>());
+				return Get(getVariation<1, false>());
 			}
 			else
 			{
 				if(chromaticAberration)
-					return get(getVariation<2, true>());
+					return Get(getVariation<2, true>());
 				
-				return get(getVariation<2, false>());
+				return Get(getVariation<2, false>());
 			}
 		}
 		else
 		{
 			if (chromaticAberration)
-				return get(getVariation<0, true>());
+				return Get(getVariation<0, true>());
 
-			return get(getVariation<0, false>());
+			return Get(getVariation<0, false>());
 		}
 	}
 
@@ -776,15 +776,15 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberrationType type)
 	{
 		if (type == ChromaticAberrationType::Complex)
-			return get(getVariation<false>());
+			return Get(getVariation<false>());
 
-		return get(getVariation<true>());
+		return Get(getVariation<true>());
 	}
 
 	void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
@@ -818,7 +818,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	GaussianBlurParamDef gGaussianBlurParamDef;
@@ -864,7 +864,7 @@ namespace bs { namespace ct
 			rapi.setRenderTarget(tempTexture->renderTexture);
 
 			bind();
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 		}
 
 		// Vertical pass
@@ -884,7 +884,7 @@ namespace bs { namespace ct
 			rapi.setRenderTarget(destination);
 
 			bind();
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 		}
 	}
 
@@ -1025,9 +1025,9 @@ namespace bs { namespace ct
 	GaussianBlurMat* GaussianBlurMat::GetVariation(bool additive)
 	{
 		if(additive)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	GaussianDOFParamDef gGaussianDOFParamDef;
@@ -1101,7 +1101,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(rt);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	SPtr<PooledRenderTexture> GaussianDOFSeparateMat::GetOutput(UINT32 idx)
@@ -1125,12 +1125,12 @@ namespace bs { namespace ct
 		if (near)
 		{
 			if (far)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 			else
-				return get(getVariation<true, false>());
+				return Get(getVariation<true, false>());
 		}
 		else
-			return get(getVariation<false, true>());
+			return Get(getVariation<false, true>());
 	}
 
 	GaussianDOFCombineMat::GaussianDOFCombineMat()
@@ -1177,7 +1177,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	GaussianDOFCombineMat* GaussianDOFCombineMat::GetVariation(bool near, bool far)
@@ -1185,12 +1185,12 @@ namespace bs { namespace ct
 		if (near)
 		{
 			if (far)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 			else
-				return get(getVariation<true, false>());
+				return Get(getVariation<true, false>());
 		}
 		else
-			return get(getVariation<false, true>());
+			return Get(getVariation<false, true>());
 	}
 
 	DepthOfFieldCommonParamDef gDepthOfFieldCommonParamDef;
@@ -1233,9 +1233,9 @@ namespace bs { namespace ct
 
 		bool MSAA = mVariation.getInt("MSAA_COUNT") > 1;
 		if (MSAA)
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.GetWidth(), (float)srcProps.GetHeight()));
+			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.GetWidth(), (float)srcProps.GetHeight()));
 		else
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 	}
 
 	POOLED_RENDER_TEXTURE_DESC BokehDOFPrepareMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -1251,9 +1251,9 @@ namespace bs { namespace ct
 	BokehDOFPrepareMat* BokehDOFPrepareMat::GetVariation(bool msaa)
 	{
 		if (msaa)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		else
-			return get(getVariation<false>());
+			return Get(getVariation<false>());
 	}
 
 	BokehDOFParamDef gBokehDOFParamDef;
@@ -1424,9 +1424,9 @@ namespace bs { namespace ct
 	BokehDOFMat* BokehDOFMat::GetVariation(bool depthOcclusion)
 	{
 		if (depthOcclusion)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		else
-			return get(getVariation<false>());
+			return Get(getVariation<false>());
 	}
 
 	BokehDOFCombineParamDef gBokehDOFCombineParamDef;
@@ -1475,7 +1475,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	BokehDOFCombineMat* BokehDOFCombineMat::GetVariation(MSAAMode msaaMode)
@@ -1484,11 +1484,11 @@ namespace bs { namespace ct
 		{
 		default:
 		case MSAAMode::None: 
-			return get(getVariation<MSAAMode::None>());
+			return Get(getVariation<MSAAMode::None>());
 		case MSAAMode::Single: 
-			return get(getVariation<MSAAMode::Single>());
+			return Get(getVariation<MSAAMode::Single>());
 		case MSAAMode::Full: 
-			return get(getVariation<MSAAMode::Full>());
+			return Get(getVariation<MSAAMode::Full>());
 		}
 	}
 
@@ -1545,7 +1545,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	BuildHiZFParamDef gBuildHiZParamDef;
@@ -1600,7 +1600,7 @@ namespace bs { namespace ct
 		rapi.setViewport(dstRect);
 
 		bind();
-		gRendererUtility().drawScreenQuad(srcRect);
+		gRendererUtility().DrawScreenQuad(srcRect);
 
 		rapi.setViewport(Rect2(0, 0, 1, 1));
 	}
@@ -1608,9 +1608,9 @@ namespace bs { namespace ct
 	BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
 	{
 		if (noTextureViews)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	FXAAParamDef gFXAAParamDef;
@@ -1638,7 +1638,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(destination);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	SSAOParamDef gSSAOParamDef;
@@ -1796,7 +1796,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(destination);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	SSAOMat* SSAOMat::GetVariation(bool upsample, bool finalPass, int quality)
@@ -1804,14 +1804,14 @@ namespace bs { namespace ct
 #define PICK_MATERIAL(QUALITY)															\
 		if(upsample)																	\
 			if(finalPass)																\
-				return get(getVariation<true, true, QUALITY>());						\
+				return Get(getVariation<true, true, QUALITY>());						\
 			else																		\
-				return get(getVariation<true, false, QUALITY>());						\
+				return Get(getVariation<true, false, QUALITY>());						\
 		else																			\
 			if(finalPass)																\
-				return get(getVariation<false, true, QUALITY>());						\
+				return Get(getVariation<false, true, QUALITY>());						\
 			else																		\
-				return get(getVariation<false, false, QUALITY>());						\
+				return Get(getVariation<false, false, QUALITY>());						\
 
 		switch(quality)
 		{
@@ -1887,7 +1887,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(destination);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	SSAOBlurParamDef gSSAOBlurParamDef;
@@ -1952,15 +1952,15 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(destination);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	SSAOBlurMat* SSAOBlurMat::GetVariation(bool horizontal)
 	{
 		if (horizontal)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 		
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	SSRStencilParamDef gSSRStencilParamDef;
@@ -1990,9 +1990,9 @@ namespace bs { namespace ct
 		bind();
 
 		if(viewProps.target.numSamples > 1)
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
 		else
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 	}
 
 	SSRStencilMat* SSRStencilMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -2000,12 +2000,12 @@ namespace bs { namespace ct
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 	}
 
 	SSRTraceParamDef gSSRTraceParamDef;
@@ -2099,9 +2099,9 @@ namespace bs { namespace ct
 		bind();
 
 		if(viewProps.target.numSamples > 1)
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
 		else
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 	}
 
 	Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
@@ -2120,11 +2120,11 @@ namespace bs { namespace ct
 #define PICK_MATERIAL(QUALITY)											\
 		if(msaa)														\
 			if(singleSampleMSAA)										\
-				return get(getVariation<QUALITY, true, true>());		\
+				return Get(getVariation<QUALITY, true, true>());		\
 			else														\
-				return get(getVariation<QUALITY, true, false>());		\
+				return Get(getVariation<QUALITY, true, false>());		\
 		else															\
-				return get(getVariation<QUALITY, false, false>());		\
+				return Get(getVariation<QUALITY, false, false>());		\
 
 		switch(quality)
 		{
@@ -2330,9 +2330,9 @@ namespace bs { namespace ct
 		bind();
 
 		if(viewProps.target.numSamples > 1)
-			gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
+			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
 		else
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 	}
 
 	TemporalFilteringMat* TemporalFilteringMat::GetVariation(TemporalFilteringType type, bool velocity, bool msaa)
@@ -2344,28 +2344,28 @@ namespace bs { namespace ct
 			if(velocity)
 			{
 				if (msaa)
-					return get(getVariation<TemporalFilteringType::FullScreenAA, true, true>());
+					return Get(getVariation<TemporalFilteringType::FullScreenAA, true, true>());
 
-				return get(getVariation<TemporalFilteringType::FullScreenAA, true, false>());
+				return Get(getVariation<TemporalFilteringType::FullScreenAA, true, false>());
 			}
 
 			if (msaa)
-				return get(getVariation<TemporalFilteringType::FullScreenAA, false, true>());
+				return Get(getVariation<TemporalFilteringType::FullScreenAA, false, true>());
 
-			return get(getVariation<TemporalFilteringType::FullScreenAA, false, false>());
+			return Get(getVariation<TemporalFilteringType::FullScreenAA, false, false>());
 		case TemporalFilteringType::SSR:
 			if(velocity)
 			{
 				if (msaa)
-					return get(getVariation<TemporalFilteringType::SSR, true, true>());
+					return Get(getVariation<TemporalFilteringType::SSR, true, true>());
 
-				return get(getVariation<TemporalFilteringType::SSR, true, false>());
+				return Get(getVariation<TemporalFilteringType::SSR, true, false>());
 			}
 
 			if (msaa)
-				return get(getVariation<TemporalFilteringType::SSR, false, true>());
+				return Get(getVariation<TemporalFilteringType::SSR, false, true>());
 
-			return get(getVariation<TemporalFilteringType::SSR, false, false>());
+			return Get(getVariation<TemporalFilteringType::SSR, false, false>());
 		}
 	}
 
@@ -2403,7 +2403,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output, 0, RT_COLOR0);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	MSAACoverageMat::MSAACoverageMat()
@@ -2421,7 +2421,7 @@ namespace bs { namespace ct
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		bind();
-		gRendererUtility().drawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
+		gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 
 	MSAACoverageMat* MSAACoverageMat::GetVariation(UINT32 msaaCount)
@@ -2429,12 +2429,12 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 2:
-			return get(getVariation<2>());
+			return Get(getVariation<2>());
 		case 4:
-			return get(getVariation<4>());
+			return Get(getVariation<4>());
 		case 8:
 		default:
-			return get(getVariation<8>());
+			return Get(getVariation<8>());
 		}
 	}
 
@@ -2451,6 +2451,6 @@ namespace bs { namespace ct
 		mCoverageTexParam.Set(coverage);
 
 		bind();
-		gRendererUtility().drawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
+		gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 }}

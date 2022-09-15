@@ -90,7 +90,7 @@ namespace bs
 			
 			UINT8* data;
 			if (amount > freeMem)
-				data = mDynamicAlloc.alloc(amount);
+				data = mDynamicAlloc.Alloc(amount);
 			else
 			{
 				data = &mStaticData[mFreePtr];
@@ -129,7 +129,7 @@ namespace bs
 					mFreePtr -= allocSize;
 			}
 			else
-				mDynamicAlloc.free(dataPtr);
+				mDynamicAlloc.Free(dataPtr);
 		}
 
 		/** Deallocates a previously allocated piece of memory. */
@@ -146,7 +146,7 @@ namespace bs
 			mTotalAllocBytes -= *storedSize;
 #endif
 			if(data < mStaticData || data >= (mStaticData + BlockSize))
-				mDynamicAlloc.free(dataPtr);
+				mDynamicAlloc.Free(dataPtr);
 		}
 
 		/**
@@ -155,7 +155,7 @@ namespace bs
 		template<class T>
 		T* Construct(UINT32 count = 0)
 		{
-			T* data = (T*)alloc(sizeof(T) * count);
+			T* data = (T*)Alloc(sizeof(T) * count);
 
 			for(unsigned int i = 0; i < count; i++)
 				new ((void*)&data[i]) T;
@@ -169,7 +169,7 @@ namespace bs
 		template<class T, class... Args>
 		T* Construct(Args &&...args, UINT32 count = 0)
 		{
-			T* data = (T*)alloc(sizeof(T) * count);
+			T* data = (T*)Alloc(sizeof(T) * count);
 
 			for(unsigned int i = 0; i < count; i++)
 				new ((void*)&data[i]) T(std::forward<Args>(args)...);
@@ -183,7 +183,7 @@ namespace bs
 		{
 			data->~T();
 
-			free(data, sizeof(T));
+			Free(data, sizeof(T));
 		}
 
 		/** Destructs and deallocates an array of objects allocated with the static frame allocator. */
@@ -193,7 +193,7 @@ namespace bs
 			for(unsigned int i = 0; i < count; i++)
 				data[i].~T();
 
-			free(data, sizeof(T) * count);
+			Free(data, sizeof(T) * count);
 		}
 
 		/** Frees the internal memory buffers. All external allocations must be freed before calling this. */
@@ -202,7 +202,7 @@ namespace bs
 			assert(mTotalAllocBytes == 0);
 
 			mFreePtr = 0;
-			mDynamicAlloc.clear();
+			mDynamicAlloc.Clear();
 		}
 
 	private:

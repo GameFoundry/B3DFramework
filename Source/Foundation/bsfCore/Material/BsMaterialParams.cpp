@@ -334,12 +334,12 @@ namespace bs
 			initialParamVersion
 		)
 	{
-		mStructParams = mAlloc.construct<ParamStructDataType>(mNumStructParams);
-		mTextureParams = mAlloc.construct<ParamTextureDataType>(mNumTextureParams);
-		mBufferParams = mAlloc.construct<ParamBufferDataType>(mNumBufferParams);
-		mSamplerStateParams = mAlloc.construct<ParamSamplerStateDataType>(mNumSamplerParams);
-		mDefaultTextureParams = mAlloc.construct<TextureType>(mNumTextureParams);
-		mDefaultSamplerStateParams = mAlloc.construct<SamplerType>(mNumSamplerParams);
+		mStructParams = mAlloc.Construct<ParamStructDataType>(mNumStructParams);
+		mTextureParams = mAlloc.Construct<ParamTextureDataType>(mNumTextureParams);
+		mBufferParams = mAlloc.Construct<ParamBufferDataType>(mNumBufferParams);
+		mSamplerStateParams = mAlloc.Construct<ParamSamplerStateDataType>(mNumSamplerParams);
+		mDefaultTextureParams = mAlloc.Construct<TextureType>(mNumTextureParams);
+		mDefaultSamplerStateParams = mAlloc.Construct<SamplerType>(mNumSamplerParams);
 
 		auto& textureParams = shader->GetTextureParams();
 		UINT32 textureIdx = 0;
@@ -377,7 +377,7 @@ namespace bs
 				{
 					ParamStructDataType& param = mStructParams[structIdx];
 					param.dataSize = entry.second.elementSize;
-					param.data = mAlloc.alloc(param.dataSize);
+					param.data = mAlloc.Alloc(param.dataSize);
 
 					structIdx++;
 				}
@@ -415,187 +415,187 @@ namespace bs
 		if (mStructParams != nullptr)
 		{
 			for (UINT32 i = 0; i < mNumStructParams; i++)
-				mAlloc.free(mStructParams[i].data);
+				mAlloc.Free(mStructParams[i].data);
 		}
 
-		mAlloc.destruct(mStructParams, mNumStructParams);
-		mAlloc.destruct(mTextureParams, mNumTextureParams);
-		mAlloc.destruct(mBufferParams, mNumBufferParams);
-		mAlloc.destruct(mSamplerStateParams, mNumSamplerParams);
+		mAlloc.Destruct(mStructParams, mNumStructParams);
+		mAlloc.Destruct(mTextureParams, mNumTextureParams);
+		mAlloc.Destruct(mBufferParams, mNumBufferParams);
+		mAlloc.Destruct(mSamplerStateParams, mNumSamplerParams);
 
 		if(mDefaultTextureParams != nullptr)
-			mAlloc.destruct(mDefaultTextureParams, mNumTextureParams);
+			mAlloc.Destruct(mDefaultTextureParams, mNumTextureParams);
 
 		if (mDefaultSamplerStateParams != nullptr)
-			mAlloc.destruct(mDefaultSamplerStateParams, mNumSamplerParams);
+			mAlloc.Destruct(mDefaultSamplerStateParams, mNumSamplerParams);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetStructData(const String& name, void* value, UINT32 size, UINT32 arrayIdx) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
+		GetParamResult result = GetParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, arrayIdx);
+			ReportGetParamError(result, name, arrayIdx);
 			return;
 		}
 
-		getStructData(*param,  value, size, arrayIdx);
+		GetStructData(*param,  value, size, arrayIdx);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetStructData(const String& name, const void* value, UINT32 size, UINT32 arrayIdx)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
+		GetParamResult result = GetParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, arrayIdx);
+			ReportGetParamError(result, name, arrayIdx);
 			return;
 		}
 
-		setStructData(*param, value, size, arrayIdx);
+		SetStructData(*param, value, size, arrayIdx);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetTexture(const String& name, TextureType& value, TextureSurface& surface) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		getTexture(*param, value, surface);
+		GetTexture(*param, value, surface);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		setTexture(*param, value, surface);
+		SetTexture(*param, value, surface);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetSpriteTexture(const String& name, SpriteTextureType& value) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		getSpriteTexture(*param, value);
+		GetSpriteTexture(*param, value);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetSpriteTexture(const String& name, const SpriteTextureType& value)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		setSpriteTexture(*param, value);
+		SetSpriteTexture(*param, value);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetLoadStoreTexture(const String& name, TextureType& value, TextureSurface& surface) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		getLoadStoreTexture(*param, value, surface);
+		GetLoadStoreTexture(*param, value, surface);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		setLoadStoreTexture(*param, value, surface);
+		SetLoadStoreTexture(*param, value, surface);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetBuffer(const String& name, BufferType& value) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		getBuffer(*param, value);
+		GetBuffer(*param, value);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetBuffer(const String& name, const BufferType& value)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		setBuffer(*param, value);
+		SetBuffer(*param, value);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::GetSamplerState(const String& name, SamplerType& value) const
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
 		if (result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		getSamplerState(*param, value);
+		GetSamplerState(*param, value);
 	}
 
 	template<bool Core>
 	void TMaterialParams<Core>::SetSamplerState(const String& name, const SamplerType& value)
 	{
 		const ParamData* param = nullptr;
-		GetParamResult result = getParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
+		GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
 		if(result != GetParamResult::Success)
 		{
-			reportGetParamError(result, name, 0);
+			ReportGetParamError(result, name, 0);
 			return;
 		}
 
-		setSamplerState(*param, value);
+		SetSamplerState(*param, value);
 	}
 
 	template<bool Core>
@@ -614,7 +614,7 @@ namespace bs
 		if (arrayIdx >= param.arraySize)
 			return false;
 
-		return isAnimated(param, arrayIdx);
+		return IsAnimated(param, arrayIdx);
 	}
 
 	template<bool Core>
@@ -774,9 +774,9 @@ namespace bs
 		if (paramInfo.spriteTextureIdx == (UINT32)-1)
 			return output;
 
-		const ParamData* spriteTexParamData = getParamData(paramInfo.spriteTextureIdx);
+		const ParamData* spriteTexParamData = GetParamData(paramInfo.spriteTextureIdx);
 		if(spriteTexParamData)
-			getSpriteTexture(*spriteTexParamData, output);
+			GetSpriteTexture(*spriteTexParamData, output);
 
 		return output;
 	}
@@ -939,13 +939,13 @@ namespace bs
 					const ParamStructDataType& paramData = mStructParams[param.index];
 
 					// Param index
-					stream.seek((structParamsOffset + dirtyStructParamOffset) * 8);
+					stream.Seek((structParamsOffset + dirtyStructParamOffset) * 8);
 					dirtyStructParamOffset += rtti_write(i, stream).bytes;
 
 					// Param data
 					for (UINT32 j = 0; j < arraySize; j++)
 					{
-						stream.writeBytes(mStructParams[param.index + j].data, paramData.dataSize);
+						stream.WriteBytes(mStructParams[param.index + j].data, paramData.dataSize);
 						dirtyStructParamOffset += paramData.dataSize;
 					}
 				}
@@ -958,17 +958,17 @@ namespace bs
 					const DataParamInfo& paramInfo = mDataParams[param.index];
 
 					// Param index
-					stream.seek((dataParamsOffset + dirtyDataParamOffset) * 8);
+					stream.Seek((dataParamsOffset + dirtyDataParamOffset) * 8);
 					dirtyDataParamOffset += rtti_write(i, stream).bytes;
 
 					// Param data
 					// Note: This relies on the fact that all data params in the array are sequential
-					stream.writeBytes((uint8_t*)&mDataParamsBuffer[paramInfo.offset], dataSize);
+					stream.WriteBytes((uint8_t*)&mDataParamsBuffer[paramInfo.offset], dataSize);
 					dirtyDataParamOffset += dataSize;
 
 					// Param curves
-					UINT64 numDirtyCurvesWriteDst = stream.tell();
-					stream.writeBytes(0);
+					UINT64 numDirtyCurvesWriteDst = stream.Tell();
+					stream.WriteBytes(0);
 					dirtyDataParamOffset += sizeof(UINT32);
 
 					UINT32 numDirtyCurves = 0;
@@ -997,18 +997,18 @@ namespace bs
 						}
 					}
 
-					stream.seek(numDirtyCurvesWriteDst);
-					stream.writeBytes(numDirtyCurves);
+					stream.Seek(numDirtyCurvesWriteDst);
+					stream.WriteBytes(numDirtyCurves);
 				}
 			}
 			break;
 			case ParamType::Texture:
 			{
-				stream.seek((textureParamsOffset + dirtyTextureParamIdx * textureEntrySize) * 8);
+				stream.Seek((textureParamsOffset + dirtyTextureParamIdx * textureEntrySize) * 8);
 				rtti_write(i, stream);
 
 				const MaterialParamTextureData& textureData = mTextureParams[param.index];
-				MaterialParamTextureDataCore* coreTexData = (MaterialParamTextureDataCore*)stream.cursor();
+				MaterialParamTextureDataCore* coreTexData = (MaterialParamTextureDataCore*)stream.Cursor();
 				new (coreTexData) MaterialParamTextureDataCore();
 
 				coreTexData->isLoadStore = textureData.isLoadStore;
@@ -1025,11 +1025,11 @@ namespace bs
 				break;
 			case ParamType::Buffer:
 			{
-				stream.seek((bufferParamsOffset + dirtyBufferParamIdx * bufferEntrySize) * 8);
+				stream.Seek((bufferParamsOffset + dirtyBufferParamIdx * bufferEntrySize) * 8);
 				rtti_write(i, stream);
 
 				const MaterialParamBufferData& bufferData = mBufferParams[param.index];
-				MaterialParamBufferDataCore* coreBufferData = (MaterialParamBufferDataCore*)stream.cursor();
+				MaterialParamBufferDataCore* coreBufferData = (MaterialParamBufferDataCore*)stream.Cursor();
 				new (coreBufferData) MaterialParamBufferDataCore();
 
 				if(bufferData.value != nullptr)
@@ -1040,11 +1040,11 @@ namespace bs
 				break;
 			case ParamType::Sampler:
 			{
-				stream.seek((samplerStateParamsOffset + dirtySamplerParamIdx * samplerStateEntrySize) * 8);
+				stream.Seek((samplerStateParamsOffset + dirtySamplerParamIdx * samplerStateEntrySize) * 8);
 				rtti_write(i, stream);
 
 				const MaterialParamSamplerStateData& samplerData = mSamplerStateParams[param.index];
-				MaterialParamSamplerStateDataCore* coreSamplerData = (MaterialParamSamplerStateDataCore*)stream.cursor();
+				MaterialParamSamplerStateDataCore* coreSamplerData = (MaterialParamSamplerStateDataCore*)stream.Cursor();
 				new (coreSamplerData) MaterialParamSamplerStateDataCore();
 
 				if (samplerData.value != nullptr)
@@ -1089,10 +1089,10 @@ namespace bs
 				const MaterialParamTextureData& textureData = mTextureParams[param.index];
 
 				if (textureData.texture.IsLoaded())
-					coreObjects.push_back(textureData.texture.get());
+					coreObjects.push_back(textureData.texture.Get());
 
 				if (textureData.spriteTexture.IsLoaded())
-					coreObjects.push_back(textureData.spriteTexture.get());
+					coreObjects.push_back(textureData.spriteTexture.Get());
 			}
 			break;
 			case ParamType::Buffer:
@@ -1256,7 +1256,7 @@ namespace bs
 
 			// Param data
 			// Note: This relies on the fact that all data params in the array are sequential
-			stream.readBytes(&mDataParamsBuffer[paramInfo.offset], dataParamSize);
+			stream.ReadBytes(&mDataParamsBuffer[paramInfo.offset], dataParamSize);
 
 			// Param curves
 			UINT32 numDirtyCurves = 0;
@@ -1294,8 +1294,8 @@ namespace bs
 			ParamData& param = mParams[paramIdx];
 			param.version = mParamVersion;
 
-			MaterialParamTextureDataCore* sourceTexData = (MaterialParamTextureDataCore*)stream.cursor();
-			stream.skipBytes(sizeof(MaterialParamTextureDataCore));
+			MaterialParamTextureDataCore* sourceTexData = (MaterialParamTextureDataCore*)stream.Cursor();
+			stream.SkipBytes(sizeof(MaterialParamTextureDataCore));
 
 			mTextureParams[param.index] = *sourceTexData;
 			sourceTexData->~MaterialParamTextureDataCore();
@@ -1309,8 +1309,8 @@ namespace bs
 			ParamData& param = mParams[paramIdx];
 			param.version = mParamVersion;
 
-			MaterialParamBufferDataCore* sourceBufferData = (MaterialParamBufferDataCore*)stream.cursor();
-			stream.skipBytes(sizeof(MaterialParamBufferDataCore));
+			MaterialParamBufferDataCore* sourceBufferData = (MaterialParamBufferDataCore*)stream.Cursor();
+			stream.SkipBytes(sizeof(MaterialParamBufferDataCore));
 
 			mBufferParams[param.index] = *sourceBufferData;
 			sourceBufferData->~MaterialParamBufferDataCore();
@@ -1324,8 +1324,8 @@ namespace bs
 			ParamData& param = mParams[paramIdx];
 			param.version = mParamVersion;
 
-			MaterialParamSamplerStateDataCore* sourceSamplerStateData = (MaterialParamSamplerStateDataCore*)stream.cursor();
-			stream.skipBytes(sizeof(MaterialParamSamplerStateDataCore));
+			MaterialParamSamplerStateDataCore* sourceSamplerStateData = (MaterialParamSamplerStateDataCore*)stream.Cursor();
+			stream.SkipBytes(sizeof(MaterialParamSamplerStateDataCore));
 
 			mSamplerStateParams[param.index] = *sourceSamplerStateData;
 			sourceSamplerStateData->~MaterialParamSamplerStateDataCore();
@@ -1345,7 +1345,7 @@ namespace bs
 
 			// Param data
 			for (UINT32 j = 0; j < arraySize; j++)
-				stream.readBytes(mStructParams[param.index + j].data, paramData.dataSize);
+				stream.ReadBytes(mStructParams[param.index + j].data, paramData.dataSize);
 		}
 	}
 	}

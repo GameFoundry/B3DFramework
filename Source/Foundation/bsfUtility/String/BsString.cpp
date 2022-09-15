@@ -87,42 +87,42 @@ namespace bs
 
 	bool StringUtil::StartsWith(const String& str, const String& pattern, bool lowerCase)
 	{
-		return startsWithInternal<char>(str, pattern, lowerCase);
+		return StartsWithInternal<char>(str, pattern, lowerCase);
 	}
 
 	bool StringUtil::StartsWith(const WString& str, const WString& pattern, bool lowerCase)
 	{
-		return startsWithInternal<wchar_t>(str, pattern, lowerCase);
+		return StartsWithInternal<wchar_t>(str, pattern, lowerCase);
 	}
 
 	bool StringUtil::EndsWith(const String& str, const String& pattern, bool lowerCase)
 	{
-		return endsWithInternal<char>(str, pattern, lowerCase);
+		return EndsWithInternal<char>(str, pattern, lowerCase);
 	}
 
 	bool StringUtil::EndsWith(const WString& str, const WString& pattern, bool lowerCase)
 	{
-		return endsWithInternal<wchar_t>(str, pattern, lowerCase);
+		return EndsWithInternal<wchar_t>(str, pattern, lowerCase);
 	}
 
 	bool StringUtil::Match(const String& str, const String& pattern, bool caseSensitive)
 	{
-		return matchInternal<char>(str, pattern, caseSensitive);
+		return MatchInternal<char>(str, pattern, caseSensitive);
 	}
 
 	bool StringUtil::Match(const WString& str, const WString& pattern, bool caseSensitive)
 	{
-		return matchInternal<wchar_t>(str, pattern, caseSensitive);
+		return MatchInternal<wchar_t>(str, pattern, caseSensitive);
 	}
 
 	const String StringUtil::ReplaceAll(const String& source, const String& replaceWhat, const String& replaceWithWhat)
 	{
-		return replaceAllInternal<char>(source, replaceWhat, replaceWithWhat);
+		return ReplaceAllInternal<char>(source, replaceWhat, replaceWithWhat);
 	}
 
 	const WString StringUtil::ReplaceAll(const WString& source, const WString& replaceWhat, const WString& replaceWithWhat)
 	{
-		return replaceAllInternal<wchar_t>(source, replaceWhat, replaceWithWhat);
+		return ReplaceAllInternal<wchar_t>(source, replaceWhat, replaceWithWhat);
 	}
 
 	/************************************************************************/
@@ -168,13 +168,13 @@ namespace bs
 	WString toWString(const Radian& val, unsigned short precision,
 		unsigned short width, char fill, std::ios::fmtflags flags)
 	{
-		return toWString(val.valueRadians(), precision, width, fill, flags);
+		return toWString(val.ValueRadians(), precision, width, fill, flags);
 	}
 
 	WString toWString(const Degree& val, unsigned short precision,
 		unsigned short width, char fill, std::ios::fmtflags flags)
 	{
-		return toWString(val.valueDegrees(), precision, width, fill, flags);
+		return toWString(val.ValueDegrees(), precision, width, fill, flags);
 	}
 
 	WString toWString(int val,
@@ -406,13 +406,13 @@ namespace bs
 	String toString(const Radian& val, unsigned short precision,
 		unsigned short width, char fill, std::ios::fmtflags flags)
 	{
-		return toString(val.valueRadians(), precision, width, fill, flags);
+		return toString(val.ValueRadians(), precision, width, fill, flags);
 	}
 
 	String toString(const Degree& val, unsigned short precision,
 		unsigned short width, char fill, std::ios::fmtflags flags)
 	{
-		return toString(val.valueDegrees(), precision, width, fill, flags);
+		return toString(val.ValueDegrees(), precision, width, fill, flags);
 	}
 
 	String toString(int val,
@@ -566,12 +566,12 @@ namespace bs
 
 	String toString(const UUID& val)
 	{
-		return val.toString();
+		return val.ToString();
 	}
 
 	String toString(const Path& val)
 	{
-		return val.toString();
+		return val.ToString();
 	}
 
 	String toString(const Vector<bs::String>& val)
@@ -694,11 +694,11 @@ namespace bs
 
 	bool parseBool(const String& val, bool defaultValue)
 	{
-		if ((StringUtil::startsWith(val, "true") || StringUtil::startsWith(val, "yes")
-			|| StringUtil::startsWith(val, "1")))
+		if ((StringUtil::StartsWith(val, "true") || StringUtil::StartsWith(val, "yes")
+			|| StringUtil::StartsWith(val, "1")))
 			return true;
-		else if ((StringUtil::startsWith(val, "false") || StringUtil::startsWith(val, "no")
-			|| StringUtil::startsWith(val, "0")))
+		else if ((StringUtil::StartsWith(val, "false") || StringUtil::StartsWith(val, "no")
+			|| StringUtil::StartsWith(val, "0")))
 			return false;
 		else
 			return defaultValue;
@@ -764,11 +764,11 @@ namespace bs
 
 	bool parseBool(const WString& val, bool defaultValue)
 	{
-		if ((StringUtil::startsWith(val, L"true") || StringUtil::startsWith(val, L"yes")
-			|| StringUtil::startsWith(val, L"1")))
+		if ((StringUtil::StartsWith(val, L"true") || StringUtil::StartsWith(val, L"yes")
+			|| StringUtil::StartsWith(val, L"1")))
 			return true;
-		else if ((StringUtil::startsWith(val, L"false") || StringUtil::startsWith(val, L"no")
-			|| StringUtil::startsWith(val, L"0")))
+		else if ((StringUtil::StartsWith(val, L"false") || StringUtil::StartsWith(val, L"no")
+			|| StringUtil::StartsWith(val, L"0")))
 			return false;
 		else
 			return defaultValue;

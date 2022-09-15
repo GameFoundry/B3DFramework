@@ -54,7 +54,7 @@ namespace bs
 	public:
 		friend class ScriptCodeRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		virtual RTTITypeBase* getRTTI() const override;
+		virtual RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

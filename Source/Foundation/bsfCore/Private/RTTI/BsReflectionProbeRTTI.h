@@ -35,7 +35,7 @@ namespace bs
 
 			// Force the renderer task to complete, so the filtered texture is up to date
 			if (probe->mRendererTask != nullptr)
-				probe->mRendererTask->wait();
+				probe->mRendererTask->Wait();
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) 

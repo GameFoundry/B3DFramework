@@ -45,7 +45,7 @@ namespace bs
 			return TID_Technique;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return Technique::CreateEmpty();
 		}

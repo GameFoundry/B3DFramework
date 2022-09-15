@@ -58,7 +58,7 @@ namespace bs
 		{
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 			{
-				return stream.writeBytes(data);
+				return stream.WriteBytes(data);
 			});
 		}
 
@@ -66,7 +66,7 @@ namespace bs
 		{
 			BitLength size;
 			rtti_read_size_header(stream, compress, size);
-			stream.readBytes(data);
+			stream.ReadBytes(data);
 
 			return size;
 		}

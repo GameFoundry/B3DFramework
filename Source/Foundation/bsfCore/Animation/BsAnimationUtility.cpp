@@ -116,9 +116,9 @@ namespace bs
 			Vector3 angles = eulerCurve->GetKeyFrame(i).value;
 
 			Vector3 diff = angles - lastAngles;
-			float maxAngle = std::max(
+			float maxAngle = std::max(std::max(
 				abs(diff.x),
-				abs(diff.y),
+				abs(diff.y)),
 				abs(diff.z)
 			);
 
@@ -262,13 +262,13 @@ namespace bs
 	}
 
 	template <class T>
-	void splitCurve(
+	void SplitCurve(
 		const TAnimationCurve<T>& compoundCurve,
 		Vector<TKeyframe<float>> (&keyFrames)[TCurveProperties<T>::NumComponents])
 	{
 		constexpr UINT32 NUM_COMPONENTS = TCurveProperties<T>::NumComponents;
 
-		const UINT32 numKeyFrames = compoundCurve.getNumKeyFrames();
+		const UINT32 numKeyFrames = compoundCurve.GetNumKeyFrames();
 		for (UINT32 i = 0; i < numKeyFrames; i++)
 		{
 			const TKeyframe<T>& key = compoundCurve.GetKeyFrame(i);
@@ -337,10 +337,10 @@ namespace bs
 			
 			for(UINT32 j = 0; j < NUM_COMPONENTS; j++)
 			{
-				TKeyframe<float> currentKey = curveComponents[j]->evaluateKey(keyFrame.time, false);
-				TCurveProperties<T>::setComponent(keyFrame.value, j, currentKey.value);
-				TCurveProperties<T>::setComponent(keyFrame.inTangent, j, currentKey.inTangent);
-				TCurveProperties<T>::setComponent(keyFrame.outTangent, j, currentKey.outTangent);
+				TKeyframe<float> currentKey = curveComponents[j]->EvaluateKey(keyFrame.time, false);
+				TCurveProperties<T>::SetComponent(keyFrame.value, j, currentKey.value);
+				TCurveProperties<T>::SetComponent(keyFrame.inTangent, j, currentKey.inTangent);
+				TCurveProperties<T>::SetComponent(keyFrame.outTangent, j, currentKey.outTangent);
 			}
 
 			output[idx] = keyFrame;
@@ -353,7 +353,7 @@ namespace bs
 		Vector<TKeyframe<float>> keyFrames[3];
 
 		if(compoundCurve)
-			bs::splitCurve(*compoundCurve, keyFrames);
+			bs::SplitCurve(*compoundCurve, keyFrames);
 
 		Vector<SPtr<TAnimationCurve<float>>> output(3);
 		for (UINT32 i = 0; i < 3; i++)
@@ -381,7 +381,7 @@ namespace bs
 		Vector<TKeyframe<float>> keyFrames[2];
 
 		if(compoundCurve)
-			bs::splitCurve(*compoundCurve, keyFrames);
+			bs::SplitCurve(*compoundCurve, keyFrames);
 
 		Vector<SPtr<TAnimationCurve<float>>> output(2);
 		for (UINT32 i = 0; i < 2; i++)
@@ -411,7 +411,7 @@ namespace bs
 		constexpr UINT32 NUM_COMPONENTS = TCurveProperties<T>::NumComponents;
 
 		Vector<TKeyframe<float>> keyFrames[NUM_COMPONENTS];
-		bs::splitCurve(compoundCurve, keyFrames);
+		bs::SplitCurve(compoundCurve, keyFrames);
 
 		for (UINT32 i = 0; i < NUM_COMPONENTS; i++)
 			output[i] = TAnimationCurve<float>(keyFrames[i]);
@@ -501,7 +501,7 @@ namespace bs
 	template<class T>
 	TAnimationCurve<T> AnimationUtility::ScaleCurve(const TAnimationCurve<T>& curve, float factor)
 	{
-		INT32 numKeys = (INT32)curve.getNumKeyFrames();
+		INT32 numKeys = (INT32)curve.GetNumKeyFrames();
 
 		Vector<TKeyframe<T>> newKeyframes(numKeys);
 		for (INT32 i = 0; i < numKeys; i++)
@@ -519,7 +519,7 @@ namespace bs
 	template<class T>
 	TAnimationCurve<T> AnimationUtility::OffsetCurve(const TAnimationCurve<T>& curve, float offset)
 	{
-		INT32 numKeys = (INT32)curve.getNumKeyFrames();
+		INT32 numKeys = (INT32)curve.GetNumKeyFrames();
 
 		Vector<TKeyframe<T>> newKeyframes(numKeys);
 		for (INT32 i = 0; i < numKeys; i++)
@@ -543,8 +543,8 @@ namespace bs
 
 		if (keyframes.size() == 1)
 		{
-			keyframes[0].inTangent = TCurveProperties<T>::getZero();
-			keyframes[0].outTangent = TCurveProperties<T>::getZero();
+			keyframes[0].inTangent = TCurveProperties<T>::GetZero();
+			keyframes[0].outTangent = TCurveProperties<T>::GetZero();
 
 			return;
 		}
@@ -564,7 +564,7 @@ namespace bs
 			Keyframe& keyThis = keyframes[0];
 			const Keyframe& keyNext = keyframes[1];
 
-			keyThis.inTangent = TCurveProperties<T>::getZero();
+			keyThis.inTangent = TCurveProperties<T>::GetZero();
 			keyThis.outTangent = calcTangent(keyThis, keyNext);
 		}
 
@@ -584,7 +584,7 @@ namespace bs
 			Keyframe& keyThis = keyframes[keyframes.size() - 1];
 			const Keyframe& keyPrev = keyframes[keyframes.size() - 2];
 
-			keyThis.outTangent = TCurveProperties<T>::getZero();
+			keyThis.outTangent = TCurveProperties<T>::GetZero();
 			keyThis.inTangent = calcTangent(keyPrev, keyThis);
 		}
 	}

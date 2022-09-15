@@ -23,7 +23,7 @@ namespace bs
 	public:
 		CLightRTTI()
 		{
-			addReflectablePtrField("mInternal", 0, &CLightRTTI::getInternal, &CLightRTTI::setInternal);
+			AddReflectablePtrField("mInternal", 0, &CLightRTTI::GetInternal, &CLightRTTI::SetInternal);
 		}
 
 		const String& GetRttiName() override
@@ -37,7 +37,7 @@ namespace bs
 			return TID_CLight;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CLight>();
 		}

@@ -226,16 +226,16 @@ namespace bs
 		void OnShutDown() override;
 
 		/** @copydoc createSamplerState */
-		virtual SPtr<SamplerState> CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
+		virtual SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
 
 		/** @copydoc createBlendState */
-		virtual SPtr<BlendState> CreateBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const;
+		virtual SPtr<BlendState> CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, UINT32 id) const;
 
 		/** @copydoc createRasterizerState */
-		virtual SPtr<RasterizerState> CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const;
+		virtual SPtr<RasterizerState> CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const;
 
 		/** @copydoc createDepthStencilState */
-		virtual SPtr<DepthStencilState> CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const;
+		virtual SPtr<DepthStencilState> CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const;
 
 	private:
 		/**	Triggered when a new sampler state is created. */

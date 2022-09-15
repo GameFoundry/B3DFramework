@@ -286,7 +286,7 @@ namespace bs
 		template<class T>
 		void ParseWindows(const T* pathStr, UINT32 numChars)
 		{
-			clear();
+			Clear();
 
 			UINT32 idx = 0;
 			BasicStringStream<T> tempStream;
@@ -312,7 +312,7 @@ namespace bs
 					while (idx < numChars && pathStr[idx] != '\\' && pathStr[idx] != '/')
 						tempStream << pathStr[idx++];
 
-					setNode(tempStream.str());
+					SetNode(tempStream.str());
 
 					if (idx < numChars)
 						idx++;
@@ -325,15 +325,15 @@ namespace bs
 					if (idx < numChars && pathStr[idx] == ':')
 					{
 						if (mIsAbsolute || !((drive >= 'a' && drive <= 'z') || (drive >= 'A' && drive <= 'Z')))
-							throwInvalidPathException(BasicString<T>(pathStr, numChars));
+							ThrowInvalidPathException(BasicString<T>(pathStr, numChars));
 
 						mIsAbsolute = true;
-						setDevice(String(1, drive));
+						SetDevice(String(1, drive));
 
 						idx++;
 
 						if (idx >= numChars || (pathStr[idx] != '\\' && pathStr[idx] != '/'))
-							throwInvalidPathException(BasicString<T>(pathStr, numChars));
+							ThrowInvalidPathException(BasicString<T>(pathStr, numChars));
 
 						idx++;
 					}
@@ -352,9 +352,9 @@ namespace bs
 					}
 
 					if (idx < numChars)
-						pushDirectory(tempStream.str());
+						PushDirectory(tempStream.str());
 					else
-						setFilename(tempStream.str());
+						SetFilename(tempStream.str());
 
 					idx++;
 				}
@@ -365,7 +365,7 @@ namespace bs
 		template<class T>
 		void ParseUnix(const T* pathStr, UINT32 numChars)
 		{
-			clear();
+			Clear();
 
 			UINT32 idx = 0;
 			BasicStringStream<T> tempStream;
@@ -382,7 +382,7 @@ namespace bs
 					idx++;
 					if (idx >= numChars || pathStr[idx] == '/')
 					{
-						pushDirectory(String("~"));
+						PushDirectory(String("~"));
 						mIsAbsolute = true;
 					}
 					else
@@ -406,22 +406,22 @@ namespace bs
 							BasicString<T> deviceStr = tempStream.str();
 							if (!deviceStr.empty() && *(deviceStr.rbegin()) == ':')
 							{
-								setDevice(deviceStr.substr(0, deviceStr.length() - 1));
+								SetDevice(deviceStr.substr(0, deviceStr.length() - 1));
 								mIsAbsolute = true;
 							}
 							else
 							{
-								pushDirectory(deviceStr);
+								PushDirectory(deviceStr);
 							}
 						}
 						else
 						{
-							pushDirectory(tempStream.str());
+							PushDirectory(tempStream.str());
 						}
 					}
 					else
 					{
-						setFilename(tempStream.str());
+						SetFilename(tempStream.str());
 					}
 
 					idx++;

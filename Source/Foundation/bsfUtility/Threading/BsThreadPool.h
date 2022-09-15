@@ -129,13 +129,13 @@ namespace bs
 		/** @copydoc PooledThread::onThreadStarted */
 		void OnThreadStarted(const String& name) override
 		{
-			ThreadPolicy::onThreadStarted(name);
+			ThreadPolicy::OnThreadStarted(name);
 		}
 
 		/** @copydoc PooledThread::onThreadEnded */
 		void OnThreadEnded(const String& name) override
 		{
-			ThreadPolicy::onThreadEnded(name);
+			ThreadPolicy::OnThreadEnded(name);
 		}
 	};
 

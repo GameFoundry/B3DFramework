@@ -195,24 +195,24 @@ namespace bs
 
 		/**	Assigns a data value to the parameter with the specified name. */
 		template<class T> void SetParam(GpuProgramType type, const String& name, const T& value)
-		{ TGpuDataParam<T, Core> param; getParam(type, name, param); param.Set(value); }
+		{ TGpuDataParam<T, Core> param; GetParam(type, name, param); param.Set(value); }
 
 		/**	Assigns a texture to the parameter with the specified name. */
 		void SetTexture(GpuProgramType type, const String& name, const TextureType& texture,
 						const TextureSurface& surface = TextureSurface::COMPLETE)
-		{ TGpuParamTexture<Core> param; getTextureParam(type, name, param); param.Set(texture, surface); }
+		{ TGpuParamTexture<Core> param; GetTextureParam(type, name, param); param.Set(texture, surface); }
 
 		/**	Assigns a load/store texture to the parameter with the specified name. */
 		void SetLoadStoreTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface)
-		{ TGpuParamLoadStoreTexture<Core> param; getLoadStoreTextureParam(type, name, param); param.Set(texture, surface); }
+		{ TGpuParamLoadStoreTexture<Core> param; GetLoadStoreTextureParam(type, name, param); param.Set(texture, surface); }
 
 		/**	Assigns a buffer to the parameter with the specified name. */
 		void SetBuffer(GpuProgramType type, const String& name, const BufferType& buffer)
-		{ TGpuParamBuffer<Core> param; getBufferParam(type, name, param); param.Set(buffer); }
+		{ TGpuParamBuffer<Core> param; GetBufferParam(type, name, param); param.Set(buffer); }
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
 		void SetSamplerState(GpuProgramType type, const String& name, const SamplerType& sampler)
-		{ TGpuParamSampState<Core> param; getSamplerStateParam(type, name, param); param.Set(sampler); }
+		{ TGpuParamSampState<Core> param; GetSamplerStateParam(type, name, param); param.Set(sampler); }
 
 	protected:
 		TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo);

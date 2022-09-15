@@ -289,7 +289,7 @@ namespace bs
 		template<bool SAFE = true>
 		float Normalize(float tolerance = 1e-04f)
 		{
-			float len = Math::Sqrt(dot(*this, *this));
+			float len = Math::Sqrt(Dot(*this, *this));
 			if(!SAFE || len > (tolerance * tolerance))
 				*this = *this * (1.0f / len);
 
@@ -399,7 +399,7 @@ namespace std
 	template<> class numeric_limits<bs::Quaternion>
 	{
 	public:
-		constexpr static bs::Quaternion Infinity()
+		constexpr static bs::Quaternion infinity() // NOLINT
 		{
 			return bs::Quaternion(
 				std::numeric_limits<float>::infinity(),

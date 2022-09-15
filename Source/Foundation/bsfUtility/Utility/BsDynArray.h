@@ -63,8 +63,8 @@ namespace bs
 			if (this == &other)
 				return *this;
 
-			UINT32 mySize = size();
-			const UINT32 otherSize = other.size();
+			UINT32 mySize = Size();
+			const UINT32 otherSize = other.Size();
 
 			// Use assignment copy if we have more elements than the other array, and destroy any excess elements
 			if(mySize > otherSize)
@@ -85,10 +85,10 @@ namespace bs
 			{
 				if (otherSize > mCapacity)
 				{
-					clear();
+					Clear();
 					mySize = 0;
 
-					realloc(otherSize);
+					Realloc(otherSize);
 				}
 				else if (mySize > 0)
 					std::copy(other.begin(), other.begin() + mySize, begin());
@@ -120,7 +120,7 @@ namespace bs
 
 		DynArray<ValueType>& operator= (std::initializer_list<ValueType> list)
 		{
-			UINT32 mySize = size();
+			UINT32 mySize = Size();
 			const UINT32 otherSize = (UINT32)list.size();
 
 			// Use assignment copy if we have more elements than the list, and destroy any excess elements
@@ -142,10 +142,10 @@ namespace bs
 			{
 				if (otherSize > mCapacity)
 				{
-					clear();
+					Clear();
 					mySize = 0;
 
-					realloc(otherSize);
+					Realloc(otherSize);
 				}
 				else if (mySize > 0)
 					std::copy(list.begin(), list.begin() + mySize, begin());
@@ -159,7 +159,7 @@ namespace bs
 
 		bool operator== (const DynArray<ValueType>& other) const
 		{
-			if (this->size() != other.size()) return false;
+			if (this->Size() != other.Size()) return false;
 			return std::equal(this->begin(), this->end(), other.begin());
 		}
 
@@ -248,40 +248,40 @@ namespace bs
 
 		Type& Front()
 		{
-			assert(!empty());
+			assert(!Empty());
 			return *mElements[0];
 		}
 
 		Type& Back()
 		{
-			assert(!empty());
+			assert(!Empty());
 			return *mElements[mSize - 1];
 		}
 
 		const Type& Front() const
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[0];
 		}
 
 		const Type& Back() const
 		{
-			assert(!empty());
+			assert(!Empty());
 			return mElements[mSize - 1];
 		}
 
 		void Add(const Type& element)
 		{
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(element);
 		}
 
 		void Add(Type&& element)
 		{
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::move(element));
 		}
@@ -315,7 +315,7 @@ namespace bs
 			{
 				if (mElements[i] == element)
 				{
-					remove(i);
+					Remove(i);
 					break;
 				}
 			}
@@ -331,8 +331,8 @@ namespace bs
 
 		void Resize(UINT32 size, const Type& value = Type())
 		{
-			if (size > capacity())
-				realloc(size);
+			if (size > Capacity())
+				Realloc(size);
 
 			if (size > mSize)
 			{
@@ -350,21 +350,21 @@ namespace bs
 
 		void Reserve(UINT32 size)
 		{
-			if (size > capacity())
-				realloc(size);
+			if (size > Capacity())
+				Realloc(size);
 		}
 
 		void Shrink()
 		{
-			realloc(mSize);
+			Realloc(mSize);
 		}
 
 		void Append(ConstIterator start, ConstIterator end)
 		{
 			const UINT32 count = (UINT32)std::distance(start, end);
 
-			if ((size() + count) > capacity())
-				realloc(size() + count);
+			if ((Size() + count) > Capacity())
+				realloc(Size() + count);
 
 			std::uninitialized_copy(start, end, this->end());
 			mSize += count;
@@ -372,8 +372,8 @@ namespace bs
 
 		void Append(UINT32 count, const Type& element)
 		{
-			if ((size() + count) > capacity())
-				realloc(size() + count);
+			if ((Size() + count) > Capacity())
+				realloc(Size() + count);
 
 			std::uninitialized_fill_n(end(), count, element);
 			mSize += count;
@@ -386,13 +386,13 @@ namespace bs
 
 		void Swap(DynArray<ValueType>& other)
 		{
-			const UINT32 tmpSize = size();
-			const UINT32 tmpCapacity = capacity();
-			Type* tmp = data();
+			const UINT32 tmpSize = Size();
+			const UINT32 tmpCapacity = Capacity();
+			Type* tmp = Data();
 
-			mSize = other.size();
-			mCapacity = other.capacity();
-			mElements = other.data();
+			mSize = other.Size();
+			mCapacity = other.Capacity();
+			mElements = other.Data();
 
 			other.mSize = tmpSize;
 			other.mCapacity = tmpCapacity;
@@ -401,7 +401,7 @@ namespace bs
 
 		bool SwapAndErase(Iterator iter)
 		{
-			assert(!empty());
+			assert(!Empty());
 
 			auto iterLast = end() - 1;
 
@@ -412,15 +412,15 @@ namespace bs
 				swapped = true;
 			}
 
-			pop();
+			Pop();
 			return swapped;
 		}
 
 		template <typename ...Args>
 		void EmplaceBack(Args&& ...args)
 		{
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::forward<Args>(args) ...);
 		}
@@ -431,8 +431,8 @@ namespace bs
 			Iterator iterc = const_cast<Iterator>(it);
 			DifferenceType offset = iterc - begin();
 
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::forward<Args>(args) ...);
 			std::rotate(begin() + offset, end() - 1, end());
@@ -445,8 +445,8 @@ namespace bs
 			Iterator iterc = const_cast<Iterator>(it);
 			DifferenceType offset = iterc - begin();
 
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(element);
 			std::rotate(begin() + offset, end() - 1, end());
@@ -459,8 +459,8 @@ namespace bs
 			Iterator iterc = const_cast<Iterator>(it);
 			DifferenceType offset = iterc - begin();
 
-			if (size() == capacity())
-				realloc(std::max(1U, capacity() * 2));
+			if (Size() == Capacity())
+				realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::move(element));
 			std::rotate(begin() + offset, end() - 1, end());
@@ -477,8 +477,8 @@ namespace bs
 			if (!n)
 				return iter;
 
-			if (size() + n > capacity())
-				realloc((size() + n) * 2);
+			if (Size() + n > Capacity())
+				realloc((Size() + n) * 2);
 
 			UINT32 c = n;
 			while (c--)
@@ -497,8 +497,8 @@ namespace bs
 			DifferenceType offset = iterc - begin();
 			UINT32 n = (UINT32)(last - first);
 
-			if (size() + n > capacity())
-				realloc((size() + n) * 2);
+			if (Size() + n > Capacity())
+				realloc((Size() + n) * 2);
 
 			while (first != last)
 				new (&mElements[mSize++]) Type(*first++);
@@ -516,8 +516,8 @@ namespace bs
 			if (!n)
 				return iter;
 
-			if (size() + n > capacity())
-				realloc((size() + n) * 2);
+			if (Size() + n > Capacity())
+				realloc((Size() + n) * 2);
 
 			for (auto& entry : list)
 				new (&mElements[mSize++]) Type(entry);
@@ -541,7 +541,7 @@ namespace bs
 			std::move(iterLast, end(), iter);
 
 			for (Iterator it = iter; it < iterLast; ++it)
-				pop();
+				Pop();
 
 			return iter;
 		}
@@ -553,7 +553,7 @@ namespace bs
 
 			Iterator toErase = const_cast<Iterator>(it);
 			std::move(toErase + 1, end(), toErase);
-			pop();
+			Pop();
 
 			return toErase;
 		}

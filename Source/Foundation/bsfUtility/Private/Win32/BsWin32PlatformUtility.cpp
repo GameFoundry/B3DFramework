@@ -216,7 +216,7 @@ namespace bs
 					pixel.b *= pixel.a;
 				}
 
-				*dst = pixel.getAsBGRA();
+				*dst = pixel.GetAsRgba();
 
 				dst++;
 			}

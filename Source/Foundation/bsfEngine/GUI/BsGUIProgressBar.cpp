@@ -77,7 +77,7 @@ namespace bs
 		MarkLayoutAsDirtyInternal();
 	}
 
-	void GUIProgressBar::setTint(const Color& color)
+	void GUIProgressBar::SetTint(const Color& color)
 	{
 		mBar->SetTint(color);
 		mBackground->SetTint(color);

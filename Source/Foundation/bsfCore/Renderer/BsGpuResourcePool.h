@@ -67,7 +67,7 @@ namespace bs { namespace ct
 		/**
 		 * Attempts to find the unused render texture with the specified parameters in the pool, or creates a new texture
 		 * otherwise. Use this variant of the method if you are already holding a reference to a pooled texture which
-		 * you want to reuse - this is more efficient than releasing the old texture and calling the other get() variant.
+		 * you want to reuse - this is more efficient than releasing the old texture and calling the other Get() variant.
 		 *
 		 * @param[in, out]	texture		Existing reference to a pooled texture that you would prefer to reuse. If it
 		 *								matches the provided descriptor the system will return the unchanged texture,
@@ -88,7 +88,7 @@ namespace bs { namespace ct
 		/**
 		 * Attempts to find the unused storage buffer with the specified parameters in the pool, or creates a new buffer
 		 * otherwise. Use this variant of the method if you are already holding a reference to a pooled buffer which
-		 * you want to reuse - this is more efficient than releasing the old buffer and calling the other get() variant.
+		 * you want to reuse - this is more efficient than releasing the old buffer and calling the other Get() variant.
 		 *
 		 * @param[in, out]	buffer		Existing reference to a pooled buffer that you would prefer to reuse. If it
 		 *								matches the provided descriptor the system will return the unchanged buffer,

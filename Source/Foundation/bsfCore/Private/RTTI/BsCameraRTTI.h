@@ -53,7 +53,7 @@ namespace bs
 
 			// OnDemand flag is transient and shouldn't be saved
 			// (Primarily because we set it in editor on user's cameras and we don't want that to persist)
-			mFlags.unset(CameraFlag::OnDemand);
+			mFlags.Unset(CameraFlag::OnDemand);
 			return mFlags;
 		}
 
@@ -61,7 +61,7 @@ namespace bs
 	public:
 		CameraRTTI()
 		{
-			addPlainField("mCameraFlags", 25, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
+			AddPlainField("mCameraFlags", 25, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
@@ -83,7 +83,7 @@ namespace bs
 			return TID_Camera;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() 
 		{
 			return Camera::CreateEmpty();
 		}

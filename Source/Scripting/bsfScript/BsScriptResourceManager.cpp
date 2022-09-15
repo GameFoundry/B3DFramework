@@ -30,7 +30,7 @@ namespace bs
 
 	ScriptManagedResource* ScriptResourceManager::CreateManagedScriptResource(const HManagedResource& resource, MonoObject* instance)
 	{
-		const UUID& uuid = resource.getUUID();
+		const UUID& uuid = resource.GetUuid();
 #if BS_DEBUG_MODE
 		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
@@ -43,7 +43,7 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::CreateBuiltinScriptResource(const HResource& resource, MonoObject* instance)
 	{
-		const UUID& uuid = resource.getUUID();
+		const UUID& uuid = resource.GetUuid();
 #if BS_DEBUG_MODE
 		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
@@ -65,7 +65,7 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::GetScriptResource(const HResource& resource, bool create)
 	{
-		const UUID& uuid = resource.getUUID();
+		const UUID& uuid = resource.GetUuid();
 
 		if (uuid.empty())
 			return nullptr;
@@ -93,12 +93,12 @@ namespace bs
 	ScriptRRefBase* ScriptResourceManager::GetScriptRRef(const HResource& resource, ::MonoClass* rrefClass)
 	{
 		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = mScriptRRefsPerType[rrefClass];
-		const auto iterFind = rrefs.find(resource.getUUID());
+		const auto iterFind = rrefs.find(resource.GetUuid());
 		if (iterFind != rrefs.end())
 			return iterFind->second;
 
 		ScriptRRefBase* newRRef = ScriptRRefBase::Create(resource, rrefClass);
-		rrefs[resource.getUUID()] = newRRef;
+		rrefs[resource.GetUuid()] = newRRef;
 
 		return newRRef;
 	}
@@ -106,7 +106,7 @@ namespace bs
 	void ScriptResourceManager::DestroyScriptResource(ScriptResourceBase* resource)
 	{
 		HResource resourceHandle = resource->GetGenericHandle();
-		const UUID& uuid = resourceHandle.getUUID();
+		const UUID& uuid = resourceHandle.GetUuid();
 
 		if(uuid.empty())
 			BS_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");

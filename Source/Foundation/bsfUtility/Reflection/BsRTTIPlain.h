@@ -362,7 +362,7 @@ namespace bs
 		struct dummy {};
 
 		template <typename C, typename P>
-		static auto Test(P* p) -> decltype(std::declval<C>().rttiEnumFields(*p), std::true_type());
+		static auto Test(P* p) -> decltype(std::declval<C>().RttiEnumFields(*p), std::true_type());
 
 		template <typename, typename>
 		static std::false_type Test(...);

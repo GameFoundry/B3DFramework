@@ -34,12 +34,12 @@ namespace bs { namespace ct {
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 			else
-				return get(getVariation<true, false>());
+				return Get(getVariation<true, false>());
 		}
 
-		return get(getVariation<false, false>());
+		return Get(getVariation<false, false>());
 	}
 
 	DeferredPointLightMat::DeferredPointLightMat()
@@ -66,24 +66,24 @@ namespace bs { namespace ct {
 			if (inside)
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<true, true, true>());
+					return Get(getVariation<true, true, true>());
 
-				return get(getVariation<true, true, false>());
+				return Get(getVariation<true, true, false>());
 			}
 			else
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<false, true, true>());
+					return Get(getVariation<false, true, true>());
 
-				return get(getVariation<false, true, false>());
+				return Get(getVariation<false, true, false>());
 			}
 		}
 		else
 		{
 			if (inside)
-				return get(getVariation<true, false, false>());
+				return Get(getVariation<true, false, false>());
 			else
-				return get(getVariation<false, false, false>());
+				return Get(getVariation<false, false, false>());
 		}
 	}
 
@@ -114,13 +114,13 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -168,24 +168,24 @@ namespace bs { namespace ct {
 			if (inside)
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<true, true, true>());
+					return Get(getVariation<true, true, true>());
 
-				return get(getVariation<true, true, false>());
+				return Get(getVariation<true, true, false>());
 			}
 			else
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<false, true, true>());
+					return Get(getVariation<false, true, true>());
 
-				return get(getVariation<false, true, false>());
+				return Get(getVariation<false, true, false>());
 			}
 		}
 		else
 		{
 			if (inside)
-				return get(getVariation<true, false, false>());
+				return Get(getVariation<true, false, false>());
 			else
-				return get(getVariation<false, false, false>());
+				return Get(getVariation<false, false, false>());
 		}
 	}
 
@@ -214,13 +214,13 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -253,13 +253,13 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -283,7 +283,7 @@ namespace bs { namespace ct {
 			DeferredDirectionalLightMat* material = DeferredDirectionalLightMat::GetVariation(isMSAA, true);
 			material->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-			gRendererUtility().drawScreenQuad();
+			gRendererUtility().DrawScreenQuad();
 
 			// Draw pixels requiring per-sample evaluation
 			if(isMSAA)
@@ -291,18 +291,18 @@ namespace bs { namespace ct {
 				DeferredDirectionalLightMat* msaaMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
 				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-				gRendererUtility().drawScreenQuad();
+				gRendererUtility().DrawScreenQuad();
 			}
 		}
 		else // Radial or spot
 		{
 			// Check if viewer is inside the light volume
-			float distSqrd = (light.internal->GetBounds().getCenter() - viewProps.viewOrigin).squaredLength();
+			float distSqrd = (light.internal->GetBounds().GetCenter() - viewProps.viewOrigin).squaredLength();
 
 			// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
 			// the light bounds. We need to be conservative since the material for rendering outside will not properly
 			// render the inside of the light volume.
-			float boundRadius = light.internal->GetBounds().getRadius() + viewProps.nearPlane * 3.0f;
+			float boundRadius = light.internal->GetBounds().GetRadius() + viewProps.nearPlane * 3.0f;
 
 			bool isInside = distSqrd < (boundRadius * boundRadius);
 

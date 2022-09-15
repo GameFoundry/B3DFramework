@@ -80,7 +80,7 @@ namespace bs
 		return GUISkinRTTI::Instance();
 	}
 
-	RTTITypeBase* GUISkin::getRTTI() const
+	RTTITypeBase* GUISkin::GetRtti() const
 	{
 		return GUISkin::GetRttiStatic();
 	}

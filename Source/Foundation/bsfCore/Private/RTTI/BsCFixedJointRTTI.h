@@ -31,7 +31,7 @@ namespace bs
 			return TID_CFixedJoint;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CFixedJoint>();
 		}

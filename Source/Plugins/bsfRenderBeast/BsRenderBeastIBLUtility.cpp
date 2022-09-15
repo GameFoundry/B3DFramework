@@ -42,7 +42,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(target);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	const UINT32 ReflectionCubeImportanceSampleMat::NUM_SAMPLES = 1024;
@@ -83,7 +83,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(target);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
@@ -165,9 +165,9 @@ namespace bs { namespace ct
 	IrradianceComputeSHMat* IrradianceComputeSHMat::GetVariation(int order)
 	{
 		if (order == 3)
-			return get(getVariation<3>());
+			return Get(getVariation<3>());
 
-		return get(getVariation<5>());
+		return Get(getVariation<5>());
 	}
 
 	IrradianceComputeSHFragParamDef gIrradianceComputeSHFragParamDef;
@@ -198,7 +198,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -239,7 +239,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(output);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 	}
@@ -293,7 +293,7 @@ namespace bs { namespace ct
 		rapi.setViewport(viewRect);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 
 		rapi.setRenderTarget(nullptr);
 		rapi.setViewport(Rect2(0, 0, 1, 1));
@@ -352,9 +352,9 @@ namespace bs { namespace ct
 	IrradianceReduceSHMat* IrradianceReduceSHMat::GetVariation(int order)
 	{
 		if (order == 3)
-			return get(getVariation<3>());
+			return Get(getVariation<3>());
 
-		return get(getVariation<5>());
+		return Get(getVariation<5>());
 	}
 
 	IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
@@ -379,7 +379,7 @@ namespace bs { namespace ct
 		rapi.setRenderTarget(target);
 
 		bind();
-		gRendererUtility().drawScreenQuad();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const

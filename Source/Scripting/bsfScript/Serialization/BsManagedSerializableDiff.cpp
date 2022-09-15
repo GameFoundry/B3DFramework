@@ -75,7 +75,7 @@ namespace bs
 		return ModifiedObjectRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableDiff::ModifiedObject::getRTTI() const
+	RTTITypeBase* ManagedSerializableDiff::ModifiedObject::GetRtti() const
 	{
 		return GetRttiStatic();
 	}
@@ -90,7 +90,7 @@ namespace bs
 		return ModifiedArrayRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableDiff::ModifiedArray::getRTTI() const
+	RTTITypeBase* ManagedSerializableDiff::ModifiedArray::GetRtti() const
 	{
 		return GetRttiStatic();
 	}
@@ -105,7 +105,7 @@ namespace bs
 		return ModifiedDictionaryRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::getRTTI() const
+	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::GetRtti() const
 	{
 		return GetRttiStatic();
 	}
@@ -124,7 +124,7 @@ namespace bs
 		return ModifiedEntryRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::getRTTI() const
+	RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::GetRtti() const
 	{
 		return GetRttiStatic();
 	}

@@ -39,8 +39,8 @@ namespace bs
 		 */
 		bool AddValue(const T& value)
 		{
-			setValue(value);
-			return moveNext();
+			SetValue(value);
+			return MoveNext();
 		}
 
 		/**	Sets a new value at the iterators current position. */

@@ -77,7 +77,7 @@ namespace bs
 	public:
 		MemStackInternal()
 		{
-			mFreeBlock = allocBlock(BlockCapacity);
+			mFreeBlock = AllocBlock(BlockCapacity);
 		}
 
 		~MemStackInternal()
@@ -88,7 +88,7 @@ namespace bs
 			while (curBlock != nullptr)
 			{
 				MemBlock* nextBlock = curBlock->mNextBlock;
-				deallocBlock(curBlock);
+				DeallocBlock(curBlock);
 
 				curBlock = nextBlock;
 			}
@@ -112,9 +112,9 @@ namespace bs
 
 			UINT32 freeMem = mFreeBlock->mSize - mFreeBlock->mFreePtr;
 			if(amount > freeMem)
-				allocBlock(amount);
+				AllocBlock(amount);
 
-			UINT8* data = mFreeBlock->alloc(amount);
+			UINT8* data = mFreeBlock->Alloc(amount);
 
 			UINT32* storedSize = reinterpret_cast<UINT32*>(data);
 			*storedSize = amount;
@@ -128,7 +128,7 @@ namespace bs
 			data -= sizeof(UINT32);
 
 			UINT32* storedSize = reinterpret_cast<UINT32*>(data);
-			mFreeBlock->dealloc(data, *storedSize);
+			mFreeBlock->Dealloc(data, *storedSize);
 
 			if (mFreeBlock->mFreePtr == 0)
 			{
@@ -147,10 +147,10 @@ namespace bs
 					else
 						mFreeBlock = nullptr;
 
-					deallocBlock(emptyBlock->mNextBlock);
-					deallocBlock(emptyBlock);
+					DeallocBlock(emptyBlock->mNextBlock);
+					DeallocBlock(emptyBlock);
 
-					allocBlock(totalSize);
+					AllocBlock(totalSize);
 				}
 			}
 		}

@@ -499,9 +499,9 @@ namespace bs
 				&bs_delete<T>, StdAlloc<T>());
 
 			const HComponent newComponent =
-				static_object_cast<Component>(GameObjectManager::Instance().registerObject(gameObject));
+				static_object_cast<Component>(GameObjectManager::Instance().RegisterObject(gameObject));
 
-			addAndInitializeComponent(newComponent);
+			AddAndInitializeComponent(newComponent);
 			return static_object_cast<T>(newComponent);
 		}
 
@@ -551,7 +551,7 @@ namespace bs
 
 			for (auto entry : mComponents)
 			{
-				if (entry->GetRtti()->isDerivedFrom(T::GetRttiStatic()))
+				if (entry->GetRtti()->IsDerivedFrom(T::GetRttiStatic()))
 					output.push_back(static_object_cast<T>(entry));
 			}
 
@@ -574,7 +574,7 @@ namespace bs
 
 			for (auto entry : mComponents)
 			{
-				if (entry->GetRtti()->isDerivedFrom(T::GetRttiStatic()))
+				if (entry->GetRtti()->IsDerivedFrom(T::GetRttiStatic()))
 					return true;
 			}
 

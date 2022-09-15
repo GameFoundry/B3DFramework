@@ -23,7 +23,7 @@ namespace bs
 	public:
 		CSkyboxRTTI()
 		{
-			addReflectablePtrField("mInternal", 0, &CSkyboxRTTI::getInternal, &CSkyboxRTTI::setInternal);
+			AddReflectablePtrField("mInternal", 0, &CSkyboxRTTI::GetInternal, &CSkyboxRTTI::SetInternal);
 		}
 
 		const String& GetRttiName() override
@@ -37,7 +37,7 @@ namespace bs
 			return TID_CSkybox;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CSkybox>();
 		}

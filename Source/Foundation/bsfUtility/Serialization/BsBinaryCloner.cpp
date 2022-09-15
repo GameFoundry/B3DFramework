@@ -169,8 +169,8 @@ namespace bs
 			RTTITypeBase* rttiInstance = rttiInstances.top();
 			rttiInstances.pop();
 
-			rttiInstance->onSerializationEnded(object, nullptr);
-			alloc.destruct(rttiInstance);
+			rttiInstance->OnSerializationEnded(object, nullptr);
+			alloc.Destruct(rttiInstance);
 		}
 	}
 
@@ -183,7 +183,7 @@ namespace bs
 			if (!subObject.references.empty())
 			{
 				RTTITypeBase* rttiInstance = subObject.rtti->CloneInternal(alloc);
-				rttiInstance->onDeserializationStarted(object, nullptr);
+				rttiInstance->OnDeserializationStarted(object, nullptr);
 
 				for (auto& reference : subObject.references)
 				{
@@ -195,8 +195,8 @@ namespace bs
 						curField->SetValue(rttiInstance, object, reference.object);
 				}
 
-				rttiInstance->onDeserializationEnded(object, nullptr);
-				alloc.destruct(rttiInstance);
+				rttiInstance->OnDeserializationEnded(object, nullptr);
+				alloc.Destruct(rttiInstance);
 			}
 		}
 
@@ -205,7 +205,7 @@ namespace bs
 			if (!subObject.children.empty())
 			{
 				RTTITypeBase* rttiInstance = subObject.rtti->CloneInternal(alloc);
-				rttiInstance->onSerializationStarted(object, nullptr);
+				rttiInstance->OnSerializationStarted(object, nullptr);
 
 				for (auto& childObjectData : subObject.children)
 				{
@@ -217,11 +217,11 @@ namespace bs
 					else
 						childObj = &curField->GetValue(rttiInstance, object);
 
-					restoreReferences(childObj, alloc, childObjectData);
+					RestoreReferences(childObj, alloc, childObjectData);
 				}
 
-				rttiInstance->onSerializationEnded(object, nullptr);
-				alloc.destruct(rttiInstance);
+				rttiInstance->OnSerializationEnded(object, nullptr);
+				alloc.Destruct(rttiInstance);
 			}
 		}
 	}

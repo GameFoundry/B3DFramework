@@ -23,7 +23,7 @@ namespace bs
 
 	SceneObject::~SceneObject()
 	{
-		if(!mThisHandle.isDestroyed())
+		if(!mThisHandle.IsDestroyed())
 		{
 			BS_LOG(Warning, Scene, "Object is being deleted without being destroyed first? {0}", mName);
 			DestroyInternal(mThisHandle, true);
@@ -32,10 +32,10 @@ namespace bs
 
 	HSceneObject SceneObject::Create(const String& name, UINT32 flags)
 	{
-		HSceneObject newObject = createInternal(name, flags);
+		HSceneObject newObject = CreateInternal(name, flags);
 
-		if (newObject->isInstantiated())
-			gSceneManager().registerNewSO(newObject);
+		if (newObject->IsInstantiated())
+			gSceneManager().RegisterNewSo(newObject);
 
 		return newObject;
 	}
@@ -44,10 +44,10 @@ namespace bs
 	{
 		SPtr<SceneObject> sceneObjectPtr = SPtr<SceneObject>(new (bs_alloc<SceneObject>()) SceneObject(name, flags),
 			&bs_delete<SceneObject>, StdAlloc<SceneObject>());
-		sceneObjectPtr->mUUID = UUIDGenerator::generateRandom();
+		sceneObjectPtr->mUUID = UUIDGenerator::GenerateRandom();
 
 		HSceneObject sceneObject = static_object_cast<SceneObject>(
-			GameObjectManager::Instance().registerObject(sceneObjectPtr));
+			GameObjectManager::Instance().RegisterObject(sceneObjectPtr));
 		sceneObject->mThisHandle = sceneObject;
 
 		return sceneObject;
@@ -56,7 +56,7 @@ namespace bs
 	HSceneObject SceneObject::CreateInternal(const SPtr<SceneObject>& soPtr)
 	{
 		HSceneObject sceneObject = static_object_cast<SceneObject>(
-			GameObjectManager::Instance().registerObject(soPtr));
+			GameObjectManager::Instance().RegisterObject(soPtr));
 		sceneObject->mThisHandle = sceneObject;
 
 		return sceneObject;
@@ -68,8 +68,8 @@ namespace bs
 		// So make sure this is the last thing we do.
 		if(mParent != nullptr)
 		{
-			if(!mParent.isDestroyed())
-				mParent->removeChild(mThisHandle);
+			if(!mParent.IsDestroyed())
+				mParent->RemoveChild(mThisHandle);
 
 			mParent = nullptr;
 		}
@@ -93,17 +93,17 @@ namespace bs
 				HComponent component = mComponents.back();
 				component->SetIsDestroyedInternal();
 
-				if (isInstantiated())
+				if (IsInstantiated())
 					gSceneManager().NotifyComponentDestroyedInternal(component, immediate);
 
 				component->DestroyInternal(component, true);
 				mComponents.erase(mComponents.end() - 1);
 			}
 
-			GameObjectManager::Instance().unregisterObject(handle);
+			GameObjectManager::Instance().UnregisterObject(handle);
 		}
 		else
-			GameObjectManager::Instance().queueForDestroy(handle);
+			GameObjectManager::Instance().QueueForDestroy(handle);
 	}
 
 	void SceneObject::SetInstanceDataInternal(GameObjectInstanceDataPtr& other)
@@ -111,7 +111,7 @@ namespace bs
 		GameObject::SetInstanceDataInternal(other);
 
 		// Instance data changed, so make sure to refresh the handles to reflect that
-		SPtr<SceneObject> thisPtr = mThisHandle.getInternalPtr();
+		SPtr<SceneObject> thisPtr = mThisHandle.GetInternalPtr();
 		mThisHandle.SetHandleDataInternal(thisPtr);
 	}
 
@@ -121,11 +121,11 @@ namespace bs
 
 		while (curObj != nullptr)
 		{
-			if (!curObj->mPrefabLinkUUID.empty())
+			if (!curObj->mPrefabLinkUUID.Empty())
 				return curObj->mPrefabLinkUUID;
 
 			if (curObj->mParent != nullptr && !onlyDirect)
-				curObj = curObj->mParent.get();
+				curObj = curObj->mParent.Get();
 			else
 				curObj = nullptr;
 		}
@@ -139,7 +139,7 @@ namespace bs
 
 		while (curObj != nullptr)
 		{
-			if (!curObj->mPrefabLinkUUID.empty())
+			if (!curObj->mPrefabLinkUUID.Empty())
 				return curObj;
 
 			if (curObj->mParent != nullptr)
@@ -157,11 +157,11 @@ namespace bs
 
 		while (rootObj != nullptr)
 		{
-			if (!rootObj->mPrefabLinkUUID.empty())
+			if (!rootObj->mPrefabLinkUUID.Empty())
 				break;
 
 			if (rootObj->mParent != nullptr)
-				rootObj = rootObj->mParent.get();
+				rootObj = rootObj->mParent.Get();
 			else
 				rootObj = nullptr;
 		}
@@ -170,7 +170,7 @@ namespace bs
 		{
 			rootObj->mPrefabLinkUUID = UUID::EMPTY;
 			rootObj->mPrefabDiff = nullptr;
-			PrefabUtility::clearPrefabIds(rootObj->GetHandle(), true, false);
+			PrefabUtility::ClearPrefabIds(rootObj->GetHandle(), true, false);
 		}
 	}
 
@@ -202,15 +202,15 @@ namespace bs
 			obj->mFlags &= ~SOF_DontInstantiate;
 
 			if (obj->mParent == nullptr)
-				gSceneManager().registerNewSO(obj->mThisHandle);
+				gSceneManager().RegisterNewSo(obj->mThisHandle);
 
 			for (auto& component : obj->mComponents)
 				component->InstantiateInternal();
 
 			for (auto& child : obj->mChildren)
 			{
-				if(!prefabOnly || child->mPrefabLinkUUID.empty())
-					instantiateRecursive(child.get());
+				if(!prefabOnly || child->mPrefabLinkUUID.Empty())
+					instantiateRecursive(child.Get());
 			}
 		};
 
@@ -221,8 +221,8 @@ namespace bs
 
 			for (auto& child : obj->mChildren)
 			{
-				if (!prefabOnly || child->mPrefabLinkUUID.empty())
-					triggerEventsRecursive(child.get());
+				if (!prefabOnly || child->mPrefabLinkUUID.Empty())
+					triggerEventsRecursive(child.Get());
 			}
 		};
 
@@ -239,7 +239,7 @@ namespace bs
 		if (mMobility == ObjectMobility::Movable)
 		{
 			mLocalTfrm.SetPosition(position);
-			notifyTransformChanged(TCF_Transform);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -248,7 +248,7 @@ namespace bs
 		if (mMobility == ObjectMobility::Movable)
 		{
 			mLocalTfrm.SetRotation(rotation);
-			notifyTransformChanged(TCF_Transform);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -256,8 +256,8 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.setScale(scale);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.SetScale(scale);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -267,11 +267,11 @@ namespace bs
 			return;
 
 		if (mParent != nullptr)
-			mLocalTfrm.setWorldPosition(position, mParent->GetTransform());
+			mLocalTfrm.SetWorldPosition(position, mParent->GetTransform());
 		else
 			mLocalTfrm.SetPosition(position);
 
-		notifyTransformChanged(TCF_Transform);
+		NotifyTransformChanged(TCF_Transform);
 	}
 
 	void SceneObject::SetWorldRotation(const Quaternion& rotation)
@@ -280,11 +280,11 @@ namespace bs
 			return;
 
 		if (mParent != nullptr)
-			mLocalTfrm.setWorldRotation(rotation, mParent->GetTransform());
+			mLocalTfrm.SetWorldRotation(rotation, mParent->GetTransform());
 		else
 			mLocalTfrm.SetRotation(rotation);
 
-		notifyTransformChanged(TCF_Transform);
+		NotifyTransformChanged(TCF_Transform);
 	}
 
 	void SceneObject::SetWorldScale(const Vector3& scale)
@@ -293,53 +293,53 @@ namespace bs
 			return;
 
 		if (mParent != nullptr)
-			mLocalTfrm.setWorldScale(scale, mParent->GetTransform());
+			mLocalTfrm.SetWorldScale(scale, mParent->GetTransform());
 		else
-			mLocalTfrm.setScale(scale);
+			mLocalTfrm.SetScale(scale);
 
-		notifyTransformChanged(TCF_Transform);
+		NotifyTransformChanged(TCF_Transform);
 	}
 
 	const Transform& SceneObject::GetTransform() const
 	{
-		if (!isCachedWorldTfrmUpToDate())
-			updateWorldTfrm();
+		if (!IsCachedWorldTfrmUpToDate())
+			UpdateWorldTfrm();
 
 		return mWorldTfrm;
 	}
 
 	void SceneObject::LookAt(const Vector3& location, const Vector3& up)
 	{
-		const Transform& worldTfrm = getTransform();
+		const Transform& worldTfrm = GetTransform();
 
 		Vector3 forward = location - worldTfrm.GetPosition();
 		
 		Quaternion rotation = worldTfrm.GetRotation();
-		rotation.lookRotation(forward, up);
-		setWorldRotation(rotation);
+		rotation.LookRotation(forward, up);
+		SetWorldRotation(rotation);
 	}
 
 	const Matrix4& SceneObject::GetWorldMatrix() const
 	{
-		if (!isCachedWorldTfrmUpToDate())
-			updateWorldTfrm();
+		if (!IsCachedWorldTfrmUpToDate())
+			UpdateWorldTfrm();
 
 		return mCachedWorldTfrm;
 	}
 
 	Matrix4 SceneObject::GetInvWorldMatrix() const
 	{
-		if (!isCachedWorldTfrmUpToDate())
-			updateWorldTfrm();
+		if (!IsCachedWorldTfrmUpToDate())
+			UpdateWorldTfrm();
 
-		Matrix4 worldToLocal = mWorldTfrm.getInvMatrix();
+		Matrix4 worldToLocal = mWorldTfrm.GetInvMatrix();
 		return worldToLocal;
 	}
 
 	const Matrix4& SceneObject::GetLocalMatrix() const
 	{
-		if (!isCachedLocalTfrmUpToDate())
-			updateLocalTfrm();
+		if (!IsCachedLocalTfrmUpToDate())
+			UpdateLocalTfrm();
 
 		return mCachedLocalTfrm;
 	}
@@ -348,8 +348,8 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.move(vec);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.Move(vec);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -357,8 +357,8 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.moveRelative(vec);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.MoveRelative(vec);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -367,7 +367,7 @@ namespace bs
 		if (mMobility == ObjectMobility::Movable)
 		{
 			mLocalTfrm.Rotate(axis, angle);
-			notifyTransformChanged(TCF_Transform);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -376,7 +376,7 @@ namespace bs
 		if (mMobility == ObjectMobility::Movable)
 		{
 			mLocalTfrm.Rotate(q);
-			notifyTransformChanged(TCF_Transform);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -384,8 +384,8 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.roll(angle);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.Roll(angle);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -393,8 +393,8 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.yaw(angle);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.Yaw(angle);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
@@ -402,27 +402,27 @@ namespace bs
 	{
 		if (mMobility == ObjectMobility::Movable)
 		{
-			mLocalTfrm.pitch(angle);
-			notifyTransformChanged(TCF_Transform);
+			mLocalTfrm.Pitch(angle);
+			NotifyTransformChanged(TCF_Transform);
 		}
 	}
 
 	void SceneObject::SetForward(const Vector3& forwardDir)
 	{
-		const Transform& worldTfrm = getTransform();
+		const Transform& worldTfrm = GetTransform();
 
 		Quaternion currentRotation = worldTfrm.GetRotation();
-		currentRotation.lookRotation(forwardDir);
-		setWorldRotation(currentRotation);
+		currentRotation.LookRotation(forwardDir);
+		SetWorldRotation(currentRotation);
 	}
 
 	void SceneObject::UpdateTransformsIfDirty()
 	{
-		if (!isCachedLocalTfrmUpToDate())
-			updateLocalTfrm();
+		if (!IsCachedLocalTfrmUpToDate())
+			UpdateLocalTfrm();
 
-		if (!isCachedWorldTfrmUpToDate())
-			updateWorldTfrm();
+		if (!IsCachedWorldTfrmUpToDate())
+			UpdateWorldTfrm();
 	}
 
 	void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
@@ -442,11 +442,11 @@ namespace bs
 		{
 			for (auto& entry : mComponents)
 			{
-				if (entry->supportsNotify(flags))
+				if (entry->SupportsNotify(flags))
 				{
-					bool alwaysRun = entry->hasFlag(ComponentFlag::AlwaysRun);
-					if (alwaysRun || gSceneManager().isRunning())
-						entry->onTransformChanged(componentFlags);
+					bool alwaysRun = entry->HasFlag(ComponentFlag::AlwaysRun);
+					if (alwaysRun || gSceneManager().IsRunning())
+						entry->OnTransformChanged(componentFlags);
 				}
 			}
 		}
@@ -456,7 +456,7 @@ namespace bs
 		if (flags != 0)
 		{
 			for (auto& entry : mChildren)
-				entry->notifyTransformChanged(flags);
+				entry->NotifyTransformChanged(flags);
 		}
 	}
 
@@ -467,13 +467,13 @@ namespace bs
 		// Don't allow movement from parent when not movable
 		if (mParent != nullptr && mMobility == ObjectMobility::Movable)
 		{
-			mWorldTfrm.makeWorld(mParent->GetTransform());
+			mWorldTfrm.MakeWorld(mParent->GetTransform());
 
 			mCachedWorldTfrm = mWorldTfrm.GetMatrix();
 		}
 		else
 		{
-			mCachedWorldTfrm = getLocalMatrix();
+			mCachedWorldTfrm = GetLocalMatrix();
 		}
 
 		mDirtyFlags &= ~DirtyFlags::WorldTfrmDirty;
@@ -491,11 +491,11 @@ namespace bs
 
 	void SceneObject::SetParent(const HSceneObject& parent, bool keepWorldTransform)
 	{
-		if (parent.isDestroyed())
+		if (parent.IsDestroyed())
 			return;
 
 #if BS_IS_BANSHEE3D
-		UUID originalPrefab = getPrefabLink();
+		UUID originalPrefab = GetPrefabLink();
 #endif
 
 		if (mMobility != ObjectMobility::Movable)
@@ -504,11 +504,11 @@ namespace bs
 		SetParentInternal(parent, keepWorldTransform);
 
 #if BS_IS_BANSHEE3D
-		if (gCoreApplication().isEditor())
+		if (gCoreApplication().IsEditor())
 		{
-			UUID newPrefab = getPrefabLink();
+			UUID newPrefab = GetPrefabLink();
 			if (originalPrefab != newPrefab)
-				PrefabUtility::clearPrefabIds(mThisHandle);
+				PrefabUtility::ClearPrefabIds(mThisHandle);
 		}
 #endif
 	}
@@ -524,18 +524,18 @@ namespace bs
 
 			// Make sure the object keeps its world coordinates
 			if (keepWorldTransform)
-				worldTfrm = getTransform();
+				worldTfrm = GetTransform();
 
 			if (mParent != nullptr)
-				mParent->removeChild(mThisHandle);
+				mParent->RemoveChild(mThisHandle);
 
 			if (parent != nullptr)
 			{
-				parent->addChild(mThisHandle);
-				setScene(parent->mParentScene);
+				parent->AddChild(mThisHandle);
+				SetScene(parent->mParentScene);
 			}
 			else
-				setScene(nullptr);
+				SetScene(nullptr);
 
 			mParent = parent;
 
@@ -544,12 +544,12 @@ namespace bs
 				mLocalTfrm = worldTfrm;
 
 				if (mParent != nullptr)
-					mLocalTfrm.makeLocal(mParent->GetTransform());
+					mLocalTfrm.MakeLocal(mParent->GetTransform());
 			}
 
 			bool isInstantiated = (mFlags & SOF_DontInstantiate) == 0;
 			if(isInstantiated)
-				notifyTransformChanged((TransformChangedFlags)(TCF_Parent | TCF_Transform));
+				NotifyTransformChanged((TransformChangedFlags)(TCF_Parent | TCF_Transform));
 		}
 	}
 
@@ -560,7 +560,7 @@ namespace bs
 
 		BS_LOG(Warning, Scene,
 			"Attempting to access a scene of a SceneObject with no scene, returning main scene instead.");
-		return gSceneManager().getMainScene();
+		return gSceneManager().GetMainScene();
 		
 	}
 
@@ -622,9 +622,9 @@ namespace bs
 			return HSceneObject();
 		
 		String trimmedPath = path;
-		StringUtil::trim(trimmedPath, "/");
+		StringUtil::Trim(trimmedPath, "/");
 
-		Vector<String> entries = StringUtil::split(trimmedPath, "/");
+		Vector<String> entries = StringUtil::Split(trimmedPath, "/");
 
 		// Find scene object referenced by the path
 		HSceneObject so = GetHandle();
@@ -643,7 +643,7 @@ namespace bs
 				break;
 
 			String childName = entry.substr(1, entry.size() - 1);
-			so = so->findChild(childName);
+			so = so->FindChild(childName);
 
 			if (so == nullptr)
 				break;
@@ -664,7 +664,7 @@ namespace bs
 		{
 			for (auto& child : mChildren)
 			{
-				HSceneObject foundObject = child->findChild(name, true);
+				HSceneObject foundObject = child->FindChild(name, true);
 				if (foundObject != nullptr)
 					return foundObject;
 			}
@@ -700,7 +700,7 @@ namespace bs
 	void SceneObject::SetActive(bool active)
 	{
 		mActiveSelf = active;
-		setActiveHierarchy(active);
+		SetActiveHierarchy(active);
 	}
 
 	void SceneObject::SetActiveHierarchy(bool active, bool triggerEvents)
@@ -748,15 +748,15 @@ namespace bs
 
 			// If mobility changed to movable, update both the mobility flag and transform, otherwise just mobility
 			if (mMobility == ObjectMobility::Movable)
-				notifyTransformChanged((TransformChangedFlags)(TCF_Transform | TCF_Mobility));
+				NotifyTransformChanged((TransformChangedFlags)(TCF_Transform | TCF_Mobility));
 			else
-				notifyTransformChanged(TCF_Mobility);
+				NotifyTransformChanged(TCF_Mobility);
 		}
 	}
 
 	HSceneObject SceneObject::Clone(bool instantiate, bool preserveUUIDs)
 	{
-		const bool isInstantiated = !hasFlag(SOF_DontInstantiate);
+		const bool isInstantiated = !HasFlag(SOF_DontInstantiate);
 
 		if (!instantiate)
 			SetFlagsInternal(SOF_DontInstantiate);
@@ -765,7 +765,7 @@ namespace bs
 
 		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 		BinarySerializer serializer;
-		serializer.encode(this, stream);
+		serializer.Encode(this, stream);
 
 		int flags = GODM_RestoreExternal | GODM_UseNewIds;
 		if(!preserveUUIDs)
@@ -774,9 +774,9 @@ namespace bs
 		CoreSerializationContext serzContext;
 		serzContext.goState = bs_shared_ptr_new<GameObjectDeserializationState>(flags);
 
-		stream->seek(0);
+		stream->Seek(0);
 		SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
-			serializer.decode(stream, (UINT32)stream->size(), BinarySerializerFlag::None, &serzContext));
+			serializer.Decode(stream, (UINT32)stream->Size(), BinarySerializerFlag::None, &serzContext));
 
 		if(isInstantiated)
 			UnsetFlagsInternal(SOF_DontInstantiate);
@@ -792,7 +792,7 @@ namespace bs
 		{
 			for (auto& entry : mComponents)
 			{
-				if (entry->GetRtti()->isDerivedFrom(type))
+				if (entry->GetRtti()->IsDerivedFrom(type))
 					return entry;
 			}
 		}
@@ -814,7 +814,7 @@ namespace bs
 		{
 			(*iter)->SetIsDestroyedInternal();
 
-			if (isInstantiated())
+			if (IsInstantiated())
 				gSceneManager().NotifyComponentDestroyedInternal(*iter, immediate);
 			
 			(*iter)->DestroyInternal(*iter, immediate);
@@ -829,7 +829,7 @@ namespace bs
 		auto iterFind = std::find_if(mComponents.begin(), mComponents.end(),
 			[component](const HComponent& x)
 		{
-			if(x.isDestroyed())
+			if(x.IsDestroyed())
 				return false;
 
 			return x.GetHandleDataInternal()->mPtr->object.get() == component; }
@@ -837,7 +837,7 @@ namespace bs
 
 		if(iterFind != mComponents.end())
 		{
-			destroyComponent(*iterFind, immediate);
+			DestroyComponent(*iterFind, immediate);
 		}
 	}
 
@@ -856,17 +856,17 @@ namespace bs
 		// Clean up the self-reference assigned by the RTTI system
 		componentPtr->mRTTIData = nullptr;
 
-		HComponent newComponent = static_object_cast<Component>(GameObjectManager::Instance().registerObject(componentPtr));
+		HComponent newComponent = static_object_cast<Component>(GameObjectManager::Instance().RegisterObject(componentPtr));
 		newComponent->mParent = mThisHandle;
 
-		addAndInitializeComponent(newComponent);
+		AddAndInitializeComponent(newComponent);
 		return newComponent;
 	}
 
 	void SceneObject::AddComponentInternal(const SPtr<Component>& component)
 	{
 		HComponent newComponent = static_object_cast<Component>(
-			GameObjectManager::Instance().getObject(component->GetInstanceId()));
+			GameObjectManager::Instance().GetObject(component->GetInstanceId()));
 		newComponent->mParent = mThisHandle;
 		newComponent->mThisHandle = newComponent;
 
@@ -877,26 +877,26 @@ namespace bs
 	{
 		component->mThisHandle = component;
 
-		if(component->mUUID.empty())
-			component->mUUID = UUIDGenerator::generateRandom();
+		if(component->mUUID.Empty())
+			component->mUUID = UUIDGenerator::GenerateRandom();
 
 		mComponents.push_back(component);
 
-		if (isInstantiated())
+		if (IsInstantiated())
 		{
 			component->InstantiateInternal();
 
-			gSceneManager().NotifyComponentCreatedInternal(component, getActive());
+			gSceneManager().NotifyComponentCreatedInternal(component, GetActive());
 		}
 	}
 
 	void SceneObject::AddAndInitializeComponent(const SPtr<Component>& component)
 	{
 		HComponent newComponent = static_object_cast<Component>(
-			GameObjectManager::Instance().getObject(component->GetInstanceId()));
+			GameObjectManager::Instance().GetObject(component->GetInstanceId()));
 		newComponent->mParent = mThisHandle;
 
-		addAndInitializeComponent(newComponent);
+		AddAndInitializeComponent(newComponent);
 	}
 
 	RTTITypeBase* SceneObject::GetRttiStatic()

@@ -24,11 +24,11 @@ namespace bs
 
 	void ManagedResourceManager::RegisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
 	{
-		mResources.insert(std::make_pair(resource.getUUID(), resource));
+		mResources.insert(std::make_pair(resource.GetUuid(), resource));
 	}
 
 	void ManagedResourceManager::UnregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
 	{
-		mResources.erase(resource.getUUID());
+		mResources.erase(resource.GetUuid());
 	}
 }

@@ -37,7 +37,7 @@ namespace bs
 			return TID_CParticleSystem;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CParticleSystem>();
 		}

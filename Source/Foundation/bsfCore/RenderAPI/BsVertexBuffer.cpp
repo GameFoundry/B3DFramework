@@ -87,24 +87,24 @@ namespace bs
 		}
 #endif
 
-		return mBuffer->lock(offset, length, options, deviceIdx, queueIdx);
+		return mBuffer->Lock(offset, length, options, deviceIdx, queueIdx);
 	}
 
 	void VertexBuffer::Unmap()
 	{
-		mBuffer->unlock();
+		mBuffer->Unlock();
 	}
 
 	void VertexBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		mBuffer->readData(offset, length, dest, deviceIdx, queueIdx);
+		mBuffer->ReadData(offset, length, dest, deviceIdx, queueIdx);
 		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_VertexBuffer);
 	}
 
 	void VertexBuffer::WriteData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
 		UINT32 queueIdx)
 	{
-		mBuffer->writeData(offset, length, source, writeFlags, queueIdx);
+		mBuffer->WriteData(offset, length, source, writeFlags, queueIdx);
 		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_VertexBuffer);
 	}
 
@@ -112,7 +112,7 @@ namespace bs
 		UINT32 dstOffset, UINT32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
 	{
 		auto& srcVertexBuffer = static_cast<VertexBuffer&>(srcBuffer);
-		mBuffer->copyData(*srcVertexBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
+		mBuffer->CopyData(*srcVertexBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 	}
 
 	SPtr<GpuBuffer> VertexBuffer::GetLoadStore(GpuBufferType type, GpuBufferFormat format, UINT32 elementSize)
@@ -123,17 +123,17 @@ namespace bs
 		for(const auto& entry : mLoadStoreViews)
 		{
 			const GpuBufferProperties& props = entry->GetProperties();
-			if(props.getType() == type)
+			if(props.GetType() == type)
 			{
 				if(type == GBT_STANDARD && props.GetFormat() == format)
 					return entry;
 
-				if(type == GBT_STRUCTURED && props.getElementSize() == elementSize)
+				if(type == GBT_STRUCTURED && props.GetElementSize() == elementSize)
 					return entry;
 			}
 		}
 
-		UINT32 elemSize = type == GBT_STANDARD ? bs::GpuBuffer::getFormatSize(format) : elementSize;
+		UINT32 elemSize = type == GBT_STANDARD ? bs::GpuBuffer::GetFormatSize(format) : elementSize;
 		if((mBuffer->GetSize() % elemSize) != 0)
 		{
 			BS_LOG(Error, RenderBackend,
@@ -159,7 +159,7 @@ namespace bs
 
 	SPtr<VertexBuffer> VertexBuffer::Create(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::Instance().createVertexBuffer(desc, deviceMask);
+		return HardwareBufferManager::Instance().CreateVertexBuffer(desc, deviceMask);
 	}
 	}
 }

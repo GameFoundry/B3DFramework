@@ -29,7 +29,7 @@ namespace bs
 				mArraySize = data->arraySize;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -98,7 +98,7 @@ namespace bs
 		SPtr<typename Base::MaterialParamsType> params = this->mMaterial->GetInternalParamsInternal();
 		const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
-		return params->template getCurveParam<T>(*data, arrayIdx);
+		return params->template GetCurveParam<T>(*data, arrayIdx);
 	}
 
 	template<bool Core>
@@ -196,7 +196,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -313,7 +313,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -366,7 +366,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 
@@ -415,7 +415,7 @@ namespace bs
 				mParamIndex = paramIndex;
 			}
 			else
-				params->reportGetParamError(result, name, 0);
+				params->ReportGetParamError(result, name, 0);
 		}
 	}
 

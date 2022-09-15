@@ -1450,7 +1450,7 @@ namespace bs {	namespace ct
 			if (settings.simulationSpace == ParticleSimulationSpace::Local)
 				worldAABox.transformAffine(entry.localToWorld);
 
-			const Sphere worldSphere(worldAABox.getCenter(), worldAABox.getRadius());
+			const Sphere worldSphere(worldAABox.GetCenter(), worldAABox.GetRadius());
 			mInfo.particleSystemCullInfos[rendererId].bounds = Bounds(worldAABox, worldSphere);
 		}
 	}

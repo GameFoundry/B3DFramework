@@ -28,8 +28,8 @@ namespace bs
 
 	Rect2I ViewportBase::GetPixelArea() const
 	{
-		float width = (float)getTargetWidth();
-		float height = (float)getTargetHeight();
+		float width = (float)GetTargetWidth();
+		float height = (float)GetTargetHeight();
 		
 		Rect2I area;
 		area.x = (int)(mNormArea.x * width);
@@ -98,7 +98,7 @@ namespace bs
 	{
 		mTarget = target;
 		
-		markDependenciesDirty();
+		MarkDependenciesDirty();
 		MarkCoreDirtyInternal();
 	}
 
@@ -109,7 +109,7 @@ namespace bs
 
 	void Viewport::MarkCoreDirtyInternal()
 	{
-		markCoreDirty();
+		MarkCoreDirty();
 	}
 
 	UINT32 Viewport::GetTargetWidth() const
@@ -147,7 +147,7 @@ namespace bs
 	{
 		UINT32 size = csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 		Bitstream stream(buffer, size);
 
 		csync_write(*this, stream);
@@ -225,7 +225,7 @@ namespace bs
 
 	void Viewport::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream stream(data.getBuffer(), data.getBufferSize());
+		Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 		csync_read(*this, stream);
 	}
 	}

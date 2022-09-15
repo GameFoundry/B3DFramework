@@ -44,7 +44,7 @@ namespace bs
 			static float FromInternalTime(float t) { return t; }
 			static Color ToInternalColor(const Color& color) { return color; }
 			static Color FromInternalColor(const Color& color) { return color; }
-			static float InvLerp(float from, float to, float val) { return InvLerp(val, from, to); }
+			static float InvLerp(float from, float to, float val) { return Math::InvLerp(val, from, to); }
 			static float ToLerpFactor(float factor) { return factor; }
 		};
 	}

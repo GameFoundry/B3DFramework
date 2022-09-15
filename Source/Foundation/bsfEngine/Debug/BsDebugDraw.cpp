@@ -181,7 +181,7 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mParamBuffer = gDebugDrawParamsDef.createBuffer();
+		mParamBuffer = gDebugDrawParamsDef.CreateBuffer();
 	}
 
 	void DebugDrawRenderer::UpdateData(const Vector<DebugDraw::MeshRenderData>& meshes)

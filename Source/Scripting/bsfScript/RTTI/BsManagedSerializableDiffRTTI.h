@@ -98,8 +98,8 @@ namespace bs
 	public:
 		ModifiedArrayEntryRTTI()
 		{
-			addPlainField("idx", 0, &ModifiedArrayEntryRTTI::GetIdx, &ModifiedArrayEntryRTTI::SetIdx);
-			addReflectablePtrField("modification", 1, &ModifiedArrayEntryRTTI::GetModification, &ModifiedArrayEntryRTTI::SetModification);
+			AddPlainField("idx", 0, &ModifiedArrayEntryRTTI::GetIdx, &ModifiedArrayEntryRTTI::SetIdx);
+			AddReflectablePtrField("modification", 1, &ModifiedArrayEntryRTTI::GetModification, &ModifiedArrayEntryRTTI::SetModification);
 		}
 
 		const String& GetRttiName() 
@@ -113,7 +113,7 @@ namespace bs
 			return TID_ScriptModifiedArrayEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedArrayEntry>();
 		}
@@ -145,8 +145,8 @@ namespace bs
 	public:
 		ModifiedDictionaryEntryRTTI()
 		{
-			addReflectablePtrField("key", 0, &ModifiedDictionaryEntryRTTI::getKey, &ModifiedDictionaryEntryRTTI::setKey);
-			addReflectablePtrField("modification", 1, &ModifiedDictionaryEntryRTTI::getModification, &ModifiedDictionaryEntryRTTI::setModification);
+			AddReflectablePtrField("key", 0, &ModifiedDictionaryEntryRTTI::getKey, &ModifiedDictionaryEntryRTTI::setKey);
+			AddReflectablePtrField("modification", 1, &ModifiedDictionaryEntryRTTI::getModification, &ModifiedDictionaryEntryRTTI::setModification);
 		}
 
 		const String& GetRttiName() override
@@ -160,7 +160,7 @@ namespace bs
 			return TID_ScriptModifiedDictionaryEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedDictionaryEntry>();
 		}
@@ -184,7 +184,7 @@ namespace bs
 			return TID_ScriptModification;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return nullptr;
 		}
@@ -232,7 +232,7 @@ namespace bs
 			return TID_ScriptModifiedObject;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDiff::ModifiedObject::Create();
 		}
@@ -285,8 +285,8 @@ namespace bs
 	public:
 		ModifiedArrayRTTI()
 		{
-			addPlainField("origSizes", 0, &ModifiedArrayRTTI::getOrigSizes, &ModifiedArrayRTTI::setOrigSizes);
-			addPlainField("newSizes", 1, &ModifiedArrayRTTI::getNewSizes, &ModifiedArrayRTTI::setNewSizes);
+			AddPlainField("origSizes", 0, &ModifiedArrayRTTI::getOrigSizes, &ModifiedArrayRTTI::setOrigSizes);
+			AddPlainField("newSizes", 1, &ModifiedArrayRTTI::getNewSizes, &ModifiedArrayRTTI::setNewSizes);
 			addReflectableArrayField("entries", 2, &ModifiedArrayRTTI::GetFieldEntry, &ModifiedArrayRTTI::GetNumFieldEntries,
 				&ModifiedArrayRTTI::SetFieldEntry, &ModifiedArrayRTTI::SetNumFieldEntries);
 		}
@@ -302,7 +302,7 @@ namespace bs
 			return TID_ScriptModifiedArray;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDiff::ModifiedArray::Create();
 		}
@@ -372,7 +372,7 @@ namespace bs
 			return TID_ScriptModifiedDictionary;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDiff::ModifiedDictionary::Create();
 		}
@@ -395,7 +395,7 @@ namespace bs
 	public:
 		ModifiedEntryRTTI()
 		{
-			addReflectablePtrField("value", 0, &ModifiedEntryRTTI::getValue, &ModifiedEntryRTTI::setValue);
+			AddReflectablePtrField("value", 0, &ModifiedEntryRTTI::getValue, &ModifiedEntryRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -409,7 +409,7 @@ namespace bs
 			return TID_ScriptModifiedEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return ManagedSerializableDiff::ModifiedEntry::Create(nullptr);
 		}
@@ -431,7 +431,7 @@ namespace bs
 	public:
 		ManagedSerializableDiffRTTI()
 		{
-			addReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDiffRTTI::getModificationRoot,
+			AddReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDiffRTTI::getModificationRoot,
 				&ManagedSerializableDiffRTTI::setModificationRoot);
 
 		}
@@ -447,7 +447,7 @@ namespace bs
 			return TID_ScriptSerializableDiff;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableDiff>();
 		}

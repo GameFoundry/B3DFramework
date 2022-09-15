@@ -23,7 +23,7 @@ namespace bs
 	public:
 		CCameraRTTI()
 		{
-			addReflectablePtrField("mInternal", 0, &CCameraRTTI::getInternal, &CCameraRTTI::setInternal);
+			AddReflectablePtrField("mInternal", 0, &CCameraRTTI::GetInternal, &CCameraRTTI::SetInternal);
 		}
 
 		const String& GetRttiName() override
@@ -37,7 +37,7 @@ namespace bs
 			return TID_CCamera;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CCamera>();
 		}

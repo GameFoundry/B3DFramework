@@ -23,7 +23,7 @@ namespace bs
 	public:
 		CReflectionProbeRTTI()
 		{
-			addReflectablePtrField("mInternal", 0, &CReflectionProbeRTTI::getInternal, &CReflectionProbeRTTI::setInternal);
+			AddReflectablePtrField("mInternal", 0, &CReflectionProbeRTTI::GetInternal, &CReflectionProbeRTTI::SetInternal);
 		}
 
 		const String& GetRttiName() override
@@ -37,7 +37,7 @@ namespace bs
 			return TID_CReflectionProbe;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CReflectionProbe>();
 		}

@@ -26,7 +26,7 @@ namespace bs { namespace ct
 
 		const Transform& tfrm = internal->GetTransform();
 		output.position = tfrm.GetPosition();
-		output.boundsRadius = internal->GetBounds().getRadius();
+		output.boundsRadius = internal->GetBounds().GetRadius();
 		output.srcRadius = internal->GetSourceRadius();
 		output.direction = -tfrm.GetRotation().zAxis();
 		output.luminance = internal->GetLuminance();
@@ -73,7 +73,7 @@ namespace bs { namespace ct
 		Vector4 lightGeometry;
 		lightGeometry.x = internal->GetType() == LightType::Spot ? (float)Light::LIGHT_CONE_NUM_SIDES : 0;
 		lightGeometry.y = (float)Light::LIGHT_CONE_NUM_SLICES;
-		lightGeometry.z = internal->GetBounds().getRadius();
+		lightGeometry.z = internal->GetBounds().GetRadius();
 
 		float extraRadius = lightData.srcRadius / Math::Tan(lightData.spotAngles.x * 0.5f);
 		float coneRadius = Math::Sin(lightData.spotAngles.x) * (internal->GetAttenuationRadius() + extraRadius);
@@ -327,7 +327,7 @@ namespace bs { namespace ct
 			Sphere lightSphere(lightData->position, lightData->boundsRadius);
 			if (bounds.getSphere().intersects(lightSphere))
 			{
-				float distance = bounds.getSphere().getCenter().squaredDistance(lightData->position);
+				float distance = bounds.getSphere().GetCenter().squaredDistance(lightData->position);
 
 				// See where in the array can we fit the light
 				if (numInfluencingLights < STANDARD_FORWARD_MAX_NUM_LIGHTS)

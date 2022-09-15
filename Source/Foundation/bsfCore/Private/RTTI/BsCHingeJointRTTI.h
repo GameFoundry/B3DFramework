@@ -44,7 +44,7 @@ namespace bs
 			return TID_CHingeJoint;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CHingeJoint>();
 		}

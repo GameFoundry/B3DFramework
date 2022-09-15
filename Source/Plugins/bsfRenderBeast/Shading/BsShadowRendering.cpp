@@ -37,16 +37,16 @@ namespace bs { namespace ct
 		if(skinned)
 		{
 			if(morph)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
 			if(morph)
-				return get(getVariation<false, true>());
+				return Get(getVariation<false, true>());
 
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -73,16 +73,16 @@ namespace bs { namespace ct
 		if(skinned)
 		{
 			if(morph)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
 			if(morph)
-				return get(getVariation<false, true>());
+				return Get(getVariation<false, true>());
 
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -108,16 +108,16 @@ namespace bs { namespace ct
 		if(skinned)
 		{
 			if(morph)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
 			if(morph)
-				return get(getVariation<false, true>());
+				return Get(getVariation<false, true>());
 
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -151,16 +151,16 @@ namespace bs { namespace ct
 		if(skinned)
 		{
 			if(morph)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 		else
 		{
 			if(morph)
-				return get(getVariation<false, true>());
+				return Get(getVariation<false, true>());
 
-			return get(getVariation<false, false>());
+			return Get(getVariation<false, false>());
 		}
 	}
 
@@ -187,13 +187,13 @@ namespace bs { namespace ct
 	ShadowProjectStencilMat* ShadowProjectStencilMat::GetVariation(bool directional, bool useZFailStencil)
 	{
 		if(directional)
-			return get(getVariation<true, true>());
+			return Get(getVariation<true, true>());
 		else
 		{
 			if (useZFailStencil)
-				return get(getVariation<false, true>());
+				return Get(getVariation<false, true>());
 			else
-				return get(getVariation<false, false>());
+				return Get(getVariation<false, false>());
 		}
 	}
 
@@ -243,14 +243,14 @@ namespace bs { namespace ct
 	{																\
 		if(directional)												\
 			if (MSAA)												\
-				return get(getVariation<QUALITY, true, true>());	\
+				return Get(getVariation<QUALITY, true, true>());	\
 			else													\
-				return get(getVariation<QUALITY, true, false>());	\
+				return Get(getVariation<QUALITY, true, false>());	\
 		else														\
 			if (MSAA)												\
-				return get(getVariation<QUALITY, false, true>());	\
+				return Get(getVariation<QUALITY, false, true>());	\
 			else													\
-				return get(getVariation<QUALITY, false, false>());	\
+				return Get(getVariation<QUALITY, false, false>());	\
 	}
 
 		if(quality <= 1)
@@ -315,14 +315,14 @@ namespace bs { namespace ct
 	{																\
 		if(inside)													\
 			if (MSAA)												\
-				return get(getVariation<QUALITY, true, true>());	\
+				return Get(getVariation<QUALITY, true, true>());	\
 			else													\
-				return get(getVariation<QUALITY, true, false>());	\
+				return Get(getVariation<QUALITY, true, false>());	\
 		else														\
 			if (MSAA)												\
-				return get(getVariation<QUALITY, false, true>());	\
+				return Get(getVariation<QUALITY, false, true>());	\
 			else													\
-				return get(getVariation<QUALITY, false, false>());	\
+				return Get(getVariation<QUALITY, false, false>());	\
 	}
 
 		if(quality <= 1)
@@ -1135,7 +1135,7 @@ namespace bs { namespace ct
 				auto shadowMapProps = shadowMap->GetProperties();
 
 				Vector2 shadowMapSize((float)shadowMapProps.GetWidth(), (float)shadowMapProps.GetHeight());
-				float transitionScale = getFadeTransition(*light, shadowInfo->subjectBounds.getRadius(),
+				float transitionScale = getFadeTransition(*light, shadowInfo->subjectBounds.GetRadius(),
 					shadowInfo->depthRange, shadowInfo->area.width);
 
 				gShadowProjectParamsDef.gFadePlaneDepth.Set(shadowParamBuffer, shadowInfo->depthFade);
@@ -1198,7 +1198,7 @@ namespace bs { namespace ct
 				if (!isCSM)
 					drawFrustum(frustumVertices);
 				else
-					gRendererUtility().drawScreenQuad();
+					gRendererUtility().DrawScreenQuad();
 			}
 		}
 	}
@@ -1276,13 +1276,13 @@ namespace bs { namespace ct
 			ConvexVolume cascadeCullVolume = getCSMSplitFrustum(view, lightDir, i, numCascades, frustumBounds);
 
 			// Make sure the size of the projected area is in multiples of shadow map pixel size (for stability)
-			float worldUnitsPerTexel = frustumBounds.getRadius() * 2.0f / shadowMap.getSize();
+			float worldUnitsPerTexel = frustumBounds.GetRadius() * 2.0f / shadowMap.getSize();
 
-			float orthoSize = floor(frustumBounds.getRadius() * 2.0f / worldUnitsPerTexel) * worldUnitsPerTexel * 0.5f;
+			float orthoSize = floor(frustumBounds.GetRadius() * 2.0f / worldUnitsPerTexel) * worldUnitsPerTexel * 0.5f;
 			worldUnitsPerTexel = orthoSize * 2.0f / shadowMap.getSize();
 			
 			// Snap caster origin to the shadow map pixel grid, to ensure shadow map stability
-			Vector3 casterOrigin = frustumBounds.getCenter();
+			Vector3 casterOrigin = frustumBounds.GetCenter();
 			Matrix4 shadowView = Matrix4::view(Vector3::ZERO, lightRotation);
 			Vector3 shadowSpaceOrigin = shadowView.MultiplyAffine(casterOrigin);
 
@@ -1294,9 +1294,9 @@ namespace bs { namespace ct
 			casterOrigin = shadowViewInv.MultiplyAffine(shadowSpaceOrigin);
 
 			// Move the light so it is centered at the subject frustum, with depth range covering the frustum bounds
-			shadowInfo.depthRange = frustumBounds.getRadius() * 2.0f;
+			shadowInfo.depthRange = frustumBounds.GetRadius() * 2.0f;
 
-			Vector3 offsetLightPos = casterOrigin - lightDir * frustumBounds.getRadius();
+			Vector3 offsetLightPos = casterOrigin - lightDir * frustumBounds.GetRadius();
 			Matrix4 offsetViewMat = Matrix4::view(offsetLightPos, lightRotation);
 
 			Matrix4 proj = Matrix4::projectionOrthographic(-orthoSize, orthoSize, orthoSize, -orthoSize, 0.0f,
@@ -1321,7 +1321,7 @@ namespace bs { namespace ct
 				shadowInfo.fadeRange = 0.0f;
 
 			shadowInfo.depthFar = shadowInfo.depthFade + shadowInfo.fadeRange;
-			shadowInfo.depthBias = getDepthBias(*light, frustumBounds.getRadius(), shadowInfo.depthRange, mapSize);
+			shadowInfo.depthBias = getDepthBias(*light, frustumBounds.GetRadius(), shadowInfo.depthRange, mapSize);
 
 			gShadowParamsDef.gDepthBias.Set(shadowParamsBuffer, shadowInfo.depthBias);
 			gShadowParamsDef.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / shadowInfo.depthRange);
@@ -1398,7 +1398,7 @@ namespace bs { namespace ct
 		mapInfo.depthFade = mapInfo.depthFar;
 		mapInfo.fadeRange = 0.0f;
 		mapInfo.depthRange = mapInfo.depthFar - mapInfo.depthNear;
-		mapInfo.depthBias = getDepthBias(*light, light->GetBounds().getRadius(), mapInfo.depthRange, options.mapSize);
+		mapInfo.depthBias = getDepthBias(*light, light->GetBounds().GetRadius(), mapInfo.depthRange, options.mapSize);
 		mapInfo.subjectBounds = light->GetBounds();
 
 		Quaternion lightRotation = light->GetTransform().GetRotation();
@@ -1489,7 +1489,7 @@ namespace bs { namespace ct
 		mapInfo.depthFade = mapInfo.depthFar;
 		mapInfo.fadeRange = 0.0f;
 		mapInfo.depthRange = mapInfo.depthFar - mapInfo.depthNear;
-		mapInfo.depthBias = getDepthBias(*light, light->GetBounds().getRadius(), mapInfo.depthRange, options.mapSize);
+		mapInfo.depthBias = getDepthBias(*light, light->GetBounds().GetRadius(), mapInfo.depthRange, options.mapSize);
 		mapInfo.subjectBounds = light->GetBounds();
 
 		// Note: Projecting on positive Z axis, because cubemaps use a left-handed coordinate system
@@ -1681,7 +1681,7 @@ namespace bs { namespace ct
 				float screenScale = std::max(screenScaleX, screenScaleY);
 
 				//// Calc radius (clamp if too close to avoid massive numbers)
-				float radiusNDC = light.internal->GetBounds().getRadius() / std::max(depth, 1.0f);
+				float radiusNDC = light.internal->GetBounds().GetRadius() / std::max(depth, 1.0f);
 
 				//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
 				float radiusScreen = radiusNDC * screenScale;

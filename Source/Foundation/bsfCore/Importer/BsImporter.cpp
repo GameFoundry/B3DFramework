@@ -298,7 +298,7 @@ namespace bs
 			mLastTaskMutex.unlock();
 		}
 
-		TaskScheduler::Instance().addTask(task);
+		TaskScheduler::Instance().AddTask(task);
 	}
 
 	template void Importer::QueueForImport(SpecificImporter*, const Path&, const SPtr<const ImportOptions>&, const UUID&,

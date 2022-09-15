@@ -32,14 +32,14 @@ namespace bs { namespace ct
 			mFullscreenQuadVDecl = VertexDeclaration::Create(mFullscreenQuadVDesc);
 
 			VERTEX_BUFFER_DESC vbDesc;
-			vbDesc.vertexSize = mFullscreenQuadVDecl->GetProperties().getVertexSize(0);
+			vbDesc.vertexSize = mFullscreenQuadVDecl->GetProperties().GetVertexSize(0);
 			vbDesc.numVerts = 4 * NUM_QUAD_VB_SLOTS;
 			vbDesc.usage = GBU_DYNAMIC;
 
 			mFullScreenQuadVB = VertexBuffer::Create(vbDesc);
 
 			UINT32 indices[] { 0, 1, 2, 1, 3, 2 };
-			mFullScreenQuadIB->writeData(0, sizeof(indices), indices, BWT_DISCARD);
+			mFullScreenQuadIB->WriteData(0, sizeof(indices), indices, BWT_DISCARD);
 		}
 
 		{
@@ -49,14 +49,14 @@ namespace bs { namespace ct
 			UINT32 numVertices = 0;
 			UINT32 numIndices = 0;
 
-			ShapeMeshes3D::getNumElementsSphere(3, numVertices, numIndices);
+			ShapeMeshes3D::GetNumElementsSphere(3, numVertices, numIndices);
 			SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
 
 			UINT32* indexData = meshData->GetIndices32();
 			UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 			Sphere localSphere(Vector3::ZERO, 1.0f);
-			ShapeMeshes3D::solidSphere(localSphere, positionData, nullptr, nullptr, 0,
+			ShapeMeshes3D::SolidSphere(localSphere, positionData, nullptr, nullptr, 0,
 				vertexDesc->GetVertexStride(), indexData, 0, 3);
 
 			mUnitSphereStencilMesh = Mesh::Create(meshData);
@@ -69,14 +69,14 @@ namespace bs { namespace ct
 			UINT32 numVertices = 0;
 			UINT32 numIndices = 0;
 
-			ShapeMeshes3D::getNumElementsAABox(numVertices, numIndices);
+			ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
 			SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
 
 			UINT32* indexData = meshData->GetIndices32();
 			UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 			AABox localBox(-Vector3::ONE, Vector3::ONE);
-			ShapeMeshes3D::solidAABox(localBox, positionData, nullptr, nullptr, 0,
+			ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0,
 				vertexDesc->GetVertexStride(), indexData, 0);
 
 			mUnitBoxStencilMesh = Mesh::Create(meshData);
@@ -147,14 +147,14 @@ namespace bs { namespace ct
 			UINT32 numVertices = 0;
 			UINT32 numIndices = 0;
 
-			ShapeMeshes3D::getNumElementsAABox(numVertices, numIndices);
+			ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
 			SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
 
 			UINT32* indexData = meshData->GetIndices32();
 			UINT8* positionData = meshData->GetElementData(VES_POSITION);
 
 			AABox localBox(-Vector3::ONE * 1500.0f, Vector3::ONE * 1500.0f);
-			ShapeMeshes3D::solidAABox(localBox, positionData, nullptr, nullptr, 0,
+			ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0,
 									   vertexDesc->GetVertexStride(), indexData, 0);
 
 			mSkyBoxMesh = Mesh::Create(meshData);
@@ -166,8 +166,8 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::Instance();
 
 		SPtr<Pass> pass = material->GetPass(passIdx, techniqueIdx);
-		rapi.setGraphicsPipeline(pass->GetGraphicsPipelineState());
-		rapi.setStencilRef(pass->GetStencilRefValue());
+		rapi.SetGraphicsPipeline(pass->GetGraphicsPipelineState());
+		rapi.SetStencilRef(pass->GetStencilRefValue());
 	}
 
 	void RendererUtility::SetComputePass(const SPtr<Material>& material, UINT32 passIdx)
@@ -175,7 +175,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::Instance();
 
 		SPtr<Pass> pass = material->GetPass(passIdx);
-		rapi.setComputePipeline(pass->GetComputePipelineState());
+		rapi.SetComputePipeline(pass->GetComputePipelineState());
 	}
 
 	void RendererUtility::SetPassParams(const SPtr<GpuParamsSet>& params, UINT32 passIdx)
@@ -185,12 +185,12 @@ namespace bs { namespace ct
 			return;
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setGpuParams(gpuParams);
+		rapi.SetGpuParams(gpuParams);
 	}
 
 	void RendererUtility::Draw(const SPtr<MeshBase>& mesh, UINT32 numInstances)
 	{
-		draw(mesh, mesh->GetProperties().getSubMesh(0), numInstances);
+		Draw(mesh, mesh->GetProperties().GetSubMesh(0), numInstances);
 	}
 
 	void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, UINT32 numInstances)
@@ -198,7 +198,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::Instance();
 		SPtr<VertexData> vertexData = mesh->GetVertexData();
 
-		rapi.setVertexDeclaration(mesh->GetVertexData()->vertexDeclaration);
+		rapi.SetVertexDeclaration(mesh->GetVertexData()->vertexDeclaration);
 
 		auto& vertexBuffers = vertexData->GetBuffers();
 		if (vertexBuffers.size() > 0)
@@ -221,16 +221,16 @@ namespace bs { namespace ct
 				buffers[iter->first - startSlot] = iter->second;
 			}
 
-			rapi.setVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
+			rapi.SetVertexBuffers(startSlot, buffers, endSlot - startSlot + 1);
 		}
 
 		SPtr<IndexBuffer> indexBuffer = mesh->GetIndexBuffer();
-		rapi.setIndexBuffer(indexBuffer);
+		rapi.SetIndexBuffer(indexBuffer);
 
-		rapi.setDrawOperation(subMesh.drawOp);
+		rapi.SetDrawOperation(subMesh.drawOp);
 
 		UINT32 indexCount = subMesh.indexCount;
-		rapi.drawIndexed(subMesh.indexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(),
+		rapi.DrawIndexed(subMesh.indexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(),
 			vertexData->vertexCount, numInstances);
 
 		mesh->NotifyUsedOnGPUInternal();
@@ -243,7 +243,7 @@ namespace bs { namespace ct
 		RenderAPI& rapi = RenderAPI::Instance();
 
 		SPtr<VertexData> vertexData = mesh->GetVertexData();
-		rapi.setVertexDeclaration(morphVertexDeclaration);
+		rapi.SetVertexDeclaration(morphVertexDeclaration);
 
 		auto& meshBuffers = vertexData->GetBuffers();
 		SPtr<VertexBuffer> allBuffers[BS_MAX_BOUND_VERTEX_BUFFERS];
@@ -266,15 +266,15 @@ namespace bs { namespace ct
 			allBuffers[iter->first - startSlot] = iter->second;
 
 		allBuffers[1] = morphVertices;
-		rapi.setVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
+		rapi.SetVertexBuffers(startSlot, allBuffers, endSlot - startSlot + 1);
 
 		SPtr<IndexBuffer> indexBuffer = mesh->GetIndexBuffer();
-		rapi.setIndexBuffer(indexBuffer);
+		rapi.SetIndexBuffer(indexBuffer);
 
-		rapi.setDrawOperation(subMesh.drawOp);
+		rapi.SetDrawOperation(subMesh.drawOp);
 
 		UINT32 indexCount = subMesh.indexCount;
-		rapi.drawIndexed(subMesh.indexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(),
+		rapi.DrawIndexed(subMesh.indexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(),
 			vertexData->vertexCount, 1);
 
 		mesh->NotifyUsedOnGPUInternal();
@@ -293,8 +293,8 @@ namespace bs { namespace ct
 			fArea.height = (float)texProps.GetHeight();
 		}
 
-		BlitMat* blitMat = BlitMat::getVariation(texProps.getNumSamples(), !isDepth, isFiltered);
-		blitMat->execute(texture, fArea, flipUV);
+		BlitMat* blitMat = BlitMat::GetVariation(texProps.GetNumSamples(), !isDepth, isFiltered);
+		blitMat->Execute(texture, fArea, flipUV);
 	}
 
 	void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSize, UINT32 numInstances, bool flipUV)
@@ -346,34 +346,34 @@ namespace bs { namespace ct
 
 		auto vecIter = meshData->GetVec3DataIter(VES_POSITION);
 		for (UINT32 i = 0; i < 4; i++)
-			vecIter.addValue(vertices[i]);
+			vecIter.AddValue(vertices[i]);
 
 		auto uvIter = meshData->GetVec2DataIter(VES_TEXCOORD);
 		for (UINT32 i = 0; i < 4; i++)
-			uvIter.addValue(uvs[i]);
+			uvIter.AddValue(uvs[i]);
 
 		UINT32 bufferSize = meshData->GetStreamSize(0);
 		UINT8* srcVertBufferData = meshData->GetStreamData(0);
 
-		void* dstData = mFullScreenQuadVB->lock(mNextQuadVBSlot * bufferSize, bufferSize, GBL_WRITE_ONLY_NO_OVERWRITE);
+		void* dstData = mFullScreenQuadVB->Lock(mNextQuadVBSlot * bufferSize, bufferSize, GBL_WRITE_ONLY_NO_OVERWRITE);
 		memcpy(dstData, srcVertBufferData, bufferSize);
-		mFullScreenQuadVB->unlock();
+		mFullScreenQuadVB->Unlock();
 
 		RenderAPI& rapi = RenderAPI::Instance();
 
-		rapi.setVertexDeclaration(mFullscreenQuadVDecl);
-		rapi.setVertexBuffers(0, &mFullScreenQuadVB, 1);
-		rapi.setIndexBuffer(mFullScreenQuadIB);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
-		rapi.drawIndexed(0, 6, mNextQuadVBSlot * 4, 4, numInstances);
+		rapi.SetVertexDeclaration(mFullscreenQuadVDecl);
+		rapi.SetVertexBuffers(0, &mFullScreenQuadVB, 1);
+		rapi.SetIndexBuffer(mFullScreenQuadIB);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.DrawIndexed(0, 6, mNextQuadVBSlot * 4, 4, numInstances);
 
 		mNextQuadVBSlot = (mNextQuadVBSlot + 1) % NUM_QUAD_VB_SLOTS;
 	}
 
 	void RendererUtility::Clear(UINT32 value)
 	{
-		ClearMat* clearMat = ClearMat::get();
-		clearMat->execute(value);
+		ClearMat* clearMat = ClearMat::Get();
+		clearMat->Execute(value);
 	}
 
 	RendererUtility& gRendererUtility()
@@ -384,7 +384,7 @@ namespace bs { namespace ct
 	BlitMat::BlitMat()
 	{
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
-		mIsFiltered = mVariation.getInt("MODE") == 1;
+		mIsFiltered = mVariation.GetInt("MODE") == 1;
 	}
 
 	void BlitMat::Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
@@ -392,12 +392,12 @@ namespace bs { namespace ct
 		BS_RENMAT_PROFILE_BLOCK
 
 		mSource.Set(source);
-		bind();
+		Bind();
 
 		if(!mIsFiltered)
-			gRendererUtility().drawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
+			gRendererUtility().DrawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
 		else
-			gRendererUtility().drawScreenQuad(Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
+			gRendererUtility().DrawScreenQuad(Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 	}
 
 	BlitMat* BlitMat::GetVariation(UINT32 msaaCount, bool isColor, bool isFiltered)
@@ -409,12 +409,12 @@ namespace bs { namespace ct
 				switch (msaaCount)
 				{
 				case 2:
-					return get(getVariation<2, 0>());
+					return Get(GetVariation<2, 0>());
 				case 4:
-					return get(getVariation<4, 0>());
+					return Get(GetVariation<4, 0>());
 				default:
 				case 8:
-					return get(getVariation<8, 0>());
+					return Get(GetVariation<8, 0>());
 				}
 			}
 			else
@@ -422,21 +422,21 @@ namespace bs { namespace ct
 				switch(msaaCount)
 				{
 				case 2:
-					return get(getVariation<2, 2>());
+					return Get(GetVariation<2, 2>());
 				case 4:
-					return get(getVariation<4, 2>());
+					return Get(GetVariation<4, 2>());
 				default:
 				case 8:
-					return get(getVariation<8, 2>());
+					return Get(GetVariation<8, 2>());
 				}
 			}
 		}
 		else
 		{
 			if(isFiltered)
-				return get(getVariation<1, 1>());
+				return Get(GetVariation<1, 1>());
 			else
-				return get(getVariation<1, 0>());
+				return Get(GetVariation<1, 0>());
 		}
 	}
 
@@ -444,7 +444,7 @@ namespace bs { namespace ct
 
 	ClearMat::ClearMat()
 	{
-		mParamBuffer = gClearParamDef.createBuffer();
+		mParamBuffer = gClearParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 	}
 
@@ -454,15 +454,15 @@ namespace bs { namespace ct
 
 		gClearParamDef.gClearValue.Set(mParamBuffer, value);
 
-		bind();
-		gRendererUtility().drawScreenQuad();
+		Bind();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	CompositeParamDef gCompositeParamDef;
 
 	CompositeMat::CompositeMat()
 	{
-		mParamBuffer = gCompositeParamDef.createBuffer();
+		mParamBuffer = gCompositeParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
@@ -479,17 +479,17 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(target);
+		rapi.SetRenderTarget(target);
 
-		bind();
-		gRendererUtility().drawScreenQuad();
+		Bind();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	BicubicUpsampleParamDef gBicubicUpsampleParamDef;
 
 	BicubicUpsampleMat::BicubicUpsampleMat()
 	{
-		mParamBuffer = gBicubicUpsampleParamDef.createBuffer();
+		mParamBuffer = gBicubicUpsampleParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
@@ -515,18 +515,18 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(target);
+		rapi.SetRenderTarget(target);
 
-		bind();
-		gRendererUtility().drawScreenQuad();
+		Bind();
+		gRendererUtility().DrawScreenQuad();
 	}
 
 	BicubicUpsampleMat* BicubicUpsampleMat::GetVariation(bool hermite)
 	{
 		if (hermite)
-			return get(getVariation<true>());
+			return Get(GetVariation<true>());
 
-		return get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 }}

@@ -70,10 +70,10 @@ namespace bs
 		TColorDistribution(const T& gradient)
 			: mType(PDT_Curve), mMinGradient(gradient), mMaxGradient(gradient)
 		{
-			if(mMinGradient.getNumKeys() == 0)
+			if(mMinGradient.GetNumKeys() == 0)
 				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 
-			if(mMaxGradient.getNumKeys() == 0)
+			if(mMaxGradient.GetNumKeys() == 0)
 				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 		}
 
@@ -82,10 +82,10 @@ namespace bs
 		TColorDistribution(const T& minGradient, const T& maxGradient)
 			: mType(PDT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
 		{
-			if(mMinGradient.getNumKeys() == 0)
+			if(mMinGradient.GetNumKeys() == 0)
 				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 
-			if(mMaxGradient.getNumKeys() == 0)
+			if(mMaxGradient.GetNumKeys() == 0)
 				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
 		}
 
@@ -98,13 +98,13 @@ namespace bs
 		 * the distribution is represented by a gradient.
 		 */
 		BS_SCRIPT_EXPORT()
-		Color GetMinConstant() const { return mMinGradient.getKey(0).color; }
+		Color GetMinConstant() const { return mMinGradient.GetKey(0).color; }
 
 		/**
 		 * Returns the maximum value of a constant range. Only defined if the distribution represents a non-gradient range.
 		 */
 		BS_SCRIPT_EXPORT()
-		Color GetMaxConstant() const { return mMaxGradient.getKey(0).color; }
+		Color GetMaxConstant() const { return mMaxGradient.GetKey(0).color; }
 
 		/**
 		 * Returns the gradient representing the distribution, or the first gradient representing a gradient range.
@@ -133,25 +133,25 @@ namespace bs
 		 */
 		typename T::ColorType Evaluate(float t, float factor) const
 		{
-			const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::toLerpFactor(factor);
+			const auto lerpFactor = impl::TGradientHelper<typename T::ColorType>::ToLerpFactor(factor);
 			switch(mType)
 			{
 			default:
 			case PDT_Constant:
-				return mMinGradient.evaluate(0.0f);
+				return mMinGradient.Evaluate(0.0f);
 			case PDT_RandomRange:
 				{
-					const auto minColor = mMinGradient.evaluate(0.0f);
-					const auto maxColor = mMaxGradient.evaluate(0.0f);
+					const auto minColor = mMinGradient.Evaluate(0.0f);
+					const auto maxColor = mMaxGradient.Evaluate(0.0f);
 
 					return Color::Lerp(lerpFactor, minColor, maxColor);
 				}
 			case PDT_Curve:
-				return mMinGradient.evaluate(t);
+				return mMinGradient.Evaluate(t);
 			case PDT_RandomCurveRange:
 				{
-					const auto minColor = mMinGradient.evaluate(t);
-					const auto maxColor = mMaxGradient.evaluate(t);
+					const auto minColor = mMinGradient.Evaluate(t);
+					const auto maxColor = mMaxGradient.Evaluate(t);
 
 					return Color::Lerp(lerpFactor, minColor, maxColor);
 				}
@@ -342,11 +342,11 @@ namespace bs
 			case PDT_RandomRange:
 				return Math::Lerp(factor, GetMinConstant(), GetMaxConstant());
 			case PDT_Curve:
-				return mMinCurve.evaluate(t);
+				return mMinCurve.Evaluate(t);
 			case PDT_RandomCurveRange:
 				{
-					const T minValue = mMinCurve.evaluate(t);
-					const T maxValue = mMaxCurve.evaluate(t);
+					const T minValue = mMinCurve.Evaluate(t);
+					const T maxValue = mMaxCurve.Evaluate(t);
 
 					return Math::Lerp(factor, minValue, maxValue);
 				}

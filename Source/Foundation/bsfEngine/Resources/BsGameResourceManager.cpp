@@ -32,15 +32,15 @@ namespace bs
 		if(iterFind != mMapping.end())
 		{
 			if(!async)
-				return gResources().load(iterFind->second, flags);
+				return gResources().Load(iterFind->second, flags);
 			else
-				return gResources().loadAsync(iterFind->second, flags);
+				return gResources().LoadAsync(iterFind->second, flags);
 		}
 		
 		if (!async)
-			return gResources().load(path, flags);
+			return gResources().Load(path, flags);
 		else
-			return gResources().loadAsync(path, flags);
+			return gResources().LoadAsync(path, flags);
 	}
 
 	void StandaloneResourceLoader::SetMapping(const SPtr<ResourceMapping>& mapping)
@@ -56,7 +56,7 @@ namespace bs
 
 	HResource GameResourceManager::Load(const Path& path, ResourceLoadFlags flags, bool async) const
 	{
-		return mLoader->load(path, flags, async);
+		return mLoader->Load(path, flags, async);
 	}
 
 	void GameResourceManager::SetMapping(const SPtr<ResourceMapping>& mapping)

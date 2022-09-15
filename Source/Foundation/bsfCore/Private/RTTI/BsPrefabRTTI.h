@@ -26,13 +26,13 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(mIsScene, 4)
 		BS_END_RTTI_MEMBERS
 
-		SPtr<SceneObject> GetSceneObject(Prefab* obj) { return obj->mRoot.getInternalPtr(); }
+		SPtr<SceneObject> GetSceneObject(Prefab* obj) { return obj->mRoot.GetInternalPtr(); }
 		void SetSceneObject(Prefab* obj, SPtr<SceneObject> value) { obj->mRoot = value->GetHandle(); }
 
 	public:
 		PrefabRTTI()
 		{
-			addReflectablePtrField("mRoot", 0, &PrefabRTTI::getSceneObject, &PrefabRTTI::setSceneObject);
+			AddReflectablePtrField("mRoot", 0, &PrefabRTTI::GetSceneObject, &PrefabRTTI::SetSceneObject);
 		}
 
 		void OnDeserializationStarted(IReflectable* ptr, SerializationContext* context) 

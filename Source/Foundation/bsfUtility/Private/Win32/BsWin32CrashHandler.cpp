@@ -119,7 +119,7 @@ namespace bs
 			// Output function name
 			DWORD64 dummy;
 			if (SymGetSymFromAddr64(hProcess, funcAddress, &dummy, symbol))
-				outputStream << StringUtil::format("{0}() - ", symbol->Name);
+				outputStream << StringUtil::Format("{0}() - ", symbol->Name);
 
 			// Output file name and line
 			IMAGEHLP_LINE64	lineData;
@@ -132,12 +132,12 @@ namespace bs
 			{
 				Path filePath = lineData.FileName;
 
-				outputStream << StringUtil::format("0x{0} File[{1}:{2} ({3})]", addressString,
-					filePath.getFilename(), (UINT32)lineData.LineNumber, (UINT32)column);
+				outputStream << StringUtil::Format("0x{0} File[{1}:{2} ({3})]", addressString,
+					filePath.GetFilename(), (UINT32)lineData.LineNumber, (UINT32)column);
 			}
 			else
 			{
-				outputStream << StringUtil::format("0x{0}", addressString);
+				outputStream << StringUtil::Format("0x{0}", addressString);
 			}
 
 			// Output module name
@@ -148,7 +148,7 @@ namespace bs
 			{
 				Path filePath = moduleData.ImageName;
 
-				outputStream << StringUtil::format(" Module[{0}]", filePath.getFilename());
+				outputStream << StringUtil::Format(" Module[{0}]", filePath.GetFilename());
 			}
 		}
 
@@ -328,79 +328,79 @@ namespace bs
 
 			String violatedAddressStr = toString((UINT64)violatedAddress, 0, ' ', std::ios::hex);
 			String codeStr = toString((UINT64)code, 0, ' ', std::ios::hex);
-			return StringUtil::format(format, exceptionAddress, violatedAddressStr, codeStr);
+			return StringUtil::Format(format, exceptionAddress, violatedAddressStr, codeStr);
 		}
 		case STATUS_ARRAY_BOUNDS_EXCEEDED:
 		{
 			format = "Unhandled exception at 0x{0}. Attempting to access an out of range array element.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_DATATYPE_MISALIGNMENT:
 		{
 			format = "Unhandled exception at 0x{0}. Attempting to access missaligned data.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_DENORMAL_OPERAND:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point operand too small.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_DIVIDE_BY_ZERO:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point operation attempted to divide by zero.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_INVALID_OPERATION:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point invalid operation.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_OVERFLOW:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point overflow.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_UNDERFLOW:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point underflow.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_FLT_STACK_CHECK:
 		{
 			format = "Unhandled exception at 0x{0}. Floating point stack overflow/underflow.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_ILLEGAL_INSTRUCTION:
 		{
 			format = "Unhandled exception at 0x{0}. Attempting to execute an illegal instruction.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_PRIV_INSTRUCTION:
 		{
 			format = "Unhandled exception at 0x{0}. Attempting to execute a private instruction.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_INT_DIVIDE_BY_ZERO:
 		{
 			format = "Unhandled exception at 0x{0}. Integer operation attempted to divide by zero.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_INT_OVERFLOW:
 		{
 			format = "Unhandled exception at 0x{0}. Integer operation result has overflown.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		case EXCEPTION_STACK_OVERFLOW:
 		{
 			format = "Unhandled exception at 0x{0}. Stack overflow.";
-			return StringUtil::format(format, exceptionAddress);
+			return StringUtil::Format(format, exceptionAddress);
 		}
 		default:
 		{
 			format = "Unhandled exception at 0x{0}. Code 0x{1}.";
 
 			String exceptionCode = toString((UINT32)record->ExceptionCode, 0, ' ', std::ios::hex);
-			return StringUtil::format(format, exceptionAddress, exceptionCode);
+			return StringUtil::Format(format, exceptionAddress, exceptionCode);
 		}
 		}
 	}
@@ -415,7 +415,7 @@ namespace bs
 	{
 		MiniDumpParams* params = (MiniDumpParams*)data;
 
-		WString pathString = UTF8::toWide(params->filePath.toString());
+		WString pathString = UTF8::ToWide(params->filePath.ToString());
 		HANDLE hFile = CreateFileW(pathString.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL,
 			nullptr);
 
@@ -456,7 +456,7 @@ namespace bs
 	{
 		WString simpleErrorMessage = msg
 			+ L"\n\nFor more information check the crash report located at:\n "
-			+ UTF8::toWide(folder.toString());
+			+ UTF8::ToWide(folder.ToString());
 
 #if BS_IS_BANSHEE3D
 		MessageBoxW(nullptr, simpleErrorMessage.c_str(), L"Banshee fatal error!", MB_OK);
@@ -477,7 +477,7 @@ namespace bs
 		// Win32 debug methods are not thread safe
 		Lock lock(m->mutex);
 
-		logErrorAndStackTrace(type, description, function, file, line);
+		LogErrorAndStackTrace(type, description, function, file, line);
 
 		if(mSettings.onCrashPrintedToLog)
 		{
@@ -485,10 +485,10 @@ namespace bs
 				return;
 		}
 
-		saveCrashLog();
+		SaveCrashLog();
 
-		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), nullptr);
-		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), getCrashFolder());
+		win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), nullptr);
+		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), GetCrashFolder());
 
 		DebugBreak();
 
@@ -511,7 +511,7 @@ namespace bs
 		win32_initPSAPI();
 		win32_loadSymbols();
 
-		logErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
+		LogErrorAndStackTrace(win32_getExceptionMessage(exceptionData->ExceptionRecord),
 			win32_getStackTrace(*exceptionData->ContextRecord, 0));
 
 		if(mSettings.onCrashPrintedToLog)
@@ -520,10 +520,10 @@ namespace bs
 				return EXCEPTION_EXECUTE_HANDLER;
 		}
 
-		saveCrashLog();
+		SaveCrashLog();
 
-		win32_writeMiniDump(getCrashFolder() + String(sMiniDumpName), exceptionData);
-		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), getCrashFolder());
+		win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), exceptionData);
+		win32_popupErrorMessageBox(toWString(sFatalErrorMsg), GetCrashFolder());
 
 		DebugBreak();
 
@@ -543,7 +543,7 @@ namespace bs
 		String strDay = toString(systemTime.wDay, 2, '0');
 		String strHour = toString(systemTime.wHour, 2, '0');
 		String strMinute = toString(systemTime.wMinute, 2, '0');
-		return StringUtil::format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
+		return StringUtil::Format(timeStamp, strYear, strMonth, strDay, strHour, strMinute);
 	}
 
 	String CrashHandler::GetStackTrace()

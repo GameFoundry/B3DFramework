@@ -24,7 +24,7 @@ namespace bs
 		for(auto& folder : mSearchPaths)
 		{
 			Path entry = folder;
-			entry.append(name);
+			entry.Append(name);
 
 			if(FileSystem::Exists(entry))
 			{
@@ -33,8 +33,8 @@ namespace bs
 			}
 		}
 
-		path = Paths::findPath(path);
-		return Importer::Instance().import<ShaderInclude>(path);
+		path = Paths::FindPath(path);
+		return Importer::Instance().Import<ShaderInclude>(path);
 	}
 
 	Path EngineShaderIncludeHandler::ToResourcePath(const String& name)
@@ -43,11 +43,11 @@ namespace bs
 		{
 			if (name.size() > 8)
 			{
-				Path fullPath = BuiltinResources::getShaderIncludeFolder();
+				Path fullPath = BuiltinResources::GetShaderIncludeFolder();
 				Path includePath = name.substr(9, name.size() - 9);
 
-				fullPath.append(includePath);
-				fullPath.setFilename(includePath.getFilename() + ".asset");
+				fullPath.Append(includePath);
+				fullPath.SetFilename(includePath.GetFilename() + ".asset");
 
 				return fullPath;
 			}

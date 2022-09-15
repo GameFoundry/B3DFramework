@@ -57,9 +57,9 @@ namespace bs { namespace ct
 	{
 		for(auto& entry : mUnresolvedTasks)
 		{
-			if (entry->isComplete())
+			if (entry->IsComplete())
 				entry->onComplete();
-			else if (!entry->isCanceled())
+			else if (!entry->IsCanceled())
 				mRemainingUnresolvedTasks.push_back(entry);
 		}
 
@@ -74,7 +74,7 @@ namespace bs { namespace ct
 		assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 		task->mState.store(0); // Reset state in case the task is getting re-queued
 
-		mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().getFrameIdx()));
+		mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().GetFrameIdx()));
 		mUnresolvedTasks.push_back(task);
 	}
 
@@ -102,7 +102,7 @@ namespace bs { namespace ct
 		{
 			for (auto& entry : mRunningTasks)
 			{
-				if (entry->isCanceled() || entry->isComplete())
+				if (entry->IsCanceled() || entry->IsComplete())
 					continue;
 
 				entry->mState.store(1);
@@ -142,19 +142,19 @@ namespace bs { namespace ct
 			}
 		}
 
-		bool complete = task.isCanceled() || task.isComplete();
+		bool complete = task.IsCanceled() || task.IsComplete();
 		while (!complete)
 		{
 			task.mState.store(1);
 
-			gProfilerGPU().beginFrame();
-			gProfilerCPU().beginThread("RenderTask");
+			gProfilerGPU().BeginFrame();
+			gProfilerCPU().BeginThread("RenderTask");
 			{
 				ProfileGPUBlock sampleBlock("Renderer task: " + ProfilerString(task.mName.data(), task.mName.size()));
 				complete = task.mTaskWorker();
 			}
-			gProfilerCPU().endThread();
-			gProfilerGPU().endFrame(true);
+			gProfilerCPU().EndThread();
+			gProfilerGPU().EndFrame(true);
 
 			if (complete)
 				task.mState.store(2);
@@ -166,7 +166,7 @@ namespace bs { namespace ct
 
 	SPtr<Renderer> gRenderer()
 	{
-		return std::static_pointer_cast<Renderer>(RendererManager::Instance().getActive());
+		return std::static_pointer_cast<Renderer>(RendererManager::Instance().GetActive());
 	}
 
 	RendererTask::RendererTask(const PrivatelyConstruct& dummy, String name, std::function<bool()> taskWorker)
@@ -195,15 +195,15 @@ namespace bs { namespace ct
 		// Note: wait() might only get called during serialization, in which case we might call these methods just once
 		// before a level save, instead for every individual component
 		gSceneManager().UpdateCoreObjectTransformsInternal();
-		CoreObjectManager::Instance().syncToCore();
+		CoreObjectManager::Instance().SyncToCore();
 
 		auto worker = [this]()
 		{
-			gRenderer()->processTask(*this, true);
+			gRenderer()->ProcessTask(*this, true);
 		};
 
 		gCoreThread().QueueCommand(worker);
-		gCoreThread().submit(true);
+		gCoreThread().Submit(true);
 
 		// Note: Tigger on complete callback and clear it from Renderer?
 	}

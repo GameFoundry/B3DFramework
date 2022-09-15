@@ -176,6 +176,7 @@ namespace bs
 		{ }
 	};
 
+	//NOLINTBEGIN(readability-identifier-naming)
 	/** Allocator for the standard library that internally uses a frame allocator. */
 	template <class T>
 	class StdFrameAlloc
@@ -204,7 +205,7 @@ namespace bs
 		template<class U> class rebind { public: typedef StdFrameAlloc<U> other; };
 
 		/** Allocate but don't initialize number elements of type T.*/
-		T* Allocate(const size_t num) const
+		T* allocate(const size_t num) const
 		{
 			if (num == 0)
 				return nullptr;
@@ -220,19 +221,20 @@ namespace bs
 		}
 
 		/** Deallocate storage p of deleted elements. */
-		void Deallocate(T* p, size_t num) const noexcept
+		void deallocate(T* p, size_t num) const noexcept
 		{
 			mFrameAlloc->Free((UINT8*)p);
 		}
 
 		FrameAlloc* mFrameAlloc = nullptr;
 
-		size_t MaxSize() const { return std::numeric_limits<size_type>::max() / sizeof(T); }
-		void Construct(pointer p, const_reference t) { new (p) T(t); }
-		void Destroy(pointer p) { p->~T(); }
+		size_t max_size() const { return std::numeric_limits<size_type>::max() / sizeof(T); }
+		void construct(pointer p, const_reference t) { new (p) T(t); }
+		void destroy(pointer p) { p->~T(); }
 		template<class U, class... Args>
-		void Construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
+		void construct(U* p, Args&&... args) { new(p) U(std::forward<Args>(args)...); }
 	};
+	//NOLINTEND(readability-identifier-naming)
 
 	/** Return that all specializations of this allocator are interchangeable. */
 	template <class T1, class T2>

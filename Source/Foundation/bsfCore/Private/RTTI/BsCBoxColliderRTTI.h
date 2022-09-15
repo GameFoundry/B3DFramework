@@ -32,7 +32,7 @@ namespace bs
 			return TID_CBoxCollider;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CBoxCollider>();
 		}

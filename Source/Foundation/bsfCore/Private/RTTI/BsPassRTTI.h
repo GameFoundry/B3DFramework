@@ -155,12 +155,12 @@ namespace bs
 	public:
 		PassRTTI()
 		{
-			addReflectableField("mVertexProgramDesc", 3, &PassRTTI::GetVertexProgramDesc, &PassRTTI::SetVertexProgramDesc);
-			addReflectableField("mFragmentProgramDesc", 4, &PassRTTI::GetFragmentProgramDesc, &PassRTTI::SetFragmentProgramDesc);
-			addReflectableField("mGeometryProgramDesc", 5, &PassRTTI::GetGeometryProgramDesc, &PassRTTI::SetGeometryProgramDesc);
-			addReflectableField("mHullProgramDesc", 6, &PassRTTI::GetHullProgramDesc, &PassRTTI::SetHullProgramDesc);
-			addReflectableField("mDomainProgramDesc", 7, &PassRTTI::GetDomainProgramDesc, &PassRTTI::SetDomainProgramDesc);
-			addReflectableField("mComputeProgramDesc", 8, &PassRTTI::GetComputeProgramDesc, &PassRTTI::SetComputeProgramDesc);
+			AddReflectableField("mVertexProgramDesc", 3, &PassRTTI::GetVertexProgramDesc, &PassRTTI::SetVertexProgramDesc);
+			AddReflectableField("mFragmentProgramDesc", 4, &PassRTTI::GetFragmentProgramDesc, &PassRTTI::SetFragmentProgramDesc);
+			AddReflectableField("mGeometryProgramDesc", 5, &PassRTTI::GetGeometryProgramDesc, &PassRTTI::SetGeometryProgramDesc);
+			AddReflectableField("mHullProgramDesc", 6, &PassRTTI::GetHullProgramDesc, &PassRTTI::SetHullProgramDesc);
+			AddReflectableField("mDomainProgramDesc", 7, &PassRTTI::GetDomainProgramDesc, &PassRTTI::SetDomainProgramDesc);
+			AddReflectableField("mComputeProgramDesc", 8, &PassRTTI::GetComputeProgramDesc, &PassRTTI::SetComputeProgramDesc);
 		}
 
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
@@ -178,7 +178,7 @@ namespace bs
 			{
 				if (prog)
 				{
-					prog->blockUntilCoreInitialized();
+					prog->BlockUntilCoreInitialized();
 					desc.bytecode = prog->GetCore()->GetBytecode();
 				}
 			};

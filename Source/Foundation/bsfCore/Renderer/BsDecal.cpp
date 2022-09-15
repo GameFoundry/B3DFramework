@@ -12,13 +12,13 @@ namespace bs
 {
 	DecalBase::DecalBase()
 	{
-		updateBounds();
+		UpdateBounds();
 	}
 
 	DecalBase::DecalBase(const Vector2& size, float maxDistance)
 		: mSize(size), mMaxDistance(maxDistance)
 	{
-		updateBounds();
+		UpdateBounds();
 	}
 
 	void DecalBase::SetLayer(UINT64 layer)
@@ -56,9 +56,9 @@ namespace bs
 			Vector3(extents.x, extents.y, 0.0f)
 		);
 
-		localAABB.transformAffine(mTfrmMatrix);
+		localAABB.TransformAffine(mTfrmMatrix);
 
-		mBounds = Bounds(localAABB, Sphere(localAABB.getCenter(), localAABB.getRadius()));
+		mBounds = Bounds(localAABB, Sphere(localAABB.GetCenter(), localAABB.GetRadius()));
 	}
 
 	template <bool Core>
@@ -77,7 +77,7 @@ namespace bs
 		:TDecal(material, size, maxDistance)
 	{
 		// Calling virtual method is okay here because this is the most derived type
-		updateBounds();
+		UpdateBounds();
 	}
 
 	SPtr<ct::Decal> Decal::GetCore() const
@@ -120,20 +120,20 @@ namespace bs
 	void Decal::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mMaterial.IsLoaded())
-			dependencies.push_back(mMaterial.get());
+			dependencies.push_back(mMaterial.Get());
 	}
 
 	CoreSyncData Decal::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
-		size += rtti_size(getCoreDirtyFlags()).bytes;
+		size += rtti_size(GetCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream stream(buffer, size);
-		rtti_write(getCoreDirtyFlags(), stream);
+		rtti_write(GetCoreDirtyFlags(), stream);
 		csync_write((SceneActor&)*this, stream);
 		csync_write(*this, stream);
 
@@ -142,7 +142,7 @@ namespace bs
 
 	void Decal::MarkCoreDirtyInternal(ActorDirtyFlag flags)
 	{
-		markCoreDirty((UINT32)flags);
+		MarkCoreDirty((UINT32)flags);
 	}
 
 	RTTITypeBase* Decal::GetRttiStatic()
@@ -166,20 +166,20 @@ namespace bs
 
 	Decal::~Decal()
 	{
-		gRenderer()->notifyDecalRemoved(this);
+		gRenderer()->NotifyDecalRemoved(this);
 	}
 
 	void Decal::Initialize()
 	{
-		updateBounds();
-		gRenderer()->notifyDecalAdded(this);
+		UpdateBounds();
+		gRenderer()->NotifyDecalAdded(this);
 
 		CoreObject::Initialize();
 	}
 
 	void Decal::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream stream(data.getBuffer(), data.getBufferSize());
+		Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
@@ -191,26 +191,26 @@ namespace bs
 		mTfrmMatrix = mTransform.GetMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::ONE);
 
-		updateBounds();
+		UpdateBounds();
 
 		if (dirtyFlags == (UINT32)ActorDirtyFlag::Transform)
 		{
 			if (mActive)
-				gRenderer()->notifyDecalUpdated(this);
+				gRenderer()->NotifyDecalUpdated(this);
 		}
 		else
 		{
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyDecalAdded(this);
+					gRenderer()->NotifyDecalAdded(this);
 				else
-					gRenderer()->notifyDecalRemoved(this);
+					gRenderer()->NotifyDecalRemoved(this);
 			}
 			else
 			{
-				gRenderer()->notifyDecalRemoved(this);
-				gRenderer()->notifyDecalAdded(this);
+				gRenderer()->NotifyDecalRemoved(this);
+				gRenderer()->NotifyDecalAdded(this);
 			}
 		}
 	}

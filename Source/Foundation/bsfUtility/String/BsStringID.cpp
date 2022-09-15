@@ -31,14 +31,14 @@ namespace bs
 	template<class T>
 	void StringID::Construct(T const& name)
 	{
-		assert(StringIDUtil<T>::size(name) <= STRING_SIZE);
+		assert(StringIDUtil<T>::Size(name) <= STRING_SIZE);
 
-		UINT32 hash = calcHash(name) & (sizeof(mStringHashTable) / sizeof(mStringHashTable[0]) - 1);
+		UINT32 hash = CalcHash(name) & (sizeof(mStringHashTable) / sizeof(mStringHashTable[0]) - 1);
 		InternalData* existingEntry = mStringHashTable[hash];
 		
 		while (existingEntry != nullptr)
 		{
-			if (StringIDUtil<T>::compare(name, existingEntry->chars))
+			if (StringIDUtil<T>::Compare(name, existingEntry->chars))
 			{
 				mData = existingEntry;
 				return;
@@ -54,7 +54,7 @@ namespace bs
 		InternalData* lastEntry = nullptr;
 		while (existingEntry != nullptr)
 		{
-			if (StringIDUtil<T>::compare(name, existingEntry->chars))
+			if (StringIDUtil<T>::Compare(name, existingEntry->chars))
 			{
 				mData = existingEntry;
 				return;
@@ -64,8 +64,8 @@ namespace bs
 			existingEntry = existingEntry->next;
 		}
 
-		mData = allocEntry();
-		StringIDUtil<T>::copy(name, mData->chars);
+		mData = AllocEntry();
+		StringIDUtil<T>::Copy(name, mData->chars);
 
 		if (lastEntry == nullptr)
 			mStringHashTable[hash] = mData;
@@ -76,7 +76,7 @@ namespace bs
 	template<class T>
 	UINT32 StringID::CalcHash(T const& input)
 	{
-		UINT32 size = StringIDUtil<T>::size(input);
+		UINT32 size = StringIDUtil<T>::Size(input);
 
 		UINT32 hash = 0;
 		for (UINT32 i = 0; i < size; i++)
@@ -133,9 +133,9 @@ namespace bs
 		static bool Compare(String const& a, char* b) { return a.compare(b) == 0; }
 	};
 
-	template BS_UTILITY_EXPORT void StringID::construct(const char* const&);
-	template BS_UTILITY_EXPORT void StringID::construct(String const&);
+	template BS_UTILITY_EXPORT void StringID::Construct(const char* const&);
+	template BS_UTILITY_EXPORT void StringID::Construct(String const&);
 	
-	template BS_UTILITY_EXPORT UINT32 StringID::calcHash(const char* const&);
-	template BS_UTILITY_EXPORT UINT32 StringID::calcHash(String const&);
+	template BS_UTILITY_EXPORT UINT32 StringID::CalcHash(const char* const&);
+	template BS_UTILITY_EXPORT UINT32 StringID::CalcHash(String const&);
 }

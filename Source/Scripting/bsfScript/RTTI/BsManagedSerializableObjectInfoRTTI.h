@@ -119,8 +119,8 @@ namespace bs
 	public:
 		ManagedSerializableObjectInfoRTTI()
 		{
-			addReflectablePtrField("mTypeInfo", 0, &ManagedSerializableObjectInfoRTTI::GetTypeInfo, &ManagedSerializableObjectInfoRTTI::SetTypeInfo);
-			addReflectablePtrField("mBaseClass", 2, &ManagedSerializableObjectInfoRTTI::GetBaseClass, &ManagedSerializableObjectInfoRTTI::SetBaseClass);
+			AddReflectablePtrField("mTypeInfo", 0, &ManagedSerializableObjectInfoRTTI::GetTypeInfo, &ManagedSerializableObjectInfoRTTI::SetTypeInfo);
+			AddReflectablePtrField("mBaseClass", 2, &ManagedSerializableObjectInfoRTTI::GetBaseClass, &ManagedSerializableObjectInfoRTTI::SetBaseClass);
 
 			addReflectablePtrArrayField("mFields", 3, &ManagedSerializableObjectInfoRTTI::getSerializableFieldInfo,
 				&ManagedSerializableObjectInfoRTTI::getSerializableFieldInfoArraySize, &ManagedSerializableObjectInfoRTTI::setSerializableFieldInfo,
@@ -138,7 +138,7 @@ namespace bs
 			return TID_SerializableObjectInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableObjectInfo>();
 		}
@@ -171,7 +171,7 @@ namespace bs
 			return TID_SerializableMemberInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			// This is an abstract class, but it wasn't always. For compatibility sake we return an object instance so old
 			// data can still be properly read.
@@ -198,7 +198,7 @@ namespace bs
 			return TID_SerializableFieldInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldInfo>();
 		}
@@ -223,7 +223,7 @@ namespace bs
 			return TID_SerializablePropertyInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializablePropertyInfo>();
 		}
@@ -248,7 +248,7 @@ namespace bs
 			return TID_SerializableTypeInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			BS_EXCEPT(InvalidStateException, "Cannot instantiate an abstract class");
 			return nullptr;
@@ -278,7 +278,7 @@ namespace bs
 			return TID_SerializableTypeInfoPrimitive;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoPrimitive>();
 		}
@@ -309,7 +309,7 @@ namespace bs
 			return TID_SerializableTypeInfoEnum;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoEnum>();
 		}
@@ -341,7 +341,7 @@ namespace bs
 			return TID_SerializableTypeInfoRef;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoRef>();
 		}
@@ -371,7 +371,7 @@ namespace bs
 			return TID_SerializableTypeInfoRRef;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoRRef>();
 		}
@@ -405,7 +405,7 @@ namespace bs
 			return TID_SerializableTypeInfoObject;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoObject>();
 		}
@@ -435,7 +435,7 @@ namespace bs
 			return TID_SerializableTypeInfoArray;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoArray>();
 		}
@@ -464,7 +464,7 @@ namespace bs
 			return TID_SerializableTypeInfoList;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoList>();
 		}
@@ -495,7 +495,7 @@ namespace bs
 			return TID_SerializableTypeInfoDictionary;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableTypeInfoDictionary>();
 		}

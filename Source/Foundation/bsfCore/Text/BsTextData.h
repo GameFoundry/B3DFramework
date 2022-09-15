@@ -356,10 +356,10 @@ namespace bs
 			:TextDataBase(text, font, fontSize, width, height, wordWrap, wordBreak), mData(nullptr)
 		{
 			UINT32 totalBufferSize = 0;
-			generatePersistentData(text, nullptr, totalBufferSize);
+			GeneratePersistentData(text, nullptr, totalBufferSize);
 
 			mData = (UINT8*)bs_alloc<Alloc>(totalBufferSize);
-			generatePersistentData(text, (UINT8*)mData, totalBufferSize);
+			GeneratePersistentData(text, (UINT8*)mData, totalBufferSize);
 		}
 
 		~TextData()

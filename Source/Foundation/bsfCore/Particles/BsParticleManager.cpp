@@ -28,7 +28,7 @@ namespace bs
 			if (x >= pixels.GetWidth())
 			{
 				x = 0;
-				dest += pixels.getRowSkip();
+				dest += pixels.GetRowSkip();
 			}
 		}
 	}

@@ -24,7 +24,7 @@ namespace bs
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new components).
-			if (comp->mRTTIData.empty())
+			if (comp->mRTTIData.Empty())
 				return;
 
 			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
@@ -40,12 +40,12 @@ namespace bs
 				// deserialized handles pointing to this object can be resolved.
 				SPtr<Component> compPtr = std::static_pointer_cast<Component>(deserializationData.ptr);
 
-				GameObjectHandleBase handle = GameObjectManager::Instance().registerObject(compPtr);
-				coreContext->goState->registerObject(deserializationData.originalId, handle);
+				GameObjectHandleBase handle = GameObjectManager::Instance().RegisterObject(compPtr);
+				coreContext->goState->RegisterObject(deserializationData.originalId, handle);
 			}
 
-			if(comp->mUUID.empty() || coreContext->goState->GetUseNewUUIDs())
-				comp->mUUID = UUIDGenerator::generateRandom();
+			if(comp->mUUID.Empty() || coreContext->goState->GetUseNewUuiDs())
+				comp->mUUID = UUIDGenerator::GenerateRandom();
 			
 			comp->mRTTIData = nullptr;
 		}
@@ -61,7 +61,7 @@ namespace bs
 			return TID_Component;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			BS_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
 			return nullptr;

@@ -67,7 +67,7 @@ namespace bs
 			return TID_ShaderImportOptions;
 		}
 
-		/** @copydoc RTTIType::newRTTIObject */
+		/** @copydoc RTTIType::NewRttiObject */
 		SPtr<IReflectable> NewRttiObject() 
 		{
 			return bs_shared_ptr_new<ShaderImportOptions>();

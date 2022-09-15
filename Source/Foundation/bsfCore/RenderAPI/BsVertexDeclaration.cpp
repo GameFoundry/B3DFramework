@@ -16,7 +16,7 @@ namespace bs
 
 	UINT32 VertexElement::GetSize(void) const
 	{
-		return getTypeSize(mType);
+		return GetTypeSize(mType);
 	}
 
 	UINT32 VertexElement::GetTypeSize(VertexElementType etype)
@@ -119,7 +119,7 @@ namespace bs
 		// Use the current render system to determine if possible
 		if (ct::RenderAPI::InstancePtr() != nullptr)
 		{
-			return ct::RenderAPI::Instance().getCapabilities(0).vertexColorType;
+			return ct::RenderAPI::Instance().GetCapabilities(0).vertexColorType;
 		}
 		else
 		{
@@ -166,13 +166,13 @@ namespace bs
 	{
 		for (auto& elem : elements)
 		{
-			VertexElementType type = elem.getType();
+			VertexElementType type = elem.GetType();
 
-			if (elem.getType() == VET_COLOR)
-				type = VertexElement::getBestColorVertexElementType();
+			if (elem.GetType() == VET_COLOR)
+				type = VertexElement::GetBestColorVertexElementType();
 
-			mElementList.push_back(VertexElement(elem.getStreamIdx(), elem.getOffset(), type, elem.getSemantic(),
-				elem.getSemanticIdx(), elem.getInstanceStepRate()));
+			mElementList.push_back(VertexElement(elem.GetStreamIdx(), elem.GetOffset(), type, elem.GetSemantic(),
+				elem.GetSemanticIdx(), elem.GetInstanceStepRate()));
 		}
 	}
 
@@ -214,7 +214,7 @@ namespace bs
 	{
 		for (auto& elem : mElementList)
 		{
-			if (elem.getSemantic() == sem && elem.getSemanticIdx() == index)
+			if (elem.GetSemantic() == sem && elem.GetSemanticIdx() == index)
 			{
 				return &elem;
 			}
@@ -228,7 +228,7 @@ namespace bs
 		Vector<VertexElement> retList;
 		for (auto& elem : mElementList)
 		{
-			if (elem.getStreamIdx() == source)
+			if (elem.GetStreamIdx() == source)
 				retList.push_back(elem);
 		}
 
@@ -241,9 +241,9 @@ namespace bs
 
 		for (auto& elem : mElementList)
 		{
-			if (elem.getStreamIdx() == source)
+			if (elem.GetStreamIdx() == source)
 			{
-				size += elem.getSize();
+				size += elem.GetSize();
 			}
 		}
 
@@ -263,12 +263,12 @@ namespace bs
 
 	SPtr<ct::CoreObject> VertexDeclaration::CreateCore() const
 	{
-		return ct::HardwareBufferManager::Instance().createVertexDeclarationInternal(mProperties.mElementList);
+		return ct::HardwareBufferManager::Instance().CreateVertexDeclarationInternal(mProperties.mElementList);
 	}
 
 	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc)
 	{
-		return HardwareBufferManager::Instance().createVertexDeclaration(desc);
+		return HardwareBufferManager::Instance().CreateVertexDeclaration(desc);
 	}
 
 	/************************************************************************/
@@ -331,13 +331,13 @@ namespace bs
 
 	SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
 	{
-		return HardwareBufferManager::Instance().createVertexDeclaration(desc, deviceMask);
+		return HardwareBufferManager::Instance().CreateVertexDeclaration(desc, deviceMask);
 	}
 
 	bool VertexDeclaration::IsCompatible(const SPtr<VertexDeclaration>& shaderDecl)
 	{
-		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().getElements();
-		const Vector<VertexElement>& bufferElems = getProperties().getElements();
+		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
+		const Vector<VertexElement>& bufferElems = GetProperties().GetElements();
 
 		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{
@@ -362,8 +362,8 @@ namespace bs
 	{
 		Vector<VertexElement> missingElements;
 
-		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().getElements();
-		const Vector<VertexElement>& bufferElems = getProperties().getElements();
+		const Vector<VertexElement>& shaderElems = shaderDecl->GetProperties().GetElements();
+		const Vector<VertexElement>& bufferElems = GetProperties().GetElements();
 
 		for (auto shaderIter = shaderElems.begin(); shaderIter != shaderElems.end(); ++shaderIter)
 		{

@@ -73,7 +73,7 @@ namespace bs
 		template <typename ValueType>
 		Any& operator= (const ValueType& rhs)
 		{
-			Any(rhs).swap(*this);
+			Any(rhs).Swap(*this);
 			return *this;
 		}
 

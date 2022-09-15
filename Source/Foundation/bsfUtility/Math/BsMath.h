@@ -625,7 +625,7 @@ namespace bs
 		template <typename T>
 		static float InvLerp(T val, T min, T max)
 		{
-			return clamp01((val - min) / std::max(max - min, 0.0001F));
+			return Clamp01((val - min) / std::max(max - min, 0.0001F));
 		}
 
 		/** Returns the minimum value of the two provided. */
@@ -683,7 +683,7 @@ namespace bs
 		template <typename T>
 		static UINT32 SolveLinear(T A, T B, T* roots)
 		{
-			if (!approxEquals(A, (T)0))
+			if (!ApproxEquals(A, (T)0))
 			{
 				roots[0] = -B / A;
 				return 1;
@@ -707,13 +707,13 @@ namespace bs
 		template <typename T>
 		static UINT32 SolveQuadratic(T A, T B, T C, T* roots)
 		{
-			if (!approxEquals(A, (T)0))
+			if (!ApproxEquals(A, (T)0))
 			{
 				T p = B / (2 * A);
 				T q = C / A;
 				T D = p * p - q;
 
-				if (!approxEquals(D, (T)0))
+				if (!ApproxEquals(D, (T)0))
 				{
 					if (D < (T)0)
 						return 0;
@@ -734,7 +734,7 @@ namespace bs
 			}
 			else
 			{
-				return solveLinear(B, C, roots);
+				return SolveLinear(B, C, roots);
 			}
 		}
 
@@ -768,7 +768,7 @@ namespace bs
 			D = q * q + cbp;
 
 			UINT32 numRoots = 0;
-			if (!approxEquals(D, (T)0))
+			if (!ApproxEquals(D, (T)0))
 			{
 				if (D < 0.0)
 				{
@@ -796,7 +796,7 @@ namespace bs
 			}
 			else
 			{
-				if (!approxEquals(q, (T)0))
+				if (!ApproxEquals(q, (T)0))
 				{
 					T u = cbrt(-q);
 					roots[0] = 2 * u;
@@ -846,27 +846,27 @@ namespace bs
 			T r = -(3 / (T)256) * sqA * sqA + (1 / (T)16) * sqA * B - (1 / (T)4) * A * C + D;
 
 			UINT32 numRoots = 0;
-			if (!approxEquals(r, (T)0))
+			if (!ApproxEquals(r, (T)0))
 			{
 				T cubicA = 1;
 				T cubicB = -(T)0.5 * p ;
 				T cubicC = -r;
 				T cubicD = (T)0.5 * r * p - (1 / (T)8) * q * q;
 
-				solveCubic(cubicA, cubicB, cubicC, cubicD, roots);
+				SolveCubic(cubicA, cubicB, cubicC, cubicD, roots);
 				T z = roots[0];
 
 				T u = z * z - r;
 				T v = 2 * z - p;
 
-				if (approxEquals(u, T(0)))
+				if (ApproxEquals(u, T(0)))
 					u = 0;
 				else if (u > 0)
 					u = sqrt(u);
 				else
 					return 0;
 
-				if (approxEquals(v, T(0)))
+				if (ApproxEquals(v, T(0)))
 					v = 0;
 				else if (v > 0)
 					v = sqrt(v);
@@ -877,17 +877,17 @@ namespace bs
 				T quadraticB = q < 0 ? -v : v;
 				T quadraticC = z - u;
 
-				numRoots = solveQuadratic(quadraticA, quadraticB, quadraticC, roots);
+				numRoots = SolveQuadratic(quadraticA, quadraticB, quadraticC, roots);
 
 				quadraticA = 1;
 				quadraticB = q < 0 ? v : -v;
 				quadraticC = z + u;
 
-				numRoots += solveQuadratic(quadraticA, quadraticB, quadraticC, roots + numRoots);
+				numRoots += SolveQuadratic(quadraticA, quadraticB, quadraticC, roots + numRoots);
 			}
 			else
 			{
-				numRoots = solveCubic(q, p, (T)0, (T)1, roots);
+				numRoots = SolveCubic(q, p, (T)0, (T)1, roots);
 				roots[numRoots++] = 0;
 			}
 

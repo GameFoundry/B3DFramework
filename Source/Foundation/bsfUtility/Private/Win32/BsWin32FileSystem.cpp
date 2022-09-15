@@ -7,6 +7,9 @@
 #include <windows.h>
 #include "String/BsUnicode.h"
 
+#undef CopyFile
+#undef MoveFile
+
 namespace bs
 {
 	void win32_handleError(DWORD error, const WString& path)
@@ -151,7 +154,7 @@ namespace bs
 	bool win32_isDevice(const WString& path)
 	{
 		WString ucPath = path;
-		StringUtil::toUpperCase(ucPath);
+		StringUtil::ToUpperCase(ucPath);
 
 		return
 			ucPath.compare(0, 4, L"\\\\.\\") == 0 ||
@@ -239,7 +242,7 @@ namespace bs
 
 	void FileSystem::RemoveFile(const Path& path)
 	{
-		WString pathStr = UTF8::toWide(path.toString());
+		WString pathStr = UTF8::ToWide(path.ToString());
 		if (win32_isDirectory(pathStr))
 		{
 			if (RemoveDirectoryW(pathStr.c_str()) == 0)
@@ -254,8 +257,8 @@ namespace bs
 
 	void FileSystem::CopyFile(const Path& from, const Path& to)
 	{
-		WString fromStr = UTF8::toWide(from.toString());
-		WString toStr = UTF8::toWide(to.toString());
+		WString fromStr = UTF8::ToWide(from.ToString());
+		WString toStr = UTF8::ToWide(to.ToString());
 
 		if (CopyFileW(fromStr.c_str(), toStr.c_str(), FALSE) == FALSE)
 			win32_handleError(GetLastError(), fromStr);
@@ -263,8 +266,8 @@ namespace bs
 
 	void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 	{
-		WString oldPathStr = UTF8::toWide(oldPath.toString());
-		WString newPathStr = UTF8::toWide(newPath.toString());
+		WString oldPathStr = UTF8::ToWide(oldPath.ToString());
+		WString newPathStr = UTF8::ToWide(newPath.ToString());
 
 		if (MoveFileW(oldPathStr.c_str(), newPathStr.c_str()) == 0)
 			win32_handleError(GetLastError(), oldPathStr);
@@ -272,7 +275,7 @@ namespace bs
 
 	SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	{
-		WString pathWString = UTF8::toWide(fullPath.toString());
+		WString pathWString = UTF8::ToWide(fullPath.ToString());
 		const wchar_t* pathString = pathWString.c_str();
 
 		if (!win32_pathExists(pathString) || !win32_isFile(pathString))
@@ -295,24 +298,24 @@ namespace bs
 
 	UINT64 FileSystem::GetFileSize(const Path& fullPath)
 	{
-		return win32_getFileSize(UTF8::toWide(fullPath.toString()));
+		return win32_getFileSize(UTF8::ToWide(fullPath.ToString()));
 	}
 
 	bool FileSystem::Exists(const Path& fullPath)
 	{
-		return win32_pathExists(UTF8::toWide(fullPath.toString()));
+		return win32_pathExists(UTF8::ToWide(fullPath.ToString()));
 	}
 
 	bool FileSystem::IsFile(const Path& fullPath)
 	{
-		WString pathStr = UTF8::toWide(fullPath.toString());
+		WString pathStr = UTF8::ToWide(fullPath.ToString());
 
 		return win32_pathExists(pathStr) && win32_isFile(pathStr);
 	}
 
 	bool FileSystem::IsDirectory(const Path& fullPath)
 	{
-		WString pathStr = UTF8::toWide(fullPath.toString());
+		WString pathStr = UTF8::ToWide(fullPath.ToString());
 
 		return win32_pathExists(pathStr) && win32_isDirectory(pathStr);
 	}
@@ -320,29 +323,29 @@ namespace bs
 	void FileSystem::CreateDir(const Path& fullPath)
 	{
 		Path parentPath = fullPath;
-		while (!exists(parentPath) && parentPath.getNumDirectories() > 0)
+		while (!Exists(parentPath) && parentPath.GetNumDirectories() > 0)
 		{
-			parentPath = parentPath.getParent();
+			parentPath = parentPath.GetParent();
 		}
 
-		for (UINT32 i = parentPath.getNumDirectories(); i < fullPath.getNumDirectories(); i++)
+		for (UINT32 i = parentPath.GetNumDirectories(); i < fullPath.GetNumDirectories(); i++)
 		{
-			parentPath.append(fullPath[i]);
-			win32_createDirectory(UTF8::toWide(parentPath.toString()));
+			parentPath.Append(fullPath[i]);
+			win32_createDirectory(UTF8::ToWide(parentPath.ToString()));
 		}
 
-		if (fullPath.isFile())
-			win32_createDirectory(UTF8::toWide(fullPath.toString()));
+		if (fullPath.IsFile())
+			win32_createDirectory(UTF8::ToWide(fullPath.ToString()));
 	}
 
 	void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
 	{
-		WString findPath = UTF8::toWide(dirPath.toString());
+		WString findPath = UTF8::ToWide(dirPath.ToString());
 
 		if (win32_isFile(findPath))
 			return;
 
-		if(dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+		if(dirPath.IsFile()) // Assuming the file is a folder, just improperly formatted in Path
 			findPath.append(L"\\*");
 		else
 			findPath.append(L"*");
@@ -364,9 +367,9 @@ namespace bs
 			{
 				Path fullPath = dirPath;
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
-					directories.push_back(fullPath.append(UTF8::fromWide(tempName) + u8"/"));
+					directories.push_back(fullPath.Append(UTF8::FromWide(tempName) + u8"/"));
 				else
-					files.push_back(fullPath.append(UTF8::fromWide(tempName)));
+					files.push_back(fullPath.Append(UTF8::FromWide(tempName)));
 			}
 
 			if(FindNextFileW(fileHandle, &findData) == FALSE)
@@ -384,12 +387,12 @@ namespace bs
 	bool FileSystem::Iterate(const Path& dirPath, std::function<bool(const Path&)> fileCallback,
 		std::function<bool(const Path&)> dirCallback, bool recursive)
 	{
-		WString findPath = UTF8::toWide(dirPath.toString());
+		WString findPath = UTF8::ToWide(dirPath.ToString());
 
 		if (win32_isFile(findPath))
 			return false;
 
-		if (dirPath.isFile()) // Assuming the file is a folder, just improperly formatted in Path
+		if (dirPath.IsFile()) // Assuming the file is a folder, just improperly formatted in Path
 			findPath.append(L"\\*");
 		else
 			findPath.append(L"*");
@@ -412,7 +415,7 @@ namespace bs
 				Path fullPath = dirPath;
 				if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
 				{
-					Path childDir = fullPath.append(UTF8::fromWide(tempName) + u8"/");
+					Path childDir = fullPath.Append(UTF8::FromWide(tempName) + u8"/");
 					if (dirCallback != nullptr)
 					{
 						if (!dirCallback(childDir))
@@ -424,7 +427,7 @@ namespace bs
 
 					if (recursive)
 					{
-						if (!iterate(childDir, fileCallback, dirCallback, recursive))
+						if (!Iterate(childDir, fileCallback, dirCallback, recursive))
 						{
 							FindClose(fileHandle);
 							return false;
@@ -433,7 +436,7 @@ namespace bs
 				}
 				else
 				{
-					Path filePath = fullPath.append(UTF8::fromWide(tempName));
+					Path filePath = fullPath.Append(UTF8::FromWide(tempName));
 					if (fileCallback != nullptr)
 					{
 						if (!fileCallback(filePath))
@@ -460,18 +463,18 @@ namespace bs
 
 	std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 	{
-		return win32_getLastModifiedTime(UTF8::toWide(fullPath.toString()));
+		return win32_getLastModifiedTime(UTF8::ToWide(fullPath.ToString()));
 	}
 
 	Path FileSystem::GetWorkingDirectoryPath()
 	{
-		const String utf8dir = UTF8::fromWide(win32_getCurrentDirectory());
+		const String utf8dir = UTF8::FromWide(win32_getCurrentDirectory());
 		return Path(utf8dir);
 	}
 
 	Path FileSystem::GetTempDirectoryPath()
 	{
-		const String utf8dir = UTF8::fromWide(win32_getTempDirectory());
+		const String utf8dir = UTF8::FromWide(win32_getTempDirectory());
 		return Path(utf8dir);
 	}
 }

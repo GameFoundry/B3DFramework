@@ -25,7 +25,7 @@ namespace bs
 
 		/** @copydoc ReflectionProbe::getType */
 		BS_SCRIPT_EXPORT(n:Type,pr:getter)
-		ReflectionProbeType GetType() const { return mInternal->GetTypeId(); }
+		ReflectionProbeType GetType() const { return mInternal->GetType(); }
 
 		/** @copydoc ReflectionProbe::setType */
 		BS_SCRIPT_EXPORT(n:Type,pr:setter)
@@ -66,7 +66,7 @@ namespace bs
 
 		/** @copydoc ReflectionProbe::capture */
 		BS_SCRIPT_EXPORT(n:Capture)
-		void Capture() { mInternal->capture(); }
+		void Capture() { mInternal->Capture(); }
 
 		/** @name Internal
 		 *  @{

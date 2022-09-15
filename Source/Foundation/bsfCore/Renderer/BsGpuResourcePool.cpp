@@ -18,7 +18,7 @@ namespace bs { namespace ct
 			if (entry->texture == nullptr)
 				continue;
 
-			if (matches(entry->texture, desc))
+			if (Matches(entry->texture, desc))
 			{
 				entry->mLastUsedFrame = mCurrentFrame;
 				return entry;
@@ -89,7 +89,7 @@ namespace bs { namespace ct
 			if (entry->buffer == nullptr)
 				continue;
 
-			if (matches(entry->buffer, desc))
+			if (Matches(entry->buffer, desc))
 			{
 				entry->mLastUsedFrame = mCurrentFrame;
 				return entry;
@@ -161,7 +161,7 @@ namespace bs { namespace ct
 
 			UINT32 entryAge = mCurrentFrame - entry->mLastUsedFrame;
 			if(entryAge >= age)
-				mBuffers.swapAndErase(iter);
+				mBuffers.SwapAndErase(iter);
 			else
 				++iter;
 		}
@@ -171,21 +171,21 @@ namespace bs { namespace ct
 	{
 		const TextureProperties& texProps = texture->GetProperties();
 
-		bool match = texProps.getTextureType() == desc.type
+		bool match = texProps.GetTextureType() == desc.type
 			&& texProps.GetFormat() == desc.format
 			&& texProps.GetWidth() == desc.width
 			&& texProps.GetHeight() == desc.height
-			&& (texProps.getUsage() & desc.flag) == desc.flag
+			&& (texProps.GetUsage() & desc.flag) == desc.flag
 			&& (
 				(desc.type == TEX_TYPE_2D
-					&& texProps.isHardwareGammaEnabled() == desc.hwGamma
-					&& texProps.getNumSamples() == desc.numSamples)
+					&& texProps.IsHardwareGammaEnabled() == desc.hwGamma
+					&& texProps.GetNumSamples() == desc.numSamples)
 				|| (desc.type == TEX_TYPE_3D
-					&& texProps.getDepth() == desc.depth)
+					&& texProps.GetDepth() == desc.depth)
 				|| (desc.type == TEX_TYPE_CUBE_MAP)
 				)
-			&& texProps.getNumArraySlices() == desc.arraySize
-			&& texProps.getNumMipmaps() == desc.numMipLevels
+			&& texProps.GetNumArraySlices() == desc.arraySize
+			&& texProps.GetNumMipmaps() == desc.numMipLevels
 			;
 
 		return match;
@@ -195,16 +195,16 @@ namespace bs { namespace ct
 	{
 		const GpuBufferProperties& props = buffer->GetProperties();
 
-		bool match = props.getType() == desc.type && props.getElementCount() == desc.numElements;
+		bool match = props.GetType() == desc.type && props.GetElementCount() == desc.numElements;
 		if(match)
 		{
 			if (desc.type == GBT_STANDARD)
 				match = props.GetFormat() == desc.format;
 			else // Structured
-				match = props.getElementSize() == desc.elementSize;
+				match = props.GetElementSize() == desc.elementSize;
 
 			if(match)
-				match = props.getUsage() == desc.usage;
+				match = props.GetUsage() == desc.usage;
 		}
 
 		return match;

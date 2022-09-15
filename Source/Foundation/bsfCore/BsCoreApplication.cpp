@@ -75,7 +75,7 @@ namespace bs
 		// Ensure all errors are reported properly
 		CrashHandler::StartUp(desc.crashHandling);
 		if(desc.logCallback)
-			gDebug().setLogCallback(desc.logCallback);
+			gDebug().SetLogCallback(desc.logCallback);
 	}
 
 	CoreApplication::~CoreApplication()
@@ -112,11 +112,11 @@ namespace bs
 
 		// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 		// we need to wait for those objects to get destroyed before continuing.
-		CoreObjectManager::Instance().syncToCore();
-		gCoreThread().update();
-		gCoreThread().submitAll(true);
+		CoreObjectManager::Instance().SyncToCore();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll(true);
 
-		unloadPlugin(mRendererPlugin);
+		UnloadPlugin(mRendererPlugin);
 
 		RenderAPIManager::ShutDown();
 		ct::GpuProgramManager::ShutDown();
@@ -136,7 +136,7 @@ namespace bs
 		MessageHandler::ShutDown();
 		ShaderManager::ShutDown();
 
-		MemStack::endThread();
+		MemStack::EndThread();
 		Platform::ShutDownInternal();
 
 		CrashHandler::ShutDown();
@@ -147,9 +147,9 @@ namespace bs
 		UINT32 numWorkerThreads = BS_THREAD_HARDWARE_CONCURRENCY - 1; // Number of cores while excluding current thread.
 
 		Platform::StartUpInternal();
-		MemStack::beginThread();
+		MemStack::BeginThread();
 
-		ShaderManager::StartUp(getShaderIncludeHandler());
+		ShaderManager::StartUp(GetShaderIncludeHandler());
 		MessageHandler::StartUp();
 		ProfilerCPU::StartUp();
 		ProfilingManager::StartUp();
@@ -170,19 +170,19 @@ namespace bs
 		ct::GpuProgramManager::StartUp();
 		RenderAPIManager::StartUp();
 
-		mPrimaryWindow = RenderAPIManager::Instance().initialize(mStartUpDesc.renderAPI, mStartUpDesc.primaryWindowDesc);
+		mPrimaryWindow = RenderAPIManager::Instance().Initialize(mStartUpDesc.renderAPI, mStartUpDesc.primaryWindowDesc);
 
 		ct::ParamBlockManager::StartUp();
 		Input::StartUp();
 		RendererManager::StartUp();
 
-		loadPlugin(mStartUpDesc.renderer, &mRendererPlugin);
+		LoadPlugin(mStartUpDesc.renderer, &mRendererPlugin);
 
 		// Must be initialized before the scene manager, as game scene creation triggers physics scene creation
 		PhysicsManager::StartUp(mStartUpDesc.physics, mStartUpDesc.physicsCooking);
 		SceneManager::StartUp();
-		RendererManager::Instance().setActive(mStartUpDesc.renderer);
-		startUpRenderer();
+		RendererManager::Instance().SetActive(mStartUpDesc.renderer);
+		StartUpRenderer();
 
 		ProfilerGPU::StartUp();
 		MeshManager::StartUp();
@@ -192,7 +192,7 @@ namespace bs
 		ParticleManager::StartUp();
 
 		for (auto& importerName : mStartUpDesc.importers)
-			loadPlugin(importerName);
+			LoadPlugin(importerName);
 
 		// Built-in importers
 		FGAImporter* fgaImporter = bs_new<FGAImporter>();
@@ -201,14 +201,14 @@ namespace bs
 
 	void CoreApplication::RunMainLoop()
 	{
-		beginMainLoop();
+		BeginMainLoop();
 
-		while(isMainLoopRunning())
+		while(IsMainLoopRunning())
 		{
 			// Limit FPS if needed
 			if (mFrameStep > 0)
 			{
-				UINT64 currentTime = gTime().getTimePrecise();
+				UINT64 currentTime = gTime().GetTimePrecise();
 				UINT64 nextFrameTime = mLastFrameTime + mFrameStep;
 				while (nextFrameTime > currentTime)
 				{
@@ -217,8 +217,8 @@ namespace bs
 					// If waiting for longer, sleep
 					if (waitTime >= 2000)
 					{
-						Platform::sleep(waitTime / 1000);
-						currentTime = gTime().getTimePrecise();
+						Platform::Sleep(waitTime / 1000);
+						currentTime = gTime().GetTimePrecise();
 					}
 					else
 					{
@@ -226,17 +226,17 @@ namespace bs
 						// millisecond otherwise.
 						// Note: For mobiles where power might be more important than input latency, consider using sleep.
 						while(nextFrameTime > currentTime)
-							currentTime = gTime().getTimePrecise();
+							currentTime = gTime().GetTimePrecise();
 					}
 				}
 
 				mLastFrameTime = currentTime;
 			}
 
-			runMainLoopFrame();
+			RunMainLoopFrame();
 		}
 
-		endMainLoop();
+		EndMainLoop();
 	}
 
 	void CoreApplication::BeginMainLoop()
@@ -246,12 +246,12 @@ namespace bs
 
 	void CoreApplication::EndMainLoop()
 	{
-		waitUntilFrameFinished();
+		WaitUntilFrameFinished();
 	}
 
 	void CoreApplication::RunMainLoopFrame()
 	{
-		gProfilerCPU().beginThread("Sim");
+		gProfilerCPU().BeginThread("Sim");
 
 		Platform::UpdateInternal();
 		DeferredCallManager::Instance().UpdateInternal();
@@ -265,7 +265,7 @@ namespace bs
 		gInput().TriggerCallbacksInternal();
 		gDebug().TriggerCallbacksInternal();
 
-		preUpdate();
+		PreUpdate();
 
 		// Trigger fixed updates if required
 		{
@@ -275,9 +275,9 @@ namespace bs
 			const float stepSeconds = step / 1000000.0f;
 			for (UINT32 i = 0; i < numIterations; i++)
 			{
-				fixedUpdate();
+				FixedUpdate();
 				PROFILE_CALL(gSceneManager().FixedUpdateInternal(), "Scene fixed update");
-				PROFILE_CALL(gPhysics().fixedUpdate(stepSeconds), "Physics simulation");
+				PROFILE_CALL(gPhysics().FixedUpdate(stepSeconds), "Physics simulation");
 
 				gTime().AdvanceFixedUpdateInternal(step);
 			}
@@ -285,30 +285,30 @@ namespace bs
 
 		PROFILE_CALL(gSceneManager().UpdateInternal(), "Scene update");
 		gAudio().UpdateInternal();
-		gPhysics().update();
+		gPhysics().Update();
 
 		// Update plugins
 		for (auto& pluginUpdateFunc : mPluginUpdateFunctions)
 			pluginUpdateFunc.second();
 
-		postUpdate();
+		PostUpdate();
 
 		PerFrameData perFrameData;
 
 		// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
 		// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
-		perFrameData.animation = AnimationManager::Instance().update(mStartUpDesc.asyncAnimation);
-		perFrameData.particles = ParticleManager::Instance().update(*perFrameData.animation);
+		perFrameData.animation = AnimationManager::Instance().Update(mStartUpDesc.asyncAnimation);
+		perFrameData.particles = ParticleManager::Instance().Update(*perFrameData.animation);
 
 		// Send out resource events in case any were loaded/destroyed/modified
-		ResourceListenerManager::Instance().update();
+		ResourceListenerManager::Instance().Update();
 
 		// Trigger any renderer task callbacks (should be done before scene object update, or core sync, so objects have
 		// a chance to respond to the callback).
-		RendererManager::Instance().getActive()->update();
+		RendererManager::Instance().GetActive()->Update();
 
 		gSceneManager().UpdateCoreObjectTransformsInternal();
-		PROFILE_CALL(RendererManager::Instance().getActive()->renderAll(perFrameData), "Render");
+		PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
 		// Core and sim thread run in lockstep. This will result in a larger input latency than if I was
 		// running just a single thread. Latency becomes worse if the core thread takes longer than sim
@@ -319,27 +319,27 @@ namespace bs
 
 			while(!mIsFrameRenderingFinished)
 			{
-				TaskScheduler::Instance().addWorker();
+				TaskScheduler::Instance().AddWorker();
 				mFrameRenderingFinishedCondition.wait(lock);
-				TaskScheduler::Instance().removeWorker();
+				TaskScheduler::Instance().RemoveWorker();
 			}
 
 			mIsFrameRenderingFinished = false;
 		}
 
-		gCoreThread().QueueCommand(std::bind(&CoreApplication::beginCoreProfiling, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::BeginCoreProfiling, this), CTQF_InternalQueue);
 		gCoreThread().QueueCommand(&Platform::CoreUpdateInternal, CTQF_InternalQueue);
 		gCoreThread().QueueCommand(std::bind(&ct::RenderWindowManager::UpdateInternal, ct::RenderWindowManager::InstancePtr()), CTQF_InternalQueue);
 
-		gCoreThread().update();
-		gCoreThread().submitAll();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll();
 
-		gCoreThread().QueueCommand(std::bind(&CoreApplication::frameRenderingFinishedCallback, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::FrameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
 		gCoreThread().QueueCommand(std::bind(&ct::QueryManager::UpdateInternal, ct::QueryManager::InstancePtr()), CTQF_InternalQueue);
-		gCoreThread().QueueCommand(std::bind(&CoreApplication::endCoreProfiling, this), CTQF_InternalQueue);
+		gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::EndCoreProfiling, this), CTQF_InternalQueue);
 
-		gProfilerCPU().endThread();
+		gProfilerCPU().EndThread();
 		gProfiler().UpdateInternal();
 	}
 
@@ -349,9 +349,9 @@ namespace bs
 
 		while (!mIsFrameRenderingFinished)
 		{
-			TaskScheduler::Instance().addWorker();
+			TaskScheduler::Instance().AddWorker();
 			mFrameRenderingFinishedCondition.wait(lock);
-			TaskScheduler::Instance().removeWorker();
+			TaskScheduler::Instance().RemoveWorker();
 		}
 	}
 
@@ -378,7 +378,7 @@ namespace bs
 
 	void CoreApplication::QuitRequested()
 	{
-		stopMainLoop();
+		StopMainLoop();
 	}
 
 	void CoreApplication::SetFpsLimit(UINT32 limit)
@@ -405,7 +405,7 @@ namespace bs
 	void CoreApplication::BeginCoreProfiling()
 	{
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		gProfilerCPU().beginThread("Core");
+		gProfilerCPU().BeginThread("Core");
 #endif
 	}
 
@@ -414,7 +414,7 @@ namespace bs
 		ProfilerGPU::Instance().UpdateInternal();
 
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		gProfilerCPU().endThread();
+		gProfilerCPU().EndThread();
 		gProfiler().UpdateCoreInternal();
 #endif
 	}

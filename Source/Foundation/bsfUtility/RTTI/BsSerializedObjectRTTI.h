@@ -91,7 +91,7 @@ namespace bs
 		void SetData(SerializedDataBlock* obj, const SPtr<DataStream>& value, UINT32 size)
 		{
 			SPtr<MemoryDataStream> memStream = bs_shared_ptr_new<MemoryDataStream>(size);
-			value->read(memStream->data(), size);
+			value->Read(memStream->Data(), size);
 
 			obj->stream = memStream;
 			obj->size = size;
@@ -100,7 +100,7 @@ namespace bs
 	public:
 		SerializedDataBlockRTTI()
 		{
-			addDataBlockField("data", 0, &SerializedDataBlockRTTI::GetData, &SerializedDataBlockRTTI::SetData);
+			AddDataBlockField("data", 0, &SerializedDataBlockRTTI::GetData, &SerializedDataBlockRTTI::SetData);
 		}
 
 		const String& GetRttiName() 
@@ -145,7 +145,7 @@ namespace bs
 	public:
 		SerializedObjectRTTI()
 		{
-			addReflectableArrayField("entries", 1, &SerializedObjectRTTI::GetEntry, &SerializedObjectRTTI::GetNumEntries,
+			AddReflectableArrayField("entries", 1, &SerializedObjectRTTI::GetEntry, &SerializedObjectRTTI::GetNumEntries,
 				&SerializedObjectRTTI::SetEntry, &SerializedObjectRTTI::SetNumEntries);
 		}
 
@@ -160,7 +160,7 @@ namespace bs
 			return TID_SerializedObject;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SerializedObject>();
 		}
@@ -201,8 +201,8 @@ namespace bs
 	public:
 		SerializedArrayRTTI()
 		{
-			addPlainField("numElements", 0, &SerializedArrayRTTI::GetNumElements, &SerializedArrayRTTI::SetNumElements);
-			addReflectableArrayField("entries", 1, &SerializedArrayRTTI::GetEntry, &SerializedArrayRTTI::GetNumEntries,
+			AddPlainField("numElements", 0, &SerializedArrayRTTI::GetNumElements, &SerializedArrayRTTI::SetNumElements);
+			AddReflectableArrayField("entries", 1, &SerializedArrayRTTI::GetEntry, &SerializedArrayRTTI::GetNumEntries,
 				&SerializedArrayRTTI::SetEntry, &SerializedArrayRTTI::SetNumEntries);
 		}
 
@@ -225,7 +225,7 @@ namespace bs
 			return TID_SerializedArray;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SerializedArray>();
 		}
@@ -269,8 +269,8 @@ namespace bs
 	public:
 		SerializedSubObjectRTTI()
 		{
-			addPlainField("typeId", 0, &SerializedSubObjectRTTI::GetTypeId, &SerializedSubObjectRTTI::SetTypeId);
-			addReflectableArrayField("entries", 1, &SerializedSubObjectRTTI::GetEntry, &SerializedSubObjectRTTI::GetNumEntries,
+			AddPlainField("typeId", 0, &SerializedSubObjectRTTI::GetTypeId, &SerializedSubObjectRTTI::SetTypeId);
+			AddReflectableArrayField("entries", 1, &SerializedSubObjectRTTI::GetEntry, &SerializedSubObjectRTTI::GetNumEntries,
 				&SerializedSubObjectRTTI::SetEntry, &SerializedSubObjectRTTI::SetNumEntries);
 		}
 
@@ -293,7 +293,7 @@ namespace bs
 			return TID_SerializedSubObject;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SerializedSubObject>();
 		}
@@ -328,8 +328,8 @@ namespace bs
 	public:
 		SerializedEntryRTTI()
 		{
-			addPlainField("fieldId", 0, &SerializedEntryRTTI::GetFieldId, &SerializedEntryRTTI::SetFieldId);
-			addReflectablePtrField("serialized", 1, &SerializedEntryRTTI::getSerialized, &SerializedEntryRTTI::setSerialized);
+			AddPlainField("fieldId", 0, &SerializedEntryRTTI::GetFieldId, &SerializedEntryRTTI::SetFieldId);
+			AddReflectablePtrField("serialized", 1, &SerializedEntryRTTI::GetSerialized, &SerializedEntryRTTI::SetSerialized);
 		}
 
 		const String& GetRttiName() override
@@ -343,7 +343,7 @@ namespace bs
 			return TID_SerializedEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SerializedEntry>();
 		}
@@ -375,8 +375,8 @@ namespace bs
 	public:
 		SerializedArrayEntryRTTI()
 		{
-			addPlainField("index", 0, &SerializedArrayEntryRTTI::GetArrayIdx, &SerializedArrayEntryRTTI::SetArrayIdx);
-			addReflectablePtrField("serialized", 1, &SerializedArrayEntryRTTI::getSerialized, &SerializedArrayEntryRTTI::setSerialized);
+			AddPlainField("index", 0, &SerializedArrayEntryRTTI::GetArrayIdx, &SerializedArrayEntryRTTI::SetArrayIdx);
+			AddReflectablePtrField("serialized", 1, &SerializedArrayEntryRTTI::GetSerialized, &SerializedArrayEntryRTTI::SetSerialized);
 		}
 
 		const String& GetRttiName() override
@@ -390,7 +390,7 @@ namespace bs
 			return TID_SerializedArrayEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SerializedArrayEntry>();
 		}

@@ -370,7 +370,7 @@ namespace bs
 			return TID_SubShader;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<SubShader>();
 		}
@@ -461,15 +461,15 @@ namespace bs
 	public:
 		ShaderRTTI()
 		{
-			addPlainArrayField("mDataParams", 2, &ShaderRTTI::GetDataParam, &ShaderRTTI::GetDataParamsArraySize,
+			AddPlainArrayField("mDataParams", 2, &ShaderRTTI::GetDataParam, &ShaderRTTI::GetDataParamsArraySize,
 				&ShaderRTTI::SetDataParam, &ShaderRTTI::SetDataParamsArraySize);
-			addPlainArrayField("mTextureParams", 3, &ShaderRTTI::GetTextureParam, &ShaderRTTI::GetTextureParamsArraySize,
+			AddPlainArrayField("mTextureParams", 3, &ShaderRTTI::GetTextureParam, &ShaderRTTI::GetTextureParamsArraySize,
 				&ShaderRTTI::SetTextureParam, &ShaderRTTI::SetTextureParamsArraySize);
-			addPlainArrayField("mSamplerParams", 4, &ShaderRTTI::GetSamplerParam, &ShaderRTTI::GetSamplerParamsArraySize,
+			AddPlainArrayField("mSamplerParams", 4, &ShaderRTTI::GetSamplerParam, &ShaderRTTI::GetSamplerParamsArraySize,
 				&ShaderRTTI::SetSamplerParam, &ShaderRTTI::SetSamplerParamsArraySize);
-			addPlainArrayField("mBufferParams", 5, &ShaderRTTI::GetBufferParam, &ShaderRTTI::GetBufferParamsArraySize,
+			AddPlainArrayField("mBufferParams", 5, &ShaderRTTI::GetBufferParam, &ShaderRTTI::GetBufferParamsArraySize,
 				&ShaderRTTI::SetBufferParam, &ShaderRTTI::SetBufferParamsArraySize);
-			addPlainArrayField("mParamBlocks", 6, &ShaderRTTI::GetParamBlock, &ShaderRTTI::GetParamBlocksArraySize,
+			AddPlainArrayField("mParamBlocks", 6, &ShaderRTTI::GetParamBlock, &ShaderRTTI::GetParamBlocksArraySize,
 				&ShaderRTTI::SetParamBlock, &ShaderRTTI::SetParamBlocksArraySize);
 		}
 
@@ -490,7 +490,7 @@ namespace bs
 			return TID_Shader;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return Shader::CreateEmpty();
 		}
@@ -505,7 +505,7 @@ namespace bs
 	public:
 		ShaderMetaDataRTTI()
 		{
-			addPlainField("includes", 0, &ShaderMetaDataRTTI::getIncludes, &ShaderMetaDataRTTI::setIncludes);
+			AddPlainField("includes", 0, &ShaderMetaDataRTTI::GetIncludes, &ShaderMetaDataRTTI::SetIncludes);
 		}
 
 		const String& GetRttiName() override
@@ -519,7 +519,7 @@ namespace bs
 			return TID_ShaderMetaData;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ShaderMetaData>();
 		}

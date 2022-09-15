@@ -141,7 +141,7 @@ namespace bs
 		ReturnType GetReturnValue() const
 		{
 #if BS_DEBUG_MODE
-			if(!hasCompleted())
+			if(!HasCompleted())
 				BS_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
 

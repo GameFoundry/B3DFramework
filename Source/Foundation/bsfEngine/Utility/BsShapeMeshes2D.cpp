@@ -64,7 +64,7 @@ namespace bs
 		UINT32 numPoints = (UINT32)linePoints.size();
 		for(UINT32 i = 0; i < numPoints; i += 2)
 		{
-			pixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, curIdxOffset);
+			PixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, curIdxOffset);
 
 			curVertOffset += 2;
 			curIdxOffset += 2;
@@ -86,9 +86,9 @@ namespace bs
 		UINT8* outColors = vertexOffset + meshData->GetElementData(VES_COLOR);
 
 		UINT32 vertexStride = meshData->GetVertexDesc()->GetVertexStride();
-		quadLineList(&linePoints[0], numPoints, width, border, outVertices, vertexStride, true);
+		QuadLineList(&linePoints[0], numPoints, width, border, outVertices, vertexStride, true);
 
-		RGBA colorValue = color.getAsRGBA();
+		RGBA colorValue = color.GetAsRgba();
 
 		// Colors and indices
 		for(UINT32 i = 0; i < numLines; i++)
@@ -132,7 +132,7 @@ namespace bs
 			Vector2 b = linePoints[1];
 
 			Vector2 diff = b - a;
-			diff.normalize();
+			diff.Normalize();
 
 			// Flip 90 degrees
 			Vector2 normal(diff.y, -diff.x);
@@ -156,10 +156,10 @@ namespace bs
 				Vector2 c = linePoints[i + 1];
 
 				Vector2 diffPrev = b - a;
-				diffPrev.normalize();
+				diffPrev.Normalize();
 
 				Vector2 diffNext = c - b;
-				diffNext.normalize();
+				diffNext.Normalize();
 
 				// Flip 90 degrees
 				Vector2 normalPrev(diffPrev.y, -diffPrev.x);
@@ -176,9 +176,9 @@ namespace bs
 					Vector2 lineNextPoint = b + normalNext * width * sign[j];
 					Line2 lineNext(lineNextPoint, diffNext);
 
-					auto intersect = linePrev.intersects(lineNext);
+					auto intersect = linePrev.Intersects(lineNext);
 					if (intersect.second != 0.0f) // Not parallel
-						curPoints[j] = linePrev.getPoint(intersect.second);
+						curPoints[j] = linePrev.GetPoint(intersect.second);
 					else
 						curPoints[j] = lineNextPoint;
 
@@ -212,7 +212,7 @@ namespace bs
 			Vector2 b = linePoints[numPoints - 1];
 
 			Vector2 diff = b - a;
-			diff.normalize();
+			diff.Normalize();
 
 			// Flip 90 degrees
 			Vector2 normal(diff.y, -diff.x);

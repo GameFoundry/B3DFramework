@@ -280,9 +280,9 @@ namespace bs
 		static void Scale(const PixelData& source, const PixelData& dest)
 		{
 			// Only optimized for 2D
-			if (source.getDepth() > 1 || dest.getDepth() > 1)
+			if (source.GetDepth() > 1 || dest.GetDepth() > 1)
 			{
-				LinearResampler::scale(source, dest);
+				LinearResampler::Scale(source, dest);
 				return;
 			}
 
@@ -300,25 +300,25 @@ namespace bs
 			UINT32 temp;
 
 			UINT64 curY = (stepY >> 1) - 1; // Offset half a pixel to start at pixel center
-			for (UINT32 y = dest.getTop(); y < dest.getBottom(); y++, curY += stepY)
+			for (UINT32 y = dest.GetTop(); y < dest.GetBottom(); y++, curY += stepY)
 			{
 				temp = (UINT32)(curY >> 36);
 				temp = (temp > 0x800)? temp - 0x800: 0;
 				UINT32 sampleWeightY = temp & 0xFFF;
 				UINT32 sampleCoordY1 = temp >> 12;
-				UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.getBottom() - source.getTop() - 1);
+				UINT32 sampleCoordY2 = std::min(sampleCoordY1 + 1, (UINT32)source.GetBottom() - source.GetTop() - 1);
 
-				UINT32 sampleY1Offset = sampleCoordY1 * source.getRowPitch();
-				UINT32 sampleY2Offset = sampleCoordY2 * source.getRowPitch();
+				UINT32 sampleY1Offset = sampleCoordY1 * source.GetRowPitch();
+				UINT32 sampleY2Offset = sampleCoordY2 * source.GetRowPitch();
 
 				UINT64 curX = (stepX >> 1) - 1; // Offset half a pixel to start at pixel center
-				for (UINT32 x = dest.getLeft(); x < dest.getRight(); x++, curX += stepX)
+				for (UINT32 x = dest.GetLeft(); x < dest.GetRight(); x++, curX += stepX)
 				{
 					temp = (UINT32)(curX >> 36);
 					temp = (temp > 0x800)? temp - 0x800 : 0;
 					UINT32 sampleWeightX = temp & 0xFFF;
 					UINT32 sampleCoordX1 = temp >> 12;
-					UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.getRight() - source.getLeft() - 1);
+					UINT32 sampleCoordX2 = std::min(sampleCoordX1 + 1, (UINT32)source.GetRight() - source.GetLeft() - 1);
 
 					UINT32 sxfsyf = sampleWeightX*sampleWeightY;
 					for (UINT32 k = 0; k < channels; k++)
@@ -334,7 +334,7 @@ namespace bs
 						destPtr++;
 					}
 				}
-				destPtr += dest.getRowSkip();
+				destPtr += dest.GetRowSkip();
 			}
 		}
 	};

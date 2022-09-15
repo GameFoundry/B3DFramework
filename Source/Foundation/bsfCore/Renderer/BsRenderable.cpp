@@ -52,11 +52,11 @@ namespace bs
 
 		int numSubMeshes = 0;
 		if (isMeshValid(mesh))
-			numSubMeshes = mesh->GetProperties().getNumSubMeshes();
+			numSubMeshes = mesh->GetProperties().GetNumSubMeshes();
 
 		mMaterials.resize(numSubMeshes);
 
-		onMeshChanged();
+		OnMeshChanged();
 
 		MarkDependenciesDirtyInternal();
 		MarkResourcesDirtyInternal();
@@ -96,7 +96,7 @@ namespace bs
 	template<bool Core>
 	void TRenderable<Core>::SetMaterial(const MaterialType& material)
 	{
-		setMaterial(0, material);
+		SetMaterial(0, material);
 	}
 
 	template <bool Core>
@@ -179,7 +179,7 @@ namespace bs
 	void Renderable::SetAnimation(const SPtr<Animation>& animation)
 	{
 		mAnimation = animation;
-		refreshAnimation();
+		RefreshAnimation();
 
 		MarkCoreDirtyInternal();
 	}
@@ -188,19 +188,19 @@ namespace bs
 	{
 		if(mUseOverrideBounds)
 		{
-			Sphere sphere(mOverrideBounds.getCenter(), mOverrideBounds.getRadius());
+			Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
 
 			Bounds bounds(mOverrideBounds, sphere);
-			bounds.transformAffine(mTfrmMatrix);
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
 
-		HMesh mesh = getMesh();
+		HMesh mesh = GetMesh();
 
 		if (!mesh.IsLoaded())
 		{
-			const Transform& tfrm = getTransform();
+			const Transform& tfrm = GetTransform();
 
 			AABox box(tfrm.GetPosition(), tfrm.GetPosition());
 			Sphere sphere(tfrm.GetPosition(), 0.0f);
@@ -209,8 +209,8 @@ namespace bs
 		}
 		else
 		{
-			Bounds bounds = mesh->GetProperties().getBounds();
-			bounds.transformAffine(mTfrmMatrix);
+			Bounds bounds = mesh->GetProperties().GetBounds();
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
@@ -232,7 +232,7 @@ namespace bs
 
 	void Renderable::OnMeshChanged()
 	{
-		refreshAnimation();
+		RefreshAnimation();
 	}
 
 	void Renderable::RefreshAnimation()
@@ -271,7 +271,7 @@ namespace bs
 
 	void Renderable::UpdateStateInternal(const SceneObject& so, bool force)
 	{
-		UINT32 curHash = so.getTransformHash();
+		UINT32 curHash = so.GetTransformHash();
 		if (curHash != mHash || force)
 		{
 			// If skinned animation, don't include own transform since that will be handled by root bone animation
@@ -285,14 +285,14 @@ namespace bs
 			{
 				// Note: Technically we're checking child's hash but using parent's transform. Ideally we check the parent's
 				// hash to reduce the number of required updates.
-				HSceneObject parentSO = so.getParent();
+				HSceneObject parentSO = so.GetParent();
 				if (parentSO != nullptr)
-					setTransform(parentSO->GetTransform());
+					SetTransform(parentSO->GetTransform());
 				else
-					setTransform(Transform());
+					SetTransform(Transform());
 			}
 			else
-				setTransform(so.getTransform());
+				SetTransform(so.GetTransform());
 
 			mHash = curHash;
 		}
@@ -303,24 +303,24 @@ namespace bs
 
 	void Renderable::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
-		markCoreDirty((UINT32)flag);
+		MarkCoreDirty((UINT32)flag);
 	}
 
 	void Renderable::MarkDependenciesDirtyInternal()
 	{
-		markDependenciesDirty();
+		MarkDependenciesDirty();
 	}
 
 	void Renderable::MarkResourcesDirtyInternal()
 	{
-		markListenerResourcesDirty();
+		MarkListenerResourcesDirty();
 	}
 
 	CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 	{
-		const UINT32 dirtyFlags = getCoreDirtyFlags();
+		const UINT32 dirtyFlags = GetCoreDirtyFlags();
 		UINT32 size = rtti_size(dirtyFlags).bytes;
-		SceneActor::rttiEnumFields(RttiCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
+		SceneActor::RttiEnumFields(RttiCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
 
 		// The most common case if only the transform changed, so we sync only transform related options
 		UINT32 numMaterials = 0;
@@ -348,11 +348,11 @@ namespace bs
 		}
 
 
-		UINT8* data = allocator->alloc(size);
+		UINT8* data = allocator->Alloc(size);
 		Bitstream stream(data, size);
 
 		rtti_write(dirtyFlags, stream);
-		SceneActor::rttiEnumFields(RttiCoreSyncWriter(stream), (ActorDirtyFlags)dirtyFlags);
+		SceneActor::RttiEnumFields(RttiCoreSyncWriter(stream), (ActorDirtyFlags)dirtyFlags);
 
 		if(dirtyFlags != (UINT32)ActorDirtyFlag::Transform)
 		{
@@ -365,19 +365,19 @@ namespace bs
 			rtti_write(mAnimType, stream);
 			rtti_write(mCullDistanceFactor, stream);
 
-			SPtr<ct::Mesh>* mesh = new (stream.cursor()) SPtr<ct::Mesh>();
+			SPtr<ct::Mesh>* mesh = new (stream.Cursor()) SPtr<ct::Mesh>();
 			if (mMesh.IsLoaded())
 				*mesh = mMesh->GetCore();
 
-			stream.skipBytes(sizeof(SPtr<ct::Mesh>));
+			stream.SkipBytes(sizeof(SPtr<ct::Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<ct::Material>* material = new (stream.cursor())SPtr<ct::Material>();
+				SPtr<ct::Material>* material = new (stream.Cursor())SPtr<ct::Material>();
 				if (mMaterials[i].IsLoaded())
 					*material = mMaterials[i]->GetCore();
 
-				stream.skipBytes(sizeof(SPtr<ct::Material>));
+				stream.SkipBytes(sizeof(SPtr<ct::Material>));
 			}
 		}
 
@@ -387,25 +387,25 @@ namespace bs
 	void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	{
 		if (mMesh.IsLoaded())
-			dependencies.push_back(mMesh.get());
+			dependencies.push_back(mMesh.Get());
 
 		for (auto& material : mMaterials)
 		{
 			if (material.IsLoaded())
-				dependencies.push_back(material.get());
+				dependencies.push_back(material.Get());
 		}
 	}
 
 	void Renderable::OnDependencyDirty(CoreObject* dependency, UINT32 dirtyFlags)
 	{
-		if(mMesh.IsLoaded(false) && mMesh.get() == dependency)
+		if(mMesh.IsLoaded(false) && mMesh.Get() == dependency)
 		{
-			CoreObject::onDependencyDirty(dependency, dirtyFlags);
+			CoreObject::OnDependencyDirty(dependency, dirtyFlags);
 			return;
 		}
 
 		if(((UINT32)MaterialDirtyFlags::Shader & dirtyFlags) != 0)
-			CoreObject::onDependencyDirty(dependency, dirtyFlags);
+			CoreObject::OnDependencyDirty(dependency, dirtyFlags);
 	}
 
 	void Renderable::GetListenerResources(Vector<HResource>& resources)
@@ -423,24 +423,24 @@ namespace bs
 	void Renderable::NotifyResourceLoaded(const HResource& resource)
 	{
 		if (resource == mMesh)
-			onMeshChanged();
+			OnMeshChanged();
 
-		markDependenciesDirty();
-		markCoreDirty();
+		MarkDependenciesDirty();
+		MarkCoreDirty();
 	}
 
 	void Renderable::NotifyResourceChanged(const HResource& resource)
 	{
 		if(resource == mMesh)
-			onMeshChanged();
+			OnMeshChanged();
 
-		markDependenciesDirty();
-		markCoreDirty();
+		MarkDependenciesDirty();
+		MarkCoreDirty();
 	}
 
 	SPtr<Renderable> Renderable::Create()
 	{
-		SPtr<Renderable> handlerPtr = createEmpty();
+		SPtr<Renderable> handlerPtr = CreateEmpty();
 		handlerPtr->Initialize();
 
 		return handlerPtr;
@@ -475,12 +475,12 @@ namespace bs
 	Renderable::~Renderable()
 	{
 		if (mActive)
-			gRenderer()->notifyRenderableRemoved(this);
+			gRenderer()->NotifyRenderableRemoved(this);
 	}
 
 	void Renderable::Initialize()
 	{
-		gRenderer()->notifyRenderableAdded(this);
+		gRenderer()->NotifyRenderableAdded(this);
 
 		CoreObject::Initialize();
 	}
@@ -489,19 +489,19 @@ namespace bs
 	{
 		if (mUseOverrideBounds)
 		{
-			Sphere sphere(mOverrideBounds.getCenter(), mOverrideBounds.getRadius());
+			Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
 
 			Bounds bounds(mOverrideBounds, sphere);
-			bounds.transformAffine(mTfrmMatrix);
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
 
-		SPtr<Mesh> mesh = getMesh();
+		SPtr<Mesh> mesh = GetMesh();
 
 		if (mesh == nullptr)
 		{
-			const Transform& tfrm = getTransform();
+			const Transform& tfrm = GetTransform();
 
 			AABox box(tfrm.GetPosition(), tfrm.GetPosition());
 			Sphere sphere(tfrm.GetPosition(), 0.0f);
@@ -510,8 +510,8 @@ namespace bs
 		}
 		else
 		{
-			Bounds bounds = mesh->GetProperties().getBounds();
-			bounds.transformAffine(mTfrmMatrix);
+			Bounds bounds = mesh->GetProperties().GetBounds();
+			bounds.TransformAffine(mTfrmMatrix);
 
 			return bounds;
 		}
@@ -527,7 +527,7 @@ namespace bs
 		desc.usage = GBU_DYNAMIC;
 
 		SPtr<GpuBuffer> buffer = GpuBuffer::Create(desc);
-		UINT8* dest = (UINT8*)buffer->lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+		UINT8* dest = (UINT8*)buffer->Lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 
 		// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
 		for (UINT32 i = 0; i < numBones; i++)
@@ -536,7 +536,7 @@ namespace bs
 			dest += 12 * sizeof(float);
 		}
 
-		buffer->unlock();
+		buffer->Unlock();
 
 		return buffer;
 	}
@@ -586,9 +586,9 @@ namespace bs
 			SPtr<VertexBuffer> vertexBuffer = VertexBuffer::Create(desc);
 
 			UINT32 totalSize = vertexSize * numVertices;
-			UINT8* dest = (UINT8*)vertexBuffer->lock(0, totalSize, GBL_WRITE_ONLY_DISCARD);
+			UINT8* dest = (UINT8*)vertexBuffer->Lock(0, totalSize, GBL_WRITE_ONLY_DISCARD);
 			memset(dest, 0, totalSize);
-			vertexBuffer->unlock();
+			vertexBuffer->Unlock();
 
 			mMorphShapeBuffer = vertexBuffer;
 		}
@@ -621,7 +621,7 @@ namespace bs
 
 			// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
 			// all such elements
-			UINT8* dest = (UINT8*)mBoneMatrixBuffer->lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
+			UINT8* dest = (UINT8*)mBoneMatrixBuffer->Lock(0, poseInfo.numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 			for (UINT32 j = 0; j < poseInfo.numBones; j++)
 			{
 				const Matrix4& transform = animData.transforms[poseInfo.startIdx + j];
@@ -630,7 +630,7 @@ namespace bs
 				dest += 12 * sizeof(float);
 			}
 
-			mBoneMatrixBuffer->unlock();
+			mBoneMatrixBuffer->Unlock();
 		}
 
 		if (mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
@@ -642,7 +642,7 @@ namespace bs
 				UINT32 bufferSize = meshData->GetSize();
 				UINT8* data = meshData->GetData();
 
-				mMorphShapeBuffer->writeData(0, bufferSize, data, BWT_DISCARD);
+				mMorphShapeBuffer->WriteData(0, bufferSize, data, BWT_DISCARD);
 				mMorphShapeVersion = animInfo->morphShapeInfo.version;
 			}
 		}
@@ -659,7 +659,7 @@ namespace bs
 
 	void Renderable::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream stream(data.getBuffer(), data.getBufferSize());
+		Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 		mMaterials.clear();
 
@@ -668,7 +668,7 @@ namespace bs
 		bool oldIsActive = mActive;
 
 		rtti_read(dirtyFlags, stream);
-		SceneActor::rttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
+		SceneActor::RttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
 
 		mTfrmMatrix = mTransform.GetMatrix();
 		mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::ONE);
@@ -684,17 +684,17 @@ namespace bs
 			rtti_read(mAnimType, stream);
 			rtti_read(mCullDistanceFactor, stream);
 
-			SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.cursor();
+			SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.Cursor();
 			mMesh = *mesh;
 			mesh->~SPtr<Mesh>();
-			stream.skipBytes(sizeof(SPtr<Mesh>));
+			stream.SkipBytes(sizeof(SPtr<Mesh>));
 
 			for (UINT32 i = 0; i < numMaterials; i++)
 			{
-				SPtr<Material>* material = (SPtr<Material>*)stream.cursor();
+				SPtr<Material>* material = (SPtr<Material>*)stream.Cursor();
 				mMaterials.push_back(*material);
 				material->~SPtr<Material>();
-				stream.skipBytes(sizeof(SPtr<Material>));
+				stream.SkipBytes(sizeof(SPtr<Material>));
 			}
 		}
 
@@ -704,7 +704,7 @@ namespace bs
 
 		if((dirtyFlags & updateEverythingFlag) != 0)
 		{
-			createAnimationBuffers();
+			CreateAnimationBuffers();
 
 			// Create special vertex declaration if using morph shapes
 			if (mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
@@ -723,25 +723,25 @@ namespace bs
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyRenderableAdded(this);
+					gRenderer()->NotifyRenderableAdded(this);
 				else
-					gRenderer()->notifyRenderableRemoved(this);
+					gRenderer()->NotifyRenderableRemoved(this);
 			}
 			else
 			{
-				gRenderer()->notifyRenderableRemoved(this);
-				gRenderer()->notifyRenderableAdded(this);
+				gRenderer()->NotifyRenderableRemoved(this);
+				gRenderer()->NotifyRenderableAdded(this);
 			}
 		}
 		else if((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
-				gRenderer()->notifyRenderableRemoved(this);
-				gRenderer()->notifyRenderableAdded(this);
+				gRenderer()->NotifyRenderableRemoved(this);
+				gRenderer()->NotifyRenderableAdded(this);
 		}
 		else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Transform) != 0)
 		{
 			if (mActive)
-				gRenderer()->notifyRenderableUpdated(this);
+				gRenderer()->NotifyRenderableUpdated(this);
 		}
 	}
 	}

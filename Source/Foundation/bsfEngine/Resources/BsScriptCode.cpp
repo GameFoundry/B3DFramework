@@ -32,7 +32,7 @@ namespace bs
 		return ScriptCodeRTTI::Instance();
 	}
 
-	RTTITypeBase* ScriptCode::getRTTI() const
+	RTTITypeBase* ScriptCode::GetRtti() const
 	{
 		return ScriptCode::GetRttiStatic();
 	}

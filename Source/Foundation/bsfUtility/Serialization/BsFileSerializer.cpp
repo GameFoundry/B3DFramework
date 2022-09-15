@@ -49,7 +49,7 @@ namespace bs
 		if (mInputStream == nullptr)
 			return;
 
-		if (mInputStream->size() > std::numeric_limits<UINT32>::max())
+		if (mInputStream->Size() > std::numeric_limits<UINT32>::max())
 		{
 			BS_EXCEPT(InternalErrorException,
 				"File size is larger that UINT32 can hold. Ask a programmer to use a bigger data type.");
@@ -58,37 +58,37 @@ namespace bs
 
 	SPtr<IReflectable> FileDecoder::Decode(SerializationContext* context)
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return nullptr;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
+		mInputStream->Read(&objectSize, sizeof(objectSize));
 
 		BinarySerializer bs;
-		SPtr<IReflectable> object = bs.decode(mInputStream, objectSize, BinarySerializerFlag::None, context);
+		SPtr<IReflectable> object = bs.Decode(mInputStream, objectSize, BinarySerializerFlag::None, context);
 
 		return object;
 	}
 
 	UINT32 FileDecoder::GetSize() const
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return 0;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
-		mInputStream->seek(mInputStream->tell() - sizeof(objectSize));
+		mInputStream->Read(&objectSize, sizeof(objectSize));
+		mInputStream->Seek(mInputStream->Tell() - sizeof(objectSize));
 
 		return objectSize;
 	}
 
 	void FileDecoder::Skip()
 	{
-		if (mInputStream->eof())
+		if (mInputStream->Eof())
 			return;
 
 		UINT32 objectSize = 0;
-		mInputStream->read(&objectSize, sizeof(objectSize));
-		mInputStream->skip(objectSize);
+		mInputStream->Read(&objectSize, sizeof(objectSize));
+		mInputStream->Skip(objectSize);
 	}
 }

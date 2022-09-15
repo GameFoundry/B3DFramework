@@ -249,7 +249,7 @@ namespace bs
 			return;
 		}
 
-		setParamBlockBuffer(iterFind->second.set, iterFind->second.slot, paramBlockBuffer);
+		SetParamBlockBuffer(iterFind->second.set, iterFind->second.slot, paramBlockBuffer);
 	}
 
 	template<bool Core>
@@ -265,7 +265,7 @@ namespace bs
 			if (iterFind == paramDescs->paramBlocks.end())
 				continue;
 
-			setParamBlockBuffer(iterFind->second.set, iterFind->second.slot, paramBlockBuffer);
+			SetParamBlockBuffer(iterFind->second.set, iterFind->second.slot, paramBlockBuffer);
 		}
 	}
 

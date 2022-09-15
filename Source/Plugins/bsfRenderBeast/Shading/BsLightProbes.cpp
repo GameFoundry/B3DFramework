@@ -76,12 +76,12 @@ namespace bs { namespace ct
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return get(getVariation<true, true>());
+				return Get(getVariation<true, true>());
 
-			return get(getVariation<true, false>());
+			return Get(getVariation<true, false>());
 		}
 
-		return get(getVariation<false, false>());
+		return Get(getVariation<false, false>());
 	}
 
 	IrradianceEvaluateParamDef gIrradianceEvaluateParamDef;
@@ -157,7 +157,7 @@ namespace bs { namespace ct
 
 		bind();
 
-		gRendererUtility().drawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.target.viewRect.width,
+		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.target.viewRect.width,
 			(float)viewProps.target.viewRect.height));
 
 		rapi.setRenderTarget(nullptr);
@@ -170,24 +170,24 @@ namespace bs { namespace ct
 			if (msaa)
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<true, true, true>());
+					return Get(getVariation<true, true, true>());
 
-				return get(getVariation<true, false, true>());
+				return Get(getVariation<true, false, true>());
 			}
 
-			return get(getVariation<false, false, true>());
+			return Get(getVariation<false, false, true>());
 		}
 		else
 		{
 			if (msaa)
 			{
 				if (singleSampleMSAA)
-					return get(getVariation<true, true, false>());
+					return Get(getVariation<true, true, false>());
 
-				return get(getVariation<true, false, false>());
+				return Get(getVariation<true, false, false>());
 			}
 
-			return get(getVariation<false, false, false>());
+			return Get(getVariation<false, false, false>());
 		}
 	}
 

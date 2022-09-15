@@ -80,7 +80,7 @@ namespace bs
 			return TID_GUIElementStyle;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<GUIElementStyle>();
 		}

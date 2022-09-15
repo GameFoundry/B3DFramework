@@ -23,7 +23,7 @@ namespace bs
 	public:
 		CRenderableRTTI()
 		{
-			addReflectablePtrField("mInternal", 0, &CRenderableRTTI::getInternal, &CRenderableRTTI::setInternal);
+			AddReflectablePtrField("mInternal", 0, &CRenderableRTTI::GetInternal, &CRenderableRTTI::SetInternal);
 		}
 
 		const String& GetRttiName() override
@@ -37,7 +37,7 @@ namespace bs
 			return TID_CRenderable;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CRenderable>();
 		}

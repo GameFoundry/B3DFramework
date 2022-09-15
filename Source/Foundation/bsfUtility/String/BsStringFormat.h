@@ -267,7 +267,7 @@ namespace bs
 
 			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 			
-			getParams(parameters, idx + 1, std::forward<Args>(args)...);
+			GetParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
 
 		/**
@@ -285,7 +285,7 @@ namespace bs
 			
 			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
 
-			getParams(parameters, idx + 1, std::forward<Args>(args)...);
+			GetParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}
 
 		/** Helper method for parameter size calculation. Used as a stopping point in template recursion. */

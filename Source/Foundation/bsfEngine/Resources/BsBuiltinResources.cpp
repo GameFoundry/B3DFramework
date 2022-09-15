@@ -89,9 +89,9 @@ namespace bs
 	BuiltinResources::BuiltinResources()
 	{
 		// Set up paths
-		mBuiltinRawDataFolder = Paths::getDataPath() + u8"Raw/";
+		mBuiltinRawDataFolder = Paths::GetDataPath() + u8"Raw/";
 
-		mBuiltinDataFolder = Paths::getDataPath();
+		mBuiltinDataFolder = Paths::GetDataPath();
 		mEngineSkinSpritesFolder = mBuiltinDataFolder + SKIN_FOLDER + SPRITE_FOLDER;
 		mEngineShaderFolder = mBuiltinDataFolder + SHADER_FOLDER;
 		mEngineMeshFolder = mBuiltinDataFolder + MESH_FOLDER;
@@ -101,23 +101,23 @@ namespace bs
 
 		// Load manifest
 		if (FileSystem::Exists(ResourceManifestPath))
-			mResourceManifest = ResourceManifest::load(ResourceManifestPath, mBuiltinDataFolder);
+			mResourceManifest = ResourceManifest::Load(ResourceManifestPath, mBuiltinDataFolder);
 
 		if (mResourceManifest == nullptr)
 			mResourceManifest = ResourceManifest::Create("BuiltinResources");
 
-		gResources().registerResourceManifest(mResourceManifest);
+		gResources().RegisterResourceManifest(mResourceManifest);
 
 		// Load basic resources
-		mShaderSpriteText = getShader(ShaderSpriteTextFile);
-		mShaderSpriteImage = getShader(ShaderSpriteImageFile);
-		mShaderSpriteLine = getShader(ShaderSpriteLineFile);
-		mShaderDiffuse = getShader(ShaderDiffuseFile);
-		mShaderTransparent = getShader(ShaderTransparentFile);
-		mShaderParticlesUnlit = getShader(ShaderParticlesUnlitFile);
-		mShaderParticlesLit = getShader(ShaderParticlesLitFile);
-		mShaderParticlesLitOpaque = getShader(ShaderParticlesLitOpaqueFile);
-		mShaderDecal = getShader(ShaderDecalFile);
+		mShaderSpriteText = GetShader(ShaderSpriteTextFile);
+		mShaderSpriteImage = GetShader(ShaderSpriteImageFile);
+		mShaderSpriteLine = GetShader(ShaderSpriteLineFile);
+		mShaderDiffuse = GetShader(ShaderDiffuseFile);
+		mShaderTransparent = GetShader(ShaderTransparentFile);
+		mShaderParticlesUnlit = GetShader(ShaderParticlesUnlitFile);
+		mShaderParticlesLit = GetShader(ShaderParticlesLitFile);
+		mShaderParticlesLitOpaque = GetShader(ShaderParticlesLitOpaqueFile);
+		mShaderDecal = GetShader(ShaderDecalFile);
 
 		SPtr<PixelData> dummyPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
@@ -128,96 +128,96 @@ namespace bs
 
 		mDummyTexture = Texture::Create(dummyPixelData);
 
-		mWhiteSpriteTexture = getSkinTexture(WhiteTex);
+		mWhiteSpriteTexture = GetSkinTexture(WhiteTex);
 		mDummySpriteTexture = SpriteTexture::Create(mDummyTexture);
 
-		mFont = gResources().load<Font>(mBuiltinDataFolder + (String(DEFAULT_FONT_NAME) + u8".asset"));
-		mSkin = gResources().load<GUISkin>(mBuiltinDataFolder + (String(GUI_SKIN_FILE) + u8".json.asset"));
+		mFont = gResources().Load<Font>(mBuiltinDataFolder + (String(DEFAULT_FONT_NAME) + u8".asset"));
+		mSkin = gResources().Load<GUISkin>(mBuiltinDataFolder + (String(GUI_SKIN_FILE) + u8".json.asset"));
 		mEmptySkin = GUISkin::Create();
 
 		/************************************************************************/
 		/* 								CURSOR		                     		*/
 		/************************************************************************/
 
-		HTexture cursorArrowTex = getCursorTexture(CursorArrowTex);
-		HTexture cursorArrowDragTex = getCursorTexture(CursorArrowDragTex);
-		HTexture cursorArrowLeftRightTex = getCursorTexture(CursorArrowLeftRightTex);
-		HTexture cursorIBeamTex = getCursorTexture(CursorIBeamTex);
-		HTexture cursorDenyTex = getCursorTexture(CursorDenyTex);
-		HTexture cursorWaitTex = getCursorTexture(CursorWaitTex);
-		HTexture cursorSizeNESWTex = getCursorTexture(CursorSizeNESWTex);
-		HTexture cursorSizeNSTex = getCursorTexture(CursorSizeNSTex);
-		HTexture cursorSizeNWSETex = getCursorTexture(CursorSizeNWSETex);
-		HTexture cursorSizeWETex = getCursorTexture(CursorSizeWETex);
+		HTexture cursorArrowTex = GetCursorTexture(CursorArrowTex);
+		HTexture cursorArrowDragTex = GetCursorTexture(CursorArrowDragTex);
+		HTexture cursorArrowLeftRightTex = GetCursorTexture(CursorArrowLeftRightTex);
+		HTexture cursorIBeamTex = GetCursorTexture(CursorIBeamTex);
+		HTexture cursorDenyTex = GetCursorTexture(CursorDenyTex);
+		HTexture cursorWaitTex = GetCursorTexture(CursorWaitTex);
+		HTexture cursorSizeNESWTex = GetCursorTexture(CursorSizeNESWTex);
+		HTexture cursorSizeNSTex = GetCursorTexture(CursorSizeNSTex);
+		HTexture cursorSizeNWSETex = GetCursorTexture(CursorSizeNWSETex);
+		HTexture cursorSizeWETex = GetCursorTexture(CursorSizeWETex);
 
-		mCursorArrow = cursorArrowTex->GetProperties().allocBuffer(0, 0);
-		cursorArrowTex->readData(mCursorArrow);
+		mCursorArrow = cursorArrowTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowTex->ReadData(mCursorArrow);
 
-		mCursorArrowDrag = cursorArrowDragTex->GetProperties().allocBuffer(0, 0);
-		cursorArrowDragTex->readData(mCursorArrowDrag);
+		mCursorArrowDrag = cursorArrowDragTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowDragTex->ReadData(mCursorArrowDrag);
 
-		mCursorArrowLeftRight = cursorArrowLeftRightTex->GetProperties().allocBuffer(0, 0);
-		cursorArrowLeftRightTex->readData(mCursorArrowLeftRight);
+		mCursorArrowLeftRight = cursorArrowLeftRightTex->GetProperties().AllocBuffer(0, 0);
+		cursorArrowLeftRightTex->ReadData(mCursorArrowLeftRight);
 
-		mCursorIBeam = cursorIBeamTex->GetProperties().allocBuffer(0, 0);
-		cursorIBeamTex->readData(mCursorIBeam);
+		mCursorIBeam = cursorIBeamTex->GetProperties().AllocBuffer(0, 0);
+		cursorIBeamTex->ReadData(mCursorIBeam);
 
-		mCursorDeny = cursorDenyTex->GetProperties().allocBuffer(0, 0);
-		cursorDenyTex->readData(mCursorDeny);
+		mCursorDeny = cursorDenyTex->GetProperties().AllocBuffer(0, 0);
+		cursorDenyTex->ReadData(mCursorDeny);
 
-		mCursorWait = cursorWaitTex->GetProperties().allocBuffer(0, 0);
-		cursorWaitTex->readData(mCursorWait);
+		mCursorWait = cursorWaitTex->GetProperties().AllocBuffer(0, 0);
+		cursorWaitTex->ReadData(mCursorWait);
 
-		mCursorSizeNESW = cursorSizeNESWTex->GetProperties().allocBuffer(0, 0);
-		cursorSizeNESWTex->readData(mCursorSizeNESW);
+		mCursorSizeNESW = cursorSizeNESWTex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNESWTex->ReadData(mCursorSizeNESW);
 
-		mCursorSizeNS = cursorSizeNSTex->GetProperties().allocBuffer(0, 0);
-		cursorSizeNSTex->readData(mCursorSizeNS);
+		mCursorSizeNS = cursorSizeNSTex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNSTex->ReadData(mCursorSizeNS);
 
-		mCursorSizeNWSE = cursorSizeNWSETex->GetProperties().allocBuffer(0, 0);
-		cursorSizeNWSETex->readData(mCursorSizeNWSE);
+		mCursorSizeNWSE = cursorSizeNWSETex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeNWSETex->ReadData(mCursorSizeNWSE);
 
-		mCursorSizeWE = cursorSizeWETex->GetProperties().allocBuffer(0, 0);
-		cursorSizeWETex->readData(mCursorSizeWE);
+		mCursorSizeWE = cursorSizeWETex->GetProperties().AllocBuffer(0, 0);
+		cursorSizeWETex->ReadData(mCursorSizeWE);
 
 		/************************************************************************/
 		/* 								ICON		                     		*/
 		/************************************************************************/
 
 		Path iconPath = mBuiltinDataFolder + ICON_FOLDER;
-		iconPath.append(String(IconTextureName) + u8".asset");
+		iconPath.Append(String(IconTextureName) + u8".asset");
 
-		HTexture iconTex = gResources().load<Texture>(iconPath);
+		HTexture iconTex = gResources().Load<Texture>(iconPath);
 
-		mFrameworkIcon = iconTex->GetProperties().allocBuffer(0, 0);
-		iconTex->readData(mFrameworkIcon);
+		mFrameworkIcon = iconTex->GetProperties().AllocBuffer(0, 0);
+		iconTex->ReadData(mFrameworkIcon);
 
-		gCoreThread().submit(true);
+		gCoreThread().Submit(true);
 	}
 
 	HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 	{
 		Path texturePath = mEngineSkinSpritesFolder;
-		texturePath.append(u8"sprite_" + name + u8".asset");
+		texturePath.Append(u8"sprite_" + name + u8".asset");
 
-		return gResources().load<SpriteTexture>(texturePath);
+		return gResources().Load<SpriteTexture>(texturePath);
 	}
 
 	HShader BuiltinResources::GetShader(const Path& path) const
 	{
 		Path programPath = mEngineShaderFolder;
-		programPath.append(path);
-		programPath.setExtension(programPath.getExtension() + ".asset");
+		programPath.Append(path);
+		programPath.SetExtension(programPath.GetExtension() + ".asset");
 
-		return gResources().load<Shader>(programPath);
+		return gResources().Load<Shader>(programPath);
 	}
 
 	HTexture BuiltinResources::GetCursorTexture(const String& name) const
 	{
 		Path cursorPath = mEngineCursorFolder;
-		cursorPath.append(name + u8".asset");
+		cursorPath.Append(name + u8".asset");
 
-		return gResources().load<Texture>(cursorPath);
+		return gResources().Load<Texture>(cursorPath);
 	}
 
 	const PixelData& BuiltinResources::GetCursorArrow(Vector2I& hotSpot)
@@ -287,23 +287,23 @@ namespace bs
 
 	Path BuiltinResources::GetRawShaderFolder()
 	{
-		return Paths::getDataPath() + "Raw/" + SHADER_FOLDER;
+		return Paths::GetDataPath() + "Raw/" + SHADER_FOLDER;
 	}
 
 	Path BuiltinResources::GetShaderIncludeFolder()
 	{
-		return Paths::getDataPath() + SHADER_INCLUDE_FOLDER;
+		return Paths::GetDataPath() + SHADER_INCLUDE_FOLDER;
 	}
 
 	Path BuiltinResources::GetIconFolder()
 	{
-		return Paths::getDataPath() + ICON_FOLDER;
+		return Paths::GetDataPath() + ICON_FOLDER;
 	}
 
 #if BS_IS_BANSHEE3D || defined BS_IS_ASSET_TOOL
 	Path BuiltinResources::GetEditorShaderIncludeFolder()
 	{
-		return Paths::getEditorDataPath() + SHADER_INCLUDE_FOLDER;
+		return Paths::GetEditorDataPath() + SHADER_INCLUDE_FOLDER;
 	}
 #endif
 
@@ -314,26 +314,26 @@ namespace bs
 		switch (mesh)
 		{
 		case BuiltinMesh::Box:
-			meshPath.append(MESH_BOX_FILE);
+			meshPath.Append(MESH_BOX_FILE);
 			break;
 		case BuiltinMesh::Sphere:
-			meshPath.append(MESH_SPHERE_FILE);
+			meshPath.Append(MESH_SPHERE_FILE);
 			break;
 		case BuiltinMesh::Cone:
-			meshPath.append(MESH_CONE_FILE);
+			meshPath.Append(MESH_CONE_FILE);
 			break;
 		case BuiltinMesh::Cylinder:
-			meshPath.append(MESH_CYLINDER_FILE);
+			meshPath.Append(MESH_CYLINDER_FILE);
 			break;
 		case BuiltinMesh::Quad:
-			meshPath.append(MESH_QUAD_FILE);
+			meshPath.Append(MESH_QUAD_FILE);
 			break;
 		case BuiltinMesh::Disc:
-			meshPath.append(MESH_DISC_FILE);
+			meshPath.Append(MESH_DISC_FILE);
 			break;
 		}
 
-		return gResources().load<Mesh>(meshPath);
+		return gResources().Load<Mesh>(meshPath);
 	}
 
 	HShader BuiltinResources::GetBuiltinShader(BuiltinShader type) const
@@ -361,26 +361,26 @@ namespace bs
 
 	HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 	{
-		Path texturePath = Paths::getDataPath();
-		texturePath.append(TEXTURE_FOLDER);
+		Path texturePath = Paths::GetDataPath();
+		texturePath.Append(TEXTURE_FOLDER);
 
 		switch (type)
 		{
 		case BuiltinTexture::Black:
-			texturePath.append(TEXTURE_BLACK_FILE);
+			texturePath.Append(TEXTURE_BLACK_FILE);
 			break;
 		case BuiltinTexture::White:
-			texturePath.append(TEXTURE_WHITE_FILE);
+			texturePath.Append(TEXTURE_WHITE_FILE);
 			break;
 		case BuiltinTexture::Normal:
-			texturePath.append(TEXTURE_NORMAL_FILE);
+			texturePath.Append(TEXTURE_NORMAL_FILE);
 			break;
 		case BuiltinTexture::BokehFlare:
-			texturePath.append(u8"BokehHex.png.asset");
+			texturePath.Append(u8"BokehHex.png.asset");
 			break;
 		}
 
-		return gResources().load<Texture>(texturePath);
+		return gResources().Load<Texture>(texturePath);
 	}
 
 	HMaterial BuiltinResources::CreateSpriteTextMaterial() const

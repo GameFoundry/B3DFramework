@@ -645,7 +645,7 @@ namespace bs
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, cache, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, cache, leftKeyIdx, rightKeyIdx);
 
 		// Calculate cubic hermite curve coefficients so we can store them in cache
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
@@ -663,12 +663,12 @@ namespace bs
 		if (mKeyframes.empty())
 			return impl::getZero<T>();
 
-		AnimationUtility::wrapTime(time, mStart, mEnd, loop);
+		AnimationUtility::WrapTime(time, mStart, mEnd, loop);
 
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, leftKeyIdx, rightKeyIdx);
 
 		// Evaluate curve as hermite cubic spline
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
@@ -692,7 +692,7 @@ namespace bs
 
 		// Generate integration cache if required
 		if(!integrationCache.segmentSums)
-			buildIntegrationCache(integrationCache);
+			BuildIntegrationCache(integrationCache);
 
 		if(numKeyframes == 1)
 			return (T)(mKeyframes[0].value * (time - mKeyframes[0].time));
@@ -700,7 +700,7 @@ namespace bs
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, leftKeyIdx, rightKeyIdx);
 
 		if(leftKeyIdx == rightKeyIdx)
 			return integrationCache.segmentSums[leftKeyIdx];
@@ -724,7 +724,7 @@ namespace bs
 
 		// Generate integration cache if required
 		if(!integrationCache.segmentSums)
-			buildDoubleIntegrationCache(integrationCache);
+			BuildDoubleIntegrationCache(integrationCache);
 
 		if(numKeyframes == 1)
 		{
@@ -735,7 +735,7 @@ namespace bs
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, leftKeyIdx, rightKeyIdx);
 
 		const KeyFrame& lhs = mKeyframes[leftKeyIdx];
 		const float t = time - lhs.time;
@@ -754,12 +754,12 @@ namespace bs
 		if (mKeyframes.empty())
 			return TKeyframe<T>();
 
-		AnimationUtility::wrapTime(time, mStart, mEnd, loop);
+		AnimationUtility::WrapTime(time, mStart, mEnd, loop);
 
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, leftKeyIdx, rightKeyIdx);
 
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
 		const KeyFrame& rightKey = mKeyframes[rightKeyIdx];
@@ -767,7 +767,7 @@ namespace bs
 		if (leftKeyIdx == rightKeyIdx)
 			return leftKey;
 
-		return evaluateKey(leftKey, rightKey, time);
+		return EvaluateKey(leftKey, rightKey, time);
 	}
 
 	template <class T>
@@ -814,7 +814,7 @@ namespace bs
 		}
 
 		// Cannot find nearby ones, search all keys
-		findKeys(time, leftKey, rightKey);
+		FindKeys(time, leftKey, rightKey);
 		animInstance.cachedKey = leftKey;
 	}
 
@@ -850,7 +850,7 @@ namespace bs
 		UINT32 leftKeyIdx;
 		UINT32 rightKeyIdx;
 
-		findKeys(time, leftKeyIdx, rightKeyIdx);
+		FindKeys(time, leftKeyIdx, rightKeyIdx);
 
 		const KeyFrame& leftKey = mKeyframes[leftKeyIdx];
 		const KeyFrame& rightKey = mKeyframes[rightKeyIdx];
@@ -875,8 +875,8 @@ namespace bs
 		start = Math::Clamp(start, mStart, mEnd);
 		end = Math::Clamp(end, mStart, mEnd);
 
-		UINT32 startKeyIdx = findKey(start);
-		UINT32 endKeyIdx = findKey(end);
+		UINT32 startKeyIdx = FindKey(start);
+		UINT32 endKeyIdx = FindKey(end);
 
 		keyFrames.reserve(endKeyIdx - startKeyIdx + 2);
 
@@ -887,7 +887,7 @@ namespace bs
 			if(start > startKey.time)
 			{
 				if (mKeyframes.size() > (startKeyIdx + 1))
-					keyFrames.push_back(evaluateKey(startKey, mKeyframes[startKeyIdx + 1], start));
+					keyFrames.push_back(EvaluateKey(startKey, mKeyframes[startKeyIdx + 1], start));
 				else
 				{
 					TKeyframe<T> keyCopy = startKey;
@@ -902,7 +902,7 @@ namespace bs
 			{
 				
 				if (startKeyIdx > 0)
-					keyFrames.push_back(evaluateKey(mKeyframes[startKeyIdx - 1], startKey , start));
+					keyFrames.push_back(EvaluateKey(mKeyframes[startKeyIdx - 1], startKey , start));
 				else
 				{
 					TKeyframe<T> keyCopy = startKey;
@@ -926,7 +926,7 @@ namespace bs
 				if(end > endKey.time)
 				{
 					if (mKeyframes.size() > (endKeyIdx + 1))
-						keyFrames.push_back(evaluateKey(endKey, mKeyframes[endKeyIdx + 1], end));
+						keyFrames.push_back(EvaluateKey(endKey, mKeyframes[endKeyIdx + 1], end));
 					else
 					{
 						TKeyframe<T> keyCopy = endKey;
@@ -939,7 +939,7 @@ namespace bs
 				{
 					if(endKeyIdx > 0)
 					{
-						keyFrames.push_back(evaluateKey(mKeyframes[endKeyIdx - 1], endKey, end));
+						keyFrames.push_back(EvaluateKey(mKeyframes[endKeyIdx - 1], endKey, end));
 						endKeyIdx--;
 					}
 					else
@@ -1023,7 +1023,7 @@ namespace bs
 			return output;
 
 		if(!cache.segmentSums)
-			buildIntegrationCache(cache);
+			BuildIntegrationCache(cache);
 
 		for(UINT32 i = 1; i < numKeys; i++)
 		{
@@ -1051,7 +1051,7 @@ namespace bs
 			return output;
 
 		if(!cache.segmentSums)
-			buildDoubleIntegrationCache(cache);
+			BuildDoubleIntegrationCache(cache);
 
 		for(UINT32 i = 1; i < numKeys; i++)
 		{
@@ -1080,7 +1080,7 @@ namespace bs
 		if(numKeyframes <= 1)
 			return;
 
-		cache.init(numKeyframes);
+		cache.Init(numKeyframes);
 		cache.segmentSums[0] = impl::getZero<T>();
 
 		for (UINT32 i = 1; i < numKeyframes; i++)
@@ -1109,7 +1109,7 @@ namespace bs
 		if(numKeyframes <= 1)
 			return;
 
-		cache.initDouble(numKeyframes);
+		cache.InitDouble(numKeyframes);
 		cache.segmentSums[0] = impl::getZero<T>();
 		cache.doubleSegmentSums[0] = impl::getZero<T>();
 

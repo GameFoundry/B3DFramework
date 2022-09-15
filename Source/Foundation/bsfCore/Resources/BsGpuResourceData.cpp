@@ -11,9 +11,9 @@ namespace
 	{
 		using namespace bs;
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-		if(data->isLocked())
+		if(data->IsLocked())
 		{
-			if(BS_THREAD_CURRENT_ID != CoreThread::Instance().getCoreThreadId())
+			if(BS_THREAD_CURRENT_ID != CoreThread::Instance().GetCoreThreadId())
 				BS_EXCEPT(InternalErrorException, "You are not allowed to access buffer data from non-core thread when the buffer is locked.");
 		}
 #endif
@@ -31,7 +31,7 @@ namespace bs
 
 	GpuResourceData::~GpuResourceData()
 	{
-		freeInternalBuffer();
+		FreeInternalBuffer();
 	}
 
 	GpuResourceData& GpuResourceData::operator=(const GpuResourceData& rhs)
@@ -53,7 +53,7 @@ namespace bs
 	{
 		verifyLockAndThread(this);
 
-		freeInternalBuffer();
+		FreeInternalBuffer();
 
 		mData = data.release();
 		mOwnsData = true;
@@ -61,14 +61,14 @@ namespace bs
 
 	void GpuResourceData::AllocateInternalBuffer()
 	{
-		allocateInternalBuffer(getInternalBufferSize());
+		AllocateInternalBuffer(GetInternalBufferSize());
 	}
 
 	void GpuResourceData::AllocateInternalBuffer(UINT32 size)
 	{
 		verifyLockAndThread(this);
 
-		freeInternalBuffer();
+		FreeInternalBuffer();
 
 		mData = (UINT8*)bs_alloc(size);
 		mOwnsData = true;
@@ -89,7 +89,7 @@ namespace bs
 	{
 		verifyLockAndThread(this);
 
-		freeInternalBuffer();
+		FreeInternalBuffer();
 
 		mData = data;
 		mOwnsData = false;

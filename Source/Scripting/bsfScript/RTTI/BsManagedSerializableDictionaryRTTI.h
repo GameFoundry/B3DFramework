@@ -90,7 +90,7 @@ namespace bs
 	public:
 		ManagedSerializableDictionaryRTTI()
 		{
-			addReflectablePtrField("mListTypeInfo", 0, &ManagedSerializableDictionaryRTTI::GetTypeInfo, &ManagedSerializableDictionaryRTTI::SetTypeInfo);
+			AddReflectablePtrField("mListTypeInfo", 0, &ManagedSerializableDictionaryRTTI::GetTypeInfo, &ManagedSerializableDictionaryRTTI::SetTypeInfo);
 			addReflectableArrayField("mEntries", 1, &ManagedSerializableDictionaryRTTI::GetEntry, &ManagedSerializableDictionaryRTTI::GetNumEntries,
 				&ManagedSerializableDictionaryRTTI::SetEntry, &ManagedSerializableDictionaryRTTI::SetNumEntries);
 		}

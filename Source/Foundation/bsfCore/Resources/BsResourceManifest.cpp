@@ -112,65 +112,65 @@ namespace bs
 
 	void ResourceManifest::Save(const SPtr<ResourceManifest>& manifest, const Path& path, const Path& relativePath)
 	{
-		if(relativePath.isEmpty())
+		if(relativePath.IsEmpty())
 		{
 			FileEncoder fs(path);
-			fs.encode(manifest.get());
+			fs.Encode(manifest.get());
 		}
 		else
 		{
-			SPtr<ResourceManifest> copy = create(manifest->mName);
+			SPtr<ResourceManifest> copy = Create(manifest->mName);
 
 			for (auto& elem : manifest->mFilePathToUUID)
 			{
-				if (!relativePath.includes(elem.first))
+				if (!relativePath.Includes(elem.first))
 				{
 					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
-						relativePath.toString() + "\". Path: \"" + elem.first.toString() + "\"");
+						relativePath.ToString() + "\". Path: \"" + elem.first.ToString() + "\"");
 				}
 
-				Path elementRelativePath = elem.first.getRelative(relativePath);
+				Path elementRelativePath = elem.first.GetRelative(relativePath);
 
 				copy->mFilePathToUUID[elementRelativePath] = elem.second;
 			}
 
 			for (auto& elem : manifest->mUUIDToFilePath)
 			{
-				if (!relativePath.includes(elem.second))
+				if (!relativePath.Includes(elem.second))
 				{
 					BS_EXCEPT(InvalidStateException, "Path in resource manifest cannot be made relative to: \"" +
-						relativePath.toString() + "\". Path: \"" + elem.second.toString() + "\"");
+						relativePath.ToString() + "\". Path: \"" + elem.second.ToString() + "\"");
 				}
 
-				Path elementRelativePath = elem.second.getRelative(relativePath);
+				Path elementRelativePath = elem.second.GetRelative(relativePath);
 
 				copy->mUUIDToFilePath[elem.first] = elementRelativePath;
 			}
 
 			FileEncoder fs(path);
-			fs.encode(copy.get());
+			fs.Encode(copy.get());
 		}
 	}
 
 	SPtr<ResourceManifest> ResourceManifest::Load(const Path& path, const Path& relativePath)
 	{
 		FileDecoder fs(path);
-		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.decode());
+		SPtr<ResourceManifest> manifest = std::static_pointer_cast<ResourceManifest>(fs.Decode());
 
-		if(relativePath.isEmpty())
+		if(relativePath.IsEmpty())
 			return manifest;
 
-		SPtr<ResourceManifest> copy = create(manifest->mName);
+		SPtr<ResourceManifest> copy = Create(manifest->mName);
 
 		for(auto& elem : manifest->mFilePathToUUID)
 		{
-			Path absPath = elem.first.getAbsolute(relativePath);
+			Path absPath = elem.first.GetAbsolute(relativePath);
 			copy->mFilePathToUUID[absPath] = elem.second;
 		}
 
 		for(auto& elem : manifest->mUUIDToFilePath)
 		{
-			Path absPath = elem.second.getAbsolute(relativePath);
+			Path absPath = elem.second.GetAbsolute(relativePath);
 			copy->mUUIDToFilePath[elem.first] = absPath;
 		}
 

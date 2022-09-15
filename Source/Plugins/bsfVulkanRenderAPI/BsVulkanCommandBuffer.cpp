@@ -450,7 +450,7 @@ namespace bs { namespace ct
 		VulkanDevice& device = queue->GetDevice();
 		if(!mQueuedQueryResets.empty())
 		{
-			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(mQueueFamily, false);
+			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().GetBuffer(mQueueFamily, false);
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 			for (auto& entry : mQueuedQueryResets)
@@ -590,7 +590,7 @@ namespace bs { namespace ct
 			if (entryQueueFamily == (UINT32)-1 || entryQueueFamily == mQueueFamily)
 				continue;
 
-			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(entryQueueFamily, false);
+			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().GetBuffer(entryQueueFamily, false);
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 			TransitionInfo& barriers = entry.second;
@@ -679,7 +679,7 @@ namespace bs { namespace ct
 			if (empty)
 				continue;
 
-			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().getBuffer(mQueueFamily, false);
+			VulkanCmdBuffer* cmdBuffer = device.getCmdBufferPool().GetBuffer(mQueueFamily, false);
 			VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 			TransitionInfo& barriers = entry.second;
@@ -2697,7 +2697,7 @@ namespace bs { namespace ct
 			assert(mBuffer->isSubmitted());
 
 		UINT32 queueFamily = mDevice.getQueueFamily(mType);
-		mBuffer = pool.getBuffer(queueFamily, mIsSecondary);
+		mBuffer = pool.GetBuffer(queueFamily, mIsSecondary);
 	}
 
 	void VulkanCommandBuffer::Submit(UINT32 syncMask)

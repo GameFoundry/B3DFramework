@@ -37,7 +37,7 @@ namespace bs
 		Type* InsertNewElement(UINT32 idx, Args &&...args)
 		{
 			Type* elem = Type::Create(std::forward<Args>(args)...);
-			insertElement(idx, elem);
+			InsertElement(idx, elem);
 			return elem;
 		}
 

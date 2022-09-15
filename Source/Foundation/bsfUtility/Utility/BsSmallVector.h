@@ -37,12 +37,12 @@ namespace bs
 
 		SmallVector(UINT32 size, const Type& value = Type())
 		{
-			append(size, value);
+			Append(size, value);
 		}
 
 		SmallVector(std::initializer_list<Type> list)
 		{
-			append(list);
+			Append(list);
 		}
 
 		~SmallVector()
@@ -349,7 +349,7 @@ namespace bs
 
 		void Append(std::initializer_list<Type> list) 
 		{
-			append(list.begin(), list.end());
+			Append(list.begin(), list.end());
 		}
 
 		void Pop()

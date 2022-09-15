@@ -92,7 +92,7 @@ namespace bs
 
 		SavedLightProbeInfo& GetProbeInfo(LightProbeVolume* obj)
 		{
-			obj->updateCoefficients();
+			obj->UpdateCoefficients();
 
 			UINT32 numProbes = (UINT32)obj->mProbes.size();
 			mSavedLightProbeInfo.coefficients.resize(numProbes);
@@ -130,7 +130,7 @@ namespace bs
 	public:
 		LightProbeVolumeRTTI()
 		{
-			addPlainField("mProbeInfo", 5, &LightProbeVolumeRTTI::GetProbeInfo, &LightProbeVolumeRTTI::SetProbeInfo,
+			AddPlainField("mProbeInfo", 5, &LightProbeVolumeRTTI::GetProbeInfo, &LightProbeVolumeRTTI::SetProbeInfo,
 				RTTIFieldInfo(RTTIFieldFlag::SkipInReferenceSearch));
 		}
 
@@ -153,7 +153,7 @@ namespace bs
 			return TID_LightProbeVolume;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() 
 		{
 			return LightProbeVolume::CreateEmpty();
 		}

@@ -71,7 +71,7 @@ namespace bs
 	template<bool Core>
 	void TPass<Core>::CreatePipelineState()
 	{
-		if (isCompute())
+		if (IsCompute())
 		{
 			SPtr<GpuProgramType> program = GpuProgramType::Create(mData.computeProgramDesc);
 			mComputePipelineState = ComputePipelineStateType::Create(program);

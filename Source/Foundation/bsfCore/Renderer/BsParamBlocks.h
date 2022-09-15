@@ -42,21 +42,21 @@ namespace bs { namespace ct
 			UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
 			const bool transposeMatrices = gCaps().conventions.matrixOrder == Conventions::MatrixOrder::ColumnMajor;
-			if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
+			if (TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 			{
-				auto transposed = TransposePolicy<T>::transpose(value);
-				paramBlock->write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
+				auto transposed = TransposePolicy<T>::Transpose(value);
+				paramBlock->Write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
 					&transposed, sizeBytes);
 			}
 			else
-				paramBlock->write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
+				paramBlock->Write((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32),
 					&value, sizeBytes);
 
 			// Set unused bytes to 0
 			if (sizeBytes < elementSizeBytes)
 			{
 				UINT32 diffSize = elementSizeBytes - sizeBytes;
-				paramBlock->zeroOut((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32) +
+				paramBlock->ZeroOut((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32) +
 					sizeBytes, diffSize);
 			}
 		}
@@ -80,7 +80,7 @@ namespace bs { namespace ct
 			UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T));
 
 			T value;
-			paramBlock->read((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), &value,
+			paramBlock->Read((mParamDesc.cpuMemOffset + arrayIdx * mParamDesc.arrayElementStride) * sizeof(UINT32), &value,
 				sizeBytes);
 
 			return value;

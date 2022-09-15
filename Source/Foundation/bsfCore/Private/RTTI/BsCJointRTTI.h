@@ -39,9 +39,9 @@ namespace bs
 	public:
 		CJointRTTI()
 		{
-			addPlainField("BreakForce", 6, &CJointRTTI::GetBreakForce, &CJointRTTI::SetBreakForce);
-			addPlainField("BreakTorque", 7, &CJointRTTI::GetBreakTorque, &CJointRTTI::SetBreakTorque);
-			addPlainField("EnableCollision", 8, &CJointRTTI::GetEnableCollision, &CJointRTTI::SetEnableCollision);
+			AddPlainField("BreakForce", 6, &CJointRTTI::GetBreakForce, &CJointRTTI::SetBreakForce);
+			AddPlainField("BreakTorque", 7, &CJointRTTI::GetBreakTorque, &CJointRTTI::SetBreakTorque);
+			AddPlainField("EnableCollision", 8, &CJointRTTI::GetEnableCollision, &CJointRTTI::SetEnableCollision);
 		}
 
 		const String& GetRttiName() 

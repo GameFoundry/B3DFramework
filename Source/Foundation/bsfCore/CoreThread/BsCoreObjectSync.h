@@ -59,7 +59,7 @@ namespace bs
 			is_resource_handle<std::decay_t<T>>::value>* = 0)
 		{
 			if(handle.IsLoaded(false))
-				return handle.getInternalPtr();
+				return handle.GetInternalPtr();
 
 			return nullptr;
 		}
@@ -137,14 +137,14 @@ namespace bs
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the write using plain serialization. */
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
-			writeInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
+			WriteInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
 		}
 
 	private:
@@ -161,10 +161,10 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptrPtr = new (mStream.cursor()) SPtrType;
+			SPtrType* sptrPtr = new (mStream.Cursor()) SPtrType;
 			*sptrPtr = (value);
 
-			mStream.skipBytes(sizeof(SPtrType));
+			mStream.SkipBytes(sizeof(SPtrType));
 		}
 
 		Bitstream& mStream;
@@ -189,14 +189,14 @@ namespace bs
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
-			readInternal(std::forward<T>(value));
+			ReadInternal(std::forward<T>(value));
 		}
 
 	private:
@@ -213,11 +213,11 @@ namespace bs
 		{
 			using SPtrType = std::decay_t<T>;
 
-			SPtrType* sptr = (SPtrType*)(mStream.cursor());
+			SPtrType* sptr = (SPtrType*)(mStream.Cursor());
 			value = *sptr;
 			sptr->~SPtrType();
 
-			mStream.skipBytes(sizeof(SPtrType));
+			mStream.SkipBytes(sizeof(SPtrType));
 		}
 
 		Bitstream& mStream;
@@ -244,14 +244,14 @@ namespace bs
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<has_rttiEnumFields<T>::value>* = 0)
 		{
-			value.rttiEnumFields(*this);
+			value.RttiEnumFields(*this);
 		}
 
 		/** If the type doesn't offer a rttiEnumFields method, perform the read using plain serialization. */
 		template<class T>
 		void operator()(T&& value, std::enable_if_t<!has_rttiEnumFields<T>::value>* = 0)
 		{
-			getSizeInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
+			GetSizeInternal(detail::get_core_object(detail::remove_handle(std::forward<T>(value))));
 		}
 
 	private:
@@ -281,7 +281,7 @@ namespace bs
 	uint32_t csync_size(T& v)
 	{
 		uint32_t size = 0;
-		v.rttiEnumFields(RttiCoreSyncSize(size));
+		v.RttiEnumFields(RttiCoreSyncSize(size));
 		return size;
 	}
 
@@ -292,7 +292,7 @@ namespace bs
 	template<class T>
 	void csync_write(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncWriter(stream));
+		v.RttiEnumFields(RttiCoreSyncWriter(stream));
 	}
 
 	/**
@@ -303,7 +303,7 @@ namespace bs
 	template<class T>
 	void csync_read(T& v, Bitstream& stream)
 	{
-		v.rttiEnumFields(RttiCoreSyncReader(stream));
+		v.RttiEnumFields(RttiCoreSyncReader(stream));
 	}
 
 	/** @} */

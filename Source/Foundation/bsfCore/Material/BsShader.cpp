@@ -46,7 +46,7 @@ namespace bs
 		if (defaultValue != nullptr)
 		{
 			paramDesc.defaultValueIdx = (UINT32)dataDefaultValues.size();
-			UINT32 defaultValueSize = Shader::getDataParamSize(paramDesc.type);
+			UINT32 defaultValueSize = Shader::GetDataParamSize(paramDesc.type);
 
 			dataDefaultValues.resize(paramDesc.defaultValueIdx + defaultValueSize);
 			memcpy(&dataDefaultValues[paramDesc.defaultValueIdx], defaultValue, defaultValueSize);
@@ -62,33 +62,33 @@ namespace bs
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
 
-		addParameterInternal(std::move(paramDesc), defaultValueIdx);
+		AddParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
 	void TSHADER_DESC<Core>::AddParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const SamplerStateType& defaultValue)
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
-		if (Shader::isSampler(paramDesc.type) && defaultValue != nullptr)
+		if (Shader::IsSampler(paramDesc.type) && defaultValue != nullptr)
 		{
 			defaultValueIdx = (UINT32)samplerDefaultValues.size();
 			samplerDefaultValues.push_back(defaultValue);
 		}
 
-		addParameterInternal(std::move(paramDesc), defaultValueIdx);
+		AddParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
 	void TSHADER_DESC<Core>::AddParameter(SHADER_OBJECT_PARAM_DESC paramDesc, const TextureType& defaultValue)
 	{
 		UINT32 defaultValueIdx = (UINT32)-1;
-		if (Shader::isTexture(paramDesc.type) && defaultValue != nullptr)
+		if (Shader::IsTexture(paramDesc.type) && defaultValue != nullptr)
 		{
 			defaultValueIdx = (UINT32)textureDefaultValues.size();
 			textureDefaultValues.push_back(defaultValue);
 		}
 
-		addParameterInternal(std::move(paramDesc), defaultValueIdx);
+		AddParameterInternal(std::move(paramDesc), defaultValueIdx);
 	}
 
 	template<bool Core>
@@ -96,9 +96,9 @@ namespace bs
 	{
 		Map<String, SHADER_OBJECT_PARAM_DESC>* DEST_LOOKUP[] = { &textureParams, &bufferParams, &samplerParams };
 		UINT32 destIdx = 0;
-		if (Shader::isBuffer(paramDesc.type))
+		if (Shader::IsBuffer(paramDesc.type))
 			destIdx = 1;
-		else if (Shader::isSampler(paramDesc.type))
+		else if (Shader::IsSampler(paramDesc.type))
 			destIdx = 2;
 
 		Map<String, SHADER_OBJECT_PARAM_DESC>& paramsMap = *DEST_LOOKUP[destIdx];
@@ -402,7 +402,7 @@ namespace bs
 		Vector<SPtr<TechniqueType>> output;
 		for (auto& technique : mDesc.techniques)
 		{
-			if (technique->isSupported())
+			if (technique->IsSupported())
 				output.push_back(technique);
 		}
 
@@ -416,7 +416,7 @@ namespace bs
 		Vector<SPtr<TechniqueType>> output;
 		for (auto& technique : mDesc.techniques)
 		{
-			if (technique->isSupported() && technique->GetVariation().matches(variation, exact))
+			if (technique->IsSupported() && technique->GetVariation().Matches(variation, exact))
 				output.push_back(technique);
 		}
 

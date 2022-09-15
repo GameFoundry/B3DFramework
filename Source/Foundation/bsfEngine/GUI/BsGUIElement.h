@@ -292,7 +292,7 @@ namespace bs
 		static const String& GetStyleName(const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::BLANK)
-				return T::getGUITypeName();
+				return T::GetGuiTypeName();
 
 			return overrideStyle;
 		}
@@ -371,7 +371,7 @@ namespace bs
 				for (UINT32 i = 0; i < N; i++)
 					totalCount += spriteInfos[i].sprite ? spriteInfos[i].sprite->GetNumRenderElements() : 0;
 
-				output.resize(totalCount);
+				output.Resize(totalCount);
 
 				UINT32 globalIdx = 0;
 				for (UINT32 i = 0; i < N; i++)

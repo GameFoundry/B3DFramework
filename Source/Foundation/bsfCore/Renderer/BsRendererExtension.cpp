@@ -22,7 +22,7 @@ namespace bs
 	{
 		auto deleteObj = [=]()
 		{
-			RendererManager::Instance().GetActive()->removePlugin(obj);
+			RendererManager::Instance().GetActive()->RemovePlugin(obj);
 
 			obj->Destroy();
 			obj->~RendererExtension();

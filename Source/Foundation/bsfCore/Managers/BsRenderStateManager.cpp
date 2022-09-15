@@ -146,7 +146,7 @@ namespace bs
 		SPtr<SamplerState> state = FindCachedState(desc);
 		if (state == nullptr)
 		{
-			state = CreateSamplerStateInternal(desc, deviceMask);
+			state = CreateSamplerStateInternalInternal(desc, deviceMask);
 			state->Initialize();
 
 			NotifySamplerStateCreated(desc, state);
@@ -161,7 +161,7 @@ namespace bs
 		SPtr<DepthStencilState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateDepthStencilStateInternal(desc, id);
+			state = CreateDepthStencilStateInternalInternal(desc, id);
 			state->Initialize();
 
 			CachedDepthStencilState cachedData(id);
@@ -179,7 +179,7 @@ namespace bs
 		SPtr<RasterizerState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateRasterizerStateInternal(desc, id);
+			state = CreateRasterizerStateInternalInternal(desc, id);
 			state->Initialize();
 
 			CachedRasterizerState cachedData(id);
@@ -197,7 +197,7 @@ namespace bs
 		SPtr<BlendState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateBlendStateInternal(desc, id);
+			state = CreateBlendStateInternalInternal(desc, id);
 			state->Initialize();
 
 			CachedBlendState cachedData(id);
@@ -242,7 +242,7 @@ namespace bs
 		SPtr<SamplerState> state = FindCachedState(desc);
 		if (state == nullptr)
 		{
-			state = CreateSamplerStateInternal(desc, deviceMask);
+			state = CreateSamplerStateInternalInternal(desc, deviceMask);
 
 			NotifySamplerStateCreated(desc, state);
 		}
@@ -256,7 +256,7 @@ namespace bs
 		SPtr<DepthStencilState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateDepthStencilStateInternal(desc, id);
+			state = CreateDepthStencilStateInternalInternal(desc, id);
 
 			CachedDepthStencilState cachedData(id);
 			cachedData.state = state;
@@ -273,7 +273,7 @@ namespace bs
 		SPtr<RasterizerState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateRasterizerStateInternal(desc, id);
+			state = CreateRasterizerStateInternalInternal(desc, id);
 
 			CachedRasterizerState cachedData(id);
 			cachedData.state = state;
@@ -290,7 +290,7 @@ namespace bs
 		SPtr<BlendState> state = FindCachedState(desc, id);
 		if (state == nullptr)
 		{
-			state = CreateBlendStateInternal(desc, id);
+			state = CreateBlendStateInternalInternal(desc, id);
 
 			CachedBlendState cachedData(id);
 			cachedData.state = state;
@@ -486,7 +486,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
+	SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 	{
 		SPtr<SamplerState> state =
 			bs_shared_ptr<SamplerState>(new (bs_alloc<SamplerState>()) SamplerState(desc, deviceMask));
@@ -495,7 +495,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
+	SPtr<DepthStencilState> RenderStateManager::CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<DepthStencilState> state = bs_shared_ptr<DepthStencilState>(new (bs_alloc<DepthStencilState>()) DepthStencilState(desc, id));
 		state->SetThisPtrInternal(state);
@@ -503,7 +503,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<RasterizerState> RenderStateManager::CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
+	SPtr<RasterizerState> RenderStateManager::CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<RasterizerState> state = bs_shared_ptr<RasterizerState>(new (bs_alloc<RasterizerState>()) RasterizerState(desc, id));
 		state->SetThisPtrInternal(state);
@@ -511,7 +511,7 @@ namespace bs
 		return state;
 	}
 
-	SPtr<BlendState> RenderStateManager::CreateBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
+	SPtr<BlendState> RenderStateManager::CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, UINT32 id) const
 	{
 		SPtr<BlendState> state = bs_shared_ptr<BlendState>(new (bs_alloc<BlendState>()) BlendState(desc, id));
 		state->SetThisPtrInternal(state);

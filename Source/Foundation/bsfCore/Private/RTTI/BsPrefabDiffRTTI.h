@@ -105,8 +105,8 @@ namespace bs
 
 			if (coreContext->goState)
 			{
-				coreContext->goState->registerOnDeserializationEndCallback(
-					std::bind(&PrefabDiffRTTI::delayedOnDeserializationEnded, prefabDiff));
+				coreContext->goState->RegisterOnDeserializationEndCallback(
+					std::bind(&PrefabDiffRTTI::DelayedOnDeserializationEnded, prefabDiff));
 			}
 		}
 
@@ -134,13 +134,13 @@ namespace bs
 				todo.pop();
 
 				for (auto& component : current->addedComponents)
-					findGameObjectHandles(component, handleObjects);
+					FindGameObjectHandles(component, handleObjects);
 
 				for (auto& child : current->addedChildren)
-					findGameObjectHandles(child, handleObjects);
+					FindGameObjectHandles(child, handleObjects);
 
 				for (auto& component : current->componentDiffs)
-					findGameObjectHandles(component->data, handleObjects);
+					FindGameObjectHandles(component->data, handleObjects);
 
 				for (auto& child : current->childDiffs)
 					todo.push(child);
@@ -154,7 +154,7 @@ namespace bs
 				SerializedHandle& handle = handleData[idx];
 
 				handle.object = handleObject;
-				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(handleObject->decode(context));
+				handle.handle = std::static_pointer_cast<GameObjectHandleBase>(handleObject->Decode(context));
 
 				idx++;
 			}
@@ -197,7 +197,7 @@ namespace bs
 
 				for (auto& child : subObject.entries)
 				{
-					RTTIField* curGenericField = rtti->findField(child.second.fieldId);
+					RTTIField* curGenericField = rtti->FindField(child.second.fieldId);
 					if (curGenericField == nullptr)
 						continue;
 
@@ -214,14 +214,14 @@ namespace bs
 							if (arrayElem.second.serialized != nullptr && rtti_is_of_type<SerializedObject>(arrayElem.second.serialized))
 							{
 								SPtr<SerializedObject> arrayElemData = std::static_pointer_cast<SerializedObject>(arrayElem.second.serialized);
-								findGameObjectHandles(arrayElemData, handleObjects);
+								FindGameObjectHandles(arrayElemData, handleObjects);
 							}
 						}
 					}
 					else if(rtti_is_of_type<SerializedObject>(entryData))
 					{
 						SPtr<SerializedObject> fieldObjectData = std::static_pointer_cast<SerializedObject>(entryData);
-						findGameObjectHandles(fieldObjectData, handleObjects);
+						FindGameObjectHandles(fieldObjectData, handleObjects);
 					}
 				}
 			}
@@ -238,7 +238,7 @@ namespace bs
 			return TID_PrefabDiff;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<PrefabDiff>();
 		}

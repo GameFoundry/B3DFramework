@@ -80,7 +80,7 @@ namespace bs
 	public:
 		FontRTTI()
 		{
-			addReflectableArrayField("mBitmaps", 0, &FontRTTI::GetBitmap, &FontRTTI::GetNumBitmaps, &FontRTTI::SetBitmap, &FontRTTI::SetNumBitmaps);
+			AddReflectableArrayField("mBitmaps", 0, &FontRTTI::GetBitmap, &FontRTTI::GetNumBitmaps, &FontRTTI::SetBitmap, &FontRTTI::SetNumBitmaps);
 		}
 
 		const String& GetRttiName() override
@@ -94,7 +94,7 @@ namespace bs
 			return TID_Font;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return Font::CreateEmptyInternal();
 		}
@@ -103,7 +103,7 @@ namespace bs
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
 			Font* font = static_cast<Font*>(obj);
-			font->initialize(mFontDataPerSize);
+			font->Initialize(mFontDataPerSize);
 		}
 
 		Vector<SPtr<FontBitmap>> mFontDataPerSize;

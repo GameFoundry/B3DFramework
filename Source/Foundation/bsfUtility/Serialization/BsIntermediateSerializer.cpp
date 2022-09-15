@@ -115,14 +115,14 @@ namespace bs
 								auto findObj = mObjectMap.find(arrayElemData.get());
 								if (findObj == mObjectMap.end())
 								{
-									SPtr<IReflectable> newObject = childRtti->newRTTIObject();
+									SPtr<IReflectable> newObject = childRtti->NewRttiObject();
 									findObj = mObjectMap.insert(std::make_pair(arrayElemData.get(),
 										ObjectToDecode(newObject, arrayElemData.get()))).first;
 								}
 
 								ObjectToDecode& objToDecode = findObj->second;
 
-								bool needsDecoding = !curField->schema.info.flags.isSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
+								bool needsDecoding = !curField->schema.info.flags.IsSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
 								if (needsDecoding)
 								{
 									if (objToDecode.decodeInProgress)
@@ -137,7 +137,7 @@ namespace bs
 									else
 									{
 										objToDecode.decodeInProgress = true;
-										decodeEntry(objToDecode.object, objToDecode.serializedObject);
+										DecodeEntry(objToDecode.object, objToDecode.serializedObject);
 										objToDecode.decodeInProgress = false;
 										objToDecode.isDecoded = true;
 									}
@@ -166,8 +166,8 @@ namespace bs
 
 							if (childRtti != nullptr)
 							{
-								SPtr<IReflectable> newObject = childRtti->newRTTIObject();
-								decodeEntry(newObject, arrayElemData.get());
+								SPtr<IReflectable> newObject = childRtti->NewRttiObject();
+								DecodeEntry(newObject, arrayElemData.get());
 								curField->SetArrayValue(rttiInstance, object.get(), arrayElem.first, *newObject);
 							}
 						}
@@ -183,7 +183,7 @@ namespace bs
 							if (fieldData != nullptr)
 							{
 								Bitstream tempStream(fieldData->value, fieldData->size);
-								curField->arrayElemFromBuffer(rttiInstance, object.get(), arrayElem.first, tempStream);
+								curField->ArrayElemFromBuffer(rttiInstance, object.get(), arrayElem.first, tempStream);
 							}
 						}
 					}
@@ -211,14 +211,14 @@ namespace bs
 							auto findObj = mObjectMap.find(fieldObjectData.get());
 							if (findObj == mObjectMap.end())
 							{
-								SPtr<IReflectable> newObject = childRtti->newRTTIObject();
+								SPtr<IReflectable> newObject = childRtti->NewRttiObject();
 								findObj = mObjectMap.insert(std::make_pair(fieldObjectData.get(),
 									ObjectToDecode(newObject, fieldObjectData.get()))).first;
 							}
 
 							ObjectToDecode& objToDecode = findObj->second;
 
-							bool needsDecoding = !curField->schema.info.flags.isSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
+							bool needsDecoding = !curField->schema.info.flags.IsSet(RTTIFieldFlag::WeakRef) && !objToDecode.isDecoded;
 							if (needsDecoding)
 							{
 								if (objToDecode.decodeInProgress)
@@ -232,7 +232,7 @@ namespace bs
 								else
 								{
 									objToDecode.decodeInProgress = true;
-									decodeEntry(objToDecode.object, objToDecode.serializedObject);
+									DecodeEntry(objToDecode.object, objToDecode.serializedObject);
 									objToDecode.decodeInProgress = false;
 									objToDecode.isDecoded = true;
 								}
@@ -258,8 +258,8 @@ namespace bs
 
 						if (childRtti != nullptr)
 						{
-							SPtr<IReflectable> newObject = childRtti->newRTTIObject();
-							decodeEntry(newObject, fieldObjectData.get());
+							SPtr<IReflectable> newObject = childRtti->NewRttiObject();
+							DecodeEntry(newObject, fieldObjectData.get());
 							curField->SetValue(rttiInstance, object.get(), *newObject);
 						}
 						break;
@@ -272,7 +272,7 @@ namespace bs
 						if (fieldData != nullptr)
 						{
 							Bitstream tempStream(fieldData->value, fieldData->size);
-							curField->fromBuffer(rttiInstance, object.get(), tempStream);
+							curField->FromBuffer(rttiInstance, object.get(), tempStream);
 						}
 					}
 					break;
@@ -283,7 +283,7 @@ namespace bs
 						SPtr<SerializedDataBlock> fieldData = std::static_pointer_cast<SerializedDataBlock>(entryData);
 						if (fieldData != nullptr)
 						{
-							fieldData->stream->seek(fieldData->offset);
+							fieldData->stream->Seek(fieldData->offset);
 							curField->SetValue(rttiInstance, object.get(), fieldData->stream, fieldData->size);
 						}
 
@@ -297,8 +297,8 @@ namespace bs
 		while (!rttiInstances.empty())
 		{
 			RTTITypeBase* rttiInstance = rttiInstances.top();
-			rttiInstance->onDeserializationEnded(object.get(), mContext);
-			mAlloc->destruct(rttiInstance);
+			rttiInstance->OnDeserializationEnded(object.get(), mContext);
+			mAlloc->Destruct(rttiInstance);
 
 			rttiInstances.pop();
 		}
@@ -315,14 +315,14 @@ namespace bs
 			while (!rttiInstances.empty())
 			{
 				RTTITypeBase* rttiInstance = rttiInstances.top();
-				rttiInstance->onSerializationEnded(object, context);
-				alloc->destruct(rttiInstance);
+				rttiInstance->OnSerializationEnded(object, context);
+				alloc->Destruct(rttiInstance);
 
 				rttiInstances.pop();
 			}
 		};
 
-		bool replicableOnly = flags.isSet(SerializedObjectEncodeFlag::ReplicableOnly);
+		bool replicableOnly = flags.IsSet(SerializedObjectEncodeFlag::ReplicableOnly);
 		SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
 
 		// If an object has base classes, we need to iterate through all of them
@@ -331,7 +331,7 @@ namespace bs
 			RTTITypeBase* rttiInstance = rtti->CloneInternal(*alloc);
 			rttiInstances.push(rttiInstance);
 
-			rttiInstance->onSerializationStarted(object, context);
+			rttiInstance->OnSerializationStarted(object, context);
 
 			output->subObjects.push_back(SerializedSubObject());
 			SerializedSubObject& subObject = output->subObjects.back();
@@ -344,7 +344,7 @@ namespace bs
 
 				if(replicableOnly)
 				{
-					if(!curGenericField->schema.info.flags.isSet(RTTIFieldFlag::Replicate))
+					if(!curGenericField->schema.info.flags.IsSet(RTTIFieldFlag::Replicate))
 						continue;
 				}
 
@@ -370,7 +370,7 @@ namespace bs
 	SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, UINT32 arrayIdx,
 		SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAlloc* alloc)
 	{
-		bool shallow = flags.isSet(SerializedObjectEncodeFlag::Shallow);
+		bool shallow = flags.IsSet(SerializedObjectEncodeFlag::Shallow);
 
 		SPtr<SerializedInstance> output;
 		if (field->schema.isArray)
@@ -411,7 +411,7 @@ namespace bs
 						SPtr<IReflectable> childObject = curField->GetArrayValue(rtti, object, arrIdx);
 
 						if (childObject)
-							serializedChildObj = encodeEntry(childObject.get(), flags, context, alloc);
+							serializedChildObj = EncodeEntry(childObject.get(), flags, context, alloc);
 					}
 
 					if (wholeArray)
@@ -436,7 +436,7 @@ namespace bs
 				{
 					IReflectable& childObject = curField->GetArrayValue(rtti, object, arrIdx);
 
-					const SPtr<SerializedObject> serializedChildObj = encodeEntry(&childObject, flags, context, alloc);
+					const SPtr<SerializedObject> serializedChildObj = EncodeEntry(&childObject, flags, context, alloc);
 
 					if (wholeArray)
 					{
@@ -470,7 +470,7 @@ namespace bs
 					serializedField->size = typeSize;
 
 					Bitstream tempStream(serializedField->value, typeSize);
-					curField->arrayElemToStream(rtti, object, arrIdx, tempStream);
+					curField->ArrayElemToStream(rtti, object, arrIdx, tempStream);
 
 					if (wholeArray)
 					{
@@ -505,7 +505,7 @@ namespace bs
 					SPtr<IReflectable> childObject = curField->GetValue(rtti, object);
 
 					if (childObject)
-						output = encodeEntry(childObject.get(), flags, context, alloc);
+						output = EncodeEntry(childObject.get(), flags, context, alloc);
 				}
 
 				break;
@@ -515,7 +515,7 @@ namespace bs
 				auto curField = static_cast<RTTIReflectableFieldBase*>(field);
 				IReflectable& childObject = curField->GetValue(rtti, object);
 
-				output = encodeEntry(&childObject, flags, context, alloc);
+				output = EncodeEntry(&childObject, flags, context, alloc);
 
 				break;
 			}
@@ -535,7 +535,7 @@ namespace bs
 				serializedField->size = typeSize;
 
 				Bitstream tempStream(serializedField->value, typeSize);
-				curField->toStream(rtti, object, tempStream);
+				curField->ToStream(rtti, object, tempStream);
 
 				output = serializedField;
 
@@ -549,7 +549,7 @@ namespace bs
 				SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
 
 				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>(dataBlockSize);
-				blockStream->read(stream->data(), dataBlockSize);
+				blockStream->Read(stream->Data(), dataBlockSize);
 
 				SPtr<SerializedDataBlock> serializedDataBlock = bs_shared_ptr_new<SerializedDataBlock>();
 				serializedDataBlock->stream = stream;

@@ -122,14 +122,14 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 1:
-			return get(getVariation<1>());
+			return Get(getVariation<1>());
 		case 2:
-			return get(getVariation<2>());
+			return Get(getVariation<2>());
 		case 4:
-			return get(getVariation<4>());
+			return Get(getVariation<4>());
 		case 8:
 		default:
-			return get(getVariation<8>());
+			return Get(getVariation<8>());
 		}
 	}
 
@@ -154,7 +154,7 @@ namespace bs { namespace ct
 		bind();
 
 		Rect2 area(0.0f, 0.0f, (float)targetProps.GetWidth(), (float)targetProps.GetHeight());
-		gRendererUtility().drawScreenQuad(area);
+		gRendererUtility().DrawScreenQuad(area);
 	}
 
 	ClearLoadStoreParamDef gClearLoadStoreParamDef;
@@ -266,24 +266,24 @@ namespace bs { namespace ct
 		default:
 		case ClearLoadStoreType::Texture:
 			if(dataType == ClearLoadStoreDataType::Float)
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::Texture, ClearLoadStoreDataType::Float>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::Texture, ClearLoadStoreDataType::Float>(numComponents));
 			else
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::Texture, ClearLoadStoreDataType::Int>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::Texture, ClearLoadStoreDataType::Int>(numComponents));
 		case ClearLoadStoreType::TextureArray:
 			if(dataType == ClearLoadStoreDataType::Float)
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Float>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Float>(numComponents));
 			else
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Int>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Int>(numComponents));
 		case ClearLoadStoreType::Buffer:
 			if(dataType == ClearLoadStoreDataType::Float)
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::Buffer, ClearLoadStoreDataType::Float>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::Buffer, ClearLoadStoreDataType::Float>(numComponents));
 			else
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::Buffer, ClearLoadStoreDataType::Int>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::Buffer, ClearLoadStoreDataType::Int>(numComponents));
 		case ClearLoadStoreType::StructuredBuffer:
 			if(dataType == ClearLoadStoreDataType::Float)
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Float>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Float>(numComponents));
 			else
-				return get(getClearLoadStoreVariation<ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int>(numComponents));
+				return Get(getClearLoadStoreVariation<ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int>(numComponents));
 		}
 	}
 
@@ -387,14 +387,14 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 1:
-			return get(getVariation<1>());
+			return Get(getVariation<1>());
 		case 2:
-			return get(getVariation<2>());
+			return Get(getVariation<2>());
 		case 4:
-			return get(getVariation<4>());
+			return Get(getVariation<4>());
 		case 8:
 		default:
-			return get(getVariation<8>());
+			return Get(getVariation<8>());
 		}
 	}
 }}

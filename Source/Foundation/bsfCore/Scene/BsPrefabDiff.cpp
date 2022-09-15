@@ -43,12 +43,12 @@ namespace bs
 		// marked as different because the instance IDs of the two objects don't match (since one is in prefab and one
 		// in instance).
 		Vector<RenamedGameObject> renamedObjects;
-		renameInstanceIds(prefab, instance, renamedObjects);
+		RenameInstanceIds(prefab, instance, renamedObjects);
 
 		SPtr<PrefabDiff> output = bs_shared_ptr_new<PrefabDiff>();
-		output->mRoot = generateDiff(prefab, instance);
+		output->mRoot = GenerateDiff(prefab, instance);
 
-		restoreInstanceIds(renamedObjects);
+		RestoreInstanceIds(renamedObjects);
 
 		return output;
 	}
@@ -62,9 +62,9 @@ namespace bs
 		serzContext.goState = bs_shared_ptr_new<GameObjectDeserializationState>(GODM_UseNewIds | GODM_RestoreExternal);
 		serzContext.goDeserializationActive = true;
 
-		applyDiff(mRoot, object, &serzContext);
+		ApplyDiff(mRoot, object, &serzContext);
 
-		serzContext.goState->resolve();
+		serzContext.goState->Resolve();
 	}
 
 	void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObject& object,
@@ -117,17 +117,17 @@ namespace bs
 
 		for (auto& addedComponentData : diff->addedComponents)
 		{
-			SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->decode(context));
+			SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->Decode(context));
 
-			object->addAndInitializeComponent(component);
+			object->AddAndInitializeComponent(component);
 		}
 
 		for (auto& addedChildData : diff->addedChildren)
 		{
-			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->decode(context));
+			SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->Decode(context));
 			sceneObject->SetParent(object);
 
-			if(object->isInstantiated())
+			if(object->IsInstantiated())
 				sceneObject->InstantiateInternal();
 		}
 
@@ -138,7 +138,7 @@ namespace bs
 				if (componentDiff->id == (INT32)component->GetLinkId())
 				{
 					IDiff& diffHandler = component->GetRtti()->GetDiffHandler();
-					diffHandler.applyDiff(component.getInternalPtr(), componentDiff->data, context);
+					diffHandler.ApplyDiff(component.GetInternalPtr(), componentDiff->data, context);
 					break;
 				}
 			}
@@ -152,7 +152,7 @@ namespace bs
 				HSceneObject child = object->GetChild(i);
 				if (childDiff->id == child->GetLinkId())
 				{
-					applyDiff(childDiff, child, context);
+					ApplyDiff(childDiff, child, context);
 					break;
 				}
 			}
@@ -226,8 +226,8 @@ namespace bs
 
 				if (prefabChild->GetLinkId() == instanceChild->GetLinkId())
 				{
-					if (instanceChild->mPrefabLinkUUID.empty())
-						childDiff = generateDiff(prefabChild, instanceChild);
+					if (instanceChild->mPrefabLinkUUID.Empty())
+						childDiff = GenerateDiff(prefabChild, instanceChild);
 
 					foundMatching = true;
 					break;
@@ -258,7 +258,7 @@ namespace bs
 		{
 			HSceneObject instanceChild = instance->GetChild(i);
 
-			if (instanceChild->hasFlag(SOF_DontSave))
+			if (instanceChild->HasFlag(SOF_DontSave))
 				continue;
 
 			bool foundMatching = false;
@@ -310,7 +310,7 @@ namespace bs
 					SPtr<SerializedObject> encodedInstance = SerializedObject::Create(*instanceComponent);
 
 					IDiff& diffHandler = prefabComponent->GetRtti()->GetDiffHandler();
-					SPtr<SerializedObject> diff = diffHandler.generateDiff(encodedPrefab, encodedInstance);
+					SPtr<SerializedObject> diff = diffHandler.GenerateDiff(encodedPrefab, encodedInstance);
 
 					if (diff != nullptr)
 					{
@@ -402,7 +402,7 @@ namespace bs
 			todo.pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.empty())
+			if (current.so->mPrefabLinkUUID.Empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;
@@ -445,7 +445,7 @@ namespace bs
 			todo.pop();
 
 			UUID childParentUUID;
-			if (current.so->mPrefabLinkUUID.empty())
+			if (current.so->mPrefabLinkUUID.Empty())
 				childParentUUID = current.uuid;
 			else
 				childParentUUID = current.so->mPrefabLinkUUID;

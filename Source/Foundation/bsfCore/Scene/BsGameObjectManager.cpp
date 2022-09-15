@@ -141,7 +141,7 @@ namespace bs
 			else if (!isInternalReference && (mOptions & GODM_RestoreExternal) != 0)
 			{
 				HGameObject obj;
-				if(GameObjectManager::Instance().tryGetObject(instanceId, obj))
+				if(GameObjectManager::Instance().TryGetObject(instanceId, obj))
 					entry.handle.ResolveInternal(obj);
 				else
 				{
@@ -208,14 +208,14 @@ namespace bs
 		mUnresolvedHandles.push_back({ originalId, object });
 	}
 
-	void GameObjectDeserializationState::registerObject(UINT64 originalId, GameObjectHandleBase& object)
+	void GameObjectDeserializationState::RegisterObject(UINT64 originalId, GameObjectHandleBase& object)
 	{
 		assert(originalId != 0 && "Invalid game object ID.");
 
 		const auto iterFind = mUnresolvedHandleData.find(originalId);
 		if (iterFind != mUnresolvedHandleData.end())
 		{
-			SPtr<GameObject> ptr = object.getInternalPtr();
+			SPtr<GameObject> ptr = object.GetInternalPtr();
 
 			object.mData = iterFind->second;
 			object.SetHandleDataInternal(ptr);

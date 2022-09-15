@@ -54,7 +54,7 @@ namespace bs
 
 	void PooledThread::Initialize()
 	{
-		mThread = bs_new<Thread>(std::bind(&PooledThread::run, this));
+		mThread = bs_new<Thread>(std::bind(&PooledThread::Run, this));
 
 		Lock lock(mMutex);
 
@@ -196,13 +196,13 @@ namespace bs
 
 	ThreadPool::~ThreadPool()
 	{
-		stopAll();
+		StopAll();
 	}
 
 	HThread ThreadPool::Run(const String& name, std::function<void()> workerMethod)
 	{
-		PooledThread* thread = getThread(name);
-		thread->start(workerMethod, mUniqueId++);
+		PooledThread* thread = GetThread(name);
+		thread->Start(workerMethod, mUniqueId++);
 
 		return HThread(this, thread->GetId());
 	}
@@ -212,7 +212,7 @@ namespace bs
 		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
-			destroyThread(thread);
+			DestroyThread(thread);
 		}
 
 		mThreads.clear();
@@ -236,9 +236,9 @@ namespace bs
 
 		for(auto& thread : mThreads)
 		{
-			if(thread->isIdle())
+			if(thread->IsIdle())
 			{
-				if(thread->idleTime() >= mIdleTimeout)
+				if(thread->IdleTime() >= mIdleTimeout)
 					expiredThreads.push_back(thread);
 				else
 					idleThreads.push_back(thread);
@@ -261,7 +261,7 @@ namespace bs
 				i++;
 			}
 			else
-				destroyThread(thread);
+				DestroyThread(thread);
 		}
 
 		mThreads.insert(mThreads.end(), activeThreads.begin(), activeThreads.end());
@@ -282,13 +282,13 @@ namespace bs
 		}
 
 		if(age == UNUSED_CHECK_PERIOD)
-			clearUnused();
+			ClearUnused();
 
 		Lock lock(mMutex);
 
 		for(auto& thread : mThreads)
 		{
-			if(thread->isIdle())
+			if(thread->IsIdle())
 			{
 				thread->SetName(name);
 				return thread;
@@ -298,7 +298,7 @@ namespace bs
 		if(mThreads.size() >= mMaxCapacity)
 			BS_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
 
-		PooledThread* newThread = createThread(name);
+		PooledThread* newThread = CreateThread(name);
 		mThreads.push_back(newThread);
 
 		return newThread;
@@ -311,7 +311,7 @@ namespace bs
 		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
-			if(!thread->isIdle())
+			if(!thread->IsIdle())
 				numAvailable--;
 		}
 
@@ -325,7 +325,7 @@ namespace bs
 		Lock lock(mMutex);
 		for(auto& thread : mThreads)
 		{
-			if(!thread->isIdle())
+			if(!thread->IsIdle())
 				numActive++;
 		}
 

@@ -13,13 +13,13 @@ namespace bs
 	template<class COLOR, class TIME>
 	TColorGradient<COLOR, TIME>::TColorGradient(const Color& color)
 	{
-		setConstant(color);
+		SetConstant(color);
 	}
 
 	template<class COLOR, class TIME>
 	TColorGradient<COLOR, TIME>::TColorGradient(const Vector<ColorGradientKey>& keys)
 	{
-		setKeys(keys);
+		SetKeys(keys);
 	}
 
 	template<class COLOR, class TIME>
@@ -34,7 +34,7 @@ namespace bs
 		if(mDuration > 0.0f)
 			t = t / mDuration;
 
-		const auto time = impl::TGradientHelper<COLOR>::getInternalTime(Math::Clamp01(t));
+		const auto time = impl::TGradientHelper<COLOR>::GetInternalTime(Math::Clamp01(t));
 
 		if(time < mTimes[0])
 			return mColors[0];
@@ -47,8 +47,8 @@ namespace bs
 				continue;
 
 			const auto prevKeyTime = mTimes[i - 1];
-			const auto fracColor = impl::TGradientHelper<COLOR>::invLerp(prevKeyTime, curKeyTime, time);
-			return Color::lerp(fracColor, mColors[i - 1], mColors[i]);
+			const auto fracColor = impl::TGradientHelper<COLOR>::InvLerp(prevKeyTime, curKeyTime, time);
+			return Color::Lerp(fracColor, mColors[i - 1], mColors[i]);
 		}
 
 		return mColors[mNumKeys - 1];
@@ -84,8 +84,8 @@ namespace bs
 			if(mNumKeys >= MAX_KEYS)
 				break;
 
-			mColors[mNumKeys] = impl::TGradientHelper<COLOR>::toInternalColor(key.color);
-			mTimes[mNumKeys] = impl::TGradientHelper<COLOR>::getInternalTime(Math::Clamp01(key.time));
+			mColors[mNumKeys] = impl::TGradientHelper<COLOR>::ToInternalColor(key.color);
+			mTimes[mNumKeys] = impl::TGradientHelper<COLOR>::GetInternalTime(Math::Clamp01(key.time));
 
 			mNumKeys++;
 		}
@@ -97,8 +97,8 @@ namespace bs
 		Vector<ColorGradientKey> output(mNumKeys);
 		for(UINT32 i = 0; i < mNumKeys; i++)
 		{
-			output[i].color = impl::TGradientHelper<COLOR>::fromInternalColor(mColors[i]);
-			output[i].time = impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[i]);
+			output[i].color = impl::TGradientHelper<COLOR>::FromInternalColor(mColors[i]);
+			output[i].time = impl::TGradientHelper<COLOR>::FromInternalTime(mTimes[i]);
 		}
 
 		return output;
@@ -111,14 +111,14 @@ namespace bs
 			return ColorGradientKey(Color::Black, 0.0f);
 
 		return ColorGradientKey(
-			impl::TGradientHelper<COLOR>::fromInternalColor(mColors[idx]),
-			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[idx]));
+			impl::TGradientHelper<COLOR>::FromInternalColor(mColors[idx]),
+			impl::TGradientHelper<COLOR>::FromInternalTime(mTimes[idx]));
 	}
 
 	template<class COLOR, class TIME>
 	void TColorGradient<COLOR, TIME>::SetConstant(const Color& color)
 	{
-		mColors[0] = impl::TGradientHelper<COLOR>::toInternalColor(color);
+		mColors[0] = impl::TGradientHelper<COLOR>::ToInternalColor(color);
 		mTimes[0] = 0;
 		mNumKeys = 1;
 		mDuration = 0.0f;
@@ -132,13 +132,13 @@ namespace bs
 
 		if(mNumKeys == 1)
 		{
-			float time = impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[0]);
+			float time = impl::TGradientHelper<COLOR>::FromInternalTime(mTimes[0]);
 			return std::make_pair(time, time);
 		}
 
 		return std::make_pair(
-			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[0]),
-			impl::TGradientHelper<COLOR>::fromInternalTime(mTimes[mNumKeys - 1])
+			impl::TGradientHelper<COLOR>::FromInternalTime(mTimes[0]),
+			impl::TGradientHelper<COLOR>::FromInternalTime(mTimes[mNumKeys - 1])
 		);
 	}
 

@@ -36,7 +36,7 @@ namespace bs { namespace ct
 			return;
 
 		UINT32 queueFamily = mDevice->GetQueueFamily(mType);
-		mCB = mDevice->GetCmdBufferPool().getBuffer(queueFamily, false);
+		mCB = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
 	}
 
 	void VulkanTransferBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags,

@@ -580,7 +580,7 @@ namespace bs
 		template<class T, class... Args>
 		static BasicString<T> Format(const BasicString<T>& source, Args&& ...args)
 		{
-			return StringFormat::format(source.c_str(), std::forward<Args>(args)...);
+			return StringFormat::Format(source.c_str(), std::forward<Args>(args)...);
 		}
 
 		/** @copydoc StringFormat::format */
@@ -718,7 +718,7 @@ namespace bs
 
 			BasicString<T> startOfThis = str.substr(0, patternLen);
 			if (lowerCase)
-				StringUtil::toLowerCase(startOfThis);
+				StringUtil::ToLowerCase(startOfThis);
 
 			return (startOfThis == pattern);
 		}
@@ -733,7 +733,7 @@ namespace bs
 
 			BasicString<T> endOfThis = str.substr(thisLen - patternLen, patternLen);
 			if (lowerCase)
-				StringUtil::toLowerCase(endOfThis);
+				StringUtil::ToLowerCase(endOfThis);
 
 			return (endOfThis == pattern);
 		}
@@ -745,8 +745,8 @@ namespace bs
 			BasicString<T> tmpPattern = pattern;
 			if (!caseSensitive)
 			{
-				StringUtil::toLowerCase(tmpStr);
-				StringUtil::toLowerCase(tmpPattern);
+				StringUtil::ToLowerCase(tmpStr);
+				StringUtil::ToLowerCase(tmpPattern);
 			}
 
 			typename BasicString<T>::const_iterator strIt = tmpStr.begin();

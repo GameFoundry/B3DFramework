@@ -537,7 +537,7 @@ namespace bs
 				for (auto& block : paramBlockData)
 				{
 					const String& paramBlockName = block.name;
-					if (paramPtr->hasParamBlock(progType, paramBlockName))
+					if (paramPtr->HasParamBlock(progType, paramBlockName))
 					{
 						ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
 
@@ -881,7 +881,7 @@ namespace bs
 			return;
 		}
 
-		setParamBlockBuffer(bufferIdx, paramBlock, ignoreInUpdate);
+		SetParamBlockBuffer(bufferIdx, paramBlock, ignoreInUpdate);
 	}
 
 	template<bool Core>
@@ -904,7 +904,7 @@ namespace bs
 			bool isAnimated = false;
 			for(UINT32 i = 0; i < arraySize; i++)
 			{
-				isAnimated = params->isAnimated(*materialParamInfo, i);
+				isAnimated = params->IsAnimated(*materialParamInfo, i);
 				if(isAnimated)
 					break;
 			}
@@ -934,10 +934,10 @@ namespace bs
 							{
 								UINT32 readOffset = i * paramSize;
 								memcpy(&temp, data + readOffset, paramSize);
-								auto transposed = temp.transpose();
+								auto transposed = temp.Transpose();
 
 								UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
-								paramBlock->write(writeOffset, &transposed, paramSize);
+								paramBlock->Write(writeOffset, &transposed, paramSize);
 							}
 						};
 
@@ -1003,7 +1003,7 @@ namespace bs
 							{
 								UINT32 arrayOffset = i * paramSize;
 								UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
-								paramBlock->write(writeOffset, data + arrayOffset, paramSize);
+								paramBlock->Write(writeOffset, data + arrayOffset, paramSize);
 							}
 							break;
 						}
@@ -1015,7 +1015,7 @@ namespace bs
 						{
 							UINT32 readOffset = i * paramSize;
 							UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
-							paramBlock->write(writeOffset, data + readOffset, paramSize);
+							paramBlock->Write(writeOffset, data + readOffset, paramSize);
 						}
 					}
 				}
@@ -1031,16 +1031,16 @@ namespace bs
 							UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
 
 							float value;
-							if (params->isAnimated(*materialParamInfo, i))
+							if (params->IsAnimated(*materialParamInfo, i))
 							{
-								const TAnimationCurve<float>& curve = params->template getCurveParam<float>(*materialParamInfo, i);
+								const TAnimationCurve<float>& curve = params->template GetCurveParam<float>(*materialParamInfo, i);
 
-								value = curve.evaluate(t, true);
+								value = curve.Evaluate(t, true);
 							}
 							else
 								memcpy(&value, data + readOffset, paramSize);
 
-							paramBlock->write(writeOffset, &value, paramSize);
+							paramBlock->Write(writeOffset, &value, paramSize);
 						}
 					}
 					else if (materialParamInfo->dataType == GPDT_FLOAT4)
@@ -1053,9 +1053,9 @@ namespace bs
 						UINT32 writeOffset = paramInfo.offset * sizeof(UINT32);
 						Rect2 uv = Rect2(0.0f, 0.0f, 1.0f, 1.0f);
 						if (spriteTexture != nullptr)
-							uv = spriteTexture->evaluate(t);
+							uv = spriteTexture->Evaluate(t);
 
-						paramBlock->write(writeOffset, &uv, paramSize);
+						paramBlock->Write(writeOffset, &uv, paramSize);
 
 						// Only the first array element receives sprite UVs, the rest are treated as normal
 						for (UINT32 i = 1; i < arraySize; i++)
@@ -1063,7 +1063,7 @@ namespace bs
 							UINT32 readOffset = i * paramSize;
 							writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
 
-							paramBlock->write(writeOffset, data + readOffset, paramSize);
+							paramBlock->Write(writeOffset, data + readOffset, paramSize);
 						}
 					}
 					else if (materialParamInfo->dataType == GPDT_COLOR)
@@ -1076,17 +1076,17 @@ namespace bs
 							UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
 
 							Color value;
-							if (params->isAnimated(*materialParamInfo, i))
+							if (params->IsAnimated(*materialParamInfo, i))
 							{
 								const ColorGradientHDR& gradient = params->GetColorGradientParam(*materialParamInfo, i);
 
-								const float wrappedT = Math::Repeat(t, gradient.getDuration());
-								value = gradient.evaluate(wrappedT);
+								const float wrappedT = Math::Repeat(t, gradient.GetDuration());
+								value = gradient.Evaluate(wrappedT);
 							}
 							else
 								memcpy(&value, data + readOffset, paramSize);
 
-							paramBlock->write(writeOffset, &value, paramSize);
+							paramBlock->Write(writeOffset, &value, paramSize);
 						}
 					}
 				}
@@ -1100,7 +1100,7 @@ namespace bs
 					params->GetStructData(*materialParamInfo, paramData, paramSize, i);
 
 					UINT32 writeOffset = (paramInfo.offset + paramInfo.arrayStride * i) * sizeof(UINT32);
-					paramBlock->write(writeOffset, paramData, paramSize);
+					paramBlock->Write(writeOffset, paramData, paramSize);
 				}	
 				bs_stack_free(paramData);
 			}

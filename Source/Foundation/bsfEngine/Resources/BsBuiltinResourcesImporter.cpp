@@ -146,7 +146,7 @@ namespace bs
 			HResource textureResource = gResources().CreateResourceHandleInternal(texture, UUID(uuid));
 
 			gResources().save(textureResource, path, true);
-			sManifest->registerResource(textureResource.getUUID(), path);
+			sManifest->registerResource(textureResource.GetUuid(), path);
 		};
 
 		Path whitePath = outputDir + BuiltinResources::TEXTURE_WHITE_FILE;
@@ -228,7 +228,7 @@ namespace bs
 			HResource meshResource = gResources().CreateResourceHandleInternal(mesh, UUID(uuid));
 
 			gResources().save(meshResource, path, true);
-			sManifest->registerResource(meshResource.getUUID(), path);
+			sManifest->registerResource(meshResource.GetUuid(), path);
 		};
 
 		Path boxPath = outputDir + BuiltinResources::MESH_BOX_FILE;
@@ -745,7 +745,7 @@ namespace bs
 			HResource skinResource = gResources().CreateResourceHandleInternal(skin, UUID);
 
 			gResources().save(skinResource, outputPath, true);
-			sManifest->registerResource(skinResource.getUUID(), outputPath);
+			sManifest->registerResource(skinResource.GetUuid(), outputPath);
 		}
 
 		// Generate & save splash screen

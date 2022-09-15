@@ -13,7 +13,7 @@ namespace bs
 		: mType(LightType::Radial), mCastsShadows(false), mColor(Color::White), mAttRadius(10.0f), mSourceRadius(0.0f)
 		, mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
 	{
-		updateAttenuationRange();
+		UpdateAttenuationRange();
 	}
 
 	LightBase::LightBase(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows,
@@ -22,7 +22,7 @@ namespace bs
 		, mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(false)
 		, mShadowBias(0.5f)
 	{
-		updateAttenuationRange();
+		UpdateAttenuationRange();
 	}
 
 	void LightBase::SetUseAutoAttenuation(bool enabled)
@@ -30,7 +30,7 @@ namespace bs
 		mAutoAttenuation = enabled;
 
 		if(enabled)
-			updateAttenuationRange();
+			UpdateAttenuationRange();
 
 		MarkCoreDirtyInternal();
 	}
@@ -42,7 +42,7 @@ namespace bs
 
 		mAttRadius = radius;
 		MarkCoreDirtyInternal();
-		updateBounds();
+		UpdateBounds();
 	}
 
 	void LightBase::SetSourceRadius(float radius)
@@ -50,7 +50,7 @@ namespace bs
 		mSourceRadius = radius;
 
 		if (mAutoAttenuation)
-			updateAttenuationRange();
+			UpdateAttenuationRange();
 
 		MarkCoreDirtyInternal();
 	}
@@ -60,7 +60,7 @@ namespace bs
 		mIntensity = intensity;
 
 		if (mAutoAttenuation)
-			updateAttenuationRange();
+			UpdateAttenuationRange();
 
 		MarkCoreDirtyInternal();
 	}
@@ -116,25 +116,25 @@ namespace bs
 			// Where r is the source radius, and d is the distance from the light. As derived here:
 			//   https://imdoingitwrong.wordpress.com/2011/01/31/light-attenuation/
 
-			float luminousFlux = getIntensity();
+			float luminousFlux = GetIntensity();
 
 			float a = sqrt(minAttenuation);
 			mAttRadius = (mSourceRadius * (sqrt(luminousFlux - a))) / a;
 		}
 		else // Based on the basic inverse square distance formula
 		{
-			float luminousIntensity = getIntensity();
+			float luminousIntensity = GetIntensity();
 
 			float a = minAttenuation;
 			mAttRadius = sqrt(std::max(0.0f, luminousIntensity / a));
 		}
 
-		updateBounds();
+		UpdateBounds();
 	}
 
 	void LightBase::UpdateBounds()
 	{
-		const Transform& tfrm = getTransform();
+		const Transform& tfrm = GetTransform();
 
 		switch (mType)
 		{
@@ -157,7 +157,7 @@ namespace bs
 
 			// Distance between the "corner" of the cone and our center, must be the radius (provided the center is at
 			// the middle of the range)
-			float radius = (offset - coneDir).length();
+			float radius = (offset - coneDir).Length();
 
 			Vector3 center = tfrm.GetPosition() - tfrm.GetRotation().Rotate(offset);
 			mBounds = Sphere(center, radius);
@@ -173,8 +173,8 @@ namespace bs
 		if (mMobility != ObjectMobility::Movable)
 			return;
 
-		SceneActor::setTransform(transform);
-		updateBounds();
+		SceneActor::SetTransform(transform);
+		UpdateBounds();
 	}
 
 	template <class P>
@@ -198,7 +198,7 @@ namespace bs
 		: LightBase(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
 	{
 		// Calling virtual method is okay here because this is the most derived type
-		updateBounds();
+		UpdateBounds();
 	}
 
 	SPtr<ct::Light> Light::GetCore() const
@@ -240,14 +240,14 @@ namespace bs
 	CoreSyncData Light::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
-		size += rtti_size(getCoreDirtyFlags()).bytes;
+		size += rtti_size(GetCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream stream(buffer, size);
-		rtti_write(getCoreDirtyFlags(), stream);
+		rtti_write(GetCoreDirtyFlags(), stream);
 		csync_write((SceneActor&)*this, stream);
 		csync_write(*this, stream);
 
@@ -256,7 +256,7 @@ namespace bs
 
 	void Light::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	{
-		markCoreDirty((UINT32)flag);
+		MarkCoreDirty((UINT32)flag);
 	}
 
 	RTTITypeBase* Light::GetRttiStatic()
@@ -283,20 +283,20 @@ namespace bs
 
 	Light::~Light()
 	{
-		gRenderer()->notifyLightRemoved(this);
+		gRenderer()->NotifyLightRemoved(this);
 	}
 
 	void Light::Initialize()
 	{
-		updateBounds();
-		gRenderer()->notifyLightAdded(this);
+		UpdateBounds();
+		gRenderer()->NotifyLightAdded(this);
 
 		CoreObject::Initialize();
 	}
 
 	void Light::SyncToCore(const CoreSyncData& data)
 	{
-		Bitstream stream(data.getBuffer(), data.getBufferSize());
+		Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 		UINT32 dirtyFlags = 0;
 		bool oldIsActive = mActive;
@@ -306,19 +306,19 @@ namespace bs
 		csync_read((SceneActor&)*this, stream);
 		csync_read(*this, stream);
 
-		updateBounds();
+		UpdateBounds();
 
 		if((dirtyFlags & ((UINT32)ActorDirtyFlag::Everything | (UINT32)ActorDirtyFlag::Active)) != 0)
 		{
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifyLightAdded(this);
+					gRenderer()->NotifyLightAdded(this);
 				else
 				{
 					LightType newType = mType;
 					mType = oldType;
-					gRenderer()->notifyLightRemoved(this);
+					gRenderer()->NotifyLightRemoved(this);
 					mType = newType;
 				}
 			}
@@ -326,21 +326,21 @@ namespace bs
 			{
 				LightType newType = mType;
 				mType = oldType;
-				gRenderer()->notifyLightRemoved(this);
+				gRenderer()->NotifyLightRemoved(this);
 				mType = newType;
 
-				gRenderer()->notifyLightAdded(this);
+				gRenderer()->NotifyLightAdded(this);
 			}
 		}
 		else if((dirtyFlags & (UINT32)ActorDirtyFlag::Mobility) != 0)
 		{
-			gRenderer()->notifyLightRemoved(this);
-			gRenderer()->notifyLightAdded(this);
+			gRenderer()->NotifyLightRemoved(this);
+			gRenderer()->NotifyLightAdded(this);
 		}
 		else if ((dirtyFlags & (UINT32)ActorDirtyFlag::Transform) != 0)
 		{
 			if (mActive)
-				gRenderer()->notifyLightUpdated(this);
+				gRenderer()->NotifyLightUpdated(this);
 		}
 	}
 }}

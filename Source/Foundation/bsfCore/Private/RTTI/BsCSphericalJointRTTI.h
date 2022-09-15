@@ -38,7 +38,7 @@ namespace bs
 			return TID_CSphericalJoint;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CSphericalJoint>();
 		}

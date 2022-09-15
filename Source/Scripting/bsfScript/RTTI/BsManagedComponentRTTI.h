@@ -40,7 +40,7 @@ namespace bs
 	public:
 		ManagedComponentRTTI()
 		{
-			addReflectablePtrField("mObjectData", 2, &ManagedComponentRTTI::getObjectData, &ManagedComponentRTTI::setObjectData);
+			AddReflectablePtrField("mObjectData", 2, &ManagedComponentRTTI::getObjectData, &ManagedComponentRTTI::setObjectData);
 		}
 
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
@@ -65,7 +65,7 @@ namespace bs
 			return TID_ManagedComponent;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<ManagedComponent>();
 		}

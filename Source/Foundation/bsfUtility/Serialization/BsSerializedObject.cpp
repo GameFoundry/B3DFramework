@@ -9,13 +9,13 @@ namespace bs
 	SPtr<SerializedObject> SerializedObject::Create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
 	{
 		IntermediateSerializer is;
-		return is.encode(&obj, flags, context);
+		return is.Encode(&obj, flags, context);
 	}
 
 	SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 	{
 		IntermediateSerializer is;
-		return is.decode(this, context);
+		return is.Decode(this, context);
 	}
 
 	SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
@@ -33,7 +33,7 @@ namespace bs
 				SerializedEntry entry = entryPair.second;
 
 				if (entry.serialized != nullptr)
-					entry.serialized = entry.serialized->clone(cloneData);
+					entry.serialized = entry.serialized->Clone(cloneData);
 
 				copy->subObjects[i].entries[entryPair.first] = entry;
 			}
@@ -71,14 +71,14 @@ namespace bs
 
 		if (cloneData)
 		{
-			if(stream->isFile())
+			if(stream->IsFile())
 			{
 				BS_LOG(Warning, Generic,
 					"Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
 			}
 
 			auto stream = bs_shared_ptr_new<MemoryDataStream>(size);
-			stream->read(stream->data(), size);
+			stream->Read(stream->Data(), size);
 
 			copy->stream = stream;
 			copy->offset = 0;
@@ -100,7 +100,7 @@ namespace bs
 		for (auto& entryPair : entries)
 		{
 			SerializedArrayEntry entry = entryPair.second;
-			entry.serialized = entry.serialized->clone(cloneData);
+			entry.serialized = entry.serialized->Clone(cloneData);
 
 			copy->entries[entryPair.first] = entry;
 		}
@@ -123,7 +123,7 @@ namespace bs
 		return SerializedDataBlockRTTI::Instance();
 	}
 
-	RTTITypeBase* SerializedDataBlock::getRTTI() const
+	RTTITypeBase* SerializedDataBlock::GetRtti() const
 	{
 		return SerializedDataBlock::GetRttiStatic();
 	}
@@ -133,7 +133,7 @@ namespace bs
 		return SerializedFieldRTTI::Instance();
 	}
 
-	RTTITypeBase* SerializedField::getRTTI() const
+	RTTITypeBase* SerializedField::GetRtti() const
 	{
 		return SerializedField::GetRttiStatic();
 	}
@@ -151,7 +151,7 @@ namespace bs
 		return SerializedObjectRTTI::Instance();
 	}
 
-	RTTITypeBase* SerializedObject::getRTTI() const
+	RTTITypeBase* SerializedObject::GetRtti() const
 	{
 		return SerializedObject::GetRttiStatic();
 	}
@@ -161,7 +161,7 @@ namespace bs
 		return SerializedArrayRTTI::Instance();
 	}
 
-	RTTITypeBase* SerializedArray::getRTTI() const
+	RTTITypeBase* SerializedArray::GetRtti() const
 	{
 		return SerializedArray::GetRttiStatic();
 	}

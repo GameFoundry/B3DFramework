@@ -100,7 +100,7 @@ namespace bs
 		return ManagedSerializableFieldInfoRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableFieldInfo::getRTTI() const
+	RTTITypeBase* ManagedSerializableFieldInfo::GetRtti() const
 	{
 		return ManagedSerializableFieldInfo::GetRttiStatic();
 	}
@@ -125,7 +125,7 @@ namespace bs
 		return ManagedSerializablePropertyInfoRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializablePropertyInfo::getRTTI() const
+	RTTITypeBase* ManagedSerializablePropertyInfo::GetRtti() const
 	{
 		return ManagedSerializablePropertyInfo::GetRttiStatic();
 	}
@@ -197,7 +197,7 @@ namespace bs
 		return ManagedSerializableTypeInfoPrimitiveRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoPrimitive::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoPrimitive::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoPrimitive::GetRttiStatic();
 	}
@@ -236,7 +236,7 @@ namespace bs
 		return ManagedSerializableTypeInfoEnumRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoEnum::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoEnum::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoEnum::GetRttiStatic();
 	}
@@ -302,7 +302,7 @@ namespace bs
 		return ManagedSerializableTypeInfoRefRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoRef::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoRef::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoRef::GetRttiStatic();
 	}
@@ -346,7 +346,7 @@ namespace bs
 		return ManagedSerializableTypeInfoRRefRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoRRef::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoRRef::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoRRef::GetRttiStatic();
 	}
@@ -381,7 +381,7 @@ namespace bs
 		return ManagedSerializableTypeInfoObjectRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoObject::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoObject::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoObject::GetRttiStatic();
 	}
@@ -415,7 +415,7 @@ namespace bs
 		return ManagedSerializableTypeInfoArrayRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoArray::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoArray::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoArray::GetRttiStatic();
 	}
@@ -452,7 +452,7 @@ namespace bs
 		return ManagedSerializableTypeInfoListRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoList::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoList::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoList::GetRttiStatic();
 	}
@@ -491,7 +491,7 @@ namespace bs
 		return ManagedSerializableTypeInfoDictionaryRTTI::Instance();
 	}
 
-	RTTITypeBase* ManagedSerializableTypeInfoDictionary::getRTTI() const
+	RTTITypeBase* ManagedSerializableTypeInfoDictionary::GetRtti() const
 	{
 		return ManagedSerializableTypeInfoDictionary::GetRttiStatic();
 	}

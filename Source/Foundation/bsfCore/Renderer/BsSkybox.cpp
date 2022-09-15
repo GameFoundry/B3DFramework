@@ -26,21 +26,21 @@ namespace bs
 		if(mTexture.IsLoaded())
 		{
 			if (mFilteredRadiance == nullptr || mIrradiance == nullptr)
-				filterTexture();
+				FilterTexture();
 		}
 	}
 
 	Skybox::~Skybox()
 	{
 		if (mRendererTask != nullptr)
-			mRendererTask->cancel();
+			mRendererTask->Cancel();
 	}
 
 	void Skybox::FilterTexture()
 	{
 		// If previous rendering task exists, cancel it
 		if (mRendererTask != nullptr)
-			mRendererTask->cancel();
+			mRendererTask->Cancel();
 
 		{
 			TEXTURE_DESC cubemapDesc;
@@ -48,7 +48,7 @@ namespace bs
 			cubemapDesc.format = PF_RG11B10F;
 			cubemapDesc.width = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
 			cubemapDesc.height = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
-			cubemapDesc.numMips = PixelUtil::getMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
+			cubemapDesc.numMips = PixelUtil::GetMaxMipmaps(cubemapDesc.width, cubemapDesc.height, 1, cubemapDesc.format);
 			cubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
 			mFilteredRadiance = Texture::CreatePtrInternal(cubemapDesc);
@@ -71,20 +71,20 @@ namespace bs
 			mRendererTask = nullptr;
 		};
 
-		SPtr<ct::Skybox> coreSkybox = getCore();
+		SPtr<ct::Skybox> coreSkybox = GetCore();
 		SPtr<ct::Texture> coreFilteredRadiance = mFilteredRadiance->GetCore();
 		SPtr<ct::Texture> coreIrradiance = mIrradiance->GetCore();
 
 		auto filterSkybox = [coreFilteredRadiance, coreIrradiance, coreSkybox]()
 		{
 			// Filter radiance
-			ct::gIBLUtility().scaleCubemap(coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
-			ct::gIBLUtility().filterCubemapForSpecular(coreFilteredRadiance, nullptr);
+			ct::gIBLUtility().ScaleCubemap(coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
+			ct::gIBLUtility().FilterCubemapForSpecular(coreFilteredRadiance, nullptr);
 
 			coreSkybox->mFilteredRadiance = coreFilteredRadiance;
 
 			// Generate irradiance
-			ct::gIBLUtility().filterCubemapForIrradiance(coreSkybox->GetTexture(), coreIrradiance);
+			ct::gIBLUtility().FilterCubemapForIrradiance(coreSkybox->GetTexture(), coreIrradiance);
 			coreSkybox->mIrradiance = coreIrradiance;
 
 			return true;
@@ -93,7 +93,7 @@ namespace bs
 		mRendererTask = ct::RendererTask::Create("SkyboxFilter", filterSkybox);
 
 		mRendererTask->onComplete.Connect(renderComplete);
-		ct::gRenderer()->addTask(mRendererTask);
+		ct::gRenderer()->AddTask(mRendererTask);
 	}
 
 	void Skybox::SetTexture(const HTexture& texture)
@@ -104,7 +104,7 @@ namespace bs
 		mIrradiance = nullptr;
 
 		if(mTexture.IsLoaded())
-			filterTexture();
+			FilterTexture();
 
 		MarkCoreDirtyInternal((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
 	}
@@ -125,7 +125,7 @@ namespace bs
 
 	SPtr<Skybox> Skybox::Create()
 	{
-		SPtr<Skybox> skyboxPtr = createEmpty();
+		SPtr<Skybox> skyboxPtr = CreateEmpty();
 		skyboxPtr->Initialize();
 
 		return skyboxPtr;
@@ -155,14 +155,14 @@ namespace bs
 	CoreSyncData Skybox::SyncToCore(FrameAlloc* allocator)
 	{
 		UINT32 size = 0;
-		size += rtti_size(getCoreDirtyFlags()).bytes;
+		size += rtti_size(GetCoreDirtyFlags()).bytes;
 		size += csync_size((SceneActor&)*this);
 		size += csync_size(*this);
 
-		UINT8* buffer = allocator->alloc(size);
+		UINT8* buffer = allocator->Alloc(size);
 
 		Bitstream stream(buffer, size);
-		rtti_write(getCoreDirtyFlags(), stream);
+		rtti_write(GetCoreDirtyFlags(), stream);
 		csync_write((SceneActor&)*this, stream);
 		csync_write(*this, stream);
 
@@ -171,7 +171,7 @@ namespace bs
 
 	void Skybox::MarkCoreDirtyInternal(ActorDirtyFlag flags)
 	{
-		markCoreDirty((UINT32)flags);
+		MarkCoreDirty((UINT32)flags);
 	}
 
 	RTTITypeBase* Skybox::GetRttiStatic()
@@ -194,19 +194,19 @@ namespace bs
 
 		Skybox::~Skybox()
 		{
-			gRenderer()->notifySkyboxRemoved(this);
+			gRenderer()->NotifySkyboxRemoved(this);
 		}
 
 		void Skybox::Initialize()
 		{
-			gRenderer()->notifySkyboxAdded(this);
+			gRenderer()->NotifySkyboxAdded(this);
 
 			CoreObject::Initialize();
 		}
 
 		void Skybox::SyncToCore(const CoreSyncData& data)
 		{
-			Bitstream stream(data.getBuffer(), data.getBufferSize());
+			Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 			SkyboxDirtyFlag dirtyFlags;
 			bool oldIsActive = mActive;
@@ -218,16 +218,16 @@ namespace bs
 			if (oldIsActive != mActive)
 			{
 				if (mActive)
-					gRenderer()->notifySkyboxAdded(this);
+					gRenderer()->NotifySkyboxAdded(this);
 				else
-					gRenderer()->notifySkyboxRemoved(this);
+					gRenderer()->NotifySkyboxRemoved(this);
 			}
 			else
 			{
 				if (dirtyFlags != SkyboxDirtyFlag::Texture)
 				{
-					gRenderer()->notifySkyboxRemoved(this);
-					gRenderer()->notifySkyboxAdded(this);
+					gRenderer()->NotifySkyboxRemoved(this);
+					gRenderer()->NotifySkyboxAdded(this);
 				}
 			}
 		}

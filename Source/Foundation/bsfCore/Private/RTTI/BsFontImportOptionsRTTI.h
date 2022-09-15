@@ -47,7 +47,7 @@ namespace bs
 	public:
 		FontImportOptionsRTTI()
 		{
-			addPlainField("mCharIndexRangesOld", 1, &FontImportOptionsRTTI::GetCharIndexRangesOld,
+			AddPlainField("mCharIndexRangesOld", 1, &FontImportOptionsRTTI::GetCharIndexRangesOld,
 				&FontImportOptionsRTTI::SetCharIndexRangesOld);
 		}
 

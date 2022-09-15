@@ -32,7 +32,7 @@ namespace bs
 		return PlainTextRTTI::Instance();
 	}
 
-	RTTITypeBase* PlainText::getRTTI() const
+	RTTITypeBase* PlainText::GetRtti() const
 	{
 		return PlainText::GetRttiStatic();
 	}

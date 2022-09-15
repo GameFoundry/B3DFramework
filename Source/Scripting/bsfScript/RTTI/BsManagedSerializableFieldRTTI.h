@@ -88,8 +88,8 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataEntryRTTI()
 		{
-			addReflectablePtrField("mKey", 0, &ManagedSerializableFieldDataEntryRTTI::getKey, &ManagedSerializableFieldDataEntryRTTI::setKey);
-			addReflectablePtrField("mValue", 1, &ManagedSerializableFieldDataEntryRTTI::getValue, &ManagedSerializableFieldDataEntryRTTI::setValue);
+			AddReflectablePtrField("mKey", 0, &ManagedSerializableFieldDataEntryRTTI::getKey, &ManagedSerializableFieldDataEntryRTTI::setKey);
+			AddReflectablePtrField("mValue", 1, &ManagedSerializableFieldDataEntryRTTI::getValue, &ManagedSerializableFieldDataEntryRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -103,7 +103,7 @@ namespace bs
 			return TID_SerializableFieldDataEntry;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataEntry>();
 		}
@@ -118,7 +118,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataBoolRTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataBoolRTTI::GetValue, &ManagedSerializableFieldDataBoolRTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataBoolRTTI::GetValue, &ManagedSerializableFieldDataBoolRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -132,7 +132,7 @@ namespace bs
 			return TID_SerializableFieldDataBool;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataBool>();
 		}
@@ -147,7 +147,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataCharRTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataCharRTTI::GetValue, &ManagedSerializableFieldDataCharRTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataCharRTTI::GetValue, &ManagedSerializableFieldDataCharRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -161,7 +161,7 @@ namespace bs
 			return TID_SerializableFieldDataChar;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataBool>();
 		}
@@ -176,7 +176,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataI8RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataI8RTTI::GetValue, &ManagedSerializableFieldDataI8RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataI8RTTI::GetValue, &ManagedSerializableFieldDataI8RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -190,7 +190,7 @@ namespace bs
 			return TID_SerializableFieldDataI8;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataI8>();
 		}
@@ -205,7 +205,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataU8RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataU8RTTI::GetValue, &ManagedSerializableFieldDataU8RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataU8RTTI::GetValue, &ManagedSerializableFieldDataU8RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -219,7 +219,7 @@ namespace bs
 			return TID_SerializableFieldDataU8;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataU8>();
 		}
@@ -234,7 +234,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataI16RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataI16RTTI::GetValue, &ManagedSerializableFieldDataI16RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataI16RTTI::GetValue, &ManagedSerializableFieldDataI16RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -248,7 +248,7 @@ namespace bs
 			return TID_SerializableFieldDataI16;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataI16>();
 		}
@@ -263,7 +263,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataU16RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataU16RTTI::GetValue, &ManagedSerializableFieldDataU16RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataU16RTTI::GetValue, &ManagedSerializableFieldDataU16RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -277,7 +277,7 @@ namespace bs
 			return TID_SerializableFieldDataU16;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataU16>();
 		}
@@ -292,7 +292,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataI32RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataI32RTTI::GetValue, &ManagedSerializableFieldDataI32RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataI32RTTI::GetValue, &ManagedSerializableFieldDataI32RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -306,7 +306,7 @@ namespace bs
 			return TID_SerializableFieldDataI32;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataI32>();
 		}
@@ -321,7 +321,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataU32RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataU32RTTI::GetValue, &ManagedSerializableFieldDataU32RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataU32RTTI::GetValue, &ManagedSerializableFieldDataU32RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -335,7 +335,7 @@ namespace bs
 			return TID_SerializableFieldDataU32;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataU32>();
 		}
@@ -350,7 +350,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataI64RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataI64RTTI::GetValue, &ManagedSerializableFieldDataI64RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataI64RTTI::GetValue, &ManagedSerializableFieldDataI64RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -364,7 +364,7 @@ namespace bs
 			return TID_SerializableFieldDataI64;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataI64>();
 		}
@@ -379,7 +379,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataU64RTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataU64RTTI::GetValue, &ManagedSerializableFieldDataU64RTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataU64RTTI::GetValue, &ManagedSerializableFieldDataU64RTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -393,7 +393,7 @@ namespace bs
 			return TID_SerializableFieldDataU64;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataU64>();
 		}
@@ -408,7 +408,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataFloatRTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataFloatRTTI::GetValue, &ManagedSerializableFieldDataFloatRTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataFloatRTTI::GetValue, &ManagedSerializableFieldDataFloatRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -422,7 +422,7 @@ namespace bs
 			return TID_SerializableFieldDataFloat;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataFloat>();
 		}
@@ -437,7 +437,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataDoubleRTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataDoubleRTTI::GetValue, &ManagedSerializableFieldDataDoubleRTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataDoubleRTTI::GetValue, &ManagedSerializableFieldDataDoubleRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -451,7 +451,7 @@ namespace bs
 			return TID_SerializableFieldDataDouble;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataDouble>();
 		}
@@ -466,7 +466,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataStringRTTI()
 		{
-			addPlainField("mValue", 0, &ManagedSerializableFieldDataStringRTTI::GetValue, &ManagedSerializableFieldDataStringRTTI::SetValue);
+			AddPlainField("mValue", 0, &ManagedSerializableFieldDataStringRTTI::GetValue, &ManagedSerializableFieldDataStringRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -480,7 +480,7 @@ namespace bs
 			return TID_SerializableFieldDataString;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataString>();
 		}
@@ -495,7 +495,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataResourceRefRTTI()
 		{
-			addReflectableField("mValue", 0, &ManagedSerializableFieldDataResourceRefRTTI::GetValue, &ManagedSerializableFieldDataResourceRefRTTI::SetValue);
+			AddReflectableField("mValue", 0, &ManagedSerializableFieldDataResourceRefRTTI::GetValue, &ManagedSerializableFieldDataResourceRefRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -509,7 +509,7 @@ namespace bs
 			return TID_SerializableFieldDataResourceRef;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
 		}
@@ -524,7 +524,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataGameObjectRefRTTI()
 		{
-			addReflectableField("mValue", 0, &ManagedSerializableFieldDataGameObjectRefRTTI::GetValue, &ManagedSerializableFieldDataGameObjectRefRTTI::SetValue);
+			AddReflectableField("mValue", 0, &ManagedSerializableFieldDataGameObjectRefRTTI::GetValue, &ManagedSerializableFieldDataGameObjectRefRTTI::SetValue);
 		}
 
 		const String& GetRttiName() override
@@ -538,7 +538,7 @@ namespace bs
 			return TID_SerializableFieldDataGameObjectRef;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataGameObjectRef>();
 		}
@@ -553,7 +553,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataReflectableRefRTTI()
 		{
-			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataReflectableRefRTTI::getValue, &ManagedSerializableFieldDataReflectableRefRTTI::setValue);
+			AddReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataReflectableRefRTTI::getValue, &ManagedSerializableFieldDataReflectableRefRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -567,7 +567,7 @@ namespace bs
 			return TID_SerializableFieldDataReflectableRef;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataReflectableRef>();
 		}
@@ -582,7 +582,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataObjectRTTI()
 		{
-			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataObjectRTTI::getValue, &ManagedSerializableFieldDataObjectRTTI::setValue);
+			AddReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataObjectRTTI::getValue, &ManagedSerializableFieldDataObjectRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -596,7 +596,7 @@ namespace bs
 			return TID_SerializableFieldDataObject;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataObject>();
 		}
@@ -611,7 +611,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataArrayRTTI()
 		{
-			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataArrayRTTI::getValue, &ManagedSerializableFieldDataArrayRTTI::setValue);
+			AddReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataArrayRTTI::getValue, &ManagedSerializableFieldDataArrayRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -625,7 +625,7 @@ namespace bs
 			return TID_SerializableFieldDataArray;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataArray>();
 		}
@@ -640,7 +640,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataListRTTI()
 		{
-			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataListRTTI::getValue, &ManagedSerializableFieldDataListRTTI::setValue);
+			AddReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataListRTTI::getValue, &ManagedSerializableFieldDataListRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -654,7 +654,7 @@ namespace bs
 			return TID_SerializableFieldDataList;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataList>();
 		}
@@ -669,7 +669,7 @@ namespace bs
 	public:
 		ManagedSerializableFieldDataDictionaryRTTI()
 		{
-			addReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataDictionaryRTTI::getValue, &ManagedSerializableFieldDataDictionaryRTTI::setValue);
+			AddReflectablePtrField("mValue", 0, &ManagedSerializableFieldDataDictionaryRTTI::getValue, &ManagedSerializableFieldDataDictionaryRTTI::setValue);
 		}
 
 		const String& GetRttiName() override
@@ -683,7 +683,7 @@ namespace bs
 			return TID_SerializableFieldDataDictionary;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldDataDictionary>();
 		}

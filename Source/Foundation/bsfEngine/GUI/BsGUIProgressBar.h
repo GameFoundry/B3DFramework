@@ -57,7 +57,7 @@ namespace bs
 		float GetPercent() const { return mPercent; }
 
 		/** @copydoc GUIElement::setTint */
-		virtual void setTint(const Color& color) override;
+		virtual void SetTint(const Color& color) override;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

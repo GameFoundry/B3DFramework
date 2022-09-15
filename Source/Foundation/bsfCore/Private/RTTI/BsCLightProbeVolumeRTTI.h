@@ -33,7 +33,7 @@ namespace bs
 			return TID_CLightProbeVolume;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CLightProbeVolume>();
 		}

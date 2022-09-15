@@ -94,7 +94,7 @@ namespace bs
 			while (curBlock != nullptr)
 			{
 				MemBlock* nextBlock = curBlock->nextBlock;
-				deallocBlock(curBlock);
+				DeallocBlock(curBlock);
 
 				curBlock = nextBlock;
 			}
@@ -106,10 +106,10 @@ namespace bs
 			ScopedLock<Lock> lock(mLockPolicy);
 
 			if(mFreeBlock == nullptr || mFreeBlock->freeElems == 0)
-				allocBlock();
+				AllocBlock();
 
 			mTotalNumElems++;
-			UINT8* output = mFreeBlock->alloc();
+			UINT8* output = mFreeBlock->Alloc();
 
 			return output;
 		}
@@ -125,7 +125,7 @@ namespace bs
 				constexpr UINT32 blockDataSize = ActualElemSize * ElemsPerBlock;
 				if(data >= curBlock->blockData && data < (curBlock->blockData + blockDataSize))
 				{
-					curBlock->dealloc(data);
+					curBlock->Dealloc(data);
 					mTotalNumElems--;
 
 					if(curBlock->freeElems == 0 && curBlock->nextBlock)
@@ -137,7 +137,7 @@ namespace bs
 						if(freeSpace > ElemsPerBlock / 2)
 						{
 							mFreeBlock = curBlock->nextBlock;
-							deallocBlock(curBlock);
+							DeallocBlock(curBlock);
 						}
 					}
 
@@ -154,7 +154,7 @@ namespace bs
 		template<class T, class... Args>
 		T* Construct(Args &&...args)
 		{
-			T* data = (T*)alloc();
+			T* data = (T*)Alloc();
 			new ((void*)data) T(std::forward<Args>(args)...);
 
 			return data;
@@ -165,7 +165,7 @@ namespace bs
 		void Destruct(T* data)
 		{
 			data->~T();
-			free(data);
+			Free(data);
 		}
 
 	private:
@@ -265,7 +265,7 @@ namespace bs
 	template<class T>
 	T* bs_pool_alloc()
 	{
-		return (T*)GlobalPoolAlloc<T>::m.alloc();
+		return (T*)GlobalPoolAlloc<T>::m.Alloc();
 	}
 
 	/** Allocates and constructs a new object of type T using the global pool allocator. */
@@ -282,7 +282,7 @@ namespace bs
 	template<class T>
 	void bs_pool_free(T* ptr)
 	{
-		GlobalPoolAlloc<T>::m.free(ptr);
+		GlobalPoolAlloc<T>::m.Free(ptr);
 	}
 
 	/** Frees and destructs the provided object using its global pool allocator. */

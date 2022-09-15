@@ -45,9 +45,9 @@ namespace bs { namespace ct
 	SkyboxMat* SkyboxMat::GetVariation(bool color)
 	{
 		if (color)
-			return get(getVariation<true>());
+			return Get(getVariation<true>());
 
-		return get(getVariation<false>());
+		return Get(getVariation<false>());
 	}
 
 	RendererViewData::RendererViewData()
@@ -476,11 +476,11 @@ namespace bs { namespace ct
 
 			// Do distance culling
 			const Sphere& boundingSphere = cullInfos[i].bounds.getSphere();
-			const Vector3& worldRenderablePosition = boundingSphere.getCenter();
+			const Vector3& worldRenderablePosition = boundingSphere.GetCenter();
 
 			float distanceToCameraSq = worldCameraPosition.squaredDistance(worldRenderablePosition);
 			float correctedCullDistance = cullInfos[i].cullDistanceFactor * baseCullDistance;
-			float maxDistanceToCamera = correctedCullDistance + boundingSphere.getRadius();
+			float maxDistanceToCamera = correctedCullDistance + boundingSphere.GetRadius();
 
 			if (distanceToCameraSq > maxDistanceToCamera * maxDistanceToCamera)
 				continue;
@@ -530,7 +530,7 @@ namespace bs { namespace ct
 				continue;
 
 			const AABox& boundingBox = sceneInfo.renderableCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.getCenter()).length();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
 
 			bool needsVelocity = requiresVelocityWrites();
 			for (auto& renderElem : sceneInfo.renderables[i]->elements)
@@ -568,7 +568,7 @@ namespace bs { namespace ct
 				continue;
 
 			const AABox& boundingBox = sceneInfo.particleSystemCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.getCenter()).length();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
 
 			ShaderFlags shaderFlags = renderElem.material->GetShader()->GetFlags();
 
@@ -597,7 +597,7 @@ namespace bs { namespace ct
 				continue;
 
 			const AABox& boundingBox = sceneInfo.decalCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.getCenter()).length();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
 
 			// Check if viewer is inside the decal volume
 

@@ -77,7 +77,7 @@ namespace bs
 	{
 		mMaxActiveTasks = BS_THREAD_HARDWARE_CONCURRENCY;
 
-		mTaskSchedulerThread = ThreadPool::Instance().run("TaskScheduler", std::bind(&TaskScheduler::runMain, this));
+		mTaskSchedulerThread = ThreadPool::Instance().Run("TaskScheduler", std::bind(&TaskScheduler::RunMain, this));
 	}
 
 	TaskScheduler::~TaskScheduler()
@@ -91,7 +91,7 @@ namespace bs
 				SPtr<Task> task = mActiveTasks[0];
 				activeTaskLock.unlock();
 
-				task->wait();
+				task->Wait();
 				activeTaskLock.lock();
 			}
 		}
@@ -152,7 +152,7 @@ namespace bs
 		mTaskReadyCond.notify_one();
 	}
 
-	void TaskScheduler::addWorker()
+	void TaskScheduler::AddWorker()
 	{
 		Lock lock(mReadyMutex);
 
@@ -191,13 +191,13 @@ namespace bs
 
 				SPtr<Task> curTask = *iter;
 
-				if(curTask->isCanceled())
+				if(curTask->IsCanceled())
 				{
 					iter = mTaskQueue.erase(iter);
 					continue;
 				}
 
-				if(curTask->mTaskDependency != nullptr && !curTask->mTaskDependency->isComplete())
+				if(curTask->mTaskDependency != nullptr && !curTask->mTaskDependency->IsComplete())
 				{
 					++iter;
 					continue;
@@ -207,7 +207,7 @@ namespace bs
 				// ThreadPool's thread idle count aren't synced, so while the task manager thinks it's free to run new
 				// tasks, the ThreadPool might still have those threads as running, meaning their allocation will fail.
 				// So we just spin here for a bit, in that rare case.
-				if(ThreadPool::Instance().getNumAvailable() == 0)
+				if(ThreadPool::Instance().GetNumAvailable() == 0)
 				{
 					mCheckTasks = true;
 					break;
@@ -218,7 +218,7 @@ namespace bs
 				curTask->mState.store(1);
 				mActiveTasks.push_back(curTask);
 
-				ThreadPool::Instance().run(curTask->mName, std::bind(&TaskScheduler::runTask, this, curTask));
+				ThreadPool::Instance().Run(curTask->mName, std::bind(&TaskScheduler::RunTask, this, curTask));
 			}
 		}
 	}
@@ -253,18 +253,18 @@ namespace bs
 
 	void TaskScheduler::WaitUntilComplete(const Task* task)
 	{
-		if(task->isCanceled())
+		if(task->IsCanceled())
 			return;
 
 		if(task->mTaskDependency)
-			task->mTaskDependency->wait();
+			task->mTaskDependency->Wait();
 
 		// If we haven't started executing the task yet, just execute it right here
 		SPtr<Task> queuedTask;
 		{
 			Lock lock(mReadyMutex);
 
-			if(!task->hasStarted())
+			if(!task->HasStarted())
 			{
 				auto iterFind = std::find_if(mTaskQueue.begin(), mTaskQueue.end(),
 					[task](const SPtr<Task>& x) { return x.get() == task; });
@@ -280,7 +280,7 @@ namespace bs
 
 		if(queuedTask)
 		{
-			runTask(queuedTask);
+			RunTask(queuedTask);
 			return;
 		}
 
@@ -288,11 +288,11 @@ namespace bs
 		{
 			Lock lock(mCompleteMutex);
 
-			while(!task->isComplete())
+			while(!task->IsComplete())
 			{
-				addWorker();
+				AddWorker();
 				mTaskCompleteCond.wait(lock);
-				removeWorker();
+				RemoveWorker();
 			}
 		}
 	}
@@ -303,9 +303,9 @@ namespace bs
 
 		while (taskGroup->mNumRemainingTasks > 0)
 		{
-			addWorker();
+			AddWorker();
 			mTaskCompleteCond.wait(lock);
-			removeWorker();
+			RemoveWorker();
 		}
 	}
 

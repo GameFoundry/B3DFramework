@@ -56,7 +56,7 @@ namespace bs
 	template<bool Core>
 	void TMaterial<Core>::UpdateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, float t, bool updateAll)
 	{
-		paramsSet->update(mParams, t, updateAll);
+		paramsSet->Update(mParams, t, updateAll);
 	}
 	
 	template<bool Core>
@@ -71,7 +71,7 @@ namespace bs
 			bool foundMatch = true;
 			for(UINT32 j = 0; j < desc.numTags; j++)
 			{
-				if (!mTechniques[i]->hasTag(desc.tags[j]))
+				if (!mTechniques[i]->HasTag(desc.tags[j]))
 				{
 					foundMatch = false;
 					break;
@@ -82,8 +82,8 @@ namespace bs
 				continue;
 
 			const ShaderVariation& curVariation = mTechniques[i]->GetVariation();
-			const auto& curVarParams = curVariation.getParams();
-			const auto& internalVarParams = mVariation.getParams();
+			const auto& curVarParams = curVariation.GetParams();
+			const auto& internalVarParams = mVariation.GetParams();
 
 			UINT32 numMatchedSearchParams = 0;
 			UINT32 numMatchedInternalParams = 0;
@@ -211,12 +211,12 @@ namespace bs
 
 		for (UINT32 i = 0; i < (UINT32)mTechniques.size(); i++)
 		{
-			if (mTechniques[i]->hasTags())
+			if (mTechniques[i]->HasTags())
 				continue;
 
 			const ShaderVariation& curVariation = mTechniques[i]->GetVariation();
-			const auto& curVarParams = curVariation.getParams();
-			const auto& internalVarParams = mVariation.getParams();
+			const auto& curVarParams = curVariation.GetParams();
+			const auto& internalVarParams = mVariation.GetParams();
 
 			bool foundMatch = true;
 			UINT32 numMatchedParams = 0;
@@ -300,7 +300,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamStruct<Core> TMaterial<Core>::GetParamStruct(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamStruct<Core>(name, getMaterialPtr(this));
 	}
@@ -308,7 +308,7 @@ namespace bs
 	template<bool Core>
 	TMaterialColorGradientParam<Core> TMaterial<Core>::GetParamColorGradient(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialColorGradientParam<Core>(name, getMaterialPtr(this));
 	}
@@ -316,7 +316,7 @@ namespace bs
 	template <bool Core>
 	TMaterialCurveParam<float, Core> TMaterial<Core>::GetParamFloatCurve(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialCurveParam<float, Core>(name, getMaterialPtr(this));
 	}
@@ -324,7 +324,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamTexture<Core> TMaterial<Core>::GetParamTexture(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamTexture<Core>(name, getMaterialPtr(this));
 	}
@@ -332,7 +332,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamSpriteTexture<Core> TMaterial<Core>::GetParamSpriteTexture(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamSpriteTexture<Core>(name, getMaterialPtr(this));
 	}
@@ -340,7 +340,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamLoadStoreTexture<Core> TMaterial<Core>::GetParamLoadStoreTexture(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamLoadStoreTexture<Core>(name, getMaterialPtr(this));
 	}
@@ -348,7 +348,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamBuffer<Core> TMaterial<Core>::GetParamBuffer(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamBuffer<Core>(name, getMaterialPtr(this));
 	}
@@ -356,7 +356,7 @@ namespace bs
 	template<bool Core>
 	TMaterialParamSampState<Core> TMaterial<Core>::GetParamSamplerState(const String& name) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		return TMaterialParamSampState<Core>(name, getMaterialPtr(this));
 	}
@@ -364,7 +364,7 @@ namespace bs
 	template <bool Core>
 	bool TMaterial<Core>::IsAnimated(const String& name, UINT32 arrayIdx)
 	{
-		return mParams->isAnimated(name, arrayIdx);
+		return mParams->IsAnimated(name, arrayIdx);
 	}
 
 	template<bool Core>
@@ -380,7 +380,7 @@ namespace bs
 			if (mTechniques.empty())
 				return;
 
-			initDefaultParameters();
+			InitDefaultParameters();
 		}
 		else
 			mParams = nullptr;
@@ -393,7 +393,7 @@ namespace bs
 	void TMaterial<Core>::SetParamValue(const String& name, UINT8* buffer, UINT32 numElements)
 	{
 		TMaterialDataParam<T, Core> param;
-		getParam(name, param);
+		GetParam(name, param);
 
 		T* ptr = (T*)buffer;
 		for (UINT32 i = 0; i < numElements; i++)
@@ -416,65 +416,65 @@ namespace bs
 			switch (paramData.second.type)
 			{
 			case GPDT_FLOAT1:
-				setParamValue<float>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<float>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT2:
-				setParamValue<Vector2>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT3:
-				setParamValue<Vector3>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_FLOAT4:
-				setParamValue<Vector4>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X2:
-				setParamValue<Matrix2>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X3:
-				setParamValue<Matrix2x3>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix2x3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_2X4:
-				setParamValue<Matrix2x4>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix2x4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X2:
-				setParamValue<Matrix3x2>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix3x2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X3:
-				setParamValue<Matrix3>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_3X4:
-				setParamValue<Matrix3x4>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix3x4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X2:
-				setParamValue<Matrix4x2>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix4x2>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X3:
-				setParamValue<Matrix4x3>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix4x3>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_MATRIX_4X4:
-				setParamValue<Matrix4>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Matrix4>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT1:
-				setParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT2:
-				setParamValue<Vector2I>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector2I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT3:
-				setParamValue<Vector3I>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector3I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_INT4:
-				setParamValue<Vector4I>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Vector4I>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_BOOL:
-				setParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<int>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_COLOR:
-				setParamValue<Color>(paramData.first, buffer, paramData.second.arraySize);
+				SetParamValue<Color>(paramData.first, buffer, paramData.second.arraySize);
 				break;
 			case GPDT_STRUCT:
 			{
-				TMaterialParamStruct<Core> param = getParamStruct(paramData.first);
+				TMaterialParamStruct<Core> param = GetParamStruct(paramData.first);
 
 				UINT32 elementSizeBytes = paramData.second.elementSize * sizeof(UINT32);
 				UINT8* ptr = buffer;
@@ -507,7 +507,7 @@ namespace bs
 				continue;
 
 			SamplerStateType defaultSampler = mShader->GetDefaultSampler(param.second.defaultValueIdx);
-			getParamSamplerState(param.first).Set(defaultSampler);
+			GetParamSamplerState(param.first).Set(defaultSampler);
 		}
 	}
 
@@ -515,7 +515,7 @@ namespace bs
 	template <typename T>
 	void TMaterial<Core>::GetParam(const String& name, TMaterialDataParam<T, Core>& output) const
 	{
-		throwIfNotInitialized();
+		ThrowIfNotInitialized();
 
 		output = TMaterialDataParam<T, Core>(name, getMaterialPtr(this));
 	}

@@ -898,7 +898,7 @@ namespace bs
 		UINT64 layer, float max) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
-		PxTransform transform = toPxTransform(box.getCenter(), rotation);
+		PxTransform transform = toPxTransform(box.GetCenter(), rotation);
 
 		return sweep(geometry, transform, unitDir, hit, layer, max);
 	}
@@ -906,8 +906,8 @@ namespace bs
 	bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, PhysicsQueryHit& hit,
 		UINT64 layer, float max) const
 	{
-		PxSphereGeometry geometry(sphere.getRadius());
-		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
+		PxSphereGeometry geometry(sphere.GetRadius());
+		PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
 
 		return sweep(geometry, transform, unitDir, hit, layer, max);
 	}
@@ -915,8 +915,8 @@ namespace bs
 	bool PhysXScene::CapsuleCast(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir,
 		PhysicsQueryHit& hit, UINT64 layer, float max) const
 	{
-		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.GetHeight() * 0.5f);
-		PxTransform transform = toPxTransform(capsule.getCenter(), Quaternion::IDENTITY);
+		PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
+		PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
 
 		return sweep(geometry, transform, unitDir, hit, layer, max);
 	}
@@ -955,7 +955,7 @@ namespace bs
 		const Vector3& unitDir, UINT64 layer, float max) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
-		PxTransform transform = toPxTransform(box.getCenter(), rotation);
+		PxTransform transform = toPxTransform(box.GetCenter(), rotation);
 
 		return sweepAll(geometry, transform, unitDir, layer, max);
 	}
@@ -963,8 +963,8 @@ namespace bs
 	Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Vector3& unitDir,
 		UINT64 layer, float max) const
 	{
-		PxSphereGeometry geometry(sphere.getRadius());
-		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
+		PxSphereGeometry geometry(sphere.GetRadius());
+		PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
 
 		return sweepAll(geometry, transform, unitDir, layer, max);
 	}
@@ -972,8 +972,8 @@ namespace bs
 	Vector<PhysicsQueryHit> PhysXScene::CapsuleCastAll(const Capsule& capsule, const Quaternion& rotation,
 		const Vector3& unitDir, UINT64 layer, float max) const
 	{
-		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.GetHeight() * 0.5f);
-		PxTransform transform = toPxTransform(capsule.getCenter(), Quaternion::IDENTITY);
+		PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
+		PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
 
 		return sweepAll(geometry, transform, unitDir, layer, max);
 	}
@@ -1011,7 +1011,7 @@ namespace bs
 		UINT64 layer, float max) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
-		PxTransform transform = toPxTransform(box.getCenter(), rotation);
+		PxTransform transform = toPxTransform(box.GetCenter(), rotation);
 
 		return sweepAny(geometry, transform, unitDir, layer, max);
 	}
@@ -1019,8 +1019,8 @@ namespace bs
 	bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir,
 		UINT64 layer, float max) const
 	{
-		PxSphereGeometry geometry(sphere.getRadius());
-		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
+		PxSphereGeometry geometry(sphere.GetRadius());
+		PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
 
 		return sweepAny(geometry, transform, unitDir, layer, max);
 	}
@@ -1028,8 +1028,8 @@ namespace bs
 	bool PhysXScene::CapsuleCastAny(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir,
 		UINT64 layer, float max) const
 	{
-		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.GetHeight() * 0.5f);
-		PxTransform transform = toPxTransform(capsule.getCenter(), Quaternion::IDENTITY);
+		PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
+		PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
 
 		return sweepAny(geometry, transform, unitDir, layer, max);
 	}
@@ -1054,15 +1054,15 @@ namespace bs
 		UINT64 layer) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
-		PxTransform transform = toPxTransform(box.getCenter(), rotation);
+		PxTransform transform = toPxTransform(box.GetCenter(), rotation);
 
 		return overlap(geometry, transform, layer);
 	}
 
 	Vector<Collider*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, UINT64 layer) const
 	{
-		PxSphereGeometry geometry(sphere.getRadius());
-		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
+		PxSphereGeometry geometry(sphere.GetRadius());
+		PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
 
 		return overlap(geometry, transform, layer);
 	}
@@ -1070,8 +1070,8 @@ namespace bs
 	Vector<Collider*> PhysXScene::CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation,
 		UINT64 layer) const
 	{
-		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.GetHeight() * 0.5f);
-		PxTransform transform = toPxTransform(capsule.getCenter(), Quaternion::IDENTITY);
+		PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
+		PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
 
 		return overlap(geometry, transform, layer);
 	}
@@ -1095,15 +1095,15 @@ namespace bs
 	bool PhysXScene::BoxOverlapAny(const AABox& box, const Quaternion& rotation, UINT64 layer) const
 	{
 		PxBoxGeometry geometry(toPxVector(box.getHalfSize()));
-		PxTransform transform = toPxTransform(box.getCenter(), rotation);
+		PxTransform transform = toPxTransform(box.GetCenter(), rotation);
 
 		return overlapAny(geometry, transform, layer);
 	}
 
 	bool PhysXScene::SphereOverlapAny(const Sphere& sphere, UINT64 layer) const
 	{
-		PxSphereGeometry geometry(sphere.getRadius());
-		PxTransform transform = toPxTransform(sphere.getCenter(), Quaternion::IDENTITY);
+		PxSphereGeometry geometry(sphere.GetRadius());
+		PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
 
 		return overlapAny(geometry, transform, layer);
 	}
@@ -1111,8 +1111,8 @@ namespace bs
 	bool PhysXScene::CapsuleOverlapAny(const Capsule& capsule, const Quaternion& rotation,
 		UINT64 layer) const
 	{
-		PxCapsuleGeometry geometry(capsule.getRadius(), capsule.GetHeight() * 0.5f);
-		PxTransform transform = toPxTransform(capsule.getCenter(), Quaternion::IDENTITY);
+		PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
+		PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
 
 		return overlapAny(geometry, transform, layer);
 	}

@@ -43,19 +43,19 @@ namespace bs
 		UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
 		const bool transposeMatrices = ct::gCaps().conventions.matrixOrder == Conventions::MatrixOrder::ColumnMajor;
-		if (TransposePolicy<T>::transposeEnabled(transposeMatrices))
+		if (TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 		{
-			auto transposed = TransposePolicy<T>::transpose(value);
-			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
+			auto transposed = TransposePolicy<T>::Transpose(value);
+			paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &transposed, sizeBytes);
 		}
 		else
-			paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
+			paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
 		// Set unused bytes to 0
 		if (sizeBytes < elementSizeBytes)
 		{
 			UINT32 diffSize = elementSizeBytes - sizeBytes;
-			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
+			paramBlock->ZeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
 		mParent->MarkCoreDirtyInternal();
@@ -83,7 +83,7 @@ namespace bs
 		UINT32 sizeBytes = std::min(elementSizeBytes, (UINT32)sizeof(T));
 
 		T value;
-		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
+		paramBlock->Read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), &value, sizeBytes);
 
 		return value;
 	}
@@ -126,13 +126,13 @@ namespace bs
 
 		sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-		paramBlock->write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
+		paramBlock->Write((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
 
 		// Set unused bytes to 0
 		if (sizeBytes < elementSizeBytes)
 		{
 			UINT32 diffSize = elementSizeBytes - sizeBytes;
-			paramBlock->zeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
+			paramBlock->ZeroOut((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride)  * sizeof(UINT32) + sizeBytes, diffSize);
 		}
 
 		mParent->MarkCoreDirtyInternal();
@@ -165,7 +165,7 @@ namespace bs
 #endif
 		sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-		paramBlock->read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
+		paramBlock->Read((mParamDesc->cpuMemOffset + arrayIdx * mParamDesc->arrayElementStride) * sizeof(UINT32), value, sizeBytes);
 	}
 
 	template<bool Core>

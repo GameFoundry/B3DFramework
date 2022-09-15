@@ -367,7 +367,7 @@ namespace bs
 					currentConnection->next = nullptr;
 					currentConnection->prev = nullptr;
 
-					mInternalData->connect(currentConnection);
+					mInternalData->Connect(currentConnection);
 					currentConnection = prevConnection;
 				}
 

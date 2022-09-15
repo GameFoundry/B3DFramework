@@ -74,7 +74,7 @@ namespace bs
 			return;
 		}
 
-		*uuid = nativeInstance->GetNativeHandle()->GetUUID();
+		*uuid = nativeInstance->GetNativeHandle()->GetUuid();
 	}
 
 	bool ScriptGameObject::InternalGetIsDestroyed(ScriptGameObject* nativeInstance)

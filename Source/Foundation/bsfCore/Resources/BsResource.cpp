@@ -60,13 +60,13 @@ namespace bs
 			return;
 
 		Lock lock(mDependenciesMutex);
-		mDependencies.push_back(resource.getWeak());
+		mDependencies.push_back(resource.GetWeak());
 	}
 
 	void Resource::RemoveResourceDependency(const HResource& resource)
 	{
 		Lock lock(mDependenciesMutex);
-		mDependencies.erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.getWeak()),
+		mDependencies.erase(std::remove(mDependencies.begin(), mDependencies.end(), resource.GetWeak()),
 			mDependencies.end());
 	}
 

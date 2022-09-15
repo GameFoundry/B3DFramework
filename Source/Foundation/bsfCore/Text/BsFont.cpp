@@ -40,7 +40,7 @@ namespace bs
 			for (auto& texture : (*iter)->texturePages)
 			{
 				if (texture != nullptr)
-					addResourceDependency(texture);
+					AddResourceDependency(texture);
 			}
 		}
 
@@ -96,7 +96,7 @@ namespace bs
 			for (auto& texture : fontDataEntry.second->texturePages)
 			{
 				if (texture.IsLoaded())
-					dependencies.push_back(texture.get());
+					dependencies.push_back(texture.Get());
 			}
 		}
 	}
@@ -112,7 +112,7 @@ namespace bs
 	{
 		SPtr<Font> newFont = bs_core_ptr<Font>(new (bs_alloc<Font>()) Font());
 		newFont->SetThisPtrInternal(newFont);
-		newFont->initialize(fontData);
+		newFont->Initialize(fontData);
 
 		return newFont;
 	}

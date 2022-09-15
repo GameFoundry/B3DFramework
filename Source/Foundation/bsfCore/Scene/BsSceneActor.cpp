@@ -31,15 +31,15 @@ namespace bs
 		UINT32 curHash = so.GetTransformHash();
 		if (curHash != mHash || force)
 		{
-			setTransform(so.getTransform());
+			SetTransform(so.GetTransform());
 
 			mHash = curHash;
 		}
 
 		if (so.GetActive() != mActive || force)
-			setActive(so.getActive());
+			SetActive(so.GetActive());
 
 		if (so.GetMobility() != mMobility || force)
-			setMobility(so.getMobility());
+			SetMobility(so.GetMobility());
 	}
 }

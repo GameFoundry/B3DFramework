@@ -34,9 +34,9 @@ namespace bs
 	Application::~Application()
 	{
 		// Cleanup any new objects queued for destruction by unloaded scripts
-		CoreObjectManager::Instance().syncToCore();
-		gCoreThread().update();
-		gCoreThread().submitAll(true);
+		CoreObjectManager::Instance().SyncToCore();
+		gCoreThread().Update();
+		gCoreThread().SubmitAll(true);
 
 		Cursor::ShutDown();
 
@@ -49,7 +49,7 @@ namespace bs
 
 	void Application::OnStartUp()
 	{
-		CoreApplication::onStartUp();
+		CoreApplication::OnStartUp();
 
 		PlainTextImporter* importer = bs_new<PlainTextImporter>();
 		Importer::Instance().RegisterAssetImporterInternal(importer);
@@ -63,23 +63,23 @@ namespace bs
 		ShortcutManager::StartUp();
 
 		Cursor::StartUp();
-		Cursor::Instance().setCursor(CursorType::Arrow);
-		Platform::setIcon(BuiltinResources::Instance().getFrameworkIcon());
+		Cursor::Instance().SetCursor(CursorType::Arrow);
+		Platform::SetIcon(BuiltinResources::Instance().GetFrameworkIcon());
 
-		SceneManager::Instance().setMainRenderTarget(getPrimaryWindow());
+		SceneManager::Instance().SetMainRenderTarget(GetPrimaryWindow());
 		DebugDraw::StartUp();
 
-		startUpScriptManager();
+		StartUpScriptManager();
 	}
 
 	void Application::OnShutDown()
 	{
 		// Need to clear all objects before I unload any plugins, as they
 		// could have allocated parts or all of those objects.
-		SceneManager::Instance().clearScene(true);
+		SceneManager::Instance().ClearScene(true);
 
 		// Resources too (Prefabs especially, since they hold the same data as a scene)
-		Resources::Instance().unloadAll();
+		Resources::Instance().UnloadAll();
 
 		// Shut down before script manager as scripts could have registered shortcut callbacks
 		ShortcutManager::ShutDown();
@@ -87,31 +87,31 @@ namespace bs
 		ScriptManager::ShutDown();
 		DebugDraw::ShutDown();
 
-		CoreApplication::onShutDown();
+		CoreApplication::OnShutDown();
 	}
 
 	void Application::PreUpdate()
 	{
-		CoreApplication::preUpdate();
+		CoreApplication::PreUpdate();
 
 		VirtualInput::Instance().UpdateInternal();
 
 		if(mProfilerOverlay)
-			mProfilerOverlay->update();
+			mProfilerOverlay->Update();
 	}
 
 	void Application::PostUpdate()
 	{
-		CoreApplication::postUpdate();
-		updateScriptManager();
+		CoreApplication::PostUpdate();
+		UpdateScriptManager();
 
-		PROFILE_CALL(GUIManager::Instance().update(), "GUI");
+		PROFILE_CALL(GUIManager::Instance().Update(), "GUI");
 		DebugDraw::Instance().UpdateInternal();
 	}
 
 	void Application::ShowProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)
 	{
-		const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().getMainCamera();
+		const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().GetMainCamera();
 		if(!overlayCamera)
 			return;
 
@@ -120,13 +120,13 @@ namespace bs
 		else
 			mProfilerOverlay->SetTarget(overlayCamera);
 
-		mProfilerOverlay->show(type);
+		mProfilerOverlay->Show(type);
 	}
 
 	void Application::HideProfilerOverlay()
 	{
 		if(mProfilerOverlay)
-			mProfilerOverlay->hide();
+			mProfilerOverlay->Hide();
 
 		mProfilerOverlay = nullptr;
 	}
@@ -143,7 +143,7 @@ namespace bs
 
 	void Application::UpdateScriptManager()
 	{
-		ScriptManager::Instance().update();
+		ScriptManager::Instance().Update();
 	}
 
 	START_UP_DESC Application::BuildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen)

@@ -111,7 +111,7 @@ namespace bs
 	}
 #endif
 
-	Path Paths::findPath(const Path& path)
+	Path Paths::FindPath(const Path& path)
 	{
 		// Note: These paths should be searched for during start-up and cached
 
@@ -119,12 +119,12 @@ namespace bs
 		Path output = path;
 		if (FileSystem::Exists(path))
 		{
-			output.makeAbsolute(FileSystem::GetWorkingDirectoryPath());
+			output.MakeAbsolute(FileSystem::GetWorkingDirectoryPath());
 			return output;
 		}
 
 		// Then, check the build directory itself, in case we're running directly from it (during development)
-		output.makeAbsolute(BUILD_APP_ROOT);
+		output.MakeAbsolute(BUILD_APP_ROOT);
 		if (FileSystem::Exists(output))
 			return output;
 

@@ -45,7 +45,7 @@ namespace bs
 			return TID_MeshImportOptions;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<MeshImportOptions>();
 		}
@@ -70,7 +70,7 @@ namespace bs
 			return TID_ImportedAnimationEvents;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ImportedAnimationEvents>();
 		}
@@ -97,7 +97,7 @@ namespace bs
 			return TID_AnimationSplitInfo;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<AnimationSplitInfo>();
 		}

@@ -109,7 +109,7 @@ namespace bs
 			if (gApplication().isEditor())
 				loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-			const HResource loadedResource = gResources().loadFromUUID(thisPtr->GetHandle().getUUID(), false, loadFlags);
+			const HResource loadedResource = gResources().loadFromUUID(thisPtr->GetHandle().GetUuid(), false, loadFlags);
 			thisPtr->mScriptResource = ScriptResourceManager::Instance().getScriptResource(loadedResource, true);
 		}
 
@@ -121,7 +121,7 @@ namespace bs
 
 	void ScriptRRefBase::InternalGetUuid(ScriptRRefBase* thisPtr, UUID* uuid)
 	{
-		*uuid = thisPtr->GetHandle().getUUID();
+		*uuid = thisPtr->GetHandle().GetUuid();
 	}
 
 	MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* thisPtr, MonoReflectionType* type)

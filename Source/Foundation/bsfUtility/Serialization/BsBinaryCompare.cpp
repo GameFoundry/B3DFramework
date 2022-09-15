@@ -39,9 +39,9 @@ namespace bs
 
 	bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 	{
-		RTTITypeBase* rtti = a.getRTTI();
+		RTTITypeBase* rtti = a.GetRtti();
 
-		if(rtti != b.getRTTI())
+		if(rtti != b.GetRtti())
 			return false;
 
 		struct RTTIPair
@@ -110,7 +110,7 @@ namespace bs
 								if (childRtti != nullptr)
 								{
 									ICompare& handler = childRtti->GetCompareHandler();
-									if (!handler.run(*childObjectA, *childObjectB))
+									if (!handler.Run(*childObjectA, *childObjectB))
 										return false;
 								}
 								else
@@ -130,13 +130,13 @@ namespace bs
 							IReflectable& childObjectB = curField->GetArrayValue(rttiInstanceB, &b, arrIdx);
 
 							RTTITypeBase* childRtti = nullptr;
-							if (childObjectA.getRTTI() == childObjectB.getRTTI())
-								childRtti = childObjectA.getRTTI();
+							if (childObjectA.GetRtti() == childObjectB.GetRtti())
+								childRtti = childObjectA.GetRtti();
 
 							if (childRtti != nullptr)
 							{
 								ICompare& handler = childRtti->GetCompareHandler();
-								if (!handler.run(childObjectA, childObjectB))
+								if (!handler.Run(childObjectA, childObjectB))
 									return false;
 							}
 							else
@@ -171,8 +171,8 @@ namespace bs
 							Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 							Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-							curField->arrayElemToStream(rttiInstanceA, &a, arrIdx, streamA);
-							curField->arrayElemToStream(rttiInstanceB, &b, arrIdx, streamB);
+							curField->ArrayElemToStream(rttiInstanceA, &a, arrIdx, streamA);
+							curField->ArrayElemToStream(rttiInstanceB, &b, arrIdx, streamB);
 
 							if(memcmp(dataA, dataB, typeSizeA) != 0)
 								return false;
@@ -209,7 +209,7 @@ namespace bs
 							if (childRtti != nullptr)
 							{
 								ICompare& handler = childRtti->GetCompareHandler();
-								if (!handler.run(*childObjectA, *childObjectB))
+								if (!handler.Run(*childObjectA, *childObjectB))
 									return false;
 							}
 							else
@@ -226,13 +226,13 @@ namespace bs
 						IReflectable& childObjectB = curField->GetValue(rttiInstanceB, &b);
 
 						RTTITypeBase* childRtti = nullptr;
-						if (childObjectA.getRTTI() == childObjectB.getRTTI())
-							childRtti = childObjectA.getRTTI();
+						if (childObjectA.GetRtti() == childObjectB.GetRtti())
+							childRtti = childObjectA.GetRtti();
 
 						if (childRtti != nullptr)
 						{
 							ICompare& handler = childRtti->GetCompareHandler();
-							if(!handler.run(childObjectA, childObjectB))
+							if(!handler.Run(childObjectA, childObjectB))
 								return false;
 						}
 						else
@@ -264,8 +264,8 @@ namespace bs
 						Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 						Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
 
-						curField->toStream(rttiInstanceA, &a, streamA);
-						curField->toStream(rttiInstanceB, &b, streamB);
+						curField->ToStream(rttiInstanceA, &a, streamA);
+						curField->ToStream(rttiInstanceB, &b, streamB);
 
 						if (memcmp(dataA, dataB, typeSizeA) != 0)
 							return false;
@@ -286,8 +286,8 @@ namespace bs
 						auto dataA = bs_managed_stack_alloc(dataBlockSizeA);
 						auto dataB = bs_managed_stack_alloc(dataBlockSizeB);
 
-						blockStreamA->read(dataA, dataBlockSizeA);
-						blockStreamB->read(dataB, dataBlockSizeB);
+						blockStreamA->Read(dataA, dataBlockSizeA);
+						blockStreamB->Read(dataB, dataBlockSizeB);
 
 						if(memcmp(dataA, dataB, dataBlockSizeA) != 0)
 							return false;

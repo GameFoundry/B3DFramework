@@ -111,7 +111,7 @@ namespace bs
 		template <class T>
 		ResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(load(filePath, loadFlags));
+			return static_resource_cast<T>(Load(filePath, loadFlags));
 		}
 
 		/**
@@ -125,7 +125,7 @@ namespace bs
 		template <class T>
 		ResourceHandle<T> Load(const WeakResourceHandle<T>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(load((const WeakResourceHandle<Resource>&)handle, loadFlags));
+			return static_resource_cast<T>(Load((const WeakResourceHandle<Resource>&)handle, loadFlags));
 		}
 
 		/**
@@ -145,7 +145,7 @@ namespace bs
 		template <class T>
 		ResourceHandle<T> LoadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(loadAsync(filePath, loadFlags));
+			return static_resource_cast<T>(LoadAsync(filePath, loadFlags));
 		}
 
 		/**

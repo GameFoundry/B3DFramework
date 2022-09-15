@@ -98,7 +98,7 @@ namespace bs
 
 	void ScriptResource::InternalGetUuid(ScriptResourceBase* nativeInstance, UUID* uuid)
 	{
-		*uuid = nativeInstance->GetGenericHandle().getUUID();
+		*uuid = nativeInstance->GetGenericHandle().GetUuid();
 	}
 
 	void ScriptResource::InternalRelease(ScriptResourceBase* nativeInstance)

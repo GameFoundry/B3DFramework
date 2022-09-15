@@ -37,7 +37,7 @@ namespace bs
 			return TID_AudioClipImportOptions;
 		}
 
-		/** @copydoc RTTIType::newRTTIObject */
+		/** @copydoc RTTIType::NewRttiObject */
 		SPtr<IReflectable> NewRttiObject() 
 		{
 			return bs_shared_ptr_new<AudioClipImportOptions>();

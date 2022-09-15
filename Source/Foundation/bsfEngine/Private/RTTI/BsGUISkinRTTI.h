@@ -77,7 +77,7 @@ namespace bs
 	public:
 		GUISkinRTTI()
 		{
-			addReflectableArrayField("mStyles", 0, &GUISkinRTTI::GetStyle, &GUISkinRTTI::GetStyleArraySize,
+			AddReflectableArrayField("mStyles", 0, &GUISkinRTTI::GetStyle, &GUISkinRTTI::GetStyleArraySize,
 				&GUISkinRTTI::SetStyle, &GUISkinRTTI::SetStyleArraySize);
 		}
 
@@ -100,7 +100,7 @@ namespace bs
 			return TID_GUISkin;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return GUISkin::CreatePtrInternal();
 		}

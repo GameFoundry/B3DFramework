@@ -69,7 +69,7 @@ namespace bs
 		ResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr,
 			const UUID& UUID = UUID::EMPTY)
 		{
-			return static_resource_cast<T>(import(inputFilePath, importOptions, UUID));
+			return static_resource_cast<T>(Import(inputFilePath, importOptions, UUID));
 		}
 
 		/**

@@ -79,6 +79,6 @@ namespace bs
 
 	void sendMessage(MessageId message)
 	{
-		MessageHandler::Instance().send(message);
+		MessageHandler::Instance().Send(message);
 	}
 }

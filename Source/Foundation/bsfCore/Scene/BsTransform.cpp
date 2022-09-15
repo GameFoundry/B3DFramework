@@ -23,9 +23,9 @@ namespace bs
 
 	void Transform::MakeLocal(const Transform& parent)
 	{
-		setWorldPosition(mPosition, parent);
-		setWorldRotation(mRotation, parent);
-		setWorldScale(mScale, parent);
+		SetWorldPosition(mPosition, parent);
+		SetWorldRotation(mRotation, parent);
+		SetWorldScale(mScale, parent);
 	}
 
 	void Transform::MakeWorld(const Transform& parent)
@@ -68,7 +68,7 @@ namespace bs
 	void Transform::SetWorldScale(const Vector3& scale, const Transform& parent)
 	{
 		Matrix4 parentMatrix = parent.GetMatrix();
-		Matrix3 rotScale = parentMatrix.get3x3();
+		Matrix3 rotScale = parentMatrix.Get3x3();
 		rotScale = rotScale.Inverse();
 
 		Matrix3 scaleMat = Matrix3(Quaternion::IDENTITY, scale);
@@ -76,7 +76,7 @@ namespace bs
 
 		Quaternion rotation;
 		Vector3 localScale;
-		scaleMat.decomposition(rotation, localScale);
+		scaleMat.Decomposition(rotation, localScale);
 
 		mScale = localScale;
 	}
@@ -86,7 +86,7 @@ namespace bs
 		Vector3 forward = location - GetPosition();
 		
 		Quaternion rotation = GetRotation();
-		rotation.lookRotation(forward, up);
+		rotation.LookRotation(forward, up);
 		SetRotation(rotation);
 	}
 
@@ -106,8 +106,8 @@ namespace bs
 	void Transform::Rotate(const Vector3& axis, const Radian& angle)
 	{
 		Quaternion q;
-		q.fromAxisAngle(axis, angle);
-		rotate(q);
+		q.FromAxisAngle(axis, angle);
+		Rotate(q);
 	}
 
 	void Transform::Rotate(const Quaternion& q)
@@ -116,7 +116,7 @@ namespace bs
 
 		// Normalize the quat to avoid cumulative problems with precision
 		Quaternion qnorm = q;
-		qnorm.normalize();
+		qnorm.Normalize();
 		SetRotation(qnorm * mRotation);
 	}
 
@@ -124,26 +124,26 @@ namespace bs
 	{
 		// Rotate around local Z axis
 		Vector3 zAxis = mRotation.Rotate(Vector3::UNIT_Z);
-		rotate(zAxis, angle);
+		Rotate(zAxis, angle);
 	}
 
 	void Transform::Yaw(const Radian& angle)
 	{
 		Vector3 yAxis = mRotation.Rotate(Vector3::UNIT_Y);
-		rotate(yAxis, angle);
+		Rotate(yAxis, angle);
 	}
 
 	void Transform::Pitch(const Radian& angle)
 	{
 		// Rotate around local X axis
 		Vector3 xAxis = mRotation.Rotate(Vector3::UNIT_X);
-		rotate(xAxis, angle);
+		Rotate(xAxis, angle);
 	}
 
 	void Transform::SetForward(const Vector3& forwardDir)
 	{
 		Quaternion currentRotation = GetRotation();
-		currentRotation.lookRotation(forwardDir);
+		currentRotation.LookRotation(forwardDir);
 		SetRotation(currentRotation);
 	}
 

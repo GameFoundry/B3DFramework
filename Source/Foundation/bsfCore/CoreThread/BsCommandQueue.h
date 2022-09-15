@@ -298,12 +298,12 @@ namespace bs
 		AsyncOp QueueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete = false, UINT32 _callbackId = 0)
 		{
 #if BS_DEBUG_MODE
-			if(!this->isValidThread(getThreadId()))
-				throwInvalidThreadException("Command queue accessed outside of its creation thread.");
+			if(!this->IsValidThread(GetThreadId()))
+				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
 
-			typename SyncPolicy::LockGuard lockGuard = this->lock();
-			AsyncOp asyncOp = CommandQueueBase::queueReturn(commandCallback, _notifyWhenComplete, _callbackId);
+			typename SyncPolicy::LockGuard lockGuard = this->Lock();
+			AsyncOp asyncOp = CommandQueueBase::QueueReturn(commandCallback, _notifyWhenComplete, _callbackId);
 
 			return asyncOp;
 		}
@@ -312,24 +312,24 @@ namespace bs
 		void Queue(std::function<void()> commandCallback, bool _notifyWhenComplete = false, UINT32 _callbackId = 0)
 		{
 #if BS_DEBUG_MODE
-			if(!this->isValidThread(getThreadId()))
-				throwInvalidThreadException("Command queue accessed outside of its creation thread.");
+			if(!this->IsValidThread(GetThreadId()))
+				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
 
-			typename SyncPolicy::LockGuard lockGuard = this->lock();
-			CommandQueueBase::queue(commandCallback, _notifyWhenComplete, _callbackId);
+			typename SyncPolicy::LockGuard lockGuard = this->Lock();
+			CommandQueueBase::Queue(commandCallback, _notifyWhenComplete, _callbackId);
 		}
 
 		/** @copydoc CommandQueueBase::flush */
 		bs::Queue<QueuedCommand>* Flush()
 		{
 #if BS_DEBUG_MODE
-			if(!this->isValidThread(getThreadId()))
-				throwInvalidThreadException("Command queue accessed outside of its creation thread.");
+			if(!this->IsValidThread(GetThreadId()))
+				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
 
-			typename SyncPolicy::LockGuard lockGuard = this->lock();
-			Queue<QueuedCommand>* commands = CommandQueueBase::flush();
+			typename SyncPolicy::LockGuard lockGuard = this->Lock();
+			bs::Queue<QueuedCommand>* commands = CommandQueueBase::Flush();
 
 			return commands;
 		}
@@ -338,24 +338,24 @@ namespace bs
 		void CancelAll()
 		{
 #if BS_DEBUG_MODE
-			if(!this->isValidThread(getThreadId()))
-				throwInvalidThreadException("Command queue accessed outside of its creation thread.");
+			if(!this->IsValidThread(GetThreadId()))
+				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
 
-			typename SyncPolicy::LockGuard lockGuard = this->lock();
-			CommandQueueBase::cancelAll();
+			typename SyncPolicy::LockGuard lockGuard = this->Lock();
+			CommandQueueBase::CancelAll();
 		}
 
 		/** @copydoc CommandQueueBase::isEmpty */
 		bool IsEmpty()
 		{
 #if BS_DEBUG_MODE
-			if(!this->isValidThread(getThreadId()))
-				throwInvalidThreadException("Command queue accessed outside of its creation thread.");
+			if(!this->IsValidThread(GetThreadId()))
+				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
 
-			typename SyncPolicy::LockGuard lockGuard = this->lock();
-			bool empty = CommandQueueBase::isEmpty();
+			typename SyncPolicy::LockGuard lockGuard = this->Lock();
+			bool empty = CommandQueueBase::IsEmpty();
 
 			return empty;
 		}

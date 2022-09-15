@@ -41,7 +41,7 @@ namespace bs
 		ManagedResourceMetaDataRTTI()
 		{
 			AddPlainField("mTypeNamespace", 0, &ManagedResourceMetaDataRTTI::GetNamespace, &ManagedResourceMetaDataRTTI::SetNamespace);
-			addPlainField("mTypeName", 1, &ManagedResourceMetaDataRTTI::GetTypename, &ManagedResourceMetaDataRTTI::SetTypename);
+			AddPlainField("mTypeName", 1, &ManagedResourceMetaDataRTTI::GetTypename, &ManagedResourceMetaDataRTTI::SetTypename);
 		}
 
 		const String& GetRttiName() 

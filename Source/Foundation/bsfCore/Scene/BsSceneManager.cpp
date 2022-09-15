@@ -64,15 +64,15 @@ namespace bs
 		{
 			HSceneObject child = mMainScene->mRoot->GetChild(curIdx);
 
-			if (forceAll || !child->hasFlag(SOF_Persistent))
+			if (forceAll || !child->HasFlag(SOF_Persistent))
 				child->Destroy();
 			else
 				curIdx++;
 		}
 
-		GameObjectManager::Instance().destroyQueuedObjects();
+		GameObjectManager::Instance().DestroyQueuedObjects();
 
-		HSceneObject newRoot = SceneObject::createInternal("SceneRoot");
+		HSceneObject newRoot = SceneObject::CreateInternal("SceneRoot");
 		SetRootNodeInternal(newRoot);
 	}
 
@@ -105,7 +105,7 @@ namespace bs
 			{
 				HSceneObject child = oldRoot->GetChild(i);
 
-				if (child->hasFlag(SOF_Persistent))
+				if (child->HasFlag(SOF_Persistent))
 					toRemove.push_back(child);
 			}
 
@@ -169,7 +169,7 @@ namespace bs
 		});
 
 		SPtr<Viewport> viewport = camera->GetViewport();
-		if (camera->isMain())
+		if (camera->IsMain())
 		{
 			if (iterFind == mMainCameras.end())
 				mMainCameras.push_back(mCameras[camera.get()]);
@@ -208,7 +208,7 @@ namespace bs
 		mMainRTResizedConn.Disconnect();
 
 		if (rt != nullptr)
-			mMainRTResizedConn = rt->onResized.Connect(std::bind(&SceneManager::onMainRenderTargetResized, this));
+			mMainRTResizedConn = rt->onResized.Connect(std::bind(&SceneManager::OnMainRenderTargetResized, this));
 
 		mMainRT = rt;
 
@@ -244,7 +244,7 @@ namespace bs
 		mComponentState = state;
 
 		// Make sure the per-state lists are up-to-date
-		processStateChanges();
+		ProcessStateChanges();
 
 		ScopeToggle toggle(mDisableStateChange);
 
@@ -258,13 +258,13 @@ namespace bs
 				{
 					if (entry->SceneObject()->GetActive())
 					{
-						entry->onDisabled();
-						entry->onEnabled();
+						entry->OnDisabled();
+						entry->OnEnabled();
 					}
 				}
 
 				// Process any state changes queued by the component callbacks
-				processStateChanges();
+				ProcessStateChanges();
 
 				// Trigger enable on all components that don't have AlwaysRun flag (at this point those will be all
 				// inactive components that have active scene object parents)
@@ -272,7 +272,7 @@ namespace bs
 				{
 					if (entry->SceneObject()->GetActive())
 					{
-						entry->onEnabled();
+						entry->OnEnabled();
 
 						if(state == ComponentState::Running)
 							mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
@@ -280,16 +280,16 @@ namespace bs
 				}
 
 				// Process any state changes queued by the component callbacks
-				processStateChanges();
+				ProcessStateChanges();
 
 				// Initialize and enable uninitialized components
 				for(auto& entry : mUninitializedComponents)
 				{
-					entry->onInitialized();
+					entry->OnInitialized();
 
 					if (entry->SceneObject()->GetActive())
 					{
-						entry->onEnabled();
+						entry->OnEnabled();
 						mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
 					}
 					else
@@ -297,7 +297,7 @@ namespace bs
 				}
 
 				// Process any state changes queued by the component callbacks
-				processStateChanges();
+				ProcessStateChanges();
 			}
 		}
 
@@ -309,12 +309,12 @@ namespace bs
 			{
 				for (const auto& component : mActiveComponents)
 				{
-					const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+					const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 
-					component->onDisabled();
+					component->OnDisabled();
 
 					if(alwaysRun)
-						component->onEnabled();
+						component->OnEnabled();
 				}
 			}
 
@@ -324,12 +324,12 @@ namespace bs
 				// Note: Purposely not a reference since the list changes in the add/remove methods below
 				const HComponent component = mActiveComponents[i];
 
-				const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+				const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 				if (alwaysRun)
 					continue;
 
-				removeFromStateList(component);
-				addToStateList(component, InactiveList);
+				RemoveFromStateList(component);
+				AddToStateList(component, InactiveList);
 
 				i--; // Keep the same index next iteration to process the component we just swapped
 			}
@@ -345,15 +345,15 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Created);
 		ScopeToggle toggle(mDisableStateChange);
 		
-		component->onCreated();
+		component->OnCreated();
 		
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
-			component->onInitialized();
+			component->OnInitialized();
 
 			if (parentActive)
-				component->onEnabled();
+				component->OnEnabled();
 		}
 	}
 
@@ -366,11 +366,11 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Activated);
 		ScopeToggle toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
-				component->onEnabled();
+				component->OnEnabled();
 		}
 	}
 
@@ -383,11 +383,11 @@ namespace bs
 		mStateChanges.emplace_back(component, ComponentStateEventType::Deactivated);
 		ScopeToggle toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		if(alwaysRun || mComponentState != ComponentState::Stopped)
 		{
 			if (triggerEvent)
-				component->onDisabled();
+				component->OnDisabled();
 		}
 	}
 
@@ -405,14 +405,14 @@ namespace bs
 
 		ScopeToggle toggle(mDisableStateChange);
 
-		const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 		const bool isEnabled = component->SceneObject()->GetActive() && (alwaysRun ||
 			mComponentState != ComponentState::Stopped);
 
 		if (isEnabled)
-			component->onDisabled();
+			component->OnDisabled();
 		
-		component->onDestroyed();
+		component->OnDestroyed();
 
 		if(immediate)
 		{
@@ -421,10 +421,10 @@ namespace bs
 
 			UINT32 existingListType;
 			UINT32 existingIdx;
-			decodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
+			DecodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
 
 			if(existingListType != 0)
-				removeFromStateList(component);
+				RemoveFromStateList(component);
 		}
 	}
 
@@ -438,14 +438,14 @@ namespace bs
 		const auto idx = (UINT32)list.size();
 		list.push_back(component);
 
-		component->SetSceneManagerId(encodeComponentId(idx, listType));
+		component->SetSceneManagerId(EncodeComponentId(idx, listType));
 	}
 
 	void SceneManager::RemoveFromStateList(const HComponent& component)
 	{
 		UINT32 listType;
 		UINT32 idx;
-		decodeComponentId(component->GetSceneManagerId(), idx, listType);
+		DecodeComponentId(component->GetSceneManagerId(), idx, listType);
 
 		if(listType == 0)
 			return;
@@ -453,14 +453,14 @@ namespace bs
 		Vector<HComponent>& list = *mComponentsPerState[listType - 1];
 
 		UINT32 lastIdx;
-		decodeComponentId(list.back()->GetSceneManagerId(), lastIdx, listType);
+		DecodeComponentId(list.back()->GetSceneManagerId(), lastIdx, listType);
 
 		assert(list[idx] == component);
 
 		if (idx != lastIdx)
 		{
 			std::swap(list[idx], list[lastIdx]);
-			list[idx]->SetSceneManagerId(encodeComponentId(idx, listType));
+			list[idx]->SetSceneManagerId(EncodeComponentId(idx, listType));
 		}
 
 		list.erase(list.end() - 1);
@@ -473,14 +473,14 @@ namespace bs
 		for(auto& entry : mStateChanges)
 		{
 			const HComponent& component = entry.obj;
-			if(component.isDestroyed(false))
+			if(component.IsDestroyed(false))
 				continue;
 
 			UINT32 existingListType;
 			UINT32 existingIdx;
-			decodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
+			DecodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
 
-			const bool alwaysRun = component->hasFlag(ComponentFlag::AlwaysRun);
+			const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 			const bool isActive = component->SO()->GetActive();
 
 			UINT32 listType = 0;
@@ -509,9 +509,9 @@ namespace bs
 				continue;
 
 			if(existingListType != 0)
-				removeFromStateList(component);
+				RemoveFromStateList(component);
 
-			addToStateList(component, listType);
+			AddToStateList(component, listType);
 		}
 
 		mStateChanges.clear();
@@ -538,25 +538,25 @@ namespace bs
 
 	void SceneManager::UpdateInternal()
 	{
-		processStateChanges();
+		ProcessStateChanges();
 
 		// Note: Eventually perform updates based on component types and/or on component priority. Right now we just
 		// iterate in an undefined order, but it wouldn't be hard to change it.
 
 		ScopeToggle toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
-			entry->update();
+			entry->Update();
 
-		GameObjectManager::Instance().destroyQueuedObjects();
+		GameObjectManager::Instance().DestroyQueuedObjects();
 	}
 
 	void SceneManager::FixedUpdateInternal()
 	{
-		processStateChanges();
+		ProcessStateChanges();
 
 		ScopeToggle toggle(mDisableStateChange);
 		for (auto& entry : mActiveComponents)
-			entry->fixedUpdate();
+			entry->FixedUpdate();
 	}
 
 	void SceneManager::RegisterNewSo(const HSceneObject& node)

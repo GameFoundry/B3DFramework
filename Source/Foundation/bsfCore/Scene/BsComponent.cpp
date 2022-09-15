@@ -14,7 +14,7 @@ namespace bs
 
 	bool Component::TypeEquals(const Component& other)
 	{
-		return getRTTI()->GetRttiId() == other.getRTTI()->GetRttiId();
+		return GetRtti()->GetRttiId() == other.GetRtti()->GetRttiId();
 	}
 
 	bool Component::CalculateBounds(Bounds& bounds)
@@ -27,15 +27,15 @@ namespace bs
 
 	void Component::Destroy(bool immediate)
 	{
-		SO()->destroyComponent(this, immediate);
+		SO()->DestroyComponent(this, immediate);
 	}
 
 	void Component::DestroyInternal(GameObjectHandleBase& handle, bool immediate)
 	{
 		if (immediate)
-			GameObjectManager::Instance().unregisterObject(handle);
+			GameObjectManager::Instance().UnregisterObject(handle);
 		else
-			GameObjectManager::Instance().queueForDestroy(handle);
+			GameObjectManager::Instance().QueueForDestroy(handle);
 	}
 
 	RTTITypeBase* Component::GetRttiStatic()

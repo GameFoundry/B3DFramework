@@ -38,7 +38,7 @@ namespace bs
 	void findResourceDependenciesInternal(IReflectable& obj, FrameAlloc& alloc, bool recursive,
 		Map<UUID, ResourceDependency>& dependencies)
 	{
-		RTTITypeBase* rtti = obj.getRTTI();
+		RTTITypeBase* rtti = obj.GetRtti();
 		do {
 			RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
 			rttiInstance->OnSerializationStarted(&obj, nullptr);
@@ -62,9 +62,9 @@ namespace bs
 							for (UINT32 j = 0; j < numElements; j++)
 							{
 								HResource resource = (HResource&)reflectableField->GetArrayValue(rttiInstance, &obj, j);
-								if (!resource.getUUID().empty())
+								if (!resource.GetUuid().Empty())
 								{
-									ResourceDependency& dependency = dependencies[resource.getUUID()];
+									ResourceDependency& dependency = dependencies[resource.GetUuid()];
 									dependency.resource = resource;
 									dependency.numReferences++;
 								}
@@ -73,9 +73,9 @@ namespace bs
 						else
 						{
 							HResource resource = (HResource&)reflectableField->GetValue(rttiInstance, &obj);
-							if (!resource.getUUID().empty())
+							if (!resource.GetUuid().Empty())
 							{
-								ResourceDependency& dependency = dependencies[resource.getUUID()];
+								ResourceDependency& dependency = dependencies[resource.GetUuid()];
 								dependency.resource = resource;
 								dependency.numReferences++;
 							}
@@ -135,8 +135,8 @@ namespace bs
 				}
 			}
 
-			rttiInstance->onSerializationEnded(&obj, nullptr);
-			alloc.destruct(rttiInstance);
+			rttiInstance->OnSerializationEnded(&obj, nullptr);
+			alloc.Destruct(rttiInstance);
 
 			rtti = rtti->GetBaseClass();
 		} while(rtti != nullptr);
@@ -144,12 +144,12 @@ namespace bs
 
 	Vector<ResourceDependency> Utility::FindResourceDependencies(IReflectable& obj, bool recursive)
 	{
-		gFrameAlloc().markFrame();
+		gFrameAlloc().MarkFrame();
 
 		Map<UUID, ResourceDependency> dependencies;
 		findResourceDependenciesInternal(obj, gFrameAlloc(), recursive, dependencies);
 
-		gFrameAlloc().clear();
+		gFrameAlloc().Clear();
 
 		Vector<ResourceDependency> dependencyList(dependencies.size());
 		UINT32 i = 0;
@@ -217,7 +217,7 @@ namespace bs
 			return TID_CoreSerializationContext;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			BS_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
 			return nullptr;

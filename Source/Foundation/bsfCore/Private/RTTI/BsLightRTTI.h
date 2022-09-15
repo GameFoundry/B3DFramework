@@ -54,7 +54,7 @@ namespace bs
 			return TID_Light;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() 
 		{
 			return Light::CreateEmpty();
 		}

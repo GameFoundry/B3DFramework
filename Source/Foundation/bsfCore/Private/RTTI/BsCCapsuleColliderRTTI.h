@@ -34,7 +34,7 @@ namespace bs
 			return TID_CCapsuleCollider;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return SceneObject::CreateEmptyComponent<CCapsuleCollider>();
 		}

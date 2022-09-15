@@ -314,7 +314,7 @@ namespace bs
 
 	void Platform::Sleep(UINT32 duration)
 	{
-		Sleep((DWORD)duration);
+		::Sleep((DWORD)duration);
 	}
 
 	void Win32Platform::RegisterDropTarget(DropTarget* target)

@@ -47,7 +47,7 @@ namespace bs
 			return TID_Decal;
 		}
 
-		SPtr<IReflectable> newRTTIObject() override
+		SPtr<IReflectable> NewRttiObject() 
 		{
 			return Decal::CreateEmpty();
 		}

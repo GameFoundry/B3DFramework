@@ -24,7 +24,7 @@ namespace bs
 
 		for (auto& suite : mSuites)
 		{
-			suite->run(output);
+			suite->Run(output);
 		}
 
 		ShutDown();

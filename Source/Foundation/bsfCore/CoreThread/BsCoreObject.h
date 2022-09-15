@@ -108,7 +108,7 @@ namespace bs
 		template<class T, class MemAlloc>
 		static void DeleteInternal(CoreObject* obj)
 		{
-			if (!obj->isDestroyed())
+			if (!obj->IsDestroyed())
 				obj->Destroy();
 
 			bs_delete<T, MemAlloc>((T*)obj);
