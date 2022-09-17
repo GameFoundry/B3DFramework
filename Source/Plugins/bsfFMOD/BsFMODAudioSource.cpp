@@ -31,7 +31,7 @@ namespace bs
 
 	void FMODAudioSource::SetTransform(const Transform& transform)
 	{
-		Transform(transform);
+		SceneActor::SetTransform(transform);
 
 		if(mChannel != nullptr)
 		{

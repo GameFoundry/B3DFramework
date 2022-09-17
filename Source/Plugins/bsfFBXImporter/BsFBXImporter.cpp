@@ -1187,7 +1187,7 @@ namespace bs
 	void readLayerData(FbxLayerElementTemplate<TFBX>& layer, Vector<TNative>& output, const Vector<int>& indices)
 	{
 		TIndexer indexer(layer);
-		if (indexer.isEmpty())
+		if (indexer.IsEmpty())
 			return;
 
 		output.resize(indices.size());
@@ -1201,12 +1201,12 @@ namespace bs
 			for (UINT32 i = 0; i < indexCount; i++)
 			{
 				int index = indices[i];
-				indexer.get(index, output[i]);
+				indexer.Get(index, output[i]);
 			}
 			break;
 		case FbxLayerElement::eByPolygonVertex:
 			for (UINT32 i = 0; i < indexCount; i++)
-				indexer.get(i, output[i]);
+				indexer.Get(i, output[i]);
 			break;
 		case FbxLayerElement::eByPolygon:
 			// We expect mesh to be triangulated here
@@ -1217,7 +1217,7 @@ namespace bs
 			for (UINT32 i = 0; i < polygonCount; i++)
 			{
 				TNative value{};
-				indexer.get(i, value);
+				indexer.Get(i, value);
 
 				output[index++] = value;
 				output[index++] = value;
@@ -1228,7 +1228,7 @@ namespace bs
 		case FbxLayerElement::eAllSame:
 		{
 			TNative value{};
-			indexer.get(0, value);
+			indexer.Get(0, value);
 
 			for (UINT32 i = 0; i < indexCount; i++)
 				output[i] = value;

@@ -883,7 +883,7 @@ namespace bs { namespace ct
 				NotifyRenderTargetModified();
 			}
 			else
-				RenderAPI::ClearRenderTarget(buffers, color, depth, stencil, targetMask);
+				ClearRenderTarget(buffers, color, depth, stencil, targetMask);
 		};
 
 		auto execute = [=]() { executeRef(buffers, color, depth, stencil, targetMask); };

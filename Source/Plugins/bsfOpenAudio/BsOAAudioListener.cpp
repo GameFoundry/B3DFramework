@@ -19,7 +19,7 @@ namespace bs
 
 	void OAAudioListener::SetTransform(const Transform& transform)
 	{
-		Transform(transform);
+		SceneActor::SetTransform(transform);
 
 		std::array<float, 6> orientation = GetOrientation();
 		auto& contexts = gOAAudio().GetContextsInternal();

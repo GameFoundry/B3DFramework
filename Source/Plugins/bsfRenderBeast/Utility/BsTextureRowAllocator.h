@@ -56,7 +56,7 @@ namespace bs { namespace ct
 	TextureRowAllocator<WIDTH, HEIGHT>::TextureRowAllocator()
 	{
 		for(uint32_t i = 0; i < HEIGHT; i++)
-			mFreeRegions[i] = mAlloc.template construct<RowRegion>();
+			mFreeRegions[i] = mAlloc.template Construct<RowRegion>();
 	}
 
 	template <uint32_t WIDTH, uint32_t HEIGHT>
@@ -70,7 +70,7 @@ namespace bs { namespace ct
 				RowRegion* curRegion = region;
 				region = region->next;
 
-				mAlloc.free(curRegion);
+				mAlloc.Free(curRegion);
 			}
 		}
 	}
@@ -93,7 +93,7 @@ namespace bs { namespace ct
 					output.length = length;
 
 					prevRegion->next = region->next;
-					mAlloc.free(region);
+					mAlloc.Free(region);
 
 					return output;
 				}
@@ -165,7 +165,7 @@ namespace bs { namespace ct
 						RowRegion* toDelete = region;
 						region = region->next;
 
-						mAlloc.free(toDelete);
+						mAlloc.Free(toDelete);
 					}
 
 					return;
@@ -173,7 +173,7 @@ namespace bs { namespace ct
 			}
 		}
 			
-		auto newRegion = (RowRegion*)mAlloc.alloc();
+		auto newRegion = (RowRegion*)mAlloc.Alloc();
 		newRegion->x = alloc.x;
 		newRegion->length = alloc.length;
 		newRegion->next = region;

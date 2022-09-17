@@ -65,23 +65,23 @@ namespace bs { namespace ct
 		{
 			D3D11Texture* other = static_cast<D3D11Texture*>(target.get());
 
-			UINT32 srcResIdx = D3D11CalcSubresource(desc.srcMip, desc.srcFace, mProperties.getNumMipmaps() + 1);
-			UINT32 destResIdx = D3D11CalcSubresource(desc.dstMip, desc.dstFace, target->GetProperties().getNumMipmaps() + 1);
+			UINT32 srcResIdx = D3D11CalcSubresource(desc.srcMip, desc.srcFace, mProperties.GetNumMipmaps() + 1);
+			UINT32 destResIdx = D3D11CalcSubresource(desc.dstMip, desc.dstFace, target->GetProperties().GetNumMipmaps() + 1);
 
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 			D3D11Device& device = rs->GetPrimaryDevice();
 
-			bool srcHasMultisample = mProperties.getNumSamples() > 1;
-			bool destHasMultisample = target->GetProperties().getNumSamples() > 1;
+			bool srcHasMultisample = mProperties.GetNumSamples() > 1;
+			bool destHasMultisample = target->GetProperties().GetNumSamples() > 1;
 
 			bool copyEntireSurface = desc.srcVolume.GetWidth() == 0 ||
 				desc.srcVolume.GetHeight() == 0 ||
-				desc.srcVolume.getDepth() == 0;
+				desc.srcVolume.GetDepth() == 0;
 
 			if (srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 			{
 				if(copyEntireSurface)
-					device.getImmediateContext()->ResolveSubresource(other->GetDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
+					device.GetImmediateContext()->ResolveSubresource(other->GetDX11Resource(), destResIdx, mTex, srcResIdx, mDXGIFormat);
 				else
 				{
 					// Need to first resolve to a temporary texture, then copy
@@ -89,17 +89,17 @@ namespace bs { namespace ct
 					tempDesc.width = mProperties.GetWidth();
 					tempDesc.height = mProperties.GetHeight();
 					tempDesc.format = mProperties.GetFormat();
-					tempDesc.hwGamma = mProperties.isHardwareGammaEnabled();
+					tempDesc.hwGamma = mProperties.IsHardwareGammaEnabled();
 
 					SPtr<D3D11Texture> temporary = std::static_pointer_cast<D3D11Texture>(Texture::Create(tempDesc));
-					device.getImmediateContext()->ResolveSubresource(temporary->GetDX11Resource(), 0, mTex, srcResIdx, mDXGIFormat);
+					device.GetImmediateContext()->ResolveSubresource(temporary->GetDX11Resource(), 0, mTex, srcResIdx, mDXGIFormat);
 
 					TEXTURE_COPY_DESC tempCopyDesc;
 					tempCopyDesc.dstMip = desc.dstMip;
 					tempCopyDesc.dstFace = desc.dstFace;
 					tempCopyDesc.dstPosition = desc.dstPosition;
 
-					temporary->copy(target, tempCopyDesc);
+					temporary->Copy(target, tempCopyDesc);
 				}
 			}
 			else
@@ -116,7 +116,7 @@ namespace bs { namespace ct
 				if(!copyEntireSurface)
 					srcRegionPtr = &srcRegion;
 
-				device.getImmediateContext()->CopySubresourceRegion(
+				device.GetImmediateContext()->CopySubresourceRegion(
 					other->GetDX11Resource(),
 					destResIdx,
 					(UINT32)desc.dstPosition.x,
@@ -126,9 +126,9 @@ namespace bs { namespace ct
 					srcResIdx,
 					srcRegionPtr);
 
-				if (device.hasError())
+				if (device.HasError())
 				{
-					String errorDescription = device.getErrorDescription();
+					String errorDescription = device.GetErrorDescription();
 					BS_EXCEPT(RenderingAPIException, "D3D11 device cannot copy subresource\nError Description:" + errorDescription);
 				}
 			}
@@ -148,7 +148,7 @@ namespace bs { namespace ct
 	PixelData D3D11Texture::LockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx,
 										 UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 			BS_EXCEPT(InvalidStateException, "Multisampled textures cannot be accessed from the CPU directly.");
 
 #if BS_PROFILING_ENABLED
@@ -165,24 +165,24 @@ namespace bs { namespace ct
 
 		UINT32 mipWidth = std::max(1u, mProperties.GetWidth() >> mipLevel);
 		UINT32 mipHeight = std::max(1u, mProperties.GetHeight() >> mipLevel);
-		UINT32 mipDepth = std::max(1u, mProperties.getDepth() >> mipLevel);
+		UINT32 mipDepth = std::max(1u, mProperties.GetDepth() >> mipLevel);
 
 		PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
-		D3D11_MAP flags = D3D11Mappings::getLockOptions(options);
+		D3D11_MAP flags = D3D11Mappings::GetLockOptions(options);
 		UINT32 rowPitch, slicePitch;
 		if(flags == D3D11_MAP_READ || flags == D3D11_MAP_READ_WRITE)
 		{
-			UINT8* data = (UINT8*)mapstagingbuffer(flags, face, mipLevel, rowPitch, slicePitch);
-			lockedArea.setExternalBuffer(data);
-			lockedArea.setRowPitch(rowPitch);
-			lockedArea.setSlicePitch(slicePitch);
+			UINT8* data = (UINT8*)Mapstagingbuffer(flags, face, mipLevel, rowPitch, slicePitch);
+			lockedArea.SetExternalBuffer(data);
+			lockedArea.SetRowPitch(rowPitch);
+			lockedArea.SetSlicePitch(slicePitch);
 
 			mLockedForReading = true;
 		}
 		else
 		{
-			if ((mProperties.getUsage() & TU_DYNAMIC) != 0)
+			if ((mProperties.GetUsage() & TU_DYNAMIC) != 0)
 			{
 				if(flags == D3D11_MAP_WRITE)
 				{
@@ -190,13 +190,13 @@ namespace bs { namespace ct
 					flags = D3D11_MAP_WRITE_DISCARD;
 				}
 
-				UINT8* data = (UINT8*)map(mTex, flags, face, mipLevel, rowPitch, slicePitch);
-				lockedArea.setExternalBuffer(data);
-				lockedArea.setRowPitch(rowPitch);
-				lockedArea.setSlicePitch(slicePitch);
+				UINT8* data = (UINT8*)Map(mTex, flags, face, mipLevel, rowPitch, slicePitch);
+				lockedArea.SetExternalBuffer(data);
+				lockedArea.SetRowPitch(rowPitch);
+				lockedArea.SetSlicePitch(slicePitch);
 			}
 			else
-				lockedArea.setExternalBuffer((UINT8*)mapstaticbuffer(lockedArea, mipLevel, face));
+				lockedArea.SetExternalBuffer((UINT8*)Mapstaticbuffer(lockedArea, mipLevel, face));
 
 			mLockedForReading = false;
 		}
@@ -207,27 +207,27 @@ namespace bs { namespace ct
 	void D3D11Texture::UnlockImpl()
 	{
 		if(mLockedForReading)
-			unmapstagingbuffer();
+			Unmapstagingbuffer();
 		else
 		{
-			if ((mProperties.getUsage() & TU_DYNAMIC) != 0)
-				unmap(mTex);
+			if ((mProperties.GetUsage() & TU_DYNAMIC) != 0)
+				Unmap(mTex);
 			else
-				unmapstaticbuffer();
+				Unmapstaticbuffer();
 		}
 	}
 
 	void D3D11Texture::ReadDataImpl(PixelData& dest, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
-		PixelData myData = lock(GBL_READ_ONLY, mipLevel, face, deviceIdx, queueIdx);
-		PixelUtil::bulkPixelConversion(myData, dest);
-		unlock();
+		PixelData myData = Lock(GBL_READ_ONLY, mipLevel, face, deviceIdx, queueIdx);
+		PixelUtil::BulkPixelConversion(myData, dest);
+		Unlock();
 	}
 
 	void D3D11Texture::WriteDataImpl(const PixelData& src, UINT32 mipLevel, UINT32 face, bool discardWholeBuffer,
@@ -235,41 +235,41 @@ namespace bs { namespace ct
 	{
 		PixelFormat format = mProperties.GetFormat();
 
-		if (mProperties.getNumSamples() > 1)
+		if (mProperties.GetNumSamples() > 1)
 		{
 			BS_LOG(Error, RenderBackend, "Multisampled textures cannot be accessed from the CPU directly.");
 			return;
 		}
 
-		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.getNumMipmaps());
-		face = Math::Clamp(face, (UINT32)0, mProperties.getNumFaces() - 1);
+		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
+		face = Math::Clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
 
-		if (face > 0 && mProperties.getTextureType() == TEX_TYPE_3D)
+		if (face > 0 && mProperties.GetTextureType() == TEX_TYPE_3D)
 		{
 			BS_LOG(Error, RenderBackend, "3D texture arrays are not supported.");
 			return;
 		}
 
-		if ((mProperties.getUsage() & TU_DYNAMIC) != 0)
+		if ((mProperties.GetUsage() & TU_DYNAMIC) != 0)
 		{
-			PixelData myData = lock(discardWholeBuffer ? GBL_WRITE_ONLY_DISCARD : GBL_WRITE_ONLY, mipLevel, face, 0, queueIdx);
-			PixelUtil::bulkPixelConversion(src, myData);
-			unlock();
+			PixelData myData = Lock(discardWholeBuffer ? GBL_WRITE_ONLY_DISCARD : GBL_WRITE_ONLY, mipLevel, face, 0, queueIdx);
+			PixelUtil::BulkPixelConversion(src, myData);
+			Unlock();
 		}
-		else if ((mProperties.getUsage() & TU_DEPTHSTENCIL) == 0)
+		else if ((mProperties.GetUsage() & TU_DEPTHSTENCIL) == 0)
 		{
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 			D3D11Device& device = rs->GetPrimaryDevice();
 
-			UINT subresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.getNumMipmaps() + 1);
-			UINT32 rowWidth = D3D11Mappings::getSizeInBytes(format, src.GetWidth());
-			UINT32 sliceWidth = D3D11Mappings::getSizeInBytes(format, src.GetWidth(), src.GetHeight());
+			UINT subresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.GetNumMipmaps() + 1);
+			UINT32 rowWidth = D3D11Mappings::GetSizeInBytes(format, src.GetWidth());
+			UINT32 sliceWidth = D3D11Mappings::GetSizeInBytes(format, src.GetWidth(), src.GetHeight());
 
-			device.getImmediateContext()->UpdateSubresource(mTex, subresourceIdx, nullptr, src.GetData(), rowWidth, sliceWidth);
+			device.GetImmediateContext()->UpdateSubresource(mTex, subresourceIdx, nullptr, src.GetData(), rowWidth, sliceWidth);
 
-			if (device.hasError())
+			if (device.HasError())
 			{
-				String errorDescription = device.getErrorDescription();
+				String errorDescription = device.GetErrorDescription();
 				BS_EXCEPT(RenderingAPIException, "D3D11 device cannot map texture\nError Description:" + errorDescription);
 			}
 
@@ -277,26 +277,26 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			BS_EXCEPT(RenderingAPIException, "Trying to write into a buffer with unsupported usage: " + toString(mProperties.getUsage()));
+			BS_EXCEPT(RenderingAPIException, "Trying to write into a buffer with unsupported usage: " + toString(mProperties.GetUsage()));
 		}
 	}
 
 	void D3D11Texture::Create1DTex()
 	{
 		UINT32 width = mProperties.GetWidth();
-		int usage = mProperties.getUsage();
-		UINT32 numMips = mProperties.getNumMipmaps();
+		int usage = mProperties.GetUsage();
+		UINT32 numMips = mProperties.GetNumMipmaps();
 		PixelFormat format = mProperties.GetFormat();
-		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, TEX_TYPE_1D, usage);
-		UINT32 numFaces = mProperties.getNumFaces();
+		bool hwGamma = mProperties.IsHardwareGammaEnabled();
+		PixelFormat closestFormat = D3D11Mappings::GetClosestSupportedPf(format, TEX_TYPE_1D, usage);
+		UINT32 numFaces = mProperties.GetNumFaces();
 
 		// We must have those defined here
 		assert(width > 0);
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
+		DXGI_FORMAT d3dPF = D3D11Mappings::GetPf(closestFormat, hwGamma);
 
 		if (format != closestFormat)
 		{
@@ -336,16 +336,16 @@ namespace bs { namespace ct
 
 			desc.CPUAccessFlags = 0;
 			desc.MipLevels		= 1;
-			desc.Format			= D3D11Mappings::getTypelessDepthStencilPF(closestFormat);
+			desc.Format			= D3D11Mappings::GetTypelessDepthStencilPf(closestFormat);
 
-			mDXGIColorFormat = D3D11Mappings::getShaderResourceDepthStencilPF(closestFormat);
+			mDXGIColorFormat = D3D11Mappings::GetShaderResourceDepthStencilPf(closestFormat);
 			mDXGIDepthStencilFormat = d3dPF;
 		}
 		else
 		{
-			desc.Usage			= D3D11Mappings::getUsage((GpuBufferUsage)usage);
+			desc.Usage			= D3D11Mappings::GetUsage((GpuBufferUsage)usage);
 			desc.BindFlags		= D3D11_BIND_SHADER_RESOURCE;
-			desc.CPUAccessFlags = D3D11Mappings::getAccessFlags((GpuBufferUsage)usage);
+			desc.CPUAccessFlags = D3D11Mappings::GetAccessFlags((GpuBufferUsage)usage);
 
 			// Determine total number of mipmaps including main one (d3d11 convention)
 			desc.MipLevels = (numMips == MIP_UNLIMITED || (1U << numMips) > width) ? 0 : numMips + 1;
@@ -357,20 +357,20 @@ namespace bs { namespace ct
 		// Create the texture
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		hr = device.getD3D11Device()->CreateTexture1D(&desc, nullptr, &m1DTex);
+		hr = device.GetD3D11Device()->CreateTexture1D(&desc, nullptr, &m1DTex);
 
 		// Check result and except if failed
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Error creating texture\nError Description:" + errorDescription);
 		}
 
 		hr = m1DTex->QueryInterface(__uuidof(ID3D11Resource), (void **)&mTex);
 
-		if(FAILED(hr) || device.hasError())
+		if(FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Can't get base texture\nError Description:" + errorDescription);
 		}
 
@@ -402,14 +402,14 @@ namespace bs { namespace ct
 	{
 		UINT32 width = mProperties.GetWidth();
 		UINT32 height = mProperties.GetHeight();
-		int usage = mProperties.getUsage();
-		UINT32 numMips = mProperties.getNumMipmaps();
+		int usage = mProperties.GetUsage();
+		UINT32 numMips = mProperties.GetNumMipmaps();
 		PixelFormat format = mProperties.GetFormat();
-		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		UINT32 sampleCount = mProperties.getNumSamples();
-		TextureType texType = mProperties.getTextureType();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, texType, usage);
-		UINT32 numFaces = mProperties.getNumFaces();
+		bool hwGamma = mProperties.IsHardwareGammaEnabled();
+		UINT32 sampleCount = mProperties.GetNumSamples();
+		TextureType texType = mProperties.GetTextureType();
+		PixelFormat closestFormat = D3D11Mappings::GetClosestSupportedPf(format, texType, usage);
+		UINT32 numFaces = mProperties.GetNumFaces();
 
 		// TODO - Consider making this a parameter eventually
 		bool readableDepth = true;
@@ -420,7 +420,7 @@ namespace bs { namespace ct
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
+		DXGI_FORMAT d3dPF = D3D11Mappings::GetPf(closestFormat, hwGamma);
 
 		if (format != closestFormat)
 		{
@@ -447,14 +447,14 @@ namespace bs { namespace ct
 
 			DXGI_SAMPLE_DESC sampleDesc;
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-			rs->determineMultisampleSettings(sampleCount, d3dPF, &sampleDesc);
+			rs->DetermineMultisampleSettings(sampleCount, d3dPF, &sampleDesc);
 			desc.SampleDesc		= sampleDesc;
 		}
 		else if((usage & TU_DEPTHSTENCIL) != 0)
 		{
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
-			desc.Format			= D3D11Mappings::getTypelessDepthStencilPF(closestFormat);
+			desc.Format			= D3D11Mappings::GetTypelessDepthStencilPf(closestFormat);
 
 			if(readableDepth)
 				desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
@@ -463,17 +463,17 @@ namespace bs { namespace ct
 
 			DXGI_SAMPLE_DESC sampleDesc;
 			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-			rs->determineMultisampleSettings(sampleCount, d3dPF, &sampleDesc);
+			rs->DetermineMultisampleSettings(sampleCount, d3dPF, &sampleDesc);
 			desc.SampleDesc		= sampleDesc;
 
-			mDXGIColorFormat = D3D11Mappings::getShaderResourceDepthStencilPF(closestFormat);
+			mDXGIColorFormat = D3D11Mappings::GetShaderResourceDepthStencilPf(closestFormat);
 			mDXGIDepthStencilFormat = d3dPF;
 		}
 		else
 		{
-			desc.Usage = D3D11Mappings::getUsage((GpuBufferUsage)usage);
+			desc.Usage = D3D11Mappings::GetUsage((GpuBufferUsage)usage);
 			desc.BindFlags		= D3D11_BIND_SHADER_RESOURCE;
-			desc.CPUAccessFlags = D3D11Mappings::getAccessFlags((GpuBufferUsage)usage);
+			desc.CPUAccessFlags = D3D11Mappings::GetAccessFlags((GpuBufferUsage)usage);
 
 			DXGI_SAMPLE_DESC sampleDesc;
 			sampleDesc.Count	= 1;
@@ -501,20 +501,20 @@ namespace bs { namespace ct
 		// Create the texture
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		hr = device.getD3D11Device()->CreateTexture2D(&desc, nullptr, &m2DTex);
+		hr = device.GetD3D11Device()->CreateTexture2D(&desc, nullptr, &m2DTex);
 
 		// Check result and except if failed
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Error creating texture\nError Description:" + errorDescription);
 		}
 
 		hr = m2DTex->QueryInterface(__uuidof(ID3D11Resource), (void **)&mTex);
 
-		if(FAILED(hr) || device.hasError())
+		if(FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Can't get base texture\nError Description:" + errorDescription);
 		}
 
@@ -546,12 +546,12 @@ namespace bs { namespace ct
 	{
 		UINT32 width = mProperties.GetWidth();
 		UINT32 height = mProperties.GetHeight();
-		UINT32 depth = mProperties.getDepth();
-		int usage = mProperties.getUsage();
-		UINT32 numMips = mProperties.getNumMipmaps();
+		UINT32 depth = mProperties.GetDepth();
+		int usage = mProperties.GetUsage();
+		UINT32 numMips = mProperties.GetNumMipmaps();
 		PixelFormat format = mProperties.GetFormat();
-		bool hwGamma = mProperties.isHardwareGammaEnabled();
-		PixelFormat closestFormat = D3D11Mappings::getClosestSupportedPF(format, TEX_TYPE_3D, usage);
+		bool hwGamma = mProperties.IsHardwareGammaEnabled();
+		PixelFormat closestFormat = D3D11Mappings::GetClosestSupportedPf(format, TEX_TYPE_3D, usage);
 
 		// TODO - Consider making this a parameter eventually
 		bool readableDepth = true;
@@ -561,7 +561,7 @@ namespace bs { namespace ct
 
 		// Determine which D3D11 pixel format we'll use
 		HRESULT hr;
-		DXGI_FORMAT d3dPF = D3D11Mappings::getPF(closestFormat, hwGamma);
+		DXGI_FORMAT d3dPF = D3D11Mappings::GetPf(closestFormat, hwGamma);
 		
 		if (format != closestFormat)
 		{
@@ -581,14 +581,14 @@ namespace bs { namespace ct
 		desc.Format	= d3dPF;
 		desc.MiscFlags = 0;
 
-		if ((mProperties.getUsage() & TU_RENDERTARGET) != 0)
+		if ((mProperties.GetUsage() & TU_RENDERTARGET) != 0)
 		{
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.BindFlags		= D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 			desc.CPUAccessFlags = 0;
 			desc.MipLevels		= 1;
 		}
-		else if ((mProperties.getUsage() & TU_DEPTHSTENCIL) != 0)
+		else if ((mProperties.GetUsage() & TU_DEPTHSTENCIL) != 0)
 		{
 			desc.Usage			= D3D11_USAGE_DEFAULT;
 			desc.CPUAccessFlags = 0;
@@ -599,14 +599,14 @@ namespace bs { namespace ct
 			else
 				desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-			mDXGIColorFormat = D3D11Mappings::getShaderResourceDepthStencilPF(closestFormat);
+			mDXGIColorFormat = D3D11Mappings::GetShaderResourceDepthStencilPf(closestFormat);
 			mDXGIDepthStencilFormat = d3dPF;
 		}
 		else
 		{
-			desc.Usage			= D3D11Mappings::getUsage((GpuBufferUsage)usage);
+			desc.Usage			= D3D11Mappings::GetUsage((GpuBufferUsage)usage);
 			desc.BindFlags		= D3D11_BIND_SHADER_RESOURCE;
-			desc.CPUAccessFlags = D3D11Mappings::getAccessFlags((GpuBufferUsage)usage);
+			desc.CPUAccessFlags = D3D11Mappings::GetAccessFlags((GpuBufferUsage)usage);
 
 			// Determine total number of mipmaps including main one (d3d11 convention)
 			desc.MipLevels		= (numMips == MIP_UNLIMITED || (1U << numMips)
@@ -619,30 +619,30 @@ namespace bs { namespace ct
 		// Create the texture
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		hr = device.getD3D11Device()->CreateTexture3D(&desc, nullptr, &m3DTex);
+		hr = device.GetD3D11Device()->CreateTexture3D(&desc, nullptr, &m3DTex);
 
 		// Check result and except if failed
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Error creating texture\nError Description:" + errorDescription);
 		}
 
 		hr = m3DTex->QueryInterface(__uuidof(ID3D11Resource), (void **)&mTex);
 
-		if(FAILED(hr) || device.hasError())
+		if(FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Can't get base texture\nError Description:" + errorDescription);
 		}
 
 		// Create texture view
 		m3DTex->GetDesc(&desc);
 
-		if (mProperties.getNumMipmaps() != (desc.MipLevels - 1))
+		if (mProperties.GetNumMipmaps() != (desc.MipLevels - 1))
 		{
 			BS_EXCEPT(RenderingAPIException, "Driver returned different number of mip maps than requested. " \
-				"Requested: " + toString(mProperties.getNumMipmaps()) + ". Got: " + toString(desc.MipLevels - 1) + ".");
+				"Requested: " + toString(mProperties.GetNumMipmaps()) + ". Got: " + toString(desc.MipLevels - 1) + ".");
 		}
 
 		mDXGIFormat = desc.Format;
@@ -665,21 +665,21 @@ namespace bs { namespace ct
 		D3D11_MAPPED_SUBRESOURCE pMappedResource;
 		pMappedResource.pData = nullptr;
 
-		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.getNumMipmaps());
-		face = Math::Clamp(face, (UINT32)0, mProperties.getNumFaces() - 1);
+		mipLevel = Math::Clamp(mipLevel, (UINT32)mipLevel, mProperties.GetNumMipmaps());
+		face = Math::Clamp(face, (UINT32)0, mProperties.GetNumFaces() - 1);
 
-		if (mProperties.getTextureType() == TEX_TYPE_3D)
+		if (mProperties.GetTextureType() == TEX_TYPE_3D)
 			face = 0;
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
 
-		mLockedSubresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.getNumMipmaps() + 1);
-		device.getImmediateContext()->Map(res, mLockedSubresourceIdx, flags, 0, &pMappedResource);
+		mLockedSubresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.GetNumMipmaps() + 1);
+		device.GetImmediateContext()->Map(res, mLockedSubresourceIdx, flags, 0, &pMappedResource);
 
-		if (device.hasError())
+		if (device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "D3D11 device cannot map texture\nError Description:" + errorDescription);
 		}
 
@@ -693,11 +693,11 @@ namespace bs { namespace ct
 	{
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		device.getImmediateContext()->Unmap(res, mLockedSubresourceIdx);
+		device.GetImmediateContext()->Unmap(res, mLockedSubresourceIdx);
 
-		if (device.hasError())
+		if (device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "D3D11 device unmap resource\nError Description:" + errorDescription);
 		}
 	}
@@ -709,44 +709,44 @@ namespace bs { namespace ct
 		// Reading is slow operation anyway so I don't believe doing it as we are now will influence it much.
 
 		if(!mStagingBuffer)
-			createStagingBuffer();
+			CreateStagingBuffer();
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		device.getImmediateContext()->CopyResource(mStagingBuffer, mTex);
+		device.GetImmediateContext()->CopyResource(mStagingBuffer, mTex);
 
-		return map(mStagingBuffer, flags, face, mipLevel, rowPitch, slicePitch);
+		return Map(mStagingBuffer, flags, face, mipLevel, rowPitch, slicePitch);
 	}
 
 	void D3D11Texture::Unmapstagingbuffer()
 	{
-		unmap(mStagingBuffer);
+		Unmap(mStagingBuffer);
 		SAFE_RELEASE(mStagingBuffer);
 	}
 
 	void* D3D11Texture::Mapstaticbuffer(PixelData lock, UINT32 mipLevel, UINT32 face)
 	{
-		UINT32 sizeOfImage = lock.getConsecutiveSize();
-		mLockedSubresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.getNumMipmaps()+1);
+		UINT32 sizeOfImage = lock.GetConsecutiveSize();
+		mLockedSubresourceIdx = D3D11CalcSubresource(mipLevel, face, mProperties.GetNumMipmaps()+1);
 
-		mStaticBuffer = bs_new<PixelData>(lock.GetWidth(), lock.GetHeight(), lock.getDepth(), lock.GetFormat());
-		mStaticBuffer->allocateInternalBuffer();
+		mStaticBuffer = bs_new<PixelData>(lock.GetWidth(), lock.GetHeight(), lock.GetDepth(), lock.GetFormat());
+		mStaticBuffer->AllocateInternalBuffer();
 
 		return mStaticBuffer->GetData();
 	}
 
 	void D3D11Texture::Unmapstaticbuffer()
 	{
-		UINT32 rowWidth = D3D11Mappings::getSizeInBytes(mStaticBuffer->GetFormat(), mStaticBuffer->GetWidth());
-		UINT32 sliceWidth = D3D11Mappings::getSizeInBytes(mStaticBuffer->GetFormat(), mStaticBuffer->GetWidth(), mStaticBuffer->GetHeight());
+		UINT32 rowWidth = D3D11Mappings::GetSizeInBytes(mStaticBuffer->GetFormat(), mStaticBuffer->GetWidth());
+		UINT32 sliceWidth = D3D11Mappings::GetSizeInBytes(mStaticBuffer->GetFormat(), mStaticBuffer->GetWidth(), mStaticBuffer->GetHeight());
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		device.getImmediateContext()->UpdateSubresource(mTex, mLockedSubresourceIdx, nullptr, mStaticBuffer->GetData(), rowWidth, sliceWidth);
+		device.GetImmediateContext()->UpdateSubresource(mTex, mLockedSubresourceIdx, nullptr, mStaticBuffer->GetData(), rowWidth, sliceWidth);
 
-		if (device.hasError())
+		if (device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "D3D11 device cannot map texture\nError Description:" + errorDescription);
 		}
 
@@ -756,14 +756,14 @@ namespace bs { namespace ct
 
 	ID3D11ShaderResourceView* D3D11Texture::GetSrv() const
 	{
-		return mShaderResourceView->GetSRV();
+		return mShaderResourceView->GetSrv();
 	}
 
 	void D3D11Texture::CreateStagingBuffer()
 	{
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		switch (mProperties.getTextureType())
+		switch (mProperties.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 			{
@@ -775,7 +775,7 @@ namespace bs { namespace ct
 				desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 				desc.Usage = D3D11_USAGE_STAGING;
 
-				device.getD3D11Device()->CreateTexture1D(&desc, nullptr, (ID3D11Texture1D**)(&mStagingBuffer));
+				device.GetD3D11Device()->CreateTexture1D(&desc, nullptr, (ID3D11Texture1D**)(&mStagingBuffer));
 			} 					
 			break;
 		case TEX_TYPE_2D:
@@ -789,7 +789,7 @@ namespace bs { namespace ct
 				desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 				desc.Usage = D3D11_USAGE_STAGING;
 
-				device.getD3D11Device()->CreateTexture2D(&desc, nullptr, (ID3D11Texture2D**)(&mStagingBuffer));
+				device.GetD3D11Device()->CreateTexture2D(&desc, nullptr, (ID3D11Texture2D**)(&mStagingBuffer));
 			}
 			break;
 		case TEX_TYPE_3D:
@@ -802,7 +802,7 @@ namespace bs { namespace ct
 				desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 				desc.Usage = D3D11_USAGE_STAGING;
 
-				device.getD3D11Device()->CreateTexture3D(&desc, nullptr, (ID3D11Texture3D**)(&mStagingBuffer));
+				device.GetD3D11Device()->CreateTexture3D(&desc, nullptr, (ID3D11Texture3D**)(&mStagingBuffer));
 			}
 			break;
 		}

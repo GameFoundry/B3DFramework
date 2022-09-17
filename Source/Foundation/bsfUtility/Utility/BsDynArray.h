@@ -364,7 +364,7 @@ namespace bs
 			const UINT32 count = (UINT32)std::distance(start, end);
 
 			if ((Size() + count) > Capacity())
-				realloc(Size() + count);
+				Realloc(Size() + count);
 
 			std::uninitialized_copy(start, end, this->end());
 			mSize += count;
@@ -373,7 +373,7 @@ namespace bs
 		void Append(UINT32 count, const Type& element)
 		{
 			if ((Size() + count) > Capacity())
-				realloc(Size() + count);
+				Realloc(Size() + count);
 
 			std::uninitialized_fill_n(end(), count, element);
 			mSize += count;
@@ -420,7 +420,7 @@ namespace bs
 		void EmplaceBack(Args&& ...args)
 		{
 			if (Size() == Capacity())
-				realloc(std::max(1U, Capacity() * 2));
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::forward<Args>(args) ...);
 		}
@@ -432,7 +432,7 @@ namespace bs
 			DifferenceType offset = iterc - begin();
 
 			if (Size() == Capacity())
-				realloc(std::max(1U, Capacity() * 2));
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::forward<Args>(args) ...);
 			std::rotate(begin() + offset, end() - 1, end());
@@ -446,7 +446,7 @@ namespace bs
 			DifferenceType offset = iterc - begin();
 
 			if (Size() == Capacity())
-				realloc(std::max(1U, Capacity() * 2));
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(element);
 			std::rotate(begin() + offset, end() - 1, end());
@@ -460,7 +460,7 @@ namespace bs
 			DifferenceType offset = iterc - begin();
 
 			if (Size() == Capacity())
-				realloc(std::max(1U, Capacity() * 2));
+				Realloc(std::max(1U, Capacity() * 2));
 
 			new (&mElements[mSize++]) Type(std::move(element));
 			std::rotate(begin() + offset, end() - 1, end());
@@ -478,7 +478,7 @@ namespace bs
 				return iter;
 
 			if (Size() + n > Capacity())
-				realloc((Size() + n) * 2);
+				Realloc((Size() + n) * 2);
 
 			UINT32 c = n;
 			while (c--)
@@ -498,7 +498,7 @@ namespace bs
 			UINT32 n = (UINT32)(last - first);
 
 			if (Size() + n > Capacity())
-				realloc((Size() + n) * 2);
+				Realloc((Size() + n) * 2);
 
 			while (first != last)
 				new (&mElements[mSize++]) Type(*first++);
@@ -517,7 +517,7 @@ namespace bs
 				return iter;
 
 			if (Size() + n > Capacity())
-				realloc((Size() + n) * 2);
+				Realloc((Size() + n) * 2);
 
 			for (auto& entry : list)
 				new (&mElements[mSize++]) Type(entry);

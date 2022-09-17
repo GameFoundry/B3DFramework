@@ -114,7 +114,7 @@ namespace bs
 
 		operator bool() const
 		{
-			return mBitIndex < mOwner.size();
+			return mBitIndex < mOwner.Size();
 		}
 
 		bool operator!() const
@@ -403,7 +403,19 @@ namespace bs
 
 			return ConstIterator(*this, bitIndex, dwordIndex, mask);
 		}
+
+		/** @copydoc Begin */
+		Iterator begin() { return Begin(); }
+
+		/** @copydoc End */
+		Iterator end() { return End(); }
 		
+		/** @copydoc Begin */
+		ConstIterator begin() const { return Begin(); }
+
+		/** @copydoc End */
+		ConstIterator end() const { return End(); }
+
 	private:
 		template<bool CONST>
 		friend class TBitfieldIterator;

@@ -89,10 +89,10 @@ namespace bs { namespace ct
 			switch(FWD)
 			{
 			case ParticleForwardLightingType::Clustered:
-				params.add(ShaderVariation::Param("CLUSTERED", true));
+				params.Add(ShaderVariation::Param("CLUSTERED", true));
 				break;
 			case ParticleForwardLightingType::Standard:
-				params.add(ShaderVariation::Param("CLUSTERED", false));
+				params.Add(ShaderVariation::Param("CLUSTERED", false));
 				break;
 			case ParticleForwardLightingType::None:
 				break;

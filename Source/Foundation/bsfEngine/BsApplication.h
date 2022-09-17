@@ -29,7 +29,7 @@ namespace bs
 		template<class T = Application>
 		static void StartUp(VideoMode videoMode, const String& title, bool fullscreen)
 		{
-			START_UP_DESC desc = buildStartUpDesc(videoMode, title, fullscreen);
+			START_UP_DESC desc = BuildStartUpDesc(videoMode, title, fullscreen);
 			CoreApplication::StartUp<T>(desc);
 		}
 

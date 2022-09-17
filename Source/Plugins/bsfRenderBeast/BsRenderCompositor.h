@@ -139,7 +139,7 @@ namespace ct
 		{
 			TNodeType()
 			{
-				id = T::getNodeId();
+				id = T::GetNodeId();
 			}
 
 			/** @copydoc NodeType::Create() */
@@ -148,7 +148,7 @@ namespace ct
 			/** @copydoc NodeType::getDependencies() */
 			SmallVector<StringID, 4> GetDependencies(const RendererView& view) const override
 			{
-				return T::getDependencies(view);
+				return T::GetDependencies(view);
 			}
 		};
 
@@ -159,11 +159,11 @@ namespace ct
 		template<class T>
 		static void RegisterNodeType()
 		{
-			auto findIter = mNodeTypes.find(T::getNodeId());
+			auto findIter = mNodeTypes.find(T::GetNodeId());
 			if (findIter != mNodeTypes.end())
-				BS_LOG(Error, Renderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::getNodeId().c_str()));
+				BS_LOG(Error, Renderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::GetNodeId().CStr()));
 
-			mNodeTypes[T::getNodeId()] = bs_new<TNodeType<T>>();
+			mNodeTypes[T::GetNodeId()] = bs_new<TNodeType<T>>();
 		}
 
 		/** Releases any information about render node types. */

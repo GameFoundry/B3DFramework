@@ -96,13 +96,13 @@ namespace bs
 		PxControllerCollisionFlags collisionFlag = mController->move(toPxVector(displacement), mMinMoveDistance, delta, filters);
 
 		CharacterCollisionFlags output;
-		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
+		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
 			output.Set(CharacterCollisionFlag::Down);
 
-		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_UP))
+		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
 			output.Set(CharacterCollisionFlag::Up);
 
-		if (collisionFlag.IsSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
+		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
 			output.Set(CharacterCollisionFlag::Sides);
 
 		return output;

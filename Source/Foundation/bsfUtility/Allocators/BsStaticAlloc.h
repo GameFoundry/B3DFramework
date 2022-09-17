@@ -257,7 +257,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		void Deallocate(T* p, size_t num) const noexcept
 		{
-			mStaticAlloc->free((UINT8*)p, (UINT32)num);
+			mStaticAlloc->Free((UINT8*)p, (UINT32)num);
 		}
 
 		StaticAlloc<BlockSize, FreeAlloc>* mStaticAlloc = nullptr;

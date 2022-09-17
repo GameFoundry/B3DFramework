@@ -122,7 +122,7 @@ namespace bs
 			if (obj != nullptr)
 				obj->~T();
 
-			free((UINT8*)obj);
+			Free((UINT8*)obj);
 		}
 
 		/** Starts a new frame. Next call to clear() will only clear memory allocated past this point. */

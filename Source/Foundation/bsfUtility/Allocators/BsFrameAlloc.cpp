@@ -136,7 +136,7 @@ namespace bs
 		{
 			assert(mBlocks.size() > 0 && mNextBlockIdx > 0);
 
-			free((UINT8*)mLastFrame);
+			Free((UINT8*)mLastFrame);
 
 			UINT8* framePtr = (UINT8*)mLastFrame;
 			mLastFrame = *(void**)mLastFrame;

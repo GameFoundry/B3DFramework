@@ -17,7 +17,7 @@ namespace bs
 			Physics::StartUp<NullPhysics>(initDesc);
 		}
 
-		void shutDown() 
+		void ShutDown() 
 		{
 			Physics::ShutDown();
 		}

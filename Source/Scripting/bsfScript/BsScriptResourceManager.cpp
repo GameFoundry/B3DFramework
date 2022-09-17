@@ -125,7 +125,7 @@ namespace bs
 #endif
 
 		(resource)->~ScriptResourceBase();
-		MemoryAllocator<GenAlloc>::free(resource);
+		MemoryAllocator<GenAlloc>::Free(resource);
 
 		mScriptResources.erase(uuid);
 	}

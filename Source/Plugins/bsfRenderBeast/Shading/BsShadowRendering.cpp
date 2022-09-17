@@ -465,7 +465,7 @@ namespace bs { namespace ct
 		{
 			static_assert((UINT32)RenderableAnimType::Count == 4, "RenderableAnimType is expected to have four sequential entries.");
 
-			const SceneInfo& sceneInfo = scene.getSceneInfo();
+			const SceneInfo& sceneInfo = scene.GetSceneInfo();
 
 			bs_frame_mark();
 			{
@@ -474,11 +474,11 @@ namespace bs { namespace ct
 				// Make a list of relevant renderables and prepare them for rendering
 				for (UINT32 i = 0; i < sceneInfo.renderables.size(); i++)
 				{
-					const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.getSphere();
-					if (!opt.intersects(bounds))
+					const Sphere& bounds = sceneInfo.renderableCullInfos[i].bounds.GetSphere();
+					if (!opt.Intersects(bounds))
 						continue;
 
-					scene.prepareVisibleRenderable(i, frameInfo);
+					scene.PrepareVisibleRenderable(i, frameInfo);
 
 					Command renderableCommand;
 					renderableCommand.mask = 0;
@@ -487,7 +487,7 @@ namespace bs { namespace ct
 					renderableCommand.isElement = false;
 					renderableCommand.renderable = renderable;
 
-					opt.prepare(renderableCommand, bounds);
+					opt.Prepare(renderableCommand, bounds);
 
 					bool renderableBound[4];
 					bs_zero_out(renderableBound);
@@ -514,7 +514,7 @@ namespace bs { namespace ct
 
 				for (UINT32 i = 0; i < (UINT32)RenderableAnimType::Count; i++)
 				{
-					opt.bindMaterial(*VAR_LOOKUP[i]);
+					opt.BindMaterial(*VAR_LOOKUP[i]);
 
 					for (auto& command : commands[i])
 					{
@@ -523,13 +523,13 @@ namespace bs { namespace ct
 							const RenderableElement& element = *command.element;
 
 							if (element.morphVertexDeclaration == nullptr)
-								gRendererUtility().draw(element.mesh, element.subMesh);
+								gRendererUtility().Draw(element.mesh, element.subMesh);
 							else
-								gRendererUtility().drawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
+								gRendererUtility().DrawMorph(element.mesh, element.subMesh, element.morphShapeBuffer,
 									element.morphVertexDeclaration);
 						}
 						else
-							opt.bindRenderable(command);
+							opt.BindRenderable(command);
 					}
 				}
 			}
