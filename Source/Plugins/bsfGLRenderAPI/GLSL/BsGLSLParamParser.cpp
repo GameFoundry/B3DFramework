@@ -163,7 +163,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numAttribs; i++)
 		{
-			INT32 attribIndex = attributes[i].matchesName(name);
+			INT32 attribIndex = attributes[i].MatchesName(name);
 			if (attribIndex != -1)
 			{
 				index = attribIndex;
@@ -237,7 +237,7 @@ namespace bs { namespace ct
 
 			GpuParamBlockDesc newBlockDesc;
 			newBlockDesc.slot = index + 1;
-			newBlockDesc.set = mapParameterToSet(type, ParamType::UniformBlock);
+			newBlockDesc.set = MapParameterToSet(type, ParamType::UniformBlock);
 			newBlockDesc.name = uniformName;
 			newBlockDesc.blockSize = 0;
 			newBlockDesc.isShareable = true;
@@ -263,7 +263,7 @@ namespace bs { namespace ct
 			bufferParam.name = uniformName;
 			bufferParam.slot = index;
 			bufferParam.type = GPOT_RWSTRUCTURED_BUFFER;
-			bufferParam.set = mapParameterToSet(type, ParamType::StorageBlock);
+			bufferParam.set = MapParameterToSet(type, ParamType::StorageBlock);
 
 			returnParamDesc.buffers.insert(std::make_pair(uniformName, bufferParam));
 		}
@@ -291,7 +291,7 @@ namespace bs { namespace ct
 			// OpenGL Core Specification 2.11.4
 
 			// Check if parameter is a part of a struct
-			Vector<String> nameElements = StringUtil::tokenise(paramName, ".");
+			Vector<String> nameElements = StringUtil::Tokenise(paramName, ".");
 
 			bool inStruct = false;
 			String structName;
@@ -520,13 +520,13 @@ namespace bs { namespace ct
 				samplerParam.name = paramName;
 				samplerParam.type = samplerType;
 				samplerParam.slot = glGetUniformLocation(glProgram, uniformName);
-				samplerParam.set = mapParameterToSet(type, ParamType::Sampler);
+				samplerParam.set = MapParameterToSet(type, ParamType::Sampler);
 
 				GpuParamObjectDesc textureParam;
 				textureParam.name = paramName;
 				textureParam.type = textureType;
 				textureParam.slot = samplerParam.slot;
-				textureParam.set = mapParameterToSet(type, ParamType::Texture);
+				textureParam.set = MapParameterToSet(type, ParamType::Texture);
 
 				returnParamDesc.samplers.insert(std::make_pair(paramName, samplerParam));
 				returnParamDesc.textures.insert(std::make_pair(paramName, textureParam));
@@ -539,7 +539,7 @@ namespace bs { namespace ct
 				textureParam.name = paramName;
 				textureParam.type = textureType;
 				textureParam.slot = glGetUniformLocation(glProgram, uniformName);
-				textureParam.set = mapParameterToSet(type, ParamType::Image);
+				textureParam.set = MapParameterToSet(type, ParamType::Image);
 
 				returnParamDesc.loadStoreTextures.insert(std::make_pair(paramName, textureParam));
 
@@ -551,7 +551,7 @@ namespace bs { namespace ct
 				bufferParam.name = paramName;
 				bufferParam.type = GPOT_BYTE_BUFFER;
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
-				bufferParam.set = mapParameterToSet(type, ParamType::Texture);
+				bufferParam.set = MapParameterToSet(type, ParamType::Texture);
 
 				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
 
@@ -563,7 +563,7 @@ namespace bs { namespace ct
 				bufferParam.name = paramName;
 				bufferParam.type = GPOT_RWBYTE_BUFFER;
 				bufferParam.slot = glGetUniformLocation(glProgram, uniformName);
-				bufferParam.set = mapParameterToSet(type, ParamType::Image);
+				bufferParam.set = MapParameterToSet(type, ParamType::Image);
 
 				returnParamDesc.buffers.insert(std::make_pair(paramName, bufferParam));
 
@@ -587,7 +587,7 @@ namespace bs { namespace ct
 				else
 					gpuParam.name = paramName;
 
-				determineParamInfo(gpuParam, paramName, glProgram, index);
+				DetermineParamInfo(gpuParam, paramName, glProgram, index);
 
 				if (blockIndex != -1)
 				{
@@ -602,7 +602,7 @@ namespace bs { namespace ct
 					GpuParamBlockDesc& curBlockDesc = returnParamDesc.paramBlocks[blockName];
 
 					gpuParam.paramBlockSlot = curBlockDesc.slot;
-					gpuParam.paramBlockSet = mapParameterToSet(type, ParamType::UniformBlock);
+					gpuParam.paramBlockSet = MapParameterToSet(type, ParamType::UniformBlock);
 					gpuParam.cpuMemOffset = blockOffset;
 					curBlockDesc.blockSize = std::max(curBlockDesc.blockSize, gpuParam.cpuMemOffset + gpuParam.arrayElementStride * gpuParam.arraySize);
 
@@ -612,7 +612,7 @@ namespace bs { namespace ct
 				{
 					gpuParam.gpuMemOffset = glGetUniformLocation(glProgram, uniformName);
 					gpuParam.paramBlockSlot = 0;
-					gpuParam.paramBlockSet = mapParameterToSet(type, ParamType::UniformBlock);
+					gpuParam.paramBlockSet = MapParameterToSet(type, ParamType::UniformBlock);
 					gpuParam.cpuMemOffset = globalBlockDesc.blockSize;
 
 					globalBlockDesc.blockSize = std::max(globalBlockDesc.blockSize, gpuParam.cpuMemOffset + gpuParam.arrayElementStride * gpuParam.arraySize);

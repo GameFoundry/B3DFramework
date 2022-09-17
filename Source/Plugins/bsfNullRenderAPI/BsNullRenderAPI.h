@@ -86,16 +86,16 @@ namespace bs { namespace ct
 		void SwapBuffers(const SPtr<RenderTarget>& target, UINT32 syncMask = 0xFFFFFFFF) override { }
 
 		/** @copydoc RenderAPI::addCommands() */
-		void addCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) override { }
+		void AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) { }
 
 		/** @copydoc RenderAPI::submitCommandBuffer() */
-		void submitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask = 0xFFFFFFFF) override { }
+		void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, UINT32 syncMask = 0xFFFFFFFF) { }
 
 		/** @copydoc RenderAPI::convertProjectionMatrix */
 		void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
 
 		/** @copydoc RenderAPI::generateParamBlockDesc() */
-		GpuParamBlockDesc generateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params) override ;
+		GpuParamBlockDesc GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params) ;
 
 	protected:
 		friend class NullRenderAPIFactory;
@@ -104,12 +104,12 @@ namespace bs { namespace ct
 		void Initialize() override;
 
 		/** @copydoc RenderAPI::initializeWithWindow */
-		void initializeWithWindow(const SPtr<RenderWindow>& primaryWindow) override;
+		void InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow) ;
 
 		/** @copydoc RenderAPI::destroyCore */
 		void DestroyCore() override;
 	public:
-		SPtr<CommandBuffer> getMainCommandBuffer() const override { return nullptr; }
+		SPtr<CommandBuffer> GetMainCommandBuffer() const { return nullptr; }
 	protected:
 		NullProgramFactory* mNullProgramFactory = nullptr;
 	};

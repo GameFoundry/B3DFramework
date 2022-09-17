@@ -85,7 +85,7 @@ namespace bs
 	bool ScriptCHingeJoint::InternalHasFlag(ScriptCHingeJoint* thisPtr, HingeJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->hasFlag(flag);
+		tmp__output = thisPtr->GetHandle()->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

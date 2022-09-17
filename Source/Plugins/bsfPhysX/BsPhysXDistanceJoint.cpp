@@ -59,7 +59,7 @@ namespace bs
 		if (((UINT32)desc.flag & (UINT32)DistanceJointFlag::Spring) != 0)
 			flags |= PxDistanceJointFlag::eSPRING_ENABLED;
 
-		joint->SetDistanceJointFlags(flags);
+		joint->setDistanceJointFlags(flags);
 	}
 
 	PhysXDistanceJoint::~PhysXDistanceJoint()
@@ -69,61 +69,61 @@ namespace bs
 
 	float PhysXDistanceJoint::GetDistance() const
 	{
-		return GetInternal()->GetDistance();
+		return GetInternal()->getDistance();
 	}
 
 	float PhysXDistanceJoint::GetMinDistance() const
 	{
-		return GetInternal()->GetMinDistance();
+		return GetInternal()->getMinDistance();
 	}
 
 	void PhysXDistanceJoint::SetMinDistance(float value)
 	{
-		GetInternal()->SetMinDistance(value);
+		GetInternal()->setMinDistance(value);
 	}
 
 	float PhysXDistanceJoint::GetMaxDistance() const
 	{
-		return GetInternal()->GetMaxDistance();
+		return GetInternal()->getMaxDistance();
 	}
 
 	void PhysXDistanceJoint::SetMaxDistance(float value)
 	{
-		GetInternal()->SetMaxDistance(value);
+		GetInternal()->setMaxDistance(value);
 	}
 
 	float PhysXDistanceJoint::GetTolerance() const
 	{
-		return GetInternal()->GetTolerance();
+		return GetInternal()->getTolerance();
 	}
 
 	void PhysXDistanceJoint::SetTolerance(float value)
 	{
-		GetInternal()->SetTolerance(value);
+		GetInternal()->setTolerance(value);
 	}
 
 	Spring PhysXDistanceJoint::GetSpring() const
 	{
-		float damping = getInternal()->GetDamping();
-		float stiffness = getInternal()->GetStiffness();
+		float damping = GetInternal()->getDamping();
+		float stiffness = GetInternal()->getStiffness();
 
 		return Spring(stiffness, damping);
 	}
 
 	void PhysXDistanceJoint::SetSpring(const Spring& value)
 	{
-		getInternal()->SetDamping(value.damping);
-		getInternal()->SetStiffness(value.stiffness);
+		GetInternal()->setDamping(value.damping);
+		GetInternal()->setStiffness(value.stiffness);
 	}
 
 	void PhysXDistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
 	{
-		getInternal()->SetDistanceJointFlag(toPxFlag(flag), enabled);
+		GetInternal()->setDistanceJointFlag(toPxFlag(flag), enabled);
 	}
 
 	bool PhysXDistanceJoint::HasFlag(DistanceJointFlag flag) const
 	{
-		return getInternal()->GetDistanceJointFlags() & toPxFlag(flag);
+		return GetInternal()->getDistanceJointFlags() & toPxFlag(flag);
 	}
 
 	PxDistanceJoint* PhysXDistanceJoint::GetInternal() const

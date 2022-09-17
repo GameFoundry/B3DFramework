@@ -55,7 +55,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		mDesc.ByteWidth = getSize();
+		mDesc.ByteWidth = GetSize();
 		mDesc.MiscFlags = 0;
 		mDesc.StructureByteStride = 0;
 
@@ -67,8 +67,8 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			mDesc.Usage = D3D11Mappings::getUsage(usage);
-			mDesc.CPUAccessFlags = D3D11Mappings::getAccessFlags(usage);
+			mDesc.Usage = D3D11Mappings::GetUsage(usage);
+			mDesc.CPUAccessFlags = D3D11Mappings::GetAccessFlags(usage);
 
 			switch(btype)
 			{
@@ -107,10 +107,10 @@ namespace bs { namespace ct
 				mDesc.BindFlags |= D3D11_BIND_STREAM_OUTPUT;
 		}
 
-		HRESULT hr = device.getD3D11Device()->CreateBuffer(&mDesc, nullptr, &mD3DBuffer);
-		if (FAILED(hr) || mDevice.hasError())
+		HRESULT hr = device.GetD3D11Device()->CreateBuffer(&mDesc, nullptr, &mD3DBuffer);
+		if (FAILED(hr) || mDevice.HasError())
 		{
-			String msg = device.getErrorDescription();
+			String msg = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create D3D11 buffer: " + msg);
 		}
 	}
@@ -153,7 +153,7 @@ namespace bs { namespace ct
 					mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 				else
 				{
-					const auto& featureOptions = mDevice.getFeatureOptions();
+					const auto& featureOptions = mDevice.GetFeatureOptions();
 
 					if(mBufferType == BT_CONSTANT && featureOptions.MapNoOverwriteOnDynamicConstantBuffer)
 						mapType = D3D11_MAP_WRITE_NO_OVERWRITE;
@@ -187,20 +187,20 @@ namespace bs { namespace ct
 				break;
 			}
 
-			if(D3D11Mappings::isMappingRead(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) == 0)
+			if(D3D11Mappings::IsMappingRead(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) == 0)
 				BS_LOG(Error, RenderBackend, "Trying to read a buffer, but buffer wasn't created with a read access flag.");
 
-			if(D3D11Mappings::isMappingWrite(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == 0)
+			if(D3D11Mappings::IsMappingWrite(mapType) && (mDesc.CPUAccessFlags & D3D11_CPU_ACCESS_WRITE) == 0)
 				BS_LOG(Error, RenderBackend, "Trying to write to a buffer, but buffer wasn't created with a write access flag.");
 
 			D3D11_MAPPED_SUBRESOURCE mappedSubResource;
 			mappedSubResource.pData = nullptr;
-			mDevice.clearErrors();
+			mDevice.ClearErrors();
 
-			HRESULT hr = mDevice.getImmediateContext()->Map(mD3DBuffer, 0, mapType, 0, &mappedSubResource);
-			if (FAILED(hr) || mDevice.hasError())
+			HRESULT hr = mDevice.GetImmediateContext()->Map(mD3DBuffer, 0, mapType, 0, &mappedSubResource);
+			if (FAILED(hr) || mDevice.HasError())
 			{
-				String msg = mDevice.getErrorDescription();
+				String msg = mDevice.GetErrorDescription();
 				BS_EXCEPT(RenderingAPIException, "Error calling Map: " + msg);
 			}
 
@@ -217,12 +217,12 @@ namespace bs { namespace ct
 
 			// Schedule a copy to the staging
 			if (options == GBL_READ_ONLY || options == GBL_READ_WRITE)
-				mpTempStagingBuffer->copyData(*this, 0, 0, mSize, true);
+				mpTempStagingBuffer->CopyData(*this, 0, 0, mSize, true);
 
 			// Register whether we'll need to upload on unlock
 			mStagingUploadNeeded = (options != GBL_READ_ONLY);
 
-			return mpTempStagingBuffer->lock(offset, length, options);
+			return mpTempStagingBuffer->Lock(offset, length, options);
 		}
 	}
 
@@ -232,10 +232,10 @@ namespace bs { namespace ct
 		{
 			mUseTempStagingBuffer = false;
 
-			mpTempStagingBuffer->unlock();
+			mpTempStagingBuffer->Unlock();
 
 			if (mStagingUploadNeeded)
-				copyData(*mpTempStagingBuffer, 0, 0, mSize, true);
+				CopyData(*mpTempStagingBuffer, 0, 0, mSize, true);
 
 			if(mpTempStagingBuffer != nullptr)
 			{
@@ -245,7 +245,7 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			mDevice.getImmediateContext()->Unmap(mD3DBuffer, 0);
+			mDevice.GetImmediateContext()->Unmap(mD3DBuffer, 0);
 		}
 	}
 
@@ -256,13 +256,13 @@ namespace bs { namespace ct
 		{
 			// If we're copying same-size buffers in their entirety
 			if (srcOffset == 0 && dstOffset == 0 &&
-				length == mSize && mSize == srcBuffer.getSize())
+				length == mSize && mSize == srcBuffer.GetSize())
 			{
-				mDevice.getImmediateContext()->CopyResource(mD3DBuffer,
-					static_cast<D3D11HardwareBuffer&>(srcBuffer).getD3DBuffer());
-				if (mDevice.hasError())
+				mDevice.GetImmediateContext()->CopyResource(mD3DBuffer,
+					static_cast<D3D11HardwareBuffer&>(srcBuffer).GetD3DBuffer());
+				if (mDevice.HasError())
 				{
-					String errorDescription = mDevice.getErrorDescription();
+					String errorDescription = mDevice.GetErrorDescription();
 					BS_EXCEPT(RenderingAPIException, "Cannot copy D3D11 resource\nError Description:" + errorDescription);
 				}
 			}
@@ -277,11 +277,11 @@ namespace bs { namespace ct
 				srcBox.front = 0;
 				srcBox.back = 1;
 
-				mDevice.getImmediateContext()->CopySubresourceRegion(mD3DBuffer, 0, (UINT)dstOffset, 0, 0,
-					static_cast<D3D11HardwareBuffer&>(srcBuffer).getD3DBuffer(), 0, &srcBox);
-				if (mDevice.hasError())
+				mDevice.GetImmediateContext()->CopySubresourceRegion(mD3DBuffer, 0, (UINT)dstOffset, 0, 0,
+					static_cast<D3D11HardwareBuffer&>(srcBuffer).GetD3DBuffer(), 0, &srcBox);
+				if (mDevice.HasError())
 				{
-					String errorDescription = mDevice.getErrorDescription();
+					String errorDescription = mDevice.GetErrorDescription();
 					BS_EXCEPT(RenderingAPIException, "Cannot copy D3D11 subresource region\nError Description:" +
 						errorDescription);
 				}
@@ -302,9 +302,9 @@ namespace bs { namespace ct
 	void D3D11HardwareBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
 		// There is no functional interface in D3D, just do via manual lock, copy & unlock
-		void* pSrc = this->lock(offset, length, GBL_READ_ONLY);
+		void* pSrc = this->Lock(offset, length, GBL_READ_ONLY);
 		memcpy(dest, pSrc, length);
-		this->unlock();
+		this->Unlock();
 	}
 
 	void D3D11HardwareBuffer::WriteData(UINT32 offset, UINT32 length, const void* pSource, BufferWriteType writeFlags,
@@ -318,16 +318,16 @@ namespace bs { namespace ct
 			else if(writeFlags == BTW_NO_OVERWRITE)
 				lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
-			void* pDst = this->lock(offset, length, lockOption);
+			void* pDst = this->Lock(offset, length, lockOption);
 			memcpy(pDst, pSource, length);
-			this->unlock();
+			this->Unlock();
 		}
 		else if(mDesc.Usage == D3D11_USAGE_DEFAULT)
 		{
 			if (mBufferType == BT_CONSTANT)
 			{
 				assert(offset == 0);
-				mDevice.getImmediateContext()->UpdateSubresource(mD3DBuffer, 0, nullptr, pSource, 0, 0);
+				mDevice.GetImmediateContext()->UpdateSubresource(mD3DBuffer, 0, nullptr, pSource, 0, 0);
 			}
 			else
 			{
@@ -339,7 +339,7 @@ namespace bs { namespace ct
 				dstBox.front = 0;
 				dstBox.back = 1;
 
-				mDevice.getImmediateContext()->UpdateSubresource(mD3DBuffer, 0, &dstBox, pSource, 0, 0);
+				mDevice.GetImmediateContext()->UpdateSubresource(mD3DBuffer, 0, &dstBox, pSource, 0, 0);
 			}
 		}
 		else

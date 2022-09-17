@@ -56,10 +56,10 @@ namespace bs
 		void RenderAll(PerFrameData perFrameData) override;
 
 		/**	Sets options used for controlling the rendering. */
-		void setOptions(const SPtr<RendererOptions>& options) override;
+		void SetOptions(const SPtr<RendererOptions>& options) ;
 
 		/**	Returns current set of options used for controlling the rendering. */
-		SPtr<RendererOptions> getOptions() const override;
+		SPtr<RendererOptions> GetOptions() const ;
 
 		/** Returns the feature set the renderer is operating on. Core thread only. */
 		RenderBeastFeatureSet GetFeatureSet() const { return mFeatureSet; }
@@ -71,14 +71,14 @@ namespace bs
 		void Destroy() override;
 
 		/** @copydoc Renderer::captureSceneCubeMap */
-		void captureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position,
-			const CaptureSettings& settings) override;
+		void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position,
+			const CaptureSettings& settings) ;
 
 		/** @copydoc Renderer::getShaderExtensionPointInfo */
 		ShaderExtensionPointInfo GetShaderExtensionPointInfo(const String& name) override;
 
 		/** @copydoc Renderer::setGlobalShaderOverride */
-		void setGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader) override;
+		void SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader) ;
 
 	private:
 		/** @copydoc Renderer::notifyCameraAdded */

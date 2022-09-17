@@ -14,34 +14,34 @@ namespace bs { namespace ct
 		const Matrix4& prevTfrm, UINT32 layer)
 	{
 		gPerObjectParamDef.gMatWorld.Set(buffer, tfrm);
-		gPerObjectParamDef.gMatInvWorld.Set(buffer, tfrm.inverseAffine());
+		gPerObjectParamDef.gMatInvWorld.Set(buffer, tfrm.InverseAffine());
 		gPerObjectParamDef.gMatWorldNoScale.Set(buffer, tfrmNoScale);
-		gPerObjectParamDef.gMatInvWorldNoScale.Set(buffer, tfrmNoScale.inverseAffine());
+		gPerObjectParamDef.gMatInvWorldNoScale.Set(buffer, tfrmNoScale.InverseAffine());
 		gPerObjectParamDef.gMatPrevWorld.Set(buffer, prevTfrm);
-		gPerObjectParamDef.gWorldDeterminantSign.Set(buffer, tfrm.determinant3x3() >= 0.0f ? 1.0f : -1.0f);
+		gPerObjectParamDef.gWorldDeterminantSign.Set(buffer, tfrm.Determinant3x3() >= 0.0f ? 1.0f : -1.0f);
 		gPerObjectParamDef.gLayer.Set(buffer, (INT32)layer);
 	}
 
 	void RenderableElement::Draw() const
 	{
 		if (morphVertexDeclaration == nullptr)
-			gRendererUtility().draw(mesh, subMesh);
+			gRendererUtility().Draw(mesh, subMesh);
 		else
-			gRendererUtility().drawMorph(mesh, subMesh, morphShapeBuffer, morphVertexDeclaration);
+			gRendererUtility().DrawMorph(mesh, subMesh, morphShapeBuffer, morphVertexDeclaration);
 	}
 
 	RendererRenderable::RendererRenderable()
 	{
-		perObjectParamBuffer = gPerObjectParamDef.createBuffer();
-		perCallParamBuffer = gPerCallParamDef.createBuffer();
+		perObjectParamBuffer = gPerObjectParamDef.CreateBuffer();
+		perCallParamBuffer = gPerCallParamDef.CreateBuffer();
 	}
 
 	void RendererRenderable::UpdatePerObjectBuffer()
 	{
 		const Matrix4 worldNoScaleTransform = renderable->GetMatrixNoScale();
-		const UINT32 layer = Bitwise::mostSignificantBit(renderable->GetLayer());
+		const UINT32 layer = Bitwise::MostSignificantBit(renderable->GetLayer());
 
-		PerObjectBuffer::update(perObjectParamBuffer, worldTfrm, worldNoScaleTransform, prevWorldTfrm, layer);
+		PerObjectBuffer::Update(perObjectParamBuffer, worldTfrm, worldNoScaleTransform, prevWorldTfrm, layer);
 	}
 
 	void RendererRenderable::UpdatePerCallBuffer(const Matrix4& viewProj, bool flush)
@@ -51,6 +51,6 @@ namespace bs { namespace ct
 		gPerCallParamDef.gMatWorldViewProj.Set(perCallParamBuffer, worldViewProjMatrix);
 
 		if(flush)
-			perCallParamBuffer->flushToGPU();
+			perCallParamBuffer->FlushToGpu();
 	}
 }}

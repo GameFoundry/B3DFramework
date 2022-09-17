@@ -151,17 +151,17 @@ namespace bs { namespace ct
 		mViewportInfo.pViewports = nullptr; // Dynamic
 		mViewportInfo.pScissors = nullptr; // Dynamic
 
-		RasterizerState* rasterizerState = getRasterizerState().get();
+		RasterizerState* rasterizerState = GetRasterizerState().get();
 		if (rasterizerState == nullptr)
-			rasterizerState = RasterizerState::getDefault().get();
+			rasterizerState = RasterizerState::GetDefault().get();
 
-		BlendState* blendState = getBlendState().get();
+		BlendState* blendState = GetBlendState().get();
 		if (blendState == nullptr)
-			blendState = BlendState::getDefault().get();
+			blendState = BlendState::GetDefault().get();
 
-		DepthStencilState* depthStencilState = getDepthStencilState().get();
+		DepthStencilState* depthStencilState = GetDepthStencilState().get();
 		if (depthStencilState == nullptr)
-			depthStencilState = DepthStencilState::getDefault().get();
+			depthStencilState = DepthStencilState::GetDefault().get();
 
 		const RasterizerProperties& rstProps = rasterizerState->GetProperties();
 		const BlendProperties& blendProps = blendState->GetProperties();
@@ -170,15 +170,15 @@ namespace bs { namespace ct
 		mRasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		mRasterizationInfo.pNext = nullptr;
 		mRasterizationInfo.flags = 0;
-		mRasterizationInfo.depthClampEnable = !rstProps.getDepthClipEnable();
+		mRasterizationInfo.depthClampEnable = !rstProps.GetDepthClipEnable();
 		mRasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
-		mRasterizationInfo.polygonMode = VulkanUtility::getPolygonMode(rstProps.getPolygonMode());
-		mRasterizationInfo.cullMode = VulkanUtility::getCullMode(rstProps.getCullMode());
+		mRasterizationInfo.polygonMode = VulkanUtility::GetPolygonMode(rstProps.GetPolygonMode());
+		mRasterizationInfo.cullMode = VulkanUtility::GetCullMode(rstProps.GetCullMode());
 		mRasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		mRasterizationInfo.depthBiasEnable = rstProps.getDepthBias() != 0.0f;
-		mRasterizationInfo.depthBiasConstantFactor = rstProps.getDepthBias();
-		mRasterizationInfo.depthBiasSlopeFactor = rstProps.getSlopeScaledDepthBias();
-		mRasterizationInfo.depthBiasClamp = mRasterizationInfo.depthClampEnable ? rstProps.getDepthBiasClamp() : 0.0f;
+		mRasterizationInfo.depthBiasEnable = rstProps.GetDepthBias() != 0.0f;
+		mRasterizationInfo.depthBiasConstantFactor = rstProps.GetDepthBias();
+		mRasterizationInfo.depthBiasSlopeFactor = rstProps.GetSlopeScaledDepthBias();
+		mRasterizationInfo.depthBiasClamp = mRasterizationInfo.depthClampEnable ? rstProps.GetDepthBiasClamp() : 0.0f;
 		mRasterizationInfo.lineWidth = 1.0f;
 
 		mMultiSampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -188,26 +188,26 @@ namespace bs { namespace ct
 		mMultiSampleInfo.sampleShadingEnable = VK_FALSE; // When enabled, perform shading per sample instead of per pixel (more expensive, essentially FSAA)
 		mMultiSampleInfo.minSampleShading = 1.0f; // Minimum percent of samples to run full shading for when sampleShadingEnable is enabled (1.0f to run for all)
 		mMultiSampleInfo.pSampleMask = nullptr; // Normally one bit for each sample: e.g. 0x0000000F to enable all samples in a 4-sample setup
-		mMultiSampleInfo.alphaToCoverageEnable = blendProps.getAlphaToCoverageEnabled();
+		mMultiSampleInfo.alphaToCoverageEnable = blendProps.GetAlphaToCoverageEnabled();
 		mMultiSampleInfo.alphaToOneEnable = VK_FALSE;
 
 		VkStencilOpState stencilFrontInfo;
-		stencilFrontInfo.compareOp = VulkanUtility::getCompareOp(dsProps.getStencilFrontCompFunc());
-		stencilFrontInfo.depthFailOp = VulkanUtility::getStencilOp(dsProps.getStencilFrontZFailOp());
-		stencilFrontInfo.passOp = VulkanUtility::getStencilOp(dsProps.getStencilFrontPassOp());
-		stencilFrontInfo.failOp = VulkanUtility::getStencilOp(dsProps.getStencilFrontFailOp());
+		stencilFrontInfo.compareOp = VulkanUtility::GetCompareOp(dsProps.GetStencilFrontCompFunc());
+		stencilFrontInfo.depthFailOp = VulkanUtility::GetStencilOp(dsProps.GetStencilFrontZFailOp());
+		stencilFrontInfo.passOp = VulkanUtility::GetStencilOp(dsProps.GetStencilFrontPassOp());
+		stencilFrontInfo.failOp = VulkanUtility::GetStencilOp(dsProps.GetStencilFrontFailOp());
 		stencilFrontInfo.reference = 0; // Dynamic
-		stencilFrontInfo.compareMask = (UINT32)dsProps.getStencilReadMask();
-		stencilFrontInfo.writeMask = (UINT32)dsProps.getStencilWriteMask();
+		stencilFrontInfo.compareMask = (UINT32)dsProps.GetStencilReadMask();
+		stencilFrontInfo.writeMask = (UINT32)dsProps.GetStencilWriteMask();
 
 		VkStencilOpState stencilBackInfo;
-		stencilBackInfo.compareOp = VulkanUtility::getCompareOp(dsProps.getStencilBackCompFunc());
-		stencilBackInfo.depthFailOp = VulkanUtility::getStencilOp(dsProps.getStencilBackZFailOp());
-		stencilBackInfo.passOp = VulkanUtility::getStencilOp(dsProps.getStencilBackPassOp());
-		stencilBackInfo.failOp = VulkanUtility::getStencilOp(dsProps.getStencilBackFailOp());
+		stencilBackInfo.compareOp = VulkanUtility::GetCompareOp(dsProps.GetStencilBackCompFunc());
+		stencilBackInfo.depthFailOp = VulkanUtility::GetStencilOp(dsProps.GetStencilBackZFailOp());
+		stencilBackInfo.passOp = VulkanUtility::GetStencilOp(dsProps.GetStencilBackPassOp());
+		stencilBackInfo.failOp = VulkanUtility::GetStencilOp(dsProps.GetStencilBackFailOp());
 		stencilBackInfo.reference = 0; // Dynamic
-		stencilBackInfo.compareMask = (UINT32)dsProps.getStencilReadMask();
-		stencilBackInfo.writeMask = (UINT32)dsProps.getStencilWriteMask();
+		stencilBackInfo.compareMask = (UINT32)dsProps.GetStencilReadMask();
+		stencilBackInfo.writeMask = (UINT32)dsProps.GetStencilWriteMask();
 
 		mDepthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		mDepthStencilInfo.pNext = nullptr;
@@ -215,28 +215,28 @@ namespace bs { namespace ct
 		mDepthStencilInfo.depthBoundsTestEnable = false;
 		mDepthStencilInfo.minDepthBounds = 0.0f;
 		mDepthStencilInfo.maxDepthBounds = 1.0f;
-		mDepthStencilInfo.depthTestEnable = dsProps.getDepthReadEnable();
-		mDepthStencilInfo.depthWriteEnable = dsProps.getDepthWriteEnable();
-		mDepthStencilInfo.depthCompareOp = VulkanUtility::getCompareOp(dsProps.getDepthComparisonFunc());
+		mDepthStencilInfo.depthTestEnable = dsProps.GetDepthReadEnable();
+		mDepthStencilInfo.depthWriteEnable = dsProps.GetDepthWriteEnable();
+		mDepthStencilInfo.depthCompareOp = VulkanUtility::GetCompareOp(dsProps.GetDepthComparisonFunc());
 		mDepthStencilInfo.front = stencilFrontInfo;
 		mDepthStencilInfo.back = stencilBackInfo;
-		mDepthStencilInfo.stencilTestEnable = dsProps.getStencilEnable();
+		mDepthStencilInfo.stencilTestEnable = dsProps.GetStencilEnable();
 
 		for(UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
 			UINT32 rtIdx = 0;
-			if (blendProps.getIndependantBlendEnable())
+			if (blendProps.GetIndependantBlendEnable())
 				rtIdx = i;
 
 			VkPipelineColorBlendAttachmentState& blendState = mAttachmentBlendStates[i];
-			blendState.blendEnable = blendProps.getBlendEnabled(rtIdx);
-			blendState.colorBlendOp = VulkanUtility::getBlendOp(blendProps.getBlendOperation(rtIdx));
-			blendState.srcColorBlendFactor = VulkanUtility::getBlendFactor(blendProps.getSrcBlend(rtIdx));
-			blendState.dstColorBlendFactor = VulkanUtility::getBlendFactor(blendProps.getDstBlend(rtIdx));
-			blendState.alphaBlendOp = VulkanUtility::getBlendOp(blendProps.getAlphaBlendOperation(rtIdx));
-			blendState.srcAlphaBlendFactor = VulkanUtility::getBlendFactor(blendProps.getAlphaSrcBlend(rtIdx));
-			blendState.dstAlphaBlendFactor = VulkanUtility::getBlendFactor(blendProps.getAlphaDstBlend(rtIdx));
-			blendState.colorWriteMask = blendProps.getRenderTargetWriteMask(rtIdx) & 0xF;
+			blendState.blendEnable = blendProps.GetBlendEnabled(rtIdx);
+			blendState.colorBlendOp = VulkanUtility::GetBlendOp(blendProps.GetBlendOperation(rtIdx));
+			blendState.srcColorBlendFactor = VulkanUtility::GetBlendFactor(blendProps.GetSrcBlend(rtIdx));
+			blendState.dstColorBlendFactor = VulkanUtility::GetBlendFactor(blendProps.GetDstBlend(rtIdx));
+			blendState.alphaBlendOp = VulkanUtility::GetBlendOp(blendProps.GetAlphaBlendOperation(rtIdx));
+			blendState.srcAlphaBlendFactor = VulkanUtility::GetBlendFactor(blendProps.GetAlphaSrcBlend(rtIdx));
+			blendState.dstAlphaBlendFactor = VulkanUtility::GetBlendFactor(blendProps.GetAlphaDstBlend(rtIdx));
+			blendState.colorWriteMask = blendProps.GetRenderTargetWriteMask(rtIdx) & 0xF;
 		}
 
 		mColorBlendStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -284,7 +284,7 @@ namespace bs { namespace ct
 		mPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		mPipelineInfo.basePipelineIndex = -1;
 
-		mScissorEnabled = rstProps.getScissorEnable();
+		mScissorEnabled = rstProps.GetScissorEnable();
 
 		if(mData.vertexProgram != nullptr)
 			mVertexDecl = mData.vertexProgram->GetInputDeclaration();
@@ -292,7 +292,7 @@ namespace bs { namespace ct
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 
 		VulkanDevice* devices[BS_MAX_DEVICES];
-		VulkanUtility::getDevices(rapi, mDeviceMask, devices);
+		VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -304,13 +304,13 @@ namespace bs { namespace ct
 			VulkanDescriptorManager& descManager = mPerDeviceData[i].device->GetDescriptorManager();
 			VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
-			UINT32 numLayouts = vkParamInfo.getNumSets();
+			UINT32 numLayouts = vkParamInfo.GetNumSets();
 			VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
 			for (UINT32 j = 0; j < numLayouts; j++)
-				layouts[j] = vkParamInfo.getLayout(i, j);
+				layouts[j] = vkParamInfo.GetLayout(i, j);
 
-			mPerDeviceData[i].pipelineLayout = descManager.getPipelineLayout(layouts, numLayouts);
+			mPerDeviceData[i].pipelineLayout = descManager.GetPipelineLayout(layouts, numLayouts);
 
 			bs_stack_free(layouts);
 		}
@@ -335,7 +335,7 @@ namespace bs { namespace ct
 		if (iterFind != perDeviceData.pipelines.end())
 			return iterFind->second;
 
-		VulkanPipeline* newPipeline = createPipeline(deviceIdx, renderPass, readOnlyFlags, drawOp, vertexInput);
+		VulkanPipeline* newPipeline = CreatePipeline(deviceIdx, renderPass, readOnlyFlags, drawOp, vertexInput);
 		perDeviceData.pipelines[key] = newPipeline;
 
 		return newPipeline;
@@ -365,7 +365,7 @@ namespace bs { namespace ct
 				VulkanShaderModule* module = entry->GetShaderModule(deviceIdx);
 
 				if(module != nullptr)
-					cmdBuffer->registerResource(module, VulkanAccessFlag::Read);
+					cmdBuffer->RegisterResource(module, VulkanAccessFlag::Read);
 			}
 		}
 	}
@@ -373,17 +373,17 @@ namespace bs { namespace ct
 	VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(UINT32 deviceIdx, VulkanRenderPass* renderPass,
 		UINT32 readOnlyFlags, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput)
 	{
-		mInputAssemblyInfo.topology = VulkanUtility::getDrawOp(drawOp);
+		mInputAssemblyInfo.topology = VulkanUtility::GetDrawOp(drawOp);
 		mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now
 		mMultiSampleInfo.rasterizationSamples = renderPass->GetSampleFlags();
 		mColorBlendStateInfo.attachmentCount = renderPass->GetNumColorAttachments();
 
-		DepthStencilState* dsState = getDepthStencilState().get();
+		DepthStencilState* dsState = GetDepthStencilState().get();
 		if (dsState == nullptr)
-			dsState = DepthStencilState::getDefault().get();
+			dsState = DepthStencilState::GetDefault().get();
 
 		const DepthStencilProperties dsProps = dsState->GetProperties();
-		bool enableDepthWrites = dsProps.getDepthWriteEnable() && (readOnlyFlags & FBT_DEPTH) == 0;
+		bool enableDepthWrites = dsProps.GetDepthWriteEnable() && (readOnlyFlags & FBT_DEPTH) == 0;
 
 		mDepthStencilInfo.depthWriteEnable = enableDepthWrites; // If depth stencil attachment is read only, depthWriteEnable must be VK_FALSE
 
@@ -416,7 +416,7 @@ namespace bs { namespace ct
 		mPipelineInfo.pVertexInputState = vertexInput->GetCreateInfo();
 
 		bool depthReadOnly;
-		if (renderPass->hasDepthAttachment())
+		if (renderPass->HasDepthAttachment())
 		{
 			mPipelineInfo.pDepthStencilState = &mDepthStencilInfo;
 			depthReadOnly = (readOnlyFlags & FBT_DEPTH) != 0;
@@ -491,7 +491,7 @@ namespace bs { namespace ct
 		mDepthStencilInfo.back.failOp = oldBackFailOp;
 		mDepthStencilInfo.back.depthFailOp = oldBackZFailOp;
 
-		return device->GetResourceManager().create<VulkanPipeline>(pipeline, colorReadOnly, depthReadOnly);
+		return device->GetResourceManager().Create<VulkanPipeline>(pipeline, colorReadOnly, depthReadOnly);
 	}
 
 	VulkanComputePipelineState::VulkanComputePipelineState(const SPtr<GpuProgram>& program,
@@ -518,7 +518,7 @@ namespace bs { namespace ct
 
 		// This might happen fairly often if shaders with unsupported languages are loaded, in which case the pipeline
 		// will never get used, and its fine not to initialize it.
-		if (!mProgram->isCompiled())
+		if (!mProgram->IsCompiled())
 			return;
 
 		VulkanGpuProgram* vkProgram = static_cast<VulkanGpuProgram*>(mProgram.get());
@@ -543,7 +543,7 @@ namespace bs { namespace ct
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 
 		VulkanDevice* devices[BS_MAX_DEVICES];
-		VulkanUtility::getDevices(rapi, mDeviceMask, devices);
+		VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -556,11 +556,11 @@ namespace bs { namespace ct
 			VulkanResourceManager& rescManager = devices[i]->GetResourceManager();
 			VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
-			UINT32 numLayouts = vkParamInfo.getNumSets();
+			UINT32 numLayouts = vkParamInfo.GetNumSets();
 			VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
 			for (UINT32 j = 0; j < numLayouts; j++)
-				layouts[j] = vkParamInfo.getLayout(i, j);
+				layouts[j] = vkParamInfo.GetLayout(i, j);
 
 			VulkanShaderModule* module = vkProgram->GetShaderModule(i);
 
@@ -569,7 +569,7 @@ namespace bs { namespace ct
 			else
 				pipelineCI.stage.module = VK_NULL_HANDLE;
 
-			pipelineCI.layout = descManager.getPipelineLayout(layouts, numLayouts);
+			pipelineCI.layout = descManager.GetPipelineLayout(layouts, numLayouts);
 
 			VkPipeline pipeline;
 			VkResult result = vkCreateComputePipelines(devices[i]->GetLogical(), VK_NULL_HANDLE, 1, &pipelineCI,
@@ -577,7 +577,7 @@ namespace bs { namespace ct
 			assert(result == VK_SUCCESS);
 
 
-			mPerDeviceData[i].pipeline = rescManager.create<VulkanPipeline>(pipeline);
+			mPerDeviceData[i].pipeline = rescManager.Create<VulkanPipeline>(pipeline);
 			mPerDeviceData[i].pipelineLayout = pipelineCI.layout;
 			bs_stack_free(layouts);
 		}
@@ -605,7 +605,7 @@ namespace bs { namespace ct
 			VulkanShaderModule* module = program->GetShaderModule(deviceIdx);
 
 			if (module != nullptr)
-				cmdBuffer->registerResource(module, VulkanAccessFlag::Read);
+				cmdBuffer->RegisterResource(module, VulkanAccessFlag::Read);
 		}
 	}
 }}

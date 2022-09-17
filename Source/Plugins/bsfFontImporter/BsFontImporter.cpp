@@ -27,7 +27,7 @@ namespace bs
 	bool FontImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
@@ -56,17 +56,17 @@ namespace bs
 		FT_Face face;
 
 		{
-			Lock fileLock = FileScheduler::getLock(filePath);
-			error = FT_New_Face(library, filePath.toString().c_str(), 0, &face);
+			Lock fileLock = FileScheduler::GetLock(filePath);
+			error = FT_New_Face(library, filePath.ToString().c_str(), 0, &face);
 		}
 
 		if (error == FT_Err_Unknown_File_Format)
 		{
-			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.toString() + ". Unsupported file format.");
+			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unsupported file format.");
 		}
 		else if (error)
 		{
-			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.toString() + ". Unknown error.");
+			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unknown error.");
 		}
 
 		Vector<CharRange> charIndexRanges = fontImportOptions->charIndexRanges;
@@ -171,7 +171,7 @@ namespace bs
 			}
 
 			// Create an optimal layout for character bitmaps
-			Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::createAtlasLayout(atlasElements, 64, 64,
+			Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::CreateAtlasLayout(atlasElements, 64, 64,
 				MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE, true);
 
 			INT32 baselineOffset = 0;
@@ -186,7 +186,7 @@ namespace bs
 				// TODO - I don't actually need a 2 channel texture
 				SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(pageIter->width, pageIter->height, 1, PF_RG8);
 
-				pixelData->allocateInternalBuffer();
+				pixelData->AllocateInternalBuffer();
 				UINT8* pixelBuffer = pixelData->GetData();
 				memset(pixelBuffer, 0, bufferSize);
 
@@ -332,14 +332,14 @@ namespace bs
 				// It's possible the formats no longer match
 				if (newTex->GetProperties().GetFormat() != pixelData->GetFormat())
 				{
-					SPtr<PixelData> temp = newTex->GetProperties().allocBuffer(0, 0);
-					PixelUtil::bulkPixelConversion(*pixelData, *temp);
+					SPtr<PixelData> temp = newTex->GetProperties().AllocBuffer(0, 0);
+					PixelUtil::BulkPixelConversion(*pixelData, *temp);
 
-					newTex->writeData(temp);
+					newTex->WriteData(temp);
 				}
 				else
 				{
-					newTex->writeData(pixelData);
+					newTex->WriteData(pixelData);
 				}
 
 				newTex->SetName(u8"FontPage" + toString((UINT32)fontData->texturePages.size()));
@@ -367,7 +367,7 @@ namespace bs
 
 		FT_Done_FreeType(library);
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		newFont->SetName(fileName);
 
 		return newFont;

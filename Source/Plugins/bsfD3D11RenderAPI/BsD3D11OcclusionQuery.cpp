@@ -47,7 +47,7 @@ namespace bs { namespace ct
 			mNumSamples = 0;
 			mQueryEndCalled = false;
 
-			setActive(true);
+			SetActive(true);
 		};
 
 		if (cb == nullptr)
@@ -97,9 +97,9 @@ namespace bs { namespace ct
 
 	UINT32 D3D11OcclusionQuery::GetNumSamples()
 	{
-		if (!mFinalized && isReady())
+		if (!mFinalized && IsReady())
 		{
-			finalize();
+			Finalize();
 		}
 
 		return mNumSamples;

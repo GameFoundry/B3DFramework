@@ -50,7 +50,7 @@ namespace bs { namespace ct
 		mDepthStencilBuffer = nullptr;
 	}
 
-	void GLFrameBufferObject::rebuild()
+	void GLFrameBufferObject::Rebuild()
 	{
 		// Store basic stats
 		UINT16 maxSupportedMRTs = RenderAPI::InstancePtr()->GetCapabilities(0).numMultiRenderTargets;
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 				// Note: I'm attaching textures to FBO while renderbuffers might yield better performance if I
 				// don't need to read from them
 
-				mColor[x].buffer->bindToFramebuffer(GL_COLOR_ATTACHMENT0 + x, mColor[x].zoffset, mColor[x].allLayers);
+				mColor[x].buffer->BindToFramebuffer(GL_COLOR_ATTACHMENT0 + x, mColor[x].zoffset, mColor[x].allLayers);
 			}
 			else
 			{
@@ -79,7 +79,7 @@ namespace bs { namespace ct
 
 		if (mDepthStencilBuffer != nullptr)
 		{
-			GLenum depthStencilFormat = GLPixelUtil::getDepthStencilFormatFromPF(mDepthStencilBuffer->GetFormat());
+			GLenum depthStencilFormat = GLPixelUtil::GetDepthStencilFormatFromPf(mDepthStencilBuffer->GetFormat());
 
 			GLenum attachmentPoint;
 			if (depthStencilFormat == GL_DEPTH_STENCIL)
@@ -87,7 +87,7 @@ namespace bs { namespace ct
 			else // Depth only
 				attachmentPoint = GL_DEPTH_ATTACHMENT;
 
-			mDepthStencilBuffer->bindToFramebuffer(attachmentPoint, 0, mDepthStencilAllLayers);
+			mDepthStencilBuffer->BindToFramebuffer(attachmentPoint, 0, mDepthStencilAllLayers);
 		}
 
 		// Do glDrawBuffer calls

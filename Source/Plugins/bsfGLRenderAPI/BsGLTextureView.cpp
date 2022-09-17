@@ -10,7 +10,7 @@ namespace bs { namespace ct {
 		const TextureProperties& props = texture->GetProperties();
 
 		GLenum target;
-		switch (props.getTextureType())
+		switch (props.GetTextureType())
 		{
 		case TEX_TYPE_1D:
 		{
@@ -23,7 +23,7 @@ namespace bs { namespace ct {
 		default:
 		case TEX_TYPE_2D:
 		{
-			if(props.getNumSamples() <= 1)
+			if(props.GetNumSamples() <= 1)
 			{
 				if (desc.numArraySlices <= 1)
 					target = GL_TEXTURE_2D;
@@ -80,7 +80,7 @@ namespace bs { namespace ct {
 		BS_CHECK_GL_ERROR();
 #endif
 
-		mTarget = GLTexture::getGLTextureTarget(props.getTextureType(), props.getNumSamples(), desc.numArraySlices);
+		mTarget = GLTexture::GetGlTextureTarget(props.GetTextureType(), props.GetNumSamples(), desc.numArraySlices);
 	}
 
 	GLTextureView::~GLTextureView()

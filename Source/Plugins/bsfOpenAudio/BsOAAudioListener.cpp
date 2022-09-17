@@ -36,7 +36,7 @@ namespace bs
 
 	void OAAudioListener::SetVelocity(const Vector3& velocity)
 	{
-		AudioListener::setVelocity(velocity);
+		AudioListener::SetVelocity(velocity);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		if (contexts.size() > 1)
@@ -62,15 +62,15 @@ namespace bs
 		}
 
 		UpdatePosition();
-		updateOrientation(orientation);
-		updateVelocity();
-		updateVolume(globalVolume);
+		UpdateOrientation(orientation);
+		UpdateVelocity();
+		UpdateVolume(globalVolume);
 	}
 
 	std::array<float, 6> OAAudioListener::GetOrientation() const
 	{
-		Vector3 direction = getTransform().getForward();
-		Vector3 up = getTransform().getUp();
+		Vector3 direction = GetTransform().GetForward();
+		Vector3 up = GetTransform().GetUp();
 
 		return
 		{{
@@ -85,7 +85,7 @@ namespace bs
 
 	void OAAudioListener::UpdatePosition()
 	{
-		Vector3 position = getTransform().GetPosition();
+		Vector3 position = GetTransform().GetPosition();
 
 		alListener3f(AL_POSITION, position.x, position.y, position.z);
 	}

@@ -40,20 +40,20 @@ namespace bs
 
 		NullTexture::~NullTexture()
 		{
-			clearBufferViews();
+			ClearBufferViews();
 		}
 
 		PixelData NullTexture::LockImpl(GpuLockOptions options, UINT32 mipLevel, UINT32 face, UINT32 deviceIdx, UINT32 queueIdx)
 		{
 			UINT32 mipWidth = std::max(1u, mProperties.GetWidth() >> mipLevel);
 			UINT32 mipHeight = std::max(1u, mProperties.GetHeight() >> mipLevel);
-			UINT32 mipDepth = std::max(1u, mProperties.getDepth() >> mipLevel);
+			UINT32 mipDepth = std::max(1u, mProperties.GetDepth() >> mipLevel);
 
 			mMappedBuffer = bs_new<PixelData>(mipWidth, mipHeight, mipDepth, mProperties.GetFormat());
-			mMappedBuffer->allocateInternalBuffer();
+			mMappedBuffer->AllocateInternalBuffer();
 
 			PixelData output(mipWidth, mipHeight, mipDepth, mProperties.GetFormat());
-			output.setExternalBuffer(mMappedBuffer->GetData());
+			output.SetExternalBuffer(mMappedBuffer->GetData());
 
 			return output;
 		}

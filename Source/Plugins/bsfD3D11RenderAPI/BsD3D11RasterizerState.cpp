@@ -28,11 +28,11 @@ namespace bs { namespace ct
 		ZeroMemory(&rasterizerStateDesc, sizeof(D3D11_RASTERIZER_DESC));
 
 		rasterizerStateDesc.AntialiasedLineEnable = mProperties.GetAntialiasedLineEnable();
-		rasterizerStateDesc.CullMode = D3D11Mappings::get(mProperties.getCullMode());
+		rasterizerStateDesc.CullMode = D3D11Mappings::Get(mProperties.GetCullMode());
 		rasterizerStateDesc.DepthBias = scaledDepthBias;
 		rasterizerStateDesc.DepthBiasClamp = mProperties.GetDepthBiasClamp();
 		rasterizerStateDesc.DepthClipEnable = mProperties.GetDepthClipEnable();
-		rasterizerStateDesc.FillMode = D3D11Mappings::get(mProperties.getPolygonMode());
+		rasterizerStateDesc.FillMode = D3D11Mappings::Get(mProperties.GetPolygonMode());
 		rasterizerStateDesc.MultisampleEnable = mProperties.GetMultisampleEnable();
 		rasterizerStateDesc.ScissorEnable = mProperties.GetScissorEnable();
 		rasterizerStateDesc.SlopeScaledDepthBias = mProperties.GetSlopeScaledDepthBias();

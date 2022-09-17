@@ -433,7 +433,7 @@ namespace bs { namespace ct
 		bool ShouldDraw() const;
 
 		/** Determines if view's 3D geometry should be rendered this frame. */
-		bool ShouldDraw3D() const { return !mRenderSettings->overlayOnly && shouldDraw(); }
+		bool ShouldDraw3D() const { return !mRenderSettings->overlayOnly && ShouldDraw(); }
 
 		/** Returns true if the view should write to the velocity buffer. */
 		bool RequiresVelocityWrites() const;

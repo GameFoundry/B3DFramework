@@ -219,8 +219,8 @@ namespace bs
 
 	/** Profiling macros that allow profiling functionality to be disabled at compile time. */
 #if BS_PROFILING_ENABLED
-	#define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().beginSample(name);
-	#define BS_GPU_PROFILE_END(name) gProfilerGPU().endSample(name);
+	#define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().BeginSample(name);
+	#define BS_GPU_PROFILE_END(name) gProfilerGPU().EndSample(name);
 #else
 	#define BS_GPU_PROFILE_BEGIN(name)
 	#define BS_GPU_PROFILE_END(name)

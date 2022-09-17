@@ -226,7 +226,7 @@ namespace bs { namespace ct
 				VulkanSemaphore* semaphore = mActiveSemaphores.front();
 				mActiveSemaphores.pop();
 
-				semaphore->notifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+				semaphore->NotifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 			}
 
 			for(UINT32 i = 0; i < iter->numCommandBuffers; i++)
@@ -234,7 +234,7 @@ namespace bs { namespace ct
 				VulkanCmdBuffer* cb = mActiveBuffers.front();
 				mActiveBuffers.pop();
 
-				cb->reset();
+				cb->Reset();
 			}
 
 			iter = mActiveSubmissions.erase(iter);

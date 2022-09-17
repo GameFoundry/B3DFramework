@@ -35,22 +35,22 @@ namespace bs
 	{
 		if (mShape != nullptr)
 		{
-			shape->SetLocalPose(mShape->GetLocalPose());
-			shape->SetFlags(mShape->GetFlags());
-			shape->SetContactOffset(mShape->GetContactOffset());
-			shape->SetRestOffset(mShape->GetRestOffset());
+			shape->setLocalPose(mShape->getLocalPose());
+			shape->setFlags(mShape->getFlags());
+			shape->setContactOffset(mShape->getContactOffset());
+			shape->setRestOffset(mShape->getRestOffset());
 
-			UINT32 numMaterials = mShape->GetNbMaterials();
+			UINT32 numMaterials = mShape->getNbMaterials();
 			UINT32 bufferSize = sizeof(PxMaterial*) * numMaterials;
 			PxMaterial** materials = (PxMaterial**)bs_stack_alloc(bufferSize);
 
-			mShape->GetMaterials(materials, bufferSize);
-			shape->SetMaterials(materials, numMaterials);
+			mShape->getMaterials(materials, bufferSize);
+			shape->setMaterials(materials, numMaterials);
 			shape->userData = mShape->userData;
 
 			bs_stack_free(materials);
 
-			PxActor* actor = mShape->GetActor();
+			PxActor* actor = mShape->getActor();
 			if (actor != nullptr)
 			{
 				PxRigidActor* rigidActor = actor->is<PxRigidActor>();
@@ -69,32 +69,32 @@ namespace bs
 
 	Vector3 FPhysXCollider::GetPosition() const
 	{
-		return fromPxVector(mShape->GetLocalPose().p);
+		return fromPxVector(mShape->getLocalPose().p);
 	}
 
 	Quaternion FPhysXCollider::GetRotation() const
 	{
-		return fromPxQuaternion(mShape->GetLocalPose().q);
+		return fromPxQuaternion(mShape->getLocalPose().q);
 	}
 
 	void FPhysXCollider::SetTransform(const Vector3& pos, const Quaternion& rotation)
 	{
-		mShape->SetLocalPose(toPxTransform(pos, rotation));
+		mShape->setLocalPose(toPxTransform(pos, rotation));
 	}
 
 	void FPhysXCollider::SetIsTrigger(bool value)
 	{
 		if(value)
 		{
-			mShape->SetFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
-			mShape->SetFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
+			mShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+			mShape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, true);
 
 			mIsTrigger = true;
 		}
 		else
 		{
-			mShape->SetFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
-			mShape->SetFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
+			mShape->setFlag(PxShapeFlag::eTRIGGER_SHAPE, false);
+			mShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 
 			mIsTrigger = false;
 		}		
@@ -102,7 +102,7 @@ namespace bs
 
 	bool FPhysXCollider::GetIsTrigger() const
 	{
-		return (UINT32)(mShape->GetFlags() & PxShapeFlag::eTRIGGER_SHAPE) != 0;
+		return (UINT32)(mShape->getFlags() & PxShapeFlag::eTRIGGER_SHAPE) != 0;
 	}
 
 	void FPhysXCollider::SetIsStatic(bool value)
@@ -136,39 +136,39 @@ namespace bs
 
 	void FPhysXCollider::SetContactOffset(float value)
 	{
-		mShape->SetContactOffset(value);
+		mShape->setContactOffset(value);
 	}
 
 	float FPhysXCollider::GetContactOffset() const
 	{
-		return mShape->GetContactOffset();
+		return mShape->getContactOffset();
 	}
 
 	void FPhysXCollider::SetRestOffset(float value)
 	{
-		mShape->SetRestOffset(value);
+		mShape->setRestOffset(value);
 	}
 
 	float FPhysXCollider::GetRestOffset() const
 	{
-		return mShape->GetRestOffset();
+		return mShape->getRestOffset();
 	}
 
-	void FPhysXCollider::setMaterial(const HPhysicsMaterial& material)
+	void FPhysXCollider::SetMaterial(const HPhysicsMaterial& material)
 	{
-		FCollider::setMaterial(material);
+		FCollider::SetMaterial(material);
 
 		PhysXMaterial* physXmaterial = nullptr;
 		if(material.IsLoaded())
-			physXmaterial = static_cast<PhysXMaterial*>(material.get());
+			physXmaterial = static_cast<PhysXMaterial*>(material.Get());
 
 		PxMaterial* materials[1];
 		if (physXmaterial != nullptr)
 			materials[0] = physXmaterial->GetInternalInternal();
 		else
-			materials[0] = gPhysX().getDefaultMaterial();
+			materials[0] = gPhysX().GetDefaultMaterial();
 
-		mShape->SetMaterials(materials, sizeof(materials) / sizeof(materials[0]));
+		mShape->setMaterials(materials, sizeof(materials) / sizeof(materials[0]));
 	}
 
 	UINT64 FPhysXCollider::GetLayer() const
@@ -179,7 +179,7 @@ namespace bs
 	void FPhysXCollider::SetLayer(UINT64 layer)
 	{
 		mLayer = layer;
-		updateFilter();
+		UpdateFilter();
 	}
 
 	CollisionReportMode FPhysXCollider::GetCollisionReportMode() const
@@ -190,13 +190,13 @@ namespace bs
 	void FPhysXCollider::SetCollisionReportMode(CollisionReportMode mode)
 	{
 		mCollisionReportMode = mode;
-		updateFilter();
+		UpdateFilter();
 	}
 
 	void FPhysXCollider::SetCCDInternal(bool enabled)
 	{
 		mCCD = enabled;
-		updateFilter();
+		UpdateFilter();
 	}
 
 	void FPhysXCollider::UpdateFilter()
@@ -224,7 +224,7 @@ namespace bs
 
 		data.word2 = flags;
 
-		mShape->SetSimulationFilterData(data);
-		mShape->SetQueryFilterData(data);
+		mShape->setSimulationFilterData(data);
+		mShape->setQueryFilterData(data);
 	}
 }

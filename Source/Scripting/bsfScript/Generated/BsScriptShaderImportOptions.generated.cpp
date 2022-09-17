@@ -67,7 +67,7 @@ namespace bs
 		bool tmp__output;
 		String tmpdefine;
 		tmpdefine = MonoUtil::monoToString(define);
-		tmp__output = thisPtr->GetInternal()->hasDefine(tmpdefine);
+		tmp__output = thisPtr->GetInternal()->HasDefine(tmpdefine);
 
 		bool __output;
 		__output = tmp__output;

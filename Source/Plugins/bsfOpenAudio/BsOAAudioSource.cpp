@@ -25,14 +25,14 @@ namespace bs
 		Stop();
 
 		Lock lock(mMutex);
-		AudioSource::setClip(clip);
+		AudioSource::SetClip(clip);
 
 		ApplyClip();
 	}
 
 	void OAAudioSource::SetTransform(const Transform& transform)
 	{
-		Transform(transform);
+		SceneActor::SetTransform(transform);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -53,7 +53,7 @@ namespace bs
 
 	void OAAudioSource::SetVelocity(const Vector3& velocity)
 	{
-		AudioSource::setVelocity(velocity);
+		AudioSource::SetVelocity(velocity);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -62,7 +62,7 @@ namespace bs
 			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
-			if (is3D())
+			if (Is3D())
 				alSource3f(mSourceIDs[i], AL_VELOCITY, velocity.x, velocity.y, velocity.z);
 			else
 				alSource3f(mSourceIDs[i], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
@@ -71,7 +71,7 @@ namespace bs
 
 	void OAAudioSource::SetVolume(float volume)
 	{
-		AudioSource::setVolume(volume);
+		AudioSource::SetVolume(volume);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -86,7 +86,7 @@ namespace bs
 
 	void OAAudioSource::SetPitch(float pitch)
 	{
-		AudioSource::setPitch(pitch);
+		AudioSource::SetPitch(pitch);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -101,10 +101,10 @@ namespace bs
 
 	void OAAudioSource::SetIsLooping(bool loop)
 	{
-		AudioSource::setIsLooping(loop);
+		AudioSource::SetIsLooping(loop);
 
 		// When streaming we handle looping manually
-		if (requiresStreaming())
+		if (RequiresStreaming())
 			loop = false;
 
 		auto& contexts = gOAAudio().GetContextsInternal();
@@ -120,14 +120,14 @@ namespace bs
 
 	void OAAudioSource::SetPriority(INT32 priority)
 	{
-		AudioSource::setPriority(priority);
+		AudioSource::SetPriority(priority);
 
 		// Do nothing, OpenAL doesn't support priorities (perhaps emulate the behaviour by manually disabling sources?)
 	}
 
 	void OAAudioSource::SetMinDistance(float distance)
 	{
-		AudioSource::setMinDistance(distance);
+		AudioSource::SetMinDistance(distance);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -142,7 +142,7 @@ namespace bs
 
 	void OAAudioSource::SetAttenuation(float attenuation)
 	{
-		AudioSource::setAttenuation(attenuation);
+		AudioSource::SetAttenuation(attenuation);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -160,14 +160,14 @@ namespace bs
 		if (mGloballyPaused)
 			return;
 
-		if(requiresStreaming())
+		if(RequiresStreaming())
 		{
 			Lock lock(mMutex);
 			
 			if (!mIsStreaming)
 			{
-				startStreaming();
-				streamUnlocked(); // Stream first block on this thread to ensure something can play right away
+				StartStreaming();
+				StreamUnlocked(); // Stream first block on this thread to ensure something can play right away
 			}
 		}
 		
@@ -184,7 +184,7 @@ namespace bs
 			// Note: I'm still creating sourcs objects (and possibly queuing streaming buffers) for these non-playing
 			// sources. It would be possible to optimize them out at cost of more complexity. At this time it doesn't feel
 			// worth it.
-			if(!is3D())
+			if(!Is3D())
 				break;
 		}
 	}
@@ -222,7 +222,7 @@ namespace bs
 			mStreamQueuedPosition = 0;
 
 			if (mIsStreaming)
-				stopStreaming();
+				StopStreaming();
 		}
 	}
 
@@ -233,7 +233,7 @@ namespace bs
 
 		mGloballyPaused = pause;
 
-		if (getState() == AudioSourceState::Playing)
+		if (GetState() == AudioSourceState::Playing)
 		{
 			if (pause)
 			{
@@ -249,7 +249,7 @@ namespace bs
 			}
 			else
 			{
-				play();
+				Play();
 			}
 		}
 	}
@@ -259,10 +259,10 @@ namespace bs
 		if (!mAudioClip.IsLoaded())
 			return;
 
-		AudioSourceState state = getState();
-		stop();
+		AudioSourceState state = GetState();
+		Stop();
 
-		bool needsStreaming = requiresStreaming();
+		bool needsStreaming = RequiresStreaming();
 		float clipTime;
 		{
 			Lock lock(mMutex);
@@ -292,10 +292,10 @@ namespace bs
 		}
 
 		if (state != AudioSourceState::Stopped)
-			play();
+			Play();
 		
 		if (state == AudioSourceState::Paused)
-			pause();
+			Pause();
 	}
 
 	float OAAudioSource::GetTime() const
@@ -307,7 +307,7 @@ namespace bs
 		if (contexts.size() > 1)
 			alcMakeContextCurrent(contexts[0]);
 
-		bool needsStreaming = requiresStreaming();
+		bool needsStreaming = RequiresStreaming();
 		float time;
 		if (!needsStreaming)
 		{
@@ -346,9 +346,9 @@ namespace bs
 
 	void OAAudioSource::Clear()
 	{
-		mSavedState = getState();
-		mSavedTime = getTime();
-		stop();
+		mSavedState = GetState();
+		mSavedTime = GetTime();
+		Stop();
 		
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -395,12 +395,12 @@ namespace bs
 			alSourcef(mSourceIDs[i], AL_REFERENCE_DISTANCE, mMinDistance);
 			alSourcef(mSourceIDs[i], AL_ROLLOFF_FACTOR, mAttenuation);
 
-			if(requiresStreaming())
+			if(RequiresStreaming())
 				alSourcei(mSourceIDs[i], AL_LOOPING, false);
 			else
 				alSourcei(mSourceIDs[i], AL_LOOPING, mLoop);
 
-			if (is3D())
+			if (Is3D())
 			{
 				Vector3 position = mTransform.GetPosition();
 
@@ -423,7 +423,7 @@ namespace bs
 					UINT32 oaBuffer = 0;
 					if (mAudioClip.IsLoaded())
 					{
-						OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.get());
+						OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.Get());
 						oaBuffer = oaClip->GetOpenALBufferInternal();
 					}
 
@@ -432,13 +432,13 @@ namespace bs
 			}
 		}
 
-		setTime(mSavedTime);
+		SetTime(mSavedTime);
 
 		if (mSavedState != AudioSourceState::Stopped)
-			play();
+			Play();
 
 		if (mSavedState == AudioSourceState::Paused)
-			pause();
+			Pause();
 	}
 
 	void OAAudioSource::StartStreaming()
@@ -446,7 +446,7 @@ namespace bs
 		assert(!mIsStreaming);
 
 		alGenBuffers(StreamBufferCount, mStreamBuffers);
-		gOAAudio().startStreaming(this);
+		gOAAudio().StartStreaming(this);
 
 		memset(&mBusyBuffers, 0, sizeof(mBusyBuffers));
 		mIsStreaming = true;
@@ -457,7 +457,7 @@ namespace bs
 		assert(mIsStreaming);
 
 		mIsStreaming = false;
-		gOAAudio().stopStreaming(this);
+		gOAAudio().StopStreaming(this);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
 		UINT32 numContexts = (UINT32)contexts.size();
@@ -481,7 +481,7 @@ namespace bs
 	{
 		Lock lock(mMutex);
 
-		streamUnlocked();
+		StreamUnlocked();
 	}
 
 	void OAAudioSource::StreamUnlocked()
@@ -554,7 +554,7 @@ namespace bs
 
 					if (!mLoop) // Variable used on both threads and not thread safe, but it doesn't matter
 					{
-						stopStreaming();
+						StopStreaming();
 						return;
 					}
 				}
@@ -566,7 +566,7 @@ namespace bs
 			if (mBusyBuffers[i] != 0)
 				continue;
 
-			if (fillBuffer(mStreamBuffers[i], info, totalNumSamples))
+			if (FillBuffer(mStreamBuffers[i], info, totalNumSamples))
 			{
 				for (auto& source : mSourceIDs)
 					alSourceQueueBuffers(source, 1, &mStreamBuffers[i]);
@@ -598,7 +598,7 @@ namespace bs
 
 		UINT8* samples = (UINT8*)bs_stack_alloc(sampleBufferSize);
 
-		OAAudioClip* audioClip = static_cast<OAAudioClip*>(mAudioClip.get());
+		OAAudioClip* audioClip = static_cast<OAAudioClip*>(mAudioClip.Get());
 
 		audioClip->GetSamples(samples, mStreamQueuedPosition, numSamples);
 		mStreamQueuedPosition += numSamples;
@@ -620,14 +620,14 @@ namespace bs
 			if (contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
 
-			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !is3D());
+			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !Is3D());
 
-			if (!requiresStreaming())
+			if (!RequiresStreaming())
 			{
 				UINT32 oaBuffer = 0;
 				if (mAudioClip.IsLoaded())
 				{
-					OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.get());
+					OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.Get());
 					oaBuffer = oaClip->GetOpenALBufferInternal();
 				}
 
@@ -636,28 +636,28 @@ namespace bs
 		}
 
 		// Looping is influenced by streaming mode, so re-apply it in case it changed
-		setIsLooping(mLoop);
+		SetIsLooping(mLoop);
 	}
 
 	void OAAudioSource::OnClipChanged()
 	{
-		AudioSourceState state = getState();
-		float savedTime = getTime();
+		AudioSourceState state = GetState();
+		float savedTime = GetTime();
 
-		stop();
+		Stop();
 
 		{
 			Lock lock(mMutex);
-			applyClip();
+			ApplyClip();
 		}
 
-		setTime(savedTime);
+		SetTime(savedTime);
 
 		if (state != AudioSourceState::Stopped)
-			play();
+			Play();
 
 		if (state == AudioSourceState::Paused)
-			pause();
+			Pause();
 	}
 
 	bool OAAudioSource::Is3D() const
@@ -665,7 +665,7 @@ namespace bs
 		if (!mAudioClip.IsLoaded())
 			return true;
 
-		return mAudioClip->is3D();
+		return mAudioClip->Is3D();
 	}
 
 	bool OAAudioSource::RequiresStreaming() const

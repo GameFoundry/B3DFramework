@@ -89,7 +89,7 @@ namespace bs
 		UINT32 numElements = meshData->GetData()->GetNumVertices();
 		Vector<TNative> output(numElements);
 
-		TVertexDataAccessor<Semantic>::get(meshData, (UINT8*)output.data(), numElements * sizeof(TNative));
+		TVertexDataAccessor<Semantic>::Get(meshData, (UINT8*)output.data(), numElements * sizeof(TNative));
 		return output;
 	}
 

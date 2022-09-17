@@ -312,7 +312,7 @@ namespace bs { namespace ct
 		return lookup[(UINT32)type];
 	}
 
-	VkSampleCountFlagBits VulkanUtility::getSampleFlags(UINT32 numSamples)
+	VkSampleCountFlagBits VulkanUtility::GetSampleFlags(UINT32 numSamples)
 	{
 		switch(numSamples)
 		{
@@ -601,7 +601,7 @@ namespace bs { namespace ct
 
 			VulkanDevice* device = rapi.GetDeviceInternal(i).get();
 
-			if (isDeviceIdxSet(rapi, i, flags))
+			if (IsDeviceIdxSet(rapi, i, flags))
 				devices[i] = device;
 			else
 				devices[i] = nullptr;
@@ -637,7 +637,7 @@ namespace bs { namespace ct
 	{
 		VulkanDevice* device = rapi.GetDeviceInternal(idx).get();
 
-		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->isPrimary()));
+		return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->IsPrimary()));
 	}
 
 	void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith,

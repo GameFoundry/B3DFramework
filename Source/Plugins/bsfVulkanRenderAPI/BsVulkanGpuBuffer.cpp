@@ -43,20 +43,20 @@ namespace bs { namespace ct
 	{
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
-		const GpuBufferProperties& props = getProperties();
+		const GpuBufferProperties& props = GetProperties();
 		mBufferDeleter = &deleteBuffer;
 
 		// Create a new buffer if external buffer is not provided
 		if(!mBuffer)
 		{
 			VulkanHardwareBuffer::BufferType bufferType;
-			if (props.getType() == GBT_STRUCTURED)
+			if (props.GetType() == GBT_STRUCTURED)
 				bufferType = VulkanHardwareBuffer::BT_STRUCTURED;
 			else
 				bufferType = VulkanHardwareBuffer::BT_GENERIC;
 
-			UINT32 size = props.getElementCount() * props.getElementSize();
-			mBuffer = bs_pool_new<VulkanHardwareBuffer>(bufferType, props.GetFormat(), props.getUsage(), size, mDeviceMask);
+			UINT32 size = props.GetElementCount() * props.GetElementSize();
+			mBuffer = bs_pool_new<VulkanHardwareBuffer>(bufferType, props.GetFormat(), props.GetUsage(), size, mDeviceMask);
 		}
 
 		UpdateViews();
@@ -66,7 +66,7 @@ namespace bs { namespace ct
 
 	void* VulkanGpuBuffer::Map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		void* data = GpuBuffer::map(offset, length, options, deviceIdx, queueIdx);
+		void* data = GpuBuffer::Map(offset, length, options, deviceIdx, queueIdx);
 		UpdateViews();
 
 		return data;
@@ -74,20 +74,20 @@ namespace bs { namespace ct
 
 	void VulkanGpuBuffer::Unmap()
 	{
-		GpuBuffer::unmap();
+		GpuBuffer::Unmap();
 		UpdateViews();
 	}
 
 	void VulkanGpuBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		GpuBuffer::readData(offset, length, dest, deviceIdx, queueIdx);
+		GpuBuffer::ReadData(offset, length, dest, deviceIdx, queueIdx);
 		UpdateViews();
 	}
 
 	void VulkanGpuBuffer::WriteData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
 		UINT32 queueIdx)
 	{
-		GpuBuffer::writeData(offset, length, source, writeFlags, queueIdx);
+		GpuBuffer::WriteData(offset, length, source, writeFlags, queueIdx);
 		UpdateViews();
 	}
 
@@ -103,7 +103,7 @@ namespace bs { namespace ct
 
 	void VulkanGpuBuffer::UpdateViews()
 	{
-		if(mProperties.getType() == GBT_STRUCTURED)
+		if(mProperties.GetType() == GBT_STRUCTURED)
 			return;
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -118,7 +118,7 @@ namespace bs { namespace ct
 			if (mCachedBuffers[i] != newBufferHandle)
 			{
 				if(newBufferHandle != VK_NULL_HANDLE)
-					mBufferViews[i] = buffer->GetView(VulkanUtility::getBufferFormat(mProperties.GetFormat()));
+					mBufferViews[i] = buffer->GetView(VulkanUtility::GetBufferFormat(mProperties.GetFormat()));
 				else
 					mBufferViews[i] = VK_NULL_HANDLE;
 

@@ -59,7 +59,7 @@ namespace bs
 		native.b = (float)value[2];
 		native.a = (float)value[3];
 
-		return native.getAsRGBA();
+		return native.GetAsRgba();
 	}
 
 	FbxSurfaceMaterial* FBXToNativeType(FbxSurfaceMaterial* const& value)
@@ -82,7 +82,7 @@ namespace bs
 	bool FBXImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
@@ -97,12 +97,12 @@ namespace bs
 		return bs_shared_ptr_new<MeshImportOptions>();
 	}
 
-	SPtr<Resource> FBXImporter::import(const Path& filePath, SPtr<const ImportOptions> importOptions)
+	SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 	{
 		MESH_DESC desc;
 
 		Vector<FBXAnimationClipData> dummy;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, dummy,
+		SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.subMeshes, dummy,
 			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
@@ -113,7 +113,7 @@ namespace bs
 
 		SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->GetData(), desc);
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		mesh->SetName(fileName);
 
 		return mesh;
@@ -124,7 +124,7 @@ namespace bs
 		MESH_DESC desc;
 
 		Vector<FBXAnimationClipData> animationClips;
-		SPtr<RendererMeshData> rendererMeshData = importMeshData(filePath, importOptions, desc.subMeshes, animationClips,
+		SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.subMeshes, animationClips,
 			desc.skeleton, desc.morphShapes);
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
@@ -135,7 +135,7 @@ namespace bs
 
 		SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->GetData(), desc);
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		mesh->SetName(fileName);
 
 		Vector<SubResourceRaw> output;
@@ -146,7 +146,7 @@ namespace bs
 			CollisionMeshType collisionMeshType = meshImportOptions->collisionMeshType;
 			if(collisionMeshType != CollisionMeshType::None)
 			{
-				if(Physics::isStarted())
+				if(Physics::IsStarted())
 				{
 					PhysicsMeshType type = collisionMeshType == CollisionMeshType::Convex ?
 						PhysicsMeshType::Convex : PhysicsMeshType::Triangle;
@@ -190,10 +190,10 @@ namespace bs
 	{
 		FbxScene* fbxScene = nullptr;
 
-		if (!startUpSdk(fbxScene))
+		if (!StartUpSdk(fbxScene))
 			return nullptr;
 
-		if (!loadFBXFile(fbxScene, filePath))
+		if (!LoadFbxFile(fbxScene, filePath))
 			return nullptr;
 
 		const MeshImportOptions* meshImportOptions = static_cast<const MeshImportOptions*>(importOptions.get());
@@ -207,36 +207,36 @@ namespace bs
 		fbxImportOptions.reduceKeyframes = meshImportOptions->reduceKeyFrames;
 
 		FBXImportScene importedScene;
-		bakeTransforms(fbxScene);
-		parseScene(fbxScene, fbxImportOptions, importedScene);
+		BakeTransforms(fbxScene);
+		ParseScene(fbxScene, fbxImportOptions, importedScene);
 
 		if (fbxImportOptions.importBlendShapes)
-			importBlendShapes(importedScene, fbxImportOptions);
+			ImportBlendShapes(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importSkin)
-			importSkin(importedScene, fbxImportOptions);
+			ImportSkin(importedScene, fbxImportOptions);
 
 		if (fbxImportOptions.importAnimation)
-			importAnimations(fbxScene, fbxImportOptions, importedScene);
+			ImportAnimations(fbxScene, fbxImportOptions, importedScene);
 
-		splitMeshVertices(importedScene);
-		generateMissingTangentSpace(importedScene, fbxImportOptions);
+		SplitMeshVertices(importedScene);
+		GenerateMissingTangentSpace(importedScene, fbxImportOptions);
 
-		SPtr<RendererMeshData> rendererMeshData = generateMeshData(importedScene, fbxImportOptions, subMeshes);
+		SPtr<RendererMeshData> rendererMeshData = GenerateMeshData(importedScene, fbxImportOptions, subMeshes);
 
-		skeleton = createSkeleton(importedScene, subMeshes.size() > 1);
-		morphShapes = createMorphShapes(importedScene);
+		skeleton = CreateSkeleton(importedScene, subMeshes.size() > 1);
+		morphShapes = CreateMorphShapes(importedScene);
 
 		// Import animation clips
 		if (!importedScene.clips.empty())
 		{
 			const Vector<AnimationSplitInfo>& splits = meshImportOptions->animationSplits;
-			convertAnimations(importedScene.clips, splits, skeleton, meshImportOptions->importRootMotion, animation);
+			ConvertAnimations(importedScene.clips, splits, skeleton, meshImportOptions->importRootMotion, animation);
 		}
 
 		// TODO - Later: Optimize mesh: Remove bad and degenerate polygons, weld nearby vertices, optimize for vertex cache
 
-		shutDownSdk();
+		ShutDownSdk();
 
 		return rendererMeshData;
 	}
@@ -367,7 +367,7 @@ namespace bs
 			{
 				Matrix4 worldTransform = node->worldTransform * node->geomTransform;
 				Matrix4 worldTransformIT = worldTransform.Inverse();
-				worldTransformIT = worldTransformIT.transpose();
+				worldTransformIT = worldTransformIT.Transpose();
 
 				// Copy & transform positions
 				for(auto& blendShape : mesh->blendShapes)
@@ -392,10 +392,10 @@ namespace bs
 								Vector3 normalDelta;
 								if (hasNormals)
 								{
-									Vector3 blendNormal = worldTransformIT.multiplyDirection(blendFrame.normals[i]);
+									Vector3 blendNormal = worldTransformIT.MultiplyDirection(blendFrame.normals[i]);
 									blendNormal = Vector3::Normalize(blendNormal);
 
-									Vector3 meshNormal = worldTransformIT.multiplyDirection(mesh->normals[i]);
+									Vector3 meshNormal = worldTransformIT.MultiplyDirection(mesh->normals[i]);
 									meshNormal = Vector3::Normalize(meshNormal);
 
 									normalDelta = blendNormal - meshNormal;
@@ -403,7 +403,7 @@ namespace bs
 								else
 									normalDelta = Vector3::ZERO;
 
-								if (positionDelta.squaredLength() > 0.000001f || normalDelta.squaredLength() > 0.0001f)
+								if (positionDelta.SquaredLength() > 0.000001f || normalDelta.SquaredLength() > 0.0001f)
 									shape.vertices.push_back(MorphVertex(positionDelta, normalDelta, totalNumVertices + i));
 							}
 						}
@@ -480,9 +480,9 @@ namespace bs
 		int lSDKMajor,  lSDKMinor,  lSDKRevision;
 		FbxManager::GetFileFormatVersion(lSDKMajor, lSDKMinor, lSDKRevision);
 
-		Lock fileLock = FileScheduler::getLock(filePath);
+		Lock fileLock = FileScheduler::GetLock(filePath);
 		FbxImporter* importer = FbxImporter::Create(mFBXManager, "");
-		bool importStatus = importer->Initialize(filePath.toString().c_str(), -1, mFBXManager->GetIOSettings());
+		bool importStatus = importer->Initialize(filePath.ToString().c_str(), -1, mFBXManager->GetIOSettings());
 		
 		importer->GetFileVersion(lFileMajor, lFileMinor, lFileRevision);
 
@@ -537,7 +537,7 @@ namespace bs
 
 		bsScaledUnits.ConvertScene(scene, convOptions);
 
-		outputScene.rootNode = createImportNode(outputScene, scene->GetRootNode(), nullptr);
+		outputScene.rootNode = CreateImportNode(outputScene, scene->GetRootNode(), nullptr);
 
 		Stack<FbxNode*> todo;
 		todo.push(scene->GetRootNode());
@@ -567,7 +567,7 @@ namespace bs
 						FbxMesh* mesh = static_cast<FbxMesh*>(attrib);
 						mesh->RemoveBadPolygons();
 
-						parseMesh(mesh, curImportNode, options, outputScene);
+						ParseMesh(mesh, curImportNode, options, outputScene);
 					}
 				}
 					break;
@@ -584,7 +584,7 @@ namespace bs
 							mesh = static_cast<FbxMesh*>(attrib);
 						}
 
-						parseMesh(mesh, curImportNode, options, outputScene);
+						ParseMesh(mesh, curImportNode, options, outputScene);
 					}
 					break;
 				default:
@@ -595,7 +595,7 @@ namespace bs
 			for (int i = 0; i < curNode->GetChildCount(); i++)
 			{
 				FbxNode* childNode = curNode->GetChild(i);
-				createImportNode(outputScene, childNode, curImportNode);
+				CreateImportNode(outputScene, childNode, curImportNode);
 
 				todo.push(childNode);
 			}
@@ -664,7 +664,7 @@ namespace bs
 			splitMesh->referencedBy = mesh->referencedBy;
 			splitMesh->bones = mesh->bones;
 
-			FBXUtility::splitVertices(*mesh, *splitMesh);
+			FBXUtility::SplitVertices(*mesh, *splitMesh);
 			splitMeshes.push_back(splitMesh);
 
 			bs_delete(mesh);
@@ -701,19 +701,19 @@ namespace bs
 
 			for (auto& bone : clip.boneAnimations)
 			{
-				if(bone.translation.getNumKeyFrames() > 0)
+				if(bone.translation.GetNumKeyFrames() > 0)
 					animStart = std::min(bone.translation.GetKeyFrame(0).time, animStart);
 
-				if (bone.rotation.getNumKeyFrames() > 0)
+				if (bone.rotation.GetNumKeyFrames() > 0)
 					animStart = std::min(bone.rotation.GetKeyFrame(0).time, animStart);
 
-				if (bone.scale.getNumKeyFrames() > 0)
+				if (bone.scale.GetNumKeyFrames() > 0)
 					animStart = std::min(bone.scale.GetKeyFrame(0).time, animStart);
 			}
 
 			for (auto& anim : clip.blendShapeAnimations)
 			{
-				if (anim.curve.getNumKeyFrames() > 0)
+				if (anim.curve.GetNumKeyFrames() > 0)
 					animStart = std::min(anim.curve.GetKeyFrame(0).time, animStart);
 			}
 
@@ -722,9 +722,9 @@ namespace bs
 			{
 				for (auto& bone : clip.boneAnimations)
 				{
-					TAnimationCurve<Vector3> translation = AnimationUtility::offsetCurve(bone.translation, -animStart);
-					TAnimationCurve<Quaternion> rotation = AnimationUtility::offsetCurve(bone.rotation, -animStart);
-					TAnimationCurve<Vector3> scale = AnimationUtility::offsetCurve(bone.scale, -animStart);
+					TAnimationCurve<Vector3> translation = AnimationUtility::OffsetCurve(bone.translation, -animStart);
+					TAnimationCurve<Quaternion> rotation = AnimationUtility::OffsetCurve(bone.rotation, -animStart);
+					TAnimationCurve<Vector3> scale = AnimationUtility::OffsetCurve(bone.scale, -animStart);
 
 					if(importRootMotion && bone.node->name == rootBoneName)
 						rootMotion = bs_shared_ptr_new<RootMotion>(translation, rotation);
@@ -738,7 +738,7 @@ namespace bs
 
 				for (auto& anim : clip.blendShapeAnimations)
 				{
-					TAnimationCurve<float> curve = AnimationUtility::offsetCurve(anim.curve, -animStart);
+					TAnimationCurve<float> curve = AnimationUtility::OffsetCurve(anim.curve, -animStart);
 					curves->generic.push_back({ anim.blendShape, blendShapeFlags, curve });
 				}
 			}
@@ -781,17 +781,17 @@ namespace bs
 							auto& animCurve = inCurves[i].curve;
 							outCurves[i].name = inCurves[i].name;
 
-							UINT32 numFrames = animCurve.getNumKeyFrames();
+							UINT32 numFrames = animCurve.GetNumKeyFrames();
 							if (numFrames == 0)
 								continue;
 
 							float startTime = split.startFrame * secondsPerFrame;
 							float endTime = split.endFrame * secondsPerFrame;
 
-							outCurves[i].curve = inCurves[i].curve.split(startTime, endTime);
+							outCurves[i].curve = inCurves[i].curve.Split(startTime, endTime);
 
 							if (split.isAdditive)
-								outCurves[i].curve.makeAdditive();
+								outCurves[i].curve.MakeAdditive();
 						}
 					};
 
@@ -804,16 +804,16 @@ namespace bs
 					{
 						auto splitCurve = [&](auto& inCurve, auto& outCurve)
 						{
-							UINT32 numFrames = inCurve.getNumKeyFrames();
+							UINT32 numFrames = inCurve.GetNumKeyFrames();
 							if (numFrames > 0)
 							{
 								float startTime = split.startFrame * secondsPerFrame;
 								float endTime = split.endFrame * secondsPerFrame;
 
-								outCurve = inCurve.split(startTime, endTime);
+								outCurve = inCurve.Split(startTime, endTime);
 
 								if (split.isAdditive)
-									outCurve.makeAdditive();
+									outCurve.MakeAdditive();
 							}
 						};
 
@@ -951,7 +951,7 @@ namespace bs
 			{
 				Matrix4 worldTransform = node->worldTransform * node->geomTransform;
 				Matrix4 worldTransformIT = worldTransform.Inverse();
-				worldTransformIT = worldTransformIT.transpose();
+				worldTransformIT = worldTransformIT.Transpose();
 
 				SPtr<RendererMeshData> meshData = RendererMeshData::Create((UINT32)numVertices, numIndices, (VertexLayout)vertexLayout);
 
@@ -998,17 +998,17 @@ namespace bs
 						for (UINT32 i = 0; i < (UINT32)numVertices; i++)
 						{
 							Vector3 normal = (Vector3)mesh->normals[i];
-							normal = worldTransformIT.multiplyDirection(normal);
+							normal = worldTransformIT.MultiplyDirection(normal);
 							transformedNormals[i] = Vector3::Normalize(normal);
 
 							Vector3 tangent = (Vector3)mesh->tangents[i];
-							tangent = Vector3::Normalize(worldTransformIT.multiplyDirection(tangent));
+							tangent = Vector3::Normalize(worldTransformIT.MultiplyDirection(tangent));
 
 							Vector3 bitangent = (Vector3)mesh->bitangents[i];
-							bitangent = worldTransformIT.multiplyDirection(bitangent);
+							bitangent = worldTransformIT.MultiplyDirection(bitangent);
 
 							Vector3 engineBitangent = Vector3::Cross(normal, tangent);
-							float sign = Vector3::dot(engineBitangent, bitangent);
+							float sign = Vector3::Dot(engineBitangent, bitangent);
 
 							transformedTangents[i] = Vector4(tangent.x, tangent.y, tangent.z, sign > 0 ? 1.0f : -1.0f);
 						}
@@ -1019,7 +1019,7 @@ namespace bs
 					else // Just normals
 					{
 						for (UINT32 i = 0; i < (UINT32)numVertices; i++)
-							transformedNormals[i] = Vector3::Normalize(worldTransformIT.multiplyDirection((Vector3)mesh->normals[i]));
+							transformedNormals[i] = Vector3::Normalize(worldTransformIT.MultiplyDirection((Vector3)mesh->normals[i]));
 					}
 
 					meshData->SetNormals(transformedNormals, normalsSize);
@@ -1107,7 +1107,7 @@ namespace bs
 
 		if (allMeshData.size() > 1)
 		{
-			return RendererMeshData::Create(MeshData::combine(allMeshData, allSubMeshes, outputSubMeshes));
+			return RendererMeshData::Create(MeshData::Combine(allMeshData, allSubMeshes, outputSubMeshes));
 		}
 		else if (allMeshData.size() == 1)
 		{
@@ -1389,7 +1389,7 @@ namespace bs
 
 						if (!importMesh->smoothingGroups.empty())
 						{
-							FBXUtility::normalsFromSmoothing(importMesh->positions, importMesh->indices,
+							FBXUtility::NormalsFromSmoothing(importMesh->positions, importMesh->indices,
 								importMesh->smoothingGroups, importMesh->normals);
 						}
 					}
@@ -1475,8 +1475,8 @@ namespace bs
 					blendShape.frames.resize(frameCount);
 
 					// Get name without invalid characters
-					blendShape.name = StringUtil::replaceAll(blendShape.name, ".", "_");
-					blendShape.name = StringUtil::replaceAll(blendShape.name, "/", "_");
+					blendShape.name = StringUtil::ReplaceAll(blendShape.name, ".", "_");
+					blendShape.name = StringUtil::ReplaceAll(blendShape.name, "/", "_");
 
 					for (UINT32 k = 0; k < frameCount; k++)
 					{
@@ -1487,10 +1487,10 @@ namespace bs
 						frame.weight = (float)(weights[k] / 100.0);
 
 						// Get name without invalid characters
-						frame.name = StringUtil::replaceAll(frame.name, ".", "_");
-						frame.name = StringUtil::replaceAll(frame.name, "/", "_");
+						frame.name = StringUtil::ReplaceAll(frame.name, ".", "_");
+						frame.name = StringUtil::ReplaceAll(frame.name, "/", "_");
 						
-						importBlendShapeFrame(fbxShape, *mesh, options, frame);
+						ImportBlendShapeFrame(fbxShape, *mesh, options, frame);
 					}
 				}
 			}
@@ -1515,7 +1515,7 @@ namespace bs
 			{
 				if (!mesh.smoothingGroups.empty())
 				{
-					FBXUtility::normalsFromSmoothing(outFrame.positions, mesh.indices,
+					FBXUtility::NormalsFromSmoothing(outFrame.positions, mesh.indices,
 						mesh.smoothingGroups, outFrame.normals);
 				}
 			}
@@ -1559,7 +1559,7 @@ namespace bs
 						continue;
 				}
 
-				importSkin(scene, deformer, *mesh, options);
+				ImportSkin(scene, deformer, *mesh, options);
 			}
 		}
 	}
@@ -1611,7 +1611,7 @@ namespace bs
 			bone.bindPose = FBXToNativeType(invLinkTransform * clusterTransform);
 			
 			// Undo the transform we baked into the mesh
-			bone.bindPose = bone.bindPose * (parentNode->worldTransform * parentNode->geomTransform).inverseAffine();
+			bone.bindPose = bone.bindPose * (parentNode->worldTransform * parentNode->geomTransform).InverseAffine();
 			
 			bool isDuplicate = !existingBones.insert(link).second;
 			bool isAdditive = cluster->GetLinkMode() == FbxCluster::eAdditive;
@@ -1690,7 +1690,7 @@ namespace bs
 			{
 				mesh->normals.resize(numVertices);
 
-				MeshUtility::calculateNormals(mesh->positions.data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, mesh->normals.data());
+				MeshUtility::CalculateNormals(mesh->positions.data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, mesh->normals.data());
 			}
 
 			if (options.importTangents && !mesh->UV[0].empty() && (mesh->tangents.empty() || mesh->bitangents.empty()))
@@ -1698,7 +1698,7 @@ namespace bs
 				mesh->tangents.resize(numVertices);
 				mesh->bitangents.resize(numVertices);
 
-				MeshUtility::calculateTangents(mesh->positions.data(), mesh->normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
+				MeshUtility::CalculateTangents(mesh->positions.data(), mesh->normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
 					numVertices, numIndices, mesh->tangents.data(), mesh->bitangents.data());
 			}
 
@@ -1710,7 +1710,7 @@ namespace bs
 					{
 						frame.normals.resize(numVertices);
 
-						MeshUtility::calculateNormals(mesh->positions.data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, frame.normals.data());
+						MeshUtility::CalculateNormals(mesh->positions.data(), (UINT8*)mesh->indices.data(), numVertices, numIndices, frame.normals.data());
 					}
 
 					if (options.importTangents && !mesh->UV[0].empty() && (frame.tangents.empty() || frame.bitangents.empty()))
@@ -1718,7 +1718,7 @@ namespace bs
 						frame.tangents.resize(numVertices);
 						frame.bitangents.resize(numVertices);
 
-						MeshUtility::calculateTangents(mesh->positions.data(), frame.normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
+						MeshUtility::CalculateTangents(mesh->positions.data(), frame.normals.data(), mesh->UV[0].data(), (UINT8*)mesh->indices.data(),
 							numVertices, numIndices, frame.tangents.data(), frame.bitangents.data());
 					}
 				}
@@ -1776,7 +1776,7 @@ namespace bs
 			{
 				FbxAnimLayer* animLayer = animStack->GetMember<FbxAnimLayer>(0);
 
-				importAnimations(animLayer, root, importOptions, clip, importScene);
+				ImportAnimations(animLayer, root, importOptions, clip, importScene);
 			}
 		}
 	}
@@ -1826,7 +1826,7 @@ namespace bs
 				float defaultValues[3];
 				memcpy(defaultValues, &defaultTranslation, sizeof(defaultValues));
 
-				boneAnim.translation = importCurve<Vector3, 3>(translation, defaultValues, importOptions,
+				boneAnim.translation = ImportCurve<Vector3, 3>(translation, defaultValues, importOptions,
 					clip.start, clip.end);
 			}
 			else
@@ -1844,7 +1844,7 @@ namespace bs
 				float defaultValues[3];
 				memcpy(defaultValues, &defaultScale, sizeof(defaultValues));
 
-				boneAnim.scale = importCurve<Vector3, 3>(scale, defaultValues, importOptions, clip.start, clip.end);
+				boneAnim.scale = ImportCurve<Vector3, 3>(scale, defaultValues, importOptions, clip.start, clip.end);
 			}
 			else
 			{
@@ -1862,7 +1862,7 @@ namespace bs
 				float defaultValues[3];
 				memcpy(defaultValues, &defaultRotation, sizeof(defaultValues));
 
-				*eulerAnimation = importCurve<Vector3, 3>(rotation, defaultValues, importOptions, clip.start, clip.end);
+				*eulerAnimation = ImportCurve<Vector3, 3>(rotation, defaultValues, importOptions, clip.start, clip.end);
 			}
 			else
 			{
@@ -1876,12 +1876,12 @@ namespace bs
 
 			if(importOptions.reduceKeyframes)
 			{
-				boneAnim.translation = reduceKeyframes(boneAnim.translation);
-				boneAnim.scale = reduceKeyframes(boneAnim.scale);
-				*eulerAnimation = reduceKeyframes(*eulerAnimation);
+				boneAnim.translation = ReduceKeyframes(boneAnim.translation);
+				boneAnim.scale = ReduceKeyframes(boneAnim.scale);
+				*eulerAnimation = ReduceKeyframes(*eulerAnimation);
 			}
 
-			boneAnim.rotation = *AnimationUtility::eulerToQuaternionCurve(eulerAnimation, EulerAngleOrder::XYZ);
+			boneAnim.rotation = *AnimationUtility::EulerToQuaternionCurve(eulerAnimation, EulerAngleOrder::XYZ);
 		}
 
 		if (importOptions.importBlendShapes)
@@ -1907,16 +1907,16 @@ namespace bs
 							blendShapeAnim.blendShape = channel->GetName();
 
 							// Get name without invalid characters
-							blendShapeAnim.blendShape = StringUtil::replaceAll(blendShapeAnim.blendShape, ".", "_");
-							blendShapeAnim.blendShape = StringUtil::replaceAll(blendShapeAnim.blendShape, "/", "_");
+							blendShapeAnim.blendShape = StringUtil::ReplaceAll(blendShapeAnim.blendShape, ".", "_");
+							blendShapeAnim.blendShape = StringUtil::ReplaceAll(blendShapeAnim.blendShape, "/", "_");
 
 							FbxAnimCurve* curves[1] = { curve };
 							float defaultValues[1] = { 0.0f };
-							blendShapeAnim.curve = importCurve<float, 1>(curves, defaultValues, importOptions, clip.start,
+							blendShapeAnim.curve = ImportCurve<float, 1>(curves, defaultValues, importOptions, clip.start,
 								clip.end);
 
 							// FBX contains data in [0, 100] range, but we need it in [0, 1] range
-							blendShapeAnim.curve = AnimationUtility::scaleCurve(blendShapeAnim.curve, 0.01f);
+							blendShapeAnim.curve = AnimationUtility::ScaleCurve(blendShapeAnim.curve, 0.01f);
 						}
 					}
 				}
@@ -1927,7 +1927,7 @@ namespace bs
 		for (UINT32 i = 0; i < childCount; i++)
 		{
 			FbxNode* child = node->GetChild(i);
-			importAnimations(layer, child, importOptions, clip, importScene);
+			ImportAnimations(layer, child, importOptions, clip, importScene);
 		}
 	}
 
@@ -1989,7 +1989,7 @@ namespace bs
 
 	TAnimationCurve<Vector3> FBXImporter::ReduceKeyframes(TAnimationCurve<Vector3>& curve)
 	{
-		UINT32 keyCount = curve.getNumKeyFrames();
+		UINT32 keyCount = curve.GetNumKeyFrames();
 
 		Vector<TKeyframe<Vector3>> newKeyframes;
 

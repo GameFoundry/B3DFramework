@@ -46,15 +46,15 @@ namespace bs { namespace ct
 		return data;
 	}
 
-	void VulkanBuffer::unmap()
+	void VulkanBuffer::Unmap()
 	{
 		VulkanDevice& device = mOwner->GetDevice();
 
 		VkDeviceMemory memory;
 		VkDeviceSize memoryOffset;
-		device.getAllocationInfo(mAllocation, memory, memoryOffset);
+		device.GetAllocationInfo(mAllocation, memory, memoryOffset);
 
-		vkUnmapMemory(device.getLogical(), memory);
+		vkUnmapMemory(device.GetLogical(), memory);
 	}
 
 	void VulkanBuffer::Copy(VulkanCmdBuffer* cb, VulkanBuffer* destination, VkDeviceSize srcOffset,
@@ -98,10 +98,10 @@ namespace bs { namespace ct
 			// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.
 			bool isLastHandle = mNumBoundHandles == 1;
 			if (isLastHandle)
-				destroyUnusedViews();
+				DestroyUnusedViews();
 		}
 
-		VulkanResource::notifyDone(globalQueueIdx, useFlags);
+		VulkanResource::NotifyDone(globalQueueIdx, useFlags);
 	}
 
 	void VulkanBuffer::NotifyUnbound()
@@ -113,10 +113,10 @@ namespace bs { namespace ct
 			// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.
 			bool isLastHandle = mNumBoundHandles == 1;
 			if (isLastHandle)
-				destroyUnusedViews();
+				DestroyUnusedViews();
 		}
 
-		VulkanResource::notifyUnbound();
+		VulkanResource::NotifyUnbound();
 	}
 
 	VkBufferView VulkanBuffer::GetView(VkFormat format)
@@ -140,7 +140,7 @@ namespace bs { namespace ct
 		viewCI.buffer = mBuffer;
 
 		VkBufferView view;
-		VkResult result = vkCreateBufferView(getDevice().getLogical(), &viewCI, gVulkanAllocator, &view);
+		VkResult result = vkCreateBufferView(GetDevice().GetLogical(), &viewCI, gVulkanAllocator, &view);
 		assert(result == VK_SUCCESS);
 
 		mViews.push_back(ViewInfo(format, view));
@@ -169,7 +169,7 @@ namespace bs { namespace ct
 		{
 			if(iter->useCount == 0)
 			{
-				vkDestroyBufferView(getDevice().getLogical(), iter->view, gVulkanAllocator);
+				vkDestroyBufferView(GetDevice().GetLogical(), iter->view, gVulkanAllocator);
 				iter = mViews.erase(iter);
 			}
 			else
@@ -224,7 +224,7 @@ namespace bs { namespace ct
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 		VulkanDevice* devices[BS_MAX_DEVICES];
-		VulkanUtility::getDevices(rapi, deviceMask, devices);
+		VulkanUtility::GetDevices(rapi, deviceMask, devices);
 
 		// Allocate buffers per-device
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 			if (devices[i] == nullptr)
 				continue;
 
-			mBuffers[i] = createBuffer(*devices[i], size, false, true);
+			mBuffers[i] = CreateBuffer(*devices[i], size, false, true);
 		}
 	}
 
@@ -287,16 +287,16 @@ namespace bs { namespace ct
 		else
 			flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		VkDevice vkDevice = device.getLogical();
+		VkDevice vkDevice = device.GetLogical();
 
 		VkBuffer buffer;
 		VkResult result = vkCreateBuffer(vkDevice, &mBufferCI, gVulkanAllocator, &buffer);
 		assert(result == VK_SUCCESS);
 
-		VmaAllocation allocation = device.allocateMemory(buffer, flags);
+		VmaAllocation allocation = device.AllocateMemory(buffer, flags);
 
 		mBufferCI.usage = usage; // Restore original usage
-		return device.getResourceManager().create<VulkanBuffer>(buffer, allocation);
+		return device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation);
 	}
 
 	void* VulkanHardwareBuffer::Map(UINT32 offset, UINT32 length, GpuLockOptions options, UINT32 deviceIdx, UINT32 queueIdx)
@@ -329,7 +329,7 @@ namespace bs { namespace ct
 
 		VulkanCommandBufferManager& cbManager = gVulkanCBManager();
 		GpuQueueType queueType;
-		UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(queueIdx, queueType);
+		UINT32 localQueueIdx = CommandSyncMask::GetQueueIdxAndType(queueIdx, queueType);
 
 		VkAccessFlags accessFlags;
 		if (options == GBL_READ_ONLY)
@@ -344,7 +344,7 @@ namespace bs { namespace ct
 		{
 			// Caller guarantees he won't touch the same data as the GPU, so just map even if the GPU is using the buffer
 			if (options == GBL_WRITE_ONLY_NO_OVERWRITE)
-				return buffer->map(offset, length);
+				return buffer->Map(offset, length);
 
 			// Check is the GPU currently reading or writing from the buffer
 			UINT32 useMask = buffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
@@ -359,21 +359,21 @@ namespace bs { namespace ct
 			{
 				// If some CB has an operation queued that will be using the current contents of the buffer, create a new
 				// buffer so we don't modify the previous use of the buffer
-				if(buffer->isBound())
+				if(buffer->IsBound())
 				{
-					VulkanBuffer* newBuffer = createBuffer(device, mSize, false, true);
+					VulkanBuffer* newBuffer = CreateBuffer(device, mSize, false, true);
 
 					// Copy contents of the current buffer to the new one, unless caller explicitly specifies he doesn't
 					// care about the current contents
 					if (options != GBL_WRITE_ONLY_DISCARD)
 					{
-						UINT8* src = buffer->map(offset, length);
-						UINT8* dst = newBuffer->map(offset, length);
+						UINT8* src = buffer->Map(offset, length);
+						UINT8* dst = newBuffer->Map(offset, length);
 
 						memcpy(dst, src, length);
 
-						buffer->unmap();
-						newBuffer->unmap();
+						buffer->Unmap();
+						newBuffer->Unmap();
 					}
 
 					buffer->Destroy();
@@ -381,7 +381,7 @@ namespace bs { namespace ct
 					mBuffers[deviceIdx] = buffer;
 				}
 
-				return buffer->map(offset, length);
+				return buffer->Map(offset, length);
 			}
 
 			// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
@@ -389,17 +389,17 @@ namespace bs { namespace ct
 			{
 				buffer->Destroy();
 
-				buffer = createBuffer(device, mSize, false, true);
+				buffer = CreateBuffer(device, mSize, false, true);
 				mBuffers[deviceIdx] = buffer;
 
-				return buffer->map(offset, length);
+				return buffer->Map(offset, length);
 			}
 
 			// We need to read the buffer contents
 			if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 			{
 				// We need to wait until (potential) read/write operations complete
-				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(deviceIdx, queueType, localQueueIdx);
+				VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
 
 				// Ensure flush() will wait for all queues currently using to the buffer (if any) to finish
 				// If only reading, wait for all writes to complete, otherwise wait on both writes and reads
@@ -408,7 +408,7 @@ namespace bs { namespace ct
 				else
 					useMask = buffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
-				transferCB->appendMask(useMask);
+				transferCB->AppendMask(useMask);
 
 				// Make any writes visible before mapping
 				if (mSupportsGPUWrites)
@@ -426,29 +426,29 @@ namespace bs { namespace ct
 				}
 
 				// Submit the command buffer and wait until it finishes
-				transferCB->flush(true);
+				transferCB->Flush(true);
 
 				// If writing and some CB has an operation queued that will be using the current contents of the buffer,
 				// create a new  buffer so we don't modify the previous use of the buffer
-				if (options == GBL_READ_WRITE && buffer->isBound())
+				if (options == GBL_READ_WRITE && buffer->IsBound())
 				{
-					VulkanBuffer* newBuffer = createBuffer(device, mSize, false, true);
+					VulkanBuffer* newBuffer = CreateBuffer(device, mSize, false, true);
 
 					// Copy contents of the current buffer to the new one
-					UINT8* src = buffer->map(offset, length);
-					UINT8* dst = newBuffer->map(offset, length);
+					UINT8* src = buffer->Map(offset, length);
+					UINT8* dst = newBuffer->Map(offset, length);
 
 					memcpy(dst, src, length);
 
-					buffer->unmap();
-					newBuffer->unmap();
+					buffer->Unmap();
+					newBuffer->Unmap();
 
 					buffer->Destroy();
 					buffer = newBuffer;
 					mBuffers[deviceIdx] = buffer;
 				}
 
-				return buffer->map(offset, length);
+				return buffer->Map(offset, length);
 			}
 
 			// Otherwise, we're doing write only, in which case it's best to use the staging buffer to avoid waiting
@@ -472,11 +472,11 @@ namespace bs { namespace ct
 		}
 
 		// Create a staging buffer
-		mStagingBuffer = createBuffer(device, length, true, needRead);
+		mStagingBuffer = CreateBuffer(device, length, true, needRead);
 
 		if (needRead)
 		{
-			VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(deviceIdx, queueType, localQueueIdx);
+			VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
 				
 			// Similar to above, if buffer supports GPU writes or is currently being written to, we need to wait on any
 			// potential writes to complete
@@ -484,11 +484,11 @@ namespace bs { namespace ct
 			if(mSupportsGPUWrites || writeUseMask != 0)
 			{
 				// Ensure flush() will wait for all queues currently writing to the buffer (if any) to finish
-				transferCB->appendMask(writeUseMask);
+				transferCB->AppendMask(writeUseMask);
 			}
 
 			// Queue copy command
-			buffer->copy(transferCB->GetCB(), mStagingBuffer, offset, 0, length);
+			buffer->Copy(transferCB->GetCb(), mStagingBuffer, offset, 0, length);
 
 			// Ensure data written to the staging buffer is visible
 			transferCB->memoryBarrier(mStagingBuffer->GetHandle(),
@@ -499,11 +499,11 @@ namespace bs { namespace ct
 			);
 
 			// Submit the command buffer and wait until it finishes
-			transferCB->flush(true);
-			assert(!buffer->isUsed());
+			transferCB->Flush(true);
+			assert(!buffer->IsUsed());
 		}
 
-		return mStagingBuffer->map(0, length);
+		return mStagingBuffer->Map(0, length);
 	}
 
 	void VulkanHardwareBuffer::Unmap()
@@ -517,12 +517,12 @@ namespace bs { namespace ct
 
 		if(mStagingMemory == nullptr && mStagingBuffer == nullptr) // We directly mapped the buffer
 		{
-			mBuffers[mMappedDeviceIdx]->unmap();
+			mBuffers[mMappedDeviceIdx]->Unmap();
 		}
 		else
 		{
 			if(mStagingBuffer != nullptr)
-				mStagingBuffer->unmap();
+				mStagingBuffer->Unmap();
 
 			bool isWrite = mMappedLockOptions != GBL_READ_ONLY;
 
@@ -534,10 +534,10 @@ namespace bs { namespace ct
 
 				VulkanCommandBufferManager& cbManager = gVulkanCBManager();
 				GpuQueueType queueType;
-				UINT32 localQueueIdx = CommandSyncMask::getQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
+				UINT32 localQueueIdx = CommandSyncMask::GetQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 
 				VulkanBuffer* buffer = mBuffers[mMappedDeviceIdx];
-				VulkanTransferBuffer* transferCB = cbManager.getTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
+				VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
 
 				// If the buffer is used in any way on the GPU, we need to wait for that use to finish before
 				// we issue our copy
@@ -557,12 +557,12 @@ namespace bs { namespace ct
 					{
 						buffer->Destroy();
 
-						buffer = createBuffer(device, mSize, false, true);
+						buffer = CreateBuffer(device, mSize, false, true);
 						mBuffers[mMappedDeviceIdx] = buffer;
 					}
 					else // Otherwise we have no choice but to issue a dependency between the queues
 					{
-						transferCB->appendMask(useMask);
+						transferCB->AppendMask(useMask);
 						isNormalWrite = true;
 					}
 				}
@@ -581,14 +581,14 @@ namespace bs { namespace ct
 					// avoid modifying its use in the previous operation
 					if (isBoundWithoutUse)
 					{
-						VulkanBuffer* newBuffer = createBuffer(device, mSize, false, true);
+						VulkanBuffer* newBuffer = CreateBuffer(device, mSize, false, true);
 
 						// Avoid copying original contents if the staging buffer completely covers it
 						if (mMappedOffset > 0 || mMappedSize != mSize)
 						{
-							buffer->copy(transferCB->GetCB(), newBuffer, 0, 0, mSize);
+							buffer->Copy(transferCB->GetCb(), newBuffer, 0, 0, mSize);
 
-							transferCB->GetCB()->registerBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+							transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 						}
 
 						buffer->Destroy();
@@ -600,15 +600,15 @@ namespace bs { namespace ct
 				// Queue copy/update command
 				if (mStagingBuffer != nullptr)
 				{
-					mStagingBuffer->copy(transferCB->GetCB(), buffer, 0, mMappedOffset, mMappedSize);
-					transferCB->GetCB()->registerBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+					mStagingBuffer->Copy(transferCB->GetCb(), buffer, 0, mMappedOffset, mMappedSize);
+					transferCB->GetCb()->RegisterBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 				}
 				else // Staging memory
 				{
-					buffer->update(transferCB->GetCB(), mStagingMemory, mMappedOffset, mMappedSize);
+					buffer->Update(transferCB->GetCb(), mStagingMemory, mMappedOffset, mMappedSize);
 				}
 
-				transferCB->GetCB()->registerBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
+				transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 				// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 				// done automatically before next "normal" command buffer submission.
@@ -641,10 +641,10 @@ namespace bs { namespace ct
 			return;
 		}
 
-		if ((srcOffset + length) > srcBuffer.getSize())
+		if ((srcOffset + length) > srcBuffer.GetSize())
 		{
 			BS_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the source buffer {2}. "
-				"Copy operation aborted.", srcOffset, length, srcBuffer.getSize());
+				"Copy operation aborted.", srcOffset, length, srcBuffer.GetSize());
 
 			return;
 		}
@@ -666,21 +666,21 @@ namespace bs { namespace ct
 		if (src == nullptr || dst == nullptr)
 			return;
 
-		if (vkCB->isInRenderPass())
-			vkCB->endRenderPass();
+		if (vkCB->IsInRenderPass())
+			vkCB->EndRenderPass();
 
-		src->copy(vkCB, dst, srcOffset, dstOffset, length);
+		src->Copy(vkCB, dst, srcOffset, dstOffset, length);
 
 		// Notify the command buffer that these resources are being used on it
-		vkCB->registerBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-		vkCB->registerBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
+		vkCB->RegisterBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+		vkCB->RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 	}
 
 	void VulkanHardwareBuffer::ReadData(UINT32 offset, UINT32 length, void* dest, UINT32 deviceIdx, UINT32 queueIdx)
 	{
-		void* lockedData = lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
+		void* lockedData = Lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
 		memcpy(dest, lockedData, length);
-		unlock();
+		Unlock();
 	}
 
 	void VulkanHardwareBuffer::WriteData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags,
@@ -699,9 +699,9 @@ namespace bs { namespace ct
 			if (mBuffers[i] == nullptr)
 				continue;
 
-			void* lockedData = lock(offset, length, lockOptions, i, queueIdx);
+			void* lockedData = Lock(offset, length, lockOptions, i, queueIdx);
 			memcpy(lockedData, source, length);
-			unlock();
+			Unlock();
 		}
 	}
 }}

@@ -17,10 +17,10 @@ namespace bs
 
 	PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
 	{
-		DXGI_FORMAT d3dPF = ct::D3D11Mappings::getPF(
-			ct::D3D11Mappings::getClosestSupportedPF(format, ttype, usage), hwGamma);
+		DXGI_FORMAT d3dPF = ct::D3D11Mappings::GetPf(
+			ct::D3D11Mappings::GetClosestSupportedPf(format, ttype, usage), hwGamma);
 
-		return ct::D3D11Mappings::getPF(d3dPF);
+		return ct::D3D11Mappings::GetPf(d3dPF);
 	}
 
 	namespace ct

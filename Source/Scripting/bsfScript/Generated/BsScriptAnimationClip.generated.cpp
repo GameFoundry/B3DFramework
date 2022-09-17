@@ -116,7 +116,7 @@ namespace bs
 	bool ScriptAnimationClip::InternalHasRootMotion(ScriptAnimationClip* thisPtr)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->hasRootMotion();
+		tmp__output = thisPtr->GetHandle()->HasRootMotion();
 
 		bool __output;
 		__output = tmp__output;

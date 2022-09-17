@@ -23,7 +23,7 @@ namespace bs
 		m = bs_new<Pimpl>();
 		m->info = gamepadInfo;
 		m->povState = BC_UNASSIGNED;
-		m->hasInputFocus = true;
+		m->HasInputFocus = true;
 
 		String eventPath = "/dev/input/event" + toString(gamepadInfo.eventHandlerIdx);
 		m->fileHandle = open(eventPath.c_str(), O_RDWR | O_NONBLOCK);
@@ -61,7 +61,7 @@ namespace bs
 			if(numReadBytes < 0)
 				break;
 
-			if(!m->hasInputFocus)
+			if(!m->HasInputFocus)
 				continue;
 
 			UINT32 numEvents = numReadBytes / sizeof(input_event);
@@ -155,7 +155,7 @@ namespace bs
 
 	void Gamepad::changeCaptureContext(UINT64 windowHandle)
 	{
-		m->hasInputFocus = windowHandle != (UINT64)-1;
+		m->HasInputFocus = windowHandle != (UINT64)-1;
 	}
 }
 

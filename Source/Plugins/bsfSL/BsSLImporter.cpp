@@ -11,7 +11,7 @@ namespace bs
 	bool SLImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return lowerCaseExt == u8"bsl";
 	}
@@ -53,7 +53,7 @@ namespace bs
 		return result.shader;
 	}
 
-	SPtr<ImportOptions> SLImporter::createImportOptions() const
+	SPtr<ImportOptions> SLImporter::CreateImportOptions() const
 	{
 		return bs_shared_ptr_new<ShaderImportOptions>();
 	}

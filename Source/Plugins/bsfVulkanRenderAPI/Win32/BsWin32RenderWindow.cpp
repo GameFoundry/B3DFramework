@@ -59,14 +59,14 @@ namespace bs
 
 	HWND Win32RenderWindow::GetHWnd() const
 	{
-		blockUntilCoreInitialized();
-		return getCore()->GetWindowHandleInternal();
+		BlockUntilCoreInitialized();
+		return GetCore()->GetWindowHandleInternal();
 	}
 
 	void Win32RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock lock(getCore()->mLock);
-		mProperties = getCore()->mSyncedProperties;
+		ScopedSpinLock lock(GetCore()->mLock);
+		mProperties = GetCore()->mSyncedProperties;
 	}
 
 	SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
@@ -90,7 +90,7 @@ namespace bs
 		Win32RenderWindow::~Win32RenderWindow()
 	{
 		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-		presentDevice->waitIdle();
+		presentDevice->WaitIdle();
 
 		if (mWindow != nullptr)
 		{
@@ -101,7 +101,7 @@ namespace bs
 		mSwapChain->Destroy();
 		vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
 
-		Platform::resetNonClientAreas(*this);
+		Platform::ResetNonClientAreas(*this);
 	}
 
 	void Win32RenderWindow::Initialize()
@@ -141,13 +141,13 @@ namespace bs
 		if (opt != mDesc.platformSpecific.end())
 			windowDesc.external = (HWND)parseUINT64(opt->second);
 		
-		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs > 0)
 		{
 			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.outputIdx, numOutputs - 1);
-			const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
-			windowDesc.monitor = outputInfo.getMonitorHandle();
+			const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
+			windowDesc.monitor = outputInfo.GetMonitorHandle();
 		}
 
 		// Must be set before creating a window, since wndProc will call ShowWindow if needed after creation
@@ -205,7 +205,7 @@ namespace bs
 		mDepthFormat = format.depthFormat;
 
 		// Create swap chain
-		mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(mSurface, props.width, props.height,
+		mSwapChain = presentDevice->GetResourceManager().Create<VulkanSwapChain>(mSurface, props.width, props.height,
 			props.vsync, mColorFormat, mColorSpace, mDesc.depthBuffer, mDepthFormat);
 
 		// Make the window full screen if required
@@ -245,7 +245,7 @@ namespace bs
 			mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		RenderWindow::Initialize();
 	}
 
@@ -255,11 +255,11 @@ namespace bs
 		if (!mRequiresNewBackBuffer)
 			return;
 
-		VkResult acquireResult = mSwapChain->acquireBackBuffer();
+		VkResult acquireResult = mSwapChain->AcquireBackBuffer();
 		if(acquireResult == VK_SUBOPTIMAL_KHR || acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
 		{
-			rebuildSwapChain();
-			mSwapChain->acquireBackBuffer();
+			RebuildSwapChain();
+			mSwapChain->AcquireBackBuffer();
 		}
 
 		mRequiresNewBackBuffer = false;
@@ -270,7 +270,7 @@ namespace bs
 		THROW_IF_NOT_CORE_THREAD;
 
 		if (mShowOnSwap)
-			setHidden(false);
+			SetHidden(false);
 
 		// Get a command buffer on which we'll submit
 		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
@@ -289,7 +289,7 @@ namespace bs
 		VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
 
 		UINT32 numSemaphores;
-		cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
+		cbm.GetSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
 
 		// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
 		const SwapChainSurface& surface = mSwapChain->GetBackBuffer();
@@ -298,12 +298,12 @@ namespace bs
 			mSemaphoresTemp[numSemaphores] = mSwapChain->GetBackBuffer().sync;
 			numSemaphores++;
 
-			mSwapChain->notifyBackBufferWaitIssued();
+			mSwapChain->NotifyBackBufferWaitIssued();
 		}
 
-		VkResult presentResult = queue->present(mSwapChain, mSemaphoresTemp, numSemaphores);
+		VkResult presentResult = queue->Present(mSwapChain, mSemaphoresTemp, numSemaphores);
 		if(presentResult == VK_SUBOPTIMAL_KHR || presentResult == VK_ERROR_OUT_OF_DATE_KHR)
-			rebuildSwapChain();
+			RebuildSwapChain();
 
 		mRequiresNewBackBuffer = true;
 	}
@@ -316,7 +316,7 @@ namespace bs
 
 		if (!props.isFullScreen)
 		{
-			mWindow->move(left, top);
+			mWindow->Move(left, top);
 
 			props.top = mWindow->GetTop();
 			props.left = mWindow->GetLeft();
@@ -327,7 +327,7 @@ namespace bs
 				mSyncedProperties.left = props.left;
 			}
 
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -339,7 +339,7 @@ namespace bs
 
 		if (!props.isFullScreen)
 		{
-			mWindow->resize(width, height);
+			mWindow->Resize(width, height);
 
 			props.width = mWindow->GetWidth();
 			props.height = mWindow->GetHeight();
@@ -350,7 +350,7 @@ namespace bs
 				mSyncedProperties.height = props.height;
 			}
 
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -360,7 +360,7 @@ namespace bs
 
 		mWindow->SetActive(state);
 
-		RenderWindow::setActive(state);
+		RenderWindow::SetActive(state);
 	}
 
 	void Win32RenderWindow::SetHidden(bool hidden)
@@ -370,28 +370,28 @@ namespace bs
 		mShowOnSwap = false;
 		mWindow->SetHidden(hidden);
 
-		RenderWindow::setHidden(hidden);
+		RenderWindow::SetHidden(hidden);
 	}
 
 	void Win32RenderWindow::Minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->minimize();
+		mWindow->Minimize();
 	}
 
 	void Win32RenderWindow::Maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->maximize();
+		mWindow->Maximize();
 	}
 
 	void Win32RenderWindow::Restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->restore();
+		mWindow->Restore();
 	}
 
 	void Win32RenderWindow::SetFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
@@ -401,15 +401,15 @@ namespace bs
 		if (mIsChild)
 			return;
 
-		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs == 0)
 			return;
 
 		RenderWindowProperties& props = mProperties;
 
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
-		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
+		const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
 		mDisplayFrequency = Math::RoundToInt(refreshRate);
 		props.isFullScreen = true;
@@ -424,7 +424,7 @@ namespace bs
 		displayDeviceMode.dmDisplayFrequency = mDisplayFrequency;
 		displayDeviceMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
 
-		HMONITOR hMonitor = outputInfo.getMonitorHandle();
+		HMONITOR hMonitor = outputInfo.GetMonitorHandle();
 		MONITORINFOEX monitorInfo;
 
 		memset(&monitorInfo, 0, sizeof(MONITORINFOEX));
@@ -451,7 +451,7 @@ namespace bs
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		setFullscreen(mode.width, mode.height, mode.refreshRate, mode.outputIdx);
+		SetFullscreen(mode.width, mode.height, mode.refreshRate, mode.outputIdx);
 	}
 
 	void Win32RenderWindow::SetWindowed(UINT32 width, UINT32 height)
@@ -505,7 +505,7 @@ namespace bs
 			mSyncedProperties.height = props.height;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 	}
 
 	void Win32RenderWindow::SetVSync(bool enabled, UINT32 interval)
@@ -513,7 +513,7 @@ namespace bs
 		mProperties.vsync = enabled;
 		mProperties.vsyncInterval = interval;
 
-		rebuildSwapChain();
+		RebuildSwapChain();
 
 		{
 			ScopedSpinLock lock(mLock);
@@ -521,7 +521,7 @@ namespace bs
 			mSyncedProperties.vsyncInterval = interval;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 	}
 
 	HWND Win32RenderWindow::GetWindowHandleInternal() const
@@ -552,7 +552,7 @@ namespace bs
 			return;
 		}
 
-		RenderWindow::getCustomAttribute(name, data);
+		RenderWindow::GetCustomAttribute(name, data);
 	}
 
 	void Win32RenderWindow::WindowMovedOrResizedInternal()
@@ -573,7 +573,7 @@ namespace bs
 			props.height = mWindow->GetHeight();
 		}
 
-		rebuildSwapChain();
+		RebuildSwapChain();
 	}
 
 	void Win32RenderWindow::SyncProperties()
@@ -588,11 +588,11 @@ namespace bs
 		// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
 		// on those
 		SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-		presentDevice->waitIdle();
+		presentDevice->WaitIdle();
 
 		VulkanSwapChain* oldSwapChain = mSwapChain;
 
-		mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(mSurface, mProperties.width,
+		mSwapChain = presentDevice->GetResourceManager().Create<VulkanSwapChain>(mSurface, mProperties.width,
 			mProperties.height, mProperties.vsync, mColorFormat, mColorSpace, mDesc.depthBuffer, mDepthFormat,
 			oldSwapChain);
 

@@ -139,7 +139,7 @@ namespace bs
 		bool tmp__output;
 		String tmpparamName;
 		tmpparamName = MonoUtil::monoToString(paramName);
-		tmp__output = thisPtr->GetInternal()->hasParam(tmpparamName);
+		tmp__output = thisPtr->GetInternal()->HasParam(tmpparamName);
 
 		bool __output;
 		__output = tmp__output;

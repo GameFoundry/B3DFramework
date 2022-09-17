@@ -73,7 +73,7 @@ namespace bs { namespace ct
 #endif
 			desc.source = mSource;
 
-			mBytecode = compileBytecode(desc);
+			mBytecode = CompileBytecode(desc);
 		}
 
 		mCompileMessages = mBytecode->messages;
@@ -107,7 +107,7 @@ namespace bs { namespace ct
 			moduleCI.codeSize = codeSize;
 			moduleCI.pCode = (uint32_t*)code;
 
-			VulkanUtility::getDevices(rapi, mDeviceMask, devices);
+			VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
 			for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 			{
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 					if(mType == GPT_COMPUTE_PROGRAM)
 						vkSetWorkgroupSizeMVK(shaderModule, workgroupSize[0], workgroupSize[1], workgroupSize[2]);
 #endif
-					mModules[i] = rescManager.create<VulkanShaderModule>(shaderModule);
+					mModules[i] = rescManager.Create<VulkanShaderModule>(shaderModule);
 				}
 			}
 
@@ -132,7 +132,7 @@ namespace bs { namespace ct
 
 			if (mType == GPT_VERTEX_PROGRAM)
 			{
-				mInputDeclaration = HardwareBufferManager::Instance().createVertexDeclaration(
+				mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(
 					mBytecode->vertexInput, mDeviceMask);
 			}
 		}

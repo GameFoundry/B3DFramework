@@ -29,7 +29,7 @@ namespace bs
 	{
 		FMODAudioSource* source = nullptr;
 		FMOD::ChannelControl* channel = (FMOD::ChannelControl*)channelControl;
-		channel->GetUserData((void**)&source);
+		channel->getUserData((void**)&source);
 
 		if (source == nullptr)
 			return 1.0f;
@@ -52,26 +52,26 @@ namespace bs
 		advancedSettings.cbSize = sizeof(advancedSettings);
 		advancedSettings.vol0virtualvol = 0.001f;
 
-		mFMOD->SetAdvancedSettings(&advancedSettings);
+		mFMOD->setAdvancedSettings(&advancedSettings);
 		mFMOD->init(512, FMOD_INIT_3D_RIGHTHANDED | FMOD_INIT_VOL0_BECOMES_VIRTUAL, nullptr);
-		mFMOD->SetStreamBufferSize(65536, FMOD_TIMEUNIT_RAWBYTES);
-		mFMOD->Set3DRolloffCallback(&FMOD3DRolloff);
+		mFMOD->setStreamBufferSize(65536, FMOD_TIMEUNIT_RAWBYTES);
+		mFMOD->set3DRolloffCallback(&FMOD3DRolloff);
 
-		mFMOD->GetMasterChannelGroup(&mMasterChannelGroup);
+		mFMOD->getMasterChannelGroup(&mMasterChannelGroup);
 
 		INT32 numDevices;
-		mFMOD->GetNumDrivers(&numDevices);
+		mFMOD->getNumDrivers(&numDevices);
 
 		mAllDevices.resize(numDevices);
 		char nameBuffer[256];
 		for(INT32 i = 0; i < numDevices; i++)
 		{
-			mFMOD->GetDriverInfo(i, nameBuffer, sizeof(nameBuffer), nullptr, nullptr, nullptr, nullptr);
+			mFMOD->getDriverInfo(i, nameBuffer, sizeof(nameBuffer), nullptr, nullptr, nullptr, nullptr);
 			mAllDevices[i].name = String(nameBuffer);
 		}
 
 		INT32 defaultDevice = 0;
-		mFMOD->GetDriver(&defaultDevice);
+		mFMOD->getDriver(&defaultDevice);
 		if(defaultDevice < numDevices)
 		{
 			mDefaultDevice.name = mAllDevices[defaultDevice].name;
@@ -81,24 +81,24 @@ namespace bs
 
 	FMODAudio::~FMODAudio()
 	{
-		stopManualSources();
+		StopManualSources();
 
 		assert(mListeners.empty() && mSources.empty()); // Everything should be destroyed at this point
 		mFMOD->release();
 	}
 
-	void FMODAudio::setVolume(float volume)
+	void FMODAudio::SetVolume(float volume)
 	{
 		mVolume = Math::Clamp01(volume);
-		mMasterChannelGroup->SetVolume(mVolume);
+		mMasterChannelGroup->setVolume(mVolume);
 	}
 
-	float FMODAudio::getVolume() const
+	float FMODAudio::GetVolume() const
 	{
 		return mVolume;
 	}
 
-	void FMODAudio::setPaused(bool paused)
+	void FMODAudio::SetPaused(bool paused)
 	{
 		if (mIsPaused == paused)
 			return;
@@ -116,13 +116,13 @@ namespace bs
 		Audio::UpdateInternal();
 	}
 
-	void FMODAudio::setActiveDevice(const AudioDevice& device)
+	void FMODAudio::SetActiveDevice(const AudioDevice& device)
 	{
 		for(UINT32 i = 0; i < (UINT32)mAllDevices.size(); i++)
 		{
 			if(device.name == mAllDevices[i].name)
 			{
-				mFMOD->SetDriver(i);
+				mFMOD->setDriver(i);
 				return;
 			}
 		}
@@ -130,18 +130,18 @@ namespace bs
 		BS_LOG(Warning, Audio, "Failed changing audio device to: {0}", device.name);
 	}
 
-	SPtr<AudioClip> FMODAudio::createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+	SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
 		const AUDIO_CLIP_DESC& desc)
 	{
 		return bs_core_ptr_new<FMODAudioClip>(samples, streamSize, numSamples, desc);
 	}
 
-	SPtr<AudioListener> FMODAudio::createListener()
+	SPtr<AudioListener> FMODAudio::CreateListener()
 	{
 		return bs_shared_ptr_new<FMODAudioListener>();
 	}
 
-	SPtr<AudioSource> FMODAudio::createSource()
+	SPtr<AudioSource> FMODAudio::CreateSource()
 	{
 		return bs_shared_ptr_new<FMODAudioSource>();
 	}
@@ -150,7 +150,7 @@ namespace bs
 	{
 		mListeners.push_back(listener);
 
-		rebuildListeners();
+		RebuildListeners();
 	}
 
 	void FMODAudio::UnregisterListenerInternal(FMODAudioListener* listener)
@@ -159,26 +159,26 @@ namespace bs
 		if (iterFind != mListeners.end())
 			mListeners.erase(iterFind);
 
-		rebuildListeners();
+		RebuildListeners();
 	}
 
-	void FMODAudio::rebuildListeners()
+	void FMODAudio::RebuildListeners()
 	{
 		INT32 numListeners = (INT32)mListeners.size();
 		if (numListeners > 0)
 		{
-			mFMOD->Set3DNumListeners(numListeners);
+			mFMOD->set3DNumListeners(numListeners);
 			for (INT32 i = 0; i < numListeners; i++)
-				mListeners[i]->rebuild(i);
+				mListeners[i]->Rebuild(i);
 		}
 		else // Always keep at least one listener
 		{
-			mFMOD->Set3DNumListeners(1);
+			mFMOD->set3DNumListeners(1);
 			FMOD_VECTOR zero = { 0.0f, 0.0f, 0.0f };
 			FMOD_VECTOR forward = { 0.0f, 0.0f, -1.0f };
 			FMOD_VECTOR up = { 0.0f, 1.0f, 0.0f };
 
-			mFMOD->Set3DListenerAttributes(0, &zero, &zero, &forward, &up);
+			mFMOD->set3DListenerAttributes(0, &zero, &zero, &forward, &up);
 		}
 	}
 

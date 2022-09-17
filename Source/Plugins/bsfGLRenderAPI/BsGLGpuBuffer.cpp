@@ -17,18 +17,18 @@ namespace bs { namespace ct
 	{
 		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
 
-		mFormat = GLPixelUtil::getBufferFormat(desc.format);
+		mFormat = GLPixelUtil::GetBufferFormat(desc.format);
 	}
 
 	GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
 		: GpuBuffer(desc, std::move(underlyingBuffer))
 	{
-		mFormat = GLPixelUtil::getBufferFormat(desc.format);
+		mFormat = GLPixelUtil::GetBufferFormat(desc.format);
 	}
 
 	GLGpuBuffer::~GLGpuBuffer()
 	{
-		if(mProperties.getType() != GBT_STRUCTURED)
+		if(mProperties.GetType() != GBT_STRUCTURED)
 		{
 			glDeleteTextures(1, &mTextureID);
 			BS_CHECK_GL_ERROR();
@@ -42,25 +42,25 @@ namespace bs { namespace ct
 		// Create a buffer if not wrapping an external one
 		if(!mBuffer)
 		{
-			if (mProperties.getType() == GBT_STRUCTURED)
+			if (mProperties.GetType() == GBT_STRUCTURED)
 			{
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
-				const auto& props = getProperties();
-				UINT32 size = props.getElementCount() * props.getElementSize();
-				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.getUsage());
+				const auto& props = GetProperties();
+				UINT32 size = props.GetElementCount() * props.GetElementSize();
+				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.GetUsage());
 #else
 				BS_LOG(Warning, RenderBackend, "SSBOs are not supported on the current OpenGL version.");
 #endif
 			}
 			else
 			{
-				const auto& props = getProperties();
-				UINT32 size = props.getElementCount() * props.getElementSize();
-				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_TEXTURE_BUFFER, size, props.getUsage());
+				const auto& props = GetProperties();
+				UINT32 size = props.GetElementCount() * props.GetElementSize();
+				mBuffer = bs_pool_new<GLHardwareBuffer>(GL_TEXTURE_BUFFER, size, props.GetUsage());
 			}
 		}
 
-		if(mProperties.getType() != GBT_STRUCTURED)
+		if(mProperties.GetType() != GBT_STRUCTURED)
 		{
 			// Create texture with a specific format
 			glGenTextures(1, &mTextureID);
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 			glBindTexture(GL_TEXTURE_BUFFER, mTextureID);
 			BS_CHECK_GL_ERROR();
 
-			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLHardwareBuffer*>(mBuffer)->GetGLBufferId());
+			glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId());
 			BS_CHECK_GL_ERROR();
 		}
 

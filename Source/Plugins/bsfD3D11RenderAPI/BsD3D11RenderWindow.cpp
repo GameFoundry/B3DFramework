@@ -63,14 +63,14 @@ namespace bs
 
 	HWND D3D11RenderWindow::GetHWnd() const
 	{
-		blockUntilCoreInitialized();
-		return getCore()->GetWindowHandleInternal();
+		BlockUntilCoreInitialized();
+		return GetCore()->GetWindowHandleInternal();
 	}
 
 	void D3D11RenderWindow::SyncProperties()
 	{
-		ScopedSpinLock lock(getCore()->mLock);
-		mProperties = getCore()->mSyncedProperties;
+		ScopedSpinLock lock(GetCore()->mLock);
+		mProperties = GetCore()->mSyncedProperties;
 	}
 
 	SPtr<ct::CoreObject> D3D11RenderWindow::CreateCore() const
@@ -81,7 +81,7 @@ namespace bs
 		// Create the window
 		RENDER_WINDOW_DESC desc = mDesc;
 		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::D3D11RenderWindow>(desc, mWindowId,
-			d3d11rs->GetPrimaryDevice(), d3d11rs->GetDXGIFactory());
+			d3d11rs->GetPrimaryDevice(), d3d11rs->GetDxgiFactory());
 		coreObj->SetThisPtrInternal(coreObj);
 
 		return coreObj;
@@ -111,7 +111,7 @@ namespace bs
 		}
 
 		DestroySizeDependedD3DResources();
-		Platform::resetNonClientAreas(*this);
+		Platform::ResetNonClientAreas(*this);
 	}
 
 	void D3D11RenderWindow::Initialize()
@@ -172,12 +172,12 @@ namespace bs
 
 		const D3D11VideoOutputInfo* outputInfo = nullptr;
 
-		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs > 0)
 		{
 			UINT32 actualMonitorIdx = std::min(mDesc.videoMode.outputIdx, numOutputs - 1);
-			outputInfo = static_cast<const D3D11VideoOutputInfo*>(&videoModeInfo.getOutputInfo(actualMonitorIdx));
+			outputInfo = static_cast<const D3D11VideoOutputInfo*>(&videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
 			DXGI_OUTPUT_DESC desc;
 			outputInfo->GetDxgiOutput()->GetDesc(&desc);
@@ -216,7 +216,7 @@ namespace bs
 			mSyncedProperties = props;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		RenderWindow::Initialize();
 	}
 
@@ -227,9 +227,9 @@ namespace bs
 		if (mShowOnSwap)
 			SetHidden(false);
 
-		if(mDevice.getD3D11Device() != nullptr)
+		if(mDevice.GetD3D11Device() != nullptr)
 		{
-			HRESULT hr = mSwapChain->Present(getProperties().vsync ? getProperties().vsyncInterval : 0, 0);
+			HRESULT hr = mSwapChain->Present(GetProperties().vsync ? GetProperties().vsyncInterval : 0, 0);
 
 			if( FAILED(hr) )
 				BS_EXCEPT(RenderingAPIException, "Error Presenting surfaces");
@@ -244,7 +244,7 @@ namespace bs
 
 		if (!props.isFullScreen)
 		{
-			mWindow->move(left, top);
+			mWindow->Move(left, top);
 
 			props.top = mWindow->GetTop();
 			props.left = mWindow->GetLeft();
@@ -255,7 +255,7 @@ namespace bs
 				mSyncedProperties.left = props.left;
 			}
 
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -267,7 +267,7 @@ namespace bs
 
 		if (!props.isFullScreen)
 		{
-			mWindow->resize(width, height);
+			mWindow->Resize(width, height);
 
 			props.width = mWindow->GetWidth();
 			props.height = mWindow->GetHeight();
@@ -278,7 +278,7 @@ namespace bs
 				mSyncedProperties.height = props.height;
 			}
 
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+			bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 		}
 	}
 
@@ -297,7 +297,7 @@ namespace bs
 				mSwapChain->SetFullscreenState(FALSE, nullptr);
 		}
 
-		RenderWindow::setActive(state);
+		RenderWindow::SetActive(state);
 	}
 
 	void D3D11RenderWindow::SetHidden(bool hidden)
@@ -307,28 +307,28 @@ namespace bs
 		mShowOnSwap = false;
 		mWindow->SetHidden(hidden);
 
-		RenderWindow::setHidden(hidden);
+		RenderWindow::SetHidden(hidden);
 	}
 
 	void D3D11RenderWindow::Minimize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->minimize();
+		mWindow->Minimize();
 	}
 
 	void D3D11RenderWindow::Maximize()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->maximize();
+		mWindow->Maximize();
 	}
 
 	void D3D11RenderWindow::Restore()
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
-		mWindow->restore();
+		mWindow->Restore();
 	}
 
 	void D3D11RenderWindow::SetFullscreen(UINT32 width, UINT32 height, float refreshRate, UINT32 monitorIdx)
@@ -338,13 +338,13 @@ namespace bs
 		if (mIsChild)
 			return;
 
-		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs == 0)
 			return;
 
 		UINT32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
-		const D3D11VideoOutputInfo& outputInfo = static_cast<const D3D11VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
+		const D3D11VideoOutputInfo& outputInfo = static_cast<const D3D11VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
 		DXGI_MODE_DESC modeDesc;
 		ZeroMemory(&modeDesc, sizeof(modeDesc));
@@ -377,8 +377,8 @@ namespace bs
 			mSyncedProperties.height = mProperties.height;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifyMovedOrResized(this);
 	}
 
 	void D3D11RenderWindow::SetFullscreen(const VideoMode& mode)
@@ -394,13 +394,13 @@ namespace bs
 			return;
 		}
 
-		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-		UINT32 numOutputs = videoModeInfo.getNumOutputs();
+		const D3D11VideoModeInfo& videoModeInfo = static_cast<const D3D11VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+		UINT32 numOutputs = videoModeInfo.GetNumOutputs();
 		if (numOutputs == 0)
 			return;
 
 		UINT32 actualMonitorIdx = std::min(mode.outputIdx, numOutputs - 1);
-		const D3D11VideoOutputInfo& outputInfo = static_cast<const D3D11VideoOutputInfo&>(videoModeInfo.getOutputInfo(actualMonitorIdx));
+		const D3D11VideoOutputInfo& outputInfo = static_cast<const D3D11VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
 		const D3D11VideoMode& videoMode = static_cast<const D3D11VideoMode&>(mode);
 
@@ -419,8 +419,8 @@ namespace bs
 			mSyncedProperties.height = mProperties.height;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifyMovedOrResized(this);
 	}
 
 	void D3D11RenderWindow::SetWindowed(UINT32 width, UINT32 height)
@@ -457,8 +457,8 @@ namespace bs
 			mSyncedProperties.height = mProperties.height;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-		bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifyMovedOrResized(this);
 	}
 
 	void D3D11RenderWindow::SetVSync(bool enabled, UINT32 interval)
@@ -472,7 +472,7 @@ namespace bs
 			mSyncedProperties.vsyncInterval = interval;
 		}
 
-		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+		bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 	}
 
 	HWND D3D11RenderWindow::GetWindowHandleInternal() const
@@ -551,7 +551,7 @@ namespace bs
 			return;
 		}
 
-		RenderWindow::getCustomAttribute(name, pData);
+		RenderWindow::GetCustomAttribute(name, pData);
 	}
 
 	void D3D11RenderWindow::CopyToMemory(PixelData &dst, FrameBuffer buffer)
@@ -576,15 +576,15 @@ namespace bs
 			desc.SampleDesc.Quality = 0;
 			desc.SampleDesc.Count = 1;
 
-			HRESULT hr = mDevice.getD3D11Device()->CreateTexture2D(&desc, nullptr, &backbuffer);
+			HRESULT hr = mDevice.GetD3D11Device()->CreateTexture2D(&desc, nullptr, &backbuffer);
 
-			if (FAILED(hr) || mDevice.hasError())
+			if (FAILED(hr) || mDevice.HasError())
 			{
-				String errorDescription = mDevice.getErrorDescription();
+				String errorDescription = mDevice.GetErrorDescription();
 				BS_EXCEPT(RenderingAPIException, "Error creating texture\nError Description:" + errorDescription);
 			}
 
-			mDevice.getImmediateContext()->ResolveSubresource(backbuffer, D3D11CalcSubresource(0, 0, 1), mBackBuffer, D3D11CalcSubresource(0, 0, 1), desc.Format);
+			mDevice.GetImmediateContext()->ResolveSubresource(backbuffer, D3D11CalcSubresource(0, 0, 1), mBackBuffer, D3D11CalcSubresource(0, 0, 1), desc.Format);
 		}
 
 		// Change the parameters of the texture so we can read it
@@ -596,28 +596,28 @@ namespace bs
 
 		// Create a temp buffer to copy to
 		ID3D11Texture2D* tempTexture;
-		HRESULT hr = mDevice.getD3D11Device()->CreateTexture2D(&BBDesc, nullptr, &tempTexture);
+		HRESULT hr = mDevice.GetD3D11Device()->CreateTexture2D(&BBDesc, nullptr, &tempTexture);
 
-		if (FAILED(hr) || mDevice.hasError())
+		if (FAILED(hr) || mDevice.HasError())
 		{
-			String errorDescription = mDevice.getErrorDescription();
+			String errorDescription = mDevice.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Error creating texture\nError Description:" + errorDescription);
 		}
 
 		// Copy the back buffer
-		mDevice.getImmediateContext()->CopyResource(tempTexture, backbuffer != NULL ? backbuffer : mBackBuffer);
+		mDevice.GetImmediateContext()->CopyResource(tempTexture, backbuffer != NULL ? backbuffer : mBackBuffer);
 
 		// Map the copied texture
 		D3D11_MAPPED_SUBRESOURCE mappedTex2D;
-		mDevice.getImmediateContext()->Map(tempTexture, 0,D3D11_MAP_READ, 0, &mappedTex2D);
+		mDevice.GetImmediateContext()->Map(tempTexture, 0,D3D11_MAP_READ, 0, &mappedTex2D);
 
 		// Copy the the texture to the dest
-		PixelData src(getProperties().width, getProperties().height, 1, PF_RGBA8);
-		src.setExternalBuffer((UINT8*)mappedTex2D.pData);
-		PixelUtil::bulkPixelConversion(src, dst);
+		PixelData src(GetProperties().width, GetProperties().height, 1, PF_RGBA8);
+		src.SetExternalBuffer((UINT8*)mappedTex2D.pData);
+		PixelUtil::BulkPixelConversion(src, dst);
 
 		// Unmap the temp buffer
-		mDevice.getImmediateContext()->Unmap(tempTexture, 0);
+		mDevice.GetImmediateContext()->Unmap(tempTexture, 0);
 
 		// Release the temp buffer
 		SAFE_RELEASE(tempTexture);
@@ -685,7 +685,7 @@ namespace bs
 		mSwapChainDesc.Windowed	= true;
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-		rs->determineMultisampleSettings(props.multisampleCount, format, &mMultisampleType);
+		rs->DetermineMultisampleSettings(props.multisampleCount, format, &mMultisampleType);
 		mSwapChainDesc.SampleDesc.Count = mMultisampleType.Count;
 		mSwapChainDesc.SampleDesc.Quality = mMultisampleType.Quality;
 		
@@ -726,13 +726,13 @@ namespace bs
 		ZeroMemory( &RTVDesc, sizeof(RTVDesc) );
 
 		RTVDesc.Format = BBDesc.Format;
-		RTVDesc.ViewDimension = getProperties().multisampleCount > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
+		RTVDesc.ViewDimension = GetProperties().multisampleCount > 1 ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
 		RTVDesc.Texture2D.MipSlice = 0;
-		hr = mDevice.getD3D11Device()->CreateRenderTargetView(mBackBuffer, &RTVDesc, &mRenderTargetView);
+		hr = mDevice.GetD3D11Device()->CreateRenderTargetView(mBackBuffer, &RTVDesc, &mRenderTargetView);
 
 		if(FAILED(hr))
 		{
-			String errorDescription = mDevice.getErrorDescription();
+			String errorDescription = mDevice.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Unable to create rendertagert view\nError Description:" + errorDescription);
 		}
 
@@ -746,10 +746,10 @@ namespace bs
 			texDesc.height = BBDesc.Height;
 			texDesc.format = PF_D32_S8X24;
 			texDesc.usage = TU_DEPTHSTENCIL;
-			texDesc.numSamples = getProperties().multisampleCount;
+			texDesc.numSamples = GetProperties().multisampleCount;
 
 			mDepthStencilBuffer = Texture::Create(texDesc);
-			mDepthStencilView = mDepthStencilBuffer->requestView(0, 1, 0, 1, GVU_DEPTHSTENCIL);
+			mDepthStencilView = mDepthStencilBuffer->RequestView(0, 1, 0, 1, GVU_DEPTHSTENCIL);
 		}
 		else
 			mDepthStencilBuffer = nullptr;
@@ -780,18 +780,18 @@ namespace bs
 
 		CreateSizeDependedD3DResources();
 
-		mDevice.getImmediateContext()->OMSetRenderTargets(0, 0, 0);
+		mDevice.GetImmediateContext()->OMSetRenderTargets(0, 0, 0);
 	}
 
 	IDXGIDevice* D3D11RenderWindow::QueryDxgiDevice()
 	{
-		if (mDevice.getD3D11Device() == nullptr)
+		if (mDevice.GetD3D11Device() == nullptr)
 		{
 			BS_EXCEPT(RenderingAPIException, "D3D11Device is null.");
 		}
 
 		IDXGIDevice* pDXGIDevice = nullptr;
-		HRESULT hr = mDevice.getD3D11Device()->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
+		HRESULT hr = mDevice.GetD3D11Device()->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice);
 
 		if(FAILED(hr))
 			BS_EXCEPT(RenderingAPIException, "Unable to query a DXGIDevice.");

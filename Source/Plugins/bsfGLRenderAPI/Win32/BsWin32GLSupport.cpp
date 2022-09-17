@@ -54,11 +54,11 @@ namespace bs { namespace ct
 		mInitialWindow = nullptr;
 	}
 
-	void Win32GLSupport::initializeExtensions()
+	void Win32GLSupport::InitializeExtensions()
 	{
 		assert(mInitialWindow != nullptr);
 		
-		GLSupport::initializeExtensions();
+		GLSupport::InitializeExtensions();
 
 		wglewContextInit(this);
 
@@ -147,7 +147,7 @@ namespace bs { namespace ct
 		memset(&dummyClass, 0, sizeof(WNDCLASS));
 		dummyClass.style = CS_OWNDC;
 		dummyClass.hInstance = hinst;
-		dummyClass.lpfnWndProc = dummyWndProc;
+		dummyClass.lpfnWndProc = DummyWndProc;
 		dummyClass.lpszClassName = dummyText;
 		RegisterClass(&dummyClass);
 
@@ -305,7 +305,7 @@ namespace bs { namespace ct
 			attribList.push_back(WGL_STENCIL_BITS_ARB); attribList.push_back(pfd.cStencilBits);
 			attribList.push_back(WGL_SAMPLES_ARB); attribList.push_back(multisample);
 
-			if (useHwGamma && checkExtension("WGL_EXT_framebuffer_sRGB"))
+			if (useHwGamma && CheckExtension("WGL_EXT_framebuffer_sRGB"))
 			{
 				attribList.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_EXT);
 				attribList.push_back(GL_TRUE);

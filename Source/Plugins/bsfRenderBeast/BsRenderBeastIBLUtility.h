@@ -350,17 +350,17 @@ namespace bs { namespace ct
 	{
 	public:
 		/** @copydoc IBLUtility::filterCubemapForSpecular */
-		void filterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const override;
+		void FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const ;
 
 		/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&) const */
-		void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const override;
+		void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const ;
 
 		/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&, UINT32) const */
-		void filterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output,
-			UINT32 outputIdx) const override;
+		void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output,
+			UINT32 outputIdx) const ;
 
 		/** @copydoc IBLUtility::scaleCubemap */
-		void scaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip) const override;
+		void ScaleCubemap(const SPtr<Texture>& src, UINT32 srcMip, const SPtr<Texture>& dst, UINT32 dstMip) const ;
 	private:
 		/**
 		 * Downsamples a cubemap using hardware bilinear filtering.

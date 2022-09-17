@@ -85,10 +85,10 @@ namespace bs { namespace ct
 		vertexData[2].pos = Vector3(-1.0f, -1.0f, depth);
 		vertexData[3].pos = Vector3(1.0f, -1.0f, depth);
 
-		vertexData[0].col = color.getAsRGBA();
-		vertexData[1].col = color.getAsRGBA();
-		vertexData[2].col = color.getAsRGBA();
-		vertexData[3].col = color.getAsRGBA();
+		vertexData[0].col = color.GetAsRgba();
+		vertexData[1].col = color.GetAsRgba();
+		vertexData[2].col = color.GetAsRgba();
+		vertexData[3].col = color.GetAsRgba();
 
 		mDevice->GetImmediateContext()->UpdateSubresource(mClearQuadVB, 0, nullptr, vertexData, 0, sizeof(ClearVertex) * 4);
 
@@ -112,25 +112,25 @@ namespace bs { namespace ct
 	void D3D11RenderUtility::InitClearQuadResources()
 	{
 		BLEND_STATE_DESC blendStateDescYesC;
-		mClearQuadBlendStateYesC = RenderStateManager::Instance().createBlendState(blendStateDescYesC);
+		mClearQuadBlendStateYesC = RenderStateManager::Instance().CreateBlendState(blendStateDescYesC);
 
 		BLEND_STATE_DESC blendStateDescNoC;
 		for(int i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 			blendStateDescNoC.renderTargetDesc[i].renderTargetWriteMask = 0;
 
-		mClearQuadBlendStateNoC = RenderStateManager::Instance().createBlendState(blendStateDescNoC);
+		mClearQuadBlendStateNoC = RenderStateManager::Instance().CreateBlendState(blendStateDescNoC);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescNoD_NoS;
 		depthStateDescNoD_NoS.depthReadEnable = false;
 		depthStateDescNoD_NoS.depthWriteEnable = false;
 		depthStateDescNoD_NoS.depthComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateNoD_NoS = RenderStateManager::Instance().createDepthStencilState(depthStateDescNoD_NoS);
+		mClearQuadDSStateNoD_NoS = RenderStateManager::Instance().CreateDepthStencilState(depthStateDescNoD_NoS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescYesD_NoS;
 		depthStateDescYesD_NoS.depthReadEnable = false;
 		depthStateDescYesD_NoS.depthWriteEnable = true;
 		depthStateDescYesD_NoS.depthComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateYesD_NoS = RenderStateManager::Instance().createDepthStencilState(depthStateDescYesD_NoS);
+		mClearQuadDSStateYesD_NoS = RenderStateManager::Instance().CreateDepthStencilState(depthStateDescYesD_NoS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescYesD_YesS;
 		depthStateDescYesD_YesS.depthReadEnable = false;
@@ -139,7 +139,7 @@ namespace bs { namespace ct
 		depthStateDescYesD_YesS.stencilEnable = true;
 		depthStateDescYesD_YesS.frontStencilComparisonFunc = CMPF_ALWAYS_PASS;
 		depthStateDescYesD_YesS.frontStencilPassOp = SOP_REPLACE;
-		mClearQuadDSStateYesD_YesS = RenderStateManager::Instance().createDepthStencilState(depthStateDescYesD_YesS);
+		mClearQuadDSStateYesD_YesS = RenderStateManager::Instance().CreateDepthStencilState(depthStateDescYesD_YesS);
 
 		DEPTH_STENCIL_STATE_DESC depthStateDescNoD_YesS;
 		depthStateDescNoD_YesS.depthReadEnable = false;
@@ -147,10 +147,10 @@ namespace bs { namespace ct
 		depthStateDescNoD_YesS.depthComparisonFunc = CMPF_ALWAYS_PASS;
 		depthStateDescNoD_YesS.stencilEnable = true;
 		depthStateDescNoD_YesS.frontStencilComparisonFunc = CMPF_ALWAYS_PASS;
-		mClearQuadDSStateNoD_YesS = RenderStateManager::Instance().createDepthStencilState(depthStateDescNoD_YesS);
+		mClearQuadDSStateNoD_YesS = RenderStateManager::Instance().CreateDepthStencilState(depthStateDescNoD_YesS);
 
 		RASTERIZER_STATE_DESC rasterizerStateDesc;
-		mClearQuadRasterizerState = RenderStateManager::Instance().createRasterizerState(rasterizerStateDesc);
+		mClearQuadRasterizerState = RenderStateManager::Instance().CreateRasterizerState(rasterizerStateDesc);
 
 		String vsShaderCode = "										\
 						void main(									\
@@ -266,16 +266,16 @@ namespace bs { namespace ct
 		vertexData[2].pos = Vector3(0, 0, 0);
 		vertexData[3].pos = Vector3(0, 0, 0);
 
-		vertexData[0].col = Color::White.getAsBGRA();
-		vertexData[1].col = Color::White.getAsBGRA();
-		vertexData[2].col = Color::White.getAsBGRA();
-		vertexData[3].col = Color::White.getAsBGRA();
+		vertexData[0].col = Color::White.GetAsBgra();
+		vertexData[1].col = Color::White.GetAsBgra();
+		vertexData[2].col = Color::White.GetAsBgra();
+		vertexData[3].col = Color::White.GetAsBgra();
 
 		D3D11_SUBRESOURCE_DATA vertexSubresourceData;
 		vertexSubresourceData.pSysMem = vertexData;
 
 		hr = mDevice->GetD3D11Device()->CreateBuffer(&mVBDesc, &vertexSubresourceData, &mClearQuadVB);
-		if (FAILED(hr) || mDevice->hasError())
+		if (FAILED(hr) || mDevice->HasError())
 		{
 			String msg = mDevice->GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create D3D11 buffer: " + msg);
@@ -304,7 +304,7 @@ namespace bs { namespace ct
 		indexSubresourceData.pSysMem = indexData;
 
 		hr = mDevice->GetD3D11Device()->CreateBuffer(&mIBDesc, &indexSubresourceData, &mClearQuadIB);
-		if (FAILED(hr) || mDevice->hasError())
+		if (FAILED(hr) || mDevice->HasError())
 		{
 			String msg = mDevice->GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create D3D11 buffer: " + msg);

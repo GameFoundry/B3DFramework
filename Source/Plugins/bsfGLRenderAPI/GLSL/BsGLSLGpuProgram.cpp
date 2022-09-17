@@ -276,20 +276,20 @@ namespace bs { namespace ct
 		{
 		case GPT_GEOMETRY_PROGRAM:
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
-			return caps.hasCapability(RSC_GEOMETRY_PROGRAM);
+			return caps.HasCapability(RSC_GEOMETRY_PROGRAM);
 #else
 			return false;
 #endif
 		case GPT_HULL_PROGRAM:
 		case GPT_DOMAIN_PROGRAM:
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
-			return caps.hasCapability(RSC_TESSELLATION_PROGRAM);
+			return caps.HasCapability(RSC_TESSELLATION_PROGRAM);
 #else
 			return false;
 #endif
 		case GPT_COMPUTE_PROGRAM:
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
-			return caps.hasCapability(RSC_COMPUTE_PROGRAM);
+			return caps.HasCapability(RSC_COMPUTE_PROGRAM);
 #else
 			return false;
 #endif

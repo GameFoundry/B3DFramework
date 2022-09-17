@@ -12,14 +12,14 @@ namespace bs { namespace ct
 
 	void DecalRenderElement::Draw() const
 	{
-		gRendererUtility().draw(mesh, subMesh);
+		gRendererUtility().Draw(mesh, subMesh);
 	}
 
 	RendererDecal::RendererDecal()
 	{
-		decalParamBuffer = gDecalParamDef.createBuffer();
-		perObjectParamBuffer = gPerObjectParamDef.createBuffer();
-		perCallParamBuffer = gPerCallParamDef.createBuffer();
+		decalParamBuffer = gDecalParamDef.CreateBuffer();
+		perObjectParamBuffer = gPerObjectParamDef.CreateBuffer();
+		perCallParamBuffer = gPerCallParamDef.CreateBuffer();
 	}
 
 	void RendererDecal::UpdatePerObjectBuffer()
@@ -37,16 +37,16 @@ namespace bs { namespace ct
 		const Matrix4 worldNoScaleTransform = decal->GetMatrixNoScale() * scaleAndOffset;
 
 		// Note: Not providing the previous frame matrix here
-		PerObjectBuffer::update(perObjectParamBuffer, worldTransform, worldNoScaleTransform, worldTransform, 0);
+		PerObjectBuffer::Update(perObjectParamBuffer, worldTransform, worldNoScaleTransform, worldTransform, 0);
 
 		const Transform& tfrm = decal->GetTransform();
 
-		const Matrix4 view = Matrix4::view(tfrm.GetPosition(), tfrm.GetRotation());
-		const Matrix4 proj = Matrix4::projectionOrthographic(-extent.x, extent.x, -extent.y, extent.y, 0.0f,
+		const Matrix4 view = Matrix4::View(tfrm.GetPosition(), tfrm.GetRotation());
+		const Matrix4 proj = Matrix4::ProjectionOrthographic(-extent.x, extent.x, -extent.y, extent.y, 0.0f,
 			decal->GetWorldMaxDistance());
 
 		const Matrix4 worldToDecal = proj * view;
-		const Vector3 decalNormal = -decal->GetTransform().GetRotation().zAxis();
+		const Vector3 decalNormal = -decal->GetTransform().GetRotation().ZAxis();
 		const float normalTolerance = -0.05f;
 
 		float flipDerivatives = 1.0f;
@@ -69,6 +69,6 @@ namespace bs { namespace ct
 		gPerCallParamDef.gMatWorldViewProj.Set(perCallParamBuffer, worldViewProjMatrix);
 
 		if(flush)
-			perCallParamBuffer->flushToGPU();
+			perCallParamBuffer->FlushToGpu();
 	}
 }}

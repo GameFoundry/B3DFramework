@@ -85,12 +85,12 @@ namespace bs { namespace ct
 			mBufferNumCells = numCells;
 		}
 
-		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::getVariation(
+		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(
 			ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1
 		);
 
-		clearMat->execute(mLightsCounter);
-		clearMat->execute(mProbesCounter);
+		clearMat->Execute(mLightsCounter);
+		clearMat->Execute(mProbesCounter);
 
 		UINT32 clearValue = 0xFFFFFFFF;
 		Color clearColor;
@@ -99,8 +99,8 @@ namespace bs { namespace ct
 		clearColor.b = *(float*) &clearValue;
 		clearColor.a = *(float*) &clearValue;
 
-		clearMat->execute(mLightsLLHeads, clearColor);
-		clearMat->execute(mProbesLLHeads, clearColor);
+		clearMat->Execute(mLightsLLHeads, clearColor);
+		clearMat->Execute(mProbesLLHeads, clearColor);
 
 		mParams->SetParamBlockBuffer("GridParams", gridParams);
 		mLightBufferParam.Set(lightsBuffer);
@@ -111,14 +111,14 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		mParams->SetParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 
-		bind();
-		RenderAPI::Instance().dispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+		Bind();
+		RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 	}
 
 	void LightGridLLCreationMat::GetOutputs(SPtr<GpuBuffer>& lightsLLHeads, SPtr<GpuBuffer>& lightsLL,
@@ -198,10 +198,10 @@ namespace bs { namespace ct
 			mBufferNumCells = numCells;
 		}
 
-		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::getVariation(
+		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(
 			ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1
 		);
-		clearMat->execute(mGridDataCounter);
+		clearMat->Execute(mGridDataCounter);
 
 		mParams->SetParamBlockBuffer("GridParams", gridParams);
 
@@ -216,14 +216,14 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		mParams->SetParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 		UINT32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 		UINT32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
 
-		bind();
-		RenderAPI::Instance().dispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+		Bind();
+		RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 	}
 
 	void LightGridLLReductionMat::GetOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices,
@@ -237,13 +237,13 @@ namespace bs { namespace ct
 
 	LightGrid::LightGrid()
 	{
-		mGridParamBuffer = gLightGridParamDefDef.createBuffer();
+		mGridParamBuffer = gLightGridParamDefDef.CreateBuffer();
 	}
 
 	void LightGrid::UpdateGrid(const RendererView& view, const VisibleLightData& lightData, const VisibleReflProbeData& probeData,
 		bool noLighting)
 	{
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 
 		UINT32 width = viewProps.target.viewRect.width;
 		UINT32 height = viewProps.target.viewRect.height;
@@ -257,9 +257,9 @@ namespace bs { namespace ct
 		Vector2I lightStrides;
 		if (!noLighting)
 		{
-			lightCount[0] = lightData.getNumLights(LightType::Directional);
-			lightCount[1] = lightData.getNumLights(LightType::Radial);
-			lightCount[2] = lightData.getNumLights(LightType::Spot);
+			lightCount[0] = lightData.GetNumLights(LightType::Directional);
+			lightCount[1] = lightData.GetNumLights(LightType::Radial);
+			lightCount[2] = lightData.GetNumLights(LightType::Spot);
 			lightCount[3] = lightCount[0] + lightCount[1] + lightCount[2];
 
 			lightStrides[0] = lightCount[0];
@@ -280,15 +280,15 @@ namespace bs { namespace ct
 
 		gLightGridParamDefDef.gLightCounts.Set(mGridParamBuffer, lightCount);
 		gLightGridParamDefDef.gLightStrides.Set(mGridParamBuffer, lightStrides);
-		gLightGridParamDefDef.gNumReflProbes.Set(mGridParamBuffer, probeData.getNumProbes());
+		gLightGridParamDefDef.gNumReflProbes.Set(mGridParamBuffer, probeData.GetNumProbes());
 		gLightGridParamDefDef.gNumCells.Set(mGridParamBuffer, numCells);
 		gLightGridParamDefDef.gGridSize.Set(mGridParamBuffer, gridSize);
 		gLightGridParamDefDef.gMaxNumLightsPerCell.Set(mGridParamBuffer, MAX_LIGHTS_PER_CELL);
 		gLightGridParamDefDef.gGridPixelSize.Set(mGridParamBuffer, Vector2I(CELL_XY_SIZE, CELL_XY_SIZE));
 
-		LightGridLLCreationMat* creationMat = LightGridLLCreationMat::get();
-		creationMat->SetParams(gridSize, mGridParamBuffer, lightData.getLightBuffer(), probeData.getProbeBuffer());
-		creationMat->execute(view);
+		LightGridLLCreationMat* creationMat = LightGridLLCreationMat::Get();
+		creationMat->SetParams(gridSize, mGridParamBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer());
+		creationMat->Execute(view);
 
 		SPtr<GpuBuffer> lightLLHeads;
 		SPtr<GpuBuffer> lightLL;
@@ -296,16 +296,16 @@ namespace bs { namespace ct
 		SPtr<GpuBuffer> probeLL;
 		creationMat->GetOutputs(lightLLHeads, lightLL, probeLLHeads, probeLL);
 
-		LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::get();
+		LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::Get();
 		reductionMat->SetParams(gridSize, mGridParamBuffer, lightLLHeads, lightLL, probeLLHeads, probeLL);
-		reductionMat->execute(view);
+		reductionMat->Execute(view);
 	}
 
 	LightGridOutputs LightGrid::GetOutputs() const
 	{
 		LightGridOutputs outputs;
 
-		LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::get();
+		LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::Get();
 		reductionMat->GetOutputs(
 			outputs.gridLightOffsetsAndSize,
 			outputs.gridLightIndices,

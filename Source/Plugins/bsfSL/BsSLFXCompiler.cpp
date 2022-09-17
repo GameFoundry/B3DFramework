@@ -99,9 +99,9 @@ namespace bs
 
 		void GetMessages(StringStream& output)
 		{
-			printAndClearReports(output, mInfos);
-			printAndClearReports(output, mWarnings, (mWarnings.size() == 1 ? "WARNING" : "WARNINGS"));
-			printAndClearReports(output, mErrors, (mErrors.size() == 1 ? "ERROR" : "ERRORS"));
+			PrintAndClearReports(output, mInfos);
+			PrintAndClearReports(output, mWarnings, (mWarnings.size() == 1 ? "WARNING" : "WARNINGS"));
+			PrintAndClearReports(output, mErrors, (mErrors.size() == 1 ? "ERROR" : "ERRORS"));
 		}
 
 	private:
@@ -158,7 +158,7 @@ namespace bs
 
 			// Print report message
 			const auto& msg = r.report.Message();
-			printMultiLineString(output, msg, r.indent);
+			PrintMultiLineString(output, msg, r.indent);
 
 			// Print optional line and line-marker
 			if (r.report.HasLine())
@@ -190,7 +190,7 @@ namespace bs
 				}
 
 				for (const auto& r : reports)
-					printReport(output, r);
+					PrintReport(output, r);
 
 				reports.clear();
 			}
@@ -277,11 +277,11 @@ namespace bs
 	HTexture getBuiltinTexture(UINT32 idx)
 	{
 		if (idx == 1)
-			return BuiltinResources::getTexture(BuiltinTexture::White);
+			return BuiltinResources::GetTexture(BuiltinTexture::White);
 		else if (idx == 2)
-			return BuiltinResources::getTexture(BuiltinTexture::Black);
+			return BuiltinResources::GetTexture(BuiltinTexture::Black);
 		else if (idx == 3)
-			return BuiltinResources::getTexture(BuiltinTexture::Normal);
+			return BuiltinResources::GetTexture(BuiltinTexture::Normal);
 
 		return HTexture();
 	}
@@ -454,7 +454,7 @@ namespace bs
 					attribute.nextParamIdx = (UINT32)-1;
 					attribute.type = ShaderParamAttributeType::Name;
 
-					desc.setParameterAttribute(ident, attribute);
+					desc.SetParameterAttribute(ident, attribute);
 				}
 
 				if ((entry.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0)
@@ -463,7 +463,7 @@ namespace bs
 					attribute.nextParamIdx = (UINT32)-1;
 					attribute.type = ShaderParamAttributeType::HideInInspector;
 
-					desc.setParameterAttribute(ident, attribute);
+					desc.SetParameterAttribute(ident, attribute);
 				}
 
 				if ((entry.flags & Xsc::Reflection::Uniform::Flags::HDR) != 0)
@@ -472,14 +472,14 @@ namespace bs
 					attribute.nextParamIdx = (UINT32)-1;
 					attribute.type = ShaderParamAttributeType::HDR;
 
-					desc.setParameterAttribute(ident, attribute);
+					desc.SetParameterAttribute(ident, attribute);
 				}
 			};
 
 			switch(entry.type)
 			{
 			case Xsc::Reflection::VariableType::UniformBuffer:
-				desc.setParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
+				desc.SetParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
 				break;
 			case Xsc::Reflection::VariableType::Buffer:
 				{
@@ -492,11 +492,11 @@ namespace bs
 							continue;
 
 						if (entry.defaultValue == -1)
-							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
+							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
 						else
 						{
 							const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
-							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType),
+							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType),
 								getBuiltinTexture(defVal.integer));
 						}
 
@@ -510,7 +510,7 @@ namespace bs
 							continue;
 
 						objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
-						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
+						desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, objType));
 
 						parseCommonAttributes();
 					}
@@ -531,22 +531,22 @@ namespace bs
 					if(findIter->second.isNonDefault)
 					{
 						SPtr<SamplerState> defaultVal = parseSamplerState(findIter->second);
-						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D), defaultVal);
+						desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D), defaultVal);
 
 						if (!alias.empty())
-							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D), defaultVal);
+							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D), defaultVal);
 					}
 					else
 					{
-						desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
+						desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
 
 						if (!alias.empty())
-							desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D));
+							desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, alias, GPOT_SAMPLER2D));
 					}
 				}
 				else
 				{
-					desc.addParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
+					desc.AddParameter(SHADER_OBJECT_PARAM_DESC(ident, ident, GPOT_SAMPLER2D));
 				}
 				break;
 			}
@@ -578,12 +578,12 @@ namespace bs
 					UINT32 arraySize = entry.arraySize;
 
 					if (entry.defaultValue == -1)
-						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize));
+						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize));
 					else
 					{
 						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
 
-						desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize, 0),
+						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize, 0),
 							(UINT8*)defVal.matrix);
 					}
 
@@ -594,7 +594,7 @@ namespace bs
 						attribute.nextParamIdx = (UINT32)-1;
 						attribute.type = ShaderParamAttributeType::SpriteUV;
 
-						desc.setParameterAttribute(ident, attribute);
+						desc.SetParameterAttribute(ident, attribute);
 					}
 
 					parseCommonAttributes();
@@ -606,7 +606,7 @@ namespace bs
 				INT32 structIdx = entry.baseType;
 				UINT32 structSize = getStructSize(structIdx, reflData.structs);
 
-				desc.addParameter(SHADER_DATA_PARAM_DESC(ident, ident, GPDT_STRUCT, StringID::NONE, entry.arraySize,
+				desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, GPDT_STRUCT, StringID::NONE, entry.arraySize,
 					structSize));
 			}
 				break;
@@ -807,7 +807,7 @@ namespace bs
 		SHADER_DESC shaderDesc;
 		Vector<String> includes;
 
-		BSLFXCompileResult output = compileShader(source, defines, languages, shaderDesc, includes);
+		BSLFXCompileResult output = CompileShader(source, defines, languages, shaderDesc, includes);
 
 		// Generate a shader from the parsed information
 		output.shader = Shader::CreatePtrInternal(name, shaderDesc);
@@ -869,7 +869,7 @@ namespace bs
 
 cleanup:
 		yy_delete_buffer(state, scanner);
-		yylex_Destroy(scanner);
+		yylex_destroy(scanner);
 
 		return output;
 	}
@@ -1396,7 +1396,7 @@ cleanup:
 				isDefault = false;
 				break;
 			case OT_Target:
-				targets.add(option->value.nodePtr);
+				targets.Add(option->value.nodePtr);
 				isDefault = false;
 				break;
 			default:
@@ -1408,7 +1408,7 @@ cleanup:
 		// the source code
 		UINT32 index = 0;
 		for(auto iter = targets.rbegin(); iter != targets.rend(); ++iter)
-			parseRenderTargetBlendState(desc.blendDesc, *iter, index);
+			ParseRenderTargetBlendState(desc.blendDesc, *iter, index);
 
 		return !isDefault;
 	}
@@ -1587,7 +1587,7 @@ cleanup:
 				passData.depthStencilIsDefault &= !ParseStencilState(passData, option->value.nodePtr);
 				break;
 			case OT_Code:
-				parseCodeBlock(option->value.nodePtr, codeBlocks, passData);
+				ParseCodeBlock(option->value.nodePtr, codeBlocks, passData);
 				break;
 			default:
 				break;
@@ -1639,13 +1639,13 @@ cleanup:
 				passData->code = combinedCommonPassData.code + passData->code;
 
 				ASTFXNode* passNode = option->value.nodePtr;
-				parsePass(passNode, codeBlocks, *passData);
+				ParsePass(passNode, codeBlocks, *passData);
 			}
 				break;
 			case OT_Code:
 			{
 				PassData commonPassData;
-				parseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
+				ParseCodeBlock(option->value.nodePtr, codeBlocks, commonPassData);
 
 				for (auto& passData : shaderData.passes)
 					passData.code += commonPassData.code;
@@ -1670,19 +1670,19 @@ cleanup:
 			{
 			case OT_Blend:
 				for (auto& passData : shaderData.passes)
-					passData.blendIsDefault &= !parseBlendState(passData, option->value.nodePtr);
+					passData.blendIsDefault &= !ParseBlendState(passData, option->value.nodePtr);
 				break;
 			case OT_Raster:
 				for (auto& passData : shaderData.passes)
-					passData.rasterizerIsDefault &= !parseRasterizerState(passData, option->value.nodePtr);
+					passData.rasterizerIsDefault &= !ParseRasterizerState(passData, option->value.nodePtr);
 				break;
 			case OT_Depth:
 				for (auto& passData : shaderData.passes)
-					passData.depthStencilIsDefault &= !parseDepthState(passData, option->value.nodePtr);
+					passData.depthStencilIsDefault &= !ParseDepthState(passData, option->value.nodePtr);
 				break;
 			case OT_Stencil:
 				for (auto& passData : shaderData.passes)
-					passData.depthStencilIsDefault &= !parseStencilState(passData, option->value.nodePtr);
+					passData.depthStencilIsDefault &= !ParseStencilState(passData, option->value.nodePtr);
 				break;
 			default:
 				break;
@@ -1841,7 +1841,7 @@ cleanup:
 				paramValue.name = value.name;
 				paramValue.value = value.value;
 
-				paramInfo.values.add(paramValue);
+				paramInfo.values.Add(paramValue);
 			}
 
 			desc.variationParams.push_back(paramInfo);
@@ -1888,7 +1888,7 @@ cleanup:
 							ShaderVariation a;
 							ShaderVariation b;
 
-							b.addParam(ShaderVariation::Param(current->identifier, 1));
+							b.AddParam(ShaderVariation::Param(current->identifier, 1));
 
 							variations.push_back(a);
 							variations.push_back(b);
@@ -1902,7 +1902,7 @@ cleanup:
 								variations.push_back(variations[i]);
 
 								// Add the parameter to existing variation
-								variations[i].addParam(ShaderVariation::Param(current->identifier, 1));
+								variations[i].AddParam(ShaderVariation::Param(current->identifier, 1));
 							}
 						}
 					}
@@ -1914,7 +1914,7 @@ cleanup:
 							for (UINT32 i = 0; i < (UINT32)current->values.size(); i++)
 							{
 								ShaderVariation variation;
-								variation.addParam(ShaderVariation::Param(current->identifier, current->values[i].value));
+								variation.AddParam(ShaderVariation::Param(current->identifier, current->values[i].value));
 
 								variations.push_back(variation);
 							}
@@ -1927,12 +1927,12 @@ cleanup:
 								for (UINT32 j = 1; j < (UINT32)current->values.size(); j++)
 								{
 									ShaderVariation copy = variations[i];
-									copy.addParam(ShaderVariation::Param(current->identifier, current->values[j].value));
+									copy.AddParam(ShaderVariation::Param(current->identifier, current->values[j].value));
 
 									variations.push_back(copy);
 								}
 
-								variations[i].addParam(ShaderVariation::Param(current->identifier, current->values[0].value));
+								variations[i].AddParam(ShaderVariation::Param(current->identifier, current->values[0].value));
 							}
 						}
 					}
@@ -1943,13 +1943,13 @@ cleanup:
 			for (auto& variation : variations)
 			{
 				UnorderedMap<String, String> globalDefines = defines;
-				UnorderedMap<String, String> variationDefines = variation.getDefines().getAll();
+				UnorderedMap<String, String> variationDefines = variation.GetDefines().GetAll();
 
 				for (auto& define : variationDefines)
 					globalDefines[define.first] = define.second;
 
 				ParseState* variationParseState = parseStateCreate();
-				output = parseFX(variationParseState, source.c_str(), globalDefines);
+				output = ParseFx(variationParseState, source.c_str(), globalDefines);
 
 				if (!output.errorMessage.empty())
 					parseStateDelete(variationParseState);
@@ -1966,7 +1966,7 @@ cleanup:
 						rawCode = rawCode->next;
 					}
 
-					output = compileTechniques(variationParseState, entry.second.name, codeBlocks, variation, languages,
+					output = CompileTechniques(variationParseState, entry.second.name, codeBlocks, variation, languages,
 						includeSet, shaderDesc);
 
 					if (!output.errorMessage.empty())
@@ -1984,7 +1984,7 @@ cleanup:
 		StringStream gpuProgError;
 		for (auto& technique : shaderDesc.techniques)
 		{
-			if(!technique->isSupported())
+			if(!technique->IsSupported())
 				continue;
 
 			UINT32 numPasses = technique->GetNumPasses();
@@ -1998,9 +1998,9 @@ cleanup:
 				{
 					if (prog != nullptr)
 					{
-						prog->blockUntilCoreInitialized();
+						prog->BlockUntilCoreInitialized();
 
-						if (!prog->isCompiled())
+						if (!prog->IsCompiled())
 						{
 							hasError = true;
 							gpuProgError << prefix << ": " << prog->GetCompileErrorMessage() << std::endl;
@@ -2037,11 +2037,11 @@ cleanup:
 	BSLFXCompileResult BSLFXCompiler::CompileShader(String source, const UnorderedMap<String, String>& defines,
 		ShadingLanguageFlags languages, SHADER_DESC& shaderDesc, Vector<String>& includes)
 	{
-		SPtr<ct::Renderer> renderer = RendererManager::Instance().getActive();
+		SPtr<ct::Renderer> renderer = RendererManager::Instance().GetActive();
 
 		// Run the lexer/parser and generate the AST
 		ParseState* parseState = parseStateCreate();
-		BSLFXCompileResult output = parseFX(parseState, source.c_str(), defines);
+		BSLFXCompileResult output = ParseFx(parseState, source.c_str(), defines);
 
 		if (!output.errorMessage.empty())
 		{
@@ -2053,7 +2053,7 @@ cleanup:
 		Vector<pair<ASTFXNode*, ShaderMetaData>> shaderMetaData;
 		Vector<SubShaderData> subShaderData;
 
-		output = parseMetaDataAndOptions(parseState->rootNode, shaderMetaData, subShaderData, shaderDesc);
+		output = ParseMetaDataAndOptions(parseState->rootNode, shaderMetaData, subShaderData, shaderDesc);
 
 		if (!output.errorMessage.empty())
 		{
@@ -2075,7 +2075,7 @@ cleanup:
 
 		parseStateDelete(parseState);
 
-		output = populateVariations(shaderMetaData);
+		output = PopulateVariations(shaderMetaData);
 
 		if (!output.errorMessage.empty())
 			return output;
@@ -2086,10 +2086,10 @@ cleanup:
 			if(entry.second.isMixin)
 				continue;
 
-			populateVariationParamInfos(entry.second, shaderDesc);
+			PopulateVariationParamInfos(entry.second, shaderDesc);
 		}
 
-		output = compileTechniques(shaderMetaData, source, defines, languages, shaderDesc, includes);
+		output = CompileTechniques(shaderMetaData, source, defines, languages, shaderDesc, includes);
 
 		if (!output.errorMessage.empty())
 			return output;
@@ -2105,14 +2105,14 @@ cleanup:
 			ct::ShaderExtensionPointInfo extPointInfo = renderer->GetShaderExtensionPointInfo(entry.name);
 			for (auto& extPointShader : extPointInfo.shaders)
 			{
-				Path path = gBuiltinResources().getRawShaderFolder();
-				path.append(extPointShader.path);
-				path.setExtension(path.getExtension());
+				Path path = gBuiltinResources().GetRawShaderFolder();
+				path.Append(extPointShader.path);
+				path.SetExtension(path.GetExtension());
 
 				StringStream subShaderSource;
-				const UnorderedMap<String, String> subShaderDefines = extPointShader.defines.getAll();
+				const UnorderedMap<String, String> subShaderDefines = extPointShader.defines.GetAll();
 				{
-					Lock fileLock = FileScheduler::getLock(path);
+					Lock fileLock = FileScheduler::GetLock(path);
 
 					SPtr<DataStream> stream = FileSystem::OpenFile(path);
 					if(stream)
@@ -2124,7 +2124,7 @@ cleanup:
 
 				SHADER_DESC subShaderDesc;
 				Vector<String> subShaderIncludes;
-				BSLFXCompileResult subShaderOutput = compileShader(subShaderSource.str(), subShaderDefines, languages,
+				BSLFXCompileResult subShaderOutput = CompileShader(subShaderSource.str(), subShaderDefines, languages,
 					subShaderDesc, subShaderIncludes);
 
 				if (!subShaderOutput.errorMessage.empty())
@@ -2228,7 +2228,7 @@ cleanup:
 					if (!parseInherited(entry.second.metaData, outShader))
 						return false;
 
-					parseShader(entry.first, codeBlocks, outShader);
+					ParseShader(entry.first, codeBlocks, outShader);
 					mixinWasParsed[baseIdx] = true;
 
 				}
@@ -2257,7 +2257,7 @@ cleanup:
 				return output;
 			}
 
-			parseShader(entry.first, codeBlocks, entry.second);
+			ParseShader(entry.first, codeBlocks, entry.second);
 		}
 
 		bs_stack_free(mixinWasParsed);
@@ -2350,16 +2350,16 @@ cleanup:
 					}
 				};
 
-				if(languages.isSet(ShadingLanguageFlag::GLSL))
+				if(languages.IsSet(ShadingLanguageFlag::GLSL))
 					crossCompilePass(glslShaderData.passes[j], glslVersion);
 
-				if(languages.isSet(ShadingLanguageFlag::VKSL))
+				if(languages.IsSet(ShadingLanguageFlag::VKSL))
 					crossCompilePass(vkslShaderData.passes[j], CrossCompileOutput::VKSL45);
 
-				if(languages.isSet(ShadingLanguageFlag::MSL))
+				if(languages.IsSet(ShadingLanguageFlag::MSL))
 					crossCompilePass(mvksl.passes[j], CrossCompileOutput::MVKSL);
 
-				if(languages.isSet(ShadingLanguageFlag::HLSL))
+				if(languages.IsSet(ShadingLanguageFlag::HLSL))
 				{
 					PassData& hlslPassData = hlslShaderData.passes[j];
 

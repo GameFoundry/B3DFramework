@@ -18,31 +18,31 @@ namespace bs
 
 	void PhysXMaterial::SetStaticFriction(float value)
 	{
-		mInternal->SetStaticFriction(value);
+		mInternal->setStaticFriction(value);
 	}
 
 	float PhysXMaterial::GetStaticFriction() const
 	{
-		return mInternal->GetStaticFriction();
+		return mInternal->getStaticFriction();
 	}
 
 	void PhysXMaterial::SetDynamicFriction(float value)
 	{
-		mInternal->SetDynamicFriction(value);
+		mInternal->setDynamicFriction(value);
 	}
 
 	float PhysXMaterial::GetDynamicFriction() const
 	{
-		return mInternal->GetDynamicFriction();
+		return mInternal->getDynamicFriction();
 	}
 
 	void PhysXMaterial::SetRestitutionCoefficient(float value)
 	{
-		mInternal->SetRestitution(value);
+		mInternal->setRestitution(value);
 	}
 
 	float PhysXMaterial::GetRestitutionCoefficient() const
 	{
-		return mInternal->GetRestitution();
+		return mInternal->getRestitution();
 	}
 }

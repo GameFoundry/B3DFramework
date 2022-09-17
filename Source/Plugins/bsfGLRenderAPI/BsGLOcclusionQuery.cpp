@@ -35,7 +35,7 @@ namespace bs { namespace ct
 
 			mNumSamples = 0;
 			mEndIssued = false;
-			setActive(true);
+			SetActive(true);
 		};
 
 		if (cb == nullptr)
@@ -81,9 +81,9 @@ namespace bs { namespace ct
 
 	UINT32 GLOcclusionQuery::GetNumSamples()
 	{
-		if (!mFinalized && isReady())
+		if (!mFinalized && IsReady())
 		{
-			finalize();
+			Finalize();
 		}
 
 		return mNumSamples;

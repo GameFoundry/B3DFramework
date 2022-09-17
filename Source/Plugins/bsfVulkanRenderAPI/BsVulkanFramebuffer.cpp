@@ -68,14 +68,14 @@ namespace bs { namespace ct
 		// Relying on the fact that compatible render passes can be used, and don't need to match exactly
 		framebufferCI.renderPass = mRenderPass->GetVkRenderPass(RT_NONE, RT_NONE, CLEAR_NONE);
 
-		VkDevice device = mOwner->GetDevice().getLogical();
+		VkDevice device = mOwner->GetDevice().GetLogical();
 		VkResult result = vkCreateFramebuffer(device, &framebufferCI, gVulkanAllocator, &mVkFramebuffer);
 		assert(result == VK_SUCCESS);
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
-		VkDevice device = mOwner->GetDevice().getLogical();
+		VkDevice device = mOwner->GetDevice().GetLogical();
 		vkDestroyFramebuffer(device, mVkFramebuffer, gVulkanAllocator);
 	}
 }}

@@ -95,7 +95,7 @@ namespace bs { namespace ct
 			mOwner->Destroy(this);
 	}
 
-	void VulkanResource::notifyUnbound()
+	void VulkanResource::NotifyUnbound()
 	{
 		bool destroy;
 		{
@@ -115,7 +115,7 @@ namespace bs { namespace ct
 	{
 		UINT32 mask = 0;
 
-		if(useFlags.isSet(VulkanAccessFlag::Read))
+		if(useFlags.IsSet(VulkanAccessFlag::Read))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{
@@ -124,7 +124,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		if (useFlags.isSet(VulkanAccessFlag::Write))
+		if (useFlags.IsSet(VulkanAccessFlag::Write))
 		{
 			for (UINT32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
 			{

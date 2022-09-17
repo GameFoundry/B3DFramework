@@ -40,7 +40,7 @@ namespace bs { namespace ct
 			glQueryCounter(mQueryStartObj, GL_TIMESTAMP);
 			BS_CHECK_GL_ERROR();
 
-			setActive(true);
+			SetActive(true);
 			mEndIssued = false;
 		};
 

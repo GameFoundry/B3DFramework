@@ -20,7 +20,7 @@ namespace bs { namespace ct
 		queryDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
 		queryDesc.MiscFlags = 0;
 
-		HRESULT hr = device.getD3D11Device()->CreateQuery(&queryDesc, &mDisjointQuery);
+		HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mDisjointQuery);
 		if(hr != S_OK)
 		{
 			BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
@@ -28,19 +28,19 @@ namespace bs { namespace ct
 
 		queryDesc.Query = D3D11_QUERY_TIMESTAMP;
 
-		hr = device.getD3D11Device()->CreateQuery(&queryDesc, &mBeginQuery);
+		hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mBeginQuery);
 		if(hr != S_OK)
 		{
 			BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
 		}
 
-		hr = device.getD3D11Device()->CreateQuery(&queryDesc, &mEndQuery);
+		hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mEndQuery);
 		if(hr != S_OK)
 		{
 			BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
 		}
 
-		mContext = device.getImmediateContext();
+		mContext = device.GetImmediateContext();
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 	}
 
@@ -67,7 +67,7 @@ namespace bs { namespace ct
 
 			mQueryEndCalled = false;
 
-			setActive(true);
+			SetActive(true);
 		};
 
 		if (cb == nullptr)

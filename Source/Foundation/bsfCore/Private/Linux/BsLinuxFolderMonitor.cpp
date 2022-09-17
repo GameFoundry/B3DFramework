@@ -436,12 +436,12 @@ namespace bs
 						{
 							if (isDirectory)
 							{
-								if (monitor->filter.isSet(FolderChangeBit::DirName))
+								if (monitor->filter.IsSet(FolderChangeBit::DirName))
 									m->fileActions.push_back(FileAction::createAdded(path.toString()));
 							}
 							else
 							{
-								if (monitor->filter.isSet(FolderChangeBit::FileName))
+								if (monitor->filter.IsSet(FolderChangeBit::FileName))
 									m->fileActions.push_back(FileAction::createAdded(path.toString()));
 							}
 						}
@@ -451,18 +451,18 @@ namespace bs
 						{
 							if(isDirectory)
 							{
-								if(monitor->filter.isSet(FolderChangeBit::DirName))
+								if(monitor->filter.IsSet(FolderChangeBit::DirName))
 									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
 							}
 							else
 							{
-								if(monitor->filter.isSet(FolderChangeBit::FileName))
+								if(monitor->filter.IsSet(FolderChangeBit::FileName))
 									m->fileActions.push_back(FileAction::createRemoved(path.toString()));
 							}
 						}
 
 						// File was modified
-						if(((event->mask & IN_CLOSE_WRITE) != 0) && monitor->filter.isSet(FolderChangeBit::FileWrite))
+						if(((event->mask & IN_CLOSE_WRITE) != 0) && monitor->filter.IsSet(FolderChangeBit::FileWrite))
 						{
 							m->fileActions.push_back(FileAction::createModified(path.toString()));
 						}

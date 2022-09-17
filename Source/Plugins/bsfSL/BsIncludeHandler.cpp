@@ -21,7 +21,7 @@ char* includePush(ParseState* state, const char* filename, int line, int column,
 	HShaderInclude include = ShaderManager::Instance().FindInclude(filenameNoQuote);
 
 	if (include != nullptr)
-		include.blockUntilLoaded();
+		include.BlockUntilLoaded();
 
 	int filenameLen = (int)strlen(filenameNoQuote);
 	if (include.IsLoaded())

@@ -84,7 +84,7 @@ namespace bs
 			}
 		}
 
-		if (fieldFlags.isSet(ScriptFieldFlag::Step))
+		if (fieldFlags.IsSet(ScriptFieldFlag::Step))
 		{
 			MonoClass* step = ScriptAssemblyManager::Instance().getBuiltinClasses().stepAttribute;
 			if (step != nullptr)
@@ -94,7 +94,7 @@ namespace bs
 			}
 		}
 
-		if (fieldFlags.isSet(ScriptFieldFlag::Category))
+		if (fieldFlags.IsSet(ScriptFieldFlag::Category))
 		{
 			MonoClass* category = ScriptAssemblyManager::Instance().getBuiltinClasses().categoryAttribute;
 			if (category != nullptr)
@@ -104,7 +104,7 @@ namespace bs
 			}
 		}
 
-		if (fieldFlags.isSet(ScriptFieldFlag::Order))
+		if (fieldFlags.IsSet(ScriptFieldFlag::Order))
 		{
 			MonoClass* order = ScriptAssemblyManager::Instance().getBuiltinClasses().orderAttribute;
 			if (order != nullptr)

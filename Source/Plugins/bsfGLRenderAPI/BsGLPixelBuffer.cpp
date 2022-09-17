@@ -37,7 +37,7 @@ namespace bs { namespace ct
 	void GLPixelBuffer::FreeBuffer()
 	{
 		if(mUsage & GBU_STATIC)
-			mBuffer.freeInternalBuffer();
+			mBuffer.FreeInternalBuffer();
 	}
 
 	void* GLPixelBuffer::Lock(UINT32 offset, UINT32 length, GpuLockOptions options)
@@ -63,7 +63,7 @@ namespace bs { namespace ct
 		mCurrentLockOptions = options;
 		mLockedBox = lockBox;
 
-		mCurrentLock = mBuffer.getSubVolume(lockBox);
+		mCurrentLock = mBuffer.GetSubVolume(lockBox);
 		mIsLocked = true;
 
 		return mCurrentLock;
@@ -155,7 +155,7 @@ namespace bs { namespace ct
 		mDepth = value;
 
 		// Default
-		mSizeInBytes = PixelUtil::getMemorySize(mWidth, mHeight, mDepth, mFormat);
+		mSizeInBytes = PixelUtil::GetMemorySize(mWidth, mHeight, mDepth, mFormat);
 	
 		// Set up pixel box
 		mBuffer = PixelData(mWidth, mHeight, mDepth, mFormat);
@@ -172,31 +172,31 @@ namespace bs { namespace ct
 		glBindTexture(mTarget, mTextureID);
 		BS_CHECK_GL_ERROR();
 
-		if(PixelUtil::isCompressed(data.GetFormat()))
+		if(PixelUtil::IsCompressed(data.GetFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
 			const UINT32 widthInBlocks = Math::DivideAndRoundUp(std::max(mWidth, 4U), 4U);
 			const UINT32 heightInBlocks = Math::DivideAndRoundUp(std::max(mHeight, 4U), 4U);
 
-			const UINT32 blockSize = PixelUtil::getBlockSize(data.GetFormat());
+			const UINT32 blockSize = PixelUtil::GetBlockSize(data.GetFormat());
 			const UINT32 expectedRowPitch = widthInBlocks * blockSize;
 			const UINT32 expectedSlicePitch = widthInBlocks * heightInBlocks * blockSize;
 
-			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
+			const bool isConsecutive = data.GetRowPitch() == expectedRowPitch && data.GetSlicePitch() == expectedSlicePitch;
 			if (data.GetFormat() != mFormat || !isConsecutive)
 			{
 				BS_LOG(Error, RenderBackend, "Compressed images must be consecutive, in the source format");
 				return;
 			}
 
-			GLenum format = GLPixelUtil::getGLInternalFormat(mFormat, mHwGamma);
+			GLenum format = GLPixelUtil::GetGlInternalFormat(mFormat, mHwGamma);
 			switch(mTarget)
 			{
 				case GL_TEXTURE_1D:
 					glCompressedTexSubImage1D(GL_TEXTURE_1D, mLevel,
 						dest.left,
 						dest.GetWidth(),
-						format, data.getConsecutiveSize(),
+						format, data.GetConsecutiveSize(),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
@@ -205,15 +205,15 @@ namespace bs { namespace ct
 					glCompressedTexSubImage2D(mFaceTarget, mLevel,
 						dest.left, dest.top,
 						dest.GetWidth(), dest.GetHeight(),
-						format, data.getConsecutiveSize(),
+						format, data.GetConsecutiveSize(),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
 				case GL_TEXTURE_3D:
 					glCompressedTexSubImage3D(GL_TEXTURE_3D, mLevel,
 						dest.left, dest.top, dest.front,
-						dest.GetWidth(), dest.GetHeight(), dest.getDepth(),
-						format, data.getConsecutiveSize(),
+						dest.GetWidth(), dest.GetHeight(), dest.GetDepth(),
+						format, data.GetConsecutiveSize(),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
@@ -224,9 +224,9 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			UINT32 pixelSize = PixelUtil::getNumElemBytes(data.GetFormat());
-			UINT32 rowPitchInPixels = data.getRowPitch() / pixelSize;
-			UINT32 slicePitchInPixels = data.getSlicePitch() / pixelSize;
+			UINT32 pixelSize = PixelUtil::GetNumElemBytes(data.GetFormat());
+			UINT32 rowPitchInPixels = data.GetRowPitch() / pixelSize;
+			UINT32 slicePitchInPixels = data.GetSlicePitch() / pixelSize;
 
 			if (data.GetWidth() != rowPitchInPixels)
 			{
@@ -240,11 +240,11 @@ namespace bs { namespace ct
 				BS_CHECK_GL_ERROR();
 			}
 
-			if (data.getLeft() > 0 || data.getTop() > 0 || data.GetFront() > 0)
+			if (data.GetLeft() > 0 || data.GetTop() > 0 || data.GetFront() > 0)
 			{
 				glPixelStorei(
 					GL_UNPACK_SKIP_PIXELS,
-					data.getLeft() + rowPitchInPixels * data.getTop() + slicePitchInPixels * data.GetFront());
+					data.GetLeft() + rowPitchInPixels * data.GetTop() + slicePitchInPixels * data.GetFront());
 				BS_CHECK_GL_ERROR();
 			}
 
@@ -259,7 +259,7 @@ namespace bs { namespace ct
 					glTexSubImage1D(GL_TEXTURE_1D, mLevel,
 						dest.left,
 						dest.GetWidth(),
-						GLPixelUtil::getGLOriginFormat(data.GetFormat()), GLPixelUtil::getGLOriginDataType(data.GetFormat()),
+						GLPixelUtil::GetGlOriginFormat(data.GetFormat()), GLPixelUtil::GetGlOriginDataType(data.GetFormat()),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
@@ -268,7 +268,7 @@ namespace bs { namespace ct
 					glTexSubImage2D(mFaceTarget, mLevel,
 						dest.left, dest.top,
 						dest.GetWidth(), dest.GetHeight(),
-						GLPixelUtil::getGLOriginFormat(data.GetFormat()), GLPixelUtil::getGLOriginDataType(data.GetFormat()),
+						GLPixelUtil::GetGlOriginFormat(data.GetFormat()), GLPixelUtil::GetGlOriginDataType(data.GetFormat()),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
@@ -277,8 +277,8 @@ namespace bs { namespace ct
 					glTexSubImage3D(
 						mTarget, mLevel,
 						dest.left, dest.top, dest.front,
-						dest.GetWidth(), dest.GetHeight(), dest.getDepth(),
-						GLPixelUtil::getGLOriginFormat(data.GetFormat()), GLPixelUtil::getGLOriginDataType(data.GetFormat()),
+						dest.GetWidth(), dest.GetHeight(), dest.GetDepth(),
+						GLPixelUtil::GetGlOriginFormat(data.GetFormat()), GLPixelUtil::GetGlOriginDataType(data.GetFormat()),
 						data.GetData());
 					BS_CHECK_GL_ERROR();
 					break;
@@ -303,7 +303,7 @@ namespace bs { namespace ct
 
 	void GLTextureBuffer::Download(const PixelData &data)
 	{
-		if (data.GetWidth() != GetWidth() || data.GetHeight() != GetHeight() || data.getDepth() != GetDepth())
+		if (data.GetWidth() != GetWidth() || data.GetHeight() != GetHeight() || data.GetDepth() != GetDepth())
 		{
 			BS_LOG(Error, RenderBackend, "Only download of entire buffer is supported by OpenGL.");
 			return;
@@ -312,17 +312,17 @@ namespace bs { namespace ct
 		glBindTexture(mTarget, mTextureID);
 		BS_CHECK_GL_ERROR();
 
-		if(PixelUtil::isCompressed(data.GetFormat()))
+		if(PixelUtil::IsCompressed(data.GetFormat()))
 		{
 			// Block-compressed data cannot be smaller than 4x4, and must be a multiple of 4
 			const UINT32 widthInBlocks = Math::DivideAndRoundUp(std::max(mWidth, 4U), 4U);
 			const UINT32 heightInBlocks = Math::DivideAndRoundUp(std::max(mHeight, 4U), 4U);
 
-			const UINT32 blockSize = PixelUtil::getBlockSize(data.GetFormat());
+			const UINT32 blockSize = PixelUtil::GetBlockSize(data.GetFormat());
 			const UINT32 expectedRowPitch = widthInBlocks * blockSize;
 			const UINT32 expectedSlicePitch = widthInBlocks * heightInBlocks * blockSize;
 
-			const bool isConsecutive = data.getRowPitch() == expectedRowPitch && data.getSlicePitch() == expectedSlicePitch;
+			const bool isConsecutive = data.GetRowPitch() == expectedRowPitch && data.GetSlicePitch() == expectedSlicePitch;
 			if (data.GetFormat() != mFormat || !isConsecutive)
 			{
 				BS_LOG(Error, RenderBackend, "Compressed images must be consecutive, in the source format");
@@ -336,9 +336,9 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			UINT32 pixelSize = PixelUtil::getNumElemBytes(data.GetFormat());
-			UINT32 rowPitchInPixels = data.getRowPitch() / pixelSize;
-			UINT32 slicePitchInPixels = data.getSlicePitch() / pixelSize;
+			UINT32 pixelSize = PixelUtil::GetNumElemBytes(data.GetFormat());
+			UINT32 rowPitchInPixels = data.GetRowPitch() / pixelSize;
+			UINT32 slicePitchInPixels = data.GetSlicePitch() / pixelSize;
 
 			if (data.GetWidth() != rowPitchInPixels)
 			{
@@ -352,11 +352,11 @@ namespace bs { namespace ct
 				BS_CHECK_GL_ERROR();
 			}
 
-			if (data.getLeft() > 0 || data.getTop() > 0 || data.GetFront() > 0)
+			if (data.GetLeft() > 0 || data.GetTop() > 0 || data.GetFront() > 0)
 			{
 				glPixelStorei(
 					GL_PACK_SKIP_PIXELS,
-					data.getLeft() + rowPitchInPixels * data.getTop() + slicePitchInPixels * data.GetFront());
+					data.GetLeft() + rowPitchInPixels * data.GetTop() + slicePitchInPixels * data.GetFront());
 				BS_CHECK_GL_ERROR();
 			}
 
@@ -367,8 +367,8 @@ namespace bs { namespace ct
 			}
 
 			// We can only get the entire texture
-			glGetTexImage(mFaceTarget, mLevel, GLPixelUtil::getGLOriginFormat(data.GetFormat()),
-				GLPixelUtil::getGLOriginDataType(data.GetFormat()), data.GetData());
+			glGetTexImage(mFaceTarget, mLevel, GLPixelUtil::GetGlOriginFormat(data.GetFormat()),
+				GLPixelUtil::GetGlOriginDataType(data.GetFormat()), data.GetData());
 			BS_CHECK_GL_ERROR();
 
 			// Restore defaults
@@ -481,8 +481,8 @@ namespace bs { namespace ct
 			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFBO);
 			BS_CHECK_GL_ERROR();
 
-			GLuint readFBO = GLRTTManager::Instance().getBlitReadFBO();
-			GLuint drawFBO = GLRTTManager::Instance().getBlitDrawFBO();
+			GLuint readFBO = GLRTTManager::Instance().GetBlitReadFbo();
+			GLuint drawFBO = GLRTTManager::Instance().GetBlitDrawFbo();
 
 			// Attach source texture
 			glBindFramebuffer(GL_FRAMEBUFFER, readFBO);
@@ -526,7 +526,7 @@ namespace bs { namespace ct
 			if (mTarget == GL_TEXTURE_3D) // 3D textures can't have arrays so their Z coordinate is handled differently
 			{
 				glCopyImageSubData(src->mTextureID, src->mTarget, src->mLevel, srcBox.left, srcBox.top, srcBox.front,
-					mTextureID, mTarget, mLevel, dstBox.left, dstBox.top, dstBox.front, srcBox.GetWidth(), srcBox.GetHeight(), srcBox.getDepth());
+					mTextureID, mTarget, mLevel, dstBox.left, dstBox.top, dstBox.front, srcBox.GetWidth(), srcBox.GetHeight(), srcBox.GetDepth());
 				BS_CHECK_GL_ERROR();
 			}
 			else

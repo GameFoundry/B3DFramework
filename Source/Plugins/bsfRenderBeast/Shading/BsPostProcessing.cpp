@@ -18,13 +18,13 @@ namespace bs { namespace ct
 	void setSamplerState(const SPtr<GpuParams>& params, GpuProgramType gpType, const String& name,
 		const String& secondaryName, const SPtr<SamplerState>& samplerState, bool optional = false)
 	{
-		if (params->hasSamplerState(gpType, name))
+		if (params->HasSamplerState(gpType, name))
 			params->SetSamplerState(gpType, name, samplerState);
 		else
 		{
 			if(optional)
 			{
-				if (params->hasSamplerState(gpType, secondaryName))
+				if (params->HasSamplerState(gpType, secondaryName))
 					params->SetSamplerState(gpType, secondaryName, samplerState);
 			}
 			else
@@ -36,9 +36,9 @@ namespace bs { namespace ct
 
 	DownsampleMat::DownsampleMat()
 	{
-		mParamBuffer = gDownsampleParamDef.createBuffer();
+		mParamBuffer = gDownsampleParamDef.CreateBuffer();
 
-		if(mParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
+		if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
 			mParams->SetParamBlockBuffer("Input", mParamBuffer);
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
@@ -53,7 +53,7 @@ namespace bs { namespace ct
 
 		const TextureProperties& rtProps = input->GetProperties();
 
-		bool MSAA = mVariation.getInt("MSAA") > 0;
+		bool MSAA = mVariation.GetInt("MSAA") > 0;
 		if(MSAA)
 		{
 			gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(-1.0f, -1.0f));
@@ -72,16 +72,16 @@ namespace bs { namespace ct
 		}
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+		rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
-		bind();
+		Bind();
 
 		if (MSAA)
 			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.GetWidth(), (float)rtProps.GetHeight()));
 		else
 			gRendererUtility().DrawScreenQuad();
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC DownsampleMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -91,7 +91,7 @@ namespace bs { namespace ct
 		UINT32 width = std::max(1, Math::CeilToInt(rtProps.GetWidth() * 0.5f));
 		UINT32 height = std::max(1, Math::CeilToInt(rtProps.GetHeight() * 0.5f));
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(rtProps.GetFormat(), width, height, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(rtProps.GetFormat(), width, height, TU_RENDERTARGET);
 	}
 
 	DownsampleMat* DownsampleMat::GetVariation(UINT32 quality, bool msaa)
@@ -99,16 +99,16 @@ namespace bs { namespace ct
 		if(quality == 0)
 		{
 			if (msaa)
-				return Get(getVariation<0, true>());
+				return Get(GetVariation<0, true>());
 			else
-				return Get(getVariation<0, false>());
+				return Get(GetVariation<0, false>());
 		}
 		else
 		{
 			if (msaa)
-				return Get(getVariation<1, true>());
+				return Get(GetVariation<1, true>());
 			else
-				return Get(getVariation<1, false>());
+				return Get(GetVariation<1, false>());
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace bs { namespace ct
 
 	EyeAdaptHistogramMat::EyeAdaptHistogramMat()
 	{
-		mParamBuffer = gEyeAdaptHistogramParamDef.createBuffer();
+		mParamBuffer = gEyeAdaptHistogramParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gSceneColorTex", mSceneColor);
@@ -142,27 +142,27 @@ namespace bs { namespace ct
 		const TextureProperties& props = input->GetProperties();
 		Vector4I offsetAndSize(0, 0, (INT32)props.GetWidth(), (INT32)props.GetHeight());
 
-		gEyeAdaptHistogramParamDef.gHistogramParams.Set(mParamBuffer, getHistogramScaleOffset(settings));
+		gEyeAdaptHistogramParamDef.gHistogramParams.Set(mParamBuffer, GetHistogramScaleOffset(settings));
 		gEyeAdaptHistogramParamDef.gPixelOffsetAndSize.Set(mParamBuffer, offsetAndSize);
 
-		Vector2I threadGroupCount = getThreadGroupCount(input);
+		Vector2I threadGroupCount = GetThreadGroupCount(input);
 		gEyeAdaptHistogramParamDef.gThreadGroupCount.Set(mParamBuffer, threadGroupCount);
 
 		// Dispatch
 		mOutputTex.Set(output);
 
-		bind();
+		Bind();
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.dispatchCompute(threadGroupCount.x, threadGroupCount.y);
+		rapi.DispatchCompute(threadGroupCount.x, threadGroupCount.y);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramMat::GetOutputDesc(const SPtr<Texture>& target)
 	{
-		Vector2I threadGroupCount = getThreadGroupCount(target);
+		Vector2I threadGroupCount = GetThreadGroupCount(target);
 		UINT32 numHistograms = threadGroupCount.x * threadGroupCount.y;
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, HISTOGRAM_NUM_TEXELS, numHistograms,
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, HISTOGRAM_NUM_TEXELS, numHistograms,
 			TU_LOADSTORE);
 	}
 
@@ -193,7 +193,7 @@ namespace bs { namespace ct
 
 	EyeAdaptHistogramReduceMat::EyeAdaptHistogramReduceMat()
 	{
-		mParamBuffer = gEyeAdaptHistogramReduceParamDef.createBuffer();
+		mParamBuffer = gEyeAdaptHistogramReduceParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mHistogramTex);
@@ -216,25 +216,25 @@ namespace bs { namespace ct
 
 		mEyeAdaptationTex.Set(eyeAdaptationTex);
 
-		Vector2I threadGroupCount = EyeAdaptHistogramMat::getThreadGroupCount(sceneColor);
+		Vector2I threadGroupCount = EyeAdaptHistogramMat::GetThreadGroupCount(sceneColor);
 		UINT32 numHistograms = threadGroupCount.x * threadGroupCount.y;
 
 		gEyeAdaptHistogramReduceParamDef.gThreadGroupCount.Set(mParamBuffer, numHistograms);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+		rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
-		bind();
+		Bind();
 
 		Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
 		gRendererUtility().DrawScreenQuad(drawUV);
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::GetOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2,
 			TU_RENDERTARGET);
 	}
 
@@ -242,7 +242,7 @@ namespace bs { namespace ct
 
 	EyeAdaptationMat::EyeAdaptationMat()
 	{
-		mParamBuffer = gEyeAdaptationParamDef.createBuffer();
+		mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("EyeAdaptationParams", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
@@ -262,21 +262,21 @@ namespace bs { namespace ct
 		// Set parameters
 		mReducedHistogramTex.Set(reducedHistogram);
 
-		populateParams(mParamBuffer, frameDelta, settings, exposureScale);
+		PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+		rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::GetOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
 
 	void EyeAdaptationMat::PopulateParams(const SPtr<GpuParamBlockBuffer>& paramBuffer, float frameDelta,
@@ -312,7 +312,7 @@ namespace bs { namespace ct
 
 	EyeAdaptationBasicSetupMat::EyeAdaptationBasicSetupMat()
 	{
-		mParamBuffer = gEyeAdaptationParamDef.createBuffer();
+		mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("EyeAdaptationParams", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
@@ -334,30 +334,30 @@ namespace bs { namespace ct
 		// Set parameters
 		mInputTex.Set(input);
 
-		EyeAdaptationMat::populateParams(mParamBuffer, frameDelta, settings, exposureScale);
+		EyeAdaptationMat::PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
 	{
 		auto& props = input->GetProperties();
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, props.GetWidth(), props.GetHeight(), TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, props.GetWidth(), props.GetHeight(), TU_RENDERTARGET);
 	}
 
 	EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
 
 	EyeAdaptationBasicMat::EyeAdaptationBasicMat()
 	{
-		mEyeAdaptationParamsBuffer = gEyeAdaptationParamDef.createBuffer();
-		mParamsBuffer = gEyeAdaptationBasicParamsMatDef.createBuffer();
+		mEyeAdaptationParamsBuffer = gEyeAdaptationParamDef.CreateBuffer();
+		mParamsBuffer = gEyeAdaptationBasicParamsMatDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("EyeAdaptationParams", mEyeAdaptationParamsBuffer);
 		mParams->SetParamBlockBuffer("Input", mParamsBuffer);
@@ -378,7 +378,7 @@ namespace bs { namespace ct
 		else
 			mPrevFrameTexParam.Set(prevFrame);
 
-		EyeAdaptationMat::populateParams(mEyeAdaptationParamsBuffer, frameDelta, settings, exposureScale);
+		EyeAdaptationMat::PopulateParams(mEyeAdaptationParamsBuffer, frameDelta, settings, exposureScale);
 
 		auto& texProps = curFrame->GetProperties();
 		Vector2I texSize = { (INT32)texProps.GetWidth(), (INT32)texProps.GetHeight() };
@@ -387,17 +387,17 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::GetOutputDesc()
 	{
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R32F, 1, 1, TU_RENDERTARGET);
 	}
 
 	CreateTonemapLUTParamDef gCreateTonemapLUTParamDef;
@@ -405,10 +405,10 @@ namespace bs { namespace ct
 
 	CreateTonemapLUTMat::CreateTonemapLUTMat()
 	{
-		mIs3D = mVariation.getBool("VOLUME_LUT");
+		mIs3D = mVariation.GetBool("VOLUME_LUT");
 
-		mParamBuffer = gCreateTonemapLUTParamDef.createBuffer();
-		mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.createBuffer();
+		mParamBuffer = gCreateTonemapLUTParamDef.CreateBuffer();
+		mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->SetParamBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
@@ -432,10 +432,10 @@ namespace bs { namespace ct
 		// Dispatch
 		mOutputTex.Set(output);
 
-		bind();
+		Bind();
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.dispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
+		rapi.DispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
 	}
 
 	void CreateTonemapLUTMat::Execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
@@ -447,12 +447,12 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 
-		rapi.setRenderTarget(nullptr);
+		rapi.SetRenderTarget(nullptr);
 	}
 
 	void CreateTonemapLUTMat::PopulateParamBuffers(const RenderSettings& settings)
@@ -492,31 +492,31 @@ namespace bs { namespace ct
 	POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::GetOutputDesc() const
 	{
 		if(mIs3D)
-			return POOLED_RENDER_TEXTURE_DESC::create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
+			return POOLED_RENDER_TEXTURE_DESC::Create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
 		
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA8, LUT_SIZE * LUT_SIZE, LUT_SIZE, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, LUT_SIZE * LUT_SIZE, LUT_SIZE, TU_RENDERTARGET);
 	}
 
 	CreateTonemapLUTMat* CreateTonemapLUTMat::GetVariation(bool is3D)
 	{
 		if(is3D)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	TonemappingParamDef gTonemappingParamDef;
 
 	TonemappingMat::TonemappingMat()
 	{
-		mParamBuffer = gTonemappingParamDef.createBuffer();
+		mParamBuffer = gTonemappingParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gBloomTex", mBloomTex);
 
-		if(!mVariation.getBool("GAMMA_ONLY"))
+		if(!mVariation.GetBool("GAMMA_ONLY"))
 			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
 	}
 
@@ -537,7 +537,7 @@ namespace bs { namespace ct
 		gTonemappingParamDef.gManualExposureScale.Set(mParamBuffer, Math::Pow(2.0f, settings.exposureScale));
 		gTonemappingParamDef.gTexSize.Set(mParamBuffer, Vector2((float)texProps.GetWidth(), (float)texProps.GetHeight()));
 		gTonemappingParamDef.gBloomTint.Set(mParamBuffer, settings.bloom.tint);
-		gTonemappingParamDef.gNumSamples.Set(mParamBuffer, texProps.getNumSamples());
+		gTonemappingParamDef.gNumSamples.Set(mParamBuffer, texProps.GetNumSamples());
 
 		// Set parameters
 		mInputTex.Set(sceneColor);
@@ -547,9 +547,9 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -562,16 +562,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return Get(getVariation<true, true, true, true>());
+						return Get(GetVariation<true, true, true, true>());
 					else
-						return Get(getVariation<true, true, true, false>());
+						return Get(GetVariation<true, true, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return Get(getVariation<true, true, false, true>());
+						return Get(GetVariation<true, true, false, true>());
 					else
-						return Get(getVariation<true, true, false, false>());
+						return Get(GetVariation<true, true, false, false>());
 				}
 			}
 			else
@@ -579,16 +579,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return Get(getVariation<true, false, true, true>());
+						return Get(GetVariation<true, false, true, true>());
 					else
-						return Get(getVariation<true, false, true, false>());
+						return Get(GetVariation<true, false, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return Get(getVariation<true, false, false, true>());
+						return Get(GetVariation<true, false, false, true>());
 					else
-						return Get(getVariation<true, false, false, false>());
+						return Get(GetVariation<true, false, false, false>());
 				}
 			}
 		}
@@ -599,16 +599,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return Get(getVariation<false, true, true, true>());
+						return Get(GetVariation<false, true, true, true>());
 					else
-						return Get(getVariation<false, true, true, false>());
+						return Get(GetVariation<false, true, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return Get(getVariation<false, true, false, true>());
+						return Get(GetVariation<false, true, false, true>());
 					else
-						return Get(getVariation<false, true, false, false>());
+						return Get(GetVariation<false, true, false, false>());
 				}
 			}
 			else
@@ -616,16 +616,16 @@ namespace bs { namespace ct
 				if (autoExposure)
 				{
 					if (MSAA)
-						return Get(getVariation<false, false, true, true>());
+						return Get(GetVariation<false, false, true, true>());
 					else
-						return Get(getVariation<false, false, true, false>());
+						return Get(GetVariation<false, false, true, false>());
 				}
 				else
 				{
 					if (MSAA)
-						return Get(getVariation<false, false, false, true>());
+						return Get(GetVariation<false, false, false, true>());
 					else
-						return Get(getVariation<false, false, false, false>());
+						return Get(GetVariation<false, false, false, false>());
 				}
 			}
 		}
@@ -635,7 +635,7 @@ namespace bs { namespace ct
 
 	BloomClipMat::BloomClipMat()
 	{
-		mParamBuffer = gBloomClipParamDef.createBuffer();
+		mParamBuffer = gBloomClipParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
@@ -657,25 +657,25 @@ namespace bs { namespace ct
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
 
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
 	BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
 	{
 		if (autoExposure)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
 
 	ScreenSpaceLensFlareMat::ScreenSpaceLensFlareMat()
 	{
-		mParamBuffer = gScreenSpaceLensFlareParamDef.createBuffer();
+		mParamBuffer = gScreenSpaceLensFlareParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
@@ -702,9 +702,9 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -715,24 +715,24 @@ namespace bs { namespace ct
 			if(haloAspect)
 			{
 				if(chromaticAberration)
-					return Get(getVariation<1, true>());
+					return Get(GetVariation<1, true>());
 				
-				return Get(getVariation<1, false>());
+				return Get(GetVariation<1, false>());
 			}
 			else
 			{
 				if(chromaticAberration)
-					return Get(getVariation<2, true>());
+					return Get(GetVariation<2, true>());
 				
-				return Get(getVariation<2, false>());
+				return Get(GetVariation<2, false>());
 			}
 		}
 		else
 		{
 			if (chromaticAberration)
-				return Get(getVariation<0, true>());
+				return Get(GetVariation<0, true>());
 
-			return Get(getVariation<0, false>());
+			return Get(GetVariation<0, false>());
 		}
 	}
 
@@ -742,7 +742,7 @@ namespace bs { namespace ct
 
 	ChromaticAberrationMat::ChromaticAberrationMat()
 	{
-		mParamBuffer = gChromaticAberrationParamDef.createBuffer();
+		mParamBuffer = gChromaticAberrationParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
@@ -773,18 +773,18 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
 	ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberrationType type)
 	{
 		if (type == ChromaticAberrationType::Complex)
-			return Get(getVariation<false>());
+			return Get(GetVariation<false>());
 
-		return Get(getVariation<true>());
+		return Get(GetVariation<true>());
 	}
 
 	void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
@@ -796,7 +796,7 @@ namespace bs { namespace ct
 
 	FilmGrainMat::FilmGrainMat()
 	{
-		mParamBuffer = gFilmGrainParamDef.createBuffer();
+		mParamBuffer = gFilmGrainParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
@@ -815,9 +815,9 @@ namespace bs { namespace ct
 
 		// Render
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -825,8 +825,8 @@ namespace bs { namespace ct
 
 	GaussianBlurMat::GaussianBlurMat()
 	{
-		mParamBuffer = gGaussianBlurParamDef.createBuffer();
-		mIsAdditive = mVariation.getBool("ADDITIVE");
+		mParamBuffer = gGaussianBlurParamDef.CreateBuffer();
+		mIsAdditive = mVariation.GetBool("ADDITIVE");
 
 		mParams->SetParamBlockBuffer("GaussianBlurParams", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
@@ -848,28 +848,28 @@ namespace bs { namespace ct
 		const TextureProperties& srcProps = source->GetProperties();
 		const RenderTextureProperties& dstProps = destination->GetProperties();
 
-		POOLED_RENDER_TEXTURE_DESC tempTextureDesc = POOLED_RENDER_TEXTURE_DESC::create2D(srcProps.GetFormat(),
+		POOLED_RENDER_TEXTURE_DESC tempTextureDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(srcProps.GetFormat(),
 			dstProps.width, dstProps.height, TU_RENDERTARGET);
-		SPtr<PooledRenderTexture> tempTexture = gGpuResourcePool().get(tempTextureDesc);
+		SPtr<PooledRenderTexture> tempTexture = gGpuResourcePool().Get(tempTextureDesc);
 
 		// Horizontal pass
 		{
-			populateBuffer(mParamBuffer, DirHorizontal, source, filterSize, Color::White);
+			PopulateBuffer(mParamBuffer, DirHorizontal, source, filterSize, Color::White);
 			mInputTexture.Set(source);
 
 			if(mIsAdditive)
 				mAdditiveTexture.Set(Texture::BLACK);
 
 			RenderAPI& rapi = RenderAPI::Instance();
-			rapi.setRenderTarget(tempTexture->renderTexture);
+			rapi.SetRenderTarget(tempTexture->renderTexture);
 
-			bind();
+			Bind();
 			gRendererUtility().DrawScreenQuad();
 		}
 
 		// Vertical pass
 		{
-			populateBuffer(mParamBuffer, DirVertical, source, filterSize, tint);
+			PopulateBuffer(mParamBuffer, DirVertical, source, filterSize, tint);
 			mInputTexture.Set(tempTexture->texture);
 
 			if(mIsAdditive)
@@ -881,9 +881,9 @@ namespace bs { namespace ct
 			}
 
 			RenderAPI& rapi = RenderAPI::Instance();
-			rapi.setRenderTarget(destination);
+			rapi.SetRenderTarget(destination);
 
-			bind();
+			Bind();
 			gRendererUtility().DrawScreenQuad();
 		}
 	}
@@ -983,8 +983,8 @@ namespace bs { namespace ct
 		std::array<float, MAX_BLUR_SAMPLES> sampleOffsets;
 		std::array<float, MAX_BLUR_SAMPLES> sampleWeights;
 
-		const float kernelRadius = calcKernelRadius(source, filterSize, direction);
-		const UINT32 numSamples = calcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
+		const float kernelRadius = CalcKernelRadius(source, filterSize, direction);
+		const UINT32 numSamples = CalcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
 
 		for (UINT32 i = 0; i < numSamples; ++i)
 		{
@@ -1025,16 +1025,16 @@ namespace bs { namespace ct
 	GaussianBlurMat* GaussianBlurMat::GetVariation(bool additive)
 	{
 		if(additive)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	GaussianDOFParamDef gGaussianDOFParamDef;
 
 	GaussianDOFSeparateMat::GaussianDOFSeparateMat()
 	{
-		mParamBuffer = gGaussianDOFParamDef.createBuffer();
+		mParamBuffer = gGaussianDOFParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gColorTex", mColorTexture);
@@ -1062,17 +1062,17 @@ namespace bs { namespace ct
 		UINT32 outputWidth = std::max(1U, srcProps.GetWidth() / 2);
 		UINT32 outputHeight = std::max(1U, srcProps.GetHeight() / 2);
 
-		POOLED_RENDER_TEXTURE_DESC outputTexDesc = POOLED_RENDER_TEXTURE_DESC::create2D(srcProps.GetFormat(),
+		POOLED_RENDER_TEXTURE_DESC outputTexDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(srcProps.GetFormat(),
 			outputWidth, outputHeight, TU_RENDERTARGET);
-		mOutput0 = gGpuResourcePool().get(outputTexDesc);
+		mOutput0 = gGpuResourcePool().Get(outputTexDesc);
 
-		bool near = mVariation.getBool("NEAR");
-		bool far = mVariation.getBool("FAR");
+		bool near = mVariation.GetBool("NEAR");
+		bool far = mVariation.GetBool("FAR");
 
 		SPtr<RenderTexture> rt;
 		if (near && far)
 		{
-			mOutput1 = gGpuResourcePool().get(outputTexDesc);
+			mOutput1 = gGpuResourcePool().Get(outputTexDesc);
 
 			RENDER_TEXTURE_DESC rtDesc;
 			rtDesc.colorSurfaces[0].texture = mOutput0->texture;
@@ -1094,13 +1094,13 @@ namespace bs { namespace ct
 		mColorTexture.Set(color);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(rt);
+		rapi.SetRenderTarget(rt);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1125,27 +1125,27 @@ namespace bs { namespace ct
 		if (near)
 		{
 			if (far)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 			else
-				return Get(getVariation<true, false>());
+				return Get(GetVariation<true, false>());
 		}
 		else
-			return Get(getVariation<false, true>());
+			return Get(GetVariation<false, true>());
 	}
 
 	GaussianDOFCombineMat::GaussianDOFCombineMat()
 	{
-		mParamBuffer = gGaussianDOFParamDef.createBuffer();
+		mParamBuffer = gGaussianDOFParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
-		if(mParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gNearTex"))
+		if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gNearTex"))
 			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gNearTex", mNearTexture);
 
-		if(mParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gFarTex"))
+		if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gFarTex"))
 			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gFarTex", mFarTexture);
 	}
 
@@ -1170,13 +1170,13 @@ namespace bs { namespace ct
 		mFarTexture.Set(far);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1185,12 +1185,12 @@ namespace bs { namespace ct
 		if (near)
 		{
 			if (far)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 			else
-				return Get(getVariation<true, false>());
+				return Get(GetVariation<true, false>());
 		}
 		else
-			return Get(getVariation<false, true>());
+			return Get(GetVariation<false, true>());
 	}
 
 	DepthOfFieldCommonParamDef gDepthOfFieldCommonParamDef;
@@ -1198,8 +1198,8 @@ namespace bs { namespace ct
 
 	BokehDOFPrepareMat::BokehDOFPrepareMat()
 	{
-		mParamBuffer = gBokehDOFPrepareParamDef.createBuffer();
-		mCommonParamBuffer = gDepthOfFieldCommonParamDef.createBuffer();
+		mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
+		mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->SetParamBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
@@ -1218,20 +1218,20 @@ namespace bs { namespace ct
 		Vector2 invTexSize(1.0f / srcProps.GetWidth(), 1.0f / srcProps.GetHeight());
 		gBokehDOFPrepareParamDef.gInvInputSize.Set(mParamBuffer, invTexSize);
 
-		BokehDOFMat::populateDOFCommonParams(mCommonParamBuffer, settings, view);
+		BokehDOFMat::PopulateDofCommonParams(mCommonParamBuffer, settings, view);
 
 		mInputTexture.Set(input);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 
-		bool MSAA = mVariation.getInt("MSAA_COUNT") > 1;
+		bool MSAA = mVariation.GetInt("MSAA_COUNT") > 1;
 		if (MSAA)
 			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.GetWidth(), (float)srcProps.GetHeight()));
 		else
@@ -1245,15 +1245,15 @@ namespace bs { namespace ct
 		UINT32 width = std::max(1U, Math::DivideAndRoundUp(rtProps.GetWidth(), 2U));
 		UINT32 height = std::max(1U, Math::DivideAndRoundUp(rtProps.GetHeight(), 2U));
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 	}
 
 	BokehDOFPrepareMat* BokehDOFPrepareMat::GetVariation(bool msaa)
 	{
 		if (msaa)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		else
-			return Get(getVariation<false>());
+			return Get(GetVariation<false>());
 	}
 
 	BokehDOFParamDef gBokehDOFParamDef;
@@ -1263,8 +1263,8 @@ namespace bs { namespace ct
 
 	BokehDOFMat::BokehDOFMat()
 	{
-		mParamBuffer = gBokehDOFParamDef.createBuffer();
-		mCommonParamBuffer = gDepthOfFieldCommonParamDef.createBuffer();
+		mParamBuffer = gBokehDOFParamDef.CreateBuffer();
+		mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->SetParamBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
@@ -1285,7 +1285,7 @@ namespace bs { namespace ct
 
 		mTileVertexBuffer = VertexBuffer::Create(tileVertexBufferDesc);
 
-		auto* const vertexData = (Vector2*)mTileVertexBuffer->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const vertexData = (Vector2*)mTileVertexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 		for (UINT32 i = 0; i < QUADS_PER_TILE; i++)
 		{
 			vertexData[i * 4 + 0] = Vector2(0.0f, 0.0f);
@@ -1294,7 +1294,7 @@ namespace bs { namespace ct
 			vertexData[i * 4 + 3] = Vector2(1.0f, 1.0f);
 		}
 
-		mTileVertexBuffer->unlock();
+		mTileVertexBuffer->Unlock();
 
 		// Prepare indices for rendering tiles
 		INDEX_BUFFER_DESC tileIndexBufferDesc;
@@ -1303,7 +1303,7 @@ namespace bs { namespace ct
 
 		mTileIndexBuffer = IndexBuffer::Create(tileIndexBufferDesc);
 
-		auto* const indices = (UINT16*)mTileIndexBuffer->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const indices = (UINT16*)mTileIndexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		const Conventions& rapiConventions = gCaps().conventions;
 		for (UINT32 i = 0; i < QUADS_PER_TILE; i++)
@@ -1322,7 +1322,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		mTileIndexBuffer->unlock();
+		mTileIndexBuffer->Unlock();
 	}
 
 	void BokehDOFMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1356,7 +1356,7 @@ namespace bs { namespace ct
 		Vector2I tileCount = imageSize / 1;
 		gBokehDOFParamDef.gTileCount.Set(mParamBuffer, tileCount);
 
-		populateDOFCommonParams(mCommonParamBuffer, settings, view);
+		PopulateDofCommonParams(mCommonParamBuffer, settings, view);
 		mInputTextureVS.Set(input);
 		mInputTextureFS.Set(input);
 
@@ -1366,22 +1366,22 @@ namespace bs { namespace ct
 
 		mBokehTexture.Set(bokehTexture);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-		rapi.clearRenderTarget(FBT_COLOR, Color::ZERO);
-		rapi.setVertexDeclaration(mTileVertexDecl);
+		rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+		rapi.ClearRenderTarget(FBT_COLOR, Color::ZERO);
+		rapi.SetVertexDeclaration(mTileVertexDecl);
 
 		SPtr<VertexBuffer> buffers[] = { mTileVertexBuffer };
-		rapi.setVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
-		rapi.setIndexBuffer(mTileIndexBuffer);
-		rapi.setDrawOperation(DOT_TRIANGLE_LIST);
+		rapi.SetVertexBuffers(0, buffers, (UINT32)bs_size(buffers));
+		rapi.SetIndexBuffer(mTileIndexBuffer);
+		rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
-		bind();
+		Bind();
 		const UINT32 numInstances = Math::DivideAndRoundUp((UINT32)(tileCount.x * tileCount.y), QUADS_PER_TILE);
-		rapi.drawIndexed(0, QUADS_PER_TILE * 6, 0, QUADS_PER_TILE * 4, numInstances);
+		rapi.DrawIndexed(0, QUADS_PER_TILE * 6, 0, QUADS_PER_TILE * 4, numInstances);
 	}
 
 	POOLED_RENDER_TEXTURE_DESC BokehDOFMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -1391,7 +1391,7 @@ namespace bs { namespace ct
 		UINT32 width = rtProps.GetWidth();
 		UINT32 height = rtProps.GetHeight() * 2 + NEAR_FAR_PADDING;
 
-		return POOLED_RENDER_TEXTURE_DESC::create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
+		return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 	}
 
 	void BokehDOFMat::PopulateDofCommonParams(const SPtr<GpuParamBlockBuffer>& buffer, const DepthOfFieldSettings& settings,
@@ -1408,12 +1408,12 @@ namespace bs { namespace ct
 		if(settings.sensorSize.x < settings.sensorSize.y)
 		{
 			sensorSize = settings.sensorSize.x;
-			imageSize = (float)view.getProperties().target.targetWidth;
+			imageSize = (float)view.GetProperties().target.targetWidth;
 		}
 		else
 		{
 			sensorSize = settings.sensorSize.y;
-			imageSize = (float)view.getProperties().target.targetHeight;
+			imageSize = (float)view.GetProperties().target.targetHeight;
 		}
 
 		gDepthOfFieldCommonParamDef.gSensorSize.Set(buffer, sensorSize);
@@ -1424,17 +1424,17 @@ namespace bs { namespace ct
 	BokehDOFMat* BokehDOFMat::GetVariation(bool depthOcclusion)
 	{
 		if (depthOcclusion)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		else
-			return Get(getVariation<false>());
+			return Get(GetVariation<false>());
 	}
 
 	BokehDOFCombineParamDef gBokehDOFCombineParamDef;
 
 	BokehDOFCombineMat::BokehDOFCombineMat()
 	{
-		mParamBuffer = gBokehDOFPrepareParamDef.createBuffer();
-		mCommonParamBuffer = gDepthOfFieldCommonParamDef.createBuffer();
+		mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
+		mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->SetParamBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
@@ -1462,19 +1462,19 @@ namespace bs { namespace ct
 		gBokehDOFCombineParamDef.gLayerAndScaleOffset.Set(mParamBuffer, layerScaleOffset);
 		gBokehDOFCombineParamDef.gFocusedImageSize.Set(mParamBuffer, focusedImageSize);
 
-		BokehDOFMat::populateDOFCommonParams(mCommonParamBuffer, settings, view);
+		BokehDOFMat::PopulateDofCommonParams(mCommonParamBuffer, settings, view);
 
 		mUnfocusedTexture.Set(unfocused);
 		mFocusedTexture.Set(focused);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1484,11 +1484,11 @@ namespace bs { namespace ct
 		{
 		default:
 		case MSAAMode::None: 
-			return Get(getVariation<MSAAMode::None>());
+			return Get(GetVariation<MSAAMode::None>());
 		case MSAAMode::Single: 
-			return Get(getVariation<MSAAMode::Single>());
+			return Get(GetVariation<MSAAMode::Single>());
 		case MSAAMode::Full: 
-			return Get(getVariation<MSAAMode::Full>());
+			return Get(GetVariation<MSAAMode::Full>());
 		}
 	}
 
@@ -1496,7 +1496,7 @@ namespace bs { namespace ct
 
 	MotionBlurMat::MotionBlurMat()
 	{
-		mParamBuffer = gBokehDOFPrepareParamDef.createBuffer();
+		mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 
@@ -1513,7 +1513,7 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> pointSampState = SamplerState::Create(pointSampDesc);
 
-		if (mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
+		if (mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
 	}
 
@@ -1538,13 +1538,13 @@ namespace bs { namespace ct
 		mInputTexture.Set(input);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output);
+		rapi.SetRenderTarget(output);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1552,14 +1552,14 @@ namespace bs { namespace ct
 
 	BuildHiZMat::BuildHiZMat()
 	{
-		mNoTextureViews = mVariation.getBool("NO_TEXTURE_VIEWS");
+		mNoTextureViews = mVariation.GetBool("NO_TEXTURE_VIEWS");
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
 
 		// If no texture view support, we must manually pick a valid mip level in the shader
 		if(mNoTextureViews)
 		{
-			mParamBuffer = gBuildHiZParamDef.createBuffer();
+			mParamBuffer = gBuildHiZParamDef.CreateBuffer();
 			mParams->SetParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 
 			SAMPLER_STATE_DESC inputSampDesc;
@@ -1596,28 +1596,28 @@ namespace bs { namespace ct
 		else
 			mInputTexture.Set(source, TextureSurface(srcMip));
 
-		rapi.setRenderTarget(output);
-		rapi.setViewport(dstRect);
+		rapi.SetRenderTarget(output);
+		rapi.SetViewport(dstRect);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad(srcRect);
 
-		rapi.setViewport(Rect2(0, 0, 1, 1));
+		rapi.SetViewport(Rect2(0, 0, 1, 1));
 	}
 
 	BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
 	{
 		if (noTextureViews)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	FXAAParamDef gFXAAParamDef;
 
 	FXAAMat::FXAAMat()
 	{
-		mParamBuffer = gFXAAParamDef.createBuffer();
+		mParamBuffer = gFXAAParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
@@ -1635,9 +1635,9 @@ namespace bs { namespace ct
 		mInputTexture.Set(source);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination);
+		rapi.SetRenderTarget(destination);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1645,10 +1645,10 @@ namespace bs { namespace ct
 
 	SSAOMat::SSAOMat()
 	{
-		bool isFinal = mVariation.getBool("FINAL_AO");
-		bool mixWithUpsampled = mVariation.getBool("MIX_WITH_UPSAMPLED");
+		bool isFinal = mVariation.GetBool("FINAL_AO");
+		bool mixWithUpsampled = mVariation.GetBool("MIX_WITH_UPSAMPLED");
 
-		mParamBuffer = gSSAOParamDef.createBuffer();
+		mParamBuffer = gSSAOParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 
@@ -1675,7 +1675,7 @@ namespace bs { namespace ct
 		inputSampDesc.addressMode.w = TAM_CLAMP;
 
 		SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 		else
 		{
@@ -1713,7 +1713,7 @@ namespace bs { namespace ct
 		// small AO radius at highest level, and very large radius at lowest level
 		static const float DOWNSAMPLE_SCALE = 4.0f;
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		const RenderTargetProperties& rtProps = destination->GetProperties();
 
 		Vector2 tanHalfFOV;
@@ -1751,7 +1751,7 @@ namespace bs { namespace ct
 		gSSAOParamDef.gPower.Set(mParamBuffer, settings.power);
 		gSSAOParamDef.gIntensity.Set(mParamBuffer, settings.intensity);
 		
-		bool upsample = mVariation.getBool("MIX_WITH_UPSAMPLED");
+		bool upsample = mVariation.GetBool("MIX_WITH_UPSAMPLED");
 		if(upsample)
 		{
 			const TextureProperties& props = textures.aoDownsampled->GetProperties();
@@ -1777,7 +1777,7 @@ namespace bs { namespace ct
 
 		mSetupAOTexture.Set(textures.aoSetup);
 
-		bool finalPass = mVariation.getBool("FINAL_AO");
+		bool finalPass = mVariation.GetBool("FINAL_AO");
 		if (finalPass)
 		{
 			mDepthTexture.Set(textures.sceneDepth);
@@ -1789,13 +1789,13 @@ namespace bs { namespace ct
 		
 		mRandomTexture.Set(textures.randomRotations);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination);
+		rapi.SetRenderTarget(destination);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1804,14 +1804,14 @@ namespace bs { namespace ct
 #define PICK_MATERIAL(QUALITY)															\
 		if(upsample)																	\
 			if(finalPass)																\
-				return Get(getVariation<true, true, QUALITY>());						\
+				return Get(GetVariation<true, true, QUALITY>());						\
 			else																		\
-				return Get(getVariation<true, false, QUALITY>());						\
+				return Get(GetVariation<true, false, QUALITY>());						\
 		else																			\
 			if(finalPass)																\
-				return Get(getVariation<false, true, QUALITY>());						\
+				return Get(GetVariation<false, true, QUALITY>());						\
 			else																		\
-				return Get(getVariation<false, false, QUALITY>());						\
+				return Get(GetVariation<false, false, QUALITY>());						\
 
 		switch(quality)
 		{
@@ -1835,7 +1835,7 @@ namespace bs { namespace ct
 
 	SSAODownsampleMat::SSAODownsampleMat()
 	{
-		mParamBuffer = gSSAODownsampleParamDef.createBuffer();
+		mParamBuffer = gSSAODownsampleParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
@@ -1851,7 +1851,7 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
 
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 		else
 		{
@@ -1865,7 +1865,7 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		const RenderTargetProperties& rtProps = destination->GetProperties();
 
 		Vector2 pixelSize;
@@ -1880,13 +1880,13 @@ namespace bs { namespace ct
 		mDepthTexture.Set(depth);
 		mNormalsTexture.Set(normals);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination);
+		rapi.SetRenderTarget(destination);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -1894,7 +1894,7 @@ namespace bs { namespace ct
 
 	SSAOBlurMat::SSAOBlurMat()
 	{
-		mParamBuffer = gSSAOBlurParamDef.createBuffer();
+		mParamBuffer = gSSAOBlurParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mAOTexture);
@@ -1909,7 +1909,7 @@ namespace bs { namespace ct
 		inputSampDesc.addressMode.w = TAM_CLAMP;
 
 		SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 		else
 		{
@@ -1923,7 +1923,7 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		const TextureProperties& texProps = ao->GetProperties();
 
 		Vector2 pixelSize;
@@ -1931,7 +1931,7 @@ namespace bs { namespace ct
 		pixelSize.y = 1.0f / texProps.GetHeight();
 
 		Vector2 pixelOffset(BsZero);
-		if (mVariation.getBool("DIR_HORZ"))
+		if (mVariation.GetBool("DIR_HORZ"))
 			pixelOffset.x = pixelSize.x;
 		else
 			pixelOffset.y = pixelSize.y;
@@ -1945,22 +1945,22 @@ namespace bs { namespace ct
 		mAOTexture.Set(ao);
 		mDepthTexture.Set(depth);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination);
+		rapi.SetRenderTarget(destination);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
 	SSAOBlurMat* SSAOBlurMat::GetVariation(bool horizontal)
 	{
 		if (horizontal)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 		
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	SSRStencilParamDef gSSRStencilParamDef;
@@ -1968,7 +1968,7 @@ namespace bs { namespace ct
 	SSRStencilMat::SSRStencilMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mParamBuffer = gSSRStencilParamDef.createBuffer();
+		mParamBuffer = gSSRStencilParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Input", mParamBuffer);
 	}
 
@@ -1977,17 +1977,17 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		mGBufferParams.bind(gbuffer);
+		mGBufferParams.Bind(gbuffer);
 
 		Vector2 roughnessScaleBias = SSRTraceMat::CalcRoughnessFadeScaleBias(settings.maxRoughness);
 		gSSRStencilParamDef.gRoughnessScaleBias.Set(mParamBuffer, roughnessScaleBias);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		const Rect2I& viewRect = viewProps.target.viewRect;
-		bind();
+		Bind();
 
 		if(viewProps.target.numSamples > 1)
 			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
@@ -2000,12 +2000,12 @@ namespace bs { namespace ct
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 
-			return Get(getVariation<true, false>());
+			return Get(GetVariation<true, false>());
 		}
 		else
-			return Get(getVariation<false, false>());
+			return Get(GetVariation<false, false>());
 	}
 
 	SSRTraceParamDef gSSRTraceParamDef;
@@ -2013,12 +2013,12 @@ namespace bs { namespace ct
 	SSRTraceMat::SSRTraceMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mParamBuffer = gSSRTraceParamDef.createBuffer();
+		mParamBuffer = gSSRTraceParamDef.CreateBuffer();
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gHiZ", mHiZTexture);
 
-		if(mParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
+		if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
 			mParams->SetParamBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 
 		SAMPLER_STATE_DESC desc;
@@ -2030,9 +2030,9 @@ namespace bs { namespace ct
 		desc.addressMode.w = TAM_CLAMP;
 
 		SPtr<SamplerState> hiZSamplerState = SamplerState::Create(desc);
-		if (mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
+		if (mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp", hiZSamplerState);
-		else if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
+		else if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ", hiZSamplerState);
 	}
 
@@ -2042,11 +2042,11 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 
 		const TextureProperties& hiZProps = hiZ->GetProperties();
 
-		mGBufferParams.bind(gbuffer);
+		mGBufferParams.Bind(gbuffer);
 		mSceneColorTexture.Set(sceneColor);
 		mHiZTexture.Set(hiZ);
 		
@@ -2083,20 +2083,20 @@ namespace bs { namespace ct
 
 		Vector2I bufferSize(viewRect.width, viewRect.height);
 		gSSRTraceParamDef.gHiZSize.Set(mParamBuffer, bufferSize);
-		gSSRTraceParamDef.gHiZNumMips.Set(mParamBuffer, hiZProps.getNumMipmaps());
+		gSSRTraceParamDef.gHiZNumMips.Set(mParamBuffer, hiZProps.GetNumMipmaps());
 		gSSRTraceParamDef.gNDCToHiZUV.Set(mParamBuffer, ndcToHiZUV);
 		gSSRTraceParamDef.gHiZUVToScreenUV.Set(mParamBuffer, HiZUVToScreenUV);
 		gSSRTraceParamDef.gIntensity.Set(mParamBuffer, settings.intensity);
 		gSSRTraceParamDef.gRoughnessScaleBias.Set(mParamBuffer, roughnessScaleBias);
 		gSSRTraceParamDef.gTemporalJitter.Set(mParamBuffer, temporalJitter);
 
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+		rapi.SetRenderTarget(destination, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
-		bind();
+		Bind();
 
 		if(viewProps.target.numSamples > 1)
 			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
@@ -2120,11 +2120,11 @@ namespace bs { namespace ct
 #define PICK_MATERIAL(QUALITY)											\
 		if(msaa)														\
 			if(singleSampleMSAA)										\
-				return Get(getVariation<QUALITY, true, true>());		\
+				return Get(GetVariation<QUALITY, true, true>());		\
 			else														\
-				return Get(getVariation<QUALITY, true, false>());		\
+				return Get(GetVariation<QUALITY, true, false>());		\
 		else															\
-				return Get(getVariation<QUALITY, false, false>());		\
+				return Get(GetVariation<QUALITY, false, false>());		\
 
 		switch(quality)
 		{
@@ -2149,14 +2149,14 @@ namespace bs { namespace ct
 
 	TemporalFilteringMat::TemporalFilteringMat()
 	{
-		mParamBuffer = gTemporalFilteringParamDef.createBuffer();
-		mTemporalParamBuffer = gTemporalResolveParamDef.createBuffer();
+		mParamBuffer = gTemporalFilteringParamDef.CreateBuffer();
+		mTemporalParamBuffer = gTemporalResolveParamDef.CreateBuffer();
 
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSceneDepth", mSceneDepthTexture);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gPrevColor", mPrevColorTexture);
 
-		mHasVelocityTexture = mVariation.getBool("PER_PIXEL_VELOCITY");
+		mHasVelocityTexture = mVariation.GetBool("PER_PIXEL_VELOCITY");
 		if(mHasVelocityTexture)
 			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gVelocity", mVelocityTexture);
 
@@ -2173,7 +2173,7 @@ namespace bs { namespace ct
 
 		SPtr<SamplerState> pointSampState = SamplerState::Create(pointSampDesc);
 
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler"))
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler", pointSampState);
 		else
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSceneDepth", pointSampState);
@@ -2187,7 +2187,7 @@ namespace bs { namespace ct
 		linearSampDesc.addressMode.w = TAM_CLAMP;
 
 		SPtr<SamplerState> linearSampState = SamplerState::Create(linearSampDesc);
-		if(mParams->hasSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler"))
+		if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler"))
 			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler", linearSampState);
 		else
 		{
@@ -2318,16 +2318,16 @@ namespace bs { namespace ct
 			gTemporalResolveParamDef.gSampleWeightsLowpass.Set(mTemporalParamBuffer, sampleWeightsLowPass[i] / totalWeightsLowPass, i);
 		}
 		
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(destination);
+		rapi.SetRenderTarget(destination);
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		const Rect2I& viewRect = viewProps.target.viewRect;
 
-		bind();
+		Bind();
 
 		if(viewProps.target.numSamples > 1)
 			gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.width, (float)viewRect.height));
@@ -2344,28 +2344,28 @@ namespace bs { namespace ct
 			if(velocity)
 			{
 				if (msaa)
-					return Get(getVariation<TemporalFilteringType::FullScreenAA, true, true>());
+					return Get(GetVariation<TemporalFilteringType::FullScreenAA, true, true>());
 
-				return Get(getVariation<TemporalFilteringType::FullScreenAA, true, false>());
+				return Get(GetVariation<TemporalFilteringType::FullScreenAA, true, false>());
 			}
 
 			if (msaa)
-				return Get(getVariation<TemporalFilteringType::FullScreenAA, false, true>());
+				return Get(GetVariation<TemporalFilteringType::FullScreenAA, false, true>());
 
-			return Get(getVariation<TemporalFilteringType::FullScreenAA, false, false>());
+			return Get(GetVariation<TemporalFilteringType::FullScreenAA, false, false>());
 		case TemporalFilteringType::SSR:
 			if(velocity)
 			{
 				if (msaa)
-					return Get(getVariation<TemporalFilteringType::SSR, true, true>());
+					return Get(GetVariation<TemporalFilteringType::SSR, true, true>());
 
-				return Get(getVariation<TemporalFilteringType::SSR, true, false>());
+				return Get(GetVariation<TemporalFilteringType::SSR, true, false>());
 			}
 
 			if (msaa)
-				return Get(getVariation<TemporalFilteringType::SSR, false, true>());
+				return Get(GetVariation<TemporalFilteringType::SSR, false, true>());
 
-			return Get(getVariation<TemporalFilteringType::SSR, false, false>());
+			return Get(GetVariation<TemporalFilteringType::SSR, false, false>());
 		}
 	}
 
@@ -2373,7 +2373,7 @@ namespace bs { namespace ct
 
 	EncodeDepthMat::EncodeDepthMat()
 	{
-		mParamBuffer = gEncodeDepthParamDef.createBuffer();
+		mParamBuffer = gEncodeDepthParamDef.CreateBuffer();
 
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
@@ -2400,9 +2400,9 @@ namespace bs { namespace ct
 		gEncodeDepthParamDef.gFar.Set(mParamBuffer, far);
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setRenderTarget(output, 0, RT_COLOR0);
+		rapi.SetRenderTarget(output, 0, RT_COLOR0);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad();
 	}
 
@@ -2414,13 +2414,13 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		mGBufferParams.bind(gbuffer);
+		mGBufferParams.Bind(gbuffer);
 
-		const Rect2I& viewRect = view.getProperties().target.viewRect;
-		SPtr<GpuParamBlockBuffer> perView = view.getPerViewBuffer();
+		const Rect2I& viewRect = view.GetProperties().target.viewRect;
+		SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
 		mParams->SetParamBlockBuffer("PerCamera", perView);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 
@@ -2429,12 +2429,12 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 2:
-			return Get(getVariation<2>());
+			return Get(GetVariation<2>());
 		case 4:
-			return Get(getVariation<4>());
+			return Get(GetVariation<4>());
 		case 8:
 		default:
-			return Get(getVariation<8>());
+			return Get(GetVariation<8>());
 		}
 	}
 
@@ -2447,10 +2447,10 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const Rect2I& viewRect = view.getProperties().target.viewRect;
+		const Rect2I& viewRect = view.GetProperties().target.viewRect;
 		mCoverageTexParam.Set(coverage);
 
-		bind();
+		Bind();
 		gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.width, (float)viewRect.height));
 	}
 }}

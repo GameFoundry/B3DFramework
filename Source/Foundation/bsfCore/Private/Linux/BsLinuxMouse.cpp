@@ -16,7 +16,7 @@ namespace bs
 		: mName(name), mOwner(owner)
 	{
 		m = bs_new<Pimpl>();
-		m->hasInputFocus = true;
+		m->HasInputFocus = true;
 	}
 
 	Mouse::~Mouse()
@@ -28,7 +28,7 @@ namespace bs
 	{
 		Lock lock(LinuxPlatform::eventLock);
 
-		if(m->hasInputFocus)
+		if(m->HasInputFocus)
 		{
 			double deltaX = round(LinuxPlatform::mouseMotionEvent.deltaX);
 			double deltaY = round(LinuxPlatform::mouseMotionEvent.deltaY);
@@ -52,7 +52,7 @@ namespace bs
 
 	void Mouse::changeCaptureContext(UINT64 windowHandle)
 	{
-		m->hasInputFocus = windowHandle != (UINT64)-1;
+		m->HasInputFocus = windowHandle != (UINT64)-1;
 	}
 }
 

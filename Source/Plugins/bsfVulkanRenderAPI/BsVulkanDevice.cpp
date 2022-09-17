@@ -211,7 +211,7 @@ namespace bs { namespace ct
 
 	UINT32 VulkanDevice::GetQueueMask(GpuQueueType type, UINT32 queueIdx) const
 	{
-		UINT32 numQueues = getNumQueues(type);
+		UINT32 numQueues = GetNumQueues(type);
 		if (numQueues == 0)
 			return 0;
 
@@ -219,7 +219,7 @@ namespace bs { namespace ct
 		UINT32 curIdx = queueIdx % numQueues;
 		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
 		{
-			idMask |= CommandSyncMask::getGlobalQueueMask(type, curIdx);
+			idMask |= CommandSyncMask::GetGlobalQueueMask(type, curIdx);
 			curIdx += numQueues;
 		}
 
@@ -241,10 +241,10 @@ namespace bs { namespace ct
 		output.colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 		output.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
-		PixelFormat depthFormat = VulkanUtility::getClosestSupportedPixelFormat(*this, PF_D24S8, TEX_TYPE_2D,
+		PixelFormat depthFormat = VulkanUtility::GetClosestSupportedPixelFormat(*this, PF_D24S8, TEX_TYPE_2D,
 			TU_DEPTHSTENCIL, true, false);
 
-		output.depthFormat = VulkanUtility::getPixelFormat(depthFormat);
+		output.depthFormat = VulkanUtility::GetPixelFormat(depthFormat);
 
 		// If there is no preferred format, use standard RGBA
 		if ((numFormats == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))

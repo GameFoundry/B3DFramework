@@ -12,12 +12,12 @@ namespace bs
 	public:
 		void StartUp() 
 		{
-			startUp<NullAudio>();
+			Audio::StartUp<NullAudio>();
 		}
 
-		void shutDown() 
+		void ShutDown() 
 		{
-			shutDown();
+			Audio::ShutDown();
 		}
 	};
 

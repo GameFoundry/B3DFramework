@@ -20,8 +20,8 @@ namespace bs
 	FPhysXJoint::FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc)
 		:FJoint(desc), mJoint(joint)
 	{
-		mJoint->SetBreakForce(desc.breakForce, desc.breakTorque);
-		mJoint->SetConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, desc.enableCollision);
+		mJoint->setBreakForce(desc.breakForce, desc.breakTorque);
+		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, desc.enableCollision);
 	}
 
 	FPhysXJoint::~FPhysXJoint()
@@ -35,7 +35,7 @@ namespace bs
 		PxRigidActor* actorA = nullptr;
 		PxRigidActor* actorB = nullptr;
 
-		mJoint->GetActors(actorA, actorB);
+		mJoint->getActors(actorA, actorB);
 
 		PxRigidActor* wantedActor = body == JointBody::Target ? actorA : actorB;
 		if (wantedActor == nullptr)
@@ -49,7 +49,7 @@ namespace bs
 		PxRigidActor* actorA = nullptr;
 		PxRigidActor* actorB = nullptr;
 
-		mJoint->GetActors(actorA, actorB);
+		mJoint->getActors(actorA, actorB);
 
 		PxRigidActor* actor = nullptr;
 		if (value != nullptr)
@@ -60,19 +60,19 @@ namespace bs
 		else
 			actorB = actor;
 
-		mJoint->SetActors(actorA, actorB);
+		mJoint->setActors(actorA, actorB);
 	}
 
 	Vector3 FPhysXJoint::GetPosition(JointBody body) const
 	{
-		PxVec3 position = mJoint->GetLocalPose(toJointActor(body)).p;
+		PxVec3 position = mJoint->getLocalPose(toJointActor(body)).p;
 
 		return fromPxVector(position);
 	}
 
 	Quaternion FPhysXJoint::GetRotation(JointBody body) const
 	{
-		PxQuat rotation = mJoint->GetLocalPose(toJointActor(body)).q;
+		PxQuat rotation = mJoint->getLocalPose(toJointActor(body)).q;
 
 		return fromPxQuaternion(rotation);
 	}
@@ -81,7 +81,7 @@ namespace bs
 	{
 		PxTransform transform = toPxTransform(position, rotation);
 
-		mJoint->SetLocalPose(toJointActor(body), transform);
+		mJoint->setLocalPose(toJointActor(body), transform);
 	}
 
 	float FPhysXJoint::GetBreakForce() const
@@ -89,7 +89,7 @@ namespace bs
 		float force = 0.0f;
 		float torque = 0.0f;
 
-		mJoint->GetBreakForce(force, torque);
+		mJoint->getBreakForce(force, torque);
 		return force;
 	}
 
@@ -98,8 +98,8 @@ namespace bs
 		float dummy = 0.0f;
 		float torque = 0.0f;
 
-		mJoint->GetBreakForce(dummy, torque);
-		mJoint->SetBreakForce(force, torque);
+		mJoint->getBreakForce(dummy, torque);
+		mJoint->setBreakForce(force, torque);
 	}
 
 	float FPhysXJoint::GetBreakTorque() const
@@ -107,7 +107,7 @@ namespace bs
 		float force = 0.0f;
 		float torque = 0.0f;
 
-		mJoint->GetBreakForce(force, torque);
+		mJoint->getBreakForce(force, torque);
 		return torque;
 	}
 
@@ -116,17 +116,17 @@ namespace bs
 		float force = 0.0f;
 		float dummy = 0.0f;
 
-		mJoint->GetBreakForce(force, dummy);
-		mJoint->SetBreakForce(force, torque);
+		mJoint->getBreakForce(force, dummy);
+		mJoint->setBreakForce(force, torque);
 	}
 
 	bool FPhysXJoint::GetEnableCollision() const
 	{
-		return mJoint->GetConstraintFlags() & PxConstraintFlag::eCOLLISION_ENABLED;
+		return mJoint->getConstraintFlags() & PxConstraintFlag::eCOLLISION_ENABLED;
 	}
 
 	void FPhysXJoint::SetEnableCollision(bool value)
 	{
-		mJoint->SetConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, value);
+		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, value);
 	}
 }

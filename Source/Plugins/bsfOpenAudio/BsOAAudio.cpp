@@ -31,7 +31,7 @@ namespace bs
 
 					// Clean up the name to get the actual hardware name
 					String fixedName(deviceName.data(), deviceName.size());
-					fixedName = StringUtil::replaceAll(fixedName, u8"OpenAL Soft on ", u8"");
+					fixedName = StringUtil::ReplaceAll(fixedName, u8"OpenAL Soft on ", u8"");
 
 					mAllDevices.push_back({ fixedName });
 					deviceName.clear();
@@ -63,15 +63,15 @@ namespace bs
 		if (mDevice == nullptr)
 			BS_LOG(Error, Audio, "Failed to open OpenAL device: {0}", defaultDeviceName);
 
-		rebuildContexts();
+		RebuildContexts();
 	}
 
 	OAAudio::~OAAudio()
 	{
-		stopManualSources();
+		StopManualSources();
 
 		assert(mListeners.empty() && mSources.empty()); // Everything should be destroyed at this point
-		clearContexts();
+		ClearContexts();
 
 		if(mDevice != nullptr)
 			alcCloseDevice(mDevice);
@@ -82,7 +82,7 @@ namespace bs
 		mVolume = Math::Clamp01(volume);
 		
 		for (auto& listener : mListeners)
-			listener->rebuild();
+			listener->Rebuild();
 	}
 
 	float OAAudio::GetVolume() const
@@ -103,14 +103,14 @@ namespace bs
 
 	void OAAudio::UpdateInternal()
 	{
-		auto worker = [this]() { updateStreaming(); };
+		auto worker = [this]() { UpdateStreaming(); };
 
 		// If previous task still hasn't completed, just skip streaming this frame, queuing more tasks won't help
-		if (mStreamingTask != nullptr && !mStreamingTask->isComplete())
+		if (mStreamingTask != nullptr && !mStreamingTask->IsComplete())
 			return;
 
 		mStreamingTask = Task::Create("AudioStream", worker, TaskPriority::VeryHigh);
-		TaskScheduler::Instance().addTask(mStreamingTask);
+		TaskScheduler::Instance().AddTask(mStreamingTask);
 
 		Audio::UpdateInternal();
 	}
@@ -120,7 +120,7 @@ namespace bs
 		if (mAllDevices.size() == 1)
 			return; // No devices to change to, keep the active device as is
 
-		clearContexts();
+		ClearContexts();
 
 		if(mDevice != nullptr)
 			alcCloseDevice(mDevice);
@@ -132,7 +132,7 @@ namespace bs
 		if (mDevice == nullptr)
 			BS_LOG(Error, Audio, "Failed to open OpenAL device: ", narrowName);
 
-		rebuildContexts();
+		RebuildContexts();
 	}
 
 	bool OAAudio::IsExtensionSupportedInternal(const String& extension) const
@@ -150,7 +150,7 @@ namespace bs
 	{
 		mListeners.push_back(listener);
 
-		rebuildContexts();
+		RebuildContexts();
 	}
 
 	void OAAudio::UnregisterListenerInternal(OAAudioListener* listener)
@@ -159,7 +159,7 @@ namespace bs
 		if (iterFind != mListeners.end())
 			mListeners.erase(iterFind);
 
-		rebuildContexts();
+		RebuildContexts();
 	}
 
 	void OAAudio::RegisterSourceInternal(OAAudioSource* source)
@@ -227,9 +227,9 @@ namespace bs
 	void OAAudio::RebuildContexts()
 	{
 		for (auto& source : mSources)
-			source->clear();
+			source->Clear();
 
-		clearContexts();
+		ClearContexts();
 
 		if (mDevice == nullptr)
 			return;
@@ -248,10 +248,10 @@ namespace bs
 		alcMakeContextCurrent(mContexts[0]);
 
 		for (auto& listener : mListeners)
-			listener->rebuild();
+			listener->Rebuild();
 
 		for (auto& source : mSources)
-			source->rebuild();
+			source->Rebuild();
 	}
 
 	void OAAudio::ClearContexts()
@@ -299,7 +299,7 @@ namespace bs
 					continue;
 			}
 
-			source->stream();
+			source->Stream();
 		}
 	}
 
@@ -369,7 +369,7 @@ namespace bs
 					UINT32 bufferSize = info.numSamples * sizeof(float);
 					float* sampleBufferFloat = (float*)bs_stack_alloc(bufferSize);
 
-					AudioUtility::convertToFloat(samples, info.bitDepth, sampleBufferFloat, info.numSamples);
+					AudioUtility::ConvertToFloat(samples, info.bitDepth, sampleBufferFloat, info.numSamples);
 
 					ALenum format = GetOpenALBufferFormatInternal(info.numChannels, info.bitDepth);
 					alBufferData(bufferId, format, sampleBufferFloat, bufferSize, info.sampleRate);
@@ -384,7 +384,7 @@ namespace bs
 					UINT32 bufferSize = info.numSamples * 2;
 					UINT8* sampleBuffer16 = (UINT8*)bs_stack_alloc(bufferSize);
 
-					AudioUtility::convertBitDepth(samples, info.bitDepth, sampleBuffer16, 16, info.numSamples);
+					AudioUtility::ConvertBitDepth(samples, info.bitDepth, sampleBuffer16, 16, info.numSamples);
 
 					ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 16);
 					alBufferData(bufferId, format, sampleBuffer16, bufferSize, info.sampleRate);
@@ -421,7 +421,7 @@ namespace bs
 				UINT32 bufferSize = info.numSamples * sizeof(INT32);
 				UINT8* sampleBuffer32 = (UINT8*)bs_stack_alloc(bufferSize);
 
-				AudioUtility::convertBitDepth(samples, info.bitDepth, sampleBuffer32, 32, info.numSamples);
+				AudioUtility::ConvertBitDepth(samples, info.bitDepth, sampleBuffer32, 32, info.numSamples);
 
 				ALenum format = GetOpenALBufferFormatInternal(info.numChannels, 32);
 				alBufferData(bufferId, format, sampleBuffer32, bufferSize, info.sampleRate);

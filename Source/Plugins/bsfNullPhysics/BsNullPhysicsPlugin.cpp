@@ -14,12 +14,12 @@ namespace bs
 			PHYSICS_INIT_DESC initDesc;
 			initDesc.initCooking = cooking;
 
-			startUp<NullPhysics>(initDesc);
+			Physics::StartUp<NullPhysics>(initDesc);
 		}
 
 		void shutDown() 
 		{
-			shutDown();
+			Physics::ShutDown();
 		}
 	};
 

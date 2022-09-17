@@ -64,21 +64,21 @@ namespace bs { namespace ct
 		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
 		ZeroMemory(&desc, sizeof(desc));
 
-		if (props.getType() == GBT_STANDARD)
+		if (props.GetType() == GBT_STANDARD)
 		{
-			desc.Format = D3D11Mappings::getBF(props.GetFormat());
+			desc.Format = D3D11Mappings::GetBf(props.GetFormat());
 			desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 			desc.Buffer.FirstElement = firstElement;
 			desc.Buffer.NumElements = numElements;
 		}
-		else if (props.getType() == GBT_STRUCTURED)
+		else if (props.GetType() == GBT_STRUCTURED)
 		{
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 			desc.Buffer.FirstElement = firstElement;
 			desc.Buffer.NumElements = numElements;
 		}
-		else if (props.getType() == GBT_INDIRECTARGUMENT)
+		else if (props.GetType() == GBT_INDIRECTARGUMENT)
 		{
 			desc.Format = DXGI_FORMAT_R32_UINT;
 			desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
@@ -89,11 +89,11 @@ namespace bs { namespace ct
 		ID3D11ShaderResourceView* srv = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().getD3D11Device()->CreateShaderResourceView(buffer->GetDX11Buffer(), &desc, &srv);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateShaderResourceView(buffer->GetDX11Buffer(), &desc, &srv);
 
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->GetPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create ShaderResourceView: " + msg);
 		}
 
@@ -110,9 +110,9 @@ namespace bs { namespace ct
 
 		desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 
-		if (props.getType() == GBT_STANDARD)
+		if (props.GetType() == GBT_STANDARD)
 		{
-			desc.Format = D3D11Mappings::getBF(props.GetFormat());
+			desc.Format = D3D11Mappings::GetBf(props.GetFormat());
 			desc.Buffer.FirstElement = firstElement;
 			desc.Buffer.NumElements = numElements;
 
@@ -121,7 +121,7 @@ namespace bs { namespace ct
 			else
 				desc.Buffer.Flags = 0;
 		}
-		else if (props.getType() == GBT_STRUCTURED)
+		else if (props.GetType() == GBT_STRUCTURED)
 		{
 			desc.Format = DXGI_FORMAT_UNKNOWN;
 			desc.Buffer.FirstElement = firstElement;
@@ -132,7 +132,7 @@ namespace bs { namespace ct
 			else
 				desc.Buffer.Flags = 0;
 		}
-		else if (props.getType() == GBT_INDIRECTARGUMENT)
+		else if (props.GetType() == GBT_INDIRECTARGUMENT)
 		{
 			desc.Format = DXGI_FORMAT_R32_UINT;
 			desc.Buffer.Flags = 0;
@@ -143,11 +143,11 @@ namespace bs { namespace ct
 		ID3D11UnorderedAccessView* uav = nullptr;
 
 		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().getD3D11Device()->CreateUnorderedAccessView(buffer->GetDX11Buffer(), &desc, &uav);
+		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateUnorderedAccessView(buffer->GetDX11Buffer(), &desc, &uav);
 
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().hasError())
+		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 		{
-			String msg = d3d11rs->GetPrimaryDevice().getErrorDescription();
+			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create UnorderedAccessView: " + msg);
 		}
 

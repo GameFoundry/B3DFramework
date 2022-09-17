@@ -98,11 +98,11 @@ namespace bs
 					return false;
 
 				UINT16 blockAlign = 0;
-				if (mStream->read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
+				if (mStream->Read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
 					return false;
 
 				UINT16 bitDepth = 0;
-				if (mStream->read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
+				if (mStream->Read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
 					return false;
 
 				info.numChannels = numChannels;
@@ -119,7 +119,7 @@ namespace bs
 				if(format == WAVE_FORMAT_EXTENDED)
 				{
 					UINT16 extensionSize = 0;
-					if (mStream->read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
+					if (mStream->Read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
 						return false;
 
 					if(extensionSize != 22)
@@ -129,15 +129,15 @@ namespace bs
 					}
 
 					UINT16 validBitDepth = 0;
-					if (mStream->read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
+					if (mStream->Read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
 						return false;
 
 					UINT32 channelMask = 0;
-					if (mStream->read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
+					if (mStream->Read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
 						return false;
 
 					UINT8 subFormat[16];
-					if (mStream->read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
+					if (mStream->Read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
 						return false;
 
 					memcpy(&format, subFormat, sizeof(format));
@@ -154,15 +154,15 @@ namespace bs
 			else if (subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
 			{
 				info.numSamples = subChunkSize / mBytesPerSample;
-				mDataOffset = (UINT32)mStream->tell();
+				mDataOffset = (UINT32)mStream->Tell();
 
 				foundData = true;
 			}
 			// Unsupported chunk type
 			else
 			{
-				mStream->skip(subChunkSize);
-				if (mStream->eof())
+				mStream->Skip(subChunkSize);
+				if (mStream->Eof())
 					return false;
 			}
 		}

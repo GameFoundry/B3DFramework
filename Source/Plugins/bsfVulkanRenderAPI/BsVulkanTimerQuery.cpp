@@ -20,10 +20,10 @@ namespace bs { namespace ct
 		for (auto& query : mQueries)
 		{
 			if(query.first != nullptr)
-				mDevice.getQueryPool().releaseQuery(query.first);
+				mDevice.GetQueryPool().ReleaseQuery(query.first);
 
 			if (query.second != nullptr)
-				mDevice.getQueryPool().releaseQuery(query.second);
+				mDevice.GetQueryPool().ReleaseQuery(query.second);
 		}
 
 		mQueries.clear();
@@ -33,16 +33,16 @@ namespace bs { namespace ct
 
 	void VulkanTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 
 		// Clear any existing queries
 		for (auto& query : mQueries)
 		{
 			if (query.first != nullptr)
-				queryPool.releaseQuery(query.first);
+				queryPool.ReleaseQuery(query.first);
 
 			if (query.second != nullptr)
-				queryPool.releaseQuery(query.second);
+				queryPool.ReleaseQuery(query.second);
 		}
 
 		mQueries.clear();
@@ -59,11 +59,11 @@ namespace bs { namespace ct
 
 		VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
 		VulkanQuery* beginQuery = queryPool.BeginTimerQuery(internalCB);
-		internalCB->registerQuery(this);
+		internalCB->RegisterQuery(this);
 
 		mQueries.push_back(std::make_pair(beginQuery, nullptr));
 
-		setActive(true);
+		SetActive(true);
 	}
 
 	void VulkanTimerQuery::End(const SPtr<CommandBuffer>& cb)
@@ -83,10 +83,10 @@ namespace bs { namespace ct
 		else
 			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 		VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
 		VulkanQuery* endQuery = queryPool.BeginTimerQuery(internalCB);
-		internalCB->registerQuery(this);
+		internalCB->RegisterQuery(this);
 
 		mQueries.back().second = endQuery;
 	}
@@ -103,9 +103,9 @@ namespace bs { namespace ct
 		mQueryEndCalled = true;
 		mQueryFinalized = false;
 
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 		VulkanQuery* endQuery = queryPool.BeginTimerQuery(&cb);
-		cb.registerQuery(this);
+		cb.RegisterQuery(this);
 
 		mQueries.back().second = endQuery;
 	}
@@ -122,8 +122,8 @@ namespace bs { namespace ct
 		bool ready = true;
 		for (auto& entry : mQueries)
 		{
-			ready &= !entry.first->isBound() && entry.first->GetResult(timeBegin);
-			ready &= !entry.second->isBound() && entry.second->GetResult(timeEnd);
+			ready &= !entry.first->IsBound() && entry.first->GetResult(timeBegin);
+			ready &= !entry.second->IsBound() && entry.second->GetResult(timeEnd);
 		}
 
 		return ready;
@@ -139,8 +139,8 @@ namespace bs { namespace ct
 			{
 				UINT64 timeBegin = 0;
 				UINT64 timeEnd = 0;
-				ready &= !entry.first->isBound() && entry.first->GetResult(timeBegin);
-				ready &= !entry.second->isBound() && entry.second->GetResult(timeEnd);
+				ready &= !entry.first->IsBound() && entry.first->GetResult(timeBegin);
+				ready &= !entry.second->IsBound() && entry.second->GetResult(timeEnd);
 
 				totalTimeDiff += (timeEnd - timeBegin);
 			}
@@ -149,17 +149,17 @@ namespace bs { namespace ct
 			{
 				mQueryFinalized = true;
 
-				double timestampToMs = (double)mDevice.getDeviceProperties().limits.timestampPeriod / 1e6; // Nano to milli
+				double timestampToMs = (double)mDevice.GetDeviceProperties().limits.timestampPeriod / 1e6; // Nano to milli
 				mTimeDelta = (float)((double)totalTimeDiff * timestampToMs);
 
-				VulkanQueryPool& queryPool = mDevice.getQueryPool();
+				VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 				for (auto& query : mQueries)
 				{
 					if (query.first != nullptr)
-						queryPool.releaseQuery(query.first);
+						queryPool.ReleaseQuery(query.first);
 
 					if (query.second != nullptr)
-						queryPool.releaseQuery(query.second);
+						queryPool.ReleaseQuery(query.second);
 				}
 
 				mQueries.clear();

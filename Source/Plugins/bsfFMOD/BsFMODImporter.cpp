@@ -21,7 +21,7 @@ namespace bs
 	bool FMODImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg" || lowerCaseExt == u8"mp3" ||
 			lowerCaseExt == u8"wma" || lowerCaseExt == u8"asf" || lowerCaseExt == u8"wmv" || lowerCaseExt == u8"midi" ||
@@ -45,9 +45,9 @@ namespace bs
 
 		FMOD::Sound* sound;
 		{
-			Lock fileLock = FileScheduler::getLock(filePath);
+			Lock fileLock = FileScheduler::GetLock(filePath);
 
-			String pathStr = filePath.toString();
+			String pathStr = filePath.ToString();
 			if (gFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
@@ -59,7 +59,7 @@ namespace bs
 		INT32 numChannels = 0;
 		INT32 numBits = 0;
 
-		sound->GetFormat(nullptr, &format, &numChannels, &numBits);
+		sound->getFormat(nullptr, &format, &numChannels, &numBits);
 
 		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24
 			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
@@ -69,10 +69,10 @@ namespace bs
 		}
 
 		float frequency = 0.0f;
-		sound->GetDefaults(&frequency, nullptr);
+		sound->getDefaults(&frequency, nullptr);
 
 		UINT32 size;
-		sound->GetLength(&size, FMOD_TIMEUNIT_PCMBYTES);
+		sound->getLength(&size, FMOD_TIMEUNIT_PCMBYTES);
 		
 		info.bitDepth = numBits;
 		info.numChannels = numChannels;
@@ -120,7 +120,7 @@ namespace bs
 			UINT32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 			UINT8* monoBuffer = (UINT8*)bs_alloc(monoBufferSize);
 
-			AudioUtility::convertToMono(sampleBuffer, monoBuffer, info.bitDepth, numSamplesPerChannel, info.numChannels);
+			AudioUtility::ConvertToMono(sampleBuffer, monoBuffer, info.bitDepth, numSamplesPerChannel, info.numChannels);
 
 			info.numSamples = numSamplesPerChannel;
 			info.numChannels = 1;
@@ -137,7 +137,7 @@ namespace bs
 			UINT32 outBufferSize = info.numSamples * (clipIO->bitDepth / 8);
 			UINT8* outBuffer = (UINT8*)bs_alloc(outBufferSize);
 
-			AudioUtility::convertBitDepth(sampleBuffer, info.bitDepth, outBuffer, clipIO->bitDepth, info.numSamples);
+			AudioUtility::ConvertBitDepth(sampleBuffer, info.bitDepth, outBuffer, clipIO->bitDepth, info.numSamples);
 
 			info.bitDepth = clipIO->bitDepth;
 
@@ -148,18 +148,20 @@ namespace bs
 		}
 
 		// Encode to Ogg Vorbis if needed
+		SPtr<MemoryDataStream> sampleStream;
 		if (clipIO->format == AudioFormat::VORBIS)
 		{
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			UINT8* encodedSamples = OggVorbisEncoder::PCMToOggVorbis(sampleBuffer, info, bufferSize);
+			sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
 			bs_free(sampleBuffer);
-			sampleBuffer = encodedSamples;
 		}
-
-		SPtr<MemoryDataStream> sampleStream = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, bufferSize);
+		else
+		{
+			sampleStream = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, bufferSize);
+		}
 
 		AUDIO_CLIP_DESC clipDesc;
 		clipDesc.bitDepth = info.bitDepth;
@@ -171,7 +173,7 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		clip->SetName(fileName);
 
 		return clip;

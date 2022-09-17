@@ -49,26 +49,26 @@ namespace bs
 		alloc.Free(a2);
 		alloc.Free(a3);
 		alloc.Free(a6);
-		alloc.free(a7);
-		alloc.free(a5);
+		alloc.Free(a7);
+		alloc.Free(a5);
 
-		auto a9 = alloc.alloc(64);
+		auto a9 = alloc.Alloc(64);
 		BS_TEST_ASSERT(a9.x == a2.x && a9.y == 0 && a9.length == 64);
 
 		// Test if allocation to another row works
-		auto a10 = alloc.alloc(64);
+		auto a10 = alloc.Alloc(64);
 		BS_TEST_ASSERT(a10.x == 0 && a10.y == 1 && a10.length == 64);
 
 		// Test if allocation that doesn't fit goes to a new row
-		auto a11 = alloc.alloc(128);
+		auto a11 = alloc.Alloc(128);
 		BS_TEST_ASSERT(a11.x == 0 && a11.y == 2 && a11.length == 128);
 
 		// Test if too large allocation fails
-		auto a12 = alloc.alloc(256);
+		auto a12 = alloc.Alloc(256);
 		BS_TEST_ASSERT(a12.length == 0);
 
 		// Test if zero allocation is handled gracefully
-		auto a13 = alloc.alloc(0);
+		auto a13 = alloc.Alloc(0);
 		BS_TEST_ASSERT(a13.length == 0);
 	}
 }

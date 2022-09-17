@@ -329,7 +329,7 @@ namespace bs { namespace ct
 		return PF_D32_S8X24;
 	}
 		
-	GLenum GLPixelUtil::getDepthStencilFormatFromPF(PixelFormat format)
+	GLenum GLPixelUtil::GetDepthStencilFormatFromPf(PixelFormat format)
 	{
 		switch (format)
 		{

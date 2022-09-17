@@ -220,40 +220,40 @@ namespace bs { namespace ct
 		{
 		case RenderBeastFiltering::Bilinear:
 		{
-			if (props.getTextureFiltering(FT_MIN) != FO_LINEAR)
+			if (props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
 				return true;
 
-			if (props.getTextureFiltering(FT_MAG) != FO_LINEAR)
+			if (props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
 				return true;
 
-			if (props.getTextureFiltering(FT_MIP) != FO_POINT)
+			if (props.GetTextureFiltering(FT_MIP) != FO_POINT)
 				return true;
 		}
 			break;
 		case RenderBeastFiltering::Trilinear:
 		{
-			if (props.getTextureFiltering(FT_MIN) != FO_LINEAR)
+			if (props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
 				return true;
 
-			if (props.getTextureFiltering(FT_MAG) != FO_LINEAR)
+			if (props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
 				return true;
 
-			if (props.getTextureFiltering(FT_MIP) != FO_LINEAR)
+			if (props.GetTextureFiltering(FT_MIP) != FO_LINEAR)
 				return true;
 		}
 			break;
 		case RenderBeastFiltering::Anisotropic:
 		{
-			if (props.getTextureFiltering(FT_MIN) != FO_ANISOTROPIC)
+			if (props.GetTextureFiltering(FT_MIN) != FO_ANISOTROPIC)
 				return true;
 
-			if (props.getTextureFiltering(FT_MAG) != FO_ANISOTROPIC)
+			if (props.GetTextureFiltering(FT_MAG) != FO_ANISOTROPIC)
 				return true;
 
-			if (props.getTextureFiltering(FT_MIP) != FO_ANISOTROPIC)
+			if (props.GetTextureFiltering(FT_MIP) != FO_ANISOTROPIC)
 				return true;
 
-			if (props.getTextureAnisotropy() != options->anisotropyMax)
+			if (props.GetTextureAnisotropy() != options->anisotropyMax)
 				return true;
 		}
 			break;
@@ -265,7 +265,7 @@ namespace bs { namespace ct
 	SPtr<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
 	{
 		const SamplerProperties& props = samplerState->GetProperties();
-		SAMPLER_STATE_DESC desc = props.getDesc();
+		SAMPLER_STATE_DESC desc = props.GetDesc();
 
 		switch (options->filtering)
 		{
@@ -288,6 +288,6 @@ namespace bs { namespace ct
 
 		desc.maxAniso = options->anisotropyMax;
 
-		return RenderStateManager::Instance().createSamplerState(desc);
+		return RenderStateManager::Instance().CreateSamplerState(desc);
 	}
 }}

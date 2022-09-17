@@ -193,12 +193,12 @@ namespace bs { namespace ct
 			}
 			else
 			{
-				if(clearMask.isSet(CLEAR_DEPTH))
+				if(clearMask.IsSet(CLEAR_DEPTH))
 					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				else
 					attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-				if(clearMask.isSet(CLEAR_STENCIL))
+				if(clearMask.IsSet(CLEAR_STENCIL))
 					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 				else
 					attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -208,16 +208,16 @@ namespace bs { namespace ct
 
 			// When depth-stencil is readable it's up to the caller to ensure he doesn't try to write to it as well, so we
 			// just assume a read-only layout.
-			if (readMask.isSet(RT_DEPTH))
+			if (readMask.IsSet(RT_DEPTH))
 			{
-				if (readMask.isSet(RT_STENCIL))
+				if (readMask.IsSet(RT_STENCIL))
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 				else // Depth readable but stencil isn't
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
 			}
 			else
 			{
-				if (readMask.isSet(RT_STENCIL)) // Stencil readable but depth isn't
+				if (readMask.IsSet(RT_STENCIL)) // Stencil readable but depth isn't
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
 				else
 					attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -242,7 +242,7 @@ namespace bs { namespace ct
 		if (iterFind != mVariants.end())
 			return iterFind->second;
 
-		VkRenderPass newVariant = createVariant(loadMask, readMask, clearMask);
+		VkRenderPass newVariant = CreateVariant(loadMask, readMask, clearMask);
 		mVariants[key] = newVariant;
 
 		return newVariant;
@@ -253,9 +253,9 @@ namespace bs { namespace ct
 		if (clearMask == CLEAR_NONE)
 			return 0;
 		else if (clearMask == CLEAR_ALL)
-			return getNumAttachments();
-		else if (((UINT32)clearMask & (UINT32)(CLEAR_DEPTH | CLEAR_STENCIL)) != 0 && hasDepthAttachment())
-			return getNumAttachments();
+			return GetNumAttachments();
+		else if (((UINT32)clearMask & (UINT32)(CLEAR_DEPTH | CLEAR_STENCIL)) != 0 && HasDepthAttachment())
+			return GetNumAttachments();
 
 		UINT32 numAttachments = 0;
 		for(INT32 i = BS_MAX_MULTIPLE_RENDER_TARGETS - 1; i >= 0; i--)
@@ -267,7 +267,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		return std::min(numAttachments, getNumColorAttachments());
+		return std::min(numAttachments, GetNumColorAttachments());
 	}
 
 

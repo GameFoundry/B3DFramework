@@ -9,7 +9,7 @@ namespace bs
 	FMOD_RESULT F_CALLBACK pcmReadCallback(FMOD_SOUND* sound, void *data, unsigned int dataLen)
 	{
 		FMODOggDecompressorData* decompressor = nullptr;
-		((FMOD::Sound*)sound)->GetUserData((void**)&decompressor);
+		((FMOD::Sound*)sound)->getUserData((void**)&decompressor);
 
 		const FMODAudioClip* clip = decompressor->clip;
 		UINT32 bytesPerSample = (clip->GetBitDepth() / 8);
@@ -17,16 +17,16 @@ namespace bs
 		assert(dataLen % bytesPerSample == 0);
 		UINT32 numSamples = dataLen / bytesPerSample;
 
-		decompressor->vorbisReader.seek(decompressor->readPos);
-		UINT32 readSamples = decompressor->vorbisReader.read((UINT8*)data, numSamples);
+		decompressor->vorbisReader.Seek(decompressor->readPos);
+		UINT32 readSamples = decompressor->vorbisReader.Read((UINT8*)data, numSamples);
 		while(readSamples < numSamples) // Looping
 		{
-			decompressor->vorbisReader.seek(0);
+			decompressor->vorbisReader.Seek(0);
 
 			UINT8* writePtr = (UINT8*)data;
 			writePtr += readSamples * bytesPerSample;
 
-			readSamples += decompressor->vorbisReader.read(writePtr, numSamples - readSamples);
+			readSamples += decompressor->vorbisReader.Read(writePtr, numSamples - readSamples);
 		}
 
 		assert(readSamples == numSamples);
@@ -40,7 +40,7 @@ namespace bs
 	FMOD_RESULT F_CALLBACK pcmSetPosCallback(FMOD_SOUND* sound, int subsound, unsigned int position, FMOD_TIMEUNIT posType)
 	{
 		FMODOggDecompressorData* decompressor = nullptr;
-		((FMOD::Sound*)sound)->GetUserData((void**)&decompressor);
+		((FMOD::Sound*)sound)->getUserData((void**)&decompressor);
 
 		const FMODAudioClip* clip = decompressor->clip;
 		UINT32 bytesPerSample = (clip->GetBitDepth() / 8);
@@ -63,7 +63,7 @@ namespace bs
 		}
 
 		decompressor->readPos %= clip->GetNumSamples();
-		decompressor->vorbisReader.seek(decompressor->readPos);
+		decompressor->vorbisReader.Seek(decompressor->readPos);
 		return FMOD_OK;
 	}
 
@@ -88,17 +88,17 @@ namespace bs
 		// If we need to keep source data, read everything into memory and keep a copy
 		if (mKeepSourceData)
 		{
-			mStreamData->seek(mStreamOffset);
+			mStreamData->Seek(mStreamOffset);
 
 			UINT8* sampleBuffer = (UINT8*)bs_alloc(mStreamSize);
-			mStreamData->read(sampleBuffer, mStreamSize);
+			mStreamData->Read(sampleBuffer, mStreamSize);
 
 			mSourceStreamData = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, mStreamSize);
 			mSourceStreamSize = mStreamSize;
 		}
 
 		// If streaming is not required, create the sound right away
-		if(!requiresStreaming())
+		if(!RequiresStreaming())
 		{
 			SPtr<DataStream> stream;
 			UINT32 offset = 0;
@@ -119,7 +119,7 @@ namespace bs
 
 			FMOD_MODE flags = FMOD_CREATESAMPLE | FMOD_OPENMEMORY;
 
-			if (is3D())
+			if (Is3D())
 				flags |= FMOD_3D;
 			else
 				flags |= FMOD_2D;
@@ -152,8 +152,8 @@ namespace bs
 			}
 
 			UINT8* sampleBuffer = (UINT8*)bs_stack_alloc(bufferSize);
-			stream->seek(offset);
-			stream->read(sampleBuffer, bufferSize);
+			stream->Seek(offset);
+			stream->Read(sampleBuffer, bufferSize);
 
 			FMOD::System* fmod = gFMODAudio().GetFMODInternal();
 			if (fmod->createSound((const char*)sampleBuffer, flags, &exInfo, &mSound) != FMOD_OK)
@@ -162,7 +162,7 @@ namespace bs
 			}
 			else
 			{
-				mSound->SetMode(FMOD_LOOP_OFF);
+				mSound->setMode(FMOD_LOOP_OFF);
 			}
 
 			mStreamData = nullptr;
@@ -174,7 +174,7 @@ namespace bs
 		else // Streaming
 		{
 			// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
-			if(mDesc.readMode == AudioReadMode::LoadCompressed && mStreamData->isFile())
+			if(mDesc.readMode == AudioReadMode::LoadCompressed && mStreamData->IsFile())
 			{
 				if (mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 					mStreamData = mSourceStreamData;
@@ -182,8 +182,8 @@ namespace bs
 				{
 					UINT8* data = (UINT8*)bs_alloc(mStreamSize);
 
-					mStreamData->seek(mStreamOffset);
-					mStreamData->read(data, mStreamSize);
+					mStreamData->Seek(mStreamOffset);
+					mStreamData->Read(data, mStreamSize);
 
 					mStreamData = bs_shared_ptr_new<MemoryDataStream>(data, mStreamSize);
 				}
@@ -195,9 +195,9 @@ namespace bs
 		AudioClip::Initialize();
 	}
 
-	FMOD::Sound* FMODAudioClip::createStreamingSound() const
+	FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	{
-		if(!requiresStreaming() || mStreamData == nullptr)
+		if(!RequiresStreaming() || mStreamData == nullptr)
 		{
 			BS_LOG(Error, Audio, "Invalid audio stream data.");
 			return nullptr;
@@ -211,7 +211,7 @@ namespace bs
 		exInfo.cbsize = sizeof(exInfo);
 
 		String pathStr;
-		if (mStreamData->isFile())
+		if (mStreamData->IsFile())
 		{
 			// Initialize() guarantees the data was loaded in memory if it's not streaming
 			assert(mDesc.readMode == AudioReadMode::Stream);
@@ -220,7 +220,7 @@ namespace bs
 			exInfo.fileoffset = mStreamOffset;
 
 			SPtr<FileDataStream> fileStream = std::static_pointer_cast<FileDataStream>(mStreamData);
-			pathStr = fileStream->GetPath().toString();
+			pathStr = fileStream->GetPath().ToString();
 
 			streamData = pathStr.c_str();
 		}
@@ -235,8 +235,8 @@ namespace bs
 				// occurence (normally only in editor)
 				flags |= FMOD_OPENMEMORY;
 
-				memStream->seek(mStreamOffset);
-				streamData = (const char*)memStream->GetCurrentPtr();
+				memStream->Seek(mStreamOffset);
+				streamData = (const char*)memStream->Cursor();
 
 				exInfo.length = mStreamSize;
 			}
@@ -257,7 +257,7 @@ namespace bs
 				FMODOggDecompressorData* decompressorData = bs_new<FMODOggDecompressorData>();
 				decompressorData->clip = this;
 
-				if (!decompressorData->vorbisReader.open(memStream, info, mStreamOffset))
+				if (!decompressorData->vorbisReader.Open(memStream, info, mStreamOffset))
 				{
 					BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 					return nullptr;
@@ -270,7 +270,7 @@ namespace bs
 			}
 		}
 
-		if (is3D())
+		if (Is3D())
 			flags |= FMOD_3D;
 		else
 			flags |= FMOD_2D;
@@ -311,14 +311,14 @@ namespace bs
 			return nullptr;
 		}
 
-		sound->SetMode(FMOD_LOOP_OFF);
+		sound->setMode(FMOD_LOOP_OFF);
 		return sound;
 	}
 
-	void FMODAudioClip::releaseStreamingSound(FMOD::Sound* sound)
+	void FMODAudioClip::ReleaseStreamingSound(FMOD::Sound* sound)
 	{
 		FMODOggDecompressorData* decompressorData = nullptr;
-		((FMOD::Sound*)sound)->GetUserData((void**)&decompressorData);
+		((FMOD::Sound*)sound)->getUserData((void**)&decompressorData);
 
 		if (decompressorData != nullptr)
 			bs_delete(decompressorData);
@@ -326,15 +326,15 @@ namespace bs
 		sound->release();
 	}
 
-	SPtr<DataStream> FMODAudioClip::getSourceStream(UINT32& size)
+	SPtr<DataStream> FMODAudioClip::GetSourceStream(UINT32& size)
 	{
 		size = mSourceStreamSize;
-		mSourceStreamData->seek(0);
+		mSourceStreamData->Seek(0);
 
 		return mSourceStreamData;
 	}
 
-	bool FMODAudioClip::requiresStreaming() const
+	bool FMODAudioClip::RequiresStreaming() const
 	{
 		return mDesc.readMode == AudioReadMode::Stream ||
 			(mDesc.readMode == AudioReadMode::LoadCompressed && mDesc.format == AudioFormat::VORBIS);

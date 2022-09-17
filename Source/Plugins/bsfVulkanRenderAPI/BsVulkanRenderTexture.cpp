@@ -58,7 +58,7 @@ namespace bs
 			surface.mipLevel = view->GetMostDetailedMip();
 			surface.numMipLevels = view->GetNumMips();
 
-			if (texture->GetProperties().getTextureType() == TEX_TYPE_3D)
+			if (texture->GetProperties().GetTextureType() == TEX_TYPE_3D)
 			{
 				if(view->GetFirstArraySlice() > 0)
 					BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
@@ -84,8 +84,8 @@ namespace bs
 			fbDesc.color[i].surface = surface;
 
 			rpDesc.color[i].enabled = true;
-			rpDesc.color[i].format = VulkanUtility::getPixelFormat(texture->GetProperties().GetFormat(),
-																   texture->GetProperties().isHardwareGammaEnabled());
+			rpDesc.color[i].format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(),
+																   texture->GetProperties().IsHardwareGammaEnabled());
 		}
 
 		if(mDepthStencilSurface != nullptr)
@@ -100,7 +100,7 @@ namespace bs
 				surface.mipLevel = view->GetMostDetailedMip();
 				surface.numMipLevels = view->GetNumMips();
 
-				if (texture->GetProperties().getTextureType() == TEX_TYPE_3D)
+				if (texture->GetProperties().GetTextureType() == TEX_TYPE_3D)
 				{
 					if (view->GetFirstArraySlice() > 0)
 						BS_LOG(Error, RenderBackend, "Non-zero array slice offset not supported when rendering to a 3D texture.");
@@ -124,16 +124,16 @@ namespace bs
 				fbDesc.depth.baseLayer = view->GetFirstArraySlice();
 
 				rpDesc.depth.enabled = true;
-				rpDesc.depth.format = VulkanUtility::getPixelFormat(texture->GetProperties().GetFormat(),
-																	texture->GetProperties().isHardwareGammaEnabled());
+				rpDesc.depth.format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(),
+																	texture->GetProperties().IsHardwareGammaEnabled());
 			}
 		}
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 		SPtr<VulkanDevice> device = rapi.GetDeviceInternal(mDeviceIdx);
 
-		VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().get(device->GetLogical(), rpDesc);
-		mFramebuffer = device->GetResourceManager().create<VulkanFramebuffer>(renderPass, fbDesc);
+		VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().Get(device->GetLogical(), rpDesc);
+		mFramebuffer = device->GetResourceManager().Create<VulkanFramebuffer>(renderPass, fbDesc);
 	}
 
 	void VulkanRenderTexture::GetCustomAttribute(const String& name, void* data) const

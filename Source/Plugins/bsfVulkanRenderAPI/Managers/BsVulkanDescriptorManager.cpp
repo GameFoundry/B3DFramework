@@ -133,11 +133,11 @@ namespace bs { namespace ct
 			mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
 			allocateInfo.descriptorPool = mPools.back()->GetHandle();
 
-			result = vkAllocateDescriptorSets(mDevice.getLogical(), &allocateInfo, &set);
+			result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 			assert(result == VK_SUCCESS);
 		}
 
-		return mDevice.getResourceManager().create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
+		return mDevice.GetResourceManager().Create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
 	}
 
 	VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, UINT32 numLayouts)
@@ -163,7 +163,7 @@ namespace bs { namespace ct
 		layoutCI.pSetLayouts = setLayouts;
 
 		VkPipelineLayout pipelineLayout;
-		VkResult result = vkCreatePipelineLayout(mDevice.getLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
+		VkResult result = vkCreatePipelineLayout(mDevice.GetLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
 		assert(result == VK_SUCCESS);
 
 		bs_stack_free(setLayouts);

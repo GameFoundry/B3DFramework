@@ -52,7 +52,7 @@ namespace bs { namespace ct
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 		VulkanDevice* devices[BS_MAX_DEVICES];
 
-		VulkanUtility::getDevices(rapi, mDeviceMask, devices);
+		VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
 		UINT32 numDevices = 0;
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -61,36 +61,36 @@ namespace bs { namespace ct
 				numDevices++;
 		}
 
-		UINT32 numParamBlocks = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
-		UINT32 numTextures = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::Texture);
-		UINT32 numStorageTextures = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::LoadStoreTexture);
-		UINT32 numBuffers = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::Buffer);
-		UINT32 numSamplers = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::SamplerState);
-		UINT32 numSets = vkParamInfo.getNumSets();
-		UINT32 numBindings = vkParamInfo.getNumElements();
+		UINT32 numParamBlocks = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
+		UINT32 numTextures = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::Texture);
+		UINT32 numStorageTextures = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::LoadStoreTexture);
+		UINT32 numBuffers = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::Buffer);
+		UINT32 numSamplers = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::SamplerState);
+		UINT32 numSets = vkParamInfo.GetNumSets();
+		UINT32 numBindings = vkParamInfo.GetNumElements();
 
 		if (numSets == 0)
 			return;
 
 		// Note: I'm assuming a single WriteInfo per binding, but if arrays sizes larger than 1 are eventually supported
 		// I'll need to adjust the code.
-		mAlloc.reserve<bool>(numSets)
-			.reserve<PerSetData>(numSets * numDevices)
-			.reserve<VkWriteDescriptorSet>(numBindings * numDevices)
-			.reserve<WriteInfo>(numBindings * numDevices)
-			.reserve<VkImage>(numTextures * numDevices)
-			.reserve<VkImage>(numStorageTextures * numDevices)
-			.reserve<VkBuffer>(numParamBlocks * numDevices)
-			.reserve<VkBuffer>(numBuffers * numDevices)
-			.reserve<VkSampler>(numSamplers * numDevices)
-			.init();
+		mAlloc.Reserve<bool>(numSets)
+			.Reserve<PerSetData>(numSets * numDevices)
+			.Reserve<VkWriteDescriptorSet>(numBindings * numDevices)
+			.Reserve<WriteInfo>(numBindings * numDevices)
+			.Reserve<VkImage>(numTextures * numDevices)
+			.Reserve<VkImage>(numStorageTextures * numDevices)
+			.Reserve<VkBuffer>(numParamBlocks * numDevices)
+			.Reserve<VkBuffer>(numBuffers * numDevices)
+			.Reserve<VkSampler>(numSamplers * numDevices)
+			.Init();
 
 		Lock lock(mMutex); // Set write operations need to be thread safe
 
-		mSetsDirty = mAlloc.alloc<bool>(numSets);
+		mSetsDirty = mAlloc.Alloc<bool>(numSets);
 		bs_zero_out(mSetsDirty, numSets);
 
-		VulkanSamplerState* defaultSampler = static_cast<VulkanSamplerState*>(SamplerState::getDefault().get());
+		VulkanSamplerState* defaultSampler = static_cast<VulkanSamplerState*>(SamplerState::GetDefault().get());
 		VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 		VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
 			HardwareBufferManager::Instance());
@@ -104,12 +104,12 @@ namespace bs { namespace ct
 				continue;
 			}
 
-			mPerDeviceData[i].perSetData = mAlloc.alloc<PerSetData>(numSets);
-			mPerDeviceData[i].sampledImages = mAlloc.alloc<VkImage>(numTextures);
-			mPerDeviceData[i].storageImages = mAlloc.alloc<VkImage>(numStorageTextures);
-			mPerDeviceData[i].uniformBuffers = mAlloc.alloc<VkBuffer>(numParamBlocks);
-			mPerDeviceData[i].buffers = mAlloc.alloc<VkBuffer>(numBuffers);
-			mPerDeviceData[i].samplers = mAlloc.alloc<VkSampler>(numSamplers);
+			mPerDeviceData[i].perSetData = mAlloc.Alloc<PerSetData>(numSets);
+			mPerDeviceData[i].sampledImages = mAlloc.Alloc<VkImage>(numTextures);
+			mPerDeviceData[i].storageImages = mAlloc.Alloc<VkImage>(numStorageTextures);
+			mPerDeviceData[i].uniformBuffers = mAlloc.Alloc<VkBuffer>(numParamBlocks);
+			mPerDeviceData[i].buffers = mAlloc.Alloc<VkBuffer>(numBuffers);
+			mPerDeviceData[i].samplers = mAlloc.Alloc<VkSampler>(numSamplers);
 
 			bs_zero_out(mPerDeviceData[i].sampledImages, numTextures);
 			bs_zero_out(mPerDeviceData[i].storageImages, numStorageTextures);
@@ -122,22 +122,22 @@ namespace bs { namespace ct
 
 			for (UINT32 j = 0; j < numSets; j++)
 			{
-				UINT32 numBindingsPerSet = vkParamInfo.getNumBindings(j);
+				UINT32 numBindingsPerSet = vkParamInfo.GetNumBindings(j);
 
 				PerSetData& perSetData = mPerDeviceData[i].perSetData[j];
 				new (&perSetData.sets) Vector<VulkanDescriptorSet*>();
 
-				perSetData.writeSetInfos = mAlloc.alloc<VkWriteDescriptorSet>(numBindingsPerSet);
-				perSetData.writeInfos = mAlloc.alloc<WriteInfo>(numBindingsPerSet);
+				perSetData.writeSetInfos = mAlloc.Alloc<VkWriteDescriptorSet>(numBindingsPerSet);
+				perSetData.writeInfos = mAlloc.Alloc<WriteInfo>(numBindingsPerSet);
 
-				VulkanDescriptorLayout* layout = vkParamInfo.getLayout(i, j);
+				VulkanDescriptorLayout* layout = vkParamInfo.GetLayout(i, j);
 				perSetData.numElements = numBindingsPerSet;
-				perSetData.latestSet = descManager.createSet(layout);
+				perSetData.latestSet = descManager.CreateSet(layout);
 				perSetData.sets.push_back(perSetData.latestSet);
 
-				VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(j);
-				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(j);
-				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(j);
+				VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetBindings(j);
+				GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(j);
+				GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(j);
 				for (UINT32 k = 0; k < numBindingsPerSet; k++)
 				{
 					// Note: Instead of using one structure per binding, it's possible to update multiple at once
@@ -185,7 +185,7 @@ namespace bs { namespace ct
 								imageInfo.imageView = res->GetView(format, false);
 								imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 
-								UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, j, slot);
+								UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, j, slot);
 								mPerDeviceData[i].storageImages[sequentialIdx] = res->GetHandle();
 							}
 							else
@@ -200,7 +200,7 @@ namespace bs { namespace ct
 								imageInfo.imageView = res->GetView(format, false);
 								imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-								UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::Texture, j, slot);
+								UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::Texture, j, slot);
 								mPerDeviceData[i].sampledImages[sequentialIdx] = res->GetHandle();
 							}
 
@@ -224,7 +224,7 @@ namespace bs { namespace ct
 									VulkanHardwareBuffer* buffer = vkBufManager.GetDummyUniformBuffer();
 									bufferInfo.buffer = buffer->GetResource(i)->GetHandle();
 
-									UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::ParamBlock, j, slot);
+									UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::ParamBlock, j, slot);
 									mPerDeviceData[i].uniformBuffers[sequentialIdx] = bufferInfo.buffer;
 								}
 								else
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 									VulkanHardwareBuffer* buffer = vkBufManager.GetDummyUniformBuffer();
 									bufferInfo.buffer = buffer->GetResource(i)->GetHandle();
 
-									UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, j, slot);
+									UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, j, slot);
 									mPerDeviceData[i].buffers[sequentialIdx] = bufferInfo.buffer;
 								}
 
@@ -251,14 +251,14 @@ namespace bs { namespace ct
 								else
 									buffer = vkBufManager.GetDummyReadBuffer()->GetResource(i);
 
-								VkFormat format = VulkanUtility::getBufferFormat(elementTypes[k]);
+								VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[k]);
 								VkBufferView bufferView = buffer->GetView(format);
 
 								perSetData.writeInfos[k].bufferView = bufferView;
 								writeSetInfo.pBufferInfo = nullptr;
 								writeSetInfo.pTexelBufferView = &perSetData.writeInfos[k].bufferView;
 
-								UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, j, slot);
+								UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, j, slot);
 								mPerDeviceData[i].buffers[sequentialIdx] = buffer->GetHandle();
 							}
 
@@ -274,10 +274,10 @@ namespace bs { namespace ct
 
 	void VulkanGpuParams::SetParamBlockBuffer(UINT32 set, UINT32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer)
 	{
-		GpuParams::setParamBlockBuffer(set, slot, paramBlockBuffer);
+		GpuParams::SetParamBlockBuffer(set, slot, paramBlockBuffer);
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 		if(bindingIdx == (UINT32)-1)
 		{
 			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.",
@@ -285,7 +285,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::ParamBlock, set, slot);
+		UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::ParamBlock, set, slot);
 
 		Lock lock(mMutex);
 
@@ -312,7 +312,7 @@ namespace bs { namespace ct
 			else
 			{
 				auto& vkBufManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-				VkBuffer buffer = vkBufManager.getDummyUniformBuffer()->GetResource(i)->GetHandle();
+				VkBuffer buffer = vkBufManager.GetDummyUniformBuffer()->GetResource(i)->GetHandle();
 
 				perSetData.writeInfos[bindingIdx].buffer.buffer = buffer;
 				mPerDeviceData[i].uniformBuffers[sequentialIdx] = buffer;
@@ -324,10 +324,10 @@ namespace bs { namespace ct
 
 	void VulkanGpuParams::SetTexture(UINT32 set, UINT32 slot, const SPtr<Texture>& texture, const TextureSurface& surface)
 	{
-		GpuParams::setTexture(set, slot, texture, surface);
+		GpuParams::SetTexture(set, slot, texture, surface);
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
 			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.",
@@ -335,7 +335,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::Texture, set, slot);
+		UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::Texture, set, slot);
 
 		Lock lock(mMutex);
 
@@ -358,10 +358,10 @@ namespace bs { namespace ct
 
 				TextureSurface actualSurface = surface;
 				if (surface.numMipLevels == 0)
-					actualSurface.numMipLevels = texProps.getNumMipmaps() + 1;
+					actualSurface.numMipLevels = texProps.GetNumMipmaps() + 1;
 				
 				if(surface.numFaces == 0)
-					actualSurface.numFaces = texProps.getNumFaces();
+					actualSurface.numFaces = texProps.GetNumFaces();
 
 				perSetData.writeInfos[bindingIdx].image.imageView = imageRes->GetView(actualSurface, false);
 				mPerDeviceData[i].sampledImages[sequentialIdx] = imageRes->GetHandle();
@@ -370,10 +370,10 @@ namespace bs { namespace ct
 			{
 				auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
+				GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(set);
+				GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
 
-				imageRes = vkTexManager.getDummyTexture(types[bindingIdx])->GetResource(i);
+				imageRes = vkTexManager.GetDummyTexture(types[bindingIdx])->GetResource(i);
 				VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[bindingIdx]);
 
 				perSetData.writeInfos[bindingIdx].image.imageView = imageRes->GetView(format, false);
@@ -387,10 +387,10 @@ namespace bs { namespace ct
 	void VulkanGpuParams::SetLoadStoreTexture(UINT32 set, UINT32 slot, const SPtr<Texture>& texture,
 		const TextureSurface& surface)
 	{
-		GpuParams::setLoadStoreTexture(set, slot, texture, surface);
+		GpuParams::SetLoadStoreTexture(set, slot, texture, surface);
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
 			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.",
@@ -398,7 +398,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, set, slot);
+		UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::LoadStoreTexture, set, slot);
 
 		Lock lock(mMutex);
 
@@ -424,10 +424,10 @@ namespace bs { namespace ct
 			{
 				auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
+				GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(set);
+				GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
 
-				imageRes = vkTexManager.getDummyTexture(types[bindingIdx])->GetResource(i);
+				imageRes = vkTexManager.GetDummyTexture(types[bindingIdx])->GetResource(i);
 				VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[bindingIdx]);
 
 				perSetData.writeInfos[bindingIdx].image.imageView = imageRes->GetView(format, false);
@@ -440,10 +440,10 @@ namespace bs { namespace ct
 
 	void VulkanGpuParams::SetBuffer(UINT32 set, UINT32 slot, const SPtr<GpuBuffer>& buffer)
 	{
-		GpuParams::setBuffer(set, slot, buffer);
+		GpuParams::SetBuffer(set, slot, buffer);
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
 			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.",
@@ -451,7 +451,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, set, slot);
+		UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::Buffer, set, slot);
 
 		Lock lock(mMutex);
 
@@ -487,12 +487,12 @@ namespace bs { namespace ct
 
 					VulkanBuffer* buffer;
 					if (isLoadStore)
-						buffer = vkBufManager.getDummyStorageBuffer()->GetResource(i);
+						buffer = vkBufManager.GetDummyStorageBuffer()->GetResource(i);
 					else
-						buffer = vkBufManager.getDummyReadBuffer()->GetResource(i);
+						buffer = vkBufManager.GetDummyReadBuffer()->GetResource(i);
 
-					GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
-					VkFormat format = VulkanUtility::getBufferFormat(elementTypes[bindingIdx]);
+					GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
+					VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[bindingIdx]);
 					bufferView = buffer->GetView(format);
 
 					mPerDeviceData[i].buffers[sequentialIdx] = buffer->GetHandle();
@@ -514,7 +514,7 @@ namespace bs { namespace ct
 				{
 					auto& vkBufManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
 
-					VkBuffer buffer = vkBufManager.getDummyStructuredBuffer()->GetResource(i)->GetHandle();
+					VkBuffer buffer = vkBufManager.GetDummyStructuredBuffer()->GetResource(i)->GetHandle();
 
 					perSetData.writeInfos[bindingIdx].buffer.buffer = buffer;
 					mPerDeviceData[i].buffers[sequentialIdx] = buffer;
@@ -529,10 +529,10 @@ namespace bs { namespace ct
 
 	void VulkanGpuParams::SetSamplerState(UINT32 set, UINT32 slot, const SPtr<SamplerState>& sampler)
 	{
-		GpuParams::setSamplerState(set, slot, sampler);
+		GpuParams::SetSamplerState(set, slot, sampler);
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-		UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+		UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 		if (bindingIdx == (UINT32)-1)
 		{
 			BS_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.",
@@ -540,7 +540,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		UINT32 sequentialIdx = vkParamInfo.getSequentialSlot(GpuPipelineParamInfo::ParamType::SamplerState, set, slot);
+		UINT32 sequentialIdx = vkParamInfo.GetSequentialSlot(GpuPipelineParamInfo::ParamType::SamplerState, set, slot);
 
 		Lock lock(mMutex);
 
@@ -568,7 +568,7 @@ namespace bs { namespace ct
 			else
 			{
 				VulkanSamplerState* defaultSampler =
-					static_cast<VulkanSamplerState*>(SamplerState::getDefault().get());
+					static_cast<VulkanSamplerState*>(SamplerState::GetDefault().get());
 
 				VkSampler vkSampler = defaultSampler->GetResource(i)->GetHandle();;
 				perSetData.writeInfos[bindingIdx].image.sampler = vkSampler;
@@ -587,7 +587,7 @@ namespace bs { namespace ct
 
 	void VulkanGpuParams::PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets)
 	{
-		UINT32 deviceIdx = buffer.getDeviceIdx();
+		UINT32 deviceIdx = buffer.GetDeviceIdx();
 
 		PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
 		if (perDeviceData.perSetData == nullptr)
@@ -595,12 +595,12 @@ namespace bs { namespace ct
 
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
-		UINT32 numParamBlocks = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
-		UINT32 numTextures = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::Texture);
-		UINT32 numStorageTextures = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::LoadStoreTexture);
-		UINT32 numBuffers = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::Buffer);
-		UINT32 numSamplers = vkParamInfo.getNumElements(GpuPipelineParamInfo::ParamType::SamplerState);
-		UINT32 numSets = vkParamInfo.getNumSets();
+		UINT32 numParamBlocks = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::ParamBlock);
+		UINT32 numTextures = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::Texture);
+		UINT32 numStorageTextures = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::LoadStoreTexture);
+		UINT32 numBuffers = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::Buffer);
+		UINT32 numSamplers = vkParamInfo.GetNumElements(GpuPipelineParamInfo::ParamType::SamplerState);
+		UINT32 numSets = vkParamInfo.GetNumSets();
 
 		Lock lock(mMutex);
 
@@ -621,7 +621,7 @@ namespace bs { namespace ct
 			if (resource == nullptr)
 			{
 				auto& vkBufManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-				resource = vkBufManager.getDummyUniformBuffer()->GetResource(deviceIdx);
+				resource = vkBufManager.GetDummyUniformBuffer()->GetResource(deviceIdx);
 
 				if (resource == nullptr)
 					continue;
@@ -630,12 +630,12 @@ namespace bs { namespace ct
 			UINT32 set, slot;
 			mParamInfo->GetBinding(GpuPipelineParamInfo::ParamType::ParamBlock, i, set, slot);
 
-			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
-			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::shaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
+			UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetBindings(set);
+			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
 
 			// Register with command buffer
-			buffer.registerBuffer(resource, BufferUseFlagBits::Parameter, VulkanAccessFlag::Read, stages);
+			buffer.RegisterBuffer(resource, BufferUseFlagBits::Parameter, VulkanAccessFlag::Read, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.uniformBuffers[i] != VK_NULL_HANDLE);
@@ -654,9 +654,9 @@ namespace bs { namespace ct
 		{
 			UINT32 set, slot;
 			mParamInfo->GetBinding(GpuPipelineParamInfo::ParamType::Buffer, i, set, slot);
-			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 
-			GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
+			GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(set);
 			GpuParamObjectType type = types[bindingIdx];
 
 			VulkanAccessFlags useFlags = VulkanAccessFlag::Read;
@@ -666,7 +666,7 @@ namespace bs { namespace ct
 				auto* element = static_cast<VulkanGpuBuffer*>(mBuffers[i].get());
 				resource = element->GetResource(deviceIdx);
 
-				if ((element->GetProperties().getUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
+				if ((element->GetProperties().GetUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
 					useFlags |= VulkanAccessFlag::Write;
 			}
 
@@ -677,15 +677,15 @@ namespace bs { namespace ct
 				switch(type)
 				{
 				case GPOT_BYTE_BUFFER:
-					resource = vkBufManager.getDummyReadBuffer()->GetResource(deviceIdx);
+					resource = vkBufManager.GetDummyReadBuffer()->GetResource(deviceIdx);
 					break;
 				case GPOT_RWBYTE_BUFFER:
-					resource = vkBufManager.getDummyStorageBuffer()->GetResource(deviceIdx);
+					resource = vkBufManager.GetDummyStorageBuffer()->GetResource(deviceIdx);
 					useFlags |= VulkanAccessFlag::Write;
 					break;
 				case GPOT_STRUCTURED_BUFFER:
 				case GPOT_RWSTRUCTURED_BUFFER:
-					resource = vkBufManager.getDummyStructuredBuffer()->GetResource(deviceIdx);
+					resource = vkBufManager.GetDummyStructuredBuffer()->GetResource(deviceIdx);
 					useFlags |= VulkanAccessFlag::Write;
 					break;
 				default:
@@ -697,9 +697,9 @@ namespace bs { namespace ct
 			}
 
 			// Register with command buffer
-			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::shaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
-			buffer.registerBuffer(resource, BufferUseFlagBits::Generic, useFlags, stages);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetBindings(set);
+			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
+			buffer.RegisterBuffer(resource, BufferUseFlagBits::Generic, useFlags, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.buffers[i] != VK_NULL_HANDLE);
@@ -719,8 +719,8 @@ namespace bs { namespace ct
 					}
 					else
 					{
-						GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
-						view = resource->GetView(VulkanUtility::getBufferFormat(elementTypes[bindingIdx]));
+						GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
+						view = resource->GetView(VulkanUtility::GetBufferFormat(elementTypes[bindingIdx]));
 					}
 				}
 
@@ -751,7 +751,7 @@ namespace bs { namespace ct
 				continue;
 
 			// Register with command buffer
-			buffer.registerResource(resource, VulkanAccessFlag::Read);
+			buffer.RegisterResource(resource, VulkanAccessFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.samplers[i] != VK_NULL_HANDLE);
@@ -764,7 +764,7 @@ namespace bs { namespace ct
 				UINT32 set, slot;
 				mParamInfo->GetBinding(GpuPipelineParamInfo::ParamType::SamplerState, i, set, slot);
 
-				UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+				UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 				perDeviceData.perSetData[set].writeInfos[bindingIdx].image.sampler = vkSampler;
 
 				mSetsDirty[set] = true;
@@ -775,7 +775,7 @@ namespace bs { namespace ct
 		{
 			UINT32 set, slot;
 			mParamInfo->GetBinding(GpuPipelineParamInfo::ParamType::LoadStoreTexture, i, set, slot);
-			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 
 			VulkanImage* resource = nullptr;
 			if (mLoadStoreTextureData[i].texture != nullptr)
@@ -788,8 +788,8 @@ namespace bs { namespace ct
 			{
 				auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				resource = vkTexManager.getDummyTexture(types[bindingIdx])->GetResource(deviceIdx);
+				GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(set);
+				resource = vkTexManager.GetDummyTexture(types[bindingIdx])->GetResource(deviceIdx);
 
 				if (resource == nullptr)
 					continue;
@@ -798,12 +798,12 @@ namespace bs { namespace ct
 			const TextureSurface& surface = mLoadStoreTextureData[i].surface;
 			VkImageSubresourceRange range = resource->GetRange(surface);
 
-			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::shaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetBindings(set);
+			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
 
 			// Register with command buffer
 			VulkanAccessFlags useFlags = VulkanAccessFlag::Read | VulkanAccessFlag::Write;
-			buffer.registerImageShader(resource, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
+			buffer.RegisterImageShader(resource, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.storageImages[i] != VK_NULL_HANDLE);
@@ -818,7 +818,7 @@ namespace bs { namespace ct
 					view = resource->GetView(surface, false);
 				else
 				{
-					GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
+					GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
 					view = resource->GetView(VulkanTextureManager::GetDummyViewFormat(elementTypes[bindingIdx]));
 				}
 
@@ -831,7 +831,7 @@ namespace bs { namespace ct
 		{
 			UINT32 set, slot;
 			mParamInfo->GetBinding(GpuPipelineParamInfo::ParamType::Texture, i, set, slot);
-			UINT32 bindingIdx = vkParamInfo.getBindingIdx(set, slot);
+			UINT32 bindingIdx = vkParamInfo.GetBindingIdx(set, slot);
 
 			VulkanImage* resource = nullptr;
 			VkImageLayout layout;
@@ -842,7 +842,7 @@ namespace bs { namespace ct
 
 				const TextureProperties& props = element->GetProperties();
 				// Keep dynamic textures in general layout, so they can be easily mapped by CPU
-				if (props.getUsage() & TU_DYNAMIC)
+				if (props.GetUsage() & TU_DYNAMIC)
 					layout = VK_IMAGE_LAYOUT_GENERAL;
 				else
 					layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -852,8 +852,8 @@ namespace bs { namespace ct
 			{
 				auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-				GpuParamObjectType* types = vkParamInfo.getLayoutTypes(set);
-				resource = vkTexManager.getDummyTexture(types[bindingIdx])->GetResource(deviceIdx);
+				GpuParamObjectType* types = vkParamInfo.GetLayoutTypes(set);
+				resource = vkTexManager.GetDummyTexture(types[bindingIdx])->GetResource(deviceIdx);
 				layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 				if (resource == nullptr)
@@ -864,13 +864,13 @@ namespace bs { namespace ct
 			const TextureSurface& surface = mSampledTextureData[i].surface;
 			VkImageSubresourceRange range = resource->GetRange(surface);
 
-			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.getBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::shaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
+			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetBindings(set);
+			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[bindingIdx].stageFlags);
 
-			buffer.registerImageShader(resource, range, layout, VulkanAccessFlag::Read, stages);
+			buffer.RegisterImageShader(resource, range, layout, VulkanAccessFlag::Read, stages);
 
 			// Actual layout might be different than requested if the image is also used as a FB attachment
-			layout = buffer.getCurrentLayout(resource, range, true);
+			layout = buffer.GetCurrentLayout(resource, range, true);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			assert(perDeviceData.sampledImages[i] != VK_NULL_HANDLE);
@@ -887,7 +887,7 @@ namespace bs { namespace ct
 					view = resource->GetView(surface, false);
 				else
 				{
-					GpuBufferFormat* elementTypes = vkParamInfo.getLayoutElementTypes(set);
+					GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
 					view = resource->GetView(VulkanTextureManager::GetDummyViewFormat(elementTypes[bindingIdx]));
 				}
 
@@ -905,7 +905,7 @@ namespace bs { namespace ct
 		// Acquire sets as needed, and updated their contents if dirty
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 		VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
-		VulkanDescriptorManager& descManager = device.getDescriptorManager();
+		VulkanDescriptorManager& descManager = device.GetDescriptorManager();
 
 		for (UINT32 i = 0; i < numSets; i++)
 		{
@@ -916,13 +916,13 @@ namespace bs { namespace ct
 
 			// Set is dirty, we need to update
 			//// Use latest unless already used, otherwise try to find an unused one
-			if(perSetData.latestSet->isBound()) // Checking this is okay, because it's only modified below when we call registerResource, which is under the same lock as this
+			if(perSetData.latestSet->IsBound()) // Checking this is okay, because it's only modified below when we call registerResource, which is under the same lock as this
 			{
 				perSetData.latestSet = nullptr;
 
 				for(auto& entry : perSetData.sets)
 				{
-					if(!entry->isBound())
+					if(!entry->IsBound())
 					{
 						perSetData.latestSet = entry;
 						break;
@@ -932,8 +932,8 @@ namespace bs { namespace ct
 				// Cannot find an empty set, allocate a new one
 				if (perSetData.latestSet == nullptr)
 				{
-					VulkanDescriptorLayout* layout = vkParamInfo.getLayout(deviceIdx, i);
-					perSetData.latestSet = descManager.createSet(layout);
+					VulkanDescriptorLayout* layout = vkParamInfo.GetLayout(deviceIdx, i);
+					perSetData.latestSet = descManager.CreateSet(layout);
 					perSetData.sets.push_back(perSetData.latestSet);
 				}
 			}
@@ -949,7 +949,7 @@ namespace bs { namespace ct
 		{
 			VulkanDescriptorSet* set = perDeviceData.perSetData[i].latestSet;
 
-			buffer.registerResource(set, VulkanAccessFlag::Read);
+			buffer.RegisterResource(set, VulkanAccessFlag::Read);
 			sets[i] = set->GetHandle();
 		}
 	}

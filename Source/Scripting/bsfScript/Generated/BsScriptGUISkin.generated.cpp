@@ -46,7 +46,7 @@ namespace bs
 		bool tmp__output;
 		String tmpname;
 		tmpname = MonoUtil::monoToString(name);
-		tmp__output = thisPtr->GetHandle()->hasStyle(tmpname);
+		tmp__output = thisPtr->GetHandle()->HasStyle(tmpname);
 
 		bool __output;
 		__output = tmp__output;

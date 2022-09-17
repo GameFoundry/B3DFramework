@@ -50,7 +50,7 @@ namespace bs { namespace ct
 
 		// Pretend as if we can parse HLSL
 		mNullProgramFactory = bs_new<NullProgramFactory>();
-		GpuProgramManager::Instance().addFactory("hlsl", mNullProgramFactory);
+		GpuProgramManager::Instance().AddFactory("hlsl", mNullProgramFactory);
 
 		mNumDevices = 1;
 		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
@@ -65,7 +65,7 @@ namespace bs { namespace ct
 	{
 		QueryManager::StartUp<NullQueryManager>();
 
-		RenderAPI::initializeWithWindow(primaryWindow);
+		RenderAPI::InitializeWithWindow(primaryWindow);
 	}
 
 	void NullRenderAPI::DestroyCore()
@@ -90,7 +90,7 @@ namespace bs { namespace ct
 		bs::TextureManager::ShutDown();
 		CommandBufferManager::ShutDown();
 
-		RenderAPI::destroyCore();
+		RenderAPI::DestroyCore();
 	}
 
 	void NullRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)

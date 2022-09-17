@@ -26,7 +26,7 @@ namespace bs { namespace ct {
 		mParams->SetParamBlockBuffer("PerCamera", perCamera);
 		mParams->SetParamBlockBuffer("PerLight", perLight);
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -34,12 +34,12 @@ namespace bs { namespace ct {
 		if (msaa)
 		{
 			if (singleSampleMSAA)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 			else
-				return Get(getVariation<true, false>());
+				return Get(GetVariation<true, false>());
 		}
 
-		return Get(getVariation<false, false>());
+		return Get(GetVariation<false, false>());
 	}
 
 	DeferredPointLightMat::DeferredPointLightMat()
@@ -56,7 +56,7 @@ namespace bs { namespace ct {
 		mParams->SetParamBlockBuffer("PerCamera", perCamera);
 		mParams->SetParamBlockBuffer("PerLight", perLight);
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredPointLightMat* DeferredPointLightMat::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -66,24 +66,24 @@ namespace bs { namespace ct {
 			if (inside)
 			{
 				if (singleSampleMSAA)
-					return Get(getVariation<true, true, true>());
+					return Get(GetVariation<true, true, true>());
 
-				return Get(getVariation<true, true, false>());
+				return Get(GetVariation<true, true, false>());
 			}
 			else
 			{
 				if (singleSampleMSAA)
-					return Get(getVariation<false, true, true>());
+					return Get(GetVariation<false, true, true>());
 
-				return Get(getVariation<false, true, false>());
+				return Get(GetVariation<false, true, false>());
 			}
 		}
 		else
 		{
 			if (inside)
-				return Get(getVariation<true, false, false>());
+				return Get(GetVariation<true, false, false>());
 			else
-				return Get(getVariation<false, false, false>());
+				return Get(GetVariation<false, false, false>());
 		}
 	}
 
@@ -92,7 +92,7 @@ namespace bs { namespace ct {
 	DeferredIBLSetupMat::DeferredIBLSetupMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
+		mIBLParams.Populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
 	}
 
 	void DeferredIBLSetupMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera,
@@ -106,7 +106,7 @@ namespace bs { namespace ct {
 		mIBLParams.ambientOcclusionTexParam.Set(ao);
 		mIBLParams.ssrTexParam.Set(ssr);
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredIBLSetupMat* DeferredIBLSetupMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -114,22 +114,22 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 
-			return Get(getVariation<true, false>());
+			return Get(GetVariation<true, false>());
 		}
 		else
 		{
-			return Get(getVariation<false, false>());
+			return Get(GetVariation<false, false>());
 		}
 	}
 
 	DeferredIBLProbeMat::DeferredIBLProbeMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
+		mIBLParams.Populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
 
-		mParamBuffer = gPerProbeParamDef.createBuffer();
+		mParamBuffer = gPerProbeParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("PerProbe", mParamBuffer);
 	}
 
@@ -158,7 +158,7 @@ namespace bs { namespace ct {
 
 		mIBLParams.reflectionProbeCubemapsTexParam.Set(sceneInfo.reflProbeCubemapsTex);
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredIBLProbeMat* DeferredIBLProbeMat::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -168,31 +168,31 @@ namespace bs { namespace ct {
 			if (inside)
 			{
 				if (singleSampleMSAA)
-					return Get(getVariation<true, true, true>());
+					return Get(GetVariation<true, true, true>());
 
-				return Get(getVariation<true, true, false>());
+				return Get(GetVariation<true, true, false>());
 			}
 			else
 			{
 				if (singleSampleMSAA)
-					return Get(getVariation<false, true, true>());
+					return Get(GetVariation<false, true, true>());
 
-				return Get(getVariation<false, true, false>());
+				return Get(GetVariation<false, true, false>());
 			}
 		}
 		else
 		{
 			if (inside)
-				return Get(getVariation<true, false, false>());
+				return Get(GetVariation<true, false, false>());
 			else
-				return Get(getVariation<false, false, false>());
+				return Get(GetVariation<false, false, false>());
 		}
 	}
 
 	DeferredIBLSkyMat::DeferredIBLSkyMat()
 		:mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
 	{
-		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
+		mIBLParams.Populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
 	}
 
 	void DeferredIBLSkyMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera,
@@ -206,7 +206,7 @@ namespace bs { namespace ct {
 		if(skybox != nullptr)
 			mIBLParams.skyReflectionsTexParam.Set(skybox->GetFilteredRadiance());
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredIBLSkyMat* DeferredIBLSkyMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -214,13 +214,13 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 
-			return Get(getVariation<true, false>());
+			return Get(GetVariation<true, false>());
 		}
 		else
 		{
-			return Get(getVariation<false, false>());
+			return Get(GetVariation<false, false>());
 		}
 	}
 
@@ -229,7 +229,7 @@ namespace bs { namespace ct {
 	{
 		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gIBLRadianceTex", mIBLRadiance);
 
-		mIBLParams.populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
+		mIBLParams.Populate(mParams, GPT_FRAGMENT_PROGRAM, true, false, false);
 	}
 
 	void DeferredIBLFinalizeMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera,
@@ -245,7 +245,7 @@ namespace bs { namespace ct {
 
 		mIBLRadiance.Set(iblRadiance);
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	DeferredIBLFinalizeMat* DeferredIBLFinalizeMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -253,19 +253,19 @@ namespace bs { namespace ct {
 		if(msaa)
 		{
 			if (singleSampleMSAA)
-				return Get(getVariation<true, true>());
+				return Get(GetVariation<true, true>());
 
-			return Get(getVariation<true, false>());
+			return Get(GetVariation<true, false>());
 		}
 		else
 		{
-			return Get(getVariation<false, false>());
+			return Get(GetVariation<false, false>());
 		}
 	}
 
 	StandardDeferred::StandardDeferred()
 	{
-		mPerLightBuffer = gPerLightParamDef.createBuffer();
+		mPerLightBuffer = gPerLightParamDef.CreateBuffer();
 	}
 
 	void StandardDeferred::RenderLight(LightType lightType, const RendererLight& light, const RendererView& view,
@@ -274,14 +274,14 @@ namespace bs { namespace ct {
 		const auto& viewProps = view.GetProperties();
 
 		bool isMSAA = view.GetProperties().target.numSamples > 1;
-		SPtr<GpuParamBlockBuffer> perViewBuffer = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perViewBuffer = view.GetPerViewBuffer();
 
-		light.getParameters(mPerLightBuffer);
+		light.GetParameters(mPerLightBuffer);
 
 		if (lightType == LightType::Directional)
 		{
 			DeferredDirectionalLightMat* material = DeferredDirectionalLightMat::GetVariation(isMSAA, true);
-			material->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+			material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			gRendererUtility().DrawScreenQuad();
 
@@ -289,7 +289,7 @@ namespace bs { namespace ct {
 			if(isMSAA)
 			{
 				DeferredDirectionalLightMat* msaaMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
-				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+				msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 				gRendererUtility().DrawScreenQuad();
 			}
@@ -297,7 +297,7 @@ namespace bs { namespace ct {
 		else // Radial or spot
 		{
 			// Check if viewer is inside the light volume
-			float distSqrd = (light.internal->GetBounds().GetCenter() - viewProps.viewOrigin).squaredLength();
+			float distSqrd = (light.internal->GetBounds().GetCenter() - viewProps.viewOrigin).SquaredLength();
 
 			// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
 			// the light bounds. We need to be conservative since the material for rendering outside will not properly
@@ -308,23 +308,23 @@ namespace bs { namespace ct {
 
 			SPtr<Mesh> stencilMesh;
 			if(lightType == LightType::Radial)
-				stencilMesh = RendererUtility::Instance().getSphereStencil();
+				stencilMesh = RendererUtility::Instance().GetSphereStencil();
 			else // Spot
-				stencilMesh = RendererUtility::Instance().getSpotLightStencil();
+				stencilMesh = RendererUtility::Instance().GetSpotLightStencil();
 
 			DeferredPointLightMat* material = DeferredPointLightMat::GetVariation(isInside, isMSAA, true);
-			material->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+			material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
-			gRendererUtility().draw(stencilMesh);
+			gRendererUtility().Draw(stencilMesh);
 
 			// Draw pixels requiring per-sample evaluation
 			if(isMSAA)
 			{
 				DeferredPointLightMat* msaaMaterial = DeferredPointLightMat::GetVariation(isInside, true, false);
-				msaaMaterial->bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+				msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-				gRendererUtility().draw(stencilMesh);
+				gRendererUtility().Draw(stencilMesh);
 			}
 		}
 	}
@@ -334,7 +334,7 @@ namespace bs { namespace ct {
 		const auto& viewProps = view.GetProperties();
 		bool isMSAA = viewProps.target.numSamples > 1;
 
-		SPtr<GpuParamBlockBuffer> perViewBuffer = view.getPerViewBuffer();
+		SPtr<GpuParamBlockBuffer> perViewBuffer = view.GetPerViewBuffer();
 
 		// When checking if viewer is inside the volume extend the bounds slighty to cover the case when the viewer is
 		// outside, but the near plane is intersecting the bounds. We need to be conservative since the material for
@@ -346,34 +346,34 @@ namespace bs { namespace ct {
 		if(probeData.type == 0) // Sphere
 		{
 			// Check if viewer is inside the light volume
-			float distSqrd = (probeData.position - viewProps.viewOrigin).squaredLength();
+			float distSqrd = (probeData.position - viewProps.viewOrigin).SquaredLength();
 			float boundRadius = probeData.radius + radiusBuffer;
 			
 			isInside = distSqrd < (boundRadius * boundRadius);
-			stencilMesh = RendererUtility::Instance().getSphereStencil();
+			stencilMesh = RendererUtility::Instance().GetSphereStencil();
 		}
 		else // Box
 		{
 			Vector3 extents = probeData.boxExtents + radiusBuffer;
 			AABox box(probeData.position - extents, probeData.position + extents);
 
-			isInside = box.contains(viewProps.viewOrigin);
-			stencilMesh = RendererUtility::Instance().getBoxStencil();
+			isInside = box.Contains(viewProps.viewOrigin);
+			stencilMesh = RendererUtility::Instance().GetBoxStencil();
 		}
 
 		DeferredIBLProbeMat* material = DeferredIBLProbeMat::GetVariation(isInside, isMSAA, true);
-		material->bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
+		material->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
 		// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
-		gRendererUtility().draw(stencilMesh);
+		gRendererUtility().Draw(stencilMesh);
 
 		// Draw pixels requiring per-sample evaluation
 		if (isMSAA)
 		{
 			DeferredIBLProbeMat* msaaMaterial = DeferredIBLProbeMat::GetVariation(isInside, true, false);
-			msaaMaterial->bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
+			msaaMaterial->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
-			gRendererUtility().draw(stencilMesh);
+			gRendererUtility().Draw(stencilMesh);
 		}
 	}
 }}

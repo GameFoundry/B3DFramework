@@ -16,18 +16,18 @@ namespace bs { namespace ct
 	TiledDeferredLightingMat::TiledDeferredLightingMat()
 		:mGBufferParams(GPT_COMPUTE_PROGRAM, mParams)
 	{
-		mSampleCount = mVariation.getUInt("MSAA_COUNT");
+		mSampleCount = mVariation.GetUInt("MSAA_COUNT");
 
 		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
 		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
 
-		if (mParams->hasLoadStoreTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
+		if (mParams->HasLoadStoreTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
 			mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
 		if (mSampleCount > 1)
 			mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
-		mParamBuffer = gTiledLightingParamDef.createBuffer();
+		mParamBuffer = gTiledLightingParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 	}
 
@@ -42,10 +42,10 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
-		const RenderSettings& settings = view.getRenderSettings();
+		const RendererViewProperties& viewProps = view.GetProperties();
+		const RenderSettings& settings = view.GetRenderSettings();
 
-		mLightBufferParam.Set(lightData.getLightBuffer());
+		mLightBufferParam.Set(lightData.GetLightBuffer());
 
 		UINT32 width = viewProps.target.viewRect.width;
 		UINT32 height = viewProps.target.viewRect.height;
@@ -73,15 +73,15 @@ namespace bs { namespace ct
 		else
 		{
 			Vector4I unshadowedLightCounts;
-			unshadowedLightCounts[0] = lightData.getNumUnshadowedLights(LightType::Directional);
-			unshadowedLightCounts[1] = lightData.getNumUnshadowedLights(LightType::Radial);
-			unshadowedLightCounts[2] = lightData.getNumUnshadowedLights(LightType::Spot);
+			unshadowedLightCounts[0] = lightData.GetNumUnshadowedLights(LightType::Directional);
+			unshadowedLightCounts[1] = lightData.GetNumUnshadowedLights(LightType::Radial);
+			unshadowedLightCounts[2] = lightData.GetNumUnshadowedLights(LightType::Spot);
 			unshadowedLightCounts[3] = unshadowedLightCounts[0] + unshadowedLightCounts[1] + unshadowedLightCounts[2];
 
 			Vector4I lightCounts;
-			lightCounts[0] = lightData.getNumLights(LightType::Directional);
-			lightCounts[1] = lightData.getNumLights(LightType::Radial);
-			lightCounts[2] = lightData.getNumLights(LightType::Spot);
+			lightCounts[0] = lightData.GetNumLights(LightType::Directional);
+			lightCounts[1] = lightData.GetNumLights(LightType::Radial);
+			lightCounts[2] = lightData.GetNumLights(LightType::Spot);
 			lightCounts[3] = lightCounts[0] + lightCounts[1] + lightCounts[2];
 
 			Vector2I lightStrides;
@@ -96,10 +96,10 @@ namespace bs { namespace ct
 			gTiledLightingParamDef.gLightStrides.Set(mParamBuffer, lightStrides);
 		}
 
-		mParamBuffer->flushToGPU();
+		mParamBuffer->FlushToGpu();
 
-		mGBufferParams.bind(gbuffer);
-		mParams->SetParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mGBufferParams.Bind(gbuffer);
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 		mInColorTextureParam.Set(inputTexture);
 
 		if (mSampleCount > 1)
@@ -113,8 +113,8 @@ namespace bs { namespace ct
 		UINT32 numTilesX = (UINT32)Math::CeilToInt(width / (float)TILE_SIZE);
 		UINT32 numTilesY = (UINT32)Math::CeilToInt(height / (float)TILE_SIZE);
 
-		bind();
-		RenderAPI::Instance().dispatchCompute(numTilesX, numTilesY);
+		Bind();
+		RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);
 	}
 
 	TiledDeferredLightingMat* TiledDeferredLightingMat::GetVariation(UINT32 msaaCount)
@@ -122,14 +122,14 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 1:
-			return Get(getVariation<1>());
+			return Get(GetVariation<1>());
 		case 2:
-			return Get(getVariation<2>());
+			return Get(GetVariation<2>());
 		case 4:
-			return Get(getVariation<4>());
+			return Get(GetVariation<4>());
 		case 8:
 		default:
-			return Get(getVariation<8>());
+			return Get(GetVariation<8>());
 		}
 	}
 
@@ -145,13 +145,13 @@ namespace bs { namespace ct
 		const TextureProperties& inputProps = inputArray->GetProperties();
 		const TextureProperties& targetProps = target->GetProperties();
 
-		assert(inputProps.getNumArraySlices() == targetProps.getNumSamples());
+		assert(inputProps.GetNumArraySlices() == targetProps.GetNumSamples());
 		assert(inputProps.GetWidth() == targetProps.GetWidth());
 		assert(inputProps.GetHeight() == targetProps.GetHeight());
 
 		mInputParam.Set(inputArray);
 
-		bind();
+		Bind();
 
 		Rect2 area(0.0f, 0.0f, (float)targetProps.GetWidth(), (float)targetProps.GetHeight());
 		gRendererUtility().DrawScreenQuad(area);
@@ -161,14 +161,14 @@ namespace bs { namespace ct
 
 	ClearLoadStoreMat::ClearLoadStoreMat()
 	{
-		INT32 objType = mVariation.getInt("OBJ_TYPE");
+		INT32 objType = mVariation.GetInt("OBJ_TYPE");
 
 		if(objType == 0 || objType == 1)
 			mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 		else
 			mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
 
-		mParamBuffer = gClearLoadStoreParamDef.createBuffer();
+		mParamBuffer = gClearLoadStoreParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Params", mParamBuffer);
 	}
 
@@ -186,7 +186,7 @@ namespace bs { namespace ct
 		const TextureProperties& props = target->GetProperties();
 		PixelFormat pf = props.GetFormat();
 
-		assert(!PixelUtil::isCompressed(pf));
+		assert(!PixelUtil::IsCompressed(pf));
 
 		mOutputTextureParam.Set(target, surface);
 
@@ -198,12 +198,12 @@ namespace bs { namespace ct
 		gClearLoadStoreParamDef.gIntClearVal.Set(mParamBuffer,
 			Vector4I(*(INT32*)&clearValue.r, *(INT32*)&clearValue.g, *(INT32*)&clearValue.a, *(INT32*)&clearValue.a));
 
-		bind();
+		Bind();
 
 		UINT32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * TILE_SIZE);
 		UINT32 numGroupsY = Math::DivideAndRoundUp(height, NUM_THREADS * TILE_SIZE);
 		
-		RenderAPI::Instance().dispatchCompute(numGroupsX, numGroupsY);
+		RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY);
 	}
 
 	void ClearLoadStoreMat::Execute(const SPtr<GpuBuffer>& target, const Color& clearValue)
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 
 		mOutputBufferParam.Set(target);
 
-		UINT32 width = target->GetProperties().getElementCount();
+		UINT32 width = target->GetProperties().GetElementCount();
 		UINT32 height = 1;
 		gClearLoadStoreParamDef.gSize.Set(mParamBuffer, Vector2I((INT32)width, (INT32)height));
 		gClearLoadStoreParamDef.gFloatClearVal.Set(mParamBuffer,
@@ -220,10 +220,10 @@ namespace bs { namespace ct
 		gClearLoadStoreParamDef.gIntClearVal.Set(mParamBuffer,
 			Vector4I(*(INT32*)&clearValue.r, *(INT32*)&clearValue.g, *(INT32*)&clearValue.a, *(INT32*)&clearValue.a));
 
-		bind();
+		Bind();
 
 		UINT32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * (TILE_SIZE * TILE_SIZE));
-		RenderAPI::Instance().dispatchCompute(numGroupsX, 1);
+		RenderAPI::Instance().DispatchCompute(numGroupsX, 1);
 	}
 
 	/** Helper method used for initializing variations of the ClearLoadStore material. */
@@ -298,7 +298,7 @@ namespace bs { namespace ct
 
 	TiledDeferredImageBasedLightingMat::TiledDeferredImageBasedLightingMat()
 	{
-		mSampleCount = mVariation.getUInt("MSAA_COUNT");
+		mSampleCount = mVariation.GetUInt("MSAA_COUNT");
 
 		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferATex", mGBufferA);
 		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferBTex", mGBufferB);
@@ -311,10 +311,10 @@ namespace bs { namespace ct
 		if (mSampleCount > 1)
 			mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
-		mParamBuffer = gTiledImageBasedLightingParamDef.createBuffer();
+		mParamBuffer = gTiledImageBasedLightingParamDef.CreateBuffer();
 		mParams->SetParamBlockBuffer("Params", mParamBuffer);
 
-		mImageBasedParams.populate(mParams, GPT_COMPUTE_PROGRAM, false, false, true);
+		mImageBasedParams.Populate(mParams, GPT_COMPUTE_PROGRAM, false, false, true);
 
 		mParams->SetParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.buffer);
 	}
@@ -329,7 +329,7 @@ namespace bs { namespace ct
 	{
 		BS_RENMAT_PROFILE_BLOCK
 
-		const RendererViewProperties& viewProps = view.getProperties();
+		const RendererViewProperties& viewProps = view.GetProperties();
 		UINT32 width = viewProps.target.viewRect.width;
 		UINT32 height = viewProps.target.viewRect.height;
 
@@ -339,14 +339,14 @@ namespace bs { namespace ct
 		gTiledImageBasedLightingParamDef.gFramebufferSize.Set(mParamBuffer, framebufferSize);
 
 		Skybox* skybox = nullptr;
-		if(view.getRenderSettings().enableSkybox)
+		if(view.GetRenderSettings().enableSkybox)
 			skybox = sceneInfo.skybox;
 
-		mReflProbeParamBuffer.populate(skybox, probeData.getNumProbes(), sceneInfo.reflProbeCubemapsTex,
+		mReflProbeParamBuffer.Populate(skybox, probeData.GetNumProbes(), sceneInfo.reflProbeCubemapsTex,
 			viewProps.capturingReflections);
 
-		mParamBuffer->flushToGPU();
-		mReflProbeParamBuffer.buffer->flushToGPU();
+		mParamBuffer->FlushToGpu();
+		mReflProbeParamBuffer.buffer->FlushToGpu();
 
 		mGBufferA.Set(inputs.gbuffer.albedo);
 		mGBufferB.Set(inputs.gbuffer.normals);
@@ -358,13 +358,13 @@ namespace bs { namespace ct
 			skyFilteredRadiance = skybox->GetFilteredRadiance();
 
 		mImageBasedParams.preintegratedEnvBRDFParam.Set(inputs.preIntegratedGF);
-		mImageBasedParams.reflectionProbesParam.Set(probeData.getProbeBuffer());
+		mImageBasedParams.reflectionProbesParam.Set(probeData.GetProbeBuffer());
 		mImageBasedParams.reflectionProbeCubemapsTexParam.Set(sceneInfo.reflProbeCubemapsTex);
 		mImageBasedParams.skyReflectionsTexParam.Set(skyFilteredRadiance);
 		mImageBasedParams.ambientOcclusionTexParam.Set(inputs.ambientOcclusion);
 		mImageBasedParams.ssrTexParam.Set(inputs.ssr);
 
-		mParams->SetParamBlockBuffer("PerCamera", view.getPerViewBuffer());
+		mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 		mInColorTextureParam.Set(inputs.lightAccumulation);
 		if (mSampleCount > 1)
@@ -378,8 +378,8 @@ namespace bs { namespace ct
 		UINT32 numTilesX = (UINT32)Math::CeilToInt(width / (float)TILE_SIZE);
 		UINT32 numTilesY = (UINT32)Math::CeilToInt(height / (float)TILE_SIZE);
 
-		bind();
-		RenderAPI::Instance().dispatchCompute(numTilesX, numTilesY);
+		Bind();
+		RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);
 	}
 
 	TiledDeferredImageBasedLightingMat* TiledDeferredImageBasedLightingMat::GetVariation(UINT32 msaaCount)
@@ -387,14 +387,14 @@ namespace bs { namespace ct
 		switch(msaaCount)
 		{
 		case 1:
-			return Get(getVariation<1>());
+			return Get(GetVariation<1>());
 		case 2:
-			return Get(getVariation<2>());
+			return Get(GetVariation<2>());
 		case 4:
-			return Get(getVariation<4>());
+			return Get(GetVariation<4>());
 		case 8:
 		default:
-			return Get(getVariation<8>());
+			return Get(GetVariation<8>());
 		}
 	}
 }}

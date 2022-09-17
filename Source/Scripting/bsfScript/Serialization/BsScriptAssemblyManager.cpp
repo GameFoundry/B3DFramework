@@ -58,10 +58,10 @@ namespace bs
 			const bool isSerializable =
 				curClass->isSubClassOf(mBuiltin.componentClass) ||
 				curClass->isSubClassOf(resourceClass) ||
-				curClass->hasAttribute(mBuiltin.serializeObjectAttribute);
+				curClass->HasAttribute(mBuiltin.serializeObjectAttribute);
 
 			const bool isInspectable =
-				curClass->hasAttribute(mBuiltin.showInInspectorAttribute);
+				curClass->HasAttribute(mBuiltin.showInInspectorAttribute);
 
 			if ((isSerializable || isInspectable) &&
 				curClass != mBuiltin.componentClass && curClass != resourceClass &&
@@ -126,8 +126,8 @@ namespace bs
 
 				if(const auto* objTypeInfo = rtti_cast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
 				{
-					typeIsSerializable = objTypeInfo->mFlags.isSet(ScriptTypeFlag::Serializable);
-					typeIsInspectable = typeIsSerializable || objTypeInfo->mFlags.isSet(ScriptTypeFlag::Inspectable);
+					typeIsSerializable = objTypeInfo->mFlags.IsSet(ScriptTypeFlag::Serializable);
+					typeIsInspectable = typeIsSerializable || objTypeInfo->mFlags.IsSet(ScriptTypeFlag::Inspectable);
 				}
 
 				SPtr<ManagedSerializableFieldInfo> fieldInfo = bs_shared_ptr_new<ManagedSerializableFieldInfo>();
@@ -140,30 +140,30 @@ namespace bs
 				MonoMemberVisibility visibility = field->GetVisibility();
 				if (visibility == MonoMemberVisibility::Public)
 				{
-					if (typeIsSerializable && !field->hasAttribute(mBuiltin.dontSerializeFieldAttribute))
+					if (typeIsSerializable && !field->HasAttribute(mBuiltin.dontSerializeFieldAttribute))
 						fieldInfo->mFlags |= ScriptFieldFlag::Serializable;
 
-					if (typeIsInspectable && !field->hasAttribute(mBuiltin.hideInInspectorAttribute))
+					if (typeIsInspectable && !field->HasAttribute(mBuiltin.hideInInspectorAttribute))
 						fieldInfo->mFlags |= ScriptFieldFlag::Inspectable;
 
 					fieldInfo->mFlags |= ScriptFieldFlag::Animable;
 				}
 				else
 				{
-					if (typeIsSerializable && field->hasAttribute(mBuiltin.serializeFieldAttribute))
+					if (typeIsSerializable && field->HasAttribute(mBuiltin.serializeFieldAttribute))
 						fieldInfo->mFlags |= ScriptFieldFlag::Serializable;
 
-					if (typeIsInspectable && field->hasAttribute(mBuiltin.showInInspectorAttribute))
+					if (typeIsInspectable && field->HasAttribute(mBuiltin.showInInspectorAttribute))
 						fieldInfo->mFlags |= ScriptFieldFlag::Inspectable;
 				}
 
-				if (field->hasAttribute(mBuiltin.rangeAttribute))
+				if (field->HasAttribute(mBuiltin.rangeAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Range;
 
-				if (field->hasAttribute(mBuiltin.stepAttribute))
+				if (field->HasAttribute(mBuiltin.stepAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Step;
 
-				if (field->hasAttribute(mBuiltin.layerMaskAttribute))
+				if (field->HasAttribute(mBuiltin.layerMaskAttribute))
 				{
 					// Layout mask attribute is only relevant for 64-bit integer types
 					if (const auto* primTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
@@ -176,25 +176,25 @@ namespace bs
 					}
 				}
 
-				if (field->hasAttribute(mBuiltin.asQuaternionAttribute))
+				if (field->HasAttribute(mBuiltin.asQuaternionAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::AsQuaternion;
 
-				if(field->hasAttribute(mBuiltin.notNullAttribute))
+				if(field->HasAttribute(mBuiltin.notNullAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::NotNull;
 
-				if(field->hasAttribute(mBuiltin.categoryAttribute))
+				if(field->HasAttribute(mBuiltin.categoryAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Category;
 
-				if(field->hasAttribute(mBuiltin.orderAttribute))
+				if(field->HasAttribute(mBuiltin.orderAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Order;
 
-				if(field->hasAttribute(mBuiltin.inlineAttribute))
+				if(field->HasAttribute(mBuiltin.inlineAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::Inline;
 
-				if (field->hasAttribute(mBuiltin.loadOnAssignAttribute))
+				if (field->HasAttribute(mBuiltin.loadOnAssignAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::LoadOnAssign;
 
-				if(field->hasAttribute(mBuiltin.hdrAttribute))
+				if(field->HasAttribute(mBuiltin.hdrAttribute))
 					fieldInfo->mFlags |= ScriptFieldFlag::HDR;
 
 				objInfo->mFieldNameToId[fieldInfo->mName] = fieldInfo->mFieldId;
@@ -213,8 +213,8 @@ namespace bs
 
 				if(const auto* objTypeInfo = rtti_cast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
 				{
-					typeIsSerializable = objTypeInfo->mFlags.isSet(ScriptTypeFlag::Serializable);
-					typeIsInspectable = typeIsSerializable || objTypeInfo->mFlags.isSet(ScriptTypeFlag::Inspectable);
+					typeIsSerializable = objTypeInfo->mFlags.IsSet(ScriptTypeFlag::Serializable);
+					typeIsInspectable = typeIsSerializable || objTypeInfo->mFlags.IsSet(ScriptTypeFlag::Inspectable);
 				}
 
 				SPtr<ManagedSerializablePropertyInfo> propertyInfo = bs_shared_ptr_new<ManagedSerializablePropertyInfo>();
@@ -230,19 +230,19 @@ namespace bs
 					if (visibility == MonoMemberVisibility::Public)
 						propertyInfo->mFlags |= ScriptFieldFlag::Animable;
 
-					if (typeIsSerializable && property->hasAttribute(mBuiltin.serializeFieldAttribute))
+					if (typeIsSerializable && property->HasAttribute(mBuiltin.serializeFieldAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Serializable;
 
-					if (typeIsInspectable && property->hasAttribute(mBuiltin.showInInspectorAttribute))
+					if (typeIsInspectable && property->HasAttribute(mBuiltin.showInInspectorAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Inspectable;
 
-					if (property->hasAttribute(mBuiltin.rangeAttribute))
+					if (property->HasAttribute(mBuiltin.rangeAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Range;
 
-					if (property->hasAttribute(mBuiltin.stepAttribute))
+					if (property->HasAttribute(mBuiltin.stepAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Step;
 
-					if (property->hasAttribute(mBuiltin.layerMaskAttribute))
+					if (property->HasAttribute(mBuiltin.layerMaskAttribute))
 					{
 						// Layout mask attribute is only relevant for 64-bit integer types
 						if (const auto* primTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
@@ -255,34 +255,34 @@ namespace bs
 						}
 					}
 
-					if (property->hasAttribute(mBuiltin.asQuaternionAttribute))
+					if (property->HasAttribute(mBuiltin.asQuaternionAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::AsQuaternion;
 
-					if (property->hasAttribute(mBuiltin.notNullAttribute))
+					if (property->HasAttribute(mBuiltin.notNullAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::NotNull;
 
-					if (property->hasAttribute(mBuiltin.passByCopyAttribute))
+					if (property->HasAttribute(mBuiltin.passByCopyAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::PassByCopy;
 
-					if (property->hasAttribute(mBuiltin.applyOnDirtyAttribute))
+					if (property->HasAttribute(mBuiltin.applyOnDirtyAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::ApplyOnDirty;
 
-					if (property->hasAttribute(mBuiltin.nativeWrapperAttribute))
+					if (property->HasAttribute(mBuiltin.nativeWrapperAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::NativeWrapper;
 
-					if (property->hasAttribute(mBuiltin.categoryAttribute))
+					if (property->HasAttribute(mBuiltin.categoryAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Category;
 
-					if (property->hasAttribute(mBuiltin.orderAttribute))
+					if (property->HasAttribute(mBuiltin.orderAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Order;
 
-					if (property->hasAttribute(mBuiltin.inlineAttribute))
+					if (property->HasAttribute(mBuiltin.inlineAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::Inline;
 
-					if (property->hasAttribute(mBuiltin.loadOnAssignAttribute))
+					if (property->HasAttribute(mBuiltin.loadOnAssignAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::LoadOnAssign;
 
-					if (property->hasAttribute(mBuiltin.hdrAttribute))
+					if (property->HasAttribute(mBuiltin.hdrAttribute))
 						propertyInfo->mFlags |= ScriptFieldFlag::HDR;
 				}
 

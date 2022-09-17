@@ -908,7 +908,7 @@ namespace bs { namespace ct
 
 	UINT32 D3D11Mappings::GetSizeInBytes(PixelFormat pf, UINT32 width, UINT32 height)
 	{
-		if(PixelUtil::isCompressed(pf))
+		if(PixelUtil::IsCompressed(pf))
 		{
 			UINT32 blockWidth = Math::DivideAndRoundUp(width, 4U);
 			UINT32 blockHeight = Math::DivideAndRoundUp(height, 4U);
@@ -927,7 +927,7 @@ namespace bs { namespace ct
 		}
 		else
 		{
-			return width * height * PixelUtil::getNumElemBytes(pf);
+			return width * height * PixelUtil::GetNumElemBytes(pf);
 		}
 	}
 

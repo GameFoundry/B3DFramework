@@ -542,7 +542,7 @@ namespace bs
 					NodeChildRange childRange = nodeRef.getBounds().findIntersectingChildren(mBounds);
 					for(UINT32 i = 0; i < 8; i++)
 					{
-						if(childRange.contains(i) && nodeRef.getNode()->hasChild(i))
+						if(childRange.contains(i) && nodeRef.getNode()->HasChild(i))
 							mNodeIter.pushChild(i);
 					}
 				}
@@ -617,7 +617,7 @@ namespace bs
 
 						for(UINT32 i = 0; i < 8; i++)
 						{
-							if(curNode->hasChild(i))
+							if(curNode->HasChild(i))
 							{
 								Node* childNode = curNode->GetChild(i);
 

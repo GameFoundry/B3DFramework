@@ -140,32 +140,32 @@ namespace bs
 
 	D6JointMotion PhysXD6Joint::GetMotion(D6JointAxis axis) const
 	{
-		return fromPxMotion(GetInternal()->GetMotion(toPxAxis(axis)));
+		return fromPxMotion(GetInternal()->getMotion(toPxAxis(axis)));
 	}
 
 	void PhysXD6Joint::SetMotion(D6JointAxis axis, D6JointMotion motion)
 	{
-		GetInternal()->SetMotion(toPxAxis(axis), toPxMotion(motion));
+		GetInternal()->setMotion(toPxAxis(axis), toPxMotion(motion));
 	}
 
 	Radian PhysXD6Joint::GetTwist() const
 	{
-		return Radian(GetInternal()->GetTwist());
+		return Radian(GetInternal()->getTwist());
 	}
 
 	Radian PhysXD6Joint::GetSwingY() const
 	{
-		return Radian(GetInternal()->GetSwingYAngle());
+		return Radian(GetInternal()->getSwingYAngle());
 	}
 
 	Radian PhysXD6Joint::GetSwingZ() const
 	{
-		return Radian(GetInternal()->GetSwingZAngle());
+		return Radian(GetInternal()->getSwingZAngle());
 	}
 
 	LimitLinear PhysXD6Joint::GetLimitLinear() const
 	{
-		PxJointLinearLimit pxLimit = GetInternal()->GetLinearLimit();
+		PxJointLinearLimit pxLimit = GetInternal()->getLinearLimit();
 
 		LimitLinear limit;
 		limit.extent = pxLimit.value;
@@ -177,19 +177,19 @@ namespace bs
 		return limit;
 	}
 
-	void PhysXD6Joint::setLimitLinear(const LimitLinear& limit)
+	void PhysXD6Joint::SetLimitLinear(const LimitLinear& limit)
 	{
 		PxJointLinearLimit pxLimit(gPhysX().GetScale(), limit.extent, limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
 		pxLimit.damping = limit.spring.damping;
 		pxLimit.restitution = limit.restitution;
 
-		getInternal()->SetLinearLimit(pxLimit);
+		GetInternal()->setLinearLimit(pxLimit);
 	}
 
 	LimitAngularRange PhysXD6Joint::GetLimitTwist() const
 	{
-		PxJointAngularLimitPair pxLimit = getInternal()->GetTwistLimit();
+		PxJointAngularLimitPair pxLimit = GetInternal()->getTwistLimit();
 
 		LimitAngularRange limit;
 		limit.lower = pxLimit.lower;
@@ -204,17 +204,17 @@ namespace bs
 
 	void PhysXD6Joint::SetLimitTwist(const LimitAngularRange& limit)
 	{
-		PxJointAngularLimitPair pxLimit(limit.lower.valueRadians(), limit.upper.valueRadians(), limit.contactDist);
+		PxJointAngularLimitPair pxLimit(limit.lower.ValueRadians(), limit.upper.ValueRadians(), limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
 		pxLimit.damping = limit.spring.damping;
 		pxLimit.restitution = limit.restitution;
 
-		getInternal()->SetTwistLimit(pxLimit);
+		GetInternal()->setTwistLimit(pxLimit);
 	}
 
 	LimitConeRange PhysXD6Joint::GetLimitSwing() const
 	{
-		PxJointLimitCone pxLimit = getInternal()->GetSwingLimit();
+		PxJointLimitCone pxLimit = GetInternal()->getSwingLimit();
 
 		LimitConeRange limit;
 		limit.yLimitAngle = pxLimit.yAngle;
@@ -229,17 +229,17 @@ namespace bs
 
 	void PhysXD6Joint::SetLimitSwing(const LimitConeRange& limit)
 	{
-		PxJointLimitCone pxLimit(limit.yLimitAngle.valueRadians(), limit.zLimitAngle.valueRadians(), limit.contactDist);
+		PxJointLimitCone pxLimit(limit.yLimitAngle.ValueRadians(), limit.zLimitAngle.ValueRadians(), limit.contactDist);
 		pxLimit.stiffness = limit.spring.stiffness;
 		pxLimit.damping = limit.spring.damping;
 		pxLimit.restitution = limit.restitution;
 
-		getInternal()->SetSwingLimit(pxLimit);
+		GetInternal()->setSwingLimit(pxLimit);
 	}
 
 	D6JointDrive PhysXD6Joint::GetDrive(D6JointDriveType type) const
 	{
-		PxD6JointDrive pxDrive = getInternal()->GetDrive(toPxDrive(type));
+		PxD6JointDrive pxDrive = GetInternal()->getDrive(toPxDrive(type));
 
 		D6JointDrive drive;
 		drive.acceleration = pxDrive.flags & PxD6JointDriveFlag::eACCELERATION;
@@ -261,22 +261,22 @@ namespace bs
 		pxDrive.damping = drive.damping;
 		pxDrive.forceLimit = drive.forceLimit;
 
-		getInternal()->SetDrive(toPxDrive(type), pxDrive);
+		GetInternal()->setDrive(toPxDrive(type), pxDrive);
 	}
 
 	Vector3 PhysXD6Joint::GetDrivePosition() const
 	{
-		return fromPxVector(getInternal()->GetDrivePosition().p);
+		return fromPxVector(GetInternal()->getDrivePosition().p);
 	}
 
 	Quaternion PhysXD6Joint::GetDriveRotation() const
 	{
-		return fromPxQuaternion(getInternal()->GetDrivePosition().q);
+		return fromPxQuaternion(GetInternal()->getDrivePosition().q);
 	}
 
 	void PhysXD6Joint::SetDriveTransform(const Vector3& position, const Quaternion& rotation)
 	{
-		getInternal()->SetDrivePosition(toPxTransform(position, rotation));
+		GetInternal()->setDrivePosition(toPxTransform(position, rotation));
 	}
 
 	Vector3 PhysXD6Joint::GetDriveLinearVelocity() const
@@ -284,7 +284,7 @@ namespace bs
 		PxVec3 linear;
 		PxVec3 angular;
 
-		getInternal()->GetDriveVelocity(linear, angular);
+		GetInternal()->getDriveVelocity(linear, angular);
 		return fromPxVector(linear);
 	}
 
@@ -293,13 +293,13 @@ namespace bs
 		PxVec3 linear;
 		PxVec3 angular;
 
-		getInternal()->GetDriveVelocity(linear, angular);
+		GetInternal()->getDriveVelocity(linear, angular);
 		return fromPxVector(angular);
 	}
 
 	void PhysXD6Joint::SetDriveVelocity(const Vector3& linear, const Vector3& angular)
 	{
-		getInternal()->SetDriveVelocity(toPxVector(linear), toPxVector(angular));
+		GetInternal()->setDriveVelocity(toPxVector(linear), toPxVector(angular));
 	}
 
 	PxD6Joint* PhysXD6Joint::GetInternal() const

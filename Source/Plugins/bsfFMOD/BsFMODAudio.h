@@ -44,7 +44,7 @@ namespace bs
 		AudioDevice GetDefaultDevice() const override { return mDefaultDevice; }
 
 		/** @copydoc Audio::getAllDevices */
-		const Vector<AudioDevice>& getAllDevices() const override { return mAllDevices; }
+		const Vector<AudioDevice>& GetAllDevices() const override { return mAllDevices; }
 
 		/** @name Internal
 		 *  @{
@@ -68,14 +68,14 @@ namespace bs
 		/** @} */
 	private:
 		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> createClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
-			const AUDIO_CLIP_DESC& desc) override;
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, UINT32 streamSize, UINT32 numSamples,
+			const AUDIO_CLIP_DESC& desc) ;
 
 		/** @copydoc Audio::createListener */
-		SPtr<AudioListener> createListener() override;
+		SPtr<AudioListener> CreateListener() ;
 
 		/** @copydoc Audio::createSource */
-		SPtr<AudioSource> createSource() override;
+		SPtr<AudioSource> CreateSource() ;
 
 		/** Rebuilds information about all listeners. Should be called when listener list changes. */
 		void RebuildListeners();

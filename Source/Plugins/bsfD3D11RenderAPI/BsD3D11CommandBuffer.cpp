@@ -40,7 +40,7 @@ namespace bs { namespace ct
 			return;
 		}
 
-		if(getState() == CommandBufferState::Executing)
+		if(GetState() == CommandBufferState::Executing)
 		{
 			BS_LOG(Error, RenderBackend, "Cannot submit a command buffer that's still executing.");
 			return;
@@ -48,14 +48,14 @@ namespace bs { namespace ct
 #endif
 		
 		mFence = bs_shared_ptr_new<D3D11EventQuery>(mDeviceIdx);
-		mFence->begin();
+		mFence->Begin();
 		mIsSubmitted = true;
 	}
 
 	CommandBufferState D3D11CommandBuffer::GetState() const
 	{
 		if (mIsSubmitted)
-			return isComplete() ? CommandBufferState::Done : CommandBufferState::Executing;
+			return IsComplete() ? CommandBufferState::Done : CommandBufferState::Executing;
 
 		return mCommandQueued ? CommandBufferState::Recording : CommandBufferState::Empty;
 	}
@@ -68,6 +68,6 @@ namespace bs { namespace ct
 
 	bool D3D11CommandBuffer::IsComplete() const
 	{
-		return mFence && mFence->isReady();
+		return mFence && mFence->IsReady();
 	}
 }}

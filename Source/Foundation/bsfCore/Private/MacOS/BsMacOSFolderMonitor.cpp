@@ -274,12 +274,12 @@ namespace bs
 			{
 				if (!isFile)
 				{
-					if (watcher->filter.isSet(FolderChangeBit::DirName))
+					if (watcher->filter.IsSet(FolderChangeBit::DirName))
 						folderData->fileActions.push_back(FileAction::createAdded(path.toString()));
 				}
 				else
 				{
-					if (watcher->filter.isSet(FolderChangeBit::FileName))
+					if (watcher->filter.IsSet(FolderChangeBit::FileName))
 					{
 						// We delay all file creation events until the file is done writing
 						watcher->createdFiles.push_back(CreatedFileInfo());
@@ -296,18 +296,18 @@ namespace bs
 			{
 				if(!isFile)
 				{
-					if(watcher->filter.isSet(FolderChangeBit::DirName))
+					if(watcher->filter.IsSet(FolderChangeBit::DirName))
 						folderData->fileActions.push_back(FileAction::createRemoved(path.toString()));
 				}
 				else
 				{
-					if(watcher->filter.isSet(FolderChangeBit::FileName))
+					if(watcher->filter.IsSet(FolderChangeBit::FileName))
 						folderData->fileActions.push_back(FileAction::createRemoved(path.toString()));
 				}
 			}
 
 			// File was modified
-			if(wasModified && watcher->filter.isSet(FolderChangeBit::FileWrite))
+			if(wasModified && watcher->filter.IsSet(FolderChangeBit::FileWrite))
 			{
 				// Don't send out modified event if file was created
 				auto iterFind = std::find_if(watcher->createdFiles.begin(), watcher->createdFiles.end(),

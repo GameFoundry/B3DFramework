@@ -27,11 +27,11 @@ namespace bs { namespace ct
 
 	void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	{
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 
 		// Clear any existing queries
 		for (auto& query : mQueries)
-			mDevice.getQueryPool().releaseQuery(query);
+			mDevice.GetQueryPool().ReleaseQuery(query);
 
 		mQueries.clear();
 
@@ -46,10 +46,10 @@ namespace bs { namespace ct
 			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
 		VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
-		mQueries.push_back(queryPool.beginOcclusionQuery(internalCB, !mBinary));
-		internalCB->registerQuery(this);
+		mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
+		internalCB->RegisterQuery(this);
 
-		setActive(true);
+		SetActive(true);
 	}
 
 	void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
@@ -73,9 +73,9 @@ namespace bs { namespace ct
 		else
 			vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
 
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 		VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
-		queryPool.endOcclusionQuery(mQueries.back(), internalCB);
+		queryPool.EndOcclusionQuery(mQueries.back(), internalCB);
 	}
 
 	bool VulkanOcclusionQuery::IsInProgressInternal() const
@@ -90,8 +90,8 @@ namespace bs { namespace ct
 		mQueryEndCalled = true;
 		mQueryFinalized = false;
 
-		VulkanQueryPool& queryPool = mDevice.getQueryPool();
-		queryPool.endOcclusionQuery(mQueries.back(), &cb);
+		VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+		queryPool.EndOcclusionQuery(mQueries.back(), &cb);
 	}
 
 	bool VulkanOcclusionQuery::IsReady() const
@@ -105,7 +105,7 @@ namespace bs { namespace ct
 		UINT64 numSamples;
 		bool ready = true;
 		for (auto& query : mQueries)
-			ready &= !query->isBound() && query->GetResult(numSamples);
+			ready &= !query->IsBound() && query->GetResult(numSamples);
 
 		return ready;
 	}
@@ -119,7 +119,7 @@ namespace bs { namespace ct
 			for (auto& query : mQueries)
 			{
 				UINT64 numSamples = 0;
-				ready &= !query->isBound() && query->GetResult(numSamples);
+				ready &= !query->IsBound() && query->GetResult(numSamples);
 
 				totalNumSamples += numSamples;
 			}
@@ -129,9 +129,9 @@ namespace bs { namespace ct
 				mQueryFinalized = true;
 				mNumSamples = totalNumSamples;
 
-				VulkanQueryPool& queryPool = mDevice.getQueryPool();
+				VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 				for (auto& query : mQueries)
-					queryPool.releaseQuery(query);
+					queryPool.ReleaseQuery(query);
 
 				mQueries.clear();
 			}

@@ -59,10 +59,10 @@ namespace bs { namespace ct
 			mParametersDesc = mBytecode->paramDesc;
 
 			D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-			loadFromMicrocode(rapi->GetPrimaryDevice(), mBytecode->instructions);
+			LoadFromMicrocode(rapi->GetPrimaryDevice(), mBytecode->instructions);
 
 			if(mType == GPT_VERTEX_PROGRAM)
-				mInputDeclaration = HardwareBufferManager::Instance().createVertexDeclaration(mBytecode->vertexInput);
+				mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(mBytecode->vertexInput);
 			
 		}
 
@@ -84,12 +84,12 @@ namespace bs { namespace ct
 
 	void D3D11GpuVertexProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
-		HRESULT hr = device.getD3D11Device()->CreateVertexShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mVertexShader);
+		HRESULT hr = device.GetD3D11Device()->CreateVertexShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mVertexShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 vertex shader from microcode\nError Description:" + errorDescription);
 
@@ -112,12 +112,12 @@ namespace bs { namespace ct
 
 	void D3D11GpuFragmentProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
-		HRESULT hr = device.getD3D11Device()->CreatePixelShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mPixelShader);
+		HRESULT hr = device.GetD3D11Device()->CreatePixelShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mPixelShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 pixel shader from microcode.\nError Description:" + errorDescription);
 		}
@@ -140,12 +140,12 @@ namespace bs { namespace ct
 
 	void D3D11GpuGeometryProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
-		HRESULT hr = device.getD3D11Device()->CreateGeometryShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mGeometryShader);
+		HRESULT hr = device.GetD3D11Device()->CreateGeometryShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mGeometryShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 geometry shader from microcode.\nError Description:" + errorDescription);
 		}
@@ -167,12 +167,12 @@ namespace bs { namespace ct
 
 	void D3D11GpuDomainProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
-		HRESULT hr = device.getD3D11Device()->CreateDomainShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mDomainShader);
+		HRESULT hr = device.GetD3D11Device()->CreateDomainShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mDomainShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 domain shader from microcode.\nError Description:" + errorDescription);
 		}
@@ -195,12 +195,12 @@ namespace bs { namespace ct
 	void D3D11GpuHullProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
 		// Create the shader
-		HRESULT hr = device.getD3D11Device()->CreateHullShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mHullShader);
+		HRESULT hr = device.GetD3D11Device()->CreateHullShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mHullShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 hull shader from microcode.\nError Description:" + errorDescription);
 		}
@@ -223,12 +223,12 @@ namespace bs { namespace ct
 
 	void D3D11GpuComputeProgram::LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode)
 	{
-		HRESULT hr = device.getD3D11Device()->CreateComputeShader(
-			microcode.data, microcode.size, device.getClassLinkage(), &mComputeShader);
+		HRESULT hr = device.GetD3D11Device()->CreateComputeShader(
+			microcode.data, microcode.size, device.GetClassLinkage(), &mComputeShader);
 
-		if (FAILED(hr) || device.hasError())
+		if (FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException,
 				"Cannot create D3D11 compute shader from microcode.\nError Description:" + errorDescription);
 		}

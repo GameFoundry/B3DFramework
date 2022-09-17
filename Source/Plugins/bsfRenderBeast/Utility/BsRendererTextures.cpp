@@ -130,9 +130,9 @@ namespace bs { namespace ct
 
 					float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 					Vector3 H = sphericalToCartesian(cosTheta, sinTheta, phi);
-					Vector3 L = 2.0f * Vector3::dot(V, H) * H - V;
+					Vector3 L = 2.0f * Vector3::Dot(V, H) * H - V;
 
-					float VoH = std::max(Vector3::dot(V, H), 0.0f);
+					float VoH = std::max(Vector3::Dot(V, H), 0.0f);
 					float NoL = std::max(L.z, 0.0f); // N assumed (0, 0, 1)
 					float NoH = std::max(H.z, 0.0f); // N assumed (0, 0, 1)
 
@@ -170,7 +170,7 @@ namespace bs { namespace ct
 			}
 		}
 
-		texture->unlock();
+		texture->Unlock();
 
 		return texture;
 	}
@@ -191,36 +191,36 @@ namespace bs { namespace ct
 		UINT32 sides[] = { CF_PositiveX, CF_NegativeX, CF_PositiveZ, CF_NegativeZ };
 		for(UINT32 i = 0; i < 4; ++i)
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, sides[i]);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, sides[i]);
 
-			data.setColorAt(skyColor, 0, 0);
-			data.setColorAt(skyColor, 1, 0);
-			data.setColorAt(Color::Black, 0, 1);
-			data.setColorAt(Color::Black, 1, 1);
+			data.SetColorAt(skyColor, 0, 0);
+			data.SetColorAt(skyColor, 1, 0);
+			data.SetColorAt(Color::Black, 0, 1);
+			data.SetColorAt(Color::Black, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, CF_PositiveY);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, CF_PositiveY);
 			
-			data.setColorAt(skyColor, 0, 0);
-			data.setColorAt(skyColor, 1, 0);
-			data.setColorAt(skyColor, 0, 1);
-			data.setColorAt(skyColor, 1, 1);
+			data.SetColorAt(skyColor, 0, 0);
+			data.SetColorAt(skyColor, 1, 0);
+			data.SetColorAt(skyColor, 0, 1);
+			data.SetColorAt(skyColor, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		{
-			PixelData data = skyTexture->lock(GBL_WRITE_ONLY_DISCARD, 0, CF_NegativeY);
+			PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, CF_NegativeY);
 			
-			data.setColorAt(Color::Black, 0, 0);
-			data.setColorAt(Color::Black, 1, 0);
-			data.setColorAt(Color::Black, 0, 1);
-			data.setColorAt(Color::Black, 1, 1);
+			data.SetColorAt(Color::Black, 0, 0);
+			data.SetColorAt(Color::Black, 1, 0);
+			data.SetColorAt(Color::Black, 0, 1);
+			data.SetColorAt(Color::Black, 1, 1);
 
-			skyTexture->unlock();
+			skyTexture->Unlock();
 		}
 
 		TEXTURE_DESC irradianceCubemapDesc;
@@ -232,7 +232,7 @@ namespace bs { namespace ct
 		irradianceCubemapDesc.usage = TU_STATIC | TU_RENDERTARGET;
 
 		SPtr<Texture> irradiance = Texture::Create(irradianceCubemapDesc);
-		gIBLUtility().filterCubemapForIrradiance(skyTexture, irradiance);
+		gIBLUtility().FilterCubemapForIrradiance(skyTexture, irradiance);
 
 		return irradiance;
 	}
@@ -254,7 +254,7 @@ namespace bs { namespace ct
 
 		SPtr<PixelData> pixels = PixelData::Create(32, 1, 1, PF_RGBA8);
 		for(UINT32 i = 0; i < 16; i++)
-			pixels->SetColorAt(Color::fromRGBA(gradient.evaluate(i/16.0f)), i, 0);
+			pixels->SetColorAt(Color::FromRgba(gradient.Evaluate(i/16.0f)), i, 0);
 
 		// We keep the second half of the texture empty, to avoid a mul in shader
 		for(UINT32 i = 16; i < 32; i++)

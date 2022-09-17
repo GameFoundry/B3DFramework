@@ -9,7 +9,7 @@ namespace bs
 // Writes to the internal cached buffer and flushes it if needed
 #define WRITE_TO_BUFFER(data, length)					\
 	if ((mBufferOffset + length) > BUFFER_SIZE)			\
-		flush();										\
+		Flush();										\
 														\
 	if(length > BUFFER_SIZE)							\
 		mWriteCallback(data, length);					\

@@ -137,8 +137,8 @@ namespace bs { namespace ct
 
 			mSurfaces[i].acquired = false;
 			mSurfaces[i].needsWait = false;
-			mSurfaces[i].image = owner->create<VulkanImage>(imageDesc, false);
-			mSurfaces[i].sync = owner->create<VulkanSemaphore>();
+			mSurfaces[i].image = owner->Create<VulkanImage>(imageDesc, false);
+			mSurfaces[i].sync = owner->Create<VulkanSemaphore>();
 		}
 
 		bs_stack_free(images);
@@ -172,7 +172,7 @@ namespace bs { namespace ct
 			imageDesc.format = depthFormat;
 			imageDesc.allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-			mDepthStencilImage = owner->create<VulkanImage>(imageDesc, true);
+			mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true);
 		}
 		else
 			mDepthStencilImage = nullptr;
@@ -190,7 +190,7 @@ namespace bs { namespace ct
 			rpDesc.depth.enabled = true;
 		}
 
-		VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().get(mDevice, rpDesc);
+		VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().Get(mDevice, rpDesc);
 
 		// Create a framebuffer for each swap chain buffer
 		UINT32 numFramebuffers = (UINT32)mSurfaces.size();
@@ -207,7 +207,7 @@ namespace bs { namespace ct
 			desc.depth.surface = TextureSurface::COMPLETE;
 			desc.depth.baseLayer = 0;
 
-			mSurfaces[i].framebuffer = owner->create<VulkanFramebuffer>(renderPass, desc);
+			mSurfaces[i].framebuffer = owner->Create<VulkanFramebuffer>(renderPass, desc);
 		}
 	}
 
@@ -219,8 +219,8 @@ namespace bs { namespace ct
 			{
 				// Swap chain images only live as long as the swap chain, so its invalid if they are being used somewhere,
 				// and same goes for the framebuffer since it depends on those images.
-				assert(!surface.image->isBound());
-				assert(!surface.framebuffer->isBound());
+				assert(!surface.image->IsBound());
+				assert(!surface.framebuffer->IsBound());
 
 				surface.framebuffer->Destroy();
 				surface.framebuffer = nullptr;

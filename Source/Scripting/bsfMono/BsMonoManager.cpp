@@ -198,7 +198,7 @@ namespace bs
 					"Unable to find class of type: \"" + meta->ns + "::" + meta->name + "\"");
 			}
 
-			if (meta->scriptClass->hasField("mCachedPtr"))
+			if (meta->scriptClass->HasField("mCachedPtr"))
 				meta->thisPtrField = meta->scriptClass->GetField("mCachedPtr");
 			else
 				meta->thisPtrField = nullptr;

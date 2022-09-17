@@ -99,22 +99,22 @@ namespace bs { namespace ct
 
 		UINT32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
 
-		mCB->end();
-		mCB->submit(mQueue, mQueueIdx, syncMask);
+		mCB->End();
+		mCB->Submit(mQueue, mQueueIdx, syncMask);
 
 		if (wait)
 		{
-			mQueue->waitIdle();
-			mDevice->refreshStates(true);
+			mQueue->WaitIdle();
+			mDevice->RefreshStates(true);
 
-			assert(!mCB->isSubmitted());
+			assert(!mCB->IsSubmitted());
 		}
 
 		mCB = nullptr;
 	}
 
 	VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
-		:mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.getNumDevices())
+		:mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetNumDevices())
 	{
 		mDeviceData = bs_newN<PerDeviceData>(mNumDevices);
 		for (UINT32 i = 0; i < mNumDevices; i++)
@@ -174,7 +174,7 @@ namespace bs { namespace ct
 				VulkanCmdBuffer* lastCB = queue->GetLastCommandBuffer();
 
 				// Check if a buffer is currently executing on the queue
-				if (lastCB == nullptr || !lastCB->isSubmitted())
+				if (lastCB == nullptr || !lastCB->IsSubmitted())
 					continue;
 
 				// Check if we care about this specific queue
@@ -182,7 +182,7 @@ namespace bs { namespace ct
 				if ((syncMask & queueMask) == 0)
 					continue;
 
-				VulkanSemaphore* semaphore = lastCB->requestInterQueueSemaphore();
+				VulkanSemaphore* semaphore = lastCB->RequestInterQueueSemaphore();
 				if (semaphore == nullptr)
 				{
 					semaphoreRequestFailed = true;
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
 		VulkanTransferBuffer* transferBuffer = &deviceData.transferBuffers[type][queueIdx];
-		transferBuffer->allocate();
+		transferBuffer->Allocate();
 		return transferBuffer;
 	}
 
@@ -224,7 +224,7 @@ namespace bs { namespace ct
 		for (UINT32 i = 0; i < GQT_COUNT; i++)
 		{
 			for (UINT32 j = 0; j < BS_MAX_QUEUES_PER_TYPE; j++)
-				deviceData.transferBuffers[i][j].flush(false);
+				deviceData.transferBuffers[i][j].Flush(false);
 		}
 	}
 

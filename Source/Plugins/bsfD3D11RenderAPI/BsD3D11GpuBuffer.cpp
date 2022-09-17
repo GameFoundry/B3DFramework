@@ -57,16 +57,16 @@ namespace bs { namespace ct
 				BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.GetType()));
 			}
 
-			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.getUsage(), props.getElementCount(),
-				props.getElementSize(), rapi->GetPrimaryDevice(), false, false);
+			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.GetElementCount(),
+				props.GetElementSize(), rapi->GetPrimaryDevice(), false, false);
 		}
 
 		UINT32 usage = GVU_DEFAULT;
-		if ((props.getUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
+		if ((props.GetUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
 			usage |= GVU_RANDOMWRITE;
 
 		// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
-		mBufferView = requestView(this, 0, props.getElementCount(), (GpuViewUsage)usage);
+		mBufferView = RequestView(this, 0, props.GetElementCount(), (GpuViewUsage)usage);
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
 
@@ -85,7 +85,7 @@ namespace bs { namespace ct
 
 		GPU_BUFFER_VIEW_DESC key;
 		key.firstElement = firstElement;
-		key.elementWidth = props.getElementSize();
+		key.elementWidth = props.GetElementSize();
 		key.numElements = numElements;
 		key.usage = usage;
 		key.format = props.GetFormat();
@@ -95,7 +95,7 @@ namespace bs { namespace ct
 		if (iterFind == buffer->mBufferViews.end())
 		{
 			GpuBufferView* newView = bs_new<GpuBufferView>();
-			newView->initialize(buffer, key);
+			newView->Initialize(buffer, key);
 			buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
 
 			iterFind = buffer->mBufferViews.find(key);
@@ -145,11 +145,11 @@ namespace bs { namespace ct
 
 	ID3D11ShaderResourceView* D3D11GpuBuffer::GetSrv() const
 	{
-		return mBufferView->GetSRV();
+		return mBufferView->GetSrv();
 	}
 
 	ID3D11UnorderedAccessView* D3D11GpuBuffer::GetUav() const
 	{
-		return mBufferView->GetUAV();
+		return mBufferView->GetUav();
 	}
 }}

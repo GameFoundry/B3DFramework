@@ -18,7 +18,7 @@ namespace bs { namespace ct
 	{
 		mReflProbeData.clear();
 
-		const VisibilityInfo& visibility = viewGroup.getVisibilityInfo();
+		const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
 
 		// Generate refl. probe data for the visible ones
 		UINT32 numProbes = (UINT32)sceneInfo.reflProbes.size();
@@ -28,7 +28,7 @@ namespace bs { namespace ct
 				continue;
 
 			mReflProbeData.push_back(ReflProbeData());
-			sceneInfo.reflProbes[i].getParameters(mReflProbeData.back());
+			sceneInfo.reflProbes[i].GetParameters(mReflProbeData.back());
 		}
 
 		// Sort probes so bigger ones get accessed first, this way we overlay smaller ones on top of biggers ones when
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 			}
 
 			if (size > 0)
-				mProbeBuffer->writeData(0, size, mReflProbeData.data(), BWT_DISCARD);
+				mProbeBuffer->WriteData(0, size, mReflProbeData.data(), BWT_DISCARD);
 		}
 	}
 
@@ -93,22 +93,22 @@ namespace bs { namespace ct
 		if (probe->GetType() == ReflectionProbeType::Sphere)
 			output.radius = probe->GetRadius();
 		else
-			output.radius = output.boxExtents.length();
+			output.radius = output.boxExtents.Length();
 
 		output.transitionDistance = probe->GetTransitionDistance();
 		output.cubemapIdx = arrayIdx;
-		output.invBoxTransform.setInverseTRS(output.position, tfrm.GetRotation(), output.boxExtents);
+		output.invBoxTransform.SetInverseTrs(output.position, tfrm.GetRotation(), output.boxExtents);
 	}
 
 	void ImageBasedLightingParams::Populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional,
 		bool gridIndices, bool probeArray)
 	{
 		// Sky
-		if (!optional || params->hasTexture(programType, "gSkyReflectionTex"))
+		if (!optional || params->HasTexture(programType, "gSkyReflectionTex"))
 			params->GetTextureParam(programType, "gSkyReflectionTex", skyReflectionsTexParam);
 
 		// Reflections
-		if (!optional || params->hasTexture(programType, "gReflProbeCubemaps"))
+		if (!optional || params->HasTexture(programType, "gReflProbeCubemaps"))
 		{
 			params->GetTextureParam(programType, "gReflProbeCubemaps", reflectionProbeCubemapsTexParam);
 
@@ -116,20 +116,20 @@ namespace bs { namespace ct
 				params->GetBufferParam(programType, "gReflectionProbes", reflectionProbesParam);
 		}
 
-		if (!optional || params->hasTexture(programType, "gPreintegratedEnvBRDF"))
+		if (!optional || params->HasTexture(programType, "gPreintegratedEnvBRDF"))
 			params->GetTextureParam(programType, "gPreintegratedEnvBRDF", preintegratedEnvBRDFParam);
 
 		// AO
-		if (params->hasTexture(programType, "gAmbientOcclusionTex"))
+		if (params->HasTexture(programType, "gAmbientOcclusionTex"))
 			params->GetTextureParam(programType, "gAmbientOcclusionTex", ambientOcclusionTexParam);
 
 		// SSR
-		if (params->hasTexture(programType, "gSSRTex"))
+		if (params->HasTexture(programType, "gSSRTex"))
 			params->GetTextureParam(programType, "gSSRTex", ssrTexParam);
 
 		if(gridIndices)
 		{
-			if (!optional || params->hasBuffer(programType, "gReflectionProbeIndices"))
+			if (!optional || params->HasBuffer(programType, "gReflectionProbeIndices"))
 				params->GetBufferParam(programType, "gReflectionProbeIndices", reflectionProbeIndicesParam);
 		}
 
@@ -150,7 +150,7 @@ namespace bs { namespace ct
 
 	ReflProbeParamBuffer::ReflProbeParamBuffer()
 	{
-		buffer = gReflProbeParamsParamDef.createBuffer();
+		buffer = gReflProbeParamsParamDef.CreateBuffer();
 	}
 
 	void ReflProbeParamBuffer::Populate(const Skybox* sky, UINT32 numProbes, const SPtr<Texture>& reflectionCubemaps,
@@ -165,7 +165,7 @@ namespace bs { namespace ct
 			SPtr<Texture> filteredReflections = sky->GetFilteredRadiance();
 			if (filteredReflections)
 			{
-				numSkyMips = filteredReflections->GetProperties().getNumMipmaps() + 1;
+				numSkyMips = filteredReflections->GetProperties().GetNumMipmaps() + 1;
 				skyReflectionsAvailable = 1;
 			}
 
@@ -178,7 +178,7 @@ namespace bs { namespace ct
 
 		UINT32 numReflProbeMips = 0;
 		if (reflectionCubemaps != nullptr)
-			numReflProbeMips = reflectionCubemaps->GetProperties().getNumMipmaps() + 1;
+			numReflProbeMips = reflectionCubemaps->GetProperties().GetNumMipmaps() + 1;
 
 		gReflProbeParamsParamDef.gReflCubemapNumMips.Set(buffer, numReflProbeMips);
 		gReflProbeParamsParamDef.gUseReflectionMaps.Set(buffer, capturingReflections ? 0 : 1);

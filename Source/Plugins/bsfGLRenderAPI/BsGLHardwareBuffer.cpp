@@ -99,9 +99,9 @@ namespace bs { namespace ct
 		if(mBufferId == 0)
 			return;
 
-		void* bufferData = lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
+		void* bufferData = Lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
 		memcpy(dest, bufferData, length);
-		unlock();
+		Unlock();
 	}
 
 	void GLHardwareBuffer::WriteData(UINT32 offset, UINT32 length, const void* source, BufferWriteType writeFlags, UINT32 queueIdx)
@@ -115,9 +115,9 @@ namespace bs { namespace ct
 		else if (writeFlags == BTW_NO_OVERWRITE)
 			lockOption = GBL_WRITE_ONLY_NO_OVERWRITE;
 
-		void* bufferData = lock(offset, length, lockOption, 0, queueIdx);
+		void* bufferData = Lock(offset, length, lockOption, 0, queueIdx);
 		memcpy(bufferData, source, length);
-		unlock();
+		Unlock();
 	}
 
 	void GLHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, UINT32 srcOffset, UINT32 dstOffset, UINT32 length,
@@ -130,7 +130,7 @@ namespace bs { namespace ct
 		{
 			GLHardwareBuffer& glSrcBuffer = static_cast<GLHardwareBuffer&>(srcBuffer);
 
-			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.getGLBufferId());
+			glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.GetGlBufferId());
 			BS_CHECK_GL_ERROR();
 
 			glBindBuffer(GL_COPY_WRITE_BUFFER, mBufferId);

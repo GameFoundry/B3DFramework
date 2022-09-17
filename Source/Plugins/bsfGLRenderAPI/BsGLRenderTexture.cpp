@@ -77,9 +77,9 @@ namespace bs
 				{
 					surfaceDesc.allLayers = true;
 
-					if (glColorSurface->GetProperties().getTextureType() != TEX_TYPE_3D)
+					if (glColorSurface->GetProperties().GetTextureType() != TEX_TYPE_3D)
 					{
-						if (mColorSurfaces[i]->GetNumArraySlices() != glColorSurface->GetProperties().getNumFaces())
+						if (mColorSurfaces[i]->GetNumArraySlices() != glColorSurface->GetProperties().GetNumFaces())
 						{
 							BS_LOG(Warning, RenderBackend, "OpenGL doesn't support binding of arbitrary ranges for array "
 								"textures. The entire range will be bound instead.");
@@ -95,11 +95,11 @@ namespace bs
 					}
 				}
 
-				mFB->bindSurface((UINT32)i, surfaceDesc);
+				mFB->BindSurface((UINT32)i, surfaceDesc);
 			}
 			else
 			{
-				mFB->unbindSurface((UINT32)i);
+				mFB->UnbindSurface((UINT32)i);
 			}
 		}
 
@@ -110,9 +110,9 @@ namespace bs
 
 			bool allLayers = true;
 			if (mDepthStencilSurface->GetNumArraySlices() == 1) // Binding a single texture layer
-				allLayers = glDepthStencilTexture->GetProperties().getNumFaces() == 1;
+				allLayers = glDepthStencilTexture->GetProperties().GetNumFaces() == 1;
 
-			if (glDepthStencilTexture->GetProperties().getTextureType() != TEX_TYPE_3D)
+			if (glDepthStencilTexture->GetProperties().GetTextureType() != TEX_TYPE_3D)
 			{
 				UINT32 firstSlice = 0;
 				if (!allLayers)
@@ -122,10 +122,10 @@ namespace bs
 					mDepthStencilSurface->GetMostDetailedMip());
 			}
 
-			mFB->bindDepthStencil(depthStencilBuffer, allLayers);
+			mFB->BindDepthStencil(depthStencilBuffer, allLayers);
 		}
 
-		mFB->rebuild();
+		mFB->Rebuild();
 	}
 
 	void GLRenderTexture::GetCustomAttribute(const String& name, void* data) const
@@ -136,14 +136,14 @@ namespace bs
 		}
 		else if (name == "GL_FBOID" || name == "GL_MULTISAMPLEFBOID")
 		{
-			*static_cast<GLuint*>(data) = mFB->GetGLFBOID();
+			*static_cast<GLuint*>(data) = mFB->GetGlfboid();
 		}
 	}
 
 	GLRTTManager::GLRTTManager()
 		:mBlitReadFBO(0), mBlitWriteFBO(0)
 	{
-		detectFBOFormats();
+		DetectFboFormats();
 		
 		glGenFramebuffers(1, &mBlitReadFBO);
 		BS_CHECK_GL_ERROR();
@@ -304,16 +304,16 @@ namespace bs
 			mProps[x].valid = false;
 
 			// Fetch GL format token
-			GLenum fmt = GLPixelUtil::getGLInternalFormat((PixelFormat)x);
+			GLenum fmt = GLPixelUtil::GetGlInternalFormat((PixelFormat)x);
 			if (fmt == GL_NONE && x != 0)
 				continue;
 
 			// No test for compressed formats
-			if(PixelUtil::isCompressed((PixelFormat)x))
+			if(PixelUtil::IsCompressed((PixelFormat)x))
 				continue;
 
 			// No test for unnormalized integer targets
-			if (!PixelUtil::isNormalized((PixelFormat)x) && !PixelUtil::isFloatingPoint((PixelFormat)x))
+			if (!PixelUtil::IsNormalized((PixelFormat)x) && !PixelUtil::IsFloatingPoint((PixelFormat)x))
 				continue;
 
 			// Create and attach framebuffer
@@ -323,7 +323,7 @@ namespace bs
 			glBindFramebuffer(GL_FRAMEBUFFER, fb);
 			BS_CHECK_GL_ERROR();
 
-			if (fmt != GL_NONE && !PixelUtil::isDepth((PixelFormat)x))
+			if (fmt != GL_NONE && !PixelUtil::IsDepth((PixelFormat)x))
 			{
 				// Create and attach texture
 				glGenTextures(1, &tid);
@@ -429,11 +429,11 @@ namespace bs
 
 	PixelFormat GLRTTManager::GetSupportedAlternative(PixelFormat format)
 	{
-		if (checkFormat(format))
+		if (CheckFormat(format))
 			return format;
 
 		// Find first alternative
-		PixelComponentType pct = PixelUtil::getElementType(format);
+		PixelComponentType pct = PixelUtil::GetElementType(format);
 		switch (pct)
 		{
 		case PCT_BYTE: format = PF_RGBA8; break;
@@ -442,7 +442,7 @@ namespace bs
 		default: break;
 		}
 
-		if (checkFormat(format))
+		if (CheckFormat(format))
 			return format;
 
 		// If none at all, return to default

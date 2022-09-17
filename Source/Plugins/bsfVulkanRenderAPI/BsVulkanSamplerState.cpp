@@ -35,36 +35,36 @@ namespace bs { namespace ct
 	{
 		FilterOptions minFilter = GetProperties().GetTextureFiltering(FT_MIN);
 		FilterOptions magFilter = GetProperties().GetTextureFiltering(FT_MAG);
-		FilterOptions mipFilter = getProperties().getTextureFiltering(FT_MIP);
+		FilterOptions mipFilter = GetProperties().GetTextureFiltering(FT_MIP);
 
 		bool anisotropy = minFilter == FO_ANISOTROPIC || magFilter == FO_ANISOTROPIC || mipFilter == FO_ANISOTROPIC;
-		const UVWAddressingMode& addressMode = getProperties().getTextureAddressingMode();
+		const UVWAddressingMode& addressMode = GetProperties().GetTextureAddressingMode();
 
-		CompareFunction compareFunc = getProperties().getComparisonFunction();
+		CompareFunction compareFunc = GetProperties().GetComparisonFunction();
 
 		VkSamplerCreateInfo samplerInfo;
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.flags = 0;
 		samplerInfo.pNext = nullptr;
-		samplerInfo.magFilter = VulkanUtility::getFilter(magFilter);
-		samplerInfo.minFilter = VulkanUtility::getFilter(minFilter);
-		samplerInfo.mipmapMode = VulkanUtility::getMipFilter(mipFilter);
-		samplerInfo.addressModeU = VulkanUtility::getAddressingMode(addressMode.u);
-		samplerInfo.addressModeV = VulkanUtility::getAddressingMode(addressMode.v);
-		samplerInfo.addressModeW = VulkanUtility::getAddressingMode(addressMode.w);
-		samplerInfo.mipLodBias = getProperties().getTextureMipmapBias();
+		samplerInfo.magFilter = VulkanUtility::GetFilter(magFilter);
+		samplerInfo.minFilter = VulkanUtility::GetFilter(minFilter);
+		samplerInfo.mipmapMode = VulkanUtility::GetMipFilter(mipFilter);
+		samplerInfo.addressModeU = VulkanUtility::GetAddressingMode(addressMode.u);
+		samplerInfo.addressModeV = VulkanUtility::GetAddressingMode(addressMode.v);
+		samplerInfo.addressModeW = VulkanUtility::GetAddressingMode(addressMode.w);
+		samplerInfo.mipLodBias = GetProperties().GetTextureMipmapBias();
 		samplerInfo.anisotropyEnable = anisotropy;
-		samplerInfo.maxAnisotropy = (float)getProperties().getTextureAnisotropy();
+		samplerInfo.maxAnisotropy = (float)GetProperties().GetTextureAnisotropy();
 		samplerInfo.compareEnable = compareFunc != CMPF_ALWAYS_PASS;
-		samplerInfo.compareOp = VulkanUtility::getCompareOp(compareFunc);
-		samplerInfo.minLod = mProperties.getMinimumMip();
-		samplerInfo.maxLod = mProperties.getMaximumMip();
-		samplerInfo.borderColor = VulkanUtility::getBorderColor(getProperties().getBorderColor());
+		samplerInfo.compareOp = VulkanUtility::GetCompareOp(compareFunc);
+		samplerInfo.minLod = mProperties.GetMinimumMip();
+		samplerInfo.maxLod = mProperties.GetMaximumMip();
+		samplerInfo.borderColor = VulkanUtility::GetBorderColor(GetProperties().GetBorderColor());
 		samplerInfo.unnormalizedCoordinates = false;
 
 		VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 		VulkanDevice* devices[BS_MAX_DEVICES];
-		VulkanUtility::getDevices(rapi, mDeviceMask, devices);
+		VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
 		// Allocate samplers per-device
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
@@ -76,7 +76,7 @@ namespace bs { namespace ct
 			VkResult result = vkCreateSampler(devices[i]->GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
 			assert(result == VK_SUCCESS);
 
-			mSamplers[i] = devices[i]->GetResourceManager().create<VulkanSampler>(sampler);
+			mSamplers[i] = devices[i]->GetResourceManager().Create<VulkanSampler>(sampler);
 		}
 	}
 }}

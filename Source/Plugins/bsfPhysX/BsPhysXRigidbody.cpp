@@ -67,12 +67,12 @@ namespace bs
 		if (GetIsKinematic())
 		{
 			PxTransform target;
-			if (!mInternal->GetKinematicTarget(target))
+			if (!mInternal->getKinematicTarget(target))
 				target = PxTransform(PxIdentity);
 
 			target.p = toPxVector(position);
 
-			mInternal->SetKinematicTarget(target);
+			mInternal->setKinematicTarget(target);
 		}
 		else
 		{
@@ -85,12 +85,12 @@ namespace bs
 		if (GetIsKinematic())
 		{
 			PxTransform target;
-			if (!mInternal->GetKinematicTarget(target))
+			if (!mInternal->getKinematicTarget(target))
 				target = PxTransform(PxIdentity);
 
 			target.q = toPxQuaternion(rotation);
 
-			mInternal->SetKinematicTarget(target);
+			mInternal->setKinematicTarget(target);
 		}
 		else
 		{
@@ -100,17 +100,17 @@ namespace bs
 
 	Vector3 PhysXRigidbody::GetPosition() const
 	{
-		return fromPxVector(mInternal->GetGlobalPose().p);
+		return fromPxVector(mInternal->getGlobalPose().p);
 	}
 
 	Quaternion PhysXRigidbody::GetRotation() const
 	{
-		return fromPxQuaternion(mInternal->GetGlobalPose().q);
+		return fromPxQuaternion(mInternal->getGlobalPose().q);
 	}
 
-	void PhysXRigidbody::setTransform(const Vector3& pos, const Quaternion& rot)
+	void PhysXRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
 	{
-		mInternal->SetGlobalPose(toPxTransform(pos, rot));
+		mInternal->setGlobalPose(toPxTransform(pos, rot));
 	}
 
 	void PhysXRigidbody::SetMass(float mass)
@@ -121,22 +121,22 @@ namespace bs
 			return;
 		}
 
-		mInternal->SetMass(mass);
+		mInternal->setMass(mass);
 	}
 
 	float PhysXRigidbody::GetMass() const
 	{
-		return mInternal->GetMass();
+		return mInternal->getMass();
 	}
 
 	void PhysXRigidbody::SetIsKinematic(bool kinematic)
 	{
-		mInternal->SetRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, kinematic);
+		mInternal->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, kinematic);
 	}
 
 	bool PhysXRigidbody::GetIsKinematic() const
 	{
-		return ((UINT32)mInternal->GetRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC) != 0;
+		return ((UINT32)mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC) != 0;
 	}
 
 	bool PhysXRigidbody::IsSleeping() const
@@ -156,62 +156,62 @@ namespace bs
 
 	void PhysXRigidbody::SetSleepThreshold(float threshold)
 	{
-		mInternal->SetSleepThreshold(threshold);
+		mInternal->setSleepThreshold(threshold);
 	}
 
 	float PhysXRigidbody::GetSleepThreshold() const
 	{
-		return mInternal->GetSleepThreshold();
+		return mInternal->getSleepThreshold();
 	}
 
 	void PhysXRigidbody::SetUseGravity(bool gravity)
 	{
-		mInternal->SetActorFlag(PxActorFlag::eDISABLE_GRAVITY, !gravity);
+		mInternal->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !gravity);
 	}
 
 	bool PhysXRigidbody::GetUseGravity() const
 	{
-		return ((UINT32)mInternal->GetActorFlags() & PxActorFlag::eDISABLE_GRAVITY) == 0;
+		return ((UINT32)mInternal->getActorFlags() & PxActorFlag::eDISABLE_GRAVITY) == 0;
 	}
 
 	void PhysXRigidbody::SetVelocity(const Vector3& velocity)
 	{
-		mInternal->SetLinearVelocity(toPxVector(velocity));
+		mInternal->setLinearVelocity(toPxVector(velocity));
 	}
 
 	Vector3 PhysXRigidbody::GetVelocity() const
 	{
-		return fromPxVector(mInternal->GetLinearVelocity());
+		return fromPxVector(mInternal->getLinearVelocity());
 	}
 
 	void PhysXRigidbody::SetAngularVelocity(const Vector3& velocity)
 	{
-		mInternal->SetAngularVelocity(toPxVector(velocity));
+		mInternal->setAngularVelocity(toPxVector(velocity));
 	}
 
 	Vector3 PhysXRigidbody::GetAngularVelocity() const
 	{
-		return fromPxVector(mInternal->GetAngularVelocity());
+		return fromPxVector(mInternal->getAngularVelocity());
 	}
 
 	void PhysXRigidbody::SetDrag(float drag)
 	{
-		mInternal->SetLinearDamping(drag);
+		mInternal->setLinearDamping(drag);
 	}
 
 	float PhysXRigidbody::GetDrag() const
 	{
-		return mInternal->GetLinearDamping();
+		return mInternal->getLinearDamping();
 	}
 
 	void PhysXRigidbody::SetAngularDrag(float drag)
 	{
-		mInternal->SetAngularDamping(drag);
+		mInternal->setAngularDamping(drag);
 	}
 
 	float PhysXRigidbody::GetAngularDrag() const
 	{
-		return mInternal->GetAngularDamping();
+		return mInternal->getAngularDamping();
 	}
 
 	void PhysXRigidbody::SetInertiaTensor(const Vector3& tensor)
@@ -223,22 +223,22 @@ namespace bs
 			return;
 		}
 
-		mInternal->SetMassSpaceInertiaTensor(toPxVector(tensor));
+		mInternal->setMassSpaceInertiaTensor(toPxVector(tensor));
 	}
 
 	Vector3 PhysXRigidbody::GetInertiaTensor() const
 	{
-		return fromPxVector(mInternal->GetMassSpaceInertiaTensor());
+		return fromPxVector(mInternal->getMassSpaceInertiaTensor());
 	}
 
 	void PhysXRigidbody::SetMaxAngularVelocity(float maxVelocity)
 	{
-		mInternal->SetMaxAngularVelocity(maxVelocity);
+		mInternal->setMaxAngularVelocity(maxVelocity);
 	}
 
 	float PhysXRigidbody::GetMaxAngularVelocity() const
 	{
-		return mInternal->GetMaxAngularVelocity();
+		return mInternal->getMaxAngularVelocity();
 	}
 
 	void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)
@@ -250,24 +250,24 @@ namespace bs
 			return;
 		}
 
-		mInternal->SetCMassLocalPose(toPxTransform(position, rotation));
+		mInternal->setCMassLocalPose(toPxTransform(position, rotation));
 	}
 
 	Vector3 PhysXRigidbody::GetCenterOfMassPosition() const
 	{
-		PxTransform cMassTfrm = mInternal->GetCMassLocalPose();
+		PxTransform cMassTfrm = mInternal->getCMassLocalPose();
 		return fromPxVector(cMassTfrm.p);
 	}
 
 	Quaternion PhysXRigidbody::GetCenterOfMassRotation() const
 	{
-		PxTransform cMassTfrm = mInternal->GetCMassLocalPose();
+		PxTransform cMassTfrm = mInternal->getCMassLocalPose();
 		return fromPxQuaternion(cMassTfrm.q);
 	}
 
 	void PhysXRigidbody::SetPositionSolverCount(UINT32 count)
 	{
-		mInternal->SetSolverIterationCounts(std::max(1U, count), getVelocitySolverCount());
+		mInternal->setSolverIterationCounts(std::max(1U, count), GetVelocitySolverCount());
 	}
 
 	UINT32 PhysXRigidbody::GetPositionSolverCount() const
@@ -275,13 +275,13 @@ namespace bs
 		UINT32 posCount = 1;
 		UINT32 velCount = 1;
 
-		mInternal->GetSolverIterationCounts(posCount, velCount);
+		mInternal->getSolverIterationCounts(posCount, velCount);
 		return posCount;
 	}
 
 	void PhysXRigidbody::SetVelocitySolverCount(UINT32 count)
 	{
-		mInternal->SetSolverIterationCounts(getPositionSolverCount(), std::max(1U, count));
+		mInternal->setSolverIterationCounts(GetPositionSolverCount(), std::max(1U, count));
 	}
 
 	UINT32 PhysXRigidbody::GetVelocitySolverCount() const
@@ -289,24 +289,24 @@ namespace bs
 		UINT32 posCount = 1;
 		UINT32 velCount = 1;
 
-		mInternal->GetSolverIterationCounts(posCount, velCount);
+		mInternal->getSolverIterationCounts(posCount, velCount);
 		return velCount;
 	}
 
 	void PhysXRigidbody::SetFlags(RigidbodyFlag flags)
 	{
-		bool ccdEnabledOld = mInternal->GetRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
+		bool ccdEnabledOld = mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
 		bool ccdEnabledNew = ((UINT32)flags & (UINT32)RigidbodyFlag::CCD) != 0;
 		
 		if(ccdEnabledOld != ccdEnabledNew)
 		{
-			mInternal->SetRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
+			mInternal->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
 
 			// Enable/disable CCD on shapes so the filter can handle them properly
-			UINT32 numShapes = mInternal->GetNbShapes();
+			UINT32 numShapes = mInternal->getNbShapes();
 			PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
 
-			mInternal->GetShapes(shapes, sizeof(PxShape*) * numShapes);
+			mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
 			for (UINT32 i = 0; i < numShapes; i++)
 			{
@@ -315,7 +315,7 @@ namespace bs
 			}
 		}
 
-		Rigidbody::setFlags(flags);
+		Rigidbody::SetFlags(flags);
 	}
 
 	void PhysXRigidbody::AddForce(const Vector3& force, ForceMode mode)
@@ -333,8 +333,8 @@ namespace bs
 		const PxVec3& pxForce = toPxVector(force);
 		const PxVec3& pxPos = toPxVector(position);
 
-		const PxTransform globalPose = mInternal->GetGlobalPose();
-		PxVec3 centerOfMass = globalPose.transform(mInternal->GetCMassLocalPose().p);
+		const PxTransform globalPose = mInternal->getGlobalPose();
+		PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
 
 		PxForceMode::Enum pxMode = toPxForceMode(mode);
 
@@ -347,12 +347,12 @@ namespace bs
 	{
 		const PxVec3& pxPoint = toPxVector(point);
 
-		const PxTransform globalPose = mInternal->GetGlobalPose();
-		const PxVec3 centerOfMass = globalPose.transform(mInternal->GetCMassLocalPose().p);
+		const PxTransform globalPose = mInternal->getGlobalPose();
+		const PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
 		const PxVec3 rpoint = pxPoint - centerOfMass;
 
-		PxVec3 velocity = mInternal->GetLinearVelocity();
-		velocity += mInternal->GetAngularVelocity().cross(rpoint);
+		PxVec3 velocity = mInternal->getLinearVelocity();
+		velocity += mInternal->getAngularVelocity().cross(rpoint);
 
 		return fromPxVector(velocity);
 	}
@@ -364,19 +364,19 @@ namespace bs
 
 		if (((UINT32)mFlags & (UINT32)RigidbodyFlag::AutoMass) == 0)
 		{
-			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->GetMass());
+			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
 		}
 		else
 		{
-			UINT32 numShapes = mInternal->GetNbShapes();
+			UINT32 numShapes = mInternal->getNbShapes();
 			if (numShapes == 0)
 			{
-				PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->GetMass());
+				PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
 				return;
 			}
 
 			PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
-			mInternal->GetShapes(shapes, numShapes);
+			mInternal->getShapes(shapes, numShapes);
 
 			float* masses = (float*)bs_stack_alloc(sizeof(float) * numShapes);
 			for (UINT32 i = 0; i < numShapes; i++)
@@ -413,10 +413,10 @@ namespace bs
 
 	void PhysXRigidbody::RemoveColliders()
 	{
-		UINT32 numShapes = mInternal->GetNbShapes();
+		UINT32 numShapes = mInternal->getNbShapes();
 		PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
 
-		mInternal->GetShapes(shapes, sizeof(PxShape*) * numShapes);
+		mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
 		for (UINT32 i = 0; i < numShapes; i++)
 		{

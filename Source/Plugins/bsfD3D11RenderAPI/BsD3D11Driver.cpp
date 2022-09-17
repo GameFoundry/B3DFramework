@@ -90,7 +90,7 @@ namespace bs { namespace ct
 		String driverDescription = str;
 
 		bs_free(str);
-		StringUtil::trim(driverDescription);
+		StringUtil::Trim(driverDescription);
 
 		return driverDescription;
 	}

@@ -46,7 +46,7 @@ namespace bs { namespace ct
 		auto execute = [&]()
 		{
 			mContext->End(mQuery);
-			setActive(true);
+			SetActive(true);
 		};
 
 		if (cb == nullptr)

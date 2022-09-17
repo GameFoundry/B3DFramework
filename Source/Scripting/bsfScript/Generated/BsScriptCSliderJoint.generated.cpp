@@ -72,7 +72,7 @@ namespace bs
 	bool ScriptCSliderJoint::InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->hasFlag(flag);
+		tmp__output = thisPtr->GetHandle()->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

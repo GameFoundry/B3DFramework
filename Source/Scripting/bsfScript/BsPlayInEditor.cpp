@@ -147,7 +147,7 @@ namespace bs
 			HSceneObject current = todo.top();
 			todo.pop();
 
-			if (current->hasFlag(SOF_DontSave))
+			if (current->HasFlag(SOF_DontSave))
 				current->Destroy();
 			else
 			{

@@ -292,7 +292,7 @@ namespace bs
 			if (curClass != nullptr)
 			{
 				// Skip compiler generates classes
-				if(curClass->hasAttribute(compilerGeneratedAttrib))
+				if(curClass->HasAttribute(compilerGeneratedAttrib))
 					continue;
 
 				// Get nested types if it has any
@@ -315,7 +315,7 @@ namespace bs
 						if (nestedClass != nullptr)
 						{
 							// Skip compiler generated classes
-							if(nestedClass->hasAttribute(compilerGeneratedAttrib))
+							if(nestedClass->HasAttribute(compilerGeneratedAttrib))
 								continue;
 
 							mCachedClassList.push_back(nestedClass);

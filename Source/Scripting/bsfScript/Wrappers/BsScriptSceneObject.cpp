@@ -115,7 +115,7 @@ namespace bs
 		if (checkIfDestroyed(nativeInstance))
 			return false;
 
-		return nativeInstance->mSceneObject->hasFlag(flag);
+		return nativeInstance->mSceneObject->HasFlag(flag);
 	}
 
 	void ScriptSceneObject::InternalSetMobility(ScriptSceneObject* nativeInstance, int value)

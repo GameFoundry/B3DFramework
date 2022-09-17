@@ -21,7 +21,7 @@ namespace bs
 	bool OAImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return lowerCaseExt == u8"wav" || lowerCaseExt == u8"flac" || lowerCaseExt == u8"ogg";
 	}
@@ -48,7 +48,7 @@ namespace bs
 			SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
 
 			String extension = filePath.GetExtension();
-			StringUtil::toLowerCase(extension);
+			StringUtil::ToLowerCase(extension);
 
 			UPtr<AudioDecoder> reader;
 			if (extension == u8".wav")
@@ -84,7 +84,7 @@ namespace bs
 			UINT32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 			auto monoStream = bs_shared_ptr_new<MemoryDataStream>(monoBufferSize);
 
-			AudioUtility::ConvertToMono(sampleStream->data(), monoStream->data(), info.bitDepth, numSamplesPerChannel, info.numChannels);
+			AudioUtility::ConvertToMono(sampleStream->Data(), monoStream->Data(), info.bitDepth, numSamplesPerChannel, info.numChannels);
 
 			info.numSamples = numSamplesPerChannel;
 			info.numChannels = 1;
@@ -99,7 +99,7 @@ namespace bs
 			UINT32 outBufferSize = info.numSamples * (clipIO->bitDepth / 8);
 			auto outStream = bs_shared_ptr_new<MemoryDataStream>(outBufferSize);
 
-			AudioUtility::convertBitDepth(sampleStream->data(), info.bitDepth, outStream->data(), clipIO->bitDepth, info.numSamples);
+			AudioUtility::ConvertBitDepth(sampleStream->Data(), info.bitDepth, outStream->Data(), clipIO->bitDepth, info.numSamples);
 
 			info.bitDepth = clipIO->bitDepth;
 
@@ -113,7 +113,7 @@ namespace bs
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
 			// specific quality, and the the import source might have lower or higher bitrate/quality.
-			sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleStream->data(), info, bufferSize);
+			sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleStream->Data(), info, bufferSize);
 		}
 
 		AUDIO_CLIP_DESC clipDesc;
@@ -126,7 +126,7 @@ namespace bs
 
 		SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.numSamples, clipDesc);
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		clip->SetName(fileName);
 
 		return clip;

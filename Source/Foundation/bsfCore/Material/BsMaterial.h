@@ -749,7 +749,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(n:Shader,pr:setter)
 		void SetShader(const HShader& shader);
 
-		/** @copydoc TMaterial<Core>::getVariation() const */
+		/** @copydoc TMaterial<Core>::GetVariation() const */
 		BS_SCRIPT_EXPORT(n:Variation,pr:setter,hide)
 		void SetVariation(const ShaderVariation& variation);
 

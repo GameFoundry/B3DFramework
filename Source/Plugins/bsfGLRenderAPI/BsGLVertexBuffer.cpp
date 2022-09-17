@@ -22,7 +22,7 @@ namespace bs { namespace ct
 	GLVertexBuffer::~GLVertexBuffer()
 	{
 		while (!mVAObjects.empty())
-			GLVertexArrayObjectManager::Instance().notifyBufferDestroyed(mVAObjects[0]);
+			GLVertexArrayObjectManager::Instance().NotifyBufferDestroyed(mVAObjects[0]);
 	}
 
 	void GLVertexBuffer::Initialize()

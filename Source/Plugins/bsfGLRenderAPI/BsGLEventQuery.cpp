@@ -31,7 +31,7 @@ namespace bs { namespace ct
 			glQueryCounter(mQueryObj, GL_TIMESTAMP);
 			BS_CHECK_GL_ERROR();
 
-			setActive(true);
+			SetActive(true);
 		};
 
 		if (cb == nullptr)

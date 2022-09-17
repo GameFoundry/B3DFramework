@@ -31,33 +31,33 @@ namespace bs { namespace ct
 		else
 			compareFunc = CMPF_ALWAYS_PASS;
 
-		depthStencilState.BackFace.StencilPassOp = D3D11Mappings::get(mProperties.getStencilBackPassOp());
-		depthStencilState.BackFace.StencilFailOp = D3D11Mappings::get(mProperties.getStencilBackFailOp());
-		depthStencilState.BackFace.StencilDepthFailOp = D3D11Mappings::get(mProperties.getStencilBackZFailOp());
-		depthStencilState.BackFace.StencilFunc = D3D11Mappings::get(mProperties.getStencilBackCompFunc());
-		depthStencilState.FrontFace.StencilPassOp = D3D11Mappings::get(mProperties.getStencilFrontPassOp());
-		depthStencilState.FrontFace.StencilFailOp = D3D11Mappings::get(mProperties.getStencilFrontFailOp());
-		depthStencilState.FrontFace.StencilDepthFailOp = D3D11Mappings::get(mProperties.getStencilFrontZFailOp());
-		depthStencilState.FrontFace.StencilFunc = D3D11Mappings::get(mProperties.getStencilFrontCompFunc());
+		depthStencilState.BackFace.StencilPassOp = D3D11Mappings::Get(mProperties.GetStencilBackPassOp());
+		depthStencilState.BackFace.StencilFailOp = D3D11Mappings::Get(mProperties.GetStencilBackFailOp());
+		depthStencilState.BackFace.StencilDepthFailOp = D3D11Mappings::Get(mProperties.GetStencilBackZFailOp());
+		depthStencilState.BackFace.StencilFunc = D3D11Mappings::Get(mProperties.GetStencilBackCompFunc());
+		depthStencilState.FrontFace.StencilPassOp = D3D11Mappings::Get(mProperties.GetStencilFrontPassOp());
+		depthStencilState.FrontFace.StencilFailOp = D3D11Mappings::Get(mProperties.GetStencilFrontFailOp());
+		depthStencilState.FrontFace.StencilDepthFailOp = D3D11Mappings::Get(mProperties.GetStencilFrontZFailOp());
+		depthStencilState.FrontFace.StencilFunc = D3D11Mappings::Get(mProperties.GetStencilFrontCompFunc());
 		depthStencilState.DepthEnable = depthEnable;
-		depthStencilState.DepthWriteMask = mProperties.getDepthWriteEnable() ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-		depthStencilState.DepthFunc = D3D11Mappings::get(compareFunc);
-		depthStencilState.StencilEnable = mProperties.getStencilEnable();
-		depthStencilState.StencilReadMask = mProperties.getStencilReadMask();
-		depthStencilState.StencilWriteMask = mProperties.getStencilWriteMask();
+		depthStencilState.DepthWriteMask = mProperties.GetDepthWriteEnable() ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+		depthStencilState.DepthFunc = D3D11Mappings::Get(compareFunc);
+		depthStencilState.StencilEnable = mProperties.GetStencilEnable();
+		depthStencilState.StencilReadMask = mProperties.GetStencilReadMask();
+		depthStencilState.StencilWriteMask = mProperties.GetStencilWriteMask();
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		D3D11Device& device = rs->GetPrimaryDevice();
-		HRESULT hr = device.getD3D11Device()->CreateDepthStencilState(&depthStencilState, &mDepthStencilState);
+		HRESULT hr = device.GetD3D11Device()->CreateDepthStencilState(&depthStencilState, &mDepthStencilState);
 
-		if(FAILED(hr) || device.hasError())
+		if(FAILED(hr) || device.HasError())
 		{
-			String errorDescription = device.getErrorDescription();
+			String errorDescription = device.GetErrorDescription();
 			BS_EXCEPT(RenderingAPIException, "Cannot create depth stencil state.\nError Description:" + errorDescription);
 		}
 
 		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_DepthStencilState);
 
-		DepthStencilState::createInternal();
+		DepthStencilState::CreateInternal();
 	}
 }}

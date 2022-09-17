@@ -81,7 +81,7 @@ namespace bs { namespace ct
 		if (numParticles == 0)
 			return;
 
-		auto* const indices = (UINT32*)buffer->lock(GBL_WRITE_ONLY_DISCARD);
+		auto* const indices = (UINT32*)buffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		UINT32 idx = 0;
 		for(auto& entry : input)
@@ -92,7 +92,7 @@ namespace bs { namespace ct
 			indices[idx++] = (x & 0xFFFF) | (y << 16);
 		}
 
-		buffer->unlock();
+		buffer->Unlock();
 	}
 
 	void ParticlesRenderElement::Draw() const
@@ -100,16 +100,16 @@ namespace bs { namespace ct
 		if (numParticles > 0)
 		{
 			if (is3D)
-				gRendererUtility().draw(mesh, numParticles);
+				gRendererUtility().Draw(mesh, numParticles);
 			else
-				ParticleRenderer::Instance().drawBillboards(numParticles);
+				ParticleRenderer::Instance().DrawBillboards(numParticles);
 		}
 	}
 
 	void RendererParticles::UpdatePerObjectBuffer()
 	{
 		const ParticleSystemSettings& settings = particleSystem->GetSettings();
-		const UINT32 layer = Bitwise::mostSignificantBit(particleSystem->GetLayer());
+		const UINT32 layer = Bitwise::MostSignificantBit(particleSystem->GetLayer());
 		Matrix4 localToWorldNoScale;
 		if (settings.simulationSpace == ParticleSimulationSpace::Local)
 		{
@@ -119,12 +119,12 @@ namespace bs { namespace ct
 		else
 			localToWorldNoScale = Matrix4::IDENTITY;
 
-		PerObjectBuffer::update(perObjectParamBuffer, localToWorld, localToWorldNoScale, prevLocalToWorld, layer);
+		PerObjectBuffer::Update(perObjectParamBuffer, localToWorld, localToWorldNoScale, prevLocalToWorld, layer);
 	}
 
 	void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderData, const RendererView& view) const
 	{
-		ParticleTexturePool& particlesTexPool = ParticleRenderer::Instance().getTexturePool();
+		ParticleTexturePool& particlesTexPool = ParticleRenderer::Instance().GetTexturePool();
 
 		const ParticleSystemSettings& settings = particleSystem->GetSettings();
 		UINT32 texSize;
@@ -134,7 +134,7 @@ namespace bs { namespace ct
 		case ParticleRenderMode::Billboard:
 		{
 			const auto billboardRenderData = static_cast<const ParticleBillboardRenderData*>(renderData);
-			const ParticleBillboardTextures* textures = particlesTexPool.alloc(*billboardRenderData);
+			const ParticleBillboardTextures* textures = particlesTexPool.Alloc(*billboardRenderData);
 
 			renderElement.paramsCPUBillboard.positionAndRotTexture.Set(textures->positionAndRotation);
 			renderElement.paramsCPUBillboard.colorTexture.Set(textures->color);
@@ -147,7 +147,7 @@ namespace bs { namespace ct
 		case ParticleRenderMode::Mesh:
 		{
 			const auto meshRenderData = static_cast<const ParticleMeshRenderData*>(renderData);
-			const ParticleMeshTextures* textures = particlesTexPool.alloc(*meshRenderData);
+			const ParticleMeshTextures* textures = particlesTexPool.Alloc(*meshRenderData);
 
 			renderElement.paramsCPUMesh.positionTexture.Set(textures->position);
 			renderElement.paramsCPUMesh.colorTexture.Set(textures->color);
@@ -170,7 +170,7 @@ namespace bs { namespace ct
 		{
 			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
 			if (binding.slot != (UINT32)-1)
-				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.GetPerViewBuffer());
 		}
 	}
 
@@ -179,11 +179,11 @@ namespace bs { namespace ct
 		const GpuParticleStateTextures& gpuSimStateTextures = gpuSimResources.GetCurrentState();
 		const GpuParticleStaticTextures& gpuSimStaticTextures = gpuSimResources.GetStaticTextures();
 		const GpuParticleCurves& gpuCurves = gpuSimResources.GetCurveTexture();
-		const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.getSortedIndices();
+		const SPtr<GpuBuffer>& sortedIndices = gpuSimResources.GetSortedIndices();
 
 		renderElement.paramsGPU.positionTimeTexture.Set(gpuSimStateTextures.positionAndTimeTex);
 		renderElement.paramsGPU.sizeRotationTexture.Set(gpuSimStaticTextures.sizeAndRotationTex);
-		renderElement.paramsGPU.curvesTexture.Set(gpuCurves.getTexture());
+		renderElement.paramsGPU.curvesTexture.Set(gpuCurves.GetTexture());
 		renderElement.numParticles = gpuParticleSystem->GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
 
 		if (gpuParticleSystem->HasSortInfo())
@@ -206,7 +206,7 @@ namespace bs { namespace ct
 		{
 			const GpuParamBinding& binding = renderElement.perCameraBindings[j];
 			if (binding.slot != (UINT32)-1)
-				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.getPerViewBuffer());
+				gpuParams->SetParamBlockBuffer(binding.set, binding.slot, view.GetPerViewBuffer());
 		}
 	}
 
@@ -215,13 +215,13 @@ namespace bs { namespace ct
 		for (auto& sizeEntry : mBillboardBufferList)
 		{
 			for (auto& entry : sizeEntry.second.buffers)
-				mBillboardAlloc.destruct(entry);
+				mBillboardAlloc.Destruct(entry);
 		}
 
 		for (auto& sizeEntry : mMeshBufferList)
 		{
 			for (auto& entry : sizeEntry.second.buffers)
-				mMeshAlloc.destruct(entry);
+				mMeshAlloc.Destruct(entry);
 		}
 	}
 
@@ -239,16 +239,16 @@ namespace bs { namespace ct
 
 		if (!output)
 		{
-			output = createNewBillboardTextures(size);
+			output = CreateNewBillboardTextures(size);
 			buffers.nextFreeIdx++;
 		}
 
 		// Populate texture contents
 		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-		output->positionAndRotation->writeData(simulationData.positionAndRotation, 0, 0, true);
-		output->color->writeData(simulationData.color, 0, 0, true);
-		output->sizeAndFrameIdx->writeData(simulationData.sizeAndFrameIdx, 0, 0, true);
+		output->positionAndRotation->WriteData(simulationData.positionAndRotation, 0, 0, true);
+		output->color->WriteData(simulationData.color, 0, 0, true);
+		output->sizeAndFrameIdx->WriteData(simulationData.sizeAndFrameIdx, 0, 0, true);
 
 		writeIndices(output->indices.get(), simulationData.indices, size);
 		return output;
@@ -268,17 +268,17 @@ namespace bs { namespace ct
 
 		if (!output)
 		{
-			output = createNewMeshTextures(size);
+			output = CreateNewMeshTextures(size);
 			buffers.nextFreeIdx++;
 		}
 
 		// Populate texture contents
 		// Note: Perhaps instead of using write-discard here, we should track which frame has finished rendering and then
 		// just use no-overwrite? write-discard will very likely allocate memory under the hood.
-		output->position->writeData(simulationData.position, 0, 0, true);
-		output->color->writeData(simulationData.color, 0, 0, true);
-		output->size->writeData(simulationData.size, 0, 0, true);
-		output->rotation->writeData(simulationData.rotation, 0, 0, true);
+		output->position->WriteData(simulationData.position, 0, 0, true);
+		output->color->WriteData(simulationData.color, 0, 0, true);
+		output->size->WriteData(simulationData.size, 0, 0, true);
+		output->rotation->WriteData(simulationData.rotation, 0, 0, true);
 
 		writeIndices(output->indices.get(), simulationData.indices, size);
 		return output;
@@ -295,7 +295,7 @@ namespace bs { namespace ct
 
 	ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(UINT32 size)
 	{
-		ParticleBillboardTextures* output = mBillboardAlloc.construct<ParticleBillboardTextures>();
+		ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -325,7 +325,7 @@ namespace bs { namespace ct
 
 	ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(UINT32 size)
 	{
-		ParticleMeshTextures* output = mMeshAlloc.construct<ParticleMeshTextures>();
+		ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
 		TEXTURE_DESC texDesc;
 		texDesc.type = TEX_TYPE_2D;
@@ -374,42 +374,42 @@ namespace bs { namespace ct
 
 		VERTEX_BUFFER_DESC vbDesc;
 		vbDesc.numVerts = 4;
-		vbDesc.vertexSize = m->billboardVD->GetProperties().getVertexSize(0);
+		vbDesc.vertexSize = m->billboardVD->GetProperties().GetVertexSize(0);
 		m->billboardVB = VertexBuffer::Create(vbDesc);
 
 		MeshData meshData(4, 0, vertexDesc);
-		auto vecIter = meshData.getVec3DataIter(VES_POSITION);
-		vecIter.addValue(Vector3(-0.5f, -0.5f, 0.0f));
-		vecIter.addValue(Vector3(-0.5f, 0.5f, 0.0f));
-		vecIter.addValue(Vector3(0.5f, -0.5f, 0.0f));
-		vecIter.addValue(Vector3(0.5f, 0.5f, 0.0f));
+		auto vecIter = meshData.GetVec3DataIter(VES_POSITION);
+		vecIter.AddValue(Vector3(-0.5f, -0.5f, 0.0f));
+		vecIter.AddValue(Vector3(-0.5f, 0.5f, 0.0f));
+		vecIter.AddValue(Vector3(0.5f, -0.5f, 0.0f));
+		vecIter.AddValue(Vector3(0.5f, 0.5f, 0.0f));
 
-		auto uvIter = meshData.getVec2DataIter(VES_TEXCOORD);
-		uvIter.addValue(Vector2(0.0f, 1.0f));
-		uvIter.addValue(Vector2(0.0f, 0.0f));
-		uvIter.addValue(Vector2(1.0f, 1.0f));
-		uvIter.addValue(Vector2(1.0f, 0.0f));
+		auto uvIter = meshData.GetVec2DataIter(VES_TEXCOORD);
+		uvIter.AddValue(Vector2(0.0f, 1.0f));
+		uvIter.AddValue(Vector2(0.0f, 0.0f));
+		uvIter.AddValue(Vector2(1.0f, 1.0f));
+		uvIter.AddValue(Vector2(1.0f, 0.0f));
 
-		UINT32 stride = meshData.getVertexDesc()->GetVertexStride(0);
+		UINT32 stride = meshData.GetVertexDesc()->GetVertexStride(0);
 
 		Vector3 normal = Vector3::UNIT_Y;
 		Vector4 tangent(1.0f, 0.0f, 0.0f, 1.0f);
 
-		UINT8* normalDst = meshData.getElementData(VES_NORMAL);
+		UINT8* normalDst = meshData.GetElementData(VES_NORMAL);
 		for(UINT32 i = 0; i < 4; i++)
 		{
-			MeshUtility::packNormals(&normal, normalDst, 1, sizeof(Vector3), stride);
+			MeshUtility::PackNormals(&normal, normalDst, 1, sizeof(Vector3), stride);
 			normalDst += stride;
 		}
 
-		UINT8* tangentDst = meshData.getElementData(VES_TANGENT);
+		UINT8* tangentDst = meshData.GetElementData(VES_TANGENT);
 		for(UINT32 i = 0; i < 4; i++)
 		{
-			MeshUtility::packNormals(&tangent, tangentDst, 1, sizeof(Vector4), stride);
+			MeshUtility::PackNormals(&tangent, tangentDst, 1, sizeof(Vector4), stride);
 			tangentDst += stride;
 		}
 
-		m->billboardVB->writeData(0, meshData.getStreamSize(0), meshData.getStreamData(0), BWT_DISCARD);
+		m->billboardVB->WriteData(0, meshData.GetStreamSize(0), meshData.GetStreamData(0), BWT_DISCARD);
 	}
 
 	ParticleRenderer::~ParticleRenderer()
@@ -422,10 +422,10 @@ namespace bs { namespace ct
 		SPtr<VertexBuffer> vertexBuffers[] = { m->billboardVB };
 
 		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.setVertexDeclaration(m->billboardVD);
-		rapi.setVertexBuffers(0, vertexBuffers, 1);
-		rapi.setDrawOperation(DOT_TRIANGLE_STRIP);
-		rapi.draw(0, 4, count);
+		rapi.SetVertexDeclaration(m->billboardVD);
+		rapi.SetVertexBuffers(0, vertexBuffers, 1);
+		rapi.SetDrawOperation(DOT_TRIANGLE_STRIP);
+		rapi.Draw(0, 4, count);
 	}
 
 	void ParticleRenderer::SortByDistance(const Vector3& refPoint, const PixelData& positions, UINT32 numParticles,
@@ -454,7 +454,7 @@ namespace bs { namespace ct
 			{
 				const Vector3& position = *(Vector3*)positionPtr;
 
-				float distance = refPoint.squaredDistance(position);
+				float distance = refPoint.SquaredDistance(position);
 				sortData.emplace_back(distance, i);
 
 				positionPtr += sizeof(float) * stride;
@@ -463,7 +463,7 @@ namespace bs { namespace ct
 				if (x >= size)
 				{
 					x = 0;
-					positionPtr += positions.getRowSkip();
+					positionPtr += positions.GetRowSkip();
 				}
 			}
 

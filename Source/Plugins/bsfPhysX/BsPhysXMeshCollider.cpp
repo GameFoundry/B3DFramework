@@ -16,7 +16,7 @@ namespace bs
 		PxSphereGeometry geometry(0.01f); // Dummy
 
 		PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-		shape->SetLocalPose(toPxTransform(position, rotation));
+		shape->setLocalPose(toPxTransform(position, rotation));
 		shape->userData = this;
 
 		mInternal = bs_new<FPhysXCollider>(scene, shape);
@@ -29,7 +29,7 @@ namespace bs
 
 	void PhysXMeshCollider::SetScale(const Vector3& scale)
 	{
-		MeshCollider::setScale(scale);
+		MeshCollider::SetScale(scale);
 		ApplyGeometry();
 	}
 
@@ -69,13 +69,13 @@ namespace bs
 	void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
 	{
 		PxShape* shape = GetInternal()->GetShapeInternal();
-		if (shape->GetGeometryType() != geometry.getType())
+		if (shape->getGeometryType() != geometry.getType())
 		{
 			PxShape* newShape = gPhysX().GetPhysX()->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
 			GetInternal()->SetShapeInternal(newShape);
 		}
 		else
-			GetInternal()->GetShapeInternal()->SetGeometry(geometry);
+			GetInternal()->GetShapeInternal()->setGeometry(geometry);
 	}
 
 	FPhysXCollider* PhysXMeshCollider::GetInternal() const

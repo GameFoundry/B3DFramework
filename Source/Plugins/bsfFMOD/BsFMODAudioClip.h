@@ -51,7 +51,7 @@ namespace bs
 		void Initialize() override;
 
 		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> getSourceStream(UINT32& size) override;
+		SPtr<DataStream> GetSourceStream(UINT32& size) ;
 
 		FMOD::Sound* mSound = nullptr;
 

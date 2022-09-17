@@ -108,19 +108,19 @@ namespace bs { namespace ct
 		VertexInputEntry newEntry;
 		GroupAlloc& alloc = newEntry.allocator;
 
-		alloc.reserve<VkVertexInputAttributeDescription>(numAttributes)
-			 .reserve<VkVertexInputBindingDescription>(numBindings)
-			 .init();
+		alloc.Reserve<VkVertexInputAttributeDescription>(numAttributes)
+			 .Reserve<VkVertexInputBindingDescription>(numBindings)
+			 .Init();
 
-		newEntry.attributes = alloc.alloc<VkVertexInputAttributeDescription>(numAttributes);
-		newEntry.bindings = alloc.alloc<VkVertexInputBindingDescription>(numBindings);
+		newEntry.attributes = alloc.Alloc<VkVertexInputAttributeDescription>(numAttributes);
+		newEntry.bindings = alloc.Alloc<VkVertexInputBindingDescription>(numBindings);
 
 		for (UINT32 i = 0; i < numBindings; i++)
 		{
 			VkVertexInputBindingDescription& binding = newEntry.bindings[i];
 			binding.binding = i;
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			binding.stride = vbDecl->GetProperties().getVertexSize(i);
+			binding.stride = vbDecl->GetProperties().GetVertexSize(i);
 		}
 
 		UINT32 attribIdx = 0;
@@ -132,10 +132,10 @@ namespace bs { namespace ct
 			bool foundSemantic = false;
 			for (auto& inputElem : inputElements)
 			{
-				if (inputElem.getSemantic() == vbElem.getSemantic() && inputElem.getSemanticIdx() == vbElem.getSemanticIdx())
+				if (inputElem.GetSemantic() == vbElem.GetSemantic() && inputElem.GetSemanticIdx() == vbElem.GetSemanticIdx())
 				{
 					foundSemantic = true;
-					attribute.location = inputElem.getOffset();
+					attribute.location = inputElem.GetOffset();
 					break;
 				}
 			}
@@ -143,13 +143,13 @@ namespace bs { namespace ct
 			if (!foundSemantic) // Shader needs to have a matching input attribute, otherwise we skip it
 				continue;
 
-			attribute.binding = vbElem.getStreamIdx();
-			attribute.format = VulkanUtility::getVertexType(vbElem.getType());
-			attribute.offset = vbElem.getOffset();
+			attribute.binding = vbElem.GetStreamIdx();
+			attribute.format = VulkanUtility::GetVertexType(vbElem.GetType());
+			attribute.offset = vbElem.GetOffset();
 
 			VkVertexInputBindingDescription& binding = newEntry.bindings[attribute.binding];
 
-			bool isPerVertex = vbElem.getInstanceStepRate() == 0;
+			bool isPerVertex = vbElem.GetInstanceStepRate() == 0;
 			if (isFirstInBinding)
 			{
 				binding.inputRate = isPerVertex ? VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE;

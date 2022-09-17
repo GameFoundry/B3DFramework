@@ -13,10 +13,10 @@ namespace bs
 	 */
 
 /** Tests if condition is true, and reports unit test failure if it fails. */
-#define BS_TEST_ASSERT(expr) assertment((expr), __FUNCTION__, __FILE__, __LINE__);
+#define BS_TEST_ASSERT(expr) Assertment((expr), __FUNCTION__, __FILE__, __LINE__);
 
 /** Tests if condition is true, and reports unit test failure with a message if it fails. */
-#define BS_TEST_ASSERT_MSG(expr, msg) assertment((expr), msg, __FILE__, __LINE__);
+#define BS_TEST_ASSERT_MSG(expr, msg) Assertment((expr), msg, __FILE__, __LINE__);
 
 	/**
 	 * Primary class for unit testing. Override and register unit tests in constructor then run the tests using the
@@ -91,7 +91,7 @@ namespace bs
 	};
 
 /** Registers a new unit test within an implementation of TestSuite. */
-#define BS_ADD_TEST(func) addTest(static_cast<Func>(&func), #func);
+#define BS_ADD_TEST(func) AddTest(static_cast<Func>(&func), #func);
 
 	/** @} */
 }

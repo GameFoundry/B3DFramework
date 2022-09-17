@@ -96,7 +96,7 @@ namespace bs { namespace ct
 		return mStagingBuffer;
 	}
 
-	void NullHardwareBuffer::unmap()
+	void NullHardwareBuffer::Unmap()
 	{
 		bs_free(mStagingBuffer);
 		mStagingBuffer = nullptr;

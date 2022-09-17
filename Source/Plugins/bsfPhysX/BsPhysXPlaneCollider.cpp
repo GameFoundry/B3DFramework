@@ -15,7 +15,7 @@ namespace bs
 		PxPlaneGeometry geometry;
 
 		PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-		shape->SetLocalPose(toPxTransform(position, rotation));
+		shape->setLocalPose(toPxTransform(position, rotation));
 		shape->userData = this;
 
 		mInternal = bs_new<FPhysXCollider>(scene, shape);

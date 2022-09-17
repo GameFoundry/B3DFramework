@@ -62,7 +62,7 @@ namespace bs
 				if(findIter == mExtensions.end())
 				{
 					String ext = *v;
-					StringUtil::toLowerCase(ext);
+					StringUtil::ToLowerCase(ext);
 
 					mExtensionToFID.insert(std::make_pair(ext, i));
 					mExtensions.push_back(ext);
@@ -79,19 +79,19 @@ namespace bs
 		FreeImage_DeInitialise();
 	}
 
-	bool FreeImgImporter::isExtensionSupported(const String& ext) const
+	bool FreeImgImporter::IsExtensionSupported(const String& ext) const
 	{
 		String lowerCaseExt = ext;
-		StringUtil::toLowerCase(lowerCaseExt);
+		StringUtil::ToLowerCase(lowerCaseExt);
 
 		return find(mExtensions.begin(), mExtensions.end(), lowerCaseExt) != mExtensions.end();
 	}
 
 	bool FreeImgImporter::IsMagicNumberSupported(const UINT8* magicNumPtr, UINT32 numBytes) const
 	{
-		String ext = magicNumToExtension(magicNumPtr, numBytes);
+		String ext = MagicNumToExtension(magicNumPtr, numBytes);
 
-		return isExtensionSupported(ext);
+		return IsExtensionSupported(ext);
 	}
 
 	String FreeImgImporter::MagicNumToExtension(const UINT8* magic, UINT32 maxBytes) const
@@ -108,7 +108,7 @@ namespace bs
 		if (fif != FIF_UNKNOWN)
 		{
 			String ext = String(FreeImage_GetFormatFromFIF(fif));
-			StringUtil::toLowerCase(ext);
+			StringUtil::ToLowerCase(ext);
 			return ext;
 		}
 		else
@@ -126,7 +126,7 @@ namespace bs
 	{
 		const TextureImportOptions* textureImportOptions = static_cast<const TextureImportOptions*>(importOptions.get());
 
-		SPtr<PixelData> imgData = importRawImage(filePath);
+		SPtr<PixelData> imgData = ImportRawImage(filePath);
 		if(imgData == nullptr || imgData->GetData() == nullptr)
 			return nullptr;
 
@@ -138,7 +138,7 @@ namespace bs
 			texType = TEX_TYPE_CUBE_MAP;
 
 			std::array<SPtr<PixelData>, 6> cubemapFaces;
-			if (generateCubemap(imgData, textureImportOptions->cubemapSourceType, cubemapFaces))
+			if (GenerateCubemap(imgData, textureImportOptions->cubemapSourceType, cubemapFaces))
 			{
 				faceData.insert(faceData.begin(), cubemapFaces.begin(), cubemapFaces.end());
 			}
@@ -156,9 +156,9 @@ namespace bs
 
 		UINT32 numMips = 0;
 		if (textureImportOptions->generateMips &&
-			Bitwise::isPow2(faceData[0]->GetWidth()) && Bitwise::isPow2(faceData[0]->GetHeight()))
+			Bitwise::IsPow2(faceData[0]->GetWidth()) && Bitwise::IsPow2(faceData[0]->GetHeight()))
 		{
-			UINT32 maxPossibleMip = PixelUtil::getMaxMipmaps(faceData[0]->GetWidth(), faceData[0]->GetHeight(),
+			UINT32 maxPossibleMip = PixelUtil::GetMaxMipmaps(faceData[0]->GetWidth(), faceData[0]->GetHeight(),
 				faceData[0]->GetDepth(), faceData[0]->GetFormat());
 
 			if (textureImportOptions->maxMip == 0)
@@ -193,21 +193,21 @@ namespace bs
 				MipMapGenOptions mipOptions;
 				mipOptions.isSRGB = sRGB;
 
-				mipLevels = PixelUtil::genMipmaps(*faceData[i], mipOptions);
+				mipLevels = PixelUtil::GenMipmaps(*faceData[i], mipOptions);
 			}
 			else
 				mipLevels.push_back(faceData[i]);
 
 			for (UINT32 mip = 0; mip < (UINT32)mipLevels.size(); ++mip)
 			{
-				SPtr<PixelData> dst = newTexture->GetProperties().allocBuffer(0, mip);
+				SPtr<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
 
-				PixelUtil::bulkPixelConversion(*mipLevels[mip], *dst);
-				newTexture->writeData(dst, i, mip);
+				PixelUtil::BulkPixelConversion(*mipLevels[mip], *dst);
+				newTexture->WriteData(dst, i, mip);
 			}
 		}
 
-		const String fileName = filePath.getFilename(false);
+		const String fileName = filePath.GetFilename(false);
 		newTexture->SetName(fileName);
 
 		return newTexture;
@@ -218,20 +218,20 @@ namespace bs
 		UPtr<MemoryDataStream> memStream;
 		FREE_IMAGE_FORMAT imageFormat;
 		{
-			Lock lock = FileScheduler::getLock(filePath);
+			Lock lock = FileScheduler::GetLock(filePath);
 
 			SPtr<DataStream> fileData = FileSystem::OpenFile(filePath, true);
-			if (fileData->size() > std::numeric_limits<UINT32>::max())
+			if (fileData->Size() > std::numeric_limits<UINT32>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "File size larger than supported!");
 			}
 
-			UINT32 magicLen = std::min((UINT32)fileData->size(), 32u);
+			UINT32 magicLen = std::min((UINT32)fileData->Size(), 32u);
 			UINT8 magicBuf[32];
-			fileData->read(magicBuf, magicLen);
-			fileData->seek(0);
+			fileData->Read(magicBuf, magicLen);
+			fileData->Seek(0);
 
-			String fileExtension = magicNumToExtension(magicBuf, magicLen);
+			String fileExtension = MagicNumToExtension(magicBuf, magicLen);
 			auto findFormat = mExtensionToFID.find(fileExtension);
 			if (findFormat == mExtensionToFID.end())
 			{
@@ -245,13 +245,13 @@ namespace bs
 
 			// Buffer stream into memory (TODO: override IO functions instead?)
 			memStream = bs_unique_ptr_new<MemoryDataStream>(fileData);
-			fileData->close();
+			fileData->Close();
 		}
 
 		if(!memStream)
 			return nullptr;
 
-		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->data(), static_cast<DWORD>(memStream->size()));
+		FIMEMORY* fiMem = FreeImage_OpenMemory(memStream->Data(), static_cast<DWORD>(memStream->Size()));
 
 		FIBITMAP* fiBitmap = FreeImage_LoadFromMemory(
 			(FREE_IMAGE_FORMAT)imageFormat, fiMem);
@@ -386,12 +386,12 @@ namespace bs
 		unsigned srcPitch = FreeImage_GetPitch(fiBitmap);
 
 		// Final data - invert image and trim pitch at the same time
-		UINT32 dstElemSize = PixelUtil::getNumElemBytes(format);
-		UINT32 dstPitch = width * PixelUtil::getNumElemBytes(format);
+		UINT32 dstElemSize = PixelUtil::GetNumElemBytes(format);
+		UINT32 dstPitch = width * PixelUtil::GetNumElemBytes(format);
 
 		// Bind output buffer
 		SPtr<PixelData> texData = bs_shared_ptr_new<PixelData>(width, height, 1, format);
-		texData->allocateInternalBuffer();
+		texData->AllocateInternalBuffer();
 		UINT8* output = texData->GetData();
 
 		UINT8* pSrc;
@@ -442,7 +442,7 @@ namespace bs
 			output[i] = PixelData::Create(faceSize, faceSize, 1, source->GetFormat());
 
 			PixelVolume volume(faceStart.x, faceStart.y, faceStart.x + faceSize, faceStart.y + faceSize);
-			PixelUtil::copy(*source, *output[i], faceStart.x, faceStart.y);
+			PixelUtil::Copy(*source, *output[i], faceStart.x, faceStart.y);
 
 			if (vertical)
 				faceStart.y += faceSize;
@@ -487,12 +487,12 @@ namespace bs
 			UINT32 faceY = (faceIndices[i] / numFacesInRow) * faceSize;
 
 			PixelVolume volume(faceX, faceY, faceX + faceSize, faceY + faceSize);
-			PixelUtil::copy(*source, *output[i], faceX, faceY);
+			PixelUtil::Copy(*source, *output[i], faceX, faceY);
 		}
 
 		// Flip -Z as it's upside down
 		if (vertical)
-			PixelUtil::mirror(*output[5], MirrorModeBits::X | MirrorModeBits::Y);
+			PixelUtil::Mirror(*output[5], MirrorModeBits::X | MirrorModeBits::Y);
 	}
 
 	/** Method that maps a direction to a point on a plane in range [0, 1] using spherical mapping. */
@@ -502,7 +502,7 @@ namespace bs
 		Vector3 nrmDir = Vector3::Normalize(dir);
 		nrmDir.z += 1.0f;
 
-		float m = 2 * nrmDir.length();
+		float m = 2 * nrmDir.Length();
 
 		float u = nrmDir.x / m + 0.5f;
 		float v = nrmDir.y / m + 0.5f;
@@ -530,7 +530,7 @@ namespace bs
 		for(UINT32 i = 0; i < 6; i++)
 		{
 			output[i] = PixelData::Create(size, size, 1, input[i]->GetFormat());
-			PixelUtil::scale(*input[i], *output[i]);
+			PixelUtil::Scale(*input[i], *output[i]);
 		}
 	}
 
@@ -587,7 +587,7 @@ namespace bs
 
 					// Find location in the source to sample from
 					Vector2 sourceUV = remap(rotatedDir);
-					Color color = source->sampleColorAt(sourceUV);
+					Color color = source->SampleColorAt(sourceUV);
 
 					// Write the sampled color
 					output[faceIdx]->SetColorAt(color, x, y);
@@ -647,7 +647,7 @@ namespace bs
 		case CubemapSourceType::Spherical:
 			// Half of the source size will be used for each cube face, which should yield good enough quality
 			faceSize.x = std::max(source->GetWidth(), source->GetHeight()) / 2;
-			faceSize.x = Bitwise::closestPow2(faceSize.x);
+			faceSize.x = Bitwise::ClosestPow2(faceSize.x);
 
 			// Don't allow sizes larger than 4096
 			faceSize.x = std::min(faceSize.x, 4096);
@@ -667,7 +667,7 @@ namespace bs
 			return false;
 		}
 
-		if (!Bitwise::isPow2(faceSize.x))
+		if (!Bitwise::IsPow2(faceSize.x))
 		{
 			BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must be powers of 2.");
 			return false;

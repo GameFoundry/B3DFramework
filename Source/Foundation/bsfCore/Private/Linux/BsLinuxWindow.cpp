@@ -238,7 +238,7 @@ namespace bs
 				showOnTaskbar(false);
 		}
 
-		m->hasTitleBar = desc.showDecorations;
+		m->HasTitleBar = desc.showDecorations;
 		m->resizeDisabled = !desc.allowResize;
 
 		LinuxPlatform::RegisterWindowInternal(m->xWindow, this);
@@ -440,7 +440,7 @@ namespace bs
 		m->dragInProgress = false;
 
 		// If window has a titlebar, custom drag zones aren't used
-		if(m->hasTitleBar)
+		if(m->HasTitleBar)
 			return;
 
 		for(auto& entry : m->dragZones)

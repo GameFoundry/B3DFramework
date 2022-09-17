@@ -17,7 +17,7 @@ namespace bs
 		: mName(name), mOwner(owner)
 	{
 		m = bs_new<Pimpl>();
-		m->hasInputFocus = true;
+		m->HasInputFocus = true;
 	}
 
 	Keyboard::~Keyboard()
@@ -29,7 +29,7 @@ namespace bs
 	{
 		Lock lock(LinuxPlatform::eventLock);
 
-		if(m->hasInputFocus)
+		if(m->HasInputFocus)
 		{
 			while (!LinuxPlatform::buttonEvents.empty())
 			{
@@ -51,7 +51,7 @@ namespace bs
 
 	void Keyboard::changeCaptureContext(UINT64 windowHandle)
 	{
-		m->hasInputFocus = windowHandle != (UINT64)-1;
+		m->HasInputFocus = windowHandle != (UINT64)-1;
 	}
 }
 

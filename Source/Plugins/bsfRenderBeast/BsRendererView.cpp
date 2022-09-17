@@ -21,12 +21,12 @@ namespace bs { namespace ct
 
 	SkyboxMat::SkyboxMat()
 	{
-		if(mParams->hasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
+		if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
 			mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
 
-		mParamBuffer = gSkyboxParamDef.createBuffer();
+		mParamBuffer = gSkyboxParamDef.CreateBuffer();
 
-		if(mParams->hasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
+		if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
 			mParams->SetParamBlockBuffer("Params", mParamBuffer);
 	}
 
@@ -37,17 +37,17 @@ namespace bs { namespace ct
 		mSkyTextureParam.Set(texture);
 
 		gSkyboxParamDef.gClearColor.Set(mParamBuffer, solidColor);
-		mParamBuffer->flushToGPU();
+		mParamBuffer->FlushToGpu();
 
-		RendererMaterial::bind();
+		RendererMaterial::Bind();
 	}
 
 	SkyboxMat* SkyboxMat::GetVariation(bool color)
 	{
 		if (color)
-			return Get(getVariation<true>());
+			return Get(GetVariation<true>());
 
-		return Get(getVariation<false>());
+		return Get(GetVariation<false>());
 	}
 
 	RendererViewData::RendererViewData()
@@ -66,16 +66,16 @@ namespace bs { namespace ct
 	RendererView::RendererView()
 		: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
 	{
-		mParamBuffer = gPerCameraParamDef.createBuffer();
+		mParamBuffer = gPerCameraParamDef.CreateBuffer();
 	}
 
 	RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
 		: mProperties(desc), mCamera(desc.sceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
 	{
-		mParamBuffer = gPerCameraParamDef.createBuffer();
+		mParamBuffer = gPerCameraParamDef.CreateBuffer();
 		mProperties.prevViewProjTransform = mProperties.viewProjTransform;
 
-		setStateReductionMode(desc.stateReduction);
+		SetStateReductionMode(desc.stateReduction);
 	}
 
 	void RendererView::SetStateReductionMode(StateReduction reductionMode)
@@ -103,7 +103,7 @@ namespace bs { namespace ct
 
 		// Update compositor hierarchy (Note: Needs to be called even when viewport size (or other information) changes,
 		// but we're currently calling it here as all such calls are followed by setRenderSettings.
-		mCompositor.build(*this, RCNodeFinalResolve::getNodeId());
+		mCompositor.Build(*this, RCNodeFinalResolve::GetNodeId());
 	}
 
 	void RendererView::SetTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view,
@@ -129,7 +129,7 @@ namespace bs { namespace ct
 		mProperties.target = desc.target;
 		mProperties.temporalJitter = Vector2::ZERO;
 
-		setStateReductionMode(desc.stateReduction);
+		SetStateReductionMode(desc.stateReduction);
 	}
 
 	void RendererView::BeginFrame(const FrameInfo& frameInfo)
@@ -202,7 +202,7 @@ namespace bs { namespace ct
 
 			Vector2 viewSize = Vector2((float)mProperties.target.targetWidth, (float)mProperties.target.targetHeight);
 			Vector2 subsampleJitter = mProperties.temporalJitter / viewSize;
-			Matrix4 subSampleTranslate = Matrix4::translation(Vector3(subsampleJitter.x, subsampleJitter.y, 0.0f));
+			Matrix4 subSampleTranslate = Matrix4::Translation(Vector3(subsampleJitter.x, subsampleJitter.y, 0.0f));
 			
 			mProperties.projTransform = subSampleTranslate * mProperties.projTransformNoAA;
 			mProperties.viewProjTransform = mProperties.projTransform * mProperties.viewTransform;
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 		}
 
 		if (perViewBufferDirty)
-			updatePerViewBuffer();
+			UpdatePerViewBuffer();
 
 		// Note: inverse view-projection can be cached, it doesn't change every frame
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
@@ -244,10 +244,10 @@ namespace bs { namespace ct
 		// allows you to freeze the current rendering as is, without temporal artifacts.
 		mProperties.frameIdx++;
 
-		mDeferredOpaqueQueue->clear();
-		mForwardOpaqueQueue->clear();
-		mTransparentQueue->clear();
-		mDecalQueue->clear();
+		mDeferredOpaqueQueue->Clear();
+		mForwardOpaqueQueue->Clear();
+		mTransparentQueue->Clear();
+		mDecalQueue->Clear();
 
 		if (mRedrawForFrames > 0)
 			mRedrawForFrames--;
@@ -314,9 +314,9 @@ namespace bs { namespace ct
 			// Get new luminance value
 			mPreviousEyeAdaptation = mCurrentEyeAdaptation;
 
-			PixelData data = lastFinishedIter->outputTexture->texture->lock(GBL_READ_ONLY);
-			mCurrentEyeAdaptation = data.getColorAt(0, 0).r;
-			lastFinishedIter->outputTexture->texture->unlock();
+			PixelData data = lastFinishedIter->outputTexture->texture->Lock(GBL_READ_ONLY);
+			mCurrentEyeAdaptation = data.GetColorAt(0, 0).r;
+			lastFinishedIter->outputTexture->texture->Unlock();
 
 			// We've received information about eye adaptation, use that to determine if redrawing
 			// is required (technically we're drawing a few frames extra, as this information is always
@@ -358,10 +358,10 @@ namespace bs { namespace ct
 		mVisibility.renderables.clear();
 		mVisibility.renderables.resize(renderables.size(), false);
 
-		if (!shouldDraw3D())
+		if (!ShouldDraw3D())
 			return;
 
-		calculateVisibility(cullInfos, mVisibility.renderables);
+		CalculateVisibility(cullInfos, mVisibility.renderables);
 
 		if(visibility != nullptr)
 		{
@@ -380,10 +380,10 @@ namespace bs { namespace ct
 		mVisibility.particleSystems.clear();
 		mVisibility.particleSystems.resize(particleSystems.size(), false);
 
-		if (!shouldDraw3D())
+		if (!ShouldDraw3D())
 			return;
 
-		calculateVisibility(cullInfos, mVisibility.particleSystems);
+		CalculateVisibility(cullInfos, mVisibility.particleSystems);
 
 		if(visibility != nullptr)
 		{
@@ -402,10 +402,10 @@ namespace bs { namespace ct
 		mVisibility.decals.clear();
 		mVisibility.decals.resize(decals.size(), false);
 
-		if (!shouldDraw3D())
+		if (!ShouldDraw3D())
 			return;
 
-		calculateVisibility(cullInfos, mVisibility.decals);
+		CalculateVisibility(cullInfos, mVisibility.decals);
 
 		if(visibility != nullptr)
 		{
@@ -446,10 +446,10 @@ namespace bs { namespace ct
 			perViewVisibility = &mVisibility.spotLights;
 		}
 
-		if (!shouldDraw3D())
+		if (!ShouldDraw3D())
 			return;
 
-		calculateVisibility(bounds, *perViewVisibility);
+		CalculateVisibility(bounds, *perViewVisibility);
 
 		if(visibility != nullptr)
 		{
@@ -475,10 +475,10 @@ namespace bs { namespace ct
 				continue;
 
 			// Do distance culling
-			const Sphere& boundingSphere = cullInfos[i].bounds.getSphere();
+			const Sphere& boundingSphere = cullInfos[i].bounds.GetSphere();
 			const Vector3& worldRenderablePosition = boundingSphere.GetCenter();
 
-			float distanceToCameraSq = worldCameraPosition.squaredDistance(worldRenderablePosition);
+			float distanceToCameraSq = worldCameraPosition.SquaredDistance(worldRenderablePosition);
 			float correctedCullDistance = cullInfos[i].cullDistanceFactor * baseCullDistance;
 			float maxDistanceToCamera = correctedCullDistance + boundingSphere.GetRadius();
 
@@ -488,12 +488,12 @@ namespace bs { namespace ct
 			// Do frustum culling
 			// Note: This is bound to be a bottleneck at some point. When it is ensure that intersect methods use vector
 			// operations, as it is trivial to update them. Also consider spatial partitioning.
-			if (worldFrustum.intersects(boundingSphere))
+			if (worldFrustum.Intersects(boundingSphere))
 			{
 				// More precise with the box
-				const AABox& boundingBox = cullInfos[i].bounds.getBox();
+				const AABox& boundingBox = cullInfos[i].bounds.GetBox();
 
-				if (worldFrustum.intersects(boundingBox))
+				if (worldFrustum.Intersects(boundingBox))
 					visibility[i] = true;
 			}
 		}
@@ -505,7 +505,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < (UINT32)bounds.size(); i++)
 		{
-			if (worldFrustum.intersects(bounds[i]))
+			if (worldFrustum.Intersects(bounds[i]))
 				visibility[i] = true;
 		}
 	}
@@ -516,7 +516,7 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < (UINT32)bounds.size(); i++)
 		{
-			if (worldFrustum.intersects(bounds[i]))
+			if (worldFrustum.Intersects(bounds[i]))
 				visibility[i] = true;
 		}
 	}
@@ -529,10 +529,10 @@ namespace bs { namespace ct
 			if (!mVisibility.renderables[i])
 				continue;
 
-			const AABox& boundingBox = sceneInfo.renderableCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
+			const AABox& boundingBox = sceneInfo.renderableCullInfos[i].bounds.GetBox();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).Length();
 
-			bool needsVelocity = requiresVelocityWrites();
+			bool needsVelocity = RequiresVelocityWrites();
 			for (auto& renderElem : sceneInfo.renderables[i]->elements)
 			{
 				UINT32 techniqueIdx;
@@ -548,12 +548,12 @@ namespace bs { namespace ct
 				ShaderFlags shaderFlags = renderElem.material->GetShader()->GetFlags();
 
 				// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
-				if (shaderFlags.isSet(ShaderFlag::Transparent))
-					mTransparentQueue->add(&renderElem, distanceToCamera, techniqueIdx);
-				else if (shaderFlags.isSet(ShaderFlag::Forward))
-					mForwardOpaqueQueue->add(&renderElem, distanceToCamera, techniqueIdx);
+				if (shaderFlags.IsSet(ShaderFlag::Transparent))
+					mTransparentQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
+				else if (shaderFlags.IsSet(ShaderFlag::Forward))
+					mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
 				else
-					mDeferredOpaqueQueue->add(&renderElem, distanceToCamera, techniqueIdx);
+					mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
 			}
 		}
 
@@ -564,20 +564,20 @@ namespace bs { namespace ct
 				continue;
 
 			const ParticlesRenderElement& renderElem = sceneInfo.particleSystems[i].renderElement;
-			if (!renderElem.isValid())
+			if (!renderElem.IsValid())
 				continue;
 
-			const AABox& boundingBox = sceneInfo.particleSystemCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
+			const AABox& boundingBox = sceneInfo.particleSystemCullInfos[i].bounds.GetBox();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).Length();
 
 			ShaderFlags shaderFlags = renderElem.material->GetShader()->GetFlags();
 
-			if (shaderFlags.isSet(ShaderFlag::Transparent))
-				mTransparentQueue->add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
-			else if (shaderFlags.isSet(ShaderFlag::Forward))
-				mForwardOpaqueQueue->add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
+			if (shaderFlags.IsSet(ShaderFlag::Transparent))
+				mTransparentQueue->Add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
+			else if (shaderFlags.IsSet(ShaderFlag::Forward))
+				mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
 			else
-				mDeferredOpaqueQueue->add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
+				mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.defaultTechniqueIdx);
 		}
 
 		// Queue decals
@@ -593,33 +593,33 @@ namespace bs { namespace ct
 			ShaderFlags shaderFlags = renderElem.material->GetShader()->GetFlags();
 
 			// Decals are only supported using deferred rendering
-			if (shaderFlags.isSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
+			if (shaderFlags.IsSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
 				continue;
 
-			const AABox& boundingBox = sceneInfo.decalCullInfos[i].bounds.getBox();
-			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).length();
+			const AABox& boundingBox = sceneInfo.decalCullInfos[i].bounds.GetBox();
+			const float distanceToCamera = (mProperties.viewOrigin - boundingBox.GetCenter()).Length();
 
 			// Check if viewer is inside the decal volume
 
 			// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
 			// the decal bounds. We need to be conservative since the material for rendering outside will not properly
 			// render the inside of the decal volume.
-			const bool isInside = boundingBox.contains(mProperties.viewOrigin, mProperties.nearPlane * 3.0f);
+			const bool isInside = boundingBox.Contains(mProperties.viewOrigin, mProperties.nearPlane * 3.0f);
 			const UINT32* techniqueIndices = renderElem.techniqueIndices[(INT32)isInside];
 
 			// No MSAA evaluation, or same value for all samples (no divergence between samples)
-			mDecalQueue->add(&renderElem, distanceToCamera,
+			mDecalQueue->Add(&renderElem, distanceToCamera,
 				techniqueIndices[(INT32)(isMSAA ? MSAAMode::Single : MSAAMode::None)]);
 
 			// Evaluates all MSAA samples for pixels that are marked as divergent
 			if(isMSAA)
-				mDecalQueue->add(&renderElem, distanceToCamera, techniqueIndices[(INT32)MSAAMode::Full]);
+				mDecalQueue->Add(&renderElem, distanceToCamera, techniqueIndices[(INT32)MSAAMode::Full]);
 		}
 
-		mForwardOpaqueQueue->sort();
-		mDeferredOpaqueQueue->sort();
-		mTransparentQueue->sort();
-		mDecalQueue->sort();
+		mForwardOpaqueQueue->Sort();
+		mDeferredOpaqueQueue->Sort();
+		mTransparentQueue->Sort();
+		mDecalQueue->Sort();
 	}
 
 	Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
@@ -748,7 +748,7 @@ namespace bs { namespace ct
 	{
 		Matrix4 viewProj = mProperties.projTransform * mProperties.viewTransform;
 		Matrix4 invProj = invertProjectionMatrix(mProperties.projTransform);
-		Matrix4 invView = mProperties.viewTransform.inverseAffine();
+		Matrix4 invView = mProperties.viewTransform.InverseAffine();
 		Matrix4 invViewProj = invView * invProj;
 
 		gPerCameraParamDef.gMatProj.Set(mParamBuffer, mProperties.projTransform);
@@ -775,9 +775,9 @@ namespace bs { namespace ct
 		gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
 		gPerCameraParamDef.gViewDir.Set(mParamBuffer, mProperties.viewDirection);
 		gPerCameraParamDef.gViewOrigin.Set(mParamBuffer, mProperties.viewOrigin);
-		gPerCameraParamDef.gDeviceZToWorldZ.Set(mParamBuffer, getDeviceZToViewZ(mProperties.projTransform));
-		gPerCameraParamDef.gNDCZToWorldZ.Set(mParamBuffer, getNDCZToViewZ(mProperties.projTransform));
-		gPerCameraParamDef.gNDCZToDeviceZ.Set(mParamBuffer, getNDCZToDeviceZ());
+		gPerCameraParamDef.gDeviceZToWorldZ.Set(mParamBuffer, GetDeviceZToViewZ(mProperties.projTransform));
+		gPerCameraParamDef.gNDCZToWorldZ.Set(mParamBuffer, GetNdczToViewZ(mProperties.projTransform));
+		gPerCameraParamDef.gNDCZToDeviceZ.Set(mParamBuffer, GetNdczToDeviceZ());
 
 		Vector2 nearFar(mProperties.nearPlane, mProperties.farPlane);
 		gPerCameraParamDef.gNearFar.Set(mParamBuffer, nearFar);
@@ -792,7 +792,7 @@ namespace bs { namespace ct
 
 		gPerCameraParamDef.gViewportRectangle.Set(mParamBuffer, viewportRect);
 
-		Vector4 ndcToUV = getNDCToUV();
+		Vector4 ndcToUV = GetNdcToUv();
 		gPerCameraParamDef.gClipToUVScaleOffset.Set(mParamBuffer, ndcToUV);
 
 		Vector4 uvToNDC(
@@ -835,13 +835,13 @@ namespace bs { namespace ct
 	void RendererView::UpdateLightGrid(const VisibleLightData& visibleLightData,
 		const VisibleReflProbeData& visibleReflProbeData)
 	{
-		mLightGrid.updateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->enableLighting);
+		mLightGrid.UpdateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->enableLighting);
 	}
 
 	RendererViewGroup::RendererViewGroup(RendererView** views, UINT32 numViews, bool mainPass, UINT32 shadowMapSize)
 		: mIsMainPass(mainPass), mShadowRenderer(shadowMapSize)
 	{
-		setViews(views, numViews);
+		SetViews(views, numViews);
 	}
 
 	void RendererViewGroup::SetViews(RendererView** views, UINT32 numViews)
@@ -863,7 +863,7 @@ namespace bs { namespace ct
 		bool anyViewsNeed3DDrawing = false;
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (mViews[i]->shouldDraw3D())
+			if (mViews[i]->ShouldDraw3D())
 			{
 				anyViewsNeed3DDrawing = true;
 				break;
@@ -885,16 +885,16 @@ namespace bs { namespace ct
 
 		for(UINT32 i = 0; i < numViews; i++)
 		{
-			mViews[i]->determineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &mVisibility.renderables);
-			mViews[i]->determineVisible(sceneInfo.particleSystems, sceneInfo.particleSystemCullInfos, &mVisibility.particleSystems);
-			mViews[i]->determineVisible(sceneInfo.decals, sceneInfo.decalCullInfos, &mVisibility.decals);
+			mViews[i]->DetermineVisible(sceneInfo.renderables, sceneInfo.renderableCullInfos, &mVisibility.renderables);
+			mViews[i]->DetermineVisible(sceneInfo.particleSystems, sceneInfo.particleSystemCullInfos, &mVisibility.particleSystems);
+			mViews[i]->DetermineVisible(sceneInfo.decals, sceneInfo.decalCullInfos, &mVisibility.decals);
 		}
 		
 		// Generate render queues per camera
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if(mViews[i]->shouldDraw3D())
-				mViews[i]->queueRenderElements(sceneInfo);
+			if(mViews[i]->ShouldDraw3D())
+				mViews[i]->QueueRenderElements(sceneInfo);
 		}
 
 		// Calculate light visibility for all views
@@ -908,13 +908,13 @@ namespace bs { namespace ct
 
 		for (UINT32 i = 0; i < numViews; i++)
 		{
-			if (!mViews[i]->shouldDraw3D())
+			if (!mViews[i]->ShouldDraw3D())
 				continue;
 
-			mViews[i]->determineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
+			mViews[i]->DetermineVisible(sceneInfo.radialLights, sceneInfo.radialLightWorldBounds, LightType::Radial,
 				&mVisibility.radialLights);
 
-			mViews[i]->determineVisible(sceneInfo.spotLights, sceneInfo.spotLightWorldBounds, LightType::Spot,
+			mViews[i]->DetermineVisible(sceneInfo.spotLights, sceneInfo.spotLightWorldBounds, LightType::Spot,
 				&mVisibility.spotLights);
 		}
 
@@ -932,7 +932,7 @@ namespace bs { namespace ct
 			if (viewProps.capturingReflections)
 				continue;
 
-			mViews[i]->calculateVisibility(sceneInfo.reflProbeWorldBounds, mVisibility.reflProbes);
+			mViews[i]->CalculateVisibility(sceneInfo.reflProbeWorldBounds, mVisibility.reflProbes);
 		}
 
 		// Organize light and refl. probe visibility information in a more GPU friendly manner
@@ -940,18 +940,18 @@ namespace bs { namespace ct
 		// Note: I'm determining light and refl. probe visibility for the entire group. It might be more performance
 		// efficient to do it per view. Additionally I'm using a single GPU buffer to hold their information, which is
 		// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
-		mVisibleLightData.update(sceneInfo, *this);
-		mVisibleReflProbeData.update(sceneInfo, *this);
+		mVisibleLightData.Update(sceneInfo, *this);
+		mVisibleReflProbeData.Update(sceneInfo, *this);
 
 		const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 		if(supportsClusteredForward)
 		{
 			for (UINT32 i = 0; i < numViews; i++)
 			{
-				if (!mViews[i]->shouldDraw3D())
+				if (!mViews[i]->ShouldDraw3D())
 					continue;
 
-				mViews[i]->updateLightGrid(mVisibleLightData, mVisibleReflProbeData);
+				mViews[i]->UpdateLightGrid(mVisibleLightData, mVisibleReflProbeData);
 			}
 		}
 	}

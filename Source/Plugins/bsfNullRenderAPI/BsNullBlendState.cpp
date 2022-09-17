@@ -19,13 +19,13 @@ namespace bs { namespace ct
 		for(UINT32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 		{
 			blendStateDesc.RenderTarget[i].BlendEnable = mProperties.getBlendEnabled(i);
-			blendStateDesc.RenderTarget[i].BlendOp = D3D11Mappings::get(mProperties.getBlendOperation(i));
-			blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11Mappings::get(mProperties.getAlphaBlendOperation(i));
-			blendStateDesc.RenderTarget[i].DestBlend = D3D11Mappings::get(mProperties.getDstBlend(i));
-			blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11Mappings::get(mProperties.getAlphaDstBlend(i));
+			blendStateDesc.RenderTarget[i].BlendOp = D3D11Mappings::Get(mProperties.getBlendOperation(i));
+			blendStateDesc.RenderTarget[i].BlendOpAlpha = D3D11Mappings::Get(mProperties.getAlphaBlendOperation(i));
+			blendStateDesc.RenderTarget[i].DestBlend = D3D11Mappings::Get(mProperties.getDstBlend(i));
+			blendStateDesc.RenderTarget[i].DestBlendAlpha = D3D11Mappings::Get(mProperties.getAlphaDstBlend(i));
 			blendStateDesc.RenderTarget[i].RenderTargetWriteMask = 0xf & (mProperties.getRenderTargetWriteMask(i)); // Mask out all but last 4 bits
-			blendStateDesc.RenderTarget[i].SrcBlend = D3D11Mappings::get(mProperties.getSrcBlend(i));
-			blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11Mappings::get(mProperties.getAlphaSrcBlend(i));
+			blendStateDesc.RenderTarget[i].SrcBlend = D3D11Mappings::Get(mProperties.getSrcBlend(i));
+			blendStateDesc.RenderTarget[i].SrcBlendAlpha = D3D11Mappings::Get(mProperties.getAlphaSrcBlend(i));
 		}
 
 		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());

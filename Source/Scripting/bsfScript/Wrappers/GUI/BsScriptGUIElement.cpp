@@ -206,7 +206,7 @@ namespace bs
 		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
-			return !guiElem->GetOptionFlags().isSet(GUIElementOption::ClickThrough);
+			return !guiElem->GetOptionFlags().IsSet(GUIElementOption::ClickThrough);
 		}
 
 		return false;
@@ -241,7 +241,7 @@ namespace bs
 		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
-			return guiElem->GetOptionFlags().isSet(GUIElementOption::AcceptsKeyFocus);
+			return guiElem->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 		}
 
 		return false;

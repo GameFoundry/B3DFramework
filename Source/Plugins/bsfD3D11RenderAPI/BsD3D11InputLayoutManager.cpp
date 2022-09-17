@@ -61,7 +61,7 @@ namespace bs { namespace ct
 			if(mInputLayoutMap.size() >= DECLARATION_BUFFER_SIZE)
 				RemoveLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
-			addNewInputLayout(vertexShaderDecl, vertexBufferDecl, vertexProgram);
+			AddNewInputLayout(vertexShaderDecl, vertexBufferDecl, vertexProgram);
 
 			iterFind = mInputLayoutMap.find(pair);
 
@@ -81,8 +81,8 @@ namespace bs { namespace ct
 
 		Vector<D3D11_INPUT_ELEMENT_DESC> declElements;
 
-		const Vector<VertexElement>& bufferElems = bufferDeclProps.getElements();
-		const Vector<VertexElement>& shaderElems = shaderDeclProps.getElements();
+		const Vector<VertexElement>& bufferElems = bufferDeclProps.GetElements();
+		const Vector<VertexElement>& shaderElems = shaderDeclProps.GetElements();
 
 		INT32 maxStreamIdx = -1;
 		for (auto iter = bufferElems.begin(); iter != bufferElems.end(); ++iter)
@@ -90,9 +90,9 @@ namespace bs { namespace ct
 			declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
 			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
-			elementDesc.SemanticName = D3D11Mappings::get(iter->GetSemantic());
+			elementDesc.SemanticName = D3D11Mappings::Get(iter->GetSemantic());
 			elementDesc.SemanticIndex = iter->GetSemanticIdx();
-			elementDesc.Format = D3D11Mappings::get(iter->GetType());
+			elementDesc.Format = D3D11Mappings::Get(iter->GetType());
 			elementDesc.InputSlot = iter->GetStreamIdx();
 			elementDesc.AlignedByteOffset = static_cast<WORD>(iter->GetOffset());
 
@@ -128,9 +128,9 @@ namespace bs { namespace ct
 				declElements.push_back(D3D11_INPUT_ELEMENT_DESC());
 				D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
-				elementDesc.SemanticName = D3D11Mappings::get(shaderIter->GetSemantic());
+				elementDesc.SemanticName = D3D11Mappings::Get(shaderIter->GetSemantic());
 				elementDesc.SemanticIndex = shaderIter->GetSemanticIdx();
-				elementDesc.Format = D3D11Mappings::get(shaderIter->GetType());
+				elementDesc.Format = D3D11Mappings::Get(shaderIter->GetType());
 				elementDesc.InputSlot = (UINT32)(maxStreamIdx + 1);
 				elementDesc.AlignedByteOffset = 0;
 				elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
@@ -146,15 +146,15 @@ namespace bs { namespace ct
 		InputLayoutEntry* newEntry = bs_new<InputLayoutEntry>();
 		newEntry->lastUsedIdx = ++mLastUsedCounter;
 		newEntry->inputLayout = nullptr;
-		HRESULT hr = device.getD3D11Device()->CreateInputLayout(
+		HRESULT hr = device.GetD3D11Device()->CreateInputLayout(
 			&declElements[0],
 			(UINT32)declElements.size(),
 			microcode.data,
 			microcode.size,
 			&newEntry->inputLayout);
 
-		if (FAILED(hr)|| device.hasError())
-			BS_EXCEPT(RenderingAPIException, "Unable to set D3D11 vertex declaration" + device.getErrorDescription());
+		if (FAILED(hr)|| device.HasError())
+			BS_EXCEPT(RenderingAPIException, "Unable to set D3D11 vertex declaration" + device.GetErrorDescription());
 
 		// Create key and add to the layout map
 		VertexDeclarationKey pair;

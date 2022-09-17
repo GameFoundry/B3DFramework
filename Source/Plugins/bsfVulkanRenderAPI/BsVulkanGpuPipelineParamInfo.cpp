@@ -31,18 +31,18 @@ namespace bs { namespace ct
 			totalNumSlots += mSetInfos[i].numSlots;
 
 		mAlloc.Reserve<VkDescriptorSetLayoutBinding>(mNumElements)
-			.reserve<GpuParamObjectType>(mNumElements)
-			.reserve<GpuBufferFormat>(mNumElements)
-			.reserve<LayoutInfo>(mNumSets)
-			.reserve<VulkanDescriptorLayout*>(mNumSets * numDevices)
-			.reserve<SetExtraInfo>(mNumSets)
-			.reserve<UINT32>(totalNumSlots)
-			.init();
+			.Reserve<GpuParamObjectType>(mNumElements)
+			.Reserve<GpuBufferFormat>(mNumElements)
+			.Reserve<LayoutInfo>(mNumSets)
+			.Reserve<VulkanDescriptorLayout*>(mNumSets * numDevices)
+			.Reserve<SetExtraInfo>(mNumSets)
+			.Reserve<UINT32>(totalNumSlots)
+			.Init();
 
-		mLayoutInfos = mAlloc.alloc<LayoutInfo>(mNumSets);
-		VkDescriptorSetLayoutBinding* bindings = mAlloc.alloc<VkDescriptorSetLayoutBinding>(mNumElements);
-		GpuParamObjectType* types = mAlloc.alloc<GpuParamObjectType>(mNumElements);
-		GpuBufferFormat* elementTypes = mAlloc.alloc<GpuBufferFormat>(mNumElements);
+		mLayoutInfos = mAlloc.Alloc<LayoutInfo>(mNumSets);
+		VkDescriptorSetLayoutBinding* bindings = mAlloc.Alloc<VkDescriptorSetLayoutBinding>(mNumElements);
+		GpuParamObjectType* types = mAlloc.Alloc<GpuParamObjectType>(mNumElements);
+		GpuBufferFormat* elementTypes = mAlloc.Alloc<GpuBufferFormat>(mNumElements);
 
 		for (UINT32 i = 0; i < BS_MAX_DEVICES; i++)
 		{
@@ -52,10 +52,10 @@ namespace bs { namespace ct
 				continue;
 			}
 
-			mLayouts[i] = mAlloc.alloc<VulkanDescriptorLayout*>(mNumSets);
+			mLayouts[i] = mAlloc.Alloc<VulkanDescriptorLayout*>(mNumSets);
 		}
 
-		mSetExtraInfos = mAlloc.alloc<SetExtraInfo>(mNumSets);
+		mSetExtraInfos = mAlloc.Alloc<SetExtraInfo>(mNumSets);
 
 		if(bindings != nullptr)
 			bs_zero_out(bindings, mNumElements);
@@ -69,7 +69,7 @@ namespace bs { namespace ct
 		UINT32 globalBindingIdx = 0;
 		for (UINT32 i = 0; i < mNumSets; i++)
 		{
-			mSetExtraInfos[i].slotIndices = mAlloc.alloc<UINT32>(mSetInfos[i].numSlots);
+			mSetExtraInfos[i].slotIndices = mAlloc.Alloc<UINT32>(mSetInfos[i].numSlots);
 
 			mLayoutInfos[i].numBindings = 0;
 			mLayoutInfos[i].bindings = nullptr;
@@ -121,7 +121,7 @@ namespace bs { namespace ct
 			{
 				for (auto& entry : params)
 				{
-					UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+					UINT32 bindingIdx = GetBindingIdx(entry.second.set, entry.second.slot);
 					assert(bindingIdx != (UINT32)-1);
 
 					VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
@@ -135,7 +135,7 @@ namespace bs { namespace ct
 			{
 				for (auto& entry : params)
 				{
-					UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+					UINT32 bindingIdx = GetBindingIdx(entry.second.set, entry.second.slot);
 					assert(bindingIdx != (UINT32)-1);
 
 					VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
@@ -155,7 +155,7 @@ namespace bs { namespace ct
 			// Set up sampler bindings
 			for (auto& entry : paramDesc->samplers)
 			{
-				UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+				UINT32 bindingIdx = GetBindingIdx(entry.second.set, entry.second.slot);
 				assert(bindingIdx != (UINT32)-1);
 
 				VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
@@ -177,7 +177,7 @@ namespace bs { namespace ct
 			// Set up buffer bindings
 			for (auto& entry : paramDesc->buffers)
 			{
-				UINT32 bindingIdx = getBindingIdx(entry.second.set, entry.second.slot);
+				UINT32 bindingIdx = GetBindingIdx(entry.second.set, entry.second.slot);
 				assert(bindingIdx != (UINT32)-1);
 
 				VkDescriptorSetLayoutBinding& binding = bindings[bindingIdx];
@@ -212,7 +212,7 @@ namespace bs { namespace ct
 
 			VulkanDescriptorManager& descManager = devices[i]->GetDescriptorManager();
 			for (UINT32 j = 0; j < mNumSets; j++)
-				mLayouts[i][j] = descManager.getLayout(mLayoutInfos[j].bindings, mLayoutInfos[j].numBindings);
+				mLayouts[i][j] = descManager.GetLayout(mLayoutInfos[j].bindings, mLayoutInfos[j].numBindings);
 		}
 	}
 
