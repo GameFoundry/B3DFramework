@@ -16,7 +16,7 @@ namespace bs { namespace ct
 	{
 	protected:
 		/** @copydoc RenderStateManager::createSamplerStateInternal */
-		SPtr<SamplerState> CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
+		SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc,
 			GpuDeviceFlags deviceMask) const ;
 
 		/** @copydoc RenderStateManager::CreateGraphicsPipelineStateInternal */

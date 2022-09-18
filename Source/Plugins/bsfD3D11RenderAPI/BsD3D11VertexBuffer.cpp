@@ -22,6 +22,6 @@ namespace bs { namespace ct
 		mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_VERTEX, mUsage, 1, mSize, mDevice, false, mStreamOut);
 		mBufferDeleter = &deleteBuffer;
 
-		Initialize();
+		VertexBuffer::Initialize();
 	}
 }}

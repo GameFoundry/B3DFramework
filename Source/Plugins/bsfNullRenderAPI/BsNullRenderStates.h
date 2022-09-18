@@ -16,16 +16,16 @@ namespace bs { namespace ct
 	{
 	protected:
 		/** @copydoc RenderStateManager::createSamplerStateInternal */
-		SPtr<SamplerState> CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const ;
+		SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const ;
 
 		/** @copydoc RenderStateManager::createBlendStateInternal */
-		SPtr<BlendState> CreateBlendStateInternal(const BLEND_STATE_DESC& desc, UINT32 id) const ;
+		SPtr<BlendState> CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, UINT32 id) const ;
 
 		/** @copydoc RenderStateManager::createRasterizerStateInternal */
-		SPtr<RasterizerState> CreateRasterizerStateInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const ;
+		SPtr<RasterizerState> CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, UINT32 id) const ;
 
 		/** @copydoc RenderStateManager::createDepthStencilStateInternal */
-		SPtr<DepthStencilState> CreateDepthStencilStateInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const ;
+		SPtr<DepthStencilState> CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, UINT32 id) const ;
 	};
 
 	/** @copydoc BlendState */

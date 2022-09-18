@@ -7,7 +7,7 @@
 
 namespace bs { namespace ct
 {
-	SPtr<SamplerState> VulkanRenderStateManager::CreateSamplerStateInternal(const SAMPLER_STATE_DESC& desc,
+	SPtr<SamplerState> VulkanRenderStateManager::CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc,
 		GpuDeviceFlags deviceMask) const
 	{
 		SPtr<VulkanSamplerState> samplerState =
