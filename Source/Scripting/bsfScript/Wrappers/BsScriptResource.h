@@ -94,7 +94,7 @@ namespace bs
 		/** Returns a reference wrapper for this resource. */
 		MonoObject* GetRRef() const
 		{
-			return ScriptResourceBase::getRRef(mResource, ResType::GetRttiStatic()->GetRttiId());
+			return ScriptResourceBase::GetRRef(mResource, ResType::GetRttiStatic()->GetRttiId());
 		}
 
 	protected:
@@ -111,7 +111,7 @@ namespace bs
 		/** @copydoc ScriptObject::_createManagedInstance */
 		MonoObject* CreateManagedInstanceInternal(bool construct) override
 		{
-			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->createInstance(construct);
+			MonoObject* managedInstance = ScriptClass::metaData.scriptClass->CreateInstance(construct);
 			this->SetManagedInstance(managedInstance);
 
 			return managedInstance;
@@ -120,7 +120,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void ClearManagedInstanceInternal() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	
@@ -128,13 +128,13 @@ namespace bs
 		 */
 		void NotifyResourceDestroyed() 
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 			this->Destroy();
 		}
 

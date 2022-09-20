@@ -130,7 +130,7 @@ namespace bs
 	protected:
 		uint32_t mGCHandle = 0;
 		SPtr<ManagedSerializableObjectInfo> mObjInfo;
-		UnorderedMap<ManagedSerializableFieldKey, SPtr<ManagedSerializableFieldData>, Hash, Equals> mCachedData;
+		UnorderedMap<ManagedSerializableFieldKey, SPtr<ManagedSerializableFieldData>, Hash, struct Equals> mCachedData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

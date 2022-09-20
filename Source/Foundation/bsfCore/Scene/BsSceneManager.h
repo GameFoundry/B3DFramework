@@ -281,7 +281,7 @@ namespace bs
 		Vector<GameObjectHandle<T>> output;
 		for(auto& entry : mActiveComponents)
 		{
-			if (isComponentOfType(entry, rttiId))
+			if (IsComponentOfType(entry, rttiId))
 				output.push_back(static_object_cast<T>(entry));
 		}
 
@@ -289,13 +289,13 @@ namespace bs
 		{
 			for(auto& entry : mInactiveComponents)
 			{
-				if (isComponentOfType(entry, rttiId))
+				if (IsComponentOfType(entry, rttiId))
 					output.push_back(static_object_cast<T>(entry));
 			}
 				
 			for(auto& entry : mUninitializedComponents)
 			{
-				if (isComponentOfType(entry, rttiId))
+				if (IsComponentOfType(entry, rttiId))
 					output.push_back(static_object_cast<T>(entry));
 			}
 		}

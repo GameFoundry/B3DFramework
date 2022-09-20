@@ -163,7 +163,7 @@ namespace bs
 		template<class T>
 		inline ScriptArray ScriptArray_create(UINT32 size)
 		{
-			return ScriptArray(*T::getMetaData()->scriptClass, size);
+			return ScriptArray(*T::GetMetaData()->scriptClass, size);
 		}
 
 		template<>

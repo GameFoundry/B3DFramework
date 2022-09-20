@@ -39,7 +39,7 @@ namespace bs
 		template<class T>
 		static ScriptRRefBase* Create(const ResourceHandle<T>& handle, ::MonoClass* rawType = nullptr)
 		{
-			return createInternal(handle, rawType);
+			return CreateInternal(handle, rawType);
 		}
 
 		/** Creates a RRef type with the provided class bound as its template parameter. */

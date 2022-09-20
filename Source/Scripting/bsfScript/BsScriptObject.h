@@ -146,7 +146,7 @@ namespace bs
 			Type* nativeInstance = nullptr;
 
 			if (metaData.thisPtrField != nullptr && managedInstance != nullptr)
-				metaData.thisPtrField->get(managedInstance, &nativeInstance);
+				metaData.thisPtrField->Get(managedInstance, &nativeInstance);
 
 			return nativeInstance;
 		}

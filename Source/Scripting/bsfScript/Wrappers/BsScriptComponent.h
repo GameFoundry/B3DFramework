@@ -73,7 +73,7 @@ namespace bs
 		/** @copydoc ScriptObjectBase::_clearManagedInstance */
 		void ClearManagedInstanceInternal() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**
@@ -82,13 +82,13 @@ namespace bs
 		 */
 		void NotifyDestroyedInternal() override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 		}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override
 		{
-			this->freeManagedInstance();
+			this->FreeManagedInstance();
 
 			this->Destroy(assemblyRefresh);
 		}

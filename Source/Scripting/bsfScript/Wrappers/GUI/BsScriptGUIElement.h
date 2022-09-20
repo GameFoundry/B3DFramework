@@ -74,7 +74,7 @@ namespace bs
 		TScriptGUIElementBase(MonoObject* instance, GUIElementBase* element)
 			:ScriptObject<Type, ScriptGUIElementBaseTBase>(instance)
 		{
-			this->initialize(element);
+			this->Initialize(element);
 		}
 	};
 
@@ -103,7 +103,7 @@ namespace bs
 		TScriptGUIElement(MonoObject* instance, GUIElementBase* element)
 			:ScriptObject<Type, ScriptGUIElementTBase>(instance)
 		{
-			this->initialize(element);
+			this->Initialize(element);
 		}
 	};
 

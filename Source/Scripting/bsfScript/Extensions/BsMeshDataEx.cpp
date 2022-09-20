@@ -98,7 +98,7 @@ namespace bs
 	{
 		UINT32 numElements = meshData->GetData()->GetNumVertices();
 
-		TVertexDataAccessor<Semantic>::set(meshData, (UINT8*)input.data(), numElements * sizeof(TNative));
+		TVertexDataAccessor<Semantic>::Set(meshData, (UINT8*)input.data(), numElements * sizeof(TNative));
 	}
 
 	SPtr<RendererMeshData> MeshDataEx::Create(UINT32 numVertices, UINT32 numIndices, VertexLayout layout, IndexType indexType)
