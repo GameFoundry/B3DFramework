@@ -57,29 +57,29 @@ typedef struct YYLTYPE {
 %glr-parser
 
 %union {
-	int intValue;
-	float floatValue;
-	float matrixValue[16];
-	int intVectorValue[4];
-	const char* strValue;
-	ASTFXNode* nodePtr;
-	NodeOption nodeOption;
+	int IntValue;
+	float FloatValue;
+	float MatrixValue[16];
+	int IntVectorValue[4];
+	const char* StrValue;
+	ASTFXNode* NodePtr;
+	NodeOption NodeOptionValue;
 }
 
 	/* Value types */
-%token <intValue>	TOKEN_INTEGER
-%token <floatValue> TOKEN_FLOAT
-%token <intValue>	TOKEN_BOOLEAN
-%token <strValue>	TOKEN_STRING
-%token <strValue>	TOKEN_IDENTIFIER
+%token <IntValue>	TOKEN_INTEGER
+%token <FloatValue> TOKEN_FLOAT
+%token <IntValue>	TOKEN_BOOLEAN
+%token <StrValue>	TOKEN_STRING
+%token <StrValue>	TOKEN_IDENTIFIER
 
 	/* State value types */
-%token <intValue>	TOKEN_FILLMODEVALUE
-%token <intValue>	TOKEN_CULLANDQUEUEVALUE
-%token <intValue>	TOKEN_COMPFUNCVALUE
-%token <intValue>	TOKEN_OPVALUE
-%token <intValue>	TOKEN_BLENDOPVALUE
-%token <intValue>	TOKEN_COLORMASK
+%token <IntValue>	TOKEN_FILLMODEVALUE
+%token <IntValue>	TOKEN_CULLANDQUEUEVALUE
+%token <IntValue>	TOKEN_COMPFUNCVALUE
+%token <IntValue>	TOKEN_OPVALUE
+%token <IntValue>	TOKEN_BLENDOPVALUE
+%token <IntValue>	TOKEN_COLORMASK
 
 	/* Shader keywords */
 %token TOKEN_OPTIONS TOKEN_SHADER TOKEN_SUBSHADER TOKEN_MIXIN
@@ -114,71 +114,71 @@ typedef struct YYLTYPE {
 	/* Attribute keywords */
 %token TOKEN_NAME TOKEN_SHOW
 
-%type <nodePtr>		root;
-%type <nodeOption>	root_statement;
+%type <NodePtr>		root;
+%type <NodeOptionValue>	root_statement;
 
-%type <nodePtr>		options;
-%type <nodePtr>		options_header;
-%type <nodeOption>	options_option;
+%type <NodePtr>		options;
+%type <NodePtr>		options_header;
+%type <NodeOptionValue>	options_option;
 
-%type <nodePtr>		shader;
-%type <nodePtr>		shader_header;
-%type <nodeOption>	shader_statement;
-%type <nodeOption>	shader_option;
-%type <nodePtr>		tags;
-%type <nodePtr>		tags_header;
+%type <NodePtr>		shader;
+%type <NodePtr>		shader_header;
+%type <NodeOptionValue>	shader_statement;
+%type <NodeOptionValue>	shader_option;
+%type <NodePtr>		tags;
+%type <NodePtr>		tags_header;
 
-%type <nodePtr>		subshader;
-%type <nodePtr>		subshader_header;
+%type <NodePtr>		subshader;
+%type <NodePtr>		subshader_header;
 
-%type <nodePtr>		pass;
-%type <nodePtr>		pass_header;
-%type <nodeOption>	pass_statement;
-%type <nodeOption>	pass_option;
+%type <NodePtr>		pass;
+%type <NodePtr>		pass_header;
+%type <NodeOptionValue>	pass_statement;
+%type <NodeOptionValue>	pass_option;
 
-%type <nodePtr>		variations;
-%type <nodePtr>		variations_header;
-%type <nodePtr>		variation_header_with_attr
-%type <nodeOption>	variation;
-%type <nodePtr>		variation_header;
-%type <nodePtr>  	variation_option;
-%type <nodePtr>		variation_option_with_attr;
-%type <nodeOption>  variation_option_value;
+%type <NodePtr>		variations;
+%type <NodePtr>		variations_header;
+%type <NodePtr>		variation_header_with_attr
+%type <NodeOptionValue>	variation;
+%type <NodePtr>		variation_header;
+%type <NodePtr>  	variation_option;
+%type <NodePtr>		variation_option_with_attr;
+%type <NodeOptionValue>  variation_option_value;
 
-%type <nodePtr>		raster;
-%type <nodePtr>		raster_header;
-%type <nodeOption>	raster_option;
+%type <NodePtr>		raster;
+%type <NodePtr>		raster_header;
+%type <NodeOptionValue>	raster_option;
 
-%type <nodePtr>		depth;
-%type <nodePtr>		depth_header;
-%type <nodeOption>	depth_option;
+%type <NodePtr>		depth;
+%type <NodePtr>		depth_header;
+%type <NodeOptionValue>	depth_option;
 
-%type <nodePtr>		stencil;
-%type <nodePtr>		stencil_header;
-%type <nodeOption>	stencil_option;
+%type <NodePtr>		stencil;
+%type <NodePtr>		stencil_header;
+%type <NodeOptionValue>	stencil_option;
 
-%type <nodePtr>		blend;
-%type <nodePtr>		blend_header;
-%type <nodeOption>	blend_option;
+%type <NodePtr>		blend;
+%type <NodePtr>		blend_header;
+%type <NodeOptionValue>	blend_option;
 
-%type <nodePtr>		code;
-%type <nodePtr>		code_header;
+%type <NodePtr>		code;
+%type <NodePtr>		code_header;
 
-%type <nodePtr>		stencil_op_front_header;
-%type <nodePtr>		stencil_op_back_header;
-%type <nodeOption>	stencil_op_option;
+%type <NodePtr>		stencil_op_front_header;
+%type <NodePtr>		stencil_op_back_header;
+%type <NodeOptionValue>	stencil_op_option;
 
-%type <nodePtr>		target;
-%type <nodePtr>		target_header;
-%type <nodeOption>	target_option;
+%type <NodePtr>		target;
+%type <NodePtr>		target_header;
+%type <NodeOptionValue>	target_option;
 
-%type <nodePtr>		blend_color_header;
-%type <nodePtr>		blend_alpha_header;
-%type <nodeOption>	blenddef_option;
+%type <NodePtr>		blend_color_header;
+%type <NodePtr>		blend_alpha_header;
+%type <NodeOptionValue>	blenddef_option;
 
-%type <nodePtr>		attributes;
-%type <nodePtr>		attributes_header;
-%type <nodeOption>	attribute;
+%type <NodePtr>		attributes;
+%type <NodePtr>		attributes_header;
+%type <NodeOptionValue>	attribute;
 
 %%
 
@@ -186,13 +186,13 @@ typedef struct YYLTYPE {
 
 root
 	: /* empty */				{ }
-	| root_statement root	{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| root_statement root	{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 root_statement
-	: options			{ $$.type = OT_Options; $$.value.nodePtr = $1; }
-	| shader			{ $$.type = OT_Shader; $$.value.nodePtr = $1; }
-	| subshader			{ $$.type = OT_SubShader; $$.value.nodePtr = $1; }
+	: options			{ $$.Type = OT_Options; $$.Value.NodePtr = $1; }
+	| shader			{ $$.Type = OT_Shader; $$.Value.NodePtr = $1; }
+	| subshader			{ $$.Type = OT_SubShader; $$.Value.NodePtr = $1; }
 	;
 
 	/* Options */
@@ -203,22 +203,22 @@ options
 options_header
 	: TOKEN_OPTIONS
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Options); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Options); 
 			nodePush(parse_state, $$);
 		}
 	;	
 	
 options_body
 	: /* empty */
-	| options_option options_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| options_option options_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 	
 options_option
-	: TOKEN_SEPARABLE '=' TOKEN_BOOLEAN ';'			{ $$.type = OT_Separable; $$.value.intValue = $3; }
-	| TOKEN_SORT '=' TOKEN_CULLANDQUEUEVALUE ';'	{ $$.type = OT_Sort; $$.value.intValue = $3; }
-	| TOKEN_PRIORITY '=' TOKEN_INTEGER ';'			{ $$.type = OT_Priority; $$.value.intValue = $3; }
-	| TOKEN_TRANSPARENT '=' TOKEN_BOOLEAN ';'		{ $$.type = OT_Transparent; $$.value.intValue = $3; }
-	| TOKEN_FORWARD '=' TOKEN_BOOLEAN ';'			{ $$.type = OT_Forward; $$.value.intValue = $3; }
+	: TOKEN_SEPARABLE '=' TOKEN_BOOLEAN ';'			{ $$.Type = OT_Separable; $$.Value.IntValue = $3; }
+	| TOKEN_SORT '=' TOKEN_CULLANDQUEUEVALUE ';'	{ $$.Type = OT_Sort; $$.Value.IntValue = $3; }
+	| TOKEN_PRIORITY '=' TOKEN_INTEGER ';'			{ $$.Type = OT_Priority; $$.Value.IntValue = $3; }
+	| TOKEN_TRANSPARENT '=' TOKEN_BOOLEAN ';'		{ $$.Type = OT_Transparent; $$.Value.IntValue = $3; }
+	| TOKEN_FORWARD '=' TOKEN_BOOLEAN ';'			{ $$.Type = OT_Forward; $$.Value.IntValue = $3; }
 	;
 
 	/* Shader */
@@ -230,39 +230,39 @@ shader
 shader_header
 	: TOKEN_SHADER TOKEN_IDENTIFIER
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Shader); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Shader); 
 			nodePush(parse_state, $$);
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $2;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = $2;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
 	| TOKEN_MIXIN TOKEN_IDENTIFIER
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Mixin); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Mixin); 
 			nodePush(parse_state, $$);
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $2;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = $2;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
 	;
 
 shader_body
 	: /* empty */
-	| shader_statement shader_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| shader_statement shader_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 shader_statement
 	: shader_option
-	| pass				{ $$.type = OT_Pass; $$.value.nodePtr = $1; }
+	| pass				{ $$.Type = OT_Pass; $$.Value.NodePtr = $1; }
 	| pass_option
-	| code				{ $$.type = OT_Code; $$.value.nodePtr = $1; }
+	| code				{ $$.Type = OT_Code; $$.Value.NodePtr = $1; }
 	;
 
 shader_option
-	: TOKEN_FEATURESET '=' TOKEN_IDENTIFIER ';'	{ $$.type = OT_FeatureSet; $$.value.strValue = $3; }
-	| TOKEN_MIXIN TOKEN_IDENTIFIER ';'			{ $$.type = OT_Mixin; $$.value.strValue = $2; }
-	| tags										{ $$.type = OT_Tags; $$.value.nodePtr = $1; }
-	| variations								{ $$.type = OT_Variations; $$.value.nodePtr = $1; }
+	: TOKEN_FEATURESET '=' TOKEN_IDENTIFIER ';'	{ $$.Type = OT_FeatureSet; $$.Value.StrValue = $3; }
+	| TOKEN_MIXIN TOKEN_IDENTIFIER ';'			{ $$.Type = OT_Mixin; $$.Value.StrValue = $2; }
+	| tags										{ $$.Type = OT_Tags; $$.Value.NodePtr = $1; }
+	| variations								{ $$.Type = OT_Variations; $$.Value.NodePtr = $1; }
 	;
 	
 	/* Shader tags */
@@ -273,7 +273,7 @@ tags
 tags_header
 	: TOKEN_TAGS '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Tags); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Tags); 
 			nodePush(parse_state, $$);
 		}
 	;
@@ -282,13 +282,13 @@ tags_body
 	: /* empty */
 	| TOKEN_STRING
 		{ 
-			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = $1;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+			NodeOption entry; entry.Type = OT_TagValue; entry.Value.StrValue = $1;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}		
 	| TOKEN_STRING ',' tags_body		
 		{ 
-			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = $1;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+			NodeOption entry; entry.Type = OT_TagValue; entry.Value.StrValue = $1;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}	
 	;
 	
@@ -298,10 +298,10 @@ subshader
 	: subshader_header '{' TOKEN_INDEX '=' TOKEN_INTEGER ';' '}' ';' 
 	{ 
 		NodeOption index;
-		index.type = OT_Index; 
-		index.value.intValue = $5;
+		index.Type = OT_Index; 
+		index.Value.IntValue = $5;
 
-		nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &index);	
+		nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &index);	
 	
 		nodePop(parse_state); 
 		$$ = $1; 
@@ -311,11 +311,11 @@ subshader
 subshader_header
 	: TOKEN_SUBSHADER TOKEN_IDENTIFIER
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_SubShader); 
+			$$ = nodeCreate(parse_state->MemContext, NT_SubShader); 
 			nodePush(parse_state, $$);
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $2;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = $2;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
 	;
 
@@ -328,26 +328,26 @@ pass
 pass_header
 	: TOKEN_PASS
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Pass); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Pass); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 pass_body
 	: /* empty */
-	| pass_statement pass_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| pass_statement pass_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 pass_statement
 	: pass_option
-	| code							{ $$.type = OT_Code; $$.value.nodePtr = $1; }
+	| code							{ $$.Type = OT_Code; $$.Value.NodePtr = $1; }
 	;
 
 pass_option
-	: raster						{ $$.type = OT_Raster; $$.value.nodePtr = $1; }
-	| depth							{ $$.type = OT_Depth; $$.value.nodePtr = $1; }
-	| stencil						{ $$.type = OT_Stencil; $$.value.nodePtr = $1; }
-	| blend							{ $$.type = OT_Blend; $$.value.nodePtr = $1; }
+	: raster						{ $$.Type = OT_Raster; $$.Value.NodePtr = $1; }
+	| depth							{ $$.Type = OT_Depth; $$.Value.NodePtr = $1; }
+	| stencil						{ $$.Type = OT_Stencil; $$.Value.NodePtr = $1; }
+	| blend							{ $$.Type = OT_Blend; $$.Value.NodePtr = $1; }
 	;
 	
 	/* Variations */
@@ -359,26 +359,26 @@ variations
 variations_header
 	: TOKEN_VARIATIONS
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Variations); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Variations); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 variations_body
 	: /* empty */
-	| variation variations_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| variation variations_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 variation
-	: variation_header_with_attr '{' variation_body '}' ';'		{ nodePop(parse_state); $$.type = OT_Variation; $$.value.nodePtr = $1; }	
+	: variation_header_with_attr '{' variation_body '}' ';'		{ nodePop(parse_state); $$.Type = OT_Variation; $$.Value.NodePtr = $1; }	
 	;	
 	
 variation_header_with_attr
 	: variation_header				{ $$ = $1; }
 	| attributes variation_header
 		{ 
-			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = $1;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+			NodeOption attrEntry; attrEntry.Type = OT_Attributes; attrEntry.Value.NodePtr = $1;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &attrEntry);
 
 			$$ = $2;			
 		}
@@ -387,11 +387,11 @@ variation_header_with_attr
 variation_header
 	: TOKEN_IDENTIFIER '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Variation); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Variation); 
 			nodePush(parse_state, $$);
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = $1;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 		
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = $1;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 		
 		}
 	;
 	
@@ -399,13 +399,13 @@ variation_body
 	: /* empty */
 	| variation_option_with_attr						
 		{ 
-			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = $1; 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			NodeOption entry; entry.Type = OT_VariationOption; entry.Value.NodePtr = $1; 
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry);
 		}
 	| variation_option_with_attr ',' variation_body		
 		{ 
-			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = $1; 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			NodeOption entry; entry.Type = OT_VariationOption; entry.Value.NodePtr = $1; 
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry);
 		}
 	;
 	
@@ -417,8 +417,8 @@ variation_option_with_attr
 		}
 	| attributes variation_option 	
 		{ 
-			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = $1;
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+			NodeOption attrEntry; attrEntry.Type = OT_Attributes; attrEntry.Value.NodePtr = $1;
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &attrEntry);
 		
 			$$ = $2;
 			nodePop(parse_state); 
@@ -428,16 +428,16 @@ variation_option_with_attr
 variation_option
 	: variation_option_value 	
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_VariationOption); 
+			$$ = nodeCreate(parse_state->MemContext, NT_VariationOption); 
 			nodePush(parse_state, $$);
 			
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); 	 
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); 	 
 		}
 	;
 	
 variation_option_value
-	: TOKEN_BOOLEAN 	{ $$.type = OT_VariationValue; $$.value.intValue = $1; }
-	| TOKEN_INTEGER 	{ $$.type = OT_VariationValue; $$.value.intValue = $1; }
+	: TOKEN_BOOLEAN 	{ $$.Type = OT_VariationValue; $$.Value.IntValue = $1; }
+	| TOKEN_INTEGER 	{ $$.Type = OT_VariationValue; $$.Value.IntValue = $1; }
 	;
 
 	/* Raster state */
@@ -448,25 +448,25 @@ raster
 raster_header
 	: TOKEN_RASTER
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Raster); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Raster); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 raster_body
 	: /* empty */
-	| raster_option raster_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| raster_option raster_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 raster_option
-	: TOKEN_FILLMODE '=' TOKEN_FILLMODEVALUE ';'				{ $$.type = OT_FillMode; $$.value.intValue = $3; }
-	| TOKEN_CULLMODE '=' TOKEN_CULLANDQUEUEVALUE ';'			{ $$.type = OT_CullMode; $$.value.intValue = $3; }
-	| TOKEN_SCISSOR '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_Scissor; $$.value.intValue = $3; }
-	| TOKEN_MULTISAMPLE '=' TOKEN_BOOLEAN ';'					{ $$.type = OT_Multisample; $$.value.intValue = $3; }
-	| TOKEN_AALINE '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_AALine; $$.value.intValue = $3; }
-	| TOKEN_DEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_DepthBias; $$.value.floatValue = $3; }
-	| TOKEN_SDEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.type = OT_SDepthBias; $$.value.floatValue = $3; }
-	| TOKEN_DEPTHCLIP '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_DepthClip; $$.value.intValue = $3; }	
+	: TOKEN_FILLMODE '=' TOKEN_FILLMODEVALUE ';'				{ $$.Type = OT_FillMode; $$.Value.IntValue = $3; }
+	| TOKEN_CULLMODE '=' TOKEN_CULLANDQUEUEVALUE ';'			{ $$.Type = OT_CullMode; $$.Value.IntValue = $3; }
+	| TOKEN_SCISSOR '=' TOKEN_BOOLEAN ';'						{ $$.Type = OT_Scissor; $$.Value.IntValue = $3; }
+	| TOKEN_MULTISAMPLE '=' TOKEN_BOOLEAN ';'					{ $$.Type = OT_Multisample; $$.Value.IntValue = $3; }
+	| TOKEN_AALINE '=' TOKEN_BOOLEAN ';'						{ $$.Type = OT_AALine; $$.Value.IntValue = $3; }
+	| TOKEN_DEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.Type = OT_DepthBias; $$.Value.FloatValue = $3; }
+	| TOKEN_SDEPTHBIAS '=' TOKEN_FLOAT ';'						{ $$.Type = OT_SDepthBias; $$.Value.FloatValue = $3; }
+	| TOKEN_DEPTHCLIP '=' TOKEN_BOOLEAN ';'						{ $$.Type = OT_DepthClip; $$.Value.IntValue = $3; }	
 	;	
 	
 	/* Depth state */
@@ -477,20 +477,20 @@ depth
 depth_header
 	: TOKEN_DEPTH
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Depth); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Depth); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 depth_body
 	: /* empty */
-	| depth_option depth_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| depth_option depth_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 depth_option
-	: TOKEN_DEPTHREAD '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_DepthRead; $$.value.intValue = $3; }
-	| TOKEN_DEPTHWRITE '=' TOKEN_BOOLEAN ';'					{ $$.type = OT_DepthWrite; $$.value.intValue = $3; }
-	| TOKEN_COMPAREFUNC '=' TOKEN_COMPFUNCVALUE ';'				{ $$.type = OT_CompareFunc; $$.value.intValue = $3; }
+	: TOKEN_DEPTHREAD '=' TOKEN_BOOLEAN ';'						{ $$.Type = OT_DepthRead; $$.Value.IntValue = $3; }
+	| TOKEN_DEPTHWRITE '=' TOKEN_BOOLEAN ';'					{ $$.Type = OT_DepthWrite; $$.Value.IntValue = $3; }
+	| TOKEN_COMPAREFUNC '=' TOKEN_COMPFUNCVALUE ';'				{ $$.Type = OT_CompareFunc; $$.Value.IntValue = $3; }
 	;
 	
 	/* Stencil state */
@@ -501,25 +501,25 @@ stencil
 stencil_header
 	: TOKEN_STENCIL
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Stencil); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Stencil); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 stencil_body
 	: /* empty */
-	| stencil_option stencil_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| stencil_option stencil_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 stencil_option
-	: TOKEN_ENABLED '=' TOKEN_BOOLEAN ';'						{ $$.type = OT_Enabled; $$.value.intValue = $3; }
-	| TOKEN_READMASK '=' TOKEN_INTEGER ';'						{ $$.type = OT_StencilReadMask; $$.value.intValue = $3; }
-	| TOKEN_WRITEMASK '=' TOKEN_INTEGER ';'						{ $$.type = OT_StencilWriteMask; $$.value.intValue = $3; }
-	| stencil_op_front_header '{' stencil_op_body '}' ';'		{ nodePop(parse_state); $$.type = OT_StencilOpFront; $$.value.nodePtr = $1; }
-	| stencil_op_back_header '{' stencil_op_body '}' ';'		{ nodePop(parse_state); $$.type = OT_StencilOpBack; $$.value.nodePtr = $1; }
-	| stencil_op_front_header '{' stencil_op_body_init '}' ';'	{ nodePop(parse_state); $$.type = OT_StencilOpFront; $$.value.nodePtr = $1; }
-	| stencil_op_back_header '{' stencil_op_body_init '}' ';'	{ nodePop(parse_state); $$.type = OT_StencilOpBack; $$.value.nodePtr = $1; }
-	| TOKEN_STENCILREF '=' TOKEN_INTEGER ';'					{ $$.type = OT_StencilRef; $$.value.intValue = $3; }
+	: TOKEN_ENABLED '=' TOKEN_BOOLEAN ';'						{ $$.Type = OT_Enabled; $$.Value.IntValue = $3; }
+	| TOKEN_READMASK '=' TOKEN_INTEGER ';'						{ $$.Type = OT_StencilReadMask; $$.Value.IntValue = $3; }
+	| TOKEN_WRITEMASK '=' TOKEN_INTEGER ';'						{ $$.Type = OT_StencilWriteMask; $$.Value.IntValue = $3; }
+	| stencil_op_front_header '{' stencil_op_body '}' ';'		{ nodePop(parse_state); $$.Type = OT_StencilOpFront; $$.Value.NodePtr = $1; }
+	| stencil_op_back_header '{' stencil_op_body '}' ';'		{ nodePop(parse_state); $$.Type = OT_StencilOpBack; $$.Value.NodePtr = $1; }
+	| stencil_op_front_header '{' stencil_op_body_init '}' ';'	{ nodePop(parse_state); $$.Type = OT_StencilOpFront; $$.Value.NodePtr = $1; }
+	| stencil_op_back_header '{' stencil_op_body_init '}' ';'	{ nodePop(parse_state); $$.Type = OT_StencilOpBack; $$.Value.NodePtr = $1; }
+	| TOKEN_STENCILREF '=' TOKEN_INTEGER ';'					{ $$.Type = OT_StencilRef; $$.Value.IntValue = $3; }
 	;	
 	
 	/* Blend state */
@@ -530,20 +530,20 @@ blend
 blend_header
 	: TOKEN_BLEND
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Blend); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Blend); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 blend_body
 	: /* empty */
-	| blend_option blend_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| blend_option blend_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 blend_option
-	: TOKEN_ALPHATOCOVERAGE '=' TOKEN_BOOLEAN ';'				{ $$.type = OT_AlphaToCoverage; $$.value.intValue = $3; }
-	| TOKEN_INDEPENDANTBLEND '=' TOKEN_BOOLEAN ';'				{ $$.type = OT_IndependantBlend; $$.value.intValue = $3; }
-	| target													{ $$.type = OT_Target; $$.value.nodePtr = $1; }
+	: TOKEN_ALPHATOCOVERAGE '=' TOKEN_BOOLEAN ';'				{ $$.Type = OT_AlphaToCoverage; $$.Value.IntValue = $3; }
+	| TOKEN_INDEPENDANTBLEND '=' TOKEN_BOOLEAN ';'				{ $$.Type = OT_IndependantBlend; $$.Value.IntValue = $3; }
+	| target													{ $$.Type = OT_Target; $$.Value.NodePtr = $1; }
 	;
 	
 	/* Code blocks */
@@ -552,10 +552,10 @@ code
 	: code_header '{' TOKEN_INDEX '=' TOKEN_INTEGER ';' '}' ';'
 	{
 		NodeOption index;
-		index.type = OT_Index; 
-		index.value.intValue = $5;
+		index.Type = OT_Index; 
+		index.Value.IntValue = $5;
 
-		nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &index);
+		nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &index);
 
 		nodePop(parse_state); 
 		$$ = $1;
@@ -565,7 +565,7 @@ code
 code_header
 	: TOKEN_CODE
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Code); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Code); 
 			nodePush(parse_state, $$);
 		}
 	;
@@ -575,7 +575,7 @@ code_header
 stencil_op_front_header
 	: TOKEN_STENCILOPFRONT '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_StencilOp); 
+			$$ = nodeCreate(parse_state->MemContext, NT_StencilOp); 
 			nodePush(parse_state, $$);
 		}
 	;
@@ -583,7 +583,7 @@ stencil_op_front_header
 stencil_op_back_header
 	: TOKEN_STENCILOPBACK '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_StencilOp); 
+			$$ = nodeCreate(parse_state->MemContext, NT_StencilOp); 
 			nodePush(parse_state, $$);
 		}
 	;
@@ -591,28 +591,28 @@ stencil_op_back_header
 stencil_op_body_init
 	: TOKEN_OPVALUE ',' TOKEN_OPVALUE ',' TOKEN_OPVALUE ',' TOKEN_COMPFUNCVALUE
 		{
-			NodeOption fail; fail.type = OT_Fail; fail.value.intValue = $1;
-			NodeOption zfail; zfail.type = OT_ZFail; zfail.value.intValue = $3;
-			NodeOption pass; pass.type = OT_PassOp; pass.value.intValue = $5;
-			NodeOption cmp; cmp.type = OT_CompareFunc; cmp.value.intValue = $7;
+			NodeOption fail; fail.Type = OT_Fail; fail.Value.IntValue = $1;
+			NodeOption zfail; zfail.Type = OT_ZFail; zfail.Value.IntValue = $3;
+			NodeOption pass; pass.Type = OT_PassOp; pass.Value.IntValue = $5;
+			NodeOption cmp; cmp.Type = OT_CompareFunc; cmp.Value.IntValue = $7;
 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &fail);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &zfail);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &pass);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &cmp);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &fail);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &zfail);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &pass);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &cmp);
 		}
 	;
 
 stencil_op_body
 	: /* empty */
-	| stencil_op_option stencil_op_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| stencil_op_option stencil_op_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 stencil_op_option
-	: TOKEN_FAIL '=' TOKEN_OPVALUE ';'					{ $$.type = OT_Fail; $$.value.intValue = $3; }
-	| TOKEN_ZFAIL '=' TOKEN_OPVALUE ';'					{ $$.type = OT_ZFail; $$.value.intValue = $3; }
-	| TOKEN_PASS '=' TOKEN_OPVALUE ';'					{ $$.type = OT_PassOp; $$.value.intValue = $3; }
-	| TOKEN_COMPAREFUNC '=' TOKEN_COMPFUNCVALUE ';'		{ $$.type = OT_CompareFunc; $$.value.intValue = $3; }
+	: TOKEN_FAIL '=' TOKEN_OPVALUE ';'					{ $$.Type = OT_Fail; $$.Value.IntValue = $3; }
+	| TOKEN_ZFAIL '=' TOKEN_OPVALUE ';'					{ $$.Type = OT_ZFail; $$.Value.IntValue = $3; }
+	| TOKEN_PASS '=' TOKEN_OPVALUE ';'					{ $$.Type = OT_PassOp; $$.Value.IntValue = $3; }
+	| TOKEN_COMPAREFUNC '=' TOKEN_COMPFUNCVALUE ';'		{ $$.Type = OT_CompareFunc; $$.Value.IntValue = $3; }
 	; 
 
 	/* Target */
@@ -623,31 +623,31 @@ target
 target_header
 	: TOKEN_TARGET
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_Target); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Target); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 target_body
 	: /* empty */
-	| target_option target_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| target_option target_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 target_option
-	: TOKEN_INDEX '=' TOKEN_INTEGER ';'					{ $$.type = OT_Index; $$.value.intValue = $3; }
-	| TOKEN_ENABLED '=' TOKEN_BOOLEAN ';'				{ $$.type = OT_Enabled; $$.value.intValue = $3; }
-	| blend_color_header '{' blenddef_body '}' ';'		{ nodePop(parse_state); $$.type = OT_Color; $$.value.nodePtr = $1; }
-	| blend_alpha_header '{' blenddef_body '}' ';'		{ nodePop(parse_state); $$.type = OT_Alpha; $$.value.nodePtr = $1; }
-	| blend_color_header '{' blenddef_body_init '}' ';'	{ nodePop(parse_state); $$.type = OT_Color; $$.value.nodePtr = $1; }
-	| blend_alpha_header '{' blenddef_body_init '}' ';'	{ nodePop(parse_state); $$.type = OT_Alpha; $$.value.nodePtr = $1; }
-	| TOKEN_WRITEMASK '=' TOKEN_COLORMASK ';'			{ $$.type = OT_WriteMask; $$.value.intValue = $3; }
+	: TOKEN_INDEX '=' TOKEN_INTEGER ';'					{ $$.Type = OT_Index; $$.Value.IntValue = $3; }
+	| TOKEN_ENABLED '=' TOKEN_BOOLEAN ';'				{ $$.Type = OT_Enabled; $$.Value.IntValue = $3; }
+	| blend_color_header '{' blenddef_body '}' ';'		{ nodePop(parse_state); $$.Type = OT_Color; $$.Value.NodePtr = $1; }
+	| blend_alpha_header '{' blenddef_body '}' ';'		{ nodePop(parse_state); $$.Type = OT_Alpha; $$.Value.NodePtr = $1; }
+	| blend_color_header '{' blenddef_body_init '}' ';'	{ nodePop(parse_state); $$.Type = OT_Color; $$.Value.NodePtr = $1; }
+	| blend_alpha_header '{' blenddef_body_init '}' ';'	{ nodePop(parse_state); $$.Type = OT_Alpha; $$.Value.NodePtr = $1; }
+	| TOKEN_WRITEMASK '=' TOKEN_COLORMASK ';'			{ $$.Type = OT_WriteMask; $$.Value.IntValue = $3; }
 	;
 
 	/* Blend definition */
 blend_color_header
 	: TOKEN_COLOR '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_BlendDef); 
+			$$ = nodeCreate(parse_state->MemContext, NT_BlendDef); 
 			nodePush(parse_state, $$);
 		}
 	;
@@ -655,33 +655,33 @@ blend_color_header
 blend_alpha_header
 	: TOKEN_ALPHA '='
 		{ 
-			$$ = nodeCreate(parse_state->memContext, NT_BlendDef); 
+			$$ = nodeCreate(parse_state->MemContext, NT_BlendDef); 
 			nodePush(parse_state, $$);
 		}
 	;
 
 blenddef_body
 	: /* empty */
-	| blenddef_option blenddef_body		{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| blenddef_option blenddef_body		{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 
 blenddef_body_init
 	: TOKEN_OPVALUE ',' TOKEN_OPVALUE ',' TOKEN_BLENDOPVALUE
 		{
-			NodeOption src; src.type = OT_Source; src.value.intValue = $1;
-			NodeOption dst; dst.type = OT_Dest; dst.value.intValue = $3;
-			NodeOption op; op.type = OT_Op; op.value.intValue = $5;
+			NodeOption src; src.Type = OT_Source; src.Value.IntValue = $1;
+			NodeOption dst; dst.Type = OT_Dest; dst.Value.IntValue = $3;
+			NodeOption op; op.Type = OT_Op; op.Value.IntValue = $5;
 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &src);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &dst);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &op);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &src);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &dst);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &op);
 		}
 	;
 
 blenddef_option
-	: TOKEN_SOURCE '=' TOKEN_OPVALUE ';'					{ $$.type = OT_Source; $$.value.intValue = $3; }
-	| TOKEN_DEST '=' TOKEN_OPVALUE ';'						{ $$.type = OT_Dest; $$.value.intValue = $3; }
-	| TOKEN_OP '=' TOKEN_BLENDOPVALUE ';'					{ $$.type = OT_Op; $$.value.intValue = $3; }
+	: TOKEN_SOURCE '=' TOKEN_OPVALUE ';'					{ $$.Type = OT_Source; $$.Value.IntValue = $3; }
+	| TOKEN_DEST '=' TOKEN_OPVALUE ';'						{ $$.Type = OT_Dest; $$.Value.IntValue = $3; }
+	| TOKEN_OP '=' TOKEN_BLENDOPVALUE ';'					{ $$.Type = OT_Op; $$.Value.IntValue = $3; }
 	;
 	
 	/* Attribute */
@@ -692,29 +692,29 @@ attributes
 attributes_header
 	: '['
 		{
-			$$ = nodeCreate(parse_state->memContext, NT_Attributes); 
+			$$ = nodeCreate(parse_state->MemContext, NT_Attributes); 
 			nodePush(parse_state, $$);
 		}
 	;
 	
 attributes_body
 	: /* empty */
-	| attribute								{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
-	| attribute ','	attributes_body			{ nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &$1); }
+	| attribute								{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
+	| attribute ','	attributes_body			{ nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &$1); }
 	;
 	
 attribute
-	: TOKEN_NAME '(' TOKEN_STRING ')'		{ $$.type = OT_AttrName; $$.value.strValue = $3; }
-	| TOKEN_SHOW 							{ $$.type = OT_AttrShow; $$.value.intValue = 0; }
+	: TOKEN_NAME '(' TOKEN_STRING ')'		{ $$.Type = OT_AttrName; $$.Value.StrValue = $3; }
+	| TOKEN_SHOW 							{ $$.Type = OT_AttrShow; $$.Value.IntValue = 0; }
 	;
 
 %%
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg) 
 { 
-	parse_state->hasError = 1;
-	parse_state->errorLine = locp->first_line;
-	parse_state->errorColumn = locp->first_column;
-	parse_state->errorMessage = mmalloc_strdup(parse_state->memContext, msg);
-	parse_state->errorFile = locp->filename;
+	parse_state->HasError = 1;
+	parse_state->ErrorLine = locp->first_line;
+	parse_state->ErrorColumn = locp->first_column;
+	parse_state->ErrorMessage = mmalloc_strdup(parse_state->MemContext, msg);
+	parse_state->ErrorFile = locp->filename;
 }

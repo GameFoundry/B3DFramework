@@ -33,7 +33,7 @@
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 
 /* C99 says to define __STDC_LIMIT_MACROS before including stdint.h,
- * if you want the limit (max/min) macros for int types.
+ * if you want the limit (max/min) macros for int types. 
  */
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
@@ -50,7 +50,7 @@ typedef uint32_t flex_uint32_t;
 typedef signed char flex_int8_t;
 typedef short int flex_int16_t;
 typedef int flex_int32_t;
-typedef unsigned char flex_uint8_t;
+typedef unsigned char flex_uint8_t; 
 typedef unsigned short int flex_uint16_t;
 typedef unsigned int flex_uint32_t;
 
@@ -181,7 +181,7 @@ typedef size_t yy_size_t;
 
     /* Note: We specifically omit the test for yy_rule_can_match_eol because it requires
      *       access to the local variable yy_act. Since yyless() is a macro, it would break
-     *       existing scanners that call yyless() from OUTSIDE yylex.
+     *       existing scanners that call yyless() from OUTSIDE yylex. 
      *       One obvious solution it to make yy_act a global. I tried that, and saw
      *       a 5% performance hit in a non-yylineno scanner, because yy_act is
      *       normally declared as a register variable-- so it is not worth it.
@@ -193,7 +193,7 @@ typedef size_t yy_size_t;
                     if ( yytext[yyl] == '\n' )\
                         --yylineno;\
             }while(0)
-
+    
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
 	do \
@@ -250,7 +250,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-
+    
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -932,15 +932,15 @@ static yyconst flex_int16_t yy_chk[1328] =
 /* Table of booleans, true if rule could match eol. */
 static yyconst flex_int32_t yy_rule_can_match_eol[196] =
     {   0,
-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0,
+1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 
+    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 
     1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,     };
 
 /* The intent behind this definition is that it'll catch
@@ -981,7 +981,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[196] =
  */
 #include <unistd.h>
 #endif
-
+    
 #define YY_EXTRA_TYPE struct tagParseState *
 
 /* Holds the entire state of the reentrant scanner. */
@@ -1027,9 +1027,9 @@ static int yy_init_globals (yyscan_t yyscanner );
     /* This must go here because YYSTYPE and YYLTYPE are included
      * from bison output in section 1.*/
     #    define yylval yyg->yylval_r
-
+    
     #    define yylloc yyg->yylloc_r
-
+    
 int yylex_init (yyscan_t* scanner);
 
 int yylex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
@@ -1072,9 +1072,9 @@ YYSTYPE * yyget_lval (yyscan_t yyscanner );
 void yyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
 
        YYLTYPE *yyget_lloc (yyscan_t yyscanner );
-
+    
         void yyset_lloc (YYLTYPE * yylloc_param ,yyscan_t yyscanner );
-
+    
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
  */
@@ -1088,7 +1088,7 @@ extern int yywrap (yyscan_t yyscanner );
 #endif
 
     static void yyunput (int c,char *buf_ptr  ,yyscan_t yyscanner);
-
+    
 #ifndef yytext_ptr
 static void yy_flex_strncpy (char *,yyconst char *,int ,yyscan_t yyscanner);
 #endif
@@ -1288,7 +1288,7 @@ yy_find_action:
 			yy_size_t yyl;
 			for ( yyl = 0; yyl < yyleng; ++yyl )
 				if ( yytext[yyl] == '\n' )
-					
+					   
     do{ yylineno++;
         yycolumn=0;
     }while(0)
@@ -1313,27 +1313,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-{ yylval->intValue = atoi(yytext); return TOKEN_INTEGER; }
+{ yylval->IntValue = atoi(yytext); return TOKEN_INTEGER; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-{ yylval->intValue = (int)strtol(yytext, 0, 0); return TOKEN_INTEGER; }
+{ yylval->IntValue = (int)strtol(yytext, 0, 0); return TOKEN_INTEGER; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-{ yylval->floatValue = (float)atof(yytext); return TOKEN_FLOAT; }
+{ yylval->FloatValue = (float)atof(yytext); return TOKEN_FLOAT; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_STRING; }
+{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_STRING; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-{ yylval->intValue = 1; return TOKEN_BOOLEAN; }
+{ yylval->IntValue = 1; return TOKEN_BOOLEAN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-{ yylval->intValue = 0; return TOKEN_BOOLEAN; }
+{ yylval->IntValue = 0; return TOKEN_BOOLEAN; }
 	YY_BREAK
 /* Shader keywords */
 case 8:
@@ -1527,215 +1527,215 @@ YY_RULE_SETUP
 /* State values */
 case 53:
 YY_RULE_SETUP
-{ yylval->intValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }
+{ yylval->IntValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-{ yylval->intValue = FMV_Solid; return TOKEN_FILLMODEVALUE; }
+{ yylval->IntValue = FMV_Solid; return TOKEN_FILLMODEVALUE; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-{ yylval->intValue = CASV_None; return TOKEN_CULLANDQUEUEVALUE; }
+{ yylval->IntValue = CASV_None; return TOKEN_CULLANDQUEUEVALUE; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-{ yylval->intValue = CASV_CW; return TOKEN_CULLANDQUEUEVALUE; }
+{ yylval->IntValue = CASV_CW; return TOKEN_CULLANDQUEUEVALUE; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-{ yylval->intValue = CASV_CCW; return TOKEN_CULLANDQUEUEVALUE; }
+{ yylval->IntValue = CASV_CCW; return TOKEN_CULLANDQUEUEVALUE; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-{ yylval->intValue = CASV_FrontToBack; return TOKEN_CULLANDQUEUEVALUE; }
+{ yylval->IntValue = CASV_FrontToBack; return TOKEN_CULLANDQUEUEVALUE; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-{ yylval->intValue = CASV_BackToFront; return TOKEN_CULLANDQUEUEVALUE; }
+{ yylval->IntValue = CASV_BackToFront; return TOKEN_CULLANDQUEUEVALUE; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_Fail; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_Fail; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_Pass; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_Pass; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_LT; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_LT; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_LTE; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_LTE; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_EQ; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_EQ; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_NEQ; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_NEQ; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_GTE; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_GTE; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-{ yylval->intValue = CFV_GT; return TOKEN_COMPFUNCVALUE; }
+{ yylval->IntValue = CFV_GT; return TOKEN_COMPFUNCVALUE; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Keep; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Keep; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Zero; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Zero; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Replace; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Replace; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Incr; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Incr; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Decr; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Decr; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-{ yylval->intValue = OV_IncrWrap; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_IncrWrap; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-{ yylval->intValue = OV_DecrWrap; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_DecrWrap; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-{ yylval->intValue = OV_Invert; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_Invert; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-{ yylval->intValue = OV_One; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_One; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-{ yylval->intValue = OV_DestColor; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_DestColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-{ yylval->intValue = OV_SrcColor; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_SrcColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-{ yylval->intValue = OV_InvDestColor; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_InvDestColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-{ yylval->intValue = OV_InvSrcColor; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_InvSrcColor; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-{ yylval->intValue = OV_DestAlpha; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_DestAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-{ yylval->intValue = OV_SrcAlpha; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_SrcAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-{ yylval->intValue = OV_InvDestAlpha; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_InvDestAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-{ yylval->intValue = OV_InvSrcAlpha; return TOKEN_OPVALUE; }
+{ yylval->IntValue = OV_InvSrcAlpha; return TOKEN_OPVALUE; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-{ yylval->intValue = BOV_Add; return TOKEN_BLENDOPVALUE; }
+{ yylval->IntValue = BOV_Add; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-{ yylval->intValue = BOV_Subtract; return TOKEN_BLENDOPVALUE; }
+{ yylval->IntValue = BOV_Subtract; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-{ yylval->intValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
+{ yylval->IntValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-{ yylval->intValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
+{ yylval->IntValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-{ yylval->intValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
+{ yylval->IntValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-{ yylval->intValue = 0x0; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x0; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-{ yylval->intValue = 0x1; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x1; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-{ yylval->intValue = 0x2; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x2; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-{ yylval->intValue = 0x4; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x4; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-{ yylval->intValue = 0x8; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x8; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-{ yylval->intValue = 0x3; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x3; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-{ yylval->intValue = 0x5; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x5; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-{ yylval->intValue = 0x9; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x9; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-{ yylval->intValue = 0x6; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x6; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-{ yylval->intValue = 0xA; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xA; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-{ yylval->intValue = 0xC; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xC; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-{ yylval->intValue = 0x7; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0x7; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-{ yylval->intValue = 0xB; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xB; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-{ yylval->intValue = 0xD; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xD; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-{ yylval->intValue = 0xE; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xE; return TOKEN_COLORMASK; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
+{ yylval->IntValue = 0xF; return TOKEN_COLORMASK; }
 	YY_BREAK
 /* Attribute keywords */
 case 106:
@@ -1770,7 +1770,7 @@ YY_RULE_SETUP
 	yy_switch_to_buffer(currentBuffer,yyscanner);
 	yypush_buffer_state(newBuffer,yyscanner);
 
-	yylineno = 0;
+	yylineno = 0; 
 	yycolumn = 0;
 
 	BEGIN(INITIAL);
@@ -1797,7 +1797,7 @@ case YY_STATE_EOF(CONDITIONAL_IFNDEF):
 case YY_STATE_EOF(CONDITIONAL_ELIF):
 case YY_STATE_EOF(CONDITIONAL_IGNORE):
 {
-	if(!yyextra->includeStack)
+	if(!yyextra->IncludeStack)
 		yyterminate();
 
 	yypop_buffer_state(yyscanner);
@@ -1890,7 +1890,7 @@ YY_RULE_SETUP
 case 132:
 /* rule 132 can match eol */
 YY_RULE_SETUP
-{
+{ 
 	int isEnabled = evalConditional(yyextra);
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
@@ -1917,7 +1917,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-{
+{ 
 	int isEnabled = pushConditionalDef(yyextra, hasDefine(yyextra, yytext));
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
@@ -1940,7 +1940,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 141:
 YY_RULE_SETUP
-{
+{ 
 	int isEnabled = pushConditionalDef(yyextra, !hasDefine(yyextra, yytext));
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
@@ -1954,9 +1954,9 @@ YY_RULE_SETUP
 	YY_BREAK
 case 143:
 YY_RULE_SETUP
-{
+{ 
 	if(!switchConditional(yyextra))
-		BEGIN(CONDITIONAL_IGNORE);
+		BEGIN(CONDITIONAL_IGNORE); 
 }
 	YY_BREAK
 case 144:
@@ -1986,7 +1986,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 150:
 YY_RULE_SETUP
-{
+{ 
 	if(switchConditional(yyextra))
 		BEGIN(INITIAL);
 }
@@ -1997,7 +1997,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 152:
 YY_RULE_SETUP
-{
+{ 
 	if(popConditional(yyextra))
 		BEGIN(INITIAL);
 }
@@ -2041,7 +2041,7 @@ YY_RULE_SETUP
 case 162:
 /* rule 162 can match eol */
 YY_RULE_SETUP
-{
+{ 
 	int isEnabled = evalConditional(yyextra);
 	if(!isEnabled)
 		BEGIN(CONDITIONAL_IGNORE);
@@ -2067,7 +2067,7 @@ YY_RULE_SETUP
 /* And finally output a sequential code block index to the parser (it shouldn't be aware of anything else in the block). */
 case 166:
 YY_RULE_SETUP
-{ BEGIN(CODEBLOCK); beginCodeBlock(yyextra, RCT_CodeBlock); yyextra->numOpenBrackets = 1; return yytext[0]; }
+{ BEGIN(CODEBLOCK); beginCodeBlock(yyextra, RCT_CodeBlock); yyextra->NumOpenBrackets = 1; return yytext[0]; }
 	YY_BREAK
 case 167:
 /* rule 167 can match eol */
@@ -2080,14 +2080,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 169:
 YY_RULE_SETUP
-{ yyextra->numOpenBrackets++; appendCodeBlock(yyextra, RCT_CodeBlock, yytext, 1); }
+{ yyextra->NumOpenBrackets++; appendCodeBlock(yyextra, RCT_CodeBlock, yytext, 1); }
 	YY_BREAK
 case 170:
 YY_RULE_SETUP
-{
-	yyextra->numOpenBrackets--;
+{ 
+	yyextra->NumOpenBrackets--; 
 
-	if(yyextra->numOpenBrackets == 0)
+	if(yyextra->NumOpenBrackets == 0)
 	{
 		BEGIN(CODEBLOCK_END);
 		unput('0');
@@ -2114,7 +2114,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 174:
 YY_RULE_SETUP
-{ yylval->intValue = getCodeBlockIndex(yyextra, RCT_CodeBlock); unput('3'); return TOKEN_INTEGER; }
+{ yylval->IntValue = getCodeBlockIndex(yyextra, RCT_CodeBlock); unput('3'); return TOKEN_INTEGER; }
 	YY_BREAK
 case 175:
 YY_RULE_SETUP
@@ -2139,7 +2139,7 @@ YY_RULE_SETUP
 /* And finally output a sequential subshader index to the parser (it shouldn't be aware of anything else in the block). */
 case 179:
 YY_RULE_SETUP
-{ BEGIN(SUBSHADER_BODY); beginCodeBlock(yyextra, RCT_SubShaderBlock); yyextra->numOpenBrackets = 1; return yytext[0]; }
+{ BEGIN(SUBSHADER_BODY); beginCodeBlock(yyextra, RCT_SubShaderBlock); yyextra->NumOpenBrackets = 1; return yytext[0]; }
 	YY_BREAK
 case 180:
 /* rule 180 can match eol */
@@ -2148,7 +2148,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 181:
 YY_RULE_SETUP
-{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_IDENTIFIER; }
+{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_IDENTIFIER; }
 	YY_BREAK
 case 182:
 YY_RULE_SETUP
@@ -2156,14 +2156,14 @@ YY_RULE_SETUP
 	YY_BREAK
 case 183:
 YY_RULE_SETUP
-{ yyextra->numOpenBrackets++; appendCodeBlock(yyextra, RCT_SubShaderBlock, yytext, 1); }
+{ yyextra->NumOpenBrackets++; appendCodeBlock(yyextra, RCT_SubShaderBlock, yytext, 1); }
 	YY_BREAK
 case 184:
 YY_RULE_SETUP
-{
-	yyextra->numOpenBrackets--;
+{ 
+	yyextra->NumOpenBrackets--; 
 
-	if(yyextra->numOpenBrackets == 0)
+	if(yyextra->NumOpenBrackets == 0)
 	{
 		BEGIN(SUBSHADER_END);
 		unput('0');
@@ -2190,7 +2190,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 188:
 YY_RULE_SETUP
-{ yylval->intValue = getCodeBlockIndex(yyextra, RCT_SubShaderBlock); unput('3'); return TOKEN_INTEGER; }
+{ yylval->IntValue = getCodeBlockIndex(yyextra, RCT_SubShaderBlock); unput('3'); return TOKEN_INTEGER; }
 	YY_BREAK
 case 189:
 YY_RULE_SETUP
@@ -2212,7 +2212,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 193:
 YY_RULE_SETUP
-{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_IDENTIFIER; }
+{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_IDENTIFIER; }
 	YY_BREAK
 case 194:
 YY_RULE_SETUP
@@ -2667,7 +2667,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	yyg->yy_hold_char = *++yyg->yy_c_buf_p;
 
 	if ( c == '\n' )
-		
+		   
     do{ yylineno++;
         yycolumn=0;
     }while(0)
@@ -2750,7 +2750,7 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
     YY_BUFFER_STATE yy_create_buffer  (FILE * file, int  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
-
+    
 	b = (YY_BUFFER_STATE) yyalloc(sizeof( struct yy_buffer_state ) ,yyscanner );
 	if ( ! b )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
@@ -2816,7 +2816,7 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
     }
 
         b->yy_is_interactive = 0;
-
+    
 	errno = oerrno;
 }
 
@@ -2922,7 +2922,7 @@ static void yyensure_buffer_stack (yyscan_t yyscanner)
 								, yyscanner);
 		if ( ! yyg->yy_buffer_stack )
 			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
-								
+								  
 		memset(yyg->yy_buffer_stack, 0, num_to_alloc * sizeof(struct yy_buffer_state*));
 				
 		yyg->yy_buffer_stack_max = num_to_alloc;
@@ -2953,12 +2953,12 @@ static void yyensure_buffer_stack (yyscan_t yyscanner)
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
  * @param yyscanner The scanner object.
- * @return the newly allocated buffer state object.
+ * @return the newly allocated buffer state object. 
  */
 YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
-
+    
 	if ( size < 2 ||
 	     base[size-2] != YY_END_OF_BUFFER_CHAR ||
 	     base[size-1] != YY_END_OF_BUFFER_CHAR )
@@ -2994,7 +2994,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscann
  */
 YY_BUFFER_STATE yy_scan_string (yyconst char * yystr , yyscan_t yyscanner)
 {
-
+    
 	return yy_scan_bytes(yystr,strlen(yystr) ,yyscanner);
 }
 
@@ -3011,7 +3011,7 @@ YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len 
 	char *buf;
 	yy_size_t n;
 	yy_size_t i;
-
+    
 	/* Get memory for full buffer, including space for trailing EOB's. */
 	n = _yybytes_len + 2;
 	buf = (char *) yyalloc(n ,yyscanner );
@@ -3079,10 +3079,10 @@ YY_EXTRA_TYPE yyget_extra  (yyscan_t yyscanner)
 int yyget_lineno  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-
+    
         if (! YY_CURRENT_BUFFER)
             return 0;
-
+    
     return yylineno;
 }
 
@@ -3092,10 +3092,10 @@ int yyget_lineno  (yyscan_t yyscanner)
 int yyget_column  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-
+    
         if (! YY_CURRENT_BUFFER)
             return 0;
-
+    
     return yycolumn;
 }
 
@@ -3157,7 +3157,7 @@ void yyset_lineno (int  line_number , yyscan_t yyscanner)
         /* lineno is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
            YY_FATAL_ERROR( "yyset_lineno called with no buffer" );
-
+    
     yylineno = line_number;
 }
 
@@ -3172,7 +3172,7 @@ void yyset_column (int  column_no , yyscan_t yyscanner)
         /* column is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
            YY_FATAL_ERROR( "yyset_column called with no buffer" );
-
+    
     yycolumn = column_no;
 }
 
@@ -3225,13 +3225,13 @@ YYLTYPE *yyget_lloc  (yyscan_t yyscanner)
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yylloc;
 }
-
+    
 void yyset_lloc (YYLTYPE *  yylloc_param , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     yylloc = yylloc_param;
 }
-
+    
 /* User-visible API */
 
 /* yylex_init is special because it creates the scanner itself, so it is
@@ -3286,13 +3286,13 @@ int yylex_init_extra(YY_EXTRA_TYPE yy_user_defined,yyscan_t* ptr_yy_globals )
         errno = ENOMEM;
         return 1;
     }
-
+    
     /* By setting to 0xAA, we expose bugs in
     yy_init_globals. Leave at 0x00 for releases. */
     memset(*ptr_yy_globals,0x00,sizeof(struct yyguts_t));
-
+    
     yyset_extra (yy_user_defined, *ptr_yy_globals);
-
+    
     return yy_init_globals ( *ptr_yy_globals );
 }
 

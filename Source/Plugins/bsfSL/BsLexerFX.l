@@ -41,12 +41,12 @@ DEFINE_EXPR		[^\r\n]*
 %%
 
 {WS}			{ /* Skip blank */ }
-{INTEGER}       { yylval->intValue = atoi(yytext); return TOKEN_INTEGER; }
-{INTEGER_16}    { yylval->intValue = (int)strtol(yytext, 0, 0); return TOKEN_INTEGER; }
-{FLOAT}			{ yylval->floatValue = (float)atof(yytext); return TOKEN_FLOAT; }
-{STRING}		{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_STRING; }
-true			{ yylval->intValue = 1; return TOKEN_BOOLEAN; }
-false			{ yylval->intValue = 0; return TOKEN_BOOLEAN; }
+{INTEGER}       { yylval->IntValue = atoi(yytext); return TOKEN_INTEGER; }
+{INTEGER_16}    { yylval->IntValue = (int)strtol(yytext, 0, 0); return TOKEN_INTEGER; }
+{FLOAT}			{ yylval->FloatValue = (float)atof(yytext); return TOKEN_FLOAT; }
+{STRING}		{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_STRING; }
+true			{ yylval->IntValue = 1; return TOKEN_BOOLEAN; }
+false			{ yylval->IntValue = 0; return TOKEN_BOOLEAN; }
 
 	/* Shader keywords */
 options			{ return TOKEN_OPTIONS; }
@@ -112,64 +112,64 @@ dest				{ return TOKEN_DEST; }
 op					{ return TOKEN_OP; }
 
 	/* State values */
-wire			{ yylval->intValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }
-solid			{ yylval->intValue = FMV_Solid; return TOKEN_FILLMODEVALUE; }
+wire			{ yylval->IntValue = FMV_Wire; return TOKEN_FILLMODEVALUE; }
+solid			{ yylval->IntValue = FMV_Solid; return TOKEN_FILLMODEVALUE; }
 
-none			{ yylval->intValue = CASV_None; return TOKEN_CULLANDQUEUEVALUE; }
-cw				{ yylval->intValue = CASV_CW; return TOKEN_CULLANDQUEUEVALUE; }
-ccw				{ yylval->intValue = CASV_CCW; return TOKEN_CULLANDQUEUEVALUE; }
-fronttoback		{ yylval->intValue = CASV_FrontToBack; return TOKEN_CULLANDQUEUEVALUE; }
-backtofront		{ yylval->intValue = CASV_BackToFront; return TOKEN_CULLANDQUEUEVALUE; }
+none			{ yylval->IntValue = CASV_None; return TOKEN_CULLANDQUEUEVALUE; }
+cw				{ yylval->IntValue = CASV_CW; return TOKEN_CULLANDQUEUEVALUE; }
+ccw				{ yylval->IntValue = CASV_CCW; return TOKEN_CULLANDQUEUEVALUE; }
+fronttoback		{ yylval->IntValue = CASV_FrontToBack; return TOKEN_CULLANDQUEUEVALUE; }
+backtofront		{ yylval->IntValue = CASV_BackToFront; return TOKEN_CULLANDQUEUEVALUE; }
 
-never			{ yylval->intValue = CFV_Fail; return TOKEN_COMPFUNCVALUE; }
-always			{ yylval->intValue = CFV_Pass; return TOKEN_COMPFUNCVALUE; }
-lt				{ yylval->intValue = CFV_LT; return TOKEN_COMPFUNCVALUE; }
-lte				{ yylval->intValue = CFV_LTE; return TOKEN_COMPFUNCVALUE; }
-eq				{ yylval->intValue = CFV_EQ; return TOKEN_COMPFUNCVALUE; }
-neq				{ yylval->intValue = CFV_NEQ; return TOKEN_COMPFUNCVALUE; }
-gte				{ yylval->intValue = CFV_GTE; return TOKEN_COMPFUNCVALUE; }
-gt				{ yylval->intValue = CFV_GT; return TOKEN_COMPFUNCVALUE; }
+never			{ yylval->IntValue = CFV_Fail; return TOKEN_COMPFUNCVALUE; }
+always			{ yylval->IntValue = CFV_Pass; return TOKEN_COMPFUNCVALUE; }
+lt				{ yylval->IntValue = CFV_LT; return TOKEN_COMPFUNCVALUE; }
+lte				{ yylval->IntValue = CFV_LTE; return TOKEN_COMPFUNCVALUE; }
+eq				{ yylval->IntValue = CFV_EQ; return TOKEN_COMPFUNCVALUE; }
+neq				{ yylval->IntValue = CFV_NEQ; return TOKEN_COMPFUNCVALUE; }
+gte				{ yylval->IntValue = CFV_GTE; return TOKEN_COMPFUNCVALUE; }
+gt				{ yylval->IntValue = CFV_GT; return TOKEN_COMPFUNCVALUE; }
 
-keep			{ yylval->intValue = OV_Keep; return TOKEN_OPVALUE; }
-zero			{ yylval->intValue = OV_Zero; return TOKEN_OPVALUE; }
-replace			{ yylval->intValue = OV_Replace; return TOKEN_OPVALUE; }
-inc				{ yylval->intValue = OV_Incr; return TOKEN_OPVALUE; }
-dec				{ yylval->intValue = OV_Decr; return TOKEN_OPVALUE; }
-incwrap			{ yylval->intValue = OV_IncrWrap; return TOKEN_OPVALUE; }
-decwrap			{ yylval->intValue = OV_DecrWrap; return TOKEN_OPVALUE; }
-inverse			{ yylval->intValue = OV_Invert; return TOKEN_OPVALUE; }
-one				{ yylval->intValue = OV_One; return TOKEN_OPVALUE; }
-dstRGB			{ yylval->intValue = OV_DestColor; return TOKEN_OPVALUE; }
-srcRGB			{ yylval->intValue = OV_SrcColor; return TOKEN_OPVALUE; }
-dstIRGB			{ yylval->intValue = OV_InvDestColor; return TOKEN_OPVALUE; }
-srcIRGB			{ yylval->intValue = OV_InvSrcColor; return TOKEN_OPVALUE; }
-dstA			{ yylval->intValue = OV_DestAlpha; return TOKEN_OPVALUE; }
-srcA			{ yylval->intValue = OV_SrcAlpha; return TOKEN_OPVALUE; }
-dstIA			{ yylval->intValue = OV_InvDestAlpha; return TOKEN_OPVALUE; }
-srcIA			{ yylval->intValue = OV_InvSrcAlpha; return TOKEN_OPVALUE; }
+keep			{ yylval->IntValue = OV_Keep; return TOKEN_OPVALUE; }
+zero			{ yylval->IntValue = OV_Zero; return TOKEN_OPVALUE; }
+replace			{ yylval->IntValue = OV_Replace; return TOKEN_OPVALUE; }
+inc				{ yylval->IntValue = OV_Incr; return TOKEN_OPVALUE; }
+dec				{ yylval->IntValue = OV_Decr; return TOKEN_OPVALUE; }
+incwrap			{ yylval->IntValue = OV_IncrWrap; return TOKEN_OPVALUE; }
+decwrap			{ yylval->IntValue = OV_DecrWrap; return TOKEN_OPVALUE; }
+inverse			{ yylval->IntValue = OV_Invert; return TOKEN_OPVALUE; }
+one				{ yylval->IntValue = OV_One; return TOKEN_OPVALUE; }
+dstRGB			{ yylval->IntValue = OV_DestColor; return TOKEN_OPVALUE; }
+srcRGB			{ yylval->IntValue = OV_SrcColor; return TOKEN_OPVALUE; }
+dstIRGB			{ yylval->IntValue = OV_InvDestColor; return TOKEN_OPVALUE; }
+srcIRGB			{ yylval->IntValue = OV_InvSrcColor; return TOKEN_OPVALUE; }
+dstA			{ yylval->IntValue = OV_DestAlpha; return TOKEN_OPVALUE; }
+srcA			{ yylval->IntValue = OV_SrcAlpha; return TOKEN_OPVALUE; }
+dstIA			{ yylval->IntValue = OV_InvDestAlpha; return TOKEN_OPVALUE; }
+srcIA			{ yylval->IntValue = OV_InvSrcAlpha; return TOKEN_OPVALUE; }
 
-add				{ yylval->intValue = BOV_Add; return TOKEN_BLENDOPVALUE; }
-sub				{ yylval->intValue = BOV_Subtract; return TOKEN_BLENDOPVALUE; }
-rsub			{ yylval->intValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
-min				{ yylval->intValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
-max				{ yylval->intValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
+add				{ yylval->IntValue = BOV_Add; return TOKEN_BLENDOPVALUE; }
+sub				{ yylval->IntValue = BOV_Subtract; return TOKEN_BLENDOPVALUE; }
+rsub			{ yylval->IntValue = BOV_RevSubtract; return TOKEN_BLENDOPVALUE; }
+min				{ yylval->IntValue = BOV_Min; return TOKEN_BLENDOPVALUE; }
+max				{ yylval->IntValue = BOV_Max; return TOKEN_BLENDOPVALUE; }
 
-empty			{ yylval->intValue = 0x0; return TOKEN_COLORMASK; }
-R				{ yylval->intValue = 0x1; return TOKEN_COLORMASK; }
-G				{ yylval->intValue = 0x2; return TOKEN_COLORMASK; }
-B				{ yylval->intValue = 0x4; return TOKEN_COLORMASK; }
-A				{ yylval->intValue = 0x8; return TOKEN_COLORMASK; }
-RG				{ yylval->intValue = 0x3; return TOKEN_COLORMASK; }
-RB				{ yylval->intValue = 0x5; return TOKEN_COLORMASK; }
-RA				{ yylval->intValue = 0x9; return TOKEN_COLORMASK; }
-GB				{ yylval->intValue = 0x6; return TOKEN_COLORMASK; }
-GA				{ yylval->intValue = 0xA; return TOKEN_COLORMASK; }
-BA				{ yylval->intValue = 0xC; return TOKEN_COLORMASK; }
-RGB				{ yylval->intValue = 0x7; return TOKEN_COLORMASK; }
-RGA				{ yylval->intValue = 0xB; return TOKEN_COLORMASK; }
-RBA				{ yylval->intValue = 0xD; return TOKEN_COLORMASK; }
-GBA				{ yylval->intValue = 0xE; return TOKEN_COLORMASK; }
-RGBA			{ yylval->intValue = 0xF; return TOKEN_COLORMASK; }
+empty			{ yylval->IntValue = 0x0; return TOKEN_COLORMASK; }
+R				{ yylval->IntValue = 0x1; return TOKEN_COLORMASK; }
+G				{ yylval->IntValue = 0x2; return TOKEN_COLORMASK; }
+B				{ yylval->IntValue = 0x4; return TOKEN_COLORMASK; }
+A				{ yylval->IntValue = 0x8; return TOKEN_COLORMASK; }
+RG				{ yylval->IntValue = 0x3; return TOKEN_COLORMASK; }
+RB				{ yylval->IntValue = 0x5; return TOKEN_COLORMASK; }
+RA				{ yylval->IntValue = 0x9; return TOKEN_COLORMASK; }
+GB				{ yylval->IntValue = 0x6; return TOKEN_COLORMASK; }
+GA				{ yylval->IntValue = 0xA; return TOKEN_COLORMASK; }
+BA				{ yylval->IntValue = 0xC; return TOKEN_COLORMASK; }
+RGB				{ yylval->IntValue = 0x7; return TOKEN_COLORMASK; }
+RGA				{ yylval->IntValue = 0xB; return TOKEN_COLORMASK; }
+RBA				{ yylval->IntValue = 0xD; return TOKEN_COLORMASK; }
+GBA				{ yylval->IntValue = 0xE; return TOKEN_COLORMASK; }
+RGBA			{ yylval->IntValue = 0xF; return TOKEN_COLORMASK; }
 
 	/* Attribute keywords */
 name			{ return TOKEN_NAME; }
@@ -199,7 +199,7 @@ show			{ return TOKEN_SHOW; }
 <INCLUDE>.				{ return yytext[0]; }
 
 <<EOF>>					{
-	if(!yyextra->includeStack)
+	if(!yyextra->IncludeStack)
 		yyterminate();
 
 	yypop_buffer_state(yyscanner);
@@ -308,15 +308,15 @@ code			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_CODE; }
 	/* Track when the code block begins, insert all code block characters into our own buffer, record a sequential index */
 	/* of all code blocks in the text, and track bracket open/closed state so we know when we're done with the code block. */
 	/* And finally output a sequential code block index to the parser (it shouldn't be aware of anything else in the block). */
-<CODEBLOCK_HEADER>\{	{ BEGIN(CODEBLOCK); beginCodeBlock(yyextra, RCT_CodeBlock); yyextra->numOpenBrackets = 1; return yytext[0]; }
+<CODEBLOCK_HEADER>\{	{ BEGIN(CODEBLOCK); beginCodeBlock(yyextra, RCT_CodeBlock); yyextra->NumOpenBrackets = 1; return yytext[0]; }
 <CODEBLOCK_HEADER>{WS}	{ /* Skip blank */ }
 <CODEBLOCK_HEADER>.		{ return yytext[0]; }
 
-<CODEBLOCK>\{			{ yyextra->numOpenBrackets++; appendCodeBlock(yyextra, RCT_CodeBlock, yytext, 1); }
+<CODEBLOCK>\{			{ yyextra->NumOpenBrackets++; appendCodeBlock(yyextra, RCT_CodeBlock, yytext, 1); }
 <CODEBLOCK>\}			{ 
-	yyextra->numOpenBrackets--; 
+	yyextra->NumOpenBrackets--; 
 
-	if(yyextra->numOpenBrackets == 0)
+	if(yyextra->NumOpenBrackets == 0)
 	{
 		BEGIN(CODEBLOCK_END);
 		unput('0');
@@ -331,7 +331,7 @@ code			{ BEGIN(CODEBLOCK_HEADER); return TOKEN_CODE; }
 	/* (since the starting value was also a single character "{"). */
 <CODEBLOCK_END>0	{ unput('1'); return TOKEN_INDEX; }
 <CODEBLOCK_END>1	{ unput('2'); return '='; }
-<CODEBLOCK_END>2	{ yylval->intValue = getCodeBlockIndex(yyextra, RCT_CodeBlock); unput('3'); return TOKEN_INTEGER; }
+<CODEBLOCK_END>2	{ yylval->IntValue = getCodeBlockIndex(yyextra, RCT_CodeBlock); unput('3'); return TOKEN_INTEGER; }
 <CODEBLOCK_END>3	{ unput('4'); return ';'; }
 <CODEBLOCK_END>4	{ BEGIN(INITIAL); return '}'; }
 <CODEBLOCK_END>.|{WS}	{ /* Never reached */ }
@@ -342,16 +342,16 @@ subshader				{ BEGIN(SUBSHADER_HEADER); return TOKEN_SUBSHADER; }
 	/* Track when the subshader begins, insert all subshader characters into our own buffer, record a sequential index */
 	/* of all subshaders in the text, and track bracket open/closed state so we know when we're done with the subshader. */
 	/* And finally output a sequential subshader index to the parser (it shouldn't be aware of anything else in the block). */
-<SUBSHADER_HEADER>\{				{ BEGIN(SUBSHADER_BODY); beginCodeBlock(yyextra, RCT_SubShaderBlock); yyextra->numOpenBrackets = 1; return yytext[0]; }
+<SUBSHADER_HEADER>\{				{ BEGIN(SUBSHADER_BODY); beginCodeBlock(yyextra, RCT_SubShaderBlock); yyextra->NumOpenBrackets = 1; return yytext[0]; }
 <SUBSHADER_HEADER>{WS}				{ /* Skip blank */ }
-<SUBSHADER_HEADER>{IDENTIFIER}		{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_IDENTIFIER; }
+<SUBSHADER_HEADER>{IDENTIFIER}		{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_IDENTIFIER; }
 <SUBSHADER_HEADER>.					{ return yytext[0]; }
 
-<SUBSHADER_BODY>\{			{ yyextra->numOpenBrackets++; appendCodeBlock(yyextra, RCT_SubShaderBlock, yytext, 1); }
+<SUBSHADER_BODY>\{			{ yyextra->NumOpenBrackets++; appendCodeBlock(yyextra, RCT_SubShaderBlock, yytext, 1); }
 <SUBSHADER_BODY>\}			{ 
-	yyextra->numOpenBrackets--; 
+	yyextra->NumOpenBrackets--; 
 
-	if(yyextra->numOpenBrackets == 0)
+	if(yyextra->NumOpenBrackets == 0)
 	{
 		BEGIN(SUBSHADER_END);
 		unput('0');
@@ -366,14 +366,14 @@ subshader				{ BEGIN(SUBSHADER_HEADER); return TOKEN_SUBSHADER; }
 	/* (since the starting value was also a single character "{"). */
 <SUBSHADER_END>0	{ unput('1'); return TOKEN_INDEX; }
 <SUBSHADER_END>1	{ unput('2'); return '='; }
-<SUBSHADER_END>2	{ yylval->intValue = getCodeBlockIndex(yyextra, RCT_SubShaderBlock); unput('3'); return TOKEN_INTEGER; }
+<SUBSHADER_END>2	{ yylval->IntValue = getCodeBlockIndex(yyextra, RCT_SubShaderBlock); unput('3'); return TOKEN_INTEGER; }
 <SUBSHADER_END>3	{ unput('4'); return ';'; }
 <SUBSHADER_END>4	{ BEGIN(INITIAL); return '}'; }
 <SUBSHADER_END>.|{WS}	{ /* Never reached */ }
 
 	/* Catch all rules */
 {COMMENT}			{ }
-{IDENTIFIER}		{ yylval->strValue = mmalloc_strdup(yyextra->memContext, yytext); return TOKEN_IDENTIFIER; }
+{IDENTIFIER}		{ yylval->StrValue = mmalloc_strdup(yyextra->MemContext, yytext); return TOKEN_IDENTIFIER; }
 .					{ return yytext[0]; }
 
 %%

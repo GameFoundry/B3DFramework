@@ -1,19 +1,19 @@
 /* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Skeleton interface for Bison GLR parsers in C
-
+   
       Copyright (C) 2002-2012 Free Software Foundation, Inc.
-
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,7 +26,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -157,13 +157,13 @@ typedef union YYSTYPE
 {
 
 
-	int intValue;
-	float floatValue;
-	float matrixValue[16];
-	int intVectorValue[4];
-	const char* strValue;
-	ASTFXNode* nodePtr;
-	NodeOption nodeOption;
+	int IntValue;
+	float FloatValue;
+	float MatrixValue[16];
+	int IntVectorValue[4];
+	const char* StrValue;
+	ASTFXNode* NodePtr;
+	NodeOption NodeOptionValue;
 
 
 

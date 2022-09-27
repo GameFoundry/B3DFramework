@@ -1,19 +1,19 @@
 /* A Bison parser, made by GNU Bison 2.7.  */
 
 /* Skeleton implementation for Bison GLR parsers in C
-
+   
       Copyright (C) 2002-2012 Free Software Foundation, Inc.
-
+   
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-
+   
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -26,7 +26,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-
+   
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -1275,723 +1275,723 @@ yyuserAction (yyRuleNum yyn, int yyrhslen, yyGLRStackItem* yyvsp,
 
   case 3:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 4:
 
-    { ((*yyvalp).nodeOption).type = OT_Options; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Options; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 5:
 
-    { ((*yyvalp).nodeOption).type = OT_Shader; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Shader; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 6:
 
-    { ((*yyvalp).nodeOption).type = OT_SubShader; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_SubShader; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 7:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 8:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Options);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Options); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 10:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 11:
 
-    { ((*yyvalp).nodeOption).type = OT_Separable; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Separable; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 12:
 
-    { ((*yyvalp).nodeOption).type = OT_Sort; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Sort; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 13:
 
-    { ((*yyvalp).nodeOption).type = OT_Priority; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Priority; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 14:
 
-    { ((*yyvalp).nodeOption).type = OT_Transparent; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Transparent; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 15:
 
-    { ((*yyvalp).nodeOption).type = OT_Forward; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Forward; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 16:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 17:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Shader);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Shader); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
     break;
 
   case 18:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Mixin);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Mixin); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
     break;
 
   case 20:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 22:
 
-    { ((*yyvalp).nodeOption).type = OT_Pass; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Pass; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 24:
 
-    { ((*yyvalp).nodeOption).type = OT_Code; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Code; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 25:
 
-    { ((*yyvalp).nodeOption).type = OT_FeatureSet; ((*yyvalp).nodeOption).value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.strValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_FeatureSet; ((*yyvalp).NodeOptionValue).Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.StrValue); }
     break;
 
   case 26:
 
-    { ((*yyvalp).nodeOption).type = OT_Mixin; ((*yyvalp).nodeOption).value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (3))].yystate.yysemantics.yysval.strValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Mixin; ((*yyvalp).NodeOptionValue).Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (3))].yystate.yysemantics.yysval.StrValue); }
     break;
 
   case 27:
 
-    { ((*yyvalp).nodeOption).type = OT_Tags; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Tags; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 28:
 
-    { ((*yyvalp).nodeOption).type = OT_Variations; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Variations; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 29:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 30:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Tags);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Tags); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 32:
 
-    {
-			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+    { 
+			NodeOption entry; entry.Type = OT_TagValue; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
     break;
 
   case 33:
 
-    {
-			NodeOption entry; entry.type = OT_TagValue; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+    { 
+			NodeOption entry; entry.Type = OT_TagValue; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
     break;
 
   case 34:
 
-    {
+    { 
 		NodeOption index;
-		index.type = OT_Index;
-		index.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (8))].yystate.yysemantics.yysval.intValue);
+		index.Type = OT_Index; 
+		index.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (8))].yystate.yysemantics.yysval.IntValue);
 
-		nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &index);	
+		nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &index);	
 	
-		nodePop(parse_state);
-		((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (8))].yystate.yysemantics.yysval.nodePtr);
+		nodePop(parse_state); 
+		((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (8))].yystate.yysemantics.yysval.NodePtr); 
 	}
     break;
 
   case 35:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_SubShader);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_SubShader); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 
 		}
     break;
 
   case 36:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 37:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Pass);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Pass); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 39:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 41:
 
-    { ((*yyvalp).nodeOption).type = OT_Code; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Code; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 42:
 
-    { ((*yyvalp).nodeOption).type = OT_Raster; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Raster; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 43:
 
-    { ((*yyvalp).nodeOption).type = OT_Depth; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Depth; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 44:
 
-    { ((*yyvalp).nodeOption).type = OT_Stencil; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Stencil; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 45:
 
-    { ((*yyvalp).nodeOption).type = OT_Blend; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Blend; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 46:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 47:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Variations);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Variations); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 49:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 50:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_Variation; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_Variation; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 51:
 
-    { ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 52:
 
-    {
-			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodePtr);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+    { 
+			NodeOption attrEntry; attrEntry.Type = OT_Attributes; attrEntry.Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodePtr);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &attrEntry);
 
-			((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.nodePtr);			
+			((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.NodePtr);			
 		}
     break;
 
   case 53:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Variation);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Variation); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 			
-			NodeOption entry; entry.type = OT_Identifier; entry.value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.strValue);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry); 		
+			NodeOption entry; entry.Type = OT_Identifier; entry.Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.StrValue);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry); 		
 		}
     break;
 
   case 55:
 
-    {
-			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+    { 
+			NodeOption entry; entry.Type = OT_VariationOption; entry.Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); 
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry);
 		}
     break;
 
   case 56:
 
-    {
-			NodeOption entry; entry.type = OT_VariationOption; entry.value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.nodePtr);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &entry);
+    { 
+			NodeOption entry; entry.Type = OT_VariationOption; entry.Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.NodePtr); 
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &entry);
 		}
     break;
 
   case 57:
 
-    {
-			((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr);
+    { 
+			((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr);
 			nodePop(parse_state);
 		}
     break;
 
   case 58:
 
-    {
-			NodeOption attrEntry; attrEntry.type = OT_Attributes; attrEntry.value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodePtr);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &attrEntry);
+    { 
+			NodeOption attrEntry; attrEntry.Type = OT_Attributes; attrEntry.Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodePtr);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &attrEntry);
 		
-			((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.nodePtr);
-			nodePop(parse_state);
+			((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((2) - (2))].yystate.yysemantics.yysval.NodePtr);
+			nodePop(parse_state); 
 		}
     break;
 
   case 59:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_VariationOption);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_VariationOption); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 			
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodeOption)); 	
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodeOptionValue)); 	 
 		}
     break;
 
   case 60:
 
-    { ((*yyvalp).nodeOption).type = OT_VariationValue; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_VariationValue; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 61:
 
-    { ((*yyvalp).nodeOption).type = OT_VariationValue; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_VariationValue; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 62:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 63:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Raster);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Raster); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 65:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 66:
 
-    { ((*yyvalp).nodeOption).type = OT_FillMode; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_FillMode; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 67:
 
-    { ((*yyvalp).nodeOption).type = OT_CullMode; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_CullMode; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 68:
 
-    { ((*yyvalp).nodeOption).type = OT_Scissor; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Scissor; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 69:
 
-    { ((*yyvalp).nodeOption).type = OT_Multisample; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Multisample; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 70:
 
-    { ((*yyvalp).nodeOption).type = OT_AALine; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_AALine; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 71:
 
-    { ((*yyvalp).nodeOption).type = OT_DepthBias; ((*yyvalp).nodeOption).value.floatValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.floatValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_DepthBias; ((*yyvalp).NodeOptionValue).Value.FloatValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.FloatValue); }
     break;
 
   case 72:
 
-    { ((*yyvalp).nodeOption).type = OT_SDepthBias; ((*yyvalp).nodeOption).value.floatValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.floatValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_SDepthBias; ((*yyvalp).NodeOptionValue).Value.FloatValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.FloatValue); }
     break;
 
   case 73:
 
-    { ((*yyvalp).nodeOption).type = OT_DepthClip; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_DepthClip; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 74:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 75:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Depth);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Depth); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 77:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 78:
 
-    { ((*yyvalp).nodeOption).type = OT_DepthRead; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_DepthRead; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 79:
 
-    { ((*yyvalp).nodeOption).type = OT_DepthWrite; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_DepthWrite; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 80:
 
-    { ((*yyvalp).nodeOption).type = OT_CompareFunc; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_CompareFunc; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 81:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 82:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Stencil);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Stencil); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 84:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 85:
 
-    { ((*yyvalp).nodeOption).type = OT_Enabled; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Enabled; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 86:
 
-    { ((*yyvalp).nodeOption).type = OT_StencilReadMask; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_StencilReadMask; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 87:
 
-    { ((*yyvalp).nodeOption).type = OT_StencilWriteMask; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_StencilWriteMask; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 88:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_StencilOpFront; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_StencilOpFront; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 89:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_StencilOpBack; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_StencilOpBack; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 90:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_StencilOpFront; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_StencilOpFront; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 91:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_StencilOpBack; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_StencilOpBack; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 92:
 
-    { ((*yyvalp).nodeOption).type = OT_StencilRef; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_StencilRef; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 93:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 94:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Blend);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Blend); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 96:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 97:
 
-    { ((*yyvalp).nodeOption).type = OT_AlphaToCoverage; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_AlphaToCoverage; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 98:
 
-    { ((*yyvalp).nodeOption).type = OT_IndependantBlend; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_IndependantBlend; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 99:
 
-    { ((*yyvalp).nodeOption).type = OT_Target; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodePtr); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Target; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 100:
 
     {
 		NodeOption index;
-		index.type = OT_Index;
-		index.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (8))].yystate.yysemantics.yysval.intValue);
+		index.Type = OT_Index; 
+		index.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (8))].yystate.yysemantics.yysval.IntValue);
 
-		nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &index);
+		nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &index);
 
-		nodePop(parse_state);
-		((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (8))].yystate.yysemantics.yysval.nodePtr);
+		nodePop(parse_state); 
+		((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (8))].yystate.yysemantics.yysval.NodePtr);
 	}
     break;
 
   case 101:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Code);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Code); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 102:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_StencilOp);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_StencilOp); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 103:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_StencilOp);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_StencilOp); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 104:
 
     {
-			NodeOption fail; fail.type = OT_Fail; fail.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (7))].yystate.yysemantics.yysval.intValue);
-			NodeOption zfail; zfail.type = OT_ZFail; zfail.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (7))].yystate.yysemantics.yysval.intValue);
-			NodeOption pass; pass.type = OT_PassOp; pass.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (7))].yystate.yysemantics.yysval.intValue);
-			NodeOption cmp; cmp.type = OT_CompareFunc; cmp.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((7) - (7))].yystate.yysemantics.yysval.intValue);
+			NodeOption fail; fail.Type = OT_Fail; fail.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (7))].yystate.yysemantics.yysval.IntValue);
+			NodeOption zfail; zfail.Type = OT_ZFail; zfail.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (7))].yystate.yysemantics.yysval.IntValue);
+			NodeOption pass; pass.Type = OT_PassOp; pass.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (7))].yystate.yysemantics.yysval.IntValue);
+			NodeOption cmp; cmp.Type = OT_CompareFunc; cmp.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((7) - (7))].yystate.yysemantics.yysval.IntValue);
 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &fail);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &zfail);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &pass);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &cmp);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &fail);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &zfail);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &pass);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &cmp);
 		}
     break;
 
   case 106:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 107:
 
-    { ((*yyvalp).nodeOption).type = OT_Fail; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Fail; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 108:
 
-    { ((*yyvalp).nodeOption).type = OT_ZFail; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_ZFail; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 109:
 
-    { ((*yyvalp).nodeOption).type = OT_PassOp; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_PassOp; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 110:
 
-    { ((*yyvalp).nodeOption).type = OT_CompareFunc; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_CompareFunc; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 111:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 112:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Target);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Target); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 114:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 115:
 
-    { ((*yyvalp).nodeOption).type = OT_Index; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Index; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 116:
 
-    { ((*yyvalp).nodeOption).type = OT_Enabled; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Enabled; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 117:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_Color; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_Color; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 118:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_Alpha; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_Alpha; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 119:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_Color; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_Color; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 120:
 
-    { nodePop(parse_state); ((*yyvalp).nodeOption).type = OT_Alpha; ((*yyvalp).nodeOption).value.nodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodeOptionValue).Type = OT_Alpha; ((*yyvalp).NodeOptionValue).Value.NodePtr = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 121:
 
-    { ((*yyvalp).nodeOption).type = OT_WriteMask; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_WriteMask; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 122:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_BlendDef);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_BlendDef); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 123:
 
-    {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_BlendDef);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+    { 
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_BlendDef); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 125:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (2))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 126:
 
     {
-			NodeOption src; src.type = OT_Source; src.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.intValue);
-			NodeOption dst; dst.type = OT_Dest; dst.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (5))].yystate.yysemantics.yysval.intValue);
-			NodeOption op; op.type = OT_Op; op.value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (5))].yystate.yysemantics.yysval.intValue);
+			NodeOption src; src.Type = OT_Source; src.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (5))].yystate.yysemantics.yysval.IntValue);
+			NodeOption dst; dst.Type = OT_Dest; dst.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (5))].yystate.yysemantics.yysval.IntValue);
+			NodeOption op; op.Type = OT_Op; op.Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((5) - (5))].yystate.yysemantics.yysval.IntValue);
 
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &src);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &dst);
-			nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &op);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &src);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &dst);
+			nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &op);
 		}
     break;
 
   case 127:
 
-    { ((*yyvalp).nodeOption).type = OT_Source; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Source; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 128:
 
-    { ((*yyvalp).nodeOption).type = OT_Dest; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Dest; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 129:
 
-    { ((*yyvalp).nodeOption).type = OT_Op; ((*yyvalp).nodeOption).value.intValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.intValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_Op; ((*yyvalp).NodeOptionValue).Value.IntValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.IntValue); }
     break;
 
   case 130:
 
-    { nodePop(parse_state); ((*yyvalp).nodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.nodePtr); }
+    { nodePop(parse_state); ((*yyvalp).NodePtr) = (((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.NodePtr); }
     break;
 
   case 131:
 
     {
-			((*yyvalp).nodePtr) = nodeCreate(parse_state->memContext, NT_Attributes);
-			nodePush(parse_state, ((*yyvalp).nodePtr));
+			((*yyvalp).NodePtr) = nodeCreate(parse_state->MemContext, NT_Attributes); 
+			nodePush(parse_state, ((*yyvalp).NodePtr));
 		}
     break;
 
   case 133:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (1))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 134:
 
-    { nodeOptionsAdd(parse_state->memContext, parse_state->topNode->options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.nodeOption)); }
+    { nodeOptionsAdd(parse_state->MemContext, parse_state->TopNode->Options, &(((yyGLRStackItem const *)yyvsp)[YYFILL ((1) - (3))].yystate.yysemantics.yysval.NodeOptionValue)); }
     break;
 
   case 135:
 
-    { ((*yyvalp).nodeOption).type = OT_AttrName; ((*yyvalp).nodeOption).value.strValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.strValue); }
+    { ((*yyvalp).NodeOptionValue).Type = OT_AttrName; ((*yyvalp).NodeOptionValue).Value.StrValue = (((yyGLRStackItem const *)yyvsp)[YYFILL ((3) - (4))].yystate.yysemantics.yysval.StrValue); }
     break;
 
   case 136:
 
-    { ((*yyvalp).nodeOption).type = OT_AttrShow; ((*yyvalp).nodeOption).value.intValue = 0; }
+    { ((*yyvalp).NodeOptionValue).Type = OT_AttrShow; ((*yyvalp).NodeOptionValue).Value.IntValue = 0; }
     break;
 
 
@@ -2018,7 +2018,7 @@ yyuserMerge (int yyn, YYSTYPE* yy0, YYSTYPE* yy1)
 
   switch (yyn)
     {
-
+      
       default: break;
     }
 }
@@ -3724,11 +3724,11 @@ yypdumpstack (yyGLRStack* yystackp)
 
 
 
-void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg)
-{
-	parse_state->hasError = 1;
-	parse_state->errorLine = locp->first_line;
-	parse_state->errorColumn = locp->first_column;
-	parse_state->errorMessage = mmalloc_strdup(parse_state->memContext, msg);
-	parse_state->errorFile = locp->filename;
+void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg) 
+{ 
+	parse_state->HasError = 1;
+	parse_state->ErrorLine = locp->first_line;
+	parse_state->ErrorColumn = locp->first_column;
+	parse_state->ErrorMessage = mmalloc_strdup(parse_state->MemContext, msg);
+	parse_state->ErrorFile = locp->filename;
 }
