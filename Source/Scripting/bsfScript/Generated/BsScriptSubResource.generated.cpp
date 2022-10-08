@@ -50,9 +50,9 @@ namespace bs
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
+		MonoObject* tmpValue;
 		ScriptResourceBase* scriptValue;
 		scriptValue = ScriptResourceManager::Instance().GetScriptResource(value.Value, true);
-		MonoObject* tmpValue;
 		if(scriptValue != nullptr)
 			tmpValue = scriptValue->GetManagedInstance();
 		else

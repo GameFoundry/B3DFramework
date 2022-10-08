@@ -45,9 +45,9 @@ namespace bs
 	__BlendClipInfoInterop ScriptBlendClipInfo::ToInterop(const BlendClipInfo& value)
 	{
 		__BlendClipInfoInterop output;
+		MonoObject* tmpClip;
 		ScriptRRefBase* scriptClip;
 		scriptClip = ScriptResourceManager::Instance().GetScriptRRef(value.Clip);
-		MonoObject* tmpClip;
 		if(scriptClip != nullptr)
 			tmpClip = scriptClip->GetManagedInstance();
 		else

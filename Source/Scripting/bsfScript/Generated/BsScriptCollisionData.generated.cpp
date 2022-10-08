@@ -76,7 +76,7 @@ namespace bs
 			ScriptComponentBase* scriptCollider = nullptr;
 			if(value.Collider[i])
 				scriptCollider = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.Collider[i]));
-				if(scriptCollider != nullptr)
+			if(scriptCollider != nullptr)
 				arrayCollider.Set(i, scriptCollider->GetManagedInstance());
 			else
 				arrayCollider.Set(i, nullptr);

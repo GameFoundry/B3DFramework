@@ -46,9 +46,9 @@ namespace bs
 	__GUIElementStateStyleInterop ScriptGUIElementStateStyle::ToInterop(const GUIElementStateStyle& value)
 	{
 		__GUIElementStateStyleInterop output;
+		MonoObject* tmpTexture;
 		ScriptResourceBase* scriptTexture;
 		scriptTexture = ScriptResourceManager::Instance().GetScriptResource(value.Texture, true);
-		MonoObject* tmpTexture;
 		if(scriptTexture != nullptr)
 			tmpTexture = scriptTexture->GetManagedInstance();
 		else

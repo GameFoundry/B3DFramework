@@ -48,9 +48,9 @@ namespace bs
 		__PARTICLE_STATIC_MESH_SHAPE_DESCInterop output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
+		MonoObject* tmpMesh;
 		ScriptRRefBase* scriptMesh;
 		scriptMesh = ScriptResourceManager::Instance().GetScriptRRef(value.Mesh);
-		MonoObject* tmpMesh;
 		if(scriptMesh != nullptr)
 			tmpMesh = scriptMesh->GetManagedInstance();
 		else

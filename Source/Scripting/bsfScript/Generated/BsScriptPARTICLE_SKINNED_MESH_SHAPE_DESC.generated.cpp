@@ -47,10 +47,10 @@ namespace bs
 		__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
+		MonoObject* tmpRenderable;
 		ScriptComponentBase* scriptRenderable = nullptr;
 		if(value.Renderable.GetComponent())
 			scriptRenderable = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.Renderable.GetComponent()));
-		MonoObject* tmpRenderable;
 		if(scriptRenderable != nullptr)
 			tmpRenderable = scriptRenderable->GetManagedInstance();
 		else

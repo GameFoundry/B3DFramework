@@ -62,33 +62,33 @@ namespace bs
 	__Blend2DInfoInterop ScriptBlend2DInfo::ToInterop(const Blend2DInfo& value)
 	{
 		__Blend2DInfoInterop output;
+		MonoObject* tmpTopLeftClip;
 		ScriptRRefBase* scriptTopLeftClip;
 		scriptTopLeftClip = ScriptResourceManager::Instance().GetScriptRRef(value.TopLeftClip);
-		MonoObject* tmpTopLeftClip;
 		if(scriptTopLeftClip != nullptr)
 			tmpTopLeftClip = scriptTopLeftClip->GetManagedInstance();
 		else
 			tmpTopLeftClip = nullptr;
 		output.TopLeftClip = tmpTopLeftClip;
+		MonoObject* tmpTopRightClip;
 		ScriptRRefBase* scriptTopRightClip;
 		scriptTopRightClip = ScriptResourceManager::Instance().GetScriptRRef(value.TopRightClip);
-		MonoObject* tmpTopRightClip;
 		if(scriptTopRightClip != nullptr)
 			tmpTopRightClip = scriptTopRightClip->GetManagedInstance();
 		else
 			tmpTopRightClip = nullptr;
 		output.TopRightClip = tmpTopRightClip;
+		MonoObject* tmpBotLeftClip;
 		ScriptRRefBase* scriptBotLeftClip;
 		scriptBotLeftClip = ScriptResourceManager::Instance().GetScriptRRef(value.BotLeftClip);
-		MonoObject* tmpBotLeftClip;
 		if(scriptBotLeftClip != nullptr)
 			tmpBotLeftClip = scriptBotLeftClip->GetManagedInstance();
 		else
 			tmpBotLeftClip = nullptr;
 		output.BotLeftClip = tmpBotLeftClip;
+		MonoObject* tmpBotRightClip;
 		ScriptRRefBase* scriptBotRightClip;
 		scriptBotRightClip = ScriptResourceManager::Instance().GetScriptRRef(value.BotRightClip);
-		MonoObject* tmpBotRightClip;
 		if(scriptBotRightClip != nullptr)
 			tmpBotRightClip = scriptBotRightClip->GetManagedInstance();
 		else

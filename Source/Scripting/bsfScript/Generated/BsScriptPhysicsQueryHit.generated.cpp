@@ -59,10 +59,10 @@ namespace bs
 		output.Distance = value.Distance;
 		output.TriangleIdx = value.TriangleIdx;
 		output.UnmappedTriangleIdx = value.UnmappedTriangleIdx;
+		MonoObject* tmpCollider;
 		ScriptComponentBase* scriptCollider = nullptr;
 		if(value.Collider)
 			scriptCollider = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.Collider));
-		MonoObject* tmpCollider;
 		if(scriptCollider != nullptr)
 			tmpCollider = scriptCollider->GetManagedInstance();
 		else

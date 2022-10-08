@@ -49,10 +49,10 @@ namespace bs
 	__ControllerControllerCollisionInterop ScriptControllerControllerCollision::ToInterop(const ControllerControllerCollision& value)
 	{
 		__ControllerControllerCollisionInterop output;
+		MonoObject* tmpController;
 		ScriptComponentBase* scriptController = nullptr;
 		if(value.Controller)
 			scriptController = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.Controller));
-		MonoObject* tmpController;
 		if(scriptController != nullptr)
 			tmpController = scriptController->GetManagedInstance();
 		else

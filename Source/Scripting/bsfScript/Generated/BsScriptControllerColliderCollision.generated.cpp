@@ -50,10 +50,10 @@ namespace bs
 	__ControllerColliderCollisionInterop ScriptControllerColliderCollision::ToInterop(const ControllerColliderCollision& value)
 	{
 		__ControllerColliderCollisionInterop output;
+		MonoObject* tmpCollider;
 		ScriptComponentBase* scriptCollider = nullptr;
 		if(value.Collider)
 			scriptCollider = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(static_object_cast<Component>(value.Collider));
-		MonoObject* tmpCollider;
 		if(scriptCollider != nullptr)
 			tmpCollider = scriptCollider->GetManagedInstance();
 		else
