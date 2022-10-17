@@ -1987,11 +1987,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="InAuto" script="InAuto">
 			<doc>Left tangent is calculated automatically based on the two surrounding keyframes.</doc>
 		</enumentry>
-		<enumentry native="OutLinear" script="OutLinear">
-			<doc>Tangent is calculated automatically based on the next keyframe.</doc>
-		</enumentry>
 		<enumentry native="InFree" script="InFree">
 			<doc>Left tangent is manually adjusted by the user.</doc>
+		</enumentry>
+		<enumentry native="OutLinear" script="OutLinear">
+			<doc>Tangent is calculated automatically based on the next keyframe.</doc>
 		</enumentry>
 		<enumentry native="InStep" script="InStep">
 			<doc>Tangent is infinite, ensuring there is a instantaneus jump between previous and current keyframe value.</doc>
@@ -1999,11 +1999,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="InLinear" script="InLinear">
 			<doc>Tangent is calculated automatically based on the previous keyframe.</doc>
 		</enumentry>
-		<enumentry native="OutFree" script="OutFree">
-			<doc>Right tangent is manually adjusted by the user.</doc>
-		</enumentry>
 		<enumentry native="OutAuto" script="OutAuto">
 			<doc>Right tangents are calculated automatically based on the two surrounding keyframes.</doc>
+		</enumentry>
+		<enumentry native="OutFree" script="OutFree">
+			<doc>Right tangent is manually adjusted by the user.</doc>
 		</enumentry>
 		<enumentry native="OutStep" script="OutStep">
 			<doc>Tangent is infinite, ensuring there is a instantaneus jump between current and next keyframe value.</doc>
@@ -2821,26 +2821,26 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="TU_STATIC" script="Default">
 			<doc>A regular texture that is not often or ever updated from the CPU.</doc>
 		</enumentry>
-		<enumentry native="TU_DYNAMIC" script="Dynamic">
-			<doc>A regular texture that is often updated by the CPU.</doc>
-		</enumentry>
 		<enumentry native="TU_RENDERTARGET" script="Render">
 			<doc>Texture that can be rendered to by the GPU.</doc>
+		</enumentry>
+		<enumentry native="TU_DYNAMIC" script="Dynamic">
+			<doc>A regular texture that is often updated by the CPU.</doc>
 		</enumentry>
 		<enumentry native="TU_DEPTHSTENCIL" script="DepthStencil">
 			<doc>Texture used as a depth/stencil buffer by the GPU.</doc>
 		</enumentry>
-		<enumentry native="TU_LOADSTORE" script="LoadStore">
-			<doc>Texture that allows load/store operations from the GPU program.</doc>
-		</enumentry>
-		<enumentry native="TU_CPUCACHED" script="CPUCached">
-			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU.</doc>
+		<enumentry native="TU_MUTABLEFORMAT" script="MutableFormat">
+			<doc>Allows you to retrieve views of the texture using a format different from one specified on creation.</doc>
 		</enumentry>
 		<enumentry native="TU_CPUREADABLE" script="CPUReadable">
 			<doc>Allows the CPU to directly read the texture data buffers from the GPU.</doc>
 		</enumentry>
-		<enumentry native="TU_MUTABLEFORMAT" script="MutableFormat">
-			<doc>Allows you to retrieve views of the texture using a format different from one specified on creation.</doc>
+		<enumentry native="TU_CPUCACHED" script="CPUCached">
+			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU.</doc>
+		</enumentry>
+		<enumentry native="TU_LOADSTORE" script="LoadStore">
+			<doc>Texture that allows load/store operations from the GPU program.</doc>
 		</enumentry>
 	</enum>
 	<class native="Texture" script="Texture">
