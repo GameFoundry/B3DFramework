@@ -141,11 +141,11 @@ namespace bs
 		bool GetEnableCull() const { return mEnableCull; }
 
 		/** @copydoc Animation::getNumClips */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		u32 GetNumClips() const;
 
 		/** @copydoc Animation::getClip */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		HAnimationClip GetClip(u32 idx) const;
 
 		/** Triggered whenever an animation event is reached. */
@@ -190,11 +190,11 @@ namespace bs
 		 * animation component to know which property to assign which values from an animation curve. This should be called
 		 * whenever playback for a new clip starts, or when clip curves change.
 		 */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		void RefreshClipMappingsInternal();
 
 		/** @copydoc Animation::getGenericCurveValue */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		bool GetGenericCurveValueInternal(u32 curveIdx, float& value);
 
 		/**
@@ -204,7 +204,7 @@ namespace bs
 		 * explicitly disabled. Returns true if the preview mode was enabled (which could fail if the component is
 		 * currently running).
 		 */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		bool TogglePreviewModeInternal(bool enabled);
 
 		/** Triggered when the list of properties animated via generic animation curves needs to be recreated (script only). */

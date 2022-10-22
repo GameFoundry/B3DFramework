@@ -88,7 +88,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),pr:getter,n:SubMeshCount)
 		static u32 GetSubMeshCount(const HMesh& thisPtr);
 		
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),InteropOnly(true))
 		static void GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere);
 		
 		/**

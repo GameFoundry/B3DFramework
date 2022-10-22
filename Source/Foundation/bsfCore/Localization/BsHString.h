@@ -60,7 +60,7 @@ namespace bs
 
 		operator const String& () const;
 
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		const String& GetValue() const;
 
 		/**

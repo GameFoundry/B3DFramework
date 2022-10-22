@@ -24,7 +24,7 @@ namespace bs
 		Radial,
 		Spot,
 
-		Count			BS_SCRIPT_EXPORT(ex:true) // Keep at end
+		Count			BS_SCRIPT_EXPORT(Exclude(true)) // Keep at end
 	};
 
 	/** @} */

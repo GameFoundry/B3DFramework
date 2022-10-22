@@ -60,7 +60,7 @@ namespace bs
 		u32 Handle;
 		Vector3 Position;
 
-		BS_SCRIPT_EXPORT(ex:true)
+		BS_SCRIPT_EXPORT(Exclude(true))
 		LightProbeSHCoefficients ShCoefficients;
 	};
 

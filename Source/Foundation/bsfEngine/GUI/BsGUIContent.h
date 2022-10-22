@@ -24,8 +24,8 @@ namespace bs
 		FocusedHoverOn = 0x110, /**< Same as FocusedHover, if the element is also in the "on" state. */
 
 		// Helpers
-		TypeMask	BS_SCRIPT_EXPORT(ex:true)	= 0xFF, /**< Mask for determining the state type (ignoring the on state). */
-		OnFlag		BS_SCRIPT_EXPORT(ex:true)	= 0x100 /**< Flag that differentiates between on and off states. */
+		TypeMask	BS_SCRIPT_EXPORT(Exclude(true))	= 0xFF, /**< Mask for determining the state type (ignoring the on state). */
+		OnFlag		BS_SCRIPT_EXPORT(Exclude(true))	= 0x100 /**< Flag that differentiates between on and off states. */
 	};
 
 	/**	Contains separate GUI content images for every possible GUI element state. */

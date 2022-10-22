@@ -26,7 +26,7 @@ namespace bs
 		PlayInEditor();
 
 		/**	Returns the current play state of the game. */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		PlayInEditorState GetState() const { return mState; }
 
 		/**	
@@ -34,7 +34,7 @@ namespace bs
 		 * will be delayed until the next update() call. Use the onPlay/onStopped/onPaused/onUnpaused event to get notified
 		 * when the change actually happens.
 		 */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		void SetState(PlayInEditorState state);
 
 		/**
@@ -52,7 +52,7 @@ namespace bs
 		Event<void()> OnPlay;
 
 		/** Triggered right after the play mode is exited. */
-		BS_SCRIPT_EXPORT(in:true)
+		BS_SCRIPT_EXPORT(InteropOnly(true))
 		Event<void()> OnStopped;
 
 		/** Triggered right after the user pauses play mode. */

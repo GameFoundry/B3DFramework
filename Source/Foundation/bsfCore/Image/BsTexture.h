@@ -35,7 +35,7 @@ namespace bs
 		/** Allows you to retrieve views of the texture using a format different from one specified on creation. */
 		TU_MUTABLEFORMAT	BS_SCRIPT_EXPORT(ExportName(MutableFormat))	= 0x4000,
 		/** Default (most common) texture usage. */
-		TU_DEFAULT			BS_SCRIPT_EXPORT(ex:true)			= TU_STATIC
+		TU_DEFAULT			BS_SCRIPT_EXPORT(Exclude(true))			= TU_STATIC
 	};
 
 	/**	Texture mipmap options. */

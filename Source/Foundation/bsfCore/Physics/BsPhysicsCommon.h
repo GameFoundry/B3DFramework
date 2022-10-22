@@ -91,7 +91,7 @@ namespace bs
 		 */
 		HCollider Collider;
 
-		BS_SCRIPT_EXPORT(ex:true)
+		BS_SCRIPT_EXPORT(Exclude(true))
 		bs::Collider* ColliderRaw = nullptr; /**< Collider that was hit. */
 	};
 

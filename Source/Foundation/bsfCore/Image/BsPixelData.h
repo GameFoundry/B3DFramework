@@ -17,7 +17,7 @@ namespace bs
 	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) PixelFormat
 	{
 		/** Unknown pixel format. */
-		PF_UNKNOWN				BS_SCRIPT_EXPORT(ex:true) = 0,
+		PF_UNKNOWN				BS_SCRIPT_EXPORT(Exclude(true)) = 0,
 		/** 8-bit 1-channel pixel format, unsigned normalized. */
 		PF_R8					BS_SCRIPT_EXPORT(ExportName(R8)) = 1,
 		/** 8-bit 2-channel pixel format, unsigned normalized. */
@@ -33,7 +33,7 @@ namespace bs
 		/** DXT1/BC1 format containing opaque RGB or 1-bit alpha RGB. 4 bits per pixel. */
 		PF_BC1					BS_SCRIPT_EXPORT(ExportName(BC1)) = 13,
 		/** DXT3/BC2 format containing RGB with premultiplied alpha. 4 bits per pixel. */
-		PF_BC1a					BS_SCRIPT_EXPORT(ex:true) = 14,
+		PF_BC1a					BS_SCRIPT_EXPORT(Exclude(true)) = 14,
 		/** DXT3/BC2 format containing RGB with explicit alpha. 8 bits per pixel. */
 		PF_BC2					BS_SCRIPT_EXPORT(ExportName(BC2)) = 15,
 		/** DXT5/BC2 format containing RGB with explicit alpha. 8 bits per pixel. Better alpha gradients than BC2. */
@@ -72,11 +72,11 @@ namespace bs
 		/** Depth format, 16bits. Unsigned normalized. */
 		PF_D16					BS_SCRIPT_EXPORT(ExportName(D16)) = 32,
 		/** Packed unsigned float format, 11 bits for red, 11 bits for green, 10 bits for blue. */
-		PF_RG11B10F				BS_SCRIPT_EXPORT(ex:true) = 33,
+		PF_RG11B10F				BS_SCRIPT_EXPORT(Exclude(true)) = 33,
 		/**
 		 * Packed unsigned normalized format, 10 bits for red, 10 bits for green, 10 bits for blue, and two bits for alpha.
 		 */
-		PF_RGB10A2				BS_SCRIPT_EXPORT(ex:true) = 34,
+		PF_RGB10A2				BS_SCRIPT_EXPORT(Exclude(true)) = 34,
 		/** 8-bit 1-channel pixel format, signed integer. */
 		PF_R8I					BS_SCRIPT_EXPORT(ExportName(R8I)) = 35,
 		/** 8-bit 2-channel pixel format, signed integer. */
@@ -138,7 +138,7 @@ namespace bs
 		/** 16-bit 4-channel pixel format, unsigned normalized. */
 		PF_RGBA16				BS_SCRIPT_EXPORT(ExportName(RGBA16)) = 64,
 		/** Number of pixel formats currently defined. */
-		PF_COUNT				BS_SCRIPT_EXPORT(ex:true)
+		PF_COUNT				BS_SCRIPT_EXPORT(Exclude(true))
 	};
 
 	/**	Flags defining some properties of pixel formats. */

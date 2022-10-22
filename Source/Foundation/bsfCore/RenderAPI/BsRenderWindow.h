@@ -102,7 +102,7 @@ namespace bs
 		bool HideUntilSwap = false;
 
 		/** Platform-specific creation options. */
-		BS_SCRIPT_EXPORT(ex:true)
+		BS_SCRIPT_EXPORT(Exclude(true))
 		UnorderedMap<String, String> PlatformSpecific;
 	};
 

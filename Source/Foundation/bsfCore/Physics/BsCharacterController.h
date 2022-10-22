@@ -253,7 +253,7 @@ namespace bs
 		 */
 		HCollider Collider;
 
-		BS_SCRIPT_EXPORT(ex:true)
+		BS_SCRIPT_EXPORT(Exclude(true))
 		bs::Collider* ColliderRaw; /**< Collider that was touched. */
 		u32 TriangleIndex; /**< Touched triangle index for mesh colliders. */
 	};
@@ -267,7 +267,7 @@ namespace bs
 		 */
 		HCharacterController Controller;
 
-		BS_SCRIPT_EXPORT(ex:true)
+		BS_SCRIPT_EXPORT(Exclude(true))
 		CharacterController* ControllerRaw; /**< Controller that was touched. */
 	};
 
