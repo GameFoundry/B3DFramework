@@ -45,7 +45,7 @@ target_link_libraries(bsfGLRenderAPI PUBLIC bsf)
 set_property(TARGET bsfGLRenderAPI PROPERTY FOLDER Plugins)
 
 # Install
-if(RENDER_API_MODULE MATCHES "OpenGL" OR BUILD_ALL_RENDER_API)
+if(B3D_RENDER_BACKEND MATCHES "OpenGL" OR B3D_BUILD_ALL_RENDER_BACKENDS)
 	install_bsf_target(bsfGLRenderAPI)
 endif()
 

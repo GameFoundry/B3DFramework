@@ -1,6 +1,6 @@
 # Ensure pre-built binary dependencies are up to date
 if(APPLE) # MacOS
-	if(USE_BUNDLED_LIBRARIES)
+	if(B3D_USE_BUNDLED_LIBRARIES)
 		set(BS_SPVC_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
 		check_and_update_binary_deps(bsfDep_SPIRVCross SPIRVCross ${BSF_SOURCE_DIR}/../Dependencies/SPIRVCross ${BS_SPVC_PREBUILT_DEPENDENCY_VERSION})
 
@@ -13,7 +13,7 @@ endif()
 include(CMakeSources.cmake)
 
 # Packages
-if(RENDER_API_MODULE MATCHES "Vulkan" OR INCLUDE_ALL_IN_WORKFLOW OR BUILD_ALL_RENDER_API)
+if(B3D_RENDER_BACKEND MATCHES "Vulkan" OR B3D_INCLUDE_ALL_IN_WORKFLOW OR B3D_BUILD_ALL_RENDER_BACKENDS)
 	find_package(glslang)
 
 	if(APPLE)
@@ -69,7 +69,7 @@ target_link_libraries(bsfVulkanRenderAPI PRIVATE bsf)
 set_property(TARGET bsfVulkanRenderAPI PROPERTY FOLDER Plugins)
 
 # Install
-if(RENDER_API_MODULE MATCHES "Vulkan" OR BUILD_ALL_RENDER_API)
+if(B3D_RENDER_BACKEND MATCHES "Vulkan" OR B3D_BUILD_ALL_RENDER_BACKENDS)
 	install_bsf_target(bsfVulkanRenderAPI)
 endif()
 

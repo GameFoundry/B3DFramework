@@ -7,7 +7,7 @@
 
 start_find_package(snappy)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(snappy_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/snappy CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(snappy)

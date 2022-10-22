@@ -4,7 +4,7 @@
 #  flex_EXECUTABLE
 #  flex_FOUND
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(flex_INSTALL_DIRS ${BSF_SOURCE_DIR}/../Dependencies/tools/flex CACHE PATH "")
 endif()
 

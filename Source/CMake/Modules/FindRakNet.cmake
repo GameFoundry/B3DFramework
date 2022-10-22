@@ -7,7 +7,7 @@
 
 start_find_package(RakNet)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(RakNet_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/RakNet CACHE PATH "")
 endif()
 

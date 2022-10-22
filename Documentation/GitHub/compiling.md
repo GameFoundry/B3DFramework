@@ -82,7 +82,7 @@ The following dependencies will need to be installed manually. Which ones are re
   - **LibICU**
     - Debian/Ubuntu: `apt-get install libicu-dev`
   - **Bison & Flex** (Optional)
-    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
+    - Only needed if you plan on changing BSL syntax (B3D_BUILD_BSL_PARSER option in CMake)
     - Debian/Ubuntu: `apt-get install bison flex`
   - (Or equivalent packages for your distribution)
 
@@ -95,10 +95,10 @@ The following dependencies will need to be installed manually. Which ones are re
   - **LibUUID**
     - `brew install ossp-uuid`
   - **Flex** (Optional)
-    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
+    - Only needed if you plan on changing BSL syntax (B3D_BUILD_BSL_PARSER option in CMake)
     - `brew install flex`
   - **Bison** (Optional)
-    - Only needed if you plan on changing BSL syntax (BUILD_BSL option in CMake)
+    - Only needed if you plan on changing BSL syntax (B3D_BUILD_BSL_PARSER option in CMake)
     - `brew install bison`
     - Make sure old version of Bison that comes with Xcode is overriden:
       - Add this to $HOME/.bash_profile: `export PATH="/usr/local/opt/bison/bin:$PATH"`

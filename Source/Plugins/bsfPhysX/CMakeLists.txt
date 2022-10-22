@@ -2,7 +2,7 @@
 include(CMakeSources.cmake)
 
 # Packages
-if(PHYSICS_MODULE MATCHES "PhysX" OR INCLUDE_ALL_IN_WORKFLOW)
+if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_INCLUDE_ALL_IN_WORKFLOW)
 	find_package(PhysX REQUIRED)
 endif()
 	
@@ -31,7 +31,7 @@ target_link_libraries(bsfPhysX PRIVATE bsf)
 set_property(TARGET bsfPhysX PROPERTY FOLDER Plugins)
 
 # Install
-if(PHYSICS_MODULE MATCHES "PhysX")
+if(B3D_PHYSICS_BACKEND MATCHES "PhysX")
 	install_bsf_target(bsfPhysX)
 endif()
 	

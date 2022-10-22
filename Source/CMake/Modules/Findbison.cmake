@@ -4,7 +4,7 @@
 #  bison_EXECUTABLE
 #  bison_FOUND
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(bison_INSTALL_DIRS ${BSF_SOURCE_DIR}/../Dependencies/tools/bison CACHE PATH "")
 endif()
 

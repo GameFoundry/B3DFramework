@@ -11,7 +11,7 @@ If you ever need to modify these assets (e.g. change the source code for a built
 # Compiling & running the import tool
 The import tool executable is not provided out of the box, and must be manually compiled. This can be done by compiling the `bsfImportTool` target included in `bsf`. Once compiled the tool should be installed to `bsf/Dependencies/tools/bsfImportTool/`.
 
-Once the import tool dependency is present, you can enable asset import target in `bsf` by setting `-DINCLUDE_ASSET_PACKAGING_SCRIPTS=ON` in CMake command line. CMake will check for existance of the import tool and report an error if it cannot find it.
+Once the import tool dependency is present, you can enable asset import target in `bsf` by setting `-DB3D_INCLUDE_ASSET_PACKAGING_SCRIPTS=ON` in CMake command line. CMake will check for existance of the import tool and report an error if it cannot find it.
 
 If the import tool has been found, a new build target `RunAssetImport_bsfBuiltinAssets` will be provided. Once you run the target the build tool will automatically detect any changes to the raw assets and re-import them as needed.
 

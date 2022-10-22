@@ -7,7 +7,7 @@
 
 start_find_package(SPIRVCross)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(SPIRVCross_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/SPIRVCross CACHE PATH "")
 endif()
 

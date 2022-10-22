@@ -38,7 +38,7 @@ if(NOT BS_IS_BANSHEE3D)
 	set_property(TARGET bsfSharp PROPERTY FOLDER Script)
 
 	# Copy .dlls on build
-	if(USE_BUNDLED_LIBRARIES)
+	if(B3D_USE_BUNDLED_LIBRARIES)
 		install_dll_on_build(bsfSharp ${BSF_SOURCE_DIR}/../Dependencies/mono)
 		install_dylib_on_build(bsfSharp ${BSF_SOURCE_DIR}/../Dependencies/mono)
 		copy_folder_on_build(bsfSharp ${BSF_SOURCE_DIR}/../Dependencies/mono ${PROJECT_BINARY_DIR} bin/Mono "*.*")

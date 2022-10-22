@@ -7,7 +7,7 @@
 
 start_find_package(freetype)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(freetype_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/freetype CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(freetype)

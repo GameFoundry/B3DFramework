@@ -8,6 +8,6 @@ The tool must be compiled manually from its source: [https://github.com/BearishS
 
 Once compiled the tool should be placed in the `bsf/Dependencies/tools/BansheeCodeGenerator` folder. 
 
-You should then run CMake with `-DSCRIPT_BINDING_GENERATION=ON`. CMake will then check if the tool is present and report an error if it cannot find it. If CMake generation goes well, you will now have a `GenerateScriptBindings` target. Running the target will rebuild all the script binding code and generated C# code.
+You should then run CMake with `-DB3D_SCRIPT_BINDING_GENERATION=ON`. CMake will then check if the tool is present and report an error if it cannot find it. If CMake generation goes well, you will now have a `GenerateScriptBindings` target. Running the target will rebuild all the script binding code and generated C# code.
 
 In order to learn how to actually expose your C++ code to the script API you can follow the [Exposing code to script API](../Scripting/scriptingAuto) manual.

@@ -2,7 +2,7 @@
 include(CMakeSources.cmake)
 
 # Find packages
-if(AUDIO_MODULE MATCHES "OpenAudio")
+if(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
 	find_package(OpenAL REQUIRED)
 	find_package(ogg REQUIRED)
 	find_package(vorbis REQUIRED)
@@ -42,7 +42,7 @@ target_link_libraries(bsfOpenAudio PRIVATE bsf)
 set_property(TARGET bsfOpenAudio PROPERTY FOLDER Plugins)
 
 # Install
-if(AUDIO_MODULE MATCHES "OpenAudio")
+if(B3D_AUDIO_BACKEND MATCHES "OpenAudio")
 	install_bsf_target(bsfOpenAudio)
 endif()
 

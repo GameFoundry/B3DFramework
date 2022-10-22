@@ -7,7 +7,7 @@
 
 start_find_package(LibICU)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(LibICU_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/libICU CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(LibICU)

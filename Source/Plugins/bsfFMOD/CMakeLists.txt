@@ -2,7 +2,7 @@
 include(CMakeSources.cmake)
 
 # Packages
-if(AUDIO_MODULE MATCHES "FMOD")
+if(B3D_AUDIO_BACKEND MATCHES "FMOD")
 	find_package(FMOD)
 	find_package(ogg)
 	find_package(vorbis)
@@ -35,7 +35,7 @@ target_link_libraries(bsfFMOD PUBLIC bsf)
 set_property(TARGET bsfFMOD PROPERTY FOLDER Plugins)
 
 # Install
-if(AUDIO_MODULE MATCHES "FMOD")
+if(B3D_AUDIO_BACKEND MATCHES "FMOD")
 	install_bsf_target(bsfFMOD)
 endif()
 

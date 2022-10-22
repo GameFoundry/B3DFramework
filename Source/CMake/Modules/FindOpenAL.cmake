@@ -7,7 +7,7 @@
 
 start_find_package(OpenAL)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(OpenAL_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/OpenAL CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(OpenAL)
@@ -26,7 +26,7 @@ else()
 	find_imported_library_shared(OpenAL ${OpenAL_LIBNAME})
 endif()
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	install_dependency_binaries(OpenAL)
 endif()
 

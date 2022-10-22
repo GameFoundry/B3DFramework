@@ -7,7 +7,7 @@
 
 start_find_package(FLAC)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(FLAC_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/libFLAC CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(FLAC)
@@ -26,7 +26,7 @@ else()
 	find_imported_library_shared(FLAC ${FLAC_LIBNAME})
 endif()
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	if(WIN32)
 		# .dll has a different name than .lib, so we must register it separately
 		install_dependency_dll(FLAC ${BSF_SOURCE_DIR}/.. libFLAC_dynamic)

@@ -7,7 +7,7 @@
 
 start_find_package(vorbis)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(vorbis_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/libvorbis CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(vorbis)
@@ -27,7 +27,7 @@ else()
 	find_imported_library_shared(vorbis ${vorbis_LIB_PREFIX}vorbisfile)
 endif()
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	install_dependency_binaries(vorbis)
 endif()
 

@@ -7,7 +7,7 @@
 
 start_find_package(freeimg)
 
-if(USE_BUNDLED_LIBRARIES)
+if(B3D_USE_BUNDLED_LIBRARIES)
 	set(freeimg_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/freeimg CACHE PATH "")
 endif()
 gen_default_lib_search_dirs(freeimg)

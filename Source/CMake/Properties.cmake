@@ -5,10 +5,10 @@ if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 endif()
 
 # Options
-set(BSF_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
+set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
 
 # Grab examples projects
-if(BSF_BUILD_EXAMPLES)
+if(B3D_BUILD_EXAMPLES)
 	find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" "Examples")
 	if(NOT EXAMPLE_SUBMODULE_SOURCES)
 		execute_process(COMMAND git submodule update 

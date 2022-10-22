@@ -18,7 +18,7 @@ target_link_libraries(bsfNullPhysics PRIVATE bsf)
 set_property(TARGET bsfNullPhysics PROPERTY FOLDER Plugins)
 
 # Install
-if(PHYSICS_MODULE MATCHES "Null")
+if(B3D_PHYSICS_BACKEND MATCHES "Null")
 	install_bsf_target(bsfNullPhysics)
 endif()
 

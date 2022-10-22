@@ -19,7 +19,7 @@ include(Source/CMake/HelperMethods.cmake)
 
 add_subdirectory(Source)
 
-if(BSF_BUILD_EXAMPLES)
+if(B3D_BUILD_EXAMPLES)
 	add_subdirectory(Examples)
 endif()
 
@@ -27,7 +27,7 @@ endif()
 set(SCRIPT_API "None" CACHE STRING "Which scripting API/language to use, if any. If no scripting API is chosen only native C++ bsf core will be built. If a scripting API is chosen, then a separate scripting layer on top of the core will be included in the build as well.")
 set_property(CACHE SCRIPT_API PROPERTY STRINGS "None" "C#")
 
-set(SCRIPT_BINDING_GENERATION OFF CACHE BOOL "If true, script binding generation will be supported through a specialized build target. Enable this if you plan on modifying the scripting API. Requires the SBGen tool dependency. Only relevant if you have selected a SCRIPT_API other than \"None\".")
+set(B3D_SCRIPT_BINDING_GENERATION OFF CACHE BOOL "If true, script binding generation will be supported through a specialized build target. Enable this if you plan on modifying the scripting API. Requires the SBGen tool dependency. Only relevant if you have selected a SCRIPT_API other than \"None\".")
 
 set(BSF_STRIP_DEBUG_INFO ON CACHE BOOL "If true debug info will be stripped into a separate file in release builds.")
 
