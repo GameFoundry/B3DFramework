@@ -172,11 +172,11 @@ namespace bs
 		u32 GetMsaaCount() const { return mInternal->GetMsaaCount(); }
 
 		/** @copydoc Camera::setRenderSettings() */
-		BS_SCRIPT_EXPORT(ExportName(RenderSettings),Property(Setter),applyOnDirty)
+		BS_SCRIPT_EXPORT(ExportName(RenderSettings),Property(Setter),ApplyOnDirty(true))
 		void SetRenderSettings(const SPtr<RenderSettings>& settings) { mInternal->SetRenderSettings(settings); }
 
 		/** @copydoc Camera::getRenderSettings() */
-		BS_SCRIPT_EXPORT(ExportName(RenderSettings),Property(Getter),applyOnDirty)
+		BS_SCRIPT_EXPORT(ExportName(RenderSettings),Property(Getter),ApplyOnDirty(true))
 		const SPtr<RenderSettings>& GetRenderSettings() const { return mInternal->GetRenderSettings(); }
 
 		/** @copydoc Camera::notifyNeedsRedraw() */
