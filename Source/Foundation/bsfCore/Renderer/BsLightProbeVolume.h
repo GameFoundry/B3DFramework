@@ -55,7 +55,7 @@ namespace bs
 	};
 
 	/** Information about a single probe in the light probe volume. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) LightProbeInfo
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),ExportAsStruct(true)) LightProbeInfo
 	{
 		u32 Handle;
 		Vector3 Position;

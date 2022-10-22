@@ -236,7 +236,7 @@ namespace bs
 	};
 
 	/** Contains data about a collision of a character controller and another object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) ControllerCollision
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) ControllerCollision
 	{
 		Vector3 Position; /**< Contact position. */
 		Vector3 Normal; /**< Contact normal. */
@@ -245,7 +245,7 @@ namespace bs
 	};
 
 	/** Contains data about a collision of a character controller and a collider. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) ControllerColliderCollision : ControllerCollision
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) ControllerColliderCollision : ControllerCollision
 	{
 		/**
 		 * Component of the controller that was touched. Can be null if the controller has no component parent, in which
@@ -259,7 +259,7 @@ namespace bs
 	};
 
 	/** Contains data about a collision between two character controllers. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) ControllerControllerCollision : ControllerCollision
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) ControllerControllerCollision : ControllerCollision
 	{
 		/**
 		 * Component of the controller that was touched. Can be null if the controller has no component parent, in which

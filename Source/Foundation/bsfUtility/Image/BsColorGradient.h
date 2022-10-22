@@ -56,7 +56,7 @@ namespace bs
 	 */
 
 	/** Single key in a ColorGradient. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Image),pl:true) ColorGradientKey
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Image),ExportAsStruct(true)) ColorGradientKey
 	{
 		ColorGradientKey() = default;
 		ColorGradientKey(const Color& color, float time)

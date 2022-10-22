@@ -17,7 +17,7 @@ namespace bs
 	 */
 
 	/** Descriptor structure used for initialization of a VectorField. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:VectorFieldOptions) VECTOR_FIELD_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:VectorFieldOptions) VECTOR_FIELD_DESC
 	{
 		/** Number of entries in the vector field along the X axis. */
 		u32 CountX = 1;

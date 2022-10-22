@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Identifier for a device that can be used for playing audio. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Audio),pl:true) AudioDevice
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Audio),ExportAsStruct(true)) AudioDevice
 	{
 		String Name;
 	};

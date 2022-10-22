@@ -40,7 +40,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(ShaderParameterFlag)
 
 	/** Contains information about a single shader parameter. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) ShaderParameter
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),ExportAsStruct(true)) ShaderParameter
 	{
 		/** Name of the parameter variable. */
 		String Name;

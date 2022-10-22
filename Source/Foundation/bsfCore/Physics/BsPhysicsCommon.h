@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Information about a single contact point during physics collision. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) ContactPoint
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) ContactPoint
 	{
 		Vector3 Position; /**< Contact point in world space. */
 		Vector3 Normal; /**< Normal pointing from the second shape to the first shape. */
@@ -32,7 +32,7 @@ namespace bs
 	};
 
 	/** Information about a collision between two physics objects. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) CollisionData
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) CollisionData
 	{
 		/** Components of the colliders that have collided. */
 		HCollider Collider[2];
@@ -69,7 +69,7 @@ namespace bs
 	};
 
 	/** Hit information from a physics query. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) PhysicsQueryHit
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) PhysicsQueryHit
 	{
 		Vector3 Point; /**< Position of the hit in world space. */
 		Vector3 Normal; /**< Normal to the surface that was hit. */

@@ -19,7 +19,7 @@ namespace bs
 	 * row, up to @p count frames. Frames in rows/colums past @p count. @p fps frames are evaluated every second, allowing
 	 * you to control animation speed.
 	 */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) SpriteSheetGridAnimation
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),ExportAsStruct(true)) SpriteSheetGridAnimation
 	{
 		SpriteSheetGridAnimation() = default;
 		SpriteSheetGridAnimation(u32 numRows, u32 numColumns, u32 count, u32 fps)

@@ -108,7 +108,7 @@ namespace bs
 	};
 
 	/** Event that is triggered when animation reaches a certain point. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),pl:true) AnimationEvent
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),ExportAsStruct(true)) AnimationEvent
 	{
 		AnimationEvent() = default;
 

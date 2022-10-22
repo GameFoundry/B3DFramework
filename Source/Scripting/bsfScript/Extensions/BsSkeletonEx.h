@@ -14,7 +14,7 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Contains internal information about a single bone in a Skeleton. */
-	struct BS_SCRIPT_EXPORT(n:BoneInfo,pl:true) SkeletonBoneInfoEx
+	struct BS_SCRIPT_EXPORT(n:BoneInfo,ExportAsStruct(true)) SkeletonBoneInfoEx
 	{
 		/** Unique name of the bone. */
 		String Name;

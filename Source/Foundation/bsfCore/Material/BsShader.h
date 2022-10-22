@@ -160,7 +160,7 @@ namespace bs
 	};
 
 	/** Represents a single potential value of a shader variation parameter and optionally its name. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),pl:true) ShaderVariationParamValue
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),ExportAsStruct(true)) ShaderVariationParamValue
 	{
 		/** Optional human-readable name describing what this particular value represents. */
 		String Name;
@@ -170,7 +170,7 @@ namespace bs
 	};
 
 	/** Represents a single shader variation parameter and a set of all possible values. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),pl:true) ShaderVariationParamInfo
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),ExportAsStruct(true)) ShaderVariationParamInfo
 	{
 		/** Optional human-readable name describing the variation parameter. */
 		String Name;

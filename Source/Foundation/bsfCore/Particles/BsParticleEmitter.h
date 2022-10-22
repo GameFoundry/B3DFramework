@@ -38,7 +38,7 @@ namespace bs
 	};
 
 	/** Controls how are particle positions on a shape chosen. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true) ParticleEmissionMode
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true)) ParticleEmissionMode
 	{
 		/** Type that determines general behaviour. */
 		ParticleEmissionModeType Type = ParticleEmissionModeType::Random;
@@ -115,7 +115,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterConeShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleConeShapeOptions) PARTICLE_CONE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleConeShapeOptions) PARTICLE_CONE_SHAPE_DESC
 	{
 		/** Determines where on the cone are the particles emitter from. */
 		ParticleEmitterConeType Type = ParticleEmitterConeType::Base;
@@ -206,7 +206,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterSphereShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSphereShapeOptions) PARTICLE_SPHERE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleSphereShapeOptions) PARTICLE_SPHERE_SHAPE_DESC
 	{
 		/** Radius of the sphere. */
 		float Radius = 1.0f;
@@ -275,7 +275,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterHemisphereShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleHemisphereShapeOptions) PARTICLE_HEMISPHERE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleHemisphereShapeOptions) PARTICLE_HEMISPHERE_SHAPE_DESC
 	{
 		/** Radius of the hemisphere. */
 		float Radius = 1.0f;
@@ -355,7 +355,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterBoxShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleBoxShapeOptions) PARTICLE_BOX_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleBoxShapeOptions) PARTICLE_BOX_SHAPE_DESC
 	{
 		/** Determines from which portion of the box should particles be emitted from. */
 		ParticleEmitterBoxType Type = ParticleEmitterBoxType::Volume;
@@ -422,7 +422,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterLineShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleLineShapeOptions) PARTICLE_LINE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleLineShapeOptions) PARTICLE_LINE_SHAPE_DESC
 	{
 		/** Length of the line. */
 		float Length = 1.0f;
@@ -486,7 +486,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterCircleShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleCircleShapeOptions) PARTICLE_CIRCLE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleCircleShapeOptions) PARTICLE_CIRCLE_SHAPE_DESC
 	{
 		/** Radius of the circle. */
 		float Radius = 1.0f;
@@ -565,7 +565,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterRectShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleRectShapeOptions) PARTICLE_RECT_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleRectShapeOptions) PARTICLE_RECT_SHAPE_DESC
 	{
 		/** Extents of the rectangle. */
 		Vector2 Extents = Vector2::ONE;
@@ -634,7 +634,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterStaticMeshShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleStaticMeshShapeOptions) PARTICLE_STATIC_MESH_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleStaticMeshShapeOptions) PARTICLE_STATIC_MESH_SHAPE_DESC
 	{
 		/** Determines from which portion of the mesh are the particles emitted from. */
 		ParticleEmitterMeshType Type = ParticleEmitterMeshType::Triangle;
@@ -787,7 +787,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterSkinnedMeshShape. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSkinnedMeshShapeOptions) PARTICLE_SKINNED_MESH_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleSkinnedMeshShapeOptions) PARTICLE_SKINNED_MESH_SHAPE_DESC
 	{
 		/** Determines from which portion of the mesh are the particles emitted from. */
 		ParticleEmitterMeshType Type = ParticleEmitterMeshType::Triangle;
@@ -862,7 +862,7 @@ namespace bs
 	};
 
 	/** Specifies a burst of particles that occurs at a certain time point. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true) ParticleBurst
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true)) ParticleBurst
 	{
 		ParticleBurst() = default;
 		ParticleBurst(float time, FloatDistribution count, u32 cycles = 1, float interval = 1.0f)

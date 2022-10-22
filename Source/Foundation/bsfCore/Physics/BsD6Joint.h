@@ -64,7 +64,7 @@ namespace bs
 	 * Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and
 	 * velocity.
 	 */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) D6JointDrive
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),ExportAsStruct(true)) D6JointDrive
 	{
 		bool operator==(const D6JointDrive& other) const
 		{

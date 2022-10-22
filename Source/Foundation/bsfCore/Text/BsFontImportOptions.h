@@ -22,7 +22,7 @@ namespace bs
 	};
 
 	/** Represents a range of character code. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Text),pl:true,api:bsf,api:bed) CharRange
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Text),ExportAsStruct(true),api:bsf,api:bed) CharRange
 	{
 		CharRange() = default;
 		CharRange(u32 start, u32 end)

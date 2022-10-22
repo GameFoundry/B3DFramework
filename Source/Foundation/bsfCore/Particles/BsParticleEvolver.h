@@ -69,7 +69,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleTextureAnimation object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleTextureAnimationOptions) PARTICLE_TEXTURE_ANIMATION_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleTextureAnimationOptions) PARTICLE_TEXTURE_ANIMATION_DESC
 	{
 		/**
 		 * Randomly pick a row to use for animation when the particle is first spawned. This implies that only a single row
@@ -130,7 +130,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleOrbit object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleOrbitOptions) PARTICLE_ORBIT_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleOrbitOptions) PARTICLE_ORBIT_DESC
 	{
 		/** Position of the center around which to orbit. Evaluated over particle system lifetime. */
 		Vector3Distribution Center = Vector3(0.0f, 0.0f, 0.0f);
@@ -194,7 +194,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleVelocity object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleVelocityOptions) PARTICLE_VELOCITY_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleVelocityOptions) PARTICLE_VELOCITY_DESC
 	{
 		/** Determines the velocity of the particles evaluated over particle lifetime. */
 		Vector3Distribution Velocity = Vector3(0.0f, 1.0f, 0.0f);
@@ -249,7 +249,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleForce object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleForceOptions) PARTICLE_FORCE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleForceOptions) PARTICLE_FORCE_DESC
 	{
 		/** Determines the force of the particles evaluated over particle lifetime. */
 		Vector3Distribution Force = Vector3(0.0f, 0.0f, 0.0f);
@@ -304,7 +304,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleGravity object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleGravityOptions) PARTICLE_GRAVITY_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleGravityOptions) PARTICLE_GRAVITY_DESC
 	{
 		/** Scale which to apply to the gravity value retrieved from the physics sub-system. */
 		float Scale = 1.0f;
@@ -356,7 +356,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleColor object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleColorOptions) PARTICLE_COLOR_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleColorOptions) PARTICLE_COLOR_DESC
 	{
 		/** Determines the color of the particles evaluated over particle lifetime. */
 		ColorDistribution Color = Color::White;
@@ -408,7 +408,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleSize object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSizeOptions) PARTICLE_SIZE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleSizeOptions) PARTICLE_SIZE_DESC
 	{
 		/**
 		 * Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.
@@ -474,7 +474,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleRotation object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleRotationOptions) PARTICLE_ROTATION_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleRotationOptions) PARTICLE_ROTATION_DESC
 	{
 		/**
 		 * Determines the rotation of the particles in degrees, applied around the particle's local Z axis. Only used if
@@ -548,7 +548,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleCollisions object. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleCollisionsOptions) PARTICLE_COLLISIONS_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),ExportAsStruct(true),n:ParticleCollisionsOptions) PARTICLE_COLLISIONS_DESC
 	{
 		/** Collision mode determining with which geometry the particles will interact with. */
 		ParticleCollisionMode Mode = ParticleCollisionMode::Plane;

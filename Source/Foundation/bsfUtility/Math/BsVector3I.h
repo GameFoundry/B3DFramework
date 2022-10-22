@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/** A three dimensional vector with integer coordinates. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Math),pl:true) Vector3I
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Math),ExportAsStruct(true)) Vector3I
 	{
 		i32 X = 0;
 		i32 Y = 0;

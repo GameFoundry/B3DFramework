@@ -175,7 +175,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(TangentModeBits)
 
 	/* Structure containing a reference to a keyframe as a curve index, and a keyframe index within that curve. */
-	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) KeyframeRef
+	struct BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(Animation)) KeyframeRef
 	{
 		KeyframeRef() = default;
 		KeyframeRef(i32 curveIdx, i32 keyIdx)
@@ -187,7 +187,7 @@ namespace bs
 	};
 
 	/** Structure containing a reference to a keyframe tangent, as a keyframe reference and type of the tangent. */
-	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) TangentRef
+	struct BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(Animation)) TangentRef
 	{
 		TangentRef() = default;
 		TangentRef(KeyframeRef keyframeRef, TangentType type)

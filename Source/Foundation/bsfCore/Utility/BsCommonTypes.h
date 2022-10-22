@@ -606,7 +606,7 @@ namespace bs
 	};
 
 	/**	References a subset of surfaces within a texture. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) TextureSurface
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),ExportAsStruct(true)) TextureSurface
 	{
 		TextureSurface(u32 mipLevel = 0, u32 numMipLevels = 1, u32 face = 0, u32 numFaces = 1)
 			:MipLevel(mipLevel), NumMipLevels(numMipLevels), Face(face), NumFaces(numFaces)
