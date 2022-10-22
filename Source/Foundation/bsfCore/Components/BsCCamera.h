@@ -36,11 +36,11 @@ namespace bs
 		SPtr<Viewport> GetViewport() const { return mInternal->GetViewport(); }
 
 		/** @copydoc Camera::setHorzFOV */
-		BS_SCRIPT_EXPORT(ExportName(FieldOfView),Property(Setter),range:[1,360],UI(AsSlider),UIOrder(-1))
+		BS_SCRIPT_EXPORT(ExportName(FieldOfView),Property(Setter),Range([1,360]),UI(AsSlider),UIOrder(-1))
 		virtual void SetHorzFov(const Radian& fovy) { mInternal->SetHorzFov(fovy); }
 
 		/** @copydoc Camera::getHorzFOV */
-		BS_SCRIPT_EXPORT(ExportName(FieldOfView),Property(Getter),range:[1,360],UI(AsSlider),UIOrder(-1))
+		BS_SCRIPT_EXPORT(ExportName(FieldOfView),Property(Getter),Range([1,360]),UI(AsSlider),UIOrder(-1))
 		virtual const Radian& GetHorzFov() const { return mInternal->GetHorzFov(); }
 
 		/** @copydoc Camera::setNearClipDistance */

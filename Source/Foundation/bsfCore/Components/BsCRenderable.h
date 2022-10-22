@@ -50,19 +50,19 @@ namespace bs
 		const Vector<HMaterial>& GetMaterials() { return mInternal->GetMaterials(); }
 
 		/** @copydoc Renderable::setCullDistanceFactor */
-		BS_SCRIPT_EXPORT(ExportName(CullDistance), pr:setter)
+		BS_SCRIPT_EXPORT(ExportName(CullDistance),Property(Setter))
 		void SetCullDistanceFactor(float factor) { mInternal->SetCullDistanceFactor(factor); }
 
 		/** @copydoc Renderable::getCullDistanceFactor */
-		BS_SCRIPT_EXPORT(ExportName(CullDistance), pr:getter)
+		BS_SCRIPT_EXPORT(ExportName(CullDistance),Property(Getter))
 		float GetCullDistanceFactor() const { return mInternal->GetCullDistanceFactor(); }
 
 		/** @copydoc Renderable::setWriteVelocity */
-		BS_SCRIPT_EXPORT(ExportName(WriteVelocity), pr:setter)
+		BS_SCRIPT_EXPORT(ExportName(WriteVelocity),Property(Setter))
 		void SetWriteVelocity(bool enable) { mInternal->SetWriteVelocity(enable); }
 
 		/** @copydoc Renderable::getWriteVelocity */
-		BS_SCRIPT_EXPORT(ExportName(WriteVelocity), pr:getter)
+		BS_SCRIPT_EXPORT(ExportName(WriteVelocity),Property(Getter))
 		bool GetWriteVelocity() const { return mInternal->GetWriteVelocity(); }
 		
 		/** @copydoc Renderable::setLayer */

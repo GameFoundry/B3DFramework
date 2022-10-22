@@ -32,7 +32,7 @@ namespace bs
 		HAudioClip GetClip() const { return mAudioClip; }
 
 		/** @copydoc AudioSource::setVolume */
-		BS_SCRIPT_EXPORT(ExportName(Volume),Property(Setter),range:[0,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(Volume),Property(Setter),Range([0,1]),UI(AsSlider))
 		void SetVolume(float volume);
 
 		/** @copydoc AudioSource::getVolume */

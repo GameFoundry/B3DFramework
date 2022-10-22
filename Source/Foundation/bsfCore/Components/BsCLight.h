@@ -75,7 +75,7 @@ namespace bs
 		float GetSourceRadius() const { return mInternal->GetSourceRadius(); }
 
 		/** @copydoc Light::setSpotAngle */
-		BS_SCRIPT_EXPORT(ExportName(SpotAngle),Property(Setter),range:[1,180],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(SpotAngle),Property(Setter),Range([1,180]),UI(AsSlider))
 		void SetSpotAngle(const Degree& spotAngle) { mInternal->SetSpotAngle(spotAngle); }
 
 		/** @copydoc Light::getSpotAngle */
@@ -83,7 +83,7 @@ namespace bs
 		Degree GetSpotAngle() const { return mInternal->GetSpotAngle(); }
 
 		/** @copydoc Light::setSpotFalloffAngle */
-		BS_SCRIPT_EXPORT(ExportName(SpotAngleFalloff),Property(Setter),range:[1,180],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(SpotAngleFalloff),Property(Setter),Range([1,180]),UI(AsSlider))
 		void SetSpotFalloffAngle(const Degree& spotAngle) { mInternal->SetSpotFalloffAngle(spotAngle); }
 
 		/** @copydoc Light::getSpotFalloffAngle */
@@ -99,7 +99,7 @@ namespace bs
 		bool GetCastsShadow() const { return mInternal->GetCastsShadow(); }
 
 		/** @copydoc Light::setShadowBias */
-		BS_SCRIPT_EXPORT(ExportName(ShadowBias),Property(Setter),range:[-1,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(ShadowBias),Property(Setter),Range([-1,1]),UI(AsSlider))
 		void SetShadowBias(float bias) { mInternal->SetShadowBias(bias); }
 
 		/** @copydoc Light::setShadowBias() */

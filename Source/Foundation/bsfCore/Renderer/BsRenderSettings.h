@@ -25,7 +25,7 @@ namespace bs
 		 * average brightness of the scene. Any luminance value below this value will not be included in the histogram and
 		 * ignored in scene brightness calculations. In log2 units (-8 = 1/256). In the range [-16, 0].
 		 */
-		BS_SCRIPT_EXPORT(range:[-16,0],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([-16,0]),UI(AsSlider))
 		float HistogramLog2Min = -8.0f;
 
 		/**
@@ -33,7 +33,7 @@ namespace bs
 		 * average brightness of the scene. Any luminance value above this value will not be included in the histogram and
 		 * ignored in scene brightness calculations. In log2 units (4 = 16). In the range [0, 16].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,16],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,16]),UI(AsSlider))
 		float HistogramLog2Max = 4.0f;
 
 		/**
@@ -43,7 +43,7 @@ namespace bs
 		 * in scene brightness calculations. This allows you to remove outliers on the lower end of the histogram (for
 		 * example a few very dark pixels in an otherwise bright image). In range [0.0f, 1.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,1]),UI(AsSlider))
 		float HistogramPctLow = 0.8f;
 
 		/**
@@ -53,7 +53,7 @@ namespace bs
 		 * in scene brightness calculations. This allows you to remove outliers on the high end of the histogram (for
 		 * example a few very bright pixels). In range [0.0f, 1.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,1]),UI(AsSlider))
 		float HistogramPctHigh = 0.985f;
 
 		/**
@@ -61,7 +61,7 @@ namespace bs
 		 * is never too high (for example when in a very dark room you probably do not want the exposure to be so high that
 		 * everything is still visible). In range [0.0f, 10.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,10],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,10]),UI(AsSlider))
 		float MinEyeAdaptation = 0.003f;
 
 		/**
@@ -69,21 +69,21 @@ namespace bs
 		 * is never too low (for example when looking at a very bright light source you probably don't want the exposure to
 		 * be so low that the rest of the scene is all white (overexposed). In range [0.0f, 10.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,10],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,10]),UI(AsSlider))
 		float MaxEyeAdaptation = 2.0f;
 
 		/**
 		 * Determines how quickly does the eye adaptation adjust to larger values. This affects how quickly does the
 		 * automatic exposure changes when the scene brightness increases. In range [0.01f, 20.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0.01,20],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0.01,20]),UI(AsSlider))
 		float EyeAdaptationSpeedUp = 3.0f;
 
 		/**
 		 * Determines how quickly does the eye adaptation adjust to smaller values. This affects how quickly does the
 		 * automatic exposure changes when the scene brightness decreases. In range [0.01f, 20.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[0.01,20],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0.01,20]),UI(AsSlider))
 		float EyeAdaptationSpeedDown = 3.0f;
 
 		/************************************************************************/
@@ -169,7 +169,7 @@ namespace bs
 		 *
 		 * Moves along the Planckian locus. In range [1500.0f, 15000.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[1500,15000],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1500,15000]),UI(AsSlider))
 		float Temperature = 6500.0f;
 
 		/**
@@ -179,7 +179,7 @@ namespace bs
 		 *
 		 * In range [-1.0f, 1.0f].
 		 */
-		BS_SCRIPT_EXPORT(range:[-1,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([-1,1]),UI(AsSlider))
 		float Tint = 0.0f;
 
 		/************************************************************************/
@@ -257,7 +257,7 @@ namespace bs
 		 * quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range
 		 * is roughly [0.05, 5.0].
 		 */
-		BS_SCRIPT_EXPORT(range:[0.05,5],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0.05,5]),UI(AsSlider))
 		float Radius = 1.5f;
 
 		/**
@@ -265,7 +265,7 @@ namespace bs
 		 * details to be lost in areas where occlusion isn't high. Value is in millimeters. Usually best to keep at a few
 		 * dozen millimeters, valid range is roughly [0, 200].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,200],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,200]),UI(AsSlider))
 		float Bias = 1.0f;
 
 		/**
@@ -286,7 +286,7 @@ namespace bs
 		 * Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice
 		 * versa. Valid range is roughly [0.2, 2].
 		 */
-		BS_SCRIPT_EXPORT(range:[0.2,2],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0.2,2]),UI(AsSlider))
 		float Intensity = 1.0f;
 
 		/**
@@ -294,14 +294,14 @@ namespace bs
 		 * control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no
 		 * extra darkening will occur.
 		 */
-		BS_SCRIPT_EXPORT(range:[1,4],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1,4]),UI(AsSlider))
 		float Power = 4.0f;
 
 		/**
 		 * Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost
 		 * of performance.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,4],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,4]),UI(AsSlider))
 		u32 Quality = 3;
 
 		/************************************************************************/
@@ -395,7 +395,7 @@ namespace bs
 		 * Determines the maximum size of the blur kernel, in percent of view size. Larger values cost more performance. 
 		 * Only relevant when using Bokeh depth of field.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float MaxBokehSize = 0.025f;
 
 		/** 
@@ -404,7 +404,7 @@ namespace bs
 		 * samples will be required, but may decrease quality of the effect. Only relevant when using Bokeh depth of
 		 * field.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,10.0])
+		BS_SCRIPT_EXPORT(Range([0,10.0]))
 		float AdaptiveColorThreshold = 1.0f;
 
 		/** 
@@ -413,15 +413,15 @@ namespace bs
 		 * don't cost much. Increasing this value can improve performance as less higher fidelity samples will be required, 
 		 * but may decrease quality of the effect. Only relevant when using Bokeh depth of field.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1.0])
+		BS_SCRIPT_EXPORT(Range([0,1.0]))
 		float AdaptiveRadiusThreshold = 0.1f;
 
 		/** Camera aperture size in mm. Only relevant when using Bokeh depth of field. */
-		BS_SCRIPT_EXPORT(range:[1,200])
+		BS_SCRIPT_EXPORT(Range([1,200]))
 		float ApertureSize = 50.0f;
 
 		/** Focal length of the camera's lens (e.g. 75mm). Only relevant when using Bokeh depth of field. */
-		BS_SCRIPT_EXPORT(range:[1,500])
+		BS_SCRIPT_EXPORT(Range([1,500]))
 		float FocalLength = 50.0f;
 
 		/** 
@@ -593,7 +593,7 @@ namespace bs
 	};
 
 	/** Settings that control temporal anti-aliasing. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m :Rendering) TemporalAASettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TemporalAASettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		TemporalAASettings() = default;
@@ -607,11 +607,11 @@ namespace bs
 		 * will use subsequent positions until this number of reached, at which point the positions start getting
 		 * re-used from the start.
 		 */
-		BS_SCRIPT_EXPORT(range:[4,128])
+		BS_SCRIPT_EXPORT(Range([4,128]))
 		u32 JitteredPositionCount = 8;
 
 		/** Determines the distance between temporal AA samples. Larger values result in a sharper image. */
-		BS_SCRIPT_EXPORT(range:[0, 1] )
+		BS_SCRIPT_EXPORT(Range([0, 1]) ))
 		float Sharpness = 1.0f;
 
 		/************************************************************************/
@@ -649,18 +649,18 @@ namespace bs
 		 * better precision. This results in higher quality, as well as a higher performance requirement. Valid range is
 		 * [0, 4], default is 2.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,4],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,4]),UI(AsSlider))
 		u32 Quality = 2;
 
 		/** Intensity of the screen space reflections. Valid range is [0, 1]. Default is 1 (100%). */
-		BS_SCRIPT_EXPORT(range:[0,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,1]),UI(AsSlider))
 		float Intensity = 1.0f;
 
 		/**
 		 * Roughness at which screen space reflections start fading out and become replaced with refl. probes. Valid range
 		 * is [0, 1]. Default is 0.8.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([0,1]),UI(AsSlider))
 		float MaxRoughness = 0.8f;
 
 		/************************************************************************/
@@ -716,7 +716,7 @@ namespace bs
 		 * Determines the percent of the texture to account for when filtering for bloom. Larger values will include
 		 * farther away pixels.
 		 */
-		BS_SCRIPT_EXPORT(range:[0.01,1.0])
+		BS_SCRIPT_EXPORT(Range([0.01,1.0]))
 		float FilterSize = 0.15f;
 
 		/************************************************************************/
@@ -747,7 +747,7 @@ namespace bs
 		 * will use higher resolution texture for calculating lens flare, at the cost of lower performance.
 		 * Valid range is [1, 6], default is 4.
 		 */
-		BS_SCRIPT_EXPORT(range:[1,6])
+		BS_SCRIPT_EXPORT(Range([1,6]))
 		u32 DownsampleCount = 4;
 
 		/**
@@ -759,28 +759,28 @@ namespace bs
 		float Threshold = 32.0f;
 
 		/** Determines the number of ghost features to appear, shown as blurred blobs of bright areas of the scene. */
-		BS_SCRIPT_EXPORT(range:[1,10])
+		BS_SCRIPT_EXPORT(Range([1,10]))
 		u32 GhostCount = 2;
 
 		/**
 		 * Determines the distance between ghost features. Value is in normalized screen space, in range [0,1] where
 		 * 1 represents the full screen length.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float GhostSpacing = 0.5f;
 
 		/**
 		 * Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the
 		 * same intensity as the scene it was derived from. In range [0, 1], default being 0.05.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float Brightness = 0.05f;
 
 		/**
 		 * Determines the size of the filter when blurring the lens flare features. Larger values yield a blurrier image
 		 * and will require more performance.
 		 */
-		BS_SCRIPT_EXPORT(range:[0.01,1.0])
+		BS_SCRIPT_EXPORT(Range([0.01,1.0]))
 		float FilterSize = 0.2f;
 
 		/** Determines if a halo effect should be rendered as part of the lens flare. */
@@ -791,11 +791,11 @@ namespace bs
 		 * Determines how far away from the screen center does the halo appear, in normalized screen space (range [0,1])
 		 * where 0.5 represents half screen length.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float HaloRadius = 0.35f;
 
 		/** Determines the thickness of the halo ring. In normalized screen space (range [0.01,0.5]). */
-		BS_SCRIPT_EXPORT(range:[0.01,0.5])
+		BS_SCRIPT_EXPORT(Range([0.01,0.5]))
 		float HaloThickness = 0.15f;
 
 		/**
@@ -806,7 +806,7 @@ namespace bs
 		float HaloThreshold = 4.0f;
 
 		/** Determines the shape of the halo. Set to value other than 1 to make the halo an oval rather than a circle. */
-		BS_SCRIPT_EXPORT(range:[0,2])
+		BS_SCRIPT_EXPORT(Range([0,2]))
 		float HaloAspectRatio = 1.0f;
 
 		/**
@@ -820,7 +820,7 @@ namespace bs
 		 * Determines the distance between pixels within which to sample different channels. The value is in
 		 * UV coordinates, range [0, 1].
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float ChromaticAberrationOffset = 0.01f;
 
 		/**
@@ -873,7 +873,7 @@ namespace bs
 		 * Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the
 		 * same intensity as the scene it was derived from. In range [0, 1], default being 0.05.
 		 */
-		BS_SCRIPT_EXPORT(range:[0,1])
+		BS_SCRIPT_EXPORT(Range([0,1]))
 		float ShiftAmount = 0.05f;
 
 	protected:
@@ -941,11 +941,11 @@ namespace bs
 		bool Enabled = false;
 
 		/** Controls how intense are the displayed film grains. */
-		BS_SCRIPT_EXPORT(range:[0,100.0])
+		BS_SCRIPT_EXPORT(Range([0,100.0]))
 		float Intensity = 16.0f;
 
 		/** Controls at what speed do the film grains change. */
-		BS_SCRIPT_EXPORT(range:[0,100.0])
+		BS_SCRIPT_EXPORT(Range([0,100.0]))
 		float Speed = 10.0f;
 
 		/************************************************************************/
@@ -980,7 +980,7 @@ namespace bs
 		 * individual cascade has less area to cover, but can significantly increase performance cost, as well as a minor
 		 * increase in memory cost. Valid range is roughly [1, 6].
 		 */
-		BS_SCRIPT_EXPORT(range:[1,6],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1,6]),UI(AsSlider))
 		u32 NumCascades = 4;
 
 		/**
@@ -990,14 +990,14 @@ namespace bs
 		 * yield higher resolution shadows). Higher values increase the size disparity between near and far cascades at
 		 * an exponential rate. Valid range is roughly [1, 4].
 		 */
-		BS_SCRIPT_EXPORT(range:[1,4],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1,4]),UI(AsSlider))
 		float CascadeDistributionExponent = 3.0f;
 
 		/**
 		 * Determines the number of samples used for percentage closer shadow map filtering. Higher values yield higher
 		 * quality shadows, at the cost of performance. Valid range is [1, 4].
 		 */
-		BS_SCRIPT_EXPORT(range:[1,4],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1,4]),UI(AsSlider))
 		u32 ShadowFilteringQuality = 4;
 
 		/************************************************************************/
@@ -1106,7 +1106,7 @@ namespace bs
 		 * yield brighter image. Allows you to customize exposure manually, applied on top of eye adaptation exposure (if
 		 * enabled). In range [-8, 8].
 		 */
-		BS_SCRIPT_EXPORT(range:[-8,8],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([-8,8]),UI(AsSlider))
 		float ExposureScale = 1.25f;
 
 		/**
@@ -1114,7 +1114,7 @@ namespace bs
 		 * on the best gamma curve for the output device is chosen automatically and this value can by used to merely tweak
 		 * that curve. If tonemapping is turned off this is the exact value of the gamma curve that will be applied.
 		 */
-		BS_SCRIPT_EXPORT(range:[1,3],UI(AsSlider))
+		BS_SCRIPT_EXPORT(Range([1,3]),UI(AsSlider))
 		float Gamma = 2.2f;
 
 		/**
@@ -1222,7 +1222,7 @@ namespace bs
 	namespace ct
 	{
 		/** Core thread variant of RenderSettings. */
-		struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m :Rendering) RenderSettings : TRenderSettings<true>
+		struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<true>
 		{
 			RenderSettings() = default;
 			virtual ~RenderSettings() = default;

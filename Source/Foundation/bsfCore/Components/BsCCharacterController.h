@@ -99,11 +99,11 @@ namespace bs
 		void SetStepOffset(float value);
 
 		/** @copydoc CharacterController::getSlopeLimit */
-		BS_SCRIPT_EXPORT(ExportName(SlopeLimit),Property(Getter),range:[0,180],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(SlopeLimit),Property(Getter),Range([0,180]),UI(AsSlider))
 		Radian GetSlopeLimit() const { return mDesc.SlopeLimit; }
 
 		/** @copydoc CharacterController::setSlopeLimit */
-		BS_SCRIPT_EXPORT(ExportName(SlopeLimit),Property(Setter),range:[0,180],UI(AsSlider))
+		BS_SCRIPT_EXPORT(ExportName(SlopeLimit),Property(Setter),Range([0,180]),UI(AsSlider))
 		void SetSlopeLimit(Radian value);
 
 		/** @copydoc CharacterController::getLayer */
