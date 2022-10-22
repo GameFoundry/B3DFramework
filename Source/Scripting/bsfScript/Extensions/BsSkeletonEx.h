@@ -27,7 +27,7 @@ namespace bs
 	};
 
 	/** Extension class for Skeleton, for adding additional functionality for the script version of the class. */
-	class BS_SCRIPT_EXPORT(e:Skeleton) SkeletonEx
+	class BS_SCRIPT_EXPORT(ExtensionMethodForType(Skeleton)) SkeletonEx
 	{
 	public:
 		/** Returns information about a bone at the provided index.
@@ -35,7 +35,7 @@ namespace bs
 		 * @param[in] boneIdx	Index of the bone to retrieve information for.
 		 * @return				Information about the bone at the specified index.
 		 */
-		BS_SCRIPT_EXPORT(e:Skeleton,n:GetBoneInfo)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Skeleton),n:GetBoneInfo)
 		static SkeletonBoneInfoEx GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx);
 	};
 

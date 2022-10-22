@@ -145,7 +145,7 @@ namespace bs
 		Vector<ImportedAnimationEvents> AnimationEvents;
 
 		/** Creates a new import options object that allows you to customize how are meshes imported. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<MeshImportOptions> Create();
 
 		/************************************************************************/

@@ -768,11 +768,11 @@ namespace bs
 		 * 			
 		 * @note	Make sure you call Material::setShader before using it.
 		 */
-		BS_SCRIPT_EXPORT(ec:Material)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Material))
 		static HMaterial Create();
 
 		/** Creates a new material with the specified shader. */
-		BS_SCRIPT_EXPORT(ec:Material)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Material))
 		static HMaterial Create(const HShader& shader);
 
 		/**

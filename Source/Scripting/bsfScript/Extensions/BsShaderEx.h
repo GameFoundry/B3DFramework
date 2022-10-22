@@ -56,11 +56,11 @@ namespace bs
 	};
 
 	/** Extension class for Shader, for adding additional functionality for the script version of the class. */
-	class BS_SCRIPT_EXPORT(e:Shader) ShaderEx
+	class BS_SCRIPT_EXPORT(ExtensionMethodForType(Shader)) ShaderEx
 	{
 	public:
 		/** Returns information about all parameters available in the shader. */
-		BS_SCRIPT_EXPORT(e:Shader,pr:getter,n:Parameters)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Shader),pr:getter,n:Parameters)
 		static Vector<ShaderParameter> GetParameters(const HShader& thisPtr);
 	};
 

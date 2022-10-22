@@ -245,7 +245,7 @@ namespace bs
 		 * Creates an animation clip with no curves. After creation make sure to register some animation curves before
 		 * using it.
 		 */
-		BS_SCRIPT_EXPORT(ec:AnimationClip)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(AnimationClip))
 		static HAnimationClip Create(bool isAdditive = false);
 
 		/**
@@ -259,7 +259,7 @@ namespace bs
 		 * @param[in]	rootMotion	Optional set of curves that can be used for animating the root bone. Not used by the
 		 *							animation system directly but is instead provided to the user for manual evaluation.
 		 */
-		BS_SCRIPT_EXPORT(ec:AnimationClip)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(AnimationClip))
 		static HAnimationClip Create(const SPtr<AnimationCurves>& curves, bool isAdditive = false, u32 sampleRate = 1,
 			const SPtr<RootMotion>& rootMotion = nullptr);
 

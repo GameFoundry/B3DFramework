@@ -164,11 +164,11 @@ namespace bs
 		const PARTICLE_CONE_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter cone shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterConeShape> Create(const PARTICLE_CONE_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter cone shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterConeShape> Create();
 
 		/**
@@ -239,11 +239,11 @@ namespace bs
 		const PARTICLE_SPHERE_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter sphere shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterSphereShape> Create(const PARTICLE_SPHERE_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter sphere shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterSphereShape> Create();
 
 		/**
@@ -308,11 +308,11 @@ namespace bs
 		const PARTICLE_HEMISPHERE_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter sphere shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterHemisphereShape> Create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter sphere shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterHemisphereShape> Create();
 
 		/**
@@ -383,11 +383,11 @@ namespace bs
 		const PARTICLE_BOX_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter box shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterBoxShape> Create(const PARTICLE_BOX_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter box shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterBoxShape> Create();
 
 		/**
@@ -447,11 +447,11 @@ namespace bs
 		const PARTICLE_LINE_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter edge shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterLineShape> Create(const PARTICLE_LINE_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter edge shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterLineShape> Create();
 
 		/**
@@ -526,11 +526,11 @@ namespace bs
 		const PARTICLE_CIRCLE_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter circle shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterCircleShape> Create(const PARTICLE_CIRCLE_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter circle shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterCircleShape> Create();
 
 		/**
@@ -587,11 +587,11 @@ namespace bs
 		const PARTICLE_RECT_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter rectangle shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterRectShape> Create(const PARTICLE_RECT_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter rectangle shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterRectShape> Create();
 
 		/**
@@ -753,11 +753,11 @@ namespace bs
 		const PARTICLE_STATIC_MESH_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter static mesh shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterStaticMeshShape> Create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter static mesh shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterStaticMeshShape> Create();
 
 		/**
@@ -828,11 +828,11 @@ namespace bs
 		const PARTICLE_SKINNED_MESH_SHAPE_DESC& GetOptions() const { return mInfo; }
 
 		/** Creates a new particle emitter skinned mesh shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterSkinnedMeshShape> Create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc);
 
 		/** Creates a new particle emitter skinned mesh shape. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitterSkinnedMeshShape> Create();
 
 		/**
@@ -1040,7 +1040,7 @@ namespace bs
 		float GetFlipV() const { return mFlipV; }
 
 		/** Creates a new emitter. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<ParticleEmitter> Create();
 	private:
 		friend class ParticleSystem;

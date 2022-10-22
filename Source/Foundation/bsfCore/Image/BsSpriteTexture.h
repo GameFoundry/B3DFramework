@@ -206,11 +206,11 @@ namespace bs
 		SPtr<ct::SpriteTexture> GetCore() const;
 
 		/**	Creates a new sprite texture that references the entire area of the provided texture. */
-		BS_SCRIPT_EXPORT(ec:SpriteTexture)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteTexture))
 		static HSpriteTexture Create(const HTexture& texture);
 
 		/**	Creates a new sprite texture that references a sub-area of the provided	texture. */
-		BS_SCRIPT_EXPORT(ec:SpriteTexture)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteTexture))
 		static HSpriteTexture Create(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
 
 		/**	Checks if the sprite texture and its internal texture have been loaded. */

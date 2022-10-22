@@ -66,7 +66,7 @@ namespace bs
 		 *								collision is elastic, and value of 0 means the value is inelastic. Must be in
 		 *								[0, 1] range.
 		 */
-		BS_SCRIPT_EXPORT(ec:PhysicsMaterial)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(PhysicsMaterial))
 		static HPhysicsMaterial Create(float staticFriction = 0.0f, float dynamicFriction = 0.0f, float restitution = 0.0f);
 
 		/** @name Internal

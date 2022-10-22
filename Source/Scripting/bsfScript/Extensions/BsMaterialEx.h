@@ -14,20 +14,20 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Extension class for Material, for adding additional functionality for the script version of the class. */
-	class BS_SCRIPT_EXPORT(e:Material) MaterialEx
+	class BS_SCRIPT_EXPORT(ExtensionMethodForType(Material)) MaterialEx
 	{
 	public:
-		BS_SCRIPT_EXPORT(e:Material,in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Material),in:true)
 		static void SetTexture(const HMaterial& thisPtr, const String& name, const HTexture& value,
 			u32 mipLevel, u32 numMipLevels, u32 arraySlice, u32 numArraySlices);
 
-		BS_SCRIPT_EXPORT(e:Material,in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Material),in:true)
 		static HTexture GetTexture(const HMaterial& thisPtr, const String& name);
 
-		BS_SCRIPT_EXPORT(e:Material,in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Material),in:true)
 		static void SetSpriteTexture(const HMaterial& thisPtr, const String& name, const HSpriteTexture& value);
 
-		BS_SCRIPT_EXPORT(e:Material,in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Material),in:true)
 		static HSpriteTexture GetSpriteTexture(const HMaterial& thisPtr, const String& name);
 	};
 

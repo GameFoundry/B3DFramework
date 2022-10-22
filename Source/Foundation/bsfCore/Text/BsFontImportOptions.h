@@ -64,7 +64,7 @@ namespace bs
 		bool Italic = false;
 
 		/** Creates a new import options object that allows you to customize how are fonts imported. */
-		BS_SCRIPT_EXPORT(ec:T)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static SPtr<FontImportOptions> Create();
 
 		/************************************************************************/

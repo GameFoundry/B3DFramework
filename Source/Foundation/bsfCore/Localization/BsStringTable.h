@@ -312,7 +312,7 @@ namespace bs
 		SPtr<LocalizedStringData> GetStringData(const String& identifier, Language language, bool insertIfNonExisting = true);
 
 		/** Creates a new empty string table resource. */
-		BS_SCRIPT_EXPORT(ec:StringTable)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(StringTable))
 		static HStringTable Create();
 
 		static const Language DEFAULT_LANGUAGE;

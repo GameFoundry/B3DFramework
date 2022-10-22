@@ -14,15 +14,15 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Extension class for PhysicsMesh, for adding additional functionality for the script version of the class. */
-	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(e:PhysicsMesh) PhysicsMeshEx
+	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(ExtensionMethodForType(PhysicsMesh)) PhysicsMeshEx
 	{
 	public:
 		/** @copydoc PhysicsMesh::Create() */
-		BS_SCRIPT_EXPORT(ec:PhysicsMesh)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(PhysicsMesh))
 		static HPhysicsMesh Create(const SPtr<RendererMeshData>& meshData, PhysicsMeshType type = PhysicsMeshType::Convex);
 
 		/** @copydoc PhysicsMesh::getMeshData() */
-		BS_SCRIPT_EXPORT(e:PhysicsMesh,n:MeshData,pr:getter)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PhysicsMesh),n:MeshData,pr:getter)
 		static SPtr<RendererMeshData> GetMeshData(const HPhysicsMesh& thisPtr);
 	};
 

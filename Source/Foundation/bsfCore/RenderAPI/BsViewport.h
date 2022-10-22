@@ -157,7 +157,7 @@ namespace bs
 		 *
 		 * @note	Viewport coordinates are normalized in [0, 1] range.
 		 */
-		BS_SCRIPT_EXPORT(ec:Viewport)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Viewport))
 		static SPtr<Viewport> Create(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f,
 			float width = 1.0f, float height = 1.0f);
 

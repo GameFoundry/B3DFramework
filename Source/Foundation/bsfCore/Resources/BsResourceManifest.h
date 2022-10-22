@@ -83,7 +83,7 @@ namespace bs
 		static SPtr<ResourceManifest> Load(const Path& path, const Path& relativePath);
 
 		/** Creates a new empty resource manifest. Provided name should be unique among manifests. */
-		BS_SCRIPT_EXPORT(ec:ResourceManifest)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(ResourceManifest))
 		static SPtr<ResourceManifest> Create(const String& name);
 
 	private:

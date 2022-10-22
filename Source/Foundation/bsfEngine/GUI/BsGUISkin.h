@@ -52,7 +52,7 @@ namespace bs
 		Vector<String> GetStyleNames() const;
 
 		/**	Creates an empty GUI skin and returns a handle to it. */
-		BS_SCRIPT_EXPORT(ec:GUISkin)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(GUISkin))
 		static HGUISkin Create();
 
 		/**	Default style that may be used when no other is available. */

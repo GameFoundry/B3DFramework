@@ -15,7 +15,7 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Extension class for Mesh, for adding additional functionality for the script version of the class. */
-	class BS_SCRIPT_EXPORT(e:Mesh) MeshEx
+	class BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh)) MeshEx
 	{
 	public:
 		/**
@@ -32,7 +32,7 @@ namespace bs
 		 * @param[in]	index			Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the data type size.
 		 */
-		BS_SCRIPT_EXPORT(ec:Mesh)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
 		static HMesh Create(int numVertices, int numIndices, DrawOperationType topology = DOT_TRIANGLE_LIST,
 			MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
 
@@ -50,7 +50,7 @@ namespace bs
 		 * @param[in]	index			Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the data type size.
 		 */
-		BS_SCRIPT_EXPORT(ec:Mesh)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
 		static HMesh Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes,
 			MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
 
@@ -63,7 +63,7 @@ namespace bs
 		 *								option is a triangle list, where three indices represent a single triangle.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 */
-		BS_SCRIPT_EXPORT(ec:Mesh)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
 		static HMesh Create(const SPtr<RendererMeshData>& data, DrawOperationType topology = DOT_TRIANGLE_LIST,
 			MeshUsage usage = MU_STATIC);
 
@@ -76,19 +76,19 @@ namespace bs
 		 *								rendered. Sub-meshes may be rendered independently, each with a different material.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 */
-		BS_SCRIPT_EXPORT(ec:Mesh)
+		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
 		static HMesh Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes,
 			MeshUsage usage = MU_STATIC);
 
 		/** Returns all sub-meshes contained in the mesh. */
-		BS_SCRIPT_EXPORT(e:Mesh,pr:getter,n:SubMeshes)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),pr:getter,n:SubMeshes)
 		static Vector<SubMesh> GetSubMeshes(const HMesh& thisPtr);
 		
 		/** Returns the number of sub-meshes contained in this mesh. */
-		BS_SCRIPT_EXPORT(e:Mesh,pr:getter,n:SubMeshCount)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),pr:getter,n:SubMeshCount)
 		static u32 GetSubMeshCount(const HMesh& thisPtr);
 		
-		BS_SCRIPT_EXPORT(e:Mesh,in:true)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),in:true)
 		static void GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere);
 		
 		/**
@@ -96,9 +96,9 @@ namespace bs
 		 * MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh's vertex/index counts, vertex
 		 * layout and index format.
 		 */
-		BS_SCRIPT_EXPORT(e:Mesh,pr:getter,n:MeshData)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),pr:getter,n:MeshData)
 		static SPtr<RendererMeshData> GetMeshData(const HMesh& thisPtr);
-		BS_SCRIPT_EXPORT(e:Mesh,pr:setter,n:MeshData)
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),pr:setter,n:MeshData)
 		static void SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value);
 	};
 
