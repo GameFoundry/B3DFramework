@@ -19,7 +19,7 @@ namespace bs
 	 */
 
 	/** Determines type of distribution used by distribution properties. */
-	enum BS_SCRIPT_EXPORT(m:Particles) PropertyDistributionType
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) PropertyDistributionType
 	{
 		/** The distribution is a costant value. */
 		PDT_Constant			BS_SCRIPT_EXPORT(n:Constant),
@@ -234,8 +234,8 @@ namespace bs
 	using ColorHDRDistribution = TColorDistribution<ColorGradientHDR>;
 
 #ifdef BS_SBGEN
-	template struct BS_SCRIPT_EXPORT(m:Particles,n:ColorDistribution) TColorDistribution<ColorGradient>;
-	template struct BS_SCRIPT_EXPORT(m:Particles,n:ColorHDRDistribution) TColorDistribution<ColorGradientHDR>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),n:ColorDistribution) TColorDistribution<ColorGradient>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),n:ColorHDRDistribution) TColorDistribution<ColorGradientHDR>;
 #endif
 
 	/** Specifies a value as a distribution, which can include a constant value, random range or a curve. */
@@ -424,9 +424,9 @@ namespace bs
 	using Vector2Distribution = TDistribution<Vector2>;
 
 #ifdef BS_SBGEN
-	template struct BS_SCRIPT_EXPORT(m:Particles,n:FloatDistribution) TDistribution<float>;
-	template struct BS_SCRIPT_EXPORT(m:Particles,n:Vector3Distribution) TDistribution<Vector3>;
-	template struct BS_SCRIPT_EXPORT(m:Particles,n:Vector2Distribution) TDistribution<Vector2>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),n:FloatDistribution) TDistribution<float>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),n:Vector3Distribution) TDistribution<Vector3>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),n:Vector2Distribution) TDistribution<Vector2>;
 #endif
 
 	/** @} */

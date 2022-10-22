@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Flags that can be used to control resource loading. */
-	enum class BS_SCRIPT_EXPORT(m:Resources) ResourceLoadFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Resources)) ResourceLoadFlag
 	{
 		/** No flags. */
 		None = 0,
@@ -44,7 +44,7 @@ namespace bs
 	 *
 	 * @note	Sim thread only.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Resources,api:bsf) Resources : public Module<Resources>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Resources),api:bsf) Resources : public Module<Resources>
 	{
 		/** Information about a loaded resource. */
 		struct LoadedResourceData

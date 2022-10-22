@@ -12,14 +12,14 @@ namespace bs
 	 */
 
 	/**	Kerning pair representing larger or smaller offset between a specific pair of characters. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:GUI_Engine) KerningPair
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(GUI_Engine)) KerningPair
 	{
 		u32 OtherCharId;
 		i32 Amount;
 	};
 
 	/**	Describes a single character in a font of a specific size. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:GUI_Engine) CharDesc
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(GUI_Engine)) CharDesc
 	{
 		u32 CharId; /**< Character ID, corresponding to a Unicode key. */
 		u32 Page; /**< Index of the texture the character is located on. */

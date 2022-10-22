@@ -35,7 +35,7 @@ namespace bs
 	 * that describe the morph shape.
 	 * @endscript
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) MorphShape : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShape : public IReflectable
 	{
 	public:
 		MorphShape(const String& name, float weight, const Vector<MorphVertex>& vertices);
@@ -83,7 +83,7 @@ namespace bs
 	 * determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be
 	 * blended with those before or after them, depending on their weight.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) MorphChannel : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphChannel : public IReflectable
 	{
 	public:
 		/** Returns the unique name of the channel. */
@@ -131,7 +131,7 @@ namespace bs
 	 * which are blended together depending on frame animation. Each channel is then additively blended together depending
 	 * on some weight.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) MorphShapes : public IReflectable // Note: Must be immutable in order to be usable on multiple threads
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShapes : public IReflectable // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
 		/** Returns the number of available morph channels. */

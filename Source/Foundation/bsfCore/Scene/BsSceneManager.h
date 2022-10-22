@@ -36,7 +36,7 @@ namespace bs
 	};
 
 	/** Contains information about an instantiated scene. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Scene) SceneInstance
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance
 	{
 		struct ConstructPrivately {};
 	public:

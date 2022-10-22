@@ -15,7 +15,7 @@ namespace bs
 	 */
 
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) AutoExposureSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AutoExposureSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		AutoExposureSettings() = default;
@@ -100,7 +100,7 @@ namespace bs
 	};
 
 	/** Settings that control tonemap post-process. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) TonemappingSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TonemappingSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		TonemappingSettings() = default;
@@ -159,7 +159,7 @@ namespace bs
 	};
 
 	/** Settings that control white balance post-process. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) WhiteBalanceSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) WhiteBalanceSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		WhiteBalanceSettings() = default;
@@ -242,7 +242,7 @@ namespace bs
 	};
 
 	/** Settings that control screen space ambient occlusion. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) AmbientOcclusionSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AmbientOcclusionSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		AmbientOcclusionSettings() = default;
@@ -318,7 +318,7 @@ namespace bs
 	};
 
 	/** Types of available depth of field effects. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) DepthOfFieldType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) DepthOfFieldType
 	{
 		/** 
 		 * Fastest depth of field variant, uses gaussian blur to approximate depth of field on near and far objects, but
@@ -499,7 +499,7 @@ namespace bs
 	}
 
 	/** Determines which parts of the scene will trigger motion blur. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) MotionBlurDomain
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurDomain
 	{
 		/** Camera movement and rotation will result in full-screen motion blur. */
 		CameraOnly,
@@ -516,7 +516,7 @@ namespace bs
 	};
 
 	/** Type of filter to use when filtering samples contributing to a blurred pixel. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) MotionBlurFilter
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurFilter
 	{
 		/** Samples will be simply averaged together to create the blurred pixel. */
 		Simple,
@@ -546,7 +546,7 @@ namespace bs
 	};
 
 	/** Settings that control the motion blur effect. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) MotionBlurSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		MotionBlurSettings() = default;
@@ -635,7 +635,7 @@ namespace bs
 	 * for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to
 	 * achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
 	 */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ScreenSpaceReflectionsSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceReflectionsSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		ScreenSpaceReflectionsSettings() = default;
@@ -677,7 +677,7 @@ namespace bs
 	};
 
 	/** Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) BloomSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) BloomSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		BloomSettings() = default;
@@ -733,7 +733,7 @@ namespace bs
 	};
 
 	/** Settings that control the screen-space lens flare effect. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ScreenSpaceLensFlareSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceLensFlareSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		ScreenSpaceLensFlareSettings() = default;
@@ -844,7 +844,7 @@ namespace bs
 	};
 
 	/** Types of available chromatic aberration effects. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) ChromaticAberrationType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ChromaticAberrationType
 	{
 		/** Simple chromatic aberration effect that is fast to execute. */
 		Simple,
@@ -931,7 +931,7 @@ namespace bs
 	}
 
 	/** Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) FilmGrainSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) FilmGrainSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		FilmGrainSettings() = default;
@@ -962,7 +962,7 @@ namespace bs
 	};
 
 	/** Various options that control shadow rendering for a specific view. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ShadowSettings : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShadowSettings : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		ShadowSettings() = default;
@@ -1203,7 +1203,7 @@ namespace bs
 	};
 	
 	/** Settings that control rendering for a specific camera (view). */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) RenderSettings : TRenderSettings<false>, IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<false>, IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		RenderSettings() = default;

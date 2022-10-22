@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * Wraps Collider as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:Collider) CCollider : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:Collider) CCollider : public Component
 	{
 	public:
 		CCollider(const HSceneObject& parent);

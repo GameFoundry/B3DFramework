@@ -14,7 +14,7 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Type of parameters that can be defined by a shader. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) ShaderParameterType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderParameterType
 	{
 		Float, Vector2, Vector3, Vector4, Color,
 		Matrix3, Matrix4, Texture2D,
@@ -22,7 +22,7 @@ namespace bs
 	};
 
 	/** Flags used to further describe a shader parameter. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) ShaderParameterFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderParameterFlag
 	{
 		None = 0,
 
@@ -40,7 +40,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(ShaderParameterFlag)
 
 	/** Contains information about a single shader parameter. */
-	struct BS_SCRIPT_EXPORT(m:Rendering,pl:true) ShaderParameter
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) ShaderParameter
 	{
 		/** Name of the parameter variable. */
 		String Name;

@@ -19,7 +19,7 @@ namespace bs
 	 * row, up to @p count frames. Frames in rows/colums past @p count. @p fps frames are evaluated every second, allowing
 	 * you to control animation speed.
 	 */
-	struct BS_SCRIPT_EXPORT(m:Rendering,pl:true) SpriteSheetGridAnimation
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) SpriteSheetGridAnimation
 	{
 		SpriteSheetGridAnimation() = default;
 		SpriteSheetGridAnimation(u32 numRows, u32 numColumns, u32 count, u32 fps)
@@ -46,7 +46,7 @@ namespace bs
 	};
 
 	/** Type of playback to use for an animation of a SpriteTexture. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) SpriteAnimationPlayback
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteAnimationPlayback
 	{
 		/** Do not animate. */
 		None,
@@ -169,7 +169,7 @@ namespace bs
 	 * for multiple sprites (texture atlasing). Sprite textures also allow you to specify sprite sheet animation by varying
 	 * which portion of the UV is selected over time.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) SpriteTexture : public Resource, public TSpriteTexture<false>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteTexture : public Resource, public TSpriteTexture<false>
 	{
 	public:
 		/**	Determines the internal texture that the sprite texture references. */

@@ -38,7 +38,7 @@ namespace bs
 	};
 
 	/** Updates properties of all active particles in a particle system in some way. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEvolver : public ParticleModule
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEvolver : public ParticleModule
 	{
 	public:
 		ParticleEvolver() = default;
@@ -69,7 +69,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleTextureAnimation object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleTextureAnimationOptions) PARTICLE_TEXTURE_ANIMATION_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleTextureAnimationOptions) PARTICLE_TEXTURE_ANIMATION_DESC
 	{
 		/**
 		 * Randomly pick a row to use for animation when the particle is first spawned. This implies that only a single row
@@ -85,7 +85,7 @@ namespace bs
 	 * Provides functionality for particle texture animation. Uses the sprite texture assigned to the particle's material
 	 * to determine animation properties.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleTextureAnimation : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleTextureAnimation : public ParticleEvolver
 	{
 	public:
 		ParticleTextureAnimation() = default;
@@ -130,7 +130,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleOrbit object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleOrbitOptions) PARTICLE_ORBIT_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleOrbitOptions) PARTICLE_ORBIT_DESC
 	{
 		/** Position of the center around which to orbit. Evaluated over particle system lifetime. */
 		Vector3Distribution Center = Vector3(0.0f, 0.0f, 0.0f);
@@ -149,7 +149,7 @@ namespace bs
 	};
 
 	/** Moves particles so that their sprites orbit their center according to the provided offset and rotation values. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleOrbit : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleOrbit : public ParticleEvolver
 	{
 	public:
 		ParticleOrbit() = default;
@@ -194,7 +194,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleVelocity object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleVelocityOptions) PARTICLE_VELOCITY_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleVelocityOptions) PARTICLE_VELOCITY_DESC
 	{
 		/** Determines the velocity of the particles evaluated over particle lifetime. */
 		Vector3Distribution Velocity = Vector3(0.0f, 1.0f, 0.0f);
@@ -204,7 +204,7 @@ namespace bs
 	};
 
 	/** Applies linear velocity to the particles. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleVelocity : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleVelocity : public ParticleEvolver
 	{
 	public:
 		ParticleVelocity() = default;
@@ -249,7 +249,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleForce object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleForceOptions) PARTICLE_FORCE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleForceOptions) PARTICLE_FORCE_DESC
 	{
 		/** Determines the force of the particles evaluated over particle lifetime. */
 		Vector3Distribution Force = Vector3(0.0f, 0.0f, 0.0f);
@@ -259,7 +259,7 @@ namespace bs
 	};
 
 	/** Applies an arbitrary force to the particles. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleForce : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleForce : public ParticleEvolver
 	{
 	public:
 		ParticleForce() = default;
@@ -304,14 +304,14 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleGravity object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleGravityOptions) PARTICLE_GRAVITY_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleGravityOptions) PARTICLE_GRAVITY_DESC
 	{
 		/** Scale which to apply to the gravity value retrieved from the physics sub-system. */
 		float Scale = 1.0f;
 	};
 
 	/** Applies gravity to the particles. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleGravity : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleGravity : public ParticleEvolver
 	{
 	public:
 		ParticleGravity() = default;
@@ -356,14 +356,14 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleColor object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleColorOptions) PARTICLE_COLOR_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleColorOptions) PARTICLE_COLOR_DESC
 	{
 		/** Determines the color of the particles evaluated over particle lifetime. */
 		ColorDistribution Color = Color::White;
 	};
 
 	/** Changes the color of the particles over the particle lifetime. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleColor : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleColor : public ParticleEvolver
 	{
 	public:
 		ParticleColor() = default; // RTTI only
@@ -408,7 +408,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleSize object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleSizeOptions) PARTICLE_SIZE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSizeOptions) PARTICLE_SIZE_DESC
 	{
 		/**
 		 * Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.
@@ -429,7 +429,7 @@ namespace bs
 	};
 
 	/** Changes the size of the particles over the particle lifetime. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleSize : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleSize : public ParticleEvolver
 	{
 	public:
 		ParticleSize() = default;
@@ -474,7 +474,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleRotation object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleRotationOptions) PARTICLE_ROTATION_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleRotationOptions) PARTICLE_ROTATION_DESC
 	{
 		/**
 		 * Determines the rotation of the particles in degrees, applied around the particle's local Z axis. Only used if
@@ -493,7 +493,7 @@ namespace bs
 	};
 
 	/** Rotates the particles over the particle lifetime. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleRotation : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleRotation : public ParticleEvolver
 	{
 	public:
 		ParticleRotation() = default;
@@ -538,7 +538,7 @@ namespace bs
 	};
 
 	/** Types of collision modes that ParticleCollisions evolver can operate in. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleCollisionMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleCollisionMode
 	{
 		/** Particles will collide with a user-provided set of planes. */
 		Plane,
@@ -548,7 +548,7 @@ namespace bs
 	};
 
 	/** Structure used for initializing a ParticleCollisions object. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleCollisionsOptions) PARTICLE_COLLISIONS_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleCollisionsOptions) PARTICLE_COLLISIONS_DESC
 	{
 		/** Collision mode determining with which geometry the particles will interact with. */
 		ParticleCollisionMode Mode = ParticleCollisionMode::Plane;
@@ -582,7 +582,7 @@ namespace bs
 	};
 
 	/** Particle evolver that allows particles to collide with the world. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleCollisions : public ParticleEvolver
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleCollisions : public ParticleEvolver
 	{
 	public:
 		ParticleCollisions() = default;

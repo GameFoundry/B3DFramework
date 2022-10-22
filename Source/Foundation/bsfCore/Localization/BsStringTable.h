@@ -15,7 +15,7 @@ namespace bs
 	 * A set of all languages that localized strings can be translated to. Loosely based on ISO 639-1 two letter language
 	 * codes.
 	 */
-	enum class BS_SCRIPT_EXPORT(m:Localization) Language
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Localization)) Language
 	{
 		Afar,
 		Abkhazian,
@@ -251,7 +251,7 @@ namespace bs
 	 */
 
 	/** Used for string localization. Stores strings and their translations in various languages. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Localization) StringTable : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Localization)) StringTable : public Resource
 	{
 		// TODO - When editing string table I will need to ensure that all languages of the same string have the same number of parameters
 

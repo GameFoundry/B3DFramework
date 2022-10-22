@@ -23,7 +23,7 @@ namespace bs
 	 */
 
 	/** Flags for controlling Camera options. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) CameraFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) CameraFlag
 	{
 		/**
 		 * If set the camera will only render when requested by the user through Camera::notifyNeedsRedraw().

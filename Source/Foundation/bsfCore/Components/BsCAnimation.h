@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps Animation as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation,n:Animation) CAnimation : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:Animation) CAnimation : public Component
 	{
 		/** Information about scene objects bound to a specific animation curve. */
 		struct SceneObjectMappingInfo

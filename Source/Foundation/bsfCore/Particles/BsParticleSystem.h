@@ -36,7 +36,7 @@ namespace bs
 	 */
 
 	/** Possible orientations when rendering billboard particles. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleOrientation
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleOrientation
 	{
 		/** Orient towards view (camera) plane. */
 		ViewPlane,
@@ -49,7 +49,7 @@ namespace bs
 	};
 
 	/** Space in which to spawn/transform particles. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleSimulationSpace
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleSimulationSpace
 	{
 		/**
 		 * Particles will always remain local to their transform parent. This means if the transform parent moves so will
@@ -65,7 +65,7 @@ namespace bs
 	};
 
 	/** Determines how to sort particles before rendering. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleSortMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleSortMode
 	{
 		/** Do not sort the particles. */
 		None,
@@ -81,7 +81,7 @@ namespace bs
 	};
 
 	/** Determines how are particles represented on the screen. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleRenderMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleRenderMode
 	{
 		/** Particle is represented using a 2D quad. */
 		Billboard,
@@ -91,7 +91,7 @@ namespace bs
 	};
 
 	/** Controls depth buffer collisions for GPU simulated particles. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleDepthCollisionSettings : IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleDepthCollisionSettings : IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		ParticleDepthCollisionSettings() = default;
@@ -328,7 +328,7 @@ namespace bs
 	 */
 
 	/** Settings used for controlling a vector field in a GPU simulated particle system. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles)
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>, IReflectable
 	{
 		/************************************************************************/
@@ -397,7 +397,7 @@ namespace bs
 	 */
 
 	/** Generic settings used for controlling a ParticleSystem. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles)
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleSystemSettings : TParticleSystemSettings<false>, IReflectable
 	{
 		/************************************************************************/
@@ -410,7 +410,7 @@ namespace bs
 	};
 
 	/** Settings used for controlling particle system GPU simulation. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles)
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>, IReflectable
 	{
 		/************************************************************************/

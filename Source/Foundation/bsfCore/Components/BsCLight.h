@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps Light as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:Light) CLight : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),n:Light) CLight : public Component
 	{
 	public:
 		CLight(const HSceneObject& parent, LightType type = LightType::Radial, Color color = Color::White,

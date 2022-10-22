@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Represents verbosity level at which a specific log message will be displayed. */
-	enum class BS_SCRIPT_EXPORT(m:Debug) LogVerbosity
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Debug)) LogVerbosity
 	{
 		/** Fatal error happened that application cannot recover from and will crash. */
 		Fatal,

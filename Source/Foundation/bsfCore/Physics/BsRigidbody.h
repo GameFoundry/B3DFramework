@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Type of force or torque that can be applied to a rigidbody. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) ForceMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) ForceMode
 	{
 		Force, /**< Value applied is a force. */
 		Impulse, /**< Value applied is an impulse (a direct change in its linear or angular momentum). */
@@ -21,14 +21,14 @@ namespace bs
 	};
 
 	/** Type of force that can be applied to a rigidbody at an arbitrary point. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) PointForceMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) PointForceMode
 	{
 		Force, /**< Value applied is a force. */
 		Impulse, /**< Value applied is an impulse (a direct change in its linear or angular momentum). */
 	};
 
 	/** Flags that control options of a Rigidbody object. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) RigidbodyFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) RigidbodyFlag
 	{
 		/** No options. */
 		None = 0x00,

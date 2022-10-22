@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Contains textures and data about every character for a bitmap font of a specific size. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:GUI_Engine) FontBitmap : public IReflectable
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI_Engine)) FontBitmap : public IReflectable
 	{
 		/**	Returns a character description for the character with the specified Unicode key. */
 		BS_SCRIPT_EXPORT()
@@ -59,7 +59,7 @@ namespace bs
 	 * Font resource containing data about textual characters and how to render text. Contains one or multiple font
 	 * bitmaps, each for a specific size.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:GUI_Engine) Font : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI_Engine)) Font : public Resource
 	{
 	public:
 		virtual ~Font() = default;

@@ -16,7 +16,7 @@ namespace bs
 	 * Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those
 	 * provided are allowed.
 	 */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) VertexLayout
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) VertexLayout
 	{
 		Position = 0x01,
 		Color = 0x02,
@@ -39,7 +39,7 @@ namespace bs
 	};
 
 	/** Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:MeshData) RendererMeshData
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),n:MeshData) RendererMeshData
 	{
 	public:
 		/**

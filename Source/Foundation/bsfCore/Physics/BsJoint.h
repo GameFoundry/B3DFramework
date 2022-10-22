@@ -105,7 +105,7 @@ namespace bs
 	 * Controls spring parameters for a physics joint limits. If a limit is soft (body bounces back due to restition when
 	 * the limit is reached) the spring will pull the body back towards the limit using the specified parameters.
 	 */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) Spring
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) Spring
 	{
 		/** Constructs a spring with no force. */
 		Spring() { }
@@ -133,7 +133,7 @@ namespace bs
 	};
 
 	/** Contains common values used by all Joint limit types. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) LimitCommon
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) LimitCommon
 	{
 		LimitCommon(float contactDist = -1.0f)
 			:ContactDist(contactDist)
@@ -160,7 +160,7 @@ namespace bs
 	};
 
 	/** Represents a joint limit between two distance values. Lower value must be less than the upper value. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) LimitLinearRange : LimitCommon
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) LimitLinearRange : LimitCommon
 	{
 		/** Constructs an empty limit. */
 		LimitLinearRange()
@@ -207,7 +207,7 @@ namespace bs
 	};
 
 	/** Represents a joint limit between zero a single distance value. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) LimitLinear : LimitCommon
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) LimitLinear : LimitCommon
 	{
 		/** Constructs an empty limit. */
 		LimitLinear()
@@ -249,7 +249,7 @@ namespace bs
 	};
 
 	/** Represents a joint limit between two angles. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) LimitAngularRange : LimitCommon
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) LimitAngularRange : LimitCommon
 	{
 		/** Constructs an empty limit. */
 		LimitAngularRange()
@@ -298,7 +298,7 @@ namespace bs
 	};
 
 	/** Represents a joint limit that contraints movement to within an elliptical cone. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) LimitConeRange : LimitCommon
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) LimitConeRange : LimitCommon
 	{
 		/** Constructs a limit with a 45 degree cone. */
 		LimitConeRange()

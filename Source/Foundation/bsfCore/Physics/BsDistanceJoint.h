@@ -15,7 +15,7 @@ namespace bs
 	struct DISTANCE_JOINT_DESC;
 
 	/** Controls distance joint options. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) DistanceJointFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) DistanceJointFlag
 	{
 		MinDistance = 0x1, /**< Enables minimum distance limit. */
 		MaxDistance = 0x2, /**< Enables maximum distance limit. */

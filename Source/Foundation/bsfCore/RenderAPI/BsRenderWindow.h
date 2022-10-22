@@ -45,7 +45,7 @@ namespace bs
 	 */
 
 	/** Structure that is used for initializing a render window. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:RenderAPI,pl:true,api:bsf) RENDER_WINDOW_DESC
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(RenderAPI),pl:true,api:bsf) RENDER_WINDOW_DESC
 	{
 		/** Output monitor, frame buffer resize and refresh rate. */
 		VideoMode VideoMode;

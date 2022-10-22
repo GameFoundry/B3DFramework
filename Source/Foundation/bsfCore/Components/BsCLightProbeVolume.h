@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps LightProbeVolume as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:LightProbeVolume) CLightProbeVolume : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),n:LightProbeVolume) CLightProbeVolume : public Component
 	{
 	public:
 		CLightProbeVolume(const HSceneObject& parent, const AABox& volume = AABox::UNIT_BOX,

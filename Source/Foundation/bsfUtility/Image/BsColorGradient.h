@@ -56,7 +56,7 @@ namespace bs
 	 */
 
 	/** Single key in a ColorGradient. */
-	struct BS_SCRIPT_EXPORT(m:Image,pl:true) ColorGradientKey
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Image),pl:true) ColorGradientKey
 	{
 		ColorGradientKey() = default;
 		ColorGradientKey(const Color& color, float time)
@@ -132,7 +132,7 @@ namespace bs
 	 * keys that get interpolated between. Stores colors as 32-bit integers, and is therefor unable to represent
 	 * a color range outside of [0, 1] - see ColorGradientHDR for an alternative.
 	 */
-	class BS_UTILITY_EXPORT BS_SCRIPT_EXPORT(m:Image) ColorGradient : public TColorGradient<RGBA, uint16_t>
+	class BS_UTILITY_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradient : public TColorGradient<RGBA, uint16_t>
 	{
 		using TColorGradient::TColorGradient;
 
@@ -143,7 +143,7 @@ namespace bs
 	 * Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of
 	 * keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.
 	 */
-	class BS_UTILITY_EXPORT BS_SCRIPT_EXPORT(m:Image) ColorGradientHDR : public TColorGradient<Color, float>
+	class BS_UTILITY_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradientHDR : public TColorGradient<Color, float>
 	{
 		using TColorGradient::TColorGradient;
 

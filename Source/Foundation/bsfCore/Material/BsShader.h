@@ -160,7 +160,7 @@ namespace bs
 	};
 
 	/** Represents a single potential value of a shader variation parameter and optionally its name. */
-	struct BS_SCRIPT_EXPORT(m:Renderer,pl:true) ShaderVariationParamValue
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),pl:true) ShaderVariationParamValue
 	{
 		/** Optional human-readable name describing what this particular value represents. */
 		String Name;
@@ -170,7 +170,7 @@ namespace bs
 	};
 
 	/** Represents a single shader variation parameter and a set of all possible values. */
-	struct BS_SCRIPT_EXPORT(m:Renderer,pl:true) ShaderVariationParamInfo
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Renderer),pl:true) ShaderVariationParamInfo
 	{
 		/** Optional human-readable name describing the variation parameter. */
 		String Name;
@@ -565,7 +565,7 @@ namespace bs
 	 * programs.
 	 * @endscript
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Shader : public Resource, public TShader<false>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Shader : public Resource, public TShader<false>
 	{
 	public:
 		/** Retrieves an implementation of a shader usable only from the core thread. */

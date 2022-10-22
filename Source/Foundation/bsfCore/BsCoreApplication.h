@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Structure containing parameters for starting the application. */
-	struct BS_SCRIPT_EXPORT(m:Application,pl:true,api:bsf) START_UP_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Application),pl:true,api:bsf) START_UP_DESC
 	{
 		String RenderApi; /**< Name of the render system plugin to use. */
 		String Renderer; /**< Name of the renderer plugin to use. */

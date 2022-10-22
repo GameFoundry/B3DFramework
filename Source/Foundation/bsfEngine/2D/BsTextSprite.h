@@ -16,7 +16,7 @@ namespace bs
 	 */
 
 	/**	Specifies how is text horizontally aligned within its bounds. */
-	enum BS_SCRIPT_EXPORT(m:GUI) TextHorzAlign
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextHorzAlign
 	{
 		THA_Left	BS_SCRIPT_EXPORT(n:Left),
 		THA_Center	BS_SCRIPT_EXPORT(n:Center),
@@ -24,7 +24,7 @@ namespace bs
 	};
 
 	/**	Specifies how is text vertically aligned within its bounds. */
-	enum BS_SCRIPT_EXPORT(m:GUI) TextVertAlign
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextVertAlign
 	{
 		TVA_Top		BS_SCRIPT_EXPORT(n:Top),
 		TVA_Center	BS_SCRIPT_EXPORT(n:Center),

@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Contains import options you may use to control how is a file containing script source code importer. */
-	class BS_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf,api:bed) ScriptCodeImportOptions : public ImportOptions
+	class BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Importer),api:bsf,api:bed) ScriptCodeImportOptions : public ImportOptions
 	{
 	public:
 		ScriptCodeImportOptions() = default;

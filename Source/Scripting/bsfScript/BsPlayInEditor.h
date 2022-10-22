@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	States the game in editor can be in. */
-	enum class BS_SCRIPT_EXPORT(api:bed,m:Editor-General) PlayInEditorState
+	enum class BS_SCRIPT_EXPORT(api:bed,DocumentationGroup(Editor-General)) PlayInEditorState
 	{
 		Stopped,
 		Playing,
@@ -20,7 +20,7 @@ namespace bs
 	};
 
 	/** Handles functionality specific to running the game in editor. */
-	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(api:bed,m:Editor-General) PlayInEditor : public Module<PlayInEditor>
+	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(api:bed,DocumentationGroup(Editor-General)) PlayInEditor : public Module<PlayInEditor>
 	{
 	public:
 		PlayInEditor();

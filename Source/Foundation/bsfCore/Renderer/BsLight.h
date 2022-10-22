@@ -18,7 +18,7 @@ namespace bs
 	 */
 
 	/** Light type that determines how is light information parsed by the renderer and other systems. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) LightType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) LightType
 	{
 		Directional,
 		Radial,

@@ -55,7 +55,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(PhysicsFlag)
 
 	/** Provides global physics settings, factory methods for physics objects and scene queries. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics) Physics : public Module<Physics>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) Physics : public Module<Physics>
 	{
 	public:
 		Physics(const PHYSICS_INIT_DESC& init);
@@ -156,7 +156,7 @@ namespace bs
 	 * Physical representation of a scene, allowing creation of new physical objects in the scene and queries against
 	 * those objects. Objects created in different scenes cannot physically interact with eachother.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics) PhysicsScene
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsScene
 	{
 	public:
 		/******************************************************************************************************************/

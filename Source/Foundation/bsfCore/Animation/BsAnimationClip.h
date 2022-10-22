@@ -18,7 +18,7 @@ namespace bs
 	struct AnimationCurveMapping;
 
 	/** A set of animation curves representing translation/rotation/scale and generic animation. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) AnimationCurves
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationCurves
 	{
 		BS_SCRIPT_EXPORT()
 		AnimationCurves() = default;
@@ -93,7 +93,7 @@ namespace bs
 	};
 
 	/** Contains a set of animation curves used for moving and rotating the root bone. */
-	struct BS_SCRIPT_EXPORT(m:Animation) RootMotion
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) RootMotion
 	{
 		RootMotion() = default;
 		RootMotion(const TAnimationCurve<Vector3>& position, const TAnimationCurve<Quaternion>& rotation)
@@ -108,7 +108,7 @@ namespace bs
 	};
 
 	/** Event that is triggered when animation reaches a certain point. */
-	struct BS_SCRIPT_EXPORT(m:Animation,pl:true) AnimationEvent
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),pl:true) AnimationEvent
 	{
 		AnimationEvent() = default;
 
@@ -145,7 +145,7 @@ namespace bs
 	 * Contains animation curves for translation/rotation/scale of scene objects/skeleton bones, as well as curves for
 	 * generic property animation.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) AnimationClip : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationClip : public Resource
 	{
 	public:
 		virtual ~AnimationClip() = default;

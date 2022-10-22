@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps SliderJoint as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:SliderJoint) CSliderJoint : public CJoint
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:SliderJoint) CSliderJoint : public CJoint
 	{
 	public:
 		CSliderJoint(const HSceneObject& parent);

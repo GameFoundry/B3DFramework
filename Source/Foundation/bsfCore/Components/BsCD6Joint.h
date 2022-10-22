@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps D6Joint as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:D6Joint) CD6Joint : public CJoint
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:D6Joint) CD6Joint : public CJoint
 	{
 	public:
 		CD6Joint(const HSceneObject& parent);

@@ -15,14 +15,14 @@ namespace bs
 	struct HINGE_JOINT_DESC;
 
 	/** Flags that control hinge joint options. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) HingeJointFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) HingeJointFlag
 	{
 		Limit = 0x1, /**< Joint limit is enabled. */
 		Drive = 0x2 /**< Joint drive is enabled. */
 	};
 
 	/** Properties of a drive that drives the joint's angular velocity towards a paricular value. */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) HingeJointDrive
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) HingeJointDrive
 	{
 		/** Target speed of the joint. */
 		float Speed = 0.0f;

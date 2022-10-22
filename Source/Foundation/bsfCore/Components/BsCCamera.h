@@ -17,7 +17,7 @@ namespace bs
 	 * 			
 	 * Wraps a Camera as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:Camera) CCamera : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),n:Camera) CCamera : public Component
 	{
 	public:
 		CCamera(const HSceneObject& parent);

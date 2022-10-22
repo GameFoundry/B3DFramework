@@ -18,7 +18,7 @@ namespace bs
 	 *
 	 * @note	Wraps FixedJoint as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:FixedJoint) CFixedJoint : public CJoint
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:FixedJoint) CFixedJoint : public CJoint
 	{
 	public:
 		CFixedJoint(const HSceneObject& parent);

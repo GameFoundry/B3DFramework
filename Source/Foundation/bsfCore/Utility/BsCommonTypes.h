@@ -119,7 +119,7 @@ namespace bs
 	};
 
 	/** Describes operation that will be used for rendering a certain set of vertices. */
-	enum BS_SCRIPT_EXPORT(n:MeshTopology,m:Rendering) DrawOperationType
+	enum BS_SCRIPT_EXPORT(n:MeshTopology,DocumentationGroup(Rendering)) DrawOperationType
 	{
 		/** Each vertex represents a point. */
 		DOT_POINT_LIST		BS_SCRIPT_EXPORT(n:PointList)		= 1,
@@ -136,7 +136,7 @@ namespace bs
 	};
 
 	/**	Type of mesh indices used, used for determining maximum number of vertices in a mesh. */
-	enum BS_SCRIPT_EXPORT(m:Rendering) IndexType
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) IndexType
 	{
 		IT_16BIT	BS_SCRIPT_EXPORT(n:Index16),	/**< 16-bit indices. */
 		IT_32BIT	BS_SCRIPT_EXPORT(n:Index32)		/**< 32-bit indices. */
@@ -332,7 +332,7 @@ namespace bs
 	};
 
 	/**	Available texture types. */
-	enum BS_SCRIPT_EXPORT(m:Rendering) TextureType
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureType
 	{
 		/** One dimensional texture. Just a row of pixels. */
 		TEX_TYPE_1D			BS_SCRIPT_EXPORT(n:Texture1D)	= 1,
@@ -513,7 +513,7 @@ namespace bs
 	};
 
 	/** Determines the type of the source image for generating cubemaps. */
-	enum class BS_SCRIPT_EXPORT(m:Utility,api:bsf,api:bed) CubemapSourceType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Utility),api:bsf,api:bed) CubemapSourceType
 	{
 		/** Source is a single image that will be replicated on all cubemap faces. */
 		Single,
@@ -532,19 +532,19 @@ namespace bs
 	};
 
 	/** Names of individual components of a vector. */
-	enum class BS_SCRIPT_EXPORT(m:Utility) VectorComponent
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Utility)) VectorComponent
 	{
 		X, Y, Z, W
 	};
 
 	/** Names of individual components of a color. */
-	enum class BS_SCRIPT_EXPORT(m:Utility) ColorComponent
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Utility)) ColorComponent
 	{
 		R, G, B, A
 	};
 
 	/** Identifiers representing a range of values. */
-	enum class BS_SCRIPT_EXPORT(m:Utility) RangeComponent
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Utility)) RangeComponent
 	{
 		Min, Max
 	};
@@ -606,7 +606,7 @@ namespace bs
 	};
 
 	/**	References a subset of surfaces within a texture. */
-	struct BS_SCRIPT_EXPORT(m:Rendering,pl:true) TextureSurface
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),pl:true) TextureSurface
 	{
 		TextureSurface(u32 mipLevel = 0, u32 numMipLevels = 1, u32 face = 0, u32 numFaces = 1)
 			:MipLevel(mipLevel), NumMipLevels(numMipLevels), Face(face), NumFaces(numFaces)

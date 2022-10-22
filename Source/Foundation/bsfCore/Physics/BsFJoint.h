@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Specifies first or second body referenced by a Joint. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) JointBody
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) JointBody
 	{
 		Target, /**< Body the joint is influencing. */
 		Anchor /**< Body the joint is attached to (if any). */

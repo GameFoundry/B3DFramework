@@ -11,7 +11,7 @@ namespace bs
 	 */
 
 	/**	Data about a sub-mesh range and the type of primitives contained in the range. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,m:Rendering) SubMesh
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Rendering)) SubMesh
 	{
 		SubMesh() = default;
 

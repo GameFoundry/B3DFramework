@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** Valid states in which AudioSource can be in. */
-	enum class BS_SCRIPT_EXPORT(m:Audio) AudioSourceState
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioSourceState
 	{
 		Playing, /**< Source is currently playing. */
 		Paused, /**< Source is currently paused (play will resume from paused point). */

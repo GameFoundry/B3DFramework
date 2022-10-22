@@ -37,7 +37,7 @@ namespace bs
 
 	/** Keyframe specialization for integers (no tangents). */
 	template <>
-	struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameInt,pl:true) TKeyframe<i32>
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:KeyFrameInt,pl:true) TKeyframe<i32>
 	{
 		i32 Value; /**< Value of the key. */
 		float Time; /**< Position of the key along the animation spline. */
@@ -53,10 +53,10 @@ namespace bs
 		}
 	};
 
-	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrame,pl:true) TKeyframe<float>;
-	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameVec3,pl:true) TKeyframe<Vector3>;
-	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameVec2,pl:true) TKeyframe<Vector2>;
-	template struct BS_SCRIPT_EXPORT(m:Animation,n:KeyFrameQuat,pl:true) TKeyframe<Quaternion>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:KeyFrame,pl:true) TKeyframe<float>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:KeyFrameVec3,pl:true) TKeyframe<Vector3>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:KeyFrameVec2,pl:true) TKeyframe<Vector2>;
+	template struct BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:KeyFrameQuat,pl:true) TKeyframe<Quaternion>;
 
 	/**
 	 * Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The
@@ -240,11 +240,11 @@ namespace bs
 	};
 
 #ifdef BS_SBGEN
-	template class BS_SCRIPT_EXPORT(m:Animation,n:AnimationCurve) TAnimationCurve<float>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:Vector3Curve) TAnimationCurve<Vector3>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:Vector2Curve) TAnimationCurve<Vector2>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:QuaternionCurve) TAnimationCurve<Quaternion>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:IntegerCurve) TAnimationCurve<i32>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:AnimationCurve) TAnimationCurve<float>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:Vector3Curve) TAnimationCurve<Vector3>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:Vector2Curve) TAnimationCurve<Vector2>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:QuaternionCurve) TAnimationCurve<Quaternion>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:IntegerCurve) TAnimationCurve<i32>;
 #endif
 
 	/** Flags that describe an animation curve. */
@@ -303,11 +303,11 @@ namespace bs
 	};
 
 #ifdef BS_SBGEN
-	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedFloatCurve,pl:true) TNamedAnimationCurve<float>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedVector3Curve,pl:true) TNamedAnimationCurve<Vector3>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedVector2Curve,pl:true) TNamedAnimationCurve<Vector2>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedQuaternionCurve,pl:true) TNamedAnimationCurve<Quaternion>;
-	template class BS_SCRIPT_EXPORT(m:Animation,n:NamedIntegerCurve,pl:true) TNamedAnimationCurve<i32>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:NamedFloatCurve,pl:true) TNamedAnimationCurve<float>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:NamedVector3Curve,pl:true) TNamedAnimationCurve<Vector3>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:NamedVector2Curve,pl:true) TNamedAnimationCurve<Vector2>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:NamedQuaternionCurve,pl:true) TNamedAnimationCurve<Quaternion>;
+	template class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:NamedIntegerCurve,pl:true) TNamedAnimationCurve<i32>;
 #endif
 
 	/** @} */

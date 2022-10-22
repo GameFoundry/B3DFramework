@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps CharacterController as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:CharacterController) CCharacterController : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:CharacterController) CCharacterController : public Component
 	{
 	public:
 		CCharacterController(const HSceneObject& parent);

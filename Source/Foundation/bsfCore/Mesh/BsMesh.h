@@ -61,7 +61,7 @@ namespace bs
 	 * Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which
 	 * may be bound to the pipeline for drawing. May contain multiple sub-meshes.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Mesh : public MeshBase
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Mesh : public MeshBase
 	{
 	public:
 		virtual ~Mesh() = default;

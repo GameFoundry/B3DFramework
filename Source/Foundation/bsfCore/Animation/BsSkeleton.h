@@ -114,7 +114,7 @@ namespace bs
 	 * Contains information about bones required for skeletal animation.
 	 * @endscript
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) Skeleton : public IReflectable // Note: Must be immutable in order to be usable on multiple threads
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) Skeleton : public IReflectable // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
 		~Skeleton();

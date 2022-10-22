@@ -17,14 +17,14 @@ namespace bs
 	 * Contains a resource that was imported from a file that contains multiple resources (for example an animation from an
 	 * FBX file).
 	 */
-	struct BS_SCRIPT_EXPORT(m:Importer,pl:true,api:bsf) SubResource
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Importer),pl:true,api:bsf) SubResource
 	{
 		String Name; /**< Unique name of the sub-resource. */
 		BS_NORREF HResource Value; /**< Contents of the sub-resource. */
 	};
 
 	/** Contains a group of resources imported from a single source file. */
-	struct BS_SCRIPT_EXPORT(m:Importer,api:bsf) MultiResource
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Importer),api:bsf) MultiResource
 	{
 		BS_SCRIPT_EXPORT()
 		MultiResource() = default;
@@ -39,7 +39,7 @@ namespace bs
 	};
 
 	/** Module responsible for importing various asset types and converting them to types usable by the engine. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Importer,api:bsf) Importer : public Module<Importer>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Importer),api:bsf) Importer : public Module<Importer>
 	{
 	public:
 		Importer();

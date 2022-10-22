@@ -15,7 +15,7 @@ namespace bs
 	struct SLIDER_JOINT_DESC;
 
 	/** Flag that controls slider joint's behaviour. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) SliderJointFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) SliderJointFlag
 	{
 		Limit = 0x1 /**< Enables the linear range limit. */
 	};

@@ -17,7 +17,7 @@ namespace bs
 	 * Planned usage for the mesh. These options usually affect performance and you should specify static if you don't plan
 	 * on modifying the mesh often, otherwise specify dynamic.
 	 */
-	enum BS_SCRIPT_EXPORT(m:Rendering) MeshUsage
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MeshUsage
 	{
 		/** Specify for a mesh that is not often updated from the CPU. */
 		MU_STATIC		BS_SCRIPT_EXPORT(n:Static) = 1 << 0,

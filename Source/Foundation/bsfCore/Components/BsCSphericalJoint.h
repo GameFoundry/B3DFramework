@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps SphericalJoint as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics,n:SphericalJoint) CSphericalJoint : public CJoint
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics),n:SphericalJoint) CSphericalJoint : public CJoint
 	{
 	public:
 		CSphericalJoint(const HSceneObject& parent);

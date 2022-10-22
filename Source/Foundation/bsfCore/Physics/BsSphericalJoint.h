@@ -15,7 +15,7 @@ namespace bs
 	struct SPHERICAL_JOINT_DESC;
 
 	/** Flags that control options for the spherical joint */
-	enum class BS_SCRIPT_EXPORT(m:Physics) SphericalJointFlag
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphericalJointFlag
 	{
 		Limit = 0x1 /**< Enables the cone range limit. */
 	};

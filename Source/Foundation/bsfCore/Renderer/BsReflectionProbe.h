@@ -17,7 +17,7 @@ namespace bs
 	 */
 
 	/** Probe type that determines the shape of the probe and how is it interpreted by the renderer. */
-	enum class BS_SCRIPT_EXPORT(m:Rendering) ReflectionProbeType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ReflectionProbeType
 	{
 		/**
 		 * Reflection probe cubemap is generated, and box extents are used for calculating influence ranges and box

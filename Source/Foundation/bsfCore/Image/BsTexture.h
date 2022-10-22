@@ -16,7 +16,7 @@ namespace bs
 	 */
 
 	/**	Flags that describe how is a texture used. */
-	enum BS_SCRIPT_EXPORT(m:Rendering) TextureUsage
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TextureUsage
 	{
 		/** A regular texture that is not often or ever updated from the CPU. */
 		TU_STATIC			BS_SCRIPT_EXPORT(n:Default)			= GBU_STATIC,
@@ -200,7 +200,7 @@ namespace bs
 	 *
 	 * @note	Sim thread.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Texture : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Texture : public Resource
 	{
 	public:
 		/**

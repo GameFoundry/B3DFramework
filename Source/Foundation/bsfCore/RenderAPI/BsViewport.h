@@ -138,7 +138,7 @@ namespace bs
 	 * Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the
 	 * target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Viewport : public IReflectable, public CoreObject, public TViewport<false>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Viewport : public IReflectable, public CoreObject, public TViewport<false>
 	{
 	public:
 		/**	Determines the render target the viewport is associated with. */

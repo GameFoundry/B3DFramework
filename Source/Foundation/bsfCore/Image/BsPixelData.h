@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** Pixel formats usable by images, textures and render surfaces. */
-	enum BS_SCRIPT_EXPORT(m:Rendering) PixelFormat
+	enum BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) PixelFormat
 	{
 		/** Unknown pixel format. */
 		PF_UNKNOWN				BS_SCRIPT_EXPORT(ex:true) = 0,

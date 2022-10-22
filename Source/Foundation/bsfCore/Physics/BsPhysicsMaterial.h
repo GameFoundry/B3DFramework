@@ -15,7 +15,7 @@ namespace bs
 	 * Material that controls how two physical objects interact with each other. Materials of both objects are used during
 	 * their interaction and their combined values are used.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Physics) PhysicsMaterial : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsMaterial : public Resource
 	{
 	public:
 		virtual ~PhysicsMaterial() = default;

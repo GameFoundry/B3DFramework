@@ -59,7 +59,7 @@ namespace bs
 	};
 
 	/** Helper class for dealing with animations, animation clips and curves. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Animation) AnimationUtility
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationUtility
 	{
 	public:
 		/**
@@ -137,7 +137,7 @@ namespace bs
 	};
 
 	/** Type of tangent on a keyframe in an animation curve. */
-	enum class BS_SCRIPT_EXPORT(m:Animation) TangentType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) TangentType
 	{
 		In = 1 << 0,
 		Out = 1 << 1
@@ -147,7 +147,7 @@ namespace bs
 	 * Flags that are used for describing how are tangents calculated for a specific keyframe in an animation curve.
 	 * Modes for "in" and "out" tangents can be combined.
 	 */
-	enum class BS_SCRIPT_EXPORT(m:Animation,n:TangentMode) TangentModeBits
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Animation),n:TangentMode) TangentModeBits
 	{
 		/** Both tangents are calculated automatically based on the two surrounding keyframes. */
 		Auto = 0,
@@ -175,7 +175,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(TangentModeBits)
 
 	/* Structure containing a reference to a keyframe as a curve index, and a keyframe index within that curve. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:Animation) KeyframeRef
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) KeyframeRef
 	{
 		KeyframeRef() = default;
 		KeyframeRef(i32 curveIdx, i32 keyIdx)
@@ -187,7 +187,7 @@ namespace bs
 	};
 
 	/** Structure containing a reference to a keyframe tangent, as a keyframe reference and type of the tangent. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:Animation) TangentRef
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) TangentRef
 	{
 		TangentRef() = default;
 		TangentRef(KeyframeRef keyframeRef, TangentType type)

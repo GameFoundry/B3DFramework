@@ -15,7 +15,7 @@ namespace bs
 	struct D6_JOINT_DESC;
 
 	/** Specifies axes that the D6 joint can constrain motion on. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) D6JointAxis
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointAxis
 	{
 		X, /**< Movement on the X axis. */
 		Y, /**< Movement on the Y axis. */
@@ -27,7 +27,7 @@ namespace bs
 	};
 
 	/** Specifies type of constraint placed on a specific axis. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) D6JointMotion
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointMotion
 	{
 		Locked, /**< Axis is immovable. */
 		Limited, /**< Axis will be constrained by the specified limits. */
@@ -36,7 +36,7 @@ namespace bs
 	};
 
 	/** Type of drives that can be used for moving or rotating bodies attached to the joint. */
-	enum class BS_SCRIPT_EXPORT(m:Physics) D6JointDriveType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointDriveType
 	{
 		X, /**< Linear movement on the X axis using the linear drive model. */
 		Y, /**< Linear movement on the Y axis using the linear drive model. */
@@ -64,7 +64,7 @@ namespace bs
 	 * Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and
 	 * velocity.
 	 */
-	struct BS_SCRIPT_EXPORT(m:Physics,pl:true) D6JointDrive
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Physics),pl:true) D6JointDrive
 	{
 		bool operator==(const D6JointDrive& other) const
 		{

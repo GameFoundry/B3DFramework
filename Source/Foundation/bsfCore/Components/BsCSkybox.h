@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Wraps Skybox as a Component.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering,n:Skybox) CSkybox : public Component
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),n:Skybox) CSkybox : public Component
 	{
 	public:
 		CSkybox(const HSceneObject& parent);

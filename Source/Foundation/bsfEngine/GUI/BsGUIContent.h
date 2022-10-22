@@ -10,7 +10,7 @@ namespace bs
 	 */
 
 	/**	Type of GUI element states. */
-	enum class BS_SCRIPT_EXPORT(pl:true,m:GUI) GUIElementState
+	enum class BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(GUI)) GUIElementState
 	{
 		Normal = 0x01, /**< Normal state when element is not being iteracted with. */
 		Hover = 0x02, /**< State when pointer is hovering over the element. */
@@ -29,7 +29,7 @@ namespace bs
 	};
 
 	/**	Contains separate GUI content images for every possible GUI element state. */
-	struct BS_EXPORT BS_SCRIPT_EXPORT(pl:true,m:GUI) GUIContentImages
+	struct BS_EXPORT BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(GUI)) GUIContentImages
 	{
 		GUIContentImages() = default;
 
@@ -52,7 +52,7 @@ namespace bs
 	 * Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none
 	 * of those.
 	 */
-	class BS_EXPORT BS_SCRIPT_EXPORT(pl:true,m:GUI) GUIContent
+	class BS_EXPORT BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(GUI)) GUIContent
 	{
 	public:
 		/**	Constructs an empty content. */

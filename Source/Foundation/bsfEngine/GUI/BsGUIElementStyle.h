@@ -16,13 +16,13 @@ namespace bs
 	 */
 
 	/**	Possible positions used for positioning content image within a GUI element. */
-	enum class BS_SCRIPT_EXPORT(m:GUI) GUIImagePosition
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIImagePosition
 	{
 		Left, Right
 	};
 
 	/**	Specific texture and text color used in a particular GUI element style. */
-	struct BS_EXPORT BS_SCRIPT_EXPORT(m:GUI,pl:true) GUIElementStateStyle
+	struct BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI),pl:true) GUIElementStateStyle
 	{
 		BS_NORREF HSpriteTexture Texture;
 		Color TextColor;
@@ -32,7 +32,7 @@ namespace bs
 	 * GUI element style that determines the look of a GUI element, as well as the element's default layout options.
 	 * Different looks can be provided for different element states.
 	 */
-	struct BS_EXPORT BS_SCRIPT_EXPORT(m:GUI) GUIElementStyle : public IReflectable
+	struct BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIElementStyle : public IReflectable
 	{
 		BS_SCRIPT_EXPORT()
 		GUIElementStyle() = default;

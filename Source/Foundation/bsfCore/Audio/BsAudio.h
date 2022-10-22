@@ -13,13 +13,13 @@ namespace bs
 	 */
 
 	/** Identifier for a device that can be used for playing audio. */
-	struct BS_SCRIPT_EXPORT(m:Audio,pl:true) AudioDevice
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Audio),pl:true) AudioDevice
 	{
 		String Name;
 	};
 
 	/** Provides global functionality relating to sounds and music. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio) Audio : public Module<Audio>
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Audio)) Audio : public Module<Audio>
 	{
 	public:
 		virtual ~Audio() = default;

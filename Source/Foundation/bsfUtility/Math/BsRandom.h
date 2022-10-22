@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements. */
-	class BS_SCRIPT_EXPORT(m:Math) Random
+	class BS_SCRIPT_EXPORT(DocumentationGroup(Math)) Random
 	{
 	public:
 		/** Initializes a new generator using the specified seed. */

@@ -40,7 +40,7 @@ namespace bs
 	 * Contains information about a single variation of a Shader. Each variation can have a separate set of
 	 * \#defines that control shader compilation.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) ShaderVariation : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderVariation : public IReflectable
 	{
 	public:
 		/** Possible types of a variation parameter. */

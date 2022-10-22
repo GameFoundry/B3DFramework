@@ -737,7 +737,7 @@ namespace bs
 	 */
 
 	/** @copydoc MaterialBase */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Rendering) Material: public Resource, public TMaterial<false>, public IResourceListener
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Material: public Resource, public TMaterial<false>, public IResourceListener
 	{
 	public:
 		~Material() = default;

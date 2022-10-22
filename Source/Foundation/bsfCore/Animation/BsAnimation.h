@@ -18,14 +18,14 @@ namespace bs
 	 */
 
 	/** Determines how an animation clip behaves when it reaches the end. */
-	enum class BS_SCRIPT_EXPORT(m:Animation) AnimWrapMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimWrapMode
 	{
 		Loop, /**< Loop around to the beginning/end when the last/first frame is reached. */
 		Clamp /**< Clamp to end/beginning, keeping the last/first frame active. */
 	};
 
 	/** Contains information about a currently playing animation clip. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:Animation) AnimationClipState
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) AnimationClipState
 	{
 		AnimationClipState() = default;
 
@@ -111,7 +111,7 @@ namespace bs
 	};
 
 	/** Represents an animation clip used in 1D blending. Each clip has a position on the number line. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,m:Animation) BlendClipInfo
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) BlendClipInfo
 	{
 		BlendClipInfo() = default;
 
@@ -120,13 +120,13 @@ namespace bs
 	};
 
 	/** Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation. */
-	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,m:Animation) Blend1DInfo
+	struct BS_CORE_EXPORT BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) Blend1DInfo
 	{
 		Vector<BlendClipInfo> Clips;
 	};
 
 	/** Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation. */
-	struct BS_SCRIPT_EXPORT(pl:true,m:Animation) Blend2DInfo
+	struct BS_SCRIPT_EXPORT(pl:true,DocumentationGroup(Animation)) Blend2DInfo
 	{
 		HAnimationClip TopLeftClip;
 		HAnimationClip TopRightClip;

@@ -12,14 +12,14 @@ namespace bs
 	 */
 
 	/** Valid internal engine audio formats. */
-	enum class BS_SCRIPT_EXPORT(m:Audio) AudioFormat
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioFormat
 	{
 		PCM, /**< Pulse code modulation audio ("raw" uncompressed audio). */
 		VORBIS /**< Vorbis compressed audio. */
 	};
 
 	/** Modes that determine how and when is audio data read. */
-	enum class BS_SCRIPT_EXPORT(m:Audio) AudioReadMode
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioReadMode
 	{
 		/** Entire audio clip will be loaded and decompressed. Uses most memory but has lowest CPU impact. */
 		LoadDecompressed,
@@ -72,7 +72,7 @@ namespace bs
 	 * Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or
 	 * other audio methods to be played.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Audio) AudioClip : public Resource
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioClip : public Resource
 	{
 	public:
 		virtual ~AudioClip() = default;

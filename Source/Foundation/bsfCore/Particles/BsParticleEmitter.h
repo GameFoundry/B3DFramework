@@ -20,7 +20,7 @@ namespace bs
 	 */
 
 	/** Types of emission modes. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleEmissionModeType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmissionModeType
 	{
 		/** Position will be picked randomly on a shape. */
 		Random,
@@ -38,7 +38,7 @@ namespace bs
 	};
 
 	/** Controls how are particle positions on a shape chosen. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true) ParticleEmissionMode
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true) ParticleEmissionMode
 	{
 		/** Type that determines general behaviour. */
 		ParticleEmissionModeType Type = ParticleEmissionModeType::Random;
@@ -59,7 +59,7 @@ namespace bs
 	/**
 	 * Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterShape : public IReflectable
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterShape : public IReflectable
 	{
 	public:
 		virtual ~ParticleEmitterShape() = default;
@@ -106,7 +106,7 @@ namespace bs
 	};
 
 	/** Determines the emission type for the cone particle emitter shape. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterConeType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterConeType
 	{
 		/** Emit particles only from the cone base. */
 		Base,
@@ -115,7 +115,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterConeShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleConeShapeOptions) PARTICLE_CONE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleConeShapeOptions) PARTICLE_CONE_SHAPE_DESC
 	{
 		/** Determines where on the cone are the particles emitter from. */
 		ParticleEmitterConeType Type = ParticleEmitterConeType::Base;
@@ -148,7 +148,7 @@ namespace bs
 	 * controling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume.
 	 * All particles will have random normals within the distribution of the cone.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterConeShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterConeShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DESC& desc);
@@ -206,7 +206,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterSphereShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleSphereShapeOptions) PARTICLE_SPHERE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSphereShapeOptions) PARTICLE_SPHERE_SHAPE_DESC
 	{
 		/** Radius of the sphere. */
 		float Radius = 1.0f;
@@ -224,7 +224,7 @@ namespace bs
 	 * volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing
 	 * outwards in a spherical direction.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterSphereShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSphereShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterSphereShape() = default;
@@ -275,7 +275,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterHemisphereShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleHemisphereShapeOptions) PARTICLE_HEMISPHERE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleHemisphereShapeOptions) PARTICLE_HEMISPHERE_SHAPE_DESC
 	{
 		/** Radius of the hemisphere. */
 		float Radius = 1.0f;
@@ -293,7 +293,7 @@ namespace bs
 	 * the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have
 	 * normals pointing outwards in a spherical direction.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterHemisphereShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterHemisphereShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterHemisphereShape() = default;
@@ -344,7 +344,7 @@ namespace bs
 	};
 
 	/** Determines the emission type for the cone particle emitter shape. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterBoxType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterBoxType
 	{
 		/** Particles will be emitted from the entire volume. */
 		Volume,
@@ -355,7 +355,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterBoxShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleBoxShapeOptions) PARTICLE_BOX_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleBoxShapeOptions) PARTICLE_BOX_SHAPE_DESC
 	{
 		/** Determines from which portion of the box should particles be emitted from. */
 		ParticleEmitterBoxType Type = ParticleEmitterBoxType::Volume;
@@ -368,7 +368,7 @@ namespace bs
 	 * Particle emitter shape that emits particles from an axis aligned box. Particles can be emitted from box volume,
 	 * surface or edges. All particles have their normals set to positive Z direction.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterBoxShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterBoxShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterBoxShape() = default;
@@ -422,7 +422,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterLineShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleLineShapeOptions) PARTICLE_LINE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleLineShapeOptions) PARTICLE_LINE_SHAPE_DESC
 	{
 		/** Length of the line. */
 		float Length = 1.0f;
@@ -432,7 +432,7 @@ namespace bs
 	};
 
 	/** Particle emitter shape that emits particles from a line segment. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterLineShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterLineShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterLineShape() = default;
@@ -486,7 +486,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterCircleShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleCircleShapeOptions) PARTICLE_CIRCLE_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleCircleShapeOptions) PARTICLE_CIRCLE_SHAPE_DESC
 	{
 		/** Radius of the circle. */
 		float Radius = 1.0f;
@@ -510,7 +510,7 @@ namespace bs
 	 * emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit
 	 * from a specific angular portion of the circle.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterCircleShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterCircleShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterCircleShape() = default;
@@ -565,14 +565,14 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterRectShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleRectShapeOptions) PARTICLE_RECT_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleRectShapeOptions) PARTICLE_RECT_SHAPE_DESC
 	{
 		/** Extents of the rectangle. */
 		Vector2 Extents = Vector2::ONE;
 	};
 
 	/** Particle emitter shape that emits particles from the surface of a rectangle. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterRectShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterRectShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterRectShape() = default;
@@ -623,7 +623,7 @@ namespace bs
 	};
 
 	/** Determines the emission type for the mesh particle emitter shape. */
-	enum class BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterMeshType
+	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterMeshType
 	{
 		/** Particles will be emitted from mesh vertices. */
 		Vertex,
@@ -634,7 +634,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterStaticMeshShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleStaticMeshShapeOptions) PARTICLE_STATIC_MESH_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleStaticMeshShapeOptions) PARTICLE_STATIC_MESH_SHAPE_DESC
 	{
 		/** Determines from which portion of the mesh are the particles emitted from. */
 		ParticleEmitterMeshType Type = ParticleEmitterMeshType::Triangle;
@@ -737,7 +737,7 @@ namespace bs
 	 * emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit
 	 * the normals.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterStaticMeshShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterStaticMeshShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterStaticMeshShape(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc);
@@ -787,7 +787,7 @@ namespace bs
 	};
 
 	/** Information describing a ParticleEmitterSkinnedMeshShape. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true,n:ParticleSkinnedMeshShapeOptions) PARTICLE_SKINNED_MESH_SHAPE_DESC
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true,n:ParticleSkinnedMeshShapeOptions) PARTICLE_SKINNED_MESH_SHAPE_DESC
 	{
 		/** Determines from which portion of the mesh are the particles emitted from. */
 		ParticleEmitterMeshType Type = ParticleEmitterMeshType::Triangle;
@@ -812,7 +812,7 @@ namespace bs
 	 * emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit
 	 * the normals.
 	 */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitterSkinnedMeshShape : public ParticleEmitterShape
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSkinnedMeshShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterSkinnedMeshShape(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc);
@@ -862,7 +862,7 @@ namespace bs
 	};
 
 	/** Specifies a burst of particles that occurs at a certain time point. */
-	struct BS_SCRIPT_EXPORT(m:Particles,pl:true) ParticleBurst
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles),pl:true) ParticleBurst
 	{
 		ParticleBurst() = default;
 		ParticleBurst(float time, FloatDistribution count, u32 cycles = 1, float interval = 1.0f)
@@ -886,7 +886,7 @@ namespace bs
 	};
 
 	/** Handles spawning of new particles using the specified parameters and shape. */
-	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(m:Particles) ParticleEmitter : public ParticleModule
+	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitter : public ParticleModule
 	{
 	public:
 		/** Shape over which to emit the particles. */
