@@ -9,7 +9,11 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs { struct ParticleVectorFieldSettings; }
+namespace bs
+{
+	struct ParticleVectorFieldSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleVectorFieldSettings : public TScriptReflectable<ScriptParticleVectorFieldSettings, ParticleVectorFieldSettings>
@@ -43,4 +47,4 @@ namespace bs
 		static bool InternalGetTilingZ(ScriptParticleVectorFieldSettings* thisPtr);
 		static void InternalSetTilingZ(ScriptParticleVectorFieldSettings* thisPtr, bool value);
 	};
-}
+} // namespace bs

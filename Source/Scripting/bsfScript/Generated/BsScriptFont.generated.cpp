@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptFont::ScriptFont(MonoObject* managedInstance, const ResourceHandle<Font>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -19,16 +19,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptFont::InternalGetRef);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBitmap", (void*)&ScriptFont::InternalGetBitmap);
 		metaData.ScriptClass->AddInternalCall("Internal_GetClosestSize", (void*)&ScriptFont::InternalGetClosestSize);
-
 	}
 
-	 MonoObject*ScriptFont::CreateInstance()
+	MonoObject* ScriptFont::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptFont::InternalGetRef(ScriptFont* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -55,4 +55,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

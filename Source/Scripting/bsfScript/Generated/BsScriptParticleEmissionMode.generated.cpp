@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptParticleEmissionMode::ScriptParticleEmissionMode(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptParticleEmissionMode::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptParticleEmissionMode::Box(const ParticleEmissionMode& value)
+	MonoObject* ScriptParticleEmissionMode::Box(const ParticleEmissionMode& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(ParticleEmissionMode*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

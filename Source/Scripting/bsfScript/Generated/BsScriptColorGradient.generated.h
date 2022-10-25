@@ -7,9 +7,21 @@
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 
-namespace bs { struct __ColorGradientKeyInterop; }
-namespace bs { class ColorGradient; }
-namespace bs { class ColorGradientEx; }
+namespace bs
+{
+	struct __ColorGradientKeyInterop;
+}
+
+namespace bs
+{
+	class ColorGradient;
+}
+
+namespace bs
+{
+	class ColorGradientEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptColorGradient : public ScriptObject<ScriptColorGradient>
@@ -20,6 +32,7 @@ namespace bs
 		ScriptColorGradient(MonoObject* managedInstance, const SPtr<ColorGradient>& value);
 
 		SPtr<ColorGradient> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<ColorGradient>& value);
 
 	private:
@@ -35,4 +48,4 @@ namespace bs
 		static void InternalSetConstant(ScriptColorGradient* thisPtr, Color* color);
 		static void InternalEvaluate(ScriptColorGradient* thisPtr, float t, Color* __output);
 	};
-}
+} // namespace bs

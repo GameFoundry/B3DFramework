@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCSphereCollider::ScriptCSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -20,7 +20,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCSphereCollider::InternalGetRadius);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCSphereCollider::InternalSetCenter);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCSphereCollider::InternalGetCenter);
-
 	}
 
 	void ScriptCSphereCollider::InternalSetRadius(ScriptCSphereCollider* thisPtr, float radius)
@@ -51,4 +50,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

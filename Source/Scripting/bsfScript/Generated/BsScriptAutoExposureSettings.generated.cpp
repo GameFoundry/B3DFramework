@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptAutoExposureSettings::ScriptAutoExposureSettings(MonoObject* managedInstance, const SPtr<AutoExposureSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -31,24 +31,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetEyeAdaptationSpeedUp", (void*)&ScriptAutoExposureSettings::InternalSetEyeAdaptationSpeedUp);
 		metaData.ScriptClass->AddInternalCall("Internal_GetEyeAdaptationSpeedDown", (void*)&ScriptAutoExposureSettings::InternalGetEyeAdaptationSpeedDown);
 		metaData.ScriptClass->AddInternalCall("Internal_SetEyeAdaptationSpeedDown", (void*)&ScriptAutoExposureSettings::InternalSetEyeAdaptationSpeedDown);
-
 	}
 
 	MonoObject* ScriptAutoExposureSettings::Create(const SPtr<AutoExposureSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, value);
+		new(bs_alloc<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptAutoExposureSettings::InternalAutoExposureSettings(MonoObject* managedInstance)
 	{
 		SPtr<AutoExposureSettings> instance = bs_shared_ptr_new<AutoExposureSettings>();
-		new (bs_alloc<ScriptAutoExposureSettings>())ScriptAutoExposureSettings(managedInstance, instance);
+		new(bs_alloc<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, instance);
 	}
 
 	float ScriptAutoExposureSettings::InternalGetHistogramLog2Min(ScriptAutoExposureSettings* thisPtr)
@@ -178,4 +178,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->EyeAdaptationSpeedDown = value;
 	}
-}
+} // namespace bs

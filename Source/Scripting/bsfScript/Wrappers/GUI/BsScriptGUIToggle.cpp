@@ -30,9 +30,8 @@ namespace bs
 	ScriptGUIToggle::OnDoubleClickThunkDef ScriptGUIToggle::onDoubleClickThunk;
 
 	ScriptGUIToggle::ScriptGUIToggle(MonoObject* instance, GUIToggle* toggle)
-		:TScriptGUIElement(instance, toggle)
+		: TScriptGUIElement(instance, toggle)
 	{
-
 	}
 
 	void ScriptGUIToggle::InitRuntimeData()
@@ -50,19 +49,18 @@ namespace bs
 		onDoubleClickThunk = (OnDoubleClickThunkDef)metaData.ScriptClass->GetMethod("DoOnDoubleClick")->GetThunk();
 	}
 
-	void ScriptGUIToggle::InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content,
-		MonoObject* monoToggleGroup, MonoString* style, MonoArray* guiOptions)
+	void ScriptGUIToggle::InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content, MonoObject* monoToggleGroup, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		ScriptGUIToggleGroup* scriptToggleGroup = nullptr;
 		SPtr<GUIToggleGroup> toggleGroup;
-		if (monoToggleGroup != nullptr)
+		if(monoToggleGroup != nullptr)
 		{
 			scriptToggleGroup = ScriptGUIToggleGroup::ToNative(monoToggleGroup);
 			toggleGroup = scriptToggleGroup->GetInternalValue();
@@ -71,7 +69,7 @@ namespace bs
 		GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
 		GUIToggle* guiToggle = GUIToggle::Create(nativeContent, toggleGroup, options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
+		auto nativeInstance = new(bs_alloc<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
 
 		guiToggle->OnClick.Connect(std::bind(&::bs::ScriptGUIToggle::OnClick, nativeInstance));
 		guiToggle->OnHover.Connect(std::bind(&::bs::ScriptGUIToggle::OnHover, nativeInstance));
@@ -98,7 +96,7 @@ namespace bs
 	{
 		GUIToggle* toggle = (GUIToggle*)nativeInstance->GetGuiElement();
 
-		if (value)
+		if(value)
 			toggle->ToggleOn();
 		else
 			toggle->ToggleOff();
@@ -134,4 +132,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onDoubleClickThunk, GetManagedInstance());
 	}
-}
+} // namespace bs

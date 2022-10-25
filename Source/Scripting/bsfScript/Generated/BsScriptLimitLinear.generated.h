@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptLimitLinear(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

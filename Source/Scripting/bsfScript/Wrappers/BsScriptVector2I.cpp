@@ -8,11 +8,11 @@
 namespace bs
 {
 	ScriptVector2I::ScriptVector2I(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVector2I::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptVector2I::Box(const Vector2I& value)
 	{
@@ -24,4 +24,4 @@ namespace bs
 	{
 		return *(Vector2I*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

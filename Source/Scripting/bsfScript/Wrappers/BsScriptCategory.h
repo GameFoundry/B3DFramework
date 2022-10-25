@@ -8,7 +8,7 @@
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Category attribute. */
-	class BS_SCR_BE_EXPORT ScriptCategory : public ScriptObject <ScriptCategory>
+	class BS_SCR_BE_EXPORT ScriptCategory : public ScriptObject<ScriptCategory>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Category")
@@ -20,4 +20,4 @@ namespace bs
 
 		static MonoField* nameField;
 	};
-}
+} // namespace bs

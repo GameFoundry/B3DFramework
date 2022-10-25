@@ -10,7 +10,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptShaderImportOptions::ScriptShaderImportOptions(MonoObject* managedInstance, const SPtr<ShaderImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -24,20 +24,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetLanguages", (void*)&ScriptShaderImportOptions::InternalGetLanguages);
 		metaData.ScriptClass->AddInternalCall("Internal_SetLanguages", (void*)&ScriptShaderImportOptions::InternalSetLanguages);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptShaderImportOptions::InternalCreate);
-
 	}
 
 	MonoObject* ScriptShaderImportOptions::Create(const SPtr<ShaderImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptShaderImportOptions::InternalSetDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString* value)
 	{
 		String tmpdefine;
@@ -57,7 +57,7 @@ namespace bs
 
 		bool __output;
 		__output = tmp__output;
-		MonoUtil::ReferenceCopy(value,  (MonoObject*)MonoUtil::StringToMono(tmpvalue));
+		MonoUtil::ReferenceCopy(value, (MonoObject*)MonoUtil::StringToMono(tmpvalue));
 
 		return __output;
 	}
@@ -85,8 +85,9 @@ namespace bs
 	void ScriptShaderImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<ShaderImportOptions> instance = ShaderImportOptions::Create();
-		new (bs_alloc<ScriptShaderImportOptions>())ScriptShaderImportOptions(managedInstance, instance);
+		new(bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, instance);
 	}
+
 	ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* thisPtr)
 	{
 		Flags<ShadingLanguageFlag> tmp__output;
@@ -103,4 +104,4 @@ namespace bs
 		thisPtr->GetInternal()->Languages = value;
 	}
 #endif
-}
+} // namespace bs

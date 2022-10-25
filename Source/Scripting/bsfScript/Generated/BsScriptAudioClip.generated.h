@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
-namespace bs { class AudioClip; }
+namespace bs
+{
+	class AudioClip;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAudioClip : public TScriptResource<ScriptAudioClip, AudioClip>
@@ -31,4 +35,4 @@ namespace bs
 		static uint32_t InternalGetNumSamples(ScriptAudioClip* thisPtr);
 		static bool InternalIs3D(ScriptAudioClip* thisPtr);
 	};
-}
+} // namespace bs

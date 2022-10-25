@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_SIZE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -16,8 +16,8 @@
 namespace bs
 {
 	ScriptGUILayout::ScriptGUILayout(MonoObject* instance, GUILayout* layout, bool ownsNative)
-		:TScriptGUIElementBase(instance, layout), mLayout(layout), mOwnsNative(ownsNative)
-	{ }
+		: TScriptGUIElementBase(instance, layout), mLayout(layout), mOwnsNative(ownsNative)
+	{}
 
 	void ScriptGUILayout::InitRuntimeData()
 	{
@@ -36,16 +36,16 @@ namespace bs
 	{
 		if(!mIsDestroyed)
 		{
-			if (mParent != nullptr)
+			if(mParent != nullptr)
 				mParent->RemoveChild(this);
 
-			while (mChildren.size() > 0)
+			while(mChildren.size() > 0)
 			{
 				ChildInfo childInfo = mChildren[0];
 				childInfo.Element->Destroy();
 			}
 
-			if (mOwnsNative)
+			if(mOwnsNative)
 				GUILayout::Destroy(mLayout);
 
 			mLayout = nullptr;
@@ -75,13 +75,10 @@ namespace bs
 
 	void ScriptGUILayout::RemoveChild(ScriptGUIElementBaseTBase* element)
 	{
-		auto iterFind = std::find_if(mChildren.begin(), mChildren.end(),
-			[&](const ChildInfo& x)
-		{
-			return x.Element == element;
-		});
+		auto iterFind = std::find_if(mChildren.begin(), mChildren.end(), [&](const ChildInfo& x)
+									 { return x.Element == element; });
 
-		if (iterFind != mChildren.end())
+		if(iterFind != mChildren.end())
 		{
 			assert(iterFind->GcHandle != 0);
 
@@ -98,12 +95,12 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUILayout* layout = GUILayoutX::Create(options);
 
-		new (bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+		new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 	}
 
 	void ScriptGUILayout::InternalCreateInstanceY(MonoObject* instance, MonoArray* guiOptions)
@@ -112,12 +109,12 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUILayout* layout = GUILayoutY::Create(options);
 
-		new (bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+		new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 	}
 
 	void ScriptGUILayout::InternalCreateInstancePanel(MonoObject* instance, i16 depth, u16 depthRangeMin, u32 depthRangeMax, MonoArray* guiOptions)
@@ -126,12 +123,12 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUILayout* layout = GUIPanel::Create(depth, depthRangeMin, depthRangeMax, options);
 
-		new (bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+		new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 	}
 
 	void ScriptGUILayout::InternalCreateInstanceYFromScrollArea(MonoObject* instance, MonoObject* parentScrollArea)
@@ -141,7 +138,7 @@ namespace bs
 
 		GUILayout* nativeLayout = &scrollArea->GetLayout();
 
-		ScriptGUIScrollAreaLayout* nativeInstance = new (bs_alloc<ScriptGUIScrollAreaLayout>())
+		ScriptGUIScrollAreaLayout* nativeInstance = new(bs_alloc<ScriptGUIScrollAreaLayout>())
 			ScriptGUIScrollAreaLayout(instance, nativeLayout);
 
 		// This method is expected to be called during GUIScrollArea construction, so we finish its initialization
@@ -150,12 +147,12 @@ namespace bs
 
 	void ScriptGUILayout::InternalAddElement(ScriptGUILayout* instance, ScriptGUIElementBaseTBase* element)
 	{
-		if (instance->IsDestroyed() || element->IsDestroyed())
+		if(instance->IsDestroyed() || element->IsDestroyed())
 			return;
 
 		instance->GetInternalValue()->AddElement(element->GetGuiElement());
 
-		if (element->GetParent() != nullptr)
+		if(element->GetParent() != nullptr)
 			element->GetParent()->RemoveChild(element);
 
 		element->SetParent(instance);
@@ -164,12 +161,12 @@ namespace bs
 
 	void ScriptGUILayout::InternalInsertElement(ScriptGUILayout* instance, u32 index, ScriptGUIElementBaseTBase* element)
 	{
-		if (instance->IsDestroyed() || element->IsDestroyed())
+		if(instance->IsDestroyed() || element->IsDestroyed())
 			return;
 
 		instance->GetInternalValue()->InsertElement(index, element->GetGuiElement());
 
-		if (element->GetParent() != nullptr)
+		if(element->GetParent() != nullptr)
 			element->GetParent()->RemoveChild(element);
 
 		element->SetParent(instance);
@@ -178,7 +175,7 @@ namespace bs
 
 	u32 ScriptGUILayout::InternalGetChildCount(ScriptGUILayout* instance)
 	{
-		if (instance->IsDestroyed())
+		if(instance->IsDestroyed())
 			return 0;
 
 		return instance->mLayout->GetNumChildren();
@@ -186,7 +183,7 @@ namespace bs
 
 	MonoObject* ScriptGUILayout::InternalGetChild(ScriptGUILayout* instance, u32 index)
 	{
-		if (instance->IsDestroyed() || index >= instance->mChildren.size())
+		if(instance->IsDestroyed() || index >= instance->mChildren.size())
 			return nullptr;
 
 		return instance->mChildren[index].Element->GetManagedInstance();
@@ -194,10 +191,10 @@ namespace bs
 
 	void ScriptGUILayout::InternalClear(ScriptGUILayout* instance)
 	{
-		if (instance->IsDestroyed())
+		if(instance->IsDestroyed())
 			return;
 
-		for (auto& child : instance->mChildren)
+		for(auto& child : instance->mChildren)
 		{
 			instance->GetInternalValue()->RemoveElement(child.Element->GetGuiElement());
 
@@ -213,34 +210,33 @@ namespace bs
 	}
 
 	ScriptGUIPanel::ScriptGUIPanel(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptGUIPanel::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptGUIPanel::CreateFromExisting(GUIPanel* panel)
 	{
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance();
-		new (bs_alloc<ScriptGUILayout>()) ScriptGUILayout(managedInstance, panel, false);
+		new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(managedInstance, panel, false);
 
 		return managedInstance;
 	}
 
 	ScriptGUIScrollAreaLayout::ScriptGUIScrollAreaLayout(MonoObject* instance, GUILayout* layout)
-		:ScriptGUILayout(instance, layout, false), mParentScrollArea(nullptr)
+		: ScriptGUILayout(instance, layout, false), mParentScrollArea(nullptr)
 	{
-		
 	}
 
 	void ScriptGUIScrollAreaLayout::Destroy()
 	{
-		if (!mIsDestroyed)
+		if(!mIsDestroyed)
 		{
-			if (mParentScrollArea != nullptr)
+			if(mParentScrollArea != nullptr)
 				mParentScrollArea->NotifyLayoutDestroyed();
 
-			while (mChildren.size() > 0)
+			while(mChildren.size() > 0)
 			{
 				ChildInfo childInfo = mChildren[0];
 				childInfo.Element->Destroy();
@@ -250,4 +246,4 @@ namespace bs
 			mIsDestroyed = true;
 		}
 	}
-}
+} // namespace bs

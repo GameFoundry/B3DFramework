@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_SPHERE_SHAPE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

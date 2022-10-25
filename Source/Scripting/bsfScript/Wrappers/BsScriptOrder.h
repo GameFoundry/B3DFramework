@@ -8,7 +8,7 @@
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Order attribute. */
-	class BS_SCR_BE_EXPORT ScriptOrder : public ScriptObject <ScriptOrder>
+	class BS_SCR_BE_EXPORT ScriptOrder : public ScriptObject<ScriptOrder>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Order")
@@ -20,4 +20,4 @@ namespace bs
 
 		static MonoField* indexField;
 	};
-}
+} // namespace bs

@@ -8,13 +8,15 @@
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Range attribute. */
-	class BS_SCR_BE_EXPORT ScriptRange : public ScriptObject <ScriptRange>
+	class BS_SCR_BE_EXPORT ScriptRange : public ScriptObject<ScriptRange>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Range")
 
 		static MonoField* GetMinRangeField() { return minRangeField; }
+
 		static MonoField* GetMaxRangeField() { return maxRangeField; }
+
 		static MonoField* GetSliderField() { return sliderField; }
 
 	private:
@@ -24,4 +26,4 @@ namespace bs
 		static MonoField* maxRangeField;
 		static MonoField* sliderField;
 	};
-}
+} // namespace bs

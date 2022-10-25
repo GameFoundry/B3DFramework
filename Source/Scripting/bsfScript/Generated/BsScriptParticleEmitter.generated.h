@@ -10,8 +10,16 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs { class ParticleEmitter; }
-namespace bs { struct __ParticleBurstInterop; }
+namespace bs
+{
+	class ParticleEmitter;
+}
+
+namespace bs
+{
+	struct __ParticleBurstInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
@@ -56,4 +64,4 @@ namespace bs
 		static float InternalGetFlipV(ScriptParticleEmitter* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

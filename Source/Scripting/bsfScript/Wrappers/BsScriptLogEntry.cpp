@@ -8,9 +8,9 @@
 namespace bs
 {
 	ScriptLogEntry::ScriptLogEntry(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptLogEntry::InitRuntimeData()
-	{ }
-}
+	{}
+} // namespace bs

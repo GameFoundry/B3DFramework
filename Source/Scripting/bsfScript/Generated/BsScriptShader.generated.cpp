@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptShader::ScriptShader(MonoObject* managedInstance, const ResourceHandle<Shader>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -21,16 +21,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptShader::InternalGetRef);
 		metaData.ScriptClass->AddInternalCall("Internal_GetVariationParams", (void*)&ScriptShader::InternalGetVariationParams);
 		metaData.ScriptClass->AddInternalCall("Internal_GetParameters", (void*)&ScriptShader::InternalGetParameters);
-
 	}
 
-	 MonoObject*ScriptShader::CreateInstance()
+	MonoObject* ScriptShader::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptShader::InternalGetRef(ScriptShader* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -69,4 +69,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

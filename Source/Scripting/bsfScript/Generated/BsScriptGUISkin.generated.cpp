@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptGUISkin::ScriptGUISkin(MonoObject* managedInstance, const ResourceHandle<GUISkin>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -26,16 +26,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_RemoveStyle", (void*)&ScriptGUISkin::InternalRemoveStyle);
 		metaData.ScriptClass->AddInternalCall("Internal_GetStyleNames", (void*)&ScriptGUISkin::InternalGetStyleNames);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUISkin::InternalCreate);
-
 	}
 
-	 MonoObject*ScriptGUISkin::CreateInstance()
+	MonoObject* ScriptGUISkin::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptGUISkin::InternalGetRef(ScriptGUISkin* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -108,4 +108,4 @@ namespace bs
 		ResourceHandle<GUISkin> instance = GUISkin::Create();
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

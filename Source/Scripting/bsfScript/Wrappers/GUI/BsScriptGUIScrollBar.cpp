@@ -15,9 +15,8 @@ using namespace std::placeholders;
 namespace bs
 {
 	ScriptGUIScrollBar::ScriptGUIScrollBar(MonoObject* instance)
-		:TScriptGUIElement(instance, nullptr)
+		: TScriptGUIElement(instance, nullptr)
 	{
-
 	}
 
 	void ScriptGUIScrollBar::InitRuntimeData()
@@ -62,9 +61,8 @@ namespace bs
 	ScriptGUIScrollBarH::OnScrolledThunkDef ScriptGUIScrollBarH::onScrolledThunk;
 
 	ScriptGUIScrollBarH::ScriptGUIScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar)
-		:TScriptGUIElement(instance, scrollBar)
+		: TScriptGUIElement(instance, scrollBar)
 	{
-
 	}
 
 	void ScriptGUIScrollBarH::InitRuntimeData()
@@ -80,11 +78,11 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUIScrollBarHorz* guiScrollBar = GUIScrollBarHorz::Create(options, MonoUtil::MonoToString(style));
-		ScriptGUIScrollBarH* scriptScrollBar = new (bs_alloc<ScriptGUIScrollBarH>()) ScriptGUIScrollBarH(instance, guiScrollBar);
+		ScriptGUIScrollBarH* scriptScrollBar = new(bs_alloc<ScriptGUIScrollBarH>()) ScriptGUIScrollBarH(instance, guiScrollBar);
 
 		guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarH::OnScroll, scriptScrollBar, _1, _2));
 	}
@@ -97,9 +95,8 @@ namespace bs
 	ScriptGUIScrollBarV::OnScrolledThunkDef ScriptGUIScrollBarV::onScrolledThunk;
 
 	ScriptGUIScrollBarV::ScriptGUIScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar)
-		:TScriptGUIElement(instance, scrollBar)
+		: TScriptGUIElement(instance, scrollBar)
 	{
-
 	}
 
 	void ScriptGUIScrollBarV::InitRuntimeData()
@@ -115,11 +112,11 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUIScrollBarVert* guiScrollBar = GUIScrollBarVert::Create(options, MonoUtil::MonoToString(style));
-		ScriptGUIScrollBarV* scriptScrollBar = new (bs_alloc<ScriptGUIScrollBarV>()) ScriptGUIScrollBarV(instance, guiScrollBar);
+		ScriptGUIScrollBarV* scriptScrollBar = new(bs_alloc<ScriptGUIScrollBarV>()) ScriptGUIScrollBarV(instance, guiScrollBar);
 
 		guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarV::OnScroll, scriptScrollBar, _1, _2));
 	}
@@ -132,9 +129,8 @@ namespace bs
 	ScriptGUIResizeableScrollBarH::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarH::onScrollOrResizeThunk;
 
 	ScriptGUIResizeableScrollBarH::ScriptGUIResizeableScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar)
-		:TScriptGUIElement(instance, scrollBar)
+		: TScriptGUIElement(instance, scrollBar)
 	{
-
 	}
 
 	void ScriptGUIResizeableScrollBarH::InitRuntimeData()
@@ -150,11 +146,11 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUIScrollBarHorz* guiScrollBar = GUIScrollBarHorz::Create(true, options, MonoUtil::MonoToString(style));
-		ScriptGUIResizeableScrollBarH* scriptScrollBar = new (bs_alloc<ScriptGUIResizeableScrollBarH>()) ScriptGUIResizeableScrollBarH(instance, guiScrollBar);
+		ScriptGUIResizeableScrollBarH* scriptScrollBar = new(bs_alloc<ScriptGUIResizeableScrollBarH>()) ScriptGUIResizeableScrollBarH(instance, guiScrollBar);
 
 		guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIResizeableScrollBarH::OnScroll, scriptScrollBar, _1, _2));
 	}
@@ -167,9 +163,8 @@ namespace bs
 	ScriptGUIResizeableScrollBarV::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarV::onScrollOrResizeThunk;
 
 	ScriptGUIResizeableScrollBarV::ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar)
-		:TScriptGUIElement(instance, scrollBar)
+		: TScriptGUIElement(instance, scrollBar)
 	{
-
 	}
 
 	void ScriptGUIResizeableScrollBarV::InitRuntimeData()
@@ -185,11 +180,11 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUIScrollBarVert* guiScrollBar = GUIScrollBarVert::Create(true, options, MonoUtil::MonoToString(style));
-		ScriptGUIResizeableScrollBarV* scriptScrollBar = new (bs_alloc<ScriptGUIResizeableScrollBarV>()) ScriptGUIResizeableScrollBarV(instance, guiScrollBar);
+		ScriptGUIResizeableScrollBarV* scriptScrollBar = new(bs_alloc<ScriptGUIResizeableScrollBarV>()) ScriptGUIResizeableScrollBarV(instance, guiScrollBar);
 
 		guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIResizeableScrollBarV::OnScroll, scriptScrollBar, _1, _2));
 	}
@@ -198,4 +193,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onScrollOrResizeThunk, GetManagedInstance(), position, size);
 	}
-}
+} // namespace bs

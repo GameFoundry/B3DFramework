@@ -33,7 +33,7 @@
 namespace bs
 {
 	ScriptParticleEmitter::ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -70,20 +70,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetFlipV", (void*)&ScriptParticleEmitter::InternalSetFlipV);
 		metaData.ScriptClass->AddInternalCall("Internal_GetFlipV", (void*)&ScriptParticleEmitter::InternalGetFlipV);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitter::InternalCreate);
-
 	}
 
 	MonoObject* ScriptParticleEmitter::Create(const SPtr<ParticleEmitter>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitter::InternalSetShape(ScriptParticleEmitter* thisPtr, MonoObject* shape)
 	{
 		SPtr<ParticleEmitterShape> tmpshape;
@@ -412,6 +412,6 @@ namespace bs
 	void ScriptParticleEmitter::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitter> instance = ParticleEmitter::Create();
-		new (bs_alloc<ScriptParticleEmitter>())ScriptParticleEmitter(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, instance);
 	}
-}
+} // namespace bs

@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptAnimationClipState(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

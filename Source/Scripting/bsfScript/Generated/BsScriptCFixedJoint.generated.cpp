@@ -9,13 +9,12 @@
 namespace bs
 {
 	ScriptCFixedJoint::ScriptCFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
 	void ScriptCFixedJoint::InitRuntimeData()
 	{
-
 	}
 
-}
+} // namespace bs

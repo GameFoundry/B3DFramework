@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Time. */
-	class BS_SCR_BE_EXPORT ScriptTime : public ScriptObject <ScriptTime>
+	class BS_SCR_BE_EXPORT ScriptTime : public ScriptObject<ScriptTime>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Time")
@@ -31,4 +31,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -19,11 +19,11 @@ namespace bs
 	MonoMethod* ScriptGUI::sGUIPanelMethod = nullptr;
 
 	ScriptGUI::ScriptGUI(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	ScriptGUI::~ScriptGUI()
-	{ }
+	{}
 
 	void ScriptGUI::StartUp()
 	{
@@ -31,7 +31,7 @@ namespace bs
 		sGUIWidget = GUIWidget::Create(mainCamera);
 		sGUIWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
 
-		auto createPanel = [] ()
+		auto createPanel = []()
 		{
 			assert(sPanel == nullptr);
 
@@ -44,7 +44,7 @@ namespace bs
 			sGUIPanelMethod->Invoke(nullptr, params);
 		};
 
-		auto clearPanel = [] ()
+		auto clearPanel = []()
 		{
 			sPanel = nullptr;
 		};
@@ -57,11 +57,11 @@ namespace bs
 
 	void ScriptGUI::Update()
 	{
-		if (sGUIWidget == nullptr)
+		if(sGUIWidget == nullptr)
 			return;
 
 		SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
-		if (mainCamera != sGUIWidget->GetCamera())
+		if(mainCamera != sGUIWidget->GetCamera())
 			sGUIWidget->SetCamera(mainCamera);
 
 		sGUIWidget->UpdateRTInternal();
@@ -72,13 +72,13 @@ namespace bs
 		sDomainLoadConn.Disconnect();
 		sDomainUnloadConn.Disconnect();
 
-		if (sPanel != nullptr)
+		if(sPanel != nullptr)
 		{
 			sPanel->Destroy();
 			sPanel = nullptr;
 		}
 
-		if (sGUIWidget != nullptr)
+		if(sGUIWidget != nullptr)
 		{
 			sGUIWidget->DestroyInternal();
 			sGUIWidget = nullptr;
@@ -95,13 +95,13 @@ namespace bs
 	void ScriptGUI::InternalSetSkin(ScriptGUISkin* skin)
 	{
 		HGUISkin guiSkin;
-		if (skin != nullptr)
+		if(skin != nullptr)
 			guiSkin = skin->GetHandle();
 
-		if (!guiSkin.IsLoaded())
+		if(!guiSkin.IsLoaded())
 			guiSkin = BuiltinResources::Instance().GetGuiSkin();
 
 		if(sGUIWidget != nullptr)
 			sGUIWidget->SetSkin(guiSkin);
 	}
-}
+} // namespace bs

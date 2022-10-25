@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	States the game in editor can be in. */
-	enum class BS_SCRIPT_EXPORT(API(Editor),DocumentationGroup(Editor-General)) PlayInEditorState
+	enum class BS_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Editor - General)) PlayInEditorState
 	{
 		Stopped,
 		Playing,
@@ -20,16 +20,17 @@ namespace bs
 	};
 
 	/** Handles functionality specific to running the game in editor. */
-	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(API(Editor),DocumentationGroup(Editor-General)) PlayInEditor : public Module<PlayInEditor>
+	class BS_SCR_BE_EXPORT BS_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Editor - General)) PlayInEditor : public Module<PlayInEditor>
 	{
 	public:
 		PlayInEditor();
 
 		/**	Returns the current play state of the game. */
 		BS_SCRIPT_EXPORT(InteropOnly(true))
+
 		PlayInEditorState GetState() const { return mState; }
 
-		/**	
+		/**
 		 * Updates the play state of the game, making the game stop or start running. Note the actual state change
 		 * will be delayed until the next update() call. Use the onPlay/onStopped/onPaused/onUnpaused event to get notified
 		 * when the change actually happens.
@@ -99,4 +100,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -33,6 +33,5 @@ namespace bs
 
 	private:
 		ScriptPhysicsQueryHit(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

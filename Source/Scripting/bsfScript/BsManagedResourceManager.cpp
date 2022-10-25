@@ -13,7 +13,7 @@ namespace bs
 	void ManagedResourceManager::Clear()
 	{
 		UnorderedMap<UUID, WeakResourceHandle<ManagedResource>> resourceCopy = mResources;
-		for (auto& resourcePair : resourceCopy)
+		for(auto& resourcePair : resourceCopy)
 		{
 			WeakResourceHandle<ManagedResource> resource = resourcePair.second;
 			gResources().Release((WeakResourceHandle<Resource>&)resource);
@@ -31,4 +31,4 @@ namespace bs
 	{
 		mResources.erase(resource.GetUuid());
 	}
-}
+} // namespace bs

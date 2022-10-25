@@ -18,8 +18,8 @@
 namespace bs
 {
 	ScriptGUILayoutUtility::ScriptGUILayoutUtility()
-		:ScriptObject(nullptr)
-	{ }
+		: ScriptObject(nullptr)
+	{}
 
 	void ScriptGUILayoutUtility::InitRuntimeData()
 	{
@@ -30,19 +30,20 @@ namespace bs
 
 	void ScriptGUILayoutUtility::InternalCalculateOptimalSize(ScriptGUIElementBaseTBase* guiElement, Vector2I* output)
 	{
-		*output = GUILayoutUtility::CalcOptimalSize(guiElement->GetGuiElement());;
+		*output = GUILayoutUtility::CalcOptimalSize(guiElement->GetGuiElement());
+		;
 	}
 
 	void ScriptGUILayoutUtility::InternalCalculateBounds(ScriptGUIElementBaseTBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output)
 	{
-		if (guiElement->IsDestroyed())
+		if(guiElement->IsDestroyed())
 		{
 			*output = Rect2I();
 			return;
 		}
 
 		GUIPanel* relativeToPanel = nullptr;
-		if (relativeTo != nullptr && !relativeTo->IsDestroyed())
+		if(relativeTo != nullptr && !relativeTo->IsDestroyed())
 			relativeToPanel = static_cast<GUIPanel*>(relativeTo->GetGuiElement());
 
 		*output = guiElement->GetGuiElement()->GetBounds(relativeToPanel);
@@ -55,4 +56,4 @@ namespace bs
 
 		*output = GUIHelper::CalcTextSize(nativeText, nativeFont, fontSize);
 	}
-}
+} // namespace bs

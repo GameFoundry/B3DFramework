@@ -43,8 +43,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoReflectionType* reflType);
 
-		static MonoObject* InternalCreateObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance,
-			MonoReflectionType* reflType);
+		static MonoObject* InternalCreateObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance, MonoReflectionType* reflType);
 		static MonoObject* InternalCreateArray(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
 		static MonoObject* InternalCreateList(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
 		static MonoObject* InternalCreateDictionary(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance);
@@ -56,4 +55,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCBoxCollider::ScriptCBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -20,7 +20,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptCBoxCollider::InternalGetExtents);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCBoxCollider::InternalSetCenter);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCBoxCollider::InternalGetCenter);
-
 	}
 
 	void ScriptCBoxCollider::InternalSetExtents(ScriptCBoxCollider* thisPtr, Vector3* extents)
@@ -48,4 +47,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

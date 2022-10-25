@@ -25,7 +25,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUILayout")
 
-		virtual ~ScriptGUILayout() { }
+		virtual ~ScriptGUILayout() {}
 
 		/**	Returns the internal wrapped GUILayout object. */
 		GUILayout* GetInternalValue() const { return mLayout; }
@@ -44,7 +44,8 @@ namespace bs
 		 *
 		 * Destroys the layout and all of its managed children.
 		 */
-		void Destroy() ;
+		void Destroy();
+
 	protected:
 		friend class ScriptGUIPanel;
 
@@ -87,6 +88,7 @@ namespace bs
 
 		/**	Creates a new managed GUIPanel that wraps the provided native GUIPanel. */
 		static MonoObject* CreateFromExisting(GUIPanel* panel);
+
 	private:
 		ScriptGUIPanel(MonoObject* instance);
 	};
@@ -104,7 +106,7 @@ namespace bs
 		ScriptGUIScrollAreaLayout(MonoObject* instance, GUILayout* layout);
 
 		/** @copydoc ScriptGUILayout::destroy */
-		void Destroy() ;
+		void Destroy();
 
 	private:
 		friend class ScriptGUIScrollArea;
@@ -113,4 +115,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

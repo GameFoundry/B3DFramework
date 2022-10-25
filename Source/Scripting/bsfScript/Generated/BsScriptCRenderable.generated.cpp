@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptCRenderable::ScriptCRenderable(MonoObject* managedInstance, const GameObjectHandle<CRenderable>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -33,7 +33,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptCRenderable::InternalSetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCRenderable::InternalGetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptCRenderable::InternalGetBounds);
-
 	}
 
 	void ScriptCRenderable::InternalSetMesh(ScriptCRenderable* thisPtr, MonoObject* mesh)
@@ -196,4 +195,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

@@ -20,7 +20,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct RenderSettings; }
+namespace bs
+{
+	struct RenderSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
@@ -89,4 +93,4 @@ namespace bs
 		static float InternalGetCullDistance(ScriptRenderSettings* thisPtr);
 		static void InternalSetCullDistance(ScriptRenderSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

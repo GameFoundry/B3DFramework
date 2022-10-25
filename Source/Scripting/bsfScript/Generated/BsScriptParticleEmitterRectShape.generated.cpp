@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleEmitterRectShape::ScriptParticleEmitterRectShape(MonoObject* managedInstance, const SPtr<ParticleEmitterRectShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterRectShape::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterRectShape::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterRectShape::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleEmitterRectShape::Create(const SPtr<ParticleEmitterRectShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterRectShape>()) ScriptParticleEmitterRectShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterRectShape>()) ScriptParticleEmitterRectShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitterRectShape::InternalSetOptions(ScriptParticleEmitterRectShape* thisPtr, __PARTICLE_RECT_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_RECT_SHAPE_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_RECT_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_RECT_SHAPE_DESC::FromInterop(*desc);
 		SPtr<ParticleEmitterRectShape> instance = ParticleEmitterRectShape::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterRectShape>()) ScriptParticleEmitterRectShape(managedInstance, instance);
 	}
 
 	void ScriptParticleEmitterRectShape::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitterRectShape> instance = ParticleEmitterRectShape::Create();
-		new (bs_alloc<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterRectShape>()) ScriptParticleEmitterRectShape(managedInstance, instance);
 	}
-}
+} // namespace bs

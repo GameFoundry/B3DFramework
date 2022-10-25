@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleVelocity::ScriptParticleVelocity(MonoObject* managedInstance, const SPtr<ParticleVelocity>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleVelocity::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleVelocity::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleVelocity::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleVelocity::Create(const SPtr<ParticleVelocity>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, value);
+		new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleVelocity::InternalSetOptions(ScriptParticleVelocity* thisPtr, __PARTICLE_VELOCITY_DESCInterop* options)
 	{
 		PARTICLE_VELOCITY_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_VELOCITY_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_VELOCITY_DESC::FromInterop(*desc);
 		SPtr<ParticleVelocity> instance = ParticleVelocity::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleVelocity>())ScriptParticleVelocity(managedInstance, instance);
+		new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
 	}
 
 	void ScriptParticleVelocity::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleVelocity> instance = ParticleVelocity::Create();
-		new (bs_alloc<ScriptParticleVelocity>())ScriptParticleVelocity(managedInstance, instance);
+		new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
 	}
-}
+} // namespace bs

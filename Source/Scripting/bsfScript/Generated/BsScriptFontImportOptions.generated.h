@@ -9,7 +9,11 @@
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 
-namespace bs { class FontImportOptions; }
+namespace bs
+{
+	class FontImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -38,4 +42,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-}
+} // namespace bs

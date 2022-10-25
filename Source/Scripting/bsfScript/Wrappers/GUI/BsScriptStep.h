@@ -8,7 +8,7 @@
 namespace bs
 {
 	/**	Interop class between C++ & CLR for Step attribute. */
-	class BS_SCR_BE_EXPORT ScriptStep : public ScriptObject <ScriptStep>
+	class BS_SCR_BE_EXPORT ScriptStep : public ScriptObject<ScriptStep>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Step")
@@ -20,4 +20,4 @@ namespace bs
 
 		static MonoField* stepField;
 	};
-}
+} // namespace bs

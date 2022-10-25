@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptShadowSettings::ScriptShadowSettings(MonoObject* managedInstance, const SPtr<ShadowSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -23,24 +23,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetCascadeDistributionExponent", (void*)&ScriptShadowSettings::InternalSetCascadeDistributionExponent);
 		metaData.ScriptClass->AddInternalCall("Internal_GetShadowFilteringQuality", (void*)&ScriptShadowSettings::InternalGetShadowFilteringQuality);
 		metaData.ScriptClass->AddInternalCall("Internal_SetShadowFilteringQuality", (void*)&ScriptShadowSettings::InternalSetShadowFilteringQuality);
-
 	}
 
 	MonoObject* ScriptShadowSettings::Create(const SPtr<ShadowSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, value);
+		new(bs_alloc<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptShadowSettings::InternalShadowSettings(MonoObject* managedInstance)
 	{
 		SPtr<ShadowSettings> instance = bs_shared_ptr_new<ShadowSettings>();
-		new (bs_alloc<ScriptShadowSettings>())ScriptShadowSettings(managedInstance, instance);
+		new(bs_alloc<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, instance);
 	}
 
 	float ScriptShadowSettings::InternalGetDirectionalShadowDistance(ScriptShadowSettings* thisPtr)
@@ -106,4 +106,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->ShadowFilteringQuality = value;
 	}
-}
+} // namespace bs

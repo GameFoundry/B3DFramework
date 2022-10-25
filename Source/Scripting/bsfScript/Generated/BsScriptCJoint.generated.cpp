@@ -13,13 +13,13 @@
 namespace bs
 {
 	ScriptCJointBase::ScriptCJointBase(MonoObject* managedInstance)
-		:ScriptComponentBase(managedInstance)
-	 { }
+		: ScriptComponentBase(managedInstance)
+	{}
 
-	ScriptCJoint::OnJointBreakThunkDef ScriptCJoint::OnJointBreakThunk; 
+	ScriptCJoint::OnJointBreakThunkDef ScriptCJoint::OnJointBreakThunk;
 
 	ScriptCJoint::ScriptCJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 		value->OnJointBreak.Connect(std::bind(&ScriptCJoint::OnJointBreak, this));
 	}
@@ -45,6 +45,7 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(OnJointBreakThunk, GetManagedInstance());
 	}
+
 	MonoObject* ScriptCJoint::InternalGetBody(ScriptCJointBase* thisPtr, JointBody body)
 	{
 		GameObjectHandle<CRigidbody> tmp__output;
@@ -140,4 +141,4 @@ namespace bs
 	{
 		static_object_cast<CJoint>(thisPtr->GetComponent())->SetEnableCollision(value);
 	}
-}
+} // namespace bs

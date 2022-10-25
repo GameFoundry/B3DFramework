@@ -41,7 +41,6 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurvefloat(MonoObject* managedInstance);
-
 	};
 
 	struct __TNamedAnimationCurveVector3Interop
@@ -63,7 +62,6 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveVector3(MonoObject* managedInstance);
-
 	};
 
 	struct __TNamedAnimationCurveVector2Interop
@@ -85,7 +83,6 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveVector2(MonoObject* managedInstance);
-
 	};
 
 	struct __TNamedAnimationCurveQuaternionInterop
@@ -107,7 +104,6 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveQuaternion(MonoObject* managedInstance);
-
 	};
 
 	struct __TNamedAnimationCurveint32_tInterop
@@ -129,6 +125,5 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveint32_t(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

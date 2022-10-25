@@ -10,7 +10,11 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 
-namespace bs { class MeshImportOptions; }
+namespace bs
+{
+	class MeshImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -51,4 +55,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-}
+} // namespace bs

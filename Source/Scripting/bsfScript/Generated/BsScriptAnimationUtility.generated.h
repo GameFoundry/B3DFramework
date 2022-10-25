@@ -6,7 +6,11 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
-namespace bs { class AnimationUtility; }
+namespace bs
+{
+	class AnimationUtility;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAnimationUtility : public ScriptObject<ScriptAnimationUtility>
@@ -17,6 +21,7 @@ namespace bs
 		ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value);
 
 		SPtr<AnimationUtility> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<AnimationUtility>& value);
 
 	private:
@@ -30,4 +35,4 @@ namespace bs
 		static MonoObject* InternalCombineCurve2D(MonoArray* curveComponents);
 		static void InternalCalculateRange(MonoArray* curves, float* xMin, float* xMax, float* yMin, float* yMax);
 	};
-}
+} // namespace bs

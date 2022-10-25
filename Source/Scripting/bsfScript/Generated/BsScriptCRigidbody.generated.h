@@ -12,8 +12,16 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 
-namespace bs { class CRigidbody; }
-namespace bs { struct __CollisionDataInterop; }
+namespace bs
+{
+	class CRigidbody;
+}
+
+namespace bs
+{
+	struct __CollisionDataInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCRigidbody : public TScriptComponent<ScriptCRigidbody, CRigidbody>
@@ -28,11 +36,11 @@ namespace bs
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
 
-		typedef void(BS_THUNKCALL *OnCollisionBeginThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionBeginThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionBeginThunkDef OnCollisionBeginThunk;
-		typedef void(BS_THUNKCALL *OnCollisionStayThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionStayThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionStayThunkDef OnCollisionStayThunk;
-		typedef void(BS_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionEndThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
 		static void InternalMove(ScriptCRigidbody* thisPtr, Vector3* position);
@@ -77,4 +85,4 @@ namespace bs
 		static void InternalAddForceAtPoint(ScriptCRigidbody* thisPtr, Vector3* force, Vector3* position, PointForceMode mode);
 		static void InternalGetVelocityAtPoint(ScriptCRigidbody* thisPtr, Vector3* point, Vector3* __output);
 	};
-}
+} // namespace bs

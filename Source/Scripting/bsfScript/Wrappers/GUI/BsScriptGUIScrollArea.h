@@ -22,7 +22,7 @@ namespace bs
 		 * Initializes the interop object by providing it with the interop object for the internal layout held by the
 		 * scroll area.
 		 */
-		 void Initialize(ScriptGUIScrollAreaLayout* layout);
+		void Initialize(ScriptGUIScrollAreaLayout* layout);
 
 	private:
 		friend class ScriptGUIScrollAreaLayout;
@@ -30,7 +30,7 @@ namespace bs
 		ScriptGUIScrollArea(MonoObject* instance, GUIScrollArea* scrollArea);
 
 		/** @copydoc TScriptGUIElement::destroy */
-		void Destroy() ;
+		void Destroy();
 
 		/**
 		 * Called when the child script GUI layout gets destroyed. Notifies this object that it shouldn't use it anymore.
@@ -42,8 +42,7 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, ScrollBarType vertBarType, ScrollBarType horzBarType,
-			MonoString* scrollBarStyle, MonoString* scrollAreaStyle, MonoArray* guiOptions);
+		static void InternalCreateInstance(MonoObject* instance, ScrollBarType vertBarType, ScrollBarType horzBarType, MonoString* scrollBarStyle, MonoString* scrollAreaStyle, MonoArray* guiOptions);
 		static void InternalGetContentBounds(ScriptGUIScrollArea* nativeInstance, Rect2I* bounds);
 		static float InternalGetHorzScroll(ScriptGUIScrollArea* nativeInstance);
 		static void InternalSetHorzScroll(ScriptGUIScrollArea* nativeInstance, float value);
@@ -53,4 +52,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

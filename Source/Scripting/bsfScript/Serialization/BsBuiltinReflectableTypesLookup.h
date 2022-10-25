@@ -9,51 +9,55 @@
 namespace bs
 {
 	/** Begins the definition for the builtin reflectable wrapper lookup table. */
-#define LOOKUP_BEGIN(tableName)																								\
-	class tableName																											\
-	{																														\
-	private:																												\
-		struct META_FirstEntry {};																							\
-		static void META_GetPrevEntries(Vector<ReflectableTypeInfo>& entries, META_FirstEntry id) { }						\
-																															\
+#define LOOKUP_BEGIN(tableName)                                                                   \
+	class tableName                                                                               \
+	{                                                                                             \
+	private:                                                                                      \
+		struct META_FirstEntry                                                                    \
+		{};                                                                                       \
+		static void META_GetPrevEntries(Vector<ReflectableTypeInfo>& entries, META_FirstEntry id) \
+		{}                                                                                        \
+                                                                                                  \
 		typedef META_FirstEntry
 
 	/** Registers a new entry in the reflectable wrapper lookup table. */
-#define ADD_ENTRY(ReflectableType, ScriptType)																				\
-		META_Entry_##ScriptType;																							\
-																															\
-	public:																													\
-		static MonoObject* Create##ScriptType(const SPtr<IReflectable>& reflectable)										\
-		{																													\
-			return ScriptType::Create(std::static_pointer_cast<ReflectableType>(reflectable));								\
-		}																													\
-																															\
-		struct META_NextEntry_##ScriptType {};																				\
-		static void META_GetPrevEntries(Vector<ReflectableTypeInfo>& entries, META_NextEntry_##ScriptType id)				\
-		{																													\
-			META_GetPrevEntries(entries, META_Entry_##ScriptType());														\
-																															\
-			ReflectableTypeInfo entry;																						\
-			entry.MetaData = ScriptType::GetMetaData();																		\
-			entry.TypeId = ReflectableType::GetRttiStatic()->GetRttiId();													\
-			entry.MonoClass = nullptr;																						\
-			entry.CreateCallback = &Create##ScriptType;																		\
-																															\
-			entries.push_back(entry);																						\
-		}																													\
-																															\
-		typedef META_NextEntry_##ScriptType
+#define ADD_ENTRY(ReflectableType, ScriptType)                                                            \
+	META_Entry_##ScriptType;                                                                              \
+                                                                                                          \
+public:                                                                                                   \
+	static MonoObject* Create##ScriptType(const SPtr<IReflectable>& reflectable)                          \
+	{                                                                                                     \
+		return ScriptType::Create(std::static_pointer_cast<ReflectableType>(reflectable));                \
+	}                                                                                                     \
+                                                                                                          \
+	struct META_NextEntry_##ScriptType                                                                    \
+	{};                                                                                                   \
+	static void META_GetPrevEntries(Vector<ReflectableTypeInfo>& entries, META_NextEntry_##ScriptType id) \
+	{                                                                                                     \
+		META_GetPrevEntries(entries, META_Entry_##ScriptType());                                          \
+                                                                                                          \
+		ReflectableTypeInfo entry;                                                                        \
+		entry.MetaData = ScriptType::GetMetaData();                                                       \
+		entry.TypeId = ReflectableType::GetRttiStatic()->GetRttiId();                                     \
+		entry.MonoClass = nullptr;                                                                        \
+		entry.CreateCallback = &Create##ScriptType;                                                       \
+                                                                                                          \
+		entries.push_back(entry);                                                                         \
+	}                                                                                                     \
+                                                                                                          \
+	typedef META_NextEntry_##ScriptType
 
 	/** End the definition for the  reflectable wrapper lookup table. */
-#define LOOKUP_END																											\
-		META_LastEntry;																										\
-																															\
-	public:																													\
-		static Vector<ReflectableTypeInfo> GetEntries()																		\
-		{																													\
-			Vector<ReflectableTypeInfo> entries;																			\
-			META_GetPrevEntries(entries, META_LastEntry());																	\
-			return entries;																									\
-		}																													\
-	};
-}
+#define LOOKUP_END                                      \
+	META_LastEntry;                                     \
+                                                        \
+public:                                                 \
+	static Vector<ReflectableTypeInfo> GetEntries()     \
+	{                                                   \
+		Vector<ReflectableTypeInfo> entries;            \
+		META_GetPrevEntries(entries, META_LastEntry()); \
+		return entries;                                 \
+	}                                                   \
+	}                                                   \
+	;
+} // namespace bs

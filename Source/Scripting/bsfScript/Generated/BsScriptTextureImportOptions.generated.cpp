@@ -10,7 +10,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptTextureImportOptions::ScriptTextureImportOptions(MonoObject* managedInstance, const SPtr<TextureImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -32,25 +32,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetCubemapSourceType", (void*)&ScriptTextureImportOptions::InternalGetCubemapSourceType);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCubemapSourceType", (void*)&ScriptTextureImportOptions::InternalSetCubemapSourceType);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptTextureImportOptions::InternalCreate);
-
 	}
 
 	MonoObject* ScriptTextureImportOptions::Create(const SPtr<TextureImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTextureImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<TextureImportOptions> instance = TextureImportOptions::Create();
-		new (bs_alloc<ScriptTextureImportOptions>())ScriptTextureImportOptions(managedInstance, instance);
+		new(bs_alloc<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, instance);
 	}
+
 	PixelFormat ScriptTextureImportOptions::InternalGetFormat(ScriptTextureImportOptions* thisPtr)
 	{
 		PixelFormat tmp__output;
@@ -163,4 +164,4 @@ namespace bs
 		thisPtr->GetInternal()->CubemapSourceType = value;
 	}
 #endif
-}
+} // namespace bs

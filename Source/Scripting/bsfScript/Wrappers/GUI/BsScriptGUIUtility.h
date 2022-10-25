@@ -32,4 +32,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

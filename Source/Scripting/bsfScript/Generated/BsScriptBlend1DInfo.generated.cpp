@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptBlend1DInfo::ScriptBlend1DInfo(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptBlend1DInfo::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptBlend1DInfo::Box(const __Blend1DInfoInterop& value)
+	MonoObject* ScriptBlend1DInfo::Box(const __Blend1DInfoInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -60,4 +60,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

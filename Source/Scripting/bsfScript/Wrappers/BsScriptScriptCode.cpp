@@ -16,9 +16,8 @@ using namespace std::placeholders;
 namespace bs
 {
 	ScriptScriptCode::ScriptScriptCode(MonoObject* instance, const HScriptCode& scriptCode)
-		:TScriptResource(instance, scriptCode)
+		: TScriptResource(instance, scriptCode)
 	{
-		
 	}
 
 	void ScriptScriptCode::InitRuntimeData()
@@ -42,7 +41,7 @@ namespace bs
 	MonoString* ScriptScriptCode::InternalGetText(ScriptScriptCode* thisPtr)
 	{
 		HScriptCode scriptCode = thisPtr->GetHandle();
-		if (!scriptCode.IsLoaded())
+		if(!scriptCode.IsLoaded())
 			MonoUtil::WstringToMono(L"");
 
 		return MonoUtil::WstringToMono(scriptCode->GetString());
@@ -51,7 +50,7 @@ namespace bs
 	void ScriptScriptCode::InternalSetText(ScriptScriptCode* thisPtr, MonoString* text)
 	{
 		HScriptCode scriptCode = thisPtr->GetHandle();
-		if (!scriptCode.IsLoaded())
+		if(!scriptCode.IsLoaded())
 			return;
 
 		scriptCode->SetString(MonoUtil::MonoToWString(text));
@@ -60,7 +59,7 @@ namespace bs
 	bool ScriptScriptCode::InternalIsEditorScript(ScriptScriptCode* thisPtr)
 	{
 		HScriptCode scriptCode = thisPtr->GetHandle();
-		if (!scriptCode.IsLoaded())
+		if(!scriptCode.IsLoaded())
 			return false;
 
 		return scriptCode->GetIsEditorScript();
@@ -69,25 +68,25 @@ namespace bs
 	void ScriptScriptCode::InternalSetEditorScript(ScriptScriptCode* thisPtr, bool value)
 	{
 		HScriptCode scriptCode = thisPtr->GetHandle();
-		if (!scriptCode.IsLoaded())
+		if(!scriptCode.IsLoaded())
 			return;
 
 		scriptCode->SetIsEditorScript(value);
 	}
-	
+
 	MonoArray* ScriptScriptCode::InternalGetTypes(ScriptScriptCode* thisPtr)
 	{
 		HScriptCode scriptCode = thisPtr->GetHandle();
 
 		Vector<FullTypeName> types;
-		if (scriptCode.IsLoaded())
+		if(scriptCode.IsLoaded())
 			types = ParseTypes(scriptCode->GetString());
 
 		Vector<MonoReflectionType*> validTypes;
-		for (auto& type : types)
+		for(auto& type : types)
 		{
 			SPtr<ManagedSerializableObjectInfo> objInfo;
-			if (ScriptAssemblyManager::Instance().GetSerializableObjectInfo(toString(type.first), toString(type.second), objInfo))
+			if(ScriptAssemblyManager::Instance().GetSerializableObjectInfo(toString(type.first), toString(type.second), objInfo))
 				validTypes.push_back(MonoUtil::GetType(objInfo->MTypeInfo->GetMonoClass()));
 		}
 
@@ -95,7 +94,7 @@ namespace bs
 		MonoClass* typeClass = ScriptAssemblyManager::Instance().GetBuiltinClasses().SystemTypeClass;
 
 		ScriptArray scriptArray(typeClass->GetInternalClassInternal(), numValidTypes);
-		for (u32 i = 0; i < numValidTypes; i++)
+		for(u32 i = 0; i < numValidTypes; i++)
 			scriptArray.Set(i, validTypes[i]);
 
 		return scriptArray.GetInternal();
@@ -128,17 +127,17 @@ namespace bs
 
 		u32 idx = 0;
 		i32 bracketIdx = 0;
-		for (auto iter = code.begin(); iter != code.end(); ++iter)
+		for(auto iter = code.begin(); iter != code.end(); ++iter)
 		{
 			wchar_t ch = *iter;
-			
-			if (code.compare(idx, classToken.size(), classToken) == 0)
+
+			if(code.compare(idx, classToken.size(), classToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + classToken.size(), code.end(), results, identifierRegex))
+				if(std::regex_search(iter + classToken.size(), code.end(), results, identifierRegex))
 				{
 					WString ns = L"";
-					if (!namespaces.empty())
+					if(!namespaces.empty())
 						ns = namespaces.top().Ns;
 
 					std::wstring tempStr = results[0];
@@ -150,10 +149,10 @@ namespace bs
 					nsTypePair.second = typeName;
 				}
 			}
-			else if (code.compare(idx, nsToken.size(), nsToken) == 0)
+			else if(code.compare(idx, nsToken.size(), nsToken) == 0)
 			{
 				std::match_results<WString::const_iterator> results;
-				if (std::regex_search(iter + nsToken.size(), code.end(), results, identifierRegex))
+				if(std::regex_search(iter + nsToken.size(), code.end(), results, identifierRegex))
 				{
 					std::wstring tempStr = results[0];
 					WString ns = tempStr.c_str();
@@ -161,11 +160,11 @@ namespace bs
 					namespaces.push({ ns, bracketIdx + 1 });
 				}
 			}
-			else if (ch == '{')
+			else if(ch == '{')
 			{
 				bracketIdx++;
 			}
-			else if (ch == '}')
+			else if(ch == '}')
 			{
 				bracketIdx--;
 			}
@@ -175,4 +174,4 @@ namespace bs
 
 		return output;
 	}
-}
+} // namespace bs

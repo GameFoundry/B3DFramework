@@ -12,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	
+	/**
 	 * Base class for all interop object that derive from IReflectable (except for those that have their own specialized
 	 * base classes, such as resources and components).
 	 */
@@ -33,8 +33,8 @@ namespace bs
 	};
 
 	/**	Base class for a specific reflectable's interop object. */
-	template<class ScriptClass, class InternalType, class BaseType = ScriptReflectableBase>
-	class BS_SCR_BE_EXPORT TScriptReflectable : public ScriptObject <ScriptClass, BaseType>
+	template <class ScriptClass, class InternalType, class BaseType = ScriptReflectableBase>
+	class BS_SCR_BE_EXPORT TScriptReflectable : public ScriptObject<ScriptClass, BaseType>
 	{
 	public:
 		/** Returns the wrapped reflectable object. */
@@ -42,7 +42,7 @@ namespace bs
 
 	protected:
 		TScriptReflectable(MonoObject* instance, const SPtr<IReflectable>& reflectable)
-			:ScriptObject<ScriptClass, BaseType>(instance)
+			: ScriptObject<ScriptClass, BaseType>(instance)
 		{
 			this->mInternal = reflectable;
 		}
@@ -51,4 +51,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

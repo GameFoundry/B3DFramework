@@ -10,7 +10,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptResourceManifest::ScriptResourceManifest(MonoObject* managedInstance, const SPtr<ResourceManifest>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -26,20 +26,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_Save", (void*)&ScriptResourceManifest::InternalSave);
 		metaData.ScriptClass->AddInternalCall("Internal_Load", (void*)&ScriptResourceManifest::InternalLoad);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptResourceManifest::InternalCreate);
-
 	}
 
 	MonoObject* ScriptResourceManifest::Create(const SPtr<ResourceManifest>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, value);
+		new(bs_alloc<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoString* ScriptResourceManifest::InternalGetName(ScriptResourceManifest* thisPtr)
 	{
 		String tmp__output;
@@ -71,7 +71,7 @@ namespace bs
 
 		bool __output;
 		__output = tmp__output;
-		MonoUtil::ReferenceCopy(filePath,  (MonoObject*)MonoUtil::StringToMono(tmpfilePath.ToString()));
+		MonoUtil::ReferenceCopy(filePath, (MonoObject*)MonoUtil::StringToMono(tmpfilePath.ToString()));
 
 		return __output;
 	}
@@ -147,7 +147,7 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<ResourceManifest> instance = ResourceManifest::Create(tmpname);
-		new (bs_alloc<ScriptResourceManifest>())ScriptResourceManifest(managedInstance, instance);
+		new(bs_alloc<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, instance);
 	}
 #endif
-}
+} // namespace bs

@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCCapsuleCollider::ScriptCCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -24,7 +24,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetHalfHeight", (void*)&ScriptCCapsuleCollider::InternalGetHalfHeight);
 		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptCCapsuleCollider::InternalSetRadius);
 		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCCapsuleCollider::InternalGetRadius);
-
 	}
 
 	void ScriptCCapsuleCollider::InternalSetNormal(ScriptCCapsuleCollider* thisPtr, Vector3* normal)
@@ -84,4 +83,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

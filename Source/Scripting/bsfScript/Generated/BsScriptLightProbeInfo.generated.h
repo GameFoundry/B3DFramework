@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptLightProbeInfo(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

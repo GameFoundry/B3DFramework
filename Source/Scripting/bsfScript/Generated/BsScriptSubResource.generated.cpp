@@ -12,13 +12,13 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptSubResource::ScriptSubResource(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSubResource::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptSubResource::Box(const __SubResourceInterop& value)
+	MonoObject* ScriptSubResource::Box(const __SubResourceInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -63,4 +63,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptPARTICLE_COLOR_DESC::ScriptPARTICLE_COLOR_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_COLOR_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_COLOR_DESC::Box(const __PARTICLE_COLOR_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_COLOR_DESC::Box(const __PARTICLE_COLOR_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -35,7 +35,7 @@ namespace bs
 		if(scriptColor != nullptr)
 			tmpColor = scriptColor->GetInternal();
 		if(tmpColor != nullptr)
-		output.Color = *tmpColor;
+			output.Color = *tmpColor;
 
 		return output;
 	}
@@ -52,4 +52,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

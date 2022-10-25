@@ -12,8 +12,16 @@
 #include "Math/BsQuaternion.h"
 #include "Math/BsCapsule.h"
 
-namespace bs { struct __PhysicsQueryHitInterop; }
-namespace bs { class PhysicsScene; }
+namespace bs
+{
+	struct __PhysicsQueryHitInterop;
+}
+
+namespace bs
+{
+	class PhysicsScene;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptPhysicsScene : public ScriptObject<ScriptPhysicsScene>
@@ -24,6 +32,7 @@ namespace bs
 		ScriptPhysicsScene(MonoObject* managedInstance, const SPtr<PhysicsScene>& value);
 
 		SPtr<PhysicsScene> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<PhysicsScene>& value);
 
 	private:
@@ -61,4 +70,4 @@ namespace bs
 		static void InternalRemoveBroadPhaseRegion(ScriptPhysicsScene* thisPtr, uint32_t handle);
 		static void InternalClearBroadPhaseRegions(ScriptPhysicsScene* thisPtr);
 	};
-}
+} // namespace bs

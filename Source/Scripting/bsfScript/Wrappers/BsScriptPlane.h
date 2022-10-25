@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Plane. */
-	class BS_SCR_BE_EXPORT ScriptPlane : public ScriptObject <ScriptPlane>
+	class BS_SCR_BE_EXPORT ScriptPlane : public ScriptObject<ScriptPlane>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Plane")
@@ -29,4 +29,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

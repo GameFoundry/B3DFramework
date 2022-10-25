@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptCharDesc::ScriptCharDesc(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptCharDesc::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptCharDesc::Box(const __CharDescInterop& value)
+	MonoObject* ScriptCharDesc::Box(const __CharDescInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -84,4 +84,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptColorGradient::ScriptColorGradient(MonoObject* managedInstance, const SPtr<ColorGradient>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -27,30 +27,30 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetKey", (void*)&ScriptColorGradient::InternalGetKey);
 		metaData.ScriptClass->AddInternalCall("Internal_SetConstant", (void*)&ScriptColorGradient::InternalSetConstant);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptColorGradient::InternalEvaluate);
-
 	}
 
 	MonoObject* ScriptColorGradient::Create(const SPtr<ColorGradient>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, value);
+		new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptColorGradient::InternalColorGradient(MonoObject* managedInstance)
 	{
 		SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>();
-		new (bs_alloc<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 	}
 
 	void ScriptColorGradient::InternalColorGradient0(MonoObject* managedInstance, Color* color)
 	{
 		SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>(*color);
-		new (bs_alloc<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 	}
 
 	void ScriptColorGradient::InternalColorGradient1(MonoObject* managedInstance, MonoArray* keys)
@@ -66,7 +66,7 @@ namespace bs
 			}
 		}
 		SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>(veckeys);
-		new (bs_alloc<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 	}
 
 	void ScriptColorGradient::InternalSetKeys(ScriptColorGradient* thisPtr, MonoArray* keys, float duration)
@@ -80,7 +80,6 @@ namespace bs
 			{
 				veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
 			}
-
 		}
 		thisPtr->GetInternal()->SetKeys(veckeys, duration);
 	}
@@ -135,4 +134,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

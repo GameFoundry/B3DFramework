@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct WhiteBalanceSettings; }
+namespace bs
+{
+	struct WhiteBalanceSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectable<ScriptWhiteBalanceSettings, WhiteBalanceSettings>
@@ -25,4 +29,4 @@ namespace bs
 		static float InternalGetTint(ScriptWhiteBalanceSettings* thisPtr);
 		static void InternalSetTint(ScriptWhiteBalanceSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

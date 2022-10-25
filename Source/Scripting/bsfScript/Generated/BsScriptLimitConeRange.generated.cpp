@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptLimitConeRange::ScriptLimitConeRange(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptLimitConeRange::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptLimitConeRange::Box(const __LimitConeRangeInterop& value)
+	MonoObject* ScriptLimitConeRange::Box(const __LimitConeRangeInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -50,4 +50,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

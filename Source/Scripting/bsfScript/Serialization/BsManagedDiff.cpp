@@ -10,15 +10,14 @@
 
 namespace bs
 {
-	SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj,
-		IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
+	SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
 	{
 		CoreSerializationContext context;
 		context.GoState = bs_shared_ptr_new<GameObjectDeserializationState>(GODM_UseOriginalIds | GODM_RestoreExternal);
 
 		ManagedSerializableObject* orgManSerzObj;
 		SPtr<ManagedSerializableObject> orgDecodedObject;
-		if (orgObj->GetTypeId() == TID_SerializedObject)
+		if(orgObj->GetTypeId() == TID_SerializedObject)
 		{
 			auto* orgSerzObj = static_cast<SerializedObject*>(orgObj);
 			orgDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->Decode(&context));
@@ -33,7 +32,7 @@ namespace bs
 
 		ManagedSerializableObject* newManSerzObj;
 		SPtr<ManagedSerializableObject> newDecodedObject;
-		if (newObj->GetTypeId() == TID_SerializedObject)
+		if(newObj->GetTypeId() == TID_SerializedObject)
 		{
 			auto* newSerzObj = static_cast<SerializedObject*>(newObj);
 			newDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->Decode(&context));
@@ -49,7 +48,7 @@ namespace bs
 		context.GoState->Resolve();
 
 		SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::Create(orgManSerzObj, newManSerzObj);
-		if (diff == nullptr)
+		if(diff == nullptr)
 			return nullptr;
 
 		SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
@@ -67,17 +66,16 @@ namespace bs
 		return output;
 	}
 
-	void ManagedDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff,
-		FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context)
+	void ManagedDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context)
 	{
 		SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->SubObjects[0].Entries[0].Serialized);
 
 		SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(diffObj->Decode(context));
-		
-		if (diff != nullptr)
+
+		if(diff != nullptr)
 		{
 			SPtr<ManagedSerializableObject> managedObj = std::static_pointer_cast<ManagedSerializableObject>(object);
 			diff->Apply(managedObj);
 		}
 	}
-}
+} // namespace bs

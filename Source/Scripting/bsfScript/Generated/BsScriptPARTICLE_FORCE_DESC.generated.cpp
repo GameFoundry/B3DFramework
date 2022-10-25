@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptPARTICLE_FORCE_DESC::ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_FORCE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_FORCE_DESC::Box(const __PARTICLE_FORCE_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_FORCE_DESC::Box(const __PARTICLE_FORCE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -35,7 +35,7 @@ namespace bs
 		if(scriptForce != nullptr)
 			tmpForce = scriptForce->GetInternal();
 		if(tmpForce != nullptr)
-		output.Force = *tmpForce;
+			output.Force = *tmpForce;
 		output.WorldSpace = value.WorldSpace;
 
 		return output;
@@ -54,4 +54,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

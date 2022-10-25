@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::ScriptPARTICLE_HEMISPHERE_SHAPE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::Box(const PARTICLE_HEMISPHERE_SHAPE_DESC& value)
+	MonoObject* ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::Box(const PARTICLE_HEMISPHERE_SHAPE_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(PARTICLE_HEMISPHERE_SHAPE_DESC*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

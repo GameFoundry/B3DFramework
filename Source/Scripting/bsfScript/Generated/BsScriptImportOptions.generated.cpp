@@ -9,34 +9,34 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptImportOptionsBase::ScriptImportOptionsBase(MonoObject* managedInstance)
-		:ScriptReflectableBase(managedInstance)
-	 { }
+		: ScriptReflectableBase(managedInstance)
+	{}
 
 	SPtr<ImportOptions> ScriptImportOptionsBase::GetInternal() const
 	{
 		return std::static_pointer_cast<ImportOptions>(mInternal);
 	}
+
 	ScriptImportOptions::ScriptImportOptions(MonoObject* managedInstance, const SPtr<ImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
 
 	void ScriptImportOptions::InitRuntimeData()
 	{
-
 	}
 
 	MonoObject* ScriptImportOptions::Create(const SPtr<ImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptImportOptions>()) ScriptImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptImportOptions>()) ScriptImportOptions(managedInstance, value);
 		return managedInstance;
 	}
 #endif
-}
+} // namespace bs

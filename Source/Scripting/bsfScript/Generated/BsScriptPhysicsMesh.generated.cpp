@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptPhysicsMesh::ScriptPhysicsMesh(MonoObject* managedInstance, const ResourceHandle<PhysicsMesh>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -24,16 +24,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptPhysicsMesh::InternalGetType);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptPhysicsMesh::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetMeshData", (void*)&ScriptPhysicsMesh::InternalGetMeshData);
-
 	}
 
-	 MonoObject*ScriptPhysicsMesh::CreateInstance()
+	MonoObject* ScriptPhysicsMesh::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptPhysicsMesh::InternalGetRef(ScriptPhysicsMesh* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -71,4 +71,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

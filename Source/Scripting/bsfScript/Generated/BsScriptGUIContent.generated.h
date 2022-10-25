@@ -30,6 +30,5 @@ namespace bs
 
 	private:
 		ScriptGUIContent(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

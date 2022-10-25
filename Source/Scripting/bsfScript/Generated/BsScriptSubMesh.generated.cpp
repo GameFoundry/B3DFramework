@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptSubMesh::ScriptSubMesh(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSubMesh::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptSubMesh::Box(const SubMesh& value)
+	MonoObject* ScriptSubMesh::Box(const SubMesh& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(SubMesh*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

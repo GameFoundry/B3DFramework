@@ -14,16 +14,15 @@ namespace bs
 
 	namespace detail
 	{
-		template<class T>
+		template <class T>
 		MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
-		template<>
+		template <>
 		MonoObject* async_op_create(const TAsyncOp<Any>& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
-		template<class T>
-		MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback,
-				MonoClass* returnTypeClass);
-	}
+		template <class T>
+		MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
+	} // namespace detail
 
 	/** @} */
 
@@ -38,7 +37,7 @@ namespace bs
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AsyncOpBase")
 
 		/** Creates a new managed AsyncOp<T> from a native TAsyncOp. */
-		template<class T>
+		template <class T>
 		static MonoObject* Create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 		{
 			return detail::async_op_create(op, convertCallback);
@@ -48,9 +47,8 @@ namespace bs
 		 * Creates a new managed AsyncOp<T> from a native TAsyncOp and a managed class representing the return type.
 		 * To be used when return type T does not implement IReflectable.
 		 */
-		template<class T>
-		static MonoObject* Create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback,
-			MonoClass* returnTypeClass)
+		template <class T>
+		static MonoObject* Create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass)
 		{
 			return detail::async_op_create(op, convertCallback, returnTypeClass);
 		}
@@ -64,21 +62,17 @@ namespace bs
 		 */
 
 		/** @copydoc create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op,
-								   const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId);
+		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId);
 
 		/** @copydoc create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op,
-								   const std::function<MonoObject*(const Any&)>& convertCallback);
+		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
 		/** @copydoc create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op,
-								   const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
+		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
 
 		/** @} */
 	private:
-		ScriptAsyncOpBase(MonoObject* instance, const AsyncOpBase& op,
-			const std::function<MonoObject*(const Any&)>& convertCallback);
+		ScriptAsyncOpBase(MonoObject* instance, const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
 		AsyncOpBase mOp;
 		std::function<MonoObject*(const Any&)> mConvertCallback;
@@ -99,26 +93,24 @@ namespace bs
 
 	namespace detail
 	{
-		template<class T>
+		template <class T>
 		inline MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 		{
-			return ScriptAsyncOpBase::_create(op, convertCallback,
-					TAsyncOp<T>::ReturnValueType::GetRttiStatic() ->GetRttiId());
+			return ScriptAsyncOpBase::_create(op, convertCallback, TAsyncOp<T>::ReturnValueType::GetRttiStatic()->GetRttiId());
 		}
 
-		template<>
+		template <>
 		inline MonoObject* async_op_create(const TAsyncOp<Any>& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 		{
 			return ScriptAsyncOpBase::CreateInternal(op, convertCallback);
 		}
 
-		template<class T>
-		inline MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback,
-									MonoClass* returnTypeClass)
+		template <class T>
+		inline MonoObject* async_op_create(const TAsyncOp<T>& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass)
 		{
 			return ScriptAsyncOpBase::CreateInternal(op, convertCallback, returnTypeClass);
 		}
-	}
+	} // namespace detail
 
 	/** @} */
-}
+} // namespace bs

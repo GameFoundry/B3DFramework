@@ -33,8 +33,7 @@ namespace bs
 		 *								go over the number of vertices limited by the data type size.
 		 */
 		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(int numVertices, int numIndices, DrawOperationType topology = DOT_TRIANGLE_LIST,
-			MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
+		static HMesh Create(int numVertices, int numIndices, DrawOperationType topology = DOT_TRIANGLE_LIST, MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
 
 		/**
 		 * Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can
@@ -51,8 +50,7 @@ namespace bs
 		 *								go over the number of vertices limited by the data type size.
 		 */
 		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes,
-			MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
+		static HMesh Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes, MeshUsage usage = MU_STATIC, VertexLayout vertex = VertexLayout::Position, IndexType index = IT_32BIT);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -64,8 +62,7 @@ namespace bs
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 */
 		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(const SPtr<RendererMeshData>& data, DrawOperationType topology = DOT_TRIANGLE_LIST,
-			MeshUsage usage = MU_STATIC);
+		static HMesh Create(const SPtr<RendererMeshData>& data, DrawOperationType topology = DOT_TRIANGLE_LIST, MeshUsage usage = MU_STATIC);
 
 		/**
 		 * Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can
@@ -77,31 +74,30 @@ namespace bs
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
 		 */
 		BS_SCRIPT_EXPORT(ExtensionConstructorForType(Mesh))
-		static HMesh Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes,
-			MeshUsage usage = MU_STATIC);
+		static HMesh Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshUsage usage = MU_STATIC);
 
 		/** Returns all sub-meshes contained in the mesh. */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),Property(Getter),ExportName(SubMeshes))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Getter), ExportName(SubMeshes))
 		static Vector<SubMesh> GetSubMeshes(const HMesh& thisPtr);
-		
+
 		/** Returns the number of sub-meshes contained in this mesh. */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),Property(Getter),ExportName(SubMeshCount))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Getter), ExportName(SubMeshCount))
 		static u32 GetSubMeshCount(const HMesh& thisPtr);
-		
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),InteropOnly(true))
+
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), InteropOnly(true))
 		static void GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere);
-		
+
 		/**
 		 * Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the
 		 * MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh's vertex/index counts, vertex
 		 * layout and index format.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),Property(Getter),ExportName(MeshData))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Getter), ExportName(MeshData))
 		static SPtr<RendererMeshData> GetMeshData(const HMesh& thisPtr);
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh),Property(Setter),ExportName(MeshData))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Mesh), Property(Setter), ExportName(MeshData))
 		static void SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value);
 	};
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

@@ -8,7 +8,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector2.h"
 
-namespace bs { struct DepthOfFieldSettings; }
+namespace bs
+{
+	struct DepthOfFieldSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
@@ -57,4 +61,4 @@ namespace bs
 		static float InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr);
 		static void InternalSetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

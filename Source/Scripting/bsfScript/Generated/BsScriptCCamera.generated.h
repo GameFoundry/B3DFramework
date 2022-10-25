@@ -13,7 +13,11 @@
 #include "Math/BsVector2I.h"
 #include "Math/BsRay.h"
 
-namespace bs { class CCamera; }
+namespace bs
+{
+	class CCamera;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCCamera : public TScriptComponent<ScriptCCamera, CCamera>
@@ -70,4 +74,4 @@ namespace bs
 		static void InternalSetMain(ScriptCCamera* thisPtr, bool main);
 		static bool InternalIsMain(ScriptCCamera* thisPtr);
 	};
-}
+} // namespace bs

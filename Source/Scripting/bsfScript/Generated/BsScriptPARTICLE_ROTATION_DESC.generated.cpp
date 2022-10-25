@@ -12,13 +12,13 @@
 namespace bs
 {
 	ScriptPARTICLE_ROTATION_DESC::ScriptPARTICLE_ROTATION_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_ROTATION_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_ROTATION_DESC::Box(const __PARTICLE_ROTATION_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_ROTATION_DESC::Box(const __PARTICLE_ROTATION_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -37,14 +37,14 @@ namespace bs
 		if(scriptRotation != nullptr)
 			tmpRotation = scriptRotation->GetInternal();
 		if(tmpRotation != nullptr)
-		output.Rotation = *tmpRotation;
+			output.Rotation = *tmpRotation;
 		SPtr<TDistribution<Vector3>> tmpRotation3D;
 		ScriptTDistributionVector3* scriptRotation3D;
 		scriptRotation3D = ScriptTDistributionVector3::ToNative(value.Rotation3D);
 		if(scriptRotation3D != nullptr)
 			tmpRotation3D = scriptRotation3D->GetInternal();
 		if(tmpRotation3D != nullptr)
-		output.Rotation3D = *tmpRotation3D;
+			output.Rotation3D = *tmpRotation3D;
 		output.Use3DRotation = value.Use3DRotation;
 
 		return output;
@@ -68,4 +68,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

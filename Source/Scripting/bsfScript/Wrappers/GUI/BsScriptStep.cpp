@@ -6,11 +6,12 @@ namespace bs
 {
 	MonoField* ScriptStep::stepField = nullptr;
 
-	ScriptStep::ScriptStep(MonoObject* instance) : ScriptObject(instance)
-	{ }
+	ScriptStep::ScriptStep(MonoObject* instance)
+		: ScriptObject(instance)
+	{}
 
 	void ScriptStep::InitRuntimeData()
 	{
 		stepField = metaData.ScriptClass->GetField("step");
 	}
-}
+} // namespace bs

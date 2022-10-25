@@ -31,9 +31,9 @@ namespace bs
 		 * @param[in] z		Z coordinate of the pixel.
 		 * @return			Value of the pixel, or undefined value if coordinates are out of range.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(GetPixel))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetPixel))
 		static Color GetPixel(const SPtr<PixelData>& thisPtr, int x, int y, int z = 0);
-		
+
 		/**
 		 * Sets a pixel at the specified location in the buffer.
 		 *
@@ -42,43 +42,43 @@ namespace bs
 		 * @param[in] y			Y coordinate of the pixel.
 		 * @param[in] z			Z coordinate of the pixel.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(SetPixel))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetPixel))
 		static void SetPixel(const SPtr<PixelData>& thisPtr, const Color& value, int x, int y, int z = 0);
-		
+
 		/**
 		 * Returns values of all pixels.
 		 *
 		 * @return	All pixels in the buffer ordered consecutively. Pixels are stored as a succession of "depth" slices,
 		 *			each containing "height" rows of "width" pixels.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(GetPixels))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetPixels))
 		static Vector<Color> GetPixels(const SPtr<PixelData>& thisPtr);
-		
+
 		/**
 		 * Sets all pixels in the buffer.Caller must ensure that number of pixels match the extends of the buffer.
 		 *
 		 * @param value	All pixels in the buffer ordered consecutively. Pixels are stored as a succession of "depth" slices,
 		 *				each containing "height" rows of "width" pixels.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(SetPixels))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetPixels))
 		static void SetPixels(const SPtr<PixelData>& thisPtr, const Vector<Color>& value);
-		
+
 		/**
 		 * Returns all pixels in the buffer as raw bytes.
 		 *
 		 * @return	Raw pixel bytes. It is up to the caller to interpret the pixel format and account for potential
 		 *			row and slice pitch values.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(GetRawPixels))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(GetRawPixels))
 		static Vector<char> GetRawPixels(const SPtr<PixelData>& thisPtr);
-		
+
 		/**
 		 * Sets all pixels in the buffer as raw bytes.
 		 *
 		 * @param[in] value		Raw pixel bytes. It is up to the caller to interpret the pixel format and account for
 		 *						potential row and slice pitch values.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData),ExportName(SetRawPixels))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(PixelData), ExportName(SetRawPixels))
 		static void SetRawPixels(const SPtr<PixelData>& thisPtr, const Vector<char>& value);
 
 		static bool CheckIsLocked(const SPtr<PixelData>& thisPtr);
@@ -86,4 +86,4 @@ namespace bs
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

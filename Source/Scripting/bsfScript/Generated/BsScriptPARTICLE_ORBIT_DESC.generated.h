@@ -30,6 +30,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_ORBIT_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

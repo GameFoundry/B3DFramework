@@ -13,9 +13,8 @@
 namespace bs
 {
 	ScriptSerializableList::ScriptSerializableList(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo)
-		:ScriptObject(instance), mTypeInfo(typeInfo)
+		: ScriptObject(instance), mTypeInfo(typeInfo)
 	{
-
 	}
 
 	void ScriptSerializableList::InitRuntimeData()
@@ -32,7 +31,7 @@ namespace bs
 		void* params[2] = { internalElementType, managed };
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 2);
 
-		new (bs_alloc<ScriptSerializableList>()) ScriptSerializableList(managedInstance, listTypeInfo);
+		new(bs_alloc<ScriptSerializableList>()) ScriptSerializableList(managedInstance, listTypeInfo);
 		return managedInstance;
 	}
 
@@ -40,4 +39,4 @@ namespace bs
 	{
 		return ScriptSerializableProperty::Create(nativeInstance->mTypeInfo->MElementType);
 	}
-}
+} // namespace bs

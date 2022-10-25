@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCSphericalJoint::ScriptCSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -20,7 +20,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptCSphericalJoint::InternalSetLimit);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCSphericalJoint::InternalSetFlag);
 		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCSphericalJoint::InternalHasFlag);
-
 	}
 
 	void ScriptCSphericalJoint::InternalGetLimit(ScriptCSphericalJoint* thisPtr, __LimitConeRangeInterop* __output)
@@ -55,4 +54,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

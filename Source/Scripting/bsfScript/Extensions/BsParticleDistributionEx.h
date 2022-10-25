@@ -9,8 +9,8 @@
 namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
-	*  @{
-	*/
+	 *  @{
+	 */
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Extension class for ColorDistribution, for adding additional functionality for the script interface. */
@@ -28,4 +28,4 @@ namespace bs
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

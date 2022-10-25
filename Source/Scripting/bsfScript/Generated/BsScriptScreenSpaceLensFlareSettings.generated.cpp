@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptScreenSpaceLensFlareSettings::ScriptScreenSpaceLensFlareSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceLensFlareSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -45,24 +45,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetChromaticAberrationOffset", (void*)&ScriptScreenSpaceLensFlareSettings::InternalSetChromaticAberrationOffset);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBicubicUpsampling", (void*)&ScriptScreenSpaceLensFlareSettings::InternalGetBicubicUpsampling);
 		metaData.ScriptClass->AddInternalCall("Internal_SetBicubicUpsampling", (void*)&ScriptScreenSpaceLensFlareSettings::InternalSetBicubicUpsampling);
-
 	}
 
 	MonoObject* ScriptScreenSpaceLensFlareSettings::Create(const SPtr<ScreenSpaceLensFlareSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptScreenSpaceLensFlareSettings>()) ScriptScreenSpaceLensFlareSettings(managedInstance, value);
+		new(bs_alloc<ScriptScreenSpaceLensFlareSettings>()) ScriptScreenSpaceLensFlareSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptScreenSpaceLensFlareSettings::InternalScreenSpaceLensFlareSettings(MonoObject* managedInstance)
 	{
 		SPtr<ScreenSpaceLensFlareSettings> instance = bs_shared_ptr_new<ScreenSpaceLensFlareSettings>();
-		new (bs_alloc<ScriptScreenSpaceLensFlareSettings>())ScriptScreenSpaceLensFlareSettings(managedInstance, instance);
+		new(bs_alloc<ScriptScreenSpaceLensFlareSettings>()) ScriptScreenSpaceLensFlareSettings(managedInstance, instance);
 	}
 
 	bool ScriptScreenSpaceLensFlareSettings::InternalGetEnabled(ScriptScreenSpaceLensFlareSettings* thisPtr)
@@ -304,4 +304,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->BicubicUpsampling = value;
 	}
-}
+} // namespace bs

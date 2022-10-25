@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptPixelData::ScriptPixelData(MonoObject* managedInstance, const SPtr<PixelData>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -32,20 +32,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetPixels", (void*)&ScriptPixelData::InternalSetPixels);
 		metaData.ScriptClass->AddInternalCall("Internal_GetRawPixels", (void*)&ScriptPixelData::InternalGetRawPixels);
 		metaData.ScriptClass->AddInternalCall("Internal_SetRawPixels", (void*)&ScriptPixelData::InternalSetRawPixels);
-
 	}
 
 	MonoObject* ScriptPixelData::Create(const SPtr<PixelData>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, value);
+		new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, value);
 		return managedInstance;
 	}
+
 	uint32_t ScriptPixelData::InternalGetRowPitch(ScriptPixelData* thisPtr)
 	{
 		uint32_t tmp__output;
@@ -112,13 +112,13 @@ namespace bs
 	void ScriptPixelData::InternalCreate(MonoObject* managedInstance, PixelVolume* volume, PixelFormat format)
 	{
 		SPtr<PixelData> instance = PixelDataEx::Create(*volume, format);
-		new (bs_alloc<ScriptPixelData>())ScriptPixelData(managedInstance, instance);
+		new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
 	}
 
 	void ScriptPixelData::InternalCreate0(MonoObject* managedInstance, uint32_t width, uint32_t height, uint32_t depth, PixelFormat pixelFormat)
 	{
 		SPtr<PixelData> instance = PixelDataEx::Create(width, height, depth, pixelFormat);
-		new (bs_alloc<ScriptPixelData>())ScriptPixelData(managedInstance, instance);
+		new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
 	}
 
 	void ScriptPixelData::InternalGetPixel(ScriptPixelData* thisPtr, int32_t x, int32_t y, int32_t z, Color* __output)
@@ -197,4 +197,4 @@ namespace bs
 		}
 		PixelDataEx::SetRawPixels(thisPtr->GetInternal(), vecvalue);
 	}
-}
+} // namespace bs

@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
-namespace bs { struct __PARTICLE_CONE_SHAPE_DESCInterop; }
-namespace bs { class ParticleEmitterConeShape; }
+namespace bs
+{
+	struct __PARTICLE_CONE_SHAPE_DESCInterop;
+}
+
+namespace bs
+{
+	class ParticleEmitterConeShape;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterConeShape : public TScriptReflectable<ScriptParticleEmitterConeShape, ParticleEmitterConeShape, ScriptParticleEmitterShapeBase>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_CONE_SHAPE_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

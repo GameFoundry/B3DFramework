@@ -6,8 +6,16 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudio.h"
 
-namespace bs { class Audio; }
-namespace bs { struct __AudioDeviceInterop; }
+namespace bs
+{
+	class Audio;
+}
+
+namespace bs
+{
+	struct __AudioDeviceInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAudio : public ScriptObject<ScriptAudio>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalGetDefaultDevice(__AudioDeviceInterop* __output);
 		static MonoArray* InternalGetAllDevices();
 	};
-}
+} // namespace bs

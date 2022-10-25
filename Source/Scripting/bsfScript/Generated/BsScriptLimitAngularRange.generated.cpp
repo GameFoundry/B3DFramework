@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptLimitAngularRange::ScriptLimitAngularRange(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptLimitAngularRange::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptLimitAngularRange::Box(const __LimitAngularRangeInterop& value)
+	MonoObject* ScriptLimitAngularRange::Box(const __LimitAngularRangeInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -50,4 +50,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleGravity::ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleGravity::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleGravity::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleGravity::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleGravity::Create(const SPtr<ParticleGravity>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
+		new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleGravity::InternalSetOptions(ScriptParticleGravity* thisPtr, PARTICLE_GRAVITY_DESC* options)
 	{
 		thisPtr->GetInternal()->SetOptions(*options);
@@ -51,12 +51,12 @@ namespace bs
 	void ScriptParticleGravity::InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc)
 	{
 		SPtr<ParticleGravity> instance = ParticleGravity::Create(*desc);
-		new (bs_alloc<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, instance);
+		new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
 	}
 
 	void ScriptParticleGravity::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleGravity> instance = ParticleGravity::Create();
-		new (bs_alloc<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, instance);
+		new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
 	}
-}
+} // namespace bs

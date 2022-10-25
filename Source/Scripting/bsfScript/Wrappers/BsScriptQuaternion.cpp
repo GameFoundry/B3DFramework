@@ -8,11 +8,11 @@
 namespace bs
 {
 	ScriptQuaternion::ScriptQuaternion(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptQuaternion::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptQuaternion::Box(const Quaternion& value)
 	{
@@ -24,4 +24,4 @@ namespace bs
 	{
 		return *(Quaternion*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

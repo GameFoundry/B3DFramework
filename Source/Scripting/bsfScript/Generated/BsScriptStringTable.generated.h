@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
-namespace bs { class StringTable; }
+namespace bs
+{
+	class StringTable;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptStringTable : public TScriptResource<ScriptStringTable, StringTable>
@@ -29,4 +33,4 @@ namespace bs
 		static void InternalRemoveString(ScriptStringTable* thisPtr, MonoString* identifier);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

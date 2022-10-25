@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct ShadowSettings; }
+namespace bs
+{
+	struct ShadowSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptShadowSettings : public TScriptReflectable<ScriptShadowSettings, ShadowSettings>
@@ -29,4 +33,4 @@ namespace bs
 		static uint32_t InternalGetShadowFilteringQuality(ScriptShadowSettings* thisPtr);
 		static void InternalSetShadowFilteringQuality(ScriptShadowSettings* thisPtr, uint32_t value);
 	};
-}
+} // namespace bs

@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
-namespace bs { class PhysicsMaterial; }
+namespace bs
+{
+	class PhysicsMaterial;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptPhysicsMaterial : public TScriptResource<ScriptPhysicsMaterial, PhysicsMaterial>
@@ -28,4 +32,4 @@ namespace bs
 		static float InternalGetRestitutionCoefficient(ScriptPhysicsMaterial* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance, float staticFriction, float dynamicFriction, float restitution);
 	};
-}
+} // namespace bs

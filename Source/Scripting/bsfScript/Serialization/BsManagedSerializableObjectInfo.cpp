@@ -25,24 +25,23 @@ namespace bs
 		return ManagedSerializableAssemblyInfo::GetRttiStatic();
 	}
 
-	SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo,
-		const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const
+	SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const
 	{
 		const ManagedSerializableObjectInfo* objInfo = this;
-		while (objInfo != nullptr)
+		while(objInfo != nullptr)
 		{
-			if (objInfo->MTypeInfo->Matches(fieldTypeInfo))
+			if(objInfo->MTypeInfo->Matches(fieldTypeInfo))
 			{
 				auto iterFind = objInfo->MFieldNameToId.find(fieldInfo->MName);
-				if (iterFind != objInfo->MFieldNameToId.end())
+				if(iterFind != objInfo->MFieldNameToId.end())
 				{
 					auto iterFind2 = objInfo->MFields.find(iterFind->second);
-					if (iterFind2 != objInfo->MFields.end())
+					if(iterFind2 != objInfo->MFields.end())
 					{
 						SPtr<ManagedSerializableMemberInfo> foundField = iterFind2->second;
-						if (foundField->IsSerializable())
+						if(foundField->IsSerializable())
 						{
-							if (fieldInfo->MTypeInfo->Matches(foundField->MTypeInfo))
+							if(fieldInfo->MTypeInfo->Matches(foundField->MTypeInfo))
 								return foundField;
 						}
 					}
@@ -51,7 +50,7 @@ namespace bs
 				return nullptr;
 			}
 
-			if (objInfo->MBaseClass != nullptr)
+			if(objInfo->MBaseClass != nullptr)
 				objInfo = objInfo->MBaseClass.get();
 			else
 				objInfo = nullptr;
@@ -206,8 +205,7 @@ namespace bs
 	{
 		if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
 		{
-			return
-				enumTypeInfo->MTypeNamespace == MTypeNamespace &&
+			return enumTypeInfo->MTypeNamespace == MTypeNamespace &&
 				enumTypeInfo->MTypeName == MTypeName &&
 				enumTypeInfo->MUnderlyingType == MUnderlyingType;
 		}
@@ -243,7 +241,7 @@ namespace bs
 
 	bool ManagedSerializableTypeInfoRef::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 	{
-		if (!rtti_is_of_type<ManagedSerializableTypeInfoRef>(typeInfo))
+		if(!rtti_is_of_type<ManagedSerializableTypeInfoRef>(typeInfo))
 			return false;
 
 		auto objTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
@@ -253,7 +251,7 @@ namespace bs
 
 	bool ManagedSerializableTypeInfoRef::IsTypeLoaded() const
 	{
-		switch (MType)
+		switch(MType)
 		{
 		case ScriptReferenceType::BuiltinResourceBase:
 		case ScriptReferenceType::ManagedResourceBase:
@@ -273,7 +271,7 @@ namespace bs
 
 	::MonoClass* ManagedSerializableTypeInfoRef::GetMonoClass() const
 	{
-		switch (MType)
+		switch(MType)
 		{
 		case ScriptReferenceType::BuiltinResourceBase:
 			return ScriptResource::GetMetaData()->ScriptClass->GetInternalClassInternal();
@@ -291,7 +289,7 @@ namespace bs
 
 		// Specific component or resource (either builtin or custom)
 		SPtr<ManagedSerializableObjectInfo> objInfo;
-		if (!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(MTypeNamespace, MTypeName, objInfo))
+		if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(MTypeNamespace, MTypeName, objInfo))
 			return nullptr;
 
 		return objInfo->MMonoClass->GetInternalClassInternal();
@@ -331,7 +329,7 @@ namespace bs
 		if(MResourceType)
 		{
 			::MonoClass* resourceTypeClass = MResourceType->GetMonoClass();
-			if (resourceTypeClass == nullptr)
+			if(resourceTypeClass == nullptr)
 				return nullptr;
 
 			return ScriptRRefBase::BindGenericParam(resourceTypeClass);
@@ -495,4 +493,4 @@ namespace bs
 	{
 		return ManagedSerializableTypeInfoDictionary::GetRttiStatic();
 	}
-}
+} // namespace bs

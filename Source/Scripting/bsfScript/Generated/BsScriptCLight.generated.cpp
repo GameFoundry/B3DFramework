@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCLight::ScriptCLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -37,7 +37,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetShadowBias", (void*)&ScriptCLight::InternalSetShadowBias);
 		metaData.ScriptClass->AddInternalCall("Internal_GetShadowBias", (void*)&ScriptCLight::InternalGetShadowBias);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptCLight::InternalGetBounds);
-
 	}
 
 	void ScriptCLight::InternalSetType(ScriptCLight* thisPtr, LightType type)
@@ -198,4 +197,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 
-namespace bs { struct AnimationSplitInfo; }
+namespace bs
+{
+	struct AnimationSplitInfo;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -32,4 +36,4 @@ namespace bs
 		static void InternalSetIsAdditive(ScriptAnimationSplitInfo* thisPtr, bool value);
 	};
 #endif
-}
+} // namespace bs

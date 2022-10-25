@@ -11,7 +11,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptFontImportOptions::ScriptFontImportOptions(MonoObject* managedInstance, const SPtr<FontImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -31,25 +31,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetItalic", (void*)&ScriptFontImportOptions::InternalGetItalic);
 		metaData.ScriptClass->AddInternalCall("Internal_SetItalic", (void*)&ScriptFontImportOptions::InternalSetItalic);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptFontImportOptions::InternalCreate);
-
 	}
 
 	MonoObject* ScriptFontImportOptions::Create(const SPtr<FontImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptFontImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<FontImportOptions> instance = FontImportOptions::Create();
-		new (bs_alloc<ScriptFontImportOptions>())ScriptFontImportOptions(managedInstance, instance);
+		new(bs_alloc<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, instance);
 	}
+
 	MonoArray* ScriptFontImportOptions::InternalGetFontSizes(ScriptFontImportOptions* thisPtr)
 	{
 		Vector<uint32_t> vec__output;
@@ -78,7 +79,6 @@ namespace bs
 			{
 				vecvalue[i] = arrayvalue.Get<uint32_t>(i);
 			}
-
 		}
 		thisPtr->GetInternal()->FontSizes = vecvalue;
 	}
@@ -111,7 +111,6 @@ namespace bs
 			{
 				vecvalue[i] = arrayvalue.Get<CharRange>(i);
 			}
-
 		}
 		thisPtr->GetInternal()->CharIndexRanges = vecvalue;
 	}
@@ -180,4 +179,4 @@ namespace bs
 		thisPtr->GetInternal()->Italic = value;
 	}
 #endif
-}
+} // namespace bs

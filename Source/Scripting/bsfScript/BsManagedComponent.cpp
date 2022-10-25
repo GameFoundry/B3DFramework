@@ -39,15 +39,15 @@ namespace bs
 
 		// If type is not missing read data from actual managed instance, instead just
 		// return the data we backed up before the type was lost
-		if (!mMissingType)
+		if(!mMissingType)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 			SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(instance);
 
 			// Serialize the object information and its fields. We cannot just serialize the entire object because
 			// the managed instance had to be created in a previous step. So we handle creation of the top level object manually.
-			
-			if (serializableObject != nullptr)
+
+			if(serializableObject != nullptr)
 			{
 				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 				BinarySerializer bs;
@@ -65,9 +65,9 @@ namespace bs
 		}
 		else
 		{
-				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+			SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
 
-			if (mSerializedObjectData != nullptr)
+			if(mSerializedObjectData != nullptr)
 			{
 				BinarySerializer bs;
 				bs.Encode(mSerializedObjectData.get(), stream);
@@ -77,7 +77,7 @@ namespace bs
 			backupData.Data = stream->DisownMemory();
 		}
 
-		if (clearExisting)
+		if(clearExisting)
 		{
 			mManagedClass = nullptr;
 			mRuntimeType = nullptr;
@@ -101,7 +101,7 @@ namespace bs
 		mObjInfo = nullptr;
 
 		MonoObject* instance = mOwner->GetManagedInstance();
-		if (instance != nullptr && data.Data != nullptr)
+		if(instance != nullptr && data.Data != nullptr)
 		{
 			BinarySerializer bs;
 
@@ -109,12 +109,11 @@ namespace bs
 			serzContext.GoState = bs_shared_ptr_new<GameObjectDeserializationState>();
 
 			auto serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-				bs.Decode(bs_shared_ptr_new<MemoryDataStream>(data.Data, data.Size), data.Size,
-					BinarySerializerFlag::None, &serzContext));
+				bs.Decode(bs_shared_ptr_new<MemoryDataStream>(data.Data, data.Size), data.Size, BinarySerializerFlag::None, &serzContext));
 
 			serzContext.GoState->Resolve();
 
-			if (!missingType)
+			if(!missingType)
 			{
 				ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mTypeName, mObjInfo);
 
@@ -124,7 +123,7 @@ namespace bs
 				mSerializedObjectData = serializableObject;
 		}
 
-		if (!missingType)
+		if(!missingType)
 			mSerializedObjectData = nullptr;
 
 		mMissingType = missingType;
@@ -135,10 +134,10 @@ namespace bs
 	{
 		mOwner = owner;
 		mFullTypeName = mNamespace + "." + mTypeName;
-		
+
 		MonoObject* instance = owner->GetManagedInstance();
 		mManagedClass = nullptr;
-		if (instance != nullptr)
+		if(instance != nullptr)
 		{
 			::MonoClass* monoClass = MonoUtil::GetClass(instance);
 			mRuntimeType = MonoUtil::GetType(monoClass);
@@ -158,59 +157,59 @@ namespace bs
 
 		while(mManagedClass != nullptr)
 		{
-			if (mOnCreatedThunk == nullptr)
+			if(mOnCreatedThunk == nullptr)
 			{
 				MonoMethod* onCreatedMethod = mManagedClass->GetMethod("OnCreate", 0);
-				if (onCreatedMethod != nullptr)
+				if(onCreatedMethod != nullptr)
 					mOnCreatedThunk = (OnInitializedThunkDef)onCreatedMethod->GetThunk();
 			}
 
-			if (mOnInitializedThunk == nullptr)
+			if(mOnInitializedThunk == nullptr)
 			{
 				MonoMethod* onInitializedMethod = mManagedClass->GetMethod("OnInitialize", 0);
-				if (onInitializedMethod != nullptr)
+				if(onInitializedMethod != nullptr)
 					mOnInitializedThunk = (OnInitializedThunkDef)onInitializedMethod->GetThunk();
 			}
 
-			if (mOnUpdateThunk == nullptr)
+			if(mOnUpdateThunk == nullptr)
 			{
 				MonoMethod* onUpdateMethod = mManagedClass->GetMethod("OnUpdate", 0);
-				if (onUpdateMethod != nullptr)
+				if(onUpdateMethod != nullptr)
 					mOnUpdateThunk = (OnUpdateThunkDef)onUpdateMethod->GetThunk();
 			}
 
-			if (mOnResetThunk == nullptr)
+			if(mOnResetThunk == nullptr)
 			{
 				MonoMethod* onResetMethod = mManagedClass->GetMethod("OnReset", 0);
-				if (onResetMethod != nullptr)
+				if(onResetMethod != nullptr)
 					mOnResetThunk = (OnResetThunkDef)onResetMethod->GetThunk();
 			}
 
-			if (mOnDestroyThunk == nullptr)
+			if(mOnDestroyThunk == nullptr)
 			{
 				MonoMethod* onDestroyMethod = mManagedClass->GetMethod("OnDestroy", 0);
-				if (onDestroyMethod != nullptr)
+				if(onDestroyMethod != nullptr)
 					mOnDestroyThunk = (OnDestroyedThunkDef)onDestroyMethod->GetThunk();
 			}
 
-			if (mOnDisabledThunk == nullptr)
+			if(mOnDisabledThunk == nullptr)
 			{
 				MonoMethod* onDisableMethod = mManagedClass->GetMethod("OnDisable", 0);
-				if (onDisableMethod != nullptr)
+				if(onDisableMethod != nullptr)
 					mOnDisabledThunk = (OnDisabledThunkDef)onDisableMethod->GetThunk();
 			}
 
-			if (mOnEnabledThunk == nullptr)
+			if(mOnEnabledThunk == nullptr)
 			{
 				MonoMethod* onEnableMethod = mManagedClass->GetMethod("OnEnable", 0);
-				if (onEnableMethod != nullptr)
+				if(onEnableMethod != nullptr)
 					mOnEnabledThunk = (OnInitializedThunkDef)onEnableMethod->GetThunk();
 			}
 
-			if (mOnTransformChangedThunk == nullptr)
+			if(mOnTransformChangedThunk == nullptr)
 			{
 				MonoMethod* onTransformChangedMethod = mManagedClass->GetMethod("OnTransformChanged", 1);
-				if (onTransformChangedMethod != nullptr)
+				if(onTransformChangedMethod != nullptr)
 					mOnTransformChangedThunk = (OnTransformChangedThunkDef)onTransformChangedMethod->GetThunk();
 			}
 
@@ -219,24 +218,24 @@ namespace bs
 
 			// Search for methods on base class if there is one
 			MonoClass* baseClass = mManagedClass->GetBaseClass();
-			if (baseClass != ScriptManagedComponent::GetMetaData()->ScriptClass)
+			if(baseClass != ScriptManagedComponent::GetMetaData()->ScriptClass)
 				mManagedClass = baseClass;
 			else
 				break;
 		}
 
-		if (mManagedClass != nullptr)
+		if(mManagedClass != nullptr)
 		{
 			MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(ENGINE_ASSEMBLY);
-			if (engineAssembly == nullptr)
+			if(engineAssembly == nullptr)
 				BS_EXCEPT(InvalidStateException, String(ENGINE_ASSEMBLY) + " assembly is not loaded.");
 
 			MonoClass* runInEditorAttrib = engineAssembly->GetClass(ENGINE_NS, "RunInEditor");
-			if (runInEditorAttrib == nullptr)
+			if(runInEditorAttrib == nullptr)
 				BS_EXCEPT(InvalidStateException, "Cannot find RunInEditor managed class.");
 
 			bool runInEditor = mManagedClass->GetAttribute(runInEditorAttrib) != nullptr;
-			if (runInEditor)
+			if(runInEditor)
 				SetFlag(ComponentFlag::AlwaysRun, true);
 		}
 	}
@@ -257,11 +256,11 @@ namespace bs
 	bool ManagedComponent::CalculateBounds(Bounds& bounds)
 	{
 		MonoObject* instance = nullptr;
-		
+
 		if(mOwner)
 			instance = mOwner->GetManagedInstance();
 
-		if (instance != nullptr && mCalculateBoundsMethod != nullptr)
+		if(instance != nullptr && mCalculateBoundsMethod != nullptr)
 		{
 			AABox box;
 			Sphere sphere;
@@ -284,7 +283,7 @@ namespace bs
 
 	void ManagedComponent::Update()
 	{
-		if (mOnUpdateThunk != nullptr)
+		if(mOnUpdateThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -296,7 +295,7 @@ namespace bs
 
 	void ManagedComponent::TriggerOnReset()
 	{
-		if (mRequiresReset && mOnResetThunk != nullptr)
+		if(mRequiresReset && mOnResetThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -313,7 +312,7 @@ namespace bs
 		mObjInfo = nullptr;
 
 		MonoObject* instance;
-		if (!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mTypeName, mObjInfo))
+		if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mTypeName, mObjInfo))
 		{
 			instance = ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingComponentClass->CreateInstance(true);
 			mMissingType = true;
@@ -326,12 +325,12 @@ namespace bs
 
 		// Find handle to self
 		HManagedComponent componentHandle;
-		if (SO() != nullptr)
+		if(SO() != nullptr)
 		{
 			const Vector<HComponent>& components = SO()->GetComponents();
-			for (auto& component : components)
+			for(auto& component : components)
 			{
-				if (component.Get() == this)
+				if(component.Get() == this)
 				{
 					componentHandle = static_object_cast<ManagedComponent>(component);
 					break;
@@ -347,13 +346,13 @@ namespace bs
 	{
 		MonoObject* instance = mOwner->GetManagedInstance();
 
-		if (mSerializedObjectData != nullptr && !mMissingType)
+		if(mSerializedObjectData != nullptr && !mMissingType)
 		{
 			mSerializedObjectData->Deserialize(instance, mObjInfo);
 			mSerializedObjectData = nullptr;
 		}
 
-		if (mOnCreatedThunk != nullptr)
+		if(mOnCreatedThunk != nullptr)
 		{
 			// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 			// for some extra speed.
@@ -365,7 +364,7 @@ namespace bs
 
 	void ManagedComponent::OnInitialized()
 	{
-		if (mOnInitializedThunk != nullptr)
+		if(mOnInitializedThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -379,7 +378,7 @@ namespace bs
 
 	void ManagedComponent::OnDestroyed()
 	{
-		if (mOnDestroyThunk != nullptr)
+		if(mOnDestroyThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -391,7 +390,7 @@ namespace bs
 
 	void ManagedComponent::OnEnabled()
 	{
-		if (mOnEnabledThunk != nullptr)
+		if(mOnEnabledThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -403,7 +402,7 @@ namespace bs
 
 	void ManagedComponent::OnDisabled()
 	{
-		if (mOnDisabledThunk != nullptr)
+		if(mOnDisabledThunk != nullptr)
 		{
 			MonoObject* instance = mOwner->GetManagedInstance();
 
@@ -434,4 +433,4 @@ namespace bs
 	{
 		return ManagedComponent::GetRttiStatic();
 	}
-}
+} // namespace bs

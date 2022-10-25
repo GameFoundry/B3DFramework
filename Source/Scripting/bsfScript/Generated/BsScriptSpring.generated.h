@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptSpring(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

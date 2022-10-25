@@ -11,7 +11,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptMultiResource::ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -21,24 +21,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_MultiResource0", (void*)&ScriptMultiResource::InternalMultiResource0);
 		metaData.ScriptClass->AddInternalCall("Internal_GetEntries", (void*)&ScriptMultiResource::InternalGetEntries);
 		metaData.ScriptClass->AddInternalCall("Internal_SetEntries", (void*)&ScriptMultiResource::InternalSetEntries);
-
 	}
 
 	MonoObject* ScriptMultiResource::Create(const SPtr<MultiResource>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, value);
+		new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptMultiResource::InternalMultiResource(MonoObject* managedInstance)
 	{
 		SPtr<MultiResource> instance = bs_shared_ptr_new<MultiResource>();
-		new (bs_alloc<ScriptMultiResource>())ScriptMultiResource(managedInstance, instance);
+		new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
 	}
 
 	void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries)
@@ -54,7 +54,7 @@ namespace bs
 			}
 		}
 		SPtr<MultiResource> instance = bs_shared_ptr_new<MultiResource>(vecentries);
-		new (bs_alloc<ScriptMultiResource>())ScriptMultiResource(managedInstance, instance);
+		new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
 	}
 
 	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* thisPtr)
@@ -85,9 +85,8 @@ namespace bs
 			{
 				vecvalue[i] = ScriptSubResource::FromInterop(arrayvalue.Get<__SubResourceInterop>(i));
 			}
-
 		}
 		thisPtr->GetInternal()->Entries = vecvalue;
 	}
 #endif
-}
+} // namespace bs

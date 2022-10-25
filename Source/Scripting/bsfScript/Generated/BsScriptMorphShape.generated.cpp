@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptMorphShape::ScriptMorphShape(MonoObject* managedInstance, const SPtr<MorphShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -16,20 +16,20 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptMorphShape::InternalGetName);
 		metaData.ScriptClass->AddInternalCall("Internal_GetWeight", (void*)&ScriptMorphShape::InternalGetWeight);
-
 	}
 
 	MonoObject* ScriptMorphShape::Create(const SPtr<MorphShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptMorphShape>()) ScriptMorphShape(managedInstance, value);
+		new(bs_alloc<ScriptMorphShape>()) ScriptMorphShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoString* ScriptMorphShape::InternalGetName(ScriptMorphShape* thisPtr)
 	{
 		String tmp__output;
@@ -51,4 +51,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

@@ -12,9 +12,8 @@
 namespace bs
 {
 	ScriptGUIToggleGroup::ScriptGUIToggleGroup(MonoObject* instance, const SPtr<GUIToggleGroup>& toggleGroup)
-		:ScriptObject(instance), mToggleGroup(toggleGroup)
+		: ScriptObject(instance), mToggleGroup(toggleGroup)
 	{
-
 	}
 
 	void ScriptGUIToggleGroup::InitRuntimeData()
@@ -26,6 +25,6 @@ namespace bs
 	{
 		SPtr<GUIToggleGroup> toggleGroup = GUIToggle::CreateToggleGroup(allowAllOff);
 
-		new (bs_alloc<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(instance, toggleGroup);
+		new(bs_alloc<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(instance, toggleGroup);
 	}
-}
+} // namespace bs

@@ -25,4 +25,4 @@ namespace bs
 	{
 		Application::ShutDown();
 	}
-}
+} // namespace bs

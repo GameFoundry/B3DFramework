@@ -7,9 +7,21 @@
 #include "../../../Foundation/bsfCore/RenderAPI/BsVideoModeInfo.h"
 #include "../../../Foundation/bsfCore/BsCoreApplication.h"
 
-namespace bs { struct __START_UP_DESCInterop; }
-namespace bs { class ApplicationEx; }
-namespace bs { struct __VideoModeInterop; }
+namespace bs
+{
+	struct __START_UP_DESCInterop;
+}
+
+namespace bs
+{
+	class ApplicationEx;
+}
+
+namespace bs
+{
+	struct __VideoModeInterop;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -21,6 +33,7 @@ namespace bs
 		ScriptApplicationEx(MonoObject* managedInstance, const SPtr<ApplicationEx>& value);
 
 		SPtr<ApplicationEx> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<ApplicationEx>& value);
 
 	private:
@@ -32,4 +45,4 @@ namespace bs
 		static void InternalShutDown();
 	};
 #endif
-}
+} // namespace bs

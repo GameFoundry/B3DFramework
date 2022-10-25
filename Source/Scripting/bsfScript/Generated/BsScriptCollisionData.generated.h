@@ -28,6 +28,5 @@ namespace bs
 
 	private:
 		ScriptCollisionData(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

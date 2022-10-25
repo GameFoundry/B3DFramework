@@ -16,7 +16,7 @@
 namespace bs
 {
 	ScriptTAnimationCurvefloat::ScriptTAnimationCurvefloat(MonoObject* managedInstance, const SPtr<TAnimationCurve<float>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -25,20 +25,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurvefloat::InternalTAnimationCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTAnimationCurvefloat::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetKeyFrames", (void*)&ScriptTAnimationCurvefloat::InternalGetKeyFrames);
-
 	}
 
 	MonoObject* ScriptTAnimationCurvefloat::Create(const SPtr<TAnimationCurve<float>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTAnimationCurvefloat>()) ScriptTAnimationCurvefloat(managedInstance, value);
+		new(bs_alloc<ScriptTAnimationCurvefloat>()) ScriptTAnimationCurvefloat(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTAnimationCurvefloat::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
 		Vector<TKeyframe<float>> veckeyframes;
@@ -52,7 +52,7 @@ namespace bs
 			}
 		}
 		SPtr<TAnimationCurve<float>> instance = bs_shared_ptr_new<TAnimationCurve<float>>(veckeyframes);
-		new (bs_alloc<ScriptTAnimationCurvefloat>())ScriptTAnimationCurvefloat(managedInstance, instance);
+		new(bs_alloc<ScriptTAnimationCurvefloat>()) ScriptTAnimationCurvefloat(managedInstance, instance);
 	}
 
 	float ScriptTAnimationCurvefloat::InternalEvaluate(ScriptTAnimationCurvefloat* thisPtr, float time, bool loop)
@@ -84,7 +84,7 @@ namespace bs
 	}
 
 	ScriptTAnimationCurveVector3::ScriptTAnimationCurveVector3(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector3>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -93,20 +93,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveVector3::InternalTAnimationCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTAnimationCurveVector3::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetKeyFrames", (void*)&ScriptTAnimationCurveVector3::InternalGetKeyFrames);
-
 	}
 
 	MonoObject* ScriptTAnimationCurveVector3::Create(const SPtr<TAnimationCurve<Vector3>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTAnimationCurveVector3>()) ScriptTAnimationCurveVector3(managedInstance, value);
+		new(bs_alloc<ScriptTAnimationCurveVector3>()) ScriptTAnimationCurveVector3(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTAnimationCurveVector3::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
 		Vector<TKeyframe<Vector3>> veckeyframes;
@@ -120,7 +120,7 @@ namespace bs
 			}
 		}
 		SPtr<TAnimationCurve<Vector3>> instance = bs_shared_ptr_new<TAnimationCurve<Vector3>>(veckeyframes);
-		new (bs_alloc<ScriptTAnimationCurveVector3>())ScriptTAnimationCurveVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTAnimationCurveVector3>()) ScriptTAnimationCurveVector3(managedInstance, instance);
 	}
 
 	void ScriptTAnimationCurveVector3::InternalEvaluate(ScriptTAnimationCurveVector3* thisPtr, float time, bool loop, Vector3* __output)
@@ -149,7 +149,7 @@ namespace bs
 	}
 
 	ScriptTAnimationCurveVector2::ScriptTAnimationCurveVector2(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector2>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -158,20 +158,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveVector2::InternalTAnimationCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTAnimationCurveVector2::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetKeyFrames", (void*)&ScriptTAnimationCurveVector2::InternalGetKeyFrames);
-
 	}
 
 	MonoObject* ScriptTAnimationCurveVector2::Create(const SPtr<TAnimationCurve<Vector2>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTAnimationCurveVector2>()) ScriptTAnimationCurveVector2(managedInstance, value);
+		new(bs_alloc<ScriptTAnimationCurveVector2>()) ScriptTAnimationCurveVector2(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTAnimationCurveVector2::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
 		Vector<TKeyframe<Vector2>> veckeyframes;
@@ -185,7 +185,7 @@ namespace bs
 			}
 		}
 		SPtr<TAnimationCurve<Vector2>> instance = bs_shared_ptr_new<TAnimationCurve<Vector2>>(veckeyframes);
-		new (bs_alloc<ScriptTAnimationCurveVector2>())ScriptTAnimationCurveVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTAnimationCurveVector2>()) ScriptTAnimationCurveVector2(managedInstance, instance);
 	}
 
 	void ScriptTAnimationCurveVector2::InternalEvaluate(ScriptTAnimationCurveVector2* thisPtr, float time, bool loop, Vector2* __output)
@@ -214,7 +214,7 @@ namespace bs
 	}
 
 	ScriptTAnimationCurveQuaternion::ScriptTAnimationCurveQuaternion(MonoObject* managedInstance, const SPtr<TAnimationCurve<Quaternion>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -223,20 +223,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveQuaternion::InternalTAnimationCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTAnimationCurveQuaternion::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetKeyFrames", (void*)&ScriptTAnimationCurveQuaternion::InternalGetKeyFrames);
-
 	}
 
 	MonoObject* ScriptTAnimationCurveQuaternion::Create(const SPtr<TAnimationCurve<Quaternion>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTAnimationCurveQuaternion>()) ScriptTAnimationCurveQuaternion(managedInstance, value);
+		new(bs_alloc<ScriptTAnimationCurveQuaternion>()) ScriptTAnimationCurveQuaternion(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTAnimationCurveQuaternion::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
 		Vector<TKeyframe<Quaternion>> veckeyframes;
@@ -250,7 +250,7 @@ namespace bs
 			}
 		}
 		SPtr<TAnimationCurve<Quaternion>> instance = bs_shared_ptr_new<TAnimationCurve<Quaternion>>(veckeyframes);
-		new (bs_alloc<ScriptTAnimationCurveQuaternion>())ScriptTAnimationCurveQuaternion(managedInstance, instance);
+		new(bs_alloc<ScriptTAnimationCurveQuaternion>()) ScriptTAnimationCurveQuaternion(managedInstance, instance);
 	}
 
 	void ScriptTAnimationCurveQuaternion::InternalEvaluate(ScriptTAnimationCurveQuaternion* thisPtr, float time, bool loop, Quaternion* __output)
@@ -279,7 +279,7 @@ namespace bs
 	}
 
 	ScriptTAnimationCurveint32_t::ScriptTAnimationCurveint32_t(MonoObject* managedInstance, const SPtr<TAnimationCurve<int32_t>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -288,20 +288,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptTAnimationCurveint32_t::InternalTAnimationCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTAnimationCurveint32_t::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_GetKeyFrames", (void*)&ScriptTAnimationCurveint32_t::InternalGetKeyFrames);
-
 	}
 
 	MonoObject* ScriptTAnimationCurveint32_t::Create(const SPtr<TAnimationCurve<int32_t>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTAnimationCurveint32_t>()) ScriptTAnimationCurveint32_t(managedInstance, value);
+		new(bs_alloc<ScriptTAnimationCurveint32_t>()) ScriptTAnimationCurveint32_t(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTAnimationCurveint32_t::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
 		Vector<TKeyframe<int32_t>> veckeyframes;
@@ -315,7 +315,7 @@ namespace bs
 			}
 		}
 		SPtr<TAnimationCurve<int32_t>> instance = bs_shared_ptr_new<TAnimationCurve<int32_t>>(veckeyframes);
-		new (bs_alloc<ScriptTAnimationCurveint32_t>())ScriptTAnimationCurveint32_t(managedInstance, instance);
+		new(bs_alloc<ScriptTAnimationCurveint32_t>()) ScriptTAnimationCurveint32_t(managedInstance, instance);
 	}
 
 	int32_t ScriptTAnimationCurveint32_t::InternalEvaluate(ScriptTAnimationCurveint32_t* thisPtr, float time, bool loop)
@@ -345,4 +345,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

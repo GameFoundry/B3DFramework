@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptD6JointDrive::ScriptD6JointDrive(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptD6JointDrive::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptD6JointDrive::Box(const D6JointDrive& value)
+	MonoObject* ScriptD6JointDrive::Box(const D6JointDrive& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(D6JointDrive*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

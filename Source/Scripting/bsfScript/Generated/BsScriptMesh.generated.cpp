@@ -17,7 +17,7 @@
 namespace bs
 {
 	ScriptMesh::ScriptMesh(MonoObject* managedInstance, const ResourceHandle<Mesh>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -35,16 +35,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptMesh::InternalGetBounds);
 		metaData.ScriptClass->AddInternalCall("Internal_GetMeshData", (void*)&ScriptMesh::InternalGetMeshData);
 		metaData.ScriptClass->AddInternalCall("Internal_SetMeshData", (void*)&ScriptMesh::InternalSetMeshData);
-
 	}
 
-	 MonoObject*ScriptMesh::CreateInstance()
+	MonoObject* ScriptMesh::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptMesh::InternalGetRef(ScriptMesh* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -89,7 +89,6 @@ namespace bs
 			{
 				vecsubMeshes[i] = arraysubMeshes.Get<SubMesh>(i);
 			}
-
 		}
 		ResourceHandle<Mesh> instance = MeshEx::Create(numVertices, numIndices, vecsubMeshes, usage, vertex, index);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
@@ -122,7 +121,6 @@ namespace bs
 			{
 				vecsubMeshes[i] = arraysubMeshes.Get<SubMesh>(i);
 			}
-
 		}
 		ResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, vecsubMeshes, usage);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
@@ -181,4 +179,4 @@ namespace bs
 			tmpvalue = scriptvalue->GetInternal();
 		MeshEx::SetMeshData(thisPtr->GetHandle(), tmpvalue);
 	}
-}
+} // namespace bs

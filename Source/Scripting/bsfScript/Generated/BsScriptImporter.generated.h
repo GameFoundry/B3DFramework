@@ -6,7 +6,11 @@
 #include "BsScriptObject.h"
 #include "Utility/BsUUID.h"
 
-namespace bs { class Importer; }
+namespace bs
+{
+	class Importer;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -25,4 +29,4 @@ namespace bs
 		static bool InternalSupportsFileType(MonoString* extension);
 	};
 #endif
-}
+} // namespace bs

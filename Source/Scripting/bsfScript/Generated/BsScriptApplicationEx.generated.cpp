@@ -12,7 +12,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptApplicationEx::ScriptApplicationEx(MonoObject* managedInstance, const SPtr<ApplicationEx>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -22,20 +22,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_StartUp0", (void*)&ScriptApplicationEx::InternalStartUp0);
 		metaData.ScriptClass->AddInternalCall("Internal_RunMainLoop", (void*)&ScriptApplicationEx::InternalRunMainLoop);
 		metaData.ScriptClass->AddInternalCall("Internal_ShutDown", (void*)&ScriptApplicationEx::InternalShutDown);
-
 	}
 
 	MonoObject* ScriptApplicationEx::Create(const SPtr<ApplicationEx>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptApplicationEx>()) ScriptApplicationEx(managedInstance, value);
+		new(bs_alloc<ScriptApplicationEx>()) ScriptApplicationEx(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptApplicationEx::InternalStartUp(__START_UP_DESCInterop* desc)
 	{
 		START_UP_DESC tmpdesc;
@@ -62,4 +62,4 @@ namespace bs
 		ApplicationEx::ShutDown();
 	}
 #endif
-}
+} // namespace bs

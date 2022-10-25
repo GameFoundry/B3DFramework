@@ -29,4 +29,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

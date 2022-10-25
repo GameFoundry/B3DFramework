@@ -12,8 +12,16 @@
 #include "../../../Foundation/bsfCore/RenderAPI/BsSubMesh.h"
 #include "Math/BsAABox.h"
 
-namespace bs { class Mesh; }
-namespace bs { class MeshEx; }
+namespace bs
+{
+	class Mesh;
+}
+
+namespace bs
+{
+	class MeshEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptMesh : public TScriptResource<ScriptMesh, Mesh>
@@ -40,4 +48,4 @@ namespace bs
 		static MonoObject* InternalGetMeshData(ScriptMesh* thisPtr);
 		static void InternalSetMeshData(ScriptMesh* thisPtr, MonoObject* value);
 	};
-}
+} // namespace bs

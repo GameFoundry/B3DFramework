@@ -7,6 +7,6 @@
 namespace bs
 {
 	ScriptReflectableBase::ScriptReflectableBase(MonoObject* instance)
-		:ScriptObjectBase(instance)
-	{ }
-}
+		: ScriptObjectBase(instance)
+	{}
+} // namespace bs

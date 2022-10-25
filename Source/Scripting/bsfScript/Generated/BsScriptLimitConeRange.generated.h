@@ -31,6 +31,5 @@ namespace bs
 
 	private:
 		ScriptLimitConeRange(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

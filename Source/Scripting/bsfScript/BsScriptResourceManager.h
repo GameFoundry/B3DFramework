@@ -78,7 +78,7 @@ namespace bs
 		 * Same as getScriptRRef(const HResource&, MonoClass*) except it automatically deduced the resource class from
 		 * the provided template parameter.
 		 */
-		template<class T>
+		template <class T>
 		ScriptRRefBase* GetScriptRRef(const ResourceHandle<T>& resource)
 		{
 			::MonoClass* rrefClass = ScriptResourceBase::GetRRefClass(T::GetRttiStatic()->GetRttiId());
@@ -111,4 +111,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

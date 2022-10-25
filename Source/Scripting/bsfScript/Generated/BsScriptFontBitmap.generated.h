@@ -7,8 +7,16 @@
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 #include "../../../Foundation/bsfCore/Text/BsFontDesc.h"
 
-namespace bs { struct FontBitmap; }
-namespace bs { struct __CharDescInterop; }
+namespace bs
+{
+	struct FontBitmap;
+}
+
+namespace bs
+{
+	struct __CharDescInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptFontBitmap : public TScriptReflectable<ScriptFontBitmap, FontBitmap>
@@ -35,4 +43,4 @@ namespace bs
 		static MonoArray* InternalGetTexturePages(ScriptFontBitmap* thisPtr);
 		static void InternalSetTexturePages(ScriptFontBitmap* thisPtr, MonoArray* value);
 	};
-}
+} // namespace bs

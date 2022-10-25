@@ -25,9 +25,8 @@ namespace bs
 	ScriptGUIButton::OnDoubleClickThunkDef ScriptGUIButton::onDoubleClickThunk;
 
 	ScriptGUIButton::ScriptGUIButton(MonoObject* instance, GUIButton* button)
-		:TScriptGUIElement(instance, button)
+		: TScriptGUIElement(instance, button)
 	{
-
 	}
 
 	void ScriptGUIButton::InitRuntimeData()
@@ -42,8 +41,7 @@ namespace bs
 		onOutThunk = (OnOutThunkDef)metaData.ScriptClass->GetMethod("DoOnOut")->GetThunk();
 	}
 
-	void ScriptGUIButton::InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content,
-		MonoString* style, MonoArray* guiOptions)
+	void ScriptGUIButton::InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
@@ -55,7 +53,7 @@ namespace bs
 		GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
 		GUIButton* guiButton = GUIButton::Create(nativeContent, options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
+		auto nativeInstance = new(bs_alloc<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
 
 		guiButton->OnClick.Connect(std::bind(&::bs::ScriptGUIButton::OnClick, nativeInstance));
 		guiButton->OnDoubleClick.Connect(std::bind(&::bs::ScriptGUIButton::OnDoubleClick, nativeInstance));
@@ -96,4 +94,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onOutThunk, GetManagedInstance());
 	}
-}
+} // namespace bs

@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptFontBitmap::ScriptFontBitmap(MonoObject* managedInstance, const SPtr<FontBitmap>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -31,20 +31,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetSpaceWidth", (void*)&ScriptFontBitmap::InternalSetSpaceWidth);
 		metaData.ScriptClass->AddInternalCall("Internal_GetTexturePages", (void*)&ScriptFontBitmap::InternalGetTexturePages);
 		metaData.ScriptClass->AddInternalCall("Internal_SetTexturePages", (void*)&ScriptFontBitmap::InternalSetTexturePages);
-
 	}
 
 	MonoObject* ScriptFontBitmap::Create(const SPtr<FontBitmap>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptFontBitmap>()) ScriptFontBitmap(managedInstance, value);
+		new(bs_alloc<ScriptFontBitmap>()) ScriptFontBitmap(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptFontBitmap::InternalGetCharDesc(ScriptFontBitmap* thisPtr, uint32_t charId, __CharDescInterop* __output)
 	{
 		CharDesc tmp__output;
@@ -111,8 +111,6 @@ namespace bs
 		__CharDescInterop interop__output;
 		interop__output = ScriptCharDesc::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptCharDesc::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptFontBitmap::InternalSetMissingGlyph(ScriptFontBitmap* thisPtr, __CharDescInterop* value)
@@ -177,8 +175,7 @@ namespace bs
 					vecvalue[i] = arrayElemPtrvalue;
 				}
 			}
-
 		}
 		thisPtr->GetInternal()->TexturePages = vecvalue;
 	}
-}
+} // namespace bs

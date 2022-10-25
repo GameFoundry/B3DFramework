@@ -9,7 +9,11 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 
-namespace bs { class TextureImportOptions; }
+namespace bs
+{
+	class TextureImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -40,4 +44,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-}
+} // namespace bs

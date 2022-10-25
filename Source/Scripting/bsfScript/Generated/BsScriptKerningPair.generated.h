@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptKerningPair(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

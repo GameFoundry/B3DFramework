@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptPixelVolume::ScriptPixelVolume(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPixelVolume::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPixelVolume::Box(const PixelVolume& value)
+	MonoObject* ScriptPixelVolume::Box(const PixelVolume& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(PixelVolume*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

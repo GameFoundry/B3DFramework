@@ -12,7 +12,12 @@
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs { template<class T0> struct TColorDistribution; }
+namespace bs
+{
+	template <class T0>
+	struct TColorDistribution;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptTColorDistributionColorGradient : public ScriptObject<ScriptTColorDistributionColorGradient>
@@ -23,6 +28,7 @@ namespace bs
 		ScriptTColorDistributionColorGradient(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradient>>& value);
 
 		SPtr<TColorDistribution<ColorGradient>> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<TColorDistribution<ColorGradient>>& value);
 
 	private:
@@ -48,6 +54,7 @@ namespace bs
 		ScriptTColorDistributionColorGradientHDR(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradientHDR>>& value);
 
 		SPtr<TColorDistribution<ColorGradientHDR>> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<TColorDistribution<ColorGradientHDR>>& value);
 
 	private:
@@ -64,4 +71,4 @@ namespace bs
 		static MonoObject* InternalGetMinGradient(ScriptTColorDistributionColorGradientHDR* thisPtr);
 		static MonoObject* InternalGetMaxGradient(ScriptTColorDistributionColorGradientHDR* thisPtr);
 	};
-}
+} // namespace bs

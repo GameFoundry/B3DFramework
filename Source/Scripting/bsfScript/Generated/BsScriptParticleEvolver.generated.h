@@ -6,13 +6,18 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { class ParticleEvolver; }
+namespace bs
+{
+	class ParticleEvolver;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleEvolverBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptParticleEvolverBase(MonoObject* instance);
+
 		virtual ~ScriptParticleEvolverBase() {}
 
 		SPtr<ParticleEvolver> GetInternal() const;
@@ -29,4 +34,4 @@ namespace bs
 
 	private:
 	};
-}
+} // namespace bs

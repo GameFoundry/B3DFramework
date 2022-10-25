@@ -11,7 +11,7 @@
 namespace bs
 {
 	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(MonoObject* managedInstance, const SPtr<ChromaticAberrationSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -26,24 +26,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptChromaticAberrationSettings::InternalSetType);
 		metaData.ScriptClass->AddInternalCall("Internal_GetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalGetShiftAmount);
 		metaData.ScriptClass->AddInternalCall("Internal_SetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalSetShiftAmount);
-
 	}
 
 	MonoObject* ScriptChromaticAberrationSettings::Create(const SPtr<ChromaticAberrationSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, value);
+		new(bs_alloc<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* managedInstance)
 	{
 		SPtr<ChromaticAberrationSettings> instance = bs_shared_ptr_new<ChromaticAberrationSettings>();
-		new (bs_alloc<ScriptChromaticAberrationSettings>())ScriptChromaticAberrationSettings(managedInstance, instance);
+		new(bs_alloc<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, instance);
 	}
 
 	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* thisPtr)
@@ -119,4 +119,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->ShiftAmount = value;
 	}
-}
+} // namespace bs

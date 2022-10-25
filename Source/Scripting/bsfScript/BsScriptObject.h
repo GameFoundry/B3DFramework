@@ -21,8 +21,8 @@ namespace bs
 		ScriptObjectBackup() {}
 
 		explicit ScriptObjectBackup(const Any& data)
-			:Data(data)
-		{ }
+			: Data(data)
+		{}
 
 		Any Data;
 	};
@@ -56,10 +56,10 @@ namespace bs
 		 * Clears any managed instance references from the interop object, and releases any GC handles. Called during
 		 * assembly refresh just before the script domain is unloaded.
 		 */
-		virtual void ClearManagedInstanceInternal() { }
+		virtual void ClearManagedInstanceInternal() {}
 
 		/**	Allows persistent objects to restore their managed instances after assembly reload. */
-		virtual void RestoreManagedInstanceInternal() { }
+		virtual void RestoreManagedInstanceInternal() {}
 
 		/**	Called when the managed instance gets finalized by the CLR. */
 		virtual void OnManagedInstanceDeletedInternal(bool assemblyRefresh);
@@ -98,7 +98,7 @@ namespace bs
 			ScriptObject<Type, Base>::InitMetaDataInternal();
 		}
 
-		void MakeSureIAmInstantiated() { }
+		void MakeSureIAmInstantiated() {}
 	};
 
 	/**	Template version of ScriptObjectBase populates the object meta-data on library load. */
@@ -107,7 +107,7 @@ namespace bs
 	{
 	public:
 		ScriptObject(MonoObject* instance)
-			:Base(instance)
+			: Base(instance)
 		{
 			initOnStart.MakeSureIAmInstantiated();
 
@@ -118,7 +118,7 @@ namespace bs
 		}
 
 		virtual ~ScriptObject()
-		{ }
+		{}
 
 		/**	Allows persistent objects to restore their managed instances after assembly reload. */
 		void RestoreManagedInstanceInternal()
@@ -127,7 +127,7 @@ namespace bs
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
-			if (metaData.ThisPtrField != nullptr && instance != nullptr)
+			if(metaData.ThisPtrField != nullptr && instance != nullptr)
 				metaData.ThisPtrField->Set(instance, &param);
 		}
 
@@ -145,7 +145,7 @@ namespace bs
 		{
 			Type* nativeInstance = nullptr;
 
-			if (metaData.ThisPtrField != nullptr && managedInstance != nullptr)
+			if(metaData.ThisPtrField != nullptr && managedInstance != nullptr)
 				metaData.ThisPtrField->Get(managedInstance, &nativeInstance);
 
 			return nativeInstance;
@@ -181,10 +181,19 @@ namespace bs
 	ScriptMeta ScriptObject<Type, Base>::metaData;
 
 /** Helper macro to use with script interop objects that form a link between C++ and CLR. */
-#define SCRIPT_OBJ(assembly, namespace, name)		\
-	static String GetAssemblyName() { return assembly; }	\
-	static String GetNamespace() { return namespace; }		\
-	static String GetTypeName() { return name; }			\
+#define SCRIPT_OBJ(assembly, namespace, name) \
+	static String GetAssemblyName()           \
+	{                                         \
+		return assembly;                      \
+	}                                         \
+	static String GetNamespace()              \
+	{                                         \
+		return namespace;                     \
+	}                                         \
+	static String GetTypeName()               \
+	{                                         \
+		return name;                          \
+	}                                         \
 	static void InitRuntimeData();
 
 	/**	Interop class between C++ & CLR for ScriptObject. */
@@ -203,4 +212,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

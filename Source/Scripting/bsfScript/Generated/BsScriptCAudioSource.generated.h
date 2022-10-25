@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioSource.h"
 
-namespace bs { class CAudioSource; }
+namespace bs
+{
+	class CAudioSource;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCAudioSource : public TScriptComponent<ScriptCAudioSource, CAudioSource>
@@ -40,4 +44,4 @@ namespace bs
 		static void InternalStop(ScriptCAudioSource* thisPtr);
 		static AudioSourceState InternalGetState(ScriptCAudioSource* thisPtr);
 	};
-}
+} // namespace bs

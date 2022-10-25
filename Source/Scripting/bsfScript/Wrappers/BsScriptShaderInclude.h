@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for ShaderInclude. */
-	class BS_SCR_BE_EXPORT ScriptShaderInclude : public TScriptResource <ScriptShaderInclude, ShaderInclude>
+	class BS_SCR_BE_EXPORT ScriptShaderInclude : public TScriptResource<ScriptShaderInclude, ShaderInclude>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderInclude")
@@ -29,4 +29,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

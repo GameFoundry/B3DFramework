@@ -9,7 +9,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptAnimationSplitInfo::ScriptAnimationSplitInfo(MonoObject* managedInstance, const SPtr<AnimationSplitInfo>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -25,24 +25,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetEndFrame", (void*)&ScriptAnimationSplitInfo::InternalSetEndFrame);
 		metaData.ScriptClass->AddInternalCall("Internal_GetIsAdditive", (void*)&ScriptAnimationSplitInfo::InternalGetIsAdditive);
 		metaData.ScriptClass->AddInternalCall("Internal_SetIsAdditive", (void*)&ScriptAnimationSplitInfo::InternalSetIsAdditive);
-
 	}
 
 	MonoObject* ScriptAnimationSplitInfo::Create(const SPtr<AnimationSplitInfo>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAnimationSplitInfo>()) ScriptAnimationSplitInfo(managedInstance, value);
+		new(bs_alloc<ScriptAnimationSplitInfo>()) ScriptAnimationSplitInfo(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptAnimationSplitInfo::InternalAnimationSplitInfo(MonoObject* managedInstance)
 	{
 		SPtr<AnimationSplitInfo> instance = bs_shared_ptr_new<AnimationSplitInfo>();
-		new (bs_alloc<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, instance);
+		new(bs_alloc<ScriptAnimationSplitInfo>()) ScriptAnimationSplitInfo(managedInstance, instance);
 	}
 
 	void ScriptAnimationSplitInfo::InternalAnimationSplitInfo0(MonoObject* managedInstance, MonoString* name, uint32_t startFrame, uint32_t endFrame, bool isAdditive)
@@ -50,7 +50,7 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<AnimationSplitInfo> instance = bs_shared_ptr_new<AnimationSplitInfo>(tmpname, startFrame, endFrame, isAdditive);
-		new (bs_alloc<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, instance);
+		new(bs_alloc<ScriptAnimationSplitInfo>()) ScriptAnimationSplitInfo(managedInstance, instance);
 	}
 
 	MonoString* ScriptAnimationSplitInfo::InternalGetName(ScriptAnimationSplitInfo* thisPtr)
@@ -119,4 +119,4 @@ namespace bs
 		thisPtr->GetInternal()->IsAdditive = value;
 	}
 #endif
-}
+} // namespace bs

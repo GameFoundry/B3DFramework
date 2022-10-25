@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptCBone::ScriptCBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -17,7 +17,6 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptCBone::InternalSetBoneName);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBoneName", (void*)&ScriptCBone::InternalGetBoneName);
-
 	}
 
 	void ScriptCBone::InternalSetBoneName(ScriptCBone* thisPtr, MonoString* name)
@@ -37,4 +36,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

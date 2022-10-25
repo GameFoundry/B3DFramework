@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct ChromaticAberrationSettings; }
+namespace bs
+{
+	struct ChromaticAberrationSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectable<ScriptChromaticAberrationSettings, ChromaticAberrationSettings>
@@ -30,4 +34,4 @@ namespace bs
 		static float InternalGetShiftAmount(ScriptChromaticAberrationSettings* thisPtr);
 		static void InternalSetShiftAmount(ScriptChromaticAberrationSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

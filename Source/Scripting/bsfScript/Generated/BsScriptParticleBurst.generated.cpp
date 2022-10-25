@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptParticleBurst::ScriptParticleBurst(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptParticleBurst::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptParticleBurst::Box(const __ParticleBurstInterop& value)
+	MonoObject* ScriptParticleBurst::Box(const __ParticleBurstInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -36,7 +36,7 @@ namespace bs
 		if(scriptCount != nullptr)
 			tmpCount = scriptCount->GetInternal();
 		if(tmpCount != nullptr)
-		output.Count = *tmpCount;
+			output.Count = *tmpCount;
 		output.Cycles = value.Cycles;
 		output.Interval = value.Interval;
 
@@ -58,4 +58,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

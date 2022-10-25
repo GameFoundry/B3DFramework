@@ -14,9 +14,8 @@ using namespace std::placeholders;
 namespace bs
 {
 	ScriptPlainText::ScriptPlainText(MonoObject* instance, const HPlainText& plainText)
-		:TScriptResource(instance, plainText)
+		: TScriptResource(instance, plainText)
 	{
-
 	}
 
 	void ScriptPlainText::InitRuntimeData()
@@ -52,4 +51,4 @@ namespace bs
 	{
 		return metaData.ScriptClass->CreateInstance();
 	}
-}
+} // namespace bs

@@ -9,7 +9,11 @@
 #include "Image/BsColor.h"
 #include "Math/BsDegree.h"
 
-namespace bs { class CLight; }
+namespace bs
+{
+	class CLight;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCLight : public TScriptComponent<ScriptCLight, CLight>
@@ -42,4 +46,4 @@ namespace bs
 		static float InternalGetShadowBias(ScriptCLight* thisPtr);
 		static void InternalGetBounds(ScriptCLight* thisPtr, Sphere* __output);
 	};
-}
+} // namespace bs

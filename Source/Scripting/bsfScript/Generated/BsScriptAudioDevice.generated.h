@@ -25,6 +25,5 @@ namespace bs
 
 	private:
 		ScriptAudioDevice(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -11,8 +11,8 @@
 namespace bs
 {
 	ScriptTime::ScriptTime(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptTime::InitRuntimeData()
 	{
@@ -47,4 +47,4 @@ namespace bs
 	{
 		return gTime().GetTimePrecise();
 	}
-}
+} // namespace bs

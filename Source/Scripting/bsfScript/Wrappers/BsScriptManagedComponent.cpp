@@ -19,7 +19,7 @@
 namespace bs
 {
 	ScriptManagedComponent::ScriptManagedComponent(MonoObject* instance, const HManagedComponent& component)
-		:ScriptObject(instance), mComponent(component), mTypeMissing(false)
+		: ScriptObject(instance), mComponent(component), mTypeMissing(false)
 	{
 		assert(instance != nullptr);
 
@@ -37,7 +37,7 @@ namespace bs
 	void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* nativeInstance, MonoString* name)
 	{
 		HManagedComponent comp = nativeInstance->mComponent;
-		if (CheckIfDestroyed(nativeInstance->mComponent))
+		if(CheckIfDestroyed(nativeInstance->mComponent))
 			return;
 
 		MonoObject* compObj = comp->GetManagedInstance();
@@ -45,10 +45,10 @@ namespace bs
 
 		bool found = false;
 		String methodName = MonoUtil::MonoToString(name);
-		while (compClass != nullptr)
+		while(compClass != nullptr)
 		{
 			MonoMethod* method = compClass->GetMethod(methodName);
-			if (method != nullptr)
+			if(method != nullptr)
 			{
 				method->Invoke(compObj, nullptr);
 				found = true;
@@ -57,16 +57,15 @@ namespace bs
 
 			// Search for methods on base class if there is one
 			MonoClass* baseClass = compClass->GetBaseClass();
-			if (baseClass != metaData.ScriptClass)
+			if(baseClass != metaData.ScriptClass)
 				compClass = baseClass;
 			else
 				break;
 		}
 
-		if (!found)
+		if(!found)
 		{
-			BS_LOG(Warning, Script, "Method invoke failed. Cannot find method \"{0}\" on component of type \"{1}\".",
-				methodName, compClass->GetTypeName());
+			BS_LOG(Warning, Script, "Method invoke failed. Cannot find method \"{0}\" on component of type \"{1}\".", methodName, compClass->GetTypeName());
 		}
 	}
 
@@ -76,7 +75,7 @@ namespace bs
 
 		// See if this type even still exists
 		MonoObject* instance;
-		if (!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
+		if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 		{
 			mTypeMissing = true;
 			instance = ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingComponentClass->CreateInstance(true);
@@ -103,7 +102,7 @@ namespace bs
 
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept. Don't backup such components.
-		if (!managedComponent.IsDestroyed(true))
+		if(!managedComponent.IsDestroyed(true))
 			backupData.Data = managedComponent->Backup(true);
 
 		return backupData;
@@ -124,7 +123,7 @@ namespace bs
 		// It's possible that managed component is destroyed but a reference to it
 		// is still kept during assembly refresh. Such components shouldn't be restored
 		// so we delete them.
-		if (!assemblyRefresh || mComponent.IsDestroyed(true))
+		if(!assemblyRefresh || mComponent.IsDestroyed(true))
 			ScriptGameObjectManager::Instance().DestroyScriptComponent(this);
 	}
 
@@ -132,4 +131,4 @@ namespace bs
 	{
 		FreeManagedInstance();
 	}
-}
+} // namespace bs

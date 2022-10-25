@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptSkeleton::ScriptSkeleton(MonoObject* managedInstance, const SPtr<Skeleton>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -18,20 +18,20 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_GetNumBones", (void*)&ScriptSkeleton::InternalGetNumBones);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBoneInfo", (void*)&ScriptSkeleton::InternalGetBoneInfo);
-
 	}
 
 	MonoObject* ScriptSkeleton::Create(const SPtr<Skeleton>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptSkeleton>()) ScriptSkeleton(managedInstance, value);
+		new(bs_alloc<ScriptSkeleton>()) ScriptSkeleton(managedInstance, value);
 		return managedInstance;
 	}
+
 	uint32_t ScriptSkeleton::InternalGetNumBones(ScriptSkeleton* thisPtr)
 	{
 		uint32_t tmp__output;
@@ -52,4 +52,4 @@ namespace bs
 		interop__output = ScriptSkeletonBoneInfoEx::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptSkeletonBoneInfoEx::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
-}
+} // namespace bs

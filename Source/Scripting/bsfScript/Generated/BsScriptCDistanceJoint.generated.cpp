@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCDistanceJoint::ScriptCDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -27,7 +27,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetSpring", (void*)&ScriptCDistanceJoint::InternalSetSpring);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCDistanceJoint::InternalSetFlag);
 		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCDistanceJoint::InternalHasFlag);
-
 	}
 
 	float ScriptCDistanceJoint::InternalGetDistance(ScriptCDistanceJoint* thisPtr)
@@ -117,4 +116,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

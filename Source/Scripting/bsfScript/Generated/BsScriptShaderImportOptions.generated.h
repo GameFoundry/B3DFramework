@@ -8,7 +8,11 @@
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 
-namespace bs { class ShaderImportOptions; }
+namespace bs
+{
+	class ShaderImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -31,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-}
+} // namespace bs

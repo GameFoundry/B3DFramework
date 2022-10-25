@@ -16,4 +16,4 @@ namespace bs
 
 		return boneInfoEx;
 	}
-}
+} // namespace bs

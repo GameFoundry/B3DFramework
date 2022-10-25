@@ -43,20 +43,19 @@ namespace bs
 			obj->MTypeNameToId[val->GetFullTypeName()] = val->MTypeInfo->MTypeId;
 			obj->MObjectInfos[val->MTypeInfo->MTypeId] = val;
 		}
-		
+
 		u32 GetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj) { return (u32)obj->MObjectInfos.size(); }
-		void SetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj, u32 size) {  }
+
+		void SetSerializableObjectInfoArraySize(ManagedSerializableAssemblyInfo* obj, u32 size) {}
 
 	public:
 		ManagedSerializableAssemblyInfoRTTI()
 		{
 			AddPlainField("mName", 0, &ManagedSerializableAssemblyInfoRTTI::GetName, &ManagedSerializableAssemblyInfoRTTI::SetName);
-			AddReflectablePtrArrayField("mObjectInfos", 1, &ManagedSerializableAssemblyInfoRTTI::GetSerializableObjectInfo,
-				&ManagedSerializableAssemblyInfoRTTI::GetSerializableObjectInfoArraySize, &ManagedSerializableAssemblyInfoRTTI::SetSerializableObjectInfo,
-				&ManagedSerializableAssemblyInfoRTTI::SetSerializableObjectInfoArraySize);
+			AddReflectablePtrArrayField("mObjectInfos", 1, &ManagedSerializableAssemblyInfoRTTI::GetSerializableObjectInfo, &ManagedSerializableAssemblyInfoRTTI::GetSerializableObjectInfoArraySize, &ManagedSerializableAssemblyInfoRTTI::SetSerializableObjectInfo, &ManagedSerializableAssemblyInfoRTTI::SetSerializableObjectInfoArraySize);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptSerializableAssemblyInfo";
 			return name;
@@ -67,7 +66,7 @@ namespace bs
 			return TID_SerializableAssemblyInfo;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ManagedSerializableAssemblyInfo>();
 		}
@@ -114,7 +113,8 @@ namespace bs
 		}
 
 		u32 GetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj) { return (u32)obj->MFields.size(); }
-		void SetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj, u32 size) {  }
+
+		void SetSerializableFieldInfoArraySize(ManagedSerializableObjectInfo* obj, u32 size) {}
 
 	public:
 		ManagedSerializableObjectInfoRTTI()
@@ -122,9 +122,7 @@ namespace bs
 			AddReflectablePtrField("mTypeInfo", 0, &ManagedSerializableObjectInfoRTTI::GetTypeInfo, &ManagedSerializableObjectInfoRTTI::SetTypeInfo);
 			AddReflectablePtrField("mBaseClass", 2, &ManagedSerializableObjectInfoRTTI::GetBaseClass, &ManagedSerializableObjectInfoRTTI::SetBaseClass);
 
-			AddReflectablePtrArrayField("mFields", 3, &ManagedSerializableObjectInfoRTTI::GetSerializableFieldInfo,
-				&ManagedSerializableObjectInfoRTTI::GetSerializableFieldInfoArraySize, &ManagedSerializableObjectInfoRTTI::SetSerializableFieldInfo,
-				&ManagedSerializableObjectInfoRTTI::SetSerializableFieldInfoArraySize);
+			AddReflectablePtrArrayField("mFields", 3, &ManagedSerializableObjectInfoRTTI::GetSerializableFieldInfo, &ManagedSerializableObjectInfoRTTI::GetSerializableFieldInfoArraySize, &ManagedSerializableObjectInfoRTTI::SetSerializableFieldInfo, &ManagedSerializableObjectInfoRTTI::SetSerializableFieldInfoArraySize);
 		}
 
 		const String& GetRttiName() override
@@ -154,11 +152,11 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(MFlags, 3)
 			BS_RTTI_MEMBER_PLAIN(MParentTypeId, 4)
 		BS_END_RTTI_MEMBERS
-			
+
 	public:
 		ManagedSerializableMemberInfoRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -182,10 +180,9 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldInfoRTTI : public RTTIType<ManagedSerializableFieldInfo, ManagedSerializableMemberInfo, ManagedSerializableFieldInfoRTTI>
 	{
 	private:
-
 	public:
 		ManagedSerializableFieldInfoRTTI()
-		{ }
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -207,10 +204,9 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializablePropertyInfoRTTI : public RTTIType<ManagedSerializablePropertyInfo, ManagedSerializableMemberInfo, ManagedSerializablePropertyInfoRTTI>
 	{
 	private:
-
 	public:
 		ManagedSerializablePropertyInfoRTTI()
-		{ }
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -232,10 +228,9 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableTypeInfoRTTI : public RTTIType<ManagedSerializableTypeInfo, IReflectable, ManagedSerializableTypeInfoRTTI>
 	{
 	private:
-
 	public:
 		ManagedSerializableTypeInfoRTTI()
-		{ }
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -264,8 +259,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoPrimitiveRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -295,8 +290,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoEnumRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -327,8 +322,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoRefRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -354,11 +349,10 @@ namespace bs
 			BS_RTTI_MEMBER_REFLPTR(MResourceType, 0)
 		BS_END_RTTI_MEMBERS
 
-
 	public:
 		ManagedSerializableTypeInfoRRefRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -391,8 +385,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoObjectRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -421,8 +415,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoArrayRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -450,8 +444,8 @@ namespace bs
 
 	public:
 		ManagedSerializableTypeInfoListRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -478,11 +472,10 @@ namespace bs
 			BS_RTTI_MEMBER_REFLPTR(MValueType, 1)
 		BS_END_RTTI_MEMBERS
 
-
 	public:
 		ManagedSerializableTypeInfoDictionaryRTTI()
-			:mInitMembers(this)
-		{ }
+			: mInitMembers(this)
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -503,4 +496,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

@@ -26,6 +26,5 @@ namespace bs
 
 	private:
 		ScriptAnimationEvent(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

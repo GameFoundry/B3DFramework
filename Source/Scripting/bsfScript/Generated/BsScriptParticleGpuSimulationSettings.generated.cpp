@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptParticleGpuSimulationSettings::ScriptParticleGpuSimulationSettings(MonoObject* managedInstance, const SPtr<ParticleGpuSimulationSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -31,20 +31,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetDrag", (void*)&ScriptParticleGpuSimulationSettings::InternalSetDrag);
 		metaData.ScriptClass->AddInternalCall("Internal_GetDepthCollision", (void*)&ScriptParticleGpuSimulationSettings::InternalGetDepthCollision);
 		metaData.ScriptClass->AddInternalCall("Internal_SetDepthCollision", (void*)&ScriptParticleGpuSimulationSettings::InternalSetDepthCollision);
-
 	}
 
 	MonoObject* ScriptParticleGpuSimulationSettings::Create(const SPtr<ParticleGpuSimulationSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleGpuSimulationSettings>()) ScriptParticleGpuSimulationSettings(managedInstance, value);
+		new(bs_alloc<ScriptParticleGpuSimulationSettings>()) ScriptParticleGpuSimulationSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetVectorField(ScriptParticleGpuSimulationSettings* thisPtr)
 	{
 		SPtr<ParticleVectorFieldSettings> tmp__output = bs_shared_ptr_new<ParticleVectorFieldSettings>();
@@ -114,8 +114,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Acceleration;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleGpuSimulationSettings::InternalSetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, Vector3* value)
@@ -159,4 +157,4 @@ namespace bs
 			tmpvalue = scriptvalue->GetInternal();
 		thisPtr->GetInternal()->DepthCollision = *tmpvalue;
 	}
-}
+} // namespace bs

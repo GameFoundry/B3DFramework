@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Image/BsColor.h"
 
-namespace bs { struct BloomSettings; }
+namespace bs
+{
+	struct BloomSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
@@ -34,4 +38,4 @@ namespace bs
 		static float InternalGetFilterSize(ScriptBloomSettings* thisPtr);
 		static void InternalSetFilterSize(ScriptBloomSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

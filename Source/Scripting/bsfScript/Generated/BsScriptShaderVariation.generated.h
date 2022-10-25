@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
 
-namespace bs { class ShaderVariation; }
+namespace bs
+{
+	class ShaderVariation;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptShaderVariation : public TScriptReflectable<ScriptShaderVariation, ShaderVariation>
@@ -33,4 +37,4 @@ namespace bs
 		static void InternalClearParams(ScriptShaderVariation* thisPtr);
 		static MonoArray* InternalGetParamNames(ScriptShaderVariation* thisPtr);
 	};
-}
+} // namespace bs

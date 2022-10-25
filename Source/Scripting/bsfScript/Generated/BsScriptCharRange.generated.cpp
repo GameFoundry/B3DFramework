@@ -9,13 +9,13 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptCharRange::ScriptCharRange(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptCharRange::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptCharRange::Box(const CharRange& value)
+	MonoObject* ScriptCharRange::Box(const CharRange& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -26,4 +26,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

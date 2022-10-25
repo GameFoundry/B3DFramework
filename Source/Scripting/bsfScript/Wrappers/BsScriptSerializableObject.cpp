@@ -15,9 +15,8 @@ namespace bs
 	MonoField* ScriptSerializableObject::FieldsField = nullptr;
 
 	ScriptSerializableObject::ScriptSerializableObject(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
-		:ScriptObject(instance), mObjInfo(objInfo)
+		: ScriptObject(instance), mObjInfo(objInfo)
 	{
-
 	}
 
 	void ScriptSerializableObject::InitRuntimeData()
@@ -28,8 +27,7 @@ namespace bs
 		FieldsField = metaData.ScriptClass->GetField("_fields");
 	}
 
-	MonoObject* ScriptSerializableObject::Create(const ScriptSerializableProperty* native, MonoObject* managed,
-		MonoReflectionType* reflType)
+	MonoObject* ScriptSerializableObject::Create(const ScriptSerializableProperty* native, MonoObject* managed, MonoReflectionType* reflType)
 	{
 		void* params[2] = { reflType, managed };
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("Type,SerializableProperty", params);
@@ -70,32 +68,29 @@ namespace bs
 
 	ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
 	{
-		ScriptSerializableObject* nativeInstance = new (bs_alloc<ScriptSerializableObject>()) ScriptSerializableObject(instance, objInfo);
+		ScriptSerializableObject* nativeInstance = new(bs_alloc<ScriptSerializableObject>()) ScriptSerializableObject(instance, objInfo);
 
 		Vector<SPtr<ManagedSerializableMemberInfo>> sortedFields;
-		
+
 		if(objInfo != nullptr)
 		{
 			sortedFields.resize(objInfo->MFields.size());
 			u32 i = 0;
-			for (auto& fieldPair : objInfo->MFields)
+			for(auto& fieldPair : objInfo->MFields)
 			{
 				sortedFields[i] = fieldPair.second;
 				i++;
 			}
 		}
 
-		std::sort(sortedFields.begin(), sortedFields.end(),
-			[&](const SPtr<ManagedSerializableMemberInfo>& x, const SPtr<ManagedSerializableMemberInfo>& y)
-		{
-			return x->MFieldId < y->MFieldId;
-		});
+		std::sort(sortedFields.begin(), sortedFields.end(), [&](const SPtr<ManagedSerializableMemberInfo>& x, const SPtr<ManagedSerializableMemberInfo>& y)
+				  { return x->MFieldId < y->MFieldId; });
 
 		::MonoClass* serializableFieldClass = ScriptSerializableField::GetMetaData()->ScriptClass->GetInternalClassInternal();
 		ScriptArray scriptArray(serializableFieldClass, (u32)sortedFields.size());
 
 		u32 i = 0;
-		for (auto& field : sortedFields)
+		for(auto& field : sortedFields)
 		{
 			MonoObject* fieldManagedInstance = ScriptSerializableField::Create(instance, field);
 
@@ -107,4 +102,4 @@ namespace bs
 
 		return nativeInstance;
 	}
-}
+} // namespace bs

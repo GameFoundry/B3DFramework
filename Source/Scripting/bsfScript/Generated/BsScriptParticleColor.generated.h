@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { class ParticleColor; }
-namespace bs { struct __PARTICLE_COLOR_DESCInterop; }
+namespace bs
+{
+	class ParticleColor;
+}
+
+namespace bs
+{
+	struct __PARTICLE_COLOR_DESCInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleColor : public TScriptReflectable<ScriptParticleColor, ParticleColor, ScriptParticleEvolverBase>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

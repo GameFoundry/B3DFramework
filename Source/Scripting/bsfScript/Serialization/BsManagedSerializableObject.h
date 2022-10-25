@@ -25,14 +25,15 @@ namespace bs
 	 *	 - Serialized - When the object has no link to the managed object but instead just contains cached object
 	 *					and field data that may be used for initializing a managed object. Any operations during
 	 *					this state will operate only on the cached internal data.
-	 *					
+	 *
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
+	 * state you can call deserialize() to populated a managed object from the cached data.
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableObject : public IReflectable
 	{
 	private:
-		struct ConstructPrivately {};
+		struct ConstructPrivately
+		{};
 
 		/**	Generates a hash value for field key data identifying a single field in the object. */
 		struct BS_SCR_BE_EXPORT Hash
@@ -115,7 +116,7 @@ namespace bs
 		static SPtr<ManagedSerializableObject> CreateFromExisting(MonoObject* managedInstance);
 
 		/**
-		 * Creates a managed serializable object that creates and references a brand new managed object instance. 	
+		 * Creates a managed serializable object that creates and references a brand new managed object instance.
 		 *
 		 * @param[in]	type	Type of the object to create.
 		 */
@@ -127,6 +128,7 @@ namespace bs
 		 * @param[in]	type	Type of the object to create.
 		 */
 		static MonoObject* CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoObject>& type);
+
 	protected:
 		uint32_t mGCHandle = 0;
 		SPtr<ManagedSerializableObjectInfo> mObjInfo;
@@ -135,7 +137,7 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		
+
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
 		static SPtr<ManagedSerializableObject> CreateEmpty();
 
@@ -146,4 +148,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -11,13 +11,13 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptRENDER_WINDOW_DESC::ScriptRENDER_WINDOW_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptRENDER_WINDOW_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptRENDER_WINDOW_DESC::Box(const __RENDER_WINDOW_DESCInterop& value)
+	MonoObject* ScriptRENDER_WINDOW_DESC::Box(const __RENDER_WINDOW_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -90,4 +90,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

@@ -17,9 +17,8 @@ namespace bs
 	ScriptGUIInputBox::OnConfirmedThunkDef ScriptGUIInputBox::onConfirmedThunk;
 
 	ScriptGUIInputBox::ScriptGUIInputBox(MonoObject* instance, GUIInputBox* inputBox)
-		:TScriptGUIElement(instance, inputBox)
+		: TScriptGUIElement(instance, inputBox)
 	{
-
 	}
 
 	void ScriptGUIInputBox::InitRuntimeData()
@@ -44,7 +43,7 @@ namespace bs
 
 		GUIInputBox* guiInputBox = GUIInputBox::Create(multiline, options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
+		auto nativeInstance = new(bs_alloc<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
 
 		guiInputBox->OnValueChanged.Connect(std::bind(&::bs::ScriptGUIInputBox::OnChanged, nativeInstance, _1));
 	}
@@ -77,4 +76,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onConfirmedThunk, GetManagedInstance());
 	}
-}
+} // namespace bs

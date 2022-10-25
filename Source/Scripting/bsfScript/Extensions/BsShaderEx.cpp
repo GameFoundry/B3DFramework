@@ -7,7 +7,7 @@ namespace bs
 {
 	Vector<ShaderParameter> ShaderEx::GetParameters(const HShader& thisPtr)
 	{
-		if (!thisPtr.IsLoaded())
+		if(!thisPtr.IsLoaded())
 			return Vector<ShaderParameter>();
 
 		const Map<String, SHADER_DATA_PARAM_DESC>& dataParams = thisPtr->GetDataParams();
@@ -16,22 +16,21 @@ namespace bs
 		const Vector<SHADER_PARAM_ATTRIBUTE> attributes = thisPtr->GetParamAttributes();
 
 		Vector<ShaderParameter> paramInfos;
-		auto parseParam = [&paramInfos, &attributes](const String& identifier, ShaderParameterType type, bool isInternal,
-			u32 attribIdx)
+		auto parseParam = [&paramInfos, &attributes](const String& identifier, ShaderParameterType type, bool isInternal, u32 attribIdx)
 		{
 			ShaderParameter output;
 			output.Identifier = identifier;
 			output.Type = type;
 			output.Flags = isInternal ? ShaderParameterFlag::Internal : ShaderParameterFlag::None;
 
-			while (attribIdx != (u32)-1)
+			while(attribIdx != (u32)-1)
 			{
 				const SHADER_PARAM_ATTRIBUTE& attrib = attributes[attribIdx];
-				if (attrib.Type == ShaderParamAttributeType::Name)
+				if(attrib.Type == ShaderParamAttributeType::Name)
 					output.Name = attrib.Value;
-				else if (attrib.Type == ShaderParamAttributeType::HideInInspector)
+				else if(attrib.Type == ShaderParamAttributeType::HideInInspector)
 					output.Flags |= ShaderParameterFlag::HideInInspector;
-				else if (attrib.Type == ShaderParamAttributeType::HDR)
+				else if(attrib.Type == ShaderParamAttributeType::HDR)
 					output.Flags |= ShaderParameterFlag::HDR;
 
 				attribIdx = attrib.NextParamIdx;
@@ -45,12 +44,12 @@ namespace bs
 
 		// TODO - Ignoring int, bool, struct and non-square matrices
 		// TODO - Ignoring buffers and load/store textures
-		for (auto& param : dataParams)
+		for(auto& param : dataParams)
 		{
 			ShaderParameterType type;
 			bool isValidType = false;
 			bool isInternal = !param.second.RendererSemantic.Empty();
-			switch (param.second.Type)
+			switch(param.second.Type)
 			{
 			case GPDT_FLOAT1:
 				type = ShaderParameterType::Float;
@@ -84,16 +83,16 @@ namespace bs
 				break;
 			}
 
-			if (isValidType)
+			if(isValidType)
 				parseParam(param.first, type, isInternal, param.second.AttribIdx);
 		}
 
-		for (auto& param : textureParams)
+		for(auto& param : textureParams)
 		{
 			ShaderParameterType type;
 			bool isValidType = false;
 			bool isInternal = !param.second.RendererSemantic.Empty();
-			switch (param.second.Type)
+			switch(param.second.Type)
 			{
 			case GPOT_TEXTURE2D:
 			case GPOT_TEXTURE2DMS:
@@ -112,11 +111,11 @@ namespace bs
 				break;
 			}
 
-			if (isValidType)
+			if(isValidType)
 				parseParam(param.first, type, isInternal, param.second.AttribIdx);
 		}
 
-		for (auto& param : samplerParams)
+		for(auto& param : samplerParams)
 		{
 			ShaderParameterType type = ShaderParameterType::Sampler;
 			bool isInternal = !param.second.RendererSemantic.Empty();
@@ -126,4 +125,4 @@ namespace bs
 
 		return paramInfos;
 	}
-}
+} // namespace bs

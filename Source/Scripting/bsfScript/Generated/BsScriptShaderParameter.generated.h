@@ -30,6 +30,5 @@ namespace bs
 
 	private:
 		ScriptShaderParameter(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

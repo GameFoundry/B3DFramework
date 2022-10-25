@@ -17,7 +17,7 @@
 namespace bs
 {
 	ScriptPhysicsScene::ScriptPhysicsScene(MonoObject* managedInstance, const SPtr<PhysicsScene>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -54,20 +54,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_AddBroadPhaseRegion", (void*)&ScriptPhysicsScene::InternalAddBroadPhaseRegion);
 		metaData.ScriptClass->AddInternalCall("Internal_RemoveBroadPhaseRegion", (void*)&ScriptPhysicsScene::InternalRemoveBroadPhaseRegion);
 		metaData.ScriptClass->AddInternalCall("Internal_ClearBroadPhaseRegions", (void*)&ScriptPhysicsScene::InternalClearBroadPhaseRegions);
-
 	}
 
 	MonoObject* ScriptPhysicsScene::Create(const SPtr<PhysicsScene>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptPhysicsScene>()) ScriptPhysicsScene(managedInstance, value);
+		new(bs_alloc<ScriptPhysicsScene>()) ScriptPhysicsScene(managedInstance, value);
 		return managedInstance;
 	}
+
 	bool ScriptPhysicsScene::InternalRayCast(ScriptPhysicsScene* thisPtr, Ray* ray, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
@@ -520,4 +520,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->ClearBroadPhaseRegions();
 	}
-}
+} // namespace bs

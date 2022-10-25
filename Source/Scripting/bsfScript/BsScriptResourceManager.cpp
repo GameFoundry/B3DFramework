@@ -35,7 +35,7 @@ namespace bs
 		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
-		ScriptManagedResource* scriptResource = new (bs_alloc<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
+		ScriptManagedResource* scriptResource = new(bs_alloc<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
 		mScriptResources[uuid] = scriptResource;
 
 		return scriptResource;
@@ -48,13 +48,13 @@ namespace bs
 		ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
-		if (!resource.IsLoaded(false))
+		if(!resource.IsLoaded(false))
 			return nullptr;
 
 		u32 rttiId = resource->GetRtti()->GetRttiId();
 		BuiltinResourceInfo* info = ScriptAssemblyManager::Instance().GetBuiltinResourceInfo(rttiId);
 
-		if (info == nullptr)
+		if(info == nullptr)
 			return nullptr;
 
 		ScriptResourceBase* scriptResource = info->CreateCallback(resource, instance);
@@ -67,12 +67,12 @@ namespace bs
 	{
 		const UUID& uuid = resource.GetUuid();
 
-		if (uuid.Empty())
+		if(uuid.Empty())
 			return nullptr;
 
 		ScriptResourceBase* output = GetScriptResource(uuid);
 
-		if (output == nullptr && create)
+		if(output == nullptr && create)
 			return CreateBuiltinScriptResource(resource);
 
 		return output;
@@ -80,7 +80,7 @@ namespace bs
 
 	ScriptResourceBase* ScriptResourceManager::GetScriptResource(const UUID& uuid)
 	{
-		if (uuid.Empty())
+		if(uuid.Empty())
 			return nullptr;
 
 		auto findIter = mScriptResources.find(uuid);
@@ -94,7 +94,7 @@ namespace bs
 	{
 		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = mScriptRRefsPerType[rrefClass];
 		const auto iterFind = rrefs.find(resource.GetUuid());
-		if (iterFind != rrefs.end())
+		if(iterFind != rrefs.end())
 			return iterFind->second;
 
 		ScriptRRefBase* newRRef = ScriptRRefBase::Create(resource, rrefClass);
@@ -137,12 +137,12 @@ namespace bs
 			UnorderedMap<UUID, ScriptRRefBase*>& rrefs = kvp.second;
 
 			const auto iterFind = rrefs.find(uuid);
-			if (iterFind != rrefs.end())
+			if(iterFind != rrefs.end())
 				iterFind->second->ClearResource();
 		}
 
 		auto findIter = mScriptResources.find(uuid);
-		if (findIter != mScriptResources.end())
+		if(findIter != mScriptResources.end())
 		{
 			findIter->second->NotifyResourceDestroyed();
 			mScriptResources.erase(findIter);
@@ -166,4 +166,4 @@ namespace bs
 											 Retrieve the existing instance instead of creating a new one.");
 		}
 	}
-}
+} // namespace bs

@@ -15,12 +15,12 @@
 
 namespace bs
 {
-	ScriptCAnimation::ScriptRebuildFloatPropertiesInternalThunkDef ScriptCAnimation::ScriptRebuildFloatPropertiesInternalThunk; 
-	ScriptCAnimation::ScriptUpdateFloatPropertiesInternalThunkDef ScriptCAnimation::ScriptUpdateFloatPropertiesInternalThunk; 
-	ScriptCAnimation::ScriptOnEventTriggeredInternalThunkDef ScriptCAnimation::ScriptOnEventTriggeredInternalThunk; 
+	ScriptCAnimation::ScriptRebuildFloatPropertiesInternalThunkDef ScriptCAnimation::ScriptRebuildFloatPropertiesInternalThunk;
+	ScriptCAnimation::ScriptUpdateFloatPropertiesInternalThunkDef ScriptCAnimation::ScriptUpdateFloatPropertiesInternalThunk;
+	ScriptCAnimation::ScriptOnEventTriggeredInternalThunkDef ScriptCAnimation::ScriptOnEventTriggeredInternalThunk;
 
 	ScriptCAnimation::ScriptCAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 		value->ScriptRebuildFloatPropertiesInternal = std::bind(&ScriptCAnimation::ScriptRebuildFloatPropertiesInternal, this, std::placeholders::_1);
 		value->ScriptUpdateFloatPropertiesInternal = std::bind(&ScriptCAnimation::ScriptUpdateFloatPropertiesInternal, this);
@@ -94,6 +94,7 @@ namespace bs
 		tmpp1 = MonoUtil::StringToMono(p1);
 		MonoUtil::InvokeThunk(ScriptOnEventTriggeredInternalThunk, GetManagedInstance(), tmpp0, tmpp1);
 	}
+
 	void ScriptCAnimation::InternalSetDefaultClip(ScriptCAnimation* thisPtr, MonoObject* clip)
 	{
 		ResourceHandle<AnimationClip> tmpclip;
@@ -358,4 +359,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

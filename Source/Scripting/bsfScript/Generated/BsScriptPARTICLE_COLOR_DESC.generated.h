@@ -26,6 +26,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_COLOR_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

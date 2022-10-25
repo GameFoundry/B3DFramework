@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Importer/BsImportOptions.h"
 
-namespace bs { class ImportOptions; }
+namespace bs
+{
+	class ImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -14,6 +18,7 @@ namespace bs
 	{
 	public:
 		ScriptImportOptionsBase(MonoObject* instance);
+
 		virtual ~ScriptImportOptionsBase() {}
 
 		SPtr<ImportOptions> GetInternal() const;
@@ -31,4 +36,4 @@ namespace bs
 	private:
 	};
 #endif
-}
+} // namespace bs

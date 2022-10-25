@@ -6,8 +6,16 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 
-namespace bs { struct MultiResource; }
-namespace bs { struct __SubResourceInterop; }
+namespace bs
+{
+	struct MultiResource;
+}
+
+namespace bs
+{
+	struct __SubResourceInterop;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -19,6 +27,7 @@ namespace bs
 		ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value);
 
 		SPtr<MultiResource> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<MultiResource>& value);
 
 	private:
@@ -30,4 +39,4 @@ namespace bs
 		static void InternalSetEntries(ScriptMultiResource* thisPtr, MonoArray* value);
 	};
 #endif
-}
+} // namespace bs

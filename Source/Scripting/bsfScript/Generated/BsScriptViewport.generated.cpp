@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptViewport::ScriptViewport(MonoObject* managedInstance, const SPtr<Viewport>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -34,20 +34,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetClearStencilValue", (void*)&ScriptViewport::InternalSetClearStencilValue);
 		metaData.ScriptClass->AddInternalCall("Internal_GetClearStencilValue", (void*)&ScriptViewport::InternalGetClearStencilValue);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptViewport::InternalCreate);
-
 	}
 
 	MonoObject* ScriptViewport::Create(const SPtr<Viewport>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, value);
+		new(bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptViewport::InternalSetTarget(ScriptViewport* thisPtr, MonoObject* target)
 	{
 		SPtr<RenderTarget> tmptarget;
@@ -167,6 +167,6 @@ namespace bs
 		if(scripttarget != nullptr)
 			tmptarget = scripttarget->GetInternal();
 		SPtr<Viewport> instance = Viewport::Create(tmptarget, x, y, width, height);
-		new (bs_alloc<ScriptViewport>())ScriptViewport(managedInstance, instance);
+		new(bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, instance);
 	}
-}
+} // namespace bs

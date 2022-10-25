@@ -15,7 +15,7 @@
 namespace bs
 {
 	ScriptManagedResource::ScriptManagedResource(MonoObject* instance, const HManagedResource& resource)
-		:ScriptObject(instance), mResource(resource)
+		: ScriptObject(instance), mResource(resource)
 	{
 		BS_ASSERT(instance != nullptr);
 
@@ -38,7 +38,7 @@ namespace bs
 		SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 		// See if this type even still exists
-		if (!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
+		if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 			return nullptr;
 
 		MonoObject* instance = currentObjInfo->MMonoClass->CreateInstance(construct);
@@ -68,15 +68,15 @@ namespace bs
 		mResource->Restore(resourceBackup);
 
 		// If we could not find resource type after refresh, treat it as if it was destroyed
-		if (instance == nullptr)
+		if(instance == nullptr)
 			OnManagedInstanceDeletedInternal(false);
 	}
 
 	void ScriptManagedResource::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
 		mGCHandle = 0;
-		
-		if (!assemblyRefresh || mResource->IsDestroyed())
+
+		if(!assemblyRefresh || mResource->IsDestroyed())
 		{
 			// The only way this method should be reachable is when Resource::unload is called, which means the resource
 			// has had to been already freed. Even if all managed instances are released ManagedResource itself holds the last
@@ -98,4 +98,4 @@ namespace bs
 	{
 		mResource = static_resource_cast<ManagedResource>(resource);
 	}
-}
+} // namespace bs

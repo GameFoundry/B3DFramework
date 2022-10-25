@@ -36,10 +36,10 @@ namespace bs
 		// Make sure all objects that are finalized due to reasons other than assembly refreshed are destroyed
 		ProcessFinalizedObjects(false);
 
-		for (auto& scriptObject : mScriptObjects)
+		for(auto& scriptObject : mScriptObjects)
 			backupData[scriptObject] = scriptObject->BeginRefresh();
 
-		for (auto& scriptObject : mScriptObjects)
+		for(auto& scriptObject : mScriptObjects)
 			scriptObject->ClearManagedInstanceInternal();
 
 		MonoManager::Instance().UnloadScriptDomain();
@@ -48,12 +48,12 @@ namespace bs
 		// their processing we need to manually trigger it here.
 		ProcessFinalizedObjects(true);
 
-		for (auto& scriptObject : mScriptObjects)
+		for(auto& scriptObject : mScriptObjects)
 			assert(scriptObject->IsPersistent() && "Non-persistent ScriptObject alive after domain unload.");
 
 		ScriptAssemblyManager::Instance().ClearAssemblyInfo();
 
-		for (auto& entry : assemblies)
+		for(auto& entry : assemblies)
 		{
 			MonoManager::Instance().LoadAssembly(*entry.Path, entry.Name);
 			ScriptAssemblyManager::Instance().LoadAssemblyInfo(entry.Name, *entry.TypeMapping);
@@ -61,15 +61,15 @@ namespace bs
 
 		Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration
 		u32 idx = 0;
-		for (auto& scriptObject : mScriptObjects)
+		for(auto& scriptObject : mScriptObjects)
 			scriptObjCopy[idx++] = scriptObject;
 
 		OnRefreshDomainLoaded();
 
-		for (auto& scriptObject : scriptObjCopy)
+		for(auto& scriptObject : scriptObjCopy)
 			scriptObject->RestoreManagedInstanceInternal();
 
-		for (auto& scriptObject : scriptObjCopy)
+		for(auto& scriptObject : scriptObjCopy)
 			scriptObject->EndRefresh(backupData[scriptObject]);
 
 		OnRefreshComplete();
@@ -96,10 +96,10 @@ namespace bs
 			readQueueIdx = mFinalizedQueueIdx;
 			mFinalizedQueueIdx = (mFinalizedQueueIdx + 1) % 2;
 		}
-		
-		for (auto& finalizedObj : mFinalizedObjects[readQueueIdx])
+
+		for(auto& finalizedObj : mFinalizedObjects[readQueueIdx])
 			finalizedObj->OnManagedInstanceDeletedInternal(assemblyRefresh);
 
 		mFinalizedObjects[readQueueIdx].clear();
 	}
-}
+} // namespace bs

@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
-namespace bs { struct ParticleDepthCollisionSettings; }
+namespace bs
+{
+	struct ParticleDepthCollisionSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleDepthCollisionSettings : public TScriptReflectable<ScriptParticleDepthCollisionSettings, ParticleDepthCollisionSettings>
@@ -29,4 +33,4 @@ namespace bs
 		static float InternalGetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr);
 		static void InternalSetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

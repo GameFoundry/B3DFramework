@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptContactPoint(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

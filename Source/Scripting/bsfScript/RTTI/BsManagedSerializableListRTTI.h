@@ -62,11 +62,10 @@ namespace bs
 		{
 			AddReflectablePtrField("mListTypeInfo", 0, &ManagedSerializableListRTTI::GetTypeInfo, &ManagedSerializableListRTTI::SetTypeInfo);
 			AddPlainField("mNumElements", 1, &ManagedSerializableListRTTI::GetNumElements, &ManagedSerializableListRTTI::SetNumElements);
-			AddReflectablePtrArrayField("mListEntries", 2, &ManagedSerializableListRTTI::GetListEntry, &ManagedSerializableListRTTI::GetNumListEntries,
-				&ManagedSerializableListRTTI::SetListEntry, &ManagedSerializableListRTTI::SetNumListEntries);
+			AddReflectablePtrArrayField("mListEntries", 2, &ManagedSerializableListRTTI::GetListEntry, &ManagedSerializableListRTTI::GetNumListEntries, &ManagedSerializableListRTTI::SetListEntry, &ManagedSerializableListRTTI::SetNumListEntries);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptSerializableList";
 			return name;
@@ -77,7 +76,7 @@ namespace bs
 			return TID_ScriptSerializableList;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableList::CreateEmpty();
 		}
@@ -85,4 +84,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

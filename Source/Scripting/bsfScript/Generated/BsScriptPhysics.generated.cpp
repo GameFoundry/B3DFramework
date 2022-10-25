@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptPhysics::ScriptPhysics(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
+		: ScriptObject(managedInstance)
 	{
 	}
 
@@ -18,7 +18,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_ToggleCollision", (void*)&ScriptPhysics::InternalToggleCollision);
 		metaData.ScriptClass->AddInternalCall("Internal_IsCollisionEnabled", (void*)&ScriptPhysics::InternalIsCollisionEnabled);
 		metaData.ScriptClass->AddInternalCall("Internal_IsUpdateInProgressInternal", (void*)&ScriptPhysics::InternalIsUpdateInProgressInternal);
-
 	}
 
 	void ScriptPhysics::InternalToggleCollision(uint64_t groupA, uint64_t groupB, bool enabled)
@@ -47,4 +46,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

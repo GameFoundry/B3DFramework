@@ -16,7 +16,7 @@
 namespace bs
 {
 	ScriptAnimationCurves::ScriptAnimationCurves(MonoObject* managedInstance, const SPtr<AnimationCurves>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -39,24 +39,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetScaleCurves", (void*)&ScriptAnimationCurves::InternalSetScaleCurves);
 		metaData.ScriptClass->AddInternalCall("Internal_GetGenericCurves", (void*)&ScriptAnimationCurves::InternalGetGenericCurves);
 		metaData.ScriptClass->AddInternalCall("Internal_SetGenericCurves", (void*)&ScriptAnimationCurves::InternalSetGenericCurves);
-
 	}
 
 	MonoObject* ScriptAnimationCurves::Create(const SPtr<AnimationCurves>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, value);
+		new(bs_alloc<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptAnimationCurves::InternalAnimationCurves(MonoObject* managedInstance)
 	{
 		SPtr<AnimationCurves> instance = bs_shared_ptr_new<AnimationCurves>();
-		new (bs_alloc<ScriptAnimationCurves>())ScriptAnimationCurves(managedInstance, instance);
+		new(bs_alloc<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, instance);
 	}
 
 	void ScriptAnimationCurves::InternalAddPositionCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve)
@@ -262,4 +262,4 @@ namespace bs
 		}
 		AnimationCurvesEx::SetGenericCurves(thisPtr->GetInternal(), vecvalue);
 	}
-}
+} // namespace bs

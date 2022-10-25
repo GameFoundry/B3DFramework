@@ -10,7 +10,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(MonoObject* managedInstance, const SPtr<AudioClipImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -26,25 +26,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetBitDepth", (void*)&ScriptAudioClipImportOptions::InternalGetBitDepth);
 		metaData.ScriptClass->AddInternalCall("Internal_SetBitDepth", (void*)&ScriptAudioClipImportOptions::InternalSetBitDepth);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptAudioClipImportOptions::InternalCreate);
-
 	}
 
 	MonoObject* ScriptAudioClipImportOptions::Create(const SPtr<AudioClipImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptAudioClipImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<AudioClipImportOptions> instance = AudioClipImportOptions::Create();
-		new (bs_alloc<ScriptAudioClipImportOptions>())ScriptAudioClipImportOptions(managedInstance, instance);
+		new(bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, instance);
 	}
+
 	AudioFormat ScriptAudioClipImportOptions::InternalGetFormat(ScriptAudioClipImportOptions* thisPtr)
 	{
 		AudioFormat tmp__output;
@@ -109,4 +110,4 @@ namespace bs
 		thisPtr->GetInternal()->BitDepth = value;
 	}
 #endif
-}
+} // namespace bs

@@ -30,15 +30,15 @@ namespace bs
 		void Destroy(bool assemblyRefresh);
 
 		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
-		virtual void NotifyDestroyedInternal() { }
+		virtual void NotifyDestroyedInternal() {}
 
 		/** Checks if the provided game object is destroyed and logs a warning if it is. */
 		static bool CheckIfDestroyed(const GameObjectHandleBase& handle);
 	};
 
 	/**	Base class for a specific builtin component's interop object. */
-	template<class ScriptClass, class CompType, class BaseType = ScriptComponentBase>
-	class BS_SCR_BE_EXPORT TScriptComponent : public ScriptObject <ScriptClass, BaseType>
+	template <class ScriptClass, class CompType, class BaseType = ScriptComponentBase>
+	class BS_SCR_BE_EXPORT TScriptComponent : public ScriptObject<ScriptClass, BaseType>
 	{
 	public:
 		/**	Returns a generic handle to the internal wrapped component. */
@@ -54,7 +54,7 @@ namespace bs
 		friend class ScriptGameObjectManager;
 
 		TScriptComponent(MonoObject* instance, const GameObjectHandle<CompType>& component)
-			:ScriptObject<ScriptClass, BaseType>(instance), mComponent(component)
+			: ScriptObject<ScriptClass, BaseType>(instance), mComponent(component)
 		{
 			this->SetManagedInstance(instance);
 		}
@@ -122,4 +122,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

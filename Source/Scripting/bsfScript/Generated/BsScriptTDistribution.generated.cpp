@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptTDistributionfloat::ScriptTDistributionfloat(MonoObject* managedInstance, const SPtr<TDistribution<float>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -32,36 +32,36 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetMaxCurve", (void*)&ScriptTDistributionfloat::InternalGetMaxCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTDistributionfloat::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate0", (void*)&ScriptTDistributionfloat::InternalEvaluate0);
-
 	}
 
 	MonoObject* ScriptTDistributionfloat::Create(const SPtr<TDistribution<float>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, value);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTDistributionfloat::InternalTDistribution(MonoObject* managedInstance)
 	{
 		SPtr<TDistribution<float>> instance = bs_shared_ptr_new<TDistribution<float>>();
-		new (bs_alloc<ScriptTDistributionfloat>())ScriptTDistributionfloat(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, instance);
 	}
 
 	void ScriptTDistributionfloat::InternalTDistribution0(MonoObject* managedInstance, float value)
 	{
 		SPtr<TDistribution<float>> instance = bs_shared_ptr_new<TDistribution<float>>(value);
-		new (bs_alloc<ScriptTDistributionfloat>())ScriptTDistributionfloat(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, instance);
 	}
 
 	void ScriptTDistributionfloat::InternalTDistribution1(MonoObject* managedInstance, float minValue, float maxValue)
 	{
 		SPtr<TDistribution<float>> instance = bs_shared_ptr_new<TDistribution<float>>(minValue, maxValue);
-		new (bs_alloc<ScriptTDistributionfloat>())ScriptTDistributionfloat(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, instance);
 	}
 
 	void ScriptTDistributionfloat::InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve)
@@ -72,7 +72,7 @@ namespace bs
 		if(scriptcurve != nullptr)
 			tmpcurve = scriptcurve->GetInternal();
 		SPtr<TDistribution<float>> instance = bs_shared_ptr_new<TDistribution<float>>(*tmpcurve);
-		new (bs_alloc<ScriptTDistributionfloat>())ScriptTDistributionfloat(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, instance);
 	}
 
 	void ScriptTDistributionfloat::InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve)
@@ -88,7 +88,7 @@ namespace bs
 		if(scriptmaxCurve != nullptr)
 			tmpmaxCurve = scriptmaxCurve->GetInternal();
 		SPtr<TDistribution<float>> instance = bs_shared_ptr_new<TDistribution<float>>(*tmpminCurve, *tmpmaxCurve);
-		new (bs_alloc<ScriptTDistributionfloat>())ScriptTDistributionfloat(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionfloat>()) ScriptTDistributionfloat(managedInstance, instance);
 	}
 
 	PropertyDistributionType ScriptTDistributionfloat::InternalGetType(ScriptTDistributionfloat* thisPtr)
@@ -174,7 +174,7 @@ namespace bs
 	}
 
 	ScriptTDistributionVector3::ScriptTDistributionVector3(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -192,36 +192,36 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetMaxCurve", (void*)&ScriptTDistributionVector3::InternalGetMaxCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTDistributionVector3::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate0", (void*)&ScriptTDistributionVector3::InternalEvaluate0);
-
 	}
 
 	MonoObject* ScriptTDistributionVector3::Create(const SPtr<TDistribution<Vector3>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, value);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTDistributionVector3::InternalTDistribution(MonoObject* managedInstance)
 	{
 		SPtr<TDistribution<Vector3>> instance = bs_shared_ptr_new<TDistribution<Vector3>>();
-		new (bs_alloc<ScriptTDistributionVector3>())ScriptTDistributionVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector3::InternalTDistribution0(MonoObject* managedInstance, Vector3* value)
 	{
 		SPtr<TDistribution<Vector3>> instance = bs_shared_ptr_new<TDistribution<Vector3>>(*value);
-		new (bs_alloc<ScriptTDistributionVector3>())ScriptTDistributionVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector3::InternalTDistribution1(MonoObject* managedInstance, Vector3* minValue, Vector3* maxValue)
 	{
 		SPtr<TDistribution<Vector3>> instance = bs_shared_ptr_new<TDistribution<Vector3>>(*minValue, *maxValue);
-		new (bs_alloc<ScriptTDistributionVector3>())ScriptTDistributionVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector3::InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve)
@@ -232,7 +232,7 @@ namespace bs
 		if(scriptcurve != nullptr)
 			tmpcurve = scriptcurve->GetInternal();
 		SPtr<TDistribution<Vector3>> instance = bs_shared_ptr_new<TDistribution<Vector3>>(*tmpcurve);
-		new (bs_alloc<ScriptTDistributionVector3>())ScriptTDistributionVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector3::InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve)
@@ -248,7 +248,7 @@ namespace bs
 		if(scriptmaxCurve != nullptr)
 			tmpmaxCurve = scriptmaxCurve->GetInternal();
 		SPtr<TDistribution<Vector3>> instance = bs_shared_ptr_new<TDistribution<Vector3>>(*tmpminCurve, *tmpmaxCurve);
-		new (bs_alloc<ScriptTDistributionVector3>())ScriptTDistributionVector3(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector3>()) ScriptTDistributionVector3(managedInstance, instance);
 	}
 
 	PropertyDistributionType ScriptTDistributionVector3::InternalGetType(ScriptTDistributionVector3* thisPtr)
@@ -322,7 +322,7 @@ namespace bs
 	}
 
 	ScriptTDistributionVector2::ScriptTDistributionVector2(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -340,36 +340,36 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetMaxCurve", (void*)&ScriptTDistributionVector2::InternalGetMaxCurve);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptTDistributionVector2::InternalEvaluate);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate0", (void*)&ScriptTDistributionVector2::InternalEvaluate0);
-
 	}
 
 	MonoObject* ScriptTDistributionVector2::Create(const SPtr<TDistribution<Vector2>>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, value);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTDistributionVector2::InternalTDistribution(MonoObject* managedInstance)
 	{
 		SPtr<TDistribution<Vector2>> instance = bs_shared_ptr_new<TDistribution<Vector2>>();
-		new (bs_alloc<ScriptTDistributionVector2>())ScriptTDistributionVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector2::InternalTDistribution0(MonoObject* managedInstance, Vector2* value)
 	{
 		SPtr<TDistribution<Vector2>> instance = bs_shared_ptr_new<TDistribution<Vector2>>(*value);
-		new (bs_alloc<ScriptTDistributionVector2>())ScriptTDistributionVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector2::InternalTDistribution1(MonoObject* managedInstance, Vector2* minValue, Vector2* maxValue)
 	{
 		SPtr<TDistribution<Vector2>> instance = bs_shared_ptr_new<TDistribution<Vector2>>(*minValue, *maxValue);
-		new (bs_alloc<ScriptTDistributionVector2>())ScriptTDistributionVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector2::InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve)
@@ -380,7 +380,7 @@ namespace bs
 		if(scriptcurve != nullptr)
 			tmpcurve = scriptcurve->GetInternal();
 		SPtr<TDistribution<Vector2>> instance = bs_shared_ptr_new<TDistribution<Vector2>>(*tmpcurve);
-		new (bs_alloc<ScriptTDistributionVector2>())ScriptTDistributionVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, instance);
 	}
 
 	void ScriptTDistributionVector2::InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve)
@@ -396,7 +396,7 @@ namespace bs
 		if(scriptmaxCurve != nullptr)
 			tmpmaxCurve = scriptmaxCurve->GetInternal();
 		SPtr<TDistribution<Vector2>> instance = bs_shared_ptr_new<TDistribution<Vector2>>(*tmpminCurve, *tmpmaxCurve);
-		new (bs_alloc<ScriptTDistributionVector2>())ScriptTDistributionVector2(managedInstance, instance);
+		new(bs_alloc<ScriptTDistributionVector2>()) ScriptTDistributionVector2(managedInstance, instance);
 	}
 
 	PropertyDistributionType ScriptTDistributionVector2::InternalGetType(ScriptTDistributionVector2* thisPtr)
@@ -468,4 +468,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

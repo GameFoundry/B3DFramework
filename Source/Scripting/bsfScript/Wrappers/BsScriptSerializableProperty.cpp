@@ -21,9 +21,8 @@
 namespace bs
 {
 	ScriptSerializableProperty::ScriptSerializableProperty(MonoObject* instance, const SPtr<ManagedSerializableTypeInfo>& typeInfo)
-		:ScriptObject(instance), mTypeInfo(typeInfo)
+		: ScriptObject(instance), mTypeInfo(typeInfo)
 	{
-
 	}
 
 	void ScriptSerializableProperty::InitRuntimeData()
@@ -42,32 +41,30 @@ namespace bs
 	MonoObject* ScriptSerializableProperty::Create(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 	{
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance();
-		new (bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
+		new(bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
 
 		return managedInstance;
 	}
 
 	void ScriptSerializableProperty::InternalCreateInstance(MonoObject* instance, MonoReflectionType* reflType)
 	{
-		if (reflType == nullptr)
+		if(reflType == nullptr)
 			return;
 
 		::MonoClass* monoClass = MonoUtil::GetClass(reflType);
 		MonoClass* engineClass = MonoManager::Instance().FindClass(monoClass);
 
 		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
-		if (typeInfo == nullptr)
+		if(typeInfo == nullptr)
 		{
-			BS_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.",
-				engineClass->GetFullName());
+			BS_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.", engineClass->GetFullName());
 			return;
 		}
 
-		new (bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(instance, typeInfo);
+		new(bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(instance, typeInfo);
 	}
 
-	MonoObject* ScriptSerializableProperty::InternalCreateObject(ScriptSerializableProperty* nativeInstance,
-		MonoObject* managedInstance, MonoReflectionType* reflType)
+	MonoObject* ScriptSerializableProperty::InternalCreateObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance, MonoReflectionType* reflType)
 	{
 		return ScriptSerializableObject::Create(nativeInstance, managedInstance, reflType);
 	}
@@ -99,7 +96,7 @@ namespace bs
 
 		Vector<u32> nativeSizes;
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			nativeSizes.push_back(scriptArray.Get<u32>(i));
 
 		SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(nativeInstance->mTypeInfo);
@@ -117,4 +114,4 @@ namespace bs
 		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(nativeInstance->mTypeInfo);
 		return ManagedSerializableDictionary::CreateManagedInstance(dictTypeInfo);
 	}
-}
+} // namespace bs

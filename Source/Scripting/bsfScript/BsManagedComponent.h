@@ -75,14 +75,14 @@ namespace bs
 		 */
 		void Initialize(ScriptManagedComponent* owner);
 
-		typedef void(BS_THUNKCALL *OnCreatedThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnInitializedThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnUpdateThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnDestroyedThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnResetThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnEnabledThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnDisabledThunkDef) (MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL *OnTransformChangedThunkDef) (MonoObject*, TransformChangedFlags, MonoException**);
+		typedef void(BS_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnUpdateThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnDestroyedThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnResetThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnEnabledThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnDisabledThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnTransformChangedThunkDef)(MonoObject*, TransformChangedFlags, MonoException**);
 
 		MonoClass* mManagedClass = nullptr;
 		MonoReflectionType* mRuntimeType = nullptr;
@@ -121,19 +121,19 @@ namespace bs
 		void InstantiateInternal() override;
 
 		/** @copydoc Component::onCreated */
-		void OnCreated() ;
+		void OnCreated();
 
 		/** @copydoc Component::onInitialized */
-		void OnInitialized() ;
+		void OnInitialized();
 
 		/** @copydoc Component::onDestroyed */
-		void OnDestroyed() ;
+		void OnDestroyed();
 
 		/** @copydoc Component::onEnabled  */
-		void OnEnabled() ;
+		void OnEnabled();
 
 		/** @copydoc Component::onDisabled  */
-		void OnDisabled() ;
+		void OnDisabled();
 
 		/** @copydoc Component::onTransformChanged  */
 		void OnTransformChanged(TransformChangedFlags flags) override;
@@ -161,4 +161,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

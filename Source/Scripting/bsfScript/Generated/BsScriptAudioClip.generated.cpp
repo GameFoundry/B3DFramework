@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptAudioClip::ScriptAudioClip(MonoObject* managedInstance, const ResourceHandle<AudioClip>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -24,16 +24,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetLength", (void*)&ScriptAudioClip::InternalGetLength);
 		metaData.ScriptClass->AddInternalCall("Internal_GetNumSamples", (void*)&ScriptAudioClip::InternalGetNumSamples);
 		metaData.ScriptClass->AddInternalCall("Internal_Is3D", (void*)&ScriptAudioClip::InternalIs3D);
-
 	}
 
-	 MonoObject*ScriptAudioClip::CreateInstance()
+	MonoObject* ScriptAudioClip::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptAudioClip::InternalGetRef(ScriptAudioClip* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -126,4 +126,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

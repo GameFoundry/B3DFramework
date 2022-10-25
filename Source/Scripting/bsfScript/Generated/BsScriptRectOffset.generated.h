@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptRectOffset(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

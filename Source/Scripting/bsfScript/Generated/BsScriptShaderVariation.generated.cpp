@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptShaderVariation::ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariation>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -27,24 +27,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_HasParam", (void*)&ScriptShaderVariation::InternalHasParam);
 		metaData.ScriptClass->AddInternalCall("Internal_ClearParams", (void*)&ScriptShaderVariation::InternalClearParams);
 		metaData.ScriptClass->AddInternalCall("Internal_GetParamNames", (void*)&ScriptShaderVariation::InternalGetParamNames);
-
 	}
 
 	MonoObject* ScriptShaderVariation::Create(const SPtr<ShaderVariation>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, value);
+		new(bs_alloc<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptShaderVariation::InternalShaderVariation(MonoObject* managedInstance)
 	{
 		SPtr<ShaderVariation> instance = bs_shared_ptr_new<ShaderVariation>();
-		new (bs_alloc<ScriptShaderVariation>())ScriptShaderVariation(managedInstance, instance);
+		new(bs_alloc<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, instance);
 	}
 
 	int32_t ScriptShaderVariation::InternalGetInt(ScriptShaderVariation* thisPtr, MonoString* name)
@@ -168,4 +168,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

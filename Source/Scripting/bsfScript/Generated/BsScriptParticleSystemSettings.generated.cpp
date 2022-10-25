@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptParticleSystemSettings::ScriptParticleSystemSettings(MonoObject* managedInstance, const SPtr<ParticleSystemSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -51,20 +51,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetUseAutomaticBounds", (void*)&ScriptParticleSystemSettings::InternalSetUseAutomaticBounds);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCustomBounds", (void*)&ScriptParticleSystemSettings::InternalGetCustomBounds);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCustomBounds", (void*)&ScriptParticleSystemSettings::InternalSetCustomBounds);
-
 	}
 
 	MonoObject* ScriptParticleSystemSettings::Create(const SPtr<ParticleSystemSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleSystemSettings>()) ScriptParticleSystemSettings(managedInstance, value);
+		new(bs_alloc<ScriptParticleSystemSettings>()) ScriptParticleSystemSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoObject* ScriptParticleSystemSettings::InternalGetMaterial(ScriptParticleSystemSettings* thisPtr)
 	{
 		ResourceHandle<Material> tmp__output;
@@ -251,8 +251,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->OrientationPlaneNormal;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleSystemSettings::InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* value)
@@ -330,12 +328,10 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->CustomBounds;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleSystemSettings::InternalSetCustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* value)
 	{
 		thisPtr->GetInternal()->CustomBounds = *value;
 	}
-}
+} // namespace bs

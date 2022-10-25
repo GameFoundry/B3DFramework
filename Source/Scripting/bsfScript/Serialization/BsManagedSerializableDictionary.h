@@ -16,8 +16,8 @@ namespace bs
 	struct BS_SCR_BE_EXPORT ManagedSerializableDictionaryKeyValue : public IReflectable
 	{
 		ManagedSerializableDictionaryKeyValue() {}
-		ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key,
-			const SPtr<ManagedSerializableFieldData>& value);
+
+		ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& value);
 
 		SPtr<ManagedSerializableFieldData> Key;
 		SPtr<ManagedSerializableFieldData> Value;
@@ -28,7 +28,7 @@ namespace bs
 	public:
 		friend class ManagedSerializableDictionaryKeyValueRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/**
@@ -44,15 +44,16 @@ namespace bs
 	 *	 - Serialized - When the object has no link to the managed object but instead just contains cached object
 	 *					and field data that may be used for initializing a managed object. Any operations during
 	 *					this state will operate only on the cached internal data.
-	 *					
+	 *
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
+	 * state you can call deserialize() to populated a managed object from the cached data.
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableDictionary : public IReflectable
 	{
 	private:
-		struct ConstructPrivately {};
-		
+		struct ConstructPrivately
+		{};
+
 	public:
 		typedef UnorderedMap<SPtr<ManagedSerializableFieldData>, SPtr<ManagedSerializableFieldData>> CachedEntriesMap;
 
@@ -110,8 +111,7 @@ namespace bs
 		};
 
 	public:
-		ManagedSerializableDictionary(const ConstructPrivately& dummy,
-			const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableDictionary(const ConstructPrivately& dummy);
 		~ManagedSerializableDictionary();
 
@@ -184,8 +184,7 @@ namespace bs
 		 *									correspond with the provided type info.
 		 * @param[in]	typeInfo			Type information for the dictionary and its key/value pair.
 		 */
-		static SPtr<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance,
-			const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
+		static SPtr<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed serializable dictionary that creates and references a brand new managed dictionary instance.
@@ -215,8 +214,7 @@ namespace bs
 		 * @param[in]	key		Wrapper around the key data at which to set the value.
 		 * @param[in]	val		Wrapper around the value to set at the specified key.
 		 */
-		void SetFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key,
-			const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(MonoObject* obj, const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& val);
 
 		uint32_t mGCHandle = 0;
 
@@ -236,15 +234,15 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		
+
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
 		static SPtr<ManagedSerializableDictionary> CreateEmpty();
 
 	public:
 		friend class ManagedSerializableDictionaryRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

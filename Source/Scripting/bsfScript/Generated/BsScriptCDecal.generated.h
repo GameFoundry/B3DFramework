@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsVector2.h"
 
-namespace bs { class CDecal; }
+namespace bs
+{
+	class CDecal;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCDecal : public TScriptComponent<ScriptCDecal, CDecal>
@@ -28,4 +32,4 @@ namespace bs
 		static void InternalSetLayerMask(ScriptCDecal* thisPtr, uint32_t mask);
 		static uint32_t InternalGetLayerMask(ScriptCDecal* thisPtr);
 	};
-}
+} // namespace bs

@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCSliderJoint::ScriptCSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -22,7 +22,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptCSliderJoint::InternalSetLimit);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCSliderJoint::InternalSetFlag);
 		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCSliderJoint::InternalHasFlag);
-
 	}
 
 	float ScriptCSliderJoint::InternalGetPosition(ScriptCSliderJoint* thisPtr)
@@ -79,4 +78,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

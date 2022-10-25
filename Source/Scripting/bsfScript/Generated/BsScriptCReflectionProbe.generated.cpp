@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptCReflectionProbe::ScriptCReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -28,7 +28,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetCustomTexture", (void*)&ScriptCReflectionProbe::InternalGetCustomTexture);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCustomTexture", (void*)&ScriptCReflectionProbe::InternalSetCustomTexture);
 		metaData.ScriptClass->AddInternalCall("Internal_Capture", (void*)&ScriptCReflectionProbe::InternalCapture);
-
 	}
 
 	ReflectionProbeType ScriptCReflectionProbe::InternalGetType(ScriptCReflectionProbe* thisPtr)
@@ -106,4 +105,4 @@ namespace bs
 	{
 		thisPtr->GetHandle()->Capture();
 	}
-}
+} // namespace bs

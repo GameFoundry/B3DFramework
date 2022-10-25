@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptCLightProbeVolume::ScriptCLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -30,7 +30,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_Reset", (void*)&ScriptCLightProbeVolume::InternalReset);
 		metaData.ScriptClass->AddInternalCall("Internal_GetGridVolume", (void*)&ScriptCLightProbeVolume::InternalGetGridVolume);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCellCount", (void*)&ScriptCLightProbeVolume::InternalGetCellCount);
-
 	}
 
 	uint32_t ScriptCLightProbeVolume::InternalAddProbe(ScriptCLightProbeVolume* thisPtr, Vector3* position)
@@ -120,4 +119,4 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-}
+} // namespace bs

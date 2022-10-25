@@ -17,7 +17,7 @@ using namespace std::placeholders;
 namespace bs
 {
 	ScriptGUIElementBaseTBase::ScriptGUIElementBaseTBase(MonoObject* instance)
-		:ScriptObjectBase(instance), mIsDestroyed(false), mElement(nullptr), mParent(nullptr)
+		: ScriptObjectBase(instance), mIsDestroyed(false), mElement(nullptr), mParent(nullptr)
 	{
 		mGCHandle = MonoUtil::NewWeakGcHandle(instance);
 	}
@@ -26,7 +26,7 @@ namespace bs
 	{
 		mElement = element;
 
-		if (mElement != nullptr && mElement->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(mElement != nullptr && mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(element);
 			guiElem->OnFocusChanged.Connect(std::bind(&ScriptGUIElementBaseTBase::OnFocusChanged, this, _1));
@@ -37,7 +37,7 @@ namespace bs
 	{
 		MonoObject* instance = MonoUtil::GetObjectFromGcHandle(thisPtr->mGCHandle);
 
-		if (focus)
+		if(focus)
 			MonoUtil::InvokeThunk(ScriptGUIElement::onFocusGainedThunk, instance);
 		else
 			MonoUtil::InvokeThunk(ScriptGUIElement::onFocusLostThunk, instance);
@@ -63,19 +63,18 @@ namespace bs
 	}
 
 	ScriptGUIElementTBase::ScriptGUIElementTBase(MonoObject* instance)
-		:ScriptGUIElementBaseTBase(instance)
+		: ScriptGUIElementBaseTBase(instance)
 	{
-
 	}
 
 	void ScriptGUIElementTBase::Destroy()
 	{
 		if(!mIsDestroyed)
 		{
-			if (mParent != nullptr)
+			if(mParent != nullptr)
 				mParent->RemoveChild(this);
 
-			if (mElement->GetTypeInternal() == GUIElementBase::Type::Element)
+			if(mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement::Destroy((GUIElement*)mElement);
 				mElement = nullptr;
@@ -89,9 +88,8 @@ namespace bs
 	ScriptGUIElement::OnFocusChangedThunkDef ScriptGUIElement::onFocusLostThunk;
 
 	ScriptGUIElement::ScriptGUIElement(MonoObject* instance)
-		:ScriptObject(instance)
+		: ScriptObject(instance)
 	{
-
 	}
 
 	void ScriptGUIElement::InitRuntimeData()
@@ -135,7 +133,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetVisible(ScriptGUIElementBaseTBase* nativeInstance, bool visible)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetVisible(visible);
@@ -143,7 +141,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetActive(ScriptGUIElementBaseTBase* nativeInstance, bool enabled)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetActive(enabled);
@@ -151,7 +149,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetDisabled(ScriptGUIElementBaseTBase* nativeInstance, bool disabled)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetDisabled(disabled);
@@ -159,20 +157,20 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetFocus(ScriptGUIElementBaseTBase* nativeInstance, bool focus)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			guiElem->SetFocus(focus, true);
-		}		
+		}
 	}
 
 	bool ScriptGUIElement::InternalGetVisible(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
@@ -181,7 +179,7 @@ namespace bs
 
 	bool ScriptGUIElement::InternalGetActive(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
@@ -190,7 +188,7 @@ namespace bs
 
 	bool ScriptGUIElement::InternalGetDisabled(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
@@ -199,11 +197,11 @@ namespace bs
 
 	bool ScriptGUIElement::InternalGetBlocking(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			return !guiElem->GetOptionFlags().IsSet(GUIElementOption::ClickThrough);
@@ -214,11 +212,11 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetBlocking(ScriptGUIElementBaseTBase* nativeInstance, bool blocking)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
@@ -234,11 +232,11 @@ namespace bs
 
 	bool ScriptGUIElement::InternalGetAcceptsKeyFocus(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return false;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 			return guiElem->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
@@ -249,11 +247,11 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetAcceptsKeyFocus(ScriptGUIElementBaseTBase* nativeInstance, bool accepts)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
@@ -269,10 +267,10 @@ namespace bs
 
 	MonoObject* ScriptGUIElement::InternalGetParent(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return nullptr;
 
-		if (nativeInstance->GetParent() != nullptr)
+		if(nativeInstance->GetParent() != nullptr)
 			return nativeInstance->GetParent()->GetManagedInstance();
 
 		return nullptr;
@@ -280,7 +278,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalGetBounds(ScriptGUIElementBaseTBase* nativeInstance, Rect2I* bounds)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 		{
 			*bounds = Rect2I();
 			return;
@@ -291,7 +289,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetBounds(ScriptGUIElementBaseTBase* nativeInstance, Rect2I* bounds)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetPosition(bounds->X, bounds->Y);
@@ -301,7 +299,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalGetVisibleBounds(ScriptGUIElementBaseTBase* nativeInstance, Rect2I* bounds)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 		{
 			*bounds = Rect2I();
 			return;
@@ -312,7 +310,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalGetScreenBounds(ScriptGUIElementBaseTBase* nativeInstance, Rect2I* bounds)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 		{
 			*bounds = Rect2I();
 			return;
@@ -323,7 +321,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetPosition(ScriptGUIElementBaseTBase* nativeInstance, i32 x, i32 y)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetPosition(x, y);
@@ -331,7 +329,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetWidth(ScriptGUIElementBaseTBase* nativeInstance, u32 width)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetWidth(width);
@@ -339,7 +337,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetFlexibleWidth(ScriptGUIElementBaseTBase* nativeInstance, u32 minWidth, u32 maxWidth)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetFlexibleWidth(minWidth, maxWidth);
@@ -347,7 +345,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetHeight(ScriptGUIElementBaseTBase* nativeInstance, u32 height)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetHeight(height);
@@ -355,7 +353,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetFlexibleHeight(ScriptGUIElementBaseTBase* nativeInstance, u32 minHeight, u32 maxHeight)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->SetFlexibleHeight(minHeight, maxHeight);
@@ -363,7 +361,7 @@ namespace bs
 
 	void ScriptGUIElement::InternalResetDimensions(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		nativeInstance->GetGuiElement()->ResetDimensions();
@@ -371,16 +369,16 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetContextMenu(ScriptGUIElementBaseTBase* nativeInstance, ScriptContextMenu* contextMenu)
 	{
-		if (nativeInstance->IsDestroyed())
+		if(nativeInstance->IsDestroyed())
 			return;
 
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 
 			SPtr<GUIContextMenu> nativeContextMenu;
-			if (contextMenu != nullptr)
+			if(contextMenu != nullptr)
 				nativeContextMenu = contextMenu->GetInternal();
 
 			guiElem->SetContextMenu(nativeContextMenu);
@@ -389,10 +387,10 @@ namespace bs
 
 	MonoString* ScriptGUIElement::InternalGetStyle(ScriptGUIElementBaseTBase* nativeInstance)
 	{
-		if (!nativeInstance->IsDestroyed())
+		if(!nativeInstance->IsDestroyed())
 		{
 			GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-			if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+			if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 				return MonoUtil::StringToMono(guiElem->GetStyleName());
@@ -404,14 +402,14 @@ namespace bs
 
 	void ScriptGUIElement::InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstance, MonoString* style)
 	{
-		if (!nativeInstance->IsDestroyed())
+		if(!nativeInstance->IsDestroyed())
 		{
 			GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-			if (guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
+			if(guiElemBase->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
 				guiElem->SetStyle(MonoUtil::MonoToString(style));
 			}
 		}
 	}
-}
+} // namespace bs

@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 
-namespace bs { class RenderTexture; }
-namespace bs { class RenderTextureEx; }
+namespace bs
+{
+	class RenderTexture;
+}
+
+namespace bs
+{
+	class RenderTextureEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptRenderTexture : public TScriptReflectable<ScriptRenderTexture, RenderTexture, ScriptRenderTargetBase>
@@ -31,4 +39,4 @@ namespace bs
 		static MonoArray* InternalGetColorSurfaces(ScriptRenderTexture* thisPtr);
 		static MonoObject* InternalGetDepthStencilSurface(ScriptRenderTexture* thisPtr);
 	};
-}
+} // namespace bs

@@ -8,7 +8,11 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
-namespace bs { class ParticleEmitterSphereShape; }
+namespace bs
+{
+	class ParticleEmitterSphereShape;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterSphereShape : public TScriptReflectable<ScriptParticleEmitterSphereShape, ParticleEmitterSphereShape, ScriptParticleEmitterShapeBase>
@@ -26,4 +30,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_SPHERE_SHAPE_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

@@ -16,7 +16,7 @@
 namespace bs
 {
 	ScriptTexture::ScriptTexture(MonoObject* managedInstance, const ResourceHandle<Texture>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -37,16 +37,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetPixels", (void*)&ScriptTexture::InternalGetPixels);
 		metaData.ScriptClass->AddInternalCall("Internal_SetPixels", (void*)&ScriptTexture::InternalSetPixels);
 		metaData.ScriptClass->AddInternalCall("Internal_SetPixelsArray", (void*)&ScriptTexture::InternalSetPixelsArray);
-
 	}
 
-	 MonoObject*ScriptTexture::CreateInstance()
+	MonoObject* ScriptTexture::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptTexture::InternalGetRef(ScriptTexture* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -66,7 +66,8 @@ namespace bs
 			return monoObj;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptPixelData::GetMetaData()->ScriptClass);
+		;
+		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptPixelData::GetMetaData()->ScriptClass);
 
 		return __output;
 	}
@@ -208,8 +209,7 @@ namespace bs
 			{
 				veccolors[i] = arraycolors.Get<Color>(i);
 			}
-
 		}
 		TextureEx::SetPixelsArray(thisPtr->GetHandle(), veccolors, face, mipLevel);
 	}
-}
+} // namespace bs

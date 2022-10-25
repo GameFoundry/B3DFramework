@@ -12,8 +12,16 @@
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"
 
-namespace bs { class RendererMeshData; }
-namespace bs { class MeshDataEx; }
+namespace bs
+{
+	class RendererMeshData;
+}
+
+namespace bs
+{
+	class MeshDataEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptRendererMeshData : public ScriptObject<ScriptRendererMeshData>
@@ -24,6 +32,7 @@ namespace bs
 		ScriptRendererMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value);
 
 		SPtr<RendererMeshData> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<RendererMeshData>& value);
 
 	private:
@@ -49,4 +58,4 @@ namespace bs
 		static int32_t InternalGetVertexCount(ScriptRendererMeshData* thisPtr);
 		static int32_t InternalGetIndexCount(ScriptRendererMeshData* thisPtr);
 	};
-}
+} // namespace bs

@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptD6JointDrive(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

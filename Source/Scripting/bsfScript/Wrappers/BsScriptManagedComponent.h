@@ -32,12 +32,12 @@ namespace bs
 		friend class ManagedComponent;
 
 		ScriptManagedComponent(MonoObject* instance, const HManagedComponent& component);
-		
+
 		/** @copydoc ScriptObjectBase::beginRefresh */
-		ScriptObjectBackup BeginRefresh() ;
+		ScriptObjectBackup BeginRefresh();
 
 		/** @copydoc ScriptObjectBase::endRefresh */
-		void EndRefresh(const ScriptObjectBackup& backupData) ;
+		void EndRefresh(const ScriptObjectBackup& backupData);
 
 		/** @copydoc ScriptObject::_createManagedInstance */
 		MonoObject* CreateManagedInstanceInternal(bool construct) override;
@@ -63,4 +63,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

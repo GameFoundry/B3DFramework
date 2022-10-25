@@ -11,8 +11,8 @@
 namespace bs
 {
 	ScriptResourceBase::ScriptResourceBase(MonoObject* instance)
-		:PersistentScriptObjectBase(instance)
-	{ }
+		: PersistentScriptObjectBase(instance)
+	{}
 
 	ScriptResourceBase::~ScriptResourceBase()
 	{
@@ -46,7 +46,7 @@ namespace bs
 
 	void ScriptResourceBase::FreeManagedInstance()
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoUtil::FreeGcHandle(mGCHandle);
 			mGCHandle = 0;
@@ -68,7 +68,7 @@ namespace bs
 		{
 			BuiltinResourceInfo* info = ScriptAssemblyManager::Instance().GetBuiltinResourceInfo(rttiId);
 
-			if (info == nullptr)
+			if(info == nullptr)
 				return nullptr;
 
 			return info->MonoClass->GetInternalClassInternal();
@@ -78,7 +78,7 @@ namespace bs
 	::MonoClass* ScriptResourceBase::GetRRefClass(u32 rttiId)
 	{
 		::MonoClass* monoClass = GetManagedResourceClass(rttiId);
-		if (!monoClass)
+		if(!monoClass)
 			return nullptr;
 
 		return ScriptRRefBase::BindGenericParam(monoClass);
@@ -107,11 +107,11 @@ namespace bs
 	}
 
 	ScriptUUID::ScriptUUID(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptUUID::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptUUID::Box(const UUID& value)
 	{
@@ -123,4 +123,4 @@ namespace bs
 	{
 		return *(UUID*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

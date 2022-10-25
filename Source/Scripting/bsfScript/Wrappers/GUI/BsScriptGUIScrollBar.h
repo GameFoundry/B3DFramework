@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	class GUIScrollBar;
-	
+
 	/**	Interop class between C++ & CLR for GUIScrollBar.  */
 	class BS_SCR_BE_EXPORT ScriptGUIScrollBar : public TScriptGUIElement<ScriptGUIScrollBar>
 	{
@@ -49,7 +49,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL *OnScrolledThunkDef) (MonoObject*, float, MonoException**);
+		typedef void(BS_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
 		static OnScrolledThunkDef onScrolledThunk;
 	};
 
@@ -70,7 +70,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL *OnScrolledThunkDef) (MonoObject*, float, MonoException**);
+		typedef void(BS_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
 		static OnScrolledThunkDef onScrolledThunk;
 	};
 
@@ -91,7 +91,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL *OnScrollOrResizeThunkDef) (MonoObject*, float, float, MonoException**);
+		typedef void(BS_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
 		static OnScrollOrResizeThunkDef onScrollOrResizeThunk;
 	};
 
@@ -112,9 +112,9 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL *OnScrollOrResizeThunkDef) (MonoObject*, float, float, MonoException**);
+		typedef void(BS_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
 		static OnScrollOrResizeThunkDef onScrollOrResizeThunk;
 	};
 
 	/** @} */
-}
+} // namespace bs

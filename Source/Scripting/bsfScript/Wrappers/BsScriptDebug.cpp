@@ -22,8 +22,8 @@ namespace bs
 	};
 
 	ScriptDebug::ScriptDebug(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptDebug::InitRuntimeData()
 	{
@@ -85,7 +85,7 @@ namespace bs
 
 		u32 numEntries = (u32)entries.size();
 		ScriptArray output = ScriptArray::Create<ScriptLogEntry>(numEntries);
-		for (u32 i = 0; i < numEntries; i++)
+		for(u32 i = 0; i < numEntries; i++)
 		{
 			MonoString* message = MonoUtil::StringToMono(entries[i].GetMessage());
 
@@ -95,4 +95,4 @@ namespace bs
 
 		return output.GetInternal();
 	}
-}
+} // namespace bs

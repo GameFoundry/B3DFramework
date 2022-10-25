@@ -39,4 +39,4 @@ namespace bs
 
 	/** @} */
 #endif
-}
+} // namespace bs

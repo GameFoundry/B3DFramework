@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Quaternion. */
-	class BS_SCR_BE_EXPORT ScriptQuaternion : public ScriptObject <ScriptQuaternion>
+	class BS_SCR_BE_EXPORT ScriptQuaternion : public ScriptObject<ScriptQuaternion>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Quaternion")
@@ -29,4 +29,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

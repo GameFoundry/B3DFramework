@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_VELOCITY_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

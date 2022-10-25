@@ -15,7 +15,7 @@
 namespace bs
 {
 	ScriptCD6Joint::ScriptCD6Joint(MonoObject* managedInstance, const GameObjectHandle<CD6Joint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -40,7 +40,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetDriveLinearVelocity", (void*)&ScriptCD6Joint::InternalGetDriveLinearVelocity);
 		metaData.ScriptClass->AddInternalCall("Internal_GetDriveAngularVelocity", (void*)&ScriptCD6Joint::InternalGetDriveAngularVelocity);
 		metaData.ScriptClass->AddInternalCall("Internal_SetDriveVelocity", (void*)&ScriptCD6Joint::InternalSetDriveVelocity);
-
 	}
 
 	D6JointMotion ScriptCD6Joint::InternalGetMotion(ScriptCD6Joint* thisPtr, D6JointAxis axis)
@@ -188,4 +187,4 @@ namespace bs
 	{
 		thisPtr->GetHandle()->SetDriveVelocity(*linear, *angular);
 	}
-}
+} // namespace bs

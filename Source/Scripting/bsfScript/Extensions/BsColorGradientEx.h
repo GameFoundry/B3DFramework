@@ -9,8 +9,8 @@
 namespace bs
 {
 	/** @addtogroup ScriptInteropEngine
-	*  @{
-	*/
+	 *  @{
+	 */
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Extension class for ColorGradient, for adding additional functionality for the script interface. */
@@ -22,7 +22,6 @@ namespace bs
 		static Color Evaluate(const SPtr<ColorGradient>& thisPtr, float t);
 	};
 
-	
 	/** Extension class for ColorGradientHDr, for adding additional functionality for the script interface. */
 	class BS_SCRIPT_EXPORT(ExtensionMethodForType(ColorGradientHDR)) ColorGradientHDREx
 	{
@@ -34,4 +33,4 @@ namespace bs
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

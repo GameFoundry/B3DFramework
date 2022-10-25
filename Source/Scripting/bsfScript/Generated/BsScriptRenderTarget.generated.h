@@ -6,14 +6,23 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 
-namespace bs { class RenderTarget; }
-namespace bs { class RenderTargetEx; }
+namespace bs
+{
+	class RenderTarget;
+}
+
+namespace bs
+{
+	class RenderTargetEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptRenderTargetBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptRenderTargetBase(MonoObject* instance);
+
 		virtual ~ScriptRenderTargetBase() {}
 
 		SPtr<RenderTarget> GetInternal() const;
@@ -36,4 +45,4 @@ namespace bs
 		static void InternalSetPriority(ScriptRenderTargetBase* thisPtr, int32_t priority);
 		static uint32_t InternalGetSampleCount(ScriptRenderTargetBase* thisPtr);
 	};
-}
+} // namespace bs

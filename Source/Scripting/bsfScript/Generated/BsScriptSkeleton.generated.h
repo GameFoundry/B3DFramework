@@ -7,9 +7,21 @@
 #include "../../../Foundation/bsfCore/Animation/BsSkeleton.h"
 #include "../Extensions/BsSkeletonEx.h"
 
-namespace bs { class Skeleton; }
-namespace bs { class SkeletonEx; }
-namespace bs { struct __SkeletonBoneInfoExInterop; }
+namespace bs
+{
+	class Skeleton;
+}
+
+namespace bs
+{
+	class SkeletonEx;
+}
+
+namespace bs
+{
+	struct __SkeletonBoneInfoExInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptSkeleton : public TScriptReflectable<ScriptSkeleton, Skeleton>
@@ -25,4 +37,4 @@ namespace bs
 		static uint32_t InternalGetNumBones(ScriptSkeleton* thisPtr);
 		static void InternalGetBoneInfo(ScriptSkeleton* thisPtr, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output);
 	};
-}
+} // namespace bs

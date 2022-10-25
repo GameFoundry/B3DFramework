@@ -6,8 +6,16 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 
-namespace bs { class PhysicsMesh; }
-namespace bs { class PhysicsMeshEx; }
+namespace bs
+{
+	class PhysicsMesh;
+}
+
+namespace bs
+{
+	class PhysicsMeshEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptPhysicsMesh : public TScriptResource<ScriptPhysicsMesh, PhysicsMesh>
@@ -26,4 +34,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* meshData, PhysicsMeshType type);
 		static MonoObject* InternalGetMeshData(ScriptPhysicsMesh* thisPtr);
 	};
-}
+} // namespace bs

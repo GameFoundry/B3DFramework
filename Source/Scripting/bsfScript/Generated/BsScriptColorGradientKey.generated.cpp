@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptColorGradientKey::ScriptColorGradientKey(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptColorGradientKey::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptColorGradientKey::Box(const __ColorGradientKeyInterop& value)
+	MonoObject* ScriptColorGradientKey::Box(const __ColorGradientKeyInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -44,4 +44,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

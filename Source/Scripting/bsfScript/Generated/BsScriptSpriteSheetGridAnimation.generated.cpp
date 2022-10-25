@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptSpriteSheetGridAnimation::ScriptSpriteSheetGridAnimation(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSpriteSheetGridAnimation::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptSpriteSheetGridAnimation::Box(const SpriteSheetGridAnimation& value)
+	MonoObject* ScriptSpriteSheetGridAnimation::Box(const SpriteSheetGridAnimation& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(SpriteSheetGridAnimation*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

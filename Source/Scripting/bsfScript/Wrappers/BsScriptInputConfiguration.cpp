@@ -12,7 +12,7 @@ namespace bs
 	Map<u64, ScriptInputConfiguration*> ScriptInputConfiguration::ScriptInputConfigurations;
 
 	ScriptInputConfiguration::ScriptInputConfiguration(MonoObject* instance, const SPtr<InputConfiguration>& inputConfig)
-		:ScriptObject(instance), mInputConfig(inputConfig)
+		: ScriptObject(instance), mInputConfig(inputConfig)
 	{
 		mGCHandle = MonoUtil::NewWeakGcHandle(instance);
 
@@ -41,7 +41,7 @@ namespace bs
 		u64 configId = (u64)inputConfig.get();
 
 		auto iterFind = ScriptInputConfigurations.find(configId);
-		if (iterFind != ScriptInputConfigurations.end())
+		if(iterFind != ScriptInputConfigurations.end())
 			return iterFind->second;
 
 		return nullptr;
@@ -51,7 +51,7 @@ namespace bs
 	{
 		MonoObject* instance = metaData.ScriptClass->CreateInstance(false);
 
-		ScriptInputConfiguration* nativeInstance = new (bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(instance, inputConfig);
+		ScriptInputConfiguration* nativeInstance = new(bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(instance, inputConfig);
 		return nativeInstance;
 	}
 
@@ -59,11 +59,10 @@ namespace bs
 	{
 		SPtr<InputConfiguration> inputConfig = VirtualInput::CreateConfiguration();
 
-		new (bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(object, inputConfig);
+		new(bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(object, inputConfig);
 	}
 
-	void ScriptInputConfiguration::InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode,
-		ButtonModifier modifiers, bool repeatable)
+	void ScriptInputConfiguration::InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)
 	{
 		String nameStr = MonoUtil::MonoToString(name);
 
@@ -77,8 +76,7 @@ namespace bs
 		thisPtr->GetInternalValue()->UnregisterButton(nameStr);
 	}
 
-	void ScriptInputConfiguration::InternalRegisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name, InputAxis type, float deadZone,
-		float sensitivity, bool invert)
+	void ScriptInputConfiguration::InternalRegisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name, InputAxis type, float deadZone, float sensitivity, bool invert)
 	{
 		String nameStr = MonoUtil::MonoToString(name);
 
@@ -117,8 +115,8 @@ namespace bs
 	}
 
 	ScriptVirtualAxis::ScriptVirtualAxis(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVirtualAxis::InitRuntimeData()
 	{
@@ -132,4 +130,4 @@ namespace bs
 		VirtualAxis vb(nameStr);
 		return vb.AxisIdentifier;
 	}
-}
+} // namespace bs

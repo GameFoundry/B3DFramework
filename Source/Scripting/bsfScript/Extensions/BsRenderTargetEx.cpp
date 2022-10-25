@@ -62,17 +62,17 @@ namespace bs
 	{
 		return Create(Vector<HTexture>{ colorSurface }, HTexture());
 	}
-		
+
 	SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
 	{
 		RENDER_SURFACE_DESC depthStencilSurfaceDesc;
-		if (depthStencilSurface != nullptr)
+		if(depthStencilSurface != nullptr)
 		{
 			depthStencilSurfaceDesc.Face = 0;
 			depthStencilSurfaceDesc.MipLevel = 0;
 			depthStencilSurfaceDesc.NumFaces = 1;
 
-			if (!depthStencilSurface.IsLoaded())
+			if(!depthStencilSurface.IsLoaded())
 				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");
 			else
 				depthStencilSurfaceDesc.Texture = depthStencilSurface;
@@ -81,14 +81,14 @@ namespace bs
 		u32 numSurfaces = std::min((u32)colorSurfaces.size(), (u32)BS_MAX_MULTIPLE_RENDER_TARGETS);
 
 		RENDER_TEXTURE_DESC desc;
-		for (u32 i = 0; i < numSurfaces; i++)
+		for(u32 i = 0; i < numSurfaces; i++)
 		{
 			RENDER_SURFACE_DESC surfaceDesc;
 			surfaceDesc.Face = 0;
 			surfaceDesc.MipLevel = 0;
 			surfaceDesc.NumFaces = 1;
 
-			if (!colorSurfaces[i].IsLoaded())
+			if(!colorSurfaces[i].IsLoaded())
 				BS_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");
 			else
 				surfaceDesc.Texture = colorSurfaces[i];
@@ -108,11 +108,11 @@ namespace bs
 		Vector<HTexture> output;
 		output.reserve(numColorSurfaces);
 
-		for (u32 i = 0; i < numColorSurfaces; i++)
+		for(u32 i = 0; i < numColorSurfaces; i++)
 		{
 			HTexture colorTex = thisPtr->GetColorTexture(i);
 
-			if (colorTex != nullptr)
+			if(colorTex != nullptr)
 				output.push_back(colorTex);
 		}
 
@@ -128,4 +128,4 @@ namespace bs
 	{
 		return thisPtr->GetDepthStencilTexture();
 	}
-}
+} // namespace bs

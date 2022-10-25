@@ -11,13 +11,13 @@
 namespace bs
 {
 	ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::Box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::Box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -60,4 +60,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptCMeshCollider::ScriptCMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -20,7 +20,6 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptCMeshCollider::InternalSetMesh);
 		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptCMeshCollider::InternalGetMesh);
-
 	}
 
 	void ScriptCMeshCollider::InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh)
@@ -48,4 +47,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

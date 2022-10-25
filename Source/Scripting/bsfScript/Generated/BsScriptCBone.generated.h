@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
-namespace bs { class CBone; }
+namespace bs
+{
+	class CBone;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCBone : public TScriptComponent<ScriptCBone, CBone>
@@ -19,4 +23,4 @@ namespace bs
 		static void InternalSetBoneName(ScriptCBone* thisPtr, MonoString* name);
 		static MonoString* InternalGetBoneName(ScriptCBone* thisPtr);
 	};
-}
+} // namespace bs

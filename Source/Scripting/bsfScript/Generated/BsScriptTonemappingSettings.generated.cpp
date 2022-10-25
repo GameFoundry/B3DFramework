@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptTonemappingSettings::ScriptTonemappingSettings(MonoObject* managedInstance, const SPtr<TonemappingSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -29,24 +29,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetFilmicCurveToeDenominator", (void*)&ScriptTonemappingSettings::InternalSetFilmicCurveToeDenominator);
 		metaData.ScriptClass->AddInternalCall("Internal_GetFilmicCurveLinearWhitePoint", (void*)&ScriptTonemappingSettings::InternalGetFilmicCurveLinearWhitePoint);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFilmicCurveLinearWhitePoint", (void*)&ScriptTonemappingSettings::InternalSetFilmicCurveLinearWhitePoint);
-
 	}
 
 	MonoObject* ScriptTonemappingSettings::Create(const SPtr<TonemappingSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, value);
+		new(bs_alloc<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTonemappingSettings::InternalTonemappingSettings(MonoObject* managedInstance)
 	{
 		SPtr<TonemappingSettings> instance = bs_shared_ptr_new<TonemappingSettings>();
-		new (bs_alloc<ScriptTonemappingSettings>())ScriptTonemappingSettings(managedInstance, instance);
+		new(bs_alloc<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, instance);
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr)
@@ -160,4 +160,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->FilmicCurveLinearWhitePoint = value;
 	}
-}
+} // namespace bs

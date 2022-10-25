@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
-namespace bs { class Font; }
+namespace bs
+{
+	class Font;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptFont : public TScriptResource<ScriptFont, Font>
@@ -23,4 +27,4 @@ namespace bs
 		static MonoObject* InternalGetBitmap(ScriptFont* thisPtr, uint32_t size);
 		static int32_t InternalGetClosestSize(ScriptFont* thisPtr, uint32_t size);
 	};
-}
+} // namespace bs

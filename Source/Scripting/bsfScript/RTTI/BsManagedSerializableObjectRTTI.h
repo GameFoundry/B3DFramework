@@ -59,20 +59,19 @@ namespace bs
 		ManagedSerializableObjectRTTI()
 		{
 			AddReflectablePtrField("mObjInfo", 0, &ManagedSerializableObjectRTTI::GetInfo, &ManagedSerializableObjectRTTI::SetInfo);
-			AddReflectablePtrArrayField("mFieldEntries", 1, &ManagedSerializableObjectRTTI::GetFieldEntry, &ManagedSerializableObjectRTTI::GetNumFieldEntries,
-				&ManagedSerializableObjectRTTI::SetFieldsEntry, &ManagedSerializableObjectRTTI::SetNumFieldEntries);
+			AddReflectablePtrArrayField("mFieldEntries", 1, &ManagedSerializableObjectRTTI::GetFieldEntry, &ManagedSerializableObjectRTTI::GetNumFieldEntries, &ManagedSerializableObjectRTTI::SetFieldsEntry, &ManagedSerializableObjectRTTI::SetNumFieldEntries);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) 
+		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
 		{
 			ManagedSerializableObject* castObj = static_cast<ManagedSerializableObject*>(obj);
 
 			SPtr<ManagedSerializableObjectInfo> curType = castObj->mObjInfo;
-			while (curType != nullptr)
+			while(curType != nullptr)
 			{
-				for (auto& field : curType->MFields)
+				for(auto& field : curType->MFields)
 				{
-					if (field.second->IsSerializable())
+					if(field.second->IsSerializable())
 						mSequentialFields.push_back(field.second);
 				}
 
@@ -80,19 +79,19 @@ namespace bs
 			}
 		}
 
-		IDiff& GetDiffHandler() const 
+		IDiff& GetDiffHandler() const
 		{
 			static ManagedDiff managedDiffHandler;
 			return managedDiffHandler;
 		}
 
-		ICompare& GetCompareHandler() const 
+		ICompare& GetCompareHandler() const
 		{
 			static ManagedCompare managedCompareHandler;
 			return managedCompareHandler;
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptSerializableObject";
 			return name;
@@ -103,7 +102,7 @@ namespace bs
 			return TID_ScriptSerializableObject;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableObject::CreateEmpty();
 		}
@@ -114,4 +113,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

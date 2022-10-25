@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptColorGradingSettings::ScriptColorGradingSettings(MonoObject* managedInstance, const SPtr<ColorGradingSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -23,28 +23,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetGain", (void*)&ScriptColorGradingSettings::InternalSetGain);
 		metaData.ScriptClass->AddInternalCall("Internal_GetOffset", (void*)&ScriptColorGradingSettings::InternalGetOffset);
 		metaData.ScriptClass->AddInternalCall("Internal_SetOffset", (void*)&ScriptColorGradingSettings::InternalSetOffset);
-
 	}
 
 	MonoObject* ScriptColorGradingSettings::Create(const SPtr<ColorGradingSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptColorGradingSettings>()) ScriptColorGradingSettings(managedInstance, value);
+		new(bs_alloc<ScriptColorGradingSettings>()) ScriptColorGradingSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptColorGradingSettings::InternalGetSaturation(ScriptColorGradingSettings* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetInternal()->Saturation;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptColorGradingSettings::InternalSetSaturation(ScriptColorGradingSettings* thisPtr, Vector3* value)
@@ -58,8 +56,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Contrast;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptColorGradingSettings::InternalSetContrast(ScriptColorGradingSettings* thisPtr, Vector3* value)
@@ -73,8 +69,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Gain;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptColorGradingSettings::InternalSetGain(ScriptColorGradingSettings* thisPtr, Vector3* value)
@@ -88,12 +82,10 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Offset;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptColorGradingSettings::InternalSetOffset(ScriptColorGradingSettings* thisPtr, Vector3* value)
 	{
 		thisPtr->GetInternal()->Offset = *value;
 	}
-}
+} // namespace bs

@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptParticleCollisions::ScriptParticleCollisions(MonoObject* managedInstance, const SPtr<ParticleCollisions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -28,20 +28,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleCollisions::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleCollisions::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleCollisions::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleCollisions::Create(const SPtr<ParticleCollisions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
+		new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleCollisions::InternalSetPlanes(ScriptParticleCollisions* thisPtr, MonoArray* planes)
 	{
 		Vector<Plane> vecplanes;
@@ -107,7 +107,7 @@ namespace bs
 		{
 			ScriptSceneObject* script__output = nullptr;
 			if(vec__output[i])
-			script__output = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(vec__output[i]);
+				script__output = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(vec__output[i]);
 			if(script__output != nullptr)
 				array__output.Set(i, script__output->GetManagedInstance());
 			else
@@ -134,12 +134,12 @@ namespace bs
 	void ScriptParticleCollisions::InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc)
 	{
 		SPtr<ParticleCollisions> instance = ParticleCollisions::Create(*desc);
-		new (bs_alloc<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, instance);
+		new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
 	}
 
 	void ScriptParticleCollisions::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleCollisions> instance = ParticleCollisions::Create();
-		new (bs_alloc<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, instance);
+		new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
 	}
-}
+} // namespace bs

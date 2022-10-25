@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptGUIElementStateStyle(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

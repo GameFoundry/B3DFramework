@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptColorGradientHDR::ScriptColorGradientHDR(MonoObject* managedInstance, const SPtr<ColorGradientHDR>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -27,30 +27,30 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetKey", (void*)&ScriptColorGradientHDR::InternalGetKey);
 		metaData.ScriptClass->AddInternalCall("Internal_SetConstant", (void*)&ScriptColorGradientHDR::InternalSetConstant);
 		metaData.ScriptClass->AddInternalCall("Internal_Evaluate", (void*)&ScriptColorGradientHDR::InternalEvaluate);
-
 	}
 
 	MonoObject* ScriptColorGradientHDR::Create(const SPtr<ColorGradientHDR>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, value);
+		new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptColorGradientHDR::InternalColorGradientHDR(MonoObject* managedInstance)
 	{
 		SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>();
-		new (bs_alloc<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 	}
 
 	void ScriptColorGradientHDR::InternalColorGradientHDR0(MonoObject* managedInstance, Color* color)
 	{
 		SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>(*color);
-		new (bs_alloc<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 	}
 
 	void ScriptColorGradientHDR::InternalColorGradientHDR1(MonoObject* managedInstance, MonoArray* keys)
@@ -66,7 +66,7 @@ namespace bs
 			}
 		}
 		SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>(veckeys);
-		new (bs_alloc<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 	}
 
 	void ScriptColorGradientHDR::InternalSetKeys(ScriptColorGradientHDR* thisPtr, MonoArray* keys, float duration)
@@ -80,7 +80,6 @@ namespace bs
 			{
 				veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
 			}
-
 		}
 		thisPtr->GetInternal()->SetKeys(veckeys, duration);
 	}
@@ -135,4 +134,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptVector3I::ScriptVector3I(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptVector3I::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptVector3I::Box(const Vector3I& value)
+	MonoObject* ScriptVector3I::Box(const Vector3I& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(Vector3I*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

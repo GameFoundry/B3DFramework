@@ -45,8 +45,7 @@ namespace bs
 		struct ModifiedField : IReflectable
 		{
 			ModifiedField() = default;
-			ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
-				const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification);
+			ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification);
 
 			SPtr<ManagedSerializableTypeInfo> ParentType; /**< Type of the parent object the field belongs to. */
 			SPtr<ManagedSerializableMemberInfo> FieldType; /**< Data type of the field. */
@@ -113,7 +112,7 @@ namespace bs
 		public:
 			friend class ModifiedObjectRTTI;
 			static RTTITypeBase* GetRttiStatic();
-			RTTITypeBase* GetRtti() const ;
+			RTTITypeBase* GetRtti() const;
 		};
 
 		/**	Contains data about all modifications in an array or a list. */
@@ -131,7 +130,7 @@ namespace bs
 		public:
 			friend class ModifiedArrayRTTI;
 			static RTTITypeBase* GetRttiStatic();
-			RTTITypeBase* GetRtti() const ;
+			RTTITypeBase* GetRtti() const;
 		};
 
 		/**	Contains data about all modifications in a dictionary. */
@@ -150,7 +149,7 @@ namespace bs
 		public:
 			friend class ModifiedDictionaryRTTI;
 			static RTTITypeBase* GetRttiStatic();
-			RTTITypeBase* GetRtti() const ;
+			RTTITypeBase* GetRtti() const;
 		};
 
 		/** Contains data about modification of a primitive field (field's new value). */
@@ -169,7 +168,7 @@ namespace bs
 		public:
 			friend class ModifiedEntryRTTI;
 			static RTTITypeBase* GetRttiStatic();
-			RTTITypeBase* GetRtti() const ;
+			RTTITypeBase* GetRtti() const;
 		};
 
 	public:
@@ -204,8 +203,7 @@ namespace bs
 		 * appropriately. Diff is generated recursively on all complex objects as well. Returns null if fields contain
 		 * identical data.
 		 */
-		SPtr<Modification> GenerateDiff(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData,
-			u32 fieldTypeId);
+		SPtr<Modification> GenerateDiff(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, u32 fieldTypeId);
 
 		/**
 		 * Applies an object modification to a managed object. Modifications are applied recursively.
@@ -253,8 +251,7 @@ namespace bs
 		 * @return					New field data in the case modification needed the field data to be re-created instead
 		 *							of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType,
-			const SPtr<ManagedSerializableFieldData>& origData);
+		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& origData);
 
 		SPtr<ModifiedObject> mModificationRoot;
 
@@ -268,4 +265,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
-namespace bs { class CSkybox; }
+namespace bs
+{
+	class CSkybox;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCSkybox : public TScriptComponent<ScriptCSkybox, CSkybox>
@@ -21,4 +25,4 @@ namespace bs
 		static void InternalSetBrightness(ScriptCSkybox* thisPtr, float brightness);
 		static float InternalGetBrightness(ScriptCSkybox* thisPtr);
 	};
-}
+} // namespace bs

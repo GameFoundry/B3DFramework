@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleRotation::ScriptParticleRotation(MonoObject* managedInstance, const SPtr<ParticleRotation>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleRotation::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleRotation::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleRotation::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleRotation::Create(const SPtr<ParticleRotation>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
+		new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleRotation::InternalSetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* options)
 	{
 		PARTICLE_ROTATION_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_ROTATION_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_ROTATION_DESC::FromInterop(*desc);
 		SPtr<ParticleRotation> instance = ParticleRotation::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, instance);
+		new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
 	}
 
 	void ScriptParticleRotation::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleRotation> instance = ParticleRotation::Create();
-		new (bs_alloc<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, instance);
+		new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
 	}
-}
+} // namespace bs

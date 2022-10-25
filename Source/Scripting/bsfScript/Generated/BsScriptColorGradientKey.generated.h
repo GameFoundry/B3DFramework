@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptColorGradientKey(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

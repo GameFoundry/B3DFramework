@@ -45,7 +45,6 @@ namespace bs
 
 	private:
 		ScriptRENDER_WINDOW_DESC(MonoObject* managedInstance);
-
 	};
 #endif
-}
+} // namespace bs

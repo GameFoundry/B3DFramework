@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptSubMesh(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

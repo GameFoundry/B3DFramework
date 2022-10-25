@@ -8,13 +8,18 @@
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs { class CJoint; }
+namespace bs
+{
+	class CJoint;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCJointBase : public ScriptComponentBase
 	{
 	public:
 		ScriptCJointBase(MonoObject* instance);
+
 		virtual ~ScriptCJointBase() {}
 	};
 
@@ -28,7 +33,7 @@ namespace bs
 	private:
 		void OnJointBreak();
 
-		typedef void(BS_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnJointBreakThunkDef)(MonoObject*, MonoException**);
 		static OnJointBreakThunkDef OnJointBreakThunk;
 
 		static MonoObject* InternalGetBody(ScriptCJointBase* thisPtr, JointBody body);
@@ -43,4 +48,4 @@ namespace bs
 		static bool InternalGetEnableCollision(ScriptCJointBase* thisPtr);
 		static void InternalSetEnableCollision(ScriptCJointBase* thisPtr, bool value);
 	};
-}
+} // namespace bs

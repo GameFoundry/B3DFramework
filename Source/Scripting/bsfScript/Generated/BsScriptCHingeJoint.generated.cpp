@@ -11,7 +11,7 @@
 namespace bs
 {
 	ScriptCHingeJoint::ScriptCHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -25,7 +25,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetDrive", (void*)&ScriptCHingeJoint::InternalSetDrive);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCHingeJoint::InternalSetFlag);
 		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCHingeJoint::InternalHasFlag);
-
 	}
 
 	void ScriptCHingeJoint::InternalGetAngle(ScriptCHingeJoint* thisPtr, Radian* __output)
@@ -92,4 +91,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

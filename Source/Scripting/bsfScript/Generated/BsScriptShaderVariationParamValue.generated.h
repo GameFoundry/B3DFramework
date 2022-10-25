@@ -26,6 +26,5 @@ namespace bs
 
 	private:
 		ScriptShaderVariationParamValue(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

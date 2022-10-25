@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsSphericalJoint.h"
 
-namespace bs { struct __LimitConeRangeInterop; }
-namespace bs { class CSphericalJoint; }
+namespace bs
+{
+	struct __LimitConeRangeInterop;
+}
+
+namespace bs
+{
+	class CSphericalJoint;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCSphericalJoint : public TScriptComponent<ScriptCSphericalJoint, CSphericalJoint, ScriptCJointBase>
@@ -25,4 +33,4 @@ namespace bs
 		static void InternalSetFlag(ScriptCSphericalJoint* thisPtr, SphericalJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptCSphericalJoint* thisPtr, SphericalJointFlag flag);
 	};
-}
+} // namespace bs

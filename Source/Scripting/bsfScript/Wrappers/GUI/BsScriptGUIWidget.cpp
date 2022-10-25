@@ -17,7 +17,7 @@ namespace bs
 	MonoField* ScriptGUIWidget::sGUIPanelField = nullptr;
 
 	ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
-		:ScriptObject(managedInstance), mGUIWidget(nullptr)
+		: ScriptObject(managedInstance), mGUIWidget(nullptr)
 	{
 		SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
 
@@ -31,7 +31,7 @@ namespace bs
 	}
 
 	ScriptGUIWidget::~ScriptGUIWidget()
-	{ }
+	{}
 
 	void ScriptGUIWidget::InitRuntimeData()
 	{
@@ -49,7 +49,7 @@ namespace bs
 
 	void ScriptGUIWidget::InternalCreate(MonoObject* managedInstance)
 	{
-		new (bs_alloc<ScriptGUIWidget>()) ScriptGUIWidget(managedInstance);
+		new(bs_alloc<ScriptGUIWidget>()) ScriptGUIWidget(managedInstance);
 	}
 
 	void ScriptGUIWidget::InternalUpdateTransform(ScriptGUIWidget* thisPtr, ScriptSceneObject* parent)
@@ -57,12 +57,12 @@ namespace bs
 		HSceneObject parentSO = parent->GetHandle();
 
 		SPtr<GUIWidget> widget = thisPtr->GetInternal();
-		if (!parentSO.IsDestroyed() && widget != nullptr)
+		if(!parentSO.IsDestroyed() && widget != nullptr)
 		{
 			widget->UpdateTransformInternal(parentSO);
 			widget->UpdateRTInternal();
 
-			if (parentSO->GetActive() != widget->GetIsActive())
+			if(parentSO->GetActive() != widget->GetIsActive())
 				widget->SetIsActive(parentSO->GetActive());
 		}
 	}
@@ -71,10 +71,10 @@ namespace bs
 	{
 		SPtr<GUIWidget> widget = instance->GetInternal();
 
-		if (widget != nullptr)
+		if(widget != nullptr)
 		{
 			SPtr<Camera> nativeCamera;
-			if (camera != nullptr)
+			if(camera != nullptr)
 				nativeCamera = camera->GetHandle()->GetCameraInternal();
 
 			widget->SetCamera(nativeCamera);
@@ -84,21 +84,21 @@ namespace bs
 	void ScriptGUIWidget::InternalSetSkin(ScriptGUIWidget* instance, ScriptGUISkin* skin)
 	{
 		HGUISkin guiSkin;
-		if (skin != nullptr)
+		if(skin != nullptr)
 			guiSkin = skin->GetHandle();
 
-		if (!guiSkin.IsLoaded())
+		if(!guiSkin.IsLoaded())
 			guiSkin = BuiltinResources::Instance().GetGuiSkin();
 
 		SPtr<GUIWidget> widget = instance->GetInternal();
-		if (widget != nullptr)
+		if(widget != nullptr)
 			widget->SetSkin(guiSkin);
 	}
 
 	void ScriptGUIWidget::InternalSetCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
 	{
 		SPtr<Camera> nativeCamera;
-		if (camera != nullptr)
+		if(camera != nullptr)
 			nativeCamera = camera->GetHandle()->GetCameraInternal();
 
 		if(nativeCamera == nullptr)
@@ -132,7 +132,7 @@ namespace bs
 			mPanel = nullptr;
 		}
 
-		if (mGUIWidget != nullptr)
+		if(mGUIWidget != nullptr)
 		{
 			mGUIWidget->DestroyInternal();
 			mGUIWidget = nullptr;
@@ -145,4 +145,4 @@ namespace bs
 
 		ScriptObject::OnManagedInstanceDeletedInternal(assemblyRefresh);
 	}
-}
+} // namespace bs

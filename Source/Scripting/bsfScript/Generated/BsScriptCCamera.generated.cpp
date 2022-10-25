@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptCCamera::ScriptCCamera(MonoObject* managedInstance, const GameObjectHandle<CCamera>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -65,7 +65,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_UnprojectPoint", (void*)&ScriptCCamera::InternalUnprojectPoint);
 		metaData.ScriptClass->AddInternalCall("Internal_SetMain", (void*)&ScriptCCamera::InternalSetMain);
 		metaData.ScriptClass->AddInternalCall("Internal_IsMain", (void*)&ScriptCCamera::InternalIsMain);
-
 	}
 
 	void ScriptCCamera::InternalSetFlags(ScriptCCamera* thisPtr, CameraFlag flags)
@@ -429,4 +428,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

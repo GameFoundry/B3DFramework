@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptVectorField::ScriptVectorField(MonoObject* managedInstance, const ResourceHandle<VectorField>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -22,16 +22,16 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptVectorField::InternalGetRef);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptVectorField::InternalCreate);
-
 	}
 
-	 MonoObject*ScriptVectorField::CreateInstance()
+	MonoObject* ScriptVectorField::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptVectorField::InternalGetRef(ScriptVectorField* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -54,4 +54,4 @@ namespace bs
 		ResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, vecvalues);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

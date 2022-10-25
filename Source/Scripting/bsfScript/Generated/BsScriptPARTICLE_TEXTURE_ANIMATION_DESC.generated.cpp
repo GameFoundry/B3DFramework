@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptPARTICLE_TEXTURE_ANIMATION_DESC::ScriptPARTICLE_TEXTURE_ANIMATION_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_TEXTURE_ANIMATION_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_TEXTURE_ANIMATION_DESC::Box(const PARTICLE_TEXTURE_ANIMATION_DESC& value)
+	MonoObject* ScriptPARTICLE_TEXTURE_ANIMATION_DESC::Box(const PARTICLE_TEXTURE_ANIMATION_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(PARTICLE_TEXTURE_ANIMATION_DESC*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

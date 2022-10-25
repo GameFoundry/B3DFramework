@@ -20,9 +20,8 @@
 namespace bs
 {
 	ScriptGUIRenderTexture::ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture)
-		:TScriptGUIElement(instance, texture)
+		: TScriptGUIElement(instance, texture)
 	{
-
 	}
 
 	void ScriptGUIRenderTexture::InitRuntimeData()
@@ -32,29 +31,28 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptGUIRenderTexture::InternalSetTint);
 	}
 
-	void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance,
-		ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions)
+	void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance, ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		SPtr<RenderTexture> renderTexture;
-		if (texture != nullptr)
+		if(texture != nullptr)
 			renderTexture = texture->GetInternal();
 
 		GUIRenderTexture* guiTexture = GUIRenderTexture::Create(renderTexture, transparent, options, MonoUtil::MonoToString(style));
 
-		new (bs_alloc<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
+		new(bs_alloc<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
 	}
 
 	void ScriptGUIRenderTexture::InternalSetTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture)
 	{
 		SPtr<RenderTexture> renderTexture;
-		if (texture != nullptr)
+		if(texture != nullptr)
 			renderTexture = texture->GetInternal();
 
 		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->GetGuiElement();
@@ -66,4 +64,4 @@ namespace bs
 		GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->GetGuiElement();
 		guiTexture->SetTint(*color);
 	}
-}
+} // namespace bs

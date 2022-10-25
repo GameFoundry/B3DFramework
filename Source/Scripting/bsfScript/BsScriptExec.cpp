@@ -8,14 +8,13 @@
 
 /** Main entry point into the application. */
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-#include <windows.h>
+#	include <windows.h>
 
 int CALLBACK WinMain(
-	_In_  HINSTANCE hInstance,
-	_In_  HINSTANCE hPrevInstance,
-	_In_  LPSTR lpCmdLine,
-	_In_  int nCmdShow
-)
+	_In_ HINSTANCE hInstance,
+	_In_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nCmdShow)
 #else
 int main(int __argc, char* __argv[])
 #endif

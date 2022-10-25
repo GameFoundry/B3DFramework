@@ -8,7 +8,11 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { class ParticleTextureAnimation; }
+namespace bs
+{
+	class ParticleTextureAnimation;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleTextureAnimation : public TScriptReflectable<ScriptParticleTextureAnimation, ParticleTextureAnimation, ScriptParticleEvolverBase>
@@ -26,4 +30,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_TEXTURE_ANIMATION_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

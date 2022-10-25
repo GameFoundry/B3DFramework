@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptBoneWeight(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

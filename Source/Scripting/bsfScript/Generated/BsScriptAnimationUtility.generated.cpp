@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptAnimationUtility::ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -26,20 +26,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SplitCurve2D", (void*)&ScriptAnimationUtility::InternalSplitCurve2D);
 		metaData.ScriptClass->AddInternalCall("Internal_CombineCurve2D", (void*)&ScriptAnimationUtility::InternalCombineCurve2D);
 		metaData.ScriptClass->AddInternalCall("Internal_CalculateRange", (void*)&ScriptAnimationUtility::InternalCalculateRange);
-
 	}
 
 	MonoObject* ScriptAnimationUtility::Create(const SPtr<AnimationUtility>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
+		new(bs_alloc<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoObject* ScriptAnimationUtility::InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
 		SPtr<TAnimationCurve<Quaternion>> tmp__output;
@@ -193,8 +193,7 @@ namespace bs
 					veccurves[i] = arrayElemPtrcurves;
 				}
 			}
-
 		}
 		AnimationUtility::CalculateRange(veccurves, *xMin, *xMax, *yMin, *yMax);
 	}
-}
+} // namespace bs

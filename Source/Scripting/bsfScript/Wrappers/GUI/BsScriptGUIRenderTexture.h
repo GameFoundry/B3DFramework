@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIRenderTexture. */
-	class BS_SCR_BE_EXPORT ScriptGUIRenderTexture : public TScriptGUIElement < ScriptGUIRenderTexture >
+	class BS_SCR_BE_EXPORT ScriptGUIRenderTexture : public TScriptGUIElement<ScriptGUIRenderTexture>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIRenderTexture")
@@ -23,11 +23,10 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, ScriptRenderTexture* texture, bool transparent,
-			MonoString* style, MonoArray* guiOptions);
+		static void InternalCreateInstance(MonoObject* instance, ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions);
 		static void InternalSetTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture);
 		static void InternalSetTint(ScriptGUIRenderTexture* nativeInstance, Color* color);
 	};
 
 	/** @} */
-}
+} // namespace bs

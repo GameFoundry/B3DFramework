@@ -28,6 +28,7 @@ namespace bs
 
 		/**	Returns a handle to the internal wrapped resource. */
 		const HManagedResource& GetHandle() const { return mResource; }
+
 	private:
 		friend class ScriptResourceManager;
 		friend class ManagedResource;
@@ -61,4 +62,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

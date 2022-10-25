@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptPARTICLE_VELOCITY_DESC::ScriptPARTICLE_VELOCITY_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_VELOCITY_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_VELOCITY_DESC::Box(const __PARTICLE_VELOCITY_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_VELOCITY_DESC::Box(const __PARTICLE_VELOCITY_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -35,7 +35,7 @@ namespace bs
 		if(scriptVelocity != nullptr)
 			tmpVelocity = scriptVelocity->GetInternal();
 		if(tmpVelocity != nullptr)
-		output.Velocity = *tmpVelocity;
+			output.Velocity = *tmpVelocity;
 		output.WorldSpace = value.WorldSpace;
 
 		return output;
@@ -54,4 +54,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

@@ -19,8 +19,8 @@
 namespace bs
 {
 	ScriptComponentBase::ScriptComponentBase(MonoObject* instance)
-		:ScriptGameObjectBase(instance)
-	{ }
+		: ScriptGameObjectBase(instance)
+	{}
 
 	void ScriptComponentBase::Destroy(bool assemblyRefresh)
 	{
@@ -28,13 +28,13 @@ namespace bs
 		// Such components shouldn't be restored so we delete them.
 
 		HComponent component = GetComponent();
-		if (!assemblyRefresh || component.IsDestroyed(true))
+		if(!assemblyRefresh || component.IsDestroyed(true))
 			ScriptGameObjectManager::Instance().DestroyScriptComponent(this);
 	}
 
 	bool ScriptComponentBase::CheckIfDestroyed(const GameObjectHandleBase& handle)
 	{
-		if (handle.IsDestroyed())
+		if(handle.IsDestroyed())
 		{
 			BS_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", handle.GetInstanceId());
 			return true;
@@ -44,7 +44,7 @@ namespace bs
 	}
 
 	ScriptComponent::ScriptComponent(MonoObject* instance)
-		:ScriptObject(instance)
+		: ScriptObject(instance)
 	{
 		assert(instance != nullptr);
 	}
@@ -67,7 +67,7 @@ namespace bs
 		ScriptSceneObject* scriptSO = ScriptSceneObject::ToNative(parentSceneObject);
 		HSceneObject so = static_object_cast<SceneObject>(scriptSO->GetNativeHandle());
 
-		if (CheckIfDestroyed(so))
+		if(CheckIfDestroyed(so))
 			return nullptr;
 
 		ScriptAssemblyManager& sam = ScriptAssemblyManager::Instance();
@@ -84,7 +84,7 @@ namespace bs
 		else
 		{
 			BuiltinComponentInfo* info = sam.GetBuiltinComponentInfo(type);
-			if (info == nullptr)
+			if(info == nullptr)
 				return nullptr;
 
 			HComponent component = so->AddComponent(info->TypeId);
@@ -100,7 +100,7 @@ namespace bs
 		ScriptSceneObject* scriptSO = ScriptSceneObject::ToNative(parentSceneObject);
 		HSceneObject so = static_object_cast<SceneObject>(scriptSO->GetNativeHandle());
 
-		if (CheckIfDestroyed(so))
+		if(CheckIfDestroyed(so))
 			return nullptr;
 
 		ScriptAssemblyManager& sam = ScriptAssemblyManager::Instance();
@@ -117,7 +117,7 @@ namespace bs
 
 				MonoReflectionType* componentReflType = managedComponent->GetRuntimeType();
 				::MonoClass* componentClass = MonoUtil::GetClass(componentReflType);
-				
+
 				if(MonoUtil::IsSubClassOf(componentClass, baseClass))
 				{
 					return managedComponent->GetManagedInstance();
@@ -150,19 +150,19 @@ namespace bs
 		::MonoClass* baseClass = MonoUtil::GetClass(type);
 		Vector<MonoObject*> managedComponents;
 
-		if (!CheckIfDestroyed(so))
+		if(!CheckIfDestroyed(so))
 		{
 			const Vector<HComponent>& mComponents = so->GetComponents();
-			for (auto& component : mComponents)
+			for(auto& component : mComponents)
 			{
-				if (component->GetTypeId() == TID_ManagedComponent)
+				if(component->GetTypeId() == TID_ManagedComponent)
 				{
 					GameObjectHandle<ManagedComponent> managedComponent = static_object_cast<ManagedComponent>(component);
 
 					MonoReflectionType* componentReflType = managedComponent->GetRuntimeType();
 					::MonoClass* componentClass = MonoUtil::GetClass(componentReflType);
 
-					if (MonoUtil::IsSubClassOf(componentClass, baseClass))
+					if(MonoUtil::IsSubClassOf(componentClass, baseClass))
 						managedComponents.push_back(managedComponent->GetManagedInstance());
 				}
 				else
@@ -180,7 +180,7 @@ namespace bs
 		}
 
 		ScriptArray scriptArray(metaData.ScriptClass->GetInternalClassInternal(), (u32)managedComponents.size());
-		for (u32 i = 0; i < (u32)managedComponents.size(); i++)
+		for(u32 i = 0; i < (u32)managedComponents.size(); i++)
 			scriptArray.Set(i, managedComponents[i]);
 
 		return scriptArray.GetInternal();
@@ -193,12 +193,12 @@ namespace bs
 
 		Vector<MonoObject*> managedComponents;
 
-		if (!CheckIfDestroyed(so))
+		if(!CheckIfDestroyed(so))
 		{
 			const Vector<HComponent>& mComponents = so->GetComponents();
-			for (auto& component : mComponents)
+			for(auto& component : mComponents)
 			{
-				if (component->GetTypeId() == TID_ManagedComponent)
+				if(component->GetTypeId() == TID_ManagedComponent)
 				{
 					GameObjectHandle<ManagedComponent> managedComponent = static_object_cast<ManagedComponent>(component);
 
@@ -225,7 +225,7 @@ namespace bs
 		ScriptSceneObject* scriptSO = ScriptSceneObject::ToNative(parentSceneObject);
 		HSceneObject so = static_object_cast<SceneObject>(scriptSO->GetNativeHandle());
 
-		if (CheckIfDestroyed(so))
+		if(CheckIfDestroyed(so))
 			return;
 
 		ScriptAssemblyManager& sam = ScriptAssemblyManager::Instance();
@@ -236,14 +236,14 @@ namespace bs
 		const Vector<HComponent>& mComponents = so->GetComponents();
 		for(auto& component : mComponents)
 		{
-			if (component->GetTypeId() == TID_ManagedComponent)
+			if(component->GetTypeId() == TID_ManagedComponent)
 			{
 				GameObjectHandle<ManagedComponent> managedComponent = static_object_cast<ManagedComponent>(component);
 
 				MonoReflectionType* componentReflType = managedComponent->GetRuntimeType();
 				::MonoClass* componentClass = MonoUtil::GetClass(componentReflType);
 
-				if (MonoUtil::IsSubClassOf(componentClass, baseClass))
+				if(MonoUtil::IsSubClassOf(componentClass, baseClass))
 				{
 					managedComponent->Destroy();
 					return;
@@ -268,7 +268,7 @@ namespace bs
 	MonoObject* ScriptComponent::InternalGetSceneObject(ScriptComponentBase* nativeInstance)
 	{
 		HComponent component = nativeInstance->GetComponent();
-		if (CheckIfDestroyed(component))
+		if(CheckIfDestroyed(component))
 			return nullptr;
 
 		HSceneObject sceneObject = component->SceneObject();
@@ -283,7 +283,7 @@ namespace bs
 	{
 		HComponent component = nativeInstance->GetComponent();
 
-		if (!CheckIfDestroyed(component))
+		if(!CheckIfDestroyed(component))
 			return component->GetNotifyFlagsInternal();
 
 		return TCF_None;
@@ -293,15 +293,15 @@ namespace bs
 	{
 		HComponent component = nativeInstance->GetComponent();
 
-		if (!CheckIfDestroyed(component))
+		if(!CheckIfDestroyed(component))
 			component->SetNotifyFlags(flags);
 	}
-	
+
 	void ScriptComponent::InternalDestroy(ScriptComponentBase* nativeInstance, bool immediate)
 	{
 		HComponent component = nativeInstance->GetComponent();
 
-		if (!CheckIfDestroyed(component))
+		if(!CheckIfDestroyed(component))
 			component->Destroy(immediate);
 	}
-}
+} // namespace bs

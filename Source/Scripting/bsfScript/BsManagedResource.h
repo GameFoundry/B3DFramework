@@ -62,7 +62,7 @@ namespace bs
 		void SetHandle(MonoObject* object, const HManagedResource& myHandle);
 
 		/** @copydoc Resource::destroy */
-		void Destroy() ;
+		void Destroy();
 
 		WeakResourceHandle<ManagedResource> mMyHandle;
 		ScriptManagedResource* mOwner = nullptr;
@@ -73,7 +73,7 @@ namespace bs
 	public:
 		friend class ManagedResourceRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 
 	protected:
 		ManagedResource(); // Serialization only
@@ -87,4 +87,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -48,7 +48,7 @@ namespace bs
 			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
 			MonoObject* managedInstance = mc->GetManagedInstance();
 
-			if (managedInstance != nullptr)
+			if(managedInstance != nullptr)
 				mSerializedObjectData = ManagedSerializableObject::CreateFromExisting(managedInstance);
 			else
 				mSerializedObjectData = mc->mSerializedObjectData;
@@ -76,4 +76,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

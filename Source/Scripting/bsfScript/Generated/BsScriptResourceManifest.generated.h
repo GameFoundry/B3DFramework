@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #include "Utility/BsUUID.h"
 
-namespace bs { class ResourceManifest; }
+namespace bs
+{
+	class ResourceManifest;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -33,4 +37,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoString* name);
 	};
 #endif
-}
+} // namespace bs

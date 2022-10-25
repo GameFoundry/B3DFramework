@@ -18,13 +18,13 @@
 namespace bs
 {
 	ScriptTNamedAnimationCurvefloat::ScriptTNamedAnimationCurvefloat(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptTNamedAnimationCurvefloat::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptTNamedAnimationCurvefloat::Box(const __TNamedAnimationCurvefloatInterop& value)
+	MonoObject* ScriptTNamedAnimationCurvefloat::Box(const __TNamedAnimationCurvefloatInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -47,7 +47,7 @@ namespace bs
 		if(scriptCurve != nullptr)
 			tmpCurve = scriptCurve->GetInternal();
 		if(tmpCurve != nullptr)
-		output.Curve = *tmpCurve;
+			output.Curve = *tmpCurve;
 
 		return output;
 	}
@@ -68,15 +68,14 @@ namespace bs
 		return output;
 	}
 
-
 	ScriptTNamedAnimationCurveVector3::ScriptTNamedAnimationCurveVector3(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptTNamedAnimationCurveVector3::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptTNamedAnimationCurveVector3::Box(const __TNamedAnimationCurveVector3Interop& value)
+	MonoObject* ScriptTNamedAnimationCurveVector3::Box(const __TNamedAnimationCurveVector3Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -99,7 +98,7 @@ namespace bs
 		if(scriptCurve != nullptr)
 			tmpCurve = scriptCurve->GetInternal();
 		if(tmpCurve != nullptr)
-		output.Curve = *tmpCurve;
+			output.Curve = *tmpCurve;
 
 		return output;
 	}
@@ -120,15 +119,14 @@ namespace bs
 		return output;
 	}
 
-
 	ScriptTNamedAnimationCurveVector2::ScriptTNamedAnimationCurveVector2(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptTNamedAnimationCurveVector2::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptTNamedAnimationCurveVector2::Box(const __TNamedAnimationCurveVector2Interop& value)
+	MonoObject* ScriptTNamedAnimationCurveVector2::Box(const __TNamedAnimationCurveVector2Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -151,7 +149,7 @@ namespace bs
 		if(scriptCurve != nullptr)
 			tmpCurve = scriptCurve->GetInternal();
 		if(tmpCurve != nullptr)
-		output.Curve = *tmpCurve;
+			output.Curve = *tmpCurve;
 
 		return output;
 	}
@@ -172,15 +170,14 @@ namespace bs
 		return output;
 	}
 
-
 	ScriptTNamedAnimationCurveQuaternion::ScriptTNamedAnimationCurveQuaternion(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptTNamedAnimationCurveQuaternion::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptTNamedAnimationCurveQuaternion::Box(const __TNamedAnimationCurveQuaternionInterop& value)
+	MonoObject* ScriptTNamedAnimationCurveQuaternion::Box(const __TNamedAnimationCurveQuaternionInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -203,7 +200,7 @@ namespace bs
 		if(scriptCurve != nullptr)
 			tmpCurve = scriptCurve->GetInternal();
 		if(tmpCurve != nullptr)
-		output.Curve = *tmpCurve;
+			output.Curve = *tmpCurve;
 
 		return output;
 	}
@@ -224,15 +221,14 @@ namespace bs
 		return output;
 	}
 
-
 	ScriptTNamedAnimationCurveint32_t::ScriptTNamedAnimationCurveint32_t(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptTNamedAnimationCurveint32_t::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptTNamedAnimationCurveint32_t::Box(const __TNamedAnimationCurveint32_tInterop& value)
+	MonoObject* ScriptTNamedAnimationCurveint32_t::Box(const __TNamedAnimationCurveint32_tInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -255,7 +251,7 @@ namespace bs
 		if(scriptCurve != nullptr)
 			tmpCurve = scriptCurve->GetInternal();
 		if(tmpCurve != nullptr)
-		output.Curve = *tmpCurve;
+			output.Curve = *tmpCurve;
 
 		return output;
 	}
@@ -276,4 +272,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

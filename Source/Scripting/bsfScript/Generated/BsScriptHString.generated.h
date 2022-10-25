@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace bs { class HString; }
+namespace bs
+{
+	class HString;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptHString : public ScriptObject<ScriptHString>
@@ -16,6 +20,7 @@ namespace bs
 		ScriptHString(MonoObject* managedInstance, const SPtr<HString>& value);
 
 		SPtr<HString> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<HString>& value);
 
 	private:
@@ -28,4 +33,4 @@ namespace bs
 		static MonoString* InternalGetValue(ScriptHString* thisPtr);
 		static void InternalSetParameter(ScriptHString* thisPtr, uint32_t idx, MonoString* value);
 	};
-}
+} // namespace bs

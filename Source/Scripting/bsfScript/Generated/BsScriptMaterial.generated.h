@@ -14,8 +14,16 @@
 #include "Math/BsVector3.h"
 #include "Math/BsVector4.h"
 
-namespace bs { class Material; }
-namespace bs { class MaterialEx; }
+namespace bs
+{
+	class Material;
+}
+
+namespace bs
+{
+	class MaterialEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptMaterial : public TScriptResource<ScriptMaterial, Material>
@@ -61,4 +69,4 @@ namespace bs
 		static void InternalSetSpriteTexture(ScriptMaterial* thisPtr, MonoString* name, MonoObject* value);
 		static MonoObject* InternalGetSpriteTexture(ScriptMaterial* thisPtr, MonoString* name);
 	};
-}
+} // namespace bs

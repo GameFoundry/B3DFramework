@@ -28,8 +28,8 @@ namespace bs
 	HEvent ScriptInput::OnPointerDoubleClickConn;
 
 	ScriptInput::ScriptInput(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptInput::InitRuntimeData()
 	{
@@ -79,7 +79,7 @@ namespace bs
 
 	void ScriptInput::OnButtonDown(const ButtonEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::InvokeThunk(OnButtonPressedThunk, ev.ButtonCode, ev.DeviceIdx, ev.IsUsed());
@@ -87,7 +87,7 @@ namespace bs
 
 	void ScriptInput::OnButtonUp(const ButtonEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::InvokeThunk(OnButtonReleasedThunk, ev.ButtonCode, ev.DeviceIdx, ev.IsUsed());
@@ -95,7 +95,7 @@ namespace bs
 
 	void ScriptInput::OnCharInput(const TextInputEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoUtil::InvokeThunk(OnCharInputThunk, ev.TextChar, ev.IsUsed());
@@ -103,50 +103,46 @@ namespace bs
 
 	void ScriptInput::OnPointerMoved(const PointerEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::Box(ev.ScreenPos);
 		MonoObject* delta = ScriptVector2I::Box(ev.Delta);
 
-		MonoUtil::InvokeThunk(OnPointerMovedThunk, screenPos, delta,
-			ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
+		MonoUtil::InvokeThunk(OnPointerMovedThunk, screenPos, delta, ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
 	}
 
 	void ScriptInput::OnPointerPressed(const PointerEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::Box(ev.ScreenPos);
 		MonoObject* delta = ScriptVector2I::Box(ev.Delta);
 
-		MonoUtil::InvokeThunk(OnPointerPressedThunk, screenPos, delta,
-			ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
+		MonoUtil::InvokeThunk(OnPointerPressedThunk, screenPos, delta, ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
 	}
 
 	void ScriptInput::OnPointerReleased(const PointerEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::Box(ev.ScreenPos);
 		MonoObject* delta = ScriptVector2I::Box(ev.Delta);
 
-		MonoUtil::InvokeThunk(OnPointerReleasedThunk, screenPos, delta,
-			ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
+		MonoUtil::InvokeThunk(OnPointerReleasedThunk, screenPos, delta, ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
 	}
 
 	void ScriptInput::OnPointerDoubleClick(const PointerEvent& ev)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* screenPos = ScriptVector2I::Box(ev.ScreenPos);
 		MonoObject* delta = ScriptVector2I::Box(ev.Delta);
 
-		MonoUtil::InvokeThunk(OnPointerDoubleClickThunk, screenPos, delta,
-			ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
+		MonoUtil::InvokeThunk(OnPointerDoubleClickThunk, screenPos, delta, ev.Button, ev.Shift, ev.Control, ev.Alt, ev.MouseWheelScrollAmount, ev.IsUsed());
 	}
 
 	bool ScriptInput::InternalIsButtonHeld(ButtonCode code, u32 deviceIdx)
@@ -198,4 +194,4 @@ namespace bs
 	{
 		*position = Input::Instance().GetPointerDelta();
 	}
-}
+} // namespace bs

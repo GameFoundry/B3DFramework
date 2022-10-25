@@ -38,6 +38,5 @@ namespace bs
 
 	private:
 		ScriptCharDesc(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

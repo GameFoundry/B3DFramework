@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptPixelVolume(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

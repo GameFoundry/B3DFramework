@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Resources/BsResources.h"
 #include "Utility/BsUUID.h"
 
-namespace bs { class Resources; }
+namespace bs
+{
+	class Resources;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -28,11 +32,11 @@ namespace bs
 		static void OnResourceDestroyed(const UUID& p0);
 		static void OnResourceModified(const ResourceHandle<Resource>& p0);
 
-		typedef void(BS_THUNKCALL *OnResourceLoadedThunkDef) (MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnResourceLoadedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceLoadedThunkDef OnResourceLoadedThunk;
-		typedef void(BS_THUNKCALL *OnResourceDestroyedThunkDef) (MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnResourceDestroyedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceDestroyedThunkDef OnResourceDestroyedThunk;
-		typedef void(BS_THUNKCALL *OnResourceModifiedThunkDef) (MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnResourceModifiedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceModifiedThunkDef OnResourceModifiedThunk;
 
 		static HEvent OnResourceLoadedConn;
@@ -57,4 +61,4 @@ namespace bs
 		static bool InternalGetUuidFromFilePath(MonoString* path, UUID* uuid);
 	};
 #endif
-}
+} // namespace bs

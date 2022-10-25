@@ -8,11 +8,11 @@
 namespace bs
 {
 	ScriptVector2::ScriptVector2(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVector2::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptVector2::Box(const Vector2& value)
 	{
@@ -26,11 +26,11 @@ namespace bs
 	}
 
 	ScriptVector3::ScriptVector3(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVector3::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptVector3::Box(const Vector3& value)
 	{
@@ -44,11 +44,11 @@ namespace bs
 	}
 
 	ScriptVector4::ScriptVector4(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVector4::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptVector4::Box(const Vector4& value)
 	{
@@ -60,4 +60,4 @@ namespace bs
 	{
 		return *(Vector4*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

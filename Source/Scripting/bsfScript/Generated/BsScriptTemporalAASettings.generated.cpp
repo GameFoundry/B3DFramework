@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptTemporalAASettings::ScriptTemporalAASettings(MonoObject* managedInstance, const SPtr<TemporalAASettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -21,24 +21,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetJitteredPositionCount", (void*)&ScriptTemporalAASettings::InternalSetJitteredPositionCount);
 		metaData.ScriptClass->AddInternalCall("Internal_GetSharpness", (void*)&ScriptTemporalAASettings::InternalGetSharpness);
 		metaData.ScriptClass->AddInternalCall("Internal_SetSharpness", (void*)&ScriptTemporalAASettings::InternalSetSharpness);
-
 	}
 
 	MonoObject* ScriptTemporalAASettings::Create(const SPtr<TemporalAASettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, value);
+		new(bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptTemporalAASettings::InternalTemporalAASettings(MonoObject* managedInstance)
 	{
 		SPtr<TemporalAASettings> instance = bs_shared_ptr_new<TemporalAASettings>();
-		new (bs_alloc<ScriptTemporalAASettings>())ScriptTemporalAASettings(managedInstance, instance);
+		new(bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, instance);
 	}
 
 	bool ScriptTemporalAASettings::InternalGetEnabled(ScriptTemporalAASettings* thisPtr)
@@ -88,4 +88,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->Sharpness = value;
 	}
-}
+} // namespace bs

@@ -15,7 +15,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Vector2. */
-	class BS_SCR_BE_EXPORT ScriptVector2 : public ScriptObject <ScriptVector2>
+	class BS_SCR_BE_EXPORT ScriptVector2 : public ScriptObject<ScriptVector2>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector2")
@@ -31,7 +31,7 @@ namespace bs
 	};
 
 	/**	Interop class between C++ & CLR for Vector3. */
-	class BS_SCR_BE_EXPORT ScriptVector3 : public ScriptObject <ScriptVector3>
+	class BS_SCR_BE_EXPORT ScriptVector3 : public ScriptObject<ScriptVector3>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector3")
@@ -47,7 +47,7 @@ namespace bs
 	};
 
 	/**	Interop class between C++ & CLR for Vector4. */
-	class BS_SCR_BE_EXPORT ScriptVector4 : public ScriptObject <ScriptVector4>
+	class BS_SCR_BE_EXPORT ScriptVector4 : public ScriptObject<ScriptVector4>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector4")
@@ -63,4 +63,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

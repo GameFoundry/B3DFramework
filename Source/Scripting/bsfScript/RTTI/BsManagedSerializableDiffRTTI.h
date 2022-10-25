@@ -14,8 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_SCR_BE_EXPORT ModifiedFieldRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedField, IReflectable, ModifiedFieldRTTI >
+	class BS_SCR_BE_EXPORT ModifiedFieldRTTI : public RTTIType<ManagedSerializableDiff::ModifiedField, IReflectable, ModifiedFieldRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableTypeInfo> GetParentType(ManagedSerializableDiff::ModifiedField* obj)
@@ -47,6 +46,7 @@ namespace bs
 		{
 			obj->Modification = val;
 		}
+
 	public:
 		ModifiedFieldRTTI()
 		{
@@ -55,7 +55,7 @@ namespace bs
 			AddReflectablePtrField("modification", 2, &ModifiedFieldRTTI::GetModification, &ModifiedFieldRTTI::SetModification);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptModifiedField";
 			return name;
@@ -66,14 +66,13 @@ namespace bs
 			return TID_ScriptModifiedField;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedField>();
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedArrayEntryRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedArrayEntry, IReflectable, ModifiedArrayEntryRTTI >
+	class BS_SCR_BE_EXPORT ModifiedArrayEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedArrayEntry, IReflectable, ModifiedArrayEntryRTTI>
 	{
 	private:
 		u32& GetIdx(ManagedSerializableDiff::ModifiedArrayEntry* obj)
@@ -95,6 +94,7 @@ namespace bs
 		{
 			obj->Modification = val;
 		}
+
 	public:
 		ModifiedArrayEntryRTTI()
 		{
@@ -102,7 +102,7 @@ namespace bs
 			AddReflectablePtrField("modification", 1, &ModifiedArrayEntryRTTI::GetModification, &ModifiedArrayEntryRTTI::SetModification);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptModifiedArrayEntry";
 			return name;
@@ -119,8 +119,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedDictionaryEntryRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedDictionaryEntry, IReflectable, ModifiedDictionaryEntryRTTI >
+	class BS_SCR_BE_EXPORT ModifiedDictionaryEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedDictionaryEntry, IReflectable, ModifiedDictionaryEntryRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableFieldData> GetKey(ManagedSerializableDiff::ModifiedDictionaryEntry* obj)
@@ -142,6 +141,7 @@ namespace bs
 		{
 			obj->Modification = val;
 		}
+
 	public:
 		ModifiedDictionaryEntryRTTI()
 		{
@@ -166,12 +166,11 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModificationRTTI :
-		public RTTIType < ManagedSerializableDiff::Modification, IReflectable, ModificationRTTI >
+	class BS_SCR_BE_EXPORT ModificationRTTI : public RTTIType<ManagedSerializableDiff::Modification, IReflectable, ModificationRTTI>
 	{
 	public:
 		ModificationRTTI()
-		{ }
+		{}
 
 		const String& GetRttiName() override
 		{
@@ -190,8 +189,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedObjectRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedObject, ManagedSerializableDiff::Modification, ModifiedObjectRTTI >
+	class BS_SCR_BE_EXPORT ModifiedObjectRTTI : public RTTIType<ManagedSerializableDiff::ModifiedObject, ManagedSerializableDiff::Modification, ModifiedObjectRTTI>
 	{
 	private:
 		ManagedSerializableDiff::ModifiedField& GetFieldEntry(ManagedSerializableDiff::ModifiedObject* obj, u32 arrayIdx)
@@ -217,8 +215,7 @@ namespace bs
 	public:
 		ModifiedObjectRTTI()
 		{
-			AddReflectableArrayField("entries", 0, &ModifiedObjectRTTI::GetFieldEntry, &ModifiedObjectRTTI::GetNumFieldEntries,
-				&ModifiedObjectRTTI::SetFieldEntry, &ModifiedObjectRTTI::SetNumFieldEntries);
+			AddReflectableArrayField("entries", 0, &ModifiedObjectRTTI::GetFieldEntry, &ModifiedObjectRTTI::GetNumFieldEntries, &ModifiedObjectRTTI::SetFieldEntry, &ModifiedObjectRTTI::SetNumFieldEntries);
 		}
 
 		const String& GetRttiName() override
@@ -238,8 +235,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedArrayRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedArray, ManagedSerializableDiff::Modification, ModifiedArrayRTTI >
+	class BS_SCR_BE_EXPORT ModifiedArrayRTTI : public RTTIType<ManagedSerializableDiff::ModifiedArray, ManagedSerializableDiff::Modification, ModifiedArrayRTTI>
 	{
 	private:
 		Vector<u32>& GetOrigSizes(ManagedSerializableDiff::ModifiedArray* obj)
@@ -287,8 +283,7 @@ namespace bs
 		{
 			AddPlainField("origSizes", 0, &ModifiedArrayRTTI::GetOrigSizes, &ModifiedArrayRTTI::SetOrigSizes);
 			AddPlainField("newSizes", 1, &ModifiedArrayRTTI::GetNewSizes, &ModifiedArrayRTTI::SetNewSizes);
-			AddReflectableArrayField("entries", 2, &ModifiedArrayRTTI::GetFieldEntry, &ModifiedArrayRTTI::GetNumFieldEntries,
-				&ModifiedArrayRTTI::SetFieldEntry, &ModifiedArrayRTTI::SetNumFieldEntries);
+			AddReflectableArrayField("entries", 2, &ModifiedArrayRTTI::GetFieldEntry, &ModifiedArrayRTTI::GetNumFieldEntries, &ModifiedArrayRTTI::SetFieldEntry, &ModifiedArrayRTTI::SetNumFieldEntries);
 		}
 
 		const String& GetRttiName() override
@@ -308,8 +303,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedDictionaryRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedDictionary, ManagedSerializableDiff::Modification, ModifiedDictionaryRTTI >
+	class BS_SCR_BE_EXPORT ModifiedDictionaryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedDictionary, ManagedSerializableDiff::Modification, ModifiedDictionaryRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableFieldData> GetRemovedEntry(ManagedSerializableDiff::ModifiedDictionary* obj, u32 arrayIdx)
@@ -355,10 +349,8 @@ namespace bs
 	public:
 		ModifiedDictionaryRTTI()
 		{
-			AddReflectablePtrArrayField("removed", 0, &ModifiedDictionaryRTTI::GetRemovedEntry, &ModifiedDictionaryRTTI::GetNumRemovedEntries,
-				&ModifiedDictionaryRTTI::SetRemovedEntry, &ModifiedDictionaryRTTI::SetNumRemovedEntries);
-			AddReflectableArrayField("entries", 1, &ModifiedDictionaryRTTI::GetFieldEntry, &ModifiedDictionaryRTTI::GetNumFieldEntries,
-				&ModifiedDictionaryRTTI::SetFieldEntry, &ModifiedDictionaryRTTI::SetNumFieldEntries);
+			AddReflectablePtrArrayField("removed", 0, &ModifiedDictionaryRTTI::GetRemovedEntry, &ModifiedDictionaryRTTI::GetNumRemovedEntries, &ModifiedDictionaryRTTI::SetRemovedEntry, &ModifiedDictionaryRTTI::SetNumRemovedEntries);
+			AddReflectableArrayField("entries", 1, &ModifiedDictionaryRTTI::GetFieldEntry, &ModifiedDictionaryRTTI::GetNumFieldEntries, &ModifiedDictionaryRTTI::SetFieldEntry, &ModifiedDictionaryRTTI::SetNumFieldEntries);
 		}
 
 		const String& GetRttiName() override
@@ -378,8 +370,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ModifiedEntryRTTI :
-		public RTTIType < ManagedSerializableDiff::ModifiedEntry, ManagedSerializableDiff::Modification, ModifiedEntryRTTI >
+	class BS_SCR_BE_EXPORT ModifiedEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedEntry, ManagedSerializableDiff::Modification, ModifiedEntryRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableFieldData> GetValue(ManagedSerializableDiff::ModifiedEntry* obj)
@@ -415,7 +406,7 @@ namespace bs
 		}
 	};
 
-	class BS_SCR_BE_EXPORT ManagedSerializableDiffRTTI : public RTTIType <ManagedSerializableDiff, IReflectable, ManagedSerializableDiffRTTI>
+	class BS_SCR_BE_EXPORT ManagedSerializableDiffRTTI : public RTTIType<ManagedSerializableDiff, IReflectable, ManagedSerializableDiffRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableDiff::ModifiedObject> GetModificationRoot(ManagedSerializableDiff* obj)
@@ -431,9 +422,7 @@ namespace bs
 	public:
 		ManagedSerializableDiffRTTI()
 		{
-			AddReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDiffRTTI::GetModificationRoot,
-				&ManagedSerializableDiffRTTI::SetModificationRoot);
-
+			AddReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDiffRTTI::GetModificationRoot, &ManagedSerializableDiffRTTI::SetModificationRoot);
 		}
 
 		const String& GetRttiName() override
@@ -455,4 +444,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptHingeJointDrive(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -13,8 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_SCR_BE_EXPORT ManagedSerializableDictionaryKeyValueRTTI :
-		public RTTIType <ManagedSerializableDictionaryKeyValue, IReflectable, ManagedSerializableDictionaryKeyValueRTTI>
+	class BS_SCR_BE_EXPORT ManagedSerializableDictionaryKeyValueRTTI : public RTTIType<ManagedSerializableDictionaryKeyValue, IReflectable, ManagedSerializableDictionaryKeyValueRTTI>
 	{
 	private:
 		SPtr<ManagedSerializableFieldData> GetKey(ManagedSerializableDictionaryKeyValue* obj)
@@ -43,8 +42,8 @@ namespace bs
 			AddReflectablePtrField("key", 0, &ManagedSerializableDictionaryKeyValueRTTI::GetKey, &ManagedSerializableDictionaryKeyValueRTTI::SetKey);
 			AddReflectablePtrField("value", 1, &ManagedSerializableDictionaryKeyValueRTTI::GetValue, &ManagedSerializableDictionaryKeyValueRTTI::SetValue);
 		}
-		
-		const String& GetRttiName() 
+
+		const String& GetRttiName()
 		{
 			static String name = "ManagedSerializableDictionaryKeyValue";
 			return name;
@@ -55,7 +54,7 @@ namespace bs
 			return TID_ScriptSerializableDictionaryKeyValue;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ManagedSerializableDictionaryKeyValue>();
 		}
@@ -65,6 +64,7 @@ namespace bs
 	{
 	private:
 		SPtr<ManagedSerializableTypeInfoDictionary> GetTypeInfo(ManagedSerializableDictionary* obj) { return obj->mDictionaryTypeInfo; }
+
 		void SetTypeInfo(ManagedSerializableDictionary* obj, SPtr<ManagedSerializableTypeInfoDictionary> val) { obj->mDictionaryTypeInfo = val; }
 
 		ManagedSerializableDictionaryKeyValue& GetEntry(ManagedSerializableDictionary* obj, u32 arrayIdx)
@@ -86,25 +86,24 @@ namespace bs
 		{
 			// Do nothing
 		}
-		
+
 	public:
 		ManagedSerializableDictionaryRTTI()
 		{
 			AddReflectablePtrField("mListTypeInfo", 0, &ManagedSerializableDictionaryRTTI::GetTypeInfo, &ManagedSerializableDictionaryRTTI::SetTypeInfo);
-			AddReflectableArrayField("mEntries", 1, &ManagedSerializableDictionaryRTTI::GetEntry, &ManagedSerializableDictionaryRTTI::GetNumEntries,
-				&ManagedSerializableDictionaryRTTI::SetEntry, &ManagedSerializableDictionaryRTTI::SetNumEntries);
+			AddReflectableArrayField("mEntries", 1, &ManagedSerializableDictionaryRTTI::GetEntry, &ManagedSerializableDictionaryRTTI::GetNumEntries, &ManagedSerializableDictionaryRTTI::SetEntry, &ManagedSerializableDictionaryRTTI::SetNumEntries);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) 
+		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
 		{
 			ManagedSerializableDictionary* serializableObject = static_cast<ManagedSerializableDictionary*>(obj);
 
 			auto enumerator = serializableObject->GetEnumerator();
-			while (enumerator.MoveNext())
+			while(enumerator.MoveNext())
 				mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.GetKey(), enumerator.GetValue()));
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptSerializableDictionary";
 			return name;
@@ -115,7 +114,7 @@ namespace bs
 			return TID_ScriptSerializableDictionary;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableDictionary::CreateEmpty();
 		}
@@ -126,4 +125,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

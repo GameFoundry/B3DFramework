@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleEmitterConeShape::ScriptParticleEmitterConeShape(MonoObject* managedInstance, const SPtr<ParticleEmitterConeShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterConeShape::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterConeShape::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterConeShape::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleEmitterConeShape::Create(const SPtr<ParticleEmitterConeShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitterConeShape::InternalSetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_CONE_SHAPE_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_CONE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_CONE_SHAPE_DESC::FromInterop(*desc);
 		SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
 	}
 
 	void ScriptParticleEmitterConeShape::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create();
-		new (bs_alloc<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
 	}
-}
+} // namespace bs

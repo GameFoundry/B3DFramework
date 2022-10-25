@@ -8,7 +8,11 @@
 #include "Math/BsVector2.h"
 #include "Math/BsDegree.h"
 
-namespace bs { class Random; }
+namespace bs
+{
+	class Random;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>
@@ -19,6 +23,7 @@ namespace bs
 		ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value);
 
 		SPtr<Random> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<Random>& value);
 
 	private:
@@ -40,4 +45,4 @@ namespace bs
 		static void InternalGetPointInArcShell(ScriptRandom* thisPtr, Degree* angle, float thickness, Vector2* __output);
 		static void InternalGetBarycentric(ScriptRandom* thisPtr, Vector3* __output);
 	};
-}
+} // namespace bs

@@ -19,16 +19,13 @@ namespace bs
 	{
 	protected:
 		/** @copydoc IDiff::generateDiff(IReflectable*, IReflectable*, ObjectMap&, bool) */
-		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj,
-			ObjectMap& objectMap, bool replicableOnly) override;
+		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) override;
 
 		/**
 		 * @copydoc	IDiff::applyDiff(const SPtr<IReflectable>&, const SPtr<SerializedObject>&, FrameAlloc&, DiffObjectMap&, FrameVector<DiffCommand>&, SerializationContext*)
 		 */
-		void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff,
-			FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands,
-			SerializationContext* context) ;
+		void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context);
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -51,12 +51,10 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* object);
 
-		static void InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode,
-			ButtonModifier modifiers, bool repeatable);
+		static void InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable);
 		static void InternalUnregisterButton(ScriptInputConfiguration* thisPtr, MonoString* name);
 
-		static void InternalRegisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name, InputAxis type, float deadZone,
-			float sensitivity, bool invert);
+		static void InternalRegisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name, InputAxis type, float deadZone, float sensitivity, bool invert);
 		static void InternalUnregisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name);
 
 		static void InternalSetRepeatInterval(ScriptInputConfiguration* thisPtr, u64 milliseconds);
@@ -64,7 +62,7 @@ namespace bs
 	};
 
 	/**	Interop class between C++ & CLR for VirtualAxis. */
-	class BS_SCR_BE_EXPORT ScriptVirtualAxis : public ScriptObject <ScriptVirtualAxis>
+	class BS_SCR_BE_EXPORT ScriptVirtualAxis : public ScriptObject<ScriptVirtualAxis>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VirtualAxis")
@@ -79,4 +77,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

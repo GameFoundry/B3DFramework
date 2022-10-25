@@ -9,7 +9,11 @@
 #include "Math/BsPlane.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { class ParticleCollisions; }
+namespace bs
+{
+	class ParticleCollisions;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleCollisions : public TScriptReflectable<ScriptParticleCollisions, ParticleCollisions, ScriptParticleEvolverBase>
@@ -31,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

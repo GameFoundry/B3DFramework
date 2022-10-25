@@ -55,4 +55,4 @@ namespace bs
 	{
 		return thisPtr->Rotation;
 	}
-}
+} // namespace bs

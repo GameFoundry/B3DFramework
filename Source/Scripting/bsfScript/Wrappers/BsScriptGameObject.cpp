@@ -9,7 +9,7 @@ namespace bs
 	bool checkIfDestroyed(ScriptGameObject* nativeInstance)
 	{
 		HGameObject go = nativeInstance->GetNativeHandle();
-		if (go.IsDestroyed())
+		if(go.IsDestroyed())
 		{
 			BS_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", go.GetInstanceId());
 			return true;
@@ -19,16 +19,15 @@ namespace bs
 	}
 
 	ScriptGameObjectBase::ScriptGameObjectBase(MonoObject* instance)
-		:PersistentScriptObjectBase(instance)
+		: PersistentScriptObjectBase(instance)
 	{
-		
 	}
 
 	ScriptGameObjectBase::~ScriptGameObjectBase()
 	{
 		BS_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
 	}
-	
+
 	MonoObject* ScriptGameObjectBase::GetManagedInstance() const
 	{
 		return MonoUtil::GetObjectFromGcHandle(mGCHandle);
@@ -43,7 +42,7 @@ namespace bs
 
 	void ScriptGameObjectBase::FreeManagedInstance()
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoUtil::FreeGcHandle(mGCHandle);
 			mGCHandle = 0;
@@ -51,8 +50,8 @@ namespace bs
 	}
 
 	ScriptGameObject::ScriptGameObject(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptGameObject::InitRuntimeData()
 	{
@@ -68,7 +67,7 @@ namespace bs
 
 	void ScriptGameObject::InternalGetUuid(ScriptGameObject* nativeInstance, UUID* uuid)
 	{
-		if (checkIfDestroyed(nativeInstance))
+		if(checkIfDestroyed(nativeInstance))
 		{
 			*uuid = UUID::EMPTY;
 			return;
@@ -81,4 +80,4 @@ namespace bs
 	{
 		return nativeInstance->GetNativeHandle().IsDestroyed(true);
 	}
-}
+} // namespace bs

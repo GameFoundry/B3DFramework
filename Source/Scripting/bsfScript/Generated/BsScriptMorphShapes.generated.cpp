@@ -9,27 +9,27 @@
 namespace bs
 {
 	ScriptMorphShapes::ScriptMorphShapes(MonoObject* managedInstance, const SPtr<MorphShapes>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
 	void ScriptMorphShapes::InitRuntimeData()
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_GetChannels", (void*)&ScriptMorphShapes::InternalGetChannels);
-
 	}
 
 	MonoObject* ScriptMorphShapes::Create(const SPtr<MorphShapes>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptMorphShapes>()) ScriptMorphShapes(managedInstance, value);
+		new(bs_alloc<ScriptMorphShapes>()) ScriptMorphShapes(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoArray* ScriptMorphShapes::InternalGetChannels(ScriptMorphShapes* thisPtr)
 	{
 		Vector<SPtr<MorphChannel>> vec__output;
@@ -49,4 +49,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

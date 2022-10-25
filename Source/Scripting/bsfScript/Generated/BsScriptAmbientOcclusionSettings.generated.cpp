@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptAmbientOcclusionSettings::ScriptAmbientOcclusionSettings(MonoObject* managedInstance, const SPtr<AmbientOcclusionSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -31,24 +31,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetPower", (void*)&ScriptAmbientOcclusionSettings::InternalSetPower);
 		metaData.ScriptClass->AddInternalCall("Internal_GetQuality", (void*)&ScriptAmbientOcclusionSettings::InternalGetQuality);
 		metaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptAmbientOcclusionSettings::InternalSetQuality);
-
 	}
 
 	MonoObject* ScriptAmbientOcclusionSettings::Create(const SPtr<AmbientOcclusionSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, value);
+		new(bs_alloc<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptAmbientOcclusionSettings::InternalAmbientOcclusionSettings(MonoObject* managedInstance)
 	{
 		SPtr<AmbientOcclusionSettings> instance = bs_shared_ptr_new<AmbientOcclusionSettings>();
-		new (bs_alloc<ScriptAmbientOcclusionSettings>())ScriptAmbientOcclusionSettings(managedInstance, instance);
+		new(bs_alloc<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, instance);
 	}
 
 	bool ScriptAmbientOcclusionSettings::InternalGetEnabled(ScriptAmbientOcclusionSettings* thisPtr)
@@ -178,4 +178,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->Quality = value;
 	}
-}
+} // namespace bs

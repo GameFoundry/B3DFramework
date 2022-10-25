@@ -14,7 +14,7 @@
 namespace bs
 {
 	ScriptParticleVectorFieldSettings::ScriptParticleVectorFieldSettings(MonoObject* managedInstance, const SPtr<ParticleVectorFieldSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -40,20 +40,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetTilingY", (void*)&ScriptParticleVectorFieldSettings::InternalSetTilingY);
 		metaData.ScriptClass->AddInternalCall("Internal_GetTilingZ", (void*)&ScriptParticleVectorFieldSettings::InternalGetTilingZ);
 		metaData.ScriptClass->AddInternalCall("Internal_SetTilingZ", (void*)&ScriptParticleVectorFieldSettings::InternalSetTilingZ);
-
 	}
 
 	MonoObject* ScriptParticleVectorFieldSettings::Create(const SPtr<ParticleVectorFieldSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleVectorFieldSettings>()) ScriptParticleVectorFieldSettings(managedInstance, value);
+		new(bs_alloc<ScriptParticleVectorFieldSettings>()) ScriptParticleVectorFieldSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetVectorField(ScriptParticleVectorFieldSettings* thisPtr)
 	{
 		ResourceHandle<VectorField> tmp__output;
@@ -118,8 +118,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Scale;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value)
@@ -133,8 +131,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Offset;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value)
@@ -148,8 +144,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Rotation;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalSetRotation(ScriptParticleVectorFieldSettings* thisPtr, Quaternion* value)
@@ -225,4 +219,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->TilingZ = value;
 	}
-}
+} // namespace bs

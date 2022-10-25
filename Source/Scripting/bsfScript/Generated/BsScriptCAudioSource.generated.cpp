@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptCAudioSource::ScriptCAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -40,7 +40,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_Pause", (void*)&ScriptCAudioSource::InternalPause);
 		metaData.ScriptClass->AddInternalCall("Internal_Stop", (void*)&ScriptCAudioSource::InternalStop);
 		metaData.ScriptClass->AddInternalCall("Internal_GetState", (void*)&ScriptCAudioSource::InternalGetState);
-
 	}
 
 	void ScriptCAudioSource::InternalSetClip(ScriptCAudioSource* thisPtr, MonoObject* clip)
@@ -222,4 +221,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

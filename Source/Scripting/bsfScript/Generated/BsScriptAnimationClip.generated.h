@@ -6,8 +6,16 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
 
-namespace bs { class AnimationClip; }
-namespace bs { struct __AnimationEventInterop; }
+namespace bs
+{
+	class AnimationClip;
+}
+
+namespace bs
+{
+	struct __AnimationEventInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAnimationClip : public TScriptResource<ScriptAnimationClip, AnimationClip>
@@ -35,4 +43,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, bool isAdditive);
 		static void InternalCreate0(MonoObject* managedInstance, MonoObject* curves, bool isAdditive, uint32_t sampleRate, MonoObject* rootMotion);
 	};
-}
+} // namespace bs

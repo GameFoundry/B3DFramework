@@ -9,8 +9,16 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 
-namespace bs { class TextureEx; }
-namespace bs { class Texture; }
+namespace bs
+{
+	class TextureEx;
+}
+
+namespace bs
+{
+	class Texture;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptTexture : public TScriptResource<ScriptTexture, Texture>
@@ -40,4 +48,4 @@ namespace bs
 		static void InternalSetPixels(ScriptTexture* thisPtr, MonoObject* data, uint32_t face, uint32_t mipLevel);
 		static void InternalSetPixelsArray(ScriptTexture* thisPtr, MonoArray* colors, uint32_t face, uint32_t mipLevel);
 	};
-}
+} // namespace bs

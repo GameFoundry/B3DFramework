@@ -18,6 +18,7 @@ namespace bs
 	{
 	public:
 		ScriptGUIElementBaseTBase(MonoObject* instance);
+
 		virtual ~ScriptGUIElementBaseTBase() {}
 
 		/** Returns the managed version of this game object. */
@@ -72,7 +73,7 @@ namespace bs
 
 	protected:
 		TScriptGUIElementBase(MonoObject* instance, GUIElementBase* element)
-			:ScriptObject<Type, ScriptGUIElementBaseTBase>(instance)
+			: ScriptObject<Type, ScriptGUIElementBaseTBase>(instance)
 		{
 			this->Initialize(element);
 		}
@@ -83,6 +84,7 @@ namespace bs
 	{
 	public:
 		ScriptGUIElementTBase(MonoObject* instance);
+
 		virtual ~ScriptGUIElementTBase() {}
 
 		/** @copydoc ScriptGUIElementBaseTBase::destroy */
@@ -101,7 +103,7 @@ namespace bs
 
 	protected:
 		TScriptGUIElement(MonoObject* instance, GUIElementBase* element)
-			:ScriptObject<Type, ScriptGUIElementTBase>(instance)
+			: ScriptObject<Type, ScriptGUIElementTBase>(instance)
 		{
 			this->Initialize(element);
 		}
@@ -155,7 +157,7 @@ namespace bs
 		static MonoString* InternalGetStyle(ScriptGUIElementBaseTBase* nativeInstance);
 		static void InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstance, MonoString* style);
 
-		typedef void(BS_THUNKCALL *OnFocusChangedThunkDef) (MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnFocusChangedThunkDef)(MonoObject*, MonoException**);
 
 	public:
 		static OnFocusChangedThunkDef onFocusGainedThunk;
@@ -163,4 +165,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

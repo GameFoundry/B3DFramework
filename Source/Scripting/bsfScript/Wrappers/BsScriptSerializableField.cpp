@@ -18,9 +18,8 @@ namespace bs
 {
 
 	ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
-		:ScriptObject(instance), mFieldInfo(fieldInfo)
+		: ScriptObject(instance), mFieldInfo(fieldInfo)
 	{
-
 	}
 
 	void ScriptSerializableField::InitRuntimeData()
@@ -40,7 +39,7 @@ namespace bs
 		void* params[4] = { parentObject, monoStrName, &fieldFlags, internalType };
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 4);
 
-		new (bs_alloc<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
+		new(bs_alloc<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
 		return managedInstance;
 	}
 
@@ -56,7 +55,7 @@ namespace bs
 
 	void ScriptSerializableField::InternalSetValue(ScriptSerializableField* nativeInstance, MonoObject* instance, MonoObject* value)
 	{
-		if (value != nullptr && MonoUtil::IsValueType((MonoUtil::GetClass(value))))
+		if(value != nullptr && MonoUtil::IsValueType((MonoUtil::GetClass(value))))
 		{
 			void* rawValue = MonoUtil::Unbox(value);
 			nativeInstance->mFieldInfo->SetValue(instance, rawValue);
@@ -71,10 +70,10 @@ namespace bs
 		SerializableMemberStyle interopStyle;
 
 		ScriptFieldFlags fieldFlags = fieldInfo->MFlags;
-		if (fieldFlags.IsSet(ScriptFieldFlag::Range))
+		if(fieldFlags.IsSet(ScriptFieldFlag::Range))
 		{
 			MonoClass* range = ScriptAssemblyManager::Instance().GetBuiltinClasses().RangeAttribute;
-			if (range != nullptr)
+			if(range != nullptr)
 			{
 				MonoObject* attrib = fieldInfo->GetAttribute(range);
 
@@ -84,30 +83,30 @@ namespace bs
 			}
 		}
 
-		if (fieldFlags.IsSet(ScriptFieldFlag::Step))
+		if(fieldFlags.IsSet(ScriptFieldFlag::Step))
 		{
 			MonoClass* step = ScriptAssemblyManager::Instance().GetBuiltinClasses().StepAttribute;
-			if (step != nullptr)
+			if(step != nullptr)
 			{
 				MonoObject* attrib = fieldInfo->GetAttribute(step);
 				ScriptStep::GetStepField()->Get(attrib, &interopStyle.StepIncrement);
 			}
 		}
 
-		if (fieldFlags.IsSet(ScriptFieldFlag::Category))
+		if(fieldFlags.IsSet(ScriptFieldFlag::Category))
 		{
 			MonoClass* category = ScriptAssemblyManager::Instance().GetBuiltinClasses().CategoryAttribute;
-			if (category != nullptr)
+			if(category != nullptr)
 			{
 				MonoObject* attrib = fieldInfo->GetAttribute(category);
 				ScriptCategory::GetNameField()->Get(attrib, &interopStyle.CategoryName);
 			}
 		}
 
-		if (fieldFlags.IsSet(ScriptFieldFlag::Order))
+		if(fieldFlags.IsSet(ScriptFieldFlag::Order))
 		{
 			MonoClass* order = ScriptAssemblyManager::Instance().GetBuiltinClasses().OrderAttribute;
-			if (order != nullptr)
+			if(order != nullptr)
 			{
 				MonoObject* attrib = fieldInfo->GetAttribute(order);
 				ScriptOrder::GetIndexField()->Get(attrib, &interopStyle.Order);
@@ -118,9 +117,9 @@ namespace bs
 	}
 
 	ScriptSerializableFieldStyle::ScriptSerializableFieldStyle(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSerializableFieldStyle::InitRuntimeData()
-	{ }
-}
+	{}
+} // namespace bs

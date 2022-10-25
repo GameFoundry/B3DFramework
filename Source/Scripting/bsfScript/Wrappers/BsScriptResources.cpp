@@ -14,8 +14,8 @@ namespace bs
 {
 #if BS_IS_BANSHEE3D
 	ScriptResources::ScriptResources(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptResources::InitRuntimeData()
 	{
@@ -35,11 +35,11 @@ namespace bs
 
 		ResourceLoadFlags loadFlags = flags;
 
-		if (gApplication().IsEditor())
+		if(gApplication().IsEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 		HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, false);
-		if (!resource.IsLoaded(false))
+		if(!resource.IsLoaded(false))
 			return nullptr;
 
 		ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(resource, true);
@@ -50,11 +50,11 @@ namespace bs
 	{
 		ResourceLoadFlags loadFlags = flags;
 
-		if (gApplication().IsEditor())
+		if(gApplication().IsEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 		HResource resource = gResources().LoadFromUuid(*uuid, false, loadFlags);
-		if (!resource.IsLoaded(false))
+		if(!resource.IsLoaded(false))
 			return nullptr;
 
 		ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(resource, true);
@@ -67,11 +67,11 @@ namespace bs
 
 		ResourceLoadFlags loadFlags = flags;
 
-		if (gApplication().IsEditor())
+		if(gApplication().IsEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 		HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, true);
-		if (resource == nullptr)
+		if(resource == nullptr)
 			return nullptr;
 
 		ScriptRRefBase* scriptResource = ScriptResourceManager::Instance().GetScriptRRef(resource);
@@ -85,11 +85,11 @@ namespace bs
 	{
 		ResourceLoadFlags loadFlags = flags;
 
-		if (gApplication().IsEditor())
+		if(gApplication().IsEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 		HResource resource = gResources().LoadFromUuid(*uuid, true, loadFlags);
-		if (resource == nullptr)
+		if(resource == nullptr)
 			return nullptr;
 
 		ScriptRRefBase* scriptResource = ScriptResourceManager::Instance().GetScriptRRef(resource);
@@ -119,4 +119,4 @@ namespace bs
 		gResources().UnloadAllUnused();
 	}
 #endif
-}
+} // namespace bs

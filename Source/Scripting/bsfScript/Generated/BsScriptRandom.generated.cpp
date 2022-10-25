@@ -11,7 +11,7 @@
 namespace bs
 {
 	ScriptRandom::ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -32,24 +32,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetPointInArc", (void*)&ScriptRandom::InternalGetPointInArc);
 		metaData.ScriptClass->AddInternalCall("Internal_GetPointInArcShell", (void*)&ScriptRandom::InternalGetPointInArcShell);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBarycentric", (void*)&ScriptRandom::InternalGetBarycentric);
-
 	}
 
 	MonoObject* ScriptRandom::Create(const SPtr<Random>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, value);
+		new(bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptRandom::InternalRandom(MonoObject* managedInstance, uint32_t seed)
 	{
 		SPtr<Random> instance = bs_shared_ptr_new<Random>(seed);
-		new (bs_alloc<ScriptRandom>())ScriptRandom(managedInstance, instance);
+		new(bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, instance);
 	}
 
 	void ScriptRandom::InternalSetSeed(ScriptRandom* thisPtr, uint32_t seed)
@@ -172,4 +172,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

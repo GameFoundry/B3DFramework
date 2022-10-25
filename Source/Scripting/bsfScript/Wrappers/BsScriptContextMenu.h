@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIContextMenu. */
-	class BS_SCR_BE_EXPORT ScriptContextMenu : public ScriptObject < ScriptContextMenu >
+	class BS_SCR_BE_EXPORT ScriptContextMenu : public ScriptObject<ScriptContextMenu>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ContextMenu")
@@ -36,7 +36,7 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		typedef void(BS_THUNKCALL *OnEntryTriggeredThunkDef) (MonoObject*, u32 callbackIdx, MonoException**);
+		typedef void(BS_THUNKCALL* OnEntryTriggeredThunkDef)(MonoObject*, u32 callbackIdx, MonoException**);
 		static OnEntryTriggeredThunkDef onEntryTriggered;
 
 		static void InternalCreateInstance(MonoObject* instance);
@@ -47,4 +47,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

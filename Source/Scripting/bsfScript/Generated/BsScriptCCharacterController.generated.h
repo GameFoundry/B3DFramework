@@ -12,9 +12,21 @@
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
 
-namespace bs { class CCharacterController; }
-namespace bs { struct __ControllerColliderCollisionInterop; }
-namespace bs { struct __ControllerControllerCollisionInterop; }
+namespace bs
+{
+	class CCharacterController;
+}
+
+namespace bs
+{
+	struct __ControllerColliderCollisionInterop;
+}
+
+namespace bs
+{
+	struct __ControllerControllerCollisionInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCCharacterController : public TScriptComponent<ScriptCCharacterController, CCharacterController>
@@ -28,9 +40,9 @@ namespace bs
 		void OnColliderHit(const ControllerColliderCollision& p0);
 		void OnControllerHit(const ControllerControllerCollision& p0);
 
-		typedef void(BS_THUNKCALL *OnColliderHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnColliderHitThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnColliderHitThunkDef OnColliderHitThunk;
-		typedef void(BS_THUNKCALL *OnControllerHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnControllerHitThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnControllerHitThunkDef OnControllerHitThunk;
 
 		static CharacterCollisionFlag InternalMove(ScriptCCharacterController* thisPtr, Vector3* displacement);
@@ -57,4 +69,4 @@ namespace bs
 		static uint64_t InternalGetLayer(ScriptCCharacterController* thisPtr);
 		static void InternalSetLayer(ScriptCCharacterController* thisPtr, uint64_t layer);
 	};
-}
+} // namespace bs

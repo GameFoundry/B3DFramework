@@ -34,6 +34,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_CONE_SHAPE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

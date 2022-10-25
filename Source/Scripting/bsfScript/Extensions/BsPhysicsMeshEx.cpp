@@ -14,4 +14,4 @@ namespace bs
 	{
 		return RendererMeshData::Create(thisPtr->GetMeshData());
 	}
-}
+} // namespace bs

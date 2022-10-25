@@ -10,7 +10,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptImportedAnimationEvents::ScriptImportedAnimationEvents(MonoObject* managedInstance, const SPtr<ImportedAnimationEvents>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -21,24 +21,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetName", (void*)&ScriptImportedAnimationEvents::InternalSetName);
 		metaData.ScriptClass->AddInternalCall("Internal_GetEvents", (void*)&ScriptImportedAnimationEvents::InternalGetEvents);
 		metaData.ScriptClass->AddInternalCall("Internal_SetEvents", (void*)&ScriptImportedAnimationEvents::InternalSetEvents);
-
 	}
 
 	MonoObject* ScriptImportedAnimationEvents::Create(const SPtr<ImportedAnimationEvents>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, value);
+		new(bs_alloc<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptImportedAnimationEvents::InternalImportedAnimationEvents(MonoObject* managedInstance)
 	{
 		SPtr<ImportedAnimationEvents> instance = bs_shared_ptr_new<ImportedAnimationEvents>();
-		new (bs_alloc<ScriptImportedAnimationEvents>())ScriptImportedAnimationEvents(managedInstance, instance);
+		new(bs_alloc<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, instance);
 	}
 
 	MonoString* ScriptImportedAnimationEvents::InternalGetName(ScriptImportedAnimationEvents* thisPtr)
@@ -87,9 +87,8 @@ namespace bs
 			{
 				vecvalue[i] = ScriptAnimationEvent::FromInterop(arrayvalue.Get<__AnimationEventInterop>(i));
 			}
-
 		}
 		thisPtr->GetInternal()->Events = vecvalue;
 	}
 #endif
-}
+} // namespace bs

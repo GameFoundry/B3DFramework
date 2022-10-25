@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptVECTOR_FIELD_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

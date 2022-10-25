@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptSkeletonBoneInfoEx::ScriptSkeletonBoneInfoEx(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSkeletonBoneInfoEx::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptSkeletonBoneInfoEx::Box(const __SkeletonBoneInfoExInterop& value)
+	MonoObject* ScriptSkeletonBoneInfoEx::Box(const __SkeletonBoneInfoExInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -48,4 +48,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 
-namespace bs { class MorphChannel; }
+namespace bs
+{
+	class MorphChannel;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptMorphChannel : public TScriptReflectable<ScriptMorphChannel, MorphChannel>
@@ -22,4 +26,4 @@ namespace bs
 		static MonoString* InternalGetName(ScriptMorphChannel* thisPtr);
 		static MonoArray* InternalGetShapes(ScriptMorphChannel* thisPtr);
 	};
-}
+} // namespace bs

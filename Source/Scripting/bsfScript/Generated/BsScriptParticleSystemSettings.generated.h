@@ -12,7 +12,11 @@
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
-namespace bs { struct ParticleSystemSettings; }
+namespace bs
+{
+	struct ParticleSystemSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleSystemSettings : public TScriptReflectable<ScriptParticleSystemSettings, ParticleSystemSettings>
@@ -58,4 +62,4 @@ namespace bs
 		static void InternalGetCustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* __output);
 		static void InternalSetCustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* value);
 	};
-}
+} // namespace bs

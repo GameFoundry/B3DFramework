@@ -13,8 +13,8 @@
 namespace bs
 {
 	ScriptRRefBase::ScriptRRefBase(MonoObject* instance, ResourceHandle<Resource> resource)
-		:ScriptObject(instance), mResource(std::move(resource)), mGCHandle(MonoUtil::NewGcHandle(instance))
-	{ }
+		: ScriptObject(instance), mResource(std::move(resource)), mGCHandle(MonoUtil::NewGcHandle(instance))
+	{}
 
 	ScriptRRefBase::~ScriptRRefBase()
 	{
@@ -37,7 +37,7 @@ namespace bs
 		else
 		{
 			type = MonoManager::Instance().FindClass(rawType);
-			if (type == nullptr)
+			if(type == nullptr)
 				type = metaData.ScriptClass;
 			else
 			{
@@ -46,7 +46,7 @@ namespace bs
 		}
 
 		MonoObject* obj = type->CreateInstance();
-		ScriptRRefBase* output = new (bs_alloc<ScriptRRefBase>()) ScriptRRefBase(obj, handle);
+		ScriptRRefBase* output = new(bs_alloc<ScriptRRefBase>()) ScriptRRefBase(obj, handle);
 
 		// Note: It's important this method never returns null, handles should always be created to avoid extensive null
 		// checks
@@ -60,7 +60,7 @@ namespace bs
 
 	void ScriptRRefBase::ClearManagedInstanceInternal()
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoUtil::FreeGcHandle(mGCHandle);
 			mGCHandle = 0;
@@ -69,7 +69,7 @@ namespace bs
 
 	void ScriptRRefBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoUtil::FreeGcHandle(mGCHandle);
 			mGCHandle = 0;
@@ -106,7 +106,7 @@ namespace bs
 		{
 			ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies;
 
-			if (gApplication().IsEditor())
+			if(gApplication().IsEditor())
 				loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 			const HResource loadedResource = gResources().LoadFromUuid(thisPtr->GetHandle().GetUuid(), false, loadFlags);
@@ -129,12 +129,12 @@ namespace bs
 		::MonoClass* rawResType = MonoUtil::GetClass(type);
 
 		MonoClass* resType = MonoManager::Instance().FindClass(rawResType);
-		if (resType == nullptr)
+		if(resType == nullptr)
 			return nullptr; // Not a valid type
 
 		::MonoClass* rrefType = nullptr;
 		if(resType == ScriptResource::GetMetaData()->ScriptClass ||
-			resType->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
+		   resType->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
 			rrefType = BindGenericParam(rawResType);
 
 		ScriptRRefBase* castRRefBase = Create(thisPtr->mResource, rrefType);
@@ -143,5 +143,4 @@ namespace bs
 
 		return nullptr;
 	}
-}
-
+} // namespace bs

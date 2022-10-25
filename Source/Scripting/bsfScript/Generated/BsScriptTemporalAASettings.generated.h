@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct TemporalAASettings; }
+namespace bs
+{
+	struct TemporalAASettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptTemporalAASettings : public TScriptReflectable<ScriptTemporalAASettings, TemporalAASettings>
@@ -27,4 +31,4 @@ namespace bs
 		static float InternalGetSharpness(ScriptTemporalAASettings* thisPtr);
 		static void InternalSetSharpness(ScriptTemporalAASettings* thisPtr, float value);
 	};
-}
+} // namespace bs

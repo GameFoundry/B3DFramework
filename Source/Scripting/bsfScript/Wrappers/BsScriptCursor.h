@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Cursor. */
-	class BS_SCR_BE_EXPORT ScriptCursor : public ScriptObject <ScriptCursor>
+	class BS_SCR_BE_EXPORT ScriptCursor : public ScriptObject<ScriptCursor>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Cursor")
@@ -40,4 +40,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

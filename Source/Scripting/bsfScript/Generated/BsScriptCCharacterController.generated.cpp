@@ -11,11 +11,11 @@
 
 namespace bs
 {
-	ScriptCCharacterController::OnColliderHitThunkDef ScriptCCharacterController::OnColliderHitThunk; 
-	ScriptCCharacterController::OnControllerHitThunkDef ScriptCCharacterController::OnControllerHitThunk; 
+	ScriptCCharacterController::OnColliderHitThunkDef ScriptCCharacterController::OnColliderHitThunk;
+	ScriptCCharacterController::OnControllerHitThunkDef ScriptCCharacterController::OnControllerHitThunk;
 
 	ScriptCCharacterController::ScriptCCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 		value->OnColliderHit.Connect(std::bind(&ScriptCCharacterController::OnColliderHit, this, std::placeholders::_1));
 		value->OnControllerHit.Connect(std::bind(&ScriptCCharacterController::OnControllerHit, this, std::placeholders::_1));
@@ -68,6 +68,7 @@ namespace bs
 		tmpp0 = ScriptControllerControllerCollision::Box(interopp0);
 		MonoUtil::InvokeThunk(OnControllerHitThunk, GetManagedInstance(), tmpp0);
 	}
+
 	CharacterCollisionFlag ScriptCCharacterController::InternalMove(ScriptCCharacterController* thisPtr, Vector3* displacement)
 	{
 		Flags<CharacterCollisionFlag> tmp__output;
@@ -245,4 +246,4 @@ namespace bs
 	{
 		thisPtr->GetHandle()->SetLayer(layer);
 	}
-}
+} // namespace bs

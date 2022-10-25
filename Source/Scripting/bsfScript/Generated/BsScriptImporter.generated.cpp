@@ -28,7 +28,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptImporter::ScriptImporter(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
+		: ScriptObject(managedInstance)
 	{
 	}
 
@@ -39,7 +39,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_ImportAll", (void*)&ScriptImporter::InternalImportAll);
 		metaData.ScriptClass->AddInternalCall("Internal_ImportAllAsync", (void*)&ScriptImporter::InternalImportAllAsync);
 		metaData.ScriptClass->AddInternalCall("Internal_SupportsFileType", (void*)&ScriptImporter::InternalSupportsFileType);
-
 	}
 
 	MonoObject* ScriptImporter::InternalImport(MonoString* inputFilePath, MonoObject* importOptions, UUID* UUID)
@@ -91,7 +90,8 @@ namespace bs
 			return monoObj;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptRRefBase::GetMetaData()->ScriptClass);
+		;
+		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptRRefBase::GetMetaData()->ScriptClass);
 
 		return __output;
 	}
@@ -135,7 +135,8 @@ namespace bs
 			return monoObj;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptMultiResource::GetMetaData()->ScriptClass);
+		;
+		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptMultiResource::GetMetaData()->ScriptClass);
 
 		return __output;
 	}
@@ -154,4 +155,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

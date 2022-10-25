@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for ScriptColor. */
-	class BS_SCR_BE_EXPORT ScriptColor : public ScriptObject <ScriptColor>
+	class BS_SCR_BE_EXPORT ScriptColor : public ScriptObject<ScriptColor>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Color")
@@ -29,4 +29,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

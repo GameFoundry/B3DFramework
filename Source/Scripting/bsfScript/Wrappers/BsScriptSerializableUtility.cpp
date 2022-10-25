@@ -13,8 +13,8 @@
 namespace bs
 {
 	ScriptSerializableUtility::ScriptSerializableUtility(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptSerializableUtility::InitRuntimeData()
 	{
@@ -24,17 +24,16 @@ namespace bs
 
 	MonoObject* ScriptSerializableUtility::InternalClone(MonoObject* original)
 	{
-		if (original == nullptr)
+		if(original == nullptr)
 			return nullptr;
 
 		::MonoClass* monoClass = MonoUtil::GetClass(original);
 		MonoClass* engineClass = MonoManager::Instance().FindClass(monoClass);
 
 		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
-		if (typeInfo == nullptr)
+		if(typeInfo == nullptr)
 		{
-			BS_LOG(Warning, Script, "Cannot clone an instance of type \"{0}\", it is not marked as serializable.",
-				engineClass->GetFullName());
+			BS_LOG(Warning, Script, "Cannot clone an instance of type \"{0}\", it is not marked as serializable.", engineClass->GetFullName());
 			return nullptr;
 		}
 
@@ -55,20 +54,19 @@ namespace bs
 
 	MonoObject* ScriptSerializableUtility::InternalCreate(MonoReflectionType* reflType)
 	{
-		if (reflType == nullptr)
+		if(reflType == nullptr)
 			return nullptr;
 
 		::MonoClass* monoClass = MonoUtil::GetClass(reflType);
 		MonoClass* engineClass = MonoManager::Instance().FindClass(monoClass);
 
 		SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
-		if (typeInfo == nullptr)
+		if(typeInfo == nullptr)
 		{
-			BS_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.",
-				engineClass->GetFullName());
+			BS_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.", engineClass->GetFullName());
 			return nullptr;
 		}
-			
+
 		SPtr<ManagedSerializableFieldData> data = ManagedSerializableFieldData::CreateDefault(typeInfo);
 		BinarySerializer bs;
 
@@ -83,4 +81,4 @@ namespace bs
 
 		return createdData->GetValueBoxed(typeInfo);
 	}
-}
+} // namespace bs

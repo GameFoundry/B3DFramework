@@ -88,8 +88,7 @@ namespace bs
 		 *							otherwise.
 		 * @return					True if the type was found, false otherwise.
 		 */
-		bool GetSerializableObjectInfo(const String& ns, const String& typeName,
-			SPtr<ManagedSerializableObjectInfo>& outInfo);
+		bool GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedSerializableObjectInfo>& outInfo);
 
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
 		SPtr<ManagedSerializableTypeInfo> GetTypeInfo(MonoClass* monoClass);
@@ -151,13 +150,12 @@ namespace bs
 		/** Returns type information for various built-in classes. */
 		const BuiltinScriptClasses& GetBuiltinClasses() const { return mBuiltin; }
 
-
 		/**
-		* Converts a managed object into an IReflectable object. The system first checks if the managed object is just a
-		* wrapper for a reflectable object already, and if so returns the wrapped reflectable object. Otherwise the managed
-		* object is serialized and the serialized version of the object is returned. The provided object cannot be an array,
-		* list, dictionary, component or a resource.
-		*/
+		 * Converts a managed object into an IReflectable object. The system first checks if the managed object is just a
+		 * wrapper for a reflectable object already, and if so returns the wrapped reflectable object. Otherwise the managed
+		 * object is serialized and the serialized version of the object is returned. The provided object cannot be an array,
+		 * list, dictionary, component or a resource.
+		 */
 		SPtr<IReflectable> GetReflectableFromManagedObject(MonoObject* value);
 
 	private:
@@ -190,4 +188,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

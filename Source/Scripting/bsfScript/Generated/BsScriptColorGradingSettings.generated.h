@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector3.h"
 
-namespace bs { struct ColorGradingSettings; }
+namespace bs
+{
+	struct ColorGradingSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptColorGradingSettings : public TScriptReflectable<ScriptColorGradingSettings, ColorGradingSettings>
@@ -29,4 +33,4 @@ namespace bs
 		static void InternalGetOffset(ScriptColorGradingSettings* thisPtr, Vector3* __output);
 		static void InternalSetOffset(ScriptColorGradingSettings* thisPtr, Vector3* value);
 	};
-}
+} // namespace bs

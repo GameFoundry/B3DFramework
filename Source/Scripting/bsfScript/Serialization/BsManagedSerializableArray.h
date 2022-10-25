@@ -14,7 +14,7 @@ namespace bs
 	/**
 	 * Allows access to an underlying managed array, or a cached version of that array that can be serialized/deserialized.
 	 *
-	 * @note	
+	 * @note
 	 * This class can be in two states:
 	 *	 - Linked - When the object has a link to a managed object. This is the default state when a new instance
 	 *				of ManagedSerializableArray is created. Any operations during this state will operate directly
@@ -23,15 +23,16 @@ namespace bs
 	 *	 - Serialized - When the object has no link to the managed object but instead just contains cached object
 	 *					and field data that may be used for initializing a managed object. Any operations during
 	 *					this state will operate only on the cached internal data.
-	 *					
+	 *
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
-	 *	
+	 * state you can call deserialize() to populated a managed object from the cached data.
+	 *
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableArray : public IReflectable
 	{
 	private:
-		struct ConstructPrivately {};
+		struct ConstructPrivately
+		{};
 
 	public:
 		ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, MonoObject* managedInstance);
@@ -172,15 +173,15 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		
+
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
 		static SPtr<ManagedSerializableArray> CreateNew();
 
 	public:
 		friend class ManagedSerializableArrayRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

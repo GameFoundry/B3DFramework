@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Keeps track of all loaded managed resources. */
-	class BS_SCR_BE_EXPORT ManagedResourceManager : public Module <ManagedResourceManager>
+	class BS_SCR_BE_EXPORT ManagedResourceManager : public Module<ManagedResourceManager>
 	{
 	public:
 		ManagedResourceManager() = default;
@@ -32,4 +32,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

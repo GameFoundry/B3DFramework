@@ -14,9 +14,8 @@
 namespace bs
 {
 	ScriptGUIFlexibleSpace::ScriptGUIFlexibleSpace(MonoObject* instance, GUIFlexibleSpace* flexibleSpace)
-		:TScriptGUIElementBase(instance, flexibleSpace), mFlexibleSpace(flexibleSpace), mIsDestroyed(false)
+		: TScriptGUIElementBase(instance, flexibleSpace), mFlexibleSpace(flexibleSpace), mIsDestroyed(false)
 	{
-
 	}
 
 	void ScriptGUIFlexibleSpace::InitRuntimeData()
@@ -28,7 +27,7 @@ namespace bs
 	{
 		if(!mIsDestroyed)
 		{
-			if (mParent != nullptr)
+			if(mParent != nullptr)
 				mParent->RemoveChild(this);
 
 			GUIFlexibleSpace::Destroy(mFlexibleSpace);
@@ -41,6 +40,6 @@ namespace bs
 	{
 		GUIFlexibleSpace* space = GUIFlexibleSpace::Create();
 
-		new (bs_alloc<ScriptGUIFlexibleSpace>()) ScriptGUIFlexibleSpace(instance, space);
+		new(bs_alloc<ScriptGUIFlexibleSpace>()) ScriptGUIFlexibleSpace(instance, space);
 	}
-}
+} // namespace bs

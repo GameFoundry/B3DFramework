@@ -12,13 +12,13 @@
 namespace bs
 {
 	ScriptGUIContent::ScriptGUIContent(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptGUIContent::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptGUIContent::Box(const __GUIContentInterop& value)
+	MonoObject* ScriptGUIContent::Box(const __GUIContentInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -37,7 +37,7 @@ namespace bs
 		if(scriptText != nullptr)
 			tmpText = scriptText->GetInternal();
 		if(tmpText != nullptr)
-		output.Text = *tmpText;
+			output.Text = *tmpText;
 		GUIContentImages tmpImages;
 		tmpImages = ScriptGUIContentImages::FromInterop(value.Images);
 		output.Images = tmpImages;
@@ -47,7 +47,7 @@ namespace bs
 		if(scriptTooltip != nullptr)
 			tmpTooltip = scriptTooltip->GetInternal();
 		if(tmpTooltip != nullptr)
-		output.Tooltip = *tmpTooltip;
+			output.Tooltip = *tmpTooltip;
 
 		return output;
 	}
@@ -72,4 +72,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

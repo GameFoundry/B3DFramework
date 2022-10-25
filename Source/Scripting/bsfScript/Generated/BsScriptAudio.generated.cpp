@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptAudio::ScriptAudio(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
+		: ScriptObject(managedInstance)
 	{
 	}
 
@@ -24,7 +24,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetActiveDevice", (void*)&ScriptAudio::InternalGetActiveDevice);
 		metaData.ScriptClass->AddInternalCall("Internal_GetDefaultDevice", (void*)&ScriptAudio::InternalGetDefaultDevice);
 		metaData.ScriptClass->AddInternalCall("Internal_GetAllDevices", (void*)&ScriptAudio::InternalGetAllDevices);
-
 	}
 
 	void ScriptAudio::InternalSetVolume(float volume)
@@ -102,4 +101,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

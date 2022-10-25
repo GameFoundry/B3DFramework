@@ -13,9 +13,8 @@
 namespace bs
 {
 	ScriptSerializableDictionary::ScriptSerializableDictionary(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
-		:ScriptObject(instance), mTypeInfo(typeInfo)
+		: ScriptObject(instance), mTypeInfo(typeInfo)
 	{
-
 	}
 
 	void ScriptSerializableDictionary::InitRuntimeData()
@@ -35,7 +34,7 @@ namespace bs
 		void* params[3] = { internalKeyType, internalValueType, managed };
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 3);
 
-		new (bs_alloc<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
+		new(bs_alloc<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
 		return managedInstance;
 	}
 
@@ -48,4 +47,4 @@ namespace bs
 	{
 		return ScriptSerializableProperty::Create(nativeInstance->mTypeInfo->MValueType);
 	}
-}
+} // namespace bs

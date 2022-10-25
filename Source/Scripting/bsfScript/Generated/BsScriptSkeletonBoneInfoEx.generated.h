@@ -28,6 +28,5 @@ namespace bs
 
 	private:
 		ScriptSkeletonBoneInfoEx(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -13,16 +13,16 @@
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
-	ScriptResources::OnResourceLoadedThunkDef ScriptResources::OnResourceLoadedThunk; 
-	ScriptResources::OnResourceDestroyedThunkDef ScriptResources::OnResourceDestroyedThunk; 
-	ScriptResources::OnResourceModifiedThunkDef ScriptResources::OnResourceModifiedThunk; 
+	ScriptResources::OnResourceLoadedThunkDef ScriptResources::OnResourceLoadedThunk;
+	ScriptResources::OnResourceDestroyedThunkDef ScriptResources::OnResourceDestroyedThunk;
+	ScriptResources::OnResourceModifiedThunkDef ScriptResources::OnResourceModifiedThunk;
 
 	HEvent ScriptResources::OnResourceLoadedConn;
 	HEvent ScriptResources::OnResourceDestroyedConn;
 	HEvent ScriptResources::OnResourceModifiedConn;
 
 	ScriptResources::ScriptResources(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
+		: ScriptObject(managedInstance)
 	{
 		mGCHandle = MonoUtil::NewWeakGcHandle(managedInstance);
 	}
@@ -57,6 +57,7 @@ namespace bs
 		OnResourceDestroyedConn = Resources::Instance().OnResourceDestroyed.Connect(&ScriptResources::OnResourceDestroyed);
 		OnResourceModifiedConn = Resources::Instance().OnResourceModified.Connect(&ScriptResources::OnResourceModified);
 	}
+
 	void ScriptResources::ShutDown()
 	{
 		OnResourceLoadedConn.Disconnect();
@@ -94,6 +95,7 @@ namespace bs
 			tmpp0 = nullptr;
 		MonoUtil::InvokeThunk(OnResourceModifiedThunk, tmpp0);
 	}
+
 	MonoObject* ScriptResources::InternalLoad(MonoString* filePath, ResourceLoadFlag loadFlags)
 	{
 		ResourceHandle<Resource> tmp__output;
@@ -275,7 +277,7 @@ namespace bs
 
 		bool __output;
 		__output = tmp__output;
-		MonoUtil::ReferenceCopy(filePath,  (MonoObject*)MonoUtil::StringToMono(tmpfilePath.ToString()));
+		MonoUtil::ReferenceCopy(filePath, (MonoObject*)MonoUtil::StringToMono(tmpfilePath.ToString()));
 
 		return __output;
 	}
@@ -293,4 +295,4 @@ namespace bs
 		return __output;
 	}
 #endif
-}
+} // namespace bs

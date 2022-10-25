@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCCollider.generated.h"
 
-namespace bs { class CMeshCollider; }
+namespace bs
+{
+	class CMeshCollider;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCMeshCollider : public TScriptComponent<ScriptCMeshCollider, CMeshCollider, ScriptCColliderBase>
@@ -20,4 +24,4 @@ namespace bs
 		static void InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh);
 		static MonoObject* InternalGetMesh(ScriptCMeshCollider* thisPtr);
 	};
-}
+} // namespace bs

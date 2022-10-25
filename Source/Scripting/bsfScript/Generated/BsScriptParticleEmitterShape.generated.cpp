@@ -8,33 +8,33 @@
 namespace bs
 {
 	ScriptParticleEmitterShapeBase::ScriptParticleEmitterShapeBase(MonoObject* managedInstance)
-		:ScriptReflectableBase(managedInstance)
-	 { }
+		: ScriptReflectableBase(managedInstance)
+	{}
 
 	SPtr<ParticleEmitterShape> ScriptParticleEmitterShapeBase::GetInternal() const
 	{
 		return std::static_pointer_cast<ParticleEmitterShape>(mInternal);
 	}
+
 	ScriptParticleEmitterShape::ScriptParticleEmitterShape(MonoObject* managedInstance, const SPtr<ParticleEmitterShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
 
 	void ScriptParticleEmitterShape::InitRuntimeData()
 	{
-
 	}
 
 	MonoObject* ScriptParticleEmitterShape::Create(const SPtr<ParticleEmitterShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterShape>()) ScriptParticleEmitterShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterShape>()) ScriptParticleEmitterShape(managedInstance, value);
 		return managedInstance;
 	}
-}
+} // namespace bs

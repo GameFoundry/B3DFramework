@@ -16,9 +16,17 @@ namespace bs
 	/** Type of parameters that can be defined by a shader. */
 	enum class BS_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderParameterType
 	{
-		Float, Vector2, Vector3, Vector4, Color,
-		Matrix3, Matrix4, Texture2D,
-		Texture3D, TextureCube, Sampler
+		Float,
+		Vector2,
+		Vector3,
+		Vector4,
+		Color,
+		Matrix3,
+		Matrix4,
+		Texture2D,
+		Texture3D,
+		TextureCube,
+		Sampler
 	};
 
 	/** Flags used to further describe a shader parameter. */
@@ -40,7 +48,7 @@ namespace bs
 	BS_FLAGS_OPERATORS(ShaderParameterFlag)
 
 	/** Contains information about a single shader parameter. */
-	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering),ExportAsStruct(true)) ShaderParameter
+	struct BS_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportAsStruct(true)) ShaderParameter
 	{
 		/** Name of the parameter variable. */
 		String Name;
@@ -60,10 +68,10 @@ namespace bs
 	{
 	public:
 		/** Returns information about all parameters available in the shader. */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Shader),Property(Getter),ExportName(Parameters))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Shader), Property(Getter), ExportName(Parameters))
 		static Vector<ShaderParameter> GetParameters(const HShader& thisPtr);
 	};
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

@@ -32,8 +32,8 @@ namespace bs
 #endif
 
 	ScriptScene::ScriptScene(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptScene::InitRuntimeData()
 	{
@@ -70,10 +70,10 @@ namespace bs
 
 	void ScriptScene::SetActiveScene(const HPrefab& prefab)
 	{
-		if (prefab.IsLoaded(false))
+		if(prefab.IsLoaded(false))
 		{
 			// If scene replace current root node, otherwise just append to the current root node
-			if (prefab->IsScene())
+			if(prefab->IsScene())
 				gSceneManager().LoadScene(prefab);
 			else
 			{
@@ -90,31 +90,31 @@ namespace bs
 	void ScriptScene::OnRefreshStarted()
 	{
 		MonoMethod* uuidMethod = metaData.ScriptClass->GetMethod("GetSceneUUID");
-		if (uuidMethod != nullptr)
+		if(uuidMethod != nullptr)
 			sActiveSceneUUID = ScriptUUID::Unbox(uuidMethod->Invoke(nullptr, nullptr));
 
 		MonoMethod* nameMethod = metaData.ScriptClass->GetMethod("GetSceneName");
-		if (nameMethod != nullptr)
+		if(nameMethod != nullptr)
 			sActiveSceneName = MonoUtil::MonoToString((MonoString*)nameMethod->Invoke(nullptr, nullptr));
 
 		MonoMethod* genericPrefabMethod = metaData.ScriptClass->GetMethod("GetIsGenericPrefab");
-		if (genericPrefabMethod != nullptr)
+		if(genericPrefabMethod != nullptr)
 			sIsGenericPrefab = *(bool*)MonoUtil::Unbox(genericPrefabMethod->Invoke(nullptr, nullptr));
 	}
 
 	void ScriptScene::OnRefreshDomainLoaded()
 	{
 		MonoMethod* uuidMethod = metaData.ScriptClass->GetMethod("SetSceneUUID", 1);
-		if (uuidMethod != nullptr)
+		if(uuidMethod != nullptr)
 		{
 			void* params[1];
 			params[0] = ScriptUUID::Box(sActiveSceneUUID);
 
 			uuidMethod->Invoke(nullptr, params);
 		}
-			
+
 		MonoMethod* nameMethod = metaData.ScriptClass->GetMethod("SetSceneName", 1);
-		if (nameMethod != nullptr)
+		if(nameMethod != nullptr)
 		{
 			void* params[1];
 			params[0] = MonoUtil::StringToMono(sActiveSceneName);
@@ -123,7 +123,7 @@ namespace bs
 		}
 
 		MonoMethod* genericPrefabMethod = metaData.ScriptClass->GetMethod("SetIsGenericPrefab", 1);
-		if (genericPrefabMethod != nullptr)
+		if(genericPrefabMethod != nullptr)
 		{
 			void* params[1] = { &sIsGenericPrefab };
 			genericPrefabMethod->Invoke(nullptr, params);
@@ -142,7 +142,7 @@ namespace bs
 	{
 		SPtr<Camera> camera = gSceneManager().GetMainCamera();
 		HSceneObject so = gSceneManager().GetActorSOInternal(camera);
-		if (so == nullptr)
+		if(so == nullptr)
 			return nullptr;
 
 		ScriptSceneObject* cameraSo = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(so);
@@ -161,4 +161,4 @@ namespace bs
 		gSceneManager().ClearScene();
 	}
 #endif
-}
+} // namespace bs

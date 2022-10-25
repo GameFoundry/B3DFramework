@@ -8,11 +8,11 @@
 namespace bs
 {
 	ScriptColor::ScriptColor(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptColor::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptColor::Box(const Color& value)
 	{
@@ -24,4 +24,4 @@ namespace bs
 	{
 		return *(Color*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

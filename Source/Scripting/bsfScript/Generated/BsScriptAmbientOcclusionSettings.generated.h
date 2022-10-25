@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct AmbientOcclusionSettings; }
+namespace bs
+{
+	struct AmbientOcclusionSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectable<ScriptAmbientOcclusionSettings, AmbientOcclusionSettings>
@@ -37,4 +41,4 @@ namespace bs
 		static uint32_t InternalGetQuality(ScriptAmbientOcclusionSettings* thisPtr);
 		static void InternalSetQuality(ScriptAmbientOcclusionSettings* thisPtr, uint32_t value);
 	};
-}
+} // namespace bs

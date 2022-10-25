@@ -6,13 +6,18 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
-namespace bs { class ParticleEmitterShape; }
+namespace bs
+{
+	class ParticleEmitterShape;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterShapeBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptParticleEmitterShapeBase(MonoObject* instance);
+
 		virtual ~ScriptParticleEmitterShapeBase() {}
 
 		SPtr<ParticleEmitterShape> GetInternal() const;
@@ -29,4 +34,4 @@ namespace bs
 
 	private:
 	};
-}
+} // namespace bs

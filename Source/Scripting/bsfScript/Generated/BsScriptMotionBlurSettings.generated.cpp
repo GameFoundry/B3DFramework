@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptMotionBlurSettings::ScriptMotionBlurSettings(MonoObject* managedInstance, const SPtr<MotionBlurSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -25,24 +25,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptMotionBlurSettings::InternalSetQuality);
 		metaData.ScriptClass->AddInternalCall("Internal_GetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalGetMaximumRadius);
 		metaData.ScriptClass->AddInternalCall("Internal_SetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalSetMaximumRadius);
-
 	}
 
 	MonoObject* ScriptMotionBlurSettings::Create(const SPtr<MotionBlurSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
+		new(bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* managedInstance)
 	{
 		SPtr<MotionBlurSettings> instance = bs_shared_ptr_new<MotionBlurSettings>();
-		new (bs_alloc<ScriptMotionBlurSettings>())ScriptMotionBlurSettings(managedInstance, instance);
+		new(bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, instance);
 	}
 
 	bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* thisPtr)
@@ -124,4 +124,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->MaximumRadius = value;
 	}
-}
+} // namespace bs

@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptObjectBase::ScriptObjectBase(MonoObject* instance)
-	{	
+	{
 		ScriptObjectManager::Instance().RegisterScriptObject(this);
 	}
 
@@ -25,7 +25,6 @@ namespace bs
 
 	void ScriptObjectBase::EndRefresh(const ScriptObjectBackup& data)
 	{
-
 	}
 
 	void ScriptObjectBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
@@ -34,14 +33,13 @@ namespace bs
 	}
 
 	PersistentScriptObjectBase::PersistentScriptObjectBase(MonoObject* instance)
-		:ScriptObjectBase(instance)
+		: ScriptObjectBase(instance)
 	{
-
 	}
 
 	ScriptObjectImpl::ScriptObjectImpl(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptObjectImpl::InitRuntimeData()
 	{
@@ -54,4 +52,4 @@ namespace bs
 		// with multi-threading issues we just delay it and execute it on the sim thread.
 		ScriptObjectManager::Instance().NotifyObjectFinalized(instance);
 	}
-}
+} // namespace bs

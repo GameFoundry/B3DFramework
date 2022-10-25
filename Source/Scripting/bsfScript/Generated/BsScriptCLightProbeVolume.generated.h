@@ -9,8 +9,16 @@
 #include "Math/BsAABox.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
 
-namespace bs { class CLightProbeVolume; }
-namespace bs { struct __LightProbeInfoInterop; }
+namespace bs
+{
+	class CLightProbeVolume;
+}
+
+namespace bs
+{
+	struct __LightProbeInfoInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCLightProbeVolume : public TScriptComponent<ScriptCLightProbeVolume, CLightProbeVolume>
@@ -34,4 +42,4 @@ namespace bs
 		static void InternalGetGridVolume(ScriptCLightProbeVolume* thisPtr, AABox* __output);
 		static void InternalGetCellCount(ScriptCLightProbeVolume* thisPtr, Vector3I* __output);
 	};
-}
+} // namespace bs

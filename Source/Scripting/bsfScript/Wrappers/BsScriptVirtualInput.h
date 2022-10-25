@@ -23,6 +23,7 @@ namespace bs
 
 		/**	Must be called before library shutdown. Releases previously hooked callbacks. */
 		static void ShutDown();
+
 	private:
 		/**
 		 * Triggered whenever a virtual button is pressed.
@@ -65,7 +66,7 @@ namespace bs
 		static bool InternalIsButtonUp(VirtualButton* btn, u32 deviceIdx);
 		static float InternalGetAxisValue(VirtualAxis* axis, u32 deviceIdx);
 
-		typedef void(BS_THUNKCALL *OnButtonEventThunkDef) (MonoObject*, u32, MonoException**);
+		typedef void(BS_THUNKCALL* OnButtonEventThunkDef)(MonoObject*, u32, MonoException**);
 
 		static OnButtonEventThunkDef OnButtonUpThunk;
 		static OnButtonEventThunkDef OnButtonDownThunk;
@@ -73,4 +74,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

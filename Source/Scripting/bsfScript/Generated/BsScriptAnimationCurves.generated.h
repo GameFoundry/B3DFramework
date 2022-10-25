@@ -11,11 +11,31 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs { struct __TNamedAnimationCurvefloatInterop; }
-namespace bs { struct __TNamedAnimationCurveQuaternionInterop; }
-namespace bs { struct AnimationCurves; }
-namespace bs { struct __TNamedAnimationCurveVector3Interop; }
-namespace bs { class AnimationCurvesEx; }
+namespace bs
+{
+	struct __TNamedAnimationCurvefloatInterop;
+}
+
+namespace bs
+{
+	struct __TNamedAnimationCurveQuaternionInterop;
+}
+
+namespace bs
+{
+	struct AnimationCurves;
+}
+
+namespace bs
+{
+	struct __TNamedAnimationCurveVector3Interop;
+}
+
+namespace bs
+{
+	class AnimationCurvesEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptAnimationCurves : public ScriptObject<ScriptAnimationCurves>
@@ -26,6 +46,7 @@ namespace bs
 		ScriptAnimationCurves(MonoObject* managedInstance, const SPtr<AnimationCurves>& value);
 
 		SPtr<AnimationCurves> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<AnimationCurves>& value);
 
 	private:
@@ -49,4 +70,4 @@ namespace bs
 		static MonoArray* InternalGetGenericCurves(ScriptAnimationCurves* thisPtr);
 		static void InternalSetGenericCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
 	};
-}
+} // namespace bs

@@ -17,9 +17,8 @@
 namespace bs
 {
 	ScriptGUIScrollArea::ScriptGUIScrollArea(MonoObject* instance, GUIScrollArea* scrollArea)
-		:TScriptGUIElement(instance, scrollArea), mLayout(nullptr)
+		: TScriptGUIElement(instance, scrollArea), mLayout(nullptr)
 	{
-
 	}
 
 	void ScriptGUIScrollArea::InitRuntimeData()
@@ -46,18 +45,18 @@ namespace bs
 
 	void ScriptGUIScrollArea::Destroy()
 	{
-		if (!mIsDestroyed)
+		if(!mIsDestroyed)
 		{
-			if (mParent != nullptr)
+			if(mParent != nullptr)
 				mParent->RemoveChild(this);
 
-			if (mLayout != nullptr)
+			if(mLayout != nullptr)
 			{
 				mLayout->Destroy();
 				mLayout = nullptr;
 			}
 
-			if (mElement->GetTypeInternal() == GUIElementBase::Type::Element)
+			if(mElement->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement::Destroy((GUIElement*)mElement);
 				mElement = nullptr;
@@ -67,20 +66,18 @@ namespace bs
 		}
 	}
 
-	void ScriptGUIScrollArea::InternalCreateInstance(MonoObject* instance, ScrollBarType vertBarType, ScrollBarType horzBarType,
-		MonoString* scrollBarStyle, MonoString* scrollAreaStyle, MonoArray* guiOptions)
+	void ScriptGUIScrollArea::InternalCreateInstance(MonoObject* instance, ScrollBarType vertBarType, ScrollBarType horzBarType, MonoString* scrollBarStyle, MonoString* scrollAreaStyle, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
-		GUIScrollArea* guiScrollArea = GUIScrollArea::Create(vertBarType, horzBarType, options,
-			MonoUtil::MonoToString(scrollBarStyle), MonoUtil::MonoToString(scrollAreaStyle));
+		GUIScrollArea* guiScrollArea = GUIScrollArea::Create(vertBarType, horzBarType, options, MonoUtil::MonoToString(scrollBarStyle), MonoUtil::MonoToString(scrollAreaStyle));
 
-		new (bs_alloc<ScriptGUIScrollArea>()) ScriptGUIScrollArea(instance, guiScrollArea);
+		new(bs_alloc<ScriptGUIScrollArea>()) ScriptGUIScrollArea(instance, guiScrollArea);
 	}
 
 	void ScriptGUIScrollArea::InternalGetContentBounds(ScriptGUIScrollArea* nativeInstance, Rect2I* bounds)
@@ -117,4 +114,4 @@ namespace bs
 	{
 		return GUIScrollArea::ScrollBarWidth;
 	}
-}
+} // namespace bs

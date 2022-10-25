@@ -32,7 +32,7 @@
 namespace bs
 {
 	ScriptCParticleSystem::ScriptCParticleSystem(MonoObject* managedInstance, const GameObjectHandle<CParticleSystem>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -49,7 +49,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptCParticleSystem::InternalSetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCParticleSystem::InternalGetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_TogglePreviewModeInternal", (void*)&ScriptCParticleSystem::InternalTogglePreviewModeInternal);
-
 	}
 
 	void ScriptCParticleSystem::InternalSetSettings(ScriptCParticleSystem* thisPtr, MonoObject* settings)
@@ -226,4 +225,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
 
-namespace bs { class GUISkin; }
+namespace bs
+{
+	class GUISkin;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptGUISkin : public TScriptResource<ScriptGUISkin, GUISkin>
@@ -28,4 +32,4 @@ namespace bs
 		static MonoArray* InternalGetStyleNames(ScriptGUISkin* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

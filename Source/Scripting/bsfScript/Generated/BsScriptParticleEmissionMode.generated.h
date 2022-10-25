@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptParticleEmissionMode(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

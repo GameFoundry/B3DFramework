@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

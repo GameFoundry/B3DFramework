@@ -11,7 +11,11 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs { struct ParticleGpuSimulationSettings; }
+namespace bs
+{
+	struct ParticleGpuSimulationSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleGpuSimulationSettings : public TScriptReflectable<ScriptParticleGpuSimulationSettings, ParticleGpuSimulationSettings>
@@ -37,4 +41,4 @@ namespace bs
 		static MonoObject* InternalGetDepthCollision(ScriptParticleGpuSimulationSettings* thisPtr);
 		static void InternalSetDepthCollision(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value);
 	};
-}
+} // namespace bs

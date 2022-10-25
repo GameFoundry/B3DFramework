@@ -10,13 +10,13 @@
 namespace bs
 {
 	ScriptPARTICLE_LINE_SHAPE_DESC::ScriptPARTICLE_LINE_SHAPE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_LINE_SHAPE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_LINE_SHAPE_DESC::Box(const __PARTICLE_LINE_SHAPE_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_LINE_SHAPE_DESC::Box(const __PARTICLE_LINE_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -44,4 +44,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

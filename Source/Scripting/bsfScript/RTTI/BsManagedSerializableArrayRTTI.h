@@ -86,13 +86,11 @@ namespace bs
 		{
 			AddReflectablePtrField("mArrayTypeInfo", 0, &ManagedSerializableArrayRTTI::GetTypeInfo, &ManagedSerializableArrayRTTI::SetTypeInfo);
 			AddPlainField("mElementSize", 1, &ManagedSerializableArrayRTTI::GetElementSize, &ManagedSerializableArrayRTTI::SetElementSize);
-			AddPlainArrayField("mNumElements", 2, &ManagedSerializableArrayRTTI::GetNumElements, &ManagedSerializableArrayRTTI::GetNumElementsNumEntries,
-				&ManagedSerializableArrayRTTI::SetNumElements, &ManagedSerializableArrayRTTI::SetNumElementsNumEntries);
-			AddReflectablePtrArrayField("mArrayEntries", 3, &ManagedSerializableArrayRTTI::GetArrayEntry, &ManagedSerializableArrayRTTI::GetNumArrayEntries,
-				&ManagedSerializableArrayRTTI::SetArrayEntry, &ManagedSerializableArrayRTTI::SetNumArrayEntries);
+			AddPlainArrayField("mNumElements", 2, &ManagedSerializableArrayRTTI::GetNumElements, &ManagedSerializableArrayRTTI::GetNumElementsNumEntries, &ManagedSerializableArrayRTTI::SetNumElements, &ManagedSerializableArrayRTTI::SetNumElementsNumEntries);
+			AddReflectablePtrArrayField("mArrayEntries", 3, &ManagedSerializableArrayRTTI::GetArrayEntry, &ManagedSerializableArrayRTTI::GetNumArrayEntries, &ManagedSerializableArrayRTTI::SetArrayEntry, &ManagedSerializableArrayRTTI::SetNumArrayEntries);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptSerializableArray";
 			return name;
@@ -103,7 +101,7 @@ namespace bs
 			return TID_ScriptSerializableArray;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ManagedSerializableArray::CreateNew();
 		}
@@ -111,4 +109,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

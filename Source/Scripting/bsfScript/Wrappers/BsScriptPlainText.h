@@ -37,4 +37,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -15,7 +15,7 @@
 namespace bs
 {
 	ScriptAnimationClip::ScriptAnimationClip(MonoObject* managedInstance, const ResourceHandle<AnimationClip>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -34,16 +34,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetSampleRate", (void*)&ScriptAnimationClip::InternalSetSampleRate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptAnimationClip::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptAnimationClip::InternalCreate0);
-
 	}
 
-	 MonoObject*ScriptAnimationClip::CreateInstance()
+	MonoObject* ScriptAnimationClip::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[2] = { &dummy, &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool,bool", ctorParams);
 	}
+
 	MonoObject* ScriptAnimationClip::InternalGetRef(ScriptAnimationClip* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -183,4 +183,4 @@ namespace bs
 		ResourceHandle<AnimationClip> instance = AnimationClip::Create(tmpcurves, isAdditive, sampleRate, tmprootMotion);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

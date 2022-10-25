@@ -30,7 +30,6 @@ namespace bs
 
 	private:
 		ScriptVideoMode(MonoObject* managedInstance);
-
 	};
 #endif
-}
+} // namespace bs

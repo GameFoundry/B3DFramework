@@ -22,7 +22,7 @@
 namespace bs
 {
 	ScriptRenderSettings::ScriptRenderSettings(MonoObject* managedInstance, const SPtr<RenderSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -83,24 +83,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetEnableSkybox", (void*)&ScriptRenderSettings::InternalSetEnableSkybox);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCullDistance", (void*)&ScriptRenderSettings::InternalGetCullDistance);
 		metaData.ScriptClass->AddInternalCall("Internal_SetCullDistance", (void*)&ScriptRenderSettings::InternalSetCullDistance);
-
 	}
 
 	MonoObject* ScriptRenderSettings::Create(const SPtr<RenderSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, value);
+		new(bs_alloc<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptRenderSettings::InternalRenderSettings(MonoObject* managedInstance)
 	{
 		SPtr<RenderSettings> instance = bs_shared_ptr_new<RenderSettings>();
-		new (bs_alloc<ScriptRenderSettings>())ScriptRenderSettings(managedInstance, instance);
+		new(bs_alloc<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, instance);
 	}
 
 	MonoObject* ScriptRenderSettings::InternalGetDepthOfField(ScriptRenderSettings* thisPtr)
@@ -604,4 +604,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->CullDistance = value;
 	}
-}
+} // namespace bs

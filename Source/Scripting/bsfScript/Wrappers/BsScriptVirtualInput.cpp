@@ -21,8 +21,8 @@ namespace bs
 	HEvent ScriptVirtualInput::OnButtonHeldConn;
 
 	ScriptVirtualInput::ScriptVirtualInput(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVirtualInput::InitRuntimeData()
 	{
@@ -56,7 +56,7 @@ namespace bs
 
 	void ScriptVirtualInput::OnButtonDown(const VirtualButton& btn, u32 deviceIdx)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::Box(btn);
@@ -65,7 +65,7 @@ namespace bs
 
 	void ScriptVirtualInput::OnButtonUp(const VirtualButton& btn, u32 deviceIdx)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::Box(btn);
@@ -74,7 +74,7 @@ namespace bs
 
 	void ScriptVirtualInput::OnButtonHeld(const VirtualButton& btn, u32 deviceIdx)
 	{
-		if (PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
+		if(PlayInEditor::Instance().GetState() != PlayInEditorState::Playing)
 			return;
 
 		MonoObject* virtualButton = ScriptVirtualButton::Box(btn);
@@ -86,7 +86,7 @@ namespace bs
 		SPtr<InputConfiguration> inputConfig = VirtualInput::Instance().GetConfiguration();
 
 		ScriptInputConfiguration* scriptInputConfig = ScriptInputConfiguration::GetScriptInputConfig(inputConfig);
-		if (scriptInputConfig == nullptr)
+		if(scriptInputConfig == nullptr)
 			scriptInputConfig = ScriptInputConfiguration::CreateScriptInputConfig(inputConfig);
 
 		return scriptInputConfig->GetManagedInstance();
@@ -118,4 +118,4 @@ namespace bs
 	{
 		return VirtualInput::Instance().GetAxisValue(*axis, deviceIdx);
 	}
-}
+} // namespace bs

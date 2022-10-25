@@ -12,7 +12,7 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptMeshImportOptions::ScriptMeshImportOptions(MonoObject* managedInstance, const SPtr<MeshImportOptions>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -44,25 +44,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetAnimationEvents", (void*)&ScriptMeshImportOptions::InternalGetAnimationEvents);
 		metaData.ScriptClass->AddInternalCall("Internal_SetAnimationEvents", (void*)&ScriptMeshImportOptions::InternalSetAnimationEvents);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptMeshImportOptions::InternalCreate);
-
 	}
 
 	MonoObject* ScriptMeshImportOptions::Create(const SPtr<MeshImportOptions>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, value);
+		new(bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptMeshImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
 		SPtr<MeshImportOptions> instance = MeshImportOptions::Create();
-		new (bs_alloc<ScriptMeshImportOptions>())ScriptMeshImportOptions(managedInstance, instance);
+		new(bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, instance);
 	}
+
 	bool ScriptMeshImportOptions::InternalGetCpuCached(ScriptMeshImportOptions* thisPtr)
 	{
 		bool tmp__output;
@@ -262,7 +263,6 @@ namespace bs
 						vecvalue[i] = *arrayElemPtrvalue;
 				}
 			}
-
 		}
 		thisPtr->GetInternal()->AnimationSplits = vecvalue;
 	}
@@ -306,9 +306,8 @@ namespace bs
 						vecvalue[i] = *arrayElemPtrvalue;
 				}
 			}
-
 		}
 		thisPtr->GetInternal()->AnimationEvents = vecvalue;
 	}
 #endif
-}
+} // namespace bs

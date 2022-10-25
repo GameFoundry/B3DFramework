@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleEmitterBoxShape::ScriptParticleEmitterBoxShape(MonoObject* managedInstance, const SPtr<ParticleEmitterBoxShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterBoxShape::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterBoxShape::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterBoxShape::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleEmitterBoxShape::Create(const SPtr<ParticleEmitterBoxShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterBoxShape>()) ScriptParticleEmitterBoxShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterBoxShape>()) ScriptParticleEmitterBoxShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitterBoxShape::InternalSetOptions(ScriptParticleEmitterBoxShape* thisPtr, __PARTICLE_BOX_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_BOX_SHAPE_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_BOX_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_BOX_SHAPE_DESC::FromInterop(*desc);
 		SPtr<ParticleEmitterBoxShape> instance = ParticleEmitterBoxShape::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleEmitterBoxShape>())ScriptParticleEmitterBoxShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterBoxShape>()) ScriptParticleEmitterBoxShape(managedInstance, instance);
 	}
 
 	void ScriptParticleEmitterBoxShape::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitterBoxShape> instance = ParticleEmitterBoxShape::Create();
-		new (bs_alloc<ScriptParticleEmitterBoxShape>())ScriptParticleEmitterBoxShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterBoxShape>()) ScriptParticleEmitterBoxShape(managedInstance, instance);
 	}
-}
+} // namespace bs

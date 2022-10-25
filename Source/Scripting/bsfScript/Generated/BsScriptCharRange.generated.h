@@ -19,7 +19,6 @@ namespace bs
 
 	private:
 		ScriptCharRange(MonoObject* managedInstance);
-
 	};
 #endif
-}
+} // namespace bs

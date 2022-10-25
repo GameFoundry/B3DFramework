@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsBounds.h"
 
-namespace bs { class CRenderable; }
+namespace bs
+{
+	class CRenderable;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCRenderable : public TScriptComponent<ScriptCRenderable, CRenderable>
@@ -32,4 +36,4 @@ namespace bs
 		static uint64_t InternalGetLayer(ScriptCRenderable* thisPtr);
 		static void InternalGetBounds(ScriptCRenderable* thisPtr, Bounds* __output);
 	};
-}
+} // namespace bs

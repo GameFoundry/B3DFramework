@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptRootMotion::ScriptRootMotion(MonoObject* managedInstance, const SPtr<RootMotion>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -20,20 +20,20 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_GetPositionCurves", (void*)&ScriptRootMotion::InternalGetPositionCurves);
 		metaData.ScriptClass->AddInternalCall("Internal_GetRotationCurves", (void*)&ScriptRootMotion::InternalGetRotationCurves);
-
 	}
 
 	MonoObject* ScriptRootMotion::Create(const SPtr<RootMotion>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptRootMotion>()) ScriptRootMotion(managedInstance, value);
+		new(bs_alloc<ScriptRootMotion>()) ScriptRootMotion(managedInstance, value);
 		return managedInstance;
 	}
+
 	MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* thisPtr)
 	{
 		SPtr<TAnimationCurve<Vector3>> tmp__output = bs_shared_ptr_new<TAnimationCurve<Vector3>>();
@@ -55,4 +55,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

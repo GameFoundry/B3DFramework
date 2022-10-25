@@ -8,12 +8,14 @@ namespace bs
 	MonoField* ScriptRange::minRangeField = nullptr;
 	MonoField* ScriptRange::maxRangeField = nullptr;
 
-	ScriptRange::ScriptRange(MonoObject* instance) : ScriptObject(instance)
-	{ }
+	ScriptRange::ScriptRange(MonoObject* instance)
+		: ScriptObject(instance)
+	{}
+
 	void ScriptRange::InitRuntimeData()
 	{
 		minRangeField = metaData.ScriptClass->GetField("min");
 		maxRangeField = metaData.ScriptClass->GetField("max");
 		sliderField = metaData.ScriptClass->GetField("slider");
 	}
-}
+} // namespace bs

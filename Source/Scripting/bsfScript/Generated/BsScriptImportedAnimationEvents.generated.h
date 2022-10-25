@@ -7,8 +7,16 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
 
-namespace bs { struct ImportedAnimationEvents; }
-namespace bs { struct __AnimationEventInterop; }
+namespace bs
+{
+	struct ImportedAnimationEvents;
+}
+
+namespace bs
+{
+	struct __AnimationEventInterop;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -29,4 +37,4 @@ namespace bs
 		static void InternalSetEvents(ScriptImportedAnimationEvents* thisPtr, MonoArray* value);
 	};
 #endif
-}
+} // namespace bs

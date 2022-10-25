@@ -30,6 +30,5 @@ namespace bs
 
 	private:
 		ScriptLimitLinearRange(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

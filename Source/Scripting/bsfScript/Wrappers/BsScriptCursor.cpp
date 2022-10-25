@@ -10,8 +10,8 @@
 namespace bs
 {
 	ScriptCursor::ScriptCursor(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptCursor::InitRuntimeData()
 	{
@@ -76,7 +76,7 @@ namespace bs
 
 		ScriptPixelData* scriptPixelData = ScriptPixelData::ToNative(iconData);
 
-		if (scriptPixelData != nullptr)
+		if(scriptPixelData != nullptr)
 		{
 			SPtr<PixelData> pixelData = scriptPixelData->GetInternal();
 			Cursor::Instance().SetCursorIcon(nameStr, *pixelData, *hotspot);
@@ -89,7 +89,7 @@ namespace bs
 	{
 		ScriptPixelData* scriptPixelData = ScriptPixelData::ToNative(iconData);
 
-		if (scriptPixelData != nullptr)
+		if(scriptPixelData != nullptr)
 		{
 			SPtr<PixelData> pixelData = scriptPixelData->GetInternal();
 			Cursor::Instance().SetCursorIcon(cursor, *pixelData, *hotspot);
@@ -108,4 +108,4 @@ namespace bs
 	{
 		Cursor::Instance().ClearCursorIcon(cursor);
 	}
-}
+} // namespace bs

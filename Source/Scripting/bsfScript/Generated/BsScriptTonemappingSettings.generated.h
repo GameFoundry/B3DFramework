@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct TonemappingSettings; }
+namespace bs
+{
+	struct TonemappingSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptTonemappingSettings : public TScriptReflectable<ScriptTonemappingSettings, TonemappingSettings>
@@ -35,4 +39,4 @@ namespace bs
 		static float InternalGetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr);
 		static void InternalSetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

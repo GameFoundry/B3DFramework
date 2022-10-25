@@ -24,9 +24,8 @@ namespace bs
 	ScriptGUISliderH::OnChangedThunkDef ScriptGUISliderH::onChangedThunk;
 
 	ScriptGUISliderH::ScriptGUISliderH(MonoObject* instance, GUISliderHorz* slider)
-		:TScriptGUIElement(instance, slider)
+		: TScriptGUIElement(instance, slider)
 	{
-
 	}
 
 	void ScriptGUISliderH::InitRuntimeData()
@@ -52,12 +51,12 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUISliderHorz* guiSlider = GUISliderHorz::Create(options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
+		auto nativeInstance = new(bs_alloc<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
 		guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderH::OnChanged, nativeInstance, _1));
 	}
 
@@ -129,9 +128,8 @@ namespace bs
 	ScriptGUISliderV::OnChangedThunkDef ScriptGUISliderV::onChangedThunk;
 
 	ScriptGUISliderV::ScriptGUISliderV(MonoObject* instance, GUISliderVert* slider)
-		:TScriptGUIElement(instance, slider)
+		: TScriptGUIElement(instance, slider)
 	{
-
 	}
 
 	void ScriptGUISliderV::InitRuntimeData()
@@ -157,12 +155,12 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUISliderVert* guiSlider = GUISliderVert::Create(options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
+		auto nativeInstance = new(bs_alloc<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
 		guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderV::OnChanged, nativeInstance, _1));
 	}
 
@@ -230,4 +228,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onChangedThunk, GetManagedInstance(), percent);
 	}
-}
+} // namespace bs

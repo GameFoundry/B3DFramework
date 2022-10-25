@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptBloomSettings::ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -28,24 +28,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptBloomSettings::InternalSetTint);
 		metaData.ScriptClass->AddInternalCall("Internal_GetFilterSize", (void*)&ScriptBloomSettings::InternalGetFilterSize);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFilterSize", (void*)&ScriptBloomSettings::InternalSetFilterSize);
-
 	}
 
 	MonoObject* ScriptBloomSettings::Create(const SPtr<BloomSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, value);
+		new(bs_alloc<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptBloomSettings::InternalBloomSettings(MonoObject* managedInstance)
 	{
 		SPtr<BloomSettings> instance = bs_shared_ptr_new<BloomSettings>();
-		new (bs_alloc<ScriptBloomSettings>())ScriptBloomSettings(managedInstance, instance);
+		new(bs_alloc<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, instance);
 	}
 
 	bool ScriptBloomSettings::InternalGetEnabled(ScriptBloomSettings* thisPtr)
@@ -118,8 +118,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Tint;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptBloomSettings::InternalSetTint(ScriptBloomSettings* thisPtr, Color* value)
@@ -142,4 +140,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->FilterSize = value;
 	}
-}
+} // namespace bs

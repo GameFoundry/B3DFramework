@@ -26,6 +26,5 @@ namespace bs
 
 	private:
 		ScriptBlendClipInfo(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

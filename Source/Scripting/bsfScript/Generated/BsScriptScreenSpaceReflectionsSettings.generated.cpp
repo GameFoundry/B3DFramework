@@ -8,7 +8,7 @@
 namespace bs
 {
 	ScriptScreenSpaceReflectionsSettings::ScriptScreenSpaceReflectionsSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceReflectionsSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -23,24 +23,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptScreenSpaceReflectionsSettings::InternalSetIntensity);
 		metaData.ScriptClass->AddInternalCall("Internal_GetMaxRoughness", (void*)&ScriptScreenSpaceReflectionsSettings::InternalGetMaxRoughness);
 		metaData.ScriptClass->AddInternalCall("Internal_SetMaxRoughness", (void*)&ScriptScreenSpaceReflectionsSettings::InternalSetMaxRoughness);
-
 	}
 
 	MonoObject* ScriptScreenSpaceReflectionsSettings::Create(const SPtr<ScreenSpaceReflectionsSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptScreenSpaceReflectionsSettings>()) ScriptScreenSpaceReflectionsSettings(managedInstance, value);
+		new(bs_alloc<ScriptScreenSpaceReflectionsSettings>()) ScriptScreenSpaceReflectionsSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptScreenSpaceReflectionsSettings::InternalScreenSpaceReflectionsSettings(MonoObject* managedInstance)
 	{
 		SPtr<ScreenSpaceReflectionsSettings> instance = bs_shared_ptr_new<ScreenSpaceReflectionsSettings>();
-		new (bs_alloc<ScriptScreenSpaceReflectionsSettings>())ScriptScreenSpaceReflectionsSettings(managedInstance, instance);
+		new(bs_alloc<ScriptScreenSpaceReflectionsSettings>()) ScriptScreenSpaceReflectionsSettings(managedInstance, instance);
 	}
 
 	bool ScriptScreenSpaceReflectionsSettings::InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* thisPtr)
@@ -106,4 +106,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->MaxRoughness = value;
 	}
-}
+} // namespace bs

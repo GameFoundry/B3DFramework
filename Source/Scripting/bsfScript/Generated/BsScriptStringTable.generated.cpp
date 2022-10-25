@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptStringTable::ScriptStringTable(MonoObject* managedInstance, const ResourceHandle<StringTable>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -26,16 +26,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetString", (void*)&ScriptStringTable::InternalGetString);
 		metaData.ScriptClass->AddInternalCall("Internal_RemoveString", (void*)&ScriptStringTable::InternalRemoveString);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptStringTable::InternalCreate);
-
 	}
 
-	 MonoObject*ScriptStringTable::CreateInstance()
+	MonoObject* ScriptStringTable::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptStringTable::InternalGetRef(ScriptStringTable* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -116,4 +116,4 @@ namespace bs
 		ResourceHandle<StringTable> instance = StringTable::Create();
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

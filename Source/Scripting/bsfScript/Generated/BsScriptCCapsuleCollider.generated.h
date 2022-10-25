@@ -7,7 +7,11 @@
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
 
-namespace bs { class CCapsuleCollider; }
+namespace bs
+{
+	class CCapsuleCollider;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCCapsuleCollider : public TScriptComponent<ScriptCCapsuleCollider, CCapsuleCollider, ScriptCColliderBase>
@@ -27,4 +31,4 @@ namespace bs
 		static void InternalSetRadius(ScriptCCapsuleCollider* thisPtr, float radius);
 		static float InternalGetRadius(ScriptCCapsuleCollider* thisPtr);
 	};
-}
+} // namespace bs

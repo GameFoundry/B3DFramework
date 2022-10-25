@@ -23,7 +23,7 @@
 namespace bs
 {
 	ScriptMaterial::ScriptMaterial(MonoObject* managedInstance, const ResourceHandle<Material>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -60,16 +60,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetTexture", (void*)&ScriptMaterial::InternalGetTexture);
 		metaData.ScriptClass->AddInternalCall("Internal_SetSpriteTexture", (void*)&ScriptMaterial::InternalSetSpriteTexture);
 		metaData.ScriptClass->AddInternalCall("Internal_GetSpriteTexture", (void*)&ScriptMaterial::InternalGetSpriteTexture);
-
 	}
 
-	 MonoObject*ScriptMaterial::CreateInstance()
+	MonoObject* ScriptMaterial::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptMaterial::InternalGetRef(ScriptMaterial* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -399,4 +399,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

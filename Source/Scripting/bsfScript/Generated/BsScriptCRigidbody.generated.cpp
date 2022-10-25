@@ -11,12 +11,12 @@
 
 namespace bs
 {
-	ScriptCRigidbody::OnCollisionBeginThunkDef ScriptCRigidbody::OnCollisionBeginThunk; 
-	ScriptCRigidbody::OnCollisionStayThunkDef ScriptCRigidbody::OnCollisionStayThunk; 
-	ScriptCRigidbody::OnCollisionEndThunkDef ScriptCRigidbody::OnCollisionEndThunk; 
+	ScriptCRigidbody::OnCollisionBeginThunkDef ScriptCRigidbody::OnCollisionBeginThunk;
+	ScriptCRigidbody::OnCollisionStayThunkDef ScriptCRigidbody::OnCollisionStayThunk;
+	ScriptCRigidbody::OnCollisionEndThunkDef ScriptCRigidbody::OnCollisionEndThunk;
 
 	ScriptCRigidbody::ScriptCRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 		value->OnCollisionBegin.Connect(std::bind(&ScriptCRigidbody::OnCollisionBegin, this, std::placeholders::_1));
 		value->OnCollisionStay.Connect(std::bind(&ScriptCRigidbody::OnCollisionStay, this, std::placeholders::_1));
@@ -98,6 +98,7 @@ namespace bs
 		tmpp0 = ScriptCollisionData::Box(interopp0);
 		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
 	}
+
 	void ScriptCRigidbody::InternalMove(ScriptCRigidbody* thisPtr, Vector3* position)
 	{
 		thisPtr->GetHandle()->Move(*position);
@@ -392,4 +393,4 @@ namespace bs
 
 		*__output = tmp__output;
 	}
-}
+} // namespace bs

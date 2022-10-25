@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for PixelUtility. */
-	class BS_SCR_BE_EXPORT ScriptPixelUtility : public ScriptObject <ScriptPixelUtility>
+	class BS_SCR_BE_EXPORT ScriptPixelUtility : public ScriptObject<ScriptPixelUtility>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PixelUtility")
@@ -40,4 +40,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

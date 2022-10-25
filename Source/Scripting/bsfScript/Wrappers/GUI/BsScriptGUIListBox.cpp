@@ -23,9 +23,8 @@ namespace bs
 	ScriptGUIListBox::OnSelectionChangedThunkDef ScriptGUIListBox::onSelectionChangedThunk;
 
 	ScriptGUIListBox::ScriptGUIListBox(MonoObject* instance, GUIListBox* listBox)
-		:TScriptGUIElement(instance, listBox)
+		: TScriptGUIElement(instance, listBox)
 	{
-
 	}
 
 	void ScriptGUIListBox::InitRuntimeData()
@@ -41,14 +40,13 @@ namespace bs
 		onSelectionChangedThunk = (OnSelectionChangedThunkDef)metaData.ScriptClass->GetMethod("DoOnSelectionChanged", 1)->GetThunk();
 	}
 
-	void ScriptGUIListBox::InternalCreateInstance(MonoObject* instance, MonoArray* elements, bool multiselect,
-		MonoString* style, MonoArray* guiOptions)
+	void ScriptGUIListBox::InternalCreateInstance(MonoObject* instance, MonoArray* elements, bool multiselect, MonoString* style, MonoArray* guiOptions)
 	{
 		GUIOptions options;
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		ScriptArray elemsArray(elements);
@@ -69,7 +67,7 @@ namespace bs
 
 		GUIListBox* guiListBox = GUIListBox::Create(nativeElements, multiselect, options, MonoUtil::MonoToString(style));
 
-		auto nativeInstance = new (bs_alloc<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
+		auto nativeInstance = new(bs_alloc<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
 
 		guiListBox->OnSelectionToggled.Connect(std::bind(&::bs::ScriptGUIListBox::OnSelectionChanged, nativeInstance, _1, _2));
 	}
@@ -122,7 +120,7 @@ namespace bs
 		u32 numElements = (u32)states.size();
 		ScriptArray outStates = ScriptArray::Create<bool>(numElements);
 
-		for (u32 i = 0; i < numElements; i++)
+		for(u32 i = 0; i < numElements; i++)
 			outStates.Set(i, (bool)states[i]);
 
 		return outStates.GetInternal();
@@ -130,14 +128,14 @@ namespace bs
 
 	void ScriptGUIListBox::InternalSetElementStates(ScriptGUIListBox* nativeInstance, MonoArray* monoStates)
 	{
-		if (monoStates == nullptr)
+		if(monoStates == nullptr)
 			return;
 
 		ScriptArray inStates(monoStates);
 		u32 numElements = inStates.Size();
 
 		Vector<bool> states(numElements);
-		for (u32 i = 0; i < numElements; i++)
+		for(u32 i = 0; i < numElements; i++)
 			states[i] = inStates.Get<bool>(i);
 
 		GUIListBox* listBox = (GUIListBox*)nativeInstance->GetGuiElement();
@@ -148,4 +146,4 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(onSelectionChangedThunk, GetManagedInstance(), index);
 	}
-}
+} // namespace bs

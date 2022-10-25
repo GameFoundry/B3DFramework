@@ -12,13 +12,13 @@
 namespace bs
 {
 	ScriptBlend2DInfo::ScriptBlend2DInfo(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptBlend2DInfo::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptBlend2DInfo::Box(const __Blend2DInfoInterop& value)
+	MonoObject* ScriptBlend2DInfo::Box(const __Blend2DInfoInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -98,4 +98,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

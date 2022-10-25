@@ -45,6 +45,7 @@ namespace bs
 		 * RTTI ID.
 		 */
 		static ::MonoClass* GetRRefClass(u32 rttiId);
+
 	protected:
 		friend class ScriptResourceManager;
 
@@ -66,10 +67,10 @@ namespace bs
 		 */
 		void FreeManagedInstance();
 
-		/**	
+		/**
 		 * Triggered by the script resource managed when the native resource handle this object point to has been destroyed.
 		 */
-		virtual void NotifyResourceDestroyed() { }
+		virtual void NotifyResourceDestroyed() {}
 
 		/** Destroys the interop object, unless refresh is in progress in which case it is just prepared for re-creation. */
 		void Destroy();
@@ -78,8 +79,8 @@ namespace bs
 	};
 
 	/**	Base class for a specific resource's interop object. */
-	template<class ScriptClass, class ResType, class BaseType = ScriptResourceBase>
-	class BS_SCR_BE_EXPORT TScriptResource : public ScriptObject <ScriptClass, BaseType>
+	template <class ScriptClass, class ResType, class BaseType = ScriptResourceBase>
+	class BS_SCR_BE_EXPORT TScriptResource : public ScriptObject<ScriptClass, BaseType>
 	{
 	public:
 		/**	Returns a generic handle to the internal wrapped resource. */
@@ -101,7 +102,7 @@ namespace bs
 		friend class ScriptResourceManager;
 
 		TScriptResource(MonoObject* instance, const ResourceHandle<ResType>& resource)
-			:ScriptObject<ScriptClass, BaseType>(instance), mResource(resource)
+			: ScriptObject<ScriptClass, BaseType>(instance), mResource(resource)
 		{
 			this->SetManagedInstance(instance);
 		}
@@ -123,10 +124,10 @@ namespace bs
 			this->FreeManagedInstance();
 		}
 
-		/**	
+		/**
 		 * Triggered by the script resource managed when the native resource handle this object point to has been destroyed.
 		 */
-		void NotifyResourceDestroyed() 
+		void NotifyResourceDestroyed()
 		{
 			this->FreeManagedInstance();
 		}
@@ -149,8 +150,8 @@ namespace bs
 
 	private:
 		ScriptResource(MonoObject* instance)
-			:ScriptObject(instance)
-		{ }
+			: ScriptObject(instance)
+		{}
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
@@ -177,4 +178,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

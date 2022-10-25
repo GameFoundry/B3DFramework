@@ -30,7 +30,7 @@ namespace bs
 		MonoString* CategoryName = nullptr;
 
 		/** Determines ordering in inspector relative to other members. */
-		int Order = 0; 
+		int Order = 0;
 	};
 
 	/**	Interop class between C++ & CLR for ManagedSerializableFieldInfo. */
@@ -47,6 +47,7 @@ namespace bs
 		 *								provided parent object.
 		 */
 		static MonoObject* Create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
+
 	private:
 		ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
 
@@ -72,4 +73,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

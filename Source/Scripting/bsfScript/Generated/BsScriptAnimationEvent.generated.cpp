@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptAnimationEvent::ScriptAnimationEvent(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptAnimationEvent::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptAnimationEvent::Box(const __AnimationEventInterop& value)
+	MonoObject* ScriptAnimationEvent::Box(const __AnimationEventInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -46,4 +46,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

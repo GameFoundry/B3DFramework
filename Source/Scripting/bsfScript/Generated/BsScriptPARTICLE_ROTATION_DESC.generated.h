@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_ROTATION_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

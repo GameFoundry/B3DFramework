@@ -9,15 +9,16 @@
 namespace bs
 {
 	ScriptRenderTargetBase::ScriptRenderTargetBase(MonoObject* managedInstance)
-		:ScriptReflectableBase(managedInstance)
-	 { }
+		: ScriptReflectableBase(managedInstance)
+	{}
 
 	SPtr<RenderTarget> ScriptRenderTargetBase::GetInternal() const
 	{
 		return std::static_pointer_cast<RenderTarget>(mInternal);
 	}
+
 	ScriptRenderTarget::ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -30,20 +31,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetPriority", (void*)&ScriptRenderTarget::InternalGetPriority);
 		metaData.ScriptClass->AddInternalCall("Internal_SetPriority", (void*)&ScriptRenderTarget::InternalSetPriority);
 		metaData.ScriptClass->AddInternalCall("Internal_GetSampleCount", (void*)&ScriptRenderTarget::InternalGetSampleCount);
-
 	}
 
 	MonoObject* ScriptRenderTarget::Create(const SPtr<RenderTarget>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptRenderTarget>()) ScriptRenderTarget(managedInstance, value);
+		new(bs_alloc<ScriptRenderTarget>()) ScriptRenderTarget(managedInstance, value);
 		return managedInstance;
 	}
+
 	uint32_t ScriptRenderTarget::InternalGetWidth(ScriptRenderTargetBase* thisPtr)
 	{
 		uint32_t tmp__output;
@@ -103,4 +104,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

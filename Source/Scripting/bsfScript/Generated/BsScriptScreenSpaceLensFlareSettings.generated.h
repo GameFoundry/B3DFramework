@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct ScreenSpaceLensFlareSettings; }
+namespace bs
+{
+	struct ScreenSpaceLensFlareSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptScreenSpaceLensFlareSettings : public TScriptReflectable<ScriptScreenSpaceLensFlareSettings, ScreenSpaceLensFlareSettings>
@@ -51,4 +55,4 @@ namespace bs
 		static bool InternalGetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr);
 		static void InternalSetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr, bool value);
 	};
-}
+} // namespace bs

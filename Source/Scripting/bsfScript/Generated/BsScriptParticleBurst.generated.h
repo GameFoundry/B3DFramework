@@ -29,6 +29,5 @@ namespace bs
 
 	private:
 		ScriptParticleBurst(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

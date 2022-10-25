@@ -8,11 +8,11 @@
 namespace bs
 {
 	ScriptPlane::ScriptPlane(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptPlane::InitRuntimeData()
-	{ }
+	{}
 
 	MonoObject* ScriptPlane::Box(const Plane& value)
 	{
@@ -24,4 +24,4 @@ namespace bs
 	{
 		return *(Plane*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

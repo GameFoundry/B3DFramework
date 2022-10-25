@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { struct __PARTICLE_SIZE_DESCInterop; }
-namespace bs { class ParticleSize; }
+namespace bs
+{
+	struct __PARTICLE_SIZE_DESCInterop;
+}
+
+namespace bs
+{
+	class ParticleSize;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleSize : public TScriptReflectable<ScriptParticleSize, ParticleSize, ScriptParticleEvolverBase>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_SIZE_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

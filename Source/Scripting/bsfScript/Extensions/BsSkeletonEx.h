@@ -14,7 +14,7 @@ namespace bs
 	/** @cond SCRIPT_EXTENSIONS */
 
 	/** Contains internal information about a single bone in a Skeleton. */
-	struct BS_SCRIPT_EXPORT(ExportName(BoneInfo),ExportAsStruct(true)) SkeletonBoneInfoEx
+	struct BS_SCRIPT_EXPORT(ExportName(BoneInfo), ExportAsStruct(true)) SkeletonBoneInfoEx
 	{
 		/** Unique name of the bone. */
 		String Name;
@@ -35,10 +35,10 @@ namespace bs
 		 * @param[in] boneIdx	Index of the bone to retrieve information for.
 		 * @return				Information about the bone at the specified index.
 		 */
-		BS_SCRIPT_EXPORT(ExtensionMethodForType(Skeleton),ExportName(GetBoneInfo))
+		BS_SCRIPT_EXPORT(ExtensionMethodForType(Skeleton), ExportName(GetBoneInfo))
 		static SkeletonBoneInfoEx GetBoneInfo(const SPtr<Skeleton>& thisPtr, int boneIdx);
 	};
 
 	/** @endcond */
 	/** @} */
-}
+} // namespace bs

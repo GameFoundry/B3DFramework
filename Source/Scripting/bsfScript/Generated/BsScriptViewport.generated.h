@@ -10,7 +10,11 @@
 #include "Math/BsRect2.h"
 #include "Math/BsRect2I.h"
 
-namespace bs { class Viewport; }
+namespace bs
+{
+	class Viewport;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptViewport : public TScriptReflectable<ScriptViewport, Viewport>
@@ -38,4 +42,4 @@ namespace bs
 		static uint16_t InternalGetClearStencilValue(ScriptViewport* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* target, float x, float y, float width, float height);
 	};
-}
+} // namespace bs

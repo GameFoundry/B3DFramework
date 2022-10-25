@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleEmitterStaticMeshShape::ScriptParticleEmitterStaticMeshShape(MonoObject* managedInstance, const SPtr<ParticleEmitterStaticMeshShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterStaticMeshShape::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterStaticMeshShape::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterStaticMeshShape::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleEmitterStaticMeshShape::Create(const SPtr<ParticleEmitterStaticMeshShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitterStaticMeshShape::InternalSetOptions(ScriptParticleEmitterStaticMeshShape* thisPtr, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::FromInterop(*desc);
 		SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
 	}
 
 	void ScriptParticleEmitterStaticMeshShape::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create();
-		new (bs_alloc<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
 	}
-}
+} // namespace bs

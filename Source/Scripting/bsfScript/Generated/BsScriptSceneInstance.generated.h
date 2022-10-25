@@ -5,7 +5,11 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace bs { class SceneInstance; }
+namespace bs
+{
+	class SceneInstance;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptSceneInstance : public ScriptObject<ScriptSceneInstance>
@@ -16,6 +20,7 @@ namespace bs
 		ScriptSceneInstance(MonoObject* managedInstance, const SPtr<SceneInstance>& value);
 
 		SPtr<SceneInstance> GetInternal() const { return mInternal; }
+
 		static MonoObject* Create(const SPtr<SceneInstance>& value);
 
 	private:
@@ -26,4 +31,4 @@ namespace bs
 		static bool InternalIsActive(ScriptSceneInstance* thisPtr);
 		static MonoObject* InternalGetPhysicsScene(ScriptSceneInstance* thisPtr);
 	};
-}
+} // namespace bs

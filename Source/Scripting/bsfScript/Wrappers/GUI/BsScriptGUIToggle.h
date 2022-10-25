@@ -40,18 +40,17 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content,
-			MonoObject* toggleGroup, MonoString* style, MonoArray* guiOptions);
+		static void InternalCreateInstance(MonoObject* instance, __GUIContentInterop* content, MonoObject* toggleGroup, MonoString* style, MonoArray* guiOptions);
 		static void InternalSetContent(ScriptGUIToggle* nativeInstance, __GUIContentInterop* content);
 		static bool InternalGetValue(ScriptGUIToggle* nativeInstance);
 		static void InternalSetValue(ScriptGUIToggle* nativeInstance, bool value);
 		static void InternalSetTint(ScriptGUIToggle* nativeInstance, Color* color);
 
-		typedef void (BS_THUNKCALL *OnClickThunkDef) (MonoObject*, MonoException**);
-		typedef void (BS_THUNKCALL *OnHoverThunkDef) (MonoObject*, MonoException**);
-		typedef void (BS_THUNKCALL *OnOutThunkDef) (MonoObject*, MonoException**);
-		typedef void (BS_THUNKCALL *OnToggledThunkDef) (MonoObject*, bool toggled, MonoException**);
-		typedef void(BS_THUNKCALL *OnDoubleClickThunkDef) (MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnClickThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnHoverThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnOutThunkDef)(MonoObject*, MonoException**);
+		typedef void(BS_THUNKCALL* OnToggledThunkDef)(MonoObject*, bool toggled, MonoException**);
+		typedef void(BS_THUNKCALL* OnDoubleClickThunkDef)(MonoObject*, MonoException**);
 
 		static OnClickThunkDef onClickThunk;
 		static OnHoverThunkDef onHoverThunk;
@@ -61,4 +60,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

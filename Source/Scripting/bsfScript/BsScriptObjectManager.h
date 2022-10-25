@@ -16,9 +16,10 @@ namespace bs
 	struct AssemblyRefreshInfo
 	{
 		AssemblyRefreshInfo() = default;
+
 		AssemblyRefreshInfo(const char* name, const Path* path, const BuiltinTypeMappings* typeMapping)
-			:Name(name), Path(path), TypeMapping(typeMapping)
-		{ }
+			: Name(name), Path(path), TypeMapping(typeMapping)
+		{}
 
 		const char* Name = nullptr;
 		const Path* Path = nullptr;
@@ -26,7 +27,7 @@ namespace bs
 	};
 
 	/**	Keeps track of all script interop objects and handles assembly refresh. */
-	class BS_SCR_BE_EXPORT ScriptObjectManager : public Module <ScriptObjectManager>
+	class BS_SCR_BE_EXPORT ScriptObjectManager : public Module<ScriptObjectManager>
 	{
 	public:
 		ScriptObjectManager() = default;
@@ -79,6 +80,7 @@ namespace bs
 
 		/**	Triggered after the assembly refresh ends. New assemblies should be loaded at this point. */
 		Event<void()> OnRefreshComplete;
+
 	private:
 		Set<ScriptObjectBase*> mScriptObjects;
 
@@ -88,4 +90,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

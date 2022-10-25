@@ -15,13 +15,13 @@
 namespace bs
 {
 	ScriptPhysicsQueryHit::ScriptPhysicsQueryHit(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPhysicsQueryHit::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPhysicsQueryHit::Box(const __PhysicsQueryHitInterop& value)
+	MonoObject* ScriptPhysicsQueryHit::Box(const __PhysicsQueryHitInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -72,4 +72,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

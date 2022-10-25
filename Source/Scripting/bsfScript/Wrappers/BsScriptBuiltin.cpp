@@ -14,8 +14,8 @@
 namespace bs
 {
 	ScriptBuiltin::ScriptBuiltin(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptBuiltin::InitRuntimeData()
 	{
@@ -56,4 +56,4 @@ namespace bs
 		ScriptResourceBase* scriptFont = ScriptResourceManager::Instance().GetScriptResource(font, true);
 		return scriptFont->GetManagedInstance();
 	}
-}
+} // namespace bs

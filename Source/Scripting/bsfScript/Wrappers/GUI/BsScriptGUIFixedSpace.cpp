@@ -14,9 +14,8 @@
 namespace bs
 {
 	ScriptGUIFixedSpace::ScriptGUIFixedSpace(MonoObject* instance, GUIFixedSpace* fixedSpace)
-		:TScriptGUIElementBase(instance, fixedSpace), mFixedSpace(fixedSpace), mIsDestroyed(false)
+		: TScriptGUIElementBase(instance, fixedSpace), mFixedSpace(fixedSpace), mIsDestroyed(false)
 	{
-
 	}
 
 	void ScriptGUIFixedSpace::InitRuntimeData()
@@ -27,9 +26,9 @@ namespace bs
 
 	void ScriptGUIFixedSpace::Destroy()
 	{
-		if (!mIsDestroyed)
+		if(!mIsDestroyed)
 		{
-			if (mParent != nullptr)
+			if(mParent != nullptr)
 				mParent->RemoveChild(this);
 
 			GUIFixedSpace::Destroy(mFixedSpace);
@@ -42,11 +41,11 @@ namespace bs
 	{
 		GUIFixedSpace* space = GUIFixedSpace::Create(size);
 
-		new (bs_alloc<ScriptGUIFixedSpace>()) ScriptGUIFixedSpace(instance, space);
+		new(bs_alloc<ScriptGUIFixedSpace>()) ScriptGUIFixedSpace(instance, space);
 	}
 
 	void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* nativeInstance, u32 size)
 	{
 		nativeInstance->mFixedSpace->SetSize(size);
 	}
-}
+} // namespace bs

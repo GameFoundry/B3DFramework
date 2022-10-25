@@ -14,12 +14,10 @@ namespace bs
 {
 	ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy)
 	{
-
 	}
 
-	ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy,
-		const SPtr<ManagedSerializableTypeInfoList>& typeInfo, MonoObject* managedInstance)
-		:mListTypeInfo(typeInfo)
+	ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoList>& typeInfo, MonoObject* managedInstance)
+		: mListTypeInfo(typeInfo)
 	{
 		mGCHandle = MonoUtil::NewGcHandle(managedInstance, false);
 
@@ -41,8 +39,7 @@ namespace bs
 		}
 	}
 
-	SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoObject* managedInstance,
-		const SPtr<ManagedSerializableTypeInfoList>& typeInfo)
+	SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo)
 	{
 		if(managedInstance == nullptr)
 			return nullptr;
@@ -66,17 +63,17 @@ namespace bs
 
 	MonoObject* ManagedSerializableList::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size)
 	{
-		if (!typeInfo->IsTypeLoaded())
+		if(!typeInfo->IsTypeLoaded())
 			return nullptr;
 
 		::MonoClass* listMonoClass = typeInfo->GetMonoClass();
 		MonoClass* listClass = MonoManager::Instance().FindClass(listMonoClass);
-		if (listClass == nullptr)
+		if(listClass == nullptr)
 			return nullptr;
 
 		void* params[1] = { &size };
 		MonoObject* instance = listClass->CreateInstance("int", params);
-		
+
 		ScriptArray tempArray(typeInfo->MElementType->GetMonoClass(), size);
 		params[0] = tempArray.GetInternal();
 
@@ -101,7 +98,7 @@ namespace bs
 
 	void ManagedSerializableList::SetFieldData(u32 arrayIdx, const SPtr<ManagedSerializableFieldData>& val)
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoObject* managedInstance = MonoUtil::GetObjectFromGcHandle(mGCHandle);
 			SetFieldData(managedInstance, arrayIdx, val);
@@ -126,7 +123,7 @@ namespace bs
 
 	SPtr<ManagedSerializableFieldData> ManagedSerializableList::GetFieldData(u32 arrayIdx)
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			MonoObject* managedInstance = MonoUtil::GetObjectFromGcHandle(mGCHandle);
 			MonoObject* obj = mItemProp->GetIndexed(managedInstance, arrayIdx);
@@ -139,7 +136,7 @@ namespace bs
 
 	void ManagedSerializableList::Resize(u32 newSize)
 	{
-		if (mGCHandle != 0)
+		if(mGCHandle != 0)
 		{
 			ScriptArray tempArray(mListTypeInfo->MElementType->GetMonoClass(), newSize);
 
@@ -147,7 +144,8 @@ namespace bs
 			u32 dummy = 0;
 
 			void* params[4];
-			params[0] = &dummy;;
+			params[0] = &dummy;
+			;
 			params[1] = tempArray.GetInternal();
 			params[2] = &dummy;
 			params[3] = &minSize;
@@ -168,17 +166,17 @@ namespace bs
 
 	void ManagedSerializableList::Serialize()
 	{
-		if (mGCHandle == 0)
+		if(mGCHandle == 0)
 			return;
 
 		mNumElements = GetLengthInternal();
 		mCachedEntries = Vector<SPtr<ManagedSerializableFieldData>>(mNumElements);
 
-		for (u32 i = 0; i < mNumElements; i++)
+		for(u32 i = 0; i < mNumElements; i++)
 			mCachedEntries[i] = GetFieldData(i);
 
 		// Serialize children
-		for (auto& fieldEntry : mCachedEntries)
+		for(auto& fieldEntry : mCachedEntries)
 			fieldEntry->Serialize();
 
 		MonoUtil::FreeGcHandle(mGCHandle);
@@ -189,18 +187,18 @@ namespace bs
 	{
 		MonoObject* managedInstance = CreateManagedInstance(mListTypeInfo, mNumElements);
 
-		if (managedInstance == nullptr)
+		if(managedInstance == nullptr)
 			return nullptr;
 
 		MonoClass* listClass = MonoManager::Instance().FindClass(mListTypeInfo->GetMonoClass());
 		InitMonoObjects(listClass);
 
 		// Deserialize children
-		for (auto& fieldEntry : mCachedEntries)
+		for(auto& fieldEntry : mCachedEntries)
 			fieldEntry->Deserialize();
 
 		u32 idx = 0;
-		for (auto& entry : mCachedEntries)
+		for(auto& entry : mCachedEntries)
 		{
 			SetFieldData(managedInstance, idx, entry);
 			idx++;
@@ -239,4 +237,4 @@ namespace bs
 	{
 		return ManagedSerializableList::GetRttiStatic();
 	}
-}
+} // namespace bs

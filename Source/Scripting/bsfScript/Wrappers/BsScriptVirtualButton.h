@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for VirtualButton. */
-	class BS_SCR_BE_EXPORT ScriptVirtualButton : public ScriptObject <ScriptVirtualButton>
+	class BS_SCR_BE_EXPORT ScriptVirtualButton : public ScriptObject<ScriptVirtualButton>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VirtualButton")
@@ -34,4 +34,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

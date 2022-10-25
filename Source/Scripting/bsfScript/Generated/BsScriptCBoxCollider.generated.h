@@ -7,7 +7,11 @@
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
 
-namespace bs { class CBoxCollider; }
+namespace bs
+{
+	class CBoxCollider;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCBoxCollider : public TScriptComponent<ScriptCBoxCollider, CBoxCollider, ScriptCColliderBase>
@@ -23,4 +27,4 @@ namespace bs
 		static void InternalSetCenter(ScriptCBoxCollider* thisPtr, Vector3* center);
 		static void InternalGetCenter(ScriptCBoxCollider* thisPtr, Vector3* __output);
 	};
-}
+} // namespace bs

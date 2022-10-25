@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptPhysicsMaterial::ScriptPhysicsMaterial(MonoObject* managedInstance, const ResourceHandle<PhysicsMaterial>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -26,16 +26,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetRestitutionCoefficient", (void*)&ScriptPhysicsMaterial::InternalSetRestitutionCoefficient);
 		metaData.ScriptClass->AddInternalCall("Internal_GetRestitutionCoefficient", (void*)&ScriptPhysicsMaterial::InternalGetRestitutionCoefficient);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptPhysicsMaterial::InternalCreate);
-
 	}
 
-	 MonoObject*ScriptPhysicsMaterial::CreateInstance()
+	MonoObject* ScriptPhysicsMaterial::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptPhysicsMaterial::InternalGetRef(ScriptPhysicsMaterial* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -94,4 +94,4 @@ namespace bs
 		ResourceHandle<PhysicsMaterial> instance = PhysicsMaterial::Create(staticFriction, dynamicFriction, restitution);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

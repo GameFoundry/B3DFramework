@@ -27,7 +27,6 @@ namespace bs
 
 	private:
 		ScriptSubResource(MonoObject* managedInstance);
-
 	};
 #endif
-}
+} // namespace bs

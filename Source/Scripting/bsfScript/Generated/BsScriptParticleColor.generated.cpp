@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleColor::ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleColor::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleColor::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleColor::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleColor::Create(const SPtr<ParticleColor>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
+		new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleColor::InternalSetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* options)
 	{
 		PARTICLE_COLOR_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_COLOR_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_COLOR_DESC::FromInterop(*desc);
 		SPtr<ParticleColor> instance = ParticleColor::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleColor>())ScriptParticleColor(managedInstance, instance);
+		new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
 	}
 
 	void ScriptParticleColor::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleColor> instance = ParticleColor::Create();
-		new (bs_alloc<ScriptParticleColor>())ScriptParticleColor(managedInstance, instance);
+		new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
 	}
-}
+} // namespace bs

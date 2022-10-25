@@ -13,13 +13,13 @@
 namespace bs
 {
 	ScriptGUIElementStateStyle::ScriptGUIElementStateStyle(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptGUIElementStateStyle::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptGUIElementStateStyle::Box(const __GUIElementStateStyleInterop& value)
+	MonoObject* ScriptGUIElementStateStyle::Box(const __GUIElementStateStyleInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -59,4 +59,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

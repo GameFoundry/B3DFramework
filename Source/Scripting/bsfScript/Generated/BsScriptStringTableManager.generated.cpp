@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptStringTableManager::ScriptStringTableManager(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
+		: ScriptObject(managedInstance)
 	{
 	}
 
@@ -23,7 +23,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetTable", (void*)&ScriptStringTableManager::InternalGetTable);
 		metaData.ScriptClass->AddInternalCall("Internal_RemoveTable", (void*)&ScriptStringTableManager::InternalRemoveTable);
 		metaData.ScriptClass->AddInternalCall("Internal_SetTable", (void*)&ScriptStringTableManager::InternalSetTable);
-
 	}
 
 	void ScriptStringTableManager::InternalSetActiveLanguage(Language language)
@@ -72,4 +71,4 @@ namespace bs
 			tmptable = static_resource_cast<StringTable>(scripttable->GetHandle());
 		StringTableManager::Instance().SetTable(id, tmptable);
 	}
-}
+} // namespace bs

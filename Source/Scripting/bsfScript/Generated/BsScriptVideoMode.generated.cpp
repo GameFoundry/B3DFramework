@@ -9,13 +9,13 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptVideoMode::ScriptVideoMode(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptVideoMode::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptVideoMode::Box(const __VideoModeInterop& value)
+	MonoObject* ScriptVideoMode::Box(const __VideoModeInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -50,4 +50,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

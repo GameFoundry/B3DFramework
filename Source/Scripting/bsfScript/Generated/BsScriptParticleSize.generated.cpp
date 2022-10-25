@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleSize::ScriptParticleSize(MonoObject* managedInstance, const SPtr<ParticleSize>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleSize::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleSize::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleSize::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleSize::Create(const SPtr<ParticleSize>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
+		new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleSize::InternalSetOptions(ScriptParticleSize* thisPtr, __PARTICLE_SIZE_DESCInterop* options)
 	{
 		PARTICLE_SIZE_DESC tmpoptions;
@@ -57,12 +57,12 @@ namespace bs
 		PARTICLE_SIZE_DESC tmpdesc;
 		tmpdesc = ScriptPARTICLE_SIZE_DESC::FromInterop(*desc);
 		SPtr<ParticleSize> instance = ParticleSize::Create(tmpdesc);
-		new (bs_alloc<ScriptParticleSize>())ScriptParticleSize(managedInstance, instance);
+		new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
 	}
 
 	void ScriptParticleSize::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleSize> instance = ParticleSize::Create();
-		new (bs_alloc<ScriptParticleSize>())ScriptParticleSize(managedInstance, instance);
+		new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
 	}
-}
+} // namespace bs

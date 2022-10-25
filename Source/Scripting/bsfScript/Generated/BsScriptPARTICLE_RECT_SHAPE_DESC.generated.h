@@ -26,6 +26,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_RECT_SHAPE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptDepthOfFieldSettings::ScriptDepthOfFieldSettings(MonoObject* managedInstance, const SPtr<DepthOfFieldSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -53,24 +53,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetBokehOcclusion", (void*)&ScriptDepthOfFieldSettings::InternalSetBokehOcclusion);
 		metaData.ScriptClass->AddInternalCall("Internal_GetOcclusionDepthRange", (void*)&ScriptDepthOfFieldSettings::InternalGetOcclusionDepthRange);
 		metaData.ScriptClass->AddInternalCall("Internal_SetOcclusionDepthRange", (void*)&ScriptDepthOfFieldSettings::InternalSetOcclusionDepthRange);
-
 	}
 
 	MonoObject* ScriptDepthOfFieldSettings::Create(const SPtr<DepthOfFieldSettings>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, value);
+		new(bs_alloc<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptDepthOfFieldSettings::InternalDepthOfFieldSettings(MonoObject* managedInstance)
 	{
 		SPtr<DepthOfFieldSettings> instance = bs_shared_ptr_new<DepthOfFieldSettings>();
-		new (bs_alloc<ScriptDepthOfFieldSettings>())ScriptDepthOfFieldSettings(managedInstance, instance);
+		new(bs_alloc<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, instance);
 	}
 
 	MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* thisPtr)
@@ -313,8 +313,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->SensorSize;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* value)
@@ -353,4 +351,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->OcclusionDepthRange = value;
 	}
-}
+} // namespace bs

@@ -8,8 +8,8 @@
 namespace bs
 {
 	ScriptVirtualButton::ScriptVirtualButton(MonoObject* instance)
-		:ScriptObject(instance)
-	{ }
+		: ScriptObject(instance)
+	{}
 
 	void ScriptVirtualButton::InitRuntimeData()
 	{
@@ -34,4 +34,4 @@ namespace bs
 	{
 		return *(VirtualButton*)MonoUtil::Unbox(obj);
 	}
-}
+} // namespace bs

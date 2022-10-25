@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for BuiltinResources. */
-	class BS_SCR_BE_EXPORT ScriptBuiltin : public ScriptObject <ScriptBuiltin>
+	class BS_SCR_BE_EXPORT ScriptBuiltin : public ScriptObject<ScriptBuiltin>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Builtin")
@@ -31,4 +31,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

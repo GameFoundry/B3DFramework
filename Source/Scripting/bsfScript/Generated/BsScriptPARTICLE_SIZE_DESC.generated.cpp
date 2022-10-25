@@ -12,13 +12,13 @@
 namespace bs
 {
 	ScriptPARTICLE_SIZE_DESC::ScriptPARTICLE_SIZE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_SIZE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_SIZE_DESC::Box(const __PARTICLE_SIZE_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_SIZE_DESC::Box(const __PARTICLE_SIZE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -37,14 +37,14 @@ namespace bs
 		if(scriptSize != nullptr)
 			tmpSize = scriptSize->GetInternal();
 		if(tmpSize != nullptr)
-		output.Size = *tmpSize;
+			output.Size = *tmpSize;
 		SPtr<TDistribution<Vector3>> tmpSize3D;
 		ScriptTDistributionVector3* scriptSize3D;
 		scriptSize3D = ScriptTDistributionVector3::ToNative(value.Size3D);
 		if(scriptSize3D != nullptr)
 			tmpSize3D = scriptSize3D->GetInternal();
 		if(tmpSize3D != nullptr)
-		output.Size3D = *tmpSize3D;
+			output.Size3D = *tmpSize3D;
 		output.Use3DSize = value.Use3DSize;
 
 		return output;
@@ -68,4 +68,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

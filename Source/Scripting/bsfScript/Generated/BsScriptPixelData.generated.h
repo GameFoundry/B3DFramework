@@ -9,8 +9,16 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelVolume.h"
 
-namespace bs { class PixelData; }
-namespace bs { class PixelDataEx; }
+namespace bs
+{
+	class PixelData;
+}
+
+namespace bs
+{
+	class PixelDataEx;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptPixelData : public TScriptReflectable<ScriptPixelData, PixelData>
@@ -38,4 +46,4 @@ namespace bs
 		static MonoArray* InternalGetRawPixels(ScriptPixelData* thisPtr);
 		static void InternalSetRawPixels(ScriptPixelData* thisPtr, MonoArray* value);
 	};
-}
+} // namespace bs

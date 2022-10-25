@@ -31,6 +31,5 @@ namespace bs
 
 	private:
 		ScriptControllerColliderCollision(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

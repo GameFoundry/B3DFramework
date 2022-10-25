@@ -6,7 +6,11 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
-namespace bs { class StringTableManager; }
+namespace bs
+{
+	class StringTableManager;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptStringTableManager : public ScriptObject<ScriptStringTableManager>
@@ -23,4 +27,4 @@ namespace bs
 		static void InternalRemoveTable(uint32_t id);
 		static void InternalSetTable(uint32_t id, MonoObject* table);
 	};
-}
+} // namespace bs

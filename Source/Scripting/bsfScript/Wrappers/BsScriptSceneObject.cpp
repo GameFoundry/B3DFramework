@@ -15,7 +15,7 @@
 namespace bs
 {
 	ScriptSceneObject::ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject)
-		:ScriptObject(instance), mSceneObject(sceneObject)
+		: ScriptObject(instance), mSceneObject(sceneObject)
 	{
 		SetManagedInstance(instance);
 	}
@@ -79,7 +79,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalSetName(ScriptSceneObject* nativeInstance, MonoString* name)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return;
 
 		nativeInstance->mSceneObject->SetName(MonoUtil::MonoToString(name));
@@ -87,7 +87,7 @@ namespace bs
 
 	MonoString* ScriptSceneObject::InternalGetName(ScriptSceneObject* nativeInstance)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return nullptr;
 
 		String name = nativeInstance->mSceneObject->GetName();
@@ -96,7 +96,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalSetActive(ScriptSceneObject* nativeInstance, bool value)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return;
 
 		nativeInstance->mSceneObject->SetActive(value);
@@ -104,7 +104,7 @@ namespace bs
 
 	bool ScriptSceneObject::InternalGetActive(ScriptSceneObject* nativeInstance)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return false;
 
 		return nativeInstance->mSceneObject->GetActive(true);
@@ -112,7 +112,7 @@ namespace bs
 
 	bool ScriptSceneObject::InternalHasFlag(ScriptSceneObject* nativeInstance, bs::u32 flag)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return false;
 
 		return nativeInstance->mSceneObject->HasFlag(flag);
@@ -120,7 +120,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalSetMobility(ScriptSceneObject* nativeInstance, int value)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return;
 
 		nativeInstance->mSceneObject->SetMobility((ObjectMobility)value);
@@ -128,14 +128,15 @@ namespace bs
 
 	int ScriptSceneObject::InternalGetMobility(ScriptSceneObject* nativeInstance)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return false;
 
 		return (int)nativeInstance->mSceneObject->GetMobility();
 	}
+
 	void ScriptSceneObject::InternalSetParent(ScriptSceneObject* nativeInstance, MonoObject* parent)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return;
 
 		ScriptSceneObject* parentScriptSO = ScriptSceneObject::ToNative(parent);
@@ -145,11 +146,11 @@ namespace bs
 
 	MonoObject* ScriptSceneObject::InternalGetParent(ScriptSceneObject* nativeInstance)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return nullptr;
 
 		HSceneObject parent = nativeInstance->mSceneObject->GetParent();
-		if (parent != nullptr)
+		if(parent != nullptr)
 		{
 			ScriptSceneObject* parentScriptSO = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(parent);
 
@@ -161,7 +162,7 @@ namespace bs
 
 	MonoObject* ScriptSceneObject::InternalGetScene(ScriptSceneObject* nativeInstance)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return nullptr;
 
 		return ScriptSceneInstance::Create(nativeInstance->mSceneObject->GetScene());
@@ -169,7 +170,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetNumChildren(ScriptSceneObject* nativeInstance, u32* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetNumChildren();
 		else
 			*value = 0;
@@ -177,14 +178,15 @@ namespace bs
 
 	MonoObject* ScriptSceneObject::InternalGetChild(ScriptSceneObject* nativeInstance, u32 idx)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return nullptr;
 
 		u32 numChildren = nativeInstance->mSceneObject->GetNumChildren();
 		if(idx >= numChildren)
 		{
 			BS_LOG(Warning, Scene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". "
-				"Valid range: [0, {1})", idx, numChildren);
+								   "Valid range: [0, {1})",
+				   idx, numChildren);
 			return nullptr;
 		}
 
@@ -196,13 +198,13 @@ namespace bs
 
 	MonoObject* ScriptSceneObject::InternalFindChild(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 			return nullptr;
 
 		String nativeName = MonoUtil::MonoToString(name);
 		HSceneObject child = nativeInstance->GetHandle()->FindChild(nativeName, recursive);
 
-		if (child == nullptr)
+		if(child == nullptr)
 			return nullptr;
 
 		ScriptSceneObject* scriptChild = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(child);
@@ -211,7 +213,7 @@ namespace bs
 
 	MonoArray* ScriptSceneObject::InternalFindChildren(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive)
 	{
-		if (CheckIfDestroyed(nativeInstance))
+		if(CheckIfDestroyed(nativeInstance))
 		{
 			ScriptArray emptyArray = ScriptArray::Create<ScriptSceneObject>(0);
 			return emptyArray.GetInternal();
@@ -223,7 +225,7 @@ namespace bs
 		u32 numChildren = (u32)children.size();
 		ScriptArray output = ScriptArray::Create<ScriptSceneObject>(numChildren);
 
-		for (u32 i = 0; i < numChildren; i++)
+		for(u32 i = 0; i < numChildren; i++)
 		{
 			HSceneObject child = children[i];
 			ScriptSceneObject* scriptChild = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(child);
@@ -236,7 +238,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetPosition(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetPosition();
 		else
 			*value = Vector3(BsZero);
@@ -244,7 +246,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetLocalTransform().GetPosition();
 		else
 			*value = Vector3(BsZero);
@@ -252,7 +254,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetRotation();
 		else
 			*value = Quaternion(BsIdentity);
@@ -260,7 +262,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetLocalTransform().GetRotation();
 		else
 			*value = Quaternion(BsIdentity);
@@ -268,7 +270,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetScale(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetScale();
 		else
 			*value = Vector3(Vector3::ONE);
@@ -276,7 +278,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetLocalTransform().GetScale();
 		else
 			*value = Vector3(Vector3::ONE);
@@ -284,37 +286,37 @@ namespace bs
 
 	void ScriptSceneObject::InternalSetPosition(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetWorldPosition(*value);
 	}
 
 	void ScriptSceneObject::InternalSetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetPosition(*value);
 	}
 
 	void ScriptSceneObject::InternalSetRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetWorldRotation(*value);
 	}
 
 	void ScriptSceneObject::InternalSetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetRotation(*value);
 	}
 
 	void ScriptSceneObject::InternalSetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetScale(*value);
 	}
 
 	void ScriptSceneObject::InternalGetLocalTransform(ScriptSceneObject* nativeInstance, Matrix4* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetLocalMatrix();
 		else
 			*value = Matrix4(BsIdentity);
@@ -322,7 +324,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetWorldTransform(ScriptSceneObject* nativeInstance, Matrix4* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetWorldMatrix();
 		else
 			*value = Matrix4(BsIdentity);
@@ -330,55 +332,55 @@ namespace bs
 
 	void ScriptSceneObject::InternalLookAt(ScriptSceneObject* nativeInstance, Vector3* direction, Vector3* up)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->LookAt(*direction, *up);
 	}
 
 	void ScriptSceneObject::InternalMove(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Move(*value);
 	}
 
 	void ScriptSceneObject::InternalMoveLocal(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->MoveRelative(*value);
 	}
 
 	void ScriptSceneObject::InternalRotate(ScriptSceneObject* nativeInstance, Quaternion* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Rotate(*value);
 	}
 
 	void ScriptSceneObject::InternalRoll(ScriptSceneObject* nativeInstance, Radian* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Roll(*value);
 	}
 
 	void ScriptSceneObject::InternalYaw(ScriptSceneObject* nativeInstance, Radian* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Yaw(*value);
 	}
 
 	void ScriptSceneObject::InternalPitch(ScriptSceneObject* nativeInstance, Radian* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Pitch(*value);
 	}
 
 	void ScriptSceneObject::InternalSetForward(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->SetForward(*value);
 	}
 
 	void ScriptSceneObject::InternalGetForward(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetForward();
 		else
 			*value = Vector3(-Vector3::UNIT_Z);
@@ -386,7 +388,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetUp(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetUp();
 		else
 			*value = Vector3(Vector3::UNIT_Y);
@@ -394,7 +396,7 @@ namespace bs
 
 	void ScriptSceneObject::InternalGetRight(ScriptSceneObject* nativeInstance, Vector3* value)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			*value = nativeInstance->mSceneObject->GetTransform().GetRight();
 		else
 			*value = Vector3(Vector3::UNIT_X);
@@ -402,16 +404,15 @@ namespace bs
 
 	void ScriptSceneObject::InternalDestroy(ScriptSceneObject* nativeInstance, bool immediate)
 	{
-		if (!CheckIfDestroyed(nativeInstance))
+		if(!CheckIfDestroyed(nativeInstance))
 			nativeInstance->mSceneObject->Destroy(immediate);
 	}
 
 	bool ScriptSceneObject::CheckIfDestroyed(ScriptSceneObject* nativeInstance)
 	{
-		if (nativeInstance->mSceneObject.IsDestroyed())
+		if(nativeInstance->mSceneObject.IsDestroyed())
 		{
-			BS_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with instance ID: {0}", +
-				nativeInstance->mSceneObject.GetInstanceId());
+			BS_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with instance ID: {0}", +nativeInstance->mSceneObject.GetInstanceId());
 			return true;
 		}
 
@@ -420,7 +421,7 @@ namespace bs
 
 	void ScriptSceneObject::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	{
-		if (!assemblyRefresh || mSceneObject.IsDestroyed(true))
+		if(!assemblyRefresh || mSceneObject.IsDestroyed(true))
 			ScriptGameObjectManager::Instance().DestroyScriptSceneObject(this);
 		else
 			FreeManagedInstance();
@@ -448,4 +449,4 @@ namespace bs
 	{
 		mSceneObject = static_object_cast<SceneObject>(gameObject);
 	}
-}
+} // namespace bs

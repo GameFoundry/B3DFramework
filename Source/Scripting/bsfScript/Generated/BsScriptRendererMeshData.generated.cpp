@@ -16,7 +16,7 @@
 namespace bs
 {
 	ScriptRendererMeshData::ScriptRendererMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -41,24 +41,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetIndices", (void*)&ScriptRendererMeshData::InternalSetIndices);
 		metaData.ScriptClass->AddInternalCall("Internal_GetVertexCount", (void*)&ScriptRendererMeshData::InternalGetVertexCount);
 		metaData.ScriptClass->AddInternalCall("Internal_GetIndexCount", (void*)&ScriptRendererMeshData::InternalGetIndexCount);
-
 	}
 
 	MonoObject* ScriptRendererMeshData::Create(const SPtr<RendererMeshData>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
+		new(bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptRendererMeshData::InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
 	{
 		SPtr<RendererMeshData> instance = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
-		new (bs_alloc<ScriptRendererMeshData>())ScriptRendererMeshData(managedInstance, instance);
+		new(bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, instance);
 	}
 
 	MonoArray* ScriptRendererMeshData::InternalGetPositions(ScriptRendererMeshData* thisPtr)
@@ -338,4 +338,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

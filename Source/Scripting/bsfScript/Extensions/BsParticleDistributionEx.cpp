@@ -13,4 +13,4 @@ namespace bs
 	{
 		return Color::FromRgba(thisPtr->Evaluate(t, factor));
 	}
-}
+} // namespace bs

@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptSpriteSheetGridAnimation(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

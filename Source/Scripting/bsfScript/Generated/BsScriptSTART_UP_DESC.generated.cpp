@@ -11,13 +11,13 @@ namespace bs
 {
 #if !BS_IS_BANSHEE3D
 	ScriptSTART_UP_DESC::ScriptSTART_UP_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptSTART_UP_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptSTART_UP_DESC::Box(const __START_UP_DESCInterop& value)
+	MonoObject* ScriptSTART_UP_DESC::Box(const __START_UP_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -102,4 +102,4 @@ namespace bs
 	}
 
 #endif
-}
+} // namespace bs

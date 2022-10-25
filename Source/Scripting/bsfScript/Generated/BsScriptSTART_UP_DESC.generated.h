@@ -36,7 +36,6 @@ namespace bs
 
 	private:
 		ScriptSTART_UP_DESC(MonoObject* managedInstance);
-
 	};
 #endif
-}
+} // namespace bs

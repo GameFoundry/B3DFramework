@@ -27,6 +27,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_LINE_SHAPE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

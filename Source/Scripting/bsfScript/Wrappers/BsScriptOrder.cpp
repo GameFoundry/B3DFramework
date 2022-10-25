@@ -6,11 +6,12 @@ namespace bs
 {
 	MonoField* ScriptOrder::indexField = nullptr;
 
-	ScriptOrder::ScriptOrder(MonoObject* instance) : ScriptObject(instance)
-	{ }
+	ScriptOrder::ScriptOrder(MonoObject* instance)
+		: ScriptObject(instance)
+	{}
 
 	void ScriptOrder::InitRuntimeData()
 	{
 		indexField = metaData.ScriptClass->GetField("index");
 	}
-}
+} // namespace bs

@@ -16,10 +16,26 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs { struct __LimitConeRangeInterop; }
-namespace bs { struct __LimitAngularRangeInterop; }
-namespace bs { class CD6Joint; }
-namespace bs { struct __LimitLinearInterop; }
+namespace bs
+{
+	struct __LimitConeRangeInterop;
+}
+
+namespace bs
+{
+	struct __LimitAngularRangeInterop;
+}
+
+namespace bs
+{
+	class CD6Joint;
+}
+
+namespace bs
+{
+	struct __LimitLinearInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCD6Joint : public TScriptComponent<ScriptCD6Joint, CD6Joint, ScriptCJointBase>
@@ -50,4 +66,4 @@ namespace bs
 		static void InternalGetDriveAngularVelocity(ScriptCD6Joint* thisPtr, Vector3* __output);
 		static void InternalSetDriveVelocity(ScriptCD6Joint* thisPtr, Vector3* linear, Vector3* angular);
 	};
-}
+} // namespace bs

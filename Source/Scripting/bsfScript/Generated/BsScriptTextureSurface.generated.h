@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptTextureSurface(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

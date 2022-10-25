@@ -9,7 +9,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct MotionBlurSettings; }
+namespace bs
+{
+	struct MotionBlurSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptMotionBlurSettings : public TScriptReflectable<ScriptMotionBlurSettings, MotionBlurSettings>
@@ -34,4 +38,4 @@ namespace bs
 		static float InternalGetMaximumRadius(ScriptMotionBlurSettings* thisPtr);
 		static void InternalSetMaximumRadius(ScriptMotionBlurSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Physics/BsSliderJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 
-namespace bs { struct __LimitLinearRangeInterop; }
-namespace bs { class CSliderJoint; }
+namespace bs
+{
+	struct __LimitLinearRangeInterop;
+}
+
+namespace bs
+{
+	class CSliderJoint;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCSliderJoint : public TScriptComponent<ScriptCSliderJoint, CSliderJoint, ScriptCJointBase>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalSetFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag);
 	};
-}
+} // namespace bs

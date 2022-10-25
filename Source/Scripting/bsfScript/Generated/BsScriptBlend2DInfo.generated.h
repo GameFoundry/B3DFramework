@@ -28,6 +28,5 @@ namespace bs
 
 	private:
 		ScriptBlend2DInfo(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptVector3I(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

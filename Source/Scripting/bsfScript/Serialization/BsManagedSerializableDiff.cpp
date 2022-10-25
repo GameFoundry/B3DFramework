@@ -11,10 +11,9 @@
 
 namespace bs
 {
-	ManagedSerializableDiff::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType,
-		const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDiff::Modification>& modification)
-		:ParentType(parentType), FieldType(fieldType), Modification(modification)
-	{ }
+	ManagedSerializableDiff::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDiff::Modification>& modification)
+		: ParentType(parentType), FieldType(fieldType), Modification(modification)
+	{}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedField::GetRttiStatic()
 	{
@@ -27,8 +26,8 @@ namespace bs
 	}
 
 	ManagedSerializableDiff::ModifiedArrayEntry::ModifiedArrayEntry(u32 idx, const SPtr<ManagedSerializableDiff::Modification>& modification)
-		:Idx(idx), Modification(modification)
-	{ }
+		: Idx(idx), Modification(modification)
+	{}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedArrayEntry::GetRttiStatic()
 	{
@@ -42,8 +41,8 @@ namespace bs
 
 	ManagedSerializableDiff::ModifiedDictionaryEntry::ModifiedDictionaryEntry(
 		const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableDiff::Modification>& modification)
-		:Key(key), Modification(modification)
-	{ }
+		: Key(key), Modification(modification)
+	{}
 
 	RTTITypeBase* ManagedSerializableDiff::ModifiedDictionaryEntry::GetRttiStatic()
 	{
@@ -111,8 +110,8 @@ namespace bs
 	}
 
 	ManagedSerializableDiff::ModifiedEntry::ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value)
-		:Value(value)
-	{ }
+		: Value(value)
+	{}
 
 	SPtr<ManagedSerializableDiff::ModifiedEntry> ManagedSerializableDiff::ModifiedEntry::Create(const SPtr<ManagedSerializableFieldData>& value)
 	{
@@ -132,43 +131,40 @@ namespace bs
 	ManagedSerializableDiff::ManagedSerializableDiff()
 		: mModificationRoot(ModifiedObject::Create())
 	{
-		
 	}
 
-	SPtr<ManagedSerializableDiff> ManagedSerializableDiff::Create(const ManagedSerializableObject* oldObj,
-		const ManagedSerializableObject* newObj)
+	SPtr<ManagedSerializableDiff> ManagedSerializableDiff::Create(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj)
 	{
 		assert(oldObj != nullptr && newObj != nullptr);
 
 		SPtr<ManagedSerializableObjectInfo> oldObjInfo = oldObj->GetObjectInfo();
 		SPtr<ManagedSerializableObjectInfo> newObjInfo = newObj->GetObjectInfo();
 
-		if (!oldObjInfo->MTypeInfo->Matches(newObjInfo->MTypeInfo))
+		if(!oldObjInfo->MTypeInfo->Matches(newObjInfo->MTypeInfo))
 			return nullptr;
 
 		SPtr<ManagedSerializableDiff> output = bs_shared_ptr_new<ManagedSerializableDiff>();
 		SPtr<ModifiedObject> modifications = output->GenerateDiff(oldObj, newObj);
 
-		if (modifications != nullptr)
+		if(modifications != nullptr)
 		{
 			output->mModificationRoot->Entries = modifications->Entries;
 			return output;
 		}
-		
+
 		return nullptr;
 	}
 
-	SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::GenerateDiff
-		(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj)
+	SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::GenerateDiff(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj)
 	{
 		SPtr<ModifiedObject> output = nullptr;
 
 		SPtr<ManagedSerializableObjectInfo> curObjInfo = newObj->GetObjectInfo();
-		while (curObjInfo != nullptr)
+		while(curObjInfo != nullptr)
 		{
-			for (auto& field : curObjInfo->MFields)
+			for(auto& field : curObjInfo->MFields)
 			{
-				if (!field.second->IsSerializable())
+				if(!field.second->IsSerializable())
 					continue;
 
 				u32 fieldTypeId = field.second->MTypeInfo->GetTypeId();
@@ -176,10 +172,10 @@ namespace bs
 				SPtr<ManagedSerializableFieldData> oldData = oldObj->GetFieldData(field.second);
 				SPtr<ManagedSerializableFieldData> newData = newObj->GetFieldData(field.second);
 				SPtr<Modification> newMod = GenerateDiff(oldData, newData, fieldTypeId);
-				
-				if (newMod != nullptr)
+
+				if(newMod != nullptr)
 				{
-					if (output == nullptr)
+					if(output == nullptr)
 						output = ModifiedObject::Create();
 
 					output->Entries.push_back(ModifiedField(curObjInfo->MTypeInfo, field.second, newMod));
@@ -205,236 +201,235 @@ namespace bs
 		// in serialized data). Check for this case first to ensure field data is valid for the remainder of the method.
 		if(oldData == nullptr)
 		{
-			if (newData == nullptr)
+			if(newData == nullptr)
 				return nullptr;
 			else
 				return ModifiedEntry::Create(newData);
 		}
 		else
 		{
-			if (newData == nullptr)
+			if(newData == nullptr)
 				return nullptr;
 		}
 
 		SPtr<Modification> newMod = nullptr;
-		if (isPrimitive)
+		if(isPrimitive)
 		{
-			if (!oldData->Equals(newData))
+			if(!oldData->Equals(newData))
 				newMod = ModifiedEntry::Create(newData);
 		}
 		else
 		{
-			switch (entryTypeId)
+			switch(entryTypeId)
 			{
 			case TID_SerializableTypeInfoObject:
-			{
-				SPtr<ManagedSerializableFieldDataObject> oldObjData =
-					std::static_pointer_cast<ManagedSerializableFieldDataObject>(oldData);
-				SPtr<ManagedSerializableFieldDataObject> newObjData =
-					std::static_pointer_cast<ManagedSerializableFieldDataObject>(newData);
+				{
+					SPtr<ManagedSerializableFieldDataObject> oldObjData =
+						std::static_pointer_cast<ManagedSerializableFieldDataObject>(oldData);
+					SPtr<ManagedSerializableFieldDataObject> newObjData =
+						std::static_pointer_cast<ManagedSerializableFieldDataObject>(newData);
 
-				if (oldObjData->Value != nullptr && newObjData->Value != nullptr)
-				{
-					newMod = GenerateDiff(oldObjData->Value.get(), newObjData->Value.get());
+					if(oldObjData->Value != nullptr && newObjData->Value != nullptr)
+					{
+						newMod = GenerateDiff(oldObjData->Value.get(), newObjData->Value.get());
+					}
+					else if(oldObjData->Value == nullptr && newObjData->Value == nullptr)
+					{
+						// No change
+					}
+					else // We either record null if new value is null, or the entire object if old value is null
+					{
+						newMod = ModifiedEntry::Create(newData);
+					}
 				}
-				else if (oldObjData->Value == nullptr && newObjData->Value == nullptr)
-				{
-					// No change
-				}
-				else // We either record null if new value is null, or the entire object if old value is null
-				{
-					newMod = ModifiedEntry::Create(newData);
-				}
-			}
 				break;
 			case TID_SerializableTypeInfoArray:
-			{
-				SPtr<ManagedSerializableFieldDataArray> oldArrayData =
-					std::static_pointer_cast<ManagedSerializableFieldDataArray>(oldData);
-				SPtr<ManagedSerializableFieldDataArray> newArrayData =
-					std::static_pointer_cast<ManagedSerializableFieldDataArray>(newData);
-
-				if (oldArrayData->Value != nullptr && newArrayData->Value != nullptr)
 				{
-					u32 oldLength = oldArrayData->Value->GetTotalLength();
-					u32 newLength = newArrayData->Value->GetTotalLength();
+					SPtr<ManagedSerializableFieldDataArray> oldArrayData =
+						std::static_pointer_cast<ManagedSerializableFieldDataArray>(oldData);
+					SPtr<ManagedSerializableFieldDataArray> newArrayData =
+						std::static_pointer_cast<ManagedSerializableFieldDataArray>(newData);
 
-					SPtr<ModifiedArray> arrayMods = nullptr;
-					for (u32 i = 0; i < newLength; i++)
+					if(oldArrayData->Value != nullptr && newArrayData->Value != nullptr)
 					{
-						SPtr<Modification> arrayElemMod = nullptr;
+						u32 oldLength = oldArrayData->Value->GetTotalLength();
+						u32 newLength = newArrayData->Value->GetTotalLength();
 
-						SPtr<ManagedSerializableFieldData> newArrayElem = newArrayData->Value->GetFieldData(i);
-						if (i < oldLength)
+						SPtr<ModifiedArray> arrayMods = nullptr;
+						for(u32 i = 0; i < newLength; i++)
 						{
-							SPtr<ManagedSerializableFieldData> oldArrayElem = oldArrayData->Value->GetFieldData(i);
+							SPtr<Modification> arrayElemMod = nullptr;
 
-							u32 arrayElemTypeId = newArrayData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							arrayElemMod = GenerateDiff(oldArrayElem, newArrayElem, arrayElemTypeId);
+							SPtr<ManagedSerializableFieldData> newArrayElem = newArrayData->Value->GetFieldData(i);
+							if(i < oldLength)
+							{
+								SPtr<ManagedSerializableFieldData> oldArrayElem = oldArrayData->Value->GetFieldData(i);
+
+								u32 arrayElemTypeId = newArrayData->Value->GetTypeInfo()->MElementType->GetTypeId();
+								arrayElemMod = GenerateDiff(oldArrayElem, newArrayElem, arrayElemTypeId);
+							}
+							else
+							{
+								arrayElemMod = ModifiedEntry::Create(newArrayElem);
+							}
+
+							if(arrayElemMod != nullptr)
+							{
+								if(arrayMods == nullptr)
+									arrayMods = ModifiedArray::Create();
+
+								arrayMods->Entries.push_back(ModifiedArrayEntry(i, arrayElemMod));
+							}
 						}
-						else
-						{
-							arrayElemMod = ModifiedEntry::Create(newArrayElem);
-						}
 
-						if (arrayElemMod != nullptr)
+						if(oldLength != newLength)
 						{
-							if (arrayMods == nullptr)
+							if(arrayMods == nullptr)
 								arrayMods = ModifiedArray::Create();
-
-							arrayMods->Entries.push_back(ModifiedArrayEntry(i, arrayElemMod));
 						}
-					}
 
-					if (oldLength != newLength)
+						if(arrayMods != nullptr)
+						{
+							arrayMods->OrigSizes = oldArrayData->Value->GetLengths();
+							arrayMods->NewSizes = newArrayData->Value->GetLengths();
+						}
+
+						newMod = arrayMods;
+					}
+					else if(oldArrayData->Value == nullptr && newArrayData->Value == nullptr)
 					{
-						if (arrayMods == nullptr)
-							arrayMods = ModifiedArray::Create();
+						// No change
 					}
-
-					if (arrayMods != nullptr)
+					else // We either record null if new value is null, or the entire array if old value is null
 					{
-						arrayMods->OrigSizes = oldArrayData->Value->GetLengths();
-						arrayMods->NewSizes = newArrayData->Value->GetLengths();
+						newMod = ModifiedEntry::Create(newData);
 					}
-
-					newMod = arrayMods;
 				}
-				else if (oldArrayData->Value == nullptr && newArrayData->Value == nullptr)
-				{
-					// No change
-				}
-				else // We either record null if new value is null, or the entire array if old value is null
-				{
-					newMod = ModifiedEntry::Create(newData);
-				}
-			}
 				break;
 			case TID_SerializableTypeInfoList:
-			{
-				SPtr<ManagedSerializableFieldDataList> oldListData =
-					std::static_pointer_cast<ManagedSerializableFieldDataList>(oldData);
-				SPtr<ManagedSerializableFieldDataList> newListData =
-					std::static_pointer_cast<ManagedSerializableFieldDataList>(newData);
-
-				if (oldListData->Value != nullptr && newListData->Value != nullptr)
 				{
-					u32 oldLength = oldListData->Value->GetLength();
-					u32 newLength = newListData->Value->GetLength();
+					SPtr<ManagedSerializableFieldDataList> oldListData =
+						std::static_pointer_cast<ManagedSerializableFieldDataList>(oldData);
+					SPtr<ManagedSerializableFieldDataList> newListData =
+						std::static_pointer_cast<ManagedSerializableFieldDataList>(newData);
 
-					SPtr<ModifiedArray> listMods = nullptr;
-					for (u32 i = 0; i < newLength; i++)
+					if(oldListData->Value != nullptr && newListData->Value != nullptr)
 					{
-						SPtr<Modification> listElemMod = nullptr;
+						u32 oldLength = oldListData->Value->GetLength();
+						u32 newLength = newListData->Value->GetLength();
 
-						SPtr<ManagedSerializableFieldData> newListElem = newListData->Value->GetFieldData(i);
-						if (i < oldLength)
+						SPtr<ModifiedArray> listMods = nullptr;
+						for(u32 i = 0; i < newLength; i++)
 						{
-							SPtr<ManagedSerializableFieldData> oldListElem = oldListData->Value->GetFieldData(i);
+							SPtr<Modification> listElemMod = nullptr;
 
-							u32 arrayElemTypeId = newListData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							listElemMod = GenerateDiff(oldListElem, newListElem, arrayElemTypeId);
+							SPtr<ManagedSerializableFieldData> newListElem = newListData->Value->GetFieldData(i);
+							if(i < oldLength)
+							{
+								SPtr<ManagedSerializableFieldData> oldListElem = oldListData->Value->GetFieldData(i);
+
+								u32 arrayElemTypeId = newListData->Value->GetTypeInfo()->MElementType->GetTypeId();
+								listElemMod = GenerateDiff(oldListElem, newListElem, arrayElemTypeId);
+							}
+							else
+							{
+								listElemMod = ModifiedEntry::Create(newListElem);
+							}
+
+							if(listElemMod != nullptr)
+							{
+								if(listMods == nullptr)
+									listMods = ModifiedArray::Create();
+
+								listMods->Entries.push_back(ModifiedArrayEntry(i, listElemMod));
+							}
 						}
-						else
-						{
-							listElemMod = ModifiedEntry::Create(newListElem);
-						}
 
-						if (listElemMod != nullptr)
+						if(oldLength != newLength)
 						{
-							if (listMods == nullptr)
+							if(listMods == nullptr)
 								listMods = ModifiedArray::Create();
-
-							listMods->Entries.push_back(ModifiedArrayEntry(i, listElemMod));
 						}
-					}
 
-					if (oldLength != newLength)
+						if(listMods != nullptr)
+						{
+							listMods->OrigSizes.push_back(oldLength);
+							listMods->NewSizes.push_back(newLength);
+						}
+
+						newMod = listMods;
+					}
+					else if(oldListData->Value == nullptr && newListData->Value == nullptr)
 					{
-						if (listMods == nullptr)
-							listMods = ModifiedArray::Create();
+						// No change
 					}
-
-					if (listMods != nullptr)
+					else // We either record null if new value is null, or the entire list if old value is null
 					{
-						listMods->OrigSizes.push_back(oldLength);
-						listMods->NewSizes.push_back(newLength);
+						newMod = ModifiedEntry::Create(newData);
 					}
-
-					newMod = listMods;
 				}
-				else if (oldListData->Value == nullptr && newListData->Value == nullptr)
-				{
-					// No change
-				}
-				else // We either record null if new value is null, or the entire list if old value is null
-				{
-					newMod = ModifiedEntry::Create(newData);
-				}
-			}
 				break;
 			case TID_SerializableTypeInfoDictionary:
-			{
-				SPtr<ManagedSerializableFieldDataDictionary> oldDictData =
-					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(oldData);
-				SPtr<ManagedSerializableFieldDataDictionary> newDictData =
-					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(newData);
-
-				if (oldDictData->Value != nullptr && newDictData->Value != nullptr)
 				{
-					SPtr<ModifiedDictionary> dictMods = nullptr;
+					SPtr<ManagedSerializableFieldDataDictionary> oldDictData =
+						std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(oldData);
+					SPtr<ManagedSerializableFieldDataDictionary> newDictData =
+						std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(newData);
 
-					auto newEnumerator = newDictData->Value->GetEnumerator();
-					while (newEnumerator.MoveNext())
+					if(oldDictData->Value != nullptr && newDictData->Value != nullptr)
 					{
-						SPtr<Modification> dictElemMod = nullptr;
+						SPtr<ModifiedDictionary> dictMods = nullptr;
 
-						SPtr<ManagedSerializableFieldData> key = newEnumerator.GetKey();
-						if (oldDictData->Value->Contains(key))
+						auto newEnumerator = newDictData->Value->GetEnumerator();
+						while(newEnumerator.MoveNext())
 						{
-							u32 dictElemTypeId = newDictData->Value->GetTypeInfo()->MValueType->GetTypeId();
+							SPtr<Modification> dictElemMod = nullptr;
 
-							dictElemMod = GenerateDiff(oldDictData->Value->GetFieldData(key),
-								newEnumerator.GetValue(), dictElemTypeId);
+							SPtr<ManagedSerializableFieldData> key = newEnumerator.GetKey();
+							if(oldDictData->Value->Contains(key))
+							{
+								u32 dictElemTypeId = newDictData->Value->GetTypeInfo()->MValueType->GetTypeId();
+
+								dictElemMod = GenerateDiff(oldDictData->Value->GetFieldData(key), newEnumerator.GetValue(), dictElemTypeId);
+							}
+							else
+							{
+								dictElemMod = ModifiedEntry::Create(newEnumerator.GetValue());
+							}
+
+							if(dictElemMod != nullptr)
+							{
+								if(dictMods == nullptr)
+									dictMods = ModifiedDictionary::Create();
+
+								dictMods->Entries.push_back(ModifiedDictionaryEntry(key, dictElemMod));
+							}
 						}
-						else
+
+						auto oldEnumerator = oldDictData->Value->GetEnumerator();
+						while(oldEnumerator.MoveNext())
 						{
-							dictElemMod = ModifiedEntry::Create(newEnumerator.GetValue());
+							SPtr<ManagedSerializableFieldData> key = oldEnumerator.GetKey();
+							if(!newDictData->Value->Contains(oldEnumerator.GetKey()))
+							{
+								if(dictMods == nullptr)
+									dictMods = ModifiedDictionary::Create();
+
+								dictMods->Removed.push_back(key);
+							}
 						}
 
-						if (dictElemMod != nullptr)
-						{
-							if (dictMods == nullptr)
-								dictMods = ModifiedDictionary::Create();
-
-							dictMods->Entries.push_back(ModifiedDictionaryEntry(key, dictElemMod));
-						}
+						newMod = dictMods;
 					}
-
-					auto oldEnumerator = oldDictData->Value->GetEnumerator();
-					while (oldEnumerator.MoveNext())
+					else if(oldDictData->Value == nullptr && newDictData->Value == nullptr)
 					{
-						SPtr<ManagedSerializableFieldData> key = oldEnumerator.GetKey();
-						if (!newDictData->Value->Contains(oldEnumerator.GetKey()))
-						{
-							if (dictMods == nullptr)
-								dictMods = ModifiedDictionary::Create();
-
-							dictMods->Removed.push_back(key);
-						}
+						// No change
 					}
-
-					newMod = dictMods;
+					else // We either record null if new value is null, or the entire dictionary if old value is null
+					{
+						newMod = ModifiedEntry::Create(newData);
+					}
 				}
-				else if (oldDictData->Value == nullptr && newDictData->Value == nullptr)
-				{
-					// No change
-				}
-				else // We either record null if new value is null, or the entire dictionary if old value is null
-				{
-					newMod = ModifiedEntry::Create(newData);
-				}
-			}
 				break;
 			default:
 				assert(false); // Invalid type
@@ -453,19 +448,19 @@ namespace bs
 	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedObject>& mod, const SPtr<ManagedSerializableObject>& obj)
 	{
 		SPtr<ManagedSerializableObjectInfo> objInfo = obj->GetObjectInfo();
-		for (auto& modEntry : mod->Entries)
+		for(auto& modEntry : mod->Entries)
 		{
 			SPtr<ManagedSerializableMemberInfo> fieldType = modEntry.FieldType;
 			SPtr<ManagedSerializableTypeInfo> typeInfo = modEntry.ParentType;
 
 			SPtr<ManagedSerializableMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(fieldType, typeInfo);
-			if (matchingFieldInfo == nullptr)
+			if(matchingFieldInfo == nullptr)
 				continue; // Field no longer exists in the type
 
 			SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(matchingFieldInfo);
 
 			SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, matchingFieldInfo->MTypeInfo, origData);
-			if (newData != nullptr)
+			if(newData != nullptr)
 				obj->SetFieldData(matchingFieldInfo, newData);
 		}
 
@@ -476,9 +471,9 @@ namespace bs
 	{
 		bool needsResize = false;
 
-		for (u32 i = 0; i < (u32)mod->NewSizes.size(); i++)
+		for(u32 i = 0; i < (u32)mod->NewSizes.size(); i++)
 		{
-			if (mod->NewSizes[i] != obj->GetLength(i))
+			if(mod->NewSizes[i] != obj->GetLength(i))
 			{
 				needsResize = true;
 				break;
@@ -486,20 +481,20 @@ namespace bs
 		}
 
 		SPtr<ManagedSerializableFieldData> newArray;
-		if (needsResize)
+		if(needsResize)
 		{
 			obj->Resize(mod->NewSizes);
 			newArray = ManagedSerializableFieldData::Create(obj->GetTypeInfo(), obj->GetManagedInstance());
 		}
 
-		for (auto& modEntry : mod->Entries)
+		for(auto& modEntry : mod->Entries)
 		{
 			u32 arrayIdx = modEntry.Idx;
 
 			SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(arrayIdx);
 			SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MElementType, origData);
 
-			if (newData != nullptr)
+			if(newData != nullptr)
 				obj->SetFieldData(arrayIdx, newData);
 		}
 
@@ -511,20 +506,20 @@ namespace bs
 		bool needsResize = mod->NewSizes[0] != obj->GetLength();
 
 		SPtr<ManagedSerializableFieldData> newList;
-		if (needsResize)
+		if(needsResize)
 		{
 			obj->Resize(mod->NewSizes[0]);
 			newList = ManagedSerializableFieldData::Create(obj->GetTypeInfo(), obj->GetManagedInstance());
 		}
 
-		for (auto& modEntry : mod->Entries)
+		for(auto& modEntry : mod->Entries)
 		{
 			u32 arrayIdx = modEntry.Idx;
 
 			SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(arrayIdx);
 			SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MElementType, origData);
 
-			if (newData != nullptr)
+			if(newData != nullptr)
 				obj->SetFieldData(arrayIdx, newData);
 		}
 
@@ -533,18 +528,18 @@ namespace bs
 
 	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedDictionary>& mod, const SPtr<ManagedSerializableDictionary>& obj)
 	{
-		for (auto& modEntry : mod->Entries)
+		for(auto& modEntry : mod->Entries)
 		{
 			SPtr<ManagedSerializableFieldData> key = modEntry.Key;
 
 			SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(key);
 			SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MValueType, origData);
 
-			if (newData != nullptr)
+			if(newData != nullptr)
 				obj->SetFieldData(key, newData);
 		}
 
-		for (auto& key : mod->Removed)
+		for(auto& key : mod->Removed)
 		{
 			obj->RemoveFieldData(key);
 		}
@@ -552,85 +547,84 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType,
-		const SPtr<ManagedSerializableFieldData>& origData)
+	SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& origData)
 	{
 		SPtr<ManagedSerializableFieldData> newData;
-		switch (mod->GetTypeId())
+		switch(mod->GetTypeId())
 		{
 		case TID_ScriptModifiedObject:
-		{
-			SPtr<ManagedSerializableFieldDataObject> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataObject>(origData);
-			SPtr<ManagedSerializableObject> childObj = origObjData->Value;
-
-			SPtr<ManagedSerializableTypeInfoObject> objTypeInfo =
-				std::static_pointer_cast<ManagedSerializableTypeInfoObject>(fieldType);
-
-			if (childObj == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 			{
-				childObj = ManagedSerializableObject::CreateNew(objTypeInfo);
-				newData = ManagedSerializableFieldData::Create(objTypeInfo, childObj->GetManagedInstance());
-			}
+				SPtr<ManagedSerializableFieldDataObject> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataObject>(origData);
+				SPtr<ManagedSerializableObject> childObj = origObjData->Value;
 
-			SPtr<ModifiedObject> childMod = std::static_pointer_cast<ModifiedObject>(mod);
-			ApplyDiff(childMod, childObj);
-		}
+				SPtr<ManagedSerializableTypeInfoObject> objTypeInfo =
+					std::static_pointer_cast<ManagedSerializableTypeInfoObject>(fieldType);
+
+				if(childObj == nullptr) // Object was deleted in original but we have modifications for it, so we create it
+				{
+					childObj = ManagedSerializableObject::CreateNew(objTypeInfo);
+					newData = ManagedSerializableFieldData::Create(objTypeInfo, childObj->GetManagedInstance());
+				}
+
+				SPtr<ModifiedObject> childMod = std::static_pointer_cast<ModifiedObject>(mod);
+				ApplyDiff(childMod, childObj);
+			}
 			break;
 		case TID_ScriptModifiedArray:
-		{
-			if (fieldType->GetTypeId() == TID_SerializableTypeInfoArray)
 			{
-				SPtr<ManagedSerializableFieldDataArray> origArrayData = std::static_pointer_cast<ManagedSerializableFieldDataArray>(origData);
-				SPtr<ManagedSerializableArray> childArray = origArrayData->Value;
+				if(fieldType->GetTypeId() == TID_SerializableTypeInfoArray)
+				{
+					SPtr<ManagedSerializableFieldDataArray> origArrayData = std::static_pointer_cast<ManagedSerializableFieldDataArray>(origData);
+					SPtr<ManagedSerializableArray> childArray = origArrayData->Value;
 
-				SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo =
-					std::static_pointer_cast<ManagedSerializableTypeInfoArray>(fieldType);
+					SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo =
+						std::static_pointer_cast<ManagedSerializableTypeInfoArray>(fieldType);
 
-				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
-				if (childArray == nullptr) // Object was deleted in original but we have modifications for it, so we create it
-					childArray = ManagedSerializableArray::CreateNew(arrayTypeInfo, childMod->OrigSizes);
+					SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
+					if(childArray == nullptr) // Object was deleted in original but we have modifications for it, so we create it
+						childArray = ManagedSerializableArray::CreateNew(arrayTypeInfo, childMod->OrigSizes);
 
-				newData = ApplyDiff(childMod, childArray);
+					newData = ApplyDiff(childMod, childArray);
+				}
+				else if(fieldType->GetTypeId() == TID_SerializableTypeInfoList)
+				{
+					SPtr<ManagedSerializableFieldDataList> origListData = std::static_pointer_cast<ManagedSerializableFieldDataList>(origData);
+					SPtr<ManagedSerializableList> childList = origListData->Value;
+
+					SPtr<ManagedSerializableTypeInfoList> listTypeInfo =
+						std::static_pointer_cast<ManagedSerializableTypeInfoList>(fieldType);
+
+					SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
+					if(childList == nullptr) // Object was deleted in original but we have modifications for it, so we create it
+						childList = ManagedSerializableList::CreateNew(listTypeInfo, childMod->OrigSizes[0]);
+
+					newData = ApplyDiff(childMod, childList);
+				}
 			}
-			else if (fieldType->GetTypeId() == TID_SerializableTypeInfoList)
-			{
-				SPtr<ManagedSerializableFieldDataList> origListData = std::static_pointer_cast<ManagedSerializableFieldDataList>(origData);
-				SPtr<ManagedSerializableList> childList = origListData->Value;
-
-				SPtr<ManagedSerializableTypeInfoList> listTypeInfo =
-					std::static_pointer_cast<ManagedSerializableTypeInfoList>(fieldType);
-
-				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
-				if (childList == nullptr) // Object was deleted in original but we have modifications for it, so we create it
-					childList = ManagedSerializableList::CreateNew(listTypeInfo, childMod->OrigSizes[0]);
-
-				newData = ApplyDiff(childMod, childList);
-			}
-		}
 			break;
 		case TID_ScriptModifiedDictionary:
-		{
-			SPtr<ManagedSerializableFieldDataDictionary> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(origData);
-			SPtr<ManagedSerializableDictionary> childDict = origObjData->Value;
-
-			SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo =
-				std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(fieldType);
-
-			if (childDict == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 			{
-				childDict = ManagedSerializableDictionary::CreateNew(dictTypeInfo);
-				newData = ManagedSerializableFieldData::Create(dictTypeInfo, childDict->GetManagedInstance());
-			}
+				SPtr<ManagedSerializableFieldDataDictionary> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(origData);
+				SPtr<ManagedSerializableDictionary> childDict = origObjData->Value;
 
-			SPtr<ModifiedDictionary> childMod = std::static_pointer_cast<ModifiedDictionary>(mod);
-			ApplyDiff(childMod, childDict);
-		}
+				SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo =
+					std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(fieldType);
+
+				if(childDict == nullptr) // Object was deleted in original but we have modifications for it, so we create it
+				{
+					childDict = ManagedSerializableDictionary::CreateNew(dictTypeInfo);
+					newData = ManagedSerializableFieldData::Create(dictTypeInfo, childDict->GetManagedInstance());
+				}
+
+				SPtr<ModifiedDictionary> childMod = std::static_pointer_cast<ModifiedDictionary>(mod);
+				ApplyDiff(childMod, childDict);
+			}
 			break;
 		default: // Modified field
-		{
-			SPtr<ModifiedEntry> childMod = std::static_pointer_cast<ModifiedEntry>(mod);
-			newData = childMod->Value;
-		}
+			{
+				SPtr<ModifiedEntry> childMod = std::static_pointer_cast<ModifiedEntry>(mod);
+				newData = childMod->Value;
+			}
 			break;
 		}
 
@@ -646,4 +640,4 @@ namespace bs
 	{
 		return ManagedSerializableDiff::GetRttiStatic();
 	}
-}
+} // namespace bs

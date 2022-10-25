@@ -23,18 +23,18 @@ namespace bs
 	 *	 - Serialized - When the object has no link to the managed object but instead just contains cached object
 	 *					and field data that may be used for initializing a managed object. Any operations during
 	 *					this state will operate only on the cached internal data.
-	 *					
+	 *
 	 * You can transfer an object in linked state to serialized state by calling serialize(). If an object is in serialized
-	 * state you can call deserialize() to populated a managed object from the cached data. 	
+	 * state you can call deserialize() to populated a managed object from the cached data.
 	 */
 	class BS_SCR_BE_EXPORT ManagedSerializableList : public IReflectable
 	{
 	private:
-		struct ConstructPrivately {};
+		struct ConstructPrivately
+		{};
 
 	public:
-		ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoList>& typeInfo,
-			MonoObject* managedInstance);
+		ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoList>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableList(const ConstructPrivately& dummy);
 		~ManagedSerializableList();
 
@@ -91,8 +91,7 @@ namespace bs
 		 *								the provided type info.
 		 * @param[in]	typeInfo		Type information for the list and its elements.
 		 */
-		static SPtr<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance,
-			const SPtr<ManagedSerializableTypeInfoList>& typeInfo);
+		static SPtr<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo);
 
 		/**
 		 * Creates a managed serializable list that creates and references a brand new managed list instance.
@@ -148,15 +147,15 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-		
+
 		/**	Creates an empty and uninitialized object used for serialization purposes. */
 		static SPtr<ManagedSerializableList> CreateEmpty();
 
 	public:
 		friend class ManagedSerializableListRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

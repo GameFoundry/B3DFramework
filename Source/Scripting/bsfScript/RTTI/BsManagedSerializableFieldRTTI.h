@@ -19,9 +19,11 @@ namespace bs
 	{
 	private:
 		u16& GetTypeId(ManagedSerializableFieldKey* obj) { return obj->MTypeId; }
+
 		void SetTypeId(ManagedSerializableFieldKey* obj, u16& val) { obj->MTypeId = val; }
 
 		u16& GetFieldId(ManagedSerializableFieldKey* obj) { return obj->MFieldId; }
+
 		void SetFieldId(ManagedSerializableFieldKey* obj, u16& val) { obj->MFieldId = val; }
 
 	public:
@@ -31,7 +33,7 @@ namespace bs
 			AddPlainField("mFieldId", 1, &ManagedSerializableFieldKeyRTTI::GetFieldId, &ManagedSerializableFieldKeyRTTI::SetFieldId);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "SerializableFieldKey";
 			return name;
@@ -42,7 +44,7 @@ namespace bs
 			return TID_SerializableFieldKey;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ManagedSerializableFieldKey>();
 		}
@@ -51,14 +53,12 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataRTTI : public RTTIType<ManagedSerializableFieldData, IReflectable, ManagedSerializableFieldDataRTTI>
 	{
 	private:
-
 	public:
 		ManagedSerializableFieldDataRTTI()
 		{
-
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "SerializableFieldData";
 			return name;
@@ -79,10 +79,12 @@ namespace bs
 	class BS_SCR_BE_EXPORT ManagedSerializableFieldDataEntryRTTI : public RTTIType<ManagedSerializableFieldDataEntry, IReflectable, ManagedSerializableFieldDataEntryRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableFieldKey> GetKey(ManagedSerializableFieldDataEntry* obj)	{ return obj->MKey; }
+		SPtr<ManagedSerializableFieldKey> GetKey(ManagedSerializableFieldDataEntry* obj) { return obj->MKey; }
+
 		void SetKey(ManagedSerializableFieldDataEntry* obj, SPtr<ManagedSerializableFieldKey> val) { obj->MKey = val; }
 
 		SPtr<ManagedSerializableFieldData> GetValue(ManagedSerializableFieldDataEntry* obj) { return obj->MValue; }
+
 		void SetValue(ManagedSerializableFieldDataEntry* obj, SPtr<ManagedSerializableFieldData> val) { obj->MValue = val; }
 
 	public:
@@ -113,6 +115,7 @@ namespace bs
 	{
 	private:
 		bool& GetValue(ManagedSerializableFieldDataBool* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataBool* obj, bool& val) { obj->Value = val; }
 
 	public:
@@ -142,6 +145,7 @@ namespace bs
 	{
 	private:
 		wchar_t& GetValue(ManagedSerializableFieldDataChar* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataChar* obj, wchar_t& val) { obj->Value = val; }
 
 	public:
@@ -171,6 +175,7 @@ namespace bs
 	{
 	private:
 		i8& GetValue(ManagedSerializableFieldDataI8* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataI8* obj, i8& val) { obj->Value = val; }
 
 	public:
@@ -200,6 +205,7 @@ namespace bs
 	{
 	private:
 		u8& GetValue(ManagedSerializableFieldDataU8* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataU8* obj, u8& val) { obj->Value = val; }
 
 	public:
@@ -229,6 +235,7 @@ namespace bs
 	{
 	private:
 		i16& GetValue(ManagedSerializableFieldDataI16* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataI16* obj, i16& val) { obj->Value = val; }
 
 	public:
@@ -258,6 +265,7 @@ namespace bs
 	{
 	private:
 		u16& GetValue(ManagedSerializableFieldDataU16* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataU16* obj, u16& val) { obj->Value = val; }
 
 	public:
@@ -287,6 +295,7 @@ namespace bs
 	{
 	private:
 		i32& GetValue(ManagedSerializableFieldDataI32* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataI32* obj, i32& val) { obj->Value = val; }
 
 	public:
@@ -316,6 +325,7 @@ namespace bs
 	{
 	private:
 		u32& GetValue(ManagedSerializableFieldDataU32* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataU32* obj, u32& val) { obj->Value = val; }
 
 	public:
@@ -345,6 +355,7 @@ namespace bs
 	{
 	private:
 		i64& GetValue(ManagedSerializableFieldDataI64* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataI64* obj, i64& val) { obj->Value = val; }
 
 	public:
@@ -374,6 +385,7 @@ namespace bs
 	{
 	private:
 		u64& GetValue(ManagedSerializableFieldDataU64* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataU64* obj, u64& val) { obj->Value = val; }
 
 	public:
@@ -403,6 +415,7 @@ namespace bs
 	{
 	private:
 		float& GetValue(ManagedSerializableFieldDataFloat* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataFloat* obj, float& val) { obj->Value = val; }
 
 	public:
@@ -432,6 +445,7 @@ namespace bs
 	{
 	private:
 		double& GetValue(ManagedSerializableFieldDataDouble* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataDouble* obj, double& val) { obj->Value = val; }
 
 	public:
@@ -461,6 +475,7 @@ namespace bs
 	{
 	private:
 		WString& GetValue(ManagedSerializableFieldDataString* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataString* obj, WString& val) { obj->Value = val; }
 
 	public:
@@ -490,6 +505,7 @@ namespace bs
 	{
 	private:
 		HResource& GetValue(ManagedSerializableFieldDataResourceRef* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataResourceRef* obj, HResource& val) { obj->Value = HResource(val); }
 
 	public:
@@ -519,6 +535,7 @@ namespace bs
 	{
 	private:
 		HGameObject& GetValue(ManagedSerializableFieldDataGameObjectRef* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataGameObjectRef* obj, HGameObject& val) { obj->Value = val; }
 
 	public:
@@ -548,6 +565,7 @@ namespace bs
 	{
 	private:
 		SPtr<IReflectable> GetValue(ManagedSerializableFieldDataReflectableRef* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataReflectableRef* obj, SPtr<IReflectable> val) { obj->Value = val; }
 
 	public:
@@ -577,6 +595,7 @@ namespace bs
 	{
 	private:
 		SPtr<ManagedSerializableObject> GetValue(ManagedSerializableFieldDataObject* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataObject* obj, SPtr<ManagedSerializableObject> val) { obj->Value = val; }
 
 	public:
@@ -606,6 +625,7 @@ namespace bs
 	{
 	private:
 		SPtr<ManagedSerializableArray> GetValue(ManagedSerializableFieldDataArray* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataArray* obj, SPtr<ManagedSerializableArray> val) { obj->Value = val; }
 
 	public:
@@ -635,6 +655,7 @@ namespace bs
 	{
 	private:
 		SPtr<ManagedSerializableList> GetValue(ManagedSerializableFieldDataList* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataList* obj, SPtr<ManagedSerializableList> val) { obj->Value = val; }
 
 	public:
@@ -664,6 +685,7 @@ namespace bs
 	{
 	private:
 		SPtr<ManagedSerializableDictionary> GetValue(ManagedSerializableFieldDataDictionary* obj) { return obj->Value; }
+
 		void SetValue(ManagedSerializableFieldDataDictionary* obj, SPtr<ManagedSerializableDictionary> val) { obj->Value = val; }
 
 	public:
@@ -691,4 +713,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

@@ -18,8 +18,7 @@ namespace bs
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableObject")
 
 		/**	Creates a new serializable object interop object from the data in the provided property.  */
-		static MonoObject* Create(const ScriptSerializableProperty* native, MonoObject* managed,
-			MonoReflectionType* reflType);
+		static MonoObject* Create(const ScriptSerializableProperty* native, MonoObject* managed, MonoReflectionType* reflType);
 
 		/**	Creates a new serializable object interop object from the data in the provided property.  */
 		static MonoObject* Create(MonoObject* managed, MonoReflectionType* reflType);
@@ -47,4 +46,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

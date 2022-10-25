@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptCPlaneCollider::ScriptCPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -20,7 +20,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetNormal", (void*)&ScriptCPlaneCollider::InternalGetNormal);
 		metaData.ScriptClass->AddInternalCall("Internal_SetDistance", (void*)&ScriptCPlaneCollider::InternalSetDistance);
 		metaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptCPlaneCollider::InternalGetDistance);
-
 	}
 
 	void ScriptCPlaneCollider::InternalSetNormal(ScriptCPlaneCollider* thisPtr, Vector3* normal)
@@ -51,4 +50,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

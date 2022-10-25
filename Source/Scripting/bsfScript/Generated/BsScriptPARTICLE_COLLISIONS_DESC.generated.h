@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_COLLISIONS_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

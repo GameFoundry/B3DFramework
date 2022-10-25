@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptGUIElementStyle::ScriptGUIElementStyle(MonoObject* managedInstance, const SPtr<GUIElementStyle>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 	}
 
@@ -76,24 +76,24 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetFixedWidth", (void*)&ScriptGUIElementStyle::InternalSetFixedWidth);
 		metaData.ScriptClass->AddInternalCall("Internal_GetFixedHeight", (void*)&ScriptGUIElementStyle::InternalGetFixedHeight);
 		metaData.ScriptClass->AddInternalCall("Internal_SetFixedHeight", (void*)&ScriptGUIElementStyle::InternalSetFixedHeight);
-
 	}
 
 	MonoObject* ScriptGUIElementStyle::Create(const SPtr<GUIElementStyle>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, value);
+		new(bs_alloc<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptGUIElementStyle::InternalGUIElementStyle(MonoObject* managedInstance)
 	{
 		SPtr<GUIElementStyle> instance = bs_shared_ptr_new<GUIElementStyle>();
-		new (bs_alloc<ScriptGUIElementStyle>())ScriptGUIElementStyle(managedInstance, instance);
+		new(bs_alloc<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, instance);
 	}
 
 	void ScriptGUIElementStyle::InternalAddSubStyle(ScriptGUIElementStyle* thisPtr, MonoString* guiType, MonoString* styleName)
@@ -219,8 +219,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetNormal(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -238,8 +236,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetHover(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -257,8 +253,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetActive(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -276,8 +270,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetFocused(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -295,8 +287,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetFocusedHover(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -314,8 +304,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetNormalOn(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -333,8 +321,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetHoverOn(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -352,8 +338,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetActiveOn(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -371,8 +355,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetFocusedOn(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -390,8 +372,6 @@ namespace bs
 		__GUIElementStateStyleInterop interop__output;
 		interop__output = ScriptGUIElementStateStyle::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptGUIElementStateStyle::GetMetaData()->ScriptClass->GetInternalClassInternal());
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetFocusedHoverOn(ScriptGUIElementStyle* thisPtr, __GUIElementStateStyleInterop* value)
@@ -407,8 +387,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Border;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetBorder(ScriptGUIElementStyle* thisPtr, RectOffset* value)
@@ -422,8 +400,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Margins;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetMargins(ScriptGUIElementStyle* thisPtr, RectOffset* value)
@@ -437,8 +413,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->ContentOffset;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetContentOffset(ScriptGUIElementStyle* thisPtr, RectOffset* value)
@@ -452,8 +426,6 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->Padding;
 
 		*__output = tmp__output;
-
-
 	}
 
 	void ScriptGUIElementStyle::InternalSetPadding(ScriptGUIElementStyle* thisPtr, RectOffset* value)
@@ -588,4 +560,4 @@ namespace bs
 	{
 		thisPtr->GetInternal()->FixedHeight = value;
 	}
-}
+} // namespace bs

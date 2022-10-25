@@ -15,7 +15,7 @@
 namespace bs
 {
 	ScriptSpriteTexture::ScriptSpriteTexture(MonoObject* managedInstance, const ResourceHandle<SpriteTexture>& value)
-		:TScriptResource(managedInstance, value)
+		: TScriptResource(managedInstance, value)
 	{
 	}
 
@@ -38,16 +38,16 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetAnimationPlayback", (void*)&ScriptSpriteTexture::InternalGetAnimationPlayback);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptSpriteTexture::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptSpriteTexture::InternalCreate0);
-
 	}
 
-	 MonoObject*ScriptSpriteTexture::CreateInstance()
+	MonoObject* ScriptSpriteTexture::CreateInstance()
 	{
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
+
 	MonoObject* ScriptSpriteTexture::InternalGetRef(ScriptSpriteTexture* thisPtr)
 	{
 		return thisPtr->GetRRef();
@@ -199,4 +199,4 @@ namespace bs
 		ResourceHandle<SpriteTexture> instance = SpriteTexture::Create(*uvOffset, *uvScale, tmptexture);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
-}
+} // namespace bs

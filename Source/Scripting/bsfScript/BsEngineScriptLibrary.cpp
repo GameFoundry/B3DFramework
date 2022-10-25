@@ -74,13 +74,13 @@ namespace bs
 		Path engineAssemblyPath = GetEngineAssemblyPath();
 
 		// Do a full refresh if we have already loaded script assemblies
-		if (mScriptAssembliesLoaded)
+		if(mScriptAssembliesLoaded)
 		{
 			Vector<AssemblyRefreshInfo> assemblies;
 			assemblies.push_back(AssemblyRefreshInfo(ENGINE_ASSEMBLY, &engineAssemblyPath, &mEngineTypeMappings));
 
 			Path gameAssemblyPath = GetGameAssemblyPath();
-			if (FileSystem::Exists(gameAssemblyPath))
+			if(FileSystem::Exists(gameAssemblyPath))
 				assemblies.push_back(AssemblyRefreshInfo(SCRIPT_GAME_ASSEMBLY, &gameAssemblyPath, &BuiltinTypeMappings::EMPTY));
 
 			ScriptObjectManager::Instance().RefreshAssemblies(assemblies);
@@ -88,7 +88,7 @@ namespace bs
 		else // Otherwise just additively load them
 		{
 			Path gameAssemblyPath = GetGameAssemblyPath();
-			if (FileSystem::Exists(gameAssemblyPath))
+			if(FileSystem::Exists(gameAssemblyPath))
 			{
 				MonoManager::Instance().LoadAssembly(gameAssemblyPath.ToString(), SCRIPT_GAME_ASSEMBLY);
 				ScriptAssemblyManager::Instance().LoadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
@@ -162,12 +162,12 @@ namespace bs
 		Path debugAssemblyFolder = GetDebugAssemblyPath();
 
 #if BS_DEBUG_MODE == 0
-		if (FileSystem::Exists(releaseAssemblyFolder))
+		if(FileSystem::Exists(releaseAssemblyFolder))
 			return releaseAssemblyFolder;
 
 		return debugAssemblyFolder;
 #else
-		if (FileSystem::Exists(debugAssemblyFolder))
+		if(FileSystem::Exists(debugAssemblyFolder))
 			return debugAssemblyFolder;
 
 		return releaseAssemblyFolder;
@@ -190,4 +190,4 @@ namespace bs
 		static Path path = Paths::FindPath(Paths::DEBUG_ASSEMBLY_PATH);
 		return path;
 	}
-}
+} // namespace bs

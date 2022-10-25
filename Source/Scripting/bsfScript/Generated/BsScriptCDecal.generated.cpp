@@ -13,7 +13,7 @@
 namespace bs
 {
 	ScriptCDecal::ScriptCDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -29,7 +29,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCDecal::InternalGetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_SetLayerMask", (void*)&ScriptCDecal::InternalSetLayerMask);
 		metaData.ScriptClass->AddInternalCall("Internal_GetLayerMask", (void*)&ScriptCDecal::InternalGetLayerMask);
-
 	}
 
 	void ScriptCDecal::InternalSetMaterial(ScriptCDecal* thisPtr, MonoObject* material)
@@ -118,4 +117,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

@@ -10,7 +10,7 @@
 namespace bs
 {
 	ScriptParticleEmitterHemisphereShape::ScriptParticleEmitterHemisphereShape(MonoObject* managedInstance, const SPtr<ParticleEmitterHemisphereShape>& value)
-		:TScriptReflectable(managedInstance, value)
+		: TScriptReflectable(managedInstance, value)
 	{
 		mInternal = value;
 	}
@@ -21,20 +21,20 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterHemisphereShape::InternalGetOptions);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterHemisphereShape::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterHemisphereShape::InternalCreate0);
-
 	}
 
 	MonoObject* ScriptParticleEmitterHemisphereShape::Create(const SPtr<ParticleEmitterHemisphereShape>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, value);
+		new(bs_alloc<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptParticleEmitterHemisphereShape::InternalSetOptions(ScriptParticleEmitterHemisphereShape* thisPtr, PARTICLE_HEMISPHERE_SHAPE_DESC* options)
 	{
 		thisPtr->GetInternal()->SetOptions(*options);
@@ -51,12 +51,12 @@ namespace bs
 	void ScriptParticleEmitterHemisphereShape::InternalCreate(MonoObject* managedInstance, PARTICLE_HEMISPHERE_SHAPE_DESC* desc)
 	{
 		SPtr<ParticleEmitterHemisphereShape> instance = ParticleEmitterHemisphereShape::Create(*desc);
-		new (bs_alloc<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, instance);
 	}
 
 	void ScriptParticleEmitterHemisphereShape::InternalCreate0(MonoObject* managedInstance)
 	{
 		SPtr<ParticleEmitterHemisphereShape> instance = ParticleEmitterHemisphereShape::Create();
-		new (bs_alloc<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, instance);
+		new(bs_alloc<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, instance);
 	}
-}
+} // namespace bs

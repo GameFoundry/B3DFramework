@@ -49,22 +49,22 @@ namespace bs
 	/**	Flags that are used to further define a field in a managed serializable object. */
 	enum class ScriptFieldFlag
 	{
-		Serializable  = 1 << 0,
-		Inspectable   = 1 << 1,
-		Range         = 1 << 2,
-		Step          = 1 << 3,
-		Animable      = 1 << 4,
-		AsLayerMask   = 1 << 5,
-		PassByCopy    = 1 << 6,
-		NotNull       = 1 << 7,
+		Serializable = 1 << 0,
+		Inspectable = 1 << 1,
+		Range = 1 << 2,
+		Step = 1 << 3,
+		Animable = 1 << 4,
+		AsLayerMask = 1 << 5,
+		PassByCopy = 1 << 6,
+		NotNull = 1 << 7,
 		NativeWrapper = 1 << 8,
-		ApplyOnDirty  = 1 << 9,
-		AsQuaternion  = 1 << 10,
-		Category      = 1 << 11,
-		Order         = 1 << 12,
-		Inline        = 1 << 13,
-		LoadOnAssign  = 1 << 14,
-		HDR           = 1 << 15,
+		ApplyOnDirty = 1 << 9,
+		AsQuaternion = 1 << 10,
+		Category = 1 << 11,
+		Order = 1 << 12,
+		Inline = 1 << 13,
+		LoadOnAssign = 1 << 14,
+		HDR = 1 << 15,
 	};
 
 	typedef Flags<ScriptFieldFlag> ScriptFieldFlags;
@@ -74,7 +74,7 @@ namespace bs
 	enum class ScriptTypeFlag
 	{
 		Serializable = 1 << 0,
-		Inspectable  = 1 << 1
+		Inspectable = 1 << 1
 	};
 
 	typedef Flags<ScriptTypeFlag> ScriptTypeFlags;
@@ -434,8 +434,7 @@ namespace bs
 		 *								ensure the current object's type matches.
 		 * @return						Found field info within this object, or null if not found.
 		 */
-		SPtr<ManagedSerializableMemberInfo> FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo,
-			const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const;
+		SPtr<ManagedSerializableMemberInfo> FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const;
 
 		SPtr<ManagedSerializableTypeInfoObject> MTypeInfo;
 		MonoClass* MMonoClass = nullptr;
@@ -474,4 +473,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

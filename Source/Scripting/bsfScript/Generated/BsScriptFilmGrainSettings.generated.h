@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct FilmGrainSettings; }
+namespace bs
+{
+	struct FilmGrainSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptFilmGrainSettings : public TScriptReflectable<ScriptFilmGrainSettings, FilmGrainSettings>
@@ -27,4 +31,4 @@ namespace bs
 		static float InternalGetSpeed(ScriptFilmGrainSettings* thisPtr);
 		static void InternalSetSpeed(ScriptFilmGrainSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

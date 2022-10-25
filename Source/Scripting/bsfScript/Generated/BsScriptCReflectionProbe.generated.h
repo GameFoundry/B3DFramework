@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Renderer/BsReflectionProbe.h"
 #include "Math/BsVector3.h"
 
-namespace bs { class CReflectionProbe; }
+namespace bs
+{
+	class CReflectionProbe;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCReflectionProbe : public TScriptComponent<ScriptCReflectionProbe, CReflectionProbe>
@@ -28,4 +32,4 @@ namespace bs
 		static void InternalSetCustomTexture(ScriptCReflectionProbe* thisPtr, MonoObject* texture);
 		static void InternalCapture(ScriptCReflectionProbe* thisPtr);
 	};
-}
+} // namespace bs

@@ -7,14 +7,23 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 
-namespace bs { struct __CollisionDataInterop; }
-namespace bs { class CCollider; }
+namespace bs
+{
+	struct __CollisionDataInterop;
+}
+
+namespace bs
+{
+	class CCollider;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCColliderBase : public ScriptComponentBase
 	{
 	public:
 		ScriptCColliderBase(MonoObject* instance);
+
 		virtual ~ScriptCColliderBase() {}
 	};
 
@@ -30,11 +39,11 @@ namespace bs
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
 
-		typedef void(BS_THUNKCALL *OnCollisionBeginThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionBeginThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionBeginThunkDef OnCollisionBeginThunk;
-		typedef void(BS_THUNKCALL *OnCollisionStayThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionStayThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionStayThunkDef OnCollisionStayThunk;
-		typedef void(BS_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(BS_THUNKCALL* OnCollisionEndThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
 		static void InternalSetIsTrigger(ScriptCColliderBase* thisPtr, bool value);
@@ -52,4 +61,4 @@ namespace bs
 		static void InternalSetCollisionReportMode(ScriptCColliderBase* thisPtr, CollisionReportMode mode);
 		static CollisionReportMode InternalGetCollisionReportMode(ScriptCColliderBase* thisPtr);
 	};
-}
+} // namespace bs

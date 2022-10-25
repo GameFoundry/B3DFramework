@@ -6,7 +6,11 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs { struct ScreenSpaceReflectionsSettings; }
+namespace bs
+{
+	struct ScreenSpaceReflectionsSettings;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectable<ScriptScreenSpaceReflectionsSettings, ScreenSpaceReflectionsSettings>
@@ -29,4 +33,4 @@ namespace bs
 		static float InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr);
 		static void InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr, float value);
 	};
-}
+} // namespace bs

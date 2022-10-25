@@ -28,6 +28,5 @@ namespace bs
 
 	private:
 		ScriptLimitCommon(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

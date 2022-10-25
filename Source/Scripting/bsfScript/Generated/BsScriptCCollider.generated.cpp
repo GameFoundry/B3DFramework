@@ -13,15 +13,15 @@
 namespace bs
 {
 	ScriptCColliderBase::ScriptCColliderBase(MonoObject* managedInstance)
-		:ScriptComponentBase(managedInstance)
-	 { }
+		: ScriptComponentBase(managedInstance)
+	{}
 
-	ScriptCCollider::OnCollisionBeginThunkDef ScriptCCollider::OnCollisionBeginThunk; 
-	ScriptCCollider::OnCollisionStayThunkDef ScriptCCollider::OnCollisionStayThunk; 
-	ScriptCCollider::OnCollisionEndThunkDef ScriptCCollider::OnCollisionEndThunk; 
+	ScriptCCollider::OnCollisionBeginThunkDef ScriptCCollider::OnCollisionBeginThunk;
+	ScriptCCollider::OnCollisionStayThunkDef ScriptCCollider::OnCollisionStayThunk;
+	ScriptCCollider::OnCollisionEndThunkDef ScriptCCollider::OnCollisionEndThunk;
 
 	ScriptCCollider::ScriptCCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 		value->OnCollisionBegin.Connect(std::bind(&ScriptCCollider::OnCollisionBegin, this, std::placeholders::_1));
 		value->OnCollisionStay.Connect(std::bind(&ScriptCCollider::OnCollisionStay, this, std::placeholders::_1));
@@ -76,6 +76,7 @@ namespace bs
 		tmpp0 = ScriptCollisionData::Box(interopp0);
 		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
 	}
+
 	void ScriptCCollider::InternalSetIsTrigger(ScriptCColliderBase* thisPtr, bool value)
 	{
 		static_object_cast<CCollider>(thisPtr->GetComponent())->SetIsTrigger(value);
@@ -197,4 +198,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

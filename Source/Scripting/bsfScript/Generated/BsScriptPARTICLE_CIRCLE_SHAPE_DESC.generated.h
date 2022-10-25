@@ -30,6 +30,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_CIRCLE_SHAPE_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

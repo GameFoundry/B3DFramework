@@ -6,18 +6,16 @@
 namespace bs
 {
 	ScriptShaderInclude::ScriptShaderInclude(MonoObject* instance, const HShaderInclude& shaderInclude)
-		:TScriptResource(instance, shaderInclude)
+		: TScriptResource(instance, shaderInclude)
 	{
-
 	}
 
 	void ScriptShaderInclude::InitRuntimeData()
 	{
-
 	}
 
 	MonoObject* ScriptShaderInclude::CreateInstance()
 	{
 		return metaData.ScriptClass->CreateInstance();
 	}
-}
+} // namespace bs

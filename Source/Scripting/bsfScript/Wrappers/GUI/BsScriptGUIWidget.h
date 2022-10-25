@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIWidget. */
-	class BS_SCR_BE_EXPORT ScriptGUIWidget : public ScriptObject <ScriptGUIWidget>
+	class BS_SCR_BE_EXPORT ScriptGUIWidget : public ScriptObject<ScriptGUIWidget>
 	{
 	public:
 		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "NativeGUIWidget")
@@ -51,4 +51,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

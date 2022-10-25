@@ -22,9 +22,8 @@ using namespace std::placeholders;
 namespace bs
 {
 	ScriptGUIProgressBar::ScriptGUIProgressBar(MonoObject* instance, GUIProgressBar* progressBar)
-		:TScriptGUIElement(instance, progressBar)
+		: TScriptGUIElement(instance, progressBar)
 	{
-
 	}
 
 	void ScriptGUIProgressBar::InitRuntimeData()
@@ -41,11 +40,11 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUIProgressBar* progressBar = GUIProgressBar::Create(options, MonoUtil::MonoToString(style));
-		new (bs_alloc<ScriptGUIProgressBar>()) ScriptGUIProgressBar(instance, progressBar);
+		new(bs_alloc<ScriptGUIProgressBar>()) ScriptGUIProgressBar(instance, progressBar);
 	}
 
 	void ScriptGUIProgressBar::InternalSetPercent(ScriptGUIProgressBar* nativeInstance, float percent)
@@ -65,4 +64,4 @@ namespace bs
 		GUIProgressBar* progressBar = (GUIProgressBar*)nativeInstance->GetGuiElement();
 		progressBar->SetTint(*color);
 	}
-}
+} // namespace bs

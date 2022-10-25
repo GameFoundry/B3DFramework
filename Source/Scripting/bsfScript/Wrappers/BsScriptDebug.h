@@ -22,6 +22,7 @@ namespace bs
 
 		/**	Unregisters internal callbacks. Must be called on scripting system shutdown. */
 		static void ShutDown();
+
 	private:
 		ScriptDebug(MonoObject* instance);
 
@@ -40,10 +41,10 @@ namespace bs
 		static void InternalClear(LogVerbosity verbosity, u32 category);
 		static MonoArray* InternalGetMessages();
 
-		typedef void(BS_THUNKCALL *OnAddedThunkDef) (MonoString*, u32, u32, MonoException**);
+		typedef void(BS_THUNKCALL* OnAddedThunkDef)(MonoString*, u32, u32, MonoException**);
 
 		static OnAddedThunkDef onAddedThunk;
 	};
 
 	/** @} */
-}
+} // namespace bs

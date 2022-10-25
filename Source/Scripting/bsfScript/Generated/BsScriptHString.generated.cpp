@@ -9,7 +9,7 @@
 namespace bs
 {
 	ScriptHString::ScriptHString(MonoObject* managedInstance, const SPtr<HString>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+		: ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
@@ -21,26 +21,26 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_HString2", (void*)&ScriptHString::InternalHString2);
 		metaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptHString::InternalGetValue);
 		metaData.ScriptClass->AddInternalCall("Internal_SetParameter", (void*)&ScriptHString::InternalSetParameter);
-
 	}
 
 	MonoObject* ScriptHString::Create(const SPtr<HString>& value)
 	{
-		if(value == nullptr) return nullptr; 
+		if(value == nullptr) return nullptr;
 
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (bs_alloc<ScriptHString>()) ScriptHString(managedInstance, value);
+		new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, value);
 		return managedInstance;
 	}
+
 	void ScriptHString::InternalHString(MonoObject* managedInstance, MonoString* identifier, uint32_t stringTableId)
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::MonoToString(identifier);
 		SPtr<HString> instance = bs_shared_ptr_new<HString>(tmpidentifier, stringTableId);
-		new (bs_alloc<ScriptHString>())ScriptHString(managedInstance, instance);
+		new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
 	}
 
 	void ScriptHString::InternalHString0(MonoObject* managedInstance, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId)
@@ -50,19 +50,19 @@ namespace bs
 		String tmpdefaultString;
 		tmpdefaultString = MonoUtil::MonoToString(defaultString);
 		SPtr<HString> instance = bs_shared_ptr_new<HString>(tmpidentifier, tmpdefaultString, stringTableId);
-		new (bs_alloc<ScriptHString>())ScriptHString(managedInstance, instance);
+		new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
 	}
 
 	void ScriptHString::InternalHString1(MonoObject* managedInstance, uint32_t stringTableId)
 	{
 		SPtr<HString> instance = bs_shared_ptr_new<HString>(stringTableId);
-		new (bs_alloc<ScriptHString>())ScriptHString(managedInstance, instance);
+		new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
 	}
 
 	void ScriptHString::InternalHString2(MonoObject* managedInstance)
 	{
 		SPtr<HString> instance = bs_shared_ptr_new<HString>();
-		new (bs_alloc<ScriptHString>())ScriptHString(managedInstance, instance);
+		new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
 	}
 
 	MonoString* ScriptHString::InternalGetValue(ScriptHString* thisPtr)
@@ -82,4 +82,4 @@ namespace bs
 		tmpvalue = MonoUtil::MonoToString(value);
 		thisPtr->GetInternal()->SetParameter(idx, tmpvalue);
 	}
-}
+} // namespace bs

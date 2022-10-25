@@ -28,6 +28,5 @@ namespace bs
 
 	private:
 		ScriptTangentRef(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

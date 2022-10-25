@@ -7,7 +7,11 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
-namespace bs { class CParticleSystem; }
+namespace bs
+{
+	class CParticleSystem;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptCParticleSystem : public TScriptComponent<ScriptCParticleSystem, CParticleSystem>
@@ -30,4 +34,4 @@ namespace bs
 		static uint64_t InternalGetLayer(ScriptCParticleSystem* thisPtr);
 		static bool InternalTogglePreviewModeInternal(ScriptCParticleSystem* thisPtr, bool enabled);
 	};
-}
+} // namespace bs

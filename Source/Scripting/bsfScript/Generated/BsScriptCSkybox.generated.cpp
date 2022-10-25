@@ -12,7 +12,7 @@
 namespace bs
 {
 	ScriptCSkybox::ScriptCSkybox(MonoObject* managedInstance, const GameObjectHandle<CSkybox>& value)
-		:TScriptComponent(managedInstance, value)
+		: TScriptComponent(managedInstance, value)
 	{
 	}
 
@@ -22,7 +22,6 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptCSkybox::InternalSetTexture);
 		metaData.ScriptClass->AddInternalCall("Internal_SetBrightness", (void*)&ScriptCSkybox::InternalSetBrightness);
 		metaData.ScriptClass->AddInternalCall("Internal_GetBrightness", (void*)&ScriptCSkybox::InternalGetBrightness);
-
 	}
 
 	MonoObject* ScriptCSkybox::InternalGetTexture(ScriptCSkybox* thisPtr)
@@ -66,4 +65,4 @@ namespace bs
 
 		return __output;
 	}
-}
+} // namespace bs

@@ -44,4 +44,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

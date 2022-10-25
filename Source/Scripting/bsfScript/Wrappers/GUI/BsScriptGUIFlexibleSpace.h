@@ -21,7 +21,7 @@ namespace bs
 		ScriptGUIFlexibleSpace(MonoObject* instance, GUIFlexibleSpace* flexibleSpace);
 
 		/** @copydoc ScriptGUIElementBaseTBase::destroy */
-		void Destroy() ;
+		void Destroy();
 
 		GUIFlexibleSpace* mFlexibleSpace;
 		bool mIsDestroyed;
@@ -33,4 +33,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

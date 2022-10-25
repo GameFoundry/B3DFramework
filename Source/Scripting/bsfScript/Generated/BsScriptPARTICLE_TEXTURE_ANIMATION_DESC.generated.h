@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptPARTICLE_TEXTURE_ANIMATION_DESC(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

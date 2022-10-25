@@ -36,7 +36,7 @@ namespace bs
 		 *						templated RRef<T> object. In the latter case caller is responsible for ensuring the
 		 *						template parameter of RRef matches the actual resource type.
 		 */
-		template<class T>
+		template <class T>
 		static ScriptRRefBase* Create(const ResourceHandle<T>& handle, ::MonoClass* rawType = nullptr)
 		{
 			return CreateInternal(handle, rawType);
@@ -77,4 +77,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

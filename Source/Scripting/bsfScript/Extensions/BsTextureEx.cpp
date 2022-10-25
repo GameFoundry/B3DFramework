@@ -8,19 +8,18 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	HTexture TextureEx::Create(PixelFormat format, u32 width, u32 height, u32 depth, TextureType texType,
-		TextureUsage usage, u32 numSamples, bool hasMipmaps, bool gammaCorrection)
+	HTexture TextureEx::Create(PixelFormat format, u32 width, u32 height, u32 depth, TextureType texType, TextureUsage usage, u32 numSamples, bool hasMipmaps, bool gammaCorrection)
 	{
 		int numMips = 0;
-		if (hasMipmaps)
+		if(hasMipmaps)
 			numMips = PixelUtil::GetMaxMipmaps(width, height, 1, format);
 
 		TEXTURE_DESC texDesc;
 		texDesc.Type = texType;
 		texDesc.Width = width;
 		texDesc.Height = height;
-		
-		if (texType == TEX_TYPE_3D)
+
+		if(texType == TEX_TYPE_3D)
 			texDesc.Depth = depth;
 		else
 			texDesc.Depth = 1;
@@ -89,7 +88,7 @@ namespace bs
 
 	void TextureEx::SetPixels(const HTexture& thisPtr, const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 	{
-		if (data != nullptr)
+		if(data != nullptr)
 			thisPtr->WriteData(data, face, mipLevel, false);
 	}
 
@@ -100,17 +99,16 @@ namespace bs
 		const TextureProperties& props = thisPtr->GetProperties();
 		u32 texNumElements = props.GetWidth() * props.GetHeight() * props.GetDepth();
 
-		if (texNumElements != numElements)
+		if(texNumElements != numElements)
 		{
 			BS_LOG(Warning, Texture, "SetPixels called with incorrect dimensions. Ignoring call.");
 			return;
-		}		
+		}
 
-		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(props.GetWidth(), props.GetHeight(), props.GetDepth(),
-			props.GetFormat());
+		SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(props.GetWidth(), props.GetHeight(), props.GetDepth(), props.GetFormat());
 		pixelData->AllocateInternalBuffer();
 		pixelData->SetColors(colors);
 
 		thisPtr->WriteData(pixelData, face, mipLevel, false);
 	}
-}
+} // namespace bs

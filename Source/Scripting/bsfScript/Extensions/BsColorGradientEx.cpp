@@ -13,4 +13,4 @@ namespace bs
 	{
 		return thisPtr->Evaluate(t);
 	}
-}
+} // namespace bs

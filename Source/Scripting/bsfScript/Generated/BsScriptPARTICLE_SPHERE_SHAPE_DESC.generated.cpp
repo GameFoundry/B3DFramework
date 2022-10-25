@@ -8,13 +8,13 @@
 namespace bs
 {
 	ScriptPARTICLE_SPHERE_SHAPE_DESC::ScriptPARTICLE_SPHERE_SHAPE_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_SPHERE_SHAPE_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_SPHERE_SHAPE_DESC::Box(const PARTICLE_SPHERE_SHAPE_DESC& value)
+	MonoObject* ScriptPARTICLE_SPHERE_SHAPE_DESC::Box(const PARTICLE_SPHERE_SHAPE_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -24,4 +24,4 @@ namespace bs
 		return *(PARTICLE_SPHERE_SHAPE_DESC*)MonoUtil::Unbox(value);
 	}
 
-}
+} // namespace bs

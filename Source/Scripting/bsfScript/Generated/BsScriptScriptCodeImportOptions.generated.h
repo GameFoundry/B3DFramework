@@ -7,7 +7,11 @@
 #include "BsScriptImportOptions.generated.h"
 #include "../../../Foundation/bsfEngine/Resources/BsScriptCodeImportOptions.h"
 
-namespace bs { class ScriptCodeImportOptions; }
+namespace bs
+{
+	class ScriptCodeImportOptions;
+}
+
 namespace bs
 {
 #if !BS_IS_BANSHEE3D
@@ -26,4 +30,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-}
+} // namespace bs

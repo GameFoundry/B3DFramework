@@ -7,8 +7,16 @@
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsVectorField.h"
 
-namespace bs { class VectorField; }
-namespace bs { struct __VECTOR_FIELD_DESCInterop; }
+namespace bs
+{
+	class VectorField;
+}
+
+namespace bs
+{
+	struct __VECTOR_FIELD_DESCInterop;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptVectorField : public TScriptResource<ScriptVectorField, VectorField>
@@ -25,4 +33,4 @@ namespace bs
 
 		static void InternalCreate(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values);
 	};
-}
+} // namespace bs

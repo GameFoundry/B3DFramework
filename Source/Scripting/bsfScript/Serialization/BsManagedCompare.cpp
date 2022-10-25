@@ -12,4 +12,4 @@ namespace bs
 
 		return managedA.Equals(managedB);
 	}
-}
+} // namespace bs

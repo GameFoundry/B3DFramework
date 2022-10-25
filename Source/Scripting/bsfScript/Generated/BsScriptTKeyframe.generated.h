@@ -29,7 +29,6 @@ namespace bs
 
 	private:
 		ScriptTKeyframeint32_t(MonoObject* managedInstance);
-
 	};
 
 	class BS_SCR_BE_EXPORT ScriptTKeyframefloat : public ScriptObject<ScriptTKeyframefloat>
@@ -42,7 +41,6 @@ namespace bs
 
 	private:
 		ScriptTKeyframefloat(MonoObject* managedInstance);
-
 	};
 
 	struct __TKeyframeVector3Interop
@@ -65,7 +63,6 @@ namespace bs
 
 	private:
 		ScriptTKeyframeVector3(MonoObject* managedInstance);
-
 	};
 
 	struct __TKeyframeVector2Interop
@@ -88,7 +85,6 @@ namespace bs
 
 	private:
 		ScriptTKeyframeVector2(MonoObject* managedInstance);
-
 	};
 
 	struct __TKeyframeQuaternionInterop
@@ -111,6 +107,5 @@ namespace bs
 
 	private:
 		ScriptTKeyframeQuaternion(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

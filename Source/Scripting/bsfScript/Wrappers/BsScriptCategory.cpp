@@ -6,11 +6,12 @@ namespace bs
 {
 	MonoField* ScriptCategory::nameField = nullptr;
 
-	ScriptCategory::ScriptCategory(MonoObject* instance) : ScriptObject(instance)
-	{ }
+	ScriptCategory::ScriptCategory(MonoObject* instance)
+		: ScriptObject(instance)
+	{}
 
 	void ScriptCategory::InitRuntimeData()
 	{
 		nameField = metaData.ScriptClass->GetField("name");
 	}
-}
+} // namespace bs

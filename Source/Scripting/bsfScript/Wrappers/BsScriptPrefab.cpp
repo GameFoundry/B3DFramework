@@ -10,9 +10,8 @@
 namespace bs
 {
 	ScriptPrefab::ScriptPrefab(MonoObject* instance, const HPrefab& prefab)
-		:TScriptResource(instance, prefab)
+		: TScriptResource(instance, prefab)
 	{
-
 	}
 
 	void ScriptPrefab::InitRuntimeData()
@@ -48,4 +47,4 @@ namespace bs
 	{
 		return metaData.ScriptClass->CreateInstance();
 	}
-}
+} // namespace bs

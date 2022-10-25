@@ -8,8 +8,16 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs { struct __PARTICLE_ROTATION_DESCInterop; }
-namespace bs { class ParticleRotation; }
+namespace bs
+{
+	struct __PARTICLE_ROTATION_DESCInterop;
+}
+
+namespace bs
+{
+	class ParticleRotation;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptParticleRotation : public TScriptReflectable<ScriptParticleRotation, ParticleRotation, ScriptParticleEvolverBase>
@@ -27,4 +35,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_ROTATION_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-}
+} // namespace bs

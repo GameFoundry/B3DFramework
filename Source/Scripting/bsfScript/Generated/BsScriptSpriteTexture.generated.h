@@ -8,7 +8,11 @@
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 
-namespace bs { class SpriteTexture; }
+namespace bs
+{
+	class SpriteTexture;
+}
+
 namespace bs
 {
 	class BS_SCR_BE_EXPORT ScriptSpriteTexture : public TScriptResource<ScriptSpriteTexture, SpriteTexture>
@@ -40,4 +44,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* texture);
 		static void InternalCreate0(MonoObject* managedInstance, Vector2* uvOffset, Vector2* uvScale, MonoObject* texture);
 	};
-}
+} // namespace bs

@@ -13,9 +13,8 @@
 namespace bs
 {
 	ScriptGUICanvas::ScriptGUICanvas(MonoObject* instance, GUICanvas* canvas)
-		:TScriptGUIElement(instance, canvas)
+		: TScriptGUIElement(instance, canvas)
 	{
-
 	}
 
 	void ScriptGUICanvas::InitRuntimeData()
@@ -36,23 +35,21 @@ namespace bs
 
 		ScriptArray scriptArray(guiOptions);
 		u32 arrayLen = scriptArray.Size();
-		for (u32 i = 0; i < arrayLen; i++)
+		for(u32 i = 0; i < arrayLen; i++)
 			options.AddOption(scriptArray.Get<GUIOption>(i));
 
 		GUICanvas* guiCanvas = GUICanvas::Create(options, MonoUtil::MonoToString(style));
 
-		new (bs_alloc<ScriptGUICanvas>()) ScriptGUICanvas(instance, guiCanvas);
+		new(bs_alloc<ScriptGUICanvas>()) ScriptGUICanvas(instance, guiCanvas);
 	}
 
-	void ScriptGUICanvas::InternalDrawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color,
-		u8 depth)
+	void ScriptGUICanvas::InternalDrawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 		canvas->DrawLine(*a, *b, *color, depth);
 	}
 
-	void ScriptGUICanvas::InternalDrawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
-		u8 depth)
+	void ScriptGUICanvas::InternalDrawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 
@@ -65,20 +62,18 @@ namespace bs
 		canvas->DrawPolyLine(nativeVertices, *color, depth);
 	}
 
-	void ScriptGUICanvas::InternalDrawTexture(ScriptGUICanvas* nativeInstance, ScriptSpriteTexture* texture, Rect2I* area,
-		TextureScaleMode scaleMode, Color* color, u8 depth)
+	void ScriptGUICanvas::InternalDrawTexture(ScriptGUICanvas* nativeInstance, ScriptSpriteTexture* texture, Rect2I* area, TextureScaleMode scaleMode, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 
 		HSpriteTexture nativeTexture;
-		if (texture != nullptr)
+		if(texture != nullptr)
 			nativeTexture = texture->GetHandle();
 
 		canvas->DrawTexture(nativeTexture, *area, scaleMode, *color, depth);
 	}
-	
-	void ScriptGUICanvas::InternalDrawTriangleStrip(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
-		u8 depth)
+
+	void ScriptGUICanvas::InternalDrawTriangleStrip(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 
@@ -91,8 +86,7 @@ namespace bs
 		canvas->DrawTriangleStrip(nativeVertices, *color, depth);
 	}
 
-	void ScriptGUICanvas::InternalDrawTriangleList(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color,
-		u8 depth)
+	void ScriptGUICanvas::InternalDrawTriangleList(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 
@@ -105,14 +99,13 @@ namespace bs
 		canvas->DrawTriangleList(nativeVertices, *color, depth);
 	}
 
-	void ScriptGUICanvas::InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position,
-		ScriptFont* font, u32 size, Color* color, u8 depth)
+	void ScriptGUICanvas::InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, u32 size, Color* color, u8 depth)
 	{
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 		String nativeText = MonoUtil::MonoToString(text);
 
 		HFont nativeFont;
-		if (font != nullptr)
+		if(font != nullptr)
 			nativeFont = font->GetHandle();
 
 		canvas->DrawText(nativeText, *position, nativeFont, size, *color, depth);
@@ -123,4 +116,4 @@ namespace bs
 		GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 		canvas->Clear();
 	}
-}
+} // namespace bs

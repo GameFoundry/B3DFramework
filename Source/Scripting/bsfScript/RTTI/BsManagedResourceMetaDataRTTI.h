@@ -44,7 +44,7 @@ namespace bs
 			AddPlainField("mTypeName", 1, &ManagedResourceMetaDataRTTI::GetTypename, &ManagedResourceMetaDataRTTI::SetTypename);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ManagedResourceMetaData";
 			return name;
@@ -55,7 +55,7 @@ namespace bs
 			return TID_ManagedResourceMetaData;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ManagedResourceMetaData>();
 		}
@@ -63,4 +63,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

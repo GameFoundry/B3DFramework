@@ -18,6 +18,5 @@ namespace bs
 
 	private:
 		ScriptKeyframeRef(MonoObject* managedInstance);
-
 	};
-}
+} // namespace bs

@@ -12,13 +12,13 @@
 namespace bs
 {
 	ScriptPARTICLE_ORBIT_DESC::ScriptPARTICLE_ORBIT_DESC(MonoObject* managedInstance)
-		:ScriptObject(managedInstance)
-	{ }
+		: ScriptObject(managedInstance)
+	{}
 
 	void ScriptPARTICLE_ORBIT_DESC::InitRuntimeData()
-	{ }
+	{}
 
-	MonoObject*ScriptPARTICLE_ORBIT_DESC::Box(const __PARTICLE_ORBIT_DESCInterop& value)
+	MonoObject* ScriptPARTICLE_ORBIT_DESC::Box(const __PARTICLE_ORBIT_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
@@ -37,21 +37,21 @@ namespace bs
 		if(scriptCenter != nullptr)
 			tmpCenter = scriptCenter->GetInternal();
 		if(tmpCenter != nullptr)
-		output.Center = *tmpCenter;
+			output.Center = *tmpCenter;
 		SPtr<TDistribution<Vector3>> tmpVelocity;
 		ScriptTDistributionVector3* scriptVelocity;
 		scriptVelocity = ScriptTDistributionVector3::ToNative(value.Velocity);
 		if(scriptVelocity != nullptr)
 			tmpVelocity = scriptVelocity->GetInternal();
 		if(tmpVelocity != nullptr)
-		output.Velocity = *tmpVelocity;
+			output.Velocity = *tmpVelocity;
 		SPtr<TDistribution<float>> tmpRadial;
 		ScriptTDistributionfloat* scriptRadial;
 		scriptRadial = ScriptTDistributionfloat::ToNative(value.Radial);
 		if(scriptRadial != nullptr)
 			tmpRadial = scriptRadial->GetInternal();
 		if(tmpRadial != nullptr)
-		output.Radial = *tmpRadial;
+			output.Radial = *tmpRadial;
 		output.WorldSpace = value.WorldSpace;
 
 		return output;
@@ -80,4 +80,4 @@ namespace bs
 		return output;
 	}
 
-}
+} // namespace bs

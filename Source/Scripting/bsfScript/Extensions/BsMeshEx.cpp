@@ -5,8 +5,7 @@
 
 namespace bs
 {
-	HMesh MeshEx::Create(int numVertices, int numIndices, DrawOperationType topology, MeshUsage usage,
-		VertexLayout vertex, IndexType index)
+	HMesh MeshEx::Create(int numVertices, int numIndices, DrawOperationType topology, MeshUsage usage, VertexLayout vertex, IndexType index)
 	{
 		MESH_DESC desc;
 		desc.NumVertices = numVertices;
@@ -19,8 +18,7 @@ namespace bs
 		return Mesh::Create(desc);
 	}
 
-	HMesh MeshEx::Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes, MeshUsage usage,
-		VertexLayout vertex, IndexType index)
+	HMesh MeshEx::Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes, MeshUsage usage, VertexLayout vertex, IndexType index)
 	{
 		MESH_DESC desc;
 		desc.NumVertices = numVertices;
@@ -36,11 +34,11 @@ namespace bs
 	HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, DrawOperationType topology, MeshUsage usage)
 	{
 		SPtr<MeshData> meshData;
-		if (data != nullptr)
+		if(data != nullptr)
 			meshData = data->GetData();
 
 		u32 numIndices = 0;
-		if (meshData != nullptr)
+		if(meshData != nullptr)
 			numIndices = meshData->GetNumIndices();
 
 		MESH_DESC desc;
@@ -53,7 +51,7 @@ namespace bs
 	HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& subMeshes, MeshUsage usage)
 	{
 		SPtr<MeshData> meshData;
-		if (data != nullptr)
+		if(data != nullptr)
 			meshData = data->GetData();
 
 		MESH_DESC desc;
@@ -67,7 +65,7 @@ namespace bs
 	{
 		u32 numSubMeshes = thisPtr->GetProperties().GetNumSubMeshes();
 		Vector<SubMesh> output(numSubMeshes);
-		for (u32 i = 0; i < numSubMeshes; i++)
+		for(u32 i = 0; i < numSubMeshes; i++)
 			output[i] = thisPtr->GetProperties().GetSubMesh(i);
 
 		return output;
@@ -93,10 +91,10 @@ namespace bs
 
 	void MeshEx::SetMeshData(const HMesh& thisPtr, const SPtr<RendererMeshData>& value)
 	{
-		if (value != nullptr)
+		if(value != nullptr)
 		{
 			SPtr<MeshData> meshData = value->GetData();
 			thisPtr->WriteData(meshData, true);
 		}
 	}
-}
+} // namespace bs
