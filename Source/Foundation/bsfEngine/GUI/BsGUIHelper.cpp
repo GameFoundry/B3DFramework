@@ -9,8 +9,7 @@
 
 namespace bs
 {
-	Vector2I GUIHelper::CalcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style,
-		const GUIDimensions& dimensions)
+	Vector2I GUIHelper::CalcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style, const GUIDimensions& dimensions)
 	{
 		u32 contentWidth = style.Margins.Left + style.Margins.Right + style.ContentOffset.Left + style.ContentOffset.Right;
 		u32 contentHeight = style.Margins.Top + style.Margins.Bottom + style.ContentOffset.Top + style.ContentOffset.Bottom;
@@ -18,13 +17,12 @@ namespace bs
 		return Vector2I(std::max((u32)contentSize.X, contentWidth), std::max((u32)contentSize.Y, contentHeight));
 	}
 
-	Vector2I GUIHelper::CalcOptimalContentsSize(const GUIContent& content, const GUIElementStyle& style,
-		const GUIDimensions& dimensions, GUIElementState state)
+	Vector2I GUIHelper::CalcOptimalContentsSize(const GUIContent& content, const GUIElementStyle& style, const GUIDimensions& dimensions, GUIElementState state)
 	{
 		Vector2I contentBounds = CalcOptimalContentsSize((const String&)content.Text, style, dimensions);
 
 		const HSpriteTexture& image = content.GetImage(state);
-		if (SpriteTexture::CheckIsLoaded(image))
+		if(SpriteTexture::CheckIsLoaded(image))
 		{
 			contentBounds.X += image->GetWidth() + GUIContent::IMAGE_TEXT_SPACING;
 			contentBounds.Y = std::max(image->GetHeight(), (u32)contentBounds.Y);
@@ -33,8 +31,7 @@ namespace bs
 		return contentBounds;
 	}
 
-	Vector2I GUIHelper::CalcOptimalContentsSize(const String& text, const GUIElementStyle& style, const
-		GUIDimensions& dimensions)
+	Vector2I GUIHelper::CalcOptimalContentsSize(const String& text, const GUIElementStyle& style, const GUIDimensions& dimensions)
 	{
 		u32 wordWrapWidth = 0;
 
@@ -63,7 +60,7 @@ namespace bs
 	Vector2I GUIHelper::CalcTextSize(const String& text, const HFont& font, u32 fontSize)
 	{
 		Vector2I size;
-		if (font != nullptr)
+		if(font != nullptr)
 		{
 			bs_frame_mark();
 
@@ -78,4 +75,4 @@ namespace bs
 
 		return size;
 	}
-}
+} // namespace bs

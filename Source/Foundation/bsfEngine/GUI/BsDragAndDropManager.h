@@ -64,7 +64,7 @@ namespace bs
 		 * Determines whether the drop operation may happen anywhere or does the GUI element need to specifically accept the
 		 * drag of this type. If false all GUI elements we mouse over will receive drag/drop events, otherwise only those
 		 * that specifically subscribe to the specified drag operation of this typeId will.
-		 * 									
+		 *
 		 * Additionally this will determine the cursor displayed (whether or not it can have a "denied" state).
 		 */
 		bool NeedsValidDropTarget() const { return mNeedsValidDropTarget; }
@@ -86,8 +86,8 @@ namespace bs
 		 * @note	Internal event. You should use addDropCallback for normal use.
 		 */
 		Event<void(const PointerEvent&, DragCallbackInfo&)> OnDragEnded;
-	private:
 
+	private:
 		/**	Triggers any drop callbacks and clears callback data. */
 		void EndDrag(bool processed);
 
@@ -110,10 +110,10 @@ namespace bs
 		bool mNeedsValidDropTarget = false;
 		HEvent mMouseCaptureChangedConn;
 
-		std::atomic<bool> mCaptureChanged { false };
-		std::atomic<int> mCaptureActive { 0 };
+		std::atomic<bool> mCaptureChanged{ false };
+		std::atomic<int> mCaptureActive{ 0 };
 		std::atomic<u64> mCaptureChangeFrame;
 	};
 
 	/** @} */
-}
+} // namespace bs

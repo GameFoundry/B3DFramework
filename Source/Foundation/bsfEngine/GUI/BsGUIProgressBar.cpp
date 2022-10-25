@@ -11,7 +11,7 @@ using namespace std::placeholders;
 namespace bs
 {
 	GUIProgressBar::GUIProgressBar(const String& styleName, const GUIDimensions& dimensions)
-		:GUIElementContainer(dimensions, styleName), mPercent(0)
+		: GUIElementContainer(dimensions, styleName), mPercent(0)
 	{
 		mBar = GUITexture::Create(GetSubStyleName(GetBarStyleType()));
 		mBackground = GUITexture::Create(GetSubStyleName(GetBackgroundStyleType()));
@@ -50,7 +50,7 @@ namespace bs
 		mBackground->SetLayoutDataInternal(data);
 
 		const GUIElementStyle* style = GetStyleInternal();
-		
+
 		GUILayoutData barLayoutData = data;
 
 		barLayoutData.Area.X += style->Margins.Left;
@@ -85,12 +85,12 @@ namespace bs
 
 	GUIProgressBar* GUIProgressBar::Create(const String& styleName)
 	{
-		return new (bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create());
+		return new(bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create());
 	}
 
 	GUIProgressBar* GUIProgressBar::Create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create(options));
+		return new(bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create(options));
 	}
 
 	const String& GUIProgressBar::GetGuiTypeName()
@@ -98,4 +98,4 @@ namespace bs
 		static String typeName = "ProgressBar";
 		return typeName;
 	}
-}
+} // namespace bs

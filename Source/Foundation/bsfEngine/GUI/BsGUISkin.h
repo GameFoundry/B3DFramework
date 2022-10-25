@@ -48,7 +48,7 @@ namespace bs
 		void RemoveStyle(const String& guiElemType);
 
 		/**	Returns names of all styles registered on this skin. */
-		BS_SCRIPT_EXPORT(Property(Getter),ExportName(StyleNames))
+		BS_SCRIPT_EXPORT(Property(Getter), ExportName(StyleNames))
 		Vector<String> GetStyleNames() const;
 
 		/**	Creates an empty GUI skin and returns a handle to it. */
@@ -87,4 +87,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -32,7 +32,10 @@ namespace bs
 		/**	Type of meshes that are output by DrawHelper. */
 		enum class MeshType
 		{
-			Solid, Wire, Line, Text
+			Solid,
+			Wire,
+			Line,
+			Text
 		};
 
 		/**	Container for mesh of a specific type output by the DrawHelper. */
@@ -73,7 +76,7 @@ namespace bs
 		/**	Records a line with the specified properties in the internal draw queue. */
 		void Line(const Vector3& start, const Vector3& end);
 
-		/**	
+		/**
 		 * Records a list of lines in the internal draw queue. The list must contain lines as pair of vertices, starting
 		 * point followed by an end point, and so on.
 		 */
@@ -83,12 +86,10 @@ namespace bs
 		void Frustum(const Vector3& position, float aspect, Degree FOV, float near, float far);
 
 		/**	Records a solid cone with the specified properties in the internal draw queue. */
-		void Cone(const Vector3& base, const Vector3& normal, float height, float radius,
-			const Vector2& scale = Vector2::ONE, u32 quality = 10);
+		void Cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE, u32 quality = 10);
 
 		/**	Records a wire cone with the specified properties in the internal draw queue. */
-		void WireCone(const Vector3& base, const Vector3& normal, float height, float radius,
-			const Vector2& scale = Vector2::ONE, u32 quality = 10);
+		void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE, u32 quality = 10);
 
 		/**	Records a solid disc with the specified properties in the internal draw queue. */
 		void Disc(const Vector3& position, const Vector3& normal, float radius, u32 quality = 10);
@@ -97,12 +98,10 @@ namespace bs
 		void WireDisc(const Vector3& position, const Vector3& normal, float radius, u32 quality = 10);
 
 		/**	Records a solid arc with the specified properties in the internal draw queue. */
-		void Arc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle,
-			u32 quality = 10);
+		void Arc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle, u32 quality = 10);
 
 		/**	Records a wireframe arc with the specified properties in the internal draw queue. */
-		void WireArc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle,
-			u32 quality = 10);
+		void WireArc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle, u32 quality = 10);
 
 		/** Records a 3D mesh to be drawn as wireframe in the internal draw queue. */
 		void WireMesh(const SPtr<MeshData>& meshData);
@@ -134,8 +133,7 @@ namespace bs
 		 *						in the mesh. This bitfield will be ANDed with the layer specified when recording the shape.
 		 * @return				Generated mesh data.
 		 */
-		Vector<ShapeMeshData> BuildMeshes(SortType sorting = SortType::None,
-			const Camera* camera = nullptr, u64 layers = 0xFFFFFFFFFFFFFFFF);
+		Vector<ShapeMeshData> BuildMeshes(SortType sorting = SortType::None, const Camera* camera = nullptr, u64 layers = 0xFFFFFFFFFFFFFFFF);
 
 	private:
 		struct CommonData
@@ -257,4 +255,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

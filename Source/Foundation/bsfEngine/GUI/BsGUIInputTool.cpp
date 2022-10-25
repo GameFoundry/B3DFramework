@@ -20,33 +20,30 @@ namespace bs
 		bs_frame_mark();
 		{
 			const U32String utf32text = UTF8::ToUtF32(mTextDesc.Text);
-			TextData<FrameAlloc> textData(utf32text, mTextDesc.Font, mTextDesc.FontSize,
-				mTextDesc.Width, mTextDesc.Height, mTextDesc.WordWrap, mTextDesc.WordBreak);
+			TextData<FrameAlloc> textData(utf32text, mTextDesc.Font, mTextDesc.FontSize, mTextDesc.Width, mTextDesc.Height, mTextDesc.WordWrap, mTextDesc.WordBreak);
 
 			u32 numLines = textData.GetNumLines();
 			u32 numPages = textData.GetNumPages();
 
 			mNumQuads = 0;
-			for (u32 i = 0; i < numPages; i++)
+			for(u32 i = 0; i < numPages; i++)
 				mNumQuads += textData.GetNumQuadsForPage(i);
 
-			if (mQuads != nullptr)
+			if(mQuads != nullptr)
 				bs_delete(mQuads);
 
 			mQuads = bs_newN<Vector2>(mNumQuads * 4);
 
-			TextSprite::GenTextQuads(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, mTextDesc.Anchor,
-				mQuads, nullptr, nullptr, mNumQuads);
+			TextSprite::GenTextQuads(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, mTextDesc.Anchor, mQuads, nullptr, nullptr, mNumQuads);
 
 			// Store cached line data
 			u32 curCharIdx = 0;
 			u32 curLineIdx = 0;
 
 			Vector2I* alignmentOffsets = bs_frame_new<Vector2I>(numLines);
-			TextSprite::GetAlignmentOffsets(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign,
-				mTextDesc.VertAlign, alignmentOffsets);
+			TextSprite::GetAlignmentOffsets(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, alignmentOffsets);
 
-			for (u32 i = 0; i < numLines; i++)
+			for(u32 i = 0; i < numLines; i++)
 			{
 				const TextDataBase::TextLine& line = textData.GetLine(i);
 
@@ -181,7 +178,7 @@ namespace bs
 		for(auto& line : mLineDescs)
 		{
 			if((charIdx >= line.GetStartChar() && charIdx < line.GetEndChar()) ||
-				(charIdx == line.GetStartChar() && line.GetStartChar() == line.GetEndChar()))
+			   (charIdx == line.GetStartChar() && line.GetStartChar() == line.GetEndChar()))
 			{
 				if(line.IsNewline(charIdx) && newlineCountsOnNextLine)
 					return idx + 1; // Incrementing is safe because next line must exist, since we just found a newline char
@@ -271,9 +268,8 @@ namespace bs
 	}
 
 	GUIInputLineDesc::GUIInputLineDesc(u32 startChar, u32 endChar, u32 lineHeight, i32 lineYStart, bool includesNewline)
-		:mStartChar(startChar), mEndChar(endChar), mLineHeight(lineHeight), mLineYStart(lineYStart), mIncludesNewline(includesNewline)
+		: mStartChar(startChar), mEndChar(endChar), mLineHeight(lineHeight), mLineYStart(lineYStart), mIncludesNewline(includesNewline)
 	{
-
 	}
 
 	u32 GUIInputLineDesc::GetEndChar(bool includeNewline) const
@@ -303,4 +299,4 @@ namespace bs
 		else
 			return false;
 	}
-}
+} // namespace bs

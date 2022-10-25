@@ -20,9 +20,7 @@ namespace bs
 		return bounds;
 	}
 
-	u32 Sprite::FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset,
-		u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx,
-		const Vector2I& offset, const Rect2I& clipRect, bool clip) const
+	u32 Sprite::FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset, u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip) const
 	{
 		const auto& renderElem = mCachedRenderElements.at(renderElementIdx);
 
@@ -242,7 +240,7 @@ namespace bs
 
 			// Attempt to skip those that are definitely not clipped
 			if(vecA->X >= left && vecB->X <= right &&
-				vecA->Y >= top && vecC->Y <= bottom)
+			   vecA->Y >= top && vecC->Y <= bottom)
 			{
 				continue;
 			}
@@ -282,7 +280,7 @@ namespace bs
 			vecB->Y = newTop;
 			vecC->Y = newBottom;
 			vecD->Y = newBottom;
-			
+
 			uvA->X += uvLeftOffset;
 			uvC->X += uvLeftOffset;
 			uvB->X -= uvRightOffset;
@@ -297,11 +295,9 @@ namespace bs
 		}
 	}
 
-	void Sprite::ClipTrianglesToRect(u8* vertices, u8* uv, u32 numTris, u32 vertStride, const Rect2I& clipRect,
-		const std::function<void(Vector2*, Vector2*, u32)>& writeCallback)
+	void Sprite::ClipTrianglesToRect(u8* vertices, u8* uv, u32 numTris, u32 vertStride, const Rect2I& clipRect, const std::function<void(Vector2*, Vector2*, u32)>& writeCallback)
 	{
-		Vector<Plane> clipPlanes =
-		{
+		Vector<Plane> clipPlanes = {
 			Plane(Vector3(1.0f, 0.0f, 0.0f), (float)clipRect.X),
 			Plane(Vector3(-1.0f, 0.0f, 0.0f), (float)-(clipRect.X + (i32)clipRect.Width)),
 			Plane(Vector3(0.0f, 1.0f, 0.0f), (float)clipRect.Y),
@@ -310,4 +306,4 @@ namespace bs
 
 		MeshUtility::Clip2D(vertices, uv, numTris, vertStride, clipPlanes, writeCallback);
 	}
-}
+} // namespace bs

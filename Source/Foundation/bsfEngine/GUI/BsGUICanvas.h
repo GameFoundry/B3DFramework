@@ -13,7 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	
+	/**
 	 * A GUI element that allows the user to draw custom graphics. All drawn elements relative to the canvas, to its origin
 	 * in the top left corner.
 	 */
@@ -40,7 +40,7 @@ namespace bs
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUICanvas* Create(const String& styleName = StringUtil::BLANK);
-		
+
 		/**
 		 * Draws a line going from @p a to @p b.
 		 *
@@ -79,8 +79,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawTexture(const HSpriteTexture& texture, const Rect2I& area,
-			TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::White, u8 depth = 128);
+		void DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::White, u8 depth = 128);
 
 		/**
 		 * Draws a triangle strip. First three vertices are used to form the initial triangle, and every next vertex will
@@ -121,8 +120,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size = 10,
-			const Color& color = Color::White, u8 depth = 128);
+		void DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size = 10, const Color& color = Color::White, u8 depth = 128);
 
 		/** Clears the canvas, removing any previously drawn elements. */
 		void Clear();
@@ -216,10 +214,10 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 		/** Build an image sprite from the provided canvas element. */
 		void BuildImageElement(const CanvasElement& element);
@@ -257,4 +255,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

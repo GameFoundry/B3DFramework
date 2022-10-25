@@ -25,24 +25,23 @@ namespace bs
 		return "TooltipFrame";
 	}
 
-	GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position,
-		const String& text)
-		:CGUIWidget(parent, overlaidWidget.GetCamera())
+	GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position, const String& text)
+		: CGUIWidget(parent, overlaidWidget.GetCamera())
 	{
 		SetDepth(0); // Needs to be in front of everything
 		SetSkin(overlaidWidget.GetSkinResource());
-		
+
 		SPtr<Camera> camera = overlaidWidget.GetCamera();
 		SPtr<Viewport> viewport = camera->GetViewport();
 
 		Rect2I availableBounds = viewport->GetPixelArea();
-		
+
 		const GUISkin& skin = GetSkin();
 		const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::MultiLineLabelStyle);
 		const GUIElementStyle* backgroundStyle = skin.GetStyle(GetFrameStyleName());
 
 		Vector2I size(TOOLTIP_WIDTH, 25);
-		if (multiLineLabelStyle != nullptr)
+		if(multiLineLabelStyle != nullptr)
 		{
 			GUIDimensions dimensions = GUIDimensions::Create(GUIOptions(GUIOption::FixedWidth(TOOLTIP_WIDTH)));
 			size = GUIHelper::CalcOptimalContentsSize(text, *multiLineLabelStyle, dimensions);
@@ -77,9 +76,7 @@ namespace bs
 		backgroundLayout->AddElement(backgroundFrame);
 
 		GUILayout* contentLayout = contentPanel->AddNewElement<GUILayoutY>();
-		contentLayout->AddNewElement<GUILabel>(HString(text),
-			GUIOptions(GUIOption::FixedWidth(TOOLTIP_WIDTH), GUIOption::FlexibleHeight()),
-			BuiltinResources::MultiLineLabelStyle);
+		contentLayout->AddNewElement<GUILabel>(HString(text), GUIOptions(GUIOption::FixedWidth(TOOLTIP_WIDTH), GUIOption::FlexibleHeight()), BuiltinResources::MultiLineLabelStyle);
 
 		Rect2I positionBounds;
 		positionBounds.X = position.X;
@@ -95,4 +92,4 @@ namespace bs
 		backgroundPanel->SetPosition(placementBounds.X, placementBounds.Y);
 		contentPanel->SetPosition(placementBounds.X + contentOffsetX, placementBounds.Y + contentOffsetY);
 	}
-}
+} // namespace bs

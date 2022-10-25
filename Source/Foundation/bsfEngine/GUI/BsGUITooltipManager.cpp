@@ -21,10 +21,10 @@ namespace bs
 
 	void GUITooltipManager::Hide()
 	{
-		if (mTooltipSO != nullptr)
+		if(mTooltipSO != nullptr)
 		{
 			mTooltipSO->Destroy();
 			mTooltipSO = nullptr;
 		}
 	}
-}
+} // namespace bs

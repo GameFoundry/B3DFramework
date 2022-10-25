@@ -75,8 +75,7 @@ namespace bs
 	class BS_EXPORT SpriteMaterial
 	{
 	public:
-		SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation = ShaderVariation::EMPTY,
-			bool allowBatching = true);
+		SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation = ShaderVariation::EMPTY, bool allowBatching = true);
 		virtual ~SpriteMaterial();
 
 		/** Returns the unique ID of the sprite material. */
@@ -101,7 +100,7 @@ namespace bs
 		 * @param[in]		mergeFrom	Object that contains the second part of the data to merge, which will be merged into
 		 *								the first object.
 		 */
-		virtual void Merge(SpriteMaterialInfo& mergeInto, const SpriteMaterialInfo& mergeFrom) const { }
+		virtual void Merge(SpriteMaterialInfo& mergeInto, const SpriteMaterialInfo& mergeFrom) const {}
 
 		/**
 		 * Renders the provided mesh using the current material.
@@ -117,9 +116,7 @@ namespace bs
 		 *								after which the stencil value will be incremented by one. (i.e. only first element that
 		 *								writes to a pixel stores its alpha value).
 		 */
-		virtual void Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture,
-			const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer,
-			const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const;
+		virtual void Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const;
 
 	protected:
 		/** Perform initialization of core-thread specific objects. */
@@ -146,5 +143,4 @@ namespace bs
 	};
 
 	/** @} */
-}
-
+} // namespace bs

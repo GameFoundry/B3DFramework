@@ -129,7 +129,7 @@ namespace bs
 		u32 id = (u32)type;
 		mCustomIcons[id] = CustomIcon();
 
-		switch (type)
+		switch(type)
 		{
 		case CursorType::Arrow:
 			mCustomIcons[id].PixelData = BuiltinResources::Instance().GetCursorArrow(mCustomIcons[id].HotSpot);
@@ -170,7 +170,7 @@ namespace bs
 
 	void Cursor::UpdateCursorImage()
 	{
-		if (mActiveCursorId < 0)
+		if(mActiveCursorId < 0)
 			return;
 
 		CustomIcon& customIcon = mCustomIcons[mActiveCursorId];
@@ -181,4 +181,4 @@ namespace bs
 	{
 		return static_cast<Cursor&>(Cursor::Instance());
 	}
-}
+} // namespace bs

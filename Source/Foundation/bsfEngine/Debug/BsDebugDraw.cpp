@@ -93,8 +93,7 @@ namespace bs
 		mDrawHelper->WireDisc(position, normal, radius);
 	}
 
-	void DebugDraw::DrawWireArc(const Vector3& position, const Vector3& normal, float radius,
-		Degree startAngle, Degree amountAngle)
+	void DebugDraw::DrawWireArc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle)
 	{
 		mDrawHelper->WireArc(position, normal, radius, startAngle, amountAngle);
 	}
@@ -112,13 +111,13 @@ namespace bs
 	Vector<DebugDraw::MeshRenderData> DebugDraw::CreateMeshProxyData(const Vector<DrawHelper::ShapeMeshData>& meshData)
 	{
 		Vector<MeshRenderData> proxyData;
-		for (auto& entry : meshData)
+		for(auto& entry : meshData)
 		{
-			if (entry.Type == DrawHelper::MeshType::Solid)
+			if(entry.Type == DrawHelper::MeshType::Solid)
 				proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Solid));
-			else if (entry.Type == DrawHelper::MeshType::Wire)
+			else if(entry.Type == DrawHelper::MeshType::Wire)
 				proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Wire));
-			else if (entry.Type == DrawHelper::MeshType::Line)
+			else if(entry.Type == DrawHelper::MeshType::Line)
 				proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Line));
 		}
 
@@ -144,74 +143,74 @@ namespace bs
 	namespace ct
 	{
 
-	DebugDrawParamsDef gDebugDrawParamsDef;
+		DebugDrawParamsDef gDebugDrawParamsDef;
 
-	DebugDrawMat::DebugDrawMat()
-	{
-		// Do nothing
-	}
-
-	void DebugDrawMat::Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
-	{
-		BS_RENMAT_PROFILE_BLOCK
-
-		mParams->SetParamBlockBuffer("Params", params);
-
-		Bind();
-		gRendererUtility().Draw(mesh, subMesh);
-	}
-
-	DebugDrawMat* DebugDrawMat::GetVariation(DebugDrawMaterial mat)
-	{
-		if (mat == DebugDrawMaterial::Solid)
-			return Get(GetVariation<true, false, false>());
-		
-		if (mat == DebugDrawMaterial::Wire)
-			return Get(GetVariation<false, false, true>());
-
-		return Get(GetVariation<false, true, false>());
-	}
-
-	DebugDrawRenderer::DebugDrawRenderer()
-		:RendererExtension(RenderLocation::PostLightPass, 0)
-	{
-	}
-
-	void DebugDrawRenderer::Initialize(const Any& data)
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mParamBuffer = gDebugDrawParamsDef.CreateBuffer();
-	}
-
-	void DebugDrawRenderer::UpdateData(const Vector<DebugDraw::MeshRenderData>& meshes)
-	{
-		mMeshes = meshes;
-	}
-
-	RendererExtensionRequest DebugDrawRenderer::Check(const Camera& camera)
-	{
-		return mMeshes.empty() ? RendererExtensionRequest::RenderIfTargetDirty : RendererExtensionRequest::ForceRender;
-	}
-
-	void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
-	{
-		SPtr<RenderTarget> renderTarget = camera.GetViewport()->GetTarget();
-		if (renderTarget == nullptr)
-			return;
-
-		Matrix4 viewMatrix = camera.GetViewMatrix();
-		Matrix4 projMatrix = camera.GetProjectionMatrixRs();
-		Matrix4 viewProjMat = projMatrix * viewMatrix;
-
-		gDebugDrawParamsDef.gMatViewProj.Set(mParamBuffer, viewProjMat);
-		gDebugDrawParamsDef.gViewDir.Set(mParamBuffer, (Vector4)camera.GetTransform().GetForward());
-
-		for (auto& entry : mMeshes)
+		DebugDrawMat::DebugDrawMat()
 		{
-			DebugDrawMat* mat = DebugDrawMat::GetVariation(entry.Type);
-			mat->Execute(mParamBuffer, entry.Mesh, entry.SubMesh);
+			// Do nothing
 		}
-	}
-	}
-}
+
+		void DebugDrawMat::Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
+		{
+			BS_RENMAT_PROFILE_BLOCK
+
+			mParams->SetParamBlockBuffer("Params", params);
+
+			Bind();
+			gRendererUtility().Draw(mesh, subMesh);
+		}
+
+		DebugDrawMat* DebugDrawMat::GetVariation(DebugDrawMaterial mat)
+		{
+			if(mat == DebugDrawMaterial::Solid)
+				return Get(GetVariation<true, false, false>());
+
+			if(mat == DebugDrawMaterial::Wire)
+				return Get(GetVariation<false, false, true>());
+
+			return Get(GetVariation<false, true, false>());
+		}
+
+		DebugDrawRenderer::DebugDrawRenderer()
+			: RendererExtension(RenderLocation::PostLightPass, 0)
+		{
+		}
+
+		void DebugDrawRenderer::Initialize(const Any& data)
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mParamBuffer = gDebugDrawParamsDef.CreateBuffer();
+		}
+
+		void DebugDrawRenderer::UpdateData(const Vector<DebugDraw::MeshRenderData>& meshes)
+		{
+			mMeshes = meshes;
+		}
+
+		RendererExtensionRequest DebugDrawRenderer::Check(const Camera& camera)
+		{
+			return mMeshes.empty() ? RendererExtensionRequest::RenderIfTargetDirty : RendererExtensionRequest::ForceRender;
+		}
+
+		void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
+		{
+			SPtr<RenderTarget> renderTarget = camera.GetViewport()->GetTarget();
+			if(renderTarget == nullptr)
+				return;
+
+			Matrix4 viewMatrix = camera.GetViewMatrix();
+			Matrix4 projMatrix = camera.GetProjectionMatrixRs();
+			Matrix4 viewProjMat = projMatrix * viewMatrix;
+
+			gDebugDrawParamsDef.gMatViewProj.Set(mParamBuffer, viewProjMat);
+			gDebugDrawParamsDef.gViewDir.Set(mParamBuffer, (Vector4)camera.GetTransform().GetForward());
+
+			for(auto& entry : mMeshes)
+			{
+				DebugDrawMat* mat = DebugDrawMat::GetVariation(entry.Type);
+				mat->Execute(mParamBuffer, entry.Mesh, entry.SubMesh);
+			}
+		}
+	} // namespace ct
+} // namespace bs

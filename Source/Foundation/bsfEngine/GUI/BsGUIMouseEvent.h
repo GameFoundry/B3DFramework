@@ -32,7 +32,10 @@ namespace bs
 	/**	Types of GUI mouse buttons. */
 	enum class GUIMouseButton
 	{
-		Left, Right, Middle, Count
+		Left,
+		Right,
+		Middle,
+		Count
 	};
 
 	/**
@@ -83,6 +86,7 @@ namespace bs
 
 		/**	Checks is the alt button being held. */
 		bool IsAltDown() const { return mAlt; }
+
 	private:
 		friend class GUIManager;
 
@@ -141,4 +145,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

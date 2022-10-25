@@ -17,7 +17,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT GUIElementStyleRTTI : public RTTIType <GUIElementStyle, IReflectable, GUIElementStyleRTTI>
+	class BS_EXPORT GUIElementStyleRTTI : public RTTIType<GUIElementStyle, IReflectable, GUIElementStyleRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -88,4 +88,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

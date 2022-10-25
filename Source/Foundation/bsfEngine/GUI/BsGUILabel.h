@@ -103,10 +103,10 @@ namespace bs
 
 		TextSprite* mTextSprite;
 		ImageSprite* mImageSprite;
-		
+
 		TEXT_SPRITE_DESC mDesc;
 		IMAGE_SPRITE_DESC mImageDesc;
 	};
 
 	/** @} */
-}
+} // namespace bs

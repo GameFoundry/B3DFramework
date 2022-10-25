@@ -15,4 +15,4 @@ namespace bs
 		return GameSettings::GetRttiStatic();
 	}
 
-}
+} // namespace bs

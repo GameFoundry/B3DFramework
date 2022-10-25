@@ -56,12 +56,12 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIScrollBarHorz* Create(bool resizeable, const GUIOptions& options,
-			const String& styleName = StringUtil::BLANK);
+		static GUIScrollBarHorz* Create(bool resizeable, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+
 	protected:
 		GUIScrollBarHorz(bool resizeable, const String& styleName, const GUIDimensions& dimensions);
 		~GUIScrollBarHorz() = default;
 	};
 
 	/** @} */
-}
+} // namespace bs

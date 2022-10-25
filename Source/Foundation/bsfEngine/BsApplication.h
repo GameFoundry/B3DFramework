@@ -21,12 +21,13 @@ namespace bs
 		 * for the rest.
 		 */
 		static START_UP_DESC BuildStartUpDesc(VideoMode videoMode, const String& title, bool fullscreen);
+
 	public:
 		Application(const START_UP_DESC& desc);
 		virtual ~Application();
 
 		/** Starts the framework. If using a custom Application system, provide it as a template parameter. */
-		template<class T = Application>
+		template <class T = Application>
 		static void StartUp(VideoMode videoMode, const String& title, bool fullscreen)
 		{
 			START_UP_DESC desc = BuildStartUpDesc(videoMode, title, fullscreen);
@@ -34,7 +35,7 @@ namespace bs
 		}
 
 		/** Starts the framework. If using a custom Application system, provide it as a template parameter. */
-		template<class T = Application>
+		template <class T = Application>
 		static void StartUp(const START_UP_DESC& desc)
 		{
 			CoreApplication::StartUp<T>(desc);
@@ -83,4 +84,4 @@ namespace bs
 	BS_EXPORT Application& gApplication();
 
 	/** @} */
-}
+} // namespace bs

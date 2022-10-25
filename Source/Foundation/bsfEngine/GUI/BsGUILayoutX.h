@@ -41,8 +41,7 @@ namespace bs
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUILayout::_getElementAreas */
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** @} */
 
@@ -52,4 +51,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

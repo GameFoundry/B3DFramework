@@ -11,13 +11,13 @@ namespace bs
 	 */
 
 	/** Rectangle represented in the form of offsets from some parent rectangle. */
-	struct BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(Math)) RectOffset
+	struct BS_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Math)) RectOffset
 	{
 		RectOffset() = default;
 
 		RectOffset(i32 left, i32 right, i32 top, i32 bottom)
-			:Left(left), Right(right), Top(top), Bottom(bottom)
-		{ }
+			: Left(left), Right(right), Top(top), Bottom(bottom)
+		{}
 
 		bool operator==(const RectOffset& rhs) const
 		{
@@ -36,4 +36,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

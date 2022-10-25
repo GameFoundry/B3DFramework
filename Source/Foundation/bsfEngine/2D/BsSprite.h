@@ -72,7 +72,7 @@ namespace bs
 		/**
 		 * Returns the number of separate render elements in the sprite. Normally this is 1, but some sprites may consist
 		 * of multiple materials, in which case each will require its own mesh (render element)
-		 * 			
+		 *
 		 * @return	The number render elements.
 		 */
 		u32 GetNumRenderElements() const { return (u32)mCachedRenderElements.size(); }
@@ -111,9 +111,7 @@ namespace bs
 		 * @see		getNumRenderElements()
 		 * @see		getNumQuads()
 		 */
-		u32 FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset,
-			u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx,
-			const Vector2I& offset, const Rect2I& clipRect, bool clip = true) const;
+		u32 FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset, u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip = true) const;
 
 		/**
 		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices must form axis aligned quads.
@@ -143,8 +141,8 @@ namespace bs
 		 *								generated and need to be stored. Vertices are always generate in tuples of three,
 		 *								forming a single triangle.
 		 */
-		static void ClipTrianglesToRect(u8* vertices, u8* uv, u32 numTris, u32 vertStride,
-			const Rect2I& clipRect, const std::function<void(Vector2*, Vector2*, u32)>& writeCallback);
+		static void ClipTrianglesToRect(u8* vertices, u8* uv, u32 numTris, u32 vertStride, const Rect2I& clipRect, const std::function<void(Vector2*, Vector2*, u32)>& writeCallback);
+
 	protected:
 		/**	Returns the offset needed to move the sprite in order for it to respect the provided anchor. */
 		static Vector2I GetAnchorOffset(SpriteAnchor anchor, u32 width, u32 height);
@@ -159,7 +157,7 @@ namespace bs
 	inline void Sprite::GetRenderElementInfo(u32 idx, SpriteRenderElement& info) const
 	{
 		SpriteRenderElementData& renderElement = mCachedRenderElements[idx];
-		
+
 		info.NumVertices = renderElement.NumQuads * 4;
 		info.NumIndices = renderElement.NumQuads * 6;
 		info.MatInfo = &renderElement.MatInfo;
@@ -167,4 +165,4 @@ namespace bs
 	}
 
 	/** @} */
-}
+} // namespace bs

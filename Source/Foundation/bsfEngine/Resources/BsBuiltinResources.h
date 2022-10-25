@@ -19,13 +19,21 @@ namespace bs
 	/**	Types of builtin meshes that are always available. */
 	enum class BuiltinMesh
 	{
-		Box, Sphere, Cone, Cylinder, Quad, Disc
+		Box,
+		Sphere,
+		Cone,
+		Cylinder,
+		Quad,
+		Disc
 	};
 
 	/**	Types of builtin textures that are always available. */
 	enum class BuiltinTexture
 	{
-		White, Black, Normal, BokehFlare
+		White,
+		Black,
+		Normal,
+		BokehFlare
 	};
 
 	/** Types of builtin shaders that are always available. */
@@ -79,28 +87,28 @@ namespace bs
 
 		/**	Returns image data for an arrow with dragged object cursor, along with its hotspot. */
 		const PixelData& GetCursorArrowDrag(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a wait cursor, along with its hotspot. */
 		const PixelData& GetCursorWait(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for an "I" beam cursor, along with its hotspot. */
 		const PixelData& GetCursorIBeam(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a NESW resize cursor, along with its hotspot. */
 		const PixelData& GetCursorSizeNesw(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a NS resize cursor, along with its hotspot. */
 		const PixelData& GetCursorSizeNs(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a NWSE resize cursor, along with its hotspot. */
 		const PixelData& GetCursorSizeNwse(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a WE resize cursor, along with its hotspot. */
 		const PixelData& GetCursorSizeWe(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a deny cursor, along with its hotspot. */
 		const PixelData& GetCursorDeny(Vector2I& hotSpot);
-		
+
 		/**	Returns image data for a move left-right cursor, along with its hotspot. */
 		const PixelData& GetCursorMoveLeftRight(Vector2I& hotSpot);
 
@@ -179,6 +187,7 @@ namespace bs
 		static constexpr const u32 DEFAULT_FONT_SIZE = 8;
 
 		static constexpr const char* GUI_SKIN_FILE = u8"GUISkin";
+
 	private:
 		/**	Loads a GUI skin texture with the specified filename. */
 		HSpriteTexture GetSkinTexture(const String& name) const;
@@ -261,4 +270,4 @@ namespace bs
 	BS_EXPORT BuiltinResources& gBuiltinResources();
 
 	/** @} */
-}
+} // namespace bs

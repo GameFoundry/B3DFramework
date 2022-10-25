@@ -17,7 +17,7 @@ namespace bs
 	/** Used for comparing GUI menu items in order to determine the order in which they are presented. */
 	struct GUIMenuItemComparer
 	{
-		bool operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
+		bool operator()(const GUIMenuItem* const& a, const GUIMenuItem* const& b) const;
 	};
 
 	/** Holds information about a single element in a GUI menu. */
@@ -35,8 +35,7 @@ namespace bs
 		 * 							compared to other items.
 		 * @param[in]	key			Keyboard shortcut that can be used for triggering the menu item.
 		 */
-		GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback,
-			i32 priority, u32 seqIdx, const ShortcutKey& key);
+		GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 seqIdx, const ShortcutKey& key);
 
 		/**
 		 * Constructs a new separator menu item.
@@ -101,7 +100,7 @@ namespace bs
 	 * Menu consists out of a number of top level elements, each of which opens
 	 * a drop down menu which may internally hold a deeper hierarchy of menus.
 	 *
-	 * @note	
+	 * @note
 	 * When specifying menu items you must provide a path. Path must be formated in a certain way. All path elements must
 	 * be separated by /, for example "View/Toolbars/Find". "View" would be the top level path element, "Toolbars" a child
 	 * in its menu that opens up its own submenu, and "Find" a child in the "Toolbars" sub-menu with an optional callback.
@@ -116,7 +115,7 @@ namespace bs
 
 		/**
 		 * Adds a new menu item with the specified callback.
-		 *			
+		 *
 		 * @param[in]	path		Path that determines where to add the element. See class information on how to specify
 		 *							paths. All sub-elements of a path will be added automatically.
 		 * @param[in]	callback	Callback that triggers when the path element is selected.
@@ -130,7 +129,7 @@ namespace bs
 
 		/**
 		 * Adds a new separator menu item with the specified callback.
-		 *			
+		 *
 		 * @param[in]	path		Path that determines where to add the element. See class information on how to specify
 		 *							paths. All sub-elements of a path will be added automatically.
 		 * @param[in]	priority	Priority determines the position of the menu item relative to its siblings. Higher
@@ -160,10 +159,10 @@ namespace bs
 
 		/**	Returns data used for initializing a drop down list, for all elements. */
 		GUIDropDownData GetDropDownData() const;
+
 	protected:
 		/**	Adds a menu item at the specified path, as a normal button or as a separator. */
-		GUIMenuItem* AddMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator,
-			i32 priority, const ShortcutKey& key);
+		GUIMenuItem* AddMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator, i32 priority, const ShortcutKey& key);
 
 		/**	Return drop down data for the specified menu. */
 		GUIDropDownData GetDropDownDataInternal(const GUIMenuItem& menu) const;
@@ -174,4 +173,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

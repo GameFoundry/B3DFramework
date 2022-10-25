@@ -23,7 +23,7 @@ namespace bs
 
 		if(!initialized)
 		{
-			if (FileSystem::Exists(FRAMEWORK_DATA_PATH))
+			if(FileSystem::Exists(FRAMEWORK_DATA_PATH))
 				path = FileSystem::GetWorkingDirectoryPath() + FRAMEWORK_DATA_PATH;
 			else
 #if BS_IS_BANSHEE3D
@@ -42,19 +42,19 @@ namespace bs
 	{
 		static bool initialized = false;
 		static Path path;
-		
+
 		if(!initialized)
 		{
 			path = FileSystem::GetWorkingDirectoryPath();
-			
+
 			// Look for bsf library to find the right path
 			Path anchorFile = path;
 			anchorFile.SetFilename("bsf." + String(DynLib::EXTENSION));
 
-			if (!FileSystem::Exists(anchorFile))
+			if(!FileSystem::Exists(anchorFile))
 			{
 				path = BINARIES_PATH;
-				if (!FileSystem::Exists(path))
+				if(!FileSystem::Exists(path))
 					path = ""; // No path found, keep the default
 			}
 
@@ -72,23 +72,23 @@ namespace bs
 
 		if(!initialized)
 		{
-#ifdef BS_IS_ASSET_TOOL
+#	ifdef BS_IS_ASSET_TOOL
 			// Asset tool always runs relative to the 'bsf' directory
 			Path editorDataPath = Path("../../") + FRAMEWORK_DATA_PATH;
 
-			if (FileSystem::Exists(editorDataPath))
+			if(FileSystem::Exists(editorDataPath))
 				path = FileSystem::GetWorkingDirectoryPath() + editorDataPath;
-#else
+#	else
 			// Otherwise, look for the folder in the direct descendant of the working directory
-			if (FileSystem::Exists(EDITOR_DATA_PATH))
+			if(FileSystem::Exists(EDITOR_DATA_PATH))
 				path = FileSystem::GetWorkingDirectoryPath() + EDITOR_DATA_PATH;
-#endif
+#	endif
 			// Then check the source distribution itself, in case we're running directly from the build directory
 			else
 			{
 				path = Path(RAW_APP_ROOT) + FRAMEWORK_DATA_PATH;
 
-				if (!FileSystem::Exists(path))
+				if(!FileSystem::Exists(path))
 					BS_LOG(Error, FileSystem, "Cannot find builtin assets for the editor at path '{0}'.", path);
 			}
 
@@ -117,7 +117,7 @@ namespace bs
 
 		// First, look for the direct descendant of the working directory
 		Path output = path;
-		if (FileSystem::Exists(path))
+		if(FileSystem::Exists(path))
 		{
 			output.MakeAbsolute(FileSystem::GetWorkingDirectoryPath());
 			return output;
@@ -125,10 +125,10 @@ namespace bs
 
 		// Then, check the build directory itself, in case we're running directly from it (during development)
 		output.MakeAbsolute(BUILD_APP_ROOT);
-		if (FileSystem::Exists(output))
+		if(FileSystem::Exists(output))
 			return output;
 
 		// No path found, but return the initial value by default
 		return path;
 	}
-}
+} // namespace bs

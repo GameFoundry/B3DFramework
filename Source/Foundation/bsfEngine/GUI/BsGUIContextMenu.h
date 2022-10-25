@@ -28,7 +28,7 @@ namespace bs
 		/**	Closes the context menu if open. */
 		void Close();
 
-		/**	
+		/**
 		 * Called when the context menu is closed externally (for example when user selects an item or clicks outside it).
 		 */
 		void OnMenuClosed();
@@ -38,4 +38,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

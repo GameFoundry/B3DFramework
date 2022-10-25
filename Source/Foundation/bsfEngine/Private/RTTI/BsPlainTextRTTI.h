@@ -14,18 +14,20 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT PlainTextRTTI : public RTTIType <PlainText, Resource, PlainTextRTTI>
+	class BS_EXPORT PlainTextRTTI : public RTTIType<PlainText, Resource, PlainTextRTTI>
 	{
 	private:
 		WString& GetString(PlainText* obj) { return obj->mString; }
+
 		void SetString(PlainText* obj, WString& val) { obj->mString = val; }
+
 	public:
 		PlainTextRTTI()
 		{
 			AddPlainField("mString", 0, &PlainTextRTTI::GetString, &PlainTextRTTI::SetString);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "PlainText";
 			return name;
@@ -36,7 +38,7 @@ namespace bs
 			return TID_PlainText;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return PlainText::CreatePtrInternal(L""); // Initial string doesn't matter, it'll get overwritten
 		}
@@ -44,4 +46,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

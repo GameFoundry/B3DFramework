@@ -53,7 +53,7 @@ namespace bs
 	{
 		if(!OverridenWidth())
 		{
-			if (style->FixedWidth)
+			if(style->FixedWidth)
 			{
 				Flags |= GUIDF_FixedWidth;
 				MinWidth = MaxWidth = style->Width;
@@ -68,7 +68,7 @@ namespace bs
 
 		if(!OverridenHeight())
 		{
-			if (style->FixedHeight)
+			if(style->FixedHeight)
 			{
 				Flags |= GUIDF_FixedHeight;
 				MinHeight = MaxHeight = style->Height;
@@ -86,7 +86,7 @@ namespace bs
 	{
 		LayoutSizeRange sizeRange;
 
-		if (FixedHeight())
+		if(FixedHeight())
 		{
 			sizeRange.Optimal.Y = std::max(0, (i32)MinHeight);
 			sizeRange.Min.Y = sizeRange.Optimal.Y;
@@ -96,20 +96,20 @@ namespace bs
 		{
 			sizeRange.Optimal.Y = optimal.Y;
 
-			if (MinHeight > 0)
+			if(MinHeight > 0)
 			{
 				sizeRange.Optimal.Y = std::max(std::max(0, (i32)MinHeight), sizeRange.Optimal.Y);
 				sizeRange.Min.Y = std::max(0, (i32)MinHeight);
 			}
 
-			if (MaxHeight > 0)
+			if(MaxHeight > 0)
 			{
 				sizeRange.Optimal.Y = std::min(std::max(0, (i32)MaxHeight), sizeRange.Optimal.Y);
 				sizeRange.Max.Y = std::max(0, (i32)MaxHeight);
 			}
 		}
 
-		if (FixedWidth())
+		if(FixedWidth())
 		{
 			sizeRange.Optimal.X = std::max(0, (i32)MinWidth);
 			sizeRange.Min.X = sizeRange.Optimal.X;
@@ -119,13 +119,13 @@ namespace bs
 		{
 			sizeRange.Optimal.X = optimal.X;
 
-			if (MinWidth > 0)
+			if(MinWidth > 0)
 			{
 				sizeRange.Optimal.X = std::max(std::max(0, (i32)MinWidth), sizeRange.Optimal.X);
 				sizeRange.Min.X = std::max(0, (i32)MinWidth);
 			}
 
-			if (MaxWidth > 0)
+			if(MaxWidth > 0)
 			{
 				sizeRange.Optimal.X = std::min(std::max(0, (i32)MaxWidth), sizeRange.Optimal.X);
 				sizeRange.Max.X = std::max(0, (i32)MaxWidth);
@@ -134,4 +134,4 @@ namespace bs
 
 		return sizeRange;
 	}
-}
+} // namespace bs

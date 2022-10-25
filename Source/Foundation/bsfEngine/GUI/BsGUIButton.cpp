@@ -13,8 +13,8 @@ namespace bs
 	}
 
 	GUIButton::GUIButton(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
-		:GUIButtonBase(styleName, content, dimensions)
-	{ }
+		: GUIButtonBase(styleName, content, dimensions)
+	{}
 
 	GUIButton* GUIButton::Create(const HString& text, const String& styleName)
 	{
@@ -28,12 +28,12 @@ namespace bs
 
 	GUIButton* GUIButton::Create(const GUIContent& content, const String& styleName)
 	{
-		return new (bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create());
+		return new(bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create());
 	}
 
 	GUIButton* GUIButton::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create(options));
+		return new(bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create(options));
 	}
 
 	bool GUIButton::CommandEventInternal(const GUICommandEvent& ev)
@@ -51,4 +51,4 @@ namespace bs
 
 		return processed;
 	}
-}
+} // namespace bs

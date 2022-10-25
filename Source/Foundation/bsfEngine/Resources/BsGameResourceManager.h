@@ -27,6 +27,7 @@ namespace bs
 
 		/** Creates a new empty resource mapping. */
 		static SPtr<ResourceMapping> Create();
+
 	private:
 		UnorderedMap<Path, Path> mMapping;
 
@@ -36,7 +37,7 @@ namespace bs
 	public:
 		friend class ResourceMappingRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** Interface that can be implemented by the resource loaders required by GameResourceManager. */
@@ -49,7 +50,7 @@ namespace bs
 		virtual HResource Load(const Path& path, ResourceLoadFlags flags, bool async) const = 0;
 
 		/** @copydoc GameResourceManager::setMapping */
-		virtual void SetMapping(const SPtr<ResourceMapping>& mapping) { }
+		virtual void SetMapping(const SPtr<ResourceMapping>& mapping) {}
 	};
 
 	/**	Handles loading of game resources when the standalone game is running. */
@@ -79,7 +80,7 @@ namespace bs
 
 		/**
 		 * Loads the resource at the specified path.
-		 * 			
+		 *
 		 * @see	Resources::load
 		 */
 		HResource Load(const Path& path, ResourceLoadFlags flags, bool async) const;
@@ -110,4 +111,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

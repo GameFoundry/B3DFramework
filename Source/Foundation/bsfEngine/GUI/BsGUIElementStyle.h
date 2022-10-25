@@ -18,11 +18,12 @@ namespace bs
 	/**	Possible positions used for positioning content image within a GUI element. */
 	enum class BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIImagePosition
 	{
-		Left, Right
+		Left,
+		Right
 	};
 
 	/**	Specific texture and text color used in a particular GUI element style. */
-	struct BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI),ExportAsStruct(true)) GUIElementStateStyle
+	struct BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) GUIElementStateStyle
 	{
 		BS_NORREF HSpriteTexture Texture;
 		Color TextColor;
@@ -152,6 +153,7 @@ namespace bs
 		 * @param[in]	styleName	Name of the style in GUI skin to use for the sub-element.
 		 */
 		BS_SCRIPT_EXPORT()
+
 		void AddSubStyle(const String& guiType, const String& styleName)
 		{
 			SubStyles[guiType] = styleName;
@@ -165,8 +167,8 @@ namespace bs
 	public:
 		friend class GUIElementStyleRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

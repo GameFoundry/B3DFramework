@@ -37,7 +37,7 @@ namespace bs
 		}
 
 		const GUIWidget* widget = nullptr;
-		if (mElement != nullptr)
+		if(mElement != nullptr)
 			widget = mElement->GetParentWidgetInternal();
 
 		u32 idx = 0;
@@ -255,4 +255,4 @@ namespace bs
 	{
 		return mSelectionStart == mSelectionEnd;
 	}
-}
+} // namespace bs

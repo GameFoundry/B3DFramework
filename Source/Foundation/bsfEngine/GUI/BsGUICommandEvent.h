@@ -42,6 +42,7 @@ namespace bs
 
 		/**	Returns type describing what kind of event this is. */
 		GUICommandEventType GetType() const { return mType; }
+
 	private:
 		friend class GUIManager;
 
@@ -52,4 +53,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

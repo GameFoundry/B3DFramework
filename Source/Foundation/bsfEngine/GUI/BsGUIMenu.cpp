@@ -5,23 +5,19 @@
 
 namespace bs
 {
-	bool GUIMenuItemComparer::operator() (const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
+	bool GUIMenuItemComparer::operator()(const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
 	{
 		return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
 	}
 
-	GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback,
-		i32 priority, u32 seqIdx, const ShortcutKey& key)
-		:mParent(parent), mIsSeparator(false), mName(name), mCallback(callback), mPriority(priority),
-		mShortcut(key), mSeqIdx(seqIdx)
+	GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, const String& name, std::function<void()> callback, i32 priority, u32 seqIdx, const ShortcutKey& key)
+		: mParent(parent), mIsSeparator(false), mName(name), mCallback(callback), mPriority(priority), mShortcut(key), mSeqIdx(seqIdx)
 	{
-
 	}
 
 	GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 seqIdx)
 		: mParent(parent), mIsSeparator(true), mCallback(nullptr), mPriority(priority), mSeqIdx(seqIdx)
 	{
-
 	}
 
 	GUIMenuItem::~GUIMenuItem()
@@ -32,7 +28,8 @@ namespace bs
 
 	const GUIMenuItem* GUIMenuItem::FindChild(const String& name) const
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+									 { return x->GetName() == name; });
 
 		if(iterFind != mChildren.end())
 			return *iterFind;
@@ -42,7 +39,8 @@ namespace bs
 
 	GUIMenuItem* GUIMenuItem::FindChild(const String& name)
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+									 { return x->GetName() == name; });
 
 		if(iterFind != mChildren.end())
 			return *iterFind;
@@ -52,7 +50,8 @@ namespace bs
 
 	void GUIMenuItem::RemoveChild(const String& name)
 	{
-		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&] (GUIMenuItem* x) { return x->GetName() == name; });
+		auto iterFind = std::find_if(begin(mChildren), end(mChildren), [&](GUIMenuItem* x)
+									 { return x->GetName() == name; });
 
 		if(iterFind != mChildren.end())
 		{
@@ -65,7 +64,7 @@ namespace bs
 	{
 		auto iterFind = std::find(begin(mChildren), end(mChildren), item);
 
-		if (iterFind != mChildren.end())
+		if(iterFind != mChildren.end())
 		{
 			bs_delete(*iterFind);
 			mChildren.erase(iterFind);
@@ -73,14 +72,12 @@ namespace bs
 	}
 
 	GUIMenu::GUIMenu()
-		:mRootElement(nullptr, "", nullptr, 0, 0, ShortcutKey::NONE), mNextIdx(0)
+		: mRootElement(nullptr, "", nullptr, 0, 0, ShortcutKey::NONE), mNextIdx(0)
 	{
-
 	}
 
 	GUIMenu::~GUIMenu()
 	{
-
 	}
 
 	GUIMenuItem* GUIMenu::AddMenuItem(const String& path, std::function<void()> callback, i32 priority, const ShortcutKey& key)
@@ -93,8 +90,7 @@ namespace bs
 		return AddMenuItemInternal(path, nullptr, true, priority, ShortcutKey::NONE);
 	}
 
-	GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator,
-		i32 priority, const ShortcutKey& key)
+	GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator, i32 priority, const ShortcutKey& key)
 	{
 		Vector<String> pathElements = StringUtil::Split(path, "/");
 
@@ -116,7 +112,7 @@ namespace bs
 				else
 				{
 					existingItem = bs_alloc<GUIMenuItem>();
-					existingItem = new (existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::NONE);
+					existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::NONE);
 				}
 
 				curSubMenu->AddChild(existingItem);
@@ -187,13 +183,11 @@ namespace bs
 			{
 				if(menuItem->GetNumChildren() == 0)
 				{
-					dropDownData.Entries.push_back(GUIDropDownDataEntry::Button(menuItem->GetName(),
-						menuItem->GetCallback(), menuItem->GetShortcut().GetName()));
+					dropDownData.Entries.push_back(GUIDropDownDataEntry::Button(menuItem->GetName(), menuItem->GetCallback(), menuItem->GetShortcut().GetName()));
 				}
 				else
 				{
-					dropDownData.Entries.push_back(GUIDropDownDataEntry::SubMenu(menuItem->GetName(),
-						GetDropDownDataInternal(*menuItem)));
+					dropDownData.Entries.push_back(GUIDropDownDataEntry::SubMenu(menuItem->GetName(), GetDropDownDataInternal(*menuItem)));
 				}
 			}
 		}
@@ -202,4 +196,4 @@ namespace bs
 
 		return dropDownData;
 	}
-}
+} // namespace bs

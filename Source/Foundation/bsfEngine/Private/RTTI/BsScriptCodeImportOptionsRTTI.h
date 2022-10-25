@@ -14,7 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT ScriptCodeImportOptionsRTTI : public RTTIType <ScriptCodeImportOptions, ImportOptions, ScriptCodeImportOptionsRTTI>
+	class BS_EXPORT ScriptCodeImportOptionsRTTI : public RTTIType<ScriptCodeImportOptions, ImportOptions, ScriptCodeImportOptionsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -22,7 +22,7 @@ namespace bs
 		BS_END_RTTI_MEMBERS
 
 	public:
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptCodeImportOptions";
 			return name;
@@ -33,7 +33,7 @@ namespace bs
 			return TID_ScriptCodeImportOptions;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<ScriptCodeImportOptions>();
 		}
@@ -41,4 +41,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

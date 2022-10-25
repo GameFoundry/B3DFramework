@@ -34,8 +34,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType,
-			const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
 
 		/**
 		 * Creates a new empty scroll area.
@@ -47,9 +46,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType,
-			const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK,
-			const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
 
 		/**
 		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
@@ -57,8 +54,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(const String& scrollBarStyle = StringUtil::BLANK,
-			const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
 
 		/**
 		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
@@ -68,8 +64,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK,
-			const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
 
 		/**	Returns the scroll area layout that you may use to add elements inside the scroll area. */
 		GUILayout& GetLayout() const { return *mContentLayout; }
@@ -149,7 +144,7 @@ namespace bs
 		LayoutSizeRange GetLayoutSizeRangeInternal() const override;
 
 		/** @copydoc GUIElementContainer::updateClippedBounds */
-		void UpdateClippedBounds() ;
+		void UpdateClippedBounds();
 
 		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
@@ -159,9 +154,9 @@ namespace bs
 
 		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
+
 	private:
-		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType,
-			const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
+		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIElementContainer::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
@@ -184,16 +179,14 @@ namespace bs
 		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 
 		/** @copydoc	GUIElementContainer::GetElementAreasInternal */
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/**
 		 * @copydoc	GUIElementContainer::GetElementAreasInternal:
 		 *
 		 * @note	Also calculates some scroll area specific values.
 		 */
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-			const Vector<LayoutSizeRange>& sizeRanges, Vector2I& visibleSize, Vector2I& contentSize) const;
+		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, Vector2I& visibleSize, Vector2I& contentSize) const;
 
 		ScrollBarType mVertBarType;
 		ScrollBarType mHorzBarType;
@@ -219,4 +212,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

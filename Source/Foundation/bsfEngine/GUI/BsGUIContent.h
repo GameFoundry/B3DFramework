@@ -10,7 +10,7 @@ namespace bs
 	 */
 
 	/**	Type of GUI element states. */
-	enum class BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(GUI)) GUIElementState
+	enum class BS_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIElementState
 	{
 		Normal = 0x01, /**< Normal state when element is not being iteracted with. */
 		Hover = 0x02, /**< State when pointer is hovering over the element. */
@@ -24,19 +24,18 @@ namespace bs
 		FocusedHoverOn = 0x110, /**< Same as FocusedHover, if the element is also in the "on" state. */
 
 		// Helpers
-		TypeMask	BS_SCRIPT_EXPORT(Exclude(true))	= 0xFF, /**< Mask for determining the state type (ignoring the on state). */
-		OnFlag		BS_SCRIPT_EXPORT(Exclude(true))	= 0x100 /**< Flag that differentiates between on and off states. */
+		TypeMask BS_SCRIPT_EXPORT(Exclude(true)) = 0xFF, /**< Mask for determining the state type (ignoring the on state). */
+		OnFlag BS_SCRIPT_EXPORT(Exclude(true)) = 0x100 /**< Flag that differentiates between on and off states. */
 	};
 
 	/**	Contains separate GUI content images for every possible GUI element state. */
-	struct BS_EXPORT BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(GUI)) GUIContentImages
+	struct BS_EXPORT BS_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIContentImages
 	{
 		GUIContentImages() = default;
 
 		GUIContentImages(const HSpriteTexture& image)
-			:Normal(image), Hover(image), Active(image), Focused(image),
-			NormalOn(image), HoverOn(image), ActiveOn(image), FocusedOn(image)
-		{ }
+			: Normal(image), Hover(image), Active(image), Focused(image), NormalOn(image), HoverOn(image), ActiveOn(image), FocusedOn(image)
+		{}
 
 		BS_NORREF HSpriteTexture Normal;
 		BS_NORREF HSpriteTexture Hover;
@@ -52,7 +51,7 @@ namespace bs
 	 * Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none
 	 * of those.
 	 */
-	class BS_EXPORT BS_SCRIPT_EXPORT(ExportAsStruct(true),DocumentationGroup(GUI)) GUIContent
+	class BS_EXPORT BS_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIContent
 	{
 	public:
 		/**	Constructs an empty content. */
@@ -61,32 +60,32 @@ namespace bs
 		/**	Constructs content with just a string. */
 		GUIContent(const HString& text)
 			: Text(text)
-		{ }
+		{}
 
 		/**	Constructs content with a string and a tooltip. */
 		GUIContent(const HString& text, const HString& tooltip)
 			: Text(text), Tooltip(tooltip)
-		{ }
+		{}
 
 		/**	Constructs content with just an image. */
 		GUIContent(const GUIContentImages& image)
 			: Images(image)
-		{ }
+		{}
 
 		/**	Constructs content with an image and a tooltip. */
 		GUIContent(const GUIContentImages& image, const HString& tooltip)
 			: Images(image), Tooltip(tooltip)
-		{ }
+		{}
 
 		/**	Constructs content with a string and an image. */
 		GUIContent(const HString& text, const GUIContentImages& image)
 			: Text(text), Images(image)
-		{ }
+		{}
 
 		/**	Constructs content with a string, an image and a tooltip. */
 		GUIContent(const HString& text, const GUIContentImages& image, const HString& tooltip)
 			: Text(text), Images(image), Tooltip(tooltip)
-		{ }
+		{}
 
 		/**	Returns image content (if any). */
 		const HSpriteTexture& GetImage(GUIElementState state = GUIElementState::Normal) const;
@@ -100,4 +99,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

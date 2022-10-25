@@ -19,9 +19,10 @@ namespace bs
 
 		/**	Returns the virtual button the event is referring to. */
 		const VirtualButton& GetButton() const { return mButton; }
+
 	private:
 		friend class GUIManager;
-		
+
 		/**	Initializes the data for the event. */
 		void SetButton(const VirtualButton& button) { mButton = button; }
 
@@ -29,4 +30,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

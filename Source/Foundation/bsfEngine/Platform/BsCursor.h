@@ -15,7 +15,7 @@ namespace bs
 
 	/**
 	 * Allows you to manipulate the platform cursor in various ways.
-	 * 			
+	 *
 	 * @note	Thread safe.
 	 */
 	class BS_EXPORT Cursor : public Module<Cursor>
@@ -24,9 +24,10 @@ namespace bs
 		struct CustomIcon
 		{
 			CustomIcon() = default;
+
 			CustomIcon(const PixelData& pixelData, const Vector2I& hotSpot)
-				:HotSpot(hotSpot), PixelData(pixelData)
-			{ }
+				: HotSpot(hotSpot), PixelData(pixelData)
+			{}
 
 			Vector2I HotSpot;
 			PixelData PixelData;
@@ -55,13 +56,13 @@ namespace bs
 
 		/**	Disables cursor clipping that was set using any of the clipTo* methods. */
 		void ClipDisable();
-		
+
 		/**	Sets a cursor icon. Uses one of the built-in cursor types. */
 		void SetCursor(CursorType type);
 
 		/**
 		 * Sets a cursor icon. Uses one of the manually registered icons.
-		 * 			
+		 *
 		 * @param[in]	name		The name to identify the cursor, one set previously by calling setCursorIcon().
 		 */
 		void SetCursor(const String& name);
@@ -73,8 +74,8 @@ namespace bs
 		 * @param[in]	pixelData	Cursor image data.
 		 * @param[in]	hotSpot		Offset on the cursor image to where the actual input happens (for example tip of the
 		 *							Arrow cursor).
-		 * 						
-		 * @note	
+		 *
+		 * @note
 		 * Stores an internal copy of the pixel data. Clear it by calling removeCursorIcon(). If a custom icon with the
 		 * same name already exists it will be replaced.
 		 */
@@ -87,8 +88,8 @@ namespace bs
 		 * @param[in] 	pixelData	Cursor image data.
 		 * @param[in]	hotSpot		Offset on the cursor image to where the actual input happens (for example tip of the
 		 *							Arrow cursor).
-		 * 						
-		 * @note	
+		 *
+		 * @note
 		 * Stores an internal copy of the pixel data. Clear it by calling removeCursorIcon(). If a custom icon with the
 		 * same type already exists it will be replaced.
 		 */
@@ -120,4 +121,4 @@ namespace bs
 	BS_EXPORT Cursor& gCursor();
 
 	/** @} */
-}
+} // namespace bs

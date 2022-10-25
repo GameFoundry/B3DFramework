@@ -11,18 +11,18 @@ namespace bs
 	GUIElementStyle GUISkin::DefaultStyle;
 
 	GUISkin::GUISkin()
-		:Resource(false)
-	{ }
+		: Resource(false)
+	{}
 
 	GUISkin::GUISkin(const GUISkin& skin)
-		:Resource(false)
-	{ }
+		: Resource(false)
+	{}
 
 	bool GUISkin::HasStyle(const String& name) const
 	{
 		auto iterFind = mStyles.find(name);
 
-		if (iterFind != mStyles.end())
+		if(iterFind != mStyles.end())
 			return true;
 
 		return false;
@@ -53,7 +53,7 @@ namespace bs
 	Vector<String> GUISkin::GetStyleNames() const
 	{
 		Vector<String> output;
-		for (auto& pair : mStyles)
+		for(auto& pair : mStyles)
 			output.push_back(pair.first);
 
 		return output;
@@ -68,7 +68,7 @@ namespace bs
 
 	SPtr<GUISkin> GUISkin::CreatePtrInternal()
 	{
-		SPtr<GUISkin> newSkin = bs_core_ptr<GUISkin>(new (bs_alloc<GUISkin>()) GUISkin());
+		SPtr<GUISkin> newSkin = bs_core_ptr<GUISkin>(new(bs_alloc<GUISkin>()) GUISkin());
 		newSkin->SetThisPtrInternal(newSkin);
 		newSkin->Initialize();
 
@@ -84,4 +84,4 @@ namespace bs
 	{
 		return GUISkin::GetRttiStatic();
 	}
-}
+} // namespace bs

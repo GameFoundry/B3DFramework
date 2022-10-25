@@ -16,8 +16,8 @@ namespace bs
 	{
 	public:
 		GUIFixedSpace(u32 size)
-			:mSize(size)
-		{ }
+			: mSize(size)
+		{}
 
 		~GUIFixedSpace();
 
@@ -25,7 +25,14 @@ namespace bs
 		u32 GetSize() const { return mSize; }
 
 		/**	Changes the size of the space to the specified value, in pixels. */
-		void SetSize(u32 size) { if (mSize != size) { mSize = size; MarkLayoutAsDirtyInternal(); } }
+		void SetSize(u32 size)
+		{
+			if(mSize != size)
+			{
+				mSize = size;
+				MarkLayoutAsDirtyInternal();
+			}
+		}
 
 		/**	Creates a new fixed space GUI element. */
 		static GUIFixedSpace* Create(u32 size);
@@ -65,7 +72,7 @@ namespace bs
 	 * there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their
 	 * sizes will be shared equally.
 	 *
-	 * @note	
+	 * @note
 	 * For example if you had a horizontal layout with a button, and you wanted to align that button to the right of the
 	 * layout, you would insert a flexible space before the button in the layout.
 	 */
@@ -73,6 +80,7 @@ namespace bs
 	{
 	public:
 		GUIFlexibleSpace() {}
+
 		~GUIFlexibleSpace();
 
 		/**	Creates a new flexible space GUI element. */
@@ -107,4 +115,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

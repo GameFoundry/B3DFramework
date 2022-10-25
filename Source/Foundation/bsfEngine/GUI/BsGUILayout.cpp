@@ -10,21 +10,21 @@
 namespace bs
 {
 	GUILayout::GUILayout(const GUIDimensions& dimensions)
-		:GUIElementBase(dimensions)
-	{ }
+		: GUIElementBase(dimensions)
+	{}
 
 	GUILayout::GUILayout()
-	{ }
+	{}
 
 	GUILayout::~GUILayout()
 	{
-		if (mParentElement != nullptr)
+		if(mParentElement != nullptr)
 			mParentElement->UnregisterChildElementInternal(this);
 	}
 
 	void GUILayout::AddElement(GUIElementBase* element)
 	{
-		if (!element->IsDestroyedInternal())
+		if(!element->IsDestroyedInternal())
 			RegisterChildElementInternal(element);
 	}
 
@@ -38,7 +38,7 @@ namespace bs
 		if(idx > (u32)mChildren.size())
 			BS_EXCEPT(InvalidParametersException, "Index out of range: " + toString(idx) + ". Valid range: 0 .. " + toString((u32)mChildren.size()));
 
-		if (element->IsDestroyedInternal())
+		if(element->IsDestroyedInternal())
 			return;
 
 		GUIElementBase* parentElement = element->GetParentInternal();
@@ -49,7 +49,7 @@ namespace bs
 
 		element->SetParentInternal(this);
 		mChildren.insert(mChildren.begin() + idx, element);
-		
+
 		element->SetActiveInternal(IsActiveInternal());
 		element->SetVisibleInternal(IsVisibleInternal());
 		element->SetDisabledInternal(IsDisabledInternal());
@@ -86,4 +86,4 @@ namespace bs
 	{
 		bs_delete(layout);
 	}
-}
+} // namespace bs

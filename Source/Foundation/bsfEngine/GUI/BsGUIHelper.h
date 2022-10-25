@@ -24,8 +24,7 @@ namespace bs
 		 * @param[in]	style			Style to use for determining size constraints.
 		 * @param[in]	dimensions		Dimension constraints of a GUI element.
 		 */
-		static Vector2I CalcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style,
-			const GUIDimensions& dimensions);
+		static Vector2I CalcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style, const GUIDimensions& dimensions);
 
 		/**
 		 * Calculates optimal content size for the provided content using the provided style and layout options for
@@ -36,8 +35,7 @@ namespace bs
 		 * @param[in]	dimensions		Dimension constraints of a GUI element.
 		 * @param[in]	state			State of the GUI element in case the content changes according to state.
 		 */
-		static Vector2I CalcOptimalContentsSize(const GUIContent& content, const GUIElementStyle& style,
-			const GUIDimensions& dimensions, GUIElementState state = GUIElementState::Normal);
+		static Vector2I CalcOptimalContentsSize(const GUIContent& content, const GUIElementStyle& style, const GUIDimensions& dimensions, GUIElementState state = GUIElementState::Normal);
 
 		/**
 		 * Calculates optimal content size for the provided text using the provided style and layout options for
@@ -47,8 +45,7 @@ namespace bs
 		 * @param[in]	style			Style to use for determining size constraints.
 		 * @param[in]	dimensions		Dimension constraints of a GUI element.
 		 */
-		static Vector2I CalcOptimalContentsSize(const String& text, const GUIElementStyle& style,
-			const GUIDimensions& dimensions);
+		static Vector2I CalcOptimalContentsSize(const String& text, const GUIElementStyle& style, const GUIDimensions& dimensions);
 
 		/**
 		 * Calculates optimal content size for the provided text using the provided font and size. Size is calculated
@@ -63,4 +60,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

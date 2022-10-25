@@ -19,7 +19,7 @@ namespace bs
 	{
 	public:
 		/** @copydoc IShaderIncludeHandler::findInclude */
-		HShaderInclude FindInclude(const String& name) const ;
+		HShaderInclude FindInclude(const String& name) const;
 
 		/** @copydoc IShaderIncludeHandler::addSearchPath */
 		void AddSearchPath(const Path& path) { mSearchPaths.push_back(path); }
@@ -32,4 +32,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

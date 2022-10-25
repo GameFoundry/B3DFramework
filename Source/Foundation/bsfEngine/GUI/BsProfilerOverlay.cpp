@@ -34,8 +34,8 @@ namespace bs
 		Vector<ProfilerOverlay::BasicRow>& Rows;
 
 		BasicRowFiller(Vector<ProfilerOverlay::BasicRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
-			:CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
-		{ }
+			: CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
+		{}
 
 		~BasicRowFiller()
 		{
@@ -44,7 +44,7 @@ namespace bs
 			{
 				ProfilerOverlay::BasicRow& row = Rows[CurIdx + i];
 
-				if (!row.Disabled)
+				if(!row.Disabled)
 				{
 					row.LabelLayout->SetVisible(false);
 					row.ContentLayout->SetVisible(false);
@@ -55,8 +55,7 @@ namespace bs
 			Rows.resize(CurIdx);
 		}
 
-		void AddData(u32 depth, const String& name, float pctOfParent, u32 numCalls, u64 numAllocs,
-			u64 numFrees, double avgTime, double totalTime, double avgSelfTime, double totalSelfTime)
+		void AddData(u32 depth, const String& name, float pctOfParent, u32 numCalls, u64 numAllocs, u64 numFrees, double avgTime, double totalTime, double avgSelfTime, double totalSelfTime)
 		{
 			if(CurIdx >= Rows.size())
 			{
@@ -90,7 +89,7 @@ namespace bs
 				newRow.GuiAvgTimeSelf = newRow.ContentLayout->AddNewElement<GUILabel>(newRow.AvgTimeSelf, GUIOptions(GUIOption::FixedWidth(100)));
 				newRow.GuiTotalTimeSelf = newRow.ContentLayout->AddNewElement<GUILabel>(newRow.TotalTimeSelf, GUIOptions(GUIOption::FixedWidth(100)));
 			}
-			
+
 			ProfilerOverlay::BasicRow& row = Rows[CurIdx];
 
 			row.LabelSpace->SetSize(depth * 20);
@@ -114,7 +113,7 @@ namespace bs
 			row.GuiAvgTimeSelf->SetContent(row.AvgTimeSelf);
 			row.GuiTotalTimeSelf->SetContent(row.TotalTimeSelf);
 
-			if (row.Disabled)
+			if(row.Disabled)
 			{
 				row.LabelLayout->SetVisible(true);
 				row.ContentLayout->SetVisible(true);
@@ -135,8 +134,8 @@ namespace bs
 		Vector<ProfilerOverlay::PreciseRow>& Rows;
 
 		PreciseRowFiller(Vector<ProfilerOverlay::PreciseRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
-			:CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
-		{ }
+			: CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
+		{}
 
 		~PreciseRowFiller()
 		{
@@ -145,7 +144,7 @@ namespace bs
 			{
 				ProfilerOverlay::PreciseRow& row = Rows[CurIdx + i];
 
-				if (!row.Disabled)
+				if(!row.Disabled)
 				{
 					row.LabelLayout->SetVisible(false);
 					row.ContentLayout->SetVisible(false);
@@ -156,8 +155,7 @@ namespace bs
 			Rows.resize(CurIdx);
 		}
 
-		void AddData(u32 depth, const String& name, float pctOfParent, u32 numCalls, u64 numAllocs,
-			u64 numFrees, u64 avgCycles, u64 totalCycles, u64 avgSelfCycles, u64 totalSelfCycles)
+		void AddData(u32 depth, const String& name, float pctOfParent, u32 numCalls, u64 numAllocs, u64 numFrees, u64 avgCycles, u64 totalCycles, u64 avgSelfCycles, u64 totalSelfCycles)
 		{
 			if(CurIdx >= Rows.size())
 			{
@@ -215,7 +213,7 @@ namespace bs
 			row.GuiAvgCyclesSelf->SetContent(row.AvgCyclesSelf);
 			row.GuiTotalCyclesSelf->SetContent(row.TotalCyclesSelf);
 
-			if (row.Disabled)
+			if(row.Disabled)
 			{
 				row.LabelLayout->SetVisible(true);
 				row.ContentLayout->SetVisible(true);
@@ -235,19 +233,18 @@ namespace bs
 		GUIWidget& Widget;
 		Vector<ProfilerOverlay::GPUSampleRow>& Rows;
 
-		GPUSampleRowFiller(Vector<ProfilerOverlay::GPUSampleRow>& rows, GUILayout& labelLayout, GUILayout& contentLayout,
-			GUIWidget& _widget)
-			:CurIdx(0), LabelLayout(labelLayout), ContentLayout(contentLayout), Widget(_widget), Rows(rows)
-		{ }
+		GPUSampleRowFiller(Vector<ProfilerOverlay::GPUSampleRow>& rows, GUILayout& labelLayout, GUILayout& contentLayout, GUIWidget& _widget)
+			: CurIdx(0), LabelLayout(labelLayout), ContentLayout(contentLayout), Widget(_widget), Rows(rows)
+		{}
 
 		~GPUSampleRowFiller()
 		{
 			u32 excessEntries = (u32)Rows.size() - CurIdx;
-			for (u32 i = 0; i < excessEntries; i++)
+			for(u32 i = 0; i < excessEntries; i++)
 			{
 				ProfilerOverlay::GPUSampleRow& row = Rows[CurIdx + i];
 
-				if (!row.Disabled)
+				if(!row.Disabled)
 				{
 					row.LabelLayout->SetVisible(false);
 					row.ContentLayout->SetVisible(false);
@@ -260,7 +257,7 @@ namespace bs
 
 		void AddData(u32 depth, const String& name, float timeMs)
 		{
-			if (CurIdx >= Rows.size())
+			if(CurIdx >= Rows.size())
 			{
 				Rows.push_back(ProfilerOverlay::GPUSampleRow());
 
@@ -288,7 +285,7 @@ namespace bs
 			row.GuiName->SetContent(row.Name);
 			row.GuiTime->SetContent(row.Time);
 
-			if (row.Disabled)
+			if(row.Disabled)
 			{
 				row.LabelLayout->SetVisible(false);
 				row.ContentLayout->SetVisible(false);
@@ -300,7 +297,7 @@ namespace bs
 	};
 
 	ProfilerOverlay::ProfilerOverlay(const SPtr<Camera>& camera)
-		:mType(ProfilerOverlayType::CPUSamples), mIsShown(true)
+		: mType(ProfilerOverlayType::CPUSamples), mIsShown(true)
 	{
 		SetTarget(camera);
 	}
@@ -479,11 +476,11 @@ namespace bs
 		UpdateCpuSampleAreaSizes();
 		UpdateGpuSampleAreaSizes();
 
-		if (!mIsShown)
+		if(!mIsShown)
 			Hide();
 		else
 		{
-			if (mType == ProfilerOverlayType::CPUSamples)
+			if(mType == ProfilerOverlayType::CPUSamples)
 				Show(ProfilerOverlayType::CPUSamples);
 			else
 				Show(ProfilerOverlayType::GPUSamples);
@@ -492,7 +489,7 @@ namespace bs
 
 	void ProfilerOverlay::Show(ProfilerOverlayType type)
 	{
-		if (type == ProfilerOverlayType::CPUSamples)
+		if(type == ProfilerOverlayType::CPUSamples)
 		{
 			mBasicLayoutLabels->SetVisible(true);
 			mPreciseLayoutLabels->SetVisible(true);
@@ -533,10 +530,10 @@ namespace bs
 
 		UpdateCpuSampleContents(latestSimReport, latestCoreReport);
 
-		while (ProfilerGPU::Instance().GetNumAvailableReports() > 1)
+		while(ProfilerGPU::Instance().GetNumAvailableReports() > 1)
 			ProfilerGPU::Instance().GetNextReport(); // Drop any extra reports, we only want the latest
 
-		if (ProfilerGPU::Instance().GetNumAvailableReports() > 0)
+		if(ProfilerGPU::Instance().GetNumAvailableReports() > 0)
 		{
 			GPUProfilerReport report = ProfilerGPU::Instance().GetNextReport();
 
@@ -631,8 +628,8 @@ namespace bs
 		struct TodoBasic
 		{
 			TodoBasic(const CPUProfilerBasicSamplingEntry& _entry, u32 _depth)
-				:Entry(_entry), Depth(_depth)
-			{ }
+				: Entry(_entry), Depth(_depth)
+			{}
 
 			const CPUProfilerBasicSamplingEntry& Entry;
 			u32 Depth;
@@ -641,8 +638,8 @@ namespace bs
 		struct TodoPrecise
 		{
 			TodoPrecise(const CPUProfilerPreciseSamplingEntry& _entry, u32 _depth)
-				:Entry(_entry), Depth(_depth)
-			{ }
+				: Entry(_entry), Depth(_depth)
+			{}
 
 			const CPUProfilerPreciseSamplingEntry& Entry;
 			u32 Depth;
@@ -665,8 +662,7 @@ namespace bs
 				todoBasic.pop();
 
 				const struct CPUProfilerBasicSamplingEntry::Data& data = curEntry.Entry.Data;
-				basicRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees,
-					data.AvgTimeMs, data.TotalTimeMs, data.AvgSelfTimeMs, data.TotalSelfTimeMs);
+				basicRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees, data.AvgTimeMs, data.TotalTimeMs, data.AvgSelfTimeMs, data.TotalSelfTimeMs);
 
 				if(curEntry.Depth <= MAX_DEPTH)
 				{
@@ -695,8 +691,7 @@ namespace bs
 				todoPrecise.pop();
 
 				const struct CPUProfilerPreciseSamplingEntry::Data& data = curEntry.Entry.Data;
-				preciseRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees,
-					data.AvgCycles, data.TotalCycles, data.AvgSelfCycles, data.TotalSelfCycles);
+				preciseRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees, data.AvgCycles, data.TotalCycles, data.AvgSelfCycles, data.TotalSelfCycles);
 
 				if(curEntry.Depth <= MAX_DEPTH)
 				{
@@ -749,8 +744,7 @@ namespace bs
 		mGPUVertexBufferBindsLbl->SetContent(mGPUVertexBufferBindsStr);
 		mGPUIndexBufferBindsLbl->SetContent(mGPUIndexBufferBindsStr);
 
-		GPUSampleRowFiller sampleRowFillers[GPU_NUM_SAMPLE_COLUMNS] =
-		{
+		GPUSampleRowFiller sampleRowFillers[GPU_NUM_SAMPLE_COLUMNS] = {
 			GPUSampleRowFiller(mGPUSampleRows[0], *mGPULayoutSampleLabels[0], *mGPULayoutSampleContents[0], *mWidget->GetInternalInternal()),
 			GPUSampleRowFiller(mGPUSampleRows[1], *mGPULayoutSampleLabels[1], *mGPULayoutSampleContents[1], *mWidget->GetInternalInternal()),
 			GPUSampleRowFiller(mGPUSampleRows[2], *mGPULayoutSampleLabels[2], *mGPULayoutSampleContents[2], *mWidget->GetInternalInternal())
@@ -759,8 +753,8 @@ namespace bs
 		struct Todo
 		{
 			Todo(const GPUProfileSample& entry, u32 depth)
-				:Entry(entry), Depth(depth)
-			{ }
+				: Entry(entry), Depth(depth)
+			{}
 
 			const GPUProfileSample& Entry;
 			u32 Depth;
@@ -772,7 +766,7 @@ namespace bs
 		Stack<Todo> todo;
 		todo.push(Todo(frameSample, 0));
 
-		while (!todo.empty())
+		while(!todo.empty())
 		{
 			Todo curEntry = todo.top();
 			todo.pop();
@@ -783,14 +777,14 @@ namespace bs
 				sampleRowFillers[column].AddData(curEntry.Depth, data.Name, data.TimeMs);
 
 			currentCount++;
-			if (currentCount % mNumGPUSamplesPerColumn == 0)
+			if(currentCount % mNumGPUSamplesPerColumn == 0)
 				column++;
 
-			if (curEntry.Depth <= MAX_DEPTH)
+			if(curEntry.Depth <= MAX_DEPTH)
 			{
-				for (auto iter = curEntry.Entry.Children.rbegin(); iter != curEntry.Entry.Children.rend(); ++iter)
+				for(auto iter = curEntry.Entry.Children.rbegin(); iter != curEntry.Entry.Children.rend(); ++iter)
 					todo.push(Todo(*iter, curEntry.Depth + 1));
 			}
 		}
 	}
-}
+} // namespace bs

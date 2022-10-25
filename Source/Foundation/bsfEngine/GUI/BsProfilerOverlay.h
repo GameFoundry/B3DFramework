@@ -78,7 +78,7 @@ namespace bs
 
 			bool Disabled;
 		};
-		
+
 		/**	Holds data about GUI elements in a single row of a GPU sample. */
 		struct GPUSampleRow
 		{
@@ -111,6 +111,7 @@ namespace bs
 
 		/**	Updates overlay contents. Should be called once per frame. */
 		void Update();
+
 	private:
 		/**	Called whenever the viewport resizes in order to rearrange the GUI elements. */
 		void TargetResized();
@@ -170,8 +171,8 @@ namespace bs
 		GUILayout* mGPULayoutFrameContentsLeft = nullptr;
 		GUILayout* mGPULayoutFrameContentsRight = nullptr;
 		GUILayout* mGPULayoutSamples = nullptr;
-		GUILayout* mGPULayoutSampleLabels[GPU_NUM_SAMPLE_COLUMNS] = { };
-		GUILayout* mGPULayoutSampleContents[GPU_NUM_SAMPLE_COLUMNS] = { };
+		GUILayout* mGPULayoutSampleLabels[GPU_NUM_SAMPLE_COLUMNS] = {};
+		GUILayout* mGPULayoutSampleContents[GPU_NUM_SAMPLE_COLUMNS] = {};
 
 		GUILabel* mGPUFrameNumLbl = nullptr;
 		GUILabel* mGPUTimeLbl = nullptr;
@@ -221,4 +222,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

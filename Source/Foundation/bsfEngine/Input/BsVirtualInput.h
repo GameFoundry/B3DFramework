@@ -139,4 +139,4 @@ namespace bs
 	BS_EXPORT VirtualInput& gVirtualInput();
 
 	/** @} */
-}
+} // namespace bs

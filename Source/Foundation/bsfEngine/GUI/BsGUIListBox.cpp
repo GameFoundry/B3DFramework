@@ -16,10 +16,10 @@ namespace bs
 	}
 
 	GUIListBox::GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUIDimensions& dimensions)
-		:GUIButtonBase(styleName, GUIContent(HString("")), dimensions), mElements(elements), mIsMultiselect(isMultiselect)
+		: GUIButtonBase(styleName, GUIContent(HString("")), dimensions), mElements(elements), mIsMultiselect(isMultiselect)
 	{
 		mElementStates.resize(elements.size(), false);
-		if (!mIsMultiselect && mElementStates.size() > 0)
+		if(!mIsMultiselect && mElementStates.size() > 0)
 			mElementStates[0] = true;
 
 		UpdateContents();
@@ -32,17 +32,17 @@ namespace bs
 
 	GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const String& styleName)
 	{
-		return new (bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create());
+		return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create());
 	}
 
 	GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create(options));
+		return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create(options));
 	}
 
 	GUIListBox* GUIListBox::Create(const Vector<HString>& elements, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, false, GUIDimensions::Create(options));
+		return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, false, GUIDimensions::Create(options));
 	}
 
 	void GUIListBox::SetElements(const Vector<HString>& elements)
@@ -56,7 +56,7 @@ namespace bs
 
 		mElementStates.clear();
 		mElementStates.resize(mElements.size(), false);
-		if (!mIsMultiselect && mElementStates.size() > 0)
+		if(!mIsMultiselect && mElementStates.size() > 0)
 			mElementStates[0] = true;
 
 		UpdateContents();
@@ -67,19 +67,19 @@ namespace bs
 
 	void GUIListBox::SelectElement(u32 idx)
 	{
-		if (idx >= (u32)mElements.size())
+		if(idx >= (u32)mElements.size())
 			return;
 
-		if (mElementStates[idx] != true)
+		if(mElementStates[idx] != true)
 			ElementSelected(idx);
 	}
 
 	void GUIListBox::DeselectElement(u32 idx)
 	{
-		if (!mIsMultiselect || idx >= (u32)mElements.size())
+		if(!mIsMultiselect || idx >= (u32)mElements.size())
 			return;
 
-		if (mElementStates[idx] != false)
+		if(mElementStates[idx] != false)
 			ElementSelected(idx);
 	}
 
@@ -89,11 +89,11 @@ namespace bs
 		u32 min = std::min(numElements, (u32)states.size());
 
 		bool anythingModified = min != numElements;
-		if (!anythingModified)
+		if(!anythingModified)
 		{
-			for (u32 i = 0; i < numElements; i++)
+			for(u32 i = 0; i < numElements; i++)
 			{
-				if (mElementStates[i] != states[i])
+				if(mElementStates[i] != states[i])
 				{
 					anythingModified = true;
 					break;
@@ -101,21 +101,21 @@ namespace bs
 			}
 		}
 
-		if (!anythingModified)
+		if(!anythingModified)
 			return;
 
 		bool wasOpen = mDropDownBox != nullptr;
 
-		if (wasOpen)
+		if(wasOpen)
 			CloseListBox();
 
-		for (u32 i = 0; i < min; i++)
+		for(u32 i = 0; i < min; i++)
 		{
 			mElementStates[i] = states[i];
 
-			if (mElementStates[i] && !mIsMultiselect)
+			if(mElementStates[i] && !mIsMultiselect)
 			{
-				for (u32 j = i + 1; j < numElements; j++)
+				for(u32 j = i + 1; j < numElements; j++)
 					mElementStates[j] = false;
 
 				break;
@@ -124,7 +124,7 @@ namespace bs
 
 		UpdateContents();
 
-		if (wasOpen)
+		if(wasOpen)
 			OpenListBox();
 	}
 
@@ -134,9 +134,9 @@ namespace bs
 
 		if(ev.GetType() == GUIMouseEventType::MouseDown)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 			{
-				if (mDropDownBox == nullptr)
+				if(mDropDownBox == nullptr)
 					OpenListBox();
 				else
 					CloseListBox();
@@ -156,7 +156,7 @@ namespace bs
 		{
 			if(!IsDisabledInternal())
 			{
-				if (mDropDownBox == nullptr)
+				if(mDropDownBox == nullptr)
 					OpenListBox();
 				else
 					CloseListBox();
@@ -170,25 +170,25 @@ namespace bs
 
 	void GUIListBox::ElementSelected(u32 idx)
 	{
-		if (idx >= (u32)mElements.size())
+		if(idx >= (u32)mElements.size())
 			return;
 
-		if (mIsMultiselect)
+		if(mIsMultiselect)
 		{
 			bool selected = mElementStates[idx];
 			mElementStates[idx] = !selected;
 
-			if (!OnSelectionToggled.Empty())
+			if(!OnSelectionToggled.Empty())
 				OnSelectionToggled(idx, !selected);
 		}
 		else
 		{
-			for (u32 i = 0; i < (u32)mElementStates.size(); i++)
+			for(u32 i = 0; i < (u32)mElementStates.size(); i++)
 				mElementStates[i] = false;
 
 			mElementStates[idx] = true;
 
-			if (!OnSelectionToggled.Empty())
+			if(!OnSelectionToggled.Empty())
 				OnSelectionToggled(idx, true);
 
 			CloseListBox();
@@ -220,7 +220,7 @@ namespace bs
 		desc.DropDownData.States = mElementStates;
 
 		GUIDropDownType type;
-		if (mIsMultiselect)
+		if(mIsMultiselect)
 			type = GUIDropDownType::MultiListBox;
 		else
 			type = GUIDropDownType::ListBox;
@@ -233,7 +233,7 @@ namespace bs
 
 	void GUIListBox::CloseListBox()
 	{
-		if (mDropDownBox != nullptr)
+		if(mDropDownBox != nullptr)
 		{
 			GUIDropDownBoxManager::Instance().CloseDropDownBox();
 
@@ -246,20 +246,20 @@ namespace bs
 	{
 		u32 selectedIdx = 0;
 		u32 numSelected = 0;
-		for (u32 i = 0; i < (u32)mElementStates.size(); i++)
+		for(u32 i = 0; i < (u32)mElementStates.size(); i++)
 		{
-			if (mElementStates[i])
+			if(mElementStates[i])
 			{
 				selectedIdx = i;
 				numSelected++;
 			}
 		}
 
-		if (mIsMultiselect)
+		if(mIsMultiselect)
 		{
-			if (numSelected == 1)
+			if(numSelected == 1)
 				SetContent(GUIContent(mElements[selectedIdx]));
-			else if (numSelected == 0)
+			else if(numSelected == 0)
 				SetContent(GUIContent(HEString("None")));
 			else
 				SetContent(GUIContent(HEString("Multiple")));
@@ -278,4 +278,4 @@ namespace bs
 		SetOnInternal(false);
 		mDropDownBox = nullptr;
 	}
-}
+} // namespace bs

@@ -44,7 +44,7 @@ namespace bs
 		u32 GetScrollableSize() const;
 
 		/** @copydoc GUIElement::setTint */
-		void SetTint(const Color& color) ;
+		void SetTint(const Color& color);
 
 		/**
 		 * Triggered whenever the scrollbar handle is moved or resized. Values provided are the handle position and size
@@ -99,25 +99,25 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 		/** @copydoc GUIElement::updateClippedBounds */
-		void UpdateClippedBounds() ;
+		void UpdateClippedBounds();
 
 		/** @copydoc	GUIElement::GetRenderElementDepthRangeInternal */
 		u32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated() ;
+		void StyleUpdated();
 
 		/**
 		 * Helper method that returns style name used by a specific scrollbar type. If override style is empty, default
 		 * style for that type is returned.
 		 */
-		template<class T>
+		template <class T>
 		static const String& GetStyleName(bool resizeable, const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::BLANK)
@@ -125,6 +125,7 @@ namespace bs
 
 			return overrideStyle;
 		}
+
 	private:
 		/**
 		 * Triggered whenever the scroll handle moves. Provided value represents the new position and size of the handle
@@ -150,4 +151,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

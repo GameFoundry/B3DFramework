@@ -38,4 +38,4 @@ namespace bs
 	{
 		mContextMenuOpen = false;
 	}
-}
+} // namespace bs

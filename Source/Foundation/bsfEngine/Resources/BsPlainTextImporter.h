@@ -16,14 +16,14 @@ namespace bs
 	{
 	public:
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool IsExtensionSupported(const String& ext) const ;
+		bool IsExtensionSupported(const String& ext) const;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const ;
+		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
 
 		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) ;
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
 	};
 
 	/** @} */
-}
+} // namespace bs

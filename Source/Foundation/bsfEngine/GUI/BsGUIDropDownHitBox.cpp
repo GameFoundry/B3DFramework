@@ -14,20 +14,18 @@ namespace bs
 
 	GUIDropDownHitBox* GUIDropDownHitBox::Create(bool captureMouseOver, bool captureMousePresses)
 	{
-		return new (bs_alloc<GUIDropDownHitBox>())
+		return new(bs_alloc<GUIDropDownHitBox>())
 			GUIDropDownHitBox(captureMouseOver, captureMousePresses, GUIDimensions::Create());
 	}
 
 	GUIDropDownHitBox* GUIDropDownHitBox::Create(bool captureMouseOver, bool captureMousePresses, const GUIOptions& options)
 	{
-		return new (bs_alloc<GUIDropDownHitBox>())
+		return new(bs_alloc<GUIDropDownHitBox>())
 			GUIDropDownHitBox(captureMouseOver, captureMousePresses, GUIDimensions::Create(options));
 	}
 
-	GUIDropDownHitBox::GUIDropDownHitBox(bool captureMouseOver,
-		bool captureMousePresses, const GUIDimensions& dimensions)
-		:GUIElementContainer(dimensions), mCaptureMouseOver(captureMouseOver),
-		mCaptureMousePresses(captureMousePresses)
+	GUIDropDownHitBox::GUIDropDownHitBox(bool captureMouseOver, bool captureMousePresses, const GUIDimensions& dimensions)
+		: GUIElementContainer(dimensions), mCaptureMouseOver(captureMouseOver), mCaptureMousePresses(captureMousePresses)
 	{
 		mOptionFlags.Set(GUIElementOption::ClickThrough);
 	}
@@ -51,11 +49,11 @@ namespace bs
 	{
 		mClippedBounds = Rect2I();
 
-		if (mBounds.size() > 0)
+		if(mBounds.size() > 0)
 		{
 			mClippedBounds = mBounds[0];
 
-			for (u32 i = 1; i < (u32)mBounds.size(); i++)
+			for(u32 i = 1; i < (u32)mBounds.size(); i++)
 				mClippedBounds.Encapsulate(mBounds[i]);
 		}
 	}
@@ -88,31 +86,31 @@ namespace bs
 
 		if(mCaptureMouseOver)
 		{
-			if (ev.GetType() == GUIMouseEventType::MouseOver)
+			if(ev.GetType() == GUIMouseEventType::MouseOver)
 			{
 				return true;
 			}
-			else if (ev.GetType() == GUIMouseEventType::MouseOut)
+			else if(ev.GetType() == GUIMouseEventType::MouseOut)
 			{
 				return true;
 			}
-			else if (ev.GetType() == GUIMouseEventType::MouseMove)
+			else if(ev.GetType() == GUIMouseEventType::MouseMove)
 			{
 				return true;
 			}
 		}
 
-		if (mCaptureMousePresses)
+		if(mCaptureMousePresses)
 		{
-			if (ev.GetType() == GUIMouseEventType::MouseUp)
+			if(ev.GetType() == GUIMouseEventType::MouseUp)
 			{
 				return true;
 			}
-			else if (ev.GetType() == GUIMouseEventType::MouseDown)
+			else if(ev.GetType() == GUIMouseEventType::MouseDown)
 			{
 				return true;
 			}
-			else if (ev.GetType() == GUIMouseEventType::MouseDoubleClick)
+			else if(ev.GetType() == GUIMouseEventType::MouseDoubleClick)
 			{
 				return true;
 			}
@@ -131,4 +129,4 @@ namespace bs
 
 		return false;
 	}
-};
+}; // namespace bs

@@ -108,13 +108,13 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 		/** @copydoc GUIElement::updateClippedBounds() */
-		void UpdateClippedBounds() ;
+		void UpdateClippedBounds();
 
 		/** @copydoc GUIElement::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
@@ -131,7 +131,7 @@ namespace bs
 		/**
 		 * Returns how much to offset text due to scrolling.
 		 *
-		 * @note	
+		 * @note
 		 * This is used when text is larger than the input box itself. As the caret moves the text will scroll so that the
 		 * caret remains visible, and how much scroll is applied is determined by this value.
 		 */
@@ -148,6 +148,7 @@ namespace bs
 
 		/** @copydoc GUIElement::_getContextMenu */
 		SPtr<GUIContextMenu> GetContextMenuInternal() const override;
+
 	private:
 		/**
 		 * Retrieves a sprite from a render element index, and a local render element index that represents render element
@@ -178,7 +179,7 @@ namespace bs
 
 		/**
 		 * Deletes text that is currently selected.
-		 * 			
+		 *
 		 * @param[in]	internal	If internal no filter will be applied after the text is deleted, and no event will be
 		 * 							triggered either.
 		 */
@@ -220,7 +221,7 @@ namespace bs
 
 		/**	Returns currently active input box texture, depending on active state. */
 		const HSpriteTexture& GetActiveTexture() const;
-		
+
 		/**	Returns currently active input box text color, depending on active state. */
 		Color GetActiveTextColor() const;
 
@@ -260,4 +261,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

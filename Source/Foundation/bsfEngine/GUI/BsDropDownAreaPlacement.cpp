@@ -50,7 +50,7 @@ namespace bs
 		int potentialTopStart = 0;
 		int potentialBottomStart = 0;
 
-		switch (GetType())
+		switch(GetType())
 		{
 		case DropDownAreaPlacement::Type::Position:
 			potentialLeftStart = potentialRightStart = GetPosition().X;
@@ -81,7 +81,7 @@ namespace bs
 		u32 availableLeftwardWidth = (u32)std::max(0, potentialLeftStart - availableArea.X);
 
 		//// Prefer right if possible
-		if (width <= availableRightwardWidth)
+		if(width <= availableRightwardWidth)
 		{
 			output.X = potentialRightStart;
 			output.Width = width;
@@ -89,7 +89,7 @@ namespace bs
 		}
 		else
 		{
-			if (availableRightwardWidth >= availableLeftwardWidth)
+			if(availableRightwardWidth >= availableLeftwardWidth)
 			{
 				output.X = potentialRightStart;
 				output.Width = std::min(width, availableRightwardWidth);
@@ -108,7 +108,7 @@ namespace bs
 		u32 availableUpwardHeight = (u32)std::max(0, potentialTopStart - availableArea.Y);
 
 		//// Prefer down if possible
-		if (height <= availableDownwardHeight)
+		if(height <= availableDownwardHeight)
 		{
 			output.Y = potentialBottomStart;
 			output.Height = height;
@@ -116,10 +116,11 @@ namespace bs
 		}
 		else
 		{
-			if (availableDownwardHeight >= availableUpwardHeight)
+			if(availableDownwardHeight >= availableUpwardHeight)
 			{
 				output.Y = potentialBottomStart;
-				output.Height = std::min(height, availableDownwardHeight);;
+				output.Height = std::min(height, availableDownwardHeight);
+				;
 				vertDir = VertDir::Down;
 			}
 			else
@@ -132,4 +133,4 @@ namespace bs
 
 		return output;
 	}
-}
+} // namespace bs

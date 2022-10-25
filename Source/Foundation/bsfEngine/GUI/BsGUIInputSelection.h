@@ -47,7 +47,7 @@ namespace bs
 		 */
 		void ShowSelection(u32 anchorCaretPos);
 
-		/**	
+		/**
 		 * Clears the currently active selection. Note this does not clear the internal selection range, just the
 		 * selection sprites.
 		 */
@@ -98,4 +98,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -74,7 +74,7 @@ namespace bs
 		GUIOptions() = default;
 
 		GUIOptions(const GUIOption& e0)
-		{			
+		{
 			mOptions.push_back(e0);
 		}
 
@@ -91,8 +91,7 @@ namespace bs
 			mOptions.push_back(e2);
 		}
 
-		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2,
-			const GUIOption& e3)
+		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2, const GUIOption& e3)
 		{
 			mOptions.push_back(e0);
 			mOptions.push_back(e1);
@@ -100,8 +99,7 @@ namespace bs
 			mOptions.push_back(e3);
 		}
 
-		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2,
-			const GUIOption& e3, const GUIOption& e4)
+		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2, const GUIOption& e3, const GUIOption& e4)
 		{
 			mOptions.push_back(e0);
 			mOptions.push_back(e1);
@@ -123,4 +121,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

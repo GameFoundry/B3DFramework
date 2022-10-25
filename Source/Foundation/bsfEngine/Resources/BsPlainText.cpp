@@ -7,9 +7,8 @@
 namespace bs
 {
 	PlainText::PlainText(const WString& data)
-		:Resource(false), mString(data)
+		: Resource(false), mString(data)
 	{
-
 	}
 
 	HPlainText PlainText::Create(const WString& data)
@@ -20,7 +19,7 @@ namespace bs
 	SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)
 	{
 		SPtr<PlainText> plainTextPtr = bs_core_ptr<PlainText>(
-			new (bs_alloc<PlainText>()) PlainText(data));
+			new(bs_alloc<PlainText>()) PlainText(data));
 		plainTextPtr->SetThisPtrInternal(plainTextPtr);
 		plainTextPtr->Initialize();
 
@@ -36,4 +35,4 @@ namespace bs
 	{
 		return PlainText::GetRttiStatic();
 	}
-}
+} // namespace bs

@@ -29,7 +29,7 @@ namespace bs
 			 */
 			Sprite,
 		};
-		
+
 		/**
 		 * Iterates over all entires in the provided json file, imports the files linked by the entries them and stores them
 		 * in the corresponding folder. Also registers the imported files in the provided manifest.
@@ -46,16 +46,13 @@ namespace bs
 		 * @param[in]	compress		True if the imported asset should be compressed when saved to the disk.
 		 * @param[in]	mipmap			True if mipmaps should be generated.
 		 */
-		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder,
-			const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal,
-			nlohmann::json* dependencies = nullptr, bool compress = false, bool mipmap = false);
+		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal, nlohmann::json* dependencies = nullptr, bool compress = false, bool mipmap = false);
 
 		/**
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
 		 * are registered in the provided resource manifest.
 		 */
-		static void ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder,
-			const Vector<u32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest);
+		static void ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<u32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest);
 
 		/**
 		 * Iterates over all the provided entries and generates a list of flags that determine should the asset be imported
@@ -74,9 +71,7 @@ namespace bs
 		 * @return							An array of the same size as the @p entries array, containing value true if
 		 *									an asset should be imported, or false otherwise.
 		 */
-		static Vector<bool> GenerateImportFlags(const nlohmann::json& entries, const Path& inputFolder,
-			time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies = nullptr,
-			const Path& dependencyFolder = Path::BLANK);
+		static Vector<bool> GenerateImportFlags(const nlohmann::json& entries, const Path& inputFolder, time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies = nullptr, const Path& dependencyFolder = Path::BLANK);
 
 		/**
 		 * Scans the provided folder for any files that are currently not part of the provided JSON entries. If some are
@@ -96,8 +91,7 @@ namespace bs
 		 * @param[in]		manifest	Manifest in which to register the assets in.
 		 * @param[in]		type		Type of assets we're registering.
 		 */
-		static void UpdateManifest(const Path& folder, const nlohmann::json& entries,
-			const SPtr<ResourceManifest>& manifest, AssetType type);
+		static void UpdateManifest(const Path& folder, const nlohmann::json& entries, const SPtr<ResourceManifest>& manifest, AssetType type);
 
 		/** Writes a timestamp with the current date and time in the specified file. */
 		static void WriteTimestamp(const Path& file);
@@ -151,5 +145,6 @@ namespace bs
 		Path mFontPath;
 		Path mTexturePath;
 	};
+
 	/** @} */
-}
+} // namespace bs

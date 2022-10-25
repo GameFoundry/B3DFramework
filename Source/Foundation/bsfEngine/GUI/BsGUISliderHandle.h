@@ -38,13 +38,17 @@ namespace bs
 		/**	Visual state of the handle. */
 		enum class State
 		{
-			Normal, Hover, Active
+			Normal,
+			Hover,
+			Active
 		};
 
 		/** State the handle can be in while user is dragging it. */
 		enum class DragState
 		{
-			Normal, LeftResize, RightResize
+			Normal,
+			LeftResize,
+			RightResize
 		};
 
 	public:
@@ -69,8 +73,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHandle* Create(GUISliderHandleFlags flags, const GUIOptions& options,
-			const String& styleName = StringUtil::BLANK);
+		static GUISliderHandle* Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
 
 		/**	Gets the current position of the handle, in percent ranging [0.0f, 1.0f]. */
 		float GetHandlePos() const;
@@ -87,7 +90,7 @@ namespace bs
 		/**	Returns the total length of the area the handle can move in, in pixels. */
 		u32 GetMaxSize() const;
 
-		/**	
+		/**
 		 * Sets a step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no
 		 * step. In percent.
 		 */
@@ -142,13 +145,14 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 		/** @copydoc GUIElement::updateClippedBounds() */
-		void UpdateClippedBounds() ;
+		void UpdateClippedBounds();
+
 	private:
 		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions);
 
@@ -168,7 +172,7 @@ namespace bs
 		const HSpriteTexture& GetActiveTexture() const;
 
 		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated() ;
+		void StyleUpdated();
 
 		static const u32 RESIZE_HANDLE_SIZE;
 
@@ -187,4 +191,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

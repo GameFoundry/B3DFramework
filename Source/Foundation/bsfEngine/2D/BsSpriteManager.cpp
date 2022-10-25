@@ -37,9 +37,9 @@ namespace bs
 	SpriteMaterial* SpriteManager::GetMaterial(u32 id) const
 	{
 		auto iterFind = mMaterials.find(id);
-		if (iterFind != mMaterials.end())
+		if(iterFind != mMaterials.end())
 			return iterFind->second;
 
 		return nullptr;
 	}
-}
+} // namespace bs

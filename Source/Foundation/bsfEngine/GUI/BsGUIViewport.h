@@ -47,8 +47,7 @@ namespace bs
 		 *
 		 * @note Render target used by the GUIWidget and Camera must be the same.
 		 */
-		static GUIViewport* Create(const GUIOptions& options, const HCamera& camera,
-			float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::BLANK);
+		static GUIViewport* Create(const GUIOptions& options, const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::BLANK);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -72,13 +71,13 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateClippedBounds */
-		void UpdateClippedBounds() ;
+		void UpdateClippedBounds();
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 	private:
 		GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUIDimensions& dimensions);
@@ -93,4 +92,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

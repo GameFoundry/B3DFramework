@@ -8,13 +8,13 @@ namespace bs
 
 	ScriptManager::ScriptManager()
 	{
-		if (sScriptLibrary)
+		if(sScriptLibrary)
 			sScriptLibrary->Initialize();
 	}
 
 	ScriptManager::~ScriptManager()
 	{
-		if (sScriptLibrary)
+		if(sScriptLibrary)
 			sScriptLibrary->Destroy();
 	}
 
@@ -26,7 +26,7 @@ namespace bs
 
 	void ScriptManager::Reload()
 	{
-		if (sScriptLibrary)
+		if(sScriptLibrary)
 			sScriptLibrary->Reload();
 	}
-}
+} // namespace bs

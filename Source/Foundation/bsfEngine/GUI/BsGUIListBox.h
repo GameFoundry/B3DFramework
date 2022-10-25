@@ -29,8 +29,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect = false,
-			const String& styleName = StringUtil::BLANK);
+		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect = false, const String& styleName = StringUtil::BLANK);
 
 		/**
 		 * Creates a new listbox with the provided elements.
@@ -42,8 +41,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect,
-			const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
 
 		/**
 		 * Creates a new single-select listbox with the provided elements.
@@ -54,8 +52,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIListBox* Create(const Vector<HString>& elements, const GUIOptions& options,
-			const String& styleName = StringUtil::BLANK);
+		static GUIListBox* Create(const Vector<HString>& elements, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
 
 		/**	Checks whether the listbox supports multiple selected elements at once. */
 		bool IsMultiselect() const { return mIsMultiselect; }
@@ -97,8 +94,7 @@ namespace bs
 		~GUIListBox();
 
 	private:
-		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect,
-			const GUIDimensions& dimensions);
+		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
@@ -130,4 +126,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

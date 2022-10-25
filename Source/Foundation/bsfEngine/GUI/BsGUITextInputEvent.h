@@ -20,6 +20,7 @@ namespace bs
 
 		/**	Character code that was input. */
 		const u32& GetInputChar() const { return mInputChar; }
+
 	private:
 		friend class GUIManager;
 
@@ -30,4 +31,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

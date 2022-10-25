@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Contains import options you may use to control how is a file containing script source code importer. */
-	class BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Importer),API(Framework),API(Editor)) ScriptCodeImportOptions : public ImportOptions
+	class BS_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) ScriptCodeImportOptions : public ImportOptions
 	{
 	public:
 		ScriptCodeImportOptions() = default;
@@ -32,8 +32,8 @@ namespace bs
 	public:
 		friend class ScriptCodeImportOptionsRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

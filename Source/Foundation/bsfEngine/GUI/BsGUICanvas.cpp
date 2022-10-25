@@ -23,7 +23,7 @@ namespace bs
 
 	GUICanvas::GUICanvas(const String& styleName, const GUIDimensions& dimensions)
 		: GUIElement(styleName, dimensions)
-	{ }
+	{}
 
 	GUICanvas::~GUICanvas()
 	{
@@ -32,12 +32,12 @@ namespace bs
 
 	GUICanvas* GUICanvas::Create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create(options));
+		return new(bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create(options));
 	}
 
 	GUICanvas* GUICanvas::Create(const String& styleName)
 	{
-		return new (bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create());
+		return new(bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create());
 	}
 
 	void GUICanvas::DrawLine(const Vector2I& a, const Vector2I& b, const Color& color, u8 depth)
@@ -67,7 +67,7 @@ namespace bs
 		elemData.MatInfo.GroupId = 0;
 		elemData.MatInfo.Tint = color;
 
-		for (auto& vertex : vertices)
+		for(auto& vertex : vertices)
 		{
 			Vector2 point = Vector2((float)vertex.X, (float)vertex.Y);
 			point += Vector2(0.5f, 0.5f); // Offset to the middle of the pixel
@@ -79,8 +79,7 @@ namespace bs
 		MarkContentAsDirtyInternal();
 	}
 
-	void GUICanvas::DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode,
-		const Color& color, u8 depth)
+	void GUICanvas::DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode, const Color& color, u8 depth)
 	{
 		mElements.push_back(CanvasElement());
 		CanvasElement& element = mElements.back();
@@ -100,7 +99,7 @@ namespace bs
 
 	void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, u8 depth)
 	{
-		if (vertices.size() < 3)
+		if(vertices.size() < 3)
 		{
 			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
@@ -121,7 +120,7 @@ namespace bs
 		// Convert strip to list
 		for(u32 i = 2; i < (u32)vertices.size(); i++)
 		{
-			if (i % 2 == 0)
+			if(i % 2 == 0)
 			{
 				mVertexData.push_back(Vector2((float)vertices[i - 2].X + 0.5f, (float)vertices[i - 2].Y + 0.5f));
 				mVertexData.push_back(Vector2((float)vertices[i - 1].X + 0.5f, (float)vertices[i - 1].Y + 0.5f));
@@ -146,7 +145,7 @@ namespace bs
 
 	void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color, u8 depth)
 	{
-		if (vertices.size() < 3 || vertices.size() % 3 != 0)
+		if(vertices.size() < 3 || vertices.size() % 3 != 0)
 		{
 			BS_LOG(Warning, GUI, "Invalid number of vertices. Ignoring call.");
 			return;
@@ -164,7 +163,7 @@ namespace bs
 
 		mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
 
-		for (auto& vertex : vertices)
+		for(auto& vertex : vertices)
 			mVertexData.push_back(Vector2((float)vertex.X + 0.5f, (float)vertex.Y + 0.5f));
 
 		mTriangleElementData.push_back(TriangleElementData());
@@ -176,8 +175,7 @@ namespace bs
 		MarkContentAsDirtyInternal();
 	}
 
-	void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size,
-		const Color& color, u8 depth)
+	void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size, const Color& color, u8 depth)
 	{
 		mElements.push_back(CanvasElement());
 		CanvasElement& element = mElements.back();
@@ -197,12 +195,12 @@ namespace bs
 
 	void GUICanvas::Clear()
 	{
-		for (auto& element : mElements)
+		for(auto& element : mElements)
 		{
 			if(element.Type == CanvasElementType::Image && element.ImageSprite != nullptr)
 				bs_delete(element.ImageSprite);
 
-			if (element.Type == CanvasElementType::Text && element.TextSprite != nullptr)
+			if(element.Type == CanvasElementType::Text && element.TextSprite != nullptr)
 				bs_delete(element.TextSprite);
 		}
 
@@ -229,7 +227,7 @@ namespace bs
 		for(auto& element : mElements)
 		{
 			element.RenderElemStart = mRenderElements.Size();
-			
+
 			switch(element.Type)
 			{
 			case CanvasElementType::Image:
@@ -245,7 +243,7 @@ namespace bs
 					renderElement.Depth = element.Depth;
 					renderElement.Type = GUIMeshType::Triangle;
 				}
-				
+
 				break;
 			case CanvasElementType::Text:
 				BuildTextElement(element);
@@ -271,7 +269,7 @@ namespace bs
 
 					renderElement.Material = SpriteManager::Instance().GetLineMaterial();
 					renderElement.MatInfo = &mTriangleElementData[element.DataId].MatInfo;
-					
+
 					renderElement.Depth = element.Depth;
 					renderElement.Type = GUIMeshType::Line;
 
@@ -338,93 +336,91 @@ namespace bs
 		switch(element.Type)
 		{
 		case CanvasElementType::Image:
-		{
-			u32 vertexStride = sizeof(Vector2) * 2;
-			const Rect2I& area = mImageData[element.DataId].Area;
+			{
+				u32 vertexStride = sizeof(Vector2) * 2;
+				const Rect2I& area = mImageData[element.DataId].Area;
 
-			layoutOffset.X += area.X;
-			layoutOffset.Y += area.Y;
-			clipRect.X -= area.X;
-			clipRect.Y -= area.Y;
+				layoutOffset.X += area.X;
+				layoutOffset.Y += area.Y;
+				clipRect.X -= area.X;
+				clipRect.Y -= area.Y;
 
-			element.ImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
-		}
+				element.ImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
+			}
 			break;
 		case CanvasElementType::Text:
-		{
-			u32 vertexStride = sizeof(Vector2) * 2;
-			const Vector2I& position = mTextData[element.DataId].Position;
-			layoutOffset += position;
-			clipRect.X -= position.X;
-			clipRect.Y -= position.Y;
+			{
+				u32 vertexStride = sizeof(Vector2) * 2;
+				const Vector2I& position = mTextData[element.DataId].Position;
+				layoutOffset += position;
+				clipRect.X -= position.X;
+				clipRect.Y -= position.Y;
 
-			element.TextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
-		}
+				element.TextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
+			}
 			break;
 		case CanvasElementType::Triangle:
-		{
-			u32 vertexStride = sizeof(Vector2) * 2;
-
-			u32 startVert = vertexOffset;
-			u32 startIndex = indexOffset;
-
-			u32 maxVertIdx = maxNumVerts;
-			u32 maxIndexIdx = maxNumIndices;
-
-			u32 numVertices = element.ClippedNumVertices;
-			u32 numIndices = numVertices;
-
-			assert((startVert + numVertices) <= maxVertIdx);
-			assert((startIndex + numIndices) <= maxIndexIdx);
-
-			u8* vertDst = vertices + startVert * vertexStride;
-			u8* uvDst = uvs + startVert * vertexStride;
-			u32* indexDst = indices + startIndex;
-
-			Vector2 zeroUV(BsZero);
-			for(u32 i = 0; i < element.ClippedNumVertices; i++)
 			{
-				memcpy(vertDst, &mClippedVertices[element.ClippedVertexStart + i], sizeof(Vector2));
-				memcpy(uvDst, &zeroUV, sizeof(Vector2));
+				u32 vertexStride = sizeof(Vector2) * 2;
 
-				vertDst += vertexStride;
-				uvDst += vertexStride;
-				indexDst[i] = i;
+				u32 startVert = vertexOffset;
+				u32 startIndex = indexOffset;
+
+				u32 maxVertIdx = maxNumVerts;
+				u32 maxIndexIdx = maxNumIndices;
+
+				u32 numVertices = element.ClippedNumVertices;
+				u32 numIndices = numVertices;
+
+				assert((startVert + numVertices) <= maxVertIdx);
+				assert((startIndex + numIndices) <= maxIndexIdx);
+
+				u8* vertDst = vertices + startVert * vertexStride;
+				u8* uvDst = uvs + startVert * vertexStride;
+				u32* indexDst = indices + startIndex;
+
+				Vector2 zeroUV(BsZero);
+				for(u32 i = 0; i < element.ClippedNumVertices; i++)
+				{
+					memcpy(vertDst, &mClippedVertices[element.ClippedVertexStart + i], sizeof(Vector2));
+					memcpy(uvDst, &zeroUV, sizeof(Vector2));
+
+					vertDst += vertexStride;
+					uvDst += vertexStride;
+					indexDst[i] = i;
+				}
 			}
-		}
 			break;
 		case CanvasElementType::Line:
-		{
-			u32 vertexStride = sizeof(Vector2);
-
-			u32 startVert = vertexOffset;
-			u32 startIndex = indexOffset;
-
-			u32 maxVertIdx = maxNumVerts;
-			u32 maxIndexIdx = maxNumIndices;
-
-			u32 numVertices = element.ClippedNumVertices;
-			u32 numIndices = numVertices;
-
-			assert((startVert + numVertices) <= maxVertIdx);
-			assert((startIndex + numIndices) <= maxIndexIdx);
-
-			u8* vertDst = vertices + startVert * vertexStride;
-			u32* indexDst = indices + startIndex;
-
-			for (u32 i = 0; i < element.ClippedNumVertices; i++)
 			{
-				const Vector2& point = mClippedLineVertices[element.ClippedVertexStart + i];
+				u32 vertexStride = sizeof(Vector2);
 
-				memcpy(vertDst, &point, sizeof(Vector2));
+				u32 startVert = vertexOffset;
+				u32 startIndex = indexOffset;
 
-				vertDst += vertexStride;
-				indexDst[i] = i;
+				u32 maxVertIdx = maxNumVerts;
+				u32 maxIndexIdx = maxNumIndices;
+
+				u32 numVertices = element.ClippedNumVertices;
+				u32 numIndices = numVertices;
+
+				assert((startVert + numVertices) <= maxVertIdx);
+				assert((startIndex + numIndices) <= maxIndexIdx);
+
+				u8* vertDst = vertices + startVert * vertexStride;
+				u32* indexDst = indices + startIndex;
+
+				for(u32 i = 0; i < element.ClippedNumVertices; i++)
+				{
+					const Vector2& point = mClippedLineVertices[element.ClippedVertexStart + i];
+
+					memcpy(vertDst, &point, sizeof(Vector2));
+
+					vertDst += vertexStride;
+					indexDst[i] = i;
+				}
 			}
-		}
-		break;
+			break;
 		}
 	}
 
@@ -442,7 +438,7 @@ namespace bs
 		desc.Color = element.Color;
 
 		Vector2I textureSize;
-		if (SpriteTexture::CheckIsLoaded(imageData.Texture))
+		if(SpriteTexture::CheckIsLoaded(imageData.Texture))
 		{
 			desc.Texture = imageData.Texture;
 			textureSize.X = desc.Texture->GetWidth();
@@ -474,14 +470,14 @@ namespace bs
 	{
 		assert(element.Type == CanvasElementType::Triangle || element.Type == CanvasElementType::Line);
 
-		if (element.Type == CanvasElementType::Triangle)
+		if(element.Type == CanvasElementType::Triangle)
 		{
 			u8* verticesToClip = (u8*)&mVertexData[element.VertexStart];
 			u32 trianglesToClip = element.NumVertices / 3;
 
 			auto writeCallback = [&](Vector2* vertices, Vector2* uvs, u32 count)
 			{
-				for (u32 i = 0; i < count; i++)
+				for(u32 i = 0; i < count; i++)
 					mClippedVertices.push_back(vertices[i] + offset);
 
 				element.ClippedNumVertices += count;
@@ -490,8 +486,7 @@ namespace bs
 			element.ClippedVertexStart = (u32)mClippedVertices.size();
 			element.ClippedNumVertices = 0;
 
-			ImageSprite::ClipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect,
-				writeCallback);
+			ImageSprite::ClipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect, writeCallback);
 		}
 		else
 		{
@@ -501,25 +496,22 @@ namespace bs
 			struct Plane2D
 			{
 				Plane2D(const Vector2& normal, float d)
-					:Normal(normal), D(d)
-				{ }
+					: Normal(normal), D(d)
+				{}
 
 				Vector2 Normal;
 				float D;
 			};
 
-			std::array<Plane2D, 4> clipPlanes =
-			{{
-				Plane2D(Vector2(1.0f, 0.0f), (float)clipRect.X),
-				Plane2D(Vector2(-1.0f, 0.0f), (float)-(clipRect.X + (i32)clipRect.Width)),
-				Plane2D(Vector2(0.0f, 1.0f), (float)clipRect.Y),
-				Plane2D(Vector2(0.0f, -1.0f), (float)-(clipRect.Y + (i32)clipRect.Height))
-			}};
+			std::array<Plane2D, 4> clipPlanes = { { Plane2D(Vector2(1.0f, 0.0f), (float)clipRect.X),
+													Plane2D(Vector2(-1.0f, 0.0f), (float)-(clipRect.X + (i32)clipRect.Width)),
+													Plane2D(Vector2(0.0f, 1.0f), (float)clipRect.Y),
+													Plane2D(Vector2(0.0f, -1.0f), (float)-(clipRect.Y + (i32)clipRect.Height)) } };
 
 			element.ClippedVertexStart = (u32)mClippedLineVertices.size();
 			element.ClippedNumVertices = 0;
 
-			for (u32 i = 0; i < numLines; i++)
+			for(u32 i = 0; i < numLines; i++)
 			{
 				Vector2 a = linePoints[i];
 				Vector2 b = linePoints[i + 1];
@@ -532,27 +524,27 @@ namespace bs
 					float d1 = plane.Normal.Dot(b) - plane.D;
 
 					// Line not visible
-					if (d0 <= 0 && d1 <= 0)
+					if(d0 <= 0 && d1 <= 0)
 					{
 						isVisible = false;
 						break;
 					}
 
 					// Line visible completely
-					if (d0 >= 0 && d1 >= 0)
+					if(d0 >= 0 && d1 >= 0)
 						continue;
 
 					// The line is split by the plane, compute the point of intersection.
 					float t = d0 / (d0 - d1);
-					Vector2 intersectPt = (1 - t)*a + t*b;
+					Vector2 intersectPt = (1 - t) * a + t * b;
 
-					if (d0 > 0)
+					if(d0 > 0)
 						b = intersectPt;
 					else
 						a = intersectPt;
 				}
 
-				if (!isVisible)
+				if(!isVisible)
 					continue;
 
 				mClippedLineVertices.push_back(a + offset);
@@ -567,14 +559,14 @@ namespace bs
 	{
 		// We need to rebuild if new triangle element(s) were added, or if offset or clip rectangle changed
 		bool isDirty = mForceTriangleBuild || (mLastOffset != offset) || (mLastClipRect != clipRect);
-		if (!isDirty)
+		if(!isDirty)
 			return;
 
 		mClippedVertices.clear();
 		mClippedLineVertices.clear();
 		for(auto& element : mElements)
 		{
-			if (element.Type != CanvasElementType::Triangle && element.Type != CanvasElementType::Line)
+			if(element.Type != CanvasElementType::Triangle && element.Type != CanvasElementType::Line)
 				continue;
 
 			BuildTriangleElement(element, offset, clipRect);
@@ -590,15 +582,15 @@ namespace bs
 		i32 start = 0;
 		i32 end = (i32)(mElements.size() - 1);
 
-		while (start <= end)
+		while(start <= end)
 		{
 			i32 middle = (start + end) / 2;
 			const CanvasElement& current = mElements[middle];
 
-			if (renderElementIdx >= current.RenderElemStart && renderElementIdx < current.RenderElemEnd)
+			if(renderElementIdx >= current.RenderElemStart && renderElementIdx < current.RenderElemEnd)
 				return current;
 
-			if (renderElementIdx < current.RenderElemStart)
+			if(renderElementIdx < current.RenderElemStart)
 				end = middle - 1;
 			else
 				start = middle + 1;
@@ -606,4 +598,4 @@ namespace bs
 
 		BS_EXCEPT(InvalidParametersException, "Cannot find requested GUI render element.");
 	}
-}
+} // namespace bs

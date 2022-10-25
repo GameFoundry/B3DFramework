@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT GameSettingsRTTI : public RTTIType <GameSettings, IReflectable, GameSettingsRTTI>
+	class BS_EXPORT GameSettingsRTTI : public RTTIType<GameSettings, IReflectable, GameSettingsRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -28,7 +28,7 @@ namespace bs
 		BS_END_RTTI_MEMBERS
 
 	public:
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "GameSettings";
 			return name;
@@ -39,7 +39,7 @@ namespace bs
 			return TID_GameSettings;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<GameSettings>();
 		}
@@ -47,4 +47,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

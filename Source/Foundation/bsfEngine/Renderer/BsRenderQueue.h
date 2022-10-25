@@ -6,95 +6,98 @@
 #include "Math/BsVector3.h"
 #include "RenderAPI/BsSubMesh.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Renderer-Engine-Internal
-	 *  @{
-	 */
-
-	/**
-	 * Controls if and how a render queue groups renderable objects by material in order to reduce number of state changes.
-	 */
-	enum class StateReduction
+	namespace ct
 	{
-		None, /**< No grouping based on material will be done. */
-		Material, /**< Elements will be grouped by material first, by distance second. */
-		Distance /**< Elements will be grouped by distance first, material second. */
-	};
+		/** @addtogroup Renderer-Engine-Internal
+		 *  @{
+		 */
 
-	/** Contains data needed for performing a single rendering pass. */
-	struct RenderQueueElement
-	{
-		const RenderElement* RenderElem = nullptr;
-		u32 PassIdx = 0;
-		u32 TechniqueIdx = 0;
-		bool ApplyPass = true;
-	};
-
-	/**
-	 * Render objects determines rendering order of objects contained within it. Rendering order is determined by object
-	 * material, and can influence rendering of transparent or opaque objects, or be used to improve performance by grouping
-	 * similar objects together.
-	 */
-	class BS_EXPORT RenderQueue
-	{
-		/**	Data used for renderable element sorting. Represents a single pass for a single mesh. */
-		struct SortableElement
+		/**
+		 * Controls if and how a render queue groups renderable objects by material in order to reduce number of state changes.
+		 */
+		enum class StateReduction
 		{
-			u32 SeqIdx;
-			i32 Priority;
-			float DistFromCamera;
-			u32 ShaderId;
-			u32 TechniqueIdx;
-			u32 PassIdx;
+			None, /**< No grouping based on material will be done. */
+			Material, /**< Elements will be grouped by material first, by distance second. */
+			Distance /**< Elements will be grouped by distance first, material second. */
 		};
 
-	public:
-		RenderQueue(StateReduction grouping = StateReduction::Distance);
-		virtual ~RenderQueue() = default;
+		/** Contains data needed for performing a single rendering pass. */
+		struct RenderQueueElement
+		{
+			const RenderElement* RenderElem = nullptr;
+			u32 PassIdx = 0;
+			u32 TechniqueIdx = 0;
+			bool ApplyPass = true;
+		};
 
 		/**
-		 * Adds a new entry to the render queue.
-		 *
-		 * @param[in]	element			Renderable element to add to the queue.
-		 * @param[in]	distFromCamera	Distance of this object from the camera. Used for distance sorting.
-		 * @param[in]	techniqueIdx	Index of the technique within @p element's material that's to be used to render the
-		 *								element with.
+		 * Render objects determines rendering order of objects contained within it. Rendering order is determined by object
+		 * material, and can influence rendering of transparent or opaque objects, or be used to improve performance by grouping
+		 * similar objects together.
 		 */
-		void Add(const RenderElement* element, float distFromCamera, u32 techniqueIdx);
+		class BS_EXPORT RenderQueue
+		{
+			/**	Data used for renderable element sorting. Represents a single pass for a single mesh. */
+			struct SortableElement
+			{
+				u32 SeqIdx;
+				i32 Priority;
+				float DistFromCamera;
+				u32 ShaderId;
+				u32 TechniqueIdx;
+				u32 PassIdx;
+			};
 
-		/**	Clears all render operations from the queue. */
-		void Clear();
-		
-		/**	Sorts all the render operations using user-defined rules. */
-		virtual void Sort();
+		public:
+			RenderQueue(StateReduction grouping = StateReduction::Distance);
+			virtual ~RenderQueue() = default;
 
-		/** Returns a list of sorted render elements. Caller must ensure sort() is called before this method. */
-		const Vector<RenderQueueElement>& GetSortedElements() const;
+			/**
+			 * Adds a new entry to the render queue.
+			 *
+			 * @param[in]	element			Renderable element to add to the queue.
+			 * @param[in]	distFromCamera	Distance of this object from the camera. Used for distance sorting.
+			 * @param[in]	techniqueIdx	Index of the technique within @p element's material that's to be used to render the
+			 *								element with.
+			 */
+			void Add(const RenderElement* element, float distFromCamera, u32 techniqueIdx);
 
-		/**
-		 * Controls if and how a render queue groups renderable objects by material in order to reduce number of state
-		 * changes.
-		 */
-		void SetStateReduction(StateReduction mode) { mStateReductionMode = mode; }
+			/**	Clears all render operations from the queue. */
+			void Clear();
 
-	protected:
-		/**	Callback used for sorting elements with no material grouping. */
-		static bool ElementSorterNoGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
+			/**	Sorts all the render operations using user-defined rules. */
+			virtual void Sort();
 
-		/**	Callback used for sorting elements with preferred material grouping. */
-		static bool ElementSorterPreferGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
+			/** Returns a list of sorted render elements. Caller must ensure sort() is called before this method. */
+			const Vector<RenderQueueElement>& GetSortedElements() const;
 
-		/**	Callback used for sorting elements with material grouping after sorting. */
-		static bool ElementSorterPreferDistance(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
+			/**
+			 * Controls if and how a render queue groups renderable objects by material in order to reduce number of state
+			 * changes.
+			 */
+			void SetStateReduction(StateReduction mode) { mStateReductionMode = mode; }
 
-		Vector<SortableElement> mSortableElements;
-		Vector<u32> mSortableElementIdx;
-		Vector<const RenderElement*> mElements;
+		protected:
+			/**	Callback used for sorting elements with no material grouping. */
+			static bool ElementSorterNoGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
 
-		Vector<RenderQueueElement> mSortedRenderElements;
-		StateReduction mStateReductionMode;
-	};
+			/**	Callback used for sorting elements with preferred material grouping. */
+			static bool ElementSorterPreferGroup(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
 
-	/** @} */
-}}
+			/**	Callback used for sorting elements with material grouping after sorting. */
+			static bool ElementSorterPreferDistance(u32 aIdx, u32 bIdx, const Vector<SortableElement>& lookup);
+
+			Vector<SortableElement> mSortableElements;
+			Vector<u32> mSortableElementIdx;
+			Vector<const RenderElement*> mElements;
+
+			Vector<RenderQueueElement> mSortedRenderElements;
+			StateReduction mStateReductionMode;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

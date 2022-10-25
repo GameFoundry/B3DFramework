@@ -29,7 +29,7 @@ namespace bs
 {
 	Application::Application(const START_UP_DESC& desc)
 		: CoreApplication(desc)
-	{ }
+	{}
 
 	Application::~Application()
 	{
@@ -177,4 +177,4 @@ namespace bs
 	{
 		return static_cast<Application&>(Application::Instance());
 	}
-}
+} // namespace bs

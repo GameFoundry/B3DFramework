@@ -8,4 +8,4 @@ namespace bs
 	{
 		mInputChar = inputChar;
 	}
-}
+} // namespace bs

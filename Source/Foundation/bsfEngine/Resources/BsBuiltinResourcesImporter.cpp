@@ -31,9 +31,9 @@ namespace bs
 	static SPtr<ResourceManifest> sManifest;
 
 	void processAssets(bool, bool, time_t);
-}
+} // namespace bs
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
 	using namespace bs;
 
@@ -51,7 +51,7 @@ int main(int argc, char * argv[])
 	desc.Importers.push_back("bsfFontImporter");
 	desc.Importers.push_back("bsfSL");
 
-	desc.PrimaryWindowDesc.VideoMode = VideoMode (64, 64);
+	desc.PrimaryWindowDesc.VideoMode = VideoMode(64, 64);
 	desc.PrimaryWindowDesc.Fullscreen = false;
 	desc.PrimaryWindowDesc.Title = "bsf importer";
 	desc.PrimaryWindowDesc.Hidden = true;
@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
 			forceImport = true;
 	}
 
-	if (FileSystem::Exists(sInputFolder))
+	if(FileSystem::Exists(sInputFolder))
 	{
 		time_t lastUpdateTime;
 		u32 modifications = BuiltinResourcesHelper::CheckForModifications(
@@ -84,10 +84,10 @@ int main(int argc, char * argv[])
 			modifications = 2;
 
 		// Check if manifest needs to be rebuilt
-		if (modifications == 0 && !FileSystem::Exists(sManifestPath))
+		if(modifications == 0 && !FileSystem::Exists(sManifestPath))
 			modifications = 1;
 
-		if (modifications > 0)
+		if(modifications > 0)
 		{
 			const bool fullReimport = modifications == 2;
 
@@ -206,8 +206,8 @@ namespace bs
 		ShapeMeshes3D::GetNumElementsQuad(quadNumVertices, quadNumIndices);
 		SPtr<MeshData> quadMeshData = bs_shared_ptr_new<MeshData>(quadNumVertices, quadNumIndices, vertexDesc);
 
-		std::array<Vector3, 2> axes = {{ Vector3::UNIT_X, Vector3::UNIT_Z }};
-		std::array<float, 2> sizes = {{ 1.0f, 1.0f }};
+		std::array<Vector3, 2> axes = { { Vector3::UNIT_X, Vector3::UNIT_Z } };
+		std::array<float, 2> sizes = { { 1.0f, 1.0f } };
 		Rect3 rect(Vector3::ZERO, axes, sizes);
 		ShapeMeshes3D::SolidQuad(rect, quadMeshData, 0, 0);
 		SPtr<Mesh> quadMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(quadMeshData));
@@ -459,7 +459,7 @@ namespace bs
 
 			if(FileSystem::Exists(animatedSpriteFolder))
 				FileSystem::Remove(animatedSpriteFolder);
-			
+
 			FileSystem::Remove(shaderDependenciesFile);
 		}
 
@@ -610,7 +610,6 @@ namespace bs
 				nullptr,
 				true);
 
-
 			BuiltinResourcesHelper::ImportAssets(
 				shadersJSON,
 				shaderImportFlags,
@@ -707,7 +706,7 @@ namespace bs
 		// Import fonts
 		if(!fontsJSON.is_null())
 		{
-			for (auto& entry : fontsJSON)
+			for(auto& entry : fontsJSON)
 			{
 				std::string path = entry["Path"];
 				std::string name = entry["Name"];
@@ -716,7 +715,7 @@ namespace bs
 
 				json fontSizesJSON = entry["Sizes"];
 				Vector<u32> fontSizes;
-				for (auto& sizeEntry : fontSizesJSON)
+				for(auto& sizeEntry : fontSizesJSON)
 					fontSizes.push_back(sizeEntry);
 
 				String inputName(path.data(), path.size());
@@ -725,8 +724,7 @@ namespace bs
 
 				const Path fontSourcePath = sInputFolder + inputName;
 
-				BuiltinResourcesHelper::ImportFont(fontSourcePath, outputName, sOutputFolder, fontSizes, antialiasing, UUID,
-					sManifest);
+				BuiltinResourcesHelper::ImportFont(fontSourcePath, outputName, sOutputFolder, fontSizes, antialiasing, UUID, sManifest);
 			}
 		}
 
@@ -769,4 +767,4 @@ namespace bs
 			fe.Encode(splashPixelData.get());
 		}
 	}
-}
+} // namespace bs

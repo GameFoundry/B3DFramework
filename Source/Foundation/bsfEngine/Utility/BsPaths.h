@@ -9,9 +9,9 @@ namespace bs
 	 */
 
 #if BS_IS_BANSHEE3D || defined BS_IS_ASSET_TOOL
-	#define BS_INCLUDE_B3D_PATHS 1
+#	define BS_INCLUDE_B3D_PATHS 1
 #else
-	#define BS_INCLUDE_B3D_PATHS 0
+#	define BS_INCLUDE_B3D_PATHS 0
 #endif
 
 #if BS_INCLUDE_B3D_PATHS
@@ -24,7 +24,7 @@ namespace bs
 	/** Contains common engine paths and utility method for searching for paths. */
 	class BS_EXPORT Paths
 	{
-	public:	
+	public:
 		/**	Returns the absolute path where the builtin framework-specific assets are located. */
 		static const Path& GetDataPath();
 
@@ -41,11 +41,11 @@ namespace bs
 		/**	Returns the absolute path to the game resources folder used by editor-built executables. */
 		static const Path& GetGameResourcesPath();
 #endif
-		
+
 		/**
 		 * Searches common locations for a specified path by querying if the file/directory exists and returns the found
 		 * path.
-		 * 			
+		 *
 		 * @param[in]	path	Relative path to search for (for example "Data\").
 		 * @return				Path at which the relative path was found at. This path will be relative to the working
 		 *						directory.
@@ -54,12 +54,13 @@ namespace bs
 
 		/** Path to the root data directory. Relative to working directory, or RAW_APP_ROOT. */
 		static const Path FRAMEWORK_DATA_PATH;
-		
+
 		/** Path where the release configuration managed assemblies are located at, relative to the working directory. */
 		static const Path RELEASE_ASSEMBLY_PATH;
 
 		/** Path where the debug configuration managed assemblies are located at, relative to the working directory. */
-		static const Path DEBUG_ASSEMBLY_PATH;;
+		static const Path DEBUG_ASSEMBLY_PATH;
+		;
 
 #if BS_INCLUDE_B3D_PATHS
 		/** Path to the root editor data directory. Relative to working directory, or RAW_APP_ROOT. */
@@ -68,4 +69,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

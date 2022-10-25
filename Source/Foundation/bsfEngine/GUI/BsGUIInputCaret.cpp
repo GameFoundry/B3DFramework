@@ -56,7 +56,7 @@ namespace bs
 		mCaretDesc.Texture = GUIManager::Instance().GetCaretTexture();
 
 		GUIWidget* widget = nullptr;
-		if (mElement != nullptr)
+		if(mElement != nullptr)
 			widget = mElement->GetParentWidgetInternal();
 
 		mCaretSprite->Update(mCaretDesc, (u64)widget);
@@ -88,14 +88,14 @@ namespace bs
 	{
 		u32 charIdx = GetCharIdxAtCaretPos();
 		if(charIdx > 0)
-			charIdx -= 1;	
+			charIdx -= 1;
 
 		u32 lineIdx = GetLineForChar(charIdx);
 		const GUIInputLineDesc& desc = GetLineDesc(lineIdx);
 		// If char is a newline, I want that to count as being on the next line because that's
 		// how user sees it
 		if(desc.IsNewline(charIdx))
-			lineIdx++;	
+			lineIdx++;
 
 		if(lineIdx == 0)
 		{
@@ -113,14 +113,14 @@ namespace bs
 	{
 		u32 charIdx = GetCharIdxAtCaretPos();
 		if(charIdx > 0)
-			charIdx -= 1;	
+			charIdx -= 1;
 
 		u32 lineIdx = GetLineForChar(charIdx);
 		const GUIInputLineDesc& desc = GetLineDesc(lineIdx);
 		// If char is a newline, I want that to count as being on the next line because that's
 		// how user sees it
 		if(desc.IsNewline(charIdx))
-			lineIdx++;					
+			lineIdx++;
 
 		if(lineIdx == (GetNumLines() - 1))
 		{
@@ -200,7 +200,7 @@ namespace bs
 		for(u32 i = 0; i < numLines; i++)
 		{
 			const GUIInputLineDesc& lineDesc = GetLineDesc(i);
-		
+
 			curPos++; // Move past line start position
 
 			u32 numChars = lineDesc.GetEndChar() - lineDesc.GetStartChar();
@@ -252,7 +252,7 @@ namespace bs
 
 			u32 charIdx = GetCharIdxAtCaretPos();
 			if(charIdx > 0)
-				charIdx -= 1;			
+				charIdx -= 1;
 
 			charIdx = std::min((u32)(mNumChars - 1), charIdx);
 
@@ -270,7 +270,7 @@ namespace bs
 	{
 		u32 charIdx = GetCharIdxAtCaretPos();
 		if(charIdx > 0)
-			charIdx -= 1;	
+			charIdx -= 1;
 
 		if(charIdx < mNumChars && IsDescValid())
 		{
@@ -314,4 +314,4 @@ namespace bs
 
 		return maxPos - 1;
 	}
-}
+} // namespace bs

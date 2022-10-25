@@ -29,12 +29,12 @@ namespace bs
 	}
 
 	GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mHorizontal(horizontal)
+		: GUIElement(styleName, dimensions), mHorizontal(horizontal)
 	{
 		mImageSprite = bs_new<ImageSprite>();
 
 		GUISliderHandleFlags flags;
-		if (resizable)
+		if(resizable)
 			flags |= GUISliderHandleFlag::Resizeable;
 
 		if(mHorizontal)
@@ -141,13 +141,12 @@ namespace bs
 		u32 indexStride = sizeof(u32);
 
 		Vector2I layoutOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + offset;
-		mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
+		mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 	}
 
 	void GUIScrollBar::StyleUpdated()
 	{
-		if (mHorizontal)
+		if(mHorizontal)
 			mHandleBtn->SetStyle(GetSubStyleName(GetHScrollHandleType()));
 		else
 			mHandleBtn->SetStyle(GetSubStyleName(GetVScrollHandleType()));
@@ -163,7 +162,7 @@ namespace bs
 	{
 		float handleOffset = 0.0f;
 		float scrollableSize = (float)mHandleBtn->GetScrollableSize();
-		
+
 		if(scrollableSize > 0.0f)
 			handleOffset = ButtonScrollAmount / scrollableSize;
 
@@ -188,11 +187,11 @@ namespace bs
 		float oldHandlePos = mHandleBtn->GetHandlePos();
 		mHandleBtn->SetHandlePosInternal(newHandlePos);
 
-		if (oldHandlePos != mHandleBtn->GetHandlePos())
+		if(oldHandlePos != mHandleBtn->GetHandlePos())
 		{
 			mHandleBtn->MarkLayoutAsDirtyInternal();
 
-			if (!OnScrollOrResize.Empty())
+			if(!OnScrollOrResize.Empty())
 				OnScrollOrResize(newHandlePos, mHandleBtn->GetHandleSizePctInternal());
 		}
 	}
@@ -217,7 +216,7 @@ namespace bs
 		float oldHandlePos = mHandleBtn->GetHandlePos();
 		mHandleBtn->SetHandlePosInternal(pct);
 
-		if (oldHandlePos != mHandleBtn->GetHandlePos())
+		if(oldHandlePos != mHandleBtn->GetHandlePos())
 			mHandleBtn->MarkLayoutAsDirtyInternal();
 	}
 
@@ -245,4 +244,4 @@ namespace bs
 
 		GUIElement::SetTint(color);
 	}
-}
+} // namespace bs

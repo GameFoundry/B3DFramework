@@ -24,8 +24,8 @@ namespace bs
 		virtual ~GUILayout();
 
 		/**	Creates a new element and adds it to the layout after all existing elements. */
-		template<class Type, class... Args>
-		Type* AddNewElement(Args &&...args)
+		template <class Type, class... Args>
+		Type* AddNewElement(Args&&... args)
 		{
 			Type* elem = Type::Create(std::forward<Args>(args)...);
 			AddElement(elem);
@@ -33,8 +33,8 @@ namespace bs
 		}
 
 		/**	Creates a new element and inserts it before the element at the specified index. */
-		template<class Type, class... Args>
-		Type* InsertNewElement(u32 idx, Args &&...args)
+		template <class Type, class... Args>
+		Type* InsertNewElement(u32 idx, Args&&... args)
 		{
 			Type* elem = Type::Create(std::forward<Args>(args)...);
 			InsertElement(idx, elem);
@@ -96,4 +96,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -36,8 +36,8 @@ namespace bs
 			else
 				return gResources().LoadAsync(iterFind->second, flags);
 		}
-		
-		if (!async)
+
+		if(!async)
 			return gResources().Load(path, flags);
 		else
 			return gResources().LoadAsync(path, flags);
@@ -49,9 +49,8 @@ namespace bs
 	}
 
 	GameResourceManager::GameResourceManager()
-		:mLoader(bs_shared_ptr_new<StandaloneResourceLoader>())
+		: mLoader(bs_shared_ptr_new<StandaloneResourceLoader>())
 	{
-		
 	}
 
 	HResource GameResourceManager::Load(const Path& path, ResourceLoadFlags flags, bool async) const
@@ -68,7 +67,7 @@ namespace bs
 	{
 		mLoader = loader;
 
-		if (mLoader == nullptr)
+		if(mLoader == nullptr)
 			mLoader = bs_shared_ptr_new<StandaloneResourceLoader>();
 	}
-}
+} // namespace bs

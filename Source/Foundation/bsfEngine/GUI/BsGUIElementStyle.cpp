@@ -14,4 +14,4 @@ namespace bs
 	{
 		return GUIElementStyle::GetRttiStatic();
 	}
-}
+} // namespace bs

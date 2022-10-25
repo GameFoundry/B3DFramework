@@ -11,20 +11,20 @@ namespace bs
 {
 	GUILayoutX::GUILayoutX(const GUIDimensions& dimensions)
 		: GUILayout(dimensions)
-	{ }
+	{}
 
 	LayoutSizeRange GUILayoutX::CalculateLayoutSizeRangeInternal() const
 	{
 		Vector2I optimalSize;
 		Vector2I minSize;
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
-			if (!child->IsActiveInternal())
+			if(!child->IsActiveInternal())
 				continue;
 
 			LayoutSizeRange sizeRange = child->CalculateLayoutSizeRangeInternal();
 
-			if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
+			if(child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 				sizeRange.Optimal.Y = sizeRange.Min.Y = 0;
 
 			u32 paddingX = child->GetPaddingInternal().Left + child->GetPaddingInternal().Right;
@@ -60,10 +60,10 @@ namespace bs
 		{
 			LayoutSizeRange& childSizeRange = mChildSizeRanges[childIdx];
 
-			if (child->IsActiveInternal())
+			if(child->IsActiveInternal())
 			{
 				childSizeRange = child->GetLayoutSizeRangeInternal();
-				if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
+				if(child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 				{
 					childSizeRange.Optimal.Y = 0;
 					childSizeRange.Min.Y = 0;
@@ -89,8 +89,7 @@ namespace bs
 		mSizeRange.Min.Y = std::max(mSizeRange.Min.Y, minSize.Y);
 	}
 
-	void GUILayoutX::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
+	void GUILayoutX::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
 		assert(mChildren.size() == numElements);
 
@@ -102,7 +101,7 @@ namespace bs
 		bool* processedElements = nullptr;
 		float* elementScaleWeights = nullptr;
 
-		if (mChildren.size() > 0)
+		if(mChildren.size() > 0)
 		{
 			processedElements = bs_stack_alloc<bool>((u32)mChildren.size());
 			memset(processedElements, 0, mChildren.size() * sizeof(bool));
@@ -113,17 +112,17 @@ namespace bs
 
 		// Set initial sizes, count number of children per type and mark fixed elements as already processed
 		u32 childIdx = 0;
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
 			elementAreas[childIdx].Width = sizeRanges[childIdx].Optimal.X;
 
-			if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
+			if(child->GetTypeInternal() == GUIElementBase::Type::FixedSpace)
 			{
 				processedElements[childIdx] = true;
 			}
-			else if (child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
+			else if(child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 			{
-				if (child->IsActiveInternal())
+				if(child->IsActiveInternal())
 				{
 					numFlexibleSpaces++;
 					numNonClampedElements++;
@@ -135,11 +134,11 @@ namespace bs
 			{
 				const GUIDimensions& dimensions = child->GetDimensionsInternal();
 
-				if (dimensions.FixedWidth())
+				if(dimensions.FixedWidth())
 					processedElements[childIdx] = true;
 				else
 				{
-					if (elementAreas[childIdx].Width > 0)
+					if(elementAreas[childIdx].Width > 0)
 					{
 						numNonClampedElements++;
 						totalNonClampedSize += elementAreas[childIdx].Width;
@@ -153,20 +152,20 @@ namespace bs
 		}
 
 		// If there is some room left, calculate flexible space sizes (since they will fill up all that extra room)
-		if ((u32)layoutArea.Width > totalOptimalSize)
+		if((u32)layoutArea.Width > totalOptimalSize)
 		{
 			u32 extraSize = layoutArea.Width - totalOptimalSize;
 			u32 remainingSize = extraSize;
 
 			// Flexible spaces always expand to fill up all unused space
-			if (numFlexibleSpaces > 0)
+			if(numFlexibleSpaces > 0)
 			{
 				float avgSize = remainingSize / (float)numFlexibleSpaces;
 
 				childIdx = 0;
-				for (auto& child : mChildren)
+				for(auto& child : mChildren)
 				{
-					if (processedElements[childIdx])
+					if(processedElements[childIdx])
 					{
 						childIdx++;
 						continue;
@@ -176,7 +175,7 @@ namespace bs
 					u32 elementWidth = elementAreas[childIdx].Width + extraWidth;
 
 					// Clamp if needed
-					if (child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
+					if(child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 					{
 						processedElements[childIdx] = true;
 						numNonClampedElements--;
@@ -197,9 +196,9 @@ namespace bs
 		childIdx = 0;
 		float invOptimalSize = 1.0f / totalNonClampedSize;
 		u32 childCount = (u32)mChildren.size();
-		for (u32 i = 0; i < childCount; i++)
+		for(u32 i = 0; i < childCount; i++)
 		{
-			if (processedElements[childIdx])
+			if(processedElements[childIdx])
 			{
 				childIdx++;
 				continue;
@@ -211,21 +210,21 @@ namespace bs
 		}
 
 		// Our optimal size is larger than maximum allowed, so we need to reduce size of some elements
-		if (totalOptimalSize > (u32)layoutArea.Width)
+		if(totalOptimalSize > (u32)layoutArea.Width)
 		{
 			u32 extraSize = totalOptimalSize - layoutArea.Width;
 			u32 remainingSize = extraSize;
 
 			// Iterate until we reduce everything so it fits, while maintaining
 			// equal average sizes using the weights we calculated earlier
-			while (remainingSize > 0 && numNonClampedElements > 0)
+			while(remainingSize > 0 && numNonClampedElements > 0)
 			{
 				u32 totalRemainingSize = remainingSize;
 
 				childIdx = 0;
-				for (auto& child : mChildren)
+				for(auto& child : mChildren)
 				{
-					if (processedElements[childIdx])
+					if(processedElements[childIdx])
 					{
 						childIdx++;
 						continue;
@@ -237,7 +236,7 @@ namespace bs
 					u32 elementWidth = (u32)std::max(0, (i32)elementAreas[childIdx].Width - (i32)extraWidth);
 
 					// Clamp if needed
-					switch (child->GetTypeInternal())
+					switch(child->GetTypeInternal())
 					{
 					case GUIElementBase::Type::FlexibleSpace:
 						elementAreas[childIdx].Width = 0;
@@ -247,26 +246,26 @@ namespace bs
 					case GUIElementBase::Type::Element:
 					case GUIElementBase::Type::Layout:
 					case GUIElementBase::Type::Panel:
-					{
-						const LayoutSizeRange& childSizeRange = sizeRanges[childIdx];
-
-						if (elementWidth == 0)
 						{
-							processedElements[childIdx] = true;
-							numNonClampedElements--;
-						}
-						else if (childSizeRange.Min.X > 0 && (i32)elementWidth < childSizeRange.Min.X)
-						{
-							elementWidth = childSizeRange.Min.X;
+							const LayoutSizeRange& childSizeRange = sizeRanges[childIdx];
 
-							processedElements[childIdx] = true;
-							numNonClampedElements--;
-						}
+							if(elementWidth == 0)
+							{
+								processedElements[childIdx] = true;
+								numNonClampedElements--;
+							}
+							else if(childSizeRange.Min.X > 0 && (i32)elementWidth < childSizeRange.Min.X)
+							{
+								elementWidth = childSizeRange.Min.X;
 
-						extraWidth = elementAreas[childIdx].Width - elementWidth;
-						elementAreas[childIdx].Width = elementWidth;
-						remainingSize = (u32)std::max(0, (i32)remainingSize - (i32)extraWidth);
-					}
+								processedElements[childIdx] = true;
+								numNonClampedElements--;
+							}
+
+							extraWidth = elementAreas[childIdx].Width - elementWidth;
+							elementAreas[childIdx].Width = elementWidth;
+							remainingSize = (u32)std::max(0, (i32)remainingSize - (i32)extraWidth);
+						}
 						break;
 					case GUIElementBase::Type::FixedSpace:
 						break;
@@ -283,14 +282,14 @@ namespace bs
 
 			// Iterate until we reduce everything so it fits, while maintaining
 			// equal average sizes using the weights we calculated earlier
-			while (remainingSize > 0 && numNonClampedElements > 0)
+			while(remainingSize > 0 && numNonClampedElements > 0)
 			{
 				u32 totalRemainingSize = remainingSize;
 
 				childIdx = 0;
-				for (auto& child : mChildren)
+				for(auto& child : mChildren)
 				{
-					if (processedElements[childIdx])
+					if(processedElements[childIdx])
 					{
 						childIdx++;
 						continue;
@@ -301,7 +300,7 @@ namespace bs
 					u32 elementWidth = elementAreas[childIdx].Width + extraWidth;
 
 					// Clamp if needed
-					switch (child->GetTypeInternal())
+					switch(child->GetTypeInternal())
 					{
 					case GUIElementBase::Type::FlexibleSpace:
 						processedElements[childIdx] = true;
@@ -310,26 +309,26 @@ namespace bs
 					case GUIElementBase::Type::Element:
 					case GUIElementBase::Type::Layout:
 					case GUIElementBase::Type::Panel:
-					{
-						const LayoutSizeRange& childSizeRange = sizeRanges[childIdx];
-
-						if (elementWidth == 0)
 						{
-							processedElements[childIdx] = true;
-							numNonClampedElements--;
-						}
-						else if (childSizeRange.Max.X > 0 && (i32)elementWidth > childSizeRange.Max.X)
-						{
-							elementWidth = childSizeRange.Max.X;
+							const LayoutSizeRange& childSizeRange = sizeRanges[childIdx];
 
-							processedElements[childIdx] = true;
-							numNonClampedElements--;
-						}
+							if(elementWidth == 0)
+							{
+								processedElements[childIdx] = true;
+								numNonClampedElements--;
+							}
+							else if(childSizeRange.Max.X > 0 && (i32)elementWidth > childSizeRange.Max.X)
+							{
+								elementWidth = childSizeRange.Max.X;
 
-						extraWidth = elementWidth - elementAreas[childIdx].Width;
-						elementAreas[childIdx].Width = elementWidth;
-						remainingSize = (u32)std::max(0, (i32)remainingSize - (i32)extraWidth);
-					}
+								processedElements[childIdx] = true;
+								numNonClampedElements--;
+							}
+
+							extraWidth = elementWidth - elementAreas[childIdx].Width;
+							elementAreas[childIdx].Width = elementWidth;
+							remainingSize = (u32)std::max(0, (i32)remainingSize - (i32)extraWidth);
+						}
 						break;
 					case GUIElementBase::Type::FixedSpace:
 						break;
@@ -344,7 +343,7 @@ namespace bs
 		u32 xOffset = 0;
 		childIdx = 0;
 
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
 			u32 elemWidth = elementAreas[childIdx].Width;
 			xOffset += child->GetPaddingInternal().Left;
@@ -352,18 +351,18 @@ namespace bs
 			const LayoutSizeRange& sizeRange = sizeRanges[childIdx];
 			u32 elemHeight = (u32)sizeRange.Optimal.Y;
 			const GUIDimensions& dimensions = child->GetDimensionsInternal();
-			if (!dimensions.FixedHeight())
+			if(!dimensions.FixedHeight())
 			{
 				elemHeight = layoutArea.Height;
-				if (sizeRange.Min.Y > 0 && elemHeight < (u32)sizeRange.Min.Y)
+				if(sizeRange.Min.Y > 0 && elemHeight < (u32)sizeRange.Min.Y)
 					elemHeight = (u32)sizeRange.Min.Y;
 
-				if (sizeRange.Max.Y > 0 && elemHeight > (u32)sizeRange.Max.Y)
+				if(sizeRange.Max.Y > 0 && elemHeight > (u32)sizeRange.Max.Y)
 					elemHeight = (u32)sizeRange.Max.Y;
 			}
 			elementAreas[childIdx].Height = elemHeight;
 
-			if (child->GetTypeInternal() == GUIElementBase::Type::Element)
+			if(child->GetTypeInternal() == GUIElementBase::Type::Element)
 			{
 				GUIElement* element = static_cast<GUIElement*>(child);
 
@@ -384,10 +383,10 @@ namespace bs
 			childIdx++;
 		}
 
-		if (elementScaleWeights != nullptr)
+		if(elementScaleWeights != nullptr)
 			bs_stack_free(elementScaleWeights);
 
-		if (processedElements != nullptr)
+		if(processedElements != nullptr)
 			bs_stack_free(processedElements);
 	}
 
@@ -396,7 +395,7 @@ namespace bs
 		u32 numElements = (u32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
 
-		if (numElements > 0)
+		if(numElements > 0)
 			elementAreas = bs_stack_new<Rect2I>(numElements);
 
 		GetElementAreasInternal(data.Area, elementAreas, numElements, mChildSizeRanges, mSizeRange);
@@ -407,7 +406,7 @@ namespace bs
 		GUILayoutData childData = data;
 		for(auto& child : mChildren)
 		{
-			if (child->IsActiveInternal())
+			if(child->IsActiveInternal())
 			{
 				childData.Area = elementAreas[childIdx];
 				childData.ClipRect = childData.Area;
@@ -433,4 +432,4 @@ namespace bs
 	{
 		return bs_new<GUILayoutX>(GUIDimensions::Create(options));
 	}
-}
+} // namespace bs

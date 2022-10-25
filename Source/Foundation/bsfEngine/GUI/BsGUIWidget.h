@@ -37,10 +37,11 @@ namespace bs
 	struct GUIRenderTargetRenderData
 	{
 		GUIRenderTargetRenderData() = default;
+
 		GUIRenderTargetRenderData(SPtr<ct::RenderTarget> target)
-			:Target(std::move(target))
-		{ }
-		
+			: Target(std::move(target))
+		{}
+
 		SPtr<ct::RenderTarget> Target;
 		u64 LastUpdateCount = (u64)-1;
 	};
@@ -84,9 +85,10 @@ namespace bs
 			DirtyMesh = 1 << 0,
 			DirtyContent = 1 << 1
 		};
+
 	public:
 		GUIDrawGroups(GUIWidget* parentWidget);
-		
+
 		/** Iterates over all the render elements in the GUI elements and adds them to suitable draw groups. */
 		void Add(GUIElement* element);
 
@@ -101,15 +103,16 @@ namespace bs
 
 		/** Notifies the system that element's mesh was marked as dirty. */
 		void NotifyMeshDirty(GUIElement* element);
-		
+
 	private:
 		/** Single render element in a GUIDrawGroup */
 		struct GUIGroupRenderElement
 		{
 			GUIGroupRenderElement() = default;
+
 			GUIGroupRenderElement(GUIElement* element, u32 renderElementIdx)
-				:Element(element), RenderElementIdx(renderElementIdx)
-			{ }
+				: Element(element), RenderElementIdx(renderElementIdx)
+			{}
 
 			GUIElement* Element = nullptr;
 			u32 RenderElementIdx = 0;
@@ -122,7 +125,7 @@ namespace bs
 			SmallVector<i32, 4> Groups;
 			Rect2I Bounds;
 		};
-		
+
 		/** Data required for rendering a single GUI mesh. */
 		struct GUIMesh
 		{
@@ -178,7 +181,7 @@ namespace bs
 
 		/** Builds a structure with information required for rendering the provided draw group. */
 		static GUIDrawGroupRenderData GetRenderData(const GUIDrawGroup& drawGroup);
-		
+
 		/** Calculates the bounds of all visible elements in the draw group. */
 		static Rect2I CalculateBounds(GUIDrawGroup& group);
 
@@ -187,14 +190,14 @@ namespace bs
 		UnorderedMap<GUIElement*, u32> mDirtyElements;
 		bool mGroupsCoreDirty = true;
 		GUIWidget* mWidget;
-		
+
 		SPtr<Mesh> mTriangleMesh;
 		SPtr<Mesh> mLineMesh;
 		mutable i32 mNextDrawGroupId = 0;
 	};
-	
+
 	/** @} */
-	
+
 	/** @addtogroup GUI
 	 *  @{
 	 */
@@ -288,7 +291,7 @@ namespace bs
 
 		/** Registers a new element as a child of the widget. */
 		void RegisterElementInternal(GUIElementBase* elem);
-		
+
 		/**
 		 * Unregisters an element from the widget. Usually called when the element is destroyed, or reparented to another
 		 * widget.
@@ -354,13 +357,15 @@ namespace bs
 
 		/**	Called when the parent window gained or lost focus. */
 		virtual void OwnerWindowFocusChanged();
+
 	private:
 		struct GUIGroupElement
 		{
 			GUIGroupElement() = default;
+
 			GUIGroupElement(GUIElement* element, u32 renderElement)
-				:Element(element), RenderElement(renderElement)
-			{ }
+				: Element(element), RenderElement(renderElement)
+			{}
 
 			GUIElement* Element = nullptr;
 			u32 RenderElement = 0;
@@ -376,7 +381,7 @@ namespace bs
 			Vector<GUIGroupElement> CachedElements;
 			Vector<GUIGroupElement> NonCachedElements;
 		};
-		
+
 		/**	Calculates widget bounds using the bounds of all child elements. */
 		void UpdateBounds() const;
 
@@ -407,4 +412,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -22,4 +22,4 @@ namespace bs
 	{
 		return ScriptCodeImportOptions::GetRttiStatic();
 	}
-}
+} // namespace bs

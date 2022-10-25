@@ -14,10 +14,9 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT CGUIWidgetRTTI : public RTTIType <CGUIWidget, Component, CGUIWidgetRTTI>
+	class BS_EXPORT CGUIWidgetRTTI : public RTTIType<CGUIWidget, Component, CGUIWidgetRTTI>
 	{
 	private:
-
 	public:
 		CGUIWidgetRTTI() = default;
 
@@ -32,7 +31,7 @@ namespace bs
 			return TID_CGUIWidget;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return SceneObject::CreateEmptyComponent<CGUIWidget>();
 		}
@@ -40,4 +39,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

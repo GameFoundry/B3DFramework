@@ -6,16 +6,14 @@
 
 namespace bs
 {
-	GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const char* style, 
-		GUIElementOptions options)
-		:GUIElement(style, dimensions, options)
+	GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const char* style, GUIElementOptions options)
+		: GUIElement(style, dimensions, options)
 	{
 		mOptionFlags.Set(GUIElementOption::ClickThrough);
 	}
 
-	GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const String& style, 
-		GUIElementOptions options)
-		:GUIElement(style, dimensions, options)
+	GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const String& style, GUIElementOptions options)
+		: GUIElement(style, dimensions, options)
 	{
 		mOptionFlags.Set(GUIElementOption::ClickThrough);
 	}
@@ -29,7 +27,7 @@ namespace bs
 		u32 maxNumVerts,
 		u32 maxNumIndices,
 		u32 renderElementIdx) const
-	{ }
+	{}
 
 	Vector2I GUIElementContainer::GetOptimalSizeInternal() const
 	{
@@ -47,11 +45,11 @@ namespace bs
 	bool GUIElementContainer::CommandEventInternal(const GUICommandEvent& ev)
 	{
 		// Make sure to pass through focus events to elements below
-		if (ev.GetType() == GUICommandEventType::FocusGained)
+		if(ev.GetType() == GUICommandEventType::FocusGained)
 			return false;
-		else if (ev.GetType() == GUICommandEventType::FocusLost)
+		else if(ev.GetType() == GUICommandEventType::FocusLost)
 			return false;
 
 		return GUIElement::CommandEventInternal(ev);
 	}
-}
+} // namespace bs

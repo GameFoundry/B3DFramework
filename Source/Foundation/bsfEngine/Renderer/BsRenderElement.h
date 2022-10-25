@@ -5,43 +5,46 @@
 #include "BsPrerequisites.h"
 #include "RenderAPI/BsSubMesh.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Renderer-Engine-Internal
-	 *  @{
-	 */
-
-	/** Contains all information needed for rendering a single sub-mesh. Closely tied with Renderer. */
-	class BS_EXPORT RenderElement
+	namespace ct
 	{
-	public:
-		/**	Reference to the mesh to render. */
-		SPtr<Mesh> Mesh;
+		/** @addtogroup Renderer-Engine-Internal
+		 *  @{
+		 */
 
-		/**	Portion of the mesh to render. */
-		SubMesh SubMesh;
+		/** Contains all information needed for rendering a single sub-mesh. Closely tied with Renderer. */
+		class BS_EXPORT RenderElement
+		{
+		public:
+			/**	Reference to the mesh to render. */
+			SPtr<Mesh> Mesh;
 
-		/**	Material to render the mesh with. */
-		SPtr<Material> Material;
+			/**	Portion of the mesh to render. */
+			SubMesh SubMesh;
 
-		/** Index of the technique in the material to render the element with. */
-		u32 DefaultTechniqueIdx = 0;
+			/**	Material to render the mesh with. */
+			SPtr<Material> Material;
 
-		/** Index of the technique in the material to render the element with when velocity writes are supported. */
-		u32 WriteVelocityTechniqueIdx = (u32)-1;
+			/** Index of the technique in the material to render the element with. */
+			u32 DefaultTechniqueIdx = 0;
 
-		/** All GPU parameters from the material used by the renderable. */
-		SPtr<GpuParamsSet> Params;
+			/** Index of the technique in the material to render the element with when velocity writes are supported. */
+			u32 WriteVelocityTechniqueIdx = (u32)-1;
 
-		/** Renderer specific value that identifies the type of this renderable element. */
-		u32 Type = 0;
+			/** All GPU parameters from the material used by the renderable. */
+			SPtr<GpuParamsSet> Params;
 
-		/** Executes the draw call for the render element. */
-		virtual void Draw() const = 0;
+			/** Renderer specific value that identifies the type of this renderable element. */
+			u32 Type = 0;
 
-	protected:
-		~RenderElement() = default;
-	};
+			/** Executes the draw call for the render element. */
+			virtual void Draw() const = 0;
 
-	/** @} */
-}}
+		protected:
+			~RenderElement() = default;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

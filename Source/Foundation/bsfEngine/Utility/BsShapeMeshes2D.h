@@ -23,8 +23,8 @@ namespace bs
 		 * @param[out]	meshData		Mesh data that will be populated.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 * 	Vector2 VES_POSITION
 		 * 	32bit index buffer
@@ -42,8 +42,8 @@ namespace bs
 		 * @param[out]	meshData		Mesh data that will be populated.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *	Vector2 VES_POSITION
 		 * 	32bit index buffer
@@ -51,8 +51,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, u32 vertexOffset,
-			u32 indexOffset);
+		static void PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a line of specific width as a quad.
@@ -67,8 +66,8 @@ namespace bs
 		 * @param[out]	meshData		Mesh data that will be populated by this method.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector2 VES_POSITION
 		 *  u32  VES_COLOR
@@ -77,8 +76,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing per-pixel lines.
@@ -87,8 +85,8 @@ namespace bs
 		 * @param[out]	meshData		Mesh data that will be populated.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector2  VES_POSITION
 		 *  32bit index buffer
@@ -96,8 +94,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset,
-			u32 indexOffset);
+		static void PixelLineList(const Vector<Vector2>& linePoints, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a polyline of specific width as a set of quads.
@@ -111,8 +108,8 @@ namespace bs
 		 * @param[out]	meshData		Mesh data that will be populated by this method.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector2 VES_POSITION
 		 *  u32  VES_COLOR
@@ -121,8 +118,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void QuadLineList(const Vector<Vector2>& linePoints, float width, float border,
-			const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with vertices representing a polyline of specific width as a set of quads
@@ -141,11 +137,11 @@ namespace bs
 		 *								buffer will be used for rendering. If false then (numLines * 6) vertices will be
 		 *								generated.
 		 */
-		static void QuadLineList(const Vector2* linePoints, u32 numPoints, float width, float border, u8* outVertices,
-			u32 vertexStride, bool indexed);
+		static void QuadLineList(const Vector2* linePoints, u32 numPoints, float width, float border, u8* outVertices, u32 vertexStride, bool indexed);
 
 		static const u32 NUM_VERTICES_AA_LINE;
 		static const u32 NUM_INDICES_AA_LINE;
+
 	protected:
 		/**
 		 * Fills the provided buffers with vertices representing a per-pixel line.
@@ -158,8 +154,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void PixelLine(const Vector2& a, const Vector2& b, u8* outVertices,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void PixelLine(const Vector2& a, const Vector2& b, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position data and indices representing an inner
@@ -172,9 +167,8 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void PixelSolidPolygon(const Vector<Vector2>& points, u8* outVertices,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void PixelSolidPolygon(const Vector<Vector2>& points, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 	};
 
 	/** @} */
-}
+} // namespace bs

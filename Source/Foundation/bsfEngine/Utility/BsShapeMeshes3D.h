@@ -24,8 +24,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  32bit index buffer
@@ -42,8 +42,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -67,7 +67,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the sphere will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  32bit index buffer
@@ -76,8 +76,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset,
-			u32 quality = 10);
+		static void WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of a hemisphere.
@@ -89,7 +88,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the sphere will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  32bit index buffer
@@ -98,8 +97,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset,
-			u32 indexOffset, u32 quality = 10);
+		static void WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a sphere.
@@ -111,7 +109,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the sphere will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -124,8 +122,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset,
-			u32 quality = 1);
+		static void SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 1);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of an arc.
@@ -142,7 +139,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the arc will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  32bit index buffer
@@ -151,8 +148,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid double-sided arc.
@@ -169,7 +165,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the arc will have. Higher level means higher
 		 *									quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -182,8 +178,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of a disc.
@@ -198,7 +193,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the disc will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 * 	Vector3 VES_POSITION
 		 * 	32bit index buffer
@@ -207,8 +202,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData,
-			u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid double-sided disc.
@@ -223,7 +217,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the disc will have. Higher level means higher
 		 *									quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -233,8 +227,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData,
-			u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidDisc(const Vector3& center, float radius, const Vector3& normal, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing an outline of an camera frustum. Frustum will be facing -z and be
@@ -248,8 +241,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  32bit index buffer
@@ -257,8 +250,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a wireframe cone.
@@ -274,7 +266,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the cone will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 * 	32bit index buffer
@@ -283,8 +275,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a line list.
 		 */
-		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a solid cone.
@@ -300,7 +291,7 @@ namespace bs
 		 * @param[in]		quality			Represents the level of tessellation the cone will have. Higher level means
 		 *									higher quality but also more vertices and primitives.
 		 *
-		 * @note	
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -313,64 +304,61 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
-		* Fills the mesh data with vertices representing a wireframe cylinder.
-		*
-		* @param[in]		base			World position of the cylinder base.
-		* @param[in]		normal			Orientation of the cylinder (height gets applied in this direction).
-		* @param[in]		height			Cylinder height (distance from base to the top).
-		* @param[in]		radius			Cylinder radius (distance from base center to outer edge).
-		* @param[in]		scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
-		* @param[in, out]	meshData		Mesh data that will be populated.
-		* @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		* @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		* @param[in]		quality			Represents the level of tessellation the cylinder will have. Higher level means
-		*									higher quality but also more vertices and primitives.
-		*
-		* @note
-		* Provided MeshData must have some specific elements at least:
-		*  Vector3 VES_POSITION
-		* 	32bit index buffer
-		* 	Enough space for ((quality + 1) * 4) * 2) vertices
-		*	Enough space for ((quality + 1) * 4) * 6) indices
-		* @note
-		* Primitives are output in the form of a line list.
-		*/
-		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		 * Fills the mesh data with vertices representing a wireframe cylinder.
+		 *
+		 * @param[in]		base			World position of the cylinder base.
+		 * @param[in]		normal			Orientation of the cylinder (height gets applied in this direction).
+		 * @param[in]		height			Cylinder height (distance from base to the top).
+		 * @param[in]		radius			Cylinder radius (distance from base center to outer edge).
+		 * @param[in]		scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
+		 * @param[in, out]	meshData		Mesh data that will be populated.
+		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]		quality			Represents the level of tessellation the cylinder will have. Higher level means
+		 *									higher quality but also more vertices and primitives.
+		 *
+		 * @note
+		 * Provided MeshData must have some specific elements at least:
+		 *  Vector3 VES_POSITION
+		 * 	32bit index buffer
+		 * 	Enough space for ((quality + 1) * 4) * 2) vertices
+		 *	Enough space for ((quality + 1) * 4) * 6) indices
+		 * @note
+		 * Primitives are output in the form of a line list.
+		 */
+		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
-		* Fills the mesh data with vertices representing a solid cylinder.
-		*
-		* @param[in]		base			World position of the cylinder base.
-		* @param[in]		normal			Orientation of the cylinder (height gets applied in this direction).
-		* @param[in]		height			Cylinder height (distance from base to the top).
-		* @param[in]		radius			Cylinder radius (distance from base center to outer edge).
-		* @param[in]		scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
-		* @param[in, out]	meshData		Mesh data that will be populated.
-		* @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		* @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		* @param[in]		quality			Represents the level of tessellation the cylinder will have. Higher level means
-		*									higher quality but also more vertices and primitives.
-		*
-		* @note
-		* Provided MeshData must have some specific elements at least:
-		*  Vector3 VES_POSITION
-		*	Vector3 VES_NORMAL
-		* 	32bit index buffer
-		* 	Enough space for ((quality + 1) * 4 + 1) * 4) vertices
-		*	Enough space for ((quality + 1) * 4) * 12) indices
-		* Optionally it may also have:
-		*  Vector2 VES_TEXCOORD
-		*  Vector4 VES_TANGENT
-		* @note
-		* Primitives are output in the form of a triangle list.
-		*/
-		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
+		 * Fills the mesh data with vertices representing a solid cylinder.
+		 *
+		 * @param[in]		base			World position of the cylinder base.
+		 * @param[in]		normal			Orientation of the cylinder (height gets applied in this direction).
+		 * @param[in]		height			Cylinder height (distance from base to the top).
+		 * @param[in]		radius			Cylinder radius (distance from base center to outer edge).
+		 * @param[in]		scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
+		 * @param[in, out]	meshData		Mesh data that will be populated.
+		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]		quality			Represents the level of tessellation the cylinder will have. Higher level means
+		 *									higher quality but also more vertices and primitives.
+		 *
+		 * @note
+		 * Provided MeshData must have some specific elements at least:
+		 *  Vector3 VES_POSITION
+		 *	Vector3 VES_NORMAL
+		 * 	32bit index buffer
+		 * 	Enough space for ((quality + 1) * 4 + 1) * 4) vertices
+		 *	Enough space for ((quality + 1) * 4) * 12) indices
+		 * Optionally it may also have:
+		 *  Vector2 VES_TEXCOORD
+		 *  Vector4 VES_TANGENT
+		 * @note
+		 * Primitives are output in the form of a triangle list.
+		 */
+		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality = 10);
 
 		/**
 		 * Fills the mesh data with vertices representing a quad (4 triangles, two sided).
@@ -379,8 +367,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *	Vector3 VES_NORMAL
@@ -402,8 +390,8 @@ namespace bs
 		 * @param[in, out]	meshData	Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3	  VES_POSITION
 		 *  32bit index buffer
@@ -426,8 +414,8 @@ namespace bs
 		 * @param[in, out]	meshData	Mesh data that will be populated by this method.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  u32  VES_COLOR
@@ -436,8 +424,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color,
-			const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing per-pixel lines.
@@ -446,8 +433,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3  VES_POSITION
 		 *  32bit index buffer
@@ -469,8 +456,8 @@ namespace bs
 		 * @param[in, out]	meshData		Mesh data that will be populated by this method.
 		 * @param[in]		vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]		indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		 * 							
-		 * @note	
+		 *
+		 * @note
 		 * Provided MeshData must have some specific elements at least:
 		 *  Vector3 VES_POSITION
 		 *  u32  VES_COLOR
@@ -479,8 +466,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth,
-			const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void AntialiasedLineList(const Vector<Vector3>& linePoints, const Vector3& up, float width, float borderWidth, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position and index data representing an outline of an axis aligned box. Use
@@ -493,8 +479,7 @@ namespace bs
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void WireAaBox(const AABox& box, u8* outVertices, u32 vertexOffset, u32 vertexStride,
-			u32* outIndices, u32 indexOffset);
+		static void WireAaBox(const AABox& box, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a solid axis aligned box. Use
@@ -510,8 +495,7 @@ namespace bs
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset,
-			u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a sphere. Use getNumElementsSphere() to
@@ -530,8 +514,7 @@ namespace bs
 		 * @param[in]	quality			Represents the level of tessellation the sphere will have. Higher level means higher
 		 *								quality but also more vertices and primitives.
 		 */
-		static void SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNormals, u8* outUV,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
+		static void SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
 		 * Fills the provided buffers with position and index data representing an outline of an arc. Use
@@ -551,8 +534,7 @@ namespace bs
 		 * @param[in]	quality			Represents the level of tessellation the arc will have. Higher level means higher
 		 *								quality but also more vertices and primitives.
 		 */
-		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle,
-			u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
+		static void WireArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a solid arc. Use getNumElementsArc() to
@@ -567,7 +549,7 @@ namespace bs
 		 * @param[out]	outVertices		Pre-allocated output buffer that will store the vertex position data.
 		 * @param[out]	outNormals		Pre-allocated output buffer that will store the vertex normal data.
 		 * @param[out]	outUV			Pre-allocated output buffer that will store the vertex UV data. Set to null if not
-		 *								required.	
+		 *								required.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
@@ -575,9 +557,7 @@ namespace bs
 		 * @param[in]	quality			Represents the level of tessellation the arc will have. Higher level means higher
 		 *								quality but also more vertices and primitives.
 		 */
-		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle,
-			Degree amountAngle, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset,
-			u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
+		static void SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
 		 * Fills the provided buffers with position and index data representing an outline of a camera frustum. Use
@@ -594,8 +574,7 @@ namespace bs
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far,
-			u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void WireFrustum(const Vector3& position, float aspect, Degree FOV, float near, float far, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a solid cone. Use getNumElementsCone() to
@@ -610,7 +589,7 @@ namespace bs
 		 * @param[out]	outNormals		Pre-allocated output buffer that will store the vertex normal data. Can be null if
 		 *								normals aren't needed.
 		 * @param[out]	outUV			Pre-allocated output buffer that will store the vertex UV data. Set to null if not
-		 *								required.	
+		 *								required.
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
@@ -618,9 +597,7 @@ namespace bs
 		 * @param[in]	quality			Represents the level of tessellation the cone will have. Higher level means higher
 		 *								quality but also more vertices and primitives.
 		 */
-		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride,
-			u32* outIndices, u32 indexOffset, u32 quality);
+		static void SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a wire cone. Use getNumElementsWireCone() to
@@ -639,55 +616,49 @@ namespace bs
 		 * @param[in]	quality			Represents the level of tessellation the cone will have. Higher level means higher
 		 *								quality but also more vertices and primitives.
 		 */
-		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset,
-			u32 quality);
+		static void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
-		* Fills the provided buffers with position and index data representing a solid cylinder. Use getNumElementsCylinder() to
-		* determine the required sizes of the output buffers.
-		*
-		* @param[in]	base			World position of the cylinder base.
-		* @param[in]	normal			Orientation of the cylinder (height gets applied in this direction).
-		* @param[in]	height			Cylinder height (distance from base to the top).
-		* @param[in]	radius			Cylinder radius (distance from base center to outer edge).
-		* @param[in]	scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
-		* @param[out]	outVertices		Pre-allocated output buffer that will store the vertex position data.
-		* @param[out]	outNormals		Pre-allocated output buffer that will store the vertex normal data. Can be null if
-		*								normals aren't needed.
-		* @param[out]	outUV			Pre-allocated output buffer that will store the vertex UV data. Set to null if not
-		*								required.
-		* @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		* @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
-		* @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
-		* @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		* @param[in]	quality			Represents the level of tessellation the cylinder will have. Higher level means higher
-		*								quality but also more vertices and primitives.
-		*/
-		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride,
-			u32* outIndices, u32 indexOffset, u32 quality);
+		 * Fills the provided buffers with position and index data representing a solid cylinder. Use getNumElementsCylinder() to
+		 * determine the required sizes of the output buffers.
+		 *
+		 * @param[in]	base			World position of the cylinder base.
+		 * @param[in]	normal			Orientation of the cylinder (height gets applied in this direction).
+		 * @param[in]	height			Cylinder height (distance from base to the top).
+		 * @param[in]	radius			Cylinder radius (distance from base center to outer edge).
+		 * @param[in]	scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
+		 * @param[out]	outVertices		Pre-allocated output buffer that will store the vertex position data.
+		 * @param[out]	outNormals		Pre-allocated output buffer that will store the vertex normal data. Can be null if
+		 *								normals aren't needed.
+		 * @param[out]	outUV			Pre-allocated output buffer that will store the vertex UV data. Set to null if not
+		 *								required.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
+		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	quality			Represents the level of tessellation the cylinder will have. Higher level means higher
+		 *								quality but also more vertices and primitives.
+		 */
+		static void SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
-		* Fills the provided buffers with position and index data representing a wire cylinder. Use getNumElementsWireCylinder() to
-		* determine the required sizes of the output buffers.
-		*
-		* @param[in]	base			World position of the cylinder base.
-		* @param[in]	normal			Orientation of the cylinder (height gets applied in this direction).
-		* @param[in]	height			Cylinder height (distance from base to the top).
-		* @param[in]	radius			Cylinder radius (distance from base center to outer edge).
-		* @param[in]	scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
-		* @param[out]	outVertices		Pre-allocated output buffer that will store the vertex position data.
-		* @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
-		* @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
-		* @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
-		* @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
-		* @param[in]	quality			Represents the level of tessellation the cylinder will have. Higher level means higher
-		*								quality but also more vertices and primitives.
-		*/
-		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale,
-			u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset,
-			u32 quality);
+		 * Fills the provided buffers with position and index data representing a wire cylinder. Use getNumElementsWireCylinder() to
+		 * determine the required sizes of the output buffers.
+		 *
+		 * @param[in]	base			World position of the cylinder base.
+		 * @param[in]	normal			Orientation of the cylinder (height gets applied in this direction).
+		 * @param[in]	height			Cylinder height (distance from base to the top).
+		 * @param[in]	radius			Cylinder radius (distance from base center to outer edge).
+		 * @param[in]	scale			Scale to apply to the x/y axes, allowing you to create elliptical cylinders.
+		 * @param[out]	outVertices		Pre-allocated output buffer that will store the vertex position data.
+		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
+		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and normal buffer)
+		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
+		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
+		 * @param[in]	quality			Represents the level of tessellation the cylinder will have. Higher level means higher
+		 *								quality but also more vertices and primitives.
+		 */
+		static void WireCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality);
 
 		/**
 		 * Fills the provided buffers with position and index data representing a solid quad. Use getNumElementsQuad() to
@@ -703,8 +674,7 @@ namespace bs
 		 * @param[out]	outIndices		Pre-allocated output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void SolidQuad(const Rect3& area, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset,
-			u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void SolidQuad(const Rect3& area, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**	Calculates number of vertices and indices required for geometry of a solid axis aligned box. */
 		static void GetNumElementsAaBox(u32& numVertices, u32& numIndices);
@@ -766,8 +736,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void PixelLine(const Vector3& a, const Vector3& b, u8* outVertices,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void PixelLine(const Vector3& a, const Vector3& b, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with vertices representing an antialiased line with a custom width.
@@ -785,9 +754,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth,
-			const Color& color, u8* outVertices, u8* outColors, u32 vertexOffset, u32 vertexStride,
-			u32* outIndices, u32 indexOffset);
+		static void AntialiasedLine(const Vector3& a, const Vector3& b, const Vector3& up, float width, float borderWidth, const Color& color, u8* outVertices, u8* outColors, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with position data and indices representing an inner area of a polygon (basically a
@@ -800,8 +767,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void PixelSolidPolygon(const Vector<Vector3>& points, u8* outVertices,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void PixelSolidPolygon(const Vector<Vector3>& points, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with vertices representing a pixel-wide polygon border.
@@ -813,8 +779,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void PixelWirePolygon(const Vector<Vector3>& points, u8* outVertices,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void PixelWirePolygon(const Vector<Vector3>& points, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 		/**
 		 * Fills the provided buffers with vertices representing an antialiased polygon.
@@ -830,8 +795,7 @@ namespace bs
 		 * @param[out]	outIndices		Output buffer that will store the index data. Indices are 32bit.
 		 * @param[in]	indexOffset 	Offset in number of indices from the start of the buffer to start writing at.
 		 */
-		static void AntialiasedPolygon(const Vector<Vector3>& points, const Vector3& up, float borderWidth, const Color& color, u8* outVertices, u8* outColors,
-			u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
+		static void AntialiasedPolygon(const Vector<Vector3>& points, const Vector3& up, float borderWidth, const Color& color, u8* outVertices, u8* outColors, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset);
 
 	private:
 		/**
@@ -859,9 +823,7 @@ namespace bs
 		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and color buffer)
 		 * @return						Number of vertices generated (3 * (4 ^ numLevels)).
 		 */
-		static u32 SubdivideTriangleOnSphere(const Vector3& center, float radius, u32 numLevels,
-			const Vector3& a, const Vector3& b, const Vector3& c,
-			u8* outVertices, u8* outNormals, u32 vertexOffset, u32 vertexStride);
+		static u32 SubdivideTriangleOnSphere(const Vector3& center, float radius, u32 numLevels, const Vector3& a, const Vector3& b, const Vector3& c, u8* outVertices, u8* outNormals, u32 vertexOffset, u32 vertexStride);
 
 		/**
 		 * Generates vertices that are part of an arc approximation.
@@ -879,9 +841,7 @@ namespace bs
 		 * @param[in]	vertexOffset	Offset in number of vertices from the start of the buffer to start writing at.
 		 * @param[in]	vertexStride	Size of a single vertex, in bytes. (Same for both position and color buffer)
 		 */
-		static void GenerateArcVertices(const Vector3& center, const Vector3& up, float radius, Degree startAngle,
-			Degree angleAmount, Vector2 scale, u32 numVertices, u8* outVertices, u32 vertexOffset,
-			u32 vertexStride);
+		static void GenerateArcVertices(const Vector3& center, const Vector3& up, float radius, Degree startAngle, Degree angleAmount, Vector2 scale, u32 numVertices, u8* outVertices, u32 vertexOffset, u32 vertexStride);
 
 		/**
 		 * Calculates per-vertex tangents and bitangents based on the provided vertices, uv coordinates and indices.
@@ -900,10 +860,8 @@ namespace bs
 		 *								into 4D vector where first three components are the tangent, and 4th is the sign of
 		 *								the bitangent. Must be the same length as the vertex array.
 		 */
-		static void GenerateTangents(u8* positions, u8* normals, u8* uv, u32* indices, u32 numVertices,
-									 u32 numIndices, u32 vertexOffset, u32 indexOffset, u32 vertexStride,
-									 u8* tangents);
+		static void GenerateTangents(u8* positions, u8* normals, u8* uv, u32* indices, u32 numVertices, u32 numIndices, u32 vertexOffset, u32 indexOffset, u32 vertexStride, u8* tangents);
 	};
 
 	/** @} */
-}
+} // namespace bs

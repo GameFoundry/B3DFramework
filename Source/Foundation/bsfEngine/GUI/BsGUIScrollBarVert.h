@@ -57,10 +57,11 @@ namespace bs
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
 		static GUIScrollBarVert* Create(bool resizable, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+
 	protected:
 		GUIScrollBarVert(bool resizable, const String& styleName, const GUIDimensions& dimensions);
 		~GUIScrollBarVert() = default;
 	};
 
 	/** @} */
-}
+} // namespace bs

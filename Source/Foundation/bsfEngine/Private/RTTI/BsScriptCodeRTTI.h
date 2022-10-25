@@ -14,7 +14,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class BS_EXPORT ScriptCodeRTTI : public RTTIType <ScriptCode, Resource, ScriptCodeRTTI>
+	class BS_EXPORT ScriptCodeRTTI : public RTTIType<ScriptCode, Resource, ScriptCodeRTTI>
 	{
 	private:
 		BS_BEGIN_RTTI_MEMBERS
@@ -23,7 +23,7 @@ namespace bs
 		BS_END_RTTI_MEMBERS
 
 	public:
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ScriptCode";
 			return name;
@@ -34,7 +34,7 @@ namespace bs
 			return TID_ScriptCode;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ScriptCode::CreatePtrInternal(L""); // Initial string doesn't matter, it'll get overwritten
 		}
@@ -42,4 +42,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

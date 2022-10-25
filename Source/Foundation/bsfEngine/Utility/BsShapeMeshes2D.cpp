@@ -25,7 +25,7 @@ namespace bs
 		points.push_back(Vector2(area.X, area.Y));
 		points.push_back(Vector2(area.X + area.Width, area.Y));
 		points.push_back(Vector2(area.X + area.Width, area.Y + area.Height));
-		points.push_back(Vector2(area.X, area.Y + area.Height));	
+		points.push_back(Vector2(area.X, area.Y + area.Height));
 
 		PixelSolidPolygon(points, positionData, vertexOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, indexOffset);
 	}
@@ -41,8 +41,7 @@ namespace bs
 		PixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, indexOffset);
 	}
 
-	void ShapeMeshes2D::QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color,
-		const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+	void ShapeMeshes2D::QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 	{
 		Vector<Vector2> linePoints = { a, b };
 		QuadLineList(linePoints, width, border, color, meshData, vertexOffset, indexOffset);
@@ -71,8 +70,7 @@ namespace bs
 		}
 	}
 
-	void ShapeMeshes2D::QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color,
-		const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+	void ShapeMeshes2D::QuadLineList(const Vector<Vector2>& linePoints, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 	{
 		u32 numPoints = (u32)linePoints.size();
 		assert(numPoints >= 2);
@@ -116,8 +114,7 @@ namespace bs
 		outColors += vertexStride;
 	}
 
-	void ShapeMeshes2D::QuadLineList(const Vector2* linePoints, u32 numPoints, float width, float border, u8* outVertices,
-		u32 vertexStride, bool indexed)
+	void ShapeMeshes2D::QuadLineList(const Vector2* linePoints, u32 numPoints, float width, float border, u8* outVertices, u32 vertexStride, bool indexed)
 	{
 		assert(numPoints >= 2);
 		u32 numLines = numPoints - 1;
@@ -149,7 +146,7 @@ namespace bs
 
 		// Middle segments
 		{
-			for (u32 i = 1; i < numLines; i++)
+			for(u32 i = 1; i < numLines; i++)
 			{
 				Vector2 a = linePoints[i - 1];
 				Vector2 b = linePoints[i];
@@ -168,7 +165,7 @@ namespace bs
 				Vector2 curPoints[2];
 
 				const float sign[] = { -1.0f, 1.0f };
-				for (u32 j = 0; j < 2; j++)
+				for(u32 j = 0; j < 2; j++)
 				{
 					Vector2 linePrevPoint = a + normalPrev * width * sign[j];
 					Line2 linePrev(linePrevPoint, diffPrev);
@@ -177,7 +174,7 @@ namespace bs
 					Line2 lineNext(lineNextPoint, diffNext);
 
 					auto intersect = linePrev.Intersects(lineNext);
-					if (intersect.second != 0.0f) // Not parallel
+					if(intersect.second != 0.0f) // Not parallel
 						curPoints[j] = linePrev.GetPoint(intersect.second);
 					else
 						curPoints[j] = lineNextPoint;
@@ -186,7 +183,7 @@ namespace bs
 					outVertices += vertexStride;
 				}
 
-				if (!indexed)
+				if(!indexed)
 				{
 					memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
 					outVertices += vertexStride;
@@ -227,7 +224,7 @@ namespace bs
 			memcpy(outVertices, &curPoints[1], sizeof(curPoints[1]));
 			outVertices += vertexStride;
 
-			if (!indexed)
+			if(!indexed)
 			{
 				memcpy(outVertices, &curPoints[0], sizeof(curPoints[0]));
 				outVertices += vertexStride;
@@ -238,12 +235,11 @@ namespace bs
 		}
 	}
 
-	void ShapeMeshes2D::PixelSolidPolygon(const Vector<Vector2>& points, u8* outVertices,
-		u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset)
+	void ShapeMeshes2D::PixelSolidPolygon(const Vector<Vector2>& points, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset)
 	{
 		outVertices += (vertexOffset * vertexStride);
 
-		for (auto& point : points)
+		for(auto& point : points)
 		{
 			Vector2* vertices = (Vector2*)outVertices;
 			(*vertices) = point;
@@ -254,7 +250,7 @@ namespace bs
 		outIndices += indexOffset;
 		i32 numPoints = (i32)points.size();
 		u32 idxCnt = 0;
-		for (int i = 2; i < numPoints; i++)
+		for(int i = 2; i < numPoints; i++)
 		{
 			outIndices[idxCnt++] = vertexOffset;
 			outIndices[idxCnt++] = vertexOffset + i - 1;
@@ -262,8 +258,7 @@ namespace bs
 		}
 	}
 
-	void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, u8* outVertices,
-		u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset)
+	void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, u8* outVertices, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset)
 	{
 		outVertices += (vertexOffset * vertexStride);
 
@@ -277,4 +272,4 @@ namespace bs
 		outIndices[0] = vertexOffset + 0;
 		outIndices[1] = vertexOffset + 1;
 	}
-}
+} // namespace bs

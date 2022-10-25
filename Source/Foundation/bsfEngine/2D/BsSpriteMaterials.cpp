@@ -20,25 +20,23 @@ namespace bs
 
 	ShaderVariation getMaterialVariation(SpriteMaterialTransparency transparency, bool animated)
 	{
-		return ShaderVariation(SmallVector<ShaderVariation::Param, 4>({
-			ShaderVariation::Param("TRANSPARENCY", (i32)transparency),
-			ShaderVariation::Param("ANIMATED", animated)
-			}));
+		return ShaderVariation(SmallVector<ShaderVariation::Param, 4>({ ShaderVariation::Param("TRANSPARENCY", (i32)transparency),
+																		ShaderVariation::Param("ANIMATED", animated) }));
 	}
 
 	SpriteImageMaterial::SpriteImageMaterial(SpriteMaterialTransparency transparency, bool animated)
-		:SpriteMaterial(
-			getMaterialId(transparency, animated),
-			BuiltinResources::Instance().CreateSpriteImageMaterial(),
-			getMaterialVariation(transparency, animated),
-			!animated)
-	{ }
+		: SpriteMaterial(
+			  getMaterialId(transparency, animated),
+			  BuiltinResources::Instance().CreateSpriteImageMaterial(),
+			  getMaterialVariation(transparency, animated),
+			  !animated)
+	{}
 
 	SpriteTextMaterial::SpriteTextMaterial()
 		: SpriteMaterial(6, BuiltinResources::Instance().CreateSpriteTextMaterial())
-	{ }
+	{}
 
 	SpriteLineMaterial::SpriteLineMaterial()
 		: SpriteMaterial(7, BuiltinResources::Instance().CreateSpriteLineMaterial())
-	{ }
-}
+	{}
+} // namespace bs

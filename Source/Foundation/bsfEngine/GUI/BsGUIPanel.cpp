@@ -11,7 +11,7 @@ namespace bs
 {
 	GUIPanel::GUIPanel(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUIDimensions& dimensions)
 		: GUILayout(dimensions), mDepthOffset(depth), mDepthRangeMin(depthRangeMin), mDepthRangeMax(depthRangeMax)
-	{ }
+	{}
 
 	void GUIPanel::SetDepthRange(i16 depth, u16 depthRangeMin, u16 depthRangeMax)
 	{
@@ -27,14 +27,14 @@ namespace bs
 		Vector2I optimalSize;
 		Vector2I minSize;
 
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
-			if (!child->IsActiveInternal())
+			if(!child->IsActiveInternal())
 				continue;
 
 			LayoutSizeRange sizeRange = child->CalculateLayoutSizeRangeInternal();
 
-			if (child->GetTypeInternal() == GUIElementBase::Type::FixedSpace || child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
+			if(child->GetTypeInternal() == GUIElementBase::Type::FixedSpace || child->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 			{
 				sizeRange.Optimal.X = sizeRange.Optimal.Y = 0;
 				sizeRange.Min.X = sizeRange.Min.Y = 0;
@@ -66,7 +66,7 @@ namespace bs
 
 	LayoutSizeRange GUIPanel::GetElementSizeRangeInternal(const GUIElementBase* element) const
 	{
-		if (element->GetTypeInternal() == GUIElementBase::Type::FixedSpace || element->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
+		if(element->GetTypeInternal() == GUIElementBase::Type::FixedSpace || element->GetTypeInternal() == GUIElementBase::Type::FlexibleSpace)
 		{
 			LayoutSizeRange sizeRange = element->GetLayoutSizeRangeInternal();
 			sizeRange.Optimal.X = 0;
@@ -85,18 +85,18 @@ namespace bs
 		// Update all children first, otherwise we can't determine our own optimal size
 		GUIElementBase::UpdateOptimalLayoutSizesInternal();
 
-		if (mChildren.size() != mChildSizeRanges.size())
+		if(mChildren.size() != mChildSizeRanges.size())
 			mChildSizeRanges.resize(mChildren.size());
 
 		Vector2I optimalSize;
 		Vector2I minSize;
 
 		u32 childIdx = 0;
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
 			LayoutSizeRange& childSizeRange = mChildSizeRanges[childIdx];
 
-			if (child->IsActiveInternal())
+			if(child->IsActiveInternal())
 			{
 				childSizeRange = GetElementSizeRangeInternal(child);
 
@@ -127,14 +127,13 @@ namespace bs
 		mSizeRange.Min.Y = std::max(mSizeRange.Min.Y, minSize.Y);
 	}
 
-	void GUIPanel::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-		const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
+	void GUIPanel::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 	{
 		assert(mChildren.size() == numElements);
 
 		// Panel always uses optimal sizes and explicit positions
 		u32 childIdx = 0;
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
 			elementAreas[childIdx] = GetElementAreaInternal(layoutArea, child, sizeRanges[childIdx]);
 
@@ -151,40 +150,40 @@ namespace bs
 		area.X = layoutArea.X + dimensions.X;
 		area.Y = layoutArea.Y + dimensions.Y;
 
-		if (dimensions.FixedWidth())
+		if(dimensions.FixedWidth())
 			area.Width = (u32)sizeRange.Optimal.X;
 		else
 		{
 			u32 modifiedWidth = (u32)std::max(0, (i32)layoutArea.Width - dimensions.X);
 
-			if (modifiedWidth > (u32)sizeRange.Optimal.X)
+			if(modifiedWidth > (u32)sizeRange.Optimal.X)
 			{
-				if (sizeRange.Max.X > 0)
+				if(sizeRange.Max.X > 0)
 					modifiedWidth = std::min(modifiedWidth, (u32)sizeRange.Max.X);
 			}
-			else if (modifiedWidth < (u32)sizeRange.Optimal.X)
+			else if(modifiedWidth < (u32)sizeRange.Optimal.X)
 			{
-				if (sizeRange.Min.X > 0)
+				if(sizeRange.Min.X > 0)
 					modifiedWidth = std::max(modifiedWidth, (u32)sizeRange.Min.X);
 			}
 
 			area.Width = modifiedWidth;
 		}
 
-		if (dimensions.FixedHeight())
+		if(dimensions.FixedHeight())
 			area.Height = (u32)sizeRange.Optimal.Y;
 		else
 		{
 			u32 modifiedHeight = (u32)std::max(0, (i32)layoutArea.Height - dimensions.Y);
 
-			if (modifiedHeight > (u32)sizeRange.Optimal.Y)
+			if(modifiedHeight > (u32)sizeRange.Optimal.Y)
 			{
-				if (sizeRange.Max.Y > 0)
+				if(sizeRange.Max.Y > 0)
 					modifiedHeight = std::min(modifiedHeight, (u32)sizeRange.Max.Y);
 			}
-			else if (modifiedHeight < (u32)sizeRange.Optimal.Y)
+			else if(modifiedHeight < (u32)sizeRange.Optimal.Y)
 			{
-				if (sizeRange.Min.Y > 0)
+				if(sizeRange.Min.Y > 0)
 					modifiedHeight = std::max(modifiedHeight, (u32)sizeRange.Min.Y);
 			}
 
@@ -202,7 +201,7 @@ namespace bs
 
 		i32* allDepths[3] = { &newPanelDepth, &newPanelDepthRangeMin, &newPanelDepthRangeMax };
 
-		for (auto& depth : allDepths)
+		for(auto& depth : allDepths)
 		{
 			i32 minValue = std::max((i32)data.GetPanelDepth() - (i32)data.DepthRangeMin, (i32)std::numeric_limits<i16>::min());
 			*depth = std::max(*depth, minValue);
@@ -213,10 +212,10 @@ namespace bs
 
 		data.SetPanelDepth((i16)newPanelDepth);
 
-		if (mDepthRangeMin != (u16)-1 || data.DepthRangeMin != (u16)-1)
+		if(mDepthRangeMin != (u16)-1 || data.DepthRangeMin != (u16)-1)
 			data.DepthRangeMin = (u16)(newPanelDepth - newPanelDepthRangeMin);
 
-		if (mDepthRangeMax != (u16)-1 || data.DepthRangeMax != (u16)-1)
+		if(mDepthRangeMax != (u16)-1 || data.DepthRangeMax != (u16)-1)
 			data.DepthRangeMax = (u16)(newPanelDepthRangeMax - newPanelDepth);
 	}
 
@@ -228,16 +227,16 @@ namespace bs
 		u32 numElements = (u32)mChildren.size();
 		Rect2I* elementAreas = nullptr;
 
-		if (numElements > 0)
+		if(numElements > 0)
 			elementAreas = bs_stack_new<Rect2I>(numElements);
 
 		GetElementAreasInternal(data.Area, elementAreas, numElements, mChildSizeRanges, mSizeRange);
 
 		u32 childIdx = 0;
 
-		for (auto& child : mChildren)
+		for(auto& child : mChildren)
 		{
-			if (child->IsActiveInternal())
+			if(child->IsActiveInternal())
 			{
 				childData.Area = elementAreas[childIdx];
 
@@ -247,7 +246,7 @@ namespace bs
 			childIdx++;
 		}
 
-		if (elementAreas != nullptr)
+		if(elementAreas != nullptr)
 			bs_stack_free(elementAreas);
 	}
 
@@ -276,4 +275,4 @@ namespace bs
 	{
 		return bs_new<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create(options));
 	}
-}
+} // namespace bs

@@ -47,8 +47,7 @@ namespace bs
 		static GUIDropDownDataEntry Separator();
 
 		/** Creates a new button entry with the specified callback that is triggered when button is selected. */
-		static GUIDropDownDataEntry Button(const String& label, std::function<void()> callback,
-			const String& shortcutTag = StringUtil::BLANK);
+		static GUIDropDownDataEntry Button(const String& label, std::function<void()> callback, const String& shortcutTag = StringUtil::BLANK);
 
 		/** Creates a new sub-menu entry that will open the provided drop down data sub-menu when activated. */
 		static GUIDropDownDataEntry SubMenu(const String& label, const GUIDropDownData& data);
@@ -70,8 +69,9 @@ namespace bs
 
 		/**	Returns sub-menu data that is used for creating a sub-menu (if an entry is a sub-menu). */
 		const GUIDropDownData& GetSubMenuData() const { return mChildData; }
+
 	private:
-		GUIDropDownDataEntry() { }
+		GUIDropDownDataEntry() {}
 
 		std::function<void()> mCallback;
 		GUIDropDownData mChildData;
@@ -130,8 +130,7 @@ namespace bs
 			 *								hierarchy to be in front of lower levels, so you should increase this value for
 			 *								each level of the sub-menu hierarchy.
 			 */
-			DropDownSubMenu(GUIDropDownMenu* owner, DropDownSubMenu* parent, const DropDownAreaPlacement& placement,
-				const Rect2I& availableBounds, const GUIDropDownData& dropDownData, GUIDropDownType type, u32 depthOffset);
+			DropDownSubMenu(GUIDropDownMenu* owner, DropDownSubMenu* parent, const DropDownAreaPlacement& placement, const Rect2I& availableBounds, const GUIDropDownData& dropDownData, GUIDropDownType type, u32 depthOffset);
 			~DropDownSubMenu();
 
 			/**	Recreates all internal GUI elements for the entries of the current sub-menu page. */
@@ -224,7 +223,7 @@ namespace bs
 		void DropDownFocusLost();
 
 		/** @copydoc CGUIWidget::onDestroyed */
-		void OnDestroyed() ;
+		void OnDestroyed();
 
 	private:
 		static const u32 DROP_DOWN_BOX_WIDTH;
@@ -249,4 +248,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

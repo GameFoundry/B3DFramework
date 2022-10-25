@@ -15,7 +15,7 @@ namespace bs
 	/**
 	 * Determines how will the drop down box be positioned. Usually the system will attempt to position the drop box in a
 	 * way so all elements can fit, and this class allows you to specify some limitations on how that works.
-	 * 			
+	 *
 	 * @note	For example, list boxes usually want drop down boxes to be placed above or below them, while
 	 * 			context menus may want to have them placed around a single point in any direction.
 	 */
@@ -37,7 +37,8 @@ namespace bs
 		 */
 		enum class HorzDir
 		{
-			Left, Right
+			Left,
+			Right
 		};
 
 		/**
@@ -45,7 +46,8 @@ namespace bs
 		 */
 		enum class VertDir
 		{
-			Up, Down
+			Up,
+			Down
 		};
 
 		DropDownAreaPlacement() = default;
@@ -63,7 +65,7 @@ namespace bs
 		 * it with the top of the bounds if it offers more space for the contents.
 		 */
 		static DropDownAreaPlacement AroundBoundsVert(const Rect2I& bounds);
-		
+
 		/**
 		 * Drop down box will be placed at the specified bounds. Box will be vertically aligned to the top of the provided
 		 * bounds. Horizontally system prefers placing the box at the right of the bounds, but may choose to align it with
@@ -99,8 +101,7 @@ namespace bs
 		 * @param[in]	vertDir			Output parameter that signals the preferred vertical direction of the bounds
 		 *								(up or down).
 		 */
-		Rect2I GetOptimalBounds(u32 width, u32 height, const Rect2I& availableArea, HorzDir& horzDir,
-			VertDir& vertDir) const;
+		Rect2I GetOptimalBounds(u32 width, u32 height, const Rect2I& availableArea, HorzDir& horzDir, VertDir& vertDir) const;
 
 	private:
 		Type mType;
@@ -109,4 +110,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

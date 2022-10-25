@@ -18,17 +18,17 @@ namespace bs
 	/**	Specifies how is text horizontally aligned within its bounds. */
 	enum BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextHorzAlign
 	{
-		THA_Left	BS_SCRIPT_EXPORT(ExportName(Left)),
-		THA_Center	BS_SCRIPT_EXPORT(ExportName(Center)),
-		THA_Right	BS_SCRIPT_EXPORT(ExportName(Right))
+		THA_Left BS_SCRIPT_EXPORT(ExportName(Left)),
+		THA_Center BS_SCRIPT_EXPORT(ExportName(Center)),
+		THA_Right BS_SCRIPT_EXPORT(ExportName(Right))
 	};
 
 	/**	Specifies how is text vertically aligned within its bounds. */
 	enum BS_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextVertAlign
 	{
-		TVA_Top		BS_SCRIPT_EXPORT(ExportName(Top)),
-		TVA_Center	BS_SCRIPT_EXPORT(ExportName(Center)),
-		TVA_Bottom	BS_SCRIPT_EXPORT(ExportName(Bottom))
+		TVA_Top BS_SCRIPT_EXPORT(ExportName(Top)),
+		TVA_Center BS_SCRIPT_EXPORT(ExportName(Center)),
+		TVA_Bottom BS_SCRIPT_EXPORT(ExportName(Bottom))
 	};
 
 	/**	Text sprite description structure used for initializing or updating a text sprite. */
@@ -79,8 +79,7 @@ namespace bs
 		 * @param[out]	output		Pre-allocated buffer to output the results in. Buffer must have an element
 		 *							for every line in @p textData.
 		 */
-		static void GetAlignmentOffsets(const TextDataBase& textData,
-			u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, Vector2I* output);
+		static void GetAlignmentOffsets(const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, Vector2I* output);
 
 		/**
 		 * Calculates text quads you may use for text rendering, based on the specified text data. Only generates quads for
@@ -101,14 +100,12 @@ namespace bs
 		 * @param[in]	bufferSizeQuads	Size of the output buffers, in number of quads.
 		 * @return						Number of generated quads.
 		 */
-		static u32 GenTextQuads(u32 page, const TextDataBase& textData, u32 width, u32 height,
-			TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices,
-			u32 bufferSizeQuads);
+		static u32 GenTextQuads(u32 page, const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads);
 
 		/**
 		 * Calculates text quads you may use for text rendering, based on the specified text data. Generates quads for all
 		 * pages.
-		 * 			
+		 *
 		 * @param[in]	textData		Text data to generate offsets for.
 		 * @param[in]	width			Width of the text bounds into which to constrain the text, in pixels.
 		 * @param[in]	height			Height of the text bounds into which to constrain the text, in pixels.
@@ -123,9 +120,7 @@ namespace bs
 		 * @param[in]	bufferSizeQuads	Size of the output buffers, in number of quads.
 		 * @return						Number of generated quads.
 		 */
-		static u32 GenTextQuads(const TextDataBase& textData, u32 width, u32 height,
-			TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices,
-			u32 bufferSizeQuads);
+		static u32 GenTextQuads(const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads);
 
 	private:
 		static const int STATIC_CHARS_TO_BUFFER = 25;
@@ -138,4 +133,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

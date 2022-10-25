@@ -21,15 +21,15 @@ namespace bs
 	/** Contains options that change GUIElement behaviour. */
 	enum class GUIElementOption
 	{
-		/** 
+		/**
 		 * Enable this option if you want pointer events to pass through this element by default. This will allow elements
 		 * underneath this element to receive pointer events.
 		 */
 		ClickThrough = 0x01,
 
-		/** 
+		/**
 		 * Enable this option if the element accepts keyboard/gamepad input focus. This will allow the element to be
-		 * navigated to using keys/buttons. 
+		 * navigated to using keys/buttons.
 		 */
 		AcceptsKeyFocus = 0x02
 	};
@@ -70,9 +70,9 @@ namespace bs
 		GUIElement(const char* styleName, const GUIDimensions& dimensions, GUIElementOptions options = GUIElementOptions(0));
 		virtual ~GUIElement() = default;
 
-		/**	
-		 * Change the GUI element focus state. 
-		 * 
+		/**
+		 * Change the GUI element focus state.
+		 *
 		 * @param[in]	enabled		Give the element focus or take it away.
 		 * @param[in]	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
 		 *							the element will just be appended to the in-focus list (if enabling focus).
@@ -103,7 +103,7 @@ namespace bs
 		 */
 		void SetContextMenu(const SPtr<GUIContextMenu>& menu) { mContextMenu = menu; }
 
-		/** 
+		/**
 		 * Sets a navigation group that determines in what order are GUI elements visited when using a keyboard or gamepad
 		 * to switch between the elements. If you don't set a navigation group the elements will inherit the default
 		 * navigation group from their parent GUIWidget. Also see setNavGroupIndex().
@@ -123,9 +123,9 @@ namespace bs
 		Rect2I GetVisibleBounds() override;
 
 		/**
-		 * Destroy the element. Removes it from parent and widget, and queues it for deletion. Element memory will be 
+		 * Destroy the element. Removes it from parent and widget, and queues it for deletion. Element memory will be
 		 * released delayed, next frame.
-		 */	
+		 */
 		static void Destroy(GUIElement* element);
 
 		/**	Triggered when the element loses or gains focus. */
@@ -144,7 +144,7 @@ namespace bs
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
-		 * 			
+		 *
 		 * @param[out]	vertices			Previously allocated buffer where to store the vertices. Output is expected
 		 *									to match the GUIMeshType as returned by getRenderElements() for the specified
 		 *									element.
@@ -187,11 +187,11 @@ namespace bs
 		/**
 		 * Called when some text is input and the GUI element has input focus. Return true if you have processed the event
 		 * and don't want other elements to process it.
-		 */	
+		 */
 		virtual bool TextInputEventInternal(const GUITextInputEvent& ev);
 
 		/**
-		 * Called when a command event is triggered. Return true if you have processed the event and don't want other 
+		 * Called when a command event is triggered. Return true if you have processed the event and don't want other
 		 * elements to process it.
 		 */
 		virtual bool CommandEventInternal(const GUICommandEvent& ev);
@@ -217,7 +217,7 @@ namespace bs
 		/**
 		 * Returns the range of depths that the child elements can be rendered it.
 		 *
-		 * @note	
+		 * @note
 		 * For example if you are rendering a button with an image and a text you will want the text to be rendered in front
 		 * of the image at a different depth, which means the depth range is 2 (0 for text, 1 for background image).
 		 */
@@ -238,9 +238,9 @@ namespace bs
 		/**	Gets GUI element bounds relative to parent widget, clipped by specified clip rect. */
 		const Rect2I& GetClippedBoundsInternal() const { return mClippedBounds; }
 
-		/** 
-		 * Returns GUI element padding. Padding is modified by changing element style and determines minimum distance 
-		 * between different GUI elements. 
+		/**
+		 * Returns GUI element padding. Padding is modified by changing element style and determines minimum distance
+		 * between different GUI elements.
 		 */
 		const RectOffset& GetPaddingInternal() const override;
 
@@ -273,13 +273,12 @@ namespace bs
 
 		/**	Returns a clip rectangle relative to the element, used for clipping	the input text. */
 		virtual Rect2I GetTextInputRectInternal() const { return Rect2I(); }
-		
+
 		/** @} */
 
 	protected:
-
 		/**
-		 * Called whenever element clipped bounds need to be recalculated. (for example when width, height or clip 
+		 * Called whenever element clipped bounds need to be recalculated. (for example when width, height or clip
 		 * rectangles changes).
 		 */
 		virtual void UpdateClippedBounds();
@@ -288,7 +287,7 @@ namespace bs
 		 * Helper method that returns style name used by an element of a certain type. If override style is empty, default
 		 * style for that type is returned.
 		 */
-		template<class T>
+		template <class T>
 		static const String& GetStyleName(const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::BLANK)
@@ -304,7 +303,7 @@ namespace bs
 		const String& GetSubStyleName(const String& subStyleTypeName) const;
 
 		/**	Method that gets triggered whenever element style changes. */
-		virtual void StyleUpdated() { }
+		virtual void StyleUpdated() {}
 
 		/**	Returns clipped bounds excluding the margins. Relative to parent widget. */
 		Rect2I GetCachedVisibleBounds() const;
@@ -325,7 +324,7 @@ namespace bs
 		GUIElementOptions mOptionFlags;
 		Rect2I mClippedBounds;
 		SmallVector<GUIRenderElement, 4> mRenderElements;
-		
+
 	private:
 		static const Color DISABLED_COLOR;
 
@@ -353,8 +352,8 @@ namespace bs
 			{
 				SpriteInfo(Sprite* sprite, u32 depth = 0, GUIMeshType meshType = GUIMeshType::Triangle)
 					: Sprite(sprite), Depth(depth), MeshType(meshType)
-				{ }
-				
+				{}
+
 				Sprite* Sprite;
 				u32 Depth = 0;
 				GUIMeshType MeshType = GUIMeshType::Triangle;
@@ -364,20 +363,20 @@ namespace bs
 			 * Determines the total number of requires render elements from the provided set of sprites, and initializes that
 			 * many render elements from the sprite render elements and the extra information provided in SpriteInfo.
 			 */
-			template<u32 N>
+			template <u32 N>
 			static void Populate(const SpriteInfo (&spriteInfos)[N], SmallVector<GUIRenderElement, 4>& output)
 			{
 				u32 totalCount = 0;
-				for (u32 i = 0; i < N; i++)
+				for(u32 i = 0; i < N; i++)
 					totalCount += spriteInfos[i].Sprite ? spriteInfos[i].Sprite->GetNumRenderElements() : 0;
 
 				output.Resize(totalCount);
 
 				u32 globalIdx = 0;
-				for (u32 i = 0; i < N; i++)
+				for(u32 i = 0; i < N; i++)
 				{
 					const SpriteInfo& spriteInfo = spriteInfos[i];
-					
+
 					u32 count = spriteInfo.Sprite ? spriteInfo.Sprite->GetNumRenderElements() : 0;
 					for(u32 j = 0; j < count; j++)
 					{
@@ -386,13 +385,13 @@ namespace bs
 
 						renderElem.Depth = spriteInfo.Depth;
 						renderElem.Type = spriteInfo.MeshType;
-						
+
 						globalIdx++;
 					}
 				}
 			}
 		};
-	}
+	} // namespace impl
 
 	/** @endcond */
-}
+} // namespace bs

@@ -48,7 +48,7 @@ namespace bs
 				default:
 				case SpriteMaterialTransparency::Opaque:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageOpaque]);
-				case SpriteMaterialTransparency::Alpha: 
+				case SpriteMaterialTransparency::Alpha:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageTransparentAlpha]);
 				case SpriteMaterialTransparency::Premultiplied:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageTransparentPremultiplied]);
@@ -61,7 +61,7 @@ namespace bs
 				default:
 				case SpriteMaterialTransparency::Opaque:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageOpaqueAnimated]);
-				case SpriteMaterialTransparency::Alpha: 
+				case SpriteMaterialTransparency::Alpha:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageTransparentAlphaAnimated]);
 				case SpriteMaterialTransparency::Premultiplied:
 					return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::ImageTransparentPremultipliedAnimated]);
@@ -71,11 +71,15 @@ namespace bs
 
 		/** Returns the material used for rendering text sprites. */
 		SpriteMaterial* GetTextMaterial() const
-			{ return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::Text]); }
+		{
+			return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::Text]);
+		}
 
 		/** Returns the material used for rendering antialiased lines. */
 		SpriteMaterial* GetLineMaterial() const
-			{ return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::Line]); }
+		{
+			return GetMaterial(builtinMaterialIds[(u32)BuiltinSpriteMaterialType::Line]);
+		}
 
 		/** Returns a sprite material with the specified ID. Returns null if one cannot be found. */
 		SpriteMaterial* GetMaterial(u32 id) const;
@@ -87,13 +91,13 @@ namespace bs
 		 * @return	Newly created material, or at existing one if one already exists.
 		 */
 		template <class T, class... Args>
-		SpriteMaterial* RegisterMaterial(Args &&...args)
+		SpriteMaterial* RegisterMaterial(Args&&... args)
 		{
 			SpriteMaterial* newMaterial = bs_new<T>(std::forward<Args>(args)...);
-			
+
 			u32 id = newMaterial->GetId();
 			auto iterFind = mMaterials.find(id);
-			if (iterFind != mMaterials.end())
+			if(iterFind != mMaterials.end())
 			{
 				// Already exists
 				BS_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");
@@ -104,10 +108,11 @@ namespace bs
 			mMaterials[id] = newMaterial;
 			return newMaterial;
 		}
+
 	private:
 		UnorderedMap<u32, SpriteMaterial*> mMaterials;
 		u32 builtinMaterialIds[(u32)BuiltinSpriteMaterialType::Count]{};
 	};
 
 	/** @} */
-}
+} // namespace bs

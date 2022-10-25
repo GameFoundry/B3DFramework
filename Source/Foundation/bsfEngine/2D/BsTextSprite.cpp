@@ -18,28 +18,27 @@ namespace bs
 		bs_frame_mark();
 		{
 			const U32String utf32text = UTF8::ToUtF32(desc.Text);
-			TextData<FrameAlloc> textData(utf32text, desc.Font, desc.FontSize, desc.Width, desc.Height, desc.WordWrap,
-				desc.WordBreak);
+			TextData<FrameAlloc> textData(utf32text, desc.Font, desc.FontSize, desc.Width, desc.Height, desc.WordWrap, desc.WordBreak);
 
 			u32 numPages = textData.GetNumPages();
 
 			// Free all previous memory
-			for (auto& cachedElem : mCachedRenderElements)
+			for(auto& cachedElem : mCachedRenderElements)
 			{
-				if (cachedElem.Vertices != nullptr) mAlloc.Free(cachedElem.Vertices);
-				if (cachedElem.Uvs != nullptr) mAlloc.Free(cachedElem.Uvs);
-				if (cachedElem.Indexes != nullptr) mAlloc.Free(cachedElem.Indexes);
+				if(cachedElem.Vertices != nullptr) mAlloc.Free(cachedElem.Vertices);
+				if(cachedElem.Uvs != nullptr) mAlloc.Free(cachedElem.Uvs);
+				if(cachedElem.Indexes != nullptr) mAlloc.Free(cachedElem.Indexes);
 			}
 
 			mAlloc.Clear();
 
 			// Resize cached mesh array to needed size
-			if (mCachedRenderElements.size() != numPages)
+			if(mCachedRenderElements.size() != numPages)
 				mCachedRenderElements.resize(numPages);
 
 			// Actually generate a mesh
 			u32 texPage = 0;
-			for (auto& cachedElem : mCachedRenderElements)
+			for(auto& cachedElem : mCachedRenderElements)
 			{
 				u32 newNumQuads = textData.GetNumQuadsForPage(texPage);
 
@@ -62,12 +61,11 @@ namespace bs
 			}
 
 			// Calc alignment and anchor offsets and set final line positions
-			for (u32 j = 0; j < numPages; j++)
+			for(u32 j = 0; j < numPages; j++)
 			{
 				SpriteRenderElementData& renderElem = mCachedRenderElements[j];
 
-				GenTextQuads(j, textData, desc.Width, desc.Height, desc.HorzAlign, desc.VertAlign, desc.Anchor,
-					renderElem.Vertices, renderElem.Uvs, renderElem.Indexes, renderElem.NumQuads);
+				GenTextQuads(j, textData, desc.Width, desc.Height, desc.HorzAlign, desc.VertAlign, desc.Anchor, renderElem.Vertices, renderElem.Uvs, renderElem.Indexes, renderElem.NumQuads);
 			}
 		}
 
@@ -76,8 +74,7 @@ namespace bs
 		UpdateBounds();
 	}
 
-	u32 TextSprite::GenTextQuads(u32 page, const TextDataBase& textData, u32 width, u32 height,
-		TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads)
+	u32 TextSprite::GenTextQuads(u32 page, const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads)
 	{
 		u32 numLines = textData.GetNumLines();
 		u32 newNumQuads = textData.GetNumQuadsForPage(page);
@@ -107,9 +104,7 @@ namespace bs
 		return newNumQuads;
 	}
 
-
-	u32 TextSprite::GenTextQuads(const TextDataBase& textData, u32 width, u32 height,
-		TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads)
+	u32 TextSprite::GenTextQuads(const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads)
 	{
 		u32 numLines = textData.GetNumLines();
 		u32 numPages = textData.GetNumPages();
@@ -119,7 +114,7 @@ namespace bs
 		Vector2I offset = GetAnchorOffset(anchor, width, height);
 
 		u32 quadOffset = 0;
-		
+
 		for(u32 i = 0; i < numLines; i++)
 		{
 			const TextDataBase::TextLine& line = textData.GetLine(i);
@@ -144,8 +139,7 @@ namespace bs
 		return quadOffset;
 	}
 
-	void TextSprite::GetAlignmentOffsets(const TextDataBase& textData,
-		u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, Vector2I* output)
+	void TextSprite::GetAlignmentOffsets(const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, Vector2I* output)
 	{
 		u32 numLines = textData.GetNumLines();
 		u32 curHeight = 0;
@@ -198,21 +192,21 @@ namespace bs
 
 	void TextSprite::ClearMesh()
 	{
-		for (auto& renderElem : mCachedRenderElements)
+		for(auto& renderElem : mCachedRenderElements)
 		{
-			if (renderElem.Vertices != nullptr)
+			if(renderElem.Vertices != nullptr)
 			{
 				mAlloc.Free(renderElem.Vertices);
 				renderElem.Vertices = nullptr;
 			}
 
-			if (renderElem.Uvs != nullptr)
+			if(renderElem.Uvs != nullptr)
 			{
 				mAlloc.Free(renderElem.Uvs);
 				renderElem.Uvs = nullptr;
 			}
 
-			if (renderElem.Indexes != nullptr)
+			if(renderElem.Indexes != nullptr)
 			{
 				mAlloc.Free(renderElem.Indexes);
 				renderElem.Indexes = nullptr;
@@ -224,4 +218,4 @@ namespace bs
 
 		UpdateBounds();
 	}
-}
+} // namespace bs

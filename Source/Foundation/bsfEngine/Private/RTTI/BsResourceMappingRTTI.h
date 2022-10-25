@@ -23,7 +23,7 @@ namespace bs
 		BS_END_RTTI_MEMBERS
 
 	public:
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "ResourceMapping";
 			return name;
@@ -34,7 +34,7 @@ namespace bs
 			return TID_ResourceMapping;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return ResourceMapping::Create();
 		}
@@ -42,4 +42,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

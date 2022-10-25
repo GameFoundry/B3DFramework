@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Base class for a clickable GUI button element. */	
+	/**	Base class for a clickable GUI button element. */
 	class BS_EXPORT GUIButtonBase : public GUIElement
 	{
 	public:
@@ -62,8 +62,7 @@ namespace bs
 
 		/** @} */
 	protected:
-		GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions,
-			GUIElementOptions options = GUIElementOption::AcceptsKeyFocus);
+		GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions, GUIElementOptions options = GUIElementOption::AcceptsKeyFocus);
 		virtual ~GUIButtonBase();
 
 		/** @copydoc GUIElement::_fillBuffer */
@@ -75,10 +74,10 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal() ;
+		void UpdateRenderElementsInternal();
 
 		/** @copydoc GUIElement::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
@@ -90,7 +89,7 @@ namespace bs
 		String GetTooltipInternal() const override;
 
 		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated() ;
+		void StyleUpdated();
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void RefreshContentSprite();
@@ -106,6 +105,7 @@ namespace bs
 
 		/**	Returns the active text color, depending on the current state. */
 		Color GetActiveTextColor() const;
+
 	private:
 		ImageSprite* mImageSprite;
 		ImageSprite* mContentImageSprite = nullptr;
@@ -119,4 +119,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

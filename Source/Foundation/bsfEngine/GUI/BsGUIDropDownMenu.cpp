@@ -56,7 +56,7 @@ namespace bs
 	}
 
 	GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX_DESC& desc, GUIDropDownType type)
-		:CGUIWidget(parent, desc.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
+		: CGUIWidget(parent, desc.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
 	{
 		String stylePrefix = "";
 		switch(type)
@@ -124,7 +124,6 @@ namespace bs
 
 	GUIDropDownMenu::~GUIDropDownMenu()
 	{
-
 	}
 
 	void GUIDropDownMenu::OnDestroyed()
@@ -156,7 +155,7 @@ namespace bs
 
 		mBackHitBox->SetBounds(bounds);
 
-		for (auto& additionalBound : mAdditionalCaptureBounds)
+		for(auto& additionalBound : mAdditionalCaptureBounds)
 			bounds.push_back(additionalBound);
 
 		mFrontHitBox->SetBounds(bounds);
@@ -173,20 +172,15 @@ namespace bs
 		}
 
 		mBackHitBox->SetBounds(bounds);
-		
-		for (auto& additionalBound : mAdditionalCaptureBounds)
+
+		for(auto& additionalBound : mAdditionalCaptureBounds)
 			bounds.push_back(additionalBound);
 
 		mFrontHitBox->SetBounds(bounds);
 	}
 
-	GUIDropDownMenu::DropDownSubMenu::DropDownSubMenu(GUIDropDownMenu* owner, DropDownSubMenu* parent,
-		const DropDownAreaPlacement& placement, const Rect2I& availableBounds, const GUIDropDownData& dropDownData,
-		GUIDropDownType type, u32 depthOffset)
-		: MOwner(owner), MType(type), MData(dropDownData), MPage(0), X(0), Y(0), Width(0), Height(0)
-		, MDepthOffset(depthOffset), MOpenedUpward(false), MContent(nullptr), MBackgroundFrame(nullptr)
-		, MBackgroundPanel(nullptr), MContentPanel(nullptr), MContentLayout(nullptr), MSidebarPanel(nullptr)
-		, MParent(parent), MSubMenu(nullptr)
+	GUIDropDownMenu::DropDownSubMenu::DropDownSubMenu(GUIDropDownMenu* owner, DropDownSubMenu* parent, const DropDownAreaPlacement& placement, const Rect2I& availableBounds, const GUIDropDownData& dropDownData, GUIDropDownType type, u32 depthOffset)
+		: MOwner(owner), MType(type), MData(dropDownData), MPage(0), X(0), Y(0), Width(0), Height(0), MDepthOffset(depthOffset), MOpenedUpward(false), MContent(nullptr), MBackgroundFrame(nullptr), MBackgroundPanel(nullptr), MContentPanel(nullptr), MContentLayout(nullptr), MSidebarPanel(nullptr), MParent(parent), MSubMenu(nullptr)
 	{
 		MAvailableBounds = availableBounds;
 
@@ -222,7 +216,7 @@ namespace bs
 
 		u32 maxNeededHeight = backgroundStyle->Margins.Top + backgroundStyle->Margins.Bottom;
 		u32 numElements = (u32)dropDownData.Entries.size();
-		for (u32 i = 0; i < numElements; i++)
+		for(u32 i = 0; i < numElements; i++)
 			maxNeededHeight += MContent->GetElementHeight(i);
 
 		DropDownAreaPlacement::HorzDir horzDir;
@@ -232,7 +226,7 @@ namespace bs
 		MOpenedUpward = vertDir == DropDownAreaPlacement::VertDir::Up;
 
 		u32 actualY = placementBounds.Y;
-		if (MOpenedUpward)
+		if(MOpenedUpward)
 			Y = placementBounds.Y + placementBounds.Height;
 		else
 			Y = placementBounds.Y;
@@ -262,7 +256,7 @@ namespace bs
 		GUILayout::Destroy(MBackgroundPanel);
 		GUILayout::Destroy(MContentPanel);
 
-		if (MSidebarPanel != nullptr)
+		if(MSidebarPanel != nullptr)
 			GUIPanel::Destroy(MSidebarPanel);
 	}
 
@@ -277,17 +271,17 @@ namespace bs
 		curPageInfo.End = 0;
 		curPageInfo.Idx = 0;
 		curPageInfo.Height = backgroundStyle->Margins.Top + backgroundStyle->Margins.Bottom;
-		
+
 		Vector<PageInfo> pageInfos;
-		for (i32 i = 0; i < numElements; i++)
+		for(i32 i = 0; i < numElements; i++)
 		{
 			curPageInfo.Height += MContent->GetElementHeight((u32)i);
 			curPageInfo.End++;
 
-			if (curPageInfo.Height > Height)
+			if(curPageInfo.Height > Height)
 			{
 				// Remove last few elements until we fit again
-				while (curPageInfo.Height > Height && i >= 0)
+				while(curPageInfo.Height > Height && i >= 0)
 				{
 					curPageInfo.Height -= MContent->GetElementHeight((u32)i);
 					curPageInfo.End--;
@@ -296,7 +290,7 @@ namespace bs
 				}
 
 				// Nothing fits, break out of infinite loop
-				if (curPageInfo.Start >= curPageInfo.End)
+				if(curPageInfo.Start >= curPageInfo.End)
 					break;
 
 				pageInfos.push_back(curPageInfo);
@@ -308,7 +302,7 @@ namespace bs
 			}
 		}
 
-		if (curPageInfo.Start < curPageInfo.End)
+		if(curPageInfo.Start < curPageInfo.End)
 			pageInfos.push_back(curPageInfo);
 
 		return pageInfos;
@@ -332,7 +326,7 @@ namespace bs
 		u32 pageStart = 0, pageEnd = 0;
 		u32 pageHeight = 0;
 		u32 pageCount = (u32)pageInfos.size();
-		if (pageCount > MPage)
+		if(pageCount > MPage)
 		{
 			pageStart = pageInfos[MPage].Start;
 			pageEnd = pageInfos[MPage].End;
@@ -341,17 +335,17 @@ namespace bs
 
 		i32 actualY = Y;
 
-		if (MOpenedUpward)
+		if(MOpenedUpward)
 			actualY -= (i32)pageHeight;
 
 		// Add sidebar if needed
 		u32 contentOffset = 0;
-		if (pageInfos.size() > 1)
+		if(pageInfos.size() > 1)
 		{
 			u32 sidebarHeight = pageHeight - 2;
 			contentOffset = sideBarStyle->Width;
 
-			if (MSidebarPanel == nullptr)
+			if(MSidebarPanel == nullptr)
 			{
 				MSidebarPanel = MOwner->GetPanel()->AddNewElement<GUIPanel>();
 
@@ -398,7 +392,7 @@ namespace bs
 		}
 		else
 		{
-			if (MSidebarPanel != nullptr)
+			if(MSidebarPanel != nullptr)
 			{
 				GUIPanel::Destroy(MSidebarPanel);
 				MSidebarPanel = nullptr;
@@ -407,7 +401,7 @@ namespace bs
 
 		MContent->SetRange(pageStart, pageEnd);
 
-		if (MSubMenu == nullptr)
+		if(MSubMenu == nullptr)
 			MContent->SetKeyboardFocus(true);
 
 		// Resize and reposition areas
@@ -428,7 +422,7 @@ namespace bs
 	void GUIDropDownMenu::DropDownSubMenu::ScrollDown()
 	{
 		MPage++;
-		if (MPage == (u32)GetPageInfos().size())
+		if(MPage == (u32)GetPageInfos().size())
 			MPage = 0;
 
 		UpdateGuiElements();
@@ -438,7 +432,7 @@ namespace bs
 
 	void GUIDropDownMenu::DropDownSubMenu::ScrollUp()
 	{
-		if (MPage > 0)
+		if(MPage > 0)
 			MPage--;
 		else
 			MPage = (u32)GetPageInfos().size() - 1;
@@ -478,27 +472,26 @@ namespace bs
 	{
 		CloseSubMenu();
 
-		if (!MData.Entries[idx].IsSubMenu())
+		if(!MData.Entries[idx].IsSubMenu())
 		{
 			auto callback = MData.Entries[idx].GetCallback();
-			if (callback != nullptr)
+			if(callback != nullptr)
 				callback();
 
-			if (MType != GUIDropDownType::MultiListBox)
+			if(MType != GUIDropDownType::MultiListBox)
 				GUIDropDownBoxManager::Instance().CloseDropDownBox();
 		}
 		else
 		{
 			MContent->SetKeyboardFocus(false);
 
-			MSubMenu = bs_new<DropDownSubMenu>(MOwner, this, DropDownAreaPlacement::AroundBoundsVert(bounds),
-				MAvailableBounds, MData.Entries[idx].GetSubMenuData(), MType, MDepthOffset + 1);
+			MSubMenu = bs_new<DropDownSubMenu>(MOwner, this, DropDownAreaPlacement::AroundBoundsVert(bounds), MAvailableBounds, MData.Entries[idx].GetSubMenuData(), MType, MDepthOffset + 1);
 		}
 	}
 
 	void GUIDropDownMenu::DropDownSubMenu::Close()
 	{
-		if (MParent != nullptr)
+		if(MParent != nullptr)
 			MParent->CloseSubMenu();
 		else // We're the last sub-menu, close the whole thing
 			GUIDropDownBoxManager::Instance().CloseDropDownBox();
@@ -508,4 +501,4 @@ namespace bs
 	{
 		CloseSubMenu();
 	}
-}
+} // namespace bs

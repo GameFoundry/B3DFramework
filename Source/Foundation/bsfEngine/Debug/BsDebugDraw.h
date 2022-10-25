@@ -11,7 +11,10 @@
 
 namespace bs
 {
-	namespace ct { class DebugDrawRenderer; }
+	namespace ct
+	{
+		class DebugDrawRenderer;
+	}
 
 	/** @addtogroup Utility-Engine
 	 *  @{
@@ -20,7 +23,9 @@ namespace bs
 	/**	Supported types of materials (shaders) by DebugDraw. */
 	enum class DebugDrawMaterial
 	{
-		Solid, Wire, Line
+		Solid,
+		Wire,
+		Line
 	};
 
 	/** Provides an easy access to draw basic 2D and 3D shapes, primarily meant for debugging purposes. */
@@ -56,8 +61,7 @@ namespace bs
 		 * @param[in]	radius		Radius of the base of the cone.
 		 * @param[in]	scale		Scale applied to cone's disc width & height. Allows you to create elliptical cones.
 		 */
-		void DrawCone(const Vector3& base, const Vector3& normal, float height, float radius,
-			const Vector2& scale = Vector2::ONE);
+		void DrawCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE);
 
 		/**
 		 * Draws a solid disc.
@@ -88,8 +92,7 @@ namespace bs
 		 * @param[in]	radius		Radius of the base of the cone.
 		 * @param[in]	scale		Scale applied to cone's disc width & height. Allows you to create elliptical cones.
 		 */
-		void DrawWireCone(const Vector3& base, const Vector3& normal, float height, float radius,
-			const Vector2& scale = Vector2::ONE);
+		void DrawWireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE);
 
 		/** Draws a line between two points. */
 		void DrawLine(const Vector3& start, const Vector3& end);
@@ -153,8 +156,8 @@ namespace bs
 		struct MeshRenderData
 		{
 			MeshRenderData(const SPtr<ct::Mesh>& mesh, const SubMesh& subMesh, DebugDrawMaterial type)
-				:Mesh(mesh), SubMesh(subMesh), Type(type)
-			{ }
+				: Mesh(mesh), SubMesh(subMesh), Type(type)
+			{}
 
 			SPtr<ct::Mesh> Mesh;
 			SubMesh SubMesh;
@@ -174,75 +177,74 @@ namespace bs
 
 	namespace ct
 	{
-	/** @addtogroup Utility-Engine-Internal
-	 *  @{
-	 */
-
-	BS_PARAM_BLOCK_BEGIN(DebugDrawParamsDef)
-		BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gViewDir)
-	BS_PARAM_BLOCK_END
-
-	extern DebugDrawParamsDef gDebugDrawParamsDef;
-
-	/** Handles rendering of debug shapes. */
-	class DebugDrawMat : public RendererMaterial<DebugDrawMat>
-	{
-		RMAT_DEF("DebugDraw.bsl");
-
-		/** Helper method used for initializing variations of this material. */
-		template<bool solid, bool line, bool wire>
-		static const ShaderVariation& GetVariation()
-		{
-			static ShaderVariation variation = ShaderVariation(
-			{
-				ShaderVariation::Param("SOLID", solid),
-				ShaderVariation::Param("LINE", line),
-				ShaderVariation::Param("WIRE", wire)
-			});
-
-			return variation;
-		}
-	public:
-		DebugDrawMat();
-
-		/** Executes the material using the provided parameters. */
-		void Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
-
-		/** Returns the material variation matching the provided parameters. */
-		static DebugDrawMat* GetVariation(DebugDrawMaterial drawMat);
-	};
-
-	/** Performs rendering of meshes provided by DebugDraw. */
-	class DebugDrawRenderer : public RendererExtension
-	{
-		friend class bs::DebugDraw;
-
-	public:
-		DebugDrawRenderer();
-
-	private:
-		/**	@copydoc RendererExtension::initialize */
-		void Initialize(const Any& data) override;
-
-		/**	@copydoc RendererExtension::check */
-		RendererExtensionRequest Check(const ct::Camera& camera) override;
-
-		/**	@copydoc RendererExtension::render */
-		void Render(const Camera& camera, const RendererViewContext& viewContext) override;
-
-		/**
-		 * Updates the internal data that is used for rendering. Normally you would call this after updating the meshes
-		 * on the sim thread.
-		 *
-		 * @param[in]	meshes			Meshes to render.
+		/** @addtogroup Utility-Engine-Internal
+		 *  @{
 		 */
-		void UpdateData(const Vector<DebugDraw::MeshRenderData>& meshes);
 
-		Vector<DebugDraw::MeshRenderData> mMeshes;
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-	};
+		BS_PARAM_BLOCK_BEGIN(DebugDrawParamsDef)
+			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+			BS_PARAM_BLOCK_ENTRY(Vector4, gViewDir)
+		BS_PARAM_BLOCK_END
 
-	/** @} */
-	}
-}
+		extern DebugDrawParamsDef gDebugDrawParamsDef;
+
+		/** Handles rendering of debug shapes. */
+		class DebugDrawMat : public RendererMaterial<DebugDrawMat>
+		{
+			RMAT_DEF("DebugDraw.bsl");
+
+			/** Helper method used for initializing variations of this material. */
+			template <bool solid, bool line, bool wire>
+			static const ShaderVariation& GetVariation()
+			{
+				static ShaderVariation variation = ShaderVariation(
+					{ ShaderVariation::Param("SOLID", solid),
+					  ShaderVariation::Param("LINE", line),
+					  ShaderVariation::Param("WIRE", wire) });
+
+				return variation;
+			}
+
+		public:
+			DebugDrawMat();
+
+			/** Executes the material using the provided parameters. */
+			void Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
+
+			/** Returns the material variation matching the provided parameters. */
+			static DebugDrawMat* GetVariation(DebugDrawMaterial drawMat);
+		};
+
+		/** Performs rendering of meshes provided by DebugDraw. */
+		class DebugDrawRenderer : public RendererExtension
+		{
+			friend class bs::DebugDraw;
+
+		public:
+			DebugDrawRenderer();
+
+		private:
+			/**	@copydoc RendererExtension::initialize */
+			void Initialize(const Any& data) override;
+
+			/**	@copydoc RendererExtension::check */
+			RendererExtensionRequest Check(const ct::Camera& camera) override;
+
+			/**	@copydoc RendererExtension::render */
+			void Render(const Camera& camera, const RendererViewContext& viewContext) override;
+
+			/**
+			 * Updates the internal data that is used for rendering. Normally you would call this after updating the meshes
+			 * on the sim thread.
+			 *
+			 * @param[in]	meshes			Meshes to render.
+			 */
+			void UpdateData(const Vector<DebugDraw::MeshRenderData>& meshes);
+
+			Vector<DebugDraw::MeshRenderData> mMeshes;
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

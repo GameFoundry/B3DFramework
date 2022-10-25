@@ -37,4 +37,4 @@ namespace bs
 
 		return plainText;
 	}
-}
+} // namespace bs

@@ -5,8 +5,8 @@
 namespace bs
 {
 	GUISkinEntry::GUISkinEntry(const String& name, const GUIElementStyle& style)
-		:Name(name), Style(style)
-	{ }
+		: Name(name), Style(style)
+	{}
 
 	RTTITypeBase* GUISkinEntry::GetRttiStatic()
 	{
@@ -17,4 +17,4 @@ namespace bs
 	{
 		return GUISkinEntry::GetRttiStatic();
 	}
-}
+} // namespace bs

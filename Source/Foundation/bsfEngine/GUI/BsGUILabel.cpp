@@ -10,7 +10,7 @@
 namespace bs
 {
 	GUILabel::GUILabel(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
-		:GUIElement(styleName, dimensions), mContent(content), mImageSprite(nullptr)
+		: GUIElement(styleName, dimensions), mContent(content), mImageSprite(nullptr)
 	{
 		mTextSprite = bs_new<TextSprite>();
 	}
@@ -19,7 +19,7 @@ namespace bs
 	{
 		bs_delete(mTextSprite);
 
-		if (mImageSprite != nullptr)
+		if(mImageSprite != nullptr)
 			bs_delete(mImageSprite);
 	}
 
@@ -29,27 +29,27 @@ namespace bs
 	}
 
 	void GUILabel::UpdateRenderElementsInternal()
-	{		
+	{
 		const HSpriteTexture& activeTex = GetStyleInternal()->Normal.Texture;
-		if (SpriteTexture::CheckIsLoaded(activeTex))
+		if(SpriteTexture::CheckIsLoaded(activeTex))
 		{
 			mImageDesc.Texture = activeTex;
 
-			if (mImageSprite == nullptr)
+			if(mImageSprite == nullptr)
 				mImageSprite = bs_new<ImageSprite>();
 		}
 		else
 		{
 			mImageDesc.Texture = nullptr;
 
-			if (mImageSprite != nullptr)
+			if(mImageSprite != nullptr)
 			{
 				bs_delete(mImageSprite);
 				mImageSprite = nullptr;
 			}
 		}
 
-		if (mImageSprite != nullptr)
+		if(mImageSprite != nullptr)
 		{
 			mImageDesc.Width = mLayoutData.Area.Width;
 			mImageDesc.Height = mLayoutData.Area.Height;
@@ -71,7 +71,8 @@ namespace bs
 		mDesc.Width = mLayoutData.Area.Width;
 		mDesc.Height = mLayoutData.Area.Height;
 		mDesc.Text = mContent.Text;
-		mDesc.Color = GetTint() * GetStyleInternal()->Normal.TextColor;;
+		mDesc.Color = GetTint() * GetStyleInternal()->Normal.TextColor;
+		;
 
 		mTextSprite->Update(mDesc, (u64)GetParentWidgetInternal());
 
@@ -106,16 +107,14 @@ namespace bs
 
 		u32 imageSpriteIdx = mTextSprite->GetNumRenderElements();
 
-		if (renderElementIdx < imageSpriteIdx)
+		if(renderElementIdx < imageSpriteIdx)
 		{
-			mTextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride,
-				indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
+			mTextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 
 			return;
 		}
 
-		mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-			vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
+		mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, imageSpriteIdx - renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 	}
 
 	void GUILabel::SetContent(const GUIContent& content)
@@ -124,7 +123,7 @@ namespace bs
 		mContent = content;
 		Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 
-		if (origSize != newSize)
+		if(origSize != newSize)
 			MarkLayoutAsDirtyInternal();
 		else
 			MarkContentAsDirtyInternal();
@@ -142,12 +141,12 @@ namespace bs
 
 	GUILabel* GUILabel::Create(const GUIContent& content, const String& styleName)
 	{
-		return new (bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create());
+		return new(bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create());
 	}
 
 	GUILabel* GUILabel::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create(options));
+		return new(bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create(options));
 	}
 
 	const String& GUILabel::GetGuiTypeName()
@@ -155,4 +154,4 @@ namespace bs
 		static String typeName = "Label";
 		return typeName;
 	}
-}
+} // namespace bs

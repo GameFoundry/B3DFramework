@@ -78,7 +78,7 @@ namespace bs
 		Vector2I offset = GetAnchorOffset(desc.Anchor, desc.Width, desc.Height);
 		Vector2 uvOffset = desc.UvOffset;
 		Vector2 uvScale = desc.UvScale;
-		
+
 		if(useScale9Grid)
 		{
 			u32 leftBorder = desc.BorderLeft;
@@ -238,24 +238,24 @@ namespace bs
 
 	void ImageSprite::ClearMesh()
 	{
-		for (auto& renderElem : mCachedRenderElements)
+		for(auto& renderElem : mCachedRenderElements)
 		{
 			u32 vertexCount = renderElem.NumQuads * 4;
 			u32 indexCount = renderElem.NumQuads * 6;
 
-			if (renderElem.Vertices != nullptr)
+			if(renderElem.Vertices != nullptr)
 			{
 				bs_deleteN(renderElem.Vertices, vertexCount);
 				renderElem.Vertices = nullptr;
 			}
 
-			if (renderElem.Uvs != nullptr)
+			if(renderElem.Uvs != nullptr)
 			{
 				bs_deleteN(renderElem.Uvs, vertexCount);
 				renderElem.Uvs = nullptr;
 			}
 
-			if (renderElem.Indexes != nullptr)
+			if(renderElem.Indexes != nullptr)
 			{
 				bs_deleteN(renderElem.Indexes, indexCount);
 				renderElem.Indexes = nullptr;
@@ -270,13 +270,13 @@ namespace bs
 	{
 		Vector2 uvScale = Vector2(1.0f, 1.0f);
 
-		switch (scaleMode)
+		switch(scaleMode)
 		{
 		case TextureScaleMode::ScaleToFit:
 			uvScale.X = sourceSize.X / (float)destSize.X;
 			uvScale.Y = sourceSize.Y / (float)destSize.Y;
 
-			if (uvScale.X > uvScale.Y)
+			if(uvScale.X > uvScale.Y)
 			{
 				uvScale.X = 1.0f;
 				uvScale.Y = (destSize.Y * (sourceSize.Y / (float)sourceSize.X)) / destSize.X;
@@ -292,7 +292,7 @@ namespace bs
 			uvScale.X = sourceSize.X / (float)destSize.X;
 			uvScale.Y = sourceSize.Y / (float)destSize.Y;
 
-			if (uvScale.X > uvScale.Y)
+			if(uvScale.X > uvScale.Y)
 			{
 				uvScale.X = (destSize.X * (sourceSize.X / (float)sourceSize.Y)) / destSize.Y;
 				uvScale.Y = 1.0f;
@@ -317,4 +317,4 @@ namespace bs
 
 		return uvScale;
 	}
-}
+} // namespace bs

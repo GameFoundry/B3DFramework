@@ -6,8 +6,8 @@
 namespace bs
 {
 	GUIToggleGroup::GUIToggleGroup(bool allowAllOff)
-		:mAllowAllOff(allowAllOff)
-	{ }
+		: mAllowAllOff(allowAllOff)
+	{}
 
 	GUIToggleGroup::~GUIToggleGroup()
 	{
@@ -35,7 +35,7 @@ namespace bs
 	void GUIToggleGroup::RemoveInternal(GUIToggle* toggle)
 	{
 		auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling SetToggleGroupInternal(nullptr)
-		                               // may otherwise clear the last reference and cause us to destruct
+									   // may otherwise clear the last reference and cause us to destruct
 
 		auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
 		if(iterFind == end(mButtons))
@@ -44,4 +44,4 @@ namespace bs
 		(*iterFind)->SetToggleGroupInternal(nullptr);
 		mButtons.erase(iterFind);
 	}
-}
+} // namespace bs

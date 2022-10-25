@@ -26,16 +26,18 @@ namespace bs
 	public:
 		friend class GUISkinEntryRTTI;
 		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const ;
+		RTTITypeBase* GetRtti() const;
 	};
 
-	class BS_EXPORT GUISkinEntryRTTI : public RTTIType <GUISkinEntry, IReflectable, GUISkinEntryRTTI>
+	class BS_EXPORT GUISkinEntryRTTI : public RTTIType<GUISkinEntry, IReflectable, GUISkinEntryRTTI>
 	{
 	private:
 		String& GetName(GUISkinEntry* obj) { return obj->Name; }
+
 		void SetName(GUISkinEntry* obj, String& val) { obj->Name = val; }
 
 		GUIElementStyle& GetStyle(GUISkinEntry* obj) { return obj->Style; }
+
 		void SetStyle(GUISkinEntry* obj, GUIElementStyle& val) { obj->Style = val; }
 
 	public:
@@ -45,7 +47,7 @@ namespace bs
 			AddReflectableField("style", 1, &GUISkinEntryRTTI::GetStyle, &GUISkinEntryRTTI::SetStyle);
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "GUISkinEntry";
 			return name;
@@ -62,7 +64,7 @@ namespace bs
 		}
 	};
 
-	class BS_EXPORT GUISkinRTTI : public RTTIType <GUISkin, Resource, GUISkinRTTI>
+	class BS_EXPORT GUISkinRTTI : public RTTIType<GUISkin, Resource, GUISkinRTTI>
 	{
 	private:
 		GUISkinEntry& GetStyle(GUISkin* obj, u32 idx)
@@ -71,21 +73,24 @@ namespace bs
 		}
 
 		void SetStyle(GUISkin* obj, u32 idx, GUISkinEntry& val) { obj->mStyles[val.Name] = val.Style; }
+
 		u32 GetStyleArraySize(GUISkin* obj) { return (u32)obj->mStyles.size(); }
-		void SetStyleArraySize(GUISkin* obj, u32 size) { /* Do nothing */ }
+
+		void SetStyleArraySize(GUISkin* obj, u32 size)
+		{ /* Do nothing */
+		}
 
 	public:
 		GUISkinRTTI()
 		{
-			AddReflectableArrayField("mStyles", 0, &GUISkinRTTI::GetStyle, &GUISkinRTTI::GetStyleArraySize,
-				&GUISkinRTTI::SetStyle, &GUISkinRTTI::SetStyleArraySize);
+			AddReflectableArrayField("mStyles", 0, &GUISkinRTTI::GetStyle, &GUISkinRTTI::GetStyleArraySize, &GUISkinRTTI::SetStyle, &GUISkinRTTI::SetStyleArraySize);
 		}
 
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
 		{
 			GUISkin* skin = static_cast<GUISkin*>(obj);
 
-			for (auto& style : skin->mStyles)
+			for(auto& style : skin->mStyles)
 				mStyles.push_back(GUISkinEntry(style.first, style.second));
 		}
 
@@ -111,4 +116,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

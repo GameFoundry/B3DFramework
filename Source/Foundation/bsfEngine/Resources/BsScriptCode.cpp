@@ -7,9 +7,8 @@
 namespace bs
 {
 	ScriptCode::ScriptCode(const WString& data, bool editorScript)
-		:Resource(false), mString(data), mEditorScript(editorScript)
+		: Resource(false), mString(data), mEditorScript(editorScript)
 	{
-
 	}
 
 	HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
@@ -20,7 +19,7 @@ namespace bs
 	SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
 	{
 		SPtr<ScriptCode> scriptCodePtr = bs_core_ptr<ScriptCode>(
-			new (bs_alloc<ScriptCode>()) ScriptCode(data, editorScript));
+			new(bs_alloc<ScriptCode>()) ScriptCode(data, editorScript));
 		scriptCodePtr->SetThisPtrInternal(scriptCodePtr);
 		scriptCodePtr->Initialize();
 
@@ -36,4 +35,4 @@ namespace bs
 	{
 		return ScriptCode::GetRttiStatic();
 	}
-}
+} // namespace bs

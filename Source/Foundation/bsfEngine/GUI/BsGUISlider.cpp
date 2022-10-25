@@ -12,7 +12,7 @@ using namespace std::placeholders;
 namespace bs
 {
 	GUISlider::GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions)
-		:GUIElementContainer(dimensions, styleName, GUIElementOption::AcceptsKeyFocus), mHorizontal(horizontal)
+		: GUIElementContainer(dimensions, styleName, GUIElementOption::AcceptsKeyFocus), mHorizontal(horizontal)
 	{
 		GUISliderHandleFlags flags = horizontal ? GUISliderHandleFlag::Horizontal : GUISliderHandleFlag::Vertical;
 		flags |= GUISliderHandleFlag::JumpOnClick;
@@ -69,7 +69,7 @@ namespace bs
 	{
 		GUILayoutData childData = data;
 
-		if (mHorizontal)
+		if(mHorizontal)
 		{
 			Vector2I optimalSize = mBackground->GetOptimalSizeInternal();
 			childData.Area.Height = optimalSize.Y;
@@ -151,7 +151,7 @@ namespace bs
 		float oldHandlePos = mSliderHandle->GetHandlePos();
 		mSliderHandle->SetHandlePosInternal(pct);
 
-		if (oldHandlePos != mSliderHandle->GetHandlePos())
+		if(oldHandlePos != mSliderHandle->GetHandlePos())
 			mSliderHandle->MarkLayoutAsDirtyInternal();
 	}
 
@@ -253,19 +253,18 @@ namespace bs
 	}
 
 	GUISliderHorz::GUISliderHorz(const String& styleName, const GUIDimensions& dimensions)
-		:GUISlider(true, styleName, dimensions)
+		: GUISlider(true, styleName, dimensions)
 	{
-
 	}
 
 	GUISliderHorz* GUISliderHorz::Create(const String& styleName)
 	{
-		return new (bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create());
+		return new(bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create());
 	}
 
 	GUISliderHorz* GUISliderHorz::Create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create(options));
+		return new(bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create(options));
 	}
 
 	const String& GUISliderHorz::GetGuiTypeName()
@@ -275,19 +274,18 @@ namespace bs
 	}
 
 	GUISliderVert::GUISliderVert(const String& styleName, const GUIDimensions& dimensions)
-		:GUISlider(false, styleName, dimensions)
+		: GUISlider(false, styleName, dimensions)
 	{
-
 	}
 
 	GUISliderVert* GUISliderVert::Create(const String& styleName)
 	{
-		return new (bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create());
+		return new(bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create());
 	}
 
 	GUISliderVert* GUISliderVert::Create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create(options));
+		return new(bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create(options));
 	}
 
 	const String& GUISliderVert::GetGuiTypeName()
@@ -295,4 +293,4 @@ namespace bs
 		static String typeName = "SliderVert";
 		return typeName;
 	}
-}
+} // namespace bs

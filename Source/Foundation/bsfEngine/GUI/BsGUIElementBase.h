@@ -50,7 +50,7 @@ namespace bs
 		/**
 		 * Sets element position relative to parent GUI panel.
 		 *
-		 * @note	
+		 * @note
 		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its
 		 * placement.
 		 */
@@ -168,8 +168,7 @@ namespace bs
 		 *								elements array.
 		 * @param[in]	mySizeRange		Size range of this element.
 		 */
-		virtual void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements,
-			const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const;
+		virtual void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const;
 
 		/** Updates layout data that determines GUI elements final position & depth in the GUI widget. */
 		virtual void SetLayoutDataInternal(const GUILayoutData& data) { mLayoutData = data; }
@@ -193,7 +192,7 @@ namespace bs
 		const GUIDimensions& GetDimensionsInternal() const { return mDimensions; }
 
 		/**	Calculates element size range constrained by its layout options. */
-		virtual LayoutSizeRange CalculateLayoutSizeRangeInternal() const ;
+		virtual LayoutSizeRange CalculateLayoutSizeRangeInternal() const;
 
 		/**
 		 * Returns element size range constrained by its layout options. This is different from CalculateLayoutSizeRangeInternal()
@@ -215,7 +214,7 @@ namespace bs
 		/**
 		 * Returns the parent element whose layout needs to be updated when this elements contents change.
 		 *
-		 * @note	
+		 * @note
 		 * Due to the nature of the GUI system, when a child element bounds or contents change, its parents and siblings
 		 * usually need their layout bound updated. This function returns the first parent of all the elements that require
 		 * updating. This parent usually has fixed bounds or some other property that allows its children to be updated
@@ -306,21 +305,21 @@ namespace bs
 
 		/**
 		 * Finds the first parent element whose size doesn't depend on child sizes.
-		 *			
-		 * @note	
+		 *
+		 * @note
 		 * This allows us to optimize layout updates and trigger them only on such parents when their child elements
 		 * contents change, compared to doing them on the entire GUI hierarchy.
 		 */
 		GUIElementBase* FindUpdateParent();
 
 		/**
-		* Helper method for recursion in UpdateAUParentsInternal(). Sets the provided anchor parent for all children recursively.
+		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided anchor parent for all children recursively.
 		 * Recursion stops when a child anchor is detected.
 		 */
 		void SetAnchorParent(GUIPanel* anchorParent);
 
 		/**
-		* Helper method for recursion in UpdateAUParentsInternal(). Sets the provided update parent for all children recursively.
+		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided update parent for all children recursively.
 		 * Recursion stops when a child update parent is detected.
 		 */
 		void SetUpdateParent(GUIElementBase* updateParent);
@@ -341,4 +340,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

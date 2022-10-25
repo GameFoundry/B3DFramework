@@ -12,7 +12,7 @@
 namespace bs
 {
 	SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation, bool allowBatching)
-		:mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
+		: mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 	{
 		mMaterial = material->GetCore();
 
@@ -76,7 +76,7 @@ namespace bs
 	u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 	{
 		u64 textureId = 0;
-		if (info.Texture.IsLoaded())
+		if(info.Texture.IsLoaded())
 			textureId = info.Texture->GetInternalId();
 
 		size_t hash = 0;
@@ -88,12 +88,10 @@ namespace bs
 		return (u64)hash;
 	}
 
-	void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture,
-		const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer,
-		const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const
+	void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuParamBlockBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const
 	{
 		SPtr<ct::Texture> spriteTexture;
-		if (texture != nullptr)
+		if(texture != nullptr)
 			spriteTexture = texture;
 		else
 			spriteTexture = ct::Texture::WHITE;
@@ -122,4 +120,4 @@ namespace bs
 
 		ct::gRendererUtility().Draw(mesh, subMesh);
 	}
-}
+} // namespace bs

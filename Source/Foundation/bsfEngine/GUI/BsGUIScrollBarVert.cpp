@@ -6,33 +6,28 @@
 namespace bs
 {
 	GUIScrollBarVert::GUIScrollBarVert(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
-		:GUIScrollBar(false, resizeable, styleName, dimensions)
+		: GUIScrollBar(false, resizeable, styleName, dimensions)
 	{
-
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::Create(const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, GetStyleName<GUIScrollBarVert>(false, styleName),
-			GUIDimensions::Create());
+		return new(bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, GetStyleName<GUIScrollBarVert>(false, styleName), GUIDimensions::Create());
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::Create(bool resizeable, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, GetStyleName<GUIScrollBarVert>(resizeable, styleName),
-			GUIDimensions::Create());
+		return new(bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, GetStyleName<GUIScrollBarVert>(resizeable, styleName), GUIDimensions::Create());
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::Create(const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, GetStyleName<GUIScrollBarVert>(false, styleName),
-			GUIDimensions::Create(options));
+		return new(bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(false, GetStyleName<GUIScrollBarVert>(false, styleName), GUIDimensions::Create(options));
 	}
 
 	GUIScrollBarVert* GUIScrollBarVert::Create(bool resizeable, const GUIOptions& options, const String& styleName)
 	{
-		return new (bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, GetStyleName<GUIScrollBarVert>(resizeable, styleName),
-			GUIDimensions::Create(options));
+		return new(bs_alloc<GUIScrollBarVert>()) GUIScrollBarVert(resizeable, GetStyleName<GUIScrollBarVert>(resizeable, styleName), GUIDimensions::Create(options));
 	}
 
 	const String& GUIScrollBarVert::GetGuiTypeName(bool resizable)
@@ -40,9 +35,9 @@ namespace bs
 		static String typeName = "ScrollBarVert";
 		static String resizableTypeName = "ResizeableScrollBarVert";
 
-		if (resizable)
+		if(resizable)
 			return resizableTypeName;
 		else
 			return typeName;
 	}
-}
+} // namespace bs

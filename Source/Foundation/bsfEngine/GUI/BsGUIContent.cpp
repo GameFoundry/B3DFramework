@@ -8,7 +8,7 @@ namespace bs
 
 	const HSpriteTexture& GUIContent::GetImage(GUIElementState state) const
 	{
-		switch (state)
+		switch(state)
 		{
 		case GUIElementState::Normal:
 			return Images.Normal;
@@ -32,4 +32,4 @@ namespace bs
 			return Images.Normal;
 		}
 	}
-}
+} // namespace bs

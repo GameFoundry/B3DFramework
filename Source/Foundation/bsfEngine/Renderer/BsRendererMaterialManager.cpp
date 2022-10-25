@@ -15,10 +15,10 @@ namespace bs
 		// Note: Ideally I want to avoid loading all materials, and instead just load those that are used.
 		Vector<RendererMaterialData>& materials = GetMaterials();
 		Vector<SPtr<ct::Shader>> shaders;
-		for (auto& material : materials)
+		for(auto& material : materials)
 		{
 			HShader shader = br.GetShader(material.ShaderPath);
-			if (shader.IsLoaded())
+			if(shader.IsLoaded())
 				shaders.push_back(shader->GetCore());
 			else
 				shaders.push_back(nullptr);
@@ -45,7 +45,7 @@ namespace bs
 		Lock lock(GetMutex());
 
 		Vector<RendererMaterialData>& materials = GetMaterials();
-		for (u32 i = 0; i < materials.size(); i++)
+		for(u32 i = 0; i < materials.size(); i++)
 		{
 			materials[i].MetaData->ShaderPath = materials[i].ShaderPath;
 			materials[i].MetaData->Shader = shaders[i];
@@ -76,9 +76,9 @@ namespace bs
 		ShaderDefines output;
 
 		Vector<RendererMaterialData>& materials = GetMaterials();
-		for (auto& entry : materials)
+		for(auto& entry : materials)
 		{
-			if (entry.ShaderPath == shaderPath)
+			if(entry.ShaderPath == shaderPath)
 				return entry.MetaData->Defines;
 		}
 
@@ -90,12 +90,12 @@ namespace bs
 		Lock lock(GetMutex());
 
 		Vector<RendererMaterialData>& materials = GetMaterials();
-		for (u32 i = 0; i < materials.size(); i++)
+		for(u32 i = 0; i < materials.size(); i++)
 		{
 			materials[i].MetaData->Shader = nullptr;
 			materials[i].MetaData->OverrideShader = nullptr;
 
-			for (auto& entry : materials[i].MetaData->Instances)
+			for(auto& entry : materials[i].MetaData->Instances)
 			{
 				if(entry != nullptr)
 					bs_delete(entry);
@@ -116,4 +116,4 @@ namespace bs
 		static Mutex mutex;
 		return mutex;
 	}
-}
+} // namespace bs

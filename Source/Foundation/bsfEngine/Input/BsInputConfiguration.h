@@ -71,11 +71,11 @@ namespace bs
 
 	/**
 	 * Identifier for a virtual button.
-	 * 				
+	 *
 	 * Primary purpose of this class is to avoid expensive string compare, and instead use a unique button identifier for
 	 * compare. Generally you want to create one of these using the button name, and then store it for later use.
 	 *
-	 * @note			
+	 * @note
 	 * This class is not thread safe and should only be used on the sim thread.
 	 *
 	 * @see		VIRTUAL_BUTTON_DESC
@@ -86,12 +86,13 @@ namespace bs
 		VirtualButton() = default;
 		VirtualButton(const String& name);
 
-		bool operator== (const VirtualButton& rhs) const
+		bool operator==(const VirtualButton& rhs) const
 		{
 			return (ButtonIdentifier == rhs.ButtonIdentifier);
 		}
 
 		u32 ButtonIdentifier = 0;
+
 	private:
 		/** Returns a static map of all virtual button identifiers and their buttons. */
 		static Map<String, u32>& GetUniqueButtonIds();
@@ -101,7 +102,7 @@ namespace bs
 
 	/**
 	 * Identifier for a virtual axis.
-	 * 			
+	 *
 	 * Primary purpose of this class is to avoid expensive string compare (axis names), and instead use a unique axis
 	 * identifier for compare. Generally you want to create one of these using the axis name, and then store it for later
 	 * use.
@@ -119,7 +120,7 @@ namespace bs
 
 		u32 AxisIdentifier = 0;
 
-		bool operator== (const VirtualAxis& rhs) const
+		bool operator==(const VirtualAxis& rhs) const
 		{
 			return (AxisIdentifier == rhs.AxisIdentifier);
 		}
@@ -219,4 +220,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

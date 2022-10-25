@@ -56,4 +56,4 @@ namespace bs
 
 		return option;
 	}
-}
+} // namespace bs

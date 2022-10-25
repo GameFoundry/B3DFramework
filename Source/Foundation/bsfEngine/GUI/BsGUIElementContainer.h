@@ -16,13 +16,11 @@ namespace bs
 	{
 	public:
 		/** @copydoc GUIElement::setFocus */
-		void SetFocus(bool enabled, bool clear = false) ;
+		void SetFocus(bool enabled, bool clear = false);
 
 	protected:
-		GUIElementContainer(const GUIDimensions& dimensions, const char* style,
-			GUIElementOptions options = GUIElementOptions(0));
-		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::BLANK, 
-			GUIElementOptions options = GUIElementOptions(0));
+		GUIElementContainer(const GUIDimensions& dimensions, const char* style, GUIElementOptions options = GUIElementOptions(0));
+		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::BLANK, GUIElementOptions options = GUIElementOptions(0));
 		virtual ~GUIElementContainer() = default;
 
 		/** @copydoc GUIElement::_fillBuffer */
@@ -34,7 +32,7 @@ namespace bs
 			const Vector2I& offset,
 			u32 maxNumVerts,
 			u32 maxNumIndices,
-			u32 renderElementIdx) const ;
+			u32 renderElementIdx) const;
 
 		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
@@ -46,4 +44,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

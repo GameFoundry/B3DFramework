@@ -93,17 +93,17 @@ namespace bs
 
 				// Build a list of relevant elements, ordered by height
 				FrameSet<GUIElement*, YCompare> elements;
-				for (auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
+				for(auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
 				{
 					GUIElement* element = iter->second;
 					const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
-					if (!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
+					if(!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
 						continue;
 
 					const Rect2I elemBounds = element->GetClippedBoundsInternal();
 					const bool isFullyClipped = elemBounds.Width == 0 || elemBounds.Height == 0;
 
-					if (isFullyClipped)
+					if(isFullyClipped)
 						continue;
 
 					elements.insert(element);
@@ -130,7 +130,7 @@ namespace bs
 						const i32 yDiff = elemBounds.Y - rowY;
 
 						// New row
-						if (yDiff >= ROW_HEIGHT)
+						if(yDiff >= ROW_HEIGHT)
 						{
 							iterRowStart = iterElem;
 							rowY = elemBounds.Y;
@@ -171,7 +171,7 @@ namespace bs
 					if(elemBounds.X > focusedElemBounds.X)
 					{
 						const i32 xDiff = elemBounds.X - focusedElemBounds.X;
-						if (xDiff < nearestX)
+						if(xDiff < nearestX)
 						{
 							nearestX = xDiff;
 							nextElement = element;
@@ -183,7 +183,7 @@ namespace bs
 				if(!nextElement)
 				{
 					nearestX = std::numeric_limits<i32>::max();
-					for (; iterElem != elements.end(); ++iterElem)
+					for(; iterElem != elements.end(); ++iterElem)
 					{
 						GUIElement* element = *iterElem;
 
@@ -191,10 +191,10 @@ namespace bs
 						const i32 yDiff = elemBounds.Y - rowY;
 
 						// New row
-						if (yDiff >= ROW_HEIGHT)
+						if(yDiff >= ROW_HEIGHT)
 							break;
 
-						if (elemBounds.X < nearestX)
+						if(elemBounds.X < nearestX)
 						{
 							nearestX = elemBounds.X;
 							nextElement = element;
@@ -202,12 +202,11 @@ namespace bs
 					}
 				}
 
-				if (nextElement)
+				if(nextElement)
 				{
 					nextElement->SetFocus(true, true);
 					return;
 				}
-
 			}
 			bs_frame_clear();
 
@@ -248,17 +247,17 @@ namespace bs
 			Vector2I elementPos(elemBounds.X, elemBounds.Y);
 
 			const u32 dist = elementPos.SquaredLength();
-			if (dist < lowestDist)
+			if(dist < lowestDist)
 			{
 				lowestDist = dist;
 				topLeftElement = element;
 			}
 		}
 
-		if (topLeftElement)
+		if(topLeftElement)
 			topLeftElement->SetFocus(true, true);
 	}
-	
+
 	void GUINavGroup::RegisterElement(GUIElement* element, i32 tabIdx)
 	{
 		mElements[element] = tabIdx;
@@ -305,4 +304,4 @@ namespace bs
 
 		mElements.erase(element);
 	}
-}
+} // namespace bs

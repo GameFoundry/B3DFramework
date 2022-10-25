@@ -100,10 +100,10 @@ namespace bs
 		ResourceManifestPath = mBuiltinDataFolder + "ResourceManifest.asset";
 
 		// Load manifest
-		if (FileSystem::Exists(ResourceManifestPath))
+		if(FileSystem::Exists(ResourceManifestPath))
 			mResourceManifest = ResourceManifest::Load(ResourceManifestPath, mBuiltinDataFolder);
 
-		if (mResourceManifest == nullptr)
+		if(mResourceManifest == nullptr)
 			mResourceManifest = ResourceManifest::Create("BuiltinResources");
 
 		gResources().RegisterResourceManifest(mResourceManifest);
@@ -311,7 +311,7 @@ namespace bs
 	{
 		Path meshPath = mEngineMeshFolder;
 
-		switch (mesh)
+		switch(mesh)
 		{
 		case BuiltinMesh::Box:
 			meshPath.Append(MESH_BOX_FILE);
@@ -364,7 +364,7 @@ namespace bs
 		Path texturePath = Paths::GetDataPath();
 		texturePath.Append(TEXTURE_FOLDER);
 
-		switch (type)
+		switch(type)
 		{
 		case BuiltinTexture::Black:
 			texturePath.Append(TEXTURE_BLACK_FILE);
@@ -402,4 +402,4 @@ namespace bs
 	{
 		return BuiltinResources::Instance();
 	}
-}
+} // namespace bs

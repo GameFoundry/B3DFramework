@@ -23,12 +23,15 @@ namespace bs
 	 *  @{
 	 */
 
-	namespace ct { class GUIRenderer; }
+	namespace ct
+	{
+		class GUIRenderer;
+	}
 
 	/**
 	 * Manages the rendering and input of all GUI widgets in the scene.
-	 * 			
-	 * @note	
+	 *
+	 * @note
 	 * If adding or modifying GUIManager functionality ensure that GUIManager data never gets modified outside of update()
 	 * method or Input callbacks. If you need such functionality add temporary variables that store you changes and then
 	 * execute them delayed in update().
@@ -53,8 +56,8 @@ namespace bs
 		struct WidgetInfo
 		{
 			WidgetInfo(GUIWidget* _widget)
-				:Widget(_widget)
-			{ }
+				: Widget(_widget)
+			{}
 
 			GUIWidget* Widget;
 		};
@@ -63,8 +66,8 @@ namespace bs
 		struct ElementInfo
 		{
 			ElementInfo(GUIElement* element, GUIWidget* widget)
-				:Element(element), Widget(widget)
-			{ }
+				: Element(element), Widget(widget)
+			{}
 
 			GUIElement* Element;
 			GUIWidget* Widget;
@@ -74,9 +77,8 @@ namespace bs
 		struct ElementInfoUnderPointer
 		{
 			ElementInfoUnderPointer(GUIElement* element, GUIWidget* widget)
-				:Element(element), Widget(widget), UsesMouseOver(false),
-				ReceivedMouseOver(false), IsHovering(false)
-			{ }
+				: Element(element), Widget(widget), UsesMouseOver(false), ReceivedMouseOver(false), IsHovering(false)
+			{}
 
 			GUIElement* Element;
 			GUIWidget* Widget;
@@ -89,8 +91,8 @@ namespace bs
 		struct ElementFocusInfo
 		{
 			ElementFocusInfo(GUIElement* element, GUIWidget* widget, bool usesFocus)
-				:Element(element), Widget(widget), UsesFocus(usesFocus)
-			{ }
+				: Element(element), Widget(widget), UsesFocus(usesFocus)
+			{}
 
 			GUIElement* Element;
 			GUIWidget* Widget;
@@ -125,7 +127,7 @@ namespace bs
 		/** Forces all GUI elements that are queued for destruction to be destroyed immediately. */
 		void ProcessDestroyQueue();
 
-		/**	
+		/**
 		 * Change the GUI element focus state.
 		 *
 		 * @param[in]	element		Element whose focus state to change
@@ -136,10 +138,18 @@ namespace bs
 		void SetFocus(GUIElement* element, bool focus, bool clear);
 
 		/**	Changes the color of the input caret used in input boxes and similar controls. */
-		void SetCaretColor(const Color& color) { mCaretColor = color; UpdateCaretTexture(); }
+		void SetCaretColor(const Color& color)
+		{
+			mCaretColor = color;
+			UpdateCaretTexture();
+		}
 
 		/**	Changes the text selection highlight color used in input boxes and similar controls. */
-		void SetTextSelectionColor(const Color& color) { mTextSelectionColor = color; UpdateTextSelectionTexture(); }
+		void SetTextSelectionColor(const Color& color)
+		{
+			mTextSelectionColor = color;
+			UpdateTextSelectionTexture();
+		}
 
 		/**	Returns the default caret texture used for rendering the input caret sprite. */
 		const HSpriteTexture& GetCaretTexture() const { return mCaretTexture; }
@@ -168,14 +178,14 @@ namespace bs
 		 * @param[in]	element		The element from which to bridge input. Input will be transformed according to this
 		 *							elements position and size. Provide nullptr if you want to remove a bridge for the
 		 *							specified widget.
-		 * 					
-		 * @note	
+		 *
+		 * @note
 		 * This is useful if you use render textures, where your GUI is rendered off-screen. In such case you need to
 		 * display the render texture within another GUIElement in a GUIWidget, but have no way of sending input to the
 		 * render texture (normally input is only sent to render windows). This allows you to change that - any GUIWidget
 		 * using the bridged render texture as a render target will then receive input when mouse is over the specified
 		 * element.
-		 * @note			
+		 * @note
 		 * Bridged element needs to remove itself as the bridge when it is destroyed.
 		 */
 		void SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element);
@@ -222,7 +232,7 @@ namespace bs
 		/**
 		 * Destroys any elements or widgets queued for destruction.
 		 *
-		 * @note	
+		 * @note
 		 * Returns true if more elements have been added for destruction (will happen when destruction of one element
 		 * queues up destruction of another). Usually needs to be run in a loop with multiple iterations.
 		 */
@@ -367,14 +377,14 @@ namespace bs
 		GUIVirtualButtonEvent mVirtualButtonEvent;
 
 		HSpriteTexture mCaretTexture;
-		Color mCaretColor { 1.0f, 0.6588f, 0.0f };
+		Color mCaretColor{ 1.0f, 0.6588f, 0.0f };
 		float mCaretBlinkInterval = 0.5f;
 		float mCaretLastBlinkTime = 0.0f;
 		bool mIsCaretOn = false;
 		CursorType mActiveCursor = CursorType::Arrow;
 
 		HSpriteTexture mTextSelectionTexture;
-		Color mTextSelectionColor { 0.0f, 114 / 255.0f, 188 / 255.0f };
+		Color mTextSelectionColor{ 0.0f, 114 / 255.0f, 188 / 255.0f };
 
 		Map<SPtr<const RenderTexture>, const GUIElement*> mInputBridge;
 
@@ -396,71 +406,69 @@ namespace bs
 
 	namespace ct
 	{
-	BS_PARAM_BLOCK_BEGIN(GUISpriteParamBlockDef)
-		BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
-		BS_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
-		BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
-		BS_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
-		BS_PARAM_BLOCK_ENTRY(Color, gTint)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
-	BS_PARAM_BLOCK_END
+		BS_PARAM_BLOCK_BEGIN(GUISpriteParamBlockDef)
+			BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
+			BS_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
+			BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
+			BS_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
+			BS_PARAM_BLOCK_ENTRY(Color, gTint)
+			BS_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
+		BS_PARAM_BLOCK_END
 
-	extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
+		extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
 
-	/**	Handles GUI rendering on the core thread. */
-	class BS_EXPORT GUIRenderer : public RendererExtension
-	{
-		friend class bs::GUIManager;
-
-	public:
-		GUIRenderer();
-
-		/**	@copydoc RendererExtension::initialize */
-		void Initialize(const Any& data) override;
-
-		/**	@copydoc RendererExtension::check */
-		RendererExtensionRequest Check(const Camera& camera) override;
-
-		/**	@copydoc RendererExtension::render */
-		void Render(const Camera& camera, const RendererViewContext& viewContext) override;
-
-	private:
-		/** Called every frame from the main thread with the time of the current frame. */
-		void Update(float time);
-
-		/** Updates the data required for rendering draw groups on the specified widget. */
-		void UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32 widgetDepth, const Matrix4& worldTransform,
-			const GUIDrawGroupRenderDataUpdate& data);
-
-		/** Clears all draw groups from the specified widget. */
-		void ClearDrawGroups(const SPtr<Camera>& camera, u64 widgetId);
-
-		/** Updates the parameter block buffer for the specified mesh. */
-		void UpdateParamBlockBuffer(const SPtr<GpuParamBlockBuffer>& buffer, float invViewportWidth, float invViewportHeight, bool flipY,
-			const Matrix4& tfrm, GUIMeshRenderData& renderData) const;
-		
-		struct GUIWidgetRenderData
+		/**	Handles GUI rendering on the core thread. */
+		class BS_EXPORT GUIRenderer : public RendererExtension
 		{
-			u64 WidgetId;
-			u32 WidgetDepth = 0;
-			Vector<GUIDrawGroupRenderData> DrawGroups;
-			Vector<SPtr<GpuParamBlockBuffer>> ParamBlocks;
+			friend class bs::GUIManager;
 
-			SPtr<Mesh> TriangleMesh;
-			SPtr<Mesh> LineMesh;
-			SPtr<Mesh> DrawGroupMesh;
-			Matrix4 WorldTransform = Matrix4::IDENTITY;
+		public:
+			GUIRenderer();
+
+			/**	@copydoc RendererExtension::initialize */
+			void Initialize(const Any& data) override;
+
+			/**	@copydoc RendererExtension::check */
+			RendererExtensionRequest Check(const Camera& camera) override;
+
+			/**	@copydoc RendererExtension::render */
+			void Render(const Camera& camera, const RendererViewContext& viewContext) override;
+
+		private:
+			/** Called every frame from the main thread with the time of the current frame. */
+			void Update(float time);
+
+			/** Updates the data required for rendering draw groups on the specified widget. */
+			void UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32 widgetDepth, const Matrix4& worldTransform, const GUIDrawGroupRenderDataUpdate& data);
+
+			/** Clears all draw groups from the specified widget. */
+			void ClearDrawGroups(const SPtr<Camera>& camera, u64 widgetId);
+
+			/** Updates the parameter block buffer for the specified mesh. */
+			void UpdateParamBlockBuffer(const SPtr<GpuParamBlockBuffer>& buffer, float invViewportWidth, float invViewportHeight, bool flipY, const Matrix4& tfrm, GUIMeshRenderData& renderData) const;
+
+			struct GUIWidgetRenderData
+			{
+				u64 WidgetId;
+				u32 WidgetDepth = 0;
+				Vector<GUIDrawGroupRenderData> DrawGroups;
+				Vector<SPtr<GpuParamBlockBuffer>> ParamBlocks;
+
+				SPtr<Mesh> TriangleMesh;
+				SPtr<Mesh> LineMesh;
+				SPtr<Mesh> DrawGroupMesh;
+				Matrix4 WorldTransform = Matrix4::IDENTITY;
+			};
+
+			UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;
+			Set<SPtr<Camera>> mReferencedCameras;
+			SPtr<SamplerState> mSamplerState;
+			float mTime = 0.0f;
 		};
-		
-		UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;
-		Set<SPtr<Camera>> mReferencedCameras;
-		SPtr<SamplerState> mSamplerState;
-		float mTime = 0.0f;
-	};
-	}
+	} // namespace ct
 
 	/** Provides easier access to GUIManager. */
 	BS_EXPORT GUIManager& gGUIManager();
 
 	/** @} */
-}
+} // namespace bs

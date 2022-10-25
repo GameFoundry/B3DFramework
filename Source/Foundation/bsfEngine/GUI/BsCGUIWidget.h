@@ -86,10 +86,10 @@ namespace bs
 		void OnDestroyed() override;
 
 		/**	Called when the viewport size changes and widget elements need to be updated. */
-		virtual void OwnerTargetResized() { }
+		virtual void OwnerTargetResized() {}
 
 		/**	Called when the parent window gained or lost focus. */
-		virtual void OwnerWindowFocusChanged() { }
+		virtual void OwnerWindowFocusChanged() {}
 
 	private:
 		CGUIWidget(CGUIWidget&&) = delete;
@@ -114,4 +114,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -73,6 +73,7 @@ namespace bs
 		 * further calculations.
 		 */
 		void UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC& textDesc);
+
 	protected:
 		/**	Returns text offset relative to parent widget. */
 		Vector2I GetTextOffset() const;
@@ -114,8 +115,8 @@ namespace bs
 		 * Gets a character index after the input index. Input index represents the empty areas between the characters.
 		 * Newline counts as a character. (for example 0 is before the first character, 1 is after the first character but
 		 * before the second, etc.)
-		 * 			
-		 * @note	
+		 *
+		 * @note
 		 * This can return an out of range character index, in case the input index is specified after the last character.
 		 */
 		u32 GetCharIdxAtInputIdx(u32 inputIdx) const;
@@ -143,4 +144,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

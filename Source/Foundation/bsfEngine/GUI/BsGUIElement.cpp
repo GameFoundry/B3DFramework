@@ -11,15 +11,14 @@ namespace bs
 	const Color GUIElement::DISABLED_COLOR = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
 	GUIElement::GUIElement(String styleName, const GUIDimensions& dimensions, GUIElementOptions options)
-		:GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(std::move(styleName))
+		: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(std::move(styleName))
 	{
 		// Style is set to default here, and the proper one is assigned once GUI element
 		// is assigned to a parent (that's when the active GUI skin becomes known)
 	}
 
 	GUIElement::GUIElement(const char* styleName, const GUIDimensions& dimensions, GUIElementOptions options)
-		: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle)
-		, mStyleName(styleName ? styleName : StringUtil::BLANK)
+		: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(styleName ? styleName : StringUtil::BLANK)
 	{
 		// Style is set to default here, and the proper one is assigned once GUI element
 		// is assigned to a parent (that's when the active GUI skin becomes known)
@@ -54,12 +53,12 @@ namespace bs
 
 	bool GUIElement::CommandEventInternal(const GUICommandEvent& ev)
 	{
-		if (ev.GetType() == GUICommandEventType::FocusGained)
+		if(ev.GetType() == GUICommandEventType::FocusGained)
 		{
 			OnFocusChanged(true);
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else if (ev.GetType() == GUICommandEventType::FocusLost)
+		else if(ev.GetType() == GUICommandEventType::FocusLost)
 		{
 			OnFocusChanged(false);
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
@@ -104,7 +103,7 @@ namespace bs
 
 	void GUIElement::ChangeParentWidgetInternal(GUIWidget* widget)
 	{
-		if (IsDestroyedInternal())
+		if(IsDestroyedInternal())
 			return;
 
 		bool widgetChanged = false;
@@ -188,7 +187,7 @@ namespace bs
 
 		bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
-		if (isFixedBefore != isFixedAfter)
+		if(isFixedBefore != isFixedAfter)
 			RefreshChildUpdateParents();
 
 		MarkLayoutAsDirtyInternal();
@@ -197,7 +196,7 @@ namespace bs
 	Rect2I GUIElement::GetCachedVisibleBounds() const
 	{
 		Rect2I bounds = GetClippedBoundsInternal();
-		
+
 		bounds.X += mStyle->Margins.Left;
 		bounds.Y += mStyle->Margins.Top;
 		bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(mStyle->Margins.Left + mStyle->Margins.Right));
@@ -212,10 +211,8 @@ namespace bs
 
 		bounds.X = mLayoutData.Area.X + mStyle->Margins.Left + mStyle->ContentOffset.Left;
 		bounds.Y = mLayoutData.Area.Y + mStyle->Margins.Top + mStyle->ContentOffset.Top;
-		bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width -
-			(i32)(mStyle->Margins.Left + mStyle->Margins.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
-		bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height -
-			(i32)(mStyle->Margins.Top + mStyle->Margins.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
+		bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width - (i32)(mStyle->Margins.Left + mStyle->Margins.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
+		bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height - (i32)(mStyle->Margins.Top + mStyle->Margins.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
 
 		return bounds;
 	}
@@ -223,7 +220,7 @@ namespace bs
 	Rect2I GUIElement::GetCachedContentClipRect() const
 	{
 		Rect2I contentBounds = GetCachedContentBounds();
-		
+
 		// Transform into element space so we can clip it using the element clip rectangle
 		Vector2I offsetDiff = Vector2I(contentBounds.X - mLayoutData.Area.X, contentBounds.Y - mLayoutData.Area.Y);
 		Rect2I contentClipRect(offsetDiff.X, offsetDiff.Y, contentBounds.Width, contentBounds.Height);
@@ -238,7 +235,7 @@ namespace bs
 
 	Color GUIElement::GetTint() const
 	{
-		if (!IsDisabledInternal())
+		if(!IsDisabledInternal())
 			return mColor;
 
 		return mColor * DISABLED_COLOR;
@@ -253,7 +250,7 @@ namespace bs
 
 	SPtr<GUIContextMenu> GUIElement::GetContextMenuInternal() const
 	{
-		if (!IsDisabledInternal())
+		if(!IsDisabledInternal())
 			return mContextMenu;
 
 		return nullptr;
@@ -276,7 +273,7 @@ namespace bs
 			mDimensions.UpdateWithStyle(mStyle);
 
 			bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
-			if (isFixedBefore != isFixedAfter)
+			if(isFixedBefore != isFixedAfter)
 				RefreshChildUpdateParents();
 
 			StyleUpdated();
@@ -288,7 +285,7 @@ namespace bs
 	{
 		auto iterFind = mStyle->SubStyles.find(subStyleTypeName);
 
-		if (iterFind != mStyle->SubStyles.end())
+		if(iterFind != mStyle->SubStyles.end())
 			return iterFind->second;
 		else
 			return StringUtil::BLANK;
@@ -303,7 +300,7 @@ namespace bs
 		if(currentNavGroup)
 			currentNavGroup->UnregisterElement(element);
 
-		if (element->mParentElement != nullptr)
+		if(element->mParentElement != nullptr)
 			element->mParentElement->UnregisterChildElementInternal(element);
 
 		element->mIsDestroyed = true;
@@ -322,4 +319,4 @@ namespace bs
 
 		return bounds;
 	}
-}
+} // namespace bs

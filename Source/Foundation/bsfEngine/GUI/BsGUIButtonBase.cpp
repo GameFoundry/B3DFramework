@@ -12,8 +12,7 @@
 
 namespace bs
 {
-	GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions,
-		GUIElementOptions options)
+	GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions, GUIElementOptions options)
 		: GUIElement(styleName, dimensions, options), mContent(content)
 	{
 		mImageSprite = bs_new<ImageSprite>();
@@ -44,7 +43,7 @@ namespace bs
 
 		Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 
-		if (origSize != newSize)
+		if(origSize != newSize)
 			MarkLayoutAsDirtyInternal();
 		else
 			MarkContentAsDirtyInternal();
@@ -64,12 +63,12 @@ namespace bs
 	}
 
 	void GUIButtonBase::UpdateRenderElementsInternal()
-	{		
+	{
 		mImageDesc.Width = mLayoutData.Area.Width;
 		mImageDesc.Height = mLayoutData.Area.Height;
 
 		const HSpriteTexture& activeTex = GetActiveTexture();
-		if (SpriteTexture::CheckIsLoaded(activeTex))
+		if(SpriteTexture::CheckIsLoaded(activeTex))
 			mImageDesc.Texture = activeTex;
 		else
 			mImageDesc.Texture = nullptr;
@@ -97,7 +96,7 @@ namespace bs
 			float horzRatio = contentMaxWidth / (float)contentWidth;
 			float vertRatio = contentMaxHeight / (float)contentHeight;
 
-			if (horzRatio < vertRatio)
+			if(horzRatio < vertRatio)
 			{
 				contentWidth = Math::RoundToInt(contentWidth * horzRatio);
 				contentHeight = Math::RoundToInt(contentHeight * horzRatio);
@@ -172,8 +171,7 @@ namespace bs
 		{
 			Vector2I imageOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + offset;
 
-			mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.GetLocalClipRect());
+			mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.GetLocalClipRect());
 
 			return;
 		}
@@ -192,8 +190,8 @@ namespace bs
 			Rect2I imageBounds = mContentImageSprite->GetBounds(Vector2I(), Rect2I());
 			i32 imageXOffset = 0;
 			i32 textImageSpacing = 0;
-			
-			if (textBounds.Width == 0)
+
+			if(textBounds.Width == 0)
 			{
 				u32 freeWidth = (u32)std::max(0, (i32)contentBounds.Width - (i32)textBounds.Width - (i32)imageBounds.Width);
 				imageXOffset = (i32)(freeWidth / 2);
@@ -239,13 +237,11 @@ namespace bs
 
 		if(renderElementIdx >= contentImgSpriteIdx)
 		{
-			mContentImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, contentImgSpriteIdx - renderElementIdx, contentOffset, imageClipRect);
+			mContentImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, contentImgSpriteIdx - renderElementIdx, contentOffset, imageClipRect);
 		}
 		else
 		{
-			mTextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices,
-				vertexStride, indexStride, textSpriteIdx - renderElementIdx, textOffset, textClipRect);
+			mTextSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, textSpriteIdx - renderElementIdx, textOffset, textClipRect);
 		}
 	}
 
@@ -253,7 +249,7 @@ namespace bs
 	{
 		if(ev.GetType() == GUIMouseEventType::MouseOver)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 			{
 				if(mHasFocus)
 					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
@@ -267,7 +263,7 @@ namespace bs
 		}
 		else if(ev.GetType() == GUIMouseEventType::MouseOut)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 			{
 				if(mHasFocus)
 					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedOn : GUIElementState::Focused);
@@ -281,14 +277,14 @@ namespace bs
 		}
 		else if(ev.GetType() == GUIMouseEventType::MouseDown)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 				SetStateInternal(IsOnInternal() ? GUIElementState::ActiveOn : GUIElementState::Active);
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
 		else if(ev.GetType() == GUIMouseEventType::MouseUp)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 			{
 				if(mHasFocus)
 					SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
@@ -300,9 +296,9 @@ namespace bs
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 		}
-		else if (ev.GetType() == GUIMouseEventType::MouseDoubleClick)
+		else if(ev.GetType() == GUIMouseEventType::MouseDoubleClick)
 		{
-			if (!IsDisabledInternal())
+			if(!IsDisabledInternal())
 				OnDoubleClick();
 
 			return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
@@ -334,9 +330,9 @@ namespace bs
 		{
 			mHasFocus = false;
 
-			if (state == GUIElementState::Focused)
+			if(state == GUIElementState::Focused)
 				SetStateInternal(IsOnInternal() ? GUIElementState::NormalOn : GUIElementState::Normal);
-			else if (state == GUIElementState::FocusedHover)
+			else if(state == GUIElementState::FocusedHover)
 				SetStateInternal(IsOnInternal() ? GUIElementState::HoverOn : GUIElementState::Hover);
 
 			return true;
@@ -353,14 +349,14 @@ namespace bs
 	void GUIButtonBase::RefreshContentSprite()
 	{
 		HSpriteTexture contentTex = mContent.GetImage(mActiveState);
-		if (SpriteTexture::CheckIsLoaded(contentTex))
+		if(SpriteTexture::CheckIsLoaded(contentTex))
 		{
-			if (mContentImageSprite == nullptr)
+			if(mContentImageSprite == nullptr)
 				mContentImageSprite = bs_new<ImageSprite>();
 		}
 		else
 		{
-			if (mContentImageSprite != nullptr)
+			if(mContentImageSprite != nullptr)
 			{
 				bs_delete(mContentImageSprite);
 				mContentImageSprite = nullptr;
@@ -402,7 +398,7 @@ namespace bs
 		RefreshContentSprite();
 		Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 
-		if (origSize != newSize)
+		if(origSize != newSize)
 			MarkLayoutAsDirtyInternal();
 		else
 			MarkContentAsDirtyInternal();
@@ -441,7 +437,7 @@ namespace bs
 
 	Color GUIButtonBase::GetActiveTextColor() const
 	{
-		switch (mActiveState)
+		switch(mActiveState)
 		{
 		case GUIElementState::Normal:
 			return GetStyleInternal()->Normal.TextColor;
@@ -469,4 +465,4 @@ namespace bs
 
 		return GetStyleInternal()->Normal.TextColor;
 	}
-}
+} // namespace bs

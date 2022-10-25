@@ -21,7 +21,7 @@ namespace bs
 		virtual void Initialize() = 0;
 
 		/** Called once per frame. */
-		virtual void Update() { }
+		virtual void Update() {}
 
 		/** Called when the script libraries should be reloaded (for example when they are recompiled). */
 		virtual void Reload() = 0;
@@ -60,4 +60,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

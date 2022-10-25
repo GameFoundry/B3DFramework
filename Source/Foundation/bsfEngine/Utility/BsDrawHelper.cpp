@@ -18,7 +18,7 @@ namespace bs
 	const u32 DrawHelper::INDEX_BUFFER_GROWTH = 4096 * 2;
 
 	DrawHelper::DrawHelper()
-		:mLayer(1)
+		: mLayer(1)
 	{
 		mTransform = Matrix4::IDENTITY;
 
@@ -139,21 +139,22 @@ namespace bs
 
 	void DrawHelper::LineList(const Vector<Vector3>& lines)
 	{
-		if (lines.size() < 2)
+		if(lines.size() < 2)
 			return;
 
 		mLineListData.push_back(LineListData());
 		LineListData& lineListData = mLineListData.back();
 
 		Vector3 center(BsZero);
-		for (auto& point : lines)
+		for(auto& point : lines)
 			center += point;
 
 		lineListData.Lines = lines;
 		lineListData.Color = mColor;
 		lineListData.Transform = mTransform;
 		lineListData.Layer = mLayer;
-		lineListData.Center = center / (float)lines.size();;
+		lineListData.Center = center / (float)lines.size();
+		;
 	}
 
 	void DrawHelper::Frustum(const Vector3& position, float aspect, Degree FOV, float near, float far)
@@ -172,8 +173,7 @@ namespace bs
 		frustumData.Center = mTransform.MultiplyAffine(position);
 	}
 
-	void DrawHelper::Cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale,
-		u32 quality)
+	void DrawHelper::Cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale, u32 quality)
 	{
 		mConeData.push_back(ConeData());
 		ConeData& coneData = mConeData.back();
@@ -190,8 +190,7 @@ namespace bs
 		coneData.Center = mTransform.MultiplyAffine(base + normal * height * 0.5f);
 	}
 
-	void DrawHelper::WireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale,
-		u32 quality)
+	void DrawHelper::WireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale, u32 quality)
 	{
 		mWireConeData.push_back(ConeData());
 		ConeData& coneData = mWireConeData.back();
@@ -238,8 +237,7 @@ namespace bs
 		discData.Center = mTransform.MultiplyAffine(position);
 	}
 
-	void DrawHelper::Arc(const Vector3& position, const Vector3& normal, float radius,
-		Degree startAngle, Degree amountAngle, u32 quality)
+	void DrawHelper::Arc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle, u32 quality)
 	{
 		mArcData.push_back(ArcData());
 		ArcData& arcData = mArcData.back();
@@ -256,8 +254,7 @@ namespace bs
 		arcData.Center = mTransform.MultiplyAffine(position);
 	}
 
-	void DrawHelper::WireArc(const Vector3& position, const Vector3& normal, float radius,
-		Degree startAngle, Degree amountAngle, u32 quality)
+	void DrawHelper::WireArc(const Vector3& position, const Vector3& normal, float radius, Degree startAngle, Degree amountAngle, u32 quality)
 	{
 		mWireArcData.push_back(ArcData());
 		ArcData& arcData = mWireArcData.back();
@@ -288,7 +285,7 @@ namespace bs
 
 	void DrawHelper::Text(const Vector3& position, const String& text, const HFont& font, u32 size)
 	{
-		if (!font.IsLoaded() || text.empty())
+		if(!font.IsLoaded() || text.empty())
 			return;
 
 		mText2DData.push_back(Text2DData());
@@ -306,7 +303,7 @@ namespace bs
 
 	void DrawHelper::WireMesh(const SPtr<MeshData>& meshData)
 	{
-		if (meshData == nullptr)
+		if(meshData == nullptr)
 			return;
 
 		mWireMeshData.push_back(WireMeshData());
@@ -346,8 +343,23 @@ namespace bs
 
 		enum class ShapeType
 		{
-			Cube, Sphere, WireCube, WireSphere, WireCone, Line, LineList, Frustum,
-			Cone, Disc, WireDisc, Arc, WireArc, Rectangle, Text, WireMesh, WireHemisphere
+			Cube,
+			Sphere,
+			WireCube,
+			WireSphere,
+			WireCone,
+			Line,
+			LineList,
+			Frustum,
+			Cone,
+			Disc,
+			WireDisc,
+			Arc,
+			WireArc,
+			Rectangle,
+			Text,
+			WireMesh,
+			WireHemisphere
 		};
 
 		struct RawData
@@ -368,14 +380,14 @@ namespace bs
 		u32 idx = 0;
 		Vector<RawData> allShapes;
 		Vector3 reference = Vector3::ZERO;
-		
+
 		if(camera)
 			reference = camera->GetTransform().GetPosition();
 
 		u32 localIdx = 0;
-		for (auto& shapeData : mSolidCubeData)
+		for(auto& shapeData : mSolidCubeData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -394,9 +406,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mSolidSphereData)
+		for(auto& shapeData : mSolidSphereData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -411,14 +423,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::Sphere;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsSphere(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsSphere(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mConeData)
+		for(auto& shapeData : mConeData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -433,14 +444,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::Cone;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsCone(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsCone(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mDiscData)
+		for(auto& shapeData : mDiscData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -455,14 +465,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::Disc;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsDisc(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsDisc(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mArcData)
+		for(auto& shapeData : mArcData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -477,14 +486,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::Arc;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsArc(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsArc(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mRect3Data)
+		for(auto& shapeData : mRect3Data)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -503,9 +511,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireCubeData)
+		for(auto& shapeData : mWireCubeData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -524,9 +532,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireSphereData)
+		for(auto& shapeData : mWireSphereData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -541,14 +549,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::WireSphere;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsWireSphere(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsWireSphere(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireHemisphereData)
+		for(auto& shapeData : mWireHemisphereData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -563,14 +570,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::WireHemisphere;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsWireHemisphere(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsWireHemisphere(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireConeData)
+		for(auto& shapeData : mWireConeData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -585,14 +591,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::WireCone;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsWireCone(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsWireCone(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mLineData)
+		for(auto& shapeData : mLineData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -611,9 +616,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mLineListData)
+		for(auto& shapeData : mLineListData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -633,9 +638,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mFrustumData)
+		for(auto& shapeData : mFrustumData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -654,9 +659,9 @@ namespace bs
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireDiscData)
+		for(auto& shapeData : mWireDiscData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -671,14 +676,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::WireDisc;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsWireDisc(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsWireDisc(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireArcData)
+		for(auto& shapeData : mWireArcData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -693,14 +697,13 @@ namespace bs
 			rawData.ShapeType = ShapeType::WireArc;
 			rawData.Distance = shapeData.Center.Distance(reference);
 
-			ShapeMeshes3D::GetNumElementsWireArc(shapeData.Quality,
-				rawData.NumVertices, rawData.NumIndices);
+			ShapeMeshes3D::GetNumElementsWireArc(shapeData.Quality, rawData.NumVertices, rawData.NumIndices);
 		}
 
 		localIdx = 0;
-		for (auto& shapeData : mWireMeshData)
+		for(auto& shapeData : mWireMeshData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -728,9 +731,9 @@ namespace bs
 		u32 textIdx = 0;
 
 		localIdx = 0;
-		for (auto& shapeData : mText2DData)
+		for(auto& shapeData : mText2DData)
 		{
-			if ((shapeData.Layer & layers) == 0)
+			if((shapeData.Layer & layers) == 0)
 			{
 				localIdx++;
 				continue;
@@ -740,7 +743,7 @@ namespace bs
 			SPtr<TextData<>> textData = bs_shared_ptr_new<TextData<>>(utf32text, shapeData.Font, shapeData.Size);
 
 			u32 numPages = textData->GetNumPages();
-			for (u32 j = 0; j < numPages; j++)
+			for(u32 j = 0; j < numPages; j++)
 			{
 				u32 numQuads = textData->GetNumQuadsForPage(j);
 
@@ -766,21 +769,15 @@ namespace bs
 			localIdx++;
 		}
 
-		if (sorting == SortType::FrontToBack)
+		if(sorting == SortType::FrontToBack)
 		{
-			std::sort(begin(allShapes), end(allShapes),
-				[&](const RawData& x, const RawData& y)
-			{
-				return x.Distance < y.Distance;
-			});
+			std::sort(begin(allShapes), end(allShapes), [&](const RawData& x, const RawData& y)
+					  { return x.Distance < y.Distance; });
 		}
-		else if (sorting == SortType::BackToFront)
+		else if(sorting == SortType::BackToFront)
 		{
-			std::sort(begin(allShapes), end(allShapes),
-				[&](const RawData& x, const RawData& y)
-			{
-				return y.Distance < x.Distance;
-			});
+			std::sort(begin(allShapes), end(allShapes), [&](const RawData& x, const RawData& y)
+					  { return y.Distance < x.Distance; });
 		}
 
 		/************************************************************************/
@@ -799,7 +796,7 @@ namespace bs
 		u32 numShapes = (u32)allShapes.size();
 
 		Vector<Batch> batches;
-		if (numShapes > 0)
+		if(numShapes > 0)
 		{
 			batches.push_back(Batch());
 
@@ -810,26 +807,26 @@ namespace bs
 				currentBatch.NumVertices = allShapes[0].NumVertices;
 				currentBatch.NumIndices = allShapes[0].NumIndices;
 
-				if (allShapes[0].MeshType == MeshType::Text)
+				if(allShapes[0].MeshType == MeshType::Text)
 				{
 					TextRenderData& renderData = textRenderData[allShapes[0].TextIdx];
 					currentBatch.Texture = renderData.TextData->GetTextureForPage(renderData.Page);
 				}
 			}
 
-			for (u32 i = 1; i < numShapes; i++)
+			for(u32 i = 1; i < numShapes; i++)
 			{
 				Batch& currentBatch = batches.back();
 
 				HTexture texture;
-				if (allShapes[i].MeshType == MeshType::Text)
+				if(allShapes[i].MeshType == MeshType::Text)
 				{
 					TextRenderData& renderData = textRenderData[allShapes[i].TextIdx];
 					texture = renderData.TextData->GetTextureForPage(renderData.Page);
 				}
 
 				bool startNewBatch = allShapes[i].MeshType != currentBatch.Type || texture != currentBatch.Texture;
-				if (startNewBatch)
+				if(startNewBatch)
 				{
 					currentBatch.EndIdx = i - 1;
 
@@ -859,7 +856,7 @@ namespace bs
 		// Allocate space for all the batch vertices/indices, per type
 		u32 vertexCount[4] = { 0, 0, 0, 0 };
 		u32 indexCount[4] = { 0, 0, 0, 0 };
-		for (auto& batch : batches)
+		for(auto& batch : batches)
 		{
 			u32 typeIdx = (u32)batch.Type;
 
@@ -898,15 +895,15 @@ namespace bs
 			solidNormalIter = meshData[0]->GetVec3DataIter(VES_NORMAL);
 
 		VertexElemIter<Vector2> textUVIter;
-		
+
 		if(meshData[3])
 			textUVIter = meshData[3]->GetVec2DataIter(VES_TEXCOORD);
 
-		for (auto& batch : batches)
+		for(auto& batch : batches)
 		{
 			u32 typeIdx = (u32)batch.Type;
 
-			if (batch.Type == MeshType::Solid)
+			if(batch.Type == MeshType::Solid)
 			{
 				meshInfos.push_back(ShapeMeshData());
 				ShapeMeshData& newMesh = meshInfos.back();
@@ -915,83 +912,77 @@ namespace bs
 				newMesh.SubMesh.DrawOp = DOT_TRIANGLE_LIST;
 				newMesh.Type = MeshType::Solid;
 
-				for (u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
+				for(u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
 				{
 					RawData& shapeData = allShapes[i];
 
 					Matrix4* transform = nullptr;
 					RGBA color = 0;
 
-					switch (shapeData.ShapeType)
+					switch(shapeData.ShapeType)
 					{
 					case ShapeType::Cube:
-					{
-						CubeData& cubeData = mSolidCubeData[shapeData.Idx];
-						AABox box(cubeData.Position - cubeData.Extents, cubeData.Position + cubeData.Extents);
-						ShapeMeshes3D::SolidAaBox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
+						{
+							CubeData& cubeData = mSolidCubeData[shapeData.Idx];
+							AABox box(cubeData.Position - cubeData.Extents, cubeData.Position + cubeData.Extents);
+							ShapeMeshes3D::SolidAaBox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &cubeData.Transform;
-						color = cubeData.Color.GetAsRgba();
-					}
+							transform = &cubeData.Transform;
+							color = cubeData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::Sphere:
-					{
-						SphereData& sphereData = mSolidSphereData[shapeData.Idx];
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
-						ShapeMeshes3D::SolidSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
-							sphereData.Quality);
+						{
+							SphereData& sphereData = mSolidSphereData[shapeData.Idx];
+							class Sphere sphere(sphereData.Position, sphereData.Radius);
+							ShapeMeshes3D::SolidSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
-						transform = &sphereData.Transform;
-						color = sphereData.Color.GetAsRgba();
-					}
+							transform = &sphereData.Transform;
+							color = sphereData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::Cone:
-					{
-						ConeData& coneData = mConeData[shapeData.Idx];
-						ShapeMeshes3D::SolidCone(coneData.Base, coneData.Normal, coneData.Height, coneData.Radius,
-							coneData.Scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], coneData.Quality);
+						{
+							ConeData& coneData = mConeData[shapeData.Idx];
+							ShapeMeshes3D::SolidCone(coneData.Base, coneData.Normal, coneData.Height, coneData.Radius, coneData.Scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], coneData.Quality);
 
-						transform = &coneData.Transform;
-						color = coneData.Color.GetAsRgba();
-					}
+							transform = &coneData.Transform;
+							color = coneData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::Disc:
-					{
-						DiscData& discData = mDiscData[shapeData.Idx];
-						ShapeMeshes3D::SolidDisc(discData.Position, discData.Radius, discData.Normal,
-							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.Quality);
+						{
+							DiscData& discData = mDiscData[shapeData.Idx];
+							ShapeMeshes3D::SolidDisc(discData.Position, discData.Radius, discData.Normal, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.Quality);
 
-						transform = &discData.Transform;
-						color = discData.Color.GetAsRgba();
-					}
+							transform = &discData.Transform;
+							color = discData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::Arc:
-					{
-						ArcData& arcData = mArcData[shapeData.Idx];
-						ShapeMeshes3D::SolidArc(arcData.Position, arcData.Radius, arcData.Normal,
-							arcData.StartAngle, arcData.AmountAngle, meshData[typeIdx], vertexOffset[typeIdx],
-							indexOffset[typeIdx], arcData.Quality);
+						{
+							ArcData& arcData = mArcData[shapeData.Idx];
+							ShapeMeshes3D::SolidArc(arcData.Position, arcData.Radius, arcData.Normal, arcData.StartAngle, arcData.AmountAngle, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], arcData.Quality);
 
-						transform = &arcData.Transform;
-						color = arcData.Color.GetAsRgba();
-					}
+							transform = &arcData.Transform;
+							color = arcData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::Rectangle:
-					{
-						Rect3Data& rectData = mRect3Data[shapeData.Idx];
-						ShapeMeshes3D::SolidQuad(rectData.Area, meshData[typeIdx], vertexOffset[typeIdx],
-							indexOffset[typeIdx]);
+						{
+							Rect3Data& rectData = mRect3Data[shapeData.Idx];
+							ShapeMeshes3D::SolidQuad(rectData.Area, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &rectData.Transform;
-						color = rectData.Color.GetAsRgba();
-					}
+							transform = &rectData.Transform;
+							color = rectData.Color.GetAsRgba();
+						}
 						break;
 					default:
 						break;
 					}
 
 					Matrix4 transformIT = transform->InverseAffine().Transpose();
-					for (u32 i = 0; i < shapeData.NumVertices; i++)
+					for(u32 i = 0; i < shapeData.NumVertices; i++)
 					{
 						Vector3 worldPos = transform->MultiplyAffine(positionIter[typeIdx].GetValue());
 						Vector3 worldNormal = transformIT.MultiplyAffine(solidNormalIter.GetValue());
@@ -1005,7 +996,7 @@ namespace bs
 					indexOffset[typeIdx] += shapeData.NumIndices;
 				}
 			}
-			else if (batch.Type == MeshType::Wire)
+			else if(batch.Type == MeshType::Wire)
 			{
 				meshInfos.push_back(ShapeMeshData());
 				ShapeMeshData& newMesh = meshInfos.back();
@@ -1014,43 +1005,43 @@ namespace bs
 				newMesh.SubMesh.DrawOp = DOT_TRIANGLE_LIST;
 				newMesh.Type = MeshType::Wire;
 
-				for (u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
+				for(u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
 				{
 					RawData& shapeData = allShapes[i];
 
 					Matrix4* transform = nullptr;
 					RGBA color = 0;
 
-					switch (shapeData.ShapeType)
+					switch(shapeData.ShapeType)
 					{
 					case ShapeType::WireMesh:
-					{
-						WireMeshData& wireMeshData = mWireMeshData[shapeData.Idx];
-
-						transform = &wireMeshData.Transform;
-						color = wireMeshData.Color.GetAsRgba();
-
-						auto vertIterRead = wireMeshData.MeshData->GetVec3DataIter(VES_POSITION);
-						for (u32 j = 0; j < vertIterRead.GetNumElements(); j++)
 						{
-							Vector3 worldPos = transform->MultiplyAffine(vertIterRead.GetValue());
+							WireMeshData& wireMeshData = mWireMeshData[shapeData.Idx];
 
-							positionIter[typeIdx].AddValue(worldPos);
-							colorIter[typeIdx].AddValue(color);
+							transform = &wireMeshData.Transform;
+							color = wireMeshData.Color.GetAsRgba();
 
-							vertIterRead.MoveNext();
+							auto vertIterRead = wireMeshData.MeshData->GetVec3DataIter(VES_POSITION);
+							for(u32 j = 0; j < vertIterRead.GetNumElements(); j++)
+							{
+								Vector3 worldPos = transform->MultiplyAffine(vertIterRead.GetValue());
+
+								positionIter[typeIdx].AddValue(worldPos);
+								colorIter[typeIdx].AddValue(color);
+
+								vertIterRead.MoveNext();
+							}
+
+							u32* srcIndexData = wireMeshData.MeshData->GetIndices32();
+							u32* destIndexData = meshData[typeIdx]->GetIndices32() + indexOffset[typeIdx];
+
+							for(u32 j = 0; j < shapeData.NumIndices; j++)
+								destIndexData[j] = srcIndexData[j] + vertexOffset[typeIdx];
+
+							vertexOffset[typeIdx] += shapeData.NumVertices;
+							indexOffset[typeIdx] += shapeData.NumIndices;
 						}
-
-						u32* srcIndexData = wireMeshData.MeshData->GetIndices32();
-						u32* destIndexData = meshData[typeIdx]->GetIndices32() + indexOffset[typeIdx];
-
-						for(u32 j = 0; j < shapeData.NumIndices; j++)
-							destIndexData[j] = srcIndexData[j] + vertexOffset[typeIdx];
-
-						vertexOffset[typeIdx] += shapeData.NumVertices;
-						indexOffset[typeIdx] += shapeData.NumIndices;
-					}
-					break;
+						break;
 					default:
 						break;
 					}
@@ -1065,122 +1056,112 @@ namespace bs
 				newMesh.SubMesh.DrawOp = DOT_LINE_LIST;
 				newMesh.Type = MeshType::Line;
 
-				for (u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
+				for(u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
 				{
 					RawData& shapeData = allShapes[i];
 
 					Matrix4* transform = nullptr;
 					RGBA color = 0;
 
-					switch (shapeData.ShapeType)
+					switch(shapeData.ShapeType)
 					{
 					case ShapeType::WireCube:
-					{
-						CubeData& cubeData = mWireCubeData[shapeData.Idx];
+						{
+							CubeData& cubeData = mWireCubeData[shapeData.Idx];
 
-						AABox box(cubeData.Position - cubeData.Extents, cubeData.Position + cubeData.Extents);
-						ShapeMeshes3D::WireAaBox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
+							AABox box(cubeData.Position - cubeData.Extents, cubeData.Position + cubeData.Extents);
+							ShapeMeshes3D::WireAaBox(box, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &cubeData.Transform;
-						color = cubeData.Color.GetAsRgba();
-					}
+							transform = &cubeData.Transform;
+							color = cubeData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::WireSphere:
-					{
-						SphereData& sphereData = mWireSphereData[shapeData.Idx];
+						{
+							SphereData& sphereData = mWireSphereData[shapeData.Idx];
 
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
-						ShapeMeshes3D::WireSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
-							sphereData.Quality);
+							class Sphere sphere(sphereData.Position, sphereData.Radius);
+							ShapeMeshes3D::WireSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
-						transform = &sphereData.Transform;
-						color = sphereData.Color.GetAsRgba();
-					}
+							transform = &sphereData.Transform;
+							color = sphereData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::WireHemisphere:
-					{
-						SphereData& sphereData = mWireHemisphereData[shapeData.Idx];
+						{
+							SphereData& sphereData = mWireHemisphereData[shapeData.Idx];
 
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
-						ShapeMeshes3D::WireHemisphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
-							sphereData.Quality);
+							class Sphere sphere(sphereData.Position, sphereData.Radius);
+							ShapeMeshes3D::WireHemisphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
-						transform = &sphereData.Transform;
-						color = sphereData.Color.GetAsRgba();
-					}
+							transform = &sphereData.Transform;
+							color = sphereData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::WireCone:
-					{
-						ConeData& coneData = mWireConeData[shapeData.Idx];
-						ShapeMeshes3D::WireCone(coneData.Base, coneData.Normal, coneData.Height, coneData.Radius,
-							coneData.Scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx],
-							coneData.Quality);
+						{
+							ConeData& coneData = mWireConeData[shapeData.Idx];
+							ShapeMeshes3D::WireCone(coneData.Base, coneData.Normal, coneData.Height, coneData.Radius, coneData.Scale, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], coneData.Quality);
 
-						transform = &coneData.Transform;
-						color = coneData.Color.GetAsRgba();
-					}
-					break;
+							transform = &coneData.Transform;
+							color = coneData.Color.GetAsRgba();
+						}
+						break;
 					case ShapeType::Line:
-					{
-						LineData& lineData = mLineData[shapeData.Idx];
+						{
+							LineData& lineData = mLineData[shapeData.Idx];
 
-						ShapeMeshes3D::PixelLine(lineData.Start, lineData.End, meshData[typeIdx], vertexOffset[typeIdx],
-							indexOffset[typeIdx]);
+							ShapeMeshes3D::PixelLine(lineData.Start, lineData.End, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &lineData.Transform;
-						color = lineData.Color.GetAsRgba();
-					}
+							transform = &lineData.Transform;
+							color = lineData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::LineList:
-					{
-						LineListData& lineListData = mLineListData[shapeData.Idx];
+						{
+							LineListData& lineListData = mLineListData[shapeData.Idx];
 
-						ShapeMeshes3D::PixelLineList(lineListData.Lines, meshData[typeIdx], vertexOffset[typeIdx],
-							indexOffset[typeIdx]);
+							ShapeMeshes3D::PixelLineList(lineListData.Lines, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &lineListData.Transform;
-						color = lineListData.Color.GetAsRgba();
-					}
-					break;
+							transform = &lineListData.Transform;
+							color = lineListData.Color.GetAsRgba();
+						}
+						break;
 					case ShapeType::Frustum:
-					{
-						FrustumData& frustumData = mFrustumData[shapeData.Idx];
+						{
+							FrustumData& frustumData = mFrustumData[shapeData.Idx];
 
-						ShapeMeshes3D::WireFrustum(frustumData.Position, frustumData.Aspect, frustumData.FOV, frustumData.NearDist,
-							frustumData.FarDist, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
+							ShapeMeshes3D::WireFrustum(frustumData.Position, frustumData.Aspect, frustumData.FOV, frustumData.NearDist, frustumData.FarDist, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx]);
 
-						transform = &frustumData.Transform;
-						color = frustumData.Color.GetAsRgba();
-					}
+							transform = &frustumData.Transform;
+							color = frustumData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::WireDisc:
-					{
-						DiscData& discData = mWireDiscData[shapeData.Idx];
+						{
+							DiscData& discData = mWireDiscData[shapeData.Idx];
 
-						ShapeMeshes3D::WireDisc(discData.Position, discData.Radius, discData.Normal,
-							meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.Quality);
+							ShapeMeshes3D::WireDisc(discData.Position, discData.Radius, discData.Normal, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], discData.Quality);
 
-						transform = &discData.Transform;
-						color = discData.Color.GetAsRgba();
-					}
+							transform = &discData.Transform;
+							color = discData.Color.GetAsRgba();
+						}
 						break;
 					case ShapeType::WireArc:
-					{
-						ArcData& arcData = mWireArcData[shapeData.Idx];
+						{
+							ArcData& arcData = mWireArcData[shapeData.Idx];
 
-						ShapeMeshes3D::WireArc(arcData.Position, arcData.Radius, arcData.Normal,
-							arcData.StartAngle, arcData.AmountAngle, meshData[typeIdx], vertexOffset[typeIdx],
-							indexOffset[typeIdx], arcData.Quality);
+							ShapeMeshes3D::WireArc(arcData.Position, arcData.Radius, arcData.Normal, arcData.StartAngle, arcData.AmountAngle, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], arcData.Quality);
 
-						transform = &arcData.Transform;
-						color = arcData.Color.GetAsRgba();
-					}
+							transform = &arcData.Transform;
+							color = arcData.Color.GetAsRgba();
+						}
 						break;
 					default:
 						break;
 					}
 
-					for (u32 i = 0; i < shapeData.NumVertices; i++)
+					for(u32 i = 0; i < shapeData.NumVertices; i++)
 					{
 						Vector3 worldPos = transform->MultiplyAffine(positionIter[typeIdx].GetValue());
 
@@ -1206,7 +1187,7 @@ namespace bs
 				newMesh.Type = MeshType::Text;
 				newMesh.Texture = batch.Texture;
 
-				for (u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
+				for(u32 i = batch.StartIdx; i <= batch.EndIdx; i++)
 				{
 					RawData& shapeData = allShapes[i];
 					Text2DData& text2DData = mText2DData[shapeData.Idx];
@@ -1223,7 +1204,7 @@ namespace bs
 
 					u32 numLines = renderData.TextData->GetNumLines();
 					u32 quadOffset = 0;
-					for (u32 j = 0; j < numLines; j++)
+					for(u32 j = 0; j < numLines; j++)
 					{
 						const TextDataBase::TextLine& line = renderData.TextData->GetLine(j);
 						u32 writtenQuads = line.FillBuffer(renderData.Page, tempVertices, tempUVs, indices, quadOffset, numQuads);
@@ -1241,7 +1222,7 @@ namespace bs
 
 					float z = camera->ProjectPoint(camera->WorldToViewPoint(worldSpacePos)).Z;
 
-					for (u32 j = 0; j < shapeData.NumVertices; j++)
+					for(u32 j = 0; j < shapeData.NumVertices; j++)
 					{
 						Vector3 vertexPos(screenPos.X + tempVertices[j].X, screenPos.Y + tempVertices[j].Y, z);
 
@@ -1282,10 +1263,10 @@ namespace bs
 			case MeshType::Text:
 				entry.Mesh = meshes[3];
 				break;
-			default: ;
+			default:;
 			}
 		}
 
 		return meshInfos;
 	}
-}
+} // namespace bs

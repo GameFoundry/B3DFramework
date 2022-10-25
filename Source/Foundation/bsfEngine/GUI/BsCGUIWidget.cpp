@@ -14,7 +14,7 @@ namespace bs
 	}
 
 	CGUIWidget::CGUIWidget(const HSceneObject& parent, const SPtr<Camera>& camera)
-		:Component(parent), mCamera(camera), mParentHash((u32)-1)
+		: Component(parent), mCamera(camera), mParentHash((u32)-1)
 	{
 		SetFlag(ComponentFlag::AlwaysRun, true);
 
@@ -26,8 +26,8 @@ namespace bs
 	}
 
 	CGUIWidget::CGUIWidget(const HSceneObject& parent, const HCamera& camera)
-		:CGUIWidget(parent, camera->GetCameraInternal())
-	{ }
+		: CGUIWidget(parent, camera->GetCameraInternal())
+	{}
 
 	void CGUIWidget::SetSkin(const HGUISkin& skin)
 	{
@@ -89,13 +89,13 @@ namespace bs
 		HSceneObject parent = SO();
 
 		u32 curHash = parent->GetTransformHash();
-		if (curHash != mParentHash)
+		if(curHash != mParentHash)
 		{
 			mInternal->UpdateTransformInternal(parent);
 			mParentHash = curHash;
 		}
 
-		if (parent->GetActive() != mInternal->GetIsActive())
+		if(parent->GetActive() != mInternal->GetIsActive())
 			mInternal->SetIsActive(parent->GetActive());
 
 		mInternal->UpdateRTInternal();
@@ -117,4 +117,4 @@ namespace bs
 	{
 		return CGUIWidget::GetRttiStatic();
 	}
-}
+} // namespace bs

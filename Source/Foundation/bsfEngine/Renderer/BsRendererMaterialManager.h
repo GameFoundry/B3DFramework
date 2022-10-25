@@ -15,12 +15,12 @@ namespace bs
 	{
 		class RendererMaterialBase;
 		struct RendererMaterialMetaData;
-	}
+	} // namespace ct
 
 	/**	Initializes and handles all renderer materials. */
 	class BS_EXPORT RendererMaterialManager : public Module<RendererMaterialManager>
 	{
-		/**	Information used for initializing a renderer material managed by this module. */	
+		/**	Information used for initializing a renderer material managed by this module. */
 		struct RendererMaterialData
 		{
 			ct::RendererMaterialMetaData* MetaData;
@@ -36,8 +36,9 @@ namespace bs
 
 		/** Returns a set of defines to be used when importing the shader. */
 		static ShaderDefines GetDefinesInternal(const Path& shaderPath);
+
 	private:
-		template<class T>
+		template <class T>
 		friend class RendererMaterial;
 		friend class ct::RendererMaterialBase;
 
@@ -55,4 +56,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -6,7 +6,7 @@ namespace bs
 {
 	GUIFixedSpace::~GUIFixedSpace()
 	{
-		if (mParentElement != nullptr)
+		if(mParentElement != nullptr)
 			mParentElement->UnregisterChildElementInternal(this);
 	}
 
@@ -32,7 +32,7 @@ namespace bs
 
 	GUIFlexibleSpace::~GUIFlexibleSpace()
 	{
-		if (mParentElement != nullptr)
+		if(mParentElement != nullptr)
 			mParentElement->UnregisterChildElementInternal(this);
 	}
 
@@ -55,4 +55,4 @@ namespace bs
 	{
 		bs_delete(space);
 	}
-}
+} // namespace bs

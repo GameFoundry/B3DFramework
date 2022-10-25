@@ -32,12 +32,12 @@ namespace bs
 		}
 
 		bool editorScript = false;
-		if (importOptions != nullptr)
+		if(importOptions != nullptr)
 		{
 			SPtr<const ScriptCodeImportOptions> scriptIO = std::static_pointer_cast<const ScriptCodeImportOptions>(importOptions);
 			editorScript = scriptIO->EditorScript;
 		}
-			
+
 		SPtr<ScriptCode> scriptCode = ScriptCode::CreatePtrInternal(textData, editorScript);
 
 		const String fileName = filePath.GetFilename(false);
@@ -50,4 +50,4 @@ namespace bs
 	{
 		return bs_shared_ptr_new<ScriptCodeImportOptions>();
 	}
-}
+} // namespace bs

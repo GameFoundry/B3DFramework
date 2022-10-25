@@ -8,25 +8,22 @@ namespace bs
 	const u32 HEString::ENGINE_STRING_TABLE_ID = 30000; // Arbitrary
 
 	HEString::HEString(const String& identifier)
-		:mInternal(identifier, ENGINE_STRING_TABLE_ID)
+		: mInternal(identifier, ENGINE_STRING_TABLE_ID)
 	{
-		
 	}
 
 	HEString::HEString(const String& identifier, const String& defaultString)
 		: mInternal(identifier, defaultString, ENGINE_STRING_TABLE_ID)
 	{
-		
 	}
 
 	HEString::HEString()
 		: mInternal(ENGINE_STRING_TABLE_ID)
 	{
-		
 	}
 
 	HEString::operator HString() const
 	{
 		return mInternal;
 	}
-}
+} // namespace bs

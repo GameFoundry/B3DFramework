@@ -4,19 +4,19 @@
 
 namespace bs
 {
-	
+
 	u32 VirtualButton::NextButtonId = 0;
 
 	Map<String, u32> VirtualAxis::UniqueAxisIds;
 	u32 VirtualAxis::NextAxisId = 0;
 
 	VIRTUAL_BUTTON_DESC::VIRTUAL_BUTTON_DESC(bs::ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)
-		:ButtonCode(buttonCode), Modifiers(modifiers), Repeatable(repeatable)
-	{ }
+		: ButtonCode(buttonCode), Modifiers(modifiers), Repeatable(repeatable)
+	{}
 
 	VIRTUAL_AXIS_DESC::VIRTUAL_AXIS_DESC(u32 type)
-		:Type(type)
-	{ }
+		: Type(type)
+	{}
 
 	VirtualButton::VirtualButton(const String& name)
 	{
@@ -43,7 +43,7 @@ namespace bs
 	{
 		auto findIter = UniqueAxisIds.find(name);
 
-		if (findIter != UniqueAxisIds.end())
+		if(findIter != UniqueAxisIds.end())
 			AxisIdentifier = findIter->second;
 		else
 		{
@@ -59,7 +59,7 @@ namespace bs
 		i32 idx = -1;
 		for(u32 i = 0; i < (u32)btnData.size(); i++)
 		{
-			if (btnData[i].Name == name)
+			if(btnData[i].Name == name)
 			{
 				idx = (i32)i;
 				break;
@@ -106,7 +106,7 @@ namespace bs
 	{
 		VirtualAxis axis(name);
 
-		if (axis.AxisIdentifier >= (u32)mAxes.size())
+		if(axis.AxisIdentifier >= (u32)mAxes.size())
 			mAxes.resize(axis.AxisIdentifier + 1);
 
 		mAxes[axis.AxisIdentifier].Name = name;
@@ -116,9 +116,9 @@ namespace bs
 
 	void InputConfiguration::UnregisterAxis(const String& name)
 	{
-		for (u32 i = 0; i < (u32)mAxes.size(); i++)
+		for(u32 i = 0; i < (u32)mAxes.size(); i++)
 		{
-			if (mAxes[i].Name == name)
+			if(mAxes[i].Name == name)
 			{
 				mAxes.erase(mAxes.begin() + i);
 				i--;
@@ -146,10 +146,10 @@ namespace bs
 
 	bool InputConfiguration::GetAxisInternal(const VirtualAxis& axis, VIRTUAL_AXIS_DESC& axisDesc) const
 	{
-		if (axis.AxisIdentifier >= (u32)mAxes.size())
+		if(axis.AxisIdentifier >= (u32)mAxes.size())
 			return false;
 
 		axisDesc = mAxes[axis.AxisIdentifier].Desc;
 		return true;
 	}
-}
+} // namespace bs
