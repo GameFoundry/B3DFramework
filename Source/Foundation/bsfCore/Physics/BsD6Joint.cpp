@@ -3,10 +3,9 @@
 #include "Physics/BsD6Joint.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<D6Joint> D6Joint::Create(PhysicsScene& scene, const D6_JOINT_DESC& desc)
 {
 	return scene.CreateD6Joint(desc);
 }
-} // namespace bs

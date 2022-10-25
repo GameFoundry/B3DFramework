@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIMouseEvent.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIMouseEvent::GUIMouseEvent(bool buttonStates[(int)GUIMouseButton::Count], bool shift, bool ctrl, bool alt)
 	: mType(GUIMouseEventType::MouseMove), mButton(GUIMouseButton::Left), mShift(shift), mCtrl(ctrl), mAlt(alt)
 {
@@ -145,4 +145,3 @@ void GUIMouseEvent::SetDragAndDropLeftData(const Vector2I& position, u32 dragTyp
 	mDragTypeId = dragTypeId;
 	mDragData = dragData;
 }
-} // namespace bs

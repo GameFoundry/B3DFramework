@@ -4,8 +4,8 @@
 #include "Input/BsInput.h"
 #include "Private/MacOS/BsMacOSInput.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Contains private data for the MacOS Mouse implementation. */
 struct Mouse::Pimpl
 {
@@ -37,4 +37,3 @@ void Mouse::changeCaptureContext(u64 windowHandle)
 {
 	m->HasInputFocus = windowHandle != (u64)-1;
 }
-} // namespace bs

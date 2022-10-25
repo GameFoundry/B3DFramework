@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Audio/BsAudioUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 void convertToMono8(const i8* input, u8* output, u32 numSamples, u32 numChannels)
 {
 	for(u32 i = 0; i < numSamples; i++)
@@ -166,7 +166,7 @@ void AudioUtility::ConvertBitDepth(const u8* input, u32 inBitDepth, u8* output, 
 		convert16To32Bits((i16*)input, srcBuffer, numSamples);
 		break;
 	case 24:
-		bs::convert24To32Bits(input, srcBuffer, numSamples);
+		convert24To32Bits(input, srcBuffer, numSamples);
 		break;
 	case 32:
 		// Do nothing
@@ -252,4 +252,3 @@ i32 AudioUtility::Convert24To32Bits(const u8* input)
 {
 	return (input[2] << 24) | (input[1] << 16) | (input[0] << 8);
 }
-} // namespace bs

@@ -3,10 +3,9 @@
 #include "Physics/BsPlaneCollider.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<PlaneCollider> PlaneCollider::Create(PhysicsScene& scene, const Vector3& position, const Quaternion& rotation)
 {
 	return scene.CreatePlaneCollider(position, rotation);
 }
-} // namespace bs

@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 DragAndDropManager::DragAndDropManager()
 {
 	mMouseCaptureChangedConn = Platform::onMouseCaptureChanged.Connect(std::bind(&DragAndDropManager::mCaptureChanged, this));
@@ -92,4 +92,3 @@ void DragAndDropManager::CursorReleased(const PointerEvent& event)
 
 	Platform::ReleaseMouseCapture();
 }
-} // namespace bs

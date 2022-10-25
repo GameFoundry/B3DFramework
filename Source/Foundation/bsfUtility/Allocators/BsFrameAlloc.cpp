@@ -4,8 +4,8 @@
 #include "Allocators/BsFrameAlloc.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 u8* FrameAlloc::MemBlock::Alloc(u32 amount)
 {
 	u8* freePtr = &MData[MFreePtr];
@@ -280,6 +280,8 @@ void FrameAlloc::SetOwnerThread(ThreadId thread)
 {
 }
 
+namespace bs
+{
 BS_THREADLOCAL FrameAlloc* _GlobalFrameAlloc = nullptr;
 
 BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc()

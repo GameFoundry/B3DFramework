@@ -3,8 +3,8 @@
 #include "Importer/BsImportOptions.h"
 #include "Private/RTTI/BsImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/
@@ -17,4 +17,3 @@ RTTITypeBase* ImportOptions::GetRtti() const
 {
 	return ImportOptions::GetRttiStatic();
 }
-} // namespace bs

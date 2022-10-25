@@ -11,8 +11,8 @@
 #include "Utility/BsBitstream.h"
 #include "Utility/BsUSPtr.h"
 
-namespace bs
-{
+using namespace bs;
+
 struct DebugOctreeElem
 {
 	AABox box;
@@ -867,4 +867,3 @@ void UtilityTestSuite::testBitStream()
 	bs.read(ulv);
 	BS_TEST_ASSERT(ulv == v11);
 }
-} // namespace bs

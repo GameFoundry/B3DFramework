@@ -16,8 +16,8 @@
 #include "CoreThread/BsCoreObjectSync.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 static constexpr u32 INITIAL_PARTICLE_CAPACITY = 1000;
 
 RTTITypeBase* ParticleSystemSettings::GetRttiStatic()
@@ -491,7 +491,7 @@ RTTITypeBase* ParticleSystem::GetRtti() const
 	return ParticleSystem::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 ParticleSystem::~ParticleSystem()
 {
@@ -551,5 +551,4 @@ void ParticleSystem::SyncToCore(const CoreSyncData& data)
 	else if((dirtyFlags & ((u32)ActorDirtyFlag::Mobility | (u32)ActorDirtyFlag::Transform)) != 0)
 		gRenderer()->NotifyParticleSystemUpdated(this, true);
 }
-} // namespace ct
-} // namespace bs
+}}

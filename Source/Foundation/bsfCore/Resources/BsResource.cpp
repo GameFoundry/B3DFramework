@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsResourceRTTI.h"
 #include "Resources/BsResourceMetaData.h"
 
-namespace bs
-{
+using namespace bs;
+
 Resource::Resource(bool initializeOnRenderThread)
 	: CoreObject(initializeOnRenderThread), mSize(0), mKeepSourceData(true)
 {
@@ -78,4 +78,3 @@ RTTITypeBase* Resource::GetRtti() const
 {
 	return Resource::GetRttiStatic();
 }
-} // namespace bs

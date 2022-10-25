@@ -8,10 +8,13 @@
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsDataStream.h"
 
+using namespace bs;
+
 namespace bs
 {
-class Bitstream;
-struct SerializationContext;
+	class Bitstream;
+	struct SerializationContext;
+} // namespace bs
 
 namespace impl
 {
@@ -1181,29 +1184,29 @@ SPtr<SerializedObject> BinaryDiff::GenerateDiffInternal(IReflectable* orgObj, IR
 {
 	if(orgObj->GetTypeId() == TID_SerializedObject)
 	{
-		impl::RTTIObjectWrapper<false> orgObjWrapper(static_cast<SerializedObject*>(orgObj));
+		::impl::RTTIObjectWrapper<false> orgObjWrapper(static_cast<SerializedObject*>(orgObj));
 
 		if(newObj->GetTypeId() == TID_SerializedObject)
 		{
-			impl::RTTIObjectWrapper<false> newObjWrapper(static_cast<SerializedObject*>(newObj));
-			return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+			::impl::RTTIObjectWrapper<false> newObjWrapper(static_cast<SerializedObject*>(newObj));
+			return ::impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 		}
 
-		impl::RTTIObjectWrapper<true> newObjWrapper(newObj, newObj->GetRtti());
-		return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+		::impl::RTTIObjectWrapper<true> newObjWrapper(newObj, newObj->GetRtti());
+		return ::impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 	}
 	else
 	{
-		impl::RTTIObjectWrapper<true> orgObjWrapper(orgObj, orgObj->GetRtti());
+		::impl::RTTIObjectWrapper<true> orgObjWrapper(orgObj, orgObj->GetRtti());
 
 		if(newObj->GetTypeId() == TID_SerializedObject)
 		{
-			impl::RTTIObjectWrapper<false> newObjWrapper(static_cast<SerializedObject*>(newObj));
-			return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+			::impl::RTTIObjectWrapper<false> newObjWrapper(static_cast<SerializedObject*>(newObj));
+			return ::impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 		}
 
-		impl::RTTIObjectWrapper<true> newObjWrapper(newObj, newObj->GetRtti());
-		return impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
+		::impl::RTTIObjectWrapper<true> newObjWrapper(newObj, newObj->GetRtti());
+		return ::impl::GenerateDiff(orgObjWrapper, newObjWrapper, objectMap, replicableOnly);
 	}
 }
 
@@ -1523,4 +1526,3 @@ void BinaryDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<Serializ
 		rttiInstances.pop();
 	}
 }
-} // namespace bs

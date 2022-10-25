@@ -11,8 +11,8 @@
 #include <unicode/udata.h>
 #include <unicode/uversion.h>
 
-namespace bs
-{
+using namespace bs;
+
 /** Define a stub 'entry-point' required by ICU. **/
 typedef struct
 {
@@ -232,4 +232,3 @@ UUID PlatformUtility::generateUUID()
 		*(u32*)&nativeUUID[8],
 		*(u32*)&nativeUUID[12]);
 }
-} // namespace bs

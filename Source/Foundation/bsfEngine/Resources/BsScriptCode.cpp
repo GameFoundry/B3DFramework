@@ -4,8 +4,8 @@
 #include "Resources/BsResources.h"
 #include "Private/RTTI/BsScriptCodeRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 ScriptCode::ScriptCode(const WString& data, bool editorScript)
 	: Resource(false), mString(data), mEditorScript(editorScript)
 {
@@ -35,4 +35,3 @@ RTTITypeBase* ScriptCode::GetRtti() const
 {
 	return ScriptCode::GetRttiStatic();
 }
-} // namespace bs

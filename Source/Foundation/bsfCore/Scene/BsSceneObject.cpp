@@ -13,8 +13,8 @@
 #include "Math/BsMatrix3.h"
 #include "BsCoreApplication.h"
 
-namespace bs
-{
+using namespace bs;
+
 SceneObject::SceneObject(const String& name, u32 flags)
 	: GameObject(), mFlags(flags)
 {
@@ -902,4 +902,3 @@ RTTITypeBase* SceneObject::GetRtti() const
 {
 	return SceneObject::GetRttiStatic();
 }
-} // namespace bs

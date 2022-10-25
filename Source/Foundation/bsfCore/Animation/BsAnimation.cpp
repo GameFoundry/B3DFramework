@@ -7,8 +7,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Animation/BsMorphShapes.h"
 
-namespace bs
-{
+using namespace bs;
+
 AnimationClipInfo::AnimationClipInfo(const HAnimationClip& clip)
 	: Clip(clip)
 {}
@@ -1540,4 +1540,3 @@ void Animation::UpdateFromProxy()
 		memcpy(mGenericCurveOutputs.data(), mAnimProxy->GenericCurveOutputs, mAnimProxy->NumGenericCurves * sizeof(float));
 	}
 }
-} // namespace bs

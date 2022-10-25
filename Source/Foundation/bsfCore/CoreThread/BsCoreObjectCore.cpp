@@ -3,9 +3,9 @@
 #include "CoreThread/BsCoreObjectCore.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 Signal CoreObject::mCoreGpuObjectLoadedCondition;
 Mutex CoreObject::mCoreGpuObjectLoadedMutex;
@@ -57,5 +57,4 @@ void CoreObject::SetThisPtrInternal(SPtr<CoreObject> ptrThis)
 {
 	mThis = ptrThis;
 }
-} // namespace ct
-} // namespace bs
+}}

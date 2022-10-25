@@ -9,8 +9,8 @@
 #include "GUI/BsGUIWidget.h"
 #include "BsGUIManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIElementBase::GUIElementBase(const GUIDimensions& dimensions)
 	: mDimensions(dimensions)
 {}
@@ -649,4 +649,3 @@ void GUIElementBase::SetUpdateParent(GUIElementBase* updateParent)
 	for(auto& child : mChildren)
 		child->SetUpdateParent(updateParent);
 }
-} // namespace bs

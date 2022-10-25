@@ -5,8 +5,8 @@
 #include "FileSystem/BsDataStream.h"
 #include "FileSystem/BsFileSystem.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool ShaderIncludeImporter::IsExtensionSupported(const String& ext) const
 {
 	String lowerCaseExt = ext;
@@ -37,4 +37,3 @@ SPtr<Resource> ShaderIncludeImporter::Import(const Path& filePath, SPtr<const Im
 
 	return gpuInclude;
 }
-} // namespace bs

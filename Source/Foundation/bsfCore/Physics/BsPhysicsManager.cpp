@@ -4,8 +4,8 @@
 #include "Utility/BsDynLibManager.h"
 #include "Utility/BsDynLib.h"
 
-namespace bs
-{
+using namespace bs;
+
 PhysicsManager::PhysicsManager(const String& pluginName, bool cooking)
 	: mPlugin(nullptr), mFactory(nullptr)
 {
@@ -40,4 +40,3 @@ PhysicsManager::~PhysicsManager()
 		DynLibManager::Instance().Unload(mPlugin);
 	}
 }
-} // namespace bs

@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsCLightProbeVolumeRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CLightProbeVolume::CLightProbeVolume()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -77,4 +77,3 @@ RTTITypeBase* CLightProbeVolume::GetRtti() const
 {
 	return CLightProbeVolume::GetRttiStatic();
 }
-} // namespace bs

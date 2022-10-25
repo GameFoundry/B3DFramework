@@ -9,8 +9,8 @@
 #include "Renderer/BsIBLUtility.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <bool Core>
 template <class P>
 void TSkybox<Core>::RttiEnumFields(P p)
@@ -184,7 +184,7 @@ RTTITypeBase* Skybox::GetRtti() const
 	return Skybox::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Skybox::Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance)
 	: mFilteredRadiance(filteredRadiance), mIrradiance(irradiance)
@@ -231,5 +231,4 @@ void Skybox::SyncToCore(const CoreSyncData& data)
 		}
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

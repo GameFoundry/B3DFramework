@@ -16,8 +16,8 @@
 #include "Math/BsMatrixNxM.h"
 #include "Managers/BsHardwareBufferManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 const TextureSurface TextureSurface::COMPLETE = TextureSurface(0, 0, 0, 0);
 
 GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
@@ -726,7 +726,7 @@ void GpuParams::GetListenerResources(Vector<HResource>& resources)
 	}
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GpuParams::GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
 	: TGpuParams(paramInfo)
@@ -828,5 +828,4 @@ SPtr<GpuParams> GpuParams::Create(const SPtr<GpuPipelineParamInfo>& paramInfo, G
 {
 	return HardwareBufferManager::Instance().CreateGpuParams(paramInfo, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

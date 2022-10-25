@@ -7,8 +7,8 @@
 #include "Text/BsFont.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 void GUIInputTool::UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC& textDesc)
 {
 	mElement = element;
@@ -299,4 +299,3 @@ bool GUIInputLineDesc::IsNewline(u32 charIdx) const
 	else
 		return false;
 }
-} // namespace bs

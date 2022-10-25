@@ -11,8 +11,8 @@
 #include "Animation/BsAnimationCurve.h"
 #include "Allocators/BsPoolAlloc.h"
 
-namespace bs
-{
+using namespace bs;
+
 namespace impl
 {
 SPtr<ct::Texture> getSpriteTextureAtlas(const SPtr<ct::SpriteTexture>& spriteTexture)
@@ -659,7 +659,7 @@ void TMaterialParams<Core>::GetTexture(const ParamData& param, TextureType& valu
 	if(textureParam.Texture)
 		value = textureParam.Texture;
 	else if(textureParam.SpriteTexture)
-		value = impl::getSpriteTextureAtlas(textureParam.SpriteTexture);
+		value = ::impl::getSpriteTextureAtlas(textureParam.SpriteTexture);
 
 	surface = textureParam.Surface;
 }
@@ -1126,7 +1126,7 @@ RTTITypeBase* MaterialParams::GetRtti() const
 	return MaterialParams::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 MaterialParams::MaterialParams(const SPtr<Shader>& shader, u64 initialParamVersion)
 	: TMaterialParams(shader, initialParamVersion)
@@ -1346,5 +1346,4 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 			stream.ReadBytes(mStructParams[param.Index + j].Data, paramData.DataSize);
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

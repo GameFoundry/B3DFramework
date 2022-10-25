@@ -3,8 +3,8 @@
 #include "GUI/BsGUIElementStyle.h"
 #include "Private/RTTI/BsGUIElementStyleRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* GUIElementStyle::GetRttiStatic()
 {
 	return GUIElementStyleRTTI::Instance();
@@ -14,4 +14,3 @@ RTTITypeBase* GUIElementStyle::GetRtti() const
 {
 	return GUIElementStyle::GetRttiStatic();
 }
-} // namespace bs

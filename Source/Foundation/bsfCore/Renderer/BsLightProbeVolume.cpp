@@ -9,8 +9,8 @@
 #include "Scene/BsSceneObject.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 LightProbeVolume::LightProbeVolume(const AABox& volume, const Vector3I& cellCount)
 	: mVolume(volume), mCellCount(cellCount)
 {
@@ -367,7 +367,7 @@ RTTITypeBase* LightProbeVolume::GetRtti() const
 	return LightProbeVolume::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 LightProbeVolume::LightProbeVolume(const UnorderedMap<u32, bs::LightProbeVolume::ProbeInfo>& probes)
 {
@@ -670,5 +670,4 @@ void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 	mCoefficients = newTexture;
 	mCoeffBufferSize = count;
 }
-} // namespace ct
-} // namespace bs
+}}

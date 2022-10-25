@@ -3,8 +3,8 @@
 #include "Resources/BsSavedResourceData.h"
 #include "Private/RTTI/BsSavedResourceDataRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SavedResourceData::SavedResourceData(const Vector<UUID>& dependencies, bool allowAsync, u32 compressionMethod)
 	: mDependencies(dependencies), mAllowAsync(allowAsync), mCompressionMethod(compressionMethod)
 {}
@@ -18,4 +18,3 @@ RTTITypeBase* SavedResourceData::GetRtti() const
 {
 	return SavedResourceData::GetRttiStatic();
 }
-} // namespace bs

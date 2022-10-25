@@ -7,8 +7,8 @@
 #include "GUI/BsGUIElement.h"
 #include "Text/BsFont.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIInputCaret::GUIInputCaret()
 {
 	mCaretSprite = bs_new<ImageSprite>();
@@ -314,4 +314,3 @@ u32 GUIInputCaret::GetMaxCaretPos() const
 
 	return maxPos - 1;
 }
-} // namespace bs

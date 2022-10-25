@@ -10,8 +10,8 @@
 #include "GUI/BsGUICommandEvent.h"
 #include "GUI/BsGUIHelper.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions, GUIElementOptions options)
 	: GUIElement(styleName, dimensions, options), mContent(content)
 {
@@ -465,4 +465,3 @@ Color GUIButtonBase::GetActiveTextColor() const
 
 	return GetStyleInternal()->Normal.TextColor;
 }
-} // namespace bs

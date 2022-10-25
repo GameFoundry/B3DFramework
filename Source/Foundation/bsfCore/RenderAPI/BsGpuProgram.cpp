@@ -8,8 +8,8 @@
 #include "Managers/BsGpuProgramManager.h"
 #include "Private/RTTI/BsGpuProgramRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 GpuProgramBytecode::~GpuProgramBytecode()
 {
 	if(Instructions.Data)
@@ -82,7 +82,7 @@ RTTITypeBase* GpuProgram::GetRtti() const
 	return GpuProgram::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	: mNeedsAdjacencyInfo(desc.RequiresAdjacency), mType(desc.Type), mEntryPoint(desc.EntryPoint), mSource(desc.Source), mBytecode(desc.Bytecode)
@@ -107,5 +107,4 @@ SPtr<GpuProgramBytecode> GpuProgram::CompileBytecode(const GPU_PROGRAM_DESC& des
 {
 	return GpuProgramManager::Instance().CompileBytecode(desc);
 }
-} // namespace ct
-} // namespace bs
+}}

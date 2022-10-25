@@ -5,8 +5,8 @@
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc)
 {
 	Texture* tex = new(bs_alloc<Texture>()) Texture(desc);
@@ -81,7 +81,7 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DES
 	return newRT;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 void TextureManager::OnStartUp()
 {
@@ -153,5 +153,4 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DES
 
 	return newRT;
 }
-} // namespace ct
-} // namespace bs
+}}

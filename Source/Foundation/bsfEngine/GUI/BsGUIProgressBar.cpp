@@ -8,8 +8,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 GUIProgressBar::GUIProgressBar(const String& styleName, const GUIDimensions& dimensions)
 	: GUIElementContainer(dimensions, styleName), mPercent(0)
 {
@@ -98,4 +98,3 @@ const String& GUIProgressBar::GetGuiTypeName()
 	static String typeName = "ProgressBar";
 	return typeName;
 }
-} // namespace bs

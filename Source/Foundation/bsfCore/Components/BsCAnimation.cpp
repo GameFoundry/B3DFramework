@@ -12,8 +12,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CAnimation::CAnimation()
 {
 	mNotifyFlags = TCF_Transform;
@@ -639,4 +639,3 @@ RTTITypeBase* CAnimation::GetRtti() const
 {
 	return CAnimation::GetRttiStatic();
 }
-} // namespace bs

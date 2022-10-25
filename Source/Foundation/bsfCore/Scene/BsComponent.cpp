@@ -4,8 +4,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsComponentRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 Component::Component(HSceneObject parent)
 	: mParent(std::move(parent))
 {
@@ -47,4 +47,3 @@ RTTITypeBase* Component::GetRtti() const
 {
 	return Component::GetRttiStatic();
 }
-} // namespace bs

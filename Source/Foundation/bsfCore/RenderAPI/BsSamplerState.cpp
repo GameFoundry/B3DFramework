@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsSamplerStateRTTI.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool SAMPLER_STATE_DESC::operator==(const SAMPLER_STATE_DESC& rhs) const
 {
 	return AddressMode == rhs.AddressMode &&
@@ -107,7 +107,7 @@ RTTITypeBase* SamplerState::GetRtti() const
 	return SamplerState::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 
 SamplerState::SamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
@@ -146,5 +146,4 @@ const SPtr<SamplerState>& SamplerState::GetDefault()
 	return RenderStateManager::Instance().GetDefaultSamplerState();
 }
 
-} // namespace ct
-} // namespace bs
+}}

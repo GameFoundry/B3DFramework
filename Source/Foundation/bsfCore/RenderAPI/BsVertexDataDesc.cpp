@@ -4,8 +4,8 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "Private/RTTI/BsVertexDataDescRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void VertexDataDesc::AddVertElem(VertexElementType type, VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx, u32 instanceStepRate)
 {
 	ClearIfItExists(type, semantic, semanticIdx, streamIdx);
@@ -197,4 +197,3 @@ RTTITypeBase* VertexDataDesc::GetRtti() const
 {
 	return VertexDataDesc::GetRttiStatic();
 }
-} // namespace bs

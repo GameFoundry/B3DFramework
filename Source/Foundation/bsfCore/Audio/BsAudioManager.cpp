@@ -4,8 +4,8 @@
 #include "Utility/BsDynLibManager.h"
 #include "Utility/BsDynLib.h"
 
-namespace bs
-{
+using namespace bs;
+
 AudioManager::AudioManager(const String& pluginName)
 {
 	mPlugin = DynLibManager::Instance().Load(pluginName);
@@ -39,4 +39,3 @@ AudioManager::~AudioManager()
 		DynLibManager::Instance().Unload(mPlugin);
 	}
 }
-} // namespace bs

@@ -4,8 +4,8 @@
 #include "RTTI/BsRTTISchemaRTTI.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase::~RTTITypeBase()
 {
 	for(const auto& item : mFields)
@@ -114,6 +114,8 @@ RTTITypeBase* SerializationContext::GetRtti() const
 	return GetRttiStatic();
 }
 
+namespace bs
+{
 SPtr<IReflectable> rtti_create(u32 rttiId)
 {
 	return IReflectable::CreateInstanceFromTypeId(rttiId);

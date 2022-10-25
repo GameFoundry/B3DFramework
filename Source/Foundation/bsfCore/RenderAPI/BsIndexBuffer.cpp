@@ -6,8 +6,8 @@
 #include "RenderAPI/BsGpuBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
-{
+using namespace bs;
+
 u32 calcIndexSize(IndexType type)
 {
 	switch(type)
@@ -58,7 +58,7 @@ SPtr<IndexBuffer> IndexBuffer::Create(const INDEX_BUFFER_DESC& desc)
 	return HardwareBufferManager::Instance().CreateIndexBuffer(desc);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 IndexBuffer::IndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	: HardwareBuffer(calcIndexSize(desc.IndexType) * desc.NumIndices, desc.Usage, deviceMask)
@@ -170,5 +170,4 @@ SPtr<IndexBuffer> IndexBuffer::Create(const INDEX_BUFFER_DESC& desc, GpuDeviceFl
 {
 	return HardwareBufferManager::Instance().CreateIndexBuffer(desc, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

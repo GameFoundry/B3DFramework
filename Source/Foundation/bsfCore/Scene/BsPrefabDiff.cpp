@@ -8,8 +8,8 @@
 #include "Scene/BsSceneManager.h"
 #include "Utility/BsUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* PrefabComponentDiff::GetRttiStatic()
 {
 	return PrefabComponentDiffRTTI::Instance();
@@ -514,4 +514,3 @@ RTTITypeBase* PrefabDiff::GetRtti() const
 {
 	return PrefabDiff::GetRttiStatic();
 }
-} // namespace bs

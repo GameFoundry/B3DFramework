@@ -3,8 +3,8 @@
 #include "Debug/BsLog.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 UnorderedMap<u32, String> Log::sCategories;
 
 Log::~Log()
@@ -143,4 +143,3 @@ Vector<LogEntry> Log::GetAllEntries() const
 
 	return entries;
 }
-} // namespace bs

@@ -9,8 +9,8 @@
 #include "RenderAPI/BsRenderTarget.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIViewport::GetGuiTypeName()
 {
 	static String name = "Viewport";
@@ -89,4 +89,3 @@ void GUIViewport::ChangeParentWidgetInternal(GUIWidget* widget)
 			BS_EXCEPT(InvalidParametersException, "Camera provided to GUIViewport must use the same render target as the GUIWidget this element is located on.")
 	}
 }
-} // namespace bs

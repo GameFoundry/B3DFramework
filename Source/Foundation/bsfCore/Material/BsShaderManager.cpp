@@ -4,8 +4,8 @@
 #include "Resources/BsResources.h"
 #include "Importer/BsImporter.h"
 
-namespace bs
-{
+using namespace bs;
+
 HShaderInclude DefaultShaderIncludeHandler::FindInclude(const String& name) const
 {
 	return Importer::Instance().Import<ShaderInclude>(name);
@@ -21,4 +21,3 @@ void ShaderManager::AddSearchPath(const Path& path)
 	if(mIncludeHandler)
 		mIncludeHandler->AddSearchPath(path);
 }
-} // namespace bs

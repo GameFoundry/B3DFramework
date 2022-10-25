@@ -4,8 +4,8 @@
 #include "GUI/BsGUIDimensions.h"
 #include "GUI/BsGUICommandEvent.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIButton::GetGuiTypeName()
 {
 	static String name = "Button";
@@ -51,4 +51,3 @@ bool GUIButton::CommandEventInternal(const GUICommandEvent& ev)
 
 	return processed;
 }
-} // namespace bs

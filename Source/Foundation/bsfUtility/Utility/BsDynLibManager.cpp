@@ -19,6 +19,9 @@ static bool operator<(const UPtr<DynLib>& lhs, const UPtr<DynLib>& rhs)
 {
 	return lhs->GetName() < rhs->GetName();
 }
+} // namespace bs
+
+using namespace bs;
 
 DynLib* DynLibManager::Load(String filename)
 {
@@ -58,6 +61,8 @@ void DynLibManager::Unload(DynLib* lib)
 		bs_delete(lib);
 }
 
+namespace bs
+{
 DynLibManager& gDynLibManager()
 {
 	return DynLibManager::Instance();

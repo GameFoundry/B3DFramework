@@ -6,8 +6,8 @@
 #include "GUI/BsGUIToggleGroup.h"
 #include "BsGUICommandEvent.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIToggle::GetGuiTypeName()
 {
 	static String name = "Toggle";
@@ -204,4 +204,3 @@ bool GUIToggle::CommandEventInternal(const GUICommandEvent& ev)
 
 	return processed;
 }
-} // namespace bs

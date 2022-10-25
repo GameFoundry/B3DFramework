@@ -7,8 +7,8 @@
 #include "Scene/BsPrefabUtility.h"
 #include "BsCoreApplication.h"
 
-namespace bs
-{
+using namespace bs;
+
 Prefab::Prefab()
 	: Resource(false)
 {
@@ -168,4 +168,3 @@ RTTITypeBase* Prefab::GetRtti() const
 {
 	return Prefab::GetRttiStatic();
 }
-} // namespace bs

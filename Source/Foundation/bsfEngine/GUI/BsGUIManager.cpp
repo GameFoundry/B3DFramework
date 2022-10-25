@@ -41,8 +41,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUIManager::DRAG_DISTANCE = 3;
 const float GUIManager::TOOLTIP_HOVER_TIME = 1.0f;
 
@@ -1549,12 +1549,15 @@ bool GUIManager::SendVirtualButtonEvent(GUIElement* element, const GUIVirtualBut
 	return element->VirtualButtonEventInternal(event);
 }
 
+namespace bs
+{
 GUIManager& gGUIManager()
 {
 	return GUIManager::Instance();
 }
+} // namespace bs
 
-namespace ct
+namespace bs { namespace ct
 {
 GUISpriteParamBlockDef gGUISpriteParamBlockDef;
 
@@ -1928,5 +1931,4 @@ void GUIRenderer::UpdateParamBlockBuffer(const SPtr<GpuParamBlockBuffer>& buffer
 
 	buffer->FlushToGpu();
 }
-} // namespace ct
-} // namespace bs
+}}

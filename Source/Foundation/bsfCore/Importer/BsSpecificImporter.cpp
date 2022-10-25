@@ -4,8 +4,8 @@
 #include "Importer/BsImportOptions.h"
 #include "Resources/BsResources.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 {
 	SPtr<Resource> resource = Import(filePath, importOptions);
@@ -28,4 +28,3 @@ SPtr<const ImportOptions> SpecificImporter::GetDefaultImportOptions() const
 
 	return mDefaultImportOptions;
 }
-} // namespace bs

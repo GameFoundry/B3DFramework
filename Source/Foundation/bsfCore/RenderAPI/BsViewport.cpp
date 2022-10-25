@@ -8,8 +8,8 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(0.0f, 0.3685f, 0.7969f);
 
 ViewportBase::ViewportBase(float x, float y, float width, float height)
@@ -188,7 +188,7 @@ RTTITypeBase* Viewport::GetRtti() const
 	return Viewport::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
 	: TViewport(target, x, y, width, height)
@@ -226,5 +226,4 @@ void Viewport::SyncToCore(const CoreSyncData& data)
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 	csync_read(*this, stream);
 }
-} // namespace ct
-} // namespace bs
+}}

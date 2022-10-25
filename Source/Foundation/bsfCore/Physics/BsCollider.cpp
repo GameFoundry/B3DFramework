@@ -6,8 +6,8 @@
 #include "Math/BsRay.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector3 Collider::GetPosition() const
 {
 	return mInternal->GetPosition();
@@ -119,4 +119,3 @@ bool Collider::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQue
 {
 	return gPhysics().RayCastInternal(origin, unitDir, *this, hit, maxDist);
 }
-} // namespace bs

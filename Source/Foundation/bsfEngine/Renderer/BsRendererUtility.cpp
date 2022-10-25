@@ -14,9 +14,9 @@
 #include "Renderer/BsIBLUtility.h"
 #include "Math/BsAABox.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 RendererUtility::RendererUtility()
 {
@@ -525,5 +525,4 @@ BicubicUpsampleMat* BicubicUpsampleMat::GetVariation(bool hermite)
 	return Get(GetVariation<false>());
 }
 
-} // namespace ct
-} // namespace bs
+}}

@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsBlendStateRTTI.h"
 #include "Resources/BsResources.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool RENDER_TARGET_BLEND_STATE_DESC::operator==(const RENDER_TARGET_BLEND_STATE_DESC& rhs) const
 {
 	return BlendEnable == rhs.BlendEnable &&
@@ -167,7 +167,7 @@ RTTITypeBase* BlendState::GetRtti() const
 	return BlendState::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 BlendState::BlendState(const BLEND_STATE_DESC& desc, u32 id)
 	: mProperties(desc), mId(id)
@@ -203,5 +203,4 @@ const SPtr<BlendState>& BlendState::GetDefault()
 {
 	return RenderStateManager::Instance().GetDefaultBlendState();
 }
-} // namespace ct
-} // namespace bs
+}}

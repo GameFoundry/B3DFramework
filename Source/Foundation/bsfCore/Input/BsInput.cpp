@@ -11,8 +11,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 // Note: Input polling methods for button/axis could be re-written so their query immediate state
 // instead of returning cached state from event callbacks. This /might/ result in even less input lag?
 
@@ -637,6 +637,8 @@ float Input::SmoothMouse(float value, u32 idx)
 	return value;
 }
 
+namespace bs
+{
 Input& gInput()
 {
 	return Input::Instance();

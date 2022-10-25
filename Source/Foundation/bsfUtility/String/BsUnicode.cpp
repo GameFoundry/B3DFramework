@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Converts an UTF-8 encoded character (possibly multibyte) into an UTF-32 character. */
 template <typename T>
 T UTF8To32(T begin, T end, char32_t& output, char32_t invalidChar = 0)
@@ -481,4 +481,3 @@ String UTF8::ToUpper(const String& input)
 {
 	return PlatformUtility::ConvertCaseUtF8(input, true);
 }
-} // namespace bs

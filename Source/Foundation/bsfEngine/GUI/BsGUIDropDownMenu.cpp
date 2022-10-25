@@ -21,8 +21,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUIDropDownMenu::DROP_DOWN_BOX_WIDTH = 250;
 
 GUIDropDownDataEntry GUIDropDownDataEntry::Separator()
@@ -501,4 +501,3 @@ void GUIDropDownMenu::DropDownSubMenu::ElementSelected(u32 idx)
 {
 	CloseSubMenu();
 }
-} // namespace bs

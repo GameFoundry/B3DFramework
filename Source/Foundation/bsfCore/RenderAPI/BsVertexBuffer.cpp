@@ -5,8 +5,8 @@
 #include "Profiling/BsRenderStats.h"
 #include "RenderAPI/BsGpuBuffer.h"
 
-namespace bs
-{
+using namespace bs;
+
 void checkValidDesc(const VERTEX_BUFFER_DESC& desc)
 {
 	if(desc.VertexSize == 0)
@@ -49,7 +49,7 @@ SPtr<VertexBuffer> VertexBuffer::Create(const VERTEX_BUFFER_DESC& desc)
 	return HardwareBufferManager::Instance().CreateVertexBuffer(desc);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 VertexBuffer::VertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	: HardwareBuffer(desc.VertexSize * desc.NumVerts, desc.Usage, deviceMask), mProperties(desc.NumVerts, desc.VertexSize)
@@ -158,5 +158,4 @@ SPtr<VertexBuffer> VertexBuffer::Create(const VERTEX_BUFFER_DESC& desc, GpuDevic
 {
 	return HardwareBufferManager::Instance().CreateVertexBuffer(desc, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

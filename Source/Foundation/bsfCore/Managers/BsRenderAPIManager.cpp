@@ -6,8 +6,8 @@
 #include "Utility/BsDynLib.h"
 #include "Utility/BsDynLibManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 RenderAPIManager::~RenderAPIManager()
 {
 	if(mRenderAPIInitialized)
@@ -52,4 +52,3 @@ void RenderAPIManager::RegisterFactory(SPtr<RenderAPIFactory> factory)
 
 	mAvailableFactories.push_back(factory);
 }
-} // namespace bs

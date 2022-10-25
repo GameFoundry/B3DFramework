@@ -8,8 +8,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CParticleSystem::CParticleSystem()
 {
 	SetName("ParticleSystem");
@@ -155,4 +155,3 @@ RTTITypeBase* CParticleSystem::GetRtti() const
 {
 	return CParticleSystem::GetRttiStatic();
 }
-} // namespace bs

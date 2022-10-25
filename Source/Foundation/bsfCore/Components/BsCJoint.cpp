@@ -8,8 +8,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CJoint::CJoint(JOINT_DESC& desc)
 	: mDesc(desc)
 {
@@ -294,4 +294,3 @@ RTTITypeBase* CJoint::GetRtti() const
 {
 	return CJoint::GetRttiStatic();
 }
-} // namespace bs

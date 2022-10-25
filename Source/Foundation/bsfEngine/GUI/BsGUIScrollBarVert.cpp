@@ -3,8 +3,8 @@
 #include "GUI/BsGUIScrollBarVert.h"
 #include "GUI/BsGUIDimensions.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIScrollBarVert::GUIScrollBarVert(bool resizeable, const String& styleName, const GUIDimensions& dimensions)
 	: GUIScrollBar(false, resizeable, styleName, dimensions)
 {
@@ -40,4 +40,3 @@ const String& GUIScrollBarVert::GetGuiTypeName(bool resizable)
 	else
 		return typeName;
 }
-} // namespace bs

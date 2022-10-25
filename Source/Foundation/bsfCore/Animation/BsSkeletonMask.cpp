@@ -3,8 +3,8 @@
 #include "Animation/BsSkeletonMask.h"
 #include "Animation/BsSkeleton.h"
 
-namespace bs
-{
+using namespace bs;
+
 SkeletonMask::SkeletonMask(u32 numBones)
 	: mIsDisabled(numBones)
 {}
@@ -33,4 +33,3 @@ void SkeletonMaskBuilder::SetBoneState(const String& name, bool enabled)
 		}
 	}
 }
-} // namespace bs

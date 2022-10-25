@@ -5,8 +5,8 @@
 #include "Math/BsLineSegment3.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) const
 {
 	const Vector3& org = ray.GetOrigin();
@@ -147,4 +147,3 @@ std::pair<bool, float> Rect3::Intersects(const Ray& ray) const
 
 	return std::make_pair(false, 0.0f);
 }
-} // namespace bs

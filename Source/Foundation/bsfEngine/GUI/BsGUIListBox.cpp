@@ -7,8 +7,8 @@
 #include "GUI/BsGUIManager.h"
 #include "GUI/BsGUIDropDownBoxManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIListBox::GetGuiTypeName()
 {
 	static String name = "ListBox";
@@ -278,4 +278,3 @@ void GUIListBox::OnListBoxClosed()
 	SetOnInternal(false);
 	mDropDownBox = nullptr;
 }
-} // namespace bs

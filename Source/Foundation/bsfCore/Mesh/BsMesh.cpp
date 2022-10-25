@@ -12,8 +12,8 @@
 #include "Resources/BsResources.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 MESH_DESC MESH_DESC::DEFAULT = MESH_DESC();
 
 Mesh::Mesh(const MESH_DESC& desc)
@@ -245,7 +245,7 @@ SPtr<Mesh> Mesh::CreateEmpty()
 	return mesh;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	: MeshBase(desc.NumVertices, desc.NumIndices, desc.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDesc(desc.VertexDesc), mUsage(desc.Usage), mIndexType(desc.IndexType), mDeviceMask(deviceMask), mTempInitialMeshData(initialMeshData), mSkeleton(desc.Skeleton), mMorphShapes(desc.MorphShapes)
@@ -564,5 +564,4 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOp
 
 	return mesh;
 }
-} // namespace ct
-} // namespace bs
+}}

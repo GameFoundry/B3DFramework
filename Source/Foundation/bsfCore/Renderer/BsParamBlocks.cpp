@@ -3,9 +3,9 @@
 #include "Renderer/BsParamBlocks.h"
 #include "RenderAPI/BsGpuParam.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 ParamBlock::~ParamBlock()
 {
@@ -36,5 +36,4 @@ void ParamBlockManager::UnregisterBlock(ParamBlock* paramBlock)
 	if(iterFind != sToInitialize.end())
 		sToInitialize.erase(iterFind);
 }
-} // namespace ct
-} // namespace bs
+}}

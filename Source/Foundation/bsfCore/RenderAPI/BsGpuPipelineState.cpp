@@ -9,8 +9,8 @@
 #include "RenderAPI/BsGpuPipelineParamInfo.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Converts a sim thread pipeline state descriptor to a core thread one. */
 void convertPassDesc(const PIPELINE_STATE_DESC& input, ct::PIPELINE_STATE_DESC& output)
 {
@@ -124,7 +124,7 @@ SPtr<ComputePipelineState> ComputePipelineState::Create(const SPtr<GpuProgram>& 
 	return RenderStateManager::Instance().CreateComputePipelineState(program);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GraphicsPipelineState::GraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
 	: TGraphicsPipelineState(desc), mDeviceMask(deviceMask)
@@ -176,5 +176,4 @@ SPtr<ComputePipelineState> ComputePipelineState::Create(const SPtr<GpuProgram>& 
 {
 	return RenderStateManager::Instance().CreateComputePipelineState(program, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

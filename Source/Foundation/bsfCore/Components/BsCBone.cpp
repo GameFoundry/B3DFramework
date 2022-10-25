@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CBone::CBone()
 {
 	SetName("Bone");
@@ -114,4 +114,3 @@ RTTITypeBase* CBone::GetRtti() const
 {
 	return CBone::GetRttiStatic();
 }
-} // namespace bs

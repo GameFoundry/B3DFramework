@@ -5,8 +5,8 @@
 #include "CoreThread/BsCoreThread.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 #if BS_DEBUG_MODE
 CommandQueueBase::CommandQueueBase(ThreadId threadId)
 	: mMyThreadId(threadId), mMaxDebugIdx(0)
@@ -210,4 +210,3 @@ void CommandQueueBase::addBreakpoint(u32 queueIdx, u32 commandIdx)
 	// Do nothing, no breakpoints in release
 }
 #endif
-} // namespace bs

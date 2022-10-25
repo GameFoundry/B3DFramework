@@ -9,11 +9,14 @@
 
 namespace bs
 {
-namespace detail
-{
-template class TVectorField<false>;
-template class TVectorField<true>;
-} // namespace detail
+	namespace detail
+	{
+	template class TVectorField<false>;
+	template class TVectorField<true>;
+	} // namespace detail
+}
+
+using namespace bs;
 
 VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 	: TVectorField(desc)
@@ -124,14 +127,14 @@ SPtr<VectorField> VectorField::CreateEmptyInternal()
 	return vectorFieldPtr;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const SPtr<Texture>& texture)
 	: TVectorField(desc)
 {
 	mTexture = texture;
 }
-} // namespace ct
+}}
 
 bool FGAImporter::IsExtensionSupported(const String& ext) const
 {
@@ -267,4 +270,3 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 	return vectorField;
 }
-} // namespace bs

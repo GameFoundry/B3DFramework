@@ -5,8 +5,8 @@
 #include "CoreThread/BsCoreObjectSync.h"
 #include "Image/BsTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <class Processor>
 void AutoExposureSettings::RttiEnumFields(Processor p)
 {
@@ -365,4 +365,3 @@ RTTITypeBase* RenderSettings::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

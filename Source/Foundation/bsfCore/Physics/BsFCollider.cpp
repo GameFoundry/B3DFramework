@@ -3,10 +3,9 @@
 #include "Physics/BsFCollider.h"
 #include "Physics/BsRigidbody.h"
 
-namespace bs
-{
+using namespace bs;
+
 void FCollider::SetMaterial(const HPhysicsMaterial& material)
 {
 	mMaterial = material;
 }
-} // namespace bs

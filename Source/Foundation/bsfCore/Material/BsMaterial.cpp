@@ -18,8 +18,8 @@
 #include "Serialization/BsBinarySerializer.h"
 #include "FileSystem/BsDataStream.h"
 
-namespace bs
-{
+using namespace bs;
+
 enum MaterialLoadFlags
 {
 	Load_None = 0,
@@ -1031,7 +1031,7 @@ RTTITypeBase* Material::GetRtti() const
 	return Material::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Material::Material(const SPtr<Shader>& shader, const ShaderVariation& variation)
 {
@@ -1111,5 +1111,4 @@ SPtr<Material> Material::Create(const SPtr<Shader>& shader)
 
 	return materialPtr;
 }
-} // namespace ct
-} // namespace bs
+}}

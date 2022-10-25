@@ -6,8 +6,8 @@
 #include "Math/BsMatrix3.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Matrix4 Matrix4::ZERO{ BS_ZERO() };
 const Matrix4 Matrix4::IDENTITY{ BS_IDENTITY() };
 
@@ -469,4 +469,3 @@ Matrix4 Matrix4::InverseTrs(const Vector3& translation, const Quaternion& rotati
 
 	return mat;
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Math/BsMatrix4.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Rect2I Rect2I::EMPTY;
 
 bool Rect2I::Contains(const Vector2I& point) const
@@ -199,4 +199,3 @@ void Rect2I::Transform(const Matrix4& matrix)
 	Width = (u32)Math::CeilToInt(maxX) - X;
 	Height = (u32)Math::CeilToInt(maxY) - Y;
 }
-} // namespace bs

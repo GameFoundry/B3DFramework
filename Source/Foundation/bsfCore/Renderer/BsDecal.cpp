@@ -8,8 +8,8 @@
 #include "Material/BsMaterial.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 DecalBase::DecalBase()
 {
 	UpdateBounds();
@@ -157,7 +157,7 @@ RTTITypeBase* Decal::GetRtti() const
 template class TDecal<true>;
 template class TDecal<false>;
 
-namespace ct
+namespace bs { namespace ct
 {
 Decal::Decal(const SPtr<Material>& material, const Vector2& size, float maxDistance)
 	: TDecal(material, size, maxDistance)
@@ -213,5 +213,4 @@ void Decal::SyncToCore(const CoreSyncData& data)
 		}
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

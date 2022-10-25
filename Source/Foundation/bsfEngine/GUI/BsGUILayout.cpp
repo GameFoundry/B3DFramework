@@ -7,8 +7,8 @@
 #include "GUI/BsGUISpace.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUILayout::GUILayout(const GUIDimensions& dimensions)
 	: GUIElementBase(dimensions)
 {}
@@ -86,4 +86,3 @@ void GUILayout::Destroy(GUILayout* layout)
 {
 	bs_delete(layout);
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "FileSystem/BsDataStream.h"
 #include "FileSystem/BsFileSystem.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool PlainTextImporter::IsExtensionSupported(const String& ext) const
 {
 	String lowerCaseExt = ext;
@@ -37,4 +37,3 @@ SPtr<Resource> PlainTextImporter::Import(const Path& filePath, SPtr<const Import
 
 	return plainText;
 }
-} // namespace bs

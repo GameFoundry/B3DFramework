@@ -14,8 +14,8 @@
 
 #endif // BS_PLATFORM == BS_PLATFORM_WIN32
 
-namespace bs
-{
+using namespace bs;
+
 /** The thread pool will check for unused threads every UNUSED_CHECK_PERIOD getThread() calls*/
 static constexpr int UNUSED_CHECK_PERIOD = 32;
 
@@ -340,4 +340,3 @@ u32 ThreadPool::GetNumAllocated() const
 
 	return (u32)mThreads.size();
 }
-} // namespace bs

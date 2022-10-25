@@ -23,8 +23,8 @@
 
 using namespace std::chrono;
 
-namespace bs
-{
+using namespace bs;
+
 ProfilerCPU::Timer::Timer()
 {
 	Time = 0.0f;
@@ -999,6 +999,8 @@ void ProfilerCPU::EstimateTimerOverhead()
 	}
 }
 
+namespace bs
+{
 ProfilerCPU& gProfilerCPU()
 {
 	return ProfilerCPU::Instance();

@@ -8,8 +8,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CCollider::CCollider()
 {
 	SetName("Collider");
@@ -359,4 +359,3 @@ RTTITypeBase* CCollider::GetRtti() const
 {
 	return CCollider::GetRttiStatic();
 }
-} // namespace bs

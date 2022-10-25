@@ -7,8 +7,8 @@
 #include "Scene/BsGameObject.h"
 #include "Private/RTTI/BsGameObjectHandleRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& ptr)
 {
 	mData = bs_shared_ptr_new<GameObjectHandleData>(ptr->mInstanceData);
@@ -41,4 +41,3 @@ RTTITypeBase* GameObjectHandleBase::GetRtti() const
 {
 	return GameObjectHandleBase::GetRttiStatic();
 }
-} // namespace bs

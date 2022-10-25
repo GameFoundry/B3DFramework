@@ -7,8 +7,8 @@
 #include "Math/BsVector2I.h"
 #include "Profiling/BsProfilerCPU.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUILayoutX::GUILayoutX(const GUIDimensions& dimensions)
 	: GUILayout(dimensions)
 {}
@@ -432,4 +432,3 @@ GUILayoutX* GUILayoutX::Create(const GUIOptions& options)
 {
 	return bs_new<GUILayoutX>(GUIDimensions::Create(options));
 }
-} // namespace bs

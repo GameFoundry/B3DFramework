@@ -6,8 +6,8 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
-{
+using namespace bs;
+
 u32 getBufferSize(const GPU_BUFFER_DESC& desc)
 {
 	u32 elementSize;
@@ -97,7 +97,7 @@ SPtr<GpuBuffer> GpuBuffer::Create(const GPU_BUFFER_DESC& desc)
 	return HardwareBufferManager::Instance().CreateGpuBuffer(desc);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	: HardwareBuffer(getBufferSize(desc), desc.Usage, deviceMask), mProperties(desc)
@@ -211,5 +211,4 @@ SPtr<GpuBuffer> GpuBuffer::Create(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuff
 {
 	return HardwareBufferManager::Instance().CreateGpuBuffer(desc, std::move(underlyingBuffer));
 }
-} // namespace ct
-} // namespace bs
+}}

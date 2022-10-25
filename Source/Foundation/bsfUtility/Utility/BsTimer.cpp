@@ -7,8 +7,8 @@
 
 using namespace std::chrono;
 
-namespace bs
-{
+using namespace bs;
+
 Timer::Timer()
 {
 	Reset();
@@ -41,4 +41,3 @@ u64 Timer::GetStartMs() const
 
 	return duration_cast<milliseconds>(startTimeNs).count();
 }
-} // namespace bs

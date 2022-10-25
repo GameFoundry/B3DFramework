@@ -3,8 +3,8 @@
 #include "Importer/BsTextureImportOptions.h"
 #include "Private/RTTI/BsTextureImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<TextureImportOptions> TextureImportOptions::Create()
 {
 	return bs_shared_ptr_new<TextureImportOptions>();
@@ -22,4 +22,3 @@ RTTITypeBase* TextureImportOptions::GetRtti() const
 {
 	return TextureImportOptions::GetRttiStatic();
 }
-} // namespace bs

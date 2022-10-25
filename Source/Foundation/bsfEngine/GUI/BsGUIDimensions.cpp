@@ -4,8 +4,8 @@
 #include "GUI/BsGUIElementStyle.h"
 #include "GUI/BsGUIOptions.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIDimensions GUIDimensions::Create()
 {
 	return GUIDimensions();
@@ -134,4 +134,3 @@ LayoutSizeRange GUIDimensions::CalculateSizeRange(const Vector2I& optimal) const
 
 	return sizeRange;
 }
-} // namespace bs

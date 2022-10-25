@@ -6,8 +6,8 @@
 #include "Math/BsMatrix3.h"
 #include "Math/BsVector3.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Quaternion Quaternion::ZERO{ BS_ZERO() };
 const Quaternion Quaternion::IDENTITY{ BS_IDENTITY() };
 
@@ -408,4 +408,3 @@ Quaternion Quaternion::GetRotationFromTo(const Vector3& from, const Vector3& des
 
 	return q;
 }
-} // namespace bs

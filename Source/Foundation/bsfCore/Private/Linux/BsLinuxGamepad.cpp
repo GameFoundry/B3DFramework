@@ -6,8 +6,8 @@
 #include <fcntl.h>
 #include <linux/input.h>
 
-namespace bs
-{
+using namespace bs;
+
 /** Contains private data for the Linux Gamepad implementation. */
 struct Gamepad::Pimpl
 {
@@ -156,4 +156,3 @@ void Gamepad::changeCaptureContext(u64 windowHandle)
 {
 	m->HasInputFocus = windowHandle != (u64)-1;
 }
-} // namespace bs

@@ -6,8 +6,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCCamera.h"
 
-namespace bs
-{
+using namespace bs;
+
 CGUIWidget::CGUIWidget()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -117,4 +117,3 @@ RTTITypeBase* CGUIWidget::GetRtti() const
 {
 	return CGUIWidget::GetRttiStatic();
 }
-} // namespace bs

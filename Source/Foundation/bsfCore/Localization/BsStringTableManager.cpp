@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Localization/BsStringTableManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 void StringTableManager::SetActiveLanguage(Language language)
 {
 	if(language != mActiveLanguage)
@@ -44,4 +44,3 @@ StringTableManager& gStringTableManager()
 {
 	return StringTableManager::Instance();
 }
-} // namespace bs

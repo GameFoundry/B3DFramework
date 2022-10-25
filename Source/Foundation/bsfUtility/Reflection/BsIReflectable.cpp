@@ -5,8 +5,8 @@
 #include "Error/BsException.h"
 #include "RTTI/BsIReflectableRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void IReflectable::RegisterRTTITypeInternal(RTTITypeBase* rttiType)
 {
 	if(IsTypeIdDuplicateInternal(rttiType->GetRttiId()))
@@ -105,4 +105,3 @@ RTTITypeBase* IReflectable::GetRttiStatic()
 {
 	return IReflectableRTTI::Instance();
 }
-} // namespace bs

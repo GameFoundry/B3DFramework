@@ -9,8 +9,8 @@
 #include "Error/BsException.h"
 #include "Math/BsVector2I.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <class T, bool Core>
 TGpuDataParam<T, Core>::TGpuDataParam()
 	: mParamDesc(nullptr)
@@ -351,4 +351,3 @@ template class TGpuParamSampState<true>;
 
 template class TGpuParamLoadStoreTexture<false>;
 template class TGpuParamLoadStoreTexture<true>;
-} // namespace bs

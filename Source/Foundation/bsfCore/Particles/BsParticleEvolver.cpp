@@ -15,8 +15,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 // Arbitrary random numbers to add variation to different random particle properties, since we use just a single
 // seed value per particle
 static constexpr u32 PARTICLE_ROW_VARIATION = 0x1e8b2f4a;
@@ -770,4 +770,3 @@ RTTITypeBase* ParticleCollisions::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

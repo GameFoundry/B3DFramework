@@ -5,8 +5,8 @@
 #include "Error/BsException.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Path Path::BLANK = Path();
 
 Path::Path(const String& pathStr, PathType type)
@@ -522,4 +522,3 @@ void Path::PushDirectory(const String& dir)
 			mDirectories.push_back(dir);
 	}
 }
-} // namespace bs

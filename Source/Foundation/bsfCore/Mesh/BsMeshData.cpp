@@ -12,8 +12,8 @@
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 MeshData::MeshData(u32 numVertices, u32 numIndexes, const SPtr<VertexDataDesc>& vertexData, IndexType indexType)
 	: mNumVertices(numVertices), mNumIndices(numIndexes), mIndexType(indexType), mVertexData(vertexData)
 {
@@ -414,4 +414,3 @@ RTTITypeBase* MeshData::GetRtti() const
 {
 	return MeshData::GetRttiStatic();
 }
-} // namespace bs

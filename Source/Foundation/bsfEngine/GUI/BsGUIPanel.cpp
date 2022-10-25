@@ -7,8 +7,8 @@
 #include "Math/BsVector2I.h"
 #include "Profiling/BsProfilerCPU.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIPanel::GUIPanel(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUIDimensions& dimensions)
 	: GUILayout(dimensions), mDepthOffset(depth), mDepthRangeMin(depthRangeMin), mDepthRangeMax(depthRangeMax)
 {}
@@ -275,4 +275,3 @@ GUIPanel* GUIPanel::Create(i16 depth, u16 depthRangeMin, u16 depthRangeMax, cons
 {
 	return bs_new<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create(options));
 }
-} // namespace bs

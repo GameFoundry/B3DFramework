@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsDeferredCallManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 void DeferredCallManager::QueueDeferredCall(std::function<void()> func)
 {
 	mCallbacks.push_back(func);
@@ -24,6 +24,8 @@ void DeferredCallManager::UpdateInternal()
 	}
 }
 
+namespace bs
+{
 // Declared in BsPrerequisites.h
 void deferredCall(std::function<void()> callback)
 {

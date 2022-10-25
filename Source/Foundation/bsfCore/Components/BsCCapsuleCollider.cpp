@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCCapsuleColliderRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CCapsuleCollider::CCapsuleCollider()
 {
 	SetName("CapsuleCollider");
@@ -100,4 +100,3 @@ RTTITypeBase* CCapsuleCollider::GetRtti() const
 {
 	return CCapsuleCollider::GetRttiStatic();
 }
-} // namespace bs

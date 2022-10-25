@@ -3,8 +3,8 @@
 #include "Profiling/BsProfilingManager.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 ProfilingManager::NUM_SAVED_FRAMES = 200;
 
 ProfilingManager::ProfilingManager()
@@ -67,6 +67,8 @@ const ProfilerReport& ProfilingManager::GetReport(ProfiledThread thread, u32 idx
 	}
 }
 
+namespace bs
+{
 ProfilingManager& gProfiler()
 {
 	return ProfilingManager::Instance();

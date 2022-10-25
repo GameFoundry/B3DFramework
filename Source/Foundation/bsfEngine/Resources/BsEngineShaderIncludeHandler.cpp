@@ -6,8 +6,8 @@
 #include "Importer/BsImporter.h"
 #include "FileSystem/BsFileSystem.h"
 
-namespace bs
-{
+using namespace bs;
+
 HShaderInclude EngineShaderIncludeHandler::FindInclude(const String& name) const
 {
 	Path path = ToResourcePath(name);
@@ -70,4 +70,3 @@ Path EngineShaderIncludeHandler::ToResourcePath(const String& name)
 
 	return name;
 }
-} // namespace bs

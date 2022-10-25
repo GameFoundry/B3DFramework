@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Debug/BsBitmapWriter.h"
 
-namespace bs
-{
+using namespace bs;
+
 #pragma pack(push, 2) // Align to 2byte boundary so we don't get extra 2 bytes for this struct
 
 struct BMP_HEADER
@@ -135,4 +135,3 @@ u32 BitmapWriter::GetBmpSize(u32 width, u32 height, u32 bytesPerPixel)
 
 	return sizeof(BMP_HEADER) + dataSize;
 }
-} // namespace bs

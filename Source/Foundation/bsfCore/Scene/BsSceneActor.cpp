@@ -3,8 +3,8 @@
 #include "Scene/BsSceneActor.h"
 #include "Scene/BsSceneObject.h"
 
-namespace bs
-{
+using namespace bs;
+
 void SceneActor::SetTransform(const Transform& transform)
 {
 	if(mMobility != ObjectMobility::Movable)
@@ -42,4 +42,3 @@ void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)
 	if(so.GetMobility() != mMobility || force)
 		SetMobility(so.GetMobility());
 }
-} // namespace bs

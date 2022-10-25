@@ -3,8 +3,8 @@
 #include "Audio/BsAudioClipImportOptions.h"
 #include "Private/RTTI/BsAudioClipImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<AudioClipImportOptions> AudioClipImportOptions::Create()
 {
 	return bs_shared_ptr_new<AudioClipImportOptions>();
@@ -22,4 +22,3 @@ RTTITypeBase* AudioClipImportOptions::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

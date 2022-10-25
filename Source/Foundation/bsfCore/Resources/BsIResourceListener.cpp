@@ -3,8 +3,8 @@
 #include "Resources/BsIResourceListener.h"
 #include "Managers/BsResourceListenerManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 IResourceListener::IResourceListener()
 {
 	ResourceListenerManager::Instance().RegisterListener(this);
@@ -19,4 +19,3 @@ void IResourceListener::MarkListenerResourcesDirty()
 {
 	ResourceListenerManager::Instance().MarkListenerDirty(this);
 }
-} // namespace bs

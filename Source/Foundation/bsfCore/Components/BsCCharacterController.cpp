@@ -9,8 +9,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CCharacterController::CCharacterController()
 {
 	SetName("CharacterController");
@@ -237,4 +237,3 @@ RTTITypeBase* CCharacterController::GetRtti() const
 {
 	return CCharacterController::GetRttiStatic();
 }
-} // namespace bs

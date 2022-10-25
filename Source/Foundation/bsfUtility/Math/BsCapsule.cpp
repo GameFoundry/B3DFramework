@@ -3,8 +3,8 @@
 #include "Math/BsCapsule.h"
 #include "Math/BsRay.h"
 
-namespace bs
-{
+using namespace bs;
+
 Capsule::Capsule(const LineSegment3& segment, float radius)
 	: mSegment(segment), mRadius(radius)
 {}
@@ -210,4 +210,3 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 
 	return std::make_pair(false, 0.0f);
 }
-} // namespace bs

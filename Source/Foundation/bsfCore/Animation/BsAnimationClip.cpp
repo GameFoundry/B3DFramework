@@ -5,8 +5,8 @@
 #include "Animation/BsSkeleton.h"
 #include "Private/RTTI/BsAnimationClipRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void AnimationCurves::AddPositionCurve(const String& name, const TAnimationCurve<Vector3>& curve)
 {
 	auto iterFind = std::find_if(Position.begin(), Position.end(), [&](auto x)
@@ -287,4 +287,3 @@ RTTITypeBase* AnimationClip::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

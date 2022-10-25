@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "String/BsStringID.h"
 
-namespace bs
-{
+using namespace bs;
+
 const StringID StringID::NONE;
 
 volatile StringID::InitStatics StringID::mInitStatics = StringID::InitStatics();
@@ -142,4 +142,3 @@ template BS_UTILITY_EXPORT void StringID::Construct(String const&);
 
 template BS_UTILITY_EXPORT u32 StringID::CalcHash(const char* const&);
 template BS_UTILITY_EXPORT u32 StringID::CalcHash(String const&);
-} // namespace bs

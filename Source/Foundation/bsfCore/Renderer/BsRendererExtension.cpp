@@ -5,8 +5,8 @@
 #include "Renderer/BsRendererManager.h"
 #include "Renderer/BsRenderer.h"
 
-namespace bs
-{
+using namespace bs;
+
 void RendererExtension::InitializerInternal(RendererExtension* obj, const Any& data)
 {
 	auto coreInitializer = [=]()
@@ -33,4 +33,3 @@ void RendererExtension::DeleterInternal(RendererExtension* obj)
 	// Queue deletion on the core thread
 	gCoreThread().QueueCommand(deleteObj);
 }
-} // namespace bs

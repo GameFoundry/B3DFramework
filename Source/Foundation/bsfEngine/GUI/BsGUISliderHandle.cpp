@@ -7,8 +7,8 @@
 #include "GUI/BsGUIDimensions.h"
 #include "GUI/BsGUIMouseEvent.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUISliderHandle::RESIZE_HANDLE_SIZE = 7;
 
 const String& GUISliderHandle::GetGuiTypeName()
@@ -529,4 +529,3 @@ const HSpriteTexture& GUISliderHandle::GetActiveTexture() const
 
 	return GetStyleInternal()->Normal.Texture;
 }
-} // namespace bs

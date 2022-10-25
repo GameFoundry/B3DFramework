@@ -11,8 +11,8 @@
 #include "Renderer/BsRenderer.h"
 #include "Mesh/BsMeshUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 RendererMeshData::RendererMeshData(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
 	SPtr<VertexDataDesc> vertexDesc = VertexLayoutVertexDesc(layout);
@@ -529,4 +529,3 @@ SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 
 	return output;
 }
-} // namespace bs

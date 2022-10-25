@@ -8,8 +8,8 @@
 #include "Material/BsPass.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 4;
 const u32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 6;
 
@@ -272,4 +272,3 @@ void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, u8* outVertice
 	outIndices[0] = vertexOffset + 0;
 	outIndices[1] = vertexOffset + 1;
 }
-} // namespace bs

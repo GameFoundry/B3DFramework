@@ -5,8 +5,8 @@
 #include "Error/BsException.h"
 #include <sys/inotify.h>
 
-namespace bs
-{
+using namespace bs;
+
 struct FolderMonitor::FolderWatchInfo
 {
 	FolderWatchInfo(const Path& folderToMonitor, int inHandle, bool monitorSubdirectories, FolderChangeBits filter);
@@ -517,4 +517,3 @@ void FolderMonitor::UpdateInternal()
 
 	m->activeFileActions.clear();
 }
-} // namespace bs

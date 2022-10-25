@@ -4,8 +4,8 @@
 #include "GUI/BsGUIElementBase.h"
 #include "GUI/BsGUILayout.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector2I GUILayoutUtility::CalcOptimalSize(const GUIElementBase* elem)
 {
 	return elem->CalculateLayoutSizeRangeInternal().Optimal;
@@ -88,4 +88,3 @@ Vector2I GUILayoutUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayo
 
 	return actualSize;
 }
-} // namespace bs

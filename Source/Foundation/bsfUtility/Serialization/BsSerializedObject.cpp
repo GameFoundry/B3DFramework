@@ -4,8 +4,8 @@
 #include "Serialization/BsIntermediateSerializer.h"
 #include "RTTI/BsSerializedObjectRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<SerializedObject> SerializedObject::Create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
 {
 	IntermediateSerializer is;
@@ -194,4 +194,3 @@ RTTITypeBase* SerializedArrayEntry::GetRtti() const
 {
 	return SerializedArrayEntry::GetRttiStatic();
 }
-} // namespace bs

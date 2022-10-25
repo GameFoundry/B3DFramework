@@ -5,9 +5,9 @@
 #include "Image/BsTexture.h"
 #include "RenderAPI/BsGpuBuffer.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC& desc)
 {
@@ -277,5 +277,4 @@ GpuResourcePool& gGpuResourcePool()
 	return GpuResourcePool::Instance();
 }
 
-} // namespace ct
-} // namespace bs
+}}

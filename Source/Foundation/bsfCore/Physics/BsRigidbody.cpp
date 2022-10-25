@@ -5,8 +5,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 Rigidbody::Rigidbody(const HSceneObject& linkedSO)
 	: mLinkedSO(linkedSO)
 {
@@ -30,4 +30,3 @@ SPtr<Rigidbody> Rigidbody::Create(const HSceneObject& linkedSO)
 
 	return scene->GetPhysicsScene()->CreateRigidbody(linkedSO);
 }
-} // namespace bs

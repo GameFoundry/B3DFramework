@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsMeshBaseRTTI.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
+using namespace bs;
+
 MeshProperties::MeshProperties()
 	: mNumVertices(0), mNumIndices(0)
 {
@@ -78,7 +78,7 @@ RTTITypeBase* MeshBase::GetRtti() const
 	return MeshBase::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 MeshBase::MeshBase(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes)
 	: mProperties(numVertices, numIndices, subMeshes)
@@ -88,5 +88,4 @@ void MeshBase::SyncToCore(const CoreSyncData& data)
 {
 	mProperties.mBounds = data.GetData<Bounds>();
 }
-} // namespace ct
-} // namespace bs
+}}

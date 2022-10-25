@@ -4,8 +4,8 @@
 #include "Audio/BsAudio.h"
 #include "Private/RTTI/BsAudioListenerRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void AudioListener::SetVelocity(const Vector3& velocity)
 {
 	mVelocity = velocity;
@@ -25,4 +25,3 @@ RTTITypeBase* AudioListener::GetRtti() const
 {
 	return AudioListener::GetRttiStatic();
 }
-} // namespace bs

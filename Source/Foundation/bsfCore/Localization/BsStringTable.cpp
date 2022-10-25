@@ -5,8 +5,8 @@
 #include "Resources/BsResources.h"
 #include "Private/RTTI/BsStringTableRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Language StringTable::DEFAULT_LANGUAGE = Language::EnglishUS;
 
 LocalizedStringData::~LocalizedStringData()
@@ -292,4 +292,3 @@ RTTITypeBase* StringTable::GetRtti() const
 {
 	return StringTable::GetRttiStatic();
 }
-} // namespace bs

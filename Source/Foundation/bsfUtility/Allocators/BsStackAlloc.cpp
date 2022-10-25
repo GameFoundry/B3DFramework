@@ -3,8 +3,8 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Allocators/BsStackAlloc.h"
 
-namespace bs
-{
+using namespace bs;
+
 BS_THREADLOCAL MemStackInternal<1024 * 1024>* MemStack::ThreadMemStack = nullptr;
 
 void MemStack::BeginThread()
@@ -37,4 +37,3 @@ void MemStack::DeallocLast(u8* data)
 
 	ThreadMemStack->Dealloc(data);
 }
-} // namespace bs

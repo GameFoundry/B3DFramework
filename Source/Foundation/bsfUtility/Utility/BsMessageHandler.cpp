@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsMessageHandler.h"
 
-namespace bs
-{
+using namespace bs;
+
 Map<String, u32> MessageId::UniqueMessageIds;
 u32 MessageId::NextMessageId = 0;
 
@@ -74,6 +74,8 @@ void MessageHandler::Unsubscribe(u32 handleId)
 	mHandlerIdToMessageMap.erase(handleId);
 }
 
+namespace bs
+{
 void sendMessage(MessageId message)
 {
 	MessageHandler::Instance().Send(message);

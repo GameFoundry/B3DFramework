@@ -11,8 +11,8 @@
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Mesh/BsMeshUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 ShapeMeshes3D::NUM_VERTICES_AA_LINE = 8;
 const u32 ShapeMeshes3D::NUM_INDICES_AA_LINE = 30;
 
@@ -1805,4 +1805,3 @@ void ShapeMeshes3D::GenerateTangents(u8* positions, u8* normals, u8* uv, u32* in
 	bs_stack_free(tempBitangents);
 	bs_stack_free(tempTangents);
 }
-} // namespace bs

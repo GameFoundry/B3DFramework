@@ -12,8 +12,8 @@
 #include "String/BsUnicode.h"
 #include "Renderer/BsCamera.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 DrawHelper::VERTEX_BUFFER_GROWTH = 4096;
 const u32 DrawHelper::INDEX_BUFFER_GROWTH = 4096 * 2;
 
@@ -1269,4 +1269,3 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 
 	return meshInfos;
 }
-} // namespace bs

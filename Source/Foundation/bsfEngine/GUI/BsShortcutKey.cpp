@@ -5,8 +5,8 @@
 #include "Localization/BsHEString.h"
 #include "Localization/BsHString.h"
 
-namespace bs
-{
+using namespace bs;
+
 const ShortcutKey ShortcutKey::NONE = ShortcutKey();
 
 size_t ShortcutKey::Hash::operator()(const ShortcutKey& x) const
@@ -85,4 +85,3 @@ String ShortcutKey::GetName() const
 
 	return MODIFIER_TO_NAME[(u32)Modifier] + charStr;
 }
-} // namespace bs

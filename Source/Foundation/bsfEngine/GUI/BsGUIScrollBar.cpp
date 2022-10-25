@@ -12,8 +12,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUIScrollBar::ButtonScrollAmount = 10;
 
 const String& GUIScrollBar::GetHScrollHandleType()
@@ -244,4 +244,3 @@ void GUIScrollBar::SetTint(const Color& color)
 
 	GUIElement::SetTint(color);
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
-{
+using namespace bs;
+
 GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage)
 	: mUsage(usage), mSize(size), mCachedData(nullptr)
 {
@@ -96,7 +96,7 @@ SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(u32 size, GpuBufferUsage u
 	return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(size, usage);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 	: mUsage(usage), mSize(size), mCachedData(nullptr), mGPUBufferDirty(false)
@@ -200,5 +200,4 @@ SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(u32 size, GpuBufferUsage u
 {
 	return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(size, usage, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -4,8 +4,8 @@
 #include "Scene/BsSceneObject.h"
 #include "GUI/BsGUITooltip.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUITooltipManager::~GUITooltipManager()
 {
 	Hide();
@@ -27,4 +27,3 @@ void GUITooltipManager::Hide()
 		mTooltipSO = nullptr;
 	}
 }
-} // namespace bs

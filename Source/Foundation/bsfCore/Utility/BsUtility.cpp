@@ -4,8 +4,8 @@
 #include "Reflection/BsRTTIType.h"
 #include "Scene/BsSceneObject.h"
 
-namespace bs
-{
+using namespace bs;
+
 /**
  * Checks if the specified type (or any of its derived classes) have any IReflectable pointer or value types as
  * their fields.
@@ -234,4 +234,3 @@ RTTITypeBase* CoreSerializationContext::GetRtti() const
 	return GetRttiStatic();
 }
 
-} // namespace bs

@@ -20,8 +20,8 @@ void verifyLockAndThread(const bs::GpuResourceData* data)
 }
 } // end of anonymous namespace
 
-namespace bs
-{
+using namespace bs;
+
 GpuResourceData::GpuResourceData(const GpuResourceData& copy)
 {
 	mData = copy.mData;
@@ -118,4 +118,3 @@ RTTITypeBase* GpuResourceData::GetRtti() const
 {
 	return GpuResourceData::GetRttiStatic();
 }
-} // namespace bs

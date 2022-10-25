@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CoreThread::QueueData CoreThread::mPerThreadQueue;
 BS_THREADLOCAL CoreThread::ThreadQueueContainer* CoreThread::QueueData::current = nullptr;
 
@@ -375,6 +375,8 @@ void CoreThread::CommandCompletedNotify(u32 commandId)
 	mCommandCompleteCondition.notify_all();
 }
 
+namespace bs
+{
 CoreThread& gCoreThread()
 {
 	return CoreThread::Instance();

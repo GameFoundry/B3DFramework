@@ -11,8 +11,8 @@
 #include "RenderAPI/BsEventQuery.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 MeshHeap::MeshHeap(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType)
 	: mNumVertices(numVertices), mNumIndices(numIndices), mVertexDesc(vertexDesc), mIndexType(indexType), mNextFreeId(0)
 {
@@ -74,7 +74,7 @@ SPtr<ct::CoreObject> MeshHeap::CreateCore() const
 	return corePtr;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 const float MeshHeap::GrowPercent = 1.5f;
 
@@ -681,5 +681,4 @@ void MeshHeap::MergeWithNearbyChunks(u32 chunkVertIdx, u32 chunkIdxIdx)
 		}
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

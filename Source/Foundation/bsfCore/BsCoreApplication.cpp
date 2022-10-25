@@ -46,8 +46,8 @@
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsVectorField.h"
 
-namespace bs
-{
+using namespace bs;
+
 BS_LOG_CATEGORY_IMPL(CoreThread)
 BS_LOG_CATEGORY_IMPL(Renderer)
 BS_LOG_CATEGORY_IMPL(Scene)
@@ -473,8 +473,10 @@ SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const
 	return bs_shared_ptr_new<DefaultShaderIncludeHandler>();
 }
 
+namespace bs
+{
 CoreApplication& gCoreApplication()
 {
 	return CoreApplication::Instance();
 }
-} // namespace bs
+} // namespace

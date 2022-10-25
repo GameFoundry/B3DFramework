@@ -8,8 +8,8 @@
 #include <fcntl.h>
 #include <linux/input.h>
 
-namespace bs
-{
+using namespace bs;
+
 /** Information about events reported from a specific input event device. */
 struct EventInfo
 {
@@ -296,4 +296,3 @@ u32 Input::getDeviceCount(InputDevice device) const
 
 	return 0;
 }
-} // namespace bs

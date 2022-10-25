@@ -6,8 +6,8 @@
 #include "Resources/BsResources.h"
 #include "Private/RTTI/BsGUISkinRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIElementStyle GUISkin::DefaultStyle;
 
 GUISkin::GUISkin()
@@ -84,4 +84,3 @@ RTTITypeBase* GUISkin::GetRtti() const
 {
 	return GUISkin::GetRttiStatic();
 }
-} // namespace bs

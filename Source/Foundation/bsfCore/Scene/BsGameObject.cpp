@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Scene/BsGameObjectManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 void GameObject::Initialize(const SPtr<GameObject>& object, u64 instanceId)
 {
 	mInstanceData = bs_shared_ptr_new<GameObjectInstanceData>();
@@ -33,4 +33,3 @@ RTTITypeBase* GameObject::GetRtti() const
 {
 	return GameObject::GetRttiStatic();
 }
-} // namespace bs

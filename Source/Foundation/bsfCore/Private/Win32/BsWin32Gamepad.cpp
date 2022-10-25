@@ -8,8 +8,8 @@
 #undef DIJOFS_BUTTON
 #define DIJOFS_BUTTON(n) (FIELD_OFFSET(DIJOYSTATE2, rgbButtons) + (n))
 
-namespace bs
-{
+using namespace bs;
+
 /** Contains state of a POV (DPad). */
 struct POVState
 {
@@ -425,4 +425,3 @@ void Gamepad::ChangeCaptureContext(u64 windowHandle)
 			m->HWnd = newhWnd;
 	}
 }
-} // namespace bs

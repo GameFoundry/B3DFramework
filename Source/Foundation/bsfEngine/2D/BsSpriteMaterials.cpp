@@ -5,8 +5,8 @@
 #include "RenderAPI/BsGpuBuffer.h"
 #include "Material/BsMaterial.h"
 
-namespace bs
-{
+using namespace bs;
+
 u32 getMaterialId(SpriteMaterialTransparency transparency, bool animated)
 {
 	switch(transparency)
@@ -39,4 +39,3 @@ SpriteTextMaterial::SpriteTextMaterial()
 SpriteLineMaterial::SpriteLineMaterial()
 	: SpriteMaterial(7, BuiltinResources::Instance().CreateSpriteLineMaterial())
 {}
-} // namespace bs

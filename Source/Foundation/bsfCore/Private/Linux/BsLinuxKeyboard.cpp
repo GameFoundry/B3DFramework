@@ -4,8 +4,8 @@
 #include "Input/BsInput.h"
 #include "Private/Linux/BsLinuxPlatform.h"
 
-namespace bs
-{
+using namespace bs;
+
 
 /** Contains private data for the Linux Keyboard implementation. */
 struct Keyboard::Pimpl
@@ -53,4 +53,3 @@ void Keyboard::changeCaptureContext(u64 windowHandle)
 {
 	m->HasInputFocus = windowHandle != (u64)-1;
 }
-} // namespace bs

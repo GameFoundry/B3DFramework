@@ -10,8 +10,8 @@
 #include "Renderer/BsIBLUtility.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 ReflectionProbeBase::ReflectionProbeBase(ReflectionProbeType type, float radius, const Vector3& extents)
 	: mType(type), mRadius(radius), mExtents(extents)
 {}
@@ -228,7 +228,7 @@ RTTITypeBase* ReflectionProbe::GetRtti() const
 template class TReflectionProbe<true>;
 template class TReflectionProbe<false>;
 
-namespace ct
+namespace bs { namespace ct
 {
 ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture)
 	: TReflectionProbe(type, radius, extents), mRendererId(0)
@@ -293,5 +293,4 @@ void ReflectionProbe::SyncToCore(const CoreSyncData& data)
 		}
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -5,8 +5,8 @@
 #include "Debug/BsDebug.h"
 #include "Utility/BsBitwise.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <class COLOR, class TIME>
 constexpr u32 TColorGradient<COLOR, TIME>::MAX_KEYS;
 
@@ -159,4 +159,3 @@ bool TColorGradient<COLOR, TIME>::operator==(const TColorGradient<COLOR, TIME>& 
 
 template class TColorGradient<RGBA, uint16_t>;
 template class TColorGradient<Color, float>;
-} // namespace bs

@@ -23,8 +23,8 @@
 
 using json = nlohmann::json;
 
-namespace bs
-{
+using namespace bs;
+
 void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode, nlohmann::json* dependencies, bool compress, bool mipmap)
 {
 	if(!FileSystem::Exists(inputFolder))
@@ -882,4 +882,3 @@ HFont BuiltinResourceGUIElementStyleLoader::LoadFont(const String& name) const
 
 	return gResources().Load<Font>(fontPath);
 }
-} // namespace bs

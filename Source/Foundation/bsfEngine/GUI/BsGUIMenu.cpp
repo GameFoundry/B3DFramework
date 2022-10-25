@@ -3,8 +3,8 @@
 #include "GUI/BsGUIMenu.h"
 #include "GUI/BsGUIDropDownMenu.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool GUIMenuItemComparer::operator()(const GUIMenuItem* const& a, const GUIMenuItem* const& b) const
 {
 	return a->mPriority > b->mPriority || (a->mPriority == b->mPriority && a->mSeqIdx < b->mSeqIdx);
@@ -196,4 +196,3 @@ GUIDropDownData GUIMenu::GetDropDownDataInternal(const GUIMenuItem& menu) const
 
 	return dropDownData;
 }
-} // namespace bs

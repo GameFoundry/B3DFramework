@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIContent.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUIContent::IMAGE_TEXT_SPACING = 3;
 
 const HSpriteTexture& GUIContent::GetImage(GUIElementState state) const
@@ -32,4 +32,3 @@ const HSpriteTexture& GUIContent::GetImage(GUIElementState state) const
 		return Images.Normal;
 	}
 }
-} // namespace bs

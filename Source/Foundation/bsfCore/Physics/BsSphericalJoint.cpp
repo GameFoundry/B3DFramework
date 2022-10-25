@@ -3,10 +3,9 @@
 #include "Physics/BsSphericalJoint.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<SphericalJoint> SphericalJoint::Create(PhysicsScene& scene, const SPHERICAL_JOINT_DESC& desc)
 {
 	return scene.CreateSphericalJoint(desc);
 }
-} // namespace bs

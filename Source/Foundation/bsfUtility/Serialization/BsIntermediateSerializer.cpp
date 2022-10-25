@@ -5,8 +5,8 @@
 #include "Reflection/BsRTTIReflectablePtrField.h"
 #include "Reflection/BsRTTIType.h"
 
-namespace bs
-{
+using namespace bs;
+
 IntermediateSerializer::IntermediateSerializer()
 	: mAlloc(&gFrameAlloc())
 {}
@@ -558,4 +558,3 @@ SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectabl
 
 	return output;
 }
-} // namespace bs

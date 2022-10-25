@@ -3,8 +3,8 @@
 #include "Math/BsLineSegment3.h"
 #include "Math/BsRay.h"
 
-namespace bs
-{
+using namespace bs;
+
 LineSegment3::LineSegment3(const Vector3& start, const Vector3& end)
 	: Start(start), End(end)
 {
@@ -77,4 +77,3 @@ std::pair<std::array<Vector3, 2>, float> LineSegment3::GetNearestPoint(const Ray
 
 	return std::make_pair(nearestPoints, distance);
 }
-} // namespace bs

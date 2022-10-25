@@ -4,8 +4,8 @@
 #include "Resources/BsResources.h"
 #include "Private/RTTI/BsShaderIncludeRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 ShaderInclude::ShaderInclude(const String& includeString)
 	: Resource(false), mString(includeString)
 {
@@ -35,4 +35,3 @@ RTTITypeBase* ShaderInclude::GetRtti() const
 {
 	return ShaderInclude::GetRttiStatic();
 }
-} // namespace bs

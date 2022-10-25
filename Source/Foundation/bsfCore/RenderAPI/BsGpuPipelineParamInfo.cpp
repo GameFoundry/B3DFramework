@@ -4,8 +4,8 @@
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc)
 	: mNumSets(0), mNumElements(0), mSetInfos(nullptr), mResourceInfos()
 {
@@ -322,7 +322,7 @@ SPtr<ct::CoreObject> GpuPipelineParamInfo::CreateCore() const
 	return ct::RenderStateManager::Instance().CreatePipelineParamInfoInternal(desc);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 GpuPipelineParamInfo::GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask)
 	: GpuPipelineParamInfoBase(desc)
@@ -332,5 +332,4 @@ SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::Create(const GPU_PIPELINE_PARAM
 {
 	return RenderStateManager::Instance().CreatePipelineParamInfo(desc, deviceMask);
 }
-} // namespace ct
-} // namespace bs
+}}

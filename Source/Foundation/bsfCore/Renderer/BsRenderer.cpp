@@ -13,9 +13,9 @@
 #include "Profiling/BsProfilerGPU.h"
 #include "Profiling/BsProfilerCPU.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 Renderer::Renderer()
 	: mCallbacks(&CompareCallback)
@@ -215,5 +215,4 @@ void RendererTask::Cancel()
 {
 	mState.store(3);
 }
-} // namespace ct
-} // namespace bs
+}}

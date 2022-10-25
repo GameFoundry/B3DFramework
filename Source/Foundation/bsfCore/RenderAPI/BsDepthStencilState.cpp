@@ -7,8 +7,8 @@
 #include "Error/BsException.h"
 #include "Resources/BsResources.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool DEPTH_STENCIL_STATE_DESC::operator==(const DEPTH_STENCIL_STATE_DESC& rhs) const
 {
 	return DepthReadEnable == rhs.DepthReadEnable &&
@@ -100,7 +100,7 @@ RTTITypeBase* DepthStencilState::GetRtti() const
 	return DepthStencilState::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 DepthStencilState::DepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id)
 	: mProperties(desc), mId(id)
@@ -136,5 +136,4 @@ const SPtr<DepthStencilState>& DepthStencilState::GetDefault()
 {
 	return RenderStateManager::Instance().GetDefaultDepthStencilState();
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -4,8 +4,8 @@
 #include "Math/BsQuaternion.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Matrix3 Matrix3::ZERO{ BS_ZERO() };
 const Matrix3 Matrix3::IDENTITY{ BS_IDENTITY() };
 
@@ -114,18 +114,6 @@ Matrix3 Matrix3::operator*(float rhs) const
 	{
 		for(u32 col = 0; col < 3; col++)
 			prod[row][col] = rhs * m[row][col];
-	}
-
-	return prod;
-}
-
-Matrix3 operator*(float lhs, const Matrix3& rhs)
-{
-	Matrix3 prod;
-	for(u32 row = 0; row < 3; row++)
-	{
-		for(u32 col = 0; col < 3; col++)
-			prod[row][col] = lhs * rhs.m[row][col];
 	}
 
 	return prod;
@@ -1012,4 +1000,18 @@ void Matrix3::EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3])
 		eigenVectors[2][2] = -eigenVectors[2][2];
 	}
 }
-} // namespace bs
+
+namespace bs
+{
+	Matrix3 operator*(float lhs, const Matrix3& rhs)
+	{
+		Matrix3 prod;
+		for(u32 row = 0; row < 3; row++)
+		{
+			for(u32 col = 0; col < 3; col++)
+				prod[row][col] = lhs * rhs.m[row][col];
+		}
+
+		return prod;
+	}
+}

@@ -3,8 +3,8 @@
 #include "GUI/BsDropDownAreaPlacement.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 DropDownAreaPlacement DropDownAreaPlacement::AroundPosition(const Vector2I& position)
 {
 	DropDownAreaPlacement instance;
@@ -133,4 +133,3 @@ Rect2I DropDownAreaPlacement::GetOptimalBounds(u32 width, u32 height, const Rect
 
 	return output;
 }
-} // namespace bs

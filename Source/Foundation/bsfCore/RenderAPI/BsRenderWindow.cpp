@@ -7,8 +7,8 @@
 #include "Platform/BsPlatform.h"
 #include "Private/RTTI/BsRenderTargetRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 RenderWindowProperties::RenderWindowProperties(const RENDER_WINDOW_DESC& desc)
 {
 	Width = desc.VideoMode.Width;
@@ -417,7 +417,7 @@ RTTITypeBase* RenderWindow::GetRtti() const
 	return RenderWindow::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 RenderWindow::RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
 	: mDesc(desc), mWindowId(windowId)
@@ -568,5 +568,4 @@ const RenderWindowProperties& RenderWindow::GetProperties() const
 {
 	return static_cast<const RenderWindowProperties&>(GetPropertiesInternal());
 }
-} // namespace ct
-} // namespace bs
+}}

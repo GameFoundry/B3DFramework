@@ -3,8 +3,8 @@
 #include "BsGpuParamDesc.h"
 #include "Private/RTTI/BsGpuProgramRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 constexpr u32 RTTIPlainType<GpuParamBlockDesc>::VERSION;
 constexpr u32 RTTIPlainType<GpuParamObjectDesc>::VERSION;
 constexpr u32 RTTIPlainType<GpuParamDataDesc>::VERSION;
@@ -18,4 +18,3 @@ RTTITypeBase* GpuParamDesc::GetRtti() const
 {
 	return GpuParamDesc::GetRttiStatic();
 }
-} // namespace bs

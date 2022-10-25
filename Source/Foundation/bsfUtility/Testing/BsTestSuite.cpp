@@ -3,8 +3,8 @@
 #include "Testing/BsTestSuite.h"
 #include "Testing/BsTestOutput.h"
 
-namespace bs
-{
+using namespace bs;
+
 TestSuite::TestEntry::TestEntry(Func test, const String& name)
 	: Test(test), Name(name)
 {}
@@ -45,4 +45,3 @@ void TestSuite::Assertment(bool success, const String& desc, const String& file,
 	if(!success)
 		mOutput->OutputFail(desc, mActiveTestName, file, line);
 }
-} // namespace bs

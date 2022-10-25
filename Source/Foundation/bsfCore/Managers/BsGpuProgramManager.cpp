@@ -3,8 +3,8 @@
 #include "Managers/BsGpuProgramManager.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc)
 {
 	GpuProgram* program = new(bs_alloc<GpuProgram>()) GpuProgram(desc);
@@ -28,7 +28,7 @@ SPtr<GpuProgram> GpuProgramManager::CreateEmpty(const String& language, GpuProgr
 	return ret;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 String sNullLang = "null";
 
@@ -134,5 +134,4 @@ SPtr<GpuProgramBytecode> GpuProgramManager::CompileBytecode(const GPU_PROGRAM_DE
 	GpuProgramFactory* factory = GetFactory(desc.Language);
 	return factory->CompileBytecode(desc);
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -6,8 +6,8 @@
 #include "RenderAPI/BsOcclusionQuery.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 ProfilerGPU::MAX_QUEUE_ELEMENTS = 5;
 
 ProfilerGPU::ProfilerGPU()
@@ -347,6 +347,8 @@ SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 	return ct::OcclusionQuery::Create(false);
 }
 
+namespace bs
+{
 ProfilerGPU& gProfilerGPU()
 {
 	return ProfilerGPU::Instance();

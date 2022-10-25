@@ -7,8 +7,8 @@
 #include "Mesh/BsMesh.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 LightBase::LightBase()
 	: mType(LightType::Radial), mCastsShadows(false), mColor(Color::White), mAttRadius(10.0f), mSourceRadius(0.0f), mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
 {
@@ -263,7 +263,7 @@ RTTITypeBase* Light::GetRtti() const
 	return Light::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 const u32 Light::LIGHT_CONE_NUM_SIDES = 20;
 const u32 Light::LIGHT_CONE_NUM_SLICES = 10;
@@ -335,5 +335,4 @@ void Light::SyncToCore(const CoreSyncData& data)
 			gRenderer()->NotifyLightUpdated(this);
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

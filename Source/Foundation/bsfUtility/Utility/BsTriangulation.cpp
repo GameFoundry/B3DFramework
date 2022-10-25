@@ -6,8 +6,8 @@
 // Third party
 #include "TetGen/tetgen.h"
 
-namespace bs
-{
+using namespace bs;
+
 TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 {
 	TetrahedronVolume volume;
@@ -89,4 +89,3 @@ TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 
 	return volume;
 }
-} // namespace bs

@@ -6,8 +6,8 @@
 #include "RenderAPI/BsRasterizerState.h"
 #include "RenderAPI/BsBlendState.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SAMPLER_STATE_DESC& desc) const
 {
 	SPtr<SamplerState> state = CreateSamplerStatePtrInternal(desc);
@@ -138,7 +138,7 @@ const SPtr<DepthStencilState>& RenderStateManager::GetDefaultDepthStencilState()
 	return mDefaultDepthStencilState;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 {
@@ -512,5 +512,4 @@ SPtr<BlendState> RenderStateManager::CreateBlendStateInternalInternal(const BLEN
 
 	return state;
 }
-} // namespace ct
-} // namespace bs
+}}

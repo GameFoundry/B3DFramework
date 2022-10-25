@@ -8,8 +8,8 @@
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "RenderAPI/BsGpuParams.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc)
 {
 	VertexDeclaration* decl = new(bs_alloc<VertexDeclaration>()) VertexDeclaration(desc->CreateElements());
@@ -64,7 +64,7 @@ SPtr<GpuParams> HardwareBufferManager::CreateGpuParams(const SPtr<GpuPipelinePar
 	return paramsPtr;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 
 HardwareBufferManager::VertexDeclarationKey::VertexDeclarationKey(const Vector<VertexElement>& elements)
@@ -188,5 +188,4 @@ SPtr<GpuParams> HardwareBufferManager::CreateGpuParamsInternal(
 
 	return paramsPtr;
 }
-} // namespace ct
-} // namespace bs
+}}

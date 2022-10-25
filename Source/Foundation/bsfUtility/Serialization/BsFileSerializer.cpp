@@ -12,8 +12,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 FileEncoder::FileEncoder(const Path& fileLocation)
 {
 	Path parentDir = fileLocation.GetDirectory();
@@ -90,4 +90,3 @@ void FileDecoder::Skip()
 	mInputStream->Read(&objectSize, sizeof(objectSize));
 	mInputStream->Skip(objectSize);
 }
-} // namespace bs

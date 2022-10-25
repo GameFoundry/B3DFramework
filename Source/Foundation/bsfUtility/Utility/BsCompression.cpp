@@ -8,8 +8,8 @@
 #include "snappy-sinksource.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Source accepting a data stream. Used for Snappy compression library. */
 class DataStreamSource : public snappy::Source
 {
@@ -198,4 +198,3 @@ SPtr<MemoryDataStream> Compression::Decompress(const SPtr<DataStream>& input, st
 
 	return dst.GetOutput();
 }
-} // namespace bs

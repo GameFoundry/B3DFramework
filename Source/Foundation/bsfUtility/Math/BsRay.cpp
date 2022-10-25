@@ -6,8 +6,8 @@
 #include "Math/BsAABox.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 void Ray::Transform(const Matrix4& matrix)
 {
 	Vector3 end = GetPoint(1.0f);
@@ -128,4 +128,3 @@ std::pair<bool, float> Ray::Intersects(const Vector3& a, const Vector3& b, const
 
 	return std::pair<bool, float>(true, t);
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Scene/BsSceneManager.h"
 #include "Renderer/BsSkybox.h"
 
-namespace bs
-{
+using namespace bs;
+
 CSkybox::CSkybox()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -51,4 +51,3 @@ RTTITypeBase* CSkybox::GetRtti() const
 {
 	return CSkybox::GetRttiStatic();
 }
-} // namespace bs

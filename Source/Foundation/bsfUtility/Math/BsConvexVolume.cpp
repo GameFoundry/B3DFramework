@@ -7,8 +7,8 @@
 #include "Math/BsMath.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 ConvexVolume::ConvexVolume(const Vector<Plane>& planes)
 	: mPlanes(planes)
 {}
@@ -150,4 +150,3 @@ const Plane& ConvexVolume::GetPlane(FrustumPlane whichPlane) const
 
 	return mPlanes[whichPlane];
 }
-} // namespace bs

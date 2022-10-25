@@ -15,8 +15,8 @@
 
 static const char* sMiniDumpName = "minidump.dmp";
 
-namespace bs
-{
+using namespace bs;
+
 CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 	: mSettings(settings)
 {
@@ -544,4 +544,3 @@ String CrashHandler::GetStackTrace()
 	win32_loadSymbols();
 	return win32_getStackTrace(context, 2);
 }
-} // namespace bs

@@ -12,8 +12,8 @@
 #include "Animation/BsAnimationManager.h"
 #include "Mesh/BsMesh.h"
 
-namespace bs
-{
+using namespace bs;
+
 MeshWeightedTriangles::MeshWeightedTriangles(const MeshData& meshData)
 {
 	Calculate(meshData);
@@ -1442,4 +1442,3 @@ RTTITypeBase* ParticleEmitter::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

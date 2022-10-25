@@ -8,8 +8,8 @@
 #include "Math/BsMath.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 PixelData::PixelData(const PixelVolume& extents, PixelFormat pixelFormat)
 	: mExtents(extents), mFormat(pixelFormat)
 {
@@ -351,4 +351,3 @@ RTTITypeBase* PixelData::GetRtti() const
 {
 	return PixelData::GetRttiStatic();
 }
-} // namespace bs

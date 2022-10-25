@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CAudioListener::CAudioListener()
 {
 	SetName("AudioListener");
@@ -96,4 +96,3 @@ RTTITypeBase* CAudioListener::GetRtti() const
 {
 	return CAudioListener::GetRttiStatic();
 }
-} // namespace bs

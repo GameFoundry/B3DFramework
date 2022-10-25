@@ -5,8 +5,8 @@
 #include "String/BsUnicode.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 DataStream::StreamTempSize = 128;
 
 /** Checks does the provided buffer has an UTF32 byte order mark in little endian order. */
@@ -549,4 +549,3 @@ void FileDataStream::Close()
 		}
 	}
 }
-} // namespace bs

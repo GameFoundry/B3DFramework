@@ -9,8 +9,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CRigidbody::CRigidbody()
 {
 	SetName("Rigidbody");
@@ -519,4 +519,3 @@ RTTITypeBase* CRigidbody::GetRtti() const
 {
 	return CRigidbody::GetRttiStatic();
 }
-} // namespace bs

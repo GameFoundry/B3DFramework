@@ -5,8 +5,8 @@
 #include "Resources/BsResources.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 HPhysicsMaterial PhysicsMaterial::Create(float staticFriction, float dynamicFriction, float restitution)
 {
 	SPtr<PhysicsMaterial> newMaterial = CreatePtrInternal(staticFriction, dynamicFriction, restitution);
@@ -32,4 +32,3 @@ RTTITypeBase* PhysicsMaterial::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

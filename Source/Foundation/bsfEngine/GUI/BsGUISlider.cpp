@@ -9,8 +9,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 GUISlider::GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions)
 	: GUIElementContainer(dimensions, styleName, GUIElementOption::AcceptsKeyFocus), mHorizontal(horizontal)
 {
@@ -293,4 +293,3 @@ const String& GUISliderVert::GetGuiTypeName()
 	static String typeName = "SliderVert";
 	return typeName;
 }
-} // namespace bs

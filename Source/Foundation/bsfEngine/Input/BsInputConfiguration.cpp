@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Input/BsInputConfiguration.h"
 
-namespace bs
-{
+using namespace bs;
+
 
 u32 VirtualButton::NextButtonId = 0;
 
@@ -152,4 +152,3 @@ bool InputConfiguration::GetAxisInternal(const VirtualAxis& axis, VIRTUAL_AXIS_D
 	axisDesc = mAxes[axis.AxisIdentifier].Desc;
 	return true;
 }
-} // namespace bs

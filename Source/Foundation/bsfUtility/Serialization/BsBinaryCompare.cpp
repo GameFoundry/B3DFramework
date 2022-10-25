@@ -4,8 +4,8 @@
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsDataStream.h"
 
-namespace bs
-{
+using namespace bs;
+
 namespace impl
 {
 template <class T>
@@ -54,7 +54,7 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 	};
 
 	FrameStack<RTTIPair> rttiInstances;
-	auto cleanup = impl::make_scope_guard([&]()
+	auto cleanup = ::impl::make_scope_guard([&]()
 										  {
 			while (!rttiInstances.empty())
 			{
@@ -306,4 +306,3 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 
 	return true;
 }
-} // namespace bs

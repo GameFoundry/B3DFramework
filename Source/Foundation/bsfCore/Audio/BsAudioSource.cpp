@@ -5,8 +5,8 @@
 #include "Math/BsMath.h"
 #include "Private/RTTI/BsAudioSourceRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void AudioSource::SetClip(const HAudioClip& clip)
 {
 	mAudioClip = clip;
@@ -74,4 +74,3 @@ RTTITypeBase* AudioSource::GetRtti() const
 {
 	return AudioSource::GetRttiStatic();
 }
-} // namespace bs

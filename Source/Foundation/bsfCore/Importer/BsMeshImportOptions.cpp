@@ -3,8 +3,8 @@
 #include "Importer/BsMeshImportOptions.h"
 #include "Private/RTTI/BsMeshImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* AnimationSplitInfo::GetRttiStatic()
 {
 	return AnimationSplitInfoRTTI::Instance();
@@ -39,4 +39,3 @@ RTTITypeBase* MeshImportOptions::GetRtti() const
 {
 	return MeshImportOptions::GetRttiStatic();
 }
-} // namespace bs

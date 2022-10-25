@@ -7,8 +7,8 @@
 #include <dlfcn.h>
 #include <csignal>
 
-namespace bs
-{
+using namespace bs;
+
 i32 SIGNALS[] = { SIGFPE, SIGILL, SIGSEGV, SIGTERM };
 struct sigaction gSavedSignals[4];
 
@@ -193,4 +193,3 @@ void CrashHandler::reportCrash(const String& type, const String& description, co
 	// Allow the debugger a chance to attach
 	std::raise(SIGINT);
 }
-} // namespace bs

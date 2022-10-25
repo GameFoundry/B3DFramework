@@ -4,8 +4,8 @@
 #include "Resources/BsResources.h"
 #include "Private/RTTI/BsPlainTextRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 PlainText::PlainText(const WString& data)
 	: Resource(false), mString(data)
 {
@@ -35,4 +35,3 @@ RTTITypeBase* PlainText::GetRtti() const
 {
 	return PlainText::GetRttiStatic();
 }
-} // namespace bs

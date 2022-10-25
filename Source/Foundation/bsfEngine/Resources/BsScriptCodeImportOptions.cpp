@@ -3,8 +3,8 @@
 #include "Resources/BsScriptCodeImportOptions.h"
 #include "Private/RTTI/BsScriptCodeImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::Create()
 {
 	return bs_shared_ptr_new<ScriptCodeImportOptions>();
@@ -22,4 +22,3 @@ RTTITypeBase* ScriptCodeImportOptions::GetRtti() const
 {
 	return ScriptCodeImportOptions::GetRttiStatic();
 }
-} // namespace bs

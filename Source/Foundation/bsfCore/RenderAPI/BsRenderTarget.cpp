@@ -7,8 +7,8 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
+using namespace bs;
+
 RenderTarget::RenderTarget()
 {
 	// We never sync from sim to core, so mark it clean to avoid overwriting core thread changes
@@ -57,7 +57,7 @@ RTTITypeBase* RenderTarget::GetRtti() const
 	return RenderTarget::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 RenderTarget::RenderTarget()
 {
@@ -79,5 +79,4 @@ void RenderTarget::GetCustomAttribute(const String& name, void* pData) const
 {
 	BS_EXCEPT(InvalidParametersException, "Attribute not found.");
 }
-} // namespace ct
-} // namespace bs
+}}

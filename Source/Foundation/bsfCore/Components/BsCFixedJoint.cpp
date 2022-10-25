@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCFixedJointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CFixedJoint::CFixedJoint()
 	: CJoint(mDesc)
 {
@@ -70,4 +70,3 @@ RTTITypeBase* CFixedJoint::GetRtti() const
 {
 	return CFixedJoint::GetRttiStatic();
 }
-} // namespace bs

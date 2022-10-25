@@ -3,8 +3,8 @@
 #include "Physics/BsMeshCollider.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<MeshCollider> MeshCollider::Create(PhysicsScene& scene, const Vector3& position, const Quaternion& rotation)
 {
 	return scene.CreateMeshCollider(position, rotation);
@@ -25,4 +25,3 @@ void MeshCollider::NotifyResourceChanged(const HResource& resource)
 {
 	OnMeshChanged();
 }
-} // namespace bs

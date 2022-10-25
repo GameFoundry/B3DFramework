@@ -14,8 +14,8 @@
 #define PE_IMAGE_DIRECTORY_ENTRY_RESOURCE 2
 #define PE_IMAGE_RT_ICON 3
 
-namespace bs
-{
+using namespace bs;
+
 /**	MS-DOS header found at the beggining in a PE format file. */
 struct MSDOSHeader
 {
@@ -377,4 +377,3 @@ void IconUtility::UpdateIconData(u8* iconData, const Map<u32, SPtr<PixelData>>& 
 		}
 	}
 }
-} // namespace bs

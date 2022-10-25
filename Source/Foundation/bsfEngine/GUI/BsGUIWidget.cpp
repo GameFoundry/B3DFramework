@@ -15,8 +15,8 @@
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "Image/BsSpriteTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 namespace impl
 {
 SPtr<VertexDataDesc> gGUITriangleMeshDesc()
@@ -661,7 +661,7 @@ void GUIDrawGroups::RebuildMeshes()
 		}
 
 		SPtr<MeshData> meshData[2];
-		SPtr<VertexDataDesc> vertexDesc[2] = { impl::gGUITriangleMeshDesc(), impl::gGUILineMeshDesc() };
+		SPtr<VertexDataDesc> vertexDesc[2] = { ::impl::gGUITriangleMeshDesc(), ::impl::gGUILineMeshDesc() };
 
 		u8* vertices[2] = { nullptr, nullptr };
 		u32* indices[2] = { nullptr, nullptr };
@@ -1277,4 +1277,3 @@ void GUIWidget::UpdateRootPanel()
 	mPanel->SetLayoutDataInternal(layoutData);
 	mPanel->MarkLayoutAsDirtyInternal();
 }
-} // namespace bs

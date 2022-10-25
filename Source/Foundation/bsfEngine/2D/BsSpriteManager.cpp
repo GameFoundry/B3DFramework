@@ -3,8 +3,8 @@
 #include "2D/BsSpriteManager.h"
 #include "2D/BsSpriteMaterials.h"
 
-namespace bs
-{
+using namespace bs;
+
 SpriteManager::SpriteManager()
 {
 #ifndef BS_IS_ASSET_TOOL
@@ -42,4 +42,3 @@ SpriteMaterial* SpriteManager::GetMaterial(u32 id) const
 
 	return nullptr;
 }
-} // namespace bs

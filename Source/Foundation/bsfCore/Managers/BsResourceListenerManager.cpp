@@ -8,8 +8,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 #if BS_DEBUG_MODE
 void throwIfNotSimThread()
 {
@@ -242,4 +242,3 @@ void ResourceListenerManager::AddDependencies(IResourceListener* listener)
 
 	mTempResourceBuffer.clear();
 }
-} // namespace bs

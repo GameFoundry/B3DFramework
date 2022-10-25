@@ -5,8 +5,8 @@
 #include "Animation/BsSkeletonMask.h"
 #include "Private/RTTI/BsSkeletonRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 LocalSkeletonPose::LocalSkeletonPose(u32 numBones, bool individualOverride)
 	: NumBones(numBones)
 {
@@ -363,4 +363,3 @@ RTTITypeBase* Skeleton::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

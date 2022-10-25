@@ -9,8 +9,8 @@
 #include <intrin.h>
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 GPUInfo PlatformUtility::sGPUInfo;
 
 void PlatformUtility::Terminate(bool force)
@@ -124,7 +124,7 @@ SystemInfo PlatformUtility::GetSystemInfo()
 	return output;
 }
 
-UUID PlatformUtility::GenerateUuid()
+bs::UUID PlatformUtility::GenerateUuid()
 {
 	::UUID uuid;
 	UuidCreate(&uuid);
@@ -226,4 +226,3 @@ HBITMAP Win32PlatformUtility::CreateBitmap(const Color* pixels, u32 width, u32 h
 
 	return hBitmap;
 }
-} // namespace bs

@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCSphereColliderRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CSphereCollider::CSphereCollider()
 {
 	SetName("SphereCollider");
@@ -67,4 +67,3 @@ RTTITypeBase* CSphereCollider::GetRtti() const
 {
 	return CSphereCollider::GetRttiStatic();
 }
-} // namespace bs

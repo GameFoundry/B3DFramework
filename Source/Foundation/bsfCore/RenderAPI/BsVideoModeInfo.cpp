@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsVideoModeInfo.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool VideoMode::operator==(const VideoMode& other) const
 {
 	return Width == other.Width && Height == other.Height &&
@@ -24,4 +24,3 @@ VideoModeInfo::~VideoModeInfo()
 	for(auto& output : mOutputs)
 		bs_delete(output);
 }
-} // namespace bs

@@ -15,8 +15,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUITooltip::TOOLTIP_WIDTH = 200;
 const u32 GUITooltip::CURSOR_SIZE = 16;
 
@@ -92,4 +92,3 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	backgroundPanel->SetPosition(placementBounds.X, placementBounds.Y);
 	contentPanel->SetPosition(placementBounds.X + contentOffsetX, placementBounds.Y + contentOffsetY);
 }
-} // namespace bs

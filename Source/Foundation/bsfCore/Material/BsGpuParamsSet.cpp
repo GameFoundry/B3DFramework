@@ -14,8 +14,8 @@
 #include "Image/BsColorGradient.h"
 #include "Image/BsSpriteTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Uniquely identifies a GPU parameter. */
 struct ValidParamKey
 {
@@ -36,7 +36,6 @@ struct ValidParamKey
 	String Name;
 	MaterialParams::ParamType Type;
 };
-} // namespace bs
 
 /** @cond STDLIB */
 
@@ -44,9 +43,9 @@ namespace std
 {
 /** Hash value generator for ValidParamKey. */
 template <>
-struct hash<bs::ValidParamKey>
+struct hash<ValidParamKey>
 {
-	size_t operator()(const bs::ValidParamKey& key) const
+	size_t operator()(const ValidParamKey& key) const
 	{
 		size_t hash = 0;
 		bs::bs_hash_combine(hash, key.Name);
@@ -59,8 +58,8 @@ struct hash<bs::ValidParamKey>
 
 /** @endcond */
 
-namespace bs
-{
+using namespace bs;
+
 struct ShaderBlockDesc
 {
 	String Name;
@@ -1168,4 +1167,3 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 
 template class TGpuParamsSet<false>;
 template class TGpuParamsSet<true>;
-} // namespace bs

@@ -9,8 +9,8 @@
 #include "Managers/BsGpuProgramManager.h"
 #include "Private/RTTI/BsTechniqueRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 TechniqueBase::TechniqueBase(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation)
 	: mLanguage(language), mTags(tags), mVariation(variation)
 {
@@ -140,7 +140,7 @@ RTTITypeBase* Technique::GetRtti() const
 	return Technique::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Technique::Technique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes)
 	: TTechnique(language, tags, variation, passes)
@@ -165,5 +165,4 @@ SPtr<Technique> Technique::Create(const String& language, const Vector<StringID>
 
 	return techniquePtr;
 }
-} // namespace ct
-} // namespace bs
+}}

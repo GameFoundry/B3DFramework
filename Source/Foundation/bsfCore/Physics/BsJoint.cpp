@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Physics/BsJoint.h"
 
-namespace bs
-{
+using namespace bs;
+
 Rigidbody* Joint::GetBody(JointBody body) const
 {
 	return mInternal->GetBody(body);
@@ -58,4 +58,3 @@ void Joint::SetEnableCollision(bool value)
 {
 	mInternal->SetEnableCollision(value);
 }
-} // namespace bs

@@ -3,8 +3,8 @@
 #include "Utility/BsGameSettings.h"
 #include "Private/RTTI/BsGameSettingsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* GameSettings::GetRttiStatic()
 {
 	return GameSettingsRTTI::Instance();
@@ -15,4 +15,3 @@ RTTITypeBase* GameSettings::GetRtti() const
 	return GameSettings::GetRttiStatic();
 }
 
-} // namespace bs

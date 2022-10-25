@@ -5,8 +5,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 ShortcutManager::ShortcutManager()
 {
 	mOnButtonDownConn = Input::Instance().OnButtonDown.Connect(std::bind(&::bs::ShortcutManager::OnButtonDown, this, _1));
@@ -48,4 +48,3 @@ void ShortcutManager::OnButtonDown(const ButtonEvent& event)
 			iterFind->second();
 	}
 }
-} // namespace bs

@@ -29,8 +29,8 @@ constexpr const bs::u8 LITERAL_TO_HEX[256] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF
 											   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 } // namespace
 
-namespace bs
-{
+using namespace bs;
+
 UUID UUID::EMPTY;
 
 UUID::UUID(const String& uuid)
@@ -165,4 +165,3 @@ UUID UUIDGenerator::GenerateRandom()
 {
 	return PlatformUtility::GenerateUuid();
 }
-} // namespace bs

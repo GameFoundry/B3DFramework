@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCBoxColliderRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CBoxCollider::CBoxCollider()
 {
 	SetName("BoxCollider");
@@ -68,4 +68,3 @@ RTTITypeBase* CBoxCollider::GetRtti() const
 {
 	return CBoxCollider::GetRttiStatic();
 }
-} // namespace bs

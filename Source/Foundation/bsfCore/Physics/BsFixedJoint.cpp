@@ -3,10 +3,9 @@
 #include "Physics/BsFixedJoint.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<FixedJoint> FixedJoint::Create(PhysicsScene& scene, const FIXED_JOINT_DESC& desc)
 {
 	return scene.CreateFixedJoint(desc);
 }
-} // namespace bs

@@ -8,8 +8,8 @@
 #include "Input/BsGamepad.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 BOOL CALLBACK DIEnumDevCallbackInternal(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
 	InputPrivateData* data = (InputPrivateData*)(pvRef);
@@ -223,4 +223,3 @@ u32 Input::GetDeviceCount(InputDevice device) const
 	case InputDevice::Count: return 0;
 	}
 }
-} // namespace bs

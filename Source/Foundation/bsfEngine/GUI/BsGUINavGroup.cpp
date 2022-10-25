@@ -4,8 +4,8 @@
 #include "GUI/BsGUIElement.h"
 #include "GUI/BsGUIManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<GUINavGroup> GUINavGroup::Create()
 {
 	return bs_shared_ptr_new<GUINavGroup>();
@@ -304,4 +304,3 @@ void GUINavGroup::UnregisterElement(GUIElement* element)
 
 	mElements.erase(element);
 }
-} // namespace bs

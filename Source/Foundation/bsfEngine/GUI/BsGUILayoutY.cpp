@@ -6,8 +6,8 @@
 #include "Math/BsMath.h"
 #include "Math/BsVector2I.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUILayoutY::GUILayoutY(const GUIDimensions& dimensions)
 	: GUILayout(dimensions)
 {}
@@ -433,4 +433,3 @@ GUILayoutY* GUILayoutY::Create(const GUIOptions& options)
 {
 	return bs_new<GUILayoutY>(GUIDimensions::Create(options));
 }
-} // namespace bs

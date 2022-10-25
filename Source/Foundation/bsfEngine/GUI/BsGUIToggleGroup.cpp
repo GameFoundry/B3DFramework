@@ -3,8 +3,8 @@
 #include "GUI/BsGUIToggleGroup.h"
 #include "GUI/BsGUIToggle.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIToggleGroup::GUIToggleGroup(bool allowAllOff)
 	: mAllowAllOff(allowAllOff)
 {}
@@ -44,4 +44,3 @@ void GUIToggleGroup::RemoveInternal(GUIToggle* toggle)
 	(*iterFind)->SetToggleGroupInternal(nullptr);
 	mButtons.erase(iterFind);
 }
-} // namespace bs

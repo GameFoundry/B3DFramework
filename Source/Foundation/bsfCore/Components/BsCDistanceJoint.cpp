@@ -5,8 +5,8 @@
 #include "Private/RTTI/BsCDistanceJointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CDistanceJoint::CDistanceJoint()
 	: CJoint(mDesc)
 {
@@ -129,4 +129,3 @@ RTTITypeBase* CDistanceJoint::GetRtti() const
 {
 	return CDistanceJoint::GetRttiStatic();
 }
-} // namespace bs

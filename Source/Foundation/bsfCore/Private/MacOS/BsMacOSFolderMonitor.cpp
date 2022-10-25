@@ -7,8 +7,8 @@
 
 #include <CoreServices/CoreServices.h>
 
-namespace bs
-{
+using namespace bs;
+
 static constexpr u32 WRITE_STEADY_WAIT = 2000;
 CFStringRef FolderMonitorMode = CFSTR("BSFolderMonitor");
 
@@ -550,4 +550,3 @@ void FolderMonitor::UpdateInternal()
 
 	m->activeFileActions.clear();
 }
-} // namespace bs

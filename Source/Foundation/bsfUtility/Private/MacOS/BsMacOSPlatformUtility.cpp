@@ -5,8 +5,8 @@
 #include <uuid/uuid.h>
 #include <sys/sysctl.h>
 
-namespace bs
-{
+using namespace bs;
+
 GPUInfo PlatformUtility::sGPUInfo;
 
 void PlatformUtility::terminate(bool force)
@@ -109,4 +109,3 @@ String PlatformUtility::convertCaseUTF8(const bs::String& input, bool toUpper)
 
 	return output;
 }
-} // namespace bs

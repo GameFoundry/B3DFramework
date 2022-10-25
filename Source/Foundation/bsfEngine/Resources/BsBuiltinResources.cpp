@@ -19,8 +19,8 @@
 
 using json = nlohmann::json;
 
-namespace bs
-{
+using namespace bs;
+
 constexpr const char* BuiltinResources::IconTextureName;
 constexpr const char* BuiltinResources::MultiLineLabelStyle;
 
@@ -398,6 +398,8 @@ HMaterial BuiltinResources::CreateSpriteLineMaterial() const
 	return Material::Create(mShaderSpriteLine);
 }
 
+namespace bs
+{
 BuiltinResources& gBuiltinResources()
 {
 	return BuiltinResources::Instance();

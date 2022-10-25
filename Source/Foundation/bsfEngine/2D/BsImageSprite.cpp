@@ -5,8 +5,8 @@
 #include "Image/BsTexture.h"
 #include "Image/BsSpriteTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 ImageSprite::~ImageSprite()
 {
 	ClearMesh();
@@ -317,4 +317,3 @@ Vector2 ImageSprite::GetTextureUvScale(Vector2I sourceSize, Vector2I destSize, T
 
 	return uvScale;
 }
-} // namespace bs

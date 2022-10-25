@@ -7,8 +7,8 @@
 #include "Math/BsRay.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 Plane::Plane(const Vector3& normal, float d)
 	: Normal(normal), D(d)
 {}
@@ -138,4 +138,3 @@ std::pair<bool, float> Plane::Intersects(const Ray& ray) const
 		return std::pair<bool, float>(t >= 0.0f, t);
 	}
 }
-} // namespace bs

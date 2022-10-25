@@ -5,8 +5,8 @@
 #include "Math/BsMath.h"
 #include "String/BsString.h"
 
-namespace bs
-{
+using namespace bs;
+
 constexpr u32 Time::MAX_ACCUM_FIXED_UPDATES;
 constexpr u32 Time::NEW_FIXED_UPDATES_PER_FRAME;
 
@@ -123,6 +123,8 @@ String Time::GetAppStartUpDateString(bool isUTC)
 	return toString(mAppStartUpDate, isUTC, false, TimeToStringConversionType::Full);
 }
 
+namespace bs
+{
 Time& gTime()
 {
 	return Time::Instance();

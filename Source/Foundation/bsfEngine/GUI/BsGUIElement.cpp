@@ -6,8 +6,8 @@
 #include "GUI/BsGUIManager.h"
 #include "BsGUINavGroup.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Color GUIElement::DISABLED_COLOR = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
 GUIElement::GUIElement(String styleName, const GUIDimensions& dimensions, GUIElementOptions options)
@@ -319,4 +319,3 @@ Rect2I GUIElement::GetVisibleBounds()
 
 	return bounds;
 }
-} // namespace bs

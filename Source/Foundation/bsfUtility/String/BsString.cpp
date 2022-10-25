@@ -12,8 +12,8 @@
 #include "Error/BsException.h"
 #include "Debug/BsLog.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String StringUtil::BLANK;
 const WString StringUtil::WBLANK;
 
@@ -129,6 +129,8 @@ const WString StringUtil::ReplaceAll(const WString& source, const WString& repla
 /* 						VARIOUS TO STRING CONVERSIONS                   */
 /************************************************************************/
 
+namespace bs
+{
 WString toWString(const String& source)
 {
 	return WString(source.begin(), source.end());

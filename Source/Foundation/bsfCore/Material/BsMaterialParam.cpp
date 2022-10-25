@@ -6,8 +6,8 @@
 #include "Material/BsMaterial.h"
 #include "Image/BsColorGradient.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <int DATA_TYPE, bool Core>
 TMaterialDataCommon<DATA_TYPE, Core>::TMaterialDataCommon(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mArraySize(0), mMaterial(nullptr)
@@ -498,4 +498,3 @@ template class TMaterialParamBuffer<true>;
 
 template class TMaterialParamSampState<false>;
 template class TMaterialParamSampState<true>;
-} // namespace bs

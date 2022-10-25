@@ -11,8 +11,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 const u32 GUIScrollArea::ScrollBarWidth = 16;
 const u32 GUIScrollArea::WheelScrollAmount = 50;
 
@@ -530,4 +530,3 @@ const String& GUIScrollArea::GetGuiTypeName()
 	static String typeName = "ScrollArea";
 	return typeName;
 }
-} // namespace bs

@@ -15,8 +15,8 @@
 #	include <dlfcn.h>
 #endif
 
-namespace bs
-{
+using namespace bs;
+
 DynLib::DynLib(String name)
 	: mName(std::move(name))
 {
@@ -88,4 +88,3 @@ String DynLib::DynlibError()
 	return String();
 #endif
 }
-} // namespace bs

@@ -18,8 +18,8 @@
 #include "Reflection/BsRTTIType.h"
 #include "BsCoreApplication.h"
 
-namespace bs
-{
+using namespace bs;
+
 Resources::Resources()
 {
 	{
@@ -1074,6 +1074,8 @@ void Resources::LoadCallback(const Path& filePath, HResource& resource, bool loa
 	LoadComplete(resource, true);
 }
 
+namespace bs
+{
 BS_CORE_EXPORT Resources& gResources()
 {
 	return Resources::Instance();

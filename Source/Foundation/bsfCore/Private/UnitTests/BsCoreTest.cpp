@@ -5,8 +5,8 @@
 #include "Animation/BsAnimationCurve.h"
 #include "Particles/BsParticleDistribution.h"
 
-namespace bs
-{
+using namespace bs;
+
 float evalPosition(float acceleration, float velocity, float time)
 {
 	return acceleration * time * time * 0.5f + velocity * time;
@@ -135,7 +135,6 @@ void CoreTestSuite::testLookupTable()
 			BS_TEST_ASSERT(Math::ApproxEquals(valueLookup[j], valueCurve[j], EPSILON));
 	}
 }
-} // namespace bs
 
 using namespace bs;
 

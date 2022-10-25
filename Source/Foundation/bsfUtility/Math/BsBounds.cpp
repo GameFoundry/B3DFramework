@@ -5,8 +5,8 @@
 #include "Math/BsPlane.h"
 #include "Math/BsSphere.h"
 
-namespace bs
-{
+using namespace bs;
+
 Bounds::Bounds(const AABox& box, const Sphere& sphere)
 	: mBox(box), mSphere(sphere)
 {}
@@ -40,4 +40,4 @@ void Bounds::TransformAffine(const Matrix4& matrix)
 	mBox.TransformAffine(matrix);
 	mSphere.Transform(matrix);
 }
-} // namespace bs
+

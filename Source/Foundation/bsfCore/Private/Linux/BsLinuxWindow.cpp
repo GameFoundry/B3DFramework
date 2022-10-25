@@ -22,8 +22,8 @@
 #define WM_NormalState 1
 #define WM_IconicState 3
 
-namespace bs
-{
+using namespace bs;
+
 enum class WindowState
 {
 	Minimized,
@@ -696,4 +696,3 @@ void LinuxWindow::setIsModal(bool modal)
 		XSendEvent(LinuxPlatform::getXDisplay(), DefaultRootWindow(LinuxPlatform::getXDisplay()), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
 	}
 }
-} // namespace bs

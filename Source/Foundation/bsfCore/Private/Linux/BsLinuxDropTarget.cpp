@@ -13,8 +13,8 @@
 
 #undef None
 
-namespace bs
-{
+using namespace bs;
+
 ::Display* LinuxDragAndDrop::sXDisplay = nullptr;
 bool LinuxDragAndDrop::sDragActive = false;
 Vector<LinuxDragAndDrop::DropArea> LinuxDragAndDrop::sDropAreas;
@@ -604,4 +604,3 @@ void LinuxDragAndDrop::update()
 		}
 	}
 }
-} // namespace bs

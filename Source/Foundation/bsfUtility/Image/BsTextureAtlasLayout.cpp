@@ -4,8 +4,8 @@
 #include "Debug/BsDebug.h"
 #include "Utility/BsBitwise.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool TextureAtlasLayout::AddElement(u32 width, u32 height, u32& x, u32& y)
 {
 	if(width == 0 || height == 0)
@@ -172,4 +172,3 @@ Vector<TextureAtlasUtility::Page> TextureAtlasUtility::CreateAtlasLayout(Vector<
 
 	return pages;
 }
-} // namespace bs

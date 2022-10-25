@@ -8,8 +8,8 @@
 #include "CoreThread/BsCoreThread.h"
 #include <Private/RTTI/BsRenderTargetRTTI.h>
 
-namespace bs
-{
+using namespace bs;
+
 RenderTextureProperties::RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping)
 {
 	u32 firstIdx = (u32)-1;
@@ -180,7 +180,7 @@ RTTITypeBase* RenderTexture::GetRtti() const
 	return RenderTexture::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
 	: mDesc(desc)
@@ -323,5 +323,4 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 		}
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

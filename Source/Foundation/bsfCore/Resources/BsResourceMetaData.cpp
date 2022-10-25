@@ -3,8 +3,8 @@
 #include "Resources/BsResourceMetaData.h"
 #include "Private/RTTI/BsResourceMetaDataRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* ResourceMetaData::GetRttiStatic()
 {
 	return ResourceMetaDataRTTI::Instance();
@@ -14,4 +14,3 @@ RTTITypeBase* ResourceMetaData::GetRtti() const
 {
 	return ResourceMetaData::GetRttiStatic();
 }
-} // namespace bs

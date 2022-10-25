@@ -3,8 +3,8 @@
 #include "Scene/BsGameObjectManager.h"
 #include "Scene/BsGameObject.h"
 
-namespace bs
-{
+using namespace bs;
+
 GameObjectManager::~GameObjectManager()
 {
 	DestroyQueuedObjects();
@@ -230,4 +230,3 @@ void GameObjectDeserializationState::RegisterOnDeserializationEndCallback(std::f
 {
 	mEndCallbacks.push_back(callback);
 }
-} // namespace bs

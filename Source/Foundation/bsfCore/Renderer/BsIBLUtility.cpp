@@ -3,9 +3,9 @@
 #include "Renderer/BsIBLUtility.h"
 #include "Math/BsVector2I.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 const u32 IBLUtility::REFLECTION_CUBEMAP_SIZE = 256;
 const u32 IBLUtility::IRRADIANCE_CUBEMAP_SIZE = 32;
@@ -44,5 +44,4 @@ const IBLUtility& gIBLUtility()
 {
 	return IBLUtility::Instance();
 }
-} // namespace ct
-} // namespace bs
+}}

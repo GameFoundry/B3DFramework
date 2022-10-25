@@ -20,8 +20,8 @@
 
 #define BS_SHOW_PRECISE_PROFILING 0
 
-namespace bs
-{
+using namespace bs;
+
 constexpr u32 MAX_DEPTH = 4;
 
 class BasicRowFiller
@@ -787,4 +787,3 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 		}
 	}
 }
-} // namespace bs

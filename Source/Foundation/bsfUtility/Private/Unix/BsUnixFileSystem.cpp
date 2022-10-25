@@ -21,8 +21,8 @@
 #define HANDLE_PATH_ERROR(path__, errno__) \
 	BS_LOG(Error, FileSystem, (String(__FUNCTION__) + ": " + (path__) + ": " + (strerror(errno__))));
 
-namespace bs
-{
+using namespace bs;
+
 bool unix_pathExists(const String& path)
 {
 	struct stat st_buf;
@@ -345,4 +345,3 @@ Path FileSystem::GetTempDirectoryPath()
 
 	return Path(String(directoryName) + "/");
 }
-} // namespace bs

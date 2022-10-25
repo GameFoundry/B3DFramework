@@ -6,8 +6,8 @@
 #include "Math/BsAABox.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 void Sphere::Merge(const Sphere& rhs)
 {
 	Vector3 newCenter = (mCenter + rhs.mCenter) * 0.5f;
@@ -97,4 +97,3 @@ bool Sphere::Intersects(const AABox& box) const
 {
 	return box.Intersects(*this);
 }
-} // namespace bs

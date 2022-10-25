@@ -39,8 +39,8 @@ void logToIDEConsole(const bs::String& message, const char* channel)
 }
 #endif
 
-namespace bs
-{
+using namespace bs;
+
 BS_LOG_CATEGORY_IMPL(Uncategorized)
 BS_LOG_CATEGORY_IMPL(FileSystem)
 BS_LOG_CATEGORY_IMPL(RTTI)
@@ -468,6 +468,8 @@ void Debug::SaveTextLog(const Path& path) const
 	fileStream->WriteString(stream.str());
 }
 
+namespace bs
+{
 BS_UTILITY_EXPORT Debug& gDebug()
 {
 	static Debug debug;

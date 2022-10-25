@@ -7,8 +7,8 @@
 #include <windows.h>
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 enum class MonitorState
 {
 	Inactive,
@@ -673,4 +673,3 @@ void FolderMonitor::UpdateInternal()
 		FileAction::Destroy(action);
 	}
 }
-} // namespace bs

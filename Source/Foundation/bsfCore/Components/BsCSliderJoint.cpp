@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCSliderJointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CSliderJoint::CSliderJoint()
 	: CJoint(mDesc)
 {
@@ -116,4 +116,3 @@ RTTITypeBase* CSliderJoint::GetRtti() const
 {
 	return CSliderJoint::GetRttiStatic();
 }
-} // namespace bs

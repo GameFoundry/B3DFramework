@@ -8,8 +8,8 @@
 #include "Managers/BsResourceListenerManager.h"
 #include "BsCoreApplication.h"
 
-namespace bs
-{
+using namespace bs;
+
 Signal ResourceHandleBase::mResourceCreatedCondition;
 Mutex ResourceHandleBase::mResourceCreatedMutex;
 
@@ -137,4 +137,3 @@ RTTITypeBase* TResourceHandleBase<false>::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

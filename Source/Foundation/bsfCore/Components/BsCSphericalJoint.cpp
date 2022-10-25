@@ -5,8 +5,8 @@
 #include "Private/RTTI/BsCSphericalJointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CSphericalJoint::CSphericalJoint()
 	: CJoint(mDesc)
 {
@@ -73,4 +73,3 @@ RTTITypeBase* CSphericalJoint::GetRtti() const
 {
 	return CSphericalJoint::GetRttiStatic();
 }
-} // namespace bs

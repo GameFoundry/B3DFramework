@@ -5,8 +5,8 @@
 #include "Math/BsRay.h"
 #include "Components/BsCCollider.h"
 
-namespace bs
-{
+using namespace bs;
+
 Physics::Physics(const PHYSICS_INIT_DESC& init)
 {
 	memset(mCollisionMap, 1, CollisionMapSize * CollisionMapSize * sizeof(bool));
@@ -91,6 +91,8 @@ Vector<HCollider> PhysicsScene::ConvexOverlap(const HPhysicsMesh& mesh, const Ve
 	return rawToComponent(ConvexOverlapInternal(mesh, position, rotation, layer));
 }
 
+namespace bs
+{
 Physics& gPhysics()
 {
 	return Physics::Instance();

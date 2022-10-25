@@ -9,9 +9,9 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 RenderQueue::RenderQueue(StateReduction mode)
 	: mStateReductionMode(mode)
@@ -212,5 +212,4 @@ const Vector<RenderQueueElement>& RenderQueue::GetSortedElements() const
 {
 	return mSortedRenderElements;
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -17,8 +17,8 @@
 #include <X11/extensions/XInput2.h>
 #include <pwd.h>
 
-namespace bs
-{
+using namespace bs;
+
 Event<void(const Vector2I&, const OSPointerButtonStates&)> Platform::onCursorMoved;
 Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonPressed;
 Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> Platform::onCursorButtonReleased;
@@ -1484,4 +1484,3 @@ Pixmap LinuxPlatform::createPixmap(const PixelData& data, u32 depth)
 
 	return pixmap;
 }
-} // namespace bs

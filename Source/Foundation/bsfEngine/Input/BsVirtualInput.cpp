@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 VirtualInput::VirtualInput()
 {
 	mInputConfiguration = CreateConfiguration();
@@ -304,4 +304,3 @@ VirtualInput& gVirtualInput()
 {
 	return VirtualInput::Instance();
 }
-} // namespace bs

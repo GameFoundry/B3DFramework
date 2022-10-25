@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsResourceMappingRTTI.h"
 #include "FileSystem/BsFileSystem.h"
 
-namespace bs
-{
+using namespace bs;
+
 void ResourceMapping::Add(const Path& from, const Path& to)
 {
 	mMapping[from] = to;
@@ -70,4 +70,3 @@ void GameResourceManager::SetLoader(const SPtr<IGameResourceLoader>& loader)
 	if(mLoader == nullptr)
 		mLoader = bs_shared_ptr_new<StandaloneResourceLoader>();
 }
-} // namespace bs

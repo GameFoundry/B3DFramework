@@ -3,10 +3,9 @@
 #include "Physics/BsHingeJoint.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<HingeJoint> HingeJoint::Create(PhysicsScene& scene, const HINGE_JOINT_DESC& desc)
 {
 	return scene.CreateHingeJoint(desc);
 }
-} // namespace bs

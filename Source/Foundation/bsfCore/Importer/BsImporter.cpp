@@ -14,8 +14,8 @@
 #include "Threading/BsThreadPool.h"
 #include "Threading/BsTaskScheduler.h"
 
-namespace bs
-{
+using namespace bs;
+
 Importer::Importer()
 {
 	mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
@@ -351,6 +351,8 @@ SpecificImporter* Importer::GetImporterForFile(const Path& inputFilePath) const
 	return nullptr;
 }
 
+namespace bs
+{
 BS_CORE_EXPORT Importer& gImporter()
 {
 	return Importer::Instance();

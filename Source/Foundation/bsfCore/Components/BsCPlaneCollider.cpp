@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsCPlaneColliderRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CPlaneCollider::CPlaneCollider()
 {
 	SetName("PlaneCollider");
@@ -76,4 +76,3 @@ RTTITypeBase* CPlaneCollider::GetRtti() const
 {
 	return CPlaneCollider::GetRttiStatic();
 }
-} // namespace bs

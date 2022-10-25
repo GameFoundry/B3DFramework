@@ -5,8 +5,8 @@
 #include "Error/BsException.h"
 #include "Renderer/BsRendererFactory.h"
 
-namespace bs
-{
+using namespace bs;
+
 RendererManager::~RendererManager()
 {
 	if(mActiveRenderer != nullptr)
@@ -48,4 +48,3 @@ void RendererManager::RegisterFactoryInternal(SPtr<RendererFactory> factory)
 
 	mAvailableFactories.push_back(factory);
 }
-} // namespace bs

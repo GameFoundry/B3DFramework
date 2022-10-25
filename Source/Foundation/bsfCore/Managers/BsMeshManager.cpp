@@ -6,8 +6,8 @@
 #include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 
-namespace bs
-{
+using namespace bs;
+
 void MeshManager::OnStartUp()
 {
 	SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
@@ -25,4 +25,3 @@ void MeshManager::OnStartUp()
 
 	mDummyMesh = Mesh::Create(mDummyMeshData);
 }
-} // namespace bs

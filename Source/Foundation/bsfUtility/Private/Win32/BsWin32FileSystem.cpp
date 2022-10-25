@@ -10,8 +10,8 @@
 #undef CopyFile
 #undef MoveFile
 
-namespace bs
-{
+using namespace bs;
+
 void win32_handleError(DWORD error, const WString& path)
 {
 	switch(error)
@@ -477,4 +477,3 @@ Path FileSystem::GetTempDirectoryPath()
 	const String utf8dir = UTF8::FromWide(win32_getTempDirectory());
 	return Path(utf8dir);
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Math/BsMath.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 {
 	const Vector3& org = ray.GetOrigin();
@@ -46,4 +46,3 @@ std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 
 	return std::make_pair(false, 0.0f);
 }
-} // namespace bs

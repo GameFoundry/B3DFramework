@@ -11,8 +11,8 @@
 #include "Serialization/BsBinarySerializer.h"
 #include "FileSystem/BsDataStream.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 {
 	if(object == nullptr)
@@ -225,4 +225,3 @@ void BinaryCloner::RestoreReferences(IReflectable* object, FrameAlloc& alloc, co
 		}
 	}
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Math/BsBounds.h"
 #include "Mesh/BsMeshHeap.h"
 
-namespace bs
-{
+using namespace bs;
+
 TransientMesh::TransientMesh(const SPtr<MeshHeap>& parentHeap, u32 id, u32 numVertices, u32 numIndices, DrawOperationType drawOp)
 	: MeshBase(numVertices, numIndices, drawOp), mIsDestroyed(false), mParentHeap(parentHeap), mId(id)
 {
@@ -37,7 +37,7 @@ SPtr<ct::CoreObject> TransientMesh::CreateCore() const
 	return meshCore;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 TransientMesh::TransientMesh(const SPtr<MeshHeap>& parentHeap, u32 id, u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes)
 	: MeshBase(numVertices, numIndices, subMeshes), mParentHeap(parentHeap), mId(id)
@@ -73,5 +73,4 @@ void TransientMesh::NotifyUsedOnGPUInternal()
 {
 	mParentHeap->NotifyUsedOnGpu(mId);
 }
-} // namespace ct
-} // namespace bs
+}}

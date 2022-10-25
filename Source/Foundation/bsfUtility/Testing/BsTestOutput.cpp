@@ -3,10 +3,9 @@
 #include "Testing/BsTestOutput.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 void ExceptionTestOutput::OutputFail(const String& desc, const String& function, const String& file, long line)
 {
 	BS_EXCEPT(UnitTestException, desc);
 }
-} // namespace bs

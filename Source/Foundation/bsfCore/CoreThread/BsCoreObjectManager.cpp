@@ -7,8 +7,8 @@
 #include "Math/BsMath.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
+using namespace bs;
+
 CoreObjectManager::CoreObjectManager()
 	: mNextAvailableID(1)
 {
@@ -414,4 +414,3 @@ void CoreObjectManager::SyncUpload()
 	syncData.Entries.clear();
 	mCoreSyncData.pop_front();
 }
-} // namespace bs

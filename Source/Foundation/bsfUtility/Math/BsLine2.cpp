@@ -3,8 +3,8 @@
 #include "Math/BsLine2.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 std::pair<bool, float> Line2::Intersects(const Line2& rhs) const
 {
 	Vector2 diff = rhs.GetOrigin() - GetOrigin();
@@ -21,4 +21,3 @@ std::pair<bool, float> Line2::Intersects(const Line2& rhs) const
 	else // Parallel
 		return std::make_pair(true, 0.0f);
 }
-} // namespace bs

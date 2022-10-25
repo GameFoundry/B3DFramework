@@ -6,8 +6,8 @@
 #include "Resources/BsBuiltinResources.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 Cursor::Cursor()
 {
 	for(u32 i = 0; i < (u32)CursorType::Count; i++)
@@ -181,4 +181,3 @@ Cursor& gCursor()
 {
 	return static_cast<Cursor&>(Cursor::Instance());
 }
-} // namespace bs

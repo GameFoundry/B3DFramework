@@ -4,8 +4,8 @@
 #include "GUI/BsGUISkin.h"
 #include "GUI/BsGUIManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIElementContainer::GUIElementContainer(const GUIDimensions& dimensions, const char* style, GUIElementOptions options)
 	: GUIElement(style, dimensions, options)
 {
@@ -52,4 +52,3 @@ bool GUIElementContainer::CommandEventInternal(const GUICommandEvent& ev)
 
 	return GUIElement::CommandEventInternal(ev);
 }
-} // namespace bs

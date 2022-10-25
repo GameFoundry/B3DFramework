@@ -6,9 +6,9 @@
 #include "RenderAPI/BsOcclusionQuery.h"
 #include "Profiling/BsProfilerCPU.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 QueryManager::~QueryManager()
 {
@@ -120,5 +120,4 @@ void QueryManager::ProcessDeletedQueue()
 
 	mDeletedOcclusionQueries.clear();
 }
-} // namespace ct
-} // namespace bs
+}}

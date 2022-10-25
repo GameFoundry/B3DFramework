@@ -5,8 +5,8 @@
 #include "RTTI/BsRTTISchemaRTTI.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* RTTIFieldSchema::GetRttiStatic()
 {
 	return RTTIFieldSchemaRTTI::Instance();
@@ -31,4 +31,3 @@ void RTTIField::CheckIsArray(bool array) const
 		BS_EXCEPT(InternalErrorException, "Invalid field type. Needed a single type but got an array type.");
 	}
 }
-} // namespace bs

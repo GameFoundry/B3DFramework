@@ -14,8 +14,8 @@
 
 using namespace RakNet;
 
-namespace bs
-{
+using namespace bs;
+
 static_assert(NETWORK_BACKEND_FIRST_FREE_ID == ID_USER_PACKET_ENUM, "");
 
 /** Converts a RakNet SystemAddress into the framework's NetworkAddress type. */
@@ -895,4 +895,3 @@ void Network::update(float dt)
 		mTimeAccumulator += dt;
 	}
 }
-} // namespace bs

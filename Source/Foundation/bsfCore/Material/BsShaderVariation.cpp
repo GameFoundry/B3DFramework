@@ -3,8 +3,8 @@
 #include "BsShaderVariation.h"
 #include "Private/RTTI/BsShaderVariationRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 void ShaderDefines::Set(const String& name, float value)
 {
 	mDefines[name] = toString(value);
@@ -192,4 +192,3 @@ RTTITypeBase* ShaderVariation::GetRtti() const
 // trigger an undefined reference linker error. And why doesn't the library instantiate it itself? Don't know, either
 // a Clang issue or maybe even some part of the standard.
 template SmallVector<ShaderVariation::Param, 4>::~SmallVector();
-} // namespace bs

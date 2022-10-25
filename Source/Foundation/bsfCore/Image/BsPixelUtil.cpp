@@ -8,8 +8,8 @@
 #include "Image/BsTexture.h"
 #include <nvtt.h>
 
-namespace bs
-{
+using namespace bs;
+
 /**
  * Performs pixel data resampling using the point filter (nearest neighbor). Does not perform format conversions.
  *
@@ -3208,4 +3208,3 @@ Vector<SPtr<PixelData>> PixelUtil::GenMipmaps(const PixelData& src, const MipMap
 
 	return outputMipBuffers;
 }
-} // namespace bs

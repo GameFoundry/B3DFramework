@@ -3,8 +3,8 @@
 #include "Math/BsRadian.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 Radian::Radian(const Degree& d)
 	: mRad(d.ValueRadians())
 {}
@@ -51,4 +51,3 @@ float Radian::ValueDegrees() const
 {
 	return mRad * Math::RAD2DEG;
 }
-} // namespace bs

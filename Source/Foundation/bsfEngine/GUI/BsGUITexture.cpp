@@ -6,8 +6,8 @@
 #include "Image/BsSpriteTexture.h"
 #include "GUI/BsGUIDimensions.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUITexture::GetGuiTypeName()
 {
 	static String name = "Texture";
@@ -238,4 +238,3 @@ void GUITexture::FillBuffer(
 	Vector2I layoutOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + mImageSpriteOffset + offset;
 	mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 }
-} // namespace bs

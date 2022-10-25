@@ -3,8 +3,8 @@
 #include "GUI/BsGUIDropDownBoxManager.h"
 #include "Scene/BsSceneObject.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIDropDownBoxManager::~GUIDropDownBoxManager()
 {
 	CloseDropDownBox();
@@ -34,4 +34,3 @@ void GUIDropDownBoxManager::CloseDropDownBox()
 		mOnClosedCallback = nullptr;
 	}
 }
-} // namespace bs

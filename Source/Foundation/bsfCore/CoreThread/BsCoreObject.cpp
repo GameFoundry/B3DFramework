@@ -7,8 +7,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 CoreObject::CoreObject(bool initializeOnCoreThread)
 	: mFlags(initializeOnCoreThread ? CGO_INIT_ON_CORE_THREAD : 0)
 	, mCoreDirtyFlags(0)
@@ -158,4 +158,3 @@ void CoreObject::ExecuteReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::f
 
 	func(op);
 }
-} // namespace bs

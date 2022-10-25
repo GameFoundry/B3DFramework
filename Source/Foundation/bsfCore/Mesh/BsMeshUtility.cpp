@@ -6,8 +6,8 @@
 #include "Math/BsVector2.h"
 #include "Math/BsPlane.h"
 
-namespace bs
-{
+using namespace bs;
+
 struct VertexFaces
 {
 	u32* Faces;
@@ -19,7 +19,7 @@ struct VertexConnectivity
 	VertexConnectivity(u8* indices, u32 numVertices, u32 numFaces, u32 indexSize)
 		: VertexFaces(nullptr), mMaxFacesPerVertex(0), mNumVertices(numVertices), mFaces(nullptr)
 	{
-		VertexFaces = bs_newN<bs::VertexFaces>(numVertices);
+		VertexFaces = bs_newN<struct VertexFaces>(numVertices);
 
 		ResizeFaceArray(10);
 
@@ -32,7 +32,7 @@ struct VertexConnectivity
 				memcpy(&vertexIdx, indices + idx * indexSize, indexSize);
 
 				assert(vertexIdx < mNumVertices);
-				bs::VertexFaces& faces = VertexFaces[vertexIdx];
+				struct VertexFaces& faces = VertexFaces[vertexIdx];
 				if(faces.NumFaces >= mMaxFacesPerVertex)
 					ResizeFaceArray(mMaxFacesPerVertex * 2);
 
@@ -926,4 +926,3 @@ void MeshUtility::UnpackNormals(u8* source, Vector4* destination, u32 count, u32
 		ptr += stride;
 	}
 }
-} // namespace bs

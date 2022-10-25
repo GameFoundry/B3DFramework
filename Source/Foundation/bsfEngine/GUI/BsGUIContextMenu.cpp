@@ -4,8 +4,8 @@
 #include "GUI/BsGUIDropDownBoxManager.h"
 #include "GUI/BsGUIManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIContextMenu::~GUIContextMenu()
 {
 	Close();
@@ -38,4 +38,3 @@ void GUIContextMenu::OnMenuClosed()
 {
 	mContextMenuOpen = false;
 }
-} // namespace bs

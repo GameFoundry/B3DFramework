@@ -3,8 +3,8 @@
 #include "BsLookupTable.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 LookupTable::LookupTable(Vector<float> values, float startTime, float endTime, uint32_t sampleSize)
 	: mValues(std::move(values))
 	, mSampleSize(std::max(sampleSize, 1U))
@@ -46,4 +46,3 @@ const float* LookupTable::GetSample(uint32_t idx) const
 	idx = std::min(idx, mNumSamples - 1);
 	return &mValues[idx * mSampleSize];
 }
-} // namespace bs

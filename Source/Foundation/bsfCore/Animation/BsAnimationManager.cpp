@@ -11,8 +11,8 @@
 #include "Mesh/BsMeshData.h"
 #include "Mesh/BsMeshUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 AnimationManager::AnimationManager()
 {
 	mBlendShapeVertexDesc = VertexDataDesc::Create();
@@ -530,6 +530,8 @@ void AnimationManager::UnregisterAnimation(u64 animId)
 	mAnimations.erase(animId);
 }
 
+namespace bs
+{
 AnimationManager& gAnimation()
 {
 	return AnimationManager::Instance();

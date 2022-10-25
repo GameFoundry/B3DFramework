@@ -7,9 +7,9 @@
 #include "Error/BsException.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 void VertexData::SetBuffer(u32 index, SPtr<VertexBuffer> buffer)
 {
@@ -47,5 +47,4 @@ void VertexData::RecalculateMaxIndex()
 	for(auto& bufferData : mVertexBuffers)
 		mMaxBufferIdx = std::max(bufferData.first, mMaxBufferIdx);
 }
-} // namespace ct
-} // namespace bs
+}}

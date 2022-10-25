@@ -6,8 +6,8 @@
 #include "CoreThread/BsCoreThread.h"
 #include "Material/BsShader.h"
 
-namespace bs
-{
+using namespace bs;
+
 RendererMaterialManager::RendererMaterialManager()
 {
 	BuiltinResources& br = BuiltinResources::Instance();
@@ -116,4 +116,3 @@ Mutex& RendererMaterialManager::GetMutex()
 	static Mutex mutex;
 	return mutex;
 }
-} // namespace bs

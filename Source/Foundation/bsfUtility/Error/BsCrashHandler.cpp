@@ -5,17 +5,12 @@
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsPath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String CrashHandler::sCrashReportFolder = "CrashReports";
 const String CrashHandler::sCrashLogName = u8"log.html";
 const String CrashHandler::sFatalErrorMsg =
 	"A fatal error occurred and the program has to terminate!";
-
-CrashHandler& gCrashHandler()
-{
-	return CrashHandler::Instance();
-}
 
 const Path& CrashHandler::GetCrashFolder()
 {
@@ -56,5 +51,12 @@ void CrashHandler::LogErrorAndStackTrace(const String& type, const String& descr
 void CrashHandler::SaveCrashLog() const
 {
 	gDebug().SaveLog(GetCrashFolder() + sCrashLogName, SavedLogType::HTML);
+}
+
+namespace bs
+{
+CrashHandler& gCrashHandler()
+{
+	return CrashHandler::Instance();
 }
 } // namespace bs

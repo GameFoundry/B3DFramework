@@ -3,8 +3,8 @@
 #include "Private/RTTI/BsMaterialRTTI.h"
 #include "Material/BsMaterialParams.h"
 
-namespace bs
-{
+using namespace bs;
+
 void MaterialRTTI::OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
 {
 	Material* material = static_cast<Material*>(obj);
@@ -23,4 +23,3 @@ SPtr<IReflectable> MaterialRTTI::NewRttiObject()
 {
 	return Material::CreateEmpty();
 }
-} // namespace bs

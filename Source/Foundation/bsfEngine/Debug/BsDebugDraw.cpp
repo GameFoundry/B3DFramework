@@ -20,8 +20,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 DebugDraw::DebugDraw()
 {
 	mDrawHelper = bs_new<DrawHelper>();
@@ -140,7 +140,7 @@ void DebugDraw::UpdateInternal()
 	gCoreThread().QueueCommand(std::bind(&ct::DebugDrawRenderer::UpdateData, renderer, proxyData));
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 
 DebugDrawParamsDef gDebugDrawParamsDef;
@@ -212,5 +212,4 @@ void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& 
 		mat->Execute(mParamBuffer, entry.Mesh, entry.SubMesh);
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

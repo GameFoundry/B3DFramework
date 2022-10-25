@@ -6,8 +6,8 @@
 #include "Math/BsVector4.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs
-{
+using namespace bs;
+
 const float Math::LOG2 = std::log(2.0f);
 
 Radian Math::Acos(float val)
@@ -319,4 +319,3 @@ Vector3 Math::CalculateTriTangent(const Vector3& position1, const Vector3& posit
 
 	return tangent;
 }
-} // namespace bs

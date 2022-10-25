@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIOptions.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIOption GUIOption::Position(i32 x, i32 y)
 {
 	GUIOption option;
@@ -56,4 +56,3 @@ GUIOption GUIOption::FlexibleHeight(u32 min, u32 max)
 
 	return option;
 }
-} // namespace bs

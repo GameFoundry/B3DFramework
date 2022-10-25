@@ -9,8 +9,8 @@
 #include "Material/BsGpuParamsSet.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
+using namespace bs;
+
 SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation, bool allowBatching)
 	: mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 {
@@ -120,4 +120,3 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 
 	ct::gRendererUtility().Draw(mesh, subMesh);
 }
-} // namespace bs

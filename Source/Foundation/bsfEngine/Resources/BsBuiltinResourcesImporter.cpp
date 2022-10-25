@@ -17,8 +17,8 @@
 #include "Importer/BsImporter.h"
 #include "Importer/BsTextureImportOptions.h"
 
-namespace bs
-{
+using namespace bs;
+
 static constexpr const char* TIMESTAMP_NAME = u8"Timestamp.asset";
 static constexpr const char* MANIFEST_NAME = u8"ResourceManifest.asset";
 static constexpr const char* DEPENDENCIES_JSON_NAME = u8"ShaderDependencies.json";
@@ -31,7 +31,6 @@ static Path sManifestPath;
 static SPtr<ResourceManifest> sManifest;
 
 void processAssets(bool, bool, time_t);
-} // namespace bs
 
 int main(int argc, char* argv[])
 {
@@ -108,8 +107,8 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-namespace bs
-{
+using namespace bs;
+
 void generateTextures()
 {
 	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
@@ -767,4 +766,3 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		fe.Encode(splashPixelData.get());
 	}
 }
-} // namespace bs

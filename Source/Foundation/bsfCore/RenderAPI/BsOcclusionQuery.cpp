@@ -3,9 +3,9 @@
 #include "RenderAPI/BsOcclusionQuery.h"
 #include "Managers/BsQueryManager.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 OcclusionQuery::OcclusionQuery(bool binary)
 	: mActive(false), mBinary(binary)
@@ -15,5 +15,4 @@ SPtr<OcclusionQuery> OcclusionQuery::Create(bool binary, u32 deviceIdx)
 {
 	return QueryManager::Instance().CreateOcclusionQuery(binary, deviceIdx);
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -14,8 +14,8 @@
 #include "FileSystem/BsDataStream.h"
 #include "Utility/BsBufferedBitstream.h"
 
-namespace bs
-{
+using namespace bs;
+
 constexpr u32 BinarySerializer::REPORT_AFTER_BYTES;
 constexpr u32 BinarySerializer::WRITE_BUFFER_SIZE;
 constexpr u32 BinarySerializer::FLUSH_AFTER_BYTES;
@@ -1228,6 +1228,5 @@ u32 BinarySerializer::RegisterObjectPtr(SPtr<IReflectable> object)
 
 	return iterFind->second;
 }
-} // namespace bs
 
 #undef COPY_TO_BUFFER

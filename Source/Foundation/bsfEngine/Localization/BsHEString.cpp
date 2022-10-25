@@ -3,8 +3,8 @@
 #include "BsPrerequisites.h"
 #include "Localization/BsHEString.h"
 
-namespace bs
-{
+using namespace bs;
+
 const u32 HEString::ENGINE_STRING_TABLE_ID = 30000; // Arbitrary
 
 HEString::HEString(const String& identifier)
@@ -26,4 +26,3 @@ HEString::operator HString() const
 {
 	return mInternal;
 }
-} // namespace bs

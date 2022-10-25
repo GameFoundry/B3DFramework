@@ -3,10 +3,9 @@
 #include "Physics/BsCharacterController.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<CharacterController> CharacterController::Create(PhysicsScene& scene, const CHAR_CONTROLLER_DESC& desc)
 {
 	return scene.CreateCharacterController(desc);
 }
-} // namespace bs

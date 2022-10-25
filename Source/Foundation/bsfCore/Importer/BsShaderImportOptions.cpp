@@ -3,8 +3,8 @@
 #include "Importer/BsShaderImportOptions.h"
 #include "Private/RTTI/BsShaderImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/
@@ -17,4 +17,3 @@ RTTITypeBase* ShaderImportOptions::GetRtti() const
 {
 	return ShaderImportOptions::GetRttiStatic();
 }
-} // namespace bs

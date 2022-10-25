@@ -14,8 +14,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 constexpr const char* GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE;
 constexpr const char* GUIDropDownContent::ENTRY_STYLE_TYPE;
 constexpr const char* GUIDropDownContent::ENTRY_EXP_STYLE_TYPE;
@@ -408,4 +408,3 @@ const String& GUIDropDownContent::GetGuiTypeName()
 	static String typeName = "GUIDropDownContent";
 	return typeName;
 }
-} // namespace bs

@@ -11,8 +11,8 @@
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <bool Core>
 TPass<Core>::TPass()
 {
@@ -186,7 +186,7 @@ RTTITypeBase* Pass::GetRtti() const
 	return Pass::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Pass::Pass(const PASS_DESC& desc)
 	: TPass(desc)
@@ -215,5 +215,4 @@ SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 
 	return newPassPtr;
 }
-} // namespace ct
-} // namespace bs
+}}

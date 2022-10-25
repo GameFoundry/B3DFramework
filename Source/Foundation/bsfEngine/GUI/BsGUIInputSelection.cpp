@@ -6,8 +6,8 @@
 #include "GUI/BsGUIElement.h"
 #include "GUI/BsGUIManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIInputSelection::~GUIInputSelection()
 {
 	for(auto& sprite : mSprites)
@@ -255,4 +255,3 @@ bool GUIInputSelection::IsSelectionEmpty() const
 {
 	return mSelectionStart == mSelectionEnd;
 }
-} // namespace bs

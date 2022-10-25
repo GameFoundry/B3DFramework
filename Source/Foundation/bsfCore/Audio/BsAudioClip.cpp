@@ -5,8 +5,8 @@
 #include "Audio/BsAudio.h"
 #include "Private/RTTI/BsAudioClipRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 AudioClip::AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 	: Resource(false), mDesc(desc), mNumSamples(numSamples), mStreamSize(streamSize), mStreamData(samples)
 {
@@ -56,4 +56,3 @@ RTTITypeBase* AudioClip::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

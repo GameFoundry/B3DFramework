@@ -4,8 +4,8 @@
 #include "GUI/BsGUICommandEvent.h"
 #include "GUI/BsGUIMouseEvent.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIDropDownHitBox::GetGuiTypeName()
 {
 	static String name = "DropDownHitBox";
@@ -129,4 +129,3 @@ bool GUIDropDownHitBox::IsInBoundsInternal(const Vector2I position) const
 
 	return false;
 }
-}; // namespace bs

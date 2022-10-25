@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Platform/BsDropTarget.h"
 
-namespace bs
-{
+using namespace bs;
+
 void DropTarget::ClearInternal()
 {
 	mFileList.clear();
@@ -27,4 +27,3 @@ SPtr<DropTarget> DropTarget::Create(const RenderWindow* window, const Rect2I& ar
 	DropTarget* target = new(bs_alloc<DropTarget>()) DropTarget(window, area);
 	return bs_shared_ptr(target);
 }
-} // namespace bs

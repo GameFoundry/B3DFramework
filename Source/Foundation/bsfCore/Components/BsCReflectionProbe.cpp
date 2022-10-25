@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsCReflectionProbeRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CReflectionProbe::CReflectionProbe()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -67,4 +67,3 @@ RTTITypeBase* CReflectionProbe::GetRtti() const
 {
 	return CReflectionProbe::GetRttiStatic();
 }
-} // namespace bs

@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsParticleDistribution.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <class T>
 void addToVector(const T& val, Vector<float>& output)
 {
@@ -156,4 +156,3 @@ LookupTable TDistribution<T>::ToLookupTable(u32 numSamples, bool ignoreRange) co
 template struct BS_CORE_EXPORT TDistribution<float>;
 template struct BS_CORE_EXPORT TDistribution<Vector3>;
 template struct BS_CORE_EXPORT TDistribution<Vector2>;
-} // namespace bs

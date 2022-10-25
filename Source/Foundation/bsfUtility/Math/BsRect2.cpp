@@ -5,8 +5,8 @@
 #include "Math/BsMatrix4.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Rect2 Rect2::EMPTY;
 
 bool Rect2::Contains(const Vector2& point) const
@@ -119,4 +119,3 @@ Vector2 Rect2::GetHalfSize() const
 {
 	return Vector2(Width, Height) * 0.5f;
 }
-} // namespace bs

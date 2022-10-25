@@ -11,8 +11,8 @@
 #include "Mesh/BsMeshUtility.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 const float GUICanvas::LINE_SMOOTH_BORDER_WIDTH = 3.0f;
 
 const String& GUICanvas::GetGuiTypeName()
@@ -598,4 +598,3 @@ const GUICanvas::CanvasElement& GUICanvas::FindElement(u32 renderElementIdx) con
 
 	BS_EXCEPT(InvalidParametersException, "Cannot find requested GUI render element.");
 }
-} // namespace bs

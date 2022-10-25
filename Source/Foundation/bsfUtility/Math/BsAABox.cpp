@@ -6,8 +6,8 @@
 #include "Math/BsSphere.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const AABox AABox::BOX_EMPTY = AABox(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
 const AABox AABox::UNIT_BOX = AABox(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
 const AABox AABox::INF_BOX = AABox(
@@ -507,4 +507,3 @@ bool AABox::operator!=(const AABox& rhs) const
 {
 	return !(*this == rhs);
 }
-} // namespace bs

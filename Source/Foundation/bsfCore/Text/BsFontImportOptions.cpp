@@ -3,8 +3,8 @@
 #include "Text/BsFontImportOptions.h"
 #include "Private/RTTI/BsFontImportOptionsRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<FontImportOptions> FontImportOptions::Create()
 {
 	return bs_shared_ptr_new<FontImportOptions>();
@@ -22,4 +22,3 @@ RTTITypeBase* FontImportOptions::GetRtti() const
 {
 	return FontImportOptions::GetRttiStatic();
 }
-} // namespace bs

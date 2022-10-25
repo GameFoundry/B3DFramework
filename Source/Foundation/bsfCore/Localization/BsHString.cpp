@@ -4,8 +4,8 @@
 #include "Localization/BsHString.h"
 #include "Localization/BsStringTableManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 HString::HString()
 {
 	mStringData = StringTableManager::Instance().GetTable(0)->GetStringData(u8"");
@@ -143,4 +143,3 @@ const HString& HString::Dummy()
 
 	return dummyVal;
 }
-} // namespace bs

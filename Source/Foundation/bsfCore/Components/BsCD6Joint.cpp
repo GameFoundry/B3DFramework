@@ -5,8 +5,8 @@
 #include "Private/RTTI/BsCD6JointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CD6Joint::CD6Joint()
 	: CJoint(mDesc)
 {
@@ -185,4 +185,3 @@ RTTITypeBase* CD6Joint::GetRtti() const
 {
 	return CD6Joint::GetRttiStatic();
 }
-} // namespace bs

@@ -15,8 +15,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 void RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams)
 {
 	gCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetGpuParams, ct::RenderAPI::InstancePtr(), gpuParams->GetCore(), nullptr));
@@ -122,7 +122,7 @@ void RenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 	ct::RenderAPI::Instance().ConvertProjectionMatrix(matrix, dest);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 RenderAPI::RenderAPI()
 	: mCurrentCapabilities(nullptr), mNumDevices(0)
@@ -216,5 +216,4 @@ u32 RenderAPI::VertexCountToPrimCount(DrawOperationType type, u32 elementCount)
 
 	return primCount;
 }
-} // namespace ct
-} // namespace bs
+}}

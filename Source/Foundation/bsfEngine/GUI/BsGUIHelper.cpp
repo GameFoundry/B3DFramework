@@ -7,8 +7,8 @@
 #include "Image/BsTexture.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector2I GUIHelper::CalcOptimalContentsSize(const Vector2I& contentSize, const GUIElementStyle& style, const GUIDimensions& dimensions)
 {
 	u32 contentWidth = style.Margins.Left + style.Margins.Right + style.ContentOffset.Left + style.ContentOffset.Right;
@@ -75,4 +75,3 @@ Vector2I GUIHelper::CalcTextSize(const String& text, const HFont& font, u32 font
 
 	return size;
 }
-} // namespace bs

@@ -5,8 +5,8 @@
 #include "Math/BsVector2.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 const int SPACE_CHAR = 32;
 const int TAB_CHAR = 9;
 
@@ -678,4 +678,3 @@ u32 TextDataBase::GetHeight() const
 
 	return height;
 }
-} // namespace bs

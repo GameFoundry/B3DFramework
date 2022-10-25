@@ -9,8 +9,8 @@
 #include "Animation/BsAnimationManager.h"
 #include "Image/BsPixelUtil.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Helper method used for writing particle data into the @p pixels buffer. */
 template <class T, class PR>
 void iterateOverPixels(PixelData& pixels, u32 count, u32 stride, PR predicate)
@@ -518,4 +518,3 @@ void ParticleManager::UnregisterParticleSystem(ParticleSystem* system)
 {
 	mSystems.erase(system);
 }
-} // namespace bs

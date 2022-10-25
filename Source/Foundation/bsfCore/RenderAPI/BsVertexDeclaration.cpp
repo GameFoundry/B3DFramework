@@ -5,8 +5,8 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
-{
+using namespace bs;
+
 VertexElement::VertexElement(u16 source, u32 offset, VertexElementType theType, VertexElementSemantic semantic, u16 index, u32 instanceStepRate)
 	: mSource(source), mOffset(offset), mType(theType), mSemantic(semantic), mIndex(index), mInstanceStepRate(instanceStepRate)
 {
@@ -278,36 +278,39 @@ RTTITypeBase* VertexDeclaration::GetRtti() const
 	return GetRttiStatic();
 }
 
-String toString(const VertexElementSemantic& val)
+namespace bs
 {
-	switch(val)
+	String toString(const VertexElementSemantic& val)
 	{
-	case VES_POSITION:
-		return "POSITION";
-	case VES_BLEND_WEIGHTS:
-		return "BLEND_WEIGHTS";
-	case VES_BLEND_INDICES:
-		return "BLEND_INDICES";
-	case VES_NORMAL:
-		return "NORMAL";
-	case VES_COLOR:
-		return "COLOR";
-	case VES_TEXCOORD:
-		return "TEXCOORD";
-	case VES_BITANGENT:
-		return "BITANGENT";
-	case VES_TANGENT:
-		return "TANGENT";
-	case VES_POSITIONT:
-		return "POSITIONT";
-	case VES_PSIZE:
-		return "PSIZE";
-	}
+		switch(val)
+		{
+		case VES_POSITION:
+			return "POSITION";
+		case VES_BLEND_WEIGHTS:
+			return "BLEND_WEIGHTS";
+		case VES_BLEND_INDICES:
+			return "BLEND_INDICES";
+		case VES_NORMAL:
+			return "NORMAL";
+		case VES_COLOR:
+			return "COLOR";
+		case VES_TEXCOORD:
+			return "TEXCOORD";
+		case VES_BITANGENT:
+			return "BITANGENT";
+		case VES_TANGENT:
+			return "TANGENT";
+		case VES_POSITIONT:
+			return "POSITIONT";
+		case VES_PSIZE:
+			return "PSIZE";
+		}
 
-	return "";
+		return "";
+	}
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 u32 VertexDeclaration::NextFreeId = 0;
 
@@ -376,5 +379,4 @@ Vector<VertexElement> VertexDeclaration::GetMissingElements(const SPtr<VertexDec
 
 	return missingElements;
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -6,8 +6,8 @@
 
 using namespace std::placeholders;
 
-namespace bs
-{
+using namespace bs;
+
 SPtr<RenderWindow> RenderWindowManager::Create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
 {
 	u32 id = ct::RenderWindowManager::Instance().mNextWindowId.fetch_add(1, std::memory_order_relaxed);
@@ -198,7 +198,7 @@ RenderWindow* RenderWindowManager::GetNonCore(const ct::RenderWindow* window) co
 	return nullptr;
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 
 RenderWindowManager::RenderWindowManager()
@@ -251,5 +251,4 @@ void RenderWindowManager::NotifySyncDataDirty(RenderWindow* window)
 
 	mDirtyProperties.insert(window);
 }
-} // namespace ct
-} // namespace bs
+}}

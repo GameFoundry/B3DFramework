@@ -3,8 +3,8 @@
 #include "Image/BsColor.h"
 #include "Math/BsMath.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Color Color::ZERO = Color(0.0f, 0.0f, 0.0f, 0.0f);
 const Color Color::Black = Color(0.0f, 0.0f, 0.0f);
 const Color Color::White = Color(1.0f, 1.0f, 1.0f);
@@ -287,18 +287,18 @@ float SRGBToLinear(float x)
 Color Color::GetGamma() const
 {
 	return Color(
-		bs::linearToSRGB(R),
-		bs::linearToSRGB(G),
-		bs::linearToSRGB(B),
+		linearToSRGB(R),
+		linearToSRGB(G),
+		linearToSRGB(B),
 		A);
 }
 
 Color Color::GetLinear() const
 {
 	return Color(
-		bs::SRGBToLinear(R),
-		bs::SRGBToLinear(G),
-		bs::SRGBToLinear(B),
+		SRGBToLinear(R),
+		SRGBToLinear(G),
+		SRGBToLinear(B),
 		A);
 }
 
@@ -354,4 +354,3 @@ Color Color::Lerp(float t, const Color& a, const Color& b)
 	t = Math::Clamp01(t);
 	return Color(a.R + (b.R - a.R) * t, a.G + (b.G - a.G) * t, a.B + (b.B - a.B) * t, a.A + (b.A - a.A) * t);
 }
-} // namespace bs

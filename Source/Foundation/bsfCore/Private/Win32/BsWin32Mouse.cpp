@@ -5,8 +5,8 @@
 #include "Private/Win32/BsWin32Input.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Contains private data for the Win32 Mouse implementation. */
 struct Mouse::Pimpl
 {
@@ -175,4 +175,3 @@ void Mouse::ChangeCaptureContext(u64 windowHandle)
 			m->HWnd = (HWND)-1;
 	}
 }
-} // namespace bs

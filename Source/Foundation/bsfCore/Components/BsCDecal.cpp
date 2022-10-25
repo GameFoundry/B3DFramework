@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsCDecalRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CDecal::CDecal()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -50,4 +50,3 @@ RTTITypeBase* CDecal::GetRtti() const
 {
 	return CDecal::GetRttiStatic();
 }
-} // namespace bs

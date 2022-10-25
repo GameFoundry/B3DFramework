@@ -15,8 +15,8 @@
 #include "Scene/BsSceneManager.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 template <class T>
 bool isMeshValid(const T& mesh)
 {
@@ -472,7 +472,7 @@ RTTITypeBase* Renderable::GetRtti() const
 	return Renderable::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Renderable::Renderable()
 	: mRendererId(0), mAnimationId((u64)-1), mMorphShapeVersion(0)
@@ -749,5 +749,4 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 			gRenderer()->NotifyRenderableUpdated(this);
 	}
 }
-} // namespace ct
-} // namespace bs
+}}

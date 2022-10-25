@@ -5,8 +5,8 @@
 #include "Serialization/BsFileSerializer.h"
 #include "Error/BsException.h"
 
-namespace bs
-{
+using namespace bs;
+
 ResourceManifest::ResourceManifest(const ConstructPrivately& dummy)
 {
 }
@@ -182,4 +182,3 @@ RTTITypeBase* ResourceManifest::GetRtti() const
 {
 	return ResourceManifest::GetRttiStatic();
 }
-} // namespace bs

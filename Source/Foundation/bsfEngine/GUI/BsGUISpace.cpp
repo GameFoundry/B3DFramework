@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUISpace.h"
 
-namespace bs
-{
+using namespace bs;
+
 GUIFixedSpace::~GUIFixedSpace()
 {
 	if(mParentElement != nullptr)
@@ -55,4 +55,3 @@ void GUIFlexibleSpace::Destroy(GUIFlexibleSpace* space)
 {
 	bs_delete(space);
 }
-} // namespace bs

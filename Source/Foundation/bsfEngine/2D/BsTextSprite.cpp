@@ -6,8 +6,8 @@
 #include "2D/BsSpriteManager.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 TextSprite::~TextSprite()
 {
 	ClearMesh();
@@ -218,4 +218,3 @@ void TextSprite::ClearMesh()
 
 	UpdateBounds();
 }
-} // namespace bs

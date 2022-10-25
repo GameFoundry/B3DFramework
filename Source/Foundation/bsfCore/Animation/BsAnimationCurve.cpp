@@ -8,8 +8,8 @@
 #include "Math/BsMath.h"
 #include "Animation/BsAnimationUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 namespace impl
 {
 /**
@@ -385,9 +385,9 @@ void calculateCoeffs(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float tim
 	// Handle the case where both keys are identical, or close enough to cause precision issues
 	if(length < 0.000001f)
 	{
-		coeffs[0] = impl::getZero<T>();
-		coeffs[1] = impl::getZero<T>();
-		coeffs[2] = impl::getZero<T>();
+		coeffs[0] = ::impl::getZero<T>();
+		coeffs[1] = ::impl::getZero<T>();
+		coeffs[2] = ::impl::getZero<T>();
 		coeffs[3] = lhs.Value;
 	}
 	else
@@ -408,7 +408,7 @@ T evaluateAndUpdateCache(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float
 {
 	calculateCoeffs(lhs, rhs, time, coeffs);
 
-	return impl::evaluateCubic(time, lhs.Time, rhs.Time, coeffs);
+	return ::impl::evaluateCubic(time, lhs.Time, rhs.Time, coeffs);
 }
 
 template <>
@@ -433,8 +433,8 @@ T evaluate(const TKeyframe<T>& lhs, const TKeyframe<T>& rhs, float time)
 	if(Math::ApproxEquals(length, 0.0f))
 	{
 		t = 0.0f;
-		leftTangent = impl::getZero<T>();
-		rightTangent = impl::getZero<T>();
+		leftTangent = ::impl::getZero<T>();
+		rightTangent = ::impl::getZero<T>();
 	}
 	else
 	{
@@ -641,7 +641,7 @@ template <class T>
 T TAnimationCurve<T>::Evaluate(float time, const TCurveCache<T>& cache, bool loop) const
 {
 	if(mKeyframes.empty())
-		return impl::getZero<T>();
+		return ::impl::getZero<T>();
 
 	if(Math::ApproxEquals(mLength, 0.0f))
 		time = 0.0f;
@@ -657,7 +657,7 @@ T TAnimationCurve<T>::Evaluate(float time, const TCurveCache<T>& cache, bool loo
 
 	// If time is within cache, evaluate it directly
 	if(time >= cache.cachedCurveStart && time < cache.cachedCurveEnd)
-		return impl::evaluateCubic(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
+		return ::impl::evaluateCubic(time, cache.cachedCurveStart, cache.cachedCurveEnd, cache.cachedCubicCoefficients);
 
 	// Clamp to start, cache constant of the first key and return
 	if(time < mStart)
@@ -665,9 +665,9 @@ T TAnimationCurve<T>::Evaluate(float time, const TCurveCache<T>& cache, bool loo
 		cache.cachedCurveStart = -std::numeric_limits<float>::infinity();
 		cache.cachedCurveEnd = mStart;
 		cache.cachedKey = 0;
-		cache.cachedCubicCoefficients[0] = impl::getZero<T>();
-		cache.cachedCubicCoefficients[1] = impl::getZero<T>();
-		cache.cachedCubicCoefficients[2] = impl::getZero<T>();
+		cache.cachedCubicCoefficients[0] = ::impl::getZero<T>();
+		cache.cachedCubicCoefficients[1] = ::impl::getZero<T>();
+		cache.cachedCubicCoefficients[2] = ::impl::getZero<T>();
 		cache.cachedCubicCoefficients[3] = mKeyframes[0].Value;
 
 		return mKeyframes[0].Value;
@@ -680,9 +680,9 @@ T TAnimationCurve<T>::Evaluate(float time, const TCurveCache<T>& cache, bool loo
 		cache.cachedCurveStart = mEnd;
 		cache.cachedCurveEnd = std::numeric_limits<float>::infinity();
 		cache.cachedKey = lastKey;
-		cache.cachedCubicCoefficients[0] = impl::getZero<T>();
-		cache.cachedCubicCoefficients[1] = impl::getZero<T>();
-		cache.cachedCubicCoefficients[2] = impl::getZero<T>();
+		cache.cachedCubicCoefficients[0] = ::impl::getZero<T>();
+		cache.cachedCubicCoefficients[1] = ::impl::getZero<T>();
+		cache.cachedCubicCoefficients[2] = ::impl::getZero<T>();
 		cache.cachedCubicCoefficients[3] = mKeyframes[lastKey].Value;
 
 		return mKeyframes[lastKey].Value;
@@ -701,14 +701,14 @@ T TAnimationCurve<T>::Evaluate(float time, const TCurveCache<T>& cache, bool loo
 	cache.cachedCurveStart = leftKey.Time;
 	cache.cachedCurveEnd = rightKey.Time;
 
-	return impl::evaluateAndUpdateCache(leftKey, rightKey, time, cache.cachedCubicCoefficients);
+	return ::impl::evaluateAndUpdateCache(leftKey, rightKey, time, cache.cachedCubicCoefficients);
 }
 
 template <class T>
 T TAnimationCurve<T>::Evaluate(float time, bool loop) const
 {
 	if(mKeyframes.empty())
-		return impl::getZero<T>();
+		return ::impl::getZero<T>();
 
 	AnimationUtility::WrapTime(time, mStart, mEnd, loop);
 
@@ -724,7 +724,7 @@ T TAnimationCurve<T>::Evaluate(float time, bool loop) const
 	if(leftKeyIdx == rightKeyIdx)
 		return leftKey.Value;
 
-	return impl::evaluate(leftKey, rightKey, time);
+	return ::impl::evaluate(leftKey, rightKey, time);
 }
 
 template <class T>
@@ -732,7 +732,7 @@ T TAnimationCurve<T>::EvaluateIntegrated(float time, const TCurveIntegrationCach
 {
 	const auto numKeyframes = (u32)mKeyframes.size();
 	if(numKeyframes == 0)
-		return impl::getZero<T>();
+		return ::impl::getZero<T>();
 
 	if(time < mStart)
 		time = mStart;
@@ -757,7 +757,7 @@ T TAnimationCurve<T>::EvaluateIntegrated(float time, const TCurveIntegrationCach
 	[4] = integrationCache.coeffs[leftKeyIdx];
 
 	const float t = time - lhs.Time;
-	return integrationCache.segmentSums[leftKeyIdx] + (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+	return integrationCache.segmentSums[leftKeyIdx] + (T)(::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
 }
 
 template <class T>
@@ -765,7 +765,7 @@ T TAnimationCurve<T>::EvaluateIntegratedDouble(float time, const TCurveIntegrati
 {
 	const auto numKeyframes = (u32)mKeyframes.size();
 	if(numKeyframes == 0)
-		return impl::getZero<T>();
+		return ::impl::getZero<T>();
 
 	if(time < mStart)
 		time = mStart;
@@ -794,7 +794,7 @@ T TAnimationCurve<T>::EvaluateIntegratedDouble(float time, const TCurveIntegrati
 
 	T(&coeffs)
 	[4] = integrationCache.coeffs[leftKeyIdx];
-	return sum + (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
+	return sum + (T)(::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
 }
 
 template <class T>
@@ -913,7 +913,7 @@ u32 TAnimationCurve<T>::FindKey(float time)
 template <class T>
 TKeyframe<T> TAnimationCurve<T>::EvaluateKey(const KeyFrame& lhs, const KeyFrame& rhs, float time) const
 {
-	return impl::evaluateKey(lhs, rhs, time);
+	return ::impl::evaluateKey(lhs, rhs, time);
 }
 
 template <class T>
@@ -1021,7 +1021,7 @@ void TAnimationCurve<T>::MakeAdditive()
 	const auto numKeys = (u32)mKeyframes.size();
 
 	for(u32 i = 1; i < numKeys; i++)
-		mKeyframes[i].Value = impl::getDiff(mKeyframes[i].Value, refKey.Value);
+		mKeyframes[i].Value = ::impl::getDiff(mKeyframes[i].Value, refKey.Value);
 }
 
 template <class T>
@@ -1041,10 +1041,10 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRange() const
 {
 	const auto numKeys = (u32)mKeyframes.size();
 	if(numKeys == 0)
-		return std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+		return std::make_pair(::impl::getZero<T>(), ::impl::getZero<T>());
 
 	std::pair<T, T> output = { std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity() };
-	impl::getMinMax(output, mKeyframes[0].Value);
+	::impl::getMinMax(output, mKeyframes[0].Value);
 
 	for(u32 i = 1; i < numKeys; i++)
 	{
@@ -1052,11 +1052,11 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRange() const
 		const KeyFrame& rhs = mKeyframes[i];
 
 		T coeffs[4];
-		impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
-		impl::calcMinMax(output, lhs.Time, rhs.Time, coeffs);
+		::impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
+		::impl::calcMinMax(output, lhs.Time, rhs.Time, coeffs);
 
-		T endVal = impl::evaluateCubic(rhs.Time, lhs.Time, 0.0f, coeffs);
-		impl::getMinMax(output, endVal);
+		T endVal = ::impl::evaluateCubic(rhs.Time, lhs.Time, 0.0f, coeffs);
+		::impl::getMinMax(output, endVal);
 	}
 
 	return output;
@@ -1065,7 +1065,7 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRange() const
 template <class T>
 std::pair<T, T> TAnimationCurve<T>::CalculateRangeIntegrated(const TCurveIntegrationCache<T>& cache) const
 {
-	std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+	std::pair<T, T> output = std::make_pair(::impl::getZero<T>(), ::impl::getZero<T>());
 
 	const auto numKeys = (u32)mKeyframes.size();
 	if(numKeys == 0)
@@ -1081,11 +1081,11 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRangeIntegrated(const TCurveIntegra
 
 		T(&coeffs)
 		[4] = cache.coeffs[i - 1];
-		impl::calcMinMaxIntegrated(output, lhs.Time, rhs.Time, cache.segmentSums[i - 1], coeffs);
+		::impl::calcMinMaxIntegrated(output, lhs.Time, rhs.Time, cache.segmentSums[i - 1], coeffs);
 
 		float t = rhs.Time - lhs.Time;
-		T endVal = (T)(cache.segmentSums[i - 1] + impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
-		impl::getMinMax(output, endVal);
+		T endVal = (T)(cache.segmentSums[i - 1] + ::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+		::impl::getMinMax(output, endVal);
 	}
 
 	return output;
@@ -1094,7 +1094,7 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRangeIntegrated(const TCurveIntegra
 template <class T>
 std::pair<T, T> TAnimationCurve<T>::CalculateRangeIntegratedDouble(const TCurveIntegrationCache<T>& cache) const
 {
-	std::pair<T, T> output = std::make_pair(impl::getZero<T>(), impl::getZero<T>());
+	std::pair<T, T> output = std::make_pair(::impl::getZero<T>(), ::impl::getZero<T>());
 
 	const auto numKeys = (u32)mKeyframes.size();
 	if(numKeys == 0)
@@ -1110,11 +1110,11 @@ std::pair<T, T> TAnimationCurve<T>::CalculateRangeIntegratedDouble(const TCurveI
 
 		T(&coeffs)
 		[4] = cache.coeffs[i - 1];
-		impl::calcMinMaxIntegratedDouble(output, lhs.Time, rhs.Time, cache.doubleSegmentSums[i - 1], cache.segmentSums[i - 1], coeffs);
+		::impl::calcMinMaxIntegratedDouble(output, lhs.Time, rhs.Time, cache.doubleSegmentSums[i - 1], cache.segmentSums[i - 1], coeffs);
 
 		float t = rhs.Time - lhs.Time;
-		T endVal = (T)(cache.doubleSegmentSums[i - 1] + cache.segmentSums[i - 1] * t + impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
-		impl::getMinMax(output, endVal);
+		T endVal = (T)(cache.doubleSegmentSums[i - 1] + cache.segmentSums[i - 1] * t + ::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t);
+		::impl::getMinMax(output, endVal);
 	}
 
 	return output;
@@ -1130,7 +1130,7 @@ void TAnimationCurve<T>::BuildIntegrationCache(const TCurveIntegrationCache<T>& 
 		return;
 
 	cache.Init(numKeyframes);
-	cache.segmentSums[0] = impl::getZero<T>();
+	cache.segmentSums[0] = ::impl::getZero<T>();
 
 	for(u32 i = 1; i < numKeyframes; i++)
 	{
@@ -1139,13 +1139,13 @@ void TAnimationCurve<T>::BuildIntegrationCache(const TCurveIntegrationCache<T>& 
 
 		T(&coeffs)
 		[4] = cache.coeffs[i - 1];
-		impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
-		impl::integrate(coeffs);
+		::impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
+		::impl::integrate(coeffs);
 
 		// Evaluate value at the end of the segment and add to the cache (this value is the total area under
 		// the segment)
 		const float t = rhs.Time - lhs.Time;
-		const T value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+		const T value = (T)(::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
 		cache.segmentSums[i] = cache.segmentSums[i - 1] + value;
 	}
 }
@@ -1160,8 +1160,8 @@ void TAnimationCurve<T>::BuildDoubleIntegrationCache(const TCurveIntegrationCach
 		return;
 
 	cache.InitDouble(numKeyframes);
-	cache.segmentSums[0] = impl::getZero<T>();
-	cache.doubleSegmentSums[0] = impl::getZero<T>();
+	cache.segmentSums[0] = ::impl::getZero<T>();
+	cache.doubleSegmentSums[0] = ::impl::getZero<T>();
 
 	for(u32 i = 1; i < numKeyframes; i++)
 	{
@@ -1170,13 +1170,13 @@ void TAnimationCurve<T>::BuildDoubleIntegrationCache(const TCurveIntegrationCach
 
 		T(&coeffs)
 		[4] = cache.coeffs[i - 1];
-		impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
-		impl::integrate(coeffs);
+		::impl::calculateCoeffs(lhs, rhs, lhs.Time, coeffs);
+		::impl::integrate(coeffs);
 
 		// Evaluate value at the end of the segment and add to the cache (this value is the total area under
 		// the segment)
 		const float t = rhs.Time - lhs.Time;
-		T value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
+		T value = (T)(::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t);
 		cache.segmentSums[i] = cache.segmentSums[i - 1] + value;
 
 		// Double integrate the already integrated coeffs
@@ -1185,7 +1185,7 @@ void TAnimationCurve<T>::BuildDoubleIntegrationCache(const TCurveIntegrationCach
 		coeffs[2] = (T)(coeffs[2] / 3.0f);
 		coeffs[3] = (T)(coeffs[3] / 2.0f);
 
-		value = (T)(impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t + cache.segmentSums[i - 1] * t);
+		value = (T)(::impl::evaluateCubic(t, 0.0f, 0.0f, coeffs) * t * t + cache.segmentSums[i - 1] * t);
 		cache.doubleSegmentSums[i] = cache.doubleSegmentSums[i - 1] + value;
 	}
 }
@@ -1204,4 +1204,3 @@ template class TAnimationCurve<Vector2>;
 template class TAnimationCurve<Quaternion>;
 template class TAnimationCurve<float>;
 template class TAnimationCurve<i32>;
-} // namespace bs

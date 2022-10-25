@@ -7,8 +7,8 @@
 #include "Private/RTTI/BsCMeshColliderRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CMeshCollider::CMeshCollider()
 {
 	SetName("MeshCollider");
@@ -76,4 +76,3 @@ RTTITypeBase* CMeshCollider::GetRtti() const
 {
 	return CMeshCollider::GetRttiStatic();
 }
-} // namespace bs

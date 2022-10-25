@@ -25,8 +25,8 @@
 #include "BsEngineConfig.h"
 #include "GUI/BsProfilerOverlay.h"
 
-namespace bs
-{
+using namespace bs;
+
 Application::Application(const START_UP_DESC& desc)
 	: CoreApplication(desc)
 {}
@@ -173,6 +173,8 @@ SPtr<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
 	return bs_shared_ptr_new<EngineShaderIncludeHandler>();
 }
 
+namespace bs
+{
 Application& gApplication()
 {
 	return static_cast<Application&>(Application::Instance());

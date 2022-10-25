@@ -5,8 +5,8 @@
 #include "Private/RTTI/BsCHingeJointRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CHingeJoint::CHingeJoint()
 	: CJoint(mDesc)
 {
@@ -105,4 +105,3 @@ RTTITypeBase* CHingeJoint::GetRtti() const
 {
 	return CHingeJoint::GetRttiStatic();
 }
-} // namespace bs

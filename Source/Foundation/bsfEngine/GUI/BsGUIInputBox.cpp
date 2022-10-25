@@ -18,8 +18,8 @@
 #include "Platform/BsPlatform.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 VirtualButton GUIInputBox::mCopyVB = VirtualButton("Copy");
 VirtualButton GUIInputBox::mPasteVB = VirtualButton("Paste");
 VirtualButton GUIInputBox::mCutVB = VirtualButton("Cut");
@@ -1278,4 +1278,3 @@ void GUIInputBox::PasteText()
 			OnValueChanged(mText);
 	}
 }
-} // namespace bs

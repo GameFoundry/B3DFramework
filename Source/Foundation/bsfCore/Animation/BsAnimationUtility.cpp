@@ -4,8 +4,8 @@
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs
-{
+using namespace bs;
+
 void setStepTangent(const TKeyframe<Vector3>& lhsIn, const TKeyframe<Vector3>& rhsIn, TKeyframe<Quaternion>& lhsOut, TKeyframe<Quaternion>& rhsOut)
 {
 	for(u32 i = 0; i < 3; i++)
@@ -346,7 +346,7 @@ Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve3D(const SPtr<T
 	Vector<TKeyframe<float>> keyFrames[3];
 
 	if(compoundCurve)
-		bs::SplitCurve(*compoundCurve, keyFrames);
+		::SplitCurve(*compoundCurve, keyFrames);
 
 	Vector<SPtr<TAnimationCurve<float>>> output(3);
 	for(u32 i = 0; i < 3; i++)
@@ -362,7 +362,7 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPt
 	{
 		const TAnimationCurve<float>* curves[] = { curveComponents[0].get(), curveComponents[1].get(), curveComponents[2].get() };
 
-		bs::combineCurve(curves, keyFrames);
+		combineCurve(curves, keyFrames);
 	}
 
 	return bs_shared_ptr_new<TAnimationCurve<Vector3>>(keyFrames);
@@ -373,7 +373,7 @@ Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const SPtr<T
 	Vector<TKeyframe<float>> keyFrames[2];
 
 	if(compoundCurve)
-		bs::SplitCurve(*compoundCurve, keyFrames);
+		::SplitCurve(*compoundCurve, keyFrames);
 
 	Vector<SPtr<TAnimationCurve<float>>> output(2);
 	for(u32 i = 0; i < 2; i++)
@@ -389,7 +389,7 @@ SPtr<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<SPt
 	{
 		const TAnimationCurve<float>* curves[] = { curveComponents[0].get(), curveComponents[1].get() };
 
-		bs::combineCurve(curves, keyFrames);
+		combineCurve(curves, keyFrames);
 	}
 
 	return bs_shared_ptr_new<TAnimationCurve<Vector2>>(keyFrames);
@@ -401,7 +401,7 @@ void AnimationUtility::SplitCurve(const TAnimationCurve<T>& compoundCurve, TAnim
 	constexpr u32 NUM_COMPONENTS = TCurveProperties<T>::NumComponents;
 
 	Vector<TKeyframe<float>> keyFrames[NUM_COMPONENTS];
-	bs::SplitCurve(compoundCurve, keyFrames);
+	::SplitCurve(compoundCurve, keyFrames);
 
 	for(u32 i = 0; i < NUM_COMPONENTS; i++)
 		output[i] = TAnimationCurve<float>(keyFrames[i]);
@@ -419,7 +419,7 @@ void AnimationUtility::CombineCurve(
 		curves[i] = &curveComponents[i];
 
 	Vector<TKeyframe<T>> keyFrames;
-	bs::combineCurve(curves, keyFrames);
+	combineCurve(curves, keyFrames);
 
 	output = TAnimationCurve<T>(keyFrames);
 }
@@ -599,4 +599,3 @@ template BS_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<
 template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[1], TAnimationCurve<float>&);
 template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[2], TAnimationCurve<Vector2>&);
 template BS_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[3], TAnimationCurve<Vector3>&);
-} // namespace bs

@@ -3,8 +3,8 @@
 #include "FileSystem/BsFileSystem.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
-{
+using namespace bs;
+
 void FileSystem::Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting)
 {
 	Stack<std::tuple<Path, Path>> todo;
@@ -112,4 +112,3 @@ void FileSystem::Move(const Path& oldPath, const Path& newPath, bool overwriteEx
 }
 
 Mutex FileScheduler::mMutex;
-} // namespace bs

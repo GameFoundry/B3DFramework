@@ -5,8 +5,8 @@
 #include "Platform/BsDropTarget.h"
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 DropTarget::DropTarget(const RenderWindow* ownerWindow, const Rect2I& area)
 	: mArea(area), mActive(false), mOwnerWindow(ownerWindow), mDropType(DropTargetType::None)
 {
@@ -295,4 +295,3 @@ Vector<Path>* Win32DropTarget::GetFileListFromData(IDataObject* data)
 
 	return files;
 }
-} // namespace bs

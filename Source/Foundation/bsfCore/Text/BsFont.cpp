@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsFontRTTI.h"
 #include "Resources/BsResources.h"
 
-namespace bs
-{
+using namespace bs;
+
 const CharDesc& FontBitmap::GetCharDesc(u32 charId) const
 {
 	auto iterFind = Characters.find(charId);
@@ -134,4 +134,3 @@ RTTITypeBase* Font::GetRtti() const
 {
 	return Font::GetRttiStatic();
 }
-} // namespace bs

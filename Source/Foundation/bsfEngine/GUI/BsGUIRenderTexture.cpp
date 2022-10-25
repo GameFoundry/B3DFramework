@@ -5,8 +5,8 @@
 #include "RenderAPI/BsRenderTexture.h"
 #include "Image/BsSpriteTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 const String& GUIRenderTexture::GetGuiTypeName()
 {
 	static String name = "RenderTexture";
@@ -92,4 +92,3 @@ void GUIRenderTexture::UpdateRenderElementsInternal()
 
 	GUIElement::UpdateRenderElementsInternal();
 }
-} // namespace bs

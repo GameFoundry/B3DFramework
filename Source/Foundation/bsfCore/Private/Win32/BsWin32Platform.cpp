@@ -13,8 +13,8 @@
 #include <shellapi.h>
 #include "String/BsUnicode.h"
 
-namespace bs
-{
+using namespace bs;
+
 /** Encapsulate native cursor data so we can avoid including windows.h as it pollutes the global namespace. */
 struct BS_CORE_EXPORT NativeCursorData
 {
@@ -1018,4 +1018,3 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
-} // namespace bs

@@ -6,8 +6,8 @@
 #include "FileSystem/BsFileSystem.h"
 #include "Resources/BsScriptCodeImportOptions.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool ScriptCodeImporter::IsExtensionSupported(const String& ext) const
 {
 	String lowerCaseExt = ext;
@@ -50,4 +50,3 @@ SPtr<ImportOptions> ScriptCodeImporter::CreateImportOptions() const
 {
 	return bs_shared_ptr_new<ScriptCodeImportOptions>();
 }
-} // namespace bs

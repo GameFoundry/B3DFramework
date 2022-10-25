@@ -11,8 +11,8 @@
 #include "RenderAPI/BsSamplerState.h"
 #include "Image/BsTexture.h"
 
-namespace bs
-{
+using namespace bs;
+
 RTTITypeBase* SubShader::GetRttiStatic()
 {
 	return SubShaderRTTI::Instance();
@@ -653,7 +653,7 @@ RTTITypeBase* ShaderMetaData::GetRtti() const
 	return ShaderMetaData::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 std::atomic<u32> Shader::mNextShaderId;
 
@@ -674,5 +674,4 @@ SPtr<Shader> Shader::Create(const String& name, const SHADER_DESC& desc)
 
 	return shaderCorePtr;
 }
-} // namespace ct
-} // namespace bs
+}}

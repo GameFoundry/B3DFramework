@@ -9,8 +9,8 @@
 #include "Math/BsBounds.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CRenderable::CRenderable()
 {
 	SetName("Renderable");
@@ -114,4 +114,3 @@ RTTITypeBase* CRenderable::GetRtti() const
 {
 	return CRenderable::GetRttiStatic();
 }
-} // namespace bs

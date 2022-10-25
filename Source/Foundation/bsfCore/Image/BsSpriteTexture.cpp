@@ -7,8 +7,8 @@
 #include "Resources/BsBuiltinResources.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 Rect2 SpriteTextureBase::Evaluate(float t) const
 {
 	if(mPlayback == SpriteAnimationPlayback::None)
@@ -224,7 +224,7 @@ RTTITypeBase* SpriteTexture::GetRtti() const
 	return SpriteTexture::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 SpriteTexture::SpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, SPtr<Texture> texture, const SpriteSheetGridAnimation& anim, SpriteAnimationPlayback playback)
 	: TSpriteTexture(uvOffset, uvScale, texture)
@@ -238,5 +238,4 @@ void SpriteTexture::SyncToCore(const CoreSyncData& data)
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 	csync_read(*this, stream);
 }
-} // namespace ct
-} // namespace bs
+}}

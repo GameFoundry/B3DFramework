@@ -9,8 +9,8 @@
 #include "Private/MacOS/BsMacOSWindow.h"
 #include "CoreThread/BsCoreThread.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector<CocoaDragAndDrop::DropArea> CocoaDragAndDrop::sDropAreas;
 Mutex CocoaDragAndDrop::sMutex;
 Vector<CocoaDragAndDrop::DragAndDropOp> CocoaDragAndDrop::sQueuedOperations;
@@ -261,4 +261,3 @@ bool CocoaDragAndDrop::NotifyDragDroppedInternal(u32 windowId, const Vector2I& p
 
 	return eventAccepted;
 }
-} // namespace bs

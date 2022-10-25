@@ -5,8 +5,8 @@
 #include "FileSystem/BsFileSystem.h"
 #include "Utility/BsDynLib.h"
 
-namespace bs
-{
+using namespace bs;
+
 const Path Paths::RELEASE_ASSEMBLY_PATH = "bin/Assemblies/Release/";
 const Path Paths::DEBUG_ASSEMBLY_PATH = "bin/Assemblies/Debug/";
 
@@ -131,4 +131,3 @@ Path Paths::FindPath(const Path& path)
 	// No path found, but return the initial value by default
 	return path;
 }
-} // namespace bs

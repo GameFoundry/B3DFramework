@@ -6,8 +6,8 @@
 #include "Input/BsKeyboard.h"
 #include "Input/BsGamepad.h"
 
-namespace bs
-{
+using namespace bs;
+
 /**
  * Helper method that creates a dictionary that is used for matching a specific set of devices (matching the provided
  * page and usage values, as USB HID values), used for initializing a HIDManager.
@@ -892,4 +892,3 @@ u32 Input::getDeviceCount(InputDevice device) const
 
 	return 0;
 }
-} // namespace bs

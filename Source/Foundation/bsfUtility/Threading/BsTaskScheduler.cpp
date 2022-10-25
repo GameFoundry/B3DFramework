@@ -3,8 +3,8 @@
 #include "Threading/BsTaskScheduler.h"
 #include "Threading/BsThreadPool.h"
 
-namespace bs
-{
+using namespace bs;
+
 Task::Task(const PrivatelyConstruct& dummy, const String& name, std::function<void()> taskWorker, TaskPriority priority, SPtr<Task> dependency)
 	: mName(name), mPriority(priority), mTaskWorker(std::move(taskWorker)), mTaskDependency(std::move(dependency))
 {
@@ -310,4 +310,3 @@ bool TaskScheduler::TaskCompare(const SPtr<Task>& lhs, const SPtr<Task>& rhs)
 	// Otherwise the task with the higher priority always goes first
 	return lhs->mPriority > rhs->mPriority;
 }
-} // namespace bs

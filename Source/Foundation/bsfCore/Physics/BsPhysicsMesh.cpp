@@ -5,8 +5,8 @@
 #include "Resources/BsResources.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 PhysicsMesh::PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	: mInitMeshData(meshData), mType(type)
 {
@@ -74,4 +74,3 @@ RTTITypeBase* FPhysicsMesh::GetRtti() const
 {
 	return GetRttiStatic();
 }
-} // namespace bs

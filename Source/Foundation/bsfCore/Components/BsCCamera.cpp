@@ -6,8 +6,8 @@
 #include "Scene/BsSceneManager.h"
 #include "BsCoreApplication.h"
 
-namespace bs
-{
+using namespace bs;
+
 CCamera::CCamera()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -81,4 +81,3 @@ RTTITypeBase* CCamera::GetRtti() const
 {
 	return CCamera::GetRttiStatic();
 }
-} // namespace bs

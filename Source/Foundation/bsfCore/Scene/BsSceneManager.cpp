@@ -14,8 +14,8 @@
 #include "Scene/BsPrefab.h"
 #include "Physics/BsPhysics.h"
 
-namespace bs
-{
+using namespace bs;
+
 enum ListType
 {
 	NoList = 0,
@@ -565,6 +565,8 @@ void SceneManager::OnMainRenderTargetResized()
 		entry->SetAspectRatio(aspect);
 }
 
+namespace bs
+{
 SceneManager& gSceneManager()
 {
 	return SceneManager::Instance();

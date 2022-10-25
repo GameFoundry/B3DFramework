@@ -3,13 +3,12 @@
 #include "RenderAPI/BsEventQuery.h"
 #include "Managers/BsQueryManager.h"
 
-namespace bs
-{
-namespace ct
+using namespace bs;
+
+namespace bs { namespace ct
 {
 SPtr<EventQuery> EventQuery::Create(u32 deviceIdx)
 {
 	return QueryManager::Instance().CreateEventQuery(deviceIdx);
 }
-} // namespace ct
-} // namespace bs
+}}

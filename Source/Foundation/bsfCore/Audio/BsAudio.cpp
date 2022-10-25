@@ -3,8 +3,8 @@
 #include "Audio/BsAudio.h"
 #include "Audio/BsAudioSource.h"
 
-namespace bs
-{
+using namespace bs;
+
 void Audio::Play(const HAudioClip& clip, const Vector3& position, float volume)
 {
 	Transform transform;
@@ -40,6 +40,8 @@ void Audio::UpdateInternal()
 	mTempSources.clear();
 }
 
+namespace bs
+{
 Audio& gAudio()
 {
 	return Audio::Instance();

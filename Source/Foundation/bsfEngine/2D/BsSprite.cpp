@@ -5,8 +5,8 @@
 #include "Math/BsPlane.h"
 #include "Mesh/BsMeshUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 Rect2I Sprite::GetBounds(const Vector2I& offset, const Rect2I& clipRect) const
 {
 	Rect2I bounds = mBounds;
@@ -306,4 +306,3 @@ void Sprite::ClipTrianglesToRect(u8* vertices, u8* uv, u32 numTris, u32 vertStri
 
 	MeshUtility::Clip2D(vertices, uv, numTris, vertStride, clipPlanes, writeCallback);
 }
-} // namespace bs

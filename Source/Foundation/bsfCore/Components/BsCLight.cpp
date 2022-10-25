@@ -4,8 +4,8 @@
 #include "Private/RTTI/BsCLightRTTI.h"
 #include "Scene/BsSceneManager.h"
 
-namespace bs
-{
+using namespace bs;
+
 CLight::CLight()
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
@@ -65,4 +65,3 @@ RTTITypeBase* CLight::GetRtti() const
 {
 	return CLight::GetRttiStatic();
 }
-} // namespace bs

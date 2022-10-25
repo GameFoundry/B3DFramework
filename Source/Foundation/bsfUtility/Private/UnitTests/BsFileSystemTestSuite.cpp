@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <fstream>
 
-namespace bs
-{
+using namespace bs;
+
 const String testDirectoryName = "FileSystemTestDirectory/";
 
 void createFile(Path path, String content)
@@ -295,4 +295,3 @@ void FileSystemTestSuite::testGetTempDirectoryPath()
 	/* No judging. */
 	BS_TEST_ASSERT(!path.toString().empty());
 }
-} // namespace bs

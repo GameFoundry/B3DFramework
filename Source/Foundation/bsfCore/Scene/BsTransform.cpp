@@ -3,8 +3,8 @@
 #include "Scene/BsTransform.h"
 #include "Private/RTTI/BsTransformRTTI.h"
 
-namespace bs
-{
+using namespace bs;
+
 Transform Transform::IDENTITY;
 
 Transform::Transform(const Vector3& position, const Quaternion& rotation, const Vector3& scale)
@@ -156,4 +156,3 @@ RTTITypeBase* Transform::GetRtti() const
 {
 	return Transform::GetRttiStatic();
 }
-} // namespace bs

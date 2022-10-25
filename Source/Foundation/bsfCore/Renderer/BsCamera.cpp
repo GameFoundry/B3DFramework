@@ -15,8 +15,8 @@
 #include "Scene/BsSceneManager.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
-namespace bs
-{
+using namespace bs;
+
 const float CameraBase::INFINITE_FAR_PLANE_ADJUST = 0.00001f;
 
 CameraBase::CameraBase()
@@ -802,7 +802,7 @@ RTTITypeBase* Camera::GetRtti() const
 	return Camera::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 Camera::~Camera()
 {
@@ -854,5 +854,4 @@ void Camera::SyncToCore(const CoreSyncData& data)
 
 	RendererManager::Instance().GetActive()->NotifyCameraUpdated(this, (u32)dirtyFlag);
 }
-} // namespace ct
-} // namespace bs
+}}

@@ -6,8 +6,8 @@
 #include "Private/RTTI/BsRasterizerStateRTTI.h"
 #include "Resources/BsResources.h"
 
-namespace bs
-{
+using namespace bs;
+
 bool RASTERIZER_STATE_DESC::operator==(const RASTERIZER_STATE_DESC& rhs) const
 {
 	return PolygonMode == rhs.PolygonMode &&
@@ -92,7 +92,7 @@ RTTITypeBase* RasterizerState::GetRtti() const
 	return RasterizerState::GetRttiStatic();
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 RasterizerState::RasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id)
 	: mProperties(desc), mId(id)
@@ -128,5 +128,4 @@ const SPtr<RasterizerState>& RasterizerState::GetDefault()
 {
 	return RenderStateManager::Instance().GetDefaultRasterizerState();
 }
-} // namespace ct
-} // namespace bs
+}}

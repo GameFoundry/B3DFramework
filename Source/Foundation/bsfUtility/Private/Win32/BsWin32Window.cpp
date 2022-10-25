@@ -3,8 +3,8 @@
 #include "Private/Win32/BsWin32Window.h"
 #include "Private/Win32/BsWin32PlatformUtility.h"
 
-namespace bs
-{
+using namespace bs;
+
 Vector<Win32Window*> Win32Window::sAllWindows;
 Vector<Win32Window*> Win32Window::sModalWindowStack;
 Mutex Win32Window::sWindowsMutex;
@@ -536,4 +536,3 @@ void Win32Window::RestoreModalWindowsInternal()
 	if(bringToFrontHwnd != nullptr)
 		BringWindowToTop(bringToFrontHwnd);
 }
-} // namespace bs

@@ -10,8 +10,8 @@
 #include "Resources/BsResources.h"
 #include "Image/BsPixelUtil.h"
 
-namespace bs
-{
+using namespace bs;
+
 TEXTURE_COPY_DESC TEXTURE_COPY_DESC::DEFAULT = TEXTURE_COPY_DESC();
 
 TextureProperties::TextureProperties(const TEXTURE_DESC& desc)
@@ -321,7 +321,7 @@ SPtr<Texture> Texture::CreatePtrInternal(const SPtr<PixelData>& pixelData, int u
 	return TextureManager::Instance().CreateTexture(desc, pixelData);
 }
 
-namespace ct
+namespace bs { namespace ct
 {
 SPtr<Texture> Texture::WHITE;
 SPtr<Texture> Texture::BLACK;
@@ -604,5 +604,4 @@ SPtr<Texture> Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool 
 
 	return newTex;
 }
-} // namespace ct
-} // namespace bs
+}}
