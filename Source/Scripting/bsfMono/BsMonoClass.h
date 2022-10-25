@@ -22,7 +22,7 @@ namespace bs
 			{
 				size_t operator()(const MethodId& v) const;
 			};
-			
+
 			struct Equals
 			{
 				bool operator()(const MethodId& a, const MethodId& b) const;
@@ -50,8 +50,8 @@ namespace bs
 
 		/**
 		 * Returns an object referencing a method with the specified name and number of parameters.
-		 *			
-		 * @note	
+		 *
+		 * @note
 		 * If the method is overloaded then you should use getMethodExact().
 		 * Does not query base class methods.
 		 * Returns null if method cannot be found.
@@ -87,8 +87,8 @@ namespace bs
 
 		/**
 		 * Returns an object referencing a method, expects exact method name with parameters.
-		 *			
-		 * @note	
+		 *
+		 * @note
 		 * Does not query base class methods.
 		 * Returns null if method cannot be found.
 		 * Example: name = "CreateInstance", signature = "Vector2,int[]"
@@ -144,7 +144,7 @@ namespace bs
 		 *							be pointers to the values and for reference types they should be pointers to MonoObject.
 		 * @param[in]	numParams	Number of parameters the method accepts.
 		 *
-		 * @note	
+		 * @note
 		 * You cannot use this to call overloaded methods that have the same number of parameters. Use getMethodExact() and
 		 * then invoke the method from the returned method object.
 		 */
@@ -189,6 +189,7 @@ namespace bs
 
 		/** Invokes the parameterless constructor on the provided object. */
 		static void Construct(MonoObject* object);
+
 	private:
 		friend class MonoAssembly;
 
@@ -223,4 +224,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

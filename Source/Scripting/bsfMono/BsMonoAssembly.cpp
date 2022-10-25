@@ -34,16 +34,13 @@ namespace bs
 	}
 
 	MonoAssembly::ClassId::ClassId(const String& namespaceName, String name, ::MonoClass* genericInstance)
-		:NamespaceName(namespaceName), Name(name), GenericInstance(genericInstance)
+		: NamespaceName(namespaceName), Name(name), GenericInstance(genericInstance)
 	{
-
 	}
 
 	MonoAssembly::MonoAssembly(const Path& path, const String& name)
-		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mDebugData(nullptr), mIsLoaded(false)
-		, mIsDependency(false), mHaveCachedClassList(false)
+		: mName(name), mPath(path), mMonoImage(nullptr), mMonoAssembly(nullptr), mDebugData(nullptr), mIsLoaded(false), mIsDependency(false), mHaveCachedClassList(false)
 	{
-
 	}
 
 	MonoAssembly::~MonoAssembly()
@@ -53,12 +50,12 @@ namespace bs
 
 	void MonoAssembly::Load()
 	{
-		if (mIsLoaded)
+		if(mIsLoaded)
 			Unload();
 
 		// Load assembly from memory because mono_domain_assembly_open keeps a lock on the file
 		SPtr<DataStream> assemblyStream = FileSystem::OpenFile(mPath, true);
-		if (assemblyStream == nullptr)
+		if(assemblyStream == nullptr)
 		{
 			BS_LOG(Error, Script, "Cannot load assembly at path \"{0}\" because the file doesn't exist", mPath);
 			return;
@@ -74,7 +71,7 @@ namespace bs
 		MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, imageName.c_str());
 		bs_stack_free(assemblyData);
 
-		if (status != MONO_IMAGE_OK || image == nullptr)
+		if(status != MONO_IMAGE_OK || image == nullptr)
 		{
 			BS_LOG(Error, Script, "Failed loading image data for assembly \"{0}\"", mPath);
 			return;
@@ -85,11 +82,11 @@ namespace bs
 		Path mdbPath = mPath;
 		mdbPath.SetExtension(mdbPath.GetExtension() + ".mdb");
 
-		if (FileSystem::Exists(mdbPath))
+		if(FileSystem::Exists(mdbPath))
 		{
 			SPtr<DataStream> mdbStream = FileSystem::OpenFile(mdbPath, true);
 
-			if (mdbStream != nullptr)
+			if(mdbStream != nullptr)
 			{
 				u32 mdbSize = (u32)mdbStream->Size();
 				mDebugData = (u8*)bs_alloc(mdbSize);
@@ -101,12 +98,12 @@ namespace bs
 #endif
 
 		mMonoAssembly = mono_assembly_load_from_full(image, imageName.c_str(), &status, false);
-		if (status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
+		if(status != MONO_IMAGE_OK || mMonoAssembly == nullptr)
 		{
 			BS_LOG(Error, Script, "Failed loading assembly \"{0}\"", mPath);
 			return;
 		}
-		
+
 		mMonoImage = image;
 		if(mMonoImage == nullptr)
 		{
@@ -147,7 +144,7 @@ namespace bs
 
 		if(!mIsDependency)
 		{
-			if (mDebugData != nullptr)
+			if(mDebugData != nullptr)
 			{
 				mono_debug_close_image(mMonoImage);
 
@@ -155,7 +152,7 @@ namespace bs
 				mDebugData = nullptr;
 			}
 
-			if (mMonoImage != nullptr)
+			if(mMonoImage != nullptr)
 			{
 				// Make sure to close the image, otherwise when we try to re-load this assembly the Mono will return the cached
 				// image
@@ -201,7 +198,7 @@ namespace bs
 		if(monoClass == nullptr)
 			return nullptr;
 
-		MonoClass* newClass = new (bs_alloc<MonoClass>()) MonoClass(namespaceName, name, monoClass, this);
+		MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(namespaceName, name, monoClass, this);
 		mClasses[classId] = newClass;
 		mClassesByRaw[monoClass] = newClass;
 
@@ -230,7 +227,7 @@ namespace bs
 		if(classImage != mMonoImage)
 			return nullptr;
 
-		MonoClass* newClass = new (bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
+		MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
 		mClassesByRaw[rawMonoClass] = newClass;
 
 		MonoAssembly::ClassId classId(ns, typeName);
@@ -241,23 +238,22 @@ namespace bs
 
 	MonoClass* MonoAssembly::GetClass(const String& ns, const String& typeName, ::MonoClass* rawMonoClass) const
 	{
-		if (!mIsLoaded)
+		if(!mIsLoaded)
 			BS_EXCEPT(InvalidStateException, "Trying to use an unloaded assembly.");
 
-		if (rawMonoClass == nullptr)
+		if(rawMonoClass == nullptr)
 			return nullptr;
 
 		auto iterFind = mClassesByRaw.find(rawMonoClass);
 
-		if (iterFind != mClassesByRaw.end())
+		if(iterFind != mClassesByRaw.end())
 			return iterFind->second;
 
-
-		MonoClass* newClass = new (bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
+		MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
 
 		mClassesByRaw[rawMonoClass] = newClass;
 
-		if (!IsGenericClass(typeName)) // No point in referencing generic types by name as all instances share it
+		if(!IsGenericClass(typeName)) // No point in referencing generic types by name as all instances share it
 		{
 			MonoAssembly::ClassId classId(ns, typeName);
 			mClasses[classId] = newClass;
@@ -270,26 +266,25 @@ namespace bs
 	{
 		if(mHaveCachedClassList)
 			return mCachedClassList;
-		
+
 		mCachedClassList.clear();
 		Stack<MonoClass*> todo;
 
 		MonoAssembly* corlib = MonoManager::Instance().GetAssembly("corlib");
-		MonoClass* compilerGeneratedAttrib = corlib->GetClass("System.Runtime.CompilerServices",
-				"CompilerGeneratedAttribute");
+		MonoClass* compilerGeneratedAttrib = corlib->GetClass("System.Runtime.CompilerServices", "CompilerGeneratedAttribute");
 
-		int numRows = mono_image_get_table_rows (mMonoImage, MONO_TABLE_TYPEDEF);
+		int numRows = mono_image_get_table_rows(mMonoImage, MONO_TABLE_TYPEDEF);
 
 		for(int i = 1; i < numRows; i++) // Skip Module
 		{
-			::MonoClass* monoClass = mono_class_get (mMonoImage, (i + 1) | MONO_TOKEN_TYPE_DEF);
+			::MonoClass* monoClass = mono_class_get(mMonoImage, (i + 1) | MONO_TOKEN_TYPE_DEF);
 
 			String ns;
 			String type;
 			MonoUtil::GetClassName(monoClass, ns, type);
 
 			MonoClass* curClass = GetClass(ns, type);
-			if (curClass != nullptr)
+			if(curClass != nullptr)
 			{
 				// Skip compiler generates classes
 				if(curClass->HasAttribute(compilerGeneratedAttrib))
@@ -297,7 +292,7 @@ namespace bs
 
 				// Get nested types if it has any
 				todo.push(curClass);
-				while (!todo.empty())
+				while(!todo.empty())
 				{
 					MonoClass* curNestedClass = todo.top();
 					todo.pop();
@@ -306,13 +301,13 @@ namespace bs
 					do
 					{
 						::MonoClass* rawNestedClass = mono_class_get_nested_types(curNestedClass->GetInternalClassInternal(), &iter);
-						if (rawNestedClass == nullptr)
+						if(rawNestedClass == nullptr)
 							break;
 
 						String nestedType = curNestedClass->GetTypeName() + "+" + mono_class_get_name(rawNestedClass);
 
 						MonoClass* nestedClass = GetClass(ns, nestedType, rawNestedClass);
-						if (nestedClass != nullptr)
+						if(nestedClass != nullptr)
 						{
 							// Skip compiler generated classes
 							if(nestedClass->HasAttribute(compilerGeneratedAttrib))
@@ -321,8 +316,8 @@ namespace bs
 							mCachedClassList.push_back(nestedClass);
 							todo.push(nestedClass);
 						}
-
-					} while (true);					
+					}
+					while(true);
 				}
 
 				mCachedClassList.push_back(curClass);
@@ -342,4 +337,4 @@ namespace bs
 
 		return iterFind != name.rend();
 	}
-}
+} // namespace bs

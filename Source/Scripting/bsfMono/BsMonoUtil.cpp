@@ -16,14 +16,14 @@ namespace bs
 
 	WString MonoUtil::MonoToWString(MonoString* str)
 	{
-		if (str == nullptr)
+		if(str == nullptr)
 			return StringUtil::WBLANK;
 
 		int len = mono_string_length(str);
 		mono_unichar2* monoChars = mono_string_chars(str);
 
 		WString ret(len, '0');
-		for (int i = 0; i < len; i++)
+		for(int i = 0; i < len; i++)
 			ret[i] = monoChars[i];
 
 		return ret;
@@ -38,7 +38,7 @@ namespace bs
 
 	MonoString* MonoUtil::WstringToMono(const WString& str)
 	{
-		if (sizeof(wchar_t) == 2) // Assuming UTF-16
+		if(sizeof(wchar_t) == 2) // Assuming UTF-16
 			return mono_string_from_utf16((mono_unichar2*)str.c_str());
 		else // Assuming UTF-32
 			return mono_string_from_utf32((mono_unichar4*)str.c_str());
@@ -51,7 +51,7 @@ namespace bs
 
 	void MonoUtil::GetClassName(MonoObject* obj, String& ns, String& typeName)
 	{
-		if (obj == nullptr)
+		if(obj == nullptr)
 			return;
 
 		::MonoClass* monoClass = mono_object_get_class(obj);
@@ -62,7 +62,7 @@ namespace bs
 	{
 		::MonoClass* nestingClass = mono_class_get_nesting_type(monoClass);
 
-		if (nestingClass == nullptr)
+		if(nestingClass == nullptr)
 		{
 			ns = mono_class_get_namespace(monoClass);
 			typeName = mono_class_get_name(monoClass);
@@ -81,7 +81,7 @@ namespace bs
 			do
 			{
 				::MonoClass* nextNestingClass = mono_class_get_nesting_type(nestingClass);
-				if (nextNestingClass != nullptr)
+				if(nextNestingClass != nullptr)
 				{
 					typeName = String("+") + mono_class_get_name(nestingClass) + typeName;
 					nestingClass = nextNestingClass;
@@ -93,7 +93,8 @@ namespace bs
 
 					break;
 				}
-			} while (true);
+			}
+			while(true);
 		}
 	}
 
@@ -247,7 +248,7 @@ namespace bs
 		auto buffer = bs_managed_stack_alloc<MonoType*>(numParams);
 
 		MonoType** types = buffer;
-		for (u32 i = 0; i < numParams; i++)
+		for(u32 i = 0; i < numParams; i++)
 			types[i] = mono_class_get_type(params[i]);
 
 		return mono_class_bind_generic_parameters(klass, numParams, types, false);
@@ -286,7 +287,6 @@ namespace bs
 						params[i] = GetClass(paramType);
 				}
 			}
-			
 		}
 		else
 		{
@@ -374,7 +374,7 @@ namespace bs
 
 	void MonoUtil::ThrowIfException(MonoObject* exception)
 	{
-		if (exception != nullptr)
+		if(exception != nullptr)
 		{
 			::MonoClass* exceptionClass = mono_object_get_class(exception);
 			::MonoProperty* exceptionMsgProp = mono_class_get_property_from_name(exceptionClass, "Message");
@@ -391,4 +391,4 @@ namespace bs
 			BS_LOG(Error, Script, msg);
 		}
 	}
-}
+} // namespace bs

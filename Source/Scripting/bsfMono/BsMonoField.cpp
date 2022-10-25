@@ -11,7 +11,7 @@
 namespace bs
 {
 	MonoField::MonoField(MonoClassField* field)
-		:mField(field), mFieldType(nullptr)
+		: mField(field), mFieldType(nullptr)
 	{
 		mName = mono_field_get_name(mField);
 	}
@@ -24,8 +24,8 @@ namespace bs
 		MonoType* monoType = mono_field_get_type(mField);
 		::MonoClass* fieldClass = mono_class_from_mono_type(monoType);
 		if(fieldClass == nullptr)
-			return nullptr;	
-		
+			return nullptr;
+
 		mFieldType = MonoManager::Instance().FindClass(fieldClass);
 
 		return mFieldType;
@@ -56,7 +56,7 @@ namespace bs
 			return false;
 
 		bool hasAttr = mono_custom_attrs_has_attr(attrInfo, monoClass->GetInternalClassInternal()) != 0;
-		
+
 		mono_custom_attrs_free(attrInfo);
 
 		return hasAttr;
@@ -104,4 +104,4 @@ namespace bs
 
 		return (flags & MONO_FIELD_ATTR_STATIC) != 0;
 	}
-}
+} // namespace bs

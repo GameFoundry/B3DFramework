@@ -71,11 +71,12 @@ namespace bs
 		 */
 		MonoObject* GetAttribute(MonoClass* monoClass);
 
-		/**	
+		/**
 		 * Returns property visibility in the class. If getter/setter methods have different visibility, the more
 		 * restrictive one is returned.
 		 */
 		MonoMemberVisibility GetVisibility();
+
 	private:
 		friend class MonoClass;
 
@@ -98,4 +99,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

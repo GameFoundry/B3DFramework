@@ -66,7 +66,7 @@ namespace bs
 		bool IsStatic() const;
 
 		/**	Checks if method has an attribute of the specified type. */
-		 bool HasAttribute(MonoClass* monoClass) const;
+		bool HasAttribute(MonoClass* monoClass) const;
 
 		/**
 		 * Returns an instance of an attribute of the specified type. Returns null if the method doesn't have such an
@@ -95,4 +95,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

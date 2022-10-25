@@ -21,22 +21,20 @@ namespace bs
 	const String MONO_ETC_DIR = "bin/Mono/etc/";
 	const String MONO_COMPILER_DIR = "bin/Mono/compiler/";
 	const MonoVersion MONO_VERSION = MonoVersion::v4_5;
-	
+
 	struct MonoVersionData
 	{
 		String Path;
 		String Version;
 	};
 
-	static const MonoVersionData MONO_VERSION_DATA[1] =
-	{
+	static const MonoVersionData MONO_VERSION_DATA[1] = {
 		{ MONO_LIB_DIR + "mono/4.5", "v4.0.30319" }
 	};
 
 	void monoLogCallback(const char* logDomain, const char* logLevel, const char* message, mono_bool fatal, void* userData)
 	{
-		static const char* monoErrorLevels[] =
-		{
+		static const char* monoErrorLevels[] = {
 			nullptr,
 			"error",
 			"critical",
@@ -47,11 +45,11 @@ namespace bs
 		};
 
 		u32 errorLevel = 0;
-		if (logLevel != nullptr)
+		if(logLevel != nullptr)
 		{
-			for (u32 i = 1; i < 7; i++)
+			for(u32 i = 1; i < 7; i++)
 			{
-				if (strcmp(monoErrorLevels[i], logLevel) == 0)
+				if(strcmp(monoErrorLevels[i], logLevel) == 0)
 				{
 					errorLevel = i;
 					break;
@@ -59,15 +57,15 @@ namespace bs
 			}
 		}
 
-		if (errorLevel == 0)
+		if(errorLevel == 0)
 		{
 			BS_LOG(Error, Script, "Mono: {0} in domain {1}", message, logDomain);
 		}
-		else if (errorLevel <= 2)
+		else if(errorLevel <= 2)
 		{
 			BS_LOG(Error, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
-		else if (errorLevel <= 3)
+		else if(errorLevel <= 3)
 		{
 			BS_LOG(Warning, Script, "Mono: {0} in domain {1} [{2}]", message, logDomain, logLevel);
 		}
@@ -85,10 +83,10 @@ namespace bs
 	void monoPrintErrorCallback(const char* string, mono_bool isStdout)
 	{
 		BS_LOG(Error, Script, "Mono error: {0}", string);
-	}	
-	
+	}
+
 	MonoManager::MonoManager()
-		:mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
+		: mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
 	{
 		Path libDir = Paths::FindPath(MONO_LIB_DIR);
 		Path etcDir = GetMonoEtcFolder();
@@ -129,13 +127,13 @@ namespace bs
 		mono_config_parse(nullptr);
 
 		mRootDomain = mono_jit_init_version("bsfMono", MONO_VERSION_DATA[(int)MONO_VERSION].Version.c_str());
-		if (mRootDomain == nullptr)
+		if(mRootDomain == nullptr)
 			BS_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
 
 		mono_thread_set_main(mono_thread_current());
 
 		// Load corlib
-		mCorlibAssembly = new (bs_alloc<MonoAssembly>()) MonoAssembly("", "corlib");
+		mCorlibAssembly = new(bs_alloc<MonoAssembly>()) MonoAssembly("", "corlib");
 		mCorlibAssembly->LoadFromImage(mono_get_corlib());
 
 		mAssemblies["corlib"] = mCorlibAssembly;
@@ -150,12 +148,12 @@ namespace bs
 	{
 		MonoAssembly* assembly = nullptr;
 
-		if (mScriptDomain == nullptr)
+		if(mScriptDomain == nullptr)
 		{
 			String appDomainName = "ScriptDomain";
 
-			mScriptDomain = mono_domain_create_appdomain(const_cast<char *>(appDomainName.c_str()), nullptr);
-			if (mScriptDomain == nullptr)
+			mScriptDomain = mono_domain_create_appdomain(const_cast<char*>(appDomainName.c_str()), nullptr);
+			if(mScriptDomain == nullptr)
 				BS_EXCEPT(InternalErrorException, "Cannot create script app domain.");
 
 			if(!mono_domain_set(mScriptDomain, true))
@@ -169,11 +167,11 @@ namespace bs
 		}
 		else
 		{
-			assembly = new (bs_alloc<MonoAssembly>()) MonoAssembly(path, name);
+			assembly = new(bs_alloc<MonoAssembly>()) MonoAssembly(path, name);
 			mAssemblies[name] = assembly;
 		}
-		
-		if (!assembly->mIsLoaded)
+
+		if(!assembly->mIsLoaded)
 		{
 			assembly->Load();
 			InitializeScriptTypes(*assembly);
@@ -186,19 +184,18 @@ namespace bs
 	{
 		// Fully initialize all types that use this assembly
 		Vector<ScriptMetaInfo>& typeMetas = GetScriptMetaData()[assembly.mName];
-		for (auto& entry : typeMetas)
+		for(auto& entry : typeMetas)
 		{
 			ScriptMeta* meta = entry.MetaData;
 			*meta = entry.LocalMetaData;
 
 			meta->ScriptClass = assembly.GetClass(meta->Ns, meta->Name);
-			if (meta->ScriptClass == nullptr)
+			if(meta->ScriptClass == nullptr)
 			{
-				BS_EXCEPT(InvalidParametersException,
-					"Unable to find class of type: \"" + meta->Ns + "::" + meta->Name + "\"");
+				BS_EXCEPT(InvalidParametersException, "Unable to find class of type: \"" + meta->Ns + "::" + meta->Name + "\"");
 			}
 
-			if (meta->ScriptClass->HasField("mCachedPtr"))
+			if(meta->ScriptClass->HasField("mCachedPtr"))
 				meta->ThisPtrField = meta->ScriptClass->GetField("mCachedPtr");
 			else
 				meta->ThisPtrField = nullptr;
@@ -209,14 +206,14 @@ namespace bs
 
 	void MonoManager::UnloadAll()
 	{
-		for (auto& entry : mAssemblies)
+		for(auto& entry : mAssemblies)
 			bs_delete(entry.second);
 
 		mAssemblies.clear();
 
 		UnloadScriptDomain();
 
-		if (mRootDomain != nullptr)
+		if(mRootDomain != nullptr)
 		{
 			mono_jit_cleanup(mRootDomain);
 			mRootDomain = nullptr;
@@ -271,7 +268,7 @@ namespace bs
 
 	void MonoManager::UnloadScriptDomain()
 	{
-		if (mScriptDomain != nullptr)
+		if(mScriptDomain != nullptr)
 		{
 			OnDomainUnload();
 
@@ -280,13 +277,13 @@ namespace bs
 			MonoObject* exception = nullptr;
 			mono_domain_try_unload(mScriptDomain, &exception);
 
-			if (exception != nullptr)
+			if(exception != nullptr)
 				MonoUtil::ThrowIfException(exception);
 
 			mScriptDomain = nullptr;
 		}
 
-		for (auto& assemblyEntry : mAssemblies)
+		for(auto& assemblyEntry : mAssemblies)
 		{
 			assemblyEntry.second->Unload();
 
@@ -297,7 +294,7 @@ namespace bs
 
 			// Metas hold references to various assembly objects that were just deleted, so clear them
 			Vector<ScriptMetaInfo>& typeMetas = GetScriptMetaData()[assemblyEntry.first];
-			for (auto& entry : typeMetas)
+			for(auto& entry : typeMetas)
 			{
 				entry.MetaData->ScriptClass = nullptr;
 				entry.MetaData->ThisPtrField = nullptr;
@@ -337,4 +334,4 @@ namespace bs
 
 		return path;
 	}
-}
+} // namespace bs

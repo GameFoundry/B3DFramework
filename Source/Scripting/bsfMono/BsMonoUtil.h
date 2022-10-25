@@ -176,7 +176,7 @@ namespace bs
 		static void ThrowIfException(MonoObject* exception);
 
 		/** Invokes a thunk retrieved from MonoMethod::getThunk const and automatically handles exceptions. */
-		template<class T, class... Args>
+		template <class T, class... Args>
 		static void InvokeThunk(T* thunk, Args... args)
 		{
 			MonoException* exception = nullptr;
@@ -187,6 +187,6 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs
 
 #include "BsMonoArray.h"

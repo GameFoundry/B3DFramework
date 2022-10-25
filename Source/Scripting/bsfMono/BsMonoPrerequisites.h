@@ -6,31 +6,31 @@
 
 // DLL export
 #if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
-#  if BS_COMPILER == BS_COMPILER_MSVC
-#    if defined(BS_MONO_STATIC_LIB)
-#      define BS_MONO_EXPORT
-#    else
-#      if defined(BS_MONO_EXPORTS)
-#        define BS_MONO_EXPORT __declspec(dllexport)
-#      else
-#        define BS_MONO_EXPORT __declspec(dllimport)
-#      endif
-#	 endif
-#  else
-#    if defined(BS_MONO_STATIC_LIB)
-#      define BS_MONO_EXPORT
-#    else
-#      if defined(BS_MONO_EXPORTS)
-#        define BS_MONO_EXPORT __attribute__ ((dllexport))
-#      else
-#        define BS_MONO_EXPORT __attribute__ ((dllimport))
-#      endif
-#	 endif
-#  endif
-#  define BS_MONO_HIDDEN
+#	if BS_COMPILER == BS_COMPILER_MSVC
+#		if defined(BS_MONO_STATIC_LIB)
+#			define BS_MONO_EXPORT
+#		else
+#			if defined(BS_MONO_EXPORTS)
+#				define BS_MONO_EXPORT __declspec(dllexport)
+#			else
+#				define BS_MONO_EXPORT __declspec(dllimport)
+#			endif
+#		endif
+#	else
+#		if defined(BS_MONO_STATIC_LIB)
+#			define BS_MONO_EXPORT
+#		else
+#			if defined(BS_MONO_EXPORTS)
+#				define BS_MONO_EXPORT __attribute__((dllexport))
+#			else
+#				define BS_MONO_EXPORT __attribute__((dllimport))
+#			endif
+#		endif
+#	endif
+#	define BS_MONO_HIDDEN
 #else // Linux/Mac settings
-#  define BS_MONO_EXPORT __attribute__ ((visibility ("default")))
-#  define BS_MONO_HIDDEN __attribute__ ((visibility ("hidden")))
+#	define BS_MONO_EXPORT __attribute__((visibility("default")))
+#	define BS_MONO_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
 /** @addtogroup Plugins
@@ -84,12 +84,12 @@ namespace bs
 		ProtectedInternal,
 		Public
 	};
-}
+} // namespace bs
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-	#define BS_THUNKCALL BS_STDCALL
+#	define BS_THUNKCALL BS_STDCALL
 #else
-	#define BS_THUNKCALL
+#	define BS_THUNKCALL
 #endif
 
 typedef struct _MonoClass MonoClass;

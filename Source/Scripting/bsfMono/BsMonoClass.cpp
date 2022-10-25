@@ -28,14 +28,12 @@ namespace bs
 	}
 
 	MonoClass::MethodId::MethodId(const String& name, u32 numParams)
-		:Name(name), NumParams(numParams)
+		: Name(name), NumParams(numParams)
 	{
-		
 	}
 
 	MonoClass::MonoClass(const String& ns, const String& type, ::MonoClass* monoClass, const MonoAssembly* parentAssembly)
-		: mParentAssembly(parentAssembly), mClass(monoClass), mNamespace(ns), mTypeName(type), mHasCachedFields(false)
-		, mHasCachedProperties(false), mHasCachedMethods(false)
+		: mParentAssembly(parentAssembly), mClass(monoClass), mNamespace(ns), mTypeName(type), mHasCachedFields(false), mHasCachedProperties(false), mHasCachedMethods(false)
 	{
 		mFullName = ns + "." + type;
 	}
@@ -72,10 +70,10 @@ namespace bs
 			return iterFind->second;
 
 		::MonoMethod* method = mono_class_get_method_from_name(mClass, name.c_str(), (int)numParams);
-		if (method == nullptr)
+		if(method == nullptr)
 			return nullptr;
 
-		MonoMethod* newMethod = new (bs_alloc<MonoMethod>()) MonoMethod(method);
+		MonoMethod* newMethod = new(bs_alloc<MonoMethod>()) MonoMethod(method);
 		mMethods[mehodId] = newMethod;
 
 		return newMethod;
@@ -93,14 +91,14 @@ namespace bs
 
 		const char* rawName = name.c_str();
 		const char* rawSig = signature.c_str();
-		while ((method = mono_class_get_methods(mClass, &iter)))
+		while((method = mono_class_get_methods(mClass, &iter)))
 		{
-			if (strcmp(rawName, mono_method_get_name(method)) == 0)
+			if(strcmp(rawName, mono_method_get_name(method)) == 0)
 			{
 				const char* curSig = mono_signature_get_desc(mono_method_signature(method), false);
 				if(strcmp(rawSig, curSig) == 0)
 				{
-					MonoMethod* newMethod = new (bs_alloc<MonoMethod>()) MonoMethod(method);
+					MonoMethod* newMethod = new(bs_alloc<MonoMethod>()) MonoMethod(method);
 					mMethods[mehodId] = newMethod;
 
 					return newMethod;
@@ -136,7 +134,7 @@ namespace bs
 		if(field == nullptr)
 			return nullptr;
 
-		MonoField* newField = new (bs_alloc<MonoField>()) MonoField(field);
+		MonoField* newField = new(bs_alloc<MonoField>()) MonoField(field);
 		mFields[name] = newField;
 
 		return newField;
@@ -149,10 +147,10 @@ namespace bs
 			return iterFind->second;
 
 		::MonoProperty* property = mono_class_get_property_from_name(mClass, name.c_str());
-		if (property == nullptr)
+		if(property == nullptr)
 			return nullptr;
 
-		MonoProperty* newProperty = new (bs_alloc<MonoProperty>()) MonoProperty(property);
+		MonoProperty* newProperty = new(bs_alloc<MonoProperty>()) MonoProperty(property);
 		mProperties[name] = newProperty;
 
 		return newProperty;
@@ -183,14 +181,14 @@ namespace bs
 
 	const Vector<MonoProperty*>& MonoClass::GetAllProperties() const
 	{
-		if (mHasCachedProperties)
+		if(mHasCachedProperties)
 			return mCachedPropertyList;
 
 		mCachedPropertyList.clear();
 
 		void* iter = nullptr;
 		::MonoProperty* curClassProperty = mono_class_get_properties(mClass, &iter);
-		while (curClassProperty != nullptr)
+		while(curClassProperty != nullptr)
 		{
 			const char* propertyName = mono_property_get_name(curClassProperty);
 			MonoProperty* curProperty = GetProperty(propertyName);
@@ -206,14 +204,14 @@ namespace bs
 
 	const Vector<MonoMethod*>& MonoClass::GetAllMethods() const
 	{
-		if (mHasCachedMethods)
+		if(mHasCachedMethods)
 			return mCachedMethodList;
 
 		mCachedMethodList.clear();
 
 		void* iter = nullptr;
 		::MonoMethod* curClassMethod = mono_class_get_methods(mClass, &iter);
-		while (curClassMethod != nullptr)
+		while(curClassMethod != nullptr)
 		{
 			MonoMethodSignature* sig = mono_method_signature(curClassMethod);
 
@@ -236,15 +234,15 @@ namespace bs
 		Vector<MonoClass*> attributes;
 
 		MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_class(mClass);
-		if (attrInfo == nullptr)
+		if(attrInfo == nullptr)
 			return attributes;
 
-		for (i32 i = 0; i < attrInfo->num_attrs; i++)
+		for(i32 i = 0; i < attrInfo->num_attrs; i++)
 		{
 			::MonoClass* attribClass = mono_method_get_class(attrInfo->attrs[i].ctor);
 			MonoClass* klass = MonoManager::Instance().FindClass(attribClass);
 
-			if (klass != nullptr)
+			if(klass != nullptr)
 				attributes.push_back(klass);
 		}
 
@@ -302,7 +300,7 @@ namespace bs
 		MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_class(mClass);
 		if(attrInfo == nullptr)
 			return false;
-	
+
 		bool hasAttr = mono_custom_attrs_has_attr(attrInfo, monoClass->GetInternalClassInternal()) != 0;
 
 		mono_custom_attrs_free(attrInfo);
@@ -352,9 +350,9 @@ namespace bs
 	{
 		u32 dummy = 0;
 
-		if (mono_class_is_valuetype(mClass))
+		if(mono_class_is_valuetype(mClass))
 			return mono_class_value_size(mClass, &dummy);
-		
+
 		return mono_class_instance_size(mClass);
 	}
-}
+} // namespace bs

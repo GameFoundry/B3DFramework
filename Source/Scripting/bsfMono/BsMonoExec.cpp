@@ -1,11 +1,11 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #ifdef _WIN32
-	#define _CRT_SECURE_NO_WARNINGS 1
-	#include <direct.h>
-	#define getcwd _getcwd
+#	define _CRT_SECURE_NO_WARNINGS 1
+#	include <direct.h>
+#	define getcwd _getcwd
 #else
-	#include <unistd.h>
+#	include <unistd.h>
 #endif
 
 #include <mono/jit/jit.h>

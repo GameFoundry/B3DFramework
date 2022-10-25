@@ -25,7 +25,7 @@ namespace bs
 		 */
 		std::function<void()> InitCallback;
 		/** Class object describing the script class. Only valid after assembly containing this type was loaded.  */
-		MonoClass* ScriptClass;	
+		MonoClass* ScriptClass;
 		/**
 		 * Field object that contains a pointer to the native instance of the script object. Only valid after assembly
 		 * containing this type was loaded.
@@ -34,4 +34,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

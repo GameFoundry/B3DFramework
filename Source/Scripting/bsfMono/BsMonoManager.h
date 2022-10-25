@@ -76,6 +76,7 @@ namespace bs
 
 		/** Triggered when the assembly domain and all relevant assemblies are about to be unloaded. */
 		Event<void()> OnDomainUnload;
+
 	private:
 		struct ScriptMetaInfo
 		{
@@ -103,4 +104,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

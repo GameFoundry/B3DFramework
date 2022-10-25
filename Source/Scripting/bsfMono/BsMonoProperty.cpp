@@ -10,7 +10,7 @@
 namespace bs
 {
 	MonoProperty::MonoProperty(::MonoProperty* monoProp)
-		:mProperty(monoProp), mReturnType(nullptr), mIsIndexed(false), mIsFullyInitialized(false)
+		: mProperty(monoProp), mReturnType(nullptr), mIsIndexed(false), mIsFullyInitialized(false)
 	{
 		mGetMethod = mono_property_get_get_method(mProperty);
 		mSetMethod = mono_property_get_set_method(mProperty);
@@ -20,7 +20,7 @@ namespace bs
 
 	MonoObject* MonoProperty::Get(MonoObject* instance) const
 	{
-		if (mGetMethod == nullptr)
+		if(mGetMethod == nullptr)
 			return nullptr;
 
 		return mono_runtime_invoke(mGetMethod, instance, nullptr, nullptr);
@@ -28,13 +28,13 @@ namespace bs
 
 	void MonoProperty::Set(MonoObject* instance, void* value) const
 	{
-		if (mSetMethod == nullptr)
+		if(mSetMethod == nullptr)
 			return;
 
 		void* args[1];
 		args[0] = value;
 		mono_runtime_invoke(mSetMethod, instance, args, nullptr);
-	}	
+	}
 
 	MonoObject* MonoProperty::GetIndexed(MonoObject* instance, u32 index) const
 	{
@@ -53,7 +53,7 @@ namespace bs
 
 	bool MonoProperty::IsIndexed() const
 	{
-		if (!mIsFullyInitialized)
+		if(!mIsFullyInitialized)
 			InitializeDeferred();
 
 		return mIsIndexed;
@@ -61,7 +61,7 @@ namespace bs
 
 	MonoClass* MonoProperty::GetReturnType() const
 	{
-		if (!mIsFullyInitialized)
+		if(!mIsFullyInitialized)
 			InitializeDeferred();
 
 		return mReturnType;
@@ -73,7 +73,7 @@ namespace bs
 
 		::MonoClass* parentClass = mono_property_get_parent(mProperty);
 		MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_property(parentClass, mProperty);
-		if (attrInfo == nullptr)
+		if(attrInfo == nullptr)
 			return false;
 
 		bool hasAttr = mono_custom_attrs_has_attr(attrInfo, monoClass->GetInternalClassInternal()) != 0;
@@ -89,7 +89,7 @@ namespace bs
 
 		::MonoClass* parentClass = mono_property_get_parent(mProperty);
 		MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_property(parentClass, mProperty);
-		if (attrInfo == nullptr)
+		if(attrInfo == nullptr)
 			return nullptr;
 
 		MonoObject* foundAttr = nullptr;
@@ -110,13 +110,13 @@ namespace bs
 		}
 
 		MonoMemberVisibility setterVisibility = MonoMemberVisibility::Public;
-		if (mSetMethod)
+		if(mSetMethod)
 		{
 			MonoMethod setterWrapper(mSetMethod);
 			setterVisibility = setterWrapper.GetVisibility();
 		}
 
-		if (getterVisibility < setterVisibility)
+		if(getterVisibility < setterVisibility)
 			return getterVisibility;
 
 		return setterVisibility;
@@ -124,15 +124,15 @@ namespace bs
 
 	void MonoProperty::InitializeDeferred() const
 	{
-		if (mGetMethod != nullptr)
+		if(mGetMethod != nullptr)
 		{
 			MonoMethodSignature* signature = mono_method_signature(mGetMethod);
 
 			MonoType* returnType = mono_signature_get_return_type(signature);
-			if (returnType != nullptr)
+			if(returnType != nullptr)
 			{
 				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
-				if (returnClass != nullptr)
+				if(returnClass != nullptr)
 					mReturnType = MonoManager::Instance().FindClass(returnClass);
 			}
 
@@ -144,10 +144,10 @@ namespace bs
 			MonoMethodSignature* signature = mono_method_signature(mSetMethod);
 
 			MonoType* returnType = mono_signature_get_return_type(signature);
-			if (returnType != nullptr)
+			if(returnType != nullptr)
 			{
 				::MonoClass* returnClass = mono_class_from_mono_type(returnType);
-				if (returnClass != nullptr)
+				if(returnClass != nullptr)
 					mReturnType = MonoManager::Instance().FindClass(returnClass);
 			}
 
@@ -157,4 +157,4 @@ namespace bs
 
 		mIsFullyInitialized = true;
 	}
-}
+} // namespace bs

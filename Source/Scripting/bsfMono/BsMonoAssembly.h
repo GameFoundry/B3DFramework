@@ -25,7 +25,7 @@ namespace bs
 
 			struct Equals
 			{
-				bool operator()(const ClassId &a, const ClassId &b) const;
+				bool operator()(const ClassId& a, const ClassId& b) const;
 			};
 
 			ClassId(const String& namespaceName, String name, ::MonoClass* genericInstance = nullptr);
@@ -34,6 +34,7 @@ namespace bs
 			String Name;
 			::MonoClass* GenericInstance;
 		};
+
 		/** @endcond */
 
 	public:
@@ -43,9 +44,9 @@ namespace bs
 		const String& GetName() const { return mName; }
 
 		/**
-	     * Attempts to find a managed class with the specified namespace and name in this assembly. Returns null if one
+		 * Attempts to find a managed class with the specified namespace and name in this assembly. Returns null if one
 		 * cannot be found.
-	     */
+		 */
 		MonoClass* GetClass(const String& namespaceName, const String& name) const;
 
 		/**	Converts an internal mono representation of a class into engine class. */
@@ -55,9 +56,9 @@ namespace bs
 		const Vector<MonoClass*>& GetAllClasses() const;
 
 		/**
-	     * Invokes a zero-parameter static method in the format "Class::Method". Used primarily for invoking an assembly
+		 * Invokes a zero-parameter static method in the format "Class::Method". Used primarily for invoking an assembly
 		 * entry point.
-	     */
+		 */
 		void Invoke(const String& functionName);
 
 	private:
@@ -66,9 +67,9 @@ namespace bs
 		MonoAssembly(const Path& path, const String& name);
 
 		/**
-	     * Attempts to find a managed class with the specified namespace and name in this assembly. Registers a new class
+		 * Attempts to find a managed class with the specified namespace and name in this assembly. Registers a new class
 		 * using the provided raw class if one cannot be found. Returns null provided raw class is null.
-	     */
+		 */
 		MonoClass* GetClass(const String& namespaceName, const String& name, ::MonoClass* rawMonoClass) const;
 
 		/**	Loads an assembly into the current domain. */
@@ -77,7 +78,7 @@ namespace bs
 		/**
 		 * Initializes an assembly from an internal mono image.
 		 *
-		 * @note	
+		 * @note
 		 * Normally used for assemblies that were already loaded by the managed runtime as dependencies.
 		 */
 		void LoadFromImage(MonoImage* image);
@@ -89,10 +90,10 @@ namespace bs
 		void Unload();
 
 		/**
-	     * Returns true if the provided name represents a generic class.
+		 * Returns true if the provided name represents a generic class.
 		 *
 		 * @note	This method only analyzes the name to determine if it is in generic class format.
-	     */
+		 */
 		bool IsGenericClass(const String& name) const;
 
 		String mName;
@@ -102,7 +103,7 @@ namespace bs
 		u8* mDebugData;
 		bool mIsLoaded;
 		bool mIsDependency;
-		
+
 		mutable UnorderedMap<ClassId, MonoClass*, ClassId::Hash, ClassId::Equals> mClasses;
 		mutable UnorderedMap<::MonoClass*, MonoClass*> mClassesByRaw;
 
@@ -111,4 +112,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -27,7 +27,7 @@ namespace bs
 		 * Retrieves value currently set in the field on the specified object instance. If field is static object instance
 		 * can be null.
 		 *
-		 * @note	
+		 * @note
 		 * Value will be a pointer to raw data type for value types (for example int, float), and a MonoObject* for
 		 * reference types.
 		 */
@@ -42,7 +42,7 @@ namespace bs
 		/**
 		 * Sets a value for the field on the specified object instance. If field is static object instance can be null.
 		 *
-		 * @note	
+		 * @note
 		 * Value should be a pointer to raw data type for value types (for example int, float), and a MonoObject* for
 		 * reference types.
 		 */
@@ -74,4 +74,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs
