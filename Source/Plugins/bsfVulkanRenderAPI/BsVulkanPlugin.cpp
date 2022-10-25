@@ -9,4 +9,4 @@ namespace bs
 	{
 		return ct::VulkanRenderAPIFactory::SystemName;
 	}
-}
+} // namespace bs

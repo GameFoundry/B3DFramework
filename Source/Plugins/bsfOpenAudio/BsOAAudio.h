@@ -11,7 +11,7 @@ namespace bs
 	/** @addtogroup OpenAudio
 	 *  @{
 	 */
-	
+
 	/** Global manager for the audio implementation using OpenAL as the backend. */
 	class OAAudio : public Audio
 	{
@@ -20,13 +20,13 @@ namespace bs
 		virtual ~OAAudio();
 
 		/** @copydoc Audio::setVolume */
-		void SetVolume(float volume) ;
+		void SetVolume(float volume);
 
 		/** @copydoc Audio::getVolume */
-		float GetVolume() const ;
+		float GetVolume() const;
 
 		/** @copydoc Audio::setPaused */
-		void SetPaused(bool paused) ;
+		void SetPaused(bool paused);
 
 		/** @copydoc Audio::isPaused */
 		bool IsPaused() const { return mIsPaused; }
@@ -35,7 +35,7 @@ namespace bs
 		void UpdateInternal() override;
 
 		/** @copydoc Audio::setActiveDevice */
-		void SetActiveDevice(const AudioDevice& device) ;
+		void SetActiveDevice(const AudioDevice& device);
 
 		/** @copydoc Audio::getActiveDevice */
 		AudioDevice GetActiveDevice() const { return mActiveDevice; }
@@ -103,11 +103,10 @@ namespace bs
 		};
 
 		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-			const AUDIO_CLIP_DESC& desc) ;
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
 
 		/** @copydoc Audio::createListener */
-		SPtr<AudioListener> CreateListener() ;
+		SPtr<AudioListener> CreateListener();
 
 		/** @copydoc Audio::createSource */
 		SPtr<AudioSource> CreateSource() override;
@@ -156,4 +155,4 @@ namespace bs
 	OAAudio& gOAAudio();
 
 	/** @} */
-}
+} // namespace bs

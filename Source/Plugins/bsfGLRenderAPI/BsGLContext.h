@@ -4,30 +4,33 @@
 
 #include "BsGLPrerequisites.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**
-	 * Abstract class that encapsulated an OpenGL context. Each platform should provide its own GLContext specialization.
-	 */
-	class GLContext
+	namespace ct
 	{
-	public:
-		GLContext() = default;
-		virtual ~GLContext() = default;
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/**	Activates the rendering context (all subsequent rendering commands will be executed on it). */
-		virtual void SetCurrent(const RenderWindow& window) = 0;
+		/**
+		 * Abstract class that encapsulated an OpenGL context. Each platform should provide its own GLContext specialization.
+		 */
+		class GLContext
+		{
+		public:
+			GLContext() = default;
+			virtual ~GLContext() = default;
 
-		/**	Deactivates the rendering context. Normally called just before setCurrent is called on another context. */
-		virtual void EndCurrent() = 0;
+			/**	Activates the rendering context (all subsequent rendering commands will be executed on it). */
+			virtual void SetCurrent(const RenderWindow& window) = 0;
 
-		/**	Releases the render context, freeing all of its resources. */
-		virtual void ReleaseContext() {}
-	};
+			/**	Deactivates the rendering context. Normally called just before setCurrent is called on another context. */
+			virtual void EndCurrent() = 0;
 
-	/** @} */
-}}
+			/**	Releases the render context, freeing all of its resources. */
+			virtual void ReleaseContext() {}
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

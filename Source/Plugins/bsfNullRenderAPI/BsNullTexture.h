@@ -17,11 +17,11 @@ namespace bs
 	{
 	public:
 		/** @copydoc TextureManager::getNativeFormat */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) ;
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
 
-	protected:		
+	protected:
 		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) ;
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
 	};
 
 	namespace ct
@@ -31,12 +31,10 @@ namespace bs
 		{
 		protected:
 			/** @copydoc TextureManager::createTextureInternal */
-			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc,
-				const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/** @copydoc TextureManager::createRenderTextureInternal */
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
-				u32 deviceIdx = 0) ;
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
 		};
 
 		/**	Null implementation of a texture. */
@@ -48,28 +46,24 @@ namespace bs
 
 		protected:
 			/** @copydoc Texture::lockImpl */
-			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0,
-				u32 queueIdx = 0) ;
+			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0);
 
 			/** @copydoc Texture::unlockImpl */
-			void UnlockImpl() ;
+			void UnlockImpl();
 
 			/** @copydoc Texture::copyImpl */
-			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc,
-				const SPtr<CommandBuffer>& commandBuffer) { }
+			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) {}
 
 			/** @copydoc Texture::readData */
-			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0,
-				u32 queueIdx = 0) { }
+			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) {}
 
 			/** @copydoc Texture::writeData */
-			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false,
-				u32 queueIdx = 0) { }
+			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) {}
 
 		protected:
 			PixelData* mMappedBuffer = nullptr;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

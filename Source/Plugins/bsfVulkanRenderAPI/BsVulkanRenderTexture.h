@@ -35,33 +35,33 @@ namespace bs
 
 	namespace ct
 	{
-	/**
-	 * Vulkan implementation of a render texture.
-	 *
-	 * @note	Core thread only.
-	 */
-	class VulkanRenderTexture : public RenderTexture
-	{
-	public:
-		VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
-		virtual ~VulkanRenderTexture();
+		/**
+		 * Vulkan implementation of a render texture.
+		 *
+		 * @note	Core thread only.
+		 */
+		class VulkanRenderTexture : public RenderTexture
+		{
+		public:
+			VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
+			virtual ~VulkanRenderTexture();
 
-		/** @copydoc RenderTexture::getCustomAttribute */
-		void GetCustomAttribute(const String& name, void* data) const ;
+			/** @copydoc RenderTexture::getCustomAttribute */
+			void GetCustomAttribute(const String& name, void* data) const;
 
-	protected:
-		/** @copydoc CoreObject::Initialize() */
-		void Initialize() ;
+		protected:
+			/** @copydoc CoreObject::Initialize() */
+			void Initialize();
 
-		/** @copydoc RenderTexture::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
+			/** @copydoc RenderTexture::getProperties */
+			const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
 
-		RenderTextureProperties mProperties;
-		u32 mDeviceIdx;
-		VulkanFramebuffer* mFramebuffer;
-	};
-		
-	}
+			RenderTextureProperties mProperties;
+			u32 mDeviceIdx;
+			VulkanFramebuffer* mFramebuffer;
+		};
+
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

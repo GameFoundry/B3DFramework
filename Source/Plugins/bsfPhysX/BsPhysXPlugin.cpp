@@ -9,7 +9,7 @@ namespace bs
 	class BS_PLUGIN_EXPORT PhysXFactory : public PhysicsFactory
 	{
 	public:
-		void StartUp(bool cooking) 
+		void StartUp(bool cooking)
 		{
 			PHYSICS_INIT_DESC desc;
 			desc.InitCooking = cooking;
@@ -17,7 +17,7 @@ namespace bs
 			Physics::StartUp<PhysX>(desc);
 		}
 
-		void ShutDown() 
+		void ShutDown()
 		{
 			Physics::ShutDown();
 		}
@@ -32,4 +32,4 @@ namespace bs
 	{
 		bs_delete(instance);
 	}
-}
+} // namespace bs

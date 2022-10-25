@@ -9,209 +9,216 @@
 #include "BsRendererLight.h"
 #include "BsRendererReflectionProbe.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	struct SkyInfo;
-	struct SceneInfo;
-	class RendererViewGroup;
-
-	/** @addtogroup RenderBeast
-	 *  @{
-	 */
-
-	BS_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-	BS_PARAM_BLOCK_END
-
-	extern TiledLightingParamDef gTiledLightingParamDef;
-
-	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-	class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
+	namespace ct
 	{
-		RMAT_DEF_CUSTOMIZED("TiledDeferredLighting.bsl");
+		struct SkyInfo;
+		struct SceneInfo;
+		class RendererViewGroup;
 
-		/** Helper method used for initializing variations of this material. */
-		template<u32 msaa>
-		static const ShaderVariation& GetVariation()
+		/** @addtogroup RenderBeast
+		 *  @{
+		 */
+
+		BS_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
+			BS_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
+		BS_PARAM_BLOCK_END
+
+		extern TiledLightingParamDef gTiledLightingParamDef;
+
+		/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+		class TiledDeferredLightingMat : public RendererMaterial<TiledDeferredLightingMat>
 		{
-			static ShaderVariation variation = ShaderVariation(
+			RMAT_DEF_CUSTOMIZED("TiledDeferredLighting.bsl");
+
+			/** Helper method used for initializing variations of this material. */
+			template <u32 msaa>
+			static const ShaderVariation& GetVariation()
 			{
-				ShaderVariation::Param("MSAA_COUNT", msaa)
-			});
+				static ShaderVariation variation = ShaderVariation(
+					{ ShaderVariation::Param("MSAA_COUNT", msaa) });
 
-			return variation;
-		}
-	public:
-		TiledDeferredLightingMat();
+				return variation;
+			}
 
-		/** Binds the material for rendering, sets up parameters and executes it. */
-		void Execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer,
-			const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray,
-			const SPtr<Texture>& msaaCoverage);
+		public:
+			TiledDeferredLightingMat();
 
-		/** Returns the material variation matching the provided parameters. */
-		static TiledDeferredLightingMat* GetVariation(u32 msaaCount);
+			/** Binds the material for rendering, sets up parameters and executes it. */
+			void Execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
 
-	private:
-		u32 mSampleCount;
-		GBufferParams mGBufferParams;
+			/** Returns the material variation matching the provided parameters. */
+			static TiledDeferredLightingMat* GetVariation(u32 msaaCount);
 
-		GpuParamBuffer mLightBufferParam;
-		GpuParamLoadStoreTexture mOutputTextureParam;
+		private:
+			u32 mSampleCount;
+			GBufferParams mGBufferParams;
 
-		GpuParamTexture mInColorTextureParam;
-		GpuParamTexture mMSAACoverageTexParam;
+			GpuParamBuffer mLightBufferParam;
+			GpuParamLoadStoreTexture mOutputTextureParam;
 
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInColorTextureParam;
+			GpuParamTexture mMSAACoverageTexParam;
 
-		static const u32 TILE_SIZE;
-	};
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
 
-	/**
-	 * Moves data from a texture array into a MSAA texture. Primarily useful when needing to do unordered writes to a
-	 * MSAA texture which isn't directly supported on some backends, so writes are done to a texture array instead. The
-	 * array is expected to have the same number of layers as the number of samples in the MSAA texture, each layer
-	 * containing a sample for that specific pixel.
-	 */
-	class TextureArrayToMSAATexture : public RendererMaterial<TextureArrayToMSAATexture>
-	{
-		RMAT_DEF("TextureArrayToMSAATexture.bsl");
-
-	public:
-		TextureArrayToMSAATexture();
-
-		/** Binds the material for rendering, sets up parameters and executes it. */
-		void Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
-
-	private:
-		GpuParamTexture mInputParam;
-	};
-
-	BS_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gSize)
-		BS_PARAM_BLOCK_ENTRY(Vector4, gFloatClearVal)
-		BS_PARAM_BLOCK_ENTRY(Vector4I, gIntClearVal)
-	BS_PARAM_BLOCK_END
-
-	extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
-
-	/** Possible object types used as clear destinations by ClearLoadStoreMat. */
-	enum class ClearLoadStoreType { Texture, TextureArray, Buffer, StructuredBuffer };
-
-	/** Possible data types used in destination objects in ClearLoadStoreMat. */
-	enum class ClearLoadStoreDataType { Float, Int };
-
-	/** Clears the provided texture to zero, using a compute shader. */
-	class ClearLoadStoreMat : public RendererMaterial<ClearLoadStoreMat>
-	{
-		RMAT_DEF_CUSTOMIZED("ClearLoadStore.bsl");
-
-	public:
-		ClearLoadStoreMat();
-
-		/**
-		 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
-		 * this material intended for textures and texture arrays.
-		 */
-		void Execute(const SPtr<Texture>& target, const Color& clearValue = Color::ZERO,
-				const TextureSurface& surface = TextureSurface::COMPLETE);
-
-		/**
-		 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
-		 * this material intended for buffers.
-		 */
-		void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::ZERO);
-
-		/**
-		 * Returns the material variation matching the provided parameters.
-		 *
-		 * @param[in]		objType			Type of object used for clear source.
-		 * @param[in]		dataType		Base data type stored in the clear source object.
-		 * @param[in]		numComponents	Number of components in the source objects's data type (e.g. float2, float4).
-		 * 									In range [1, 4].
-		 * @return							Material variation matching the provided values.
-		 */
-		static ClearLoadStoreMat* GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType,
-				u32 numComponents);
-	private:
-		/** TILE_SIZE * TILE_SIZE is the number of pixels to process per thread. */
-		static constexpr u32 TILE_SIZE = 4;
-
-		/** Number of threads to launch per work group. */
-		static constexpr u32 NUM_THREADS = 128;
-
-		GpuParamLoadStoreTexture mOutputTextureParam;
-		GpuParamBuffer mOutputBufferParam;
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-	};
-
-	BS_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-	BS_PARAM_BLOCK_END
-
-	extern TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
-
-	/** Shader that performs a lighting pass over data stored in the Gbuffer. */
-	class TiledDeferredImageBasedLightingMat : public RendererMaterial<TiledDeferredImageBasedLightingMat>
-	{
-		RMAT_DEF_CUSTOMIZED("TiledDeferredImageBasedLighting.bsl");
-
-		/** Helper method used for initializing variations of this material. */
-		template<u32 msaa>
-		static const ShaderVariation& GetVariation()
-		{
-			static ShaderVariation variation = ShaderVariation(
-			{
-				ShaderVariation::Param("MSAA_COUNT", msaa)
-			});
-
-			return variation;
-		}
-	public:
-		/** Container for parameters to be passed to the execute() method. */
-		struct Inputs
-		{
-			GBufferTextures Gbuffer;
-			SPtr<Texture> LightAccumulation;
-			SPtr<Texture> SceneColorTex;
-			SPtr<Texture> SceneColorTexArray;
-			SPtr<Texture> PreIntegratedGf;
-			SPtr<Texture> AmbientOcclusion;
-			SPtr<Texture> Ssr;
-			SPtr<Texture> MsaaCoverage;
+			static const u32 TILE_SIZE;
 		};
 
-		TiledDeferredImageBasedLightingMat();
+		/**
+		 * Moves data from a texture array into a MSAA texture. Primarily useful when needing to do unordered writes to a
+		 * MSAA texture which isn't directly supported on some backends, so writes are done to a texture array instead. The
+		 * array is expected to have the same number of layers as the number of samples in the MSAA texture, each layer
+		 * containing a sample for that specific pixel.
+		 */
+		class TextureArrayToMSAATexture : public RendererMaterial<TextureArrayToMSAATexture>
+		{
+			RMAT_DEF("TextureArrayToMSAATexture.bsl");
 
-		/** Binds the material for rendering, sets up parameters and executes it. */
-		void Execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData,
-			const Inputs& inputs);
+		public:
+			TextureArrayToMSAATexture();
 
-		/** Returns the material variation matching the provided parameters. */
-		static TiledDeferredImageBasedLightingMat* GetVariation(u32 msaaCount);
+			/** Binds the material for rendering, sets up parameters and executes it. */
+			void Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
 
-	private:
-		u32 mSampleCount;
+		private:
+			GpuParamTexture mInputParam;
+		};
 
-		GpuParamTexture mGBufferA;
-		GpuParamTexture mGBufferB;
-		GpuParamTexture mGBufferC;
-		GpuParamTexture mGBufferDepth;
+		BS_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gSize)
+			BS_PARAM_BLOCK_ENTRY(Vector4, gFloatClearVal)
+			BS_PARAM_BLOCK_ENTRY(Vector4I, gIntClearVal)
+		BS_PARAM_BLOCK_END
 
-		GpuParamTexture mInColorTextureParam;
-		GpuParamTexture mMSAACoverageTexParam;
+		extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
 
-		ImageBasedLightingParams mImageBasedParams;
+		/** Possible object types used as clear destinations by ClearLoadStoreMat. */
+		enum class ClearLoadStoreType
+		{
+			Texture,
+			TextureArray,
+			Buffer,
+			StructuredBuffer
+		};
 
-		GpuParamLoadStoreTexture mOutputTextureParam;
+		/** Possible data types used in destination objects in ClearLoadStoreMat. */
+		enum class ClearLoadStoreDataType
+		{
+			Float,
+			Int
+		};
 
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		ReflProbeParamBuffer mReflProbeParamBuffer;
+		/** Clears the provided texture to zero, using a compute shader. */
+		class ClearLoadStoreMat : public RendererMaterial<ClearLoadStoreMat>
+		{
+			RMAT_DEF_CUSTOMIZED("ClearLoadStore.bsl");
 
-		static const u32 TILE_SIZE;
-	};
+		public:
+			ClearLoadStoreMat();
 
-	/** @} */
-}}
+			/**
+			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
+			 * this material intended for textures and texture arrays.
+			 */
+			void Execute(const SPtr<Texture>& target, const Color& clearValue = Color::ZERO, const TextureSurface& surface = TextureSurface::COMPLETE);
+
+			/**
+			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
+			 * this material intended for buffers.
+			 */
+			void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::ZERO);
+
+			/**
+			 * Returns the material variation matching the provided parameters.
+			 *
+			 * @param[in]		objType			Type of object used for clear source.
+			 * @param[in]		dataType		Base data type stored in the clear source object.
+			 * @param[in]		numComponents	Number of components in the source objects's data type (e.g. float2, float4).
+			 * 									In range [1, 4].
+			 * @return							Material variation matching the provided values.
+			 */
+			static ClearLoadStoreMat* GetVariation(ClearLoadStoreType objType, ClearLoadStoreDataType dataType, u32 numComponents);
+
+		private:
+			/** TILE_SIZE * TILE_SIZE is the number of pixels to process per thread. */
+			static constexpr u32 TILE_SIZE = 4;
+
+			/** Number of threads to launch per work group. */
+			static constexpr u32 NUM_THREADS = 128;
+
+			GpuParamLoadStoreTexture mOutputTextureParam;
+			GpuParamBuffer mOutputBufferParam;
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+		};
+
+		BS_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
+		BS_PARAM_BLOCK_END
+
+		extern TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
+
+		/** Shader that performs a lighting pass over data stored in the Gbuffer. */
+		class TiledDeferredImageBasedLightingMat : public RendererMaterial<TiledDeferredImageBasedLightingMat>
+		{
+			RMAT_DEF_CUSTOMIZED("TiledDeferredImageBasedLighting.bsl");
+
+			/** Helper method used for initializing variations of this material. */
+			template <u32 msaa>
+			static const ShaderVariation& GetVariation()
+			{
+				static ShaderVariation variation = ShaderVariation(
+					{ ShaderVariation::Param("MSAA_COUNT", msaa) });
+
+				return variation;
+			}
+
+		public:
+			/** Container for parameters to be passed to the execute() method. */
+			struct Inputs
+			{
+				GBufferTextures Gbuffer;
+				SPtr<Texture> LightAccumulation;
+				SPtr<Texture> SceneColorTex;
+				SPtr<Texture> SceneColorTexArray;
+				SPtr<Texture> PreIntegratedGf;
+				SPtr<Texture> AmbientOcclusion;
+				SPtr<Texture> Ssr;
+				SPtr<Texture> MsaaCoverage;
+			};
+
+			TiledDeferredImageBasedLightingMat();
+
+			/** Binds the material for rendering, sets up parameters and executes it. */
+			void Execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs);
+
+			/** Returns the material variation matching the provided parameters. */
+			static TiledDeferredImageBasedLightingMat* GetVariation(u32 msaaCount);
+
+		private:
+			u32 mSampleCount;
+
+			GpuParamTexture mGBufferA;
+			GpuParamTexture mGBufferB;
+			GpuParamTexture mGBufferC;
+			GpuParamTexture mGBufferDepth;
+
+			GpuParamTexture mInColorTextureParam;
+			GpuParamTexture mMSAACoverageTexParam;
+
+			ImageBasedLightingParams mImageBasedParams;
+
+			GpuParamLoadStoreTexture mOutputTextureParam;
+
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			ReflProbeParamBuffer mReflProbeParamBuffer;
+
+			static const u32 TILE_SIZE;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

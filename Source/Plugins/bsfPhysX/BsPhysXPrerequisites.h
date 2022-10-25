@@ -10,23 +10,23 @@
 
 namespace bs
 {
-/** @addtogroup Plugins
- *  @{
- */
+	/** @addtogroup Plugins
+	 *  @{
+	 */
 
-/** @defgroup PhysX bsfPhysX
- *	NVIDIA %PhysX implementation of framework's physics.
- *  @{
- */
+	/** @defgroup PhysX bsfPhysX
+	 *	NVIDIA %PhysX implementation of framework's physics.
+	 *  @{
+	 */
 
-/** @cond RTTI */
-/** @defgroup RTTI-Impl-PhysX RTTI types
- *  Types containing RTTI for specific classes.
- */
-/** @endcond */
+	/** @cond RTTI */
+	/** @defgroup RTTI-Impl-PhysX RTTI types
+	 *  Types containing RTTI for specific classes.
+	 */
+	/** @endcond */
 
-/** @} */
-/** @} */
+	/** @} */
+	/** @} */
 
 	class PhysXRigidbody;
 	class PhsyXMaterial;
@@ -98,4 +98,4 @@ namespace bs
 	BS_FLAGS_OPERATORS(PhysXObjectFilterFlag)
 
 	/** @} */
-}
+} // namespace bs

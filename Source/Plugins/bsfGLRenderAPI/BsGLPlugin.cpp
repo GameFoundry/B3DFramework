@@ -9,4 +9,4 @@ namespace bs
 	{
 		return ct::GLRenderAPIFactory::SystemName;
 	}
-}
+} // namespace bs

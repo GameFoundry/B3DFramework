@@ -6,8 +6,8 @@
 namespace bs
 {
 	FNullPhysicsJoint::FNullPhysicsJoint(const JOINT_DESC& desc)
-		:FJoint(desc), mDesc(desc)
-	{ }
+		: FJoint(desc), mDesc(desc)
+	{}
 
 	void FNullPhysicsJoint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
 	{
@@ -16,7 +16,7 @@ namespace bs
 	}
 
 	NullPhysicsD6Joint::NullPhysicsD6Joint(const D6_JOINT_DESC& desc)
-		:D6Joint(desc)
+		: D6Joint(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -39,7 +39,7 @@ namespace bs
 	}
 
 	NullPhysicsDistanceJoint::NullPhysicsDistanceJoint(const DISTANCE_JOINT_DESC& desc)
-		:DistanceJoint(desc)
+		: DistanceJoint(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -68,7 +68,7 @@ namespace bs
 	}
 
 	NullPhysicsFixedJoint::NullPhysicsFixedJoint(const FIXED_JOINT_DESC& desc)
-		:FixedJoint(desc)
+		: FixedJoint(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -79,7 +79,7 @@ namespace bs
 	}
 
 	NullPhysicsHingeJoint::NullPhysicsHingeJoint(const HINGE_JOINT_DESC& desc)
-		:HingeJoint(desc), mDesc(desc)
+		: HingeJoint(desc), mDesc(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -108,7 +108,7 @@ namespace bs
 	}
 
 	NullPhysicsSliderJoint::NullPhysicsSliderJoint(const SLIDER_JOINT_DESC& desc)
-		:SliderJoint(desc), mDesc(desc)
+		: SliderJoint(desc), mDesc(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -137,7 +137,7 @@ namespace bs
 	}
 
 	NullPhysicsSphericalJoint::NullPhysicsSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
-		:SphericalJoint(desc), mDesc(desc)
+		: SphericalJoint(desc), mDesc(desc)
 	{
 		mInternal = bs_new<FNullPhysicsJoint>(desc);
 	}
@@ -164,4 +164,4 @@ namespace bs
 	{
 		return ((int)mDesc.Flag & (int)flag) != 0;
 	}
-}
+} // namespace bs

@@ -5,18 +5,21 @@
 #include <windows.h>
 #include <BsGLPrerequisites.h>
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
+	namespace ct
+	{
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-	class Win32GLSupport;
-	class Win32Context;
-	class Win32RenderWindow;
+		class Win32GLSupport;
+		class Win32Context;
+		class Win32RenderWindow;
 
-	/**	Retrieves last Windows API error and returns a description of it. */
-	String translateWGLError();
+		/**	Retrieves last Windows API error and returns a description of it. */
+		String translateWGLError();
 
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

@@ -16,19 +16,18 @@ namespace bs
 	class PhysXMeshCollider : public MeshCollider
 	{
 	public:
-		PhysXMeshCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position,
-			const Quaternion& rotation);
+		PhysXMeshCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation);
 		~PhysXMeshCollider();
 
 		/** @copydoc MeshCollider::setScale */
-		void SetScale(const Vector3& scale) ;
+		void SetScale(const Vector3& scale);
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */
 		FPhysXCollider* GetInternal() const;
 
 		/** @copydoc MeshCollider::onMeshChanged */
-		void OnMeshChanged() ;
+		void OnMeshChanged();
 
 		/** Applies mesh geometry using the set mesh and scale. */
 		void ApplyGeometry();
@@ -38,4 +37,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

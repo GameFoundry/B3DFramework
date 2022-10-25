@@ -17,8 +17,7 @@ namespace bs
 
 	namespace ct
 	{
-		SPtr<Texture> NullTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData,
-			GpuDeviceFlags deviceMask)
+		SPtr<Texture> NullTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 		{
 			SPtr<NullTexture> texPtr = bs_shared_ptr_new<NullTexture>(desc, initialData, deviceMask);
 			texPtr->SetThisPtrInternal(texPtr);
@@ -36,7 +35,7 @@ namespace bs
 
 		NullTexture::NullTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 			: Texture(desc, initialData, deviceMask)
-		{ }
+		{}
 
 		NullTexture::~NullTexture()
 		{
@@ -63,5 +62,5 @@ namespace bs
 			bs_delete(mMappedBuffer);
 			mMappedBuffer = nullptr;
 		}
-	}
-}
+	} // namespace ct
+} // namespace bs

@@ -5,29 +5,33 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsRasterizerState.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** DirectX 11 implementation of a rasterizer state. Wraps a DX11 rasterizer state object. */
-	class D3D11RasterizerState : public RasterizerState
+	namespace ct
 	{
-	public:
-		~D3D11RasterizerState();
-		ID3D11RasterizerState* GetInternal() const { return mRasterizerState; }
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-	protected:
-		friend class D3D11RenderStateManager;
+		/** DirectX 11 implementation of a rasterizer state. Wraps a DX11 rasterizer state object. */
+		class D3D11RasterizerState : public RasterizerState
+		{
+		public:
+			~D3D11RasterizerState();
 
-		D3D11RasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id);
+			ID3D11RasterizerState* GetInternal() const { return mRasterizerState; }
 
-		/** @copydoc RasterizerState::createInternal */
-		void CreateInternal() ;
+		protected:
+			friend class D3D11RenderStateManager;
 
-		ID3D11RasterizerState* mRasterizerState = nullptr;
-	};
+			D3D11RasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id);
 
-	/** @} */
-}}
+			/** @copydoc RasterizerState::createInternal */
+			void CreateInternal();
+
+			ID3D11RasterizerState* mRasterizerState = nullptr;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

@@ -20,11 +20,11 @@ char* includePush(ParseState* state, const char* filename, int line, int column,
 
 	HShaderInclude include = ShaderManager::Instance().FindInclude(filenameNoQuote);
 
-	if (include != nullptr)
+	if(include != nullptr)
 		include.BlockUntilLoaded();
 
 	int filenameLen = (int)strlen(filenameNoQuote);
-	if (include.IsLoaded())
+	if(include.IsLoaded())
 	{
 		String includeSource = include->GetString();
 
@@ -35,7 +35,7 @@ char* includePush(ParseState* state, const char* filename, int line, int column,
 		output[*size - 2] = 0;
 		output[*size - 1] = 0;
 
-		int linkSize =  sizeof(IncludeLink) + sizeof(IncludeData) + filenameLen + 1;
+		int linkSize = sizeof(IncludeLink) + sizeof(IncludeData) + filenameLen + 1;
 		char* linkData = (char*)mmalloc(state->MemContext, linkSize);
 
 		IncludeLink* newLink = (IncludeLink*)linkData;
@@ -83,7 +83,7 @@ void includePop(ParseState* state)
 {
 	IncludeLink* current = state->IncludeStack;
 
-	if (!current)
+	if(!current)
 		return;
 
 	state->IncludeStack = current->Next;

@@ -5,41 +5,39 @@
 #include "BsD3D11Prerequisites.h"
 #include "Managers/BsHardwareBufferManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	Handles creation of DirectX 11 hardware buffers. */
-	class D3D11HardwareBufferManager : public HardwareBufferManager
+	namespace ct
 	{
-	public:
-		D3D11HardwareBufferManager(D3D11Device& device);
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-	protected:
-		/** @copydoc HardwareBufferManager::createVertexBufferInternal */
-		SPtr<VertexBuffer> CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc,
-			GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+		/**	Handles creation of DirectX 11 hardware buffers. */
+		class D3D11HardwareBufferManager : public HardwareBufferManager
+		{
+		public:
+			D3D11HardwareBufferManager(D3D11Device& device);
 
-		/** @copydoc HardwareBufferManager::createIndexBufferInternal */
-		SPtr<IndexBuffer> CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc,
-			GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+		protected:
+			/** @copydoc HardwareBufferManager::createVertexBufferInternal */
+			SPtr<VertexBuffer> CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc HardwareBufferManager::createGpuParamBlockBufferInternal  */
-		SPtr<GpuParamBlockBuffer> CreateGpuParamBlockBufferInternal(u32 size,
-			GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+			/** @copydoc HardwareBufferManager::createIndexBufferInternal */
+			SPtr<IndexBuffer> CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, GpuDeviceFlags) */
-		SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-			GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+			/** @copydoc HardwareBufferManager::createGpuParamBlockBufferInternal  */
+			SPtr<GpuParamBlockBuffer> CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
-		SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-			SPtr<HardwareBuffer> underlyingBuffer) ;
+			/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, GpuDeviceFlags) */
+			SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		D3D11Device& mDevice;
-	};
+			/** @copydoc HardwareBufferManager::createGpuBufferInternal(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
+			SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
-	/** @} */
-}}
+			D3D11Device& mDevice;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

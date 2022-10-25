@@ -7,121 +7,124 @@
 #include "Profiling/BsRenderStats.h"
 #include "Math/BsMath.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	D3D11OcclusionQuery::D3D11OcclusionQuery(bool binary, u32 deviceIdx)
-		:OcclusionQuery(binary)
+	namespace ct
 	{
-		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
-
-		D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-		D3D11Device& device = rs->GetPrimaryDevice();
-
-		D3D11_QUERY_DESC queryDesc;
-		queryDesc.Query = mBinary ? D3D11_QUERY_OCCLUSION_PREDICATE : D3D11_QUERY_OCCLUSION;
-		queryDesc.MiscFlags = 0;
-
-		HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mQuery);
-		if (hr != S_OK)
-			BS_EXCEPT(RenderingAPIException, "Failed to create an occlusion query.");
-
-		mContext = device.GetImmediateContext();
-
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
-	}
-
-	D3D11OcclusionQuery::~D3D11OcclusionQuery()
-	{
-		if (mQuery != nullptr)
-			mQuery->Release();
-
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
-	}
-
-	void D3D11OcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
-	{
-		auto execute = [&]()
+		D3D11OcclusionQuery::D3D11OcclusionQuery(bool binary, u32 deviceIdx)
+			: OcclusionQuery(binary)
 		{
-			mContext->Begin(mQuery);
+			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
 
-			mNumSamples = 0;
-			mQueryEndCalled = false;
+			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
+			D3D11Device& device = rs->GetPrimaryDevice();
 
-			SetActive(true);
-		};
+			D3D11_QUERY_DESC queryDesc;
+			queryDesc.Query = mBinary ? D3D11_QUERY_OCCLUSION_PREDICATE : D3D11_QUERY_OCCLUSION;
+			queryDesc.MiscFlags = 0;
 
-		if (cb == nullptr)
-			execute();
-		else
-		{
-			SPtr<D3D11CommandBuffer> d3d11CB = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-			d3d11CB->QueueCommand(execute);
-		}
-	}
+			HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mQuery);
+			if(hr != S_OK)
+				BS_EXCEPT(RenderingAPIException, "Failed to create an occlusion query.");
 
-	void D3D11OcclusionQuery::End(const SPtr<CommandBuffer>& cb)
-	{
-		auto execute = [&]()
-		{
-			mContext->End(mQuery);
+			mContext = device.GetImmediateContext();
 
-			mQueryEndCalled = true;
-			mFinalized = false;
-		};
-
-		if (cb == nullptr)
-			execute();
-		else
-		{
-			SPtr<D3D11CommandBuffer> d3d11CB = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-			d3d11CB->QueueCommand(execute);
-		}
-	}
-
-	bool D3D11OcclusionQuery::IsReady() const
-	{
-		if (!mQueryEndCalled)
-			return false;
-
-		if (mBinary)
-		{
-			BOOL anySamples = FALSE;
-			return mContext->GetData(mQuery, &anySamples, sizeof(anySamples), 0) == S_OK;
-		}
-		else
-		{
-			u64 numSamples = 0;
-			return mContext->GetData(mQuery, &numSamples, sizeof(numSamples), 0) == S_OK;
-		}
-	}
-
-	u32 D3D11OcclusionQuery::GetNumSamples()
-	{
-		if (!mFinalized && IsReady())
-		{
-			Finalize();
+			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 		}
 
-		return mNumSamples;
-	}
-
-	void D3D11OcclusionQuery::Finalize()
-	{
-		mFinalized = true;
-
-		if (mBinary)
+		D3D11OcclusionQuery::~D3D11OcclusionQuery()
 		{
-			BOOL anySamples = FALSE;
-			mContext->GetData(mQuery, &anySamples, sizeof(anySamples), 0);
+			if(mQuery != nullptr)
+				mQuery->Release();
 
-			mNumSamples = anySamples == TRUE ? 1 : 0;
+			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 		}
-		else
+
+		void D3D11OcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 		{
-			u64 numSamples = 0;
-			mContext->GetData(mQuery, &numSamples, sizeof(numSamples), 0);
+			auto execute = [&]()
+			{
+				mContext->Begin(mQuery);
 
-			mNumSamples = (u32)numSamples;
+				mNumSamples = 0;
+				mQueryEndCalled = false;
+
+				SetActive(true);
+			};
+
+			if(cb == nullptr)
+				execute();
+			else
+			{
+				SPtr<D3D11CommandBuffer> d3d11CB = std::static_pointer_cast<D3D11CommandBuffer>(cb);
+				d3d11CB->QueueCommand(execute);
+			}
 		}
-	}
-}}
+
+		void D3D11OcclusionQuery::End(const SPtr<CommandBuffer>& cb)
+		{
+			auto execute = [&]()
+			{
+				mContext->End(mQuery);
+
+				mQueryEndCalled = true;
+				mFinalized = false;
+			};
+
+			if(cb == nullptr)
+				execute();
+			else
+			{
+				SPtr<D3D11CommandBuffer> d3d11CB = std::static_pointer_cast<D3D11CommandBuffer>(cb);
+				d3d11CB->QueueCommand(execute);
+			}
+		}
+
+		bool D3D11OcclusionQuery::IsReady() const
+		{
+			if(!mQueryEndCalled)
+				return false;
+
+			if(mBinary)
+			{
+				BOOL anySamples = FALSE;
+				return mContext->GetData(mQuery, &anySamples, sizeof(anySamples), 0) == S_OK;
+			}
+			else
+			{
+				u64 numSamples = 0;
+				return mContext->GetData(mQuery, &numSamples, sizeof(numSamples), 0) == S_OK;
+			}
+		}
+
+		u32 D3D11OcclusionQuery::GetNumSamples()
+		{
+			if(!mFinalized && IsReady())
+			{
+				Finalize();
+			}
+
+			return mNumSamples;
+		}
+
+		void D3D11OcclusionQuery::Finalize()
+		{
+			mFinalized = true;
+
+			if(mBinary)
+			{
+				BOOL anySamples = FALSE;
+				mContext->GetData(mQuery, &anySamples, sizeof(anySamples), 0);
+
+				mNumSamples = anySamples == TRUE ? 1 : 0;
+			}
+			else
+			{
+				u64 numSamples = 0;
+				mContext->GetData(mQuery, &numSamples, sizeof(numSamples), 0);
+
+				mNumSamples = (u32)numSamples;
+			}
+		}
+	} // namespace ct
+} // namespace bs

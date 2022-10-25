@@ -5,32 +5,31 @@
 #include "BsVulkanPrerequisites.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Handles creation of Vulkan pipeline states. */
-	class VulkanRenderStateManager : public RenderStateManager
+	namespace ct
 	{
-	protected:
-		/** @copydoc RenderStateManager::createSamplerStateInternal */
-		SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc,
-			GpuDeviceFlags deviceMask) const ;
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** @copydoc RenderStateManager::CreateGraphicsPipelineStateInternal */
-		SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc,
-			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
+		/**	Handles creation of Vulkan pipeline states. */
+		class VulkanRenderStateManager : public RenderStateManager
+		{
+		protected:
+			/** @copydoc RenderStateManager::createSamplerStateInternal */
+			SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
 
-		/** @copydoc RenderStateManager::CreateComputePipelineStateInternal */
-		SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program,
-			GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
+			/** @copydoc RenderStateManager::CreateGraphicsPipelineStateInternal */
+			SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 
-		/** @copydoc RenderStateManager::CreatePipelineParamInfoInternal */
-		SPtr<GpuPipelineParamInfo> CreatePipelineParamInfoInternal(const GPU_PIPELINE_PARAMS_DESC& desc,
-			 GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
-	};
+			/** @copydoc RenderStateManager::CreateComputePipelineStateInternal */
+			SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 
-	/** @} */
-}}
+			/** @copydoc RenderStateManager::CreatePipelineParamInfoInternal */
+			SPtr<GpuPipelineParamInfo> CreatePipelineParamInfoInternal(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

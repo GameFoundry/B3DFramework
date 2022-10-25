@@ -5,31 +5,34 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsVertexBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Vulkan implementation of a vertex buffer. */
-	class VulkanVertexBuffer : public VertexBuffer
+	namespace ct
 	{
-	public:
-		VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-
-		/**
-		 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
-		 * doesn't include the provided device, null is returned.
+		/** @addtogroup Vulkan
+		 *  @{
 		 */
-		VulkanBuffer* GetResource(u32 deviceIdx) const;
 
-	protected:
-		/** @copydoc VertexBuffer::initialize */
-		void Initialize() override;
+		/**	Vulkan implementation of a vertex buffer. */
+		class VulkanVertexBuffer : public VertexBuffer
+		{
+		public:
+			VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-	private:
-		GpuDeviceFlags mDeviceMask;
-	};
+			/**
+			 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
+			 * doesn't include the provided device, null is returned.
+			 */
+			VulkanBuffer* GetResource(u32 deviceIdx) const;
 
-	/** @} */
-}}
+		protected:
+			/** @copydoc VertexBuffer::initialize */
+			void Initialize() override;
+
+		private:
+			GpuDeviceFlags mDeviceMask;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

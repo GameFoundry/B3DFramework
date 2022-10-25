@@ -36,7 +36,7 @@ namespace bs
 		~FNullPhysicsMesh() = default;
 
 		/** @copydoc PhysicsMesh::getMeshData */
-		SPtr<MeshData> GetMeshData() const ;
+		SPtr<MeshData> GetMeshData() const;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -50,4 +50,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

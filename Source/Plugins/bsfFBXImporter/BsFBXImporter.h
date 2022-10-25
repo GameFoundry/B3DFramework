@@ -26,22 +26,23 @@ namespace bs
 		virtual ~FBXImporter() = default;
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool IsExtensionSupported(const String& ext) const ;
+		bool IsExtensionSupported(const String& ext) const;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const ;
+		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
 
 		/** @copydoc SpecificImporter::getAsyncMode */
 		ImporterAsyncMode GetAsyncMode() const { return ImporterAsyncMode::Single; }
 
 		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) ;
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
 
 		/** @copydoc SpecificImporter::importAll */
-		Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions) ;
+		Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions);
 
 		/** @copydoc SpecificImporter::createImportOptions */
-		SPtr<ImportOptions> CreateImportOptions() const ;
+		SPtr<ImportOptions> CreateImportOptions() const;
+
 	private:
 		/**
 		 * Starts up FBX SDK. Must be called before any other operations. Outputs an FBX manager and FBX scene instances
@@ -55,9 +56,7 @@ namespace bs
 		/**
 		 * Reads the FBX file and outputs mesh data from the read file. Sub-mesh information will be output in @p subMeshes.
 		 */
-		SPtr<RendererMeshData> ImportMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions,
-			Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton,
-			SPtr<MorphShapes>& morphShapes);
+		SPtr<RendererMeshData> ImportMeshData(const Path& filePath, SPtr<const ImportOptions> importOptions, Vector<SubMesh>& subMeshes, Vector<FBXAnimationClipData>& animationClips, SPtr<Skeleton>& skeleton, SPtr<MorphShapes>& morphShapes);
 
 		/**
 		 * Loads the data from the file at the provided path into the provided FBX scene. Returns false if the file
@@ -99,20 +98,17 @@ namespace bs
 		 * Imports all animations for the specified animation layer and outputs them in the provided clip. Child nodes will
 		 * be iterated recursively.
 		 */
-		void ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImportOptions& importOptions,
-			FBXAnimationClip& clip, FBXImportScene& importScene);
+		void ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImportOptions& importOptions, FBXAnimationClip& clip, FBXImportScene& importScene);
 
 		/** Bakes all FBX node transforms into standard translation-rotation-scale transform components. */
 		void BakeTransforms(FbxScene* scene);
 
 		/**	Converts a single FBX animation curve into an engine curve format, resampling it if necessary. */
-		template<class T, int C>
-		TAnimationCurve<T> ImportCurve(FbxAnimCurve*(&fbxCurve)[C], float(&defaultValues)[C],
-			FBXImportOptions& importOptions, float clipStart, float clipEnd);
+		template <class T, int C>
+		TAnimationCurve<T> ImportCurve(FbxAnimCurve* (&fbxCurve)[C], float (&defaultValues)[C], FBXImportOptions& importOptions, float clipStart, float clipEnd);
 
 		/** Converts FBX animation clips into engine-ready animation curve format. */
-		void ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits,
-			const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
+		void ConvertAnimations(const Vector<FBXAnimationClip>& clips, const Vector<AnimationSplitInfo>& splits, const SPtr<Skeleton>& skeleton, bool importRootMotion, Vector<FBXAnimationClipData>& output);
 
 		/**
 		 * Removes identical sequential keyframes for the provided set of curves. The keyframe must be identical over all
@@ -123,7 +119,7 @@ namespace bs
 		/**
 		 * Converts all the meshes from per-index attributes to per-vertex attributes.
 		 *
-		 * @note	
+		 * @note
 		 * This method will replace all meshes in the scene with new ones, and delete old ones so be sure not to keep any
 		 * mesh references.
 		 */
@@ -137,8 +133,7 @@ namespace bs
 		void GenerateMissingTangentSpace(FBXImportScene& scene, const FBXImportOptions& options);
 
 		/** Converts the mesh data from the imported FBX scene into mesh data that can be used for initializing a mesh. */
-		SPtr<RendererMeshData> GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options,
-			Vector<SubMesh>& outputSubMeshes);
+		SPtr<RendererMeshData> GenerateMeshData(const FBXImportScene& scene, const FBXImportOptions& options, Vector<SubMesh>& outputSubMeshes);
 
 		/**
 		 * Parses the scene and outputs a skeleton for the imported meshes using the imported raw data.
@@ -162,4 +157,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

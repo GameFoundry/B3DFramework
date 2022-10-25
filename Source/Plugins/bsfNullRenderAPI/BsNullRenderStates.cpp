@@ -2,38 +2,40 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsNullRenderStates.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<SamplerState> NullRenderStateManager::CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc,
-		GpuDeviceFlags deviceMask) const
+	namespace ct
 	{
-		SPtr<NullSamplerState> ret = bs_shared_ptr_new<NullSamplerState>(desc, deviceMask);
-		ret->SetThisPtrInternal(ret);
+		SPtr<SamplerState> NullRenderStateManager::CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
+		{
+			SPtr<NullSamplerState> ret = bs_shared_ptr_new<NullSamplerState>(desc, deviceMask);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
+			return ret;
+		}
 
-	SPtr<BlendState> NullRenderStateManager::CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, u32 id) const
-	{
-		SPtr<NullBlendState> ret = bs_shared_ptr_new<NullBlendState>(desc, id);
-		ret->SetThisPtrInternal(ret);
+		SPtr<BlendState> NullRenderStateManager::CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, u32 id) const
+		{
+			SPtr<NullBlendState> ret = bs_shared_ptr_new<NullBlendState>(desc, id);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
+			return ret;
+		}
 
-	SPtr<RasterizerState> NullRenderStateManager::CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, u32 id) const
-	{
-		SPtr<NullRasterizerState> ret = bs_shared_ptr_new<NullRasterizerState>(desc, id);
-		ret->SetThisPtrInternal(ret);
+		SPtr<RasterizerState> NullRenderStateManager::CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, u32 id) const
+		{
+			SPtr<NullRasterizerState> ret = bs_shared_ptr_new<NullRasterizerState>(desc, id);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
+			return ret;
+		}
 
-	SPtr<DepthStencilState> NullRenderStateManager::CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, u32 id) const
-	{
-		SPtr<NullDepthStencilState> ret = bs_shared_ptr_new<NullDepthStencilState>(desc, id);
-		ret->SetThisPtrInternal(ret);
+		SPtr<DepthStencilState> NullRenderStateManager::CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, u32 id) const
+		{
+			SPtr<NullDepthStencilState> ret = bs_shared_ptr_new<NullDepthStencilState>(desc, id);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
-}}
+			return ret;
+		}
+	} // namespace ct
+} // namespace bs

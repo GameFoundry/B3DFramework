@@ -5,28 +5,31 @@
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsEventQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/** @copydoc EventQuery */
-	class GLEventQuery : public EventQuery
+	namespace ct
 	{
-	public:
-		GLEventQuery(u32 deviceIdx);
-		~GLEventQuery();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc EventQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) ;
+		/** @copydoc EventQuery */
+		class GLEventQuery : public EventQuery
+		{
+		public:
+			GLEventQuery(u32 deviceIdx);
+			~GLEventQuery();
 
-		/** @copydoc EventQuery::isReady */
-		bool IsReady() const ;
+			/** @copydoc EventQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
 
-	private:
-		GLuint mQueryObj = 0;
-	};
+			/** @copydoc EventQuery::isReady */
+			bool IsReady() const;
 
-	/** @} */
-}}
+		private:
+			GLuint mQueryObj = 0;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

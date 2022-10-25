@@ -5,39 +5,42 @@
 #include "BsGLContext.h"
 #include <GL/glxew.h>
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	Linux specific implementation of an OpenGL context. */
-	class LinuxContext : public GLContext
+	namespace ct
 	{
-	public:
-		/**
-		 * Constructs a new OpenGL context.
-		 *
-		 * @param[in] 	x11display 		X11 display all windows using this context will be created with.
-		 * @param[in]	visualInfo		X11 visual info describing properties of all windows that will use this context.
-		 **/
-		LinuxContext(::Display* x11display, XVisualInfo& visualInfo);
-		virtual ~LinuxContext();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc GLContext::setCurrent */
-		void setCurrent(const RenderWindow& window) override;
+		/**	Linux specific implementation of an OpenGL context. */
+		class LinuxContext : public GLContext
+		{
+		public:
+			/**
+			 * Constructs a new OpenGL context.
+			 *
+			 * @param[in] 	x11display 		X11 display all windows using this context will be created with.
+			 * @param[in]	visualInfo		X11 visual info describing properties of all windows that will use this context.
+			 **/
+			LinuxContext(::Display* x11display, XVisualInfo& visualInfo);
+			virtual ~LinuxContext();
 
-		/** @copydoc GLContext::endCurrent */
-		void endCurrent() override;
+			/** @copydoc GLContext::setCurrent */
+			void setCurrent(const RenderWindow& window) override;
 
-		/** @copydoc GLContext::releaseContext  */
-		void releaseContext() override;
+			/** @copydoc GLContext::endCurrent */
+			void endCurrent() override;
 
-	protected:
-		::Display* mDisplay;
-		::Window mCurrentWindow = 0;
-		GLXContext mContext = 0;
-	};
+			/** @copydoc GLContext::releaseContext  */
+			void releaseContext() override;
 
-	/** @} */
-}}
+		protected:
+			::Display* mDisplay;
+			::Window mCurrentWindow = 0;
+			GLXContext mContext = 0;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

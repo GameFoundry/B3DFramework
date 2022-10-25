@@ -5,44 +5,47 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsOcclusionQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** @copydoc OcclusionQuery */
-	class D3D11OcclusionQuery : public OcclusionQuery
+	namespace ct
 	{
-	public:
-		D3D11OcclusionQuery(bool binary, u32 deviceIdx);
-		~D3D11OcclusionQuery();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/** @copydoc OcclusionQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) ;
+		/** @copydoc OcclusionQuery */
+		class D3D11OcclusionQuery : public OcclusionQuery
+		{
+		public:
+			D3D11OcclusionQuery(bool binary, u32 deviceIdx);
+			~D3D11OcclusionQuery();
 
-		/** @copydoc OcclusionQuery::end */
-		void End(const SPtr<CommandBuffer>& cb = nullptr) ;
+			/** @copydoc OcclusionQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc OcclusionQuery::isReady */
-		bool IsReady() const ;
+			/** @copydoc OcclusionQuery::end */
+			void End(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc OcclusionQuery::getNumSamples */
-		u32 GetNumSamples() ;
+			/** @copydoc OcclusionQuery::isReady */
+			bool IsReady() const;
 
-	private:
-		friend class QueryManager;
+			/** @copydoc OcclusionQuery::getNumSamples */
+			u32 GetNumSamples();
 
-		/** Resolves query results after it is ready. */
-		void Finalize();
+		private:
+			friend class QueryManager;
 
-		ID3D11Query* mQuery = nullptr;
-		ID3D11DeviceContext* mContext = nullptr;
-		bool mFinalized = false;
-		bool mQueryEndCalled = false;
+			/** Resolves query results after it is ready. */
+			void Finalize();
 
-		u32 mNumSamples = 0;
-	};
+			ID3D11Query* mQuery = nullptr;
+			ID3D11DeviceContext* mContext = nullptr;
+			bool mFinalized = false;
+			bool mQueryEndCalled = false;
 
-	/** @} */
-}}
+			u32 mNumSamples = 0;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

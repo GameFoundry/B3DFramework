@@ -38,13 +38,13 @@ namespace bs
 			AddDataBlockField("mCookedData", 0, &FPhysXMeshRTTI::GetCookedData, &FPhysXMeshRTTI::SetCookedData);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) 
+		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
 		{
 			FPhysXMesh* mesh = static_cast<FPhysXMesh*>(obj);
 			mesh->Initialize();
 		}
 
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "FPhysXMesh";
 			return name;
@@ -55,7 +55,7 @@ namespace bs
 			return TID_FPhysXMesh;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<FPhysXMesh>();
 		}
@@ -63,4 +63,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

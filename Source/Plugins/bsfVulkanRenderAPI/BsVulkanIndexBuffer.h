@@ -5,31 +5,34 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsIndexBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Vulkan implementation of an index buffer. */
-	class VulkanIndexBuffer : public IndexBuffer
+	namespace ct
 	{
-	public:
-		VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-
-		/**
-		 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
-		 * doesn't include the provided device, null is returned.
+		/** @addtogroup Vulkan
+		 *  @{
 		 */
-		VulkanBuffer* GetResource(u32 deviceIdx) const;
 
-	protected:
-		/** @copydoc IndexBuffer::initialize */
-		void Initialize() ;
+		/**	Vulkan implementation of an index buffer. */
+		class VulkanIndexBuffer : public IndexBuffer
+		{
+		public:
+			VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-	private:
-		GpuDeviceFlags mDeviceMask;
-	};
+			/**
+			 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
+			 * doesn't include the provided device, null is returned.
+			 */
+			VulkanBuffer* GetResource(u32 deviceIdx) const;
 
-	/** @} */
-}}
+		protected:
+			/** @copydoc IndexBuffer::initialize */
+			void Initialize();
+
+		private:
+			GpuDeviceFlags mDeviceMask;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

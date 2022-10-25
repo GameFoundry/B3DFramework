@@ -5,24 +5,26 @@
 #include "BsGLPrerequisites.h"
 #include "Managers/BsCommandBufferManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**
-	 * Handles creation of OpenGL command buffers. See CommandBuffer.
-	 *
-	 * @note Core thread only.
-	 */
-	class GLCommandBufferManager : public CommandBufferManager
+	namespace ct
 	{
-	public:
-		/** @copydoc CommandBufferManager::createInternal() */
-		SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0,
-			bool secondary = false) ;
-	};
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-	/** @} */
-}}
+		/**
+		 * Handles creation of OpenGL command buffers. See CommandBuffer.
+		 *
+		 * @note Core thread only.
+		 */
+		class GLCommandBufferManager : public CommandBufferManager
+		{
+		public:
+			/** @copydoc CommandBufferManager::createInternal() */
+			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

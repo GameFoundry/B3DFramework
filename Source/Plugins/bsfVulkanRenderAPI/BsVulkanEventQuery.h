@@ -6,48 +6,52 @@
 #include "BsVulkanResource.h"
 #include "RenderAPI/BsEventQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** Wrapper around a Vulkan event object that manages its usage and lifetime. */
-	class VulkanEvent : public VulkanResource
+	namespace ct
 	{
-	public:
-		VulkanEvent(VulkanResourceManager* owner);
-		~VulkanEvent();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** Returns the internal handle to the Vulkan object. */
-		VkEvent GetHandle() const { return mEvent; }
+		/** Wrapper around a Vulkan event object that manages its usage and lifetime. */
+		class VulkanEvent : public VulkanResource
+		{
+		public:
+			VulkanEvent(VulkanResourceManager* owner);
+			~VulkanEvent();
 
-		/** Checks if the event has been signaled on the device. */
-		bool IsSignaled() const;
+			/** Returns the internal handle to the Vulkan object. */
+			VkEvent GetHandle() const { return mEvent; }
 
-		/** Resets an event back to unsignaled state, making it re-usable. */
-		void Reset();
-	private:
-		VkEvent mEvent;
-	};
+			/** Checks if the event has been signaled on the device. */
+			bool IsSignaled() const;
 
-	/** @copydoc EventQuery */
-	class VulkanEventQuery : public EventQuery
-	{
-	public:
-		VulkanEventQuery(VulkanDevice& device);
-		~VulkanEventQuery();
+			/** Resets an event back to unsignaled state, making it re-usable. */
+			void Reset();
 
-		/** @copydoc EventQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb) ;
+		private:
+			VkEvent mEvent;
+		};
 
-		/** @copydoc EventQuery::isReady */
-		bool IsReady() const override;
+		/** @copydoc EventQuery */
+		class VulkanEventQuery : public EventQuery
+		{
+		public:
+			VulkanEventQuery(VulkanDevice& device);
+			~VulkanEventQuery();
 
-	private:
-		VulkanDevice& mDevice;
-		VulkanEvent* mEvent;
-	};
+			/** @copydoc EventQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb);
 
-	/** @} */
-}}
+			/** @copydoc EventQuery::isReady */
+			bool IsReady() const override;
+
+		private:
+			VulkanDevice& mDevice;
+			VulkanEvent* mEvent;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

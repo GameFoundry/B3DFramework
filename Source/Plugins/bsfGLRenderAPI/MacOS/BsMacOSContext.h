@@ -15,6 +15,7 @@ namespace bs::ct
 	class MacOSContext : public GLContext
 	{
 		struct Pimpl;
+
 	public:
 		/**
 		 * Constructs a new OpenGL context.
@@ -60,5 +61,4 @@ namespace bs::ct
 	};
 
 	/** @} */
-}
-
+} // namespace bs::ct

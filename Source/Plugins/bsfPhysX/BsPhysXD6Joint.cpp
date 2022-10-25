@@ -66,7 +66,7 @@ namespace bs
 
 	D6JointMotion fromPxMotion(PxD6Motion::Enum motion)
 	{
-		switch (motion)
+		switch(motion)
 		{
 		default:
 		case PxD6Motion::eFREE:
@@ -78,10 +78,9 @@ namespace bs
 		}
 	}
 
-
 	D6JointDriveType fromPxDrive(PxD6Drive::Enum drive)
 	{
-		switch (drive)
+		switch(drive)
 		{
 		default:
 		case PxD6Drive::eX:
@@ -100,14 +99,14 @@ namespace bs
 	}
 
 	PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6_JOINT_DESC& desc)
-		:D6Joint(desc)
+		: D6Joint(desc)
 	{
 		PxRigidActor* actor0 = nullptr;
-		if (desc.Bodies[0].Body != nullptr)
+		if(desc.Bodies[0].Body != nullptr)
 			actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
 
 		PxRigidActor* actor1 = nullptr;
-		if (desc.Bodies[1].Body != nullptr)
+		if(desc.Bodies[1].Body != nullptr)
 			actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
 
 		PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
@@ -119,10 +118,10 @@ namespace bs
 		mInternal = bs_new<FPhysXJoint>(joint, desc);
 
 		// Calls to virtual methods are okay here
-		for (u32 i = 0; i < (u32)D6JointAxis::Count; i++)
+		for(u32 i = 0; i < (u32)D6JointAxis::Count; i++)
 			SetMotion((D6JointAxis)i, desc.Motion[i]);
 
-		for (u32 i = 0; i < (u32)D6JointDriveType::Count; i++)
+		for(u32 i = 0; i < (u32)D6JointDriveType::Count; i++)
 			SetDrive((D6JointDriveType)i, desc.Drive[i]);
 
 		SetLimitLinear(desc.LimitLinear);
@@ -308,4 +307,4 @@ namespace bs
 
 		return static_cast<PxD6Joint*>(internal->GetInternalInternal());
 	}
-}
+} // namespace bs

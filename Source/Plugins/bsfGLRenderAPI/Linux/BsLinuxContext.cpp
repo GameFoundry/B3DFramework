@@ -4,125 +4,128 @@
 #include "Private/Linux/BsLinuxPlatform.h"
 #include "Linux/BsLinuxGLSupport.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	typedef int(*ErrorHandlerProc)(::Display*, XErrorEvent*);
-	int contextErrorHandler(::Display* display, XErrorEvent* error)
+	namespace ct
 	{
-		// Do nothing
-		return 0;
-	}
+		typedef int (*ErrorHandlerProc)(::Display*, XErrorEvent*);
 
-	LinuxContext::LinuxContext(::Display* display, XVisualInfo& visualInfo)
-	: mDisplay(display)
-	{
-		LinuxPlatform::lockX();
-
-		i32 dummy;
-		XVisualInfo* windowVisualInfo = XGetVisualInfo(display, VisualIDMask | VisualScreenMask, &visualInfo, &dummy);
-
-		i32 majorVersion, minorVersion;
-		glXQueryVersion(display, &majorVersion, &minorVersion);
-
-		GLXContext context = 0;
-
-		// createContextAttrib was added in GLX version 1.3
-		bool hasCreateContextAttrib = extGLX_ARB_create_context && (majorVersion > 1 || minorVersion >= 3);
-		if(hasCreateContextAttrib)
+		int contextErrorHandler(::Display* display, XErrorEvent* error)
 		{
-			// Find the config used to create the window's visual
-			GLXFBConfig* windowConfig = nullptr;
+			// Do nothing
+			return 0;
+		}
 
-			i32 numConfigs;
-			GLXFBConfig* configs = glXChooseFBConfig(display, DefaultScreen(display), nullptr, &numConfigs);
+		LinuxContext::LinuxContext(::Display* display, XVisualInfo& visualInfo)
+			: mDisplay(display)
+		{
+			LinuxPlatform::lockX();
 
-			for (i32 i = 0; i < numConfigs; ++i)
+			i32 dummy;
+			XVisualInfo* windowVisualInfo = XGetVisualInfo(display, VisualIDMask | VisualScreenMask, &visualInfo, &dummy);
+
+			i32 majorVersion, minorVersion;
+			glXQueryVersion(display, &majorVersion, &minorVersion);
+
+			GLXContext context = 0;
+
+			// createContextAttrib was added in GLX version 1.3
+			bool hasCreateContextAttrib = extGLX_ARB_create_context && (majorVersion > 1 || minorVersion >= 3);
+			if(hasCreateContextAttrib)
 			{
-				XVisualInfo* configVisualInfo = glXGetVisualFromFBConfig(display, configs[i]);
+				// Find the config used to create the window's visual
+				GLXFBConfig* windowConfig = nullptr;
 
-				if(!configVisualInfo)
-					continue;
+				i32 numConfigs;
+				GLXFBConfig* configs = glXChooseFBConfig(display, DefaultScreen(display), nullptr, &numConfigs);
 
-				if(windowVisualInfo->visualid == configVisualInfo->visualid)
+				for(i32 i = 0; i < numConfigs; ++i)
 				{
-					windowConfig = &configs[i];
-					break;
+					XVisualInfo* configVisualInfo = glXGetVisualFromFBConfig(display, configs[i]);
+
+					if(!configVisualInfo)
+						continue;
+
+					if(windowVisualInfo->visualid == configVisualInfo->visualid)
+					{
+						windowConfig = &configs[i];
+						break;
+					}
 				}
-			}
 
-			if(windowConfig)
-			{
-				int32_t attributes[] =
+				if(windowConfig)
 				{
-					GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-					GLX_CONTEXT_MINOR_VERSION_ARB, 5,
-					0, 0, // Core profile
-					0, 0, // Debug flags
-					0 // Terminator
-				};
+					int32_t attributes[] = {
+						GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+						GLX_CONTEXT_MINOR_VERSION_ARB, 5,
+						0, 0, // Core profile
+						0, 0, // Debug flags
+						0 // Terminator
+					};
 
-				if(extGLX_ARB_create_context_profile)
-				{
-					attributes[4] = GLX_CONTEXT_PROFILE_MASK_ARB;
-					attributes[5] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
-				}
+					if(extGLX_ARB_create_context_profile)
+					{
+						attributes[4] = GLX_CONTEXT_PROFILE_MASK_ARB;
+						attributes[5] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+					}
 
 #if BS_DEBUG_MODE
 					attributes[6] = GLX_CONTEXT_FLAGS_ARB;
 					attributes[7] = GLX_CONTEXT_DEBUG_BIT_ARB;
 #endif
 
-				// Add error handler so the application doesn't crash on error
-				ErrorHandlerProc oldErrorHandler = XSetErrorHandler(&contextErrorHandler);
-				context = glXCreateContextAttribsARB(display, *windowConfig, 0, True, attributes);
-				XSetErrorHandler(oldErrorHandler);
+					// Add error handler so the application doesn't crash on error
+					ErrorHandlerProc oldErrorHandler = XSetErrorHandler(&contextErrorHandler);
+					context = glXCreateContextAttribsARB(display, *windowConfig, 0, True, attributes);
+					XSetErrorHandler(oldErrorHandler);
+				}
+
+				XFree(configs);
 			}
 
-			XFree(configs);
-		}
+			// If createContextAttribs failed or isn't supported, fall back to glXCreateContext
+			if(!context)
+				context = glXCreateContext(display, windowVisualInfo, 0, True);
 
-		// If createContextAttribs failed or isn't supported, fall back to glXCreateContext
-		if(!context)
-			context = glXCreateContext(display, windowVisualInfo, 0, True);
+			XFree(windowVisualInfo);
 
-		XFree(windowVisualInfo);
-
-		mContext = context;
-
-		LinuxPlatform::unlockX();
-	}
-
-	LinuxContext::~LinuxContext()
-	{
-		releaseContext();
-	}
-
-	void LinuxContext::setCurrent(const RenderWindow& window)
-	{
-		window.getCustomAttribute("WINDOW", &mCurrentWindow);
-
-		LinuxPlatform::lockX();
-		glXMakeCurrent(mDisplay, mCurrentWindow, mContext);
-		LinuxPlatform::unlockX();
-	}
-
-	void LinuxContext::endCurrent()
-	{
-		LinuxPlatform::lockX();
-		glXMakeCurrent(mDisplay, 0, 0);
-		LinuxPlatform::unlockX();
-	}
-
-	void LinuxContext::releaseContext()
-	{
-		if (mContext)
-		{
-			LinuxPlatform::lockX();
-
-			glXDestroyContext(mDisplay, mContext);
-			mContext = 0;
+			mContext = context;
 
 			LinuxPlatform::unlockX();
 		}
-	}
-}}
+
+		LinuxContext::~LinuxContext()
+		{
+			releaseContext();
+		}
+
+		void LinuxContext::setCurrent(const RenderWindow& window)
+		{
+			window.getCustomAttribute("WINDOW", &mCurrentWindow);
+
+			LinuxPlatform::lockX();
+			glXMakeCurrent(mDisplay, mCurrentWindow, mContext);
+			LinuxPlatform::unlockX();
+		}
+
+		void LinuxContext::endCurrent()
+		{
+			LinuxPlatform::lockX();
+			glXMakeCurrent(mDisplay, 0, 0);
+			LinuxPlatform::unlockX();
+		}
+
+		void LinuxContext::releaseContext()
+		{
+			if(mContext)
+			{
+				LinuxPlatform::lockX();
+
+				glXDestroyContext(mDisplay, mContext);
+				mContext = 0;
+
+				LinuxPlatform::unlockX();
+			}
+		}
+	} // namespace ct
+} // namespace bs

@@ -5,24 +5,26 @@
 #include "BsD3D11Prerequisites.h"
 #include "Managers/BsCommandBufferManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**
-	 * Handles creation of DirectX 11 command buffers. See CommandBuffer.
-	 *
-	 * @note Core thread only.
-	 */
-	class D3D11CommandBufferManager : public CommandBufferManager
+	namespace ct
 	{
-	public:
-		/** @copydoc CommandBufferManager::createInternal() */
-		SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0,
-			bool secondary = false) ;
-	};
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-	/** @} */
-}}
+		/**
+		 * Handles creation of DirectX 11 command buffers. See CommandBuffer.
+		 *
+		 * @note Core thread only.
+		 */
+		class D3D11CommandBufferManager : public CommandBufferManager
+		{
+		public:
+			/** @copydoc CommandBufferManager::createInternal() */
+			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

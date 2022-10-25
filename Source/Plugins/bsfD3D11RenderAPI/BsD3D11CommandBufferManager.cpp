@@ -3,12 +3,14 @@
 #include "BsD3D11CommandBufferManager.h"
 #include "BsD3D11CommandBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<CommandBuffer> D3D11CommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx,
-		u32 queueIdx, bool secondary)
+	namespace ct
 	{
-		CommandBuffer* buffer = new (bs_alloc<D3D11CommandBuffer>()) D3D11CommandBuffer(type, deviceIdx, queueIdx, secondary);
-		return bs_shared_ptr(buffer);
-	}
-}}
+		SPtr<CommandBuffer> D3D11CommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
+		{
+			CommandBuffer* buffer = new(bs_alloc<D3D11CommandBuffer>()) D3D11CommandBuffer(type, deviceIdx, queueIdx, secondary);
+			return bs_shared_ptr(buffer);
+		}
+	} // namespace ct
+} // namespace bs

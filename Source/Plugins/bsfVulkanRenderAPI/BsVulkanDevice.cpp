@@ -10,382 +10,382 @@
 #define VMA_IMPLEMENTATION
 #include "ThirdParty/vk_mem_alloc.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
-		: mPhysicalDevice(device), mDeviceIdx(deviceIdx), mQueueInfos()
+	namespace ct
 	{
-		// Set to default
-		for (u32 i = 0; i < GQT_COUNT; i++)
-			mQueueInfos[i].FamilyIdx = (u32)-1;
-
-		vkGetPhysicalDeviceProperties(device, &mDeviceProperties);
-		vkGetPhysicalDeviceFeatures(device, &mDeviceFeatures);
-		vkGetPhysicalDeviceMemoryProperties(device, &mMemoryProperties);
-
-		uint32_t numQueueFamilies;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, nullptr);
-
-		Vector<VkQueueFamilyProperties> queueFamilyProperties(numQueueFamilies);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.data());
-
-		// Create queues
-		const float defaultQueuePriorities[BS_MAX_QUEUES_PER_TYPE] = { 0.0f };
-		Vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-
-		auto populateQueueInfo = [&](GpuQueueType type, uint32_t familyIdx)
+		VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
+			: mPhysicalDevice(device), mDeviceIdx(deviceIdx), mQueueInfos()
 		{
-			queueCreateInfos.push_back(VkDeviceQueueCreateInfo());
+			// Set to default
+			for(u32 i = 0; i < GQT_COUNT; i++)
+				mQueueInfos[i].FamilyIdx = (u32)-1;
 
-			VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.back();
-			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			createInfo.pNext = nullptr;
-			createInfo.flags = 0;
-			createInfo.queueFamilyIndex = familyIdx;
-			createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)BS_MAX_QUEUES_PER_TYPE);
-			createInfo.pQueuePriorities = defaultQueuePriorities;
+			vkGetPhysicalDeviceProperties(device, &mDeviceProperties);
+			vkGetPhysicalDeviceFeatures(device, &mDeviceFeatures);
+			vkGetPhysicalDeviceMemoryProperties(device, &mMemoryProperties);
 
-			mQueueInfos[type].FamilyIdx = familyIdx;
-			mQueueInfos[type].Queues.resize(createInfo.queueCount, nullptr);
-		};
+			uint32_t numQueueFamilies;
+			vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, nullptr);
 
-		// Look for dedicated compute queues
-		for (u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
-		{
-			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)
+			Vector<VkQueueFamilyProperties> queueFamilyProperties(numQueueFamilies);
+			vkGetPhysicalDeviceQueueFamilyProperties(device, &numQueueFamilies, queueFamilyProperties.data());
+
+			// Create queues
+			const float defaultQueuePriorities[BS_MAX_QUEUES_PER_TYPE] = { 0.0f };
+			Vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
+			auto populateQueueInfo = [&](GpuQueueType type, uint32_t familyIdx)
 			{
-				populateQueueInfo(GQT_COMPUTE, i);
-				break;
-			}
-		}
+				queueCreateInfos.push_back(VkDeviceQueueCreateInfo());
 
-		// Look for dedicated upload queues
-		for (u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
-		{
-			if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) &&
-				((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
-				((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
-			{
-				populateQueueInfo(GQT_UPLOAD, i);
-				break;
-			}
-		}
+				VkDeviceQueueCreateInfo& createInfo = queueCreateInfos.back();
+				createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+				createInfo.pNext = nullptr;
+				createInfo.flags = 0;
+				createInfo.queueFamilyIndex = familyIdx;
+				createInfo.queueCount = std::min(queueFamilyProperties[familyIdx].queueCount, (uint32_t)BS_MAX_QUEUES_PER_TYPE);
+				createInfo.pQueuePriorities = defaultQueuePriorities;
 
-		// Looks for graphics queues
-		for (u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
-		{
-			if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-			{
-				populateQueueInfo(GQT_GRAPHICS, i);
-				break;
-			}
-		}
-
-		// Set up extensions
-		const char* extensions[5];
-		uint32_t numExtensions = 0;
-
-		extensions[numExtensions++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-		extensions[numExtensions++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
-		extensions[numExtensions++] = VK_KHR_MAINTENANCE2_EXTENSION_NAME;
-
-		// Enumerate supported extensions
-		bool dedicatedAllocExt = false;
-		bool getMemReqExt = false;
-
-		uint32_t numAvailableExtensions = 0;
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, nullptr);
-		if (numAvailableExtensions > 0)
-		{
-			Vector<VkExtensionProperties> availableExtensions(numAvailableExtensions);
-			if (vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, availableExtensions.data()) == VK_SUCCESS)
-			{
-				for (auto entry : extensions)
-				{
-					if(entry == VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)
-					{
-						extensions[numExtensions++] = VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME;
-						dedicatedAllocExt = true;
-					}
-					else if(entry == VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
-					{
-						extensions[numExtensions++] = VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME;
-						getMemReqExt = true;
-					}
-				}
-			}
-		}
-
-		VkDeviceCreateInfo deviceInfo;
-		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		deviceInfo.pNext = nullptr;
-		deviceInfo.flags = 0;
-		deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
-		deviceInfo.pQueueCreateInfos = queueCreateInfos.data();
-		deviceInfo.pEnabledFeatures = &mDeviceFeatures;
-		deviceInfo.enabledExtensionCount = numExtensions;
-		deviceInfo.ppEnabledExtensionNames = extensions;
-		deviceInfo.enabledLayerCount = 0;
-		deviceInfo.ppEnabledLayerNames = nullptr;
-
-		VkResult result = vkCreateDevice(device, &deviceInfo, gVulkanAllocator, &mLogicalDevice);
-		assert(result == VK_SUCCESS);
-
-		// Retrieve queues
-		for(u32 i = 0; i < GQT_COUNT; i++)
-		{
-			u32 numQueues = (u32)mQueueInfos[i].Queues.size();
-			for (u32 j = 0; j < numQueues; j++)
-			{
-				VkQueue queue;
-				vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIdx, j, &queue);
-
-				mQueueInfos[i].Queues[j] = bs_new<VulkanQueue>(*this, queue, (GpuQueueType)i, j);
-			}
-		}
-
-		// Set up the memory allocator
-		VmaAllocatorCreateInfo allocatorCI = {};
-		allocatorCI.physicalDevice = device;
-		allocatorCI.device = mLogicalDevice;
-		allocatorCI.pAllocationCallbacks = gVulkanAllocator;
-
-		if(dedicatedAllocExt && getMemReqExt)
-			allocatorCI.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
-
-		vmaCreateAllocator(&allocatorCI, &mAllocator);
-
-		// Create pools/managers
-		mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
-		mQueryPool = bs_new<VulkanQueryPool>(*this);
-		mDescriptorManager = bs_new<VulkanDescriptorManager>(*this);
-		mResourceManager = bs_new<VulkanResourceManager>(*this);
-	}
-
-	VulkanDevice::~VulkanDevice()
-	{
-		VkResult result = vkDeviceWaitIdle(mLogicalDevice);
-		assert(result == VK_SUCCESS);
-
-		for (u32 i = 0; i < GQT_COUNT; i++)
-		{
-			u32 numQueues = (u32)mQueueInfos[i].Queues.size();
-			for (u32 j = 0; j < numQueues; j++)
-			{
-				mQueueInfos[i].Queues[j]->RefreshStates(true, true);
-				bs_delete(mQueueInfos[i].Queues[j]);
-			}
-		}
-
-		bs_delete(mDescriptorManager);
-		bs_delete(mQueryPool);
-		bs_delete(mCommandBufferPool);
-
-		// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
-		bs_delete(mResourceManager);
-		
-		vmaDestroyAllocator(mAllocator);
-		vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
-	}
-
-	void VulkanDevice::WaitIdle()
-	{
-		VkResult result = vkDeviceWaitIdle(mLogicalDevice);
-		assert(result == VK_SUCCESS);
-
-		RefreshStates(true);
-	}
-
-	void VulkanDevice::RefreshStates(bool forceWait)
-	{
-		for (u32 i = 0; i < GQT_COUNT; i++)
-		{
-			u32 numQueues = GetNumQueues((GpuQueueType)i);
-			for (u32 j = 0; j < numQueues; j++)
-			{
-				VulkanQueue* queue = GetQueue((GpuQueueType)i, j);
-				queue->RefreshStates(forceWait, false);
-			}
-		}
-	}
-
-	u32 VulkanDevice::GetQueueMask(GpuQueueType type, u32 queueIdx) const
-	{
-		u32 numQueues = GetNumQueues(type);
-		if (numQueues == 0)
-			return 0;
-
-		u32 idMask = 0;
-		u32 curIdx = queueIdx % numQueues;
-		while (curIdx < BS_MAX_QUEUES_PER_TYPE)
-		{
-			idMask |= CommandSyncMask::GetGlobalQueueMask(type, curIdx);
-			curIdx += numQueues;
-		}
-
-		return idMask;
-	}
-
-	SurfaceFormat VulkanDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const
-	{
-		uint32_t numFormats;
-		VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, nullptr);
-		assert(result == VK_SUCCESS);
-		assert(numFormats > 0);
-
-		VkSurfaceFormatKHR* surfaceFormats = bs_stack_alloc<VkSurfaceFormatKHR>(numFormats);
-		result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, surfaceFormats);
-		assert(result == VK_SUCCESS);
-
-		SurfaceFormat output;
-		output.ColorFormat = VK_FORMAT_R8G8B8A8_UNORM;
-		output.ColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-
-		PixelFormat depthFormat = VulkanUtility::GetClosestSupportedPixelFormat(*this, PF_D24S8, TEX_TYPE_2D,
-			TU_DEPTHSTENCIL, true, false);
-
-		output.DepthFormat = VulkanUtility::GetPixelFormat(depthFormat);
-
-		// If there is no preferred format, use standard RGBA
-		if ((numFormats == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
-		{
-			if (gamma)
-				output.ColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
-			else
-				output.ColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
-
-			output.ColorSpace = surfaceFormats[0].colorSpace;
-		}
-		else
-		{
-			bool foundFormat = false;
-
-			VkFormat wantedFormatsUNORM[] =
-			{
-				VK_FORMAT_R8G8B8A8_UNORM,
-				VK_FORMAT_B8G8R8A8_UNORM,
-				VK_FORMAT_A8B8G8R8_UNORM_PACK32,
-				VK_FORMAT_A8B8G8R8_UNORM_PACK32,
-				VK_FORMAT_R8G8B8_UNORM,
-				VK_FORMAT_B8G8R8_UNORM
+				mQueueInfos[type].FamilyIdx = familyIdx;
+				mQueueInfos[type].Queues.resize(createInfo.queueCount, nullptr);
 			};
 
-			VkFormat wantedFormatsSRGB[] =
+			// Look for dedicated compute queues
+			for(u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
 			{
-				VK_FORMAT_R8G8B8A8_SRGB,
-				VK_FORMAT_B8G8R8A8_SRGB,
-				VK_FORMAT_A8B8G8R8_SRGB_PACK32,
-				VK_FORMAT_A8B8G8R8_SRGB_PACK32,
-				VK_FORMAT_R8G8B8_SRGB,
-				VK_FORMAT_B8G8R8_SRGB
-			};
-
-			u32 numWantedFormats;
-			VkFormat* wantedFormats;
-			if (gamma)
-			{
-				numWantedFormats = sizeof(wantedFormatsSRGB) / sizeof(wantedFormatsSRGB[0]);
-				wantedFormats = wantedFormatsSRGB;
-			}
-			else
-			{
-				numWantedFormats = sizeof(wantedFormatsUNORM) / sizeof(wantedFormatsUNORM[0]);
-				wantedFormats = wantedFormatsUNORM;
-			}
-
-			for(u32 i = 0; i < numWantedFormats; i++)
-			{
-				for(u32 j = 0; j < numFormats; j++)
+				if((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)
 				{
-					if(surfaceFormats[j].format == wantedFormats[i])
-					{
-						output.ColorFormat = surfaceFormats[j].format;
-						output.ColorSpace = surfaceFormats[j].colorSpace;
-
-						foundFormat = true;
-						break;
-					}
-				}
-
-				if (foundFormat)
+					populateQueueInfo(GQT_COMPUTE, i);
 					break;
+				}
 			}
 
-			// If we haven't found anything, fall back to first available
-			if(!foundFormat)
+			// Look for dedicated upload queues
+			for(u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
 			{
-				output.ColorFormat = surfaceFormats[0].format;
-				output.ColorSpace = surfaceFormats[0].colorSpace;
-
-				if (gamma)
+				if((queueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT) &&
+				   ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) &&
+				   ((queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
 				{
-					BS_LOG(Error, RenderBackend, "Cannot find a valid sRGB format for a render window surface, "
-						"falling back to a default format.");
+					populateQueueInfo(GQT_UPLOAD, i);
+					break;
+				}
+			}
+
+			// Looks for graphics queues
+			for(u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
+			{
+				if(queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+				{
+					populateQueueInfo(GQT_GRAPHICS, i);
+					break;
+				}
+			}
+
+			// Set up extensions
+			const char* extensions[5];
+			uint32_t numExtensions = 0;
+
+			extensions[numExtensions++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+			extensions[numExtensions++] = VK_KHR_MAINTENANCE1_EXTENSION_NAME;
+			extensions[numExtensions++] = VK_KHR_MAINTENANCE2_EXTENSION_NAME;
+
+			// Enumerate supported extensions
+			bool dedicatedAllocExt = false;
+			bool getMemReqExt = false;
+
+			uint32_t numAvailableExtensions = 0;
+			vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, nullptr);
+			if(numAvailableExtensions > 0)
+			{
+				Vector<VkExtensionProperties> availableExtensions(numAvailableExtensions);
+				if(vkEnumerateDeviceExtensionProperties(device, nullptr, &numAvailableExtensions, availableExtensions.data()) == VK_SUCCESS)
+				{
+					for(auto entry : extensions)
+					{
+						if(entry == VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME)
+						{
+							extensions[numExtensions++] = VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME;
+							dedicatedAllocExt = true;
+						}
+						else if(entry == VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME)
+						{
+							extensions[numExtensions++] = VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME;
+							getMemReqExt = true;
+						}
+					}
+				}
+			}
+
+			VkDeviceCreateInfo deviceInfo;
+			deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+			deviceInfo.pNext = nullptr;
+			deviceInfo.flags = 0;
+			deviceInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
+			deviceInfo.pQueueCreateInfos = queueCreateInfos.data();
+			deviceInfo.pEnabledFeatures = &mDeviceFeatures;
+			deviceInfo.enabledExtensionCount = numExtensions;
+			deviceInfo.ppEnabledExtensionNames = extensions;
+			deviceInfo.enabledLayerCount = 0;
+			deviceInfo.ppEnabledLayerNames = nullptr;
+
+			VkResult result = vkCreateDevice(device, &deviceInfo, gVulkanAllocator, &mLogicalDevice);
+			assert(result == VK_SUCCESS);
+
+			// Retrieve queues
+			for(u32 i = 0; i < GQT_COUNT; i++)
+			{
+				u32 numQueues = (u32)mQueueInfos[i].Queues.size();
+				for(u32 j = 0; j < numQueues; j++)
+				{
+					VkQueue queue;
+					vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIdx, j, &queue);
+
+					mQueueInfos[i].Queues[j] = bs_new<VulkanQueue>(*this, queue, (GpuQueueType)i, j);
+				}
+			}
+
+			// Set up the memory allocator
+			VmaAllocatorCreateInfo allocatorCI = {};
+			allocatorCI.physicalDevice = device;
+			allocatorCI.device = mLogicalDevice;
+			allocatorCI.pAllocationCallbacks = gVulkanAllocator;
+
+			if(dedicatedAllocExt && getMemReqExt)
+				allocatorCI.flags |= VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+
+			vmaCreateAllocator(&allocatorCI, &mAllocator);
+
+			// Create pools/managers
+			mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
+			mQueryPool = bs_new<VulkanQueryPool>(*this);
+			mDescriptorManager = bs_new<VulkanDescriptorManager>(*this);
+			mResourceManager = bs_new<VulkanResourceManager>(*this);
+		}
+
+		VulkanDevice::~VulkanDevice()
+		{
+			VkResult result = vkDeviceWaitIdle(mLogicalDevice);
+			assert(result == VK_SUCCESS);
+
+			for(u32 i = 0; i < GQT_COUNT; i++)
+			{
+				u32 numQueues = (u32)mQueueInfos[i].Queues.size();
+				for(u32 j = 0; j < numQueues; j++)
+				{
+					mQueueInfos[i].Queues[j]->RefreshStates(true, true);
+					bs_delete(mQueueInfos[i].Queues[j]);
+				}
+			}
+
+			bs_delete(mDescriptorManager);
+			bs_delete(mQueryPool);
+			bs_delete(mCommandBufferPool);
+
+			// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
+			bs_delete(mResourceManager);
+
+			vmaDestroyAllocator(mAllocator);
+			vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
+		}
+
+		void VulkanDevice::WaitIdle()
+		{
+			VkResult result = vkDeviceWaitIdle(mLogicalDevice);
+			assert(result == VK_SUCCESS);
+
+			RefreshStates(true);
+		}
+
+		void VulkanDevice::RefreshStates(bool forceWait)
+		{
+			for(u32 i = 0; i < GQT_COUNT; i++)
+			{
+				u32 numQueues = GetNumQueues((GpuQueueType)i);
+				for(u32 j = 0; j < numQueues; j++)
+				{
+					VulkanQueue* queue = GetQueue((GpuQueueType)i, j);
+					queue->RefreshStates(forceWait, false);
 				}
 			}
 		}
 
-		bs_stack_free(surfaceFormats);
-		return output;
-	}
-
-	VmaAllocation VulkanDevice::AllocateMemory(VkImage image, VkMemoryPropertyFlags flags)
-	{
-		VmaAllocationCreateInfo allocCI = {};
-		allocCI.requiredFlags = flags;
-
-		VmaAllocationInfo allocInfo;
-		VmaAllocation allocation;
-		VkResult result = vmaAllocateMemoryForImage(mAllocator, image, &allocCI, &allocation, &allocInfo);
-		assert(result == VK_SUCCESS);
-
-		result = vkBindImageMemory(mLogicalDevice, image, allocInfo.deviceMemory, allocInfo.offset);
-		assert(result == VK_SUCCESS);
-
-		return allocation;
-	}
-
-	VmaAllocation VulkanDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
-	{
-		VmaAllocationCreateInfo allocCI = {};
-		allocCI.requiredFlags = flags;
-
-		VmaAllocationInfo allocInfo;
-		VmaAllocation memory;
-		VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocCI, &memory, &allocInfo);
-		assert(result == VK_SUCCESS);
-
-		result = vkBindBufferMemory(mLogicalDevice, buffer, allocInfo.deviceMemory, allocInfo.offset);
-		assert(result == VK_SUCCESS);
-
-		return memory;
-	}
-
-	void VulkanDevice::FreeMemory(VmaAllocation allocation)
-	{
-		vmaFreeMemory(mAllocator, allocation);
-	}
-
-	void VulkanDevice::GetAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset)
-	{
-		VmaAllocationInfo allocInfo;
-		vmaGetAllocationInfo(mAllocator, allocation, &allocInfo);
-
-		memory = allocInfo.deviceMemory;
-		offset = allocInfo.offset;
-	}
-
-	uint32_t VulkanDevice::FindMemoryType(uint32_t requirementBits, VkMemoryPropertyFlags wantedFlags)
-	{
-		for (uint32_t i = 0; i < mMemoryProperties.memoryTypeCount; i++)
+		u32 VulkanDevice::GetQueueMask(GpuQueueType type, u32 queueIdx) const
 		{
-			if (requirementBits & (1 << i))
+			u32 numQueues = GetNumQueues(type);
+			if(numQueues == 0)
+				return 0;
+
+			u32 idMask = 0;
+			u32 curIdx = queueIdx % numQueues;
+			while(curIdx < BS_MAX_QUEUES_PER_TYPE)
 			{
-				if ((mMemoryProperties.memoryTypes[i].propertyFlags & wantedFlags) == wantedFlags)
-					return i;
+				idMask |= CommandSyncMask::GetGlobalQueueMask(type, curIdx);
+				curIdx += numQueues;
 			}
+
+			return idMask;
 		}
 
-		return -1;
-	}
-}}
+		SurfaceFormat VulkanDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const
+		{
+			uint32_t numFormats;
+			VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, nullptr);
+			assert(result == VK_SUCCESS);
+			assert(numFormats > 0);
+
+			VkSurfaceFormatKHR* surfaceFormats = bs_stack_alloc<VkSurfaceFormatKHR>(numFormats);
+			result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, surfaceFormats);
+			assert(result == VK_SUCCESS);
+
+			SurfaceFormat output;
+			output.ColorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+			output.ColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+
+			PixelFormat depthFormat = VulkanUtility::GetClosestSupportedPixelFormat(*this, PF_D24S8, TEX_TYPE_2D, TU_DEPTHSTENCIL, true, false);
+
+			output.DepthFormat = VulkanUtility::GetPixelFormat(depthFormat);
+
+			// If there is no preferred format, use standard RGBA
+			if((numFormats == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
+			{
+				if(gamma)
+					output.ColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
+				else
+					output.ColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+
+				output.ColorSpace = surfaceFormats[0].colorSpace;
+			}
+			else
+			{
+				bool foundFormat = false;
+
+				VkFormat wantedFormatsUNORM[] = {
+					VK_FORMAT_R8G8B8A8_UNORM,
+					VK_FORMAT_B8G8R8A8_UNORM,
+					VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+					VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+					VK_FORMAT_R8G8B8_UNORM,
+					VK_FORMAT_B8G8R8_UNORM
+				};
+
+				VkFormat wantedFormatsSRGB[] = {
+					VK_FORMAT_R8G8B8A8_SRGB,
+					VK_FORMAT_B8G8R8A8_SRGB,
+					VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+					VK_FORMAT_A8B8G8R8_SRGB_PACK32,
+					VK_FORMAT_R8G8B8_SRGB,
+					VK_FORMAT_B8G8R8_SRGB
+				};
+
+				u32 numWantedFormats;
+				VkFormat* wantedFormats;
+				if(gamma)
+				{
+					numWantedFormats = sizeof(wantedFormatsSRGB) / sizeof(wantedFormatsSRGB[0]);
+					wantedFormats = wantedFormatsSRGB;
+				}
+				else
+				{
+					numWantedFormats = sizeof(wantedFormatsUNORM) / sizeof(wantedFormatsUNORM[0]);
+					wantedFormats = wantedFormatsUNORM;
+				}
+
+				for(u32 i = 0; i < numWantedFormats; i++)
+				{
+					for(u32 j = 0; j < numFormats; j++)
+					{
+						if(surfaceFormats[j].format == wantedFormats[i])
+						{
+							output.ColorFormat = surfaceFormats[j].format;
+							output.ColorSpace = surfaceFormats[j].colorSpace;
+
+							foundFormat = true;
+							break;
+						}
+					}
+
+					if(foundFormat)
+						break;
+				}
+
+				// If we haven't found anything, fall back to first available
+				if(!foundFormat)
+				{
+					output.ColorFormat = surfaceFormats[0].format;
+					output.ColorSpace = surfaceFormats[0].colorSpace;
+
+					if(gamma)
+					{
+						BS_LOG(Error, RenderBackend, "Cannot find a valid sRGB format for a render window surface, "
+													 "falling back to a default format.");
+					}
+				}
+			}
+
+			bs_stack_free(surfaceFormats);
+			return output;
+		}
+
+		VmaAllocation VulkanDevice::AllocateMemory(VkImage image, VkMemoryPropertyFlags flags)
+		{
+			VmaAllocationCreateInfo allocCI = {};
+			allocCI.requiredFlags = flags;
+
+			VmaAllocationInfo allocInfo;
+			VmaAllocation allocation;
+			VkResult result = vmaAllocateMemoryForImage(mAllocator, image, &allocCI, &allocation, &allocInfo);
+			assert(result == VK_SUCCESS);
+
+			result = vkBindImageMemory(mLogicalDevice, image, allocInfo.deviceMemory, allocInfo.offset);
+			assert(result == VK_SUCCESS);
+
+			return allocation;
+		}
+
+		VmaAllocation VulkanDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+		{
+			VmaAllocationCreateInfo allocCI = {};
+			allocCI.requiredFlags = flags;
+
+			VmaAllocationInfo allocInfo;
+			VmaAllocation memory;
+			VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocCI, &memory, &allocInfo);
+			assert(result == VK_SUCCESS);
+
+			result = vkBindBufferMemory(mLogicalDevice, buffer, allocInfo.deviceMemory, allocInfo.offset);
+			assert(result == VK_SUCCESS);
+
+			return memory;
+		}
+
+		void VulkanDevice::FreeMemory(VmaAllocation allocation)
+		{
+			vmaFreeMemory(mAllocator, allocation);
+		}
+
+		void VulkanDevice::GetAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset)
+		{
+			VmaAllocationInfo allocInfo;
+			vmaGetAllocationInfo(mAllocator, allocation, &allocInfo);
+
+			memory = allocInfo.deviceMemory;
+			offset = allocInfo.offset;
+		}
+
+		uint32_t VulkanDevice::FindMemoryType(uint32_t requirementBits, VkMemoryPropertyFlags wantedFlags)
+		{
+			for(uint32_t i = 0; i < mMemoryProperties.memoryTypeCount; i++)
+			{
+				if(requirementBits & (1 << i))
+				{
+					if((mMemoryProperties.memoryTypes[i].propertyFlags & wantedFlags) == wantedFlags)
+						return i;
+				}
+			}
+
+			return -1;
+		}
+	} // namespace ct
+} // namespace bs

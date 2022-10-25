@@ -5,29 +5,32 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsEventQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** @copydoc EventQuery */
-	class D3D11EventQuery : public EventQuery
+	namespace ct
 	{
-	public:
-		D3D11EventQuery(u32 deviceIdx);
-		~D3D11EventQuery();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/** @copydoc EventQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) ;
+		/** @copydoc EventQuery */
+		class D3D11EventQuery : public EventQuery
+		{
+		public:
+			D3D11EventQuery(u32 deviceIdx);
+			~D3D11EventQuery();
 
-		/** @copydoc EventQuery::isReady */
-		bool IsReady() const ;
+			/** @copydoc EventQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
 
-	private:
-		ID3D11Query* mQuery = nullptr;
-		ID3D11DeviceContext* mContext;
-	};
+			/** @copydoc EventQuery::isReady */
+			bool IsReady() const;
 
-	/** @} */
-}}
+		private:
+			ID3D11Query* mQuery = nullptr;
+			ID3D11DeviceContext* mContext;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

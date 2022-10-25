@@ -5,31 +5,35 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsGpuParamBlockBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Vulkan implementation of a parameter block buffer (uniform buffer in Vulkan lingo). */
-	class VulkanGpuParamBlockBuffer : public GpuParamBlockBuffer
+	namespace ct
 	{
-	public:
-		VulkanGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
-		~VulkanGpuParamBlockBuffer();
-
-		/**
-		 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
-		 * doesn't include the provided device, null is returned.
+		/** @addtogroup Vulkan
+		 *  @{
 		 */
-		VulkanBuffer* GetResource(u32 deviceIdx) const;
-	protected:
-		/** @copydoc GpuParamBlockBuffer::initialize */
-		void Initialize() ;
 
-	private:
-		GpuDeviceFlags mDeviceMask;
-	};
+		/**	Vulkan implementation of a parameter block buffer (uniform buffer in Vulkan lingo). */
+		class VulkanGpuParamBlockBuffer : public GpuParamBlockBuffer
+		{
+		public:
+			VulkanGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
+			~VulkanGpuParamBlockBuffer();
 
-	/** @} */
-}}
+			/**
+			 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask
+			 * doesn't include the provided device, null is returned.
+			 */
+			VulkanBuffer* GetResource(u32 deviceIdx) const;
+
+		protected:
+			/** @copydoc GpuParamBlockBuffer::initialize */
+			void Initialize();
+
+		private:
+			GpuDeviceFlags mDeviceMask;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

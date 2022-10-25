@@ -13,9 +13,8 @@
 namespace bs
 {
 	OAImporter::OAImporter()
-		:SpecificImporter()
+		: SpecificImporter()
 	{
-
 	}
 
 	bool OAImporter::IsExtensionSupported(const String& ext) const
@@ -51,20 +50,20 @@ namespace bs
 			StringUtil::ToLowerCase(extension);
 
 			UPtr<AudioDecoder> reader;
-			if (extension == u8".wav")
+			if(extension == u8".wav")
 				reader = bs_unique_ptr_new<WaveDecoder>();
-			else if (extension == u8".flac")
+			else if(extension == u8".flac")
 				reader = bs_unique_ptr_new<FLACDecoder>();
-			else if (extension == u8".ogg")
+			else if(extension == u8".ogg")
 				reader = bs_unique_ptr_new<OggVorbisDecoder>();
 
-			if (reader == nullptr)
+			if(reader == nullptr)
 				return nullptr;
 
-			if (!reader->IsValid(stream))
+			if(!reader->IsValid(stream))
 				return nullptr;
 
-			if (!reader->Open(stream, info))
+			if(!reader->Open(stream, info))
 				return nullptr;
 
 			bytesPerSample = info.BitDepth / 8;
@@ -131,4 +130,4 @@ namespace bs
 
 		return clip;
 	}
-}
+} // namespace bs

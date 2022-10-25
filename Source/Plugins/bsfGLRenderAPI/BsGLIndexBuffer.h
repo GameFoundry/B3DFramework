@@ -6,25 +6,28 @@
 #include "RenderAPI/BsIndexBuffer.h"
 #include "BsGLHardwareBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of an index buffer. */
-	class GLIndexBuffer : public IndexBuffer
+	namespace ct
 	{
-	public:
-		GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/**	Returns internal OpenGL index buffer handle. */
-		GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
+		/**	OpenGL implementation of an index buffer. */
+		class GLIndexBuffer : public IndexBuffer
+		{
+		public:
+			GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		/** @copydoc IndexBuffer::initialize */
-		void Initialize() ;	
-	};
+			/**	Returns internal OpenGL index buffer handle. */
+			GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
 
-	/** @} */
-}}
+		protected:
+			/** @copydoc IndexBuffer::initialize */
+			void Initialize();
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

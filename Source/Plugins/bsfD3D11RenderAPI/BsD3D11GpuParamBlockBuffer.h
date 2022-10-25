@@ -5,25 +5,29 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsGpuParamBlockBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	DirectX 11 implementation of a parameter block buffer (constant buffer in DX11 lingo). */
-	class D3D11GpuParamBlockBuffer : public GpuParamBlockBuffer
+	namespace ct
 	{
-	public:
-		D3D11GpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
-		~D3D11GpuParamBlockBuffer();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns internal DX11 buffer object. */
-		ID3D11Buffer* GetD3D11Buffer() const;
-	protected:
-		/** @copydoc GpuParamBlockBuffer::initialize */
-		void Initialize() ;
-	};
+		/**	DirectX 11 implementation of a parameter block buffer (constant buffer in DX11 lingo). */
+		class D3D11GpuParamBlockBuffer : public GpuParamBlockBuffer
+		{
+		public:
+			D3D11GpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
+			~D3D11GpuParamBlockBuffer();
 
-	/** @} */
-}}
+			/**	Returns internal DX11 buffer object. */
+			ID3D11Buffer* GetD3D11Buffer() const;
+
+		protected:
+			/** @copydoc GpuParamBlockBuffer::initialize */
+			void Initialize();
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

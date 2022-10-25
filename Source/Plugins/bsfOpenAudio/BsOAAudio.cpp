@@ -26,7 +26,7 @@ namespace bs
 			{
 				if(*devices == 0)
 				{
-					if (deviceName.empty())
+					if(deviceName.empty())
 						break;
 
 					// Clean up the name to get the actual hardware name
@@ -60,7 +60,7 @@ namespace bs
 		else
 			mDevice = alcOpenDevice(nullptr);
 
-		if (mDevice == nullptr)
+		if(mDevice == nullptr)
 			BS_LOG(Error, Audio, "Failed to open OpenAL device: {0}", defaultDeviceName);
 
 		RebuildContexts();
@@ -80,8 +80,8 @@ namespace bs
 	void OAAudio::SetVolume(float volume)
 	{
 		mVolume = Math::Clamp01(volume);
-		
-		for (auto& listener : mListeners)
+
+		for(auto& listener : mListeners)
 			listener->Rebuild();
 	}
 
@@ -92,21 +92,22 @@ namespace bs
 
 	void OAAudio::SetPaused(bool paused)
 	{
-		if (mIsPaused == paused)
+		if(mIsPaused == paused)
 			return;
 
 		mIsPaused = paused;
 
-		for (auto& source : mSources)
+		for(auto& source : mSources)
 			source->SetGlobalPause(paused);
 	}
 
 	void OAAudio::UpdateInternal()
 	{
-		auto worker = [this]() { UpdateStreaming(); };
+		auto worker = [this]()
+		{ UpdateStreaming(); };
 
 		// If previous task still hasn't completed, just skip streaming this frame, queuing more tasks won't help
-		if (mStreamingTask != nullptr && !mStreamingTask->IsComplete())
+		if(mStreamingTask != nullptr && !mStreamingTask->IsComplete())
 			return;
 
 		mStreamingTask = Task::Create("AudioStream", worker, TaskPriority::VeryHigh);
@@ -117,19 +118,19 @@ namespace bs
 
 	void OAAudio::SetActiveDevice(const AudioDevice& device)
 	{
-		if (mAllDevices.size() == 1)
+		if(mAllDevices.size() == 1)
 			return; // No devices to change to, keep the active device as is
 
 		ClearContexts();
 
 		if(mDevice != nullptr)
 			alcCloseDevice(mDevice);
-		
+
 		mActiveDevice = device;
 
 		String narrowName = device.Name;
 		mDevice = alcOpenDevice(narrowName.c_str());
-		if (mDevice == nullptr)
+		if(mDevice == nullptr)
 			BS_LOG(Error, Audio, "Failed to open OpenAL device: ", narrowName);
 
 		RebuildContexts();
@@ -137,10 +138,10 @@ namespace bs
 
 	bool OAAudio::IsExtensionSupportedInternal(const String& extension) const
 	{
-		if (mDevice == nullptr)
+		if(mDevice == nullptr)
 			return false;
 
-		if ((extension.length() > 2) && (extension.substr(0, 3) == "ALC"))
+		if((extension.length() > 2) && (extension.substr(0, 3) == "ALC"))
 			return alcIsExtensionPresent(mDevice, extension.c_str()) != AL_FALSE;
 		else
 			return alIsExtensionPresent(extension.c_str()) != AL_FALSE;
@@ -156,7 +157,7 @@ namespace bs
 	void OAAudio::UnregisterListenerInternal(OAAudioListener* listener)
 	{
 		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
-		if (iterFind != mListeners.end())
+		if(iterFind != mListeners.end())
 			mListeners.erase(iterFind);
 
 		RebuildContexts();
@@ -190,14 +191,14 @@ namespace bs
 
 	ALCcontext* OAAudio::GetContextInternal(const OAAudioListener* listener) const
 	{
-		if (mListeners.size() > 0)
+		if(mListeners.size() > 0)
 		{
 			assert(mListeners.size() == mContexts.size());
 
 			u32 numContexts = (u32)mContexts.size();
 			for(u32 i = 0; i < numContexts; i++)
 			{
-				if (mListeners[i] == listener)
+				if(mListeners[i] == listener)
 					return mContexts[i];
 			}
 		}
@@ -208,8 +209,7 @@ namespace bs
 		return nullptr;
 	}
 
-	SPtr<AudioClip> OAAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-		const AUDIO_CLIP_DESC& desc)
+	SPtr<AudioClip> OAAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
 		return bs_core_ptr_new<OAAudioClip>(samples, streamSize, numSamples, desc);
 	}
@@ -226,12 +226,12 @@ namespace bs
 
 	void OAAudio::RebuildContexts()
 	{
-		for (auto& source : mSources)
+		for(auto& source : mSources)
 			source->Clear();
 
 		ClearContexts();
 
-		if (mDevice == nullptr)
+		if(mDevice == nullptr)
 			return;
 
 		u32 numListeners = (u32)mListeners.size();
@@ -247,10 +247,10 @@ namespace bs
 		// excessive context switching in such case.
 		alcMakeContextCurrent(mContexts[0]);
 
-		for (auto& listener : mListeners)
+		for(auto& listener : mListeners)
 			listener->Rebuild();
 
-		for (auto& source : mSources)
+		for(auto& source : mSources)
 			source->Rebuild();
 	}
 
@@ -258,7 +258,7 @@ namespace bs
 	{
 		alcMakeContextCurrent(nullptr);
 
-		for (auto& context : mContexts)
+		for(auto& context : mContexts)
 			alcDestroyContext(context);
 
 		mContexts.clear();
@@ -288,14 +288,14 @@ namespace bs
 			mDestroyedSources.clear();
 		}
 
-		for (auto& source : mStreamingSources)
+		for(auto& source : mStreamingSources)
 		{
 			// Check if the source got destroyed while streaming
 			{
 				Lock lock(mMutex);
 
 				auto iterFind = mDestroyedSources.find(source);
-				if (iterFind != mDestroyedSources.end())
+				if(iterFind != mDestroyedSources.end())
 					continue;
 			}
 
@@ -305,53 +305,53 @@ namespace bs
 
 	ALenum OAAudio::GetOpenALBufferFormatInternal(u32 numChannels, u32 bitDepth)
 	{
-		switch (bitDepth)
+		switch(bitDepth)
 		{
 		case 8:
-		{
-			switch (numChannels)
 			{
-			case 1:  return AL_FORMAT_MONO8;
-			case 2:  return AL_FORMAT_STEREO8;
-			case 4:  return alGetEnumValue("AL_FORMAT_QUAD8");
-			case 6:  return alGetEnumValue("AL_FORMAT_51CHN8");
-			case 7:  return alGetEnumValue("AL_FORMAT_61CHN8");
-			case 8:  return alGetEnumValue("AL_FORMAT_71CHN8");
-			default:
-				assert(false);
-				return 0;
+				switch(numChannels)
+				{
+				case 1: return AL_FORMAT_MONO8;
+				case 2: return AL_FORMAT_STEREO8;
+				case 4: return alGetEnumValue("AL_FORMAT_QUAD8");
+				case 6: return alGetEnumValue("AL_FORMAT_51CHN8");
+				case 7: return alGetEnumValue("AL_FORMAT_61CHN8");
+				case 8: return alGetEnumValue("AL_FORMAT_71CHN8");
+				default:
+					assert(false);
+					return 0;
+				}
 			}
-		}
 		case 16:
-		{
-			switch (numChannels)
 			{
-			case 1:  return AL_FORMAT_MONO16;
-			case 2:  return AL_FORMAT_STEREO16;
-			case 4:  return alGetEnumValue("AL_FORMAT_QUAD16");
-			case 6:  return alGetEnumValue("AL_FORMAT_51CHN16");
-			case 7:  return alGetEnumValue("AL_FORMAT_61CHN16");
-			case 8:  return alGetEnumValue("AL_FORMAT_71CHN16");
-			default:
-				assert(false);
-				return 0;
+				switch(numChannels)
+				{
+				case 1: return AL_FORMAT_MONO16;
+				case 2: return AL_FORMAT_STEREO16;
+				case 4: return alGetEnumValue("AL_FORMAT_QUAD16");
+				case 6: return alGetEnumValue("AL_FORMAT_51CHN16");
+				case 7: return alGetEnumValue("AL_FORMAT_61CHN16");
+				case 8: return alGetEnumValue("AL_FORMAT_71CHN16");
+				default:
+					assert(false);
+					return 0;
+				}
 			}
-		}
 		case 32:
-		{
-			switch (numChannels)
 			{
-			case 1:  return alGetEnumValue("AL_FORMAT_MONO_FLOAT32");
-			case 2:  return alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
-			case 4:  return alGetEnumValue("AL_FORMAT_QUAD32");
-			case 6:  return alGetEnumValue("AL_FORMAT_51CHN32");
-			case 7:  return alGetEnumValue("AL_FORMAT_61CHN32");
-			case 8:  return alGetEnumValue("AL_FORMAT_71CHN32");
-			default:
-				assert(false);
-				return 0;
+				switch(numChannels)
+				{
+				case 1: return alGetEnumValue("AL_FORMAT_MONO_FLOAT32");
+				case 2: return alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
+				case 4: return alGetEnumValue("AL_FORMAT_QUAD32");
+				case 6: return alGetEnumValue("AL_FORMAT_51CHN32");
+				case 7: return alGetEnumValue("AL_FORMAT_61CHN32");
+				case 8: return alGetEnumValue("AL_FORMAT_71CHN32");
+				default:
+					assert(false);
+					return 0;
+				}
 			}
-		}
 		default:
 			assert(false);
 			return 0;
@@ -360,11 +360,11 @@ namespace bs
 
 	void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const AudioDataInfo& info)
 	{
-		if (info.NumChannels <= 2) // Mono or stereo
+		if(info.NumChannels <= 2) // Mono or stereo
 		{
-			if (info.BitDepth > 16)
+			if(info.BitDepth > 16)
 			{
-				if (IsExtensionSupportedInternal("AL_EXT_float32"))
+				if(IsExtensionSupportedInternal("AL_EXT_float32"))
 				{
 					u32 bufferSize = info.NumSamples * sizeof(float);
 					float* sampleBufferFloat = (float*)bs_stack_alloc(bufferSize);
@@ -378,8 +378,7 @@ namespace bs
 				}
 				else
 				{
-					BS_LOG(Warning, RenderBackend,
-						"OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
+					BS_LOG(Warning, RenderBackend, "OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
 
 					u32 bufferSize = info.NumSamples * 2;
 					u8* sampleBuffer16 = (u8*)bs_stack_alloc(bufferSize);
@@ -416,7 +415,7 @@ namespace bs
 		{
 			// Note: Assuming AL_EXT_MCFORMATS is supported. If it's not, channels should be reduced to mono or stereo.
 
-			if (info.BitDepth == 24) // 24-bit not supported, convert to 32-bit
+			if(info.BitDepth == 24) // 24-bit not supported, convert to 32-bit
 			{
 				u32 bufferSize = info.NumSamples * sizeof(i32);
 				u8* sampleBuffer32 = (u8*)bs_stack_alloc(bufferSize);
@@ -428,13 +427,13 @@ namespace bs
 
 				bs_stack_free(sampleBuffer32);
 			}
-			else if (info.BitDepth == 8)
+			else if(info.BitDepth == 8)
 			{
 				// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
 				u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
 				u8* sampleBuffer = (u8*)bs_stack_alloc(bufferSize);
 
-				for (u32 i = 0; i < info.NumSamples; i++)
+				for(u32 i = 0; i < info.NumSamples; i++)
 					sampleBuffer[i] = ((i8*)samples)[i] + 128;
 
 				ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
@@ -454,4 +453,4 @@ namespace bs
 	{
 		return static_cast<OAAudio&>(OAAudio::Instance());
 	}
-}
+} // namespace bs

@@ -11,7 +11,7 @@ namespace bs
 	/** @addtogroup OpenAudio
 	 *  @{
 	 */
-	
+
 	/** OpenAudio implementation of an AudioClip. */
 	class OAAudioClip : public AudioClip
 	{
@@ -43,10 +43,11 @@ namespace bs
 		/** @} */
 	protected:
 		/** @copydoc Resource::initialize */
-		void Initialize() ;
+		void Initialize();
 
 		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size) ;
+		SPtr<DataStream> GetSourceStream(u32& size);
+
 	private:
 		mutable Mutex mMutex;
 		mutable OggVorbisDecoder mVorbisReader;
@@ -60,4 +61,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

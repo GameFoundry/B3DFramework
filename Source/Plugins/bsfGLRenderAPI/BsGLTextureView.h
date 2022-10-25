@@ -5,32 +5,36 @@
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsTextureView.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of a texture resource view. */
-	class GLTextureView : public TextureView
+	namespace ct
 	{
-	public:
-		~GLTextureView();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/**	Returns internal OpenGL texture view handle. */
-		GLuint GetGlid() const { return mViewID; }
+		/**	OpenGL implementation of a texture resource view. */
+		class GLTextureView : public TextureView
+		{
+		public:
+			~GLTextureView();
 
-		/**	Returns OpenGL texture target type. */
-		GLuint GetGlTextureTarget() const { return mTarget; }
+			/**	Returns internal OpenGL texture view handle. */
+			GLuint GetGlid() const { return mViewID; }
 
-	protected:
-		friend class GLTexture;
+			/**	Returns OpenGL texture target type. */
+			GLuint GetGlTextureTarget() const { return mTarget; }
 
-		GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& desc);
-	private:
-		GLuint mViewID = 0;
-		GLuint mTarget;
-	};
+		protected:
+			friend class GLTexture;
 
-	/** @} */
-}}
+			GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& desc);
+
+		private:
+			GLuint mViewID = 0;
+			GLuint mTarget;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

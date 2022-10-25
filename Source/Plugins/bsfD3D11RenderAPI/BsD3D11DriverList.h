@@ -4,35 +4,38 @@
 
 #include "BsD3D11Prerequisites.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	Contains a list of all available drivers. */
-	class D3D11DriverList
+	namespace ct
 	{
-	public:
-		/**	Constructs a new driver list from an existing DXGI factory object. */
-		D3D11DriverList(IDXGIFactory1* dxgiFactory);
-		~D3D11DriverList();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns the number of available drivers. */
-		u32 Count() const;
+		/**	Contains a list of all available drivers. */
+		class D3D11DriverList
+		{
+		public:
+			/**	Constructs a new driver list from an existing DXGI factory object. */
+			D3D11DriverList(IDXGIFactory1* dxgiFactory);
+			~D3D11DriverList();
 
-		/**	Returns a driver at the specified index. */
-		D3D11Driver* Item(u32 idx) const;
+			/**	Returns the number of available drivers. */
+			u32 Count() const;
 
-		/**	Returns a driver with the specified name, or null if it cannot be found. */
-		D3D11Driver* Item(const String &name) const;
+			/**	Returns a driver at the specified index. */
+			D3D11Driver* Item(u32 idx) const;
 
-	private:
-		/**	Enumerates the DXGI factory object and constructs a list of available drivers. */
-		void Enumerate(IDXGIFactory1* dxgiFactory);
+			/**	Returns a driver with the specified name, or null if it cannot be found. */
+			D3D11Driver* Item(const String& name) const;
 
-		Vector<D3D11Driver*> mDriverList;
-	};
+		private:
+			/**	Enumerates the DXGI factory object and constructs a list of available drivers. */
+			void Enumerate(IDXGIFactory1* dxgiFactory);
 
-	/** @} */
-}}
+			Vector<D3D11Driver*> mDriverList;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

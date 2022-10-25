@@ -136,8 +136,7 @@ namespace bs
 		void AddTorque(const Vector3& torque, ForceMode mode = ForceMode::Force) override;
 
 		/** @copydoc Rigidbody::addForceAtPoint */
-		void AddForceAtPoint(const Vector3& force, const Vector3& position,
-			PointForceMode mode = PointForceMode::Force) override;
+		void AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode = PointForceMode::Force) override;
 
 		/** @copydoc Rigidbody::getVelocityAtPoint */
 		Vector3 GetVelocityAtPoint(const Vector3& point) const override;
@@ -153,7 +152,7 @@ namespace bs
 
 		/** @copydoc Rigidbody::updateMassDistribution */
 		void UpdateMassDistribution() override;
-		
+
 		/** Returns the internal PhysX dynamic actor. */
 		physx::PxRigidDynamic* GetInternalInternal() const { return mInternal; }
 
@@ -162,4 +161,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

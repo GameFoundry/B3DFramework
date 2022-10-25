@@ -7,41 +7,44 @@
 #include "Managers/BsRenderAPIManager.h"
 #include "BsGLRenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-	/** Handles creation of the OpenGL render system. */
-	class GLRenderAPIFactory : public RenderAPIFactory
+	namespace ct
 	{
-	public:
-		static constexpr const char* SystemName = "bsfGLRenderAPI";
-
-		/** @copydoc RenderAPIFactory::create */
-		void Create() ;
-
-		/** @copydoc RenderAPIFactory::name */
-		const char* Name() const { return SystemName; }
-
-	private:
-		/**	Registers the factory with the render system manager when constructed. */
-		class InitOnStart
+		/** @addtogroup GL
+		 *  @{
+		 */
+		/** Handles creation of the OpenGL render system. */
+		class GLRenderAPIFactory : public RenderAPIFactory
 		{
 		public:
-			InitOnStart()
+			static constexpr const char* SystemName = "bsfGLRenderAPI";
+
+			/** @copydoc RenderAPIFactory::create */
+			void Create();
+
+			/** @copydoc RenderAPIFactory::name */
+			const char* Name() const { return SystemName; }
+
+		private:
+			/**	Registers the factory with the render system manager when constructed. */
+			class InitOnStart
 			{
-				static SPtr<RenderAPIFactory> newFactory;
-				if(newFactory == nullptr)
+			public:
+				InitOnStart()
 				{
-					newFactory = bs_shared_ptr_new<GLRenderAPIFactory>();
-					RenderAPIManager::Instance().RegisterFactory(newFactory);
+					static SPtr<RenderAPIFactory> newFactory;
+					if(newFactory == nullptr)
+					{
+						newFactory = bs_shared_ptr_new<GLRenderAPIFactory>();
+						RenderAPIManager::Instance().RegisterFactory(newFactory);
+					}
 				}
-			}
+			};
+
+			static InitOnStart initOnStart; // Makes sure factory is registered on library load
 		};
 
-		static InitOnStart initOnStart; // Makes sure factory is registered on library load
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

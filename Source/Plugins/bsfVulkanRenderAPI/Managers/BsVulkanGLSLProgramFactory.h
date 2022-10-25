@@ -5,30 +5,34 @@
 #include "BsVulkanPrerequisites.h"
 #include "Managers/BsGpuProgramManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Handles creation of GLSL GPU programs. */
-	class VulkanGLSLProgramFactory final : public GpuProgramFactory
+	namespace ct
 	{
-	public:
-		VulkanGLSLProgramFactory();
-		~VulkanGLSLProgramFactory();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** @copydoc GpuProgramFactory::Create(const GPU_PROGRAM_DESC&, GpuDeviceFlags) */
-		SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+		/**	Handles creation of GLSL GPU programs. */
+		class VulkanGLSLProgramFactory final : public GpuProgramFactory
+		{
+		public:
+			VulkanGLSLProgramFactory();
+			~VulkanGLSLProgramFactory();
 
-		/** @copydoc GpuProgramFactory::Create(GpuProgramType, GpuDeviceFlags) */
-		SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+			/** @copydoc GpuProgramFactory::Create(const GPU_PROGRAM_DESC&, GpuDeviceFlags) */
+			SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc GpuProgramFactory::compileBytecode(const GPU_PROGRAM_DESC&) */
-		SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc) ;
-	protected:
-		static const String LANGUAGE_NAME;
-	};
+			/** @copydoc GpuProgramFactory::Create(GpuProgramType, GpuDeviceFlags) */
+			SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-	/** @} */
-}}
+			/** @copydoc GpuProgramFactory::compileBytecode(const GPU_PROGRAM_DESC&) */
+			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc);
+
+		protected:
+			static const String LANGUAGE_NAME;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

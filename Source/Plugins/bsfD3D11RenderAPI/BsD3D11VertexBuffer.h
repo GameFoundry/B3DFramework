@@ -6,28 +6,31 @@
 #include "RenderAPI/BsVertexBuffer.h"
 #include "BsD3D11HardwareBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	DirectX 11 implementation of a vertex buffer. */
-	class D3D11VertexBuffer : public VertexBuffer
+	namespace ct
 	{
-	public:
-		D3D11VertexBuffer(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Get the D3D-specific index buffer */
-		ID3D11Buffer* GetD3DVertexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }		
+		/**	DirectX 11 implementation of a vertex buffer. */
+		class D3D11VertexBuffer : public VertexBuffer
+		{
+		public:
+			D3D11VertexBuffer(D3D11Device& device, const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		/** @copydoc VertexBuffer::initialize */
-		void Initialize() ;
+			/**	Get the D3D-specific index buffer */
+			ID3D11Buffer* GetD3DVertexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
 
-		D3D11Device& mDevice;
-		bool mStreamOut;
-	};
+		protected:
+			/** @copydoc VertexBuffer::initialize */
+			void Initialize();
 
-	/** @} */
-}}
+			D3D11Device& mDevice;
+			bool mStreamOut;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

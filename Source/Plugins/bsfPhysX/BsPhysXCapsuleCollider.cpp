@@ -9,9 +9,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXCapsuleCollider::PhysXCapsuleCollider(PxPhysics* physx, PxScene* scene, const Vector3& position,
-		const Quaternion& rotation, float radius, float halfHeight)
-		:mRadius(radius), mHalfHeight(halfHeight)
+	PhysXCapsuleCollider::PhysXCapsuleCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius, float halfHeight)
+		: mRadius(radius), mHalfHeight(halfHeight)
 	{
 		PxCapsuleGeometry geometry(radius, halfHeight);
 
@@ -58,8 +57,7 @@ namespace bs
 
 	void PhysXCapsuleCollider::ApplyGeometry()
 	{
-		PxCapsuleGeometry geometry(std::max(0.01f, mRadius * std::max(mScale.X, mScale.Z)),
-			std::max(0.01f, mHalfHeight * mScale.Y));
+		PxCapsuleGeometry geometry(std::max(0.01f, mRadius * std::max(mScale.X, mScale.Z)), std::max(0.01f, mHalfHeight * mScale.Y));
 
 		GetInternal()->GetShapeInternal()->setGeometry(geometry);
 	}
@@ -68,4 +66,4 @@ namespace bs
 	{
 		return static_cast<FPhysXCollider*>(mInternal);
 	}
-}
+} // namespace bs

@@ -38,5 +38,4 @@ namespace bs::ct
 	};
 
 	/** @} */
-}
-
+} // namespace bs::ct

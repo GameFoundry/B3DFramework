@@ -10,349 +10,353 @@
 #include "Utility/BsTextureRowAllocator.h"
 #include "Utility/BsGpuSort.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	struct RendererParticles;
-	class GpuParticleSimulateMat;
-	struct GBufferTextures;
-	struct SceneInfo;
-	class GpuParticleResources;
-
-	/** @addtogroup RenderBeast
-	 *  @{
-	 */
-
-	/** Contains information about a single tile allocated in the particle texture used for GPU simulation. */
-	struct GpuParticleTile
+	namespace ct
 	{
-		u32 Id = (u32)-1;
-		u32 NumFreeParticles = 0;
-		float Lifetime = 0.0f;
-	};
+		struct RendererParticles;
+		class GpuParticleSimulateMat;
+		struct GBufferTextures;
+		struct SceneInfo;
+		class GpuParticleResources;
 
-	/** Contains functionality specific to a single particle system simulated on the GPU. */
-	class GpuParticleSystem
-	{
-	public:
-		GpuParticleSystem(ParticleSystem* parent);
-		~GpuParticleSystem();
-
-		/** Returns the non-renderer particle system object that owns this object. */
-		ParticleSystem* GetParent() const { return mParent; }
-
-		/**
-		 * Attempts to allocate room for a set of particles. Particles will attempt to be inserted into an existing tile if
-		 * there's room, or new tiles will be allocated otherwise. If the particle texture is full the allocation will
-		 * silently fail.
-		 *
-		 * @param[in]		resources		Object holding the global particle textures.
-		 * @param[in,out]	newParticles	List of new particles for which space needs to be allocated. The particles will
-		 *									get updated in-place with the UV coordinates at which their data is located.
-		 * @param[in]		newTiles		Indices of the tiles that were newly allocated, if any.
-		 * @return							True if any new tiles were allocated, false otherwise.
+		/** @addtogroup RenderBeast
+		 *  @{
 		 */
-		bool AllocateTiles(GpuParticleResources& resources, Vector<GpuParticle>& newParticles,
-			Vector<u32>& newTiles);
 
-		/**
-		 * Detects which tiles had all of their particle's expire and marks the inactive so they can be re-used on the
-		 * next call to allocateTiles().
-		 */
-		void DetectInactiveTiles();
-
-		/** Releases any tiles that were marked as inactive so they may be re-used by some other particle system. */
-		bool FreeInactiveTiles(GpuParticleResources& resources);
-
-		/** Returns a buffer containing UV coordinates to which each of the allocate tiles map to. */
-		SPtr<GpuBuffer> GetTileUVs() const { return mTileUVs; }
-
-		/** Returns a buffer containing per-particle indices used for locating particle data in the particle textures. */
-		SPtr<GpuBuffer> GetParticleIndices() const { return mParticleIndices; }
-
-		/**
-		 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
-		 * freed them using freeInactiveTiles earlier.
-		 */
-		u32 GetNumTiles() const { return (u32)mTiles.size(); }
-
-		/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
-		void UpdateGpuBuffers();
-
-		/** Increments the internal time counter. */
-		void AdvanceTime(float dt);
-
-		/** Returns the time since the system was created. */
-		float GetTime() const { return mTime; }
-
-		/**
-		 * Returns the bounds of the particle system. These will be user-provided bounds, or infinite bounds if no
-		 * user-provided ones exist.
-		 */
-		AABox GetBounds() const;
-
-		/** Returns the object that can be used for retrieving random numbers when evaluating this particle system. */
-		const Random& GetRandom() const { return mRandom; }
-
-		/**
-		 * Sets information about the results of particle system sorting.
-		 *
-		 * @param[in]	sorted		True if the system has information in the sorted index buffer.
-		 * @param[in]	offset		Offset into the sorted index buffer. Only relevant if @p sorted is true.
-		 */
-		void SetSortInfo(bool sorted, u32 offset)
+		/** Contains information about a single tile allocated in the particle texture used for GPU simulation. */
+		struct GpuParticleTile
 		{
-			mSorted = sorted;
-
-			if(sorted)
-				mSortOffset = offset;
-		}
-
-		/** Returns true if the particle system has its indices stored in the sorted index buffer. */
-		bool HasSortInfo() const { return mSorted; }
-
-		/**
-		 * Returns offset into the sorted index buffer at which indices of the particle system start. Only available if
-		 * hasSortInfo() returns true.
-		 */
-		u32 GetSortOffset() const { return mSortOffset; }
-
-	private:
-		ParticleSystem* mParent = nullptr;
-		Vector<GpuParticleTile> mTiles;
-		Bitfield mActiveTiles;
-		u32 mNumActiveTiles = 0;
-		u32 mLastAllocatedTile = (u32)-1;
-		float mTime = 0.0f;
-		bool mSorted = false;
-		u32 mSortOffset = 0;
-		Random mRandom;
-
-		SPtr<GpuBuffer> mTileUVs;
-		SPtr<GpuBuffer> mParticleIndices;
-	};
-
-	/** Performs simulation for all particle systems that have GPU simulation enabled. */
-	class GpuParticleSimulation : public Module<GpuParticleSimulation>
-	{
-		struct Pimpl;
-	public:
-		GpuParticleSimulation();
-		~GpuParticleSimulation();
-
-		/**
-		 * Registers a new GPU particle system to simulate. The system will be simulated until removed by a call to
-		 * removeSystem().
-		 */
-		void AddSystem(GpuParticleSystem* system);
-
-		/** Unregisters a previously registered particle system. */
-		void RemoveSystem(GpuParticleSystem* system);
-
-		/**
-		 * Performs GPU particle simulation on all registered particle systems.
-		 *
-		 * @param[in]	sceneInfo	Information about the scene currently being rendered.
-		 * @param[in]	simData		Particle simulation data output on the simulation thread.
-		 * @param[in]	viewParams	Buffer containing properties of the view that's currently being rendered.
-		 * @param[in]	gbuffer		Populated GBuffer with depths and normals.
-		 * @param[in]	dt			Time step to advance the simulation by.
-		 */
-		void Simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData,
-			const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
-
-		/**
-		 * Sorts the particle systems for the provided view. Only sorts systems using distance based sorting and only
-		 * works on systems supporting compute. Sort results are written to a global buffer accessible through
-		 * getResources(), with offsets into the buffer written into particle system objects in @p sceneInfo.
-		 */
-		void Sort(const RendererView& view);
-
-		/** Returns textures used for storing particle data. */
-		GpuParticleResources& GetResources() const;
-	private:
-		/** Prepares buffer necessary for simulating the provided particle system. */
-		void PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo);
-
-		/** Clears out all the areas in particle textures as marked by the provided tiles to their default values. */
-		void ClearTiles(const Vector<u32>& tiles);
-
-		/** Inserts the provided set of particles into the particle textures. */
-		void InjectParticles(const Vector<GpuParticle>& particles);
-
-		Pimpl* m;
-	};
-
-	/** Contains textures that get updated with every run of the GPU particle simulation. */
-	struct GpuParticleStateTextures
-	{
-		SPtr<Texture> PositionAndTimeTex;
-		SPtr<Texture> VelocityTex;
-	};
-
-	/** Contains textures that contain data static throughout the particle's lifetime. */
-	struct GpuParticleStaticTextures
-	{
-		SPtr<Texture> SizeAndRotationTex;
-	};
-
-	/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
-	class GpuParticleCurves
-	{
-		static constexpr u32 TEX_SIZE = 1024;
-		static constexpr u32 SCRATCH_NUM_VERTICES = 16384;
-	public:
-		GpuParticleCurves();
-		~GpuParticleCurves();
-
-		/**
-		 * Adds the provided set of pixels to the curve texture. Note you must call apply() to actually inject the
-		 * pixels into the texture.
-		 *
-		 * @param[in]	pixels		Pixels to inject into the curve.
-		 * @param[in]	count		Number of pixels in the @p pixels array.
-		 * @return					Allocation information about in which part of the texture the pixels were places.
-		 */
-		TextureRowAllocation Alloc(Color* pixels, uint32_t count);
-
-		/** Frees a previously allocated region. */
-		void Free(const TextureRowAllocation& alloc);
-
-		/**
-		 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
-		 * called after alloc() has been called for all new entries, but before the texture is used for reading.
-		 */
-		void ApplyChanges();
-
-		/** Returns the internal texture the curve data is written to. */
-		const SPtr<Texture>& GetTexture() const { return mCurveTexture; }
-
-		/** Returns the UV coordinates at which the provided allocation starts. */
-		static Vector2 GetUvOffset(const TextureRowAllocation& alloc);
-
-		/**
-		 * Returns a value which scales a value in range [0, 1] to a range of pixels of the provided allocation, where 0
-		 * represents the left-most pixel, and 1 the right-most pixel.
-		 */
-		static float GetUvScale(const TextureRowAllocation& alloc);
-
-	private:
-		/** Information about an allocation not yet injected into the curve texture. */
-		struct PendingAllocation
-		{
-			Color* Pixels;
-			TextureRowAllocation Allocation;
+			u32 Id = (u32)-1;
+			u32 NumFreeParticles = 0;
+			float Lifetime = 0.0f;
 		};
 
-		FrameAlloc mPendingAllocator;
-		Vector<PendingAllocation> mPendingAllocations;
+		/** Contains functionality specific to a single particle system simulated on the GPU. */
+		class GpuParticleSystem
+		{
+		public:
+			GpuParticleSystem(ParticleSystem* parent);
+			~GpuParticleSystem();
 
-		SPtr<Texture> mCurveTexture;
-		SPtr<RenderTexture> mRT;
+			/** Returns the non-renderer particle system object that owns this object. */
+			ParticleSystem* GetParent() const { return mParent; }
 
-		TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
+			/**
+			 * Attempts to allocate room for a set of particles. Particles will attempt to be inserted into an existing tile if
+			 * there's room, or new tiles will be allocated otherwise. If the particle texture is full the allocation will
+			 * silently fail.
+			 *
+			 * @param[in]		resources		Object holding the global particle textures.
+			 * @param[in,out]	newParticles	List of new particles for which space needs to be allocated. The particles will
+			 *									get updated in-place with the UV coordinates at which their data is located.
+			 * @param[in]		newTiles		Indices of the tiles that were newly allocated, if any.
+			 * @return							True if any new tiles were allocated, false otherwise.
+			 */
+			bool AllocateTiles(GpuParticleResources& resources, Vector<GpuParticle>& newParticles, Vector<u32>& newTiles);
 
-		SPtr<VertexBuffer> mInjectUV;
-		SPtr<IndexBuffer> mInjectIndices;
-		SPtr<VertexDeclaration> mInjectVertexDecl;
-		SPtr<VertexBuffer> mInjectScratch;
-	};
+			/**
+			 * Detects which tiles had all of their particle's expire and marks the inactive so they can be re-used on the
+			 * next call to allocateTiles().
+			 */
+			void DetectInactiveTiles();
 
-	/**
-	 * Contains textures and buffers used for GPU particle simulation and handles allocation of tiles within the particle
-	 * textures. State textures are double-buffered so one can be used for reading and other for writing during simulation.
-	 */
-	class GpuParticleResources
-	{
-	public:
-		static constexpr u32 TEX_SIZE = 1024;
-		static constexpr u32 TILE_SIZE = 4;
-		static constexpr u32 PARTICLES_PER_TILE = TILE_SIZE * TILE_SIZE;
-		static constexpr u32 TILE_COUNT_1D = TEX_SIZE / TILE_SIZE;
-		static constexpr u32 TILE_COUNT = TILE_COUNT_1D * TILE_COUNT_1D;
+			/** Releases any tiles that were marked as inactive so they may be re-used by some other particle system. */
+			bool FreeInactiveTiles(GpuParticleResources& resources);
 
-		static_assert((TEX_SIZE & (TEX_SIZE - 1)) == 0, "Particle texture size not a power of two");
-		static_assert((TILE_SIZE & (TILE_SIZE - 1)) == 0, "Particle tile size not a power of two");
+			/** Returns a buffer containing UV coordinates to which each of the allocate tiles map to. */
+			SPtr<GpuBuffer> GetTileUVs() const { return mTileUVs; }
 
-		GpuParticleResources();
+			/** Returns a buffer containing per-particle indices used for locating particle data in the particle textures. */
+			SPtr<GpuBuffer> GetParticleIndices() const { return mParticleIndices; }
 
-		/** Swap the read and write state textures. */
-		void Swap() { mWriteBufferIdx ^= 0x1; }
+			/**
+			 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
+			 * freed them using freeInactiveTiles earlier.
+			 */
+			u32 GetNumTiles() const { return (u32)mTiles.size(); }
 
-		/** Returns textures that contain the results from the previous simulation step. */
-		GpuParticleStateTextures& GetPreviousState() { return mStateTextures[mWriteBufferIdx ^ 0x1]; }
+			/** Rebuilds ths internal buffers that contain tile UVs and per-particle UVs. */
+			void UpdateGpuBuffers();
 
-		/** Returns textures that contain the results from the last available simulation step. */
-		GpuParticleStateTextures& GetCurrentState() { return mStateTextures[mWriteBufferIdx]; }
+			/** Increments the internal time counter. */
+			void AdvanceTime(float dt);
 
-		/** @copydoc getCurrentState() */
-		const GpuParticleStateTextures& GetCurrentState() const { return mStateTextures[mWriteBufferIdx]; }
+			/** Returns the time since the system was created. */
+			float GetTime() const { return mTime; }
 
-		/** Returns a set of textures containing particle state that is static throughout the particle's lifetime. */
-		const GpuParticleStaticTextures& GetStaticTextures() const { return mStaticTextures; }
+			/**
+			 * Returns the bounds of the particle system. These will be user-provided bounds, or infinite bounds if no
+			 * user-provided ones exist.
+			 */
+			AABox GetBounds() const;
 
-		/** Returns an object containing quantized curves for all particle systems. */
-		GpuParticleCurves& GetCurveTexture() { return mCurveTexture; }
+			/** Returns the object that can be used for retrieving random numbers when evaluating this particle system. */
+			const Random& GetRandom() const { return mRandom; }
 
-		/** @copydoc getCurveTexture() */
-		const GpuParticleCurves& GetCurveTexture() const { return mCurveTexture; }
+			/**
+			 * Sets information about the results of particle system sorting.
+			 *
+			 * @param[in]	sorted		True if the system has information in the sorted index buffer.
+			 * @param[in]	offset		Offset into the sorted index buffer. Only relevant if @p sorted is true.
+			 */
+			void SetSortInfo(bool sorted, u32 offset)
+			{
+				mSorted = sorted;
 
-		/** Returns the render target which can be used for injecting new particle data in the state textures. */
-		const SPtr<RenderTexture>& GetInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
+				if(sorted)
+					mSortOffset = offset;
+			}
 
-		/** Returns the render target which can be used for writing the results of the particle system simulation. */
-		const SPtr<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
+			/** Returns true if the particle system has its indices stored in the sorted index buffer. */
+			bool HasSortInfo() const { return mSorted; }
 
-		/** Returns a global buffer containing particle indices for sorted particle systems. */
-		const SPtr<GpuBuffer>& GetSortedIndices() const;
+			/**
+			 * Returns offset into the sorted index buffer at which indices of the particle system start. Only available if
+			 * hasSortInfo() returns true.
+			 */
+			u32 GetSortOffset() const { return mSortOffset; }
+
+		private:
+			ParticleSystem* mParent = nullptr;
+			Vector<GpuParticleTile> mTiles;
+			Bitfield mActiveTiles;
+			u32 mNumActiveTiles = 0;
+			u32 mLastAllocatedTile = (u32)-1;
+			float mTime = 0.0f;
+			bool mSorted = false;
+			u32 mSortOffset = 0;
+			Random mRandom;
+
+			SPtr<GpuBuffer> mTileUVs;
+			SPtr<GpuBuffer> mParticleIndices;
+		};
+
+		/** Performs simulation for all particle systems that have GPU simulation enabled. */
+		class GpuParticleSimulation : public Module<GpuParticleSimulation>
+		{
+			struct Pimpl;
+
+		public:
+			GpuParticleSimulation();
+			~GpuParticleSimulation();
+
+			/**
+			 * Registers a new GPU particle system to simulate. The system will be simulated until removed by a call to
+			 * removeSystem().
+			 */
+			void AddSystem(GpuParticleSystem* system);
+
+			/** Unregisters a previously registered particle system. */
+			void RemoveSystem(GpuParticleSystem* system);
+
+			/**
+			 * Performs GPU particle simulation on all registered particle systems.
+			 *
+			 * @param[in]	sceneInfo	Information about the scene currently being rendered.
+			 * @param[in]	simData		Particle simulation data output on the simulation thread.
+			 * @param[in]	viewParams	Buffer containing properties of the view that's currently being rendered.
+			 * @param[in]	gbuffer		Populated GBuffer with depths and normals.
+			 * @param[in]	dt			Time step to advance the simulation by.
+			 */
+			void Simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, const SPtr<GpuParamBlockBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
+
+			/**
+			 * Sorts the particle systems for the provided view. Only sorts systems using distance based sorting and only
+			 * works on systems supporting compute. Sort results are written to a global buffer accessible through
+			 * getResources(), with offsets into the buffer written into particle system objects in @p sceneInfo.
+			 */
+			void Sort(const RendererView& view);
+
+			/** Returns textures used for storing particle data. */
+			GpuParticleResources& GetResources() const;
+
+		private:
+			/** Prepares buffer necessary for simulating the provided particle system. */
+			void PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo);
+
+			/** Clears out all the areas in particle textures as marked by the provided tiles to their default values. */
+			void ClearTiles(const Vector<u32>& tiles);
+
+			/** Inserts the provided set of particles into the particle textures. */
+			void InjectParticles(const Vector<GpuParticle>& particles);
+
+			Pimpl* m;
+		};
+
+		/** Contains textures that get updated with every run of the GPU particle simulation. */
+		struct GpuParticleStateTextures
+		{
+			SPtr<Texture> PositionAndTimeTex;
+			SPtr<Texture> VelocityTex;
+		};
+
+		/** Contains textures that contain data static throughout the particle's lifetime. */
+		struct GpuParticleStaticTextures
+		{
+			SPtr<Texture> SizeAndRotationTex;
+		};
+
+		/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
+		class GpuParticleCurves
+		{
+			static constexpr u32 TEX_SIZE = 1024;
+			static constexpr u32 SCRATCH_NUM_VERTICES = 16384;
+
+		public:
+			GpuParticleCurves();
+			~GpuParticleCurves();
+
+			/**
+			 * Adds the provided set of pixels to the curve texture. Note you must call apply() to actually inject the
+			 * pixels into the texture.
+			 *
+			 * @param[in]	pixels		Pixels to inject into the curve.
+			 * @param[in]	count		Number of pixels in the @p pixels array.
+			 * @return					Allocation information about in which part of the texture the pixels were places.
+			 */
+			TextureRowAllocation Alloc(Color* pixels, uint32_t count);
+
+			/** Frees a previously allocated region. */
+			void Free(const TextureRowAllocation& alloc);
+
+			/**
+			 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
+			 * called after alloc() has been called for all new entries, but before the texture is used for reading.
+			 */
+			void ApplyChanges();
+
+			/** Returns the internal texture the curve data is written to. */
+			const SPtr<Texture>& GetTexture() const { return mCurveTexture; }
+
+			/** Returns the UV coordinates at which the provided allocation starts. */
+			static Vector2 GetUvOffset(const TextureRowAllocation& alloc);
+
+			/**
+			 * Returns a value which scales a value in range [0, 1] to a range of pixels of the provided allocation, where 0
+			 * represents the left-most pixel, and 1 the right-most pixel.
+			 */
+			static float GetUvScale(const TextureRowAllocation& alloc);
+
+		private:
+			/** Information about an allocation not yet injected into the curve texture. */
+			struct PendingAllocation
+			{
+				Color* Pixels;
+				TextureRowAllocation Allocation;
+			};
+
+			FrameAlloc mPendingAllocator;
+			Vector<PendingAllocation> mPendingAllocations;
+
+			SPtr<Texture> mCurveTexture;
+			SPtr<RenderTexture> mRT;
+
+			TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
+
+			SPtr<VertexBuffer> mInjectUV;
+			SPtr<IndexBuffer> mInjectIndices;
+			SPtr<VertexDeclaration> mInjectVertexDecl;
+			SPtr<VertexBuffer> mInjectScratch;
+		};
 
 		/**
-		 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
-		 * room.
+		 * Contains textures and buffers used for GPU particle simulation and handles allocation of tiles within the particle
+		 * textures. State textures are double-buffered so one can be used for reading and other for writing during simulation.
 		 */
-		u32 AllocTile();
+		class GpuParticleResources
+		{
+		public:
+			static constexpr u32 TEX_SIZE = 1024;
+			static constexpr u32 TILE_SIZE = 4;
+			static constexpr u32 PARTICLES_PER_TILE = TILE_SIZE * TILE_SIZE;
+			static constexpr u32 TILE_COUNT_1D = TEX_SIZE / TILE_SIZE;
+			static constexpr u32 TILE_COUNT = TILE_COUNT_1D * TILE_COUNT_1D;
 
-		/** Frees a tile previously allocated with allocTile(). */
-		void FreeTile(u32 tile);
+			static_assert((TEX_SIZE & (TEX_SIZE - 1)) == 0, "Particle texture size not a power of two");
+			static_assert((TILE_SIZE & (TILE_SIZE - 1)) == 0, "Particle tile size not a power of two");
 
-		/** Returns offset (in pixels) at which the tile with the specified index starts at. */
-		static Vector2I GetTileOffset(u32 tileId);
+			GpuParticleResources();
 
-		/** Returns the UV coordinates at which the tile with the specified index starts at. */
-		static Vector2 GetTileCoords(u32 tileId);
+			/** Swap the read and write state textures. */
+			void Swap() { mWriteBufferIdx ^= 0x1; }
 
-		/**
-		 * Returns the particle offset (in pixels) relative to the tile. @p subTileIdx represents he index of the particle
-		 * in a tile.
-		 */
-		static Vector2I GetParticleOffset(u32 subTileId);
+			/** Returns textures that contain the results from the previous simulation step. */
+			GpuParticleStateTextures& GetPreviousState() { return mStateTextures[mWriteBufferIdx ^ 0x1]; }
 
-		/**
-		 * Returns the particle coordinates relative to the tile. @p subTileIdx represents the index of the particle in
-		 * a tile.
-		 */
-		static Vector2 GetParticleCoords(u32 subTileIdx);
+			/** Returns textures that contain the results from the last available simulation step. */
+			GpuParticleStateTextures& GetCurrentState() { return mStateTextures[mWriteBufferIdx]; }
 
-	private:
-		friend class GpuParticleSimulation;
+			/** @copydoc getCurrentState() */
+			const GpuParticleStateTextures& GetCurrentState() const { return mStateTextures[mWriteBufferIdx]; }
 
-		GpuParticleStateTextures mStateTextures[2];
-		GpuParticleStaticTextures mStaticTextures;
-		GpuParticleCurves mCurveTexture;
-		GpuSortBuffers mSortBuffers;
-		SPtr<GpuBuffer> mSortedIndices[2];
-		u32 mSortedIndicesBufferIdx = 0;
-		
-		SPtr<RenderTexture> mSimulateRT[2];
-		SPtr<RenderTexture> mInjectRT[2];
+			/** Returns a set of textures containing particle state that is static throughout the particle's lifetime. */
+			const GpuParticleStaticTextures& GetStaticTextures() const { return mStaticTextures; }
 
-		u32 mWriteBufferIdx = 0;
+			/** Returns an object containing quantized curves for all particle systems. */
+			GpuParticleCurves& GetCurveTexture() { return mCurveTexture; }
 
-		u32 mFreeTiles[TILE_COUNT];
-		u32 mNumFreeTiles = TILE_COUNT;
-	};
+			/** @copydoc getCurveTexture() */
+			const GpuParticleCurves& GetCurveTexture() const { return mCurveTexture; }
 
-	/** @} */
-}}
+			/** Returns the render target which can be used for injecting new particle data in the state textures. */
+			const SPtr<RenderTexture>& GetInjectTarget() const { return mInjectRT[mWriteBufferIdx ^ 0x1]; }
+
+			/** Returns the render target which can be used for writing the results of the particle system simulation. */
+			const SPtr<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
+
+			/** Returns a global buffer containing particle indices for sorted particle systems. */
+			const SPtr<GpuBuffer>& GetSortedIndices() const;
+
+			/**
+			 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
+			 * room.
+			 */
+			u32 AllocTile();
+
+			/** Frees a tile previously allocated with allocTile(). */
+			void FreeTile(u32 tile);
+
+			/** Returns offset (in pixels) at which the tile with the specified index starts at. */
+			static Vector2I GetTileOffset(u32 tileId);
+
+			/** Returns the UV coordinates at which the tile with the specified index starts at. */
+			static Vector2 GetTileCoords(u32 tileId);
+
+			/**
+			 * Returns the particle offset (in pixels) relative to the tile. @p subTileIdx represents he index of the particle
+			 * in a tile.
+			 */
+			static Vector2I GetParticleOffset(u32 subTileId);
+
+			/**
+			 * Returns the particle coordinates relative to the tile. @p subTileIdx represents the index of the particle in
+			 * a tile.
+			 */
+			static Vector2 GetParticleCoords(u32 subTileIdx);
+
+		private:
+			friend class GpuParticleSimulation;
+
+			GpuParticleStateTextures mStateTextures[2];
+			GpuParticleStaticTextures mStaticTextures;
+			GpuParticleCurves mCurveTexture;
+			GpuSortBuffers mSortBuffers;
+			SPtr<GpuBuffer> mSortedIndices[2];
+			u32 mSortedIndicesBufferIdx = 0;
+
+			SPtr<RenderTexture> mSimulateRT[2];
+			SPtr<RenderTexture> mInjectRT[2];
+
+			u32 mWriteBufferIdx = 0;
+
+			u32 mFreeTiles[TILE_COUNT];
+			u32 mNumFreeTiles = TILE_COUNT;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs
 
 namespace bs
 {

@@ -60,6 +60,7 @@ namespace bs
 		 * @return					Memory data stream containing the encoded samples.
 		 */
 		static SPtr<MemoryDataStream> PCMToOggVorbis(u8* samples, const AudioDataInfo& info, u32& size);
+
 	private:
 		/** Writes Vorbis blocks into Ogg packets. */
 		void WriteBlocks();
@@ -80,4 +81,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

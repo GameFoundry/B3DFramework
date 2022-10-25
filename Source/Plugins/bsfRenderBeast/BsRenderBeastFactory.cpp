@@ -18,4 +18,4 @@ namespace bs
 		static String StrSystemName = SystemName;
 		return StrSystemName;
 	}
-}
+} // namespace bs

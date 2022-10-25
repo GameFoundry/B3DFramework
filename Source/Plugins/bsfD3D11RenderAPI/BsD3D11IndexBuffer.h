@@ -6,27 +6,30 @@
 #include "RenderAPI/BsIndexBuffer.h"
 #include "BsD3D11HardwareBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	DirectX 11 implementation of an index buffer. */
-	class D3D11IndexBuffer : public IndexBuffer
+	namespace ct
 	{
-	public:
-		D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Gets the internal DX11 index buffer object. */
-		ID3D11Buffer* GetD3DIndexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
+		/**	DirectX 11 implementation of an index buffer. */
+		class D3D11IndexBuffer : public IndexBuffer
+		{
+		public:
+			D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		/** @copydoc IndexBuffer::initialize */
-		void Initialize() ;
+			/**	Gets the internal DX11 index buffer object. */
+			ID3D11Buffer* GetD3DIndexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
 
-		D3D11Device& mDevice;
-	};
+		protected:
+			/** @copydoc IndexBuffer::initialize */
+			void Initialize();
 
-	/** @} */
-}}
+			D3D11Device& mDevice;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

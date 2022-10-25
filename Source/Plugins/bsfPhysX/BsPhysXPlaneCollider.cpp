@@ -9,8 +9,7 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const Vector3& position,
-		const Quaternion& rotation)
+	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
 	{
 		PxPlaneGeometry geometry;
 
@@ -30,4 +29,4 @@ namespace bs
 	{
 		return static_cast<FPhysXCollider*>(mInternal);
 	}
-}
+} // namespace bs

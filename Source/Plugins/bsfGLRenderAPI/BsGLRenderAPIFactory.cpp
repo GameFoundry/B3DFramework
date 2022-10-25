@@ -3,14 +3,17 @@
 #include "BsGLRenderAPIFactory.h"
 #include "BsGLRenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	constexpr const char* GLRenderAPIFactory::SystemName;
-
-	void GLRenderAPIFactory::Create()
+	namespace ct
 	{
-		RenderAPI::StartUp<GLRenderAPI>();
-	}
+		constexpr const char* GLRenderAPIFactory::SystemName;
 
-	GLRenderAPIFactory::InitOnStart GLRenderAPIFactory::initOnStart;
-}}
+		void GLRenderAPIFactory::Create()
+		{
+			RenderAPI::StartUp<GLRenderAPI>();
+		}
+
+		GLRenderAPIFactory::InitOnStart GLRenderAPIFactory::initOnStart;
+	} // namespace ct
+} // namespace bs

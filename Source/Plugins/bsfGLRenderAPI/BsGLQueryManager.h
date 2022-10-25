@@ -5,25 +5,28 @@
 #include "BsGLPrerequisites.h"
 #include "Managers/BsQueryManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	Handles creation and life of OpenGL queries. */
-	class GLQueryManager : public QueryManager
+	namespace ct
 	{
-	public:
-		/** @copydoc QueryManager::createEventQuery */
-		SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const ;
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc QueryManager::createTimerQuery */
-		SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const ;
+		/**	Handles creation and life of OpenGL queries. */
+		class GLQueryManager : public QueryManager
+		{
+		public:
+			/** @copydoc QueryManager::createEventQuery */
+			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const;
 
-		/** @copydoc QueryManager::createOcclusionQuery */
-		SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const ;
-	};
+			/** @copydoc QueryManager::createTimerQuery */
+			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const;
 
-	/** @} */
-}}
+			/** @copydoc QueryManager::createOcclusionQuery */
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

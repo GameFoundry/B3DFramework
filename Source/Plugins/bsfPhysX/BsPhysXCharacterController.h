@@ -14,10 +14,7 @@ namespace bs
 	 */
 
 	/** PhysX specific implementation if a CharacterController. */
-	class PhysXCharacterController : public CharacterController
-								   , physx::PxUserControllerHitReport
-		                           , physx::PxQueryFilterCallback
-								   , physx::PxControllerFilterCallback
+	class PhysXCharacterController : public CharacterController, physx::PxUserControllerHitReport, physx::PxQueryFilterCallback, physx::PxControllerFilterCallback
 	{
 	public:
 		PhysXCharacterController(physx::PxControllerManager* manager, const CHAR_CONTROLLER_DESC& desc);
@@ -100,15 +97,13 @@ namespace bs
 		void onControllerHit(const physx::PxControllersHit& hit) override;
 
 		/** @copydoc physx::PxUserControllerHitReport::onObstacleHit */
-		void onObstacleHit(const physx::PxControllerObstacleHit& hit) override { /* Do nothing */ };
+		void onObstacleHit(const physx::PxControllerObstacleHit& hit) override{ /* Do nothing */ };
 
 		/** @copydoc physx::PxQueryFilterCallback::preFilter */
-		physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData& filterData, const physx::PxShape* shape,
-			const physx::PxRigidActor* actor, physx::PxHitFlags& queryFlags) override;
+		physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData& filterData, const physx::PxShape* shape, const physx::PxRigidActor* actor, physx::PxHitFlags& queryFlags) override;
 
 		/** @copydoc physx::PxQueryFilterCallback::postFilter */
-		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData,
-			const physx::PxQueryHit& hit) override;
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit) override;
 
 		/** @copydoc physx::PxControllerFilterCallback::filter */
 		bool filter(const physx::PxController& a, const physx::PxController& b) override;
@@ -119,4 +114,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

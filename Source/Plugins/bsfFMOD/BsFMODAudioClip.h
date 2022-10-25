@@ -12,7 +12,7 @@ namespace bs
 	/** @addtogroup FMOD
 	 *  @{
 	 */
-	
+
 	/** Contains data used for decompressing an Ogg Vorbis stream. */
 	struct FMODOggDecompressorData
 	{
@@ -51,7 +51,7 @@ namespace bs
 		void Initialize() override;
 
 		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size) ;
+		SPtr<DataStream> GetSourceStream(u32& size);
 
 		FMOD::Sound* mSound = nullptr;
 
@@ -62,4 +62,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

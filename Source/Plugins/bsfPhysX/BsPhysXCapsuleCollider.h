@@ -12,28 +12,27 @@ namespace bs
 	 *  @{
 	 */
 
-	 /** PhysX implementation of a CapsuleCollider. */
+	/** PhysX implementation of a CapsuleCollider. */
 	class PhysXCapsuleCollider : public CapsuleCollider
 	{
 	public:
-		PhysXCapsuleCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position,
-			const Quaternion& rotation, float radius, float halfHeight);
+		PhysXCapsuleCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius, float halfHeight);
 		~PhysXCapsuleCollider();
 
 		/** @copydoc CapsuleCollider::setScale() */
-		void SetScale(const Vector3& scale) ;
+		void SetScale(const Vector3& scale);
 
 		/** @copydoc CapsuleCollider::setHalfHeight() */
-		void SetHalfHeight(float halfHeight) ;
+		void SetHalfHeight(float halfHeight);
 
 		/** @copydoc CapsuleCollider::getHalfHeight() */
-		float GetHalfHeight() const ;
+		float GetHalfHeight() const;
 
 		/** @copydoc CapsuleCollider::setRadius() */
-		void SetRadius(float radius) ;
+		void SetRadius(float radius);
 
 		/** @copydoc CapsuleCollider::getRadius() */
-		float GetRadius() const ;
+		float GetRadius() const;
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */
@@ -47,4 +46,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

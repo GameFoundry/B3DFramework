@@ -3,23 +3,26 @@
 #include "BsVulkanDescriptorSet.h"
 #include "BsVulkanDevice.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool)
-		:VulkanResource(owner, true), mSet(set), mPool(pool)
-	{ }
-
-	VulkanDescriptorSet::~VulkanDescriptorSet()
+	namespace ct
 	{
-		VkResult result = vkFreeDescriptorSets(mOwner->GetDevice().GetLogical(), mPool, 1, &mSet);
-		assert(result == VK_SUCCESS);
-	}
+		VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool)
+			: VulkanResource(owner, true), mSet(set), mPool(pool)
+		{}
 
-	void VulkanDescriptorSet::Write(VkWriteDescriptorSet* entries, u32 count)
-	{
-		for (u32 i = 0; i < count; i++)
-			entries[i].dstSet = mSet;
+		VulkanDescriptorSet::~VulkanDescriptorSet()
+		{
+			VkResult result = vkFreeDescriptorSets(mOwner->GetDevice().GetLogical(), mPool, 1, &mSet);
+			assert(result == VK_SUCCESS);
+		}
 
-		vkUpdateDescriptorSets(mOwner->GetDevice().GetLogical(), count, entries, 0, nullptr);
-	}
-}}
+		void VulkanDescriptorSet::Write(VkWriteDescriptorSet* entries, u32 count)
+		{
+			for(u32 i = 0; i < count; i++)
+				entries[i].dstSet = mSet;
+
+			vkUpdateDescriptorSets(mOwner->GetDevice().GetLogical(), count, entries, 0, nullptr);
+		}
+	} // namespace ct
+} // namespace bs

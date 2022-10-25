@@ -10,12 +10,12 @@
 namespace bs
 {
 	OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
-		:AudioClip(samples, streamSize, numSamples, desc)
-	{ }
+		: AudioClip(samples, streamSize, numSamples, desc)
+	{}
 
 	OAAudioClip::~OAAudioClip()
 	{
-		if (mBufferId != (u32)-1)
+		if(mBufferId != (u32)-1)
 			alDeleteBuffers(1, &mBufferId);
 	}
 
@@ -32,13 +32,13 @@ namespace bs
 			info.SampleRate = mDesc.Frequency;
 
 			// If we need to keep source data, read everything into memory and keep a copy
-			if (mKeepSourceData)
+			if(mKeepSourceData)
 			{
 				mStreamData->Seek(mStreamOffset);
 
 				auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
 				mSourceStreamData = memStream;
-				
+
 				mStreamData->Read(memStream->Data(), mStreamSize);
 				mSourceStreamSize = mStreamSize;
 			}
@@ -53,7 +53,7 @@ namespace bs
 				// Read all data into memory
 				SPtr<DataStream> stream;
 				u32 offset = 0;
-				if (mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
+				if(mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 					stream = mSourceStreamData;
 				else
 				{
@@ -65,10 +65,10 @@ namespace bs
 				u8* sampleBuffer = (u8*)bs_stack_alloc(bufferSize);
 
 				// Decompress from Ogg
-				if (mDesc.Format == AudioFormat::VORBIS)
+				if(mDesc.Format == AudioFormat::VORBIS)
 				{
 					OggVorbisDecoder reader;
-					if (reader.Open(stream, info, offset))
+					if(reader.Open(stream, info, offset))
 						reader.Read(sampleBuffer, info.NumSamples);
 					else
 						BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
@@ -93,9 +93,9 @@ namespace bs
 			else if(mDesc.ReadMode == AudioReadMode::LoadCompressed)
 			{
 				// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
-				if (mStreamData->IsFile())
+				if(mStreamData->IsFile())
 				{
-					if (mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
+					if(mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 						mStreamData = mSourceStreamData;
 					else
 					{
@@ -116,13 +116,13 @@ namespace bs
 				// Do nothing
 			}
 
-			if (mDesc.Format == AudioFormat::VORBIS && mDesc.ReadMode != AudioReadMode::LoadDecompressed)
+			if(mDesc.Format == AudioFormat::VORBIS && mDesc.ReadMode != AudioReadMode::LoadDecompressed)
 			{
 				mNeedsDecompression = true;
 
-				if (mStreamData != nullptr)
+				if(mStreamData != nullptr)
 				{
-					if (!mVorbisReader.Open(mStreamData, info, mStreamOffset))
+					if(!mVorbisReader.Open(mStreamData, info, mStreamOffset))
 						BS_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 				}
 			}
@@ -136,9 +136,9 @@ namespace bs
 		Lock lock(mMutex);
 
 		// Try to read from normal stream, and if that fails read from in-memory stream if it exists
-		if (mStreamData != nullptr)
+		if(mStreamData != nullptr)
 		{
-			if (mNeedsDecompression)
+			if(mNeedsDecompression)
 			{
 				mVorbisReader.Seek(offset);
 				mVorbisReader.Read(samples, count);
@@ -156,7 +156,7 @@ namespace bs
 			return;
 		}
 
-		if (mSourceStreamData != nullptr)
+		if(mSourceStreamData != nullptr)
 		{
 			assert(!mNeedsDecompression); // Normal stream must exist if decompressing
 
@@ -181,4 +181,4 @@ namespace bs
 
 		return mSourceStreamData;
 	}
-}
+} // namespace bs

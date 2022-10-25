@@ -65,7 +65,7 @@ namespace bs
 	}
 
 	PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager, const CHAR_CONTROLLER_DESC& desc)
-		:CharacterController(desc)
+		: CharacterController(desc)
 	{
 		PxCapsuleControllerDesc pxDesc = toPxDesc(desc);
 		pxDesc.reportCallback = this;
@@ -96,13 +96,13 @@ namespace bs
 		PxControllerCollisionFlags collisionFlag = mController->move(toPxVector(displacement), mMinMoveDistance, delta, filters);
 
 		CharacterCollisionFlags output;
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
+		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
 			output.Set(CharacterCollisionFlag::Down);
 
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
+		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
 			output.Set(CharacterCollisionFlag::Up);
 
-		if (collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
+		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
 			output.Set(CharacterCollisionFlag::Sides);
 
 		return output;
@@ -220,7 +220,7 @@ namespace bs
 
 	void PhysXCharacterController::onShapeHit(const PxControllerShapeHit& hit)
 	{
-		if (OnColliderHit.Empty())
+		if(OnColliderHit.Empty())
 			return;
 
 		ControllerColliderCollision collision;
@@ -236,7 +236,7 @@ namespace bs
 
 	void PhysXCharacterController::onControllerHit(const PxControllersHit& hit)
 	{
-		if (CharacterController::OnControllerHit.Empty())
+		if(CharacterController::OnControllerHit.Empty())
 			return;
 
 		ControllerControllerCollision collision;
@@ -249,8 +249,7 @@ namespace bs
 		CharacterController::OnControllerHit(collision);
 	}
 
-	PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& filterData, const PxShape* shape,
-		const PxRigidActor* actor, PxHitFlags& queryFlags)
+	PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxHitFlags& queryFlags)
 	{
 		PxFilterData colliderFilterData = shape->getSimulationFilterData();
 		u64 colliderLayer = *(u64*)&colliderFilterData.word0;
@@ -263,8 +262,7 @@ namespace bs
 		return PxSceneQueryHitType::eNONE;
 	}
 
-	PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData,
-		const PxQueryHit& hit)
+	PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData, const PxQueryHit& hit)
 	{
 		return PxSceneQueryHitType::eBLOCK;
 	}
@@ -277,4 +275,4 @@ namespace bs
 		bool canCollide = gPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
 		return canCollide;
 	}
-}
+} // namespace bs

@@ -11,14 +11,14 @@ namespace bs
 {
 	PxJointActorIndex::Enum toJointActor(JointBody body)
 	{
-		if (body == JointBody::Target)
+		if(body == JointBody::Target)
 			return PxJointActorIndex::eACTOR0;
 
 		return PxJointActorIndex::eACTOR1;
 	}
 
 	FPhysXJoint::FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc)
-		:FJoint(desc), mJoint(joint)
+		: FJoint(desc), mJoint(joint)
 	{
 		mJoint->setBreakForce(desc.BreakForce, desc.BreakTorque);
 		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, desc.EnableCollision);
@@ -38,7 +38,7 @@ namespace bs
 		mJoint->getActors(actorA, actorB);
 
 		PxRigidActor* wantedActor = body == JointBody::Target ? actorA : actorB;
-		if (wantedActor == nullptr)
+		if(wantedActor == nullptr)
 			return nullptr;
 
 		return (Rigidbody*)wantedActor->userData;
@@ -52,10 +52,10 @@ namespace bs
 		mJoint->getActors(actorA, actorB);
 
 		PxRigidActor* actor = nullptr;
-		if (value != nullptr)
+		if(value != nullptr)
 			actor = static_cast<PhysXRigidbody*>(value)->GetInternalInternal();
 
-		if (body == JointBody::Target)
+		if(body == JointBody::Target)
 			actorA = actor;
 		else
 			actorB = actor;
@@ -129,4 +129,4 @@ namespace bs
 	{
 		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, value);
 	}
-}
+} // namespace bs

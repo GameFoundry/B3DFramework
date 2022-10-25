@@ -5,167 +5,170 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsGpuProgram.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	Abstraction of a DirectX 11 shader object. */
-	class D3D11GpuProgram : public GpuProgram
+	namespace ct
 	{
-	public:
-		virtual ~D3D11GpuProgram();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns compiled shader microcode. */
-		const DataBlob& GetMicroCode() const { return mBytecode->Instructions; }
+		/**	Abstraction of a DirectX 11 shader object. */
+		class D3D11GpuProgram : public GpuProgram
+		{
+		public:
+			virtual ~D3D11GpuProgram();
 
-		/**	Returns unique GPU program ID. */
-		u32 GetProgramId() const { return mProgramId; }
+			/**	Returns compiled shader microcode. */
+			const DataBlob& GetMicroCode() const { return mBytecode->Instructions; }
 
-	protected:
-		D3D11GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			/**	Returns unique GPU program ID. */
+			u32 GetProgramId() const { return mProgramId; }
 
-		/** @copydoc GpuProgram::initialize */
-		void Initialize() override;
+		protected:
+			D3D11GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-		/**	Loads the shader from microcode. */
-		virtual void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) = 0;
+			/** @copydoc GpuProgram::initialize */
+			void Initialize() override;
 
-	protected:
-		static u32 GlobalProgramId;
+			/**	Loads the shader from microcode. */
+			virtual void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) = 0;
 
-		u32 mProgramId = 0;
-	};
+		protected:
+			static u32 GlobalProgramId;
 
-	/**	Implementation of a DX11 vertex shader. */
-	class D3D11GpuVertexProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuVertexProgram();
+			u32 mProgramId = 0;
+		};
 
-		/**	Returns internal DX11 vertex shader object. */
-		ID3D11VertexShader* GetVertexShader() const;
+		/**	Implementation of a DX11 vertex shader. */
+		class D3D11GpuVertexProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuVertexProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 vertex shader object. */
+			ID3D11VertexShader* GetVertexShader() const;
 
-		D3D11GpuVertexProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuVertexProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11VertexShader* mVertexShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/**	Implementation of a DX11 pixel shader. */
-	class D3D11GpuFragmentProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuFragmentProgram();
+		protected:
+			ID3D11VertexShader* mVertexShader;
+		};
 
-		/**	Returns internal DX11 pixel shader object. */
-		ID3D11PixelShader* GetPixelShader() const;
+		/**	Implementation of a DX11 pixel shader. */
+		class D3D11GpuFragmentProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuFragmentProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 pixel shader object. */
+			ID3D11PixelShader* GetPixelShader() const;
 
-		D3D11GpuFragmentProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuFragmentProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11PixelShader* mPixelShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/**	Implementation of a DX11 domain shader. */
-	class D3D11GpuDomainProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuDomainProgram();
+		protected:
+			ID3D11PixelShader* mPixelShader;
+		};
 
-		/**	Returns internal DX11 domain shader object. */
-		ID3D11DomainShader* GetDomainShader() const;
+		/**	Implementation of a DX11 domain shader. */
+		class D3D11GpuDomainProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuDomainProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 domain shader object. */
+			ID3D11DomainShader* GetDomainShader() const;
 
-		D3D11GpuDomainProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuDomainProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11DomainShader* mDomainShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/**	Implementation of a DX11 hull shader. */
-	class D3D11GpuHullProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuHullProgram();
+		protected:
+			ID3D11DomainShader* mDomainShader;
+		};
 
-		/**	Returns internal DX11 hull shader object. */
-		ID3D11HullShader* GetHullShader() const;
+		/**	Implementation of a DX11 hull shader. */
+		class D3D11GpuHullProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuHullProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 hull shader object. */
+			ID3D11HullShader* GetHullShader() const;
 
-		D3D11GpuHullProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuHullProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11HullShader* mHullShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/**	Implementation of a DX11 geometry shader. */
-	class D3D11GpuGeometryProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuGeometryProgram();
+		protected:
+			ID3D11HullShader* mHullShader;
+		};
 
-		/**	Returns internal DX11 geometry shader object. */
-		ID3D11GeometryShader* GetGeometryShader() const;
+		/**	Implementation of a DX11 geometry shader. */
+		class D3D11GpuGeometryProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuGeometryProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 geometry shader object. */
+			ID3D11GeometryShader* GetGeometryShader() const;
 
-		D3D11GpuGeometryProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuGeometryProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11GeometryShader* mGeometryShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/**	Implementation of a DX11 compute shader. */
-	class D3D11GpuComputeProgram : public D3D11GpuProgram
-	{
-	public:
-		~D3D11GpuComputeProgram();
+		protected:
+			ID3D11GeometryShader* mGeometryShader;
+		};
 
-		/**	Returns internal DX11 compute shader object. */
-		ID3D11ComputeShader* GetComputeShader() const;
+		/**	Implementation of a DX11 compute shader. */
+		class D3D11GpuComputeProgram : public D3D11GpuProgram
+		{
+		public:
+			~D3D11GpuComputeProgram();
 
-	protected:
-		friend class D3D11HLSLProgramFactory;
+			/**	Returns internal DX11 compute shader object. */
+			ID3D11ComputeShader* GetComputeShader() const;
 
-		D3D11GpuComputeProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		protected:
+			friend class D3D11HLSLProgramFactory;
 
-		/** @copydoc D3D11GpuProgram::loadFromMicrocode */
-		void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
+			D3D11GpuComputeProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	protected:
-		ID3D11ComputeShader* mComputeShader;
-	};
+			/** @copydoc D3D11GpuProgram::loadFromMicrocode */
+			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
-	/** Identifier of the compiler used for compiling DirectX 11 GPU programs. */
-	static constexpr const char* DIRECTX_COMPILER_ID = "DirectX11";
+		protected:
+			ID3D11ComputeShader* mComputeShader;
+		};
 
-	/** @} */
-}}
+		/** Identifier of the compiler used for compiling DirectX 11 GPU programs. */
+		static constexpr const char* DIRECTX_COMPILER_ID = "DirectX11";
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

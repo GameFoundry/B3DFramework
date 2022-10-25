@@ -13,8 +13,7 @@ namespace bs
 		mAllDevices.push_back(mActiveDevice);
 	}
 
-	SPtr<AudioClip> NullAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-		const AUDIO_CLIP_DESC& desc)
+	SPtr<AudioClip> NullAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
 		return bs_core_ptr_new<NullAudioClip>(samples, streamSize, numSamples, desc);
 	}
@@ -30,13 +29,13 @@ namespace bs
 	}
 
 	NullAudioClip::NullAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
-		:AudioClip(samples, streamSize, numSamples, desc)
-	{ }
+		: AudioClip(samples, streamSize, numSamples, desc)
+	{}
 
 	void NullAudioClip::Initialize()
 	{
 		// If we need to keep source data, read everything into memory and keep a copy
-		if (mKeepSourceData)
+		if(mKeepSourceData)
 		{
 			mStreamData->Seek(mStreamOffset);
 
@@ -62,4 +61,4 @@ namespace bs
 	{
 		return static_cast<NullAudio&>(NullAudio::Instance());
 	}
-}
+} // namespace bs

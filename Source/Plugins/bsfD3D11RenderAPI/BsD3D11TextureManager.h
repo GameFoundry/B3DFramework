@@ -16,28 +16,26 @@ namespace bs
 	{
 	public:
 		/** @copydoc TextureManager::getNativeFormat */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) ;
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
 
-	protected:		
+	protected:
 		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) ;
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
 	};
 
 	namespace ct
 	{
-	/**	Handles creation of DirectX 11 textures. */
-	class D3D11TextureManager : public TextureManager
-	{
-	protected:
-		/** @copydoc TextureManager::createTextureInternal */
-		SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc,
-			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+		/**	Handles creation of DirectX 11 textures. */
+		class D3D11TextureManager : public TextureManager
+		{
+		protected:
+			/** @copydoc TextureManager::createTextureInternal */
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc TextureManager::createRenderTextureInternal */
-		SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
-			u32 deviceIdx = 0) ;
-	};
-	}
+			/** @copydoc TextureManager::createRenderTextureInternal */
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+		};
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

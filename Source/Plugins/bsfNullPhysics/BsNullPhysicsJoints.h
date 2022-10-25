@@ -28,7 +28,6 @@ namespace bs
 		/** @copydoc FJoint::getBody */
 		Rigidbody* GetBody(JointBody body) const override { return mDesc.Bodies[(int)body].Body; }
 
-
 		/** @copydoc FJoint::setBody */
 		void SetBody(JointBody body, Rigidbody* value) override { mDesc.Bodies[(int)body].Body = value; }
 
@@ -271,4 +270,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

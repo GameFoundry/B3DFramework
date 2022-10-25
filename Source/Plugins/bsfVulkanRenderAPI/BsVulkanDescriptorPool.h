@@ -4,33 +4,36 @@
 
 #include "BsVulkanPrerequisites.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** Pool that allocates and distributes Vulkan descriptor sets. */
-	class VulkanDescriptorPool
+	namespace ct
 	{
-	public:
-		VulkanDescriptorPool(VulkanDevice& device);
-		~VulkanDescriptorPool();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** Returns a handle to the internal Vulkan descriptor pool. */
-		VkDescriptorPool GetHandle() const { return mPool; }
+		/** Pool that allocates and distributes Vulkan descriptor sets. */
+		class VulkanDescriptorPool
+		{
+		public:
+			VulkanDescriptorPool(VulkanDevice& device);
+			~VulkanDescriptorPool();
 
-	private:
-		static const u32 sMaxSets = 8192;
-		static const u32 sMaxSampledImages = 4096;
-		static const u32 sMaxImages = 2048;
-		static const u32 sMaxSampledBuffers = 2048;
-		static const u32 sMaxBuffers = 2048;
-		static const u32 sMaxUniformBuffers = 2048;
+			/** Returns a handle to the internal Vulkan descriptor pool. */
+			VkDescriptorPool GetHandle() const { return mPool; }
 
-		VulkanDevice& mDevice;
-		VkDescriptorPool mPool;
-	};
+		private:
+			static const u32 sMaxSets = 8192;
+			static const u32 sMaxSampledImages = 4096;
+			static const u32 sMaxImages = 2048;
+			static const u32 sMaxSampledBuffers = 2048;
+			static const u32 sMaxBuffers = 2048;
+			static const u32 sMaxUniformBuffers = 2048;
 
-	/** @} */
-}}
+			VulkanDevice& mDevice;
+			VkDescriptorPool mPool;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

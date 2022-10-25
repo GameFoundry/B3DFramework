@@ -17,7 +17,7 @@ namespace bs
 	class FNullPhysicsMeshRTTI : public RTTIType<FNullPhysicsMesh, FPhysicsMesh, FNullPhysicsMeshRTTI>
 	{
 	public:
-		const String& GetRttiName() 
+		const String& GetRttiName()
 		{
 			static String name = "FNullPhysicsMesh";
 			return name;
@@ -28,7 +28,7 @@ namespace bs
 			return TID_FNullPhysicsMesh;
 		}
 
-		SPtr<IReflectable> NewRttiObject() 
+		SPtr<IReflectable> NewRttiObject()
 		{
 			return bs_shared_ptr_new<FNullPhysicsMesh>();
 		}
@@ -36,4 +36,4 @@ namespace bs
 
 	/** @} */
 	/** @endcond */
-}
+} // namespace bs

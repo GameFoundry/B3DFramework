@@ -4,27 +4,30 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	static void deleteBuffer(HardwareBuffer* buffer)
+	namespace ct
 	{
-		bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
-	}
+		static void deleteBuffer(HardwareBuffer* buffer)
+		{
+			bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+		}
 
-	VulkanIndexBuffer::VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:IndexBuffer(desc, deviceMask),  mDeviceMask(deviceMask)
-	{ }
+		VulkanIndexBuffer::VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: IndexBuffer(desc, deviceMask), mDeviceMask(deviceMask)
+		{}
 
-	void VulkanIndexBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
-		mBufferDeleter = &deleteBuffer;
+		void VulkanIndexBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+			mBufferDeleter = &deleteBuffer;
 
-		Initialize();
-	}
+			Initialize();
+		}
 
-	VulkanBuffer* VulkanIndexBuffer::GetResource(u32 deviceIdx) const
-	{
-		return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
-	}
-}}
+		VulkanBuffer* VulkanIndexBuffer::GetResource(u32 deviceIdx) const
+		{
+			return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
+		}
+	} // namespace ct
+} // namespace bs

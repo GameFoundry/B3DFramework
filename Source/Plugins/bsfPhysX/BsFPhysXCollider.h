@@ -79,6 +79,7 @@ namespace bs
 		 * old shape, including parent, transform, flags and other.
 		 */
 		void SetShapeInternal(physx::PxShape* shape);
+
 	protected:
 		/** Updates shape filter data from stored values. */
 		void UpdateFilter();
@@ -94,4 +95,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

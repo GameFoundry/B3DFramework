@@ -8,17 +8,16 @@
 namespace bs
 {
 	GLRenderWindowManager::GLRenderWindowManager(ct::GLRenderAPI* renderSystem)
-		:mRenderSystem(renderSystem)
+		: mRenderSystem(renderSystem)
 	{
 		assert(mRenderSystem != nullptr);
 	}
 
-	SPtr<RenderWindow> GLRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId,
-		const SPtr<RenderWindow>& parentWindow)
+	SPtr<RenderWindow> GLRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
 	{
 		ct::GLSupport* glSupport = mRenderSystem->GetGlSupport();
 
 		// Create the window
 		return glSupport->NewWindow(desc, windowId, parentWindow);
 	}
-}
+} // namespace bs

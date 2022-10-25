@@ -36,7 +36,13 @@ namespace bs
 		/**	Possible types of code blocks within a shader. */
 		enum class CodeBlockType
 		{
-			Vertex, Fragment, Geometry, Hull, Domain, Compute, Common
+			Vertex,
+			Fragment,
+			Geometry,
+			Hull,
+			Domain,
+			Compute,
+			Common
 		};
 
 		/**	Temporary data describing a pass during parsing. */
@@ -114,13 +120,11 @@ namespace bs
 
 	public:
 		/**	Transforms a source file written in BSL FX syntax into a Shader object. */
-		static BSLFXCompileResult Compile(const String& name, const String& source,
-			const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages);
+		static BSLFXCompileResult Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages);
 
 	private:
 		/** Converts the provided source into an abstract syntax tree using the lexer & parser for BSL FX syntax. */
-		static BSLFXCompileResult ParseFx(ParseState* parseState, const char* source,
-			const UnorderedMap<String, String>& defines);
+		static BSLFXCompileResult ParseFx(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines);
 
 		/** Parses the shader/mixin node and outputs the relevant meta-data. */
 		static ShaderMetaData ParseShaderMetaData(ASTFXNode* shader);
@@ -129,9 +133,7 @@ namespace bs
 		 * Parses the root AST node and outputs a list of all mixins/shaders and their meta-data, sub-shader meta-data,
 		 * as well as any global shader options.
 		 */
-		static BSLFXCompileResult ParseMetaDataAndOptions(ASTFXNode* rootNode,
-			Vector<std::pair<ASTFXNode*, ShaderMetaData>>& metaData, Vector<SubShaderData>& subShaders,
-			SHADER_DESC& shaderDesc);
+		static BSLFXCompileResult ParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, ShaderMetaData>>& metaData, Vector<SubShaderData>& subShaders, SHADER_DESC& shaderDesc);
 
 		/** Parses the sub-shader node and outputs the relevant data. */
 		static SubShaderData ParseSubShader(ASTFXNode* subShader);
@@ -159,7 +161,7 @@ namespace bs
 
 		/**	Maps BSL operation to in-engine stencil operation. */
 		static StencilOperation ParseStencilOp(OpValue op);
-		
+
 		/**	Maps BSL cull mode enum to in-engine cull mode. */
 		static CullingMode ParseCullMode(CullAndSortModeValue cm);
 
@@ -209,9 +211,9 @@ namespace bs
 		static bool ParseDepthState(PassData& passData, ASTFXNode* depthNode);
 
 		/**
-		* Parses the stencil state AST node and populates the pass' depth-stencil state descriptor. Returns false if the
-		* descriptor wasn't modified.
-		*/
+		 * Parses the stencil state AST node and populates the pass' depth-stencil state descriptor. Returns false if the
+		 * descriptor wasn't modified.
+		 */
 		static bool ParseStencilState(PassData& passData, ASTFXNode* stencilNode);
 
 		/**
@@ -273,8 +275,7 @@ namespace bs
 		 * @param[out]	includes			A list of all include files included by the BSL source.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		static BSLFXCompileResult CompileShader(String source, const UnorderedMap<String, String>& defines,
-				ShadingLanguageFlags languages, SHADER_DESC& shaderDesc, Vector<String>& includes);
+		static BSLFXCompileResult CompileShader(String source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, SHADER_DESC& shaderDesc, Vector<String>& includes);
 
 		/**
 		 * Uses the provided list of shaders/mixins to generate a list of techniques. A technique is generated for
@@ -293,9 +294,7 @@ namespace bs
 		 * @param[out]	includes			A list of all include files included by the BSL source.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		static BSLFXCompileResult CompileTechniques(const Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData,
-			const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages,
-			SHADER_DESC& shaderDesc, Vector<String>& includes);
+		static BSLFXCompileResult CompileTechniques(const Vector<std::pair<ASTFXNode*, ShaderMetaData>>& shaderMetaData, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, SHADER_DESC& shaderDesc, Vector<String>& includes);
 
 		/**
 		 * Generates a set of techniques for a single variation. Uses AST parse state as input, which must be created using
@@ -313,9 +312,7 @@ namespace bs
 		 *								registered with.
 		 * @return						A result object containing an error message if not successful.
 		 */
-		static BSLFXCompileResult CompileTechniques(ParseState* parseState, const String& name,
-			const Vector<String>& codeBlocks, const ShaderVariation& variation, ShadingLanguageFlags languages,
-			UnorderedSet<String>& includes, SHADER_DESC& shaderDesc);
+		static BSLFXCompileResult CompileTechniques(ParseState* parseState, const String& name, const Vector<String>& codeBlocks, const ShaderVariation& variation, ShadingLanguageFlags languages, UnorderedSet<String>& includes, SHADER_DESC& shaderDesc);
 
 		/**
 		 * Converts a null-terminated string into a standard string, and eliminates quotes that are assumed to be at the
@@ -325,4 +322,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

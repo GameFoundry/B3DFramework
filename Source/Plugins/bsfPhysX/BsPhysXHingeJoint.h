@@ -21,28 +21,28 @@ namespace bs
 		~PhysXHingeJoint();
 
 		/** @copydoc HingeJoint::getAngle */
-		Radian GetAngle() const ;
+		Radian GetAngle() const;
 
 		/** @copydoc HingeJoint::getSpeed */
-		float GetSpeed() const ;
+		float GetSpeed() const;
 
 		/** @copydoc HingeJoint::getLimit */
-		LimitAngularRange GetLimit() const ;
+		LimitAngularRange GetLimit() const;
 
 		/** @copydoc HingeJoint::setLimit */
-		void SetLimit(const LimitAngularRange& limit) ;
+		void SetLimit(const LimitAngularRange& limit);
 
 		/** @copydoc HingeJoint::getDrive */
-		HingeJointDrive GetDrive() const ;
+		HingeJointDrive GetDrive() const;
 
 		/** @copydoc HingeJoint::setDrive */
-		void SetDrive(const HingeJointDrive& drive) ;
+		void SetDrive(const HingeJointDrive& drive);
 
 		/** @copydoc HingeJoint::setFlag */
-		void SetFlag(HingeJointFlag flag, bool enabled) ;
+		void SetFlag(HingeJointFlag flag, bool enabled);
 
 		/** @copydoc HingeJoint::hasFlag */
-		bool HasFlag(HingeJointFlag flag) const ;
+		bool HasFlag(HingeJointFlag flag) const;
 
 	private:
 		/** Returns the internal PhysX representation of the hinge (revolute) joint. */
@@ -50,4 +50,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

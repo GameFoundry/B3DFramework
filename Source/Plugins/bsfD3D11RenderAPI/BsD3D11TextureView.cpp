@@ -8,107 +8,137 @@
 #include "BsD3D11Mappings.h"
 #include "Error/BsException.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	D3D11TextureView::D3D11TextureView(const D3D11Texture* texture, const TEXTURE_VIEW_DESC& desc)
-		: TextureView(desc)
+	namespace ct
 	{
-		if ((mDesc.Usage & GVU_RANDOMWRITE) != 0)
-			mUAV = CreateUav(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices);
-		else if ((mDesc.Usage & GVU_RENDERTARGET) != 0)
-			mRTV = CreateRtv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices);
-		else if ((mDesc.Usage & GVU_DEPTHSTENCIL) != 0)
+		D3D11TextureView::D3D11TextureView(const D3D11Texture* texture, const TEXTURE_VIEW_DESC& desc)
+			: TextureView(desc)
 		{
-			mWDepthWStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices,
-				false, false);
-			mRODepthWStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices,
-				true, false);
-			mRODepthROStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices,
-				true, true);
-			mWDepthROStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices,
-				false, true);
-		}
-		else
-			mSRV = CreateSrv(texture, mDesc.MostDetailMip, mDesc.NumMips, mDesc.FirstArraySlice, mDesc.NumArraySlices);
-	}
-
-	D3D11TextureView::~D3D11TextureView()
-	{
-		SAFE_RELEASE(mSRV);
-		SAFE_RELEASE(mUAV);
-		SAFE_RELEASE(mRTV);
-		SAFE_RELEASE(mWDepthWStencilView);
-		SAFE_RELEASE(mWDepthROStencilView);
-		SAFE_RELEASE(mRODepthWStencilView);
-		SAFE_RELEASE(mRODepthROStencilView);
-	}
-
-	ID3D11DepthStencilView* D3D11TextureView::GetDsv(bool readOnlyDepth, bool readOnlyStencil) const
-	{
-		if(readOnlyDepth)
-		{
-			if (readOnlyStencil)
-				return mRODepthROStencilView;
-			else
-				return mRODepthWStencilView;
-		}
-		else
-		{
-			if (readOnlyStencil)
-				return mWDepthROStencilView;
-			else
-				return mWDepthWStencilView;
-		}
-	}
-
-	ID3D11ShaderResourceView* D3D11TextureView::CreateSrv(const D3D11Texture* texture,
-		u32 mostDetailMip, u32 numMips, u32 firstArraySlice, u32 numArraySlices)
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-
-		const TextureProperties& texProps = texture->GetProperties();
-		u32 numFaces = texProps.GetNumFaces();
-
-		switch (texProps.GetTextureType())
-		{
-		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			if((mDesc.Usage & GVU_RANDOMWRITE) != 0)
+				mUAV = CreateUav(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices);
+			else if((mDesc.Usage & GVU_RENDERTARGET) != 0)
+				mRTV = CreateRtv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices);
+			else if((mDesc.Usage & GVU_DEPTHSTENCIL) != 0)
 			{
-				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
-				desc.Texture1D.MipLevels = numMips;
-				desc.Texture1D.MostDetailedMip = mostDetailMip;
+				mWDepthWStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices, false, false);
+				mRODepthWStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices, true, false);
+				mRODepthROStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices, true, true);
+				mWDepthROStencilView = CreateDsv(texture, mDesc.MostDetailMip, mDesc.FirstArraySlice, mDesc.NumArraySlices, false, true);
+			}
+			else
+				mSRV = CreateSrv(texture, mDesc.MostDetailMip, mDesc.NumMips, mDesc.FirstArraySlice, mDesc.NumArraySlices);
+		}
+
+		D3D11TextureView::~D3D11TextureView()
+		{
+			SAFE_RELEASE(mSRV);
+			SAFE_RELEASE(mUAV);
+			SAFE_RELEASE(mRTV);
+			SAFE_RELEASE(mWDepthWStencilView);
+			SAFE_RELEASE(mWDepthROStencilView);
+			SAFE_RELEASE(mRODepthWStencilView);
+			SAFE_RELEASE(mRODepthROStencilView);
+		}
+
+		ID3D11DepthStencilView* D3D11TextureView::GetDsv(bool readOnlyDepth, bool readOnlyStencil) const
+		{
+			if(readOnlyDepth)
+			{
+				if(readOnlyStencil)
+					return mRODepthROStencilView;
+				else
+					return mRODepthWStencilView;
 			}
 			else
 			{
-				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
-				desc.Texture1DArray.MipLevels = numMips;
-				desc.Texture1DArray.MostDetailedMip = mostDetailMip;
-				desc.Texture1DArray.FirstArraySlice = firstArraySlice;
-				desc.Texture1DArray.ArraySize = numArraySlices;
+				if(readOnlyStencil)
+					return mWDepthROStencilView;
+				else
+					return mWDepthWStencilView;
 			}
-			break;
-		case TEX_TYPE_2D:
-			if (texProps.GetNumSamples() > 1)
+		}
+
+		ID3D11ShaderResourceView* D3D11TextureView::CreateSrv(const D3D11Texture* texture, u32 mostDetailMip, u32 numMips, u32 firstArraySlice, u32 numArraySlices)
+		{
+			D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+
+			const TextureProperties& texProps = texture->GetProperties();
+			u32 numFaces = texProps.GetNumFaces();
+
+			switch(texProps.GetTextureType())
 			{
-				if (numFaces <= 1)
+			case TEX_TYPE_1D:
+				if(numFaces <= 1)
 				{
-					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+					desc.Texture1D.MipLevels = numMips;
+					desc.Texture1D.MostDetailedMip = mostDetailMip;
 				}
 				else
 				{
-					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
-					desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
-					desc.Texture2DMSArray.ArraySize = numArraySlices;
+					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
+					desc.Texture1DArray.MipLevels = numMips;
+					desc.Texture1DArray.MostDetailedMip = mostDetailMip;
+					desc.Texture1DArray.FirstArraySlice = firstArraySlice;
+					desc.Texture1DArray.ArraySize = numArraySlices;
 				}
-			}
-			else
-			{
-				if (numFaces <= 1)
+				break;
+			case TEX_TYPE_2D:
+				if(texProps.GetNumSamples() > 1)
 				{
-					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-					desc.Texture2D.MipLevels = numMips;
-					desc.Texture2D.MostDetailedMip = mostDetailMip;
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+						desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DMSArray.ArraySize = numArraySlices;
+					}
+				}
+				else
+				{
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+						desc.Texture2D.MipLevels = numMips;
+						desc.Texture2D.MostDetailedMip = mostDetailMip;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+						desc.Texture2DArray.MipLevels = numMips;
+						desc.Texture2DArray.MostDetailedMip = mostDetailMip;
+						desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DArray.ArraySize = numArraySlices;
+					}
+				}
+				break;
+			case TEX_TYPE_3D:
+				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+				desc.Texture3D.MipLevels = numMips;
+				desc.Texture3D.MostDetailedMip = mostDetailMip;
+				break;
+			case TEX_TYPE_CUBE_MAP:
+				if(numFaces % 6 == 0)
+				{
+					if(numFaces == 6)
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+						desc.TextureCube.MipLevels = numMips;
+						desc.TextureCube.MostDetailedMip = mostDetailMip;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+						desc.TextureCubeArray.MipLevels = numMips;
+						desc.TextureCubeArray.MostDetailedMip = mostDetailMip;
+						desc.TextureCubeArray.First2DArrayFace = firstArraySlice;
+						desc.TextureCubeArray.NumCubes = numArraySlices / 6;
+					}
 				}
 				else
 				{
@@ -118,312 +148,277 @@ namespace bs { namespace ct
 					desc.Texture2DArray.FirstArraySlice = firstArraySlice;
 					desc.Texture2DArray.ArraySize = numArraySlices;
 				}
+
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 			}
-			break;
-		case TEX_TYPE_3D:
-			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
-			desc.Texture3D.MipLevels = numMips;
-			desc.Texture3D.MostDetailedMip = mostDetailMip;
-			break;
-		case TEX_TYPE_CUBE_MAP:
-			if(numFaces % 6 == 0)
+
+			desc.Format = texture->GetColorFormat();
+
+			ID3D11ShaderResourceView* srv = nullptr;
+
+			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+			HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateShaderResourceView(texture->GetDX11Resource(), &desc, &srv);
+
+			if(FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
 			{
-				if (numFaces == 6)
+				String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
+				BS_EXCEPT(RenderingAPIException, "Cannot create ShaderResourceView: " + msg);
+			}
+
+			return srv;
+		}
+
+		ID3D11RenderTargetView* D3D11TextureView::CreateRtv(const D3D11Texture* texture, u32 mipSlice, u32 firstArraySlice, u32 numArraySlices)
+		{
+			D3D11_RENDER_TARGET_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+
+			const TextureProperties& texProps = texture->GetProperties();
+			u32 numFaces = texProps.GetNumFaces();
+
+			switch(texProps.GetTextureType())
+			{
+			case TEX_TYPE_1D:
+				if(numFaces <= 1)
 				{
-					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-					desc.TextureCube.MipLevels = numMips;
-					desc.TextureCube.MostDetailedMip = mostDetailMip;
+					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1D;
+					desc.Texture1D.MipSlice = mipSlice;
 				}
 				else
 				{
-					desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-					desc.TextureCubeArray.MipLevels = numMips;
-					desc.TextureCubeArray.MostDetailedMip = mostDetailMip;
-					desc.TextureCubeArray.First2DArrayFace = firstArraySlice;
-					desc.TextureCubeArray.NumCubes = numArraySlices / 6;
+					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1DARRAY;
+					desc.Texture1DArray.MipSlice = mipSlice;
+					desc.Texture1DArray.FirstArraySlice = firstArraySlice;
+					desc.Texture1DArray.ArraySize = numArraySlices;
 				}
-			}
-			else
-			{
-				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-				desc.Texture2DArray.MipLevels = numMips;
-				desc.Texture2DArray.MostDetailedMip = mostDetailMip;
+				break;
+			case TEX_TYPE_2D:
+				if(texProps.GetNumSamples() > 1)
+				{
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
+						desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DMSArray.ArraySize = numArraySlices;
+					}
+				}
+				else
+				{
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+						desc.Texture2D.MipSlice = mipSlice;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+						desc.Texture2DArray.MipSlice = mipSlice;
+						desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DArray.ArraySize = numArraySlices;
+					}
+				}
+				break;
+			case TEX_TYPE_3D:
+				desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
+				desc.Texture3D.MipSlice = mipSlice;
+				desc.Texture3D.FirstWSlice = 0;
+				desc.Texture3D.WSize = texProps.GetDepth();
+				break;
+			case TEX_TYPE_CUBE_MAP:
+				desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 				desc.Texture2DArray.FirstArraySlice = firstArraySlice;
 				desc.Texture2DArray.ArraySize = numArraySlices;
-			}
-
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
-		}
-
-		desc.Format = texture->GetColorFormat();
-
-		ID3D11ShaderResourceView* srv = nullptr;
-
-		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateShaderResourceView(texture->GetDX11Resource(), &desc, &srv);
-
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
-		{
-			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
-			BS_EXCEPT(RenderingAPIException, "Cannot create ShaderResourceView: " + msg);
-		}
-
-		return srv;
-	}
-
-	ID3D11RenderTargetView* D3D11TextureView::CreateRtv(const D3D11Texture* texture,
-		u32 mipSlice, u32 firstArraySlice, u32 numArraySlices)
-	{
-		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-
-		const TextureProperties& texProps = texture->GetProperties();
-		u32 numFaces = texProps.GetNumFaces();
-
-		switch (texProps.GetTextureType())
-		{
-		case TEX_TYPE_1D:
-			if (numFaces <= 1)
-			{
-				desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1D;
-				desc.Texture1D.MipSlice = mipSlice;
-			}
-			else
-			{
-				desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1DARRAY;
-				desc.Texture1DArray.MipSlice = mipSlice;
-				desc.Texture1DArray.FirstArraySlice = firstArraySlice;
-				desc.Texture1DArray.ArraySize = numArraySlices;
-			}
-			break;
-		case TEX_TYPE_2D:
-			if (texProps.GetNumSamples() > 1)
-			{
-				if (numFaces <= 1)
-				{
-					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-				}
-				else
-				{
-					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
-					desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
-					desc.Texture2DMSArray.ArraySize = numArraySlices;
-				}
-			}
-			else
-			{
-				if (numFaces <= 1)
-				{
-					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-					desc.Texture2D.MipSlice = mipSlice;
-				}
-				else
-				{
-					desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-					desc.Texture2DArray.MipSlice = mipSlice;
-					desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-					desc.Texture2DArray.ArraySize = numArraySlices;
-				}
-			}
-			break;
-		case TEX_TYPE_3D:
-			desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
-			desc.Texture3D.MipSlice = mipSlice;
-			desc.Texture3D.FirstWSlice = 0;
-			desc.Texture3D.WSize = texProps.GetDepth();
-			break;
-		case TEX_TYPE_CUBE_MAP:
-			desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-			desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-			desc.Texture2DArray.ArraySize = numArraySlices;
-			desc.Texture2DArray.MipSlice = mipSlice;
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
-		}
-
-		desc.Format = texture->GetColorFormat();
-
-		ID3D11RenderTargetView* rtv = nullptr;
-
-		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateRenderTargetView(texture->GetDX11Resource(), &desc, &rtv);
-
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
-		{
-			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
-			BS_EXCEPT(RenderingAPIException, "Cannot create RenderTargetView: " + msg);
-		}
-
-		return rtv;
-	}
-
-	ID3D11UnorderedAccessView* D3D11TextureView::CreateUav(const D3D11Texture* texture,
-		u32 mipSlice, u32 firstArraySlice, u32 numArraySlices)
-	{
-		D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-
-		const TextureProperties& texProps = texture->GetProperties();
-		u32 numFaces = texProps.GetNumFaces();
-
-		switch (texProps.GetTextureType())
-		{
-		case TEX_TYPE_1D:
-			if (numFaces <= 1)
-			{
-				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
-				desc.Texture1D.MipSlice = mipSlice;
-			}
-			else
-			{
-				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1DARRAY;
-				desc.Texture1DArray.MipSlice = mipSlice;
-				desc.Texture1DArray.FirstArraySlice = firstArraySlice;
-				desc.Texture1DArray.ArraySize = numArraySlices;
-			}
-			break;
-		case TEX_TYPE_2D:
-			if (numFaces <= 1)
-			{
-				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-				desc.Texture2D.MipSlice = mipSlice;
-			}
-			else
-			{
-				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
 				desc.Texture2DArray.MipSlice = mipSlice;
-				desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-				desc.Texture2DArray.ArraySize = numArraySlices;
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 			}
-			break;
-		case TEX_TYPE_3D:
-			desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
-			desc.Texture3D.MipSlice = mipSlice;
-			desc.Texture3D.FirstWSlice = 0;
-			desc.Texture3D.WSize = texProps.GetDepth();
-			break;
-		case TEX_TYPE_CUBE_MAP:
-			desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-			desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-			desc.Texture2DArray.ArraySize = numArraySlices;
-			desc.Texture2DArray.MipSlice = mipSlice;
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
+
+			desc.Format = texture->GetColorFormat();
+
+			ID3D11RenderTargetView* rtv = nullptr;
+
+			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+			HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateRenderTargetView(texture->GetDX11Resource(), &desc, &rtv);
+
+			if(FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
+			{
+				String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
+				BS_EXCEPT(RenderingAPIException, "Cannot create RenderTargetView: " + msg);
+			}
+
+			return rtv;
 		}
 
-		desc.Format = texture->GetDxgiFormat();
-
-		ID3D11UnorderedAccessView* uav = nullptr;
-
-		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateUnorderedAccessView(texture->GetDX11Resource(), &desc, &uav);
-
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
+		ID3D11UnorderedAccessView* D3D11TextureView::CreateUav(const D3D11Texture* texture, u32 mipSlice, u32 firstArraySlice, u32 numArraySlices)
 		{
-			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
-			BS_EXCEPT(RenderingAPIException, "Cannot create UnorderedAccessView: " + msg);
-		}
+			D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
 
-		return uav;
-	}
+			const TextureProperties& texProps = texture->GetProperties();
+			u32 numFaces = texProps.GetNumFaces();
 
-	ID3D11DepthStencilView* D3D11TextureView::CreateDsv(const D3D11Texture* texture,
-		u32 mipSlice, u32 firstArraySlice, u32 numArraySlices, bool readOnlyDepth, bool readOnlyStencil)
-	{
-		D3D11_DEPTH_STENCIL_VIEW_DESC desc;
-		ZeroMemory(&desc, sizeof(desc));
-
-		const TextureProperties& texProps = texture->GetProperties();
-		u32 numFaces = texProps.GetNumFaces();
-
-		switch (texProps.GetTextureType())
-		{
-		case TEX_TYPE_1D:
-			if (numFaces <= 1)
+			switch(texProps.GetTextureType())
 			{
-				desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
-				desc.Texture1D.MipSlice = mipSlice;
-			}
-			else
-			{
-				desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
-				desc.Texture1DArray.MipSlice = mipSlice;
-				desc.Texture1DArray.FirstArraySlice = firstArraySlice;
-				desc.Texture1DArray.ArraySize = numArraySlices;
-			}
-			break;
-		case TEX_TYPE_2D:
-			if (texProps.GetNumSamples() > 1)
-			{
-				if (numFaces <= 1)
+			case TEX_TYPE_1D:
+				if(numFaces <= 1)
 				{
-					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+					desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+					desc.Texture1D.MipSlice = mipSlice;
 				}
 				else
 				{
-					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
-					desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
-					desc.Texture2DMSArray.ArraySize = numArraySlices;
+					desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1DARRAY;
+					desc.Texture1DArray.MipSlice = mipSlice;
+					desc.Texture1DArray.FirstArraySlice = firstArraySlice;
+					desc.Texture1DArray.ArraySize = numArraySlices;
 				}
-			}
-			else
-			{
-				if (numFaces <= 1)
+				break;
+			case TEX_TYPE_2D:
+				if(numFaces <= 1)
 				{
-					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+					desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 					desc.Texture2D.MipSlice = mipSlice;
 				}
 				else
 				{
-					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+					desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
 					desc.Texture2DArray.MipSlice = mipSlice;
 					desc.Texture2DArray.FirstArraySlice = firstArraySlice;
 					desc.Texture2DArray.ArraySize = numArraySlices;
 				}
+				break;
+			case TEX_TYPE_3D:
+				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+				desc.Texture3D.MipSlice = mipSlice;
+				desc.Texture3D.FirstWSlice = 0;
+				desc.Texture3D.WSize = texProps.GetDepth();
+				break;
+			case TEX_TYPE_CUBE_MAP:
+				desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+				desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+				desc.Texture2DArray.ArraySize = numArraySlices;
+				desc.Texture2DArray.MipSlice = mipSlice;
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
 			}
-			break;
-		case TEX_TYPE_3D:
-			desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-			desc.Texture2DArray.FirstArraySlice = 0;
-			desc.Texture2DArray.ArraySize = texProps.GetDepth();
-			desc.Texture2DArray.MipSlice = mipSlice;
-			break;
-		case TEX_TYPE_CUBE_MAP:
-			desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-			desc.Texture2DArray.FirstArraySlice = firstArraySlice;
-			desc.Texture2DArray.ArraySize = numArraySlices;
-			desc.Texture2DArray.MipSlice = mipSlice;
-			break;
-		default:
-			BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
+
+			desc.Format = texture->GetDxgiFormat();
+
+			ID3D11UnorderedAccessView* uav = nullptr;
+
+			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+			HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateUnorderedAccessView(texture->GetDX11Resource(), &desc, &uav);
+
+			if(FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
+			{
+				String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
+				BS_EXCEPT(RenderingAPIException, "Cannot create UnorderedAccessView: " + msg);
+			}
+
+			return uav;
 		}
 
-		desc.Format = texture->GetDepthStencilFormat();
-
-		if (readOnlyDepth)
-			desc.Flags = D3D11_DSV_READ_ONLY_DEPTH;
-
-		bool hasStencil = desc.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT ||
-			desc.Format == DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-		if (readOnlyStencil && hasStencil)
-			desc.Flags |= D3D11_DSV_READ_ONLY_STENCIL;
-
-		ID3D11DepthStencilView* dsv = nullptr;
-
-		D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
-		HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateDepthStencilView(texture->GetDX11Resource(), &desc, &dsv);
-
-		if (FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
+		ID3D11DepthStencilView* D3D11TextureView::CreateDsv(const D3D11Texture* texture, u32 mipSlice, u32 firstArraySlice, u32 numArraySlices, bool readOnlyDepth, bool readOnlyStencil)
 		{
-			String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
-			BS_EXCEPT(RenderingAPIException, "Cannot create DepthStencilView: " + msg);
-		}
+			D3D11_DEPTH_STENCIL_VIEW_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
 
-		return dsv;
-	}
-}}
+			const TextureProperties& texProps = texture->GetProperties();
+			u32 numFaces = texProps.GetNumFaces();
+
+			switch(texProps.GetTextureType())
+			{
+			case TEX_TYPE_1D:
+				if(numFaces <= 1)
+				{
+					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
+					desc.Texture1D.MipSlice = mipSlice;
+				}
+				else
+				{
+					desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
+					desc.Texture1DArray.MipSlice = mipSlice;
+					desc.Texture1DArray.FirstArraySlice = firstArraySlice;
+					desc.Texture1DArray.ArraySize = numArraySlices;
+				}
+				break;
+			case TEX_TYPE_2D:
+				if(texProps.GetNumSamples() > 1)
+				{
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
+						desc.Texture2DMSArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DMSArray.ArraySize = numArraySlices;
+					}
+				}
+				else
+				{
+					if(numFaces <= 1)
+					{
+						desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+						desc.Texture2D.MipSlice = mipSlice;
+					}
+					else
+					{
+						desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+						desc.Texture2DArray.MipSlice = mipSlice;
+						desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+						desc.Texture2DArray.ArraySize = numArraySlices;
+					}
+				}
+				break;
+			case TEX_TYPE_3D:
+				desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+				desc.Texture2DArray.FirstArraySlice = 0;
+				desc.Texture2DArray.ArraySize = texProps.GetDepth();
+				desc.Texture2DArray.MipSlice = mipSlice;
+				break;
+			case TEX_TYPE_CUBE_MAP:
+				desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+				desc.Texture2DArray.FirstArraySlice = firstArraySlice;
+				desc.Texture2DArray.ArraySize = numArraySlices;
+				desc.Texture2DArray.MipSlice = mipSlice;
+				break;
+			default:
+				BS_EXCEPT(InvalidParametersException, "Invalid texture type for this view type.");
+			}
+
+			desc.Format = texture->GetDepthStencilFormat();
+
+			if(readOnlyDepth)
+				desc.Flags = D3D11_DSV_READ_ONLY_DEPTH;
+
+			bool hasStencil = desc.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT ||
+				desc.Format == DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+			if(readOnlyStencil && hasStencil)
+				desc.Flags |= D3D11_DSV_READ_ONLY_STENCIL;
+
+			ID3D11DepthStencilView* dsv = nullptr;
+
+			D3D11RenderAPI* d3d11rs = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+			HRESULT hr = d3d11rs->GetPrimaryDevice().GetD3D11Device()->CreateDepthStencilView(texture->GetDX11Resource(), &desc, &dsv);
+
+			if(FAILED(hr) || d3d11rs->GetPrimaryDevice().HasError())
+			{
+				String msg = d3d11rs->GetPrimaryDevice().GetErrorDescription();
+				BS_EXCEPT(RenderingAPIException, "Cannot create DepthStencilView: " + msg);
+			}
+
+			return dsv;
+		}
+	} // namespace ct
+} // namespace bs

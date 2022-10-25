@@ -11,7 +11,7 @@ namespace bs
 {
 	PxDistanceJointFlag::Enum toPxFlag(DistanceJointFlag flag)
 	{
-		switch (flag)
+		switch(flag)
 		{
 		case DistanceJointFlag::MaxDistance:
 			return PxDistanceJointFlag::eMAX_DISTANCE_ENABLED;
@@ -24,14 +24,14 @@ namespace bs
 	}
 
 	PhysXDistanceJoint::PhysXDistanceJoint(PxPhysics* physx, const DISTANCE_JOINT_DESC& desc)
-		:DistanceJoint(desc)
+		: DistanceJoint(desc)
 	{
 		PxRigidActor* actor0 = nullptr;
-		if (desc.Bodies[0].Body != nullptr)
+		if(desc.Bodies[0].Body != nullptr)
 			actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
 
 		PxRigidActor* actor1 = nullptr;
-		if (desc.Bodies[1].Body != nullptr)
+		if(desc.Bodies[1].Body != nullptr)
 			actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
 
 		PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
@@ -47,16 +47,16 @@ namespace bs
 		SetMaxDistance(desc.MaxDistance);
 		SetTolerance(desc.Tolerance);
 		SetSpring(desc.Spring);
-		
+
 		PxDistanceJointFlags flags;
-		
+
 		if(((u32)desc.Flag & (u32)DistanceJointFlag::MaxDistance) != 0)
 			flags |= PxDistanceJointFlag::eMAX_DISTANCE_ENABLED;
 
-		if (((u32)desc.Flag & (u32)DistanceJointFlag::MinDistance) != 0)
+		if(((u32)desc.Flag & (u32)DistanceJointFlag::MinDistance) != 0)
 			flags |= PxDistanceJointFlag::eMIN_DISTANCE_ENABLED;
 
-		if (((u32)desc.Flag & (u32)DistanceJointFlag::Spring) != 0)
+		if(((u32)desc.Flag & (u32)DistanceJointFlag::Spring) != 0)
 			flags |= PxDistanceJointFlag::eSPRING_ENABLED;
 
 		joint->setDistanceJointFlags(flags);
@@ -132,4 +132,4 @@ namespace bs
 
 		return static_cast<PxDistanceJoint*>(internal->GetInternalInternal());
 	}
-}
+} // namespace bs

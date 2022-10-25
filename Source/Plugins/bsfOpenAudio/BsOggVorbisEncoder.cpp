@@ -7,16 +7,16 @@
 namespace bs
 {
 // Writes to the internal cached buffer and flushes it if needed
-#define WRITE_TO_BUFFER(data, length)					\
-	if ((mBufferOffset + length) > BUFFER_SIZE)			\
-		Flush();										\
-														\
-	if(length > BUFFER_SIZE)							\
-		mWriteCallback(data, length);					\
-	else												\
-	{													\
-		memcpy(mBuffer + mBufferOffset, data, length);	\
-		mBufferOffset += length;						\
+#define WRITE_TO_BUFFER(data, length)                  \
+	if((mBufferOffset + length) > BUFFER_SIZE)         \
+		Flush();                                       \
+                                                       \
+	if(length > BUFFER_SIZE)                           \
+		mWriteCallback(data, length);                  \
+	else                                               \
+	{                                                  \
+		memcpy(mBuffer + mBufferOffset, data, length); \
+		mBufferOffset += length;                       \
 	}
 
 	OggVorbisEncoder::~OggVorbisEncoder()
@@ -24,8 +24,7 @@ namespace bs
 		Close();
 	}
 
-	bool OggVorbisEncoder::Open(std::function<void(u8*, u32)> writeCallback, u32 sampleRate, u32 bitDepth,
-		u32 numChannels)
+	bool OggVorbisEncoder::Open(std::function<void(u8*, u32)> writeCallback, u32 sampleRate, u32 bitDepth, u32 numChannels)
 	{
 		mNumChannels = numChannels;
 		mBitDepth = bitDepth;
@@ -37,7 +36,7 @@ namespace bs
 
 		// Automatic bitrate management with quality 0.4 (~128 kbps for 44 KHz stereo sound)
 		i32 status = vorbis_encode_init_vbr(&mVorbisInfo, numChannels, sampleRate, 0.4f);
-		if (status != 0)
+		if(status != 0)
 		{
 			BS_LOG(Error, Audio, "Failed to write Ogg Vorbis file.");
 			Close();
@@ -55,7 +54,7 @@ namespace bs
 		status = vorbis_analysis_headerout(&mVorbisState, &comment, &headerPacket, &commentPacket, &codePacket);
 		vorbis_comment_clear(&comment);
 
-		if (status != 0)
+		if(status != 0)
 		{
 			BS_LOG(Error, Audio, "Failed to write Ogg Vorbis file.");
 			Close();
@@ -68,7 +67,7 @@ namespace bs
 		ogg_stream_packetin(&mOggState, &codePacket);
 
 		ogg_page page;
-		while (ogg_stream_flush(&mOggState, &page) > 0)
+		while(ogg_stream_flush(&mOggState, &page) > 0)
 		{
 			WRITE_TO_BUFFER(page.header, page.header_len);
 			WRITE_TO_BUFFER(page.body, page.body_len);
@@ -82,16 +81,16 @@ namespace bs
 		static const u32 WRITE_LENGTH = 1024;
 
 		u32 numFrames = numSamples / mNumChannels;
-		while (numFrames > 0)
+		while(numFrames > 0)
 		{
 			u32 numFramesToWrite = std::min(numFrames, WRITE_LENGTH);
 			float** buffer = vorbis_analysis_buffer(&mVorbisState, numFramesToWrite);
 
-			if (mBitDepth == 8)
+			if(mBitDepth == 8)
 			{
-				for (u32 i = 0; i < numFramesToWrite; i++)
+				for(u32 i = 0; i < numFramesToWrite; i++)
 				{
-					for (u32 j = 0; j < mNumChannels; j++)
+					for(u32 j = 0; j < mNumChannels; j++)
 					{
 						i8 sample = *(i8*)samples;
 						float encodedSample = sample / 127.0f;
@@ -101,11 +100,11 @@ namespace bs
 					}
 				}
 			}
-			else if (mBitDepth == 16)
+			else if(mBitDepth == 16)
 			{
-				for (u32 i = 0; i < numFramesToWrite; i++)
+				for(u32 i = 0; i < numFramesToWrite; i++)
 				{
-					for (u32 j = 0; j < mNumChannels; j++)
+					for(u32 j = 0; j < mNumChannels; j++)
 					{
 						i16 sample = *(i16*)samples;
 						float encodedSample = sample / 32767.0f;
@@ -115,11 +114,11 @@ namespace bs
 					}
 				}
 			}
-			else if (mBitDepth == 24)
+			else if(mBitDepth == 24)
 			{
-				for (u32 i = 0; i < numFramesToWrite; i++)
+				for(u32 i = 0; i < numFramesToWrite; i++)
 				{
-					for (u32 j = 0; j < mNumChannels; j++)
+					for(u32 j = 0; j < mNumChannels; j++)
 					{
 						i32 sample = AudioUtility::Convert24To32Bits(samples);
 						float encodedSample = sample / 2147483647.0f;
@@ -129,11 +128,11 @@ namespace bs
 					}
 				}
 			}
-			else if (mBitDepth == 32)
+			else if(mBitDepth == 32)
 			{
-				for (u32 i = 0; i < numFramesToWrite; i++)
+				for(u32 i = 0; i < numFramesToWrite; i++)
 				{
-					for (u32 j = 0; j < mNumChannels; j++)
+					for(u32 j = 0; j < mNumChannels; j++)
 					{
 						i32 sample = *(i32*)samples;
 						float encodedSample = sample / 2147483647.0f;
@@ -156,7 +155,7 @@ namespace bs
 
 	void OggVorbisEncoder::WriteBlocks()
 	{
-		while (vorbis_analysis_blockout(&mVorbisState, &mVorbisBlock) == 1)
+		while(vorbis_analysis_blockout(&mVorbisState, &mVorbisBlock) == 1)
 		{
 			// Analyze and determine optimal bitrate
 			vorbis_analysis(&mVorbisBlock, nullptr);
@@ -164,13 +163,13 @@ namespace bs
 
 			// Write block into ogg packets
 			ogg_packet packet;
-			while (vorbis_bitrate_flushpacket(&mVorbisState, &packet))
+			while(vorbis_bitrate_flushpacket(&mVorbisState, &packet))
 			{
 				ogg_stream_packetin(&mOggState, &packet);
 
 				// If new page, write it to the internal buffer
 				ogg_page page;
-				while (ogg_stream_flush(&mOggState, &page) > 0)
+				while(ogg_stream_flush(&mOggState, &page) > 0)
 				{
 					WRITE_TO_BUFFER(page.header, page.header_len);
 					WRITE_TO_BUFFER(page.body, page.body_len);
@@ -181,7 +180,7 @@ namespace bs
 
 	void OggVorbisEncoder::Flush()
 	{
-		if (mBufferOffset > 0 && mWriteCallback != nullptr)
+		if(mBufferOffset > 0 && mWriteCallback != nullptr)
 			mWriteCallback(mBuffer, mBufferOffset);
 
 		mBufferOffset = 0;
@@ -189,7 +188,7 @@ namespace bs
 
 	void OggVorbisEncoder::Close()
 	{
-		if (mClosed)
+		if(mClosed)
 			return;
 
 		// Mark end of data and flush any remaining data in the buffers
@@ -236,7 +235,7 @@ namespace bs
 
 		auto output = bs_shared_ptr_new<MemoryDataStream>(totalEncodedSize);
 		u32 offset = 0;
-		for (auto& block : blocks)
+		for(auto& block : blocks)
 		{
 			memcpy(output->Data() + offset, block.Data, block.Size);
 			offset += block.Size;
@@ -245,10 +244,10 @@ namespace bs
 		}
 
 		bs_frame_clear();
-		
+
 		size = totalEncodedSize;
 		return output;
 	}
 
 #undef WRITE_TO_BUFFER
-}
+} // namespace bs

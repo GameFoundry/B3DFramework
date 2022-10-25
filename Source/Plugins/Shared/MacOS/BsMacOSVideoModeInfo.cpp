@@ -36,7 +36,7 @@ namespace bs::ct
 	}
 
 	MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outputIdx)
-		:mDisplayID(displayID)
+		: mDisplayID(displayID)
 	{
 		CGDisplayModeRef desktopModeRef = CGDisplayCopyDisplayMode(displayID);
 
@@ -78,7 +78,7 @@ namespace bs::ct
 
 		CFRelease(deviceInfo);
 
-		mDesktopVideoMode = new (bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
+		mDesktopVideoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
 
 		CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, nullptr);
 		if(modes)
@@ -86,10 +86,10 @@ namespace bs::ct
 			CFIndex count = CFArrayGetCount(modes);
 			for(int i = 0; i < count; i++)
 			{
-				auto modeRef = (CGDisplayModeRef) CFArrayGetValueAtIndex(modes, i);
+				auto modeRef = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
 				CGDisplayModeRetain(modeRef);
 
-				VideoMode* videoMode = new (bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
+				VideoMode* videoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
 
 				mVideoModes.push_back(videoMode);
 			}
@@ -99,11 +99,11 @@ namespace bs::ct
 	}
 
 	MacOSVideoMode::MacOSVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx)
-			:VideoMode(width, height, refreshRate, outputIdx), mModeRef(nullptr)
-	{ }
+		: VideoMode(width, height, refreshRate, outputIdx), mModeRef(nullptr)
+	{}
 
 	MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, u32 outputIdx)
-			:VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
+		: VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
 	{
 		width = (u32)CGDisplayModeGetPixelWidth(mModeRef);
 		height = (u32)CGDisplayModeGetPixelHeight(mModeRef);
@@ -123,5 +123,4 @@ namespace bs::ct
 		if(!isCustom && mModeRef)
 			CGDisplayModeRelease(mModeRef);
 	}
-}
-
+} // namespace bs::ct

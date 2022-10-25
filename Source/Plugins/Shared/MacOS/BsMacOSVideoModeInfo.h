@@ -7,7 +7,9 @@
 #include <CoreGraphics/CoreGraphics.h>
 #include <CoreVideo/CoreVideo.h>
 
-namespace bs { namespace ct
+namespace bs
+{
+	namespace ct
 	{
 		/** @addtogroup GL
 		 *  @{
@@ -38,6 +40,7 @@ namespace bs { namespace ct
 
 			/** Returns the Core Graphics identifier for this display. */
 			CGDirectDisplayID GetDisplayIDInternal() const { return mDisplayID; }
+
 		private:
 			CGDirectDisplayID mDisplayID;
 		};
@@ -50,5 +53,5 @@ namespace bs { namespace ct
 		};
 
 		/** @} */
-	}}
-
+	} // namespace ct
+} // namespace bs

@@ -6,24 +6,27 @@
 #include "Error/BsException.h"
 #include "BsGLCommandBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	static void deleteBuffer(HardwareBuffer* buffer)
+	namespace ct
 	{
-		bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
-	}
+		static void deleteBuffer(HardwareBuffer* buffer)
+		{
+			bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+		}
 
-	GLIndexBuffer::GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:IndexBuffer(desc, deviceMask)
-	{
-		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
-	}
+		GLIndexBuffer::GLIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: IndexBuffer(desc, deviceMask)
+		{
+			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+		}
 
-	void GLIndexBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
-		mBufferDeleter = &deleteBuffer;
+		void GLIndexBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ELEMENT_ARRAY_BUFFER, mSize, mUsage);
+			mBufferDeleter = &deleteBuffer;
 
-		IndexBuffer::Initialize();
-	}
-}}
+			IndexBuffer::Initialize();
+		}
+	} // namespace ct
+} // namespace bs

@@ -33,7 +33,7 @@ namespace bs
 
 	PxForceMode::Enum toPxForceMode(PointForceMode mode)
 	{
-		switch (mode)
+		switch(mode)
 		{
 		case PointForceMode::Force:
 			return PxForceMode::eFORCE;
@@ -45,7 +45,7 @@ namespace bs
 	}
 
 	PhysXRigidbody::PhysXRigidbody(PxPhysics* physx, PxScene* scene, const HSceneObject& linkedSO)
-		:Rigidbody(linkedSO)
+		: Rigidbody(linkedSO)
 	{
 		const Transform& tfrm = linkedSO->GetTransform();
 		PxTransform pxTfrm = toPxTransform(tfrm.GetPosition(), tfrm.GetRotation());
@@ -64,10 +64,10 @@ namespace bs
 
 	void PhysXRigidbody::Move(const Vector3& position)
 	{
-		if (GetIsKinematic())
+		if(GetIsKinematic())
 		{
 			PxTransform target;
-			if (!mInternal->getKinematicTarget(target))
+			if(!mInternal->getKinematicTarget(target))
 				target = PxTransform(PxIdentity);
 
 			target.p = toPxVector(position);
@@ -82,10 +82,10 @@ namespace bs
 
 	void PhysXRigidbody::Rotate(const Quaternion& rotation)
 	{
-		if (GetIsKinematic())
+		if(GetIsKinematic())
 		{
 			PxTransform target;
-			if (!mInternal->getKinematicTarget(target))
+			if(!mInternal->getKinematicTarget(target))
 				target = PxTransform(PxIdentity);
 
 			target.q = toPxQuaternion(rotation);
@@ -216,10 +216,9 @@ namespace bs
 
 	void PhysXRigidbody::SetInertiaTensor(const Vector3& tensor)
 	{
-		if (((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
 		{
-			BS_LOG(Warning, Physics,
-				"Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
+			BS_LOG(Warning, Physics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
 			return;
 		}
 
@@ -243,10 +242,9 @@ namespace bs
 
 	void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)
 	{
-		if (((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
 		{
-			BS_LOG(Warning, Physics,
-				"Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
+			BS_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 			return;
 		}
 
@@ -297,7 +295,7 @@ namespace bs
 	{
 		bool ccdEnabledOld = mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
 		bool ccdEnabledNew = ((u32)flags & (u32)RigidbodyFlag::CCD) != 0;
-		
+
 		if(ccdEnabledOld != ccdEnabledNew)
 		{
 			mInternal->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
@@ -308,7 +306,7 @@ namespace bs
 
 			mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
-			for (u32 i = 0; i < numShapes; i++)
+			for(u32 i = 0; i < numShapes; i++)
 			{
 				Collider* collider = (Collider*)shapes[i]->userData;
 				collider->GetInternalInternal()->SetCCDInternal(ccdEnabledNew);
@@ -359,17 +357,17 @@ namespace bs
 
 	void PhysXRigidbody::UpdateMassDistribution()
 	{
-		if (((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
+		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
 			return;
 
-		if (((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
+		if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
 		{
 			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
 		}
 		else
 		{
 			u32 numShapes = mInternal->getNbShapes();
-			if (numShapes == 0)
+			if(numShapes == 0)
 			{
 				PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
 				return;
@@ -379,7 +377,7 @@ namespace bs
 			mInternal->getShapes(shapes, numShapes);
 
 			float* masses = (float*)bs_stack_alloc(sizeof(float) * numShapes);
-			for (u32 i = 0; i < numShapes; i++)
+			for(u32 i = 0; i < numShapes; i++)
 				masses[i] = ((Collider*)shapes[i]->userData)->GetMass();
 
 			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, masses, numShapes);
@@ -391,7 +389,7 @@ namespace bs
 
 	void PhysXRigidbody::AddCollider(Collider* collider)
 	{
-		if (collider == nullptr)
+		if(collider == nullptr)
 			return;
 
 		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
@@ -402,7 +400,7 @@ namespace bs
 
 	void PhysXRigidbody::RemoveCollider(Collider* collider)
 	{
-		if (collider == nullptr)
+		if(collider == nullptr)
 			return;
 
 		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
@@ -418,7 +416,7 @@ namespace bs
 
 		mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
-		for (u32 i = 0; i < numShapes; i++)
+		for(u32 i = 0; i < numShapes; i++)
 		{
 			Collider* collider = (Collider*)shapes[i]->userData;
 			collider->GetInternalInternal()->SetCCDInternal(false);
@@ -428,4 +426,4 @@ namespace bs
 
 		bs_stack_free(shapes);
 	}
-}
+} // namespace bs

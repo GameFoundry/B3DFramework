@@ -10,8 +10,7 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vector3& position,
-		const Quaternion& rotation)
+	PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
 	{
 		PxSphereGeometry geometry(0.01f); // Dummy
 
@@ -40,7 +39,7 @@ namespace bs
 
 	void PhysXMeshCollider::ApplyGeometry()
 	{
-		if (!mMesh.IsLoaded())
+		if(!mMesh.IsLoaded())
 		{
 			SetGeometry(PxSphereGeometry(0.01f)); // Dummy
 			return;
@@ -48,7 +47,7 @@ namespace bs
 
 		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mMesh->GetInternalInternal());
 
-		if (mMesh->GetType() == PhysicsMeshType::Convex)
+		if(mMesh->GetType() == PhysicsMeshType::Convex)
 		{
 			PxConvexMeshGeometry geometry;
 			geometry.scale = PxMeshScale(toPxVector(GetScale()), PxIdentity);
@@ -69,7 +68,7 @@ namespace bs
 	void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
 	{
 		PxShape* shape = GetInternal()->GetShapeInternal();
-		if (shape->getGeometryType() != geometry.getType())
+		if(shape->getGeometryType() != geometry.getType())
 		{
 			PxShape* newShape = gPhysX().GetPhysX()->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
 			GetInternal()->SetShapeInternal(newShape);
@@ -82,4 +81,4 @@ namespace bs
 	{
 		return static_cast<FPhysXCollider*>(mInternal);
 	}
-}
+} // namespace bs

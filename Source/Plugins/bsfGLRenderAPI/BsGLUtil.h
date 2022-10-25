@@ -4,29 +4,34 @@
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 
-#include "Win32/BsWin32GLSupport.h"
-#include "Win32/BsWin32VideoModeInfo.h"
+#	include "Win32/BsWin32GLSupport.h"
+#	include "Win32/BsWin32VideoModeInfo.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	Helper method that returns a platform specific GL support object. */
-	GLSupport* getGLSupport()
+	namespace ct
 	{
-		return bs_new<Win32GLSupport>();
-	}
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-	/** @} */
-}}
+		/**	Helper method that returns a platform specific GL support object. */
+		GLSupport* getGLSupport()
+		{
+			return bs_new<Win32GLSupport>();
+		}
+
+		/** @} */
+	} // namespace ct
+} // namespace bs
 
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
 
-#include "Linux/BsLinuxGLSupport.h"
+#	include "Linux/BsLinuxGLSupport.h"
 
-namespace bs { namespace ct
+namespace bs
+{
+	namespace ct
 	{
 		/** @addtogroup GL
 		 *  @{
@@ -39,11 +44,12 @@ namespace bs { namespace ct
 		}
 
 		/** @} */
-	}}
+	} // namespace ct
+} // namespace bs
 
 #elif BS_PLATFORM == BS_PLATFORM_OSX
 
-#include "MacOS/BsMacOSGLSupport.h"
+#	include "MacOS/BsMacOSGLSupport.h"
 
 namespace bs::ct
 {
@@ -58,5 +64,5 @@ namespace bs::ct
 	}
 
 	/** @} */
-}
+} // namespace bs::ct
 #endif

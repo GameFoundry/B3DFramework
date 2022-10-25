@@ -5,31 +5,34 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsDepthStencilState.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** DirectX 11 implementation of a depth stencil state. Corresponds directly with a DX11 depth stencil state object. */
-	class D3D11DepthStencilState : public DepthStencilState
+	namespace ct
 	{
-	public:
-		~D3D11DepthStencilState();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns the internal DX11 depth stencil state object. */
-		ID3D11DepthStencilState* GetInternal() const { return mDepthStencilState; }
+		/** DirectX 11 implementation of a depth stencil state. Corresponds directly with a DX11 depth stencil state object. */
+		class D3D11DepthStencilState : public DepthStencilState
+		{
+		public:
+			~D3D11DepthStencilState();
 
-	protected:
-		friend class D3D11RenderStateManager;
+			/**	Returns the internal DX11 depth stencil state object. */
+			ID3D11DepthStencilState* GetInternal() const { return mDepthStencilState; }
 
-		D3D11DepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id);
+		protected:
+			friend class D3D11RenderStateManager;
 
-		/** @copydoc DepthStencilState::createInternal() */
-		void CreateInternal() ;
+			D3D11DepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id);
 
-		ID3D11DepthStencilState* mDepthStencilState = nullptr;
-	};
+			/** @copydoc DepthStencilState::createInternal() */
+			void CreateInternal();
 
-	/** @} */
-}}
+			ID3D11DepthStencilState* mDepthStencilState = nullptr;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

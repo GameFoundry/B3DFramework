@@ -5,32 +5,32 @@
 #include "BsGLTimerQuery.h"
 #include "BsGLOcclusionQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<EventQuery> GLQueryManager::CreateEventQuery(u32 deviceIdx) const
+	namespace ct
 	{
-		SPtr<EventQuery> query = SPtr<GLEventQuery>(bs_new<GLEventQuery>(deviceIdx),
-			&QueryManager::DeleteEventQuery, StdAlloc<GLEventQuery>());
-		mEventQueries.push_back(query.get());
+		SPtr<EventQuery> GLQueryManager::CreateEventQuery(u32 deviceIdx) const
+		{
+			SPtr<EventQuery> query = SPtr<GLEventQuery>(bs_new<GLEventQuery>(deviceIdx), &QueryManager::DeleteEventQuery, StdAlloc<GLEventQuery>());
+			mEventQueries.push_back(query.get());
 
-		return query;
-	}
+			return query;
+		}
 
-	SPtr<TimerQuery> GLQueryManager::CreateTimerQuery(u32 deviceIdx) const
-	{
-		SPtr<TimerQuery> query = SPtr<GLTimerQuery>(bs_new<GLTimerQuery>(deviceIdx),
-			&QueryManager::DeleteTimerQuery, StdAlloc<GLTimerQuery>());
-		mTimerQueries.push_back(query.get());
+		SPtr<TimerQuery> GLQueryManager::CreateTimerQuery(u32 deviceIdx) const
+		{
+			SPtr<TimerQuery> query = SPtr<GLTimerQuery>(bs_new<GLTimerQuery>(deviceIdx), &QueryManager::DeleteTimerQuery, StdAlloc<GLTimerQuery>());
+			mTimerQueries.push_back(query.get());
 
-		return query;
-	}
+			return query;
+		}
 
-	SPtr<OcclusionQuery> GLQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
-	{
-		SPtr<OcclusionQuery> query = SPtr<GLOcclusionQuery>(bs_new<GLOcclusionQuery>(binary, deviceIdx),
-			&QueryManager::DeleteOcclusionQuery, StdAlloc<GLOcclusionQuery>());
-		mOcclusionQueries.push_back(query.get());
+		SPtr<OcclusionQuery> GLQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
+		{
+			SPtr<OcclusionQuery> query = SPtr<GLOcclusionQuery>(bs_new<GLOcclusionQuery>(binary, deviceIdx), &QueryManager::DeleteOcclusionQuery, StdAlloc<GLOcclusionQuery>());
+			mOcclusionQueries.push_back(query.get());
 
-		return query;
-	}
-}}
+			return query;
+		}
+	} // namespace ct
+} // namespace bs

@@ -15,7 +15,7 @@ namespace bs
 	int oggSeek(void* data, ogg_int64_t offset, int whence)
 	{
 		OggDecoderData* decoderData = static_cast<OggDecoderData*>(data);
-		switch (whence)
+		switch(whence)
 		{
 		case SEEK_SET:
 			offset += decoderData->Offset;
@@ -47,7 +47,7 @@ namespace bs
 
 	OggVorbisDecoder::~OggVorbisDecoder()
 	{
-		if (mOggVorbisFile.datasource != nullptr)
+		if(mOggVorbisFile.datasource != nullptr)
 			ov_clear(&mOggVorbisFile);
 	}
 
@@ -58,18 +58,18 @@ namespace bs
 		mDecoderData.Offset = offset;
 
 		OggVorbis_File file;
-		if (ov_test_callbacks(&mDecoderData, &file, nullptr, 0, callbacks) == 0)
+		if(ov_test_callbacks(&mDecoderData, &file, nullptr, 0, callbacks) == 0)
 		{
 			ov_clear(&file);
 			return true;
 		}
-			
+
 		return false;
 	}
 
 	bool OggVorbisDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
 	{
-		if (stream == nullptr)
+		if(stream == nullptr)
 			return false;
 
 		stream->Seek(offset);
@@ -77,7 +77,7 @@ namespace bs
 		mDecoderData.Offset = offset;
 
 		int status = ov_open_callbacks(&mDecoderData, &mOggVorbisFile, nullptr, 0, callbacks);
-		if (status < 0)
+		if(status < 0)
 		{
 			BS_LOG(Error, Audio, "Failed to open Ogg Vorbis file.");
 			return false;
@@ -101,11 +101,11 @@ namespace bs
 	u32 OggVorbisDecoder::Read(u8* samples, u32 numSamples)
 	{
 		u32 numReadSamples = 0;
-		while (numReadSamples < numSamples)
+		while(numReadSamples < numSamples)
 		{
 			i32 bytesToRead = (i32)(numSamples - numReadSamples) * sizeof(i16);
 			u32 bytesRead = ov_read(&mOggVorbisFile, (char*)samples, bytesToRead, 0, 2, 1, nullptr);
-			if (bytesRead > 0)
+			if(bytesRead > 0)
 			{
 				u32 samplesRead = bytesRead / sizeof(i16);
 				numReadSamples += samplesRead;
@@ -117,4 +117,4 @@ namespace bs
 
 		return numReadSamples;
 	}
-}
+} // namespace bs

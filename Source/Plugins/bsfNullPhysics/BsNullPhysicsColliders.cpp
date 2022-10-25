@@ -7,7 +7,7 @@ namespace bs
 {
 	FNullPhysicsCollider::FNullPhysicsCollider(const Vector3& position, const Quaternion& rotation)
 		: mPosition(position), mRotation(rotation)
-	{ }
+	{}
 
 	void FNullPhysicsCollider::SetTransform(const Vector3& pos, const Quaternion& rotation)
 	{
@@ -16,7 +16,7 @@ namespace bs
 	}
 
 	NullPhysicsBoxCollider::NullPhysicsBoxCollider(const Vector3& position, const Quaternion& rotation, const Vector3& extents)
-		:mExtents(extents)
+		: mExtents(extents)
 	{
 		mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
 	}
@@ -26,9 +26,8 @@ namespace bs
 		bs_delete(mInternal);
 	}
 
-	NullPhysicsCapsuleCollider::NullPhysicsCapsuleCollider(const Vector3& position, const Quaternion& rotation,
-		float radius, float halfHeight)
-		:mRadius(radius), mHalfHeight(halfHeight)
+	NullPhysicsCapsuleCollider::NullPhysicsCapsuleCollider(const Vector3& position, const Quaternion& rotation, float radius, float halfHeight)
+		: mRadius(radius), mHalfHeight(halfHeight)
 	{
 		mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
 	}
@@ -37,6 +36,7 @@ namespace bs
 	{
 		bs_delete(mInternal);
 	}
+
 	NullPhysicsMeshCollider::NullPhysicsMeshCollider(const Vector3& position, const Quaternion& rotation)
 	{
 		mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
@@ -58,7 +58,7 @@ namespace bs
 	}
 
 	NullPhysicsSphereCollider::NullPhysicsSphereCollider(const Vector3& position, const Quaternion& rotation, float radius)
-		:mRadius(radius)
+		: mRadius(radius)
 	{
 		mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
 	}
@@ -67,4 +67,4 @@ namespace bs
 	{
 		bs_delete(mInternal);
 	}
-}
+} // namespace bs

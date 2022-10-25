@@ -5,25 +5,28 @@
 #include "BsVulkanPrerequisites.h"
 #include "Managers/BsGpuProgramManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**
-	 * Compiles GLSL source code into SPIR-V. Also performs reflection on the GLSL and outputs information about
-	 * vertex inputs and GPU program globals.
-	 */
-	class GLSLToSPIRV : public Module<GLSLToSPIRV>
+	namespace ct
 	{
-	public:
-		GLSLToSPIRV();
-		~GLSLToSPIRV();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** Performs the GLSL -> SPIR-V conversion. */
-		SPtr<GpuProgramBytecode> Convert(const GPU_PROGRAM_DESC& desc);
-	};
+		/**
+		 * Compiles GLSL source code into SPIR-V. Also performs reflection on the GLSL and outputs information about
+		 * vertex inputs and GPU program globals.
+		 */
+		class GLSLToSPIRV : public Module<GLSLToSPIRV>
+		{
+		public:
+			GLSLToSPIRV();
+			~GLSLToSPIRV();
 
-	/** @} */
-}}
+			/** Performs the GLSL -> SPIR-V conversion. */
+			SPtr<GpuProgramBytecode> Convert(const GPU_PROGRAM_DESC& desc);
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

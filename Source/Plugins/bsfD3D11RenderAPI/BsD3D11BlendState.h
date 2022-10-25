@@ -5,31 +5,34 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsBlendState.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** DirectX 11 implementation of a blend state. Corresponds directly with a DX11 blend state object. */
-	class D3D11BlendState : public BlendState
+	namespace ct
 	{
-	public:
-		~D3D11BlendState();
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns the internal DX11 blend state object. */
-		ID3D11BlendState* GetInternal() const { return mBlendState; }
+		/** DirectX 11 implementation of a blend state. Corresponds directly with a DX11 blend state object. */
+		class D3D11BlendState : public BlendState
+		{
+		public:
+			~D3D11BlendState();
 
-	protected:
-		friend class D3D11RenderStateManager;
+			/**	Returns the internal DX11 blend state object. */
+			ID3D11BlendState* GetInternal() const { return mBlendState; }
 
-		D3D11BlendState(const BLEND_STATE_DESC& desc, u32 id);
+		protected:
+			friend class D3D11RenderStateManager;
 
-		/** @copydoc BlendState::createInternal */
-		void CreateInternal() ;
+			D3D11BlendState(const BLEND_STATE_DESC& desc, u32 id);
 
-		ID3D11BlendState* mBlendState = nullptr;
-	};
+			/** @copydoc BlendState::createInternal */
+			void CreateInternal();
 
-	/** @} */
-}}
+			ID3D11BlendState* mBlendState = nullptr;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

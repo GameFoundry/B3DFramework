@@ -10,7 +10,7 @@ namespace bs
 	/** @addtogroup OpenAudio
 	 *  @{
 	 */
-	
+
 	/** OpenAL implementation of an AudioListener. */
 	class OAAudioListener : public AudioListener
 	{
@@ -19,10 +19,10 @@ namespace bs
 		virtual ~OAAudioListener();
 
 		/** @copydoc SceneActor::setTransform */
-		void SetTransform(const Transform& transform) ;
+		void SetTransform(const Transform& transform);
 
 		/** @copydoc AudioListener::setVelocity */
-		void SetVelocity(const Vector3& velocity) ;
+		void SetVelocity(const Vector3& velocity);
 
 	private:
 		friend class OAAudio;
@@ -47,4 +47,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

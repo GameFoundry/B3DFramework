@@ -71,4 +71,4 @@ namespace bs
 		auto a13 = alloc.Alloc(0);
 		BS_TEST_ASSERT(a13.Length == 0);
 	}
-}
+} // namespace bs

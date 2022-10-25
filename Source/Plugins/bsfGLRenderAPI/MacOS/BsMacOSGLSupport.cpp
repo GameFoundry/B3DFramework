@@ -14,7 +14,7 @@ namespace bs::ct
 		u32 windowId,
 		SPtr<bs::RenderWindow> parentWindow)
 	{
-		bs::MacOSRenderWindow* window = new (bs_alloc<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
+		bs::MacOSRenderWindow* window = new(bs_alloc<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
 		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
 	}
 
@@ -33,7 +33,7 @@ namespace bs::ct
 		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::InstancePtr());
 
 		// If RenderAPI has initialized a context use that, otherwise we create our own
-		if (!rapi->IsContextInitializedInternal())
+		if(!rapi->IsContextInitializedInternal())
 			return bs_shared_ptr_new<MacOSContext>(depthStencil, msaaCount);
 		else
 		{
@@ -46,7 +46,7 @@ namespace bs::ct
 	{
 		static void* image = nullptr;
 
-		if (!image)
+		if(!image)
 			image = dlopen("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", RTLD_LAZY);
 
 		if(!image)
@@ -59,5 +59,4 @@ namespace bs::ct
 	{
 		return bs_shared_ptr_new<MacOSVideoModeInfo>();
 	}
-}
-
+} // namespace bs::ct

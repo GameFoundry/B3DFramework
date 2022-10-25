@@ -19,8 +19,8 @@ namespace bs
 
 	protected:
 		/** @copydoc RenderWindowManager::createImpl */
-		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow) ;
+		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow);
 	};
 
 	/** @} */
-}
+} // namespace bs

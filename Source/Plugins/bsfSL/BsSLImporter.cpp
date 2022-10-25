@@ -35,19 +35,18 @@ namespace bs
 		String shaderName = filePath.GetFilename(false);
 		BSLFXCompileResult result = BSLFXCompiler::Compile(shaderName, source, io->GetDefines(), io->Languages);
 
-		if (result.Shader != nullptr)
+		if(result.Shader != nullptr)
 			result.Shader->SetName(shaderName);
-		
+
 		if(!result.ErrorMessage.empty())
 		{
 			String file;
-			if (result.ErrorFile.empty())
+			if(result.ErrorFile.empty())
 				file = filePath.ToString();
 			else
 				file = result.ErrorFile;
 
-			BS_LOG(Error, BSLCompiler, "Compilation error when importing shader \"{0}\":\n{1}. Location: {2} ({3})",
-				file, result.ErrorMessage, result.ErrorLine, result.ErrorColumn);
+			BS_LOG(Error, BSLCompiler, "Compilation error when importing shader \"{0}\":\n{1}. Location: {2} ({3})", file, result.ErrorMessage, result.ErrorLine, result.ErrorColumn);
 		}
 
 		return result.Shader;
@@ -57,4 +56,4 @@ namespace bs
 	{
 		return bs_shared_ptr_new<ShaderImportOptions>();
 	}
-}
+} // namespace bs

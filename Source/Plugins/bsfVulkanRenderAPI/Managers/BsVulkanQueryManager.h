@@ -6,126 +6,129 @@
 #include "BsVulkanResource.h"
 #include "Managers/BsQueryManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**
-	 * Pool that allocates and distributes Vulkan queries.
-	 *
-	 * @note	Thread safe.
-	 */
-	class VulkanQueryPool
+	namespace ct
 	{
-	public:
-		VulkanQueryPool(VulkanDevice& device);
-		~VulkanQueryPool();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
 		/**
-		 * Begins a timer query on the provided command buffer.
+		 * Pool that allocates and distributes Vulkan queries.
 		 *
-		 * @param[in]	cb			Command buffer to begin the query on.
-		 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
-		 *							caller is done accessing it.
+		 * @note	Thread safe.
 		 */
-		VulkanQuery* BeginTimerQuery(VulkanCmdBuffer* cb);
-
-		/**
-		 * Begins an occlusion query on the provided command buffer. Must be followed with a call to endOcclusionQuery
-		 * on the same command buffer, before the command buffer gets submitted.
-		 *
-		 * @param[in]	cb			Command buffer to begin the query on.
-		 * @param[in]	precise		When true the query will be able to return the precise number of processed samples,
-		 *							otherwise it just returns a boolean value if anything was drawn.
-		 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
-		 *							caller is done accessing it.
-		 */
-		VulkanQuery* BeginOcclusionQuery(VulkanCmdBuffer* cb, bool precise);
-
-		/**
-		 * End am occlusion query query on the provided command buffer.
-		 *
-		 * @param[in]	query		Query previously begun with beginOcclusionQuery().
-		 * @param[in]	cb			Command buffer to end the query on.
-		 */
-		void EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb);
-
-		/** Releases a previously retrieved query, ensuring it can be re-used. */
-		void ReleaseQuery(VulkanQuery* query);
-
-	private:
-		/** Query buffer pool and related information. */
-		struct PoolInfo
+		class VulkanQueryPool
 		{
-			VkQueryPool Pool = VK_NULL_HANDLE;
-			u32 StartIdx;
+		public:
+			VulkanQueryPool(VulkanDevice& device);
+			~VulkanQueryPool();
+
+			/**
+			 * Begins a timer query on the provided command buffer.
+			 *
+			 * @param[in]	cb			Command buffer to begin the query on.
+			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
+			 *							caller is done accessing it.
+			 */
+			VulkanQuery* BeginTimerQuery(VulkanCmdBuffer* cb);
+
+			/**
+			 * Begins an occlusion query on the provided command buffer. Must be followed with a call to endOcclusionQuery
+			 * on the same command buffer, before the command buffer gets submitted.
+			 *
+			 * @param[in]	cb			Command buffer to begin the query on.
+			 * @param[in]	precise		When true the query will be able to return the precise number of processed samples,
+			 *							otherwise it just returns a boolean value if anything was drawn.
+			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
+			 *							caller is done accessing it.
+			 */
+			VulkanQuery* BeginOcclusionQuery(VulkanCmdBuffer* cb, bool precise);
+
+			/**
+			 * End am occlusion query query on the provided command buffer.
+			 *
+			 * @param[in]	query		Query previously begun with beginOcclusionQuery().
+			 * @param[in]	cb			Command buffer to end the query on.
+			 */
+			void EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb);
+
+			/** Releases a previously retrieved query, ensuring it can be re-used. */
+			void ReleaseQuery(VulkanQuery* query);
+
+		private:
+			/** Query buffer pool and related information. */
+			struct PoolInfo
+			{
+				VkQueryPool Pool = VK_NULL_HANDLE;
+				u32 StartIdx;
+			};
+
+			/** Attempts to find a free query of the specified type, or allocates a new one. Creates new pools as needed. */
+			VulkanQuery* GetQuery(VkQueryType type);
+
+			/** Creates a new Vulkan query pool object. */
+			PoolInfo& AllocatePool(VkQueryType type);
+
+			static const u32 NUM_QUERIES_PER_POOL = 16;
+
+			VulkanDevice& mDevice;
+
+			Vector<VulkanQuery*> mTimerQueries;
+			Vector<VulkanQuery*> mOcclusionQueries;
+
+			Vector<PoolInfo> mTimerPools;
+			Vector<PoolInfo> mOcclusionPools;
+
+			Mutex mMutex;
 		};
 
-		/** Attempts to find a free query of the specified type, or allocates a new one. Creates new pools as needed. */
-		VulkanQuery* GetQuery(VkQueryType type);
+		/**	Handles creation of Vulkan queries. */
+		class VulkanQueryManager : public QueryManager
+		{
+		public:
+			VulkanQueryManager(VulkanRenderAPI& rapi);
 
-		/** Creates a new Vulkan query pool object. */
-		PoolInfo& AllocatePool(VkQueryType type);
+			/** @copydoc QueryManager::createEventQuery */
+			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const;
 
-		static const u32 NUM_QUERIES_PER_POOL = 16;
+			/** @copydoc QueryManager::createTimerQuery */
+			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const;
 
-		VulkanDevice& mDevice;
+			/** @copydoc QueryManager::createOcclusionQuery */
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const;
 
-		Vector<VulkanQuery*> mTimerQueries;
-		Vector<VulkanQuery*> mOcclusionQueries;
+		private:
+			VulkanRenderAPI& mRenderAPI;
+		};
 
-		Vector<PoolInfo> mTimerPools;
-		Vector<PoolInfo> mOcclusionPools;
+		/** Wrapper around a single query in a Vulkan query pool object. */
+		class VulkanQuery : public VulkanResource
+		{
+		public:
+			VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx);
 
-		Mutex mMutex;
-	};
+			/**
+			 * Attempts to retrieve the result from the query. The result is only valid if the query stopped executing on the
+			 * GPU (otherwise previous query results could be accessed, if the reset command hasn't executed yet).
+			 *
+			 * @param[out]	result	Value of the query, if the method return true. Undefined otherwise.
+			 * @return				True if the result is ready, false otherwise.
+			 */
+			bool GetResult(u64& result) const;
 
-	/**	Handles creation of Vulkan queries. */
-	class VulkanQueryManager : public QueryManager
-	{
-	public:
-		VulkanQueryManager(VulkanRenderAPI& rapi);
+			/** Queues a command for the query reset, on the provided command buffer. */
+			void Reset(VkCommandBuffer cmdBuf);
 
-		/** @copydoc QueryManager::createEventQuery */
-		SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const ;
+		private:
+			friend class VulkanQueryPool;
 
-		/** @copydoc QueryManager::createTimerQuery */
-		SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const ;
+			VkQueryPool mPool;
+			u32 mQueryIdx;
+			bool mFree = true;
+		};
 
-		/** @copydoc QueryManager::createOcclusionQuery */
-		SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const ;
-
-	private:
-		VulkanRenderAPI& mRenderAPI;
-	};
-
-	/** Wrapper around a single query in a Vulkan query pool object. */
-	class VulkanQuery : public VulkanResource
-	{
-	public:
-		VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx);
-
-		/**
-		 * Attempts to retrieve the result from the query. The result is only valid if the query stopped executing on the
-		 * GPU (otherwise previous query results could be accessed, if the reset command hasn't executed yet).
-		 *
-		 * @param[out]	result	Value of the query, if the method return true. Undefined otherwise.
-		 * @return				True if the result is ready, false otherwise.
-		 */
-		bool GetResult(u64& result) const;
-
-		/** Queues a command for the query reset, on the provided command buffer. */
-		void Reset(VkCommandBuffer cmdBuf);
-
-	private:
-		friend class VulkanQueryPool;
-
-		VkQueryPool mPool;
-		u32 mQueryIdx;
-		bool mFree = true;
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

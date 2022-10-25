@@ -10,8 +10,8 @@
 namespace bs
 {
 	NullPhysicsMesh::NullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		:PhysicsMesh(meshData, type)
-	{ }
+		: PhysicsMesh(meshData, type)
+	{}
 
 	void NullPhysicsMesh::Initialize()
 	{
@@ -29,12 +29,12 @@ namespace bs
 	}
 
 	FNullPhysicsMesh::FNullPhysicsMesh()
-		:FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
-	{ }
+		: FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
+	{}
 
 	FNullPhysicsMesh::FNullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		:FPhysicsMesh(meshData, type)
-	{ }
+		: FPhysicsMesh(meshData, type)
+	{}
 
 	SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
 	{
@@ -53,4 +53,4 @@ namespace bs
 	{
 		return GetRttiStatic();
 	}
-}
+} // namespace bs

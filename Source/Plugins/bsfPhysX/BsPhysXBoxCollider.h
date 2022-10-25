@@ -16,18 +16,17 @@ namespace bs
 	class PhysXBoxCollider : public BoxCollider
 	{
 	public:
-		PhysXBoxCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position,
-			const Quaternion& rotation, const Vector3& extents);
+		PhysXBoxCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation, const Vector3& extents);
 		~PhysXBoxCollider();
 
 		/** @copydoc BoxCollider::setScale */
-		void SetScale(const Vector3& scale) ;
+		void SetScale(const Vector3& scale);
 
 		/** @copydoc BoxCollider::setExtents */
-		void SetExtents(const Vector3& extents) ;
+		void SetExtents(const Vector3& extents);
 
 		/** @copydoc BoxCollider::getExtents */
-		Vector3 GetExtents() const ;
+		Vector3 GetExtents() const;
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */
@@ -40,4 +39,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

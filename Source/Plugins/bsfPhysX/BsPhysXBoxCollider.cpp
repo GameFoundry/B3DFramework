@@ -9,9 +9,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vector3& position,
-		const Quaternion& rotation, const Vector3& extents)
-		:mExtents(extents)
+	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation, const Vector3& extents)
+		: mExtents(extents)
 	{
 		PxBoxGeometry geometry(extents.X, extents.Y, extents.Z);
 
@@ -47,8 +46,7 @@ namespace bs
 
 	void PhysXBoxCollider::ApplyGeometry()
 	{
-		PxBoxGeometry geometry(std::max(0.01f, mExtents.X * mScale.X),
-			std::max(0.01f, mExtents.Y * mScale.Y), std::max(0.01f, mExtents.Z * mScale.Z));
+		PxBoxGeometry geometry(std::max(0.01f, mExtents.X * mScale.X), std::max(0.01f, mExtents.Y * mScale.Y), std::max(0.01f, mExtents.Z * mScale.Z));
 
 		GetInternal()->GetShapeInternal()->setGeometry(geometry);
 	}
@@ -57,4 +55,4 @@ namespace bs
 	{
 		return static_cast<FPhysXCollider*>(mInternal);
 	}
-}
+} // namespace bs

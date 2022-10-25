@@ -3,37 +3,40 @@
 #include "GLSL/BsGLSLProgramFactory.h"
 #include "GLSL/BsGLSLGpuProgram.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<GpuProgram> GLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+	namespace ct
 	{
-		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
+		SPtr<GpuProgram> GLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			GLSLGpuProgram* prog = new(bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
-		gpuProg->SetThisPtrInternal(gpuProg);
+			SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
+			gpuProg->SetThisPtrInternal(gpuProg);
 
-		return gpuProg;
-	}
+			return gpuProg;
+		}
 
-	SPtr<GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
-	{
-		GPU_PROGRAM_DESC desc;
-		desc.Type = type;
+		SPtr<GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
+		{
+			GPU_PROGRAM_DESC desc;
+			desc.Type = type;
 
-		GLSLGpuProgram* prog = new (bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
+			GLSLGpuProgram* prog = new(bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-		SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
-		gpuProg->SetThisPtrInternal(gpuProg);
+			SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
+			gpuProg->SetThisPtrInternal(gpuProg);
 
-		return gpuProg;
-	}
+			return gpuProg;
+		}
 
-	SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
-	{
-		// Note: No bytecode format for GLSL
-		SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
-		bytecode->CompilerId = OPENGL_COMPILER_ID;
+		SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
+		{
+			// Note: No bytecode format for GLSL
+			SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+			bytecode->CompilerId = OPENGL_COMPILER_ID;
 
-		return bytecode;
-	}
-}}
+			return bytecode;
+		}
+	} // namespace ct
+} // namespace bs

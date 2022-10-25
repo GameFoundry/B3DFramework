@@ -10,7 +10,7 @@ namespace bs
 	/** @addtogroup OpenAudio
 	 *  @{
 	 */
-	
+
 	/** OpenAL implementation of an AudioSource. */
 	class OAAudioSource : public AudioSource
 	{
@@ -19,25 +19,25 @@ namespace bs
 		virtual ~OAAudioSource();
 
 		/** @copydoc SceneActor::setTransform */
-		void SetTransform(const Transform& transform) ;
+		void SetTransform(const Transform& transform);
 
 		/** @copydoc AudioSource::setClip */
-		void SetClip(const HAudioClip& clip) ;
+		void SetClip(const HAudioClip& clip);
 
 		/** @copydoc AudioSource::setVelocity */
-		void SetVelocity(const Vector3& velocity) ;
+		void SetVelocity(const Vector3& velocity);
 
 		/** @copydoc AudioSource::setVolume */
-		void SetVolume(float volume) ;
+		void SetVolume(float volume);
 
 		/** @copydoc AudioSource::setPitch */
-		void SetPitch(float pitch) ;
+		void SetPitch(float pitch);
 
 		/** @copydoc AudioSource::setIsLooping */
-		void SetIsLooping(bool loop) ;
+		void SetIsLooping(bool loop);
 
 		/** @copydoc AudioSource::setPriority */
-		void SetPriority(i32 priority) ;
+		void SetPriority(i32 priority);
 
 		/** @copydoc AudioSource::setMinDistance */
 		void SetMinDistance(float distance) override;
@@ -123,4 +123,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

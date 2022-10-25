@@ -9,7 +9,7 @@ namespace bs
 	class FMODAudioListener;
 	class FMODAudioSource;
 	class FMODAudioClip;
-}
+} // namespace bs
 
 /** @addtogroup Plugins
  *  @{

@@ -10,12 +10,12 @@ namespace bs
 	class NullFactory : public AudioFactory
 	{
 	public:
-		void StartUp() 
+		void StartUp()
 		{
 			Audio::StartUp<NullAudio>();
 		}
 
-		void ShutDown() 
+		void ShutDown()
 		{
 			Audio::ShutDown();
 		}
@@ -39,4 +39,4 @@ namespace bs
 	{
 		bs_delete(instance);
 	}
-}
+} // namespace bs

@@ -5,42 +5,44 @@
 #include "Managers/BsRenderAPIFactory.h"
 #include "Managers/BsRenderAPIManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup NullRenderAPI
-	 *  @{
-	 */
-	/**	Handles creation of the Null render system. */
-	class NullRenderAPIFactory final : public RenderAPIFactory
+	namespace ct
 	{
-	public:
-		static constexpr const char* SystemName = "bsfNullRenderAPI";
-
-		/** @copydoc RenderAPIFactory::create */
-		void Create() ;
-
-		/** @copydoc RenderAPIFactory::name */
-		const char* Name() const { return SystemName; }
-
-	private:
-
-		/**	Registers the factory with the render system manager when constructed. */
-		class InitOnStart
+		/** @addtogroup NullRenderAPI
+		 *  @{
+		 */
+		/**	Handles creation of the Null render system. */
+		class NullRenderAPIFactory final : public RenderAPIFactory
 		{
 		public:
-			InitOnStart()
+			static constexpr const char* SystemName = "bsfNullRenderAPI";
+
+			/** @copydoc RenderAPIFactory::create */
+			void Create();
+
+			/** @copydoc RenderAPIFactory::name */
+			const char* Name() const { return SystemName; }
+
+		private:
+			/**	Registers the factory with the render system manager when constructed. */
+			class InitOnStart
 			{
-				static SPtr<RenderAPIFactory> newFactory;
-				if(newFactory == nullptr)
+			public:
+				InitOnStart()
 				{
-					newFactory = bs_shared_ptr_new<NullRenderAPIFactory>();
-					RenderAPIManager::Instance().RegisterFactory(newFactory);
+					static SPtr<RenderAPIFactory> newFactory;
+					if(newFactory == nullptr)
+					{
+						newFactory = bs_shared_ptr_new<NullRenderAPIFactory>();
+						RenderAPIManager::Instance().RegisterFactory(newFactory);
+					}
 				}
-			}
+			};
+
+			static InitOnStart initOnStart; // Makes sure factory is registered on program start
 		};
 
-		static InitOnStart initOnStart; // Makes sure factory is registered on program start
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

@@ -6,100 +6,101 @@
 #include "RenderAPI/BsGpuParams.h"
 #include "Allocators/BsGroupAlloc.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** Vulkan implementation of GpuParams, containing resource descriptors for all shader stages. */
-	class VulkanGpuParams : public GpuParams
+	namespace ct
 	{
-	public:
-		~VulkanGpuParams();
-
-		/** @copydoc GpuParams::setParamBlockBuffer(u32, u32, const ParamsBufferType&) */
-		void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer) ;
-
-		/** @copydoc GpuParams::setTexture */
-		void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture,
-						const TextureSurface& surface = TextureSurface::COMPLETE) ;
-
-		/** @copydoc GpuParams::setLoadStoreTexture */
-		void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture,
-			const TextureSurface& surface) ;
-
-		/** @copydoc GpuParams::setBuffer */
-		void SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer) ;
-
-		/** @copydoc GpuParams::setSamplerState */
-		void SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler) ;
-
-		/** Returns the total number of descriptor sets used by this object. */
-		u32 GetNumSets() const;
-
-		/**
-		 * Prepares the internal descriptor sets for a bind operation on the provided command buffer. It generates and/or
-		 * updates and descriptor sets, and registers the relevant resources with the command buffer.
-		 *
-		 * Caller must perform external locking if some other thread could write to this object while it is being bound.
-		 * The same applies to any resources held by this object.
-		 *
-		 * @param[in]	buffer	Buffer on which the parameters will be bound to.
-		 * @param[out]	sets	Pre-allocated buffer in which the descriptor set handled will be written. Must be of
-		 *						getNumSets() size.
-		 *
-		 * @note	Thread safe.
+		/** @addtogroup Vulkan
+		 *  @{
 		 */
-		void PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets);
 
-	protected:
-		/** Contains data about writing to either buffer or a texture descriptor. */
-		union WriteInfo
+		/** Vulkan implementation of GpuParams, containing resource descriptors for all shader stages. */
+		class VulkanGpuParams : public GpuParams
 		{
-			VkDescriptorImageInfo Image;
-			VkDescriptorBufferInfo Buffer;
-			VkBufferView BufferView;
+		public:
+			~VulkanGpuParams();
+
+			/** @copydoc GpuParams::setParamBlockBuffer(u32, u32, const ParamsBufferType&) */
+			void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer);
+
+			/** @copydoc GpuParams::setTexture */
+			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::COMPLETE);
+
+			/** @copydoc GpuParams::setLoadStoreTexture */
+			void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface);
+
+			/** @copydoc GpuParams::setBuffer */
+			void SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer);
+
+			/** @copydoc GpuParams::setSamplerState */
+			void SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler);
+
+			/** Returns the total number of descriptor sets used by this object. */
+			u32 GetNumSets() const;
+
+			/**
+			 * Prepares the internal descriptor sets for a bind operation on the provided command buffer. It generates and/or
+			 * updates and descriptor sets, and registers the relevant resources with the command buffer.
+			 *
+			 * Caller must perform external locking if some other thread could write to this object while it is being bound.
+			 * The same applies to any resources held by this object.
+			 *
+			 * @param[in]	buffer	Buffer on which the parameters will be bound to.
+			 * @param[out]	sets	Pre-allocated buffer in which the descriptor set handled will be written. Must be of
+			 *						getNumSets() size.
+			 *
+			 * @note	Thread safe.
+			 */
+			void PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets);
+
+		protected:
+			/** Contains data about writing to either buffer or a texture descriptor. */
+			union WriteInfo
+			{
+				VkDescriptorImageInfo Image;
+				VkDescriptorBufferInfo Buffer;
+				VkBufferView BufferView;
+			};
+
+			/** All GPU param data related to a single descriptor set. */
+			struct PerSetData
+			{
+				VulkanDescriptorSet* LatestSet;
+				Vector<VulkanDescriptorSet*> Sets;
+
+				VkWriteDescriptorSet* WriteSetInfos;
+				WriteInfo* WriteInfos;
+
+				u32 NumElements;
+			};
+
+			/** All GPU param data beloning to a single device. */
+			struct PerDeviceData
+			{
+				PerSetData* PerSetData;
+
+				VkImage* SampledImages;
+				VkImage* StorageImages;
+				VkBuffer* UniformBuffers;
+				VkBuffer* Buffers;
+				VkSampler* Samplers;
+			};
+
+			friend class VulkanHardwareBufferManager;
+
+			VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
+
+			/** @copydoc GpuParams::initialize */
+			void Initialize() override;
+
+			PerDeviceData mPerDeviceData[BS_MAX_DEVICES];
+			GpuDeviceFlags mDeviceMask;
+			bool* mSetsDirty = nullptr;
+
+			GroupAlloc mAlloc;
+			Mutex mMutex;
 		};
 
-		/** All GPU param data related to a single descriptor set. */
-		struct PerSetData
-		{
-			VulkanDescriptorSet* LatestSet;
-			Vector<VulkanDescriptorSet*> Sets;
-
-			VkWriteDescriptorSet* WriteSetInfos;
-			WriteInfo* WriteInfos;
-
-			u32 NumElements;
-		};
-
-		/** All GPU param data beloning to a single device. */
-		struct PerDeviceData
-		{
-			PerSetData* PerSetData;
-
-			VkImage* SampledImages;
-			VkImage* StorageImages;
-			VkBuffer* UniformBuffers;
-			VkBuffer* Buffers;
-			VkSampler* Samplers;
-		};
-
-		friend class VulkanHardwareBufferManager;
-
-		VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
-
-		/** @copydoc GpuParams::initialize */
-		void Initialize() override;
-
-		PerDeviceData mPerDeviceData[BS_MAX_DEVICES];
-		GpuDeviceFlags mDeviceMask;
-		bool* mSetsDirty = nullptr;
-
-		GroupAlloc mAlloc;
-		Mutex mMutex;
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

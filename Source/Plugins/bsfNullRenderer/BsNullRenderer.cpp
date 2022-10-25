@@ -40,5 +40,5 @@ namespace bs
 		{
 			return std::static_pointer_cast<NullRenderer>(RendererManager::Instance().GetActive());
 		}
-	}
-}
+	} // namespace ct
+} // namespace bs

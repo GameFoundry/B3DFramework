@@ -8,8 +8,8 @@
 namespace bs
 {
 	NullPhysicsCharacterController::NullPhysicsCharacterController(const CHAR_CONTROLLER_DESC& desc)
-		:CharacterController(desc), mDesc(desc)
-	{ }
+		: CharacterController(desc), mDesc(desc)
+	{}
 
 	CharacterCollisionFlags NullPhysicsCharacterController::Move(const Vector3& displacement)
 	{
@@ -17,4 +17,4 @@ namespace bs
 
 		return CharacterCollisionFlags();
 	}
-}
+} // namespace bs

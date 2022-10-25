@@ -5,49 +5,52 @@
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsGpuProgram.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	GPU program compiled from GLSL and usable by OpenGL. */
-	class GLSLGpuProgram : public GpuProgram
+	namespace ct
 	{
-	public:
-		~GLSLGpuProgram();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc GpuProgram::isSupported */
-		bool IsSupported() const ;
+		/**	GPU program compiled from GLSL and usable by OpenGL. */
+		class GLSLGpuProgram : public GpuProgram
+		{
+		public:
+			~GLSLGpuProgram();
 
-		/**	Gets internal OpenGL handle to the program. */
-		GLuint GetGlHandle() const { return mGLHandle; }
+			/** @copydoc GpuProgram::isSupported */
+			bool IsSupported() const;
 
-		/** Gets an unique index for this GPU program. Each created GPU program is assigned a unique index on creation. */
-		u32 GetProgramId() const { return mProgramID; }
+			/**	Gets internal OpenGL handle to the program. */
+			GLuint GetGlHandle() const { return mGLHandle; }
 
-	private:
-		friend class GLSLProgramFactory;
+			/** Gets an unique index for this GPU program. Each created GPU program is assigned a unique index on creation. */
+			u32 GetProgramId() const { return mProgramID; }
 
-		GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+		private:
+			friend class GLSLProgramFactory;
 
-		/** @copydoc GpuProgram::initialize */
-		void Initialize() ;
+			GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-	private:
-		u32 mProgramID = 0;
-		GLuint mGLHandle = 0;
+			/** @copydoc GpuProgram::initialize */
+			void Initialize();
 
-		static u32 sVertexShaderCount;
-		static u32 sFragmentShaderCount;
-		static u32 sGeometryShaderCount;
-		static u32 sHullShaderCount;
-		static u32 sDomainShaderCount;
-		static u32 sComputeShaderCount;
-	};
+		private:
+			u32 mProgramID = 0;
+			GLuint mGLHandle = 0;
 
-	/** Identifier of the compiler used for compiling OpenGL GPU programs. */
-	static constexpr const char* OPENGL_COMPILER_ID = "OpenGL";
+			static u32 sVertexShaderCount;
+			static u32 sFragmentShaderCount;
+			static u32 sGeometryShaderCount;
+			static u32 sHullShaderCount;
+			static u32 sDomainShaderCount;
+			static u32 sComputeShaderCount;
+		};
 
-	/** @} */
-}}
+		/** Identifier of the compiler used for compiling OpenGL GPU programs. */
+		static constexpr const char* OPENGL_COMPILER_ID = "OpenGL";
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

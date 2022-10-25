@@ -5,44 +5,47 @@
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsOcclusionQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of an occlusion query. */
-	class GLOcclusionQuery : public OcclusionQuery
+	namespace ct
 	{
-	public:
-		GLOcclusionQuery(bool binary, u32 deviceIdx);
-		~GLOcclusionQuery();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc OcclusionQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) ;
+		/**	OpenGL implementation of an occlusion query. */
+		class GLOcclusionQuery : public OcclusionQuery
+		{
+		public:
+			GLOcclusionQuery(bool binary, u32 deviceIdx);
+			~GLOcclusionQuery();
 
-		/** @copydoc OcclusionQuery::end */
-		void End(const SPtr<CommandBuffer>& cb = nullptr) ;
+			/** @copydoc OcclusionQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc OcclusionQuery::isReady */
-		bool IsReady() const ;
+			/** @copydoc OcclusionQuery::end */
+			void End(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc OcclusionQuery::getNumSamples */
-		u32 GetNumSamples() ;
+			/** @copydoc OcclusionQuery::isReady */
+			bool IsReady() const;
 
-	private:
-		friend class QueryManager;
+			/** @copydoc OcclusionQuery::getNumSamples */
+			u32 GetNumSamples();
 
-		/** Processes query results and saves them for later use. To be called when query has completed. */
-		void Finalize();
+		private:
+			friend class QueryManager;
 
-	private:
-		GLuint mQueryObj = 0;
-		bool mFinalized = false;
-		bool mEndIssued = false;
+			/** Processes query results and saves them for later use. To be called when query has completed. */
+			void Finalize();
 
-		u32 mNumSamples = 0;
-	};
+		private:
+			GLuint mQueryObj = 0;
+			bool mFinalized = false;
+			bool mEndIssued = false;
 
-	/** @} */
-}}
+			u32 mNumSamples = 0;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

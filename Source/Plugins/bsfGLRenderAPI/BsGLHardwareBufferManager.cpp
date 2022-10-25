@@ -9,82 +9,79 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsRenderAPICapabilities.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<VertexBuffer> GLHardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
+	namespace ct
 	{
-		SPtr<GLVertexBuffer> ret = bs_shared_ptr_new<GLVertexBuffer>(desc, deviceMask);
-		ret->SetThisPtrInternal(ret);
-
-		return ret;
-	}
-
-	SPtr<IndexBuffer> GLHardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
-	{
-		SPtr<GLIndexBuffer> ret = bs_shared_ptr_new<GLIndexBuffer>(desc, deviceMask);
-		ret->SetThisPtrInternal(ret);
-
-		return ret;
-	}
-
-	SPtr<GpuParamBlockBuffer> GLHardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size,
-		GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-	{
-		GLGpuParamBlockBuffer* paramBlockBuffer =
-			new (bs_alloc<GLGpuParamBlockBuffer>()) GLGpuParamBlockBuffer(size, usage, deviceMask);
-
-		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<GLGpuParamBlockBuffer>(paramBlockBuffer);
-		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
-
-		return paramBlockBufferPtr;
-	}
-
-	SPtr<GpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
-	{
-		GLGpuBuffer* buffer = new (bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, deviceMask);
-
-		SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
-		bufferPtr->SetThisPtrInternal(bufferPtr);
-
-		return bufferPtr;
-	}
-
-	SPtr<GpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-		SPtr<HardwareBuffer> underlyingBuffer)
-	{
-		GLGpuBuffer* buffer = new (bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, std::move(underlyingBuffer));
-
-		SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
-		bufferPtr->SetThisPtrInternal(bufferPtr);
-
-		return bufferPtr;
-	}
-
-	GLenum GLHardwareBufferManager::GetGlUsage(GpuBufferUsage usage)
-	{
-		if((usage & GBU_LOADSTORE) == GBU_LOADSTORE)
+		SPtr<VertexBuffer> GLHardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 		{
-			if ((usage & GBU_STATIC) != 0)
-				return GL_STATIC_READ;
+			SPtr<GLVertexBuffer> ret = bs_shared_ptr_new<GLVertexBuffer>(desc, deviceMask);
+			ret->SetThisPtrInternal(ret);
 
-			return GL_DYNAMIC_READ;
+			return ret;
 		}
-		else
-		{
-			if ((usage & GBU_STATIC) != 0)
-				return GL_STATIC_DRAW;
 
-			return GL_DYNAMIC_DRAW;
+		SPtr<IndexBuffer> GLHardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			SPtr<GLIndexBuffer> ret = bs_shared_ptr_new<GLIndexBuffer>(desc, deviceMask);
+			ret->SetThisPtrInternal(ret);
+
+			return ret;
 		}
-	}
 
-	GLenum GLHardwareBufferManager::GetGlType(VertexElementType type)
-	{
-		switch(type)
+		SPtr<GpuParamBlockBuffer> GLHardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 		{
+			GLGpuParamBlockBuffer* paramBlockBuffer =
+				new(bs_alloc<GLGpuParamBlockBuffer>()) GLGpuParamBlockBuffer(size, usage, deviceMask);
+
+			SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<GLGpuParamBlockBuffer>(paramBlockBuffer);
+			paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
+
+			return paramBlockBufferPtr;
+		}
+
+		SPtr<GpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			GLGpuBuffer* buffer = new(bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, deviceMask);
+
+			SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
+			bufferPtr->SetThisPtrInternal(bufferPtr);
+
+			return bufferPtr;
+		}
+
+		SPtr<GpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		{
+			GLGpuBuffer* buffer = new(bs_alloc<GLGpuBuffer>()) GLGpuBuffer(desc, std::move(underlyingBuffer));
+
+			SPtr<GpuBuffer> bufferPtr = bs_shared_ptr<GLGpuBuffer>(buffer);
+			bufferPtr->SetThisPtrInternal(bufferPtr);
+
+			return bufferPtr;
+		}
+
+		GLenum GLHardwareBufferManager::GetGlUsage(GpuBufferUsage usage)
+		{
+			if((usage & GBU_LOADSTORE) == GBU_LOADSTORE)
+			{
+				if((usage & GBU_STATIC) != 0)
+					return GL_STATIC_READ;
+
+				return GL_DYNAMIC_READ;
+			}
+			else
+			{
+				if((usage & GBU_STATIC) != 0)
+					return GL_STATIC_DRAW;
+
+				return GL_DYNAMIC_DRAW;
+			}
+		}
+
+		GLenum GLHardwareBufferManager::GetGlType(VertexElementType type)
+		{
+			switch(type)
+			{
 			case VET_FLOAT1:
 			case VET_FLOAT2:
 			case VET_FLOAT3:
@@ -116,6 +113,7 @@ namespace bs { namespace ct
 				return GL_UNSIGNED_BYTE;
 			default:
 				return 0;
-		};
-	}
-}}
+			};
+		}
+	} // namespace ct
+} // namespace bs

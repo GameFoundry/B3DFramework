@@ -5,56 +5,58 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsVideoModeInfo.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/** @copydoc VideoMode */
-	class D3D11VideoMode : public VideoMode
+	namespace ct
 	{
-	public:
-		D3D11VideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx, u32 refreshRateNumerator,
-			u32 refreshRateDenominator, DXGI_MODE_DESC mode);
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-		/**	Returns an internal DXGI representation of this video mode. */
-		const DXGI_MODE_DESC& GetDxgiModeDesc() const { return mD3D11Mode; }
+		/** @copydoc VideoMode */
+		class D3D11VideoMode : public VideoMode
+		{
+		public:
+			D3D11VideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx, u32 refreshRateNumerator, u32 refreshRateDenominator, DXGI_MODE_DESC mode);
 
-		/**	Gets internal DX11 refresh rate numerator. */
-		u32 GetRefreshRateNumerator() const { return mRefreshRateNumerator; }
+			/**	Returns an internal DXGI representation of this video mode. */
+			const DXGI_MODE_DESC& GetDxgiModeDesc() const { return mD3D11Mode; }
 
-		/**	Gets internal DX11 refresh rate denominator. */
-		u32 GetRefreshRateDenominator() const { return mRefreshRateDenominator; }
+			/**	Gets internal DX11 refresh rate numerator. */
+			u32 GetRefreshRateNumerator() const { return mRefreshRateNumerator; }
 
-	private:
-		friend class D3D11VideoOutputInfo;
+			/**	Gets internal DX11 refresh rate denominator. */
+			u32 GetRefreshRateDenominator() const { return mRefreshRateDenominator; }
 
-		u32 mRefreshRateNumerator;
-		u32 mRefreshRateDenominator;
-		DXGI_MODE_DESC mD3D11Mode;
-	};
+		private:
+			friend class D3D11VideoOutputInfo;
 
-	/** @copydoc VideoOutputInfo */
-	class D3D11VideoOutputInfo : public VideoOutputInfo
-	{
-	public:
-		D3D11VideoOutputInfo(IDXGIOutput* output, u32 outputIdx);
-		~D3D11VideoOutputInfo();
+			u32 mRefreshRateNumerator;
+			u32 mRefreshRateDenominator;
+			DXGI_MODE_DESC mD3D11Mode;
+		};
 
-		/**	Returns the internal DXGI object representing an output device. */
-		IDXGIOutput* GetDxgiOutput() const { return mDXGIOutput;  }
+		/** @copydoc VideoOutputInfo */
+		class D3D11VideoOutputInfo : public VideoOutputInfo
+		{
+		public:
+			D3D11VideoOutputInfo(IDXGIOutput* output, u32 outputIdx);
+			~D3D11VideoOutputInfo();
 
-	private:
-		IDXGIOutput* mDXGIOutput;
-	};
+			/**	Returns the internal DXGI object representing an output device. */
+			IDXGIOutput* GetDxgiOutput() const { return mDXGIOutput; }
 
-	/** @copydoc VideoModeInfo */
-	class D3D11VideoModeInfo : public VideoModeInfo
-	{
-	public:
-		D3D11VideoModeInfo(IDXGIAdapter* dxgiAdapter);
-	};
+		private:
+			IDXGIOutput* mDXGIOutput;
+		};
 
-	/** @} */
-}}
+		/** @copydoc VideoModeInfo */
+		class D3D11VideoModeInfo : public VideoModeInfo
+		{
+		public:
+			D3D11VideoModeInfo(IDXGIAdapter* dxgiAdapter);
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

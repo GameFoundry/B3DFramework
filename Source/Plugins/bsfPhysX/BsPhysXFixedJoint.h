@@ -21,4 +21,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

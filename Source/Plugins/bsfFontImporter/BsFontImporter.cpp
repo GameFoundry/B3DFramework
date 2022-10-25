@@ -18,7 +18,7 @@ using namespace std::placeholders;
 namespace bs
 {
 	FontImporter::FontImporter()
-		:SpecificImporter()
+		: SpecificImporter()
 	{
 		mExtensions.push_back(u8"ttf");
 		mExtensions.push_back(u8"otf");
@@ -50,7 +50,7 @@ namespace bs
 		FT_Library library;
 
 		FT_Error error = FT_Init_FreeType(&library);
-		if (error)
+		if(error)
 			BS_EXCEPT(InternalErrorException, "Error occurred during FreeType library initialization.");
 
 		FT_Face face;
@@ -60,11 +60,11 @@ namespace bs
 			error = FT_New_Face(library, filePath.ToString().c_str(), 0, &face);
 		}
 
-		if (error == FT_Err_Unknown_File_Format)
+		if(error == FT_Err_Unknown_File_Format)
 		{
 			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unsupported file format.");
 		}
-		else if (error)
+		else if(error)
 		{
 			BS_EXCEPT(InternalErrorException, "Failed to load font file: " + filePath.ToString() + ". Unknown error.");
 		}
@@ -74,7 +74,7 @@ namespace bs
 		u32 dpi = fontImportOptions->Dpi;
 
 		FT_Int32 loadFlags;
-		switch (fontImportOptions->RenderMode)
+		switch(fontImportOptions->RenderMode)
 		{
 		case FontRenderMode::Smooth:
 			loadFlags = FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
@@ -99,24 +99,24 @@ namespace bs
 		for(size_t i = 0; i < fontSizes.size(); i++)
 		{
 			// Note: Disabled as its not working and I have bigger issues to handle than to figure this out atm
-			//FT_Matrix m;
-			//if (fontImportOptions->GetBold())
+			// FT_Matrix m;
+			// if (fontImportOptions->GetBold())
 			//	m.xx = (long)(1.25f * (1 << 16));
-			//else
+			// else
 			//	m.xx = (long)(1 * (1 << 16));
 
-			//if (fontImportOptions->GetItalic())
+			// if (fontImportOptions->GetItalic())
 			//	m.xy = (long)(0.25f * (1 << 16));
-			//else
+			// else
 			//	m.xy = (long)(0 * (1 << 16));
 
-			//m.yx = (long)(0 * (1 << 16));
-			//m.yy = (long)(1 * (1 << 16));
+			// m.yx = (long)(0 * (1 << 16));
+			// m.yy = (long)(1 * (1 << 16));
 
-			//FT_Set_Transform(face, &m, nullptr);
+			// FT_Set_Transform(face, &m, nullptr);
 
 			FT_F26Dot6 ftSize = (FT_F26Dot6)(fontSizes[i] * (1 << 6));
-			if (FT_Set_Char_Size(face, ftSize, 0, dpi, dpi))
+			if(FT_Set_Char_Size(face, ftSize, 0, dpi, dpi))
 				BS_EXCEPT(InternalErrorException, "Could not set character size.");
 
 			SPtr<FontBitmap> fontData = bs_shared_ptr_new<FontBitmap>();
@@ -135,7 +135,7 @@ namespace bs
 
 					FT_Render_Glyph(face->glyph, renderMode);
 
-					if (error)
+					if(error)
 						BS_EXCEPT(InternalErrorException, "Failed to render a character");
 
 					FT_GlyphSlot slot = face->glyph;
@@ -158,7 +158,7 @@ namespace bs
 
 				FT_Render_Glyph(face->glyph, renderMode);
 
-				if (error)
+				if(error)
 					BS_EXCEPT(InternalErrorException, "Failed to render a character");
 
 				FT_GlyphSlot slot = face->glyph;
@@ -171,8 +171,7 @@ namespace bs
 			}
 
 			// Create an optimal layout for character bitmaps
-			Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::CreateAtlasLayout(atlasElements, 64, 64,
-				MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE, true);
+			Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::CreateAtlasLayout(atlasElements, 64, 64, MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE, true);
 
 			i32 baselineOffset = 0;
 			u32 lineHeight = 0;
@@ -198,7 +197,7 @@ namespace bs
 
 					TextureAtlasUtility::Element curElement = atlasElements[i];
 					u32 elementIdx = curElement.Output.Idx;
-					
+
 					bool isMissingGlypth = elementIdx == (atlasElements.size() - 1); // It's always the last element
 
 					u32 charIdx = 0;
@@ -218,7 +217,7 @@ namespace bs
 
 					FT_Render_Glyph(face->glyph, renderMode);
 
-					if (error)
+					if(error)
 						BS_EXCEPT(InternalErrorException, "Failed to render a character");
 
 					FT_GlyphSlot slot = face->glyph;
@@ -330,7 +329,7 @@ namespace bs
 				HTexture newTex = Texture::Create(texDesc);
 
 				// It's possible the formats no longer match
-				if (newTex->GetProperties().GetFormat() != pixelData->GetFormat())
+				if(newTex->GetProperties().GetFormat() != pixelData->GetFormat())
 				{
 					SPtr<PixelData> temp = newTex->GetProperties().AllocBuffer(0, 0);
 					PixelUtil::BulkPixelConversion(*pixelData, *temp);
@@ -372,4 +371,4 @@ namespace bs
 
 		return newFont;
 	}
-}
+} // namespace bs

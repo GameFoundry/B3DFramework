@@ -10,7 +10,7 @@ namespace bs
 	/** @addtogroup FMOD
 	 *  @{
 	 */
-	
+
 	/** FMOD implementation of an AudioListener. */
 	class FMODAudioListener : public AudioListener
 	{
@@ -19,10 +19,10 @@ namespace bs
 		virtual ~FMODAudioListener();
 
 		/** @copydoc SceneActor::setTransform */
-		void SetTransform(const Transform& transform) ;
+		void SetTransform(const Transform& transform);
 
 		/** @copydoc AudioListener::setVelocity */
-		void SetVelocity(const Vector3& velocity) ;
+		void SetVelocity(const Vector3& velocity);
 
 	private:
 		friend class FMODAudio;
@@ -34,4 +34,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

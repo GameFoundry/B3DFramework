@@ -8,14 +8,13 @@
 namespace bs
 {
 	GLTextureManager::GLTextureManager(ct::GLSupport& support)
-		:TextureManager(), mGLSupport(support)
+		: TextureManager(), mGLSupport(support)
 	{
-
 	}
 
 	SPtr<RenderTexture> GLTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 	{
-		GLRenderTexture* tex = new (bs_alloc<GLRenderTexture>()) GLRenderTexture(desc);
+		GLRenderTexture* tex = new(bs_alloc<GLRenderTexture>()) GLRenderTexture(desc);
 
 		return bs_core_ptr<GLRenderTexture>(tex);
 	}
@@ -31,28 +30,26 @@ namespace bs
 
 	namespace ct
 	{
-	GLTextureManager::GLTextureManager(GLSupport& support)
-		:mGLSupport(support)
-	{ }
+		GLTextureManager::GLTextureManager(GLSupport& support)
+			: mGLSupport(support)
+		{}
 
-	SPtr<Texture> GLTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc,
-		const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
-	{
-		GLTexture* tex = new (bs_alloc<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
+		SPtr<Texture> GLTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+		{
+			GLTexture* tex = new(bs_alloc<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
 
-		SPtr<GLTexture> texPtr = bs_shared_ptr<GLTexture>(tex);
-		texPtr->SetThisPtrInternal(texPtr);
+			SPtr<GLTexture> texPtr = bs_shared_ptr<GLTexture>(tex);
+			texPtr->SetThisPtrInternal(texPtr);
 
-		return texPtr;
-	}
-
-	SPtr<RenderTexture> GLTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
-																			  u32 deviceIdx)
-	{
-		SPtr<GLRenderTexture> texPtr = bs_shared_ptr_new<GLRenderTexture>(desc, deviceIdx);
-		texPtr->SetThisPtrInternal(texPtr);
-
-		return texPtr;
-	}
+			return texPtr;
 		}
-}
+
+		SPtr<RenderTexture> GLTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
+		{
+			SPtr<GLRenderTexture> texPtr = bs_shared_ptr_new<GLRenderTexture>(desc, deviceIdx);
+			texPtr->SetThisPtrInternal(texPtr);
+
+			return texPtr;
+		}
+	} // namespace ct
+} // namespace bs

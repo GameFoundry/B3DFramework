@@ -12,7 +12,7 @@ using namespace physx;
 namespace bs
 {
 	FPhysXCollider::FPhysXCollider(PxScene* scene, PxShape* shape)
-		:mScene(scene), mShape(shape)
+		: mScene(scene), mShape(shape)
 	{
 		mStaticBody = gPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
 		mStaticBody->attachShape(*mShape);
@@ -24,7 +24,7 @@ namespace bs
 
 	FPhysXCollider::~FPhysXCollider()
 	{
-		if (mStaticBody != nullptr)
+		if(mStaticBody != nullptr)
 			mStaticBody->release();
 
 		mShape->userData = nullptr;
@@ -33,7 +33,7 @@ namespace bs
 
 	void FPhysXCollider::SetShapeInternal(PxShape* shape)
 	{
-		if (mShape != nullptr)
+		if(mShape != nullptr)
 		{
 			shape->setLocalPose(mShape->getLocalPose());
 			shape->setFlags(mShape->getFlags());
@@ -51,10 +51,10 @@ namespace bs
 			bs_stack_free(materials);
 
 			PxActor* actor = mShape->getActor();
-			if (actor != nullptr)
+			if(actor != nullptr)
 			{
 				PxRigidActor* rigidActor = actor->is<PxRigidActor>();
-				if (rigidActor != nullptr)
+				if(rigidActor != nullptr)
 				{
 					rigidActor->detachShape(*mShape);
 					rigidActor->attachShape(*shape);
@@ -97,7 +97,7 @@ namespace bs
 			mShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, true);
 
 			mIsTrigger = false;
-		}		
+		}
 	}
 
 	bool FPhysXCollider::GetIsTrigger() const
@@ -107,10 +107,10 @@ namespace bs
 
 	void FPhysXCollider::SetIsStatic(bool value)
 	{
-		if (mIsStatic == value)
+		if(mIsStatic == value)
 			return;
 
-		if (mStaticBody != nullptr)
+		if(mStaticBody != nullptr)
 		{
 			mStaticBody->detachShape(*mShape);
 
@@ -120,7 +120,7 @@ namespace bs
 
 		mIsStatic = value;
 
-		if (mIsStatic)
+		if(mIsStatic)
 		{
 			mStaticBody = gPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
 			mStaticBody->attachShape(*mShape);
@@ -163,7 +163,7 @@ namespace bs
 			physXmaterial = static_cast<PhysXMaterial*>(material.Get());
 
 		PxMaterial* materials[1];
-		if (physXmaterial != nullptr)
+		if(physXmaterial != nullptr)
 			materials[0] = physXmaterial->GetInternalInternal();
 		else
 			materials[0] = gPhysX().GetDefaultMaterial();
@@ -219,7 +219,7 @@ namespace bs
 			break;
 		}
 
-		if (mCCD)
+		if(mCCD)
 			flags |= PhysXObjectFilterFlag::CCD;
 
 		data.word2 = flags;
@@ -227,4 +227,4 @@ namespace bs
 		mShape->setSimulationFilterData(data);
 		mShape->setQueryFilterData(data);
 	}
-}
+} // namespace bs

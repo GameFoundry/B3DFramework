@@ -4,33 +4,36 @@
 
 #include "BsVulkanPrerequisites.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** Wrapper for the Vulkan descriptor layout object. */
-	class VulkanDescriptorLayout
+	namespace ct
 	{
-	public:
-		VulkanDescriptorLayout(VulkanDevice& device, VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
-		~VulkanDescriptorLayout();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** Returns a handle to the Vulkan set layout object. */
-		VkDescriptorSetLayout GetHandle() const { return mLayout; }
+		/** Wrapper for the Vulkan descriptor layout object. */
+		class VulkanDescriptorLayout
+		{
+		public:
+			VulkanDescriptorLayout(VulkanDevice& device, VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			~VulkanDescriptorLayout();
 
-		/** Returns a hash value for the descriptor layout. */
-		size_t GetHash() const { return mHash; }
+			/** Returns a handle to the Vulkan set layout object. */
+			VkDescriptorSetLayout GetHandle() const { return mLayout; }
 
-		/** Calculates a has value for the provided descriptor set layout bindings. */
-		static size_t CalculateHash(VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
+			/** Returns a hash value for the descriptor layout. */
+			size_t GetHash() const { return mHash; }
 
-	protected:
-		VulkanDevice& mDevice;
-		VkDescriptorSetLayout mLayout;
-		size_t mHash;
-	};
+			/** Calculates a has value for the provided descriptor set layout bindings. */
+			static size_t CalculateHash(VkDescriptorSetLayoutBinding* bindings, u32 numBindings);
 
-	/** @} */
-}}
+		protected:
+			VulkanDevice& mDevice;
+			VkDescriptorSetLayout mLayout;
+			size_t mHash;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

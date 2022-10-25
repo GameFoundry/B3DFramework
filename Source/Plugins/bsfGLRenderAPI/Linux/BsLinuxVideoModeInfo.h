@@ -32,14 +32,14 @@ namespace bs::ct
 	class LinuxVideoOutputInfo : public VideoOutputInfo
 	{
 	public:
-		LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo,
-			 XRRScreenResources* screenRes, RROutput outputID, u32 outputIdx);
+		LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo, XRRScreenResources* screenRes, RROutput outputID, u32 outputIdx);
 
 		/** Returns internal RandR output device id. */
 		RROutput GetOutputIDInternal() const { return mOutputID; }
 
 		/** Returns X11 screen this output renders to. One screen can contain multiple output devices. */
-		i32 GetScreenInternal() const { return mScreen;}
+		i32 GetScreenInternal() const { return mScreen; }
+
 	private:
 		RROutput mOutputID;
 		i32 mScreen;
@@ -53,5 +53,4 @@ namespace bs::ct
 	};
 
 	/** @} */
-}
-
+} // namespace bs::ct

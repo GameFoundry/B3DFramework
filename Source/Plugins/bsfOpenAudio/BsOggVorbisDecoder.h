@@ -29,7 +29,7 @@ namespace bs
 		~OggVorbisDecoder();
 
 		/** @copydoc AudioDecoder::open */
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) ;
+		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0);
 
 		/** @copydoc AudioDecoder::read */
 		u32 Read(u8* samples, u32 numSamples) override;
@@ -38,7 +38,8 @@ namespace bs
 		void Seek(u32 offset) override;
 
 		/** @copydoc AudioDecoder::isValid */
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) ;
+		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0);
+
 	private:
 		OggDecoderData mDecoderData;
 		OggVorbis_File mOggVorbisFile;
@@ -46,4 +47,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

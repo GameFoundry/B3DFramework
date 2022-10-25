@@ -6,7 +6,7 @@
 namespace bs
 {
 	PhysXMaterial::PhysXMaterial(physx::PxPhysics* physx, float staFric, float dynFriction, float restitution)
-		:mInternal(nullptr)
+		: mInternal(nullptr)
 	{
 		mInternal = physx->createMaterial(staFric, dynFriction, restitution);
 	}
@@ -45,4 +45,4 @@ namespace bs
 	{
 		return mInternal->getRestitution();
 	}
-}
+} // namespace bs

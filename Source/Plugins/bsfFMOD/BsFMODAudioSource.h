@@ -11,7 +11,7 @@ namespace bs
 	/** @addtogroup FMOD
 	 *  @{
 	 */
-	
+
 	/** FMOD implementation of an AudioSource. */
 	class FMODAudioSource : public AudioSource
 	{
@@ -76,4 +76,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

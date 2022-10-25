@@ -9,9 +9,8 @@ using namespace physx;
 
 namespace bs
 {
-	PhysXSphereCollider::PhysXSphereCollider(PxPhysics* physx, PxScene* scene, const Vector3& position,
-		const Quaternion& rotation, float radius)
-		:mRadius(radius)
+	PhysXSphereCollider::PhysXSphereCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius)
+		: mRadius(radius)
 	{
 		PxSphereGeometry geometry(radius);
 
@@ -57,4 +56,4 @@ namespace bs
 	{
 		return static_cast<FPhysXCollider*>(mInternal);
 	}
-}
+} // namespace bs

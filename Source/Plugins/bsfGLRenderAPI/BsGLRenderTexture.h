@@ -23,7 +23,7 @@ namespace bs
 	class GLRenderTexture : public RenderTexture
 	{
 	public:
-		virtual ~GLRenderTexture() { }
+		virtual ~GLRenderTexture() {}
 
 	protected:
 		friend class GLTextureManager;
@@ -38,91 +38,93 @@ namespace bs
 
 	namespace ct
 	{
-	/**
-	 * OpenGL implementation of a render texture.
-	 *
-	 * @note	Core thread only.
-	 */
-	class GLRenderTexture : public RenderTexture
-	{
-	public:
-		GLRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
-		virtual ~GLRenderTexture();
-
-		/** @copydoc RenderTexture::getCustomAttribute */
-		void GetCustomAttribute(const String& name, void* data) const ;
-
-	protected:
-		friend class bs::GLRenderTexture;
-
-		/** @copydoc RenderTexture::initialize */
-		void Initialize() ;
-
-		/** @copydoc RenderTexture::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
-
-		RenderTextureProperties mProperties;
-		GLFrameBufferObject* mFB;
-	};
-
-	/**
-	 * Manager that handles valid render texture formats.
-	 *
-	 * @note	Must be initialized when RenderSystem is first started.
-	 */
-	class GLRTTManager : public Module<GLRTTManager>
-	{
-	public:
-		GLRTTManager();
-		~GLRTTManager();
-
 		/**
-		 * Check if a certain format is usable as a render target format.
+		 * OpenGL implementation of a render texture.
 		 *
-		 * @note	Thread safe.
+		 * @note	Core thread only.
 		 */
-		bool CheckFormat(PixelFormat format) const { return mProps[format].Valid; }
-
-		/**
-		 * Get the closest supported alternative format. If format is supported, returns format.
-		 *
-		 * @note	Thread safe.
-		 */
-		virtual PixelFormat GetSupportedAlternative(PixelFormat format);
-
-		/** Returns a persistent FBO that is used as a source buffer for blit operations. */
-		GLuint GetBlitReadFbo() const { return mBlitReadFBO; }
-
-		/** Returns a persistent FBO that is used as a destination buffer for blit operations. */
-		GLuint GetBlitDrawFbo() const { return mBlitWriteFBO; }
-	private:
-		/** Frame buffer object properties for a certain texture format. */
-		struct FormatProperties
+		class GLRenderTexture : public RenderTexture
 		{
-			/** Allowed modes/properties for this pixel format. */
-			struct Mode
-			{
-				u32 Depth;     /**< Depth format (0 = no depth). */
-				u32 Stencil;   /**< Stencil format (0 = no stencil). */
-			};
+		public:
+			GLRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
+			virtual ~GLRenderTexture();
 
-			Vector<Mode> Modes;
-			bool Valid;
+			/** @copydoc RenderTexture::getCustomAttribute */
+			void GetCustomAttribute(const String& name, void* data) const;
+
+		protected:
+			friend class bs::GLRenderTexture;
+
+			/** @copydoc RenderTexture::initialize */
+			void Initialize();
+
+			/** @copydoc RenderTexture::getProperties */
+			const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
+
+			RenderTextureProperties mProperties;
+			GLFrameBufferObject* mFB;
 		};
 
-		/** Detect which internal formats are allowed to be used on render target color or depth/stencil surfaces. */
-		void DetectFboFormats();
+		/**
+		 * Manager that handles valid render texture formats.
+		 *
+		 * @note	Must be initialized when RenderSystem is first started.
+		 */
+		class GLRTTManager : public Module<GLRTTManager>
+		{
+		public:
+			GLRTTManager();
+			~GLRTTManager();
 
-		/**	Checks are the specified depth & stencil formats compatible. */
-		bool TryFormatInternal(GLenum depthFormat, GLenum stencilFormat);
+			/**
+			 * Check if a certain format is usable as a render target format.
+			 *
+			 * @note	Thread safe.
+			 */
+			bool CheckFormat(PixelFormat format) const { return mProps[format].Valid; }
 
-		/**	Checks is the specified packed format valid for using in the render target. */
-		bool TryPackedFormatInternal(GLenum packedFormat);
+			/**
+			 * Get the closest supported alternative format. If format is supported, returns format.
+			 *
+			 * @note	Thread safe.
+			 */
+			virtual PixelFormat GetSupportedAlternative(PixelFormat format);
 
-		FormatProperties mProps[PF_COUNT];
-		GLuint mBlitReadFBO;
-		GLuint mBlitWriteFBO;
-	};
-	}
+			/** Returns a persistent FBO that is used as a source buffer for blit operations. */
+			GLuint GetBlitReadFbo() const { return mBlitReadFBO; }
+
+			/** Returns a persistent FBO that is used as a destination buffer for blit operations. */
+			GLuint GetBlitDrawFbo() const { return mBlitWriteFBO; }
+
+		private:
+			/** Frame buffer object properties for a certain texture format. */
+			struct FormatProperties
+			{
+				/** Allowed modes/properties for this pixel format. */
+				struct Mode
+				{
+					u32 Depth; /**< Depth format (0 = no depth). */
+					u32 Stencil; /**< Stencil format (0 = no stencil). */
+				};
+
+				Vector<Mode> Modes;
+				bool Valid;
+			};
+
+			/** Detect which internal formats are allowed to be used on render target color or depth/stencil surfaces. */
+			void DetectFboFormats();
+
+			/**	Checks are the specified depth & stencil formats compatible. */
+			bool TryFormatInternal(GLenum depthFormat, GLenum stencilFormat);
+
+			/**	Checks is the specified packed format valid for using in the render target. */
+			bool TryPackedFormatInternal(GLenum packedFormat);
+
+			FormatProperties mProps[PF_COUNT];
+			GLuint mBlitReadFBO;
+			GLuint mBlitWriteFBO;
+		};
+	} // namespace ct
+
 	/** @} */
-}
+} // namespace bs

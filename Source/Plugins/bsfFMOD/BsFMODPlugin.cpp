@@ -43,4 +43,4 @@ namespace bs
 	{
 		bs_delete(instance);
 	}
-}
+} // namespace bs

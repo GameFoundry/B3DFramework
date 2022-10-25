@@ -10,7 +10,7 @@
 namespace bs
 {
 	NullPhysicsRigidbody::NullPhysicsRigidbody(const HSceneObject& linkedSO)
-		:Rigidbody(linkedSO)
+		: Rigidbody(linkedSO)
 	{
 		mPosition = linkedSO->GetTransform().GetPosition();
 		mRotation = linkedSO->GetTransform().GetRotation();
@@ -47,4 +47,4 @@ namespace bs
 		mCenterOfMassPosition = position;
 		mCenterOfMassRotation = rotation;
 	}
-}
+} // namespace bs

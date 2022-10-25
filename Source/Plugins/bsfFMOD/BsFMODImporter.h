@@ -25,11 +25,11 @@ namespace bs
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
 
 		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) ;
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
 
 		/** @copydoc SpecificImporter::createImportOptions */
-		SPtr<ImportOptions> CreateImportOptions() const ;
+		SPtr<ImportOptions> CreateImportOptions() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

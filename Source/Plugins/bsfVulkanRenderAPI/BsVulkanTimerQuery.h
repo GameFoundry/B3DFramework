@@ -5,48 +5,51 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsTimerQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** @copydoc TimerQuery */
-	class VulkanTimerQuery : public TimerQuery
+	namespace ct
 	{
-	public:
-		VulkanTimerQuery(VulkanDevice& device);
-		~VulkanTimerQuery();
-
-		/** @copydoc TimerQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb) ;
-
-		/** @copydoc TimerQuery::end */
-		void End(const SPtr<CommandBuffer>& cb) ;
-
-		/** @copydoc TimerQuery::isReady */
-		bool IsReady() const ;
-
-		/** @copydoc TimerQuery::getTimeMs */
-		float GetTimeMs() ;
-
-		/** Returns true if the query begin() was called, but not end(). */
-		bool IsInProgressInternal() const;
-
-		/**
-		 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
-		 * open during command buffer submission.
+		/** @addtogroup Vulkan
+		 *  @{
 		 */
-		void InterruptInternal(VulkanCmdBuffer& cb);
 
-	private:
-		VulkanDevice& mDevice;
-		Vector < std::pair<VulkanQuery*, VulkanQuery*>> mQueries;
+		/** @copydoc TimerQuery */
+		class VulkanTimerQuery : public TimerQuery
+		{
+		public:
+			VulkanTimerQuery(VulkanDevice& device);
+			~VulkanTimerQuery();
 
-		float mTimeDelta = 0.0f;
-		bool mQueryEndCalled : 1;
-		bool mQueryFinalized : 1;
-	};
+			/** @copydoc TimerQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb);
 
-	/** @} */
-}}
+			/** @copydoc TimerQuery::end */
+			void End(const SPtr<CommandBuffer>& cb);
+
+			/** @copydoc TimerQuery::isReady */
+			bool IsReady() const;
+
+			/** @copydoc TimerQuery::getTimeMs */
+			float GetTimeMs();
+
+			/** Returns true if the query begin() was called, but not end(). */
+			bool IsInProgressInternal() const;
+
+			/**
+			 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
+			 * open during command buffer submission.
+			 */
+			void InterruptInternal(VulkanCmdBuffer& cb);
+
+		private:
+			VulkanDevice& mDevice;
+			Vector<std::pair<VulkanQuery*, VulkanQuery*>> mQueries;
+
+			float mTimeDelta = 0.0f;
+			bool mQueryEndCalled : 1;
+			bool mQueryFinalized : 1;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

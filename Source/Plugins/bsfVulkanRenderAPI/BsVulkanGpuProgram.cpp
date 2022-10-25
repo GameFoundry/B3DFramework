@@ -14,131 +14,133 @@
 #include "FileSystem/BsDataStream.h"
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
-	#include <MoltenVK/vk_mvk_moltenvk.h>
+#	include <MoltenVK/vk_mvk_moltenvk.h>
 #endif
 
-namespace bs { namespace ct
+namespace bs
 {
-	VulkanShaderModule::VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module)
-		:VulkanResource(owner, true), mModule(module)
-	{ }
-
-	VulkanShaderModule::~VulkanShaderModule()
+	namespace ct
 	{
-		vkDestroyShaderModule(mOwner->GetDevice().GetLogical(), mModule, gVulkanAllocator);
-	}
+		VulkanShaderModule::VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module)
+			: VulkanResource(owner, true), mModule(module)
+		{}
 
-	VulkanGpuProgram::VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuProgram(desc, deviceMask), mDeviceMask(deviceMask), mModules()
-	{
-
-	}
-
-	VulkanGpuProgram::~VulkanGpuProgram()
-	{
-		for (u32 i = 0; i < BS_MAX_DEVICES; i++)
+		VulkanShaderModule::~VulkanShaderModule()
 		{
-			if (mModules[i] != nullptr)
-				mModules[i]->Destroy();
+			vkDestroyShaderModule(mOwner->GetDevice().GetLogical(), mModule, gVulkanAllocator);
 		}
 
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
-	}
-
-	void VulkanGpuProgram::Initialize()
-	{
-		if (!IsSupported())
+		VulkanGpuProgram::VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+			: GpuProgram(desc, deviceMask), mDeviceMask(deviceMask), mModules()
 		{
-			mIsCompiled = false;
-			mCompileMessages = "Specified program is not supported by the current render system.";
-
-			GpuProgram::Initialize();
-			return;
 		}
 
-		if(!mBytecode ||
-#if BS_PLATFORM == BS_PLATFORM_OSX
-			mBytecode->CompilerId != MOLTENVK_COMPILER_ID || mBytecode->CompilerVersion != MOLTENVK_COMPILER_VERSION)
-#else
-			mBytecode->CompilerId != VULKAN_COMPILER_ID || mBytecode->CompilerVersion != VULKAN_COMPILER_VERSION)
-#endif
+		VulkanGpuProgram::~VulkanGpuProgram()
 		{
-			GPU_PROGRAM_DESC desc;
-			desc.Type = mType;
-			desc.EntryPoint = mEntryPoint;
-#if BS_PLATFORM == BS_PLATFORM_OSX
-			desc.language = "mvksl";
-#else
-			desc.Language = "vksl";
-#endif
-			desc.Source = mSource;
-
-			mBytecode = CompileBytecode(desc);
-		}
-
-		mCompileMessages = mBytecode->Messages;
-		mIsCompiled = mBytecode->Instructions.Data != nullptr;
-
-		if(mIsCompiled)
-		{
-			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-			VulkanDevice* devices[BS_MAX_DEVICES];
-
-			u32 codeSize = mBytecode->Instructions.Size;
-			u8* code = mBytecode->Instructions.Data;
-
-#if BS_PLATFORM == BS_PLATFORM_OSX
-			u32 workgroupSize[3] = { 1, 1, 1 };
-			if(mType == GPT_COMPUTE_PROGRAM)
+			for(u32 i = 0; i < BS_MAX_DEVICES; i++)
 			{
-				assert(codeSize > sizeof(workgroupSize));
-
-				memcpy(workgroupSize, code, sizeof(workgroupSize));
-				code += sizeof(workgroupSize);
-				codeSize -= sizeof(workgroupSize);
+				if(mModules[i] != nullptr)
+					mModules[i]->Destroy();
 			}
-#endif
 
-			// Create Vulkan module
-			VkShaderModuleCreateInfo moduleCI;
-			moduleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-			moduleCI.pNext = nullptr;
-			moduleCI.flags = 0;
-			moduleCI.codeSize = codeSize;
-			moduleCI.pCode = (uint32_t*)code;
+			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
+		}
 
-			VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
-
-			for (u32 i = 0; i < BS_MAX_DEVICES; i++)
+		void VulkanGpuProgram::Initialize()
+		{
+			if(!IsSupported())
 			{
-				if (devices[i] != nullptr)
-				{
-					VkDevice vkDevice = devices[i]->GetLogical();
-					VulkanResourceManager& rescManager = devices[i]->GetResourceManager();
+				mIsCompiled = false;
+				mCompileMessages = "Specified program is not supported by the current render system.";
 
-					VkShaderModule shaderModule;
-					VkResult result = vkCreateShaderModule(vkDevice, &moduleCI, gVulkanAllocator, &shaderModule);
-					assert(result == VK_SUCCESS);
+				GpuProgram::Initialize();
+				return;
+			}
+
+			if(!mBytecode ||
+#if BS_PLATFORM == BS_PLATFORM_OSX
+			   mBytecode->CompilerId != MOLTENVK_COMPILER_ID || mBytecode->CompilerVersion != MOLTENVK_COMPILER_VERSION)
+#else
+			   mBytecode->CompilerId != VULKAN_COMPILER_ID || mBytecode->CompilerVersion != VULKAN_COMPILER_VERSION)
+#endif
+			{
+				GPU_PROGRAM_DESC desc;
+				desc.Type = mType;
+				desc.EntryPoint = mEntryPoint;
+#if BS_PLATFORM == BS_PLATFORM_OSX
+				desc.language = "mvksl";
+#else
+				desc.Language = "vksl";
+#endif
+				desc.Source = mSource;
+
+				mBytecode = CompileBytecode(desc);
+			}
+
+			mCompileMessages = mBytecode->Messages;
+			mIsCompiled = mBytecode->Instructions.Data != nullptr;
+
+			if(mIsCompiled)
+			{
+				VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
+				VulkanDevice* devices[BS_MAX_DEVICES];
+
+				u32 codeSize = mBytecode->Instructions.Size;
+				u8* code = mBytecode->Instructions.Data;
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
-					if(mType == GPT_COMPUTE_PROGRAM)
-						vkSetWorkgroupSizeMVK(shaderModule, workgroupSize[0], workgroupSize[1], workgroupSize[2]);
+				u32 workgroupSize[3] = { 1, 1, 1 };
+				if(mType == GPT_COMPUTE_PROGRAM)
+				{
+					assert(codeSize > sizeof(workgroupSize));
+
+					memcpy(workgroupSize, code, sizeof(workgroupSize));
+					code += sizeof(workgroupSize);
+					codeSize -= sizeof(workgroupSize);
+				}
 #endif
-					mModules[i] = rescManager.Create<VulkanShaderModule>(shaderModule);
+
+				// Create Vulkan module
+				VkShaderModuleCreateInfo moduleCI;
+				moduleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+				moduleCI.pNext = nullptr;
+				moduleCI.flags = 0;
+				moduleCI.codeSize = codeSize;
+				moduleCI.pCode = (uint32_t*)code;
+
+				VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
+
+				for(u32 i = 0; i < BS_MAX_DEVICES; i++)
+				{
+					if(devices[i] != nullptr)
+					{
+						VkDevice vkDevice = devices[i]->GetLogical();
+						VulkanResourceManager& rescManager = devices[i]->GetResourceManager();
+
+						VkShaderModule shaderModule;
+						VkResult result = vkCreateShaderModule(vkDevice, &moduleCI, gVulkanAllocator, &shaderModule);
+						assert(result == VK_SUCCESS);
+
+#if BS_PLATFORM == BS_PLATFORM_OSX
+						if(mType == GPT_COMPUTE_PROGRAM)
+							vkSetWorkgroupSizeMVK(shaderModule, workgroupSize[0], workgroupSize[1], workgroupSize[2]);
+#endif
+						mModules[i] = rescManager.Create<VulkanShaderModule>(shaderModule);
+					}
+				}
+
+				mParametersDesc = mBytecode->ParamDesc;
+
+				if(mType == GPT_VERTEX_PROGRAM)
+				{
+					mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(
+						mBytecode->VertexInput, mDeviceMask);
 				}
 			}
 
-			mParametersDesc = mBytecode->ParamDesc;
+			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
 
-			if (mType == GPT_VERTEX_PROGRAM)
-			{
-				mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(
-					mBytecode->VertexInput, mDeviceMask);
-			}
+			GpuProgram::Initialize();
 		}
-
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
-
-		GpuProgram::Initialize();
-	}
-}}
+	} // namespace ct
+} // namespace bs

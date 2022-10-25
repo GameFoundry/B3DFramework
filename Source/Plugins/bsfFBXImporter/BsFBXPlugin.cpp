@@ -21,4 +21,4 @@ namespace bs
 
 		return nullptr;
 	}
-}
+} // namespace bs

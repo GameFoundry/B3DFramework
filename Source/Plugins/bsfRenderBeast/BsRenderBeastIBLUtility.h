@@ -8,377 +8,376 @@
 #include "Renderer/BsParamBlocks.h"
 #include "Renderer/BsGpuResourcePool.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup RenderBeast
-	 *  @{
-	 */
-
-	BS_PARAM_BLOCK_BEGIN(ReflectionCubeDownsampleParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
-	BS_PARAM_BLOCK_END
-
-	extern ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
-
-	/** Performs filtering on cubemap faces in order to prepare them for importance sampling. */
-	class ReflectionCubeDownsampleMat : public RendererMaterial<ReflectionCubeDownsampleMat>
+	namespace ct
 	{
-		RMAT_DEF("ReflectionCubeDownsample.bsl")
+		/** @addtogroup RenderBeast
+		 *  @{
+		 */
 
-	public:
-		ReflectionCubeDownsampleMat();
+		BS_PARAM_BLOCK_BEGIN(ReflectionCubeDownsampleParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
+		BS_PARAM_BLOCK_END
 
-		/** Downsamples the provided texture face and outputs it to the provided target. */
-		void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
+		extern ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
-
-	BS_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
-		BS_PARAM_BLOCK_ENTRY(int, gNumMips)
-		BS_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
-	BS_PARAM_BLOCK_END
-
-	extern ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
-
-	/** Performs importance sampling on cubemap faces in order for make them suitable for specular evaluation. */
-	class ReflectionCubeImportanceSampleMat : public RendererMaterial<ReflectionCubeImportanceSampleMat>
-	{
-		RMAT_DEF_CUSTOMIZED("ReflectionCubeImportanceSample.bsl")
-
-	public:
-		ReflectionCubeImportanceSampleMat();
-
-		/** Importance samples the provided texture face and outputs it to the provided target. */
-		void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
-
-	private:
-		static const u32 NUM_SAMPLES;
-
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
-
-	/** Vector representing spherical harmonic coefficients for 5 bands. */
-	struct SHVector5
-	{
-		SHVector5()
-			:Coeffs()
-		{ }
-
-		float Coeffs[25];
-	};
-
-	/** Vector representing spherical coefficients for 5 bands, separate for red, green and blue components. */
-	struct SHVector5RGB
-	{
-		SHVector5 R, G, B;
-	};
-
-	/** Vector representing spherical harmonic coefficients for 3 bands. */
-	struct SHVector3
-	{
-		float Coeffs[9];
-	};
-
-	/** Vector representing spherical coefficients for 3 bands, separate for red, green and blue components. */
-	struct SHVector3RGB
-	{
-		SHVector3 R, G, B;
-	};
-
-	/** Intermediate structure used for spherical coefficient calculation. Contains RGB coefficients and weight. */
-	struct SHCoeffsAndWeight5
-	{
-		SHVector5RGB Coeffs;
-		float Weight;
-	};
-
-	/** Intermediate structure used for spherical coefficient calculation. Contains RGB coefficients and weight. */
-	struct SHCoeffsAndWeight3
-	{
-		SHVector3RGB Coeffs;
-		float Weight;
-	};
-
-	BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gDispatchSize)
-	BS_PARAM_BLOCK_END
-
-	extern IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
-
-	/** Computes spherical harmonic coefficients from a radiance cubemap. */
-	class IrradianceComputeSHMat : public RendererMaterial<IrradianceComputeSHMat>
-	{
-		RMAT_DEF_CUSTOMIZED("IrradianceComputeSH.bsl")
-
-		/** Helper method used for initializing variations of this material. */
-		template<int shOrder>
-		static const ShaderVariation& GetVariation()
+		/** Performs filtering on cubemap faces in order to prepare them for importance sampling. */
+		class ReflectionCubeDownsampleMat : public RendererMaterial<ReflectionCubeDownsampleMat>
 		{
-			static ShaderVariation variation = ShaderVariation(
-			{
-				ShaderVariation::Param("SH_ORDER", shOrder)
-			});
+			RMAT_DEF("ReflectionCubeDownsample.bsl")
 
-			return variation;
-		}
-	public:
-		IrradianceComputeSHMat();
+		public:
+			ReflectionCubeDownsampleMat();
 
-		/**
-		 * Computes spherical harmonic coefficients from a radiance texture and outputs a buffer containing a list of
-		 * coefficient sets (one set of coefficients for each thread group). Coefficients must be reduced and normalized
-		 * by IrradianceReduceSHMat before use. Output buffer should be created by calling createOutputBuffer().
-		 */
-		void Execute(const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output);
+			/** Downsamples the provided texture face and outputs it to the provided target. */
+			void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
 
-		/** Creates a buffer of adequate size to be used as output for this material. */
-		SPtr<GpuBuffer> CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets);
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
 
-		/**
-		 * Returns the material variation matching the provided parameters.
-		 *
-		 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are
-		 *					supported.
-		 */
-		static IrradianceComputeSHMat* GetVariation(int order = 5);
+		BS_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
+			BS_PARAM_BLOCK_ENTRY(int, gNumMips)
+			BS_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
+		BS_PARAM_BLOCK_END
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-		GpuParamBuffer mOutputBuffer;
-	};
+		extern ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
 
-	BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
-		BS_PARAM_BLOCK_ENTRY(Vector2I, gOutputIdx)
-		BS_PARAM_BLOCK_ENTRY(int, gNumEntries)
-	BS_PARAM_BLOCK_END
-
-	extern IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
-
-	/**
-	 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a single
-	 * set of normalized coefficients.
-	 */
-	class IrradianceReduceSHMat : public RendererMaterial<IrradianceReduceSHMat>
-	{
-		RMAT_DEF("IrradianceReduceSH.bsl")
-
-		/** Helper method used for initializing variations of this material. */
-		template<int shOrder>
-		static const ShaderVariation& GetVariation()
+		/** Performs importance sampling on cubemap faces in order for make them suitable for specular evaluation. */
+		class ReflectionCubeImportanceSampleMat : public RendererMaterial<ReflectionCubeImportanceSampleMat>
 		{
-			static ShaderVariation variation = ShaderVariation(
+			RMAT_DEF_CUSTOMIZED("ReflectionCubeImportanceSample.bsl")
+
+		public:
+			ReflectionCubeImportanceSampleMat();
+
+			/** Importance samples the provided texture face and outputs it to the provided target. */
+			void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
+
+		private:
+			static const u32 NUM_SAMPLES;
+
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
+
+		/** Vector representing spherical harmonic coefficients for 5 bands. */
+		struct SHVector5
+		{
+			SHVector5()
+				: Coeffs()
+			{}
+
+			float Coeffs[25];
+		};
+
+		/** Vector representing spherical coefficients for 5 bands, separate for red, green and blue components. */
+		struct SHVector5RGB
+		{
+			SHVector5 R, G, B;
+		};
+
+		/** Vector representing spherical harmonic coefficients for 3 bands. */
+		struct SHVector3
+		{
+			float Coeffs[9];
+		};
+
+		/** Vector representing spherical coefficients for 3 bands, separate for red, green and blue components. */
+		struct SHVector3RGB
+		{
+			SHVector3 R, G, B;
+		};
+
+		/** Intermediate structure used for spherical coefficient calculation. Contains RGB coefficients and weight. */
+		struct SHCoeffsAndWeight5
+		{
+			SHVector5RGB Coeffs;
+			float Weight;
+		};
+
+		/** Intermediate structure used for spherical coefficient calculation. Contains RGB coefficients and weight. */
+		struct SHCoeffsAndWeight3
+		{
+			SHVector3RGB Coeffs;
+			float Weight;
+		};
+
+		BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gDispatchSize)
+		BS_PARAM_BLOCK_END
+
+		extern IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
+
+		/** Computes spherical harmonic coefficients from a radiance cubemap. */
+		class IrradianceComputeSHMat : public RendererMaterial<IrradianceComputeSHMat>
+		{
+			RMAT_DEF_CUSTOMIZED("IrradianceComputeSH.bsl")
+
+			/** Helper method used for initializing variations of this material. */
+			template <int shOrder>
+			static const ShaderVariation& GetVariation()
 			{
-				ShaderVariation::Param("SH_ORDER", shOrder)
-			});
+				static ShaderVariation variation = ShaderVariation(
+					{ ShaderVariation::Param("SH_ORDER", shOrder) });
 
-			return variation;
-		}
-	public:
-		IrradianceReduceSHMat();
+				return variation;
+			}
 
-		/**
-		 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a
-		 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
-		 * value will be recorded at the @p outputIdx position in the texture.
-		 */
-		void Execute(const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx);
+		public:
+			IrradianceComputeSHMat();
 
-		/** Creates a texture of adequate size to be used as output for this material. */
-		SPtr<Texture> CreateOutputTexture(u32 numCoeffSets);
+			/**
+			 * Computes spherical harmonic coefficients from a radiance texture and outputs a buffer containing a list of
+			 * coefficient sets (one set of coefficients for each thread group). Coefficients must be reduced and normalized
+			 * by IrradianceReduceSHMat before use. Output buffer should be created by calling createOutputBuffer().
+			 */
+			void Execute(const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output);
 
-		/**
-		 * Returns the material variation matching the provided parameters.
-		 *
-		 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are
-		 *					supported.
-		 */
-		static IrradianceReduceSHMat* GetVariation(int order = 5);
+			/** Creates a buffer of adequate size to be used as output for this material. */
+			SPtr<GpuBuffer> CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets);
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamBuffer mInputBuffer;
-		GpuParamLoadStoreTexture mOutputTexture;
-	};
+			/**
+			 * Returns the material variation matching the provided parameters.
+			 *
+			 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are
+			 *					supported.
+			 */
+			static IrradianceComputeSHMat* GetVariation(int order = 5);
 
-	BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHFragParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
-		BS_PARAM_BLOCK_ENTRY(int, gCoeffEntryIdx)
-		BS_PARAM_BLOCK_ENTRY(int, gCoeffComponentIdx)
-	BS_PARAM_BLOCK_END
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+			GpuParamBuffer mOutputBuffer;
+		};
 
-	extern IrradianceComputeSHFragParamDef gIrradianceComputeSHFragParamDef;
+		BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
+			BS_PARAM_BLOCK_ENTRY(Vector2I, gOutputIdx)
+			BS_PARAM_BLOCK_ENTRY(int, gNumEntries)
+		BS_PARAM_BLOCK_END
 
-	/**
-	 * Computes spherical harmonic coefficients from a radiance cubemap. This is an alternative to IrradianceComputeSHMat
-	 * that does not require compute shader support.
-	 */
-	class IrradianceComputeSHFragMat : public RendererMaterial<IrradianceComputeSHFragMat>
-	{
-		RMAT_DEF("IrradianceComputeSHFrag.bsl")
-
-	public:
-		IrradianceComputeSHFragMat();
+		extern IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
 
 		/**
-		 * Computes spherical harmonic coefficients from a face of an input cube radiance texture and outputs them to the
-		 * specified face of the output cube texture. Only a single coefficient is output per execution. The output texture
-		 * will contain the coefficients for red, green and blue channels in the corresponding texture channels, and
-		 * per-texel weight in the alpha channel. Output coefficients must be summed up and normalized before use (using
-		 * IrradianceAccumulateCubeSH).
+		 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a single
+		 * set of normalized coefficients.
 		 */
-		void Execute(const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output);
+		class IrradianceReduceSHMat : public RendererMaterial<IrradianceReduceSHMat>
+		{
+			RMAT_DEF("IrradianceReduceSH.bsl")
+
+			/** Helper method used for initializing variations of this material. */
+			template <int shOrder>
+			static const ShaderVariation& GetVariation()
+			{
+				static ShaderVariation variation = ShaderVariation(
+					{ ShaderVariation::Param("SH_ORDER", shOrder) });
+
+				return variation;
+			}
+
+		public:
+			IrradianceReduceSHMat();
+
+			/**
+			 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a
+			 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
+			 * value will be recorded at the @p outputIdx position in the texture.
+			 */
+			void Execute(const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx);
+
+			/** Creates a texture of adequate size to be used as output for this material. */
+			SPtr<Texture> CreateOutputTexture(u32 numCoeffSets);
+
+			/**
+			 * Returns the material variation matching the provided parameters.
+			 *
+			 * @param order		SH order, which defines the number of coefficients and quality. Only values of 3 and 5 are
+			 *					supported.
+			 */
+			static IrradianceReduceSHMat* GetVariation(int order = 5);
+
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamBuffer mInputBuffer;
+			GpuParamLoadStoreTexture mOutputTexture;
+		};
+
+		BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHFragParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
+			BS_PARAM_BLOCK_ENTRY(int, gCoeffEntryIdx)
+			BS_PARAM_BLOCK_ENTRY(int, gCoeffComponentIdx)
+		BS_PARAM_BLOCK_END
+
+		extern IrradianceComputeSHFragParamDef gIrradianceComputeSHFragParamDef;
 
 		/**
-		 * Returns the texture descriptor that can be used for initializing the output render target. Note that the
-		 * output texture is a cubemap but the execute() method expects a render target that is a single face of a
-		 * cubemap.
+		 * Computes spherical harmonic coefficients from a radiance cubemap. This is an alternative to IrradianceComputeSHMat
+		 * that does not require compute shader support.
 		 */
-		static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
+		class IrradianceComputeSHFragMat : public RendererMaterial<IrradianceComputeSHFragMat>
+		{
+			RMAT_DEF("IrradianceComputeSHFrag.bsl")
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
+		public:
+			IrradianceComputeSHFragMat();
 
-	BS_PARAM_BLOCK_BEGIN(IrradianceAccumulateSHParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeMip)
-		BS_PARAM_BLOCK_ENTRY(Vector2, gHalfPixel)
-	BS_PARAM_BLOCK_END
+			/**
+			 * Computes spherical harmonic coefficients from a face of an input cube radiance texture and outputs them to the
+			 * specified face of the output cube texture. Only a single coefficient is output per execution. The output texture
+			 * will contain the coefficients for red, green and blue channels in the corresponding texture channels, and
+			 * per-texel weight in the alpha channel. Output coefficients must be summed up and normalized before use (using
+			 * IrradianceAccumulateCubeSH).
+			 */
+			void Execute(const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output);
 
-	extern IrradianceAccumulateSHParamDef gIrradianceAccumulateSHParamDef;
+			/**
+			 * Returns the texture descriptor that can be used for initializing the output render target. Note that the
+			 * output texture is a cubemap but the execute() method expects a render target that is a single face of a
+			 * cubemap.
+			 */
+			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
 
-	/**
-	 * Downsamples a cubemap face containing SH coefficient and weight values as output by IrradianceComputeSHFragMat. Each
-	 * downsample sums up 2x2 pixel area coefficients/weights from the previous mip level.
-	 */
-	class IrradianceAccumulateSHMat : public RendererMaterial<IrradianceAccumulateSHMat>
-	{
-		RMAT_DEF("IrradianceAccumulateSH.bsl")
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
 
-	public:
-		IrradianceAccumulateSHMat();
+		BS_PARAM_BLOCK_BEGIN(IrradianceAccumulateSHParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeMip)
+			BS_PARAM_BLOCK_ENTRY(Vector2, gHalfPixel)
+		BS_PARAM_BLOCK_END
+
+		extern IrradianceAccumulateSHParamDef gIrradianceAccumulateSHParamDef;
 
 		/**
-		 * Downsamples the provided face and mip level of the source texture and outputs the downsampled (i.e summed up)
-		 * values in the resulting output texture.
+		 * Downsamples a cubemap face containing SH coefficient and weight values as output by IrradianceComputeSHFragMat. Each
+		 * downsample sums up 2x2 pixel area coefficients/weights from the previous mip level.
 		 */
-		void Execute(const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output);
+		class IrradianceAccumulateSHMat : public RendererMaterial<IrradianceAccumulateSHMat>
+		{
+			RMAT_DEF("IrradianceAccumulateSH.bsl")
+
+		public:
+			IrradianceAccumulateSHMat();
+
+			/**
+			 * Downsamples the provided face and mip level of the source texture and outputs the downsampled (i.e summed up)
+			 * values in the resulting output texture.
+			 */
+			void Execute(const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output);
+
+			/**
+			 * Returns the texture descriptor that can be used for initializing the output render target. Note the output
+			 * is a cubemap.
+			 */
+			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
+
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
 
 		/**
-		 * Returns the texture descriptor that can be used for initializing the output render target. Note the output
-		 * is a cubemap.
+		 * Accumulates SH coefficient values from all six faces of a cubemap and normalizes them. The cubemap is expected to be
+		 * 1x1 in size (previously downsampled by IrradianceAccumulateSHMat). After this shader is ran for all SH coefficients
+		 * the output texture will contain final valid set of SH coefficients.
 		 */
-		static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
+		class IrradianceAccumulateCubeSHMat : public RendererMaterial<IrradianceAccumulateCubeSHMat>
+		{
+			RMAT_DEF("IrradianceAccumulateCubeSH.bsl")
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
+		public:
+			IrradianceAccumulateCubeSHMat();
 
-	/**
-	 * Accumulates SH coefficient values from all six faces of a cubemap and normalizes them. The cubemap is expected to be
-	 * 1x1 in size (previously downsampled by IrradianceAccumulateSHMat). After this shader is ran for all SH coefficients
-	 * the output texture will contain final valid set of SH coefficients.
-	 */
-	class IrradianceAccumulateCubeSHMat : public RendererMaterial<IrradianceAccumulateCubeSHMat>
-	{
-		RMAT_DEF("IrradianceAccumulateCubeSH.bsl")
+			/**
+			 * Sums up all faces of the input cube texture and writes the value to the corresponding index in the output
+			 * texture. The source mip should point to a mip level with size 1x1.
+			 */
+			void Execute(const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const SPtr<RenderTarget>& output);
 
-	public:
-		IrradianceAccumulateCubeSHMat();
+			/**
+			 * Returns the texture descriptor that can be used for initializing the output render target. The render target
+			 * will be able to hold all required SH coefficients (even though execute() outputs just one coefficient at a time).
+			 */
+			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
 
-		/**
-		 * Sums up all faces of the input cube texture and writes the value to the corresponding index in the output
-		 * texture. The source mip should point to a mip level with size 1x1.
-		 */
-		void Execute(const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx,
-			const SPtr<RenderTarget>& output);
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
 
-		/**
-		 * Returns the texture descriptor that can be used for initializing the output render target. The render target
-		 * will be able to hold all required SH coefficients (even though execute() outputs just one coefficient at a time).
-		 */
-		static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
+		BS_PARAM_BLOCK_BEGIN(IrradianceProjectSHParamDef)
+			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
+		BS_PARAM_BLOCK_END
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
-
-	BS_PARAM_BLOCK_BEGIN(IrradianceProjectSHParamDef)
-		BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-	BS_PARAM_BLOCK_END
-
-	extern IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
-
-	/**
-	 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMat and projects them onto faces of
-	 * a cubemap.
-	 */
-	class IrradianceProjectSHMat : public RendererMaterial<IrradianceProjectSHMat>
-	{
-		RMAT_DEF("IrradianceProjectSH.bsl")
-
-	public:
-		IrradianceProjectSHMat();
+		extern IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
 
 		/**
 		 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMat and projects them onto faces of
 		 * a cubemap.
 		 */
-		void Execute(const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target);
+		class IrradianceProjectSHMat : public RendererMaterial<IrradianceProjectSHMat>
+		{
+			RMAT_DEF("IrradianceProjectSH.bsl")
 
-	private:
-		SPtr<GpuParamBlockBuffer> mParamBuffer;
-		GpuParamTexture mInputTexture;
-	};
+		public:
+			IrradianceProjectSHMat();
 
-	/** Render beast implementation of IBLUtility. */
-	class RenderBeastIBLUtility : public IBLUtility
-	{
-	public:
-		/** @copydoc IBLUtility::filterCubemapForSpecular */
-		void FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const ;
+			/**
+			 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMat and projects them onto faces of
+			 * a cubemap.
+			 */
+			void Execute(const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target);
 
-		/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&) const */
-		void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const ;
+		private:
+			SPtr<GpuParamBlockBuffer> mParamBuffer;
+			GpuParamTexture mInputTexture;
+		};
 
-		/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&, u32) const */
-		void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output,
-			u32 outputIdx) const ;
+		/** Render beast implementation of IBLUtility. */
+		class RenderBeastIBLUtility : public IBLUtility
+		{
+		public:
+			/** @copydoc IBLUtility::filterCubemapForSpecular */
+			void FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const;
 
-		/** @copydoc IBLUtility::scaleCubemap */
-		void ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const ;
-	private:
-		/**
-		 * Downsamples a cubemap using hardware bilinear filtering.
-		 *
-		 * @param[in]	src		Cubemap to downsample.
-		 * @param[in]   srcMip	Determines which mip level of the source texture to downsample.
-		 * @param[in]   dst		Desination texture to output the scaled data to. Must be usable as a render target.
-		 * @param[in]   dstMip	Determines which mip level of the destination texture to scale.
-		 */
-		static void DownsampleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip);
+			/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&) const */
+			void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const;
 
-		/**
-		 * Generates irradiance SH coefficients from the input cubemap and writes them to a 1D texture. Does not make
-		 * use of the compute shader.
-		 */
-		static void FilterCubemapForIrradianceNonCompute(const SPtr<Texture>& cubemap, u32 outputIdx,
-			const SPtr<RenderTexture>& output);
-	};
+			/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&, u32) const */
+			void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const;
 
-	/** @} */
-}}
+			/** @copydoc IBLUtility::scaleCubemap */
+			void ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const;
+
+		private:
+			/**
+			 * Downsamples a cubemap using hardware bilinear filtering.
+			 *
+			 * @param[in]	src		Cubemap to downsample.
+			 * @param[in]   srcMip	Determines which mip level of the source texture to downsample.
+			 * @param[in]   dst		Desination texture to output the scaled data to. Must be usable as a render target.
+			 * @param[in]   dstMip	Determines which mip level of the destination texture to scale.
+			 */
+			static void DownsampleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip);
+
+			/**
+			 * Generates irradiance SH coefficients from the input cubemap and writes them to a 1D texture. Does not make
+			 * use of the compute shader.
+			 */
+			static void FilterCubemapForIrradianceNonCompute(const SPtr<Texture>& cubemap, u32 outputIdx, const SPtr<RenderTexture>& output);
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

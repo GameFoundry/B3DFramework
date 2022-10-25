@@ -21,19 +21,19 @@ namespace bs
 		~NullPhysicsRigidbody() = default;
 
 		/** @copydoc Rigidbody::move */
-		void Move(const Vector3& position) ;
+		void Move(const Vector3& position);
 
 		/** @copydoc Rigidbody::rotate */
-		void Rotate(const Quaternion& rotation) ;
+		void Rotate(const Quaternion& rotation);
 
 		/** @copydoc Rigidbody::getPosition */
-		Vector3 GetPosition() const ;
+		Vector3 GetPosition() const;
 
 		/** @copydoc Rigidbody::getRotation */
-		Quaternion GetRotation() const ;
+		Quaternion GetRotation() const;
 
 		/** @copydoc Rigidbody::setTransform */
-		void SetTransform(const Vector3& pos, const Quaternion& rot) ;
+		void SetTransform(const Vector3& pos, const Quaternion& rot);
 
 		/** @copydoc Rigidbody::setMass */
 		void SetMass(float mass) { mMass = mass; }
@@ -51,10 +51,10 @@ namespace bs
 		bool IsSleeping() const { return false; }
 
 		/** @copydoc Rigidbody::sleep */
-		void Sleep() { }
+		void Sleep() {}
 
 		/** @copydoc Rigidbody::wakeUp */
-		void WakeUp() { }
+		void WakeUp() {}
 
 		/** @copydoc Rigidbody::setSleepThreshold */
 		void SetSleepThreshold(float threshold) { mSleepThreshold = threshold; }
@@ -126,27 +126,26 @@ namespace bs
 		u32 GetVelocitySolverCount() const override { return mVelocitySolverCount; }
 
 		/** @copydoc Rigidbody::addForce */
-		void AddForce(const Vector3& force, ForceMode mode = ForceMode::Force) override { }
+		void AddForce(const Vector3& force, ForceMode mode = ForceMode::Force) override {}
 
 		/** @copydoc Rigidbody::addTorque */
-		void AddTorque(const Vector3& torque, ForceMode mode = ForceMode::Force) override { }
+		void AddTorque(const Vector3& torque, ForceMode mode = ForceMode::Force) override {}
 
 		/** @copydoc Rigidbody::addForceAtPoint */
-		void AddForceAtPoint(const Vector3& force, const Vector3& position,
-			PointForceMode mode = PointForceMode::Force) override { }
+		void AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode = PointForceMode::Force) override {}
 
 		/** @copydoc Rigidbody::getVelocityAtPoint */
 		Vector3 GetVelocityAtPoint(const Vector3& point) const override { return Vector3::ZERO; }
 
 		/** @copydoc Rigidbody::addCollider */
-		void AddCollider(Collider* collider) override { }
+		void AddCollider(Collider* collider) override {}
 
 		/** @copydoc Rigidbody::removeCollider */
-		void RemoveCollider(Collider* collider) override { }
+		void RemoveCollider(Collider* collider) override {}
 
 		/** @copydoc Rigidbody::removeColliders */
-		void RemoveColliders() override { }
-		
+		void RemoveColliders() override {}
+
 	private:
 		Vector3 mPosition = Vector3::ZERO;
 		Quaternion mRotation = Quaternion::IDENTITY;
@@ -167,4 +166,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -6,71 +6,74 @@
 #include "BsVulkanResource.h"
 #include "RenderAPI/BsGpuProgram.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** Wrapper around a Vulkan shader module (GPU program) that manages its usage and lifetime. */
-	class VulkanShaderModule : public VulkanResource
+	namespace ct
 	{
-	public:
-		VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module);
-		~VulkanShaderModule();
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** Returns the internal handle to the Vulkan object. */
-		VkShaderModule GetHandle() const { return mModule; }
+		/** Wrapper around a Vulkan shader module (GPU program) that manages its usage and lifetime. */
+		class VulkanShaderModule : public VulkanResource
+		{
+		public:
+			VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module);
+			~VulkanShaderModule();
 
-	private:
-		VkShaderModule mModule;
-	};
+			/** Returns the internal handle to the Vulkan object. */
+			VkShaderModule GetHandle() const { return mModule; }
 
-	/**	Abstraction of a Vulkan shader object. */
-	class VulkanGpuProgram : public GpuProgram
-	{
-	public:
-		virtual ~VulkanGpuProgram();
+		private:
+			VkShaderModule mModule;
+		};
+
+		/**	Abstraction of a Vulkan shader object. */
+		class VulkanGpuProgram : public GpuProgram
+		{
+		public:
+			virtual ~VulkanGpuProgram();
+
+			/**
+			 * Returns the shader module for the specified device. If program device mask doesn't include the provided device,
+			 * null is returned.
+			 */
+			VulkanShaderModule* GetShaderModule(u32 deviceIdx) const { return mModules[deviceIdx]; }
+
+			/** Returns the name of the program entry point function. */
+			const String& GetEntryPoint() const { return mEntryPoint; }
+
+		protected:
+			friend class VulkanGLSLProgramFactory;
+
+			VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+
+			/** @copydoc GpuProgram::initialize */
+			void Initialize();
+
+		private:
+			GpuDeviceFlags mDeviceMask;
+			VulkanShaderModule* mModules[BS_MAX_DEVICES];
+		};
+
+		/** Identifier of the compiler used for compiling Vulkan GPU programs. */
+		static constexpr const char* VULKAN_COMPILER_ID = "Vulkan";
 
 		/**
-		 * Returns the shader module for the specified device. If program device mask doesn't include the provided device,
-		 * null is returned.
+		 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
+		 * to force bytecode to rebuild.
 		 */
-		VulkanShaderModule* GetShaderModule(u32 deviceIdx) const { return mModules[deviceIdx]; }
+		static constexpr u32 VULKAN_COMPILER_VERSION = 1;
 
-		/** Returns the name of the program entry point function. */
-		const String& GetEntryPoint() const { return mEntryPoint; }
+		/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
+		static constexpr const char* MOLTENVK_COMPILER_ID = "MoltenVK";
 
-	protected:
-		friend class VulkanGLSLProgramFactory;
+		/**
+		 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in order
+		 * to force bytecode to rebuild.
+		 */
+		static constexpr u32 MOLTENVK_COMPILER_VERSION = 1;
 
-		VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
-
-		/** @copydoc GpuProgram::initialize */
-		void Initialize() ;
-
-	private:
-		GpuDeviceFlags mDeviceMask;
-		VulkanShaderModule* mModules[BS_MAX_DEVICES];
-	};
-
-	/** Identifier of the compiler used for compiling Vulkan GPU programs. */
-	static constexpr const char* VULKAN_COMPILER_ID = "Vulkan";
-
-	/**
-	 * Version of the compiler used for compiling Vulkan GPU programs. Tick this whenever the compiler updates in order
-	 * to force bytecode to rebuild.
-	 */
-	static constexpr u32 VULKAN_COMPILER_VERSION = 1;
-
-	/** Identifier of the compiler used for compiling MoltenVK GPU programs. */
-	static constexpr const char* MOLTENVK_COMPILER_ID = "MoltenVK";
-
-	/**
-	 * Version of the compiler used for compiling MoltenVK GPU programs. Tick this whenever the compiler updates in order
-	 * to force bytecode to rebuild.
-	 */
-	static constexpr u32 MOLTENVK_COMPILER_VERSION = 1;
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

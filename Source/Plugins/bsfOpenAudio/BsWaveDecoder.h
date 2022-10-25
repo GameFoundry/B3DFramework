@@ -18,16 +18,17 @@ namespace bs
 		WaveDecoder() = default;
 
 		/** @copydoc AudioDecoder::open */
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) ;
+		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0);
 
 		/** @copydoc AudioDecoder::read */
-		u32 Read(u8* samples, u32 numSamples) ;
+		u32 Read(u8* samples, u32 numSamples);
 
 		/** @copydoc AudioDecoder::seek */
-		void Seek(u32 offset) ;
+		void Seek(u32 offset);
 
 		/** @copydoc AudioDecoder::isValid */
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) ;
+		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0);
+
 	private:
 		/** Parses the WAVE header and output audio file meta-data. Returns false if the header is not valid. */
 		bool ParseHeader(AudioDataInfo& info);
@@ -40,4 +41,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

@@ -20,11 +20,11 @@ namespace bs
 		static constexpr const char* SystemName = "bsfRenderBeast";
 
 		/** @copydoc RendererFactory::create */
-		SPtr<ct::Renderer> Create() ;
+		SPtr<ct::Renderer> Create();
 
 		/** @copydoc RendererFactory::name */
-		const String& Name() const ;
+		const String& Name() const;
 	};
 
 	/** @} */
-}
+} // namespace bs

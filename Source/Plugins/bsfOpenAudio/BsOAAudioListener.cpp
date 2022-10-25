@@ -24,7 +24,7 @@ namespace bs
 		std::array<float, 6> orientation = GetOrientation();
 		auto& contexts = gOAAudio().GetContextsInternal();
 
-		if (contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
+		if(contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 		{
 			auto context = gOAAudio().GetContextInternal(this);
 			alcMakeContextCurrent(context);
@@ -39,7 +39,7 @@ namespace bs
 		AudioListener::SetVelocity(velocity);
 
 		auto& contexts = gOAAudio().GetContextsInternal();
-		if (contexts.size() > 1)
+		if(contexts.size() > 1)
 		{
 			auto context = gOAAudio().GetContextInternal(this);
 			alcMakeContextCurrent(context);
@@ -51,11 +51,11 @@ namespace bs
 	void OAAudioListener::Rebuild()
 	{
 		auto contexts = gOAAudio().GetContextsInternal();
-		
+
 		float globalVolume = gAudio().GetVolume();
 		std::array<float, 6> orientation = GetOrientation();
 
-		if (contexts.size() > 1)
+		if(contexts.size() > 1)
 		{
 			auto context = gOAAudio().GetContextInternal(this);
 			alcMakeContextCurrent(context);
@@ -72,15 +72,12 @@ namespace bs
 		Vector3 direction = GetTransform().GetForward();
 		Vector3 up = GetTransform().GetUp();
 
-		return
-		{{
-			direction.X,
-			direction.Y,
-			direction.Z,
-			up.X,
-			up.Y,
-			up.Z
-		}};
+		return { { direction.X,
+				   direction.Y,
+				   direction.Z,
+				   up.X,
+				   up.Y,
+				   up.Z } };
 	}
 
 	void OAAudioListener::UpdatePosition()
@@ -104,4 +101,4 @@ namespace bs
 	{
 		alListenerf(AL_GAIN, volume);
 	}
-}
+} // namespace bs

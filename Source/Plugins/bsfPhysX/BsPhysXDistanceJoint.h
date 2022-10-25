@@ -21,37 +21,37 @@ namespace bs
 		~PhysXDistanceJoint();
 
 		/** @copydoc DistanceJoint::getDistance */
-		float GetDistance() const ;
+		float GetDistance() const;
 
 		/** @copydoc DistanceJoint::getMinDistance */
-		float GetMinDistance() const ;
+		float GetMinDistance() const;
 
 		/** @copydoc DistanceJoint::setMinDistance */
-		void SetMinDistance(float value) ;
+		void SetMinDistance(float value);
 
 		/** @copydoc DistanceJoint::getMaxDistance */
-		float GetMaxDistance() const ;
+		float GetMaxDistance() const;
 
 		/** @copydoc DistanceJoint::setMaxDistance */
-		void SetMaxDistance(float value) ;
+		void SetMaxDistance(float value);
 
 		/** @copydoc DistanceJoint::getTolerance */
-		float GetTolerance() const ;
+		float GetTolerance() const;
 
 		/** @copydoc DistanceJoint::setTolerance */
-		void SetTolerance(float value) ;
+		void SetTolerance(float value);
 
 		/** @copydoc DistanceJoint::getSpring */
-		Spring GetSpring() const ;
+		Spring GetSpring() const;
 
 		/** @copydoc DistanceJoint::setSpring */
-		void SetSpring(const Spring& value) ;
+		void SetSpring(const Spring& value);
 
 		/** @copydoc DistanceJoint::setFlag */
-		void SetFlag(DistanceJointFlag flag, bool enabled) ;
+		void SetFlag(DistanceJointFlag flag, bool enabled);
 
 		/** @copydoc DistanceJoint::hasFlag */
-		bool HasFlag(DistanceJointFlag flag) const ;
+		bool HasFlag(DistanceJointFlag flag) const;
 
 	private:
 		/** Returns the internal PhysX representation of the distance joint. */
@@ -59,4 +59,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

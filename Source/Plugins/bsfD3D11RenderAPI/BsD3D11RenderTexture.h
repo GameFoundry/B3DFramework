@@ -20,7 +20,7 @@ namespace bs
 	class D3D11RenderTexture : public RenderTexture
 	{
 	public:
-		virtual ~D3D11RenderTexture() { }
+		virtual ~D3D11RenderTexture() {}
 
 	protected:
 		friend class D3D11TextureManager;
@@ -35,27 +35,28 @@ namespace bs
 
 	namespace ct
 	{
-	/**
-	 * DirectX 11 implementation of a render texture.
-	 *
-	 * @note	Core thread only.
-	 */
-	class D3D11RenderTexture : public RenderTexture
-	{
-	public:
-		D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
-		virtual ~D3D11RenderTexture() { }
+		/**
+		 * DirectX 11 implementation of a render texture.
+		 *
+		 * @note	Core thread only.
+		 */
+		class D3D11RenderTexture : public RenderTexture
+		{
+		public:
+			D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
 
-		/** @copydoc RenderTexture::getCustomAttribute */
-		void GetCustomAttribute(const String& name, void* data) const override;
+			virtual ~D3D11RenderTexture() {}
 
-	protected:
-		/** @copydoc RenderTexture::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
+			/** @copydoc RenderTexture::getCustomAttribute */
+			void GetCustomAttribute(const String& name, void* data) const override;
 
-		RenderTextureProperties mProperties;
-	};
-	}
+		protected:
+			/** @copydoc RenderTexture::getProperties */
+			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
+
+			RenderTextureProperties mProperties;
+		};
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

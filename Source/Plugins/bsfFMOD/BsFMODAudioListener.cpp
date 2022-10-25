@@ -57,4 +57,4 @@ namespace bs
 
 		fmod->set3DListenerAttributes(mId, &fmodPosition, &fmodVelocity, &fmodForward, &fmodUp);
 	}
-}
+} // namespace bs

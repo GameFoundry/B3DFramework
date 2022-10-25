@@ -8,81 +8,84 @@
 #include "RenderAPI/BsTimerQuery.h"
 #include "RenderAPI/BsOcclusionQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup NullRenderAPI
-	 *  @{
-	 */
-
-	/**	Handles creation of null queries. */
-	class NullQueryManager final : public QueryManager
+	namespace ct
 	{
-	public:
-		/** @copydoc QueryManager::createEventQuery */
-		SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const ;
+		/** @addtogroup NullRenderAPI
+		 *  @{
+		 */
 
-		/** @copydoc QueryManager::createTimerQuery */
-		SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const ;
+		/**	Handles creation of null queries. */
+		class NullQueryManager final : public QueryManager
+		{
+		public:
+			/** @copydoc QueryManager::createEventQuery */
+			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const;
 
-		/** @copydoc QueryManager::createOcclusionQuery */
-		SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const ;
-	};
+			/** @copydoc QueryManager::createTimerQuery */
+			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const;
 
-	/** @copydoc EventQuery */
-	class NullEventQuery final : public EventQuery
-	{
-	public:
-		NullEventQuery() = default;
+			/** @copydoc QueryManager::createOcclusionQuery */
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const;
+		};
 
-		/** @copydoc EventQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) { }
+		/** @copydoc EventQuery */
+		class NullEventQuery final : public EventQuery
+		{
+		public:
+			NullEventQuery() = default;
 
-		/** @copydoc EventQuery::isReady */
-		bool IsReady() const { return true; }
-	};
+			/** @copydoc EventQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
 
-	/** @copydoc TimerQuery */
-	class NullTimerQuery final : public TimerQuery
-	{
-	public:
-		NullTimerQuery() = default;
+			/** @copydoc EventQuery::isReady */
+			bool IsReady() const { return true; }
+		};
 
-		/** @copydoc TimerQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) { }
+		/** @copydoc TimerQuery */
+		class NullTimerQuery final : public TimerQuery
+		{
+		public:
+			NullTimerQuery() = default;
 
-		/** @copydoc TimerQuery::end */
-		void End(const SPtr<CommandBuffer>& cb = nullptr) { }
+			/** @copydoc TimerQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
 
-		/** @copydoc TimerQuery::isReady */
-		bool IsReady() const { return true; }
+			/** @copydoc TimerQuery::end */
+			void End(const SPtr<CommandBuffer>& cb = nullptr) {}
 
-		/** @copydoc TimerQuery::getTimeMs */
-		float GetTimeMs() { return 0.0f; }
-	};
+			/** @copydoc TimerQuery::isReady */
+			bool IsReady() const { return true; }
 
-	/** @copydoc OcclusionQuery */
-	class NullOcclusionQuery final : public OcclusionQuery
-	{
-	public:
-		NullOcclusionQuery(bool binary)
-			:OcclusionQuery(binary)
-		{ }
+			/** @copydoc TimerQuery::getTimeMs */
+			float GetTimeMs() { return 0.0f; }
+		};
 
-		/** @copydoc OcclusionQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) { }
+		/** @copydoc OcclusionQuery */
+		class NullOcclusionQuery final : public OcclusionQuery
+		{
+		public:
+			NullOcclusionQuery(bool binary)
+				: OcclusionQuery(binary)
+			{}
 
-		/** @copydoc OcclusionQuery::end */
-		void End(const SPtr<CommandBuffer>& cb = nullptr) { }
+			/** @copydoc OcclusionQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
 
-		/** @copydoc OcclusionQuery::isReady */
-		bool IsReady() const { return true; }
+			/** @copydoc OcclusionQuery::end */
+			void End(const SPtr<CommandBuffer>& cb = nullptr) {}
 
-		/** @copydoc OcclusionQuery::getNumSamples */
-		u32 GetNumSamples() { return 0; }
+			/** @copydoc OcclusionQuery::isReady */
+			bool IsReady() const { return true; }
 
-	private:
-		friend class QueryManager;
-	};
+			/** @copydoc OcclusionQuery::getNumSamples */
+			u32 GetNumSamples() { return 0; }
 
-	/** @} */
-}}
+		private:
+			friend class QueryManager;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

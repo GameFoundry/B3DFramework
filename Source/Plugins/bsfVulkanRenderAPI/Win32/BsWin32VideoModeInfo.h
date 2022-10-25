@@ -5,41 +5,44 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsVideoModeInfo.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/** @copydoc VideoMode */
-	class Win32VideoMode : public VideoMode
+	namespace ct
 	{
-	public:
-		Win32VideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx);
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-	private:
-		friend class Win32VideoOutputInfo;
-	};
+		/** @copydoc VideoMode */
+		class Win32VideoMode : public VideoMode
+		{
+		public:
+			Win32VideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx);
 
-	/** @copydoc VideoOutputInfo */
-	class Win32VideoOutputInfo : public VideoOutputInfo
-	{
-	public:
-		Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx);
+		private:
+			friend class Win32VideoOutputInfo;
+		};
 
-		/**	Gets a Win32 handle to the monitor referenced by this object. */
-		HMONITOR GetMonitorHandle() const { return mMonitorHandle; }
+		/** @copydoc VideoOutputInfo */
+		class Win32VideoOutputInfo : public VideoOutputInfo
+		{
+		public:
+			Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx);
 
-	private:
-		HMONITOR mMonitorHandle;
-	};
+			/**	Gets a Win32 handle to the monitor referenced by this object. */
+			HMONITOR GetMonitorHandle() const { return mMonitorHandle; }
 
-	/** @copydoc VideoModeInfo */
-	class Win32VideoModeInfo : public VideoModeInfo
-	{
-	public:
-		Win32VideoModeInfo();
-	};
+		private:
+			HMONITOR mMonitorHandle;
+		};
 
-	/** @} */
-}}
+		/** @copydoc VideoModeInfo */
+		class Win32VideoModeInfo : public VideoModeInfo
+		{
+		public:
+			Win32VideoModeInfo();
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

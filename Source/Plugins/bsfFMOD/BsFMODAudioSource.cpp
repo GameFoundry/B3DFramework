@@ -15,10 +15,10 @@ namespace bs
 	{
 		gFMODAudio().UnregisterSourceInternal(this);
 
-		if (mStreamingSound != nullptr)
+		if(mStreamingSound != nullptr)
 			FMODAudioClip::ReleaseStreamingSound(mStreamingSound);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->stop();
 	}
 
@@ -46,7 +46,7 @@ namespace bs
 	{
 		AudioSource::SetVelocity(velocity);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 		{
 			FMOD_VECTOR fmodVelocity = { velocity.x, velocity.y, velocity.z };
 			mChannel->set3DAttributes(nullptr, &fmodVelocity);
@@ -57,7 +57,7 @@ namespace bs
 	{
 		AudioSource::SetVolume(volume);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setVolume(mVolume);
 	}
 
@@ -65,7 +65,7 @@ namespace bs
 	{
 		AudioSource::SetPitch(pitch);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setPitch(mPitch);
 	}
 
@@ -73,7 +73,7 @@ namespace bs
 	{
 		AudioSource::SetIsLooping(loop);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setMode(loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
 	}
 
@@ -81,7 +81,7 @@ namespace bs
 	{
 		AudioSource::SetPriority(priority);
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setPriority(priority);
 	}
 
@@ -89,18 +89,18 @@ namespace bs
 	{
 		mGlobalUnpauseState = AudioSourceState::Playing;
 
-		if (mGloballyPaused)
+		if(mGloballyPaused)
 			return;
 
-		if (!mAudioClip.IsLoaded())
+		if(!mAudioClip.IsLoaded())
 			return;
 
-		if (mChannel == nullptr)
+		if(mChannel == nullptr)
 		{
 			assert(mStreamingSound == nullptr);
 
 			FMOD::System* fmod = gFMODAudio().GetFMODInternal();
-			
+
 			FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.Get());
 			FMOD::Sound* sound;
 			if(fmodClip->RequiresStreaming())
@@ -112,12 +112,12 @@ namespace bs
 			{
 				sound = fmodClip->GetSound();
 			}
-			
+
 			if(fmod->playSound(sound, nullptr, true, &mChannel) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed playing sound.");
 
-				if (mStreamingSound != nullptr)
+				if(mStreamingSound != nullptr)
 				{
 					FMODAudioClip::ReleaseStreamingSound(mStreamingSound);
 					mStreamingSound = nullptr;
@@ -139,7 +139,7 @@ namespace bs
 			FMOD_VECTOR fmodVelocity = { mVelocity.x, mVelocity.y, mVelocity.z };
 			mChannel->set3DAttributes(&fmodPosition, &fmodVelocity);
 		}
-			
+
 		mChannel->setPaused(false);
 	}
 
@@ -147,7 +147,7 @@ namespace bs
 	{
 		mGlobalUnpauseState = AudioSourceState::Paused;
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setPaused(true);
 	}
 
@@ -155,7 +155,7 @@ namespace bs
 	{
 		mGlobalUnpauseState = AudioSourceState::Stopped;
 
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 		{
 			mChannel->stop();
 			mChannel = nullptr;
@@ -172,23 +172,23 @@ namespace bs
 
 	void FMODAudioSource::SetGlobalPause(bool doPause)
 	{
-		if (mGloballyPaused == doPause)
+		if(mGloballyPaused == doPause)
 			return;
 
 		mGloballyPaused = doPause;
-		
+
 		if(doPause)
 		{
 			AudioSourceState currentState = GetState();
 
-			if (GetState() == AudioSourceState::Playing)
+			if(GetState() == AudioSourceState::Playing)
 				Pause();
 
 			mGlobalUnpauseState = currentState;
 		}
 		else
 		{
-			if (mGlobalUnpauseState == AudioSourceState::Playing)
+			if(mGlobalUnpauseState == AudioSourceState::Playing)
 				Play();
 		}
 	}
@@ -201,12 +201,12 @@ namespace bs
 		bool isPlaying = false;
 		mChannel->isPlaying(&isPlaying);
 
-		if (isPlaying)
+		if(isPlaying)
 			return AudioSourceState::Playing;
 
 		bool isPaused = false;
 		mChannel->getPaused(&isPaused);
-		if (isPaused)
+		if(isPaused)
 			return AudioSourceState::Paused;
 
 		return AudioSourceState::Stopped;
@@ -214,7 +214,7 @@ namespace bs
 
 	void FMODAudioSource::SetTime(float time)
 	{
-		if (mChannel != nullptr)
+		if(mChannel != nullptr)
 			mChannel->setPosition((u32)(time * 1000.0f), FMOD_TIMEUNIT_MS);
 		else
 			mTime = time;
@@ -242,10 +242,10 @@ namespace bs
 
 		SetTime(savedTime);
 
-		if (state != AudioSourceState::Stopped)
+		if(state != AudioSourceState::Stopped)
 			Play();
 
-		if (state == AudioSourceState::Paused)
+		if(state == AudioSourceState::Paused)
 			Pause();
 	}
-}
+} // namespace bs

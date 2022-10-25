@@ -25,7 +25,7 @@ namespace bs
 	bool cookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u32& size)
 	{
 		SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
-		
+
 		// Try to create hull from points
 		PxConvexMeshDesc convexDesc;
 		convexDesc.points.count = meshData->GetNumVertices();
@@ -34,7 +34,7 @@ namespace bs
 		convexDesc.flags |= PxConvexFlag::eCOMPUTE_CONVEX;
 
 		PxDefaultMemoryOutputStream output;
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if(cooking->cookConvexMesh(convexDesc, output))
 		{
 			size = output.getSize();
 			*data = (u8*)bs_alloc(size);
@@ -45,7 +45,7 @@ namespace bs
 
 		// Try inflating the convex mesh
 		convexDesc.flags |= PxConvexFlag::eINFLATE_CONVEX;
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if(cooking->cookConvexMesh(convexDesc, output))
 		{
 			size = output.getSize();
 			*data = (u8*)bs_alloc(size);
@@ -62,7 +62,7 @@ namespace bs
 		{
 			box.Merge(vertIter.GetValue());
 		}
-		while (vertIter.MoveNext());
+		while(vertIter.MoveNext());
 
 		Vector3 aabbVerts[8];
 		aabbVerts[0] = box.GetCorner(AABox::FAR_LEFT_BOTTOM);
@@ -80,7 +80,7 @@ namespace bs
 		convexDesc.points.data = &aabbVerts[0];
 		convexDesc.flags &= ~PxConvexFlag::eINFLATE_CONVEX;
 
-		if (cooking->cookConvexMesh(convexDesc, output))
+		if(cooking->cookConvexMesh(convexDesc, output))
 		{
 			size = output.getSize();
 			*data = (u8*)bs_alloc(size);
@@ -100,29 +100,29 @@ namespace bs
 	 */
 	bool cookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u32& size)
 	{
-		if (meshData == nullptr)
+		if(meshData == nullptr)
 			return false;
 
 		PxCooking* cooking = gPhysX().GetCooking();
-		if (cooking == nullptr)
+		if(cooking == nullptr)
 		{
 			BS_LOG(Warning, Physics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
 			return false;
 		}
 
 		SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
-		if (!vertexDesc->HasElement(VES_POSITION))
+		if(!vertexDesc->HasElement(VES_POSITION))
 		{
 			BS_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
 			return false;
 		}
 
-		if (type == PhysicsMeshType::Convex)
+		if(type == PhysicsMeshType::Convex)
 		{
 			if(!cookConvex(cooking, meshData, data, size))
 			{
 				BS_LOG(Warning, Physics, "Failed cooking a convex mesh. Perpahs it is too complex? Maximum number of "
-					"convex vertices is 256.");
+										 "convex vertices is 256.");
 				return false;
 			}
 		}
@@ -137,7 +137,7 @@ namespace bs
 			meshDesc.flags |= PxMeshFlag::eFLIPNORMALS;
 
 			IndexType indexType = meshData->GetIndexType();
-			if (indexType == IT_32BIT)
+			if(indexType == IT_32BIT)
 			{
 				meshDesc.triangles.stride = 3 * sizeof(PxU32);
 				meshDesc.triangles.data = meshData->GetIndices32();
@@ -150,7 +150,7 @@ namespace bs
 			}
 
 			PxDefaultMemoryOutputStream output;
-			if (!cooking->cookTriangleMesh(meshDesc, output))
+			if(!cooking->cookTriangleMesh(meshDesc, output))
 				return false;
 
 			size = output.getSize();
@@ -163,8 +163,8 @@ namespace bs
 	}
 
 	PhysXMesh::PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		:PhysicsMesh(meshData, type)
-	{ }
+		: PhysicsMesh(meshData, type)
+	{}
 
 	void PhysXMesh::Initialize()
 	{
@@ -182,16 +182,15 @@ namespace bs
 	}
 
 	FPhysXMesh::FPhysXMesh()
-		:FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
+		: FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
 	{
-		
 	}
 
 	FPhysXMesh::FPhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		:FPhysicsMesh(meshData, type)
+		: FPhysicsMesh(meshData, type)
 	{
 		// Perform cooking if needed
-		if (meshData != nullptr)
+		if(meshData != nullptr)
 			cookMesh(meshData, mType, &mCookedData, mCookedDataSize);
 
 		Initialize();
@@ -199,7 +198,7 @@ namespace bs
 
 	FPhysXMesh::~FPhysXMesh()
 	{
-		if (mCookedData != nullptr)
+		if(mCookedData != nullptr)
 		{
 			bs_free(mCookedData);
 
@@ -207,13 +206,13 @@ namespace bs
 			mCookedDataSize = 0;
 		}
 
-		if (mTriangleMesh != nullptr)
+		if(mTriangleMesh != nullptr)
 		{
 			mTriangleMesh->release();
 			mTriangleMesh = nullptr;
 		}
 
-		if (mConvexMesh != nullptr)
+		if(mConvexMesh != nullptr)
 		{
 			mConvexMesh->release();
 			mConvexMesh = nullptr;
@@ -222,12 +221,12 @@ namespace bs
 
 	void FPhysXMesh::Initialize()
 	{
-		if (mCookedData != nullptr && mCookedDataSize > 0)
+		if(mCookedData != nullptr && mCookedDataSize > 0)
 		{
 			PxPhysics* physx = gPhysX().GetPhysX();
 
 			PxDefaultMemoryInputData input(mCookedData, mCookedDataSize);
-			if (mType == PhysicsMeshType::Convex)
+			if(mType == PhysicsMeshType::Convex)
 				mConvexMesh = physx->createConvexMesh(input);
 			else
 				mTriangleMesh = physx->createTriangleMesh(input);
@@ -239,7 +238,7 @@ namespace bs
 		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
-		if (mConvexMesh == nullptr && mTriangleMesh == nullptr)
+		if(mConvexMesh == nullptr && mTriangleMesh == nullptr)
 			return MeshData::Create(0, 0, vertexDesc);
 
 		u32 numVertices = 0;
@@ -250,7 +249,7 @@ namespace bs
 			numVertices = mConvexMesh->getNbVertices();
 
 			u32 numPolygons = mConvexMesh->getNbPolygons();
-			for (u32 i = 0; i < numPolygons; i++)
+			for(u32 i = 0; i < numPolygons; i++)
 			{
 				PxHullPolygon face;
 				bool status = mConvexMesh->getPolygonData(i, face);
@@ -270,23 +269,23 @@ namespace bs
 		auto posIter = meshData->GetVec3DataIter(VES_POSITION);
 		u32* outIndices = meshData->GetIndices32();
 
-		if (mConvexMesh != nullptr)
+		if(mConvexMesh != nullptr)
 		{
 			const PxVec3* convexVertices = mConvexMesh->getVertices();
 			const u8* convexIndices = mConvexMesh->getIndexBuffer();
 
-			for (u32 i = 0; i < numVertices; i++)
+			for(u32 i = 0; i < numVertices; i++)
 				posIter.AddValue(fromPxVector(convexVertices[i]));
 
 			u32 numPolygons = mConvexMesh->getNbPolygons();
-			for (u32 i = 0; i < numPolygons; i++)
+			for(u32 i = 0; i < numPolygons; i++)
 			{
 				PxHullPolygon face;
 				bool status = mConvexMesh->getPolygonData(i, face);
 				assert(status);
 
 				const PxU8* faceIndices = convexIndices + face.mIndexBase;
-				for (u32 j = 2; j < face.mNbVerts; j++)
+				for(u32 j = 2; j < face.mNbVerts; j++)
 				{
 					*outIndices++ = faceIndices[0];
 					*outIndices++ = faceIndices[j];
@@ -297,7 +296,7 @@ namespace bs
 		else
 		{
 			const PxVec3* vertices = mTriangleMesh->getVertices();
-			for (u32 i = 0; i < numVertices; i++)
+			for(u32 i = 0; i < numVertices; i++)
 				posIter.AddValue(fromPxVector(vertices[i]));
 
 			if(mTriangleMesh->getTriangleMeshFlags() & PxTriangleMeshFlag::e16_BIT_INDICES)
@@ -305,7 +304,7 @@ namespace bs
 				const u16* indices = (const u16*)mTriangleMesh->getTriangles();
 
 				u32 numTriangles = numIndices / 3;
-				for (u32 i = 0; i < numTriangles; i++)
+				for(u32 i = 0; i < numTriangles; i++)
 				{
 					// Flip triangles as PhysX keeps them opposite to what framework expects
 					outIndices[i * 3 + 0] = (u32)indices[i * 3 + 0];
@@ -318,7 +317,7 @@ namespace bs
 				const u32* indices = (const u32*)mTriangleMesh->getTriangles();
 
 				u32 numTriangles = numIndices / 3;
-				for (u32 i = 0; i < numTriangles; i++)
+				for(u32 i = 0; i < numTriangles; i++)
 				{
 					// Flip triangles as PhysX keeps them opposite to what framework expects
 					outIndices[i * 3 + 0] = indices[i * 3 + 0];
@@ -340,4 +339,4 @@ namespace bs
 	{
 		return GetRttiStatic();
 	}
-}
+} // namespace bs

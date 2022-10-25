@@ -13,167 +13,170 @@
 #include "BsNullRenderStates.h"
 #include "BsNullQueries.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	const StringID& NullRenderAPI::GetName() const
+	namespace ct
 	{
-		static StringID strName("NullRenderAPI");
-		return strName;
-	}
-
-	void NullRenderAPI::Initialize()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mVideoModeInfo = bs_shared_ptr_new<VideoModeInfo>();
-
-		GPUInfo gpuInfo;
-		gpuInfo.NumGpUs = 0;
-
-		PlatformUtility::SetGPUInfoInternal(gpuInfo);
-
-		CommandBufferManager::StartUp<NullCommandBufferManager>();
-
-		bs::TextureManager::StartUp<bs::NullTextureManager>();
-		TextureManager::StartUp<NullTextureManager>();
-
-		// Create hardware buffer manager		
-		bs::HardwareBufferManager::StartUp();
-		HardwareBufferManager::StartUp<NullHardwareBufferManager>();
-
-		// Create render window manager
-		bs::RenderWindowManager::StartUp<bs::NullRenderWindowManager>();
-		RenderWindowManager::StartUp();
-
-		// Create render state manager
-		RenderStateManager::StartUp<NullRenderStateManager>();
-
-		// Pretend as if we can parse HLSL
-		mNullProgramFactory = bs_new<NullProgramFactory>();
-		GpuProgramManager::Instance().AddFactory("hlsl", mNullProgramFactory);
-
-		mNumDevices = 1;
-		mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
-		mCurrentCapabilities->DeviceName = "Null";
-		mCurrentCapabilities->RenderApiName = GetName();
-		mCurrentCapabilities->DeviceVendor = GPU_UNKNOWN;
-				
-		RenderAPI::Initialize();
-	}
-
-	void NullRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
-	{
-		QueryManager::StartUp<NullQueryManager>();
-
-		RenderAPI::InitializeWithWindow(primaryWindow);
-	}
-
-	void NullRenderAPI::DestroyCore()
-	{
-		THROW_IF_NOT_CORE_THREAD;
-
-		mActiveRenderTarget = nullptr;
-
-		if(mNullProgramFactory != nullptr)
+		const StringID& NullRenderAPI::GetName() const
 		{
-			bs_delete(mNullProgramFactory);
-			mNullProgramFactory = nullptr;
+			static StringID strName("NullRenderAPI");
+			return strName;
 		}
 
-		QueryManager::ShutDown();
-		RenderStateManager::ShutDown();
-		RenderWindowManager::ShutDown();
-		bs::RenderWindowManager::ShutDown();
-		HardwareBufferManager::ShutDown();
-		bs::HardwareBufferManager::ShutDown();
-		TextureManager::ShutDown();
-		bs::TextureManager::ShutDown();
-		CommandBufferManager::ShutDown();
-
-		RenderAPI::DestroyCore();
-	}
-
-	void NullRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
-	{
-		dest = matrix;
-	}
-
-	GpuParamBlockDesc NullRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
-	{
-		GpuParamBlockDesc block;
-		block.BlockSize = 0;
-		block.IsShareable = true;
-		block.Name = name;
-		block.Slot = 0;
-		block.Set = 0;
-
-		for (auto& param : params)
+		void NullRenderAPI::Initialize()
 		{
-			const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[param.Type];
+			THROW_IF_NOT_CORE_THREAD;
 
-			if (param.ArraySize > 1)
+			mVideoModeInfo = bs_shared_ptr_new<VideoModeInfo>();
+
+			GPUInfo gpuInfo;
+			gpuInfo.NumGpUs = 0;
+
+			PlatformUtility::SetGPUInfoInternal(gpuInfo);
+
+			CommandBufferManager::StartUp<NullCommandBufferManager>();
+
+			bs::TextureManager::StartUp<bs::NullTextureManager>();
+			TextureManager::StartUp<NullTextureManager>();
+
+			// Create hardware buffer manager
+			bs::HardwareBufferManager::StartUp();
+			HardwareBufferManager::StartUp<NullHardwareBufferManager>();
+
+			// Create render window manager
+			bs::RenderWindowManager::StartUp<bs::NullRenderWindowManager>();
+			RenderWindowManager::StartUp();
+
+			// Create render state manager
+			RenderStateManager::StartUp<NullRenderStateManager>();
+
+			// Pretend as if we can parse HLSL
+			mNullProgramFactory = bs_new<NullProgramFactory>();
+			GpuProgramManager::Instance().AddFactory("hlsl", mNullProgramFactory);
+
+			mNumDevices = 1;
+			mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
+			mCurrentCapabilities->DeviceName = "Null";
+			mCurrentCapabilities->RenderApiName = GetName();
+			mCurrentCapabilities->DeviceVendor = GPU_UNKNOWN;
+
+			RenderAPI::Initialize();
+		}
+
+		void NullRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
+		{
+			QueryManager::StartUp<NullQueryManager>();
+
+			RenderAPI::InitializeWithWindow(primaryWindow);
+		}
+
+		void NullRenderAPI::DestroyCore()
+		{
+			THROW_IF_NOT_CORE_THREAD;
+
+			mActiveRenderTarget = nullptr;
+
+			if(mNullProgramFactory != nullptr)
 			{
-				// Arrays perform no packing and their elements are always padded and aligned to four component vectors
-				u32 size;
-				if(param.Type == GPDT_STRUCT)
-					size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
-				else
-					size = Math::DivideAndRoundUp(typeInfo.Size, 16U) * 4;
-
-				block.BlockSize = Math::DivideAndRoundUp(block.BlockSize, 4U) * 4;
-
-				param.ElementSize = size;
-				param.ArrayElementStride = size;
-				param.CpuMemOffset = block.BlockSize;
-				param.GpuMemOffset = 0;
-
-				// Last array element isn't rounded up to four component vectors unless it's a struct
-				if(param.Type != GPDT_STRUCT)
-				{
-					block.BlockSize += size * (param.ArraySize - 1);
-					block.BlockSize += typeInfo.Size / 4;
-				}
-				else
-					block.BlockSize += param.ArraySize * size;
+				bs_delete(mNullProgramFactory);
+				mNullProgramFactory = nullptr;
 			}
-			else
+
+			QueryManager::ShutDown();
+			RenderStateManager::ShutDown();
+			RenderWindowManager::ShutDown();
+			bs::RenderWindowManager::ShutDown();
+			HardwareBufferManager::ShutDown();
+			bs::HardwareBufferManager::ShutDown();
+			TextureManager::ShutDown();
+			bs::TextureManager::ShutDown();
+			CommandBufferManager::ShutDown();
+
+			RenderAPI::DestroyCore();
+		}
+
+		void NullRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
+		{
+			dest = matrix;
+		}
+
+		GpuParamBlockDesc NullRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuParamDataDesc>& params)
+		{
+			GpuParamBlockDesc block;
+			block.BlockSize = 0;
+			block.IsShareable = true;
+			block.Name = name;
+			block.Slot = 0;
+			block.Set = 0;
+
+			for(auto& param : params)
 			{
-				u32 size;
-				if(param.Type == GPDT_STRUCT)
+				const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[param.Type];
+
+				if(param.ArraySize > 1)
 				{
-					// Structs are always aligned and arounded up to 4 component vectors
-					size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
+					// Arrays perform no packing and their elements are always padded and aligned to four component vectors
+					u32 size;
+					if(param.Type == GPDT_STRUCT)
+						size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
+					else
+						size = Math::DivideAndRoundUp(typeInfo.Size, 16U) * 4;
+
 					block.BlockSize = Math::DivideAndRoundUp(block.BlockSize, 4U) * 4;
+
+					param.ElementSize = size;
+					param.ArrayElementStride = size;
+					param.CpuMemOffset = block.BlockSize;
+					param.GpuMemOffset = 0;
+
+					// Last array element isn't rounded up to four component vectors unless it's a struct
+					if(param.Type != GPDT_STRUCT)
+					{
+						block.BlockSize += size * (param.ArraySize - 1);
+						block.BlockSize += typeInfo.Size / 4;
+					}
+					else
+						block.BlockSize += param.ArraySize * size;
 				}
 				else
 				{
-					size = typeInfo.BaseTypeSize * (typeInfo.NumRows * typeInfo.NumColumns) / 4;
-
-					// Pack everything as tightly as possible as long as the data doesn't cross 16 byte boundary
-					u32 alignOffset = block.BlockSize % 4;
-					if (alignOffset != 0 && size > (4 - alignOffset))
+					u32 size;
+					if(param.Type == GPDT_STRUCT)
 					{
-						u32 padding = (4 - alignOffset);
-						block.BlockSize += padding;
+						// Structs are always aligned and arounded up to 4 component vectors
+						size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
+						block.BlockSize = Math::DivideAndRoundUp(block.BlockSize, 4U) * 4;
 					}
+					else
+					{
+						size = typeInfo.BaseTypeSize * (typeInfo.NumRows * typeInfo.NumColumns) / 4;
+
+						// Pack everything as tightly as possible as long as the data doesn't cross 16 byte boundary
+						u32 alignOffset = block.BlockSize % 4;
+						if(alignOffset != 0 && size > (4 - alignOffset))
+						{
+							u32 padding = (4 - alignOffset);
+							block.BlockSize += padding;
+						}
+					}
+
+					param.ElementSize = size;
+					param.ArrayElementStride = size;
+					param.CpuMemOffset = block.BlockSize;
+					param.GpuMemOffset = 0;
+
+					block.BlockSize += size;
 				}
 
-				param.ElementSize = size;
-				param.ArrayElementStride = size;
-				param.CpuMemOffset = block.BlockSize;
-				param.GpuMemOffset = 0;
-
-				block.BlockSize += size;
+				param.ParamBlockSlot = 0;
+				param.ParamBlockSet = 0;
 			}
 
-			param.ParamBlockSlot = 0;
-			param.ParamBlockSet = 0;
+			// Constant buffer size must always be a multiple of 16
+			if(block.BlockSize % 4 != 0)
+				block.BlockSize += (4 - (block.BlockSize % 4));
+
+			return block;
 		}
-
-		// Constant buffer size must always be a multiple of 16
-		if (block.BlockSize % 4 != 0)
-			block.BlockSize += (4 - (block.BlockSize % 4));
-
-		return block;
-	}
-}}
+	} // namespace ct
+} // namespace bs

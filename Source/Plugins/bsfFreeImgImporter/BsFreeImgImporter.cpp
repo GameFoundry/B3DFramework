@@ -21,11 +21,11 @@ using namespace std::placeholders;
 
 namespace bs
 {
-	void FreeImageLoadErrorHandler(FREE_IMAGE_FORMAT fif, const char *message)
+	void FreeImageLoadErrorHandler(FREE_IMAGE_FORMAT fif, const char* message)
 	{
 		// Callback method as required by FreeImage to report problems
 		const char* typeName = FreeImage_GetFormatFromFIF(fif);
-		if (typeName)
+		if(typeName)
 			BS_LOG(Error, FreeImageImporter, "FreeImage error: '{0}' when loading format {1}", message, typeName);
 		else
 			BS_LOG(Error, FreeImageImporter, "FreeImage error: '{0}'", message);
@@ -39,15 +39,15 @@ namespace bs
 		StringStream strExt;
 		strExt << "Supported formats: ";
 		bool first = true;
-		for (int i = 0; i < FreeImage_GetFIFCount(); ++i)
+		for(int i = 0; i < FreeImage_GetFIFCount(); ++i)
 		{
 			// Skip DDS codec since FreeImage does not have the option
 			// to keep DXT data compressed, we'll use our own codec
-			if ((FREE_IMAGE_FORMAT)i == FIF_DDS)
+			if((FREE_IMAGE_FORMAT)i == FIF_DDS)
 				continue;
 
 			String exts = String(FreeImage_GetFIFExtensionList((FREE_IMAGE_FORMAT)i));
-			if (!first)
+			if(!first)
 				strExt << ",";
 
 			first = false;
@@ -55,7 +55,7 @@ namespace bs
 
 			// Pull off individual formats (separated by comma by FI)
 			Vector<String> extsVector = StringUtil::Split(exts, u8",");
-			for (auto v = extsVector.begin(); v != extsVector.end(); ++v)
+			for(auto v = extsVector.begin(); v != extsVector.end(); ++v)
 			{
 				auto findIter = std::find(mExtensions.begin(), mExtensions.end(), *v);
 
@@ -105,7 +105,7 @@ namespace bs
 		FREE_IMAGE_FORMAT fif = FreeImage_GetFileTypeFromMemory(fiMem, (int)maxBytes);
 		FreeImage_CloseMemory(fiMem);
 
-		if (fif != FIF_UNKNOWN)
+		if(fif != FIF_UNKNOWN)
 		{
 			String ext = String(FreeImage_GetFormatFromFIF(fif));
 			StringUtil::ToLowerCase(ext);
@@ -138,7 +138,7 @@ namespace bs
 			texType = TEX_TYPE_CUBE_MAP;
 
 			std::array<SPtr<PixelData>, 6> cubemapFaces;
-			if (GenerateCubemap(imgData, textureImportOptions->CubemapSourceType, cubemapFaces))
+			if(GenerateCubemap(imgData, textureImportOptions->CubemapSourceType, cubemapFaces))
 			{
 				faceData.insert(faceData.begin(), cubemapFaces.begin(), cubemapFaces.end());
 			}
@@ -155,20 +155,19 @@ namespace bs
 		}
 
 		u32 numMips = 0;
-		if (textureImportOptions->GenerateMips &&
-			Bitwise::IsPow2(faceData[0]->GetWidth()) && Bitwise::IsPow2(faceData[0]->GetHeight()))
+		if(textureImportOptions->GenerateMips &&
+		   Bitwise::IsPow2(faceData[0]->GetWidth()) && Bitwise::IsPow2(faceData[0]->GetHeight()))
 		{
-			u32 maxPossibleMip = PixelUtil::GetMaxMipmaps(faceData[0]->GetWidth(), faceData[0]->GetHeight(),
-				faceData[0]->GetDepth(), faceData[0]->GetFormat());
+			u32 maxPossibleMip = PixelUtil::GetMaxMipmaps(faceData[0]->GetWidth(), faceData[0]->GetHeight(), faceData[0]->GetDepth(), faceData[0]->GetFormat());
 
-			if (textureImportOptions->MaxMip == 0)
+			if(textureImportOptions->MaxMip == 0)
 				numMips = maxPossibleMip;
 			else
 				numMips = std::min(maxPossibleMip, textureImportOptions->MaxMip);
 		}
 
 		int usage = TU_DEFAULT;
-		if (textureImportOptions->CpuCached)
+		if(textureImportOptions->CpuCached)
 			usage |= TU_CPUCACHED;
 
 		bool sRGB = textureImportOptions->SRgb;
@@ -185,10 +184,10 @@ namespace bs
 		SPtr<Texture> newTexture = Texture::CreatePtrInternal(texDesc);
 
 		u32 numFaces = (u32)faceData.size();
-		for (u32 i = 0; i < numFaces; i++)
+		for(u32 i = 0; i < numFaces; i++)
 		{
 			Vector<SPtr<PixelData>> mipLevels;
-			if (numMips > 0)
+			if(numMips > 0)
 			{
 				MipMapGenOptions mipOptions;
 				mipOptions.IsSrgb = sRGB;
@@ -198,7 +197,7 @@ namespace bs
 			else
 				mipLevels.push_back(faceData[i]);
 
-			for (u32 mip = 0; mip < (u32)mipLevels.size(); ++mip)
+			for(u32 mip = 0; mip < (u32)mipLevels.size(); ++mip)
 			{
 				SPtr<PixelData> dst = newTexture->GetProperties().AllocBuffer(0, mip);
 
@@ -221,7 +220,7 @@ namespace bs
 			Lock lock = FileScheduler::GetLock(filePath);
 
 			SPtr<DataStream> fileData = FileSystem::OpenFile(filePath, true);
-			if (fileData->Size() > std::numeric_limits<u32>::max())
+			if(fileData->Size() > std::numeric_limits<u32>::max())
 			{
 				BS_EXCEPT(InternalErrorException, "File size larger than supported!");
 			}
@@ -233,7 +232,7 @@ namespace bs
 
 			String fileExtension = MagicNumToExtension(magicBuf, magicLen);
 			auto findFormat = mExtensionToFID.find(fileExtension);
-			if (findFormat == mExtensionToFID.end())
+			if(findFormat == mExtensionToFID.end())
 			{
 				BS_EXCEPT(InvalidParametersException, "Type of the file provided is not supported by this importer. File type: " + fileExtension);
 			}
@@ -255,7 +254,7 @@ namespace bs
 
 		FIBITMAP* fiBitmap = FreeImage_LoadFromMemory(
 			(FREE_IMAGE_FORMAT)imageFormat, fiMem);
-		if (!fiBitmap)
+		if(!fiBitmap)
 		{
 			BS_EXCEPT(InternalErrorException, "Error decoding image");
 		}
@@ -285,7 +284,7 @@ namespace bs
 		case FIT_BITMAP:
 			// Standard image type
 			// Perform any colour conversions for greyscale
-			if (colourType == FIC_MINISWHITE || colourType == FIC_MINISBLACK)
+			if(colourType == FIC_MINISWHITE || colourType == FIC_MINISBLACK)
 			{
 				FIBITMAP* newBitmap = FreeImage_ConvertToGreyscale(fiBitmap);
 				// free old bitmap and replace
@@ -296,7 +295,7 @@ namespace bs
 				colourType = FreeImage_GetColorType(fiBitmap);
 			}
 			// Perform any colour conversions for RGB
-			else if (bpp < 8 || colourType == FIC_PALETTE || colourType == FIC_CMYK)
+			else if(bpp < 8 || colourType == FIC_PALETTE || colourType == FIC_CMYK)
 			{
 				FIBITMAP* newBitmap = FreeImage_ConvertTo24Bits(fiBitmap);
 				// free old bitmap and replace
@@ -349,8 +348,6 @@ namespace bs
 #endif
 				srcElemSize = 4;
 				break;
-
-
 			};
 			break;
 		case FIT_UINT16:
@@ -398,9 +395,9 @@ namespace bs
 		u8* pDst = output;
 
 		// Copy row by row, which is faster
-		if (srcElemSize == dstElemSize)
+		if(srcElemSize == dstElemSize)
 		{
-			for (u32 y = 0; y < height; ++y)
+			for(u32 y = 0; y < height; ++y)
 			{
 				pSrc = srcData + (height - y - 1) * srcPitch;
 				memcpy(pDst, pSrc, dstPitch);
@@ -409,7 +406,7 @@ namespace bs
 		}
 		else
 		{
-			for (u32 y = 0; y < height; ++y)
+			for(u32 y = 0; y < height; ++y)
 			{
 				pSrc = srcData + (height - y - 1) * srcPitch;
 
@@ -444,7 +441,7 @@ namespace bs
 			PixelVolume volume(faceStart.X, faceStart.Y, faceStart.X + faceSize, faceStart.Y + faceSize);
 			PixelUtil::Copy(*source, *output[i], faceStart.X, faceStart.Y);
 
-			if (vertical)
+			if(vertical)
 				faceStart.Y += faceSize;
 			else
 				faceStart.X += faceSize;
@@ -470,8 +467,7 @@ namespace bs
 	 * @param[in]	faceSize	Size of a single face, in pixels. Both width & height must match.
 	 * @param[in]	vertical	True if the faces are laid out vertically, false if horizontally.
 	 */
-	void readCubemapCross(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize,
-		bool vertical)
+	void readCubemapCross(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, bool vertical)
 	{
 		const static u32 vertFaceIndices[] = { 5, 3, 1, 7, 4, 10 };
 		const static u32 horzFaceIndices[] = { 6, 4, 1, 9, 5, 7 };
@@ -479,7 +475,7 @@ namespace bs
 		const u32* faceIndices = vertical ? vertFaceIndices : horzFaceIndices;
 		u32 numFacesInRow = vertical ? 3 : 4;
 
-		for (u32 i = 0; i < 6; i++)
+		for(u32 i = 0; i < 6; i++)
 		{
 			output[i] = PixelData::Create(faceSize, faceSize, 1, source->GetFormat());
 
@@ -491,7 +487,7 @@ namespace bs
 		}
 
 		// Flip -Z as it's upside down
-		if (vertical)
+		if(vertical)
 			PixelUtil::Mirror(*output[5], MirrorModeBits::X | MirrorModeBits::Y);
 	}
 
@@ -542,8 +538,7 @@ namespace bs
 	 * @param[in]	faceSize	Width/height of each individual face, in pixels.
 	 * @param[in]	remap		Function to use for remapping the cubemap direction to UV.
 	 */
-	void readCubemapUVRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize,
-		const std::function<Vector2(Vector3)>& remap)
+	void readCubemapUVRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, const std::function<Vector2(Vector3)>& remap)
 	{
 		struct RemapInfo
 		{
@@ -553,25 +548,24 @@ namespace bs
 
 		// Mapping from default (X, Y, 1.0f) plane to relevant cube face. Also flipping Y so it corresponds to how pixel
 		// coordinates are mapped.
-		static const RemapInfo remapLookup[] =
-		{
-			{ {2, 1, 0}, { -1.0f, -1.0f,  1.0f }}, // X+
-			{ {2, 1, 0}, {  1.0f, -1.0f, -1.0f }}, // X-
-			{ {0, 2, 1}, {  1.0f,  1.0f,  1.0f }}, // Y+
-			{ {0, 2, 1}, {  1.0f, -1.0f, -1.0f }}, // Y-
-			{ {0, 1, 2}, {  1.0f, -1.0f,  1.0f }}, // Z+
-			{ {0, 1, 2}, { -1.0f, -1.0f, -1.0f }}  // Z-
+		static const RemapInfo remapLookup[] = {
+			{ { 2, 1, 0 }, { -1.0f, -1.0f, 1.0f } }, // X+
+			{ { 2, 1, 0 }, { 1.0f, -1.0f, -1.0f } }, // X-
+			{ { 0, 2, 1 }, { 1.0f, 1.0f, 1.0f } }, // Y+
+			{ { 0, 2, 1 }, { 1.0f, -1.0f, -1.0f } }, // Y-
+			{ { 0, 1, 2 }, { 1.0f, -1.0f, 1.0f } }, // Z+
+			{ { 0, 1, 2 }, { -1.0f, -1.0f, -1.0f } } // Z-
 		};
 
 		float invSize = 1.0f / faceSize;
-		for (u32 faceIdx = 0; faceIdx < 6; faceIdx++)
+		for(u32 faceIdx = 0; faceIdx < 6; faceIdx++)
 		{
 			output[faceIdx] = PixelData::Create(faceSize, faceSize, 1, source->GetFormat());
 
 			const RemapInfo& remapInfo = remapLookup[faceIdx];
-			for (u32 y = 0; y < faceSize; y++)
+			for(u32 y = 0; y < faceSize; y++)
 			{
-				for (u32 x = 0; x < faceSize; x++)
+				for(u32 x = 0; x < faceSize; x++)
 				{
 					// Map from pixel coordinates to [-1, 1] range.
 					Vector2 sourceCoord = (Vector2((float)x, (float)y) * invSize) * 2.0f - Vector2(1.0f, 1.0f);
@@ -596,8 +590,7 @@ namespace bs
 		}
 	}
 
-	bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType,
-						 std::array<SPtr<PixelData>, 6>& output)
+	bool FreeImgImporter::GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType, std::array<SPtr<PixelData>, 6>& output)
 	{
 		// Note: Expose this as a parameter if needed:
 		u32 cubemapSupersampling = 1; // Set to amount of samples
@@ -611,7 +604,7 @@ namespace bs
 		case CubemapSourceType::Faces:
 			{
 				float aspect = source->GetWidth() / (float)source->GetHeight();
-				
+
 				if(Math::ApproxEquals(aspect, 6.0f)) // Horizontal list
 				{
 					faceSize.X = source->GetWidth() / 6;
@@ -661,56 +654,56 @@ namespace bs
 			break;
 		}
 
-		if (faceSize.X != faceSize.Y)
+		if(faceSize.X != faceSize.Y)
 		{
 			BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must match.");
 			return false;
 		}
 
-		if (!Bitwise::IsPow2(faceSize.X))
+		if(!Bitwise::IsPow2(faceSize.X))
 		{
 			BS_LOG(Warning, FreeImageImporter, "Unable to generate a cubemap: width & height must be powers of 2.");
 			return false;
 		}
 
-		switch (sourceType)
+		switch(sourceType)
 		{
 		case CubemapSourceType::Faces:
-		{
-			if (cross)
-				readCubemapCross(source, output, faceSize.X, vertical);
-			else
-				readCubemapList(source, output, faceSize.X, vertical);
-		}
-		break;
+			{
+				if(cross)
+					readCubemapCross(source, output, faceSize.X, vertical);
+				else
+					readCubemapList(source, output, faceSize.X, vertical);
+			}
+			break;
 		case CubemapSourceType::Cylindrical:
-		{			
-			u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
+			{
+				u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
 
-			std::array<SPtr<PixelData>, 6> superSampledOutput;
-			readCubemapUVRemap(source, superSampledOutput, superSampledFaceSize, &mapCubemapDirToCylindrical);
+				std::array<SPtr<PixelData>, 6> superSampledOutput;
+				readCubemapUVRemap(source, superSampledOutput, superSampledFaceSize, &mapCubemapDirToCylindrical);
 
-			if (faceSize.X != (i32)superSampledFaceSize)
-				downsampleCubemap(superSampledOutput, output, faceSize.X);
-			else
-				output = superSampledOutput;
-		}
-		break;
+				if(faceSize.X != (i32)superSampledFaceSize)
+					downsampleCubemap(superSampledOutput, output, faceSize.X);
+				else
+					output = superSampledOutput;
+			}
+			break;
 		case CubemapSourceType::Spherical:
-		{
-			u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
+			{
+				u32 superSampledFaceSize = faceSize.X * cubemapSupersampling;
 
-			std::array<SPtr<PixelData>, 6> superSampledOutput;
-			readCubemapUVRemap(source, superSampledOutput, superSampledFaceSize, &mapCubemapDirToSpherical);
+				std::array<SPtr<PixelData>, 6> superSampledOutput;
+				readCubemapUVRemap(source, superSampledOutput, superSampledFaceSize, &mapCubemapDirToSpherical);
 
-			if (faceSize.X != (i32)superSampledFaceSize)
-				downsampleCubemap(superSampledOutput, output, faceSize.X);
-			else
-				output = superSampledOutput;
-		}
-		break;
+				if(faceSize.X != (i32)superSampledFaceSize)
+					downsampleCubemap(superSampledOutput, output, faceSize.X);
+				else
+					output = superSampledOutput;
+			}
+			break;
 		default: // Single-image
-			for (u32 i = 0; i < 6; i++)
+			for(u32 i = 0; i < 6; i++)
 				output[i] = source;
 
 			break;
@@ -718,4 +711,4 @@ namespace bs
 
 		return true;
 	}
-}
+} // namespace bs

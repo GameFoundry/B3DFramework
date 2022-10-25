@@ -13,7 +13,7 @@ namespace bs
 	/** @addtogroup NullAudio
 	 *  @{
 	 */
-	
+
 	/** Global manager for the null audio implementation. */
 	class NullAudio final : public Audio
 	{
@@ -48,14 +48,13 @@ namespace bs
 		friend class NullAudioSource;
 
 		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-			const AUDIO_CLIP_DESC& desc) ;
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
 
 		/** @copydoc Audio::createListener */
 		SPtr<AudioListener> CreateListener() override;
 
 		/** @copydoc Audio::createSource */
-		SPtr<AudioSource> CreateSource() ;
+		SPtr<AudioSource> CreateSource();
 
 		float mVolume = 1.0f;
 		bool mIsPaused = false;
@@ -76,7 +75,7 @@ namespace bs
 		void Initialize() override;
 
 		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size) ;
+		SPtr<DataStream> GetSourceStream(u32& size);
 
 	private:
 		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
@@ -100,7 +99,7 @@ namespace bs
 		void SetTime(float time) override { mTime = time; }
 
 		/** @copydoc AudioSource::getTime */
-		float GetTime() const override { return mTime;}
+		float GetTime() const override { return mTime; }
 
 		/** @copydoc AudioSource::play */
 		void Play() override { mState = AudioSourceState::Playing; }
@@ -126,4 +125,4 @@ namespace bs
 	NullAudio& gNullAudio();
 
 	/** @} */
-}
+} // namespace bs

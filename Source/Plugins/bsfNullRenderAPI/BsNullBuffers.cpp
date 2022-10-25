@@ -2,127 +2,125 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsNullBuffers.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<VertexBuffer> NullHardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
+	namespace ct
 	{
-		SPtr<NullVertexBuffer> ret = bs_shared_ptr_new<NullVertexBuffer>(desc, deviceMask);
-		ret->SetThisPtrInternal(ret);
+		SPtr<VertexBuffer> NullHardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			SPtr<NullVertexBuffer> ret = bs_shared_ptr_new<NullVertexBuffer>(desc, deviceMask);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
+			return ret;
+		}
 
-	SPtr<IndexBuffer> NullHardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
-	{
-		SPtr<NullIndexBuffer> ret = bs_shared_ptr_new<NullIndexBuffer>(desc, deviceMask);
-		ret->SetThisPtrInternal(ret);
+		SPtr<IndexBuffer> NullHardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			SPtr<NullIndexBuffer> ret = bs_shared_ptr_new<NullIndexBuffer>(desc, deviceMask);
+			ret->SetThisPtrInternal(ret);
 
-		return ret;
-	}
+			return ret;
+		}
 
-	SPtr<GpuParamBlockBuffer> NullHardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size,
-		GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-	{
-		SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr_new<NullGpuParamBlockBuffer>(size, usage, deviceMask);
-		paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
+		SPtr<GpuParamBlockBuffer> NullHardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+		{
+			SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr_new<NullGpuParamBlockBuffer>(size, usage, deviceMask);
+			paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
-		return paramBlockBufferPtr;
-	}
+			return paramBlockBufferPtr;
+		}
 
-	SPtr<GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-		GpuDeviceFlags deviceMask)
-	{
-		SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, deviceMask);
-		bufferPtr->SetThisPtrInternal(bufferPtr);
+		SPtr<GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+		{
+			SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, deviceMask);
+			bufferPtr->SetThisPtrInternal(bufferPtr);
 
-		return bufferPtr;
-	}
+			return bufferPtr;
+		}
 
-	SPtr<GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc,
-		SPtr<HardwareBuffer> underlyingBuffer)
-	{
-		SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, std::move(underlyingBuffer));
-		bufferPtr->SetThisPtrInternal(bufferPtr);
+		SPtr<GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+		{
+			SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, std::move(underlyingBuffer));
+			bufferPtr->SetThisPtrInternal(bufferPtr);
 
-		return bufferPtr;
-	}
+			return bufferPtr;
+		}
 
-	static void deleteBuffer(HardwareBuffer* buffer)
-	{
-		bs_pool_delete(static_cast<NullHardwareBuffer*>(buffer));
-	}
+		static void deleteBuffer(HardwareBuffer* buffer)
+		{
+			bs_pool_delete(static_cast<NullHardwareBuffer*>(buffer));
+		}
 
-	NullGpuBuffer::NullGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuBuffer(desc, deviceMask)
-	{ }
+		NullGpuBuffer::NullGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: GpuBuffer(desc, deviceMask)
+		{}
 
-	NullGpuBuffer::NullGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
-		: GpuBuffer(desc, std::move(underlyingBuffer))
-	{ }
+		NullGpuBuffer::NullGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+			: GpuBuffer(desc, std::move(underlyingBuffer))
+		{}
 
-	void NullGpuBuffer::Initialize()
-	{
-		const GpuBufferProperties& props = GetProperties();
-		mBufferDeleter = &deleteBuffer;
+		void NullGpuBuffer::Initialize()
+		{
+			const GpuBufferProperties& props = GetProperties();
+			mBufferDeleter = &deleteBuffer;
 
-		// Create a new buffer if not wrapping an external one
-		if(!mBuffer)
-			mBuffer = bs_pool_new<NullHardwareBuffer>(props.GetUsage(), props.GetElementCount(), props.GetElementSize());
+			// Create a new buffer if not wrapping an external one
+			if(!mBuffer)
+				mBuffer = bs_pool_new<NullHardwareBuffer>(props.GetUsage(), props.GetElementCount(), props.GetElementSize());
 
-		GpuBuffer::Initialize();
-	}
+			GpuBuffer::Initialize();
+		}
 
-	NullGpuParamBlockBuffer::NullGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-		:GpuParamBlockBuffer(size, usage, deviceMask)
-	{ }
+		NullGpuParamBlockBuffer::NullGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+			: GpuParamBlockBuffer(size, usage, deviceMask)
+		{}
 
-	void NullGpuParamBlockBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
-		GpuParamBlockBuffer::Initialize();
-	}
+		void NullGpuParamBlockBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
+			GpuParamBlockBuffer::Initialize();
+		}
 
-	NullHardwareBuffer::NullHardwareBuffer(GpuBufferUsage usage, u32 elementCount, u32 elementSize)
-		: HardwareBuffer(elementCount * elementSize, usage, GDF_DEFAULT)
-	{ }
+		NullHardwareBuffer::NullHardwareBuffer(GpuBufferUsage usage, u32 elementCount, u32 elementSize)
+			: HardwareBuffer(elementCount * elementSize, usage, GDF_DEFAULT)
+		{}
 
-	void* NullHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)
-	{
-		assert(mStagingBuffer == nullptr);
+		void* NullHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)
+		{
+			assert(mStagingBuffer == nullptr);
 
-		mStagingBuffer = bs_alloc(mSize);
-		return mStagingBuffer;
-	}
+			mStagingBuffer = bs_alloc(mSize);
+			return mStagingBuffer;
+		}
 
-	void NullHardwareBuffer::Unmap()
-	{
-		bs_free(mStagingBuffer);
-		mStagingBuffer = nullptr;
-	}
+		void NullHardwareBuffer::Unmap()
+		{
+			bs_free(mStagingBuffer);
+			mStagingBuffer = nullptr;
+		}
 
-	NullIndexBuffer::NullIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:IndexBuffer(desc, deviceMask)
-	{ }
+		NullIndexBuffer::NullIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: IndexBuffer(desc, deviceMask)
+		{}
 
-	void NullIndexBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
-		mBufferDeleter = &deleteBuffer;
+		void NullIndexBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
+			mBufferDeleter = &deleteBuffer;
 
-		IndexBuffer::Initialize();
-	}
+			IndexBuffer::Initialize();
+		}
 
-	NullVertexBuffer::NullVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		: VertexBuffer(desc, deviceMask)
-	{ }
+		NullVertexBuffer::NullVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: VertexBuffer(desc, deviceMask)
+		{}
 
-	void NullVertexBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
-		mBufferDeleter = &deleteBuffer;
+		void NullVertexBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<NullHardwareBuffer>(mUsage, 1, mSize);
+			mBufferDeleter = &deleteBuffer;
 
-		VertexBuffer::Initialize();
-	}
-}}
+			VertexBuffer::Initialize();
+		}
+	} // namespace ct
+} // namespace bs

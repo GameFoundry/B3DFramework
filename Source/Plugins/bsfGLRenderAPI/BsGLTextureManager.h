@@ -23,35 +23,33 @@ namespace bs
 		/**
 		 * Converts the provided format for the specified texture type and usage into a format that is supported by OpenGL.
 		 */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) ;
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
 
 	protected:
 		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) ;
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
 
 		ct::GLSupport& mGLSupport;
 	};
 
 	namespace ct
 	{
-	/** Handles creation of OpenGL textures. */
-	class GLTextureManager : public TextureManager
-	{
-	public:
-		GLTextureManager(GLSupport& support);
+		/** Handles creation of OpenGL textures. */
+		class GLTextureManager : public TextureManager
+		{
+		public:
+			GLTextureManager(GLSupport& support);
 
-	protected:		
-		/** @copydoc TextureManager::createTextureInternal */
-		SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc,
-			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+		protected:
+			/** @copydoc TextureManager::createTextureInternal */
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		/** @copydoc TextureManager::createRenderTextureInternal */
-		SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
-			u32 deviceIdx = 0) ;
+			/** @copydoc TextureManager::createRenderTextureInternal */
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
 
-		GLSupport& mGLSupport;
-	};
-	}
+			GLSupport& mGLSupport;
+		};
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

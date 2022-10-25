@@ -5,45 +5,48 @@
 #include "BsGLPrerequisites.h"
 #include "RenderAPI/BsTimerQuery.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of a timer query. */
-	class GLTimerQuery : public TimerQuery
+	namespace ct
 	{
-	public:
-		GLTimerQuery(u32 deviceIdx);
-		~GLTimerQuery();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc TimerQuery::begin */
-		void Begin(const SPtr<CommandBuffer>& cb = nullptr) ;
+		/**	OpenGL implementation of a timer query. */
+		class GLTimerQuery : public TimerQuery
+		{
+		public:
+			GLTimerQuery(u32 deviceIdx);
+			~GLTimerQuery();
 
-		/** @copydoc TimerQuery::end */
-		void End(const SPtr<CommandBuffer>& cb = nullptr) ;
+			/** @copydoc TimerQuery::begin */
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc TimerQuery::isReady */
-		bool IsReady() const ;
+			/** @copydoc TimerQuery::end */
+			void End(const SPtr<CommandBuffer>& cb = nullptr);
 
-		/** @copydoc TimerQuery::getTimeMs */
-		float GetTimeMs() ;
+			/** @copydoc TimerQuery::isReady */
+			bool IsReady() const;
 
-	private:
-		friend class QueryManager;
+			/** @copydoc TimerQuery::getTimeMs */
+			float GetTimeMs();
 
-		/** Processes query results and saves them for later use. To be called when query has completed. */
-		void Finalize();
+		private:
+			friend class QueryManager;
 
-	private:
-		GLuint mQueryStartObj = 0;
-		GLuint mQueryEndObj = 0;
-		bool mFinalized = false;
-		bool mEndIssued = false;
+			/** Processes query results and saves them for later use. To be called when query has completed. */
+			void Finalize();
 
-		float mTimeDelta = 0.0f;
-	};
+		private:
+			GLuint mQueryStartObj = 0;
+			GLuint mQueryEndObj = 0;
+			bool mFinalized = false;
+			bool mEndIssued = false;
 
-	/** @} */
-}}
+			float mTimeDelta = 0.0f;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

@@ -6,69 +6,71 @@
 #include "Mesh/BsMesh.h"
 #include "Renderer/BsRendererUtility.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	DecalParamDef gDecalParamDef;
-
-	void DecalRenderElement::Draw() const
+	namespace ct
 	{
-		gRendererUtility().Draw(Mesh, SubMesh);
-	}
+		DecalParamDef gDecalParamDef;
 
-	RendererDecal::RendererDecal()
-	{
-		DecalParamBuffer = gDecalParamDef.CreateBuffer();
-		PerObjectParamBuffer = gPerObjectParamDef.CreateBuffer();
-		PerCallParamBuffer = gPerCallParamDef.CreateBuffer();
-	}
+		void DecalRenderElement::Draw() const
+		{
+			gRendererUtility().Draw(Mesh, SubMesh);
+		}
 
-	void RendererDecal::UpdatePerObjectBuffer()
-	{
-		const Vector2 size = Decal->GetWorldSize();
-		const Vector2 extent = size * 0.5f;
-		const float maxDistance = Decal->GetWorldMaxDistance();
+		RendererDecal::RendererDecal()
+		{
+			DecalParamBuffer = gDecalParamDef.CreateBuffer();
+			PerObjectParamBuffer = gPerObjectParamDef.CreateBuffer();
+			PerCallParamBuffer = gPerCallParamDef.CreateBuffer();
+		}
 
-		const Vector3 scale(extent.X, extent.Y, maxDistance * 0.5f);
-		const Vector3 offset(0.0f, 0.0f, -maxDistance * 0.5f);
+		void RendererDecal::UpdatePerObjectBuffer()
+		{
+			const Vector2 size = Decal->GetWorldSize();
+			const Vector2 extent = size * 0.5f;
+			const float maxDistance = Decal->GetWorldMaxDistance();
 
-		const Matrix4 scaleAndOffset = Matrix4::TRS(offset, Quaternion::IDENTITY, scale);
+			const Vector3 scale(extent.X, extent.Y, maxDistance * 0.5f);
+			const Vector3 offset(0.0f, 0.0f, -maxDistance * 0.5f);
 
-		const Matrix4 worldTransform = Decal->GetMatrix() * scaleAndOffset;
-		const Matrix4 worldNoScaleTransform = Decal->GetMatrixNoScale() * scaleAndOffset;
+			const Matrix4 scaleAndOffset = Matrix4::TRS(offset, Quaternion::IDENTITY, scale);
 
-		// Note: Not providing the previous frame matrix here
-		PerObjectBuffer::Update(PerObjectParamBuffer, worldTransform, worldNoScaleTransform, worldTransform, 0);
+			const Matrix4 worldTransform = Decal->GetMatrix() * scaleAndOffset;
+			const Matrix4 worldNoScaleTransform = Decal->GetMatrixNoScale() * scaleAndOffset;
 
-		const Transform& tfrm = Decal->GetTransform();
+			// Note: Not providing the previous frame matrix here
+			PerObjectBuffer::Update(PerObjectParamBuffer, worldTransform, worldNoScaleTransform, worldTransform, 0);
 
-		const Matrix4 view = Matrix4::View(tfrm.GetPosition(), tfrm.GetRotation());
-		const Matrix4 proj = Matrix4::ProjectionOrthographic(-extent.X, extent.X, -extent.Y, extent.Y, 0.0f,
-			Decal->GetWorldMaxDistance());
+			const Transform& tfrm = Decal->GetTransform();
 
-		const Matrix4 worldToDecal = proj * view;
-		const Vector3 decalNormal = -Decal->GetTransform().GetRotation().ZAxis();
-		const float normalTolerance = -0.05f;
+			const Matrix4 view = Matrix4::View(tfrm.GetPosition(), tfrm.GetRotation());
+			const Matrix4 proj = Matrix4::ProjectionOrthographic(-extent.X, extent.X, -extent.Y, extent.Y, 0.0f, Decal->GetWorldMaxDistance());
 
-		float flipDerivatives = 1.0f;
+			const Matrix4 worldToDecal = proj * view;
+			const Vector3 decalNormal = -Decal->GetTransform().GetRotation().ZAxis();
+			const float normalTolerance = -0.05f;
 
-		const Conventions& rapiConventions = gCaps().Conventions;
-		if(rapiConventions.UvYAxis == Conventions::Axis::Up)
-			flipDerivatives = -1.0f;
+			float flipDerivatives = 1.0f;
 
-		gDecalParamDef.gWorldToDecal.Set(DecalParamBuffer, worldToDecal);
-		gDecalParamDef.gDecalNormal.Set(DecalParamBuffer, decalNormal);
-		gDecalParamDef.gNormalTolerance.Set(DecalParamBuffer, normalTolerance);
-		gDecalParamDef.gFlipDerivatives.Set(DecalParamBuffer, flipDerivatives);
-		gDecalParamDef.gLayerMask.Set(DecalParamBuffer, (i32)Decal->GetLayerMask());
-	}
+			const Conventions& rapiConventions = gCaps().Conventions;
+			if(rapiConventions.UvYAxis == Conventions::Axis::Up)
+				flipDerivatives = -1.0f;
 
-	void RendererDecal::UpdatePerCallBuffer(const Matrix4& viewProj, bool flush) const
-	{
-		const Matrix4 worldViewProjMatrix = viewProj * Decal->GetMatrix();
+			gDecalParamDef.gWorldToDecal.Set(DecalParamBuffer, worldToDecal);
+			gDecalParamDef.gDecalNormal.Set(DecalParamBuffer, decalNormal);
+			gDecalParamDef.gNormalTolerance.Set(DecalParamBuffer, normalTolerance);
+			gDecalParamDef.gFlipDerivatives.Set(DecalParamBuffer, flipDerivatives);
+			gDecalParamDef.gLayerMask.Set(DecalParamBuffer, (i32)Decal->GetLayerMask());
+		}
 
-		gPerCallParamDef.gMatWorldViewProj.Set(PerCallParamBuffer, worldViewProjMatrix);
+		void RendererDecal::UpdatePerCallBuffer(const Matrix4& viewProj, bool flush) const
+		{
+			const Matrix4 worldViewProjMatrix = viewProj * Decal->GetMatrix();
 
-		if(flush)
-			PerCallParamBuffer->FlushToGpu();
-	}
-}}
+			gPerCallParamDef.gMatWorldViewProj.Set(PerCallParamBuffer, worldViewProjMatrix);
+
+			if(flush)
+				PerCallParamBuffer->FlushToGpu();
+		}
+	} // namespace ct
+} // namespace bs

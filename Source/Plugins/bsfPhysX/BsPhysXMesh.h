@@ -37,19 +37,27 @@ namespace bs
 		~FPhysXMesh();
 
 		/** @copydoc PhysicsMesh::getMeshData */
-		SPtr<MeshData> GetMeshData() const ;
+		SPtr<MeshData> GetMeshData() const;
 
 		/**
 		 * Returns the internal PhysX representation of a triangle mesh. Caller must ensure the physics mesh type is
 		 * triangle.
 		 */
-		physx::PxTriangleMesh* GetTriangleInternal() const { assert(mType == PhysicsMeshType::Triangle); return mTriangleMesh; }
+		physx::PxTriangleMesh* GetTriangleInternal() const
+		{
+			assert(mType == PhysicsMeshType::Triangle);
+			return mTriangleMesh;
+		}
 
 		/**
 		 * Returns the internal PhysX representation of a convex mesh. Caller must ensure the physics mesh type is
 		 * convex.
 		 */
-		physx::PxConvexMesh* GetConvexInternal() const { assert(mType == PhysicsMeshType::Convex); return mConvexMesh; }
+		physx::PxConvexMesh* GetConvexInternal() const
+		{
+			assert(mType == PhysicsMeshType::Convex);
+			return mConvexMesh;
+		}
 
 	private:
 		/** Creates the internal triangle/convex mesh */
@@ -73,4 +81,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

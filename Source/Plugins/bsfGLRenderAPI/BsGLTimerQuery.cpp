@@ -5,109 +5,112 @@
 #include "Math/BsMath.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	GLTimerQuery::GLTimerQuery(u32 deviceIdx)
+	namespace ct
 	{
-		assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
-
-		GLuint queries[2];
-		glGenQueries(2, queries);
-		BS_CHECK_GL_ERROR();
-
-		mQueryStartObj = queries[0];
-		mQueryEndObj = queries[1];
-
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
-	}
-
-	GLTimerQuery::~GLTimerQuery()
-	{
-		GLuint queries[2];
-		queries[0] = mQueryStartObj;
-		queries[1] = mQueryEndObj;
-
-		glDeleteQueries(2, queries);
-		BS_CHECK_GL_ERROR();
-
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
-	}
-
-	void GLTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
-	{
-		auto execute = [&]()
+		GLTimerQuery::GLTimerQuery(u32 deviceIdx)
 		{
-			glQueryCounter(mQueryStartObj, GL_TIMESTAMP);
+			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+
+			GLuint queries[2];
+			glGenQueries(2, queries);
 			BS_CHECK_GL_ERROR();
 
-			SetActive(true);
-			mEndIssued = false;
-		};
+			mQueryStartObj = queries[0];
+			mQueryEndObj = queries[1];
 
-		if (cb == nullptr)
-			execute();
-		else
-		{
-			SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-			glCB->QueueCommand(execute);
+			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
 		}
-	}
 
-	void GLTimerQuery::End(const SPtr<CommandBuffer>& cb)
-	{
-		auto execute = [&]()
+		GLTimerQuery::~GLTimerQuery()
 		{
-			glQueryCounter(mQueryEndObj, GL_TIMESTAMP);
+			GLuint queries[2];
+			queries[0] = mQueryStartObj;
+			queries[1] = mQueryEndObj;
+
+			glDeleteQueries(2, queries);
 			BS_CHECK_GL_ERROR();
 
-			mEndIssued = true;
-			mFinalized = false;
-		};
-
-		if (cb == nullptr)
-			execute();
-		else
-		{
-			SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-			glCB->QueueCommand(execute);
-		}
-	}
-
-	bool GLTimerQuery::IsReady() const
-	{
-		if (!mEndIssued)
-			return false;
-
-		GLint done = 0;
-		glGetQueryObjectiv(mQueryEndObj, GL_QUERY_RESULT_AVAILABLE, &done);
-		BS_CHECK_GL_ERROR();
-
-		return done == GL_TRUE;
-	}
-
-	float GLTimerQuery::GetTimeMs()
-	{
-		if(!mFinalized && IsReady())
-		{
-			Finalize();
+			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 		}
 
-		return mTimeDelta;
-	}
+		void GLTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
+		{
+			auto execute = [&]()
+			{
+				glQueryCounter(mQueryStartObj, GL_TIMESTAMP);
+				BS_CHECK_GL_ERROR();
 
-	void GLTimerQuery::Finalize()
-	{
-		mFinalized = true;
+				SetActive(true);
+				mEndIssued = false;
+			};
 
-		GLuint64 timeStart;
-		GLuint64 timeEnd;
+			if(cb == nullptr)
+				execute();
+			else
+			{
+				SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
+				glCB->QueueCommand(execute);
+			}
+		}
 
-		glGetQueryObjectui64v(mQueryStartObj, GL_QUERY_RESULT, &timeStart);
-		BS_CHECK_GL_ERROR();
+		void GLTimerQuery::End(const SPtr<CommandBuffer>& cb)
+		{
+			auto execute = [&]()
+			{
+				glQueryCounter(mQueryEndObj, GL_TIMESTAMP);
+				BS_CHECK_GL_ERROR();
 
-		glGetQueryObjectui64v(mQueryEndObj, GL_QUERY_RESULT, &timeEnd);
-		BS_CHECK_GL_ERROR();
+				mEndIssued = true;
+				mFinalized = false;
+			};
 
-		mTimeDelta = (timeEnd - timeStart) / 1000000.0f;
-	}
-}}
+			if(cb == nullptr)
+				execute();
+			else
+			{
+				SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
+				glCB->QueueCommand(execute);
+			}
+		}
+
+		bool GLTimerQuery::IsReady() const
+		{
+			if(!mEndIssued)
+				return false;
+
+			GLint done = 0;
+			glGetQueryObjectiv(mQueryEndObj, GL_QUERY_RESULT_AVAILABLE, &done);
+			BS_CHECK_GL_ERROR();
+
+			return done == GL_TRUE;
+		}
+
+		float GLTimerQuery::GetTimeMs()
+		{
+			if(!mFinalized && IsReady())
+			{
+				Finalize();
+			}
+
+			return mTimeDelta;
+		}
+
+		void GLTimerQuery::Finalize()
+		{
+			mFinalized = true;
+
+			GLuint64 timeStart;
+			GLuint64 timeEnd;
+
+			glGetQueryObjectui64v(mQueryStartObj, GL_QUERY_RESULT, &timeStart);
+			BS_CHECK_GL_ERROR();
+
+			glGetQueryObjectui64v(mQueryEndObj, GL_QUERY_RESULT, &timeEnd);
+			BS_CHECK_GL_ERROR();
+
+			mTimeDelta = (timeEnd - timeStart) / 1000000.0f;
+		}
+	} // namespace ct
+} // namespace bs

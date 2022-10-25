@@ -3,14 +3,17 @@
 #include "BsD3D11RenderAPIFactory.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	constexpr const char* D3D11RenderAPIFactory::SystemName;
-
-	void D3D11RenderAPIFactory::Create()
+	namespace ct
 	{
-		RenderAPI::StartUp<D3D11RenderAPI>();
-	}
+		constexpr const char* D3D11RenderAPIFactory::SystemName;
 
-	D3D11RenderAPIFactory::InitOnStart D3D11RenderAPIFactory::initOnStart;
-}}
+		void D3D11RenderAPIFactory::Create()
+		{
+			RenderAPI::StartUp<D3D11RenderAPI>();
+		}
+
+		D3D11RenderAPIFactory::InitOnStart D3D11RenderAPIFactory::initOnStart;
+	} // namespace ct
+} // namespace bs

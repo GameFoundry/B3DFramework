@@ -6,25 +6,29 @@
 #include "RenderAPI/BsGpuParamBlockBuffer.h"
 #include "BsGLHardwareBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of a GPU parameter buffer (Uniform buffer). */
-	class GLGpuParamBlockBuffer : public GpuParamBlockBuffer
+	namespace ct
 	{
-	public:
-		GLGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
-		~GLGpuParamBlockBuffer();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/**	Returns internal OpenGL uniform buffer handle. */
-		GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
-	protected:
-		/** @copydoc GpuParamBlockBuffer::initialize */
-		void Initialize() ;
-	};
+		/**	OpenGL implementation of a GPU parameter buffer (Uniform buffer). */
+		class GLGpuParamBlockBuffer : public GpuParamBlockBuffer
+		{
+		public:
+			GLGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask);
+			~GLGpuParamBlockBuffer();
 
-	/** @} */
-}}
+			/**	Returns internal OpenGL uniform buffer handle. */
+			GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
+
+		protected:
+			/** @copydoc GpuParamBlockBuffer::initialize */
+			void Initialize();
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

@@ -136,7 +136,7 @@ namespace bs
 			void getCustomAttribute(const String& name, void* pData) const override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& GetPropertiesLockInternal() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock; }
 
 		protected:
 			friend class MacOSGLSupport;
@@ -155,6 +155,7 @@ namespace bs
 
 			/** Rebuilds the swap chain according to the currently set properties. */
 			void rebuildSwapChain();
+
 		protected:
 			friend class bs::MacOSRenderWindow;
 
@@ -173,8 +174,7 @@ namespace bs
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
-
+} // namespace bs

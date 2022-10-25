@@ -12,7 +12,7 @@ namespace bs
 {
 	PxPrismaticJointFlag::Enum toPxFlag(SliderJointFlag flag)
 	{
-		switch (flag)
+		switch(flag)
 		{
 		default:
 		case SliderJointFlag::Limit:
@@ -21,14 +21,14 @@ namespace bs
 	}
 
 	PhysXSliderJoint::PhysXSliderJoint(PxPhysics* physx, const SLIDER_JOINT_DESC& desc)
-		:SliderJoint(desc)
+		: SliderJoint(desc)
 	{
 		PxRigidActor* actor0 = nullptr;
-		if (desc.Bodies[0].Body != nullptr)
+		if(desc.Bodies[0].Body != nullptr)
 			actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
 
 		PxRigidActor* actor1 = nullptr;
-		if (desc.Bodies[1].Body != nullptr)
+		if(desc.Bodies[1].Body != nullptr)
 			actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
 
 		PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
@@ -41,7 +41,7 @@ namespace bs
 
 		PxPrismaticJointFlags flags;
 
-		if (((u32)desc.Flag & (u32)SliderJointFlag::Limit) != 0)
+		if(((u32)desc.Flag & (u32)SliderJointFlag::Limit) != 0)
 			flags |= PxPrismaticJointFlag::eLIMIT_ENABLED;
 
 		joint->setPrismaticJointFlags(flags);
@@ -106,4 +106,4 @@ namespace bs
 
 		return static_cast<PxPrismaticJoint*>(internal->GetInternalInternal());
 	}
-}
+} // namespace bs

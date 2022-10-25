@@ -5,8 +5,8 @@
 
 namespace bs
 {
-    extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-    {
-        return ct::NullRenderAPIFactory::SystemName;
-    }
-}
+	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
+	{
+		return ct::NullRenderAPIFactory::SystemName;
+	}
+} // namespace bs

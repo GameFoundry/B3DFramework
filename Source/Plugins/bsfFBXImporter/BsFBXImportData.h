@@ -81,7 +81,7 @@ namespace bs
 	{
 		FBXBoneInfluence()
 		{
-			for (u32 i = 0; i < FBX_IMPORT_MAX_BONE_INFLUENCES; i++)
+			for(u32 i = 0; i < FBX_IMPORT_MAX_BONE_INFLUENCES; i++)
 			{
 				Weights[i] = 0.0f;
 				Indices[i] = -1;
@@ -124,10 +124,9 @@ namespace bs
 	/** All information required for creating an animation clip. */
 	struct FBXAnimationClipData
 	{
-		FBXAnimationClipData(const String& name, bool isAdditive, u32 sampleRate, const SPtr<AnimationCurves>& curves,
-			const SPtr<RootMotion>& rootMotion)
-			:Name(name), IsAdditive(isAdditive), SampleRate(sampleRate), Curves(curves), RootMotion(rootMotion)
-		{ }
+		FBXAnimationClipData(const String& name, bool isAdditive, u32 sampleRate, const SPtr<AnimationCurves>& curves, const SPtr<RootMotion>& rootMotion)
+			: Name(name), IsAdditive(isAdditive), SampleRate(sampleRate), Curves(curves), RootMotion(rootMotion)
+		{}
 
 		String Name;
 		bool IsAdditive;
@@ -178,4 +177,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

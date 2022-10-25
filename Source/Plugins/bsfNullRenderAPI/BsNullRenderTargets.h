@@ -8,7 +8,10 @@
 
 namespace bs
 {
-	namespace ct { class NullRenderWindow; }
+	namespace ct
+	{
+		class NullRenderWindow;
+	}
 
 	/** @addtogroup NullRenderAPI
 	 *  @{
@@ -19,8 +22,7 @@ namespace bs
 	{
 	protected:
 		/** @copydoc RenderWindowManager::createImpl */
-		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId,
-			const SPtr<RenderWindow>& parentWindow) ;
+		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow);
 	};
 
 	/** Null implementation of a render texture. */
@@ -28,8 +30,8 @@ namespace bs
 	{
 	public:
 		NullRenderTexture(const RENDER_TEXTURE_DESC& desc)
-			:RenderTexture(desc), mProperties(desc, false)
-		{ }
+			: RenderTexture(desc), mProperties(desc, false)
+		{}
 
 		virtual ~NullRenderTexture() = default;
 
@@ -37,7 +39,7 @@ namespace bs
 		/** @copydoc RenderTexture::getProperties */
 		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
 
-		RenderTextureProperties mProperties;	
+		RenderTextureProperties mProperties;
 	};
 
 	/** Render window implementation for null render backend. */
@@ -56,8 +58,7 @@ namespace bs
 		SPtr<ct::NullRenderWindow> GetCore() const;
 
 		/** @copydoc RenderWindow::getCustomAttribute */
-		void GetCustomAttribute(const String& name, void* pData) const ;
-
+		void GetCustomAttribute(const String& name, void* pData) const;
 
 	protected:
 		friend class NullRenderWindowManager;
@@ -72,7 +73,7 @@ namespace bs
 		void SyncProperties() override;
 
 		/** @copydoc RenderWindow::createCore */
-		SPtr<ct::CoreObject> CreateCore() const ;
+		SPtr<ct::CoreObject> CreateCore() const;
 
 	private:
 		RenderWindowProperties mProperties;
@@ -85,8 +86,8 @@ namespace bs
 		{
 		public:
 			NullRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-				:RenderTexture(desc, deviceIdx), mProperties(desc, false)
-			{ }
+				: RenderTexture(desc, deviceIdx), mProperties(desc, false)
+			{}
 
 			virtual ~NullRenderTexture() = default;
 
@@ -94,7 +95,7 @@ namespace bs
 			/** @copydoc RenderTexture::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
-			RenderTextureProperties mProperties;	
+			RenderTextureProperties mProperties;
 		};
 
 		/** Render window implementation for null render backend. */
@@ -104,13 +105,13 @@ namespace bs
 			NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId);
 
 			/** @copydoc RenderWindow::move */
-			void Move(i32 left, i32 top) override { }
+			void Move(i32 left, i32 top) override {}
 
 			/** @copydoc RenderWindow::resize */
-			void Resize(u32 width, u32 height) override { }
+			void Resize(u32 width, u32 height) override {}
 
 			/** @copydoc RenderWindow::setVSync */
-			void SetVSync(bool enabled, u32 interval = 1) override { }
+			void SetVSync(bool enabled, u32 interval = 1) override {}
 
 			/** @copydoc RenderWindow::getCustomAttribute */
 			void GetCustomAttribute(const String& name, void* pData) const override;
@@ -131,7 +132,7 @@ namespace bs
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
+} // namespace bs

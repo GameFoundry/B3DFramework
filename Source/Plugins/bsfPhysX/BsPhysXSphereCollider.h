@@ -16,18 +16,17 @@ namespace bs
 	class PhysXSphereCollider : public SphereCollider
 	{
 	public:
-		PhysXSphereCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position,
-			const Quaternion& rotation, float radius);
+		PhysXSphereCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius);
 		~PhysXSphereCollider();
 
 		/** @copydoc SphereCollider::setScale */
-		void SetScale(const Vector3& scale) ;
+		void SetScale(const Vector3& scale);
 
 		/** @copydoc SphereCollider::setRadius */
-		void SetRadius(float radius) ;
+		void SetRadius(float radius);
 
 		/** @copydoc SphereCollider::getRadius */
-		float GetRadius() const ;
+		float GetRadius() const;
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */
@@ -40,4 +39,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

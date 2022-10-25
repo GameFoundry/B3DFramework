@@ -6,42 +6,44 @@
 #include "Managers/BsRenderAPIManager.h"
 #include "BsD3D11RenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-	/**	Handles creation of the DX11 render system. */
-	class D3D11RenderAPIFactory : public RenderAPIFactory
+	namespace ct
 	{
-	public:
-		static constexpr const char* SystemName = "bsfD3D11RenderAPI";
-
-		/** @copydoc RenderAPIFactory::create */
-		void Create() ;
-
-		/** @copydoc RenderAPIFactory::name */
-		const char* Name() const { return SystemName; }
-
-	private:
-
-		/**	Registers the factory with the render system manager when constructed. */
-		class InitOnStart
+		/** @addtogroup D3D11
+		 *  @{
+		 */
+		/**	Handles creation of the DX11 render system. */
+		class D3D11RenderAPIFactory : public RenderAPIFactory
 		{
 		public:
-			InitOnStart()
+			static constexpr const char* SystemName = "bsfD3D11RenderAPI";
+
+			/** @copydoc RenderAPIFactory::create */
+			void Create();
+
+			/** @copydoc RenderAPIFactory::name */
+			const char* Name() const { return SystemName; }
+
+		private:
+			/**	Registers the factory with the render system manager when constructed. */
+			class InitOnStart
 			{
-				static SPtr<RenderAPIFactory> newFactory;
-				if(newFactory == nullptr)
+			public:
+				InitOnStart()
 				{
-					newFactory = bs_shared_ptr_new<D3D11RenderAPIFactory>();
-					RenderAPIManager::Instance().RegisterFactory(newFactory);
+					static SPtr<RenderAPIFactory> newFactory;
+					if(newFactory == nullptr)
+					{
+						newFactory = bs_shared_ptr_new<D3D11RenderAPIFactory>();
+						RenderAPIManager::Instance().RegisterFactory(newFactory);
+					}
 				}
-			}
+			};
+
+			static InitOnStart initOnStart; // Makes sure factory is registered on program start
 		};
 
-		static InitOnStart initOnStart; // Makes sure factory is registered on program start
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

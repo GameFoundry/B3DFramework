@@ -5,30 +5,29 @@
 
 namespace bs
 {
-#define WAVE_FORMAT_PCM			0x0001
-#define WAVE_FORMAT_EXTENDED	0xFFFE
+#define WAVE_FORMAT_PCM 0x0001
+#define WAVE_FORMAT_EXTENDED 0xFFFE
 
 	bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
 	{
 		stream->Seek(offset);
 
 		i8 header[MAIN_CHUNK_SIZE];
-		if (stream->Read(header, sizeof(header)) < (sizeof(header)))
+		if(stream->Read(header, sizeof(header)) < (sizeof(header)))
 			return false;
 
-		return (header[0] == 'R') && (header[1] == 'I') && (header[2] == 'F') && (header[3] == 'F')
-			&& (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
+		return (header[0] == 'R') && (header[1] == 'I') && (header[2] == 'F') && (header[3] == 'F') && (header[8] == 'W') && (header[9] == 'A') && (header[10] == 'V') && (header[11] == 'E');
 	}
 
 	bool WaveDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
 	{
-		if (stream == nullptr)
+		if(stream == nullptr)
 			return false;
 
 		mStream = stream;
 		mStream->Seek(offset + MAIN_CHUNK_SIZE);
-		
-		if (!ParseHeader(info))
+
+		if(!ParseHeader(info))
 		{
 			BS_LOG(Error, Audio, "Provided file is not a valid WAVE file.");
 			return false;
@@ -61,55 +60,55 @@ namespace bs
 	bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 	{
 		bool foundData = false;
-		while (!foundData)
+		while(!foundData)
 		{
 			// Get sub-chunk ID and size
 			u8 subChunkId[4];
-			if (mStream->Read(subChunkId, sizeof(subChunkId)) != sizeof(subChunkId))
+			if(mStream->Read(subChunkId, sizeof(subChunkId)) != sizeof(subChunkId))
 				return false;
 
 			u32 subChunkSize = 0;
-			if (mStream->Read(&subChunkSize, sizeof(subChunkSize)) != sizeof(subChunkSize))
+			if(mStream->Read(&subChunkSize, sizeof(subChunkSize)) != sizeof(subChunkSize))
 				return false;
 
 			// FMT chunk
-			if (subChunkId[0] == 'f' && subChunkId[1] == 'm' && subChunkId[2] == 't' && subChunkId[3] == ' ')
+			if(subChunkId[0] == 'f' && subChunkId[1] == 'm' && subChunkId[2] == 't' && subChunkId[3] == ' ')
 			{
 				u16 format = 0;
-				if (mStream->Read(&format, sizeof(format)) != sizeof(format))
+				if(mStream->Read(&format, sizeof(format)) != sizeof(format))
 					return false;
 
-				if (format != WAVE_FORMAT_PCM && format != WAVE_FORMAT_EXTENDED)
+				if(format != WAVE_FORMAT_PCM && format != WAVE_FORMAT_EXTENDED)
 				{
 					BS_LOG(Warning, Audio, "Wave file doesn't contain raw PCM data. Not supported.");
 					return false;
 				}
 
 				u16 numChannels = 0;
-				if (mStream->Read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
+				if(mStream->Read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
 					return false;
 
 				u32 sampleRate = 0;
-				if (mStream->Read(&sampleRate, sizeof(sampleRate)) != sizeof(sampleRate))
+				if(mStream->Read(&sampleRate, sizeof(sampleRate)) != sizeof(sampleRate))
 					return false;
 
 				u32 byteRate = 0;
-				if (mStream->Read(&byteRate, sizeof(byteRate)) != sizeof(byteRate))
+				if(mStream->Read(&byteRate, sizeof(byteRate)) != sizeof(byteRate))
 					return false;
 
 				u16 blockAlign = 0;
-				if (mStream->Read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
+				if(mStream->Read(&blockAlign, sizeof(blockAlign)) != sizeof(blockAlign))
 					return false;
 
 				u16 bitDepth = 0;
-				if (mStream->Read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
+				if(mStream->Read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
 					return false;
 
 				info.NumChannels = numChannels;
 				info.SampleRate = sampleRate;
 				info.BitDepth = bitDepth;
 
-				if (bitDepth != 8 && bitDepth != 16 && bitDepth != 24 && bitDepth != 32)
+				if(bitDepth != 8 && bitDepth != 16 && bitDepth != 24 && bitDepth != 32)
 				{
 					BS_LOG(Error, Audio, "Unsupported number of bits per sample: {0}", bitDepth);
 					return false;
@@ -119,7 +118,7 @@ namespace bs
 				if(format == WAVE_FORMAT_EXTENDED)
 				{
 					u16 extensionSize = 0;
-					if (mStream->Read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
+					if(mStream->Read(&extensionSize, sizeof(extensionSize)) != sizeof(extensionSize))
 						return false;
 
 					if(extensionSize != 22)
@@ -129,19 +128,19 @@ namespace bs
 					}
 
 					u16 validBitDepth = 0;
-					if (mStream->Read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
+					if(mStream->Read(&validBitDepth, sizeof(validBitDepth)) != sizeof(validBitDepth))
 						return false;
 
 					u32 channelMask = 0;
-					if (mStream->Read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
+					if(mStream->Read(&channelMask, sizeof(channelMask)) != sizeof(channelMask))
 						return false;
 
 					u8 subFormat[16];
-					if (mStream->Read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
+					if(mStream->Read(subFormat, sizeof(subFormat)) != sizeof(subFormat))
 						return false;
 
 					memcpy(&format, subFormat, sizeof(format));
-					if (format != WAVE_FORMAT_PCM)
+					if(format != WAVE_FORMAT_PCM)
 					{
 						BS_LOG(Warning, Audio, "Wave file doesn't contain raw PCM data. Not supported.");
 						return false;
@@ -151,7 +150,7 @@ namespace bs
 				mBytesPerSample = bitDepth / 8;
 			}
 			// DATA chunk
-			else if (subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
+			else if(subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
 			{
 				info.NumSamples = subChunkSize / mBytesPerSample;
 				mDataOffset = (u32)mStream->Tell();
@@ -162,11 +161,11 @@ namespace bs
 			else
 			{
 				mStream->Skip(subChunkSize);
-				if (mStream->Eof())
+				if(mStream->Eof())
 					return false;
 			}
 		}
 
 		return true;
 	}
-}
+} // namespace bs

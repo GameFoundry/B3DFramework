@@ -28,7 +28,7 @@ namespace bs
 	class LinuxRenderWindow : public RenderWindow
 	{
 	public:
-		~LinuxRenderWindow() { }
+		~LinuxRenderWindow() {}
 
 		/** @copydoc RenderWindow::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -128,7 +128,7 @@ namespace bs
 			void WindowMovedOrResizedInternal() override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& GetPropertiesLockInternal() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock; }
 
 			/** Returns the internal X11 window that this object wraps. */
 			LinuxWindow* GetInternalInternal() const { return mWindow; }
@@ -151,6 +151,7 @@ namespace bs
 
 			/** Rebuilds the swap chain according to the currently set properties. */
 			void rebuildSwapChain();
+
 		protected:
 			friend class bs::LinuxRenderWindow;
 
@@ -170,8 +171,7 @@ namespace bs
 			bool mIsChild;
 			bool mShowOnSwap;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
-
+} // namespace bs

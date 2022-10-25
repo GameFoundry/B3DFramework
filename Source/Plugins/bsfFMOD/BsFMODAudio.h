@@ -11,7 +11,7 @@ namespace bs
 	/** @addtogroup FMOD
 	 *  @{
 	 */
-	
+
 	/** Global manager for the audio implementation using FMOD as the backend. */
 	class FMODAudio : public Audio
 	{
@@ -68,14 +68,13 @@ namespace bs
 		/** @} */
 	private:
 		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-			const AUDIO_CLIP_DESC& desc) ;
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
 
 		/** @copydoc Audio::createListener */
-		SPtr<AudioListener> CreateListener() ;
+		SPtr<AudioListener> CreateListener();
 
 		/** @copydoc Audio::createSource */
-		SPtr<AudioSource> CreateSource() ;
+		SPtr<AudioSource> CreateSource();
 
 		/** Rebuilds information about all listeners. Should be called when listener list changes. */
 		void RebuildListeners();
@@ -98,4 +97,4 @@ namespace bs
 	FMODAudio& gFMODAudio();
 
 	/** @} */
-}
+} // namespace bs

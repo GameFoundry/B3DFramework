@@ -11,12 +11,12 @@ namespace bs
 	class OAFactory : public AudioFactory
 	{
 	public:
-		void StartUp() 
+		void StartUp()
 		{
 			Audio::StartUp<OAAudio>();
 		}
 
-		void ShutDown() 
+		void ShutDown()
 		{
 			Audio::ShutDown();
 		}
@@ -43,4 +43,4 @@ namespace bs
 	{
 		bs_delete(instance);
 	}
-}
+} // namespace bs

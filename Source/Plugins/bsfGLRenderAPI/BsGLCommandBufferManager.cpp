@@ -3,12 +3,14 @@
 #include "BsGLCommandBufferManager.h"
 #include "BsGLCommandBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<CommandBuffer> GLCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx,
-		u32 queueIdx, bool secondary)
+	namespace ct
 	{
-		CommandBuffer* buffer = new (bs_alloc<GLCommandBuffer>()) GLCommandBuffer(type, deviceIdx, queueIdx, secondary);
-		return bs_shared_ptr(buffer);
-	}
-}}
+		SPtr<CommandBuffer> GLCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
+		{
+			CommandBuffer* buffer = new(bs_alloc<GLCommandBuffer>()) GLCommandBuffer(type, deviceIdx, queueIdx, secondary);
+			return bs_shared_ptr(buffer);
+		}
+	} // namespace ct
+} // namespace bs

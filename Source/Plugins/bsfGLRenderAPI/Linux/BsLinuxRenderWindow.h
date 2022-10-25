@@ -15,7 +15,7 @@ namespace bs
 		class LinuxGLSupport;
 		class LinuxContext;
 		class LinuxRenderWindow;
-	}
+	} // namespace ct
 
 	/** @addtogroup GL
 	 *  @{
@@ -29,7 +29,7 @@ namespace bs
 	class LinuxRenderWindow : public RenderWindow
 	{
 	public:
-		~LinuxRenderWindow() { }
+		~LinuxRenderWindow() {}
 
 		/** @copydoc RenderWindow::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -74,7 +74,7 @@ namespace bs
 		class LinuxRenderWindow : public RenderWindow
 		{
 		public:
-			LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, LinuxGLSupport &glSupport);
+			LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, LinuxGLSupport& glSupport);
 			~LinuxRenderWindow();
 
 			/** @copydoc RenderWindow::setFullscreen(u32, u32, float, u32) */
@@ -128,7 +128,7 @@ namespace bs
 			void WindowMovedOrResizedInternal() override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& GetPropertiesLockInternal() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock; }
 
 			/** Returns the internal X11 window that this object wraps. */
 			LinuxWindow* GetInternalInternal() const { return mWindow; }
@@ -162,8 +162,7 @@ namespace bs
 			bool mIsChild;
 			bool mShowOnSwap;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
-
+} // namespace bs

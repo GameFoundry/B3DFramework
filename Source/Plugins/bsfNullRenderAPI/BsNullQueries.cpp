@@ -2,32 +2,32 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsNullQueries.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	SPtr<EventQuery> NullQueryManager::CreateEventQuery(u32 deviceIdx) const
+	namespace ct
 	{
-		SPtr<EventQuery> query = SPtr<NullEventQuery>(bs_new<NullEventQuery>(), &QueryManager::DeleteEventQuery,
-			StdAlloc<NullEventQuery>());
-		mEventQueries.push_back(query.get());
+		SPtr<EventQuery> NullQueryManager::CreateEventQuery(u32 deviceIdx) const
+		{
+			SPtr<EventQuery> query = SPtr<NullEventQuery>(bs_new<NullEventQuery>(), &QueryManager::DeleteEventQuery, StdAlloc<NullEventQuery>());
+			mEventQueries.push_back(query.get());
 
-		return query;
-	}
+			return query;
+		}
 
-	SPtr<TimerQuery> NullQueryManager::CreateTimerQuery(u32 deviceIdx) const
-	{
-		SPtr<TimerQuery> query = SPtr<NullTimerQuery>(bs_new<NullTimerQuery>(), &QueryManager::DeleteTimerQuery,
-			StdAlloc<NullTimerQuery>());
-		mTimerQueries.push_back(query.get());
+		SPtr<TimerQuery> NullQueryManager::CreateTimerQuery(u32 deviceIdx) const
+		{
+			SPtr<TimerQuery> query = SPtr<NullTimerQuery>(bs_new<NullTimerQuery>(), &QueryManager::DeleteTimerQuery, StdAlloc<NullTimerQuery>());
+			mTimerQueries.push_back(query.get());
 
-		return query;
-	}
+			return query;
+		}
 
-	SPtr<OcclusionQuery> NullQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
-	{
-		SPtr<OcclusionQuery> query = SPtr<NullOcclusionQuery>(bs_new<NullOcclusionQuery>(binary),
-			&QueryManager::DeleteOcclusionQuery, StdAlloc<NullOcclusionQuery>());
-		mOcclusionQueries.push_back(query.get());
+		SPtr<OcclusionQuery> NullQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
+		{
+			SPtr<OcclusionQuery> query = SPtr<NullOcclusionQuery>(bs_new<NullOcclusionQuery>(binary), &QueryManager::DeleteOcclusionQuery, StdAlloc<NullOcclusionQuery>());
+			mOcclusionQueries.push_back(query.get());
 
-		return query;
-	}
-}}
+			return query;
+		}
+	} // namespace ct
+} // namespace bs

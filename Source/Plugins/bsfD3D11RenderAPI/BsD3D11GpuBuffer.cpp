@@ -9,147 +9,148 @@
 #include "Profiling/BsRenderStats.h"
 #include "Error/BsException.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	static void deleteBuffer(HardwareBuffer* buffer)
+	namespace ct
 	{
-		bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
-	}
-
-	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		: GpuBuffer(desc, deviceMask)
-	{
-		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
-	}
-
-	D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
-		: GpuBuffer(desc, std::move(underlyingBuffer))
-	{ }
-
-	D3D11GpuBuffer::~D3D11GpuBuffer()
-	{
-		ClearBufferViews();
-	}
-
-	void D3D11GpuBuffer::Initialize()
-	{
-		const GpuBufferProperties& props = GetProperties();
-		mBufferDeleter = &deleteBuffer;
-
-		// Create a new buffer if not wrapping an external one
-		if(!mBuffer)
+		static void deleteBuffer(HardwareBuffer* buffer)
 		{
-			D3D11HardwareBuffer::BufferType bufferType;
-			D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
+		}
 
-			switch (props.GetType())
+		D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: GpuBuffer(desc, deviceMask)
+		{
+			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
+		}
+
+		D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+			: GpuBuffer(desc, std::move(underlyingBuffer))
+		{}
+
+		D3D11GpuBuffer::~D3D11GpuBuffer()
+		{
+			ClearBufferViews();
+		}
+
+		void D3D11GpuBuffer::Initialize()
+		{
+			const GpuBufferProperties& props = GetProperties();
+			mBufferDeleter = &deleteBuffer;
+
+			// Create a new buffer if not wrapping an external one
+			if(!mBuffer)
 			{
-			case GBT_STANDARD:
-				bufferType = D3D11HardwareBuffer::BT_STANDARD;
-				break;
-			case GBT_STRUCTURED:
-				bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
-				break;
-			case GBT_INDIRECTARGUMENT:
-				bufferType = D3D11HardwareBuffer::BT_INDIRECTARGUMENT;
-				break;
-			default:
-				BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.GetType()));
+				D3D11HardwareBuffer::BufferType bufferType;
+				D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(D3D11RenderAPI::InstancePtr());
+
+				switch(props.GetType())
+				{
+				case GBT_STANDARD:
+					bufferType = D3D11HardwareBuffer::BT_STANDARD;
+					break;
+				case GBT_STRUCTURED:
+					bufferType = D3D11HardwareBuffer::BT_STRUCTURED;
+					break;
+				case GBT_INDIRECTARGUMENT:
+					bufferType = D3D11HardwareBuffer::BT_INDIRECTARGUMENT;
+					break;
+				default:
+					BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.GetType()));
+				}
+
+				mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.GetElementCount(), props.GetElementSize(), rapi->GetPrimaryDevice(), false, false);
 			}
 
-			mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.GetElementCount(),
-				props.GetElementSize(), rapi->GetPrimaryDevice(), false, false);
+			u32 usage = GVU_DEFAULT;
+			if((props.GetUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
+				usage |= GVU_RANDOMWRITE;
+
+			// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
+			mBufferView = RequestView(this, 0, props.GetElementCount(), (GpuViewUsage)usage);
+
+			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
+
+			GpuBuffer::Initialize();
 		}
 
-		u32 usage = GVU_DEFAULT;
-		if ((props.GetUsage() & GBU_LOADSTORE) == GBU_LOADSTORE)
-			usage |= GVU_RANDOMWRITE;
-
-		// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
-		mBufferView = RequestView(this, 0, props.GetElementCount(), (GpuViewUsage)usage);
-
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
-
-		GpuBuffer::Initialize();
-	}
-
-	ID3D11Buffer* D3D11GpuBuffer::GetDX11Buffer() const
-	{
-		return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer();
-	}
-
-	GpuBufferView* D3D11GpuBuffer::RequestView(D3D11GpuBuffer* buffer, u32 firstElement, u32 numElements,
-		GpuViewUsage usage)
-	{
-		const auto& props = buffer->GetProperties();
-
-		GPU_BUFFER_VIEW_DESC key;
-		key.FirstElement = firstElement;
-		key.ElementWidth = props.GetElementSize();
-		key.NumElements = numElements;
-		key.Usage = usage;
-		key.Format = props.GetFormat();
-		key.UseCounter = false;
-
-		auto iterFind = buffer->mBufferViews.find(key);
-		if (iterFind == buffer->mBufferViews.end())
+		ID3D11Buffer* D3D11GpuBuffer::GetDX11Buffer() const
 		{
-			GpuBufferView* newView = bs_new<GpuBufferView>();
-			newView->Initialize(buffer, key);
-			buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
-
-			iterFind = buffer->mBufferViews.find(key);
+			return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer();
 		}
 
-		iterFind->second->RefCount++;
-		return iterFind->second->View;
-	}
-
-	void D3D11GpuBuffer::ReleaseView(GpuBufferView* view)
-	{
-		D3D11GpuBuffer* buffer = view->GetBuffer();
-
-		auto iterFind = buffer->mBufferViews.find(view->GetDesc());
-		if (iterFind == buffer->mBufferViews.end())
+		GpuBufferView* D3D11GpuBuffer::RequestView(D3D11GpuBuffer* buffer, u32 firstElement, u32 numElements, GpuViewUsage usage)
 		{
-			BS_EXCEPT(InternalErrorException, "Trying to release a buffer view that doesn't exist!");
+			const auto& props = buffer->GetProperties();
+
+			GPU_BUFFER_VIEW_DESC key;
+			key.FirstElement = firstElement;
+			key.ElementWidth = props.GetElementSize();
+			key.NumElements = numElements;
+			key.Usage = usage;
+			key.Format = props.GetFormat();
+			key.UseCounter = false;
+
+			auto iterFind = buffer->mBufferViews.find(key);
+			if(iterFind == buffer->mBufferViews.end())
+			{
+				GpuBufferView* newView = bs_new<GpuBufferView>();
+				newView->Initialize(buffer, key);
+				buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
+
+				iterFind = buffer->mBufferViews.find(key);
+			}
+
+			iterFind->second->RefCount++;
+			return iterFind->second->View;
 		}
 
-		iterFind->second->RefCount--;
-
-		if (iterFind->second->RefCount == 0)
+		void D3D11GpuBuffer::ReleaseView(GpuBufferView* view)
 		{
-			GpuBufferReference* toRemove = iterFind->second;
+			D3D11GpuBuffer* buffer = view->GetBuffer();
 
-			buffer->mBufferViews.erase(iterFind);
+			auto iterFind = buffer->mBufferViews.find(view->GetDesc());
+			if(iterFind == buffer->mBufferViews.end())
+			{
+				BS_EXCEPT(InternalErrorException, "Trying to release a buffer view that doesn't exist!");
+			}
 
-			if (toRemove->View != nullptr)
-				bs_delete(toRemove->View);
+			iterFind->second->RefCount--;
 
-			bs_delete(toRemove);
+			if(iterFind->second->RefCount == 0)
+			{
+				GpuBufferReference* toRemove = iterFind->second;
+
+				buffer->mBufferViews.erase(iterFind);
+
+				if(toRemove->View != nullptr)
+					bs_delete(toRemove->View);
+
+				bs_delete(toRemove);
+			}
 		}
-	}
 
-	void D3D11GpuBuffer::ClearBufferViews()
-	{
-		for (auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
+		void D3D11GpuBuffer::ClearBufferViews()
 		{
-			if (iter->second->View != nullptr)
-				bs_delete(iter->second->View);
+			for(auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
+			{
+				if(iter->second->View != nullptr)
+					bs_delete(iter->second->View);
 
-			bs_delete(iter->second);
+				bs_delete(iter->second);
+			}
+
+			mBufferViews.clear();
 		}
 
-		mBufferViews.clear();
-	}
+		ID3D11ShaderResourceView* D3D11GpuBuffer::GetSrv() const
+		{
+			return mBufferView->GetSrv();
+		}
 
-	ID3D11ShaderResourceView* D3D11GpuBuffer::GetSrv() const
-	{
-		return mBufferView->GetSrv();
-	}
-
-	ID3D11UnorderedAccessView* D3D11GpuBuffer::GetUav() const
-	{
-		return mBufferView->GetUav();
-	}
-}}
+		ID3D11UnorderedAccessView* D3D11GpuBuffer::GetUav() const
+		{
+			return mBufferView->GetUav();
+		}
+	} // namespace ct
+} // namespace bs

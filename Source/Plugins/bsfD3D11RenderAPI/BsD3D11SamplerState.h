@@ -5,29 +5,33 @@
 #include "BsD3D11Prerequisites.h"
 #include "RenderAPI/BsSamplerState.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup D3D11
-	 *  @{
-	 */
-
-	/**	DirectX 11 implementation of a sampler state. Wraps a DX11 sampler state object. */
-	class D3D11SamplerState : public SamplerState
+	namespace ct
 	{
-	public:
-		~D3D11SamplerState();
-		ID3D11SamplerState* GetInternal() const { return mSamplerState; }
+		/** @addtogroup D3D11
+		 *  @{
+		 */
 
-	protected:
-		friend class D3D11RenderStateManager;
+		/**	DirectX 11 implementation of a sampler state. Wraps a DX11 sampler state object. */
+		class D3D11SamplerState : public SamplerState
+		{
+		public:
+			~D3D11SamplerState();
 
-		D3D11SamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
+			ID3D11SamplerState* GetInternal() const { return mSamplerState; }
 
-		/** @copydoc SamplerState::createInternal */
-		void CreateInternal() ;
+		protected:
+			friend class D3D11RenderStateManager;
 
-		ID3D11SamplerState* mSamplerState = nullptr;
-	};
+			D3D11SamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-	/** @} */
-}}
+			/** @copydoc SamplerState::createInternal */
+			void CreateInternal();
+
+			ID3D11SamplerState* mSamplerState = nullptr;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

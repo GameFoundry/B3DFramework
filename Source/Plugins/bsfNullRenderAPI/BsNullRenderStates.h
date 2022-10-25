@@ -5,64 +5,67 @@
 #include "BsNullPrerequisites.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup NullRenderAPI
-	 *  @{
-	 */
-
-	/**	Handles creation of null pipeline states. */
-	class NullRenderStateManager : public RenderStateManager
+	namespace ct
 	{
-	protected:
-		/** @copydoc RenderStateManager::createSamplerStateInternal */
-		SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const ;
+		/** @addtogroup NullRenderAPI
+		 *  @{
+		 */
 
-		/** @copydoc RenderStateManager::createBlendStateInternal */
-		SPtr<BlendState> CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, u32 id) const ;
+		/**	Handles creation of null pipeline states. */
+		class NullRenderStateManager : public RenderStateManager
+		{
+		protected:
+			/** @copydoc RenderStateManager::createSamplerStateInternal */
+			SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
 
-		/** @copydoc RenderStateManager::createRasterizerStateInternal */
-		SPtr<RasterizerState> CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, u32 id) const ;
+			/** @copydoc RenderStateManager::createBlendStateInternal */
+			SPtr<BlendState> CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, u32 id) const;
 
-		/** @copydoc RenderStateManager::createDepthStencilStateInternal */
-		SPtr<DepthStencilState> CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, u32 id) const ;
-	};
+			/** @copydoc RenderStateManager::createRasterizerStateInternal */
+			SPtr<RasterizerState> CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, u32 id) const;
 
-	/** @copydoc BlendState */
-	class NullBlendState : public BlendState
-	{
-	public:
-		NullBlendState(const BLEND_STATE_DESC& desc, u32 id)
-			:BlendState(desc, id)
-		{ }
-	};
+			/** @copydoc RenderStateManager::createDepthStencilStateInternal */
+			SPtr<DepthStencilState> CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, u32 id) const;
+		};
 
-	/** @copydoc DepthStencilState */
-	class NullDepthStencilState : public DepthStencilState
-	{
-	public:
-		NullDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id)
-			:DepthStencilState(desc, id)
-		{ }
-	};
+		/** @copydoc BlendState */
+		class NullBlendState : public BlendState
+		{
+		public:
+			NullBlendState(const BLEND_STATE_DESC& desc, u32 id)
+				: BlendState(desc, id)
+			{}
+		};
 
-	/** @copydoc RasterizerState */
-	class NullRasterizerState : public RasterizerState
-	{
-	public:
-		NullRasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id)
-			:RasterizerState(desc, id)
-		{ }
-	};
+		/** @copydoc DepthStencilState */
+		class NullDepthStencilState : public DepthStencilState
+		{
+		public:
+			NullDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id)
+				: DepthStencilState(desc, id)
+			{}
+		};
 
-	/** @copydoc SamplerState */
-	class NullSamplerState : public SamplerState
-	{
-	public:
-		NullSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
-			:SamplerState(desc, deviceMask)
-		{ }
-	};
+		/** @copydoc RasterizerState */
+		class NullRasterizerState : public RasterizerState
+		{
+		public:
+			NullRasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id)
+				: RasterizerState(desc, id)
+			{}
+		};
 
-	/** @} */
-}}
+		/** @copydoc SamplerState */
+		class NullSamplerState : public SamplerState
+		{
+		public:
+			NullSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+				: SamplerState(desc, deviceMask)
+			{}
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

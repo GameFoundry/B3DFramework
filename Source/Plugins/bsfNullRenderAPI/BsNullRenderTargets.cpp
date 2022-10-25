@@ -4,8 +4,7 @@
 
 namespace bs
 {
-	SPtr<RenderWindow> NullRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId,
-		const SPtr<RenderWindow>& parentWindow)
+	SPtr<RenderWindow> NullRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
 	{
 		if(parentWindow != nullptr)
 		{
@@ -15,13 +14,13 @@ namespace bs
 		}
 
 		// Create the window
-		NullRenderWindow* renderWindow = new (bs_alloc<NullRenderWindow>()) NullRenderWindow(desc, windowId);
+		NullRenderWindow* renderWindow = new(bs_alloc<NullRenderWindow>()) NullRenderWindow(desc, windowId);
 		return bs_core_ptr<NullRenderWindow>(renderWindow);
 	}
 
 	NullRenderWindow::NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
-		:RenderWindow(desc, windowId), mProperties(desc)
-	{ }
+		: RenderWindow(desc, windowId), mProperties(desc)
+	{}
 
 	SPtr<ct::NullRenderWindow> NullRenderWindow::GetCore() const
 	{
@@ -45,9 +44,9 @@ namespace bs
 
 	void NullRenderWindow::GetCustomAttribute(const String& name, void* pData) const
 	{
-		if (name == "WINDOW")
+		if(name == "WINDOW")
 		{
-			u64 *pHwnd = (u64*)pData;
+			u64* pHwnd = (u64*)pData;
 			*pHwnd = 0;
 			return;
 		}
@@ -59,8 +58,7 @@ namespace bs
 	{
 		NullRenderWindow::NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
 			: RenderWindow(desc, windowId), mProperties(desc), mSyncedProperties(desc)
-		{ }
-
+		{}
 
 		void NullRenderWindow::SyncProperties()
 		{
@@ -72,12 +70,12 @@ namespace bs
 		{
 			if(name == "WINDOW")
 			{
-				u64 *pWnd = (u64*)pData;
+				u64* pWnd = (u64*)pData;
 				*pWnd = 0;
 				return;
 			}
 
 			RenderWindow::GetCustomAttribute(name, pData);
 		}
-	}
-}
+	} // namespace ct
+} // namespace bs

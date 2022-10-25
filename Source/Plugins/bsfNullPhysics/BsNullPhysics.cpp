@@ -17,8 +17,8 @@
 namespace bs
 {
 	NullPhysics::NullPhysics(const PHYSICS_INIT_DESC& input)
-		:Physics(input), mInitDesc(input)
-	{ }
+		: Physics(input), mInitDesc(input)
+	{}
 
 	NullPhysics::~NullPhysics()
 	{
@@ -52,7 +52,7 @@ namespace bs
 	}
 
 	NullPhysicsScene::NullPhysicsScene(const PHYSICS_INIT_DESC& input)
-	{ }
+	{}
 
 	NullPhysicsScene::~NullPhysicsScene()
 	{
@@ -64,8 +64,7 @@ namespace bs
 		return bs_shared_ptr_new<NullPhysicsRigidbody>(linkedSO);
 	}
 
-	SPtr<BoxCollider> NullPhysicsScene::CreateBoxCollider(const Vector3& extents, const Vector3& position,
-		const Quaternion& rotation)
+	SPtr<BoxCollider> NullPhysicsScene::CreateBoxCollider(const Vector3& extents, const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<NullPhysicsBoxCollider>(position, rotation, extents);
 	}
@@ -80,8 +79,7 @@ namespace bs
 		return bs_shared_ptr_new<NullPhysicsPlaneCollider>(position, rotation);
 	}
 
-	SPtr<CapsuleCollider> NullPhysicsScene::CreateCapsuleCollider(float radius, float halfHeight, const Vector3& position,
-		const Quaternion& rotation)
+	SPtr<CapsuleCollider> NullPhysicsScene::CreateCapsuleCollider(float radius, float halfHeight, const Vector3& position, const Quaternion& rotation)
 	{
 		return bs_shared_ptr_new<NullPhysicsCapsuleCollider>(position, rotation, radius, halfHeight);
 	}
@@ -130,4 +128,4 @@ namespace bs
 	{
 		return static_cast<NullPhysics&>(NullPhysics::Instance());
 	}
-}
+} // namespace bs

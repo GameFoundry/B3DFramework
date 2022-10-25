@@ -103,32 +103,59 @@ enum tagOptionDataType
 
 enum tagFillModeValue
 {
-	FMV_Wire, FMV_Solid
+	FMV_Wire,
+	FMV_Solid
 };
 
 enum tagCullAndSortModeValue
 {
-	CASV_None, CASV_CW, CASV_CCW, CASV_FrontToBack, CASV_BackToFront
+	CASV_None,
+	CASV_CW,
+	CASV_CCW,
+	CASV_FrontToBack,
+	CASV_BackToFront
 };
 
 enum tagCompFuncValue
 {
-	CFV_Fail, CFV_Pass, CFV_LT, CFV_LTE,
-	CFV_EQ, CFV_NEQ, CFV_GTE, CFV_GT
+	CFV_Fail,
+	CFV_Pass,
+	CFV_LT,
+	CFV_LTE,
+	CFV_EQ,
+	CFV_NEQ,
+	CFV_GTE,
+	CFV_GT
 };
 
 enum tagOpValue
 {
-	OV_Keep, OV_Zero, OV_Replace, OV_Incr, OV_Decr,
-	OV_IncrWrap, OV_DecrWrap, OV_Invert, OV_One, OV_DestColor,
-	OV_SrcColor, OV_InvDestColor, OV_InvSrcColor, OV_DestAlpha,
-	OV_SrcAlpha, OV_InvDestAlpha, OV_InvSrcAlpha
+	OV_Keep,
+	OV_Zero,
+	OV_Replace,
+	OV_Incr,
+	OV_Decr,
+	OV_IncrWrap,
+	OV_DecrWrap,
+	OV_Invert,
+	OV_One,
+	OV_DestColor,
+	OV_SrcColor,
+	OV_InvDestColor,
+	OV_InvSrcColor,
+	OV_DestAlpha,
+	OV_SrcAlpha,
+	OV_InvDestAlpha,
+	OV_InvSrcAlpha
 };
 
 enum tagBlendOpValue
 {
-	BOV_Add, BOV_Subtract, BOV_RevSubtract,
-	BOV_Min, BOV_Max
+	BOV_Add,
+	BOV_Subtract,
+	BOV_RevSubtract,
+	BOV_Min,
+	BOV_Max
 };
 
 enum tagRawCodeType
@@ -140,7 +167,13 @@ enum tagRawCodeType
 
 enum tagConditionalOp
 {
-	CO_None, CO_Equals, CO_NotEquals, CO_Lesser, CO_Greater, CO_LesserEqual, CO_GreaterEqual
+	CO_None,
+	CO_Equals,
+	CO_NotEquals,
+	CO_Lesser,
+	CO_Greater,
+	CO_LesserEqual,
+	CO_GreaterEqual
 };
 
 typedef enum tagNodeType NodeType;

@@ -7,49 +7,50 @@
 #include "RenderAPI/BsVertexBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/** Wrapper around a generic OpenGL buffer. */
-	class GLHardwareBuffer : public HardwareBuffer
+	namespace ct
 	{
-	public:
-		/** Creates and initializes the buffer object. */
-		GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage);
-		~GLHardwareBuffer();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** @copydoc HardwareBuffer::readData */
-		void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) ;
+		/** Wrapper around a generic OpenGL buffer. */
+		class GLHardwareBuffer : public HardwareBuffer
+		{
+		public:
+			/** Creates and initializes the buffer object. */
+			GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage);
+			~GLHardwareBuffer();
 
-		/** @copydoc HardwareBuffer::writeData */
-		void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL,
-			u32 queueIdx = 0) ;
+			/** @copydoc HardwareBuffer::readData */
+			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0);
 
-		/** @copydoc HardwareBuffer::copyData */
-		void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length,
-			bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) ;
+			/** @copydoc HardwareBuffer::writeData */
+			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0);
 
-		/**	Returns internal OpenGL buffer ID. */
-		GLuint GetGlBufferId() const { return mBufferId; }
+			/** @copydoc HardwareBuffer::copyData */
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr);
 
-	private:
-		/** @copydoc HardwareBuffer::map */
-		void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) ;
+			/**	Returns internal OpenGL buffer ID. */
+			GLuint GetGlBufferId() const { return mBufferId; }
 
-		/** @copydoc HardwareBuffer::unmap */
-		void Unmap() ;
+		private:
+			/** @copydoc HardwareBuffer::map */
+			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx);
 
-		GLenum mTarget;
-		GLuint mBufferId = 0;
+			/** @copydoc HardwareBuffer::unmap */
+			void Unmap();
 
-		bool mZeroLocked = false;
-	};
+			GLenum mTarget;
+			GLuint mBufferId = 0;
 
-	/** @} */
-}}
+			bool mZeroLocked = false;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs
 
 namespace bs
 {

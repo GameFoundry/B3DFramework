@@ -6,43 +6,46 @@
 #include "Profiling/BsRenderStats.h"
 #include "BsGLCommandBuffer.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	static void deleteBuffer(HardwareBuffer* buffer)
+	namespace ct
 	{
-		bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
-	}
+		static void deleteBuffer(HardwareBuffer* buffer)
+		{
+			bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+		}
 
-	GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		:VertexBuffer(desc, deviceMask)
-	{
-		assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
-	}
+		GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+			: VertexBuffer(desc, deviceMask)
+		{
+			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+		}
 
-	GLVertexBuffer::~GLVertexBuffer()
-	{
-		while (!mVAObjects.empty())
-			GLVertexArrayObjectManager::Instance().NotifyBufferDestroyed(mVAObjects[0]);
-	}
+		GLVertexBuffer::~GLVertexBuffer()
+		{
+			while(!mVAObjects.empty())
+				GLVertexArrayObjectManager::Instance().NotifyBufferDestroyed(mVAObjects[0]);
+		}
 
-	void GLVertexBuffer::Initialize()
-	{
-		mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
-		mBufferDeleter = &deleteBuffer;
-		
-		VertexBuffer::Initialize();
-	}
+		void GLVertexBuffer::Initialize()
+		{
+			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
+			mBufferDeleter = &deleteBuffer;
 
-	void GLVertexBuffer::RegisterVao(const GLVertexArrayObject& vao)
-	{
-		mVAObjects.push_back(vao);
-	}
+			VertexBuffer::Initialize();
+		}
 
-	void GLVertexBuffer::UnregisterVao(const GLVertexArrayObject& vao)
-	{
-		const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
+		void GLVertexBuffer::RegisterVao(const GLVertexArrayObject& vao)
+		{
+			mVAObjects.push_back(vao);
+		}
 
-		if (iterFind != mVAObjects.end())
-			mVAObjects.erase(iterFind);
-	}
-}}
+		void GLVertexBuffer::UnregisterVao(const GLVertexArrayObject& vao)
+		{
+			const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
+
+			if(iterFind != mVAObjects.end())
+				mVAObjects.erase(iterFind);
+		}
+	} // namespace ct
+} // namespace bs

@@ -8,7 +8,7 @@ namespace bs
 {
 	class OAAudioListener;
 	class OAAudioSource;
-}
+} // namespace bs
 
 /** @addtogroup Plugins
  *  @{

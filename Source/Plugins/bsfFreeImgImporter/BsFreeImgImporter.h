@@ -22,16 +22,17 @@ namespace bs
 		virtual ~FreeImgImporter();
 
 		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool IsExtensionSupported(const String& ext) const ;
+		bool IsExtensionSupported(const String& ext) const;
 
 		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const ;
+		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
 
 		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) ;
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
 
 		/** @copydoc SpecificImporter::createImportOptions */
-		SPtr<ImportOptions> CreateImportOptions() const ;
+		SPtr<ImportOptions> CreateImportOptions() const;
+
 	private:
 		/**	Converts a magic number into an extension name. */
 		String MagicNumToExtension(const u8* magic, u32 maxBytes) const;
@@ -48,12 +49,11 @@ namespace bs
 		 *							same order as presented in the CubemapFace enum.
 		 * @return					True if the cubemap faces were successfully generated, false otherwise.
 		 */
-		bool GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType,
-			std::array<SPtr<PixelData>, 6>& output);
+		bool GenerateCubemap(const SPtr<PixelData>& source, CubemapSourceType sourceType, std::array<SPtr<PixelData>, 6>& output);
 
 		Vector<String> mExtensions;
 		UnorderedMap<String, int> mExtensionToFID;
 	};
 
 	/** @} */
-}
+} // namespace bs

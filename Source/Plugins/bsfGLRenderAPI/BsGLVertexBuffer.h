@@ -7,35 +7,38 @@
 #include "BsGLHardwareBuffer.h"
 #include "BsGLVertexArrayObjectManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**	OpenGL implementation of a vertex buffer. */
-	class GLVertexBuffer : public VertexBuffer
+	namespace ct
 	{
-	public:
-		GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
-		~GLVertexBuffer();
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/**	Returns internal OpenGL buffer ID. */
-		GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
+		/**	OpenGL implementation of a vertex buffer. */
+		class GLVertexBuffer : public VertexBuffer
+		{
+		public:
+			GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
+			~GLVertexBuffer();
 
-		/**	Registers a new VertexArrayObject that uses this vertex buffer. */
-		void RegisterVao(const GLVertexArrayObject& vao);
+			/**	Returns internal OpenGL buffer ID. */
+			GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
 
-		/**	Unregisters a VAO from this vertex buffer. Does not destroy it. */
-		void UnregisterVao(const GLVertexArrayObject& vao);
+			/**	Registers a new VertexArrayObject that uses this vertex buffer. */
+			void RegisterVao(const GLVertexArrayObject& vao);
 
-	protected:
-		/** @copydoc VertexBuffer::initialize */
-		void Initialize() ;
+			/**	Unregisters a VAO from this vertex buffer. Does not destroy it. */
+			void UnregisterVao(const GLVertexArrayObject& vao);
 
-	private:
-		Vector<GLVertexArrayObject> mVAObjects;
-	};
+		protected:
+			/** @copydoc VertexBuffer::initialize */
+			void Initialize();
 
-	/** @} */
-}}
+		private:
+			Vector<GLVertexArrayObject> mVAObjects;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

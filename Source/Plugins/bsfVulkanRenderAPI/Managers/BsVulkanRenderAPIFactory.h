@@ -6,43 +6,45 @@
 #include "Managers/BsRenderAPIManager.h"
 #include "BsVulkanRenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup Vulkan
-	 *  @{
-	 */
-
-	/**	Handles creation of the Vulkan render system. */
-	class VulkanRenderAPIFactory : public RenderAPIFactory
+	namespace ct
 	{
-	public:
-		static constexpr const char* SystemName = "bsfVulkanRenderAPI";
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
 
-		/** @copydoc RenderAPIFactory::create */
-		void Create() ;
-
-		/** @copydoc RenderAPIFactory::name */
-		const char* Name() const { return SystemName; }
-
-	private:
-
-		/**	Registers the factory with the render system manager when constructed. */
-		class InitOnStart
+		/**	Handles creation of the Vulkan render system. */
+		class VulkanRenderAPIFactory : public RenderAPIFactory
 		{
 		public:
-			InitOnStart()
+			static constexpr const char* SystemName = "bsfVulkanRenderAPI";
+
+			/** @copydoc RenderAPIFactory::create */
+			void Create();
+
+			/** @copydoc RenderAPIFactory::name */
+			const char* Name() const { return SystemName; }
+
+		private:
+			/**	Registers the factory with the render system manager when constructed. */
+			class InitOnStart
 			{
-				static SPtr<RenderAPIFactory> newFactory;
-				if(newFactory == nullptr)
+			public:
+				InitOnStart()
 				{
-					newFactory = bs_shared_ptr_new<VulkanRenderAPIFactory>();
-					RenderAPIManager::Instance().RegisterFactory(newFactory);
+					static SPtr<RenderAPIFactory> newFactory;
+					if(newFactory == nullptr)
+					{
+						newFactory = bs_shared_ptr_new<VulkanRenderAPIFactory>();
+						RenderAPIManager::Instance().RegisterFactory(newFactory);
+					}
 				}
-			}
+			};
+
+			static InitOnStart initOnStart; // Makes sure factory is registered on program start
 		};
 
-		static InitOnStart initOnStart; // Makes sure factory is registered on program start
-	};
-
-	/** @} */
-}}
+		/** @} */
+	} // namespace ct
+} // namespace bs

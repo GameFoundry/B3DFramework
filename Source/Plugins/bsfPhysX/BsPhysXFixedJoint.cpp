@@ -11,14 +11,14 @@ using namespace physx;
 namespace bs
 {
 	PhysXFixedJoint::PhysXFixedJoint(PxPhysics* physx, const FIXED_JOINT_DESC& desc)
-		:FixedJoint(desc)
+		: FixedJoint(desc)
 	{
 		PxRigidActor* actor0 = nullptr;
-		if (desc.Bodies[0].Body != nullptr)
+		if(desc.Bodies[0].Body != nullptr)
 			actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
 
 		PxRigidActor* actor1 = nullptr;
-		if (desc.Bodies[1].Body != nullptr)
+		if(desc.Bodies[1].Body != nullptr)
 			actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
 
 		PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
@@ -34,4 +34,4 @@ namespace bs
 	{
 		bs_delete(mInternal);
 	}
-}
+} // namespace bs

@@ -8,4 +8,4 @@ namespace bs
 		: mStaticFriction(staFric), mDynamicFriction(dynFriction), mRestitutionCoefficient(restitution)
 	{
 	}
-}
+} // namespace bs

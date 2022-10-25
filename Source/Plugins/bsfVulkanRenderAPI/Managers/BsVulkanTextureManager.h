@@ -16,42 +16,42 @@ namespace bs
 	{
 	public:
 		/** @copydoc TextureManager::getNativeFormat */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) ;
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
 
-	protected:		
+	protected:
 		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) ;
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
 	};
 
 	namespace ct
 	{
-	/**	Handles creation of Vulkan textures. */
-	class VulkanTextureManager : public TextureManager
-	{
-	public:
-		/** @copydoc TextureManager::onStartUp */
-		void OnStartUp() override;
+		/**	Handles creation of Vulkan textures. */
+		class VulkanTextureManager : public TextureManager
+		{
+		public:
+			/** @copydoc TextureManager::onStartUp */
+			void OnStartUp() override;
 
-		/** Returns a dummy (empty) texture that can be bound in a shader slot of the requested type. */
-		VulkanTexture* GetDummyTexture(GpuParamObjectType type) const;
+			/** Returns a dummy (empty) texture that can be bound in a shader slot of the requested type. */
+			VulkanTexture* GetDummyTexture(GpuParamObjectType type) const;
 
-		/**
-		 * Determines Vulkan format required for binding a dummy texture (as returned by getDummyTexture()) to the shader
-		 * expecting a format of type @p format.
-		 */
-		static VkFormat GetDummyViewFormat(GpuBufferFormat format);
-	protected:
-		/** @copydoc TextureManager::createTextureInternal */
-		SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc,
-			const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) ;
+			/**
+			 * Determines Vulkan format required for binding a dummy texture (as returned by getDummyTexture()) to the shader
+			 * expecting a format of type @p format.
+			 */
+			static VkFormat GetDummyViewFormat(GpuBufferFormat format);
 
-		/** @copydoc TextureManager::createRenderTextureInternal */
-		SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc,
-			u32 deviceIdx = 0) ;
+		protected:
+			/** @copydoc TextureManager::createTextureInternal */
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-		SPtr<VulkanTexture> mDummyReadTextures[7];
-		SPtr<VulkanTexture> mDummyStorageTextures[7];
-	};
-	}
+			/** @copydoc TextureManager::createRenderTextureInternal */
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+
+			SPtr<VulkanTexture> mDummyReadTextures[7];
+			SPtr<VulkanTexture> mDummyStorageTextures[7];
+		};
+	} // namespace ct
+
 	/** @} */
-}
+} // namespace bs

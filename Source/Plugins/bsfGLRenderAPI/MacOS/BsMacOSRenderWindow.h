@@ -14,7 +14,7 @@ namespace bs
 		class MacOSGLSupport;
 		class MacOSContext;
 		class MacOSRenderWindow;
-	}
+	} // namespace ct
 
 	/** @addtogroup GL
 	 *  @{
@@ -28,7 +28,7 @@ namespace bs
 	class MacOSRenderWindow : public RenderWindow
 	{
 	public:
-		~MacOSRenderWindow() { }
+		~MacOSRenderWindow() {}
 
 		/** @copydoc RenderWindow::getCustomAttribute */
 		void getCustomAttribute(const String& name, void* pData) const override;
@@ -119,8 +119,7 @@ namespace bs
 		class MacOSRenderWindow : public RenderWindow
 		{
 		public:
-			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, u32 renderWindowId, u32 cocoaWindowId,
-							  const SPtr<MacOSContext>& context);
+			MacOSRenderWindow(const RENDER_WINDOW_DESC& desc, u32 renderWindowId, u32 cocoaWindowId, const SPtr<MacOSContext>& context);
 
 			/** @copydoc RenderWindow::move */
 			void move(i32 left, i32 top) override;
@@ -147,7 +146,7 @@ namespace bs
 			void getCustomAttribute(const String& name, void* pData) const override;
 
 			/** Returns a lock that can be used for accessing synced properties. */
-			SpinLock& GetPropertiesLockInternal() { return mLock;}
+			SpinLock& GetPropertiesLockInternal() { return mLock; }
 
 		protected:
 			friend class MacOSGLSupport;
@@ -174,8 +173,7 @@ namespace bs
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;
 		};
-	}
+	} // namespace ct
 
 	/** @} */
-}
-
+} // namespace bs

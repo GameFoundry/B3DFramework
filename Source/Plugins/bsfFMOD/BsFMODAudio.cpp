@@ -8,19 +8,19 @@
 
 namespace bs
 {
-	void* F_CALLBACK FMODAlloc(unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr)
+	void* F_CALLBACK FMODAlloc(unsigned int size, FMOD_MEMORY_TYPE type, const char* sourcestr)
 	{
 		return bs_alloc(size);
 	}
 
-	void* F_CALLBACK FMODRealloc(void *ptr, unsigned int size, FMOD_MEMORY_TYPE type, const char *sourcestr)
+	void* F_CALLBACK FMODRealloc(void* ptr, unsigned int size, FMOD_MEMORY_TYPE type, const char* sourcestr)
 	{
 		// Note: Not using framework's allocators, but have no easy alternative to implement realloc manually.
 		// This is okay to use in combination with general purpose bs_alloc/bs_free since they internally use malloc/free.
 		return realloc(ptr, size);
 	}
 
-	void F_CALLBACK FMODFree(void *ptr, FMOD_MEMORY_TYPE type, const char *sourcestr)
+	void F_CALLBACK FMODFree(void* ptr, FMOD_MEMORY_TYPE type, const char* sourcestr)
 	{
 		bs_free(ptr);
 	}
@@ -31,13 +31,13 @@ namespace bs
 		FMOD::ChannelControl* channel = (FMOD::ChannelControl*)channelControl;
 		channel->getUserData((void**)&source);
 
-		if (source == nullptr)
+		if(source == nullptr)
 			return 1.0f;
 
 		// Calculate standard inverse rolloff, but use different attenuation per source (also ignore max distance)
 		float minDistance = source->GetMinDistance();
 		float attenuation = source->GetAttenuation();
-		
+
 		distance = std::max(distance, minDistance);
 		return minDistance / (minDistance + attenuation * (distance - minDistance));
 	}
@@ -100,12 +100,12 @@ namespace bs
 
 	void FMODAudio::SetPaused(bool paused)
 	{
-		if (mIsPaused == paused)
+		if(mIsPaused == paused)
 			return;
 
 		mIsPaused = paused;
 
-		for (auto& source : mSources)
+		for(auto& source : mSources)
 			source->SetGlobalPause(paused);
 	}
 
@@ -130,8 +130,7 @@ namespace bs
 		BS_LOG(Warning, Audio, "Failed changing audio device to: {0}", device.name);
 	}
 
-	SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples,
-		const AUDIO_CLIP_DESC& desc)
+	SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 	{
 		return bs_core_ptr_new<FMODAudioClip>(samples, streamSize, numSamples, desc);
 	}
@@ -156,7 +155,7 @@ namespace bs
 	void FMODAudio::UnregisterListenerInternal(FMODAudioListener* listener)
 	{
 		auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
-		if (iterFind != mListeners.end())
+		if(iterFind != mListeners.end())
 			mListeners.erase(iterFind);
 
 		RebuildListeners();
@@ -165,10 +164,10 @@ namespace bs
 	void FMODAudio::RebuildListeners()
 	{
 		i32 numListeners = (i32)mListeners.size();
-		if (numListeners > 0)
+		if(numListeners > 0)
 		{
 			mFMOD->set3DNumListeners(numListeners);
-			for (i32 i = 0; i < numListeners; i++)
+			for(i32 i = 0; i < numListeners; i++)
 				mListeners[i]->Rebuild(i);
 		}
 		else // Always keep at least one listener
@@ -196,4 +195,4 @@ namespace bs
 	{
 		return static_cast<FMODAudio&>(FMODAudio::Instance());
 	}
-}
+} // namespace bs

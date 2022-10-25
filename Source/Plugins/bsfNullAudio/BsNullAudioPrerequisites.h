@@ -8,7 +8,7 @@ namespace bs
 {
 	class NullAudioListener;
 	class NullAudioSource;
-}
+} // namespace bs
 
 /** @addtogroup Plugins
  *  @{

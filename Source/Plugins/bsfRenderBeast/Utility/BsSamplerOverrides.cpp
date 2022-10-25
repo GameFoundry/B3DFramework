@@ -10,284 +10,284 @@
 #include "RenderAPI/BsSamplerState.h"
 #include "Managers/BsRenderStateManager.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const SPtr<Shader>& shader,
-		const SPtr<MaterialParams>& params, const SPtr<GpuParamsSet>& paramsSet,
-		const SPtr<RenderBeastOptions>& options)
+	namespace ct
 	{
-		MaterialSamplerOverrides* output = nullptr;
-
-		if (shader == nullptr)
-			return nullptr;
-
-		bs_frame_mark();
+		MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const SPtr<Shader>& shader, const SPtr<MaterialParams>& params, const SPtr<GpuParamsSet>& paramsSet, const SPtr<RenderBeastOptions>& options)
 		{
-			// Generate a list of all sampler state overrides
-			FrameUnorderedMap<String, u32> overrideLookup;
-			Vector<SamplerOverride> overrides;
+			MaterialSamplerOverrides* output = nullptr;
 
-			auto& samplerParams = shader->GetSamplerParams();
-			for(auto& samplerParam : samplerParams)
+			if(shader == nullptr)
+				return nullptr;
+
+			bs_frame_mark();
 			{
-				u32 paramIdx;
-				auto result = params->GetParamIndex(samplerParam.first, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN,
-					0, paramIdx);
+				// Generate a list of all sampler state overrides
+				FrameUnorderedMap<String, u32> overrideLookup;
+				Vector<SamplerOverride> overrides;
 
-				// Parameter shouldn't be in the valid parameter list if it cannot be found
-				assert(result == MaterialParams::GetParamResult::Success);
-				const MaterialParamsBase::ParamData* materialParamData = params->GetParamData(paramIdx);
-
-				u32 overrideIdx = (u32)overrides.size();
-				overrides.push_back(SamplerOverride());
-				SamplerOverride& override = overrides.back();
-
-				SPtr<SamplerState> samplerState;
-				params->GetSamplerState(*materialParamData, samplerState);
-
-				if (samplerState == nullptr)
-					samplerState = SamplerState::GetDefault();
-
-				override.ParamIdx = paramIdx;
-				
-				if (CheckNeedsOverride(samplerState, options))
-					override.State = GenerateSamplerOverride(samplerState, options);
-				else
-					override.State = samplerState;
-
-				override.OriginalStateHash = override.State->GetProperties().GetHash();
-
-				for (auto& entry : samplerParam.second.GpuVariableNames)
-					overrideLookup[entry] = overrideIdx;
-			}
-
-			u32 numPasses = paramsSet->GetNumPasses();
-
-			// First pass just determine if we even need to override and count the number of sampler states
-			u32* numSetsPerPass = (u32*)bs_stack_alloc<u32>(numPasses);
-			memset(numSetsPerPass, 0, sizeof(u32) * numPasses);
-
-			u32 totalNumSets = 0;
-			for (u32 i = 0; i < numPasses; i++)
-			{
-				u32 maxSamplerSet = 0;
-
-				SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
-				for (u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+				auto& samplerParams = shader->GetSamplerParams();
+				for(auto& samplerParam : samplerParams)
 				{
-					GpuProgramType progType = (GpuProgramType)j;
-					SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
-					if (paramDesc == nullptr)
-						continue;
+					u32 paramIdx;
+					auto result = params->GetParamIndex(samplerParam.first, MaterialParams::ParamType::Sampler, GPDT_UNKNOWN, 0, paramIdx);
 
-					for (auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
-					{
-						u32 set = iter->second.Set;
-						maxSamplerSet = std::max(maxSamplerSet, set + 1);
-					}
+					// Parameter shouldn't be in the valid parameter list if it cannot be found
+					assert(result == MaterialParams::GetParamResult::Success);
+					const MaterialParamsBase::ParamData* materialParamData = params->GetParamData(paramIdx);
+
+					u32 overrideIdx = (u32)overrides.size();
+					overrides.push_back(SamplerOverride());
+					SamplerOverride& override = overrides.back();
+
+					SPtr<SamplerState> samplerState;
+					params->GetSamplerState(*materialParamData, samplerState);
+
+					if(samplerState == nullptr)
+						samplerState = SamplerState::GetDefault();
+
+					override.ParamIdx = paramIdx;
+
+					if(CheckNeedsOverride(samplerState, options))
+						override.State = GenerateSamplerOverride(samplerState, options);
+					else
+						override.State = samplerState;
+
+					override.OriginalStateHash = override.State->GetProperties().GetHash();
+
+					for(auto& entry : samplerParam.second.GpuVariableNames)
+						overrideLookup[entry] = overrideIdx;
 				}
 
-				numSetsPerPass[i] = maxSamplerSet;
-				totalNumSets += maxSamplerSet;
-			}
-			
-			u32 totalNumSamplerStates = 0;
-			u32* slotsPerSet = (u32*)bs_stack_alloc<u32>(totalNumSets);
-			memset(slotsPerSet, 0, sizeof(u32) * totalNumSets);
+				u32 numPasses = paramsSet->GetNumPasses();
 
-			u32* slotsPerSetIter = slotsPerSet;
-			for (u32 i = 0; i < numPasses; i++)
-			{
-				SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
-				for (u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+				// First pass just determine if we even need to override and count the number of sampler states
+				u32* numSetsPerPass = (u32*)bs_stack_alloc<u32>(numPasses);
+				memset(numSetsPerPass, 0, sizeof(u32) * numPasses);
+
+				u32 totalNumSets = 0;
+				for(u32 i = 0; i < numPasses; i++)
 				{
-					GpuProgramType progType = (GpuProgramType)j;
-					SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
-					if (paramDesc == nullptr)
-						continue;
+					u32 maxSamplerSet = 0;
 
-					for (auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
+					SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+					for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
 					{
-						u32 set = iter->second.Set;
-						u32 slot = iter->second.Slot;
-						slotsPerSetIter[set] = std::max(slotsPerSetIter[set], slot + 1);
-					}
-				}
+						GpuProgramType progType = (GpuProgramType)j;
+						SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
+						if(paramDesc == nullptr)
+							continue;
 
-				for(u32 j = 0; j < numSetsPerPass[i]; j++)
-					totalNumSamplerStates += slotsPerSetIter[j];
-
-				slotsPerSetIter += numSetsPerPass[i];
-			}
-
-			u32 outputSize = sizeof(MaterialSamplerOverrides) +
-				numPasses * sizeof(PassSamplerOverrides) +
-				totalNumSets * sizeof(u32*) +
-				totalNumSamplerStates * sizeof(u32) +
-				(u32)overrides.size() * sizeof(SamplerOverride);
-
-			u8* outputData = (u8*)bs_alloc(outputSize);
-			output = (MaterialSamplerOverrides*)outputData;
-			outputData += sizeof(MaterialSamplerOverrides);
-
-			output->RefCount = 0;
-			output->NumPasses = numPasses;
-			output->Passes = (PassSamplerOverrides*)outputData;
-			output->IsDirty = true;
-			outputData += sizeof(PassSamplerOverrides) * numPasses;
-
-			slotsPerSetIter = slotsPerSet;
-			for (u32 i = 0; i < numPasses; i++)
-			{
-				SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
-
-				PassSamplerOverrides& passOverrides = output->Passes[i];
-				passOverrides.NumSets = numSetsPerPass[i];
-				passOverrides.StateOverrides = (u32**)outputData;
-				outputData += sizeof(u32*) * passOverrides.NumSets;
-
-				for (u32 j = 0; j < passOverrides.NumSets; j++)
-				{
-					passOverrides.StateOverrides[j] = (u32*)outputData;
-					outputData += sizeof(u32) * slotsPerSetIter[j];
-				}
-
-				for (u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
-				{
-					GpuProgramType progType = (GpuProgramType)j;
-					SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
-					if (paramDesc == nullptr)
-						continue;
-
-					u32 numStates = 0;
-					for (auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
-					{
-						u32 set = iter->second.Set;
-						u32 slot = iter->second.Slot;
-						while (slot > numStates)
+						for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
 						{
-							passOverrides.StateOverrides[set][numStates] = (u32)-1;
-							numStates++;
+							u32 set = iter->second.Set;
+							maxSamplerSet = std::max(maxSamplerSet, set + 1);
 						}
-
-						numStates = std::max(numStates, slot + 1);
-
-						auto iterFind = overrideLookup.find(iter->first);
-						if (iterFind != overrideLookup.end())
-							passOverrides.StateOverrides[set][slot] = iterFind->second;
-						else
-							passOverrides.StateOverrides[set][slot] = (u32)-1;
 					}
+
+					numSetsPerPass[i] = maxSamplerSet;
+					totalNumSets += maxSamplerSet;
 				}
 
-				slotsPerSetIter += passOverrides.NumSets;
+				u32 totalNumSamplerStates = 0;
+				u32* slotsPerSet = (u32*)bs_stack_alloc<u32>(totalNumSets);
+				memset(slotsPerSet, 0, sizeof(u32) * totalNumSets);
+
+				u32* slotsPerSetIter = slotsPerSet;
+				for(u32 i = 0; i < numPasses; i++)
+				{
+					SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+					for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+					{
+						GpuProgramType progType = (GpuProgramType)j;
+						SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
+						if(paramDesc == nullptr)
+							continue;
+
+						for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
+						{
+							u32 set = iter->second.Set;
+							u32 slot = iter->second.Slot;
+							slotsPerSetIter[set] = std::max(slotsPerSetIter[set], slot + 1);
+						}
+					}
+
+					for(u32 j = 0; j < numSetsPerPass[i]; j++)
+						totalNumSamplerStates += slotsPerSetIter[j];
+
+					slotsPerSetIter += numSetsPerPass[i];
+				}
+
+				u32 outputSize = sizeof(MaterialSamplerOverrides) +
+					numPasses * sizeof(PassSamplerOverrides) +
+					totalNumSets * sizeof(u32*) +
+					totalNumSamplerStates * sizeof(u32) +
+					(u32)overrides.size() * sizeof(SamplerOverride);
+
+				u8* outputData = (u8*)bs_alloc(outputSize);
+				output = (MaterialSamplerOverrides*)outputData;
+				outputData += sizeof(MaterialSamplerOverrides);
+
+				output->RefCount = 0;
+				output->NumPasses = numPasses;
+				output->Passes = (PassSamplerOverrides*)outputData;
+				output->IsDirty = true;
+				outputData += sizeof(PassSamplerOverrides) * numPasses;
+
+				slotsPerSetIter = slotsPerSet;
+				for(u32 i = 0; i < numPasses; i++)
+				{
+					SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+
+					PassSamplerOverrides& passOverrides = output->Passes[i];
+					passOverrides.NumSets = numSetsPerPass[i];
+					passOverrides.StateOverrides = (u32**)outputData;
+					outputData += sizeof(u32*) * passOverrides.NumSets;
+
+					for(u32 j = 0; j < passOverrides.NumSets; j++)
+					{
+						passOverrides.StateOverrides[j] = (u32*)outputData;
+						outputData += sizeof(u32) * slotsPerSetIter[j];
+					}
+
+					for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+					{
+						GpuProgramType progType = (GpuProgramType)j;
+						SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
+						if(paramDesc == nullptr)
+							continue;
+
+						u32 numStates = 0;
+						for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
+						{
+							u32 set = iter->second.Set;
+							u32 slot = iter->second.Slot;
+							while(slot > numStates)
+							{
+								passOverrides.StateOverrides[set][numStates] = (u32)-1;
+								numStates++;
+							}
+
+							numStates = std::max(numStates, slot + 1);
+
+							auto iterFind = overrideLookup.find(iter->first);
+							if(iterFind != overrideLookup.end())
+								passOverrides.StateOverrides[set][slot] = iterFind->second;
+							else
+								passOverrides.StateOverrides[set][slot] = (u32)-1;
+						}
+					}
+
+					slotsPerSetIter += passOverrides.NumSets;
+				}
+
+				output->NumOverrides = (u32)overrides.size();
+				output->Overrides = (SamplerOverride*)outputData;
+
+				for(u32 i = 0; i < output->NumOverrides; i++)
+				{
+					new(&output->Overrides[i].State) SPtr<SamplerState>();
+					output->Overrides[i] = overrides[i];
+				}
+
+				bs_stack_free(slotsPerSet);
+				bs_stack_free(numSetsPerPass);
 			}
+			bs_frame_clear();
 
-			output->NumOverrides = (u32)overrides.size();
-			output->Overrides = (SamplerOverride*)outputData;
+			return output;
+		}
 
-			for(u32 i = 0; i < output->NumOverrides; i++)
+		void SamplerOverrideUtility::DestroySamplerOverrides(MaterialSamplerOverrides* overrides)
+		{
+			if(overrides != nullptr)
 			{
-				new (&output->Overrides[i].State) SPtr<SamplerState>();
-				output->Overrides[i] = overrides[i];
+				for(u32 i = 0; i < overrides->NumOverrides; i++)
+					overrides->Overrides[i].State.~SPtr<SamplerState>();
+
+				bs_free(overrides);
+				overrides = nullptr;
+			}
+		}
+
+		bool SamplerOverrideUtility::CheckNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
+		{
+			const SamplerProperties& props = samplerState->GetProperties();
+
+			switch(options->Filtering)
+			{
+			case RenderBeastFiltering::Bilinear:
+				{
+					if(props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MIP) != FO_POINT)
+						return true;
+				}
+				break;
+			case RenderBeastFiltering::Trilinear:
+				{
+					if(props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MIP) != FO_LINEAR)
+						return true;
+				}
+				break;
+			case RenderBeastFiltering::Anisotropic:
+				{
+					if(props.GetTextureFiltering(FT_MIN) != FO_ANISOTROPIC)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MAG) != FO_ANISOTROPIC)
+						return true;
+
+					if(props.GetTextureFiltering(FT_MIP) != FO_ANISOTROPIC)
+						return true;
+
+					if(props.GetTextureAnisotropy() != options->AnisotropyMax)
+						return true;
+				}
+				break;
 			}
 
-			bs_stack_free(slotsPerSet);
-			bs_stack_free(numSetsPerPass);
+			return false;
 		}
-		bs_frame_clear();
 
-		return output;
-	}
-
-	void SamplerOverrideUtility::DestroySamplerOverrides(MaterialSamplerOverrides* overrides)
-	{
-		if (overrides != nullptr)
+		SPtr<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
 		{
-			for (u32 i = 0; i < overrides->NumOverrides; i++)
-				overrides->Overrides[i].State.~SPtr<SamplerState>();
+			const SamplerProperties& props = samplerState->GetProperties();
+			SAMPLER_STATE_DESC desc = props.GetDesc();
 
-			bs_free(overrides);
-			overrides = nullptr;
+			switch(options->Filtering)
+			{
+			case RenderBeastFiltering::Bilinear:
+				desc.MinFilter = FO_LINEAR;
+				desc.MagFilter = FO_LINEAR;
+				desc.MipFilter = FO_POINT;
+				break;
+			case RenderBeastFiltering::Trilinear:
+				desc.MinFilter = FO_LINEAR;
+				desc.MagFilter = FO_LINEAR;
+				desc.MipFilter = FO_LINEAR;
+				break;
+			case RenderBeastFiltering::Anisotropic:
+				desc.MinFilter = FO_ANISOTROPIC;
+				desc.MagFilter = FO_ANISOTROPIC;
+				desc.MipFilter = FO_ANISOTROPIC;
+				break;
+			}
+
+			desc.MaxAniso = options->AnisotropyMax;
+
+			return RenderStateManager::Instance().CreateSamplerState(desc);
 		}
-	}
-
-	bool SamplerOverrideUtility::CheckNeedsOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
-	{
-		const SamplerProperties& props = samplerState->GetProperties();
-
-		switch (options->Filtering)
-		{
-		case RenderBeastFiltering::Bilinear:
-		{
-			if (props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MIP) != FO_POINT)
-				return true;
-		}
-			break;
-		case RenderBeastFiltering::Trilinear:
-		{
-			if (props.GetTextureFiltering(FT_MIN) != FO_LINEAR)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MAG) != FO_LINEAR)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MIP) != FO_LINEAR)
-				return true;
-		}
-			break;
-		case RenderBeastFiltering::Anisotropic:
-		{
-			if (props.GetTextureFiltering(FT_MIN) != FO_ANISOTROPIC)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MAG) != FO_ANISOTROPIC)
-				return true;
-
-			if (props.GetTextureFiltering(FT_MIP) != FO_ANISOTROPIC)
-				return true;
-
-			if (props.GetTextureAnisotropy() != options->AnisotropyMax)
-				return true;
-		}
-			break;
-		}
-
-		return false;
-	}
-
-	SPtr<SamplerState> SamplerOverrideUtility::GenerateSamplerOverride(const SPtr<SamplerState>& samplerState, const SPtr<RenderBeastOptions>& options)
-	{
-		const SamplerProperties& props = samplerState->GetProperties();
-		SAMPLER_STATE_DESC desc = props.GetDesc();
-
-		switch (options->Filtering)
-		{
-		case RenderBeastFiltering::Bilinear:
-			desc.MinFilter = FO_LINEAR;
-			desc.MagFilter = FO_LINEAR;
-			desc.MipFilter = FO_POINT;
-			break;
-		case RenderBeastFiltering::Trilinear:
-			desc.MinFilter = FO_LINEAR;
-			desc.MagFilter = FO_LINEAR;
-			desc.MipFilter = FO_LINEAR;
-			break;
-		case RenderBeastFiltering::Anisotropic:
-			desc.MinFilter = FO_ANISOTROPIC;
-			desc.MagFilter = FO_ANISOTROPIC;
-			desc.MipFilter = FO_ANISOTROPIC;
-			break;
-		}
-
-		desc.MaxAniso = options->AnisotropyMax;
-
-		return RenderStateManager::Instance().CreateSamplerState(desc);
-	}
-}}
+	} // namespace ct
+} // namespace bs

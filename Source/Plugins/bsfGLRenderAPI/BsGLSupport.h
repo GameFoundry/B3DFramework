@@ -6,69 +6,72 @@
 #include "BsGLRenderAPI.h"
 #include "RenderAPI/BsRenderWindow.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**
-	 * Helper class dealing mostly with platform specific OpenGL functionality, initialization, extensions and window
-	 * creation.
-	 */
-	class GLSupport
+	namespace ct
 	{
-	public:
-		GLSupport() = default;
-		virtual ~GLSupport() = default;
+		/** @addtogroup GL
+		 *  @{
+		 */
 
 		/**
-		 * Creates a new render window using the specified descriptor.
-		 *
-		 * @param[in]	desc			Description of a render window to create.
-		 * @param[in]	windowId		Window ID provided by the render window manager.
-		 * @param[in]	parentWindow	Optional parent window if the window shouldn't be a main window. First created
-		 *								window cannot have a parent.
-		 * @return						Returns newly created window.
+		 * Helper class dealing mostly with platform specific OpenGL functionality, initialization, extensions and window
+		 * creation.
 		 */
-		virtual SPtr<bs::RenderWindow> NewWindow(RENDER_WINDOW_DESC& desc, u32 windowId, SPtr<bs::RenderWindow> parentWindow) = 0;
-
-		/**	Called when OpenGL is being initialized. */
-		virtual void Start() = 0;
-
-		/**	Called when OpenGL is being shut down. */
-		virtual void Stop() = 0;
-
-		/**	Gets OpenGL vendor name. */
-		const String& GetGlVendor() const
+		class GLSupport
 		{
-			return mVendor;
-		}
+		public:
+			GLSupport() = default;
+			virtual ~GLSupport() = default;
 
-		/**	Gets OpenGL version string. */
-		const String& GetGlVersion() const
-		{
-			return mVersion;
-		}
+			/**
+			 * Creates a new render window using the specified descriptor.
+			 *
+			 * @param[in]	desc			Description of a render window to create.
+			 * @param[in]	windowId		Window ID provided by the render window manager.
+			 * @param[in]	parentWindow	Optional parent window if the window shouldn't be a main window. First created
+			 *								window cannot have a parent.
+			 * @return						Returns newly created window.
+			 */
+			virtual SPtr<bs::RenderWindow> NewWindow(RENDER_WINDOW_DESC& desc, u32 windowId, SPtr<bs::RenderWindow> parentWindow) = 0;
 
-		/**	Checks is the specified extension available. */
-		virtual bool CheckExtension(const String& ext) const;
+			/**	Called when OpenGL is being initialized. */
+			virtual void Start() = 0;
 
-		/**	Gets an address of an OpenGL procedure with the specified name. */
-		virtual void* GetProcAddress(const String& procname) = 0;
+			/**	Called when OpenGL is being shut down. */
+			virtual void Stop() = 0;
 
-		/** Initializes OpenGL extensions. Must be called after we have a valid and active OpenGL context. */
-		virtual void InitializeExtensions();
+			/**	Gets OpenGL vendor name. */
+			const String& GetGlVendor() const
+			{
+				return mVendor;
+			}
 
-		/**	Gets a structure describing all available video modes. */
-		virtual SPtr<VideoModeInfo> GetVideoModeInfo() const = 0;
+			/**	Gets OpenGL version string. */
+			const String& GetGlVersion() const
+			{
+				return mVersion;
+			}
 
-	protected:
-		Set<String> extensionList;
+			/**	Checks is the specified extension available. */
+			virtual bool CheckExtension(const String& ext) const;
 
-		String mVersion;
-		String mVendor;
-	};
+			/**	Gets an address of an OpenGL procedure with the specified name. */
+			virtual void* GetProcAddress(const String& procname) = 0;
 
-	/** @} */
-}}
+			/** Initializes OpenGL extensions. Must be called after we have a valid and active OpenGL context. */
+			virtual void InitializeExtensions();
+
+			/**	Gets a structure describing all available video modes. */
+			virtual SPtr<VideoModeInfo> GetVideoModeInfo() const = 0;
+
+		protected:
+			Set<String> extensionList;
+
+			String mVersion;
+			String mVendor;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

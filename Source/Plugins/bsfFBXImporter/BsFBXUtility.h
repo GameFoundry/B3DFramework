@@ -16,8 +16,7 @@ namespace bs
 	{
 	public:
 		/**	Calculates per-index normals based on the provided smoothing groups. */
-		static void NormalsFromSmoothing(const Vector<Vector3>& positions, const Vector<int>& indices,
-			const Vector<int>& smoothing, Vector<Vector3>& normals);
+		static void NormalsFromSmoothing(const Vector<Vector3>& positions, const Vector<int>& indices, const Vector<int>& smoothing, Vector<Vector3>& normals);
 
 		/**
 		 * Find vertices in the source mesh that have different attributes but have the same indexes, and splits them into
@@ -50,4 +49,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

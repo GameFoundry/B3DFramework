@@ -10,15 +10,15 @@ namespace bs
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		i64 count = (i64)data->Stream->Read(buffer, *bytes);
-		if (count > 0)
+		if(count > 0)
 		{
 			*bytes = (size_t)count;
 			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		}
-		
-		if (count == 0)
+
+		if(count == 0)
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-		
+
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
 
@@ -28,7 +28,7 @@ namespace bs
 
 		data->Stream->Seek(data->StreamOffset + (u32)absoluteByteOffset);
 		i64 position = (i64)(data->Stream->Tell() - data->StreamOffset);
-		if (position >= 0)
+		if(position >= 0)
 			return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 		else
 			return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
@@ -39,7 +39,7 @@ namespace bs
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
 		i64 position = (i64)(data->Stream->Tell() - data->StreamOffset);
-		if (position >= 0)
+		if(position >= 0)
 		{
 			*absoluteByteOffset = position;
 			return FLAC__STREAM_DECODER_TELL_STATUS_OK;
@@ -69,14 +69,14 @@ namespace bs
 	{
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
-		if (!data->Output) // Seek
+		if(!data->Output) // Seek
 			return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 
 		u32 bytesPerSample = data->Info.BitDepth / 8;
-		
+
 		// If we received more data than we need, store it in the overflow buffer
 		u32 frameSamples = frame->header.blocksize * frame->header.channels;
-		if (data->SamplesToRead < frameSamples)
+		if(data->SamplesToRead < frameSamples)
 		{
 			u32 numExtraSamples = frameSamples - data->SamplesToRead;
 			u32 extraBytes = numExtraSamples * bytesPerSample;
@@ -84,14 +84,14 @@ namespace bs
 		}
 
 		assert(bytesPerSample <= 4);
-		for (u32 i = 0; i < frame->header.blocksize; i++)
+		for(u32 i = 0; i < frame->header.blocksize; i++)
 		{
-			for (u32 j = 0; j < frame->header.channels; j++)
+			for(u32 j = 0; j < frame->header.channels; j++)
 			{
-				if (data->SamplesToRead > 0)
+				if(data->SamplesToRead > 0)
 				{
 					memcpy(data->Output, &buffer[j][i], bytesPerSample);
-					
+
 					data->Output += bytesPerSample;
 					data->SamplesToRead--;
 				}
@@ -113,7 +113,7 @@ namespace bs
 	{
 		FLACDecoderData* data = (FLACDecoderData*)(clientData);
 
-		if (meta->type == FLAC__METADATA_TYPE_STREAMINFO)
+		if(meta->type == FLAC__METADATA_TYPE_STREAMINFO)
 		{
 			data->Info.NumSamples = (u32)meta->data.stream_info.total_samples * meta->data.stream_info.channels;
 			data->Info.SampleRate = meta->data.stream_info.sample_rate;
@@ -138,14 +138,13 @@ namespace bs
 		stream->Seek(offset);
 
 		FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
-		if (!decoder)
+		if(!decoder)
 			return false;
 
 		FLACDecoderData data;
 		data.Stream = stream;
 		mData.StreamOffset = offset;
-		FLAC__stream_decoder_init_stream(decoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof,
-			&streamWrite, nullptr, &streamError, &data);
+		FLAC__stream_decoder_init_stream(decoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof, &streamWrite, nullptr, &streamError, &data);
 
 		bool valid = FLAC__stream_decoder_process_until_end_of_metadata(decoder) != 0;
 
@@ -157,13 +156,13 @@ namespace bs
 
 	bool FLACDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset)
 	{
-		if (stream == nullptr)
+		if(stream == nullptr)
 			return false;
 
 		stream->Seek(offset);
 
 		mDecoder = FLAC__stream_decoder_new();
-		if (mDecoder == nullptr)
+		if(mDecoder == nullptr)
 		{
 			BS_LOG(Error, Audio, "Failed to open a FLAC file.");
 			return false;
@@ -171,10 +170,9 @@ namespace bs
 
 		mData.Stream = stream;
 		mData.StreamOffset = offset;
-		FLAC__stream_decoder_init_stream(mDecoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof,
-			&streamWrite, &streamMetadata, &streamError, &mData);
+		FLAC__stream_decoder_init_stream(mDecoder, &streamRead, &streamSeek, &streamTell, &streamLength, &streamEof, &streamWrite, &streamMetadata, &streamError, &mData);
 
-		if (!FLAC__stream_decoder_process_until_end_of_metadata(mDecoder))
+		if(!FLAC__stream_decoder_process_until_end_of_metadata(mDecoder))
 		{
 			Close();
 			BS_LOG(Error, Audio, "Failed to open a FLAC file.");
@@ -199,12 +197,12 @@ namespace bs
 	{
 		u32 overflowSize = (u32)mData.Overflow.size();
 		u32 overflowNumSamples = 0;
-		
+
 		u32 bytesPerSample = mData.Info.BitDepth / 8;
-		if (overflowSize > 0)
+		if(overflowSize > 0)
 		{
 			u32 sampleSize = numSamples * bytesPerSample;
-			if (overflowSize > sampleSize)
+			if(overflowSize > sampleSize)
 			{
 				std::copy(mData.Overflow.begin(), mData.Overflow.begin() + sampleSize, samples);
 				mData.Overflow.erase(mData.Overflow.begin(), mData.Overflow.begin() + sampleSize);
@@ -221,12 +219,12 @@ namespace bs
 		mData.SamplesToRead = numSamples - overflowNumSamples;
 		mData.Overflow.clear();
 
-		while (mData.SamplesToRead > 0)
+		while(mData.SamplesToRead > 0)
 		{
-			if (!FLAC__stream_decoder_process_single(mDecoder))
+			if(!FLAC__stream_decoder_process_single(mDecoder))
 				break;
 
-			if (FLAC__stream_decoder_get_state(mDecoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+			if(FLAC__stream_decoder_get_state(mDecoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 				break;
 		}
 
@@ -235,11 +233,11 @@ namespace bs
 
 	void FLACDecoder::Close()
 	{
-		if (mDecoder != nullptr)
+		if(mDecoder != nullptr)
 		{
 			FLAC__stream_decoder_finish(mDecoder);
 			FLAC__stream_decoder_delete(mDecoder);
 			mDecoder = nullptr;
 		}
 	}
-}
+} // namespace bs

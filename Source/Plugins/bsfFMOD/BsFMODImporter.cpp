@@ -13,9 +13,8 @@
 namespace bs
 {
 	FMODImporter::FMODImporter()
-		:SpecificImporter()
+		: SpecificImporter()
 	{
-
 	}
 
 	bool FMODImporter::IsExtensionSupported(const String& ext) const
@@ -48,7 +47,7 @@ namespace bs
 			Lock fileLock = FileScheduler::GetLock(filePath);
 
 			String pathStr = filePath.ToString();
-			if (gFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
+			if(gFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 			{
 				BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
 				return nullptr;
@@ -61,8 +60,7 @@ namespace bs
 
 		sound->getFormat(nullptr, &format, &numChannels, &numBits);
 
-		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24
-			&& format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
+		if(format != FMOD_SOUND_FORMAT_PCM8 && format != FMOD_SOUND_FORMAT_PCM16 && format != FMOD_SOUND_FORMAT_PCM24 && format != FMOD_SOUND_FORMAT_PCM32 && format != FMOD_SOUND_FORMAT_PCMFLOAT)
 		{
 			BS_LOG(Error, Audio, "Failed importing audio file, invalid imported format: ", filePath);
 			return nullptr;
@@ -73,7 +71,7 @@ namespace bs
 
 		u32 size;
 		sound->getLength(&size, FMOD_TIMEUNIT_PCMBYTES);
-		
+
 		info.bitDepth = numBits;
 		info.numChannels = numChannels;
 		info.sampleRate = (u32)frequency;
@@ -83,7 +81,7 @@ namespace bs
 		u32 bufferSize = info.numSamples * bytesPerSample;
 		u8* sampleBuffer = (u8*)bs_alloc(bufferSize);
 		assert(bufferSize == size);
-		
+
 		u8* startData = nullptr;
 		u8* endData = nullptr;
 		u32 startSize = 0;
@@ -113,7 +111,7 @@ namespace bs
 		SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
 		// If 3D, convert to mono
-		if (clipIO->is3D && info.numChannels > 1)
+		if(clipIO->is3D && info.numChannels > 1)
 		{
 			u32 numSamplesPerChannel = info.numSamples / info.numChannels;
 
@@ -132,7 +130,7 @@ namespace bs
 		}
 
 		// Convert bit depth if needed
-		if (clipIO->bitDepth != info.bitDepth)
+		if(clipIO->bitDepth != info.bitDepth)
 		{
 			u32 outBufferSize = info.numSamples * (clipIO->bitDepth / 8);
 			u8* outBuffer = (u8*)bs_alloc(outBufferSize);
@@ -149,7 +147,7 @@ namespace bs
 
 		// Encode to Ogg Vorbis if needed
 		SPtr<MemoryDataStream> sampleStream;
-		if (clipIO->format == AudioFormat::VORBIS)
+		if(clipIO->format == AudioFormat::VORBIS)
 		{
 			// Note: If the original source was in Ogg Vorbis we could just copy it here, but instead we decode to PCM and
 			// then re-encode which is redundant. If later we decide to copy be aware that the engine encodes Ogg in a
@@ -178,4 +176,4 @@ namespace bs
 
 		return clip;
 	}
-}
+} // namespace bs

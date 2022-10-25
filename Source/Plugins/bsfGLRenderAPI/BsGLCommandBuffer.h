@@ -6,44 +6,47 @@
 #include "RenderAPI/BsCommandBuffer.h"
 #include "BsGLRenderAPI.h"
 
-namespace bs { namespace ct
+namespace bs
 {
-	/** @addtogroup GL
-	 *  @{
-	 */
-
-	/**
-	 * Command buffer implementation for OpenGL, which doesn't support multi-threaded command generation. Instead all
-	 * commands are stored in an internal buffer, and then sent to the actual render API when the buffer is executed.
-	 */
-	class GLCommandBuffer : public CommandBuffer
+	namespace ct
 	{
-	public:
-		/** Registers a new command in the command buffer. */
-		void QueueCommand(const std::function<void()> command);
+		/** @addtogroup GL
+		 *  @{
+		 */
 
-		/** Executes all commands in the command buffer. Not supported on secondary buffer. */
-		void ExecuteCommands();
+		/**
+		 * Command buffer implementation for OpenGL, which doesn't support multi-threaded command generation. Instead all
+		 * commands are stored in an internal buffer, and then sent to the actual render API when the buffer is executed.
+		 */
+		class GLCommandBuffer : public CommandBuffer
+		{
+		public:
+			/** Registers a new command in the command buffer. */
+			void QueueCommand(const std::function<void()> command);
 
-		/** @copydoc CommandBuffer::getState() */
-		CommandBufferState GetState() const override;
+			/** Executes all commands in the command buffer. Not supported on secondary buffer. */
+			void ExecuteCommands();
 
-		/** @copydoc CommandBuffer::reset() */
-		void Reset() override;
-		
-	private:
-		friend class GLCommandBufferManager;
-		friend class GLRenderAPI;
+			/** @copydoc CommandBuffer::getState() */
+			CommandBufferState GetState() const override;
 
-		GLCommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
+			/** @copydoc CommandBuffer::reset() */
+			void Reset() override;
 
-		/** Returns true if the command buffer has finished executing on the GPU. */
-		bool IsComplete() const;
+		private:
+			friend class GLCommandBufferManager;
+			friend class GLRenderAPI;
 
-		GLsync mFence = 0;
-		bool mCommandQueued = false;
-		bool mIsSubmitted = false;
-	};
+			GLCommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
 
-	/** @} */
-}}
+			/** Returns true if the command buffer has finished executing on the GPU. */
+			bool IsComplete() const;
+
+			GLsync mFence = 0;
+			bool mCommandQueued = false;
+			bool mIsSubmitted = false;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs

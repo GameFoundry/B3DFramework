@@ -70,7 +70,7 @@ namespace bs
 		void SetCollisionReportMode(CollisionReportMode mode) override { mCollisionReportMode = mode; }
 
 		/** @copydoc FCollider::_setCCD */
-		void SetCCDInternal(bool enabled) override { }
+		void SetCCDInternal(bool enabled) override {}
 
 	protected:
 		Vector3 mPosition;
@@ -159,4 +159,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs

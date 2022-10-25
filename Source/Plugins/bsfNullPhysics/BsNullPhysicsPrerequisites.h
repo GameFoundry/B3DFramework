@@ -6,23 +6,23 @@
 
 namespace bs
 {
-/** @addtogroup Plugins
- *  @{
- */
+	/** @addtogroup Plugins
+	 *  @{
+	 */
 
-/** @defgroup NullPhysics bsfNullPhysics
- *	Null implementation of framework's physics.
- *  @{
- */
+	/** @defgroup NullPhysics bsfNullPhysics
+	 *	Null implementation of framework's physics.
+	 *  @{
+	 */
 
-/** @cond RTTI */
-/** @defgroup RTTI-Impl-NullPhysics RTTI types
- *  Types containing RTTI for specific classes.
- */
-/** @endcond */
+	/** @cond RTTI */
+	/** @defgroup RTTI-Impl-NullPhysics RTTI types
+	 *  Types containing RTTI for specific classes.
+	 */
+	/** @endcond */
 
-/** @} */
-/** @} */
+	/** @} */
+	/** @} */
 
 	class NullPhysicsRigidbody;
 	class NullPhysicsMaterial;
@@ -39,4 +39,4 @@ namespace bs
 	};
 
 	/** @} */
-}
+} // namespace bs
