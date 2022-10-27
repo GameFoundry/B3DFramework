@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptKeyframeRef : public ScriptObject<ScriptKeyframeRef>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyframeRef")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyframeRef")
 
 		static MonoObject* Box(const KeyframeRef& value);
 		static KeyframeRef Unbox(MonoObject* value);

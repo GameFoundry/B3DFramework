@@ -398,7 +398,7 @@ namespace bs
 
 		Vector3 mPosition = BsZero;
 		Quaternion mRotation = BsIdentity;
-		Vector3 mScale = Vector3::ONE;
+		Vector3 mScale = Vector3::kOne;
 		Matrix4 mTransform = BsIdentity;
 
 		Set<GUIElement*> mDirtyContents;

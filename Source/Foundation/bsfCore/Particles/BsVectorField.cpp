@@ -57,7 +57,7 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 				const u32 arrayIdx = x + yArrayIdx + zArrayIdx;
 				const u32 dataIdx = x * pixelSize + yDataIdx + zDataIdx;
 
-				const Vector3& source = arrayIdx < valuesToCopy ? values[arrayIdx] : Vector3::ZERO;
+				const Vector3& source = arrayIdx < valuesToCopy ? values[arrayIdx] : Vector3::kZero;
 				u8* dest = data + dataIdx;
 				PixelUtil::PackColor(source.X, source.Y, source.Z, 1.0f, PF_RGBA16F, dest);
 			}

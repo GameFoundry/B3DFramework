@@ -7,5 +7,5 @@ using namespace bs;
 
 extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	return ct::GLRenderAPIFactory::SystemName;
+	return ct::GLRenderAPIFactory::kSystemName;
 }

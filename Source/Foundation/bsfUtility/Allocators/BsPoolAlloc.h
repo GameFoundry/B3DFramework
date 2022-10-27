@@ -39,7 +39,7 @@ namespace bs
 				{
 					u32* entryPtr = (u32*)&blockData[offset];
 
-					offset += ActualElemSize;
+					offset += kActualElemSize;
 					*entryPtr = offset;
 				}
 			}
@@ -83,7 +83,7 @@ namespace bs
 		{
 			static_assert(ElemSize >= 4, "Pool allocator minimum allowed element size is 4 bytes.");
 			static_assert(ElemsPerBlock > 0, "Number of elements per block must be at least 1.");
-			static_assert(ElemsPerBlock * ActualElemSize <= UINT_MAX, "Pool allocator block size too large.");
+			static_assert(ElemsPerBlock * kActualElemSize <= UINT_MAX, "Pool allocator block size too large.");
 		}
 
 		~PoolAlloc()
@@ -122,7 +122,7 @@ namespace bs
 			MemBlock* curBlock = mFreeBlock;
 			while(curBlock)
 			{
-				constexpr u32 blockDataSize = ActualElemSize * ElemsPerBlock;
+				constexpr u32 blockDataSize = kActualElemSize * ElemsPerBlock;
 				if(data >= curBlock->BlockData && data < (curBlock->BlockData + blockDataSize))
 				{
 					curBlock->Dealloc(data);
@@ -194,7 +194,7 @@ namespace bs
 
 			if(newBlock == nullptr)
 			{
-				constexpr u32 blockDataSize = ActualElemSize * ElemsPerBlock;
+				constexpr u32 blockDataSize = kActualElemSize * ElemsPerBlock;
 				size_t paddedBlockDataSize = blockDataSize + (Alignment - 1); // Padding for potential alignment correction
 
 				u8* data = (u8*)bs_alloc(sizeof(MemBlock) + (u32)paddedBlockDataSize);
@@ -221,7 +221,7 @@ namespace bs
 			mNumBlocks--;
 		}
 
-		static constexpr int ActualElemSize = ((ElemSize + Alignment - 1) / Alignment) * Alignment;
+		static constexpr int kActualElemSize = ((ElemSize + Alignment - 1) / Alignment) * Alignment;
 
 		LockingPolicy<Lock> mLockPolicy;
 		MemBlock* mFreeBlock = nullptr;

@@ -197,7 +197,7 @@ void GUIButtonBase::FillBuffer(
 			imageXOffset = (i32)(freeWidth / 2);
 		}
 		else
-			textImageSpacing = GUIContent::IMAGE_TEXT_SPACING;
+			textImageSpacing = GUIContent::kImageTextSpacing;
 
 		if(GetStyleInternal()->ImagePosition == GUIImagePosition::Right)
 		{

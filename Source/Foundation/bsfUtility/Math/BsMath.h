@@ -81,7 +81,7 @@ namespace bs
 	class BS_UTILITY_EXPORT Math
 	{
 	public:
-		static constexpr float BIGGEST_FLOAT_SMALLER_THAN_ONE = 0.99999994f;
+		static constexpr float kBiggestFloatSmallerThanOne = 0.99999994f;
 
 		/** Inverse cosine. */
 		static Radian Acos(float val);
@@ -138,7 +138,7 @@ namespace bs
 		static float Log(float val) { return (float)std::log(val); }
 
 		/** Returns base 2 logarithm of the provided value. */
-		static float Log2(float val) { return (float)(std::log(val) / LOG2); }
+		static float Log2(float val) { return (float)(std::log(val) / kLoG2); }
 
 		/** Returns base N logarithm of the provided value. */
 		static float LogN(float base, float val) { return (float)(std::log(val) / std::log(base)); }
@@ -173,7 +173,7 @@ namespace bs
 			assert(val >= std::numeric_limits<int32_t>::min() && val <= std::numeric_limits<int32_t>::max());
 
 			// Positive values need offset in order to truncate towards positive infinity (cast truncates towards zero)
-			return val >= 0.0f ? (int32_t)(val + BIGGEST_FLOAT_SMALLER_THAN_ONE) : (int32_t)val;
+			return val >= 0.0f ? (int32_t)(val + kBiggestFloatSmallerThanOne) : (int32_t)val;
 		}
 
 		/**
@@ -184,7 +184,7 @@ namespace bs
 		{
 			assert(val >= 0 && val <= std::numeric_limits<uint32_t>::max());
 
-			return (uint32_t)(val + BIGGEST_FLOAT_SMALLER_THAN_ONE);
+			return (uint32_t)(val + kBiggestFloatSmallerThanOne);
 		}
 
 		/** Returns the integer nearest to the provided value. */
@@ -229,7 +229,7 @@ namespace bs
 			assert(val >= std::numeric_limits<int32_t>::min() && val <= std::numeric_limits<int32_t>::max());
 
 			// Negative values need offset in order to truncate towards negative infinity (cast truncates towards zero)
-			return val >= 0.0f ? (int32_t)val : (int32_t)(val - BIGGEST_FLOAT_SMALLER_THAN_ONE);
+			return val >= 0.0f ? (int32_t)val : (int32_t)(val - kBiggestFloatSmallerThanOne);
 		}
 
 		/**
@@ -750,7 +750,7 @@ namespace bs
 		template <typename T>
 		static u32 SolveCubic(T A, T B, T C, T D, T* roots)
 		{
-			static const T THIRD = (1 / (T)3);
+			static const T kThird = (1 / (T)3);
 
 			T invA = 1 / A;
 			A = B * invA;
@@ -758,8 +758,8 @@ namespace bs
 			C = D * invA;
 
 			T sqA = A * A;
-			T p = THIRD * (-THIRD * sqA + B);
-			T q = ((T)0.5) * ((2 / (T)27) * A * sqA - THIRD * A * B + C);
+			T p = kThird * (-kThird * sqA + B);
+			T q = ((T)0.5) * ((2 / (T)27) * A * sqA - kThird * A * B + C);
 
 			T cbp = p * p * p;
 			D = q * q + cbp;
@@ -769,12 +769,12 @@ namespace bs
 			{
 				if(D < 0.0)
 				{
-					T phi = THIRD * ::acos(-q / sqrt(-cbp));
+					T phi = kThird * ::acos(-q / sqrt(-cbp));
 					T t = 2 * sqrt(-p);
 
 					roots[0] = t * cos(phi);
-					roots[1] = -t * cos(phi + PI * THIRD);
-					roots[2] = -t * cos(phi - PI * THIRD);
+					roots[1] = -t * cos(phi + kPi * kThird);
+					roots[2] = -t * cos(phi - kPi * kThird);
 
 					numRoots = 3;
 				}
@@ -808,7 +808,7 @@ namespace bs
 				}
 			}
 
-			T sub = THIRD * A;
+			T sub = kThird * A;
 			for(u32 i = 0; i < numRoots; i++)
 				roots[i] -= sub;
 
@@ -1080,20 +1080,20 @@ namespace bs
 			return output;
 		}
 
-		static constexpr float POS_INFINITY = std::numeric_limits<float>::infinity();
-		static constexpr float NEG_INFINITY = -std::numeric_limits<float>::infinity();
-		static constexpr float PI = 3.14159265358979323846f;
-		static constexpr float TWO_PI = (float)(2.0f * PI);
-		static constexpr float HALF_PI = (float)(0.5f * PI);
-		static constexpr float QUARTER_PI = (float)(0.25f * PI);
-		static constexpr float INV_PI = (float)(1 / PI);
-		static constexpr float INV_HALF_PI = (float)(INV_PI / 2);
-		static constexpr float INV_TWO_PI = (float)(2.0f * INV_PI);
-		static constexpr float DEG2RAD = PI / 180.0f;
-		static constexpr float RAD2DEG = 180.0f / PI;
-		static constexpr float SQRT2 = 1.4142135623730951f;
-		static constexpr float INV_SQRT2 = (float)(1.0f / SQRT2);
-		static const float LOG2;
+		static constexpr float kPosInfinity = std::numeric_limits<float>::infinity();
+		static constexpr float kNegInfinity = -std::numeric_limits<float>::infinity();
+		static constexpr float kPi = 3.14159265358979323846f;
+		static constexpr float kTwoPi = (float)(2.0f * kPi);
+		static constexpr float kHalfPi = (float)(0.5f * kPi);
+		static constexpr float kQuarterPi = (float)(0.25f * kPi);
+		static constexpr float kInvPi = (float)(1 / kPi);
+		static constexpr float kInvHalfPi = (float)(kInvPi / 2);
+		static constexpr float kInvTwoPi = (float)(2.0f * kInvPi);
+		static constexpr float kDeG2Rad = kPi / 180.0f;
+		static constexpr float kRaD2Deg = 180.0f / kPi;
+		static constexpr float kSqrT2 = 1.4142135623730951f;
+		static constexpr float kInvSqrT2 = (float)(1.0f / kSqrT2);
+		static const float kLoG2;
 	};
 
 	/** @} */

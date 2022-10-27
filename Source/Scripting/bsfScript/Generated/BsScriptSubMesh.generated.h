@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSubMesh : public ScriptObject<ScriptSubMesh>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SubMesh")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SubMesh")
 
 		static MonoObject* Box(const SubMesh& value);
 		static SubMesh Unbox(MonoObject* value);

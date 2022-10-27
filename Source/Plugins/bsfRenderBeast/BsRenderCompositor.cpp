@@ -426,7 +426,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	rapi.SetViewport(area);
 
 	// Clear all targets
-	rapi.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::ZERO, 1.0f, 0);
+	rapi.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1.0f, 0);
 
 	// Trigger pre-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -762,7 +762,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 			surface.MipLevel = 0;
 			surface.NumMipLevels = 1;
 
-			clearMat->Execute(LightAccumulationTexArray->Texture, Color::ZERO, surface);
+			clearMat->Execute(LightAccumulationTexArray->Texture, Color::kZero, surface);
 		}
 	}
 	else
@@ -958,7 +958,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 				Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
 				rapi.SetViewport(area);
 
-				rapi.ClearViewport(FBT_COLOR, Color::ZERO);
+				rapi.ClearViewport(FBT_COLOR, Color::kZero);
 
 				u32 lightIdx = offset + j;
 				const RendererLight& light = *lights[lightIdx];
@@ -1320,7 +1320,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		// Populate light & probe buffers
 		Vector3I lightCounts;
-		const LightData* lights[STANDARD_FORWARD_MAX_NUM_LIGHTS];
+		const LightData* lights[kStandardForwardMaxNumLights];
 		visibleLightData.GatherInfluencingLights(bounds, lights, lightCounts);
 
 		Vector4I lightOffsets;
@@ -1332,7 +1332,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		for(i32 j = 0; j < lightOffsets.W; j++)
 			gLightsParamDef.gLights.Set(standardForwardBuffers.LightsParamBlock, *lights[j], j);
 
-		i32 numReflProbes = std::min(visibleReflProbeData.GetNumProbes(), STANDARD_FORWARD_MAX_NUM_PROBES);
+		i32 numReflProbes = std::min(visibleReflProbeData.GetNumProbes(), kStandardForwardMaxNumProbes);
 		for(i32 j = 0; j < numReflProbes; j++)
 		{
 			gReflProbesParamDef.gReflectionProbes.Set(standardForwardBuffers.ReflProbesParamBlock, visibleReflProbeData.GetProbeData(j), j);
@@ -1549,7 +1549,7 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	if(radiance != nullptr)
 	{
 		SkyboxMat* material = SkyboxMat::GetVariation(false);
-		material->Bind(inputs.View.GetPerViewBuffer(), radiance, Color::White);
+		material->Bind(inputs.View.GetPerViewBuffer(), radiance, Color::kWhite);
 	}
 	else
 	{
@@ -1609,7 +1609,7 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	rapi.SetRenderTarget(target);
 	rapi.SetViewport(viewProps.Target.NrmViewRect);
 
-	gRendererUtility().Blit(input, Rect2I::EMPTY, viewProps.FlipView);
+	gRendererUtility().Blit(input, Rect2I::kEmpty, viewProps.FlipView);
 
 	if(viewProps.EncodeDepth)
 	{
@@ -2306,7 +2306,7 @@ SmallVector<StringID, 4> RCNodeHalfSceneColor::GetDependencies(const RendererVie
 	return { RCNodeSceneColor::GetNodeId() };
 }
 
-constexpr u32 RCNodeSceneColorDownsamples::MAX_NUM_DOWNSAMPLES;
+constexpr u32 RCNodeSceneColorDownsamples::kMaxNumDownsamples;
 
 void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& inputs)
 {
@@ -2322,7 +2322,7 @@ void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& input
 										  halfSceneProps.GetFormat()) +
 		1;
 
-	AvailableDownsamples = Math::Min(MAX_NUM_DOWNSAMPLES, totalDownsampleLevels);
+	AvailableDownsamples = Math::Min(kMaxNumDownsamples, totalDownsampleLevels);
 
 	{
 		Output[0] = halfSceneColorNode->Output;
@@ -2338,7 +2338,7 @@ void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& input
 
 void RCNodeSceneColorDownsamples::Clear()
 {
-	for(u32 i = 0; i < MAX_NUM_DOWNSAMPLES; i++)
+	for(u32 i = 0; i < kMaxNumDownsamples; i++)
 		Output[i] = nullptr;
 }
 
@@ -2363,7 +2363,7 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		RenderAPI& rapi = RenderAPI::Instance();
 		rapi.SetRenderTarget(Output->RenderTexture);
 		rapi.ClearRenderTarget(FBT_STENCIL);
-		gRendererUtility().Blit(sceneDepthNode->DepthTex->Texture, Rect2I::EMPTY, false, true);
+		gRendererUtility().Blit(sceneDepthNode->DepthTex->Texture, Rect2I::kEmpty, false, true);
 	}
 	else
 		Output = sceneDepthNode->DepthTex;
@@ -2469,7 +2469,7 @@ SmallVector<StringID, 4> RCNodeHiZ::GetDependencies(const RendererView& view)
 void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 {
 	/** Maximum valid depth range within samples in a sample set. In meters. */
-	static const float DEPTH_RANGE = 1.0f;
+	static const float kDepthRange = 1.0f;
 
 	const AmbientOcclusionSettings& settings = inputs.View.GetRenderSettings().AmbientOcclusion;
 	if(!settings.Enabled)
@@ -2524,7 +2524,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex0 = resPool.Get(desc);
 
-		downsample->Execute(inputs.View, sceneDepth, sceneNormals, setupTex0->RenderTexture, DEPTH_RANGE);
+		downsample->Execute(inputs.View, sceneDepth, sceneNormals, setupTex0->RenderTexture, kDepthRange);
 	}
 
 	SPtr<PooledRenderTexture> setupTex1;
@@ -2537,7 +2537,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex1 = resPool.Get(desc);
 
-		downsample->Execute(inputs.View, sceneDepth, sceneNormals, setupTex1->RenderTexture, DEPTH_RANGE);
+		downsample->Execute(inputs.View, sceneDepth, sceneNormals, setupTex1->RenderTexture, kDepthRange);
 	}
 
 	SSAOTextureInputs textures;
@@ -2623,8 +2623,8 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		SSAOBlurMat* blurHorz = SSAOBlurMat::GetVariation(true);
 		SSAOBlurMat* blurVert = SSAOBlurMat::GetVariation(false);
 
-		blurHorz->Execute(inputs.View, mPooledOutput->Texture, sceneDepth, blurIntermediateTex->RenderTexture, DEPTH_RANGE);
-		blurVert->Execute(inputs.View, blurIntermediateTex->Texture, sceneDepth, mPooledOutput->RenderTexture, DEPTH_RANGE);
+		blurHorz->Execute(inputs.View, mPooledOutput->Texture, sceneDepth, blurIntermediateTex->RenderTexture, kDepthRange);
+		blurVert->Execute(inputs.View, blurIntermediateTex->Texture, sceneDepth, mPooledOutput->RenderTexture, kDepthRange);
 	}
 
 	RenderAPI::Instance().SetRenderTarget(nullptr);
@@ -2711,7 +2711,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<RenderTexture> traceRt = RenderTexture::Create(traceRtDesc);
 
 	rapi.SetRenderTarget(traceRt, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-	rapi.ClearRenderTarget(FBT_COLOR, Color::ZERO);
+	rapi.ClearRenderTarget(FBT_COLOR, Color::kZero);
 
 	SSRTraceMat* traceMat = SSRTraceMat::GetVariation(settings.Quality, viewProps.Target.NumSamples > 1, true);
 	traceMat->Execute(inputs.View, gbuffer, sceneColor, hiZ, settings, traceRt);
@@ -2728,7 +2728,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 
 		TemporalFilteringMat* temporalFilteringMat =
 			TemporalFilteringMat::GetVariation(TemporalFilteringType::SSR, false, viewProps.Target.NumSamples > 1);
-		temporalFilteringMat->Execute(inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::ZERO, 1.0f, mPooledOutput->RenderTexture);
+		temporalFilteringMat->Execute(inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::kZero, 1.0f, mPooledOutput->RenderTexture);
 
 		traceOutput = nullptr;
 	}
@@ -2830,7 +2830,7 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 		if(prevOutput)
 			additiveInput = prevOutput->Texture;
 
-		const Color tint = Color::White * (settings.Bloom.Intensity / (float)numSteps);
+		const Color tint = Color::kWhite * (settings.Bloom.Intensity / (float)numSteps);
 		filterMat->Execute(blurInput->Texture, settings.Bloom.FilterSize, blurOutput->RenderTexture, tint, additiveInput);
 		prevOutput = blurOutput;
 	}
@@ -2887,7 +2887,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 
 	// Blur
 	GaussianBlurMat* filterMat = GaussianBlurMat::Get();
-	filterMat->Execute(featureTex->Texture, lensFlareSettings.FilterSize, downsampledTex->RenderTexture, Color::White);
+	filterMat->Execute(featureTex->Texture, lensFlareSettings.FilterSize, downsampledTex->RenderTexture, Color::kWhite);
 
 	auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.InputNodes[1]);
 
@@ -2897,7 +2897,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 		upsampleMat->Execute(
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
-			Color::White * lensFlareSettings.Brightness);
+			Color::kWhite * lensFlareSettings.Brightness);
 	}
 	else
 	{
@@ -2905,7 +2905,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 		upsampleMat->Execute(
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
-			Color::White * lensFlareSettings.Brightness);
+			Color::kWhite * lensFlareSettings.Brightness);
 	}
 }
 

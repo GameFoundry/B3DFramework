@@ -20,7 +20,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportName(LightProbeVolume)) CLightProbeVolume : public Component
 	{
 	public:
-		CLightProbeVolume(const HSceneObject& parent, const AABox& volume = AABox::UNIT_BOX, const Vector3I& cellCount = Vector3I(1, 1, 1));
+		CLightProbeVolume(const HSceneObject& parent, const AABox& volume = AABox::kUnitBox, const Vector3I& cellCount = Vector3I(1, 1, 1));
 		virtual ~CLightProbeVolume();
 
 		/** @copydoc LightProbeVolume::addProbe() */

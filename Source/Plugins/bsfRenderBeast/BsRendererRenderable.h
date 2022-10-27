@@ -112,8 +112,8 @@ namespace bs
 			 */
 			void UpdatePerCallBuffer(const Matrix4& viewProj, bool flush = true);
 
-			Matrix4 WorldTfrm = Matrix4::IDENTITY;
-			Matrix4 PrevWorldTfrm = Matrix4::IDENTITY;
+			Matrix4 WorldTfrm = Matrix4::kIdentity;
+			Matrix4 PrevWorldTfrm = Matrix4::kIdentity;
 			PrevFrameDirtyState PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
 			Renderable* Renderable;

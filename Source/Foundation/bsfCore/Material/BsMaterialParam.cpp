@@ -266,7 +266,7 @@ void TMaterialParamSpriteTexture<Core>::Set(const SpriteTextureType& texture) co
 		// If there is a default value, assign that instead of null
 		TextureType newValue;
 		params->GetDefaultTexture(*data, newValue);
-		params->SetTexture(*data, newValue, TextureSurface::COMPLETE);
+		params->SetTexture(*data, newValue, TextureSurface::kComplete);
 	}
 	else
 		params->SetSpriteTexture(*data, texture);

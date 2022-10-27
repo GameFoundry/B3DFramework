@@ -396,7 +396,7 @@ namespace bs
 		static std::false_type Test(...);
 
 		typedef decltype(Test<T, dummy>(nullptr)) type;
-		static const bool value = std::is_same<std::true_type, decltype(Test<T, dummy>(nullptr))>::value;
+		static const bool kValue = std::is_same<std::true_type, decltype(Test<T, dummy>(nullptr))>::value;
 	};
 
 	/**

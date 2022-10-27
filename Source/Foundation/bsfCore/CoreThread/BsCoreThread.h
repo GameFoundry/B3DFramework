@@ -153,14 +153,14 @@ namespace bs
 		 *  - New core thread frame starts, it reads some data from buffer 1.
 		 *  - ...
 		 */
-		static const int NUM_SYNC_BUFFERS = 2;
+		static const int kNumSyncBuffers = 2;
 
 	private:
 		/**
 		 * Double buffered frame allocators. Means sim thread cannot be more than 1 frame ahead of core thread (If that changes
 		 * you should be able to easily add more).
 		 */
-		FrameAlloc* mFrameAllocs[NUM_SYNC_BUFFERS];
+		FrameAlloc* mFrameAllocs[kNumSyncBuffers];
 		u32 mActiveFrameAlloc = 0;
 
 		static QueueData mPerThreadQueue;

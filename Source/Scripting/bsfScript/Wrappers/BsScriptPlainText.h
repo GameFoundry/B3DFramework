@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPlainText : public TScriptResource<ScriptPlainText, PlainText>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PlainText")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PlainText")
 
 		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
 		static MonoObject* CreateInstance();

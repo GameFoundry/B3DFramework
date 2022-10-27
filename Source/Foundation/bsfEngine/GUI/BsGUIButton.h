@@ -28,7 +28,7 @@ namespace bs
 		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIButton* Create(const HString& text, const String& styleName = StringUtil::BLANK);
+		static GUIButton* Create(const HString& text, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new button with the specified label.
@@ -39,7 +39,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIButton* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIButton* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new button with the specified label.
@@ -48,7 +48,7 @@ namespace bs
 		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIButton* Create(const GUIContent& content, const String& styleName = StringUtil::BLANK);
+		static GUIButton* Create(const GUIContent& content, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new button with the specified label.
@@ -59,7 +59,7 @@ namespace bs
 		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIButton* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIButton* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

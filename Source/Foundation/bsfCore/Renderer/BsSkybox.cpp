@@ -46,8 +46,8 @@ void Skybox::FilterTexture()
 		TEXTURE_DESC cubemapDesc;
 		cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		cubemapDesc.Format = PF_RG11B10F;
-		cubemapDesc.Width = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
-		cubemapDesc.Height = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+		cubemapDesc.Width = ct::IBLUtility::kReflectionCubemapSize;
+		cubemapDesc.Height = ct::IBLUtility::kReflectionCubemapSize;
 		cubemapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
@@ -58,8 +58,8 @@ void Skybox::FilterTexture()
 		TEXTURE_DESC irradianceCubemapDesc;
 		irradianceCubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		irradianceCubemapDesc.Format = PF_RG11B10F;
-		irradianceCubemapDesc.Width = ct::IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
-		irradianceCubemapDesc.Height = ct::IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
+		irradianceCubemapDesc.Width = ct::IBLUtility::kIrradianceCubemapSize;
+		irradianceCubemapDesc.Height = ct::IBLUtility::kIrradianceCubemapSize;
 		irradianceCubemapDesc.NumMips = 0;
 		irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 

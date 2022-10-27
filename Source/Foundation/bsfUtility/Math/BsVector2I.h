@@ -198,7 +198,7 @@ namespace bs
 			return X * vec.X + Y * vec.Y;
 		}
 
-		static const Vector2I ZERO;
+		static const Vector2I kZero;
 	};
 
 	/** @} */

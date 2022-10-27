@@ -104,8 +104,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle texture animation evolver. */
@@ -170,8 +170,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle orbit evolver. */
@@ -227,8 +227,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle velocity evolver. */
@@ -284,8 +284,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle force evolver. */
@@ -338,8 +338,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle gravity evolver. */
@@ -369,7 +369,7 @@ namespace bs
 	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles), ExportAsStruct(true), ExportName(ParticleColorOptions)) PARTICLE_COLOR_DESC
 	{
 		/** Determines the color of the particles evaluated over particle lifetime. */
-		ColorDistribution Color = Color::White;
+		ColorDistribution Color = Color::kWhite;
 	};
 
 	/** Changes the color of the particles over the particle lifetime. */
@@ -392,8 +392,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle color evolver. */
@@ -431,7 +431,7 @@ namespace bs
 		 * Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is
 		 * enabled.
 		 */
-		Vector3Distribution Size3D = Vector3::ONE;
+		Vector3Distribution Size3D = Vector3::kOne;
 
 		/**
 		 * Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own
@@ -460,8 +460,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle size evolver. */
@@ -497,7 +497,7 @@ namespace bs
 		FloatDistribution Rotation = 0.0f;
 
 		/** Determines the rotation of the particles in degrees as Euler angles. Only used if 3D rotation is enabled. */
-		Vector3Distribution Rotation3D = Vector3::ZERO;
+		Vector3Distribution Rotation3D = Vector3::kZero;
 
 		/**
 		 * Determines should the particle rotation be a single angle applied around a Z axis (if disabled), or a
@@ -526,8 +526,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(true, 0);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(true, 0);
+			return kSProperties;
 		}
 
 		/** Creates a new particle rotation evolver. */
@@ -643,8 +643,8 @@ namespace bs
 		/** @copydoc ParticleEvolver::getProperties */
 		const ParticleEvolverProperties& GetProperties() const override
 		{
-			static const ParticleEvolverProperties sProperties(false, -10000);
-			return sProperties;
+			static const ParticleEvolverProperties kSProperties(false, -10000);
+			return kSProperties;
 		}
 
 		/** Creates a new particle collision evolver. */

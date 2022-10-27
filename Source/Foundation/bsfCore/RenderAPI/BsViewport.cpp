@@ -10,10 +10,10 @@
 
 using namespace bs;
 
-const Color ViewportBase::DEFAULT_CLEAR_COLOR = Color(0.0f, 0.3685f, 0.7969f);
+const Color ViewportBase::kDefaultClearColor = Color(0.0f, 0.3685f, 0.7969f);
 
 ViewportBase::ViewportBase(float x, float y, float width, float height)
-	: mNormArea(x, y, width, height), mClearFlags(ClearFlagBits::Color | ClearFlagBits::Depth), mClearColorValue(DEFAULT_CLEAR_COLOR), mClearDepthValue(1.0f), mClearStencilValue(0)
+	: mNormArea(x, y, width, height), mClearFlags(ClearFlagBits::Color | ClearFlagBits::Depth), mClearColorValue(kDefaultClearColor), mClearDepthValue(1.0f), mClearStencilValue(0)
 {
 }
 

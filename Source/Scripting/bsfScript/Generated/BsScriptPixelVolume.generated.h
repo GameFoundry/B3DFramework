@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPixelVolume : public ScriptObject<ScriptPixelVolume>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PixelVolume")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PixelVolume")
 
 		static MonoObject* Box(const PixelVolume& value);
 		static PixelVolume Unbox(MonoObject* value);

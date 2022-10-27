@@ -12,7 +12,7 @@ bool WaveDecoder::IsValid(const SPtr<DataStream>& stream, u32 offset)
 {
 	stream->Seek(offset);
 
-	i8 header[MAIN_CHUNK_SIZE];
+	i8 header[kMainChunkSize];
 	if(stream->Read(header, sizeof(header)) < (sizeof(header)))
 		return false;
 
@@ -25,7 +25,7 @@ bool WaveDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 
 		return false;
 
 	mStream = stream;
-	mStream->Seek(offset + MAIN_CHUNK_SIZE);
+	mStream->Seek(offset + kMainChunkSize);
 
 	if(!ParseHeader(info))
 	{

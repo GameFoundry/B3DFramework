@@ -6,7 +6,7 @@
 
 using namespace bs;
 
-constexpr const char* RenderBeastFactory::SystemName;
+constexpr const char* RenderBeastFactory::kSystemName;
 
 SPtr<ct::Renderer> RenderBeastFactory::Create()
 {
@@ -15,6 +15,6 @@ SPtr<ct::Renderer> RenderBeastFactory::Create()
 
 const String& RenderBeastFactory::Name() const
 {
-	static String StrSystemName = SystemName;
+	static String StrSystemName = kSystemName;
 	return StrSystemName;
 }

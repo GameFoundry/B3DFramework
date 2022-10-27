@@ -7,20 +7,20 @@
 #define BS_SCRIPTING_ENABLED @BS_SCRIPTING_ENABLED@
 
 /** Path to the framework source directory. */
-static constexpr const char* RAW_APP_ROOT = "@APP_ROOT_DIR@/";
+static constexpr const char* kRawAppRoot = "@APP_ROOT_DIR@/";
 
 /** Path to the framework build directory. */
-static constexpr const char* BUILD_APP_ROOT = "@PROJECT_BINARY_DIR@/";
+static constexpr const char* kBuildAppRoot = "@PROJECT_BINARY_DIR@/";
 
 /** Path to the binaries when files haven't been packaged yet (e.g. running from debugger). */
 #if BS_CONFIG == BS_CONFIG_DEBUG
-static constexpr const char* BINARIES_PATH = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG@";
+static constexpr const char* kBinariesPath = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG@";
 #elif BS_CONFIG == BS_CONFIG_RELWITHDEBINFO
-static constexpr const char* BINARIES_PATH = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO@";
+static constexpr const char* kBinariesPath = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO@";
 #elif BS_CONFIG == BS_CONFIG_MINSIZEREL
-static constexpr const char* BINARIES_PATH = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL@";
+static constexpr const char* kBinariesPath = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL@";
 #elif BS_CONFIG == BS_CONFIG_RELEASE
-static constexpr const char* BINARIES_PATH = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE@";
+static constexpr const char* kBinariesPath = "@CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE@";
 #endif
 
 /** Banshee 3D related version stuff*/

@@ -272,7 +272,7 @@ namespace bs
 		/** Strips invalid characters from the provided string and replaces them with empty spaces. */
 		static void StripInvalid(String& path);
 
-		static const Path BLANK;
+		static const Path kBlank;
 
 	private:
 		/**

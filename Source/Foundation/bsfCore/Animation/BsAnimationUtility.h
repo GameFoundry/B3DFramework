@@ -50,7 +50,7 @@ namespace bs
 			NumComponents = 2
 		};
 
-		static Vector2 GetZero() { return Vector2::ZERO; }
+		static Vector2 GetZero() { return Vector2::kZero; }
 
 		static float GetComponent(const Vector2& val, u32 i) { return val[i]; }
 
@@ -65,7 +65,7 @@ namespace bs
 			NumComponents = 3
 		};
 
-		static Vector3 GetZero() { return Vector3::ZERO; }
+		static Vector3 GetZero() { return Vector3::kZero; }
 
 		static float GetComponent(const Vector3& val, u32 i) { return val[i]; }
 
@@ -80,7 +80,7 @@ namespace bs
 			NumComponents = 4
 		};
 
-		static Quaternion GetZero() { return Quaternion::ZERO; }
+		static Quaternion GetZero() { return Quaternion::kZero; }
 
 		static float GetComponent(const Quaternion& val, u32 i) { return val[i]; }
 

@@ -61,7 +61,7 @@ namespace bs
 		 * @param[in]	radius		Radius of the base of the cone.
 		 * @param[in]	scale		Scale applied to cone's disc width & height. Allows you to create elliptical cones.
 		 */
-		void DrawCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE);
+		void DrawCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::kOne);
 
 		/**
 		 * Draws a solid disc.
@@ -92,7 +92,7 @@ namespace bs
 		 * @param[in]	radius		Radius of the base of the cone.
 		 * @param[in]	scale		Scale applied to cone's disc width & height. Allows you to create elliptical cones.
 		 */
-		void DrawWireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE);
+		void DrawWireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::kOne);
 
 		/** Draws a line between two points. */
 		void DrawLine(const Vector3& start, const Vector3& end);

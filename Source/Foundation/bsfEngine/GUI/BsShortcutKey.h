@@ -36,7 +36,7 @@ namespace bs
 		ButtonModifier Modifier = ButtonModifier::None;
 		ButtonCode Button = BC_UNASSIGNED;
 
-		static const ShortcutKey NONE;
+		static const ShortcutKey kNone;
 	};
 
 	/** @} */

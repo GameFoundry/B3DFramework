@@ -13,11 +13,11 @@ using namespace bs;
 CJoint::CJoint(JOINT_DESC& desc)
 	: mDesc(desc)
 {
-	mPositions[0] = Vector3::ZERO;
-	mPositions[1] = Vector3::ZERO;
+	mPositions[0] = Vector3::kZero;
+	mPositions[1] = Vector3::kZero;
 
-	mRotations[0] = Quaternion::IDENTITY;
-	mRotations[1] = Quaternion::IDENTITY;
+	mRotations[0] = Quaternion::kIdentity;
+	mRotations[1] = Quaternion::kIdentity;
 }
 
 CJoint::CJoint(const HSceneObject& parent, JOINT_DESC& desc)
@@ -25,11 +25,11 @@ CJoint::CJoint(const HSceneObject& parent, JOINT_DESC& desc)
 {
 	SetName("Joint");
 
-	mPositions[0] = Vector3::ZERO;
-	mPositions[1] = Vector3::ZERO;
+	mPositions[0] = Vector3::kZero;
+	mPositions[1] = Vector3::kZero;
 
-	mRotations[0] = Quaternion::IDENTITY;
-	mRotations[1] = Quaternion::IDENTITY;
+	mRotations[0] = Quaternion::kIdentity;
+	mRotations[1] = Quaternion::kIdentity;
 
 	mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
 }

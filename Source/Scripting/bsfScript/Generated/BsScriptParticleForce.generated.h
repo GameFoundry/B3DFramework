@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleForce : public TScriptReflectable<ScriptParticleForce, ParticleForce, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleForce")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleForce")
 
 		ScriptParticleForce(MonoObject* managedInstance, const SPtr<ParticleForce>& value);
 

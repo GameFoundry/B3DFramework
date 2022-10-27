@@ -23,7 +23,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUIDropDownMenu::DROP_DOWN_BOX_WIDTH = 250;
+const u32 GUIDropDownMenu::kDropDownBoxWidth = 250;
 
 GUIDropDownDataEntry GUIDropDownDataEntry::Separator()
 {
@@ -212,7 +212,7 @@ GUIDropDownMenu::DropDownSubMenu::DropDownSubMenu(GUIDropDownMenu* owner, DropDo
 	MContentLayout->AddElement(MContent); // Note: It's important this is added to the layout before we
 	// use it for size calculations, in order for its skin to be assigned
 
-	u32 dropDownBoxWidth = DROP_DOWN_BOX_WIDTH + sideBarStyle->Width;
+	u32 dropDownBoxWidth = kDropDownBoxWidth + sideBarStyle->Width;
 
 	u32 maxNeededHeight = backgroundStyle->Margins.Top + backgroundStyle->Margins.Bottom;
 	u32 numElements = (u32)dropDownData.Entries.size();

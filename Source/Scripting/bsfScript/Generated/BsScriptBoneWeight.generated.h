@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptBoneWeight : public ScriptObject<ScriptBoneWeight>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BoneWeight")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BoneWeight")
 
 		static MonoObject* Box(const BoneWeight& value);
 		static BoneWeight Unbox(MonoObject* value);

@@ -19,7 +19,7 @@ SPtr<ct::Texture> generate4x4RandomizationTexture()
 	Vector2 bases[16];
 	for(u32 i = 0; i < 16; ++i)
 	{
-		float angle = (mapping[i] / 16.0f) * Math::PI;
+		float angle = (mapping[i] / 16.0f) * Math::kPi;
 		bases[i].X = cos(angle);
 		bases[i].Y = sin(angle);
 	}
@@ -75,7 +75,7 @@ void importanceSampleGGX(float e0, float e1, float roughness4, float& cosTheta, 
 	// See GGXImportanceSample.nb for derivation (essentially, take base GGX, normalize it, generate PDF, split PDF into
 	// marginal probability for theta and conditional probability for phi. Plug those into the CDF, invert it.)
 	cosTheta = sqrt((1.0f - e0) / (1.0f + (roughness4 - 1.0f) * e0));
-	phi = 2.0f * Math::PI * e1;
+	phi = 2.0f * Math::kPi * e1;
 }
 
 float calcMicrofacetShadowingSmithGGX(float roughness4, float NoV, float NoL)
@@ -186,7 +186,7 @@ SPtr<ct::Texture> generateDefaultIndirect()
 
 	// Note: Eventually replace this with a time of day model
 	float intensity = 1.0f;
-	Color skyColor = Color::White * intensity;
+	Color skyColor = Color::kWhite * intensity;
 	SPtr<ct::Texture> skyTexture = ct::Texture::Create(dummySkyDesc);
 
 	u32 sides[] = { CF_PositiveX, CF_NegativeX, CF_PositiveZ, CF_NegativeZ };
@@ -196,8 +196,8 @@ SPtr<ct::Texture> generateDefaultIndirect()
 
 		data.SetColorAt(skyColor, 0, 0);
 		data.SetColorAt(skyColor, 1, 0);
-		data.SetColorAt(Color::Black, 0, 1);
-		data.SetColorAt(Color::Black, 1, 1);
+		data.SetColorAt(Color::kBlack, 0, 1);
+		data.SetColorAt(Color::kBlack, 1, 1);
 
 		skyTexture->Unlock();
 	}
@@ -216,10 +216,10 @@ SPtr<ct::Texture> generateDefaultIndirect()
 	{
 		PixelData data = skyTexture->Lock(GBL_WRITE_ONLY_DISCARD, 0, CF_NegativeY);
 
-		data.SetColorAt(Color::Black, 0, 0);
-		data.SetColorAt(Color::Black, 1, 0);
-		data.SetColorAt(Color::Black, 0, 1);
-		data.SetColorAt(Color::Black, 1, 1);
+		data.SetColorAt(Color::kBlack, 0, 0);
+		data.SetColorAt(Color::kBlack, 1, 0);
+		data.SetColorAt(Color::kBlack, 0, 1);
+		data.SetColorAt(Color::kBlack, 1, 1);
 
 		skyTexture->Unlock();
 	}
@@ -227,8 +227,8 @@ SPtr<ct::Texture> generateDefaultIndirect()
 	TEXTURE_DESC irradianceCubemapDesc;
 	irradianceCubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 	irradianceCubemapDesc.Format = PF_RG11B10F;
-	irradianceCubemapDesc.Width = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
-	irradianceCubemapDesc.Height = IBLUtility::IRRADIANCE_CUBEMAP_SIZE;
+	irradianceCubemapDesc.Width = IBLUtility::kIrradianceCubemapSize;
+	irradianceCubemapDesc.Height = IBLUtility::kIrradianceCubemapSize;
 	irradianceCubemapDesc.NumMips = 0;
 	irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
@@ -258,7 +258,7 @@ SPtr<ct::Texture> generateLensFlareGradientTint()
 
 	// We keep the second half of the texture empty, to avoid a mul in shader
 	for(u32 i = 16; i < 32; i++)
-		pixels->SetColorAt(Color::Black, i, 0);
+		pixels->SetColorAt(Color::kBlack, i, 0);
 
 	return ct::Texture::Create(pixels);
 }

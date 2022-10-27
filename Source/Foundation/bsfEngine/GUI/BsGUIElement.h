@@ -266,7 +266,7 @@ namespace bs
 		virtual SPtr<GUIContextMenu> GetContextMenuInternal() const;
 
 		/**	Returns text to display when hovering over the element. Returns empty string if no tooltip. */
-		virtual String GetTooltipInternal() const { return StringUtil::BLANK; }
+		virtual String GetTooltipInternal() const { return StringUtil::kBlank; }
 
 		/**	Returns a clip rectangle relative to the element, used for offsetting the input text. */
 		virtual Vector2I GetTextInputOffsetInternal() const { return Vector2I(); }
@@ -290,7 +290,7 @@ namespace bs
 		template <class T>
 		static const String& GetStyleName(const String& overrideStyle)
 		{
-			if(overrideStyle == StringUtil::BLANK)
+			if(overrideStyle == StringUtil::kBlank)
 				return T::GetGuiTypeName();
 
 			return overrideStyle;
@@ -326,7 +326,7 @@ namespace bs
 		SmallVector<GUIRenderElement, 4> mRenderElements;
 
 	private:
-		static const Color DISABLED_COLOR;
+		static const Color kDisabledColor;
 
 		const GUIElementStyle* mStyle;
 		String mStyleName;

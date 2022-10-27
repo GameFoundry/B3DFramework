@@ -134,7 +134,7 @@ namespace bs
 		 */
 		void UpdateGpuSampleContents(const GPUProfileSample& gpuReport);
 
-		static constexpr u32 GPU_NUM_SAMPLE_COLUMNS = 3;
+		static constexpr u32 kGpuNumSampleColumns = 3;
 
 		ProfilerOverlayType mType;
 		SPtr<Viewport> mTarget;
@@ -171,8 +171,8 @@ namespace bs
 		GUILayout* mGPULayoutFrameContentsLeft = nullptr;
 		GUILayout* mGPULayoutFrameContentsRight = nullptr;
 		GUILayout* mGPULayoutSamples = nullptr;
-		GUILayout* mGPULayoutSampleLabels[GPU_NUM_SAMPLE_COLUMNS] = {};
-		GUILayout* mGPULayoutSampleContents[GPU_NUM_SAMPLE_COLUMNS] = {};
+		GUILayout* mGPULayoutSampleLabels[kGpuNumSampleColumns] = {};
+		GUILayout* mGPULayoutSampleContents[kGpuNumSampleColumns] = {};
 
 		GUILabel* mGPUFrameNumLbl = nullptr;
 		GUILabel* mGPUTimeLbl = nullptr;
@@ -214,7 +214,7 @@ namespace bs
 
 		Vector<BasicRow> mBasicRows;
 		Vector<PreciseRow> mPreciseRows;
-		Vector<GPUSampleRow> mGPUSampleRows[GPU_NUM_SAMPLE_COLUMNS];
+		Vector<GPUSampleRow> mGPUSampleRows[kGpuNumSampleColumns];
 
 		HEvent mTargetResizedConn;
 		bool mIsShown;

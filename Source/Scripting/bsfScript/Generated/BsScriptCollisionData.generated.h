@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCollisionData : public ScriptObject<ScriptCollisionData>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "CollisionData")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CollisionData")
 
 		static MonoObject* Box(const __CollisionDataInterop& value);
 		static __CollisionDataInterop Unbox(MonoObject* value);

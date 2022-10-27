@@ -171,7 +171,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		}
 
 		// Create an optimal layout for character bitmaps
-		Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::CreateAtlasLayout(atlasElements, 64, 64, MAXIMUM_TEXTURE_SIZE, MAXIMUM_TEXTURE_SIZE, true);
+		Vector<TextureAtlasUtility::Page> pages = TextureAtlasUtility::CreateAtlasLayout(atlasElements, 64, 64, kMaximumTextureSize, kMaximumTextureSize, true);
 
 		i32 baselineOffset = 0;
 		u32 lineHeight = 0;

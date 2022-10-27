@@ -674,9 +674,9 @@ namespace bs
 		class RCNodeSceneColorDownsamples : public RenderCompositorNode
 		{
 		public:
-			static constexpr u32 MAX_NUM_DOWNSAMPLES = 6;
+			static constexpr u32 kMaxNumDownsamples = 6;
 
-			SPtr<PooledRenderTexture> Output[MAX_NUM_DOWNSAMPLES];
+			SPtr<PooledRenderTexture> Output[kMaxNumDownsamples];
 			u32 AvailableDownsamples = 0;
 
 			static StringID GetNodeId() { return "SceneColorDownsamples"; }

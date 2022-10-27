@@ -8,7 +8,7 @@
 using namespace bs;
 
 template <class COLOR, class TIME>
-constexpr u32 TColorGradient<COLOR, TIME>::MAX_KEYS;
+constexpr u32 TColorGradient<COLOR, TIME>::kMaxKeys;
 
 template <class COLOR, class TIME>
 TColorGradient<COLOR, TIME>::TColorGradient(const Color& color)
@@ -70,11 +70,11 @@ void TColorGradient<COLOR, TIME>::SetKeys(const Vector<ColorGradientKey>& keys, 
 	}
 #endif
 
-	if(keys.size() > MAX_KEYS)
+	if(keys.size() > kMaxKeys)
 	{
 		BS_LOG(Warning, Generic, "Number of keys in ColorGradient exceeds the support number ({0}). "
 								 "Keys will be ignored.",
-			   MAX_KEYS);
+			   kMaxKeys);
 	}
 
 	mDuration = duration;
@@ -82,7 +82,7 @@ void TColorGradient<COLOR, TIME>::SetKeys(const Vector<ColorGradientKey>& keys, 
 
 	for(auto& key : keys)
 	{
-		if(mNumKeys >= MAX_KEYS)
+		if(mNumKeys >= kMaxKeys)
 			break;
 
 		mColors[mNumKeys] = impl::TGradientHelper<COLOR>::ToInternalColor(key.Color);
@@ -109,7 +109,7 @@ template <class COLOR, class TIME>
 ColorGradientKey TColorGradient<COLOR, TIME>::GetKey(u32 idx) const
 {
 	if(idx >= mNumKeys)
-		return ColorGradientKey(Color::Black, 0.0f);
+		return ColorGradientKey(Color::kBlack, 0.0f);
 
 	return ColorGradientKey(
 		impl::TGradientHelper<COLOR>::FromInternalColor(mColors[idx]),

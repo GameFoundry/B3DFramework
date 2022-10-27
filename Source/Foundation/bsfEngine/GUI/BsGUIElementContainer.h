@@ -20,7 +20,7 @@ namespace bs
 
 	protected:
 		GUIElementContainer(const GUIDimensions& dimensions, const char* style, GUIElementOptions options = GUIElementOptions(0));
-		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::BLANK, GUIElementOptions options = GUIElementOptions(0));
+		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::kBlank, GUIElementOptions options = GUIElementOptions(0));
 		virtual ~GUIElementContainer() = default;
 
 		/** @copydoc GUIElement::_fillBuffer */

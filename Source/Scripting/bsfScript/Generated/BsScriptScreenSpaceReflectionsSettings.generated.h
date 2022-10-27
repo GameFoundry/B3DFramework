@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectable<ScriptScreenSpaceReflectionsSettings, ScreenSpaceReflectionsSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ScreenSpaceReflectionsSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ScreenSpaceReflectionsSettings")
 
 		ScriptScreenSpaceReflectionsSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceReflectionsSettings>& value);
 

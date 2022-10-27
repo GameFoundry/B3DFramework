@@ -261,10 +261,10 @@ void D3D11RenderUtility::InitClearQuadResources()
 	vertexData[2].Pos = Vector3(0, 0, 0);
 	vertexData[3].Pos = Vector3(0, 0, 0);
 
-	vertexData[0].Col = Color::White.GetAsBgra();
-	vertexData[1].Col = Color::White.GetAsBgra();
-	vertexData[2].Col = Color::White.GetAsBgra();
-	vertexData[3].Col = Color::White.GetAsBgra();
+	vertexData[0].Col = Color::kWhite.GetAsBgra();
+	vertexData[1].Col = Color::kWhite.GetAsBgra();
+	vertexData[2].Col = Color::kWhite.GetAsBgra();
+	vertexData[3].Col = Color::kWhite.GetAsBgra();
 
 	D3D11_SUBRESOURCE_DATA vertexSubresourceData;
 	vertexSubresourceData.pSysMem = vertexData;

@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRRefBase : public ScriptObject<ScriptRRefBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RRefBase")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RRefBase")
 
 		/**	Returns a weak handle to the resource referenced by this object. */
 		ResourceHandle<Resource> GetHandle() const { return mResource; }

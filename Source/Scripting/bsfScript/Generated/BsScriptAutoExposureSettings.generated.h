@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAutoExposureSettings : public TScriptReflectable<ScriptAutoExposureSettings, AutoExposureSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AutoExposureSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AutoExposureSettings")
 
 		ScriptAutoExposureSettings(MonoObject* managedInstance, const SPtr<AutoExposureSettings>& value);
 

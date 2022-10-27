@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_GRAVITY_DESC : public ScriptObject<ScriptPARTICLE_GRAVITY_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleGravityOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleGravityOptions")
 
 		static MonoObject* Box(const PARTICLE_GRAVITY_DESC& value);
 		static PARTICLE_GRAVITY_DESC Unbox(MonoObject* value);

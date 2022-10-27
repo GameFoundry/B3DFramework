@@ -42,7 +42,7 @@ namespace bs
 		 * @param[in]	position	Position of the collider.
 		 * @param[in]	rotation	Rotation of the collider.
 		 */
-		static SPtr<MeshCollider> Create(PhysicsScene& scene, const Vector3& position = Vector3::ZERO, const Quaternion& rotation = Quaternion::IDENTITY);
+		static SPtr<MeshCollider> Create(PhysicsScene& scene, const Vector3& position = Vector3::kZero, const Quaternion& rotation = Quaternion::kIdentity);
 
 	protected:
 		/** @copydoc IResourceListener::getListenerResources */

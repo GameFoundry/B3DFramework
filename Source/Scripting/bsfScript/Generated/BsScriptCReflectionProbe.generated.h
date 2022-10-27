@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCReflectionProbe : public TScriptComponent<ScriptCReflectionProbe, CReflectionProbe>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ReflectionProbe")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ReflectionProbe")
 
 		ScriptCReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value);
 

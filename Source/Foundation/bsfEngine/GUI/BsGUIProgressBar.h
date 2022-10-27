@@ -34,7 +34,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIProgressBar* Create(const String& styleName = StringUtil::BLANK);
+		static GUIProgressBar* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new progress bar.
@@ -44,7 +44,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIProgressBar* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIProgressBar* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Fills up the progress bar up to the specified percentage.

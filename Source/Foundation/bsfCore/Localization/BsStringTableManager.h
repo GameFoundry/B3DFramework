@@ -57,7 +57,7 @@ namespace bs
 		void SetTable(u32 id, const HStringTable& table);
 
 	private:
-		Language mActiveLanguage = StringTable::DEFAULT_LANGUAGE;
+		Language mActiveLanguage = StringTable::kDefaultLanguage;
 		UnorderedMap<u32, HStringTable> mTables;
 	};
 

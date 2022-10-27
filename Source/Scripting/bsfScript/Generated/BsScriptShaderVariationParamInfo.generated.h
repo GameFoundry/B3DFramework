@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShaderVariationParamInfo : public ScriptObject<ScriptShaderVariationParamInfo>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderVariationParamInfo")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShaderVariationParamInfo")
 
 		static MonoObject* Box(const __ShaderVariationParamInfoInterop& value);
 		static __ShaderVariationParamInfoInterop Unbox(MonoObject* value);

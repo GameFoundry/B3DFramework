@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_COLOR_DESC : public ScriptObject<ScriptPARTICLE_COLOR_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleColorOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleColorOptions")
 
 		static MonoObject* Box(const __PARTICLE_COLOR_DESCInterop& value);
 		static __PARTICLE_COLOR_DESCInterop Unbox(MonoObject* value);

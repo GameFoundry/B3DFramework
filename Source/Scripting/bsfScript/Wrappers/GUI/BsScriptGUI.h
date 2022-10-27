@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUI : public ScriptObject<ScriptGUI>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUI")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUI")
 
 		/**	Creates the globally accessible GUIWidget and makes the system ready to use. */
 		static void StartUp();

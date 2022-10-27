@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIScrollArea : public TScriptGUIElement<ScriptGUIScrollArea>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIScrollArea")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollArea")
 
 		/**
 		 * Initializes the interop object by providing it with the interop object for the internal layout held by the

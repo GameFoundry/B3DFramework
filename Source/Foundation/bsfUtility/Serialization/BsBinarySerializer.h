@@ -104,16 +104,16 @@ namespace bs
 
 	private:
 		/** Determines how many bytes need to be read before the progress report callback is triggered. */
-		static constexpr u32 REPORT_AFTER_BYTES = 32768;
+		static constexpr u32 kReportAfterBytes = 32768;
 
 		/** Determines the size of the temporary write buffer. Should be greater than FLUSH_AFTER_BYTES. */
-		static constexpr u32 WRITE_BUFFER_SIZE = 4096;
+		static constexpr u32 kWriteBufferSize = 4096;
 
 		/** Determines how often to flush from the local buffer into the output stream, when writing. */
-		static constexpr u32 FLUSH_AFTER_BYTES = (u32)(WRITE_BUFFER_SIZE * 0.75f);
+		static constexpr u32 kFlushAfterBytes = (u32)(kWriteBufferSize * 0.75f);
 
 		/** Determines the minimum amount of bytes to preload into the temporary buffer. */
-		static constexpr u32 PRELOAD_CHUNK_BYTES = (u32)(WRITE_BUFFER_SIZE * 0.25f);
+		static constexpr u32 kPreloadChunkBytes = (u32)(kWriteBufferSize * 0.25f);
 
 		struct ObjectMetaData
 		{
@@ -216,7 +216,7 @@ namespace bs
 		UnorderedMap<void*, u32> mObjectAddrToId;
 		u32 mLastUsedObjectId = 1;
 		u32 mTotalBytesToRead = 0;
-		u32 mNextProgressReport = REPORT_AFTER_BYTES;
+		u32 mNextProgressReport = kReportAfterBytes;
 		FrameAlloc* mAlloc = nullptr;
 		Bitstream mBuffer;
 

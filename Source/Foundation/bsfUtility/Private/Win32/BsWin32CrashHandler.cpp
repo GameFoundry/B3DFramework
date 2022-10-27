@@ -478,7 +478,7 @@ void CrashHandler::ReportCrash(const String& type, const String& description, co
 	SaveCrashLog();
 
 	win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), nullptr);
-	win32_popupErrorMessageBox(toWString(sFatalErrorMsg), GetCrashFolder());
+	win32_popupErrorMessageBox(toWString(kSFatalErrorMsg), GetCrashFolder());
 
 	DebugBreak();
 
@@ -512,7 +512,7 @@ int CrashHandler::ReportCrash(void* exceptionDataPtr) const
 	SaveCrashLog();
 
 	win32_writeMiniDump(GetCrashFolder() + String(sMiniDumpName), exceptionData);
-	win32_popupErrorMessageBox(toWString(sFatalErrorMsg), GetCrashFolder());
+	win32_popupErrorMessageBox(toWString(kSFatalErrorMsg), GetCrashFolder());
 
 	DebugBreak();
 

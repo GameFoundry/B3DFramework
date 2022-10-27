@@ -7,8 +7,8 @@ using namespace bs;
 
 namespace bs { namespace ct
 {
-const u32 IBLUtility::REFLECTION_CUBEMAP_SIZE = 256;
-const u32 IBLUtility::IRRADIANCE_CUBEMAP_SIZE = 32;
+const u32 IBLUtility::kReflectionCubemapSize = 256;
+const u32 IBLUtility::kIrradianceCubemapSize = 32;
 
 /** Returns the size of the texture required to store the provided number of SH coefficients. */
 Vector2I IBLUtility::GetShCoeffTextureSize(u32 numCoeffSets, u32 shOrder)

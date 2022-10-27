@@ -86,7 +86,7 @@ namespace bs
 		using ColorType = COLOR;
 		using TimeType = TIME;
 
-		static constexpr u32 MAX_KEYS = 8;
+		static constexpr u32 kMaxKeys = 8;
 
 		BS_SCRIPT_EXPORT()
 		TColorGradient() = default;
@@ -135,8 +135,8 @@ namespace bs
 		bool operator!=(const TColorGradient& rhs) const { return !operator==(rhs); }
 
 	protected:
-		COLOR mColors[MAX_KEYS];
-		TIME mTimes[MAX_KEYS];
+		COLOR mColors[kMaxKeys];
+		TIME mTimes[kMaxKeys];
 		uint32_t mNumKeys = 0;
 		float mDuration = 0.0f;
 	};

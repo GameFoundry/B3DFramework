@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPlane : public ScriptObject<ScriptPlane>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Plane")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Plane")
 
 		/** Unboxes a boxed managed Plane struct and returns the native version of the structure. */
 		static Plane Unbox(MonoObject* obj);

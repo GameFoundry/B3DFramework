@@ -19,11 +19,11 @@
 
 using namespace bs;
 
-static constexpr const char* TIMESTAMP_NAME = u8"Timestamp.asset";
-static constexpr const char* MANIFEST_NAME = u8"ResourceManifest.asset";
-static constexpr const char* DEPENDENCIES_JSON_NAME = u8"ShaderDependencies.json";
-static constexpr const char* DATA_LIST_JSON = u8"DataList.json";
-static constexpr const char* GUI_SKIN_JSON = u8"GUISkin.json";
+static constexpr const char* kTimestampName = u8"Timestamp.asset";
+static constexpr const char* kManifestName = u8"ResourceManifest.asset";
+static constexpr const char* kDependenciesJsonName = u8"ShaderDependencies.json";
+static constexpr const char* kDataListJson = u8"DataList.json";
+static constexpr const char* kGuiSkinJson = u8"GUISkin.json";
 
 static Path sInputFolder;
 static Path sOutputFolder;
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 
 	sInputFolder = argv[1];
 	sOutputFolder = argv[2];
-	sManifestPath = sOutputFolder + MANIFEST_NAME;
+	sManifestPath = sOutputFolder + kManifestName;
 
 	bool generateGenerated = true;
 	bool forceImport = false;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 		time_t lastUpdateTime;
 		u32 modifications = BuiltinResourcesHelper::CheckForModifications(
 			sInputFolder,
-			sOutputFolder + TIMESTAMP_NAME,
+			sOutputFolder + kTimestampName,
 			lastUpdateTime);
 
 		if(forceImport)
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 			gResources().RegisterResourceManifest(sManifest);
 
 			processAssets(generateGenerated, fullReimport, lastUpdateTime);
-			BuiltinResourcesHelper::WriteTimestamp(sOutputFolder + TIMESTAMP_NAME);
+			BuiltinResourcesHelper::WriteTimestamp(sOutputFolder + kTimestampName);
 
 			ResourceManifest::Save(sManifest, sManifestPath, sOutputFolder);
 
@@ -112,18 +112,18 @@ using namespace bs;
 void generateTextures()
 {
 	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
-	blackPixelData->SetColorAt(Color::Black, 0, 0);
-	blackPixelData->SetColorAt(Color::Black, 0, 1);
-	blackPixelData->SetColorAt(Color::Black, 1, 0);
-	blackPixelData->SetColorAt(Color::Black, 1, 1);
+	blackPixelData->SetColorAt(Color::kBlack, 0, 0);
+	blackPixelData->SetColorAt(Color::kBlack, 0, 1);
+	blackPixelData->SetColorAt(Color::kBlack, 1, 0);
+	blackPixelData->SetColorAt(Color::kBlack, 1, 1);
 
 	SPtr<Texture> blackTexture = Texture::CreatePtrInternal(blackPixelData);
 
 	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
-	whitePixelData->SetColorAt(Color::White, 0, 0);
-	whitePixelData->SetColorAt(Color::White, 0, 1);
-	whitePixelData->SetColorAt(Color::White, 1, 0);
-	whitePixelData->SetColorAt(Color::White, 1, 1);
+	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
+	whitePixelData->SetColorAt(Color::kWhite, 0, 1);
+	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
+	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
 	SPtr<Texture> whiteTexture = Texture::CreatePtrInternal(whitePixelData);
 
@@ -138,7 +138,7 @@ void generateTextures()
 	SPtr<Texture> normalTexture = Texture::CreatePtrInternal(normalPixelData);
 
 	// Save all textures
-	Path outputDir = sOutputFolder + BuiltinResources::TEXTURE_FOLDER;
+	Path outputDir = sOutputFolder + BuiltinResources::kTextureFolder;
 
 	auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& uuid)
 	{
@@ -148,13 +148,13 @@ void generateTextures()
 		sManifest->RegisterResource(textureResource.GetUuid(), path);
 	};
 
-	Path whitePath = outputDir + BuiltinResources::TEXTURE_WHITE_FILE;
+	Path whitePath = outputDir + BuiltinResources::kTextureWhiteFile;
 	saveTexture(whitePath, whiteTexture, "1f7d0e3f-d81b-42ee-9d31-cb6c6fc55824");
 
-	Path blackPath = outputDir + BuiltinResources::TEXTURE_BLACK_FILE;
+	Path blackPath = outputDir + BuiltinResources::kTextureBlackFile;
 	saveTexture(blackPath, blackTexture, "149a5c05-9570-4915-9dbd-69acf88b865b");
 
-	Path normalPath = outputDir + BuiltinResources::TEXTURE_NORMAL_FILE;
+	Path normalPath = outputDir + BuiltinResources::kTextureNormalFile;
 	saveTexture(normalPath, normalTexture, "afb29163-1ef0-4440-9cfb-c1ebb3b3d452");
 }
 
@@ -181,7 +181,7 @@ void generateMeshes()
 	ShapeMeshes3D::GetNumElementsSphere(3, sphereNumVertices, sphereNumIndices);
 	SPtr<MeshData> sphereMeshData = bs_shared_ptr_new<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
 
-	ShapeMeshes3D::SolidSphere(Sphere(Vector3::ZERO, 1.0f), sphereMeshData, 0, 0, 3);
+	ShapeMeshes3D::SolidSphere(Sphere(Vector3::kZero, 1.0f), sphereMeshData, 0, 0, 3);
 	SPtr<Mesh> sphereMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(sphereMeshData));
 
 	u32 coneNumVertices = 0;
@@ -189,7 +189,7 @@ void generateMeshes()
 	ShapeMeshes3D::GetNumElementsCone(10, coneNumVertices, coneNumIndices);
 	SPtr<MeshData> coneMeshData = bs_shared_ptr_new<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
 
-	ShapeMeshes3D::SolidCone(Vector3::ZERO, Vector3::UNIT_Y, 1.0f, 1.0f, Vector2::ONE, coneMeshData, 0, 0);
+	ShapeMeshes3D::SolidCone(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, coneMeshData, 0, 0);
 	SPtr<Mesh> coneMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(coneMeshData));
 
 	u32 cylinderNumVertices = 0;
@@ -197,7 +197,7 @@ void generateMeshes()
 	ShapeMeshes3D::GetNumElementsCylinder(10, cylinderNumVertices, cylinderNumIndices);
 	SPtr<MeshData> cylinderMeshData = bs_shared_ptr_new<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
 
-	ShapeMeshes3D::SolidCylinder(Vector3::ZERO, Vector3::UNIT_Y, 1.0f, 1.0f, Vector2::ONE, cylinderMeshData, 0, 0);
+	ShapeMeshes3D::SolidCylinder(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, cylinderMeshData, 0, 0);
 	SPtr<Mesh> cylinderMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(cylinderMeshData));
 
 	u32 quadNumVertices = 8;
@@ -205,9 +205,9 @@ void generateMeshes()
 	ShapeMeshes3D::GetNumElementsQuad(quadNumVertices, quadNumIndices);
 	SPtr<MeshData> quadMeshData = bs_shared_ptr_new<MeshData>(quadNumVertices, quadNumIndices, vertexDesc);
 
-	std::array<Vector3, 2> axes = { { Vector3::UNIT_X, Vector3::UNIT_Z } };
+	std::array<Vector3, 2> axes = { { Vector3::kUnitX, Vector3::kUnitZ } };
 	std::array<float, 2> sizes = { { 1.0f, 1.0f } };
-	Rect3 rect(Vector3::ZERO, axes, sizes);
+	Rect3 rect(Vector3::kZero, axes, sizes);
 	ShapeMeshes3D::SolidQuad(rect, quadMeshData, 0, 0);
 	SPtr<Mesh> quadMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(quadMeshData));
 
@@ -216,11 +216,11 @@ void generateMeshes()
 	ShapeMeshes3D::GetNumElementsDisc(10, discNumVertices, discNumIndices);
 	SPtr<MeshData> discMeshData = bs_shared_ptr_new<MeshData>(discNumVertices, discNumIndices, vertexDesc);
 
-	ShapeMeshes3D::SolidDisc(Vector3::ZERO, 1.0f, Vector3::UNIT_Y, discMeshData, 0, 0);
+	ShapeMeshes3D::SolidDisc(Vector3::kZero, 1.0f, Vector3::kUnitY, discMeshData, 0, 0);
 	SPtr<Mesh> discMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(discMeshData));
 
 	// Save all meshes
-	const Path outputDir = sOutputFolder + BuiltinResources::MESH_FOLDER;
+	const Path outputDir = sOutputFolder + BuiltinResources::kMeshFolder;
 
 	auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& uuid)
 	{
@@ -230,22 +230,22 @@ void generateMeshes()
 		sManifest->RegisterResource(meshResource.GetUuid(), path);
 	};
 
-	Path boxPath = outputDir + BuiltinResources::MESH_BOX_FILE;
+	Path boxPath = outputDir + BuiltinResources::kMeshBoxFile;
 	saveMesh(boxPath, boxMesh, "bc1d20ca-7fe6-489b-8b5c-dbf798badc95");
 
-	Path spherePath = outputDir + BuiltinResources::MESH_SPHERE_FILE;
+	Path spherePath = outputDir + BuiltinResources::kMeshSphereFile;
 	saveMesh(spherePath, sphereMesh, "040642f3-04d6-419e-9dba-f7824161c205");
 
-	Path conePath = outputDir + BuiltinResources::MESH_CONE_FILE;
+	Path conePath = outputDir + BuiltinResources::kMeshConeFile;
 	saveMesh(conePath, coneMesh, "b8cf6db5-1736-47ac-852f-82ecd88b4d46");
 
-	Path cylinderPath = outputDir + BuiltinResources::MESH_CYLINDER_FILE;
+	Path cylinderPath = outputDir + BuiltinResources::kMeshCylinderFile;
 	saveMesh(cylinderPath, cylinderMesh, "e6b2b797-4e72-7e49-61ba-4e7275bd561d");
 
-	Path quadPath = outputDir + BuiltinResources::MESH_QUAD_FILE;
+	Path quadPath = outputDir + BuiltinResources::kMeshQuadFile;
 	saveMesh(quadPath, quadMesh, "06592bf3-f82a-472e-a034-26a98225fbe1");
 
-	Path discPath = outputDir + BuiltinResources::MESH_DISC_FILE;
+	Path discPath = outputDir + BuiltinResources::kMeshDiscFile;
 	saveMesh(discPath, discMesh, "6f496313-344a-495c-83e8-152e3053c52d");
 }
 
@@ -253,10 +253,10 @@ SPtr<GUISkin> generateGUISkin()
 {
 	using nlohmann::json;
 
-	const Path skinFolder = sOutputFolder + BuiltinResources::SKIN_FOLDER + BuiltinResources::SPRITE_FOLDER;
+	const Path skinFolder = sOutputFolder + BuiltinResources::kSkinFolder + BuiltinResources::kSpriteFolder;
 	BuiltinResourceGUIElementStyleLoader loader(sOutputFolder, skinFolder);
 
-	Path guiSkinPath = sInputFolder + GUI_SKIN_JSON;
+	Path guiSkinPath = sInputFolder + kGuiSkinJson;
 	SPtr<DataStream> guiSkinStream = FileSystem::OpenFile(guiSkinPath);
 	json guiSkinJSON = json::parse(guiSkinStream->GetAsString().c_str());
 
@@ -284,7 +284,7 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		generateMeshes();
 	}
 
-	const Path dataListsFilePath = sInputFolder + DATA_LIST_JSON;
+	const Path dataListsFilePath = sInputFolder + kDataListJson;
 	SPtr<DataStream> dataListStream = FileSystem::OpenFile(dataListsFilePath);
 	json dataListJSON = json::parse(dataListStream->GetAsString().c_str());
 
@@ -301,14 +301,14 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 	json splashScreenJSON = dataListJSON["SplashScreen"];
 	json texturesJSON = dataListJSON["Textures"];
 
-	const Path rawSkinFolder = sInputFolder + BuiltinResources::SKIN_FOLDER;
-	const Path rawAnimatedSpritesFolder = sInputFolder + BuiltinResources::ANIMATED_SPRITES_FOLDER;
-	const Path rawCursorFolder = sInputFolder + BuiltinResources::CURSOR_FOLDER;
-	const Path rawIconFolder = sInputFolder + BuiltinResources::ICON_FOLDER;
-	const Path rawIcon3DFolder = sInputFolder + BuiltinResources::ICON3D_FOLDER;
-	const Path rawShaderFolder = sInputFolder + BuiltinResources::SHADER_FOLDER;
-	const Path rawShaderIncludeFolder = sInputFolder + BuiltinResources::SHADER_INCLUDE_FOLDER;
-	const Path rawTexturesFolder = sInputFolder + BuiltinResources::TEXTURE_FOLDER;
+	const Path rawSkinFolder = sInputFolder + BuiltinResources::kSkinFolder;
+	const Path rawAnimatedSpritesFolder = sInputFolder + BuiltinResources::kAnimatedSpritesFolder;
+	const Path rawCursorFolder = sInputFolder + BuiltinResources::kCursorFolder;
+	const Path rawIconFolder = sInputFolder + BuiltinResources::kIconFolder;
+	const Path rawIcon3DFolder = sInputFolder + BuiltinResources::kIcoN3DFolder;
+	const Path rawShaderFolder = sInputFolder + BuiltinResources::kShaderFolder;
+	const Path rawShaderIncludeFolder = sInputFolder + BuiltinResources::kShaderIncludeFolder;
+	const Path rawTexturesFolder = sInputFolder + BuiltinResources::kTextureFolder;
 
 	// Update DataList.json if needed
 	bool updatedDataLists = false;
@@ -425,15 +425,15 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		dataListStream->Close();
 	}
 
-	const Path skinFolder = sOutputFolder + BuiltinResources::SKIN_FOLDER;
-	const Path animatedSpriteFolder = sOutputFolder + BuiltinResources::ANIMATED_SPRITES_FOLDER;
-	const Path cursorFolder = sOutputFolder + BuiltinResources::CURSOR_FOLDER;
-	const Path iconFolder = sOutputFolder + BuiltinResources::ICON_FOLDER;
-	const Path icon3DFolder = sOutputFolder + BuiltinResources::ICON3D_FOLDER;
-	const Path shaderFolder = sOutputFolder + BuiltinResources::SHADER_FOLDER;
-	const Path shaderIncludeFolder = sOutputFolder + BuiltinResources::SHADER_INCLUDE_FOLDER;
-	const Path texturesFolder = sOutputFolder + BuiltinResources::TEXTURE_FOLDER;
-	const Path shaderDependenciesFile = sInputFolder + DEPENDENCIES_JSON_NAME;
+	const Path skinFolder = sOutputFolder + BuiltinResources::kSkinFolder;
+	const Path animatedSpriteFolder = sOutputFolder + BuiltinResources::kAnimatedSpritesFolder;
+	const Path cursorFolder = sOutputFolder + BuiltinResources::kCursorFolder;
+	const Path iconFolder = sOutputFolder + BuiltinResources::kIconFolder;
+	const Path icon3DFolder = sOutputFolder + BuiltinResources::kIcoN3DFolder;
+	const Path shaderFolder = sOutputFolder + BuiltinResources::kShaderFolder;
+	const Path shaderIncludeFolder = sOutputFolder + BuiltinResources::kShaderIncludeFolder;
+	const Path texturesFolder = sOutputFolder + BuiltinResources::kTextureFolder;
+	const Path shaderDependenciesFile = sInputFolder + kDependenciesJsonName;
 
 	// If forcing import, clear all data folders since everything will be recreated anyway
 	if(forceImport)

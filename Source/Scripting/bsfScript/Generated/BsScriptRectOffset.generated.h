@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRectOffset : public ScriptObject<ScriptRectOffset>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RectOffset")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RectOffset")
 
 		static MonoObject* Box(const RectOffset& value);
 		static RectOffset Unbox(MonoObject* value);

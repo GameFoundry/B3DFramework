@@ -34,7 +34,7 @@ namespace bs
 	private:
 		Vector<String> mExtensions;
 
-		const static int MAXIMUM_TEXTURE_SIZE = 2048;
+		const static int kMaximumTextureSize = 2048;
 	};
 
 	/** @} */

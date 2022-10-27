@@ -26,7 +26,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEvolver : public TScriptReflectable<ScriptParticleEvolver, ParticleEvolver, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEvolver")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEvolver")
 
 		ScriptParticleEvolver(MonoObject* managedInstance, const SPtr<ParticleEvolver>& value);
 

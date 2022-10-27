@@ -594,11 +594,11 @@ bool Shader::IsBuffer(GpuParamObjectType type)
 
 u32 Shader::GetDataParamSize(GpuParamDataType type)
 {
-	static const GpuDataParamInfos PARAM_SIZES;
+	static const GpuDataParamInfos kParamSizes;
 
 	u32 idx = (u32)type;
-	if(idx < sizeof(GpuParams::PARAM_SIZES.Lookup))
-		return GpuParams::PARAM_SIZES.Lookup[idx].Size;
+	if(idx < sizeof(GpuParams::kParamSizes.Lookup))
+		return GpuParams::kParamSizes.Lookup[idx].Size;
 
 	return 0;
 }

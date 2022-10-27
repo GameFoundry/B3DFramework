@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCategory : public ScriptObject<ScriptCategory>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Category")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Category")
 
 		static MonoField* GetNameField() { return nameField; }
 

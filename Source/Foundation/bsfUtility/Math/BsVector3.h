@@ -307,12 +307,12 @@ namespace bs
 		/** Generates a vector perpendicular to this vector. */
 		Vector3 Perpendicular() const
 		{
-			static const float squareZero = (float)(1e-06 * 1e-06);
+			static const float kSquareZero = (float)(1e-06 * 1e-06);
 
-			Vector3 perp = this->Cross(Vector3::UNIT_X);
+			Vector3 perp = this->Cross(Vector3::kUnitX);
 
-			if(perp.SquaredLength() < squareZero)
-				perp = this->Cross(Vector3::UNIT_Y);
+			if(perp.SquaredLength() < kSquareZero)
+				perp = this->Cross(Vector3::kUnitY);
 
 			perp.Normalize();
 			return perp;
@@ -415,12 +415,12 @@ namespace bs
 			return Vector3(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z));
 		}
 
-		static const Vector3 ZERO;
-		static const Vector3 ONE;
-		static const Vector3 INF;
-		static const Vector3 UNIT_X;
-		static const Vector3 UNIT_Y;
-		static const Vector3 UNIT_Z;
+		static const Vector3 kZero;
+		static const Vector3 kOne;
+		static const Vector3 kInf;
+		static const Vector3 kUnitX;
+		static const Vector3 kUnitY;
+		static const Vector3 kUnitZ;
 	};
 
 	/** @} */

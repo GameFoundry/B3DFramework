@@ -157,7 +157,7 @@ namespace bs
 	class ParticleSet : public INonCopyable
 	{
 		/** Determines how much to increase capacity once the cap is reached, in percent. */
-		static constexpr float CAPACITY_SCALE = 1.2f; // 20%
+		static constexpr float kCapacityScale = 1.2f; // 20%
 
 	public:
 		/**
@@ -180,7 +180,7 @@ namespace bs
 
 			if(mCount > mParticles.Capacity)
 			{
-				const auto newCapacity = (u32)(mCount * CAPACITY_SCALE);
+				const auto newCapacity = (u32)(mCount * kCapacityScale);
 				ParticleSetData newData(newCapacity, mParticles);
 				mParticles = std::move(newData);
 			}

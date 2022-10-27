@@ -16,8 +16,8 @@ using namespace bs;
 // Note: Input polling methods for button/axis could be re-written so their query immediate state
 // instead of returning cached state from event callbacks. This /might/ result in even less input lag?
 
-const int Input::HISTORY_BUFFER_SIZE = 10; // Size of buffer used for input smoothing
-const float Input::WEIGHT_MODIFIER = 0.5f;
+const int Input::kHistoryBufferSize = 10; // Size of buffer used for input smoothing
+const float Input::kWeightModifier = 0.5f;
 
 Input::DeviceData::DeviceData()
 {
@@ -103,7 +103,7 @@ void Input::UpdateInternal()
 			mPointerButtonStates[i] = ButtonState::On;
 	}
 
-	mPointerDelta = Vector2I::ZERO; // Reset delta in case we don't receive any mouse input this frame
+	mPointerDelta = Vector2I::kZero; // Reset delta in case we don't receive any mouse input this frame
 	mPointerDoubleClicked = false;
 
 	// Capture raw input
@@ -320,9 +320,9 @@ void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
 void Input::NotifyAxisMovedInternal(u32 gamepadIdx, u32 axisIdx, i32 value)
 {
 	// Move axis values into [-1.0f, 1.0f] range
-	float axisRange = Math::Abs((float)Gamepad::MAX_AXIS) + Math::Abs((float)Gamepad::MIN_AXIS);
+	float axisRange = Math::Abs((float)Gamepad::kMaxAxis) + Math::Abs((float)Gamepad::kMinAxis);
 
-	float axisValue = ((value + Math::Abs((float)Gamepad::MIN_AXIS)) / axisRange) * 2.0f - 1.0f;
+	float axisValue = ((value + Math::Abs((float)Gamepad::kMinAxis)) / axisRange) * 2.0f - 1.0f;
 	AxisMoved(gamepadIdx, axisValue, axisIdx);
 }
 
@@ -576,19 +576,19 @@ String Input::GetDeviceName(InputDevice type, u32 idx)
 		if(mKeyboard != nullptr && idx == 0)
 			return mKeyboard->GetName();
 
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 	case InputDevice::Mouse:
 		if(mMouse != nullptr && idx == 0)
 			return mMouse->GetName();
 
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 	case InputDevice::Gamepad:
 		if(idx < (u32)mGamepads.size())
 			return mGamepads[idx]->GetName();
 
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 	default:
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 	}
 }
 

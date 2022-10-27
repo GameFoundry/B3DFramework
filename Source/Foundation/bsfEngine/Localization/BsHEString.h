@@ -42,7 +42,7 @@ namespace bs
 		operator HString() const;
 
 	private:
-		static const u32 ENGINE_STRING_TABLE_ID;
+		static const u32 kEngineStringTableId;
 
 		HString mInternal;
 	};

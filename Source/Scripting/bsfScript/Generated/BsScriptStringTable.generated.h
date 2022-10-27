@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptStringTable : public TScriptResource<ScriptStringTable, StringTable>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "StringTable")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "StringTable")
 
 		ScriptStringTable(MonoObject* managedInstance, const ResourceHandle<StringTable>& value);
 

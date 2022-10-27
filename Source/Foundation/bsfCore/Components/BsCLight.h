@@ -20,7 +20,7 @@ namespace bs
 	class BS_CORE_EXPORT BS_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportName(Light)) CLight : public Component
 	{
 	public:
-		CLight(const HSceneObject& parent, LightType type = LightType::Radial, Color color = Color::White, float intensity = 100.0f, float range = 1.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
+		CLight(const HSceneObject& parent, LightType type = LightType::Radial, Color color = Color::kWhite, float intensity = 100.0f, float range = 1.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
 
 		virtual ~CLight();
 
@@ -142,7 +142,7 @@ namespace bs
 
 		// Only valid during construction
 		LightType mType = LightType::Radial;
-		Color mColor = Color::White;
+		Color mColor = Color::kWhite;
 		float mIntensity = 100.0f;
 		float mRange = 1.0f;
 		bool mCastsShadows = false;

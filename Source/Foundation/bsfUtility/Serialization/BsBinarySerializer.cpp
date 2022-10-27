@@ -16,10 +16,10 @@
 
 using namespace bs;
 
-constexpr u32 BinarySerializer::REPORT_AFTER_BYTES;
-constexpr u32 BinarySerializer::WRITE_BUFFER_SIZE;
-constexpr u32 BinarySerializer::FLUSH_AFTER_BYTES;
-constexpr u32 BinarySerializer::PRELOAD_CHUNK_BYTES;
+constexpr u32 BinarySerializer::kReportAfterBytes;
+constexpr u32 BinarySerializer::kWriteBufferSize;
+constexpr u32 BinarySerializer::kFlushAfterBytes;
+constexpr u32 BinarySerializer::kPreloadChunkBytes;
 
 BinarySerializer::BinarySerializer()
 	: mAlloc(&gFrameAlloc())
@@ -35,7 +35,7 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 
 	mAlloc->MarkFrame();
 
-	BufferedBitstreamWriter bufferedStream(&mBuffer, stream, WRITE_BUFFER_SIZE, FLUSH_AFTER_BYTES);
+	BufferedBitstreamWriter bufferedStream(&mBuffer, stream, kWriteBufferSize, kFlushAfterBytes);
 
 	Vector<SPtr<IReflectable>> encodedObjects;
 	u32 objectId = FindOrCreatePersistentId(object);
@@ -129,7 +129,7 @@ SPtr<IReflectable> BinarySerializer::Decode(const SPtr<DataStream>& stream, u32 
 		}
 	}
 
-	BufferedBitstreamReader bufferedStream(&mBuffer, stream, PRELOAD_CHUNK_BYTES, FLUSH_AFTER_BYTES);
+	BufferedBitstreamReader bufferedStream(&mBuffer, stream, kPreloadChunkBytes, kFlushAfterBytes);
 
 	// Note: Ideally we can avoid iterating twice over the stream data
 	// We need to find offsets at which all objects start at so we can map object id to offset
@@ -944,8 +944,8 @@ bool BinarySerializer::DecodeEntry(BufferedBitstreamReader& stream, size_t dataE
 		u32 bytesRead = (u32)Math::DivideAndRoundUp(stream.Tell(), (uint64_t)8);
 		if(mReportProgress && (bytesRead >= mNextProgressReport))
 		{
-			u32 lastReport = (bytesRead / REPORT_AFTER_BYTES) * REPORT_AFTER_BYTES;
-			mNextProgressReport = lastReport + REPORT_AFTER_BYTES;
+			u32 lastReport = (bytesRead / kReportAfterBytes) * kReportAfterBytes;
+			mNextProgressReport = lastReport + kReportAfterBytes;
 
 			mReportProgress(bytesRead / (float)mTotalBytesToRead);
 		}

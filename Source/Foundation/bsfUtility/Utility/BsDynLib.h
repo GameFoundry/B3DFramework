@@ -39,7 +39,7 @@ namespace bs
 #elif BS_PLATFORM == BS_PLATFORM_OSX
 		static constexpr const char* EXTENSION = "dylib";
 #elif BS_PLATFORM == BS_PLATFORM_WIN32
-		static constexpr const char* EXTENSION = "dll";
+		static constexpr const char* kExtension = "dll";
 #else
 #	error Unhandled platform
 #endif
@@ -50,7 +50,7 @@ namespace bs
 #elif BS_PLATFORM == BS_PLATFORM_OSX
 		static constexpr const char* PREFIX = "lib";
 #elif BS_PLATFORM == BS_PLATFORM_WIN32
-		static constexpr const char* PREFIX = nullptr;
+		static constexpr const char* kPrefix = nullptr;
 #else
 #	error Unhandled platform
 #endif

@@ -12,10 +12,10 @@
 namespace bs {
 namespace ct {
 
-static const u32 CELL_XY_SIZE = 64;
-static const u32 NUM_Z_SUBDIVIDES = 32;
-static const u32 MAX_LIGHTS_PER_CELL = 32;
-static const u32 THREADGROUP_SIZE = 4;
+static const u32 kCellXySize = 64;
+static const u32 kNumZSubdivides = 32;
+static const u32 kMaxLightsPerCell = 32;
+static const u32 kThreadgroupSize = 4;
 
 LightGridParamDef gLightGridParamDefDef;
 
@@ -47,7 +47,7 @@ LightGridLLCreationMat::LightGridLLCreationMat()
 
 void LightGridLLCreationMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("THREADGROUP_SIZE", THREADGROUP_SIZE);
+	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
 void LightGridLLCreationMat::SetParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams, const SPtr<GpuBuffer>& lightsBuffer, const SPtr<GpuBuffer>& probesBuffer)
@@ -72,7 +72,7 @@ void LightGridLLCreationMat::SetParams(const Vector3I& gridSize, const SPtr<GpuP
 
 		desc.Type = GBT_STANDARD;
 		desc.Format = BF_32X4U;
-		desc.ElementCount = numCells * MAX_LIGHTS_PER_CELL;
+		desc.ElementCount = numCells * kMaxLightsPerCell;
 		desc.ElementSize = 0;
 
 		mLightsLL = GpuBuffer::Create(desc);
@@ -112,9 +112,9 @@ void LightGridLLCreationMat::Execute(const RendererView& view)
 
 	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
-	u32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
-	u32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
-	u32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
+	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
@@ -158,7 +158,7 @@ LightGridLLReductionMat::LightGridLLReductionMat()
 
 void LightGridLLReductionMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("THREADGROUP_SIZE", THREADGROUP_SIZE);
+	defines.Set("THREADGROUP_SIZE", kThreadgroupSize);
 }
 
 void LightGridLLReductionMat::SetParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams, const SPtr<GpuBuffer>& lightsLLHeads, const SPtr<GpuBuffer>& lightsLL, const SPtr<GpuBuffer>& probeLLHeads, const SPtr<GpuBuffer>& probeLL)
@@ -184,7 +184,7 @@ void LightGridLLReductionMat::SetParams(const Vector3I& gridSize, const SPtr<Gpu
 		mGridProbeOffsetAndSizeParam.Set(mGridProbeOffsetAndSize);
 
 		desc.Format = BF_32X1U;
-		desc.ElementCount = numCells * MAX_LIGHTS_PER_CELL;
+		desc.ElementCount = numCells * kMaxLightsPerCell;
 		mGridLightIndices = GpuBuffer::Create(desc);
 		mGridLightIndicesParam.Set(mGridLightIndices);
 
@@ -213,9 +213,9 @@ void LightGridLLReductionMat::Execute(const RendererView& view)
 
 	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
-	u32 numGroupsX = (mGridSize[0] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
-	u32 numGroupsY = (mGridSize[1] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
-	u32 numGroupsZ = (mGridSize[2] + THREADGROUP_SIZE - 1) / THREADGROUP_SIZE;
+	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
+	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
@@ -242,9 +242,9 @@ void LightGrid::UpdateGrid(const RendererView& view, const VisibleLightData& lig
 	u32 height = viewProps.Target.ViewRect.Height;
 
 	Vector3I gridSize;
-	gridSize[0] = (width + CELL_XY_SIZE - 1) / CELL_XY_SIZE;
-	gridSize[1] = (height + CELL_XY_SIZE - 1) / CELL_XY_SIZE;
-	gridSize[2] = NUM_Z_SUBDIVIDES;
+	gridSize[0] = (width + kCellXySize - 1) / kCellXySize;
+	gridSize[1] = (height + kCellXySize - 1) / kCellXySize;
+	gridSize[2] = kNumZSubdivides;
 
 	Vector4I lightCount;
 	Vector2I lightStrides;
@@ -276,8 +276,8 @@ void LightGrid::UpdateGrid(const RendererView& view, const VisibleLightData& lig
 	gLightGridParamDefDef.gNumReflProbes.Set(mGridParamBuffer, probeData.GetNumProbes());
 	gLightGridParamDefDef.gNumCells.Set(mGridParamBuffer, numCells);
 	gLightGridParamDefDef.gGridSize.Set(mGridParamBuffer, gridSize);
-	gLightGridParamDefDef.gMaxNumLightsPerCell.Set(mGridParamBuffer, MAX_LIGHTS_PER_CELL);
-	gLightGridParamDefDef.gGridPixelSize.Set(mGridParamBuffer, Vector2I(CELL_XY_SIZE, CELL_XY_SIZE));
+	gLightGridParamDefDef.gMaxNumLightsPerCell.Set(mGridParamBuffer, kMaxLightsPerCell);
+	gLightGridParamDefDef.gGridPixelSize.Set(mGridParamBuffer, Vector2I(kCellXySize, kCellXySize));
 
 	LightGridLLCreationMat* creationMat = LightGridLLCreationMat::Get();
 	creationMat->SetParams(gridSize, mGridParamBuffer, lightData.GetLightBuffer(), probeData.GetProbeBuffer());

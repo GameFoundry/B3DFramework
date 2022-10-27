@@ -62,11 +62,11 @@ namespace bs
 		 * @note	Thread safe.
 		 */
 		BS_SCRIPT_EXPORT()
-		BS_NORREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::EMPTY);
+		BS_NORREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
 		/** @copydoc import */
 		template <class T>
-		ResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::EMPTY)
+		ResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
 		{
 			return static_resource_cast<T>(Import(inputFilePath, importOptions, UUID));
 		}
@@ -76,7 +76,7 @@ namespace bs
 		 * placed in the returned AsyncOp object when the import ends.
 		 */
 		BS_SCRIPT_EXPORT()
-		TAsyncOp<HResource> ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::EMPTY);
+		TAsyncOp<HResource> ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
 		/**
 		 * Imports a resource at the specified location, and returns the loaded data. This method returns all imported

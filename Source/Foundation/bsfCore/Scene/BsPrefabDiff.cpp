@@ -393,7 +393,7 @@ void PrefabDiff::RenameInstanceIds(const HSceneObject& prefab, const HSceneObjec
 	// contain prefab's IDs, but will be used for the instance.
 
 	Stack<StackEntry> todo;
-	todo.push({ instance, UUID::EMPTY });
+	todo.push({ instance, UUID::kEmpty });
 
 	while(!todo.empty())
 	{
@@ -437,7 +437,7 @@ void PrefabDiff::RenameInstanceIds(const HSceneObject& prefab, const HSceneObjec
 		prefab->mInstanceData->MInstanceId = instance->GetInstanceId();
 	}
 
-	todo.push({ prefab, UUID::EMPTY });
+	todo.push({ prefab, UUID::kEmpty });
 	while(!todo.empty())
 	{
 		StackEntry current = todo.top();

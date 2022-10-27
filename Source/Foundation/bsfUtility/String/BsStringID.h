@@ -23,10 +23,10 @@ namespace bs
 	 */
 	class BS_UTILITY_EXPORT StringID
 	{
-		static constexpr const int HASH_TABLE_SIZE = 4096;
-		static constexpr const int MAX_CHUNK_COUNT = 50;
-		static constexpr const int ELEMENTS_PER_CHUNK = 256;
-		static constexpr const int STRING_SIZE = 256;
+		static constexpr const int kHashTableSize = 4096;
+		static constexpr const int kMaxChunkCount = 50;
+		static constexpr const int kElementsPerChunk = 256;
+		static constexpr const int kStringSize = 256;
 
 		/** Helper class that performs string actions on both null terminated character arrays and standard strings. */
 		template <class T>
@@ -45,7 +45,7 @@ namespace bs
 		{
 			u32 Id;
 			InternalData* Next;
-			char Chars[STRING_SIZE];
+			char Chars[kStringSize];
 		};
 
 		/**	Performs initialization of static members as soon as the library is loaded. */
@@ -106,7 +106,7 @@ namespace bs
 		/** Returns the unique identifier of the string. */
 		u32 Id() const { return mData ? mData->Id : -1; }
 
-		static const StringID NONE;
+		static const StringID kNone;
 
 	private:
 		/**Constructs a StringID object in a way that works for pointers to character arrays and standard strings. */
@@ -126,8 +126,8 @@ namespace bs
 		InternalData* mData = nullptr;
 
 		static volatile InitStatics mInitStatics;
-		static InternalData* mStringHashTable[HASH_TABLE_SIZE];
-		static InternalData* mChunks[MAX_CHUNK_COUNT];
+		static InternalData* mStringHashTable[kHashTableSize];
+		static InternalData* mChunks[kMaxChunkCount];
 
 		static u32 mNextId;
 		static u32 mNumChunks;

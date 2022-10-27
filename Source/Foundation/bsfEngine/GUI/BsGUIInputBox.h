@@ -41,7 +41,7 @@ namespace bs
 		 *								GUIWidget the element is used on. If not specified default style for this element
 		 *								is used.
 		 */
-		static GUIInputBox* Create(bool multiline = false, const String& styleName = StringUtil::BLANK);
+		static GUIInputBox* Create(bool multiline = false, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new input box.
@@ -53,7 +53,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIInputBox* Create(bool multiline, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIInputBox* Create(bool multiline, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new single-line input box.
@@ -63,7 +63,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIInputBox* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIInputBox* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**	Returns the text currently entered in the input box. */
 		const String& GetText() const { return mText; }

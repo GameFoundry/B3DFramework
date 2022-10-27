@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIElementStateStyle : public ScriptObject<ScriptGUIElementStateStyle>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIElementStateStyle")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIElementStateStyle")
 
 		static MonoObject* Box(const __GUIElementStateStyleInterop& value);
 		static __GUIElementStateStyleInterop Unbox(MonoObject* value);

@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCParticleSystem : public TScriptComponent<ScriptCParticleSystem, CParticleSystem>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSystem")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSystem")
 
 		ScriptCParticleSystem(MonoObject* managedInstance, const GameObjectHandle<CParticleSystem>& value);
 

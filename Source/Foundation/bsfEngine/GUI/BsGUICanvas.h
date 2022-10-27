@@ -31,7 +31,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUICanvas* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUICanvas* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new GUI canvas element.
@@ -39,7 +39,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUICanvas* Create(const String& styleName = StringUtil::BLANK);
+		static GUICanvas* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Draws a line going from @p a to @p b.
@@ -51,7 +51,7 @@ namespace bs
 		 *						Additionally elements of the same type (triangle or line) will be drawn in order they are
 		 *						submitted if they share the same depth.
 		 */
-		void DrawLine(const Vector2I& a, const Vector2I& b, const Color& color = Color::White, u8 depth = 128);
+		void DrawLine(const Vector2I& a, const Vector2I& b, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/**
 		 * Draws multiple lines following the path by the provided vertices. First vertex connects to the second vertex,
@@ -64,7 +64,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawPolyLine(const Vector<Vector2I>& vertices, const Color& color = Color::White, u8 depth = 128);
+		void DrawPolyLine(const Vector<Vector2I>& vertices, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/**
 		 * Draws a quad with a the provided texture displayed.
@@ -79,7 +79,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::White, u8 depth = 128);
+		void DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode = TextureScaleMode::StretchToFit, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/**
 		 * Draws a triangle strip. First three vertices are used to form the initial triangle, and every next vertex will
@@ -92,7 +92,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color = Color::White, u8 depth = 128);
+		void DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/**
 		 * Draws a triangle list. Every three vertices in the list represent a unique triangle.
@@ -104,7 +104,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color = Color::White, u8 depth = 128);
+		void DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/**
 		 * Draws a piece of text with the wanted font. The text will be aligned to the top-left corner of the provided
@@ -120,7 +120,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size = 10, const Color& color = Color::White, u8 depth = 128);
+		void DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size = 10, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/** Clears the canvas, removing any previously drawn elements. */
 		void Clear();
@@ -251,7 +251,7 @@ namespace bs
 		mutable Rect2I mLastClipRect;
 		mutable bool mForceTriangleBuild = false;
 
-		static const float LINE_SMOOTH_BORDER_WIDTH;
+		static const float kLineSmoothBorderWidth;
 	};
 
 	/** @} */

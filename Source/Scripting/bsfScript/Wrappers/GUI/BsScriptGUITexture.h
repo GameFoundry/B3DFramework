@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUITexture : public TScriptGUIElement<ScriptGUITexture>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUITexture")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUITexture")
 
 	private:
 		ScriptGUITexture(MonoObject* instance, GUITexture* texture);

@@ -122,7 +122,7 @@ Color PixelData::SampleColorAt(const Vector2& coords, TextureFilter filter) cons
 		i32 x1 = Math::Clamp(x + 1, 0U, (u32)maxExtentX);
 		i32 y1 = Math::Clamp(y + 1, 0U, (u32)maxExtentY);
 
-		Color color = Color::ZERO;
+		Color color = Color::kZero;
 		color += (1.0f - fracX) * (1.0f - fracY) * GetColorAt(x, y);
 		color += fracX * (1.0f - fracY) * GetColorAt(x1, y);
 		color += (1.0f - fracX) * fracY * GetColorAt(x, y1);

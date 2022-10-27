@@ -4,12 +4,12 @@
 
 using namespace bs;
 
-const StringID StringID::NONE;
+const StringID StringID::kNone;
 
 volatile StringID::InitStatics StringID::mInitStatics = StringID::InitStatics();
 
-StringID::InternalData* StringID::mStringHashTable[HASH_TABLE_SIZE];
-StringID::InternalData* StringID::mChunks[MAX_CHUNK_COUNT];
+StringID::InternalData* StringID::mStringHashTable[kHashTableSize];
+StringID::InternalData* StringID::mChunks[kMaxChunkCount];
 
 u32 StringID::mNextId = 0;
 u32 StringID::mNumChunks = 0;
@@ -22,8 +22,8 @@ StringID::InitStatics::InitStatics()
 	memset(mStringHashTable, 0, sizeof(mStringHashTable));
 	memset(mChunks, 0, sizeof(mChunks));
 
-	mChunks[0] = (InternalData*)bs_alloc(sizeof(InternalData) * ELEMENTS_PER_CHUNK);
-	memset(mChunks[0], 0, sizeof(InternalData) * ELEMENTS_PER_CHUNK);
+	mChunks[0] = (InternalData*)bs_alloc(sizeof(InternalData) * kElementsPerChunk);
+	memset(mChunks[0], 0, sizeof(InternalData) * kElementsPerChunk);
 
 	mNumChunks++;
 }
@@ -31,7 +31,7 @@ StringID::InitStatics::InitStatics()
 template <class T>
 void StringID::Construct(T const& name)
 {
-	assert(StringIDUtil<T>::Size(name) <= STRING_SIZE);
+	assert(StringIDUtil<T>::Size(name) <= kStringSize);
 
 	u32 hash = CalcHash(name) & (sizeof(mStringHashTable) / sizeof(mStringHashTable[0]) - 1);
 	InternalData* existingEntry = mStringHashTable[hash];
@@ -87,21 +87,21 @@ u32 StringID::CalcHash(T const& input)
 
 StringID::InternalData* StringID::AllocEntry()
 {
-	u32 chunkIdx = mNextId / ELEMENTS_PER_CHUNK;
+	u32 chunkIdx = mNextId / kElementsPerChunk;
 
-	assert(chunkIdx < MAX_CHUNK_COUNT);
+	assert(chunkIdx < kMaxChunkCount);
 	assert(chunkIdx <= mNumChunks); // Can only increment sequentially
 
 	if(chunkIdx >= mNumChunks)
 	{
-		mChunks[chunkIdx] = (InternalData*)bs_alloc(sizeof(InternalData) * ELEMENTS_PER_CHUNK);
-		memset(mChunks[chunkIdx], 0, sizeof(InternalData) * ELEMENTS_PER_CHUNK);
+		mChunks[chunkIdx] = (InternalData*)bs_alloc(sizeof(InternalData) * kElementsPerChunk);
+		memset(mChunks[chunkIdx], 0, sizeof(InternalData) * kElementsPerChunk);
 
 		mNumChunks++;
 	}
 
 	InternalData* chunk = mChunks[chunkIdx];
-	u32 chunkSpecificIndex = mNextId % ELEMENTS_PER_CHUNK;
+	u32 chunkSpecificIndex = mNextId % kElementsPerChunk;
 
 	InternalData* newEntry = &chunk[chunkSpecificIndex];
 	newEntry->Id = mNextId++;

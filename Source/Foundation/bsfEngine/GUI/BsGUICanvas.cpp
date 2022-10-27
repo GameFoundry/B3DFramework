@@ -13,7 +13,7 @@
 
 using namespace bs;
 
-const float GUICanvas::LINE_SMOOTH_BORDER_WIDTH = 3.0f;
+const float GUICanvas::kLineSmoothBorderWidth = 3.0f;
 
 const String& GUICanvas::GetGuiTypeName()
 {

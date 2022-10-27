@@ -364,7 +364,7 @@ namespace bs
 		ParticleEmitterBoxType Type = ParticleEmitterBoxType::Volume;
 
 		/** Extends of the box. */
-		Vector3 Extents = Vector3::ONE;
+		Vector3 Extents = Vector3::kOne;
 	};
 
 	/**
@@ -574,7 +574,7 @@ namespace bs
 	struct BS_SCRIPT_EXPORT(DocumentationGroup(Particles), ExportAsStruct(true), ExportName(ParticleRectShapeOptions)) PARTICLE_RECT_SHAPE_DESC
 	{
 		/** Extents of the rectangle. */
-		Vector2 Extents = Vector2::ONE;
+		Vector2 Extents = Vector2::kOne;
 	};
 
 	/** Particle emitter shape that emits particles from the surface of a rectangle. */
@@ -1114,14 +1114,14 @@ namespace bs
 		FloatDistribution mInitialSpeed = 1.0f;
 
 		FloatDistribution mInitialSize = 0.1f;
-		Vector3Distribution mInitialSize3D = Vector3::ONE;
+		Vector3Distribution mInitialSize3D = Vector3::kOne;
 		bool mUse3DSize = false;
 
 		FloatDistribution mInitialRotation = 0.0f;
-		Vector3Distribution mInitialRotation3D = Vector3::ZERO;
+		Vector3Distribution mInitialRotation3D = Vector3::kZero;
 		bool mUse3DRotation = false;
 
-		ColorDistribution mInitialColor = Color::White;
+		ColorDistribution mInitialColor = Color::kWhite;
 
 		float mFlipU = 0.0f;
 		float mFlipV = 0.0f;

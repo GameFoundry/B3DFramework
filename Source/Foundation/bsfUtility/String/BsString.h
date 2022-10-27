@@ -551,10 +551,10 @@ namespace bs
 		}
 
 		/** Constant blank string, useful for returning by ref where local does not exist. */
-		static const String BLANK;
+		static const String kBlank;
 
 		/**	Constant blank wide string, useful for returning by ref where local does not exist. */
-		static const WString WBLANK;
+		static const WString kWblank;
 
 	private:
 		template <class T>

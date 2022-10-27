@@ -156,7 +156,7 @@ namespace bs
 		FCollider* mInternal = nullptr;
 		PhysicsObjectOwner mOwner;
 		Rigidbody* mRigidbody = nullptr;
-		Vector3 mScale = Vector3::ONE;
+		Vector3 mScale = Vector3::kOne;
 	};
 
 	/** @} */

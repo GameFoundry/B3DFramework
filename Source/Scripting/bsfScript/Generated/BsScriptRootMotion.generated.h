@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRootMotion : public ScriptObject<ScriptRootMotion>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RootMotion")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RootMotion")
 
 		ScriptRootMotion(MonoObject* managedInstance, const SPtr<RootMotion>& value);
 

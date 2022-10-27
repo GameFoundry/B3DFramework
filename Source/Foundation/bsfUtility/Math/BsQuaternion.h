@@ -365,7 +365,7 @@ namespace bs
 		}
 
 		/** Gets the shortest arc quaternion to rotate this vector to the destination vector. */
-		static Quaternion GetRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis = Vector3::ZERO);
+		static Quaternion GetRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis = Vector3::kZero);
 
 		/** Returns the minimum of all the quaternion components as a new quaternion. */
 		static Quaternion Min(const Quaternion& a, const Quaternion& b)
@@ -379,10 +379,10 @@ namespace bs
 			return Quaternion(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z), std::max(a.W, b.W));
 		}
 
-		static constexpr const float EPSILON = 1e-03f;
+		static constexpr const float kEpsilon = 1e-03f;
 
-		static const Quaternion ZERO;
-		static const Quaternion IDENTITY;
+		static const Quaternion kZero;
+		static const Quaternion kIdentity;
 
 		float X, Y, Z, W; // Note: Order is relevant, don't break it
 	};

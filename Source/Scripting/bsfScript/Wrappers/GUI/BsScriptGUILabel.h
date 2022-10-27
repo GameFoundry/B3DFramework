@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUILabel : public TScriptGUIElement<ScriptGUILabel>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUILabel")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUILabel")
 
 	private:
 		ScriptGUILabel(MonoObject* instance, GUILabel* label);

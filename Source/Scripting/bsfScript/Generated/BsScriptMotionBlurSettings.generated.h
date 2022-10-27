@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMotionBlurSettings : public TScriptReflectable<ScriptMotionBlurSettings, MotionBlurSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MotionBlurSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MotionBlurSettings")
 
 		ScriptMotionBlurSettings(MonoObject* managedInstance, const SPtr<MotionBlurSettings>& value);
 

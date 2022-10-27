@@ -111,5 +111,5 @@ void ScriptGUIScrollArea::InternalSetVertScroll(ScriptGUIScrollArea* nativeInsta
 
 int ScriptGUIScrollArea::InternalGetScrollBarWidth(ScriptGUIScrollArea* nativeInstance)
 {
-	return GUIScrollArea::ScrollBarWidth;
+	return GUIScrollArea::kScrollBarWidth;
 }

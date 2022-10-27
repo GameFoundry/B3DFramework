@@ -18,7 +18,7 @@ namespace bs
 		Mobility = 1 << 1,
 		Active = 1 << 2,
 		Everything = 1 << 3,
-		Dependency = DIRTY_DEPENDENCY_MASK
+		Dependency = kDirtyDependencyMask
 	};
 
 	typedef Flags<ActorDirtyFlag> ActorDirtyFlags;

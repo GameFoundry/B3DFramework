@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUICanvas : public TScriptGUIElement<ScriptGUICanvas>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUICanvas")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUICanvas")
 
 	private:
 		ScriptGUICanvas(MonoObject* instance, GUICanvas* canvas);

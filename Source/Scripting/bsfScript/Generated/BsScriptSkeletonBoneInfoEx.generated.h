@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSkeletonBoneInfoEx : public ScriptObject<ScriptSkeletonBoneInfoEx>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BoneInfo")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BoneInfo")
 
 		static MonoObject* Box(const __SkeletonBoneInfoExInterop& value);
 		static __SkeletonBoneInfoExInterop Unbox(MonoObject* value);

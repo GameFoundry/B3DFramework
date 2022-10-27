@@ -116,7 +116,7 @@ public:
 										   dst->X = particles.Position[idx].X;
 										   dst->Y = particles.Position[idx].Y;
 										   dst->Z = particles.Position[idx].Z;
-										   dst->W = particles.Rotation[idx].X * Math::DEG2RAD; });
+										   dst->W = particles.Rotation[idx].X * Math::kDeG2Rad; });
 
 		iterateOverPixels<RGBA>(output->Color, count, [&particles](RGBA* dst, u32 idx)
 								{ *dst = particles.Color[idx]; });
@@ -181,9 +181,9 @@ public:
 
 		iterateOverPixels<u16>(output->Rotation, count, sizeof(u16) * 4, [&particles](u16* dst, u32 idx)
 							   {
-				dst[0] = Bitwise::FloatToHalf(particles.Rotation[idx].X * Math::DEG2RAD);
-				dst[1] = Bitwise::FloatToHalf(particles.Rotation[idx].Y * Math::DEG2RAD);
-				dst[2] = Bitwise::FloatToHalf(particles.Rotation[idx].Z * Math::DEG2RAD); });
+				dst[0] = Bitwise::FloatToHalf(particles.Rotation[idx].X * Math::kDeG2Rad);
+				dst[1] = Bitwise::FloatToHalf(particles.Rotation[idx].Y * Math::kDeG2Rad);
+				dst[2] = Bitwise::FloatToHalf(particles.Rotation[idx].Z * Math::kDeG2Rad); });
 
 		iterateOverPixels<u16>(output->Size, count, sizeof(u16) * 4, [&particles](u16* dst, u32 idx)
 							   {
@@ -320,7 +320,7 @@ private:
 struct ParticleManager::Members
 {
 	// TODO - Perhaps sharing one pool is better
-	ParticleSimulationDataPool SimDataPool[CoreThread::NUM_SYNC_BUFFERS];
+	ParticleSimulationDataPool SimDataPool[CoreThread::kNumSyncBuffers];
 };
 
 ParticleManager::ParticleManager()
@@ -340,8 +340,8 @@ ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& anim
 	// Advance the buffers (last write buffer becomes read buffer)
 	if(mSwapBuffers)
 	{
-		mReadBufferIdx = (mReadBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
-		mWriteBufferIdx = (mWriteBufferIdx + 1) % CoreThread::NUM_SYNC_BUFFERS;
+		mReadBufferIdx = (mReadBufferIdx + 1) % CoreThread::kNumSyncBuffers;
+		mWriteBufferIdx = (mWriteBufferIdx + 1) % CoreThread::kNumSyncBuffers;
 
 		mSwapBuffers = false;
 	}
@@ -409,7 +409,7 @@ ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& anim
 						break;
 					case ParticleSortMode::OldToYoung:
 					case ParticleSortMode::YoungToOld:
-						SortParticles(*system->mParticleSet, settings.SortMode, Vector3::ZERO, simulationDataCPU->Indices.data());
+						SortParticles(*system->mParticleSet, settings.SortMode, Vector3::kZero, simulationDataCPU->Indices.data());
 						break;
 					case ParticleSortMode::Distance: break;
 					}

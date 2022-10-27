@@ -19,7 +19,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLimitCommon : public ScriptObject<ScriptLimitCommon>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LimitCommon")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "LimitCommon")
 
 		static MonoObject* Box(const __LimitCommonInterop& value);
 		static __LimitCommonInterop Unbox(MonoObject* value);

@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleColor : public TScriptReflectable<ScriptParticleColor, ParticleColor, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleColor")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleColor")
 
 		ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value);
 

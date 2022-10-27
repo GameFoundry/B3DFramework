@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShadowSettings : public TScriptReflectable<ScriptShadowSettings, ShadowSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShadowSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShadowSettings")
 
 		ScriptShadowSettings(MonoObject* managedInstance, const SPtr<ShadowSettings>& value);
 

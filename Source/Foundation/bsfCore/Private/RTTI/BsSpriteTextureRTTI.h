@@ -65,12 +65,12 @@ namespace bs
 
 		static BitLength ToMemory(const SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0;
+			static constexpr uint32_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.NumRows, stream);
 				size += rtti_write(data.NumColumns, stream);
 				size += rtti_write(data.Count, stream);

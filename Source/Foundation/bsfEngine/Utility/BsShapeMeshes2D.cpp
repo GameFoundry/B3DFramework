@@ -10,8 +10,8 @@
 
 using namespace bs;
 
-const u32 ShapeMeshes2D::NUM_VERTICES_AA_LINE = 4;
-const u32 ShapeMeshes2D::NUM_INDICES_AA_LINE = 6;
+const u32 ShapeMeshes2D::kNumVerticesAaLine = 4;
+const u32 ShapeMeshes2D::kNumIndicesAaLine = 6;
 
 void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {

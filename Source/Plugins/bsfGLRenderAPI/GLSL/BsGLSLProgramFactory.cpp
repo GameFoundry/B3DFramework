@@ -33,7 +33,7 @@ SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_D
 {
 	// Note: No bytecode format for GLSL
 	SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
-	bytecode->CompilerId = OPENGL_COMPILER_ID;
+	bytecode->CompilerId = kOpenglCompilerId;
 
 	return bytecode;
 }

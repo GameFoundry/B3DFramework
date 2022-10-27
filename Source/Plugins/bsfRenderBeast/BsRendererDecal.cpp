@@ -32,7 +32,7 @@ void RendererDecal::UpdatePerObjectBuffer()
 	const Vector3 scale(extent.X, extent.Y, maxDistance * 0.5f);
 	const Vector3 offset(0.0f, 0.0f, -maxDistance * 0.5f);
 
-	const Matrix4 scaleAndOffset = Matrix4::TRS(offset, Quaternion::IDENTITY, scale);
+	const Matrix4 scaleAndOffset = Matrix4::TRS(offset, Quaternion::kIdentity, scale);
 
 	const Matrix4 worldTransform = Decal->GetMatrix() * scaleAndOffset;
 	const Matrix4 worldNoScaleTransform = Decal->GetMatrixNoScale() * scaleAndOffset;

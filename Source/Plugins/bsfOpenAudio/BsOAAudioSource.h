@@ -113,9 +113,9 @@ namespace bs
 		AudioSourceState mSavedState = AudioSourceState::Stopped;
 		bool mGloballyPaused = false;
 
-		static const u32 StreamBufferCount = 3; // Maximum 32
-		u32 mStreamBuffers[StreamBufferCount];
-		u32 mBusyBuffers[StreamBufferCount];
+		static const u32 kStreamBufferCount = 3; // Maximum 32
+		u32 mStreamBuffers[kStreamBufferCount];
+		u32 mBusyBuffers[kStreamBufferCount];
 		u32 mStreamProcessedPosition = 0;
 		u32 mStreamQueuedPosition = 0;
 		bool mIsStreaming = false;

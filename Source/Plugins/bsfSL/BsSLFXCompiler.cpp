@@ -302,7 +302,7 @@ u32 getStructSize(i32 structIdx, const std::vector<Xsc::Reflection::Struct>& str
 			// needed (i.e. add padding variables manually).
 			GpuParamDataType type = ReflTypeToDataType((Xsc::Reflection::DataType)entry.baseType);
 
-			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.Lookup[(int)type];
+			const GpuParamDataTypeInfo& typeInfo = GpuParams::kParamSizes.Lookup[(int)type];
 			size += typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize * entry.arraySize;
 		}
 		else if(entry.type == Xsc::Reflection::VariableType::Struct)
@@ -575,12 +575,12 @@ void parseParameters(const Xsc::Reflection::ReflectionData& reflData, SHADER_DES
 					u32 arraySize = entry.arraySize;
 
 					if(entry.defaultValue == -1)
-						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize));
+						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::kNone, arraySize));
 					else
 					{
 						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
 
-						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::NONE, arraySize, 0), (u8*)defVal.matrix);
+						desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, type, StringID::kNone, arraySize, 0), (u8*)defVal.matrix);
 					}
 
 					if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
@@ -602,7 +602,7 @@ void parseParameters(const Xsc::Reflection::ReflectionData& reflData, SHADER_DES
 				i32 structIdx = entry.baseType;
 				u32 structSize = getStructSize(structIdx, reflData.structs);
 
-				desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, GPDT_STRUCT, StringID::NONE, entry.arraySize, structSize));
+				desc.AddParameter(SHADER_DATA_PARAM_DESC(ident, ident, GPDT_STRUCT, StringID::kNone, entry.arraySize, structSize));
 			}
 			break;
 		default:;
@@ -2351,25 +2351,25 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 				// Note: Ideally we add a full HLSL output module to XShaderCompiler, instead of using simple regex. This
 				// way the syntax could be enhanced with more complex features, while still being able to output pure
 				// HLSL.
-				static const std::regex attrRegex(
+				static const std::regex kAttrRegex(
 					R"(\[\s*layout\s*\(.*\)\s*\]|\[\s*internal\s*\]|\[\s*color\s*\]|\[\s*alias\s*\(.*\)\s*\]|\[\s*spriteuv\s*\(.*\)\s*\])");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, attrRegex, "");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kAttrRegex, "");
 
-				static const std::regex attr2Regex(
+				static const std::regex kAttr2Regex(
 					R"(\[\s*hideInInspector\s*\]|\[\s*name\s*\(".*"\)\s*\]|\[\s*hdr\s*\])");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, attr2Regex, "");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kAttr2Regex, "");
 
-				static const std::regex initializerRegex(
+				static const std::regex kInitializerRegex(
 					R"(Texture2D\s*(\S*)\s*=.*;)");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, initializerRegex, "Texture2D $1;");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kInitializerRegex, "Texture2D $1;");
 
-				static const std::regex warpWithSyncRegex(
+				static const std::regex kWarpWithSyncRegex(
 					R"(Warp(Group|Device|All)MemoryBarrierWithWarpSync)");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, warpWithSyncRegex, "$1MemoryBarrierWithGroupSync");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kWarpWithSyncRegex, "$1MemoryBarrierWithGroupSync");
 
-				static const std::regex warpNoSyncRegex(
+				static const std::regex kWarpNoSyncRegex(
 					R"(Warp(Group|Device|All)MemoryBarrier)");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, warpNoSyncRegex, "$1MemoryBarrier");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kWarpNoSyncRegex, "$1MemoryBarrier");
 
 				// Note: I'm just copying HLSL code as-is. This code will contain all entry points which could have
 				// an effect on compile time. It would be ideal to remove dead code depending on program type. This would

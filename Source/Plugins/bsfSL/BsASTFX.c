@@ -67,11 +67,11 @@ OptionInfo OPTION_LOOKUP[] =
 
 NodeOptions* nodeOptionsCreate(void* context)
 {
-	static const int BUFFER_SIZE = 5;
+	static const int kBufferSize = 5;
 
 	NodeOptions* options = (NodeOptions*)mmalloc(context, sizeof(NodeOptions));
 	options->Count = 0;
-	options->BufferSize = BUFFER_SIZE;
+	options->BufferSize = kBufferSize;
 
 	options->Entries = (NodeOption*)mmalloc(context, sizeof(NodeOption) * options->BufferSize);
 	memset(options->Entries, 0, sizeof(NodeOption) * options->BufferSize);
@@ -130,10 +130,10 @@ void nodeOptionsResize(void* context, NodeOptions* options, int size)
 
 void nodeOptionsGrowIfNeeded(void* context, NodeOptions* options)
 {
-	static const int BUFFER_GROW = 10;
+	static const int kBufferGrow = 10;
 
 	if (options->Count == options->BufferSize)
-		nodeOptionsResize(context, options, options->BufferSize + BUFFER_GROW);
+		nodeOptionsResize(context, options, options->BufferSize + kBufferGrow);
 }
 
 void nodeOptionsAdd(void* context, NodeOptions* options, const NodeOption* option)

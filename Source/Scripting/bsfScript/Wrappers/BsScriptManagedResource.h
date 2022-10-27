@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptManagedResource : public ScriptObject<ScriptManagedResource, ScriptResourceBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ManagedResource")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ManagedResource")
 
 		ScriptManagedResource(MonoObject* instance, const HManagedResource& resource);
 

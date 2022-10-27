@@ -9,12 +9,12 @@ using namespace bs;
 
 Physics::Physics(const PHYSICS_INIT_DESC& init)
 {
-	memset(mCollisionMap, 1, CollisionMapSize * CollisionMapSize * sizeof(bool));
+	memset(mCollisionMap, 1, kCollisionMapSize * kCollisionMapSize * sizeof(bool));
 }
 
 void Physics::ToggleCollision(u64 groupA, u64 groupB, bool enabled)
 {
-	assert(groupA < CollisionMapSize && groupB < CollisionMapSize);
+	assert(groupA < kCollisionMapSize && groupB < kCollisionMapSize);
 
 	Lock lock(mMutex);
 	mCollisionMap[groupA][groupB] = enabled;
@@ -22,7 +22,7 @@ void Physics::ToggleCollision(u64 groupA, u64 groupB, bool enabled)
 
 bool Physics::IsCollisionEnabled(u64 groupA, u64 groupB) const
 {
-	assert(groupA < CollisionMapSize && groupB < CollisionMapSize);
+	assert(groupA < kCollisionMapSize && groupB < kCollisionMapSize);
 
 	enum class MyFlag
 	{

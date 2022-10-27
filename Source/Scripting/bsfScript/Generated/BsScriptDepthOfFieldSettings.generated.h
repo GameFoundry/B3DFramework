@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "DepthOfFieldSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
 
 		ScriptDepthOfFieldSettings(MonoObject* managedInstance, const SPtr<DepthOfFieldSettings>& value);
 

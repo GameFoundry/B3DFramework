@@ -8,7 +8,7 @@
 
 using namespace bs;
 
-const Color GUIElement::DISABLED_COLOR = Color(0.5f, 0.5f, 0.5f, 1.0f);
+const Color GUIElement::kDisabledColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
 GUIElement::GUIElement(String styleName, const GUIDimensions& dimensions, GUIElementOptions options)
 	: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(std::move(styleName))
@@ -18,7 +18,7 @@ GUIElement::GUIElement(String styleName, const GUIDimensions& dimensions, GUIEle
 }
 
 GUIElement::GUIElement(const char* styleName, const GUIDimensions& dimensions, GUIElementOptions options)
-	: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(styleName ? styleName : StringUtil::BLANK)
+	: GUIElementBase(dimensions), mOptionFlags(options), mStyle(&GUISkin::DefaultStyle), mStyleName(styleName ? styleName : StringUtil::kBlank)
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
@@ -238,7 +238,7 @@ Color GUIElement::GetTint() const
 	if(!IsDisabledInternal())
 		return mColor;
 
-	return mColor * DISABLED_COLOR;
+	return mColor * kDisabledColor;
 }
 
 bool GUIElement::IsInBoundsInternal(const Vector2I position) const
@@ -288,7 +288,7 @@ const String& GUIElement::GetSubStyleName(const String& subStyleTypeName) const
 	if(iterFind != mStyle->SubStyles.end())
 		return iterFind->second;
 	else
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 }
 
 void GUIElement::Destroy(GUIElement* element)

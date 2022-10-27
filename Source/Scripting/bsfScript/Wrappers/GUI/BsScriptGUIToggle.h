@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIToggle : public TScriptGUIElement<ScriptGUIToggle>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIToggle")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIToggle")
 
 	private:
 		ScriptGUIToggle(MonoObject* instance, GUIToggle* toggle);

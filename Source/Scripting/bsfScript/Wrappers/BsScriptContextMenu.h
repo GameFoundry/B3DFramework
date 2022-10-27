@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptContextMenu : public ScriptObject<ScriptContextMenu>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ContextMenu")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ContextMenu")
 
 		/**	Returns the internal native context menu object. */
 		SPtr<GUIContextMenu> GetInternal() const { return mContextMenu; }

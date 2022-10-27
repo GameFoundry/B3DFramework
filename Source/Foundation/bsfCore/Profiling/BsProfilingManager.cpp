@@ -5,21 +5,21 @@
 
 using namespace bs;
 
-const u32 ProfilingManager::NUM_SAVED_FRAMES = 200;
+const u32 ProfilingManager::kNumSavedFrames = 200;
 
 ProfilingManager::ProfilingManager()
 {
-	mSavedSimReports = bs_newN<ProfilerReport, ProfilerAlloc>(NUM_SAVED_FRAMES);
-	mSavedCoreReports = bs_newN<ProfilerReport, ProfilerAlloc>(NUM_SAVED_FRAMES);
+	mSavedSimReports = bs_newN<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
+	mSavedCoreReports = bs_newN<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
 }
 
 ProfilingManager::~ProfilingManager()
 {
 	if(mSavedSimReports != nullptr)
-		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedSimReports, NUM_SAVED_FRAMES);
+		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedSimReports, kNumSavedFrames);
 
 	if(mSavedCoreReports != nullptr)
-		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedCoreReports, NUM_SAVED_FRAMES);
+		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedCoreReports, kNumSavedFrames);
 }
 
 void ProfilingManager::UpdateInternal()
@@ -29,7 +29,7 @@ void ProfilingManager::UpdateInternal()
 
 	gProfilerCPU().Reset();
 
-	mNextSimReportIdx = (mNextSimReportIdx + 1) % NUM_SAVED_FRAMES;
+	mNextSimReportIdx = (mNextSimReportIdx + 1) % kNumSavedFrames;
 #endif
 }
 
@@ -41,27 +41,27 @@ void ProfilingManager::UpdateCoreInternal()
 
 	gProfilerCPU().Reset();
 
-	mNextCoreReportIdx = (mNextCoreReportIdx + 1) % NUM_SAVED_FRAMES;
+	mNextCoreReportIdx = (mNextCoreReportIdx + 1) % kNumSavedFrames;
 #endif
 }
 
 const ProfilerReport& ProfilingManager::GetReport(ProfiledThread thread, u32 idx) const
 {
-	idx = Math::Clamp(idx, 0U, (u32)(NUM_SAVED_FRAMES - 1));
+	idx = Math::Clamp(idx, 0U, (u32)(kNumSavedFrames - 1));
 
 	if(thread == ProfiledThread::Core)
 	{
 		Lock lock(mSync);
 
-		u32 reportIdx = mNextCoreReportIdx + (u32)((i32)NUM_SAVED_FRAMES - ((i32)idx + 1));
-		reportIdx = (reportIdx) % NUM_SAVED_FRAMES;
+		u32 reportIdx = mNextCoreReportIdx + (u32)((i32)kNumSavedFrames - ((i32)idx + 1));
+		reportIdx = (reportIdx) % kNumSavedFrames;
 
 		return mSavedCoreReports[reportIdx];
 	}
 	else
 	{
-		u32 reportIdx = mNextSimReportIdx + (u32)((i32)NUM_SAVED_FRAMES - ((i32)idx + 1));
-		reportIdx = (reportIdx) % NUM_SAVED_FRAMES;
+		u32 reportIdx = mNextSimReportIdx + (u32)((i32)kNumSavedFrames - ((i32)idx + 1));
+		reportIdx = (reportIdx) % kNumSavedFrames;
 
 		return mSavedSimReports[reportIdx];
 	}

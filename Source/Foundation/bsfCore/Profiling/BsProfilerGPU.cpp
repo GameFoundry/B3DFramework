@@ -8,11 +8,11 @@
 
 using namespace bs;
 
-const u32 ProfilerGPU::MAX_QUEUE_ELEMENTS = 5;
+const u32 ProfilerGPU::kMaxQueueElements = 5;
 
 ProfilerGPU::ProfilerGPU()
 {
-	mReadyReports = bs_newN<GPUProfilerReport>(MAX_QUEUE_ELEMENTS);
+	mReadyReports = bs_newN<GPUProfilerReport>(kMaxQueueElements);
 }
 
 ProfilerGPU::~ProfilerGPU()
@@ -25,7 +25,7 @@ ProfilerGPU::~ProfilerGPU()
 		mUnresolvedFrames.pop();
 	}
 
-	bs_deleteN(mReadyReports, MAX_QUEUE_ELEMENTS);
+	bs_deleteN(mReadyReports, kMaxQueueElements);
 }
 
 void ProfilerGPU::BeginFrame()
@@ -167,7 +167,7 @@ GPUProfilerReport ProfilerGPU::GetNextReport()
 
 	GPUProfilerReport report = mReadyReports[mReportHeadPos];
 
-	mReportHeadPos = (mReportHeadPos + 1) % MAX_QUEUE_ELEMENTS;
+	mReportHeadPos = (mReportHeadPos + 1) % kMaxQueueElements;
 	mReportCount--;
 
 	return report;
@@ -218,9 +218,9 @@ void ProfilerGPU::UpdateInternal()
 
 		{
 			Lock lock(mMutex);
-			mReadyReports[(mReportHeadPos + mReportCount) % MAX_QUEUE_ELEMENTS] = report;
-			if(mReportCount == MAX_QUEUE_ELEMENTS)
-				mReportHeadPos = (mReportHeadPos + 1) % MAX_QUEUE_ELEMENTS;
+			mReadyReports[(mReportHeadPos + mReportCount) % kMaxQueueElements] = report;
+			if(mReportCount == kMaxQueueElements)
+				mReportHeadPos = (mReportHeadPos + 1) % kMaxQueueElements;
 			else
 				mReportCount++;
 		}

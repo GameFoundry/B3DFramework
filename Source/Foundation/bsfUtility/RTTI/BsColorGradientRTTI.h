@@ -31,14 +31,14 @@ namespace bs
 
 		static BitLength ToMemory(const ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0;
+			static constexpr uint32_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 
-				for (uint32_t i = 0; i < ColorGradient::MAX_KEYS; i++)
+				for (uint32_t i = 0; i < ColorGradient::kMaxKeys; i++)
 				{
 					size += rtti_write(data.mColors[i], stream);
 					size += rtti_write(data.mTimes[i], stream);
@@ -61,7 +61,7 @@ namespace bs
 			switch(version)
 			{
 			case 0:
-				for(uint32_t i = 0; i < ColorGradient::MAX_KEYS; i++)
+				for(uint32_t i = 0; i < ColorGradient::kMaxKeys; i++)
 				{
 					rtti_read(data.mColors[i], stream);
 					rtti_read(data.mTimes[i], stream);
@@ -81,8 +81,8 @@ namespace bs
 		static BitLength GetSize(const ColorGradient& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize =
-				rtti_size(data.mColors[0]) * ColorGradient::MAX_KEYS +
-				rtti_size(data.mTimes[0]) * ColorGradient::MAX_KEYS +
+				rtti_size(data.mColors[0]) * ColorGradient::kMaxKeys +
+				rtti_size(data.mTimes[0]) * ColorGradient::kMaxKeys +
 				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
 
 			rtti_add_header_size(dataSize, compress);
@@ -105,14 +105,14 @@ namespace bs
 
 		static BitLength ToMemory(const ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0;
+			static constexpr uint32_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 
-				for(uint32_t i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
+				for(uint32_t i = 0; i < ColorGradientHDR::kMaxKeys; i++)
 				{
 					size += rtti_write(data.mColors[i], stream);
 					size += rtti_write(data.mTimes[i], stream);
@@ -135,7 +135,7 @@ namespace bs
 			switch(version)
 			{
 			case 0:
-				for(uint32_t i = 0; i < ColorGradientHDR::MAX_KEYS; i++)
+				for(uint32_t i = 0; i < ColorGradientHDR::kMaxKeys; i++)
 				{
 					rtti_read(data.mColors[i], stream);
 					rtti_read(data.mTimes[i], stream);
@@ -155,8 +155,8 @@ namespace bs
 		static BitLength GetSize(const ColorGradientHDR& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize =
-				rtti_size(data.mColors[0]) * ColorGradientHDR::MAX_KEYS +
-				rtti_size(data.mTimes[0]) * ColorGradientHDR::MAX_KEYS +
+				rtti_size(data.mColors[0]) * ColorGradientHDR::kMaxKeys +
+				rtti_size(data.mTimes[0]) * ColorGradientHDR::kMaxKeys +
 				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
 
 			rtti_add_header_size(dataSize, compress);

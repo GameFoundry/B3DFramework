@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUISkin : public TScriptResource<ScriptGUISkin, GUISkin>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUISkin")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUISkin")
 
 		ScriptGUISkin(MonoObject* managedInstance, const ResourceHandle<GUISkin>& value);
 

@@ -1001,7 +1001,7 @@ HMaterial Material::Create()
 
 HMaterial Material::Create(const HShader& shader)
 {
-	return Create(shader, ShaderVariation::EMPTY);
+	return Create(shader, ShaderVariation::kEmpty);
 }
 
 HMaterial Material::Create(const HShader& shader, const ShaderVariation& variation)
@@ -1104,7 +1104,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 
 SPtr<Material> Material::Create(const SPtr<Shader>& shader)
 {
-	Material* material = new(bs_alloc<Material>()) Material(shader, ShaderVariation::EMPTY);
+	Material* material = new(bs_alloc<Material>()) Material(shader, ShaderVariation::kEmpty);
 	SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
 	materialPtr->SetThisPtrInternal(materialPtr);
 	materialPtr->Initialize();

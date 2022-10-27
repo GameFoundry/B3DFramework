@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptViewport : public TScriptReflectable<ScriptViewport, Viewport>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Viewport")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Viewport")
 
 		ScriptViewport(MonoObject* managedInstance, const SPtr<Viewport>& value);
 

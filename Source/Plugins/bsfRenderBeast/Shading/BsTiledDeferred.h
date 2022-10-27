@@ -65,7 +65,7 @@ namespace bs
 
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
 
-			static const u32 TILE_SIZE;
+			static const u32 kTileSize;
 		};
 
 		/**
@@ -124,13 +124,13 @@ namespace bs
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for textures and texture arrays.
 			 */
-			void Execute(const SPtr<Texture>& target, const Color& clearValue = Color::ZERO, const TextureSurface& surface = TextureSurface::COMPLETE);
+			void Execute(const SPtr<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
 
 			/**
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for buffers.
 			 */
-			void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::ZERO);
+			void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::kZero);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -145,10 +145,10 @@ namespace bs
 
 		private:
 			/** TILE_SIZE * TILE_SIZE is the number of pixels to process per thread. */
-			static constexpr u32 TILE_SIZE = 4;
+			static constexpr u32 kTileSize = 4;
 
 			/** Number of threads to launch per work group. */
-			static constexpr u32 NUM_THREADS = 128;
+			static constexpr u32 kNumThreads = 128;
 
 			GpuParamLoadStoreTexture mOutputTextureParam;
 			GpuParamBuffer mOutputBufferParam;
@@ -216,7 +216,7 @@ namespace bs
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
 			ReflProbeParamBuffer mReflProbeParamBuffer;
 
-			static const u32 TILE_SIZE;
+			static const u32 kTileSize;
 		};
 
 		/** @} */

@@ -158,35 +158,35 @@ namespace bs
 
 #endif
 
-		static constexpr const char* IconTextureName = "bsfIcon.png";
-		static constexpr const char* MultiLineLabelStyle = "MultiLineLabel";
+		static constexpr const char* kIconTextureName = "bsfIcon.png";
+		static constexpr const char* kMultiLineLabelStyle = "MultiLineLabel";
 
-		static constexpr const char* SHADER_FOLDER = "Shaders/";
-		static constexpr const char* CURSOR_FOLDER = "Cursors/";
-		static constexpr const char* ICON_FOLDER = "Icons/";
-		static constexpr const char* ICON3D_FOLDER = "Icons3D/";
-		static constexpr const char* SKIN_FOLDER = "Skin/";
-		static constexpr const char* ANIMATED_SPRITES_FOLDER = "AnimatedSprites/";
-		static constexpr const char* SHADER_INCLUDE_FOLDER = "Shaders/Includes/";
-		static constexpr const char* MESH_FOLDER = "Meshes/";
-		static constexpr const char* TEXTURE_FOLDER = "Textures/";
-		static constexpr const char* SPRITE_FOLDER = "Sprites/";
+		static constexpr const char* kShaderFolder = "Shaders/";
+		static constexpr const char* kCursorFolder = "Cursors/";
+		static constexpr const char* kIconFolder = "Icons/";
+		static constexpr const char* kIcoN3DFolder = "Icons3D/";
+		static constexpr const char* kSkinFolder = "Skin/";
+		static constexpr const char* kAnimatedSpritesFolder = "AnimatedSprites/";
+		static constexpr const char* kShaderIncludeFolder = "Shaders/Includes/";
+		static constexpr const char* kMeshFolder = "Meshes/";
+		static constexpr const char* kTextureFolder = "Textures/";
+		static constexpr const char* kSpriteFolder = "Sprites/";
 
-		static constexpr const char* MESH_SPHERE_FILE = u8"Sphere.asset";
-		static constexpr const char* MESH_BOX_FILE = u8"Box.asset";
-		static constexpr const char* MESH_CONE_FILE = u8"Cone.asset";
-		static constexpr const char* MESH_CYLINDER_FILE = u8"Cylinder.asset";
-		static constexpr const char* MESH_QUAD_FILE = u8"Quad.asset";
-		static constexpr const char* MESH_DISC_FILE = u8"Disc.asset";
+		static constexpr const char* kMeshSphereFile = u8"Sphere.asset";
+		static constexpr const char* kMeshBoxFile = u8"Box.asset";
+		static constexpr const char* kMeshConeFile = u8"Cone.asset";
+		static constexpr const char* kMeshCylinderFile = u8"Cylinder.asset";
+		static constexpr const char* kMeshQuadFile = u8"Quad.asset";
+		static constexpr const char* kMeshDiscFile = u8"Disc.asset";
 
-		static constexpr const char* TEXTURE_WHITE_FILE = u8"White.asset";
-		static constexpr const char* TEXTURE_BLACK_FILE = u8"Black.asset";
-		static constexpr const char* TEXTURE_NORMAL_FILE = u8"Normal.asset";
+		static constexpr const char* kTextureWhiteFile = u8"White.asset";
+		static constexpr const char* kTextureBlackFile = u8"Black.asset";
+		static constexpr const char* kTextureNormalFile = u8"Normal.asset";
 
-		static constexpr const char* DEFAULT_FONT_NAME = u8"arial.ttf";
-		static constexpr const u32 DEFAULT_FONT_SIZE = 8;
+		static constexpr const char* kDefaultFontName = u8"arial.ttf";
+		static constexpr const u32 kDefaultFontSize = 8;
 
-		static constexpr const char* GUI_SKIN_FILE = u8"GUISkin";
+		static constexpr const char* kGuiSkinFile = u8"GUISkin";
 
 	private:
 		/**	Loads a GUI skin texture with the specified filename. */
@@ -237,33 +237,33 @@ namespace bs
 
 		Path ResourceManifestPath;
 
-		static const String WhiteTex;
+		static const String kWhiteTex;
 
-		static const String CursorArrowTex;
-		static const String CursorArrowDragTex;
-		static const String CursorArrowLeftRightTex;
-		static const String CursorIBeamTex;
-		static const String CursorDenyTex;
-		static const String CursorWaitTex;
-		static const String CursorSizeNESWTex;
-		static const String CursorSizeNSTex;
-		static const String CursorSizeNWSETex;
-		static const String CursorSizeWETex;
+		static const String kCursorArrowTex;
+		static const String kCursorArrowDragTex;
+		static const String kCursorArrowLeftRightTex;
+		static const String kCursorIBeamTex;
+		static const String kCursorDenyTex;
+		static const String kCursorWaitTex;
+		static const String kCursorSizeNeswTex;
+		static const String kCursorSizeNsTex;
+		static const String kCursorSizeNwseTex;
+		static const String kCursorSizeWeTex;
 
-		static const Vector2I CursorArrowHotspot;
-		static const Vector2I CursorArrowDragHotspot;
-		static const Vector2I CursorArrowLeftRightHotspot;
-		static const Vector2I CursorIBeamHotspot;
-		static const Vector2I CursorDenyHotspot;
-		static const Vector2I CursorWaitHotspot;
-		static const Vector2I CursorSizeNESWHotspot;
-		static const Vector2I CursorSizeNSHotspot;
-		static const Vector2I CursorSizeNWSEHotspot;
-		static const Vector2I CursorSizeWEHotspot;
+		static const Vector2I kCursorArrowHotspot;
+		static const Vector2I kCursorArrowDragHotspot;
+		static const Vector2I kCursorArrowLeftRightHotspot;
+		static const Vector2I kCursorIBeamHotspot;
+		static const Vector2I kCursorDenyHotspot;
+		static const Vector2I kCursorWaitHotspot;
+		static const Vector2I kCursorSizeNeswHotspot;
+		static const Vector2I kCursorSizeNsHotspot;
+		static const Vector2I kCursorSizeNwseHotspot;
+		static const Vector2I kCursorSizeWeHotspot;
 
-		static const String ShaderSpriteTextFile;
-		static const String ShaderSpriteImageFile;
-		static const String ShaderSpriteLineFile;
+		static const String kShaderSpriteTextFile;
+		static const String kShaderSpriteImageFile;
+		static const String kShaderSpriteLineFile;
 	};
 
 	/**	Provides easy access to BuiltinResources. */

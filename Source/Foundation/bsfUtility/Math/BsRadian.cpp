@@ -11,10 +11,10 @@ Radian::Radian(const Degree& d)
 
 Radian Radian::Wrap()
 {
-	mRad = fmod(mRad, Math::TWO_PI);
+	mRad = fmod(mRad, Math::kTwoPi);
 
 	if(mRad < 0)
-		mRad += Math::TWO_PI;
+		mRad += Math::kTwoPi;
 
 	return *this;
 }
@@ -49,5 +49,5 @@ Radian& Radian::operator-=(const Degree& d)
 
 float Radian::ValueDegrees() const
 {
-	return mRad * Math::RAD2DEG;
+	return mRad * Math::kRaD2Deg;
 }

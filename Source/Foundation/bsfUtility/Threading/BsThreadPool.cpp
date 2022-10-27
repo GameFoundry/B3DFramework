@@ -17,7 +17,7 @@
 using namespace bs;
 
 /** The thread pool will check for unused threads every UNUSED_CHECK_PERIOD getThread() calls*/
-static constexpr int UNUSED_CHECK_PERIOD = 32;
+static constexpr int kUnusedCheckPeriod = 32;
 
 HThread::HThread(ThreadPool* pool, u32 threadId)
 	: mThreadId(threadId), mPool(pool)
@@ -283,7 +283,7 @@ PooledThread* ThreadPool::GetThread(const String& name)
 		age = ++mAge;
 	}
 
-	if(age == UNUSED_CHECK_PERIOD)
+	if(age == kUnusedCheckPeriod)
 		ClearUnused();
 
 	Lock lock(mMutex);

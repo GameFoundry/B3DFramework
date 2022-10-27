@@ -41,7 +41,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAnimationCurves : public ScriptObject<ScriptAnimationCurves>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationCurves")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationCurves")
 
 		ScriptAnimationCurves(MonoObject* managedInstance, const SPtr<AnimationCurves>& value);
 

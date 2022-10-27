@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRange : public ScriptObject<ScriptRange>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Range")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Range")
 
 		static MonoField* GetMinRangeField() { return minRangeField; }
 

@@ -316,7 +316,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExtensionConstructorForType(StringTable))
 		static HStringTable Create();
 
-		static const Language DEFAULT_LANGUAGE;
+		static const Language kDefaultLanguage;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

@@ -90,7 +90,7 @@ namespace bs
 		 * Orients the object so it is looking at the provided @p location (world space) where @p up is used for
 		 * determining the location of the object's Y axis.
 		 */
-		void LookAt(const Vector3& location, const Vector3& up = Vector3::UNIT_Y);
+		void LookAt(const Vector3& location, const Vector3& up = Vector3::kUnitY);
 
 		/**	Moves the object's position by the vector offset provided along world axes. */
 		void Move(const Vector3& vec);
@@ -103,21 +103,21 @@ namespace bs
 		 *
 		 * @return	Forward axis of the object.
 		 */
-		Vector3 GetForward() const { return GetRotation().Rotate(-Vector3::UNIT_Z); }
+		Vector3 GetForward() const { return GetRotation().Rotate(-Vector3::kUnitZ); }
 
 		/**
 		 * Gets the Y (up) axis of the object.
 		 *
 		 * @return	Up axis of the object.
 		 */
-		Vector3 GetUp() const { return GetRotation().Rotate(Vector3::UNIT_Y); }
+		Vector3 GetUp() const { return GetRotation().Rotate(Vector3::kUnitY); }
 
 		/**
 		 * Gets the X (right) axis of the object.
 		 *
 		 * @return	Right axis of the object.
 		 */
-		Vector3 GetRight() const { return GetRotation().Rotate(Vector3::UNIT_X); }
+		Vector3 GetRight() const { return GetRotation().Rotate(Vector3::kUnitX); }
 
 		/**
 		 * Rotates the game object so it's forward axis faces the provided direction.
@@ -167,9 +167,9 @@ namespace bs
 		static Transform IDENTITY;
 
 	private:
-		Vector3 mPosition = Vector3::ZERO;
-		Quaternion mRotation = Quaternion::IDENTITY;
-		Vector3 mScale = Vector3::ONE;
+		Vector3 mPosition = Vector3::kZero;
+		Quaternion mRotation = Quaternion::kIdentity;
+		Vector3 mScale = Vector3::kOne;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

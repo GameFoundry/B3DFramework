@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleGpuSimulationSettings : public TScriptReflectable<ScriptParticleGpuSimulationSettings, ParticleGpuSimulationSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleGpuSimulationSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleGpuSimulationSettings")
 
 		ScriptParticleGpuSimulationSettings(MonoObject* managedInstance, const SPtr<ParticleGpuSimulationSettings>& value);
 

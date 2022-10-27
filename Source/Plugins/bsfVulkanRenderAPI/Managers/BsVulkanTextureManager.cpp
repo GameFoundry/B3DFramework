@@ -59,7 +59,7 @@ void VulkanTextureManager::OnStartUp()
 		for(int depth = 0; depth < entry.Depth; depth++)
 			for(int height = 0; height < entry.Height; height++)
 				for(int width = 0; width < entry.Width; width++)
-					pixelData->SetColorAt(Color::White, width, height, depth);
+					pixelData->SetColorAt(Color::kWhite, width, height, depth);
 
 		TEXTURE_DESC desc;
 		desc.Type = entry.Type;

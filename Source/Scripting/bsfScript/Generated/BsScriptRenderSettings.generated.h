@@ -30,7 +30,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RenderSettings")
 
 		ScriptRenderSettings(MonoObject* managedInstance, const SPtr<RenderSettings>& value);
 

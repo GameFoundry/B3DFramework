@@ -200,10 +200,10 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		desc.Height = mHeight;
 		desc.Layers = 1;
 		desc.Color[0].Image = mSurfaces[i].Image;
-		desc.Color[0].Surface = TextureSurface::COMPLETE;
+		desc.Color[0].Surface = TextureSurface::kComplete;
 		desc.Color[0].BaseLayer = 0;
 		desc.Depth.Image = mDepthStencilImage;
-		desc.Depth.Surface = TextureSurface::COMPLETE;
+		desc.Depth.Surface = TextureSurface::kComplete;
 		desc.Depth.BaseLayer = 0;
 
 		mSurfaces[i].Framebuffer = owner->Create<VulkanFramebuffer>(renderPass, desc);

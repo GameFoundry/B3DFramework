@@ -27,7 +27,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptColorGradientHDR : public ScriptObject<ScriptColorGradientHDR>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorGradientHDR")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ColorGradientHDR")
 
 		ScriptColorGradientHDR(MonoObject* managedInstance, const SPtr<ColorGradientHDR>& value);
 

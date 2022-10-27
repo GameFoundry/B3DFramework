@@ -117,7 +117,7 @@ Vector3 CRigidbody::GetVelocity() const
 	if(mInternal != nullptr)
 		return mInternal->GetVelocity();
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 void CRigidbody::SetAngularVelocity(const Vector3& velocity)
@@ -131,7 +131,7 @@ Vector3 CRigidbody::GetAngularVelocity() const
 	if(mInternal != nullptr)
 		return mInternal->GetAngularVelocity();
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 void CRigidbody::SetDrag(float drag)
@@ -163,7 +163,7 @@ Vector3 CRigidbody::GetInertiaTensor() const
 	if(mInternal != nullptr)
 		return mInternal->GetInertiaTensor();
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 void CRigidbody::SetMaxAngularVelocity(float maxVelocity)
@@ -195,7 +195,7 @@ Vector3 CRigidbody::GetCenterOfMassPosition() const
 	if(mInternal != nullptr)
 		return mInternal->GetCenterOfMassPosition();
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 Quaternion CRigidbody::GetCenterOfMassRotation() const
@@ -203,7 +203,7 @@ Quaternion CRigidbody::GetCenterOfMassRotation() const
 	if(mInternal != nullptr)
 		return mInternal->GetCenterOfMassRotation();
 
-	return Quaternion::IDENTITY;
+	return Quaternion::kIdentity;
 }
 
 void CRigidbody::SetPositionSolverCount(u32 count)
@@ -267,7 +267,7 @@ Vector3 CRigidbody::GetVelocityAtPoint(const Vector3& point) const
 	if(mInternal != nullptr)
 		return mInternal->GetVelocityAtPoint(point);
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 void CRigidbody::UpdateMassDistributionInternal()

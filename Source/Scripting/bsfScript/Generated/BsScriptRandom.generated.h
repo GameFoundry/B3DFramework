@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Random")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Random")
 
 		ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value);
 

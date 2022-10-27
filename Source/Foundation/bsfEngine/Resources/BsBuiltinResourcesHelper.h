@@ -71,7 +71,7 @@ namespace bs
 		 * @return							An array of the same size as the @p entries array, containing value true if
 		 *									an asset should be imported, or false otherwise.
 		 */
-		static Vector<bool> GenerateImportFlags(const nlohmann::json& entries, const Path& inputFolder, time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies = nullptr, const Path& dependencyFolder = Path::BLANK);
+		static Vector<bool> GenerateImportFlags(const nlohmann::json& entries, const Path& inputFolder, time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies = nullptr, const Path& dependencyFolder = Path::kBlank);
 
 		/**
 		 * Scans the provided folder for any files that are currently not part of the provided JSON entries. If some are

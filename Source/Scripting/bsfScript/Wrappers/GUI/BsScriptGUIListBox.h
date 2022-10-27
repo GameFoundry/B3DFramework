@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIListBox : public TScriptGUIElement<ScriptGUIListBox>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIListBox")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIListBox")
 
 	private:
 		ScriptGUIListBox(MonoObject* instance, GUIListBox* listBox);

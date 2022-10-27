@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCPlaneCollider : public TScriptComponent<ScriptCPlaneCollider, CPlaneCollider, ScriptCColliderBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PlaneCollider")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PlaneCollider")
 
 		ScriptCPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value);
 

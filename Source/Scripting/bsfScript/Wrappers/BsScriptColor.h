@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptColor : public ScriptObject<ScriptColor>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Color")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Color")
 
 		/** Unboxes a boxed managed Color struct and returns the native version of the structure. */
 		static Color Unbox(MonoObject* obj);

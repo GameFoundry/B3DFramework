@@ -78,7 +78,7 @@ namespace bs
 		 * @param[in]	file		Optional name of the source code file in which the code that crashed the program exists.
 		 * @param[in]	line		Optional source code line at which the crash was triggered at.
 		 */
-		void ReportCrash(const String& type, const String& description, const String& function = StringUtil::BLANK, const String& file = StringUtil::BLANK, u32 line = 0) const;
+		void ReportCrash(const String& type, const String& description, const String& function = StringUtil::kBlank, const String& file = StringUtil::kBlank, u32 line = 0) const;
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		/**
@@ -124,11 +124,11 @@ namespace bs
 		CrashHandlerSettings mSettings;
 
 		/** The name of the crash reports directory. */
-		static const String sCrashReportFolder;
+		static const String kSCrashReportFolder;
 		/** The name of the HTML crash log file. */
-		static const String sCrashLogName;
+		static const String kSCrashLogName;
 		/** Error message to display on program failure. */
-		static const String sFatalErrorMsg;
+		static const String kSFatalErrorMsg;
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 		struct Data;

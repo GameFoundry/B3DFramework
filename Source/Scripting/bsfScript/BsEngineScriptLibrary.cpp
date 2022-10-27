@@ -32,7 +32,7 @@ void EngineScriptLibrary::Initialize()
 
 #if BS_IS_BANSHEE3D
 	MonoManager::StartUp();
-	MonoAssembly& engineAssembly = MonoManager::Instance().LoadAssembly(engineAssemblyPath.ToString(), ENGINE_ASSEMBLY);
+	MonoAssembly& engineAssembly = MonoManager::Instance().LoadAssembly(engineAssemblyPath.ToString(), kEngineAssembly);
 #endif
 
 	PlayInEditor::StartUp();
@@ -52,7 +52,7 @@ void EngineScriptLibrary::Initialize()
 	mEngineTypeMappings.Components = BuiltinComponent::GetEntries();
 	mEngineTypeMappings.ReflectableObjects = BuiltinReflectableTypes::GetEntries();
 
-	ScriptAssemblyManager::Instance().LoadAssemblyInfo(ENGINE_ASSEMBLY, mEngineTypeMappings);
+	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly, mEngineTypeMappings);
 
 #if BS_IS_BANSHEE3D
 	engineAssembly.Invoke(ASSEMBLY_ENTRY_POINT);
@@ -76,11 +76,11 @@ void EngineScriptLibrary::Reload()
 	if(mScriptAssembliesLoaded)
 	{
 		Vector<AssemblyRefreshInfo> assemblies;
-		assemblies.push_back(AssemblyRefreshInfo(ENGINE_ASSEMBLY, &engineAssemblyPath, &mEngineTypeMappings));
+		assemblies.push_back(AssemblyRefreshInfo(kEngineAssembly, &engineAssemblyPath, &mEngineTypeMappings));
 
 		Path gameAssemblyPath = GetGameAssemblyPath();
 		if(FileSystem::Exists(gameAssemblyPath))
-			assemblies.push_back(AssemblyRefreshInfo(SCRIPT_GAME_ASSEMBLY, &gameAssemblyPath, &BuiltinTypeMappings::EMPTY));
+			assemblies.push_back(AssemblyRefreshInfo(kScriptGameAssembly, &gameAssemblyPath, &BuiltinTypeMappings::kEmpty));
 
 		ScriptObjectManager::Instance().RefreshAssemblies(assemblies);
 	}
@@ -89,8 +89,8 @@ void EngineScriptLibrary::Reload()
 		Path gameAssemblyPath = GetGameAssemblyPath();
 		if(FileSystem::Exists(gameAssemblyPath))
 		{
-			MonoManager::Instance().LoadAssembly(gameAssemblyPath.ToString(), SCRIPT_GAME_ASSEMBLY);
-			ScriptAssemblyManager::Instance().LoadAssemblyInfo(SCRIPT_GAME_ASSEMBLY, BuiltinTypeMappings());
+			MonoManager::Instance().LoadAssembly(gameAssemblyPath.ToString(), kScriptGameAssembly);
+			ScriptAssemblyManager::Instance().LoadAssemblyInfo(kScriptGameAssembly, BuiltinTypeMappings());
 		}
 
 		mScriptAssembliesLoaded = true;
@@ -140,7 +140,7 @@ void EngineScriptLibrary::ShutdownModules()
 Path EngineScriptLibrary::GetEngineAssemblyPath() const
 {
 	Path assemblyPath = GetBuiltinAssemblyFolder();
-	assemblyPath.Append(String(ENGINE_ASSEMBLY) + ".dll");
+	assemblyPath.Append(String(kEngineAssembly) + ".dll");
 
 	return assemblyPath;
 }
@@ -149,7 +149,7 @@ Path EngineScriptLibrary::GetEngineAssemblyPath() const
 Path EngineScriptLibrary::GetGameAssemblyPath() const
 {
 	Path assemblyPath = GetScriptAssemblyFolder();
-	assemblyPath.Append(String(SCRIPT_GAME_ASSEMBLY) + ".dll");
+	assemblyPath.Append(String(kScriptGameAssembly) + ".dll");
 
 	return assemblyPath;
 }
@@ -180,12 +180,12 @@ Path EngineScriptLibrary::GetScriptAssemblyFolder() const
 
 const Path& EngineScriptLibrary::GetReleaseAssemblyPath()
 {
-	static Path path = Paths::FindPath(Paths::RELEASE_ASSEMBLY_PATH);
+	static Path path = Paths::FindPath(Paths::kReleaseAssemblyPath);
 	return path;
 }
 
 const Path& EngineScriptLibrary::GetDebugAssemblyPath()
 {
-	static Path path = Paths::FindPath(Paths::DEBUG_ASSEMBLY_PATH);
+	static Path path = Paths::FindPath(Paths::kDebugAssemblyPath);
 	return path;
 }

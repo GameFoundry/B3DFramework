@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIScrollBar : public TScriptGUIElement<ScriptGUIScrollBar>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIScrollBar")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollBar")
 
 	private:
 		ScriptGUIScrollBar(MonoObject* instance);
@@ -36,7 +36,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIScrollBarH : public TScriptGUIElement<ScriptGUIScrollBarH>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIScrollBarH")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollBarH")
 
 	private:
 		ScriptGUIScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar);
@@ -57,7 +57,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIScrollBarV : public TScriptGUIElement<ScriptGUIScrollBarV>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIScrollBarV")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollBarV")
 
 	private:
 		ScriptGUIScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar);
@@ -78,7 +78,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIResizeableScrollBarH : public TScriptGUIElement<ScriptGUIResizeableScrollBarH>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIResizeableScrollBarH")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIResizeableScrollBarH")
 
 	private:
 		ScriptGUIResizeableScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar);
@@ -99,7 +99,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIResizeableScrollBarV : public TScriptGUIElement<ScriptGUIResizeableScrollBarV>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIResizeableScrollBarV")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIResizeableScrollBarV")
 
 	private:
 		ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar);

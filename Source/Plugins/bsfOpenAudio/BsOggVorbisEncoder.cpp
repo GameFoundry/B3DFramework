@@ -8,10 +8,10 @@ using namespace bs;
 
 // Writes to the internal cached buffer and flushes it if needed
 #define WRITE_TO_BUFFER(data, length)                  \
-	if((mBufferOffset + length) > BUFFER_SIZE)         \
+	if((mBufferOffset + length) > kBufferSize)         \
 		Flush();                                       \
                                                        \
-	if(length > BUFFER_SIZE)                           \
+	if(length > kBufferSize)		                   \
 		mWriteCallback(data, length);                  \
 	else                                               \
 	{                                                  \
@@ -78,12 +78,12 @@ bool OggVorbisEncoder::Open(std::function<void(u8*, u32)> writeCallback, u32 sam
 
 void OggVorbisEncoder::Write(u8* samples, u32 numSamples)
 {
-	static const u32 WRITE_LENGTH = 1024;
+	static const u32 kWriteLength = 1024;
 
 	u32 numFrames = numSamples / mNumChannels;
 	while(numFrames > 0)
 	{
-		u32 numFramesToWrite = std::min(numFrames, WRITE_LENGTH);
+		u32 numFramesToWrite = std::min(numFrames, kWriteLength);
 		float** buffer = vorbis_analysis_buffer(&mVorbisState, numFramesToWrite);
 
 		if(mBitDepth == 8)

@@ -72,8 +72,8 @@ namespace bs
 		void UpdateTransform();
 
 		SPtr<AudioListener> mInternal;
-		Vector3 mLastPosition = Vector3::ZERO;
-		Vector3 mVelocity = Vector3::ZERO;
+		Vector3 mLastPosition = Vector3::kZero;
+		Vector3 mVelocity = Vector3::kZero;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

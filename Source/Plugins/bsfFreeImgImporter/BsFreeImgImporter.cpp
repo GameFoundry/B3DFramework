@@ -113,7 +113,7 @@ String FreeImgImporter::MagicNumToExtension(const u8* magic, u32 maxBytes) const
 	}
 	else
 	{
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 	}
 }
 
@@ -469,10 +469,10 @@ void readCubemapList(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 
  */
 void readCubemapCross(const SPtr<PixelData>& source, std::array<SPtr<PixelData>, 6>& output, u32 faceSize, bool vertical)
 {
-	const static u32 vertFaceIndices[] = { 5, 3, 1, 7, 4, 10 };
-	const static u32 horzFaceIndices[] = { 6, 4, 1, 9, 5, 7 };
+	const static u32 kVertFaceIndices[] = { 5, 3, 1, 7, 4, 10 };
+	const static u32 kHorzFaceIndices[] = { 6, 4, 1, 9, 5, 7 };
 
-	const u32* faceIndices = vertical ? vertFaceIndices : horzFaceIndices;
+	const u32* faceIndices = vertical ? kVertFaceIndices : kHorzFaceIndices;
 	u32 numFacesInRow = vertical ? 3 : 4;
 
 	for(u32 i = 0; i < 6; i++)
@@ -514,8 +514,8 @@ Vector2 mapCubemapDirToCylindrical(const Vector3& dir)
 {
 	Vector3 nrmDir = Vector3::Normalize(dir);
 
-	float u = (atan2(nrmDir.X, nrmDir.Z) + Math::PI) / Math::TWO_PI;
-	float v = acos(nrmDir.Y) / Math::PI;
+	float u = (atan2(nrmDir.X, nrmDir.Z) + Math::kPi) / Math::kTwoPi;
+	float v = acos(nrmDir.Y) / Math::kPi;
 
 	return Vector2(u, v);
 }
@@ -548,7 +548,7 @@ void readCubemapUVRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData
 
 	// Mapping from default (X, Y, 1.0f) plane to relevant cube face. Also flipping Y so it corresponds to how pixel
 	// coordinates are mapped.
-	static const RemapInfo remapLookup[] = {
+	static const RemapInfo kRemapLookup[] = {
 		{ { 2, 1, 0 }, { -1.0f, -1.0f, 1.0f } }, // X+
 		{ { 2, 1, 0 }, { 1.0f, -1.0f, -1.0f } }, // X-
 		{ { 0, 2, 1 }, { 1.0f, 1.0f, 1.0f } }, // Y+
@@ -562,7 +562,7 @@ void readCubemapUVRemap(const SPtr<PixelData>& source, std::array<SPtr<PixelData
 	{
 		output[faceIdx] = PixelData::Create(faceSize, faceSize, 1, source->GetFormat());
 
-		const RemapInfo& remapInfo = remapLookup[faceIdx];
+		const RemapInfo& remapInfo = kRemapLookup[faceIdx];
 		for(u32 y = 0; y < faceSize; y++)
 		{
 			for(u32 x = 0; x < faceSize; x++)

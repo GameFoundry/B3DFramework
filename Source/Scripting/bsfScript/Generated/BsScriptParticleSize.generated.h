@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleSize : public TScriptReflectable<ScriptParticleSize, ParticleSize, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleSize")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSize")
 
 		ScriptParticleSize(MonoObject* managedInstance, const SPtr<ParticleSize>& value);
 

@@ -129,7 +129,7 @@ UUID SceneObject::GetPrefabLink(bool onlyDirect) const
 			curObj = nullptr;
 	}
 
-	return UUID::EMPTY;
+	return UUID::kEmpty;
 }
 
 HSceneObject SceneObject::GetPrefabParent() const
@@ -167,7 +167,7 @@ void SceneObject::BreakPrefabLink()
 
 	if(rootObj != nullptr)
 	{
-		rootObj->mPrefabLinkUUID = UUID::EMPTY;
+		rootObj->mPrefabLinkUUID = UUID::kEmpty;
 		rootObj->mPrefabDiff = nullptr;
 		PrefabUtility::ClearPrefabIds(rootObj->GetHandle(), true, false);
 	}

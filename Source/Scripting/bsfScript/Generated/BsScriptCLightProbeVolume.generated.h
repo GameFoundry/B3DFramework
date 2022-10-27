@@ -24,7 +24,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCLightProbeVolume : public TScriptComponent<ScriptCLightProbeVolume, CLightProbeVolume>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LightProbeVolume")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "LightProbeVolume")
 
 		ScriptCLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value);
 

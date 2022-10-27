@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_RECT_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_RECT_SHAPE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleRectShapeOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleRectShapeOptions")
 
 		static MonoObject* Box(const __PARTICLE_RECT_SHAPE_DESCInterop& value);
 		static __PARTICLE_RECT_SHAPE_DESCInterop Unbox(MonoObject* value);

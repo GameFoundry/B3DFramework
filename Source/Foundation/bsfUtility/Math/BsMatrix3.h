@@ -264,9 +264,9 @@ namespace bs
 		 */
 		void EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3]) const;
 
-		static constexpr const float EPSILON = 1e-06f;
-		static const Matrix3 ZERO;
-		static const Matrix3 IDENTITY;
+		static constexpr const float kEpsilon = 1e-06f;
+		static const Matrix3 kZero;
+		static const Matrix3 kIdentity;
 
 	protected:
 		friend class Matrix4;
@@ -276,9 +276,9 @@ namespace bs
 		bool QLAlgorithm(float diag[3], float subDiag[3]);
 
 		// Support for singular value decomposition
-		static constexpr const float SVD_EPSILON = 1e-04f;
+		static constexpr const float kSvdEpsilon = 1e-04f;
 		;
-		static constexpr const unsigned int SVD_MAX_ITERS = 32;
+		static constexpr const unsigned int kSvdMaxIters = 32;
 		static void Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR);
 		static void GolubKahanStep(Matrix3& matA, Matrix3& matL, Matrix3& matR);
 

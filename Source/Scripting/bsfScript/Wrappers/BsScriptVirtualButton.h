@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVirtualButton : public ScriptObject<ScriptVirtualButton>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VirtualButton")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VirtualButton")
 
 		/**	Unboxes a boxed managed VirtualButton struct and returns the native version of the structure. */
 		static VirtualButton Unbox(MonoObject* obj);

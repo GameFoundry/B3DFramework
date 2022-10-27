@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVECTOR_FIELD_DESC : public ScriptObject<ScriptVECTOR_FIELD_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VectorFieldOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VectorFieldOptions")
 
 		static MonoObject* Box(const __VECTOR_FIELD_DESCInterop& value);
 		static __VECTOR_FIELD_DESCInterop Unbox(MonoObject* value);

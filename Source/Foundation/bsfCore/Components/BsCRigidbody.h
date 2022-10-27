@@ -298,9 +298,9 @@ namespace bs
 		u32 mVelocitySolverCount = 1;
 		RigidbodyFlag mFlags = (RigidbodyFlag)((u32)RigidbodyFlag::AutoTensors | (u32)RigidbodyFlag::AutoMass);
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
-		Vector3 mCMassPosition = Vector3::ZERO;
-		Quaternion mCMassRotation = Quaternion::IDENTITY;
-		Vector3 mInertiaTensor = Vector3::ZERO;
+		Vector3 mCMassPosition = Vector3::kZero;
+		Quaternion mCMassRotation = Quaternion::kIdentity;
+		Vector3 mInertiaTensor = Vector3::kZero;
 		float mMass = 0.0f;
 		float mMaxAngularVelocity = std::numeric_limits<float>::max();
 		float mLinearDrag = 0.0f;

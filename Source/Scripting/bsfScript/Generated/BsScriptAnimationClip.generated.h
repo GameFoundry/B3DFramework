@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAnimationClip : public TScriptResource<ScriptAnimationClip, AnimationClip>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationClip")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationClip")
 
 		ScriptAnimationClip(MonoObject* managedInstance, const ResourceHandle<AnimationClip>& value);
 

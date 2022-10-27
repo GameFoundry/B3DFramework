@@ -115,14 +115,14 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void ClearRenderTarget(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
+		static void ClearRenderTarget(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
 
 		/**
 		 * @see ct::RenderAPI::clearViewport()
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void ClearViewport(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
+		static void ClearViewport(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
 
 		/**
 		 * @see ct::RenderAPI::swapBuffers()
@@ -389,7 +389,7 @@ namespace bs
 			 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
 			 *								Buffer must support graphics operations.
 			 */
-			virtual void ClearRenderTarget(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void ClearRenderTarget(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/**
 			 * Clears the currently active viewport (meaning it clears just a sub-area of a render-target that is covered by the
@@ -406,7 +406,7 @@ namespace bs
 			 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
 			 *								Buffer must support graphics operations.
 			 */
-			virtual void ClearViewport(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void ClearViewport(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/** Appends all commands from the provided secondary command buffer into the primary command buffer. */
 			virtual void AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) = 0;

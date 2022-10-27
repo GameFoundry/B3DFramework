@@ -41,7 +41,7 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		static constexpr u32 VERSION = 0;
+		static constexpr u32 kVersion = 0;
 
 		static BitLength ToMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{

@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTColorDistributionColorGradient : public ScriptObject<ScriptTColorDistributionColorGradient>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorDistribution")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ColorDistribution")
 
 		ScriptTColorDistributionColorGradient(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradient>>& value);
 
@@ -49,7 +49,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTColorDistributionColorGradientHDR : public ScriptObject<ScriptTColorDistributionColorGradientHDR>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorHDRDistribution")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ColorHDRDistribution")
 
 		ScriptTColorDistributionColorGradientHDR(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradientHDR>>& value);
 

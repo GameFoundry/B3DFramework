@@ -36,7 +36,7 @@ namespace bs
 		 * @param[in]	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style = StringUtil::BLANK);
+		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style = StringUtil::kBlank);
 
 		/**
 		 * Creates a new drop down contents element.
@@ -48,7 +48,7 @@ namespace bs
 		 * @param[in]	style			Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style = StringUtil::BLANK);
+		static GUIDropDownContent* Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style = StringUtil::kBlank);
 
 		/**
 		 * Changes the range of the displayed elements.
@@ -65,10 +65,10 @@ namespace bs
 		 */
 		void SetKeyboardFocus(bool focus);
 
-		static constexpr const char* ENTRY_TOGGLE_STYLE_TYPE = "DropDownEntryToggleBtn";
-		static constexpr const char* ENTRY_STYLE_TYPE = "DropDownEntryBtn";
-		static constexpr const char* ENTRY_EXP_STYLE_TYPE = "DropDownEntryExpBtn";
-		static constexpr const char* SEPARATOR_STYLE_TYPE = "DropDownSeparator";
+		static constexpr const char* kEntryToggleStyleType = "DropDownEntryToggleBtn";
+		static constexpr const char* kEntryStyleType = "DropDownEntryBtn";
+		static constexpr const char* kEntryExpStyleType = "DropDownEntryExpBtn";
+		static constexpr const char* kSeparatorStyleType = "DropDownSeparator";
 
 	protected:
 		GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style, const GUIDimensions& dimensions);

@@ -128,13 +128,13 @@ namespace bs
 
 		/** @} */
 
-		static const u64 CollisionMapSize = 64;
+		static const u64 kCollisionMapSize = 64;
 
 	protected:
 		friend class Rigidbody;
 
 		mutable Mutex mMutex;
-		bool mCollisionMap[CollisionMapSize][CollisionMapSize];
+		bool mCollisionMap[kCollisionMapSize][kCollisionMapSize];
 
 		bool mUpdateInProgress = false;
 	};

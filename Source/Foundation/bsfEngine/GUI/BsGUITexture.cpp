@@ -163,7 +163,7 @@ void GUITexture::UpdateRenderElementsInternal()
 	if(mScaleMode != TextureScaleMode::ScaleToFit)
 		mDesc.UvScale = ImageSprite::GetTextureUvScale(textureSize, destSize, mScaleMode);
 	else
-		mDesc.UvScale = Vector2::ONE;
+		mDesc.UvScale = Vector2::kOne;
 
 	mImageSprite->Update(mDesc, (u64)GetParentWidgetInternal());
 

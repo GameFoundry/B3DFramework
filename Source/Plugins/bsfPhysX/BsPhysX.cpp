@@ -408,7 +408,7 @@ void parseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 {
 	output.Point = fromPxVector(input.position);
 	output.Normal = fromPxVector(input.normal);
-	output.Uv = Vector2::ZERO;
+	output.Uv = Vector2::kZero;
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
 	setUnmappedTriangleIndex(input, output, shapeHint);
@@ -424,13 +424,13 @@ void parseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 
 struct PhysXRaycastQueryCallback : PxRaycastCallback
 {
-	static const int MAX_HITS = 32;
-	PxRaycastHit Buffer[MAX_HITS];
+	static const int kMaxHits = 32;
+	PxRaycastHit Buffer[kMaxHits];
 
 	Vector<PhysicsQueryHit> Data;
 
 	PhysXRaycastQueryCallback()
-		: PxRaycastCallback(Buffer, MAX_HITS)
+		: PxRaycastCallback(Buffer, kMaxHits)
 	{}
 
 	PxAgain processTouches(const PxRaycastHit* buffer, PxU32 nbHits) override
@@ -447,13 +447,13 @@ struct PhysXRaycastQueryCallback : PxRaycastCallback
 
 struct PhysXSweepQueryCallback : PxSweepCallback
 {
-	static const int MAX_HITS = 32;
-	PxSweepHit Buffer[MAX_HITS];
+	static const int kMaxHits = 32;
+	PxSweepHit Buffer[kMaxHits];
 
 	Vector<PhysicsQueryHit> Data;
 
 	PhysXSweepQueryCallback()
-		: PxSweepCallback(Buffer, MAX_HITS)
+		: PxSweepCallback(Buffer, kMaxHits)
 	{}
 
 	PxAgain processTouches(const PxSweepHit* buffer, PxU32 nbHits) override
@@ -470,13 +470,13 @@ struct PhysXSweepQueryCallback : PxSweepCallback
 
 struct PhysXOverlapQueryCallback : PxOverlapCallback
 {
-	static const int MAX_HITS = 32;
-	PxOverlapHit Buffer[MAX_HITS];
+	static const int kMaxHits = 32;
+	PxOverlapHit Buffer[kMaxHits];
 
 	Vector<Collider*> Data;
 
 	PhysXOverlapQueryCallback()
-		: PxOverlapCallback(Buffer, MAX_HITS)
+		: PxOverlapCallback(Buffer, kMaxHits)
 	{}
 
 	PxAgain processTouches(const PxOverlapHit* buffer, PxU32 nbHits) override
@@ -494,8 +494,8 @@ static PhysXCPUDispatcher gPhysXCPUDispatcher;
 static PhysXEventCallback gPhysXEventCallback;
 static PhysXBroadPhaseCallback gPhysXBroadphaseCallback;
 
-static const u32 SIZE_16K = 1 << 14;
-const u32 PhysX::SCRATCH_BUFFER_SIZE = SIZE_16K * 64; // 1MB by default
+static const u32 kSize16K = 1 << 14;
+const u32 PhysX::kScratchBufferSize = kSize16K * 64; // 1MB by default
 
 PhysX::PhysX(const PHYSICS_INIT_DESC& input)
 	: Physics(input), mInitDesc(input)
@@ -541,11 +541,11 @@ void PhysX::FixedUpdate(float step)
 	// Note: Consider delaying fetchResults one frame. This could improve performance because Physics update would be
 	//       able to run parallel to the simulation thread, but at a cost to input latency.
 	bs_frame_mark();
-	u8* scratchBuffer = bs_frame_alloc_aligned(SCRATCH_BUFFER_SIZE, 16);
+	u8* scratchBuffer = bs_frame_alloc_aligned(kScratchBufferSize, 16);
 
 	for(auto& scene : mScenes)
 	{
-		scene->mScene->simulate(step, nullptr, scratchBuffer, SCRATCH_BUFFER_SIZE);
+		scene->mScene->simulate(step, nullptr, scratchBuffer, kScratchBufferSize);
 
 		u32 errorState;
 		if(!scene->mScene->fetchResults(true, &errorState))
@@ -904,7 +904,7 @@ bool PhysXScene::BoxCast(const AABox& box, const Quaternion& rotation, const Vec
 bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
 	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
 }
@@ -912,7 +912,7 @@ bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, Physic
 bool PhysXScene::CapsuleCast(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
 }
@@ -955,7 +955,7 @@ Vector<PhysicsQueryHit> PhysXScene::BoxCastAll(const AABox& box, const Quaternio
 Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
 }
@@ -963,7 +963,7 @@ Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Ve
 Vector<PhysicsQueryHit> PhysXScene::CapsuleCastAll(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
 }
@@ -1005,7 +1005,7 @@ bool PhysXScene::BoxCastAny(const AABox& box, const Quaternion& rotation, const 
 bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
 }
@@ -1013,7 +1013,7 @@ bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir, u64
 bool PhysXScene::CapsuleCastAny(const Capsule& capsule, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
 }
@@ -1044,7 +1044,7 @@ Vector<Collider*> PhysXScene::BoxOverlapInternal(const AABox& box, const Quatern
 Vector<Collider*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, u64 layer) const
 {
 	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
 
 	return Overlap(geometry, transform, layer);
 }
@@ -1052,7 +1052,7 @@ Vector<Collider*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, u64 la
 Vector<Collider*> PhysXScene::CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
 
 	return Overlap(geometry, transform, layer);
 }
@@ -1083,7 +1083,7 @@ bool PhysXScene::BoxOverlapAny(const AABox& box, const Quaternion& rotation, u64
 bool PhysXScene::SphereOverlapAny(const Sphere& sphere, u64 layer) const
 {
 	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
 
 	return OverlapAny(geometry, transform, layer);
 }
@@ -1091,7 +1091,7 @@ bool PhysXScene::SphereOverlapAny(const Sphere& sphere, u64 layer) const
 bool PhysXScene::CapsuleOverlapAny(const Capsule& capsule, const Quaternion& rotation, u64 layer) const
 {
 	PxCapsuleGeometry geometry(capsule.GetRadius(), capsule.GetHeight() * 0.5f);
-	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::IDENTITY);
+	PxTransform transform = toPxTransform(capsule.GetCenter(), Quaternion::kIdentity);
 
 	return OverlapAny(geometry, transform, layer);
 }

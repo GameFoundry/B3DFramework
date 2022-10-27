@@ -228,7 +228,7 @@ namespace bs
 		 * Orients the object so it is looking at the provided @p location (world space) where @p up is used for
 		 * determining the location of the object's Y axis.
 		 */
-		void LookAt(const Vector3& location, const Vector3& up = Vector3::UNIT_Y);
+		void LookAt(const Vector3& location, const Vector3& up = Vector3::kUnitY);
 
 		/**
 		 * Gets the objects world transform matrix.
@@ -308,8 +308,8 @@ namespace bs
 		Transform mLocalTfrm;
 		mutable Transform mWorldTfrm;
 
-		mutable Matrix4 mCachedLocalTfrm = Matrix4::IDENTITY;
-		mutable Matrix4 mCachedWorldTfrm = Matrix4::IDENTITY;
+		mutable Matrix4 mCachedLocalTfrm = Matrix4::kIdentity;
+		mutable Matrix4 mCachedWorldTfrm = Matrix4::kIdentity;
 
 		mutable u32 mDirtyFlags = 0xFFFFFFFF;
 		mutable u32 mDirtyHash = 0;

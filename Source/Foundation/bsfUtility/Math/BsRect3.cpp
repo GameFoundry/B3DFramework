@@ -14,7 +14,7 @@ std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) 
 
 	bool foundNearest = false;
 	float t = 0.0f;
-	std::array<Vector3, 2> nearestPoints{ { Vector3::ZERO, Vector3::ZERO } };
+	std::array<Vector3, 2> nearestPoints{ { Vector3::kZero, Vector3::kZero } };
 	float distance = 0.0f;
 
 	// Check if Ray intersects the rectangle

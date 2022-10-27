@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterBoxShape : public TScriptReflectable<ScriptParticleEmitterBoxShape, ParticleEmitterBoxShape, ScriptParticleEmitterShapeBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitterBoxShape")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEmitterBoxShape")
 
 		ScriptParticleEmitterBoxShape(MonoObject* managedInstance, const SPtr<ParticleEmitterBoxShape>& value);
 

@@ -261,7 +261,7 @@ namespace bs
 					if(entry.Type != MaterialParams::ParamType::Data)
 						continue;
 
-					const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.Lookup[(int)entry.DataType];
+					const GpuParamDataTypeInfo& typeInfo = GpuParams::kParamSizes.Lookup[(int)entry.DataType];
 					const u32 paramSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 					for(u32 i = 0; i < entry.ArraySize; i++)
 					{
@@ -355,12 +355,12 @@ namespace bs
 
 		static BitLength ToMemory(const MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 1;
+			static constexpr uint32_t kVersion = 1;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Offset, stream);
 
 				uint32_t curveType = 0; // No curve
@@ -474,7 +474,7 @@ namespace bs
 
 		static BitLength ToMemory(const MaterialParamsRTTI::MaterialParam& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr u32 VERSION = 1;
+			static constexpr u32 kVersion = 1;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
@@ -483,7 +483,7 @@ namespace bs
 				size += rtti_write(data.Data, stream);
 
 				// Version 1 data
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Index, stream);
 
 				return size; });

@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleGravity : public TScriptReflectable<ScriptParticleGravity, ParticleGravity, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleGravity")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleGravity")
 
 		ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value);
 

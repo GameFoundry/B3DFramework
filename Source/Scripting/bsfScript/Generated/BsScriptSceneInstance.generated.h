@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSceneInstance : public ScriptObject<ScriptSceneInstance>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SceneInstance")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SceneInstance")
 
 		ScriptSceneInstance(MonoObject* managedInstance, const SPtr<SceneInstance>& value);
 

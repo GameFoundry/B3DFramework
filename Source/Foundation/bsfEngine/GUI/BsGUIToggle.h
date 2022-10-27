@@ -30,7 +30,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const HString& text, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const HString& text, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -41,7 +41,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -51,7 +51,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -63,7 +63,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -72,7 +72,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const GUIContent& content, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const GUIContent& content, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -83,7 +83,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -93,7 +93,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new toggle button with the specified label.
@@ -105,7 +105,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a toggle group that you may provide to GUIToggle upon construction. Toggles sharing the same group will

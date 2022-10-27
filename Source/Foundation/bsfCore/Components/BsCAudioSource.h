@@ -169,8 +169,8 @@ namespace bs
 		void UpdateTransform();
 
 		SPtr<AudioSource> mInternal;
-		Vector3 mLastPosition = Vector3::ZERO;
-		Vector3 mVelocity = Vector3::ZERO;
+		Vector3 mLastPosition = Vector3::kZero;
+		Vector3 mVelocity = Vector3::kZero;
 
 		HAudioClip mAudioClip;
 		float mVolume = 1.0f;

@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAnimationUtility : public ScriptObject<ScriptAnimationUtility>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationUtility")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationUtility")
 
 		ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value);
 

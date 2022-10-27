@@ -343,8 +343,8 @@ namespace bs
 		/************************************************************************/
 		/* 								STATICS		                      		*/
 		/************************************************************************/
-		static const int HISTORY_BUFFER_SIZE; // Size of buffer used for input smoothing
-		static const float WEIGHT_MODIFIER;
+		static const int kHistoryBufferSize; // Size of buffer used for input smoothing
+		static const float kWeightModifier;
 	};
 
 	/** Provides global access to Input. */

@@ -7,30 +7,30 @@
 
 using namespace bs;
 
-const String CrashHandler::sCrashReportFolder = "CrashReports";
-const String CrashHandler::sCrashLogName = u8"log.html";
-const String CrashHandler::sFatalErrorMsg =
+const String CrashHandler::kSCrashReportFolder = "CrashReports";
+const String CrashHandler::kSCrashLogName = u8"log.html";
+const String CrashHandler::kSFatalErrorMsg =
 	"A fatal error occurred and the program has to terminate!";
 
 const Path& CrashHandler::GetCrashFolder()
 {
-	static const Path path = FileSystem::GetWorkingDirectoryPath() + sCrashReportFolder +
+	static const Path kPath = FileSystem::GetWorkingDirectoryPath() + kSCrashReportFolder +
 		GetCrashTimestamp();
 
 	static bool first = true;
 	if(first)
 	{
-		FileSystem::CreateDir(path);
+		FileSystem::CreateDir(kPath);
 		first = false;
 	}
 
-	return path;
+	return kPath;
 }
 
 void CrashHandler::LogErrorAndStackTrace(const String& errorMsg, const String& stackTrace) const
 {
 	StringStream errorMessage;
-	errorMessage << sFatalErrorMsg << std::endl;
+	errorMessage << kSFatalErrorMsg << std::endl;
 	errorMessage << errorMsg;
 	errorMessage << "\n\nStack trace: \n";
 	errorMessage << stackTrace;
@@ -50,7 +50,7 @@ void CrashHandler::LogErrorAndStackTrace(const String& type, const String& descr
 
 void CrashHandler::SaveCrashLog() const
 {
-	gDebug().SaveLog(GetCrashFolder() + sCrashLogName, SavedLogType::HTML);
+	gDebug().SaveLog(GetCrashFolder() + kSCrashLogName, SavedLogType::HTML);
 }
 
 namespace bs

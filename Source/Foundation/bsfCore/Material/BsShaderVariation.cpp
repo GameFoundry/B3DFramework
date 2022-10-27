@@ -25,7 +25,7 @@ void ShaderDefines::Set(const String& name, const String& value)
 	mDefines[name] = value;
 }
 
-const ShaderVariation ShaderVariation::EMPTY;
+const ShaderVariation ShaderVariation::kEmpty;
 
 ShaderVariation::ShaderVariation(const SmallVector<Param, 4>& params)
 {

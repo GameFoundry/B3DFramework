@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRenderTexture : public TScriptReflectable<ScriptRenderTexture, RenderTexture, ScriptRenderTargetBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTexture")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RenderTexture")
 
 		ScriptRenderTexture(MonoObject* managedInstance, const SPtr<RenderTexture>& value);
 

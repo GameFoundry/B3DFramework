@@ -14,19 +14,19 @@
 
 using namespace bs;
 
-const String StringUtil::BLANK;
-const WString StringUtil::WBLANK;
+const String StringUtil::kBlank;
+const WString StringUtil::kWblank;
 
 void StringUtil::Trim(String& str, bool left, bool right)
 {
-	static const String delims = " \t\r";
-	Trim(str, delims, left, right);
+	static const String kDelims = " \t\r";
+	Trim(str, kDelims, left, right);
 }
 
 void StringUtil::Trim(WString& str, bool left, bool right)
 {
-	static const WString delims = L" \t\r";
-	Trim(str, delims, left, right);
+	static const WString kDelims = L" \t\r";
+	Trim(str, kDelims, left, right);
 }
 
 void StringUtil::Trim(String& str, const String& delims, bool left, bool right)

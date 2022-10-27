@@ -96,10 +96,10 @@ void TextureManager::OnStartUp()
 	SPtr<Texture> whiteTexture = CreateTexture(desc);
 
 	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
-	whitePixelData->SetColorAt(Color::White, 0, 0);
-	whitePixelData->SetColorAt(Color::White, 0, 1);
-	whitePixelData->SetColorAt(Color::White, 1, 0);
-	whitePixelData->SetColorAt(Color::White, 1, 1);
+	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
+	whitePixelData->SetColorAt(Color::kWhite, 0, 1);
+	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
+	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
 	whiteTexture->WriteData(*whitePixelData);
 	Texture::WHITE = whiteTexture;
@@ -108,10 +108,10 @@ void TextureManager::OnStartUp()
 	SPtr<Texture> blackTexture = CreateTexture(desc);
 
 	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
-	blackPixelData->SetColorAt(Color::ZERO, 0, 0);
-	blackPixelData->SetColorAt(Color::ZERO, 0, 1);
-	blackPixelData->SetColorAt(Color::ZERO, 1, 0);
-	blackPixelData->SetColorAt(Color::ZERO, 1, 1);
+	blackPixelData->SetColorAt(Color::kZero, 0, 0);
+	blackPixelData->SetColorAt(Color::kZero, 0, 1);
+	blackPixelData->SetColorAt(Color::kZero, 1, 0);
+	blackPixelData->SetColorAt(Color::kZero, 1, 1);
 
 	blackTexture->WriteData(*blackPixelData);
 	Texture::BLACK = blackTexture;

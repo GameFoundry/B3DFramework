@@ -34,7 +34,7 @@ namespace bs
 
 		static BitLength ToMemory(const SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr u32 VERSION = 1;
+			static constexpr u32 kVersion = 1;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
@@ -47,7 +47,7 @@ namespace bs
 				size += rtti_write(data.GpuVariableName, stream);
 				size += rtti_write(data.ElementSize, stream);
 				size += rtti_write(data.DefaultValueIdx, stream);
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.AttribIdx, stream);
 
 				return size; });
@@ -112,7 +112,7 @@ namespace bs
 
 		static BitLength ToMemory(const SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 1;
+			static constexpr uint32_t kVersion = 1;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
@@ -122,7 +122,7 @@ namespace bs
 				size += rtti_write(data.Name, stream);
 				size += rtti_write(data.GpuVariableNames, stream);
 				size += rtti_write(data.DefaultValueIdx, stream);
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.AttribIdx, stream);
 
 				return size; });
@@ -234,12 +234,12 @@ namespace bs
 
 		static BitLength ToMemory(const SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr u32 VERSION = 0;
+			static constexpr u32 kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Type, stream);
 				size += rtti_write(data.Value, stream);
 				size += rtti_write(data.NextParamIdx, stream);
@@ -296,12 +296,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint8_t VERSION = 0;
+			static constexpr uint8_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Name, stream);
 				size += rtti_write(data.Value, stream);
 
@@ -352,12 +352,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint8_t VERSION = 0;
+			static constexpr uint8_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Name, stream);
 				size += rtti_write(data.Identifier, stream);
 				size += rtti_write(data.IsInternal, stream);

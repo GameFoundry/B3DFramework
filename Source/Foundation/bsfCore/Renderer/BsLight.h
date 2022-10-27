@@ -231,7 +231,7 @@ namespace bs
 		 * @param[in]	spotAngle			Total angle covered by a spot light.
 		 * @param[in]	spotFalloffAngle	Spot light angle at which falloff starts. Must be smaller than total angle.
 		 */
-		static SPtr<Light> Create(LightType type = LightType::Radial, Color color = Color::White, float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
+		static SPtr<Light> Create(LightType type = LightType::Radial, Color color = Color::kWhite, float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
 
 	protected:
 		Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
@@ -274,8 +274,8 @@ namespace bs
 			/**	Retrieves an ID that can be used for uniquely identifying this object by the renderer. */
 			u32 GetRendererId() const { return mRendererId; }
 
-			static const u32 LIGHT_CONE_NUM_SIDES;
-			static const u32 LIGHT_CONE_NUM_SLICES;
+			static const u32 kLightConeNumSides;
+			static const u32 kLightConeNumSlices;
 
 		protected:
 			friend class bs::Light;

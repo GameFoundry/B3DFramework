@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAnimationClipState : public ScriptObject<ScriptAnimationClipState>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AnimationClipState")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationClipState")
 
 		static MonoObject* Box(const AnimationClipState& value);
 		static AnimationClipState Unbox(MonoObject* value);

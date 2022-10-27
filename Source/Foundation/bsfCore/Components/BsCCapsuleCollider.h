@@ -77,7 +77,7 @@ namespace bs
 		SPtr<Collider> CreateInternal();
 
 	protected:
-		Vector3 mNormal = Vector3::UNIT_Y;
+		Vector3 mNormal = Vector3::kUnitY;
 		float mRadius = 1.0f;
 		float mHalfHeight = 0.5f;
 

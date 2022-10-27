@@ -18,7 +18,7 @@
 
 using namespace bs;
 
-static constexpr u32 INITIAL_PARTICLE_CAPACITY = 1000;
+static constexpr u32 kInitialParticleCapacity = 1000;
 
 RTTITypeBase* ParticleSystemSettings::GetRttiStatic()
 {
@@ -217,7 +217,7 @@ void ParticleSystem::Play()
 
 	if(mState == State::Uninitialized)
 	{
-		u32 particleCapacity = std::min(mSettings.MaxParticles, INITIAL_PARTICLE_CAPACITY);
+		u32 particleCapacity = std::min(mSettings.MaxParticles, kInitialParticleCapacity);
 		mParticleSet = bs_new<ParticleSet>(particleCapacity);
 	}
 
@@ -389,10 +389,10 @@ AABox ParticleSystem::CalculateBoundsInternal() const
 
 	const u32 particleCount = mParticleSet->GetParticleCount();
 	if(particleCount == 0)
-		return AABox::BOX_EMPTY;
+		return AABox::kBoxEmpty;
 
 	const ParticleSetData& particles = mParticleSet->GetParticles();
-	AABox bounds(Vector3::INF, -Vector3::INF);
+	AABox bounds(Vector3::kInf, -Vector3::kInf);
 	for(u32 i = 0; i < particleCount; i++)
 		bounds.Merge(particles.Position[i]);
 

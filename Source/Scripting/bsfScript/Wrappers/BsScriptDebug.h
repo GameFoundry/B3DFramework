@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptDebug : public ScriptObject<ScriptDebug>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Debug")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Debug")
 
 		/**	Registers internal callbacks. Must be called on scripting system load. */
 		static void StartUp();

@@ -47,7 +47,7 @@ namespace bs
 		static GUIDropDownDataEntry Separator();
 
 		/** Creates a new button entry with the specified callback that is triggered when button is selected. */
-		static GUIDropDownDataEntry Button(const String& label, std::function<void()> callback, const String& shortcutTag = StringUtil::BLANK);
+		static GUIDropDownDataEntry Button(const String& label, std::function<void()> callback, const String& shortcutTag = StringUtil::kBlank);
 
 		/** Creates a new sub-menu entry that will open the provided drop down data sub-menu when activated. */
 		static GUIDropDownDataEntry SubMenu(const String& label, const GUIDropDownData& data);
@@ -226,7 +226,7 @@ namespace bs
 		void OnDestroyed();
 
 	private:
-		static const u32 DROP_DOWN_BOX_WIDTH;
+		static const u32 kDropDownBoxWidth;
 
 		String mScrollUpStyle;
 		String mScrollDownStyle;

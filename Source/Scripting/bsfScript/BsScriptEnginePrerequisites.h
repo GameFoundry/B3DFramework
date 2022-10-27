@@ -60,10 +60,10 @@ namespace bs
 #if !BS_IS_BANSHEE3D
 	constexpr const char* ENGINE_ASSEMBLY = "bsfSharpCore";
 #else
-	constexpr const char* ENGINE_ASSEMBLY = "MBansheeEngine";
-	constexpr const char* SCRIPT_GAME_ASSEMBLY = "MScriptGame";
+	constexpr const char* kEngineAssembly = "MBansheeEngine";
+	constexpr const char* kScriptGameAssembly = "MScriptGame";
 #endif
-	constexpr const char* ENGINE_NS = "bs";
+	constexpr const char* kEngineNs = "bs";
 
 	class ScriptObjectBase;
 	class ScriptResourceManager;

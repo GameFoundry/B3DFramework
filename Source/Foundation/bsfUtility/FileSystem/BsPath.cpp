@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-const Path Path::BLANK = Path();
+const Path Path::kBlank = Path();
 
 Path::Path(const String& pathStr, PathType type)
 {
@@ -393,7 +393,7 @@ const String& Path::GetTail() const
 	else if(mDirectories.size() > 0)
 		return mDirectories.back();
 	else
-		return StringUtil::BLANK;
+		return StringUtil::kBlank;
 }
 
 void Path::Clear()

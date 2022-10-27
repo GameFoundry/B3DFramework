@@ -17,7 +17,7 @@
 
 using namespace bs;
 
-const float CameraBase::INFINITE_FAR_PLANE_ADJUST = 0.00001f;
+const float CameraBase::kInfiniteFarPlaneAdjust = 0.00001f;
 
 CameraBase::CameraBase()
 	: mRecalcFrustum(true), mRecalcFrustumPlanes(true), mRecalcView(true)
@@ -115,7 +115,7 @@ ConvexVolume CameraBase::GetWorldFrustum() const
 	const Transform& tfrm = GetTransform();
 
 	Matrix4 worldMatrix;
-	worldMatrix.SetTrs(tfrm.GetPosition(), tfrm.GetRotation(), Vector3::ONE);
+	worldMatrix.SetTrs(tfrm.GetPosition(), tfrm.GetRotation(), Vector3::kOne);
 
 	Vector<Plane> worldPlanes(frustumPlanes.size());
 	u32 i = 0;
@@ -216,8 +216,8 @@ void CameraBase::UpdateFrustum() const
 				if(mFarDist == 0)
 				{
 					// Infinite far plane
-					q = CameraBase::INFINITE_FAR_PLANE_ADJUST - 1;
-					qn = mNearDist * (CameraBase::INFINITE_FAR_PLANE_ADJUST - 2);
+					q = CameraBase::kInfiniteFarPlaneAdjust - 1;
+					qn = mNearDist * (CameraBase::kInfiniteFarPlaneAdjust - 2);
 				}
 				else
 				{
@@ -225,7 +225,7 @@ void CameraBase::UpdateFrustum() const
 					qn = -2 * (mFarDist * mNearDist) * inv_d;
 				}
 
-				mProjMatrix = Matrix4::ZERO;
+				mProjMatrix = Matrix4::kZero;
 				mProjMatrix[0][0] = A;
 				mProjMatrix[0][2] = C;
 				mProjMatrix[1][1] = B;
@@ -245,8 +245,8 @@ void CameraBase::UpdateFrustum() const
 				if(mFarDist == 0)
 				{
 					// Can not do infinite far plane here, avoid divided zero only
-					q = -CameraBase::INFINITE_FAR_PLANE_ADJUST / mNearDist;
-					qn = -CameraBase::INFINITE_FAR_PLANE_ADJUST - 1;
+					q = -CameraBase::kInfiniteFarPlaneAdjust / mNearDist;
+					qn = -CameraBase::kInfiniteFarPlaneAdjust - 1;
 				}
 				else
 				{
@@ -254,7 +254,7 @@ void CameraBase::UpdateFrustum() const
 					qn = -(mFarDist + mNearDist) * inv_d;
 				}
 
-				mProjMatrix = Matrix4::ZERO;
+				mProjMatrix = Matrix4::kZero;
 				mProjMatrix[0][0] = A;
 				mProjMatrix[0][3] = C;
 				mProjMatrix[1][1] = B;
@@ -626,7 +626,7 @@ Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 		farAwayPoint3D.Z = farAwayPoint.Z * invW;
 
 		// Find the distance to the far point along the camera's viewing axis
-		float distAlongZ = farAwayPoint3D.Dot(-Vector3::UNIT_Z);
+		float distAlongZ = farAwayPoint3D.Dot(-Vector3::kUnitZ);
 
 		// Do nothing if point is behind the camera
 		if(distAlongZ >= 0.0f)
@@ -650,7 +650,7 @@ Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 				float depthDiff = distAlongZ - point.Z;
 
 				// Depth difference along viewing direction
-				Vector3 depthDiffVec = depthDiff * -Vector3::UNIT_Z;
+				Vector3 depthDiffVec = depthDiff * -Vector3::kUnitZ;
 
 				// Return point that is depthDiff closer than our arbitrary point
 				return farAwayPoint3D - depthDiffVec;

@@ -214,10 +214,10 @@ namespace bs
 			GpuParticleSystem* GpuParticleSystem = nullptr;
 
 			/** Matrix that transforms the particle system to world space. */
-			Matrix4 LocalToWorld = Matrix4::IDENTITY;
+			Matrix4 LocalToWorld = Matrix4::kIdentity;
 
 			/** Previous frame's local -> world transform matrix. */
-			Matrix4 PrevLocalToWorld = Matrix4::IDENTITY;
+			Matrix4 PrevLocalToWorld = Matrix4::kIdentity;
 
 			/** Determines if the previous frame properties require updating. */
 			PrevFrameDirtyState PrevFrameDirtyState = PrevFrameDirtyState::Clean;

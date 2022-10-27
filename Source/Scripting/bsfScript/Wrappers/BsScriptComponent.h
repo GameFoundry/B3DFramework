@@ -100,7 +100,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptComponent : public ScriptObject<ScriptComponent, ScriptComponentBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Component")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Component")
 
 	private:
 		friend class ScriptGameObjectManager;

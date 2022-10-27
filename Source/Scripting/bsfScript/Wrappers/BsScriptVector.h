@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVector2 : public ScriptObject<ScriptVector2>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector2")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector2")
 
 		/** Unboxes a boxed managed Vector2 struct and returns the native version of the structure. */
 		static Vector2 Unbox(MonoObject* obj);
@@ -34,7 +34,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVector3 : public ScriptObject<ScriptVector3>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector3")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3")
 
 		/**	Unboxes a boxed managed Vector3 struct and returns the native version of the structure. */
 		static Vector3 Unbox(MonoObject* obj);
@@ -50,7 +50,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVector4 : public ScriptObject<ScriptVector4>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector4")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector4")
 
 		/**	Unboxes a boxed managed Vector4 struct and returns the native version of the structure. */
 		static Vector4 Unbox(MonoObject* obj);

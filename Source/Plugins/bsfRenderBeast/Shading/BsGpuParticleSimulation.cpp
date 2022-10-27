@@ -161,7 +161,7 @@ GpuParticleBoundsParamsDef gGpuParticleBoundsParamsDef;
 /** Material used for calculating particle system bounds. */
 class GpuParticleBoundsMat : public RendererMaterial<GpuParticleBoundsMat>
 {
-	static constexpr u32 NUM_THREADS = 64;
+	static constexpr u32 kNumThreads = 64;
 
 	RMAT_DEF_CUSTOMIZED("GpuParticleBounds.bsl");
 
@@ -201,7 +201,7 @@ GpuParticleSortPrepareParamDef gGpuParticleSortPrepareParamDef;
 /** Material used for preparing key/values buffers used for particle sorting. */
 class GpuParticleSortPrepareMat : public RendererMaterial<GpuParticleSortPrepareMat>
 {
-	static constexpr u32 NUM_THREADS = 64;
+	static constexpr u32 kNumThreads = 64;
 
 	RMAT_DEF_CUSTOMIZED("GpuParticleSortPrepare.bsl");
 
@@ -236,14 +236,14 @@ private:
 	SPtr<GpuParamBlockBuffer> mInputBuffer;
 };
 
-static constexpr u32 TILES_PER_INSTANCE = 8;
-static constexpr u32 PARTICLES_PER_INSTANCE = TILES_PER_INSTANCE * GpuParticleResources::PARTICLES_PER_TILE;
+static constexpr u32 kTilesPerInstance = 8;
+static constexpr u32 kParticlesPerInstance = kTilesPerInstance * GpuParticleResources::kParticlesPerTile;
 
 /** Contains a variety of helper buffers and declarations used for GPU particle simulation. */
 struct GpuParticleHelperBuffers
 {
-	static constexpr u32 NUM_SCRATCH_TILES = 512;
-	static constexpr u32 NUM_SCRATCH_PARTICLES = 4096;
+	static constexpr u32 kNumScratchTiles = 512;
+	static constexpr u32 kNumScratchParticles = 4096;
 
 	GpuParticleHelperBuffers();
 
@@ -261,14 +261,14 @@ GpuParticleResources::GpuParticleResources()
 	// Allocate textures
 	TEXTURE_DESC positionAndTimeDesc;
 	positionAndTimeDesc.Format = PF_RGBA32F;
-	positionAndTimeDesc.Width = TEX_SIZE;
-	positionAndTimeDesc.Height = TEX_SIZE;
+	positionAndTimeDesc.Width = kTexSize;
+	positionAndTimeDesc.Height = kTexSize;
 	positionAndTimeDesc.Usage = TU_RENDERTARGET;
 
 	TEXTURE_DESC velocityDesc;
 	velocityDesc.Format = PF_RGBA16F;
-	velocityDesc.Width = TEX_SIZE;
-	velocityDesc.Height = TEX_SIZE;
+	velocityDesc.Width = kTexSize;
+	velocityDesc.Height = kTexSize;
 	velocityDesc.Usage = TU_RENDERTARGET;
 
 	for(u32 i = 0; i < 2; i++)
@@ -279,8 +279,8 @@ GpuParticleResources::GpuParticleResources()
 
 	TEXTURE_DESC sizeAndRotationDesc;
 	sizeAndRotationDesc.Format = PF_RGBA16F;
-	sizeAndRotationDesc.Width = TEX_SIZE;
-	sizeAndRotationDesc.Height = TEX_SIZE;
+	sizeAndRotationDesc.Width = kTexSize;
+	sizeAndRotationDesc.Height = kTexSize;
 	sizeAndRotationDesc.Usage = TU_RENDERTARGET;
 
 	mStaticTextures.SizeAndRotationTex = Texture::Create(sizeAndRotationDesc);
@@ -307,7 +307,7 @@ GpuParticleResources::GpuParticleResources()
 	GPU_BUFFER_DESC sortKeysBufferDesc;
 	sortKeysBufferDesc.Type = GBT_STANDARD;
 	sortKeysBufferDesc.Format = BF_32X1U;
-	sortKeysBufferDesc.ElementCount = TEX_SIZE * TEX_SIZE;
+	sortKeysBufferDesc.ElementCount = kTexSize * kTexSize;
 	sortKeysBufferDesc.Usage = GBU_LOADSTORE;
 
 	mSortBuffers.Keys[0] = GpuBuffer::Create(sortKeysBufferDesc);
@@ -317,7 +317,7 @@ GpuParticleResources::GpuParticleResources()
 	GPU_BUFFER_DESC sortedIndicesBufferDesc;
 	sortedIndicesBufferDesc.Type = GBT_STANDARD;
 	sortedIndicesBufferDesc.Format = BF_16X2U;
-	sortedIndicesBufferDesc.ElementCount = TEX_SIZE * TEX_SIZE;
+	sortedIndicesBufferDesc.ElementCount = kTexSize * kTexSize;
 	sortedIndicesBufferDesc.Usage = GBU_LOADSTORE;
 
 	mSortedIndices[0] = GpuBuffer::Create(sortedIndicesBufferDesc);
@@ -327,8 +327,8 @@ GpuParticleResources::GpuParticleResources()
 	mSortBuffers.Values[1] = mSortedIndices[1]->GetView(GBT_STANDARD, BF_32X1U);
 
 	// Clear the free tile linked list
-	for(u32 i = 0; i < TILE_COUNT; i++)
-		mFreeTiles[i] = TILE_COUNT - i - 1;
+	for(u32 i = 0; i < kTileCount; i++)
+		mFreeTiles[i] = kTileCount - i - 1;
 }
 
 u32 GpuParticleResources::AllocTile()
@@ -344,8 +344,8 @@ u32 GpuParticleResources::AllocTile()
 
 void GpuParticleResources::FreeTile(u32 tile)
 {
-	assert(tile < TILE_COUNT);
-	assert(mNumFreeTiles < TILE_COUNT);
+	assert(tile < kTileCount);
+	assert(mNumFreeTiles < kTileCount);
 
 	mFreeTiles[mNumFreeTiles] = tile;
 	mNumFreeTiles++;
@@ -354,28 +354,28 @@ void GpuParticleResources::FreeTile(u32 tile)
 Vector2I GpuParticleResources::GetTileOffset(u32 tileId)
 {
 	return Vector2I(
-		(tileId % TILE_COUNT_1D) * TILE_SIZE,
-		(tileId / TILE_COUNT_1D) * TILE_SIZE);
+		(tileId % kTileCount1D) * kTileSize,
+		(tileId / kTileCount1D) * kTileSize);
 }
 
 Vector2 GpuParticleResources::GetTileCoords(u32 tileId)
 {
 	return Vector2(
-		Math::Frac(tileId / (float)TILE_COUNT_1D),
-		(u32)(tileId / TILE_COUNT_1D) / (float)TILE_COUNT_1D);
+		Math::Frac(tileId / (float)kTileCount1D),
+		(u32)(tileId / kTileCount1D) / (float)kTileCount1D);
 }
 
 Vector2I GpuParticleResources::GetParticleOffset(u32 subTileId)
 {
 	return Vector2I(
-		subTileId % TILE_SIZE,
-		subTileId / TILE_SIZE);
+		subTileId % kTileSize,
+		subTileId / kTileSize);
 }
 
 Vector2 GpuParticleResources::GetParticleCoords(u32 subTileId)
 {
 	const Vector2I tileOffset = GetParticleOffset(subTileId);
-	return tileOffset / (float)TEX_SIZE;
+	return tileOffset / (float)kTexSize;
 }
 
 const SPtr<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
@@ -404,14 +404,14 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	// Prepare UV coordinates for rendering tiles
 	VERTEX_BUFFER_DESC tileUVBufferDesc;
-	tileUVBufferDesc.NumVerts = PARTICLES_PER_INSTANCE * 4;
+	tileUVBufferDesc.NumVerts = kParticlesPerInstance * 4;
 	tileUVBufferDesc.VertexSize = tileVertexDesc->GetVertexStride();
 
 	TileUVs = VertexBuffer::Create(tileUVBufferDesc);
 
 	auto* const tileUVData = (Vector2*)TileUVs->Lock(GBL_WRITE_ONLY_DISCARD);
-	const float tileUVScale = GpuParticleResources::TILE_SIZE / (float)GpuParticleResources::TEX_SIZE;
-	for(u32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
+	const float tileUVScale = GpuParticleResources::kTileSize / (float)GpuParticleResources::kTexSize;
+	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		tileUVData[i * 4 + 0] = Vector2(0.0f, 0.0f) * tileUVScale;
 		tileUVData[i * 4 + 1] = Vector2(1.0f, 0.0f) * tileUVScale;
@@ -423,14 +423,14 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	// Prepare UV coordinates for rendering particles
 	VERTEX_BUFFER_DESC particleUVBufferDesc;
-	particleUVBufferDesc.NumVerts = PARTICLES_PER_INSTANCE * 4;
+	particleUVBufferDesc.NumVerts = kParticlesPerInstance * 4;
 	particleUVBufferDesc.VertexSize = tileVertexDesc->GetVertexStride();
 
 	ParticleUVs = VertexBuffer::Create(particleUVBufferDesc);
 
 	auto* const particleUVData = (Vector2*)ParticleUVs->Lock(GBL_WRITE_ONLY_DISCARD);
-	const float particleUVScale = 1.0f / (float)GpuParticleResources::TEX_SIZE;
-	for(u32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
+	const float particleUVScale = 1.0f / (float)GpuParticleResources::kTexSize;
+	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		particleUVData[i * 4 + 0] = Vector2(0.0f, 0.0f) * particleUVScale;
 		particleUVData[i * 4 + 1] = Vector2(1.0f, 0.0f) * particleUVScale;
@@ -443,14 +443,14 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	// Prepare indices for rendering tiles & particles
 	INDEX_BUFFER_DESC spriteIndexBufferDesc;
 	spriteIndexBufferDesc.IndexType = IT_16BIT;
-	spriteIndexBufferDesc.NumIndices = PARTICLES_PER_INSTANCE * 6;
+	spriteIndexBufferDesc.NumIndices = kParticlesPerInstance * 6;
 
 	SpriteIndices = IndexBuffer::Create(spriteIndexBufferDesc);
 
 	auto* const indices = (u16*)SpriteIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
 	const Conventions& rapiConventions = gCaps().Conventions;
-	for(u32 i = 0; i < PARTICLES_PER_INSTANCE; i++)
+	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
@@ -480,14 +480,14 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	GPU_BUFFER_DESC tileScratchBufferDesc;
 	tileScratchBufferDesc.Type = GBT_STANDARD;
 	tileScratchBufferDesc.Format = BF_32X2F;
-	tileScratchBufferDesc.ElementCount = NUM_SCRATCH_TILES;
+	tileScratchBufferDesc.ElementCount = kNumScratchTiles;
 	tileScratchBufferDesc.Usage = GBU_DYNAMIC;
 
 	TileScratch = GpuBuffer::Create(tileScratchBufferDesc);
 
 	// Prepare a scratch buffer we'll use to inject new particles
 	VERTEX_BUFFER_DESC injectScratchBufferDesc;
-	injectScratchBufferDesc.NumVerts = NUM_SCRATCH_PARTICLES;
+	injectScratchBufferDesc.NumVerts = kNumScratchParticles;
 	injectScratchBufferDesc.VertexSize = injectVertexDesc->GetVertexStride(0);
 	injectScratchBufferDesc.Usage = GBU_DYNAMIC;
 
@@ -547,7 +547,7 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 
 			mLastAllocatedTile = tileIdx;
 			tileUV = GpuParticleResources::GetTileCoords(mTiles[tileIdx].Id);
-			mTiles[tileIdx].NumFreeParticles = GpuParticleResources::PARTICLES_PER_TILE;
+			mTiles[tileIdx].NumFreeParticles = GpuParticleResources::kParticlesPerTile;
 
 			cachedTile = mTiles[tileIdx];
 			mNumActiveTiles++;
@@ -556,7 +556,7 @@ bool GpuParticleSystem::AllocateTiles(GpuParticleResources& resources, Vector<Gp
 		GpuParticleTile& tile = mTiles[tileIdx];
 		GpuParticle& particle = newParticles[i];
 
-		const u32 tileParticleIdx = GpuParticleResources::PARTICLES_PER_TILE - tile.NumFreeParticles;
+		const u32 tileParticleIdx = GpuParticleResources::kParticlesPerTile - tile.NumFreeParticles;
 		particle.DataUv = tileUV + GpuParticleResources::GetParticleCoords(tileParticleIdx);
 
 		tile.NumFreeParticles--;
@@ -618,7 +618,7 @@ bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 void GpuParticleSystem::UpdateGpuBuffers()
 {
 	const auto numTiles = (u32)mTiles.size();
-	const u32 numTilesToAllocates = Math::DivideAndRoundUp(numTiles, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
+	const u32 numTilesToAllocates = Math::DivideAndRoundUp(numTiles, kTilesPerInstance) * kTilesPerInstance;
 
 	// Tile offsets buffer
 	if(numTiles > 0)
@@ -642,7 +642,7 @@ void GpuParticleSystem::UpdateGpuBuffers()
 	}
 
 	// Particle data offsets
-	const u32 numParticles = numTiles * GpuParticleResources::PARTICLES_PER_TILE;
+	const u32 numParticles = numTiles * GpuParticleResources::kParticlesPerTile;
 
 	if(numParticles > 0)
 	{
@@ -659,9 +659,9 @@ void GpuParticleSystem::UpdateGpuBuffers()
 		for(u32 i = 0; i < numTiles; i++)
 		{
 			const Vector2I tileOffset = GpuParticleResources::GetTileOffset(mTiles[i].Id);
-			for(u32 y = 0; y < GpuParticleResources::TILE_SIZE; y++)
+			for(u32 y = 0; y < GpuParticleResources::kTileSize; y++)
 			{
-				for(u32 x = 0; x < GpuParticleResources::TILE_SIZE; x++)
+				for(u32 x = 0; x < GpuParticleResources::kTileSize; x++)
 				{
 					const Vector2I offset = tileOffset + Vector2I(x, y);
 					particleIndices[idx++] = (offset.X & 0xFFFF) | (offset.Y << 16);
@@ -686,7 +686,7 @@ AABox GpuParticleSystem::GetBounds() const
 	const ParticleSystemSettings& settings = mParent->GetSettings();
 
 	if(settings.UseAutomaticBounds)
-		return AABox::INF_BOX;
+		return AABox::kInfBox;
 
 	return settings.CustomBounds;
 }
@@ -819,8 +819,8 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 			simulateMat->BindPerCallParams(entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
 
 			const u32 tileCount = entry->GetNumTiles();
-			const u32 numInstances = Math::DivideAndRoundUp(tileCount, TILES_PER_INSTANCE);
-			rapi.DrawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
+			const u32 numInstances = Math::DivideAndRoundUp(tileCount, kTilesPerInstance);
+			rapi.DrawIndexed(0, kTilesPerInstance * 6, 0, kTilesPerInstance * 4, numInstances);
 		}
 	}
 }
@@ -957,7 +957,7 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 	if(numTiles == 0)
 		return;
 
-	const u32 numIterations = Math::DivideAndRoundUp(numTiles, GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
+	const u32 numIterations = Math::DivideAndRoundUp(numTiles, GpuParticleHelperBuffers::kNumScratchTiles);
 
 	GpuParticleClearMat* clearMat = GpuParticleClearMat::Get();
 	clearMat->Bind(m->HelperBuffers.TileScratch);
@@ -973,22 +973,22 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 	u32 tileStart = 0;
 	for(u32 i = 0; i < numIterations; i++)
 	{
-		static_assert(GpuParticleHelperBuffers::NUM_SCRATCH_TILES % TILES_PER_INSTANCE == 0, "Tile scratch buffer size must be divisble with number of tiles per instance.");
+		static_assert(GpuParticleHelperBuffers::kNumScratchTiles % kTilesPerInstance == 0, "Tile scratch buffer size must be divisble with number of tiles per instance.");
 
-		const u32 tileEnd = std::min(numTiles, tileStart + GpuParticleHelperBuffers::NUM_SCRATCH_TILES);
+		const u32 tileEnd = std::min(numTiles, tileStart + GpuParticleHelperBuffers::kNumScratchTiles);
 
 		auto* tileUVs = (Vector2*)m->HelperBuffers.TileScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 		for(u32 j = tileStart; j < tileEnd; j++)
 			tileUVs[j - tileStart] = GpuParticleResources::GetTileCoords(tiles[j]);
 
-		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, TILES_PER_INSTANCE) * TILES_PER_INSTANCE;
+		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, kTilesPerInstance) * kTilesPerInstance;
 		for(u32 j = tileEnd; j < alignedTileEnd; j++)
 			tileUVs[j - tileEnd] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
 
 		m->HelperBuffers.TileScratch->Unlock();
 
-		const u32 numInstances = (alignedTileEnd - tileStart) / TILES_PER_INSTANCE;
-		rapi.DrawIndexed(0, TILES_PER_INSTANCE * 6, 0, TILES_PER_INSTANCE * 4, numInstances);
+		const u32 numInstances = (alignedTileEnd - tileStart) / kTilesPerInstance;
+		rapi.DrawIndexed(0, kTilesPerInstance * 6, 0, kTilesPerInstance * 4, numInstances);
 
 		tileStart = alignedTileEnd;
 	}
@@ -997,7 +997,7 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
 {
 	const auto numParticles = (u32)particles.size();
-	const u32 numIterations = Math::DivideAndRoundUp(numParticles, GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
+	const u32 numIterations = Math::DivideAndRoundUp(numParticles, GpuParticleHelperBuffers::kNumScratchParticles);
 
 	GpuParticleInjectMat* injectMat = GpuParticleInjectMat::Get();
 	injectMat->Bind();
@@ -1013,7 +1013,7 @@ void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles
 	u32 particleStart = 0;
 	for(u32 i = 0; i < numIterations; i++)
 	{
-		const u32 particleEnd = std::min(numParticles, particleStart + GpuParticleHelperBuffers::NUM_SCRATCH_PARTICLES);
+		const u32 particleEnd = std::min(numParticles, particleStart + GpuParticleHelperBuffers::kNumScratchParticles);
 
 		auto* particleData = (GpuParticleVertex*)m->HelperBuffers.InjectScratch->Lock(GBL_WRITE_ONLY_DISCARD);
 		for(u32 j = particleStart; j < particleEnd; j++)
@@ -1062,7 +1062,7 @@ GpuParticleClearMat::GpuParticleClearMat()
 
 void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
+	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
 void GpuParticleClearMat::Bind(const SPtr<GpuBuffer>& tileUVs)
@@ -1136,7 +1136,7 @@ GpuParticleSimulateMat::GpuParticleSimulateMat()
 
 void GpuParticleSimulateMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILES_PER_INSTANCE", TILES_PER_INSTANCE);
+	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
 void GpuParticleSimulateMat::BindGlobal(GpuParticleResources& resources, const SPtr<GpuParamBlockBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuParamBlockBuffer>& simulationParams)
@@ -1203,7 +1203,7 @@ GpuParticleBoundsMat::GpuParticleBoundsMat()
 
 void GpuParticleBoundsMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("NUM_THREADS", NUM_THREADS);
+	defines.Set("NUM_THREADS", kNumThreads);
 }
 
 void GpuParticleBoundsMat::Bind(const SPtr<Texture>& positionAndTime)
@@ -1215,10 +1215,10 @@ void GpuParticleBoundsMat::Bind(const SPtr<Texture>& positionAndTime)
 
 AABox GpuParticleBoundsMat::Execute(const SPtr<GpuBuffer>& indices, u32 numParticles)
 {
-	static constexpr u32 MAX_NUM_GROUPS = 128;
+	static constexpr u32 kMaxNumGroups = 128;
 
-	const u32 numIterations = Math::DivideAndRoundUp(numParticles, NUM_THREADS);
-	const u32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
+	const u32 numIterations = Math::DivideAndRoundUp(numParticles, kNumThreads);
+	const u32 numGroups = std::min(numIterations, kMaxNumGroups);
 
 	const u32 iterationsPerGroup = numIterations / numGroups;
 	const u32 extraIterations = numIterations % numGroups;
@@ -1240,8 +1240,8 @@ AABox GpuParticleBoundsMat::Execute(const SPtr<GpuBuffer>& indices, u32 numParti
 
 	RenderAPI::Instance().DispatchCompute(numGroups);
 
-	Vector3 min = Vector3::INF;
-	Vector3 max = -Vector3::INF;
+	Vector3 min = Vector3::kInf;
+	Vector3 max = -Vector3::kInf;
 
 	const Vector3* data = (Vector3*)output->Lock(GBL_READ_ONLY);
 	for(u32 i = 0; i < numGroups; i++)
@@ -1268,7 +1268,7 @@ GpuParticleSortPrepareMat::GpuParticleSortPrepareMat()
 
 void GpuParticleSortPrepareMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("NUM_THREADS", NUM_THREADS);
+	defines.Set("NUM_THREADS", kNumThreads);
 }
 
 void GpuParticleSortPrepareMat::Bind(const SPtr<Texture>& positionAndTime)
@@ -1280,14 +1280,14 @@ void GpuParticleSortPrepareMat::Bind(const SPtr<Texture>& positionAndTime)
 
 u32 GpuParticleSortPrepareMat::Execute(const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices)
 {
-	static constexpr u32 MAX_NUM_GROUPS = 128;
+	static constexpr u32 kMaxNumGroups = 128;
 
 	assert(systemIdx < std::pow(2, 16));
 
-	const u32 numParticles = system.GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+	const u32 numParticles = system.GetNumTiles() * GpuParticleResources::kParticlesPerTile;
 
-	const u32 numIterations = Math::DivideAndRoundUp(numParticles, NUM_THREADS);
-	const u32 numGroups = std::min(numIterations, MAX_NUM_GROUPS);
+	const u32 numIterations = Math::DivideAndRoundUp(numParticles, kNumThreads);
+	const u32 numGroups = std::min(numIterations, kMaxNumGroups);
 
 	const u32 iterationsPerGroup = numIterations / numGroups;
 	const u32 extraIterations = numIterations % numGroups;
@@ -1328,8 +1328,8 @@ GpuParticleCurves::GpuParticleCurves()
 {
 	TEXTURE_DESC textureDesc;
 	textureDesc.Format = PF_RGBA16F;
-	textureDesc.Width = TEX_SIZE;
-	textureDesc.Height = TEX_SIZE;
+	textureDesc.Width = kTexSize;
+	textureDesc.Height = kTexSize;
 	textureDesc.Usage = TU_RENDERTARGET;
 
 	mCurveTexture = Texture::Create(textureDesc);
@@ -1355,7 +1355,7 @@ GpuParticleCurves::GpuParticleCurves()
 	mInjectUV = VertexBuffer::Create(injectUVBufferDesc);
 
 	auto* const tileUVData = (Vector2*)mInjectUV->Lock(GBL_WRITE_ONLY_DISCARD);
-	const float tileUVScale = 1.0f / (float)TEX_SIZE;
+	const float tileUVScale = 1.0f / (float)kTexSize;
 	tileUVData[0] = Vector2(0.0f, 0.0f) * tileUVScale;
 	tileUVData[1] = Vector2(1.0f, 0.0f) * tileUVScale;
 	tileUVData[2] = Vector2(1.0f, 1.0f) * tileUVScale;
@@ -1399,7 +1399,7 @@ GpuParticleCurves::GpuParticleCurves()
 
 	// Prepare a scratch buffer we'll use to inject new curves
 	VERTEX_BUFFER_DESC injectScratchBufferDesc;
-	injectScratchBufferDesc.NumVerts = SCRATCH_NUM_VERTICES;
+	injectScratchBufferDesc.NumVerts = kScratchNumVertices;
 	injectScratchBufferDesc.VertexSize = injectVertexDesc->GetVertexStride(0);
 	injectScratchBufferDesc.Usage = GBU_DYNAMIC;
 
@@ -1463,15 +1463,15 @@ void GpuParticleCurves::ApplyChanges()
 			const PendingAllocation& pendingAlloc = mPendingAllocations[curveIdx];
 
 			const u32 entryCount = pendingAlloc.Allocation.Length;
-			if((count + entryCount) > SCRATCH_NUM_VERTICES)
+			if((count + entryCount) > kScratchNumVertices)
 				break;
 
 			for(u32 i = 0; i < entryCount; i++)
 			{
 				data[count].Color = pendingAlloc.Pixels[i];
 				data[count].DataUv = Vector2(
-					(pendingAlloc.Allocation.X + i) / (float)TEX_SIZE,
-					pendingAlloc.Allocation.Y / (float)TEX_SIZE);
+					(pendingAlloc.Allocation.X + i) / (float)kTexSize,
+					pendingAlloc.Allocation.Y / (float)kTexSize);
 
 				count++;
 			}
@@ -1495,8 +1495,8 @@ void GpuParticleCurves::ApplyChanges()
 Vector2 GpuParticleCurves::GetUvOffset(const TextureRowAllocation& alloc)
 {
 	return Vector2(
-		((float)alloc.X + 0.5f) / TEX_SIZE,
-		((float)alloc.Y + 0.5f) / TEX_SIZE);
+		((float)alloc.X + 0.5f) / kTexSize,
+		((float)alloc.Y + 0.5f) / kTexSize);
 }
 
 float GpuParticleCurves::GetUvScale(const TextureRowAllocation& alloc)
@@ -1504,6 +1504,6 @@ float GpuParticleCurves::GetUvScale(const TextureRowAllocation& alloc)
 	if(alloc.Length == 0)
 		return 0.0f;
 
-	return (alloc.Length - 1) / (float)TEX_SIZE;
+	return (alloc.Length - 1) / (float)kTexSize;
 }
 }}

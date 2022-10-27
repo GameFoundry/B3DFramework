@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectable<ScriptWhiteBalanceSettings, WhiteBalanceSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "WhiteBalanceSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "WhiteBalanceSettings")
 
 		ScriptWhiteBalanceSettings(MonoObject* managedInstance, const SPtr<WhiteBalanceSettings>& value);
 

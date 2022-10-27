@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptVirtualInput : public ScriptObject<ScriptVirtualInput>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "VirtualInput")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VirtualInput")
 
 		/**	Must be called on library load. Hooks up necessary callbacks. */
 		static void StartUp();

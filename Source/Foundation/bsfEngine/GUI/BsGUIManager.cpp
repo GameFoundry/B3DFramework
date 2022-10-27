@@ -43,8 +43,8 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUIManager::DRAG_DISTANCE = 3;
-const float GUIManager::TOOLTIP_HOVER_TIME = 1.0f;
+const u32 GUIManager::kDragDistance = 3;
+const float GUIManager::kTooltipHoverTime = 1.0f;
 
 GUIManager::GUIManager()
 {
@@ -183,7 +183,7 @@ void GUIManager::Update()
 	if(mShowTooltip)
 	{
 		float diff = gTime().GetTime() - mTooltipElementHoverStart;
-		if(diff >= TOOLTIP_HOVER_TIME || gInput().IsButtonHeld(BC_LCONTROL) || gInput().IsButtonHeld(BC_RCONTROL))
+		if(diff >= kTooltipHoverTime || gInput().IsButtonHeld(BC_LCONTROL) || gInput().IsButtonHeld(BC_RCONTROL))
 		{
 			for(auto& entry : mElementsUnderPointer)
 			{
@@ -454,7 +454,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 	{
 		u32 dist = mLastPointerClickPos.ManhattanDist(event.ScreenPos);
 
-		if(dist > DRAG_DISTANCE)
+		if(dist > kDragDistance)
 		{
 			for(auto& activeElement : mActiveElements)
 			{
@@ -1644,14 +1644,14 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			for(auto& entry : drawGroup.CachedElements)
 			{
 				const SPtr<GpuParamBlockBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				UpdateParamBlockBuffer(buffer, invDrawGroupWidth, invDrawGroupHeight, viewflipYFlip, Matrix4::IDENTITY, entry);
+				UpdateParamBlockBuffer(buffer, invDrawGroupWidth, invDrawGroupHeight, viewflipYFlip, Matrix4::kIdentity, entry);
 			}
 
 			// Update draw group param buffer
 			{
 				const SPtr<GpuParamBlockBuffer>& buffer = widget.ParamBlocks[drawGroup.BufferIdx];
 
-				gGUISpriteParamBlockDef.gTint.Set(buffer, Color::White);
+				gGUISpriteParamBlockDef.gTint.Set(buffer, Color::kWhite);
 				gGUISpriteParamBlockDef.gWorldTransform.Set(buffer, widget.WorldTransform);
 				gGUISpriteParamBlockDef.gInvViewportWidth.Set(buffer, invViewportWidth);
 				gGUISpriteParamBlockDef.gInvViewportHeight.Set(buffer, invViewportHeight);
@@ -1685,7 +1685,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			// Note: Can we avoid drawing each element twice?
 			SPtr<RenderTexture> alphaRenderTexture = RenderTexture::Create(rtDesc);
 			rapi.SetRenderTarget(alphaRenderTexture);
-			rapi.ClearRenderTarget(FBT_COLOR | FBT_STENCIL, Color::ZERO, 1.0f, 0);
+			rapi.ClearRenderTarget(FBT_COLOR | FBT_STENCIL, Color::kZero, 1.0f, 0);
 
 			for(auto& entry : drawGroup.CachedElements)
 			{

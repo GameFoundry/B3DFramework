@@ -16,10 +16,10 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-constexpr const char* GUIDropDownContent::ENTRY_TOGGLE_STYLE_TYPE;
-constexpr const char* GUIDropDownContent::ENTRY_STYLE_TYPE;
-constexpr const char* GUIDropDownContent::ENTRY_EXP_STYLE_TYPE;
-constexpr const char* GUIDropDownContent::SEPARATOR_STYLE_TYPE;
+constexpr const char* GUIDropDownContent::kEntryToggleStyleType;
+constexpr const char* GUIDropDownContent::kEntryStyleType;
+constexpr const char* GUIDropDownContent::kEntryExpStyleType;
+constexpr const char* GUIDropDownContent::kSeparatorStyleType;
 
 GUIDropDownContent::GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style, const GUIDimensions& dimensions)
 	: GUIElementContainer(dimensions, style), mDropDownData(dropDownData), mStates(dropDownData.States), mSelectedIdx(UINT_MAX), mRangeStart(0), mRangeEnd(0), mParent(parent), mKeyboardFocus(true), mIsToggle(parent->GetType() == GUIDropDownType::MultiListBox)
@@ -29,7 +29,7 @@ GUIDropDownContent::GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent,
 GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style)
 {
 	const String* curStyle = &style;
-	if(*curStyle == StringUtil::BLANK)
+	if(*curStyle == StringUtil::kBlank)
 		curStyle = &GUIDropDownContent::GetGuiTypeName();
 
 	return new(bs_alloc<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create());
@@ -38,7 +38,7 @@ GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu*
 GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style)
 {
 	const String* curStyle = &style;
-	if(*curStyle == StringUtil::BLANK)
+	if(*curStyle == StringUtil::kBlank)
 		curStyle = &GUIDropDownContent::GetGuiTypeName();
 
 	return new(bs_alloc<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create(options));
@@ -51,15 +51,15 @@ void GUIDropDownContent::StyleUpdated()
 		GUIDropDownDataEntry& element = mDropDownData.Entries[visElem.Idx];
 
 		if(element.IsSeparator())
-			visElem.Separator->SetStyle(GetSubStyleName(SEPARATOR_STYLE_TYPE));
+			visElem.Separator->SetStyle(GetSubStyleName(kSeparatorStyleType));
 		else if(element.IsSubMenu())
-			visElem.Button->SetStyle(GetSubStyleName(ENTRY_EXP_STYLE_TYPE));
+			visElem.Button->SetStyle(GetSubStyleName(kEntryExpStyleType));
 		else
 		{
 			if(mIsToggle)
-				visElem.Button->SetStyle(GetSubStyleName(ENTRY_TOGGLE_STYLE_TYPE));
+				visElem.Button->SetStyle(GetSubStyleName(kEntryToggleStyleType));
 			else
-				visElem.Button->SetStyle(GetSubStyleName(ENTRY_STYLE_TYPE));
+				visElem.Button->SetStyle(GetSubStyleName(kEntryStyleType));
 		}
 	}
 }
@@ -111,12 +111,12 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 
 		if(element.IsSeparator())
 		{
-			visElem.Separator = GUITexture::Create(TextureScaleMode::StretchToFit, GetSubStyleName(SEPARATOR_STYLE_TYPE));
+			visElem.Separator = GUITexture::Create(TextureScaleMode::StretchToFit, GetSubStyleName(kSeparatorStyleType));
 			RegisterChildElementInternal(visElem.Separator);
 		}
 		else if(element.IsSubMenu())
 		{
-			visElem.Button = GUIButton::Create(GetElementLocalizedName(i), GetSubStyleName(ENTRY_EXP_STYLE_TYPE));
+			visElem.Button = GUIButton::Create(GetElementLocalizedName(i), GetSubStyleName(kEntryExpStyleType));
 			visElem.Button->OnHover.Connect(std::bind(onClick, i, curVisIdx));
 			RegisterChildElementInternal(visElem.Button);
 		}
@@ -124,14 +124,14 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 		{
 			if(mIsToggle)
 			{
-				GUIToggle* toggle = GUIToggle::Create(GetElementLocalizedName(i), GetSubStyleName(ENTRY_TOGGLE_STYLE_TYPE));
+				GUIToggle* toggle = GUIToggle::Create(GetElementLocalizedName(i), GetSubStyleName(kEntryToggleStyleType));
 				if(mStates[i])
 					toggle->ToggleOn();
 
 				visElem.Button = toggle;
 			}
 			else
-				visElem.Button = GUIButton::Create(GetElementLocalizedName(i), GetSubStyleName(ENTRY_STYLE_TYPE));
+				visElem.Button = GUIButton::Create(GetElementLocalizedName(i), GetSubStyleName(kEntryStyleType));
 
 			visElem.Button->OnHover.Connect(std::bind(onHover, i, curVisIdx));
 			visElem.Button->OnClick.Connect(std::bind(onClick, i, curVisIdx));
@@ -157,15 +157,15 @@ u32 GUIDropDownContent::GetElementHeight(u32 idx) const
 		return 14; // Arbitrary
 
 	if(mDropDownData.Entries[idx].IsSeparator())
-		return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(SEPARATOR_STYLE_TYPE))->Height;
+		return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(kSeparatorStyleType))->Height;
 	else if(mDropDownData.Entries[idx].IsSubMenu())
-		return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(ENTRY_EXP_STYLE_TYPE))->Height;
+		return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(kEntryExpStyleType))->Height;
 	else
 	{
 		if(mIsToggle)
-			return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(ENTRY_TOGGLE_STYLE_TYPE))->Height;
+			return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(kEntryToggleStyleType))->Height;
 		else
-			return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(ENTRY_STYLE_TYPE))->Height;
+			return GetParentWidgetInternal()->GetSkin().GetStyle(GetSubStyleName(kEntryStyleType))->Height;
 	}
 }
 

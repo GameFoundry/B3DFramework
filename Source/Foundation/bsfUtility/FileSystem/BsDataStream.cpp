@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-const u32 DataStream::StreamTempSize = 128;
+const u32 DataStream::kStreamTempSize = 128;
 
 /** Checks does the provided buffer has an UTF32 byte order mark in little endian order. */
 bool isUTF32LE(const u8* buffer)

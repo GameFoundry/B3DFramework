@@ -31,7 +31,7 @@ namespace bs
 		 *
 		 * @note Render target used by the GUIWidget and Camera must be the same.
 		 */
-		static GUIViewport* Create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::BLANK);
+		static GUIViewport* Create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new GUI viewport element.
@@ -47,7 +47,7 @@ namespace bs
 		 *
 		 * @note Render target used by the GUIWidget and Camera must be the same.
 		 */
-		static GUIViewport* Create(const GUIOptions& options, const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::BLANK);
+		static GUIViewport* Create(const GUIOptions& options, const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName = StringUtil::kBlank);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

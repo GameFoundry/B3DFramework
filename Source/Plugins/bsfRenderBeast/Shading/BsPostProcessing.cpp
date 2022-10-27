@@ -124,10 +124,10 @@ EyeAdaptHistogramMat::EyeAdaptHistogramMat()
 
 void EyeAdaptHistogramMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("THREADGROUP_SIZE_X", THREAD_GROUP_SIZE_X);
-	defines.Set("THREADGROUP_SIZE_Y", THREAD_GROUP_SIZE_Y);
-	defines.Set("LOOP_COUNT_X", LOOP_COUNT_X);
-	defines.Set("LOOP_COUNT_Y", LOOP_COUNT_Y);
+	defines.Set("THREADGROUP_SIZE_X", kThreadGroupSizeX);
+	defines.Set("THREADGROUP_SIZE_Y", kThreadGroupSizeY);
+	defines.Set("LOOP_COUNT_X", kLoopCountX);
+	defines.Set("LOOP_COUNT_Y", kLoopCountY);
 }
 
 void EyeAdaptHistogramMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings)
@@ -160,13 +160,13 @@ POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramMat::GetOutputDesc(const SPtr<Textur
 	Vector2I threadGroupCount = GetThreadGroupCount(target);
 	u32 numHistograms = threadGroupCount.X * threadGroupCount.Y;
 
-	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, HISTOGRAM_NUM_TEXELS, numHistograms, TU_LOADSTORE);
+	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, kHistogramNumTexels, numHistograms, TU_LOADSTORE);
 }
 
 Vector2I EyeAdaptHistogramMat::GetThreadGroupCount(const SPtr<Texture>& target)
 {
-	const u32 texelsPerThreadGroupX = THREAD_GROUP_SIZE_X * LOOP_COUNT_X;
-	const u32 texelsPerThreadGroupY = THREAD_GROUP_SIZE_Y * LOOP_COUNT_Y;
+	const u32 texelsPerThreadGroupX = kThreadGroupSizeX * kLoopCountX;
+	const u32 texelsPerThreadGroupY = kThreadGroupSizeY * kLoopCountY;
 
 	const TextureProperties& props = target->GetProperties();
 
@@ -222,7 +222,7 @@ void EyeAdaptHistogramReduceMat::Execute(const SPtr<Texture>& sceneColor, const 
 
 	Bind();
 
-	Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2.0f);
+	Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::kHistogramNumTexels, 2.0f);
 	gRendererUtility().DrawScreenQuad(drawUV);
 
 	rapi.SetRenderTarget(nullptr);
@@ -230,7 +230,7 @@ void EyeAdaptHistogramReduceMat::Execute(const SPtr<Texture>& sceneColor, const 
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::GetOutputDesc()
 {
-	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, EyeAdaptHistogramMat::HISTOGRAM_NUM_TEXELS, 2, TU_RENDERTARGET);
+	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, EyeAdaptHistogramMat::kHistogramNumTexels, 2, TU_RENDERTARGET);
 }
 
 EyeAdaptationParamDef gEyeAdaptationParamDef;
@@ -245,8 +245,8 @@ EyeAdaptationMat::EyeAdaptationMat()
 
 void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("THREADGROUP_SIZE_X", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_X);
-	defines.Set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::THREAD_GROUP_SIZE_Y);
+	defines.Set("THREADGROUP_SIZE_X", EyeAdaptHistogramMat::kThreadGroupSizeX);
+	defines.Set("THREADGROUP_SIZE_Y", EyeAdaptHistogramMat::kThreadGroupSizeY);
 }
 
 void EyeAdaptationMat::Execute(const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
@@ -410,7 +410,7 @@ CreateTonemapLUTMat::CreateTonemapLUTMat()
 
 void CreateTonemapLUTMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("LUT_SIZE", LUT_SIZE);
+	defines.Set("LUT_SIZE", kLutSize);
 }
 
 void CreateTonemapLUTMat::Execute3D(const SPtr<Texture>& output, const RenderSettings& settings)
@@ -426,7 +426,7 @@ void CreateTonemapLUTMat::Execute3D(const SPtr<Texture>& output, const RenderSet
 	Bind();
 
 	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.DispatchCompute(LUT_SIZE / 8, LUT_SIZE / 8, LUT_SIZE);
+	rapi.DispatchCompute(kLutSize / 8, kLutSize / 8, kLutSize);
 }
 
 void CreateTonemapLUTMat::Execute2D(const SPtr<RenderTexture>& output, const RenderSettings& settings)
@@ -483,9 +483,9 @@ void CreateTonemapLUTMat::PopulateParamBuffers(const RenderSettings& settings)
 POOLED_RENDER_TEXTURE_DESC CreateTonemapLUTMat::GetOutputDesc() const
 {
 	if(mIs3D)
-		return POOLED_RENDER_TEXTURE_DESC::Create3D(PF_RGBA8, LUT_SIZE, LUT_SIZE, LUT_SIZE, TU_LOADSTORE);
+		return POOLED_RENDER_TEXTURE_DESC::Create3D(PF_RGBA8, kLutSize, kLutSize, kLutSize, TU_LOADSTORE);
 
-	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, LUT_SIZE * LUT_SIZE, LUT_SIZE, TU_RENDERTARGET);
+	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, kLutSize * kLutSize, kLutSize, TU_RENDERTARGET);
 }
 
 CreateTonemapLUTMat* CreateTonemapLUTMat::GetVariation(bool is3D)
@@ -513,7 +513,7 @@ TonemappingMat::TonemappingMat()
 
 void TonemappingMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("LUT_SIZE", CreateTonemapLUTMat::LUT_SIZE);
+	defines.Set("LUT_SIZE", CreateTonemapLUTMat::kLutSize);
 }
 
 void TonemappingMat::Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& bloom, const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings)
@@ -725,7 +725,7 @@ ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool h
 
 ChromaticAberrationParamDef gChromaticAberrationParamDef;
 
-constexpr int ChromaticAberrationMat::MAX_SAMPLES;
+constexpr int ChromaticAberrationMat::kMaxSamples;
 
 ChromaticAberrationMat::ChromaticAberrationMat()
 {
@@ -774,7 +774,7 @@ ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberration
 
 void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("MAX_SAMPLES", MAX_SAMPLES);
+	defines.Set("MAX_SAMPLES", kMaxSamples);
 }
 
 FilmGrainParamDef gFilmGrainParamDef;
@@ -821,7 +821,7 @@ GaussianBlurMat::GaussianBlurMat()
 
 void GaussianBlurMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("MAX_NUM_SAMPLES", MAX_BLUR_SAMPLES);
+	defines.Set("MAX_NUM_SAMPLES", kMaxBlurSamples);
 }
 
 void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, const Color& tint, const SPtr<Texture>& additive)
@@ -836,7 +836,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 
 	// Horizontal pass
 	{
-		PopulateBuffer(mParamBuffer, DirHorizontal, source, filterSize, Color::White);
+		PopulateBuffer(mParamBuffer, DirHorizontal, source, filterSize, Color::kWhite);
 		mInputTexture.Set(source);
 
 		if(mIsAdditive)
@@ -870,10 +870,10 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 	}
 }
 
-u32 GaussianBlurMat::CalcStdDistribution(float filterRadius, std::array<float, MAX_BLUR_SAMPLES>& weights, std::array<float, MAX_BLUR_SAMPLES>& offsets)
+u32 GaussianBlurMat::CalcStdDistribution(float filterRadius, std::array<float, kMaxBlurSamples>& weights, std::array<float, kMaxBlurSamples>& offsets)
 {
-	filterRadius = Math::Clamp(filterRadius, 0.00001f, (float)(MAX_BLUR_SAMPLES - 1));
-	i32 intFilterRadius = std::min(Math::CeilToInt(filterRadius), MAX_BLUR_SAMPLES - 1);
+	filterRadius = Math::Clamp(filterRadius, 0.00001f, (float)(kMaxBlurSamples - 1));
+	i32 intFilterRadius = std::min(Math::CeilToInt(filterRadius), kMaxBlurSamples - 1);
 
 	// Note: Does not include the scaling factor since we normalize later anyway
 	auto normalDistribution = [](int i, float scale)
@@ -951,7 +951,7 @@ float GaussianBlurMat::CalcKernelRadius(const SPtr<Texture>& source, float scale
 		length = source->GetProperties().GetHeight();
 
 	// Divide by two because we need the radius
-	return std::min(length * scale / 2, (float)MAX_BLUR_SAMPLES - 1);
+	return std::min(length * scale / 2, (float)kMaxBlurSamples - 1);
 }
 
 void GaussianBlurMat::PopulateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint)
@@ -960,8 +960,8 @@ void GaussianBlurMat::PopulateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Di
 
 	Vector2 invTexSize(1.0f / srcProps.GetWidth(), 1.0f / srcProps.GetHeight());
 
-	std::array<float, MAX_BLUR_SAMPLES> sampleOffsets;
-	std::array<float, MAX_BLUR_SAMPLES> sampleWeights;
+	std::array<float, kMaxBlurSamples> sampleOffsets;
+	std::array<float, kMaxBlurSamples> sampleWeights;
 
 	const float kernelRadius = CalcKernelRadius(source, filterSize, direction);
 	const u32 numSamples = CalcStdDistribution(kernelRadius, sampleWeights, sampleOffsets);
@@ -1233,8 +1233,8 @@ BokehDOFPrepareMat* BokehDOFPrepareMat::GetVariation(bool msaa)
 
 BokehDOFParamDef gBokehDOFParamDef;
 
-constexpr u32 BokehDOFMat::NEAR_FAR_PADDING;
-constexpr u32 BokehDOFMat::QUADS_PER_TILE;
+constexpr u32 BokehDOFMat::kNearFarPadding;
+constexpr u32 BokehDOFMat::kQuadsPerTile;
 
 BokehDOFMat::BokehDOFMat()
 {
@@ -1255,13 +1255,13 @@ BokehDOFMat::BokehDOFMat()
 
 	// Prepare vertex buffer for rendering tiles
 	VERTEX_BUFFER_DESC tileVertexBufferDesc;
-	tileVertexBufferDesc.NumVerts = QUADS_PER_TILE * 4;
+	tileVertexBufferDesc.NumVerts = kQuadsPerTile * 4;
 	tileVertexBufferDesc.VertexSize = tileVertexDesc->GetVertexStride();
 
 	mTileVertexBuffer = VertexBuffer::Create(tileVertexBufferDesc);
 
 	auto* const vertexData = (Vector2*)mTileVertexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
-	for(u32 i = 0; i < QUADS_PER_TILE; i++)
+	for(u32 i = 0; i < kQuadsPerTile; i++)
 	{
 		vertexData[i * 4 + 0] = Vector2(0.0f, 0.0f);
 		vertexData[i * 4 + 1] = Vector2(1.0f, 0.0f);
@@ -1274,14 +1274,14 @@ BokehDOFMat::BokehDOFMat()
 	// Prepare indices for rendering tiles
 	INDEX_BUFFER_DESC tileIndexBufferDesc;
 	tileIndexBufferDesc.IndexType = IT_16BIT;
-	tileIndexBufferDesc.NumIndices = QUADS_PER_TILE * 6;
+	tileIndexBufferDesc.NumIndices = kQuadsPerTile * 6;
 
 	mTileIndexBuffer = IndexBuffer::Create(tileIndexBufferDesc);
 
 	auto* const indices = (u16*)mTileIndexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 	const Conventions& rapiConventions = gCaps().Conventions;
-	for(u32 i = 0; i < QUADS_PER_TILE; i++)
+	for(u32 i = 0; i < kQuadsPerTile; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
@@ -1310,7 +1310,7 @@ BokehDOFMat::BokehDOFMat()
 
 void BokehDOFMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("QUADS_PER_TILE", QUADS_PER_TILE);
+	defines.Set("QUADS_PER_TILE", kQuadsPerTile);
 }
 
 void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
@@ -1326,7 +1326,7 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 	gBokehDOFParamDef.gInvOutputSize.Set(mParamBuffer, outputInvTexSize);
 	gBokehDOFParamDef.gAdaptiveThresholdCOC.Set(mParamBuffer, settings.AdaptiveRadiusThreshold);
 	gBokehDOFParamDef.gAdaptiveThresholdColor.Set(mParamBuffer, settings.AdaptiveColorThreshold);
-	gBokehDOFParamDef.gLayerPixelOffset.Set(mParamBuffer, (i32)srcProps.GetHeight() + (i32)NEAR_FAR_PADDING);
+	gBokehDOFParamDef.gLayerPixelOffset.Set(mParamBuffer, (i32)srcProps.GetHeight() + (i32)kNearFarPadding);
 	gBokehDOFParamDef.gInvDepthRange.Set(mParamBuffer, 1.0f / settings.OcclusionDepthRange);
 
 	float bokehSize = settings.MaxBokehSize * srcProps.GetWidth();
@@ -1353,7 +1353,7 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-	rapi.ClearRenderTarget(FBT_COLOR, Color::ZERO);
+	rapi.ClearRenderTarget(FBT_COLOR, Color::kZero);
 	rapi.SetVertexDeclaration(mTileVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { mTileVertexBuffer };
@@ -1362,8 +1362,8 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
 	Bind();
-	const u32 numInstances = Math::DivideAndRoundUp((u32)(tileCount.X * tileCount.Y), QUADS_PER_TILE);
-	rapi.DrawIndexed(0, QUADS_PER_TILE * 6, 0, QUADS_PER_TILE * 4, numInstances);
+	const u32 numInstances = Math::DivideAndRoundUp((u32)(tileCount.X * tileCount.Y), kQuadsPerTile);
+	rapi.DrawIndexed(0, kQuadsPerTile * 6, 0, kQuadsPerTile * 4, numInstances);
 }
 
 POOLED_RENDER_TEXTURE_DESC BokehDOFMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -1371,7 +1371,7 @@ POOLED_RENDER_TEXTURE_DESC BokehDOFMat::GetOutputDesc(const SPtr<Texture>& targe
 	const TextureProperties& rtProps = target->GetProperties();
 
 	u32 width = rtProps.GetWidth();
-	u32 height = rtProps.GetHeight() * 2 + NEAR_FAR_PADDING;
+	u32 height = rtProps.GetHeight() * 2 + kNearFarPadding;
 
 	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET);
 }
@@ -1434,7 +1434,7 @@ void BokehDOFCombineMat::Execute(const SPtr<Texture>& unfocused, const SPtr<Text
 	u32 halfHeight = std::max(1U, Math::DivideAndRoundUp(focusedProps.GetHeight(), 2U));
 
 	float uvScale = halfHeight / (float)unfocusedProps.GetHeight();
-	float uvOffset = (halfHeight + BokehDOFMat::NEAR_FAR_PADDING) / (float)unfocusedProps.GetHeight();
+	float uvOffset = (halfHeight + BokehDOFMat::kNearFarPadding) / (float)unfocusedProps.GetHeight();
 
 	Vector2 layerScaleOffset(uvScale, uvOffset);
 	Vector2 focusedImageSize((float)focusedProps.GetWidth(), (float)focusedProps.GetHeight());
@@ -1687,7 +1687,7 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 
 	// Scale that can be used to adjust how quickly does AO radius increase with downsampled AO. This yields a very
 	// small AO radius at highest level, and very large radius at lowest level
-	static const float DOWNSAMPLE_SCALE = 4.0f;
+	static const float kDownsampleScale = 4.0f;
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const RenderTargetProperties& rtProps = destination->GetProperties();
@@ -1703,10 +1703,10 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 	float viewScale = viewProps.Target.ViewRect.Width / (float)rtProps.Width;
 
 	// Ramp up the radius exponentially. c^log2(x) function chosen arbitrarily, as it ramps up the radius in a nice way
-	float scale = pow(DOWNSAMPLE_SCALE, Math::Log2(viewScale));
+	float scale = pow(kDownsampleScale, Math::Log2(viewScale));
 
 	// Determine maximum radius scale (division by 4 because we don't downsample more than quarter-size)
-	float maxScale = pow(DOWNSAMPLE_SCALE, Math::Log2(4.0f));
+	float maxScale = pow(kDownsampleScale, Math::Log2(4.0f));
 
 	// Normalize the scale in [0, 1] range
 	scale /= maxScale;
@@ -2076,11 +2076,11 @@ void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, con
 
 Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
 {
-	const static float RANGE_SCALE = 2.0f;
+	const static float kRangeScale = 2.0f;
 
 	Vector2 scaleBias;
-	scaleBias.X = -RANGE_SCALE / (-1.0f + maxRoughness);
-	scaleBias.Y = (RANGE_SCALE * maxRoughness) / (-1.0f + maxRoughness);
+	scaleBias.X = -kRangeScale / (-1.0f + maxRoughness);
+	scaleBias.Y = (kRangeScale * maxRoughness) / (-1.0f + maxRoughness);
 
 	return scaleBias;
 }
@@ -2221,7 +2221,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	float sharpness = 1.0f; // Make this a customizable parameter eventually
 	if(useYCoCg)
 	{
-		static const Vector2 sampleOffsets[] = {
+		static const Vector2 kSampleOffsets[] = {
 			{ 0.0f, -1.0f },
 			{ -1.0f, 0.0f },
 			{ 0.0f, 0.0f },
@@ -2232,7 +2232,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 		for(u32 i = 0; i < 5; ++i)
 		{
 			// Get rid of jitter introduced by the projection matrix
-			Vector2 offset = sampleOffsets[i] - jitterUV * Vector2(0.5f, -0.5f);
+			Vector2 offset = kSampleOffsets[i] - jitterUV * Vector2(0.5f, -0.5f);
 
 			offset *= 1.0f + sharpness * 0.5f;
 			sampleWeights[i] = exp(-2.29f * offset.Dot(offset));
@@ -2247,7 +2247,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	}
 	else
 	{
-		static const Vector2 sampleOffsets[] = {
+		static const Vector2 kSampleOffsets[] = {
 			{ -1.0f, -1.0f },
 			{ 0.0f, -1.0f },
 			{ 1.0f, -1.0f },
@@ -2262,7 +2262,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 		for(u32 i = 0; i < 9; ++i)
 		{
 			// Get rid of jitter introduced by the projection matrix
-			Vector2 offset = sampleOffsets[i] - jitterUV;
+			Vector2 offset = kSampleOffsets[i] - jitterUV;
 
 			offset *= 1.0f + sharpness * 0.5f;
 			sampleWeights[i] = exp(-2.29f * offset.Dot(offset));

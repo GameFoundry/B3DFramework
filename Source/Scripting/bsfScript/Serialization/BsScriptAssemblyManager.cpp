@@ -17,7 +17,7 @@
 #include "BsManagedComponent.h"
 
 using namespace bs;
-BuiltinTypeMappings BuiltinTypeMappings::EMPTY;
+const BuiltinTypeMappings BuiltinTypeMappings::kEmpty;
 
 Vector<String> ScriptAssemblyManager::GetScriptAssemblies() const
 {
@@ -617,9 +617,9 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 	if(corlib == nullptr)
 		BS_EXCEPT(InvalidStateException, "corlib assembly is not loaded.");
 
-	MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(ENGINE_ASSEMBLY);
+	MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(kEngineAssembly);
 	if(engineAssembly == nullptr)
-		BS_EXCEPT(InvalidStateException, String(ENGINE_ASSEMBLY) + " assembly is not loaded.");
+		BS_EXCEPT(InvalidStateException, String(kEngineAssembly) + " assembly is not loaded.");
 
 	mBuiltin.SystemArrayClass = corlib->GetClass("System", "Array");
 	if(mBuiltin.SystemArrayClass == nullptr)
@@ -637,103 +637,103 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 	if(mBuiltin.SystemTypeClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Type managed class.");
 
-	mBuiltin.SerializeObjectAttribute = engineAssembly->GetClass(ENGINE_NS, "SerializeObject");
+	mBuiltin.SerializeObjectAttribute = engineAssembly->GetClass(kEngineNs, "SerializeObject");
 	if(mBuiltin.SerializeObjectAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find SerializableObject managed class.");
 
-	mBuiltin.DontSerializeFieldAttribute = engineAssembly->GetClass(ENGINE_NS, "DontSerializeField");
+	mBuiltin.DontSerializeFieldAttribute = engineAssembly->GetClass(kEngineNs, "DontSerializeField");
 	if(mBuiltin.DontSerializeFieldAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find DontSerializeField managed class.");
 
-	mBuiltin.RangeAttribute = engineAssembly->GetClass(ENGINE_NS, "Range");
+	mBuiltin.RangeAttribute = engineAssembly->GetClass(kEngineNs, "Range");
 	if(mBuiltin.RangeAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Range managed class.");
 
-	mBuiltin.StepAttribute = engineAssembly->GetClass(ENGINE_NS, "Step");
+	mBuiltin.StepAttribute = engineAssembly->GetClass(kEngineNs, "Step");
 	if(mBuiltin.StepAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Step managed class.");
 
-	mBuiltin.LayerMaskAttribute = engineAssembly->GetClass(ENGINE_NS, "LayerMask");
+	mBuiltin.LayerMaskAttribute = engineAssembly->GetClass(kEngineNs, "LayerMask");
 	if(mBuiltin.LayerMaskAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find LayerMask managed class.");
 
-	mBuiltin.AsQuaternionAttribute = engineAssembly->GetClass(ENGINE_NS, "AsQuaternion");
+	mBuiltin.AsQuaternionAttribute = engineAssembly->GetClass(kEngineNs, "AsQuaternion");
 	if(mBuiltin.AsQuaternionAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find AsQuaternion managed class.");
 
-	mBuiltin.NativeWrapperAttribute = engineAssembly->GetClass(ENGINE_NS, "NativeWrapper");
+	mBuiltin.NativeWrapperAttribute = engineAssembly->GetClass(kEngineNs, "NativeWrapper");
 	if(mBuiltin.NativeWrapperAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find NativeWrapper managed class.");
 
-	mBuiltin.NotNullAttribute = engineAssembly->GetClass(ENGINE_NS, "NotNull");
+	mBuiltin.NotNullAttribute = engineAssembly->GetClass(kEngineNs, "NotNull");
 	if(mBuiltin.NotNullAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find NotNull managed class.");
 
-	mBuiltin.PassByCopyAttribute = engineAssembly->GetClass(ENGINE_NS, "PassByCopy");
+	mBuiltin.PassByCopyAttribute = engineAssembly->GetClass(kEngineNs, "PassByCopy");
 	if(mBuiltin.PassByCopyAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find PassByCopy managed class.");
 
-	mBuiltin.ApplyOnDirtyAttribute = engineAssembly->GetClass(ENGINE_NS, "ApplyOnDirty");
+	mBuiltin.ApplyOnDirtyAttribute = engineAssembly->GetClass(kEngineNs, "ApplyOnDirty");
 	if(mBuiltin.ApplyOnDirtyAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find ApplyOnDirty managed class.");
 
-	mBuiltin.ComponentClass = engineAssembly->GetClass(ENGINE_NS, "Component");
+	mBuiltin.ComponentClass = engineAssembly->GetClass(kEngineNs, "Component");
 	if(mBuiltin.ComponentClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Component managed class.");
 
-	mBuiltin.ManagedComponentClass = engineAssembly->GetClass(ENGINE_NS, "ManagedComponent");
+	mBuiltin.ManagedComponentClass = engineAssembly->GetClass(kEngineNs, "ManagedComponent");
 	if(mBuiltin.ManagedComponentClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find ManagedComponent managed class.");
 
-	mBuiltin.MissingComponentClass = engineAssembly->GetClass(ENGINE_NS, "MissingComponent");
+	mBuiltin.MissingComponentClass = engineAssembly->GetClass(kEngineNs, "MissingComponent");
 	if(mBuiltin.MissingComponentClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find MissingComponent managed class.");
 
-	mBuiltin.SceneObjectClass = engineAssembly->GetClass(ENGINE_NS, "SceneObject");
+	mBuiltin.SceneObjectClass = engineAssembly->GetClass(kEngineNs, "SceneObject");
 	if(mBuiltin.SceneObjectClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find SceneObject managed class.");
 
-	mBuiltin.RrefBaseClass = engineAssembly->GetClass(ENGINE_NS, "RRefBase");
+	mBuiltin.RrefBaseClass = engineAssembly->GetClass(kEngineNs, "RRefBase");
 	if(mBuiltin.RrefBaseClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find RRefBase managed class.");
 
-	mBuiltin.GenericRRefClass = engineAssembly->GetClass(ENGINE_NS, "RRef`1");
+	mBuiltin.GenericRRefClass = engineAssembly->GetClass(kEngineNs, "RRef`1");
 	if(mBuiltin.GenericRRefClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find RRef<T> managed class.");
 
-	mBuiltin.GenericAsyncOpClass = engineAssembly->GetClass(ENGINE_NS, "AsyncOp`1");
+	mBuiltin.GenericAsyncOpClass = engineAssembly->GetClass(kEngineNs, "AsyncOp`1");
 	if(mBuiltin.GenericAsyncOpClass == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find AsyncOp<T> managed class.");
 
-	mBuiltin.SerializeFieldAttribute = engineAssembly->GetClass(ENGINE_NS, "SerializeField");
+	mBuiltin.SerializeFieldAttribute = engineAssembly->GetClass(kEngineNs, "SerializeField");
 	if(mBuiltin.SerializeFieldAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find SerializeField managed class.");
 
-	mBuiltin.HideInInspectorAttribute = engineAssembly->GetClass(ENGINE_NS, "HideInInspector");
+	mBuiltin.HideInInspectorAttribute = engineAssembly->GetClass(kEngineNs, "HideInInspector");
 	if(mBuiltin.HideInInspectorAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find HideInInspector managed class.");
 
-	mBuiltin.ShowInInspectorAttribute = engineAssembly->GetClass(ENGINE_NS, "ShowInInspector");
+	mBuiltin.ShowInInspectorAttribute = engineAssembly->GetClass(kEngineNs, "ShowInInspector");
 	if(mBuiltin.ShowInInspectorAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find ShowInInspector managed class.");
 
-	mBuiltin.CategoryAttribute = engineAssembly->GetClass(ENGINE_NS, "Category");
+	mBuiltin.CategoryAttribute = engineAssembly->GetClass(kEngineNs, "Category");
 	if(mBuiltin.CategoryAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Category managed class.");
 
-	mBuiltin.OrderAttribute = engineAssembly->GetClass(ENGINE_NS, "Order");
+	mBuiltin.OrderAttribute = engineAssembly->GetClass(kEngineNs, "Order");
 	if(mBuiltin.OrderAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Order managed class.");
 
-	mBuiltin.InlineAttribute = engineAssembly->GetClass(ENGINE_NS, "Inline");
+	mBuiltin.InlineAttribute = engineAssembly->GetClass(kEngineNs, "Inline");
 	if(mBuiltin.InlineAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find Inline managed class.");
 
-	mBuiltin.LoadOnAssignAttribute = engineAssembly->GetClass(ENGINE_NS, "LoadOnAssign");
+	mBuiltin.LoadOnAssignAttribute = engineAssembly->GetClass(kEngineNs, "LoadOnAssign");
 	if(mBuiltin.LoadOnAssignAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find LoadOnAssign managed class.");
 
-	mBuiltin.HdrAttribute = engineAssembly->GetClass(ENGINE_NS, "HDR");
+	mBuiltin.HdrAttribute = engineAssembly->GetClass(kEngineNs, "HDR");
 	if(mBuiltin.HdrAttribute == nullptr)
 		BS_EXCEPT(InvalidStateException, "Cannot find HDR managed class.");
 

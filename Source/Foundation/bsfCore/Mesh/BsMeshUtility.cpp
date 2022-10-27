@@ -87,8 +87,8 @@ protected:
 	{
 		ClipVert() {}
 
-		Vector3 Point = Vector3::ZERO;
-		Vector2 Uv = Vector2::ZERO;
+		Vector3 Point = Vector3::kZero;
+		Vector2 Uv = Vector2::kZero;
 		float Distance = 0.0f;
 		u32 Occurs = 0;
 		bool Visible = true;
@@ -111,7 +111,7 @@ protected:
 
 		Vector<u32> Edges;
 		bool Visible = true;
-		Vector3 Normal = Vector3::ZERO;
+		Vector3 Normal = Vector3::kZero;
 	};
 
 	/** Contains vertices, edges and faces of the clipped mesh. */
@@ -225,7 +225,7 @@ i32 TriangleClipperBase::ClipByPlane(const Plane& plane)
 
 i32 TriangleClipperBase::ProcessVertices(const Plane& plane)
 {
-	static const float EPSILON = 0.00001f;
+	static const float kEpsilon = 0.00001f;
 
 	// Compute signed distances from vertices to plane
 	int positive = 0, negative = 0;
@@ -236,11 +236,11 @@ i32 TriangleClipperBase::ProcessVertices(const Plane& plane)
 		if(vertex.Visible)
 		{
 			vertex.Distance = Vector3::Dot(plane.Normal, vertex.Point) - plane.D;
-			if(vertex.Distance >= EPSILON)
+			if(vertex.Distance >= kEpsilon)
 			{
 				positive++;
 			}
-			else if(vertex.Distance <= -EPSILON)
+			else if(vertex.Distance <= -kEpsilon)
 			{
 				negative++;
 				vertex.Visible = false;
@@ -536,9 +536,9 @@ private:
 	/** Converts clipped vertices back into triangles and outputs them via the provided callback. */
 	void ConvertToMesh(const std::function<void(Vector2*, Vector2*, u32)>& writeCallback);
 
-	static const int BUFFER_SIZE = 64 * 3; // Must be a multiple of three
-	Vector2 vertexBuffer[BUFFER_SIZE];
-	Vector2 uvBuffer[BUFFER_SIZE];
+	static const int kBufferSize = 64 * 3; // Must be a multiple of three
+	Vector2 vertexBuffer[kBufferSize];
+	Vector2 uvBuffer[kBufferSize];
 };
 
 void TriangleClipper2D::Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStride, const Vector<Plane>& clipPlanes, const std::function<void(Vector2*, Vector2*, u32)>& writeCallback)
@@ -589,7 +589,7 @@ void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2
 
 		// Note: Consider using Delaunay triangulation to avoid skinny triangles
 		u32 numWritten = 0;
-		assert(BUFFER_SIZE % 3 == 0);
+		assert(kBufferSize % 3 == 0);
 		for(auto& face : allFaces)
 		{
 			for(u32 i = 0; i < (u32)face.size() - 2; i++)
@@ -611,7 +611,7 @@ void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2
 				numWritten++;
 
 				// Only need to check this here since we guarantee the buffer is in multiples of three
-				if(numWritten >= BUFFER_SIZE)
+				if(numWritten >= kBufferSize)
 				{
 					writeCallback(vertexBuffer, uvBuffer, numWritten);
 					numWritten = 0;
@@ -636,9 +636,9 @@ private:
 	/** Converts clipped vertices back into triangles and outputs them via the provided callback. */
 	void ConvertToMesh(const std::function<void(Vector3*, Vector2*, u32)>& writeCallback);
 
-	static const int BUFFER_SIZE = 64 * 3; // Must be a multiple of three
-	Vector3 vertexBuffer[BUFFER_SIZE];
-	Vector2 uvBuffer[BUFFER_SIZE];
+	static const int kBufferSize = 64 * 3; // Must be a multiple of three
+	Vector3 vertexBuffer[kBufferSize];
+	Vector2 uvBuffer[kBufferSize];
 };
 
 void TriangleClipper3D::Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStride, const Vector<Plane>& clipPlanes, const std::function<void(Vector3*, Vector2*, u32)>& writeCallback)
@@ -688,7 +688,7 @@ void TriangleClipper3D::ConvertToMesh(const std::function<void(Vector3*, Vector2
 
 		// Note: Consider using Delaunay triangulation to avoid skinny triangles
 		u32 numWritten = 0;
-		assert(BUFFER_SIZE % 3 == 0);
+		assert(kBufferSize % 3 == 0);
 		for(auto& face : allFaces)
 		{
 			for(u32 i = 0; i < (u32)face.size() - 2; i++)
@@ -706,7 +706,7 @@ void TriangleClipper3D::ConvertToMesh(const std::function<void(Vector3*, Vector2
 				numWritten++;
 
 				// Only need to check this here since we guarantee the buffer is in multiples of three
-				if(numWritten >= BUFFER_SIZE)
+				if(numWritten >= kBufferSize)
 				{
 					writeCallback(vertexBuffer, uvBuffer, numWritten);
 					numWritten = 0;
@@ -745,7 +745,7 @@ void MeshUtility::CalculateNormals(Vector3* vertices, u8* indices, u32 numVertic
 	{
 		VertexFaces& faces = connectivity.VertexFaces[i];
 
-		normals[i] = Vector3::ZERO;
+		normals[i] = Vector3::kZero;
 		for(u32 j = 0; j < faces.NumFaces; j++)
 		{
 			u32 faceIdx = faces.Faces[j];
@@ -811,8 +811,8 @@ void MeshUtility::CalculateTangents(Vector3* vertices, Vector3* normals, Vector2
 	{
 		VertexFaces& faces = connectivity.VertexFaces[i];
 
-		tangents[i] = Vector3::ZERO;
-		bitangents[i] = Vector3::ZERO;
+		tangents[i] = Vector3::kZero;
+		bitangents[i] = Vector3::kZero;
 
 		for(u32 j = 0; j < faces.NumFaces; j++)
 		{

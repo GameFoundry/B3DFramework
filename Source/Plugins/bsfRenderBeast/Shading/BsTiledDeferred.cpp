@@ -12,7 +12,7 @@ namespace ct {
 
 TiledLightingParamDef gTiledLightingParamDef;
 
-const u32 TiledDeferredLightingMat::TILE_SIZE = 16;
+const u32 TiledDeferredLightingMat::kTileSize = 16;
 
 TiledDeferredLightingMat::TiledDeferredLightingMat()
 	: mGBufferParams(GPT_COMPUTE_PROGRAM, mParams)
@@ -34,7 +34,7 @@ TiledDeferredLightingMat::TiledDeferredLightingMat()
 
 void TiledDeferredLightingMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILE_SIZE", TILE_SIZE);
+	defines.Set("TILE_SIZE", kTileSize);
 }
 
 void TiledDeferredLightingMat::Execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage)
@@ -103,14 +103,14 @@ void TiledDeferredLightingMat::Execute(const RendererView& view, const VisibleLi
 
 	if(mSampleCount > 1)
 	{
-		mOutputTextureParam.Set(lightAccumTexArray, TextureSurface::COMPLETE);
+		mOutputTextureParam.Set(lightAccumTexArray, TextureSurface::kComplete);
 		mMSAACoverageTexParam.Set(msaaCoverage);
 	}
 	else
 		mOutputTextureParam.Set(lightAccumTex);
 
-	u32 numTilesX = (u32)Math::CeilToInt(width / (float)TILE_SIZE);
-	u32 numTilesY = (u32)Math::CeilToInt(height / (float)TILE_SIZE);
+	u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
+	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);
@@ -173,8 +173,8 @@ ClearLoadStoreMat::ClearLoadStoreMat()
 
 void ClearLoadStoreMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILE_SIZE", TILE_SIZE);
-	defines.Set("NUM_THREADS", NUM_THREADS);
+	defines.Set("TILE_SIZE", kTileSize);
+	defines.Set("NUM_THREADS", kNumThreads);
 }
 
 void ClearLoadStoreMat::Execute(const SPtr<Texture>& target, const Color& clearValue, const TextureSurface& surface)
@@ -196,8 +196,8 @@ void ClearLoadStoreMat::Execute(const SPtr<Texture>& target, const Color& clearV
 
 	Bind();
 
-	u32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * TILE_SIZE);
-	u32 numGroupsY = Math::DivideAndRoundUp(height, NUM_THREADS * TILE_SIZE);
+	u32 numGroupsX = Math::DivideAndRoundUp(width, kNumThreads * kTileSize);
+	u32 numGroupsY = Math::DivideAndRoundUp(height, kNumThreads * kTileSize);
 
 	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY);
 }
@@ -216,7 +216,7 @@ void ClearLoadStoreMat::Execute(const SPtr<GpuBuffer>& target, const Color& clea
 
 	Bind();
 
-	u32 numGroupsX = Math::DivideAndRoundUp(width, NUM_THREADS * (TILE_SIZE * TILE_SIZE));
+	u32 numGroupsX = Math::DivideAndRoundUp(width, kNumThreads * (kTileSize * kTileSize));
 	RenderAPI::Instance().DispatchCompute(numGroupsX, 1);
 }
 
@@ -287,7 +287,7 @@ TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
 //
 // The theory is that using larger tiles will amortize the cost of computing tile AABB's (which this shader uses,
 // compared to the cheaper-to-compute frustums).
-const u32 TiledDeferredImageBasedLightingMat::TILE_SIZE = 16;
+const u32 TiledDeferredImageBasedLightingMat::kTileSize = 16;
 
 TiledDeferredImageBasedLightingMat::TiledDeferredImageBasedLightingMat()
 {
@@ -314,7 +314,7 @@ TiledDeferredImageBasedLightingMat::TiledDeferredImageBasedLightingMat()
 
 void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILE_SIZE", TILE_SIZE);
+	defines.Set("TILE_SIZE", kTileSize);
 }
 
 void TiledDeferredImageBasedLightingMat::Execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs)
@@ -360,14 +360,14 @@ void TiledDeferredImageBasedLightingMat::Execute(const RendererView& view, const
 	mInColorTextureParam.Set(inputs.LightAccumulation);
 	if(mSampleCount > 1)
 	{
-		mOutputTextureParam.Set(inputs.SceneColorTexArray, TextureSurface::COMPLETE);
+		mOutputTextureParam.Set(inputs.SceneColorTexArray, TextureSurface::kComplete);
 		mMSAACoverageTexParam.Set(inputs.MsaaCoverage);
 	}
 	else
 		mOutputTextureParam.Set(inputs.SceneColorTex);
 
-	u32 numTilesX = (u32)Math::CeilToInt(width / (float)TILE_SIZE);
-	u32 numTilesY = (u32)Math::CeilToInt(height / (float)TILE_SIZE);
+	u32 numTilesX = (u32)Math::CeilToInt(width / (float)kTileSize);
+	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);

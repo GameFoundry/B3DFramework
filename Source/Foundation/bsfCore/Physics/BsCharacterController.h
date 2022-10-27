@@ -190,7 +190,7 @@ namespace bs
 	struct CHAR_CONTROLLER_DESC
 	{
 		/** Center of the controller capsule */
-		Vector3 Position = Vector3::ZERO;
+		Vector3 Position = Vector3::kZero;
 
 		/**
 		 * Contact offset specifies a skin around the object within which contacts will be generated. It should be a small
@@ -223,7 +223,7 @@ namespace bs
 		float Radius = 1.0f;
 
 		/** Up direction of controller capsule. Determines capsule orientation. */
-		Vector3 Up = Vector3::UNIT_Y;
+		Vector3 Up = Vector3::kUnitY;
 
 		/**
 		 * Controls what happens when character encounters a height higher than its step offset.

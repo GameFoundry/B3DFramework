@@ -4,7 +4,7 @@
 
 using namespace bs;
 
-const u32 GUIContent::IMAGE_TEXT_SPACING = 3;
+const u32 GUIContent::kImageTextSpacing = 3;
 
 const HSpriteTexture& GUIContent::GetImage(GUIElementState state) const
 {

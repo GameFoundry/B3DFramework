@@ -109,7 +109,7 @@ namespace bs
 		float mClearDepthValue;
 		u16 mClearStencilValue;
 
-		static const Color DEFAULT_CLEAR_COLOR;
+		static const Color kDefaultClearColor;
 	};
 
 	/** Templated common base type used for both sim and core thread variants of Viewport. */

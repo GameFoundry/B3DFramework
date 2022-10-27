@@ -445,7 +445,7 @@ void OAAudioSource::StartStreaming()
 {
 	assert(!mIsStreaming);
 
-	alGenBuffers(StreamBufferCount, mStreamBuffers);
+	alGenBuffers(kStreamBufferCount, mStreamBuffers);
 	gOAAudio().StartStreaming(this);
 
 	memset(&mBusyBuffers, 0, sizeof(mBusyBuffers));
@@ -474,7 +474,7 @@ void OAAudioSource::StopStreaming()
 			alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
 	}
 
-	alDeleteBuffers(StreamBufferCount, mStreamBuffers);
+	alDeleteBuffers(kStreamBufferCount, mStreamBuffers);
 }
 
 void OAAudioSource::Stream()
@@ -512,7 +512,7 @@ void OAAudioSource::StreamUnlocked()
 			alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
 
 			i32 bufferIdx = -1;
-			for(u32 k = 0; k < StreamBufferCount; k++)
+			for(u32 k = 0; k < kStreamBufferCount; k++)
 			{
 				if(buffer == mStreamBuffers[k])
 				{
@@ -561,7 +561,7 @@ void OAAudioSource::StreamUnlocked()
 		}
 	}
 
-	for(u32 i = 0; i < StreamBufferCount; i++)
+	for(u32 i = 0; i < kStreamBufferCount; i++)
 	{
 		if(mBusyBuffers[i] != 0)
 			continue;

@@ -39,10 +39,10 @@ namespace bs
 	/** Structure used when searching for a specific technique in a Material. */
 	struct FIND_TECHNIQUE_DESC
 	{
-		static constexpr u32 MAX_NUM_TAGS = 10;
+		static constexpr u32 kMaxNumTags = 10;
 
 		/** A set of tags that the technique must have. */
-		StringID Tags[MAX_NUM_TAGS];
+		StringID Tags[kMaxNumTags];
 
 		/** Number of valid tags in the @p tags array. */
 		u32 NumTags = 0;
@@ -62,7 +62,7 @@ namespace bs
 		/** Registers a new tag to look for when searching for the technique. */
 		void AddTag(const StringID& tag)
 		{
-			BS_ASSERT(NumTags < MAX_NUM_TAGS);
+			BS_ASSERT(NumTags < kMaxNumTags);
 
 			Tags[NumTags] = tag;
 			NumTags++;
@@ -314,7 +314,7 @@ namespace bs
 		void SetStructData(const String& name, void* value, u32 size, u32 arrayIdx = 0) { return GetParamStruct(name).Set(value, size, arrayIdx); }
 
 		/** Assigns a texture to the shader parameter with the specified name. */
-		void SetTexture(const String& name, const TextureType& value, const TextureSurface& surface = TextureSurface::COMPLETE)
+		void SetTexture(const String& name, const TextureType& value, const TextureSurface& surface = TextureSurface::kComplete)
 		{
 			return GetParamTexture(name).Set(value, surface);
 		}

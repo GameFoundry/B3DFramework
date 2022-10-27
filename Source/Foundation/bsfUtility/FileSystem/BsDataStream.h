@@ -180,7 +180,7 @@ namespace bs
 		virtual void Close() = 0;
 
 	protected:
-		static const u32 StreamTempSize;
+		static const u32 kStreamTempSize;
 
 		String mName;
 		size_t mSize = 0;

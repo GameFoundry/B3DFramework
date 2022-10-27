@@ -609,7 +609,7 @@ void calcMinMaxIntegratedDouble(std::pair<i32, i32>& minmax, float start, float 
 } // namespace impl
 
 template <class T>
-const u32 TAnimationCurve<T>::CACHE_LOOKAHEAD = 3;
+const u32 TAnimationCurve<T>::kCacheLookahead = 3;
 
 template <class T>
 TAnimationCurve<T>::TAnimationCurve(const Vector<KeyFrame>& keyframes)
@@ -828,7 +828,7 @@ void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance
 		const KeyFrame& curKey = mKeyframes[animInstance.cachedKey];
 		if(time >= curKey.Time)
 		{
-			const u32 end = std::min((u32)mKeyframes.size(), animInstance.cachedKey + CACHE_LOOKAHEAD + 1);
+			const u32 end = std::min((u32)mKeyframes.size(), animInstance.cachedKey + kCacheLookahead + 1);
 			for(u32 i = animInstance.cachedKey + 1; i < end; i++)
 			{
 				const KeyFrame& nextKey = mKeyframes[i];
@@ -845,7 +845,7 @@ void TAnimationCurve<T>::FindKeys(float time, const TCurveCache<T>& animInstance
 		}
 		else
 		{
-			const u32 start = (u32)std::max(0, (i32)animInstance.cachedKey - (i32)CACHE_LOOKAHEAD);
+			const u32 start = (u32)std::max(0, (i32)animInstance.cachedKey - (i32)kCacheLookahead);
 			for(u32 i = start; i < animInstance.cachedKey; i++)
 			{
 				const KeyFrame& prevKey = mKeyframes[i];

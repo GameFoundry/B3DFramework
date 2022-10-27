@@ -6,7 +6,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-constexpr const char* GLRenderAPIFactory::SystemName;
+constexpr const char* GLRenderAPIFactory::kSystemName;
 
 void GLRenderAPIFactory::Create()
 {

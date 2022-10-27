@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-const ShortcutKey ShortcutKey::NONE = ShortcutKey();
+const ShortcutKey ShortcutKey::kNone = ShortcutKey();
 
 size_t ShortcutKey::Hash::operator()(const ShortcutKey& x) const
 {
@@ -29,13 +29,13 @@ ShortcutKey::ShortcutKey(ButtonModifier modifier, ButtonCode code)
 
 String ShortcutKey::GetName() const
 {
-	static const String MODIFIER_TO_NAME[8] = {
+	static const String kModifierToName[8] = {
 		u8"", u8"Shift + ", u8"Ctrl + ", u8"Shift + Ctrl + ",
 		u8"Alt + ", u8"Shift + Alt + ", u8"Ctrl + Alt + ",
 		u8"Shift + Ctrl + Alt + "
 	};
 
-	static const UnorderedMap<ButtonCode, HEString> FUNCTION_KEY_TO_NAME = {
+	static const UnorderedMap<ButtonCode, HEString> kFunctionKeyToName = {
 		{ BC_ESCAPE, HEString(u8"Escape") },
 		{ BC_BACK, HEString(u8"Backspace") },
 		{ BC_TAB, HEString(u8"Tab") },
@@ -72,8 +72,8 @@ String ShortcutKey::GetName() const
 
 	String charStr;
 
-	auto iterFind = FUNCTION_KEY_TO_NAME.find(Button);
-	if(iterFind != FUNCTION_KEY_TO_NAME.end())
+	auto iterFind = kFunctionKeyToName.find(Button);
+	if(iterFind != kFunctionKeyToName.end())
 	{
 		charStr = ((HString)iterFind->second);
 	}
@@ -83,5 +83,5 @@ String ShortcutKey::GetName() const
 		StringUtil::ToUpperCase(charStr);
 	}
 
-	return MODIFIER_TO_NAME[(u32)Modifier] + charStr;
+	return kModifierToName[(u32)Modifier] + charStr;
 }

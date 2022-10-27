@@ -194,8 +194,8 @@ namespace bs
 		HPhysicsMaterial mMaterial;
 		float mMass = 1.0f;
 		bool mIsTrigger = false;
-		Vector3 mLocalPosition = Vector3::ZERO;
-		Quaternion mLocalRotation = Quaternion::IDENTITY;
+		Vector3 mLocalPosition = Vector3::kZero;
+		Quaternion mLocalRotation = Quaternion::kIdentity;
 
 		HRigidbody mParent;
 

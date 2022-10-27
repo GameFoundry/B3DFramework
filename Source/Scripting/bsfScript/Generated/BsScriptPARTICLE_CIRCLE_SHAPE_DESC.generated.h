@@ -21,7 +21,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_CIRCLE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_CIRCLE_SHAPE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleCircleShapeOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleCircleShapeOptions")
 
 		static MonoObject* Box(const __PARTICLE_CIRCLE_SHAPE_DESCInterop& value);
 		static __PARTICLE_CIRCLE_SHAPE_DESCInterop Unbox(MonoObject* value);

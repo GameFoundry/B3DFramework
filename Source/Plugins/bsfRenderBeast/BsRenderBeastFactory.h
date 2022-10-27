@@ -17,7 +17,7 @@ namespace bs
 	class RenderBeastFactory : public RendererFactory
 	{
 	public:
-		static constexpr const char* SystemName = "bsfRenderBeast";
+		static constexpr const char* kSystemName = "bsfRenderBeast";
 
 		/** @copydoc RendererFactory::create */
 		SPtr<ct::Renderer> Create();

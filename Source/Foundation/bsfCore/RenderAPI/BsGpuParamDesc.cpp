@@ -5,9 +5,9 @@
 
 using namespace bs;
 
-constexpr u32 RTTIPlainType<GpuParamBlockDesc>::VERSION;
-constexpr u32 RTTIPlainType<GpuParamObjectDesc>::VERSION;
-constexpr u32 RTTIPlainType<GpuParamDataDesc>::VERSION;
+constexpr u32 RTTIPlainType<GpuParamBlockDesc>::kVersion;
+constexpr u32 RTTIPlainType<GpuParamObjectDesc>::kVersion;
+constexpr u32 RTTIPlainType<GpuParamDataDesc>::kVersion;
 
 RTTITypeBase* GpuParamDesc::GetRttiStatic()
 {

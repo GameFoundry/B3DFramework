@@ -68,7 +68,7 @@ void ScriptGameObject::InternalGetUuid(ScriptGameObject* nativeInstance, UUID* u
 {
 	if(checkIfDestroyed(nativeInstance))
 	{
-		*uuid = UUID::EMPTY;
+		*uuid = UUID::kEmpty;
 		return;
 	}
 

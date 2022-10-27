@@ -6,8 +6,8 @@
 
 using namespace bs;
 
-const Matrix3 Matrix3::ZERO{ BS_ZERO() };
-const Matrix3 Matrix3::IDENTITY{ BS_IDENTITY() };
+const Matrix3 Matrix3::kZero{ BS_ZERO() };
+const Matrix3 Matrix3::kIdentity{ BS_IDENTITY() };
 
 Vector3 Matrix3::GetColumn(u32 col) const
 {
@@ -174,7 +174,7 @@ bool Matrix3::Inverse(Matrix3& matInv, float tolerance) const
 
 Matrix3 Matrix3::Inverse(float tolerance) const
 {
-	Matrix3 matInv = Matrix3::ZERO;
+	Matrix3 matInv = Matrix3::kZero;
 	Inverse(matInv, tolerance);
 	return matInv;
 }
@@ -228,7 +228,7 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 	}
 	else
 	{
-		matL = Matrix3::IDENTITY;
+		matL = Matrix3::kIdentity;
 		bIdentity = true;
 	}
 
@@ -259,7 +259,7 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 	}
 	else
 	{
-		matR = Matrix3::IDENTITY;
+		matR = Matrix3::kIdentity;
 	}
 
 	// Map second column to (*,*,0)
@@ -413,14 +413,14 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 	Matrix3 mat = *this;
 	Bidiagonalize(mat, matL, matR);
 
-	for(unsigned int i = 0; i < SVD_MAX_ITERS; i++)
+	for(unsigned int i = 0; i < kSvdMaxIters; i++)
 	{
 		float tmp, tmp0, tmp1;
 		float sin0, cos0, tan0;
 		float sin1, cos1, tan1;
 
-		bool test1 = (abs(mat[0][1]) <= SVD_EPSILON * (abs(mat[0][0]) + abs(mat[1][1])));
-		bool test2 = (abs(mat[1][2]) <= SVD_EPSILON * (abs(mat[1][1]) + abs(mat[2][2])));
+		bool test1 = (abs(mat[0][1]) <= kSvdEpsilon * (abs(mat[0][0]) + abs(mat[1][1])));
+		bool test2 = (abs(mat[1][2]) <= kSvdEpsilon * (abs(mat[1][1]) + abs(mat[2][2])));
 
 		if(test1)
 		{
@@ -645,7 +645,7 @@ void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
 
 	if(radians > Radian(0.0f))
 	{
-		if(radians < Radian(Math::PI))
+		if(radians < Radian(Math::kPi))
 		{
 			axis.X = m[2][1] - m[1][2];
 			axis.Y = m[0][2] - m[2][0];
@@ -760,7 +760,7 @@ bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) cons
 		else
 		{
 			// Note: Not an unique solution.
-			xAngle = Radian(-Math::HALF_PI);
+			xAngle = Radian(-Math::kHalfPi);
 			yAngle = Radian(0.0f);
 			zAngle = -atan2(m[0][2], m[0][0]);
 
@@ -770,7 +770,7 @@ bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) cons
 	else
 	{
 		// Note: Not an unique solution.
-		xAngle = Radian(Math::HALF_PI);
+		xAngle = Radian(Math::kHalfPi);
 		yAngle = Radian(0.0f);
 		zAngle = atan2(m[0][2], m[0][0]);
 
@@ -805,9 +805,9 @@ void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const 
 void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 {
 	// Euler angle conversions
-	static constexpr const EulerAngleOrderData EA_LOOKUP[6] = { { 0, 1, 2, 1.0f }, { 0, 2, 1, -1.0f }, { 1, 0, 2, -1.0f }, { 1, 2, 0, 1.0f }, { 2, 0, 1, 1.0f }, { 2, 1, 0, -1.0f } };
+	static constexpr const EulerAngleOrderData kEaLookup[6] = { { 0, 1, 2, 1.0f }, { 0, 2, 1, -1.0f }, { 1, 0, 2, -1.0f }, { 1, 2, 0, 1.0f }, { 2, 0, 1, 1.0f }, { 2, 1, 0, -1.0f } };
 
-	const EulerAngleOrderData& l = EA_LOOKUP[(int)order];
+	const EulerAngleOrderData& l = kEaLookup[(int)order];
 
 	Matrix3 mats[3];
 	float cx = Math::Cos(xAngle);
@@ -853,7 +853,7 @@ void Matrix3::Tridiagonal(float diag[3], float subDiag[3])
 
 	diag[0] = fA;
 	subDiag[2] = 0.0;
-	if(abs(fC) >= EPSILON)
+	if(abs(fC) >= kEpsilon)
 	{
 		float length = Math::Sqrt(fB * fB + fC * fC);
 		float invLength = 1.0f / length;

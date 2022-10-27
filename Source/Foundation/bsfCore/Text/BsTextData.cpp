@@ -7,8 +7,8 @@
 
 using namespace bs;
 
-const int SPACE_CHAR = 32;
-const int TAB_CHAR = 9;
+const int kSpaceChar = 32;
+const int kTabChar = 9;
 
 void TextDataBase::TextWord::Init(bool spacer)
 {
@@ -406,16 +406,16 @@ TextDataBase::TextDataBase(const U32String& text, const HFont& font, u32 fontSiz
 		if(widthIsLimited && wordWrap)
 		{
 			u32 widthWithChar = 0;
-			if(charIdx == SPACE_CHAR)
+			if(charIdx == kSpaceChar)
 				widthWithChar = curLine->GetWidth() + GetSpaceWidth();
-			else if(charIdx == TAB_CHAR)
+			else if(charIdx == kTabChar)
 				widthWithChar = curLine->GetWidth() + GetSpaceWidth() * 4;
 			else
 				widthWithChar = curLine->CalcWidthWithChar(charDesc);
 
 			if(widthWithChar > width && !curLine->IsEmpty())
 			{
-				bool atWordBoundary = charId == SPACE_CHAR || charId == TAB_CHAR || curLine->IsAtWordBoundary();
+				bool atWordBoundary = charId == kSpaceChar || charId == kTabChar || curLine->IsAtWordBoundary();
 
 				if(!atWordBoundary) // Need to break word into multiple pieces, or move it to next line
 				{
@@ -462,7 +462,7 @@ TextDataBase::TextDataBase(const U32String& text, const HFont& font, u32 fontSiz
 						}
 					}
 				}
-				else if(charId != SPACE_CHAR && charId != TAB_CHAR) // If current char is whitespace add it to the existing line even if it doesn't fit
+				else if(charId != kSpaceChar && charId != kTabChar) // If current char is whitespace add it to the existing line even if it doesn't fit
 				{
 					curLine->Finalize(false);
 
@@ -474,12 +474,12 @@ TextDataBase::TextDataBase(const U32String& text, const HFont& font, u32 fontSiz
 			}
 		}
 
-		if(charId == SPACE_CHAR)
+		if(charId == kSpaceChar)
 		{
 			curLine->AddSpace(GetSpaceWidth());
 			MemBuffer->AddCharToPage(0, *mFontData);
 		}
-		else if(charId == TAB_CHAR)
+		else if(charId == kTabChar)
 		{
 			curLine->AddSpace(GetSpaceWidth() * 4);
 			MemBuffer->AddCharToPage(0, *mFontData);

@@ -290,21 +290,21 @@ void GUIElementBase::SetVisibleInternal(bool visible)
 
 void GUIElementBase::SetActive(bool active)
 {
-	static const u8 ACTIVE_FLAGS = GUIElem_InactiveSelf | GUIElem_HiddenSelf;
+	static const u8 kActiveFlags = GUIElem_InactiveSelf | GUIElem_HiddenSelf;
 
 	bool activeSelf = (mFlags & GUIElem_InactiveSelf) == 0;
 	if(activeSelf != active)
 	{
 		if(!active)
 		{
-			mFlags |= ACTIVE_FLAGS;
+			mFlags |= kActiveFlags;
 
 			SetActiveInternal(false);
 			SetVisibleInternal(false);
 		}
 		else
 		{
-			mFlags &= ~ACTIVE_FLAGS;
+			mFlags &= ~kActiveFlags;
 
 			if(mParentElement != nullptr)
 			{

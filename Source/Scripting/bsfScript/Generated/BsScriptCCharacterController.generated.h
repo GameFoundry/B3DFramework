@@ -32,7 +32,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCCharacterController : public TScriptComponent<ScriptCCharacterController, CCharacterController>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "CharacterController")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CharacterController")
 
 		ScriptCCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value);
 

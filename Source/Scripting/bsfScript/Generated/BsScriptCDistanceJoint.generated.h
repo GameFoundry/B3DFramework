@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCDistanceJoint : public TScriptComponent<ScriptCDistanceJoint, CDistanceJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "DistanceJoint")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "DistanceJoint")
 
 		ScriptCDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value);
 

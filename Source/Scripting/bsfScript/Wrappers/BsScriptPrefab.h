@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPrefab : public TScriptResource<ScriptPrefab, Prefab>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Prefab")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Prefab")
 
 		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
 		static MonoObject* CreateInstance();

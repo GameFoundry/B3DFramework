@@ -27,7 +27,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSkeleton : public TScriptReflectable<ScriptSkeleton, Skeleton>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Skeleton")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Skeleton")
 
 		ScriptSkeleton(MonoObject* managedInstance, const SPtr<Skeleton>& value);
 

@@ -721,8 +721,8 @@ namespace bs
 		/**	Calculates number of vertices and indices required for geometry of a quadrirateral. */
 		static void GetNumElementsQuad(u32& numVertices, u32& numIndices);
 
-		static const u32 NUM_VERTICES_AA_LINE;
-		static const u32 NUM_INDICES_AA_LINE;
+		static const u32 kNumVerticesAaLine;
+		static const u32 kNumIndicesAaLine;
 
 	protected:
 		/**

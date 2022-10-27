@@ -120,7 +120,7 @@ namespace bs
 		template <class T>
 		static const String& GetStyleName(bool resizeable, const String& overrideStyle)
 		{
-			if(overrideStyle == StringUtil::BLANK)
+			if(overrideStyle == StringUtil::kBlank)
 				return T::GetGuiTypeName(resizeable);
 
 			return overrideStyle;
@@ -147,7 +147,7 @@ namespace bs
 		GUISliderHandle* mHandleBtn;
 		bool mHorizontal;
 
-		static const u32 ButtonScrollAmount;
+		static const u32 kButtonScrollAmount;
 	};
 
 	/** @} */

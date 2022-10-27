@@ -62,7 +62,7 @@ namespace bs
 		/** Converts the UUID into its string representation. */
 		String ToString() const;
 
-		static UUID EMPTY;
+		static const UUID kEmpty;
 
 	private:
 		friend struct std::hash<UUID>;

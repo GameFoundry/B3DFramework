@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCSphericalJoint : public TScriptComponent<ScriptCSphericalJoint, CSphericalJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SphericalJoint")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SphericalJoint")
 
 		ScriptCSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value);
 

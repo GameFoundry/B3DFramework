@@ -787,7 +787,7 @@ bool VulkanUtility::RangeOverlaps(const VkImageSubresourceRange& a, const VkImag
 
 u32 VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(GpuParamDataType type, u32 arraySize, u32& offset)
 {
-	const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[type];
+	const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::kParamSizes.Lookup[type];
 	u32 size = (typeInfo.BaseTypeSize * typeInfo.NumColumns * typeInfo.NumRows) / 4;
 	u32 alignment = typeInfo.Alignment / 4;
 

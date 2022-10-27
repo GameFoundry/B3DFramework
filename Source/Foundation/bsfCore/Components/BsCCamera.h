@@ -111,7 +111,7 @@ namespace bs
 		}
 
 		/** @copydoc Camera::setCustomViewMatrix */
-		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::IDENTITY)
+		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::kIdentity)
 		{
 			mInternal->SetCustomViewMatrix(enable, viewMatrix);
 		}
@@ -120,7 +120,7 @@ namespace bs
 		virtual bool IsCustomViewMatrixEnabled() const { return mInternal->IsCustomViewMatrixEnabled(); }
 
 		/** @copydoc Camera::setCustomProjectionMatrix */
-		virtual void SetCustomProjectionMatrix(bool enable, const Matrix4& projectionMatrix = Matrix4::IDENTITY)
+		virtual void SetCustomProjectionMatrix(bool enable, const Matrix4& projectionMatrix = Matrix4::kIdentity)
 		{
 			mInternal->SetCustomProjectionMatrix(enable, projectionMatrix);
 		}

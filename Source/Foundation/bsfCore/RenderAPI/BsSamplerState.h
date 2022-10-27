@@ -55,7 +55,7 @@ namespace bs
 		float MipMax = FLT_MAX;
 
 		/** Border color to use when using border addressing mode as specified by @p addressMode. */
-		Color BorderColor = Color::White;
+		Color BorderColor = Color::kWhite;
 
 		/** Function that compares sampled data with existing sampled data. */
 		CompareFunction ComparisonFunc = CMPF_ALWAYS_PASS;

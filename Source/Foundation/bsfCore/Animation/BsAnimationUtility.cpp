@@ -100,8 +100,8 @@ SPtr<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
 
 		keyframe.Time = time;
 		keyframe.Value = quat;
-		keyframe.InTangent = Quaternion::ZERO;
-		keyframe.OutTangent = Quaternion::ZERO;
+		keyframe.InTangent = Quaternion::kZero;
+		keyframe.OutTangent = Quaternion::kZero;
 	};
 
 	// Calculate key values
@@ -214,8 +214,8 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SP
 
 		eulerKeyframes[i].Time = time;
 		eulerKeyframes[i].Value = euler;
-		eulerKeyframes[i].InTangent = Vector3::ZERO;
-		eulerKeyframes[i].OutTangent = Vector3::ZERO;
+		eulerKeyframes[i].InTangent = Vector3::kZero;
+		eulerKeyframes[i].OutTangent = Vector3::kZero;
 	}
 
 	// Calculate extra values between keys so we can approximate tangents. If we're sampling very close to the key

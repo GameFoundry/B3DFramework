@@ -96,7 +96,7 @@ WString win32_getCurrentDirectory()
 		bs_free(buffer);
 	}
 
-	return StringUtil::WBLANK;
+	return StringUtil::kWblank;
 }
 
 WString win32_getTempDirectory()
@@ -120,7 +120,7 @@ WString win32_getTempDirectory()
 		bs_free(buffer);
 	}
 
-	return StringUtil::WBLANK;
+	return StringUtil::kWblank;
 }
 
 bool win32_pathExists(const WString& path)

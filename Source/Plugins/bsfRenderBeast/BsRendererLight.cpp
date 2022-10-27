@@ -13,7 +13,7 @@
 namespace bs {
 namespace ct {
 
-static const u32 LIGHT_DATA_BUFFER_INCREMENT = 16 * sizeof(LightData);
+static const u32 kLightDataBufferIncrement = 16 * sizeof(LightData);
 
 RendererLight::RendererLight(Light* light)
 	: Internal(light)
@@ -39,7 +39,7 @@ void RendererLight::GetParameters(LightData& output) const
 
 	// If directional lights, convert angular radius in degrees to radians
 	if(Internal->GetType() == LightType::Directional)
-		output.SrcRadius *= Math::DEG2RAD;
+		output.SrcRadius *= Math::kDeG2Rad;
 
 	output.ShiftedLightPosition = GetShiftedLightPosition();
 }
@@ -72,8 +72,8 @@ void RendererLight::GetParameters(SPtr<GpuParamBlockBuffer>& buffer) const
 	gPerLightParamDef.gShiftedLightPositionAndType.Set(buffer, Vector4(lightData.ShiftedLightPosition, type));
 
 	Vector4 lightGeometry;
-	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::LIGHT_CONE_NUM_SIDES : 0;
-	lightGeometry.Y = (float)Light::LIGHT_CONE_NUM_SLICES;
+	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::kLightConeNumSides : 0;
+	lightGeometry.Y = (float)Light::kLightConeNumSlices;
 	lightGeometry.Z = Internal->GetBounds().GetRadius();
 
 	float extraRadius = lightData.SrcRadius / Math::Tan(lightData.SpotAngles.X * 0.5f);
@@ -87,7 +87,7 @@ void RendererLight::GetParameters(SPtr<GpuParamBlockBuffer>& buffer) const
 	Quaternion lightRotation(BsIdentity);
 	lightRotation.LookRotation(-tfrm.GetRotation().ZAxis());
 
-	Matrix4 transform = Matrix4::TRS(lightData.ShiftedLightPosition, lightRotation, Vector3::ONE);
+	Matrix4 transform = Matrix4::TRS(lightData.ShiftedLightPosition, lightRotation, Vector3::kOne);
 	gPerLightParamDef.gMatConeTransform.Set(buffer, transform);
 }
 
@@ -274,7 +274,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		if(size > curBufferSize || curBufferSize == 0)
 		{
 			// Allocate at least one block even if no lights, to avoid issues with null buffers
-			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)LIGHT_DATA_BUFFER_INCREMENT)) * LIGHT_DATA_BUFFER_INCREMENT;
+			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kLightDataBufferIncrement)) * kLightDataBufferIncrement;
 
 			GPU_BUFFER_DESC bufferDesc;
 			bufferDesc.Type = GBT_STRUCTURED;
@@ -290,15 +290,15 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 	}
 }
 
-void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[STANDARD_FORWARD_MAX_NUM_LIGHTS], Vector3I& counts) const
+void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[kStandardForwardMaxNumLights], Vector3I& counts) const
 {
-	u32 outputIndices[STANDARD_FORWARD_MAX_NUM_LIGHTS];
+	u32 outputIndices[kStandardForwardMaxNumLights];
 	u32 numInfluencingLights = 0;
 
 	u32 numDirLights = GetNumDirLights();
 	for(u32 i = 0; i < numDirLights; i++)
 	{
-		if(numInfluencingLights >= STANDARD_FORWARD_MAX_NUM_LIGHTS)
+		if(numInfluencingLights >= kStandardForwardMaxNumLights)
 			return;
 
 		outputIndices[numInfluencingLights] = i;
@@ -307,8 +307,8 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 
 	u32 pointLightOffset = numInfluencingLights;
 
-	float distances[STANDARD_FORWARD_MAX_NUM_LIGHTS];
-	for(u32 i = 0; i < STANDARD_FORWARD_MAX_NUM_LIGHTS; i++)
+	float distances[kStandardForwardMaxNumLights];
+	for(u32 i = 0; i < kStandardForwardMaxNumLights; i++)
 		distances[i] = std::numeric_limits<float>::max();
 
 	// Note: This is an ad-hoc way of evaluating light influence, a better way might be wanted
@@ -325,7 +325,7 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 			float distance = bounds.GetSphere().GetCenter().SquaredDistance(lightData->Position);
 
 			// See where in the array can we fit the light
-			if(numInfluencingLights < STANDARD_FORWARD_MAX_NUM_LIGHTS)
+			if(numInfluencingLights < kStandardForwardMaxNumLights)
 			{
 				outputIndices[numInfluencingLights] = j;
 				distances[numInfluencingLights] = distance;
@@ -344,7 +344,7 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 				distances[furthestLightIdx] = distance;
 
 				furthestDistance = distance;
-				for(u32 k = 0; k < STANDARD_FORWARD_MAX_NUM_LIGHTS; k++)
+				for(u32 k = 0; k < kStandardForwardMaxNumLights; k++)
 				{
 					if(distances[k] > furthestDistance)
 					{

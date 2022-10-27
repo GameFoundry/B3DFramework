@@ -24,7 +24,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTexture : public TScriptResource<ScriptTexture, Texture>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Texture")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Texture")
 
 		ScriptTexture(MonoObject* managedInstance, const ResourceHandle<Texture>& value);
 

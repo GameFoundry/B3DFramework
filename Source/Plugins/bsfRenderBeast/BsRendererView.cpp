@@ -115,7 +115,7 @@ void RendererView::SetTransform(const Vector3& origin, const Vector3& direction,
 	mProperties.ProjTransformNoAa = proj;
 	mProperties.CullFrustum = worldFrustum;
 	mProperties.ViewProjTransform = proj * view;
-	mProperties.TemporalJitter = Vector2::ZERO;
+	mProperties.TemporalJitter = Vector2::kZero;
 }
 
 void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
@@ -124,9 +124,9 @@ void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
 	mProperties = desc;
 	mProperties.ProjTransformNoAa = desc.ProjTransform;
 	mProperties.ViewProjTransform = desc.ProjTransform * desc.ViewTransform;
-	mProperties.PrevViewProjTransform = Matrix4::IDENTITY;
+	mProperties.PrevViewProjTransform = Matrix4::kIdentity;
 	mProperties.Target = desc.Target;
-	mProperties.TemporalJitter = Vector2::ZERO;
+	mProperties.TemporalJitter = Vector2::kZero;
 
 	SetStateReductionMode(desc.StateReduction);
 }
@@ -192,7 +192,7 @@ void RendererView::BeginFrame(const FrameInfo& frameInfo)
 
 			float scale = (2.0f - mRenderSettings->TemporalAa.Sharpness) * 0.3f;
 
-			float angle = 2.0f * Math::PI * u2;
+			float angle = 2.0f * Math::kPi * u2;
 			float radius = scale * Math::Sqrt(-2.0f * Math::Log(Math::Max(u1, EPSILON)));
 
 			mProperties.TemporalJitter = Vector2(radius * Math::Cos(angle), radius * Math::Sin(angle));
@@ -755,7 +755,7 @@ void RendererView::UpdatePerViewBuffer()
 	// view_z/view_w in view space, into world space.
 
 	// Only projects z/w coordinates (cancels out with the inverse matrix below)
-	Matrix4 projZ = Matrix4::IDENTITY;
+	Matrix4 projZ = Matrix4::kIdentity;
 	projZ[2][2] = mProperties.ProjTransform[2][2];
 	projZ[2][3] = mProperties.ProjTransform[2][3];
 	projZ[3][2] = mProperties.ProjTransform[3][2];

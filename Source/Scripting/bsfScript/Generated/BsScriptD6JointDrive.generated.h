@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptD6JointDrive : public ScriptObject<ScriptD6JointDrive>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "D6JointDrive")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "D6JointDrive")
 
 		static MonoObject* Box(const D6JointDrive& value);
 		static D6JointDrive Unbox(MonoObject* value);

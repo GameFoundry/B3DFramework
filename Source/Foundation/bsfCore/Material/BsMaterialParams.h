@@ -285,7 +285,7 @@ namespace bs
 
 			const DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 
-			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.Lookup[dataType];
+			const GpuParamDataTypeInfo& typeInfo = GpuParams::kParamSizes.Lookup[dataType];
 			u32 paramTypeSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 
 			assert(sizeof(output) == paramTypeSize);
@@ -315,7 +315,7 @@ namespace bs
 				paramInfo.ColorGradient = nullptr;
 			}
 
-			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.Lookup[dataType];
+			const GpuParamDataTypeInfo& typeInfo = GpuParams::kParamSizes.Lookup[dataType];
 			u32 paramTypeSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 
 			assert(sizeof(input) == paramTypeSize);
@@ -393,7 +393,7 @@ namespace bs
 		u64 GetParamVersion() const { return mParamVersion; }
 
 	protected:
-		const static u32 STATIC_BUFFER_SIZE = 256;
+		const static u32 kStaticBufferSize = 256;
 
 		UnorderedMap<String, u32> mParamLookup;
 		Vector<ParamData> mParams;
@@ -409,7 +409,7 @@ namespace bs
 		u32 mNumSamplerParams = 0;
 
 		mutable u64 mParamVersion = 1;
-		mutable StaticAlloc<STATIC_BUFFER_SIZE> mAlloc;
+		mutable StaticAlloc<kStaticBufferSize> mAlloc;
 	};
 
 	/** Raw data for a single structure parameter. */
@@ -579,7 +579,7 @@ namespace bs
 		 * @param[in]	value		New value of the parameter.
 		 * @param[in]	surface		Surface describing which part of the texture is being accessed.
 		 */
-		void SetTexture(const String& name, const TextureType& value, const TextureSurface& surface = TextureSurface::COMPLETE);
+		void SetTexture(const String& name, const TextureType& value, const TextureSurface& surface = TextureSurface::kComplete);
 
 		/**
 		 * Returns the value of a shader texture parameter with the specified name as a sprite texture. If the parameter
@@ -694,7 +694,7 @@ namespace bs
 		 * parameter reference directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid
 		 * and belongs to this object.
 		 */
-		void SetTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface = TextureSurface::COMPLETE);
+		void SetTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface = TextureSurface::kComplete);
 
 		/**
 		 * Equivalent to getSpriteTexture(const String&, HSpriteTexture&) except it uses the internal parameter reference

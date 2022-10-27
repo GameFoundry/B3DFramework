@@ -345,7 +345,7 @@ ShadowMapAtlas::ShadowMapAtlas(u32 size)
 	: mLayout(0, 0, size, size, true), mLastUsedCounter(0)
 {
 	mAtlas = GpuResourcePool::Instance().Get(
-		POOLED_RENDER_TEXTURE_DESC::Create2D(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL));
+		POOLED_RENDER_TEXTURE_DESC::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
 }
 
 bool ShadowMapAtlas::AddMap(u32 size, Rect2I& area, u32 border)
@@ -398,7 +398,7 @@ ShadowCubemap::ShadowCubemap(u32 size)
 	: ShadowMapBase(size)
 {
 	mShadowMap = GpuResourcePool::Instance().Get(
-		POOLED_RENDER_TEXTURE_DESC::CreateCube(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL));
+		POOLED_RENDER_TEXTURE_DESC::CreateCube(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
 }
 
 SPtr<RenderTexture> ShadowCubemap::GetTarget() const
@@ -409,7 +409,7 @@ SPtr<RenderTexture> ShadowCubemap::GetTarget() const
 ShadowCascadedMap::ShadowCascadedMap(u32 size, u32 numCascades)
 	: ShadowMapBase(size), mNumCascades(numCascades), mTargets(numCascades), mShadowInfos(numCascades)
 {
-	mShadowMap = GpuResourcePool::Instance().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(SHADOW_MAP_FORMAT, size, size, TU_DEPTHSTENCIL, 0, false, numCascades));
+	mShadowMap = GpuResourcePool::Instance().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL, 0, false, numCascades));
 
 	RENDER_TEXTURE_DESC rtDesc;
 	rtDesc.DepthStencilSurface.Texture = mShadowMap->Texture;
@@ -689,12 +689,12 @@ struct ShadowRenderQueueDirOptions
 	mutable ShadowDepthDirectionalMat* Material = nullptr;
 };
 
-const u32 ShadowRendering::MAX_ATLAS_SIZE = 4096;
-const u32 ShadowRendering::MAX_UNUSED_FRAMES = 60;
-const u32 ShadowRendering::MIN_SHADOW_MAP_SIZE = 32;
-const u32 ShadowRendering::SHADOW_MAP_FADE_SIZE = 64;
-const u32 ShadowRendering::SHADOW_MAP_BORDER = 4;
-const float ShadowRendering::CASCADE_FRACTION_FADE = 0.1f;
+const u32 ShadowRendering::kMaxAtlasSize = 4096;
+const u32 ShadowRendering::kMaxUnusedFrames = 60;
+const u32 ShadowRendering::kMinShadowMapSize = 32;
+const u32 ShadowRendering::kShadowMapFadeSize = 64;
+const u32 ShadowRendering::kShadowMapBorder = 4;
+const float ShadowRendering::kCascadeFractionFade = 0.1f;
 
 ShadowRendering::ShadowRendering(u32 shadowMapSize)
 	: mShadowMapSize(shadowMapSize)
@@ -746,7 +746,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 		ibDesc.NumIndices = 36;
 
 		mFrustumIB = IndexBuffer::Create(ibDesc);
-		mFrustumIB->WriteData(0, sizeof(AABox::CUBE_INDICES), AABox::CUBE_INDICES);
+		mFrustumIB->WriteData(0, sizeof(AABox::kCubeIndices), AABox::kCubeIndices);
 	}
 }
 
@@ -812,7 +812,7 @@ void ShadowRendering::RenderShadowMaps(RendererScene& scene, const RendererViewG
 		options.LightIdx = i;
 
 		float maxFadePercent;
-		CalcShadowMapProperties(light, viewGroup, SHADOW_MAP_BORDER, options.MapSize, options.FadePercents, maxFadePercent);
+		CalcShadowMapProperties(light, viewGroup, kShadowMapBorder, options.MapSize, options.FadePercents, maxFadePercent);
 
 		// Don't render shadow maps that will end up nearly completely faded out
 		if(maxFadePercent < 0.005f)
@@ -858,7 +858,7 @@ void ShadowRendering::RenderShadowMaps(RendererScene& scene, const RendererViewG
 	// Deallocate unused textures (must be done before rendering shadows, in order to ensure indices don't change)
 	for(auto iter = mDynamicShadowMaps.begin(); iter != mDynamicShadowMaps.end(); ++iter)
 	{
-		if(iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
+		if(iter->GetLastUsedCounter() >= kMaxUnusedFrames)
 		{
 			// These are always populated in order, so we can assume all following atlases are also empty
 			mDynamicShadowMaps.erase(iter, mDynamicShadowMaps.end());
@@ -868,7 +868,7 @@ void ShadowRendering::RenderShadowMaps(RendererScene& scene, const RendererViewG
 
 	for(auto iter = mCascadedShadowMaps.begin(); iter != mCascadedShadowMaps.end();)
 	{
-		if(iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
+		if(iter->GetLastUsedCounter() >= kMaxUnusedFrames)
 			iter = mCascadedShadowMaps.erase(iter);
 		else
 			++iter;
@@ -876,7 +876,7 @@ void ShadowRendering::RenderShadowMaps(RendererScene& scene, const RendererViewG
 
 	for(auto iter = mShadowCubemaps.begin(); iter != mShadowCubemaps.end();)
 	{
-		if(iter->GetLastUsedCounter() >= MAX_UNUSED_FRAMES)
+		if(iter->GetLastUsedCounter() >= kMaxUnusedFrames)
 			iter = mShadowCubemaps.erase(iter);
 		else
 			++iter;
@@ -957,7 +957,7 @@ std::array<Vector3, 8> getFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
 Matrix4 createMixedToShadowUVMatrix(const Matrix4& viewP, const Matrix4& viewInvVP, const Rect2& shadowMapArea, float depthScale, float depthOffset, const Matrix4& shadowViewProj)
 {
 	// Projects a point from (clip_x, clip_y, view_z, view_w) into clip space
-	Matrix4 mixedToShadow = Matrix4::IDENTITY;
+	Matrix4 mixedToShadow = Matrix4::kIdentity;
 	mixedToShadow[2][2] = viewP[2][2];
 	mixedToShadow[2][3] = viewP[2][3];
 	mixedToShadow[3][2] = viewP[3][2];
@@ -1216,7 +1216,7 @@ void ShadowRendering::RenderCascadedShadowMaps(const RendererView& view, u32 lig
 	shadowInfo.LightIdx = lightIdx;
 	shadowInfo.TextureIdx = -1;
 
-	u32 mapSize = std::min(mShadowMapSize, MAX_ATLAS_SIZE);
+	u32 mapSize = std::min(mShadowMapSize, kMaxAtlasSize);
 	shadowInfo.Area = Rect2I(0, 0, mapSize, mapSize);
 	shadowInfo.UpdateNormArea(mapSize);
 
@@ -1246,7 +1246,7 @@ void ShadowRendering::RenderCascadedShadowMaps(const RendererView& view, u32 lig
 	ShadowCascadedMap& shadowMap = mCascadedShadowMaps[shadowInfo.TextureIdx];
 
 	Quaternion lightRotation(BsIdentity);
-	lightRotation.LookRotation(lightDir, Vector3::UNIT_Y);
+	lightRotation.LookRotation(lightDir, Vector3::kUnitY);
 
 	ProfileGPUBlock profileSample("Project directional light shadow");
 
@@ -1263,7 +1263,7 @@ void ShadowRendering::RenderCascadedShadowMaps(const RendererView& view, u32 lig
 
 		// Snap caster origin to the shadow map pixel grid, to ensure shadow map stability
 		Vector3 casterOrigin = frustumBounds.GetCenter();
-		Matrix4 shadowView = Matrix4::View(Vector3::ZERO, lightRotation);
+		Matrix4 shadowView = Matrix4::View(Vector3::kZero, lightRotation);
 		Vector3 shadowSpaceOrigin = shadowView.MultiplyAffine(casterOrigin);
 
 		Vector2 snapOffset(fmod(shadowSpaceOrigin.X, worldUnitsPerTexel), fmod(shadowSpaceOrigin.Y, worldUnitsPerTexel));
@@ -1295,7 +1295,7 @@ void ShadowRendering::RenderCascadedShadowMaps(const RendererView& view, u32 lig
 		shadowInfo.SubjectBounds = frustumBounds;
 
 		if((u32)(i + 1) < numCascades)
-			shadowInfo.FadeRange = CASCADE_FRACTION_FADE * (shadowInfo.DepthFade - shadowInfo.DepthNear);
+			shadowInfo.FadeRange = kCascadeFractionFade * (shadowInfo.DepthFade - shadowInfo.DepthNear);
 		else
 			shadowInfo.FadeRange = 0.0f;
 
@@ -1343,7 +1343,7 @@ void ShadowRendering::RenderSpotShadowMap(const RendererLight& rendererLight, co
 	{
 		ShadowMapAtlas& atlas = mDynamicShadowMaps[i];
 
-		if(atlas.AddMap(options.MapSize, mapInfo.Area, SHADOW_MAP_BORDER))
+		if(atlas.AddMap(options.MapSize, mapInfo.Area, kShadowMapBorder))
 		{
 			mapInfo.TextureIdx = i;
 
@@ -1355,13 +1355,13 @@ void ShadowRendering::RenderSpotShadowMap(const RendererLight& rendererLight, co
 	if(!foundSpace)
 	{
 		mapInfo.TextureIdx = (u32)mDynamicShadowMaps.size();
-		mDynamicShadowMaps.push_back(ShadowMapAtlas(MAX_ATLAS_SIZE));
+		mDynamicShadowMaps.push_back(ShadowMapAtlas(kMaxAtlasSize));
 
 		ShadowMapAtlas& atlas = mDynamicShadowMaps.back();
-		atlas.AddMap(options.MapSize, mapInfo.Area, SHADOW_MAP_BORDER);
+		atlas.AddMap(options.MapSize, mapInfo.Area, kShadowMapBorder);
 	}
 
-	mapInfo.UpdateNormArea(MAX_ATLAS_SIZE);
+	mapInfo.UpdateNormArea(kMaxAtlasSize);
 	ShadowMapAtlas& atlas = mDynamicShadowMaps[mapInfo.TextureIdx];
 
 	ProfileGPUBlock profileSample("Project spot light shadows");
@@ -1506,7 +1506,7 @@ void ShadowRendering::RenderRadialShadowMap(const RendererLight& rendererLight, 
 
 	gShadowParamsDef.gDepthBias.Set(shadowParamsBuffer, mapInfo.DepthBias);
 	gShadowParamsDef.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / mapInfo.DepthRange);
-	gShadowParamsDef.gMatViewProj.Set(shadowParamsBuffer, Matrix4::IDENTITY);
+	gShadowParamsDef.gMatViewProj.Set(shadowParamsBuffer, Matrix4::kIdentity);
 	gShadowParamsDef.gNDCZToDeviceZ.Set(shadowParamsBuffer, RendererView::GetNdczToDeviceZ());
 
 	ConvexVolume frustums[6];
@@ -1515,29 +1515,29 @@ void ShadowRendering::RenderRadialShadowMap(const RendererLight& rendererLight, 
 	{
 		// Calculate view matrix
 		Vector3 forward;
-		Vector3 up = Vector3::UNIT_Y;
+		Vector3 up = Vector3::kUnitY;
 
 		switch(i)
 		{
 		case CF_PositiveX:
-			forward = Vector3::UNIT_X;
+			forward = Vector3::kUnitX;
 			break;
 		case CF_NegativeX:
-			forward = -Vector3::UNIT_X;
+			forward = -Vector3::kUnitX;
 			break;
 		case CF_PositiveY:
-			forward = Vector3::UNIT_Y;
-			up = -Vector3::UNIT_Z;
+			forward = Vector3::kUnitY;
+			up = -Vector3::kUnitZ;
 			break;
 		case CF_NegativeY:
-			forward = -Vector3::UNIT_Y;
-			up = Vector3::UNIT_Z;
+			forward = -Vector3::kUnitY;
+			up = Vector3::kUnitZ;
 			break;
 		case CF_PositiveZ:
-			forward = Vector3::UNIT_Z;
+			forward = Vector3::kUnitZ;
 			break;
 		case CF_NegativeZ:
-			forward = -Vector3::UNIT_Z;
+			forward = -Vector3::kUnitZ;
 			break;
 		}
 
@@ -1624,7 +1624,7 @@ void ShadowRendering::RenderRadialShadowMap(const RendererLight& rendererLight, 
 
 void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, SmallVector<float, 6>& fadePercents, float& maxFadePercent) const
 {
-	const static float SHADOW_TEXELS_PER_PIXEL = 1.0f;
+	const static float kShadowTexelsPerPixel = 1.0f;
 
 	// Find a view in which the light has the largest radius
 	float maxMapSize = 0.0f;
@@ -1660,11 +1660,11 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 			//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
 			float radiusScreen = radiusNDC * screenScale;
 
-			float optimalMapSize = SHADOW_TEXELS_PER_PIXEL * radiusScreen;
+			float optimalMapSize = kShadowTexelsPerPixel * radiusScreen;
 			maxMapSize = std::max(maxMapSize, optimalMapSize);
 
 			// Determine if the shadow should fade out
-			float fadePercent = Math::InvLerp(optimalMapSize, (float)MIN_SHADOW_MAP_SIZE, (float)SHADOW_MAP_FADE_SIZE);
+			float fadePercent = Math::InvLerp(optimalMapSize, (float)kMinShadowMapSize, (float)kShadowMapFadeSize);
 			fadePercents.Add(fadePercent);
 			maxFadePercent = std::max(maxFadePercent, fadePercent);
 		}
@@ -1673,7 +1673,7 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 	// If light fully (or nearly fully) covers the screen, use full shadow map resolution, otherwise
 	// scale it down to smaller power of two, while clamping to minimal allowed resolution
 	u32 effectiveMapSize = Bitwise::NextPow2((u32)maxMapSize);
-	effectiveMapSize = Math::Clamp(effectiveMapSize, MIN_SHADOW_MAP_SIZE, mShadowMapSize);
+	effectiveMapSize = Math::Clamp(effectiveMapSize, kMinShadowMapSize, mShadowMapSize);
 
 	// Leave room for border
 	size = std::max(effectiveMapSize - 2 * border, 1u);
@@ -1729,11 +1729,11 @@ void ShadowRendering::DrawFrustum(const std::array<Vector3, 8>& corners) const
 
 u32 ShadowRendering::GetShadowQuality(u32 requestedQuality, u32 shadowMapResolution, u32 minAllowedQuality)
 {
-	static const u32 TARGET_RESOLUTION = 512;
+	static const u32 kTargetResolution = 512;
 
 	// If shadow map resolution is smaller than some target resolution drop the number of PCF samples (shadow quality)
 	// so that the penumbra better matches with larger sized shadow maps.
-	while(requestedQuality > minAllowedQuality && shadowMapResolution < TARGET_RESOLUTION)
+	while(requestedQuality > minAllowedQuality && shadowMapResolution < kTargetResolution)
 	{
 		shadowMapResolution *= 2;
 		requestedQuality = std::max(requestedQuality - 1, 1U);
@@ -1750,7 +1750,7 @@ ConvexVolume ShadowRendering::GetCsmSplitFrustum(const RendererView& view, const
 
 	// Increase by fade range, unless last cascade
 	if((u32)(cascade + 1) < numCascades)
-		splitFar += CASCADE_FRACTION_FADE * (splitFar - splitNear);
+		splitFar += kCascadeFractionFade * (splitFar - splitNear);
 
 	// Calculate the eight vertices of the split frustum
 	auto& viewProps = view.GetProperties();
@@ -1914,16 +1914,16 @@ float ShadowRendering::GetCsmSplitDistance(const RendererView& view, u32 index, 
 
 float ShadowRendering::GetDepthBias(const Light& light, float radius, float depthRange, u32 mapSize)
 {
-	const static float RADIAL_LIGHT_BIAS = 0.005f;
-	const static float SPOT_DEPTH_BIAS = 0.01f;
-	const static float DIR_DEPTH_BIAS = 0.001f; // In clip space units
-	const static float DEFAULT_RESOLUTION = 512.0f;
+	const static float kRadialLightBias = 0.005f;
+	const static float kSpotDepthBias = 0.01f;
+	const static float kDirDepthBias = 0.001f; // In clip space units
+	const static float kDefaultResolution = 512.0f;
 
 	// Increase bias if map size smaller than some resolution
 	float resolutionScale = 1.0f;
 
 	if(light.GetType() != LightType::Directional)
-		resolutionScale = DEFAULT_RESOLUTION / (float)mapSize;
+		resolutionScale = kDefaultResolution / (float)mapSize;
 
 	// Adjust range because in shader we compare vs. clip space depth
 	float rangeScale = 1.0f;
@@ -1937,16 +1937,16 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 	switch(light.GetType())
 	{
 	case LightType::Directional:
-		defaultBias = DIR_DEPTH_BIAS * deviceDepthRange;
+		defaultBias = kDirDepthBias * deviceDepthRange;
 
 		// Use larger bias for further away cascades
 		defaultBias *= depthRange * 0.01f;
 		break;
 	case LightType::Radial:
-		defaultBias = RADIAL_LIGHT_BIAS;
+		defaultBias = kRadialLightBias;
 		break;
 	case LightType::Spot:
-		defaultBias = SPOT_DEPTH_BIAS;
+		defaultBias = kSpotDepthBias;
 		break;
 	default:
 		break;
@@ -1957,17 +1957,17 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 
 float ShadowRendering::GetFadeTransition(const Light& light, float radius, float depthRange, u32 mapSize)
 {
-	const static float SPOT_LIGHT_SCALE = 1000.0f;
-	const static float DIR_LIGHT_SCALE = 50000000.0f;
+	const static float kSpotLightScale = 1000.0f;
+	const static float kDirLightScale = 50000000.0f;
 
 	// Note: Currently fade transitions are only used in spot & directional (non omni-directional) lights, so no need
 	// to account for radial light type.
 	if(light.GetType() == LightType::Directional)
 	{
 		// Just use a large value, as we want a minimal transition region
-		return DIR_LIGHT_SCALE;
+		return kDirLightScale;
 	}
 	else
-		return fabs(light.GetShadowBias()) * SPOT_LIGHT_SCALE;
+		return fabs(light.GetShadowBias()) * kSpotLightScale;
 }
 }}

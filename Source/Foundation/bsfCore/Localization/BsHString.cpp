@@ -33,7 +33,7 @@ HString::HString(const String& identifierString, u32 stringTableId)
 HString::HString(const String& identifierString, const String& defaultString, u32 stringTableId)
 {
 	HStringTable table = StringTableManager::Instance().GetTable(stringTableId);
-	table->SetString(identifierString, StringTable::DEFAULT_LANGUAGE, defaultString);
+	table->SetString(identifierString, StringTable::kDefaultLanguage, defaultString);
 
 	mStringData = table->GetStringData(identifierString);
 

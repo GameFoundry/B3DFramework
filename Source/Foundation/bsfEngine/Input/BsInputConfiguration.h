@@ -133,8 +133,8 @@ namespace bs
 	/**	Contains virtual <-> physical key mappings. */
 	class BS_EXPORT InputConfiguration
 	{
-		static const int MAX_NUM_DEVICES_PER_TYPE = 8;
-		static const int MAX_NUM_DEVICES = (u32)InputDevice::Count * MAX_NUM_DEVICES_PER_TYPE;
+		static const int kMaxNumDevicesPerType = 8;
+		static const int kMaxNumDevices = (u32)InputDevice::Count * kMaxNumDevicesPerType;
 
 		/**	Internal virtual button data container. */
 		struct VirtualButtonData

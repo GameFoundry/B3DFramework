@@ -21,7 +21,7 @@ namespace bs
 		 */
 
 		/** Maximum number of refl. probes that can influence an object when basic forward rendering is used. */
-		static constexpr u32 STANDARD_FORWARD_MAX_NUM_PROBES = 8;
+		static constexpr u32 kStandardForwardMaxNumProbes = 8;
 
 		/** Information about a single reflection probe, as seen by the lighting shader. */
 		struct ReflProbeData
@@ -130,7 +130,7 @@ namespace bs
 		};
 
 		BS_PARAM_BLOCK_BEGIN(ReflProbesParamDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(ReflProbeData, gReflectionProbes, STANDARD_FORWARD_MAX_NUM_PROBES)
+			BS_PARAM_BLOCK_ENTRY_ARRAY(ReflProbeData, gReflectionProbes, kStandardForwardMaxNumProbes)
 		BS_PARAM_BLOCK_END
 
 		extern ReflProbesParamDef gReflProbesParamDef;

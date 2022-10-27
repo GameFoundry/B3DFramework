@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIInputBox : public TScriptGUIElement<ScriptGUIInputBox>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUITextBox")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUITextBox")
 
 	private:
 		ScriptGUIInputBox(MonoObject* instance, GUIInputBox* inputBox);

@@ -27,7 +27,7 @@ namespace bs
 			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc);
 
 		protected:
-			static const String LANGUAGE_NAME;
+			static const String kLanguageName;
 		};
 
 		/** @} */

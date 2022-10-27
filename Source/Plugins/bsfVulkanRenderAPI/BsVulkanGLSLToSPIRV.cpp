@@ -691,7 +691,7 @@ bool parseUniforms(const glslang::TProgram* program, GpuParamDesc& desc, String&
 				u32 arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
 				if(paramType != GPDT_STRUCT)
 				{
-					const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[paramType];
+					const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::kParamSizes.Lookup[paramType];
 					elementSize = typeInfo.Size / 4;
 
 					// Array elements in std140 are always rounded to vec4

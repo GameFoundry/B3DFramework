@@ -86,10 +86,10 @@ namespace bs
 		void Frustum(const Vector3& position, float aspect, Degree FOV, float near, float far);
 
 		/**	Records a solid cone with the specified properties in the internal draw queue. */
-		void Cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE, u32 quality = 10);
+		void Cone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::kOne, u32 quality = 10);
 
 		/**	Records a wire cone with the specified properties in the internal draw queue. */
-		void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::ONE, u32 quality = 10);
+		void WireCone(const Vector3& base, const Vector3& normal, float height, float radius, const Vector2& scale = Vector2::kOne, u32 quality = 10);
 
 		/**	Records a solid disc with the specified properties in the internal draw queue. */
 		void Disc(const Vector3& position, const Vector3& normal, float radius, u32 quality = 10);
@@ -223,8 +223,8 @@ namespace bs
 			SPtr<MeshData> MeshData;
 		};
 
-		static const u32 VERTEX_BUFFER_GROWTH;
-		static const u32 INDEX_BUFFER_GROWTH;
+		static const u32 kVertexBufferGrowth;
+		static const u32 kIndexBufferGrowth;
 
 		Color mColor;
 		Matrix4 mTransform;

@@ -12,7 +12,7 @@ CPlaneCollider::CPlaneCollider()
 {
 	SetName("PlaneCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, mNormal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
@@ -20,7 +20,7 @@ CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
 {
 	SetName("PlaneCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, mNormal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 void CPlaneCollider::SetNormal(const Vector3& normal)
@@ -31,7 +31,7 @@ void CPlaneCollider::SetNormal(const Vector3& normal)
 	mNormal = normal;
 	mNormal.Normalize();
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, normal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, normal);
 	mLocalPosition = mNormal * mDistance;
 
 	if(mInternal != nullptr)

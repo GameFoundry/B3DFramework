@@ -19,7 +19,7 @@ namespace bs
 	class BS_CORE_EXPORT ResourceHandleRTTI : public RTTIType<TResourceHandleBase<false>, IReflectable, ResourceHandleRTTI>
 	{
 	private:
-		UUID& GetUuid(TResourceHandleBase<false>* obj) { return obj->mData != nullptr ? obj->mData->MUuid : UUID::EMPTY; }
+		UUID& GetUuid(TResourceHandleBase<false>* obj) { return obj->mData != nullptr ? obj->mData->MUuid : UUID::kEmpty; }
 
 		void SetUuid(TResourceHandleBase<false>* obj, UUID& uuid) { obj->mData->MUuid = uuid; }
 
@@ -67,7 +67,7 @@ namespace bs
 	class BS_CORE_EXPORT WeakResourceHandleRTTI : public RTTIType<TResourceHandleBase<true>, IReflectable, WeakResourceHandleRTTI>
 	{
 	private:
-		UUID& GetUuid(TResourceHandleBase<true>* obj) { return obj->mData != nullptr ? obj->mData->MUuid : UUID::EMPTY; }
+		UUID& GetUuid(TResourceHandleBase<true>* obj) { return obj->mData != nullptr ? obj->mData->MUuid : UUID::kEmpty; }
 
 		void SetUuid(TResourceHandleBase<true>* obj, UUID& uuid) { obj->mData->MUuid = uuid; }
 

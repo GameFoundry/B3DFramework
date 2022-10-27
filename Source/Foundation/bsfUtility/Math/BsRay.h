@@ -74,8 +74,8 @@ namespace bs
 		std::pair<bool, float> Intersects(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normal, bool positiveSide = true, bool negativeSide = true) const;
 
 	protected:
-		Vector3 mOrigin{ Vector3::ZERO };
-		Vector3 mDirection{ Vector3::UNIT_Z };
+		Vector3 mOrigin{ Vector3::kZero };
+		Vector3 mDirection{ Vector3::kUnitZ };
 	};
 
 	/** @} */

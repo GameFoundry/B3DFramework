@@ -37,13 +37,13 @@ struct FolderMonitor::FolderWatchInfo
 	void StartMonitor(HANDLE compPortHandle);
 	void StopMonitor(HANDLE compPortHandle);
 
-	static const u32 READ_BUFFER_SIZE = 65536;
+	static const u32 kReadBufferSize = 65536;
 
 	Path MFolderToMonitor;
 	HANDLE MDirHandle;
 	OVERLAPPED MOverlapped;
 	MonitorState MState;
-	u8 MBuffer[READ_BUFFER_SIZE];
+	u8 MBuffer[kReadBufferSize];
 	DWORD MBufferSize;
 	bool MMonitorSubdirectories;
 	DWORD MMonitorFlags;
@@ -476,7 +476,7 @@ void FolderMonitor::WorkerThreadMain()
 			switch(state)
 			{
 			case MonitorState::Starting:
-				if(!ReadDirectoryChangesW(watchInfo->MDirHandle, watchInfo->MBuffer, FolderWatchInfo::READ_BUFFER_SIZE, watchInfo->MMonitorSubdirectories, watchInfo->MMonitorFlags, &watchInfo->MBufferSize, &watchInfo->MOverlapped, nullptr))
+				if(!ReadDirectoryChangesW(watchInfo->MDirHandle, watchInfo->MBuffer, FolderWatchInfo::kReadBufferSize, watchInfo->MMonitorSubdirectories, watchInfo->MMonitorFlags, &watchInfo->MBufferSize, &watchInfo->MOverlapped, nullptr))
 				{
 					assert(false); // TODO - Possibly the buffer was too small?
 					watchInfo->MReadError = GetLastError();
@@ -496,10 +496,10 @@ void FolderMonitor::WorkerThreadMain()
 				break;
 			case MonitorState::Monitoring:
 				{
-					FileNotifyInfo info(watchInfo->MBuffer, FolderWatchInfo::READ_BUFFER_SIZE);
+					FileNotifyInfo info(watchInfo->MBuffer, FolderWatchInfo::kReadBufferSize);
 					HandleNotifications(info, *watchInfo);
 
-					if(!ReadDirectoryChangesW(watchInfo->MDirHandle, watchInfo->MBuffer, FolderWatchInfo::READ_BUFFER_SIZE, watchInfo->MMonitorSubdirectories, watchInfo->MMonitorFlags, &watchInfo->MBufferSize, &watchInfo->MOverlapped, nullptr))
+					if(!ReadDirectoryChangesW(watchInfo->MDirHandle, watchInfo->MBuffer, FolderWatchInfo::kReadBufferSize, watchInfo->MMonitorSubdirectories, watchInfo->MMonitorFlags, &watchInfo->MBufferSize, &watchInfo->MOverlapped, nullptr))
 					{
 						assert(false); // TODO: Failed during normal operation, possibly the buffer was too small. Shutdown watch on this folder and cleanup?
 						watchInfo->MReadError = GetLastError();

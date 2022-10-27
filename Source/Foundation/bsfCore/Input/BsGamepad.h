@@ -24,10 +24,10 @@ namespace bs
 		void Capture();
 
 		/** Minimum allowed value as reported by the axis movement events. */
-		static constexpr int MIN_AXIS = -32768;
+		static constexpr int kMinAxis = -32768;
 
 		/** Maximum allowed value as reported by the axis movement events. */
-		static constexpr int MAX_AXIS = 32767;
+		static constexpr int kMaxAxis = 32767;
 
 	private:
 		friend class Input;

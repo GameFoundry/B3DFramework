@@ -355,7 +355,7 @@ namespace bs
 		};
 
 		/** Pixel format used for rendering and storing shadow maps. */
-		const PixelFormat SHADOW_MAP_FORMAT = PF_D16;
+		const PixelFormat kShadowMapFormat = PF_D16;
 
 		/** Information about a shadow cast from a single light. */
 		struct ShadowInfo
@@ -644,22 +644,22 @@ namespace bs
 			static float GetFadeTransition(const Light& light, float radius, float depthRange, u32 mapSize);
 
 			/** Size of a single shadow map atlas, in pixels. */
-			static const u32 MAX_ATLAS_SIZE;
+			static const u32 kMaxAtlasSize;
 
 			/** Determines how long will an unused shadow map atlas stay allocated, in frames. */
-			static const u32 MAX_UNUSED_FRAMES;
+			static const u32 kMaxUnusedFrames;
 
 			/** Determines the minimal resolution of a shadow map. */
-			static const u32 MIN_SHADOW_MAP_SIZE;
+			static const u32 kMinShadowMapSize;
 
 			/** Determines the resolution at which shadow maps begin fading out. */
-			static const u32 SHADOW_MAP_FADE_SIZE;
+			static const u32 kShadowMapFadeSize;
 
 			/** Size of the border of a shadow map in a shadow map atlas, in pixels. */
-			static const u32 SHADOW_MAP_BORDER;
+			static const u32 kShadowMapBorder;
 
 			/** Percent of the length of a single cascade in a CSM, in which to fade out the cascade. */
-			static const float CASCADE_FRACTION_FADE;
+			static const float kCascadeFractionFade;
 
 			u32 mShadowMapSize;
 

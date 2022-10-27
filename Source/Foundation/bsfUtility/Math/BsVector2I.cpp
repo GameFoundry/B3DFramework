@@ -4,5 +4,5 @@
 
 using namespace bs;
 
-const Vector2I Vector2I::ZERO(0, 0);
+const Vector2I Vector2I::kZero(0, 0);
 

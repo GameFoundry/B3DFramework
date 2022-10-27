@@ -60,7 +60,7 @@ void CAudioListener::Update()
 	if(frameDelta > 0.0f)
 		mVelocity = (worldPos - mLastPosition) / frameDelta;
 	else
-		mVelocity = Vector3::ZERO;
+		mVelocity = Vector3::kZero;
 
 	mLastPosition = worldPos;
 }

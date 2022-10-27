@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectable<ScriptChromaticAberrationSettings, ChromaticAberrationSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ChromaticAberrationSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
 
 		ScriptChromaticAberrationSettings(MonoObject* managedInstance, const SPtr<ChromaticAberrationSettings>& value);
 

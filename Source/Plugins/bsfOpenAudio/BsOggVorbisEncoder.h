@@ -65,10 +65,10 @@ namespace bs
 		/** Writes Vorbis blocks into Ogg packets. */
 		void WriteBlocks();
 
-		static const u32 BUFFER_SIZE = 4096;
+		static const u32 kBufferSize = 4096;
 
 		std::function<void(u8*, u32)> mWriteCallback;
-		u8 mBuffer[BUFFER_SIZE];
+		u8 mBuffer[kBufferSize];
 		u32 mBufferOffset = 0;
 		u32 mNumChannels = 0;
 		u32 mBitDepth = 0;

@@ -24,7 +24,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPhysicsQueryHit : public ScriptObject<ScriptPhysicsQueryHit>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PhysicsQueryHit")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PhysicsQueryHit")
 
 		static MonoObject* Box(const __PhysicsQueryHitInterop& value);
 		static __PhysicsQueryHitInterop Unbox(MonoObject* value);

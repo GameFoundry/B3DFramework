@@ -381,7 +381,7 @@ static const char *const yytname[] =
 #endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
-static const unsigned char yyr1[] =
+static const unsigned char kYyr1[] =
 {
        0,    72,    73,    73,    74,    74,    74,    75,    76,    77,
       77,    78,    78,    78,    78,    78,    79,    80,    80,    81,
@@ -400,7 +400,7 @@ static const unsigned char yyr1[] =
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
-static const unsigned char yyr2[] =
+static const unsigned char kYyr2[] =
 {
        0,     2,     0,     2,     1,     1,     1,     5,     1,     0,
        2,     4,     4,     4,     4,     4,     5,     2,     2,     0,
@@ -419,7 +419,7 @@ static const unsigned char yyr2[] =
 };
 
 /* YYDPREC[RULE-NUM] -- Dynamic precedence of rule #RULE-NUM (0 if none).  */
-static const unsigned char yydprec[] =
+static const unsigned char kYydprec[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -438,7 +438,7 @@ static const unsigned char yydprec[] =
 };
 
 /* YYMERGER[RULE-NUM] -- Index of merging function for rule #RULE-NUM.  */
-static const unsigned char yymerger[] =
+static const unsigned char kYymerger[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -459,7 +459,7 @@ static const unsigned char yymerger[] =
 /* YYDEFACT[S] -- default reduction number in state S.  Performed when
    YYTABLE doesn't specify something else to do.  Zero means the default
    is an error.  */
-static const unsigned char yydefact[] =
+static const unsigned char kYydefact[] =
 {
        2,     8,     0,     0,     0,     0,     2,     4,     0,     5,
        0,     6,     0,    17,    35,    18,     1,     3,     9,    19,
@@ -499,7 +499,7 @@ static const unsigned char yydefact[] =
 };
 
 /* YYPDEFGOTO[NTERM-NUM].  */
-static const short int yydefgoto[] =
+static const short int kYydefgoto[] =
 {
       -1,     5,     6,     7,     8,    26,    27,     9,    10,    38,
       39,    40,    41,    42,    90,    11,    12,    43,    44,    91,
@@ -513,7 +513,7 @@ static const short int yydefgoto[] =
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 #define YYPACT_NINF -276
-static const short int yypact[] =
+static const short int kYypact[] =
 {
        0,  -276,    22,    24,    28,    12,     0,  -276,   -36,  -276,
      -27,  -276,   -20,  -276,  -276,  -276,  -276,  -276,    20,    32,
@@ -553,7 +553,7 @@ static const short int yypact[] =
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const short int yypgoto[] =
+static const short int kYypgoto[] =
 {
     -276,   243,  -276,  -276,  -276,   240,  -276,  -276,  -276,   234,
     -276,  -276,  -276,  -276,   120,  -276,  -276,  -276,  -276,   207,
@@ -568,7 +568,7 @@ static const short int yypgoto[] =
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 #define YYTABLE_NINF -1
-static const unsigned short int yytable[] =
+static const unsigned short int kYytable[] =
 {
      198,   192,    95,   193,   303,   220,   221,   229,    93,   310,
       94,   233,    16,   234,     1,     2,     3,     4,   221,   152,
@@ -614,7 +614,7 @@ static const unsigned short int yytable[] =
    list of conflicting reductions corresponding to action entry for
    state STATE-NUM in yytable.  0 means no conflicts.  The list in
    yyconfl is terminated by a rule number of 0.  */
-static const unsigned char yyconflp[] =
+static const unsigned char kYyconflp[] =
 {
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
@@ -658,12 +658,12 @@ static const unsigned char yyconflp[] =
 
 /* YYCONFL[I] -- lists of conflicting rule numbers, each terminated by
    0, pointed into by YYCONFLP.  */
-static const short int yyconfl[] =
+static const short int kYyconfl[] =
 {
        0
 };
 
-static const short int yycheck[] =
+static const short int kYycheck[] =
 {
      150,     3,     7,     5,    11,    11,    24,   180,    72,   284,
       72,    45,     0,    47,    14,    15,    16,    17,    24,    61,
@@ -707,7 +707,7 @@ static const short int yycheck[] =
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
-static const unsigned char yystos[] =
+static const unsigned char kYystos[] =
 {
        0,    14,    15,    16,    17,    73,    74,    75,    76,    79,
       80,    87,    88,     7,     7,     7,     0,    73,    63,    63,
@@ -851,8 +851,8 @@ yy_location_print_ (yyo, yylocp)
 #define yylloc (yystackp->yyloc)
 
 
-static const int YYEOF = 0;
-static const int YYEMPTY = -2;
+static const int kYyeof = 0;
+static const int kYyempty = -2;
 
 typedef enum { yyok, yyaccept, yyabort, yyerr } YYRESULTTAG;
 
@@ -2054,14 +2054,14 @@ yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocatio
 static inline int
 yyrhsLength (yyRuleNum yyrule)
 {
-  return yyr2[yyrule];
+  return kYyr2[yyrule];
 }
 
 static void
 yydestroyGLRState (char const *yymsg, yyGLRState *yys, ParseState* parse_state, yyscan_t scanner)
 {
   if (yys->yyresolved)
-    yydestruct (yymsg, yystos[yys->yylrState],
+    yydestruct (yymsg, kYystos[yys->yylrState],
                 &yys->yysemantics.yysval, &yys->yyloc, parse_state, scanner);
   else
     {
@@ -2095,7 +2095,7 @@ yydestroyGLRState (char const *yymsg, yyGLRState *yys, ParseState* parse_state, 
 static inline yySymbol
 yylhsNonterm (yyRuleNum yyrule)
 {
-  return yyr1[yyrule];
+  return kYyr1[yyrule];
 }
 
 #define yypact_value_is_default(Yystate) \
@@ -2106,14 +2106,14 @@ yylhsNonterm (yyRuleNum yyrule)
 static inline yybool
 yyisDefaultedState (yyStateNum yystate)
 {
-  return yypact_value_is_default (yypact[yystate]);
+  return yypact_value_is_default (kYypact[yystate]);
 }
 
 /** The default reduction for STATE, assuming it has one.  */
 static inline yyRuleNum
 yydefaultAction (yyStateNum yystate)
 {
-  return yydefact[yystate];
+  return kYydefact[yystate];
 }
 
 #define yytable_value_is_error(Yytable_value) \
@@ -2131,22 +2131,22 @@ static inline void
 yygetLRActions (yyStateNum yystate, int yytoken,
                 int* yyaction, const short int** yyconflicts)
 {
-  int yyindex = yypact[yystate] + yytoken;
-  if (yypact_value_is_default (yypact[yystate])
-      || yyindex < 0 || YYLAST < yyindex || yycheck[yyindex] != yytoken)
+  int yyindex = kYypact[yystate] + yytoken;
+  if (yypact_value_is_default (kYypact[yystate])
+      || yyindex < 0 || YYLAST < yyindex || kYycheck[yyindex] != yytoken)
     {
-      *yyaction = -yydefact[yystate];
-      *yyconflicts = yyconfl;
+      *yyaction = -kYydefact[yystate];
+      *yyconflicts = kYyconfl;
     }
   else if (! yytable_value_is_error (yytable[yyindex]))
     {
-      *yyaction = yytable[yyindex];
-      *yyconflicts = yyconfl + yyconflp[yyindex];
+      *yyaction = kYytable[yyindex];
+      *yyconflicts = kYyconfl + kYyconflp[yyindex];
     }
   else
     {
       *yyaction = 0;
-      *yyconflicts = yyconfl + yyconflp[yyindex];
+      *yyconflicts = kYyconfl + kYyconflp[yyindex];
     }
 }
 
@@ -2154,11 +2154,11 @@ static inline yyStateNum
 yyLRgotoState (yyStateNum yystate, yySymbol yylhs)
 {
   int yyr;
-  yyr = yypgoto[yylhs - YYNTOKENS] + yystate;
-  if (0 <= yyr && yyr <= YYLAST && yycheck[yyr] == yystate)
-    return yytable[yyr];
+  yyr = kYypgoto[yylhs - YYNTOKENS] + yystate;
+  if (0 <= yyr && yyr <= YYLAST && kYycheck[yyr] == yystate)
+    return kYytable[yyr];
   else
-    return yydefgoto[yylhs - YYNTOKENS];
+    return kYydefgoto[yylhs - YYNTOKENS];
 }
 
 static inline yybool
@@ -2208,7 +2208,7 @@ yyaddDeferredAction (yyGLRStack* yystackp, size_t yyk, yyGLRState* yystate,
       yynewOption->yyloc = yylloc;
     }
   else
-    yynewOption->yyrawchar = YYEMPTY;
+    yynewOption->yyrawchar = kYyempty;
   yynewOption->yynext = yystate->yysemantics.yyfirstVal;
   yystate->yysemantics.yyfirstVal = yynewOption;
 
@@ -2733,11 +2733,11 @@ static int
 yypreference (yySemanticOption* y0, yySemanticOption* y1)
 {
   yyRuleNum r0 = y0->yyrule, r1 = y1->yyrule;
-  int p0 = yydprec[r0], p1 = yydprec[r1];
+  int p0 = kYydprec[r0], p1 = kYydprec[r1];
 
   if (p0 == p1)
     {
-      if (yymerger[r0] == 0 || yymerger[r0] != yymerger[r1])
+      if (kYymerger[r0] == 0 || kYymerger[r0] != kYymerger[r1])
         return 0;
       else
         return 1;
@@ -2995,12 +2995,12 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp, ParseState* parse_state, 
   if (yymerge)
     {
       yySemanticOption* yyp;
-      int yyprec = yydprec[yybest->yyrule];
+      int yyprec = kYydprec[yybest->yyrule];
       yyflag = yyresolveAction (yybest, yystackp, &yysval, yylocp, parse_state, scanner);
       if (yyflag == yyok)
         for (yyp = yybest->yynext; yyp != YY_NULL; yyp = yyp->yynext)
           {
-            if (yyprec == yydprec[yyp->yyrule])
+            if (yyprec == kYydprec[yyp->yyrule])
               {
                 YYSTYPE yysval_other;
                 YYLTYPE yydummy;
@@ -3008,11 +3008,11 @@ yyresolveValue (yyGLRState* yys, yyGLRStack* yystackp, ParseState* parse_state, 
                 if (yyflag != yyok)
                   {
                     yydestruct ("Cleanup: discarding incompletely merged value for",
-                                yystos[yys->yylrState],
+                                kYystos[yys->yylrState],
                                 &yysval, yylocp, parse_state, scanner);
                     break;
                   }
-                yyuserMerge (yymerger[yyp->yyrule], &yysval, &yysval_other);
+                yyuserMerge (kYymerger[yyp->yyrule], &yysval, &yysval_other);
               }
           }
     }
@@ -3109,15 +3109,15 @@ yyprocessOneStack (yyGLRStack* yystackp, size_t yyk,
         {
           yySymbol yytoken;
           yystackp->yytops.yylookaheadNeeds[yyk] = yytrue;
-          if (yychar == YYEMPTY)
+          if (yychar == kYyempty)
             {
               YYDPRINTF ((stderr, "Reading a token: "));
               yychar = YYLEX;
             }
 
-          if (yychar <= YYEOF)
+          if (yychar <= kYyeof)
             {
-              yychar = yytoken = YYEOF;
+              yychar = yytoken = kYyeof;
               YYDPRINTF ((stderr, "Now at end of input.\n"));
             }
           else
@@ -3307,9 +3307,9 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, ParseState* parse_state, yyscan_t sc
     while (YYID (yytrue))
       {
         yySymbol yytoken;
-        if (yychar == YYEOF)
+        if (yychar == kYyeof)
           yyFail (yystackp, &yylloc, parse_state, scanner, YY_NULL);
-        if (yychar != YYEMPTY)
+        if (yychar != kYyempty)
           {
             /* We throw away the lookahead, but the error range
                of the shifted error token must take it into account.  */
@@ -3324,9 +3324,9 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, ParseState* parse_state, yyscan_t sc
           }
         YYDPRINTF ((stderr, "Reading a token: "));
         yychar = YYLEX;
-        if (yychar <= YYEOF)
+        if (yychar <= kYyeof)
           {
-            yychar = yytoken = YYEOF;
+            yychar = yytoken = kYyeof;
             YYDPRINTF ((stderr, "Now at end of input.\n"));
           }
         else
@@ -3334,13 +3334,13 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, ParseState* parse_state, yyscan_t sc
             yytoken = YYTRANSLATE (yychar);
             YY_SYMBOL_PRINT ("Next token is", yytoken, &yylval, &yylloc);
           }
-        yyj = yypact[yystackp->yytops.yystates[0]->yylrState];
+        yyj = kYypact[yystackp->yytops.yystates[0]->yylrState];
         if (yypact_value_is_default (yyj))
           return;
         yyj += yytoken;
-        if (yyj < 0 || YYLAST < yyj || yycheck[yyj] != yytoken)
+        if (yyj < 0 || YYLAST < yyj || kYycheck[yyj] != yytoken)
           {
-            if (yydefact[yystackp->yytops.yystates[0]->yylrState] != 0)
+            if (kYydefact[yystackp->yytops.yystates[0]->yylrState] != 0)
               return;
           }
         else if (! yytable_value_is_error (yytable[yyj]))
@@ -3363,12 +3363,12 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, ParseState* parse_state, yyscan_t sc
   while (yystackp->yytops.yystates[0] != YY_NULL)
     {
       yyGLRState *yys = yystackp->yytops.yystates[0];
-      yyj = yypact[yys->yylrState];
+      yyj = kYypact[yys->yylrState];
       if (! yypact_value_is_default (yyj))
         {
           yyj += YYTERROR;
-          if (0 <= yyj && yyj <= YYLAST && yycheck[yyj] == YYTERROR
-              && yyisShiftAction (yytable[yyj]))
+          if (0 <= yyj && yyj <= YYLAST && kYycheck[yyj] == YYTERROR
+              && yyisShiftAction (kYytable[yyj]))
             {
               /* Shift the error token.  */
               /* First adjust its location.*/
@@ -3377,7 +3377,7 @@ yyrecoverSyntaxError (yyGLRStack* yystackp, ParseState* parse_state, yyscan_t sc
               YYLLOC_DEFAULT (yyerrloc, (yystackp->yyerror_range), 2);
               YY_SYMBOL_PRINT ("Shifting", yystos[yytable[yyj]],
                                &yylval, &yyerrloc);
-              yyglrShift (yystackp, 0, yytable[yyj],
+              yyglrShift (yystackp, 0, kYytable[yyj],
                           yys->yyposn, &yylval, &yyerrloc);
               yys = yystackp->yytops.yystates[0];
               break;
@@ -3425,7 +3425,7 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
-  yychar = YYEMPTY;
+  yychar = kYyempty;
   yylval = yyval_default;
   yylloc = yyloc_default;
 
@@ -3471,15 +3471,15 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
           else
             {
               yySymbol yytoken;
-              if (yychar == YYEMPTY)
+              if (yychar == kYyempty)
                 {
                   YYDPRINTF ((stderr, "Reading a token: "));
                   yychar = YYLEX;
                 }
 
-              if (yychar <= YYEOF)
+              if (yychar <= kYyeof)
                 {
-                  yychar = yytoken = YYEOF;
+                  yychar = yytoken = kYyeof;
                   YYDPRINTF ((stderr, "Now at end of input.\n"));
                 }
               else
@@ -3494,7 +3494,7 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
               if (yyisShiftAction (yyaction))
                 {
                   YY_SYMBOL_PRINT ("Shifting", yytoken, &yylval, &yylloc);
-                  yychar = YYEMPTY;
+                  yychar = kYyempty;
                   yyposn += 1;
                   yyglrShift (&yystack, 0, yyaction, yyposn, &yylval, &yylloc);
                   if (0 < yystack.yyerrState)
@@ -3517,7 +3517,7 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
           size_t yys;
 
           for (yys = 0; yys < yystack.yytops.yysize; yys += 1)
-            yystackp->yytops.yylookaheadNeeds[yys] = yychar != YYEMPTY;
+            yystackp->yytops.yylookaheadNeeds[yys] = yychar != kYyempty;
 
           /* yyprocessOneStack returns one of three things:
 
@@ -3559,7 +3559,7 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
              before the loop to make sure the user destructor for yylval isn't
              called twice.  */
           yytoken_to_shift = YYTRANSLATE (yychar);
-          yychar = YYEMPTY;
+          yychar = kYyempty;
           yyposn += 1;
           for (yys = 0; yys < yystack.yytops.yysize; yys += 1)
             {
@@ -3610,7 +3610,7 @@ yyparse (ParseState* parse_state, yyscan_t scanner)
   goto yyreturn;
 
  yyreturn:
-  if (yychar != YYEMPTY)
+  if (yychar != kYyempty)
     yydestruct ("Cleanup: discarding lookahead",
                 YYTRANSLATE (yychar), &yylval, &yylloc, parse_state, scanner);
 

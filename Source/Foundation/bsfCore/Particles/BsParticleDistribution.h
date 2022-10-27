@@ -46,8 +46,8 @@ namespace bs
 
 		TColorDistribution()
 			: mType(PDT_Constant)
-			, mMinGradient({ ColorGradientKey(Color::Black, 0.0f) })
-			, mMaxGradient({ ColorGradientKey(Color::Black, 0.0f) })
+			, mMinGradient({ ColorGradientKey(Color::kBlack, 0.0f) })
+			, mMaxGradient({ ColorGradientKey(Color::kBlack, 0.0f) })
 		{}
 
 		/** Creates a new distribution that returns a constant color. */
@@ -75,10 +75,10 @@ namespace bs
 			: mType(PDT_Curve), mMinGradient(gradient), mMaxGradient(gradient)
 		{
 			if(mMinGradient.GetNumKeys() == 0)
-				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
+				mMinGradient = T({ ColorGradientKey(Color::kBlack, 0.0f) });
 
 			if(mMaxGradient.GetNumKeys() == 0)
-				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
+				mMaxGradient = T({ ColorGradientKey(Color::kBlack, 0.0f) });
 		}
 
 		/** Creates a new distribution that returns a random color in a range determined by two gradients. */
@@ -88,10 +88,10 @@ namespace bs
 			: mType(PDT_RandomCurveRange), mMinGradient(minGradient), mMaxGradient(maxGradient)
 		{
 			if(mMinGradient.GetNumKeys() == 0)
-				mMinGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
+				mMinGradient = T({ ColorGradientKey(Color::kBlack, 0.0f) });
 
 			if(mMaxGradient.GetNumKeys() == 0)
-				mMaxGradient = T({ ColorGradientKey(Color::Black, 0.0f) });
+				mMaxGradient = T({ ColorGradientKey(Color::kBlack, 0.0f) });
 		}
 
 		/** Returns the type of the represented distribution. */

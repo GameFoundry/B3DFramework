@@ -279,7 +279,7 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 
 			bone.Name = "MultiMeshRoot";
 			bone.LocalTfrm = Transform();
-			bone.InvBindPose = Matrix4::IDENTITY;
+			bone.InvBindPose = Matrix4::kIdentity;
 			bone.Parent = (u32)-1;
 
 			numProcessedBones++;
@@ -316,7 +316,7 @@ SPtr<Skeleton> FBXImporter::CreateSkeleton(const FBXImportScene& scene, bool sha
 
 				bone.Name = node->Name;
 				bone.LocalTfrm = node->LocalTransform;
-				bone.InvBindPose = Matrix4::IDENTITY;
+				bone.InvBindPose = Matrix4::kIdentity;
 				bone.Parent = parentBoneIdx;
 
 				parentBoneIdx = boneIdx;
@@ -395,7 +395,7 @@ SPtr<MorphShapes> FBXImporter::CreateMorphShapes(const FBXImportScene& scene)
 								normalDelta = blendNormal - meshNormal;
 							}
 							else
-								normalDelta = Vector3::ZERO;
+								normalDelta = Vector3::kZero;
 
 							if(positionDelta.SquaredLength() > 0.000001f || normalDelta.SquaredLength() > 0.0001f)
 								shape.Vertices.push_back(MorphVertex(positionDelta, normalDelta, totalNumVertices + i));
@@ -1814,8 +1814,8 @@ void FBXImporter::ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImport
 		{
 			Vector<TKeyframe<Vector3>> keyframes(1);
 			keyframes[0].Value = defaultTranslation;
-			keyframes[0].InTangent = Vector3::ZERO;
-			keyframes[0].OutTangent = Vector3::ZERO;
+			keyframes[0].InTangent = Vector3::kZero;
+			keyframes[0].OutTangent = Vector3::kZero;
 
 			boneAnim.Translation = TAnimationCurve<Vector3>(keyframes);
 		}
@@ -1831,8 +1831,8 @@ void FBXImporter::ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImport
 		{
 			Vector<TKeyframe<Vector3>> keyframes(1);
 			keyframes[0].Value = defaultScale;
-			keyframes[0].InTangent = Vector3::ZERO;
-			keyframes[0].OutTangent = Vector3::ZERO;
+			keyframes[0].InTangent = Vector3::kZero;
+			keyframes[0].OutTangent = Vector3::kZero;
 
 			boneAnim.Scale = TAnimationCurve<Vector3>(keyframes);
 		}
@@ -1849,8 +1849,8 @@ void FBXImporter::ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImport
 		{
 			Vector<TKeyframe<Vector3>> keyframes(1);
 			keyframes[0].Value = defaultRotation;
-			keyframes[0].InTangent = Vector3::ZERO;
-			keyframes[0].OutTangent = Vector3::ZERO;
+			keyframes[0].InTangent = Vector3::kZero;
+			keyframes[0].OutTangent = Vector3::kZero;
 
 			*eulerAnimation = TAnimationCurve<Vector3>(keyframes);
 		}

@@ -24,7 +24,7 @@ Vector2I GUIHelper::CalcOptimalContentsSize(const GUIContent& content, const GUI
 	const HSpriteTexture& image = content.GetImage(state);
 	if(SpriteTexture::CheckIsLoaded(image))
 	{
-		contentBounds.X += image->GetWidth() + GUIContent::IMAGE_TEXT_SPACING;
+		contentBounds.X += image->GetWidth() + GUIContent::kImageTextSpacing;
 		contentBounds.Y = std::max(image->GetHeight(), (u32)contentBounds.Y);
 	}
 

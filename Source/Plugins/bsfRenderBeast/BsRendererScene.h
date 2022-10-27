@@ -25,7 +25,7 @@ namespace bs
 		 */
 
 		// Limited by max number of array elements in texture for DX11 hardware
-		constexpr u32 MaxReflectionCubemaps = 2048 / 6;
+		constexpr u32 kMaxReflectionCubemaps = 2048 / 6;
 
 		/** Contains most scene objects relevant to the renderer. */
 		struct SceneInfo

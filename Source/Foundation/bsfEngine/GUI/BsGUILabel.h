@@ -28,7 +28,7 @@ namespace bs
 		 * @param[in]	styleName	Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *							GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUILabel* Create(const HString& text, const String& styleName = StringUtil::BLANK);
+		static GUILabel* Create(const HString& text, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new label with the specified text.
@@ -39,7 +39,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUILabel* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUILabel* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new label with the specified content (text + optional image).
@@ -48,7 +48,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUILabel* Create(const GUIContent& content, const String& styleName = StringUtil::BLANK);
+		static GUILabel* Create(const GUIContent& content, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new label with the specified content (text + optional image).
@@ -59,7 +59,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default button style is used.
 		 */
-		static GUILabel* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUILabel* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/** Changes the active content of the label. */
 		void SetContent(const GUIContent& content);

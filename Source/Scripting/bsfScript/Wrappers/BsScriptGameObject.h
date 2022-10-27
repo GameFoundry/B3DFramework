@@ -50,7 +50,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGameObject : public ScriptObject<ScriptGameObject, ScriptGameObjectBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GameObject")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GameObject")
 
 	private:
 		ScriptGameObject(MonoObject* instance);

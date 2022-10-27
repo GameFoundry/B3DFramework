@@ -45,8 +45,8 @@ namespace bs
 		std::pair<bool, float> Intersects(const Line2& line) const;
 
 	protected:
-		Vector2 mOrigin = Vector2::ZERO;
-		Vector2 mDirection = Vector2::UNIT_X;
+		Vector2 mOrigin = Vector2::kZero;
+		Vector2 mDirection = Vector2::kUnitX;
 	};
 
 	/** @} */

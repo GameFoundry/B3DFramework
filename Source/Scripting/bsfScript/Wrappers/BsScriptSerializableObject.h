@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSerializableObject : public ScriptObject<ScriptSerializableObject>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableObject")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SerializableObject")
 
 		/**	Creates a new serializable object interop object from the data in the provided property.  */
 		static MonoObject* Create(const ScriptSerializableProperty* native, MonoObject* managed, MonoReflectionType* reflType);

@@ -58,7 +58,7 @@ Vector3 LightProbeVolume::GetProbePosition(u32 handle) const
 	if(iterFind != mProbes.end())
 		return iterFind->second.Position;
 
-	return Vector3::ZERO;
+	return Vector3::kZero;
 }
 
 Vector<LightProbeInfo> LightProbeVolume::GetProbes() const
@@ -123,7 +123,7 @@ void LightProbeVolume::Reset()
 
 	// Make sure there are adequate number of probes to fill the volume
 	while((u32)mProbes.size() < numProbes)
-		AddProbe(Vector3::ZERO);
+		AddProbe(Vector3::kZero);
 
 	u32 idx = 0;
 	u32 rowPitch = numProbesX;
@@ -407,7 +407,7 @@ void LightProbeVolume::Initialize()
 	ResizeCoefficientTexture(std::max(32U, numCoefficients));
 
 	SPtr<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
-	coeffData->SetColors(Color::ZERO);
+	coeffData->SetColors(Color::kZero);
 
 	u32 probesPerRow = coeffData->GetWidth() / 9;
 	u32 probeIdx = 0;

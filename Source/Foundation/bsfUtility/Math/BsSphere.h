@@ -66,7 +66,7 @@ namespace bs
 
 	private:
 		float mRadius = 1.0f;
-		Vector3 mCenter{ Vector3::ZERO };
+		Vector3 mCenter{ Vector3::kZero };
 	};
 
 	/** @} */

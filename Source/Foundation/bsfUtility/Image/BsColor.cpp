@@ -5,14 +5,14 @@
 
 using namespace bs;
 
-const Color Color::ZERO = Color(0.0f, 0.0f, 0.0f, 0.0f);
-const Color Color::Black = Color(0.0f, 0.0f, 0.0f);
-const Color Color::White = Color(1.0f, 1.0f, 1.0f);
-const Color Color::Red = Color(1.0f, 0.0f, 0.0f);
-const Color Color::Green = Color(0.0f, 1.0f, 0.0f);
-const Color Color::Blue = Color(0.0f, 0.0f, 1.0f);
-const Color Color::LightGray = Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
-const Color Color::BansheeOrange = Color(1.0f, (168.0f / 255.0f), 0.0f);
+const Color Color::kZero = Color(0.0f, 0.0f, 0.0f, 0.0f);
+const Color Color::kBlack = Color(0.0f, 0.0f, 0.0f);
+const Color Color::kWhite = Color(1.0f, 1.0f, 1.0f);
+const Color Color::kRed = Color(1.0f, 0.0f, 0.0f);
+const Color Color::kGreen = Color(0.0f, 1.0f, 0.0f);
+const Color Color::kBlue = Color(0.0f, 0.0f, 1.0f);
+const Color Color::kLightGray = Color(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
+const Color Color::kBansheeOrange = Color(1.0f, (168.0f / 255.0f), 0.0f);
 
 Color Color::FromRgba(RGBA val)
 {

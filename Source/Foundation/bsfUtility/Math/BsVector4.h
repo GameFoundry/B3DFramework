@@ -263,7 +263,7 @@ namespace bs
 		/** Checks are any of the vector components NaN. */
 		inline bool IsNaN() const;
 
-		static const Vector4 ZERO;
+		static const Vector4 kZero;
 	};
 
 	/** @} */

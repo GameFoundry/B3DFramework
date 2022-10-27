@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptFont : public TScriptResource<ScriptFont, Font>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Font")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Font")
 
 		ScriptFont(MonoObject* managedInstance, const ResourceHandle<Font>& value);
 

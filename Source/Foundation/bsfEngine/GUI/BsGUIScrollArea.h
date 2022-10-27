@@ -34,7 +34,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
 
 		/**
 		 * Creates a new empty scroll area.
@@ -46,7 +46,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
 
 		/**
 		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
@@ -54,7 +54,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
 
 		/**
 		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
@@ -64,7 +64,7 @@ namespace bs
 		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
 		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
 		 */
-		static GUIScrollArea* Create(const GUIOptions& options, const String& scrollBarStyle = StringUtil::BLANK, const String& scrollAreaStyle = StringUtil::BLANK);
+		static GUIScrollArea* Create(const GUIOptions& options, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
 
 		/**	Returns the scroll area layout that you may use to add elements inside the scroll area. */
 		GUILayout& GetLayout() const { return *mContentLayout; }
@@ -127,7 +127,7 @@ namespace bs
 		 * Number of pixels the scroll bar will occupy when active. This is width for vertical scrollbar, and height for
 		 * horizontal scrollbar.
 		 */
-		static const u32 ScrollBarWidth;
+		static const u32 kScrollBarWidth;
 
 		/** @name Internal
 		 *  @{
@@ -207,8 +207,8 @@ namespace bs
 		Vector<LayoutSizeRange> mChildSizeRanges;
 		LayoutSizeRange mSizeRange;
 
-		static const u32 MinHandleSize;
-		static const u32 WheelScrollAmount;
+		static const u32 kMinHandleSize;
+		static const u32 kWheelScrollAmount;
 	};
 
 	/** @} */

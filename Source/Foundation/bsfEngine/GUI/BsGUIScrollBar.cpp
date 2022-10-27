@@ -14,7 +14,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUIScrollBar::ButtonScrollAmount = 10;
+const u32 GUIScrollBar::kButtonScrollAmount = 10;
 
 const String& GUIScrollBar::GetHScrollHandleType()
 {
@@ -164,7 +164,7 @@ void GUIScrollBar::UpButtonClicked()
 	float scrollableSize = (float)mHandleBtn->GetScrollableSize();
 
 	if(scrollableSize > 0.0f)
-		handleOffset = ButtonScrollAmount / scrollableSize;
+		handleOffset = kButtonScrollAmount / scrollableSize;
 
 	Scroll(handleOffset);
 }
@@ -175,7 +175,7 @@ void GUIScrollBar::DownButtonClicked()
 	float scrollableSize = (float)mHandleBtn->GetScrollableSize();
 
 	if(scrollableSize > 0.0f)
-		handleOffset = ButtonScrollAmount / scrollableSize;
+		handleOffset = kButtonScrollAmount / scrollableSize;
 
 	Scroll(-handleOffset);
 }

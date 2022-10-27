@@ -58,9 +58,9 @@ namespace bs
 		u32 Id = 0;
 
 		String Name;
-		Vector3 Position = Vector3::ZERO;
-		Quaternion Rotation = Quaternion::IDENTITY;
-		Vector3 Scale = Vector3::ZERO;
+		Vector3 Position = Vector3::kZero;
+		Quaternion Rotation = Quaternion::kIdentity;
+		Vector3 Scale = Vector3::kZero;
 		bool IsActive = false;
 		u32 SoFlags = 0;
 

@@ -122,7 +122,7 @@
 
 namespace bs
 {
-	static const StringID RendererDefault = "RenderBeast";
+	static const StringID kRendererDefault = "RenderBeast";
 
 	class VirtualButton;
 	class VirtualInput;

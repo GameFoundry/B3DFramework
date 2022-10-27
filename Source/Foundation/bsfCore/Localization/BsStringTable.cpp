@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-const Language StringTable::DEFAULT_LANGUAGE = Language::EnglishUS;
+const Language StringTable::kDefaultLanguage = Language::EnglishUS;
 
 LocalizedStringData::~LocalizedStringData()
 {
@@ -163,9 +163,9 @@ StringTable::StringTable()
 {
 	mAllLanguages = bs_newN<LanguageData>((u32)Language::Count);
 
-	mDefaultLanguageData = &(mAllLanguages[(u32)DEFAULT_LANGUAGE]);
+	mDefaultLanguageData = &(mAllLanguages[(u32)kDefaultLanguage]);
 	mActiveLanguageData = mDefaultLanguageData;
-	mActiveLanguage = DEFAULT_LANGUAGE;
+	mActiveLanguage = kDefaultLanguage;
 }
 
 StringTable::~StringTable()
@@ -257,7 +257,7 @@ SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, L
 
 	if(insertIfNonExisting)
 	{
-		SetString(identifier, DEFAULT_LANGUAGE, identifier);
+		SetString(identifier, kDefaultLanguage, identifier);
 
 		auto defaultIterFind = mDefaultLanguageData->Strings.find(identifier);
 		if(defaultIterFind != mDefaultLanguageData->Strings.end())

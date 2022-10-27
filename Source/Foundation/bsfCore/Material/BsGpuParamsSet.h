@@ -165,7 +165,7 @@ namespace bs
 		 */
 		void Update(const SPtr<MaterialParamsType>& params, float t = 0.0f, bool updateAll = false);
 
-		static const u32 NUM_STAGES;
+		static const u32 kNumStages;
 
 	private:
 		template <bool Core2>

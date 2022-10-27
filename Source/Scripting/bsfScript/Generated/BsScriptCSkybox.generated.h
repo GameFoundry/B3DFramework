@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCSkybox : public TScriptComponent<ScriptCSkybox, CSkybox>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Skybox")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Skybox")
 
 		ScriptCSkybox(MonoObject* managedInstance, const GameObjectHandle<CSkybox>& value);
 

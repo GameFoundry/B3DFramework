@@ -148,9 +148,9 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 
 	for(u32 i = 0; i < mNumBones; i++)
 	{
-		localPose.Positions[i] = Vector3::ZERO;
-		localPose.Rotations[i] = Quaternion::ZERO;
-		localPose.Scales[i] = Vector3::ONE;
+		localPose.Positions[i] = Vector3::kZero;
+		localPose.Rotations[i] = Quaternion::kZero;
+		localPose.Scales[i] = Vector3::kOne;
 	}
 
 	bool* hasAnimCurve = bs_stack_alloc<bool>(mNumBones);
@@ -220,12 +220,12 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 					{
 						bool isAssigned = localPose.Rotations[k].W != 0.0f;
 						if(!isAssigned)
-							localPose.Rotations[k] = Quaternion::IDENTITY;
+							localPose.Rotations[k] = Quaternion::kIdentity;
 
 						const TAnimationCurve<Quaternion>& curve = state.Curves->Rotation[curveIdx].Curve;
 
 						Quaternion value = curve.Evaluate(state.Time, state.RotationCaches[curveIdx], false);
-						value = Quaternion::Lerp(normWeight, Quaternion::IDENTITY, value);
+						value = Quaternion::Lerp(normWeight, Quaternion::kIdentity, value);
 
 						localPose.Rotations[k] *= value;
 						localPose.HasOverride[k] = false;
@@ -272,7 +272,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 	{
 		bool isAssigned = localPose.Rotations[i].W != 0.0f;
 		if(!isAssigned)
-			localPose.Rotations[i] = Quaternion::IDENTITY;
+			localPose.Rotations[i] = Quaternion::kIdentity;
 		else
 			localPose.Rotations[i].Normalize();
 

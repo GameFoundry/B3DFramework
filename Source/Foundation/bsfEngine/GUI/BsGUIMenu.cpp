@@ -72,7 +72,7 @@ void GUIMenuItem::RemoveChild(const GUIMenuItem* item)
 }
 
 GUIMenu::GUIMenu()
-	: mRootElement(nullptr, "", nullptr, 0, 0, ShortcutKey::NONE), mNextIdx(0)
+	: mRootElement(nullptr, "", nullptr, 0, 0, ShortcutKey::kNone), mNextIdx(0)
 {
 }
 
@@ -87,7 +87,7 @@ GUIMenuItem* GUIMenu::AddMenuItem(const String& path, std::function<void()> call
 
 GUIMenuItem* GUIMenu::AddSeparator(const String& path, i32 priority)
 {
-	return AddMenuItemInternal(path, nullptr, true, priority, ShortcutKey::NONE);
+	return AddMenuItemInternal(path, nullptr, true, priority, ShortcutKey::kNone);
 }
 
 GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void()> callback, bool isSeparator, i32 priority, const ShortcutKey& key)
@@ -112,7 +112,7 @@ GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void
 			else
 			{
 				existingItem = bs_alloc<GUIMenuItem>();
-				existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::NONE);
+				existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::kNone);
 			}
 
 			curSubMenu->AddChild(existingItem);

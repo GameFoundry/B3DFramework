@@ -285,7 +285,7 @@ Vector<ShaderBlockDesc> determineValidShareableParamBlocks(const Vector<SPtr<Gpu
 		auto iterFind = shaderDesc.find(entry.first);
 		if(iterFind != shaderDesc.end())
 		{
-			shaderBlockDesc.External = iterFind->second.Shared || iterFind->second.RendererSemantic != StringID::NONE;
+			shaderBlockDesc.External = iterFind->second.Shared || iterFind->second.RendererSemantic != StringID::kNone;
 			shaderBlockDesc.Usage = iterFind->second.Usage;
 		}
 
@@ -465,7 +465,7 @@ UnorderedMap<ValidParamKey, String> determineValidParameters(const Vector<SPtr<G
 }
 
 template <bool Core>
-const u32 TGpuParamsSet<Core>::NUM_STAGES = 6;
+const u32 TGpuParamsSet<Core>::kNumStages = 6;
 
 template <bool Core>
 TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, const SPtr<MaterialParamsType>& params)
@@ -520,7 +520,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	for(u32 i = 0; i < numPasses; i++)
 	{
 		SPtr<GpuParamsType> paramPtr = mPassParams[i];
-		for(u32 j = 0; j < NUM_STAGES; j++)
+		for(u32 j = 0; j < kNumStages; j++)
 		{
 			GpuProgramType progType = (GpuProgramType)j;
 
@@ -615,7 +615,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	{
 		FrameVector<ObjectParamInfo> objParamInfos;
 
-		u32 offsetsSize = numPasses * NUM_STAGES * 4 * sizeof(u32);
+		u32 offsetsSize = numPasses * kNumStages * 4 * sizeof(u32);
 		u32* offsets = (u32*)bs_frame_alloc(offsetsSize);
 		memset(offsets, 0, offsetsSize);
 
@@ -625,7 +625,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<GpuParamsType> paramPtr = mPassParams[i];
-			for(u32 j = 0; j < NUM_STAGES; j++)
+			for(u32 j = 0; j < kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
 
@@ -694,9 +694,9 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 		stageOffsets = offsets;
 		for(u32 i = 0; i < numPasses; i++)
 		{
-			for(u32 j = 0; j < NUM_STAGES; j++)
+			for(u32 j = 0; j < kNumStages; j++)
 			{
-				StageParamInfo& stage = stageInfos[i * NUM_STAGES + j];
+				StageParamInfo& stage = stageInfos[i * kNumStages + j];
 
 				if(stageOffsets[0] > 0)
 				{
@@ -754,7 +754,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			for(u32 i = 0; i < numPasses; i++)
 			{
 				SPtr<GpuParamsType> paramPtr = mPassParams[i];
-				for(u32 j = 0; j < NUM_STAGES; j++)
+				for(u32 j = 0; j < kNumStages; j++)
 				{
 					GpuProgramType progType = (GpuProgramType)j;
 
@@ -841,7 +841,7 @@ void TGpuParamsSet<Core>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType
 		for(u32 j = 0; j < numPasses; j++)
 		{
 			SPtr<GpuParamsType> paramPtr = mPassParams[j];
-			for(u32 i = 0; i < NUM_STAGES; i++)
+			for(u32 i = 0; i < kNumStages; i++)
 			{
 				GpuProgramType progType = (GpuProgramType)i;
 
@@ -897,7 +897,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 
 		if(materialParamInfo->DataType != GPDT_STRUCT)
 		{
-			const GpuParamDataTypeInfo& typeInfo = GpuParams::PARAM_SIZES.Lookup[(int)materialParamInfo->DataType];
+			const GpuParamDataTypeInfo& typeInfo = GpuParams::kParamSizes.Lookup[(int)materialParamInfo->DataType];
 
 			u32 paramSize;
 			if(materialParamInfo->DataType != GPDT_COLOR)
@@ -1096,7 +1096,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 	{
 		SPtr<GpuParamsType> paramPtr = mPassParams[i];
 
-		for(u32 j = 0; j < NUM_STAGES; j++)
+		for(u32 j = 0; j < kNumStages; j++)
 		{
 			const StageParamInfo& stageInfo = mPassParamInfos[i].Stages[j];
 

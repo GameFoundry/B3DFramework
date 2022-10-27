@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-const Rect2I Rect2I::EMPTY;
+const Rect2I Rect2I::kEmpty;
 
 bool Rect2I::Contains(const Vector2I& point) const
 {

@@ -10,7 +10,7 @@
 using namespace bs;
 
 LightBase::LightBase()
-	: mType(LightType::Radial), mCastsShadows(false), mColor(Color::White), mAttRadius(10.0f), mSourceRadius(0.0f), mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
+	: mType(LightType::Radial), mCastsShadows(false), mColor(Color::kWhite), mAttRadius(10.0f), mSourceRadius(0.0f), mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
 {
 	UpdateAttenuationRange();
 }
@@ -69,13 +69,13 @@ float LightBase::GetLuminance() const
 	{
 	case LightType::Radial:
 		if(mSourceRadius > 0.0f)
-			return mIntensity / (4 * radius2 * Math::PI); // Luminous flux -> luminance
+			return mIntensity / (4 * radius2 * Math::kPi); // Luminous flux -> luminance
 		else
-			return mIntensity / (4 * Math::PI); // Luminous flux -> luminous intensity
+			return mIntensity / (4 * Math::kPi); // Luminous flux -> luminous intensity
 	case LightType::Spot:
 		{
 			if(mSourceRadius > 0.0f)
-				return mIntensity / (radius2 * Math::PI); // Luminous flux -> luminance
+				return mIntensity / (radius2 * Math::kPi); // Luminous flux -> luminance
 			else
 			{
 				// Note: Consider using the simpler conversion I / PI to match with the area-light conversion
@@ -83,14 +83,14 @@ float LightBase::GetLuminance() const
 				float cosFalloffAngle = Math::Cos(mSpotFalloffAngle);
 
 				// Luminous flux -> luminous intensity
-				return mIntensity / (Math::TWO_PI * (1.0f - (cosFalloffAngle + cosTotalAngle) * 0.5f));
+				return mIntensity / (Math::kTwoPi * (1.0f - (cosFalloffAngle + cosTotalAngle) * 0.5f));
 			}
 		}
 	case LightType::Directional:
 		if(mSourceRadius > 0.0f)
 		{
 			// Use cone solid angle formulae to calculate disc solid angle
-			float solidAngle = Math::TWO_PI * (1 - cos(mSourceRadius * Math::DEG2RAD));
+			float solidAngle = Math::kTwoPi * (1 - cos(mSourceRadius * Math::kDeG2Rad));
 			return mIntensity / solidAngle; // Illuminance -> luminance
 		}
 		else
@@ -265,8 +265,8 @@ RTTITypeBase* Light::GetRtti() const
 
 namespace bs { namespace ct
 {
-const u32 Light::LIGHT_CONE_NUM_SIDES = 20;
-const u32 Light::LIGHT_CONE_NUM_SLICES = 10;
+const u32 Light::kLightConeNumSides = 20;
+const u32 Light::kLightConeNumSlices = 10;
 
 Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 	: LightBase(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0)

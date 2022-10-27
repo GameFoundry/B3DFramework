@@ -20,7 +20,7 @@ Signal CoreThread::sAppStartedCondition;
 
 void CoreThread::OnStartUp()
 {
-	for(u32 i = 0; i < NUM_SYNC_BUFFERS; i++)
+	for(u32 i = 0; i < kNumSyncBuffers; i++)
 	{
 		mFrameAllocs[i] = bs_new<FrameAlloc>();
 		mFrameAllocs[i]->SetOwnerThread(BS_THREAD_CURRENT_ID); // Sim thread
@@ -53,7 +53,7 @@ CoreThread::~CoreThread()
 		mCommandQueue = nullptr;
 	}
 
-	for(u32 i = 0; i < NUM_SYNC_BUFFERS; i++)
+	for(u32 i = 0; i < kNumSyncBuffers; i++)
 	{
 		mFrameAllocs[i]->SetOwnerThread(BS_THREAD_CURRENT_ID); // Sim thread
 		bs_delete(mFrameAllocs[i]);
@@ -328,7 +328,7 @@ void CoreThread::QueueCommand(std::function<void()> commandCallback, CoreThreadQ
 
 void CoreThread::Update()
 {
-	for(u32 i = 0; i < NUM_SYNC_BUFFERS; i++)
+	for(u32 i = 0; i < kNumSyncBuffers; i++)
 		mFrameAllocs[i]->SetOwnerThread(mCoreThreadId);
 
 	mActiveFrameAlloc = (mActiveFrameAlloc + 1) % 2;

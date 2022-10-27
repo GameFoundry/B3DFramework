@@ -27,7 +27,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPhysicsScene : public ScriptObject<ScriptPhysicsScene>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "PhysicsScene")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PhysicsScene")
 
 		ScriptPhysicsScene(MonoObject* managedInstance, const SPtr<PhysicsScene>& value);
 

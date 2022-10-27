@@ -32,7 +32,7 @@ namespace bs
 		u32 CountZ = 1;
 
 		/** Spatial bounds of the vector field. */
-		AABox Bounds = AABox::BOX_EMPTY;
+		AABox Bounds = AABox::kBoxEmpty;
 	};
 
 	/** @} */

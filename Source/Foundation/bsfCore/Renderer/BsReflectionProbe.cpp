@@ -88,8 +88,8 @@ void ReflectionProbe::CaptureAndFilter()
 	TEXTURE_DESC cubemapDesc;
 	cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 	cubemapDesc.Format = PF_RG11B10F;
-	cubemapDesc.Width = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
-	cubemapDesc.Height = ct::IBLUtility::REFLECTION_CUBEMAP_SIZE;
+	cubemapDesc.Width = ct::IBLUtility::kReflectionCubemapSize;
+	cubemapDesc.Height = ct::IBLUtility::kReflectionCubemapSize;
 	cubemapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 	cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
@@ -153,7 +153,7 @@ SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
 
 SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 {
-	ReflectionProbe* probe = new(bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::ZERO);
+	ReflectionProbe* probe = new(bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::kZero);
 	SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
 	probePtr->SetThisPtrInternal(probePtr);
 	probePtr->Initialize();

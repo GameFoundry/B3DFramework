@@ -42,7 +42,7 @@ void DecalBase::SetTransform(const Transform& transform)
 
 	mTransform = transform;
 	mTfrmMatrix = transform.GetMatrix();
-	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::ONE);
+	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
 	MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 }
@@ -188,7 +188,7 @@ void Decal::SyncToCore(const CoreSyncData& data)
 	csync_read(*this, stream);
 
 	mTfrmMatrix = mTransform.GetMatrix();
-	mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::ONE);
+	mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::kOne);
 
 	UpdateBounds();
 

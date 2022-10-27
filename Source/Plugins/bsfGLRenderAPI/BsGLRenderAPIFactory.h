@@ -18,13 +18,13 @@ namespace bs
 		class GLRenderAPIFactory : public RenderAPIFactory
 		{
 		public:
-			static constexpr const char* SystemName = "bsfGLRenderAPI";
+			static constexpr const char* kSystemName = "bsfGLRenderAPI";
 
 			/** @copydoc RenderAPIFactory::create */
 			void Create();
 
 			/** @copydoc RenderAPIFactory::name */
-			const char* Name() const { return SystemName; }
+			const char* Name() const { return kSystemName; }
 
 		private:
 			/**	Registers the factory with the render system manager when constructed. */

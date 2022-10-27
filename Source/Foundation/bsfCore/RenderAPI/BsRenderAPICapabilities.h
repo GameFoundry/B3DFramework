@@ -239,7 +239,7 @@ namespace bs
 		static String VendorToString(GPUVendor vendor);
 
 	private:
-		static char const* const GPU_VENDOR_STRINGS[GPU_VENDOR_COUNT];
+		static char const* const kGpuVendorStrings[GPU_VENDOR_COUNT];
 
 		/** Stores the capabilities flags. */
 		u32 mCapabilities[CAPS_CATEGORY_COUNT]{ 0 };

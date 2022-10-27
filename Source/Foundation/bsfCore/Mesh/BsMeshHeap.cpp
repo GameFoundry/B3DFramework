@@ -76,7 +76,7 @@ SPtr<ct::CoreObject> MeshHeap::CreateCore() const
 
 namespace bs { namespace ct
 {
-const float MeshHeap::GrowPercent = 1.5f;
+const float MeshHeap::kGrowPercent = 1.5f;
 
 MeshHeap::MeshHeap(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType, GpuDeviceFlags deviceMask)
 	: mNumVertices(numVertices), mNumIndices(numIndices), mCPUIndexData(nullptr), mVertexDesc(vertexDesc), mIndexType(indexType), mDeviceMask(deviceMask), mNextQueryId(0)
@@ -140,7 +140,7 @@ void MeshHeap::Alloc(SPtr<TransientMesh> mesh, const SPtr<MeshData>& meshData)
 		u32 newNumVertices = mNumVertices;
 		while(newNumVertices < (mNumVertices + meshData->GetNumVertices()))
 		{
-			newNumVertices = Math::RoundToInt(newNumVertices * GrowPercent);
+			newNumVertices = Math::RoundToInt(newNumVertices * kGrowPercent);
 		}
 
 		GrowVertexBuffer(newNumVertices);
@@ -172,7 +172,7 @@ void MeshHeap::Alloc(SPtr<TransientMesh> mesh, const SPtr<MeshData>& meshData)
 		u32 newNumIndices = mNumIndices;
 		while(newNumIndices < (mNumIndices + meshData->GetNumIndices()))
 		{
-			newNumIndices = Math::RoundToInt(newNumIndices * GrowPercent);
+			newNumIndices = Math::RoundToInt(newNumIndices * kGrowPercent);
 		}
 
 		GrowIndexBuffer(newNumIndices);

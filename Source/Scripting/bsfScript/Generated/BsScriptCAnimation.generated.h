@@ -31,7 +31,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCAnimation : public TScriptComponent<ScriptCAnimation, CAnimation>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Animation")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Animation")
 
 		ScriptCAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value);
 

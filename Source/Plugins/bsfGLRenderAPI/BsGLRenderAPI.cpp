@@ -195,7 +195,7 @@ void GLRenderAPI::DestroyCore()
 	bs::HardwareBufferManager::ShutDown();
 	GLRTTManager::ShutDown();
 
-	for(u32 i = 0; i < MAX_VB_COUNT; i++)
+	for(u32 i = 0; i < kMaxVbCount; i++)
 		mBoundVertexBuffers[i] = nullptr;
 
 	mBoundVertexDeclaration = nullptr;
@@ -987,7 +987,7 @@ void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 n
 {
 #if BS_DEBUG_MODE
 	u32 lastIdx = index + numBuffers;
-	if(lastIdx > MAX_VB_COUNT)
+	if(lastIdx > kMaxVbCount)
 	{
 		BS_LOG(Error, RenderBackend, "Provided vertex buffer slot range is invalid: {0} to {1}.", index, index + numBuffers);
 		return;

@@ -18,7 +18,7 @@
 
 using namespace bs;
 
-const TextureSurface TextureSurface::COMPLETE = TextureSurface(0, 0, 0, 0);
+const TextureSurface TextureSurface::kComplete = TextureSurface(0, 0, 0, 0);
 
 GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
 	: mParamInfo(paramInfo)
@@ -565,7 +565,7 @@ template BS_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4>(GpuProgramType 
 template BS_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4x2>(GpuProgramType type, const String&, TGpuDataParam<Matrix4x2, true>&) const;
 template BS_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4x3>(GpuProgramType type, const String&, TGpuDataParam<Matrix4x3, true>&) const;
 
-const GpuDataParamInfos GpuParams::PARAM_SIZES;
+const GpuDataParamInfos GpuParams::kParamSizes;
 
 GpuParams::GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
 	: TGpuParams(paramInfo)

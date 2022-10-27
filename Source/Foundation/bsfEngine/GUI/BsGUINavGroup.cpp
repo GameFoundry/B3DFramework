@@ -72,7 +72,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 		//// We search by rows in order to make the navigation perceptually nicer. Sometimes elements appear to be
 		//// in the same row, but might be off by a few pixels, in which case the simpler approach would 'jump'
 		//// over an element.
-		constexpr static i32 ROW_HEIGHT = 5;
+		constexpr static i32 kRowHeight = 5;
 
 		const auto unindexedRange = mOrderedElements.equal_range(0);
 		bs_frame_mark();
@@ -130,7 +130,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 					const i32 yDiff = elemBounds.Y - rowY;
 
 					// New row
-					if(yDiff >= ROW_HEIGHT)
+					if(yDiff >= kRowHeight)
 					{
 						iterRowStart = iterElem;
 						rowY = elemBounds.Y;
@@ -159,7 +159,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				const i32 yDiff = elemBounds.Y - rowY;
 
 				// New row
-				if(yDiff >= ROW_HEIGHT)
+				if(yDiff >= kRowHeight)
 				{
 					rowY = elemBounds.Y;
 					break;
@@ -191,7 +191,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 					const i32 yDiff = elemBounds.Y - rowY;
 
 					// New row
-					if(yDiff >= ROW_HEIGHT)
+					if(yDiff >= kRowHeight)
 						break;
 
 					if(elemBounds.X < nearestX)

@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShaderVariation : public TScriptReflectable<ScriptShaderVariation, ShaderVariation>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderVariation")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShaderVariation")
 
 		ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariation>& value);
 

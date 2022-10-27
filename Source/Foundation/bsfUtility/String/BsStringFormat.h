@@ -60,14 +60,14 @@ namespace bs
 		{
 			u32 strLength = GetLength(source);
 
-			ParamData<T> parameters[MAX_PARAMS];
+			ParamData<T> parameters[kMaxParams];
 			memset(parameters, 0, sizeof(parameters));
 			GetParams(parameters, 0U, std::forward<Args>(args)...);
 
-			T bracketChars[MAX_IDENTIFIER_SIZE + 1];
+			T bracketChars[kMaxIdentifierSize + 1];
 			u32 bracketWriteIdx = 0;
 
-			FormatParamRange paramRanges[MAX_PARAM_REFERENCES];
+			FormatParamRange paramRanges[kMaxParamReferences];
 			memset(paramRanges, 0, sizeof(paramRanges));
 			u32 paramRangeWriteIdx = 0;
 
@@ -77,7 +77,7 @@ namespace bs
 			u32 charWriteIdx = 0;
 			for(u32 i = 0; i < strLength; i++)
 			{
-				if(source[i] == '\\' && !escaped && paramRangeWriteIdx < MAX_PARAM_REFERENCES)
+				if(source[i] == '\\' && !escaped && paramRangeWriteIdx < kMaxParamReferences)
 				{
 					escaped = true;
 					paramRanges[paramRangeWriteIdx++] = FormatParamRange(charWriteIdx, 1, (u32)-1);
@@ -94,7 +94,7 @@ namespace bs
 				}
 				else
 				{
-					if(isdigit(source[i]) && bracketWriteIdx < MAX_IDENTIFIER_SIZE)
+					if(isdigit(source[i]) && bracketWriteIdx < kMaxIdentifierSize)
 						bracketChars[bracketWriteIdx++] = source[i];
 					else
 					{
@@ -105,7 +105,7 @@ namespace bs
 						{
 							bracketChars[bracketWriteIdx] = '\0';
 							u32 paramIdx = StrToInt(bracketChars);
-							if(paramIdx < MAX_PARAMS && paramRangeWriteIdx < MAX_PARAM_REFERENCES) // Check if exceeded maximum parameter limit
+							if(paramIdx < kMaxParams && paramRangeWriteIdx < kMaxParamReferences) // Check if exceeded maximum parameter limit
 							{
 								paramRanges[paramRangeWriteIdx++] = FormatParamRange(charWriteIdx, numParamChars + 2, paramIdx);
 								charWriteIdx += parameters[paramIdx].Size;
@@ -157,7 +157,7 @@ namespace bs
 			BasicString<T> outputStr(outputBuffer, finalStringSize);
 			bs_free(outputBuffer);
 
-			for(u32 i = 0; i < MAX_PARAMS; i++)
+			for(u32 i = 0; i < kMaxParams; i++)
 			{
 				if(parameters[i].Buffer != nullptr)
 					bs_free(parameters[i].Buffer);
@@ -269,7 +269,7 @@ namespace bs
 		template <class P, class... Args>
 		static void GetParams(ParamData<char>* parameters, u32 idx, P&& param, Args&&... args)
 		{
-			if(idx >= MAX_PARAMS)
+			if(idx >= kMaxParams)
 				return;
 
 			BasicString<char> sourceParam = toString(param);
@@ -311,9 +311,9 @@ namespace bs
 			// Do nothing
 		}
 
-		static constexpr const u32 MAX_PARAMS = 20;
-		static constexpr const u32 MAX_IDENTIFIER_SIZE = 2;
-		static constexpr const u32 MAX_PARAM_REFERENCES = 200;
+		static constexpr const u32 kMaxParams = 20;
+		static constexpr const u32 kMaxIdentifierSize = 2;
+		static constexpr const u32 kMaxParamReferences = 200;
 	};
 
 	/** @} */

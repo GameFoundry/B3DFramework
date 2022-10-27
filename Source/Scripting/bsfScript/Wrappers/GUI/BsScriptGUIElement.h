@@ -122,7 +122,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIElement : public ScriptObject<ScriptGUIElement>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIElement")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIElement")
 
 	private:
 		ScriptGUIElement(MonoObject* instance);

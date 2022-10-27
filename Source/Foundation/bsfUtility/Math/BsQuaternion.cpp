@@ -8,8 +8,8 @@
 
 using namespace bs;
 
-const Quaternion Quaternion::ZERO{ BS_ZERO() };
-const Quaternion Quaternion::IDENTITY{ BS_IDENTITY() };
+const Quaternion Quaternion::kZero{ BS_ZERO() };
+const Quaternion Quaternion::kIdentity{ BS_IDENTITY() };
 
 void Quaternion::FromRotationMatrix(const Matrix3& mat)
 {
@@ -112,8 +112,8 @@ void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, con
 
 void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
 {
-	static constexpr const EulerAngleOrderData EA_LOOKUP[6] = { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 0, 1 }, { 2, 1, 0 } };
-	const EulerAngleOrderData& l = EA_LOOKUP[(int)order];
+	static constexpr const EulerAngleOrderData kEaLookup[6] = { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 0, 1 }, { 2, 1, 0 } };
+	const EulerAngleOrderData& l = kEaLookup[(int)order];
 
 	Radian halfXAngle = xAngle * 0.5f;
 	Radian halfYAngle = yAngle * 0.5f;
@@ -263,7 +263,7 @@ Quaternion Quaternion::Inverse() const
 	else
 	{
 		// Return an invalid result to flag the error
-		return ZERO;
+		return kZero;
 	}
 }
 
@@ -278,7 +278,7 @@ Vector3 Quaternion::Rotate(const Vector3& v) const
 
 void Quaternion::LookRotation(const Vector3& forwardDir)
 {
-	if(forwardDir == Vector3::ZERO)
+	if(forwardDir == Vector3::kZero)
 		return;
 
 	Vector3 nrmForwardDir = Vector3::Normalize(forwardDir);
@@ -333,7 +333,7 @@ Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, 
 		quat = q;
 	}
 
-	if(abs(cos) < 1 - EPSILON)
+	if(abs(cos) < 1 - kEpsilon)
 	{
 		// Standard case (slerp)
 		float sin = Math::Sqrt(1 - Math::Sqr(cos));
@@ -373,23 +373,23 @@ Quaternion Quaternion::GetRotationFromTo(const Vector3& from, const Vector3& des
 
 	// If dot == 1, vectors are the same
 	if(d >= 1.0f)
-		return Quaternion::IDENTITY;
+		return Quaternion::kIdentity;
 
 	if(d < (1e-6f - 1.0f))
 	{
-		if(fallbackAxis != Vector3::ZERO)
+		if(fallbackAxis != Vector3::kZero)
 		{
 			// Rotate 180 degrees about the fallback axis
-			q.FromAxisAngle(fallbackAxis, Radian(Math::PI));
+			q.FromAxisAngle(fallbackAxis, Radian(Math::kPi));
 		}
 		else
 		{
 			// Generate an axis
-			Vector3 axis = Vector3::UNIT_X.Cross(from);
+			Vector3 axis = Vector3::kUnitX.Cross(from);
 			if(axis.IsZeroLength()) // Pick another if colinear
-				axis = Vector3::UNIT_Y.Cross(from);
+				axis = Vector3::kUnitY.Cross(from);
 			axis.Normalize();
-			q.FromAxisAngle(axis, Radian(Math::PI));
+			q.FromAxisAngle(axis, Radian(Math::kPi));
 		}
 	}
 	else

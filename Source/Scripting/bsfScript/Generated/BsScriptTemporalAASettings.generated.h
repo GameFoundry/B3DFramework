@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTemporalAASettings : public TScriptReflectable<ScriptTemporalAASettings, TemporalAASettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TemporalAASettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "TemporalAASettings")
 
 		ScriptTemporalAASettings(MonoObject* managedInstance, const SPtr<TemporalAASettings>& value);
 

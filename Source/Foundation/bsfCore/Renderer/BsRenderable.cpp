@@ -49,7 +49,7 @@ void TRenderable<Core>::SetTransform(const Transform& transform)
 
 	mTransform = transform;
 	mTfrmMatrix = transform.GetMatrix();
-	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::ONE);
+	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
 	MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 }
@@ -539,7 +539,7 @@ SPtr<GpuBuffer> createBoneMatrixBuffer(u32 numBones)
 	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
 	for(u32 i = 0; i < numBones; i++)
 	{
-		memcpy(dest, &Matrix4::IDENTITY, 12 * sizeof(float)); // Assuming row-major format
+		memcpy(dest, &Matrix4::kIdentity, 12 * sizeof(float)); // Assuming row-major format
 		dest += 12 * sizeof(float);
 	}
 
@@ -678,7 +678,7 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 	SceneActor::RttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
 
 	mTfrmMatrix = mTransform.GetMatrix();
-	mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::ONE);
+	mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::kOne);
 
 	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
 	{

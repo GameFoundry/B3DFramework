@@ -10,7 +10,7 @@
 
 namespace bs { namespace ct {
 
-static const u32 REFL_PROBE_BUFFER_INCREMENT = 16 * sizeof(ReflProbeData);
+static const u32 kReflProbeBufferIncrement = 16 * sizeof(ReflProbeData);
 
 ReflProbeParamsParamDef gReflProbeParamsParamDef;
 
@@ -57,7 +57,7 @@ void VisibleReflProbeData::Update(const SceneInfo& sceneInfo, const RendererView
 		if(size > curBufferSize || curBufferSize == 0)
 		{
 			// Allocate at least one block even if no probes, to avoid issues with null buffers
-			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)REFL_PROBE_BUFFER_INCREMENT)) * REFL_PROBE_BUFFER_INCREMENT;
+			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kReflProbeBufferIncrement)) * kReflProbeBufferIncrement;
 
 			GPU_BUFFER_DESC bufferDesc;
 			bufferDesc.Type = GBT_STRUCTURED;

@@ -234,7 +234,7 @@ namespace bs
 		/** Creates a cache used for quick evaluation of double integrated curves. */
 		void BuildDoubleIntegrationCache(const TCurveIntegrationCache<T>& cache) const;
 
-		static const u32 CACHE_LOOKAHEAD;
+		static const u32 kCacheLookahead;
 
 		Vector<KeyFrame> mKeyframes;
 		float mStart = 0.0f;

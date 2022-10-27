@@ -28,7 +28,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTDistributionfloat : public ScriptObject<ScriptTDistributionfloat>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FloatDistribution")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FloatDistribution")
 
 		ScriptTDistributionfloat(MonoObject* managedInstance, const SPtr<TDistribution<float>>& value);
 
@@ -56,7 +56,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTDistributionVector3 : public ScriptObject<ScriptTDistributionVector3>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector3Distribution")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3Distribution")
 
 		ScriptTDistributionVector3(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value);
 
@@ -84,7 +84,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTDistributionVector2 : public ScriptObject<ScriptTDistributionVector2>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Vector2Distribution")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector2Distribution")
 
 		ScriptTDistributionVector2(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value);
 

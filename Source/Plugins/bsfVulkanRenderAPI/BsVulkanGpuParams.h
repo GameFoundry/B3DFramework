@@ -24,7 +24,7 @@ namespace bs
 			void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer);
 
 			/** @copydoc GpuParams::setTexture */
-			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::COMPLETE);
+			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete);
 
 			/** @copydoc GpuParams::setLoadStoreTexture */
 			void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface);

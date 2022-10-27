@@ -227,7 +227,7 @@ namespace bs
 
 			u32 mNextQueryId;
 
-			static const float GrowPercent;
+			static const float kGrowPercent;
 		};
 
 		/** @} */

@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleTextureAnimation : public TScriptReflectable<ScriptParticleTextureAnimation, ParticleTextureAnimation, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleTextureAnimation")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleTextureAnimation")
 
 		ScriptParticleTextureAnimation(MonoObject* managedInstance, const SPtr<ParticleTextureAnimation>& value);
 

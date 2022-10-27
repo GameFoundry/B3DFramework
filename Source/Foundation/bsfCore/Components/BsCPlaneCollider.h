@@ -62,7 +62,7 @@ namespace bs
 		bool IsValidParent(const HRigidbody& parent) const override;
 
 	protected:
-		Vector3 mNormal = Vector3::UNIT_Y;
+		Vector3 mNormal = Vector3::kUnitY;
 		float mDistance = 0.0f;
 
 		/************************************************************************/

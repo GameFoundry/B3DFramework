@@ -304,7 +304,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 
 		SceneObjectTransforms = (Matrix4*)data;
 		for(u32 i = 0; i < numBoneMappedSOs; i++)
-			SceneObjectTransforms[i] = Matrix4::IDENTITY;
+			SceneObjectTransforms[i] = Matrix4::kIdentity;
 
 		data += sceneObjectTransformsSize;
 
@@ -1474,9 +1474,9 @@ void Animation::UpdateFromProxy()
 				while(rootSO && rootSO.IsDestroyed(true))
 					rootSO = rootSO->GetParent();
 
-				Vector3 parentPos = Vector3::ZERO;
-				Quaternion parentRot = Quaternion::IDENTITY;
-				Vector3 parentScale = Vector3::ONE;
+				Vector3 parentPos = Vector3::kZero;
+				Quaternion parentRot = Quaternion::kIdentity;
+				Vector3 parentScale = Vector3::kOne;
 
 				if(!rootSO.IsDestroyed(true))
 				{

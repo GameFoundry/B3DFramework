@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSpring : public ScriptObject<ScriptSpring>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Spring")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Spring")
 
 		static MonoObject* Box(const Spring& value);
 		static Spring Unbox(MonoObject* value);

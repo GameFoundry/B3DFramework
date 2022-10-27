@@ -15,10 +15,10 @@ namespace bs
 #endif
 
 #if BS_INCLUDE_B3D_PATHS
-	constexpr const char* GAME_RESOURCES_FOLDER_NAME = "Resources/";
-	constexpr const char* GAME_SETTINGS_NAME = "GameSettings.asset";
-	constexpr const char* GAME_RESOURCE_MANIFEST_NAME = "ResourceManifest.asset";
-	constexpr const char* GAME_RESOURCE_MAPPING_NAME = "ResourceMapping.asset";
+	constexpr const char* kGameResourcesFolderName = "Resources/";
+	constexpr const char* kGameSettingsName = "GameSettings.asset";
+	constexpr const char* kGameResourceManifestName = "ResourceManifest.asset";
+	constexpr const char* kGameResourceMappingName = "ResourceMapping.asset";
 #endif
 
 	/** Contains common engine paths and utility method for searching for paths. */
@@ -53,18 +53,18 @@ namespace bs
 		static Path FindPath(const Path& path);
 
 		/** Path to the root data directory. Relative to working directory, or RAW_APP_ROOT. */
-		static const Path FRAMEWORK_DATA_PATH;
+		static const Path kFrameworkDataPath;
 
 		/** Path where the release configuration managed assemblies are located at, relative to the working directory. */
-		static const Path RELEASE_ASSEMBLY_PATH;
+		static const Path kReleaseAssemblyPath;
 
 		/** Path where the debug configuration managed assemblies are located at, relative to the working directory. */
-		static const Path DEBUG_ASSEMBLY_PATH;
+		static const Path kDebugAssemblyPath;
 		;
 
 #if BS_INCLUDE_B3D_PATHS
 		/** Path to the root editor data directory. Relative to working directory, or RAW_APP_ROOT. */
-		static const Path EDITOR_DATA_PATH;
+		static const Path kEditorDataPath;
 #endif
 	};
 

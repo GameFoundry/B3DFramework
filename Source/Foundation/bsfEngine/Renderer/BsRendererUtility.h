@@ -83,7 +83,7 @@ namespace bs
 			 * @param[in]	target			Render target to blend with and write the results to.
 			 * @param[in]	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::White);
+			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 		private:
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
@@ -126,7 +126,7 @@ namespace bs
 			 *								with the target.
 			 * @param[in]	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::White);
+			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -252,7 +252,7 @@ namespace bs
 			 * @param	isFiltered	True if to apply bilinear filtering to the sampled texture. Only relevant for color
 			 *						textures with no multiple samples.
 			 */
-			void Blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::EMPTY, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
+			void Blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::kEmpty, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
 
 			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.
@@ -308,7 +308,7 @@ namespace bs
 			SPtr<Mesh> GetSkyBoxMesh() const { return mSkyBoxMesh; }
 
 		private:
-			static constexpr u32 NUM_QUAD_VB_SLOTS = 1024;
+			static constexpr u32 kNumQuadVbSlots = 1024;
 
 			SPtr<IndexBuffer> mFullScreenQuadIB;
 			SPtr<VertexBuffer> mFullScreenQuadVB;

@@ -45,8 +45,8 @@ const EvaluatedAnimationData* AnimationManager::Update(bool async)
 		// Advance the buffers (last write buffer becomes read buffer)
 		if(mSwapBuffers)
 		{
-			mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % (CoreThread::NUM_SYNC_BUFFERS + 1);
-			mPoseWriteBufferIdx = (mPoseWriteBufferIdx + 1) % (CoreThread::NUM_SYNC_BUFFERS + 1);
+			mPoseReadBufferIdx = (mPoseReadBufferIdx + 1) % (CoreThread::kNumSyncBuffers + 1);
+			mPoseWriteBufferIdx = (mPoseWriteBufferIdx + 1) % (CoreThread::kNumSyncBuffers + 1);
 
 			mSwapBuffers = false;
 		}
@@ -200,7 +200,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	// Evaluation
 	EvaluatedAnimationData& renderData = mAnimData[mPoseWriteBufferIdx];
 
-	u32 prevPoseBufferIdx = (mPoseWriteBufferIdx + CoreThread::NUM_SYNC_BUFFERS) % (CoreThread::NUM_SYNC_BUFFERS + 1);
+	u32 prevPoseBufferIdx = (mPoseWriteBufferIdx + CoreThread::kNumSyncBuffers) % (CoreThread::kNumSyncBuffers + 1);
 	EvaluatedAnimationData& prevRenderData = mAnimData[prevPoseBufferIdx];
 
 	EvaluatedAnimationData::AnimInfo animInfo;
@@ -250,9 +250,9 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	// Reset mapped SO transform
 	for(u32 i = 0; i < anim->SceneObjectPose.NumBones; i++)
 	{
-		anim->SceneObjectPose.Positions[i] = Vector3::ZERO;
-		anim->SceneObjectPose.Rotations[i] = Quaternion::IDENTITY;
-		anim->SceneObjectPose.Scales[i] = Vector3::ONE;
+		anim->SceneObjectPose.Positions[i] = Vector3::kZero;
+		anim->SceneObjectPose.Rotations[i] = Quaternion::kIdentity;
+		anim->SceneObjectPose.Scales[i] = Vector3::kOne;
 	}
 
 	// Update mapped scene objects

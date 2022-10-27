@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptBlendClipInfo : public ScriptObject<ScriptBlendClipInfo>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BlendClipInfo")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BlendClipInfo")
 
 		static MonoObject* Box(const __BlendClipInfoInterop& value);
 		static __BlendClipInfoInterop Unbox(MonoObject* value);

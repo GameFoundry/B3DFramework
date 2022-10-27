@@ -22,7 +22,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTKeyframeint32_t : public ScriptObject<ScriptTKeyframeint32_t>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyFrameInt")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameInt")
 
 		static MonoObject* Box(const TKeyframe<int32_t>& value);
 		static TKeyframe<int32_t> Unbox(MonoObject* value);
@@ -34,7 +34,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTKeyframefloat : public ScriptObject<ScriptTKeyframefloat>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyFrame")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrame")
 
 		static MonoObject* Box(const TKeyframe<float>& value);
 		static TKeyframe<float> Unbox(MonoObject* value);
@@ -54,7 +54,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTKeyframeVector3 : public ScriptObject<ScriptTKeyframeVector3>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyFrameVec3")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec3")
 
 		static MonoObject* Box(const __TKeyframeVector3Interop& value);
 		static __TKeyframeVector3Interop Unbox(MonoObject* value);
@@ -76,7 +76,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTKeyframeVector2 : public ScriptObject<ScriptTKeyframeVector2>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyFrameVec2")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec2")
 
 		static MonoObject* Box(const __TKeyframeVector2Interop& value);
 		static __TKeyframeVector2Interop Unbox(MonoObject* value);
@@ -98,7 +98,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTKeyframeQuaternion : public ScriptObject<ScriptTKeyframeQuaternion>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "KeyFrameQuat")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameQuat")
 
 		static MonoObject* Box(const __TKeyframeQuaternionInterop& value);
 		static __TKeyframeQuaternionInterop Unbox(MonoObject* value);

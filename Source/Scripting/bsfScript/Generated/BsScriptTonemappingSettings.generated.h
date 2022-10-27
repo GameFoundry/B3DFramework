@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptTonemappingSettings : public TScriptReflectable<ScriptTonemappingSettings, TonemappingSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "TonemappingSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "TonemappingSettings")
 
 		ScriptTonemappingSettings(MonoObject* managedInstance, const SPtr<TonemappingSettings>& value);
 

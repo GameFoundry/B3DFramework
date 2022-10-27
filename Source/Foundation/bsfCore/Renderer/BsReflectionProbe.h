@@ -99,7 +99,7 @@ namespace bs
 		Vector3 mExtents = { 1.0f, 1.0f, 1.0f }; /**< Extents used by box reflection probe. */
 		float mTransitionDistance = 0.1f; /**< Extra distance to used for fading out box probes. */
 
-		Sphere mBounds = { Vector3::ZERO, 1.0f }; /**< Sphere that bounds the probe area of influence. */
+		Sphere mBounds = { Vector3::kZero, 1.0f }; /**< Sphere that bounds the probe area of influence. */
 	};
 
 	/** Templated base class for both core and sim thread implementations of a reflection probe. */

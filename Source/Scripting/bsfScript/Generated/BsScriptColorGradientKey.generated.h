@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptColorGradientKey : public ScriptObject<ScriptColorGradientKey>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ColorGradientKey")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ColorGradientKey")
 
 		static MonoObject* Box(const __ColorGradientKeyInterop& value);
 		static __ColorGradientKeyInterop Unbox(MonoObject* value);

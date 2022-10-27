@@ -35,7 +35,7 @@ RendererUtility::RendererUtility()
 
 		VERTEX_BUFFER_DESC vbDesc;
 		vbDesc.VertexSize = mFullscreenQuadVDecl->GetProperties().GetVertexSize(0);
-		vbDesc.NumVerts = 4 * NUM_QUAD_VB_SLOTS;
+		vbDesc.NumVerts = 4 * kNumQuadVbSlots;
 		vbDesc.Usage = GBU_DYNAMIC;
 
 		mFullScreenQuadVB = VertexBuffer::Create(vbDesc);
@@ -57,7 +57,7 @@ RendererUtility::RendererUtility()
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
 
-		Sphere localSphere(Vector3::ZERO, 1.0f);
+		Sphere localSphere(Vector3::kZero, 1.0f);
 		ShapeMeshes3D::SolidSphere(localSphere, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0, 3);
 
 		mUnitSphereStencilMesh = Mesh::Create(meshData);
@@ -76,15 +76,15 @@ RendererUtility::RendererUtility()
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
 
-		AABox localBox(-Vector3::ONE, Vector3::ONE);
+		AABox localBox(-Vector3::kOne, Vector3::kOne);
 		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0);
 
 		mUnitBoxStencilMesh = Mesh::Create(meshData);
 	}
 
 	{
-		u32 numSides = Light::LIGHT_CONE_NUM_SIDES;
-		u32 numSlices = Light::LIGHT_CONE_NUM_SLICES;
+		u32 numSides = Light::kLightConeNumSides;
+		u32 numSlices = Light::kLightConeNumSlices;
 
 		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
@@ -101,7 +101,7 @@ RendererUtility::RendererUtility()
 		// Dummy vertex positions, actual ones generated in shader
 		for(u32 i = 0; i < numVertices; i++)
 		{
-			memcpy(positionData, &Vector3::ZERO, sizeof(Vector3));
+			memcpy(positionData, &Vector3::kZero, sizeof(Vector3));
 			positionData += stride;
 		}
 
@@ -153,7 +153,7 @@ RendererUtility::RendererUtility()
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
 
-		AABox localBox(-Vector3::ONE * 1500.0f, Vector3::ONE * 1500.0f);
+		AABox localBox(-Vector3::kOne * 1500.0f, Vector3::kOne * 1500.0f);
 		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0);
 
 		mSkyBoxMesh = Mesh::Create(meshData);
@@ -363,7 +363,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 	rapi.DrawIndexed(0, 6, mNextQuadVBSlot * 4, 4, numInstances);
 
-	mNextQuadVBSlot = (mNextQuadVBSlot + 1) % NUM_QUAD_VB_SLOTS;
+	mNextQuadVBSlot = (mNextQuadVBSlot + 1) % kNumQuadVbSlots;
 }
 
 void RendererUtility::Clear(u32 value)

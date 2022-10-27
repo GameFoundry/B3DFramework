@@ -9,7 +9,7 @@
 
 using namespace bs;
 
-const u32 GUISliderHandle::RESIZE_HANDLE_SIZE = 7;
+const u32 GUISliderHandle::kResizeHandleSize = 7;
 
 const String& GUISliderHandle::GetGuiTypeName()
 {
@@ -240,9 +240,9 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 					i32 right = left + handleSize;
 
 					i32 clickPos = ev.GetPosition().X;
-					if(clickPos >= left && clickPos < (left + (i32)RESIZE_HANDLE_SIZE))
+					if(clickPos >= left && clickPos < (left + (i32)kResizeHandleSize))
 						mDragState = DragState::LeftResize;
-					else if(clickPos >= (right - (i32)RESIZE_HANDLE_SIZE) && clickPos < right)
+					else if(clickPos >= (right - (i32)kResizeHandleSize) && clickPos < right)
 						mDragState = DragState::RightResize;
 					else
 						mDragState = DragState::Normal;
@@ -261,9 +261,9 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 					i32 bottom = top + handleSize;
 
 					i32 clickPos = ev.GetPosition().Y;
-					if(clickPos >= top && clickPos < (top + (i32)RESIZE_HANDLE_SIZE))
+					if(clickPos >= top && clickPos < (top + (i32)kResizeHandleSize))
 						mDragState = DragState::LeftResize;
-					else if(clickPos >= (bottom - (i32)RESIZE_HANDLE_SIZE) && clickPos < bottom)
+					else if(clickPos >= (bottom - (i32)kResizeHandleSize) && clickPos < bottom)
 						mDragState = DragState::RightResize;
 					else
 						mDragState = DragState::Normal;

@@ -333,7 +333,7 @@ namespace bs
 		virtual void SetParamBlockBuffer(u32 set, u32 slot, const ParamsBufferType& paramBlockBuffer);
 
 		/**	Sets a texture at the specified set/slot combination. */
-		virtual void SetTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface = TextureSurface::COMPLETE);
+		virtual void SetTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete);
 
 		/**	Sets a load/store texture at the specified set/slot combination. */
 		virtual void SetLoadStoreTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface);
@@ -354,7 +354,7 @@ namespace bs
 		}
 
 		/**	Assigns a texture to the parameter with the specified name. */
-		void SetTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::COMPLETE)
+		void SetTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
 		{
 			TGpuParamTexture<Core> param;
 			GetTextureParam(type, name, param);
@@ -445,7 +445,7 @@ namespace bs
 		static SPtr<GpuParams> Create(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
-		const static GpuDataParamInfos PARAM_SIZES;
+		const static GpuDataParamInfos kParamSizes;
 
 		/** @name Internal
 		 *  @{

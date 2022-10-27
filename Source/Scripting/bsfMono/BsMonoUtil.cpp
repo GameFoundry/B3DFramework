@@ -16,7 +16,7 @@ static bs::MonoProperty* sGenericParamsProp = nullptr;
 WString MonoUtil::MonoToWString(MonoString* str)
 {
 	if(str == nullptr)
-		return StringUtil::WBLANK;
+		return StringUtil::kWblank;
 
 	int len = mono_string_length(str);
 	mono_unichar2* monoChars = mono_string_chars(str);

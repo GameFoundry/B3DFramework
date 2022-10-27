@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCSliderJoint : public TScriptComponent<ScriptCSliderJoint, CSliderJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SliderJoint")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SliderJoint")
 
 		ScriptCSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value);
 

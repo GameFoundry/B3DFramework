@@ -280,12 +280,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0; // In case the data structure changes
+			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Time, stream);
 				size += rtti_write(data.Cycles, stream);
 				size += rtti_write(data.Count, stream);

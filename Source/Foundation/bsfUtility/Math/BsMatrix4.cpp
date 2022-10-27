@@ -8,8 +8,8 @@
 
 using namespace bs;
 
-const Matrix4 Matrix4::ZERO{ BS_ZERO() };
-const Matrix4 Matrix4::IDENTITY{ BS_IDENTITY() };
+const Matrix4 Matrix4::kZero{ BS_ZERO() };
+const Matrix4 Matrix4::kIdentity{ BS_IDENTITY() };
 
 static float MINOR(const Matrix4& m, const u32 r0, const u32 r1, const u32 r2, const u32 c0, const u32 c1, const u32 c2)
 {
@@ -380,7 +380,7 @@ Matrix4 Matrix4::Rotation(const Quaternion& rotation)
 Matrix4 Matrix4::ProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ)
 {
 	// Note: Duplicate code in Camera, bring it all here eventually
-	static constexpr float INFINITE_FAR_PLANE_ADJUST = 0.00001f;
+	static constexpr float kInfiniteFarPlaneAdjust = 0.00001f;
 
 	Radian thetaX(horzFOV * 0.5f);
 	float tanThetaX = Math::Tan(thetaX);
@@ -408,8 +408,8 @@ Matrix4 Matrix4::ProjectionPerspective(const Degree& horzFOV, float aspect, floa
 	if(far == 0)
 	{
 		// Infinite far plane
-		q = INFINITE_FAR_PLANE_ADJUST - 1;
-		qn = near * (INFINITE_FAR_PLANE_ADJUST - 2);
+		q = kInfiniteFarPlaneAdjust - 1;
+		qn = near * (kInfiniteFarPlaneAdjust - 2);
 	}
 	else
 	{

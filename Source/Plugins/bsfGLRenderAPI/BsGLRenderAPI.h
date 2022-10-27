@@ -74,10 +74,10 @@ namespace bs
 			void SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags = 0, RenderSurfaceMask loadMask = RT_NONE, const SPtr<CommandBuffer>& commandBuffer = nullptr);
 
 			/** @copydoc RenderAPI::clearRenderTarget() */
-			void ClearRenderTarget(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void ClearRenderTarget(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr);
 
 			/** @copydoc RenderAPI::clearViewport() */
-			void ClearViewport(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void ClearViewport(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr);
 
 			/** @copydoc RenderAPI::addCommands() */
 			void AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary);
@@ -124,7 +124,7 @@ namespace bs
 			void EndDraw();
 
 			/**	Clear a part of a render target. */
-			void ClearArea(u32 buffers, const Color& color = Color::Black, float depth = 1.0f, u16 stencil = 0, const Rect2I& clearArea = Rect2I::EMPTY, u8 targetMask = 0xFF);
+			void ClearArea(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, const Rect2I& clearArea = Rect2I::kEmpty, u8 targetMask = 0xFF);
 
 			/**
 			 * Changes the currently active texture unit. Any texture related operations will then be performed on this unit.
@@ -358,7 +358,7 @@ namespace bs
 				GLenum Type = GL_TEXTURE_2D;
 			};
 
-			static const u32 MAX_VB_COUNT = 32;
+			static const u32 kMaxVbCount = 32;
 
 			Rect2 mViewportNorm = Rect2(0.0f, 0.0f, 1.0f, 1.0f);
 			u32 mScissorTop = 0;
@@ -403,7 +403,7 @@ namespace bs
 
 			const GLSLProgramPipeline* mActivePipeline = nullptr;
 
-			std::array<SPtr<VertexBuffer>, MAX_VB_COUNT> mBoundVertexBuffers;
+			std::array<SPtr<VertexBuffer>, kMaxVbCount> mBoundVertexBuffers;
 			SPtr<VertexDeclaration> mBoundVertexDeclaration;
 			SPtr<IndexBuffer> mBoundIndexBuffer;
 			DrawOperationType mCurrentDrawOperation = DOT_TRIANGLE_LIST;

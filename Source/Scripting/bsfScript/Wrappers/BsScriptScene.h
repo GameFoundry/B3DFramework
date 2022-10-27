@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptScene : public ScriptObject<ScriptScene>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Scene")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Scene")
 
 		/** Registers internal callbacks. Must be called on scripting system load. */
 		static void StartUp();

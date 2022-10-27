@@ -127,7 +127,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHorz* Create(const String& styleName = StringUtil::BLANK);
+		static GUISliderHorz* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new horizontal slider.
@@ -137,7 +137,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHorz* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUISliderHorz* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	private:
 		GUISliderHorz(const String& styleName, const GUIDimensions& dimensions);
@@ -156,7 +156,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderVert* Create(const String& styleName = StringUtil::BLANK);
+		static GUISliderVert* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new vertical slider.
@@ -166,7 +166,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderVert* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUISliderVert* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	private:
 		GUISliderVert(const String& styleName, const GUIDimensions& dimensions);

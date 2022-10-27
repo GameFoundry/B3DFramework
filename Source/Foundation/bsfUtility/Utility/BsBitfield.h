@@ -153,8 +153,8 @@ namespace bs
 	 */
 	class Bitfield
 	{
-		static constexpr uint32_t BITS_PER_DWORD = sizeof(uint32_t) * 8;
-		static constexpr uint32_t BITS_PER_DWORD_LOG2 = 5;
+		static constexpr uint32_t kBitsPerDword = sizeof(uint32_t) * 8;
+		static constexpr uint32_t kBitsPerDwordLoG2 = 5;
 
 	public:
 		using Iterator = TBitfieldIterator<false>;
@@ -186,7 +186,7 @@ namespace bs
 			{
 				Realloc(other.mMaxBits);
 
-				const uint32_t numBytes = Math::DivideAndRoundUp(other.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+				const uint32_t numBytes = Math::DivideAndRoundUp(other.mNumBits, kBitsPerDword) * sizeof(uint32_t);
 				memcpy(mData, other.mData, numBytes);
 			}
 		}
@@ -208,7 +208,7 @@ namespace bs
 				{
 					Realloc(rhs.mMaxBits);
 
-					const uint32_t numBytes = Math::DivideAndRoundUp(rhs.mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+					const uint32_t numBytes = Math::DivideAndRoundUp(rhs.mNumBits, kBitsPerDword) * sizeof(uint32_t);
 					memcpy(mData, rhs.mData, numBytes);
 				}
 			}
@@ -235,8 +235,8 @@ namespace bs
 		{
 			assert(idx < mNumBits);
 
-			const uint32_t bitMask = 1 << (idx & (BITS_PER_DWORD - 1));
-			uint32_t& data = mData[idx >> BITS_PER_DWORD_LOG2];
+			const uint32_t bitMask = 1 << (idx & (kBitsPerDword - 1));
+			uint32_t& data = mData[idx >> kBitsPerDwordLoG2];
 
 			return BitReference(data, bitMask);
 		}
@@ -245,8 +245,8 @@ namespace bs
 		{
 			assert(idx < mNumBits);
 
-			const uint32_t bitMask = 1 << (idx & (BITS_PER_DWORD - 1));
-			uint32_t& data = mData[idx >> BITS_PER_DWORD_LOG2];
+			const uint32_t bitMask = 1 << (idx & (kBitsPerDword - 1));
+			uint32_t& data = mData[idx >> kBitsPerDwordLoG2];
 
 			return BitReferenceConst(data, bitMask);
 		}
@@ -257,7 +257,7 @@ namespace bs
 			if(mNumBits >= mMaxBits)
 			{
 				// Grow
-				const uint32_t newMaxBits = mMaxBits + 4 * BITS_PER_DWORD + mMaxBits / 2;
+				const uint32_t newMaxBits = mMaxBits + 4 * kBitsPerDword + mMaxBits / 2;
 				Realloc(newMaxBits);
 			}
 
@@ -273,8 +273,8 @@ namespace bs
 		{
 			assert(index < mNumBits);
 
-			const uint32_t dwordIndex = index >> BITS_PER_DWORD_LOG2;
-			const uint32_t mask = 1 << (index & (BITS_PER_DWORD - 1));
+			const uint32_t dwordIndex = index >> kBitsPerDwordLoG2;
+			const uint32_t mask = 1 << (index & (kBitsPerDword - 1));
 
 			const uint32_t curDwordBits = mData[dwordIndex];
 
@@ -286,7 +286,7 @@ namespace bs
 
 			// Grab the last bit from the next dword and put it as the last bit in the current dword. Then shift the
 			// next dword and repeat until all following dwords are processed.
-			const uint32_t lastDwordIndex = (mNumBits - 1) >> BITS_PER_DWORD_LOG2;
+			const uint32_t lastDwordIndex = (mNumBits - 1) >> kBitsPerDwordLoG2;
 			for(uint32_t i = dwordIndex; i < lastDwordIndex; i++)
 			{
 				// First bit from next dword goes at the end of the current dword
@@ -303,7 +303,7 @@ namespace bs
 		uint32_t Find(bool value) const
 		{
 			const uint32_t mask = value ? 0 : (uint32_t)-1;
-			const uint32_t numDWords = Math::DivideAndRoundUp(mNumBits, BITS_PER_DWORD);
+			const uint32_t numDWords = Math::DivideAndRoundUp(mNumBits, kBitsPerDword);
 
 			for(uint32_t i = 0; i < numDWords; i++)
 			{
@@ -311,7 +311,7 @@ namespace bs
 					continue;
 
 				const uint32_t bits = value ? mData[i] : ~mData[i];
-				const uint32_t bitIndex = i * BITS_PER_DWORD + Bitwise::LeastSignificantBit(bits);
+				const uint32_t bitIndex = i * kBitsPerDword + Bitwise::LeastSignificantBit(bits);
 
 				if(bitIndex < mNumBits)
 					return bitIndex;
@@ -342,7 +342,7 @@ namespace bs
 				return;
 
 			const int32_t mask = value ? 0xFF : 0;
-			const uint32_t numBytes = Math::DivideAndRoundUp(mNumBits, BITS_PER_DWORD) * sizeof(uint32_t);
+			const uint32_t numBytes = Math::DivideAndRoundUp(mNumBits, kBitsPerDword) * sizeof(uint32_t);
 			memset(mData, mask, numBytes);
 		}
 
@@ -382,8 +382,8 @@ namespace bs
 		Iterator End()
 		{
 			uint32_t bitIndex = mNumBits;
-			uint32_t dwordIndex = bitIndex >> BITS_PER_DWORD_LOG2;
-			uint32_t mask = 1 << (bitIndex & (BITS_PER_DWORD - 1));
+			uint32_t dwordIndex = bitIndex >> kBitsPerDwordLoG2;
+			uint32_t mask = 1 << (bitIndex & (kBitsPerDword - 1));
 
 			return Iterator(*this, bitIndex, dwordIndex, mask);
 		}
@@ -398,8 +398,8 @@ namespace bs
 		ConstIterator End() const
 		{
 			uint32_t bitIndex = mNumBits;
-			uint32_t dwordIndex = bitIndex >> BITS_PER_DWORD_LOG2;
-			uint32_t mask = 1 << (bitIndex & (BITS_PER_DWORD - 1));
+			uint32_t dwordIndex = bitIndex >> kBitsPerDwordLoG2;
+			uint32_t mask = 1 << (bitIndex & (kBitsPerDword - 1));
 
 			return ConstIterator(*this, bitIndex, dwordIndex, mask);
 		}
@@ -423,19 +423,19 @@ namespace bs
 		/** Reallocates the internal buffer making enough room for @p numBits (rounded to a multiple of DWORD). */
 		void Realloc(uint32_t numBits)
 		{
-			numBits = Math::DivideAndRoundUp(numBits, BITS_PER_DWORD) * BITS_PER_DWORD;
+			numBits = Math::DivideAndRoundUp(numBits, kBitsPerDword) * kBitsPerDword;
 
 			if(numBits != mMaxBits)
 			{
 				assert(numBits > mMaxBits);
 
-				const uint32_t numDwords = Math::DivideAndRoundUp(numBits, BITS_PER_DWORD);
+				const uint32_t numDwords = Math::DivideAndRoundUp(numBits, kBitsPerDword);
 
 				// Note: Eventually add support for custom allocators
 				auto buffer = bs_allocN<uint32_t>(numDwords);
 				if(mData)
 				{
-					const uint32_t numBytes = Math::DivideAndRoundUp(mMaxBits, BITS_PER_DWORD) * sizeof(uint32_t);
+					const uint32_t numBytes = Math::DivideAndRoundUp(mMaxBits, kBitsPerDword) * sizeof(uint32_t);
 					memcpy(buffer, mData, numBytes);
 					bs_free(mData);
 				}

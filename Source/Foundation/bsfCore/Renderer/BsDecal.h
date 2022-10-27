@@ -26,7 +26,7 @@ namespace bs
 		/** Width and height of the decal. */
 		void SetSize(const Vector2& size)
 		{
-			mSize = Vector2::Max(Vector2::ZERO, size);
+			mSize = Vector2::Max(Vector2::kZero, size);
 			MarkCoreDirtyInternal();
 			UpdateBounds();
 		}
@@ -96,7 +96,7 @@ namespace bs
 		/** Updates the internal bounds for the decal. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
 
-		Vector2 mSize = Vector2::ONE;
+		Vector2 mSize = Vector2::kOne;
 		float mMaxDistance = 10.0f;
 		u64 mLayer = 1;
 		u32 mLayerMask = 0xFFFFFFFF;
@@ -168,7 +168,7 @@ namespace bs
 		 *								along the negative Z axis).
 		 * @returns						New decal object.
 		 */
-		static SPtr<Decal> Create(const HMaterial& material, const Vector2& size = Vector2::ONE, float maxDistance = 10.0f);
+		static SPtr<Decal> Create(const HMaterial& material, const Vector2& size = Vector2::kOne, float maxDistance = 10.0f);
 
 	protected:
 		Decal(const HMaterial& material, const Vector2& size, float maxDistance);

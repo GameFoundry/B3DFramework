@@ -174,7 +174,7 @@ namespace bs
 		 *							corner of the volume is represented by a single probe. Higher values subdivide the
 		 *							volume in an uniform way.
 		 */
-		static SPtr<LightProbeVolume> Create(const AABox& volume = AABox::UNIT_BOX, const Vector3I& cellCount = Vector3I(1, 1, 1));
+		static SPtr<LightProbeVolume> Create(const AABox& volume = AABox::kUnitBox, const Vector3I& cellCount = Vector3I(1, 1, 1));
 
 	protected:
 		friend class ct::LightProbeVolume;
@@ -204,7 +204,7 @@ namespace bs
 
 	private:
 		UnorderedMap<u32, ProbeInfo> mProbes;
-		AABox mVolume = AABox::UNIT_BOX;
+		AABox mVolume = AABox::kUnitBox;
 		Vector3I mCellCount = { 1, 1, 1 };
 
 		u32 mNextProbeId = 0;

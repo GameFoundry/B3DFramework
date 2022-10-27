@@ -69,8 +69,8 @@ namespace bs
 			 */
 			static Vector2I GetShCoeffXyFromIdx(u32 idx, u32 shOrder);
 
-			static const u32 REFLECTION_CUBEMAP_SIZE;
-			static const u32 IRRADIANCE_CUBEMAP_SIZE;
+			static const u32 kReflectionCubemapSize;
+			static const u32 kIrradianceCubemapSize;
 		};
 
 		/**	Provides easy access to IBLUtility. */

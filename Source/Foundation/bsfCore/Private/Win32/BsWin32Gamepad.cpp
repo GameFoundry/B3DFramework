@@ -251,10 +251,10 @@ void Gamepad::Capture()
 		axisState[3].Value = -(int)inputState.Gamepad.sThumbRY;
 
 		// Left trigger
-		axisState[4].Value = std::min((int)inputState.Gamepad.bLeftTrigger * 129, MAX_AXIS);
+		axisState[4].Value = std::min((int)inputState.Gamepad.bLeftTrigger * 129, kMaxAxis);
 
 		// Right trigger
-		axisState[5].Value = std::min((int)inputState.Gamepad.bRightTrigger * 129, MAX_AXIS);
+		axisState[5].Value = std::min((int)inputState.Gamepad.bRightTrigger * 129, kMaxAxis);
 
 		for(u32 i = 0; i < 6; i++)
 		{

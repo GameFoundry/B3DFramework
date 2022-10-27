@@ -31,12 +31,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint8_t VERSION = 0;
+			static constexpr uint8_t kVersion = 0;
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.Name, stream);
 				size += rtti_write(data.Type, stream);
 				size += rtti_write(data.I, stream);

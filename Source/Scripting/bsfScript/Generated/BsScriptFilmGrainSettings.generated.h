@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptFilmGrainSettings : public TScriptReflectable<ScriptFilmGrainSettings, FilmGrainSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FilmGrainSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FilmGrainSettings")
 
 		ScriptFilmGrainSettings(MonoObject* managedInstance, const SPtr<FilmGrainSettings>& value);
 

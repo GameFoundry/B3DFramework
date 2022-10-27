@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptScreenSpaceLensFlareSettings : public TScriptReflectable<ScriptScreenSpaceLensFlareSettings, ScreenSpaceLensFlareSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ScreenSpaceLensFlareSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ScreenSpaceLensFlareSettings")
 
 		ScriptScreenSpaceLensFlareSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceLensFlareSettings>& value);
 

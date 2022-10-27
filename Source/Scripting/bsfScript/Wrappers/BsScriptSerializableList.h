@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSerializableList : public ScriptObject<ScriptSerializableList>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableList")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SerializableList")
 
 		/**
 		 * Creates a new serializable list interop object from the data in the provided property. Caller must ensure the

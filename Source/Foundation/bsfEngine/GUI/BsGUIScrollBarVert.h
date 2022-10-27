@@ -24,7 +24,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIScrollBarVert* Create(const String& styleName = StringUtil::BLANK);
+		static GUIScrollBarVert* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new vertical scroll bar.
@@ -34,7 +34,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIScrollBarVert* Create(bool resizable, const String& styleName = StringUtil::BLANK);
+		static GUIScrollBarVert* Create(bool resizable, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new vertical scroll bar.
@@ -44,7 +44,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIScrollBarVert* Create(const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIScrollBarVert* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new vertical scroll bar.
@@ -56,7 +56,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUIScrollBarVert* Create(bool resizable, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUIScrollBarVert* Create(bool resizable, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	protected:
 		GUIScrollBarVert(bool resizable, const String& styleName, const GUIDimensions& dimensions);

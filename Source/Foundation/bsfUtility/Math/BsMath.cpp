@@ -8,7 +8,7 @@
 
 using namespace bs;
 
-const float Math::LOG2 = std::log(2.0f);
+const float Math::kLoG2 = std::log(2.0f);
 
 Radian Math::Acos(float val)
 {
@@ -21,7 +21,7 @@ Radian Math::Acos(float val)
 	}
 	else
 	{
-		return Radian(PI);
+		return Radian(kPi);
 	}
 }
 
@@ -32,11 +32,11 @@ Radian Math::Asin(float val)
 		if(val < 1.0f)
 			return Radian(std::asin(val));
 		else
-			return Radian(HALF_PI);
+			return Radian(kHalfPi);
 	}
 	else
 	{
-		return Radian(-HALF_PI);
+		return Radian(-kHalfPi);
 	}
 }
 
@@ -159,7 +159,7 @@ float Math::FastASin0(float val)
 	result -= 0.2121144f;
 	result *= val;
 	result += 1.5707288f;
-	result = HALF_PI - root * result;
+	result = kHalfPi - root * result;
 	return result;
 }
 
@@ -181,7 +181,7 @@ float Math::FastASin1(float val)
 	result -= 0.2145988016f;
 	result *= val;
 	result += 1.5707963050f;
-	result = HALF_PI - root * result;
+	result = kHalfPi - root * result;
 	return result;
 }
 

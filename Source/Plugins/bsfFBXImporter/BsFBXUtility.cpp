@@ -10,7 +10,7 @@ using namespace bs;
 struct SmoothNormal
 {
 	int Group = 0;
-	Vector3 Normal = Vector3::ZERO;
+	Vector3 Normal = Vector3::kZero;
 
 	void AddNormal(int group, const Vector3& normal)
 	{
@@ -82,7 +82,7 @@ struct SmoothVertex
 				return Normals[i].Normal;
 		}
 
-		return Vector3::ZERO;
+		return Vector3::kZero;
 	}
 
 	void Normalize()
@@ -97,7 +97,7 @@ void FBXUtility::NormalsFromSmoothing(const Vector<Vector3>& positions, const Ve
 	std::vector<SmoothVertex> smoothNormals;
 	smoothNormals.resize(positions.size());
 
-	normals.resize(indices.size(), Vector3::ZERO);
+	normals.resize(indices.size(), Vector3::kZero);
 
 	u32 numPolygons = (u32)(indices.size() / 3);
 
@@ -354,8 +354,8 @@ void FBXUtility::AddVertex(const FBXImportMesh& srcMesh, int srcIdx, int srcVert
 
 bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, const FBXImportMesh& meshB, int idxB)
 {
-	static const float SplitAngleCosine = Math::Cos(Degree(1.0f));
-	static const float UVEpsilon = 0.001f;
+	static const float kSplitAngleCosine = Math::Cos(Degree(1.0f));
+	static const float kUvEpsilon = 0.001f;
 
 	if(!meshA.Colors.empty())
 	{
@@ -366,21 +366,21 @@ bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, cons
 	if(!meshA.Normals.empty())
 	{
 		float angleCosine = meshA.Normals[idxA].Dot(meshB.Normals[idxB]);
-		if(angleCosine < SplitAngleCosine)
+		if(angleCosine < kSplitAngleCosine)
 			return true;
 	}
 
 	if(!meshA.Tangents.empty())
 	{
 		float angleCosine = meshA.Tangents[idxA].Dot(meshB.Tangents[idxB]);
-		if(angleCosine < SplitAngleCosine)
+		if(angleCosine < kSplitAngleCosine)
 			return true;
 	}
 
 	if(!meshA.Bitangents.empty())
 	{
 		float angleCosine = meshA.Bitangents[idxA].Dot(meshB.Bitangents[idxB]);
-		if(angleCosine < SplitAngleCosine)
+		if(angleCosine < kSplitAngleCosine)
 			return true;
 	}
 
@@ -388,7 +388,7 @@ bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, cons
 	{
 		if(!meshA.UV[i].empty())
 		{
-			if(!Math::ApproxEquals(meshA.UV[i][idxA], meshB.UV[i][idxB], UVEpsilon))
+			if(!Math::ApproxEquals(meshA.UV[i][idxA], meshB.UV[i][idxB], kUvEpsilon))
 				return true;
 		}
 	}
@@ -408,21 +408,21 @@ bool FBXUtility::NeedsSplitAttributes(const FBXImportMesh& meshA, int idxA, cons
 			if(!frameA.Normals.empty())
 			{
 				float angleCosine = frameA.Normals[idxA].Dot(frameB.Normals[idxB]);
-				if(angleCosine < SplitAngleCosine)
+				if(angleCosine < kSplitAngleCosine)
 					return true;
 			}
 
 			if(!frameA.Tangents.empty())
 			{
 				float angleCosine = frameA.Tangents[idxA].Dot(frameB.Tangents[idxB]);
-				if(angleCosine < SplitAngleCosine)
+				if(angleCosine < kSplitAngleCosine)
 					return true;
 			}
 
 			if(!frameA.Bitangents.empty())
 			{
 				float angleCosine = frameA.Bitangents[idxA].Dot(frameB.Bitangents[idxB]);
-				if(angleCosine < SplitAngleCosine)
+				if(angleCosine < kSplitAngleCosine)
 					return true;
 			}
 		}

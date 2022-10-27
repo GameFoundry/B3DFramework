@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "BloomSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BloomSettings")
 
 		ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value);
 

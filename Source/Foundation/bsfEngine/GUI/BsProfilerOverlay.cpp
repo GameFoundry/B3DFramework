@@ -22,7 +22,7 @@
 
 using namespace bs;
 
-constexpr u32 MAX_DEPTH = 4;
+constexpr u32 kMaxDepth = 4;
 
 class BasicRowFiller
 {
@@ -400,7 +400,7 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	HString gpuSamplesStr(u8"__ProfOvGPUSamples", u8"Samples");
 	mGPULayoutSamples->AddNewElement<GUILabel>(gpuSamplesStr);
 
-	for(u32 i = 0; i < GPU_NUM_SAMPLE_COLUMNS; i++)
+	for(u32 i = 0; i < kGpuNumSampleColumns; i++)
 	{
 		mGPULayoutSampleLabels[i] = mGPULayoutSamples->AddNewElement<GUILayoutY>();
 		mGPULayoutSampleContents[i] = mGPULayoutSamples->AddNewElement<GUILayoutY>();
@@ -551,73 +551,73 @@ void ProfilerOverlay::TargetResized()
 
 void ProfilerOverlay::UpdateCpuSampleAreaSizes()
 {
-	static const i32 PADDING = 10;
-	static const float LABELS_CONTENT_RATIO = 0.3f;
+	static const i32 kPadding = 10;
+	static const float kLabelsContentRatio = 0.3f;
 
-	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - PADDING * 2);
-	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - PADDING * 3));
+	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - kPadding * 2);
+	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - kPadding * 3));
 
-	u32 labelsWidth = Math::CeilToInt(width * LABELS_CONTENT_RATIO);
+	u32 labelsWidth = Math::CeilToInt(width * kLabelsContentRatio);
 	u32 contentWidth = width - labelsWidth;
 
-	mBasicLayoutLabels->SetPosition(PADDING, PADDING);
+	mBasicLayoutLabels->SetPosition(kPadding, kPadding);
 	mBasicLayoutLabels->SetWidth(labelsWidth);
 	mBasicLayoutLabels->SetHeight(height);
 
-	mPreciseLayoutLabels->SetPosition(PADDING, height + PADDING * 2);
+	mPreciseLayoutLabels->SetPosition(kPadding, height + kPadding * 2);
 	mPreciseLayoutLabels->SetWidth(labelsWidth);
 	mPreciseLayoutLabels->SetHeight(height);
 
-	mBasicLayoutContents->SetPosition(PADDING + labelsWidth, PADDING);
+	mBasicLayoutContents->SetPosition(kPadding + labelsWidth, kPadding);
 	mBasicLayoutContents->SetWidth(contentWidth);
 	mBasicLayoutContents->SetHeight(height);
 
-	mPreciseLayoutContents->SetPosition(PADDING + labelsWidth, height + PADDING * 2);
+	mPreciseLayoutContents->SetPosition(kPadding + labelsWidth, height + kPadding * 2);
 	mPreciseLayoutContents->SetWidth(contentWidth);
 	mPreciseLayoutContents->SetHeight(height);
 }
 
 void ProfilerOverlay::UpdateGpuSampleAreaSizes()
 {
-	static const i32 PADDING = 10;
-	static const float SAMPLES_FRAME_RATIO = 0.25f;
-	static const i32 HEADER_HEIGHT = 20;
-	static const i32 NUM_COLUMNS = 3;
-	static const i32 HEIGHT_PER_ENTRY = 15;
+	static const i32 kPadding = 10;
+	static const float kSamplesFrameRatio = 0.25f;
+	static const i32 kHeaderHeight = 20;
+	static const i32 kNumColumns = 3;
+	static const i32 kHeightPerEntry = 15;
 
-	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - PADDING * 2);
-	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - PADDING * 3));
+	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - kPadding * 2);
+	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - kPadding * 3));
 
-	u32 frameHeight = Math::CeilToInt(height * SAMPLES_FRAME_RATIO);
+	u32 frameHeight = Math::CeilToInt(height * kSamplesFrameRatio);
 	u32 samplesHeight = height - frameHeight;
 
-	mGPULayoutFrameContents->SetPosition(PADDING, PADDING);
+	mGPULayoutFrameContents->SetPosition(kPadding, kPadding);
 	mGPULayoutFrameContents->SetWidth(width);
 	mGPULayoutFrameContents->SetHeight(frameHeight);
 
-	mGPULayoutSamples->SetPosition(PADDING, PADDING + frameHeight + PADDING);
+	mGPULayoutSamples->SetPosition(kPadding, kPadding + frameHeight + kPadding);
 	mGPULayoutSamples->SetWidth(width);
 	mGPULayoutSamples->SetHeight(samplesHeight);
 
-	u32 columnWidth = width / NUM_COLUMNS;
-	u32 columnHeight = samplesHeight - HEADER_HEIGHT;
-	for(u32 i = 0; i < NUM_COLUMNS; i++)
+	u32 columnWidth = width / kNumColumns;
+	u32 columnHeight = samplesHeight - kHeaderHeight;
+	for(u32 i = 0; i < kNumColumns; i++)
 	{
-		mGPULayoutSampleLabels[i]->SetPosition(columnWidth * i, HEADER_HEIGHT);
+		mGPULayoutSampleLabels[i]->SetPosition(columnWidth * i, kHeaderHeight);
 		mGPULayoutSampleLabels[i]->SetWidth(columnWidth / 2);
 		mGPULayoutSampleLabels[i]->SetHeight(columnHeight);
 
-		mGPULayoutSampleContents[i]->SetPosition(columnWidth * i + columnWidth / 2, HEADER_HEIGHT);
+		mGPULayoutSampleContents[i]->SetPosition(columnWidth * i + columnWidth / 2, kHeaderHeight);
 		mGPULayoutSampleContents[i]->SetWidth(columnWidth / 2);
 		mGPULayoutSampleContents[i]->SetHeight(columnHeight);
 	}
 
-	mNumGPUSamplesPerColumn = columnHeight / HEIGHT_PER_ENTRY;
+	mNumGPUSamplesPerColumn = columnHeight / kHeightPerEntry;
 }
 
 void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
 {
-	static const u32 NUM_ROOT_ENTRIES = 2;
+	static const u32 kNumRootEntries = 2;
 
 	const CPUProfilerBasicSamplingEntry& simBasicRootEntry = simReport.CpuReport.GetBasicSamplingData();
 	const CPUProfilerPreciseSamplingEntry& simPreciseRootEntry = simReport.CpuReport.GetPreciseSamplingData();
@@ -648,11 +648,11 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 	BasicRowFiller basicRowFiller(mBasicRows, *mBasicLayoutLabels, *mBasicLayoutContents, *mWidget->GetInternalInternal());
 	Stack<TodoBasic> todoBasic;
 
-	const CPUProfilerBasicSamplingEntry* basicRootEntries[NUM_ROOT_ENTRIES];
+	const CPUProfilerBasicSamplingEntry* basicRootEntries[kNumRootEntries];
 	basicRootEntries[0] = &simBasicRootEntry;
 	basicRootEntries[1] = &coreBasicRootEntry;
 
-	for(u32 i = 0; i < NUM_ROOT_ENTRIES; i++)
+	for(u32 i = 0; i < kNumRootEntries; i++)
 	{
 		todoBasic.push(TodoBasic(*basicRootEntries[i], 0));
 
@@ -664,7 +664,7 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 			const struct CPUProfilerBasicSamplingEntry::Data& data = curEntry.Entry.Data;
 			basicRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees, data.AvgTimeMs, data.TotalTimeMs, data.AvgSelfTimeMs, data.TotalSelfTimeMs);
 
-			if(curEntry.Depth <= MAX_DEPTH)
+			if(curEntry.Depth <= kMaxDepth)
 			{
 				for(auto iter = curEntry.Entry.ChildEntries.rbegin(); iter != curEntry.Entry.ChildEntries.rend(); ++iter)
 				{
@@ -677,11 +677,11 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 	PreciseRowFiller preciseRowFiller(mPreciseRows, *mBasicLayoutLabels, *mBasicLayoutContents, *mWidget->GetInternalInternal());
 	Stack<TodoPrecise> todoPrecise;
 
-	const CPUProfilerPreciseSamplingEntry* preciseRootEntries[NUM_ROOT_ENTRIES];
+	const CPUProfilerPreciseSamplingEntry* preciseRootEntries[kNumRootEntries];
 	preciseRootEntries[0] = &simPreciseRootEntry;
 	preciseRootEntries[1] = &corePreciseRootEntry;
 
-	for(u32 i = 0; i < NUM_ROOT_ENTRIES; i++)
+	for(u32 i = 0; i < kNumRootEntries; i++)
 	{
 		todoPrecise.push(TodoPrecise(*preciseRootEntries[i], 0));
 
@@ -693,7 +693,7 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 			const struct CPUProfilerPreciseSamplingEntry::Data& data = curEntry.Entry.Data;
 			preciseRowFiller.AddData(curEntry.Depth, data.Name, data.PctOfParent, data.NumCalls, data.MemAllocs, data.MemFrees, data.AvgCycles, data.TotalCycles, data.AvgSelfCycles, data.TotalSelfCycles);
 
-			if(curEntry.Depth <= MAX_DEPTH)
+			if(curEntry.Depth <= kMaxDepth)
 			{
 				for(auto iter = curEntry.Entry.ChildEntries.rbegin(); iter != curEntry.Entry.ChildEntries.rend(); ++iter)
 				{
@@ -744,7 +744,7 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 	mGPUVertexBufferBindsLbl->SetContent(mGPUVertexBufferBindsStr);
 	mGPUIndexBufferBindsLbl->SetContent(mGPUIndexBufferBindsStr);
 
-	GPUSampleRowFiller sampleRowFillers[GPU_NUM_SAMPLE_COLUMNS] = {
+	GPUSampleRowFiller sampleRowFillers[kGpuNumSampleColumns] = {
 		GPUSampleRowFiller(mGPUSampleRows[0], *mGPULayoutSampleLabels[0], *mGPULayoutSampleContents[0], *mWidget->GetInternalInternal()),
 		GPUSampleRowFiller(mGPUSampleRows[1], *mGPULayoutSampleLabels[1], *mGPULayoutSampleContents[1], *mWidget->GetInternalInternal()),
 		GPUSampleRowFiller(mGPUSampleRows[2], *mGPULayoutSampleLabels[2], *mGPULayoutSampleContents[2], *mWidget->GetInternalInternal())
@@ -773,14 +773,14 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 
 		const GPUProfileSample& data = curEntry.Entry;
 
-		if(column < GPU_NUM_SAMPLE_COLUMNS)
+		if(column < kGpuNumSampleColumns)
 			sampleRowFillers[column].AddData(curEntry.Depth, data.Name, data.TimeMs);
 
 		currentCount++;
 		if(currentCount % mNumGPUSamplesPerColumn == 0)
 			column++;
 
-		if(curEntry.Depth <= MAX_DEPTH)
+		if(curEntry.Depth <= kMaxDepth)
 		{
 			for(auto iter = curEntry.Entry.Children.rbegin(); iter != curEntry.Entry.Children.rend(); ++iter)
 				todo.push(Todo(*iter, curEntry.Depth + 1));

@@ -156,7 +156,7 @@ namespace bs
 		 * Sets whether the camera should use the custom view matrix. When this is enabled camera will no longer calculate
 		 * its view matrix based on position/orientation and caller will be resonsible to keep the view matrix up to date.
 		 */
-		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::IDENTITY);
+		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::kIdentity);
 
 		/** Returns true if a custom view matrix is used. */
 		virtual bool IsCustomViewMatrixEnabled() const { return mCustomViewMatrix; }
@@ -166,7 +166,7 @@ namespace bs
 		 * calculate its projection matrix based on field of view, aspect and other parameters and caller will be resonsible
 		 * to keep the projection matrix up to date.
 		 */
-		virtual void SetCustomProjectionMatrix(bool enable, const Matrix4& projectionMatrix = Matrix4::IDENTITY);
+		virtual void SetCustomProjectionMatrix(bool enable, const Matrix4& projectionMatrix = Matrix4::kIdentity);
 
 		/** Returns true if a custom projection matrix is used. */
 		virtual bool IsCustomProjectionMatrixEnabled() const { return mCustomProjMatrix; }
@@ -406,7 +406,7 @@ namespace bs
 		 */
 		Vector3 UnprojectPoint(const Vector3& point) const;
 
-		static const float INFINITE_FAR_PLANE_ADJUST; /**< Small constant used to reduce far plane projection to avoid inaccuracies. */
+		static const float kInfiniteFarPlaneAdjust; /**< Small constant used to reduce far plane projection to avoid inaccuracies. */
 
 	protected:
 		CameraBase();

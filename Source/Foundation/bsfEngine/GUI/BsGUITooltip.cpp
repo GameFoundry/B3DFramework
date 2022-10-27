@@ -17,8 +17,8 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUITooltip::TOOLTIP_WIDTH = 200;
-const u32 GUITooltip::CURSOR_SIZE = 16;
+const u32 GUITooltip::kTooltipWidth = 200;
+const u32 GUITooltip::kCursorSize = 16;
 
 String GUITooltip::GetFrameStyleName()
 {
@@ -37,13 +37,13 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	Rect2I availableBounds = viewport->GetPixelArea();
 
 	const GUISkin& skin = GetSkin();
-	const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::MultiLineLabelStyle);
+	const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::kMultiLineLabelStyle);
 	const GUIElementStyle* backgroundStyle = skin.GetStyle(GetFrameStyleName());
 
-	Vector2I size(TOOLTIP_WIDTH, 25);
+	Vector2I size(kTooltipWidth, 25);
 	if(multiLineLabelStyle != nullptr)
 	{
-		GUIDimensions dimensions = GUIDimensions::Create(GUIOptions(GUIOption::FixedWidth(TOOLTIP_WIDTH)));
+		GUIDimensions dimensions = GUIDimensions::Create(GUIOptions(GUIOption::FixedWidth(kTooltipWidth)));
 		size = GUIHelper::CalcOptimalContentsSize(text, *multiLineLabelStyle, dimensions);
 	}
 
@@ -76,13 +76,13 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	backgroundLayout->AddElement(backgroundFrame);
 
 	GUILayout* contentLayout = contentPanel->AddNewElement<GUILayoutY>();
-	contentLayout->AddNewElement<GUILabel>(HString(text), GUIOptions(GUIOption::FixedWidth(TOOLTIP_WIDTH), GUIOption::FlexibleHeight()), BuiltinResources::MultiLineLabelStyle);
+	contentLayout->AddNewElement<GUILabel>(HString(text), GUIOptions(GUIOption::FixedWidth(kTooltipWidth), GUIOption::FlexibleHeight()), BuiltinResources::kMultiLineLabelStyle);
 
 	Rect2I positionBounds;
 	positionBounds.X = position.X;
 	positionBounds.Y = position.Y;
-	positionBounds.Width = CURSOR_SIZE;
-	positionBounds.Height = CURSOR_SIZE;
+	positionBounds.Width = kCursorSize;
+	positionBounds.Height = kCursorSize;
 
 	DropDownAreaPlacement::HorzDir horzDir;
 	DropDownAreaPlacement::VertDir vertDir;

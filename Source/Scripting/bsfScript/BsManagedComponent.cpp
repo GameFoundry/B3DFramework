@@ -225,11 +225,11 @@ void ManagedComponent::Initialize(ScriptManagedComponent* owner)
 
 	if(mManagedClass != nullptr)
 	{
-		MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(ENGINE_ASSEMBLY);
+		MonoAssembly* engineAssembly = MonoManager::Instance().GetAssembly(kEngineAssembly);
 		if(engineAssembly == nullptr)
-			BS_EXCEPT(InvalidStateException, String(ENGINE_ASSEMBLY) + " assembly is not loaded.");
+			BS_EXCEPT(InvalidStateException, String(kEngineAssembly) + " assembly is not loaded.");
 
-		MonoClass* runInEditorAttrib = engineAssembly->GetClass(ENGINE_NS, "RunInEditor");
+		MonoClass* runInEditorAttrib = engineAssembly->GetClass(kEngineNs, "RunInEditor");
 		if(runInEditorAttrib == nullptr)
 			BS_EXCEPT(InvalidStateException, "Cannot find RunInEditor managed class.");
 

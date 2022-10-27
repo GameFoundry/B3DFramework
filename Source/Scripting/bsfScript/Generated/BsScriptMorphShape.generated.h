@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMorphShape : public TScriptReflectable<ScriptMorphShape, MorphShape>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MorphShape")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MorphShape")
 
 		ScriptMorphShape(MonoObject* managedInstance, const SPtr<MorphShape>& value);
 

@@ -200,8 +200,8 @@ namespace bs
 		/** Contains a texture containing quantized versions of all curves used for the GPU particle system. */
 		class GpuParticleCurves
 		{
-			static constexpr u32 TEX_SIZE = 1024;
-			static constexpr u32 SCRATCH_NUM_VERTICES = 16384;
+			static constexpr u32 kTexSize = 1024;
+			static constexpr u32 kScratchNumVertices = 16384;
 
 		public:
 			GpuParticleCurves();
@@ -252,7 +252,7 @@ namespace bs
 			SPtr<Texture> mCurveTexture;
 			SPtr<RenderTexture> mRT;
 
-			TextureRowAllocator<TEX_SIZE, TEX_SIZE> mRowAllocator;
+			TextureRowAllocator<kTexSize, kTexSize> mRowAllocator;
 
 			SPtr<VertexBuffer> mInjectUV;
 			SPtr<IndexBuffer> mInjectIndices;
@@ -267,14 +267,14 @@ namespace bs
 		class GpuParticleResources
 		{
 		public:
-			static constexpr u32 TEX_SIZE = 1024;
-			static constexpr u32 TILE_SIZE = 4;
-			static constexpr u32 PARTICLES_PER_TILE = TILE_SIZE * TILE_SIZE;
-			static constexpr u32 TILE_COUNT_1D = TEX_SIZE / TILE_SIZE;
-			static constexpr u32 TILE_COUNT = TILE_COUNT_1D * TILE_COUNT_1D;
+			static constexpr u32 kTexSize = 1024;
+			static constexpr u32 kTileSize = 4;
+			static constexpr u32 kParticlesPerTile = kTileSize * kTileSize;
+			static constexpr u32 kTileCount1D = kTexSize / kTileSize;
+			static constexpr u32 kTileCount = kTileCount1D * kTileCount1D;
 
-			static_assert((TEX_SIZE & (TEX_SIZE - 1)) == 0, "Particle texture size not a power of two");
-			static_assert((TILE_SIZE & (TILE_SIZE - 1)) == 0, "Particle tile size not a power of two");
+			static_assert((kTexSize & (kTexSize - 1)) == 0, "Particle texture size not a power of two");
+			static_assert((kTileSize & (kTileSize - 1)) == 0, "Particle tile size not a power of two");
 
 			GpuParticleResources();
 
@@ -350,8 +350,8 @@ namespace bs
 
 			u32 mWriteBufferIdx = 0;
 
-			u32 mFreeTiles[TILE_COUNT];
-			u32 mNumFreeTiles = TILE_COUNT;
+			u32 mFreeTiles[kTileCount];
+			u32 mNumFreeTiles = kTileCount;
 		};
 
 		/** @} */

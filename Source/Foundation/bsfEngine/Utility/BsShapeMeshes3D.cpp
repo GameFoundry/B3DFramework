@@ -13,8 +13,8 @@
 
 using namespace bs;
 
-const u32 ShapeMeshes3D::NUM_VERTICES_AA_LINE = 8;
-const u32 ShapeMeshes3D::NUM_INDICES_AA_LINE = 30;
+const u32 ShapeMeshes3D::kNumVerticesAaLine = 8;
+const u32 ShapeMeshes3D::kNumIndicesAaLine = 30;
 
 inline u8* writeVector3(u8* buffer, u32 stride, const Vector3& value)
 {
@@ -78,11 +78,11 @@ void ShapeMeshes3D::WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshD
 	u32 verticesPerArc = (quality + 1) * 5;
 	u32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_X, meshData, vertexOffset, indexOffset, quality);
+	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitX, meshData, vertexOffset, indexOffset, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_Y, meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
+	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitY, meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_Z, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
+	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
 void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
@@ -96,11 +96,11 @@ void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& m
 	u32 verticesPerArc = (quality + 1) * 5;
 	u32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_X, Degree(0.0f), Degree(180.0f), meshData, vertexOffset, indexOffset, quality);
+	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitX, Degree(0.0f), Degree(180.0f), meshData, vertexOffset, indexOffset, quality);
 
-	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_Y, Degree(0.0f), Degree(180.0f), meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
+	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitY, Degree(0.0f), Degree(180.0f), meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::UNIT_Z, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
+	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
 void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
@@ -358,8 +358,8 @@ void ShapeMeshes3D::AntialiasedLine(const Vector3& a, const Vector3& b, const Ve
 	u8* positionData = meshData->GetElementData(VES_POSITION);
 	u8* colorData = meshData->GetElementData(VES_COLOR);
 
-	assert((vertexOffset + NUM_VERTICES_AA_LINE) <= meshData->GetNumVertices());
-	assert((indexOffset + NUM_INDICES_AA_LINE) <= meshData->GetNumIndices());
+	assert((vertexOffset + kNumVerticesAaLine) <= meshData->GetNumVertices());
+	assert((indexOffset + kNumIndicesAaLine) <= meshData->GetNumIndices());
 
 	AntialiasedLine(a, b, up, width, borderWidth, color, positionData, colorData, vertexOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, indexOffset);
 }
@@ -383,8 +383,8 @@ void ShapeMeshes3D::AntialiasedLineList(const Vector<Vector3>& linePoints, const
 	{
 		AntialiasedLine(linePoints[i], linePoints[i + 1], up, width, borderWidth, color, positionData, colorData, curVertOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, curIdxOffset);
 
-		curVertOffset += NUM_VERTICES_AA_LINE;
-		curIdxOffset += NUM_INDICES_AA_LINE;
+		curVertOffset += kNumVerticesAaLine;
+		curIdxOffset += kNumIndicesAaLine;
 	}
 }
 
@@ -582,7 +582,7 @@ void ShapeMeshes3D::SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals
 	outVertices = writeVector3(outVertices, vertexStride, box.GetCorner(AABox::NEAR_LEFT_BOTTOM));
 
 	// Normals
-	static const Vector3 faceNormals[6] = {
+	static const Vector3 kFaceNormals[6] = {
 		Vector3(0, 0, 1),
 		Vector3(0, 0, -1),
 		Vector3(-1, 0, 0),
@@ -596,10 +596,10 @@ void ShapeMeshes3D::SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals
 		outNormals += (vertexOffset * vertexStride);
 		for(u32 face = 0; face < 6; face++)
 		{
-			outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
-			outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
-			outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
-			outNormals = writeVector3(outNormals, vertexStride, faceNormals[face]);
+			outNormals = writeVector3(outNormals, vertexStride, kFaceNormals[face]);
+			outNormals = writeVector3(outNormals, vertexStride, kFaceNormals[face]);
+			outNormals = writeVector3(outNormals, vertexStride, kFaceNormals[face]);
+			outNormals = writeVector3(outNormals, vertexStride, kFaceNormals[face]);
 		}
 	}
 
@@ -634,25 +634,25 @@ void ShapeMeshes3D::SolidAaBox(const AABox& box, u8* outVertices, u8* outNormals
 void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNormals, u8* outUV, u32 vertexOffset, u32 vertexStride, u32* outIndices, u32 indexOffset, u32 quality)
 {
 	// Create icosahedron
-	static const float x = 0.525731112119133606f;
-	static const float z = 0.850650808352039932f;
+	static const float kX = 0.525731112119133606f;
+	static const float kZ = 0.850650808352039932f;
 
-	static const Vector3 vertices[12] = {
-		Vector3(-x, 0.0f, z),
-		Vector3(x, 0.0f, z),
-		Vector3(-x, 0.0f, -z),
-		Vector3(x, 0.0f, -z),
-		Vector3(0.0f, z, x),
-		Vector3(0.0f, z, -x),
-		Vector3(0.0f, -z, x),
-		Vector3(0.0f, -z, -x),
-		Vector3(z, x, 0.0f),
-		Vector3(-z, x, 0.0f),
-		Vector3(z, -x, 0.0f),
-		Vector3(-z, -x, 0.0f)
+	static const Vector3 kVertices[12] = {
+		Vector3(-kX, 0.0f, kZ),
+		Vector3(kX, 0.0f, kZ),
+		Vector3(-kX, 0.0f, -kZ),
+		Vector3(kX, 0.0f, -kZ),
+		Vector3(0.0f, kZ, kX),
+		Vector3(0.0f, kZ, -kX),
+		Vector3(0.0f, -kZ, kX),
+		Vector3(0.0f, -kZ, -kX),
+		Vector3(kZ, kX, 0.0f),
+		Vector3(-kZ, kX, 0.0f),
+		Vector3(kZ, -kX, 0.0f),
+		Vector3(-kZ, -kX, 0.0f)
 	};
 
-	static const u32 triangles[20][3] = {
+	static const u32 kTriangles[20][3] = {
 		{ 0, 4, 1 }, { 0, 9, 4 }, { 9, 5, 4 }, { 4, 5, 8 }, { 4, 8, 1 }, { 8, 10, 1 }, { 8, 3, 10 }, { 5, 3, 8 }, { 5, 2, 3 }, { 2, 7, 3 }, { 7, 10, 3 }, { 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 }, { 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 }
 	};
 
@@ -660,7 +660,7 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNo
 	u32 curVertOffset = vertexOffset;
 	for(int i = 0; i < 20; ++i)
 	{
-		curVertOffset += SubdivideTriangleOnSphere(sphere.GetCenter(), sphere.GetRadius(), quality, vertices[triangles[i][2]], vertices[triangles[i][1]], vertices[triangles[i][0]], outVertices, outNormals, curVertOffset, vertexStride);
+		curVertOffset += SubdivideTriangleOnSphere(sphere.GetCenter(), sphere.GetRadius(), quality, kVertices[kTriangles[i][2]], kVertices[kTriangles[i][1]], kVertices[kTriangles[i][0]], outVertices, outNormals, curVertOffset, vertexStride);
 	}
 
 	// Create UV if required
@@ -676,8 +676,8 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNo
 			Vector3 normal = Vector3::Normalize(position);
 
 			Vector2 uv;
-			uv.X = 0.5f - atan2(normal.X, normal.Z) / Math::TWO_PI;
-			uv.Y = 0.5f - asin(normal.Y) / Math::PI;
+			uv.X = 0.5f - atan2(normal.X, normal.Z) / Math::kTwoPi;
+			uv.Y = 0.5f - asin(normal.Y) / Math::kPi;
 
 			curUV = writeVector2(curUV, vertexStride, uv);
 		}
@@ -856,10 +856,10 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNo
 		extraPositions = writeVector3(extraPositions, vertexStride, sphere.GetCenter());
 
 		if(extraNormals)
-			extraNormals = writeVector3(extraNormals, vertexStride, Vector3::UNIT_Z);
+			extraNormals = writeVector3(extraNormals, vertexStride, Vector3::kUnitZ);
 
 		if(extraUV)
-			extraUV = writeVector2(extraUV, vertexStride, Vector2::ZERO);
+			extraUV = writeVector2(extraUV, vertexStride, Vector2::kZero);
 	}
 }
 
@@ -867,7 +867,7 @@ void ShapeMeshes3D::WireArc(const Vector3& center, float radius, const Vector3& 
 {
 	u32 numVertices = (quality + 1) * 5;
 
-	GenerateArcVertices(center, normal, radius, startAngle, amountAngle, Vector2::ONE, numVertices, outVertices, vertexOffset, vertexStride);
+	GenerateArcVertices(center, normal, radius, startAngle, amountAngle, Vector2::kOne, numVertices, outVertices, vertexOffset, vertexStride);
 
 	outIndices += indexOffset;
 	u32 numLines = numVertices - 1;
@@ -891,7 +891,7 @@ void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3&
 	outNormals = writeVector3(outNormals, vertexStride, visibleNormal);
 
 	u32 numArcVertices = (quality + 1) * 5;
-	GenerateArcVertices(center, normal, radius, startAngle, amountAngle, Vector2::ONE, numArcVertices, outVertices, vertexOffset, vertexStride);
+	GenerateArcVertices(center, normal, radius, startAngle, amountAngle, Vector2::kOne, numArcVertices, outVertices, vertexOffset, vertexStride);
 
 	u8* otherSideVertices = outVertices + (numArcVertices * vertexStride);
 	u8* otherSideNormals = outNormals + (numArcVertices * vertexStride);
@@ -1131,13 +1131,13 @@ void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float 
 	if(outUV != nullptr)
 	{
 		float angle = 0.0f;
-		float angleIncrement = Math::TWO_PI / numArcVertices;
+		float angleIncrement = Math::kTwoPi / numArcVertices;
 
 		// Bottom
 		for(u32 i = 0; i < numArcVertices; i++)
 		{
 			Vector2 uv;
-			uv.X = angle / Math::TWO_PI;
+			uv.X = angle / Math::kTwoPi;
 			uv.Y = 1.0f;
 
 			outUV = writeVector2(outUV, vertexStride, uv);
@@ -1149,7 +1149,7 @@ void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float 
 		for(u32 i = 0; i < numArcVertices; i++)
 		{
 			Vector2 uv;
-			uv.X = angle / Math::TWO_PI;
+			uv.X = angle / Math::kTwoPi;
 			uv.Y = 0.0f;
 
 			outUV = writeVector2(outUV, vertexStride, uv);
@@ -1377,12 +1377,12 @@ void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, fl
 	if(outUV != nullptr)
 	{
 		float angle = 0.0f;
-		float angleIncrement = Math::TWO_PI / numArcVertices;
+		float angleIncrement = Math::kTwoPi / numArcVertices;
 
 		for(u32 i = 0; i < numArcVertices + 1; i++)
 		{
 			Vector2 uv;
-			uv.X = angle / Math::TWO_PI;
+			uv.X = angle / Math::kTwoPi;
 			uv.Y = 1.0f;
 
 			outUV = writeVector2(outUV, vertexStride, uv);
@@ -1393,7 +1393,7 @@ void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, fl
 		for(u32 i = 0; i < numArcVertices + 1; i++)
 		{
 			Vector2 uv;
-			uv.X = angle / Math::TWO_PI;
+			uv.X = angle / Math::kTwoPi;
 			uv.Y = 0.0f;
 
 			outUV = writeVector2(outUV, vertexStride, uv);
@@ -1527,7 +1527,7 @@ void ShapeMeshes3D::SolidQuad(const Rect3& area, u8* outVertices, u8* outNormals
 
 Vector3 ShapeMeshes3D::CalcCenter(u8* vertices, u32 numVertices, u32 vertexStride)
 {
-	Vector3 center = Vector3::ZERO;
+	Vector3 center = Vector3::kZero;
 	for(u32 i = 0; i < numVertices; i++)
 	{
 		Vector3* curVert = (Vector3*)vertices;
@@ -1759,10 +1759,10 @@ void ShapeMeshes3D::GenerateArcVertices(const Vector3& center, const Vector3& up
 {
 	assert(numVertices >= 2);
 
-	Quaternion alignWithStart = Quaternion(-Vector3::UNIT_Y, startAngle);
-	Quaternion alignWithUp = Quaternion::GetRotationFromTo(Vector3::UNIT_Y, up);
+	Quaternion alignWithStart = Quaternion(-Vector3::kUnitY, startAngle);
+	Quaternion alignWithUp = Quaternion::GetRotationFromTo(Vector3::kUnitY, up);
 
-	Vector3 right = alignWithUp.Rotate(alignWithStart.Rotate(Vector3::UNIT_X));
+	Vector3 right = alignWithUp.Rotate(alignWithStart.Rotate(Vector3::kUnitX));
 	right.Normalize();
 
 	Quaternion increment(-up, angleAmount / (float)(numVertices - 1));

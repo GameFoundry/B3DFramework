@@ -11,7 +11,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptOrder : public ScriptObject<ScriptOrder>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Order")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Order")
 
 		static MonoField* GetIndexField() { return indexField; }
 

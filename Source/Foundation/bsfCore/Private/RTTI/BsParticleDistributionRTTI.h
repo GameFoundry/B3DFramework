@@ -29,12 +29,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0; // In case the data structure changes
+			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.mType, stream);
 				size += rtti_write(data.mMinGradient, stream);
 				size += rtti_write(data.mMaxGradient, stream);
@@ -95,12 +95,12 @@ namespace bs
 		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			static constexpr uint32_t VERSION = 0; // In case the data structure changes
+			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
+				size += rtti_write(kVersion, stream);
 				size += rtti_write(data.mType, stream);
 				size += rtti_write(data.mMinCurve, stream);
 				size += rtti_write(data.mMaxCurve, stream);

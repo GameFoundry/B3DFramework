@@ -123,7 +123,7 @@ namespace bs
 		physx::PxMaterial* mDefaultMaterial = nullptr;
 		physx::PxTolerancesScale mScale;
 
-		static const u32 SCRATCH_BUFFER_SIZE;
+		static const u32 kScratchBufferSize;
 	};
 
 	/** Contains information about a single PhysX scene. */

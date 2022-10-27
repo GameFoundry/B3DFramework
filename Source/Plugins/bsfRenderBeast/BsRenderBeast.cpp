@@ -659,15 +659,15 @@ void RenderBeast::UpdateReflProbeArray()
 			currentCubeArraySize = sceneInfo.ReflProbeCubemapsTex->GetProperties().GetNumArraySlices();
 
 		bool forceArrayUpdate = false;
-		if(sceneInfo.ReflProbeCubemapsTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != MaxReflectionCubemaps))
+		if(sceneInfo.ReflProbeCubemapsTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != kMaxReflectionCubemaps))
 		{
 			TEXTURE_DESC cubeMapDesc;
 			cubeMapDesc.Type = TEX_TYPE_CUBE_MAP;
 			cubeMapDesc.Format = PF_RG11B10F;
-			cubeMapDesc.Width = IBLUtility::REFLECTION_CUBEMAP_SIZE;
-			cubeMapDesc.Height = IBLUtility::REFLECTION_CUBEMAP_SIZE;
+			cubeMapDesc.Width = IBLUtility::kReflectionCubemapSize;
+			cubeMapDesc.Height = IBLUtility::kReflectionCubemapSize;
 			cubeMapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
-			cubeMapDesc.NumArraySlices = std::min(MaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
+			cubeMapDesc.NumArraySlices = std::min(kMaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
 
 			sceneInfo.ReflProbeCubemapsTex = Texture::Create(cubeMapDesc);
 
@@ -681,7 +681,7 @@ void RenderBeast::UpdateReflProbeArray()
 		{
 			const RendererReflectionProbe& probeInfo = sceneInfo.ReflProbes[i];
 
-			if(probeInfo.ArrayIdx > MaxReflectionCubemaps)
+			if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
 				continue;
 
 			if(probeInfo.ArrayDirty || forceArrayUpdate)
@@ -691,8 +691,8 @@ void RenderBeast::UpdateReflProbeArray()
 					continue;
 
 				auto& srcProps = texture->GetProperties();
-				bool isValid = srcProps.GetWidth() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
-					srcProps.GetHeight() == IBLUtility::REFLECTION_CUBEMAP_SIZE &&
+				bool isValid = srcProps.GetWidth() == IBLUtility::kReflectionCubemapSize &&
+					srcProps.GetHeight() == IBLUtility::kReflectionCubemapSize &&
 					srcProps.GetNumMipmaps() == cubemapArrayProps.GetNumMipmaps() &&
 					srcProps.GetTextureType() == TEX_TYPE_CUBE_MAP;
 
@@ -702,7 +702,7 @@ void RenderBeast::UpdateReflProbeArray()
 					{
 						BS_LOG(Error, Renderer, "Cubemap texture invalid to use as a reflection cubemap. "
 												"Check texture size (must be {0}x{0}) and mip-map count",
-							   IBLUtility::REFLECTION_CUBEMAP_SIZE);
+							   IBLUtility::kReflectionCubemapSize);
 
 						probeInfo.ErrorFlagged = true;
 					}
@@ -744,7 +744,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 
 	RENDERER_VIEW_DESC viewDesc;
 	viewDesc.Target.ClearFlags = FBT_COLOR | FBT_DEPTH;
-	viewDesc.Target.ClearColor = Color::Black;
+	viewDesc.Target.ClearColor = Color::kBlack;
 	viewDesc.Target.ClearDepthValue = 1.0f;
 	viewDesc.Target.ClearStencilValue = 0;
 
@@ -792,33 +792,33 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	{
 		// Calculate view matrix
 		Vector3 forward;
-		Vector3 up = Vector3::UNIT_Y;
+		Vector3 up = Vector3::kUnitY;
 
 		switch(i)
 		{
 		case CF_PositiveX:
-			forward = -Vector3::UNIT_X;
-			up = -Vector3::UNIT_Y;
+			forward = -Vector3::kUnitX;
+			up = -Vector3::kUnitY;
 			break;
 		case CF_NegativeX:
-			forward = Vector3::UNIT_X;
-			up = -Vector3::UNIT_Y;
+			forward = Vector3::kUnitX;
+			up = -Vector3::kUnitY;
 			break;
 		case CF_PositiveY:
-			forward = Vector3::UNIT_Y;
-			up = -Vector3::UNIT_Z;
+			forward = Vector3::kUnitY;
+			up = -Vector3::kUnitZ;
 			break;
 		case CF_NegativeY:
-			forward = -Vector3::UNIT_Y;
-			up = Vector3::UNIT_Z;
+			forward = -Vector3::kUnitY;
+			up = Vector3::kUnitZ;
 			break;
 		case CF_PositiveZ:
-			forward = -Vector3::UNIT_Z;
-			up = -Vector3::UNIT_Y;
+			forward = -Vector3::kUnitZ;
+			up = -Vector3::kUnitY;
 			break;
 		case CF_NegativeZ:
-			forward = Vector3::UNIT_Z;
-			up = -Vector3::UNIT_Y;
+			forward = Vector3::kUnitZ;
+			up = -Vector3::kUnitY;
 			break;
 		}
 

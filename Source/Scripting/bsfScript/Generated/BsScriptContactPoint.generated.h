@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptContactPoint : public ScriptObject<ScriptContactPoint>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ContactPoint")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ContactPoint")
 
 		static MonoObject* Box(const __ContactPointInterop& value);
 		static __ContactPointInterop Unbox(MonoObject* value);

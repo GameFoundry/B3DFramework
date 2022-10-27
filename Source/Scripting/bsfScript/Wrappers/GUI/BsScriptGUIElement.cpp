@@ -396,7 +396,7 @@ MonoString* ScriptGUIElement::InternalGetStyle(ScriptGUIElementBaseTBase* native
 		}
 	}
 
-	return MonoUtil::StringToMono(StringUtil::BLANK);
+	return MonoUtil::StringToMono(StringUtil::kBlank);
 }
 
 void ScriptGUIElement::InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstance, MonoString* style)

@@ -123,13 +123,13 @@ namespace bs
 		static u32 GenTextQuads(const TextDataBase& textData, u32 width, u32 height, TextHorzAlign horzAlign, TextVertAlign vertAlign, SpriteAnchor anchor, Vector2* vertices, Vector2* uv, u32* indices, u32 bufferSizeQuads);
 
 	private:
-		static const int STATIC_CHARS_TO_BUFFER = 25;
-		static const int STATIC_BUFFER_SIZE = STATIC_CHARS_TO_BUFFER * (4 * (2 * sizeof(Vector2)) + (6 * sizeof(u32)));
+		static const int kStaticCharsToBuffer = 25;
+		static const int kStaticBufferSize = kStaticCharsToBuffer * (4 * (2 * sizeof(Vector2)) + (6 * sizeof(u32)));
 
 		/**	Clears internal geometry buffers. */
 		void ClearMesh();
 
-		mutable StaticAlloc<STATIC_BUFFER_SIZE> mAlloc;
+		mutable StaticAlloc<kStaticBufferSize> mAlloc;
 	};
 
 	/** @} */

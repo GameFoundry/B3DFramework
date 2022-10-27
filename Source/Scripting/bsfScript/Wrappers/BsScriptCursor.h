@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCursor : public ScriptObject<ScriptCursor>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Cursor")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Cursor")
 
 	private:
 		ScriptCursor(MonoObject* instance);

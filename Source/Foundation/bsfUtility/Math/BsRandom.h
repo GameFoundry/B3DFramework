@@ -67,8 +67,8 @@ namespace bs
 			// Note: Not using modulo for performance
 			const int32_t range = max - min + 1;
 
-			constexpr static float DELTA = 0e-5f;
-			return min + (int32_t)(GetUNorm() * ((float)range - DELTA));
+			constexpr static float kDelta = 0e-5f;
+			return min + (int32_t)(GetUNorm() * ((float)range - kDelta));
 		}
 
 		/** Returns a random value in range [0, 1]. */

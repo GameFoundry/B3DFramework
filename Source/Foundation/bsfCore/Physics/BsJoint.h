@@ -95,8 +95,8 @@ namespace bs
 		struct BodyInfo
 		{
 			Rigidbody* Body = nullptr;
-			Vector3 Position = Vector3::ZERO;
-			Quaternion Rotation = Quaternion::IDENTITY;
+			Vector3 Position = Vector3::kZero;
+			Quaternion Rotation = Quaternion::kIdentity;
 		};
 
 		BodyInfo Bodies[2];
@@ -344,11 +344,11 @@ namespace bs
 
 		/** Y angle of the cone. Movement is constrainted between 0 and this angle on the Y axis. */
 		BS_SCRIPT_EXPORT(UIValueRange([ 0, 180 ]))
-		Radian YLimitAngle = Radian(Math::HALF_PI);
+		Radian YLimitAngle = Radian(Math::kHalfPi);
 
 		/** Z angle of the cone. Movement is constrainted between 0 and this angle on the Z axis. */
 		BS_SCRIPT_EXPORT(UIValueRange([ 0, 180 ]))
-		Radian ZLimitAngle = Radian(Math::HALF_PI);
+		Radian ZLimitAngle = Radian(Math::kHalfPi);
 	};
 
 	/** @} */

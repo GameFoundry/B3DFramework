@@ -62,7 +62,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHandle* Create(GUISliderHandleFlags flags, const String& styleName = StringUtil::BLANK);
+		static GUISliderHandle* Create(GUISliderHandleFlags flags, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new handle.
@@ -73,7 +73,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHandle* Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName = StringUtil::BLANK);
+		static GUISliderHandle* Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**	Gets the current position of the handle, in percent ranging [0.0f, 1.0f]. */
 		float GetHandlePos() const;
@@ -174,7 +174,7 @@ namespace bs
 		/** @copydoc GUIElement::styleUpdated */
 		void StyleUpdated();
 
-		static const u32 RESIZE_HANDLE_SIZE;
+		static const u32 kResizeHandleSize;
 
 		ImageSprite* mImageSprite;
 

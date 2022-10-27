@@ -22,7 +22,7 @@ namespace bs
 		 */
 
 		/** Maximum number of lights that can influence an object when basic forward rendering is used. */
-		static constexpr u32 STANDARD_FORWARD_MAX_NUM_LIGHTS = 8;
+		static constexpr u32 kStandardForwardMaxNumLights = 8;
 
 		/** Information about a single light, as seen by the lighting shader. */
 		struct LightData
@@ -166,7 +166,7 @@ namespace bs
 			 *
 			 * update() must have been called with most recent scene/view information before calling this method.
 			 */
-			void GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[STANDARD_FORWARD_MAX_NUM_LIGHTS], Vector3I& counts) const;
+			void GatherInfluencingLights(const Bounds& bounds, const LightData* (&output)[kStandardForwardMaxNumLights], Vector3I& counts) const;
 
 			/** Returns the number of directional lights in the lights buffer. */
 			u32 GetNumDirLights() const { return mNumLights[0]; }
@@ -201,7 +201,7 @@ namespace bs
 		};
 
 		BS_PARAM_BLOCK_BEGIN(LightsParamDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(LightData, gLights, STANDARD_FORWARD_MAX_NUM_LIGHTS)
+			BS_PARAM_BLOCK_ENTRY_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
 		BS_PARAM_BLOCK_END
 
 		extern LightsParamDef gLightsParamDef;

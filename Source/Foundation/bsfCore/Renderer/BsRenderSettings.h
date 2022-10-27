@@ -208,28 +208,28 @@ namespace bs
 		 * In range [0.0f, 2.0f].
 		 */
 		BS_SCRIPT_EXPORT()
-		Vector3 Saturation = Vector3::ONE;
+		Vector3 Saturation = Vector3::kOne;
 
 		/**
 		 * Contrast to be applied during color grading. Larger values increase difference between light and dark areas of
 		 * the image. In range [0.0f, 2.0f].
 		 */
 		BS_SCRIPT_EXPORT()
-		Vector3 Contrast = Vector3::ONE;
+		Vector3 Contrast = Vector3::kOne;
 
 		/**
 		 * Gain to be applied during color grading. Simply increases all color values by an equal scale.
 		 * In range [0.0f, 2.0f].
 		 */
 		BS_SCRIPT_EXPORT()
-		Vector3 Gain = Vector3::ONE;
+		Vector3 Gain = Vector3::kOne;
 
 		/**
 		 * Gain to be applied during color grading. Simply offsets all color values by an equal amount.
 		 * In range [-1.0f, 1.0f].
 		 */
 		BS_SCRIPT_EXPORT()
-		Vector3 Offset = Vector3::ZERO;
+		Vector3 Offset = Vector3::kZero;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -718,7 +718,7 @@ namespace bs
 
 		/** Tint color to apply to the bloom highlight. A pure white means the bloom inherits the underlying scene color. */
 		BS_SCRIPT_EXPORT()
-		Color Tint = Color::White;
+		Color Tint = Color::kWhite;
 
 		/**
 		 * Determines the percent of the texture to account for when filtering for bloom. Larger values will include

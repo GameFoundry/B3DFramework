@@ -37,7 +37,7 @@ namespace bs
 		u32 mDataOffset = 0;
 		u32 mBytesPerSample = 0;
 
-		static const u32 MAIN_CHUNK_SIZE = 12;
+		static const u32 kMainChunkSize = 12;
 	};
 
 	/** @} */

@@ -34,7 +34,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAsyncOpBase : public ScriptObject<ScriptAsyncOpBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AsyncOpBase")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AsyncOpBase")
 
 		/** Creates a new managed AsyncOp<T> from a native TAsyncOp. */
 		template <class T>

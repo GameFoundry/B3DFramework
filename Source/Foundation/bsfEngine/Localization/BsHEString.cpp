@@ -5,20 +5,20 @@
 
 using namespace bs;
 
-const u32 HEString::ENGINE_STRING_TABLE_ID = 30000; // Arbitrary
+const u32 HEString::kEngineStringTableId = 30000; // Arbitrary
 
 HEString::HEString(const String& identifier)
-	: mInternal(identifier, ENGINE_STRING_TABLE_ID)
+	: mInternal(identifier, kEngineStringTableId)
 {
 }
 
 HEString::HEString(const String& identifier, const String& defaultString)
-	: mInternal(identifier, defaultString, ENGINE_STRING_TABLE_ID)
+	: mInternal(identifier, defaultString, kEngineStringTableId)
 {
 }
 
 HEString::HEString()
-	: mInternal(ENGINE_STRING_TABLE_ID)
+	: mInternal(kEngineStringTableId)
 {
 }
 

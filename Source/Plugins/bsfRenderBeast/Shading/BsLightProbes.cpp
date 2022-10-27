@@ -393,7 +393,7 @@ void LightProbes::UpdateProbes()
 
 		center /= 4.0f;
 
-		static const u32 Permutations[4][3] = {
+		static const u32 kPermutations[4][3] = {
 			{ 0, 1, 2 },
 			{ 0, 1, 3 },
 			{ 0, 2, 3 },
@@ -402,9 +402,9 @@ void LightProbes::UpdateProbes()
 
 		for(u32 j = 0; j < 4; j++)
 		{
-			Vector3 A = mTempTetrahedronPositions[volume.Vertices[Permutations[j][0]]];
-			Vector3 B = mTempTetrahedronPositions[volume.Vertices[Permutations[j][1]]];
-			Vector3 C = mTempTetrahedronPositions[volume.Vertices[Permutations[j][2]]];
+			Vector3 A = mTempTetrahedronPositions[volume.Vertices[kPermutations[j][0]]];
+			Vector3 B = mTempTetrahedronPositions[volume.Vertices[kPermutations[j][1]]];
+			Vector3 C = mTempTetrahedronPositions[volume.Vertices[kPermutations[j][2]]];
 
 			// Make sure the triangle is clockwise, facing away from the center
 			Vector3 e0 = A - C;
@@ -484,7 +484,7 @@ void LightProbes::UpdateProbes()
 
 		const TetrahedronFaceData& entry = outerFaces[i];
 
-		static const u32 Permutations[2][3] = { { 0, 1, 2 }, { 3, 4, 5 } };
+		static const u32 kPermutations[2][3] = { { 0, 1, 2 }, { 3, 4, 5 } };
 
 		// Make sure the triangle is clockwise, facing away from the center
 		Vector3 center(BsZero);
@@ -498,9 +498,9 @@ void LightProbes::UpdateProbes()
 
 		for(u32 j = 0; j < 2; ++j)
 		{
-			u32 idxA = Permutations[j][0];
-			u32 idxB = Permutations[j][1];
-			u32 idxC = Permutations[j][2];
+			u32 idxA = kPermutations[j][0];
+			u32 idxB = kPermutations[j][1];
+			u32 idxC = kPermutations[j][2];
 
 			idxA = idxA > 2 ? entry.OuterVertices[idxA - 3] : entry.InnerVertices[idxA];
 			idxB = idxB > 2 ? entry.OuterVertices[idxB - 3] : entry.InnerVertices[idxB];
@@ -555,12 +555,12 @@ void LightProbes::UpdateProbes()
 
 			center /= 6.0f;
 
-			static const u32 Permutations[2][3] = { { 0, 1, 2 }, { 1, 2, 3 } };
+			static const u32 kPermutations[2][3] = { { 0, 1, 2 }, { 1, 2, 3 } };
 			for(u32 j = 0; j < 2; ++j)
 			{
-				u32 idxA = Permutations[j][0];
-				u32 idxB = Permutations[j][1];
-				u32 idxC = Permutations[j][2];
+				u32 idxA = kPermutations[j][0];
+				u32 idxB = kPermutations[j][1];
+				u32 idxC = kPermutations[j][2];
 
 				idxA = idxA > 1 ? edge.VertOuter[idxA - 2] : edge.VertInner[idxA];
 				idxB = idxB > 1 ? edge.VertOuter[idxB - 2] : edge.VertInner[idxB];
@@ -762,12 +762,12 @@ LightProbesInfo LightProbes::GetInfo() const
 
 void LightProbes::ResizeTetrahedronBuffer(u32 count)
 {
-	static constexpr u32 ELEMENT_SIZE = Math::DivideAndRoundUp((u32)sizeof(TetrahedronDataGPU), 4U);
+	static constexpr u32 kElementSize = Math::DivideAndRoundUp((u32)sizeof(TetrahedronDataGPU), 4U);
 
 	GPU_BUFFER_DESC desc;
 	desc.Type = GBT_STANDARD;
 	desc.ElementSize = 0;
-	desc.ElementCount = count * ELEMENT_SIZE;
+	desc.ElementCount = count * kElementSize;
 	desc.Usage = GBU_STATIC;
 	desc.Format = BF_32X4U;
 
@@ -777,12 +777,12 @@ void LightProbes::ResizeTetrahedronBuffer(u32 count)
 
 void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 {
-	static constexpr u32 ELEMENT_SIZE = Math::DivideAndRoundUp((u32)sizeof(TetrahedronFaceDataGPU), 4U);
+	static constexpr u32 kElementSize = Math::DivideAndRoundUp((u32)sizeof(TetrahedronFaceDataGPU), 4U);
 
 	GPU_BUFFER_DESC desc;
 	desc.Type = GBT_STANDARD;
 	desc.ElementSize = 0;
-	desc.ElementCount = count * ELEMENT_SIZE;
+	desc.ElementCount = count * kElementSize;
 	desc.Usage = GBU_STATIC;
 	desc.Format = BF_32X4F;
 
@@ -858,7 +858,7 @@ void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<Tet
 			//// Generate face normals
 			struct FaceVertex
 			{
-				Vector3 Normal = Vector3::ZERO;
+				Vector3 Normal = Vector3::kZero;
 				u32 OuterIdx = -1;
 			};
 
@@ -929,12 +929,12 @@ void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<Tet
 				entry.second.Normal.Normalize();
 
 			// For each face vertex, generate an outer vertex along its normal
-			static const float ExtrapolationDistance = 5.0f;
+			static const float kExtrapolationDistance = 5.0f;
 			for(auto& entry : faceVertices)
 			{
 				entry.second.OuterIdx = (u32)positions.size();
 
-				Vector3 outerPos = positions[entry.first] + entry.second.Normal * ExtrapolationDistance;
+				Vector3 outerPos = positions[entry.first] + entry.second.Normal * kExtrapolationDistance;
 				positions.push_back(outerPos);
 			}
 
@@ -1120,11 +1120,11 @@ void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<Tet
 				{
 					faceData.InnerVertices[j] = face.Vertices[j];
 					faceData.OuterVertices[j] = -1;
-					faceData.Normals[j] = Vector3::ZERO;
+					faceData.Normals[j] = Vector3::kZero;
 				}
 
 				faceData.Tetrahedron = face.Tetrahedron;
-				faceData.Transform = Matrix4::IDENTITY;
+				faceData.Transform = Matrix4::kIdentity;
 				faceData.Quadratic = false;
 
 				faces.push_back(faceData);

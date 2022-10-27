@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleOrbit : public TScriptReflectable<ScriptParticleOrbit, ParticleOrbit, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleOrbit")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleOrbit")
 
 		ScriptParticleOrbit(MonoObject* managedInstance, const SPtr<ParticleOrbit>& value);
 

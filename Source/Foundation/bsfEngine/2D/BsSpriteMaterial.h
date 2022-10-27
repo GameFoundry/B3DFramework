@@ -75,7 +75,7 @@ namespace bs
 	class BS_EXPORT SpriteMaterial
 	{
 	public:
-		SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation = ShaderVariation::EMPTY, bool allowBatching = true);
+		SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation = ShaderVariation::kEmpty, bool allowBatching = true);
 		virtual ~SpriteMaterial();
 
 		/** Returns the unique ID of the sprite material. */

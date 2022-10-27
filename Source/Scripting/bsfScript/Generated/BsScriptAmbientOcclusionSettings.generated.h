@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectable<ScriptAmbientOcclusionSettings, AmbientOcclusionSettings>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AmbientOcclusionSettings")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
 
 		ScriptAmbientOcclusionSettings(MonoObject* managedInstance, const SPtr<AmbientOcclusionSettings>& value);
 

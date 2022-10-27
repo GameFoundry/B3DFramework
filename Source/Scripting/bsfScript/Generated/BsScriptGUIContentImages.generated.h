@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIContentImages : public ScriptObject<ScriptGUIContentImages>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIContentImages")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIContentImages")
 
 		static MonoObject* Box(const __GUIContentImagesInterop& value);
 		static __GUIContentImagesInterop Unbox(MonoObject* value);

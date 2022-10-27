@@ -23,7 +23,7 @@ namespace bs
 		};
 
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUILayout")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUILayout")
 
 		virtual ~ScriptGUILayout() {}
 
@@ -84,7 +84,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIPanel : public ScriptObject<ScriptGUIPanel>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIPanel")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIPanel")
 
 		/**	Creates a new managed GUIPanel that wraps the provided native GUIPanel. */
 		static MonoObject* CreateFromExisting(GUIPanel* panel);

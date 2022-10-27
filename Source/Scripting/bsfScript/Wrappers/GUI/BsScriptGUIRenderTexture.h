@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIRenderTexture : public TScriptGUIElement<ScriptGUIRenderTexture>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIRenderTexture")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIRenderTexture")
 
 	private:
 		ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture);

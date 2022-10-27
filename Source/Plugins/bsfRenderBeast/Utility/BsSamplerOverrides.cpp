@@ -71,7 +71,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 			u32 maxSamplerSet = 0;
 
 			SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
-			for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
 				SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
@@ -97,7 +97,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
-			for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
 				SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);
@@ -150,7 +150,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 				outputData += sizeof(u32) * slotsPerSetIter[j];
 			}
 
-			for(u32 j = 0; j < GpuParamsSet::NUM_STAGES; j++)
+			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
 				SPtr<GpuParamDesc> paramDesc = paramsPtr->GetParamDesc(progType);

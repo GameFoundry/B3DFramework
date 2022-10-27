@@ -167,7 +167,7 @@ namespace bs
 		TGpuParamTexture(GpuParamObjectDesc* paramDesc, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::set */
-		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface::COMPLETE) const;
+		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete) const;
 
 		/** @copydoc TGpuDataParam::get */
 		TextureType Get() const;

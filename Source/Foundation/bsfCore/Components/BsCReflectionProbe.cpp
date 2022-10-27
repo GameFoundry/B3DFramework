@@ -38,7 +38,7 @@ void CReflectionProbe::OnInitialized()
 	if(mInternal != nullptr)
 		mInternal->Initialize();
 	else
-		mInternal = ReflectionProbe::CreateBox(Vector3::ONE);
+		mInternal = ReflectionProbe::CreateBox(Vector3::kOne);
 
 	gSceneManager().BindActorInternal(mInternal, SceneObject());
 

@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCDecal : public TScriptComponent<ScriptCDecal, CDecal>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Decal")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Decal")
 
 		ScriptCDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value);
 

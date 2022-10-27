@@ -30,9 +30,9 @@ namespace bs
 	{
 	public:
 		using QuantType = uint8_t;
-		static constexpr uint32_t BYTES_PER_QUANT = sizeof(QuantType);
-		static constexpr uint32_t BITS_PER_QUANT = BYTES_PER_QUANT * 8;
-		static constexpr uint32_t BITS_PER_QUANT_LOG2 = Bitwise::BitsLog2(BITS_PER_QUANT);
+		static constexpr uint32_t kBytesPerQuant = sizeof(QuantType);
+		static constexpr uint32_t kBitsPerQuant = kBytesPerQuant * 8;
+		static constexpr uint32_t kBitsPerQuantLoG2 = Bitwise::BitsLog2(kBitsPerQuant);
 
 		/**
 		 * Initializes an empty bitstream. As data is written the stream will grow its internal memory storage
@@ -467,7 +467,7 @@ namespace bs
 
 			if(mMaxBits > 0)
 			{
-				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
+				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)kBitsPerQuant) * kBytesPerQuant;
 				memcpy(mData, other.mData, numBytes);
 			}
 		}
@@ -501,18 +501,18 @@ namespace bs
 		ReallocIfNeeded(newCursor);
 
 		uint64_t remaining = count;
-		uint64_t destBitsMod = (mCursor & (BITS_PER_QUANT - 1));
-		uint64_t destQuant = mCursor >> BITS_PER_QUANT_LOG2;
+		uint64_t destBitsMod = (mCursor & (kBitsPerQuant - 1));
+		uint64_t destQuant = mCursor >> kBitsPerQuantLoG2;
 		uint64_t destMask = (1 << destBitsMod) - 1;
 
 		// If destination is aligned, memcpy everything except the last quant (unless it is also aligned)
 		if(destBitsMod == 0)
 		{
-			uint64_t numQuants = remaining >> BITS_PER_QUANT_LOG2;
-			memcpy(&mData[destQuant], data, numQuants * BYTES_PER_QUANT);
+			uint64_t numQuants = remaining >> kBitsPerQuantLoG2;
+			memcpy(&mData[destQuant], data, numQuants * kBytesPerQuant);
 
 			data += numQuants;
-			remaining -= numQuants * BITS_PER_QUANT;
+			remaining -= numQuants * kBitsPerQuant;
 			destQuant += numQuants;
 		}
 
@@ -524,12 +524,12 @@ namespace bs
 
 			mData[destQuant] = (quant << destBitsMod) | (mData[destQuant] & destMask);
 
-			uint32_t writtenBits = (uint32_t)(BITS_PER_QUANT - destBitsMod);
+			uint32_t writtenBits = (uint32_t)(kBitsPerQuant - destBitsMod);
 			if(remaining > writtenBits)
 				mData[destQuant + 1] = (quant >> writtenBits) | (mData[destQuant + 1] & ~destMask);
 
 			destQuant++;
-			remaining -= std::min((uint64_t)BITS_PER_QUANT, remaining);
+			remaining -= std::min((uint64_t)kBitsPerQuant, remaining);
 		}
 
 		mCursor = newCursor;
@@ -547,17 +547,17 @@ namespace bs
 
 		uint64_t remaining = count;
 		uint64_t newCursor = mCursor + count;
-		uint64_t srcBitsMod = mCursor & (BITS_PER_QUANT - 1);
-		uint64_t srcQuant = mCursor >> BITS_PER_QUANT_LOG2;
+		uint64_t srcBitsMod = mCursor & (kBitsPerQuant - 1);
+		uint64_t srcQuant = mCursor >> kBitsPerQuantLoG2;
 
 		// If source is aligned, memcpy everything except the last quant (unless it is also aligned)
 		if(srcBitsMod == 0)
 		{
-			uint64_t numQuants = remaining >> BITS_PER_QUANT_LOG2;
-			memcpy(data, &mData[srcQuant], numQuants * BYTES_PER_QUANT);
+			uint64_t numQuants = remaining >> kBitsPerQuantLoG2;
+			memcpy(data, &mData[srcQuant], numQuants * kBytesPerQuant);
 
 			data += numQuants;
-			remaining -= numQuants * BITS_PER_QUANT;
+			remaining -= numQuants * kBitsPerQuant;
 			srcQuant += numQuants;
 		}
 
@@ -570,12 +570,12 @@ namespace bs
 			quant = 0;
 			quant |= mData[srcQuant] >> srcBitsMod;
 
-			uint32_t readBits = (uint32_t)(BITS_PER_QUANT - srcBitsMod);
+			uint32_t readBits = (uint32_t)(kBitsPerQuant - srcBitsMod);
 			if(remaining > readBits)
 				quant |= mData[srcQuant + 1] << readBits;
 
 			srcQuant++;
-			remaining -= std::min((uint64_t)BITS_PER_QUANT, remaining);
+			remaining -= std::min((uint64_t)kBitsPerQuant, remaining);
 		}
 
 		mCursor = newCursor;
@@ -599,8 +599,8 @@ namespace bs
 	{
 		ReallocIfNeeded(mCursor + 1);
 
-		uint64_t destBitsMod = mCursor & (BITS_PER_QUANT - 1);
-		uint64_t destQuant = mCursor >> BITS_PER_QUANT_LOG2;
+		uint64_t destBitsMod = mCursor & (kBitsPerQuant - 1);
+		uint64_t destQuant = mCursor >> kBitsPerQuantLoG2;
 
 		if(value)
 			mData[destQuant] |= 1U << destBitsMod;
@@ -617,8 +617,8 @@ namespace bs
 	{
 		assert((mCursor + 1) <= mNumBits);
 
-		uint64_t srcBitsMod = mCursor & (BITS_PER_QUANT - 1);
-		uint64_t srcQuant = mCursor >> BITS_PER_QUANT_LOG2;
+		uint64_t srcBitsMod = mCursor & (kBitsPerQuant - 1);
+		uint64_t srcQuant = mCursor >> kBitsPerQuantLoG2;
 
 		value = (mData[srcQuant] >> srcBitsMod) & 0x1;
 		mCursor++;
@@ -1024,7 +1024,7 @@ namespace bs
 
 	inline Bitstream::QuantType* Bitstream::Cursor() const
 	{
-		return &mData[mCursor >> BITS_PER_QUANT_LOG2];
+		return &mData[mCursor >> kBitsPerQuantLoG2];
 	}
 
 	inline void Bitstream::ReallocIfNeeded(uint64_t numBits)
@@ -1034,7 +1034,7 @@ namespace bs
 			if(mOwnsMemory)
 			{
 				// Grow
-				const uint64_t newMaxBits = numBits + 4 * BITS_PER_QUANT + numBits / 2;
+				const uint64_t newMaxBits = numBits + 4 * kBitsPerQuant + numBits / 2;
 				Realloc(newMaxBits);
 			}
 			else
@@ -1047,19 +1047,19 @@ namespace bs
 
 	inline void Bitstream::Realloc(uint64_t numBits)
 	{
-		numBits = Math::DivideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT) * BITS_PER_QUANT;
+		numBits = Math::DivideAndRoundUp(numBits, (uint64_t)kBitsPerQuant) * kBitsPerQuant;
 
 		if(numBits != mMaxBits)
 		{
 			assert(numBits > mMaxBits);
 
-			const uint32_t numQuants = (uint32_t)Math::DivideAndRoundUp(numBits, (uint64_t)BITS_PER_QUANT);
+			const uint32_t numQuants = (uint32_t)Math::DivideAndRoundUp(numBits, (uint64_t)kBitsPerQuant);
 
 			// Note: Eventually add support for custom allocators
 			auto buffer = bs_allocN<uint8_t>(numQuants);
 			if(mData)
 			{
-				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)BITS_PER_QUANT) * BYTES_PER_QUANT;
+				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)kBitsPerQuant) * kBytesPerQuant;
 				memcpy(buffer, mData, numBytes);
 				bs_free(mData);
 			}

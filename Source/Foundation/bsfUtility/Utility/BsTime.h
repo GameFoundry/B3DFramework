@@ -44,13 +44,13 @@ namespace bs
 		float GetFrameDelta() const { return mFrameDelta; }
 
 		/** Returns the step (in seconds) between fixed frame updates. */
-		float GetFixedFrameDelta() const { return (float)(mFixedStep * MICROSEC_TO_SEC); }
+		float GetFixedFrameDelta() const { return (float)(mFixedStep * kMicrosecToSec); }
 
 		/** Returns the time (in seconds) the latest frame has started. */
-		float GetLastFrameTime() const { return (float)(mLastFrameTime * MICROSEC_TO_SEC); }
+		float GetLastFrameTime() const { return (float)(mLastFrameTime * kMicrosecToSec); }
 
 		/** Returns the time (in seconds) the latest fixed update has started. */
-		float GetLastFixedUpdateTime() const { return (float)(mLastFixedUpdateTime * MICROSEC_TO_SEC); }
+		float GetLastFixedUpdateTime() const { return (float)(mLastFixedUpdateTime * kMicrosecToSec); }
 
 		/**
 		 * Returns the sequential index of the current frame. First frame is 0.
@@ -148,14 +148,14 @@ namespace bs
 		/** @} */
 
 		/** Multiply with time in microseconds to get a time in seconds. */
-		static const double MICROSEC_TO_SEC;
+		static const double kMicrosecToSec;
 
 	private:
 		/** Maximum number of fixed updates that can ever be accumulated. */
-		static constexpr u32 MAX_ACCUM_FIXED_UPDATES = 200;
+		static constexpr u32 kMaxAccumFixedUpdates = 200;
 
 		/** Determines how many new fixed updates are regenerated per frame. */
-		static constexpr u32 NEW_FIXED_UPDATES_PER_FRAME = 4;
+		static constexpr u32 kNewFixedUpdatesPerFrame = 4;
 
 		float mFrameDelta = 0.0f; /**< Frame delta in seconds */
 		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
@@ -170,7 +170,7 @@ namespace bs
 		u64 mFixedStep = 16666; // 60 times a second in microseconds
 		u64 mLastFixedUpdateTime = 0;
 		bool mFirstFixedFrame = true;
-		u32 mNumRemainingFixedUpdates = MAX_ACCUM_FIXED_UPDATES;
+		u32 mNumRemainingFixedUpdates = kMaxAccumFixedUpdates;
 
 		std::time_t mAppStartUpDate;
 

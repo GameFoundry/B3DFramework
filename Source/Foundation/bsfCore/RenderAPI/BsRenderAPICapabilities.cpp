@@ -4,7 +4,7 @@
 
 using namespace bs;
 
-char const* const RenderAPICapabilities::GPU_VENDOR_STRINGS[GPU_VENDOR_COUNT] = {
+char const* const RenderAPICapabilities::kGpuVendorStrings[GPU_VENDOR_COUNT] = {
 	"unknown",
 	"nvidia"
 	"amd"
@@ -18,7 +18,7 @@ GPUVendor RenderAPICapabilities::VendorFromString(const String& vendorString)
 	StringUtil::ToLowerCase(cmpString);
 	for(int i = 0; i < GPU_VENDOR_COUNT; ++i)
 	{
-		if(GPU_VENDOR_STRINGS[i] == cmpString)
+		if(kGpuVendorStrings[i] == cmpString)
 		{
 			ret = static_cast<GPUVendor>(i);
 			break;
@@ -30,5 +30,5 @@ GPUVendor RenderAPICapabilities::VendorFromString(const String& vendorString)
 
 String RenderAPICapabilities::VendorToString(GPUVendor vendor)
 {
-	return GPU_VENDOR_STRINGS[vendor];
+	return kGpuVendorStrings[vendor];
 }

@@ -42,7 +42,7 @@ CharacterCollisionFlags CCharacterController::Move(const Vector3& displacement)
 Vector3 CCharacterController::GetFootPosition() const
 {
 	if(mInternal == nullptr)
-		return Vector3::ZERO;
+		return Vector3::kZero;
 
 	return mInternal->GetFootPosition();
 }

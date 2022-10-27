@@ -60,7 +60,7 @@ namespace bs
 			void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
 
 		private:
-			static const u32 NUM_SAMPLES;
+			static const u32 kNumSamples;
 
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
 			GpuParamTexture mInputTexture;

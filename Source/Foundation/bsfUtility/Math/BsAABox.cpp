@@ -8,9 +8,9 @@
 
 using namespace bs;
 
-const AABox AABox::BOX_EMPTY = AABox(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
-const AABox AABox::UNIT_BOX = AABox(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
-const AABox AABox::INF_BOX = AABox(
+const AABox AABox::kBoxEmpty = AABox(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
+const AABox AABox::kUnitBox = AABox(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
+const AABox AABox::kInfBox = AABox(
 	Vector3(
 		std::numeric_limits<float>::infinity(),
 		std::numeric_limits<float>::infinity(),
@@ -20,7 +20,7 @@ const AABox AABox::INF_BOX = AABox(
 		-std::numeric_limits<float>::infinity(),
 		-std::numeric_limits<float>::infinity()));
 
-const u32 AABox::CUBE_INDICES[36] = {
+const u32 AABox::kCubeIndices[36] = {
 	// Near
 	NEAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_RIGHT_TOP,
 	NEAR_LEFT_BOTTOM, NEAR_RIGHT_TOP, NEAR_RIGHT_BOTTOM,
@@ -395,7 +395,7 @@ bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 		imax = 1;
 	}
 
-	float start = 0, end = Math::POS_INFINITY;
+	float start = 0, end = Math::kPosInfinity;
 
 #define _CALC_AXIS(i)                                      \
 	do                                                     \

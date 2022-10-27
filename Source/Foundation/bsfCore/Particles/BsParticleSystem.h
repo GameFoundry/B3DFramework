@@ -194,7 +194,7 @@ namespace bs
 		 * ParticleOrientation::Plane.
 		 */
 		BS_SCRIPT_EXPORT(UIOrder(2))
-		Vector3 OrientationPlaneNormal = Vector3::UNIT_Z;
+		Vector3 OrientationPlaneNormal = Vector3::kUnitZ;
 
 		/**
 		 * Determines how (and if) are particles sorted. Sorting controls in what order are particles rendered.
@@ -270,18 +270,18 @@ namespace bs
 
 		/** Scale to apply to the vector field bounds. This is multiplied with the bounds of the vector field resource. */
 		BS_SCRIPT_EXPORT()
-		Vector3 Scale = Vector3::ONE;
+		Vector3 Scale = Vector3::kOne;
 
 		/**
 		 * Amount of to move the vector field by relative to the parent particle system. This is added to the bounds
 		 * provided in the vector field resource.
 		 */
 		BS_SCRIPT_EXPORT()
-		Vector3 Offset = Vector3::ZERO;
+		Vector3 Offset = Vector3::kZero;
 
 		/** Initial rotation of the vector field. */
 		BS_SCRIPT_EXPORT()
-		Quaternion Rotation = Quaternion::IDENTITY;
+		Quaternion Rotation = Quaternion::kIdentity;
 
 		/**
 		 * Determines the amount to rotate the vector field every second, in degrees, around XYZ axis respectively.
@@ -368,15 +368,15 @@ namespace bs
 	{
 		/** Determines particle color, evaluated over the particle lifetime. */
 		BS_SCRIPT_EXPORT()
-		ColorDistribution ColorOverLifetime = Color::White;
+		ColorDistribution ColorOverLifetime = Color::kWhite;
 
 		/** Determines particle size, evaluated over the particle lifetime. Multiplied by the initial particle size. */
 		BS_SCRIPT_EXPORT()
-		Vector2Distribution SizeScaleOverLifetime = Vector2::ONE;
+		Vector2Distribution SizeScaleOverLifetime = Vector2::kOne;
 
 		/** Constant acceleration to apply for each step of the simulation. */
 		BS_SCRIPT_EXPORT()
-		Vector3 Acceleration = Vector3::ZERO;
+		Vector3 Acceleration = Vector3::kZero;
 
 		/** Amount of resistance to apply in the direction opposite of the particle's velocity. */
 		BS_SCRIPT_EXPORT()

@@ -200,10 +200,10 @@ namespace bs
 		LimitLinear LimitLinear;
 		LimitAngularRange LimitTwist;
 		LimitConeRange LimitSwing;
-		Vector3 DrivePosition = Vector3::ZERO;
-		Quaternion DriveRotation = Quaternion::IDENTITY;
-		Vector3 DriveLinearVelocity = Vector3::ZERO;
-		Vector3 DriveAngularVelocity = Vector3::ZERO;
+		Vector3 DrivePosition = Vector3::kZero;
+		Quaternion DriveRotation = Quaternion::kIdentity;
+		Vector3 DriveLinearVelocity = Vector3::kZero;
+		Vector3 DriveAngularVelocity = Vector3::kZero;
 	};
 
 	/** @} */

@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIProgressBar : public TScriptGUIElement<ScriptGUIProgressBar>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIProgressBar")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIProgressBar")
 
 	private:
 		ScriptGUIProgressBar(MonoObject* instance, GUIProgressBar* progressBar);

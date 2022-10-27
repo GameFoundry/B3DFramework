@@ -14,13 +14,13 @@
 
 using namespace bs;
 
-const u32 DrawHelper::VERTEX_BUFFER_GROWTH = 4096;
-const u32 DrawHelper::INDEX_BUFFER_GROWTH = 4096 * 2;
+const u32 DrawHelper::kVertexBufferGrowth = 4096;
+const u32 DrawHelper::kIndexBufferGrowth = 4096 * 2;
 
 DrawHelper::DrawHelper()
 	: mLayer(1)
 {
-	mTransform = Matrix4::IDENTITY;
+	mTransform = Matrix4::kIdentity;
 
 	mSolidVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
 	mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
@@ -313,7 +313,7 @@ void DrawHelper::WireMesh(const SPtr<MeshData>& meshData)
 	wireMeshData.Color = mColor;
 	wireMeshData.Transform = mTransform;
 	wireMeshData.Layer = mLayer;
-	wireMeshData.Center = mTransform.MultiplyAffine(Vector3::ZERO);
+	wireMeshData.Center = mTransform.MultiplyAffine(Vector3::kZero);
 }
 
 void DrawHelper::Clear()
@@ -379,7 +379,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 
 	u32 idx = 0;
 	Vector<RawData> allShapes;
-	Vector3 reference = Vector3::ZERO;
+	Vector3 reference = Vector3::kZero;
 
 	if(camera)
 		reference = camera->GetTransform().GetPosition();

@@ -7,10 +7,10 @@
 
 using namespace bs;
 
-constexpr u32 Time::MAX_ACCUM_FIXED_UPDATES;
-constexpr u32 Time::NEW_FIXED_UPDATES_PER_FRAME;
+constexpr u32 Time::kMaxAccumFixedUpdates;
+constexpr u32 Time::kNewFixedUpdatesPerFrame;
 
-const double Time::MICROSEC_TO_SEC = 1.0 / 1000000.0;
+const double Time::kMicrosecToSec = 1.0 / 1000000.0;
 
 Time::Time()
 {
@@ -30,7 +30,7 @@ void Time::UpdateInternal()
 	u64 currentFrameTime = mTimer->GetMicroseconds();
 
 	if(!mFirstFrame)
-		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * MICROSEC_TO_SEC);
+		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * kMicrosecToSec);
 	else
 	{
 		mFrameDelta = 0.0f;
@@ -86,7 +86,7 @@ u32 Time::GetFixedUpdateStepInternal(u64& step)
 		assert(numIterations <= mNumRemainingFixedUpdates);
 
 		mNumRemainingFixedUpdates -= numIterations;
-		mNumRemainingFixedUpdates = std::min(MAX_ACCUM_FIXED_UPDATES, mNumRemainingFixedUpdates + NEW_FIXED_UPDATES_PER_FRAME);
+		mNumRemainingFixedUpdates = std::min(kMaxAccumFixedUpdates, mNumRemainingFixedUpdates + kNewFixedUpdatesPerFrame);
 
 		step = stepus;
 		return numIterations;

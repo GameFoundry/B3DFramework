@@ -58,7 +58,7 @@ namespace bs
 		Vector<BuiltinResourceInfo> Resources;
 		Vector<ReflectableTypeInfo> ReflectableObjects;
 
-		static BuiltinTypeMappings EMPTY;
+		static const BuiltinTypeMappings kEmpty;
 	};
 
 	/**	Stores data about managed serializable objects in specified assemblies. */

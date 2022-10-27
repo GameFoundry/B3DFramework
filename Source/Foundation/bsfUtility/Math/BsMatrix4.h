@@ -482,8 +482,8 @@ namespace bs
 		 */
 		static Matrix4 InverseTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
 
-		static const Matrix4 ZERO;
-		static const Matrix4 IDENTITY;
+		static const Matrix4 kZero;
+		static const Matrix4 kIdentity;
 
 	private:
 		float m[4][4];

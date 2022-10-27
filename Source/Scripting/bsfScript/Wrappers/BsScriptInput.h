@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptInput : public ScriptObject<ScriptInput>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Input")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Input")
 
 		/**	Registers internal callbacks. Must be called on scripting system load. */
 		static void StartUp();

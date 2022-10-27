@@ -17,7 +17,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSceneObject : public ScriptObject<ScriptSceneObject, ScriptGameObjectBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SceneObject")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SceneObject")
 
 		/** @copydoc ScriptGameObjectBase::getNativeHandle */
 		HGameObject GetNativeHandle() const override { return static_object_cast<GameObject>(mSceneObject); }

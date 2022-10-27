@@ -71,7 +71,7 @@ void Transform::SetWorldScale(const Vector3& scale, const Transform& parent)
 	Matrix3 rotScale = parentMatrix.Get3x3();
 	rotScale = rotScale.Inverse();
 
-	Matrix3 scaleMat = Matrix3(Quaternion::IDENTITY, scale);
+	Matrix3 scaleMat = Matrix3(Quaternion::kIdentity, scale);
 	scaleMat = rotScale * scaleMat;
 
 	Quaternion rotation;
@@ -123,20 +123,20 @@ void Transform::Rotate(const Quaternion& q)
 void Transform::Roll(const Radian& angle)
 {
 	// Rotate around local Z axis
-	Vector3 zAxis = mRotation.Rotate(Vector3::UNIT_Z);
+	Vector3 zAxis = mRotation.Rotate(Vector3::kUnitZ);
 	Rotate(zAxis, angle);
 }
 
 void Transform::Yaw(const Radian& angle)
 {
-	Vector3 yAxis = mRotation.Rotate(Vector3::UNIT_Y);
+	Vector3 yAxis = mRotation.Rotate(Vector3::kUnitY);
 	Rotate(yAxis, angle);
 }
 
 void Transform::Pitch(const Radian& angle)
 {
 	// Rotate around local X axis
-	Vector3 xAxis = mRotation.Rotate(Vector3::UNIT_X);
+	Vector3 xAxis = mRotation.Rotate(Vector3::kUnitX);
 	Rotate(xAxis, angle);
 }
 

@@ -1309,7 +1309,7 @@ GpuParamBlockDesc D3D11RenderAPI::GenerateParamBlockDesc(const String& name, Vec
 
 	for(auto& param : params)
 	{
-		const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[param.Type];
+		const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::kParamSizes.Lookup[param.Type];
 
 		if(param.ArraySize > 1)
 		{

@@ -184,7 +184,7 @@ namespace bs
 		bool operator==(const ShaderVariation& rhs) const;
 
 		/** Empty variation with no parameters. */
-		static const ShaderVariation EMPTY;
+		static const ShaderVariation kEmpty;
 
 		/**
 		 * @name Internal

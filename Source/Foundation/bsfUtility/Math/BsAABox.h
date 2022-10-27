@@ -140,19 +140,19 @@ namespace bs
 		bool operator==(const AABox& rhs) const;
 		bool operator!=(const AABox& rhs) const;
 
-		static const AABox BOX_EMPTY;
-		static const AABox UNIT_BOX;
-		static const AABox INF_BOX;
+		static const AABox kBoxEmpty;
+		static const AABox kUnitBox;
+		static const AABox kInfBox;
 
 		/**
 		 * Indices that can be used for rendering a box constructed from 8 corner vertices, using AABox::Corner for
 		 * mapping.
 		 */
-		static const u32 CUBE_INDICES[36];
+		static const u32 kCubeIndices[36];
 
 	protected:
-		Vector3 mMinimum{ Vector3::ZERO };
-		Vector3 mMaximum{ Vector3::ONE };
+		Vector3 mMinimum{ Vector3::kZero };
+		Vector3 mMaximum{ Vector3::kOne };
 	};
 
 	/** @} */

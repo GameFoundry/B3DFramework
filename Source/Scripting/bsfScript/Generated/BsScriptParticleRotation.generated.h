@@ -23,7 +23,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleRotation : public TScriptReflectable<ScriptParticleRotation, ParticleRotation, ScriptParticleEvolverBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleRotation")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleRotation")
 
 		ScriptParticleRotation(MonoObject* managedInstance, const SPtr<ParticleRotation>& value);
 

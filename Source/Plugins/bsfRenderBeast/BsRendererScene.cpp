@@ -568,7 +568,7 @@ void RendererScene::RegisterReflectionProbe(ReflectionProbe* probe)
 		mInfo.ReflProbeCubemapArrayUsedSlots.push_back(true);
 	}
 
-	if(probeInfo.ArrayIdx > MaxReflectionCubemaps)
+	if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
 	{
 		BS_LOG(Error, Renderer, "Reached the maximum number of allowed reflection probe cubemaps at once. "
 								"Ignoring reflection probe data.");
@@ -685,7 +685,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		rendererParticles.LocalToWorld = tfrm.GetMatrix();
 	}
 	else
-		rendererParticles.LocalToWorld = Matrix4::IDENTITY;
+		rendererParticles.LocalToWorld = Matrix4::kIdentity;
 
 	if(tfrmOnly)
 	{
@@ -701,9 +701,9 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	Vector3 axisForward = settings.OrientationPlaneNormal;
 
-	Vector3 axisUp = Vector3::UNIT_Y;
+	Vector3 axisUp = Vector3::kUnitY;
 	if(axisForward.Dot(axisUp) > 0.9998f)
-		axisUp = Vector3::UNIT_Z;
+		axisUp = Vector3::kUnitZ;
 
 	Vector3 axisRight = axisUp.Cross(axisForward);
 	Vector3::Orthonormalize(axisRight, axisUp, axisForward);
@@ -757,8 +757,8 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	}
 	else
 	{
-		gParticlesParamDef.gUVOffset.Set(particlesParamBuffer, Vector2::ZERO);
-		gParticlesParamDef.gUVScale.Set(particlesParamBuffer, Vector2::ONE);
+		gParticlesParamDef.gUVOffset.Set(particlesParamBuffer, Vector2::kZero);
+		gParticlesParamDef.gUVScale.Set(particlesParamBuffer, Vector2::kOne);
 		gParticlesParamDef.gSubImageSize.Set(particlesParamBuffer, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	}
 
@@ -861,45 +861,45 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		curves.Free(rendererParticles.ColorCurveAlloc);
 		curves.Free(rendererParticles.SizeScaleFrameIdxCurveAlloc);
 
-		static constexpr u32 NUM_CURVE_SAMPLES = 128;
-		Color samples[NUM_CURVE_SAMPLES];
+		static constexpr u32 kNumCurveSamples = 128;
+		Color samples[kNumCurveSamples];
 
 		const ParticleGpuSimulationSettings& gpuSimSettings = particleSystem->GetGpuSimulationSettings();
 
 		// Write color over lifetime curve
-		LookupTable colorLookup = gpuSimSettings.ColorOverLifetime.ToLookupTable(NUM_CURVE_SAMPLES, true);
+		LookupTable colorLookup = gpuSimSettings.ColorOverLifetime.ToLookupTable(kNumCurveSamples, true);
 
-		for(u32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+		for(u32 i = 0; i < kNumCurveSamples; i++)
 		{
 			const float* sample = colorLookup.GetSample(i);
 			samples[i] = Color(sample[0], sample[1], sample[2], sample[3]);
 		}
 
-		rendererParticles.ColorCurveAlloc = curves.Alloc(samples, NUM_CURVE_SAMPLES);
+		rendererParticles.ColorCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
 
 		// Write size over lifetime / sprite animation curve
-		LookupTable sizeLookup = gpuSimSettings.SizeScaleOverLifetime.ToLookupTable(NUM_CURVE_SAMPLES, true);
+		LookupTable sizeLookup = gpuSimSettings.SizeScaleOverLifetime.ToLookupTable(kNumCurveSamples, true);
 
-		float frameSamples[NUM_CURVE_SAMPLES];
+		float frameSamples[kNumCurveSamples];
 		if(spriteTexture && spriteTexture->GetAnimationPlayback() != SpriteAnimationPlayback::None)
 		{
 			const SpriteSheetGridAnimation& anim = spriteTexture->GetAnimation();
-			for(u32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+			for(u32 i = 0; i < kNumCurveSamples; i++)
 			{
-				const float t = i / (float)(NUM_CURVE_SAMPLES - 1);
+				const float t = i / (float)(kNumCurveSamples - 1);
 				frameSamples[i] = t * (anim.Count - 1);
 			}
 		}
 		else
 			memset(frameSamples, 0, sizeof(frameSamples));
 
-		for(u32 i = 0; i < NUM_CURVE_SAMPLES; i++)
+		for(u32 i = 0; i < kNumCurveSamples; i++)
 		{
 			const float* sample = sizeLookup.GetSample(i);
 			samples[i] = Color(sample[0], sample[1], frameSamples[i], 0.0f);
 		}
 
-		rendererParticles.SizeScaleFrameIdxCurveAlloc = curves.Alloc(samples, NUM_CURVE_SAMPLES);
+		rendererParticles.SizeScaleFrameIdxCurveAlloc = curves.Alloc(samples, kNumCurveSamples);
 
 		const Vector2 colorUVOffset = GpuParticleCurves::GetUvOffset(rendererParticles.ColorCurveAlloc);
 		const float colorUVScale = GpuParticleCurves::GetUvScale(rendererParticles.ColorCurveAlloc);
@@ -1406,7 +1406,7 @@ void RendererScene::UpdateParticleSystemBounds(const ParticlePerFrameData* parti
 	{
 		const u32 rendererId = entry.ParticleSystem->GetRendererId();
 
-		AABox worldAABox = AABox::INF_BOX;
+		AABox worldAABox = AABox::kInfBox;
 		const auto iterFind = particleRenderData->CpuData.find(entry.ParticleSystem->GetId());
 		if(iterFind != particleRenderData->CpuData.end())
 			worldAABox = iterFind->second->Bounds;

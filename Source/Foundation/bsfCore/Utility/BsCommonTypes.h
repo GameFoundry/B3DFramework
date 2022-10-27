@@ -636,7 +636,7 @@ namespace bs
 		u32 NumFaces;
 
 		/** Surface that covers all texture sub-resources. */
-		static BS_CORE_EXPORT const TextureSurface COMPLETE;
+		static BS_CORE_EXPORT const TextureSurface kComplete;
 	};
 
 	/** Meta-data describing a chunk of audio. */

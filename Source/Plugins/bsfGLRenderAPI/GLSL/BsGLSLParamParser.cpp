@@ -67,7 +67,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 
 u32 GLSLParamParser::CalcInterfaceBlockElementSizeAndOffset(GpuParamDataType type, u32 arraySize, u32& offset)
 {
-	const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::PARAM_SIZES.Lookup[type];
+	const GpuParamDataTypeInfo& typeInfo = bs::GpuParams::kParamSizes.Lookup[type];
 	u32 size = (typeInfo.BaseTypeSize * typeInfo.NumColumns * typeInfo.NumRows) / 4;
 	u32 alignment = typeInfo.Alignment / 4;
 
@@ -158,9 +158,9 @@ bool GLSLParamParser::AttribNameToElementSemantic(const String& name, VertexElem
 		GLSLAttribute("BLENDINDICES", VES_BLEND_INDICES)
 	};
 
-	static const u32 numAttribs = sizeof(attributes) / sizeof(attributes[0]);
+	static const u32 kNumAttribs = sizeof(attributes) / sizeof(attributes[0]);
 
-	for(u32 i = 0; i < numAttribs; i++)
+	for(u32 i = 0; i < kNumAttribs; i++)
 	{
 		i32 attribIndex = attributes[i].MatchesName(name);
 		if(attribIndex != -1)

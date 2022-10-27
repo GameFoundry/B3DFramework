@@ -231,7 +231,7 @@ namespace bs
 		uint64_t bufferedLength = mBufferedRangeEnd - mBufferedRangeStart;
 		uint64_t newBufferedLength = bufferedLength + numBytesToPreload * 8;
 		if(mBitstream->Capacity() < newBufferedLength)
-			mBitstream->Resize((uint32_t)Math::DivideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::BITS_PER_QUANT));
+			mBitstream->Resize((uint32_t)Math::DivideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::kBitsPerQuant));
 
 		// Read the data from data stream into the bitstream
 		uint64_t orgPos = mBitstream->Tell();
@@ -258,9 +258,9 @@ namespace bs
 			return;
 
 		uint64_t offsetBits = mCursor - mBufferedRangeStart;
-		uint64_t bytesToClear = offsetBits >> Bitstream::BITS_PER_QUANT_LOG2;
+		uint64_t bytesToClear = offsetBits >> Bitstream::kBitsPerQuantLoG2;
 
-		uint64_t remainingBits = offsetBits - bytesToClear * Bitstream::BITS_PER_QUANT;
+		uint64_t remainingBits = offsetBits - bytesToClear * Bitstream::kBitsPerQuant;
 		uint32_t remainingBytes = (uint32_t)(bufferedLengthBytes - bytesToClear);
 
 		mBufferedRangeStart += bytesToClear * 8;
@@ -320,24 +320,24 @@ namespace bs
 			return;
 
 		// Flush all the complete bytes, and leave any sub-byte bits in the write stream
-		uint64_t bytesToFlush = bitsInBuffer >> Bitstream::BITS_PER_QUANT_LOG2;
-		uint64_t bitsToFlush = bytesToFlush * Bitstream::BITS_PER_QUANT;
+		uint64_t bytesToFlush = bitsInBuffer >> Bitstream::kBitsPerQuantLoG2;
+		uint64_t bitsToFlush = bytesToFlush * Bitstream::kBitsPerQuant;
 		uint64_t leftoverBits = bitsInBuffer - bitsToFlush;
 
-		assert(leftoverBits < Bitstream::BITS_PER_QUANT);
+		assert(leftoverBits < Bitstream::kBitsPerQuant);
 
 		Bitstream::QuantType quant = 0;
 		if(force && leftoverBits > 0)
 		{
 			// Pad the last quant
-			uint32_t bitsToPad = Bitstream::BITS_PER_QUANT - leftoverBits;
+			uint32_t bitsToPad = Bitstream::kBitsPerQuant - leftoverBits;
 			mBitstream->WriteBits(&quant, bitsToPad);
 			bitsInBuffer += bitsToPad;
 
-			assert((bitsInBuffer % Bitstream::BITS_PER_QUANT) == 0);
+			assert((bitsInBuffer % Bitstream::kBitsPerQuant) == 0);
 
-			bytesToFlush = bitsInBuffer >> Bitstream::BITS_PER_QUANT_LOG2;
-			bitsToFlush = bytesToFlush * Bitstream::BITS_PER_QUANT;
+			bytesToFlush = bitsInBuffer >> Bitstream::kBitsPerQuantLoG2;
+			bitsToFlush = bytesToFlush * Bitstream::kBitsPerQuant;
 			leftoverBits = 0;
 		}
 

@@ -37,7 +37,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSerializableField : public ScriptObject<ScriptSerializableField>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableField")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SerializableField")
 
 		/**
 		 * Creates a new serializable field interop object that references a specific field on a specific object.
@@ -66,7 +66,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSerializableFieldStyle : public ScriptObject<ScriptSerializableFieldStyle>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableFieldStyle")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SerializableFieldStyle")
 
 	private:
 		ScriptSerializableFieldStyle(MonoObject* managedInstance);

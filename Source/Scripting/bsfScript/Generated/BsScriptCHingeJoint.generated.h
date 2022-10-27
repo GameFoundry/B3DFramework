@@ -25,7 +25,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptCHingeJoint : public TScriptComponent<ScriptCHingeJoint, CHingeJoint, ScriptCJointBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "HingeJoint")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "HingeJoint")
 
 		ScriptCHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
 

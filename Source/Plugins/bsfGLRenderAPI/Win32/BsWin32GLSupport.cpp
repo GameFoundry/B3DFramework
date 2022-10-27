@@ -221,7 +221,7 @@ void Win32GLSupport::InitialiseWgl()
 		if(mHasPixelFormatARB && mHasMultisample)
 		{
 			// Enumerate all formats w/ multisampling
-			static const int iattr[] = {
+			static const int kIattr[] = {
 				WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 				WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 				WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
@@ -236,7 +236,7 @@ void Win32GLSupport::InitialiseWgl()
 			WGLEW_GET_FUN(__wglewChoosePixelFormatARB) = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 			PFNWGLGETPIXELFORMATATTRIBIVARBPROC _wglGetPixelFormatAttribivARB =
 				(PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB");
-			if(WGLEW_GET_FUN(__wglewChoosePixelFormatARB)(hdc, iattr, 0, 256, formats, &count))
+			if(WGLEW_GET_FUN(__wglewChoosePixelFormatARB)(hdc, kIattr, 0, 256, formats, &count))
 			{
 				// Determine what multisampling levels are offered
 				int query = WGL_SAMPLES_ARB, samples;

@@ -32,7 +32,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptShader : public TScriptResource<ScriptShader, Shader>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Shader")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Shader")
 
 		ScriptShader(MonoObject* managedInstance, const ResourceHandle<Shader>& value);
 

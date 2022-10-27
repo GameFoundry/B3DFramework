@@ -20,7 +20,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLimitLinear : public ScriptObject<ScriptLimitLinear>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LimitLinear")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "LimitLinear")
 
 		static MonoObject* Box(const __LimitLinearInterop& value);
 		static __LimitLinearInterop Unbox(MonoObject* value);

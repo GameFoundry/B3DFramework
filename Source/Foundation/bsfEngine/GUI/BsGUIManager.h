@@ -330,11 +330,11 @@ namespace bs
 		 */
 		bool SendVirtualButtonEvent(GUIElement* element, const GUIVirtualButtonEvent& event);
 
-		static const u32 DRAG_DISTANCE;
-		static const float TOOLTIP_HOVER_TIME;
+		static const u32 kDragDistance;
+		static const float kTooltipHoverTime;
 
-		static const u32 MESH_HEAP_INITIAL_NUM_VERTS;
-		static const u32 MESH_HEAP_INITIAL_NUM_INDICES;
+		static const u32 kMeshHeapInitialNumVerts;
+		static const u32 kMeshHeapInitialNumIndices;
 
 		Vector<WidgetInfo> mWidgets;
 		SPtr<ct::GUIRenderer> mRenderer;
@@ -457,7 +457,7 @@ namespace bs
 				SPtr<Mesh> TriangleMesh;
 				SPtr<Mesh> LineMesh;
 				SPtr<Mesh> DrawGroupMesh;
-				Matrix4 WorldTransform = Matrix4::IDENTITY;
+				Matrix4 WorldTransform = Matrix4::kIdentity;
 			};
 
 			UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;

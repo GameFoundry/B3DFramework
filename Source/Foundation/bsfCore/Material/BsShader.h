@@ -37,7 +37,7 @@ namespace bs
 	{
 		SHADER_PARAM_COMMON() = default;
 
-		SHADER_PARAM_COMMON(String name, String gpuVariableName, StringID rendererSemantic = StringID::NONE)
+		SHADER_PARAM_COMMON(String name, String gpuVariableName, StringID rendererSemantic = StringID::kNone)
 			: Name(std::move(name)), GpuVariableName(gpuVariableName), RendererSemantic(rendererSemantic)
 		{}
 
@@ -78,7 +78,7 @@ namespace bs
 	{
 		SHADER_DATA_PARAM_DESC() = default;
 
-		SHADER_DATA_PARAM_DESC(String name, String gpuVariableName, GpuParamDataType type, StringID rendererSemantic = StringID::NONE, u32 arraySize = 1, u32 elementSize = 0)
+		SHADER_DATA_PARAM_DESC(String name, String gpuVariableName, GpuParamDataType type, StringID rendererSemantic = StringID::kNone, u32 arraySize = 1, u32 elementSize = 0)
 			: SHADER_PARAM_COMMON(std::move(name), std::move(gpuVariableName), rendererSemantic)
 			, Type(type)
 			, ArraySize(arraySize)
@@ -107,7 +107,7 @@ namespace bs
 	{
 		SHADER_OBJECT_PARAM_DESC() = default;
 
-		SHADER_OBJECT_PARAM_DESC(String name, String gpuVariableName, GpuParamObjectType type, StringID rendererSemantic = StringID::NONE)
+		SHADER_OBJECT_PARAM_DESC(String name, String gpuVariableName, GpuParamObjectType type, StringID rendererSemantic = StringID::kNone)
 			: SHADER_PARAM_COMMON(std::move(name), gpuVariableName, rendererSemantic), Type(type)
 		{
 			GpuVariableNames.emplace_back(gpuVariableName);
@@ -317,7 +317,7 @@ namespace bs
 		 *									will be deemed incompatible and won't be used. Value of 0 signifies the parameter
 		 *									block is not used by the renderer.
 		 */
-		void SetParamBlockAttribs(const String& name, bool shared, GpuBufferUsage usage, StringID rendererSemantic = StringID::NONE);
+		void SetParamBlockAttribs(const String& name, bool shared, GpuBufferUsage usage, StringID rendererSemantic = StringID::kNone);
 
 		/**
 		 * Sorting type to use when performing sort in the render queue. Default value is sort front to back which causes

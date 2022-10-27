@@ -106,7 +106,7 @@ TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath
 		return output;
 	}
 
-	QueueForImport(importer, inputFilePath, importOptions, UUID::EMPTY, output);
+	QueueForImport(importer, inputFilePath, importOptions, UUID::kEmpty, output);
 	return output;
 }
 

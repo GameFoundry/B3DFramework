@@ -114,10 +114,10 @@ void RendererParticles::UpdatePerObjectBuffer()
 	if(settings.SimulationSpace == ParticleSimulationSpace::Local)
 	{
 		const Transform& tfrm = ParticleSystem->GetTransform();
-		localToWorldNoScale = Matrix4::TRS(tfrm.GetPosition(), tfrm.GetRotation(), Vector3::ONE);
+		localToWorldNoScale = Matrix4::TRS(tfrm.GetPosition(), tfrm.GetRotation(), Vector3::kOne);
 	}
 	else
-		localToWorldNoScale = Matrix4::IDENTITY;
+		localToWorldNoScale = Matrix4::kIdentity;
 
 	PerObjectBuffer::Update(PerObjectParamBuffer, LocalToWorld, localToWorldNoScale, PrevLocalToWorld, layer);
 }
@@ -184,7 +184,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 	RenderElement.ParamsGpu.PositionTimeTexture.Set(gpuSimStateTextures.PositionAndTimeTex);
 	RenderElement.ParamsGpu.SizeRotationTexture.Set(gpuSimStaticTextures.SizeAndRotationTex);
 	RenderElement.ParamsGpu.CurvesTexture.Set(gpuCurves.GetTexture());
-	RenderElement.NumParticles = GpuParticleSystem->GetNumTiles() * GpuParticleResources::PARTICLES_PER_TILE;
+	RenderElement.NumParticles = GpuParticleSystem->GetNumTiles() * GpuParticleResources::kParticlesPerTile;
 
 	if(GpuParticleSystem->HasSortInfo())
 	{
@@ -197,7 +197,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 		gParticlesParamDef.gBufferOffset.Set(ParticlesParamBuffer, 0);
 	}
 
-	const u32 texSize = GpuParticleResources::TEX_SIZE;
+	const u32 texSize = GpuParticleResources::kTexSize;
 	gParticlesParamDef.gTexSize.Set(ParticlesParamBuffer, texSize);
 
 	SPtr<GpuParams> gpuParams = RenderElement.Params->GetGpuParams();
@@ -392,7 +392,7 @@ ParticleRenderer::ParticleRenderer()
 
 	u32 stride = meshData.GetVertexDesc()->GetVertexStride(0);
 
-	Vector3 normal = Vector3::UNIT_Y;
+	Vector3 normal = Vector3::kUnitY;
 	Vector4 tangent(1.0f, 0.0f, 0.0f, 1.0f);
 
 	u8* normalDst = meshData.GetElementData(VES_NORMAL);

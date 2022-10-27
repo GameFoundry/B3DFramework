@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptManagedComponent : public ScriptObject<ScriptManagedComponent, ScriptComponentBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ManagedComponent")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ManagedComponent")
 
 		/**	Returns a generic handle to the internal wrapped component. */
 		HGameObject GetNativeHandle() const { return static_object_cast<GameObject>(mComponent); }

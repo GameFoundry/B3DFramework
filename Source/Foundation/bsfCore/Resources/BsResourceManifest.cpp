@@ -73,7 +73,7 @@ bool ResourceManifest::UuidToFilePath(const UUID& uuid, Path& filePath) const
 	}
 	else
 	{
-		filePath = Path::BLANK;
+		filePath = Path::kBlank;
 		return false;
 	}
 }
@@ -89,7 +89,7 @@ bool ResourceManifest::FilePathToUuid(const Path& filePath, UUID& outUUID) const
 	}
 	else
 	{
-		outUUID = UUID::EMPTY;
+		outUUID = UUID::kEmpty;
 		return false;
 	}
 }

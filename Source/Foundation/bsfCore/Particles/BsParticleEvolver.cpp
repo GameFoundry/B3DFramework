@@ -19,14 +19,14 @@ using namespace bs;
 
 // Arbitrary random numbers to add variation to different random particle properties, since we use just a single
 // seed value per particle
-static constexpr u32 PARTICLE_ROW_VARIATION = 0x1e8b2f4a;
-static constexpr u32 PARTICLE_ORBIT_VELOCITY = 0x24c00a5b;
-static constexpr u32 PARTICLE_ORBIT_RADIAL = 0x35978d21;
-static constexpr u32 PARTICLE_LINEAR_VELOCITY = 0x0a299430;
-static constexpr u32 PARTICLE_FORCE = 0x1b618144;
-static constexpr u32 PARTICLE_COLOR = 0x378578b2;
-static constexpr u32 PARTICLE_SIZE = 0x91088409;
-static constexpr u32 PARTICLE_ROTATION = 0x4680eaa4;
+static constexpr u32 kParticleRowVariation = 0x1e8b2f4a;
+static constexpr u32 kParticleOrbitVelocity = 0x24c00a5b;
+static constexpr u32 kParticleOrbitRadial = 0x35978d21;
+static constexpr u32 kParticleLinearVelocity = 0x0a299430;
+static constexpr u32 kParticleForce = 0x1b618144;
+static constexpr u32 kParticleColor = 0x378578b2;
+static constexpr u32 kParticleSize = 0x91088409;
+static constexpr u32 kParticleRotation = 0x4680eaa4;
 
 /** Helper method that applies a transform to either a point or a direction. */
 template <bool dir>
@@ -113,7 +113,7 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 		u32 numFrames;
 		if(mDesc.RandomizeRow)
 		{
-			const u32 rowSeed = particles.Seed[i] + PARTICLE_ROW_VARIATION;
+			const u32 rowSeed = particles.Seed[i] + kParticleRowVariation;
 			const u32 row = Random(rowSeed).GetRange(0, gridAnim.NumRows);
 
 			frameOffset = row * gridAnim.NumColumns;
@@ -177,9 +177,9 @@ void ParticleOrbit::Evolve(Random& random, const ParticleSystemState& state, Par
 			timeStep *= subFrameOffset;
 		}
 
-		const u32 velocitySeed = particles.Seed[i] + PARTICLE_ORBIT_VELOCITY;
+		const u32 velocitySeed = particles.Seed[i] + kParticleOrbitVelocity;
 		Vector3 orbitVelocity = evaluateTransformed<true>(mDesc.Velocity, state, particleT, Random(velocitySeed), mDesc.WorldSpace);
-		orbitVelocity *= Math::TWO_PI;
+		orbitVelocity *= Math::kTwoPi;
 
 		orbitVelocity *= timeStep;
 
@@ -190,7 +190,7 @@ void ParticleOrbit::Evolve(Random& random, const ParticleSystemState& state, Par
 
 		Vector3 velocity = newPoint - point;
 
-		const u32 radialSeed = particles.Seed[i] + PARTICLE_ORBIT_RADIAL;
+		const u32 radialSeed = particles.Seed[i] + kParticleOrbitRadial;
 		const float radial = mDesc.Radial.Evaluate(particleT, Random(radialSeed).GetUNorm());
 		if(radial != 0.0f)
 			velocity += Vector3::Normalize(point) * radial * timeStep;
@@ -241,7 +241,7 @@ void ParticleVelocity::Evolve(Random& random, const ParticleSystemState& state, 
 			timeStep *= subFrameOffset;
 		}
 
-		const u32 velocitySeed = particles.Seed[i] + PARTICLE_LINEAR_VELOCITY;
+		const u32 velocitySeed = particles.Seed[i] + kParticleLinearVelocity;
 		const Vector3 velocity = evaluateTransformed<true>(mDesc.Velocity, state, particleT, Random(velocitySeed), mDesc.WorldSpace) * timeStep;
 
 		particles.Position[i] += velocity;
@@ -290,7 +290,7 @@ void ParticleForce::Evolve(Random& random, const ParticleSystemState& state, Par
 			timeStep *= subFrameOffset;
 		}
 
-		const u32 forceSeed = particles.Seed[i] + PARTICLE_FORCE;
+		const u32 forceSeed = particles.Seed[i] + kParticleForce;
 		const Vector3 force = evaluateTransformed<true>(mDesc.Force, state, particleT, Random(forceSeed), mDesc.WorldSpace) * timeStep;
 
 		particles.Velocity[i] += force * timeStep;
@@ -377,7 +377,7 @@ void ParticleColor::Evolve(Random& random, const ParticleSystemState& state, Par
 
 	for(u32 i = startIdx; i < endIdx; i++)
 	{
-		const u32 colorSeed = particles.Seed[i] + PARTICLE_COLOR;
+		const u32 colorSeed = particles.Seed[i] + kParticleColor;
 		const float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];
 
 		particles.Color[i] = mDesc.Color.Evaluate(particleT, Random(colorSeed));
@@ -417,7 +417,7 @@ void ParticleSize::Evolve(Random& random, const ParticleSystemState& state, Part
 	{
 		for(u32 i = startIdx; i < endIdx; i++)
 		{
-			const u32 sizeSeed = particles.Seed[i] + PARTICLE_SIZE;
+			const u32 sizeSeed = particles.Seed[i] + kParticleSize;
 			const float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];
 
 			const float size = mDesc.Size.Evaluate(particleT, Random(sizeSeed));
@@ -428,7 +428,7 @@ void ParticleSize::Evolve(Random& random, const ParticleSystemState& state, Part
 	{
 		for(u32 i = startIdx; i < endIdx; i++)
 		{
-			const u32 sizeSeed = particles.Seed[i] + PARTICLE_SIZE;
+			const u32 sizeSeed = particles.Seed[i] + kParticleSize;
 			const float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];
 
 			particles.Size[i] = mDesc.Size3D.Evaluate(particleT, Random(sizeSeed));
@@ -469,7 +469,7 @@ void ParticleRotation::Evolve(Random& random, const ParticleSystemState& state, 
 	{
 		for(u32 i = startIdx; i < endIdx; i++)
 		{
-			const u32 rotationSeed = particles.Seed[i] + PARTICLE_ROTATION;
+			const u32 rotationSeed = particles.Seed[i] + kParticleRotation;
 			const float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];
 
 			const float rotation = mDesc.Rotation.Evaluate(particleT, Random(rotationSeed));
@@ -480,7 +480,7 @@ void ParticleRotation::Evolve(Random& random, const ParticleSystemState& state, 
 	{
 		for(u32 i = startIdx; i < endIdx; i++)
 		{
-			const u32 rotationSeed = particles.Seed[i] + PARTICLE_ROTATION;
+			const u32 rotationSeed = particles.Seed[i] + kParticleRotation;
 			const float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];
 
 			particles.Rotation[i] = mDesc.Rotation3D.Evaluate(particleT, Random(rotationSeed));
@@ -543,14 +543,14 @@ u32 groupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, Parti
 		return 0;
 
 	// Calculate bounds of all rays
-	AABox groupBounds = AABox::INF_BOX;
+	AABox groupBounds = AABox::kInfBox;
 	for(u32 i = 0; i < numRays; i++)
 	{
 		groupBounds.Merge(segments[i].Start);
 		groupBounds.Merge(segments[i].End);
 	}
 
-	Vector<Collider*> hitColliders = physicsScene.BoxOverlapInternal(groupBounds, Quaternion::IDENTITY, layer);
+	Vector<Collider*> hitColliders = physicsScene.BoxOverlapInternal(groupBounds, Quaternion::kIdentity, layer);
 	if(hitColliders.empty())
 		return 0;
 

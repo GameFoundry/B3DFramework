@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEmitterHemisphereShape : public TScriptReflectable<ScriptParticleEmitterHemisphereShape, ParticleEmitterHemisphereShape, ScriptParticleEmitterShapeBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitterHemisphereShape")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEmitterHemisphereShape")
 
 		ScriptParticleEmitterHemisphereShape(MonoObject* managedInstance, const SPtr<ParticleEmitterHemisphereShape>& value);
 

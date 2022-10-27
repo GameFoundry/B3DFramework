@@ -272,7 +272,7 @@ void ScriptSceneObject::InternalGetScale(ScriptSceneObject* nativeInstance, Vect
 	if(!CheckIfDestroyed(nativeInstance))
 		*value = nativeInstance->mSceneObject->GetTransform().GetScale();
 	else
-		*value = Vector3(Vector3::ONE);
+		*value = Vector3(Vector3::kOne);
 }
 
 void ScriptSceneObject::InternalGetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -280,7 +280,7 @@ void ScriptSceneObject::InternalGetLocalScale(ScriptSceneObject* nativeInstance,
 	if(!CheckIfDestroyed(nativeInstance))
 		*value = nativeInstance->mSceneObject->GetLocalTransform().GetScale();
 	else
-		*value = Vector3(Vector3::ONE);
+		*value = Vector3(Vector3::kOne);
 }
 
 void ScriptSceneObject::InternalSetPosition(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -382,7 +382,7 @@ void ScriptSceneObject::InternalGetForward(ScriptSceneObject* nativeInstance, Ve
 	if(!CheckIfDestroyed(nativeInstance))
 		*value = nativeInstance->mSceneObject->GetTransform().GetForward();
 	else
-		*value = Vector3(-Vector3::UNIT_Z);
+		*value = Vector3(-Vector3::kUnitZ);
 }
 
 void ScriptSceneObject::InternalGetUp(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -390,7 +390,7 @@ void ScriptSceneObject::InternalGetUp(ScriptSceneObject* nativeInstance, Vector3
 	if(!CheckIfDestroyed(nativeInstance))
 		*value = nativeInstance->mSceneObject->GetTransform().GetUp();
 	else
-		*value = Vector3(Vector3::UNIT_Y);
+		*value = Vector3(Vector3::kUnitY);
 }
 
 void ScriptSceneObject::InternalGetRight(ScriptSceneObject* nativeInstance, Vector3* value)
@@ -398,7 +398,7 @@ void ScriptSceneObject::InternalGetRight(ScriptSceneObject* nativeInstance, Vect
 	if(!CheckIfDestroyed(nativeInstance))
 		*value = nativeInstance->mSceneObject->GetTransform().GetRight();
 	else
-		*value = Vector3(Vector3::UNIT_X);
+		*value = Vector3(Vector3::kUnitX);
 }
 
 void ScriptSceneObject::InternalDestroy(ScriptSceneObject* nativeInstance, bool immediate)

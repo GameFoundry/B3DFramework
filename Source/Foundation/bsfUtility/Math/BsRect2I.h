@@ -72,7 +72,7 @@ namespace bs
 			return !(*this == rhs);
 		}
 
-		static const Rect2I EMPTY;
+		static const Rect2I kEmpty;
 	};
 
 	/** @} */

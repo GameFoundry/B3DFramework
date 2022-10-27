@@ -29,7 +29,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMaterial : public TScriptResource<ScriptMaterial, Material>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Material")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Material")
 
 		ScriptMaterial(MonoObject* managedInstance, const ResourceHandle<Material>& value);
 

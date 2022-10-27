@@ -89,18 +89,18 @@ namespace bs
 			 */
 			static Vector2 GetHistogramScaleOffset(const AutoExposureSettings& settings);
 
-			static const u32 THREAD_GROUP_SIZE_X = 8;
-			static const u32 THREAD_GROUP_SIZE_Y = 8;
+			static const u32 kThreadGroupSizeX = 8;
+			static const u32 kThreadGroupSizeY = 8;
 
-			static const u32 HISTOGRAM_NUM_TEXELS = (THREAD_GROUP_SIZE_X * THREAD_GROUP_SIZE_Y) / 4;
+			static const u32 kHistogramNumTexels = (kThreadGroupSizeX * kThreadGroupSizeY) / 4;
 
 		private:
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
 			GpuParamTexture mSceneColor;
 			GpuParamLoadStoreTexture mOutputTex;
 
-			static const u32 LOOP_COUNT_X = 8;
-			static const u32 LOOP_COUNT_Y = 8;
+			static const u32 kLoopCountX = 8;
+			static const u32 kLoopCountY = 8;
 		};
 
 		BS_PARAM_BLOCK_BEGIN(EyeAdaptHistogramReduceParamDef)
@@ -283,7 +283,7 @@ namespace bs
 			static CreateTonemapLUTMat* GetVariation(bool is3D);
 
 			/** Size of the 3D color lookup table. */
-			static const u32 LUT_SIZE = 32;
+			static const u32 kLutSize = 32;
 
 		private:
 			/** Populates the parameter block buffers using the provided settings. */
@@ -471,7 +471,7 @@ namespace bs
 		{
 			RMAT_DEF_CUSTOMIZED("PPChromaticAberration.bsl");
 
-			static constexpr int MAX_SAMPLES = 16;
+			static constexpr int kMaxSamples = 16;
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool SIMPLE>
@@ -542,11 +542,11 @@ namespace bs
 			GpuParamTexture mInputTex;
 		};
 
-		const int MAX_BLUR_SAMPLES = 128;
+		const int kMaxBlurSamples = 128;
 
 		BS_PARAM_BLOCK_BEGIN(GaussianBlurParamDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleOffsets, (MAX_BLUR_SAMPLES + 1) / 2)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, MAX_BLUR_SAMPLES)
+			BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleOffsets, (kMaxBlurSamples + 1) / 2)
+			BS_PARAM_BLOCK_ENTRY_ARRAY(Vector4, gSampleWeights, kMaxBlurSamples)
 			BS_PARAM_BLOCK_ENTRY(int, gNumSamples)
 		BS_PARAM_BLOCK_END
 
@@ -590,7 +590,7 @@ namespace bs
 			 *							in filtering). Only used if using the variation of this shader that supports additive
 			 *							input.
 			 */
-			void Execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, const Color& tint = Color::White, const SPtr<Texture>& additive = nullptr);
+			void Execute(const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, const Color& tint = Color::kWhite, const SPtr<Texture>& additive = nullptr);
 
 			/**
 			 * Populates the provided parameter buffer with parameters required for a shader including gaussian blur.
@@ -601,7 +601,7 @@ namespace bs
 			 * @param[in]	filterSize	Size of the blurring filter, in percent of the source texture. In range [0, 1].
 			 * @param[in]	tint		Optional tint to apply all filtered pixels.
 			 */
-			static void PopulateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::White);
+			static void PopulateBuffer(const SPtr<GpuParamBlockBuffer>& buffer, Direction direction, const SPtr<Texture>& source, float filterSize, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -613,7 +613,7 @@ namespace bs
 
 		private:
 			/** Calculates weights and offsets for the standard distribution of the specified filter size. */
-			static u32 CalcStdDistribution(float filterRadius, std::array<float, MAX_BLUR_SAMPLES>& weights, std::array<float, MAX_BLUR_SAMPLES>& offsets);
+			static u32 CalcStdDistribution(float filterRadius, std::array<float, kMaxBlurSamples>& weights, std::array<float, kMaxBlurSamples>& offsets);
 
 			/** Calculates the radius of the blur kernel depending on the source texture size and provided scale. */
 			static float CalcKernelRadius(const SPtr<Texture>& source, float scale, Direction filterDir);
@@ -846,8 +846,8 @@ namespace bs
 			}
 
 		public:
-			static constexpr u32 NEAR_FAR_PADDING = 128;
-			static constexpr u32 QUADS_PER_TILE = 8;
+			static constexpr u32 kNearFarPadding = 128;
+			static constexpr u32 kQuadsPerTile = 8;
 
 			BokehDOFMat();
 

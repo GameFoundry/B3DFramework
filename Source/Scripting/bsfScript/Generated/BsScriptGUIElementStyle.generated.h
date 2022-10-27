@@ -26,7 +26,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptGUIElementStyle : public TScriptReflectable<ScriptGUIElementStyle, GUIElementStyle>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "GUIElementStyle")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIElementStyle")
 
 		ScriptGUIElementStyle(MonoObject* managedInstance, const SPtr<GUIElementStyle>& value);
 

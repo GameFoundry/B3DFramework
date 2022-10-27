@@ -44,7 +44,7 @@ void ReflectionCubeDownsampleMat::Execute(const SPtr<Texture>& source, u32 face,
 	gRendererUtility().DrawScreenQuad();
 }
 
-const u32 ReflectionCubeImportanceSampleMat::NUM_SAMPLES = 1024;
+const u32 ReflectionCubeImportanceSampleMat::kNumSamples = 1024;
 ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
 
 ReflectionCubeImportanceSampleMat::ReflectionCubeImportanceSampleMat()
@@ -57,7 +57,7 @@ ReflectionCubeImportanceSampleMat::ReflectionCubeImportanceSampleMat()
 
 void ReflectionCubeImportanceSampleMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("NUM_SAMPLES", NUM_SAMPLES);
+	defines.Set("NUM_SAMPLES", kNumSamples);
 }
 
 void ReflectionCubeImportanceSampleMat::Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
@@ -74,7 +74,7 @@ void ReflectionCubeImportanceSampleMat::Execute(const SPtr<Texture>& source, u32
 
 	// First part of the equation for determining mip level to sample from.
 	// See http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html
-	float mipFactor = 0.5f * std::log2(width * height / NUM_SAMPLES);
+	float mipFactor = 0.5f * std::log2(width * height / kNumSamples);
 	gReflectionCubeImportanceSampleParamDef.gPrecomputedMipFactor.Set(mParamBuffer, mipFactor);
 
 	RenderAPI& rapi = RenderAPI::Instance();
@@ -87,11 +87,11 @@ void ReflectionCubeImportanceSampleMat::Execute(const SPtr<Texture>& source, u32
 IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
 
 // TILE_WIDTH * TILE_HEIGHT must be pow2 because of parallel reduction algorithm
-const static u32 TILE_WIDTH = 8;
-const static u32 TILE_HEIGHT = 8;
+const static u32 kTileWidth = 8;
+const static u32 kTileHeight = 8;
 
 // For very small textures this should be reduced so number of launched threads can properly utilize GPU cores
-const static u32 PIXELS_PER_THREAD = 4;
+const static u32 kPixelsPerThread = 4;
 
 IrradianceComputeSHMat::IrradianceComputeSHMat()
 {
@@ -104,9 +104,9 @@ IrradianceComputeSHMat::IrradianceComputeSHMat()
 
 void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
 {
-	defines.Set("TILE_WIDTH", TILE_WIDTH);
-	defines.Set("TILE_HEIGHT", TILE_HEIGHT);
-	defines.Set("PIXELS_PER_THREAD", PIXELS_PER_THREAD);
+	defines.Set("TILE_WIDTH", kTileWidth);
+	defines.Set("TILE_HEIGHT", kTileHeight);
+	defines.Set("PIXELS_PER_THREAD", kPixelsPerThread);
 }
 
 void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output)
@@ -118,8 +118,8 @@ void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, u32 face, cons
 	assert(faceSize == props.GetHeight());
 
 	Vector2I dispatchSize;
-	dispatchSize.X = Math::DivideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
-	dispatchSize.Y = Math::DivideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
+	dispatchSize.X = Math::DivideAndRoundUp(faceSize, kTileWidth * kPixelsPerThread);
+	dispatchSize.Y = Math::DivideAndRoundUp(faceSize, kTileHeight * kPixelsPerThread);
 
 	mInputTexture.Set(source);
 	gIrradianceComputeSHParamDef.gCubeFace.Set(mParamBuffer, face);
@@ -141,8 +141,8 @@ SPtr<GpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Texture>& 
 	assert(faceSize == props.GetHeight());
 
 	Vector2I dispatchSize;
-	dispatchSize.X = Math::DivideAndRoundUp(faceSize, TILE_WIDTH * PIXELS_PER_THREAD);
-	dispatchSize.Y = Math::DivideAndRoundUp(faceSize, TILE_HEIGHT * PIXELS_PER_THREAD);
+	dispatchSize.X = Math::DivideAndRoundUp(faceSize, kTileWidth * kPixelsPerThread);
+	dispatchSize.Y = Math::DivideAndRoundUp(faceSize, kTileHeight * kPixelsPerThread);
 
 	numCoeffSets = dispatchSize.X * dispatchSize.Y * 6;
 
@@ -583,14 +583,14 @@ void RenderBeastIBLUtility::DownsampleCubemap(const SPtr<Texture>& src, u32 srcM
 
 void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(const SPtr<Texture>& cubemap, u32 outputIdx, const SPtr<RenderTexture>& output)
 {
-	static const u32 NUM_COEFFS = 9;
+	static const u32 kNumCoeffs = 9;
 
 	GpuResourcePool& resPool = gGpuResourcePool();
 	IrradianceComputeSHFragMat* shCompute = IrradianceComputeSHFragMat::Get();
 	IrradianceAccumulateSHMat* shAccum = IrradianceAccumulateSHMat::Get();
 	IrradianceAccumulateCubeSHMat* shAccumCube = IrradianceAccumulateCubeSHMat::Get();
 
-	for(u32 coeff = 0; coeff < NUM_COEFFS; ++coeff)
+	for(u32 coeff = 0; coeff < kNumCoeffs; ++coeff)
 	{
 		SPtr<PooledRenderTexture> coeffsTex = resPool.Get(shCompute->GetOutputDesc(cubemap));
 

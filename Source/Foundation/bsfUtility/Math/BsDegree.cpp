@@ -49,5 +49,5 @@ Degree& Degree::operator-=(const Radian& r)
 
 float Degree::ValueRadians() const
 {
-	return mDeg * Math::DEG2RAD;
+	return mDeg * Math::kDeG2Rad;
 }

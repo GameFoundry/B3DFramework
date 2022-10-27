@@ -16,10 +16,10 @@
 #include <mono/metadata/threads.h>
 
 using namespace bs;
-const String MONO_LIB_DIR = "bin/Mono/lib/";
-const String MONO_ETC_DIR = "bin/Mono/etc/";
-const String MONO_COMPILER_DIR = "bin/Mono/compiler/";
-const MonoVersion MONO_VERSION = MonoVersion::v4_5;
+const String kMonoLibDir = "bin/Mono/lib/";
+const String kMonoEtcDir = "bin/Mono/etc/";
+const String kMonoCompilerDir = "bin/Mono/compiler/";
+const MonoVersion kMonoVersion = MonoVersion::v4_5;
 
 struct MonoVersionData
 {
@@ -27,8 +27,8 @@ struct MonoVersionData
 	String Version;
 };
 
-static const MonoVersionData MONO_VERSION_DATA[1] = {
-	{ MONO_LIB_DIR + "mono/4.5", "v4.0.30319" }
+static const MonoVersionData kMonoVersionData[1] = {
+	{ kMonoLibDir + "mono/4.5", "v4.0.30319" }
 };
 
 void monoLogCallback(const char* logDomain, const char* logLevel, const char* message, mono_bool fatal, void* userData)
@@ -87,7 +87,7 @@ void monoPrintErrorCallback(const char* string, mono_bool isStdout)
 MonoManager::MonoManager()
 	: mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
 {
-	Path libDir = Paths::FindPath(MONO_LIB_DIR);
+	Path libDir = Paths::FindPath(kMonoLibDir);
 	Path etcDir = GetMonoEtcFolder();
 	Path assembliesDir = GetFrameworkAssembliesFolder();
 
@@ -125,7 +125,7 @@ MonoManager::MonoManager()
 
 	mono_config_parse(nullptr);
 
-	mRootDomain = mono_jit_init_version("bsfMono", MONO_VERSION_DATA[(int)MONO_VERSION].Version.c_str());
+	mRootDomain = mono_jit_init_version("bsfMono", kMonoVersionData[(int)kMonoVersion].Version.c_str());
 	if(mRootDomain == nullptr)
 		BS_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
 
@@ -306,17 +306,17 @@ void MonoManager::UnloadScriptDomain()
 
 Path MonoManager::GetFrameworkAssembliesFolder() const
 {
-	return Paths::FindPath(MONO_VERSION_DATA[(int)MONO_VERSION].Path);
+	return Paths::FindPath(kMonoVersionData[(int)kMonoVersion].Path);
 }
 
 Path MonoManager::GetMonoEtcFolder() const
 {
-	return Paths::FindPath(MONO_ETC_DIR);
+	return Paths::FindPath(kMonoEtcDir);
 }
 
 Path MonoManager::GetCompilerPath() const
 {
-	Path compilerPath = Paths::FindPath(MONO_COMPILER_DIR);
+	Path compilerPath = Paths::FindPath(kMonoCompilerDir);
 	compilerPath.Append("mcs.exe");
 	return compilerPath;
 }

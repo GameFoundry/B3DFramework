@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptAudioDevice : public ScriptObject<ScriptAudioDevice>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioDevice")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioDevice")
 
 		static MonoObject* Box(const __AudioDeviceInterop& value);
 		static __AudioDeviceInterop Unbox(MonoObject* value);

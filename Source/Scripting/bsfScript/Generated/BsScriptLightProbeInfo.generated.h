@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptLightProbeInfo : public ScriptObject<ScriptLightProbeInfo>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "LightProbeInfo")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "LightProbeInfo")
 
 		static MonoObject* Box(const __LightProbeInfoInterop& value);
 		static __LightProbeInfoInterop Unbox(MonoObject* value);

@@ -15,7 +15,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptSerializableDictionary : public ScriptObject<ScriptSerializableDictionary>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SerializableDictionary")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SerializableDictionary")
 
 		/**
 		 * Creates a new serializable dictionary interop object from the data in the provided property. Caller must ensure

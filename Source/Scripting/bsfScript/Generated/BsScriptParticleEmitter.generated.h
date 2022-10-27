@@ -25,7 +25,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleEmitter")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEmitter")
 
 		ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value);
 

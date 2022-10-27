@@ -7,13 +7,13 @@
 
 using namespace bs;
 
-const Path Paths::RELEASE_ASSEMBLY_PATH = "bin/Assemblies/Release/";
-const Path Paths::DEBUG_ASSEMBLY_PATH = "bin/Assemblies/Debug/";
+const Path Paths::kReleaseAssemblyPath = "bin/Assemblies/Release/";
+const Path Paths::kDebugAssemblyPath = "bin/Assemblies/Debug/";
 
-const Path Paths::FRAMEWORK_DATA_PATH = "Data/";
+const Path Paths::kFrameworkDataPath = "Data/";
 
 #if BS_INCLUDE_B3D_PATHS
-const Path Paths::EDITOR_DATA_PATH = "EditorData/";
+const Path Paths::kEditorDataPath = "EditorData/";
 #endif
 
 const Path& Paths::GetDataPath()
@@ -23,11 +23,11 @@ const Path& Paths::GetDataPath()
 
 	if(!initialized)
 	{
-		if(FileSystem::Exists(FRAMEWORK_DATA_PATH))
-			path = FileSystem::GetWorkingDirectoryPath() + FRAMEWORK_DATA_PATH;
+		if(FileSystem::Exists(kFrameworkDataPath))
+			path = FileSystem::GetWorkingDirectoryPath() + kFrameworkDataPath;
 		else
 #if BS_IS_BANSHEE3D
-			path = Path(RAW_APP_ROOT) + Path("Source/bsf") + FRAMEWORK_DATA_PATH;
+			path = Path(kRawAppRoot) + Path("Source/bsf") + kFrameworkDataPath;
 #else
 			path = Path(RAW_APP_ROOT) + FRAMEWORK_DATA_PATH;
 #endif
@@ -49,11 +49,11 @@ const Path& Paths::GetBinariesPath()
 
 		// Look for bsf library to find the right path
 		Path anchorFile = path;
-		anchorFile.SetFilename("bsf." + String(DynLib::EXTENSION));
+		anchorFile.SetFilename("bsf." + String(DynLib::kExtension));
 
 		if(!FileSystem::Exists(anchorFile))
 		{
-			path = BINARIES_PATH;
+			path = kBinariesPath;
 			if(!FileSystem::Exists(path))
 				path = ""; // No path found, keep the default
 		}
@@ -80,13 +80,13 @@ const Path& Paths::GetEditorDataPath()
 			path = FileSystem::GetWorkingDirectoryPath() + editorDataPath;
 #	else
 		// Otherwise, look for the folder in the direct descendant of the working directory
-		if(FileSystem::Exists(EDITOR_DATA_PATH))
-			path = FileSystem::GetWorkingDirectoryPath() + EDITOR_DATA_PATH;
+		if(FileSystem::Exists(kEditorDataPath))
+			path = FileSystem::GetWorkingDirectoryPath() + kEditorDataPath;
 #	endif
 		// Then check the source distribution itself, in case we're running directly from the build directory
 		else
 		{
-			path = Path(RAW_APP_ROOT) + FRAMEWORK_DATA_PATH;
+			path = Path(kRawAppRoot) + kFrameworkDataPath;
 
 			if(!FileSystem::Exists(path))
 				BS_LOG(Error, FileSystem, "Cannot find builtin assets for the editor at path '{0}'.", path);
@@ -100,13 +100,13 @@ const Path& Paths::GetEditorDataPath()
 
 const Path& Paths::GetGameSettingsPath()
 {
-	static Path path = FindPath(GAME_SETTINGS_NAME);
+	static Path path = FindPath(kGameSettingsName);
 	return path;
 }
 
 const Path& Paths::GetGameResourcesPath()
 {
-	static Path path = FindPath(GAME_RESOURCES_FOLDER_NAME);
+	static Path path = FindPath(kGameResourcesFolderName);
 	return path;
 }
 #endif
@@ -124,7 +124,7 @@ Path Paths::FindPath(const Path& path)
 	}
 
 	// Then, check the build directory itself, in case we're running directly from it (during development)
-	output.MakeAbsolute(BUILD_APP_ROOT);
+	output.MakeAbsolute(kBuildAppRoot);
 	if(FileSystem::Exists(output))
 		return output;
 

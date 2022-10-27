@@ -12,7 +12,7 @@ CCapsuleCollider::CCapsuleCollider()
 {
 	SetName("CapsuleCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, mNormal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, float halfHeight)
@@ -20,7 +20,7 @@ CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, flo
 {
 	SetName("CapsuleCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, mNormal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 void CCapsuleCollider::SetNormal(const Vector3& normal)
@@ -29,7 +29,7 @@ void CCapsuleCollider::SetNormal(const Vector3& normal)
 		return;
 
 	mNormal = bs::Vector3::Normalize(normal);
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::UNIT_X, mNormal);
+	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 
 	if(mInternal != nullptr)
 		UpdateTransform();

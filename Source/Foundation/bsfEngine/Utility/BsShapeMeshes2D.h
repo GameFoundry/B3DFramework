@@ -139,8 +139,8 @@ namespace bs
 		 */
 		static void QuadLineList(const Vector2* linePoints, u32 numPoints, float width, float border, u8* outVertices, u32 vertexStride, bool indexed);
 
-		static const u32 NUM_VERTICES_AA_LINE;
-		static const u32 NUM_INDICES_AA_LINE;
+		static const u32 kNumVerticesAaLine;
+		static const u32 kNumIndicesAaLine;
 
 	protected:
 		/**

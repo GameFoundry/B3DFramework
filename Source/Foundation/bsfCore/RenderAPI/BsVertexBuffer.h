@@ -57,7 +57,7 @@ namespace bs
 		/** @copydoc HardwareBufferManager::createVertexBuffer */
 		static SPtr<VertexBuffer> Create(const VERTEX_BUFFER_DESC& desc);
 
-		static const int MAX_SEMANTIC_IDX = 8;
+		static const int kMaxSemanticIdx = 8;
 
 	protected:
 		friend class HardwareBufferManager;

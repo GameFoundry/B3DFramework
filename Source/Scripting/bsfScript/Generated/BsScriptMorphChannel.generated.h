@@ -16,7 +16,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptMorphChannel : public TScriptReflectable<ScriptMorphChannel, MorphChannel>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MorphChannel")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MorphChannel")
 
 		ScriptMorphChannel(MonoObject* managedInstance, const SPtr<MorphChannel>& value);
 

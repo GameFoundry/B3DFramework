@@ -201,7 +201,7 @@ namespace bs
 		Queue<ProfiledFrame> mUnresolvedFrames;
 		GPUProfilerReport* mReadyReports = nullptr;
 
-		static const u32 MAX_QUEUE_ELEMENTS;
+		static const u32 kMaxQueueElements;
 		u32 mReportHeadPos = 0;
 		u32 mReportCount = 0;
 

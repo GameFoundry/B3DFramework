@@ -349,10 +349,10 @@ namespace bs
 			return Vector2(std::max(a.X, b.X), std::max(a.Y, b.Y));
 		}
 
-		static const Vector2 ZERO;
-		static const Vector2 ONE;
-		static const Vector2 UNIT_X;
-		static const Vector2 UNIT_Y;
+		static const Vector2 kZero;
+		static const Vector2 kOne;
+		static const Vector2 kUnitX;
+		static const Vector2 kUnitY;
 	};
 
 	/** @} */

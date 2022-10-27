@@ -18,7 +18,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptPARTICLE_FORCE_DESC : public ScriptObject<ScriptPARTICLE_FORCE_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ParticleForceOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleForceOptions")
 
 		static MonoObject* Box(const __PARTICLE_FORCE_DESCInterop& value);
 		static __PARTICLE_FORCE_DESCInterop Unbox(MonoObject* value);

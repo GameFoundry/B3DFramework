@@ -31,7 +31,7 @@ namespace bs
 	class BS_SCR_BE_EXPORT ScriptRenderTarget : public TScriptReflectable<ScriptRenderTarget, RenderTarget, ScriptRenderTargetBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "RenderTarget")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RenderTarget")
 
 		ScriptRenderTarget(MonoObject* managedInstance, const SPtr<RenderTarget>& value);
 

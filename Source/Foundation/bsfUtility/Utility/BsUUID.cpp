@@ -6,9 +6,9 @@
 
 namespace
 {
-constexpr const char HEX_TO_LITERAL[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+constexpr const char kHexToLiteral[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-constexpr const bs::u8 LITERAL_TO_HEX[256] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+constexpr const bs::u8 kLiteralToHex[256] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 											   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 											   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 											   // 0 through 9 translate to 0  though 9
@@ -31,7 +31,7 @@ constexpr const bs::u8 LITERAL_TO_HEX[256] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xF
 
 using namespace bs;
 
-UUID UUID::EMPTY;
+const UUID UUID::kEmpty;
 
 UUID::UUID(const String& uuid)
 {
@@ -46,7 +46,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 7; i >= 0; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[0] |= hexVal << (i * 4);
 	}
@@ -57,7 +57,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 7; i >= 4; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[1] |= hexVal << (i * 4);
 	}
@@ -68,7 +68,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 3; i >= 0; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[1] |= hexVal << (i * 4);
 	}
@@ -79,7 +79,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 7; i >= 4; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[2] |= hexVal << (i * 4);
 	}
@@ -90,7 +90,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 3; i >= 0; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[2] |= hexVal << (i * 4);
 	}
@@ -98,7 +98,7 @@ UUID::UUID(const String& uuid)
 	for(i32 i = 7; i >= 0; --i)
 	{
 		char charVal = uuid[idx++];
-		u8 hexVal = LITERAL_TO_HEX[(int)charVal];
+		u8 hexVal = kLiteralToHex[(int)charVal];
 
 		mData[3] |= hexVal << (i * 4);
 	}
@@ -113,7 +113,7 @@ String UUID::ToString() const
 	for(i32 i = 7; i >= 0; --i)
 	{
 		u32 hexVal = (mData[0] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	output[idx++] = '-';
@@ -122,7 +122,7 @@ String UUID::ToString() const
 	for(i32 i = 7; i >= 4; --i)
 	{
 		u32 hexVal = (mData[1] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	output[idx++] = '-';
@@ -131,7 +131,7 @@ String UUID::ToString() const
 	for(i32 i = 3; i >= 0; --i)
 	{
 		u32 hexVal = (mData[1] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	output[idx++] = '-';
@@ -140,7 +140,7 @@ String UUID::ToString() const
 	for(i32 i = 7; i >= 4; --i)
 	{
 		u32 hexVal = (mData[2] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	output[idx++] = '-';
@@ -149,13 +149,13 @@ String UUID::ToString() const
 	for(i32 i = 3; i >= 0; --i)
 	{
 		u32 hexVal = (mData[2] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	for(i32 i = 7; i >= 0; --i)
 	{
 		u32 hexVal = (mData[3] >> (i * 4)) & 0xF;
-		output[idx++] = HEX_TO_LITERAL[hexVal];
+		output[idx++] = kHexToLiteral[hexVal];
 	}
 
 	return String((const char*)output, 36);

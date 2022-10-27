@@ -22,14 +22,14 @@ namespace bs
 	class BS_UTILITY_EXPORT Color
 	{
 	public:
-		static const Color ZERO;
-		static const Color Black;
-		static const Color White;
-		static const Color Red;
-		static const Color Green;
-		static const Color Blue;
-		static const Color LightGray;
-		static const Color BansheeOrange;
+		static const Color kZero;
+		static const Color kBlack;
+		static const Color kWhite;
+		static const Color kRed;
+		static const Color kGreen;
+		static const Color kBlue;
+		static const Color kLightGray;
+		static const Color kBansheeOrange;
 
 		constexpr explicit Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f)
 			: R(red), G(green), B(blue), A(alpha)

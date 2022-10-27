@@ -61,7 +61,7 @@ namespace bs
 		const ProfilerReport& GetReport(ProfiledThread thread, u32 idx = 0) const;
 
 	private:
-		static const u32 NUM_SAVED_FRAMES;
+		static const u32 kNumSavedFrames;
 		ProfilerReport* mSavedSimReports = nullptr;
 		u32 mNextSimReportIdx = 0;
 

@@ -125,7 +125,7 @@ namespace bs
 		 * @return					A menu item object that you may use for removing the menu item later. Its lifetime is
 		 *							managed internally.
 		 */
-		GUIMenuItem* AddMenuItem(const String& path, std::function<void()> callback, i32 priority, const ShortcutKey& key = ShortcutKey::NONE);
+		GUIMenuItem* AddMenuItem(const String& path, std::function<void()> callback, i32 priority, const ShortcutKey& key = ShortcutKey::kNone);
 
 		/**
 		 * Adds a new separator menu item with the specified callback.

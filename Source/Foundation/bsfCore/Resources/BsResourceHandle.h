@@ -53,7 +53,7 @@ namespace bs
 		void Release();
 
 		/** Returns the UUID of the resource the handle is referring to. */
-		const UUID& GetUuid() const { return mData != nullptr ? mData->MUuid : UUID::EMPTY; }
+		const UUID& GetUuid() const { return mData != nullptr ? mData->MUuid : UUID::kEmpty; }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
