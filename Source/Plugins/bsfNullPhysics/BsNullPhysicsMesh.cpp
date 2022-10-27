@@ -7,50 +7,49 @@
 #include "BsNullPhysics.h"
 #include "Math/BsAABox.h"
 
-namespace bs
+using namespace bs;
+
+NullPhysicsMesh::NullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	: PhysicsMesh(meshData, type)
+{}
+
+void NullPhysicsMesh::Initialize()
 {
-	NullPhysicsMesh::NullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		: PhysicsMesh(meshData, type)
-	{}
+	if(mInternal == nullptr) // Could be not-null if we're deserializing
+		mInternal = bs_shared_ptr_new<FNullPhysicsMesh>(mInitMeshData, mType);
 
-	void NullPhysicsMesh::Initialize()
-	{
-		if(mInternal == nullptr) // Could be not-null if we're deserializing
-			mInternal = bs_shared_ptr_new<FNullPhysicsMesh>(mInitMeshData, mType);
+	PhysicsMesh::Initialize();
+}
 
-		PhysicsMesh::Initialize();
-	}
+void NullPhysicsMesh::Destroy()
+{
+	mInternal = nullptr;
 
-	void NullPhysicsMesh::Destroy()
-	{
-		mInternal = nullptr;
+	PhysicsMesh::Destroy();
+}
 
-		PhysicsMesh::Destroy();
-	}
+FNullPhysicsMesh::FNullPhysicsMesh()
+	: FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
+{}
 
-	FNullPhysicsMesh::FNullPhysicsMesh()
-		: FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
-	{}
+FNullPhysicsMesh::FNullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+	: FPhysicsMesh(meshData, type)
+{}
 
-	FNullPhysicsMesh::FNullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-		: FPhysicsMesh(meshData, type)
-	{}
+SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
+{
+	SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
+	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
-	SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
-	{
-		SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+	return MeshData::Create(0, 0, vertexDesc);
+}
 
-		return MeshData::Create(0, 0, vertexDesc);
-	}
+RTTITypeBase* FNullPhysicsMesh::GetRttiStatic()
+{
+	return FNullPhysicsMeshRTTI::Instance();
+}
 
-	RTTITypeBase* FNullPhysicsMesh::GetRttiStatic()
-	{
-		return FNullPhysicsMeshRTTI::Instance();
-	}
-
-	RTTITypeBase* FNullPhysicsMesh::GetRtti() const
-	{
-		return GetRttiStatic();
-	}
-} // namespace bs
+RTTITypeBase* FNullPhysicsMesh::GetRtti() const
+{
+	return GetRttiStatic();
+}

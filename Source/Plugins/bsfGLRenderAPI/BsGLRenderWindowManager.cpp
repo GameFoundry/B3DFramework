@@ -5,19 +5,18 @@
 #include "BsGLSupport.h"
 #include "Threading/BsAsyncOp.h"
 
-namespace bs
+using namespace bs;
+
+GLRenderWindowManager::GLRenderWindowManager(ct::GLRenderAPI* renderSystem)
+	: mRenderSystem(renderSystem)
 {
-	GLRenderWindowManager::GLRenderWindowManager(ct::GLRenderAPI* renderSystem)
-		: mRenderSystem(renderSystem)
-	{
-		assert(mRenderSystem != nullptr);
-	}
+	assert(mRenderSystem != nullptr);
+}
 
-	SPtr<RenderWindow> GLRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
-	{
-		ct::GLSupport* glSupport = mRenderSystem->GetGlSupport();
+SPtr<RenderWindow> GLRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+{
+	ct::GLSupport* glSupport = mRenderSystem->GetGlSupport();
 
-		// Create the window
-		return glSupport->NewWindow(desc, windowId, parentWindow);
-	}
-} // namespace bs
+	// Create the window
+	return glSupport->NewWindow(desc, windowId, parentWindow);
+}

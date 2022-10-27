@@ -16,9 +16,9 @@ namespace bs
 	/** Contains data used for decompressing an Ogg Vorbis stream. */
 	struct FMODOggDecompressorData
 	{
-		u32 readPos = 0;
-		OggVorbisDecoder vorbisReader;
-		const FMODAudioClip* clip = nullptr;
+		u32 ReadPos = 0;
+		OggVorbisDecoder VorbisReader;
+		const FMODAudioClip* Clip = nullptr;
 	};
 
 	/** FMOD implementation of an AudioClip. */

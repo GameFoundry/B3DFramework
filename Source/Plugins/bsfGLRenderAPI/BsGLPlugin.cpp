@@ -3,10 +3,9 @@
 #include "BsGLPrerequisites.h"
 #include "BsGLRenderAPIFactory.h"
 
-namespace bs
+using namespace bs;
+
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		return ct::GLRenderAPIFactory::SystemName;
-	}
-} // namespace bs
+	return ct::GLRenderAPIFactory::SystemName;
+}

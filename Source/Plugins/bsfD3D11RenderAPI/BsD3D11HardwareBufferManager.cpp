@@ -7,59 +7,56 @@
 #include "BsD3D11GpuParamBlockBuffer.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+D3D11HardwareBufferManager::D3D11HardwareBufferManager(D3D11Device& device)
+	: mDevice(device)
+{}
+
+SPtr<ct::VertexBuffer> D3D11HardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	namespace ct
-	{
-		D3D11HardwareBufferManager::D3D11HardwareBufferManager(D3D11Device& device)
-			: mDevice(device)
-		{}
+	SPtr<D3D11VertexBuffer> ret = bs_shared_ptr_new<D3D11VertexBuffer>(mDevice, desc, deviceMask);
+	ret->SetThisPtrInternal(ret);
 
-		SPtr<VertexBuffer> D3D11HardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		{
-			SPtr<D3D11VertexBuffer> ret = bs_shared_ptr_new<D3D11VertexBuffer>(mDevice, desc, deviceMask);
-			ret->SetThisPtrInternal(ret);
+	return ret;
+}
 
-			return ret;
-		}
+SPtr<ct::IndexBuffer> D3D11HardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+{
+	SPtr<D3D11IndexBuffer> ret = bs_shared_ptr_new<D3D11IndexBuffer>(mDevice, desc, deviceMask);
+	ret->SetThisPtrInternal(ret);
 
-		SPtr<IndexBuffer> D3D11HardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		{
-			SPtr<D3D11IndexBuffer> ret = bs_shared_ptr_new<D3D11IndexBuffer>(mDevice, desc, deviceMask);
-			ret->SetThisPtrInternal(ret);
+	return ret;
+}
 
-			return ret;
-		}
+SPtr<ct::GpuParamBlockBuffer> D3D11HardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+{
+	D3D11GpuParamBlockBuffer* paramBlockBuffer =
+		new(bs_alloc<D3D11GpuParamBlockBuffer>()) D3D11GpuParamBlockBuffer(size, usage, deviceMask);
 
-		SPtr<GpuParamBlockBuffer> D3D11HardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-		{
-			D3D11GpuParamBlockBuffer* paramBlockBuffer =
-				new(bs_alloc<D3D11GpuParamBlockBuffer>()) D3D11GpuParamBlockBuffer(size, usage, deviceMask);
+	SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<D3D11GpuParamBlockBuffer>(paramBlockBuffer);
+	paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
-			SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr<D3D11GpuParamBlockBuffer>(paramBlockBuffer);
-			paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
+	return paramBlockBufferPtr;
+}
 
-			return paramBlockBufferPtr;
-		}
+SPtr<ct::GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+{
+	D3D11GpuBuffer* buffer = new(bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, deviceMask);
 
-		SPtr<GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-		{
-			D3D11GpuBuffer* buffer = new(bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, deviceMask);
+	SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
+	bufferPtr->SetThisPtrInternal(bufferPtr);
 
-			SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
-			bufferPtr->SetThisPtrInternal(bufferPtr);
+	return bufferPtr;
+}
 
-			return bufferPtr;
-		}
+SPtr<ct::GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
+{
+	D3D11GpuBuffer* buffer = new(bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, std::move(underlyingBuffer));
 
-		SPtr<GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
-		{
-			D3D11GpuBuffer* buffer = new(bs_alloc<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, std::move(underlyingBuffer));
+	SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
+	bufferPtr->SetThisPtrInternal(bufferPtr);
 
-			SPtr<D3D11GpuBuffer> bufferPtr = bs_shared_ptr<D3D11GpuBuffer>(buffer);
-			bufferPtr->SetThisPtrInternal(bufferPtr);
-
-			return bufferPtr;
-		}
-	} // namespace ct
-} // namespace bs
+	return bufferPtr;
+}

@@ -5,16 +5,15 @@
 #include "BsNullPhysics.h"
 #include "Components/BsCCollider.h"
 
-namespace bs
+using namespace bs;
+
+NullPhysicsCharacterController::NullPhysicsCharacterController(const CHAR_CONTROLLER_DESC& desc)
+	: CharacterController(desc), mDesc(desc)
+{}
+
+CharacterCollisionFlags NullPhysicsCharacterController::Move(const Vector3& displacement)
 {
-	NullPhysicsCharacterController::NullPhysicsCharacterController(const CHAR_CONTROLLER_DESC& desc)
-		: CharacterController(desc), mDesc(desc)
-	{}
+	mDesc.Position += displacement;
 
-	CharacterCollisionFlags NullPhysicsCharacterController::Move(const Vector3& displacement)
-	{
-		mDesc.Position += displacement;
-
-		return CharacterCollisionFlags();
-	}
-} // namespace bs
+	return CharacterCollisionFlags();
+}

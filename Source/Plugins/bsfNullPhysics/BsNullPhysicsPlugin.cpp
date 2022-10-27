@@ -4,32 +4,31 @@
 #include "Physics/BsPhysicsManager.h"
 #include "BsNullPhysics.h"
 
-namespace bs
+using namespace bs;
+
+class BS_PLUGIN_EXPORT NullPhysicsFactory : public PhysicsFactory
 {
-	class BS_PLUGIN_EXPORT NullPhysicsFactory : public PhysicsFactory
+public:
+	void StartUp(bool cooking)
 	{
-	public:
-		void StartUp(bool cooking)
-		{
-			PHYSICS_INIT_DESC initDesc;
-			initDesc.InitCooking = cooking;
+		PHYSICS_INIT_DESC initDesc;
+		initDesc.InitCooking = cooking;
 
-			Physics::StartUp<NullPhysics>(initDesc);
-		}
-
-		void ShutDown()
-		{
-			Physics::ShutDown();
-		}
-	};
-
-	extern "C" BS_PLUGIN_EXPORT NullPhysicsFactory* loadPlugin()
-	{
-		return bs_new<NullPhysicsFactory>();
+		Physics::StartUp<NullPhysics>(initDesc);
 	}
 
-	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullPhysicsFactory* instance)
+	void ShutDown()
 	{
-		bs_delete(instance);
+		Physics::ShutDown();
 	}
-} // namespace bs
+};
+
+extern "C" BS_PLUGIN_EXPORT NullPhysicsFactory* loadPlugin()
+{
+	return bs_new<NullPhysicsFactory>();
+}
+
+extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullPhysicsFactory* instance)
+{
+	bs_delete(instance);
+}

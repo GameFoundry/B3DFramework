@@ -9,54 +9,53 @@
 
 namespace bs::ct
 {
-	SPtr<bs::RenderWindow> MacOSGLSupport::newWindow(
-		RENDER_WINDOW_DESC& desc,
-		u32 windowId,
-		SPtr<bs::RenderWindow> parentWindow)
+SPtr<bs::RenderWindow> MacOSGLSupport::newWindow(
+	RENDER_WINDOW_DESC& desc,
+	u32 windowId,
+	SPtr<bs::RenderWindow> parentWindow)
+{
+	bs::MacOSRenderWindow* window = new(bs_alloc<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
+	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
+}
+
+void MacOSGLSupport::start()
+{
+	// Do nothing
+}
+
+void MacOSGLSupport::stop()
+{
+	// Do nothing
+}
+
+SPtr<MacOSContext> MacOSGLSupport::createContext(bool depthStencil, u32 msaaCount)
+{
+	GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::InstancePtr());
+
+	// If RenderAPI has initialized a context use that, otherwise we create our own
+	if(!rapi->IsContextInitializedInternal())
+		return bs_shared_ptr_new<MacOSContext>(depthStencil, msaaCount);
+	else
 	{
-		bs::MacOSRenderWindow* window = new(bs_alloc<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
-		return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
+		SPtr<GLContext> context = rapi->GetMainContextInternal();
+		return std::static_pointer_cast<MacOSContext>(context);
 	}
+}
 
-	void MacOSGLSupport::start()
-	{
-		// Do nothing
-	}
+void* MacOSGLSupport::getProcAddress(const String& procname)
+{
+	static void* image = nullptr;
 
-	void MacOSGLSupport::stop()
-	{
-		// Do nothing
-	}
+	if(!image)
+		image = dlopen("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", RTLD_LAZY);
 
-	SPtr<MacOSContext> MacOSGLSupport::createContext(bool depthStencil, u32 msaaCount)
-	{
-		GLRenderAPI* rapi = static_cast<GLRenderAPI*>(RenderAPI::InstancePtr());
+	if(!image)
+		return nullptr;
 
-		// If RenderAPI has initialized a context use that, otherwise we create our own
-		if(!rapi->IsContextInitializedInternal())
-			return bs_shared_ptr_new<MacOSContext>(depthStencil, msaaCount);
-		else
-		{
-			SPtr<GLContext> context = rapi->GetMainContextInternal();
-			return std::static_pointer_cast<MacOSContext>(context);
-		}
-	}
+	return dlsym(image, (const char*)procname.c_str());
+}
 
-	void* MacOSGLSupport::getProcAddress(const String& procname)
-	{
-		static void* image = nullptr;
-
-		if(!image)
-			image = dlopen("/System/Library/Frameworks/OpenGL.framework/Versions/Current/OpenGL", RTLD_LAZY);
-
-		if(!image)
-			return nullptr;
-
-		return dlsym(image, (const char*)procname.c_str());
-	}
-
-	SPtr<VideoModeInfo> MacOSGLSupport::getVideoModeInfo() const
-	{
-		return bs_shared_ptr_new<MacOSVideoModeInfo>();
-	}
-} // namespace bs::ct
+SPtr<VideoModeInfo> MacOSGLSupport::getVideoModeInfo() const
+{
+	return bs_shared_ptr_new<MacOSVideoModeInfo>();
+}::ct

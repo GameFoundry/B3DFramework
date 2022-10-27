@@ -3,46 +3,45 @@
 #include "BsPhysXMaterial.h"
 #include "PxPhysics.h"
 
-namespace bs
+using namespace bs;
+
+PhysXMaterial::PhysXMaterial(physx::PxPhysics* physx, float staFric, float dynFriction, float restitution)
+	: mInternal(nullptr)
 {
-	PhysXMaterial::PhysXMaterial(physx::PxPhysics* physx, float staFric, float dynFriction, float restitution)
-		: mInternal(nullptr)
-	{
-		mInternal = physx->createMaterial(staFric, dynFriction, restitution);
-	}
+	mInternal = physx->createMaterial(staFric, dynFriction, restitution);
+}
 
-	PhysXMaterial::~PhysXMaterial()
-	{
-		mInternal->release();
-	}
+PhysXMaterial::~PhysXMaterial()
+{
+	mInternal->release();
+}
 
-	void PhysXMaterial::SetStaticFriction(float value)
-	{
-		mInternal->setStaticFriction(value);
-	}
+void PhysXMaterial::SetStaticFriction(float value)
+{
+	mInternal->setStaticFriction(value);
+}
 
-	float PhysXMaterial::GetStaticFriction() const
-	{
-		return mInternal->getStaticFriction();
-	}
+float PhysXMaterial::GetStaticFriction() const
+{
+	return mInternal->getStaticFriction();
+}
 
-	void PhysXMaterial::SetDynamicFriction(float value)
-	{
-		mInternal->setDynamicFriction(value);
-	}
+void PhysXMaterial::SetDynamicFriction(float value)
+{
+	mInternal->setDynamicFriction(value);
+}
 
-	float PhysXMaterial::GetDynamicFriction() const
-	{
-		return mInternal->getDynamicFriction();
-	}
+float PhysXMaterial::GetDynamicFriction() const
+{
+	return mInternal->getDynamicFriction();
+}
 
-	void PhysXMaterial::SetRestitutionCoefficient(float value)
-	{
-		mInternal->setRestitution(value);
-	}
+void PhysXMaterial::SetRestitutionCoefficient(float value)
+{
+	mInternal->setRestitution(value);
+}
 
-	float PhysXMaterial::GetRestitutionCoefficient() const
-	{
-		return mInternal->getRestitution();
-	}
-} // namespace bs
+float PhysXMaterial::GetRestitutionCoefficient() const
+{
+	return mInternal->getRestitution();
+}

@@ -4,66 +4,63 @@
 #include "BsD3D11Driver.h"
 #include "Error/BsException.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+D3D11DriverList::D3D11DriverList(IDXGIFactory1* dxgiFactory)
 {
-	namespace ct
+	Enumerate(dxgiFactory);
+}
+
+D3D11DriverList::~D3D11DriverList(void)
+{
+	for(size_t i = 0; i < mDriverList.size(); i++)
 	{
-		D3D11DriverList::D3D11DriverList(IDXGIFactory1* dxgiFactory)
+		bs_delete(mDriverList[i]);
+	}
+
+	mDriverList.clear();
+}
+
+void D3D11DriverList::Enumerate(IDXGIFactory1* dxgiFactory)
+{
+	u32 adapterIdx = 0;
+	IDXGIAdapter* dxgiAdapter = nullptr;
+	HRESULT hr;
+
+	while((hr = dxgiFactory->EnumAdapters(adapterIdx, &dxgiAdapter)) != DXGI_ERROR_NOT_FOUND)
+	{
+		if(FAILED(hr))
 		{
-			Enumerate(dxgiFactory);
+			SAFE_RELEASE(dxgiAdapter);
+			BS_EXCEPT(InternalErrorException, "Enumerating adapters failed.");
 		}
 
-		D3D11DriverList::~D3D11DriverList(void)
-		{
-			for(size_t i = 0; i < mDriverList.size(); i++)
-			{
-				bs_delete(mDriverList[i]);
-			}
+		mDriverList.push_back(bs_new<D3D11Driver>(adapterIdx, dxgiAdapter));
 
-			mDriverList.clear();
-		}
+		SAFE_RELEASE(dxgiAdapter);
+		adapterIdx++;
+	}
+}
 
-		void D3D11DriverList::Enumerate(IDXGIFactory1* dxgiFactory)
-		{
-			u32 adapterIdx = 0;
-			IDXGIAdapter* dxgiAdapter = nullptr;
-			HRESULT hr;
+u32 D3D11DriverList::Count() const
+{
+	return (u32)mDriverList.size();
+}
 
-			while((hr = dxgiFactory->EnumAdapters(adapterIdx, &dxgiAdapter)) != DXGI_ERROR_NOT_FOUND)
-			{
-				if(FAILED(hr))
-				{
-					SAFE_RELEASE(dxgiAdapter);
-					BS_EXCEPT(InternalErrorException, "Enumerating adapters failed.");
-				}
+D3D11Driver* D3D11DriverList::Item(u32 idx) const
+{
+	return mDriverList.at(idx);
+}
 
-				mDriverList.push_back(bs_new<D3D11Driver>(adapterIdx, dxgiAdapter));
+D3D11Driver* D3D11DriverList::Item(const String& name) const
+{
+	for(auto it = mDriverList.begin(); it != mDriverList.end(); ++it)
+	{
+		if((*it)->GetDriverDescription() == name)
+			return (*it);
+	}
 
-				SAFE_RELEASE(dxgiAdapter);
-				adapterIdx++;
-			}
-		}
-
-		u32 D3D11DriverList::Count() const
-		{
-			return (u32)mDriverList.size();
-		}
-
-		D3D11Driver* D3D11DriverList::Item(u32 idx) const
-		{
-			return mDriverList.at(idx);
-		}
-
-		D3D11Driver* D3D11DriverList::Item(const String& name) const
-		{
-			for(auto it = mDriverList.begin(); it != mDriverList.end(); ++it)
-			{
-				if((*it)->GetDriverDescription() == name)
-					return (*it);
-			}
-
-			BS_EXCEPT(InvalidParametersException, "Cannot find video mode with the specified name.");
-			return nullptr;
-		}
-	} // namespace ct
-} // namespace bs
+	BS_EXCEPT(InvalidParametersException, "Cannot find video mode with the specified name.");
+	return nullptr;
+}

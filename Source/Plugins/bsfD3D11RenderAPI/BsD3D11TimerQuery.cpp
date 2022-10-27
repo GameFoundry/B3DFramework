@@ -7,139 +7,136 @@
 #include "Profiling/BsRenderStats.h"
 #include "Debug/BsDebug.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+D3D11TimerQuery::D3D11TimerQuery(u32 deviceIdx)
 {
-	namespace ct
+	assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+
+	D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
+	D3D11Device& device = rs->GetPrimaryDevice();
+
+	D3D11_QUERY_DESC queryDesc;
+	queryDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+	queryDesc.MiscFlags = 0;
+
+	HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mDisjointQuery);
+	if(hr != S_OK)
 	{
-		D3D11TimerQuery::D3D11TimerQuery(u32 deviceIdx)
-		{
-			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+		BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
+	}
 
-			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-			D3D11Device& device = rs->GetPrimaryDevice();
+	queryDesc.Query = D3D11_QUERY_TIMESTAMP;
 
-			D3D11_QUERY_DESC queryDesc;
-			queryDesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-			queryDesc.MiscFlags = 0;
+	hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mBeginQuery);
+	if(hr != S_OK)
+	{
+		BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
+	}
 
-			HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mDisjointQuery);
-			if(hr != S_OK)
-			{
-				BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
-			}
+	hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mEndQuery);
+	if(hr != S_OK)
+	{
+		BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
+	}
 
-			queryDesc.Query = D3D11_QUERY_TIMESTAMP;
+	mContext = device.GetImmediateContext();
+	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+}
 
-			hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mBeginQuery);
-			if(hr != S_OK)
-			{
-				BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
-			}
+D3D11TimerQuery::~D3D11TimerQuery()
+{
+	if(mBeginQuery != nullptr)
+		mBeginQuery->Release();
 
-			hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mEndQuery);
-			if(hr != S_OK)
-			{
-				BS_EXCEPT(RenderingAPIException, "Failed to create a timer query.");
-			}
+	if(mEndQuery != nullptr)
+		mEndQuery->Release();
 
-			mContext = device.GetImmediateContext();
-			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
-		}
+	if(mDisjointQuery != nullptr)
+		mDisjointQuery->Release();
 
-		D3D11TimerQuery::~D3D11TimerQuery()
-		{
-			if(mBeginQuery != nullptr)
-				mBeginQuery->Release();
+	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+}
 
-			if(mEndQuery != nullptr)
-				mEndQuery->Release();
+void D3D11TimerQuery::Begin(const SPtr<CommandBuffer>& cb)
+{
+	auto execute = [&]()
+	{
+		mContext->Begin(mDisjointQuery);
+		mContext->End(mBeginQuery);
 
-			if(mDisjointQuery != nullptr)
-				mDisjointQuery->Release();
+		mQueryEndCalled = false;
 
-			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
-		}
+		SetActive(true);
+	};
 
-		void D3D11TimerQuery::Begin(const SPtr<CommandBuffer>& cb)
-		{
-			auto execute = [&]()
-			{
-				mContext->Begin(mDisjointQuery);
-				mContext->End(mBeginQuery);
+	if(cb == nullptr)
+		execute();
+	else
+	{
+		SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
+		d3d11cb->QueueCommand(execute);
+	}
+}
 
-				mQueryEndCalled = false;
+void D3D11TimerQuery::End(const SPtr<CommandBuffer>& cb)
+{
+	auto execute = [&]()
+	{
+		mContext->End(mEndQuery);
+		mContext->End(mDisjointQuery);
 
-				SetActive(true);
-			};
+		mQueryEndCalled = true;
+		mFinalized = false;
+	};
 
-			if(cb == nullptr)
-				execute();
-			else
-			{
-				SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-				d3d11cb->QueueCommand(execute);
-			}
-		}
+	if(cb == nullptr)
+		execute();
+	else
+	{
+		SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
+		d3d11cb->QueueCommand(execute);
+	}
+}
 
-		void D3D11TimerQuery::End(const SPtr<CommandBuffer>& cb)
-		{
-			auto execute = [&]()
-			{
-				mContext->End(mEndQuery);
-				mContext->End(mDisjointQuery);
+bool D3D11TimerQuery::IsReady() const
+{
+	if(!mQueryEndCalled)
+		return false;
 
-				mQueryEndCalled = true;
-				mFinalized = false;
-			};
+	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData;
+	return mContext->GetData(mDisjointQuery, &disjointData, sizeof(disjointData), 0) == S_OK;
+}
 
-			if(cb == nullptr)
-				execute();
-			else
-			{
-				SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-				d3d11cb->QueueCommand(execute);
-			}
-		}
+float D3D11TimerQuery::GetTimeMs()
+{
+	if(!mFinalized && IsReady())
+	{
+		Finalize();
+	}
 
-		bool D3D11TimerQuery::IsReady() const
-		{
-			if(!mQueryEndCalled)
-				return false;
+	return mTimeDelta;
+}
 
-			D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData;
-			return mContext->GetData(mDisjointQuery, &disjointData, sizeof(disjointData), 0) == S_OK;
-		}
+void D3D11TimerQuery::Finalize()
+{
+	u64 timeStart, timeEnd;
 
-		float D3D11TimerQuery::GetTimeMs()
-		{
-			if(!mFinalized && IsReady())
-			{
-				Finalize();
-			}
+	mContext->GetData(mBeginQuery, &timeStart, sizeof(timeStart), 0);
+	mContext->GetData(mEndQuery, &timeEnd, sizeof(timeEnd), 0);
 
-			return mTimeDelta;
-		}
+	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData;
+	mContext->GetData(mDisjointQuery, &disjointData, sizeof(disjointData), 0);
 
-		void D3D11TimerQuery::Finalize()
-		{
-			u64 timeStart, timeEnd;
+	float time = 0.0f;
+	if(disjointData.Disjoint == FALSE)
+	{
+		float frequency = static_cast<float>(disjointData.Frequency);
 
-			mContext->GetData(mBeginQuery, &timeStart, sizeof(timeStart), 0);
-			mContext->GetData(mEndQuery, &timeEnd, sizeof(timeEnd), 0);
-
-			D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData;
-			mContext->GetData(mDisjointQuery, &disjointData, sizeof(disjointData), 0);
-
-			float time = 0.0f;
-			if(disjointData.Disjoint == FALSE)
-			{
-				float frequency = static_cast<float>(disjointData.Frequency);
-
-				u64 delta = timeEnd - timeStart;
-				mTimeDelta = (delta / (float)frequency) * 1000.0f;
-			}
-			else
-				BS_LOG(Verbose, RenderBackend, "Unrealiable GPU timer query detected.");
-		}
-	} // namespace ct
-} // namespace bs
+		u64 delta = timeEnd - timeStart;
+		mTimeDelta = (delta / (float)frequency) * 1000.0f;
+	}
+	else
+		BS_LOG(Verbose, RenderBackend, "Unrealiable GPU timer query detected.");
+}

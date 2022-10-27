@@ -4,21 +4,20 @@
 #include "BsFBXImporter.h"
 #include "Importer/BsImporter.h"
 
-namespace bs
+using namespace bs;
+
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		static const char* pluginName = "FBXImporter";
-		return pluginName;
-	}
+	static const char* pluginName = "FBXImporter";
+	return pluginName;
+}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
-	{
-		FBXImporter* importer = bs_new<FBXImporter>();
-		Importer::Instance().RegisterAssetImporterInternal(importer);
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	FBXImporter* importer = bs_new<FBXImporter>();
+	Importer::Instance().RegisterAssetImporterInternal(importer);
 
-		return nullptr;
-	}
-} // namespace bs
+	return nullptr;
+}

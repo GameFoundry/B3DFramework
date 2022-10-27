@@ -4,19 +4,18 @@
 #include "BsRenderBeastFactory.h"
 #include "Renderer/BsRendererManager.h"
 
-namespace bs
+using namespace bs;
+
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		return RenderBeastFactory::SystemName;
-	}
+	return RenderBeastFactory::SystemName;
+}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
-	{
-		RendererManager::Instance().RegisterFactoryInternal(bs_shared_ptr_new<RenderBeastFactory>());
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	RendererManager::Instance().RegisterFactoryInternal(bs_shared_ptr_new<RenderBeastFactory>());
 
-		return nullptr;
-	}
-} // namespace bs
+	return nullptr;
+}

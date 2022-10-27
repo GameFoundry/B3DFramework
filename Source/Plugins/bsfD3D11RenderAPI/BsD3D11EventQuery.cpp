@@ -7,63 +7,60 @@
 #include "Profiling/BsRenderStats.h"
 #include "Error/BsException.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+D3D11EventQuery::D3D11EventQuery(u32 deviceIdx)
 {
-	namespace ct
+	assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+
+	D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
+	D3D11Device& device = rs->GetPrimaryDevice();
+
+	D3D11_QUERY_DESC queryDesc;
+	queryDesc.Query = D3D11_QUERY_EVENT;
+	queryDesc.MiscFlags = 0;
+
+	HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mQuery);
+	if(hr != S_OK)
 	{
-		D3D11EventQuery::D3D11EventQuery(u32 deviceIdx)
-		{
-			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+		BS_EXCEPT(RenderingAPIException, "Failed to create an Event query.");
+	}
 
-			D3D11RenderAPI* rs = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
-			D3D11Device& device = rs->GetPrimaryDevice();
+	mContext = device.GetImmediateContext();
 
-			D3D11_QUERY_DESC queryDesc;
-			queryDesc.Query = D3D11_QUERY_EVENT;
-			queryDesc.MiscFlags = 0;
+	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+}
 
-			HRESULT hr = device.GetD3D11Device()->CreateQuery(&queryDesc, &mQuery);
-			if(hr != S_OK)
-			{
-				BS_EXCEPT(RenderingAPIException, "Failed to create an Event query.");
-			}
+D3D11EventQuery::~D3D11EventQuery()
+{
+	if(mQuery != nullptr)
+	{
+		mQuery->Release();
+	}
 
-			mContext = device.GetImmediateContext();
+	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+}
 
-			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
-		}
+void D3D11EventQuery::Begin(const SPtr<CommandBuffer>& cb)
+{
+	auto execute = [&]()
+	{
+		mContext->End(mQuery);
+		SetActive(true);
+	};
 
-		D3D11EventQuery::~D3D11EventQuery()
-		{
-			if(mQuery != nullptr)
-			{
-				mQuery->Release();
-			}
+	if(cb == nullptr)
+		execute();
+	else
+	{
+		SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
+		d3d11cb->QueueCommand(execute);
+	}
+}
 
-			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
-		}
-
-		void D3D11EventQuery::Begin(const SPtr<CommandBuffer>& cb)
-		{
-			auto execute = [&]()
-			{
-				mContext->End(mQuery);
-				SetActive(true);
-			};
-
-			if(cb == nullptr)
-				execute();
-			else
-			{
-				SPtr<D3D11CommandBuffer> d3d11cb = std::static_pointer_cast<D3D11CommandBuffer>(cb);
-				d3d11cb->QueueCommand(execute);
-			}
-		}
-
-		bool D3D11EventQuery::IsReady() const
-		{
-			BOOL queryData;
-			return mContext->GetData(mQuery, &queryData, sizeof(BOOL), 0) == S_OK;
-		}
-	} // namespace ct
-} // namespace bs
+bool D3D11EventQuery::IsReady() const
+{
+	BOOL queryData;
+	return mContext->GetData(mQuery, &queryData, sizeof(BOOL), 0) == S_OK;
+}

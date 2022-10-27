@@ -6,46 +6,43 @@
 #include "Profiling/BsRenderStats.h"
 #include "BsGLCommandBuffer.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+static void deleteBuffer(HardwareBuffer* buffer)
 {
-	namespace ct
-	{
-		static void deleteBuffer(HardwareBuffer* buffer)
-		{
-			bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
-		}
+	bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+}
 
-		GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-			: VertexBuffer(desc, deviceMask)
-		{
-			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
-		}
+GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	: VertexBuffer(desc, deviceMask)
+{
+	assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+}
 
-		GLVertexBuffer::~GLVertexBuffer()
-		{
-			while(!mVAObjects.empty())
-				GLVertexArrayObjectManager::Instance().NotifyBufferDestroyed(mVAObjects[0]);
-		}
+GLVertexBuffer::~GLVertexBuffer()
+{
+	while(!mVAObjects.empty())
+		GLVertexArrayObjectManager::Instance().NotifyBufferDestroyed(mVAObjects[0]);
+}
 
-		void GLVertexBuffer::Initialize()
-		{
-			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
-			mBufferDeleter = &deleteBuffer;
+void GLVertexBuffer::Initialize()
+{
+	mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
+	mBufferDeleter = &deleteBuffer;
 
-			VertexBuffer::Initialize();
-		}
+	VertexBuffer::Initialize();
+}
 
-		void GLVertexBuffer::RegisterVao(const GLVertexArrayObject& vao)
-		{
-			mVAObjects.push_back(vao);
-		}
+void GLVertexBuffer::RegisterVao(const GLVertexArrayObject& vao)
+{
+	mVAObjects.push_back(vao);
+}
 
-		void GLVertexBuffer::UnregisterVao(const GLVertexArrayObject& vao)
-		{
-			const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
+void GLVertexBuffer::UnregisterVao(const GLVertexArrayObject& vao)
+{
+	const auto iterFind = std::find(mVAObjects.begin(), mVAObjects.end(), vao);
 
-			if(iterFind != mVAObjects.end())
-				mVAObjects.erase(iterFind);
-		}
-	} // namespace ct
-} // namespace bs
+	if(iterFind != mVAObjects.end())
+		mVAObjects.erase(iterFind);
+}

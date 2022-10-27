@@ -4,21 +4,20 @@
 #include "Importer/BsImporter.h"
 #include "BsFontImporter.h"
 
-namespace bs
+using namespace bs;
+
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		static const char* pluginName = "FontImporter";
-		return pluginName;
-	}
+	static const char* pluginName = "FontImporter";
+	return pluginName;
+}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
-	{
-		FontImporter* importer = bs_new<FontImporter>();
-		Importer::Instance().RegisterAssetImporterInternal(importer);
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	FontImporter* importer = bs_new<FontImporter>();
+	Importer::Instance().RegisterAssetImporterInternal(importer);
 
-		return nullptr;
-	}
-} // namespace bs
+	return nullptr;
+}

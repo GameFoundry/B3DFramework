@@ -3,10 +3,9 @@
 #include "BsNullPrerequisites.h"
 #include "BsNullRenderAPIFactory.h"
 
-namespace bs
+using namespace bs;
+
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		return ct::NullRenderAPIFactory::SystemName;
-	}
-} // namespace bs
+	return ct::NullRenderAPIFactory::SystemName;
+}

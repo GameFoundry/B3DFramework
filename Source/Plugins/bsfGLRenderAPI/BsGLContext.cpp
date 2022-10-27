@@ -2,11 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsGLContext.h"
 
-namespace bs
-{
-	namespace ct
-	{
-		void GLContext::EndCurrent()
-		{}
-	} // namespace ct
-} // namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+void GLContext::EndCurrent()
+{}

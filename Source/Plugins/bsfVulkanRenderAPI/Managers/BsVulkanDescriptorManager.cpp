@@ -7,173 +7,170 @@
 #include "BsVulkanDevice.h"
 #include "BsVulkanResource.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+VulkanLayoutKey::VulkanLayoutKey(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
+	: NumBindings(numBindings), Bindings(bindings)
+{}
+
+bool VulkanLayoutKey::operator==(const VulkanLayoutKey& rhs) const
 {
-	namespace ct
+	// If both have a layout, use that to compare directly, otherwise do it per-binding
+	if(Layout != nullptr && rhs.Layout != nullptr)
+		return Layout == rhs.Layout;
+
+	if(NumBindings != rhs.NumBindings)
+		return false;
+
+	for(u32 i = 0; i < NumBindings; i++)
 	{
-		VulkanLayoutKey::VulkanLayoutKey(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
-			: NumBindings(numBindings), Bindings(bindings)
-		{}
+		if(Bindings[i].binding != rhs.Bindings[i].binding)
+			return false;
 
-		bool VulkanLayoutKey::operator==(const VulkanLayoutKey& rhs) const
-		{
-			// If both have a layout, use that to compare directly, otherwise do it per-binding
-			if(Layout != nullptr && rhs.Layout != nullptr)
-				return Layout == rhs.Layout;
+		if(Bindings[i].descriptorType != rhs.Bindings[i].descriptorType)
+			return false;
 
-			if(NumBindings != rhs.NumBindings)
-				return false;
+		if(Bindings[i].descriptorCount != rhs.Bindings[i].descriptorCount)
+			return false;
 
-			for(u32 i = 0; i < NumBindings; i++)
-			{
-				if(Bindings[i].binding != rhs.Bindings[i].binding)
-					return false;
+		if(Bindings[i].stageFlags != rhs.Bindings[i].stageFlags)
+			return false;
+	}
 
-				if(Bindings[i].descriptorType != rhs.Bindings[i].descriptorType)
-					return false;
+	return true;
+}
 
-				if(Bindings[i].descriptorCount != rhs.Bindings[i].descriptorCount)
-					return false;
+VulkanPipelineLayoutKey::VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts)
+	: NumLayouts(numLayouts), Layouts(layouts)
+{
+}
 
-				if(Bindings[i].stageFlags != rhs.Bindings[i].stageFlags)
-					return false;
-			}
+bool VulkanPipelineLayoutKey::operator==(const VulkanPipelineLayoutKey& rhs) const
+{
+	if(NumLayouts != rhs.NumLayouts)
+		return false;
 
-			return true;
-		}
+	for(u32 i = 0; i < NumLayouts; i++)
+	{
+		if(Layouts[i] != rhs.Layouts[i])
+			return false;
+	}
 
-		VulkanPipelineLayoutKey::VulkanPipelineLayoutKey(VulkanDescriptorLayout** layouts, u32 numLayouts)
-			: NumLayouts(numLayouts), Layouts(layouts)
-		{
-		}
+	return true;
+}
 
-		bool VulkanPipelineLayoutKey::operator==(const VulkanPipelineLayoutKey& rhs) const
-		{
-			if(NumLayouts != rhs.NumLayouts)
-				return false;
+size_t VulkanPipelineLayoutKey::CalculateHash() const
+{
+	size_t hash = 0;
+	for(u32 i = 0; i < NumLayouts; i++)
+		bs_hash_combine(hash, Layouts[i]->GetHash());
 
-			for(u32 i = 0; i < NumLayouts; i++)
-			{
-				if(Layouts[i] != rhs.Layouts[i])
-					return false;
-			}
+	return hash;
+}
 
-			return true;
-		}
+VulkanDescriptorManager::VulkanDescriptorManager(VulkanDevice& device)
+	: mDevice(device)
+{
+	mPools.push_back(bs_new<VulkanDescriptorPool>(device));
+}
 
-		size_t VulkanPipelineLayoutKey::CalculateHash() const
-		{
-			size_t hash = 0;
-			for(u32 i = 0; i < NumLayouts; i++)
-				bs_hash_combine(hash, Layouts[i]->GetHash());
+VulkanDescriptorManager::~VulkanDescriptorManager()
+{
+	for(auto& entry : mLayouts)
+	{
+		bs_delete(entry.Layout);
+		bs_free(entry.Bindings);
+	}
 
-			return hash;
-		}
+	for(auto& entry : mPipelineLayouts)
+	{
+		bs_free(entry.first.Layouts);
+		vkDestroyPipelineLayout(mDevice.GetLogical(), entry.second, gVulkanAllocator);
+	}
 
-		VulkanDescriptorManager::VulkanDescriptorManager(VulkanDevice& device)
-			: mDevice(device)
-		{
-			mPools.push_back(bs_new<VulkanDescriptorPool>(device));
-		}
+	for(auto& entry : mPools)
+		bs_delete(entry);
+}
 
-		VulkanDescriptorManager::~VulkanDescriptorManager()
-		{
-			for(auto& entry : mLayouts)
-			{
-				bs_delete(entry.Layout);
-				bs_free(entry.Bindings);
-			}
+VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
+{
+	VulkanLayoutKey key(bindings, numBindings);
 
-			for(auto& entry : mPipelineLayouts)
-			{
-				bs_free(entry.first.Layouts);
-				vkDestroyPipelineLayout(mDevice.GetLogical(), entry.second, gVulkanAllocator);
-			}
+	auto iterFind = mLayouts.find(key);
+	if(iterFind != mLayouts.end())
+		return iterFind->Layout;
 
-			for(auto& entry : mPools)
-				bs_delete(entry);
-		}
+	// Create new
+	key.Bindings = bs_allocN<VkDescriptorSetLayoutBinding>(numBindings);
+	memcpy(key.Bindings, bindings, numBindings * sizeof(VkDescriptorSetLayoutBinding));
 
-		VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
-		{
-			VulkanLayoutKey key(bindings, numBindings);
+	key.Layout = bs_new<VulkanDescriptorLayout>(mDevice, key.Bindings, numBindings);
+	mLayouts.insert(key);
 
-			auto iterFind = mLayouts.find(key);
-			if(iterFind != mLayouts.end())
-				return iterFind->Layout;
+	return key.Layout;
+}
 
-			// Create new
-			key.Bindings = bs_allocN<VkDescriptorSetLayoutBinding>(numBindings);
-			memcpy(key.Bindings, bindings, numBindings * sizeof(VkDescriptorSetLayoutBinding));
+VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* layout)
+{
+	// Note: We always retrieve the last created pool, even though there could be free room in earlier pools. However
+	// that requires additional tracking. Since the assumption is that the first pool will be large enough for all
+	// descriptors, and the only reason to create a second pool is fragmentation, this approach should not result in
+	// a major resource waste.
+	VkDescriptorSetLayout setLayout = layout->GetHandle();
 
-			key.Layout = bs_new<VulkanDescriptorLayout>(mDevice, key.Bindings, numBindings);
-			mLayouts.insert(key);
+	VkDescriptorSetAllocateInfo allocateInfo;
+	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.pNext = nullptr;
+	allocateInfo.descriptorPool = mPools.back()->GetHandle();
+	allocateInfo.descriptorSetCount = 1;
+	allocateInfo.pSetLayouts = &setLayout;
 
-			return key.Layout;
-		}
+	VkDescriptorSet set;
+	VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
+	if(result < 0) // Possible fragmentation, try in a new pool
+	{
+		mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
+		allocateInfo.descriptorPool = mPools.back()->GetHandle();
 
-		VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* layout)
-		{
-			// Note: We always retrieve the last created pool, even though there could be free room in earlier pools. However
-			// that requires additional tracking. Since the assumption is that the first pool will be large enough for all
-			// descriptors, and the only reason to create a second pool is fragmentation, this approach should not result in
-			// a major resource waste.
-			VkDescriptorSetLayout setLayout = layout->GetHandle();
+		result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
+		assert(result == VK_SUCCESS);
+	}
 
-			VkDescriptorSetAllocateInfo allocateInfo;
-			allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			allocateInfo.pNext = nullptr;
-			allocateInfo.descriptorPool = mPools.back()->GetHandle();
-			allocateInfo.descriptorSetCount = 1;
-			allocateInfo.pSetLayouts = &setLayout;
+	return mDevice.GetResourceManager().Create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
+}
 
-			VkDescriptorSet set;
-			VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
-			if(result < 0) // Possible fragmentation, try in a new pool
-			{
-				mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
-				allocateInfo.descriptorPool = mPools.back()->GetHandle();
+VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 numLayouts)
+{
+	VulkanPipelineLayoutKey key(layouts, numLayouts);
 
-				result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
-				assert(result == VK_SUCCESS);
-			}
+	auto iterFind = mPipelineLayouts.find(key);
+	if(iterFind != mPipelineLayouts.end())
+		return iterFind->second;
 
-			return mDevice.GetResourceManager().Create<VulkanDescriptorSet>(set, allocateInfo.descriptorPool);
-		}
+	// Create new
+	VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)bs_stack_alloc(sizeof(VkDescriptorSetLayout) * numLayouts);
+	for(u32 i = 0; i < numLayouts; i++)
+		setLayouts[i] = layouts[i]->GetHandle();
 
-		VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayout** layouts, u32 numLayouts)
-		{
-			VulkanPipelineLayoutKey key(layouts, numLayouts);
+	VkPipelineLayoutCreateInfo layoutCI;
+	layoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutCI.pNext = nullptr;
+	layoutCI.flags = 0;
+	layoutCI.pushConstantRangeCount = 0;
+	layoutCI.pPushConstantRanges = nullptr;
+	layoutCI.setLayoutCount = numLayouts;
+	layoutCI.pSetLayouts = setLayouts;
 
-			auto iterFind = mPipelineLayouts.find(key);
-			if(iterFind != mPipelineLayouts.end())
-				return iterFind->second;
+	VkPipelineLayout pipelineLayout;
+	VkResult result = vkCreatePipelineLayout(mDevice.GetLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
+	assert(result == VK_SUCCESS);
 
-			// Create new
-			VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)bs_stack_alloc(sizeof(VkDescriptorSetLayout) * numLayouts);
-			for(u32 i = 0; i < numLayouts; i++)
-				setLayouts[i] = layouts[i]->GetHandle();
+	bs_stack_free(setLayouts);
 
-			VkPipelineLayoutCreateInfo layoutCI;
-			layoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			layoutCI.pNext = nullptr;
-			layoutCI.flags = 0;
-			layoutCI.pushConstantRangeCount = 0;
-			layoutCI.pPushConstantRanges = nullptr;
-			layoutCI.setLayoutCount = numLayouts;
-			layoutCI.pSetLayouts = setLayouts;
+	key.Layouts = (VulkanDescriptorLayout**)bs_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+	memcpy(key.Layouts, layouts, sizeof(VulkanDescriptorLayout*) * numLayouts);
 
-			VkPipelineLayout pipelineLayout;
-			VkResult result = vkCreatePipelineLayout(mDevice.GetLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
-			assert(result == VK_SUCCESS);
-
-			bs_stack_free(setLayouts);
-
-			key.Layouts = (VulkanDescriptorLayout**)bs_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
-			memcpy(key.Layouts, layouts, sizeof(VulkanDescriptorLayout*) * numLayouts);
-
-			mPipelineLayouts.insert(std::make_pair(key, pipelineLayout));
-			return pipelineLayout;
-		}
-	} // namespace ct
-} // namespace bs
+	mPipelineLayouts.insert(std::make_pair(key, pipelineLayout));
+	return pipelineLayout;
+}

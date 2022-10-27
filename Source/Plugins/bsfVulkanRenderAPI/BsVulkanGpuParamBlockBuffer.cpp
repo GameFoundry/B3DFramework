@@ -4,30 +4,27 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+	: GpuParamBlockBuffer(size, usage, deviceMask), mDeviceMask(deviceMask)
+{}
+
+VulkanGpuParamBlockBuffer::~VulkanGpuParamBlockBuffer()
 {
-	namespace ct
-	{
-		VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-			: GpuParamBlockBuffer(size, usage, deviceMask), mDeviceMask(deviceMask)
-		{}
+	if(mBuffer != nullptr)
+		bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
+}
 
-		VulkanGpuParamBlockBuffer::~VulkanGpuParamBlockBuffer()
-		{
-			if(mBuffer != nullptr)
-				bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
-		}
+void VulkanGpuParamBlockBuffer::Initialize()
+{
+	mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 
-		void VulkanGpuParamBlockBuffer::Initialize()
-		{
-			mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+	GpuParamBlockBuffer::Initialize();
+}
 
-			GpuParamBlockBuffer::Initialize();
-		}
-
-		VulkanBuffer* VulkanGpuParamBlockBuffer::GetResource(u32 deviceIdx) const
-		{
-			return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
-		}
-	} // namespace ct
-} // namespace bs
+VulkanBuffer* VulkanGpuParamBlockBuffer::GetResource(u32 deviceIdx) const
+{
+	return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
+}

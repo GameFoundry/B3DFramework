@@ -6,41 +6,38 @@
 #include "BsD3D11Mappings.h"
 #include "BsD3D11RenderAPI.h"
 
-namespace bs
+using namespace bs;
+SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 {
-	SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
-	{
-		D3D11RenderTexture* tex = new(bs_alloc<D3D11RenderTexture>()) D3D11RenderTexture(desc);
+	D3D11RenderTexture* tex = new(bs_alloc<D3D11RenderTexture>()) D3D11RenderTexture(desc);
 
-		return bs_core_ptr<D3D11RenderTexture>(tex);
-	}
+	return bs_core_ptr<D3D11RenderTexture>(tex);
+}
 
-	PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
-	{
-		DXGI_FORMAT d3dPF = ct::D3D11Mappings::GetPf(
-			ct::D3D11Mappings::GetClosestSupportedPf(format, ttype, usage), hwGamma);
+PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
+{
+	DXGI_FORMAT d3dPF = ct::D3D11Mappings::GetPf(
+		ct::D3D11Mappings::GetClosestSupportedPf(format, ttype, usage), hwGamma);
 
-		return ct::D3D11Mappings::GetPf(d3dPF);
-	}
+	return ct::D3D11Mappings::GetPf(d3dPF);
+}
 
-	namespace ct
-	{
-		SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
-		{
-			D3D11Texture* tex = new(bs_alloc<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
+namespace bs { namespace ct {
+SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+{
+	D3D11Texture* tex = new(bs_alloc<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
 
-			SPtr<D3D11Texture> texPtr = bs_shared_ptr<D3D11Texture>(tex);
-			texPtr->SetThisPtrInternal(texPtr);
+	SPtr<D3D11Texture> texPtr = bs_shared_ptr<D3D11Texture>(tex);
+	texPtr->SetThisPtrInternal(texPtr);
 
-			return texPtr;
-		}
+	return texPtr;
+}
 
-		SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-		{
-			SPtr<D3D11RenderTexture> texPtr = bs_shared_ptr_new<D3D11RenderTexture>(desc, deviceIdx);
-			texPtr->SetThisPtrInternal(texPtr);
+SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
+{
+	SPtr<D3D11RenderTexture> texPtr = bs_shared_ptr_new<D3D11RenderTexture>(desc, deviceIdx);
+	texPtr->SetThisPtrInternal(texPtr);
 
-			return texPtr;
-		}
-	} // namespace ct
-} // namespace bs
+	return texPtr;
+}
+}} // namespace bs::ct

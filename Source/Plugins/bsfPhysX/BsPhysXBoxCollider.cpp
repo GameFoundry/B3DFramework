@@ -7,52 +7,51 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation, const Vector3& extents)
+	: mExtents(extents)
 {
-	PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation, const Vector3& extents)
-		: mExtents(extents)
-	{
-		PxBoxGeometry geometry(extents.X, extents.Y, extents.Z);
+	PxBoxGeometry geometry(extents.X, extents.Y, extents.Z);
 
-		PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-		shape->setLocalPose(toPxTransform(position, rotation));
-		shape->userData = this;
+	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	shape->setLocalPose(toPxTransform(position, rotation));
+	shape->userData = this;
 
-		mInternal = bs_new<FPhysXCollider>(scene, shape);
-		ApplyGeometry();
-	}
+	mInternal = bs_new<FPhysXCollider>(scene, shape);
+	ApplyGeometry();
+}
 
-	PhysXBoxCollider::~PhysXBoxCollider()
-	{
-		bs_delete(mInternal);
-	}
+PhysXBoxCollider::~PhysXBoxCollider()
+{
+	bs_delete(mInternal);
+}
 
-	void PhysXBoxCollider::SetScale(const Vector3& scale)
-	{
-		BoxCollider::SetScale(scale);
-		ApplyGeometry();
-	}
+void PhysXBoxCollider::SetScale(const Vector3& scale)
+{
+	BoxCollider::SetScale(scale);
+	ApplyGeometry();
+}
 
-	void PhysXBoxCollider::SetExtents(const Vector3& extents)
-	{
-		mExtents = extents;
-		ApplyGeometry();
-	}
+void PhysXBoxCollider::SetExtents(const Vector3& extents)
+{
+	mExtents = extents;
+	ApplyGeometry();
+}
 
-	Vector3 PhysXBoxCollider::GetExtents() const
-	{
-		return mExtents;
-	}
+Vector3 PhysXBoxCollider::GetExtents() const
+{
+	return mExtents;
+}
 
-	void PhysXBoxCollider::ApplyGeometry()
-	{
-		PxBoxGeometry geometry(std::max(0.01f, mExtents.X * mScale.X), std::max(0.01f, mExtents.Y * mScale.Y), std::max(0.01f, mExtents.Z * mScale.Z));
+void PhysXBoxCollider::ApplyGeometry()
+{
+	PxBoxGeometry geometry(std::max(0.01f, mExtents.X * mScale.X), std::max(0.01f, mExtents.Y * mScale.Y), std::max(0.01f, mExtents.Z * mScale.Z));
 
-		GetInternal()->GetShapeInternal()->setGeometry(geometry);
-	}
+	GetInternal()->GetShapeInternal()->setGeometry(geometry);
+}
 
-	FPhysXCollider* PhysXBoxCollider::GetInternal() const
-	{
-		return static_cast<FPhysXCollider*>(mInternal);
-	}
-} // namespace bs
+FPhysXCollider* PhysXBoxCollider::GetInternal() const
+{
+	return static_cast<FPhysXCollider*>(mInternal);
+}

@@ -5,38 +5,37 @@
 #include "Audio/BsAudioManager.h"
 #include "Importer/BsImporter.h"
 
-namespace bs
+using namespace bs;
+
+class NullFactory : public AudioFactory
 {
-	class NullFactory : public AudioFactory
+public:
+	void StartUp()
 	{
-	public:
-		void StartUp()
-		{
-			Audio::StartUp<NullAudio>();
-		}
-
-		void ShutDown()
-		{
-			Audio::ShutDown();
-		}
-	};
-
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		static const char* pluginName = "NullAudio";
-		return pluginName;
+		Audio::StartUp<NullAudio>();
 	}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+	void ShutDown()
 	{
-		return bs_new<NullFactory>();
+		Audio::ShutDown();
 	}
+};
 
-	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullFactory* instance)
-	{
-		bs_delete(instance);
-	}
-} // namespace bs
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
+{
+	static const char* pluginName = "NullAudio";
+	return pluginName;
+}
+
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	return bs_new<NullFactory>();
+}
+
+/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
+extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullFactory* instance)
+{
+	bs_delete(instance);
+}

@@ -6,142 +6,139 @@
 #include "BsGLRenderTexture.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+GLFrameBufferObject::GLFrameBufferObject()
 {
-	namespace ct
+	glGenFramebuffers(1, &mFB);
+	BS_CHECK_GL_ERROR();
+
+	for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
+		mColor[x].Buffer = nullptr;
+
+	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_FrameBufferObject);
+}
+
+GLFrameBufferObject::~GLFrameBufferObject()
+{
+	glDeleteFramebuffers(1, &mFB);
+	BS_CHECK_GL_ERROR();
+
+	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_FrameBufferObject);
+}
+
+void GLFrameBufferObject::BindSurface(u32 attachment, const GLSurfaceDesc &target)
+{
+	assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	mColor[attachment] = target;
+}
+
+void GLFrameBufferObject::UnbindSurface(u32 attachment)
+{
+	assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	mColor[attachment].Buffer = nullptr;
+}
+
+void GLFrameBufferObject::BindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer, bool allLayers)
+{
+	mDepthStencilBuffer = depthStencilBuffer;
+	mDepthStencilAllLayers = allLayers;
+}
+
+void GLFrameBufferObject::UnbindDepthStencil()
+{
+	mDepthStencilBuffer = nullptr;
+}
+
+void GLFrameBufferObject::Rebuild()
+{
+	// Store basic stats
+	u16 maxSupportedMRTs = RenderAPI::InstancePtr()->GetCapabilities(0).NumMultiRenderTargets;
+
+	// Bind simple buffer to add color attachments
+	glBindFramebuffer(GL_FRAMEBUFFER, mFB);
+	BS_CHECK_GL_ERROR();
+
+	// Bind all attachment points to frame buffer
+	for(u16 x = 0; x < maxSupportedMRTs; ++x)
 	{
-		GLFrameBufferObject::GLFrameBufferObject()
+		if(mColor[x].Buffer)
 		{
-			glGenFramebuffers(1, &mFB);
-			BS_CHECK_GL_ERROR();
+			// Note: I'm attaching textures to FBO while renderbuffers might yield better performance if I
+			// don't need to read from them
 
-			for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
-				mColor[x].Buffer = nullptr;
-
-			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_FrameBufferObject);
+			mColor[x].Buffer->BindToFramebuffer(GL_COLOR_ATTACHMENT0 + x, mColor[x].Zoffset, mColor[x].AllLayers);
 		}
-
-		GLFrameBufferObject::~GLFrameBufferObject()
+		else
 		{
-			glDeleteFramebuffers(1, &mFB);
-			BS_CHECK_GL_ERROR();
-
-			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_FrameBufferObject);
-		}
-
-		void GLFrameBufferObject::BindSurface(u32 attachment, const GLSurfaceDesc &target)
-		{
-			assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
-			mColor[attachment] = target;
-		}
-
-		void GLFrameBufferObject::UnbindSurface(u32 attachment)
-		{
-			assert(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
-			mColor[attachment].Buffer = nullptr;
-		}
-
-		void GLFrameBufferObject::BindDepthStencil(SPtr<GLPixelBuffer> depthStencilBuffer, bool allLayers)
-		{
-			mDepthStencilBuffer = depthStencilBuffer;
-			mDepthStencilAllLayers = allLayers;
-		}
-
-		void GLFrameBufferObject::UnbindDepthStencil()
-		{
-			mDepthStencilBuffer = nullptr;
-		}
-
-		void GLFrameBufferObject::Rebuild()
-		{
-			// Store basic stats
-			u16 maxSupportedMRTs = RenderAPI::InstancePtr()->GetCapabilities(0).NumMultiRenderTargets;
-
-			// Bind simple buffer to add color attachments
-			glBindFramebuffer(GL_FRAMEBUFFER, mFB);
-			BS_CHECK_GL_ERROR();
-
-			// Bind all attachment points to frame buffer
-			for(u16 x = 0; x < maxSupportedMRTs; ++x)
-			{
-				if(mColor[x].Buffer)
-				{
-					// Note: I'm attaching textures to FBO while renderbuffers might yield better performance if I
-					// don't need to read from them
-
-					mColor[x].Buffer->BindToFramebuffer(GL_COLOR_ATTACHMENT0 + x, mColor[x].Zoffset, mColor[x].AllLayers);
-				}
-				else
-				{
-					// Detach
-					glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + x, 0, 0);
-					BS_CHECK_GL_ERROR();
-				}
-			}
-
-			if(mDepthStencilBuffer != nullptr)
-			{
-				GLenum depthStencilFormat = GLPixelUtil::GetDepthStencilFormatFromPf(mDepthStencilBuffer->GetFormat());
-
-				GLenum attachmentPoint;
-				if(depthStencilFormat == GL_DEPTH_STENCIL)
-					attachmentPoint = GL_DEPTH_STENCIL_ATTACHMENT;
-				else // Depth only
-					attachmentPoint = GL_DEPTH_ATTACHMENT;
-
-				mDepthStencilBuffer->BindToFramebuffer(attachmentPoint, 0, mDepthStencilAllLayers);
-			}
-
-			// Do glDrawBuffer calls
-			GLenum bufs[BS_MAX_MULTIPLE_RENDER_TARGETS];
-			GLsizei n = 0;
-			for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
-			{
-				// Fill attached colour buffers
-				if(mColor[x].Buffer)
-				{
-					bufs[x] = GL_COLOR_ATTACHMENT0 + x;
-					// Keep highest used buffer + 1
-					n = x + 1;
-				}
-				else
-				{
-					bufs[x] = GL_NONE;
-				}
-			}
-
-			glDrawBuffers(n, bufs);
-			BS_CHECK_GL_ERROR();
-
-			// No read buffer, by default, if we want to read anyway we must not forget to set this.
-			glReadBuffer(GL_NONE);
-			BS_CHECK_GL_ERROR();
-
-			// Check status
-			GLuint status;
-			status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-			BS_CHECK_GL_ERROR();
-
-			// Bind main buffer
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			BS_CHECK_GL_ERROR();
-
-			switch(status)
-			{
-			case GL_FRAMEBUFFER_COMPLETE:
-				break;
-			case GL_FRAMEBUFFER_UNSUPPORTED:
-				BS_LOG(Error, RenderBackend, "All framebuffer formats with this texture internal format unsupported");
-				break;
-			default:
-				BS_LOG(Error, RenderBackend, "Framebuffer incomplete or other FBO status error");
-			}
-		}
-
-		void GLFrameBufferObject::Bind()
-		{
-			glBindFramebuffer(GL_FRAMEBUFFER, mFB);
+			// Detach
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + x, 0, 0);
 			BS_CHECK_GL_ERROR();
 		}
-	} // namespace ct
-} // namespace bs
+	}
+
+	if(mDepthStencilBuffer != nullptr)
+	{
+		GLenum depthStencilFormat = GLPixelUtil::GetDepthStencilFormatFromPf(mDepthStencilBuffer->GetFormat());
+
+		GLenum attachmentPoint;
+		if(depthStencilFormat == GL_DEPTH_STENCIL)
+			attachmentPoint = GL_DEPTH_STENCIL_ATTACHMENT;
+		else // Depth only
+			attachmentPoint = GL_DEPTH_ATTACHMENT;
+
+		mDepthStencilBuffer->BindToFramebuffer(attachmentPoint, 0, mDepthStencilAllLayers);
+	}
+
+	// Do glDrawBuffer calls
+	GLenum bufs[BS_MAX_MULTIPLE_RENDER_TARGETS];
+	GLsizei n = 0;
+	for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
+	{
+		// Fill attached colour buffers
+		if(mColor[x].Buffer)
+		{
+			bufs[x] = GL_COLOR_ATTACHMENT0 + x;
+			// Keep highest used buffer + 1
+			n = x + 1;
+		}
+		else
+		{
+			bufs[x] = GL_NONE;
+		}
+	}
+
+	glDrawBuffers(n, bufs);
+	BS_CHECK_GL_ERROR();
+
+	// No read buffer, by default, if we want to read anyway we must not forget to set this.
+	glReadBuffer(GL_NONE);
+	BS_CHECK_GL_ERROR();
+
+	// Check status
+	GLuint status;
+	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	BS_CHECK_GL_ERROR();
+
+	// Bind main buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	BS_CHECK_GL_ERROR();
+
+	switch(status)
+	{
+	case GL_FRAMEBUFFER_COMPLETE:
+		break;
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		BS_LOG(Error, RenderBackend, "All framebuffer formats with this texture internal format unsupported");
+		break;
+	default:
+		BS_LOG(Error, RenderBackend, "Framebuffer incomplete or other FBO status error");
+	}
+}
+
+void GLFrameBufferObject::Bind()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, mFB);
+	BS_CHECK_GL_ERROR();
+}

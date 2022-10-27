@@ -4,30 +4,27 @@
 #include "BsVulkanHardwareBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+static void deleteBuffer(HardwareBuffer* buffer)
 {
-	namespace ct
-	{
-		static void deleteBuffer(HardwareBuffer* buffer)
-		{
-			bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
-		}
+	bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+}
 
-		VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-			: VertexBuffer(desc, deviceMask), mDeviceMask(deviceMask)
-		{}
+VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	: VertexBuffer(desc, deviceMask), mDeviceMask(deviceMask)
+{}
 
-		void VulkanVertexBuffer::Initialize()
-		{
-			mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
-			mBufferDeleter = &deleteBuffer;
+void VulkanVertexBuffer::Initialize()
+{
+	mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+	mBufferDeleter = &deleteBuffer;
 
-			VertexBuffer::Initialize();
-		}
+	VertexBuffer::Initialize();
+}
 
-		VulkanBuffer* VulkanVertexBuffer::GetResource(u32 deviceIdx) const
-		{
-			return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
-		}
-	} // namespace ct
-} // namespace bs
+VulkanBuffer* VulkanVertexBuffer::GetResource(u32 deviceIdx) const
+{
+	return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
+}

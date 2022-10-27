@@ -3,75 +3,73 @@
 #include "BsD3D11RenderTexture.h"
 #include "BsD3D11TextureView.h"
 
-namespace bs
+using namespace bs;
+
+D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc)
+	: RenderTexture(desc), mProperties(desc, false)
 {
-	D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc)
-		: RenderTexture(desc), mProperties(desc, false)
+}
+
+namespace bs { namespace ct {
+D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
+	: RenderTexture(desc, deviceIdx), mProperties(desc, false)
+{
+	assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
+}
+
+void D3D11RenderTexture::GetCustomAttribute(const String& name, void* data) const
+{
+	if(name == "RTV")
 	{
+		ID3D11RenderTargetView** rtvs = (ID3D11RenderTargetView**)data;
+		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; ++i)
+		{
+			if(mColorSurfaces[i] == nullptr)
+				continue;
+
+			D3D11TextureView* textureView = static_cast<D3D11TextureView*>(mColorSurfaces[i].get());
+			rtvs[i] = textureView->GetRtv();
+		}
 	}
-
-	namespace ct
+	else if(name == "DSV")
 	{
-		D3D11RenderTexture::D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-			: RenderTexture(desc, deviceIdx), mProperties(desc, false)
-		{
-			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on DirectX 11.");
-		}
+		if(mDepthStencilSurface == nullptr)
+			return;
 
-		void D3D11RenderTexture::GetCustomAttribute(const String& name, void* data) const
-		{
-			if(name == "RTV")
-			{
-				ID3D11RenderTargetView** rtvs = (ID3D11RenderTargetView**)data;
-				for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; ++i)
-				{
-					if(mColorSurfaces[i] == nullptr)
-						continue;
+		ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
+		D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
 
-					D3D11TextureView* textureView = static_cast<D3D11TextureView*>(mColorSurfaces[i].get());
-					rtvs[i] = textureView->GetRtv();
-				}
-			}
-			else if(name == "DSV")
-			{
-				if(mDepthStencilSurface == nullptr)
-					return;
+		*dsv = depthStencilView->GetDsv(false, false);
+	}
+	else if(name == "RODSV")
+	{
+		if(mDepthStencilSurface == nullptr)
+			return;
 
-				ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-				D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+		ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
+		D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
 
-				*dsv = depthStencilView->GetDsv(false, false);
-			}
-			else if(name == "RODSV")
-			{
-				if(mDepthStencilSurface == nullptr)
-					return;
+		*dsv = depthStencilView->GetDsv(true, true);
+	}
+	else if(name == "RODWSV")
+	{
+		if(mDepthStencilSurface == nullptr)
+			return;
 
-				ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-				D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+		ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
+		D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
 
-				*dsv = depthStencilView->GetDsv(true, true);
-			}
-			else if(name == "RODWSV")
-			{
-				if(mDepthStencilSurface == nullptr)
-					return;
+		*dsv = depthStencilView->GetDsv(true, false);
+	}
+	else if(name == "WDROSV")
+	{
+		if(mDepthStencilSurface == nullptr)
+			return;
 
-				ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-				D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
+		ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
+		D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
 
-				*dsv = depthStencilView->GetDsv(true, false);
-			}
-			else if(name == "WDROSV")
-			{
-				if(mDepthStencilSurface == nullptr)
-					return;
-
-				ID3D11DepthStencilView** dsv = (ID3D11DepthStencilView**)data;
-				D3D11TextureView* depthStencilView = static_cast<D3D11TextureView*>(mDepthStencilSurface.get());
-
-				*dsv = depthStencilView->GetDsv(false, true);
-			}
-		}
-	} // namespace ct
-} // namespace bs
+		*dsv = depthStencilView->GetDsv(false, true);
+	}
+}
+}} // namespace bs::ct

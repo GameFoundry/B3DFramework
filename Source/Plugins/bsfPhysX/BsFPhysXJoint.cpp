@@ -7,126 +7,125 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PxJointActorIndex::Enum toJointActor(JointBody body)
 {
-	PxJointActorIndex::Enum toJointActor(JointBody body)
-	{
-		if(body == JointBody::Target)
-			return PxJointActorIndex::eACTOR0;
+	if(body == JointBody::Target)
+		return PxJointActorIndex::eACTOR0;
 
-		return PxJointActorIndex::eACTOR1;
-	}
+	return PxJointActorIndex::eACTOR1;
+}
 
-	FPhysXJoint::FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc)
-		: FJoint(desc), mJoint(joint)
-	{
-		mJoint->setBreakForce(desc.BreakForce, desc.BreakTorque);
-		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, desc.EnableCollision);
-	}
+FPhysXJoint::FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc)
+	: FJoint(desc), mJoint(joint)
+{
+	mJoint->setBreakForce(desc.BreakForce, desc.BreakTorque);
+	mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, desc.EnableCollision);
+}
 
-	FPhysXJoint::~FPhysXJoint()
-	{
-		mJoint->userData = nullptr;
-		mJoint->release();
-	}
+FPhysXJoint::~FPhysXJoint()
+{
+	mJoint->userData = nullptr;
+	mJoint->release();
+}
 
-	Rigidbody* FPhysXJoint::GetBody(JointBody body) const
-	{
-		PxRigidActor* actorA = nullptr;
-		PxRigidActor* actorB = nullptr;
+Rigidbody* FPhysXJoint::GetBody(JointBody body) const
+{
+	PxRigidActor* actorA = nullptr;
+	PxRigidActor* actorB = nullptr;
 
-		mJoint->getActors(actorA, actorB);
+	mJoint->getActors(actorA, actorB);
 
-		PxRigidActor* wantedActor = body == JointBody::Target ? actorA : actorB;
-		if(wantedActor == nullptr)
-			return nullptr;
+	PxRigidActor* wantedActor = body == JointBody::Target ? actorA : actorB;
+	if(wantedActor == nullptr)
+		return nullptr;
 
-		return (Rigidbody*)wantedActor->userData;
-	}
+	return (Rigidbody*)wantedActor->userData;
+}
 
-	void FPhysXJoint::SetBody(JointBody body, Rigidbody* value)
-	{
-		PxRigidActor* actorA = nullptr;
-		PxRigidActor* actorB = nullptr;
+void FPhysXJoint::SetBody(JointBody body, Rigidbody* value)
+{
+	PxRigidActor* actorA = nullptr;
+	PxRigidActor* actorB = nullptr;
 
-		mJoint->getActors(actorA, actorB);
+	mJoint->getActors(actorA, actorB);
 
-		PxRigidActor* actor = nullptr;
-		if(value != nullptr)
-			actor = static_cast<PhysXRigidbody*>(value)->GetInternalInternal();
+	PxRigidActor* actor = nullptr;
+	if(value != nullptr)
+		actor = static_cast<PhysXRigidbody*>(value)->GetInternalInternal();
 
-		if(body == JointBody::Target)
-			actorA = actor;
-		else
-			actorB = actor;
+	if(body == JointBody::Target)
+		actorA = actor;
+	else
+		actorB = actor;
 
-		mJoint->setActors(actorA, actorB);
-	}
+	mJoint->setActors(actorA, actorB);
+}
 
-	Vector3 FPhysXJoint::GetPosition(JointBody body) const
-	{
-		PxVec3 position = mJoint->getLocalPose(toJointActor(body)).p;
+Vector3 FPhysXJoint::GetPosition(JointBody body) const
+{
+	PxVec3 position = mJoint->getLocalPose(toJointActor(body)).p;
 
-		return fromPxVector(position);
-	}
+	return fromPxVector(position);
+}
 
-	Quaternion FPhysXJoint::GetRotation(JointBody body) const
-	{
-		PxQuat rotation = mJoint->getLocalPose(toJointActor(body)).q;
+Quaternion FPhysXJoint::GetRotation(JointBody body) const
+{
+	PxQuat rotation = mJoint->getLocalPose(toJointActor(body)).q;
 
-		return fromPxQuaternion(rotation);
-	}
+	return fromPxQuaternion(rotation);
+}
 
-	void FPhysXJoint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
-	{
-		PxTransform transform = toPxTransform(position, rotation);
+void FPhysXJoint::SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation)
+{
+	PxTransform transform = toPxTransform(position, rotation);
 
-		mJoint->setLocalPose(toJointActor(body), transform);
-	}
+	mJoint->setLocalPose(toJointActor(body), transform);
+}
 
-	float FPhysXJoint::GetBreakForce() const
-	{
-		float force = 0.0f;
-		float torque = 0.0f;
+float FPhysXJoint::GetBreakForce() const
+{
+	float force = 0.0f;
+	float torque = 0.0f;
 
-		mJoint->getBreakForce(force, torque);
-		return force;
-	}
+	mJoint->getBreakForce(force, torque);
+	return force;
+}
 
-	void FPhysXJoint::SetBreakForce(float force)
-	{
-		float dummy = 0.0f;
-		float torque = 0.0f;
+void FPhysXJoint::SetBreakForce(float force)
+{
+	float dummy = 0.0f;
+	float torque = 0.0f;
 
-		mJoint->getBreakForce(dummy, torque);
-		mJoint->setBreakForce(force, torque);
-	}
+	mJoint->getBreakForce(dummy, torque);
+	mJoint->setBreakForce(force, torque);
+}
 
-	float FPhysXJoint::GetBreakTorque() const
-	{
-		float force = 0.0f;
-		float torque = 0.0f;
+float FPhysXJoint::GetBreakTorque() const
+{
+	float force = 0.0f;
+	float torque = 0.0f;
 
-		mJoint->getBreakForce(force, torque);
-		return torque;
-	}
+	mJoint->getBreakForce(force, torque);
+	return torque;
+}
 
-	void FPhysXJoint::SetBreakTorque(float torque)
-	{
-		float force = 0.0f;
-		float dummy = 0.0f;
+void FPhysXJoint::SetBreakTorque(float torque)
+{
+	float force = 0.0f;
+	float dummy = 0.0f;
 
-		mJoint->getBreakForce(force, dummy);
-		mJoint->setBreakForce(force, torque);
-	}
+	mJoint->getBreakForce(force, dummy);
+	mJoint->setBreakForce(force, torque);
+}
 
-	bool FPhysXJoint::GetEnableCollision() const
-	{
-		return mJoint->getConstraintFlags() & PxConstraintFlag::eCOLLISION_ENABLED;
-	}
+bool FPhysXJoint::GetEnableCollision() const
+{
+	return mJoint->getConstraintFlags() & PxConstraintFlag::eCOLLISION_ENABLED;
+}
 
-	void FPhysXJoint::SetEnableCollision(bool value)
-	{
-		mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, value);
-	}
-} // namespace bs
+void FPhysXJoint::SetEnableCollision(bool value)
+{
+	mJoint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, value);
+}

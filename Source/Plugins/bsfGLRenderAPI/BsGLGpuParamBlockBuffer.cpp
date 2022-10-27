@@ -3,26 +3,23 @@
 #include "BsGLGpuParamBlockBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+GLGpuParamBlockBuffer::GLGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
+	: GpuParamBlockBuffer(size, usage, deviceMask)
 {
-	namespace ct
-	{
-		GLGpuParamBlockBuffer::GLGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
-			: GpuParamBlockBuffer(size, usage, deviceMask)
-		{
-			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
-		}
+	assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");
+}
 
-		GLGpuParamBlockBuffer::~GLGpuParamBlockBuffer()
-		{
-			if(mBuffer)
-				bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
-		}
+GLGpuParamBlockBuffer::~GLGpuParamBlockBuffer()
+{
+	if(mBuffer)
+		bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
+}
 
-		void GLGpuParamBlockBuffer::Initialize()
-		{
-			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
-			GpuParamBlockBuffer::Initialize();
-		}
-	} // namespace ct
-} // namespace bs
+void GLGpuParamBlockBuffer::Initialize()
+{
+	mBuffer = bs_pool_new<GLHardwareBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
+	GpuParamBlockBuffer::Initialize();
+}

@@ -5,81 +5,78 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderAPI.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+VulkanSampler::VulkanSampler(VulkanResourceManager* owner, VkSampler sampler)
+	: VulkanResource(owner, true), mSampler(sampler)
+{}
+
+VulkanSampler::~VulkanSampler()
 {
-	namespace ct
+	vkDestroySampler(mOwner->GetDevice().GetLogical(), mSampler, gVulkanAllocator);
+}
+
+VulkanSamplerState::VulkanSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
+	: SamplerState(desc, deviceMask), mSamplers(), mDeviceMask(deviceMask)
+{}
+
+VulkanSamplerState::~VulkanSamplerState()
+{
+	for(u32 i = 0; i < BS_MAX_DEVICES; i++)
 	{
-		VulkanSampler::VulkanSampler(VulkanResourceManager* owner, VkSampler sampler)
-			: VulkanResource(owner, true), mSampler(sampler)
-		{}
+		if(mSamplers[i] == nullptr)
+			return;
 
-		VulkanSampler::~VulkanSampler()
-		{
-			vkDestroySampler(mOwner->GetDevice().GetLogical(), mSampler, gVulkanAllocator);
-		}
+		mSamplers[i]->Destroy();
+	}
+}
 
-		VulkanSamplerState::VulkanSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask)
-			: SamplerState(desc, deviceMask), mSamplers(), mDeviceMask(deviceMask)
-		{}
+void VulkanSamplerState::CreateInternal()
+{
+	FilterOptions minFilter = GetProperties().GetTextureFiltering(FT_MIN);
+	FilterOptions magFilter = GetProperties().GetTextureFiltering(FT_MAG);
+	FilterOptions mipFilter = GetProperties().GetTextureFiltering(FT_MIP);
 
-		VulkanSamplerState::~VulkanSamplerState()
-		{
-			for(u32 i = 0; i < BS_MAX_DEVICES; i++)
-			{
-				if(mSamplers[i] == nullptr)
-					return;
+	bool anisotropy = minFilter == FO_ANISOTROPIC || magFilter == FO_ANISOTROPIC || mipFilter == FO_ANISOTROPIC;
+	const UVWAddressingMode& addressMode = GetProperties().GetTextureAddressingMode();
 
-				mSamplers[i]->Destroy();
-			}
-		}
+	CompareFunction compareFunc = GetProperties().GetComparisonFunction();
 
-		void VulkanSamplerState::CreateInternal()
-		{
-			FilterOptions minFilter = GetProperties().GetTextureFiltering(FT_MIN);
-			FilterOptions magFilter = GetProperties().GetTextureFiltering(FT_MAG);
-			FilterOptions mipFilter = GetProperties().GetTextureFiltering(FT_MIP);
+	VkSamplerCreateInfo samplerInfo;
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.flags = 0;
+	samplerInfo.pNext = nullptr;
+	samplerInfo.magFilter = VulkanUtility::GetFilter(magFilter);
+	samplerInfo.minFilter = VulkanUtility::GetFilter(minFilter);
+	samplerInfo.mipmapMode = VulkanUtility::GetMipFilter(mipFilter);
+	samplerInfo.addressModeU = VulkanUtility::GetAddressingMode(addressMode.U);
+	samplerInfo.addressModeV = VulkanUtility::GetAddressingMode(addressMode.V);
+	samplerInfo.addressModeW = VulkanUtility::GetAddressingMode(addressMode.W);
+	samplerInfo.mipLodBias = GetProperties().GetTextureMipmapBias();
+	samplerInfo.anisotropyEnable = anisotropy;
+	samplerInfo.maxAnisotropy = (float)GetProperties().GetTextureAnisotropy();
+	samplerInfo.compareEnable = compareFunc != CMPF_ALWAYS_PASS;
+	samplerInfo.compareOp = VulkanUtility::GetCompareOp(compareFunc);
+	samplerInfo.minLod = mProperties.GetMinimumMip();
+	samplerInfo.maxLod = mProperties.GetMaximumMip();
+	samplerInfo.borderColor = VulkanUtility::GetBorderColor(GetProperties().GetBorderColor());
+	samplerInfo.unnormalizedCoordinates = false;
 
-			bool anisotropy = minFilter == FO_ANISOTROPIC || magFilter == FO_ANISOTROPIC || mipFilter == FO_ANISOTROPIC;
-			const UVWAddressingMode& addressMode = GetProperties().GetTextureAddressingMode();
+	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
+	VulkanDevice* devices[BS_MAX_DEVICES];
+	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
 
-			CompareFunction compareFunc = GetProperties().GetComparisonFunction();
+	// Allocate samplers per-device
+	for(u32 i = 0; i < BS_MAX_DEVICES; i++)
+	{
+		if(devices[i] == nullptr)
+			break;
 
-			VkSamplerCreateInfo samplerInfo;
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.flags = 0;
-			samplerInfo.pNext = nullptr;
-			samplerInfo.magFilter = VulkanUtility::GetFilter(magFilter);
-			samplerInfo.minFilter = VulkanUtility::GetFilter(minFilter);
-			samplerInfo.mipmapMode = VulkanUtility::GetMipFilter(mipFilter);
-			samplerInfo.addressModeU = VulkanUtility::GetAddressingMode(addressMode.U);
-			samplerInfo.addressModeV = VulkanUtility::GetAddressingMode(addressMode.V);
-			samplerInfo.addressModeW = VulkanUtility::GetAddressingMode(addressMode.W);
-			samplerInfo.mipLodBias = GetProperties().GetTextureMipmapBias();
-			samplerInfo.anisotropyEnable = anisotropy;
-			samplerInfo.maxAnisotropy = (float)GetProperties().GetTextureAnisotropy();
-			samplerInfo.compareEnable = compareFunc != CMPF_ALWAYS_PASS;
-			samplerInfo.compareOp = VulkanUtility::GetCompareOp(compareFunc);
-			samplerInfo.minLod = mProperties.GetMinimumMip();
-			samplerInfo.maxLod = mProperties.GetMaximumMip();
-			samplerInfo.borderColor = VulkanUtility::GetBorderColor(GetProperties().GetBorderColor());
-			samplerInfo.unnormalizedCoordinates = false;
+		VkSampler sampler;
+		VkResult result = vkCreateSampler(devices[i]->GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
+		assert(result == VK_SUCCESS);
 
-			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-			VulkanDevice* devices[BS_MAX_DEVICES];
-			VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
-
-			// Allocate samplers per-device
-			for(u32 i = 0; i < BS_MAX_DEVICES; i++)
-			{
-				if(devices[i] == nullptr)
-					break;
-
-				VkSampler sampler;
-				VkResult result = vkCreateSampler(devices[i]->GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
-				assert(result == VK_SUCCESS);
-
-				mSamplers[i] = devices[i]->GetResourceManager().Create<VulkanSampler>(sampler);
-			}
-		}
-	} // namespace ct
-} // namespace bs
+		mSamplers[i] = devices[i]->GetResourceManager().Create<VulkanSampler>(sampler);
+	}
+}

@@ -7,43 +7,40 @@
 #include "Win32/BsWin32Context.h"
 #include "Error/BsException.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+Win32Context::Win32Context(HDC hdc, HGLRC glrc, bool ownsContext)
+	: mHDC(hdc), mGlrc(glrc), mOwnsContext(ownsContext)
 {
-	namespace ct
+}
+
+Win32Context::~Win32Context()
+{
+	if(mOwnsContext)
+		ReleaseContext();
+}
+
+void Win32Context::SetCurrent(const RenderWindow& window)
+{
+	if(wglMakeCurrent(mHDC, mGlrc) != TRUE)
+		BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
+}
+
+void Win32Context::EndCurrent()
+{
+	if(wglMakeCurrent(mHDC, 0) != TRUE)
+		BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
+}
+
+void Win32Context::ReleaseContext()
+{
+	if(mGlrc != 0)
 	{
-		Win32Context::Win32Context(HDC hdc, HGLRC glrc, bool ownsContext)
-			: mHDC(hdc), mGlrc(glrc), mOwnsContext(ownsContext)
-		{
-		}
+		if(wglDeleteContext(mGlrc) != TRUE)
+			BS_EXCEPT(RenderingAPIException, "wglDeleteContext failed: " + translateWGLError());
 
-		Win32Context::~Win32Context()
-		{
-			if(mOwnsContext)
-				ReleaseContext();
-		}
-
-		void Win32Context::SetCurrent(const RenderWindow& window)
-		{
-			if(wglMakeCurrent(mHDC, mGlrc) != TRUE)
-				BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
-		}
-
-		void Win32Context::EndCurrent()
-		{
-			if(wglMakeCurrent(mHDC, 0) != TRUE)
-				BS_EXCEPT(RenderingAPIException, "wglMakeCurrent failed: " + translateWGLError());
-		}
-
-		void Win32Context::ReleaseContext()
-		{
-			if(mGlrc != 0)
-			{
-				if(wglDeleteContext(mGlrc) != TRUE)
-					BS_EXCEPT(RenderingAPIException, "wglDeleteContext failed: " + translateWGLError());
-
-				mGlrc = 0;
-				mHDC = 0;
-			}
-		}
-	} // namespace ct
-} // namespace bs
+		mGlrc = 0;
+		mHDC = 0;
+	}
+}

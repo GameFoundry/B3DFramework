@@ -5,122 +5,121 @@
 
 namespace bs::ct
 {
-	MacOSVideoModeInfo::MacOSVideoModeInfo()
+MacOSVideoModeInfo::MacOSVideoModeInfo()
+{
+	VideoModeInfo info;
+
+	CGDisplayCount numDisplays;
+	CGGetOnlineDisplayList(0, nullptr, &numDisplays);
+
+	auto displays = (CGDirectDisplayID*)bs_stack_alloc(sizeof(CGDirectDisplayID) * numDisplays);
+	CGGetOnlineDisplayList(numDisplays, displays, &numDisplays);
+
+	for(u32 i = 0; i < numDisplays; i++)
 	{
-		VideoModeInfo info;
+		if(CGDisplayMirrorsDisplay(displays[i]) != kCGNullDirectDisplay)
+			continue;
 
-		CGDisplayCount numDisplays;
-		CGGetOnlineDisplayList(0, nullptr, &numDisplays);
+		CGDisplayModeRef modeRef = CGDisplayCopyDisplayMode(displays[i]);
+		if(!modeRef)
+			continue;
 
-		auto displays = (CGDirectDisplayID*)bs_stack_alloc(sizeof(CGDirectDisplayID) * numDisplays);
-		CGGetOnlineDisplayList(numDisplays, displays, &numDisplays);
+		VideoOutputInfo* output = bs_new<MacOSVideoOutputInfo>(displays[i], i);
 
-		for(u32 i = 0; i < numDisplays; i++)
+		// Make sure the primary output is the first in the output list
+		if(CGDisplayIsMain(displays[i]))
+			mOutputs.insert(mOutputs.begin(), output);
+		else
+			mOutputs.push_back(output);
+	}
+	bs_stack_free(displays);
+}
+
+MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outputIdx)
+	: mDisplayID(displayID)
+{
+	CGDisplayModeRef desktopModeRef = CGDisplayCopyDisplayMode(displayID);
+
+	CVDisplayLinkRef linkRef = nullptr;
+	CVDisplayLinkCreateWithCGDisplay(displayID, &linkRef);
+
+	io_service_t service = CGDisplayIOServicePort(displayID);
+	CFDictionaryRef deviceInfo = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
+	auto locNames = (CFDictionaryRef)CFDictionaryGetValue(deviceInfo, CFSTR(kDisplayProductName));
+
+	CFIndex numNames = CFDictionaryGetCount(locNames);
+	if(numNames > 0)
+	{
+		auto keys = (CFStringRef*)bs_stack_alloc(numNames * sizeof(CFTypeRef));
+		CFDictionaryGetKeysAndValues(locNames, (const void**)keys, nullptr);
+
+		auto value = (CFStringRef)CFDictionaryGetValue(locNames, keys[0]);
+		if(value)
 		{
-			if(CGDisplayMirrorsDisplay(displays[i]) != kCGNullDirectDisplay)
-				continue;
-
-			CGDisplayModeRef modeRef = CGDisplayCopyDisplayMode(displays[i]);
-			if(!modeRef)
-				continue;
-
-			VideoOutputInfo* output = bs_new<MacOSVideoOutputInfo>(displays[i], i);
-
-			// Make sure the primary output is the first in the output list
-			if(CGDisplayIsMain(displays[i]))
-				mOutputs.insert(mOutputs.begin(), output);
+			const char* chars = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+			if(chars)
+				mName = chars;
 			else
-				mOutputs.push_back(output);
-		}
-		bs_stack_free(displays);
-	}
-
-	MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outputIdx)
-		: mDisplayID(displayID)
-	{
-		CGDisplayModeRef desktopModeRef = CGDisplayCopyDisplayMode(displayID);
-
-		CVDisplayLinkRef linkRef = nullptr;
-		CVDisplayLinkCreateWithCGDisplay(displayID, &linkRef);
-
-		io_service_t service = CGDisplayIOServicePort(displayID);
-		CFDictionaryRef deviceInfo = IODisplayCreateInfoDictionary(service, kIODisplayOnlyPreferredName);
-		auto locNames = (CFDictionaryRef)CFDictionaryGetValue(deviceInfo, CFSTR(kDisplayProductName));
-
-		CFIndex numNames = CFDictionaryGetCount(locNames);
-		if(numNames > 0)
-		{
-			auto keys = (CFStringRef*)bs_stack_alloc(numNames * sizeof(CFTypeRef));
-			CFDictionaryGetKeysAndValues(locNames, (const void**)keys, nullptr);
-
-			auto value = (CFStringRef)CFDictionaryGetValue(locNames, keys[0]);
-			if(value)
 			{
-				const char* chars = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
-				if(chars)
-					mName = chars;
-				else
-				{
-					CFIndex stringLength = CFStringGetLength(value) + 1;
-					auto buffer = bs_stack_alloc<char>((u32)stringLength);
+				CFIndex stringLength = CFStringGetLength(value) + 1;
+				auto buffer = bs_stack_alloc<char>((u32)stringLength);
 
-					CFStringGetCString(value, buffer, stringLength, kCFStringEncodingUTF8);
+				CFStringGetCString(value, buffer, stringLength, kCFStringEncodingUTF8);
 
-					mName = buffer;
-					bs_stack_free(buffer);
-				}
+				mName = buffer;
+				bs_stack_free(buffer);
 			}
-			else
-				mName = "Unknown";
-
-			bs_stack_free(keys);
 		}
+		else
+			mName = "Unknown";
 
-		CFRelease(deviceInfo);
-
-		mDesktopVideoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
-
-		CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, nullptr);
-		if(modes)
-		{
-			CFIndex count = CFArrayGetCount(modes);
-			for(int i = 0; i < count; i++)
-			{
-				auto modeRef = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
-				CGDisplayModeRetain(modeRef);
-
-				VideoMode* videoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
-
-				mVideoModes.push_back(videoMode);
-			}
-
-			CFRelease(modes);
-		}
+		bs_stack_free(keys);
 	}
 
-	MacOSVideoMode::MacOSVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx)
-		: VideoMode(width, height, refreshRate, outputIdx), mModeRef(nullptr)
-	{}
+	CFRelease(deviceInfo);
 
-	MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, u32 outputIdx)
-		: VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
+	mDesktopVideoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
+
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, nullptr);
+	if(modes)
 	{
-		width = (u32)CGDisplayModeGetPixelWidth(mModeRef);
-		height = (u32)CGDisplayModeGetPixelHeight(mModeRef);
-
-		refreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
-		if(refreshRate == 0.0f && linkRef != nullptr)
+		CFIndex count = CFArrayGetCount(modes);
+		for(int i = 0; i < count; i++)
 		{
-			CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(linkRef);
-			if((time.flags & kCVTimeIsIndefinite) == 0 && time.timeValue != 0)
-				refreshRate = time.timeScale / (float)time.timeValue;
-		}
-		isCustom = false;
-	}
+			auto modeRef = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
+			CGDisplayModeRetain(modeRef);
 
-	MacOSVideoMode::~MacOSVideoMode()
-	{
-		if(!isCustom && mModeRef)
-			CGDisplayModeRelease(mModeRef);
+			VideoMode* videoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
+
+			mVideoModes.push_back(videoMode);
+		}
+
+		CFRelease(modes);
 	}
-} // namespace bs::ct
+}
+
+MacOSVideoMode::MacOSVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx)
+	: VideoMode(width, height, refreshRate, outputIdx), mModeRef(nullptr)
+{}
+
+MacOSVideoMode::MacOSVideoMode(CGDisplayModeRef mode, CVDisplayLinkRef linkRef, u32 outputIdx)
+	: VideoMode(0, 0, 0.0f, outputIdx), mModeRef(mode)
+{
+	width = (u32)CGDisplayModeGetPixelWidth(mModeRef);
+	height = (u32)CGDisplayModeGetPixelHeight(mModeRef);
+
+	refreshRate = (float)CGDisplayModeGetRefreshRate(mModeRef);
+	if(refreshRate == 0.0f && linkRef != nullptr)
+	{
+		CVTime time = CVDisplayLinkGetNominalOutputVideoRefreshPeriod(linkRef);
+		if((time.flags & kCVTimeIsIndefinite) == 0 && time.timeValue != 0)
+			refreshRate = time.timeScale / (float)time.timeValue;
+	}
+	isCustom = false;
+}
+
+MacOSVideoMode::~MacOSVideoMode()
+{
+	if(!isCustom && mModeRef)
+		CGDisplayModeRelease(mModeRef);
+}::ct

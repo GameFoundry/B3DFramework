@@ -8,77 +8,76 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
 {
-	PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
+	PxSphereGeometry geometry(0.01f); // Dummy
+
+	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	shape->setLocalPose(toPxTransform(position, rotation));
+	shape->userData = this;
+
+	mInternal = bs_new<FPhysXCollider>(scene, shape);
+}
+
+PhysXMeshCollider::~PhysXMeshCollider()
+{
+	bs_delete(mInternal);
+}
+
+void PhysXMeshCollider::SetScale(const Vector3& scale)
+{
+	MeshCollider::SetScale(scale);
+	ApplyGeometry();
+}
+
+void PhysXMeshCollider::OnMeshChanged()
+{
+	ApplyGeometry();
+}
+
+void PhysXMeshCollider::ApplyGeometry()
+{
+	if(!mMesh.IsLoaded())
 	{
-		PxSphereGeometry geometry(0.01f); // Dummy
-
-		PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-		shape->setLocalPose(toPxTransform(position, rotation));
-		shape->userData = this;
-
-		mInternal = bs_new<FPhysXCollider>(scene, shape);
+		SetGeometry(PxSphereGeometry(0.01f)); // Dummy
+		return;
 	}
 
-	PhysXMeshCollider::~PhysXMeshCollider()
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mMesh->GetInternalInternal());
+
+	if(mMesh->GetType() == PhysicsMeshType::Convex)
 	{
-		bs_delete(mInternal);
-	}
+		PxConvexMeshGeometry geometry;
+		geometry.scale = PxMeshScale(toPxVector(GetScale()), PxIdentity);
+		geometry.convexMesh = physxMesh->GetConvexInternal();
 
-	void PhysXMeshCollider::SetScale(const Vector3& scale)
+		SetGeometry(geometry);
+	}
+	else // Triangle
 	{
-		MeshCollider::SetScale(scale);
-		ApplyGeometry();
-	}
+		PxTriangleMeshGeometry geometry;
+		geometry.scale = PxMeshScale(toPxVector(GetScale()), PxIdentity);
+		geometry.triangleMesh = physxMesh->GetTriangleInternal();
 
-	void PhysXMeshCollider::OnMeshChanged()
+		SetGeometry(geometry);
+	}
+}
+
+void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
+{
+	PxShape* shape = GetInternal()->GetShapeInternal();
+	if(shape->getGeometryType() != geometry.getType())
 	{
-		ApplyGeometry();
+		PxShape* newShape = gPhysX().GetPhysX()->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+		GetInternal()->SetShapeInternal(newShape);
 	}
+	else
+		GetInternal()->GetShapeInternal()->setGeometry(geometry);
+}
 
-	void PhysXMeshCollider::ApplyGeometry()
-	{
-		if(!mMesh.IsLoaded())
-		{
-			SetGeometry(PxSphereGeometry(0.01f)); // Dummy
-			return;
-		}
-
-		FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mMesh->GetInternalInternal());
-
-		if(mMesh->GetType() == PhysicsMeshType::Convex)
-		{
-			PxConvexMeshGeometry geometry;
-			geometry.scale = PxMeshScale(toPxVector(GetScale()), PxIdentity);
-			geometry.convexMesh = physxMesh->GetConvexInternal();
-
-			SetGeometry(geometry);
-		}
-		else // Triangle
-		{
-			PxTriangleMeshGeometry geometry;
-			geometry.scale = PxMeshScale(toPxVector(GetScale()), PxIdentity);
-			geometry.triangleMesh = physxMesh->GetTriangleInternal();
-
-			SetGeometry(geometry);
-		}
-	}
-
-	void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
-	{
-		PxShape* shape = GetInternal()->GetShapeInternal();
-		if(shape->getGeometryType() != geometry.getType())
-		{
-			PxShape* newShape = gPhysX().GetPhysX()->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-			GetInternal()->SetShapeInternal(newShape);
-		}
-		else
-			GetInternal()->GetShapeInternal()->setGeometry(geometry);
-	}
-
-	FPhysXCollider* PhysXMeshCollider::GetInternal() const
-	{
-		return static_cast<FPhysXCollider*>(mInternal);
-	}
-} // namespace bs
+FPhysXCollider* PhysXMeshCollider::GetInternal() const
+{
+	return static_cast<FPhysXCollider*>(mInternal);
+}

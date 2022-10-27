@@ -7,26 +7,25 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
 {
-	PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const Vector3& position, const Quaternion& rotation)
-	{
-		PxPlaneGeometry geometry;
+	PxPlaneGeometry geometry;
 
-		PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
-		shape->setLocalPose(toPxTransform(position, rotation));
-		shape->userData = this;
+	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	shape->setLocalPose(toPxTransform(position, rotation));
+	shape->userData = this;
 
-		mInternal = bs_new<FPhysXCollider>(scene, shape);
-	}
+	mInternal = bs_new<FPhysXCollider>(scene, shape);
+}
 
-	PhysXPlaneCollider::~PhysXPlaneCollider()
-	{
-		bs_delete(mInternal);
-	}
+PhysXPlaneCollider::~PhysXPlaneCollider()
+{
+	bs_delete(mInternal);
+}
 
-	FPhysXCollider* PhysXPlaneCollider::GetInternal() const
-	{
-		return static_cast<FPhysXCollider*>(mInternal);
-	}
-} // namespace bs
+FPhysXCollider* PhysXPlaneCollider::GetInternal() const
+{
+	return static_cast<FPhysXCollider*>(mInternal);
+}

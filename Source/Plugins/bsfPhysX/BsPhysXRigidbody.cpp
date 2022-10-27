@@ -12,405 +12,295 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PxForceMode::Enum toPxForceMode(ForceMode mode)
 {
-	PxForceMode::Enum toPxForceMode(ForceMode mode)
+	switch(mode)
 	{
-		switch(mode)
-		{
-		case ForceMode::Force:
-			return PxForceMode::eFORCE;
-		case ForceMode::Impulse:
-			return PxForceMode::eIMPULSE;
-		case ForceMode::Velocity:
-			return PxForceMode::eVELOCITY_CHANGE;
-		case ForceMode::Acceleration:
-			return PxForceMode::eACCELERATION;
-		}
-
+	case ForceMode::Force:
 		return PxForceMode::eFORCE;
+	case ForceMode::Impulse:
+		return PxForceMode::eIMPULSE;
+	case ForceMode::Velocity:
+		return PxForceMode::eVELOCITY_CHANGE;
+	case ForceMode::Acceleration:
+		return PxForceMode::eACCELERATION;
 	}
 
-	PxForceMode::Enum toPxForceMode(PointForceMode mode)
-	{
-		switch(mode)
-		{
-		case PointForceMode::Force:
-			return PxForceMode::eFORCE;
-		case PointForceMode::Impulse:
-			return PxForceMode::eIMPULSE;
-		}
+	return PxForceMode::eFORCE;
+}
 
+PxForceMode::Enum toPxForceMode(PointForceMode mode)
+{
+	switch(mode)
+	{
+	case PointForceMode::Force:
 		return PxForceMode::eFORCE;
+	case PointForceMode::Impulse:
+		return PxForceMode::eIMPULSE;
 	}
 
-	PhysXRigidbody::PhysXRigidbody(PxPhysics* physx, PxScene* scene, const HSceneObject& linkedSO)
-		: Rigidbody(linkedSO)
+	return PxForceMode::eFORCE;
+}
+
+PhysXRigidbody::PhysXRigidbody(PxPhysics* physx, PxScene* scene, const HSceneObject& linkedSO)
+	: Rigidbody(linkedSO)
+{
+	const Transform& tfrm = linkedSO->GetTransform();
+	PxTransform pxTfrm = toPxTransform(tfrm.GetPosition(), tfrm.GetRotation());
+
+	mInternal = physx->createRigidDynamic(pxTfrm);
+	mInternal->userData = this;
+
+	scene->addActor(*mInternal);
+}
+
+PhysXRigidbody::~PhysXRigidbody()
+{
+	mInternal->userData = nullptr;
+	mInternal->release();
+}
+
+void PhysXRigidbody::Move(const Vector3& position)
+{
+	if(GetIsKinematic())
 	{
-		const Transform& tfrm = linkedSO->GetTransform();
-		PxTransform pxTfrm = toPxTransform(tfrm.GetPosition(), tfrm.GetRotation());
+		PxTransform target;
+		if(!mInternal->getKinematicTarget(target))
+			target = PxTransform(PxIdentity);
 
-		mInternal = physx->createRigidDynamic(pxTfrm);
-		mInternal->userData = this;
+		target.p = toPxVector(position);
 
-		scene->addActor(*mInternal);
+		mInternal->setKinematicTarget(target);
+	}
+	else
+	{
+		SetTransform(position, GetRotation());
+	}
+}
+
+void PhysXRigidbody::Rotate(const Quaternion& rotation)
+{
+	if(GetIsKinematic())
+	{
+		PxTransform target;
+		if(!mInternal->getKinematicTarget(target))
+			target = PxTransform(PxIdentity);
+
+		target.q = toPxQuaternion(rotation);
+
+		mInternal->setKinematicTarget(target);
+	}
+	else
+	{
+		SetTransform(GetPosition(), rotation);
+	}
+}
+
+Vector3 PhysXRigidbody::GetPosition() const
+{
+	return fromPxVector(mInternal->getGlobalPose().p);
+}
+
+Quaternion PhysXRigidbody::GetRotation() const
+{
+	return fromPxQuaternion(mInternal->getGlobalPose().q);
+}
+
+void PhysXRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
+{
+	mInternal->setGlobalPose(toPxTransform(pos, rot));
+}
+
+void PhysXRigidbody::SetMass(float mass)
+{
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) != 0)
+	{
+		BS_LOG(Warning, Physics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
+		return;
 	}
 
-	PhysXRigidbody::~PhysXRigidbody()
+	mInternal->setMass(mass);
+}
+
+float PhysXRigidbody::GetMass() const
+{
+	return mInternal->getMass();
+}
+
+void PhysXRigidbody::SetIsKinematic(bool kinematic)
+{
+	mInternal->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, kinematic);
+}
+
+bool PhysXRigidbody::GetIsKinematic() const
+{
+	return ((u32)mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC) != 0;
+}
+
+bool PhysXRigidbody::IsSleeping() const
+{
+	return mInternal->isSleeping();
+}
+
+void PhysXRigidbody::Sleep()
+{
+	mInternal->putToSleep();
+}
+
+void PhysXRigidbody::WakeUp()
+{
+	mInternal->wakeUp();
+}
+
+void PhysXRigidbody::SetSleepThreshold(float threshold)
+{
+	mInternal->setSleepThreshold(threshold);
+}
+
+float PhysXRigidbody::GetSleepThreshold() const
+{
+	return mInternal->getSleepThreshold();
+}
+
+void PhysXRigidbody::SetUseGravity(bool gravity)
+{
+	mInternal->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !gravity);
+}
+
+bool PhysXRigidbody::GetUseGravity() const
+{
+	return ((u32)mInternal->getActorFlags() & PxActorFlag::eDISABLE_GRAVITY) == 0;
+}
+
+void PhysXRigidbody::SetVelocity(const Vector3& velocity)
+{
+	mInternal->setLinearVelocity(toPxVector(velocity));
+}
+
+Vector3 PhysXRigidbody::GetVelocity() const
+{
+	return fromPxVector(mInternal->getLinearVelocity());
+}
+
+void PhysXRigidbody::SetAngularVelocity(const Vector3& velocity)
+{
+	mInternal->setAngularVelocity(toPxVector(velocity));
+}
+
+Vector3 PhysXRigidbody::GetAngularVelocity() const
+{
+	return fromPxVector(mInternal->getAngularVelocity());
+}
+
+void PhysXRigidbody::SetDrag(float drag)
+{
+	mInternal->setLinearDamping(drag);
+}
+
+float PhysXRigidbody::GetDrag() const
+{
+	return mInternal->getLinearDamping();
+}
+
+void PhysXRigidbody::SetAngularDrag(float drag)
+{
+	mInternal->setAngularDamping(drag);
+}
+
+float PhysXRigidbody::GetAngularDrag() const
+{
+	return mInternal->getAngularDamping();
+}
+
+void PhysXRigidbody::SetInertiaTensor(const Vector3& tensor)
+{
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
 	{
-		mInternal->userData = nullptr;
-		mInternal->release();
+		BS_LOG(Warning, Physics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
+		return;
 	}
 
-	void PhysXRigidbody::Move(const Vector3& position)
+	mInternal->setMassSpaceInertiaTensor(toPxVector(tensor));
+}
+
+Vector3 PhysXRigidbody::GetInertiaTensor() const
+{
+	return fromPxVector(mInternal->getMassSpaceInertiaTensor());
+}
+
+void PhysXRigidbody::SetMaxAngularVelocity(float maxVelocity)
+{
+	mInternal->setMaxAngularVelocity(maxVelocity);
+}
+
+float PhysXRigidbody::GetMaxAngularVelocity() const
+{
+	return mInternal->getMaxAngularVelocity();
+}
+
+void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)
+{
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
 	{
-		if(GetIsKinematic())
-		{
-			PxTransform target;
-			if(!mInternal->getKinematicTarget(target))
-				target = PxTransform(PxIdentity);
-
-			target.p = toPxVector(position);
-
-			mInternal->setKinematicTarget(target);
-		}
-		else
-		{
-			SetTransform(position, GetRotation());
-		}
+		BS_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
+		return;
 	}
 
-	void PhysXRigidbody::Rotate(const Quaternion& rotation)
+	mInternal->setCMassLocalPose(toPxTransform(position, rotation));
+}
+
+Vector3 PhysXRigidbody::GetCenterOfMassPosition() const
+{
+	PxTransform cMassTfrm = mInternal->getCMassLocalPose();
+	return fromPxVector(cMassTfrm.p);
+}
+
+Quaternion PhysXRigidbody::GetCenterOfMassRotation() const
+{
+	PxTransform cMassTfrm = mInternal->getCMassLocalPose();
+	return fromPxQuaternion(cMassTfrm.q);
+}
+
+void PhysXRigidbody::SetPositionSolverCount(u32 count)
+{
+	mInternal->setSolverIterationCounts(std::max(1U, count), GetVelocitySolverCount());
+}
+
+u32 PhysXRigidbody::GetPositionSolverCount() const
+{
+	u32 posCount = 1;
+	u32 velCount = 1;
+
+	mInternal->getSolverIterationCounts(posCount, velCount);
+	return posCount;
+}
+
+void PhysXRigidbody::SetVelocitySolverCount(u32 count)
+{
+	mInternal->setSolverIterationCounts(GetPositionSolverCount(), std::max(1U, count));
+}
+
+u32 PhysXRigidbody::GetVelocitySolverCount() const
+{
+	u32 posCount = 1;
+	u32 velCount = 1;
+
+	mInternal->getSolverIterationCounts(posCount, velCount);
+	return velCount;
+}
+
+void PhysXRigidbody::SetFlags(RigidbodyFlag flags)
+{
+	bool ccdEnabledOld = mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
+	bool ccdEnabledNew = ((u32)flags & (u32)RigidbodyFlag::CCD) != 0;
+
+	if(ccdEnabledOld != ccdEnabledNew)
 	{
-		if(GetIsKinematic())
-		{
-			PxTransform target;
-			if(!mInternal->getKinematicTarget(target))
-				target = PxTransform(PxIdentity);
+		mInternal->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
 
-			target.q = toPxQuaternion(rotation);
-
-			mInternal->setKinematicTarget(target);
-		}
-		else
-		{
-			SetTransform(GetPosition(), rotation);
-		}
-	}
-
-	Vector3 PhysXRigidbody::GetPosition() const
-	{
-		return fromPxVector(mInternal->getGlobalPose().p);
-	}
-
-	Quaternion PhysXRigidbody::GetRotation() const
-	{
-		return fromPxQuaternion(mInternal->getGlobalPose().q);
-	}
-
-	void PhysXRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
-	{
-		mInternal->setGlobalPose(toPxTransform(pos, rot));
-	}
-
-	void PhysXRigidbody::SetMass(float mass)
-	{
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) != 0)
-		{
-			BS_LOG(Warning, Physics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
-			return;
-		}
-
-		mInternal->setMass(mass);
-	}
-
-	float PhysXRigidbody::GetMass() const
-	{
-		return mInternal->getMass();
-	}
-
-	void PhysXRigidbody::SetIsKinematic(bool kinematic)
-	{
-		mInternal->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, kinematic);
-	}
-
-	bool PhysXRigidbody::GetIsKinematic() const
-	{
-		return ((u32)mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eKINEMATIC) != 0;
-	}
-
-	bool PhysXRigidbody::IsSleeping() const
-	{
-		return mInternal->isSleeping();
-	}
-
-	void PhysXRigidbody::Sleep()
-	{
-		mInternal->putToSleep();
-	}
-
-	void PhysXRigidbody::WakeUp()
-	{
-		mInternal->wakeUp();
-	}
-
-	void PhysXRigidbody::SetSleepThreshold(float threshold)
-	{
-		mInternal->setSleepThreshold(threshold);
-	}
-
-	float PhysXRigidbody::GetSleepThreshold() const
-	{
-		return mInternal->getSleepThreshold();
-	}
-
-	void PhysXRigidbody::SetUseGravity(bool gravity)
-	{
-		mInternal->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !gravity);
-	}
-
-	bool PhysXRigidbody::GetUseGravity() const
-	{
-		return ((u32)mInternal->getActorFlags() & PxActorFlag::eDISABLE_GRAVITY) == 0;
-	}
-
-	void PhysXRigidbody::SetVelocity(const Vector3& velocity)
-	{
-		mInternal->setLinearVelocity(toPxVector(velocity));
-	}
-
-	Vector3 PhysXRigidbody::GetVelocity() const
-	{
-		return fromPxVector(mInternal->getLinearVelocity());
-	}
-
-	void PhysXRigidbody::SetAngularVelocity(const Vector3& velocity)
-	{
-		mInternal->setAngularVelocity(toPxVector(velocity));
-	}
-
-	Vector3 PhysXRigidbody::GetAngularVelocity() const
-	{
-		return fromPxVector(mInternal->getAngularVelocity());
-	}
-
-	void PhysXRigidbody::SetDrag(float drag)
-	{
-		mInternal->setLinearDamping(drag);
-	}
-
-	float PhysXRigidbody::GetDrag() const
-	{
-		return mInternal->getLinearDamping();
-	}
-
-	void PhysXRigidbody::SetAngularDrag(float drag)
-	{
-		mInternal->setAngularDamping(drag);
-	}
-
-	float PhysXRigidbody::GetAngularDrag() const
-	{
-		return mInternal->getAngularDamping();
-	}
-
-	void PhysXRigidbody::SetInertiaTensor(const Vector3& tensor)
-	{
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
-		{
-			BS_LOG(Warning, Physics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
-			return;
-		}
-
-		mInternal->setMassSpaceInertiaTensor(toPxVector(tensor));
-	}
-
-	Vector3 PhysXRigidbody::GetInertiaTensor() const
-	{
-		return fromPxVector(mInternal->getMassSpaceInertiaTensor());
-	}
-
-	void PhysXRigidbody::SetMaxAngularVelocity(float maxVelocity)
-	{
-		mInternal->setMaxAngularVelocity(maxVelocity);
-	}
-
-	float PhysXRigidbody::GetMaxAngularVelocity() const
-	{
-		return mInternal->getMaxAngularVelocity();
-	}
-
-	void PhysXRigidbody::SetCenterOfMass(const Vector3& position, const Quaternion& rotation)
-	{
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
-		{
-			BS_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
-			return;
-		}
-
-		mInternal->setCMassLocalPose(toPxTransform(position, rotation));
-	}
-
-	Vector3 PhysXRigidbody::GetCenterOfMassPosition() const
-	{
-		PxTransform cMassTfrm = mInternal->getCMassLocalPose();
-		return fromPxVector(cMassTfrm.p);
-	}
-
-	Quaternion PhysXRigidbody::GetCenterOfMassRotation() const
-	{
-		PxTransform cMassTfrm = mInternal->getCMassLocalPose();
-		return fromPxQuaternion(cMassTfrm.q);
-	}
-
-	void PhysXRigidbody::SetPositionSolverCount(u32 count)
-	{
-		mInternal->setSolverIterationCounts(std::max(1U, count), GetVelocitySolverCount());
-	}
-
-	u32 PhysXRigidbody::GetPositionSolverCount() const
-	{
-		u32 posCount = 1;
-		u32 velCount = 1;
-
-		mInternal->getSolverIterationCounts(posCount, velCount);
-		return posCount;
-	}
-
-	void PhysXRigidbody::SetVelocitySolverCount(u32 count)
-	{
-		mInternal->setSolverIterationCounts(GetPositionSolverCount(), std::max(1U, count));
-	}
-
-	u32 PhysXRigidbody::GetVelocitySolverCount() const
-	{
-		u32 posCount = 1;
-		u32 velCount = 1;
-
-		mInternal->getSolverIterationCounts(posCount, velCount);
-		return velCount;
-	}
-
-	void PhysXRigidbody::SetFlags(RigidbodyFlag flags)
-	{
-		bool ccdEnabledOld = mInternal->getRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
-		bool ccdEnabledNew = ((u32)flags & (u32)RigidbodyFlag::CCD) != 0;
-
-		if(ccdEnabledOld != ccdEnabledNew)
-		{
-			mInternal->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
-
-			// Enable/disable CCD on shapes so the filter can handle them properly
-			u32 numShapes = mInternal->getNbShapes();
-			PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
-
-			mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
-
-			for(u32 i = 0; i < numShapes; i++)
-			{
-				Collider* collider = (Collider*)shapes[i]->userData;
-				collider->GetInternalInternal()->SetCCDInternal(ccdEnabledNew);
-			}
-		}
-
-		Rigidbody::SetFlags(flags);
-	}
-
-	void PhysXRigidbody::AddForce(const Vector3& force, ForceMode mode)
-	{
-		mInternal->addForce(toPxVector(force), toPxForceMode(mode));
-	}
-
-	void PhysXRigidbody::AddTorque(const Vector3& force, ForceMode mode)
-	{
-		mInternal->addTorque(toPxVector(force), toPxForceMode(mode));
-	}
-
-	void PhysXRigidbody::AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode)
-	{
-		const PxVec3& pxForce = toPxVector(force);
-		const PxVec3& pxPos = toPxVector(position);
-
-		const PxTransform globalPose = mInternal->getGlobalPose();
-		PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
-
-		PxForceMode::Enum pxMode = toPxForceMode(mode);
-
-		PxVec3 torque = (pxPos - centerOfMass).cross(pxForce);
-		mInternal->addForce(pxForce, pxMode);
-		mInternal->addTorque(torque, pxMode);
-	}
-
-	Vector3 PhysXRigidbody::GetVelocityAtPoint(const Vector3& point) const
-	{
-		const PxVec3& pxPoint = toPxVector(point);
-
-		const PxTransform globalPose = mInternal->getGlobalPose();
-		const PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
-		const PxVec3 rpoint = pxPoint - centerOfMass;
-
-		PxVec3 velocity = mInternal->getLinearVelocity();
-		velocity += mInternal->getAngularVelocity().cross(rpoint);
-
-		return fromPxVector(velocity);
-	}
-
-	void PhysXRigidbody::UpdateMassDistribution()
-	{
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
-			return;
-
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
-		{
-			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
-		}
-		else
-		{
-			u32 numShapes = mInternal->getNbShapes();
-			if(numShapes == 0)
-			{
-				PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
-				return;
-			}
-
-			PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
-			mInternal->getShapes(shapes, numShapes);
-
-			float* masses = (float*)bs_stack_alloc(sizeof(float) * numShapes);
-			for(u32 i = 0; i < numShapes; i++)
-				masses[i] = ((Collider*)shapes[i]->userData)->GetMass();
-
-			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, masses, numShapes);
-
-			bs_stack_free(masses);
-			bs_stack_free(shapes);
-		}
-	}
-
-	void PhysXRigidbody::AddCollider(Collider* collider)
-	{
-		if(collider == nullptr)
-			return;
-
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
-		physxCollider->SetCCDInternal(((u32)mFlags & (u32)RigidbodyFlag::CCD) != 0);
-
-		mInternal->attachShape(*physxCollider->GetShapeInternal());
-	}
-
-	void PhysXRigidbody::RemoveCollider(Collider* collider)
-	{
-		if(collider == nullptr)
-			return;
-
-		FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
-		physxCollider->SetCCDInternal(false);
-
-		mInternal->detachShape(*physxCollider->GetShapeInternal());
-	}
-
-	void PhysXRigidbody::RemoveColliders()
-	{
+		// Enable/disable CCD on shapes so the filter can handle them properly
 		u32 numShapes = mInternal->getNbShapes();
 		PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
 
@@ -419,11 +309,120 @@ namespace bs
 		for(u32 i = 0; i < numShapes; i++)
 		{
 			Collider* collider = (Collider*)shapes[i]->userData;
-			collider->GetInternalInternal()->SetCCDInternal(false);
+			collider->GetInternalInternal()->SetCCDInternal(ccdEnabledNew);
+		}
+	}
 
-			mInternal->detachShape(*shapes[i]);
+	Rigidbody::SetFlags(flags);
+}
+
+void PhysXRigidbody::AddForce(const Vector3& force, ForceMode mode)
+{
+	mInternal->addForce(toPxVector(force), toPxForceMode(mode));
+}
+
+void PhysXRigidbody::AddTorque(const Vector3& force, ForceMode mode)
+{
+	mInternal->addTorque(toPxVector(force), toPxForceMode(mode));
+}
+
+void PhysXRigidbody::AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode)
+{
+	const PxVec3& pxForce = toPxVector(force);
+	const PxVec3& pxPos = toPxVector(position);
+
+	const PxTransform globalPose = mInternal->getGlobalPose();
+	PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
+
+	PxForceMode::Enum pxMode = toPxForceMode(mode);
+
+	PxVec3 torque = (pxPos - centerOfMass).cross(pxForce);
+	mInternal->addForce(pxForce, pxMode);
+	mInternal->addTorque(torque, pxMode);
+}
+
+Vector3 PhysXRigidbody::GetVelocityAtPoint(const Vector3& point) const
+{
+	const PxVec3& pxPoint = toPxVector(point);
+
+	const PxTransform globalPose = mInternal->getGlobalPose();
+	const PxVec3 centerOfMass = globalPose.transform(mInternal->getCMassLocalPose().p);
+	const PxVec3 rpoint = pxPoint - centerOfMass;
+
+	PxVec3 velocity = mInternal->getLinearVelocity();
+	velocity += mInternal->getAngularVelocity().cross(rpoint);
+
+	return fromPxVector(velocity);
+}
+
+void PhysXRigidbody::UpdateMassDistribution()
+{
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
+		return;
+
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
+	{
+		PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
+	}
+	else
+	{
+		u32 numShapes = mInternal->getNbShapes();
+		if(numShapes == 0)
+		{
+			PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, mInternal->getMass());
+			return;
 		}
 
+		PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
+		mInternal->getShapes(shapes, numShapes);
+
+		float* masses = (float*)bs_stack_alloc(sizeof(float) * numShapes);
+		for(u32 i = 0; i < numShapes; i++)
+			masses[i] = ((Collider*)shapes[i]->userData)->GetMass();
+
+		PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, masses, numShapes);
+
+		bs_stack_free(masses);
 		bs_stack_free(shapes);
 	}
-} // namespace bs
+}
+
+void PhysXRigidbody::AddCollider(Collider* collider)
+{
+	if(collider == nullptr)
+		return;
+
+	FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
+	physxCollider->SetCCDInternal(((u32)mFlags & (u32)RigidbodyFlag::CCD) != 0);
+
+	mInternal->attachShape(*physxCollider->GetShapeInternal());
+}
+
+void PhysXRigidbody::RemoveCollider(Collider* collider)
+{
+	if(collider == nullptr)
+		return;
+
+	FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider->GetInternalInternal());
+	physxCollider->SetCCDInternal(false);
+
+	mInternal->detachShape(*physxCollider->GetShapeInternal());
+}
+
+void PhysXRigidbody::RemoveColliders()
+{
+	u32 numShapes = mInternal->getNbShapes();
+	PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
+
+	mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
+
+	for(u32 i = 0; i < numShapes; i++)
+	{
+		Collider* collider = (Collider*)shapes[i]->userData;
+		collider->GetInternalInternal()->SetCCDInternal(false);
+
+		mInternal->detachShape(*shapes[i]);
+	}
+
+	bs_stack_free(shapes);
+}

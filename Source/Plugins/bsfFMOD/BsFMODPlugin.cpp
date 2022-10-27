@@ -6,41 +6,40 @@
 #include "BsFMODImporter.h"
 #include "Importer/BsImporter.h"
 
-namespace bs
+using namespace bs;
+
+class FMODFactory : public AudioFactory
 {
-	class FMODFactory : public AudioFactory
+public:
+	void StartUp() override
 	{
-	public:
-		void StartUp() override
-		{
-			Audio::StartUp<FMODAudio>();
-		}
-
-		void ShutDown() override
-		{
-			Audio::ShutDown();
-		}
-	};
-
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		static const char* pluginName = "bsfFMOD";
-		return pluginName;
+		Audio::StartUp<FMODAudio>();
 	}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+	void ShutDown() override
 	{
-		FMODImporter* importer = bs_new<FMODImporter>();
-		Importer::Instance().RegisterAssetImporterInternal(importer);
-
-		return bs_new<FMODFactory>();
+		Audio::ShutDown();
 	}
+};
 
-	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(FMODFactory* instance)
-	{
-		bs_delete(instance);
-	}
-} // namespace bs
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
+{
+	static const char* pluginName = "bsfFMOD";
+	return pluginName;
+}
+
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	FMODImporter* importer = bs_new<FMODImporter>();
+	Importer::Instance().RegisterAssetImporterInternal(importer);
+
+	return bs_new<FMODFactory>();
+}
+
+/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
+extern "C" BS_PLUGIN_EXPORT void unloadPlugin(FMODFactory* instance)
+{
+	bs_delete(instance);
+}

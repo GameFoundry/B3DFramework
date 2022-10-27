@@ -4,18 +4,17 @@
 #include "Renderer/BsRenderer.h"
 #include "BsRenderBeast.h"
 
-namespace bs
+using namespace bs;
+
+constexpr const char* RenderBeastFactory::SystemName;
+
+SPtr<ct::Renderer> RenderBeastFactory::Create()
 {
-	constexpr const char* RenderBeastFactory::SystemName;
+	return bs_shared_ptr_new<ct::RenderBeast>();
+}
 
-	SPtr<ct::Renderer> RenderBeastFactory::Create()
-	{
-		return bs_shared_ptr_new<ct::RenderBeast>();
-	}
-
-	const String& RenderBeastFactory::Name() const
-	{
-		static String StrSystemName = SystemName;
-		return StrSystemName;
-	}
-} // namespace bs
+const String& RenderBeastFactory::Name() const
+{
+	static String StrSystemName = SystemName;
+	return StrSystemName;
+}

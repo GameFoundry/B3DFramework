@@ -6,41 +6,40 @@
 #include "BsOAImporter.h"
 #include "Importer/BsImporter.h"
 
-namespace bs
+using namespace bs;
+
+class OAFactory : public AudioFactory
 {
-	class OAFactory : public AudioFactory
+public:
+	void StartUp()
 	{
-	public:
-		void StartUp()
-		{
-			Audio::StartUp<OAAudio>();
-		}
-
-		void ShutDown()
-		{
-			Audio::ShutDown();
-		}
-	};
-
-	/**	Returns a name of the plugin. */
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		static const char* pluginName = "OpenAudio";
-		return pluginName;
+		Audio::StartUp<OAAudio>();
 	}
 
-	/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
-	extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+	void ShutDown()
 	{
-		OAImporter* importer = bs_new<OAImporter>();
-		Importer::Instance().RegisterAssetImporterInternal(importer);
-
-		return bs_new<OAFactory>();
+		Audio::ShutDown();
 	}
+};
 
-	/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
-	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(OAFactory* instance)
-	{
-		bs_delete(instance);
-	}
-} // namespace bs
+/**	Returns a name of the plugin. */
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
+{
+	static const char* pluginName = "OpenAudio";
+	return pluginName;
+}
+
+/**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
+extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
+{
+	OAImporter* importer = bs_new<OAImporter>();
+	Importer::Instance().RegisterAssetImporterInternal(importer);
+
+	return bs_new<OAFactory>();
+}
+
+/**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
+extern "C" BS_PLUGIN_EXPORT void unloadPlugin(OAFactory* instance)
+{
+	bs_delete(instance);
+}

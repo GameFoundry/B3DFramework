@@ -5,112 +5,109 @@
 #include "Math/BsMath.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+GLOcclusionQuery::GLOcclusionQuery(bool binary, u32 deviceIdx)
+	: OcclusionQuery(binary)
 {
-	namespace ct
+	assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+
+	glGenQueries(1, &mQueryObj);
+	BS_CHECK_GL_ERROR();
+
+	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+}
+
+GLOcclusionQuery::~GLOcclusionQuery()
+{
+	glDeleteQueries(1, &mQueryObj);
+	BS_CHECK_GL_ERROR();
+
+	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+}
+
+void GLOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
+{
+	auto execute = [&]()
 	{
-		GLOcclusionQuery::GLOcclusionQuery(bool binary, u32 deviceIdx)
-			: OcclusionQuery(binary)
-		{
-			assert(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
+		glBeginQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED, mQueryObj);
+		BS_CHECK_GL_ERROR();
 
-			glGenQueries(1, &mQueryObj);
-			BS_CHECK_GL_ERROR();
+		mNumSamples = 0;
+		mEndIssued = false;
+		SetActive(true);
+	};
 
-			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
-		}
+	if(cb == nullptr)
+		execute();
+	else
+	{
+		SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
+		glCB->QueueCommand(execute);
+	}
+}
 
-		GLOcclusionQuery::~GLOcclusionQuery()
-		{
-			glDeleteQueries(1, &mQueryObj);
-			BS_CHECK_GL_ERROR();
+void GLOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
+{
+	auto execute = [&]()
+	{
+		glEndQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED);
+		BS_CHECK_GL_ERROR();
 
-			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
-		}
+		mEndIssued = true;
+		mFinalized = false;
+	};
 
-		void GLOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
-		{
-			auto execute = [&]()
-			{
-				glBeginQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED, mQueryObj);
-				BS_CHECK_GL_ERROR();
+	if(cb == nullptr)
+		execute();
+	else
+	{
+		SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
+		glCB->QueueCommand(execute);
+	}
+}
 
-				mNumSamples = 0;
-				mEndIssued = false;
-				SetActive(true);
-			};
+bool GLOcclusionQuery::IsReady() const
+{
+	if(!mEndIssued)
+		return false;
 
-			if(cb == nullptr)
-				execute();
-			else
-			{
-				SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-				glCB->QueueCommand(execute);
-			}
-		}
+	GLint done = 0;
+	glGetQueryObjectiv(mQueryObj, GL_QUERY_RESULT_AVAILABLE, &done);
+	BS_CHECK_GL_ERROR();
 
-		void GLOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
-		{
-			auto execute = [&]()
-			{
-				glEndQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED);
-				BS_CHECK_GL_ERROR();
+	return done == GL_TRUE;
+}
 
-				mEndIssued = true;
-				mFinalized = false;
-			};
+u32 GLOcclusionQuery::GetNumSamples()
+{
+	if(!mFinalized && IsReady())
+	{
+		Finalize();
+	}
 
-			if(cb == nullptr)
-				execute();
-			else
-			{
-				SPtr<GLCommandBuffer> glCB = std::static_pointer_cast<GLCommandBuffer>(cb);
-				glCB->QueueCommand(execute);
-			}
-		}
+	return mNumSamples;
+}
 
-		bool GLOcclusionQuery::IsReady() const
-		{
-			if(!mEndIssued)
-				return false;
+void GLOcclusionQuery::Finalize()
+{
+	mFinalized = true;
 
-			GLint done = 0;
-			glGetQueryObjectiv(mQueryObj, GL_QUERY_RESULT_AVAILABLE, &done);
-			BS_CHECK_GL_ERROR();
+	if(mBinary)
+	{
+		GLuint anyPassed = GL_FALSE;
+		glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &anyPassed);
+		BS_CHECK_GL_ERROR();
 
-			return done == GL_TRUE;
-		}
+		mNumSamples = anyPassed == GL_TRUE ? 1 : 0;
+	}
+	else
+	{
+		GLuint numSamples = 0;
+		glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &numSamples);
+		BS_CHECK_GL_ERROR();
 
-		u32 GLOcclusionQuery::GetNumSamples()
-		{
-			if(!mFinalized && IsReady())
-			{
-				Finalize();
-			}
-
-			return mNumSamples;
-		}
-
-		void GLOcclusionQuery::Finalize()
-		{
-			mFinalized = true;
-
-			if(mBinary)
-			{
-				GLuint anyPassed = GL_FALSE;
-				glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &anyPassed);
-				BS_CHECK_GL_ERROR();
-
-				mNumSamples = anyPassed == GL_TRUE ? 1 : 0;
-			}
-			else
-			{
-				GLuint numSamples = 0;
-				glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &numSamples);
-				BS_CHECK_GL_ERROR();
-
-				mNumSamples = (u32)numSamples;
-			}
-		}
-	} // namespace ct
-} // namespace bs
+		mNumSamples = (u32)numSamples;
+	}
+}

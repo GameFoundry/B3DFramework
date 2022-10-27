@@ -3,17 +3,14 @@
 #include "Managers/BsVulkanRenderAPIFactory.h"
 #include "RenderAPI/BsRenderAPI.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+constexpr const char* VulkanRenderAPIFactory::SystemName;
+
+void VulkanRenderAPIFactory::Create()
 {
-	namespace ct
-	{
-		constexpr const char* VulkanRenderAPIFactory::SystemName;
+	RenderAPI::StartUp<VulkanRenderAPI>();
+}
 
-		void VulkanRenderAPIFactory::Create()
-		{
-			RenderAPI::StartUp<VulkanRenderAPI>();
-		}
-
-		VulkanRenderAPIFactory::InitOnStart VulkanRenderAPIFactory::initOnStart;
-	} // namespace ct
-} // namespace bs
+VulkanRenderAPIFactory::InitOnStart VulkanRenderAPIFactory::initOnStart;

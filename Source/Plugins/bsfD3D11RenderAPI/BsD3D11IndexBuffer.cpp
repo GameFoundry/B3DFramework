@@ -4,27 +4,24 @@
 #include "BsD3D11Device.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+static void deleteBuffer(HardwareBuffer* buffer)
 {
-	namespace ct
-	{
-		static void deleteBuffer(HardwareBuffer* buffer)
-		{
-			bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
-		}
+	bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
+}
 
-		D3D11IndexBuffer::D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
-			: IndexBuffer(desc, deviceMask), mDevice(device)
-		{
-			assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
-		}
+D3D11IndexBuffer::D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
+	: IndexBuffer(desc, deviceMask), mDevice(device)
+{
+	assert((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX.");
+}
 
-		void D3D11IndexBuffer::Initialize()
-		{
-			mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, mDevice);
-			mBufferDeleter = &deleteBuffer;
+void D3D11IndexBuffer::Initialize()
+{
+	mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, mDevice);
+	mBufferDeleter = &deleteBuffer;
 
-			IndexBuffer::Initialize();
-		}
-	} // namespace ct
-} // namespace bs
+	IndexBuffer::Initialize();
+}

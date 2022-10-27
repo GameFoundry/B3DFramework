@@ -5,28 +5,27 @@
 #include "BsD3D11RenderWindow.h"
 #include "Threading/BsAsyncOp.h"
 
-namespace bs
+using namespace bs;
+
+D3D11RenderWindowManager::D3D11RenderWindowManager(ct::D3D11RenderAPI* renderSystem)
+	: mRenderSystem(renderSystem)
 {
-	D3D11RenderWindowManager::D3D11RenderWindowManager(ct::D3D11RenderAPI* renderSystem)
-		: mRenderSystem(renderSystem)
+	assert(mRenderSystem != nullptr);
+}
+
+SPtr<RenderWindow> D3D11RenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
+{
+	ct::RenderAPI* rs = ct::RenderAPI::InstancePtr();
+	ct::D3D11RenderAPI* d3d11rs = static_cast<ct::D3D11RenderAPI*>(rs);
+
+	if(parentWindow != nullptr)
 	{
-		assert(mRenderSystem != nullptr);
+		u64 hWnd;
+		parentWindow->GetCustomAttribute("WINDOW", &hWnd);
+		desc.PlatformSpecific["parentWindowHandle"] = toString(hWnd);
 	}
 
-	SPtr<RenderWindow> D3D11RenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow)
-	{
-		ct::RenderAPI* rs = ct::RenderAPI::InstancePtr();
-		ct::D3D11RenderAPI* d3d11rs = static_cast<ct::D3D11RenderAPI*>(rs);
-
-		if(parentWindow != nullptr)
-		{
-			u64 hWnd;
-			parentWindow->GetCustomAttribute("WINDOW", &hWnd);
-			desc.PlatformSpecific["parentWindowHandle"] = toString(hWnd);
-		}
-
-		// Create the window
-		D3D11RenderWindow* renderWindow = new(bs_alloc<D3D11RenderWindow>()) D3D11RenderWindow(desc, windowId);
-		return bs_core_ptr<D3D11RenderWindow>(renderWindow);
-	}
-} // namespace bs
+	// Create the window
+	D3D11RenderWindow* renderWindow = new(bs_alloc<D3D11RenderWindow>()) D3D11RenderWindow(desc, windowId);
+	return bs_core_ptr<D3D11RenderWindow>(renderWindow);
+}

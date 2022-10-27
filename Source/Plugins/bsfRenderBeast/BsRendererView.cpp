@@ -14,936 +14,934 @@
 #include "Animation/BsAnimationManager.h"
 #include "RenderAPI/BsCommandBuffer.h"
 
-namespace bs
+namespace bs {
+namespace ct {
+
+PerCameraParamDef gPerCameraParamDef;
+SkyboxParamDef gSkyboxParamDef;
+
+SkyboxMat::SkyboxMat()
 {
-	namespace ct
+	if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
+		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
+
+	mParamBuffer = gSkyboxParamDef.CreateBuffer();
+
+	if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
+		mParams->SetParamBlockBuffer("Params", mParamBuffer);
+}
+
+void SkyboxMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
+{
+	mParams->SetParamBlockBuffer("PerCamera", perCamera);
+
+	mSkyTextureParam.Set(texture);
+
+	gSkyboxParamDef.gClearColor.Set(mParamBuffer, solidColor);
+	mParamBuffer->FlushToGpu();
+
+	RendererMaterial::Bind();
+}
+
+SkyboxMat* SkyboxMat::GetVariation(bool color)
+{
+	if(color)
+		return Get(GetVariation<true>());
+
+	return Get(GetVariation<false>());
+}
+
+RendererViewData::RendererViewData()
+	: EncodeDepth(false)
+{
+}
+
+RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
+	: RendererViewData(src), FrameIdx(0), Target(src.Target)
+{
+	ProjTransformNoAa = src.ProjTransform;
+	ViewProjTransform = src.ProjTransform * src.ViewTransform;
+}
+
+RendererView::RendererView()
+	: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
+{
+	mParamBuffer = gPerCameraParamDef.CreateBuffer();
+}
+
+RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
+	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
+{
+	mParamBuffer = gPerCameraParamDef.CreateBuffer();
+	mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
+
+	SetStateReductionMode(desc.StateReduction);
+}
+
+void RendererView::SetStateReductionMode(StateReduction reductionMode)
+{
+	mDeferredOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
+	mForwardOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
+
+	StateReduction transparentStateReduction = reductionMode;
+	if(transparentStateReduction == StateReduction::Material)
+		transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
+
+	mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
+	mDecalQueue = bs_shared_ptr_new<RenderQueue>(StateReduction::Material);
+}
+
+void RendererView::SetRenderSettings(const SPtr<RenderSettings>& settings)
+{
+	if(mRenderSettings == nullptr)
+		mRenderSettings = bs_shared_ptr_new<RenderSettings>();
+
+	if(settings != nullptr)
+		*mRenderSettings = *settings;
+
+	mRenderSettingsHash++;
+
+	// Update compositor hierarchy (Note: Needs to be called even when viewport size (or other information) changes,
+	// but we're currently calling it here as all such calls are followed by setRenderSettings.
+	mCompositor.Build(*this, RCNodeFinalResolve::GetNodeId());
+}
+
+void RendererView::SetTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, const Matrix4& proj, const ConvexVolume& worldFrustum)
+{
+	mProperties.ViewOrigin = origin;
+	mProperties.ViewDirection = direction;
+	mProperties.ViewTransform = view;
+	mProperties.ProjTransform = proj;
+	mProperties.ProjTransformNoAa = proj;
+	mProperties.CullFrustum = worldFrustum;
+	mProperties.ViewProjTransform = proj * view;
+	mProperties.TemporalJitter = Vector2::ZERO;
+}
+
+void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
+{
+	mCamera = desc.SceneCamera;
+	mProperties = desc;
+	mProperties.ProjTransformNoAa = desc.ProjTransform;
+	mProperties.ViewProjTransform = desc.ProjTransform * desc.ViewTransform;
+	mProperties.PrevViewProjTransform = Matrix4::IDENTITY;
+	mProperties.Target = desc.Target;
+	mProperties.TemporalJitter = Vector2::ZERO;
+
+	SetStateReductionMode(desc.StateReduction);
+}
+
+void RendererView::BeginFrame(const FrameInfo& frameInfo)
+{
+	// Check if render target resized and update the view properties accordingly
+	// Note: Normally we rely on the renderer notify* methods to let us know of changes to camera/viewport, but since
+	// render target resize can often originate from the core thread, this avoids the back and forth between
+	// main <-> core thread, and the frame delay that comes with it
+	bool perViewBufferDirty = false;
+	if(mCamera)
 	{
-		PerCameraParamDef gPerCameraParamDef;
-		SkyboxParamDef gSkyboxParamDef;
-
-		SkyboxMat::SkyboxMat()
+		const SPtr<Viewport>& viewport = mCamera->GetViewport();
+		if(viewport)
 		{
-			if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
-				mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
-
-			mParamBuffer = gSkyboxParamDef.CreateBuffer();
-
-			if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
-				mParams->SetParamBlockBuffer("Params", mParamBuffer);
-		}
-
-		void SkyboxMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
-		{
-			mParams->SetParamBlockBuffer("PerCamera", perCamera);
-
-			mSkyTextureParam.Set(texture);
-
-			gSkyboxParamDef.gClearColor.Set(mParamBuffer, solidColor);
-			mParamBuffer->FlushToGpu();
-
-			RendererMaterial::Bind();
-		}
-
-		SkyboxMat* SkyboxMat::GetVariation(bool color)
-		{
-			if(color)
-				return Get(GetVariation<true>());
-
-			return Get(GetVariation<false>());
-		}
-
-		RendererViewData::RendererViewData()
-			: EncodeDepth(false)
-		{
-		}
-
-		RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
-			: RendererViewData(src), FrameIdx(0), Target(src.Target)
-		{
-			ProjTransformNoAa = src.ProjTransform;
-			ViewProjTransform = src.ProjTransform * src.ViewTransform;
-		}
-
-		RendererView::RendererView()
-			: mCamera(nullptr), mRenderSettingsHash(0), mViewIdx(-1)
-		{
-			mParamBuffer = gPerCameraParamDef.CreateBuffer();
-		}
-
-		RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
-			: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
-		{
-			mParamBuffer = gPerCameraParamDef.CreateBuffer();
-			mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
-
-			SetStateReductionMode(desc.StateReduction);
-		}
-
-		void RendererView::SetStateReductionMode(StateReduction reductionMode)
-		{
-			mDeferredOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
-			mForwardOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
-
-			StateReduction transparentStateReduction = reductionMode;
-			if(transparentStateReduction == StateReduction::Material)
-				transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
-
-			mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
-			mDecalQueue = bs_shared_ptr_new<RenderQueue>(StateReduction::Material);
-		}
-
-		void RendererView::SetRenderSettings(const SPtr<RenderSettings>& settings)
-		{
-			if(mRenderSettings == nullptr)
-				mRenderSettings = bs_shared_ptr_new<RenderSettings>();
-
-			if(settings != nullptr)
-				*mRenderSettings = *settings;
-
-			mRenderSettingsHash++;
-
-			// Update compositor hierarchy (Note: Needs to be called even when viewport size (or other information) changes,
-			// but we're currently calling it here as all such calls are followed by setRenderSettings.
-			mCompositor.Build(*this, RCNodeFinalResolve::GetNodeId());
-		}
-
-		void RendererView::SetTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, const Matrix4& proj, const ConvexVolume& worldFrustum)
-		{
-			mProperties.ViewOrigin = origin;
-			mProperties.ViewDirection = direction;
-			mProperties.ViewTransform = view;
-			mProperties.ProjTransform = proj;
-			mProperties.ProjTransformNoAa = proj;
-			mProperties.CullFrustum = worldFrustum;
-			mProperties.ViewProjTransform = proj * view;
-			mProperties.TemporalJitter = Vector2::ZERO;
-		}
-
-		void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
-		{
-			mCamera = desc.SceneCamera;
-			mProperties = desc;
-			mProperties.ProjTransformNoAa = desc.ProjTransform;
-			mProperties.ViewProjTransform = desc.ProjTransform * desc.ViewTransform;
-			mProperties.PrevViewProjTransform = Matrix4::IDENTITY;
-			mProperties.Target = desc.Target;
-			mProperties.TemporalJitter = Vector2::ZERO;
-
-			SetStateReductionMode(desc.StateReduction);
-		}
-
-		void RendererView::BeginFrame(const FrameInfo& frameInfo)
-		{
-			// Check if render target resized and update the view properties accordingly
-			// Note: Normally we rely on the renderer notify* methods to let us know of changes to camera/viewport, but since
-			// render target resize can often originate from the core thread, this avoids the back and forth between
-			// main <-> core thread, and the frame delay that comes with it
-			bool perViewBufferDirty = false;
-			if(mCamera)
+			u32 newTargetWidth = 0;
+			u32 newTargetHeight = 0;
+			if(mProperties.Target.Target != nullptr)
 			{
-				const SPtr<Viewport>& viewport = mCamera->GetViewport();
-				if(viewport)
-				{
-					u32 newTargetWidth = 0;
-					u32 newTargetHeight = 0;
-					if(mProperties.Target.Target != nullptr)
-					{
-						newTargetWidth = mProperties.Target.Target->GetProperties().Width;
-						newTargetHeight = mProperties.Target.Target->GetProperties().Height;
-					}
-
-					if(newTargetWidth != mProperties.Target.TargetWidth ||
-					   newTargetHeight != mProperties.Target.TargetHeight)
-					{
-						mProperties.Target.ViewRect = viewport->GetPixelArea();
-						mProperties.Target.TargetWidth = newTargetWidth;
-						mProperties.Target.TargetHeight = newTargetHeight;
-
-						perViewBufferDirty = true;
-					}
-				}
+				newTargetWidth = mProperties.Target.Target->GetProperties().Width;
+				newTargetHeight = mProperties.Target.Target->GetProperties().Height;
 			}
 
-			// Update projection matrix jitter if temporal AA is enabled
-			if(mRenderSettings->TemporalAa.Enabled)
+			if(newTargetWidth != mProperties.Target.TargetWidth ||
+			   newTargetHeight != mProperties.Target.TargetHeight)
 			{
-				u32 positionCount = mRenderSettings->TemporalAa.JitteredPositionCount;
-				positionCount = Math::Clamp(positionCount, 4U, 128U);
+				mProperties.Target.ViewRect = viewport->GetPixelArea();
+				mProperties.Target.TargetWidth = newTargetWidth;
+				mProperties.Target.TargetHeight = newTargetHeight;
 
-				u32 positionIndex = mTemporalPositionIdx % positionCount;
-
-				if(positionCount == 4)
-				{
-					// Using a 4x MSAA pattern: http://msdn.microsoft.com/en-us/library/windows/desktop/ff476218(v=vs.85).aspx
-					Vector2 samples[] = {
-						{ -2.0f / 16.0f, -6.0f / 16.0f },
-						{ 6.0f / 16.0f, -2.0f / 16.0f },
-						{ 2.0f / 16.0f, 6.0f / 16.0f },
-						{ -6.0f / 16.0f, 2.0f / 16.0f }
-					};
-
-					mProperties.TemporalJitter = samples[positionIndex];
-				}
-				else
-				{
-					constexpr float EPSILON = 1e-6f;
-
-					float u1 = Math::HaltonSequence<float>(positionIndex + 1, 2);
-					float u2 = Math::HaltonSequence<float>(positionIndex + 1, 3);
-
-					float scale = (2.0f - mRenderSettings->TemporalAa.Sharpness) * 0.3f;
-
-					float angle = 2.0f * Math::PI * u2;
-					float radius = scale * Math::Sqrt(-2.0f * Math::Log(Math::Max(u1, EPSILON)));
-
-					mProperties.TemporalJitter = Vector2(radius * Math::Cos(angle), radius * Math::Sin(angle));
-				}
-
-				Vector2 viewSize = Vector2((float)mProperties.Target.TargetWidth, (float)mProperties.Target.TargetHeight);
-				Vector2 subsampleJitter = mProperties.TemporalJitter / viewSize;
-				Matrix4 subSampleTranslate = Matrix4::Translation(Vector3(subsampleJitter.X, subsampleJitter.Y, 0.0f));
-
-				mProperties.ProjTransform = subSampleTranslate * mProperties.ProjTransformNoAa;
-				mProperties.ViewProjTransform = mProperties.ProjTransform * mProperties.ViewTransform;
-
-				mTemporalPositionIdx++;
 				perViewBufferDirty = true;
 			}
+		}
+	}
 
-			if(perViewBufferDirty)
-				UpdatePerViewBuffer();
+	// Update projection matrix jitter if temporal AA is enabled
+	if(mRenderSettings->TemporalAa.Enabled)
+	{
+		u32 positionCount = mRenderSettings->TemporalAa.JitteredPositionCount;
+		positionCount = Math::Clamp(positionCount, 4U, 128U);
 
-			// Note: inverse view-projection can be cached, it doesn't change every frame
-			Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
-			Matrix4 invViewProj = viewProj.Inverse();
-			Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
+		u32 positionIndex = mTemporalPositionIdx % positionCount;
 
-			gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
+		if(positionCount == 4)
+		{
+			// Using a 4x MSAA pattern: http://msdn.microsoft.com/en-us/library/windows/desktop/ff476218(v=vs.85).aspx
+			Vector2 samples[] = {
+				{ -2.0f / 16.0f, -6.0f / 16.0f },
+				{ 6.0f / 16.0f, -2.0f / 16.0f },
+				{ 2.0f / 16.0f, 6.0f / 16.0f },
+				{ -6.0f / 16.0f, 2.0f / 16.0f }
+			};
 
-			mFrameTimings = frameInfo.Timings;
-			mAsyncAnim = frameInfo.PerFrameData.Animation ? frameInfo.PerFrameData.Animation->Async : false;
+			mProperties.TemporalJitter = samples[positionIndex];
+		}
+		else
+		{
+			constexpr float EPSILON = 1e-6f;
 
-			// Account for auto-exposure taking multiple frames
-			if(mRedrawThisFrame)
-			{
-				// Note: Doing this here instead of _notifyNeedsRedraw because we need an up-to-date frame index
-				if(mRenderSettings->EnableHdr && mRenderSettings->EnableAutoExposure)
-					mWaitingOnAutoExposureFrame = mFrameTimings.FrameIdx;
-				else
-					mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
-			}
+			float u1 = Math::HaltonSequence<float>(positionIndex + 1, 2);
+			float u2 = Math::HaltonSequence<float>(positionIndex + 1, 3);
+
+			float scale = (2.0f - mRenderSettings->TemporalAa.Sharpness) * 0.3f;
+
+			float angle = 2.0f * Math::PI * u2;
+			float radius = scale * Math::Sqrt(-2.0f * Math::Log(Math::Max(u1, EPSILON)));
+
+			mProperties.TemporalJitter = Vector2(radius * Math::Cos(angle), radius * Math::Sin(angle));
 		}
 
-		void RendererView::EndFrame()
+		Vector2 viewSize = Vector2((float)mProperties.Target.TargetWidth, (float)mProperties.Target.TargetHeight);
+		Vector2 subsampleJitter = mProperties.TemporalJitter / viewSize;
+		Matrix4 subSampleTranslate = Matrix4::Translation(Vector3(subsampleJitter.X, subsampleJitter.Y, 0.0f));
+
+		mProperties.ProjTransform = subSampleTranslate * mProperties.ProjTransformNoAa;
+		mProperties.ViewProjTransform = mProperties.ProjTransform * mProperties.ViewTransform;
+
+		mTemporalPositionIdx++;
+		perViewBufferDirty = true;
+	}
+
+	if(perViewBufferDirty)
+		UpdatePerViewBuffer();
+
+	// Note: inverse view-projection can be cached, it doesn't change every frame
+	Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
+	Matrix4 invViewProj = viewProj.Inverse();
+	Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
+
+	gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
+
+	mFrameTimings = frameInfo.Timings;
+	mAsyncAnim = frameInfo.PerFrameData.Animation ? frameInfo.PerFrameData.Animation->Async : false;
+
+	// Account for auto-exposure taking multiple frames
+	if(mRedrawThisFrame)
+	{
+		// Note: Doing this here instead of _notifyNeedsRedraw because we need an up-to-date frame index
+		if(mRenderSettings->EnableHdr && mRenderSettings->EnableAutoExposure)
+			mWaitingOnAutoExposureFrame = mFrameTimings.FrameIdx;
+		else
+			mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
+	}
+}
+
+void RendererView::EndFrame()
+{
+	// Save view-projection matrix to use for temporal filtering
+	mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
+
+	// Advance per-view frame index. This is used primarily by temporal rendering effects, and pausing the frame index
+	// allows you to freeze the current rendering as is, without temporal artifacts.
+	mProperties.FrameIdx++;
+
+	mDeferredOpaqueQueue->Clear();
+	mForwardOpaqueQueue->Clear();
+	mTransparentQueue->Clear();
+	mDecalQueue->Clear();
+
+	if(mRedrawForFrames > 0)
+		mRedrawForFrames--;
+
+	if(mRedrawForSeconds > 0.0f)
+		mRedrawForSeconds -= mFrameTimings.TimeDelta;
+
+	mRedrawThisFrame = false;
+}
+
+void RendererView::NotifyNeedsRedrawInternal()
+{
+	mRedrawThisFrame = true;
+
+	// If doing async animation there is a one frame delay
+	mRedrawForFrames = mAsyncAnim ? 2 : 1;
+
+	// This will be set once we get the new luminance data from the GPU
+	mRedrawForSeconds = 0.0f;
+}
+
+bool RendererView::ShouldDraw() const
+{
+	if(!mProperties.OnDemand)
+		return true;
+
+	if(mRenderSettings->EnableHdr && mRenderSettings->EnableAutoExposure)
+	{
+		constexpr float AUTO_EXPOSURE_TOLERANCE = 0.01f;
+
+		// The view was redrawn but we still haven't received the eye adaptation results from the GPU, so
+		// we keep redrawing until we do
+		if(mWaitingOnAutoExposureFrame != std::numeric_limits<u64>::max())
+			return true;
+
+		// Need to render until the auto-exposure reaches the target exposure
+		float eyeAdaptationDiff = Math::Abs(mCurrentEyeAdaptation - mPreviousEyeAdaptation);
+		if(eyeAdaptationDiff > AUTO_EXPOSURE_TOLERANCE)
+			return true;
+	}
+
+	return mRedrawForFrames > 0 || mRedrawForSeconds > 0.0f;
+}
+
+bool RendererView::RequiresVelocityWrites() const
+{
+	return mRenderSettings->TemporalAa.Enabled || mRenderSettings->EnableVelocityBuffer;
+}
+
+void RendererView::UpdateAsyncOperations()
+{
+	// Find most recent available frame
+	auto lastFinishedIter = mLuminanceUpdates.end();
+	for(auto iter = mLuminanceUpdates.begin(); iter != mLuminanceUpdates.end(); ++iter)
+	{
+		if(iter->CommandBuffer->GetState() == CommandBufferState::Executing)
+			break;
+
+		lastFinishedIter = iter;
+	}
+
+	if(lastFinishedIter != mLuminanceUpdates.end())
+	{
+		// Get new luminance value
+		mPreviousEyeAdaptation = mCurrentEyeAdaptation;
+
+		PixelData data = lastFinishedIter->OutputTexture->Texture->Lock(GBL_READ_ONLY);
+		mCurrentEyeAdaptation = data.GetColorAt(0, 0).R;
+		lastFinishedIter->OutputTexture->Texture->Unlock();
+
+		// We've received information about eye adaptation, use that to determine if redrawing
+		// is required (technically we're drawing a few frames extra, as this information is always
+		// a few frames too late).
+		if(lastFinishedIter->FrameIdx == mWaitingOnAutoExposureFrame)
+			mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
+
+		mLuminanceUpdates.erase(mLuminanceUpdates.begin(), lastFinishedIter + 1);
+	}
+}
+
+RendererViewRedrawReason RendererView::GetRedrawReason() const
+{
+	if(!mProperties.OnDemand)
+		return RendererViewRedrawReason::PerFrame;
+
+	if(mRedrawThisFrame)
+		return RendererViewRedrawReason::OnDemandThisFrame;
+
+	return RendererViewRedrawReason::OnDemandLingering;
+}
+
+float RendererView::GetCurrentExposure() const
+{
+	if(mRenderSettings->EnableAutoExposure)
+		return mPreviousEyeAdaptation;
+
+	return Math::Pow(2.0f, mRenderSettings->ExposureScale);
+}
+
+void RendererView::NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
+{
+	mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
+}
+
+void RendererView::DetermineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
+{
+	mVisibility.Renderables.clear();
+	mVisibility.Renderables.resize(renderables.size(), false);
+
+	if(!ShouldDraw3D())
+		return;
+
+	CalculateVisibility(cullInfos, mVisibility.Renderables);
+
+	if(visibility != nullptr)
+	{
+		for(u32 i = 0; i < (u32)renderables.size(); i++)
 		{
-			// Save view-projection matrix to use for temporal filtering
-			mProperties.PrevViewProjTransform = mProperties.ViewProjTransform;
+			bool visible = (*visibility)[i];
 
-			// Advance per-view frame index. This is used primarily by temporal rendering effects, and pausing the frame index
-			// allows you to freeze the current rendering as is, without temporal artifacts.
-			mProperties.FrameIdx++;
-
-			mDeferredOpaqueQueue->Clear();
-			mForwardOpaqueQueue->Clear();
-			mTransparentQueue->Clear();
-			mDecalQueue->Clear();
-
-			if(mRedrawForFrames > 0)
-				mRedrawForFrames--;
-
-			if(mRedrawForSeconds > 0.0f)
-				mRedrawForSeconds -= mFrameTimings.TimeDelta;
-
-			mRedrawThisFrame = false;
+			(*visibility)[i] = visible || mVisibility.Renderables[i];
 		}
+	}
+}
 
-		void RendererView::NotifyNeedsRedrawInternal()
+void RendererView::DetermineVisible(const Vector<RendererParticles>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
+{
+	mVisibility.ParticleSystems.clear();
+	mVisibility.ParticleSystems.resize(particleSystems.size(), false);
+
+	if(!ShouldDraw3D())
+		return;
+
+	CalculateVisibility(cullInfos, mVisibility.ParticleSystems);
+
+	if(visibility != nullptr)
+	{
+		for(u32 i = 0; i < (u32)particleSystems.size(); i++)
 		{
-			mRedrawThisFrame = true;
+			bool visible = (*visibility)[i];
 
-			// If doing async animation there is a one frame delay
-			mRedrawForFrames = mAsyncAnim ? 2 : 1;
-
-			// This will be set once we get the new luminance data from the GPU
-			mRedrawForSeconds = 0.0f;
+			(*visibility)[i] = visible || mVisibility.ParticleSystems[i];
 		}
+	}
+}
 
-		bool RendererView::ShouldDraw() const
+void RendererView::DetermineVisible(const Vector<RendererDecal>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
+{
+	mVisibility.Decals.clear();
+	mVisibility.Decals.resize(decals.size(), false);
+
+	if(!ShouldDraw3D())
+		return;
+
+	CalculateVisibility(cullInfos, mVisibility.Decals);
+
+	if(visibility != nullptr)
+	{
+		for(u32 i = 0; i < (u32)decals.size(); i++)
 		{
-			if(!mProperties.OnDemand)
-				return true;
+			bool visible = (*visibility)[i];
 
-			if(mRenderSettings->EnableHdr && mRenderSettings->EnableAutoExposure)
-			{
-				constexpr float AUTO_EXPOSURE_TOLERANCE = 0.01f;
-
-				// The view was redrawn but we still haven't received the eye adaptation results from the GPU, so
-				// we keep redrawing until we do
-				if(mWaitingOnAutoExposureFrame != std::numeric_limits<u64>::max())
-					return true;
-
-				// Need to render until the auto-exposure reaches the target exposure
-				float eyeAdaptationDiff = Math::Abs(mCurrentEyeAdaptation - mPreviousEyeAdaptation);
-				if(eyeAdaptationDiff > AUTO_EXPOSURE_TOLERANCE)
-					return true;
-			}
-
-			return mRedrawForFrames > 0 || mRedrawForSeconds > 0.0f;
+			(*visibility)[i] = visible || mVisibility.Decals[i];
 		}
+	}
+}
 
-		bool RendererView::RequiresVelocityWrites() const
+void RendererView::DetermineVisible(const Vector<RendererLight>& lights, const Vector<Sphere>& bounds, LightType lightType, Vector<bool>* visibility)
+{
+	// Special case for directional lights, they're always visible
+	if(lightType == LightType::Directional)
+	{
+		if(visibility)
+			visibility->assign(lights.size(), true);
+
+		return;
+	}
+
+	Vector<bool>* perViewVisibility;
+	if(lightType == LightType::Radial)
+	{
+		mVisibility.RadialLights.clear();
+		mVisibility.RadialLights.resize(lights.size(), false);
+
+		perViewVisibility = &mVisibility.RadialLights;
+	}
+	else // Spot
+	{
+		mVisibility.SpotLights.clear();
+		mVisibility.SpotLights.resize(lights.size(), false);
+
+		perViewVisibility = &mVisibility.SpotLights;
+	}
+
+	if(!ShouldDraw3D())
+		return;
+
+	CalculateVisibility(bounds, *perViewVisibility);
+
+	if(visibility != nullptr)
+	{
+		for(u32 i = 0; i < (u32)lights.size(); i++)
 		{
-			return mRenderSettings->TemporalAa.Enabled || mRenderSettings->EnableVelocityBuffer;
+			bool visible = (*visibility)[i];
+
+			(*visibility)[i] = visible || (*perViewVisibility)[i];
 		}
+	}
+}
 
-		void RendererView::UpdateAsyncOperations()
+void RendererView::CalculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const
+{
+	u64 cameraLayers = mProperties.VisibleLayers;
+	const ConvexVolume& worldFrustum = mProperties.CullFrustum;
+	const Vector3& worldCameraPosition = mProperties.ViewOrigin;
+	float baseCullDistance = mRenderSettings->CullDistance;
+
+	for(u32 i = 0; i < (u32)cullInfos.size(); i++)
+	{
+		if((cullInfos[i].Layer & cameraLayers) == 0)
+			continue;
+
+		// Do distance culling
+		const Sphere& boundingSphere = cullInfos[i].Bounds.GetSphere();
+		const Vector3& worldRenderablePosition = boundingSphere.GetCenter();
+
+		float distanceToCameraSq = worldCameraPosition.SquaredDistance(worldRenderablePosition);
+		float correctedCullDistance = cullInfos[i].CullDistanceFactor * baseCullDistance;
+		float maxDistanceToCamera = correctedCullDistance + boundingSphere.GetRadius();
+
+		if(distanceToCameraSq > maxDistanceToCamera * maxDistanceToCamera)
+			continue;
+
+		// Do frustum culling
+		// Note: This is bound to be a bottleneck at some point. When it is ensure that intersect methods use vector
+		// operations, as it is trivial to update them. Also consider spatial partitioning.
+		if(worldFrustum.Intersects(boundingSphere))
 		{
-			// Find most recent available frame
-			auto lastFinishedIter = mLuminanceUpdates.end();
-			for(auto iter = mLuminanceUpdates.begin(); iter != mLuminanceUpdates.end(); ++iter)
-			{
-				if(iter->CommandBuffer->GetState() == CommandBufferState::Executing)
-					break;
+			// More precise with the box
+			const AABox& boundingBox = cullInfos[i].Bounds.GetBox();
 
-				lastFinishedIter = iter;
-			}
-
-			if(lastFinishedIter != mLuminanceUpdates.end())
-			{
-				// Get new luminance value
-				mPreviousEyeAdaptation = mCurrentEyeAdaptation;
-
-				PixelData data = lastFinishedIter->OutputTexture->Texture->Lock(GBL_READ_ONLY);
-				mCurrentEyeAdaptation = data.GetColorAt(0, 0).R;
-				lastFinishedIter->OutputTexture->Texture->Unlock();
-
-				// We've received information about eye adaptation, use that to determine if redrawing
-				// is required (technically we're drawing a few frames extra, as this information is always
-				// a few frames too late).
-				if(lastFinishedIter->FrameIdx == mWaitingOnAutoExposureFrame)
-					mWaitingOnAutoExposureFrame = std::numeric_limits<u64>::max();
-
-				mLuminanceUpdates.erase(mLuminanceUpdates.begin(), lastFinishedIter + 1);
-			}
+			if(worldFrustum.Intersects(boundingBox))
+				visibility[i] = true;
 		}
+	}
+}
 
-		RendererViewRedrawReason RendererView::GetRedrawReason() const
+void RendererView::CalculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
+{
+	const ConvexVolume& worldFrustum = mProperties.CullFrustum;
+
+	for(u32 i = 0; i < (u32)bounds.size(); i++)
+	{
+		if(worldFrustum.Intersects(bounds[i]))
+			visibility[i] = true;
+	}
+}
+
+void RendererView::CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>& visibility) const
+{
+	const ConvexVolume& worldFrustum = mProperties.CullFrustum;
+
+	for(u32 i = 0; i < (u32)bounds.size(); i++)
+	{
+		if(worldFrustum.Intersects(bounds[i]))
+			visibility[i] = true;
+	}
+}
+
+void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
+{
+	// Queue renderables
+	for(u32 i = 0; i < (u32)sceneInfo.Renderables.size(); i++)
+	{
+		if(!mVisibility.Renderables[i])
+			continue;
+
+		const AABox& boundingBox = sceneInfo.RenderableCullInfos[i].Bounds.GetBox();
+		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
+
+		bool needsVelocity = RequiresVelocityWrites();
+		for(auto& renderElem : sceneInfo.Renderables[i]->Elements)
 		{
-			if(!mProperties.OnDemand)
-				return RendererViewRedrawReason::PerFrame;
-
-			if(mRedrawThisFrame)
-				return RendererViewRedrawReason::OnDemandThisFrame;
-
-			return RendererViewRedrawReason::OnDemandLingering;
-		}
-
-		float RendererView::GetCurrentExposure() const
-		{
-			if(mRenderSettings->EnableAutoExposure)
-				return mPreviousEyeAdaptation;
-
-			return Math::Pow(2.0f, mRenderSettings->ExposureScale);
-		}
-
-		void RendererView::NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
-		{
-			mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
-		}
-
-		void RendererView::DetermineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
-		{
-			mVisibility.Renderables.clear();
-			mVisibility.Renderables.resize(renderables.size(), false);
-
-			if(!ShouldDraw3D())
-				return;
-
-			CalculateVisibility(cullInfos, mVisibility.Renderables);
-
-			if(visibility != nullptr)
+			u32 techniqueIdx;
+			if(needsVelocity)
 			{
-				for(u32 i = 0; i < (u32)renderables.size(); i++)
-				{
-					bool visible = (*visibility)[i];
-
-					(*visibility)[i] = visible || mVisibility.Renderables[i];
-				}
-			}
-		}
-
-		void RendererView::DetermineVisible(const Vector<RendererParticles>& particleSystems, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
-		{
-			mVisibility.ParticleSystems.clear();
-			mVisibility.ParticleSystems.resize(particleSystems.size(), false);
-
-			if(!ShouldDraw3D())
-				return;
-
-			CalculateVisibility(cullInfos, mVisibility.ParticleSystems);
-
-			if(visibility != nullptr)
-			{
-				for(u32 i = 0; i < (u32)particleSystems.size(); i++)
-				{
-					bool visible = (*visibility)[i];
-
-					(*visibility)[i] = visible || mVisibility.ParticleSystems[i];
-				}
-			}
-		}
-
-		void RendererView::DetermineVisible(const Vector<RendererDecal>& decals, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)
-		{
-			mVisibility.Decals.clear();
-			mVisibility.Decals.resize(decals.size(), false);
-
-			if(!ShouldDraw3D())
-				return;
-
-			CalculateVisibility(cullInfos, mVisibility.Decals);
-
-			if(visibility != nullptr)
-			{
-				for(u32 i = 0; i < (u32)decals.size(); i++)
-				{
-					bool visible = (*visibility)[i];
-
-					(*visibility)[i] = visible || mVisibility.Decals[i];
-				}
-			}
-		}
-
-		void RendererView::DetermineVisible(const Vector<RendererLight>& lights, const Vector<Sphere>& bounds, LightType lightType, Vector<bool>* visibility)
-		{
-			// Special case for directional lights, they're always visible
-			if(lightType == LightType::Directional)
-			{
-				if(visibility)
-					visibility->assign(lights.size(), true);
-
-				return;
-			}
-
-			Vector<bool>* perViewVisibility;
-			if(lightType == LightType::Radial)
-			{
-				mVisibility.RadialLights.clear();
-				mVisibility.RadialLights.resize(lights.size(), false);
-
-				perViewVisibility = &mVisibility.RadialLights;
-			}
-			else // Spot
-			{
-				mVisibility.SpotLights.clear();
-				mVisibility.SpotLights.resize(lights.size(), false);
-
-				perViewVisibility = &mVisibility.SpotLights;
-			}
-
-			if(!ShouldDraw3D())
-				return;
-
-			CalculateVisibility(bounds, *perViewVisibility);
-
-			if(visibility != nullptr)
-			{
-				for(u32 i = 0; i < (u32)lights.size(); i++)
-				{
-					bool visible = (*visibility)[i];
-
-					(*visibility)[i] = visible || (*perViewVisibility)[i];
-				}
-			}
-		}
-
-		void RendererView::CalculateVisibility(const Vector<CullInfo>& cullInfos, Vector<bool>& visibility) const
-		{
-			u64 cameraLayers = mProperties.VisibleLayers;
-			const ConvexVolume& worldFrustum = mProperties.CullFrustum;
-			const Vector3& worldCameraPosition = mProperties.ViewOrigin;
-			float baseCullDistance = mRenderSettings->CullDistance;
-
-			for(u32 i = 0; i < (u32)cullInfos.size(); i++)
-			{
-				if((cullInfos[i].Layer & cameraLayers) == 0)
-					continue;
-
-				// Do distance culling
-				const Sphere& boundingSphere = cullInfos[i].Bounds.GetSphere();
-				const Vector3& worldRenderablePosition = boundingSphere.GetCenter();
-
-				float distanceToCameraSq = worldCameraPosition.SquaredDistance(worldRenderablePosition);
-				float correctedCullDistance = cullInfos[i].CullDistanceFactor * baseCullDistance;
-				float maxDistanceToCamera = correctedCullDistance + boundingSphere.GetRadius();
-
-				if(distanceToCameraSq > maxDistanceToCamera * maxDistanceToCamera)
-					continue;
-
-				// Do frustum culling
-				// Note: This is bound to be a bottleneck at some point. When it is ensure that intersect methods use vector
-				// operations, as it is trivial to update them. Also consider spatial partitioning.
-				if(worldFrustum.Intersects(boundingSphere))
-				{
-					// More precise with the box
-					const AABox& boundingBox = cullInfos[i].Bounds.GetBox();
-
-					if(worldFrustum.Intersects(boundingBox))
-						visibility[i] = true;
-				}
-			}
-		}
-
-		void RendererView::CalculateVisibility(const Vector<Sphere>& bounds, Vector<bool>& visibility) const
-		{
-			const ConvexVolume& worldFrustum = mProperties.CullFrustum;
-
-			for(u32 i = 0; i < (u32)bounds.size(); i++)
-			{
-				if(worldFrustum.Intersects(bounds[i]))
-					visibility[i] = true;
-			}
-		}
-
-		void RendererView::CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>& visibility) const
-		{
-			const ConvexVolume& worldFrustum = mProperties.CullFrustum;
-
-			for(u32 i = 0; i < (u32)bounds.size(); i++)
-			{
-				if(worldFrustum.Intersects(bounds[i]))
-					visibility[i] = true;
-			}
-		}
-
-		void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
-		{
-			// Queue renderables
-			for(u32 i = 0; i < (u32)sceneInfo.Renderables.size(); i++)
-			{
-				if(!mVisibility.Renderables[i])
-					continue;
-
-				const AABox& boundingBox = sceneInfo.RenderableCullInfos[i].Bounds.GetBox();
-				const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
-
-				bool needsVelocity = RequiresVelocityWrites();
-				for(auto& renderElem : sceneInfo.Renderables[i]->Elements)
-				{
-					u32 techniqueIdx;
-					if(needsVelocity)
-					{
-						techniqueIdx = renderElem.WriteVelocityTechniqueIdx != (u32)-1
-							? renderElem.WriteVelocityTechniqueIdx
-							: renderElem.DefaultTechniqueIdx;
-					}
-					else
-						techniqueIdx = renderElem.DefaultTechniqueIdx;
-
-					ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
-
-					// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
-					if(shaderFlags.IsSet(ShaderFlag::Transparent))
-						mTransparentQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
-					else if(shaderFlags.IsSet(ShaderFlag::Forward))
-						mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
-					else
-						mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
-				}
-			}
-
-			// Queue particle systems
-			for(u32 i = 0; i < (u32)sceneInfo.ParticleSystems.size(); i++)
-			{
-				if(!mVisibility.ParticleSystems[i])
-					continue;
-
-				const ParticlesRenderElement& renderElem = sceneInfo.ParticleSystems[i].RenderElement;
-				if(!renderElem.IsValid())
-					continue;
-
-				const AABox& boundingBox = sceneInfo.ParticleSystemCullInfos[i].Bounds.GetBox();
-				const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
-
-				ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
-
-				if(shaderFlags.IsSet(ShaderFlag::Transparent))
-					mTransparentQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
-				else if(shaderFlags.IsSet(ShaderFlag::Forward))
-					mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
-				else
-					mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
-			}
-
-			// Queue decals
-			const bool isMSAA = mProperties.Target.NumSamples > 1;
-			for(u32 i = 0; i < (u32)sceneInfo.Decals.size(); i++)
-			{
-				if(!mVisibility.Decals[i])
-					continue;
-
-				const DecalRenderElement& renderElem = sceneInfo.Decals[i].RenderElement;
-
-				// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
-				ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
-
-				// Decals are only supported using deferred rendering
-				if(shaderFlags.IsSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
-					continue;
-
-				const AABox& boundingBox = sceneInfo.DecalCullInfos[i].Bounds.GetBox();
-				const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
-
-				// Check if viewer is inside the decal volume
-
-				// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
-				// the decal bounds. We need to be conservative since the material for rendering outside will not properly
-				// render the inside of the decal volume.
-				const bool isInside = boundingBox.Contains(mProperties.ViewOrigin, mProperties.NearPlane * 3.0f);
-				const u32* techniqueIndices = renderElem.TechniqueIndices[(i32)isInside];
-
-				// No MSAA evaluation, or same value for all samples (no divergence between samples)
-				mDecalQueue->Add(&renderElem, distanceToCamera, techniqueIndices[(i32)(isMSAA ? MSAAMode::Single : MSAAMode::None)]);
-
-				// Evaluates all MSAA samples for pixels that are marked as divergent
-				if(isMSAA)
-					mDecalQueue->Add(&renderElem, distanceToCamera, techniqueIndices[(i32)MSAAMode::Full]);
-			}
-
-			mForwardOpaqueQueue->Sort();
-			mDeferredOpaqueQueue->Sort();
-			mTransparentQueue->Sort();
-			mDecalQueue->Sort();
-		}
-
-		Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
-		{
-			// Returns a set of values that will transform depth buffer values (in range [0, 1]) to a distance
-			// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
-			// a vector with the projection matrix you get [clipX, clipY, Az + B, C * z], where we don't care about clipX/clipY.
-			// A is [2, 2], B is [2, 3] and C is [3, 2] elements of the projection matrix (only ones that matter for our depth
-			// value). The hardware will also automatically divide the z value with w to get the depth, therefore the final
-			// formula is:
-			// depth = (Az + B) / (C * z)
-
-			// To get the z coordinate back we simply do the opposite:
-			// z = B / (depth * C - A)
-
-			// However some APIs will also do a transformation on the depth values before storing them to the texture
-			// (e.g. OpenGL will transform from [-1, 1] to [0, 1]). And we need to reverse that as well. Therefore the final
-			// formula is:
-			// z = B / ((depth * (maxDepth - minDepth) + minDepth) * C - A)
-
-			// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
-			// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
-
-			const RenderAPICapabilities& caps = gCaps();
-
-			float depthRange = caps.MaxDepth - caps.MinDepth;
-			float minDepth = caps.MinDepth;
-
-			float a = projMatrix[2][2];
-			float b = projMatrix[2][3];
-			float c = projMatrix[3][2];
-
-			Vector2 output;
-
-			if(c != 0.0f)
-			{
-				output.X = b / (depthRange * c);
-				output.Y = minDepth / depthRange - a / (depthRange * c);
-			}
-			else // Ortographic, assuming viewing towards negative Z
-			{
-				output.X = b / -depthRange;
-				output.Y = minDepth / depthRange - a / -depthRange;
-			}
-
-			return output;
-		}
-
-		Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
-		{
-			// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
-			// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
-			// a vector with the projection matrix you get [clipX, clipY, Az + B, C * z], where we don't care about clipX/clipY.
-			// A is [2, 2], B is [2, 3] and C is [3, 2] elements of the projection matrix (only ones that matter for our depth
-			// value). The hardware will also automatically divide the z value with w to get the depth, therefore the final
-			// formula is:
-			// depth = (Az + B) / (C * z)
-
-			// To get the z coordinate back we simply do the opposite:
-			// z = B / (depth * C - A)
-
-			// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
-			// z = 1.0f / (depth - A/C) * B/C
-
-			float a = projMatrix[2][2];
-			float b = projMatrix[2][3];
-			float c = projMatrix[3][2];
-
-			Vector2 output;
-
-			if(c != 0.0f)
-			{
-				output.X = b / c;
-				output.Y = -a / c;
-			}
-			else // Ortographic, assuming viewing towards negative Z
-			{
-				output.X = -b;
-				output.Y = a;
-			}
-
-			return output;
-		}
-
-		Vector2 RendererView::GetNdczToDeviceZ()
-		{
-			const RenderAPICapabilities& caps = gCaps();
-
-			Vector2 ndcZToDeviceZ;
-			ndcZToDeviceZ.X = 1.0f / (caps.MaxDepth - caps.MinDepth);
-			ndcZToDeviceZ.Y = -caps.MinDepth;
-
-			return ndcZToDeviceZ;
-		}
-
-		Matrix4 invertProjectionMatrix(const Matrix4& mat)
-		{
-			// Try to solve the most common case using high percision calculations, in order to reduce depth error
-			if(mat[0][1] == 0.0f && mat[0][3] == 0.0f &&
-			   mat[1][0] == 0.0f && mat[1][3] == 0.0f &&
-			   mat[2][0] == 0.0f && mat[2][1] == 0.0f &&
-			   mat[3][0] == 0.0f && mat[3][1] == 0.0f &&
-			   mat[3][2] == -1.0f && mat[3][3] == 0.0f)
-			{
-				double a = mat[0][0];
-				double b = mat[1][1];
-				double c = mat[2][2];
-				double d = mat[2][3];
-				double s = mat[0][2];
-				double t = mat[1][2];
-
-				return Matrix4(
-					(float)(1.0 / a), 0.0f, 0.0f, (float)(-s / a),
-					0.0f, (float)(1.0 / b), 0.0f, (float)(-t / b),
-					0.0f, 0.0f, 0.0f, -1.0f,
-					0.0f, 0.0f, (float)(1.0 / d), (float)(c / d));
+				techniqueIdx = renderElem.WriteVelocityTechniqueIdx != (u32)-1
+					? renderElem.WriteVelocityTechniqueIdx
+					: renderElem.DefaultTechniqueIdx;
 			}
 			else
-			{
-				return mat.Inverse();
-			}
-		}
+				techniqueIdx = renderElem.DefaultTechniqueIdx;
 
-		void RendererView::UpdatePerViewBuffer()
-		{
-			Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
-			Matrix4 invProj = invertProjectionMatrix(mProperties.ProjTransform);
-			Matrix4 invView = mProperties.ViewTransform.InverseAffine();
-			Matrix4 invViewProj = invView * invProj;
+			ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
 
-			gPerCameraParamDef.gMatProj.Set(mParamBuffer, mProperties.ProjTransform);
-			gPerCameraParamDef.gMatView.Set(mParamBuffer, mProperties.ViewTransform);
-			gPerCameraParamDef.gMatViewProj.Set(mParamBuffer, viewProj);
-			gPerCameraParamDef.gMatInvViewProj.Set(mParamBuffer, invViewProj);
-			gPerCameraParamDef.gMatInvProj.Set(mParamBuffer, invProj);
-			gPerCameraParamDef.gMatPrevViewProj.Set(mParamBuffer, mProperties.PrevViewProjTransform);
-
-			// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
-			// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and
-			// view_z/view_w in view space, into world space.
-
-			// Only projects z/w coordinates (cancels out with the inverse matrix below)
-			Matrix4 projZ = Matrix4::IDENTITY;
-			projZ[2][2] = mProperties.ProjTransform[2][2];
-			projZ[2][3] = mProperties.ProjTransform[2][3];
-			projZ[3][2] = mProperties.ProjTransform[3][2];
-			projZ[3][3] = 0.0f;
-
-			Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
-
-			gPerCameraParamDef.gMatScreenToWorld.Set(mParamBuffer, invViewProj * projZ);
-			gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
-			gPerCameraParamDef.gViewDir.Set(mParamBuffer, mProperties.ViewDirection);
-			gPerCameraParamDef.gViewOrigin.Set(mParamBuffer, mProperties.ViewOrigin);
-			gPerCameraParamDef.gDeviceZToWorldZ.Set(mParamBuffer, GetDeviceZToViewZ(mProperties.ProjTransform));
-			gPerCameraParamDef.gNDCZToWorldZ.Set(mParamBuffer, GetNdczToViewZ(mProperties.ProjTransform));
-			gPerCameraParamDef.gNDCZToDeviceZ.Set(mParamBuffer, GetNdczToDeviceZ());
-
-			Vector2 nearFar(mProperties.NearPlane, mProperties.FarPlane);
-			gPerCameraParamDef.gNearFar.Set(mParamBuffer, nearFar);
-
-			const Rect2I& viewRect = mProperties.Target.ViewRect;
-
-			Vector4I viewportRect;
-			viewportRect[0] = viewRect.X;
-			viewportRect[1] = viewRect.Y;
-			viewportRect[2] = viewRect.Width;
-			viewportRect[3] = viewRect.Height;
-
-			gPerCameraParamDef.gViewportRectangle.Set(mParamBuffer, viewportRect);
-
-			Vector4 ndcToUV = GetNdcToUv();
-			gPerCameraParamDef.gClipToUVScaleOffset.Set(mParamBuffer, ndcToUV);
-
-			Vector4 uvToNDC(
-				1.0f / ndcToUV.X,
-				1.0f / ndcToUV.Y,
-				-ndcToUV.Z / ndcToUV.X,
-				-ndcToUV.W / ndcToUV.Y);
-			gPerCameraParamDef.gUVToClipScaleOffset.Set(mParamBuffer, uvToNDC);
-
-			if(!mRenderSettings->EnableLighting)
-				gPerCameraParamDef.gAmbientFactor.Set(mParamBuffer, 100.0f);
+			// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
+			if(shaderFlags.IsSet(ShaderFlag::Transparent))
+				mTransparentQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
+			else if(shaderFlags.IsSet(ShaderFlag::Forward))
+				mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
 			else
-				gPerCameraParamDef.gAmbientFactor.Set(mParamBuffer, 0.0f);
+				mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, techniqueIdx);
 		}
+	}
 
-		Vector4 RendererView::GetNdcToUv() const
+	// Queue particle systems
+	for(u32 i = 0; i < (u32)sceneInfo.ParticleSystems.size(); i++)
+	{
+		if(!mVisibility.ParticleSystems[i])
+			continue;
+
+		const ParticlesRenderElement& renderElem = sceneInfo.ParticleSystems[i].RenderElement;
+		if(!renderElem.IsValid())
+			continue;
+
+		const AABox& boundingBox = sceneInfo.ParticleSystemCullInfos[i].Bounds.GetBox();
+		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
+
+		ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
+
+		if(shaderFlags.IsSet(ShaderFlag::Transparent))
+			mTransparentQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
+		else if(shaderFlags.IsSet(ShaderFlag::Forward))
+			mForwardOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
+		else
+			mDeferredOpaqueQueue->Add(&renderElem, distanceToCamera, renderElem.DefaultTechniqueIdx);
+	}
+
+	// Queue decals
+	const bool isMSAA = mProperties.Target.NumSamples > 1;
+	for(u32 i = 0; i < (u32)sceneInfo.Decals.size(); i++)
+	{
+		if(!mVisibility.Decals[i])
+			continue;
+
+		const DecalRenderElement& renderElem = sceneInfo.Decals[i].RenderElement;
+
+		// Note: I could keep renderables in multiple separate arrays, so I don't need to do the check here
+		ShaderFlags shaderFlags = renderElem.Material->GetShader()->GetFlags();
+
+		// Decals are only supported using deferred rendering
+		if(shaderFlags.IsSetAny(ShaderFlag::Transparent | ShaderFlag::Forward))
+			continue;
+
+		const AABox& boundingBox = sceneInfo.DecalCullInfos[i].Bounds.GetBox();
+		const float distanceToCamera = (mProperties.ViewOrigin - boundingBox.GetCenter()).Length();
+
+		// Check if viewer is inside the decal volume
+
+		// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
+		// the decal bounds. We need to be conservative since the material for rendering outside will not properly
+		// render the inside of the decal volume.
+		const bool isInside = boundingBox.Contains(mProperties.ViewOrigin, mProperties.NearPlane * 3.0f);
+		const u32* techniqueIndices = renderElem.TechniqueIndices[(i32)isInside];
+
+		// No MSAA evaluation, or same value for all samples (no divergence between samples)
+		mDecalQueue->Add(&renderElem, distanceToCamera, techniqueIndices[(i32)(isMSAA ? MSAAMode::Single : MSAAMode::None)]);
+
+		// Evaluates all MSAA samples for pixels that are marked as divergent
+		if(isMSAA)
+			mDecalQueue->Add(&renderElem, distanceToCamera, techniqueIndices[(i32)MSAAMode::Full]);
+	}
+
+	mForwardOpaqueQueue->Sort();
+	mDeferredOpaqueQueue->Sort();
+	mTransparentQueue->Sort();
+	mDecalQueue->Sort();
+}
+
+Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
+{
+	// Returns a set of values that will transform depth buffer values (in range [0, 1]) to a distance
+	// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
+	// a vector with the projection matrix you get [clipX, clipY, Az + B, C * z], where we don't care about clipX/clipY.
+	// A is [2, 2], B is [2, 3] and C is [3, 2] elements of the projection matrix (only ones that matter for our depth
+	// value). The hardware will also automatically divide the z value with w to get the depth, therefore the final
+	// formula is:
+	// depth = (Az + B) / (C * z)
+
+	// To get the z coordinate back we simply do the opposite:
+	// z = B / (depth * C - A)
+
+	// However some APIs will also do a transformation on the depth values before storing them to the texture
+	// (e.g. OpenGL will transform from [-1, 1] to [0, 1]). And we need to reverse that as well. Therefore the final
+	// formula is:
+	// z = B / ((depth * (maxDepth - minDepth) + minDepth) * C - A)
+
+	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
+	// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
+
+	const RenderAPICapabilities& caps = gCaps();
+
+	float depthRange = caps.MaxDepth - caps.MinDepth;
+	float minDepth = caps.MinDepth;
+
+	float a = projMatrix[2][2];
+	float b = projMatrix[2][3];
+	float c = projMatrix[3][2];
+
+	Vector2 output;
+
+	if(c != 0.0f)
+	{
+		output.X = b / (depthRange * c);
+		output.Y = minDepth / depthRange - a / (depthRange * c);
+	}
+	else // Ortographic, assuming viewing towards negative Z
+	{
+		output.X = b / -depthRange;
+		output.Y = minDepth / depthRange - a / -depthRange;
+	}
+
+	return output;
+}
+
+Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
+{
+	// Returns a set of values that will transform depth buffer values (e.g. [0, 1] in DX, [-1, 1] in GL) to a distance
+	// in view space. This involes applying the inverse projection transform to the depth value. When you multiply
+	// a vector with the projection matrix you get [clipX, clipY, Az + B, C * z], where we don't care about clipX/clipY.
+	// A is [2, 2], B is [2, 3] and C is [3, 2] elements of the projection matrix (only ones that matter for our depth
+	// value). The hardware will also automatically divide the z value with w to get the depth, therefore the final
+	// formula is:
+	// depth = (Az + B) / (C * z)
+
+	// To get the z coordinate back we simply do the opposite:
+	// z = B / (depth * C - A)
+
+	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
+	// z = 1.0f / (depth - A/C) * B/C
+
+	float a = projMatrix[2][2];
+	float b = projMatrix[2][3];
+	float c = projMatrix[3][2];
+
+	Vector2 output;
+
+	if(c != 0.0f)
+	{
+		output.X = b / c;
+		output.Y = -a / c;
+	}
+	else // Ortographic, assuming viewing towards negative Z
+	{
+		output.X = -b;
+		output.Y = a;
+	}
+
+	return output;
+}
+
+Vector2 RendererView::GetNdczToDeviceZ()
+{
+	const RenderAPICapabilities& caps = gCaps();
+
+	Vector2 ndcZToDeviceZ;
+	ndcZToDeviceZ.X = 1.0f / (caps.MaxDepth - caps.MinDepth);
+	ndcZToDeviceZ.Y = -caps.MinDepth;
+
+	return ndcZToDeviceZ;
+}
+
+Matrix4 invertProjectionMatrix(const Matrix4& mat)
+{
+	// Try to solve the most common case using high percision calculations, in order to reduce depth error
+	if(mat[0][1] == 0.0f && mat[0][3] == 0.0f &&
+	   mat[1][0] == 0.0f && mat[1][3] == 0.0f &&
+	   mat[2][0] == 0.0f && mat[2][1] == 0.0f &&
+	   mat[3][0] == 0.0f && mat[3][1] == 0.0f &&
+	   mat[3][2] == -1.0f && mat[3][3] == 0.0f)
+	{
+		double a = mat[0][0];
+		double b = mat[1][1];
+		double c = mat[2][2];
+		double d = mat[2][3];
+		double s = mat[0][2];
+		double t = mat[1][2];
+
+		return Matrix4(
+			(float)(1.0 / a), 0.0f, 0.0f, (float)(-s / a),
+			0.0f, (float)(1.0 / b), 0.0f, (float)(-t / b),
+			0.0f, 0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, (float)(1.0 / d), (float)(c / d));
+	}
+	else
+	{
+		return mat.Inverse();
+	}
+}
+
+void RendererView::UpdatePerViewBuffer()
+{
+	Matrix4 viewProj = mProperties.ProjTransform * mProperties.ViewTransform;
+	Matrix4 invProj = invertProjectionMatrix(mProperties.ProjTransform);
+	Matrix4 invView = mProperties.ViewTransform.InverseAffine();
+	Matrix4 invViewProj = invView * invProj;
+
+	gPerCameraParamDef.gMatProj.Set(mParamBuffer, mProperties.ProjTransform);
+	gPerCameraParamDef.gMatView.Set(mParamBuffer, mProperties.ViewTransform);
+	gPerCameraParamDef.gMatViewProj.Set(mParamBuffer, viewProj);
+	gPerCameraParamDef.gMatInvViewProj.Set(mParamBuffer, invViewProj);
+	gPerCameraParamDef.gMatInvProj.Set(mParamBuffer, invProj);
+	gPerCameraParamDef.gMatPrevViewProj.Set(mParamBuffer, mProperties.PrevViewProjTransform);
+
+	// Construct a special inverse view-projection matrix that had projection entries that effect z and w eliminated.
+	// Used to transform a vector(clip_x, clip_y, view_z, view_w), where clip_x/clip_y are in clip space, and
+	// view_z/view_w in view space, into world space.
+
+	// Only projects z/w coordinates (cancels out with the inverse matrix below)
+	Matrix4 projZ = Matrix4::IDENTITY;
+	projZ[2][2] = mProperties.ProjTransform[2][2];
+	projZ[2][3] = mProperties.ProjTransform[2][3];
+	projZ[3][2] = mProperties.ProjTransform[3][2];
+	projZ[3][3] = 0.0f;
+
+	Matrix4 NDCToPrevNDC = mProperties.PrevViewProjTransform * invViewProj;
+
+	gPerCameraParamDef.gMatScreenToWorld.Set(mParamBuffer, invViewProj * projZ);
+	gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
+	gPerCameraParamDef.gViewDir.Set(mParamBuffer, mProperties.ViewDirection);
+	gPerCameraParamDef.gViewOrigin.Set(mParamBuffer, mProperties.ViewOrigin);
+	gPerCameraParamDef.gDeviceZToWorldZ.Set(mParamBuffer, GetDeviceZToViewZ(mProperties.ProjTransform));
+	gPerCameraParamDef.gNDCZToWorldZ.Set(mParamBuffer, GetNdczToViewZ(mProperties.ProjTransform));
+	gPerCameraParamDef.gNDCZToDeviceZ.Set(mParamBuffer, GetNdczToDeviceZ());
+
+	Vector2 nearFar(mProperties.NearPlane, mProperties.FarPlane);
+	gPerCameraParamDef.gNearFar.Set(mParamBuffer, nearFar);
+
+	const Rect2I& viewRect = mProperties.Target.ViewRect;
+
+	Vector4I viewportRect;
+	viewportRect[0] = viewRect.X;
+	viewportRect[1] = viewRect.Y;
+	viewportRect[2] = viewRect.Width;
+	viewportRect[3] = viewRect.Height;
+
+	gPerCameraParamDef.gViewportRectangle.Set(mParamBuffer, viewportRect);
+
+	Vector4 ndcToUV = GetNdcToUv();
+	gPerCameraParamDef.gClipToUVScaleOffset.Set(mParamBuffer, ndcToUV);
+
+	Vector4 uvToNDC(
+		1.0f / ndcToUV.X,
+		1.0f / ndcToUV.Y,
+		-ndcToUV.Z / ndcToUV.X,
+		-ndcToUV.W / ndcToUV.Y);
+	gPerCameraParamDef.gUVToClipScaleOffset.Set(mParamBuffer, uvToNDC);
+
+	if(!mRenderSettings->EnableLighting)
+		gPerCameraParamDef.gAmbientFactor.Set(mParamBuffer, 100.0f);
+	else
+		gPerCameraParamDef.gAmbientFactor.Set(mParamBuffer, 0.0f);
+}
+
+Vector4 RendererView::GetNdcToUv() const
+{
+	const RenderAPICapabilities& caps = gCaps();
+	const Rect2I& viewRect = mProperties.Target.ViewRect;
+
+	float halfWidth = viewRect.Width * 0.5f;
+	float halfHeight = viewRect.Height * 0.5f;
+
+	float rtWidth = mProperties.Target.TargetWidth != 0 ? (float)mProperties.Target.TargetWidth : 20.0f;
+	float rtHeight = mProperties.Target.TargetHeight != 0 ? (float)mProperties.Target.TargetHeight : 20.0f;
+
+	Vector4 ndcToUV;
+	ndcToUV.X = halfWidth / rtWidth;
+	ndcToUV.Y = -halfHeight / rtHeight;
+	ndcToUV.Z = viewRect.X / rtWidth + (halfWidth + caps.HorizontalTexelOffset) / rtWidth;
+	ndcToUV.W = viewRect.Y / rtHeight + (halfHeight + caps.VerticalTexelOffset) / rtHeight;
+
+	// Either of these flips the Y axis, but if they're both true they cancel out
+	if((caps.Conventions.UvYAxis == Conventions::Axis::Up) ^ (caps.Conventions.NdcYAxis == Conventions::Axis::Down))
+		ndcToUV.Y = -ndcToUV.Y;
+
+	return ndcToUV;
+}
+
+void RendererView::UpdateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData)
+{
+	mLightGrid.UpdateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->EnableLighting);
+}
+
+RendererViewGroup::RendererViewGroup(RendererView** views, u32 numViews, bool mainPass, u32 shadowMapSize)
+	: mIsMainPass(mainPass), mShadowRenderer(shadowMapSize)
+{
+	SetViews(views, numViews);
+}
+
+void RendererViewGroup::SetViews(RendererView** views, u32 numViews)
+{
+	mViews.clear();
+
+	for(u32 i = 0; i < numViews; i++)
+	{
+		mViews.push_back(views[i]);
+		views[i]->SetViewIdxInternal(i);
+	}
+}
+
+void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
+{
+	const auto numViews = (u32)mViews.size();
+
+	// Early exit if no views render scene geometry
+	bool anyViewsNeed3DDrawing = false;
+	for(u32 i = 0; i < numViews; i++)
+	{
+		if(mViews[i]->ShouldDraw3D())
 		{
-			const RenderAPICapabilities& caps = gCaps();
-			const Rect2I& viewRect = mProperties.Target.ViewRect;
-
-			float halfWidth = viewRect.Width * 0.5f;
-			float halfHeight = viewRect.Height * 0.5f;
-
-			float rtWidth = mProperties.Target.TargetWidth != 0 ? (float)mProperties.Target.TargetWidth : 20.0f;
-			float rtHeight = mProperties.Target.TargetHeight != 0 ? (float)mProperties.Target.TargetHeight : 20.0f;
-
-			Vector4 ndcToUV;
-			ndcToUV.X = halfWidth / rtWidth;
-			ndcToUV.Y = -halfHeight / rtHeight;
-			ndcToUV.Z = viewRect.X / rtWidth + (halfWidth + caps.HorizontalTexelOffset) / rtWidth;
-			ndcToUV.W = viewRect.Y / rtHeight + (halfHeight + caps.VerticalTexelOffset) / rtHeight;
-
-			// Either of these flips the Y axis, but if they're both true they cancel out
-			if((caps.Conventions.UvYAxis == Conventions::Axis::Up) ^ (caps.Conventions.NdcYAxis == Conventions::Axis::Down))
-				ndcToUV.Y = -ndcToUV.Y;
-
-			return ndcToUV;
+			anyViewsNeed3DDrawing = true;
+			break;
 		}
+	}
 
-		void RendererView::UpdateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData)
+	if(!anyViewsNeed3DDrawing)
+		return;
+
+	// Calculate renderable visibility per view
+	mVisibility.Renderables.resize(sceneInfo.Renderables.size(), false);
+	mVisibility.Renderables.assign(sceneInfo.Renderables.size(), false);
+
+	mVisibility.ParticleSystems.resize(sceneInfo.ParticleSystems.size(), false);
+	mVisibility.ParticleSystems.assign(sceneInfo.ParticleSystems.size(), false);
+
+	mVisibility.Decals.resize(sceneInfo.Decals.size(), false);
+	mVisibility.Decals.assign(sceneInfo.Decals.size(), false);
+
+	for(u32 i = 0; i < numViews; i++)
+	{
+		mViews[i]->DetermineVisible(sceneInfo.Renderables, sceneInfo.RenderableCullInfos, &mVisibility.Renderables);
+		mViews[i]->DetermineVisible(sceneInfo.ParticleSystems, sceneInfo.ParticleSystemCullInfos, &mVisibility.ParticleSystems);
+		mViews[i]->DetermineVisible(sceneInfo.Decals, sceneInfo.DecalCullInfos, &mVisibility.Decals);
+	}
+
+	// Generate render queues per camera
+	for(u32 i = 0; i < numViews; i++)
+	{
+		if(mViews[i]->ShouldDraw3D())
+			mViews[i]->QueueRenderElements(sceneInfo);
+	}
+
+	// Calculate light visibility for all views
+	const auto numRadialLights = (u32)sceneInfo.RadialLights.size();
+	mVisibility.RadialLights.resize(numRadialLights, false);
+	mVisibility.RadialLights.assign(numRadialLights, false);
+
+	const auto numSpotLights = (u32)sceneInfo.SpotLights.size();
+	mVisibility.SpotLights.resize(numSpotLights, false);
+	mVisibility.SpotLights.assign(numSpotLights, false);
+
+	for(u32 i = 0; i < numViews; i++)
+	{
+		if(!mViews[i]->ShouldDraw3D())
+			continue;
+
+		mViews[i]->DetermineVisible(sceneInfo.RadialLights, sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
+
+		mViews[i]->DetermineVisible(sceneInfo.SpotLights, sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
+	}
+
+	// Calculate refl. probe visibility for all views
+	const auto numProbes = (u32)sceneInfo.ReflProbes.size();
+	mVisibility.ReflProbes.resize(numProbes, false);
+	mVisibility.ReflProbes.assign(numProbes, false);
+
+	// Note: Per-view visibility for refl. probes currently isn't calculated
+	for(u32 i = 0; i < numViews; i++)
+	{
+		const auto& viewProps = mViews[i]->GetProperties();
+
+		// Don't recursively render reflection probes when generating reflection probe maps
+		if(viewProps.CapturingReflections)
+			continue;
+
+		mViews[i]->CalculateVisibility(sceneInfo.ReflProbeWorldBounds, mVisibility.ReflProbes);
+	}
+
+	// Organize light and refl. probe visibility information in a more GPU friendly manner
+
+	// Note: I'm determining light and refl. probe visibility for the entire group. It might be more performance
+	// efficient to do it per view. Additionally I'm using a single GPU buffer to hold their information, which is
+	// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
+	mVisibleLightData.Update(sceneInfo, *this);
+	mVisibleReflProbeData.Update(sceneInfo, *this);
+
+	const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	if(supportsClusteredForward)
+	{
+		for(u32 i = 0; i < numViews; i++)
 		{
-			mLightGrid.UpdateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->EnableLighting);
+			if(!mViews[i]->ShouldDraw3D())
+				continue;
+
+			mViews[i]->UpdateLightGrid(mVisibleLightData, mVisibleReflProbeData);
 		}
-
-		RendererViewGroup::RendererViewGroup(RendererView** views, u32 numViews, bool mainPass, u32 shadowMapSize)
-			: mIsMainPass(mainPass), mShadowRenderer(shadowMapSize)
-		{
-			SetViews(views, numViews);
-		}
-
-		void RendererViewGroup::SetViews(RendererView** views, u32 numViews)
-		{
-			mViews.clear();
-
-			for(u32 i = 0; i < numViews; i++)
-			{
-				mViews.push_back(views[i]);
-				views[i]->SetViewIdxInternal(i);
-			}
-		}
-
-		void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
-		{
-			const auto numViews = (u32)mViews.size();
-
-			// Early exit if no views render scene geometry
-			bool anyViewsNeed3DDrawing = false;
-			for(u32 i = 0; i < numViews; i++)
-			{
-				if(mViews[i]->ShouldDraw3D())
-				{
-					anyViewsNeed3DDrawing = true;
-					break;
-				}
-			}
-
-			if(!anyViewsNeed3DDrawing)
-				return;
-
-			// Calculate renderable visibility per view
-			mVisibility.Renderables.resize(sceneInfo.Renderables.size(), false);
-			mVisibility.Renderables.assign(sceneInfo.Renderables.size(), false);
-
-			mVisibility.ParticleSystems.resize(sceneInfo.ParticleSystems.size(), false);
-			mVisibility.ParticleSystems.assign(sceneInfo.ParticleSystems.size(), false);
-
-			mVisibility.Decals.resize(sceneInfo.Decals.size(), false);
-			mVisibility.Decals.assign(sceneInfo.Decals.size(), false);
-
-			for(u32 i = 0; i < numViews; i++)
-			{
-				mViews[i]->DetermineVisible(sceneInfo.Renderables, sceneInfo.RenderableCullInfos, &mVisibility.Renderables);
-				mViews[i]->DetermineVisible(sceneInfo.ParticleSystems, sceneInfo.ParticleSystemCullInfos, &mVisibility.ParticleSystems);
-				mViews[i]->DetermineVisible(sceneInfo.Decals, sceneInfo.DecalCullInfos, &mVisibility.Decals);
-			}
-
-			// Generate render queues per camera
-			for(u32 i = 0; i < numViews; i++)
-			{
-				if(mViews[i]->ShouldDraw3D())
-					mViews[i]->QueueRenderElements(sceneInfo);
-			}
-
-			// Calculate light visibility for all views
-			const auto numRadialLights = (u32)sceneInfo.RadialLights.size();
-			mVisibility.RadialLights.resize(numRadialLights, false);
-			mVisibility.RadialLights.assign(numRadialLights, false);
-
-			const auto numSpotLights = (u32)sceneInfo.SpotLights.size();
-			mVisibility.SpotLights.resize(numSpotLights, false);
-			mVisibility.SpotLights.assign(numSpotLights, false);
-
-			for(u32 i = 0; i < numViews; i++)
-			{
-				if(!mViews[i]->ShouldDraw3D())
-					continue;
-
-				mViews[i]->DetermineVisible(sceneInfo.RadialLights, sceneInfo.RadialLightWorldBounds, LightType::Radial, &mVisibility.RadialLights);
-
-				mViews[i]->DetermineVisible(sceneInfo.SpotLights, sceneInfo.SpotLightWorldBounds, LightType::Spot, &mVisibility.SpotLights);
-			}
-
-			// Calculate refl. probe visibility for all views
-			const auto numProbes = (u32)sceneInfo.ReflProbes.size();
-			mVisibility.ReflProbes.resize(numProbes, false);
-			mVisibility.ReflProbes.assign(numProbes, false);
-
-			// Note: Per-view visibility for refl. probes currently isn't calculated
-			for(u32 i = 0; i < numViews; i++)
-			{
-				const auto& viewProps = mViews[i]->GetProperties();
-
-				// Don't recursively render reflection probes when generating reflection probe maps
-				if(viewProps.CapturingReflections)
-					continue;
-
-				mViews[i]->CalculateVisibility(sceneInfo.ReflProbeWorldBounds, mVisibility.ReflProbes);
-			}
-
-			// Organize light and refl. probe visibility information in a more GPU friendly manner
-
-			// Note: I'm determining light and refl. probe visibility for the entire group. It might be more performance
-			// efficient to do it per view. Additionally I'm using a single GPU buffer to hold their information, which is
-			// then updated when each view group is rendered. It might be better to keep one buffer reserved per-view.
-			mVisibleLightData.Update(sceneInfo, *this);
-			mVisibleReflProbeData.Update(sceneInfo, *this);
-
-			const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
-			if(supportsClusteredForward)
-			{
-				for(u32 i = 0; i < numViews; i++)
-				{
-					if(!mViews[i]->ShouldDraw3D())
-						continue;
-
-					mViews[i]->UpdateLightGrid(mVisibleLightData, mVisibleReflProbeData);
-				}
-			}
-		}
-	} // namespace ct
-} // namespace bs
+	}
+}
+}} // namespace bs::ct

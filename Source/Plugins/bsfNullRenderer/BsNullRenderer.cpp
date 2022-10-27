@@ -8,37 +8,34 @@
 
 using namespace std::placeholders;
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+constexpr const char* NullRendererFactory::SystemName;
+
+SPtr<ct::Renderer> NullRendererFactory::Create()
 {
-	constexpr const char* NullRendererFactory::SystemName;
+	return bs_shared_ptr_new<ct::NullRenderer>();
+}
 
-	SPtr<ct::Renderer> NullRendererFactory::Create()
-	{
-		return bs_shared_ptr_new<ct::NullRenderer>();
-	}
+const String& NullRendererFactory::Name() const
+{
+	static String StrSystemName = SystemName;
+	return StrSystemName;
+}
 
-	const String& NullRendererFactory::Name() const
-	{
-		static String StrSystemName = SystemName;
-		return StrSystemName;
-	}
+const StringID& NullRenderer::GetName() const
+{
+	static StringID name = "NullRenderer";
+	return name;
+}
 
-	namespace ct
-	{
-		const StringID& NullRenderer::GetName() const
-		{
-			static StringID name = "NullRenderer";
-			return name;
-		}
+void NullRenderer::RenderAll(PerFrameData perFrameData)
+{
+	CoreObjectManager::Instance().SyncToCore();
+}
 
-		void NullRenderer::RenderAll(PerFrameData perFrameData)
-		{
-			CoreObjectManager::Instance().SyncToCore();
-		}
-
-		SPtr<NullRenderer> gNullRenderer()
-		{
-			return std::static_pointer_cast<NullRenderer>(RendererManager::Instance().GetActive());
-		}
-	} // namespace ct
-} // namespace bs
+SPtr<NullRenderer> gNullRenderer()
+{
+	return std::static_pointer_cast<NullRenderer>(RendererManager::Instance().GetActive());
+}

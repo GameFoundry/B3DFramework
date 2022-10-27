@@ -8,271 +8,270 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PxExtendedVec3 toPxExtVector(const Vector3& input)
 {
-	PxExtendedVec3 toPxExtVector(const Vector3& input)
-	{
-		return PxExtendedVec3(input.X, input.Y, input.Z);
-	}
+	return PxExtendedVec3(input.X, input.Y, input.Z);
+}
 
-	Vector3 fromPxExtVector(const PxExtendedVec3& input)
-	{
-		return Vector3((float)input.x, (float)input.y, (float)input.z);
-	}
+Vector3 fromPxExtVector(const PxExtendedVec3& input)
+{
+	return Vector3((float)input.x, (float)input.y, (float)input.z);
+}
 
-	PxCapsuleClimbingMode::Enum toPxEnum(CharacterClimbingMode value)
-	{
-		return value == CharacterClimbingMode::Normal
-			? PxCapsuleClimbingMode::eEASY
-			: PxCapsuleClimbingMode::eCONSTRAINED;
-	}
+PxCapsuleClimbingMode::Enum toPxEnum(CharacterClimbingMode value)
+{
+	return value == CharacterClimbingMode::Normal
+		? PxCapsuleClimbingMode::eEASY
+		: PxCapsuleClimbingMode::eCONSTRAINED;
+}
 
-	PxControllerNonWalkableMode::Enum toPxEnum(CharacterNonWalkableMode value)
-	{
-		return value == CharacterNonWalkableMode::Prevent
-			? PxControllerNonWalkableMode::ePREVENT_CLIMBING
-			: PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
-	}
+PxControllerNonWalkableMode::Enum toPxEnum(CharacterNonWalkableMode value)
+{
+	return value == CharacterNonWalkableMode::Prevent
+		? PxControllerNonWalkableMode::ePREVENT_CLIMBING
+		: PxControllerNonWalkableMode::ePREVENT_CLIMBING_AND_FORCE_SLIDING;
+}
 
-	CharacterClimbingMode fromPxEnum(PxCapsuleClimbingMode::Enum value)
-	{
-		return value == PxCapsuleClimbingMode::eEASY
-			? CharacterClimbingMode::Normal
-			: CharacterClimbingMode::Constrained;
-	}
+CharacterClimbingMode fromPxEnum(PxCapsuleClimbingMode::Enum value)
+{
+	return value == PxCapsuleClimbingMode::eEASY
+		? CharacterClimbingMode::Normal
+		: CharacterClimbingMode::Constrained;
+}
 
-	CharacterNonWalkableMode fromPxEnum(PxControllerNonWalkableMode::Enum value)
-	{
-		return value == PxControllerNonWalkableMode::ePREVENT_CLIMBING
-			? CharacterNonWalkableMode::Prevent
-			: CharacterNonWalkableMode::PreventAndSlide;
-	}
+CharacterNonWalkableMode fromPxEnum(PxControllerNonWalkableMode::Enum value)
+{
+	return value == PxControllerNonWalkableMode::ePREVENT_CLIMBING
+		? CharacterNonWalkableMode::Prevent
+		: CharacterNonWalkableMode::PreventAndSlide;
+}
 
-	PxCapsuleControllerDesc toPxDesc(const CHAR_CONTROLLER_DESC& desc)
-	{
-		PxCapsuleControllerDesc output;
-		output.climbingMode = toPxEnum(desc.ClimbingMode);
-		output.nonWalkableMode = toPxEnum(desc.NonWalkableMode);
-		output.contactOffset = desc.ContactOffset;
-		output.stepOffset = desc.StepOffset;
-		output.slopeLimit = desc.SlopeLimit.ValueRadians();
-		output.height = desc.Height;
-		output.radius = desc.Radius;
-		output.upDirection = toPxVector(desc.Up);
-		output.position = toPxExtVector(desc.Position);
+PxCapsuleControllerDesc toPxDesc(const CHAR_CONTROLLER_DESC& desc)
+{
+	PxCapsuleControllerDesc output;
+	output.climbingMode = toPxEnum(desc.ClimbingMode);
+	output.nonWalkableMode = toPxEnum(desc.NonWalkableMode);
+	output.contactOffset = desc.ContactOffset;
+	output.stepOffset = desc.StepOffset;
+	output.slopeLimit = desc.SlopeLimit.ValueRadians();
+	output.height = desc.Height;
+	output.radius = desc.Radius;
+	output.upDirection = toPxVector(desc.Up);
+	output.position = toPxExtVector(desc.Position);
 
-		return output;
-	}
+	return output;
+}
 
-	PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager, const CHAR_CONTROLLER_DESC& desc)
-		: CharacterController(desc)
-	{
-		PxCapsuleControllerDesc pxDesc = toPxDesc(desc);
-		pxDesc.reportCallback = this;
-		pxDesc.material = gPhysX().GetDefaultMaterial();
-		pxDesc.height = pxDesc.height <= 0 ? 0.01f : pxDesc.height;
+PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager, const CHAR_CONTROLLER_DESC& desc)
+	: CharacterController(desc)
+{
+	PxCapsuleControllerDesc pxDesc = toPxDesc(desc);
+	pxDesc.reportCallback = this;
+	pxDesc.material = gPhysX().GetDefaultMaterial();
+	pxDesc.height = pxDesc.height <= 0 ? 0.01f : pxDesc.height;
 
-		mController = static_cast<PxCapsuleController*>(manager->createController(pxDesc));
-		mController->setUserData(this);
-	}
+	mController = static_cast<PxCapsuleController*>(manager->createController(pxDesc));
+	mController->setUserData(this);
+}
 
-	PhysXCharacterController::~PhysXCharacterController()
-	{
-		mController->setUserData(nullptr);
-		mController->release();
-	}
+PhysXCharacterController::~PhysXCharacterController()
+{
+	mController->setUserData(nullptr);
+	mController->release();
+}
 
-	CharacterCollisionFlags PhysXCharacterController::Move(const Vector3& displacement)
-	{
-		PxControllerFilters filters;
-		filters.mFilterCallback = this;
-		filters.mFilterFlags = PxQueryFlag::eANY_HIT | PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
-		filters.mCCTFilterCallback = this;
+CharacterCollisionFlags PhysXCharacterController::Move(const Vector3& displacement)
+{
+	PxControllerFilters filters;
+	filters.mFilterCallback = this;
+	filters.mFilterFlags = PxQueryFlag::eANY_HIT | PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
+	filters.mCCTFilterCallback = this;
 
-		float curTime = gTime().GetTime();
-		float delta = curTime - mLastMoveCall;
-		mLastMoveCall = curTime;
+	float curTime = gTime().GetTime();
+	float delta = curTime - mLastMoveCall;
+	mLastMoveCall = curTime;
 
-		PxControllerCollisionFlags collisionFlag = mController->move(toPxVector(displacement), mMinMoveDistance, delta, filters);
+	PxControllerCollisionFlags collisionFlag = mController->move(toPxVector(displacement), mMinMoveDistance, delta, filters);
 
-		CharacterCollisionFlags output;
-		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
-			output.Set(CharacterCollisionFlag::Down);
+	CharacterCollisionFlags output;
+	if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_DOWN))
+		output.Set(CharacterCollisionFlag::Down);
 
-		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
-			output.Set(CharacterCollisionFlag::Up);
+	if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_UP))
+		output.Set(CharacterCollisionFlag::Up);
 
-		if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
-			output.Set(CharacterCollisionFlag::Sides);
+	if(collisionFlag.isSet(PxControllerCollisionFlag::eCOLLISION_SIDES))
+		output.Set(CharacterCollisionFlag::Sides);
 
-		return output;
-	}
+	return output;
+}
 
-	Vector3 PhysXCharacterController::GetPosition() const
-	{
-		return fromPxExtVector(mController->getPosition());
-	}
+Vector3 PhysXCharacterController::GetPosition() const
+{
+	return fromPxExtVector(mController->getPosition());
+}
 
-	void PhysXCharacterController::SetPosition(const Vector3& position)
-	{
-		mController->setPosition(toPxExtVector(position));
-	}
+void PhysXCharacterController::SetPosition(const Vector3& position)
+{
+	mController->setPosition(toPxExtVector(position));
+}
 
-	Vector3 PhysXCharacterController::GetFootPosition() const
-	{
-		return fromPxExtVector(mController->getFootPosition());
-	}
+Vector3 PhysXCharacterController::GetFootPosition() const
+{
+	return fromPxExtVector(mController->getFootPosition());
+}
 
-	void PhysXCharacterController::SetFootPosition(const Vector3& position)
-	{
-		mController->setFootPosition(toPxExtVector(position));
-	}
+void PhysXCharacterController::SetFootPosition(const Vector3& position)
+{
+	mController->setFootPosition(toPxExtVector(position));
+}
 
-	float PhysXCharacterController::GetRadius() const
-	{
-		return mController->getRadius();
-	}
+float PhysXCharacterController::GetRadius() const
+{
+	return mController->getRadius();
+}
 
-	void PhysXCharacterController::SetRadius(float radius)
-	{
-		mController->setRadius(radius);
-	}
+void PhysXCharacterController::SetRadius(float radius)
+{
+	mController->setRadius(radius);
+}
 
-	float PhysXCharacterController::GetHeight() const
-	{
-		return mController->getHeight();
-	}
+float PhysXCharacterController::GetHeight() const
+{
+	return mController->getHeight();
+}
 
-	void PhysXCharacterController::SetHeight(float height)
-	{
-		mController->setHeight(height);
-	}
+void PhysXCharacterController::SetHeight(float height)
+{
+	mController->setHeight(height);
+}
 
-	Vector3 PhysXCharacterController::GetUp() const
-	{
-		return fromPxVector(mController->getUpDirection());
-	}
+Vector3 PhysXCharacterController::GetUp() const
+{
+	return fromPxVector(mController->getUpDirection());
+}
 
-	void PhysXCharacterController::SetUp(const Vector3& up)
-	{
-		mController->setUpDirection(toPxVector(up));
-	}
+void PhysXCharacterController::SetUp(const Vector3& up)
+{
+	mController->setUpDirection(toPxVector(up));
+}
 
-	CharacterClimbingMode PhysXCharacterController::GetClimbingMode() const
-	{
-		return fromPxEnum(mController->getClimbingMode());
-	}
+CharacterClimbingMode PhysXCharacterController::GetClimbingMode() const
+{
+	return fromPxEnum(mController->getClimbingMode());
+}
 
-	void PhysXCharacterController::SetClimbingMode(CharacterClimbingMode mode)
-	{
-		mController->setClimbingMode(toPxEnum(mode));
-	}
+void PhysXCharacterController::SetClimbingMode(CharacterClimbingMode mode)
+{
+	mController->setClimbingMode(toPxEnum(mode));
+}
 
-	CharacterNonWalkableMode PhysXCharacterController::GetNonWalkableMode() const
-	{
-		return fromPxEnum(mController->getNonWalkableMode());
-	}
+CharacterNonWalkableMode PhysXCharacterController::GetNonWalkableMode() const
+{
+	return fromPxEnum(mController->getNonWalkableMode());
+}
 
-	void PhysXCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
-	{
-		mController->setNonWalkableMode(toPxEnum(mode));
-	}
+void PhysXCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
+{
+	mController->setNonWalkableMode(toPxEnum(mode));
+}
 
-	float PhysXCharacterController::GetMinMoveDistance() const
-	{
-		return mMinMoveDistance;
-	}
+float PhysXCharacterController::GetMinMoveDistance() const
+{
+	return mMinMoveDistance;
+}
 
-	void PhysXCharacterController::SetMinMoveDistance(float value)
-	{
-		mMinMoveDistance = value;
-	}
+void PhysXCharacterController::SetMinMoveDistance(float value)
+{
+	mMinMoveDistance = value;
+}
 
-	float PhysXCharacterController::GetContactOffset() const
-	{
-		return mController->getContactOffset();
-	}
+float PhysXCharacterController::GetContactOffset() const
+{
+	return mController->getContactOffset();
+}
 
-	void PhysXCharacterController::SetContactOffset(float value)
-	{
-		mController->setContactOffset(value);
-	}
+void PhysXCharacterController::SetContactOffset(float value)
+{
+	mController->setContactOffset(value);
+}
 
-	float PhysXCharacterController::GetStepOffset() const
-	{
-		return mController->getStepOffset();
-	}
+float PhysXCharacterController::GetStepOffset() const
+{
+	return mController->getStepOffset();
+}
 
-	void PhysXCharacterController::SetStepOffset(float value)
-	{
-		mController->setStepOffset(value);
-	}
+void PhysXCharacterController::SetStepOffset(float value)
+{
+	mController->setStepOffset(value);
+}
 
-	Radian PhysXCharacterController::GetSlopeLimit() const
-	{
-		return Radian(mController->getSlopeLimit());
-	}
+Radian PhysXCharacterController::GetSlopeLimit() const
+{
+	return Radian(mController->getSlopeLimit());
+}
 
-	void PhysXCharacterController::SetSlopeLimit(Radian value)
-	{
-		mController->setSlopeLimit(value.ValueRadians());
-	}
+void PhysXCharacterController::SetSlopeLimit(Radian value)
+{
+	mController->setSlopeLimit(value.ValueRadians());
+}
 
-	void PhysXCharacterController::onShapeHit(const PxControllerShapeHit& hit)
-	{
-		if(OnColliderHit.Empty())
-			return;
+void PhysXCharacterController::onShapeHit(const PxControllerShapeHit& hit)
+{
+	if(OnColliderHit.Empty())
+		return;
 
-		ControllerColliderCollision collision;
-		collision.Position = fromPxExtVector(hit.worldPos);
-		collision.Normal = fromPxVector(hit.worldNormal);
-		collision.MotionDir = fromPxVector(hit.dir);
-		collision.MotionAmount = hit.length;
-		collision.TriangleIndex = hit.triangleIndex;
-		collision.ColliderRaw = (Collider*)hit.shape->userData;
+	ControllerColliderCollision collision;
+	collision.Position = fromPxExtVector(hit.worldPos);
+	collision.Normal = fromPxVector(hit.worldNormal);
+	collision.MotionDir = fromPxVector(hit.dir);
+	collision.MotionAmount = hit.length;
+	collision.TriangleIndex = hit.triangleIndex;
+	collision.ColliderRaw = (Collider*)hit.shape->userData;
 
-		OnColliderHit(collision);
-	}
+	OnColliderHit(collision);
+}
 
-	void PhysXCharacterController::onControllerHit(const PxControllersHit& hit)
-	{
-		if(CharacterController::OnControllerHit.Empty())
-			return;
+void PhysXCharacterController::onControllerHit(const PxControllersHit& hit)
+{
+	if(CharacterController::OnControllerHit.Empty())
+		return;
 
-		ControllerControllerCollision collision;
-		collision.Position = fromPxExtVector(hit.worldPos);
-		collision.Normal = fromPxVector(hit.worldNormal);
-		collision.MotionDir = fromPxVector(hit.dir);
-		collision.MotionAmount = hit.length;
-		collision.ControllerRaw = (CharacterController*)hit.controller->getUserData();
+	ControllerControllerCollision collision;
+	collision.Position = fromPxExtVector(hit.worldPos);
+	collision.Normal = fromPxVector(hit.worldNormal);
+	collision.MotionDir = fromPxVector(hit.dir);
+	collision.MotionAmount = hit.length;
+	collision.ControllerRaw = (CharacterController*)hit.controller->getUserData();
 
-		CharacterController::OnControllerHit(collision);
-	}
+	CharacterController::OnControllerHit(collision);
+}
 
-	PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxHitFlags& queryFlags)
-	{
-		PxFilterData colliderFilterData = shape->getSimulationFilterData();
-		u64 colliderLayer = *(u64*)&colliderFilterData.word0;
+PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& filterData, const PxShape* shape, const PxRigidActor* actor, PxHitFlags& queryFlags)
+{
+	PxFilterData colliderFilterData = shape->getSimulationFilterData();
+	u64 colliderLayer = *(u64*)&colliderFilterData.word0;
 
-		bool canCollide = gPhysics().IsCollisionEnabled(colliderLayer, GetLayer());
+	bool canCollide = gPhysics().IsCollisionEnabled(colliderLayer, GetLayer());
 
-		if(canCollide)
-			return PxSceneQueryHitType::eBLOCK;
-
-		return PxSceneQueryHitType::eNONE;
-	}
-
-	PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData, const PxQueryHit& hit)
-	{
+	if(canCollide)
 		return PxSceneQueryHitType::eBLOCK;
-	}
 
-	bool PhysXCharacterController::filter(const PxController& a, const PxController& b)
-	{
-		CharacterController* controllerA = (CharacterController*)a.getUserData();
-		CharacterController* controllerB = (CharacterController*)b.getUserData();
+	return PxSceneQueryHitType::eNONE;
+}
 
-		bool canCollide = gPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
-		return canCollide;
-	}
-} // namespace bs
+PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& filterData, const PxQueryHit& hit)
+{
+	return PxSceneQueryHitType::eBLOCK;
+}
+
+bool PhysXCharacterController::filter(const PxController& a, const PxController& b)
+{
+	CharacterController* controllerA = (CharacterController*)a.getUserData();
+	CharacterController* controllerB = (CharacterController*)b.getUserData();
+
+	bool canCollide = gPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
+	return canCollide;
+}

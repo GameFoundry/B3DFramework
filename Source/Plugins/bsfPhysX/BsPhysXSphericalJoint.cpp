@@ -7,92 +7,91 @@
 
 using namespace physx;
 
-namespace bs
+using namespace bs;
+
+PxSphericalJointFlag::Enum toPxFlag(SphericalJointFlag flag)
 {
-	PxSphericalJointFlag::Enum toPxFlag(SphericalJointFlag flag)
+	switch(flag)
 	{
-		switch(flag)
-		{
-		default:
-		case SphericalJointFlag::Limit:
-			return PxSphericalJointFlag::eLIMIT_ENABLED;
-		}
+	default:
+	case SphericalJointFlag::Limit:
+		return PxSphericalJointFlag::eLIMIT_ENABLED;
 	}
+}
 
-	PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SPHERICAL_JOINT_DESC& desc)
-		: SphericalJoint(desc)
-	{
-		PxRigidActor* actor0 = nullptr;
-		if(desc.Bodies[0].Body != nullptr)
-			actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
+PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SPHERICAL_JOINT_DESC& desc)
+	: SphericalJoint(desc)
+{
+	PxRigidActor* actor0 = nullptr;
+	if(desc.Bodies[0].Body != nullptr)
+		actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetInternalInternal();
 
-		PxRigidActor* actor1 = nullptr;
-		if(desc.Bodies[1].Body != nullptr)
-			actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
+	PxRigidActor* actor1 = nullptr;
+	if(desc.Bodies[1].Body != nullptr)
+		actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetInternalInternal();
 
-		PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
-		PxTransform tfrm1 = toPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
+	PxTransform tfrm0 = toPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
+	PxTransform tfrm1 = toPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
 
-		PxSphericalJoint* joint = PxSphericalJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
-		joint->userData = this;
+	PxSphericalJoint* joint = PxSphericalJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
+	joint->userData = this;
 
-		mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = bs_new<FPhysXJoint>(joint, desc);
 
-		PxSphericalJointFlags flags;
+	PxSphericalJointFlags flags;
 
-		if(((u32)desc.Flag & (u32)SphericalJointFlag::Limit) != 0)
-			flags |= PxSphericalJointFlag::eLIMIT_ENABLED;
+	if(((u32)desc.Flag & (u32)SphericalJointFlag::Limit) != 0)
+		flags |= PxSphericalJointFlag::eLIMIT_ENABLED;
 
-		joint->setSphericalJointFlags(flags);
+	joint->setSphericalJointFlags(flags);
 
-		// Calls to virtual methods are okay here
-		SetLimit(desc.Limit);
-	}
+	// Calls to virtual methods are okay here
+	SetLimit(desc.Limit);
+}
 
-	PhysXSphericalJoint::~PhysXSphericalJoint()
-	{
-		bs_delete(mInternal);
-	}
+PhysXSphericalJoint::~PhysXSphericalJoint()
+{
+	bs_delete(mInternal);
+}
 
-	LimitConeRange PhysXSphericalJoint::GetLimit() const
-	{
-		PxJointLimitCone pxLimit = GetInternal()->getLimitCone();
+LimitConeRange PhysXSphericalJoint::GetLimit() const
+{
+	PxJointLimitCone pxLimit = GetInternal()->getLimitCone();
 
-		LimitConeRange limit;
-		limit.YLimitAngle = pxLimit.yAngle;
-		limit.ZLimitAngle = pxLimit.zAngle;
-		limit.ContactDist = pxLimit.contactDistance;
-		limit.Restitution = pxLimit.restitution;
-		limit.Spring.Stiffness = pxLimit.stiffness;
-		limit.Spring.Damping = pxLimit.damping;
+	LimitConeRange limit;
+	limit.YLimitAngle = pxLimit.yAngle;
+	limit.ZLimitAngle = pxLimit.zAngle;
+	limit.ContactDist = pxLimit.contactDistance;
+	limit.Restitution = pxLimit.restitution;
+	limit.Spring.Stiffness = pxLimit.stiffness;
+	limit.Spring.Damping = pxLimit.damping;
 
-		return limit;
-	}
+	return limit;
+}
 
-	void PhysXSphericalJoint::SetLimit(const LimitConeRange& limit)
-	{
-		PxJointLimitCone pxLimit(limit.YLimitAngle.ValueRadians(), limit.ZLimitAngle.ValueRadians(), limit.ContactDist);
-		pxLimit.stiffness = limit.Spring.Stiffness;
-		pxLimit.damping = limit.Spring.Damping;
-		pxLimit.restitution = limit.Restitution;
+void PhysXSphericalJoint::SetLimit(const LimitConeRange& limit)
+{
+	PxJointLimitCone pxLimit(limit.YLimitAngle.ValueRadians(), limit.ZLimitAngle.ValueRadians(), limit.ContactDist);
+	pxLimit.stiffness = limit.Spring.Stiffness;
+	pxLimit.damping = limit.Spring.Damping;
+	pxLimit.restitution = limit.Restitution;
 
-		GetInternal()->setLimitCone(pxLimit);
-	}
+	GetInternal()->setLimitCone(pxLimit);
+}
 
-	void PhysXSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
-	{
-		GetInternal()->setSphericalJointFlag(toPxFlag(flag), enabled);
-	}
+void PhysXSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
+{
+	GetInternal()->setSphericalJointFlag(toPxFlag(flag), enabled);
+}
 
-	bool PhysXSphericalJoint::HasFlag(SphericalJointFlag flag) const
-	{
-		return GetInternal()->getSphericalJointFlags() & toPxFlag(flag);
-	}
+bool PhysXSphericalJoint::HasFlag(SphericalJointFlag flag) const
+{
+	return GetInternal()->getSphericalJointFlags() & toPxFlag(flag);
+}
 
-	PxSphericalJoint* PhysXSphericalJoint::GetInternal() const
-	{
-		FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
+PxSphericalJoint* PhysXSphericalJoint::GetInternal() const
+{
+	FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
 
-		return static_cast<PxSphericalJoint*>(internal->GetInternalInternal());
-	}
-} // namespace bs
+	return static_cast<PxSphericalJoint*>(internal->GetInternalInternal());
+}

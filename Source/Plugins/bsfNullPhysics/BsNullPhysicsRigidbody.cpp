@@ -7,44 +7,43 @@
 #include "Physics/BsPhysics.h"
 #include "BsNullPhysics.h"
 
-namespace bs
+using namespace bs;
+
+NullPhysicsRigidbody::NullPhysicsRigidbody(const HSceneObject& linkedSO)
+	: Rigidbody(linkedSO)
 {
-	NullPhysicsRigidbody::NullPhysicsRigidbody(const HSceneObject& linkedSO)
-		: Rigidbody(linkedSO)
-	{
-		mPosition = linkedSO->GetTransform().GetPosition();
-		mRotation = linkedSO->GetTransform().GetRotation();
-	}
+	mPosition = linkedSO->GetTransform().GetPosition();
+	mRotation = linkedSO->GetTransform().GetRotation();
+}
 
-	void NullPhysicsRigidbody::Move(const Vector3& position)
-	{
-		SetTransform(position, GetRotation());
-	}
+void NullPhysicsRigidbody::Move(const Vector3& position)
+{
+	SetTransform(position, GetRotation());
+}
 
-	void NullPhysicsRigidbody::Rotate(const Quaternion& rotation)
-	{
-		SetTransform(GetPosition(), rotation);
-	}
+void NullPhysicsRigidbody::Rotate(const Quaternion& rotation)
+{
+	SetTransform(GetPosition(), rotation);
+}
 
-	Vector3 NullPhysicsRigidbody::GetPosition() const
-	{
-		return mPosition;
-	}
+Vector3 NullPhysicsRigidbody::GetPosition() const
+{
+	return mPosition;
+}
 
-	Quaternion NullPhysicsRigidbody::GetRotation() const
-	{
-		return mRotation;
-	}
+Quaternion NullPhysicsRigidbody::GetRotation() const
+{
+	return mRotation;
+}
 
-	void NullPhysicsRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
-	{
-		mPosition = pos;
-		mRotation = rot;
-	}
+void NullPhysicsRigidbody::SetTransform(const Vector3& pos, const Quaternion& rot)
+{
+	mPosition = pos;
+	mRotation = rot;
+}
 
-	void NullPhysicsRigidbody::SetCenterOfMass(const class Vector3& position, const Quaternion& rotation)
-	{
-		mCenterOfMassPosition = position;
-		mCenterOfMassRotation = rotation;
-	}
-} // namespace bs
+void NullPhysicsRigidbody::SetCenterOfMass(const class Vector3& position, const Quaternion& rotation)
+{
+	mCenterOfMassPosition = position;
+	mCenterOfMassRotation = rotation;
+}

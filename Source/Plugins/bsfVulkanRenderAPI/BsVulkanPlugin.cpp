@@ -3,10 +3,9 @@
 #include "BsVulkanPrerequisites.h"
 #include "Managers/BsVulkanRenderAPIFactory.h"
 
-namespace bs
+using namespace bs;
+
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		return ct::VulkanRenderAPIFactory::SystemName;
-	}
-} // namespace bs
+	return ct::VulkanRenderAPIFactory::SystemName;
+}

@@ -4,17 +4,14 @@
 #include "RenderAPI/BsRenderAPI.h"
 #include "BsNullRenderAPI.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+constexpr const char* NullRenderAPIFactory::SystemName;
+
+void NullRenderAPIFactory::Create()
 {
-	namespace ct
-	{
-		constexpr const char* NullRenderAPIFactory::SystemName;
+	RenderAPI::StartUp<NullRenderAPI>();
+}
 
-		void NullRenderAPIFactory::Create()
-		{
-			RenderAPI::StartUp<NullRenderAPI>();
-		}
-
-		NullRenderAPIFactory::InitOnStart NullRenderAPIFactory::initOnStart;
-	} // namespace ct
-} // namespace bs
+NullRenderAPIFactory::InitOnStart NullRenderAPIFactory::initOnStart;

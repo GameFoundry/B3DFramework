@@ -7,142 +7,139 @@
 #include "BsVulkanCommandBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
-namespace bs
+using namespace bs;
+using namespace bs::ct;
+
+VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanDevice& device, bool binary)
+	: OcclusionQuery(binary), mDevice(device), mQueryEndCalled(false), mQueryFinalized(false)
 {
-	namespace ct
+	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+}
+
+VulkanOcclusionQuery::~VulkanOcclusionQuery()
+{
+	for(auto& query : mQueries)
+		mDevice.GetQueryPool().ReleaseQuery(query);
+
+	mQueries.clear();
+
+	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+}
+
+void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
+{
+	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+
+	// Clear any existing queries
+	for(auto& query : mQueries)
+		mDevice.GetQueryPool().ReleaseQuery(query);
+
+	mQueries.clear();
+
+	mQueryEndCalled = false;
+	mNumSamples = 0;
+
+	// Retrieve and queue new query
+	VulkanCommandBuffer* vulkanCB;
+	if(cb != nullptr)
+		vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
+	else
+		vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
+
+	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
+	internalCB->RegisterQuery(this);
+
+	SetActive(true);
+}
+
+void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
+{
+	if(mQueries.empty())
 	{
-		VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanDevice& device, bool binary)
-			: OcclusionQuery(binary), mDevice(device), mQueryEndCalled(false), mQueryFinalized(false)
+		BS_LOG(Error, RenderBackend, "end() called but query was never started.");
+		return;
+	}
+
+	// Could have been interrupted
+	if(mQueryEndCalled)
+		return;
+
+	mQueryEndCalled = true;
+	mQueryFinalized = false;
+
+	VulkanCommandBuffer* vulkanCB;
+	if(cb != nullptr)
+		vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
+	else
+		vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
+
+	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	queryPool.EndOcclusionQuery(mQueries.back(), internalCB);
+}
+
+bool VulkanOcclusionQuery::IsInProgressInternal() const
+{
+	return !mQueries.empty() && !mQueryEndCalled;
+}
+
+void VulkanOcclusionQuery::InterruptInternal(VulkanCmdBuffer& cb)
+{
+	assert(!mQueries.empty() && !mQueryEndCalled);
+
+	mQueryEndCalled = true;
+	mQueryFinalized = false;
+
+	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+	queryPool.EndOcclusionQuery(mQueries.back(), &cb);
+}
+
+bool VulkanOcclusionQuery::IsReady() const
+{
+	if(!mQueryEndCalled)
+		return false;
+
+	if(mQueryFinalized)
+		return true;
+
+	u64 numSamples;
+	bool ready = true;
+	for(auto& query : mQueries)
+		ready &= !query->IsBound() && query->GetResult(numSamples);
+
+	return ready;
+}
+
+u32 VulkanOcclusionQuery::GetNumSamples()
+{
+	if(!mQueryFinalized)
+	{
+		u64 totalNumSamples = 0;
+		bool ready = true;
+		for(auto& query : mQueries)
 		{
-			BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+			u64 numSamples = 0;
+			ready &= !query->IsBound() && query->GetResult(numSamples);
+
+			totalNumSamples += numSamples;
 		}
 
-		VulkanOcclusionQuery::~VulkanOcclusionQuery()
+		if(ready)
 		{
+			mQueryFinalized = true;
+			mNumSamples = totalNumSamples;
+
+			VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 			for(auto& query : mQueries)
-				mDevice.GetQueryPool().ReleaseQuery(query);
+				queryPool.ReleaseQuery(query);
 
 			mQueries.clear();
-
-			BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
 		}
+	}
 
-		void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
-		{
-			VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+	if(mBinary)
+		return mNumSamples == 0 ? 0 : 1;
 
-			// Clear any existing queries
-			for(auto& query : mQueries)
-				mDevice.GetQueryPool().ReleaseQuery(query);
-
-			mQueries.clear();
-
-			mQueryEndCalled = false;
-			mNumSamples = 0;
-
-			// Retrieve and queue new query
-			VulkanCommandBuffer* vulkanCB;
-			if(cb != nullptr)
-				vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
-			else
-				vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
-
-			VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
-			mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
-			internalCB->RegisterQuery(this);
-
-			SetActive(true);
-		}
-
-		void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
-		{
-			if(mQueries.empty())
-			{
-				BS_LOG(Error, RenderBackend, "end() called but query was never started.");
-				return;
-			}
-
-			// Could have been interrupted
-			if(mQueryEndCalled)
-				return;
-
-			mQueryEndCalled = true;
-			mQueryFinalized = false;
-
-			VulkanCommandBuffer* vulkanCB;
-			if(cb != nullptr)
-				vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
-			else
-				vulkanCB = static_cast<VulkanCommandBuffer*>(gVulkanRenderAPI().GetMainCommandBufferInternal());
-
-			VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-			VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
-			queryPool.EndOcclusionQuery(mQueries.back(), internalCB);
-		}
-
-		bool VulkanOcclusionQuery::IsInProgressInternal() const
-		{
-			return !mQueries.empty() && !mQueryEndCalled;
-		}
-
-		void VulkanOcclusionQuery::InterruptInternal(VulkanCmdBuffer& cb)
-		{
-			assert(!mQueries.empty() && !mQueryEndCalled);
-
-			mQueryEndCalled = true;
-			mQueryFinalized = false;
-
-			VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-			queryPool.EndOcclusionQuery(mQueries.back(), &cb);
-		}
-
-		bool VulkanOcclusionQuery::IsReady() const
-		{
-			if(!mQueryEndCalled)
-				return false;
-
-			if(mQueryFinalized)
-				return true;
-
-			u64 numSamples;
-			bool ready = true;
-			for(auto& query : mQueries)
-				ready &= !query->IsBound() && query->GetResult(numSamples);
-
-			return ready;
-		}
-
-		u32 VulkanOcclusionQuery::GetNumSamples()
-		{
-			if(!mQueryFinalized)
-			{
-				u64 totalNumSamples = 0;
-				bool ready = true;
-				for(auto& query : mQueries)
-				{
-					u64 numSamples = 0;
-					ready &= !query->IsBound() && query->GetResult(numSamples);
-
-					totalNumSamples += numSamples;
-				}
-
-				if(ready)
-				{
-					mQueryFinalized = true;
-					mNumSamples = totalNumSamples;
-
-					VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-					for(auto& query : mQueries)
-						queryPool.ReleaseQuery(query);
-
-					mQueries.clear();
-				}
-			}
-
-			if(mBinary)
-				return mNumSamples == 0 ? 0 : 1;
-
-			return (u32)mNumSamples;
-		}
-	} // namespace ct
-} // namespace bs
+	return (u32)mNumSamples;
+}

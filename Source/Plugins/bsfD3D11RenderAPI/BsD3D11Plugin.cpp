@@ -3,10 +3,9 @@
 #include "BsD3D11Prerequisites.h"
 #include "BsD3D11RenderAPIFactory.h"
 
-namespace bs
+using namespace bs;
+
+extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 {
-	extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
-	{
-		return ct::D3D11RenderAPIFactory::SystemName;
-	}
-} // namespace bs
+	return ct::D3D11RenderAPIFactory::SystemName;
+}

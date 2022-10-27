@@ -4,32 +4,31 @@
 #include "Physics/BsPhysicsManager.h"
 #include "BsPhysX.h"
 
-namespace bs
+using namespace bs;
+
+class BS_PLUGIN_EXPORT PhysXFactory : public PhysicsFactory
 {
-	class BS_PLUGIN_EXPORT PhysXFactory : public PhysicsFactory
+public:
+	void StartUp(bool cooking)
 	{
-	public:
-		void StartUp(bool cooking)
-		{
-			PHYSICS_INIT_DESC desc;
-			desc.InitCooking = cooking;
+		PHYSICS_INIT_DESC desc;
+		desc.InitCooking = cooking;
 
-			Physics::StartUp<PhysX>(desc);
-		}
-
-		void ShutDown()
-		{
-			Physics::ShutDown();
-		}
-	};
-
-	extern "C" BS_PLUGIN_EXPORT PhysXFactory* loadPlugin()
-	{
-		return bs_new<PhysXFactory>();
+		Physics::StartUp<PhysX>(desc);
 	}
 
-	extern "C" BS_PLUGIN_EXPORT void unloadPlugin(PhysXFactory* instance)
+	void ShutDown()
 	{
-		bs_delete(instance);
+		Physics::ShutDown();
 	}
-} // namespace bs
+};
+
+extern "C" BS_PLUGIN_EXPORT PhysXFactory* loadPlugin()
+{
+	return bs_new<PhysXFactory>();
+}
+
+extern "C" BS_PLUGIN_EXPORT void unloadPlugin(PhysXFactory* instance)
+{
+	bs_delete(instance);
+}

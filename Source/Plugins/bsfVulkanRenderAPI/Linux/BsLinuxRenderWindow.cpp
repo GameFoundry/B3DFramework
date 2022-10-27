@@ -17,732 +17,729 @@
 #define XRANDR_ROTATION_LEFT (1 << 1)
 #define XRANDR_ROTATION_RIGHT (1 << 3)
 
-namespace bs
-{
-	LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
-		: RenderWindow(desc, windowId), mProperties(desc)
-	{}
+using namespace bs;
 
-	void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
+LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
+	: RenderWindow(desc, windowId), mProperties(desc)
+{}
+
+void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
+{
+	if(name == "WINDOW" || name == "LINUX_WINDOW")
 	{
-		if(name == "WINDOW" || name == "LINUX_WINDOW")
+		blockUntilCoreInitialized();
+		getCore()->GetCustomAttribute(name, data);
+		return;
+	}
+}
+
+Vector2I LinuxRenderWindow::screenToWindowPos(const Vector2I& screenPos) const
+{
+	blockUntilCoreInitialized();
+
+	LinuxPlatform::lockX();
+	Vector2I pos = getCore()->GetInternalInternal()->screenToWindowPos(screenPos);
+	LinuxPlatform::unlockX();
+
+	return pos;
+}
+
+Vector2I LinuxRenderWindow::windowToScreenPos(const Vector2I& windowPos) const
+{
+	blockUntilCoreInitialized();
+
+	LinuxPlatform::lockX();
+	Vector2I pos = getCore()->GetInternalInternal()->windowToScreenPos(windowPos);
+	LinuxPlatform::unlockX();
+
+	return pos;
+}
+
+SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::getCore() const
+{
+	return std::static_pointer_cast<ct::LinuxRenderWindow>(mCoreSpecific);
+}
+
+SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
+{
+	ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::Instance());
+
+	RENDER_WINDOW_DESC desc = mDesc;
+	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
+	coreObj->SetThisPtrInternal(coreObj);
+
+	return coreObj;
+}
+
+void LinuxRenderWindow::syncProperties()
+{
+	ScopedSpinLock lock(getCore()->GetPropertiesLockInternal());
+	mProperties = getCore()->mSyncedProperties;
+}
+using namespace bs::ct;
+
+LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, VulkanRenderAPI& renderAPI)
+	: RenderWindow(desc, windowId), mRenderAPI(renderAPI), mRequiresNewBackBuffer(true), mWindow(nullptr), mProperties(desc), mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false)
+{}
+
+LinuxRenderWindow::~LinuxRenderWindow()
+{
+	// Make sure to set the original desktop video mode before we exit
+	if(mProperties.isFullScreen)
+		setWindowed(50, 50);
+
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	presentDevice->waitIdle();
+
+	if(mWindow != nullptr)
+	{
+		Platform::resetNonClientAreas(*this);
+
+		LinuxPlatform::lockX();
+
+		bs_delete(mWindow);
+		mWindow = nullptr;
+
+		LinuxPlatform::unlockX();
+	}
+
+	mSwapChain->Destroy();
+	vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
+}
+
+void LinuxRenderWindow::Initialize()
+{
+	LinuxPlatform::lockX();
+
+	RenderWindowProperties& props = mProperties;
+
+	props.isFullScreen = mDesc.fullscreen;
+	mIsChild = false;
+
+	XVisualInfo visualInfoTempl = {};
+	visualInfoTempl.screen = XDefaultScreen(LinuxPlatform::getXDisplay());
+	visualInfoTempl.depth = 24;
+	visualInfoTempl.c_class = TrueColor;
+
+	int32_t numVisuals;
+	XVisualInfo* visualInfo = XGetVisualInfo(LinuxPlatform::getXDisplay(), VisualScreenMask | VisualDepthMask | VisualClassMask, &visualInfoTempl, &numVisuals);
+
+	WINDOW_DESC windowDesc;
+	windowDesc.X = mDesc.left;
+	windowDesc.Y = mDesc.top;
+	windowDesc.width = mDesc.videoMode.width;
+	windowDesc.height = mDesc.videoMode.height;
+	windowDesc.title = mDesc.title;
+	windowDesc.showDecorations = mDesc.showTitleBar;
+	windowDesc.allowResize = mDesc.allowResize;
+	windowDesc.showOnTaskBar = !mDesc.toolWindow;
+	windowDesc.modal = mDesc.modal;
+	windowDesc.visualInfo = *visualInfo;
+	windowDesc.screen = mDesc.videoMode.outputIdx;
+	windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
+
+	auto opt = mDesc.platformSpecific.find("parentWindowHandle");
+	if(opt != mDesc.platformSpecific.end())
+		windowDesc.parent = (::Window)parseu64(opt->second);
+	else
+		windowDesc.parent = 0;
+
+	// TODO: add passing the XDisplay here as well. Right now the default display is assumed
+	opt = mDesc.platformSpecific.find("externalWindowHandle");
+	if(opt != mDesc.platformSpecific.end())
+		windowDesc.external = (::Window)parseu64(opt->second);
+	else
+		windowDesc.external = 0;
+
+	mIsChild = windowDesc.parent != 0;
+	props.isFullScreen = mDesc.fullscreen && !mIsChild;
+
+	mShowOnSwap = mDesc.hideUntilSwap && !mDesc.hidden;
+	props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
+
+	mWindow = bs_new<LinuxWindow>(windowDesc);
+	mWindow->SetUserDataInternal(this);
+
+	props.width = mWindow->GetWidth();
+	props.height = mWindow->GetHeight();
+	props.top = mWindow->GetTop();
+	props.left = mWindow->GetLeft();
+
+	props.hwGamma = mDesc.gamma;
+	props.multisampleCount = mDesc.multisampleCount;
+
+	XWindowAttributes windowAttributes;
+	XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
+
+	// Create Vulkan surface
+	VkXlibSurfaceCreateInfoKHR surfaceCreateInfo;
+	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.pNext = nullptr;
+	surfaceCreateInfo.flags = 0;
+	surfaceCreateInfo.window = mWindow->GetXWindowInternal();
+	surfaceCreateInfo.dpy = LinuxPlatform::getXDisplay();
+
+	// Note: I manually lock Xlib, while Vulkan spec says XInitThreads should be called, since Vulkan
+	// surely calls Xlib under the hood as well. I've tried to guess which calls use Xlib and lock them
+	// externally, but XInitThreads might be required if problems occur.
+	VkInstance instance = mRenderAPI.GetInstanceInternal();
+	VkResult result = vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
+	assert(result == VK_SUCCESS);
+
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
+
+	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
+
+	VkBool32 supportsPresent;
+	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, mSurface, &supportsPresent);
+
+	if(!supportsPresent)
+	{
+		// Note: Not supporting present only queues at the moment
+		// Note: Also present device can only return one family of graphics queue, while there could be more (some of
+		// which support present)
+		BS_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
+	}
+
+	SurfaceFormat format = presentDevice->GetSurfaceFormat(mSurface, mDesc.gamma);
+	mColorFormat = format.colorFormat;
+	mColorSpace = format.colorSpace;
+	mDepthFormat = format.depthFormat;
+
+	// Create swap chain
+	mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(mSurface, props.width, props.height, props.vsync, mColorFormat, mColorSpace, mDesc.depthBuffer, mDepthFormat);
+
+	LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
+
+	if(mDesc.fullscreen && !mIsChild)
+		setFullscreen(mDesc.videoMode);
+
+	if(mDesc.vsync && mDesc.vsyncInterval > 0)
+		setVSync(true, mDesc.vsyncInterval);
+
+	{
+		ScopedSpinLock lock(mLock);
+		mSyncedProperties = props;
+	}
+
+	bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+	RenderWindow::Initialize();
+}
+
+void LinuxRenderWindow::acquireBackBuffer()
+{
+	// We haven't presented the current back buffer yet, so just use that one
+	if(!mRequiresNewBackBuffer)
+		return;
+
+	VkResult acquireResult = mSwapChain->acquireBackBuffer();
+	if(acquireResult == VK_SUBOPTIMAL_KHR || acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		LinuxPlatform::lockX();
+		rebuildSwapChain();
+		LinuxPlatform::unlockX();
+
+		mSwapChain->acquireBackBuffer();
+	}
+
+	mRequiresNewBackBuffer = false;
+}
+
+void LinuxRenderWindow::setFullscreen(u32 width, u32 height, float refreshRate, u32 monitorIdx)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	VideoMode videoMode(width, height, refreshRate, monitorIdx);
+	setFullscreen(videoMode);
+}
+
+void LinuxRenderWindow::setVideoMode(i32 screen, RROutput output, RRMode mode)
+{
+	::Display* display = LinuxPlatform::getXDisplay();
+	::Window rootWindow = RootWindow(display, screen);
+
+	XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
+	if(screenRes == nullptr)
+	{
+		BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
+		return;
+	}
+
+	XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, output);
+	if(outputInfo == nullptr)
+	{
+		XRRFreeScreenResources(screenRes);
+
+		BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)output);
+		return;
+	}
+
+	XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
+	if(crtcInfo == nullptr)
+	{
+		XRRFreeScreenResources(screenRes);
+		XRRFreeOutputInfo(outputInfo);
+
+		BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)output);
+		return;
+	}
+
+	// Note: This changes the user's desktop resolution permanently, even when the app exists, make sure to revert
+	// (Sadly there doesn't appear to be a better way)
+	Status status = XRRSetCrtcConfig(display, screenRes, outputInfo->crtc, CurrentTime, crtcInfo->x, crtcInfo->y, mode, crtcInfo->rotation, &output, 1);
+
+	if(status != Success)
+		BS_LOG(Error, Platform, "XRR: XRRSetCrtcConfig failed.");
+
+	XRRFreeCrtcInfo(crtcInfo);
+	XRRFreeOutputInfo(outputInfo);
+	XRRFreeScreenResources(screenRes);
+}
+
+void LinuxRenderWindow::setFullscreen(const VideoMode& mode)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	if(mIsChild)
+		return;
+
+	const LinuxVideoModeInfo& videoModeInfo =
+		static_cast<const LinuxVideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
+
+	u32 outputIdx = mode.outputIdx;
+	if(outputIdx >= videoModeInfo.getNumOutputs())
+	{
+		BS_LOG(Error, Platform, "Invalid output device index.");
+		return;
+	}
+
+	const LinuxVideoOutputInfo& outputInfo =
+		static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo(outputIdx));
+
+	i32 screen = outputInfo.GetScreenInternal();
+	RROutput outputID = outputInfo.GetOutputIDInternal();
+
+	RRMode modeID = 0;
+	if(!mode.isCustom)
+	{
+		const LinuxVideoMode& videoMode = static_cast<const LinuxVideoMode&>(mode);
+		modeID = videoMode.GetModeIDInternal();
+	}
+	else
+	{
+		LinuxPlatform::lockX();
+
+		// Look for mode matching the requested resolution
+		::Display* display = LinuxPlatform::getXDisplay();
+		::Window rootWindow = RootWindow(display, screen);
+
+		XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
+		if(screenRes == nullptr)
 		{
-			blockUntilCoreInitialized();
-			getCore()->GetCustomAttribute(name, data);
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
 			return;
 		}
-	}
 
-	Vector2I LinuxRenderWindow::screenToWindowPos(const Vector2I& screenPos) const
-	{
-		blockUntilCoreInitialized();
-
-		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->GetInternalInternal()->screenToWindowPos(screenPos);
-		LinuxPlatform::unlockX();
-
-		return pos;
-	}
-
-	Vector2I LinuxRenderWindow::windowToScreenPos(const Vector2I& windowPos) const
-	{
-		blockUntilCoreInitialized();
-
-		LinuxPlatform::lockX();
-		Vector2I pos = getCore()->GetInternalInternal()->windowToScreenPos(windowPos);
-		LinuxPlatform::unlockX();
-
-		return pos;
-	}
-
-	SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::getCore() const
-	{
-		return std::static_pointer_cast<ct::LinuxRenderWindow>(mCoreSpecific);
-	}
-
-	SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
-	{
-		ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::Instance());
-
-		RENDER_WINDOW_DESC desc = mDesc;
-		SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
-		coreObj->SetThisPtrInternal(coreObj);
-
-		return coreObj;
-	}
-
-	void LinuxRenderWindow::syncProperties()
-	{
-		ScopedSpinLock lock(getCore()->GetPropertiesLockInternal());
-		mProperties = getCore()->mSyncedProperties;
-	}
-
-	namespace ct
-	{
-		LinuxRenderWindow::LinuxRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, VulkanRenderAPI& renderAPI)
-			: RenderWindow(desc, windowId), mRenderAPI(renderAPI), mRequiresNewBackBuffer(true), mWindow(nullptr), mProperties(desc), mSyncedProperties(desc), mIsChild(false), mShowOnSwap(false)
-		{}
-
-		LinuxRenderWindow::~LinuxRenderWindow()
+		XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, outputID);
+		if(outputInfo == nullptr)
 		{
-			// Make sure to set the original desktop video mode before we exit
-			if(mProperties.isFullScreen)
-				setWindowed(50, 50);
-
-			SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-			presentDevice->waitIdle();
-
-			if(mWindow != nullptr)
-			{
-				Platform::resetNonClientAreas(*this);
-
-				LinuxPlatform::lockX();
-
-				bs_delete(mWindow);
-				mWindow = nullptr;
-
-				LinuxPlatform::unlockX();
-			}
-
-			mSwapChain->Destroy();
-			vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
-		}
-
-		void LinuxRenderWindow::Initialize()
-		{
-			LinuxPlatform::lockX();
-
-			RenderWindowProperties& props = mProperties;
-
-			props.isFullScreen = mDesc.fullscreen;
-			mIsChild = false;
-
-			XVisualInfo visualInfoTempl = {};
-			visualInfoTempl.screen = XDefaultScreen(LinuxPlatform::getXDisplay());
-			visualInfoTempl.depth = 24;
-			visualInfoTempl.c_class = TrueColor;
-
-			int32_t numVisuals;
-			XVisualInfo* visualInfo = XGetVisualInfo(LinuxPlatform::getXDisplay(), VisualScreenMask | VisualDepthMask | VisualClassMask, &visualInfoTempl, &numVisuals);
-
-			WINDOW_DESC windowDesc;
-			windowDesc.X = mDesc.left;
-			windowDesc.Y = mDesc.top;
-			windowDesc.width = mDesc.videoMode.width;
-			windowDesc.height = mDesc.videoMode.height;
-			windowDesc.title = mDesc.title;
-			windowDesc.showDecorations = mDesc.showTitleBar;
-			windowDesc.allowResize = mDesc.allowResize;
-			windowDesc.showOnTaskBar = !mDesc.toolWindow;
-			windowDesc.modal = mDesc.modal;
-			windowDesc.visualInfo = *visualInfo;
-			windowDesc.screen = mDesc.videoMode.outputIdx;
-			windowDesc.hidden = mDesc.hideUntilSwap || mDesc.hidden;
-
-			auto opt = mDesc.platformSpecific.find("parentWindowHandle");
-			if(opt != mDesc.platformSpecific.end())
-				windowDesc.parent = (::Window)parseu64(opt->second);
-			else
-				windowDesc.parent = 0;
-
-			// TODO: add passing the XDisplay here as well. Right now the default display is assumed
-			opt = mDesc.platformSpecific.find("externalWindowHandle");
-			if(opt != mDesc.platformSpecific.end())
-				windowDesc.external = (::Window)parseu64(opt->second);
-			else
-				windowDesc.external = 0;
-
-			mIsChild = windowDesc.parent != 0;
-			props.isFullScreen = mDesc.fullscreen && !mIsChild;
-
-			mShowOnSwap = mDesc.hideUntilSwap && !mDesc.hidden;
-			props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
-
-			mWindow = bs_new<LinuxWindow>(windowDesc);
-			mWindow->SetUserDataInternal(this);
-
-			props.width = mWindow->GetWidth();
-			props.height = mWindow->GetHeight();
-			props.top = mWindow->GetTop();
-			props.left = mWindow->GetLeft();
-
-			props.hwGamma = mDesc.gamma;
-			props.multisampleCount = mDesc.multisampleCount;
-
-			XWindowAttributes windowAttributes;
-			XGetWindowAttributes(LinuxPlatform::getXDisplay(), mWindow->GetXWindowInternal(), &windowAttributes);
-
-			// Create Vulkan surface
-			VkXlibSurfaceCreateInfoKHR surfaceCreateInfo;
-			surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-			surfaceCreateInfo.pNext = nullptr;
-			surfaceCreateInfo.flags = 0;
-			surfaceCreateInfo.window = mWindow->GetXWindowInternal();
-			surfaceCreateInfo.dpy = LinuxPlatform::getXDisplay();
-
-			// Note: I manually lock Xlib, while Vulkan spec says XInitThreads should be called, since Vulkan
-			// surely calls Xlib under the hood as well. I've tried to guess which calls use Xlib and lock them
-			// externally, but XInitThreads might be required if problems occur.
-			VkInstance instance = mRenderAPI.GetInstanceInternal();
-			VkResult result = vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
-			assert(result == VK_SUCCESS);
-
-			SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-			VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
-
-			mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
-
-			VkBool32 supportsPresent;
-			vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, mSurface, &supportsPresent);
-
-			if(!supportsPresent)
-			{
-				// Note: Not supporting present only queues at the moment
-				// Note: Also present device can only return one family of graphics queue, while there could be more (some of
-				// which support present)
-				BS_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
-			}
-
-			SurfaceFormat format = presentDevice->GetSurfaceFormat(mSurface, mDesc.gamma);
-			mColorFormat = format.colorFormat;
-			mColorSpace = format.colorSpace;
-			mDepthFormat = format.depthFormat;
-
-			// Create swap chain
-			mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(mSurface, props.width, props.height, props.vsync, mColorFormat, mColorSpace, mDesc.depthBuffer, mDepthFormat);
-
-			LinuxPlatform::unlockX(); // Calls below have their own locking mechanisms
-
-			if(mDesc.fullscreen && !mIsChild)
-				setFullscreen(mDesc.videoMode);
-
-			if(mDesc.vsync && mDesc.vsyncInterval > 0)
-				setVSync(true, mDesc.vsyncInterval);
-
-			{
-				ScopedSpinLock lock(mLock);
-				mSyncedProperties = props;
-			}
-
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-			RenderWindow::Initialize();
-		}
-
-		void LinuxRenderWindow::acquireBackBuffer()
-		{
-			// We haven't presented the current back buffer yet, so just use that one
-			if(!mRequiresNewBackBuffer)
-				return;
-
-			VkResult acquireResult = mSwapChain->acquireBackBuffer();
-			if(acquireResult == VK_SUBOPTIMAL_KHR || acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				LinuxPlatform::lockX();
-				rebuildSwapChain();
-				LinuxPlatform::unlockX();
-
-				mSwapChain->acquireBackBuffer();
-			}
-
-			mRequiresNewBackBuffer = false;
-		}
-
-		void LinuxRenderWindow::setFullscreen(u32 width, u32 height, float refreshRate, u32 monitorIdx)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			VideoMode videoMode(width, height, refreshRate, monitorIdx);
-			setFullscreen(videoMode);
-		}
-
-		void LinuxRenderWindow::setVideoMode(i32 screen, RROutput output, RRMode mode)
-		{
-			::Display* display = LinuxPlatform::getXDisplay();
-			::Window rootWindow = RootWindow(display, screen);
-
-			XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
-			if(screenRes == nullptr)
-			{
-				BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
-				return;
-			}
-
-			XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, output);
-			if(outputInfo == nullptr)
-			{
-				XRRFreeScreenResources(screenRes);
-
-				BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)output);
-				return;
-			}
-
-			XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
-			if(crtcInfo == nullptr)
-			{
-				XRRFreeScreenResources(screenRes);
-				XRRFreeOutputInfo(outputInfo);
-
-				BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)output);
-				return;
-			}
-
-			// Note: This changes the user's desktop resolution permanently, even when the app exists, make sure to revert
-			// (Sadly there doesn't appear to be a better way)
-			Status status = XRRSetCrtcConfig(display, screenRes, outputInfo->crtc, CurrentTime, crtcInfo->x, crtcInfo->y, mode, crtcInfo->rotation, &output, 1);
-
-			if(status != Success)
-				BS_LOG(Error, Platform, "XRR: XRRSetCrtcConfig failed.");
-
-			XRRFreeCrtcInfo(crtcInfo);
-			XRRFreeOutputInfo(outputInfo);
 			XRRFreeScreenResources(screenRes);
+
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
+			return;
 		}
 
-		void LinuxRenderWindow::setFullscreen(const VideoMode& mode)
+		XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
+		if(crtcInfo == nullptr)
 		{
-			THROW_IF_NOT_CORE_THREAD;
+			XRRFreeScreenResources(screenRes);
+			XRRFreeOutputInfo(outputInfo);
 
-			if(mIsChild)
-				return;
+			BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
+			return;
+		}
 
-			const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
+		bool foundMode = false;
+		for(i32 i = 0; i < screenRes->nmode; i++)
+		{
+			const XRRModeInfo& modeInfo = screenRes->modes[i];
 
-			u32 outputIdx = mode.outputIdx;
-			if(outputIdx >= videoModeInfo.getNumOutputs())
+			u32 width, height;
+
+			if(crtcInfo->rotation & (XRANDR_ROTATION_LEFT | XRANDR_ROTATION_RIGHT))
 			{
-				BS_LOG(Error, Platform, "Invalid output device index.");
-				return;
-			}
-
-			const LinuxVideoOutputInfo& outputInfo =
-				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo(outputIdx));
-
-			i32 screen = outputInfo.GetScreenInternal();
-			RROutput outputID = outputInfo.GetOutputIDInternal();
-
-			RRMode modeID = 0;
-			if(!mode.isCustom)
-			{
-				const LinuxVideoMode& videoMode = static_cast<const LinuxVideoMode&>(mode);
-				modeID = videoMode.GetModeIDInternal();
+				width = modeInfo.height;
+				height = modeInfo.width;
 			}
 			else
 			{
-				LinuxPlatform::lockX();
-
-				// Look for mode matching the requested resolution
-				::Display* display = LinuxPlatform::getXDisplay();
-				::Window rootWindow = RootWindow(display, screen);
-
-				XRRScreenResources* screenRes = XRRGetScreenResources(display, rootWindow);
-				if(screenRes == nullptr)
-				{
-					BS_LOG(Error, Platform, "XRR: Failed to retrieve screen resources. ");
-					return;
-				}
-
-				XRROutputInfo* outputInfo = XRRGetOutputInfo(display, screenRes, outputID);
-				if(outputInfo == nullptr)
-				{
-					XRRFreeScreenResources(screenRes);
-
-					BS_LOG(Error, Platform, "XRR: Failed to retrieve output info for output: {0}", (u32)outputID);
-					return;
-				}
-
-				XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(display, screenRes, outputInfo->crtc);
-				if(crtcInfo == nullptr)
-				{
-					XRRFreeScreenResources(screenRes);
-					XRRFreeOutputInfo(outputInfo);
-
-					BS_LOG(Error, Platform, "XRR: Failed to retrieve CRTC info for output: {0}", (u32)outputID);
-					return;
-				}
-
-				bool foundMode = false;
-				for(i32 i = 0; i < screenRes->nmode; i++)
-				{
-					const XRRModeInfo& modeInfo = screenRes->modes[i];
-
-					u32 width, height;
-
-					if(crtcInfo->rotation & (XRANDR_ROTATION_LEFT | XRANDR_ROTATION_RIGHT))
-					{
-						width = modeInfo.height;
-						height = modeInfo.width;
-					}
-					else
-					{
-						width = modeInfo.width;
-						height = modeInfo.height;
-					}
-
-					float refreshRate;
-					if(modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
-						refreshRate = (float)(modeInfo.DotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
-					else
-						refreshRate = 0.0f;
-
-					if(width == mode.width && height == mode.height)
-					{
-						modeID = modeInfo.id;
-						foundMode = true;
-
-						if(Math::ApproxEquals(refreshRate, mode.refreshRate))
-							break;
-					}
-				}
-
-				if(!foundMode)
-				{
-					LinuxPlatform::unlockX();
-
-					BS_LOG(Error, Platform, "Unable to enter fullscreen, unsupported video mode requested.");
-					return;
-				}
-
-				LinuxPlatform::unlockX();
+				width = modeInfo.width;
+				height = modeInfo.height;
 			}
 
-			LinuxPlatform::lockX();
-
-			setVideoMode(screen, outputID, modeID);
-			mWindow->SetFullscreenInternal(true);
-
-			LinuxPlatform::unlockX();
-
-			RenderWindowProperties& props = mProperties;
-			props.isFullScreen = true;
-
-			props.top = 0;
-			props.left = 0;
-			props.width = mode.width;
-			props.height = mode.height;
-
-			WindowMovedOrResizedInternal();
-
-			{
-				ScopedSpinLock lock(mLock);
-				mSyncedProperties.left = props.left;
-				mSyncedProperties.top = props.top;
-				mSyncedProperties.width = props.width;
-				mSyncedProperties.height = props.height;
-			}
-
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-			bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
-		}
-
-		void LinuxRenderWindow::setWindowed(u32 width, u32 height)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			RenderWindowProperties& props = mProperties;
-
-			if(!props.isFullScreen)
-				return;
-
-			// Restore old screen config
-			const LinuxVideoModeInfo& videoModeInfo =
-				static_cast<const LinuxVideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
-
-			u32 outputIdx = 0; // 0 is always primary
-			if(outputIdx >= videoModeInfo.getNumOutputs())
-			{
-				BS_LOG(Error, Platform, "Invalid output device index.");
-				return;
-			}
-
-			const LinuxVideoOutputInfo& outputInfo =
-				static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo(outputIdx));
-
-			const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.getDesktopVideoMode());
-
-			LinuxPlatform::lockX();
-
-			setVideoMode(outputInfo.GetScreenInternal(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
-			mWindow->SetFullscreenInternal(false);
-
-			LinuxPlatform::unlockX();
-
-			props.isFullScreen = false;
-			props.width = width;
-			props.height = height;
-
-			WindowMovedOrResizedInternal();
-
-			{
-				ScopedSpinLock lock(mLock);
-				mSyncedProperties.left = props.left;
-				mSyncedProperties.top = props.top;
-				mSyncedProperties.width = props.width;
-				mSyncedProperties.height = props.height;
-			}
-
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-			bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
-		}
-
-		void LinuxRenderWindow::move(i32 left, i32 top)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			RenderWindowProperties& props = mProperties;
-			if(!props.isFullScreen)
-			{
-				LinuxPlatform::lockX();
-				mWindow->move(left, top);
-				LinuxPlatform::unlockX();
-
-				props.top = mWindow->GetTop();
-				props.left = mWindow->GetLeft();
-
-				{
-					ScopedSpinLock lock(mLock);
-					mSyncedProperties.top = props.top;
-					mSyncedProperties.left = props.left;
-				}
-
-				bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-			}
-		}
-
-		void LinuxRenderWindow::resize(u32 width, u32 height)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			RenderWindowProperties& props = mProperties;
-			if(!props.isFullScreen)
-			{
-				LinuxPlatform::lockX();
-				mWindow->resize(width, height);
-				LinuxPlatform::unlockX();
-
-				props.width = mWindow->GetWidth();
-				props.height = mWindow->GetHeight();
-
-				{
-					ScopedSpinLock lock(mLock);
-					mSyncedProperties.width = props.width;
-					mSyncedProperties.height = props.height;
-				}
-
-				bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-			}
-		}
-
-		void LinuxRenderWindow::minimize()
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			LinuxPlatform::lockX();
-			mWindow->minimize();
-			LinuxPlatform::unlockX();
-		}
-
-		void LinuxRenderWindow::maximize()
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			LinuxPlatform::lockX();
-			mWindow->maximize();
-			LinuxPlatform::unlockX();
-		}
-
-		void LinuxRenderWindow::restore()
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			LinuxPlatform::lockX();
-			mWindow->restore();
-			LinuxPlatform::unlockX();
-		}
-
-		void LinuxRenderWindow::setVSync(bool enabled, u32 interval)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			if(!enabled)
-				interval = 0;
-
-			mProperties.vsync = enabled;
-			mProperties.vsyncInterval = interval;
-
-			LinuxPlatform::lockX();
-			rebuildSwapChain();
-			LinuxPlatform::unlockX();
-
-			{
-				ScopedSpinLock lock(mLock);
-				mSyncedProperties.vsync = enabled;
-				mSyncedProperties.vsyncInterval = interval;
-			}
-
-			bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
-		}
-
-		void LinuxRenderWindow::swapBuffers(u32 syncMask)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			if(mShowOnSwap)
-				setHidden(false);
-
-			LinuxPlatform::lockX();
-
-			// Get a command buffer on which we'll submit
-			SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-
-			// Assuming present queue is always graphics
-			assert(presentDevice->GetQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
-
-			// Find an appropriate queue to execute on
-			VulkanQueue* queue = presentDevice->GetQueue(GQT_GRAPHICS, 0);
-			u32 queueMask = presentDevice->GetQueueMask(GQT_GRAPHICS, 0);
-
-			// Ignore myself
-			syncMask &= ~queueMask;
-
-			u32 deviceIdx = presentDevice->GetIndex();
-			VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
-
-			u32 numSemaphores;
-			cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
-
-			// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
-			const SwapChainSurface& surface = mSwapChain->GetBackBuffer();
-			if(surface.needsWait)
-			{
-				mSemaphoresTemp[numSemaphores] = mSwapChain->GetBackBuffer().sync;
-				numSemaphores++;
-
-				mSwapChain->notifyBackBufferWaitIssued();
-			}
-
-			VkResult presentResult = queue->present(mSwapChain, mSemaphoresTemp, numSemaphores);
-			if(presentResult == VK_SUBOPTIMAL_KHR || presentResult == VK_ERROR_OUT_OF_DATE_KHR)
-				rebuildSwapChain();
-
-			mRequiresNewBackBuffer = true;
-
-			LinuxPlatform::unlockX();
-		}
-
-		void LinuxRenderWindow::copyToMemory(PixelData& dst, FrameBuffer buffer)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			assert(false && "Not implemented");
-		}
-
-		void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
-		{
-			if(name == "FB")
-			{
-				VulkanFramebuffer** fb = (VulkanFramebuffer**)data;
-				*fb = mSwapChain->GetBackBuffer().framebuffer;
-				return;
-			}
-
-			if(name == "SC")
-			{
-				VulkanSwapChain** sc = (VulkanSwapChain**)data;
-				*sc = mSwapChain;
-				return;
-			}
-
-			if(name == "LINUX_WINDOW")
-			{
-				LinuxWindow** window = (LinuxWindow**)data;
-				*window = mWindow;
-				return;
-			}
-
-			if(name == "WINDOW")
-			{
-				::Window* window = (::Window*)data;
-				*window = mWindow->GetXWindowInternal();
-				return;
-			}
-		}
-
-		void LinuxRenderWindow::setActive(bool state)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			LinuxPlatform::lockX();
-
-			if(state)
-				mWindow->restore();
+			float refreshRate;
+			if(modeInfo.hTotal != 0 && modeInfo.vTotal != 0)
+				refreshRate = (float)(modeInfo.DotClock / (double)(modeInfo.hTotal * modeInfo.vTotal));
 			else
-				mWindow->minimize();
+				refreshRate = 0.0f;
 
-			LinuxPlatform::unlockX();
-
-			RenderWindow::setActive(state);
-		}
-
-		void LinuxRenderWindow::setHidden(bool hidden)
-		{
-			THROW_IF_NOT_CORE_THREAD;
-
-			if(!hidden)
-				mShowOnSwap = false;
-
-			LinuxPlatform::lockX();
-
-			if(hidden)
-				mWindow->hide();
-			else
-				mWindow->show();
-
-			LinuxPlatform::unlockX();
-
-			RenderWindow::setHidden(hidden);
-		}
-
-		void LinuxRenderWindow::WindowMovedOrResizedInternal()
-		{
-			if(!mWindow)
-				return;
-
-			RenderWindowProperties& props = mProperties;
-			if(!props.isFullScreen) // Fullscreen is handled directly by this object
+			if(width == mode.width && height == mode.height)
 			{
-				props.top = mWindow->GetTop();
-				props.left = mWindow->GetLeft();
-				props.width = mWindow->GetWidth();
-				props.height = mWindow->GetHeight();
-			}
+				modeID = modeInfo.id;
+				foundMode = true;
 
-			// Note: This assumes that this method was called from the main message loop, which already acquires X locks,
-			// so no need to lock here explicitly
-			rebuildSwapChain();
+				if(Math::ApproxEquals(refreshRate, mode.refreshRate))
+					break;
+			}
 		}
 
-		void LinuxRenderWindow::syncProperties()
+		if(!foundMode)
+		{
+			LinuxPlatform::unlockX();
+
+			BS_LOG(Error, Platform, "Unable to enter fullscreen, unsupported video mode requested.");
+			return;
+		}
+
+		LinuxPlatform::unlockX();
+	}
+
+	LinuxPlatform::lockX();
+
+	setVideoMode(screen, outputID, modeID);
+	mWindow->SetFullscreenInternal(true);
+
+	LinuxPlatform::unlockX();
+
+	RenderWindowProperties& props = mProperties;
+	props.isFullScreen = true;
+
+	props.top = 0;
+	props.left = 0;
+	props.width = mode.width;
+	props.height = mode.height;
+
+	WindowMovedOrResizedInternal();
+
+	{
+		ScopedSpinLock lock(mLock);
+		mSyncedProperties.left = props.left;
+		mSyncedProperties.top = props.top;
+		mSyncedProperties.width = props.width;
+		mSyncedProperties.height = props.height;
+	}
+
+	bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+	bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
+}
+
+void LinuxRenderWindow::setWindowed(u32 width, u32 height)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	RenderWindowProperties& props = mProperties;
+
+	if(!props.isFullScreen)
+		return;
+
+	// Restore old screen config
+	const LinuxVideoModeInfo& videoModeInfo =
+		static_cast<const LinuxVideoModeInfo&>(RenderAPI::Instance().getVideoModeInfo());
+
+	u32 outputIdx = 0; // 0 is always primary
+	if(outputIdx >= videoModeInfo.getNumOutputs())
+	{
+		BS_LOG(Error, Platform, "Invalid output device index.");
+		return;
+	}
+
+	const LinuxVideoOutputInfo& outputInfo =
+		static_cast<const LinuxVideoOutputInfo&>(videoModeInfo.getOutputInfo(outputIdx));
+
+	const LinuxVideoMode& desktopVideoMode = static_cast<const LinuxVideoMode&>(outputInfo.getDesktopVideoMode());
+
+	LinuxPlatform::lockX();
+
+	setVideoMode(outputInfo.GetScreenInternal(), outputInfo._getOutputID(), desktopVideoMode._getModeID());
+	mWindow->SetFullscreenInternal(false);
+
+	LinuxPlatform::unlockX();
+
+	props.isFullScreen = false;
+	props.width = width;
+	props.height = height;
+
+	WindowMovedOrResizedInternal();
+
+	{
+		ScopedSpinLock lock(mLock);
+		mSyncedProperties.left = props.left;
+		mSyncedProperties.top = props.top;
+		mSyncedProperties.width = props.width;
+		mSyncedProperties.height = props.height;
+	}
+
+	bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+	bs::RenderWindowManager::Instance().notifyMovedOrResized(this);
+}
+
+void LinuxRenderWindow::move(i32 left, i32 top)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	RenderWindowProperties& props = mProperties;
+	if(!props.isFullScreen)
+	{
+		LinuxPlatform::lockX();
+		mWindow->move(left, top);
+		LinuxPlatform::unlockX();
+
+		props.top = mWindow->GetTop();
+		props.left = mWindow->GetLeft();
+
 		{
 			ScopedSpinLock lock(mLock);
-			mProperties = mSyncedProperties;
+			mSyncedProperties.top = props.top;
+			mSyncedProperties.left = props.left;
 		}
 
-		void LinuxRenderWindow::rebuildSwapChain()
+		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+	}
+}
+
+void LinuxRenderWindow::resize(u32 width, u32 height)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	RenderWindowProperties& props = mProperties;
+	if(!props.isFullScreen)
+	{
+		LinuxPlatform::lockX();
+		mWindow->resize(width, height);
+		LinuxPlatform::unlockX();
+
+		props.width = mWindow->GetWidth();
+		props.height = mWindow->GetHeight();
+
 		{
-			//// Need to make sure nothing is using the swap buffer before we re-create it
-			// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
-			// on those
-			SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
-			presentDevice->waitIdle();
-
-			VulkanSwapChain* oldSwapChain = mSwapChain;
-
-			mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(
-				mSurface, mProperties.width, mProperties.height, mProperties.vsync, mColorFormat, mColorSpace,
-				mDesc.depthBuffer, mDepthFormat, oldSwapChain);
-
-			oldSwapChain->Destroy();
+			ScopedSpinLock lock(mLock);
+			mSyncedProperties.width = props.width;
+			mSyncedProperties.height = props.height;
 		}
-	} // namespace ct
-} // namespace bs
+
+		bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+	}
+}
+
+void LinuxRenderWindow::minimize()
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	LinuxPlatform::lockX();
+	mWindow->minimize();
+	LinuxPlatform::unlockX();
+}
+
+void LinuxRenderWindow::maximize()
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	LinuxPlatform::lockX();
+	mWindow->maximize();
+	LinuxPlatform::unlockX();
+}
+
+void LinuxRenderWindow::restore()
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	LinuxPlatform::lockX();
+	mWindow->restore();
+	LinuxPlatform::unlockX();
+}
+
+void LinuxRenderWindow::setVSync(bool enabled, u32 interval)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	if(!enabled)
+		interval = 0;
+
+	mProperties.vsync = enabled;
+	mProperties.vsyncInterval = interval;
+
+	LinuxPlatform::lockX();
+	rebuildSwapChain();
+	LinuxPlatform::unlockX();
+
+	{
+		ScopedSpinLock lock(mLock);
+		mSyncedProperties.vsync = enabled;
+		mSyncedProperties.vsyncInterval = interval;
+	}
+
+	bs::RenderWindowManager::Instance().notifySyncDataDirty(this);
+}
+
+void LinuxRenderWindow::swapBuffers(u32 syncMask)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	if(mShowOnSwap)
+		setHidden(false);
+
+	LinuxPlatform::lockX();
+
+	// Get a command buffer on which we'll submit
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+
+	// Assuming present queue is always graphics
+	assert(presentDevice->GetQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
+
+	// Find an appropriate queue to execute on
+	VulkanQueue* queue = presentDevice->GetQueue(GQT_GRAPHICS, 0);
+	u32 queueMask = presentDevice->GetQueueMask(GQT_GRAPHICS, 0);
+
+	// Ignore myself
+	syncMask &= ~queueMask;
+
+	u32 deviceIdx = presentDevice->GetIndex();
+	VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
+
+	u32 numSemaphores;
+	cbm.getSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, numSemaphores);
+
+	// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
+	const SwapChainSurface& surface = mSwapChain->GetBackBuffer();
+	if(surface.needsWait)
+	{
+		mSemaphoresTemp[numSemaphores] = mSwapChain->GetBackBuffer().sync;
+		numSemaphores++;
+
+		mSwapChain->notifyBackBufferWaitIssued();
+	}
+
+	VkResult presentResult = queue->present(mSwapChain, mSemaphoresTemp, numSemaphores);
+	if(presentResult == VK_SUBOPTIMAL_KHR || presentResult == VK_ERROR_OUT_OF_DATE_KHR)
+		rebuildSwapChain();
+
+	mRequiresNewBackBuffer = true;
+
+	LinuxPlatform::unlockX();
+}
+
+void LinuxRenderWindow::copyToMemory(PixelData& dst, FrameBuffer buffer)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	assert(false && "Not implemented");
+}
+
+void LinuxRenderWindow::getCustomAttribute(const String& name, void* data) const
+{
+	if(name == "FB")
+	{
+		VulkanFramebuffer** fb = (VulkanFramebuffer**)data;
+		*fb = mSwapChain->GetBackBuffer().framebuffer;
+		return;
+	}
+
+	if(name == "SC")
+	{
+		VulkanSwapChain** sc = (VulkanSwapChain**)data;
+		*sc = mSwapChain;
+		return;
+	}
+
+	if(name == "LINUX_WINDOW")
+	{
+		LinuxWindow** window = (LinuxWindow**)data;
+		*window = mWindow;
+		return;
+	}
+
+	if(name == "WINDOW")
+	{
+		::Window* window = (::Window*)data;
+		*window = mWindow->GetXWindowInternal();
+		return;
+	}
+}
+
+void LinuxRenderWindow::setActive(bool state)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	LinuxPlatform::lockX();
+
+	if(state)
+		mWindow->restore();
+	else
+		mWindow->minimize();
+
+	LinuxPlatform::unlockX();
+
+	RenderWindow::setActive(state);
+}
+
+void LinuxRenderWindow::setHidden(bool hidden)
+{
+	THROW_IF_NOT_CORE_THREAD;
+
+	if(!hidden)
+		mShowOnSwap = false;
+
+	LinuxPlatform::lockX();
+
+	if(hidden)
+		mWindow->hide();
+	else
+		mWindow->show();
+
+	LinuxPlatform::unlockX();
+
+	RenderWindow::setHidden(hidden);
+}
+
+void LinuxRenderWindow::WindowMovedOrResizedInternal()
+{
+	if(!mWindow)
+		return;
+
+	RenderWindowProperties& props = mProperties;
+	if(!props.isFullScreen) // Fullscreen is handled directly by this object
+	{
+		props.top = mWindow->GetTop();
+		props.left = mWindow->GetLeft();
+		props.width = mWindow->GetWidth();
+		props.height = mWindow->GetHeight();
+	}
+
+	// Note: This assumes that this method was called from the main message loop, which already acquires X locks,
+	// so no need to lock here explicitly
+	rebuildSwapChain();
+}
+
+void LinuxRenderWindow::syncProperties()
+{
+	ScopedSpinLock lock(mLock);
+	mProperties = mSyncedProperties;
+}
+
+void LinuxRenderWindow::rebuildSwapChain()
+{
+	//// Need to make sure nothing is using the swap buffer before we re-create it
+	// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
+	// on those
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	presentDevice->waitIdle();
+
+	VulkanSwapChain* oldSwapChain = mSwapChain;
+
+	mSwapChain = presentDevice->GetResourceManager().create<VulkanSwapChain>(
+		mSurface, mProperties.width, mProperties.height, mProperties.vsync, mColorFormat, mColorSpace,
+		mDesc.depthBuffer, mDepthFormat, oldSwapChain);
+
+	oldSwapChain->Destroy();
+}
