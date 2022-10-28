@@ -277,7 +277,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
@@ -294,7 +293,6 @@ namespace bs
 				return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -319,7 +317,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const ParticleBurst& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);

@@ -23,87 +23,80 @@ namespace bs
 		CCollider(const HSceneObject& parent);
 		virtual ~CCollider() = default;
 
-		/** @copydoc Collider::setIsTrigger */
+		/** @copydoc Collider::SetIsTrigger */
 		BS_SCRIPT_EXPORT(ExportName(Trigger), Property(Setter))
 		void SetIsTrigger(bool value);
 
-		/** @copydoc Collider::getIsTrigger */
+		/** @copydoc Collider::GetIsTrigger */
 		BS_SCRIPT_EXPORT(ExportName(Trigger), Property(Getter))
-
 		bool GetIsTrigger() const { return mIsTrigger; }
 
-		/** @copydoc Collider::setMass */
+		/** @copydoc Collider::SetMass */
 		BS_SCRIPT_EXPORT(ExportName(Mass), Property(Setter))
 		void SetMass(float mass);
 
-		/** @copydoc Collider::getMass */
+		/** @copydoc Collider::GetMass */
 		BS_SCRIPT_EXPORT(ExportName(Mass), Property(Getter))
-
 		float GetMass() const { return mMass; }
 
-		/** @copydoc Collider::setMaterial */
+		/** @copydoc Collider::SetMaterial */
 		BS_SCRIPT_EXPORT(ExportName(Material), Property(Setter))
 		void SetMaterial(const HPhysicsMaterial& material);
 
-		/** @copydoc Collider::getMaterial */
+		/** @copydoc Collider::GetMaterial */
 		BS_SCRIPT_EXPORT(ExportName(Material), Property(Getter))
-
 		HPhysicsMaterial GetMaterial() const { return mMaterial; }
 
-		/** @copydoc Collider::setContactOffset */
+		/** @copydoc Collider::SetContactOffset */
 		BS_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Setter))
 		void SetContactOffset(float value);
 
-		/** @copydoc Collider::getContactOffset */
+		/** @copydoc Collider::GetContactOffset */
 		BS_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Getter))
-
 		float GetContactOffset() const { return mContactOffset; }
 
-		/** @copydoc Collider::setRestOffset */
+		/** @copydoc Collider::SetRestOffset */
 		BS_SCRIPT_EXPORT(ExportName(RestOffset), Property(Setter))
 		void SetRestOffset(float value);
 
-		/** @copydoc Collider::getRestOffset */
+		/** @copydoc Collider::GetRestOffset */
 		BS_SCRIPT_EXPORT(ExportName(RestOffset), Property(Getter))
-
 		float GetRestOffset() const { return mRestOffset; }
 
-		/** @copydoc Collider::setLayer */
+		/** @copydoc Collider::SetLayer */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Setter), UI(AsLayerMask))
 		void SetLayer(u64 layer);
 
-		/** @copydoc Collider::getLayer */
+		/** @copydoc Collider::GetLayer */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Getter), UI(AsLayerMask))
-
 		u64 GetLayer() const { return mLayer; }
 
-		/** @copydoc Collider::setCollisionReportMode */
+		/** @copydoc Collider::SetCollisionReportMode */
 		BS_SCRIPT_EXPORT(ExportName(CollisionReportMode), Property(Setter))
 		void SetCollisionReportMode(CollisionReportMode mode);
 
-		/** @copydoc Collider::getCollisionReportMode */
+		/** @copydoc Collider::GetCollisionReportMode */
 		BS_SCRIPT_EXPORT(ExportName(CollisionReportMode), Property(Getter))
-
 		CollisionReportMode GetCollisionReportMode() const { return mCollisionReportMode; }
 
-		/** @copydoc Collider::getRigidbody */
+		/** @copydoc Collider::GetRigidbody */
 		HRigidbody GetRigidbody() const { return mParent; }
 
-		/** @copydoc Collider::rayCast(const Ray&, PhysicsQueryHit&, float) const */
+		/** @copydoc Collider::RayCast(const Ray&, PhysicsQueryHit&, float) const */
 		bool RayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
 
-		/** @copydoc Collider::rayCast(const Vector3&, const Vector3&, PhysicsQueryHit&, float) const */
+		/** @copydoc Collider::RayCast(const Vector3&, const Vector3&, PhysicsQueryHit&, float) const */
 		bool RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
 
-		/** @copydoc Collider::onCollisionBegin */
+		/** @copydoc Collider::OnCollisionBegin */
 		BS_SCRIPT_EXPORT(ExportName(OnCollisionBegin))
 		Event<void(const CollisionData&)> OnCollisionBegin;
 
-		/** @copydoc Collider::onCollisionStay */
+		/** @copydoc Collider::OnCollisionStay */
 		BS_SCRIPT_EXPORT(ExportName(OnCollisionStay))
 		Event<void(const CollisionData&)> OnCollisionStay;
 
-		/** @copydoc Collider::onCollisionEnd */
+		/** @copydoc Collider::OnCollisionEnd */
 		BS_SCRIPT_EXPORT(ExportName(OnCollisionEnd))
 		Event<void(const CollisionData&)> OnCollisionEnd;
 
@@ -123,19 +116,10 @@ namespace bs
 		friend class SceneObject;
 		friend class CRigidbody;
 
-		/** @copydoc Component::onInitialized() */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed() */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::onDisabled() */
 		void OnDisabled() override;
-
-		/** @copydoc Component::onEnabled() */
 		void OnEnabled() override;
-
-		/** @copydoc Component::onTransformChanged() */
 		void OnTransformChanged(TransformChangedFlags flags) override;
 
 	protected:

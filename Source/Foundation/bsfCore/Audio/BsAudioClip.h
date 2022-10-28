@@ -152,10 +152,7 @@ namespace bs
 	protected:
 		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
 
-		/** @copydoc Resource::initialize */
-		void Initialize();
-
-		/** @copydoc Resource::isCompressible */
+		void Initialize() override;
 		bool IsCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
 
 		/** Returns original audio data. Only available if @p keepSourceData has been provided on creation. */

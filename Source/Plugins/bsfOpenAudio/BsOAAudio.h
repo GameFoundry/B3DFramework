@@ -19,16 +19,16 @@ namespace bs
 		OAAudio();
 		virtual ~OAAudio();
 
-		/** @copydoc Audio::setVolume */
+		/** @copydoc Audio::SetVolume */
 		void SetVolume(float volume);
 
-		/** @copydoc Audio::getVolume */
+		/** @copydoc Audio::GetVolume */
 		float GetVolume() const;
 
-		/** @copydoc Audio::setPaused */
+		/** @copydoc Audio::SetPaused */
 		void SetPaused(bool paused);
 
-		/** @copydoc Audio::isPaused */
+		/** @copydoc Audio::IsPaused */
 		bool IsPaused() const { return mIsPaused; }
 
 		/** @copydoc Audio::_update */

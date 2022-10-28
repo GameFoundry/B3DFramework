@@ -39,70 +39,68 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(DefaultClip), Property(Setter))
 		void SetDefaultClip(const HAnimationClip& clip);
 
-		/** @copydoc setDefaultClip */
+		/** @copydoc SetDefaultClip */
 		BS_SCRIPT_EXPORT(ExportName(DefaultClip), Property(Getter))
 
 		HAnimationClip GetDefaultClip() const { return mDefaultClip; }
 
-		/** @copydoc Animation::setWrapMode */
+		/** @copydoc Animation::SetWrapMode */
 		BS_SCRIPT_EXPORT(ExportName(WrapMode), Property(Setter))
 		void SetWrapMode(AnimWrapMode wrapMode);
 
-		/** @copydoc setWrapMode */
+		/** @copydoc SetWrapMode */
 		BS_SCRIPT_EXPORT(ExportName(WrapMode), Property(Getter))
-
 		AnimWrapMode GetWrapMode() const { return mWrapMode; }
 
-		/** @copydoc Animation::setSpeed */
+		/** @copydoc Animation::SetSpeed */
 		BS_SCRIPT_EXPORT(ExportName(Speed), Property(Setter))
 		void SetSpeed(float speed);
 
-		/** @copydoc setSpeed */
+		/** @copydoc SetSpeed */
 		BS_SCRIPT_EXPORT(ExportName(Speed), Property(Getter))
-
 		float GetSpeed() const { return mSpeed; }
 
-		/** @copydoc Animation::play */
+		/** @copydoc Animation::Play */
 		BS_SCRIPT_EXPORT(ExportName(Play))
 		void Play(const HAnimationClip& clip);
 
-		/** @copydoc Animation::blendAdditive */
+		/** @copydoc Animation::BlendAdditive */
 		BS_SCRIPT_EXPORT(ExportName(BlendAdditive))
 		void BlendAdditive(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, u32 layer = 0);
 
-		/** @copydoc Animation::blend1D */
+		/** @copydoc Animation::Blend1D */
 		BS_SCRIPT_EXPORT(ExportName(Blend1D))
 		void Blend1D(const Blend1DInfo& info, float t);
 
-		/** @copydoc Animation::blend2D */
+		/** @copydoc Animation::Blend2D */
 		BS_SCRIPT_EXPORT(ExportName(Blend2D))
 		void Blend2D(const Blend2DInfo& info, const Vector2& t);
 
-		/** @copydoc Animation::crossFade */
+		/** @copydoc Animation::CrossFade */
 		BS_SCRIPT_EXPORT(ExportName(CrossFade))
 		void CrossFade(const HAnimationClip& clip, float fadeLength);
 
-		/** @copydoc Animation::sample */
+		/** @copydoc Animation::Sample */
 		BS_SCRIPT_EXPORT(ExportName(Sample))
 		void Sample(const HAnimationClip& clip, float time);
 
-		/** @copydoc Animation::stop */
+		/** @copydoc Animation::Stop */
 		BS_SCRIPT_EXPORT(ExportName(Stop))
 		void Stop(u32 layer);
 
-		/** @copydoc Animation::stopAll */
+		/** @copydoc Animation::StopAll */
 		BS_SCRIPT_EXPORT(ExportName(StopAll))
 		void StopAll();
 
-		/** @copydoc Animation::isPlaying */
+		/** @copydoc Animation::IsPlaying */
 		BS_SCRIPT_EXPORT(ExportName(IsPlaying), Property(Getter))
 		bool IsPlaying() const;
 
-		/** @copydoc Animation::getState */
+		/** @copydoc Animation::GetState */
 		BS_SCRIPT_EXPORT(ExportName(GetState))
 		bool GetState(const HAnimationClip& clip, AnimationClipState& state);
 
-		/** @copydoc Animation::setState */
+		/** @copydoc Animation::SetState */
 		BS_SCRIPT_EXPORT(ExportName(SetState))
 		void SetState(const HAnimationClip& clip, AnimationClipState state);
 
@@ -120,9 +118,8 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Bounds), Property(Setter))
 		void SetBounds(const AABox& bounds);
 
-		/** @copydoc setBounds */
+		/** @copydoc SetBounds */
 		BS_SCRIPT_EXPORT(ExportName(Bounds), Property(Getter))
-
 		const AABox& GetBounds() const { return mBounds; }
 
 		/**
@@ -132,7 +129,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(UseBounds), Property(Setter))
 		void SetUseBounds(bool enable);
 
-		/** @copydoc setUseBounds */
+		/** @copydoc SetUseBounds */
 		BS_SCRIPT_EXPORT(ExportName(UseBounds), Property(Getter))
 
 		bool GetUseBounds() const { return mUseBounds; }
@@ -146,11 +143,11 @@ namespace bs
 
 		bool GetEnableCull() const { return mEnableCull; }
 
-		/** @copydoc Animation::getNumClips */
+		/** @copydoc Animation::GetNumClips */
 		BS_SCRIPT_EXPORT(InteropOnly(true))
 		u32 GetNumClips() const;
 
-		/** @copydoc Animation::getClip */
+		/** @copydoc Animation::GetClip */
 		BS_SCRIPT_EXPORT(InteropOnly(true))
 		HAnimationClip GetClip(u32 idx) const;
 
@@ -199,7 +196,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(InteropOnly(true))
 		void RefreshClipMappingsInternal();
 
-		/** @copydoc Animation::getGenericCurveValue */
+		/** @copydoc Animation::GetGenericCurveValue */
 		BS_SCRIPT_EXPORT(InteropOnly(true))
 		bool GetGenericCurveValueInternal(u32 curveIdx, float& value);
 
@@ -233,22 +230,11 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized() */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed() */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::update() */
 		void Update() override;
-
-		/** @copydoc Component::onDisabled() */
 		void OnDisabled() override;
-
-		/** @copydoc Component::onEnabled() */
 		void OnEnabled() override;
-
-		/** @copydoc Component::onTransformChanged() */
 		void OnTransformChanged(TransformChangedFlags flags) override;
 
 	protected:
@@ -275,10 +261,10 @@ namespace bs
 		 */
 		void UpdateSceneObjectMapping();
 
-		/** @copydoc Animation::mapCurveToSceneObject */
+		/** @copydoc Animation::MapCurveToSceneObject */
 		void MapCurveToSceneObject(const String& curve, const HSceneObject& so);
 
-		/** @copydoc Animation::unmapSceneObject */
+		/** @copydoc Animation::UnmapSceneObject */
 		void UnmapSceneObject(const HSceneObject& so);
 
 		/** Searches child scene objects for Bone components and returns any found ones. */

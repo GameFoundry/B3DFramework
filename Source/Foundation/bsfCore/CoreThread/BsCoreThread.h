@@ -74,7 +74,6 @@ namespace bs
 	public:
 		~CoreThread();
 
-		/** @copydoc Module::onStartUp */
 		void OnStartUp() override;
 
 		/** Returns the id of the core thread.  */

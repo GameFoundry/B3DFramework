@@ -425,13 +425,8 @@ namespace bs
 		public:
 			GUIRenderer();
 
-			/**	@copydoc RendererExtension::initialize */
 			void Initialize(const Any& data) override;
-
-			/**	@copydoc RendererExtension::check */
 			RendererExtensionRequest Check(const Camera& camera) override;
-
-			/**	@copydoc RendererExtension::render */
 			void Render(const Camera& camera, const RendererViewContext& viewContext) override;
 
 		private:

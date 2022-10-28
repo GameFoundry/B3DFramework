@@ -70,7 +70,7 @@ namespace bs
 		/** Changes the prefab link ID for this object. See getLinkId(). */
 		void SetLinkIdInternal(u32 id) { mLinkId = id; }
 
-		/** @copydoc getUUID */
+		/** @copydoc GetUuid */
 		void SetUUIDInternal(const UUID& uuid) { mUUID = uuid; }
 
 		/**

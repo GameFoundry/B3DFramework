@@ -86,7 +86,6 @@ namespace bs
 
 		GpuProgram(const GPU_PROGRAM_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 	protected:
@@ -186,7 +185,7 @@ namespace bs
 			/**	Type of GPU program (for example fragment, vertex). */
 			GpuProgramType GetType() const { return mType; }
 
-			/** @copydoc bs::GpuProgram::getParamDesc */
+			/** @copydoc bs::GpuProgram::GetParamDesc */
 			SPtr<GpuParamDesc> GetParamDesc() const { return mParametersDesc; }
 
 			/**	Returns GPU program input declaration. Only relevant for vertex programs. */

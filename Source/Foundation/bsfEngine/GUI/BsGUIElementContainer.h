@@ -15,7 +15,7 @@ namespace bs
 	class BS_EXPORT GUIElementContainer : public GUIElement
 	{
 	public:
-		/** @copydoc GUIElement::setFocus */
+		/** @copydoc GUIElement::SetFocus */
 		void SetFocus(bool enabled, bool clear = false);
 
 	protected:
@@ -23,21 +23,8 @@ namespace bs
 		GUIElementContainer(const GUIDimensions& dimensions, const String& style = StringUtil::kBlank, GUIElementOptions options = GUIElementOptions(0));
 		virtual ~GUIElementContainer() = default;
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
 		Vector2I GetOptimalSizeInternal() const override;
-
-		/** @copydoc GUIElement::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		GUIElement* mFocusElement = nullptr;

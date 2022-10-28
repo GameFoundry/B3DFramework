@@ -26,36 +26,32 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Normal), Property(Setter))
 		void SetNormal(const Vector3& normal);
 
-		/** @copydoc setNormal() */
+		/** @copydoc SetNormal() */
 		BS_SCRIPT_EXPORT(ExportName(Normal), Property(Getter))
-
 		Vector3 GetNormal() const { return mNormal; }
 
 		/** Determines the position of the capsule shape, relative to the component's scene object. */
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Setter))
 		void SetCenter(const Vector3& center);
 
-		/** @copydoc setCenter() */
+		/** @copydoc SetCenter() */
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Getter))
-
 		Vector3 GetCenter() const { return mLocalPosition; }
 
-		/** @copydoc CapsuleCollider::setHalfHeight() */
+		/** @copydoc CapsuleCollider::SetHalfHeight() */
 		BS_SCRIPT_EXPORT(ExportName(HalfHeight), Property(Setter))
 		void SetHalfHeight(float halfHeight);
 
-		/** @copydoc CapsuleCollider::getHalfHeight() */
+		/** @copydoc CapsuleCollider::GetHalfHeight() */
 		BS_SCRIPT_EXPORT(ExportName(HalfHeight), Property(Getter))
-
 		float GetHalfHeight() const { return mHalfHeight; }
 
-		/** @copydoc CapsuleCollider::setRadius() */
+		/** @copydoc CapsuleCollider::SetRadius() */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Setter))
 		void SetRadius(float radius);
 
-		/** @copydoc CapsuleCollider::getRadius() */
+		/** @copydoc CapsuleCollider::GetRadius() */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Getter))
-
 		float GetRadius() const { return mRadius; }
 
 		/** @name Internal
@@ -73,8 +69,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CCollider::createInternal */
-		SPtr<Collider> CreateInternal();
+		SPtr<Collider> CreateInternal() override;
 
 	protected:
 		Vector3 mNormal = Vector3::kUnitY;

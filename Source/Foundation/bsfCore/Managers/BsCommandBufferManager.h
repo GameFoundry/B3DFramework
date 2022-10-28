@@ -23,7 +23,7 @@ namespace bs
 		public:
 			virtual ~CommandBufferManager() = default;
 
-			/** @copydoc CommandBuffer::create */
+			/** @copydoc CommandBuffer::Create */
 			SPtr<CommandBuffer> Create(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
 
 		protected:

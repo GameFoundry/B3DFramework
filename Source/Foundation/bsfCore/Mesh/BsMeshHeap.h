@@ -57,11 +57,10 @@ namespace bs
 		static SPtr<MeshHeap> Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType = IT_32BIT);
 
 	private:
-		/** @copydoc create */
+		/** @copydoc Create */
 		MeshHeap(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType = IT_32BIT);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 	private:
 		u32 mNumVertices;
@@ -132,8 +131,7 @@ namespace bs
 
 			MeshHeap(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType, GpuDeviceFlags deviceMask);
 
-			/** @copydoc CoreObject::Initialize() */
-			void Initialize();
+			void Initialize() override;
 
 			/**
 			 * Allocates a new mesh in the heap, expanding the heap if needed.

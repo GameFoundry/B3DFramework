@@ -23,80 +23,73 @@ namespace bs
 		CAudioSource(const HSceneObject& parent);
 		virtual ~CAudioSource() = default;
 
-		/** @copydoc AudioSource::setClip */
+		/** @copydoc AudioSource::SetClip */
 		BS_SCRIPT_EXPORT(ExportName(Clip), Property(Setter))
 		void SetClip(const HAudioClip& clip);
 
-		/** @copydoc AudioSource::getClip */
+		/** @copydoc AudioSource::GetClip */
 		BS_SCRIPT_EXPORT(ExportName(Clip), Property(Getter))
-
 		HAudioClip GetClip() const { return mAudioClip; }
 
-		/** @copydoc AudioSource::setVolume */
+		/** @copydoc AudioSource::SetVolume */
 		BS_SCRIPT_EXPORT(ExportName(Volume), Property(Setter), UIValueRange([ 0, 1 ]), UI(AsSlider))
 		void SetVolume(float volume);
 
-		/** @copydoc AudioSource::getVolume */
+		/** @copydoc AudioSource::GetVolume */
 		BS_SCRIPT_EXPORT(ExportName(Volume), Property(Getter))
-
 		float GetVolume() const { return mVolume; }
 
-		/** @copydoc AudioSource::setPitch */
+		/** @copydoc AudioSource::SetPitch */
 		BS_SCRIPT_EXPORT(ExportName(Pitch), Property(Setter))
 		void SetPitch(float pitch);
 
-		/** @copydoc AudioSource::getPitch */
+		/** @copydoc AudioSource::GetPitch */
 		BS_SCRIPT_EXPORT(ExportName(Pitch), Property(Getter))
-
 		float GetPitch() const { return mPitch; }
 
-		/** @copydoc AudioSource::setIsLooping */
+		/** @copydoc AudioSource::SetIsLooping */
 		BS_SCRIPT_EXPORT(ExportName(Loop), Property(Setter))
 		void SetIsLooping(bool loop);
 
-		/** @copydoc AudioSource::getIsLooping */
+		/** @copydoc AudioSource::GetIsLooping */
 		BS_SCRIPT_EXPORT(ExportName(Loop), Property(Getter))
-
 		bool GetIsLooping() const { return mLoop; }
 
-		/** @copydoc AudioSource::setPriority */
+		/** @copydoc AudioSource::SetPriority */
 		BS_SCRIPT_EXPORT(ExportName(Priority), Property(Setter))
 		void SetPriority(u32 priority);
 
-		/** @copydoc AudioSource::getPriority */
+		/** @copydoc AudioSource::GetPriority */
 		BS_SCRIPT_EXPORT(ExportName(Priority), Property(Getter))
-
 		u32 GetPriority() const { return mPriority; }
 
-		/** @copydoc AudioSource::setMinDistance */
+		/** @copydoc AudioSource::SetMinDistance */
 		BS_SCRIPT_EXPORT(ExportName(MinDistance), Property(Setter))
 		void SetMinDistance(float distance);
 
-		/** @copydoc AudioSource::getMinDistance */
+		/** @copydoc AudioSource::GetMinDistance */
 		BS_SCRIPT_EXPORT(ExportName(MinDistance), Property(Getter))
 
 		float GetMinDistance() const { return mMinDistance; }
 
-		/** @copydoc AudioSource::setAttenuation */
+		/** @copydoc AudioSource::SetAttenuation */
 		BS_SCRIPT_EXPORT(ExportName(Attenuation), Property(Setter))
 		void SetAttenuation(float attenuation);
 
-		/** @copydoc AudioSource::getAttenuation */
+		/** @copydoc AudioSource::GetAttenuation */
 		BS_SCRIPT_EXPORT(ExportName(Attenuation), Property(Getter))
-
 		float GetAttenuation() const { return mAttenuation; }
 
-		/** @copydoc AudioSource::setTime */
+		/** @copydoc AudioSource::SetTime */
 		BS_SCRIPT_EXPORT(ExportName(Time), Property(Setter), UI(Hide))
 		void SetTime(float time);
 
-		/** @copydoc AudioSource::getTime */
+		/** @copydoc AudioSource::GetTime */
 		BS_SCRIPT_EXPORT(ExportName(Time), Property(Getter), UI(Hide))
 		float GetTime() const;
 
 		/** Sets whether playback should start as soon as the component is enabled. */
 		BS_SCRIPT_EXPORT(ExportName(PlayOnStart), Property(Setter))
-
 		void SetPlayOnStart(bool enable) { mPlayOnStart = enable; }
 
 		/** Determines should playback start as soon as the component is enabled. */
@@ -104,19 +97,19 @@ namespace bs
 
 		bool GetPlayOnStart() const { return mPlayOnStart; }
 
-		/** @copydoc AudioSource::play */
+		/** @copydoc AudioSource::Play */
 		BS_SCRIPT_EXPORT(ExportName(Play))
 		void Play();
 
-		/** @copydoc AudioSource::pause */
+		/** @copydoc AudioSource::Pause */
 		BS_SCRIPT_EXPORT(ExportName(Pause))
 		void Pause();
 
-		/** @copydoc AudioSource::stop */
+		/** @copydoc AudioSource::Stop */
 		BS_SCRIPT_EXPORT(ExportName(Stop))
 		void Stop();
 
-		/** @copydoc AudioSource::getState */
+		/** @copydoc AudioSource::GetState */
 		BS_SCRIPT_EXPORT(ExportName(State), Property(Getter))
 		AudioSourceState GetState() const;
 
@@ -135,22 +128,11 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized() */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed() */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::onDisabled() */
 		void OnDisabled() override;
-
-		/** @copydoc Component::onEnabled() */
 		void OnEnabled() override;
-
-		/** @copydoc Component::onTransformChanged() */
 		void OnTransformChanged(TransformChangedFlags flags) override;
-
-		/** @copydoc Component::update() */
 		void Update() override;
 
 	protected:

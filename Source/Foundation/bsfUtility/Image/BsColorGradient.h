@@ -104,7 +104,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		void SetKeys(const Vector<ColorGradientKey>& keys, float duration = 1.0f);
 
-		/** @copydoc setKeys */
+		/** @copydoc SetKeys */
 		BS_SCRIPT_EXPORT()
 		Vector<ColorGradientKey> GetKeys() const;
 

@@ -130,7 +130,7 @@ namespace bs
 		virtual void GetCustomAttribute(const String& name, void* pData) const;
 
 		/**
-		 * @copydoc ct::RenderTarget::setPriority
+		 * @copydoc ct::RenderTarget::SetPriority
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */

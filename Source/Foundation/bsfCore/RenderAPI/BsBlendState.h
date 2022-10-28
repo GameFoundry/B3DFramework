@@ -106,34 +106,34 @@ namespace bs
 	public:
 		BlendProperties(const BLEND_STATE_DESC& desc);
 
-		/** @copydoc BLEND_STATE_DESC::alphaToCoverageEnable */
+		/** @copydoc BLEND_STATE_DESC::AlphaToCoverageEnable */
 		bool GetAlphaToCoverageEnabled() const { return mData.AlphaToCoverageEnable; }
 
-		/** @copydoc BLEND_STATE_DESC::independantBlendEnable */
+		/** @copydoc BLEND_STATE_DESC::IndependantBlendEnable */
 		bool GetIndependantBlendEnable() const { return mData.IndependantBlendEnable; }
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendEnable */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::BlendEnable */
 		bool GetBlendEnabled(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::srcBlend */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::SrcBlend */
 		BlendFactor GetSrcBlend(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::dstBlend */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::DstBlend */
 		BlendFactor GetDstBlend(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendOp */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::BlendOp */
 		BlendOperation GetBlendOperation(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::srcBlendAlpha */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::SrcBlendAlpha */
 		BlendFactor GetAlphaSrcBlend(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::dstBlendAlpha */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::DstBlendAlpha */
 		BlendFactor GetAlphaDstBlend(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::blendOpAlpha */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::BlendOpAlpha */
 		BlendOperation GetAlphaBlendOperation(u32 renderTargetIdx) const;
 
-		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::renderTargetWriteMask */
+		/** @copydoc RENDER_TARGET_BLEND_STATE_DESC::RenderTargetWriteMask */
 		u8 GetRenderTargetWriteMask(u32 renderTargetIdx) const;
 
 		/** Returns the hash value generated from the blend state properties. */
@@ -179,8 +179,7 @@ namespace bs
 
 		BlendState(const BLEND_STATE_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		BlendProperties mProperties;
 		mutable u32 mId;
@@ -230,7 +229,6 @@ namespace bs
 
 			BlendState(const BLEND_STATE_DESC& desc, u32 id);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			/**	Creates any API-specific state objects. */

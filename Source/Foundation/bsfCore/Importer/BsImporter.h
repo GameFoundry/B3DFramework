@@ -64,7 +64,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		BS_NORREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
-		/** @copydoc import */
+		/** @copydoc Import */
 		template <class T>
 		ResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
 		{
@@ -118,7 +118,7 @@ namespace bs
 		 */
 		SPtr<ImportOptions> CreateImportOptions(const Path& inputFilePath);
 
-		/** @copydoc createImportOptions */
+		/** @copydoc CreateImportOptions */
 		template <class T>
 		SPtr<T> CreateImportOptions(const Path& inputFilePath)
 		{

@@ -56,25 +56,20 @@ namespace bs
 		/**	Gets the percentage of how full is the progress bar currently. */
 		float GetPercent() const { return mPercent; }
 
-		/** @copydoc GUIElement::setTint */
-		virtual void SetTint(const Color& color) override;
+		void SetTint(const Color& color) override;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
-		virtual Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
 		GUIProgressBar(const String& styleName, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIElementContainer::_updateLayoutInternal */
-		virtual void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
-
-		/** @copydoc GUIElementContainer::styleUpdated */
+		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 		void StyleUpdated() override;
 
 	private:

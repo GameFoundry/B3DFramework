@@ -136,8 +136,7 @@ namespace bs
 	private:
 		GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 	};
 
 	namespace ct
@@ -149,7 +148,7 @@ namespace bs
 			virtual ~GpuPipelineParamInfo() = default;
 
 			/**
-			 * @copydoc bs::GpuPipelineParamInfo::create
+			 * @copydoc bs::GpuPipelineParamInfo::Create
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
 			 */
 			static SPtr<GpuPipelineParamInfo> Create(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);

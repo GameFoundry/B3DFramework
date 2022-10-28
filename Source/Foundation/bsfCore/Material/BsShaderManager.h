@@ -34,7 +34,6 @@ namespace bs
 	class BS_CORE_EXPORT DefaultShaderIncludeHandler : public IShaderIncludeHandler
 	{
 	public:
-		/** @copydoc IShaderIncludeHandler::findInclude */
 		HShaderInclude FindInclude(const String& name) const override;
 	};
 

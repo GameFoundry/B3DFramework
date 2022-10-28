@@ -126,13 +126,11 @@ namespace bs
 	public:
 		using PooledThread::PooledThread;
 
-		/** @copydoc PooledThread::onThreadStarted */
 		void OnThreadStarted(const String& name) override
 		{
 			ThreadPolicy::OnThreadStarted(name);
 		}
 
-		/** @copydoc PooledThread::onThreadEnded */
 		void OnThreadEnded(const String& name) override
 		{
 			ThreadPolicy::OnThreadEnded(name);
@@ -255,7 +253,6 @@ namespace bs
 		}
 
 	protected:
-		/** @copydoc ThreadPool::createThread */
 		PooledThread* CreateThread(const String& name) override
 		{
 			PooledThread* newThread = bs_new<TPooledThread<ThreadPolicy>>(name);

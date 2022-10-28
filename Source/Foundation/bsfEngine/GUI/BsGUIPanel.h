@@ -77,16 +77,9 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementBase::_getType */
 		Type GetTypeInternal() const override { return GUIElementBase::Type::Panel; }
-
-		/**	Calculate optimal sizes of all child layout elements. */
 		void UpdateOptimalLayoutSizesInternal() override;
-
-		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
-
-		/** @copydoc GUILayout::_getElementAreas */
 		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** Calculates the size of the provided child within this layout with the provided dimensions. */

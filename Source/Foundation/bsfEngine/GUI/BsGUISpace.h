@@ -45,16 +45,10 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementBase::_getType */
 		Type GetTypeInternal() const override { return GUIElementBase::Type::FixedSpace; }
-
-		/** @copydoc GUIElementBase::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override { return Vector2I(GetSize(), GetSize()); }
-
-		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
-		/** @copydoc GUIElementBase::GetPaddingInternal */
 		const RectOffset& GetPaddingInternal() const override
 		{
 			static RectOffset padding;
@@ -94,16 +88,10 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementBase::_getType */
 		Type GetTypeInternal() const override { return GUIElementBase::Type::FlexibleSpace; }
-
-		/** @copydoc GUIElementBase::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override { return Vector2I(0, 0); }
-
-		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
 
-		/** @copydoc GUIElementBase::GetPaddingInternal */
 		const RectOffset& GetPaddingInternal() const override
 		{
 			static RectOffset padding;

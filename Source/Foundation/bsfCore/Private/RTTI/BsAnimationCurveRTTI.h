@@ -28,7 +28,6 @@ namespace bs
 			hasDynamicSize = 0
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_write(data.Value, stream);
@@ -39,7 +38,6 @@ namespace bs
 			return sizeof(TKeyframe<T>);
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			rtti_read(data.Value, stream);
@@ -50,7 +48,6 @@ namespace bs
 			return sizeof(TKeyframe<T>);
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const TKeyframe<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return sizeof(TKeyframe<T>);
@@ -70,7 +67,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
@@ -87,7 +83,6 @@ namespace bs
 				return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -104,7 +99,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const TAnimationCurve<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
@@ -131,7 +125,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
@@ -144,7 +137,6 @@ namespace bs
 				return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -157,7 +149,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const TNamedAnimationCurve<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize;

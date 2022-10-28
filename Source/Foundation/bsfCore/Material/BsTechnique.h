@@ -112,11 +112,8 @@ namespace bs
 		static SPtr<Technique> Create(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
 
 	protected:
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		SPtr<ct::CoreObject> CreateCore() const override;
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/**	Creates a new technique but doesn't initialize it. */
 		static SPtr<Technique> CreateEmpty();

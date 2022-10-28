@@ -65,10 +65,10 @@ namespace bs
 	public:
 		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
 
-		/** @copydoc TGpuDataParam::set */
+		/** @copydoc TGpuDataParam::Set */
 		void Set(const T& value, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuDataParam::get */
+		/** @copydoc TGpuDataParam::Get */
 		T Get(u32 arrayIdx = 0) const;
 	};
 
@@ -81,10 +81,10 @@ namespace bs
 	public:
 		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
 
-		/** @copydoc TGpuDataParam::set */
+		/** @copydoc TGpuDataParam::Set */
 		void Set(TAnimationCurve<T> value, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuDataParam::get */
+		/** @copydoc TGpuDataParam::Get */
 		const TAnimationCurve<T>& Get(u32 arrayIdx = 0) const;
 	};
 
@@ -97,10 +97,10 @@ namespace bs
 	public:
 		using TMaterialDataCommon<GPDT_COLOR, Core>::TMaterialDataCommon;
 
-		/** @copydoc TGpuDataParam::set */
+		/** @copydoc TGpuDataParam::Set */
 		void Set(const ColorGradientHDR& value, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuDataParam::get */
+		/** @copydoc TGpuDataParam::Get */
 		const ColorGradientHDR& Get(u32 arrayIdx = 0) const;
 	};
 
@@ -113,13 +113,13 @@ namespace bs
 	public:
 		using TMaterialDataCommon<GPDT_STRUCT, Core>::TMaterialDataCommon;
 
-		/** @copydoc TGpuParamStruct::set */
+		/** @copydoc TGpuParamStruct::Set */
 		void Set(const void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuParamStruct::get */
+		/** @copydoc TGpuParamStruct::Get */
 		void Get(void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
 
-		/** @copydoc TGpuParamStruct::getElementSize */
+		/** @copydoc TGpuParamStruct::GetElementSize */
 		u32 GetElementSize() const;
 	};
 
@@ -136,10 +136,10 @@ namespace bs
 
 		TMaterialParamTexture() {}
 
-		/** @copydoc GpuParamTexture::set */
+		/** @copydoc GpuParamTexture::Set */
 		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete) const;
 
-		/** @copydoc GpuParamTexture::get */
+		/** @copydoc GpuParamTexture::Get */
 		TextureType Get() const;
 
 		/** Checks if param is initialized. */
@@ -167,10 +167,10 @@ namespace bs
 
 		TMaterialParamSpriteTexture() {}
 
-		/** @copydoc GpuParamTexture::set */
+		/** @copydoc GpuParamTexture::Set */
 		void Set(const SpriteTextureType& texture) const;
 
-		/** @copydoc GpuParamTexture::get */
+		/** @copydoc GpuParamTexture::Get */
 		SpriteTextureType Get() const;
 
 		/** Checks if param is initialized. */
@@ -197,10 +197,10 @@ namespace bs
 
 		TMaterialParamLoadStoreTexture() {}
 
-		/** @copydoc GpuParamLoadStoreTexture::set */
+		/** @copydoc GpuParamLoadStoreTexture::Set */
 		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface()) const;
 
-		/** @copydoc GpuParamLoadStoreTexture::get */
+		/** @copydoc GpuParamLoadStoreTexture::Get */
 		TextureType Get() const;
 
 		/** Checks if param is initialized. */
@@ -227,10 +227,10 @@ namespace bs
 
 		TMaterialParamBuffer() {}
 
-		/** @copydoc GpuParamBuffer::set */
+		/** @copydoc GpuParamBuffer::Set */
 		void Set(const BufferType& buffer) const;
 
-		/** @copydoc GpuParamBuffer::get */
+		/** @copydoc GpuParamBuffer::Get */
 		BufferType Get() const;
 
 		/** Checks if param is initialized. */
@@ -257,10 +257,10 @@ namespace bs
 
 		TMaterialParamSampState() {}
 
-		/** @copydoc GpuParamSampState::set */
+		/** @copydoc GpuParamSampState::Set */
 		void Set(const SamplerStateType& sampState) const;
 
-		/** @copydoc GpuParamSampState::get */
+		/** @copydoc GpuParamSampState::Get */
 		SamplerStateType Get() const;
 
 		/** Checks if param is initialized. */

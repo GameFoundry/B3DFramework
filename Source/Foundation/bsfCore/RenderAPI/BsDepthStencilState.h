@@ -86,46 +86,46 @@ namespace bs
 	public:
 		DepthStencilProperties(const DEPTH_STENCIL_STATE_DESC& desc);
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthReadEnable */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::DepthReadEnable */
 		bool GetDepthReadEnable() const { return mData.DepthReadEnable; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthWriteEnable */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::DepthWriteEnable */
 		bool GetDepthWriteEnable() const { return mData.DepthWriteEnable; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::depthComparisonFunc */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::DepthComparisonFunc */
 		CompareFunction GetDepthComparisonFunc() const { return mData.DepthComparisonFunc; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilEnable */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::StencilEnable */
 		bool GetStencilEnable() const { return mData.StencilEnable; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilReadMask */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::StencilReadMask */
 		u8 GetStencilReadMask() const { return mData.StencilReadMask; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::stencilWriteMask */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::StencilWriteMask */
 		u8 GetStencilWriteMask() const { return mData.StencilWriteMask; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilFailOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::FrontStencilFailOp */
 		StencilOperation GetStencilFrontFailOp() const { return mData.FrontStencilFailOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilZFailOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::FrontStencilZFailOp */
 		StencilOperation GetStencilFrontZFailOp() const { return mData.FrontStencilZFailOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilPassOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::FrontStencilPassOp */
 		StencilOperation GetStencilFrontPassOp() const { return mData.FrontStencilPassOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::frontStencilComparisonFunc */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::FrontStencilComparisonFunc */
 		CompareFunction GetStencilFrontCompFunc() const { return mData.FrontStencilComparisonFunc; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilFailOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::BackStencilFailOp */
 		StencilOperation GetStencilBackFailOp() const { return mData.BackStencilFailOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilZFailOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::BackStencilZFailOp */
 		StencilOperation GetStencilBackZFailOp() const { return mData.BackStencilZFailOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilPassOp */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::BackStencilPassOp */
 		StencilOperation GetStencilBackPassOp() const { return mData.BackStencilPassOp; }
 
-		/** @copydoc DEPTH_STENCIL_STATE_DESC::backStencilComparisonFunc */
+		/** @copydoc DEPTH_STENCIL_STATE_DESC::BackStencilComparisonFunc */
 		CompareFunction GetStencilBackCompFunc() const { return mData.BackStencilComparisonFunc; }
 
 		/** Returns the hash value generated from the depth-stencil state properties. */

@@ -95,7 +95,7 @@ namespace bs
 		 */
 		virtual void SetMass(float mass) = 0;
 
-		/** @copydoc setMass() */
+		/** @copydoc SetMass() */
 		virtual float GetMass() const = 0;
 
 		/**
@@ -105,7 +105,7 @@ namespace bs
 		 */
 		virtual void SetIsKinematic(bool kinematic) = 0;
 
-		/** @copydoc setIsKinematic() */
+		/** @copydoc SetIsKinematic() */
 		virtual bool GetIsKinematic() const = 0;
 
 		/**
@@ -127,37 +127,37 @@ namespace bs
 		/** Determines a threshold of force and torque under which the object will be considered to be put to sleep. */
 		virtual void SetSleepThreshold(float threshold) = 0;
 
-		/** @copydoc setSleepThreshold() */
+		/** @copydoc SetSleepThreshold() */
 		virtual float GetSleepThreshold() const = 0;
 
 		/** Determines whether or not the rigidbody will have the global gravity force applied to it. */
 		virtual void SetUseGravity(bool gravity) = 0;
 
-		/** @copydoc setUseGravity() */
+		/** @copydoc SetUseGravity() */
 		virtual bool GetUseGravity() const = 0;
 
 		/** Determines the linear velocity of the body. */
 		virtual void SetVelocity(const Vector3& velocity) = 0;
 
-		/** @copydoc setVelocity() */
+		/** @copydoc SetVelocity() */
 		virtual Vector3 GetVelocity() const = 0;
 
 		/** Determines the angular velocity of the body. */
 		virtual void SetAngularVelocity(const Vector3& velocity) = 0;
 
-		/** @copydoc setAngularVelocity() */
+		/** @copydoc SetAngularVelocity() */
 		virtual Vector3 GetAngularVelocity() const = 0;
 
 		/** Determines the linear drag of the body. Higher drag values means the object resists linear movement more. */
 		virtual void SetDrag(float drag) = 0;
 
-		/** @copydoc setDrag() */
+		/** @copydoc SetDrag() */
 		virtual float GetDrag() const = 0;
 
 		/** Determines the angular drag of the body. Higher drag values means the object resists angular movement more. */
 		virtual void SetAngularDrag(float drag) = 0;
 
-		/** @copydoc setAngularDrag() */
+		/** @copydoc SetAngularDrag() */
 		virtual float GetAngularDrag() const = 0;
 
 		/**
@@ -167,13 +167,13 @@ namespace bs
 		 */
 		virtual void SetInertiaTensor(const Vector3& tensor) = 0;
 
-		/** @copydoc setInertiaTensor() */
+		/** @copydoc SetInertiaTensor() */
 		virtual Vector3 GetInertiaTensor() const = 0;
 
 		/** Determines the maximum angular velocity of the rigidbody. Velocity will be clamped to this value. */
 		virtual void SetMaxAngularVelocity(float maxVelocity) = 0;
 
-		/** @copydoc setMaxAngularVelocity() */
+		/** @copydoc SetMaxAngularVelocity() */
 		virtual float GetMaxAngularVelocity() const = 0;
 
 		/**
@@ -197,7 +197,7 @@ namespace bs
 		 */
 		virtual void SetPositionSolverCount(u32 count) = 0;
 
-		/** @copydoc setPositionSolverCount() */
+		/** @copydoc SetPositionSolverCount() */
 		virtual u32 GetPositionSolverCount() const = 0;
 
 		/**
@@ -206,13 +206,13 @@ namespace bs
 		 */
 		virtual void SetVelocitySolverCount(u32 count) = 0;
 
-		/** @copydoc setVelocitySolverCount() */
+		/** @copydoc SetVelocitySolverCount() */
 		virtual u32 GetVelocitySolverCount() const = 0;
 
 		/** Flags that control the behaviour of the rigidbody. */
 		virtual void SetFlags(RigidbodyFlag flags) { mFlags = flags; }
 
-		/** @copydoc setFlags() */
+		/** @copydoc SetFlags() */
 		virtual RigidbodyFlag GetFlags() const { return mFlags; }
 
 		/**

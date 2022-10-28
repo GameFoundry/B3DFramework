@@ -111,10 +111,10 @@ namespace bs
 		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
 		virtual void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) {}
 
-		/** @copydoc CoreObject::markDependenciesDirty */
+		/** @copydoc CoreObject::MarkDependenciesDirty */
 		virtual void MarkDependenciesDirtyInternal() {}
 
-		/** @copydoc IResourceListener::markListenerResourcesDirty */
+		/** @copydoc IResourceListener::MarkListenerResourcesDirty */
 		virtual void MarkResourcesDirtyInternal() {}
 
 		/** @} */
@@ -784,7 +784,6 @@ namespace bs
 		/** Retrieves an implementation of a material usable only from the core thread. */
 		SPtr<ct::Material> GetCore() const;
 
-		/** @copydoc CoreObject::initialize */
 		void Initialize() override;
 
 		/** Creates a deep copy of the material and returns the new object. */
@@ -819,10 +818,7 @@ namespace bs
 		 */
 		void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
 
-		/** @copydoc CoreObject::markDependenciesDirty */
 		void MarkDependenciesDirtyInternal() override;
-
-		/** @copydoc IResourceListener::markListenerResourcesDirty */
 		void MarkResourcesDirtyInternal() override;
 
 		/** @} */
@@ -830,22 +826,13 @@ namespace bs
 		Material();
 		Material(const HShader& shader, const ShaderVariation& variation);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc CoreObject::syncToCore */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
+		void GetListenerResources(Vector<HResource>& resources) override;
 
-		/** @copydoc IResourceListener::getListenerResources */
-		void GetListenerResources(Vector<HResource>& resources);
-
-		/** @copydoc IResourceListener::notifyResourceLoaded */
 		void NotifyResourceLoaded(const HResource& resource) override;
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
 		void NotifyResourceChanged(const HResource& resource) override;
 
 		/**	Performs material initialization when all resources are ready. */
@@ -886,7 +873,7 @@ namespace bs
 		public:
 			~Material() = default;
 
-			/** @copydoc bs::Material::setShader */
+			/** @copydoc bs::Material::SetShader */
 			void SetShader(const SPtr<Shader>& shader);
 
 			/**
@@ -907,7 +894,6 @@ namespace bs
 			Material(const SPtr<Shader>& shader, const ShaderVariation& variation);
 			Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariation& variation);
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 		};
 

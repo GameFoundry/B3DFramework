@@ -15,8 +15,7 @@ namespace bs
 	class BS_UTILITY_EXPORT ConsoleTestOutput : public TestOutput
 	{
 	public:
-		/** @copydoc TestOutput::outputFail */
-		void OutputFail(const String& desc, const String& function, const String& file, long line);
+		void OutputFail(const String& desc, const String& function, const String& file, long line) override;
 	};
 
 	/** @} */

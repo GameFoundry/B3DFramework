@@ -579,20 +579,17 @@ namespace bs
 			return &inst;
 		}
 
-		/** @copydoc RTTITypeBase::getDerivedClasses */
-		Vector<RTTITypeBase*>& GetDerivedClasses()
+		Vector<RTTITypeBase*>& GetDerivedClasses() override
 		{
 			static Vector<RTTITypeBase*> mRTTIDerivedClasses;
 			return mRTTIDerivedClasses;
 		}
 
-		/** @copydoc RTTITypeBase::getBaseClass */
 		RTTITypeBase* GetBaseClass() override
 		{
 			return GetRttiType<BaseType>()();
 		}
 
-		/** @copydoc RTTITypeBase::isDerivedFrom */
 		bool IsDerivedFrom(RTTITypeBase* base) override
 		{
 			assert(base != nullptr);
@@ -615,13 +612,11 @@ namespace bs
 			return false;
 		}
 
-		/** @copydoc RTTITypeBase::_registerDerivedClass */
 		void RegisterDerivedClassInternal(RTTITypeBase* derivedClass) override
 		{
 			GetDerivedClasses().push_back(derivedClass);
 		}
 
-		/** @copydoc RTTITypeBase::_clone */
 		RTTITypeBase* CloneInternal(FrameAlloc& alloc) override
 		{
 			return alloc.Construct<MyRTTIType>();

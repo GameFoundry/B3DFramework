@@ -82,7 +82,7 @@ namespace bs
 		friend class GUIMenu;
 		friend struct GUIMenuItemComparer;
 
-		/** @copydoc GUIMenuItem::findChild(const String& name) const */
+		/** @copydoc GUIMenuItem::FindChild(const String& name) const */
 		GUIMenuItem* FindChild(const String& name);
 
 		GUIMenuItem* mParent;

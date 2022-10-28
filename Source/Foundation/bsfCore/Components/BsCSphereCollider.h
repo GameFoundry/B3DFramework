@@ -22,11 +22,11 @@ namespace bs
 	public:
 		CSphereCollider(const HSceneObject& parent, float radius = 1.0f);
 
-		/** @copydoc SphereCollider::setRadius */
+		/** @copydoc SphereCollider::SetRadius */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Setter))
 		void SetRadius(float radius);
 
-		/** @copydoc SphereCollider::getRadius */
+		/** @copydoc SphereCollider::GetRadius */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Getter))
 
 		float GetRadius() const { return mRadius; }
@@ -35,7 +35,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Setter))
 		void SetCenter(const Vector3& center);
 
-		/** @copydoc setCenter() */
+		/** @copydoc SetCenter() */
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Getter))
 
 		Vector3 GetCenter() const { return mLocalPosition; }
@@ -55,8 +55,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CCollider::createInternal */
-		SPtr<Collider> CreateInternal();
+		SPtr<Collider> CreateInternal() override;
 
 	protected:
 		float mRadius = 1.0f;

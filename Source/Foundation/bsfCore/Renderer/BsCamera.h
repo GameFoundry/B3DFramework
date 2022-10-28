@@ -61,13 +61,12 @@ namespace bs
 	public:
 		virtual ~CameraBase() = default;
 
-		/** @copydoc SceneActor::setTransform */
 		void SetTransform(const Transform& transform) override;
 
 		/** Determines flags used for controlling the camera behaviour. */
 		void SetFlags(CameraFlags flag);
 
-		/** @copydoc setFlags() */
+		/** @copydoc SetFlags() */
 		CameraFlags GetFlags() const { return mCameraFlags; }
 
 		/**
@@ -76,7 +75,7 @@ namespace bs
 		 */
 		virtual void SetHorzFov(const Radian& fovy);
 
-		/** @copydoc setHorzFOV() */
+		/** @copydoc SetHorzFOV() */
 		virtual const Radian& GetHorzFov() const { return mHorzFOV; }
 
 		/**
@@ -85,7 +84,7 @@ namespace bs
 		 */
 		virtual void SetNearClipDistance(float nearDist);
 
-		/** @copydoc setNearClipDistance() */
+		/** @copydoc SetNearClipDistance() */
 		virtual float GetNearClipDistance() const { return mNearDist; }
 
 		/**
@@ -94,13 +93,13 @@ namespace bs
 		 */
 		virtual void SetFarClipDistance(float farDist);
 
-		/** @copydoc setFarClipDistance() */
+		/** @copydoc SetFarClipDistance() */
 		virtual float GetFarClipDistance() const { return mFarDist; }
 
 		/**	Determines the current viewport aspect ratio (width / height). */
 		virtual void SetAspectRatio(float ratio);
 
-		/** @copydoc setAspectRatio() */
+		/** @copydoc SetAspectRatio() */
 		virtual float GetAspectRatio() const;
 
 		/** Manually set the extents of the frustum that will be used when calculating the projection matrix. This will
@@ -186,7 +185,7 @@ namespace bs
 		 */
 		virtual void SetProjectionType(ProjectionType pt);
 
-		/** @copydoc setProjectionType() */
+		/** @copydoc SetProjectionType() */
 		virtual ProjectionType GetProjectionType() const;
 
 		/**
@@ -207,7 +206,7 @@ namespace bs
 		 */
 		virtual void SetOrthoWindowHeight(float h);
 
-		/** @copydoc setOrthoWindowHeight() */
+		/** @copydoc SetOrthoWindowHeight() */
 		virtual float GetOrthoWindowHeight() const;
 
 		/**
@@ -216,7 +215,7 @@ namespace bs
 		 */
 		virtual void SetOrthoWindowWidth(float w);
 
-		/** @copydoc setOrthoWindowWidth() */
+		/** @copydoc SetOrthoWindowWidth() */
 		virtual float GetOrthoWindowWidth() const;
 
 		/**
@@ -229,7 +228,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setPriority() */
+		/** @copydoc SetPriority() */
 		i32 GetPriority() const { return mPriority; }
 
 		/**	Determines layer bitfield that is used when determining which object should the camera render. */
@@ -239,7 +238,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setLayers() */
+		/** @copydoc SetLayers() */
 		u64 GetLayers() const { return mLayers; }
 
 		/**
@@ -252,7 +251,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setMSAACount() */
+		/** @copydoc SetMsaaCount() */
 		u32 GetMsaaCount() const { return mMSAA; }
 
 		/**
@@ -494,7 +493,7 @@ namespace bs
 			MarkCoreDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::RenderSettings);
 		}
 
-		/** @copydoc setRenderSettings() */
+		/** @copydoc SetRenderSettings() */
 		const SPtr<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
@@ -528,7 +527,7 @@ namespace bs
 		 */
 		void SetMain(bool main);
 
-		/** @copydoc setMain() */
+		/** @copydoc SetMain() */
 		bool IsMain() const { return mMain; }
 
 		/** Retrieves an implementation of a camera handler usable only from the core thread. */
@@ -542,10 +541,7 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc CoreObject::initialize */
 		void Initialize() override;
-
-		/** @copydoc CoreObject::destroy */
 		void Destroy() override;
 
 		/** @} */
@@ -553,17 +549,11 @@ namespace bs
 		/** @copydoc CameraBase */
 		Rect2I GetViewportRect() const override;
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc CameraBase::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/**	Creates a new camera without initializing it. */
 		static SPtr<Camera> CreateEmpty();
@@ -601,13 +591,8 @@ namespace bs
 
 			Camera(const SPtr<Viewport>& viewport);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc CameraBase */
 			Rect2I GetViewportRect() const override;
-
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 			u32 mRendererId;

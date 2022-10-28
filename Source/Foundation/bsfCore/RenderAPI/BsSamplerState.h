@@ -151,8 +151,7 @@ namespace bs
 	protected:
 		SamplerState(const SAMPLER_STATE_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		SamplerProperties mProperties;
 
@@ -189,7 +188,7 @@ namespace bs
 			/**	Returns information about the sampler state. */
 			const SamplerProperties& GetProperties() const;
 
-			/**	@copydoc RenderStateManager::createSamplerState */
+			/**	@copydoc RenderStateManager::CreateSamplerState */
 			static SPtr<SamplerState> Create(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**	Returns the default sampler state. */
@@ -200,7 +199,7 @@ namespace bs
 
 			SamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/** @copydoc CoreObject::initialize */
+			/** @copydoc CoreObject::Initialize */
 			void Initialize() override;
 
 			/**	Creates any API-specific state objects. */

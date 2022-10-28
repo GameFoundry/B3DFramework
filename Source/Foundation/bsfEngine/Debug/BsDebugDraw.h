@@ -224,13 +224,8 @@ namespace bs
 			DebugDrawRenderer();
 
 		private:
-			/**	@copydoc RendererExtension::initialize */
 			void Initialize(const Any& data) override;
-
-			/**	@copydoc RendererExtension::check */
 			RendererExtensionRequest Check(const ct::Camera& camera) override;
-
-			/**	@copydoc RendererExtension::render */
 			void Render(const Camera& camera, const RendererViewContext& viewContext) override;
 
 			/**

@@ -529,7 +529,7 @@ Vector3 TriangleClipperBase::GetNormal(u32* sortedVertices, u32 numVertices)
 class TriangleClipper2D : public TriangleClipperBase
 {
 public:
-	/** @copydoc MeshUtility::clip2D */
+	/** @copydoc MeshUtility::Clip2D */
 	void Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStride, const Vector<Plane>& clipPlanes, const std::function<void(Vector2*, Vector2*, u32)>& writeCallback);
 
 private:
@@ -629,7 +629,7 @@ void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2
 class TriangleClipper3D : public TriangleClipperBase
 {
 public:
-	/** @copydoc MeshUtility::clip3D */
+	/** @copydoc MeshUtility::Clip3D */
 	void Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStride, const Vector<Plane>& clipPlanes, const std::function<void(Vector3*, Vector2*, u32)>& writeCallback);
 
 private:

@@ -138,10 +138,7 @@ namespace bs
 		Pass() = default;
 		Pass(const PASS_DESC& desc);
 
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
-
-		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/**	Creates a new empty pass but doesn't initialize it. */
@@ -177,7 +174,7 @@ namespace bs
 			/**	Creates a new empty pass. */
 			static SPtr<Pass> Create(const PASS_DESC& desc);
 
-			/** @copydoc bs::Pass::compile */
+			/** @copydoc bs::Pass::Compile */
 			void Compile();
 
 		protected:
@@ -187,7 +184,6 @@ namespace bs
 			Pass() = default;
 			Pass(const PASS_DESC& desc);
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 		};
 

@@ -36,7 +36,7 @@ namespace bs
 		/** Audio clip to play. */
 		virtual void SetClip(const HAudioClip& clip);
 
-		/** @copydoc setClip() */
+		/** @copydoc SetClip() */
 		HAudioClip GetClip() const { return mAudioClip; }
 
 		/**
@@ -45,25 +45,25 @@ namespace bs
 		 */
 		virtual void SetVelocity(const Vector3& velocity);
 
-		/** @copydoc setVelocity() */
+		/** @copydoc SetVelocity() */
 		Vector3 GetVelocity() const { return mVelocity; }
 
 		/** Volume of the audio played from this source, in [0, 1] range. */
 		virtual void SetVolume(float volume);
 
-		/** @copydoc setVolume() */
+		/** @copydoc SetVolume() */
 		float GetVolume() const { return mVolume; }
 
 		/** Determines the pitch of the played audio. 1 is the default. */
 		virtual void SetPitch(float pitch);
 
-		/** @copydoc setPitch() */
+		/** @copydoc SetPitch() */
 		float GetPitch() const { return mPitch; }
 
 		/** Determines whether the audio clip should loop when it finishes playing. */
 		virtual void SetIsLooping(bool loop);
 
-		/** @copydoc setIsLooping() */
+		/** @copydoc SetIsLooping() */
 		bool GetIsLooping() const { return mLoop; }
 
 		/**
@@ -73,7 +73,7 @@ namespace bs
 		 */
 		virtual void SetPriority(i32 priority);
 
-		/** @copydoc setPriority() */
+		/** @copydoc SetPriority() */
 		u32 GetPriority() const { return mPriority; }
 
 		/**
@@ -82,7 +82,7 @@ namespace bs
 		 */
 		virtual void SetMinDistance(float distance);
 
-		/** @copydoc setMinDistance() */
+		/** @copydoc SetMinDistance() */
 		float GetMinDistance() const { return mMinDistance; }
 
 		/**
@@ -90,7 +90,7 @@ namespace bs
 		 */
 		virtual void SetAttenuation(float attenuation);
 
-		/** @copydoc setAttenuation() */
+		/** @copydoc SetAttenuation() */
 		float GetAttenuation() const { return mAttenuation; }
 
 		/** Starts playing the currently assigned audio clip. */
@@ -108,7 +108,7 @@ namespace bs
 		 */
 		virtual void SetTime(float time) = 0;
 
-		/** @copydoc setTime() */
+		/** @copydoc SetTime() */
 		virtual float GetTime() const = 0;
 
 		/** Returns the current state of the audio playback (playing/paused/stopped). */
@@ -120,10 +120,7 @@ namespace bs
 	protected:
 		AudioSource() = default;
 
-		/** @copydoc IResourceListener::getListenerResources */
-		void GetListenerResources(Vector<HResource>& resources);
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
+		void GetListenerResources(Vector<HResource>& resources) override;
 		void NotifyResourceChanged(const HResource& resource) override;
 
 		/** Triggered by the resources system whenever the attached audio clip changed (e.g. was reimported.) */

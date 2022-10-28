@@ -25,7 +25,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(ActiveLanguage), Property(Setter))
 		void SetActiveLanguage(Language language);
 
-		/** @copydoc setActiveLanguage() */
+		/** @copydoc SetActiveLanguage() */
 		BS_SCRIPT_EXPORT(ExportName(ActiveLanguage), Property(Getter))
 
 		Language GetActiveLanguage() const { return mActiveLanguage; }

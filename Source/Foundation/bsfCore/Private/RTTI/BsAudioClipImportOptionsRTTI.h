@@ -24,21 +24,18 @@ namespace bs
 			BS_RTTI_MEMBER_PLAIN(BitDepth, 3)
 		BS_END_RTTI_MEMBERS
 	public:
-		/** @copydoc RTTIType::getRTTIName */
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
 			static String name = "AudioClipImportOptions";
 			return name;
 		}
 
-		/** @copydoc RTTIType::getRTTIId */
-		u32 GetRttiId()
+		u32 GetRttiId() override
 		{
 			return TID_AudioClipImportOptions;
 		}
 
-		/** @copydoc RTTIType::NewRttiObject */
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<AudioClipImportOptions>();
 		}

@@ -42,7 +42,6 @@ namespace bs
 		TRenderable();
 		virtual ~TRenderable() = default;
 
-		/** @copydoc bs::SceneActor::setTransform */
 		void SetTransform(const Transform& transform) override;
 
 		/**
@@ -65,7 +64,7 @@ namespace bs
 		 */
 		void SetMaterial(const MaterialType& material);
 
-		/** @copydoc setMaterials() */
+		/** @copydoc SetMaterials() */
 		const Vector<MaterialType>& GetMaterials() { return mMaterials; }
 
 		/**
@@ -102,19 +101,19 @@ namespace bs
 		 */
 		void SetWriteVelocity(bool enable);
 
-		/** @copydoc setWriteVelocity */
+		/** @copydoc SetWriteVelocity */
 		bool GetWriteVelocity() const { return mWriteVelocity; }
 
 		/** Factor to be applied to the cull distance set in the camera's render settings.  */
 		void SetCullDistanceFactor(float factor);
 
-		/** @copydoc setCullDistanceFactor() */
+		/** @copydoc SetCullDistanceFactor() */
 		float GetCullDistanceFactor() const { return mCullDistanceFactor; }
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		u64 GetLayer() const { return mLayer; }
 
-		/**	@copydoc setMesh() */
+		/**	@copydoc SetMesh() */
 		MeshType GetMesh() const { return mMesh; }
 
 		/**	Returns the material used for rendering a sub-mesh with the specified index. */
@@ -171,7 +170,7 @@ namespace bs
 		/** Determines the animation that will be used for animating the attached mesh. */
 		void SetAnimation(const SPtr<Animation>& animation);
 
-		/** @copydoc setAnimation */
+		/** @copydoc SetAnimation */
 		const SPtr<Animation>& GetAnimation() const { return mAnimation; }
 
 		/** Checks is the renderable animated or static. */
@@ -188,48 +187,28 @@ namespace bs
 		 * @{
 		 */
 
-		/** @copydoc SceneActor::_updateState */
 		void UpdateStateInternal(const SceneObject& so, bool force = false) override;
-
-		/** @copydoc CoreObject::Initialize() */
 		void Initialize() override;
 
 		/** @} */
 	protected:
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
-		/** @copydoc TRenderable::onMeshChanged */
 		void OnMeshChanged() override;
 
 		/** Updates animation properties depending on the current mesh. */
 		void RefreshAnimation();
 
-		/** @copydoc TRenderable::_markCoreDirty */
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc TRenderable::_markResourcesDirty */
-		void MarkResourcesDirtyInternal() override;
-
-		/** @copydoc CoreObject::markDependenciesDirty */
-		void MarkDependenciesDirtyInternal() override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
-
-		/** @copydoc CoreObject::onDependencyDirty */
+		void MarkDependenciesDirtyInternal() override;
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags) override;
 
-		/** @copydoc IResourceListener::getListenerResources */
-		void GetListenerResources(Vector<HResource>& resources);
-
-		/** @copydoc IResourceListener::notifyResourceLoaded */
+		void MarkResourcesDirtyInternal() override;
+		void GetListenerResources(Vector<HResource>& resources) override;
 		void NotifyResourceLoaded(const HResource& resource) override;
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
 		void NotifyResourceChanged(const HResource& resource) override;
 
 		/**	Creates a new renderable instance without initializing it. */

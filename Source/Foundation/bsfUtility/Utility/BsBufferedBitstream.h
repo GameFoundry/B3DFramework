@@ -34,32 +34,32 @@ namespace bs
 
 		// Note: Perhaps allow reads with no chunk preload (i.e. just the requested count)
 
-		/** @copydoc Bitstream::readBits(Bitstream::QuantType* data, uint32_t count) */
+		/** @copydoc Bitstream::ReadBits(Bitstream::QuantType* data, uint32_t count) */
 		uint64_t ReadBits(Bitstream::QuantType* data, uint64_t count);
 
-		/** @copydoc Bitstream::readBytes(T&) */
+		/** @copydoc Bitstream::ReadBytes(T&) */
 		template <class T>
 		uint32_t ReadBytes(T& value);
 
-		/** @copydoc Bitstream::readBytes(void*, uint32_t) */
+		/** @copydoc Bitstream::ReadBytes(void*, uint32_t) */
 		uint32_t ReadBytes(Bitstream::QuantType* data, uint32_t count);
 
-		/** @copydoc Bitstream::readVarInt(uint32_t&) */
+		/** @copydoc Bitstream::ReadVarInt(uint32_t&) */
 		uint32_t ReadVarInt(uint32_t& value);
 
-		/** @copydoc Bitstream::skip */
+		/** @copydoc Bitstream::Skip */
 		void Skip(int64_t count);
 
-		/** @copydoc Bitstream::skipBytes */
+		/** @copydoc Bitstream::SkipBytes */
 		void SkipBytes(int32_t count) { return Skip((int64_t)count * 8); }
 
-		/** @copydoc Bitstream::seek */
+		/** @copydoc Bitstream::Seek */
 		void Seek(uint64_t pos);
 
-		/** @copydoc Bitstream::tell */
+		/** @copydoc Bitstream::Tell */
 		uint64_t Tell() const { return mCursor; }
 
-		/** @copydoc Bitstream::align() */
+		/** @copydoc Bitstream::Align() */
 		void Align(uint32_t count = 1);
 
 		/** Preloads the specified number of bytes into the bitstream from the data stream. */
@@ -109,20 +109,20 @@ namespace bs
 		 */
 		BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter);
 
-		/** @copydoc Bitstream::writeBits(const Bitstream::QuantType*, uint32_t) */
+		/** @copydoc Bitstream::WriteBits(const Bitstream::QuantType*, uint32_t) */
 		uint64_t WriteBits(const Bitstream::QuantType* data, uint64_t count);
 
-		/** @copydoc Bitstream::writeBytes(T&) */
+		/** @copydoc Bitstream::WriteBytes(T&) */
 		template <class T>
 		uint32_t WriteBytes(T& value);
 
-		/** @copydoc Bitstream::writeBytes(void*, uint32_t) */
+		/** @copydoc Bitstream::WriteBytes(void*, uint32_t) */
 		uint32_t WriteBytes(Bitstream::QuantType* data, uint32_t count);
 
-		/** @copydoc Bitstream::writeVarInt */
+		/** @copydoc Bitstream::WriteVarInt */
 		uint32_t WriteVarInt(uint32_t value);
 
-		/** @copydoc Bitstream::align() */
+		/** @copydoc Bitstream::Align() */
 		void Align(uint32_t count = 1);
 
 		/** Flushes the write buffer to the output stream if a certain buffer length is reached. */

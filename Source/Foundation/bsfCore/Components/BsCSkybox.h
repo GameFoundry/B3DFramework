@@ -23,24 +23,20 @@ namespace bs
 		CSkybox(const HSceneObject& parent);
 		virtual ~CSkybox();
 
-		/** @copydoc Skybox::getTexture */
+		/** @copydoc Skybox::GetTexture */
 		BS_SCRIPT_EXPORT(ExportName(Texture), Property(Getter))
-
 		HTexture GetTexture() const { return mInternal->GetTexture(); }
 
-		/** @copydoc Skybox::setTexture */
+		/** @copydoc Skybox::SetTexture */
 		BS_SCRIPT_EXPORT(ExportName(Texture), Property(Setter))
-
 		void SetTexture(const HTexture& texture) { mInternal->SetTexture(texture); }
 
-		/** @copydoc Skybox::setBrightness */
+		/** @copydoc Skybox::SetBrightness */
 		BS_SCRIPT_EXPORT(ExportName(Brightness), Property(Setter))
-
 		void SetBrightness(float brightness) { mInternal->SetBrightness(brightness); }
 
-		/** @copydoc Skybox::getBrightness */
+		/** @copydoc Skybox::GetBrightness */
 		BS_SCRIPT_EXPORT(ExportName(Brightness), Property(Getter))
-
 		float GetBrightness() const { return mInternal->GetBrightness(); }
 
 		/** @name Internal
@@ -61,13 +57,8 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::update */
 		void Update() override {}
 
 		/************************************************************************/

@@ -123,7 +123,6 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, true, true, 0, SerializableFT_ReflectablePtr, 0, nullptr, info));
 		}
 
-		/** @copydoc RTTIField::initSchema */
 		void InitSchema() override
 		{
 			// This need to be initialized after the field itself, otherwise we get recursive static constructor
@@ -133,8 +132,7 @@ namespace bs
 			Schema.FieldTypeId = DataType::GetRttiStatic()->GetRttiId();
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::getValue */
-		SPtr<IReflectable> GetValue(RTTITypeBase* rtti, void* object)
+		SPtr<IReflectable> GetValue(RTTITypeBase* rtti, void* object) override
 		{
 			CheckIsArray(false);
 
@@ -145,8 +143,7 @@ namespace bs
 			return castDataType;
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::getArrayValue */
-		SPtr<IReflectable> GetArrayValue(RTTITypeBase* rtti, void* object, u32 index)
+		SPtr<IReflectable> GetArrayValue(RTTITypeBase* rtti, void* object, u32 index) override
 		{
 			CheckIsArray(true);
 
@@ -157,8 +154,7 @@ namespace bs
 			return castDataType;
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::setValue */
-		void SetValue(RTTITypeBase* rtti, void* object, SPtr<IReflectable> value)
+		void SetValue(RTTITypeBase* rtti, void* object, SPtr<IReflectable> value) override
 		{
 			CheckIsArray(false);
 
@@ -174,8 +170,7 @@ namespace bs
 			(rttiObject->*Setter)(castObjType, castDataObj);
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::setArrayValue */
-		void SetArrayValue(RTTITypeBase* rtti, void* object, u32 index, SPtr<IReflectable> value)
+		void SetArrayValue(RTTITypeBase* rtti, void* object, u32 index, SPtr<IReflectable> value) override
 		{
 			CheckIsArray(true);
 
@@ -191,7 +186,6 @@ namespace bs
 			(rttiObject->*ArraySetter)(castObjType, index, castDataObj);
 		}
 
-		/** @copydoc RTTIField::setArraySize */
 		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			CheckIsArray(true);
@@ -202,7 +196,6 @@ namespace bs
 			return (rttiObject->*ArrayGetSize)(castObject);
 		}
 
-		/** @copydoc RTTIField::setArraySize */
 		void SetArraySize(RTTITypeBase* rtti, void* object, u32 size) override
 		{
 			CheckIsArray(true);
@@ -218,25 +211,21 @@ namespace bs
 			(rttiObject->*ArraySetSize)(castObject, size);
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::newObject */
-		SPtr<IReflectable> NewObject()
+		SPtr<IReflectable> NewObject() override
 		{
 			return SPtr<IReflectable>(DataType::GetRttiStatic()->NewRttiObject());
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIId */
 		u32 GetRttiId() override
 		{
 			return DataType::GetRttiStatic()->GetRttiId();
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::getRTTIName */
 		const String& GetRttiName() override
 		{
 			return DataType::GetRttiStatic()->GetRttiName();
 		}
 
-		/** @copydoc RTTIReflectablePtrFieldBase::getType */
 		RTTITypeBase* GetType() override
 		{
 			return DataType::GetRttiStatic();

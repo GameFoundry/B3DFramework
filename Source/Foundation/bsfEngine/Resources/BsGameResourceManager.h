@@ -49,7 +49,7 @@ namespace bs
 		/**	Loads the resource at the specified path. */
 		virtual HResource Load(const Path& path, ResourceLoadFlags flags, bool async) const = 0;
 
-		/** @copydoc GameResourceManager::setMapping */
+		/** @copydoc GameResourceManager::SetMapping */
 		virtual void SetMapping(const SPtr<ResourceMapping>& mapping) {}
 	};
 
@@ -57,10 +57,7 @@ namespace bs
 	class BS_EXPORT StandaloneResourceLoader : public IGameResourceLoader
 	{
 	public:
-		/** @copydoc IGameResourceLoader::load */
 		HResource Load(const Path& path, ResourceLoadFlags flags, bool async) const override;
-
-		/** @copydoc IGameResourceLoader::setMapping */
 		void SetMapping(const SPtr<ResourceMapping>& mapping) override;
 
 	private:

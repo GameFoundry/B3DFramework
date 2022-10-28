@@ -377,7 +377,7 @@ namespace bs
 
 	private:
 		/**
-		 * @copydoc	addParameter(SHADER_OBJECT_PARAM_DESC)
+		 * @copydoc	AddParameter(SHADER_OBJECT_PARAM_DESC)
 		 *
 		 * @note	Common method shared by different addParameter overloads.
 		 */
@@ -637,11 +637,8 @@ namespace bs
 	private:
 		Shader(const String& name, const SHADER_DESC& desc, u32 id);
 
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
-
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/** Converts a sim thread version of the shader descriptor to a core thread version. */
 		ct::SHADER_DESC ConvertDesc(const SHADER_DESC& desc) const;
@@ -690,7 +687,7 @@ namespace bs
 		class BS_CORE_EXPORT Shader : public CoreObject, public TShader<true>
 		{
 		public:
-			/** @copydoc bs::Shader::create */
+			/** @copydoc bs::Shader::Create */
 			static SPtr<Shader> Create(const String& name, const SHADER_DESC& desc);
 
 		protected:

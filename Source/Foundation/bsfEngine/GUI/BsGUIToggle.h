@@ -133,7 +133,6 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIButtonBase::_getElementType */
 		ElementType GetElementTypeInternal() const override { return ElementType::Toggle; }
 
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
@@ -152,10 +151,7 @@ namespace bs
 	protected:
 		GUIToggle(const String& styleName, const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIButtonBase::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-
-		/** @copydoc GUIButtonBase::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 	protected:

@@ -23,61 +23,52 @@ namespace bs
 		CLightProbeVolume(const HSceneObject& parent, const AABox& volume = AABox::kUnitBox, const Vector3I& cellCount = Vector3I(1, 1, 1));
 		virtual ~CLightProbeVolume();
 
-		/** @copydoc LightProbeVolume::addProbe() */
+		/** @copydoc LightProbeVolume::AddProbe() */
 		BS_SCRIPT_EXPORT()
-
 		u32 AddProbe(const Vector3& position) { return mInternal->AddProbe(position); }
 
-		/** @copydoc LightProbeVolume::setProbePosition() */
+		/** @copydoc LightProbeVolume::SetProbePosition() */
 		BS_SCRIPT_EXPORT()
-
 		void SetProbePosition(u32 handle, const Vector3& position) { mInternal->SetProbePosition(handle, position); }
 
-		/** @copydoc LightProbeVolume::getProbePosition() */
+		/** @copydoc LightProbeVolume::GetProbePosition() */
 		BS_SCRIPT_EXPORT()
-
 		Vector3 GetProbePosition(u32 handle) const { return mInternal->GetProbePosition(handle); }
 
-		/** @copydoc LightProbeVolume::removeProbe() */
+		/** @copydoc LightProbeVolume::RemoveProbe() */
 		BS_SCRIPT_EXPORT()
-
 		void RemoveProbe(u32 handle) { mInternal->RemoveProbe(handle); }
 
-		/** @copydoc LightProbeVolume::getProbes() */
+		/** @copydoc LightProbeVolume::GetProbes() */
 		BS_SCRIPT_EXPORT()
 		Vector<LightProbeInfo> GetProbes() const;
 
-		/** @copydoc LightProbeVolume::renderProbe() */
+		/** @copydoc LightProbeVolume::RenderProbe() */
 		BS_SCRIPT_EXPORT()
 		void RenderProbe(u32 handle);
 
-		/** @copydoc LightProbeVolume::renderProbes() */
+		/** @copydoc LightProbeVolume::RenderProbes() */
 		BS_SCRIPT_EXPORT()
 		void RenderProbes();
 
-		/** @copydoc LightProbeVolume::resize() */
+		/** @copydoc LightProbeVolume::Resize() */
 		BS_SCRIPT_EXPORT()
-
 		void Resize(const AABox& volume, const Vector3I& cellCount = Vector3I(1, 1, 1)) { mInternal->Resize(volume, cellCount); }
 
-		/** @copydoc LightProbeVolume::clip() */
+		/** @copydoc LightProbeVolume::Clip() */
 		BS_SCRIPT_EXPORT()
-
 		void Clip() { mInternal->Clip(); }
 
-		/** @copydoc LightProbeVolume::reset() */
+		/** @copydoc LightProbeVolume::Reset() */
 		BS_SCRIPT_EXPORT()
-
 		void Reset() { mInternal->Reset(); }
 
-		/** @copydoc LightProbeVolume::getGridVolume() */
+		/** @copydoc LightProbeVolume::GetGridVolume() */
 		BS_SCRIPT_EXPORT(ExportName(GridVolume), Property(Getter))
-
 		const AABox& GetGridVolume() const { return mVolume; }
 
-		/** @copydoc LightProbeVolume::getCellCount() */
+		/** @copydoc LightProbeVolume::GetCellCount() */
 		BS_SCRIPT_EXPORT(ExportName(CellCount), Property(Getter))
-
 		const Vector3I& GetCellCount() const { return mCellCount; }
 
 		/** @name Internal
@@ -102,13 +93,8 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized */
 		void OnInitialized();
-
-		/** @copydoc Component::onDestroyed */
 		void OnDestroyed();
-
-		/** @copydoc Component::update */
 		void Update() {}
 
 		/************************************************************************/

@@ -18,13 +18,13 @@ namespace bs
 	class BS_CORE_EXPORT ShaderIncludeImporter : public SpecificImporter
 	{
 	public:
-		/** @copydoc SpecificImporter::isExtensionSupported */
+		/** @copydoc SpecificImporter::IsExtensionSupported */
 		bool IsExtensionSupported(const String& ext) const;
 
-		/** @copydoc SpecificImporter::isMagicNumberSupported */
+		/** @copydoc SpecificImporter::IsMagicNumberSupported */
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
 
-		/** @copydoc SpecificImporter::import */
+		/** @copydoc SpecificImporter::Import */
 		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
 	};
 

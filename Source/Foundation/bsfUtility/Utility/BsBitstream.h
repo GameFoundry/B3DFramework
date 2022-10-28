@@ -105,16 +105,16 @@ namespace bs
 		template <class T>
 		uint64_t Read(T& value);
 
-		/** @copydoc write(const T&) */
+		/** @copydoc Write(const T&) */
 		uint64_t Write(const bool& value);
 
-		/** @copydoc read(T&) */
+		/** @copydoc Read(T&) */
 		uint64_t Read(bool& value);
 
-		/** @copydoc write(const T&) */
+		/** @copydoc Write(const T&) */
 		uint64_t Write(const String& value);
 
-		/** @copydoc read(T&) */
+		/** @copydoc Read(T&) */
 		uint64_t Read(String& value);
 
 		/**
@@ -166,10 +166,10 @@ namespace bs
 		template <class T>
 		uint64_t ReadDelta(T& value, const T& lastValue);
 
-		/** @copydoc writeDelta(const T&, const T&) */
+		/** @copydoc WriteDelta(const T&, const T&) */
 		uint32_t WriteDelta(bool value, bool lastValue);
 
-		/** @copydoc readDelta(T&, const T&) */
+		/** @copydoc ReadDelta(T&, const T&) */
 		uint32_t ReadDelta(bool& value, bool lastValue);
 
 		/**

@@ -41,7 +41,7 @@ namespace bs
 		/** Determines the position, rotation and scale of the actor. */
 		virtual void SetTransform(const Transform& transform);
 
-		/** @copydoc setTransform */
+		/** @copydoc SetTransform */
 		const Transform& GetTransform() const { return mTransform; }
 
 		/** Shorthand for getTransform(). */
@@ -53,7 +53,7 @@ namespace bs
 		 */
 		virtual void SetActive(bool active);
 
-		/** @copydoc setActive */
+		/** @copydoc SetActive */
 		bool GetActive() const { return mActive; }
 
 		/**
@@ -63,7 +63,7 @@ namespace bs
 		 */
 		virtual void SetMobility(ObjectMobility mobility);
 
-		/** @copydoc setMobility */
+		/** @copydoc SetMobility */
 		ObjectMobility GetMobility() const { return mMobility; }
 
 		/**

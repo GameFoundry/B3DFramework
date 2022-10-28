@@ -474,13 +474,13 @@ namespace bs
 		/** Determines general purpose settings that apply to the particle system. */
 		void SetSettings(const ParticleSystemSettings& settings);
 
-		/** @copydoc setSettings */
+		/** @copydoc SetSettings */
 		const ParticleSystemSettings& GetSettings() const { return mSettings; }
 
 		/** Determines settings that control particle GPU simulation. */
 		void SetGpuSimulationSettings(const ParticleGpuSimulationSettings& settings);
 
-		/** @copydoc setGpuSimulationSettings */
+		/** @copydoc SetGpuSimulationSettings */
 		const ParticleGpuSimulationSettings& GetGpuSimulationSettings() const { return mGpuSimulationSettings; }
 
 		/**
@@ -489,7 +489,7 @@ namespace bs
 		 */
 		void SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters);
 
-		/** @copydoc setEmitters */
+		/** @copydoc SetEmitters */
 		const Vector<SPtr<ParticleEmitter>>& GetEmitters() const { return mEmitters; }
 
 		/**
@@ -498,7 +498,7 @@ namespace bs
 		 */
 		void SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers);
 
-		/** @copydoc setEmitters */
+		/** @copydoc SetEmitters */
 		const Vector<SPtr<ParticleEvolver>>& GetEvolvers() const { return mEvolvers; }
 
 		/**
@@ -507,7 +507,7 @@ namespace bs
 		 */
 		void SetLayer(u64 layer);
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		u64 GetLayer() const { return mLayer; }
 
 		/** Starts the particle system. New particles will be emitted and existing particles will be evolved. */
@@ -620,17 +620,10 @@ namespace bs
 		 */
 		void PostSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc SceneActor::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
-
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/**	Creates a new ParticleSystem instance without initializing it. */
 		static SPtr<ParticleSystem> CreateEmpty();
@@ -675,10 +668,10 @@ namespace bs
 		public:
 			~ParticleSystem();
 
-			/** @copydoc bs::ParticleSystem::setSettings */
+			/** @copydoc bs::ParticleSystem::SetSettings */
 			const ParticleSystemSettings& GetSettings() const { return mSettings; }
 
-			/** @copydoc bs::ParticleSystem::setGpuSimulationSettings */
+			/** @copydoc bs::ParticleSystem::SetGpuSimulationSettings */
 			const ParticleGpuSimulationSettings& GetGpuSimulationSettings() const { return mGpuSimulationSettings; }
 
 			/**
@@ -687,7 +680,7 @@ namespace bs
 			 */
 			void SetLayer(u64 layer);
 
-			/** @copydoc setLayer() */
+			/** @copydoc SetLayer() */
 			u64 GetLayer() const { return mLayer; }
 
 			/**	Sets an ID that can be used for uniquely identifying this object by the renderer. */
@@ -702,7 +695,6 @@ namespace bs
 			 */
 			u32 GetId() const { return mId; }
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 		private:
@@ -712,7 +704,6 @@ namespace bs
 				: mId(id)
 			{}
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 			u32 mRendererId = 0;

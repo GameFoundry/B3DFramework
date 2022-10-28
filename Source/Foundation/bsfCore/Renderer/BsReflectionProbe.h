@@ -197,14 +197,9 @@ namespace bs
 	protected:
 		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc ReflectionProbeBase::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
-		CoreSyncData SyncToCore(FrameAlloc* allocator);
+		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		/**
 		 * Captures the scene color at current probe location and generates a filtered map. If a custom texture is set then
@@ -249,11 +244,8 @@ namespace bs
 
 			ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture);
 
-			/** @copydoc CoreObject::initialize */
-			void Initialize();
-
-			/** @copydoc CoreObject::syncToCore */
-			void SyncToCore(const CoreSyncData& data);
+			void Initialize() override;
+			void SyncToCore(const CoreSyncData& data) override;
 
 			u32 mRendererId;
 		};

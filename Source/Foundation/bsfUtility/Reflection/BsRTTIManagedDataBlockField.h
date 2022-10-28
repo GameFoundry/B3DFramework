@@ -57,7 +57,6 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, false, true, 0, SerializableFT_DataBlock, 0, nullptr, info));
 		}
 
-		/** @copydoc RTTIField::getArraySize */
 		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			BS_EXCEPT(InternalErrorException, "Data block types don't support arrays.");
@@ -65,14 +64,12 @@ namespace bs
 			return 0;
 		}
 
-		/** @copydoc RTTIField::setArraySize */
 		void SetArraySize(RTTITypeBase* rtti, void* object, u32 size) override
 		{
 			BS_EXCEPT(InternalErrorException, "Data block types don't support arrays.");
 		}
 
-		/** @copydoc RTTIManagedDataBlockFieldBase::getValue */
-		SPtr<DataStream> GetValue(RTTITypeBase* rtti, void* object, u32& size)
+		SPtr<DataStream> GetValue(RTTITypeBase* rtti, void* object, u32& size) override
 		{
 			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);
@@ -80,8 +77,7 @@ namespace bs
 			return (rttiObject->*getter)(castObj, size);
 		}
 
-		/** @copydoc RTTIManagedDataBlockFieldBase::setValue */
-		void SetValue(RTTITypeBase* rtti, void* object, const SPtr<DataStream>& value, u32 size)
+		void SetValue(RTTITypeBase* rtti, void* object, const SPtr<DataStream>& value, u32 size) override
 		{
 			InterfaceType* rttiObject = static_cast<InterfaceType*>(rtti);
 			ObjectType* castObj = static_cast<ObjectType*>(object);

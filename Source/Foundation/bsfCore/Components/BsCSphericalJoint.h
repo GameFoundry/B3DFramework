@@ -22,19 +22,19 @@ namespace bs
 	public:
 		CSphericalJoint(const HSceneObject& parent);
 
-		/** @copydoc SphericalJoint::getLimit */
+		/** @copydoc SphericalJoint::GetLimit */
 		BS_SCRIPT_EXPORT(ExportName(Limit), Property(Getter))
 		LimitConeRange GetLimit() const;
 
-		/** @copydoc SphericalJoint::setLimit */
+		/** @copydoc SphericalJoint::SetLimit */
 		BS_SCRIPT_EXPORT(ExportName(Limit), Property(Setter))
 		void SetLimit(const LimitConeRange& limit);
 
-		/** @copydoc SphericalJoint::setFlag */
+		/** @copydoc SphericalJoint::SetFlag */
 		BS_SCRIPT_EXPORT(ExportName(SetFlag))
 		void SetFlag(SphericalJointFlag flag, bool enabled);
 
-		/** @copydoc SphericalJoint::hasFlag */
+		/** @copydoc SphericalJoint::HasFlag */
 		BS_SCRIPT_EXPORT(ExportName(HasFlag))
 		bool HasFlag(SphericalJointFlag flag) const;
 
@@ -53,8 +53,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CJoint::createInternal */
-		SPtr<Joint> CreateInternal();
+		SPtr<Joint> CreateInternal() override;
 
 		SPHERICAL_JOINT_DESC mDesc;
 

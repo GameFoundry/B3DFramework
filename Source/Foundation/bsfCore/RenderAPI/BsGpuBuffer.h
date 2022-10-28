@@ -87,7 +87,7 @@ namespace bs
 		/** Returns the size of a single element in the buffer, of the provided format, in bytes. */
 		static u32 GetFormatSize(GpuBufferFormat format);
 
-		/** @copydoc HardwareBufferManager::createGpuBuffer */
+		/** @copydoc HardwareBufferManager::CreateGpuBuffer */
 		static SPtr<GpuBuffer> Create(const GPU_BUFFER_DESC& desc);
 
 	protected:
@@ -95,8 +95,7 @@ namespace bs
 
 		GpuBuffer(const GPU_BUFFER_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		GpuBufferProperties mProperties;
 	};
@@ -122,14 +121,9 @@ namespace bs
 			/** Returns properties describing the buffer. */
 			const GpuBufferProperties& GetProperties() const { return mProperties; }
 
-			/** @copydoc HardwareBuffer::readData */
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
-
-			/** @copydoc HardwareBuffer::writeData */
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-
-			/** @copydoc HardwareBuffer::copyData */
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Returns a view of this buffer with specified format/type.
@@ -146,7 +140,7 @@ namespace bs
 			 */
 			SPtr<GpuBuffer> GetView(GpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
 
-			/** @copydoc bs::HardwareBufferManager::createGpuBuffer */
+			/** @copydoc bs::HardwareBufferManager::CreateGpuBuffer */
 			static SPtr<GpuBuffer> Create(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
@@ -162,13 +156,8 @@ namespace bs
 			GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 			GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
-			/** @copydoc HardwareBuffer::map */
 			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx = 0, u32 queueIdx = 0) override;
-
-			/** @copydoc HardwareBuffer::unmap */
 			void Unmap() override;
-
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			GpuBufferProperties mProperties;

@@ -34,19 +34,13 @@ namespace bs
 		 *  @{
 		 */
 
-		/**	Calculate optimal sizes of all child layout elements. */
 		void UpdateOptimalLayoutSizesInternal() override;
-
-		/** @copydoc GUIElementBase::_calculateLayoutSizeRange */
 		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
-
-		/** @copydoc GUILayout::_getElementAreas */
 		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** @} */
 
 	protected:
-		/** @copydoc GUIElementBase::_updateLayoutInternal */
 		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
 	};
 

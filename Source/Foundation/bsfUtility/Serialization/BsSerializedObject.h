@@ -94,8 +94,7 @@ namespace bs
 		/** Returns the RTTI type ID for the most-derived class of this object. */
 		u32 GetRootTypeId() const;
 
-		/** @copydoc SerializedInstance::clone */
-		SPtr<SerializedInstance> Clone(bool cloneData = true);
+		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
 
 		/**
 		 * Decodes the serialized object back into its original IReflectable object form.
@@ -142,8 +141,7 @@ namespace bs
 				bs_free(Value);
 		}
 
-		/** @copydoc SerializedInstance::clone */
-		SPtr<SerializedInstance> Clone(bool cloneData = true);
+		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
 
 		u8* Value = nullptr;
 		u32 Size = 0;
@@ -163,8 +161,7 @@ namespace bs
 	{
 		SerializedDataBlock() = default;
 
-		/** @copydoc SerializedInstance::clone */
-		SPtr<SerializedInstance> Clone(bool cloneData = true);
+		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
 
 		SPtr<DataStream> Stream;
 		u32 Offset = 0;
@@ -201,8 +198,7 @@ namespace bs
 	{
 		SerializedArray() = default;
 
-		/** @copydoc SerializedInstance::clone */
-		SPtr<SerializedInstance> Clone(bool cloneData = true);
+		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
 
 		UnorderedMap<u32, SerializedArrayEntry> Entries;
 		u32 NumElements = 0;

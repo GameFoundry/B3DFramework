@@ -88,10 +88,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::_getElementType */
 		ElementType GetElementTypeInternal() const override { return ElementType::InputBox; }
-
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
@@ -99,33 +96,12 @@ namespace bs
 		GUIInputBox(const String& styleName, const GUIDimensions& dimensions, bool multiline);
 		virtual ~GUIInputBox();
 
-		/** @copydoc GUIElement::FillBufferInternal() */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		void UpdateRenderElementsInternal();
-
-		/** @copydoc GUIElement::updateClippedBounds() */
-		void UpdateClippedBounds();
-
-		/** @copydoc GUIElement::_mouseEvent */
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
+		void UpdateClippedBounds() override;
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-
-		/** @copydoc GUIElement::_textInputEvent */
 		bool TextInputEventInternal(const GUITextInputEvent& ev) override;
-
-		/** @copydoc GUIElement::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
-
-		/** @copydoc GUIElement::_virtualButtonEvent */
 		bool VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev) override;
 
 		/**
@@ -140,13 +116,8 @@ namespace bs
 		/** Returns rectangle in which the text can be displayed, in local coordinates (text will start at 0, 0). */
 		Rect2I GetTextInputRectInternal() const override;
 
-		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
 		u32 GetRenderElementDepthRangeInternal() const override;
-
-		/** @copydoc GUIElement::_hasCustomCursor */
 		bool HasCustomCursorInternal(const Vector2I position, CursorType& type) const override;
-
-		/** @copydoc GUIElement::_getContextMenu */
 		SPtr<GUIContextMenu> GetContextMenuInternal() const override;
 
 	private:

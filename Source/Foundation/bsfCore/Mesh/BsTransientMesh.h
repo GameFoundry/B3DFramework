@@ -40,8 +40,7 @@ namespace bs
 		/** Marks the mesh as destroyed so we know that we don't need to destroy it ourselves. */
 		void MarkAsDestroyed() { mIsDestroyed = true; }
 
-		/** @copydoc MeshBase::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 	protected:
 		bool mIsDestroyed;
@@ -67,25 +66,15 @@ namespace bs
 		public:
 			TransientMesh(const SPtr<MeshHeap>& parentHeap, u32 id, u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes);
 
-			/** @copydoc MeshBase::getVertexData */
-			SPtr<VertexData> GetVertexData() const;
-
-			/** @copydoc MeshBase::getIndexBuffer */
-			SPtr<IndexBuffer> GetIndexBuffer() const;
-
-			/** @copydoc MeshBase::getVertexDesc */
-			SPtr<VertexDataDesc> GetVertexDesc() const;
-
 			/**	Returns the ID that uniquely identifies this mesh in the parent heap. */
 			u32 GetMeshHeapId() const { return mId; }
 
-			/** @copydoc MeshBase::getVertexOffset */
-			u32 GetVertexOffset() const;
+			SPtr<VertexData> GetVertexData() const override;
+			SPtr<IndexBuffer> GetIndexBuffer() const override;
+			SPtr<VertexDataDesc> GetVertexDesc() const override;
 
-			/** @copydoc MeshBase::getIndexOffset */
-			u32 GetIndexOffset() const;
-
-			/** @copydoc MeshBase::_notifyUsedOnGPU */
+			u32 GetVertexOffset() const override;
+			u32 GetIndexOffset() const override;
 			void NotifyUsedOnGPUInternal() override;
 
 		protected:

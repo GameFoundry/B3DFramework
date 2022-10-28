@@ -29,7 +29,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
@@ -44,7 +43,6 @@ namespace bs
 					return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -60,7 +58,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const AnimationEvent& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);

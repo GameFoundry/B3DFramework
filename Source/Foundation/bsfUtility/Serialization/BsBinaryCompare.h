@@ -36,7 +36,6 @@ namespace bs
 		BinaryCompare();
 		virtual ~BinaryCompare() = default;
 
-		/** @copydoc ICompare::run */
 		bool Run(IReflectable& a, IReflectable& b) override;
 
 	protected:

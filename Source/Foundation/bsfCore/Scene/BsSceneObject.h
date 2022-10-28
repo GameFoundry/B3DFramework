@@ -104,7 +104,6 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GameObject::_setInstanceData */
 		void SetInstanceDataInternal(GameObjectInstanceDataPtr& other) override;
 
 		/**

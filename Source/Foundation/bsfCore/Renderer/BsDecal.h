@@ -31,7 +31,7 @@ namespace bs
 			UpdateBounds();
 		}
 
-		/** @copydoc setSize */
+		/** @copydoc SetSize */
 		Vector2 GetSize() const { return mSize; }
 
 		/** Returns width and height of the decal, scaled by decal's transform. */
@@ -48,7 +48,7 @@ namespace bs
 			UpdateBounds();
 		}
 
-		/** @copydoc getSize */
+		/** @copydoc GetSize */
 		float GetMaxDistance() const { return mMaxDistance; }
 
 		/** Maximum distance (from its origin) at which the decal is displayed, scaled by decal's transform. */
@@ -65,7 +65,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setLayerMask */
+		/** @copydoc SetLayerMask */
 		u32 GetLayerMask() const { return mLayerMask; }
 
 		/**
@@ -74,7 +74,7 @@ namespace bs
 		 */
 		void SetLayer(u64 layer);
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		u64 GetLayer() const { return mLayer; }
 
 		/**	Gets world bounds of this object. */
@@ -89,7 +89,6 @@ namespace bs
 		 */
 		Matrix4 GetMatrixNoScale() const { return mTfrmMatrixNoScale; }
 
-		/** @copydoc SceneActor::setTransform */
 		void SetTransform(const Transform& transform) override;
 
 	protected:
@@ -128,7 +127,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setMaterial */
+		/** @copydoc SetMaterial */
 		const MaterialType& GetMaterial() const { return mMaterial; }
 
 		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
@@ -173,16 +172,9 @@ namespace bs
 	protected:
 		Decal(const HMaterial& material, const Vector2& size, float maxDistance);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
-
-		/** @copydoc DecalBase::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		/**	Creates the object with without initializing it. Used for serialization. */
@@ -219,10 +211,7 @@ namespace bs
 
 			Decal(const SPtr<Material>& material, const Vector2& size, float maxDistance);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 			u32 mRendererId = 0;

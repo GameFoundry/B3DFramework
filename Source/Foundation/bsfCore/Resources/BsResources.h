@@ -114,7 +114,7 @@ namespace bs
 		BS_SCRIPT_EXPORT()
 		BS_NORREF HResource Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		/** @copydoc load(const Path&, ResourceLoadFlags) */
+		/** @copydoc Load(const Path&, ResourceLoadFlags) */
 		template <class T>
 		ResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
@@ -124,11 +124,11 @@ namespace bs
 		/**
 		 * Loads the resource for the provided weak resource handle, or returns a loaded resource if already loaded.
 		 *
-		 * @see		load(const Path&, ResourceLoadFlags)
+		 * @see		Load(const Path&, ResourceLoadFlags)
 		 */
 		HResource Load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		/** @copydoc load(const WeakResourceHandle<Resource>&, ResourceLoadFlags) */
+		/** @copydoc Load(const WeakResourceHandle<Resource>&, ResourceLoadFlags) */
 		template <class T>
 		ResourceHandle<T> Load(const WeakResourceHandle<T>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
@@ -143,12 +143,12 @@ namespace bs
 		 * @param[in]	filePath	Full pathname of the file.
 		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *
-		 * @see		load(const Path&, ResourceLoadFlags)
+		 * @see		Load(const Path&, ResourceLoadFlags)
 		 */
 		BS_SCRIPT_EXPORT()
 		HResource LoadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		/** @copydoc loadAsync */
+		/** @copydoc LoadAsync */
 		template <class T>
 		ResourceHandle<T> LoadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
@@ -163,7 +163,7 @@ namespace bs
 		 *							returned immediately while loading will continue in the background.
 		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *
-		 * @see		load(const Path&, bool)
+		 * @see		Load(const Path&, bool)
 		 */
 		BS_SCRIPT_EXPORT()
 		HResource LoadFromUuid(const UUID& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
@@ -182,7 +182,7 @@ namespace bs
 
 		void Release(const HResource& resource) { Release((ResourceHandleBase&)resource); }
 
-		/** @copydoc release(const HResource&) */
+		/** @copydoc Release(const HResource&) */
 		void Release(ResourceHandleBase& resource);
 
 		/**

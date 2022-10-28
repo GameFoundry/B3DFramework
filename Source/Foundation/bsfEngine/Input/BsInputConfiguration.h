@@ -45,7 +45,7 @@ namespace bs
 		/**
 		 * Constructs a new virtual axis descriptor.
 		 *
-		 * @param[in]	type		@copydoc VIRTUAL_AXIS_DESC::type
+		 * @param[in]	type		@copydoc VIRTUAL_AXIS_DESC::Type
 		 */
 		VIRTUAL_AXIS_DESC(u32 type);
 

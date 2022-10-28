@@ -57,16 +57,9 @@ namespace bs
 	private:
 		GUIDropDownHitBox(bool captureMouseOver, bool captureMousePresses, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIElementContainer::updateClippedBounds */
 		void UpdateClippedBounds() override;
-
-		/** @copydoc GUIElementContainer::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
-
-		/** @copydoc GUIElementContainer::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-
-		/** @copydoc GUIElementContainer::_isInBounds */
 		bool IsInBoundsInternal(const Vector2I position) const override;
 
 		Vector<Rect2I> mBounds;

@@ -26,7 +26,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
@@ -42,7 +41,6 @@ namespace bs
 				return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -66,7 +64,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const ColorDistribution& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
@@ -92,7 +89,6 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		/** @copydoc RTTIPlainType::toMemory */
 		static BitLength ToMemory(const TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
@@ -108,7 +104,6 @@ namespace bs
 				return size; });
 		}
 
-		/** @copydoc RTTIPlainType::fromMemory */
 		static BitLength FromMemory(TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
@@ -132,7 +127,6 @@ namespace bs
 			return size;
 		}
 
-		/** @copydoc RTTIPlainType::getSize */
 		static BitLength GetSize(const TDistribution<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);

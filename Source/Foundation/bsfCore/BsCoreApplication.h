@@ -126,7 +126,6 @@ namespace bs
 		void UnloadPlugin(DynLib* library);
 
 	protected:
-		/** @copydoc Module::onStartUp */
 		void OnStartUp() override;
 
 		/**	Called for each iteration of the main loop. Called before any game objects or plugins are updated. */

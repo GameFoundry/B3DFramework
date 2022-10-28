@@ -77,7 +77,7 @@ namespace bs
 		 */
 		virtual void SetPosition(const Vector3& position) = 0;
 
-		/** @copydoc setFootPosition() */
+		/** @copydoc SetFootPosition() */
 		virtual Vector3 GetFootPosition() const = 0;
 
 		/**
@@ -86,64 +86,64 @@ namespace bs
 		 */
 		virtual void SetFootPosition(const Vector3& position) = 0;
 
-		/** @copydoc setRadius() */
+		/** @copydoc SetRadius() */
 		virtual float GetRadius() const = 0;
 
 		/** Determines the radius of the controller capsule. */
 		virtual void SetRadius(float radius) = 0;
 
-		/** @copydoc setHeight() */
+		/** @copydoc SetHeight() */
 		virtual float GetHeight() const = 0;
 
 		/** Determines the height between the centers of the two spheres of the controller capsule. */
 		virtual void SetHeight(float height) = 0;
 
-		/** @copydoc setUp() */
+		/** @copydoc SetUp() */
 		virtual Vector3 GetUp() const = 0;
 
 		/** Determines the up direction of capsule. Determines capsule orientation. */
 		virtual void SetUp(const Vector3& up) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::climbingMode */
+		/** @copydoc CHAR_CONTROLLER_DESC::ClimbingMode */
 		virtual CharacterClimbingMode GetClimbingMode() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::climbingMode */
+		/** @copydoc CHAR_CONTROLLER_DESC::ClimbingMode */
 		virtual void SetClimbingMode(CharacterClimbingMode mode) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::nonWalkableMode */
+		/** @copydoc CHAR_CONTROLLER_DESC::NonWalkableMode */
 		virtual CharacterNonWalkableMode GetNonWalkableMode() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::nonWalkableMode */
+		/** @copydoc CHAR_CONTROLLER_DESC::NonWalkableMode */
 		virtual void SetNonWalkableMode(CharacterNonWalkableMode mode) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::minMoveDistance */
+		/** @copydoc CHAR_CONTROLLER_DESC::MinMoveDistance */
 		virtual float GetMinMoveDistance() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::minMoveDistance */
+		/** @copydoc CHAR_CONTROLLER_DESC::MinMoveDistance */
 		virtual void SetMinMoveDistance(float value) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::contactOffset */
+		/** @copydoc CHAR_CONTROLLER_DESC::ContactOffset */
 		virtual float GetContactOffset() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::contactOffset */
+		/** @copydoc CHAR_CONTROLLER_DESC::ContactOffset */
 		virtual void SetContactOffset(float value) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::stepOffset */
+		/** @copydoc CHAR_CONTROLLER_DESC::StepOffset */
 		virtual float GetStepOffset() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::stepOffset */
+		/** @copydoc CHAR_CONTROLLER_DESC::StepOffset */
 		virtual void SetStepOffset(float value) = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::slopeLimit */
+		/** @copydoc CHAR_CONTROLLER_DESC::SlopeLimit */
 		virtual Radian GetSlopeLimit() const = 0;
 
-		/** @copydoc CHAR_CONTROLLER_DESC::slopeLimit */
+		/** @copydoc CHAR_CONTROLLER_DESC::SlopeLimit */
 		virtual void SetSlopeLimit(Radian value) = 0;
 
 		/** Determines the layer that controls what can the controller collide with. */
 		virtual void SetLayer(u64 layer) { mLayer = layer; }
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		virtual u64 GetLayer() const { return mLayer; }
 
 		/**

@@ -143,7 +143,7 @@ namespace bs
 		 */
 		static void CalculateRange(const Vector<TAnimationCurve<float>>& curves, float& xMin, float& xMax, float& yMin, float& yMax);
 
-		/** @copydoc calculateRange(const Vector<TAnimationCurve<float>>&, float&, float&, float&, float&) */
+		/** @copydoc CalculateRange(const Vector<TAnimationCurve<float>>&, float&, float&, float&, float&) */
 		BS_SCRIPT_EXPORT()
 		static void CalculateRange(const Vector<SPtr<TAnimationCurve<float>>>& curves, float& xMin, float& xMax, float& yMin, float& yMax);
 

@@ -22,35 +22,35 @@ namespace bs
 	public:
 		CHingeJoint(const HSceneObject& parent);
 
-		/** @copydoc HingeJoint::getAngle */
+		/** @copydoc HingeJoint::GetAngle */
 		BS_SCRIPT_EXPORT(ExportName(Angle), Property(Getter))
 		Radian GetAngle() const;
 
-		/** @copydoc HingeJoint::getSpeed */
+		/** @copydoc HingeJoint::GetSpeed */
 		BS_SCRIPT_EXPORT(ExportName(Speed), Property(Getter))
 		float GetSpeed() const;
 
-		/** @copydoc HingeJoint::getLimit */
+		/** @copydoc HingeJoint::GetLimit */
 		BS_SCRIPT_EXPORT(ExportName(Limit), Property(Getter))
 		LimitAngularRange GetLimit() const;
 
-		/** @copydoc HingeJoint::setLimit */
+		/** @copydoc HingeJoint::SetLimit */
 		BS_SCRIPT_EXPORT(ExportName(Limit), Property(Setter))
 		void SetLimit(const LimitAngularRange& limit);
 
-		/** @copydoc HingeJoint::getDrive */
+		/** @copydoc HingeJoint::GetDrive */
 		BS_SCRIPT_EXPORT(ExportName(Drive), Property(Getter))
 		HingeJointDrive GetDrive() const;
 
-		/** @copydoc HingeJoint::setDrive */
+		/** @copydoc HingeJoint::SetDrive */
 		BS_SCRIPT_EXPORT(ExportName(Drive), Property(Setter))
 		void SetDrive(const HingeJointDrive& drive);
 
-		/** @copydoc HingeJoint::setFlag */
+		/** @copydoc HingeJoint::SetFlag */
 		BS_SCRIPT_EXPORT(ExportName(SetFlag))
 		void SetFlag(HingeJointFlag flag, bool enabled);
 
-		/** @copydoc HingeJoint::hasFlag */
+		/** @copydoc HingeJoint::HasFlag */
 		BS_SCRIPT_EXPORT(ExportName(HasFlag))
 		bool HasFlag(HingeJointFlag flag) const;
 
@@ -69,8 +69,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CJoint::createInternal */
-		SPtr<Joint> CreateInternal();
+		SPtr<Joint> CreateInternal() override;
 
 		HINGE_JOINT_DESC mDesc;
 

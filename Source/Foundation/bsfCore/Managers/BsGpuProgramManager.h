@@ -22,7 +22,7 @@ namespace bs
 	class BS_CORE_EXPORT GpuProgramManager : public Module<GpuProgramManager>
 	{
 	public:
-		/** @copydoc GpuProgram::create */
+		/** @copydoc GpuProgram::Create */
 		SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc);
 
 		/**
@@ -41,13 +41,13 @@ namespace bs
 			GpuProgramFactory() = default;
 			virtual ~GpuProgramFactory() = default;
 
-			/** @copydoc GpuProgram::create */
+			/** @copydoc GpuProgram::Create */
 			virtual SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
 			/** @copydoc bs::GpuProgramManager::CreateEmpty */
 			virtual SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc GpuProgram::compileBytecode */
+			/** @copydoc GpuProgram::CompileBytecode */
 			virtual SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc) = 0;
 		};
 
@@ -78,10 +78,10 @@ namespace bs
 			/** Query if a GPU program language is supported (for example "hlsl", "glsl"). Thread safe. */
 			bool IsLanguageSupported(const String& language);
 
-			/** @copydoc GpuProgram::create */
+			/** @copydoc GpuProgram::Create */
 			SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-			/** @copydoc GpuProgram::compileBytecode */
+			/** @copydoc GpuProgram::CompileBytecode */
 			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc);
 
 		protected:

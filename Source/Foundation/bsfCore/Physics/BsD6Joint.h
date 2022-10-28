@@ -136,25 +136,25 @@ namespace bs
 		/** Returns the current rotation of the joint around the Z axis. */
 		virtual Radian GetSwingZ() const = 0;
 
-		/** @copydoc setLimitLinear() */
+		/** @copydoc SetLimitLinear() */
 		virtual LimitLinear GetLimitLinear() const = 0;
 
 		/** Determines the linear limit used for constraining translation degrees of freedom. */
 		virtual void SetLimitLinear(const LimitLinear& limit) = 0;
 
-		/** @copydoc setLimitTwist() */
+		/** @copydoc SetLimitTwist() */
 		virtual LimitAngularRange GetLimitTwist() const = 0;
 
 		/** Determines the angular limit used for constraining the twist (rotation around X) degree of freedom. */
 		virtual void SetLimitTwist(const LimitAngularRange& limit) = 0;
 
-		/** @copydoc setLimitSwing() */
+		/** @copydoc SetLimitSwing() */
 		virtual LimitConeRange GetLimitSwing() const = 0;
 
 		/** Determines the cone limit used for constraining the swing (rotation around Y and Z) degree of freedom. */
 		virtual void SetLimitSwing(const LimitConeRange& limit) = 0;
 
-		/** @copydoc setDrive() */
+		/** @copydoc SetDrive() */
 		virtual D6JointDrive GetDrive(D6JointDriveType type) const = 0;
 
 		/**

@@ -405,13 +405,13 @@ namespace bs
 		/** Removes any whitespace characters from beginning or end of the string. */
 		static void Trim(String& str, bool left = true, bool right = true);
 
-		/** @copydoc StringUtil::trim(String&, bool, bool) */
+		/** @copydoc StringUtil::Trim(String&, bool, bool) */
 		static void Trim(WString& str, bool left = true, bool right = true);
 
 		/**	Removes specified characters from beginning or end of the string. */
 		static void Trim(String& str, const String& delims, bool left = true, bool right = true);
 
-		/** @copydoc StringUtil::trim(String&, const String&, bool, bool) */
+		/** @copydoc StringUtil::Trim(String&, const String&, bool, bool) */
 		static void Trim(WString& str, const WString& delims, bool left = true, bool right = true);
 
 		/**
@@ -425,7 +425,7 @@ namespace bs
 		 */
 		static Vector<String> Split(const String& str, const String& delims = "\t\n ", unsigned int maxSplits = 0);
 
-		/** @copydoc StringUtil::split(const String&, const String&, unsigned int) */
+		/** @copydoc StringUtil::Split(const String&, const String&, unsigned int) */
 		static Vector<WString> Split(const WString& str, const WString& delims = L"\t\n ", unsigned int maxSplits = 0);
 
 		/**
@@ -443,7 +443,7 @@ namespace bs
 		 */
 		static Vector<String> Tokenise(const String& str, const String& delims = "\t\n ", const String& doubleDelims = "\"", unsigned int maxSplits = 0);
 
-		/** @copydoc StringUtil::tokenise(const String&, const String&, const String&, unsigned int) */
+		/** @copydoc StringUtil::Tokenise(const String&, const String&, const String&, unsigned int) */
 		static Vector<WString> Tokenise(const WString& str, const WString& delims = L"\t\n ", const WString& doubleDelims = L"\"", unsigned int maxSplits = 0);
 
 		/** Converts all the characters in the string to lower case. Does not handle UTF8 encoded strings. */
@@ -468,7 +468,7 @@ namespace bs
 		 */
 		static bool StartsWith(const String& str, const String& pattern, bool lowerCase = true);
 
-		/** @copydoc startsWith(const String&, const String&, bool) */
+		/** @copydoc StartsWith(const String&, const String&, bool) */
 		static bool StartsWith(const WString& str, const WString& pattern, bool lowerCase = true);
 
 		/**
@@ -481,7 +481,7 @@ namespace bs
 		 */
 		static bool EndsWith(const String& str, const String& pattern, bool lowerCase = true);
 
-		/** @copydoc endsWith(const String&, const String&, bool) */
+		/** @copydoc EndsWith(const String&, const String&, bool) */
 		static bool EndsWith(const WString& str, const WString& pattern, bool lowerCase = true);
 
 		/**
@@ -494,7 +494,7 @@ namespace bs
 		 */
 		static bool Match(const String& str, const String& pattern, bool caseSensitive = true);
 
-		/** @copydoc match(const String&, const String&, bool) */
+		/** @copydoc Match(const String&, const String&, bool) */
 		static bool Match(const WString& str, const WString& pattern, bool caseSensitive = true);
 
 		/**
@@ -508,7 +508,7 @@ namespace bs
 		 */
 		static const String ReplaceAll(const String& source, const String& replaceWhat, const String& replaceWithWhat);
 
-		/** @copydoc replaceAll(const String&, const String&, const String&) */
+		/** @copydoc ReplaceAll(const String&, const String&, const String&) */
 		static const WString ReplaceAll(const WString& source, const WString& replaceWhat, const WString& replaceWithWhat);
 
 		/**
@@ -536,14 +536,14 @@ namespace bs
 			return (lhs.size() < rhs.size() ? -1 : (lhs.size() == rhs.size() ? 0 : 1));
 		}
 
-		/** @copydoc StringFormat::format */
+		/** @copydoc StringFormat::Format */
 		template <class T, class... Args>
 		static BasicString<T> Format(const BasicString<T>& source, Args&&... args)
 		{
 			return StringFormat::Format(source.c_str(), std::forward<Args>(args)...);
 		}
 
-		/** @copydoc StringFormat::format */
+		/** @copydoc StringFormat::Format */
 		template <class T, class... Args>
 		static BasicString<T> Format(const T* source, Args&&... args)
 		{

@@ -32,7 +32,7 @@ namespace bs
 
 		virtual ~SphericalJoint() = default;
 
-		/** @copydoc setLimit() */
+		/** @copydoc SetLimit() */
 		virtual LimitConeRange GetLimit() const = 0;
 
 		/**

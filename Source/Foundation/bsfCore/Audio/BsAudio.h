@@ -38,7 +38,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Volume), Property(Setter))
 		virtual void SetVolume(float volume) = 0;
 
-		/** @copydoc setVolume() */
+		/** @copydoc SetVolume() */
 		BS_SCRIPT_EXPORT(ExportName(Volume), Property(Getter))
 		virtual float GetVolume() const = 0;
 
@@ -46,7 +46,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Paused), Property(Setter))
 		virtual void SetPaused(bool paused) = 0;
 
-		/** @copydoc setPaused() */
+		/** @copydoc SetPaused() */
 		BS_SCRIPT_EXPORT(ExportName(Paused), Property(Getter))
 		virtual bool IsPaused() const = 0;
 
@@ -54,7 +54,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(ActiveDevice), Property(Setter))
 		virtual void SetActiveDevice(const AudioDevice& device) = 0;
 
-		/** @copydoc setActiveDevice() */
+		/** @copydoc SetActiveDevice() */
 		BS_SCRIPT_EXPORT(ExportName(ActiveDevice), Property(Getter))
 		virtual AudioDevice GetActiveDevice() const = 0;
 

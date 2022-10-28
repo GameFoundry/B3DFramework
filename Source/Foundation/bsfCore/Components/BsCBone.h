@@ -25,7 +25,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Name), Property(Setter))
 		void SetBoneName(const String& name);
 
-		/** @copydoc setBoneName */
+		/** @copydoc SetBoneName */
 		BS_SCRIPT_EXPORT(ExportName(Name), Property(Getter))
 
 		const String& GetBoneName() const { return mBoneName; }
@@ -54,16 +54,9 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onDestroyed() */
 		void OnDestroyed();
-
-		/** @copydoc Component::onDisabled() */
 		void OnDisabled();
-
-		/** @copydoc Component::onEnabled() */
 		void OnEnabled();
-
-		/** @copydoc Component::onTransformChanged() */
 		void OnTransformChanged(TransformChangedFlags flags);
 
 	protected:

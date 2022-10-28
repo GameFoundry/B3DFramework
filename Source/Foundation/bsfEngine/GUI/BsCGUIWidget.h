@@ -19,37 +19,37 @@ namespace bs
 	public:
 		virtual ~CGUIWidget() = default;
 
-		/** @copydoc GUIWidget::setSkin */
+		/** @copydoc GUIWidget::SetSkin */
 		void SetSkin(const HGUISkin& skin);
 
-		/** @copydoc GUIWidget::getSkin */
+		/** @copydoc GUIWidget::GetSkin */
 		const GUISkin& GetSkin() const;
 
-		/** @copydoc GUIWidget::getSkinResource */
+		/** @copydoc GUIWidget::GetSkinResource */
 		const HGUISkin& GetSkinResource() const;
 
-		/** @copydoc GUIWidget::getPanel */
+		/** @copydoc GUIWidget::GetPanel */
 		GUIPanel* GetPanel() const;
 
-		/** @copydoc GUIWidget::getDepth */
+		/** @copydoc GUIWidget::GetDepth */
 		u8 GetDepth() const;
 
-		/** @copydoc GUIWidget::setDepth */
+		/** @copydoc GUIWidget::SetDepth */
 		void SetDepth(u8 depth);
 
-		/** @copydoc GUIWidget::inBounds */
+		/** @copydoc GUIWidget::InBounds */
 		bool InBounds(const Vector2I& position) const;
 
-		/** @copydoc GUIWidget::getBounds */
+		/** @copydoc GUIWidget::GetBounds */
 		const Rect2I& GetBounds() const;
 
-		/** @copydoc GUIWidget::getTarget */
+		/** @copydoc GUIWidget::GetTarget */
 		Viewport* GetTarget() const;
 
-		/** @copydoc GUIWidget::getCamera */
+		/** @copydoc GUIWidget::GetCamera */
 		SPtr<Camera> GetCamera() const;
 
-		/** @copydoc GUIWidget::getElements */
+		/** @copydoc GUIWidget::GetElements */
 		const Vector<GUIElement*>& GetElements() const;
 
 	public: // ***** INTERNAL ******
@@ -79,10 +79,7 @@ namespace bs
 		 */
 		CGUIWidget(const HSceneObject& parent, const HCamera& camera);
 
-		/** @copydoc Component::update */
 		void Update() override;
-
-		/** @copydoc Component::onDestroyed */
 		void OnDestroyed() override;
 
 		/**	Called when the viewport size changes and widget elements need to be updated. */

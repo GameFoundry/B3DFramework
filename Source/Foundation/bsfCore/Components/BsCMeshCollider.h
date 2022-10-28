@@ -22,13 +22,12 @@ namespace bs
 	public:
 		CMeshCollider(const HSceneObject& parent);
 
-		/** @copydoc MeshCollider::setMesh */
+		/** @copydoc MeshCollider::SetMesh */
 		BS_SCRIPT_EXPORT(ExportName(Mesh), Property(Setter))
 		void SetMesh(const HPhysicsMesh& mesh);
 
-		/** @copydoc MeshCollider::getMesh */
+		/** @copydoc MeshCollider::GetMesh */
 		BS_SCRIPT_EXPORT(ExportName(Mesh), Property(Getter))
-
 		HPhysicsMesh GetMesh() const { return mMesh; }
 
 		/** @name Internal
@@ -46,11 +45,8 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CCollider::createInternal */
-		SPtr<Collider> CreateInternal();
-
-		/** @copydoc CCollider::isValidParent */
-		bool IsValidParent(const HRigidbody& parent) const;
+		SPtr<Collider> CreateInternal() override;
+		bool IsValidParent(const HRigidbody& parent) const override;
 
 	protected:
 		HPhysicsMesh mMesh;

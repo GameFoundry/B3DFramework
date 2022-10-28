@@ -43,8 +43,7 @@ namespace bs
 		/**	Returns the maximum scrollable size the handle can move within (for example scroll bar length). */
 		u32 GetScrollableSize() const;
 
-		/** @copydoc GUIElement::setTint */
-		void SetTint(const Color& color);
+		void SetTint(const Color& color) override;
 
 		/**
 		 * Triggered whenever the scrollbar handle is moved or resized. Values provided are the handle position and size
@@ -71,7 +70,6 @@ namespace bs
 		 */
 		void SetScrollPosInternal(float pct);
 
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
@@ -90,28 +88,11 @@ namespace bs
 		GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions);
 		virtual ~GUIScrollBar();
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal();
-
-		/** @copydoc GUIElement::updateClippedBounds */
-		void UpdateClippedBounds();
-
-		/** @copydoc	GUIElement::GetRenderElementDepthRangeInternal */
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
+		void UpdateClippedBounds() override;
 		u32 GetRenderElementDepthRangeInternal() const override;
-
-		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated();
+		void StyleUpdated() override;
 
 		/**
 		 * Helper method that returns style name used by a specific scrollbar type. If override style is empty, default

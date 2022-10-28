@@ -462,7 +462,7 @@ namespace bs
 		 */
 		static Matrix4 ProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ = false);
 
-		/** @copydoc makeProjectionOrtho() */
+		/** @copydoc MakeProjectionOrtho() */
 		static Matrix4 ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far);
 
 		/** Creates a view matrix. */

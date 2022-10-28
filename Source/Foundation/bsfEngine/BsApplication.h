@@ -53,19 +53,12 @@ namespace bs
 		void HideProfilerOverlay();
 
 	protected:
-		/** @copydoc Module::onStartUp */
 		void OnStartUp() override;
-
-		/** @copydoc Module::onShutDown */
 		void OnShutDown() override;
 
-		/** @copydoc CoreApplication::preUpdate */
 		void PreUpdate() override;
-
-		/** @copydoc CoreApplication::postUpdate */
 		void PostUpdate() override;
 
-		/** @copydoc CoreApplication::StartUpRenderer */
 		void StartUpRenderer() override;
 
 		/** Initializes the script manager. */
@@ -74,7 +67,6 @@ namespace bs
 		/** Calls per-frame update on the script manager. */
 		virtual void UpdateScriptManager();
 
-		/** @copydoc CoreApplication::getShaderIncludeHandler */
 		SPtr<IShaderIncludeHandler> GetShaderIncludeHandler() const override;
 
 		SPtr<ProfilerOverlay> mProfilerOverlay;

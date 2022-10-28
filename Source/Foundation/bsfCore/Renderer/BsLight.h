@@ -60,7 +60,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setCastsShadow */
+		/** @copydoc SetCastsShadow */
 		bool GetCastsShadow() const { return mCastsShadows; }
 
 		/**
@@ -79,7 +79,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setShadowBias() */
+		/** @copydoc SetShadowBias() */
 		float GetShadowBias() const { return mShadowBias; }
 
 		/** Determines the color emitted by the light. */
@@ -89,7 +89,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setColor() */
+		/** @copydoc SetColor() */
 		Color GetColor() const { return mColor; }
 
 		/**
@@ -99,7 +99,7 @@ namespace bs
 		 */
 		void SetAttenuationRadius(float radius);
 
-		/**	@copydoc setAttenuationRadius */
+		/**	@copydoc SetAttenuationRadius */
 		float GetAttenuationRadius() const { return mAttRadius; }
 
 		/**
@@ -115,7 +115,7 @@ namespace bs
 		 */
 		void SetSourceRadius(float radius);
 
-		/**	@copydoc setSourceRadius */
+		/**	@copydoc SetSourceRadius */
 		float GetSourceRadius() const { return mSourceRadius; }
 
 		/**
@@ -124,7 +124,7 @@ namespace bs
 		 */
 		void SetUseAutoAttenuation(bool enabled);
 
-		/** @copydoc setUseAutoAttenuation */
+		/** @copydoc SetUseAutoAttenuation */
 		bool GetUseAutoAttenuation() const { return mAutoAttenuation; }
 
 		/**
@@ -134,7 +134,7 @@ namespace bs
 		 */
 		void SetIntensity(float intensity);
 
-		/** @copydoc setIntensity */
+		/** @copydoc SetIntensity */
 		float GetIntensity() const { return mIntensity; }
 
 		/**	Determines the total angle covered by a spot light. */
@@ -145,7 +145,7 @@ namespace bs
 			UpdateBounds();
 		}
 
-		/** @copydoc setSpotAngle */
+		/** @copydoc SetSpotAngle */
 		Degree GetSpotAngle() const { return mSpotAngle; }
 
 		/**
@@ -159,7 +159,7 @@ namespace bs
 			UpdateBounds();
 		}
 
-		/** @copydoc setSpotFalloffAngle */
+		/** @copydoc SetSpotFalloffAngle */
 		Degree GetSpotFalloffAngle() const { return mSpotFalloffAngle; }
 
 		/**	Returns world space bounds that completely encompass the light's area of influence. */
@@ -185,7 +185,6 @@ namespace bs
 		/** Calculates maximum light range based on light intensity. */
 		void UpdateAttenuationRange();
 
-		/** @copydoc SceneActor::setTransform */
 		void SetTransform(const Transform& transform) override;
 
 		LightType mType; /**< Type of light that determines how are the rest of the parameters interpreted. */
@@ -236,13 +235,8 @@ namespace bs
 	protected:
 		Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc LightBase::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		/**	Creates a light with without initializing it. Used for serialization. */
@@ -282,10 +276,7 @@ namespace bs
 
 			Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 			u32 mRendererId;

@@ -31,8 +31,7 @@ namespace bs
 	class BS_UTILITY_EXPORT ExceptionTestOutput : public TestOutput
 	{
 	public:
-		/** @copydoc TestOutput::outputFail */
-		void OutputFail(const String& desc, const String& function, const String& file, long line) final override;
+		void OutputFail(const String& desc, const String& function, const String& file, long line) final;
 	};
 
 	/** @} */

@@ -90,20 +90,17 @@ namespace bs
 		public:
 			virtual ~TextureManager() = default;
 
-			/** @copydoc Module::onStartUp */
-			void OnStartUp();
-
-			/** @copydoc Module::onShutDown */
+			void OnStartUp() override;
 			void OnShutDown() override;
 
 			/**
-			 * @copydoc	bs::TextureManager::createTexture(const TEXTURE_DESC&)
+			 * @copydoc	bs::TextureManager::CreateTexture(const TEXTURE_DESC&)
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<Texture> CreateTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
-			 * @copydoc bs::TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&)
+			 * @copydoc bs::TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&)
 			 * @param[in]	deviceIdx		Index of the GPU device to create the object on.
 			 */
 			SPtr<RenderTexture> CreateRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
@@ -119,7 +116,7 @@ namespace bs
 			 */
 			virtual SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc createRenderTexture */
+			/** @copydoc CreateRenderTexture */
 			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0) = 0;
 		};
 	} // namespace ct

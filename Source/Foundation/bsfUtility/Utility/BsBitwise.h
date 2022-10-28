@@ -823,7 +823,7 @@ namespace bs
 			return !size || input[idx - 1] & 0x80 ? 0 : idx;
 		}
 
-		/** @copydoc encodeVarInt(u32, u8*) */
+		/** @copydoc EncodeVarInt(u32, u8*) */
 		static u32 EncodeVarInt(i32 value, u8* output)
 		{
 			// Encode using zig-zag pattern so that negative values don't take up max byte count
@@ -831,7 +831,7 @@ namespace bs
 			return EncodeVarInt(temp, output);
 		}
 
-		/** @copydoc decodeVarInt(u32&, const u8*, u32) */
+		/** @copydoc DecodeVarInt(u32&, const u8*, u32) */
 		static u32 DecodeVarInt(i32& value, const u8* input, u32 size)
 		{
 			u32 temp;
@@ -972,7 +972,7 @@ namespace bs
 			return !size || input[idx - 1] & 0x80 ? 0 : idx;
 		}
 
-		/** @copydoc encodeVarInt(u64, u8*) */
+		/** @copydoc EncodeVarInt(u64, u8*) */
 		static u32 EncodeVarInt(i64 value, u8* output)
 		{
 			// Encode using zig-zag pattern so that negative values don't take up max byte count
@@ -980,7 +980,7 @@ namespace bs
 			return EncodeVarInt(temp, output);
 		}
 
-		/** @copydoc decodeVarInt(u64&, const u8*, u32) */
+		/** @copydoc DecodeVarInt(u64&, const u8*, u32) */
 		static u32 DecodeVarInt(i64& value, const u8* input, u32 size)
 		{
 			u64 temp;

@@ -60,7 +60,7 @@ namespace bs
 		 */
 		SPtr<ct::IndexBuffer> GetCore() const;
 
-		/** @copydoc HardwareBufferManager::createIndexBuffer */
+		/** @copydoc HardwareBufferManager::CreateIndexBuffer */
 		static SPtr<IndexBuffer> Create(const INDEX_BUFFER_DESC& desc);
 
 	protected:
@@ -68,8 +68,7 @@ namespace bs
 
 		IndexBuffer(const INDEX_BUFFER_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		IndexBufferProperties mProperties;
 		GpuBufferUsage mUsage;
@@ -93,14 +92,9 @@ namespace bs
 			/**	Returns information about the index buffer. */
 			const IndexBufferProperties& GetProperties() const { return mProperties; }
 
-			/** @copydoc HardwareBuffer::readData */
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
-
-			/** @copydoc HardwareBuffer::writeData */
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-
-			/** @copydoc HardwareBuffer::copyData */
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Returns a view of this buffer that can be used for load-store operations. Buffer must have been created with
@@ -120,19 +114,14 @@ namespace bs
 			 */
 			SPtr<GpuBuffer> GetLoadStore(GpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
 
-			/** @copydoc HardwareBufferManager::createIndexBuffer */
+			/** @copydoc HardwareBufferManager::CreateIndexBuffer */
 			static SPtr<IndexBuffer> Create(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:
 			friend class HardwareBufferManager;
 
-			/** @copydoc HardwareBuffer::map */
 			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) override;
-
-			/** @copydoc HardwareBuffer::unmap */
 			void Unmap() override;
-
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			IndexBufferProperties mProperties;

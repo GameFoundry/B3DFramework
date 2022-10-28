@@ -142,33 +142,33 @@ namespace bs
 			RenderStateManager() = default;
 
 			/**
-			 * @copydoc bs::RenderStateManager::createSamplerState
+			 * @copydoc bs::RenderStateManager::CreateSamplerState
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<SamplerState> CreateSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
-			/** @copydoc bs::RenderStateManager::createDepthStencilState */
+			/** @copydoc bs::RenderStateManager::CreateDepthStencilState */
 			SPtr<DepthStencilState> CreateDepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc) const;
 
-			/** @copydoc bs::RenderStateManager::createRasterizerState */
+			/** @copydoc bs::RenderStateManager::CreateRasterizerState */
 			SPtr<RasterizerState> CreateRasterizerState(const RASTERIZER_STATE_DESC& desc) const;
 
-			/** @copydoc bs::RenderStateManager::createBlendState */
+			/** @copydoc bs::RenderStateManager::CreateBlendState */
 			SPtr<BlendState> CreateBlendState(const BLEND_STATE_DESC& desc) const;
 
 			/**
-			 * @copydoc bs::RenderStateManager::createGraphicsPipelineState
+			 * @copydoc bs::RenderStateManager::CreateGraphicsPipelineState
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<GraphicsPipelineState> CreateGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 			/**
-			 * @copydoc bs::RenderStateManager::createComputePipelineState
+			 * @copydoc bs::RenderStateManager::CreateComputePipelineState
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<ComputePipelineState> CreateComputePipelineState(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
-			/** @copydoc GpuPipelineParamInfo::create */
+			/** @copydoc GpuPipelineParamInfo::Create */
 			SPtr<GpuPipelineParamInfo> CreatePipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
 
 			/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
@@ -214,19 +214,18 @@ namespace bs
 			friend class RasterizerState;
 			friend class DepthStencilState;
 
-			/** @copydoc Module::onShutDown */
 			void OnShutDown() override;
 
-			/** @copydoc createSamplerState */
+			/** @copydoc CreateSamplerState */
 			virtual SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
 
-			/** @copydoc createBlendState */
+			/** @copydoc CreateBlendState */
 			virtual SPtr<BlendState> CreateBlendStateInternalInternal(const BLEND_STATE_DESC& desc, u32 id) const;
 
-			/** @copydoc createRasterizerState */
+			/** @copydoc CreateRasterizerState */
 			virtual SPtr<RasterizerState> CreateRasterizerStateInternalInternal(const RASTERIZER_STATE_DESC& desc, u32 id) const;
 
-			/** @copydoc createDepthStencilState */
+			/** @copydoc CreateDepthStencilState */
 			virtual SPtr<DepthStencilState> CreateDepthStencilStateInternalInternal(const DEPTH_STENCIL_STATE_DESC& desc, u32 id) const;
 
 		private:

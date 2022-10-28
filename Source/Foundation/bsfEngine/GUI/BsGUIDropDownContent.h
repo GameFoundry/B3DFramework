@@ -76,19 +76,10 @@ namespace bs
 		/**	Get localized name of a menu item element with the specified index. */
 		HString GetElementLocalizedName(u32 idx) const;
 
-		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
-
-		/** @copydoc GUIElementContainer::_updateLayoutInternal */
 		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
-
-		/** @copydoc GUIElementContainer::styleUpdated */
-		void StyleUpdated();
-
-		/** @copydoc GUIElementContainer::_commandEvent */
+		void StyleUpdated() override;
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
-
-		/** @copydoc GUIElementContainer::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/**

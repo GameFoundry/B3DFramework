@@ -243,10 +243,10 @@ namespace bs
 		 */
 		static BS_UTILITY_EXPORT void EndThread();
 
-		/** @copydoc MemStackInternal::alloc() */
+		/** @copydoc MemStackInternal::Alloc() */
 		static BS_UTILITY_EXPORT u8* Alloc(u32 amount);
 
-		/** @copydoc MemStackInternal::dealloc() */
+		/** @copydoc MemStackInternal::Dealloc() */
 		static BS_UTILITY_EXPORT void DeallocLast(u8* data);
 
 	private:
@@ -260,7 +260,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** @copydoc MemStackInternal::alloc() */
+	/** @copydoc MemStackInternal::Alloc() */
 	inline void* bs_stack_alloc(u32 amount)
 	{
 		return (void*)MemStack::Alloc(amount);
@@ -269,7 +269,7 @@ namespace bs
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, but does not initialize the object.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
 	T* bs_stack_alloc()
@@ -282,7 +282,7 @@ namespace bs
 	 *
 	 * @param[in]	amount	Number of entries of the requested type to allocate.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
 	T* bs_stack_alloc(u32 amount)
@@ -293,7 +293,7 @@ namespace bs
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, and constructs the object.
 	 *
-	 * @see	MemStackInternal::alloc()
+	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
 	T* bs_stack_new(u32 count = 0)
@@ -309,7 +309,7 @@ namespace bs
 	/**
 	 * Allocates enough memory to hold the specified type, on the stack, and constructs the object.
 	 *
-	 * @see MemStackInternal::alloc()
+	 * @see MemStackInternal::Alloc()
 	 */
 	template <class T, class... Args>
 	T* bs_stack_new(Args&&... args, u32 count = 0)
@@ -325,7 +325,7 @@ namespace bs
 	/**
 	 * Destructs and deallocates last allocated entry currently located on stack.
 	 *
-	 * @see MemStackInternal::dealloc()
+	 * @see MemStackInternal::Dealloc()
 	 */
 	template <class T>
 	void bs_stack_delete(T* data)
@@ -338,7 +338,7 @@ namespace bs
 	/**
 	 * Destructs an array of objects and deallocates last allocated entry currently located on stack.
 	 *
-	 * @see	MemStackInternal::dealloc()
+	 * @see	MemStackInternal::Dealloc()
 	 */
 	template <class T>
 	void bs_stack_delete(T* data, u32 count)
@@ -354,7 +354,7 @@ namespace bs
 		MemStack::DeallocLast((u8*)data);
 	}
 
-	/** @copydoc MemStackInternal::dealloc() */
+	/** @copydoc MemStackInternal::Dealloc() */
 	inline void bs_stack_free(void* data)
 	{
 		return MemStack::DeallocLast((u8*)data);

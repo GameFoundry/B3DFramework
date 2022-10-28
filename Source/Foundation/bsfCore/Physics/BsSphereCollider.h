@@ -24,7 +24,7 @@ namespace bs
 		/** Determines the radius of the sphere geometry. */
 		virtual void SetRadius(float radius) = 0;
 
-		/** @copydoc setRadius */
+		/** @copydoc SetRadius */
 		virtual float GetRadius() const = 0;
 
 		/**

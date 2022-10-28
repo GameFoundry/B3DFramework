@@ -57,14 +57,11 @@ namespace bs
 		/**	Retrieves a core implementation of a GPU param block buffer usable only from the core thread. */
 		SPtr<ct::GpuParamBlockBuffer> GetCore() const;
 
-		/** @copydoc HardwareBufferManager::createGpuParamBlockBuffer */
+		/** @copydoc HardwareBufferManager::CreateGpuParamBlockBuffer */
 		static SPtr<GpuParamBlockBuffer> Create(u32 size, GpuBufferUsage usage = GBU_DYNAMIC);
 
 	protected:
-		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> CreateCore() const override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		GpuBufferUsage mUsage;
@@ -132,16 +129,13 @@ namespace bs
 			/**	Returns the size of the buffer in bytes. */
 			u32 GetSize() const { return mSize; }
 
-			/** @copydoc HardwareBufferManager::createGpuParamBlockBuffer */
+			/** @copydoc HardwareBufferManager::CreateGpuParamBlockBuffer */
 			static SPtr<GpuParamBlockBuffer> Create(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:
 			friend class HardwareBufferManager;
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
-
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			HardwareBuffer* mBuffer;

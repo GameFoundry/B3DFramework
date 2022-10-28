@@ -141,10 +141,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::_getElementType */
 		ElementType GetElementTypeInternal() const override { return ElementType::Texture; }
-
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
@@ -152,21 +149,8 @@ namespace bs
 		GUITexture(const String& styleName, const HSpriteTexture& texture, TextureScaleMode scale, bool transparent, const GUIDimensions& dimensions);
 		virtual ~GUITexture();
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal();
-
-		/** @copydoc GUIElement::styleUpdated */
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
 		void StyleUpdated() override;
 
 		ImageSprite* mImageSprite;

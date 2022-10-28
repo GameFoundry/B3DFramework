@@ -87,10 +87,10 @@ namespace bs
 		/************************************************* CREATION *******************************************************/
 		/******************************************************************************************************************/
 
-		/** @copydoc PhysicsMaterial::create */
+		/** @copydoc PhysicsMaterial::Create */
 		virtual SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
 
-		/** @copydoc PhysicsMesh::create */
+		/** @copydoc PhysicsMesh::Create */
 		virtual SPtr<PhysicsMesh> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
 
 		/** Creates an object representing the physics scene. Must be manually released via destroyPhysicsScene(). */
@@ -537,7 +537,7 @@ namespace bs
 		 */
 		virtual void SetMaxTesselationEdgeLength(float length) = 0;
 
-		/** @copydoc setGravity() */
+		/** @copydoc SetGravity() */
 		BS_SCRIPT_EXPORT(ExportName(Gravity), Property(Getter))
 		virtual Vector3 GetGravity() const = 0;
 
@@ -569,7 +569,7 @@ namespace bs
 		/************************************************* CREATION *******************************************************/
 		/******************************************************************************************************************/
 
-		/** @copydoc Rigidbody::create */
+		/** @copydoc Rigidbody::Create */
 		virtual SPtr<Rigidbody> CreateRigidbody(const HSceneObject& linkedSO) = 0;
 
 		/**
@@ -666,16 +666,16 @@ namespace bs
 		 */
 		virtual SPtr<CharacterController> CreateCharacterController(const CHAR_CONTROLLER_DESC& desc) = 0;
 
-		/** @copydoc PhysicsScene::boxOverlap() */
+		/** @copydoc PhysicsScene::BoxOverlap() */
 		virtual Vector<Collider*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc PhysicsScene::sphereOverlap() */
+		/** @copydoc PhysicsScene::SphereOverlap() */
 		virtual Vector<Collider*> SphereOverlapInternal(const Sphere& sphere, u64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc PhysicsScene::capsuleOverlap() */
+		/** @copydoc PhysicsScene::CapsuleOverlap() */
 		virtual Vector<Collider*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
-		/** @copydoc PhysicsScene::convexOverlap() */
+		/** @copydoc PhysicsScene::ConvexOverlap() */
 		virtual Vector<Collider*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @} */

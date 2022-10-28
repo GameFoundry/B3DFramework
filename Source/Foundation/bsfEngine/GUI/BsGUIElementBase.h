@@ -154,7 +154,7 @@ namespace bs
 		/** Calculates optimal sizes of all child elements, as determined by their style and layout options. */
 		virtual void UpdateOptimalLayoutSizesInternal();
 
-		/** @copydoc _updateLayout */
+		/** @copydoc UpdateLayoutInternal */
 		virtual void UpdateLayoutInternalInternal(const GUILayoutData& data);
 
 		/**
@@ -247,7 +247,7 @@ namespace bs
 		 * Internal version of setActive() that doesn't modify local state, instead it is only meant to be called
 		 * on child elements of the element whose state was modified.
 		 *
-		 * @copydoc setActive
+		 * @copydoc SetActive
 		 */
 		void SetActiveInternal(bool active);
 
@@ -255,7 +255,7 @@ namespace bs
 		 * Internal version of setDisabled() that doesn't modify local state, instead it is only meant to be called
 		 * on child elements of the element whose state was modified.
 		 *
-		 * @copydoc setDisabled
+		 * @copydoc SetDisabled
 		 */
 		void SetDisabledInternal(bool disabled);
 

@@ -327,7 +327,7 @@ namespace bs
 		/** Determines bounds that will be used for animation culling, if enabled. Bounds must be in world space. */
 		void SetBounds(const AABox& bounds);
 
-		/** @copydoc setBounds */
+		/** @copydoc SetBounds */
 		const AABox& GetBounds() const { return mBounds; }
 
 		/**
@@ -336,7 +336,7 @@ namespace bs
 		 */
 		void SetCulling(bool cull);
 
-		/** @copydoc setCulling */
+		/** @copydoc SetCulling */
 		bool GetCulling() const { return mCull; }
 
 		/**
@@ -521,13 +521,8 @@ namespace bs
 		 */
 		AnimationClipInfo* AddClip(const HAnimationClip& clip, u32 layer, bool stopExisting = true);
 
-		/** @copydoc IResourceListener::getListenerResources */
-		void GetListenerResources(Vector<HResource>& resources);
-
-		/** @copydoc IResourceListener::notifyResourceLoaded */
+		void GetListenerResources(Vector<HResource>& resources) override;
 		void NotifyResourceLoaded(const HResource& resource) override;
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
 		void NotifyResourceChanged(const HResource& resource) override;
 
 		u64 mId;

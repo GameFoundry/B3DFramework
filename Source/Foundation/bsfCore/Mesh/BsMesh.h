@@ -66,7 +66,6 @@ namespace bs
 	public:
 		virtual ~Mesh() = default;
 
-		/** @copydoc MeshBase::initialize */
 		void Initialize() override;
 
 		/**
@@ -138,8 +137,7 @@ namespace bs
 		/**	Updates bounds by calculating them from the vertices in the provided mesh data object. */
 		void UpdateBounds(const MeshData& meshData);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/**
 		 * Creates buffers used for caching of CPU mesh data.
@@ -226,21 +224,21 @@ namespace bs
 		 */
 
 		/**
-		 * @copydoc	create(const MESH_DESC&)
+		 * @copydoc	Create(const MESH_DESC&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
 		static SPtr<Mesh> CreatePtrInternal(const MESH_DESC& desc);
 
 		/**
-		 * @copydoc	create(const SPtr<MeshData>&, const MESH_DESC&)
+		 * @copydoc	Create(const SPtr<MeshData>&, const MESH_DESC&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
 		static SPtr<Mesh> CreatePtrInternal(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
 
 		/**
-		 * @copydoc	create(const SPtr<MeshData>&, int, DrawOperationType)
+		 * @copydoc	Create(const SPtr<MeshData>&, int, DrawOperationType)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
@@ -276,16 +274,15 @@ namespace bs
 
 			~Mesh();
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
-			/** @copydoc MeshBase::getVertexData */
+			/** @copydoc MeshBase::GetVertexData */
 			SPtr<VertexData> GetVertexData() const;
 
-			/** @copydoc MeshBase::getIndexBuffer */
+			/** @copydoc MeshBase::GetIndexBuffer */
 			SPtr<IndexBuffer> GetIndexBuffer() const;
 
-			/** @copydoc MeshBase::getVertexDesc */
+			/** @copydoc MeshBase::GetVertexDesc */
 			SPtr<VertexDataDesc> GetVertexDesc() const;
 
 			/** Returns a skeleton that can be used for animating the mesh. */

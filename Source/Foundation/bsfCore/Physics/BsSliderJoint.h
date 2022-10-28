@@ -36,7 +36,7 @@ namespace bs
 		/** Returns the current speed of the slider. */
 		virtual float GetSpeed() const = 0;
 
-		/** @copydoc setLimit() */
+		/** @copydoc SetLimit() */
 		virtual LimitLinearRange GetLimit() const = 0;
 
 		/**

@@ -65,8 +65,7 @@ namespace bs
 		/** Gets the minimum percentual variation of the handle position */
 		float GetStep() const;
 
-		/** @copydoc GUIElement::setTint */
-		void SetTint(const Color& color);
+		void SetTint(const Color& color) override;
 
 		/** Triggered when the user changes the value of the slider. */
 		Event<void(float percent)> OnChanged;
@@ -76,7 +75,6 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElementContainer::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
@@ -84,16 +82,12 @@ namespace bs
 		GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions);
 		virtual ~GUISlider();
 
-		/** @copydoc GUIElementContainer::_updateLayoutInternal */
 		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
-
-		/** @copydoc GUIElementContainer::styleUpdated */
 		void StyleUpdated();
 
 		/**	Triggered when the slider handles moves. */
 		void OnHandleMoved(float newPosition, float newSize);
 
-		/** @copydoc GUIElement::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 	private:

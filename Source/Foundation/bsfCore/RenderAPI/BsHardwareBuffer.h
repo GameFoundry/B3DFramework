@@ -143,10 +143,10 @@ namespace bs
 			: mSize(size), mUsage(usage), mDeviceMask(deviceMask)
 		{}
 
-		/** @copydoc lock */
+		/** @copydoc Lock */
 		virtual void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) { return nullptr; }
 
-		/** @copydoc unlock */
+		/** @copydoc Unlock */
 		virtual void Unmap() {}
 
 	protected:

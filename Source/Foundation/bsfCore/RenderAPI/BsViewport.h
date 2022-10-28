@@ -39,9 +39,8 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Area), Property(Setter))
 		void SetArea(const Rect2& area);
 
-		/** @copydoc setArea() */
+		/** @copydoc SetArea() */
 		BS_SCRIPT_EXPORT(ExportName(Area), Property(Getter))
-
 		Rect2 GetArea() const { return mNormArea; }
 
 		/**	Returns the area of the render target covered by the viewport, in pixels. */
@@ -52,9 +51,8 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(ClearFlags), Property(Setter))
 		void SetClearFlags(ClearFlags flags);
 
-		/** @copydoc setClearFlags() */
+		/** @copydoc SetClearFlags() */
 		BS_SCRIPT_EXPORT(ExportName(ClearFlags), Property(Getter))
-
 		ClearFlags GetClearFlags() const { return mClearFlags; }
 
 		/**	Sets values to clear color, depth and stencil buffers to. */
@@ -64,27 +62,24 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(ClearColor), Property(Setter))
 		void SetClearColorValue(const Color& color);
 
-		/** @copydoc setClearColorValue() */
+		/** @copydoc SetClearColorValue() */
 		BS_SCRIPT_EXPORT(ExportName(ClearColor), Property(Getter))
-
 		const Color& GetClearColorValue() const { return mClearColorValue; }
 
 		/** Determines the value to clear the depth buffer to before rendering, if depth clear is enabled. */
 		BS_SCRIPT_EXPORT(ExportName(ClearDepth), Property(Setter))
 		void SetClearDepthValue(float depth);
 
-		/** @copydoc setClearDepthValue() */
+		/** @copydoc SetClearDepthValue() */
 		BS_SCRIPT_EXPORT(ExportName(ClearDepth), Property(Getter))
-
 		float GetClearDepthValue() const { return mClearDepthValue; }
 
 		/** Determines the value to clear the stencil buffer to before rendering, if stencil clear is enabled. */
 		BS_SCRIPT_EXPORT(ExportName(ClearStencil), Property(Setter))
 		void SetClearStencilValue(u16 value);
 
-		/** @copydoc setClearStencilValue() */
+		/** @copydoc SetClearStencilValue() */
 		BS_SCRIPT_EXPORT(ExportName(ClearStencil), Property(Getter))
-
 		u16 GetClearStencilValue() const { return mClearStencilValue; }
 
 	protected:
@@ -169,22 +164,13 @@ namespace bs
 	protected:
 		Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
-		/** @copydoc ViewportBase::_markCoreDirty */
 		void MarkCoreDirtyInternal() override;
-
-		/** @copydoc ViewportBase::getTargetWidth */
 		u32 GetTargetWidth() const override;
-
-		/** @copydoc ViewportBase::getTargetHeight */
 		u32 GetTargetHeight() const override;
 
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
-
-		/** @copydoc CoreObject::getCoreDependencies */
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
-		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/************************************************************************/
@@ -227,13 +213,9 @@ namespace bs
 
 			Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
-			/** @copydoc ViewportBase::getTargetWidth */
 			u32 GetTargetWidth() const override;
-
-			/** @copydoc ViewportBase::getTargetHeight */
 			u32 GetTargetHeight() const override;
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 		};
 

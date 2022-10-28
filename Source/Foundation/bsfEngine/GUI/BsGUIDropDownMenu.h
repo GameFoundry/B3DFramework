@@ -222,8 +222,7 @@ namespace bs
 		/**	Called when the drop down box loses focus (and should be closed). */
 		void DropDownFocusLost();
 
-		/** @copydoc CGUIWidget::onDestroyed */
-		void OnDestroyed();
+		void OnDestroyed() override;
 
 	private:
 		static const u32 kDropDownBoxWidth;

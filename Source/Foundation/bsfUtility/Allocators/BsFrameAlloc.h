@@ -391,10 +391,10 @@ namespace bs
 		bs_frame_free((u8*)data);
 	}
 
-	/** @copydoc FrameAlloc::markFrame */
+	/** @copydoc FrameAlloc::MarkFrame */
 	BS_UTILITY_EXPORT void bs_frame_mark();
 
-	/** @copydoc FrameAlloc::clear */
+	/** @copydoc FrameAlloc::Clear */
 	BS_UTILITY_EXPORT void bs_frame_clear();
 
 	/** String allocated with a frame allocator. */
@@ -450,13 +450,13 @@ namespace bs
 	class MemoryAllocator<FrameAlloc> : public MemoryAllocatorBase
 	{
 	public:
-		/** @copydoc MemoryAllocator::allocate */
+		/** @copydoc MemoryAllocator::Allocate */
 		static void* Allocate(size_t bytes)
 		{
 			return bs_frame_alloc((u32)bytes);
 		}
 
-		/** @copydoc MemoryAllocator::allocateAligned */
+		/** @copydoc MemoryAllocator::AllocateAligned */
 		static void* AllocateAligned(size_t bytes, size_t alignment)
 		{
 #if BS_PROFILING_ENABLED
@@ -466,7 +466,7 @@ namespace bs
 			return bs_frame_alloc_aligned((u32)bytes, (u32)alignment);
 		}
 
-		/** @copydoc MemoryAllocator::allocateAligned16 */
+		/** @copydoc MemoryAllocator::AllocateAligned16 */
 		static void* AllocateAligned16(size_t bytes)
 		{
 #if BS_PROFILING_ENABLED
@@ -476,13 +476,13 @@ namespace bs
 			return bs_frame_alloc_aligned((u32)bytes, 16);
 		}
 
-		/** @copydoc MemoryAllocator::free */
+		/** @copydoc MemoryAllocator::Free */
 		static void Free(void* ptr)
 		{
 			bs_frame_free(ptr);
 		}
 
-		/** @copydoc MemoryAllocator::freeAligned */
+		/** @copydoc MemoryAllocator::FreeAligned */
 		static void FreeAligned(void* ptr)
 		{
 #if BS_PROFILING_ENABLED
@@ -492,7 +492,7 @@ namespace bs
 			bs_frame_free_aligned(ptr);
 		}
 
-		/** @copydoc MemoryAllocator::freeAligned16 */
+		/** @copydoc MemoryAllocator::FreeAligned16 */
 		static void FreeAligned16(void* ptr)
 		{
 #if BS_PROFILING_ENABLED

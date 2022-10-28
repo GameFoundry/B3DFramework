@@ -42,7 +42,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setBrightness */
+		/** @copydoc SetBrightness */
 		float GetBrightness() const { return mBrightness; }
 
 	protected:
@@ -88,7 +88,7 @@ namespace bs
 	public:
 		~Skybox();
 
-		/** @copydoc TSkybox::getTexture */
+		/** @copydoc TSkybox::GetTexture */
 		void SetTexture(const HTexture& texture);
 
 		/**	Retrieves an implementation of the skybox usable only from the core thread. */
@@ -106,13 +106,8 @@ namespace bs
 		 */
 		void FilterTexture();
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc SkyboxBase::_markCoreDirty */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		SPtr<Texture> mFilteredRadiance;
@@ -155,10 +150,7 @@ namespace bs
 
 			Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 			SPtr<Texture> mFilteredRadiance;

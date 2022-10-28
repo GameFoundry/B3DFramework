@@ -173,7 +173,7 @@ namespace bs
 		/**	Retrieves a core implementation of a vertex declaration usable only from the core thread. */
 		SPtr<ct::VertexDeclaration> GetCore() const;
 
-		/** @copydoc HardwareBufferManager::createVertexDeclaration */
+		/** @copydoc HardwareBufferManager::CreateVertexDeclaration */
 		static SPtr<VertexDeclaration> Create(const SPtr<VertexDataDesc>& desc);
 
 	protected:
@@ -181,8 +181,7 @@ namespace bs
 
 		VertexDeclaration(const Vector<VertexElement>& elements);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 	protected:
 		VertexDeclarationProperties mProperties;
@@ -217,7 +216,6 @@ namespace bs
 		public:
 			virtual ~VertexDeclaration() = default;
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			/**	Returns properties describing the vertex declaration. */
@@ -238,7 +236,7 @@ namespace bs
 			 */
 			Vector<VertexElement> GetMissingElements(const SPtr<VertexDeclaration>& shaderDecl);
 
-			/** @copydoc HardwareBufferManager::createVertexDeclaration */
+			/** @copydoc HardwareBufferManager::CreateVertexDeclaration */
 			static SPtr<VertexDeclaration> Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:

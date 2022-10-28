@@ -45,8 +45,7 @@ namespace bs
 			AddPlainArrayField("mDefines", 0, &ShaderImportOptionsRTTI::GetDefinePair, &ShaderImportOptionsRTTI::GetNumDefines, &ShaderImportOptionsRTTI::SetDefinePair, &ShaderImportOptionsRTTI::SetNumDefines);
 		}
 
-		/** @copydoc ShaderImportOptionsRTTI::onSerializationStarted */
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
 		{
 			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
 
@@ -55,21 +54,18 @@ namespace bs
 				mDefinePairs.push_back(entry);
 		}
 
-		/** @copydoc RTTIType::getRTTIName */
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
 			static String name = "ShaderImportOptions";
 			return name;
 		}
 
-		/** @copydoc RTTIType::getRTTIId */
-		u32 GetRttiId()
+		u32 GetRttiId() override
 		{
 			return TID_ShaderImportOptions;
 		}
 
-		/** @copydoc RTTIType::NewRttiObject */
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			return bs_shared_ptr_new<ShaderImportOptions>();
 		}

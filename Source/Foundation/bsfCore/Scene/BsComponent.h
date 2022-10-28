@@ -52,7 +52,7 @@ namespace bs
 		/**	Returns the SceneObject this Component is assigned to. */
 		const HSceneObject& SceneObject() const { return mParent; }
 
-		/** @copydoc sceneObject */
+		/** @copydoc SceneObject */
 		const HSceneObject& SO() const { return SceneObject(); }
 
 		/**	Returns a handle to this object. */

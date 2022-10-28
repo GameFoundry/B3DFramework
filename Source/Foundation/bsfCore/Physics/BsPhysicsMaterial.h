@@ -27,7 +27,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(StaticFriction), Property(Setter))
 		virtual void SetStaticFriction(float value) = 0;
 
-		/** @copydoc setStaticFriction() */
+		/** @copydoc SetStaticFriction() */
 		BS_SCRIPT_EXPORT(ExportName(StaticFriction), Property(Getter))
 		virtual float GetStaticFriction() const = 0;
 
@@ -38,7 +38,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(DynamicFriction), Property(Setter))
 		virtual void SetDynamicFriction(float value) = 0;
 
-		/** @copydoc setDynamicFriction() */
+		/** @copydoc SetDynamicFriction() */
 		BS_SCRIPT_EXPORT(ExportName(DynamicFriction), Property(Getter))
 		virtual float GetDynamicFriction() const = 0;
 
@@ -49,7 +49,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Restitution), Property(Setter))
 		virtual void SetRestitutionCoefficient(float value) = 0;
 
-		/** @copydoc setRestitutionCoefficient() */
+		/** @copydoc SetRestitutionCoefficient() */
 		BS_SCRIPT_EXPORT(ExportName(Restitution), Property(Getter))
 		virtual float GetRestitutionCoefficient() const = 0;
 

@@ -22,113 +22,112 @@ namespace bs
 	public:
 		CCharacterController(const HSceneObject& parent);
 
-		/** @copydoc CharacterController::move */
+		/** @copydoc CharacterController::Move */
 		BS_SCRIPT_EXPORT(ExportName(Move))
 		CharacterCollisionFlags Move(const Vector3& displacement);
 
-		/** @copydoc CharacterController::getFootPosition */
+		/** @copydoc CharacterController::GetFootPosition */
 		BS_SCRIPT_EXPORT(ExportName(FootPosition), Property(Getter), UI(Hide))
 		Vector3 GetFootPosition() const;
 
-		/** @copydoc CharacterController::setFootPosition */
+		/** @copydoc CharacterController::SetFootPosition */
 		BS_SCRIPT_EXPORT(ExportName(FootPosition), Property(Setter), UI(Hide))
 		void SetFootPosition(const Vector3& position);
 
-		/** @copydoc CharacterController::getRadius */
+		/** @copydoc CharacterController::GetRadius */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Getter))
-
 		float GetRadius() const { return mDesc.Radius; }
 
-		/** @copydoc CharacterController::setRadius */
+		/** @copydoc CharacterController::SetRadius */
 		BS_SCRIPT_EXPORT(ExportName(Radius), Property(Setter))
 		void SetRadius(float radius);
 
-		/** @copydoc CharacterController::getHeight */
+		/** @copydoc CharacterController::GetHeight */
 		BS_SCRIPT_EXPORT(ExportName(Height), Property(Getter))
 
 		float GetHeight() const { return mDesc.Height; }
 
-		/** @copydoc CharacterController::setHeight */
+		/** @copydoc CharacterController::SetHeight */
 		BS_SCRIPT_EXPORT(ExportName(Height), Property(Setter))
 		void SetHeight(float height);
 
-		/** @copydoc CharacterController::getUp */
+		/** @copydoc CharacterController::GetUp */
 		BS_SCRIPT_EXPORT(ExportName(Up), Property(Getter))
 
 		Vector3 GetUp() const { return mDesc.Up; }
 
-		/** @copydoc CharacterController::setUp */
+		/** @copydoc CharacterController::SetUp */
 		BS_SCRIPT_EXPORT(ExportName(Up), Property(Setter))
 		void SetUp(const Vector3& up);
 
-		/** @copydoc CharacterController::getClimbingMode */
+		/** @copydoc CharacterController::GetClimbingMode */
 		BS_SCRIPT_EXPORT(ExportName(ClimbingMode), Property(Getter))
 
 		CharacterClimbingMode GetClimbingMode() const { return mDesc.ClimbingMode; }
 
-		/** @copydoc CharacterController::setClimbingMode */
+		/** @copydoc CharacterController::SetClimbingMode */
 		BS_SCRIPT_EXPORT(ExportName(ClimbingMode), Property(Setter))
 		void SetClimbingMode(CharacterClimbingMode mode);
 
-		/** @copydoc CharacterController::getNonWalkableMode */
+		/** @copydoc CharacterController::GetNonWalkableMode */
 		BS_SCRIPT_EXPORT(ExportName(NonWalkableMode), Property(Getter))
 
 		CharacterNonWalkableMode GetNonWalkableMode() const { return mDesc.NonWalkableMode; }
 
-		/** @copydoc CharacterController::setNonWalkableMode */
+		/** @copydoc CharacterController::SetNonWalkableMode */
 		BS_SCRIPT_EXPORT(ExportName(NonWalkableMode), Property(Setter))
 		void SetNonWalkableMode(CharacterNonWalkableMode mode);
 
-		/** @copydoc CharacterController::getMinMoveDistance */
+		/** @copydoc CharacterController::GetMinMoveDistance */
 		BS_SCRIPT_EXPORT(ExportName(MinMoveDistance), Property(Getter))
 
 		float GetMinMoveDistance() const { return mDesc.MinMoveDistance; }
 
-		/** @copydoc CharacterController::setMinMoveDistance */
+		/** @copydoc CharacterController::SetMinMoveDistance */
 		BS_SCRIPT_EXPORT(ExportName(MinMoveDistance), Property(Setter))
 		void SetMinMoveDistance(float value);
 
-		/** @copydoc CharacterController::getContactOffset */
+		/** @copydoc CharacterController::GetContactOffset */
 		BS_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Getter))
 
 		float GetContactOffset() const { return mDesc.ContactOffset; }
 
-		/** @copydoc CharacterController::setContactOffset */
+		/** @copydoc CharacterController::SetContactOffset */
 		BS_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Setter))
 		void SetContactOffset(float value);
 
-		/** @copydoc CharacterController::getStepOffset */
+		/** @copydoc CharacterController::GetStepOffset */
 		BS_SCRIPT_EXPORT(ExportName(StepOffset), Property(Getter))
 
 		float GetStepOffset() const { return mDesc.StepOffset; }
 
-		/** @copydoc CharacterController::setStepOffset */
+		/** @copydoc CharacterController::SetStepOffset */
 		BS_SCRIPT_EXPORT(ExportName(StepOffset), Property(Setter))
 		void SetStepOffset(float value);
 
-		/** @copydoc CharacterController::getSlopeLimit */
+		/** @copydoc CharacterController::GetSlopeLimit */
 		BS_SCRIPT_EXPORT(ExportName(SlopeLimit), Property(Getter), UIValueRange([ 0, 180 ]), UI(AsSlider))
 
 		Radian GetSlopeLimit() const { return mDesc.SlopeLimit; }
 
-		/** @copydoc CharacterController::setSlopeLimit */
+		/** @copydoc CharacterController::SetSlopeLimit */
 		BS_SCRIPT_EXPORT(ExportName(SlopeLimit), Property(Setter), UIValueRange([ 0, 180 ]), UI(AsSlider))
 		void SetSlopeLimit(Radian value);
 
-		/** @copydoc CharacterController::getLayer */
+		/** @copydoc CharacterController::GetLayer */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Getter), UI(AsLayerMask))
 
 		u64 GetLayer() const { return mLayer; }
 
-		/** @copydoc CharacterController::setLayer */
+		/** @copydoc CharacterController::SetLayer */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Setter), UI(AsLayerMask))
 		void SetLayer(u64 layer);
 
-		/** @copydoc CharacterController::onColliderHit */
+		/** @copydoc CharacterController::OnColliderHit */
 		BS_SCRIPT_EXPORT(ExportName(OnColliderHit))
 		Event<void(const ControllerColliderCollision&)> OnColliderHit;
 
-		/** @copydoc CharacterController::onControllerHit */
+		/** @copydoc CharacterController::OnControllerHit */
 		BS_SCRIPT_EXPORT(ExportName(OnControllerHit))
 		Event<void(const ControllerControllerCollision&)> OnControllerHit;
 
@@ -148,19 +147,10 @@ namespace bs
 		friend class SceneObject;
 		using Component::DestroyInternal;
 
-		/** @copydoc Component::onInitialized() */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed() */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::onDisabled() */
 		void OnDisabled() override;
-
-		/** @copydoc Component::onEnabled() */
 		void OnEnabled() override;
-
-		/** @copydoc Component::onTransformChanged() */
 		void OnTransformChanged(TransformChangedFlags flags) override;
 
 		/** Updates the position by copying it from the controller to the component's scene object. */

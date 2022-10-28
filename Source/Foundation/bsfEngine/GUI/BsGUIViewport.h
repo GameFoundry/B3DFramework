@@ -54,7 +54,6 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
@@ -62,27 +61,13 @@ namespace bs
 	protected:
 		~GUIViewport() = default;
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateClippedBounds */
-		void UpdateClippedBounds();
-
-		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal();
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateClippedBounds() override;
+		void UpdateRenderElementsInternal() override;
 
 	private:
 		GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIElement::_changeParentWidget */
 		void ChangeParentWidgetInternal(GUIWidget* widget) override;
 
 		HCamera mCamera;

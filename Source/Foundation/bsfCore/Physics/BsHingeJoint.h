@@ -63,7 +63,7 @@ namespace bs
 		/** Returns the current angular speed of the joint. */
 		virtual float GetSpeed() const = 0;
 
-		/** @copydoc setLimit() */
+		/** @copydoc SetLimit() */
 		virtual LimitAngularRange GetLimit() const = 0;
 
 		/**
@@ -74,7 +74,7 @@ namespace bs
 		 */
 		virtual void SetLimit(const LimitAngularRange& limit) = 0;
 
-		/** @copydoc setDrive() */
+		/** @copydoc SetDrive() */
 		virtual HingeJointDrive GetDrive() const = 0;
 
 		/**

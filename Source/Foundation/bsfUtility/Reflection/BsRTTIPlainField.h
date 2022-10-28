@@ -168,13 +168,11 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, true, RTTIPlainType<DataType>::hasDynamicSize, size, SerializableFT_Plain, RTTIPlainType<DataType>::id, nullptr, info));
 		}
 
-		/** @copydoc RTTIPlainFieldBase::getTypeId */
 		u32 GetTypeId() override
 		{
 			return RTTIPlainType<DataType>::id;
 		}
 
-		/** @copydoc RTTIPlainFieldBase::getDynamicSize */
 		BitLength GetDynamicSize(RTTITypeBase* rtti, void* object, bool compress) override
 		{
 			CheckIsArray(false);
@@ -187,7 +185,6 @@ namespace bs
 			return RTTIPlainType<DataType>::GetSize(value, Schema.Info, compress);
 		}
 
-		/** @copydoc RTTIPlainFieldBase::getArrayElemDynamicSize */
 		BitLength GetArrayElemDynamicSize(RTTITypeBase* rtti, void* object, int index, bool compress) override
 		{
 			CheckIsArray(true);
@@ -200,7 +197,6 @@ namespace bs
 			return RTTIPlainType<DataType>::GetSize(value, Schema.Info, compress);
 		}
 
-		/** Returns the size of the array managed by the field. */
 		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			CheckIsArray(true);
@@ -210,7 +206,6 @@ namespace bs
 			return (rttiObject->*ArrayGetSize)(castObject);
 		}
 
-		/** Changes the size of the array managed by the field. Array must be re-populated after. */
 		void SetArraySize(RTTITypeBase* rtti, void* object, u32 size) override
 		{
 			CheckIsArray(true);
@@ -225,7 +220,6 @@ namespace bs
 			(rttiObject->*ArraySetSize)(castObject, size);
 		}
 
-		/** @copydoc RTTIPlainFieldBase::toBuffer */
 		void ToStream(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress) override
 		{
 			CheckIsArray(false);
@@ -238,7 +232,6 @@ namespace bs
 			RTTIPlainType<DataType>::ToMemory(value, stream, Schema.Info, compress);
 		}
 
-		/** @copydoc RTTIPlainFieldBase::arrayElemToBuffer */
 		void ArrayElemToStream(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress) override
 		{
 			CheckIsArray(true);
@@ -251,7 +244,6 @@ namespace bs
 			RTTIPlainType<DataType>::ToMemory(value, stream, Schema.Info, compress);
 		}
 
-		/** @copydoc RTTIPlainFieldBase::fromBuffer */
 		void FromBuffer(RTTITypeBase* rtti, void* object, Bitstream& stream, bool compress) override
 		{
 			CheckIsArray(false);
@@ -271,7 +263,6 @@ namespace bs
 			(rttiObject->*Setter)(castObject, value);
 		}
 
-		/** @copydoc RTTIPlainFieldBase::arrayElemFromBuffer */
 		void ArrayElemFromBuffer(RTTITypeBase* rtti, void* object, int index, Bitstream& stream, bool compress) override
 		{
 			CheckIsArray(true);

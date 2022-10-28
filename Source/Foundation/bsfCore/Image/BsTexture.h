@@ -308,11 +308,8 @@ namespace bs
 		Texture(const TEXTURE_DESC& desc);
 		Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData);
 
-		/** @copydoc Resource::initialize */
 		void Initialize() override;
-
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/** Calculates the size of the texture, in bytes. */
 		u32 CalculateSize() const;
@@ -363,7 +360,6 @@ namespace bs
 
 			virtual ~Texture() {}
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			/**
@@ -478,22 +474,22 @@ namespace bs
 			static SPtr<Texture> NORMAL;
 
 		protected:
-			/** @copydoc lock */
+			/** @copydoc Lock */
 			virtual PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) = 0;
 
-			/** @copydoc unlock */
+			/** @copydoc Unlock */
 			virtual void UnlockImpl() = 0;
 
-			/** @copydoc copy */
+			/** @copydoc Copy */
 			virtual void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) = 0;
 
-			/** @copydoc readData */
+			/** @copydoc ReadData */
 			virtual void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) = 0;
 
-			/** @copydoc writeData */
+			/** @copydoc WriteData */
 			virtual void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) = 0;
 
-			/** @copydoc clear */
+			/** @copydoc Clear */
 			virtual void ClearImpl(const Color& value, u32 mipLevel = 0, u32 face = 0, u32 queueIdx = 0);
 
 			/************************************************************************/

@@ -130,10 +130,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
-
-		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
 		u32 GetRenderElementDepthRangeInternal() const override { return mDepthRange; }
 
 		/** @} */
@@ -205,19 +202,8 @@ namespace bs
 		GUICanvas(const String& styleName, const GUIDimensions& dimensions);
 		virtual ~GUICanvas();
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal();
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
 
 		/** Build an image sprite from the provided canvas element. */
 		void BuildImageElement(const CanvasElement& element);

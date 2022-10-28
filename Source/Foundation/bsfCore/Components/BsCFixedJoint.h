@@ -38,11 +38,8 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CJoint::createInternal */
-		SPtr<Joint> CreateInternal();
-
-		/** @copydoc CJoint::getLocalTransform */
-		void GetLocalTransform(JointBody body, Vector3& position, Quaternion& rotation);
+		SPtr<Joint> CreateInternal() override;
+		void GetLocalTransform(JointBody body, Vector3& position, Quaternion& rotation) override;
 
 		FIXED_JOINT_DESC mDesc;
 

@@ -51,10 +51,10 @@ namespace bs
 	public:
 		virtual ~RenderTexture() = default;
 
-		/** @copydoc TextureManager::createRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
+		/** @copydoc TextureManager::CreateRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
 		static SPtr<RenderTexture> Create(const TEXTURE_DESC& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
 
-		/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&) */
+		/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&) */
 		static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc);
 
 		/**
@@ -86,10 +86,7 @@ namespace bs
 
 		RenderTexture(const RENDER_TEXTURE_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
-
-		/** @copydoc CoreObject::syncToCore */
+		SPtr<ct::CoreObject> CreateCore() const override;
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 	protected:
@@ -137,10 +134,9 @@ namespace bs
 			RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
 			virtual ~RenderTexture() = default;
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
-			/** @copydoc TextureManager::createRenderTexture(const RENDER_TEXTURE_DESC&, u32) */
+			/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&, u32) */
 			static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
 
 			/**
@@ -161,7 +157,6 @@ namespace bs
 			const RenderTextureProperties& GetProperties() const;
 
 		protected:
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 
 		private:

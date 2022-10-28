@@ -82,31 +82,31 @@ namespace bs
 	public:
 		RasterizerProperties(const RASTERIZER_STATE_DESC& desc);
 
-		/** @copydoc RASTERIZER_STATE_DESC::polygonMode */
+		/** @copydoc RASTERIZER_STATE_DESC::PolygonMode */
 		PolygonMode GetPolygonMode() const { return mData.PolygonMode; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::cullMode */
+		/** @copydoc RASTERIZER_STATE_DESC::CullMode */
 		CullingMode GetCullMode() const { return mData.CullMode; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::depthBias */
+		/** @copydoc RASTERIZER_STATE_DESC::DepthBias */
 		float GetDepthBias() const { return mData.DepthBias; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::depthBiasClamp */
+		/** @copydoc RASTERIZER_STATE_DESC::DepthBiasClamp */
 		float GetDepthBiasClamp() const { return mData.DepthBiasClamp; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::slopeScaledDepthBias */
+		/** @copydoc RASTERIZER_STATE_DESC::SlopeScaledDepthBias */
 		float GetSlopeScaledDepthBias() const { return mData.SlopeScaledDepthBias; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::depthClipEnable */
+		/** @copydoc RASTERIZER_STATE_DESC::DepthClipEnable */
 		bool GetDepthClipEnable() const { return mData.DepthClipEnable; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::scissorEnable */
+		/** @copydoc RASTERIZER_STATE_DESC::ScissorEnable */
 		bool GetScissorEnable() const { return mData.ScissorEnable; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::multisampleEnable */
+		/** @copydoc RASTERIZER_STATE_DESC::MultisampleEnable */
 		bool GetMultisampleEnable() const { return mData.MultisampleEnable; }
 
-		/** @copydoc RASTERIZER_STATE_DESC::antialiasedLineEnable */
+		/** @copydoc RASTERIZER_STATE_DESC::AntialiasedLineEnable */
 		bool GetAntialiasedLineEnable() const { return mData.AntialiasedLineEnable; }
 
 		/** Returns the hash value generated from the rasterizer state properties. */
@@ -152,8 +152,7 @@ namespace bs
 
 		RasterizerState(const RASTERIZER_STATE_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		RasterizerProperties mProperties;
 		mutable u32 mId;
@@ -203,7 +202,6 @@ namespace bs
 
 			RasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id);
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			/**	Creates any API-specific state objects. */

@@ -32,7 +32,7 @@ namespace bs
 			MarkListenerResourcesDirty();
 		}
 
-		/** @copydoc setMesh() */
+		/** @copydoc SetMesh() */
 		HPhysicsMesh GetMesh() const { return mMesh; }
 
 		/**
@@ -45,14 +45,9 @@ namespace bs
 		static SPtr<MeshCollider> Create(PhysicsScene& scene, const Vector3& position = Vector3::kZero, const Quaternion& rotation = Quaternion::kIdentity);
 
 	protected:
-		/** @copydoc IResourceListener::getListenerResources */
-		void GetListenerResources(Vector<HResource>& resources);
-
-		/** @copydoc IResourceListener::notifyResourceLoaded */
-		void NotifyResourceLoaded(const HResource& resource);
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
-		void NotifyResourceChanged(const HResource& resource);
+		void GetListenerResources(Vector<HResource>& resources) override;
+		void NotifyResourceLoaded(const HResource& resource) override;
+		void NotifyResourceChanged(const HResource& resource) override;
 
 		/**
 		 * Triggered by the resources system whenever the attached collision mesh changed (e.g. was reimported) or loaded.

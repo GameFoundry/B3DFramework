@@ -82,7 +82,6 @@ namespace bs
 		/**	Sets the tint of the GUI element. */
 		virtual void SetTint(const Color& color);
 
-		/** @copydoc GUIElementBase::resetDimensions */
 		void ResetDimensions() override;
 
 		/**	Sets new style to be used by the element. */
@@ -94,7 +93,7 @@ namespace bs
 		/** A set of flags controlling various aspects of the GUIElement. See GUIElementOptions.  */
 		void SetOptionFlags(GUIElementOptions options) { mOptionFlags = options; }
 
-		/** @copydoc setOptionFlags */
+		/** @copydoc SetOptionFlags */
 		GUIElementOptions GetOptionFlags() const { return mOptionFlags; }
 
 		/**
@@ -119,7 +118,6 @@ namespace bs
 		 */
 		void SetNavGroupIndex(i32 index);
 
-		/** @copydoc GUIElementBase::getVisibleBounds */
 		Rect2I GetVisibleBounds() override;
 
 		/**
@@ -208,10 +206,7 @@ namespace bs
 		/** Retrieve element part of element depth. Less significant than both widget and area depth. */
 		u8 GetElementDepthInternal() const;
 
-		/** @copydoc GUIElementBase::_setLayoutData */
 		void SetLayoutDataInternal(const GUILayoutData& data) override;
-
-		/** @copydoc GUIElementBase::_changeParentWidget */
 		void ChangeParentWidgetInternal(GUIWidget* widget) override;
 
 		/**

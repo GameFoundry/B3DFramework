@@ -22,22 +22,20 @@ namespace bs
 	public:
 		CBoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3(0.5f, 0.5f, 0.5f));
 
-		/** @copydoc BoxCollider::setExtents */
+		/** @copydoc BoxCollider::SetExtents */
 		BS_SCRIPT_EXPORT(ExportName(Extents), Property(Setter))
 		void SetExtents(const Vector3& extents);
 
-		/** @copydoc BoxCollider::getExtents */
+		/** @copydoc BoxCollider::GetExtents */
 		BS_SCRIPT_EXPORT(ExportName(Extents), Property(Getter))
-
 		Vector3 GetExtents() const { return mExtents; }
 
 		/** Determines the position of the box shape, relative to the component's scene object. */
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Setter))
 		void SetCenter(const Vector3& center);
 
-		/** @copydoc setCenter() */
+		/** @copydoc SetCenter() */
 		BS_SCRIPT_EXPORT(ExportName(Center), Property(Getter))
-
 		Vector3 GetCenter() const { return mLocalPosition; }
 
 		/** @name Internal
@@ -55,8 +53,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CCollider::createInternal */
-		SPtr<Collider> CreateInternal();
+		SPtr<Collider> CreateInternal() override;
 
 	protected:
 		Vector3 mExtents = Vector3(0.5f, 0.5f, 0.5f);

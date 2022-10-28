@@ -234,7 +234,7 @@ namespace bs
 		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
 		virtual void MarkCoreDirtyInternal() {}
 
-		/** @copydoc IResourceListener::markListenerResourcesDirty */
+		/** @copydoc IResourceListener::MarkListenerResourcesDirty */
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
@@ -270,19 +270,19 @@ namespace bs
 		template <class T>
 		void GetParam(GpuProgramType type, const String& name, TGpuDataParam<T, Core>& output) const;
 
-		/** @copydoc getParam */
+		/** @copydoc GetParam */
 		void GetStructParam(GpuProgramType type, const String& name, TGpuParamStruct<Core>& output) const;
 
-		/** @copydoc getParam */
+		/** @copydoc GetParam */
 		void GetTextureParam(GpuProgramType type, const String& name, TGpuParamTexture<Core>& output) const;
 
-		/** @copydoc getParam */
+		/** @copydoc GetParam */
 		void GetLoadStoreTextureParam(GpuProgramType type, const String& name, TGpuParamLoadStoreTexture<Core>& output) const;
 
-		/** @copydoc getParam */
+		/** @copydoc GetParam */
 		void GetBufferParam(GpuProgramType type, const String& name, TGpuParamBuffer<Core>& output) const;
 
-		/** @copydoc getParam */
+		/** @copydoc GetParam */
 		void GetSamplerStateParam(GpuProgramType type, const String& name, TGpuParamSampState<Core>& output) const;
 
 		/**	Gets a parameter block buffer from the specified set/slot combination. */
@@ -388,7 +388,7 @@ namespace bs
 	protected:
 		TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo);
 
-		/** @copydoc CoreObject::getThisPtr */
+		/** @copydoc CoreObject::GetThisPtr */
 		virtual SPtr<GpuParamsType> GetThisPtrInternal() const = 0;
 
 		/** Data for a single bound texture. */
@@ -451,10 +451,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GpuParamsBase::_markCoreDirty */
 		void MarkCoreDirtyInternal() override;
-
-		/** @copydoc IResourceListener::markListenerResourcesDirty */
 		void MarkResourcesDirtyInternal() override;
 
 		/** @} */
@@ -463,22 +460,13 @@ namespace bs
 
 		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
-		/** @copydoc CoreObject::getThisPtr */
 		SPtr<GpuParams> GetThisPtrInternal() const override;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
-		/** @copydoc CoreObject::syncToCore */
-		CoreSyncData SyncToCore(FrameAlloc* allocator);
-
-		/** @copydoc IResourceListener::getListenerResources */
 		void GetListenerResources(Vector<HResource>& resources) override;
-
-		/** @copydoc IResourceListener::notifyResourceLoaded */
 		void NotifyResourceLoaded(const HResource& resource) override { MarkCoreDirty(); }
-
-		/** @copydoc IResourceListener::notifyResourceChanged */
 		void NotifyResourceChanged(const HResource& resource) override { MarkCoreDirty(); }
 	};
 
@@ -524,11 +512,8 @@ namespace bs
 
 			GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
 
-			/** @copydoc CoreObject::getThisPtr */
 			SPtr<GpuParams> GetThisPtrInternal() const override;
-
-			/** @copydoc CoreObject::syncToCore */
-			void SyncToCore(const CoreSyncData& data);
+			void SyncToCore(const CoreSyncData& data) override;
 		};
 
 		/** @} */

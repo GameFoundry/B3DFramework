@@ -71,7 +71,7 @@ namespace bs
 		/**	Finds a sim thread equivalent of the provided core thread window implementation. */
 		RenderWindow* GetNonCore(const ct::RenderWindow* window) const;
 
-		/** @copydoc create */
+		/** @copydoc Create */
 		virtual SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow) = 0;
 
 	protected:

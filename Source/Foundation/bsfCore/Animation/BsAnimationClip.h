@@ -151,7 +151,7 @@ namespace bs
 	public:
 		virtual ~AnimationClip() = default;
 
-		/** @copydoc setCurves() */
+		/** @copydoc SetCurves() */
 		BS_SCRIPT_EXPORT(ExportName(Curves), Property(Getter))
 
 		SPtr<AnimationCurves> GetCurves() const { return mCurves; }
@@ -163,7 +163,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Curves), Property(Setter))
 		void SetCurves(const AnimationCurves& curves);
 
-		/** @copydoc setEvents() */
+		/** @copydoc SetEvents() */
 		BS_SCRIPT_EXPORT(ExportName(Events), Property(Getter))
 
 		const Vector<AnimationEvent>& GetEvents() const { return mEvents; }
@@ -230,7 +230,7 @@ namespace bs
 
 		float GetLength() const { return mLength; }
 
-		/** @copydoc setSampleRate() */
+		/** @copydoc SetSampleRate() */
 		BS_SCRIPT_EXPORT(ExportName(SampleRate), Property(Getter))
 
 		u32 GetSampleRate() const { return mSampleRate; }
@@ -285,7 +285,6 @@ namespace bs
 		AnimationClip();
 		AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion);
 
-		/** @copydoc Resource::Initialize() */
 		void Initialize() override;
 
 		/** Creates a name -> curve index mapping for quicker curve lookup by name. */

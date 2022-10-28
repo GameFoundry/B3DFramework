@@ -115,8 +115,7 @@ namespace bs
 	protected:
 		VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values);
 
-		/** @copydoc CoreObject::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -155,14 +154,9 @@ namespace bs
 	class BS_CORE_EXPORT FGAImporter : public SpecificImporter
 	{
 	public:
-		/** @copydoc SpecificImporter::isExtensionSupported */
 		bool IsExtensionSupported(const String& ext) const override;
-
-		/** @copydoc SpecificImporter::isMagicNumberSupported */
 		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
-
-		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
 	};
 
 	/** @} */

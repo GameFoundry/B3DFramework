@@ -86,7 +86,6 @@ namespace bs
 		 *  @{
 		 */
 
-		/** @copydoc GUIButtonBase::_getElementType */
 		ElementType GetElementTypeInternal() const override { return ElementType::ListBox; }
 
 		/** @} */
@@ -96,10 +95,7 @@ namespace bs
 	private:
 		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIButtonBase::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-
-		/** @copydoc GUIButtonBase::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
 
 		/**	Triggered when user clicks on an element. */

@@ -18,11 +18,8 @@ namespace bs
 	class BS_EXPORT EngineShaderIncludeHandler : public IShaderIncludeHandler
 	{
 	public:
-		/** @copydoc IShaderIncludeHandler::findInclude */
-		HShaderInclude FindInclude(const String& name) const;
-
-		/** @copydoc IShaderIncludeHandler::addSearchPath */
-		void AddSearchPath(const Path& path) { mSearchPaths.push_back(path); }
+		HShaderInclude FindInclude(const String& name) const override;
+		void AddSearchPath(const Path& path) override { mSearchPaths.push_back(path); }
 
 		/** Converts a shader include name or path to a path of the resource containing include data. */
 		static Path ToResourcePath(const String& name);

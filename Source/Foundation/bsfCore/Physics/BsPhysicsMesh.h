@@ -47,7 +47,7 @@ namespace bs
 		virtual FPhysicsMesh* GetInternalInternal() { return mInternal.get(); }
 
 		/**
-		 * @copydoc create()
+		 * @copydoc Create()
 		 *
 		 * For internal use. Requires manual initialization after creation.
 		 */
@@ -56,7 +56,6 @@ namespace bs
 		/** @} */
 
 	protected:
-		/** @copydoc Resource::Initialize() */
 		void Initialize() override;
 
 		SPtr<FPhysicsMesh> mInternal;

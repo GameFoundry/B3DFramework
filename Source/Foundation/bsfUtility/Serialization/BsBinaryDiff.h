@@ -124,10 +124,7 @@ namespace bs
 	class BS_UTILITY_EXPORT BinaryDiff : public IDiff
 	{
 	private:
-		/** @copydoc IDiff::generateDiff(IReflectable*, IReflectable*, ObjectMap&, bool) */
 		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) override;
-
-		/** @copydoc	IDiff::applyDiff(const SPtr<IReflectable>&, const SPtr<SerializedObject>&, FrameAlloc&, DiffObjectMap&, FrameVector<DiffCommand>&) */
 		void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAlloc& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context) override;
 	};
 

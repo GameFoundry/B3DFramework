@@ -23,51 +23,51 @@ namespace bs
 		CJoint(const HSceneObject& parent, JOINT_DESC& desc);
 		virtual ~CJoint() = default;
 
-		/** @copydoc Joint::getBody */
+		/** @copydoc Joint::GetBody */
 		BS_SCRIPT_EXPORT(ExportName(GetBody))
 		HRigidbody GetBody(JointBody body) const;
 
-		/** @copydoc Joint::setBody */
+		/** @copydoc Joint::SetBody */
 		BS_SCRIPT_EXPORT(ExportName(SetBody))
 		void SetBody(JointBody body, const HRigidbody& value);
 
-		/** @copydoc Joint::getPosition */
+		/** @copydoc Joint::GetPosition */
 		BS_SCRIPT_EXPORT(ExportName(GetPosition))
 		Vector3 GetPosition(JointBody body) const;
 
-		/** @copydoc Joint::getRotation */
+		/** @copydoc Joint::GetRotation */
 		BS_SCRIPT_EXPORT(ExportName(GetRotation))
 		Quaternion GetRotation(JointBody body) const;
 
-		/** @copydoc Joint::setTransform */
+		/** @copydoc Joint::SetTransform */
 		BS_SCRIPT_EXPORT(ExportName(SetTransform))
 		void SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation);
 
-		/** @copydoc Joint::getBreakForce */
+		/** @copydoc Joint::GetBreakForce */
 		BS_SCRIPT_EXPORT(ExportName(BreakForce), Property(Getter))
 		float GetBreakForce() const;
 
-		/** @copydoc Joint::setBreakForce */
+		/** @copydoc Joint::SetBreakForce */
 		BS_SCRIPT_EXPORT(ExportName(BreakForce), Property(Setter))
 		void SetBreakForce(float force);
 
-		/** @copydoc Joint::getBreakTorque */
+		/** @copydoc Joint::GetBreakTorque */
 		BS_SCRIPT_EXPORT(ExportName(BreakTorque), Property(Getter))
 		float GetBreakTorque() const;
 
-		/** @copydoc Joint::setBreakTorque */
+		/** @copydoc Joint::SetBreakTorque */
 		BS_SCRIPT_EXPORT(ExportName(BreakTorque), Property(Setter))
 		void SetBreakTorque(float torque);
 
-		/** @copydoc Joint::getEnableCollision */
+		/** @copydoc Joint::GetEnableCollision */
 		BS_SCRIPT_EXPORT(ExportName(EnableCollision), Property(Getter))
 		bool GetEnableCollision() const;
 
-		/** @copydoc Joint::setEnableCollision */
+		/** @copydoc Joint::SetEnableCollision */
 		BS_SCRIPT_EXPORT(ExportName(EnableCollision), Property(Setter))
 		void SetEnableCollision(bool value);
 
-		/** @copydoc Joint::onJointBreak */
+		/** @copydoc Joint::OnJointBreak */
 		BS_SCRIPT_EXPORT(ExportName(OnJointBreak))
 		Event<void()> OnJointBreak;
 
@@ -86,20 +86,11 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized() */
-		void OnInitialized();
-
-		/** @copydoc Component::onDestroyed() */
-		void OnDestroyed();
-
-		/** @copydoc Component::onDisabled() */
-		void OnDisabled();
-
-		/** @copydoc Component::onEnabled() */
-		void OnEnabled();
-
-		/** @copydoc Component::onTransformChanged() */
-		void OnTransformChanged(TransformChangedFlags flags);
+		void OnInitialized() override;
+		void OnDestroyed() override;
+		void OnDisabled() override;
+		void OnEnabled() override;
+		void OnTransformChanged(TransformChangedFlags flags) override;
 
 	protected:
 		friend class CRigidbody;

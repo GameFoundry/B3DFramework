@@ -289,7 +289,7 @@ namespace bs
 		~CommandQueue()
 		{}
 
-		/** @copydoc CommandQueueBase::queueReturn */
+		/** @copydoc CommandQueueBase::QueueReturn */
 		AsyncOp QueueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete = false, u32 _callbackId = 0)
 		{
 #if BS_DEBUG_MODE
@@ -303,7 +303,7 @@ namespace bs
 			return asyncOp;
 		}
 
-		/** @copydoc CommandQueueBase::queue */
+		/** @copydoc CommandQueueBase::Queue */
 		void Queue(std::function<void()> commandCallback, bool _notifyWhenComplete = false, u32 _callbackId = 0)
 		{
 #if BS_DEBUG_MODE
@@ -315,7 +315,7 @@ namespace bs
 			CommandQueueBase::Queue(commandCallback, _notifyWhenComplete, _callbackId);
 		}
 
-		/** @copydoc CommandQueueBase::flush */
+		/** @copydoc CommandQueueBase::Flush */
 		bs::Queue<QueuedCommand>* Flush()
 		{
 #if BS_DEBUG_MODE
@@ -329,7 +329,7 @@ namespace bs
 			return commands;
 		}
 
-		/** @copydoc CommandQueueBase::cancelAll */
+		/** @copydoc CommandQueueBase::CancelAll */
 		void CancelAll()
 		{
 #if BS_DEBUG_MODE
@@ -341,7 +341,7 @@ namespace bs
 			CommandQueueBase::CancelAll();
 		}
 
-		/** @copydoc CommandQueueBase::isEmpty */
+		/** @copydoc CommandQueueBase::IsEmpty */
 		bool IsEmpty()
 		{
 #if BS_DEBUG_MODE

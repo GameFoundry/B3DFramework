@@ -87,19 +87,19 @@ namespace bs
 			virtual ~HardwareBufferManager() {}
 
 			/**
-			 * @copydoc bs::HardwareBufferManager::createVertexBuffer
+			 * @copydoc bs::HardwareBufferManager::CreateVertexBuffer
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<VertexBuffer> CreateVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
-			 * @copydoc bs::HardwareBufferManager::createIndexBuffer
+			 * @copydoc bs::HardwareBufferManager::CreateIndexBuffer
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<IndexBuffer> CreateIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
-			 * @copydoc bs::HardwareBufferManager::createVertexDeclaration
+			 * @copydoc bs::HardwareBufferManager::CreateVertexDeclaration
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<VertexDeclaration> CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
@@ -113,13 +113,13 @@ namespace bs
 			SPtr<VertexDeclaration> CreateVertexDeclaration(const Vector<VertexElement>& elements, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
-			 * @copydoc bs::HardwareBufferManager::createGpuParamBlockBuffer
+			 * @copydoc bs::HardwareBufferManager::CreateGpuParamBlockBuffer
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<GpuParamBlockBuffer> CreateGpuParamBlockBuffer(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
-			 * @copydoc bs::HardwareBufferManager::createGpuBuffer
+			 * @copydoc bs::HardwareBufferManager::CreateGpuBuffer
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
 			SPtr<GpuBuffer> CreateGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
@@ -160,25 +160,25 @@ namespace bs
 				Vector<VertexElement> Elements;
 			};
 
-			/** @copydoc createVertexBuffer */
+			/** @copydoc CreateVertexBuffer */
 			virtual SPtr<VertexBuffer> CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc createIndexBuffer */
+			/** @copydoc CreateIndexBuffer */
 			virtual SPtr<IndexBuffer> CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc createGpuParamBlockBuffer */
+			/** @copydoc CreateGpuParamBlockBuffer */
 			virtual SPtr<GpuParamBlockBuffer> CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc createGpuBuffer(const GPU_BUFFER_DESC&, GpuDeviceFlags) */
+			/** @copydoc CreateGpuBuffer(const GPU_BUFFER_DESC&, GpuDeviceFlags) */
 			virtual SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
 
-			/** @copydoc createGpuBuffer(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
+			/** @copydoc CreateGpuBuffer(const GPU_BUFFER_DESC&, SPtr<HardwareBuffer>) */
 			virtual SPtr<GpuBuffer> CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer) = 0;
 
-			/** @copydoc createVertexDeclaration(const Vector<VertexElement>&, GpuDeviceFlags) */
+			/** @copydoc CreateVertexDeclaration(const Vector<VertexElement>&, GpuDeviceFlags) */
 			virtual SPtr<VertexDeclaration> CreateVertexDeclarationInternal(const Vector<VertexElement>& elements, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
-			/** @copydoc createGpuParams */
+			/** @copydoc CreateGpuParams */
 			virtual SPtr<GpuParams> CreateGpuParamsInternal(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			typedef UnorderedMap<VertexDeclarationKey, SPtr<VertexDeclaration>, VertexDeclarationKey::HashFunction, VertexDeclarationKey::EqualFunction> DeclarationMap;

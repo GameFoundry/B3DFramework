@@ -28,13 +28,13 @@ namespace bs
 		Collider() = default;
 		virtual ~Collider() = default;
 
-		/** @copydoc FCollider::getPosition */
+		/** @copydoc FCollider::GetPosition */
 		Vector3 GetPosition() const;
 
-		/** @copydoc FCollider::getRotation */
+		/** @copydoc FCollider::GetRotation */
 		Quaternion GetRotation() const;
 
-		/** @copydoc FCollider::setTransform */
+		/** @copydoc FCollider::SetTransform */
 		void SetTransform(const Vector3& pos, const Quaternion& rot);
 
 		/** Sets the scale of the collider geometry. */
@@ -43,52 +43,52 @@ namespace bs
 		/** Retrieves the scale of the collider geometry. */
 		Vector3 GetScale() const;
 
-		/** @copydoc FCollider::setIsTrigger */
+		/** @copydoc FCollider::SetIsTrigger */
 		void SetIsTrigger(bool value);
 
-		/** @copydoc FCollider::getIsTrigger */
+		/** @copydoc FCollider::GetIsTrigger */
 		bool GetIsTrigger() const;
 
 		/** Determines the Rigidbody that controls this collider (if any). */
 		void SetRigidbody(Rigidbody* value);
 
-		/** @copydoc Collider::setRigidbody() */
+		/** @copydoc Collider::SetRigidbody() */
 		Rigidbody* GetRigidbody() const { return mRigidbody; }
 
-		/** @copydoc FCollider::setMass */
+		/** @copydoc FCollider::SetMass */
 		void SetMass(float mass);
 
-		/** @copydoc FCollider::getMass */
+		/** @copydoc FCollider::GetMass */
 		float GetMass() const;
 
-		/** @copydoc FCollider::setMaterial */
+		/** @copydoc FCollider::SetMaterial */
 		void SetMaterial(const HPhysicsMaterial& material);
 
-		/** @copydoc FCollider::getMaterial */
+		/** @copydoc FCollider::GetMaterial */
 		HPhysicsMaterial GetMaterial() const;
 
-		/** @copydoc FCollider::setContactOffset */
+		/** @copydoc FCollider::SetContactOffset */
 		void SetContactOffset(float value);
 
-		/** @copydoc FCollider::getContactOffset */
+		/** @copydoc FCollider::GetContactOffset */
 		float GetContactOffset();
 
-		/** @copydoc FCollider::setRestOffset */
+		/** @copydoc FCollider::SetRestOffset */
 		void SetRestOffset(float value);
 
-		/** @copydoc FCollider::getRestOffset */
+		/** @copydoc FCollider::GetRestOffset */
 		float GetRestOffset();
 
-		/** @copydoc FCollider::setLayer */
+		/** @copydoc FCollider::SetLayer */
 		void SetLayer(u64 layer);
 
-		/** @copydoc FCollider::getLayer */
+		/** @copydoc FCollider::GetLayer */
 		u64 GetLayer() const;
 
-		/** @copydoc FCollider::setCollisionReportMode */
+		/** @copydoc FCollider::SetCollisionReportMode */
 		void SetCollisionReportMode(CollisionReportMode mode);
 
-		/** @copydoc FCollider::getCollisionReportMode */
+		/** @copydoc FCollider::GetCollisionReportMode */
 		CollisionReportMode GetCollisionReportMode() const;
 
 		/**

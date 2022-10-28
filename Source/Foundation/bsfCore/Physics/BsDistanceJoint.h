@@ -33,7 +33,7 @@ namespace bs
 		/** Returns the current distance between the two joint bodies. */
 		virtual float GetDistance() const = 0;
 
-		/** @copydoc setMinDistance() */
+		/** @copydoc SetMinDistance() */
 		virtual float GetMinDistance() const = 0;
 
 		/**
@@ -42,7 +42,7 @@ namespace bs
 		 */
 		virtual void SetMinDistance(float value) = 0;
 
-		/** @copydoc setMaxDistance() */
+		/** @copydoc SetMaxDistance() */
 		virtual float GetMaxDistance() const = 0;
 
 		/**
@@ -51,7 +51,7 @@ namespace bs
 		 */
 		virtual void SetMaxDistance(float value) = 0;
 
-		/** @copydoc setTolerance() */
+		/** @copydoc SetTolerance() */
 		virtual float GetTolerance() const = 0;
 
 		/**
@@ -60,7 +60,7 @@ namespace bs
 		 */
 		virtual void SetTolerance(float value) = 0;
 
-		/** @copydoc setSpring() */
+		/** @copydoc SetSpring() */
 		virtual Spring GetSpring() const = 0;
 
 		/**

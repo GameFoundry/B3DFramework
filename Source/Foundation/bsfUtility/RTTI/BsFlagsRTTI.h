@@ -26,14 +26,12 @@ namespace bs
 			hasDynamicSize = 0
 		};
 
-		/** @copydoc RTTIPlainType::ToMemory */
 		static BitLength ToMemory(const Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			Storage storageData = (Storage)data;
 			return RTTIPlainType<Storage>::ToMemory(storageData, stream, fieldInfo, compress);
 		}
 
-		/** @copydoc RTTIPlainType::FromMemory */
 		static BitLength FromMemory(Flags<Enum, Storage>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			Storage storageData;
@@ -43,7 +41,6 @@ namespace bs
 			return sizeof(Flags<Enum, Storage>);
 		}
 
-		/** @copydoc RTTIPlainType::GetSize */
 		static BitLength GetSize(const Flags<Enum, Storage>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return sizeof(Flags<Enum, Storage>);

@@ -32,7 +32,7 @@ namespace bs
 
 		virtual ~FJoint() = default;
 
-		/** @copydoc setBody() */
+		/** @copydoc SetBody() */
 		virtual Rigidbody* GetBody(JointBody body) const = 0;
 
 		/** Determines a body managed by the joint. One of the bodies must be movable (non-kinematic). */
@@ -47,7 +47,7 @@ namespace bs
 		/** Sets the position and rotation relative to the body, at which the body is anchored to the joint.  */
 		virtual void SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation) = 0;
 
-		/** @copydoc setBreakForce() */
+		/** @copydoc SetBreakForce() */
 		virtual float GetBreakForce() const = 0;
 
 		/**
@@ -56,7 +56,7 @@ namespace bs
 		 */
 		virtual void SetBreakForce(float force) = 0;
 
-		/** @copydoc setBreakTorque() */
+		/** @copydoc SetBreakTorque() */
 		virtual float GetBreakTorque() const = 0;
 
 		/**
@@ -65,7 +65,7 @@ namespace bs
 		 */
 		virtual void SetBreakTorque(float torque) = 0;
 
-		/** @copydoc setEnableCollision() */
+		/** @copydoc SetEnableCollision() */
 		virtual bool GetEnableCollision() const = 0;
 
 		/** Determines whether collision between the two bodies managed by the joint are enabled. */

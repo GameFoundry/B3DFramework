@@ -54,10 +54,7 @@ namespace bs
 		/**	Change the internal button state, changing the button look depending on set style. */
 		void SetStateInternal(GUIElementState state);
 
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
-
-		/** @copydoc GUIElement::GetRenderElementDepthRangeInternal */
 		u32 GetRenderElementDepthRangeInternal() const override;
 
 		/** @} */
@@ -65,31 +62,12 @@ namespace bs
 		GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions, GUIElementOptions options = GUIElementOption::AcceptsKeyFocus);
 		virtual ~GUIButtonBase();
 
-		/** @copydoc GUIElement::_fillBuffer */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal */
-		void UpdateRenderElementsInternal();
-
-		/** @copydoc GUIElement::_mouseEvent */
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-
-		/** @copydoc GUIElement::_commandEvent */
 		bool CommandEventInternal(const GUICommandEvent& ev) override;
-
-		/** @copydoc GUIElement::_getTooltip */
 		String GetTooltipInternal() const override;
-
-		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated();
+		void StyleUpdated() override;
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void RefreshContentSprite();

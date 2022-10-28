@@ -34,7 +34,7 @@ namespace bs
 		 */
 		virtual void SetIsTrigger(bool value) = 0;
 
-		/** @copydoc setIsTrigger() */
+		/** @copydoc SetIsTrigger() */
 		virtual bool GetIsTrigger() const = 0;
 
 		/**
@@ -43,7 +43,7 @@ namespace bs
 		 */
 		virtual void SetIsStatic(bool value) = 0;
 
-		/** @copydoc setIsStatic() */
+		/** @copydoc SetIsStatic() */
 		virtual bool GetIsStatic() const = 0;
 
 		/**
@@ -53,7 +53,7 @@ namespace bs
 		 */
 		virtual void SetMass(float mass) { mMass = mass; }
 
-		/** @copydoc setMass() */
+		/** @copydoc SetMass() */
 		virtual float GetMass() const { return mMass; }
 
 		/**
@@ -62,7 +62,7 @@ namespace bs
 		 */
 		virtual void SetMaterial(const HPhysicsMaterial& material);
 
-		/** @copydoc setMaterial() */
+		/** @copydoc SetMaterial() */
 		virtual HPhysicsMaterial GetMaterial() const { return mMaterial; }
 
 		/**
@@ -72,11 +72,11 @@ namespace bs
 		 * potentially prevent the objects from interpenetrating. This value is in meters. Must be positive and greater
 		 * than rest offset.
 		 *
-		 * Also see setRestOffset().
+		 * Also see SetRestOffset().
 		 */
 		virtual void SetContactOffset(float value) = 0;
 
-		/** @copydoc setContactOffset() */
+		/** @copydoc SetContactOffset() */
 		virtual float GetContactOffset() const = 0;
 
 		/**
@@ -84,23 +84,23 @@ namespace bs
 		 * the runtime will be the sum of rest offsets for both interacting objects. This value is in meters. Cannot be
 		 * larger than contact offset.
 		 *
-		 * Also see setContactOffset().
+		 * Also see SetContactOffset().
 		 */
 		virtual void SetRestOffset(float value) = 0;
 
-		/** @copydoc setRestOffset() */
+		/** @copydoc SetRestOffset() */
 		virtual float GetRestOffset() const = 0;
 
 		/** Determines the layer of the collider. Layer controls with which objects will the collider collide. */
 		virtual void SetLayer(u64 layer) = 0;
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		virtual u64 GetLayer() const = 0;
 
 		/** Determines which (if any) collision events are reported. */
 		virtual void SetCollisionReportMode(CollisionReportMode mode) = 0;
 
-		/** @copydoc setCollisionReportMode() */
+		/** @copydoc SetCollisionReportMode() */
 		virtual CollisionReportMode GetCollisionReportMode() const = 0;
 
 		/** Enables continous collision detect for this collider. Only valid if the collider is a part of a rigidbody. */

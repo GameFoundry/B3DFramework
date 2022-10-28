@@ -26,18 +26,16 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Normal), Property(Setter))
 		void SetNormal(const Vector3& normal);
 
-		/** @copydoc setNormal() */
+		/** @copydoc SetNormal() */
 		BS_SCRIPT_EXPORT(ExportName(Normal), Property(Getter))
-
 		Vector3 GetNormal() const { return mNormal; }
 
 		/** Determines the distance of the plane from the local origin, along its normal vector. */
 		BS_SCRIPT_EXPORT(ExportName(Distance), Property(Setter))
 		void SetDistance(float distance);
 
-		/** @copydoc setDistance() */
+		/** @copydoc SetDistance() */
 		BS_SCRIPT_EXPORT(ExportName(Distance), Property(Getter))
-
 		float GetDistance() const { return mDistance; }
 
 		/** @name Internal
@@ -55,10 +53,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc CCollider::createInternal */
-		SPtr<Collider> CreateInternal();
-
-		/** @copydoc CCollider::isValidParent */
+		SPtr<Collider> CreateInternal() override;
 		bool IsValidParent(const HRigidbody& parent) const override;
 
 	protected:

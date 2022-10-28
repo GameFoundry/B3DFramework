@@ -129,34 +129,19 @@ namespace bs
 		/** Returns the size of the slider handle, in percent of the total area. */
 		float GetHandleSizePctInternal() const;
 
-		/** @copydoc GUIElement::GetOptimalSizeInternal */
 		Vector2I GetOptimalSizeInternal() const override;
 
 		/** @} */
 	protected:
 		~GUISliderHandle();
 
-		/** @copydoc GUIElement::FillBufferInternal() */
-		void FillBuffer(
-			u8* vertices,
-			u32* indices,
-			u32 vertexOffset,
-			u32 indexOffset,
-			const Vector2I& offset,
-			u32 maxNumVerts,
-			u32 maxNumIndices,
-			u32 renderElementIdx) const;
-
-		/** @copydoc GUIElement::updateRenderElementsInternal() */
-		void UpdateRenderElementsInternal();
-
-		/** @copydoc GUIElement::updateClippedBounds() */
-		void UpdateClippedBounds();
+		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
+		void UpdateRenderElementsInternal() override;
+		void UpdateClippedBounds() override;
 
 	private:
 		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions);
 
-		/** @copydoc GUIElement::_mouseEvent */
 		bool MouseEventInternal(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */
@@ -171,8 +156,7 @@ namespace bs
 		/**	Gets the currently active texture, depending on handle state. */
 		const HSpriteTexture& GetActiveTexture() const;
 
-		/** @copydoc GUIElement::styleUpdated */
-		void StyleUpdated();
+		void StyleUpdated() override;
 
 		static const u32 kResizeHandleSize;
 

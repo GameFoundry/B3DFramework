@@ -112,8 +112,7 @@ namespace bs
 
 		Font();
 
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 	private:
 		Map<u32, SPtr<FontBitmap>> mFontDataPerSize;

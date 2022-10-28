@@ -152,10 +152,10 @@ namespace bs
 		 */
 		static void DispatchCompute(u32 numGroupsX, u32 numGroupsY = 1, u32 numGroupsZ = 1);
 
-		/** @copydoc ct::RenderAPI::getVideoModeInfo */
+		/** @copydoc ct::RenderAPI::GetVideoModeInfo */
 		static const VideoModeInfo& GetVideoModeInfo();
 
-		/** @copydoc ct::RenderAPI::convertProjectionMatrix */
+		/** @copydoc ct::RenderAPI::ConvertProjectionMatrix */
 		static void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest);
 	};
 

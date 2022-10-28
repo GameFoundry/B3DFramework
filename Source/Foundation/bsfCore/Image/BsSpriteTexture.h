@@ -87,7 +87,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setOffset() */
+		/** @copydoc SetOffset() */
 		BS_SCRIPT_EXPORT(ExportName(Offset), Property(Getter))
 
 		Vector2 GetOffset() const { return mUVOffset; }
@@ -101,7 +101,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setScale() */
+		/** @copydoc SetScale() */
 		BS_SCRIPT_EXPORT(ExportName(Scale), Property(Getter))
 
 		Vector2 GetScale() const { return mUVScale; }
@@ -132,7 +132,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setAnimation */
+		/** @copydoc SetAnimation */
 		BS_SCRIPT_EXPORT(ExportName(Animation), Property(Getter))
 
 		const SpriteSheetGridAnimation& GetAnimation() const { return mAnimation; }
@@ -146,7 +146,7 @@ namespace bs
 			MarkCoreDirtyInternal();
 		}
 
-		/** @copydoc setAnimationPlayback */
+		/** @copydoc SetAnimationPlayback */
 		BS_SCRIPT_EXPORT(ExportName(AnimationPlayback), Property(Getter))
 
 		SpriteAnimationPlayback GetAnimationPlayback() const { return mPlayback; };
@@ -201,7 +201,7 @@ namespace bs
 		BS_SCRIPT_EXPORT(ExportName(Texture), Property(Setter))
 		void SetTexture(const HTexture& texture);
 
-		/**	@copydoc setTexture() */
+		/**	@copydoc SetTexture() */
 		BS_SCRIPT_EXPORT(ExportName(Texture), Property(Getter))
 
 		const HTexture& GetTexture() const { return mAtlasTexture; }
@@ -255,27 +255,19 @@ namespace bs
 		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
 		static SPtr<SpriteTexture> CreatePtrInternal(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
 
-		/** @copydoc SpriteTextureBase::_markCoreDirty */
 		void MarkCoreDirtyInternal() override;
 
 		/** @} */
 	private:
 		friend class SpriteTextureRTTI;
 
-		/** @copydoc create(const Vector2&, const Vector2&, const HTexture&) */
+		/** @copydoc Create(const Vector2&, const Vector2&, const HTexture&) */
 		SpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
 
-		/** @copydoc CoreObject::initialize */
 		void Initialize() override;
-
-		/** @copydoc CoreObject::createCore */
 		SPtr<ct::CoreObject> CreateCore() const override;
-
-		/** @copydoc CoreObject::syncToCore */
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
-
-		/** @copydoc CoreObject::getCoreDependencies */
-		void GetCoreDependencies(Vector<CoreObject*>& dependencies);
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -309,7 +301,7 @@ namespace bs
 			/**	Determines the internal texture that the sprite texture references. */
 			void SetTexture(const SPtr<ct::Texture>& texture) { mAtlasTexture = texture; }
 
-			/**	@copydoc setTexture() */
+			/**	@copydoc SetTexture() */
 			const SPtr<ct::Texture>& GetTexture() const { return mAtlasTexture; }
 
 		private:
@@ -317,7 +309,6 @@ namespace bs
 
 			SpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, SPtr<Texture> texture, const SpriteSheetGridAnimation& anim, SpriteAnimationPlayback playback);
 
-			/** @copydoc CoreObject::syncToCore */
 			void SyncToCore(const CoreSyncData& data) override;
 		};
 

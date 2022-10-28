@@ -176,7 +176,7 @@ namespace bs
 		 */
 		SPtr<ct::GraphicsPipelineState> GetCore() const;
 
-		/** @copydoc RenderStateManager::createGraphicsPipelineState */
+		/** @copydoc RenderStateManager::CreateGraphicsPipelineState */
 		static SPtr<GraphicsPipelineState> Create(const PIPELINE_STATE_DESC& desc);
 
 	protected:
@@ -184,8 +184,7 @@ namespace bs
 
 		GraphicsPipelineState(const PIPELINE_STATE_DESC& desc);
 
-		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 	};
 
 	/**
@@ -205,7 +204,7 @@ namespace bs
 		 */
 		SPtr<ct::ComputePipelineState> GetCore() const;
 
-		/** @copydoc RenderStateManager::createComputePipelineState */
+		/** @copydoc RenderStateManager::CreateComputePipelineState */
 		static SPtr<ComputePipelineState> Create(const SPtr<GpuProgram>& program);
 
 	protected:
@@ -213,8 +212,7 @@ namespace bs
 
 		ComputePipelineState(const SPtr<GpuProgram>& program);
 
-		/** @copydoc CoreObject::createCore */
-		virtual SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 	};
 
 	/** @} */
@@ -232,10 +230,9 @@ namespace bs
 			GraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 			virtual ~GraphicsPipelineState() = default;
 
-			/** @copydoc CoreObject::Initialize() */
 			void Initialize() override;
 
-			/** @copydoc RenderStateManager::createGraphicsPipelineState */
+			/** @copydoc RenderStateManager::CreateGraphicsPipelineState */
 			static SPtr<GraphicsPipelineState> Create(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:
@@ -249,10 +246,9 @@ namespace bs
 			ComputePipelineState(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask);
 			virtual ~ComputePipelineState() = default;
 
-			/** @copydoc CoreObject::Initialize() */
 			void Initialize() override;
 
-			/** @copydoc RenderStateManager::createComputePipelineState */
+			/** @copydoc RenderStateManager::CreateComputePipelineState */
 			static SPtr<ComputePipelineState> Create(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:

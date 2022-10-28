@@ -19,54 +19,44 @@ namespace bs
 		CDecal(const HSceneObject& parent);
 		virtual ~CDecal();
 
-		/** @copydoc Decal::setMaterial */
+		/** @copydoc Decal::SetMaterial */
 		BS_SCRIPT_EXPORT(ExportName(Material), Property(Setter))
-
 		void SetMaterial(const HMaterial& material) { mInternal->SetMaterial(material); }
 
-		/** @copydoc setMaterial */
+		/** @copydoc SetMaterial */
 		BS_SCRIPT_EXPORT(ExportName(Material), Property(Getter))
-
 		const HMaterial& GetMaterial() const { return mInternal->GetMaterial(); }
 
-		/** @copydoc Decal::setSize */
+		/** @copydoc Decal::SetSize */
 		BS_SCRIPT_EXPORT(ExportName(Size), Property(Setter))
-
 		void SetSize(const Vector2& size) { mInternal->SetSize(size); }
 
-		/** @copydoc setSize */
+		/** @copydoc SetSize */
 		BS_SCRIPT_EXPORT(ExportName(Size), Property(Getter))
-
 		Vector2 GetSize() const { return mInternal->GetSize(); }
 
-		/** @copydoc Decal::setMaxDistance */
+		/** @copydoc Decal::SetMaxDistance */
 		BS_SCRIPT_EXPORT(ExportName(MaxDistance), Property(Setter))
-
 		void SetMaxDistance(float distance) { mInternal->SetMaxDistance(distance); }
 
-		/** @copydoc getSize */
+		/** @copydoc GetSize */
 		BS_SCRIPT_EXPORT(ExportName(MaxDistance), Property(Getter))
-
 		float GetMaxDistance() const { return mInternal->GetMaxDistance(); }
 
-		/** @copydoc Decal::setLayer */
+		/** @copydoc Decal::SetLayer */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Setter))
-
 		void SetLayer(u64 layer) { mInternal->SetLayer(layer); }
 
-		/** @copydoc setLayer() */
+		/** @copydoc SetLayer() */
 		BS_SCRIPT_EXPORT(ExportName(Layer), Property(Getter))
-
 		u64 GetLayer() const { return mInternal->GetLayer(); }
 
+		/** @copydoc Decal::SetLayerMask */
 		BS_SCRIPT_EXPORT(ExportName(LayerMask), Property(Setter))
-
-		/** @copydoc Decal::setLayerMask */
 		void SetLayerMask(u32 mask) { mInternal->SetLayerMask(mask); }
 
+		/** @copydoc SetLayerMask */
 		BS_SCRIPT_EXPORT(ExportName(LayerMask), Property(Getter))
-
-		/** @copydoc setLayerMask */
 		u32 GetLayerMask() const { return mInternal->GetLayerMask(); }
 
 		/** @name Internal
@@ -87,13 +77,8 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		/** @copydoc Component::onInitialized */
 		void OnInitialized() override;
-
-		/** @copydoc Component::onDestroyed */
 		void OnDestroyed() override;
-
-		/** @copydoc Component::update */
 		void Update() override {}
 
 		/************************************************************************/

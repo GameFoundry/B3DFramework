@@ -117,7 +117,6 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, true, true, 0, SerializableFT_Reflectable, 0, nullptr, info));
 		}
 
-		/** @copydoc RTTIField::initSchema */
 		void InitSchema() override
 		{
 			// This need to be initialized after the field itself, otherwise we get recursive static constructor
@@ -127,7 +126,6 @@ namespace bs
 			Schema.FieldTypeId = DataType::GetRttiStatic()->GetRttiId();
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::getValue */
 		IReflectable& GetValue(RTTITypeBase* rtti, void* object) override
 		{
 			CheckIsArray(false);
@@ -139,7 +137,6 @@ namespace bs
 			return castDataType;
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::getArrayValue */
 		IReflectable& GetArrayValue(RTTITypeBase* rtti, void* object, u32 index) override
 		{
 			CheckIsArray(true);
@@ -151,7 +148,6 @@ namespace bs
 			return castDataType;
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::setValue */
 		void SetValue(RTTITypeBase* rtti, void* object, IReflectable& value) override
 		{
 			CheckIsArray(false);
@@ -168,7 +164,6 @@ namespace bs
 			(rttiObject->*Setter)(castObjType, castDataObj);
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::setArrayValue */
 		void SetArrayValue(RTTITypeBase* rtti, void* object, u32 index, IReflectable& value) override
 		{
 			CheckIsArray(true);
@@ -185,7 +180,6 @@ namespace bs
 			(rttiObject->*ArraySetter)(castObjType, index, castDataObj);
 		}
 
-		/** @copydoc RTTIField::getArraySize */
 		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			CheckIsArray(true);
@@ -196,7 +190,6 @@ namespace bs
 			return (rttiObject->*ArrayGetSize)(castObject);
 		}
 
-		/** @copydoc RTTIField::setArraySize */
 		void SetArraySize(RTTITypeBase* rtti, void* object, u32 size) override
 		{
 			CheckIsArray(true);
@@ -212,13 +205,11 @@ namespace bs
 			(rttiObject->*ArraySetSize)(castObject, size);
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::newObject */
-		SPtr<IReflectable> NewObject()
+		SPtr<IReflectable> NewObject() override
 		{
 			return DataType::GetRttiStatic()->NewRttiObject();
 		}
 
-		/** @copydoc RTTIReflectableFieldBase::getType */
 		RTTITypeBase* GetType() override
 		{
 			return DataType::GetRttiStatic();

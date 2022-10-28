@@ -232,37 +232,20 @@ namespace bs
 		MemoryDataStream& operator=(const MemoryDataStream& other);
 		MemoryDataStream& operator=(MemoryDataStream&& other);
 
-		/** @copydoc DataStream::isFile */
-		bool IsFile() const override { return false; }
-
 		/** Get a pointer to the start of the memory block this stream holds. */
 		uint8_t* Data() const { return mData; }
 
 		/** Get a pointer to the current position in the memory block this stream holds. */
 		uint8_t* Cursor() const { return mCursor; }
 
-		/** @copydoc DataStream::read */
+		bool IsFile() const override { return false; }
 		size_t Read(void* buf, size_t count) const override;
-
-		/** @copydoc DataStream::write */
 		size_t Write(const void* buf, size_t count) override;
-
-		/** @copydoc DataStream::skip */
 		void Skip(size_t count) override;
-
-		/** @copydoc DataStream::seek */
 		void Seek(size_t pos) override;
-
-		/** @copydoc DataStream::tell */
 		size_t Tell() const override;
-
-		/** @copydoc DataStream::eof */
 		bool Eof() const override;
-
-		/** @copydoc DataStream::clone */
-		SPtr<DataStream> Clone(bool copyData = true) const;
-
-		/** @copydoc DataStream::close */
+		SPtr<DataStream> Clone(bool copyData = true) const override;
 		void Close() override;
 
 		/**
@@ -303,29 +286,13 @@ namespace bs
 		~FileDataStream();
 
 		bool IsFile() const override { return true; }
-
-		/** @copydoc DataStream::read */
 		size_t Read(void* buf, size_t count) const override;
-
-		/** @copydoc DataStream::write */
 		size_t Write(const void* buf, size_t count) override;
-
-		/** @copydoc DataStream::skip */
 		void Skip(size_t count) override;
-
-		/** @copydoc DataStream::seek */
 		void Seek(size_t pos) override;
-
-		/** @copydoc DataStream::tell */
 		size_t Tell() const override;
-
-		/** @copydoc DataStream::eof */
 		bool Eof() const override;
-
-		/** @copydoc DataStream::clone */
-		SPtr<DataStream> Clone(bool copyData = true) const;
-
-		/** @copydoc DataStream::close */
+		SPtr<DataStream> Clone(bool copyData = true) const override;
 		void Close() override;
 
 		/** Returns the path of the file opened by the stream. */
