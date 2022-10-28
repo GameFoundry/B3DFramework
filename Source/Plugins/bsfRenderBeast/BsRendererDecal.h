@@ -88,7 +88,6 @@ namespace bs
 			/** Texture input for the mask buffer. */
 			GpuParamTexture MaskInputTexture;
 
-			/** @copydoc RenderElement::draw */
 			void Draw() const override;
 		};
 

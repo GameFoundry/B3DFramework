@@ -19,32 +19,15 @@ namespace bs
 		OAAudio();
 		virtual ~OAAudio();
 
-		/** @copydoc Audio::SetVolume */
-		void SetVolume(float volume);
-
-		/** @copydoc Audio::GetVolume */
-		float GetVolume() const;
-
-		/** @copydoc Audio::SetPaused */
-		void SetPaused(bool paused);
-
-		/** @copydoc Audio::IsPaused */
-		bool IsPaused() const { return mIsPaused; }
-
-		/** @copydoc Audio::_update */
+		void SetVolume(float volume) override;
+		float GetVolume() const override;
+		void SetPaused(bool paused) override;
+		bool IsPaused() const override { return mIsPaused; }
 		void UpdateInternal() override;
-
-		/** @copydoc Audio::setActiveDevice */
-		void SetActiveDevice(const AudioDevice& device);
-
-		/** @copydoc Audio::getActiveDevice */
-		AudioDevice GetActiveDevice() const { return mActiveDevice; }
-
-		/** @copydoc Audio::getDefaultDevice */
-		AudioDevice GetDefaultDevice() const { return mDefaultDevice; }
-
-		/** @copydoc Audio::getAllDevices */
-		const Vector<AudioDevice>& GetAllDevices() const { return mAllDevices; };
+		void SetActiveDevice(const AudioDevice& device) override;
+		AudioDevice GetActiveDevice() const override { return mActiveDevice; }
+		AudioDevice GetDefaultDevice() const override { return mDefaultDevice; }
+		const Vector<AudioDevice>& GetAllDevices() const override { return mAllDevices; };
 
 		/** @name Internal
 		 *  @{
@@ -102,13 +85,8 @@ namespace bs
 			OAAudioSource* Source;
 		};
 
-		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
-
-		/** @copydoc Audio::createListener */
-		SPtr<AudioListener> CreateListener();
-
-		/** @copydoc Audio::createSource */
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc) override;
+		SPtr<AudioListener> CreateListener() override;
 		SPtr<AudioSource> CreateSource() override;
 
 		/**

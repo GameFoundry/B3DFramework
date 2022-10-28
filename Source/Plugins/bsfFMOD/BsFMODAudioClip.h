@@ -47,11 +47,8 @@ namespace bs
 		bool RequiresStreaming() const;
 
 	protected:
-		/** @copydoc Resource::initialize */
 		void Initialize() override;
-
-		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size);
+		SPtr<DataStream> GetSourceStream(u32& size) override;
 
 		FMOD::Sound* mSound = nullptr;
 

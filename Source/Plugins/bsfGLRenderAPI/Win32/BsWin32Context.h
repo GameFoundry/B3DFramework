@@ -25,13 +25,8 @@ namespace bs
 			Win32Context(HDC hdc, HGLRC glrc, bool ownsContext);
 			virtual ~Win32Context();
 
-			/** @copydoc GLContext::setCurrent */
 			void SetCurrent(const RenderWindow& window) override;
-
-			/** @copydoc GLContext::endCurrent */
 			void EndCurrent() override;
-
-			/** @copydoc GLContext::releaseContext  */
 			void ReleaseContext() override;
 
 		protected:

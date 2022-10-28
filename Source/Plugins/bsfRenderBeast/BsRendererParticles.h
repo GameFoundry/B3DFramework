@@ -200,7 +200,6 @@ namespace bs
 			/** Checks if the element has all the properties required for rendering. */
 			bool IsValid() const { return !Is3D || Mesh != nullptr; }
 
-			/** @copydoc RenderElement::draw */
 			void Draw() const override;
 		};
 

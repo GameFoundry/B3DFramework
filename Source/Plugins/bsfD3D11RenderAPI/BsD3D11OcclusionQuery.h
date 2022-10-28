@@ -20,17 +20,10 @@ namespace bs
 			D3D11OcclusionQuery(bool binary, u32 deviceIdx);
 			~D3D11OcclusionQuery();
 
-			/** @copydoc OcclusionQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc OcclusionQuery::end */
-			void End(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc OcclusionQuery::isReady */
-			bool IsReady() const;
-
-			/** @copydoc OcclusionQuery::getNumSamples */
-			u32 GetNumSamples();
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
+			void End(const SPtr<CommandBuffer>& cb = nullptr) override;
+			bool IsReady() const override;
+			u32 GetNumSamples() override;
 
 		private:
 			friend class QueryManager;

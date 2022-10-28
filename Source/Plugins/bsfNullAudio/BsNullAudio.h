@@ -20,41 +20,21 @@ namespace bs
 	public:
 		NullAudio();
 
-		/** @copydoc Audio::setVolume */
-		void SetVolume(float volume) { mVolume = volume; }
-
-		/** @copydoc Audio::getVolume */
-		float GetVolume() const { return mVolume; }
-
-		/** @copydoc Audio::setPaused */
-		void SetPaused(bool paused) { mIsPaused = paused; }
-
-		/** @copydoc Audio::isPaused */
-		bool IsPaused() const { return mIsPaused; }
-
-		/** @copydoc Audio::setActiveDevice */
-		void SetActiveDevice(const AudioDevice& device) { mActiveDevice = device; }
-
-		/** @copydoc Audio::getActiveDevice */
-		AudioDevice GetActiveDevice() const { return mActiveDevice; }
-
-		/** @copydoc Audio::getDefaultDevice */
-		AudioDevice GetDefaultDevice() const { return mDefaultDevice; }
-
-		/** @copydoc Audio::getAllDevices */
-		const Vector<AudioDevice>& GetAllDevices() const { return mAllDevices; };
+		void SetVolume(float volume) override { mVolume = volume; }
+		float GetVolume() const override { return mVolume; }
+		void SetPaused(bool paused) override { mIsPaused = paused; }
+		bool IsPaused() const override { return mIsPaused; }
+		void SetActiveDevice(const AudioDevice& device) override { mActiveDevice = device; }
+		AudioDevice GetActiveDevice() const override { return mActiveDevice; }
+		AudioDevice GetDefaultDevice() const override { return mDefaultDevice; }
+		const Vector<AudioDevice>& GetAllDevices() const override { return mAllDevices; };
 
 	private:
 		friend class NullAudioSource;
 
-		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
-
-		/** @copydoc Audio::createListener */
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc) override;
 		SPtr<AudioListener> CreateListener() override;
-
-		/** @copydoc Audio::createSource */
-		SPtr<AudioSource> CreateSource();
+		SPtr<AudioSource> CreateSource() override;
 
 		float mVolume = 1.0f;
 		bool mIsPaused = false;
@@ -71,11 +51,8 @@ namespace bs
 		NullAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
 
 	protected:
-		/** @copydoc Resource::initialize */
 		void Initialize() override;
-
-		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size);
+		SPtr<DataStream> GetSourceStream(u32& size) override;
 
 	private:
 		// These streams exist to save original audio data in case it's needed later (usually for saving with the editor, or
@@ -95,22 +72,11 @@ namespace bs
 	class NullAudioSource final : public AudioSource
 	{
 	public:
-		/** @copydoc AudioSource::setTime */
 		void SetTime(float time) override { mTime = time; }
-
-		/** @copydoc AudioSource::getTime */
 		float GetTime() const override { return mTime; }
-
-		/** @copydoc AudioSource::play */
 		void Play() override { mState = AudioSourceState::Playing; }
-
-		/** @copydoc AudioSource::pause */
 		void Pause() override { mState = AudioSourceState::Paused; }
-
-		/** @copydoc AudioSource::stop */
 		void Stop() override { mState = AudioSourceState::Stopped; }
-
-		/** @copydoc AudioSource::getState */
 		AudioSourceState GetState() const override { return mState; }
 
 	private:

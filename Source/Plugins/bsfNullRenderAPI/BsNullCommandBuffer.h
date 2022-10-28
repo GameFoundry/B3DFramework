@@ -18,8 +18,7 @@ namespace bs
 		class NullCommandBufferManager final : public CommandBufferManager
 		{
 		public:
-			/** @copydoc CommandBufferManager::createInternal() */
-			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
+			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false) override;
 		};
 
 		/** Command buffer implementation for the null render backend. */

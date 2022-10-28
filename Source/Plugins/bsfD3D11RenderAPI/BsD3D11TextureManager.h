@@ -15,12 +15,10 @@ namespace bs
 	class D3D11TextureManager : public TextureManager
 	{
 	public:
-		/** @copydoc TextureManager::getNativeFormat */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) override;
 
 	protected:
-		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
 	};
 
 	namespace ct
@@ -29,11 +27,8 @@ namespace bs
 		class D3D11TextureManager : public TextureManager
 		{
 		protected:
-			/** @copydoc TextureManager::createTextureInternal */
-			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/** @copydoc TextureManager::createRenderTextureInternal */
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0) override;
 		};
 	} // namespace ct
 

@@ -20,22 +20,11 @@ namespace bs
 		PhysXSliderJoint(physx::PxPhysics* physx, const SLIDER_JOINT_DESC& desc);
 		~PhysXSliderJoint();
 
-		/** @copydoc SliderJoint::getPosition */
 		float GetPosition() const override;
-
-		/** @copydoc SliderJoint::getSpeed */
 		float GetSpeed() const override;
-
-		/** @copydoc SliderJoint::getLimit */
 		LimitLinearRange GetLimit() const override;
-
-		/** @copydoc SliderJoint::setLimit */
 		void SetLimit(const LimitLinearRange& limit) override;
-
-		/** @copydoc SliderJoint::setFlag */
 		void SetFlag(SliderJointFlag flag, bool enabled) override;
-
-		/** @copydoc SliderJoint::hasFlag */
 		bool HasFlag(SliderJointFlag flag) const override;
 
 	private:

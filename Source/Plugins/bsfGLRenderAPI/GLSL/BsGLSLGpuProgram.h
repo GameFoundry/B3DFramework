@@ -19,8 +19,7 @@ namespace bs
 		public:
 			~GLSLGpuProgram();
 
-			/** @copydoc GpuProgram::isSupported */
-			bool IsSupported() const;
+			bool IsSupported() const override;
 
 			/**	Gets internal OpenGL handle to the program. */
 			GLuint GetGlHandle() const { return mGLHandle; }
@@ -33,8 +32,7 @@ namespace bs
 
 			GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/** @copydoc GpuProgram::initialize */
-			void Initialize();
+			void Initialize() override;
 
 		private:
 			u32 mProgramID = 0;

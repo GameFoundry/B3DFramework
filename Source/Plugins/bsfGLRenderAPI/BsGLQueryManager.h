@@ -17,14 +17,9 @@ namespace bs
 		class GLQueryManager : public QueryManager
 		{
 		public:
-			/** @copydoc QueryManager::createEventQuery */
-			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const;
-
-			/** @copydoc QueryManager::createTimerQuery */
-			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const;
-
-			/** @copydoc QueryManager::createOcclusionQuery */
-			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const;
+			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const override;
+			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const override;
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const override;
 		};
 
 		/** @} */

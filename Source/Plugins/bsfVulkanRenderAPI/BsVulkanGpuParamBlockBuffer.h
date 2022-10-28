@@ -27,8 +27,7 @@ namespace bs
 			VulkanBuffer* GetResource(u32 deviceIdx) const;
 
 		protected:
-			/** @copydoc GpuParamBlockBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 
 		private:
 			GpuDeviceFlags mDeviceMask;

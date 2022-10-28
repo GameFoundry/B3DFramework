@@ -21,16 +21,11 @@ namespace bs
 	public:
 		~D3D11RenderWindow() = default;
 
-		/** @copydoc RenderWindow::screenToWindowPos */
-		void GetCustomAttribute(const String& name, void* pData) const;
+		void GetCustomAttribute(const String& name, void* pData) const override;
+		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const override;
+		Vector2I WindowToScreenPos(const Vector2I& windowPos) const override;
 
-		/** @copydoc RenderWindow::screenToWindowPos */
-		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const;
-
-		/** @copydoc RenderWindow::windowToScreenPos */
-		Vector2I WindowToScreenPos(const Vector2I& windowPos) const;
-
-		/** @copydoc RenderWindow::getCore */
+		/** @copydoc RenderWindow::GetCore */
 		SPtr<ct::D3D11RenderWindow> GetCore() const;
 
 	protected:
@@ -39,14 +34,9 @@ namespace bs
 
 		D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId);
 
-		/** @copydoc RenderWindow::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
-
-		/** @copydoc RenderWindow::syncProperties */
-		void SyncProperties();
-
-		/** @copydoc RenderWindow::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
+		void SyncProperties() override;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/**	Retrieves internal window handle. */
 		HWND GetHWnd() const;
@@ -68,38 +58,20 @@ namespace bs
 			D3D11RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, D3D11Device& device, IDXGIFactory1* DXGIFactory);
 			~D3D11RenderWindow();
 
-			/** @copydoc RenderWindow::move */
-			void Move(i32 left, i32 top);
-
-			/** @copydoc RenderWindow::resize */
-			void Resize(u32 width, u32 height);
-
-			/** @copydoc RenderWindow::setHidden */
-			void SetHidden(bool hidden);
-
-			/** @copydoc RenderWindow::setActive */
-			void SetActive(bool state);
-
-			/** @copydoc RenderWindow::minimize */
-			void Minimize();
-
-			/** @copydoc RenderWindow::maximize */
-			void Maximize();
-
-			/** @copydoc RenderWindow::restore */
-			void Restore();
-
-			/** @copydoc RenderWindow::setFullscreen(u32, u32, float, u32) */
-			void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0);
-
-			/** @copydoc RenderWindow::setFullscreen(const VideoMode&) */
+			void Move(i32 left, i32 top) override;
+			void Resize(u32 width, u32 height) override;
+			void SetHidden(bool hidden) override;
+			void SetActive(bool state) override;
+			void Minimize() override;
+			void Maximize() override;
+			void Restore() override;
+			void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
 			void SetFullscreen(const VideoMode& videoMode) override;
-
-			/** @copydoc RenderWindow::setWindowed */
 			void SetWindowed(u32 width, u32 height) override;
-
-			/** @copydoc RenderWindow::setVSync */
 			void SetVSync(bool enabled, u32 interval = 1) override;
+			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
+			void GetCustomAttribute(const String& name, void* pData) const override;
+			void WindowMovedOrResizedInternal() override;
 
 			/**
 			 * Copies the contents of a frame buffer into the pre-allocated buffer.
@@ -108,15 +80,6 @@ namespace bs
 			 * @param[in]	buffer	Frame buffer to read the contents from.
 			 */
 			void CopyToMemory(PixelData& dst, FrameBuffer buffer);
-
-			/** @copydoc RenderWindow::swapBuffers */
-			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
-
-			/** @copydoc RenderWindow::getCustomAttribute */
-			void GetCustomAttribute(const String& name, void* pData) const override;
-
-			/** @copydoc RenderWindow::_windowMovedOrResized */
-			void WindowMovedOrResizedInternal() override;
 
 			/**	Returns presentation parameters used for creating the window swap chain. */
 			DXGI_SWAP_CHAIN_DESC* GetPresentationParametersInternal() { return &mSwapChainDesc; }
@@ -127,7 +90,6 @@ namespace bs
 		protected:
 			friend class bs::D3D11RenderWindow;
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
 
 			/**	Creates internal resources dependent on window size. */
@@ -145,13 +107,8 @@ namespace bs
 			/**	Resizes all buffers attached to the swap chain to the specified size. */
 			void ResizeSwapChainBuffers(u32 width, u32 height);
 
-			/** @copydoc RenderWindow::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
-
-			/** @copydoc RenderWindow::getSyncedProperties */
 			RenderWindowProperties& GetSyncedProperties() override { return mSyncedProperties; }
-
-			/** @copydoc RenderWindow::syncProperties */
 			void SyncProperties() override;
 
 		protected:

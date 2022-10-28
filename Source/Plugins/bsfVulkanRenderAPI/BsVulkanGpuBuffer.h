@@ -19,11 +19,8 @@ namespace bs
 		public:
 			~VulkanGpuBuffer();
 
-			/** @copydoc GpuBuffer::readData */
-			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc GpuBuffer::writeData */
-			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0);
+			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
 
 			/**
 			 * Gets the resource wrapping the buffer object, on the specified device. If the object wasn't initialized for the
@@ -43,14 +40,9 @@ namespace bs
 			VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 			VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
-			/** @copydoc GpuBuffer::initialize */
-			void Initialize();
-
-			/** @copydoc GpuBuffer::map */
-			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc GpuBuffer::unmap */
-			void Unmap();
+			void Initialize() override;
+			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void Unmap() override;
 
 			/** Updates buffer views if they are missing or don't match the buffers. */
 			void UpdateViews();

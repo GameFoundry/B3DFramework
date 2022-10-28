@@ -17,22 +17,13 @@ namespace bs
 	{
 	public:
 		PhysXCapsuleCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius, float halfHeight);
-		~PhysXCapsuleCollider();
+		~PhysXCapsuleCollider() override;
 
-		/** @copydoc CapsuleCollider::setScale() */
-		void SetScale(const Vector3& scale);
-
-		/** @copydoc CapsuleCollider::setHalfHeight() */
-		void SetHalfHeight(float halfHeight);
-
-		/** @copydoc CapsuleCollider::getHalfHeight() */
-		float GetHalfHeight() const;
-
-		/** @copydoc CapsuleCollider::setRadius() */
-		void SetRadius(float radius);
-
-		/** @copydoc CapsuleCollider::getRadius() */
-		float GetRadius() const;
+		void SetScale(const Vector3& scale) override;
+		void SetHalfHeight(float halfHeight) override;
+		float GetHalfHeight() const override;
+		void SetRadius(float radius) override;
+		float GetRadius() const override;
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */

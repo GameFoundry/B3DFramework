@@ -141,10 +141,7 @@ namespace bs
 					Id = T::GetNodeId();
 				}
 
-				/** @copydoc NodeType::Create() */
 				RenderCompositorNode* Create() const override { return bs_new<T>(); }
-
-				/** @copydoc NodeType::getDependencies() */
 				SmallVector<StringID, 4> GetDependencies(const RendererView& view) const override
 				{
 					return T::GetDependencies(view);
@@ -194,10 +191,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -223,10 +217,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -289,10 +280,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -309,10 +297,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -325,10 +310,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -363,10 +345,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -385,10 +364,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			SPtr<RenderTexture> mLightOcclusionRT;
@@ -410,10 +386,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -431,10 +404,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -450,10 +420,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			SPtr<RenderTexture> renderTarget;
@@ -471,10 +438,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -487,10 +451,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -519,10 +480,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			mutable SPtr<PooledRenderTexture> mOutput[2];
@@ -540,10 +498,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			/**
@@ -567,10 +522,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			SPtr<PooledRenderTexture> mTonemapLUT;
@@ -586,10 +538,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -606,10 +555,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -622,10 +568,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -638,10 +581,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -660,10 +600,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -684,10 +621,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -702,10 +636,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -720,10 +651,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -738,10 +666,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			SPtr<PooledRenderTexture> mPooledOutput;
@@ -760,10 +685,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			/** Cleans up any outputs. */
@@ -790,10 +712,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			/** Cleans up any outputs. */
@@ -814,10 +733,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 
 			SPtr<PooledRenderTexture> mPooledOutput;
@@ -832,10 +748,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -848,10 +761,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 
@@ -864,10 +774,7 @@ namespace bs
 			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
-			/** @copydoc RenderCompositorNode::render */
 			void Render(const RenderCompositorNodeInputs& inputs) override;
-
-			/** @copydoc RenderCompositorNode::clear */
 			void Clear() override;
 		};
 

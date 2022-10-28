@@ -20,11 +20,8 @@ namespace bs
 			GLEventQuery(u32 deviceIdx);
 			~GLEventQuery();
 
-			/** @copydoc EventQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc EventQuery::isReady */
-			bool IsReady() const;
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
+			bool IsReady() const override;
 
 		private:
 			GLuint mQueryObj = 0;

@@ -159,19 +159,10 @@ namespace bs
 			GLTextureBuffer(GLenum target, GLuint id, GLint face, GLint level, PixelFormat format, GpuBufferUsage usage, bool hwGamma, u32 multisampleCount);
 			~GLTextureBuffer() = default;
 
-			/** @copydoc GLPixelBuffer::bindToFramebuffer */
 			void BindToFramebuffer(GLenum attachment, u32 zoffset, bool allLayers) override;
-
-			/** @copydoc GLPixelBuffer::upload */
 			void Upload(const PixelData& data, const PixelVolume& dest) override;
-
-			/** @copydoc GLPixelBuffer::download */
 			void Download(const PixelData& data) override;
-
-			/** @copydoc GLPixelBuffer::blitFromTexture */
 			void BlitFromTexture(GLTextureBuffer* src) override;
-
-			/** @copydoc GLPixelBuffer::blitFromTexture */
 			void BlitFromTexture(GLTextureBuffer* src, const PixelVolume& srcBox, const PixelVolume& dstBox) override;
 
 			/**

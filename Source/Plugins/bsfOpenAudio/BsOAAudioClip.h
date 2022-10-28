@@ -42,11 +42,8 @@ namespace bs
 
 		/** @} */
 	protected:
-		/** @copydoc Resource::initialize */
-		void Initialize();
-
-		/** @copydoc AudioClip::getSourceStream */
-		SPtr<DataStream> GetSourceStream(u32& size);
+		void Initialize() override;
+		SPtr<DataStream> GetSourceStream(u32& size) override;
 
 	private:
 		mutable Mutex mMutex;

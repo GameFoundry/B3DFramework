@@ -32,8 +32,7 @@ namespace bs
 			void UnregisterVao(const GLVertexArrayObject& vao);
 
 		protected:
-			/** @copydoc VertexBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 
 		private:
 			Vector<GLVertexArrayObject> mVAObjects;

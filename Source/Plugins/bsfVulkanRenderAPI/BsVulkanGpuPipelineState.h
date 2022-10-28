@@ -85,7 +85,6 @@ namespace bs
 
 			VulkanGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/**	@copydoc GraphicsPipelineState::initialize */
 			void Initialize() override;
 
 			/**
@@ -186,7 +185,6 @@ namespace bs
 
 			VulkanComputePipelineState(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask);
 
-			/**	@copydoc ComputePipelineState::initialize */
 			void Initialize() override;
 
 			/** Contains pipeline data specific to a single Vulkan device. */

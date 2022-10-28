@@ -18,17 +18,10 @@ namespace bs
 		OAImporter();
 		virtual ~OAImporter() = default;
 
-		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool IsExtensionSupported(const String& ext) const;
-
-		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
-
-		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
-
-		/** @copydoc SpecificImporter::createImportOptions */
-		SPtr<ImportOptions> CreateImportOptions() const;
+		bool IsExtensionSupported(const String& ext) const override;
+		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		SPtr<ImportOptions> CreateImportOptions() const override;
 	};
 
 	/** @} */

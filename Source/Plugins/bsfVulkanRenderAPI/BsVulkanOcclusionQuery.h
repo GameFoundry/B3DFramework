@@ -18,18 +18,11 @@ namespace bs
 		{
 		public:
 			VulkanOcclusionQuery(VulkanDevice& device, bool binary);
-			~VulkanOcclusionQuery();
+			~VulkanOcclusionQuery() override;
 
-			/** @copydoc OcclusionQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb);
-
-			/** @copydoc OcclusionQuery::end */
-			void End(const SPtr<CommandBuffer>& cb);
-
-			/** @copydoc OcclusionQuery::isReady */
+			void Begin(const SPtr<CommandBuffer>& cb) override;
+			void End(const SPtr<CommandBuffer>& cb) override;
 			bool IsReady() const override;
-
-			/** @copydoc OcclusionQuery::getNumSamples */
 			u32 GetNumSamples() override;
 
 			/** Returns true if the query begin() was called, but not end(). */

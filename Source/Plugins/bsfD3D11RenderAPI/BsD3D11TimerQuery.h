@@ -20,17 +20,10 @@ namespace bs
 			D3D11TimerQuery(u32 deviceIdx);
 			~D3D11TimerQuery();
 
-			/** @copydoc TimerQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc TimerQuery::end */
-			void End(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc TimerQuery::isReady */
-			bool IsReady() const;
-
-			/** @copydoc TimerQuery::getTimeMs */
-			float GetTimeMs();
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
+			void End(const SPtr<CommandBuffer>& cb = nullptr) override;
+			bool IsReady() const override;
+			float GetTimeMs() override;
 
 		private:
 			/**	Resolve timing information after the query has finished. */

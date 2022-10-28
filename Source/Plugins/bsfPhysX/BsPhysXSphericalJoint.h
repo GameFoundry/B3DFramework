@@ -20,16 +20,9 @@ namespace bs
 		PhysXSphericalJoint(physx::PxPhysics* physx, const SPHERICAL_JOINT_DESC& desc);
 		~PhysXSphericalJoint();
 
-		/** @copydoc SphericalJoint::getLimit */
 		LimitConeRange GetLimit() const override;
-
-		/** @copydoc SphericalJoint::setLimit */
 		void SetLimit(const LimitConeRange& limit) override;
-
-		/** @copydoc SphericalJoint::setFlag */
 		void SetFlag(SphericalJointFlag flag, bool enabled) override;
-
-		/** @copydoc SphericalJoint::hasFlag */
 		bool HasFlag(SphericalJointFlag flag) const override;
 
 	private:

@@ -20,19 +20,10 @@ namespace bs
 		public:
 			Win32GLSupport();
 
-			/** @copydoc GLSupport::newWindow */
-			SPtr<bs::RenderWindow> NewWindow(RENDER_WINDOW_DESC& desc, u32 windowId, SPtr<bs::RenderWindow> parentWindow);
-
-			/** @copydoc GLSupport::start */
+			SPtr<bs::RenderWindow> NewWindow(RENDER_WINDOW_DESC& desc, u32 windowId, SPtr<bs::RenderWindow> parentWindow) override;
 			void Start() override;
-
-			/** @copydoc GLSupport::stop */
 			void Stop() override;
-
-			/** @copydoc GLSupport::getProcAddress */
 			void* GetProcAddress(const String& procname) override;
-
-			/** @copydoc GLSupport::initializeExtensions */
 			void InitializeExtensions() override;
 
 			/**
@@ -57,8 +48,7 @@ namespace bs
 			 */
 			bool SelectPixelFormat(HDC hdc, int colorDepth, int multisample, bool hwGamma, bool depth);
 
-			/** @copydoc GLSupport::getVideoModeInfo */
-			SPtr<VideoModeInfo> GetVideoModeInfo() const;
+			SPtr<VideoModeInfo> GetVideoModeInfo() const override;
 
 			/** Notifies the manager that a new window has been created. */
 			void NotifyWindowCreatedInternal(Win32RenderWindow* window);

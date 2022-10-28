@@ -38,8 +38,7 @@ namespace bs
 			GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask);
 			GLGpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer);
 
-			/** @copydoc GpuBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 
 			GLuint mTextureID = 0;
 			GLenum mFormat = 0;

@@ -40,24 +40,16 @@ namespace bs
 			D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, u32 elementCount, u32 elementSize, D3D11Device& device, bool systemMemory = false, bool streamOut = false);
 			~D3D11HardwareBuffer();
 
-			/** @copydoc HardwareBuffer::readData */
-			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::writeData */
-			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::copyData */
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**	Returns the internal DX11 buffer object. */
 			ID3D11Buffer* GetD3DBuffer() const { return mD3DBuffer; }
 
 		protected:
-			/** @copydoc HardwareBuffer::map */
-			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx);
-
-			/** @copydoc HardwareBuffer::unmap */
-			void Unmap();
+			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) override;
+			void Unmap() override;
 
 			BufferType mBufferType;
 			u32 mElementCount;

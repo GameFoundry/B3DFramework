@@ -20,11 +20,8 @@ namespace bs
 		public:
 			static constexpr const char* kSystemName = "bsfGLRenderAPI";
 
-			/** @copydoc RenderAPIFactory::create */
-			void Create();
-
-			/** @copydoc RenderAPIFactory::name */
-			const char* Name() const { return kSystemName; }
+			void Create() override;
+			const char* Name() const override { return kSystemName; }
 
 		private:
 			/**	Registers the factory with the render system manager when constructed. */

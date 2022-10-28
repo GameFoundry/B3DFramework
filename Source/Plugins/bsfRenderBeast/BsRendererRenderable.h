@@ -92,7 +92,6 @@ namespace bs
 			/** Version of the morph shape vertices in the buffer. */
 			mutable u32 MorphShapeVersion;
 
-			/** @copydoc RenderElement::draw */
 			void Draw() const override;
 		};
 

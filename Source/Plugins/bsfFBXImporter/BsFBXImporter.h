@@ -25,23 +25,12 @@ namespace bs
 		FBXImporter();
 		virtual ~FBXImporter() = default;
 
-		/** @copydoc SpecificImporter::isExtensionSupported */
-		bool IsExtensionSupported(const String& ext) const;
-
-		/** @copydoc SpecificImporter::isMagicNumberSupported */
-		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const;
-
-		/** @copydoc SpecificImporter::getAsyncMode */
-		ImporterAsyncMode GetAsyncMode() const { return ImporterAsyncMode::Single; }
-
-		/** @copydoc SpecificImporter::import */
-		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions);
-
-		/** @copydoc SpecificImporter::importAll */
-		Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions);
-
-		/** @copydoc SpecificImporter::createImportOptions */
-		SPtr<ImportOptions> CreateImportOptions() const;
+		bool IsExtensionSupported(const String& ext) const override;
+		bool IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const override;
+		ImporterAsyncMode GetAsyncMode() const override { return ImporterAsyncMode::Single; }
+		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		Vector<SubResourceRaw> ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
+		SPtr<ImportOptions> CreateImportOptions() const override;
 
 	private:
 		/**

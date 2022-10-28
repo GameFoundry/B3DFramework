@@ -19,31 +19,14 @@ namespace bs
 		FMODAudio();
 		virtual ~FMODAudio();
 
-		/** @copydoc Audio::setVolume */
 		void SetVolume(float volume) override;
-
-		/** @copydoc Audio::getVolume */
 		float GetVolume() const override;
-
-		/** @copydoc Audio::setPaused */
 		void SetPaused(bool paused) override;
-
-		/** @copydoc Audio::isPaused */
 		bool IsPaused() const override { return mIsPaused; }
-
-		/** @copydoc Audio::_update */
 		void UpdateInternal() override;
-
-		/** @copydoc Audio::setActiveDevice */
 		void SetActiveDevice(const AudioDevice& device) override;
-
-		/** @copydoc Audio::getActiveDevice */
 		AudioDevice GetActiveDevice() const override { return mActiveDevice; }
-
-		/** @copydoc Audio::getDefaultDevice */
 		AudioDevice GetDefaultDevice() const override { return mDefaultDevice; }
-
-		/** @copydoc Audio::getAllDevices */
 		const Vector<AudioDevice>& GetAllDevices() const override { return mAllDevices; }
 
 		/** @name Internal
@@ -67,14 +50,9 @@ namespace bs
 
 		/** @} */
 	private:
-		/** @copydoc Audio::createClip */
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
-
-		/** @copydoc Audio::createListener */
-		SPtr<AudioListener> CreateListener();
-
-		/** @copydoc Audio::createSource */
-		SPtr<AudioSource> CreateSource();
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc) override;
+		SPtr<AudioListener> CreateListener() override;
+		SPtr<AudioSource> CreateSource() override;
 
 		/** Rebuilds information about all listeners. Should be called when listener list changes. */
 		void RebuildListeners();

@@ -30,8 +30,7 @@ namespace bs
 
 		GLRenderTexture(const RENDER_TEXTURE_DESC& desc);
 
-		/** @copydoc RenderTexture::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
+		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 		RenderTextureProperties mProperties;
 	};
@@ -49,17 +48,13 @@ namespace bs
 			GLRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
 			virtual ~GLRenderTexture();
 
-			/** @copydoc RenderTexture::getCustomAttribute */
-			void GetCustomAttribute(const String& name, void* data) const;
+			void GetCustomAttribute(const String& name, void* data) const override;
 
 		protected:
 			friend class bs::GLRenderTexture;
 
-			/** @copydoc RenderTexture::initialize */
-			void Initialize();
-
-			/** @copydoc RenderTexture::getProperties */
-			const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
+			void Initialize() override;
+			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 			RenderTextureProperties mProperties;
 			GLFrameBufferObject* mFB;

@@ -43,8 +43,7 @@ namespace bs
 			VulkanDescriptorLayout* GetLayout(u32 deviceIdx, u32 layoutIdx) const;
 
 		private:
-			/**	@copydoc GpuPipelineParamInfo::initialize */
-			void Initialize();
+			void Initialize() override;
 
 			/** Data related to a single descriptor set layout. */
 			struct LayoutInfo

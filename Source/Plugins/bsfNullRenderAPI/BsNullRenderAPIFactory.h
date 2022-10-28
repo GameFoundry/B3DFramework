@@ -18,11 +18,8 @@ namespace bs
 		public:
 			static constexpr const char* SystemName = "bsfNullRenderAPI";
 
-			/** @copydoc RenderAPIFactory::create */
-			void Create();
-
-			/** @copydoc RenderAPIFactory::name */
-			const char* Name() const { return SystemName; }
+			void Create() override;
+			const char* Name() const override { return SystemName; }
 
 		private:
 			/**	Registers the factory with the render system manager when constructed. */

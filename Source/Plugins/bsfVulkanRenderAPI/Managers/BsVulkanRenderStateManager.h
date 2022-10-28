@@ -17,16 +17,9 @@ namespace bs
 		class VulkanRenderStateManager : public RenderStateManager
 		{
 		protected:
-			/** @copydoc RenderStateManager::createSamplerStateInternal */
-			SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const;
-
-			/** @copydoc RenderStateManager::CreateGraphicsPipelineStateInternal */
+			SPtr<SamplerState> CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const override;
 			SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
-
-			/** @copydoc RenderStateManager::CreateComputePipelineStateInternal */
 			SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
-
-			/** @copydoc RenderStateManager::CreatePipelineParamInfoInternal */
 			SPtr<GpuPipelineParamInfo> CreatePipelineParamInfoInternal(const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 		};
 

@@ -21,26 +21,18 @@ namespace bs
 		public:
 			/** Creates and initializes the buffer object. */
 			GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage);
-			~GLHardwareBuffer();
+			~GLHardwareBuffer() override;
 
-			/** @copydoc HardwareBuffer::readData */
-			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::writeData */
-			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::copyData */
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr);
+			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**	Returns internal OpenGL buffer ID. */
 			GLuint GetGlBufferId() const { return mBufferId; }
 
 		private:
-			/** @copydoc HardwareBuffer::map */
-			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx);
-
-			/** @copydoc HardwareBuffer::unmap */
-			void Unmap();
+			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) override;
+			void Unmap() override;
 
 			GLenum mTarget;
 			GLuint mBufferId = 0;

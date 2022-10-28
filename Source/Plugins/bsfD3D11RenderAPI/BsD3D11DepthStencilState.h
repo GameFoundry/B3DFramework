@@ -27,8 +27,7 @@ namespace bs
 
 			D3D11DepthStencilState(const DEPTH_STENCIL_STATE_DESC& desc, u32 id);
 
-			/** @copydoc DepthStencilState::createInternal() */
-			void CreateInternal();
+			void CreateInternal() override;
 
 			ID3D11DepthStencilState* mDepthStencilState = nullptr;
 		};

@@ -22,54 +22,23 @@ namespace bs
 	{
 	public:
 		explicit FNullPhysicsCollider(const Vector3& position, const Quaternion& rotation);
-		~FNullPhysicsCollider() = default;
+		~FNullPhysicsCollider() override = default;
 
-		/** @copydoc FCollider::getPosition */
 		Vector3 GetPosition() const override { return mPosition; }
-
-		/** @copydoc FCollider::getRotation */
 		Quaternion GetRotation() const override { return mRotation; }
-
-		/** @copydoc FCollider::setTransform */
 		void SetTransform(const Vector3& pos, const Quaternion& rotation) override;
-
-		/** @copydoc FCollider::setIsTrigger */
 		void SetIsTrigger(bool value) override { mIsTrigger = value; }
-
-		/** @copydoc FCollider::getIsTrigger */
 		bool GetIsTrigger() const override { return mIsTrigger; }
-
-		/** @copydoc FCollider::setIsStatic */
 		void SetIsStatic(bool value) override { mIsStatic = value; }
-
-		/** @copydoc FCollider::getIsStatic */
 		bool GetIsStatic() const override { return mIsStatic; }
-
-		/** @copydoc FCollider::setContactOffset */
 		void SetContactOffset(float value) override { mContactOffset = value; }
-
-		/** @copydoc FCollider::getContactOffset */
 		float GetContactOffset() const override { return mContactOffset; }
-
-		/** @copydoc FCollider::setRestOffset */
 		void SetRestOffset(float value) override { mRestOffset = value; }
-
-		/** @copydoc FCollider::getRestOffset */
 		float GetRestOffset() const override { return mRestOffset; }
-
-		/** @copydoc FCollider::getLayer */
 		u64 GetLayer() const override { return mLayer; }
-
-		/** @copydoc FCollider::setLayer */
 		void SetLayer(u64 layer) override { mLayer = layer; }
-
-		/** @copydoc FCollider::getCollisionReportMode */
 		CollisionReportMode GetCollisionReportMode() const override { return mCollisionReportMode; }
-
-		/** @copydoc FCollider::setCollisionReportMode */
 		void SetCollisionReportMode(CollisionReportMode mode) override { mCollisionReportMode = mode; }
-
-		/** @copydoc FCollider::_setCCD */
 		void SetCCDInternal(bool enabled) override {}
 
 	protected:
@@ -89,12 +58,9 @@ namespace bs
 	{
 	public:
 		NullPhysicsBoxCollider(const Vector3& position, const Quaternion& rotation, const Vector3& extents);
-		~NullPhysicsBoxCollider();
+		~NullPhysicsBoxCollider() override;
 
-		/** @copydoc BoxCollider::setExtents */
 		void SetExtents(const Vector3& extents) override { mExtents = extents; }
-
-		/** @copydoc BoxCollider::getExtents */
 		Vector3 GetExtents() const override { return mExtents; }
 
 	private:
@@ -106,18 +72,11 @@ namespace bs
 	{
 	public:
 		NullPhysicsCapsuleCollider(const Vector3& position, const Quaternion& rotation, float radius, float halfHeight);
-		~NullPhysicsCapsuleCollider();
+		~NullPhysicsCapsuleCollider() override;
 
-		/** @copydoc CapsuleCollider::setHalfHeight() */
 		void SetHalfHeight(float halfHeight) override { mHalfHeight = halfHeight; }
-
-		/** @copydoc CapsuleCollider::getHalfHeight() */
 		float GetHalfHeight() const override { return mHalfHeight; }
-
-		/** @copydoc CapsuleCollider::setRadius() */
 		void SetRadius(float radius) override { mRadius = radius; }
-
-		/** @copydoc CapsuleCollider::getRadius() */
 		float GetRadius() const override { return mRadius; }
 
 	private:
@@ -130,7 +89,7 @@ namespace bs
 	{
 	public:
 		NullPhysicsMeshCollider(const Vector3& position, const Quaternion& rotation);
-		~NullPhysicsMeshCollider();
+		~NullPhysicsMeshCollider() override;
 	};
 
 	/** Null implementation of the PlaneCollider. */
@@ -138,7 +97,7 @@ namespace bs
 	{
 	public:
 		NullPhysicsPlaneCollider(const Vector3& position, const Quaternion& rotation);
-		~NullPhysicsPlaneCollider();
+		~NullPhysicsPlaneCollider() override;
 	};
 
 	/** Null implementation of a SphereCollider. */
@@ -146,12 +105,9 @@ namespace bs
 	{
 	public:
 		NullPhysicsSphereCollider(const Vector3& position, const Quaternion& rotation, float radius);
-		~NullPhysicsSphereCollider();
+		~NullPhysicsSphereCollider() override;
 
-		/** @copydoc SphereCollider::setRadius */
 		void SetRadius(float radius) override { mRadius = radius; }
-
-		/** @copydoc SphereCollider::getRadius */
 		float GetRadius() const override { return mRadius; }
 
 	private:

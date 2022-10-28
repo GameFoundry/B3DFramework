@@ -27,7 +27,6 @@ namespace bs
 
 		D3D11RenderTexture(const RENDER_TEXTURE_DESC& desc);
 
-		/** @copydoc RenderTexture::getProperties */
 		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 		RenderTextureProperties mProperties;
@@ -47,11 +46,9 @@ namespace bs
 
 			virtual ~D3D11RenderTexture() {}
 
-			/** @copydoc RenderTexture::getCustomAttribute */
 			void GetCustomAttribute(const String& name, void* data) const override;
 
 		protected:
-			/** @copydoc RenderTexture::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 			RenderTextureProperties mProperties;

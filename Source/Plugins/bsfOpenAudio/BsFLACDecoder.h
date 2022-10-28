@@ -31,17 +31,10 @@ namespace bs
 		FLACDecoder() = default;
 		~FLACDecoder();
 
-		/** @copydoc AudioDecoder::open */
-		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0);
-
-		/** @copydoc AudioDecoder::seek */
-		void Seek(u32 offset);
-
-		/** @copydoc AudioDecoder::read */
-		u32 Read(u8* samples, u32 numSamples);
-
-		/** @copydoc AudioDecoder::isValid */
-		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0);
+		bool Open(const SPtr<DataStream>& stream, AudioDataInfo& info, u32 offset = 0) override;
+		void Seek(u32 offset) override;
+		u32 Read(u8* samples, u32 numSamples) override;
+		bool IsValid(const SPtr<DataStream>& stream, u32 offset = 0) override;
 
 	private:
 		/** Cleans up the FLAC decoder. */

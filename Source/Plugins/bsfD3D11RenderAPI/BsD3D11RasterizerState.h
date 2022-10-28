@@ -26,8 +26,7 @@ namespace bs
 
 			D3D11RasterizerState(const RASTERIZER_STATE_DESC& desc, u32 id);
 
-			/** @copydoc RasterizerState::createInternal */
-			void CreateInternal();
+			void CreateInternal() override;
 
 			ID3D11RasterizerState* mRasterizerState = nullptr;
 		};

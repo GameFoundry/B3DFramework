@@ -49,104 +49,43 @@ namespace bs
 			RenderBeast();
 			~RenderBeast() = default;
 
-			/** @copydoc Renderer::getName */
 			const StringID& GetName() const override;
-
-			/** @copydoc Renderer::renderAll */
 			void RenderAll(PerFrameData perFrameData) override;
-
-			/**	Sets options used for controlling the rendering. */
-			void SetOptions(const SPtr<RendererOptions>& options);
-
-			/**	Returns current set of options used for controlling the rendering. */
-			SPtr<RendererOptions> GetOptions() const;
+			void SetOptions(const SPtr<RendererOptions>& options) override;
+			SPtr<RendererOptions> GetOptions() const override;
 
 			/** Returns the feature set the renderer is operating on. Core thread only. */
 			RenderBeastFeatureSet GetFeatureSet() const { return mFeatureSet; }
 
-			/** @copydoc Renderer::initialize */
 			void Initialize() override;
-
-			/** @copydoc Renderer::destroy */
 			void Destroy() override;
-
-			/** @copydoc Renderer::captureSceneCubeMap */
-			void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings);
-
-			/** @copydoc Renderer::getShaderExtensionPointInfo */
+			void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
 			ShaderExtensionPointInfo GetShaderExtensionPointInfo(const String& name) override;
-
-			/** @copydoc Renderer::setGlobalShaderOverride */
-			void SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader);
+			void SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader) override;
 
 		private:
-			/** @copydoc Renderer::notifyCameraAdded */
 			void NotifyCameraAdded(Camera* camera) override;
-
-			/** @copydoc Renderer::notifyCameraUpdated */
 			void NotifyCameraUpdated(Camera* camera, u32 updateFlag) override;
-
-			/** @copydoc Renderer::notifyCameraRemoved */
 			void NotifyCameraRemoved(Camera* camera) override;
-
-			/** @copydoc Renderer::notifyLightAdded */
 			void NotifyLightAdded(Light* light) override;
-
-			/** @copydoc Renderer::notifyLightUpdated */
 			void NotifyLightUpdated(Light* light) override;
-
-			/** @copydoc Renderer::notifyLightRemoved */
 			void NotifyLightRemoved(Light* light) override;
-
-			/** @copydoc Renderer::notifyRenderableAdded */
 			void NotifyRenderableAdded(Renderable* renderable) override;
-
-			/** @copydoc Renderer::notifyRenderableUpdated */
 			void NotifyRenderableUpdated(Renderable* renderable) override;
-
-			/** @copydoc Renderer::notifyRenderableRemoved */
 			void NotifyRenderableRemoved(Renderable* renderable) override;
-
-			/** @copydoc Renderer::notifyReflectionProbeAdded */
 			void NotifyReflectionProbeAdded(ReflectionProbe* probe) override;
-
-			/** @copydoc Renderer::notifyReflectionProbeUpdated */
 			void NotifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture) override;
-
-			/** @copydoc Renderer::notifyReflectionProbeRemoved */
 			void NotifyReflectionProbeRemoved(ReflectionProbe* probe) override;
-
-			/** @copydoc Renderer::notifyLightProbeVolumeAdded */
 			void NotifyLightProbeVolumeAdded(LightProbeVolume* volume) override;
-
-			/** @copydoc Renderer::notifyLightProbeVolumeUpdated */
 			void NotifyLightProbeVolumeUpdated(LightProbeVolume* volume) override;
-
-			/** @copydoc Renderer::notifyLightProbeVolumeRemoved */
 			void NotifyLightProbeVolumeRemoved(LightProbeVolume* volume) override;
-
-			/** @copydoc Renderer::notifySkyboxAdded */
 			void NotifySkyboxAdded(Skybox* skybox) override;
-
-			/** @copydoc Renderer::notifySkyboxRemoved */
 			void NotifySkyboxRemoved(Skybox* skybox) override;
-
-			/** @copydoc Renderer::notifyParticleSystemAdded */
 			void NotifyParticleSystemAdded(ParticleSystem* particleSystem) override;
-
-			/** @copydoc Renderer::notifyParticleSystemUpdated */
 			void NotifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly) override;
-
-			/** @copydoc Renderer::notifyParticleSystemRemoved */
 			void NotifyParticleSystemRemoved(ParticleSystem* particleSystem) override;
-
-			/** @copydoc Renderer::notifyDecalAdded */
 			void NotifyDecalAdded(Decal* decal) override;
-
-			/** @copydoc Renderer::notifyDecalUpdated */
 			void NotifyDecalUpdated(Decal* decal) override;
-
-			/** @copydoc Renderer::notifyDecalRemoved */
 			void NotifyDecalRemoved(Decal* decal) override;
 
 			/**

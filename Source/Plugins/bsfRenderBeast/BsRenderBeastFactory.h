@@ -19,11 +19,8 @@ namespace bs
 	public:
 		static constexpr const char* kSystemName = "bsfRenderBeast";
 
-		/** @copydoc RendererFactory::create */
-		SPtr<ct::Renderer> Create();
-
-		/** @copydoc RendererFactory::name */
-		const String& Name() const;
+		SPtr<ct::Renderer> Create() override;
+		const String& Name() const override;
 	};
 
 	/** @} */

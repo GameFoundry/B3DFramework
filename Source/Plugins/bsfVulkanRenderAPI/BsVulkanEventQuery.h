@@ -19,7 +19,7 @@ namespace bs
 		{
 		public:
 			VulkanEvent(VulkanResourceManager* owner);
-			~VulkanEvent();
+			~VulkanEvent() override;
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkEvent GetHandle() const { return mEvent; }
@@ -39,12 +39,9 @@ namespace bs
 		{
 		public:
 			VulkanEventQuery(VulkanDevice& device);
-			~VulkanEventQuery();
+			~VulkanEventQuery() override;
 
-			/** @copydoc EventQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb);
-
-			/** @copydoc EventQuery::isReady */
+			void Begin(const SPtr<CommandBuffer>& cb) override;
 			bool IsReady() const override;
 
 		private:

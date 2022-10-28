@@ -16,12 +16,10 @@ namespace bs
 	class NullTextureManager final : public TextureManager
 	{
 	public:
-		/** @copydoc TextureManager::getNativeFormat */
-		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma);
+		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) override;
 
 	protected:
-		/** @copydoc TextureManager::createRenderTextureImpl */
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc);
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
 	};
 
 	namespace ct
@@ -30,11 +28,8 @@ namespace bs
 		class NullTextureManager : public TextureManager
 		{
 		protected:
-			/** @copydoc TextureManager::createTextureInternal */
-			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/** @copydoc TextureManager::createRenderTextureInternal */
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+			SPtr<Texture> CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0) override;
 		};
 
 		/**	Null implementation of a texture. */
@@ -45,20 +40,11 @@ namespace bs
 			~NullTexture();
 
 		protected:
-			/** @copydoc Texture::lockImpl */
-			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc Texture::unlockImpl */
-			void UnlockImpl();
-
-			/** @copydoc Texture::copyImpl */
-			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) {}
-
-			/** @copydoc Texture::readData */
-			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) {}
-
-			/** @copydoc Texture::writeData */
-			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) {}
+			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void UnlockImpl() override;
+			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) override {}
+			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override {}
+			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) override {}
 
 		protected:
 			PixelData* mMappedBuffer = nullptr;

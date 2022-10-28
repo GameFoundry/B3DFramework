@@ -501,7 +501,7 @@ namespace bs
 			/** Provides information about a shadow for the specified cascade. */
 			void SetShadowInfo(u32 cascadeIdx, const ShadowInfo& info) { mShadowInfos[cascadeIdx] = info; }
 
-			/** @copydoc setShadowInfo */
+			/** @copydoc SetShadowInfo */
 			const ShadowInfo& GetShadowInfo(u32 cascadeIdx) const { return mShadowInfos[cascadeIdx]; }
 
 		private:

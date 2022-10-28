@@ -16,11 +16,8 @@ namespace bs
 	public:
 		static constexpr const char* SystemName = "bsfNullRenderer";
 
-		/** @copydoc RendererFactory::create */
-		SPtr<ct::Renderer> Create();
-
-		/** @copydoc RendererFactory::name */
-		const String& Name() const;
+		SPtr<ct::Renderer> Create() override;
+		const String& Name() const override;
 	};
 
 	namespace ct
@@ -36,31 +33,19 @@ namespace bs
 		public:
 			NullRenderer() = default;
 
-			/** @copydoc Renderer::getName */
-			const StringID& GetName() const;
-
-			/** @copydoc Renderer::renderAll */
-			void RenderAll(PerFrameData perFrameData);
-
-			/** @copydoc Renderer::captureSceneCubeMap */
-			void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) {}
+			const StringID& GetName() const override;
+			void RenderAll(PerFrameData perFrameData) override;
+			void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override {}
 		};
 
 		/** Render beast implementation of IBLUtility. */
 		class NullIBLUtility : public IBLUtility
 		{
 		public:
-			/** @copydoc IBLUtility::filterCubemapForSpecular */
-			void FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const {}
-
-			/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&) const */
+			void FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const override {}
 			void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const override {}
-
-			/** @copydoc IBLUtility::filterCubemapForIrradiance(const SPtr<Texture>&, const SPtr<Texture>&, u32) const */
-			void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const {}
-
-			/** @copydoc IBLUtility::scaleCubemap */
-			void ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const {}
+			void FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output, u32 outputIdx) const override {}
+			void ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const override {}
 		};
 
 		/**	Provides easy access to the null renderer. */

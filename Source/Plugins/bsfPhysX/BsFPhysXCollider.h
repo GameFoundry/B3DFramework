@@ -20,55 +20,22 @@ namespace bs
 		explicit FPhysXCollider(physx::PxScene* scene, physx::PxShape* shape);
 		~FPhysXCollider();
 
-		/** @copydoc FCollider::getPosition */
 		Vector3 GetPosition() const override;
-
-		/** @copydoc FCollider::getRotation */
 		Quaternion GetRotation() const override;
-
-		/** @copydoc FCollider::setTransform */
 		void SetTransform(const Vector3& pos, const Quaternion& rotation) override;
-
-		/** @copydoc FCollider::setIsTrigger */
 		void SetIsTrigger(bool value) override;
-
-		/** @copydoc FCollider::getIsTrigger */
 		bool GetIsTrigger() const override;
-
-		/** @copydoc FCollider::setIsStatic */
 		void SetIsStatic(bool value) override;
-
-		/** @copydoc FCollider::getIsStatic */
 		bool GetIsStatic() const override;
-
-		/** @copydoc FCollider::setContactOffset */
 		void SetContactOffset(float value) override;
-
-		/** @copydoc FCollider::getContactOffset */
 		float GetContactOffset() const override;
-
-		/** @copydoc FCollider::setRestOffset */
 		void SetRestOffset(float value) override;
-
-		/** @copydoc FCollider::getRestOffset */
 		float GetRestOffset() const override;
-
-		/** @copydoc FCollider::setMaterial */
 		void SetMaterial(const HPhysicsMaterial& material) override;
-
-		/** @copydoc FCollider::getLayer */
 		u64 GetLayer() const override;
-
-		/** @copydoc FCollider::setLayer */
 		void SetLayer(u64 layer) override;
-
-		/** @copydoc FCollider::getCollisionReportMode */
 		CollisionReportMode GetCollisionReportMode() const override;
-
-		/** @copydoc FCollider::setCollisionReportMode */
 		void SetCollisionReportMode(CollisionReportMode mode) override;
-
-		/** @copydoc FCollider::_setCCD */
 		void SetCCDInternal(bool enabled) override;
 
 		/** Gets the internal PhysX shape that represents the collider. */

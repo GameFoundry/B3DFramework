@@ -24,8 +24,7 @@ namespace bs
 			ID3D11Buffer* GetD3D11Buffer() const;
 
 		protected:
-			/** @copydoc GpuParamBlockBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 		};
 
 		/** @} */

@@ -20,17 +20,10 @@ namespace bs
 			GLTimerQuery(u32 deviceIdx);
 			~GLTimerQuery();
 
-			/** @copydoc TimerQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc TimerQuery::end */
-			void End(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc TimerQuery::isReady */
-			bool IsReady() const;
-
-			/** @copydoc TimerQuery::getTimeMs */
-			float GetTimeMs();
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
+			void End(const SPtr<CommandBuffer>& cb = nullptr) override;
+			bool IsReady() const override;
+			float GetTimeMs() override;
 
 		private:
 			friend class QueryManager;

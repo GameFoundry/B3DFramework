@@ -19,11 +19,8 @@ namespace bs
 		public:
 			static constexpr const char* SystemName = "bsfD3D11RenderAPI";
 
-			/** @copydoc RenderAPIFactory::create */
-			void Create();
-
-			/** @copydoc RenderAPIFactory::name */
-			const char* Name() const { return SystemName; }
+			void Create() override;
+			const char* Name() const override { return SystemName; }
 
 		private:
 			/**	Registers the factory with the render system manager when constructed. */

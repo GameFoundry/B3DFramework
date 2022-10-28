@@ -27,8 +27,7 @@ namespace bs
 
 			D3D11BlendState(const BLEND_STATE_DESC& desc, u32 id);
 
-			/** @copydoc BlendState::createInternal */
-			void CreateInternal();
+			void CreateInternal() override;
 
 			ID3D11BlendState* mBlendState = nullptr;
 		};

@@ -19,10 +19,7 @@ namespace bs
 		PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
 
 	private:
-		/** @copydoc PhysicsMesh::Initialize() */
 		void Initialize() override;
-
-		/** @copydoc PhysicsMesh::Initialize() */
 		void Destroy() override;
 
 		// Note: Must not have its own RTTI type, it's important it shares the same type ID as PhysicsMesh so the
@@ -36,8 +33,7 @@ namespace bs
 		FPhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
 		~FPhysXMesh();
 
-		/** @copydoc PhysicsMesh::getMeshData */
-		SPtr<MeshData> GetMeshData() const;
+		SPtr<MeshData> GetMeshData() const override;
 
 		/**
 		 * Returns the internal PhysX representation of a triangle mesh. Caller must ensure the physics mesh type is

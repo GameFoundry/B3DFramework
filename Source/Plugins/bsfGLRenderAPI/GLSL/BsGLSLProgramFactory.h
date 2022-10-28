@@ -17,14 +17,9 @@ namespace bs
 		class GLSLProgramFactory : public GpuProgramFactory
 		{
 		public:
-			/** @copydoc GpuProgramFactory::Create(const GPU_PROGRAM_DESC&, GpuDeviceFlags) */
-			SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/** @copydoc GpuProgramFactory::Create(GpuProgramType, GpuDeviceFlags) */
-			SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/** @copydoc GpuProgramFactory::compileBytecode(const GPU_PROGRAM_DESC&) */
-			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc);
+			SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc) override;
 
 		protected:
 			static const String kLanguageName;

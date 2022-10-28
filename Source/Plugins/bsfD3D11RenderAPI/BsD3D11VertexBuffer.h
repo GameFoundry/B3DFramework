@@ -24,8 +24,7 @@ namespace bs
 			ID3D11Buffer* GetD3DVertexBuffer() const { return static_cast<D3D11HardwareBuffer*>(mBuffer)->GetD3DBuffer(); }
 
 		protected:
-			/** @copydoc VertexBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 
 			D3D11Device& mDevice;
 			bool mStreamOut;

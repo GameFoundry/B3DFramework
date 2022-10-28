@@ -18,10 +18,7 @@ namespace bs
 		NullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
 
 	private:
-		/** @copydoc PhysicsMesh::Initialize() */
 		void Initialize() override;
-
-		/** @copydoc PhysicsMesh::Initialize() */
 		void Destroy() override;
 
 		// Note: Must not have its own RTTI type, it's important it shares the same type ID as PhysicsMesh so the
@@ -33,10 +30,9 @@ namespace bs
 	{
 	public:
 		FNullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
-		~FNullPhysicsMesh() = default;
+		~FNullPhysicsMesh() override = default;
 
-		/** @copydoc PhysicsMesh::getMeshData */
-		SPtr<MeshData> GetMeshData() const;
+		SPtr<MeshData> GetMeshData() const override;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

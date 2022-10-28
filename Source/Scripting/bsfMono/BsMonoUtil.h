@@ -169,7 +169,7 @@ namespace bs
 		/** Returns Mono class for a generic object. */
 		static ::MonoClass* GetObjectClass();
 
-		/** @copydoc throwIfException(MonoObject*) */
+		/** @copydoc ThrowIfException(MonoObject*) */
 		static void ThrowIfException(MonoException* exception);
 
 		/**	Throws a native exception if the provided object is a valid managed exception. */

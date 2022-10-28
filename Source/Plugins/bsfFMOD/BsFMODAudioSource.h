@@ -19,43 +19,18 @@ namespace bs
 		FMODAudioSource();
 		virtual ~FMODAudioSource();
 
-		/** @copydoc SceneActor::setTransform */
 		void SetTransform(const Transform& transform) override;
-
-		/** @copydoc AudioSource::setClip */
 		void SetClip(const HAudioClip& clip) override;
-
-		/** @copydoc AudioSource::setVelocity */
 		void SetVelocity(const Vector3& velocity) override;
-
-		/** @copydoc AudioSource::setVolume */
 		void SetVolume(float volume) override;
-
-		/** @copydoc AudioSource::setPitch */
 		void SetPitch(float pitch) override;
-
-		/** @copydoc AudioSource::setIsLooping */
 		void SetIsLooping(bool loop) override;
-
-		/** @copydoc AudioSource::setPriority */
 		void SetPriority(i32 priority) override;
-
-		/** @copydoc AudioSource::setTime */
 		void SetTime(float time) override;
-
-		/** @copydoc AudioSource::getTime */
 		float GetTime() const override;
-
-		/** @copydoc AudioSource::play */
 		void Play() override;
-
-		/** @copydoc AudioSource::pause */
 		void Pause() override;
-
-		/** @copydoc AudioSource::stop */
 		void Stop() override;
-
-		/** @copydoc AudioSource::getState */
 		AudioSourceState GetState() const override;
 
 	private:
@@ -64,7 +39,6 @@ namespace bs
 		/** Pauses or resumes audio playback due to the global pause setting. */
 		void SetGlobalPause(bool pause);
 
-		/** @copydoc AudioSource::onClipChanged */
 		void OnClipChanged() override;
 
 		FMOD::Channel* mChannel = nullptr;

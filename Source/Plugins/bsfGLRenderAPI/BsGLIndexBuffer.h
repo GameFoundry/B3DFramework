@@ -24,8 +24,7 @@ namespace bs
 			GLuint GetGlBufferId() const { return static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId(); }
 
 		protected:
-			/** @copydoc IndexBuffer::initialize */
-			void Initialize();
+			void Initialize() override;
 		};
 
 		/** @} */

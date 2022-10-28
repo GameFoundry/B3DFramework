@@ -26,7 +26,6 @@ namespace bs
 			VulkanBuffer* GetResource(u32 deviceIdx) const;
 
 		protected:
-			/** @copydoc VertexBuffer::initialize */
 			void Initialize() override;
 
 		private:

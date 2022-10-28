@@ -20,14 +20,9 @@ namespace bs
 		class NullQueryManager final : public QueryManager
 		{
 		public:
-			/** @copydoc QueryManager::createEventQuery */
-			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const;
-
-			/** @copydoc QueryManager::createTimerQuery */
-			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const;
-
-			/** @copydoc QueryManager::createOcclusionQuery */
-			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const;
+			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const override;
+			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const override;
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const override;
 		};
 
 		/** @copydoc EventQuery */
@@ -36,11 +31,8 @@ namespace bs
 		public:
 			NullEventQuery() = default;
 
-			/** @copydoc EventQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
-
-			/** @copydoc EventQuery::isReady */
-			bool IsReady() const { return true; }
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override {}
+			bool IsReady() const override { return true; }
 		};
 
 		/** @copydoc TimerQuery */
@@ -49,17 +41,10 @@ namespace bs
 		public:
 			NullTimerQuery() = default;
 
-			/** @copydoc TimerQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
-
-			/** @copydoc TimerQuery::end */
-			void End(const SPtr<CommandBuffer>& cb = nullptr) {}
-
-			/** @copydoc TimerQuery::isReady */
-			bool IsReady() const { return true; }
-
-			/** @copydoc TimerQuery::getTimeMs */
-			float GetTimeMs() { return 0.0f; }
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override {}
+			void End(const SPtr<CommandBuffer>& cb = nullptr) override {}
+			bool IsReady() const override { return true; }
+			float GetTimeMs() override { return 0.0f; }
 		};
 
 		/** @copydoc OcclusionQuery */
@@ -70,17 +55,10 @@ namespace bs
 				: OcclusionQuery(binary)
 			{}
 
-			/** @copydoc OcclusionQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr) {}
-
-			/** @copydoc OcclusionQuery::end */
-			void End(const SPtr<CommandBuffer>& cb = nullptr) {}
-
-			/** @copydoc OcclusionQuery::isReady */
-			bool IsReady() const { return true; }
-
-			/** @copydoc OcclusionQuery::getNumSamples */
-			u32 GetNumSamples() { return 0; }
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override {}
+			void End(const SPtr<CommandBuffer>& cb = nullptr) override {}
+			bool IsReady() const override { return true; }
+			u32 GetNumSamples() override { return 0; }
 
 		private:
 			friend class QueryManager;

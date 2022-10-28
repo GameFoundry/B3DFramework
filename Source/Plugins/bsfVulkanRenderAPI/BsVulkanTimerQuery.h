@@ -18,19 +18,12 @@ namespace bs
 		{
 		public:
 			VulkanTimerQuery(VulkanDevice& device);
-			~VulkanTimerQuery();
+			~VulkanTimerQuery() override;
 
-			/** @copydoc TimerQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb);
-
-			/** @copydoc TimerQuery::end */
-			void End(const SPtr<CommandBuffer>& cb);
-
-			/** @copydoc TimerQuery::isReady */
-			bool IsReady() const;
-
-			/** @copydoc TimerQuery::getTimeMs */
-			float GetTimeMs();
+			void Begin(const SPtr<CommandBuffer>& cb) override;
+			void End(const SPtr<CommandBuffer>& cb) override;
+			bool IsReady() const override;
+			float GetTimeMs() override;
 
 			/** Returns true if the query begin() was called, but not end(). */
 			bool IsInProgressInternal() const;

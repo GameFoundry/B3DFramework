@@ -18,49 +18,20 @@ namespace bs
 		OAAudioSource();
 		virtual ~OAAudioSource();
 
-		/** @copydoc SceneActor::setTransform */
-		void SetTransform(const Transform& transform);
-
-		/** @copydoc AudioSource::setClip */
-		void SetClip(const HAudioClip& clip);
-
-		/** @copydoc AudioSource::setVelocity */
-		void SetVelocity(const Vector3& velocity);
-
-		/** @copydoc AudioSource::setVolume */
-		void SetVolume(float volume);
-
-		/** @copydoc AudioSource::setPitch */
-		void SetPitch(float pitch);
-
-		/** @copydoc AudioSource::setIsLooping */
-		void SetIsLooping(bool loop);
-
-		/** @copydoc AudioSource::setPriority */
-		void SetPriority(i32 priority);
-
-		/** @copydoc AudioSource::setMinDistance */
+		void SetTransform(const Transform& transform) override;
+		void SetClip(const HAudioClip& clip) override;
+		void SetVelocity(const Vector3& velocity) override;
+		void SetVolume(float volume) override;
+		void SetPitch(float pitch) override;
+		void SetIsLooping(bool loop) override;
+		void SetPriority(i32 priority) override;
 		void SetMinDistance(float distance) override;
-
-		/** @copydoc AudioSource::setAttenuation */
 		void SetAttenuation(float attenuation) override;
-
-		/** @copydoc AudioSource::setTime */
 		void SetTime(float time) override;
-
-		/** @copydoc AudioSource::getTime */
 		float GetTime() const override;
-
-		/** @copydoc AudioSource::play */
 		void Play() override;
-
-		/** @copydoc AudioSource::pause */
 		void Pause() override;
-
-		/** @copydoc AudioSource::stop */
 		void Stop() override;
-
-		/** @copydoc AudioSource::getState */
 		AudioSourceState GetState() const override;
 
 	private:
@@ -105,7 +76,6 @@ namespace bs
 		/** Makes the current audio clip active. Should be called whenever the audio clip changes. */
 		void ApplyClip();
 
-		/** @copydoc AudioSource::onClipChanged */
 		void OnClipChanged() override;
 
 		Vector<u32> mSourceIDs;

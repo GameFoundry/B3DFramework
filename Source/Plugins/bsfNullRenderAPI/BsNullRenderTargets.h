@@ -21,8 +21,7 @@ namespace bs
 	class NullRenderWindowManager final : public RenderWindowManager
 	{
 	protected:
-		/** @copydoc RenderWindowManager::createImpl */
-		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow) override;
 	};
 
 	/** Null implementation of a render texture. */
@@ -36,8 +35,7 @@ namespace bs
 		virtual ~NullRenderTexture() = default;
 
 	protected:
-		/** @copydoc RenderTexture::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
+		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 		RenderTextureProperties mProperties;
 	};
@@ -48,17 +46,13 @@ namespace bs
 	public:
 		~NullRenderWindow() = default;
 
-		/** @copydoc RenderWindow::screenToWindowPos */
-		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const { return screenPos; }
+		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const override { return screenPos; }
+		Vector2I WindowToScreenPos(const Vector2I& windowPos) const override { return windowPos; }
 
-		/** @copydoc RenderWindow::windowToScreenPos */
-		Vector2I WindowToScreenPos(const Vector2I& windowPos) const { return windowPos; }
+		void GetCustomAttribute(const String& name, void* pData) const override;
 
-		/** @copydoc RenderWindow::getCore */
+		/** @copydoc RenderWindow::GetCore */
 		SPtr<ct::NullRenderWindow> GetCore() const;
-
-		/** @copydoc RenderWindow::getCustomAttribute */
-		void GetCustomAttribute(const String& name, void* pData) const;
 
 	protected:
 		friend class NullRenderWindowManager;
@@ -66,14 +60,9 @@ namespace bs
 
 		NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId);
 
-		/** @copydoc RenderWindow::getProperties */
 		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
-
-		/** @copydoc RenderWindow::syncProperties */
 		void SyncProperties() override;
-
-		/** @copydoc RenderWindow::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 	private:
 		RenderWindowProperties mProperties;
@@ -92,7 +81,6 @@ namespace bs
 			virtual ~NullRenderTexture() = default;
 
 		protected:
-			/** @copydoc RenderTexture::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
 			RenderTextureProperties mProperties;
@@ -104,28 +92,16 @@ namespace bs
 		public:
 			NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId);
 
-			/** @copydoc RenderWindow::move */
 			void Move(i32 left, i32 top) override {}
-
-			/** @copydoc RenderWindow::resize */
 			void Resize(u32 width, u32 height) override {}
-
-			/** @copydoc RenderWindow::setVSync */
 			void SetVSync(bool enabled, u32 interval = 1) override {}
-
-			/** @copydoc RenderWindow::getCustomAttribute */
 			void GetCustomAttribute(const String& name, void* pData) const override;
 
 		protected:
 			friend class bs::NullRenderWindow;
 
-			/** @copydoc RenderWindow::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
-
-			/** @copydoc RenderWindow::getSyncedProperties */
 			RenderWindowProperties& GetSyncedProperties() override { return mSyncedProperties; }
-
-			/** @copydoc RenderWindow::syncProperties */
 			void SyncProperties() override;
 
 		protected:

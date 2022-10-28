@@ -73,11 +73,8 @@ namespace bs
 			 */
 			void Update(VulkanCmdBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
-			/** @copydoc VulkanResource::notifyDone */
-			void NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags);
-
-			/** @copydoc VulkanResource::notifyUnbound */
-			void NotifyUnbound();
+			void NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags) override;
+			void NotifyUnbound() override;
 
 			/**
 			 * Creates a new view of this buffer or returns an existing view if one of this format was already created. Views
@@ -143,14 +140,9 @@ namespace bs
 			VulkanHardwareBuffer(BufferType type, GpuBufferFormat format, GpuBufferUsage usage, u32 size, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 			~VulkanHardwareBuffer();
 
-			/** @copydoc HardwareBuffer::readData */
-			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::writeData */
-			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0);
-
-			/** @copydoc HardwareBuffer::copyData */
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
+			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Gets the resource wrapping the buffer object, on the specified device. If hardware buffer device mask doesn't
@@ -159,11 +151,8 @@ namespace bs
 			VulkanBuffer* GetResource(u32 deviceIdx) const { return mBuffers[deviceIdx]; }
 
 		protected:
-			/** @copydoc HardwareBuffer::map */
-			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx);
-
-			/** @copydoc HardwareBuffer::unmap */
-			void Unmap();
+			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) override;
+			void Unmap() override;
 
 			/** Creates a new buffer for the specified device, matching the current buffer properties. */
 			VulkanBuffer* CreateBuffer(VulkanDevice& device, u32 size, bool staging, bool readable);

@@ -18,11 +18,8 @@ namespace bs
 		FMODAudioListener();
 		virtual ~FMODAudioListener();
 
-		/** @copydoc SceneActor::setTransform */
-		void SetTransform(const Transform& transform);
-
-		/** @copydoc AudioListener::setVelocity */
-		void SetVelocity(const Vector3& velocity);
+		void SetTransform(const Transform& transform) override;
+		void SetVelocity(const Vector3& velocity) override;
 
 	private:
 		friend class FMODAudio;

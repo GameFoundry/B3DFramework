@@ -91,7 +91,6 @@ namespace bs
 			VulkanCommandBufferManager(const VulkanRenderAPI& rapi);
 			~VulkanCommandBufferManager();
 
-			/** @copydoc CommandBufferManager::createInternal() */
 			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false) override;
 
 			/**

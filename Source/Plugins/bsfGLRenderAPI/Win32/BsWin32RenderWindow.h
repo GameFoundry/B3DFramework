@@ -21,16 +21,11 @@ namespace bs
 	public:
 		~Win32RenderWindow();
 
-		/** @copydoc RenderWindow::screenToWindowPos */
-		void GetCustomAttribute(const String& name, void* pData) const;
+		void GetCustomAttribute(const String& name, void* pData) const override;
+		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const override;
+		Vector2I WindowToScreenPos(const Vector2I& windowPos) const override;
 
-		/** @copydoc RenderWindow::screenToWindowPos */
-		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const;
-
-		/** @copydoc RenderWindow::windowToScreenPos */
-		Vector2I WindowToScreenPos(const Vector2I& windowPos) const;
-
-		/** @copydoc RenderWindow::getCore */
+		/** @copydoc RenderWindow::GetCore */
 		SPtr<ct::Win32RenderWindow> GetCore() const;
 
 	protected:
@@ -40,14 +35,9 @@ namespace bs
 
 		Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, ct::Win32GLSupport& glsupport);
 
-		/** @copydoc RenderWindow::getProperties */
-		const RenderTargetProperties& GetPropertiesInternal() const { return mProperties; }
-
-		/** @copydoc RenderWindow::syncProperties */
-		void SyncProperties();
-
-		/** @copydoc RenderWindow::createCore */
-		SPtr<ct::CoreObject> CreateCore() const;
+		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
+		void SyncProperties() override;
+		SPtr<ct::CoreObject> CreateCore() const override;
 
 		/**	Retrieves internal window handle. */
 		HWND GetHWnd() const;
@@ -70,34 +60,15 @@ namespace bs
 			Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, Win32GLSupport& glsupport);
 			~Win32RenderWindow();
 
-			/** @copydoc RenderWindow::setFullscreen(u32, u32, float, u32) */
-			void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0);
-
-			/** @copydoc RenderWindow::setFullscreen(const VideoMode&) */
-			void SetFullscreen(const VideoMode& videoMode);
-
-			/** @copydoc RenderWindow::setWindowed */
-			void SetWindowed(u32 width, u32 height);
-
-			/** @copydoc RenderWindow::setHidden */
-			void SetHidden(bool hidden);
-
-			/** @copydoc RenderWindow::minimize */
-			void Minimize();
-
-			/** @copydoc RenderWindow::maximize */
-			void Maximize();
-
-			/** @copydoc RenderWindow::restore */
-			void Restore();
-
-			/** @copydoc RenderWindow::move */
-			void Move(i32 left, i32 top);
-
-			/** @copydoc RenderWindow::resize */
+			void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
+			void SetFullscreen(const VideoMode& videoMode) override;
+			void SetWindowed(u32 width, u32 height) override;
+			void SetHidden(bool hidden) override;
+			void Minimize() override;
+			void Maximize() override;
+			void Restore() override;
+			void Move(i32 left, i32 top) override;
 			void Resize(u32 width, u32 height) override;
-
-			/** @copydoc RenderWindow::setVSync */
 			void SetVSync(bool enabled, u32 interval = 1) override;
 
 			/**
@@ -107,17 +78,9 @@ namespace bs
 			 * @param[in]	buffer	Frame buffer to read the contents from.
 			 */
 			void CopyToMemory(PixelData& dst, FrameBuffer buffer);
-
-			/** @copydoc RenderWindow::swapBuffers */
 			void SwapBuffers(u32 syncMask) override;
-
-			/** @copydoc RenderWindow::getCustomAttribute */
 			void GetCustomAttribute(const String& name, void* pData) const override;
-
-			/** @copydoc RenderWindow::setActive */
 			void SetActive(bool state) override;
-
-			/** @copydoc RenderWindow::_windowMovedOrResized */
 			void WindowMovedOrResizedInternal() override;
 
 			/**	Returns handle to device context associated with the window. */
@@ -129,16 +92,9 @@ namespace bs
 		protected:
 			friend class Win32GLSupport;
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc RenderWindow::getProperties */
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
-
-			/** @copydoc RenderWindow::getSyncedProperties */
 			RenderWindowProperties& GetSyncedProperties() override { return mSyncedProperties; }
-
-			/** @copydoc RenderWindow::syncProperties */
 			void SyncProperties() override;
 
 		protected:

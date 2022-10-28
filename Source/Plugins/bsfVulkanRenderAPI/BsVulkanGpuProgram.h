@@ -48,8 +48,7 @@ namespace bs
 
 			VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/** @copydoc GpuProgram::initialize */
-			void Initialize();
+			void Initialize() override;
 
 		private:
 			GpuDeviceFlags mDeviceMask;

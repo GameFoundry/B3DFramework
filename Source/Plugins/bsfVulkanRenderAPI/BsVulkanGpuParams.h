@@ -18,22 +18,13 @@ namespace bs
 		class VulkanGpuParams : public GpuParams
 		{
 		public:
-			~VulkanGpuParams();
+			~VulkanGpuParams() override;
 
-			/** @copydoc GpuParams::setParamBlockBuffer(u32, u32, const ParamsBufferType&) */
-			void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer);
-
-			/** @copydoc GpuParams::setTexture */
-			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete);
-
-			/** @copydoc GpuParams::setLoadStoreTexture */
-			void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface);
-
-			/** @copydoc GpuParams::setBuffer */
-			void SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer);
-
-			/** @copydoc GpuParams::setSamplerState */
-			void SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler);
+			void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer) override;
+			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete) override;
+			void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface) override;
+			void SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer) override;
+			void SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler) override;
 
 			/** Returns the total number of descriptor sets used by this object. */
 			u32 GetNumSets() const;
@@ -90,7 +81,6 @@ namespace bs
 
 			VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
 
-			/** @copydoc GpuParams::initialize */
 			void Initialize() override;
 
 			PerDeviceData mPerDeviceData[BS_MAX_DEVICES];

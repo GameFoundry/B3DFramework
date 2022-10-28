@@ -26,8 +26,7 @@ namespace bs
 
 			D3D11SamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/** @copydoc SamplerState::createInternal */
-			void CreateInternal();
+			void CreateInternal() override;
 
 			ID3D11SamplerState* mSamplerState = nullptr;
 		};

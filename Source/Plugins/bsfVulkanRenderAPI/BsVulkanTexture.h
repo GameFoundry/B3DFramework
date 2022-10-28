@@ -220,23 +220,12 @@ namespace bs
 
 			VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
 
-			/** @copydoc CoreObject::Initialize() */
-			void Initialize();
-
-			/** @copydoc Texture::lockImpl */
-			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc Texture::unlockImpl */
-			void UnlockImpl();
-
-			/** @copydoc Texture::copyImpl */
-			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer);
-
-			/** @copydoc Texture::readData */
-			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0);
-
-			/** @copydoc Texture::writeData */
-			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0);
+			void Initialize() override;
+			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void UnlockImpl() override;
+			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) override;
+			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
+			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) override;
 
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */

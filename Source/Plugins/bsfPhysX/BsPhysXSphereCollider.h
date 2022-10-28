@@ -19,14 +19,9 @@ namespace bs
 		PhysXSphereCollider(physx::PxPhysics* physx, physx::PxScene* scene, const Vector3& position, const Quaternion& rotation, float radius);
 		~PhysXSphereCollider();
 
-		/** @copydoc SphereCollider::setScale */
-		void SetScale(const Vector3& scale);
-
-		/** @copydoc SphereCollider::setRadius */
-		void SetRadius(float radius);
-
-		/** @copydoc SphereCollider::getRadius */
-		float GetRadius() const;
+		void SetScale(const Vector3& scale) override;
+		void SetRadius(float radius) override;
+		float GetRadius() const override;
 
 	private:
 		/** Returns the PhysX collider implementation common to all colliders. */

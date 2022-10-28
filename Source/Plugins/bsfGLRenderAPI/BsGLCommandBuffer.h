@@ -27,10 +27,7 @@ namespace bs
 			/** Executes all commands in the command buffer. Not supported on secondary buffer. */
 			void ExecuteCommands();
 
-			/** @copydoc CommandBuffer::getState() */
 			CommandBufferState GetState() const override;
-
-			/** @copydoc CommandBuffer::reset() */
 			void Reset() override;
 
 		private:

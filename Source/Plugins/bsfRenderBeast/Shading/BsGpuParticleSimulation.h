@@ -287,7 +287,7 @@ namespace bs
 			/** Returns textures that contain the results from the last available simulation step. */
 			GpuParticleStateTextures& GetCurrentState() { return mStateTextures[mWriteBufferIdx]; }
 
-			/** @copydoc getCurrentState() */
+			/** @copydoc GetCurrentState() */
 			const GpuParticleStateTextures& GetCurrentState() const { return mStateTextures[mWriteBufferIdx]; }
 
 			/** Returns a set of textures containing particle state that is static throughout the particle's lifetime. */
@@ -296,7 +296,7 @@ namespace bs
 			/** Returns an object containing quantized curves for all particle systems. */
 			GpuParticleCurves& GetCurveTexture() { return mCurveTexture; }
 
-			/** @copydoc getCurveTexture() */
+			/** @copydoc GetCurveTexture() */
 			const GpuParticleCurves& GetCurveTexture() const { return mCurveTexture; }
 
 			/** Returns the render target which can be used for injecting new particle data in the state textures. */

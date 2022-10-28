@@ -652,10 +652,7 @@ namespace bs
 			 */
 			VulkanCmdBuffer* GetInternal() const { return mBuffer; }
 
-			/** @copydoc CommandBuffer::getState() */
 			CommandBufferState GetState() const override;
-
-			/** @copydoc CommandBuffer::reset() */
 			void Reset() override;
 
 		private:

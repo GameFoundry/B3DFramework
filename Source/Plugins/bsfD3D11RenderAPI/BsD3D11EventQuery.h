@@ -20,11 +20,8 @@ namespace bs
 			D3D11EventQuery(u32 deviceIdx);
 			~D3D11EventQuery();
 
-			/** @copydoc EventQuery::begin */
-			void Begin(const SPtr<CommandBuffer>& cb = nullptr);
-
-			/** @copydoc EventQuery::isReady */
-			bool IsReady() const;
+			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
+			bool IsReady() const override;
 
 		private:
 			ID3D11Query* mQuery = nullptr;

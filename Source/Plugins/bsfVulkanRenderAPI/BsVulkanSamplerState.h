@@ -45,8 +45,7 @@ namespace bs
 
 			VulkanSamplerState(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask);
 
-			/** @copydoc SamplerState::createInternal */
-			void CreateInternal();
+			void CreateInternal() override;
 
 			VulkanSampler* mSamplers[BS_MAX_DEVICES];
 			GpuDeviceFlags mDeviceMask;
