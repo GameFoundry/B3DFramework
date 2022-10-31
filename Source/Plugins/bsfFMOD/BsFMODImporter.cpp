@@ -35,7 +35,7 @@ bool FMODImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) c
 
 SPtr<ImportOptions> FMODImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<AudioClipImportOptions>();
+	return B3DMakeShared<AudioClipImportOptions>();
 }
 
 SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
@@ -79,7 +79,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 
 	u32 bytesPerSample = info.BitDepth / 8;
 	u32 bufferSize = info.NumSamples * bytesPerSample;
-	u8* sampleBuffer = (u8*)bs_alloc(bufferSize);
+	u8* sampleBuffer = (u8*)B3DAllocate(bufferSize);
 	assert(bufferSize == size);
 
 	u8* startData = nullptr;
@@ -116,14 +116,14 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		u32 numSamplesPerChannel = info.NumSamples / info.NumChannels;
 
 		u32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
-		u8* monoBuffer = (u8*)bs_alloc(monoBufferSize);
+		u8* monoBuffer = (u8*)B3DAllocate(monoBufferSize);
 
 		AudioUtility::ConvertToMono(sampleBuffer, monoBuffer, info.BitDepth, numSamplesPerChannel, info.NumChannels);
 
 		info.NumSamples = numSamplesPerChannel;
 		info.NumChannels = 1;
 
-		bs_free(sampleBuffer);
+		B3DFree(sampleBuffer);
 
 		sampleBuffer = monoBuffer;
 		bufferSize = monoBufferSize;
@@ -133,13 +133,13 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	if(clipIO->BitDepth != info.BitDepth)
 	{
 		u32 outBufferSize = info.NumSamples * (clipIO->BitDepth / 8);
-		u8* outBuffer = (u8*)bs_alloc(outBufferSize);
+		u8* outBuffer = (u8*)B3DAllocate(outBufferSize);
 
 		AudioUtility::ConvertBitDepth(sampleBuffer, info.BitDepth, outBuffer, clipIO->BitDepth, info.NumSamples);
 
 		info.BitDepth = clipIO->BitDepth;
 
-		bs_free(sampleBuffer);
+		B3DFree(sampleBuffer);
 
 		sampleBuffer = outBuffer;
 		bufferSize = outBufferSize;
@@ -154,11 +154,11 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		// specific quality, and the the import source might have lower or higher bitrate/quality.
 		sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleBuffer, info, bufferSize);
 
-		bs_free(sampleBuffer);
+		B3DFree(sampleBuffer);
 	}
 	else
 	{
-		sampleStream = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, bufferSize);
+		sampleStream = B3DMakeShared<MemoryDataStream>(sampleBuffer, bufferSize);
 	}
 
 	AUDIO_CLIP_DESC clipDesc;

@@ -30,14 +30,14 @@ MonoObject* ScriptTemporalAASettings::Create(const SPtr<TemporalAASettings>& val
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, value);
+	new(B3DAllocate<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptTemporalAASettings::InternalTemporalAASettings(MonoObject* managedInstance)
 {
-	SPtr<TemporalAASettings> instance = bs_shared_ptr_new<TemporalAASettings>();
-	new(bs_alloc<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, instance);
+	SPtr<TemporalAASettings> instance = B3DMakeShared<TemporalAASettings>();
+	new(B3DAllocate<ScriptTemporalAASettings>()) ScriptTemporalAASettings(managedInstance, instance);
 }
 
 bool ScriptTemporalAASettings::InternalGetEnabled(ScriptTemporalAASettings* thisPtr)

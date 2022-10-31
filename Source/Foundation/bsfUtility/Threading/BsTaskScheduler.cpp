@@ -12,7 +12,7 @@ Task::Task(const PrivatelyConstruct& dummy, const String& name, std::function<vo
 
 SPtr<Task> Task::Create(const String& name, std::function<void()> taskWorker, TaskPriority priority, SPtr<Task> dependency)
 {
-	return bs_shared_ptr_new<Task>(PrivatelyConstruct(), name, std::move(taskWorker), priority, std::move(dependency));
+	return B3DMakeShared<Task>(PrivatelyConstruct(), name, std::move(taskWorker), priority, std::move(dependency));
 }
 
 bool Task::IsComplete() const
@@ -50,7 +50,7 @@ TaskGroup::TaskGroup(const PrivatelyConstruct& dummy, String name, std::function
 
 SPtr<TaskGroup> TaskGroup::Create(String name, std::function<void(u32)> taskWorker, u32 count, TaskPriority priority, SPtr<Task> dependency)
 {
-	return bs_shared_ptr_new<TaskGroup>(PrivatelyConstruct(), std::move(name), std::move(taskWorker), count, priority, std::move(dependency));
+	return B3DMakeShared<TaskGroup>(PrivatelyConstruct(), std::move(name), std::move(taskWorker), count, priority, std::move(dependency));
 }
 
 bool TaskGroup::IsComplete() const

@@ -55,7 +55,7 @@ void ScriptGUISliderH::InternalCreateInstance(MonoObject* instance, MonoString* 
 
 	GUISliderHorz* guiSlider = GUISliderHorz::Create(options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
+	auto nativeInstance = new(B3DAllocate<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
 	guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderH::OnChanged, nativeInstance, _1));
 }
 
@@ -159,7 +159,7 @@ void ScriptGUISliderV::InternalCreateInstance(MonoObject* instance, MonoString* 
 
 	GUISliderVert* guiSlider = GUISliderVert::Create(options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
+	auto nativeInstance = new(B3DAllocate<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
 	guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderV::OnChanged, nativeInstance, _1));
 }
 

@@ -54,5 +54,5 @@ SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions
 
 SPtr<ImportOptions> SLImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<ShaderImportOptions>();
+	return B3DMakeShared<ShaderImportOptions>();
 }

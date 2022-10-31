@@ -53,7 +53,7 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::
 	}
 
 	MonoObject* obj = asyncOpClass->CreateInstance();
-	new(bs_alloc<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
+	new(B3DAllocate<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
 
 	return obj;
 }
@@ -61,7 +61,7 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::
 MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 {
 	MonoObject* obj = metaData.ScriptClass->CreateInstance();
-	new(bs_alloc<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
+	new(B3DAllocate<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
 
 	return obj;
 }

@@ -62,14 +62,14 @@ MonoObject* ScriptDepthOfFieldSettings::Create(const SPtr<DepthOfFieldSettings>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, value);
+	new(B3DAllocate<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptDepthOfFieldSettings::InternalDepthOfFieldSettings(MonoObject* managedInstance)
 {
-	SPtr<DepthOfFieldSettings> instance = bs_shared_ptr_new<DepthOfFieldSettings>();
-	new(bs_alloc<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, instance);
+	SPtr<DepthOfFieldSettings> instance = B3DMakeShared<DepthOfFieldSettings>();
+	new(B3DAllocate<ScriptDepthOfFieldSettings>()) ScriptDepthOfFieldSettings(managedInstance, instance);
 }
 
 MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* thisPtr)

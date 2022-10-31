@@ -271,7 +271,7 @@ u32 VulkanRenderPass::GetNumClearEntries(ClearMask clearMask) const
 VulkanRenderPasses::~VulkanRenderPasses()
 {
 	for(auto& entry : mVariants)
-		bs_delete(entry.second);
+		B3DDelete(entry.second);
 }
 
 VulkanRenderPass* VulkanRenderPasses::Get(const VkDevice& device, const VULKAN_RENDER_PASS_DESC& desc)
@@ -286,7 +286,7 @@ VulkanRenderPass* VulkanRenderPasses::Get(const VkDevice& device, const VULKAN_R
 		if(iterFind != mVariants.end())
 			return iterFind->second;
 
-		pass = bs_new<VulkanRenderPass>(device, desc);
+		pass = B3DNew<VulkanRenderPass>(device, desc);
 		mVariants[key] = pass;
 	}
 

@@ -11,12 +11,12 @@ using namespace bs;
 
 GUIInputCaret::GUIInputCaret()
 {
-	mCaretSprite = bs_new<ImageSprite>();
+	mCaretSprite = B3DNew<ImageSprite>();
 }
 
 GUIInputCaret::~GUIInputCaret()
 {
-	bs_delete(mCaretSprite);
+	B3DDelete(mCaretSprite);
 }
 
 Vector2I GUIInputCaret::GetSpriteOffset() const

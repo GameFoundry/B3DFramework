@@ -138,7 +138,7 @@ namespace bs
 		~SerializedField()
 		{
 			if(OwnsMemory && Value != nullptr)
-				bs_free(Value);
+				B3DFree(Value);
 		}
 
 		SPtr<SerializedInstance> Clone(bool cloneData = true) override;

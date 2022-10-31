@@ -19,7 +19,7 @@ VirtualInput::VirtualInput()
 
 SPtr<InputConfiguration> VirtualInput::CreateConfiguration()
 {
-	return bs_shared_ptr_new<InputConfiguration>();
+	return B3DMakeShared<InputConfiguration>();
 }
 
 void VirtualInput::SetConfiguration(const SPtr<InputConfiguration>& input)

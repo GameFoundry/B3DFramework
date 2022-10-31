@@ -47,7 +47,7 @@ namespace bs
 			while(conn != nullptr)
 			{
 				BaseConnectionData* next = conn->Next;
-				bs_free(conn);
+				B3DFree(conn);
 
 				conn = next;
 			}
@@ -56,7 +56,7 @@ namespace bs
 			while(conn != nullptr)
 			{
 				BaseConnectionData* next = conn->Next;
-				bs_free(conn);
+				B3DFree(conn);
 
 				conn = next;
 			}
@@ -65,7 +65,7 @@ namespace bs
 			while(conn != nullptr)
 			{
 				BaseConnectionData* next = conn->Next;
-				bs_free(conn);
+				B3DFree(conn);
 
 				conn = next;
 			}
@@ -280,7 +280,7 @@ namespace bs
 
 	public:
 		TEvent()
-			: mInternalData(bs_shared_ptr_new<EventInternalData>())
+			: mInternalData(B3DMakeShared<EventInternalData>())
 		{}
 
 		~TEvent()
@@ -307,7 +307,7 @@ namespace bs
 			}
 
 			if(connData == nullptr)
-				connData = bs_new<ConnectionData>();
+				connData = B3DNew<ConnectionData>();
 
 			// If currently iterating over the connection list, delay modifying it until done
 			if(mInternalData->MIsCurrentlyTriggering)

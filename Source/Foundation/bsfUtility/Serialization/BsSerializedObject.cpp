@@ -20,7 +20,7 @@ SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 
 SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 {
-	SPtr<SerializedObject> copy = bs_shared_ptr_new<SerializedObject>();
+	SPtr<SerializedObject> copy = B3DMakeShared<SerializedObject>();
 	copy->SubObjects = Vector<SerializedSubObject>(SubObjects.size());
 
 	u32 i = 0;
@@ -46,12 +46,12 @@ SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 
 SPtr<SerializedInstance> SerializedField::Clone(bool cloneData)
 {
-	SPtr<SerializedField> copy = bs_shared_ptr_new<SerializedField>();
+	SPtr<SerializedField> copy = B3DMakeShared<SerializedField>();
 	copy->Size = Size;
 
 	if(cloneData)
 	{
-		copy->Value = (u8*)bs_alloc(Size);
+		copy->Value = (u8*)B3DAllocate(Size);
 		memcpy(copy->Value, Value, Size);
 		copy->OwnsMemory = true;
 	}
@@ -66,7 +66,7 @@ SPtr<SerializedInstance> SerializedField::Clone(bool cloneData)
 
 SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
 {
-	SPtr<SerializedDataBlock> copy = bs_shared_ptr_new<SerializedDataBlock>();
+	SPtr<SerializedDataBlock> copy = B3DMakeShared<SerializedDataBlock>();
 	copy->Size = Size;
 
 	if(cloneData)
@@ -76,7 +76,7 @@ SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
 			BS_LOG(Warning, Generic, "Cloning a file stream. Streaming is disabled and stream data will be loaded into memory.");
 		}
 
-		auto stream = bs_shared_ptr_new<MemoryDataStream>(Size);
+		auto stream = B3DMakeShared<MemoryDataStream>(Size);
 		stream->Read(stream->Data(), Size);
 
 		copy->Stream = stream;
@@ -93,7 +93,7 @@ SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
 
 SPtr<SerializedInstance> SerializedArray::Clone(bool cloneData)
 {
-	SPtr<SerializedArray> copy = bs_shared_ptr_new<SerializedArray>();
+	SPtr<SerializedArray> copy = B3DMakeShared<SerializedArray>();
 	copy->NumElements = NumElements;
 
 	for(auto& entryPair : Entries)

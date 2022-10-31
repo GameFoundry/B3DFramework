@@ -51,27 +51,27 @@ GUIToggle* GUIToggle::Create(const HString& text, SPtr<GUIToggleGroup> toggleGro
 
 GUIToggle* GUIToggle::Create(const GUIContent& content, const String& styleName)
 {
-	return new(bs_alloc<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUIDimensions::Create());
+	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUIDimensions::Create());
 }
 
 GUIToggle* GUIToggle::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUIDimensions::Create(options));
 }
 
 GUIToggle* GUIToggle::Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const String& styleName)
 {
-	return new(bs_alloc<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUIDimensions::Create());
+	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUIDimensions::Create());
 }
 
 GUIToggle* GUIToggle::Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUIDimensions::Create(options));
 }
 
 SPtr<GUIToggleGroup> GUIToggle::CreateToggleGroup(bool allowAllOff)
 {
-	SPtr<GUIToggleGroup> toggleGroup = bs_shared_ptr<GUIToggleGroup>(new(bs_alloc<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
+	SPtr<GUIToggleGroup> toggleGroup = B3DMakeSharedFromExisting<GUIToggleGroup>(new(B3DAllocate<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
 	toggleGroup->Initialize(toggleGroup);
 
 	return toggleGroup;

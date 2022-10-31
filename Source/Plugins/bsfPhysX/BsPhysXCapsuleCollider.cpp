@@ -18,13 +18,13 @@ PhysXCapsuleCollider::PhysXCapsuleCollider(PxPhysics* physx, PxScene* scene, con
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 
-	mInternal = bs_new<FPhysXCollider>(scene, shape);
+	mInternal = B3DNew<FPhysXCollider>(scene, shape);
 	ApplyGeometry();
 }
 
 PhysXCapsuleCollider::~PhysXCapsuleCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void PhysXCapsuleCollider::SetScale(const Vector3& scale)

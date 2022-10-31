@@ -139,12 +139,12 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& path, bool readOnly)
 	if(!readOnly)
 		accessMode = (DataStream::AccessMode)((u32)accessMode | (u32)DataStream::WRITE);
 
-	return bs_shared_ptr_new<FileDataStream>(path, accessMode, true);
+	return B3DMakeShared<FileDataStream>(path, accessMode, true);
 }
 
 SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& path)
 {
-	return bs_shared_ptr_new<FileDataStream>(path, DataStream::AccessMode::WRITE, true);
+	return B3DMakeShared<FileDataStream>(path, DataStream::AccessMode::WRITE, true);
 }
 
 u64 FileSystem::GetFileSize(const Path& path)
@@ -238,7 +238,7 @@ std::time_t FileSystem::GetLastModifiedTime(const Path& path)
 
 Path FileSystem::GetWorkingDirectoryPath()
 {
-	char* buffer = bs_newN<char>(PATH_MAX);
+	char* buffer = B3DNewMultiple<char>(PATH_MAX);
 
 	String wd;
 	if(getcwd(buffer, PATH_MAX) != nullptr)
@@ -246,7 +246,7 @@ Path FileSystem::GetWorkingDirectoryPath()
 	else
 		BS_LOG(Error, FileSystem, String("Error when calling getcwd(): ") + strerror(errno));
 
-	bs_free(buffer);
+	B3DFree(buffer);
 	return Path(wd);
 }
 

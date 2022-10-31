@@ -111,7 +111,7 @@ namespace bs
 			if(!obj->IsDestroyed())
 				obj->Destroy();
 
-			bs_delete<T, MemAlloc>((T*)obj);
+			B3DDelete<T, MemAlloc>((T*)obj);
 		}
 
 		/** @} */
@@ -261,9 +261,9 @@ namespace bs
 	 * them manually.
 	 */
 	template <class Type, class MainAlloc, class PtrDataAlloc, class... Args>
-	SPtr<Type> bs_core_ptr_new(Args&&... args)
+	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(bs_new<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
+		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
 	/**
@@ -274,9 +274,9 @@ namespace bs
 	 * them manually.
 	 */
 	template <class Type, class MainAlloc, class... Args>
-	SPtr<Type> bs_core_ptr_new(Args&&... args)
+	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(bs_new<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, GenAlloc>());
+		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, GenAlloc>());
 	}
 
 	/**
@@ -287,9 +287,9 @@ namespace bs
 	 * them manually.
 	 */
 	template <class Type, class... Args>
-	SPtr<Type> bs_core_ptr_new(Args&&... args)
+	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(bs_new<Type, GenAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, GenAlloc>, StdAlloc<Type, GenAlloc>());
+		return SPtr<Type>(B3DNew<Type, GenAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, GenAlloc>, StdAlloc<Type, GenAlloc>());
 	}
 
 	/**
@@ -300,7 +300,7 @@ namespace bs
 	 * them manually.
 	 */
 	template <class Type, class MainAlloc = GenAlloc, class PtrDataAlloc = GenAlloc>
-	SPtr<Type> bs_core_ptr(Type* data)
+	SPtr<Type> B3DMakeCoreFromExisting(Type* data)
 	{
 		return SPtr<Type>(data, &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}

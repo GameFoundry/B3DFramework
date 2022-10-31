@@ -493,7 +493,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::Component, T>::value), "Specified type is not a valid Component.");
 
-			SPtr<T> gameObject(new(bs_alloc<T>()) T(mThisHandle, std::forward<Args>(args)...), &bs_delete<T>, StdAlloc<T>());
+			SPtr<T> gameObject(new(B3DAllocate<T>()) T(mThisHandle, std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
 
 			const HComponent newComponent =
 				static_object_cast<Component>(GameObjectManager::Instance().RegisterObject(gameObject));
@@ -615,8 +615,8 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::Component, T>::value), "Specified type is not a valid Component.");
 
-			T* rawPtr = new(bs_alloc<T>()) T();
-			SPtr<T> gameObject(rawPtr, &bs_delete<T>, StdAlloc<T>());
+			T* rawPtr = new(B3DAllocate<T>()) T();
+			SPtr<T> gameObject(rawPtr, &B3DDelete<T>, StdAlloc<T>());
 			gameObject->mRTTIData = gameObject;
 
 			return gameObject;

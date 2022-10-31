@@ -231,8 +231,8 @@ SPtr<ct::Renderable> Renderable::GetCore() const
 
 SPtr<ct::CoreObject> Renderable::CreateCore() const
 {
-	ct::Renderable* handler = new(bs_alloc<ct::Renderable>()) ct::Renderable();
-	SPtr<ct::Renderable> handlerPtr = bs_shared_ptr<ct::Renderable>(handler);
+	ct::Renderable* handler = new(B3DAllocate<ct::Renderable>()) ct::Renderable();
+	SPtr<ct::Renderable> handlerPtr = B3DMakeSharedFromExisting<ct::Renderable>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;
@@ -455,8 +455,8 @@ SPtr<Renderable> Renderable::Create()
 
 SPtr<Renderable> Renderable::CreateEmpty()
 {
-	Renderable* handler = new(bs_alloc<Renderable>()) Renderable();
-	SPtr<Renderable> handlerPtr = bs_core_ptr<Renderable>(handler);
+	Renderable* handler = new(B3DAllocate<Renderable>()) Renderable();
+	SPtr<Renderable> handlerPtr = B3DMakeCoreFromExisting<Renderable>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;

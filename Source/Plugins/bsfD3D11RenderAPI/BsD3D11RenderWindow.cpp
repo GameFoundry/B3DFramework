@@ -79,7 +79,7 @@ SPtr<ct::CoreObject> D3D11RenderWindow::CreateCore() const
 
 	// Create the window
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::D3D11RenderWindow>(desc, mWindowId, d3d11rs->GetPrimaryDevice(), d3d11rs->GetDxgiFactory());
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::D3D11RenderWindow>(desc, mWindowId, d3d11rs->GetPrimaryDevice(), d3d11rs->GetDxgiFactory());
 	coreObj->SetThisPtrInternal(coreObj);
 
 	return coreObj;
@@ -102,7 +102,7 @@ D3D11RenderWindow::~D3D11RenderWindow()
 
 	if(mWindow != nullptr)
 	{
-		bs_delete(mWindow);
+		B3DDelete(mWindow);
 		mWindow = nullptr;
 	}
 
@@ -187,7 +187,7 @@ void D3D11RenderWindow::Initialize()
 		props.IsHidden = mDesc.HideUntilSwap || mDesc.Hidden;
 	}
 
-	mWindow = bs_new<Win32Window>(windowDesc);
+	mWindow = B3DNew<Win32Window>(windowDesc);
 
 	props.Width = mWindow->GetWidth();
 	props.Height = mWindow->GetHeight();

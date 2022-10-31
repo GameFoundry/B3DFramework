@@ -66,7 +66,7 @@ void ScriptGUIListBox::InternalCreateInstance(MonoObject* instance, MonoArray* e
 
 	GUIListBox* guiListBox = GUIListBox::Create(nativeElements, multiselect, options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
+	auto nativeInstance = new(B3DAllocate<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
 
 	guiListBox->OnSelectionToggled.Connect(std::bind(&::bs::ScriptGUIListBox::OnSelectionChanged, nativeInstance, _1, _2));
 }

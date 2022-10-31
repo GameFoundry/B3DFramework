@@ -39,7 +39,7 @@ namespace bs
 		{
 			size = obj->GetConsecutiveSize();
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->GetData(), size);
+			return B3DMakeShared<MemoryDataStream>(obj->GetData(), size);
 		}
 
 		void SetData(PixelData* obj, const SPtr<DataStream>& value, u32 size)
@@ -81,7 +81,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<PixelData> newPixelData = bs_shared_ptr_new<PixelData>();
+			SPtr<PixelData> newPixelData = B3DMakeShared<PixelData>();
 
 			return newPixelData;
 		}

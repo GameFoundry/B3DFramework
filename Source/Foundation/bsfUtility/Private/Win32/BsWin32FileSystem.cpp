@@ -80,7 +80,7 @@ WString win32_getCurrentDirectory()
 	DWORD len = GetCurrentDirectoryW(0, NULL);
 	if(len > 0)
 	{
-		wchar_t* buffer = (wchar_t*)bs_alloc(len * sizeof(wchar_t));
+		wchar_t* buffer = (wchar_t*)B3DAllocate(len * sizeof(wchar_t));
 
 		DWORD n = GetCurrentDirectoryW(len, buffer);
 		if(n > 0 && n <= len)
@@ -89,11 +89,11 @@ WString win32_getCurrentDirectory()
 			if(result[result.size() - 1] != L'\\')
 				result.append(L"\\");
 
-			bs_free(buffer);
+			B3DFree(buffer);
 			return result;
 		}
 
-		bs_free(buffer);
+		B3DFree(buffer);
 	}
 
 	return StringUtil::kWblank;
@@ -104,7 +104,7 @@ WString win32_getTempDirectory()
 	DWORD len = GetTempPathW(0, NULL);
 	if(len > 0)
 	{
-		wchar_t* buffer = (wchar_t*)bs_alloc(len * sizeof(wchar_t));
+		wchar_t* buffer = (wchar_t*)B3DAllocate(len * sizeof(wchar_t));
 
 		DWORD n = GetTempPathW(len, buffer);
 		if(n > 0 && n <= len)
@@ -113,11 +113,11 @@ WString win32_getTempDirectory()
 			if(result[result.size() - 1] != L'\\')
 				result.append(L"\\");
 
-			bs_free(buffer);
+			B3DFree(buffer);
 			return result;
 		}
 
-		bs_free(buffer);
+		B3DFree(buffer);
 	}
 
 	return StringUtil::kWblank;
@@ -287,12 +287,12 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	if(!readOnly)
 		accessMode = (DataStream::AccessMode)(accessMode | (u32)DataStream::WRITE);
 
-	return bs_shared_ptr_new<FileDataStream>(fullPath, accessMode, true);
+	return B3DMakeShared<FileDataStream>(fullPath, accessMode, true);
 }
 
 SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 {
-	return bs_shared_ptr_new<FileDataStream>(fullPath, DataStream::AccessMode::WRITE, true);
+	return B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE, true);
 }
 
 u64 FileSystem::GetFileSize(const Path& fullPath)

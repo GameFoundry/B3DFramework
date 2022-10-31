@@ -68,7 +68,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<SerializedGpuProgramData>();
+			return B3DMakeShared<SerializedGpuProgramData>();
 		}
 	};
 

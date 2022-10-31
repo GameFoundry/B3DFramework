@@ -9,9 +9,9 @@
 using namespace bs;
 SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 {
-	D3D11RenderTexture* tex = new(bs_alloc<D3D11RenderTexture>()) D3D11RenderTexture(desc);
+	D3D11RenderTexture* tex = new(B3DAllocate<D3D11RenderTexture>()) D3D11RenderTexture(desc);
 
-	return bs_core_ptr<D3D11RenderTexture>(tex);
+	return B3DMakeCoreFromExisting<D3D11RenderTexture>(tex);
 }
 
 PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
@@ -25,9 +25,9 @@ PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat 
 namespace bs { namespace ct {
 SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
-	D3D11Texture* tex = new(bs_alloc<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
+	D3D11Texture* tex = new(B3DAllocate<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
 
-	SPtr<D3D11Texture> texPtr = bs_shared_ptr<D3D11Texture>(tex);
+	SPtr<D3D11Texture> texPtr = B3DMakeSharedFromExisting<D3D11Texture>(tex);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;
@@ -35,7 +35,7 @@ SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TEXTURE_DESC& des
 
 SPtr<RenderTexture> D3D11TextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
 {
-	SPtr<D3D11RenderTexture> texPtr = bs_shared_ptr_new<D3D11RenderTexture>(desc, deviceIdx);
+	SPtr<D3D11RenderTexture> texPtr = B3DMakeShared<D3D11RenderTexture>(desc, deviceIdx);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;

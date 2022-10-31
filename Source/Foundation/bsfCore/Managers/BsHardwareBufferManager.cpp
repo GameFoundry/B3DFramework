@@ -12,9 +12,9 @@ using namespace bs;
 
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc)
 {
-	VertexDeclaration* decl = new(bs_alloc<VertexDeclaration>()) VertexDeclaration(desc->CreateElements());
+	VertexDeclaration* decl = new(B3DAllocate<VertexDeclaration>()) VertexDeclaration(desc->CreateElements());
 
-	SPtr<VertexDeclaration> declPtr = bs_core_ptr<VertexDeclaration>(decl);
+	SPtr<VertexDeclaration> declPtr = B3DMakeCoreFromExisting<VertexDeclaration>(decl);
 	declPtr->SetThisPtrInternal(declPtr);
 	declPtr->Initialize();
 
@@ -23,7 +23,7 @@ SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPt
 
 SPtr<VertexBuffer> HardwareBufferManager::CreateVertexBuffer(const VERTEX_BUFFER_DESC& desc)
 {
-	SPtr<VertexBuffer> vbuf = bs_core_ptr<VertexBuffer>(new(bs_alloc<VertexBuffer>()) VertexBuffer(desc));
+	SPtr<VertexBuffer> vbuf = B3DMakeCoreFromExisting<VertexBuffer>(new(B3DAllocate<VertexBuffer>()) VertexBuffer(desc));
 	vbuf->SetThisPtrInternal(vbuf);
 	vbuf->Initialize();
 	return vbuf;
@@ -31,7 +31,7 @@ SPtr<VertexBuffer> HardwareBufferManager::CreateVertexBuffer(const VERTEX_BUFFER
 
 SPtr<IndexBuffer> HardwareBufferManager::CreateIndexBuffer(const INDEX_BUFFER_DESC& desc)
 {
-	SPtr<IndexBuffer> ibuf = bs_core_ptr<IndexBuffer>(new(bs_alloc<IndexBuffer>()) IndexBuffer(desc));
+	SPtr<IndexBuffer> ibuf = B3DMakeCoreFromExisting<IndexBuffer>(new(B3DAllocate<IndexBuffer>()) IndexBuffer(desc));
 	ibuf->SetThisPtrInternal(ibuf);
 	ibuf->Initialize();
 	return ibuf;
@@ -39,7 +39,7 @@ SPtr<IndexBuffer> HardwareBufferManager::CreateIndexBuffer(const INDEX_BUFFER_DE
 
 SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(u32 size, GpuBufferUsage usage)
 {
-	SPtr<GpuParamBlockBuffer> paramBlockPtr = bs_core_ptr<GpuParamBlockBuffer>(new(bs_alloc<GpuParamBlockBuffer>()) GpuParamBlockBuffer(size, usage));
+	SPtr<GpuParamBlockBuffer> paramBlockPtr = B3DMakeCoreFromExisting<GpuParamBlockBuffer>(new(B3DAllocate<GpuParamBlockBuffer>()) GpuParamBlockBuffer(size, usage));
 	paramBlockPtr->SetThisPtrInternal(paramBlockPtr);
 	paramBlockPtr->Initialize();
 	return paramBlockPtr;
@@ -47,7 +47,7 @@ SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(u32 s
 
 SPtr<GpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GPU_BUFFER_DESC& desc)
 {
-	SPtr<GpuBuffer> gbuf = bs_core_ptr<GpuBuffer>(new(bs_alloc<GpuBuffer>()) GpuBuffer(desc));
+	SPtr<GpuBuffer> gbuf = B3DMakeCoreFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(desc));
 	gbuf->SetThisPtrInternal(gbuf);
 	gbuf->Initialize();
 
@@ -56,8 +56,8 @@ SPtr<GpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GPU_BUFFER_DESC& de
 
 SPtr<GpuParams> HardwareBufferManager::CreateGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
 {
-	GpuParams* params = new(bs_alloc<GpuParams>()) GpuParams(paramInfo);
-	SPtr<GpuParams> paramsPtr = bs_core_ptr<GpuParams>(params);
+	GpuParams* params = new(B3DAllocate<GpuParams>()) GpuParams(paramInfo);
+	SPtr<GpuParams> paramsPtr = B3DMakeCoreFromExisting<GpuParams>(params);
 	paramsPtr->SetThisPtrInternal(paramsPtr);
 	paramsPtr->Initialize();
 
@@ -171,9 +171,9 @@ SPtr<GpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GPU_BUFFER_DESC& de
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclarationInternal(
 	const Vector<VertexElement>& elements, GpuDeviceFlags deviceMask)
 {
-	VertexDeclaration* decl = new(bs_alloc<VertexDeclaration>()) VertexDeclaration(elements, deviceMask);
+	VertexDeclaration* decl = new(B3DAllocate<VertexDeclaration>()) VertexDeclaration(elements, deviceMask);
 
-	SPtr<VertexDeclaration> ret = bs_shared_ptr<VertexDeclaration>(decl);
+	SPtr<VertexDeclaration> ret = B3DMakeSharedFromExisting<VertexDeclaration>(decl);
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -182,8 +182,8 @@ SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclarationInternal(
 SPtr<GpuParams> HardwareBufferManager::CreateGpuParamsInternal(
 	const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
 {
-	GpuParams* params = new(bs_alloc<GpuParams>()) GpuParams(paramInfo, deviceMask);
-	SPtr<GpuParams> paramsPtr = bs_shared_ptr<GpuParams>(params);
+	GpuParams* params = new(B3DAllocate<GpuParams>()) GpuParams(paramInfo, deviceMask);
+	SPtr<GpuParams> paramsPtr = B3DMakeSharedFromExisting<GpuParams>(params);
 	paramsPtr->SetThisPtrInternal(paramsPtr);
 
 	return paramsPtr;

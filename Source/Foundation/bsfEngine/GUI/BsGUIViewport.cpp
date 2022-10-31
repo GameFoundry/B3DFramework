@@ -25,12 +25,12 @@ GUIViewport::GUIViewport(const String& styleName, const HCamera& camera, float a
 
 GUIViewport* GUIViewport::Create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
 {
-	return new(bs_alloc<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUIDimensions::Create());
+	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUIDimensions::Create());
 }
 
 GUIViewport* GUIViewport::Create(const GUIOptions& options, const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
 {
-	return new(bs_alloc<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUIDimensions::Create(options));
 }
 
 void GUIViewport::UpdateClippedBounds()

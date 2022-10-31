@@ -132,10 +132,10 @@ SPtr<ct::CoreObject> Viewport::CreateCore() const
 	if(mTarget != nullptr)
 		targetCore = mTarget->GetCore();
 
-	ct::Viewport* viewport = new(bs_alloc<ct::Viewport>())
+	ct::Viewport* viewport = new(B3DAllocate<ct::Viewport>())
 		ct::Viewport(targetCore, mNormArea.X, mNormArea.Y, mNormArea.Width, mNormArea.Height);
 
-	SPtr<ct::Viewport> viewportPtr = bs_shared_ptr<ct::Viewport>(viewport);
+	SPtr<ct::Viewport> viewportPtr = B3DMakeSharedFromExisting<ct::Viewport>(viewport);
 	viewportPtr->SetThisPtrInternal(viewportPtr);
 
 	return viewportPtr;
@@ -161,8 +161,8 @@ void Viewport::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
 {
-	Viewport* viewport = new(bs_alloc<Viewport>()) Viewport(target, x, y, width, height);
-	SPtr<Viewport> viewportPtr = bs_core_ptr<Viewport>(viewport);
+	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport(target, x, y, width, height);
+	SPtr<Viewport> viewportPtr = B3DMakeCoreFromExisting<Viewport>(viewport);
 	viewportPtr->SetThisPtrInternal(viewportPtr);
 	viewportPtr->Initialize();
 
@@ -171,8 +171,8 @@ SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float
 
 SPtr<Viewport> Viewport::CreateEmpty()
 {
-	Viewport* viewport = new(bs_alloc<Viewport>()) Viewport();
-	SPtr<Viewport> viewportPtr = bs_core_ptr<Viewport>(viewport);
+	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport();
+	SPtr<Viewport> viewportPtr = B3DMakeCoreFromExisting<Viewport>(viewport);
 	viewportPtr->SetThisPtrInternal(viewportPtr);
 
 	return viewportPtr;
@@ -196,9 +196,9 @@ Viewport::Viewport(const SPtr<RenderTarget>& target, float x, float y, float wid
 
 SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
 {
-	Viewport* viewport = new(bs_alloc<Viewport>()) Viewport(target, x, y, width, height);
+	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport(target, x, y, width, height);
 
-	SPtr<Viewport> viewportPtr = bs_shared_ptr<Viewport>(viewport);
+	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetThisPtrInternal(viewportPtr);
 	viewportPtr->Initialize();
 

@@ -132,7 +132,7 @@ MonoManager::MonoManager()
 	mono_thread_set_main(mono_thread_current());
 
 	// Load corlib
-	mCorlibAssembly = new(bs_alloc<MonoAssembly>()) MonoAssembly("", "corlib");
+	mCorlibAssembly = new(B3DAllocate<MonoAssembly>()) MonoAssembly("", "corlib");
 	mCorlibAssembly->LoadFromImage(mono_get_corlib());
 
 	mAssemblies["corlib"] = mCorlibAssembly;
@@ -166,7 +166,7 @@ bs::MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& name
 	}
 	else
 	{
-		assembly = new(bs_alloc<MonoAssembly>()) MonoAssembly(path, name);
+		assembly = new(B3DAllocate<MonoAssembly>()) MonoAssembly(path, name);
 		mAssemblies[name] = assembly;
 	}
 
@@ -206,7 +206,7 @@ void MonoManager::InitializeScriptTypes(MonoAssembly& assembly)
 void MonoManager::UnloadAll()
 {
 	for(auto& entry : mAssemblies)
-		bs_delete(entry.second);
+		B3DDelete(entry.second);
 
 	mAssemblies.clear();
 
@@ -289,7 +289,7 @@ void MonoManager::UnloadScriptDomain()
 		// "corlib" assembly persists domain unload since it's in the root domain. However we make sure to clear its
 		// class list as it could contain generic instances that use types from other assemblies.
 		if(assemblyEntry.first != "corlib")
-			bs_delete(assemblyEntry.second);
+			B3DDelete(assemblyEntry.second);
 
 		// Metas hold references to various assembly objects that were just deleted, so clear them
 		Vector<ScriptMetaInfo>& typeMetas = GetScriptMetaData()[assemblyEntry.first];

@@ -18,52 +18,52 @@ void FNullPhysicsCollider::SetTransform(const Vector3& pos, const Quaternion& ro
 NullPhysicsBoxCollider::NullPhysicsBoxCollider(const Vector3& position, const Quaternion& rotation, const Vector3& extents)
 	: mExtents(extents)
 {
-	mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
+	mInternal = B3DNew<FNullPhysicsCollider>(position, rotation);
 }
 
 NullPhysicsBoxCollider::~NullPhysicsBoxCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 NullPhysicsCapsuleCollider::NullPhysicsCapsuleCollider(const Vector3& position, const Quaternion& rotation, float radius, float halfHeight)
 	: mRadius(radius), mHalfHeight(halfHeight)
 {
-	mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
+	mInternal = B3DNew<FNullPhysicsCollider>(position, rotation);
 }
 
 NullPhysicsCapsuleCollider::~NullPhysicsCapsuleCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 NullPhysicsMeshCollider::NullPhysicsMeshCollider(const Vector3& position, const Quaternion& rotation)
 {
-	mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
+	mInternal = B3DNew<FNullPhysicsCollider>(position, rotation);
 }
 
 NullPhysicsMeshCollider::~NullPhysicsMeshCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 NullPhysicsPlaneCollider::NullPhysicsPlaneCollider(const Vector3& position, const Quaternion& rotation)
 {
-	mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
+	mInternal = B3DNew<FNullPhysicsCollider>(position, rotation);
 }
 
 NullPhysicsPlaneCollider::~NullPhysicsPlaneCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 NullPhysicsSphereCollider::NullPhysicsSphereCollider(const Vector3& position, const Quaternion& rotation, float radius)
 	: mRadius(radius)
 {
-	mInternal = bs_new<FNullPhysicsCollider>(position, rotation);
+	mInternal = B3DNew<FNullPhysicsCollider>(position, rotation);
 }
 
 NullPhysicsSphereCollider::~NullPhysicsSphereCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }

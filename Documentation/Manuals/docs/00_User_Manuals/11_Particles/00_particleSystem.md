@@ -32,7 +32,7 @@ psSettings.material = particleMaterial;
 particleSystem->setSettings(psSettings);
 
 // Add an emitter that emits particles on the surface of a sphere
-SPtr<ParticleEmitter> emitter = bs_shared_ptr_new<ParticleEmitter>();
+SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 
 PARTICLE_SPHERE_SHAPE_DESC sphereShape;
 sphereShape.radius = 0.3f;
@@ -85,7 +85,7 @@ Emitters determine where are new particles spawned, along with other properties 
 Once created they can be registered with the particle system by setting a list of emitters through @bs::CParticleSystem::setEmitters.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ParticleEmitter> emitter = bs_shared_ptr_new<ParticleEmitter>();
+SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 particleSystem->setEmitters({emitter});
 ~~~~~~~~~~~~~
 

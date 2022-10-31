@@ -39,5 +39,5 @@ void ScriptGUIFlexibleSpace::InternalCreateInstance(MonoObject* instance)
 {
 	GUIFlexibleSpace* space = GUIFlexibleSpace::Create();
 
-	new(bs_alloc<ScriptGUIFlexibleSpace>()) ScriptGUIFlexibleSpace(instance, space);
+	new(B3DAllocate<ScriptGUIFlexibleSpace>()) ScriptGUIFlexibleSpace(instance, space);
 }

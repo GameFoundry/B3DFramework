@@ -765,7 +765,7 @@ GLSLToSPIRV::~GLSLToSPIRV()
 SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
 {
 	TBuiltInResource resources = DefaultTBuiltInResource;
-	glslang::TProgram* program = bs_new<glslang::TProgram>();
+	glslang::TProgram* program = B3DNew<glslang::TProgram>();
 
 	EShLanguage glslType;
 	switch(desc.Type)
@@ -799,12 +799,12 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
 	const String& source = desc.Source;
 	const char* sourceBytes = source.c_str();
 
-	glslang::TShader* shader = bs_new<glslang::TShader>(glslType);
+	glslang::TShader* shader = B3DNew<glslang::TShader>(glslType);
 	shader->setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_3);
 	shader->setStrings(&sourceBytes, 1);
 	shader->setEntryPoint("main");
 
-	SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+	SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = VULKAN_COMPILER_ID;
 	bytecode->CompilerVersion = VULKAN_COMPILER_VERSION;
 
@@ -830,7 +830,7 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
 	GlslangToSpv(*program->getIntermediate(glslType), spirv, &logger);
 
 	// Parse uniforms
-	bytecode->ParamDesc = bs_shared_ptr_new<GpuParamDesc>();
+	bytecode->ParamDesc = B3DMakeShared<GpuParamDesc>();
 	if(!parseUniforms(program, *bytecode->ParamDesc, bytecode->Messages))
 		goto cleanup;
 
@@ -842,13 +842,13 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
 	}
 
 	bytecode->Instructions.Size = (u32)spirv.size() * sizeof(u32);
-	bytecode->Instructions.Data = (u8*)bs_alloc(bytecode->Instructions.Size);
+	bytecode->Instructions.Data = (u8*)B3DAllocate(bytecode->Instructions.Size);
 
 	memcpy(bytecode->Instructions.Data, spirv.data(), bytecode->Instructions.Size);
 
 cleanup:
-	bs_delete(program);
-	bs_delete(shader);
+	B3DDelete(program);
+	B3DDelete(shader);
 
 	return bytecode;
 }

@@ -218,7 +218,7 @@ void VulkanRenderAPI::Initialize()
 
 	mDevices.resize(mNumDevices);
 	for(uint32_t i = 0; i < mNumDevices; i++)
-		mDevices[i] = bs_shared_ptr_new<VulkanDevice>(physicalDevices[i], i);
+		mDevices[i] = B3DMakeShared<VulkanDevice>(physicalDevices[i], i);
 
 	// Find primary device
 	// Note: MULTIGPU - Detect multiple similar devices here if supporting multi-GPU
@@ -251,11 +251,11 @@ void VulkanRenderAPI::Initialize()
 	}
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-	mVideoModeInfo = bs_shared_ptr_new<Win32VideoModeInfo>();
+	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
-	mVideoModeInfo = bs_shared_ptr_new<LinuxVideoModeInfo>();
+	mVideoModeInfo = B3DMakeShared<LinuxVideoModeInfo>();
 #elif BS_PLATFORM == BS_PLATFORM_OSX
-	mVideoModeInfo = bs_shared_ptr_new<MacOSVideoModeInfo>();
+	mVideoModeInfo = B3DMakeShared<MacOSVideoModeInfo>();
 #else
 	static_assert(false, "mVideoModeInfo needs to be created.");
 #endif
@@ -309,7 +309,7 @@ void VulkanRenderAPI::Initialize()
 	VulkanVertexInputManager::StartUp();
 
 	// Create & register GPU program factories
-	mGLSLFactory = bs_new<VulkanGLSLProgramFactory>();
+	mGLSLFactory = B3DNew<VulkanGLSLProgramFactory>();
 
 #if BS_PLATFORM == BS_PLATFORM_OSX
 	GpuProgramManager::Instance().addFactory("mvksl", mGLSLFactory);
@@ -331,7 +331,7 @@ void VulkanRenderAPI::DestroyCore()
 
 	if(mGLSLFactory != nullptr)
 	{
-		bs_delete(mGLSLFactory);
+		B3DDelete(mGLSLFactory);
 		mGLSLFactory = nullptr;
 	}
 
@@ -638,7 +638,7 @@ GpuParamBlockDesc VulkanRenderAPI::GenerateParamBlockDesc(const String& name, Ve
 void VulkanRenderAPI::InitCapabilites()
 {
 	mNumDevices = (u32)mDevices.size();
-	mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
 
 	u32 deviceIdx = 0;
 	for(auto& device : mDevices)

@@ -133,7 +133,7 @@ RenderAPI::~RenderAPI()
 {
 	// Base classes need to call virtual destroy_internal method instead of a destructor
 
-	bs_deleteN(mCurrentCapabilities, mNumDevices);
+	B3DDeleteMultiple(mCurrentCapabilities, mNumDevices);
 	mCurrentCapabilities = nullptr;
 }
 

@@ -33,7 +33,7 @@ bool OAImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) con
 
 SPtr<ImportOptions> OAImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<AudioClipImportOptions>();
+	return B3DMakeShared<AudioClipImportOptions>();
 }
 
 SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
@@ -51,11 +51,11 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 
 		UPtr<AudioDecoder> reader;
 		if(extension == u8".wav")
-			reader = bs_unique_ptr_new<WaveDecoder>();
+			reader = B3DMakeUnique<WaveDecoder>();
 		else if(extension == u8".flac")
-			reader = bs_unique_ptr_new<FLACDecoder>();
+			reader = B3DMakeUnique<FLACDecoder>();
 		else if(extension == u8".ogg")
-			reader = bs_unique_ptr_new<OggVorbisDecoder>();
+			reader = B3DMakeUnique<OggVorbisDecoder>();
 
 		if(reader == nullptr)
 			return nullptr;
@@ -69,7 +69,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 		bytesPerSample = info.BitDepth / 8;
 		bufferSize = info.NumSamples * bytesPerSample;
 
-		sampleStream = bs_shared_ptr_new<MemoryDataStream>(bufferSize);
+		sampleStream = B3DMakeShared<MemoryDataStream>(bufferSize);
 		reader->Read(sampleStream->Data(), info.NumSamples);
 	}
 
@@ -81,7 +81,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 		u32 numSamplesPerChannel = info.NumSamples / info.NumChannels;
 
 		u32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
-		auto monoStream = bs_shared_ptr_new<MemoryDataStream>(monoBufferSize);
+		auto monoStream = B3DMakeShared<MemoryDataStream>(monoBufferSize);
 
 		AudioUtility::ConvertToMono(sampleStream->Data(), monoStream->Data(), info.BitDepth, numSamplesPerChannel, info.NumChannels);
 
@@ -96,7 +96,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	if(clipIO->BitDepth != info.BitDepth)
 	{
 		u32 outBufferSize = info.NumSamples * (clipIO->BitDepth / 8);
-		auto outStream = bs_shared_ptr_new<MemoryDataStream>(outBufferSize);
+		auto outStream = B3DMakeShared<MemoryDataStream>(outBufferSize);
 
 		AudioUtility::ConvertBitDepth(sampleStream->Data(), info.BitDepth, outStream->Data(), clipIO->BitDepth, info.NumSamples);
 

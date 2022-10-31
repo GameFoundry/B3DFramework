@@ -194,7 +194,7 @@ void CoreApplication::OnStartUp()
 		LoadPlugin(importerName);
 
 	// Built-in importers
-	FGAImporter* fgaImporter = bs_new<FGAImporter>();
+	FGAImporter* fgaImporter = B3DNew<FGAImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(fgaImporter);
 }
 
@@ -470,7 +470,7 @@ void CoreApplication::UnloadPlugin(DynamicLibrary* library)
 
 SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const
 {
-	return bs_shared_ptr_new<DefaultShaderIncludeHandler>();
+	return B3DMakeShared<DefaultShaderIncludeHandler>();
 }
 
 namespace bs

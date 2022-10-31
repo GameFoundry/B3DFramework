@@ -40,7 +40,7 @@ MonoObject* ScriptFontBitmap::Create(const SPtr<FontBitmap>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptFontBitmap>()) ScriptFontBitmap(managedInstance, value);
+	new(B3DAllocate<ScriptFontBitmap>()) ScriptFontBitmap(managedInstance, value);
 	return managedInstance;
 }
 

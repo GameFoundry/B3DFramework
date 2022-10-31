@@ -593,7 +593,7 @@ namespace bs
 
 	Event<void()> Platform::onMouseCaptureChanged;
 
-	Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
+	Platform::Pimpl* Platform::mData = B3DNew<Platform::Pimpl>();
 
 	Platform::~Platform()
 	{

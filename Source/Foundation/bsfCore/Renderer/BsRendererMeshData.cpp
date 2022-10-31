@@ -17,7 +17,7 @@ RendererMeshData::RendererMeshData(u32 numVertices, u32 numIndices, VertexLayout
 {
 	SPtr<VertexDataDesc> vertexDesc = VertexLayoutVertexDesc(layout);
 
-	mMeshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc, indexType);
+	mMeshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc, indexType);
 }
 
 RendererMeshData::RendererMeshData(const SPtr<MeshData>& meshData)

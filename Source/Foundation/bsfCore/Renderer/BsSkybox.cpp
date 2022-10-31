@@ -116,8 +116,8 @@ SPtr<ct::Skybox> Skybox::GetCore() const
 
 SPtr<Skybox> Skybox::CreateEmpty()
 {
-	Skybox* skybox = new(bs_alloc<Skybox>()) Skybox();
-	SPtr<Skybox> skyboxPtr = bs_core_ptr<Skybox>(skybox);
+	Skybox* skybox = new(B3DAllocate<Skybox>()) Skybox();
+	SPtr<Skybox> skyboxPtr = B3DMakeCoreFromExisting<Skybox>(skybox);
 	skyboxPtr->SetThisPtrInternal(skyboxPtr);
 
 	return skyboxPtr;
@@ -145,8 +145,8 @@ SPtr<ct::CoreObject> Skybox::CreateCore() const
 	if(mIrradiance)
 		irradiance = mIrradiance->GetCore();
 
-	ct::Skybox* skybox = new(bs_alloc<ct::Skybox>()) ct::Skybox(radiance, filteredRadiance, irradiance);
-	SPtr<ct::Skybox> skyboxPtr = bs_shared_ptr<ct::Skybox>(skybox);
+	ct::Skybox* skybox = new(B3DAllocate<ct::Skybox>()) ct::Skybox(radiance, filteredRadiance, irradiance);
+	SPtr<ct::Skybox> skyboxPtr = B3DMakeSharedFromExisting<ct::Skybox>(skybox);
 	skyboxPtr->SetThisPtrInternal(skyboxPtr);
 
 	return skyboxPtr;

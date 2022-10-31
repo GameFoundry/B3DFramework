@@ -21,7 +21,7 @@ namespace bs { namespace ct
 RendererUtility::RendererUtility()
 {
 	{
-		mFullscreenQuadVDesc = bs_shared_ptr_new<VertexDataDesc>();
+		mFullscreenQuadVDesc = B3DMakeShared<VertexDataDesc>();
 		mFullscreenQuadVDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 		mFullscreenQuadVDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 
@@ -45,14 +45,14 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
 
 		ShapeMeshes3D::GetNumElementsSphere(3, numVertices, numIndices);
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -64,14 +64,14 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -86,13 +86,13 @@ RendererUtility::RendererUtility()
 		u32 numSides = Light::kLightConeNumSides;
 		u32 numSlices = Light::kLightConeNumSlices;
 
-		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		u32 numVertices = numSides * numSlices * 2;
 		u32 numIndices = ((numSides * 2) * (numSlices - 1) * 2) * 3;
 
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -141,14 +141,14 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
-		SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -338,7 +338,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 		uvs[i].Y /= (float)textureSize.Y;
 	}
 
-	SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(4, 6, mFullscreenQuadVDesc);
+	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(4, 6, mFullscreenQuadVDesc);
 
 	auto vecIter = meshData->GetVec3DataIter(VES_POSITION);
 	for(u32 i = 0; i < 4; i++)

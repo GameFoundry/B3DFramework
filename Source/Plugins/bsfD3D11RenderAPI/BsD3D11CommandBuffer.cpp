@@ -48,7 +48,7 @@ void D3D11CommandBuffer::ExecuteCommands()
 	}
 #endif
 
-	mFence = bs_shared_ptr_new<D3D11EventQuery>(mDeviceIdx);
+	mFence = B3DMakeShared<D3D11EventQuery>(mDeviceIdx);
 	mFence->Begin();
 	mIsSubmitted = true;
 }

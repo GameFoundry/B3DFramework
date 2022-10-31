@@ -160,7 +160,7 @@ void generateTextures()
 
 void generateMeshes()
 {
-	SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 	vertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
@@ -179,7 +179,7 @@ void generateMeshes()
 	u32 sphereNumVertices = 0;
 	u32 sphereNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsSphere(3, sphereNumVertices, sphereNumIndices);
-	SPtr<MeshData> sphereMeshData = bs_shared_ptr_new<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
+	SPtr<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidSphere(Sphere(Vector3::kZero, 1.0f), sphereMeshData, 0, 0, 3);
 	SPtr<Mesh> sphereMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(sphereMeshData));
@@ -187,7 +187,7 @@ void generateMeshes()
 	u32 coneNumVertices = 0;
 	u32 coneNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCone(10, coneNumVertices, coneNumIndices);
-	SPtr<MeshData> coneMeshData = bs_shared_ptr_new<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
+	SPtr<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidCone(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, coneMeshData, 0, 0);
 	SPtr<Mesh> coneMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(coneMeshData));
@@ -195,7 +195,7 @@ void generateMeshes()
 	u32 cylinderNumVertices = 0;
 	u32 cylinderNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCylinder(10, cylinderNumVertices, cylinderNumIndices);
-	SPtr<MeshData> cylinderMeshData = bs_shared_ptr_new<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
+	SPtr<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidCylinder(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, cylinderMeshData, 0, 0);
 	SPtr<Mesh> cylinderMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(cylinderMeshData));
@@ -203,7 +203,7 @@ void generateMeshes()
 	u32 quadNumVertices = 8;
 	u32 quadNumIndices = 12;
 	ShapeMeshes3D::GetNumElementsQuad(quadNumVertices, quadNumIndices);
-	SPtr<MeshData> quadMeshData = bs_shared_ptr_new<MeshData>(quadNumVertices, quadNumIndices, vertexDesc);
+	SPtr<MeshData> quadMeshData = B3DMakeShared<MeshData>(quadNumVertices, quadNumIndices, vertexDesc);
 
 	std::array<Vector3, 2> axes = { { Vector3::kUnitX, Vector3::kUnitZ } };
 	std::array<float, 2> sizes = { { 1.0f, 1.0f } };
@@ -214,7 +214,7 @@ void generateMeshes()
 	u32 discNumVertices = 0;
 	u32 discNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsDisc(10, discNumVertices, discNumIndices);
-	SPtr<MeshData> discMeshData = bs_shared_ptr_new<MeshData>(discNumVertices, discNumIndices, vertexDesc);
+	SPtr<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidDisc(Vector3::kZero, 1.0f, Vector3::kUnitY, discMeshData, 0, 0);
 	SPtr<Mesh> discMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(discMeshData));

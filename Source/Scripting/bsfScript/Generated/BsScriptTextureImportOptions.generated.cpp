@@ -41,14 +41,14 @@ MonoObject* ScriptTextureImportOptions::Create(const SPtr<TextureImportOptions>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptTextureImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<TextureImportOptions> instance = TextureImportOptions::Create();
-	new(bs_alloc<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptTextureImportOptions>()) ScriptTextureImportOptions(managedInstance, instance);
 }
 
 PixelFormat ScriptTextureImportOptions::InternalGetFormat(ScriptTextureImportOptions* thisPtr)

@@ -121,7 +121,7 @@ ParticleSystem::ParticleSystem()
 	mId = ParticleManager::Instance().RegisterParticleSystem(this);
 	mSeed = rand();
 
-	auto emitter = bs_shared_ptr_new<ParticleEmitter>();
+	auto emitter = B3DMakeShared<ParticleEmitter>();
 
 	PARTICLE_SPHERE_SHAPE_DESC desc;
 	desc.Radius = 0.05f;
@@ -136,7 +136,7 @@ ParticleSystem::~ParticleSystem()
 	ParticleManager::Instance().UnregisterParticleSystem(this);
 
 	if(mParticleSet)
-		bs_delete(mParticleSet);
+		B3DDelete(mParticleSet);
 }
 
 void ParticleSystem::SetSettings(const ParticleSystemSettings& settings)
@@ -218,7 +218,7 @@ void ParticleSystem::Play()
 	if(mState == State::Uninitialized)
 	{
 		u32 particleCapacity = std::min(mSettings.MaxParticles, kInitialParticleCapacity);
-		mParticleSet = bs_new<ParticleSet>(particleCapacity);
+		mParticleSet = B3DNew<ParticleSet>(particleCapacity);
 	}
 
 	mState = State::Playing;
@@ -424,8 +424,8 @@ SPtr<ct::ParticleSystem> ParticleSystem::GetCore() const
 
 SPtr<ct::CoreObject> ParticleSystem::CreateCore() const
 {
-	ct::ParticleSystem* rawPtr = new(bs_alloc<ct::ParticleSystem>()) ct::ParticleSystem(mId);
-	SPtr<ct::ParticleSystem> ptr = bs_shared_ptr<ct::ParticleSystem>(rawPtr);
+	ct::ParticleSystem* rawPtr = new(B3DAllocate<ct::ParticleSystem>()) ct::ParticleSystem(mId);
+	SPtr<ct::ParticleSystem> ptr = B3DMakeSharedFromExisting<ct::ParticleSystem>(rawPtr);
 	ptr->SetThisPtrInternal(ptr);
 
 	return ptr;
@@ -474,8 +474,8 @@ SPtr<ParticleSystem> ParticleSystem::Create()
 
 SPtr<ParticleSystem> ParticleSystem::CreateEmpty()
 {
-	ParticleSystem* rawPtr = new(bs_alloc<ParticleSystem>()) ParticleSystem();
-	SPtr<ParticleSystem> ptr = bs_core_ptr<ParticleSystem>(rawPtr);
+	ParticleSystem* rawPtr = new(B3DAllocate<ParticleSystem>()) ParticleSystem();
+	SPtr<ParticleSystem> ptr = B3DMakeCoreFromExisting<ParticleSystem>(rawPtr);
 	ptr->SetThisPtrInternal(ptr);
 
 	return ptr;

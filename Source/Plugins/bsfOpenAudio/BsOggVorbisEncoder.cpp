@@ -233,7 +233,7 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 	writer.Write(samples, info.NumSamples);
 	writer.Close();
 
-	auto output = bs_shared_ptr_new<MemoryDataStream>(totalEncodedSize);
+	auto output = B3DMakeShared<MemoryDataStream>(totalEncodedSize);
 	u32 offset = 0;
 	for(auto& block : blocks)
 	{

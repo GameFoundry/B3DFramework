@@ -41,7 +41,7 @@ MonoObject* ScriptSerializableUtility::InternalClone(MonoObject* original)
 
 	// Note: This code unnecessarily encodes to binary and decodes from it. I could have added a specialized clone method that does it directly,
 	// but didn't feel the extra code was justified.
-	SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	bs.Encode(data.get(), stream);
 
 	stream->Seek(0);
@@ -71,7 +71,7 @@ MonoObject* ScriptSerializableUtility::InternalCreate(MonoReflectionType* reflTy
 
 	// Note: This code unnecessarily encodes to binary and decodes from it. I could have added a specialized create method that does it directly,
 	// but didn't feel the extra code was justified.
-	SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	bs.Encode(data.get(), stream);
 
 	stream->Seek(0);

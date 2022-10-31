@@ -91,7 +91,7 @@ public:
 
 	SPtr<IReflectable> newRTTIObject() override
 	{
-		return bs_shared_ptr_new<MyClass>();
+		return B3DMakeShared<MyClass>();
 	}
 };
 
@@ -239,7 +239,7 @@ Once the RTTI type class has been created, in most cases it will be used automat
 To manually serialize an object you can use the @bs::FileEncoder class. Create the file encoder with a path to the output file, followed by a call to @bs::FileEncoder::encode with the object to encode as the parameter. The system will encode the provided object, as well as any other referenced **IReflectable** objects. 
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<IReflectable> myObject = bs_shared_ptr_new<MyClass>();
+SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
 
 FileEncoder fe("Path\To\My\File.asset");
 fe.encode(myObject.get());
@@ -254,10 +254,10 @@ SPtr<IReflectable> myObjectCopy = fd.decode();
 
 You can also encode/decode to/from memory by using @bs::BinarySerializer.
 ~~~~~~~~~~~~~{.cpp}
-SPtr<IReflectable> myObject = bs_shared_ptr_new<MyClass>();
+SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
 
 BinarySerializer bs;
-SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 bs.encode(myObject.get(), stream);
 
 stream->seek(0);

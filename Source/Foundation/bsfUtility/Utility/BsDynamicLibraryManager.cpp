@@ -45,7 +45,7 @@ DynamicLibrary* DynamicLibraryManager::Load(String filename)
 	}
 	else
 	{
-		DynamicLibrary* newLib = bs_new<DynamicLibrary>(std::move(filename));
+		DynamicLibrary* newLib = B3DNew<DynamicLibrary>(std::move(filename));
 		mLoadedLibraries.emplace_hint(iterFind, newLib);
 
 		return newLib;
@@ -58,7 +58,7 @@ void DynamicLibraryManager::Unload(DynamicLibrary* lib)
 	if(iterFind != mLoadedLibraries.end())
 		mLoadedLibraries.erase(iterFind);
 	else
-		bs_delete(lib);
+		B3DDelete(lib);
 }
 
 namespace bs

@@ -30,7 +30,7 @@ MonoObject* ScriptHString::Create(const SPtr<HString>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, value);
+	new(B3DAllocate<ScriptHString>()) ScriptHString(managedInstance, value);
 	return managedInstance;
 }
 
@@ -38,8 +38,8 @@ void ScriptHString::InternalHString(MonoObject* managedInstance, MonoString* ide
 {
 	String tmpidentifier;
 	tmpidentifier = MonoUtil::MonoToString(identifier);
-	SPtr<HString> instance = bs_shared_ptr_new<HString>(tmpidentifier, stringTableId);
-	new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
+	SPtr<HString> instance = B3DMakeShared<HString>(tmpidentifier, stringTableId);
+	new(B3DAllocate<ScriptHString>()) ScriptHString(managedInstance, instance);
 }
 
 void ScriptHString::InternalHString0(MonoObject* managedInstance, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId)
@@ -48,20 +48,20 @@ void ScriptHString::InternalHString0(MonoObject* managedInstance, MonoString* id
 	tmpidentifier = MonoUtil::MonoToString(identifier);
 	String tmpdefaultString;
 	tmpdefaultString = MonoUtil::MonoToString(defaultString);
-	SPtr<HString> instance = bs_shared_ptr_new<HString>(tmpidentifier, tmpdefaultString, stringTableId);
-	new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
+	SPtr<HString> instance = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
+	new(B3DAllocate<ScriptHString>()) ScriptHString(managedInstance, instance);
 }
 
 void ScriptHString::InternalHString1(MonoObject* managedInstance, uint32_t stringTableId)
 {
-	SPtr<HString> instance = bs_shared_ptr_new<HString>(stringTableId);
-	new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
+	SPtr<HString> instance = B3DMakeShared<HString>(stringTableId);
+	new(B3DAllocate<ScriptHString>()) ScriptHString(managedInstance, instance);
 }
 
 void ScriptHString::InternalHString2(MonoObject* managedInstance)
 {
-	SPtr<HString> instance = bs_shared_ptr_new<HString>();
-	new(bs_alloc<ScriptHString>()) ScriptHString(managedInstance, instance);
+	SPtr<HString> instance = B3DMakeShared<HString>();
+	new(B3DAllocate<ScriptHString>()) ScriptHString(managedInstance, instance);
 }
 
 MonoString* ScriptHString::InternalGetValue(ScriptHString* thisPtr)

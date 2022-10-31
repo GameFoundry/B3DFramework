@@ -35,14 +35,14 @@ MonoObject* ScriptAudioClipImportOptions::Create(const SPtr<AudioClipImportOptio
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptAudioClipImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<AudioClipImportOptions> instance = AudioClipImportOptions::Create();
-	new(bs_alloc<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptAudioClipImportOptions>()) ScriptAudioClipImportOptions(managedInstance, instance);
 }
 
 AudioFormat ScriptAudioClipImportOptions::InternalGetFormat(ScriptAudioClipImportOptions* thisPtr)

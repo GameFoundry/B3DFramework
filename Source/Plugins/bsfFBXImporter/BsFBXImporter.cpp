@@ -94,7 +94,7 @@ bool FBXImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) co
 
 SPtr<ImportOptions> FBXImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<MeshImportOptions>();
+	return B3DMakeShared<MeshImportOptions>();
 }
 
 SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
@@ -600,7 +600,7 @@ void FBXImporter::ParseScene(FbxScene* scene, const FBXImportOptions& options, F
 
 FBXImportNode* FBXImporter::CreateImportNode(FBXImportScene& scene, FbxNode* fbxNode, FBXImportNode* parent)
 {
-	FBXImportNode* node = bs_new<FBXImportNode>();
+	FBXImportNode* node = B3DNew<FBXImportNode>();
 
 	Vector3 translation = FBXToNativeType(fbxNode->EvaluateLocalTranslation(FbxTime(0)));
 	Vector3 rotationEuler = FBXToNativeType(fbxNode->EvaluateLocalRotation(FbxTime(0)));
@@ -654,7 +654,7 @@ void FBXImporter::SplitMeshVertices(FBXImportScene& scene)
 
 	for(auto& mesh : scene.Meshes)
 	{
-		FBXImportMesh* splitMesh = bs_new<FBXImportMesh>();
+		FBXImportMesh* splitMesh = B3DNew<FBXImportMesh>();
 		splitMesh->FbxMesh = mesh->FbxMesh;
 		splitMesh->ReferencedBy = mesh->ReferencedBy;
 		splitMesh->Bones = mesh->Bones;
@@ -662,7 +662,7 @@ void FBXImporter::SplitMeshVertices(FBXImportScene& scene)
 		FBXUtility::SplitVertices(*mesh, *splitMesh);
 		splitMeshes.push_back(splitMesh);
 
-		bs_delete(mesh);
+		B3DDelete(mesh);
 	}
 
 	scene.Meshes = splitMeshes;
@@ -687,7 +687,7 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 	bool isFirstClip = true;
 	for(auto& clip : clips)
 	{
-		SPtr<AnimationCurves> curves = bs_shared_ptr_new<AnimationCurves>();
+		SPtr<AnimationCurves> curves = B3DMakeShared<AnimationCurves>();
 		SPtr<RootMotion> rootMotion;
 
 		// Find offset so animations start at time 0
@@ -721,7 +721,7 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 				TAnimationCurve<Vector3> scale = AnimationUtility::OffsetCurve(bone.Scale, -animStart);
 
 				if(importRootMotion && bone.Node->Name == rootBoneName)
-					rootMotion = bs_shared_ptr_new<RootMotion>(translation, rotation);
+					rootMotion = B3DMakeShared<RootMotion>(translation, rotation);
 				else
 				{
 					curves->Position.push_back({ bone.Node->Name, AnimationCurveFlag::ImportedCurve, translation });
@@ -741,7 +741,7 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 			for(auto& bone : clip.BoneAnimations)
 			{
 				if(importRootMotion && bone.Node->Name == rootBoneName)
-					rootMotion = bs_shared_ptr_new<RootMotion>(bone.Translation, bone.Rotation);
+					rootMotion = B3DMakeShared<RootMotion>(bone.Translation, bone.Rotation);
 				else
 				{
 					curves->Position.push_back({ bone.Node->Name, AnimationCurveFlag::ImportedCurve, bone.Translation });
@@ -762,7 +762,7 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 
 			for(auto& split : splits)
 			{
-				SPtr<AnimationCurves> splitClipCurve = bs_shared_ptr_new<AnimationCurves>();
+				SPtr<AnimationCurves> splitClipCurve = B3DMakeShared<AnimationCurves>();
 				SPtr<RootMotion> splitRootMotion;
 
 				auto splitCurves = [&](auto& inCurves, auto& outCurves)
@@ -811,7 +811,7 @@ void FBXImporter::ConvertAnimations(const Vector<FBXAnimationClip>& clips, const
 						}
 					};
 
-					splitRootMotion = bs_shared_ptr_new<RootMotion>();
+					splitRootMotion = B3DMakeShared<RootMotion>();
 					splitCurve(rootMotion->Position, splitRootMotion->Position);
 					splitCurve(rootMotion->Rotation, splitRootMotion->Rotation);
 				}
@@ -886,7 +886,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 			indicesPerMaterial[materialIdx].push_back(mesh->Indices[i]);
 		}
 
-		u32* orderedIndices = (u32*)bs_alloc((u32)mesh->Indices.size() * sizeof(u32));
+		u32* orderedIndices = (u32*)B3DAllocate((u32)mesh->Indices.size() * sizeof(u32));
 		Vector<SubMesh> subMeshes;
 		u32 currentIndex = 0;
 
@@ -1091,7 +1091,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 			allSubMeshes.push_back(subMeshes);
 		}
 
-		bs_free(orderedIndices);
+		B3DFree(orderedIndices);
 
 		u32 numBones = (u32)mesh->Bones.size();
 		boneIndexOffset += numBones;
@@ -1266,7 +1266,7 @@ void FBXImporter::ParseMesh(FbxMesh* mesh, FBXImportNode* parentNode, const FBXI
 	}
 	else
 	{
-		importMesh = bs_new<FBXImportMesh>();
+		importMesh = B3DNew<FBXImportMesh>();
 		outputScene.Meshes.push_back(importMesh);
 
 		importMesh->ReferencedBy.push_back(parentNode);
@@ -1837,7 +1837,7 @@ void FBXImporter::ImportAnimations(FbxAnimLayer* layer, FbxNode* node, FBXImport
 			boneAnim.Scale = TAnimationCurve<Vector3>(keyframes);
 		}
 
-		SPtr<TAnimationCurve<Vector3>> eulerAnimation = bs_shared_ptr_new<TAnimationCurve<Vector3>>();
+		SPtr<TAnimationCurve<Vector3>> eulerAnimation = B3DMakeShared<TAnimationCurve<Vector3>>();
 		if(hasCurveValues(rotation))
 		{
 			float defaultValues[3];

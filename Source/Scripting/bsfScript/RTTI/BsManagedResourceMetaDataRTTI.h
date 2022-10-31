@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ManagedResourceMetaData>();
+			return B3DMakeShared<ManagedResourceMetaData>();
 		}
 	};
 

@@ -60,7 +60,7 @@ For the first case you should set up an internal method that accepts the managed
 void ScriptMyObject::internal_CreateInstance(MonoObject* obj)
 {
 	// No need to store the created value anywhere, the system will clean it up automatically when the managed object is destroyed
-	bs_new<ScriptMyObject>(obj);
+	B3DNew<ScriptMyObject>(obj);
 }
 ~~~~~~~~~~~~~
 	
@@ -69,7 +69,7 @@ For the second case where you want to create the interop object from C++ you can
 MonoObject* ScriptMyObject::create()
 {
 	MonoObject* managedObj = metaData.scriptClass->createInstance();
-	bs_new<ScriptMyObject>(managedObj);
+	B3DNew<ScriptMyObject>(managedObj);
 	
 	return managedObj;
 }

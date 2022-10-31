@@ -677,7 +677,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 		u32 numBlocks = (u32)mBlocks.size();
 		u32 blockBindingsSize = numBlocks * numPasses * sizeof(PassBlockBindings);
 		u32 objectParamInfosSize = totalNumObjects * sizeof(ObjectParamInfo) + numPasses * sizeof(PassParamInfo);
-		mData = (u8*)bs_alloc(objectParamInfosSize + blockBindingsSize);
+		mData = (u8*)B3DAllocate(objectParamInfosSize + blockBindingsSize);
 		u8* dataIter = mData;
 
 		mPassParamInfos = (PassParamInfo*)dataIter;
@@ -791,7 +791,7 @@ template <bool Core>
 TGpuParamsSet<Core>::~TGpuParamsSet()
 {
 	// All allocations share the same memory, so we just clear it all at once
-	bs_free(mData);
+	B3DFree(mData);
 }
 
 template <bool Core>

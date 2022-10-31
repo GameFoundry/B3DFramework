@@ -41,7 +41,7 @@ MonoObject* ScriptPixelData::Create(const SPtr<PixelData>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, value);
+	new(B3DAllocate<ScriptPixelData>()) ScriptPixelData(managedInstance, value);
 	return managedInstance;
 }
 
@@ -111,13 +111,13 @@ uint32_t ScriptPixelData::InternalGetSize(ScriptPixelData* thisPtr)
 void ScriptPixelData::InternalCreate(MonoObject* managedInstance, PixelVolume* volume, PixelFormat format)
 {
 	SPtr<PixelData> instance = PixelDataEx::Create(*volume, format);
-	new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
+	new(B3DAllocate<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
 }
 
 void ScriptPixelData::InternalCreate0(MonoObject* managedInstance, uint32_t width, uint32_t height, uint32_t depth, PixelFormat pixelFormat)
 {
 	SPtr<PixelData> instance = PixelDataEx::Create(width, height, depth, pixelFormat);
-	new(bs_alloc<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
+	new(B3DAllocate<ScriptPixelData>()) ScriptPixelData(managedInstance, instance);
 }
 
 void ScriptPixelData::InternalGetPixel(ScriptPixelData* thisPtr, int32_t x, int32_t y, int32_t z, Color* __output)

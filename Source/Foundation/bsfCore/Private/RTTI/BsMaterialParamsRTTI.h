@@ -44,7 +44,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<MaterialParamTextureData>();
+			return B3DMakeShared<MaterialParamTextureData>();
 		}
 	};
 
@@ -55,12 +55,12 @@ namespace bs
 		{
 			size = obj->DataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->Data, obj->DataSize);
+			return B3DMakeShared<MemoryDataStream>(obj->Data, obj->DataSize);
 		}
 
 		void SetDataBuffer(MaterialParamStructData* obj, const SPtr<DataStream>& value, u32 size)
 		{
-			obj->Data = (u8*)bs_alloc(size);
+			obj->Data = (u8*)B3DAllocate(size);
 			value->Read(obj->Data, size);
 
 			obj->DataSize = size;
@@ -84,7 +84,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<MaterialParamStructData>();
+			return B3DMakeShared<MaterialParamStructData>();
 		}
 	};
 
@@ -132,7 +132,7 @@ namespace bs
 		{
 			size = obj->mDataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->mDataParamsBuffer, obj->mDataSize);
+			return B3DMakeShared<MemoryDataStream>(obj->mDataParamsBuffer, obj->mDataSize);
 		}
 
 		void SetDataBuffer(MaterialParams* obj, const SPtr<DataStream>& value, u32 size)
@@ -152,7 +152,7 @@ namespace bs
 			memcpy(newStructParam.Data, param.Data, param.DataSize);
 			newStructParam.DataSize = param.DataSize;
 
-			bs_free(param.Data);
+			B3DFree(param.Data);
 			param.Data = nullptr;
 		}
 
@@ -289,7 +289,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<MaterialParams>();
+			return B3DMakeShared<MaterialParams>();
 		}
 
 	private:

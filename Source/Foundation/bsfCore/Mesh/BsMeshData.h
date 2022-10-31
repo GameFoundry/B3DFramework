@@ -248,7 +248,7 @@ namespace bs
 		 */
 		static SPtr<MeshData> Create(u32 numVertices, u32 numIndexes, const SPtr<VertexDataDesc>& vertexData, IndexType indexType = IT_32BIT)
 		{
-			return bs_shared_ptr_new<MeshData>(numVertices, numIndexes, vertexData, indexType);
+			return B3DMakeShared<MeshData>(numVertices, numIndexes, vertexData, indexType);
 		}
 
 	protected:

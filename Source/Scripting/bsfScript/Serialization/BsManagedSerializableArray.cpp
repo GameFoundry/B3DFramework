@@ -47,17 +47,17 @@ SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(Mono
 	if(!ScriptAssemblyManager::Instance().GetBuiltinClasses().SystemArrayClass->IsInstanceOfType(managedInstance))
 		return nullptr;
 
-	return bs_shared_ptr_new<ManagedSerializableArray>(ConstructPrivately(), typeInfo, managedInstance);
+	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
 SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
 {
-	return bs_shared_ptr_new<ManagedSerializableArray>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, sizes));
+	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, sizes));
 }
 
 SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew()
 {
-	return bs_shared_ptr_new<ManagedSerializableArray>(ConstructPrivately());
+	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately());
 }
 
 MonoObject* ManagedSerializableArray::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes)

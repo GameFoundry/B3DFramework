@@ -32,14 +32,14 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	FMODImporter* importer = bs_new<FMODImporter>();
+	FMODImporter* importer = B3DNew<FMODImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
-	return bs_new<FMODFactory>();
+	return B3DNew<FMODFactory>();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" BS_PLUGIN_EXPORT void unloadPlugin(FMODFactory* instance)
 {
-	bs_delete(instance);
+	B3DDelete(instance);
 }

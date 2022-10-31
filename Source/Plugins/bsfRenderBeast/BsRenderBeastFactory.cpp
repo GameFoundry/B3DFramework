@@ -10,7 +10,7 @@ constexpr const char* RenderBeastFactory::kSystemName;
 
 SPtr<ct::Renderer> RenderBeastFactory::Create()
 {
-	return bs_shared_ptr_new<ct::RenderBeast>();
+	return B3DMakeShared<ct::RenderBeast>();
 }
 
 const String& RenderBeastFactory::Name() const

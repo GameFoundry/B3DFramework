@@ -93,7 +93,7 @@ VulkanImage::VulkanImage(VulkanResourceManager* owner, const VULKAN_IMAGE_DESC& 
 	}
 
 	u32 numSubresources = mNumFaces * mNumMipLevels;
-	mSubresources = (VulkanImageSubresource**)bs_alloc(sizeof(VulkanImageSubresource*) * numSubresources);
+	mSubresources = (VulkanImageSubresource**)B3DAllocate(sizeof(VulkanImageSubresource*) * numSubresources);
 	for(u32 i = 0; i < numSubresources; i++)
 		mSubresources[i] = owner->Create<VulkanImageSubresource>(desc.Layout);
 }

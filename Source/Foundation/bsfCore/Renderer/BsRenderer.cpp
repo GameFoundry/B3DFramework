@@ -23,13 +23,13 @@ Renderer::Renderer()
 
 SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
-	return bs_shared_ptr<RendererMeshData>(new(bs_alloc<RendererMeshData>())
+	return B3DMakeSharedFromExisting<RendererMeshData>(new(B3DAllocate<RendererMeshData>())
 											   RendererMeshData(numVertices, numIndices, layout, indexType));
 }
 
 SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(const SPtr<MeshData>& meshData)
 {
-	return bs_shared_ptr<RendererMeshData>(new(bs_alloc<RendererMeshData>())
+	return B3DMakeSharedFromExisting<RendererMeshData>(new(B3DAllocate<RendererMeshData>())
 											   RendererMeshData(meshData));
 }
 
@@ -178,7 +178,7 @@ RendererTask::RendererTask(const PrivatelyConstruct& dummy, String name, std::fu
 
 SPtr<RendererTask> RendererTask::Create(String name, std::function<bool()> taskWorker)
 {
-	return bs_shared_ptr_new<RendererTask>(PrivatelyConstruct(), std::move(name), std::move(taskWorker));
+	return B3DMakeShared<RendererTask>(PrivatelyConstruct(), std::move(name), std::move(taskWorker));
 }
 
 bool RendererTask::IsComplete() const

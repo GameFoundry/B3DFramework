@@ -30,9 +30,9 @@ void GUIInputTool::UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC&
 			mNumQuads += textData.GetNumQuadsForPage(i);
 
 		if(mQuads != nullptr)
-			bs_delete(mQuads);
+			B3DDelete(mQuads);
 
-		mQuads = bs_newN<Vector2>(mNumQuads * 4);
+		mQuads = B3DNewMultiple<Vector2>(mNumQuads * 4);
 
 		TextSprite::GenTextQuads(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, mTextDesc.Anchor, mQuads, nullptr, nullptr, mNumQuads);
 

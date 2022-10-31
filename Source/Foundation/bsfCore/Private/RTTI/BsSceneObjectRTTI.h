@@ -125,7 +125,7 @@ namespace bs
 			if(!coreContext->GoDeserializationActive)
 			{
 				if(!coreContext->GoState)
-					coreContext->GoState = bs_shared_ptr_new<GameObjectDeserializationState>();
+					coreContext->GoState = B3DMakeShared<GameObjectDeserializationState>();
 
 				mIsDeserializationParent = true;
 				coreContext->GoDeserializationActive = true;
@@ -200,7 +200,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(bs_alloc<SceneObject>()) SceneObject("", SOF_DontInstantiate), &bs_delete<SceneObject>, StdAlloc<SceneObject>());
+			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject("", SOF_DontInstantiate), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
 			sceneObject->mRTTIData = sceneObject;
 
 			return sceneObject;

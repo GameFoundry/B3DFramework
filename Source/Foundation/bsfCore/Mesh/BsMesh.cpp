@@ -67,7 +67,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 
 SPtr<MeshData> Mesh::AllocBuffer() const
 {
-	SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, mVertexDesc, mIndexType);
+	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, mVertexDesc, mIndexType);
 
 	return meshData;
 }
@@ -106,9 +106,9 @@ SPtr<ct::CoreObject> Mesh::CreateCore() const
 	desc.Skeleton = mSkeleton;
 	desc.MorphShapes = mMorphShapes;
 
-	ct::Mesh* obj = new(bs_alloc<ct::Mesh>()) ct::Mesh(mCPUData, desc, GDF_DEFAULT);
+	ct::Mesh* obj = new(B3DAllocate<ct::Mesh>()) ct::Mesh(mCPUData, desc, GDF_DEFAULT);
 
-	SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::Mesh>(obj);
+	SPtr<ct::CoreObject> meshCore = B3DMakeSharedFromExisting<ct::Mesh>(obj);
 	meshCore->SetThisPtrInternal(meshCore);
 
 	if((mUsage & MU_CPUCACHED) == 0)
@@ -208,7 +208,7 @@ HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperati
 
 SPtr<Mesh> Mesh::CreatePtrInternal(const MESH_DESC& desc)
 {
-	SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(desc));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
@@ -217,7 +217,7 @@ SPtr<Mesh> Mesh::CreatePtrInternal(const MESH_DESC& desc)
 
 SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 {
-	SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
@@ -230,7 +230,7 @@ SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, int us
 	desc.Usage = usage;
 	desc.SubMeshes.push_back(SubMesh(0, initialMeshData->GetNumIndices(), drawOp));
 
-	SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(initialMeshData, desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
@@ -239,7 +239,7 @@ SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, int us
 
 SPtr<Mesh> Mesh::CreateEmpty()
 {
-	SPtr<Mesh> mesh = bs_core_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh());
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
 	mesh->SetThisPtrInternal(mesh);
 
 	return mesh;
@@ -276,7 +276,7 @@ void Mesh::Initialize()
 
 	mIndexBuffer = IndexBuffer::Create(ibDesc, mDeviceMask);
 
-	mVertexData = bs_shared_ptr_new<VertexData>();
+	mVertexData = B3DMakeShared<VertexData>();
 	mVertexData->VertexCount = mProperties.mNumVertices;
 	mVertexData->VertexDeclaration = VertexDeclaration::Create(mVertexDesc, mDeviceMask);
 
@@ -512,7 +512,7 @@ SPtr<Mesh> Mesh::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDe
 	desc.Usage = usage;
 	desc.IndexType = indexType;
 
-	SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, desc, deviceMask));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
@@ -521,7 +521,7 @@ SPtr<Mesh> Mesh::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDe
 
 SPtr<Mesh> Mesh::Create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<Mesh> mesh = bs_shared_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(nullptr, desc, deviceMask));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, desc, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
@@ -538,7 +538,7 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& 
 	descCopy.IndexType = initialMeshData->GetIndexType();
 
 	SPtr<Mesh> mesh =
-		bs_shared_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
+		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
@@ -557,7 +557,7 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOp
 	desc.Usage = usage;
 
 	SPtr<Mesh> mesh =
-		bs_shared_ptr<Mesh>(new(bs_alloc<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
+		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();

@@ -128,7 +128,7 @@ MonoObject* ScriptMaterial::InternalGetShader(ScriptMaterial* thisPtr)
 
 MonoObject* ScriptMaterial::InternalGetVariation(ScriptMaterial* thisPtr)
 {
-	SPtr<ShaderVariation> tmp__output = bs_shared_ptr_new<ShaderVariation>();
+	SPtr<ShaderVariation> tmp__output = B3DMakeShared<ShaderVariation>();
 	*tmp__output = thisPtr->GetHandle()->GetVariation();
 
 	MonoObject* __output;
@@ -225,7 +225,7 @@ float ScriptMaterial::InternalGetFloat(ScriptMaterial* thisPtr, MonoString* name
 
 MonoObject* ScriptMaterial::InternalGetFloatCurve(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx)
 {
-	SPtr<TAnimationCurve<float>> tmp__output = bs_shared_ptr_new<TAnimationCurve<float>>();
+	SPtr<TAnimationCurve<float>> tmp__output = B3DMakeShared<TAnimationCurve<float>>();
 	String tmpname;
 	tmpname = MonoUtil::MonoToString(name);
 	*tmp__output = thisPtr->GetHandle()->GetFloatCurve(tmpname, arrayIdx);
@@ -248,7 +248,7 @@ void ScriptMaterial::InternalGetColor(ScriptMaterial* thisPtr, MonoString* name,
 
 MonoObject* ScriptMaterial::InternalGetColorGradient(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx)
 {
-	SPtr<ColorGradientHDR> tmp__output = bs_shared_ptr_new<ColorGradientHDR>();
+	SPtr<ColorGradientHDR> tmp__output = B3DMakeShared<ColorGradientHDR>();
 	String tmpname;
 	tmpname = MonoUtil::MonoToString(name);
 	*tmp__output = thisPtr->GetHandle()->GetColorGradient(tmpname, arrayIdx);

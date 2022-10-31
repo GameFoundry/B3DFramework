@@ -317,7 +317,7 @@ namespace bs
 		explicit TResourceHandle(T* ptr, const UUID& uuid)
 			: TResourceHandleBase<WeakHandle>()
 		{
-			this->mData = bs_shared_ptr_new<ResourceHandleData>();
+			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->AddRef();
 
 			this->SetHandleData(SPtr<Resource>(ptr), uuid);
@@ -330,7 +330,7 @@ namespace bs
 		 */
 		TResourceHandle(const UUID& uuid)
 		{
-			this->mData = bs_shared_ptr_new<ResourceHandleData>();
+			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->mData->MUuid = uuid;
 
 			this->AddRef();
@@ -339,7 +339,7 @@ namespace bs
 		/**	Constructs a new valid handle for the provided resource with the provided UUID. */
 		TResourceHandle(const SPtr<T> ptr, const UUID& uuid)
 		{
-			this->mData = bs_shared_ptr_new<ResourceHandleData>();
+			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->AddRef();
 
 			this->SetHandleData(ptr, uuid);

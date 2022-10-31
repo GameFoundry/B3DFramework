@@ -86,8 +86,8 @@ SPtr<ct::Decal> Decal::GetCore() const
 
 SPtr<Decal> Decal::Create(const HMaterial& material, const Vector2& size, float maxDistance)
 {
-	Decal* decal = new(bs_alloc<Decal>()) Decal(material, size, maxDistance);
-	SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
+	Decal* decal = new(B3DAllocate<Decal>()) Decal(material, size, maxDistance);
+	SPtr<Decal> decalPtr = B3DMakeCoreFromExisting<Decal>(decal);
 	decalPtr->SetThisPtrInternal(decalPtr);
 	decalPtr->Initialize();
 
@@ -96,8 +96,8 @@ SPtr<Decal> Decal::Create(const HMaterial& material, const Vector2& size, float 
 
 SPtr<Decal> Decal::CreateEmpty()
 {
-	Decal* decal = new(bs_alloc<Decal>()) Decal();
-	SPtr<Decal> decalPtr = bs_core_ptr<Decal>(decal);
+	Decal* decal = new(B3DAllocate<Decal>()) Decal();
+	SPtr<Decal> decalPtr = B3DMakeCoreFromExisting<Decal>(decal);
 	decalPtr->SetThisPtrInternal(decalPtr);
 
 	return decalPtr;
@@ -109,8 +109,8 @@ SPtr<ct::CoreObject> Decal::CreateCore() const
 	if(mMaterial.IsLoaded(false))
 		material = mMaterial->GetCore();
 
-	ct::Decal* decal = new(bs_alloc<ct::Decal>()) ct::Decal(material, mSize, mMaxDistance);
-	SPtr<ct::Decal> decalPtr = bs_shared_ptr<ct::Decal>(decal);
+	ct::Decal* decal = new(B3DAllocate<ct::Decal>()) ct::Decal(material, mSize, mMaxDistance);
+	SPtr<ct::Decal> decalPtr = B3DMakeSharedFromExisting<ct::Decal>(decal);
 	decalPtr->SetThisPtrInternal(decalPtr);
 
 	return decalPtr;

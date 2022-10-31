@@ -32,14 +32,14 @@ MonoObject* ScriptShadowSettings::Create(const SPtr<ShadowSettings>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, value);
+	new(B3DAllocate<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptShadowSettings::InternalShadowSettings(MonoObject* managedInstance)
 {
-	SPtr<ShadowSettings> instance = bs_shared_ptr_new<ShadowSettings>();
-	new(bs_alloc<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, instance);
+	SPtr<ShadowSettings> instance = B3DMakeShared<ShadowSettings>();
+	new(B3DAllocate<ScriptShadowSettings>()) ScriptShadowSettings(managedInstance, instance);
 }
 
 float ScriptShadowSettings::InternalGetDirectionalShadowDistance(ScriptShadowSettings* thisPtr)

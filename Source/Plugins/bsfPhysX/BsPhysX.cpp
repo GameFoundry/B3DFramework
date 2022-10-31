@@ -34,14 +34,14 @@ class PhysXAllocator : public PxAllocatorCallback
 public:
 	void* allocate(size_t size, const char*, const char*, int) override
 	{
-		void* ptr = bs_alloc_aligned16((u32)size);
+		void* ptr = B3DAllocateAligned16((u32)size);
 		PX_ASSERT((reinterpret_cast<size_t>(ptr) & 15) == 0);
 		return ptr;
 	}
 
 	void deallocate(void* ptr) override
 	{
-		bs_free_aligned16(ptr);
+		B3DFreeAligned16(ptr);
 	}
 };
 
@@ -709,17 +709,17 @@ void PhysX::TriggerEvents()
 
 SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
-	return bs_core_ptr_new<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
+	return B3DMakeCoreShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
 }
 
 SPtr<PhysicsMesh> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	return bs_core_ptr_new<PhysXMesh>(meshData, type);
+	return B3DMakeCoreShared<PhysXMesh>(meshData, type);
 }
 
 SPtr<PhysicsScene> PhysX::CreatePhysicsScene()
 {
-	SPtr<PhysXScene> scene = bs_shared_ptr_new<PhysXScene>(mPhysics, mInitDesc, mScale);
+	SPtr<PhysXScene> scene = B3DMakeShared<PhysXScene>(mPhysics, mInitDesc, mScale);
 	mScenes.push_back(scene.get());
 
 	return scene;
@@ -792,67 +792,67 @@ PhysXScene::~PhysXScene()
 
 SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
 {
-	return bs_shared_ptr_new<PhysXRigidbody>(mPhysics, mScene, linkedSO);
+	return B3DMakeShared<PhysXRigidbody>(mPhysics, mScene, linkedSO);
 }
 
 SPtr<BoxCollider> PhysXScene::CreateBoxCollider(const Vector3& extents, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<PhysXBoxCollider>(mPhysics, mScene, position, rotation, extents);
+	return B3DMakeShared<PhysXBoxCollider>(mPhysics, mScene, position, rotation, extents);
 }
 
 SPtr<SphereCollider> PhysXScene::CreateSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<PhysXSphereCollider>(mPhysics, mScene, position, rotation, radius);
+	return B3DMakeShared<PhysXSphereCollider>(mPhysics, mScene, position, rotation, radius);
 }
 
 SPtr<PlaneCollider> PhysXScene::CreatePlaneCollider(const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<PhysXPlaneCollider>(mPhysics, mScene, position, rotation);
+	return B3DMakeShared<PhysXPlaneCollider>(mPhysics, mScene, position, rotation);
 }
 
 SPtr<CapsuleCollider> PhysXScene::CreateCapsuleCollider(float radius, float halfHeight, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<PhysXCapsuleCollider>(mPhysics, mScene, position, rotation, radius, halfHeight);
+	return B3DMakeShared<PhysXCapsuleCollider>(mPhysics, mScene, position, rotation, radius, halfHeight);
 }
 
 SPtr<MeshCollider> PhysXScene::CreateMeshCollider(const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<PhysXMeshCollider>(mPhysics, mScene, position, rotation);
+	return B3DMakeShared<PhysXMeshCollider>(mPhysics, mScene, position, rotation);
 }
 
 SPtr<FixedJoint> PhysXScene::CreateFixedJoint(const FIXED_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXFixedJoint>(mPhysics, desc);
+	return B3DMakeShared<PhysXFixedJoint>(mPhysics, desc);
 }
 
 SPtr<DistanceJoint> PhysXScene::CreateDistanceJoint(const DISTANCE_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXDistanceJoint>(mPhysics, desc);
+	return B3DMakeShared<PhysXDistanceJoint>(mPhysics, desc);
 }
 
 SPtr<HingeJoint> PhysXScene::CreateHingeJoint(const HINGE_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXHingeJoint>(mPhysics, desc);
+	return B3DMakeShared<PhysXHingeJoint>(mPhysics, desc);
 }
 
 SPtr<SphericalJoint> PhysXScene::CreateSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXSphericalJoint>(mPhysics, desc);
+	return B3DMakeShared<PhysXSphericalJoint>(mPhysics, desc);
 }
 
 SPtr<SliderJoint> PhysXScene::CreateSliderJoint(const SLIDER_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXSliderJoint>(mPhysics, desc);
+	return B3DMakeShared<PhysXSliderJoint>(mPhysics, desc);
 }
 
 SPtr<D6Joint> PhysXScene::CreateD6Joint(const D6_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXD6Joint>(mPhysics, desc);
+	return B3DMakeShared<PhysXD6Joint>(mPhysics, desc);
 }
 
 SPtr<CharacterController> PhysXScene::CreateCharacterController(const CHAR_CONTROLLER_DESC& desc)
 {
-	return bs_shared_ptr_new<PhysXCharacterController>(mCharManager, desc);
+	return B3DMakeShared<PhysXCharacterController>(mCharManager, desc);
 }
 
 Vector<PhysicsQueryHit> PhysXScene::SweepAll(const PxGeometry& geometry, const PxTransform& tfrm, const Vector3& unitDir, u64 layer, float maxDist) const

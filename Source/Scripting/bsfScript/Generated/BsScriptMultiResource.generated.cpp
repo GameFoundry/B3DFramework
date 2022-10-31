@@ -30,14 +30,14 @@ MonoObject* ScriptMultiResource::Create(const SPtr<MultiResource>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, value);
+	new(B3DAllocate<ScriptMultiResource>()) ScriptMultiResource(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptMultiResource::InternalMultiResource(MonoObject* managedInstance)
 {
-	SPtr<MultiResource> instance = bs_shared_ptr_new<MultiResource>();
-	new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
+	SPtr<MultiResource> instance = B3DMakeShared<MultiResource>();
+	new(B3DAllocate<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
 }
 
 void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries)
@@ -52,8 +52,8 @@ void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, Mo
 			vecentries[i] = ScriptSubResource::FromInterop(arrayentries.Get<__SubResourceInterop>(i));
 		}
 	}
-	SPtr<MultiResource> instance = bs_shared_ptr_new<MultiResource>(vecentries);
-	new(bs_alloc<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
+	SPtr<MultiResource> instance = B3DMakeShared<MultiResource>(vecentries);
+	new(B3DAllocate<ScriptMultiResource>()) ScriptMultiResource(managedInstance, instance);
 }
 
 MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* thisPtr)

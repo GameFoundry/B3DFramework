@@ -7,7 +7,7 @@ using namespace bs;
 
 SPtr<AudioClipImportOptions> AudioClipImportOptions::Create()
 {
-	return bs_shared_ptr_new<AudioClipImportOptions>();
+	return B3DMakeShared<AudioClipImportOptions>();
 }
 
 /************************************************************************/

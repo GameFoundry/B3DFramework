@@ -15,8 +15,8 @@ using namespace bs;
 GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions, GUIElementOptions options)
 	: GUIElement(styleName, dimensions, options), mContent(content)
 {
-	mImageSprite = bs_new<ImageSprite>();
-	mTextSprite = bs_new<TextSprite>();
+	mImageSprite = B3DNew<ImageSprite>();
+	mTextSprite = B3DNew<TextSprite>();
 
 	mImageDesc.AnimationStartTime = GetTime().GetTime();
 	mContentAnimationStartTime = mImageDesc.AnimationStartTime;
@@ -26,11 +26,11 @@ GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content,
 
 GUIButtonBase::~GUIButtonBase()
 {
-	bs_delete(mTextSprite);
-	bs_delete(mImageSprite);
+	B3DDelete(mTextSprite);
+	B3DDelete(mImageSprite);
 
 	if(mContentImageSprite != nullptr)
-		bs_delete(mContentImageSprite);
+		B3DDelete(mContentImageSprite);
 }
 
 void GUIButtonBase::SetContent(const GUIContent& content)
@@ -352,13 +352,13 @@ void GUIButtonBase::RefreshContentSprite()
 	if(SpriteTexture::CheckIsLoaded(contentTex))
 	{
 		if(mContentImageSprite == nullptr)
-			mContentImageSprite = bs_new<ImageSprite>();
+			mContentImageSprite = B3DNew<ImageSprite>();
 	}
 	else
 	{
 		if(mContentImageSprite != nullptr)
 		{
-			bs_delete(mContentImageSprite);
+			B3DDelete(mContentImageSprite);
 			mContentImageSprite = nullptr;
 		}
 	}

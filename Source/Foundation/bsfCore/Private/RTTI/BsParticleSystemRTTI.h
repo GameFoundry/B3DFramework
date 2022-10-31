@@ -46,7 +46,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterConeShape>();
+			return B3DMakeShared<ParticleEmitterConeShape>();
 		}
 	};
 
@@ -72,7 +72,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterSphereShape>();
+			return B3DMakeShared<ParticleEmitterSphereShape>();
 		}
 	};
 
@@ -98,7 +98,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterHemisphereShape>();
+			return B3DMakeShared<ParticleEmitterHemisphereShape>();
 		}
 	};
 
@@ -124,7 +124,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterBoxShape>();
+			return B3DMakeShared<ParticleEmitterBoxShape>();
 		}
 	};
 
@@ -152,7 +152,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterLineShape>();
+			return B3DMakeShared<ParticleEmitterLineShape>();
 		}
 	};
 
@@ -182,7 +182,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterCircleShape>();
+			return B3DMakeShared<ParticleEmitterCircleShape>();
 		}
 	};
 
@@ -207,7 +207,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterRectShape>();
+			return B3DMakeShared<ParticleEmitterRectShape>();
 		}
 	};
 
@@ -234,7 +234,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterStaticMeshShape>();
+			return B3DMakeShared<ParticleEmitterStaticMeshShape>();
 		}
 	};
 
@@ -260,7 +260,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitterSkinnedMeshShape>();
+			return B3DMakeShared<ParticleEmitterSkinnedMeshShape>();
 		}
 	};
 
@@ -365,7 +365,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleEmitter>();
+			return B3DMakeShared<ParticleEmitter>();
 		}
 	};
 
@@ -391,7 +391,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleTextureAnimation>();
+			return B3DMakeShared<ParticleTextureAnimation>();
 		}
 	};
 
@@ -419,7 +419,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleOrbit>();
+			return B3DMakeShared<ParticleOrbit>();
 		}
 	};
 
@@ -445,7 +445,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ParticleVelocity>();
+			return B3DMakeShared<ParticleVelocity>();
 		}
 	};
 
@@ -471,7 +471,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleForce>();
+			return B3DMakeShared<ParticleForce>();
 		}
 	};
 
@@ -496,7 +496,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleGravity>();
+			return B3DMakeShared<ParticleGravity>();
 		}
 	};
 
@@ -521,7 +521,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleColor>();
+			return B3DMakeShared<ParticleColor>();
 		}
 	};
 
@@ -548,7 +548,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleSize>();
+			return B3DMakeShared<ParticleSize>();
 		}
 	};
 
@@ -575,7 +575,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleRotation>();
+			return B3DMakeShared<ParticleRotation>();
 		}
 	};
 
@@ -605,7 +605,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleCollisions>();
+			return B3DMakeShared<ParticleCollisions>();
 		}
 	};
 
@@ -639,7 +639,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleVectorFieldSettings>();
+			return B3DMakeShared<ParticleVectorFieldSettings>();
 		}
 	};
 
@@ -667,7 +667,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleDepthCollisionSettings>();
+			return B3DMakeShared<ParticleDepthCollisionSettings>();
 		}
 	};
 
@@ -697,7 +697,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleGpuSimulationSettings>();
+			return B3DMakeShared<ParticleGpuSimulationSettings>();
 		}
 	};
 
@@ -737,7 +737,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ParticleSystemSettings>();
+			return B3DMakeShared<ParticleSystemSettings>();
 		}
 	};
 

@@ -13,14 +13,14 @@ bool VideoMode::operator==(const VideoMode& other) const
 VideoOutputInfo::~VideoOutputInfo()
 {
 	for(auto& videoMode : mVideoModes)
-		bs_delete(videoMode);
+		B3DDelete(videoMode);
 
 	if(mDesktopVideoMode != nullptr)
-		bs_delete(mDesktopVideoMode);
+		B3DDelete(mDesktopVideoMode);
 }
 
 VideoModeInfo::~VideoModeInfo()
 {
 	for(auto& output : mOutputs)
-		bs_delete(output);
+		B3DDelete(output);
 }

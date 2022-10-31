@@ -17,14 +17,14 @@ struct Gamepad::Pimpl
 Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->hid = gamepadInfo.hid;
 	m->ref = gamepadInfo.deviceRef;
 }
 
 Gamepad::~Gamepad()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Gamepad::capture()

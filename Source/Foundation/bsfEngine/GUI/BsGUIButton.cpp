@@ -28,12 +28,12 @@ GUIButton* GUIButton::Create(const HString& text, const GUIOptions& options, con
 
 GUIButton* GUIButton::Create(const GUIContent& content, const String& styleName)
 {
-	return new(bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create());
+	return new(B3DAllocate<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create());
 }
 
 GUIButton* GUIButton::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create(options));
 }
 
 bool GUIButton::CommandEventInternal(const GUICommandEvent& ev)

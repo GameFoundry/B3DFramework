@@ -272,12 +272,12 @@ void ParticleEmitterConeShape::GetPointInCone(const Vector2& pos2D, float distan
 
 SPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::Create(const PARTICLE_CONE_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterConeShape>(desc);
+	return B3DMakeShared<ParticleEmitterConeShape>(desc);
 }
 
 SPtr<ParticleEmitterConeShape> ParticleEmitterConeShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterConeShape>();
+	return B3DMakeShared<ParticleEmitterConeShape>();
 }
 
 void ParticleEmitterConeShape::CalcBounds(AABox& shape, AABox& velocity) const
@@ -341,12 +341,12 @@ void ParticleEmitterSphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterSphereShape>(desc);
+	return B3DMakeShared<ParticleEmitterSphereShape>(desc);
 }
 
 SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterSphereShape>();
+	return B3DMakeShared<ParticleEmitterSphereShape>();
 }
 
 RTTITypeBase* ParticleEmitterSphereShape::GetRttiStatic()
@@ -389,12 +389,12 @@ void ParticleEmitterHemisphereShape::CalcBounds(AABox& shape, AABox& velocity) c
 
 SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterHemisphereShape>(desc);
+	return B3DMakeShared<ParticleEmitterHemisphereShape>(desc);
 }
 
 SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterHemisphereShape>();
+	return B3DMakeShared<ParticleEmitterHemisphereShape>();
 }
 
 RTTITypeBase* ParticleEmitterHemisphereShape::GetRttiStatic()
@@ -562,12 +562,12 @@ void ParticleEmitterBoxShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create(const PARTICLE_BOX_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterBoxShape>(desc);
+	return B3DMakeShared<ParticleEmitterBoxShape>(desc);
 }
 
 SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterBoxShape>();
+	return B3DMakeShared<ParticleEmitterBoxShape>();
 }
 
 RTTITypeBase* ParticleEmitterBoxShape::GetRttiStatic()
@@ -612,12 +612,12 @@ void ParticleEmitterLineShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create(const PARTICLE_LINE_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterLineShape>(desc);
+	return B3DMakeShared<ParticleEmitterLineShape>(desc);
 }
 
 SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterLineShape>();
+	return B3DMakeShared<ParticleEmitterLineShape>();
 }
 
 RTTITypeBase* ParticleEmitterLineShape::GetRttiStatic()
@@ -670,12 +670,12 @@ void ParticleEmitterCircleShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterCircleShape>(desc);
+	return B3DMakeShared<ParticleEmitterCircleShape>(desc);
 }
 
 SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterCircleShape>();
+	return B3DMakeShared<ParticleEmitterCircleShape>();
 }
 
 RTTITypeBase* ParticleEmitterCircleShape::GetRttiStatic()
@@ -717,12 +717,12 @@ void ParticleEmitterRectShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create(const PARTICLE_RECT_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterRectShape>(desc);
+	return B3DMakeShared<ParticleEmitterRectShape>(desc);
 }
 
 SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterRectShape>();
+	return B3DMakeShared<ParticleEmitterRectShape>();
 }
 
 RTTITypeBase* ParticleEmitterRectShape::GetRttiStatic()
@@ -1041,12 +1041,12 @@ void ParticleEmitterStaticMeshShape::CalcBounds(AABox& shape, AABox& velocity) c
 
 SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterStaticMeshShape>(desc);
+	return B3DMakeShared<ParticleEmitterStaticMeshShape>(desc);
 }
 
 SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterStaticMeshShape>();
+	return B3DMakeShared<ParticleEmitterStaticMeshShape>();
 }
 
 RTTITypeBase* ParticleEmitterStaticMeshShape::GetRttiStatic()
@@ -1213,12 +1213,12 @@ void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) 
 
 SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleEmitterSkinnedMeshShape>(desc);
+	return B3DMakeShared<ParticleEmitterSkinnedMeshShape>(desc);
 }
 
 SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitterSkinnedMeshShape>();
+	return B3DMakeShared<ParticleEmitterSkinnedMeshShape>();
 }
 
 RTTITypeBase* ParticleEmitterSkinnedMeshShape::GetRttiStatic()
@@ -1430,7 +1430,7 @@ u32 ParticleEmitter::Spawn(u32 count, Random& random, const ParticleSystemState&
 
 SPtr<ParticleEmitter> ParticleEmitter::Create()
 {
-	return bs_shared_ptr_new<ParticleEmitter>();
+	return B3DMakeShared<ParticleEmitter>();
 }
 
 RTTITypeBase* ParticleEmitter::GetRttiStatic()

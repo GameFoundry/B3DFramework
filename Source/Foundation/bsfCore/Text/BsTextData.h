@@ -357,14 +357,14 @@ namespace bs
 			u32 totalBufferSize = 0;
 			GeneratePersistentData(text, nullptr, totalBufferSize);
 
-			mData = (u8*)bs_alloc<Alloc>(totalBufferSize);
+			mData = (u8*)B3DAllocate<Alloc>(totalBufferSize);
 			GeneratePersistentData(text, (u8*)mData, totalBufferSize);
 		}
 
 		~TextData()
 		{
 			if(mData != nullptr)
-				bs_free<Alloc>(mData);
+				B3DFree<Alloc>(mData);
 		}
 
 	private:

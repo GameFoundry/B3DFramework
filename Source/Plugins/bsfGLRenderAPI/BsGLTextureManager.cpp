@@ -14,9 +14,9 @@ GLTextureManager::GLTextureManager(ct::GLSupport& support)
 
 SPtr<RenderTexture> GLTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 {
-	GLRenderTexture* tex = new(bs_alloc<GLRenderTexture>()) GLRenderTexture(desc);
+	GLRenderTexture* tex = new(B3DAllocate<GLRenderTexture>()) GLRenderTexture(desc);
 
-	return bs_core_ptr<GLRenderTexture>(tex);
+	return B3DMakeCoreFromExisting<GLRenderTexture>(tex);
 }
 
 PixelFormat GLTextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
@@ -35,9 +35,9 @@ GLTextureManager::GLTextureManager(GLSupport& support)
 
 SPtr<Texture> GLTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
-	GLTexture* tex = new(bs_alloc<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
+	GLTexture* tex = new(B3DAllocate<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
 
-	SPtr<GLTexture> texPtr = bs_shared_ptr<GLTexture>(tex);
+	SPtr<GLTexture> texPtr = B3DMakeSharedFromExisting<GLTexture>(tex);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;
@@ -45,7 +45,7 @@ SPtr<Texture> GLTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, 
 
 SPtr<RenderTexture> GLTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
 {
-	SPtr<GLRenderTexture> texPtr = bs_shared_ptr_new<GLRenderTexture>(desc, deviceIdx);
+	SPtr<GLRenderTexture> texPtr = B3DMakeShared<GLRenderTexture>(desc, deviceIdx);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;

@@ -319,7 +319,7 @@ Vector<float> PixelData::GetDepths() const
 
 SPtr<PixelData> PixelData::Create(const PixelVolume& extents, PixelFormat pixelFormat)
 {
-	SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(extents, pixelFormat);
+	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(extents, pixelFormat);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;
@@ -327,7 +327,7 @@ SPtr<PixelData> PixelData::Create(const PixelVolume& extents, PixelFormat pixelF
 
 SPtr<PixelData> PixelData::Create(u32 width, u32 height, u32 depth, PixelFormat pixelFormat)
 {
-	SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, pixelFormat);
+	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, depth, pixelFormat);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;

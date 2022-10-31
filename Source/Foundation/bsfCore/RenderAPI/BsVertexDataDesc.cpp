@@ -34,7 +34,7 @@ Vector<VertexElement> VertexDataDesc::CreateElements() const
 	u32 maxStreamIdx = GetMaxStreamIdx();
 
 	u32 numStreams = maxStreamIdx + 1;
-	u32* streamOffsets = bs_newN<u32>(numStreams);
+	u32* streamOffsets = B3DNewMultiple<u32>(numStreams);
 	for(u32 i = 0; i < numStreams; i++)
 		streamOffsets[i] = 0;
 
@@ -48,7 +48,7 @@ Vector<VertexElement> VertexDataDesc::CreateElements() const
 		streamOffsets[streamIdx] += vertElem.GetSize();
 	}
 
-	bs_deleteN(streamOffsets, numStreams);
+	B3DDeleteMultiple(streamOffsets, numStreams);
 
 	return declarationElements;
 }
@@ -181,7 +181,7 @@ void VertexDataDesc::ClearIfItExists(VertexElementType type, VertexElementSemant
 
 SPtr<VertexDataDesc> VertexDataDesc::Create()
 {
-	return bs_shared_ptr_new<VertexDataDesc>();
+	return B3DMakeShared<VertexDataDesc>();
 }
 
 /************************************************************************/

@@ -67,7 +67,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ShaderImportOptions>();
+			return B3DMakeShared<ShaderImportOptions>();
 		}
 
 	private:

@@ -36,14 +36,14 @@ MonoObject* ScriptShaderVariation::Create(const SPtr<ShaderVariation>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, value);
+	new(B3DAllocate<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptShaderVariation::InternalShaderVariation(MonoObject* managedInstance)
 {
-	SPtr<ShaderVariation> instance = bs_shared_ptr_new<ShaderVariation>();
-	new(bs_alloc<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, instance);
+	SPtr<ShaderVariation> instance = B3DMakeShared<ShaderVariation>();
+	new(B3DAllocate<ScriptShaderVariation>()) ScriptShaderVariation(managedInstance, instance);
 }
 
 int32_t ScriptShaderVariation::InternalGetInt(ScriptShaderVariation* thisPtr, MonoString* name)

@@ -18,8 +18,8 @@ HPlainText PlainText::Create(const WString& data)
 
 SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)
 {
-	SPtr<PlainText> plainTextPtr = bs_core_ptr<PlainText>(
-		new(bs_alloc<PlainText>()) PlainText(data));
+	SPtr<PlainText> plainTextPtr = B3DMakeCoreFromExisting<PlainText>(
+		new(B3DAllocate<PlainText>()) PlainText(data));
 	plainTextPtr->SetThisPtrInternal(plainTextPtr);
 	plainTextPtr->Initialize();
 

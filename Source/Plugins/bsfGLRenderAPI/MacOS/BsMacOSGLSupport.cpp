@@ -14,7 +14,7 @@ SPtr<bs::RenderWindow> MacOSGLSupport::newWindow(
 	u32 windowId,
 	SPtr<bs::RenderWindow> parentWindow)
 {
-	bs::MacOSRenderWindow* window = new(bs_alloc<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
+	bs::MacOSRenderWindow* window = new(B3DAllocate<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
 	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
 }
 
@@ -34,7 +34,7 @@ SPtr<MacOSContext> MacOSGLSupport::createContext(bool depthStencil, u32 msaaCoun
 
 	// If RenderAPI has initialized a context use that, otherwise we create our own
 	if(!rapi->IsContextInitializedInternal())
-		return bs_shared_ptr_new<MacOSContext>(depthStencil, msaaCount);
+		return B3DMakeShared<MacOSContext>(depthStencil, msaaCount);
 	else
 	{
 		SPtr<GLContext> context = rapi->GetMainContextInternal();
@@ -57,5 +57,5 @@ void* MacOSGLSupport::getProcAddress(const String& procname)
 
 SPtr<VideoModeInfo> MacOSGLSupport::getVideoModeInfo() const
 {
-	return bs_shared_ptr_new<MacOSVideoModeInfo>();
+	return B3DMakeShared<MacOSVideoModeInfo>();
 }::ct

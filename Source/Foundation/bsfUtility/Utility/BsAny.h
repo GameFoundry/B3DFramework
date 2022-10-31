@@ -35,7 +35,7 @@ namespace bs
 
 			DataBase* Clone() const override
 			{
-				return bs_new<Data>(Data(Value));
+				return B3DNew<Data>(Data(Value));
 			}
 
 			ValueType Value;
@@ -46,7 +46,7 @@ namespace bs
 
 		template <typename ValueType>
 		Any(const ValueType& value)
-			: mData(bs_new<Data<ValueType>>(value))
+			: mData(B3DNew<Data<ValueType>>(value))
 		{}
 
 		Any(std::nullptr_t)
@@ -60,7 +60,7 @@ namespace bs
 		~Any()
 		{
 			if(mData != nullptr)
-				bs_delete(mData);
+				B3DDelete(mData);
 		}
 
 		/** Swaps the contents of this object with another. */

@@ -31,7 +31,7 @@ const String& GUIScrollBar::GetVScrollHandleType()
 GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUIDimensions& dimensions)
 	: GUIElement(styleName, dimensions), mHorizontal(horizontal)
 {
-	mImageSprite = bs_new<ImageSprite>();
+	mImageSprite = B3DNew<ImageSprite>();
 
 	GUISliderHandleFlags flags;
 	if(resizable)
@@ -82,7 +82,7 @@ GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleN
 
 GUIScrollBar::~GUIScrollBar()
 {
-	bs_delete(mImageSprite);
+	B3DDelete(mImageSprite);
 
 	GUIElement::Destroy(mUpBtn);
 	GUIElement::Destroy(mDownBtn);

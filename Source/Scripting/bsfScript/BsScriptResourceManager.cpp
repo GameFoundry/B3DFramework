@@ -34,7 +34,7 @@ ScriptManagedResource* ScriptResourceManager::CreateManagedScriptResource(const 
 	ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
-	ScriptManagedResource* scriptResource = new(bs_alloc<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
+	ScriptManagedResource* scriptResource = new(B3DAllocate<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
 	mScriptResources[uuid] = scriptResource;
 
 	return scriptResource;

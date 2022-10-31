@@ -30,7 +30,7 @@ MonoObject* ScriptParticleTextureAnimation::Create(const SPtr<ParticleTextureAni
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, value);
+	new(B3DAllocate<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, value);
 	return managedInstance;
 }
 
@@ -50,11 +50,11 @@ void ScriptParticleTextureAnimation::InternalGetOptions(ScriptParticleTextureAni
 void ScriptParticleTextureAnimation::InternalCreate(MonoObject* managedInstance, PARTICLE_TEXTURE_ANIMATION_DESC* desc)
 {
 	SPtr<ParticleTextureAnimation> instance = ParticleTextureAnimation::Create(*desc);
-	new(bs_alloc<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, instance);
 }
 
 void ScriptParticleTextureAnimation::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleTextureAnimation> instance = ParticleTextureAnimation::Create();
-	new(bs_alloc<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, instance);
 }

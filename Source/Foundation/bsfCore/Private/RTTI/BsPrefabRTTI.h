@@ -45,7 +45,7 @@ namespace bs
 			// the invalid external references could cause it to match invalid objects in case they end up having the
 			// same ID.
 			BS_ASSERT(!coreContext->GoState);
-			coreContext->GoState = bs_shared_ptr_new<GameObjectDeserializationState>(GODM_BreakExternal | GODM_UseNewIds);
+			coreContext->GoState = B3DMakeShared<GameObjectDeserializationState>(GODM_BreakExternal | GODM_UseNewIds);
 		}
 
 		const String& GetRttiName()

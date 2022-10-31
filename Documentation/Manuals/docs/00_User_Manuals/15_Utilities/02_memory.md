@@ -4,9 +4,9 @@ title: Memory allocation
 
 When allocating memory in bs::f it is prefered (but not required) to use bs::f allocator functions instead of the standard *new* / *delete* operators or *malloc* / *free*.
 
-- Use @bs::bs_new instead of *new* and @bs::bs_delete instead of *delete*.
-- Use @bs::bs_newN instead of *new[]* and @bs::bs_deleteN instead of *delete[]*.
-- Use @bs::bs_alloc instead of *malloc* and @bs::bs_free instead of *free*.
+- Use @bs::B3DNew instead of *new* and @bs::B3DDelete instead of *delete*.
+- Use @bs::B3DNewMultiple instead of *new[]* and @bs::B3DDeleteMultiple instead of *delete[]*.
+- Use @bs::B3DAllocate instead of *malloc* and @bs::B3DFree instead of *free*.
 
 This ensures the bs::f can keep track of all allocated memory, which ensures better debugging and profiling, as well as ensuring that internal memory allocation method can be changed in the future.
 
@@ -33,11 +33,11 @@ delete[] ptrArray;
 free(rawMem);
 
 // Allocating memory the bs::f way
-MyStruct* bsPtr = bs_new<MyStruct>(123, false);
-MyStruct** bsPtrArray = bs_newN<MyStruct>(5);
-void* bsRawMem = bs_alloc(12);
+MyStruct* bsPtr = B3DNew<MyStruct>(123, false);
+MyStruct** bsPtrArray = B3DNewMultiple<MyStruct>(5);
+void* bsRawMem = B3DAllocate(12);
 
-bs_delete(bsPtr);
-bs_deleteN(bsPtrArray, 5);
-bs_free(bsRawMem);
+B3DDelete(bsPtr);
+B3DDeleteMultiple(bsPtrArray, 5);
+B3DFree(bsRawMem);
 ~~~~~~~~~~~~~

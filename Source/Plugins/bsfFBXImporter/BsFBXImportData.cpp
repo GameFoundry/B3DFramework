@@ -7,14 +7,14 @@ using namespace bs;
 FBXImportNode::~FBXImportNode()
 {
 	for(auto& child : Children)
-		bs_delete(child);
+		B3DDelete(child);
 }
 
 FBXImportScene::~FBXImportScene()
 {
 	if(RootNode != nullptr)
-		bs_delete(RootNode);
+		B3DDelete(RootNode);
 
 	for(auto& mesh : Meshes)
-		bs_delete(mesh);
+		B3DDelete(mesh);
 }

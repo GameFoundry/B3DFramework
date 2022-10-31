@@ -50,7 +50,7 @@ namespace bs::ct
 		attributes[attrIdx] = 0;
 
 		NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
-		m = bs_new<Pimpl>();
+		m = B3DNew<Pimpl>();
 		m->context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
 
 		if(!m->context)
@@ -61,7 +61,7 @@ namespace bs::ct
 
 	MacOSContext::~MacOSContext()
 	{
-		bs_delete(m);
+		B3DDelete(m);
 	}
 
 	void MacOSContext::setCurrent(const RenderWindow& renderWindow)

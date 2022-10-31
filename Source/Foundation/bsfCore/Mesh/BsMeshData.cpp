@@ -68,7 +68,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		totalIndexCount += meshData->GetNumIndices();
 	}
 
-	SPtr<VertexDataDesc> vertexData = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> vertexData = B3DMakeShared<VertexDataDesc>();
 
 	Vector<VertexElement> combinedVertexElements;
 	for(auto& meshData : meshes)
@@ -104,7 +104,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		}
 	}
 
-	SPtr<MeshData> combinedMeshData = bs_shared_ptr_new<MeshData>(totalVertexCount, totalIndexCount, vertexData);
+	SPtr<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexData);
 
 	// Copy indices
 	u32 vertexOffset = 0;

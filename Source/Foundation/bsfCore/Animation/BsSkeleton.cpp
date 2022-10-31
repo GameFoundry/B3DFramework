@@ -13,7 +13,7 @@ LocalSkeletonPose::LocalSkeletonPose(u32 numBones, bool individualOverride)
 	const u32 overridesPerBone = individualOverride ? 3 : 1;
 
 	u32 elementSize = sizeof(Vector3) * 2 + sizeof(Quaternion) + sizeof(bool) * overridesPerBone;
-	u8* buffer = (u8*)bs_alloc(elementSize * numBones);
+	u8* buffer = (u8*)B3DAllocate(elementSize * numBones);
 
 	Positions = (Vector3*)buffer;
 	buffer += sizeof(Vector3) * numBones;
@@ -30,7 +30,7 @@ LocalSkeletonPose::LocalSkeletonPose(u32 numBones, bool individualOverride)
 LocalSkeletonPose::LocalSkeletonPose(u32 numPos, u32 numRot, u32 numScale)
 {
 	u32 bufferSize = sizeof(Vector3) * numPos + sizeof(Quaternion) * numRot + sizeof(Vector3) * numScale;
-	u8* buffer = (u8*)bs_alloc(bufferSize);
+	u8* buffer = (u8*)B3DAllocate(bufferSize);
 
 	Positions = (Vector3*)buffer;
 	buffer += sizeof(Vector3) * numPos;
@@ -52,7 +52,7 @@ LocalSkeletonPose::LocalSkeletonPose(LocalSkeletonPose&& other)
 LocalSkeletonPose::~LocalSkeletonPose()
 {
 	if(Positions != nullptr)
-		bs_free(Positions);
+		B3DFree(Positions);
 }
 
 LocalSkeletonPose& LocalSkeletonPose::operator=(LocalSkeletonPose&& other)
@@ -60,7 +60,7 @@ LocalSkeletonPose& LocalSkeletonPose::operator=(LocalSkeletonPose&& other)
 	if(this != &other)
 	{
 		if(Positions != nullptr)
-			bs_free(Positions);
+			B3DFree(Positions);
 
 		Positions = std::exchange(other.Positions, nullptr);
 		Rotations = std::exchange(other.Rotations, nullptr);
@@ -73,7 +73,7 @@ LocalSkeletonPose& LocalSkeletonPose::operator=(LocalSkeletonPose&& other)
 }
 
 Skeleton::Skeleton(BONE_DESC* bones, u32 numBones)
-	: mNumBones(numBones), mBoneTransforms(bs_newN<Transform>(numBones)), mInvBindPoses(bs_newN<Matrix4>(numBones)), mBoneInfo(bs_newN<SkeletonBoneInfo>(numBones))
+	: mNumBones(numBones), mBoneTransforms(B3DNewMultiple<Transform>(numBones)), mInvBindPoses(B3DNewMultiple<Matrix4>(numBones)), mBoneInfo(B3DNewMultiple<SkeletonBoneInfo>(numBones))
 {
 	for(u32 i = 0; i < numBones; i++)
 	{
@@ -87,20 +87,20 @@ Skeleton::Skeleton(BONE_DESC* bones, u32 numBones)
 Skeleton::~Skeleton()
 {
 	if(mBoneTransforms != nullptr)
-		bs_deleteN(mBoneTransforms, mNumBones);
+		B3DDeleteMultiple(mBoneTransforms, mNumBones);
 
 	if(mInvBindPoses != nullptr)
-		bs_deleteN(mInvBindPoses, mNumBones);
+		B3DDeleteMultiple(mInvBindPoses, mNumBones);
 
 	if(mBoneInfo != nullptr)
-		bs_deleteN(mBoneInfo, mNumBones);
+		B3DDeleteMultiple(mBoneInfo, mNumBones);
 }
 
 SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, u32 numBones)
 {
-	Skeleton* rawPtr = new(bs_alloc<Skeleton>()) Skeleton(bones, numBones);
+	Skeleton* rawPtr = new(B3DAllocate<Skeleton>()) Skeleton(bones, numBones);
 
-	return bs_shared_ptr<Skeleton>(rawPtr);
+	return B3DMakeSharedFromExisting<Skeleton>(rawPtr);
 }
 
 void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop)
@@ -348,9 +348,9 @@ u32 Skeleton::GetRootBoneIndex() const
 
 SPtr<Skeleton> Skeleton::CreateEmpty()
 {
-	Skeleton* rawPtr = new(bs_alloc<Skeleton>()) Skeleton();
+	Skeleton* rawPtr = new(B3DAllocate<Skeleton>()) Skeleton();
 
-	SPtr<Skeleton> newSkeleton = bs_shared_ptr<Skeleton>(rawPtr);
+	SPtr<Skeleton> newSkeleton = B3DMakeSharedFromExisting<Skeleton>(rawPtr);
 	return newSkeleton;
 }
 

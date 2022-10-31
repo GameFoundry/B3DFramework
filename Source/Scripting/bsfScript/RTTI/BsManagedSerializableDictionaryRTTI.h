@@ -56,7 +56,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ManagedSerializableDictionaryKeyValue>();
+			return B3DMakeShared<ManagedSerializableDictionaryKeyValue>();
 		}
 	};
 

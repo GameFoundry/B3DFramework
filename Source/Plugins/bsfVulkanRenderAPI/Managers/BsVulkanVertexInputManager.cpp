@@ -185,7 +185,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vbDecl, con
 	pair.BufferDeclId = vbDecl->GetId();
 	pair.ShaderDeclId = shaderInputDecl->GetId();
 
-	newEntry.VertexInput = bs_shared_ptr_new<VulkanVertexInput>(mNextId++, vertexInputCI);
+	newEntry.VertexInput = B3DMakeShared<VulkanVertexInput>(mNextId++, vertexInputCI);
 	newEntry.LastUsedIdx = ++mLastUsedCounter;
 
 	mVertexInputMap[pair] = std::move(newEntry);

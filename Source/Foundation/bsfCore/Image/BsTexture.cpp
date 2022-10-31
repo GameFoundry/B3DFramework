@@ -57,7 +57,7 @@ SPtr<PixelData> TextureProperties::AllocBuffer(u32 face, u32 mipLevel) const
 		if(depth != 1) depth /= 2;
 	}
 
-	SPtr<PixelData> dst = bs_shared_ptr_new<PixelData>(width, height, depth, GetFormat());
+	SPtr<PixelData> dst = B3DMakeShared<PixelData>(width, height, depth, GetFormat());
 	dst->AllocateInternalBuffer();
 
 	return dst;
@@ -251,7 +251,7 @@ void Texture::CreateCpuBuffers()
 		{
 			u32 subresourceIdx = mProperties.MapToSubresourceIdx(i, j);
 
-			mCPUSubresourceData[subresourceIdx] = bs_shared_ptr_new<PixelData>(curWidth, curHeight, curDepth, mProperties.GetFormat());
+			mCPUSubresourceData[subresourceIdx] = B3DMakeShared<PixelData>(curWidth, curHeight, curDepth, mProperties.GetFormat());
 			mCPUSubresourceData[subresourceIdx]->AllocateInternalBuffer();
 
 			if(curWidth > 1)
@@ -548,7 +548,7 @@ void Texture::ClearImpl(const Color& value, u32 mipLevel, u32 face, u32 queueIdx
 
 SPtr<TextureView> Texture::CreateView(const TEXTURE_VIEW_DESC& desc)
 {
-	return bs_shared_ptr<TextureView>(new(bs_alloc<TextureView>()) TextureView(desc));
+	return B3DMakeSharedFromExisting<TextureView>(new(B3DAllocate<TextureView>()) TextureView(desc));
 }
 
 void Texture::ClearBufferViews()

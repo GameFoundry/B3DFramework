@@ -11,7 +11,7 @@ using namespace bs;
 GUIInputSelection::~GUIInputSelection()
 {
 	for(auto& sprite : mSprites)
-		bs_delete(sprite);
+		B3DDelete(sprite);
 }
 
 void GUIInputSelection::UpdateSprite()
@@ -23,7 +23,7 @@ void GUIInputSelection::UpdateSprite()
 	if(diff > 0)
 	{
 		for(u32 i = (u32)mSelectionRects.size(); i < (u32)mSprites.size(); i++)
-			bs_delete(mSprites[i]);
+			B3DDelete(mSprites[i]);
 
 		mSprites.erase(mSprites.begin() + mSelectionRects.size(), mSprites.end());
 	}
@@ -31,7 +31,7 @@ void GUIInputSelection::UpdateSprite()
 	{
 		for(i32 i = diff; i < 0; i++)
 		{
-			ImageSprite* newSprite = bs_new<ImageSprite>();
+			ImageSprite* newSprite = B3DNew<ImageSprite>();
 			mSprites.push_back(newSprite);
 		}
 	}
@@ -182,7 +182,7 @@ void GUIInputSelection::ShowSelection(u32 anchorCaretPos)
 void GUIInputSelection::ClearSelectionVisuals()
 {
 	for(auto& sprite : mSprites)
-		bs_delete(sprite);
+		B3DDelete(sprite);
 
 	mSprites.clear();
 }

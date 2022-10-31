@@ -33,7 +33,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr<VertexDataDesc>(new(bs_alloc<VertexDataDesc>()) VertexDataDesc());
+			return B3DMakeSharedFromExisting<VertexDataDesc>(new(B3DAllocate<VertexDataDesc>()) VertexDataDesc());
 		}
 
 		const String& GetRttiName()

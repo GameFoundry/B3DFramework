@@ -152,7 +152,7 @@ After reading the data you can access it through @bs::MeshData::getVertexData, @
 auto iter = meshData->getVec3DataIter(VES_POSITION);
 
 UINT32 numVertices = meshData->getNumVertices();
-Vector3* output = bs_newN<Vector>(numVertices);
+Vector3* output = B3DNewMultiple<Vector>(numVertices);
 
 for(UINT32 i = 0; i < numVertices; i++)
 {

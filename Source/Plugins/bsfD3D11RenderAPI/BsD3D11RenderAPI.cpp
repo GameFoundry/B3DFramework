@@ -50,7 +50,7 @@ void D3D11RenderAPI::Initialize()
 	if(FAILED(hr))
 		BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 DXGIFactory");
 
-	mDriverList = bs_new<D3D11DriverList>(mDXGIFactory);
+	mDriverList = B3DNew<D3D11DriverList>(mDXGIFactory);
 	mActiveD3DDriver = mDriverList->Item(0); // TODO: Always get first driver, for now
 	mVideoModeInfo = mActiveD3DDriver->GetVideoModeInfo();
 
@@ -93,7 +93,7 @@ void D3D11RenderAPI::Initialize()
 	if(FAILED(hr))
 		BS_EXCEPT(RenderingAPIException, "Failed to create Direct3D11 object. D3D11CreateDeviceN returned this error code: " + toString(hr));
 
-	mDevice = bs_new<D3D11Device>(device);
+	mDevice = B3DNew<D3D11Device>(device);
 
 	CommandBufferManager::StartUp<D3D11CommandBufferManager>();
 
@@ -110,7 +110,7 @@ void D3D11RenderAPI::Initialize()
 	RenderWindowManager::StartUp();
 
 	// Create & register HLSL factory
-	mHLSLFactory = bs_new<D3D11HLSLProgramFactory>();
+	mHLSLFactory = B3DNew<D3D11HLSLProgramFactory>();
 
 	// Create render state manager
 	RenderStateManager::StartUp<D3D11RenderStateManager>();
@@ -119,12 +119,12 @@ void D3D11RenderAPI::Initialize()
 	mMainCommandBuffer = std::static_pointer_cast<D3D11CommandBuffer>(CommandBuffer::Create(GQT_GRAPHICS));
 
 	mNumDevices = 1;
-	mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
 	InitCapabilites(selectedAdapter, mCurrentCapabilities[0]);
 
 	GpuProgramManager::Instance().AddFactory("hlsl", mHLSLFactory);
 
-	mIAManager = bs_new<D3D11InputLayoutManager>();
+	mIAManager = B3DNew<D3D11InputLayoutManager>();
 
 	RenderAPI::Initialize();
 }
@@ -158,13 +158,13 @@ void D3D11RenderAPI::DestroyCore()
 
 	if(mIAManager != nullptr)
 	{
-		bs_delete(mIAManager);
+		B3DDelete(mIAManager);
 		mIAManager = nullptr;
 	}
 
 	if(mHLSLFactory != nullptr)
 	{
-		bs_delete(mHLSLFactory);
+		B3DDelete(mHLSLFactory);
 		mHLSLFactory = nullptr;
 	}
 
@@ -187,13 +187,13 @@ void D3D11RenderAPI::DestroyCore()
 
 	if(mDevice != nullptr)
 	{
-		bs_delete(mDevice);
+		B3DDelete(mDevice);
 		mDevice = nullptr;
 	}
 
 	if(mDriverList != nullptr)
 	{
-		bs_delete(mDriverList);
+		B3DDelete(mDriverList);
 		mDriverList = nullptr;
 	}
 
@@ -903,13 +903,13 @@ void D3D11RenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float de
 		{
 			u32 maxRenderTargets = mCurrentCapabilities[0].NumMultiRenderTargets;
 
-			ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
+			ID3D11RenderTargetView** views = B3DNewMultiple<ID3D11RenderTargetView*>(maxRenderTargets);
 			memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
 
 			mActiveRenderTarget->GetCustomAttribute("RTV", views);
 			if(!views[0])
 			{
-				bs_deleteN(views, maxRenderTargets);
+				B3DDeleteMultiple(views, maxRenderTargets);
 				return;
 			}
 
@@ -925,7 +925,7 @@ void D3D11RenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float de
 					mDevice->GetImmediateContext()->ClearRenderTargetView(views[i], clearColor);
 			}
 
-			bs_deleteN(views, maxRenderTargets);
+			B3DDeleteMultiple(views, maxRenderTargets);
 		}
 
 		// Clear depth stencil
@@ -969,7 +969,7 @@ void D3D11RenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readO
 		mActiveRenderTargetModified = false;
 
 		u32 maxRenderTargets = mCurrentCapabilities[0].NumMultiRenderTargets;
-		ID3D11RenderTargetView** views = bs_newN<ID3D11RenderTargetView*>(maxRenderTargets);
+		ID3D11RenderTargetView** views = B3DNewMultiple<ID3D11RenderTargetView*>(maxRenderTargets);
 		memset(views, 0, sizeof(ID3D11RenderTargetView*) * maxRenderTargets);
 
 		ID3D11DepthStencilView* depthStencilView = nullptr;
@@ -999,7 +999,7 @@ void D3D11RenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readO
 		if(mDevice->HasError())
 			BS_EXCEPT(RenderingAPIException, "Failed to setRenderTarget : " + mDevice->GetErrorDescription());
 
-		bs_deleteN(views, maxRenderTargets);
+		B3DDeleteMultiple(views, maxRenderTargets);
 		ApplyViewport();
 	};
 

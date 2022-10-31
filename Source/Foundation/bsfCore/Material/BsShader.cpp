@@ -427,7 +427,7 @@ template class TShader<true>;
 Shader::Shader(const String& name, const SHADER_DESC& desc, u32 id)
 	: TShader(name, desc, id)
 {
-	mMetaData = bs_shared_ptr_new<ShaderMetaData>();
+	mMetaData = B3DMakeShared<ShaderMetaData>();
 }
 
 Shader::Shader(u32 id)
@@ -451,8 +451,8 @@ SPtr<ct::CoreObject> Shader::CreateCore() const
 	for(auto& technique : mDesc.Techniques)
 		techniques.push_back(technique->GetCore());
 
-	ct::Shader* shaderCore = new(bs_alloc<ct::Shader>()) ct::Shader(mName, ConvertDesc(mDesc), mId);
-	SPtr<ct::Shader> shaderCorePtr = bs_shared_ptr<ct::Shader>(shaderCore);
+	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ConvertDesc(mDesc), mId);
+	SPtr<ct::Shader> shaderCorePtr = B3DMakeSharedFromExisting<ct::Shader>(shaderCore);
 	shaderCorePtr->SetThisPtrInternal(shaderCorePtr);
 
 	return shaderCorePtr;
@@ -615,7 +615,7 @@ SPtr<Shader> Shader::CreatePtrInternal(const String& name, const SHADER_DESC& de
 	u32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	assert(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = bs_core_ptr<Shader>(new(bs_alloc<Shader>()) Shader(name, desc, id));
+	SPtr<Shader> newShader = B3DMakeCoreFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(name, desc, id));
 	newShader->SetThisPtrInternal(newShader);
 	newShader->Initialize();
 
@@ -627,7 +627,7 @@ SPtr<Shader> Shader::CreateEmpty()
 	u32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	assert(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = bs_core_ptr<Shader>(new(bs_alloc<Shader>()) Shader(id));
+	SPtr<Shader> newShader = B3DMakeCoreFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(id));
 	newShader->SetThisPtrInternal(newShader);
 
 	return newShader;
@@ -667,8 +667,8 @@ SPtr<Shader> Shader::Create(const String& name, const SHADER_DESC& desc)
 	u32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	assert(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	Shader* shaderCore = new(bs_alloc<Shader>()) Shader(name, desc, id);
-	SPtr<Shader> shaderCorePtr = bs_shared_ptr<Shader>(shaderCore);
+	Shader* shaderCore = new(B3DAllocate<Shader>()) Shader(name, desc, id);
+	SPtr<Shader> shaderCorePtr = B3DMakeSharedFromExisting<Shader>(shaderCore);
 	shaderCorePtr->SetThisPtrInternal(shaderCorePtr);
 	shaderCorePtr->Initialize();
 

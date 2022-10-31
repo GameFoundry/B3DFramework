@@ -31,7 +31,7 @@ SpriteManager::SpriteManager()
 SpriteManager::~SpriteManager()
 {
 	for(auto& entry : mMaterials)
-		bs_delete(entry.second);
+		B3DDelete(entry.second);
 }
 
 SpriteMaterial* SpriteManager::GetMaterial(u32 id) const

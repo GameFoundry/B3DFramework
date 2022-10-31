@@ -41,7 +41,7 @@ namespace bs
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
 		props.isHidden = mDesc.hidden;
 
-		mWindow = bs_new<CocoaWindow>(windowDesc);
+		mWindow = B3DNew<CocoaWindow>(windowDesc);
 		mWindow->_setUserData(this);
 
 		Rect2I area = mWindow->getArea();
@@ -83,7 +83,7 @@ namespace bs
 
 		if (mWindow != nullptr)
 		{
-			bs_delete(mWindow);
+			B3DDelete(mWindow);
 			mWindow = nullptr;
 		}
 
@@ -93,7 +93,7 @@ namespace bs
 	SPtr<ct::CoreObject> MacOSRenderWindow::createCore() const
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
-		SPtr<ct::CoreObject> obj = bs_shared_ptr_new<ct::MacOSRenderWindow>(
+		SPtr<ct::CoreObject> obj = B3DMakeShared<ct::MacOSRenderWindow>(
 				desc, mWindowId, mWindow->_getWindowId(), mContext);
 		obj->_setThisPtr(obj);
 		return obj;
@@ -493,7 +493,7 @@ namespace bs
 			{
 				size_t rowSpan = dst.getWidth() * PixelUtil::getNumElemBytes(dst.getFormat());
 				size_t height = dst.getHeight();
-				UINT8* tmpData = (UINT8*)bs_alloc((UINT32)(rowSpan * height));
+				UINT8* tmpData = (UINT8*)B3DAllocate((UINT32)(rowSpan * height));
 				UINT8* srcRow = (UINT8 *)dst.getData(), *tmpRow = tmpData + (height - 1) * rowSpan;
 
 				while (tmpRow >= tmpData)
@@ -504,7 +504,7 @@ namespace bs
 				}
 				memcpy(dst.getData(), tmpData, rowSpan * height);
 
-				bs_free(tmpData);
+				B3DFree(tmpData);
 			}
 		}
 

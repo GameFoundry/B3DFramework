@@ -85,12 +85,12 @@ void GUIProgressBar::SetTint(const Color& color)
 
 GUIProgressBar* GUIProgressBar::Create(const String& styleName)
 {
-	return new(bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create());
+	return new(B3DAllocate<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create());
 }
 
 GUIProgressBar* GUIProgressBar::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIProgressBar>()) GUIProgressBar(GetStyleName<GUIProgressBar>(styleName), GUIDimensions::Create(options));
 }
 
 const String& GUIProgressBar::GetGuiTypeName()

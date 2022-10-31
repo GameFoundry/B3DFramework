@@ -73,7 +73,7 @@ Mouse::Mouse(const String& name, Input* owner)
 {
 	InputPrivateData* pvtData = owner->GetPrivateDataInternal();
 
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->DirectInput = pvtData->DirectInput;
 	m->CoopSettings = pvtData->MouseSettings;
 	m->Mouse = nullptr;
@@ -85,7 +85,7 @@ Mouse::~Mouse()
 {
 	releaseDirectInput(m);
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Mouse::Capture()

@@ -37,7 +37,7 @@ PhysXSliderJoint::PhysXSliderJoint(PxPhysics* physx, const SLIDER_JOINT_DESC& de
 	PxPrismaticJoint* joint = PxPrismaticJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 
 	PxPrismaticJointFlags flags;
 
@@ -52,7 +52,7 @@ PhysXSliderJoint::PhysXSliderJoint(PxPhysics* physx, const SLIDER_JOINT_DESC& de
 
 PhysXSliderJoint::~PhysXSliderJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 float PhysXSliderJoint::GetPosition() const

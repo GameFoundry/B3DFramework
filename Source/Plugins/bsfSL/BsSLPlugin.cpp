@@ -17,7 +17,7 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	SLImporter* importer = bs_new<SLImporter>();
+	SLImporter* importer = B3DNew<SLImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
 	return nullptr;

@@ -664,7 +664,7 @@ Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 template <bool Core>
 TCamera<Core>::TCamera()
 {
-	mRenderSettings = bs_shared_ptr_new<RenderSettingsType>();
+	mRenderSettings = B3DMakeShared<RenderSettingsType>();
 }
 
 template <bool Core>
@@ -698,8 +698,8 @@ SPtr<ct::Camera> Camera::GetCore() const
 
 SPtr<Camera> Camera::Create()
 {
-	Camera* handler = new(bs_alloc<Camera>()) Camera();
-	SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
+	Camera* handler = new(B3DAllocate<Camera>()) Camera();
+	SPtr<Camera> handlerPtr = B3DMakeCoreFromExisting<Camera>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 	handlerPtr->Initialize();
 
@@ -708,8 +708,8 @@ SPtr<Camera> Camera::Create()
 
 SPtr<Camera> Camera::CreateEmpty()
 {
-	Camera* handler = new(bs_alloc<Camera>()) Camera();
-	SPtr<Camera> handlerPtr = bs_core_ptr<Camera>(handler);
+	Camera* handler = new(B3DAllocate<Camera>()) Camera();
+	SPtr<Camera> handlerPtr = B3DMakeCoreFromExisting<Camera>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;
@@ -717,8 +717,8 @@ SPtr<Camera> Camera::CreateEmpty()
 
 SPtr<ct::CoreObject> Camera::CreateCore() const
 {
-	ct::Camera* handler = new(bs_alloc<ct::Camera>()) ct::Camera(mViewport->GetCore());
-	SPtr<ct::Camera> handlerPtr = bs_shared_ptr<ct::Camera>(handler);
+	ct::Camera* handler = new(B3DAllocate<ct::Camera>()) ct::Camera(mViewport->GetCore());
+	SPtr<ct::Camera> handlerPtr = B3DMakeSharedFromExisting<ct::Camera>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;

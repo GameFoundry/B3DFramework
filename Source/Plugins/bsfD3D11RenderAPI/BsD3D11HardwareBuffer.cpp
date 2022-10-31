@@ -124,7 +124,7 @@ D3D11HardwareBuffer::~D3D11HardwareBuffer()
 	SAFE_RELEASE(mD3DBuffer);
 
 	if(mpTempStagingBuffer != nullptr)
-		bs_delete(mpTempStagingBuffer);
+		B3DDelete(mpTempStagingBuffer);
 }
 
 void* D3D11HardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)
@@ -216,7 +216,7 @@ void* D3D11HardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u
 		if(!mpTempStagingBuffer)
 		{
 			// Create another buffer instance but use system memory
-			mpTempStagingBuffer = bs_new<D3D11HardwareBuffer>(mBufferType, GBU_STATIC, 1, mSize, std::ref(mDevice), true);
+			mpTempStagingBuffer = B3DNew<D3D11HardwareBuffer>(mBufferType, GBU_STATIC, 1, mSize, std::ref(mDevice), true);
 		}
 
 		// Schedule a copy to the staging
@@ -243,7 +243,7 @@ void D3D11HardwareBuffer::Unmap()
 
 		if(mpTempStagingBuffer != nullptr)
 		{
-			bs_delete(mpTempStagingBuffer);
+			B3DDelete(mpTempStagingBuffer);
 			mpTempStagingBuffer = nullptr;
 		}
 	}

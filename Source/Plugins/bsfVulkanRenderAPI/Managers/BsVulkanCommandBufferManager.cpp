@@ -109,7 +109,7 @@ void VulkanTransferBuffer::Flush(bool wait)
 VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
 	: mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetNumDevices())
 {
-	mDeviceData = bs_newN<PerDeviceData>(mNumDevices);
+	mDeviceData = B3DNewMultiple<PerDeviceData>(mNumDevices);
 	for(u32 i = 0; i < mNumDevices; i++)
 	{
 		SPtr<VulkanDevice> device = rapi.GetDeviceInternal(i);
@@ -126,7 +126,7 @@ VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& ra
 
 VulkanCommandBufferManager::~VulkanCommandBufferManager()
 {
-	bs_deleteN(mDeviceData, mNumDevices);
+	B3DDeleteMultiple(mDeviceData, mNumDevices);
 }
 
 SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
@@ -142,9 +142,9 @@ SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type
 	SPtr<VulkanDevice> device = mRapi.GetDeviceInternal(deviceIdx);
 
 	CommandBuffer* buffer =
-		new(bs_alloc<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
+		new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
 
-	return bs_shared_ptr(buffer);
+	return B3DMakeSharedFromExisting(buffer);
 }
 
 void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, VulkanSemaphore** semaphores, u32& count)

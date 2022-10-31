@@ -27,17 +27,17 @@ NullPhysics::~NullPhysics()
 
 SPtr<PhysicsMaterial> NullPhysics::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
-	return bs_core_ptr_new<NullPhysicsMaterial>(staticFriction, dynamicFriction, restitution);
+	return B3DMakeCoreShared<NullPhysicsMaterial>(staticFriction, dynamicFriction, restitution);
 }
 
 SPtr<PhysicsMesh> NullPhysics::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	return bs_core_ptr_new<NullPhysicsMesh>(meshData, type);
+	return B3DMakeCoreShared<NullPhysicsMesh>(meshData, type);
 }
 
 SPtr<PhysicsScene> NullPhysics::CreatePhysicsScene()
 {
-	SPtr<NullPhysicsScene> scene = bs_shared_ptr_new<NullPhysicsScene>(mInitDesc);
+	SPtr<NullPhysicsScene> scene = B3DMakeShared<NullPhysicsScene>(mInitDesc);
 	mScenes.push_back(scene.get());
 
 	return scene;
@@ -61,67 +61,67 @@ NullPhysicsScene::~NullPhysicsScene()
 
 SPtr<Rigidbody> NullPhysicsScene::CreateRigidbody(const HSceneObject& linkedSO)
 {
-	return bs_shared_ptr_new<NullPhysicsRigidbody>(linkedSO);
+	return B3DMakeShared<NullPhysicsRigidbody>(linkedSO);
 }
 
 SPtr<BoxCollider> NullPhysicsScene::CreateBoxCollider(const Vector3& extents, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<NullPhysicsBoxCollider>(position, rotation, extents);
+	return B3DMakeShared<NullPhysicsBoxCollider>(position, rotation, extents);
 }
 
 SPtr<SphereCollider> NullPhysicsScene::CreateSphereCollider(float radius, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<NullPhysicsSphereCollider>(position, rotation, radius);
+	return B3DMakeShared<NullPhysicsSphereCollider>(position, rotation, radius);
 }
 
 SPtr<PlaneCollider> NullPhysicsScene::CreatePlaneCollider(const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<NullPhysicsPlaneCollider>(position, rotation);
+	return B3DMakeShared<NullPhysicsPlaneCollider>(position, rotation);
 }
 
 SPtr<CapsuleCollider> NullPhysicsScene::CreateCapsuleCollider(float radius, float halfHeight, const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<NullPhysicsCapsuleCollider>(position, rotation, radius, halfHeight);
+	return B3DMakeShared<NullPhysicsCapsuleCollider>(position, rotation, radius, halfHeight);
 }
 
 SPtr<MeshCollider> NullPhysicsScene::CreateMeshCollider(const Vector3& position, const Quaternion& rotation)
 {
-	return bs_shared_ptr_new<NullPhysicsMeshCollider>(position, rotation);
+	return B3DMakeShared<NullPhysicsMeshCollider>(position, rotation);
 }
 
 SPtr<FixedJoint> NullPhysicsScene::CreateFixedJoint(const FIXED_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsFixedJoint>(desc);
+	return B3DMakeShared<NullPhysicsFixedJoint>(desc);
 }
 
 SPtr<DistanceJoint> NullPhysicsScene::CreateDistanceJoint(const DISTANCE_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsDistanceJoint>(desc);
+	return B3DMakeShared<NullPhysicsDistanceJoint>(desc);
 }
 
 SPtr<HingeJoint> NullPhysicsScene::CreateHingeJoint(const HINGE_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsHingeJoint>(desc);
+	return B3DMakeShared<NullPhysicsHingeJoint>(desc);
 }
 
 SPtr<SphericalJoint> NullPhysicsScene::CreateSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsSphericalJoint>(desc);
+	return B3DMakeShared<NullPhysicsSphericalJoint>(desc);
 }
 
 SPtr<SliderJoint> NullPhysicsScene::CreateSliderJoint(const SLIDER_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsSliderJoint>(desc);
+	return B3DMakeShared<NullPhysicsSliderJoint>(desc);
 }
 
 SPtr<D6Joint> NullPhysicsScene::CreateD6Joint(const D6_JOINT_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsD6Joint>(desc);
+	return B3DMakeShared<NullPhysicsD6Joint>(desc);
 }
 
 SPtr<CharacterController> NullPhysicsScene::CreateCharacterController(const CHAR_CONTROLLER_DESC& desc)
 {
-	return bs_shared_ptr_new<NullPhysicsCharacterController>(desc);
+	return B3DMakeShared<NullPhysicsCharacterController>(desc);
 }
 
 namespace bs {

@@ -27,7 +27,7 @@ RTTITypeBase* ImportedAnimationEvents::GetRtti() const
 
 SPtr<MeshImportOptions> MeshImportOptions::Create()
 {
-	return bs_shared_ptr_new<MeshImportOptions>();
+	return B3DMakeShared<MeshImportOptions>();
 }
 
 RTTITypeBase* MeshImportOptions::GetRttiStatic()

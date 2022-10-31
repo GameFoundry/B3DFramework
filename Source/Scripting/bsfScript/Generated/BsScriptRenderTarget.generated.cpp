@@ -40,7 +40,7 @@ MonoObject* ScriptRenderTarget::Create(const SPtr<RenderTarget>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRenderTarget>()) ScriptRenderTarget(managedInstance, value);
+	new(B3DAllocate<ScriptRenderTarget>()) ScriptRenderTarget(managedInstance, value);
 	return managedInstance;
 }
 

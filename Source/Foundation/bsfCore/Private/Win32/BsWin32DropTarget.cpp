@@ -34,7 +34,7 @@ Win32DropTarget::~Win32DropTarget()
 	Lock lock(mSync);
 
 	for(auto& fileList : mFileLists)
-		bs_delete(fileList);
+		B3DDelete(fileList);
 
 	mFileLists.clear();
 	mQueuedDropOps.clear();
@@ -78,7 +78,7 @@ ULONG __stdcall Win32DropTarget::Release()
 
 	if(count == 0)
 	{
-		bs_delete(this);
+		B3DDelete(this);
 		return 0;
 	}
 	else
@@ -242,7 +242,7 @@ void Win32DropTarget::Update()
 			{
 				bool done = mFileLists[0] == op.MFileList;
 
-				bs_delete(mFileLists[0]);
+				B3DDelete(mFileLists[0]);
 				mFileLists.erase(mFileLists.begin());
 
 				if(done)
@@ -268,7 +268,7 @@ Vector<Path>* Win32DropTarget::GetFileListFromData(IDataObject* data)
 	FORMATETC fmtetc = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
 	STGMEDIUM stgmed;
 
-	Vector<Path>* files = bs_new<Vector<Path>>();
+	Vector<Path>* files = B3DNew<Vector<Path>>();
 	if(data->GetData(&fmtetc, &stgmed) == S_OK)
 	{
 		PVOID data = GlobalLock(stgmed.hGlobal);
@@ -280,13 +280,13 @@ Vector<Path>* Win32DropTarget::GetFileListFromData(IDataObject* data)
 		for(UINT i = 0; i < numFiles; i++)
 		{
 			UINT numChars = DragQueryFileW(hDrop, i, nullptr, 0) + 1;
-			wchar_t* buffer = (wchar_t*)bs_alloc((u32)numChars * sizeof(wchar_t));
+			wchar_t* buffer = (wchar_t*)B3DAllocate((u32)numChars * sizeof(wchar_t));
 
 			DragQueryFileW(hDrop, i, buffer, numChars);
 
 			(*files)[i] = UTF8::FromWide(WString(buffer));
 
-			bs_free(buffer);
+			B3DFree(buffer);
 		}
 
 		GlobalUnlock(stgmed.hGlobal);

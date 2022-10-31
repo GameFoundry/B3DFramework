@@ -52,7 +52,7 @@ namespace bs
 				entry.~Type();
 
 			if(!IsSmall())
-				bs_free(mElements);
+				B3DFree(mElements);
 		}
 
 		SmallVector<ValueType, N>& operator=(const SmallVector<ValueType, N>& other)
@@ -108,7 +108,7 @@ namespace bs
 					entry.~Type();
 
 				if(!IsSmall())
-					bs_free(mElements);
+					B3DFree(mElements);
 
 				mElements = other.mElements;
 				other.mElements = (Type*)other.mStorage;
@@ -481,7 +481,7 @@ namespace bs
 
 			// Allocate memory with the new capacity (caller guarantees never to call this with capacity <= N, so we don't
 			// need to worry about the static buffer)
-			Type* buffer = bs_allocN<Type>(capacity);
+			Type* buffer = B3DAllocateMultiple<Type>(capacity);
 
 			// Move any existing elements
 			std::uninitialized_copy(
@@ -495,7 +495,7 @@ namespace bs
 
 			// If the current buffer is dynamically allocated, free it
 			if(!IsSmall())
-				bs_free(mElements);
+				B3DFree(mElements);
 
 			mElements = buffer;
 			mCapacity = capacity;

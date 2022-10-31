@@ -79,7 +79,7 @@ MonoObject* ScriptParticleEmitter::Create(const SPtr<ParticleEmitter>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, value);
 	return managedInstance;
 }
 
@@ -140,7 +140,7 @@ void ScriptParticleEmitter::InternalSetEmissionRate(ScriptParticleEmitter* thisP
 
 MonoObject* ScriptParticleEmitter::InternalGetEmissionRate(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<float>> tmp__output = bs_shared_ptr_new<TDistribution<float>>();
+	SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 	*tmp__output = thisPtr->GetInternal()->GetEmissionRate();
 
 	MonoObject* __output;
@@ -193,7 +193,7 @@ void ScriptParticleEmitter::InternalSetInitialLifetime(ScriptParticleEmitter* th
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialLifetime(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<float>> tmp__output = bs_shared_ptr_new<TDistribution<float>>();
+	SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialLifetime();
 
 	MonoObject* __output;
@@ -214,7 +214,7 @@ void ScriptParticleEmitter::InternalSetInitialSpeed(ScriptParticleEmitter* thisP
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialSpeed(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<float>> tmp__output = bs_shared_ptr_new<TDistribution<float>>();
+	SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialSpeed();
 
 	MonoObject* __output;
@@ -235,7 +235,7 @@ void ScriptParticleEmitter::InternalSetInitialSize(ScriptParticleEmitter* thisPt
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialSize(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<float>> tmp__output = bs_shared_ptr_new<TDistribution<float>>();
+	SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialSize();
 
 	MonoObject* __output;
@@ -256,7 +256,7 @@ void ScriptParticleEmitter::InternalSetInitialSize3D(ScriptParticleEmitter* this
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialSize3D(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<Vector3>> tmp__output = bs_shared_ptr_new<TDistribution<Vector3>>();
+	SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialSize3D();
 
 	MonoObject* __output;
@@ -293,7 +293,7 @@ void ScriptParticleEmitter::InternalSetInitialRotation(ScriptParticleEmitter* th
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialRotation(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<float>> tmp__output = bs_shared_ptr_new<TDistribution<float>>();
+	SPtr<TDistribution<float>> tmp__output = B3DMakeShared<TDistribution<float>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialRotation();
 
 	MonoObject* __output;
@@ -314,7 +314,7 @@ void ScriptParticleEmitter::InternalSetInitialRotation3D(ScriptParticleEmitter* 
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialRotation3D(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TDistribution<Vector3>> tmp__output = bs_shared_ptr_new<TDistribution<Vector3>>();
+	SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialRotation3D();
 
 	MonoObject* __output;
@@ -351,7 +351,7 @@ void ScriptParticleEmitter::InternalSetInitialColor(ScriptParticleEmitter* thisP
 
 MonoObject* ScriptParticleEmitter::InternalGetInitialColor(ScriptParticleEmitter* thisPtr)
 {
-	SPtr<TColorDistribution<ColorGradient>> tmp__output = bs_shared_ptr_new<TColorDistribution<ColorGradient>>();
+	SPtr<TColorDistribution<ColorGradient>> tmp__output = B3DMakeShared<TColorDistribution<ColorGradient>>();
 	*tmp__output = thisPtr->GetInternal()->GetInitialColor();
 
 	MonoObject* __output;
@@ -411,5 +411,5 @@ float ScriptParticleEmitter::InternalGetFlipV(ScriptParticleEmitter* thisPtr)
 void ScriptParticleEmitter::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<ParticleEmitter> instance = ParticleEmitter::Create();
-	new(bs_alloc<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitter>()) ScriptParticleEmitter(managedInstance, instance);
 }

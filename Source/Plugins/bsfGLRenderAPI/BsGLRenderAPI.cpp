@@ -96,7 +96,7 @@ GLRenderAPI::GLRenderAPI()
 	mMinFilter = FO_LINEAR;
 	mMipFilter = FO_POINT;
 
-	mProgramPipelineManager = bs_new<GLSLProgramPipelineManager>();
+	mProgramPipelineManager = B3DNew<GLSLProgramPipelineManager>();
 }
 
 const StringID& GLRenderAPI::GetName() const
@@ -144,7 +144,7 @@ void GLRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	mGLSupport->InitializeExtensions();
 
 	mNumDevices = 1;
-	mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
 	InitCapabilities(mCurrentCapabilities[0]);
 
 	InitFromCaps(mCurrentCapabilities);
@@ -186,7 +186,7 @@ void GLRenderAPI::DestroyCore()
 		GpuProgramManager::Instance().RemoveFactory("glsl");
 		GpuProgramManager::Instance().RemoveFactory("glsl4_1");
 
-		bs_delete(mGLSLProgramFactory);
+		B3DDelete(mGLSLProgramFactory);
 		mGLSLProgramFactory = nullptr;
 	}
 
@@ -224,7 +224,7 @@ void GLRenderAPI::DestroyCore()
 	mGLInitialised = false;
 
 	if(mProgramPipelineManager != nullptr)
-		bs_delete(mProgramPipelineManager);
+		B3DDelete(mProgramPipelineManager);
 
 	if(mCurrentContext)
 		mCurrentContext->EndCurrent();
@@ -233,10 +233,10 @@ void GLRenderAPI::DestroyCore()
 	mMainContext = nullptr;
 
 	if(mGLSupport)
-		bs_delete(mGLSupport);
+		B3DDelete(mGLSupport);
 
 	if(mTextureInfos != nullptr)
-		bs_deleteN(mTextureInfos, mNumTextureUnits);
+		B3DDeleteMultiple(mTextureInfos, mNumTextureUnits);
 }
 
 void GLRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
@@ -2328,7 +2328,7 @@ void GLRenderAPI::InitFromCaps(RenderAPICapabilities* caps)
 	HardwareBufferManager::StartUp<GLHardwareBufferManager>();
 
 	// GPU Program Manager setup
-	mGLSLProgramFactory = bs_new<GLSLProgramFactory>();
+	mGLSLProgramFactory = B3DNew<GLSLProgramFactory>();
 	if(caps->IsShaderProfileSupported("glsl")) // Check for most recent GLSL support
 		GpuProgramManager::Instance().AddFactory("glsl", mGLSLProgramFactory);
 
@@ -2338,7 +2338,7 @@ void GLRenderAPI::InitFromCaps(RenderAPICapabilities* caps)
 	GLRTTManager::StartUp<GLRTTManager>();
 
 	mNumTextureUnits = caps->NumCombinedTextureUnits;
-	mTextureInfos = bs_newN<TextureInfo>(mNumTextureUnits);
+	mTextureInfos = B3DNewMultiple<TextureInfo>(mNumTextureUnits);
 
 	bs::TextureManager::StartUp<bs::GLTextureManager>(std::ref(*mGLSupport));
 	TextureManager::StartUp<GLTextureManager>(std::ref(*mGLSupport));

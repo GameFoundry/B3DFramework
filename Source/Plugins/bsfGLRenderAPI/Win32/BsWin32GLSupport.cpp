@@ -37,7 +37,7 @@ SPtr<bs::RenderWindow> Win32GLSupport::NewWindow(RENDER_WINDOW_DESC& desc, u32 w
 		desc.PlatformSpecific["parentWindowHandle"] = toString(hWnd);
 	}
 
-	bs::Win32RenderWindow* window = new(bs_alloc<bs::Win32RenderWindow>()) bs::Win32RenderWindow(desc, windowId, *this);
+	bs::Win32RenderWindow* window = new(B3DAllocate<bs::Win32RenderWindow>()) bs::Win32RenderWindow(desc, windowId, *this);
 	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::DeleteInternal<bs::Win32RenderWindow, GenAlloc>);
 }
 
@@ -125,7 +125,7 @@ SPtr<Win32Context> Win32GLSupport::CreateContext(HDC hdc, HGLRC externalGlrc)
 		glrc = wglGetCurrentContext();
 	}
 
-	return bs_shared_ptr_new<Win32Context>(hdc, glrc, createdNew);
+	return B3DMakeShared<Win32Context>(hdc, glrc, createdNew);
 }
 
 void* Win32GLSupport::GetProcAddress(const String& procname)
@@ -339,7 +339,7 @@ bool Win32GLSupport::SelectPixelFormat(HDC hdc, int colorDepth, int multisample,
 
 SPtr<VideoModeInfo> Win32GLSupport::GetVideoModeInfo() const
 {
-	return bs_shared_ptr_new<Win32VideoModeInfo>();
+	return B3DMakeShared<Win32VideoModeInfo>();
 }
 
 namespace bs { namespace ct {

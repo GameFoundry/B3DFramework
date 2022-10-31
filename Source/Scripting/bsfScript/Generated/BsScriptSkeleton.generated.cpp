@@ -27,7 +27,7 @@ MonoObject* ScriptSkeleton::Create(const SPtr<Skeleton>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptSkeleton>()) ScriptSkeleton(managedInstance, value);
+	new(B3DAllocate<ScriptSkeleton>()) ScriptSkeleton(managedInstance, value);
 	return managedInstance;
 }
 

@@ -36,20 +36,20 @@ MonoObject* ScriptColorGradientHDR::Create(const SPtr<ColorGradientHDR>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, value);
+	new(B3DAllocate<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptColorGradientHDR::InternalColorGradientHDR(MonoObject* managedInstance)
 {
-	SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>();
-	new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
+	SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>();
+	new(B3DAllocate<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 }
 
 void ScriptColorGradientHDR::InternalColorGradientHDR0(MonoObject* managedInstance, Color* color)
 {
-	SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>(*color);
-	new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
+	SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>(*color);
+	new(B3DAllocate<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 }
 
 void ScriptColorGradientHDR::InternalColorGradientHDR1(MonoObject* managedInstance, MonoArray* keys)
@@ -64,8 +64,8 @@ void ScriptColorGradientHDR::InternalColorGradientHDR1(MonoObject* managedInstan
 			veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
 		}
 	}
-	SPtr<ColorGradientHDR> instance = bs_shared_ptr_new<ColorGradientHDR>(veckeys);
-	new(bs_alloc<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
+	SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>(veckeys);
+	new(B3DAllocate<ScriptColorGradientHDR>()) ScriptColorGradientHDR(managedInstance, instance);
 }
 
 void ScriptColorGradientHDR::InternalSetKeys(ScriptColorGradientHDR* thisPtr, MonoArray* keys, float duration)

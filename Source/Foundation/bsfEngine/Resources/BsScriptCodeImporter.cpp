@@ -48,5 +48,5 @@ SPtr<Resource> ScriptCodeImporter::Import(const Path& filePath, SPtr<const Impor
 
 SPtr<ImportOptions> ScriptCodeImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<ScriptCodeImportOptions>();
+	return B3DMakeShared<ScriptCodeImportOptions>();
 }

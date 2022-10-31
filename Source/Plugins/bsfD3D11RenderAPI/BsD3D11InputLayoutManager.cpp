@@ -40,7 +40,7 @@ D3D11InputLayoutManager::~D3D11InputLayoutManager()
 		auto firstElem = mInputLayoutMap.begin();
 
 		SAFE_RELEASE(firstElem->second->InputLayout);
-		bs_delete(firstElem->second);
+		B3DDelete(firstElem->second);
 
 		mInputLayoutMap.erase(firstElem);
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
@@ -140,7 +140,7 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 
 	const DataBlob& microcode = vertexProgram.GetMicroCode();
 
-	InputLayoutEntry* newEntry = bs_new<InputLayoutEntry>();
+	InputLayoutEntry* newEntry = B3DNew<InputLayoutEntry>();
 	newEntry->LastUsedIdx = ++mLastUsedCounter;
 	newEntry->InputLayout = nullptr;
 	HRESULT hr = device.GetD3D11Device()->CreateInputLayout(
@@ -186,7 +186,7 @@ void D3D11InputLayoutManager::RemoveLeastUsed()
 		auto inputLayoutIter = mInputLayoutMap.find(iter->second);
 
 		SAFE_RELEASE(inputLayoutIter->second->InputLayout);
-		bs_delete(inputLayoutIter->second);
+		B3DDelete(inputLayoutIter->second);
 
 		mInputLayoutMap.erase(inputLayoutIter);
 		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);

@@ -9,8 +9,8 @@ using namespace bs;
 
 SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc)
 {
-	Texture* tex = new(bs_alloc<Texture>()) Texture(desc);
-	SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
+	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc);
+	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
 
 	ret->SetThisPtrInternal(ret);
 	ret->Initialize();
@@ -20,8 +20,8 @@ SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc)
 
 SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData)
 {
-	Texture* tex = new(bs_alloc<Texture>()) Texture(desc, pixelData);
-	SPtr<Texture> ret = bs_core_ptr<Texture>(tex);
+	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc, pixelData);
+	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
 
 	ret->SetThisPtrInternal(ret);
 	ret->Initialize();
@@ -31,8 +31,8 @@ SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc, const SPtr
 
 SPtr<Texture> TextureManager::CreateEmptyInternal()
 {
-	Texture* tex = new(bs_alloc<Texture>()) Texture();
-	SPtr<Texture> texture = bs_core_ptr<Texture>(tex);
+	Texture* tex = new(B3DAllocate<Texture>()) Texture();
+	SPtr<Texture> texture = B3DMakeCoreFromExisting<Texture>(tex);
 	texture->SetThisPtrInternal(texture);
 
 	return texture;

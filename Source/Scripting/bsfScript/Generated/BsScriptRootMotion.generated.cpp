@@ -29,13 +29,13 @@ MonoObject* ScriptRootMotion::Create(const SPtr<RootMotion>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRootMotion>()) ScriptRootMotion(managedInstance, value);
+	new(B3DAllocate<ScriptRootMotion>()) ScriptRootMotion(managedInstance, value);
 	return managedInstance;
 }
 
 MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* thisPtr)
 {
-	SPtr<TAnimationCurve<Vector3>> tmp__output = bs_shared_ptr_new<TAnimationCurve<Vector3>>();
+	SPtr<TAnimationCurve<Vector3>> tmp__output = B3DMakeShared<TAnimationCurve<Vector3>>();
 	*tmp__output = RootMotionEx::GetPositionCurves(thisPtr->GetInternal());
 
 	MonoObject* __output;
@@ -46,7 +46,7 @@ MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* thisPt
 
 MonoObject* ScriptRootMotion::InternalGetRotationCurves(ScriptRootMotion* thisPtr)
 {
-	SPtr<TAnimationCurve<Quaternion>> tmp__output = bs_shared_ptr_new<TAnimationCurve<Quaternion>>();
+	SPtr<TAnimationCurve<Quaternion>> tmp__output = B3DMakeShared<TAnimationCurve<Quaternion>>();
 	*tmp__output = RootMotionEx::GetRotationCurves(thisPtr->GetInternal());
 
 	MonoObject* __output;

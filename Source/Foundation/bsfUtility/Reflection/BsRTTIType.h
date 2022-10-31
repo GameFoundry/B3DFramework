@@ -634,7 +634,7 @@ namespace bs
 
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
 
-			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
 			AddNewField(newField);
 		}
@@ -645,7 +645,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
 			AddNewField(newField);
 		}
@@ -656,7 +656,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
 			AddNewField(newField);
 		}
@@ -669,7 +669,7 @@ namespace bs
 
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
 
-			auto newField = bs_new<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
 			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			AddNewField(newField);
 		}
@@ -680,7 +680,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			auto newField = bs_new<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
 			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			AddNewField(newField);
 		}
@@ -691,7 +691,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
 
-			auto newField = bs_new<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
+			auto newField = B3DNew<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
 			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
 			AddNewField(newField);
 		}
@@ -700,7 +700,7 @@ namespace bs
 		template <class InterfaceType, class ObjectType>
 		void AddDataBlockField(const String& name, u32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
-			auto newField = bs_new<RTTIManagedDataBlockField<InterfaceType, u8*, ObjectType>>();
+			auto newField = B3DNew<RTTIManagedDataBlockField<InterfaceType, u8*, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
 			AddNewField(newField);
 		}

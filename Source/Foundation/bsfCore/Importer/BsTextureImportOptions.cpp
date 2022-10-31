@@ -7,7 +7,7 @@ using namespace bs;
 
 SPtr<TextureImportOptions> TextureImportOptions::Create()
 {
-	return bs_shared_ptr_new<TextureImportOptions>();
+	return B3DMakeShared<TextureImportOptions>();
 }
 
 /************************************************************************/

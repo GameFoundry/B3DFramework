@@ -198,7 +198,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 		BS_CHECK_GL_ERROR();
 	}
 
-	wantedVAO.mAttachedBuffers = (GLVertexBuffer**)bs_alloc(numUsedBuffers * sizeof(GLVertexBuffer*));
+	wantedVAO.mAttachedBuffers = (GLVertexBuffer**)B3DAllocate(numUsedBuffers * sizeof(GLVertexBuffer*));
 	for(u32 i = 0; i < numUsedBuffers; i++)
 	{
 		wantedVAO.mAttachedBuffers[i] = usedBuffers[i];
@@ -227,7 +227,7 @@ void GLVertexArrayObjectManager::NotifyBufferDestroyed(GLVertexArrayObject vao)
 	glDeleteVertexArrays(1, &vao.mHandle);
 	BS_CHECK_GL_ERROR();
 
-	bs_free(vao.mAttachedBuffers);
+	B3DFree(vao.mAttachedBuffers);
 
 	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexArrayObject);
 }

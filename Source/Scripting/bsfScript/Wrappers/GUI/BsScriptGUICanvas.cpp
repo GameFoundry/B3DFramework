@@ -39,7 +39,7 @@ void ScriptGUICanvas::InternalCreateInstance(MonoObject* instance, MonoString* s
 
 	GUICanvas* guiCanvas = GUICanvas::Create(options, MonoUtil::MonoToString(style));
 
-	new(bs_alloc<ScriptGUICanvas>()) ScriptGUICanvas(instance, guiCanvas);
+	new(B3DAllocate<ScriptGUICanvas>()) ScriptGUICanvas(instance, guiCanvas);
 }
 
 void ScriptGUICanvas::InternalDrawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color, u8 depth)

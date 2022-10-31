@@ -24,7 +24,7 @@ ManagedResource::ManagedResource()
 ManagedResource::ManagedResource(MonoObject* managedInstance)
 	: Resource(false)
 {
-	SPtr<ManagedResourceMetaData> metaData = bs_shared_ptr_new<ManagedResourceMetaData>();
+	SPtr<ManagedResourceMetaData> metaData = B3DMakeShared<ManagedResourceMetaData>();
 	mMetaData = metaData;
 
 	MonoUtil::GetClassName(managedInstance, metaData->TypeNamespace, metaData->TypeName);
@@ -53,7 +53,7 @@ ResourceBackupData ManagedResource::Backup()
 	ResourceBackupData backupData;
 	if(serializableObject != nullptr)
 	{
-		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 		BinarySerializer bs;
 
 		bs.Encode(serializableObject.get(), stream);
@@ -79,7 +79,7 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 		{
 			BinarySerializer bs;
 			SPtr<ManagedSerializableObject> serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-				bs.Decode(bs_shared_ptr_new<MemoryDataStream>(data.Data, data.Size), data.Size));
+				bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size));
 
 			SPtr<ManagedResourceMetaData> managedResMetaData = std::static_pointer_cast<ManagedResourceMetaData>(mMetaData);
 			SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
@@ -97,7 +97,7 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 
 HManagedResource ManagedResource::Create(MonoObject* managedResource)
 {
-	SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new(bs_alloc<ManagedResource>()) ManagedResource(managedResource));
+	SPtr<ManagedResource> newRes = B3DMakeCoreFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource(managedResource));
 	newRes->SetThisPtrInternal(newRes);
 	newRes->Initialize();
 
@@ -109,7 +109,7 @@ HManagedResource ManagedResource::Create(MonoObject* managedResource)
 
 SPtr<ManagedResource> ManagedResource::CreateEmpty()
 {
-	SPtr<ManagedResource> newRes = bs_core_ptr<ManagedResource>(new(bs_alloc<ManagedResource>()) ManagedResource());
+	SPtr<ManagedResource> newRes = B3DMakeCoreFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource());
 	newRes->SetThisPtrInternal(newRes);
 	newRes->Initialize();
 

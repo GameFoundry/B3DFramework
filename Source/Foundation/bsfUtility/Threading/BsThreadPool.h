@@ -255,7 +255,7 @@ namespace bs
 	protected:
 		PooledThread* CreateThread(const String& name) override
 		{
-			PooledThread* newThread = bs_new<TPooledThread<ThreadPolicy>>(name);
+			PooledThread* newThread = B3DNew<TPooledThread<ThreadPolicy>>(name);
 			newThread->Initialize();
 
 			return newThread;

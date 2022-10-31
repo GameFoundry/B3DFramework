@@ -42,12 +42,12 @@ namespace bs
 		{
 			size = obj->Size;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->Value, obj->Size);
+			return B3DMakeShared<MemoryDataStream>(obj->Value, obj->Size);
 		}
 
 		void SetData(SerializedField* obj, const SPtr<DataStream>& value, u32 size)
 		{
-			obj->Value = (u8*)bs_alloc(size);
+			obj->Value = (u8*)B3DAllocate(size);
 			obj->Size = size;
 			obj->OwnsMemory = true;
 
@@ -73,7 +73,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<SerializedField>();
+			return B3DMakeShared<SerializedField>();
 		}
 	};
 
@@ -90,7 +90,7 @@ namespace bs
 
 		void SetData(SerializedDataBlock* obj, const SPtr<DataStream>& value, u32 size)
 		{
-			SPtr<MemoryDataStream> memStream = bs_shared_ptr_new<MemoryDataStream>(size);
+			SPtr<MemoryDataStream> memStream = B3DMakeShared<MemoryDataStream>(size);
 			value->Read(memStream->Data(), size);
 
 			obj->Stream = memStream;
@@ -117,7 +117,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<SerializedDataBlock>();
+			return B3DMakeShared<SerializedDataBlock>();
 		}
 	};
 
@@ -163,7 +163,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SerializedObject>();
+			return B3DMakeShared<SerializedObject>();
 		}
 	};
 
@@ -228,7 +228,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SerializedArray>();
+			return B3DMakeShared<SerializedArray>();
 		}
 
 	private:
@@ -296,7 +296,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SerializedSubObject>();
+			return B3DMakeShared<SerializedSubObject>();
 		}
 
 	private:
@@ -346,7 +346,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SerializedEntry>();
+			return B3DMakeShared<SerializedEntry>();
 		}
 	};
 
@@ -393,7 +393,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SerializedArrayEntry>();
+			return B3DMakeShared<SerializedArrayEntry>();
 		}
 	};
 

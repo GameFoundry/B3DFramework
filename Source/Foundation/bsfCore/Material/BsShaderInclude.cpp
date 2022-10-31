@@ -18,8 +18,8 @@ HShaderInclude ShaderInclude::Create(const String& includeString)
 
 SPtr<ShaderInclude> ShaderInclude::CreatePtrInternal(const String& includeString)
 {
-	SPtr<ShaderInclude> shaderIncludePtr = bs_core_ptr<ShaderInclude>(
-		new(bs_alloc<ShaderInclude>()) ShaderInclude(includeString));
+	SPtr<ShaderInclude> shaderIncludePtr = B3DMakeCoreFromExisting<ShaderInclude>(
+		new(B3DAllocate<ShaderInclude>()) ShaderInclude(includeString));
 	shaderIncludePtr->SetThisPtrInternal(shaderIncludePtr);
 	shaderIncludePtr->Initialize();
 

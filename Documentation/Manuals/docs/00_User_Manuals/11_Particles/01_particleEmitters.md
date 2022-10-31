@@ -7,7 +7,7 @@ title: Emitter shapes
 A shape is assigned to the emitter through the @bs::ParticleEmitter::setShape method. All shape types derive from @bs::ParticleEmitterShape class. All shape classes have a **create()** method that accepts a structure with various options allowing you to further customize the properties of the spawned particles.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ParticleEmitter> emitter = bs_shared_ptr_new<ParticleEmitter>();
+SPtr<ParticleEmitter> emitter = B3DMakeShared<ParticleEmitter>();
 
 // An emitter with the sphere shape
 PARTICLE_SPHERE_SHAPE_DESC sphereShape;

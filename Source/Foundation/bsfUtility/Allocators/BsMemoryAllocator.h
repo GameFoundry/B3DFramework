@@ -224,21 +224,21 @@ namespace bs
 
 	/** Allocates the specified number of bytes. */
 	template <class Alloc>
-	void* bs_alloc(size_t count)
+	void* B3DAllocate(size_t count)
 	{
 		return MemoryAllocator<Alloc>::Allocate(count);
 	}
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
 	template <class T, class Alloc>
-	T* bs_alloc()
+	T* B3DAllocate()
 	{
 		return (T*)MemoryAllocator<Alloc>::Allocate(sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template <class T, class Alloc>
-	T* bs_newN(size_t count)
+	T* B3DNewMultiple(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<Alloc>::Allocate(sizeof(T) * count);
 
@@ -250,28 +250,28 @@ namespace bs
 
 	/** Create a new object with the specified allocator and the specified parameters. */
 	template <class Type, class Alloc, class... Args>
-	Type* bs_new(Args&&... args)
+	Type* B3DNew(Args&&... args)
 	{
-		return new(bs_alloc<Type, Alloc>()) Type(std::forward<Args>(args)...);
+		return new(B3DAllocate<Type, Alloc>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
 	template <class Alloc>
-	void bs_free(void* ptr)
+	void B3DFree(void* ptr)
 	{
 		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
 	/** Destructs and frees the specified object. */
 	template <class T, class Alloc = GenAlloc>
-	void bs_delete(T* ptr)
+	void B3DDelete(T* ptr)
 	{
 		(ptr)->~T();
 
 		MemoryAllocator<Alloc>::Free(ptr);
 	}
 
-	/** Callable struct that acts as a proxy for bs_delete */
+	/** Callable struct that acts as a proxy for B3DDelete */
 	template <class T, class Alloc = GenAlloc>
 	struct Deleter
 	{
@@ -284,13 +284,13 @@ namespace bs
 
 		void operator()(T* ptr) const
 		{
-			bs_delete<T, Alloc>(ptr);
+			B3DDelete<T, Alloc>(ptr);
 		}
 	};
 
 	/** Destructs and frees the specified array of objects. */
 	template <class T, class Alloc = GenAlloc>
-	void bs_deleteN(T* ptr, size_t count)
+	void B3DDeleteMultiple(T* ptr, size_t count)
 	{
 		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
@@ -303,14 +303,14 @@ namespace bs
 	/*****************************************************************************/
 
 	/** Allocates the specified number of bytes. */
-	inline void* bs_alloc(size_t count)
+	inline void* B3DAllocate(size_t count)
 	{
 		return MemoryAllocator<GenAlloc>::Allocate(count);
 	}
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
 	template <class T>
-	T* bs_alloc()
+	T* B3DAllocate()
 	{
 		return (T*)MemoryAllocator<GenAlloc>::Allocate(sizeof(T));
 	}
@@ -319,27 +319,27 @@ namespace bs
 	 * Allocates the specified number of bytes aligned to the provided boundary. Boundary is in bytes and must be a power
 	 * of two.
 	 */
-	inline void* bs_alloc_aligned(size_t count, size_t align)
+	inline void* B3DAllocateAligned(size_t count, size_t align)
 	{
 		return MemoryAllocator<GenAlloc>::AllocateAligned(count, align);
 	}
 
 	/** Allocates the specified number of bytes aligned to a 16 bytes boundary. */
-	inline void* bs_alloc_aligned16(size_t count)
+	inline void* B3DAllocateAligned16(size_t count)
 	{
 		return MemoryAllocator<GenAlloc>::AllocateAligned16(count);
 	}
 
 	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't construct them. */
 	template <class T>
-	T* bs_allocN(size_t count)
+	T* B3DAllocateMultiple(size_t count)
 	{
 		return (T*)MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template <class T>
-	T* bs_newN(size_t count)
+	T* B3DNewMultiple(size_t count)
 	{
 		T* ptr = (T*)MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
 
@@ -351,25 +351,25 @@ namespace bs
 
 	/** Create a new object with the specified allocator and the specified parameters. */
 	template <class Type, class... Args>
-	Type* bs_new(Args&&... args)
+	Type* B3DNew(Args&&... args)
 	{
-		return new(bs_alloc<Type, GenAlloc>()) Type(std::forward<Args>(args)...);
+		return new(B3DAllocate<Type, GenAlloc>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
-	inline void bs_free(void* ptr)
+	inline void B3DFree(void* ptr)
 	{
 		MemoryAllocator<GenAlloc>::Free(ptr);
 	}
 
-	/** Frees memory previously allocated with bs_alloc_aligned(). */
-	inline void bs_free_aligned(void* ptr)
+	/** Frees memory previously allocated with B3DAllocateAligned(). */
+	inline void B3DFreeAligned(void* ptr)
 	{
 		MemoryAllocator<GenAlloc>::FreeAligned(ptr);
 	}
 
-	/** Frees memory previously allocated with bs_alloc_aligned16(). */
-	inline void bs_free_aligned16(void* ptr)
+	/** Frees memory previously allocated with B3DAllocateAligned16(). */
+	inline void B3DFreeAligned16(void* ptr)
 	{
 		MemoryAllocator<GenAlloc>::FreeAligned16(ptr);
 	}
@@ -445,7 +445,7 @@ namespace bs
 			if(num > max_size())
 				return nullptr; // Error
 
-			void* const pv = bs_alloc<Alloc>(num * sizeof(T));
+			void* const pv = B3DAllocate<Alloc>(num * sizeof(T));
 			if(!pv)
 				return nullptr; // Error
 
@@ -455,7 +455,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		static void deallocate(pointer p, size_type)
 		{
-			bs_free<Alloc>(p);
+			B3DFree<Alloc>(p);
 		}
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }

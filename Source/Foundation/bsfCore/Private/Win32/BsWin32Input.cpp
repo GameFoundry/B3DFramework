@@ -152,7 +152,7 @@ cleanup:
 
 void Input::InitRawInput()
 {
-	mPlatformData = bs_new<InputPrivateData>();
+	mPlatformData = B3DNew<InputPrivateData>();
 
 	bool isHeadless = ct::GetRenderBackendCapabilities().DeviceName == "Null";
 	if(isHeadless)
@@ -185,31 +185,31 @@ void Input::InitRawInput()
 	}
 
 	if(GetDeviceCount(InputDevice::Keyboard) > 0)
-		mKeyboard = bs_new<Keyboard>("Keyboard", this);
+		mKeyboard = B3DNew<Keyboard>("Keyboard", this);
 
 	if(GetDeviceCount(InputDevice::Mouse) > 0)
-		mMouse = bs_new<Mouse>("Mouse", this);
+		mMouse = B3DNew<Mouse>("Mouse", this);
 
 	u32 numGamepads = GetDeviceCount(InputDevice::Gamepad);
 	for(u32 i = 0; i < numGamepads; i++)
-		mGamepads.push_back(bs_new<Gamepad>(mPlatformData->GamepadInfos[i].Name, mPlatformData->GamepadInfos[i], this));
+		mGamepads.push_back(B3DNew<Gamepad>(mPlatformData->GamepadInfos[i].Name, mPlatformData->GamepadInfos[i], this));
 }
 
 void Input::CleanUpRawInput()
 {
 	if(mMouse != nullptr)
-		bs_delete(mMouse);
+		B3DDelete(mMouse);
 
 	if(mKeyboard != nullptr)
-		bs_delete(mKeyboard);
+		B3DDelete(mKeyboard);
 
 	for(auto& gamepad : mGamepads)
-		bs_delete(gamepad);
+		B3DDelete(gamepad);
 
 	if(mPlatformData->DirectInput != nullptr)
 		mPlatformData->DirectInput->Release();
 
-	bs_delete(mPlatformData);
+	B3DDelete(mPlatformData);
 }
 
 u32 Input::GetDeviceCount(InputDevice device) const

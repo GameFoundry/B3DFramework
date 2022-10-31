@@ -24,5 +24,5 @@ void ScriptGUIToggleGroup::InternalCreateInstance(MonoObject* instance, bool all
 {
 	SPtr<GUIToggleGroup> toggleGroup = GUIToggle::CreateToggleGroup(allowAllOff);
 
-	new(bs_alloc<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(instance, toggleGroup);
+	new(B3DAllocate<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(instance, toggleGroup);
 }

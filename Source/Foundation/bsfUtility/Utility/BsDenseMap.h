@@ -167,7 +167,7 @@ namespace bs
 				pair->first.~Key();
 			}
 
-			bs_free(mBuckets);
+			B3DFree(mBuckets);
 		}
 
 		Value& operator[](const Key& key)
@@ -362,9 +362,9 @@ namespace bs
 			mTombstones = other.getTombstones();
 
 			if(getCount())
-				bs_free(mBuckets);
+				B3DFree(mBuckets);
 
-			mBuckets = bs_allocN<DensePair>(other.getCount());
+			mBuckets = B3DAllocateMultiple<DensePair>(other.getCount());
 
 			if(std::is_pod<Key>() && std::is_pod<Value>())
 				memcpy(getBuckets(), other.getBuckets(), other.getCount() * sizeof(DensePair));
@@ -463,7 +463,7 @@ namespace bs
 			mCount = n;
 			assert(n && (n & (n - 1)) == 0 && "initial buckets must be a power of two!");
 
-			mBuckets = bs_allocN<DensePair>(n);
+			mBuckets = B3DAllocateMultiple<DensePair>(n);
 
 			for(u32 i = 0; i != n; ++i)
 				new(&mBuckets[i].first) Key(getEmptyKey());
@@ -479,7 +479,7 @@ namespace bs
 				mCount <<= 1;
 
 			mTombstones = 0;
-			mBuckets = bs_allocN<DensePair>(getCount());
+			mBuckets = B3DAllocateMultiple<DensePair>(getCount());
 
 			// Initialize all the keys to EmptyKey
 			const Key EmptyKey = getEmptyKey();
@@ -510,7 +510,7 @@ namespace bs
 				pair->first.~Key();
 			}
 			// Free the old table
-			bs_free(oldBuckets);
+			B3DFree(oldBuckets);
 		}
 
 		void shrink()
@@ -521,7 +521,7 @@ namespace bs
 			// Reduce the number of mBuckets
 			mCount = size() > 32 ? 1 << ((int)std::log(size()) + 1) : 64;
 			mTombstones = 0;
-			mBuckets = bs_allocN<DensePair>(getCount());
+			mBuckets = B3DAllocateMultiple<DensePair>(getCount());
 
 			// Initialize the keys to EmptyKey
 			const Key EmptyKey = getEmptyKey();
@@ -539,7 +539,7 @@ namespace bs
 			}
 
 			// Free the old mBuckets
-			bs_free(oldBuckets);
+			B3DFree(oldBuckets);
 			mEntries = 0;
 		}
 

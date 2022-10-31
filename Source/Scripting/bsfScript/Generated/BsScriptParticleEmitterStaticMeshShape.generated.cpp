@@ -30,7 +30,7 @@ MonoObject* ScriptParticleEmitterStaticMeshShape::Create(const SPtr<ParticleEmit
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleEmitterStaticMeshShape::InternalCreate(MonoObject* managedIns
 	PARTICLE_STATIC_MESH_SHAPE_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::FromInterop(*desc);
 	SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
 }
 
 void ScriptParticleEmitterStaticMeshShape::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create();
-	new(bs_alloc<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
 }

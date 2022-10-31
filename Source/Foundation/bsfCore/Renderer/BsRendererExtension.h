@@ -100,7 +100,7 @@ namespace bs
 		template <class T>
 		static SPtr<T> Create(const Any& data)
 		{
-			T* ext = new(bs_alloc<T>()) T();
+			T* ext = new(B3DAllocate<T>()) T();
 			InitializerInternal(ext, data);
 
 			return SPtr<T>(ext, &RendererExtension::DeleterInternal);

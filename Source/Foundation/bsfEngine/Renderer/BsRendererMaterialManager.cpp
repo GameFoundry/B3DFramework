@@ -98,7 +98,7 @@ void RendererMaterialManager::DestroyOnCore()
 		for(auto& entry : materials[i].MetaData->Instances)
 		{
 			if(entry != nullptr)
-				bs_delete(entry);
+				B3DDelete(entry);
 		}
 
 		materials[i].MetaData->Instances.Clear();

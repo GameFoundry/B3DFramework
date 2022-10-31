@@ -621,7 +621,7 @@ enum class CrossCompileOutput
 
 String crossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, SHADER_DESC* shaderDesc = nullptr, Vector<GpuProgramType>* detectedTypes = nullptr)
 {
-	SPtr<StringStream> input = bs_shared_ptr_new<StringStream>();
+	SPtr<StringStream> input = B3DMakeShared<StringStream>();
 
 	bool isVKSL = outputType == CrossCompileOutput::VKSL45 || outputType == CrossCompileOutput::MVKSL;
 	switch(outputType)

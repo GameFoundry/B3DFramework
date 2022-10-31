@@ -27,7 +27,7 @@ void RendererExtension::DeleterInternal(RendererExtension* obj)
 		obj->Destroy();
 		obj->~RendererExtension();
 
-		bs_free(obj);
+		B3DFree(obj);
 	};
 
 	// Queue deletion on the core thread

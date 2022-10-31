@@ -38,14 +38,14 @@ MonoObject* ScriptTonemappingSettings::Create(const SPtr<TonemappingSettings>& v
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, value);
+	new(B3DAllocate<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptTonemappingSettings::InternalTonemappingSettings(MonoObject* managedInstance)
 {
-	SPtr<TonemappingSettings> instance = bs_shared_ptr_new<TonemappingSettings>();
-	new(bs_alloc<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, instance);
+	SPtr<TonemappingSettings> instance = B3DMakeShared<TonemappingSettings>();
+	new(B3DAllocate<ScriptTonemappingSettings>()) ScriptTonemappingSettings(managedInstance, instance);
 }
 
 float ScriptTonemappingSettings::InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr)

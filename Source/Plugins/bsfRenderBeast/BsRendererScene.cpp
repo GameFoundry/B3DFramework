@@ -169,10 +169,10 @@ RendererScene::RendererScene(const SPtr<RenderBeastOptions>& options)
 RendererScene::~RendererScene()
 {
 	for(auto& entry : mInfo.Renderables)
-		bs_delete(entry);
+		B3DDelete(entry);
 
 	for(auto& entry : mInfo.Views)
-		bs_delete(entry);
+		B3DDelete(entry);
 
 	assert(mSamplerOverrides.empty());
 }
@@ -181,7 +181,7 @@ void RendererScene::RegisterCamera(Camera* camera)
 {
 	RENDERER_VIEW_DESC viewDesc = CreateViewDesc(camera);
 
-	RendererView* view = bs_new<RendererView>(viewDesc);
+	RendererView* view = B3DNew<RendererView>(viewDesc);
 	view->SetRenderSettings(camera->GetRenderSettings());
 	view->UpdatePerViewBuffer();
 
@@ -247,7 +247,7 @@ void RendererScene::UnregisterCamera(Camera* camera)
 
 	// Last element is the one we want to erase
 	RendererView* view = mInfo.Views[mInfo.Views.size() - 1];
-	bs_delete(view);
+	B3DDelete(view);
 
 	mInfo.Views.erase(mInfo.Views.end() - 1);
 
@@ -363,7 +363,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 	renderable->SetRendererId(renderableId);
 
-	mInfo.Renderables.push_back(bs_new<RendererRenderable>());
+	mInfo.Renderables.push_back(B3DNew<RendererRenderable>());
 	mInfo.RenderableCullInfos.push_back(CullInfo(renderable->GetBounds(), renderable->GetLayer(), renderable->GetCullDistanceFactor()));
 
 	RendererRenderable* rendererRenderable = mInfo.Renderables.back();
@@ -536,7 +536,7 @@ void RendererScene::UnregisterRenderable(Renderable* renderable)
 	mInfo.Renderables.erase(mInfo.Renderables.end() - 1);
 	mInfo.RenderableCullInfos.erase(mInfo.RenderableCullInfos.end() - 1);
 
-	bs_delete(rendererRenderable);
+	B3DDelete(rendererRenderable);
 }
 
 void RendererScene::RegisterReflectionProbe(ReflectionProbe* probe)

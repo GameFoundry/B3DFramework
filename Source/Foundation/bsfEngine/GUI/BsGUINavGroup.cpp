@@ -8,7 +8,7 @@ using namespace bs;
 
 SPtr<GUINavGroup> GUINavGroup::Create()
 {
-	return bs_shared_ptr_new<GUINavGroup>();
+	return B3DMakeShared<GUINavGroup>();
 }
 
 void GUINavGroup::FocusFirst()

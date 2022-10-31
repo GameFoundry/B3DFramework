@@ -14,13 +14,13 @@ const String& GUIDropDownHitBox::GetGuiTypeName()
 
 GUIDropDownHitBox* GUIDropDownHitBox::Create(bool captureMouseOver, bool captureMousePresses)
 {
-	return new(bs_alloc<GUIDropDownHitBox>())
+	return new(B3DAllocate<GUIDropDownHitBox>())
 		GUIDropDownHitBox(captureMouseOver, captureMousePresses, GUIDimensions::Create());
 }
 
 GUIDropDownHitBox* GUIDropDownHitBox::Create(bool captureMouseOver, bool captureMousePresses, const GUIOptions& options)
 {
-	return new(bs_alloc<GUIDropDownHitBox>())
+	return new(B3DAllocate<GUIDropDownHitBox>())
 		GUIDropDownHitBox(captureMouseOver, captureMousePresses, GUIDimensions::Create(options));
 }
 

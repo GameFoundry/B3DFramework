@@ -15,17 +15,17 @@ NullAudio::NullAudio()
 
 SPtr<AudioClip> NullAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	return bs_core_ptr_new<NullAudioClip>(samples, streamSize, numSamples, desc);
+	return B3DMakeCoreShared<NullAudioClip>(samples, streamSize, numSamples, desc);
 }
 
 SPtr<AudioListener> NullAudio::CreateListener()
 {
-	return bs_shared_ptr_new<NullAudioListener>();
+	return B3DMakeShared<NullAudioListener>();
 }
 
 SPtr<AudioSource> NullAudio::CreateSource()
 {
-	return bs_shared_ptr_new<NullAudioSource>();
+	return B3DMakeShared<NullAudioSource>();
 }
 
 NullAudioClip::NullAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
@@ -39,10 +39,10 @@ void NullAudioClip::Initialize()
 	{
 		mStreamData->Seek(mStreamOffset);
 
-		u8* sampleBuffer = (u8*)bs_alloc(mStreamSize);
+		u8* sampleBuffer = (u8*)B3DAllocate(mStreamSize);
 		mStreamData->Read(sampleBuffer, mStreamSize);
 
-		mSourceStreamData = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, mStreamSize);
+		mSourceStreamData = B3DMakeShared<MemoryDataStream>(sampleBuffer, mStreamSize);
 		mSourceStreamSize = mStreamSize;
 	}
 

@@ -59,7 +59,7 @@ SPtr<typename TMaterial<Core>::GpuParamsSetType> TMaterial<Core>::CreateParamsSe
 		return nullptr;
 
 	SPtr<TechniqueType> technique = mTechniques[techniqueIdx];
-	return bs_shared_ptr_new<GpuParamsSetType>(technique, mShader, mParams);
+	return B3DMakeShared<GpuParamsSetType>(technique, mShader, mParams);
 }
 
 template <bool Core>
@@ -383,7 +383,7 @@ void TMaterial<Core>::InitializeTechniques()
 
 	if(isShaderValid(mShader))
 	{
-		mParams = bs_shared_ptr_new<MaterialParamsType>(mShader);
+		mParams = B3DMakeShared<MaterialParamsType>(mShader);
 		mTechniques = mShader->GetCompatibleTechniques();
 
 		if(mTechniques.empty())
@@ -660,15 +660,15 @@ SPtr<ct::CoreObject> Material::CreateCore() const
 		for(u32 i = 0; i < (u32)mTechniques.size(); i++)
 			techniques[i] = mTechniques[i]->GetCore();
 
-		SPtr<ct::MaterialParams> materialParams = bs_shared_ptr_new<ct::MaterialParams>(shader, mParams);
+		SPtr<ct::MaterialParams> materialParams = B3DMakeShared<ct::MaterialParams>(shader, mParams);
 
-		material = new(bs_alloc<ct::Material>()) ct::Material(shader, techniques, materialParams, mVariation);
+		material = new(B3DAllocate<ct::Material>()) ct::Material(shader, techniques, materialParams, mVariation);
 	}
 
 	if(material == nullptr)
-		material = new(bs_alloc<ct::Material>()) ct::Material(shader, mVariation);
+		material = new(B3DAllocate<ct::Material>()) ct::Material(shader, mVariation);
 
-	SPtr<ct::Material> materialPtr = bs_shared_ptr<ct::Material>(material);
+	SPtr<ct::Material> materialPtr = B3DMakeSharedFromExisting<ct::Material>(material);
 	materialPtr->SetThisPtrInternal(materialPtr);
 
 	return materialPtr;
@@ -799,7 +799,7 @@ void Material::NotifyResourceChanged(const HResource& resource)
 
 HMaterial Material::Clone()
 {
-	SPtr<MemoryDataStream> outputStream = bs_shared_ptr_new<MemoryDataStream>();
+	SPtr<MemoryDataStream> outputStream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 
 	serializer.Encode(this, outputStream);
@@ -1006,7 +1006,7 @@ HMaterial Material::Create(const HShader& shader)
 
 HMaterial Material::Create(const HShader& shader, const ShaderVariation& variation)
 {
-	SPtr<Material> materialPtr = bs_core_ptr<Material>(new(bs_alloc<Material>()) Material(shader, variation));
+	SPtr<Material> materialPtr = B3DMakeCoreFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
 	materialPtr->SetThisPtrInternal(materialPtr);
 	materialPtr->Initialize();
 
@@ -1015,7 +1015,7 @@ HMaterial Material::Create(const HShader& shader, const ShaderVariation& variati
 
 SPtr<Material> Material::CreateEmpty()
 {
-	SPtr<Material> newMat = bs_core_ptr<Material>(new(bs_alloc<Material>()) Material());
+	SPtr<Material> newMat = B3DMakeCoreFromExisting<Material>(new(B3DAllocate<Material>()) Material());
 	newMat->SetThisPtrInternal(newMat);
 
 	return newMat;
@@ -1091,7 +1091,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 	u32 paramsSize = 0;
 	rtti_read(paramsSize, stream);
 	if(mParams == nullptr && mShader != nullptr)
-		mParams = bs_shared_ptr_new<MaterialParams>(mShader, initialParamVersion);
+		mParams = B3DMakeShared<MaterialParams>(mShader, initialParamVersion);
 
 	if(mParams != nullptr && paramsSize > 0)
 		mParams->SetSyncData(stream.Cursor(), paramsSize);
@@ -1104,8 +1104,8 @@ void Material::SyncToCore(const CoreSyncData& data)
 
 SPtr<Material> Material::Create(const SPtr<Shader>& shader)
 {
-	Material* material = new(bs_alloc<Material>()) Material(shader, ShaderVariation::kEmpty);
-	SPtr<Material> materialPtr = bs_shared_ptr<Material>(material);
+	Material* material = new(B3DAllocate<Material>()) Material(shader, ShaderVariation::kEmpty);
+	SPtr<Material> materialPtr = B3DMakeSharedFromExisting<Material>(material);
 	materialPtr->SetThisPtrInternal(materialPtr);
 	materialPtr->Initialize();
 

@@ -67,7 +67,7 @@ MonoObject* ScriptSerializableObject::InternalGetBaseClass(ScriptSerializableObj
 
 ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
 {
-	ScriptSerializableObject* nativeInstance = new(bs_alloc<ScriptSerializableObject>()) ScriptSerializableObject(instance, objInfo);
+	ScriptSerializableObject* nativeInstance = new(B3DAllocate<ScriptSerializableObject>()) ScriptSerializableObject(instance, objInfo);
 
 	Vector<SPtr<ManagedSerializableMemberInfo>> sortedFields;
 

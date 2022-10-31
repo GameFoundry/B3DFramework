@@ -44,7 +44,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<GpuProgramBytecode>();
+			return B3DMakeShared<GpuProgramBytecode>();
 		}
 	};
 
@@ -74,7 +74,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<GpuParamDesc>();
+			return B3DMakeShared<GpuParamDesc>();
 		}
 	};
 

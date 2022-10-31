@@ -39,7 +39,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<PrefabComponentDiff>();
+			return B3DMakeShared<PrefabComponentDiff>();
 		}
 	};
 
@@ -78,7 +78,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<PrefabObjectDiff>();
+			return B3DMakeShared<PrefabObjectDiff>();
 		}
 	};
 
@@ -240,7 +240,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<PrefabDiff>();
+			return B3DMakeShared<PrefabDiff>();
 		}
 	};
 

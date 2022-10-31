@@ -72,25 +72,25 @@ size_t VulkanPipelineLayoutKey::CalculateHash() const
 VulkanDescriptorManager::VulkanDescriptorManager(VulkanDevice& device)
 	: mDevice(device)
 {
-	mPools.push_back(bs_new<VulkanDescriptorPool>(device));
+	mPools.push_back(B3DNew<VulkanDescriptorPool>(device));
 }
 
 VulkanDescriptorManager::~VulkanDescriptorManager()
 {
 	for(auto& entry : mLayouts)
 	{
-		bs_delete(entry.Layout);
-		bs_free(entry.Bindings);
+		B3DDelete(entry.Layout);
+		B3DFree(entry.Bindings);
 	}
 
 	for(auto& entry : mPipelineLayouts)
 	{
-		bs_free(entry.first.Layouts);
+		B3DFree(entry.first.Layouts);
 		vkDestroyPipelineLayout(mDevice.GetLogical(), entry.second, gVulkanAllocator);
 	}
 
 	for(auto& entry : mPools)
-		bs_delete(entry);
+		B3DDelete(entry);
 }
 
 VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(VkDescriptorSetLayoutBinding* bindings, u32 numBindings)
@@ -102,10 +102,10 @@ VulkanDescriptorLayout* VulkanDescriptorManager::GetLayout(VkDescriptorSetLayout
 		return iterFind->Layout;
 
 	// Create new
-	key.Bindings = bs_allocN<VkDescriptorSetLayoutBinding>(numBindings);
+	key.Bindings = B3DAllocateMultiple<VkDescriptorSetLayoutBinding>(numBindings);
 	memcpy(key.Bindings, bindings, numBindings * sizeof(VkDescriptorSetLayoutBinding));
 
-	key.Layout = bs_new<VulkanDescriptorLayout>(mDevice, key.Bindings, numBindings);
+	key.Layout = B3DNew<VulkanDescriptorLayout>(mDevice, key.Bindings, numBindings);
 	mLayouts.insert(key);
 
 	return key.Layout;
@@ -130,7 +130,7 @@ VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* 
 	VkResult result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 	if(result < 0) // Possible fragmentation, try in a new pool
 	{
-		mPools.push_back(bs_new<VulkanDescriptorPool>(mDevice));
+		mPools.push_back(B3DNew<VulkanDescriptorPool>(mDevice));
 		allocateInfo.descriptorPool = mPools.back()->GetHandle();
 
 		result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
@@ -168,7 +168,7 @@ VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayo
 
 	bs_stack_free(setLayouts);
 
-	key.Layouts = (VulkanDescriptorLayout**)bs_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+	key.Layouts = (VulkanDescriptorLayout**)B3DAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
 	memcpy(key.Layouts, layouts, sizeof(VulkanDescriptorLayout*) * numLayouts);
 
 	mPipelineLayouts.insert(std::make_pair(key, pipelineLayout));

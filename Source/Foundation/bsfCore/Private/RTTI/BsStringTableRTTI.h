@@ -117,7 +117,7 @@ namespace bs
 				String identifier;
 				rtti_read(identifier, stream);
 
-				SPtr<LocalizedStringData> entryData = bs_shared_ptr_new<LocalizedStringData>();
+				SPtr<LocalizedStringData> entryData = B3DMakeShared<LocalizedStringData>();
 				rtti_read(*entryData, stream);
 
 				data.Strings[identifier] = entryData;
@@ -177,7 +177,7 @@ namespace bs
 		static BitLength FromMemory(LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			if(data.ParameterOffsets != nullptr)
-				bs_deleteN(data.ParameterOffsets, data.NumParameters);
+				B3DDeleteMultiple(data.ParameterOffsets, data.NumParameters);
 
 			BitLength size;
 			rtti_read_size_header(stream, compress, size);
@@ -185,7 +185,7 @@ namespace bs
 			rtti_read(data.String, stream);
 			rtti_read(data.NumParameters, stream);
 
-			data.ParameterOffsets = bs_newN<LocalizedStringData::ParamOffset>(data.NumParameters);
+			data.ParameterOffsets = B3DNewMultiple<LocalizedStringData::ParamOffset>(data.NumParameters);
 			for(uint32_t i = 0; i < data.NumParameters; i++)
 				rtti_read(data.ParameterOffsets[i], stream);
 

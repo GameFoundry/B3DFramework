@@ -41,7 +41,7 @@ SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const
 
 SceneManager::SceneManager()
 	: mMainScene(
-		  bs_shared_ptr_new<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", SceneObject::CreateInternal("SceneRoot"), GetPhysics().CreatePhysicsScene()))
+		  B3DMakeShared<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", SceneObject::CreateInternal("SceneRoot"), GetPhysics().CreatePhysicsScene()))
 {
 	mMainScene->mRoot->SetScene(mMainScene);
 }

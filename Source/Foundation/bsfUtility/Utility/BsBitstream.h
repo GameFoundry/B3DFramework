@@ -427,7 +427,7 @@ namespace bs
 	inline Bitstream::~Bitstream()
 	{
 		if(mData && mOwnsMemory)
-			bs_free(mData);
+			B3DFree(mData);
 	}
 
 	inline Bitstream::Bitstream(const Bitstream& other)
@@ -457,7 +457,7 @@ namespace bs
 		else
 		{
 			if(mData && mOwnsMemory)
-				bs_free(mData);
+				B3DFree(mData);
 
 			mData = nullptr;
 			mMaxBits = 0;
@@ -481,7 +481,7 @@ namespace bs
 			return *this;
 
 		if(mData && mOwnsMemory)
-			bs_free(mData);
+			B3DFree(mData);
 
 		this->mCursor = std::exchange(other.mCursor, 0);
 		this->mNumBits = std::exchange(other.mNumBits, 0);
@@ -1056,12 +1056,12 @@ namespace bs
 			const uint32_t numQuants = (uint32_t)Math::DivideAndRoundUp(numBits, (uint64_t)kBitsPerQuant);
 
 			// Note: Eventually add support for custom allocators
-			auto buffer = bs_allocN<uint8_t>(numQuants);
+			auto buffer = B3DAllocateMultiple<uint8_t>(numQuants);
 			if(mData)
 			{
 				const uint32_t numBytes = (uint32_t)Math::DivideAndRoundUp(mMaxBits, (uint64_t)kBitsPerQuant) * kBytesPerQuant;
 				memcpy(buffer, mData, numBytes);
-				bs_free(mData);
+				B3DFree(mData);
 			}
 
 			mData = buffer;

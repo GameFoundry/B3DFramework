@@ -30,7 +30,7 @@ MonoObject* ScriptParticleSize::Create(const SPtr<ParticleSize>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
+	new(B3DAllocate<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleSize::InternalCreate(MonoObject* managedInstance, __PARTICLE_
 	PARTICLE_SIZE_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_SIZE_DESC::FromInterop(*desc);
 	SPtr<ParticleSize> instance = ParticleSize::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
 }
 
 void ScriptParticleSize::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleSize> instance = ParticleSize::Create();
-	new(bs_alloc<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleSize>()) ScriptParticleSize(managedInstance, instance);
 }

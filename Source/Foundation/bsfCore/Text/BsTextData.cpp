@@ -566,7 +566,7 @@ u32 TextDataBase::GetSpaceWidth() const
 void TextDataBase::InitAlloc()
 {
 	if(MemBuffer == nullptr)
-		MemBuffer = bs_new<BufferData>();
+		MemBuffer = B3DNew<BufferData>();
 }
 
 BS_THREADLOCAL TextDataBase::BufferData* TextDataBase::MemBuffer = nullptr;
@@ -581,16 +581,16 @@ TextDataBase::BufferData::BufferData()
 	NextFreeLine = 0;
 	NextFreePageInfo = 0;
 
-	WordBuffer = bs_newN<TextWord>(WordBufferSize);
-	LineBuffer = bs_newN<TextLine>(LineBufferSize);
-	PageBuffer = bs_newN<PageInfo>(PageBufferSize);
+	WordBuffer = B3DNewMultiple<TextWord>(WordBufferSize);
+	LineBuffer = B3DNewMultiple<TextLine>(LineBufferSize);
+	PageBuffer = B3DNewMultiple<PageInfo>(PageBufferSize);
 }
 
 TextDataBase::BufferData::~BufferData()
 {
-	bs_deleteN(WordBuffer, WordBufferSize);
-	bs_deleteN(LineBuffer, LineBufferSize);
-	bs_deleteN(PageBuffer, PageBufferSize);
+	B3DDeleteMultiple(WordBuffer, WordBufferSize);
+	B3DDeleteMultiple(LineBuffer, LineBufferSize);
+	B3DDeleteMultiple(PageBuffer, PageBufferSize);
 }
 
 u32 TextDataBase::BufferData::AllocWord(bool spacer)
@@ -598,10 +598,10 @@ u32 TextDataBase::BufferData::AllocWord(bool spacer)
 	if(NextFreeWord >= WordBufferSize)
 	{
 		u32 newBufferSize = WordBufferSize * 2;
-		TextWord* newBuffer = bs_newN<TextWord>(newBufferSize);
+		TextWord* newBuffer = B3DNewMultiple<TextWord>(newBufferSize);
 		memcpy(WordBuffer, newBuffer, WordBufferSize);
 
-		bs_deleteN(WordBuffer, WordBufferSize);
+		B3DDeleteMultiple(WordBuffer, WordBufferSize);
 		WordBuffer = newBuffer;
 		WordBufferSize = newBufferSize;
 	}
@@ -616,10 +616,10 @@ u32 TextDataBase::BufferData::AllocLine(TextDataBase* textData)
 	if(NextFreeLine >= LineBufferSize)
 	{
 		u32 newBufferSize = LineBufferSize * 2;
-		TextLine* newBuffer = bs_newN<TextLine>(newBufferSize);
+		TextLine* newBuffer = B3DNewMultiple<TextLine>(newBufferSize);
 		memcpy(LineBuffer, newBuffer, LineBufferSize);
 
-		bs_deleteN(LineBuffer, LineBufferSize);
+		B3DDeleteMultiple(LineBuffer, LineBufferSize);
 		LineBuffer = newBuffer;
 		LineBufferSize = newBufferSize;
 	}
@@ -641,10 +641,10 @@ void TextDataBase::BufferData::AddCharToPage(u32 page, const FontBitmap& fontDat
 	if(NextFreePageInfo >= PageBufferSize)
 	{
 		u32 newBufferSize = PageBufferSize * 2;
-		PageInfo* newBuffer = bs_newN<PageInfo>(newBufferSize);
+		PageInfo* newBuffer = B3DNewMultiple<PageInfo>(newBufferSize);
 		memcpy((void*)PageBuffer, (void*)newBuffer, PageBufferSize);
 
-		bs_deleteN(PageBuffer, PageBufferSize);
+		B3DDeleteMultiple(PageBuffer, PageBufferSize);
 		PageBuffer = newBuffer;
 		PageBufferSize = newBufferSize;
 	}

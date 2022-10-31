@@ -507,22 +507,22 @@ bool GUIScrollArea::MouseEventInternal(const GUIMouseEvent& ev)
 
 GUIScrollArea* GUIScrollArea::Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle)
 {
-	return new(bs_alloc<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create());
+	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create());
 }
 
 GUIScrollArea* GUIScrollArea::Create(const GUIOptions& options, const String& scrollBarStyle, const String& scrollAreaStyle)
 {
-	return new(bs_alloc<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create(options));
 }
 
 GUIScrollArea* GUIScrollArea::Create(const String& scrollBarStyle, const String& scrollAreaStyle)
 {
-	return new(bs_alloc<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create());
+	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create());
 }
 
 GUIScrollArea* GUIScrollArea::Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle, const String& scrollAreaStyle)
 {
-	return new(bs_alloc<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleName<GUIScrollArea>(scrollAreaStyle), GUIDimensions::Create(options));
 }
 
 const String& GUIScrollArea::GetGuiTypeName()

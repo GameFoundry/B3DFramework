@@ -41,7 +41,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<TextureImportOptions>();
+			return B3DMakeShared<TextureImportOptions>();
 		}
 	};
 

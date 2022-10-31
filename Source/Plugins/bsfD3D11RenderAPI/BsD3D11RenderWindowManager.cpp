@@ -26,6 +26,6 @@ SPtr<RenderWindow> D3D11RenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc
 	}
 
 	// Create the window
-	D3D11RenderWindow* renderWindow = new(bs_alloc<D3D11RenderWindow>()) D3D11RenderWindow(desc, windowId);
-	return bs_core_ptr<D3D11RenderWindow>(renderWindow);
+	D3D11RenderWindow* renderWindow = new(B3DAllocate<D3D11RenderWindow>()) D3D11RenderWindow(desc, windowId);
+	return B3DMakeCoreFromExisting<D3D11RenderWindow>(renderWindow);
 }

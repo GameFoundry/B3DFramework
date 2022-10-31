@@ -40,7 +40,7 @@ void ScriptSerializableProperty::InitRuntimeData()
 MonoObject* ScriptSerializableProperty::Create(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
 {
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance();
-	new(bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
+	new(B3DAllocate<ScriptSerializableProperty>()) ScriptSerializableProperty(managedInstance, typeInfo);
 
 	return managedInstance;
 }
@@ -60,7 +60,7 @@ void ScriptSerializableProperty::InternalCreateInstance(MonoObject* instance, Mo
 		return;
 	}
 
-	new(bs_alloc<ScriptSerializableProperty>()) ScriptSerializableProperty(instance, typeInfo);
+	new(B3DAllocate<ScriptSerializableProperty>()) ScriptSerializableProperty(instance, typeInfo);
 }
 
 MonoObject* ScriptSerializableProperty::InternalCreateObject(ScriptSerializableProperty* nativeInstance, MonoObject* managedInstance, MonoReflectionType* reflType)

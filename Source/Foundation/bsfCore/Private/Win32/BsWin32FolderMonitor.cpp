@@ -201,7 +201,7 @@ struct FileAction
 	static FileAction* CreateAdded(const WString& fileName)
 	{
 		String utf8filename = UTF8::FromWide(fileName);
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -221,7 +221,7 @@ struct FileAction
 	static FileAction* CreateRemoved(const WString& fileName)
 	{
 		String utf8filename = UTF8::FromWide(fileName);
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -241,7 +241,7 @@ struct FileAction
 	static FileAction* CreateModified(const WString& fileName)
 	{
 		String utf8filename = UTF8::FromWide(fileName);
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (utf8filename.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -263,7 +263,7 @@ struct FileAction
 		String utf8Oldfilename = UTF8::FromWide(oldFilename);
 		String utf8Newfilename = UTF8::FromWide(newFileName);
 
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (utf8Oldfilename.size() + utf8Newfilename.size() + 2) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (utf8Oldfilename.size() + utf8Newfilename.size() + 2) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -287,7 +287,7 @@ struct FileAction
 
 	static void Destroy(FileAction* action)
 	{
-		bs_free(action);
+		B3DFree(action);
 	}
 
 	String::value_type* OldName;
@@ -312,7 +312,7 @@ struct FolderMonitor::Pimpl
 
 FolderMonitor::FolderMonitor()
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->MWorkerThread = nullptr;
 	m->MCompPortHandle = nullptr;
 }
@@ -330,7 +330,7 @@ FolderMonitor::~FolderMonitor()
 		FileAction::Destroy(action);
 	}
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
@@ -360,7 +360,7 @@ void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, Fo
 	if(changeFilter.IsSet(FolderChangeBit::FileWrite))
 		filterFlags |= FILE_NOTIFY_CHANGE_LAST_WRITE;
 
-	m->MFoldersToWatch.push_back(bs_new<FolderWatchInfo>(folderPath, dirHandle, subdirectories, filterFlags));
+	m->MFoldersToWatch.push_back(B3DNew<FolderWatchInfo>(folderPath, dirHandle, subdirectories, filterFlags));
 	FolderWatchInfo* watchInfo = m->MFoldersToWatch.back();
 
 	m->MCompPortHandle = CreateIoCompletionPort(dirHandle, m->MCompPortHandle, (ULONG_PTR)watchInfo, 0);
@@ -368,18 +368,18 @@ void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, Fo
 	if(m->MCompPortHandle == nullptr)
 	{
 		m->MFoldersToWatch.erase(m->MFoldersToWatch.end() - 1);
-		bs_delete(watchInfo);
+		B3DDelete(watchInfo);
 		BS_EXCEPT(InternalErrorException, "Failed to open completion port for folder monitoring. Error code: " + toString((u64)GetLastError()));
 	}
 
 	if(m->MWorkerThread == nullptr)
 	{
-		m->MWorkerThread = bs_new<Thread>(std::bind(&FolderMonitor::WorkerThreadMain, this));
+		m->MWorkerThread = B3DNew<Thread>(std::bind(&FolderMonitor::WorkerThreadMain, this));
 
 		if(m->MWorkerThread == nullptr)
 		{
 			m->MFoldersToWatch.erase(m->MFoldersToWatch.end() - 1);
-			bs_delete(watchInfo);
+			B3DDelete(watchInfo);
 			BS_EXCEPT(InternalErrorException, "Failed to create a new worker thread for folder monitoring");
 		}
 	}
@@ -391,7 +391,7 @@ void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, Fo
 	else
 	{
 		m->MFoldersToWatch.erase(m->MFoldersToWatch.end() - 1);
-		bs_delete(watchInfo);
+		B3DDelete(watchInfo);
 		BS_EXCEPT(InternalErrorException, "Failed to create a new worker thread for folder monitoring");
 	}
 }
@@ -406,7 +406,7 @@ void FolderMonitor::StopMonitor(const Path& folderPath)
 		FolderWatchInfo* watchInfo = *findIter;
 
 		watchInfo->StopMonitor(m->MCompPortHandle);
-		bs_delete(watchInfo);
+		B3DDelete(watchInfo);
 
 		m->MFoldersToWatch.erase(findIter);
 	}
@@ -427,7 +427,7 @@ void FolderMonitor::StopMonitorAll()
 			// that doesn't mean the worker thread is done with the condition variable
 			// (which is stored inside watchInfo)
 			Lock lock(m->MMainMutex);
-			bs_delete(watchInfo);
+			B3DDelete(watchInfo);
 		}
 	}
 
@@ -438,7 +438,7 @@ void FolderMonitor::StopMonitorAll()
 		PostQueuedCompletionStatus(m->MCompPortHandle, 0, 0, nullptr);
 
 		m->MWorkerThread->join();
-		bs_delete(m->MWorkerThread);
+		B3DDelete(m->MWorkerThread);
 		m->MWorkerThread = nullptr;
 	}
 

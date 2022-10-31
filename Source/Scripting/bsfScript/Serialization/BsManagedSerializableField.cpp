@@ -60,13 +60,13 @@ ManagedSerializableFieldKey::ManagedSerializableFieldKey(u16 typeId, u16 fieldId
 
 SPtr<ManagedSerializableFieldKey> ManagedSerializableFieldKey::Create(u16 typeId, u16 fieldId)
 {
-	SPtr<ManagedSerializableFieldKey> fieldKey = bs_shared_ptr_new<ManagedSerializableFieldKey>(typeId, fieldId);
+	SPtr<ManagedSerializableFieldKey> fieldKey = B3DMakeShared<ManagedSerializableFieldKey>(typeId, fieldId);
 	return fieldKey;
 }
 
 SPtr<ManagedSerializableFieldDataEntry> ManagedSerializableFieldDataEntry::Create(const SPtr<ManagedSerializableFieldKey>& key, const SPtr<ManagedSerializableFieldData>& value)
 {
-	SPtr<ManagedSerializableFieldDataEntry> fieldDataEntry = bs_shared_ptr_new<ManagedSerializableFieldDataEntry>();
+	SPtr<ManagedSerializableFieldDataEntry> fieldDataEntry = B3DMakeShared<ManagedSerializableFieldDataEntry>();
 	fieldDataEntry->MKey = key;
 	fieldDataEntry->MValue = value;
 
@@ -98,7 +98,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		{
 		case ScriptPrimitiveType::Bool:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataBool>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataBool>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -106,7 +106,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::Char:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataChar>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataChar>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -114,7 +114,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::I8:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataI8>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI8>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -122,7 +122,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::U8:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataU8>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU8>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -130,7 +130,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::I16:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataI16>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI16>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -138,7 +138,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::U16:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataU16>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU16>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -146,7 +146,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::I32:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataI32>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI32>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -154,7 +154,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::U32:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataU32>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU32>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -162,7 +162,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::I64:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataI64>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI64>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -170,7 +170,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::U64:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataU64>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU64>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -178,7 +178,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::Float:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataFloat>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataFloat>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -186,7 +186,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptPrimitiveType::Double:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataDouble>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataDouble>();
 				if(value != nullptr)
 					memcpy(&fieldData->Value, MonoUtil::Unbox(value), sizeof(fieldData->Value));
 
@@ -196,7 +196,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			{
 				MonoString* strVal = (MonoString*)(value);
 
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataString>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataString>();
 				if(strVal != nullptr)
 					fieldData->Value = MonoUtil::MonoToWString(strVal);
 				else
@@ -215,7 +215,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		{
 		case ScriptReferenceType::SceneObject:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataGameObjectRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
 				if(value != nullptr)
 				{
@@ -228,7 +228,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::ManagedComponentBase:
 		case ScriptReferenceType::ManagedComponent:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataGameObjectRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
 				if(value != nullptr)
 				{
@@ -245,7 +245,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 				if(info == nullptr)
 					return nullptr;
 
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataGameObjectRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
 				if(value != nullptr)
 				{
@@ -258,7 +258,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::ManagedResourceBase:
 		case ScriptReferenceType::ManagedResource:
 			{
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
 				if(value != nullptr)
 				{
@@ -275,7 +275,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 				if(info == nullptr)
 					return nullptr;
 
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
 				if(value != nullptr)
 				{
@@ -291,7 +291,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 				if(info == nullptr)
 					return nullptr;
 
-				auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataReflectableRef>();
+				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataReflectableRef>();
 
 				if(value != nullptr)
 				{
@@ -307,7 +307,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	}
 	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
 	{
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
 		if(value != nullptr)
 		{
@@ -319,7 +319,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	}
 	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
 	{
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataObject>();
+		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataObject>();
 		if(value != nullptr)
 			fieldData->Value = ManagedSerializableObject::CreateFromExisting(value);
 		else if(!allowNull)
@@ -331,7 +331,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	{
 		SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
 
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataArray>();
+		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataArray>();
 		if(value != nullptr)
 			fieldData->Value = ManagedSerializableArray::CreateFromExisting(value, arrayTypeInfo);
 		else if(!allowNull)
@@ -346,7 +346,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	{
 		SPtr<ManagedSerializableTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
 
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataList>();
+		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataList>();
 		if(value != nullptr)
 			fieldData->Value = ManagedSerializableList::CreateFromExisting(value, listTypeInfo);
 		else if(!allowNull)
@@ -358,7 +358,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	{
 		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
 
-		auto fieldData = bs_shared_ptr_new<ManagedSerializableFieldDataDictionary>();
+		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataDictionary>();
 		if(value != nullptr)
 			fieldData->Value = ManagedSerializableDictionary::CreateFromExisting(value, dictTypeInfo);
 		else if(!allowNull)

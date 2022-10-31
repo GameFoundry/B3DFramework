@@ -21,12 +21,12 @@ namespace bs
 		{
 			size = obj->mCookedDataSize;
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize);
+			return B3DMakeShared<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize);
 		}
 
 		void SetCookedData(FPhysXMesh* obj, const SPtr<DataStream>& value, u32 size)
 		{
-			obj->mCookedData = (u8*)bs_alloc(size);
+			obj->mCookedData = (u8*)B3DAllocate(size);
 			obj->mCookedDataSize = size;
 
 			value->Read(obj->mCookedData, size);
@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<FPhysXMesh>();
+			return B3DMakeShared<FPhysXMesh>();
 		}
 	};
 

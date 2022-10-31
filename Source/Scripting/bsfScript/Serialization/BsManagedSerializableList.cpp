@@ -52,12 +52,12 @@ SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoOb
 	if(ScriptAssemblyManager::Instance().GetBuiltinClasses().SystemGenericListClass->GetFullName() != fullName)
 		return nullptr;
 
-	return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately(), typeInfo, managedInstance);
+	return B3DMakeShared<ManagedSerializableList>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
 SPtr<ManagedSerializableList> ManagedSerializableList::CreateNew(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size)
 {
-	return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, size));
+	return B3DMakeShared<ManagedSerializableList>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, size));
 }
 
 MonoObject* ManagedSerializableList::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size)
@@ -84,7 +84,7 @@ MonoObject* ManagedSerializableList::CreateManagedInstance(const SPtr<ManagedSer
 
 SPtr<ManagedSerializableList> ManagedSerializableList::CreateEmpty()
 {
-	return bs_shared_ptr_new<ManagedSerializableList>(ConstructPrivately());
+	return B3DMakeShared<ManagedSerializableList>(ConstructPrivately());
 }
 
 MonoObject* ManagedSerializableList::GetManagedInstance() const

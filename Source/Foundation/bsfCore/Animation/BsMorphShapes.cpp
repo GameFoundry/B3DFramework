@@ -12,7 +12,7 @@ MorphShape::MorphShape(const String& name, float weight, const Vector<MorphVerte
 /** Creates a new morph shape from the provided set of vertices. */
 SPtr<MorphShape> MorphShape::Create(const String& name, float weight, const Vector<MorphVertex>& vertices)
 {
-	return bs_shared_ptr_new<MorphShape>(name, weight, vertices);
+	return B3DMakeShared<MorphShape>(name, weight, vertices);
 }
 
 RTTITypeBase* MorphShape::GetRttiStatic()
@@ -34,14 +34,14 @@ MorphChannel::MorphChannel(const String& name, const Vector<SPtr<MorphShape>>& s
 
 SPtr<MorphChannel> MorphChannel::Create(const String& name, const Vector<SPtr<MorphShape>>& shapes)
 {
-	MorphChannel* raw = new(bs_alloc<MorphChannel>()) MorphChannel(name, shapes);
-	return bs_shared_ptr(raw);
+	MorphChannel* raw = new(B3DAllocate<MorphChannel>()) MorphChannel(name, shapes);
+	return B3DMakeSharedFromExisting(raw);
 }
 
 SPtr<MorphChannel> MorphChannel::CreateEmpty()
 {
-	MorphChannel* raw = new(bs_alloc<MorphChannel>()) MorphChannel();
-	return bs_shared_ptr(raw);
+	MorphChannel* raw = new(B3DAllocate<MorphChannel>()) MorphChannel();
+	return B3DMakeSharedFromExisting(raw);
 }
 
 RTTITypeBase* MorphChannel::GetRttiStatic()
@@ -61,14 +61,14 @@ MorphShapes::MorphShapes(const Vector<SPtr<MorphChannel>>& channels, u32 numVert
 
 SPtr<MorphShapes> MorphShapes::Create(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices)
 {
-	MorphShapes* raw = new(bs_alloc<MorphShapes>()) MorphShapes(channels, numVertices);
-	return bs_shared_ptr(raw);
+	MorphShapes* raw = new(B3DAllocate<MorphShapes>()) MorphShapes(channels, numVertices);
+	return B3DMakeSharedFromExisting(raw);
 }
 
 SPtr<MorphShapes> MorphShapes::CreateEmpty()
 {
-	MorphShapes* raw = new(bs_alloc<MorphShapes>()) MorphShapes();
-	return bs_shared_ptr(raw);
+	MorphShapes* raw = new(B3DAllocate<MorphShapes>()) MorphShapes();
+	return B3DMakeSharedFromExisting(raw);
 }
 
 RTTITypeBase* MorphShapes::GetRttiStatic()

@@ -137,7 +137,7 @@ namespace bs
 			{
 				if(mMetaData.Instances[0] == nullptr)
 				{
-					RendererMaterialBase* mat = bs_alloc<T>();
+					RendererMaterialBase* mat = B3DAllocate<T>();
 					mat->VarIdx = 0;
 					new(mat) T();
 
@@ -156,7 +156,7 @@ namespace bs
 				u32 varIdx = variation.GetIdx();
 				if(mMetaData.Instances[varIdx] == nullptr)
 				{
-					RendererMaterialBase* mat = bs_alloc<T>();
+					RendererMaterialBase* mat = B3DAllocate<T>();
 					mat->VarIdx = varIdx;
 					new(mat) T();
 
@@ -179,7 +179,7 @@ namespace bs
 				for(u32 i = 0; i < mMetaData.Instances.Size(); i++)
 				{
 					if(mMetaData.Instances[i] != nullptr)
-						bs_delete(mMetaData.Instances[i]);
+						B3DDelete(mMetaData.Instances[i]);
 
 					mMetaData.Instances[i] = nullptr;
 				}

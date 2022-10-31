@@ -54,12 +54,12 @@ __PARTICLE_ROTATION_DESCInterop ScriptPARTICLE_ROTATION_DESC::ToInterop(const PA
 	__PARTICLE_ROTATION_DESCInterop output;
 	MonoObject* tmpRotation;
 	SPtr<TDistribution<float>> tmpRotationcopy;
-	tmpRotationcopy = bs_shared_ptr_new<TDistribution<float>>(value.Rotation);
+	tmpRotationcopy = B3DMakeShared<TDistribution<float>>(value.Rotation);
 	tmpRotation = ScriptTDistributionfloat::Create(tmpRotationcopy);
 	output.Rotation = tmpRotation;
 	MonoObject* tmpRotation3D;
 	SPtr<TDistribution<Vector3>> tmpRotation3Dcopy;
-	tmpRotation3Dcopy = bs_shared_ptr_new<TDistribution<Vector3>>(value.Rotation3D);
+	tmpRotation3Dcopy = B3DMakeShared<TDistribution<Vector3>>(value.Rotation3D);
 	tmpRotation3D = ScriptTDistributionVector3::Create(tmpRotation3Dcopy);
 	output.Rotation3D = tmpRotation3D;
 	output.Use3DRotation = value.Use3DRotation;

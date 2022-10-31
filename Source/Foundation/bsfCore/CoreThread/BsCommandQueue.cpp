@@ -11,8 +11,8 @@ using namespace bs;
 CommandQueueBase::CommandQueueBase(ThreadId threadId)
 	: mMyThreadId(threadId), mMaxDebugIdx(0)
 {
-	mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
-	mCommands = bs_new<bs::Queue<QueuedCommand>>();
+	mAsyncOpSyncData = B3DMakeShared<AsyncOpSyncData>();
+	mCommands = B3DNew<bs::Queue<QueuedCommand>>();
 
 	{
 		Lock lock(CommandQueueBreakpointMutex);
@@ -24,19 +24,19 @@ CommandQueueBase::CommandQueueBase(ThreadId threadId)
 CommandQueueBase::CommandQueueBase(ThreadId threadId)
 	: mMyThreadId(threadId)
 {
-	mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
-	mCommands = bs_new<bs::Queue<QueuedCommand>>();
+	mAsyncOpSyncData = B3DMakeShared<AsyncOpSyncData>();
+	mCommands = B3DNew<bs::Queue<QueuedCommand>>();
 }
 #endif
 
 CommandQueueBase::~CommandQueueBase()
 {
 	if(mCommands != nullptr)
-		bs_delete(mCommands);
+		B3DDelete(mCommands);
 
 	while(!mEmptyCommandQueues.empty())
 	{
-		bs_delete(mEmptyCommandQueues.top());
+		B3DDelete(mEmptyCommandQueues.top());
 		mEmptyCommandQueues.pop();
 	}
 }
@@ -91,7 +91,7 @@ bs::Queue<QueuedCommand>* CommandQueueBase::Flush()
 	}
 	else
 	{
-		mCommands = bs_new<bs::Queue<QueuedCommand>>();
+		mCommands = B3DNew<bs::Queue<QueuedCommand>>();
 	}
 
 	return oldCommands;

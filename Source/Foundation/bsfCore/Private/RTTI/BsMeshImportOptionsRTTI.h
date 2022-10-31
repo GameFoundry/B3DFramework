@@ -47,7 +47,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<MeshImportOptions>();
+			return B3DMakeShared<MeshImportOptions>();
 		}
 	};
 
@@ -72,7 +72,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ImportedAnimationEvents>();
+			return B3DMakeShared<ImportedAnimationEvents>();
 		}
 	};
 
@@ -99,7 +99,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<AnimationSplitInfo>();
+			return B3DMakeShared<AnimationSplitInfo>();
 		}
 	};
 

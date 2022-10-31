@@ -40,7 +40,7 @@ bool FontImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) c
 
 SPtr<ImportOptions> FontImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<FontImportOptions>();
+	return B3DMakeShared<FontImportOptions>();
 }
 
 SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
@@ -119,7 +119,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		if(FT_Set_Char_Size(face, ftSize, 0, dpi, dpi))
 			BS_EXCEPT(InternalErrorException, "Could not set character size.");
 
-		SPtr<FontBitmap> fontData = bs_shared_ptr_new<FontBitmap>();
+		SPtr<FontBitmap> fontData = B3DMakeShared<FontBitmap>();
 
 		// Get all char sizes so we can generate texture layout
 		Vector<TextureAtlasUtility::Element> atlasElements;
@@ -183,7 +183,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 			u32 bufferSize = pageIter->Width * pageIter->Height * 2;
 
 			// TODO - I don't actually need a 2 channel texture
-			SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(pageIter->Width, pageIter->Height, 1, PF_RG8);
+			SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(pageIter->Width, pageIter->Height, 1, PF_RG8);
 
 			pixelData->AllocateInternalBuffer();
 			u8* pixelBuffer = pixelData->GetData();

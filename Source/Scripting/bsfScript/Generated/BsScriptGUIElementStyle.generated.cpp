@@ -85,14 +85,14 @@ MonoObject* ScriptGUIElementStyle::Create(const SPtr<GUIElementStyle>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, value);
+	new(B3DAllocate<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptGUIElementStyle::InternalGUIElementStyle(MonoObject* managedInstance)
 {
-	SPtr<GUIElementStyle> instance = bs_shared_ptr_new<GUIElementStyle>();
-	new(bs_alloc<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, instance);
+	SPtr<GUIElementStyle> instance = B3DMakeShared<GUIElementStyle>();
+	new(B3DAllocate<ScriptGUIElementStyle>()) ScriptGUIElementStyle(managedInstance, instance);
 }
 
 void ScriptGUIElementStyle::InternalAddSubStyle(ScriptGUIElementStyle* thisPtr, MonoString* guiType, MonoString* styleName)

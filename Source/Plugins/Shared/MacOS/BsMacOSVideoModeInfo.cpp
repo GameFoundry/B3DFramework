@@ -24,7 +24,7 @@ MacOSVideoModeInfo::MacOSVideoModeInfo()
 		if(!modeRef)
 			continue;
 
-		VideoOutputInfo* output = bs_new<MacOSVideoOutputInfo>(displays[i], i);
+		VideoOutputInfo* output = B3DNew<MacOSVideoOutputInfo>(displays[i], i);
 
 		// Make sure the primary output is the first in the output list
 		if(CGDisplayIsMain(displays[i]))
@@ -78,7 +78,7 @@ MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outp
 
 	CFRelease(deviceInfo);
 
-	mDesktopVideoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
+	mDesktopVideoMode = new(B3DAllocate<MacOSVideoMode>()) MacOSVideoMode(desktopModeRef, linkRef, outputIdx);
 
 	CFArrayRef modes = CGDisplayCopyAllDisplayModes(displayID, nullptr);
 	if(modes)
@@ -89,7 +89,7 @@ MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outp
 			auto modeRef = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
 			CGDisplayModeRetain(modeRef);
 
-			VideoMode* videoMode = new(bs_alloc<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
+			VideoMode* videoMode = new(B3DAllocate<MacOSVideoMode>()) MacOSVideoMode(modeRef, linkRef, outputIdx);
 
 			mVideoModes.push_back(videoMode);
 		}

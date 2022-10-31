@@ -25,7 +25,7 @@ struct Win32Window::Pimpl
 
 Win32Window::Win32Window(const WINDOW_DESC& desc)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->IsModal = desc.Modal;
 	m->IsHidden = desc.Hidden;
 	bool shouldFocus = true;
@@ -331,7 +331,7 @@ Win32Window::~Win32Window()
 		sAllWindows.erase(iterFind);
 	}
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Win32Window::Move(i32 left, i32 top)

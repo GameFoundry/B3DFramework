@@ -124,7 +124,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 			totalNumSamplerStates * sizeof(u32) +
 			(u32)overrides.size() * sizeof(SamplerOverride);
 
-		u8* outputData = (u8*)bs_alloc(outputSize);
+		u8* outputData = (u8*)B3DAllocate(outputSize);
 		output = (MaterialSamplerOverrides*)outputData;
 		outputData += sizeof(MaterialSamplerOverrides);
 
@@ -205,7 +205,7 @@ void SamplerOverrideUtility::DestroySamplerOverrides(MaterialSamplerOverrides* o
 		for(u32 i = 0; i < overrides->NumOverrides; i++)
 			overrides->Overrides[i].State.~SPtr<SamplerState>();
 
-		bs_free(overrides);
+		B3DFree(overrides);
 		overrides = nullptr;
 	}
 }

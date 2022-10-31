@@ -909,7 +909,7 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 						{
 							if(serializedArray == nullptr)
 							{
-								serializedArray = bs_shared_ptr_new<SerializedArray>();
+								serializedArray = B3DMakeShared<SerializedArray>();
 								serializedArray->NumElements = newEntry.GetArraySize();
 							}
 
@@ -924,7 +924,7 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 					{
 						if(serializedArray == nullptr)
 						{
-							serializedArray = bs_shared_ptr_new<SerializedArray>();
+							serializedArray = B3DMakeShared<SerializedArray>();
 							serializedArray->NumElements = newEntry.GetArraySize();
 						}
 					}
@@ -985,7 +985,7 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 			if(hasModification)
 			{
 				if(output == nullptr)
-					output = bs_shared_ptr_new<SerializedObject>();
+					output = B3DMakeShared<SerializedObject>();
 
 				if(diffSubObject == nullptr)
 				{

@@ -17,7 +17,7 @@ MonoMethod::MonoMethod(::MonoMethod* method)
 MonoMethod::~MonoMethod()
 {
 	if(mCachedParameters != nullptr)
-		bs_free(mCachedParameters);
+		B3DFree(mCachedParameters);
 }
 
 MonoObject* MonoMethod::Invoke(MonoObject* instance, void** params)
@@ -150,13 +150,13 @@ void MonoMethod::CacheSignature() const
 	mCachedNumParameters = (u32)mono_signature_get_param_count(methodSignature);
 	if(mCachedParameters != nullptr)
 	{
-		bs_free(mCachedParameters);
+		B3DFree(mCachedParameters);
 		mCachedParameters = nullptr;
 	}
 
 	if(mCachedNumParameters > 0)
 	{
-		mCachedParameters = (MonoClass**)bs_alloc(mCachedNumParameters * sizeof(MonoClass*));
+		mCachedParameters = (MonoClass**)B3DAllocate(mCachedNumParameters * sizeof(MonoClass*));
 
 		void* iter = nullptr;
 		for(u32 i = 0; i < mCachedNumParameters; i++)

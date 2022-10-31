@@ -99,7 +99,7 @@ void ScriptGUILayout::InternalCreateInstanceX(MonoObject* instance, MonoArray* g
 
 	GUILayout* layout = GUILayoutX::Create(options);
 
-	new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 }
 
 void ScriptGUILayout::InternalCreateInstanceY(MonoObject* instance, MonoArray* guiOptions)
@@ -113,7 +113,7 @@ void ScriptGUILayout::InternalCreateInstanceY(MonoObject* instance, MonoArray* g
 
 	GUILayout* layout = GUILayoutY::Create(options);
 
-	new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 }
 
 void ScriptGUILayout::InternalCreateInstancePanel(MonoObject* instance, i16 depth, u16 depthRangeMin, u32 depthRangeMax, MonoArray* guiOptions)
@@ -127,7 +127,7 @@ void ScriptGUILayout::InternalCreateInstancePanel(MonoObject* instance, i16 dept
 
 	GUILayout* layout = GUIPanel::Create(depth, depthRangeMin, depthRangeMax, options);
 
-	new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
 }
 
 void ScriptGUILayout::InternalCreateInstanceYFromScrollArea(MonoObject* instance, MonoObject* parentScrollArea)
@@ -137,7 +137,7 @@ void ScriptGUILayout::InternalCreateInstanceYFromScrollArea(MonoObject* instance
 
 	GUILayout* nativeLayout = &scrollArea->GetLayout();
 
-	ScriptGUIScrollAreaLayout* nativeInstance = new(bs_alloc<ScriptGUIScrollAreaLayout>())
+	ScriptGUIScrollAreaLayout* nativeInstance = new(B3DAllocate<ScriptGUIScrollAreaLayout>())
 		ScriptGUIScrollAreaLayout(instance, nativeLayout);
 
 	// This method is expected to be called during GUIScrollArea construction, so we finish its initialization
@@ -218,7 +218,7 @@ void ScriptGUIPanel::InitRuntimeData()
 MonoObject* ScriptGUIPanel::CreateFromExisting(GUIPanel* panel)
 {
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance();
-	new(bs_alloc<ScriptGUILayout>()) ScriptGUILayout(managedInstance, panel, false);
+	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(managedInstance, panel, false);
 
 	return managedInstance;
 }

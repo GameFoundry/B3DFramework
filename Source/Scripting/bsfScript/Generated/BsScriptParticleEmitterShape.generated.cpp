@@ -33,6 +33,6 @@ MonoObject* ScriptParticleEmitterShape::Create(const SPtr<ParticleEmitterShape>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitterShape>()) ScriptParticleEmitterShape(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitterShape>()) ScriptParticleEmitterShape(managedInstance, value);
 	return managedInstance;
 }

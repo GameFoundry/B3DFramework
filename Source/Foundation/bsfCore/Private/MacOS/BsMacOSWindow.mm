@@ -582,7 +582,7 @@ namespace bs
 
 	CocoaWindow::CocoaWindow(const WINDOW_DESC& desc)
 	{ @autoreleasepool {
-		m = bs_new<Pimpl>();
+		m = B3DNew<Pimpl>();
 
 		BSWindow* window = [BSWindow alloc];
 		m->isModal = desc.modal;
@@ -699,7 +699,7 @@ namespace bs
         m->view = nil;
         m->layer = nil;
 
-        bs_delete(m);
+        B3DDelete(m);
 	}
 
 	void CocoaWindow::move(INT32 x, INT32 y)

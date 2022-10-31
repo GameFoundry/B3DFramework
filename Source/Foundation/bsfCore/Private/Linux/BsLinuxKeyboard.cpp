@@ -16,13 +16,13 @@ struct Keyboard::Pimpl
 Keyboard::Keyboard(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->HasInputFocus = true;
 }
 
 Keyboard::~Keyboard()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Keyboard::capture()

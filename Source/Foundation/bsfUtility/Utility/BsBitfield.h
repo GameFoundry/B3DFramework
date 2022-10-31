@@ -176,7 +176,7 @@ namespace bs
 		~Bitfield()
 		{
 			if(mData)
-				bs_free(mData);
+				B3DFree(mData);
 		}
 
 		Bitfield(const Bitfield& other)
@@ -221,7 +221,7 @@ namespace bs
 			if(this != &rhs)
 			{
 				if(mData)
-					bs_free(mData);
+					B3DFree(mData);
 
 				mData = std::exchange(rhs.mData, nullptr);
 				mNumBits = std::exchange(rhs.mNumBits, 0);
@@ -358,7 +358,7 @@ namespace bs
 			{
 				if(mData)
 				{
-					bs_free(mData);
+					B3DFree(mData);
 					mData = nullptr;
 				}
 
@@ -432,12 +432,12 @@ namespace bs
 				const uint32_t numDwords = Math::DivideAndRoundUp(numBits, kBitsPerDword);
 
 				// Note: Eventually add support for custom allocators
-				auto buffer = bs_allocN<uint32_t>(numDwords);
+				auto buffer = B3DAllocateMultiple<uint32_t>(numDwords);
 				if(mData)
 				{
 					const uint32_t numBytes = Math::DivideAndRoundUp(mMaxBits, kBitsPerDword) * sizeof(uint32_t);
 					memcpy(buffer, mData, numBytes);
-					bs_free(mData);
+					B3DFree(mData);
 				}
 
 				mData = buffer;

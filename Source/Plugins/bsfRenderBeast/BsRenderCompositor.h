@@ -141,7 +141,7 @@ namespace bs
 					Id = T::GetNodeId();
 				}
 
-				RenderCompositorNode* Create() const override { return bs_new<T>(); }
+				RenderCompositorNode* Create() const override { return B3DNew<T>(); }
 				SmallVector<StringID, 4> GetDependencies(const RendererView& view) const override
 				{
 					return T::GetDependencies(view);
@@ -159,14 +159,14 @@ namespace bs
 				if(findIter != mNodeTypes.end())
 					BS_LOG(Error, Renderer, "Found two render compositor nodes with the same name \"{0}\".", String(T::GetNodeId().CStr()));
 
-				mNodeTypes[T::GetNodeId()] = bs_new<TNodeType<T>>();
+				mNodeTypes[T::GetNodeId()] = B3DNew<TNodeType<T>>();
 			}
 
 			/** Releases any information about render node types. */
 			static void CleanUp()
 			{
 				for(auto& entry : mNodeTypes)
-					bs_delete(entry.second);
+					B3DDelete(entry.second);
 
 				mNodeTypes.clear();
 			}

@@ -27,10 +27,10 @@ PhysXFixedJoint::PhysXFixedJoint(PxPhysics* physx, const FIXED_JOINT_DESC& desc)
 	PxFixedJoint* joint = PxFixedJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 }
 
 PhysXFixedJoint::~PhysXFixedJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }

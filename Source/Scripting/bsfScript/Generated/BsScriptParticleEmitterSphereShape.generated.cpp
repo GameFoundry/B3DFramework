@@ -30,7 +30,7 @@ MonoObject* ScriptParticleEmitterSphereShape::Create(const SPtr<ParticleEmitterS
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, value);
 	return managedInstance;
 }
 
@@ -50,11 +50,11 @@ void ScriptParticleEmitterSphereShape::InternalGetOptions(ScriptParticleEmitterS
 void ScriptParticleEmitterSphereShape::InternalCreate(MonoObject* managedInstance, PARTICLE_SPHERE_SHAPE_DESC* desc)
 {
 	SPtr<ParticleEmitterSphereShape> instance = ParticleEmitterSphereShape::Create(*desc);
-	new(bs_alloc<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, instance);
 }
 
 void ScriptParticleEmitterSphereShape::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleEmitterSphereShape> instance = ParticleEmitterSphereShape::Create();
-	new(bs_alloc<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, instance);
 }

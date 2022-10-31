@@ -216,7 +216,7 @@ void D3D11RenderUtility::InitClearQuadResources()
 	}
 
 	// Create input layout
-	D3D11_INPUT_ELEMENT_DESC* declElements = bs_newN<D3D11_INPUT_ELEMENT_DESC>(2);
+	D3D11_INPUT_ELEMENT_DESC* declElements = B3DNewMultiple<D3D11_INPUT_ELEMENT_DESC>(2);
 	ZeroMemory(declElements, sizeof(D3D11_INPUT_ELEMENT_DESC) * 2);
 
 	declElements[0].SemanticName = "POSITION";
@@ -237,7 +237,7 @@ void D3D11RenderUtility::InitClearQuadResources()
 
 	hr = mDevice->GetD3D11Device()->CreateInputLayout(declElements, 2, microcode->GetBufferPointer(), microcode->GetBufferSize(), &mClearQuadIL);
 
-	bs_deleteN(declElements, 2);
+	B3DDeleteMultiple(declElements, 2);
 
 	if(FAILED(hr))
 	{

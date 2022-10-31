@@ -199,7 +199,7 @@ Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owne
 {
 	InputPrivateData* pvtData = owner->GetPrivateDataInternal();
 
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->DirectInput = pvtData->DirectInput;
 	m->CoopSettings = pvtData->MouseSettings;
 	m->Info = gamepadInfo;
@@ -217,7 +217,7 @@ Gamepad::~Gamepad()
 {
 	releaseDirectInput(m);
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Gamepad::Capture()

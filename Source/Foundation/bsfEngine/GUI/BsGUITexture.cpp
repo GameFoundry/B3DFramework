@@ -17,7 +17,7 @@ const String& GUITexture::GetGuiTypeName()
 GUITexture::GUITexture(const String& styleName, const HSpriteTexture& texture, TextureScaleMode scale, bool transparent, const GUIDimensions& dimensions)
 	: GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
 {
-	mImageSprite = bs_new<ImageSprite>();
+	mImageSprite = B3DNew<ImageSprite>();
 	mDesc.AnimationStartTime = GetTime().GetTime();
 
 	if(texture != nullptr)
@@ -38,57 +38,57 @@ GUITexture::GUITexture(const String& styleName, const HSpriteTexture& texture, T
 
 GUITexture::~GUITexture()
 {
-	bs_delete(mImageSprite);
+	B3DDelete(mImageSprite);
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, TextureScaleMode scale, bool transparent, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, transparent, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, transparent, GUIDimensions::Create(options));
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, TextureScaleMode scale, bool transparent, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, transparent, GUIDimensions::Create());
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, transparent, GUIDimensions::Create());
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, TextureScaleMode scale, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, true, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, true, GUIDimensions::Create(options));
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, TextureScaleMode scale, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, true, GUIDimensions::Create());
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, scale, true, GUIDimensions::Create());
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create(options));
 }
 
 GUITexture* GUITexture::Create(const HSpriteTexture& texture, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create());
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), texture, TextureScaleMode::StretchToFit, true, GUIDimensions::Create());
 }
 
 GUITexture* GUITexture::Create(TextureScaleMode scale, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), scale, true, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), scale, true, GUIDimensions::Create(options));
 }
 
 GUITexture* GUITexture::Create(TextureScaleMode scale, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), scale, true, GUIDimensions::Create());
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), scale, true, GUIDimensions::Create());
 }
 
 GUITexture* GUITexture::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::Create(options));
 }
 
 GUITexture* GUITexture::Create(const String& styleName)
 {
-	return new(bs_alloc<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::Create());
+	return new(B3DAllocate<GUITexture>()) GUITexture(GetStyleName<GUITexture>(styleName), HSpriteTexture(), TextureScaleMode::StretchToFit, true, GUIDimensions::Create());
 }
 
 void GUITexture::SetTexture(const HSpriteTexture& texture)

@@ -289,7 +289,7 @@ ProfilerCPU::~ProfilerCPU()
 	Lock lock(mThreadSync);
 
 	for(auto& threadInfo : mActiveThreads)
-		bs_delete<ThreadInfo, ProfilerAlloc>(threadInfo);
+		B3DDelete<ThreadInfo, ProfilerAlloc>(threadInfo);
 }
 
 void ProfilerCPU::BeginThread(const char* name)
@@ -297,7 +297,7 @@ void ProfilerCPU::BeginThread(const char* name)
 	ThreadInfo* thread = ThreadInfo::activeThread;
 	if(thread == nullptr)
 	{
-		ThreadInfo::activeThread = bs_new<ThreadInfo, ProfilerAlloc>();
+		ThreadInfo::activeThread = B3DNew<ThreadInfo, ProfilerAlloc>();
 		thread = ThreadInfo::activeThread;
 
 		{

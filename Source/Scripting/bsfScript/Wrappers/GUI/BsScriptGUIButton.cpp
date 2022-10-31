@@ -52,7 +52,7 @@ void ScriptGUIButton::InternalCreateInstance(MonoObject* instance, __GUIContentI
 	GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
 	GUIButton* guiButton = GUIButton::Create(nativeContent, options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
+	auto nativeInstance = new(B3DAllocate<ScriptGUIButton>()) ScriptGUIButton(instance, guiButton);
 
 	guiButton->OnClick.Connect(std::bind(&::bs::ScriptGUIButton::OnClick, nativeInstance));
 	guiButton->OnDoubleClick.Connect(std::bind(&::bs::ScriptGUIButton::OnDoubleClick, nativeInstance));

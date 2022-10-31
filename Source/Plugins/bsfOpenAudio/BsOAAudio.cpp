@@ -211,17 +211,17 @@ ALCcontext* OAAudio::GetContextInternal(const OAAudioListener* listener) const
 
 SPtr<AudioClip> OAAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	return bs_core_ptr_new<OAAudioClip>(samples, streamSize, numSamples, desc);
+	return B3DMakeCoreShared<OAAudioClip>(samples, streamSize, numSamples, desc);
 }
 
 SPtr<AudioListener> OAAudio::CreateListener()
 {
-	return bs_shared_ptr_new<OAAudioListener>();
+	return B3DMakeShared<OAAudioListener>();
 }
 
 SPtr<AudioSource> OAAudio::CreateSource()
 {
-	return bs_shared_ptr_new<OAAudioSource>();
+	return B3DMakeShared<OAAudioSource>();
 }
 
 void OAAudio::RebuildContexts()

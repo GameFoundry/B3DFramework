@@ -32,14 +32,14 @@ MonoObject* ScriptParticleDepthCollisionSettings::Create(const SPtr<ParticleDept
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleDepthCollisionSettings>()) ScriptParticleDepthCollisionSettings(managedInstance, value);
+	new(B3DAllocate<ScriptParticleDepthCollisionSettings>()) ScriptParticleDepthCollisionSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptParticleDepthCollisionSettings::InternalParticleDepthCollisionSettings(MonoObject* managedInstance)
 {
-	SPtr<ParticleDepthCollisionSettings> instance = bs_shared_ptr_new<ParticleDepthCollisionSettings>();
-	new(bs_alloc<ScriptParticleDepthCollisionSettings>()) ScriptParticleDepthCollisionSettings(managedInstance, instance);
+	SPtr<ParticleDepthCollisionSettings> instance = B3DMakeShared<ParticleDepthCollisionSettings>();
+	new(B3DAllocate<ScriptParticleDepthCollisionSettings>()) ScriptParticleDepthCollisionSettings(managedInstance, instance);
 }
 
 bool ScriptParticleDepthCollisionSettings::InternalGetEnabled(ScriptParticleDepthCollisionSettings* thisPtr)

@@ -34,14 +34,14 @@ MonoObject* ScriptMotionBlurSettings::Create(const SPtr<MotionBlurSettings>& val
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
+	new(B3DAllocate<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* managedInstance)
 {
-	SPtr<MotionBlurSettings> instance = bs_shared_ptr_new<MotionBlurSettings>();
-	new(bs_alloc<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, instance);
+	SPtr<MotionBlurSettings> instance = B3DMakeShared<MotionBlurSettings>();
+	new(B3DAllocate<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, instance);
 }
 
 bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* thisPtr)

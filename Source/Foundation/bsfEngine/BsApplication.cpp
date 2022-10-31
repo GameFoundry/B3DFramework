@@ -51,7 +51,7 @@ void Application::OnStartUp()
 {
 	CoreApplication::OnStartUp();
 
-	PlainTextImporter* importer = bs_new<PlainTextImporter>();
+	PlainTextImporter* importer = B3DNew<PlainTextImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
 	VirtualInput::StartUp();
@@ -116,7 +116,7 @@ void Application::ShowProfilerOverlay(ProfilerOverlayType type, const SPtr<Camer
 		return;
 
 	if(!mProfilerOverlay)
-		mProfilerOverlay = bs_shared_ptr_new<ProfilerOverlay>(overlayCamera);
+		mProfilerOverlay = B3DMakeShared<ProfilerOverlay>(overlayCamera);
 	else
 		mProfilerOverlay->SetTarget(overlayCamera);
 
@@ -170,7 +170,7 @@ START_UP_DESC Application::BuildStartUpDesc(VideoMode videoMode, const String& t
 
 SPtr<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
 {
-	return bs_shared_ptr_new<EngineShaderIncludeHandler>();
+	return B3DMakeShared<EngineShaderIncludeHandler>();
 }
 
 namespace bs

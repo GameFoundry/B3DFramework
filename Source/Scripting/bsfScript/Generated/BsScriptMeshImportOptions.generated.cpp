@@ -53,14 +53,14 @@ MonoObject* ScriptMeshImportOptions::Create(const SPtr<MeshImportOptions>& value
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptMeshImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<MeshImportOptions> instance = MeshImportOptions::Create();
-	new(bs_alloc<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptMeshImportOptions>()) ScriptMeshImportOptions(managedInstance, instance);
 }
 
 bool ScriptMeshImportOptions::InternalGetCpuCached(ScriptMeshImportOptions* thisPtr)
@@ -233,7 +233,7 @@ MonoArray* ScriptMeshImportOptions::InternalGetAnimationSplits(ScriptMeshImportO
 	ScriptArray array__output = ScriptArray::Create<ScriptAnimationSplitInfo>(arraySize__output);
 	for(int i = 0; i < arraySize__output; i++)
 	{
-		SPtr<AnimationSplitInfo> arrayElemPtr__output = bs_shared_ptr_new<AnimationSplitInfo>();
+		SPtr<AnimationSplitInfo> arrayElemPtr__output = B3DMakeShared<AnimationSplitInfo>();
 		*arrayElemPtr__output = vec__output[i];
 		MonoObject* arrayElem__output;
 		arrayElem__output = ScriptAnimationSplitInfo::Create(arrayElemPtr__output);
@@ -276,7 +276,7 @@ MonoArray* ScriptMeshImportOptions::InternalGetAnimationEvents(ScriptMeshImportO
 	ScriptArray array__output = ScriptArray::Create<ScriptImportedAnimationEvents>(arraySize__output);
 	for(int i = 0; i < arraySize__output; i++)
 	{
-		SPtr<ImportedAnimationEvents> arrayElemPtr__output = bs_shared_ptr_new<ImportedAnimationEvents>();
+		SPtr<ImportedAnimationEvents> arrayElemPtr__output = B3DMakeShared<ImportedAnimationEvents>();
 		*arrayElemPtr__output = vec__output[i];
 		MonoObject* arrayElem__output;
 		arrayElem__output = ScriptImportedAnimationEvents::Create(arrayElemPtr__output);

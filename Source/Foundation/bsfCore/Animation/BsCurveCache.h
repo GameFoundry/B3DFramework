@@ -45,7 +45,7 @@ namespace bs
 	{
 		~TCurveIntegrationCache()
 		{
-			bs_free(segmentSums);
+			B3DFree(segmentSums);
 		}
 
 	private:
@@ -54,14 +54,14 @@ namespace bs
 		/** Initializes the memory required for single integration cache. */
 		void Init(u32 numKeys) const
 		{
-			segmentSums = (T*)bs_alloc(sizeof(T) * numKeys * 5);
+			segmentSums = (T*)B3DAllocate(sizeof(T) * numKeys * 5);
 			coeffs = (T(*)[4])(segmentSums + numKeys);
 		}
 
 		/** Initializes the memory required for double integration cache. */
 		void InitDouble(u32 numKeys) const
 		{
-			segmentSums = (T*)bs_alloc(sizeof(T) * numKeys * 6);
+			segmentSums = (T*)B3DAllocate(sizeof(T) * numKeys * 6);
 			doubleSegmentSums = (T*)(segmentSums + numKeys);
 			coeffs = (T(*)[4])(segmentSums + numKeys * 2);
 		}

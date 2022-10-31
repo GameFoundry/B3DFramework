@@ -104,7 +104,7 @@ void TextureEx::SetPixelsArray(const HTexture& thisPtr, const Vector<Color>& col
 		return;
 	}
 
-	SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(props.GetWidth(), props.GetHeight(), props.GetDepth(), props.GetFormat());
+	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(props.GetWidth(), props.GetHeight(), props.GetDepth(), props.GetFormat());
 	pixelData->AllocateInternalBuffer();
 	pixelData->SetColors(colors);
 

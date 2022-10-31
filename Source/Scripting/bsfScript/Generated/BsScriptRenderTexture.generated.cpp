@@ -36,14 +36,14 @@ MonoObject* ScriptRenderTexture::Create(const SPtr<RenderTexture>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, value);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptRenderTexture::InternalCreate(MonoObject* managedInstance, PixelFormat format, int32_t width, int32_t height, int32_t numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 {
 	SPtr<RenderTexture> instance = RenderTextureEx::Create(format, width, height, numSamples, gammaCorrection, createDepth, depthStencilFormat);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
 }
 
 void ScriptRenderTexture::InternalCreate0(MonoObject* managedInstance, MonoObject* colorSurface)
@@ -54,7 +54,7 @@ void ScriptRenderTexture::InternalCreate0(MonoObject* managedInstance, MonoObjec
 	if(scriptcolorSurface != nullptr)
 		tmpcolorSurface = scriptcolorSurface->GetHandle();
 	SPtr<RenderTexture> instance = RenderTextureEx::Create(tmpcolorSurface);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
 }
 
 void ScriptRenderTexture::InternalCreate1(MonoObject* managedInstance, MonoObject* colorSurface, MonoObject* depthStencilSurface)
@@ -70,7 +70,7 @@ void ScriptRenderTexture::InternalCreate1(MonoObject* managedInstance, MonoObjec
 	if(scriptdepthStencilSurface != nullptr)
 		tmpdepthStencilSurface = scriptdepthStencilSurface->GetHandle();
 	SPtr<RenderTexture> instance = RenderTextureEx::Create(tmpcolorSurface, tmpdepthStencilSurface);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
 }
 
 void ScriptRenderTexture::InternalCreate2(MonoObject* managedInstance, MonoArray* colorSurface)
@@ -92,7 +92,7 @@ void ScriptRenderTexture::InternalCreate2(MonoObject* managedInstance, MonoArray
 		}
 	}
 	SPtr<RenderTexture> instance = RenderTextureEx::Create(veccolorSurface);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
 }
 
 void ScriptRenderTexture::InternalCreate3(MonoObject* managedInstance, MonoArray* colorSurface, MonoObject* depthStencilSurface)
@@ -119,7 +119,7 @@ void ScriptRenderTexture::InternalCreate3(MonoObject* managedInstance, MonoArray
 	if(scriptdepthStencilSurface != nullptr)
 		tmpdepthStencilSurface = scriptdepthStencilSurface->GetHandle();
 	SPtr<RenderTexture> instance = RenderTextureEx::Create(veccolorSurface, tmpdepthStencilSurface);
-	new(bs_alloc<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
+	new(B3DAllocate<ScriptRenderTexture>()) ScriptRenderTexture(managedInstance, instance);
 }
 
 MonoObject* ScriptRenderTexture::InternalGetColorSurface(ScriptRenderTexture* thisPtr)

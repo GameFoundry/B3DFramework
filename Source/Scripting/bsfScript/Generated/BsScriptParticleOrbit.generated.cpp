@@ -30,7 +30,7 @@ MonoObject* ScriptParticleOrbit::Create(const SPtr<ParticleOrbit>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, value);
+	new(B3DAllocate<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleOrbit::InternalCreate(MonoObject* managedInstance, __PARTICLE
 	PARTICLE_ORBIT_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_ORBIT_DESC::FromInterop(*desc);
 	SPtr<ParticleOrbit> instance = ParticleOrbit::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, instance);
 }
 
 void ScriptParticleOrbit::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleOrbit> instance = ParticleOrbit::Create();
-	new(bs_alloc<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, instance);
 }

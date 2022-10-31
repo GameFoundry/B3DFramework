@@ -20,8 +20,8 @@ MeshHeap::MeshHeap(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& 
 
 SPtr<MeshHeap> MeshHeap::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, IndexType indexType)
 {
-	MeshHeap* meshHeap = new(bs_alloc<MeshHeap>()) MeshHeap(numVertices, numIndices, vertexDesc, indexType);
-	SPtr<MeshHeap> meshHeapPtr = bs_core_ptr<MeshHeap>(meshHeap);
+	MeshHeap* meshHeap = new(B3DAllocate<MeshHeap>()) MeshHeap(numVertices, numIndices, vertexDesc, indexType);
+	SPtr<MeshHeap> meshHeapPtr = B3DMakeCoreFromExisting<MeshHeap>(meshHeap);
 
 	meshHeapPtr->SetThisPtrInternal(meshHeapPtr);
 	meshHeapPtr->Initialize();
@@ -34,8 +34,8 @@ SPtr<TransientMesh> MeshHeap::Alloc(const SPtr<MeshData>& meshData, DrawOperatio
 	u32 meshIdx = mNextFreeId++;
 
 	SPtr<MeshHeap> thisPtr = std::static_pointer_cast<MeshHeap>(GetThisPtr());
-	TransientMesh* transientMesh = new(bs_alloc<TransientMesh>()) TransientMesh(thisPtr, meshIdx, meshData->GetNumVertices(), meshData->GetNumIndices(), drawOp);
-	SPtr<TransientMesh> transientMeshPtr = bs_core_ptr<TransientMesh>(transientMesh);
+	TransientMesh* transientMesh = new(B3DAllocate<TransientMesh>()) TransientMesh(thisPtr, meshIdx, meshData->GetNumVertices(), meshData->GetNumIndices(), drawOp);
+	SPtr<TransientMesh> transientMeshPtr = B3DMakeCoreFromExisting<TransientMesh>(transientMesh);
 
 	transientMeshPtr->SetThisPtrInternal(transientMeshPtr);
 	transientMeshPtr->Initialize();
@@ -66,9 +66,9 @@ SPtr<ct::MeshHeap> MeshHeap::GetCore() const
 
 SPtr<ct::CoreObject> MeshHeap::CreateCore() const
 {
-	ct::MeshHeap* obj = new(bs_alloc<ct::MeshHeap>()) ct::MeshHeap(mNumVertices, mNumIndices, mVertexDesc, mIndexType, GDF_DEFAULT);
+	ct::MeshHeap* obj = new(B3DAllocate<ct::MeshHeap>()) ct::MeshHeap(mNumVertices, mNumIndices, mVertexDesc, mIndexType, GDF_DEFAULT);
 
-	SPtr<ct::MeshHeap> corePtr = bs_shared_ptr<ct::MeshHeap>(obj);
+	SPtr<ct::MeshHeap> corePtr = B3DMakeSharedFromExisting<ct::MeshHeap>(obj);
 	obj->SetThisPtrInternal(corePtr);
 
 	return corePtr;
@@ -92,10 +92,10 @@ MeshHeap::~MeshHeap()
 	THROW_IF_NOT_CORE_THREAD;
 
 	for(auto& cpuVertBuffer : mCPUVertexData)
-		bs_free(cpuVertBuffer);
+		B3DFree(cpuVertBuffer);
 
 	if(mCPUIndexData != nullptr)
-		bs_free(mCPUIndexData);
+		B3DFree(mCPUIndexData);
 
 	mVertexData = nullptr;
 	mIndexBuffer = nullptr;
@@ -331,7 +331,7 @@ void MeshHeap::Dealloc(SPtr<TransientMesh> mesh)
 void MeshHeap::GrowVertexBuffer(u32 numVertices)
 {
 	mNumVertices = numVertices;
-	mVertexData = SPtr<VertexData>(bs_new<VertexData>());
+	mVertexData = SPtr<VertexData>(B3DNew<VertexData>());
 
 	mVertexData->VertexCount = mNumVertices;
 	mVertexData->VertexDeclaration = VertexDeclaration::Create(mVertexDesc, mDeviceMask);
@@ -354,7 +354,7 @@ void MeshHeap::GrowVertexBuffer(u32 numVertices)
 
 		// Copy all data to the new buffer
 		u8* oldBuffer = mCPUVertexData[i];
-		u8* buffer = (u8*)bs_alloc(vertSize * numVertices);
+		u8* buffer = (u8*)B3DAllocate(vertSize * numVertices);
 
 		u32 destOffset = 0;
 		if(oldBuffer != nullptr)
@@ -369,7 +369,7 @@ void MeshHeap::GrowVertexBuffer(u32 numVertices)
 				destOffset += oldChunk.Size;
 			}
 
-			bs_free(oldBuffer);
+			B3DFree(oldBuffer);
 		}
 
 		if(destOffset > 0)
@@ -432,7 +432,7 @@ void MeshHeap::GrowIndexBuffer(u32 numIndices)
 	u32 idxSize = ibProps.GetIndexSize();
 
 	u8* oldBuffer = mCPUIndexData;
-	u8* buffer = (u8*)bs_alloc(idxSize * numIndices);
+	u8* buffer = (u8*)B3DAllocate(idxSize * numIndices);
 
 	u32 destOffset = 0;
 	if(oldBuffer != nullptr)
@@ -447,7 +447,7 @@ void MeshHeap::GrowIndexBuffer(u32 numIndices)
 			destOffset += oldChunk.Size;
 		}
 
-		bs_free(oldBuffer);
+		B3DFree(oldBuffer);
 	}
 
 	if(destOffset > 0)

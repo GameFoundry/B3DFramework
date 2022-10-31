@@ -41,21 +41,21 @@ MonoClass::~MonoClass()
 {
 	for(auto& mapEntry : mMethods)
 	{
-		bs_delete(mapEntry.second);
+		B3DDelete(mapEntry.second);
 	}
 
 	mMethods.clear();
 
 	for(auto& mapEntry : mFields)
 	{
-		bs_delete(mapEntry.second);
+		B3DDelete(mapEntry.second);
 	}
 
 	mFields.clear();
 
 	for(auto& mapEntry : mProperties)
 	{
-		bs_delete(mapEntry.second);
+		B3DDelete(mapEntry.second);
 	}
 
 	mProperties.clear();
@@ -72,7 +72,7 @@ MonoMethod* MonoClass::GetMethod(const String& name, u32 numParams) const
 	if(method == nullptr)
 		return nullptr;
 
-	MonoMethod* newMethod = new(bs_alloc<MonoMethod>()) MonoMethod(method);
+	MonoMethod* newMethod = new(B3DAllocate<MonoMethod>()) MonoMethod(method);
 	mMethods[mehodId] = newMethod;
 
 	return newMethod;
@@ -97,7 +97,7 @@ MonoMethod* MonoClass::GetMethodExact(const String& name, const String& signatur
 			const char* curSig = mono_signature_get_desc(mono_method_signature(method), false);
 			if(strcmp(rawSig, curSig) == 0)
 			{
-				MonoMethod* newMethod = new(bs_alloc<MonoMethod>()) MonoMethod(method);
+				MonoMethod* newMethod = new(B3DAllocate<MonoMethod>()) MonoMethod(method);
 				mMethods[mehodId] = newMethod;
 
 				return newMethod;
@@ -133,7 +133,7 @@ MonoField* MonoClass::GetField(const String& name) const
 	if(field == nullptr)
 		return nullptr;
 
-	MonoField* newField = new(bs_alloc<MonoField>()) MonoField(field);
+	MonoField* newField = new(B3DAllocate<MonoField>()) MonoField(field);
 	mFields[name] = newField;
 
 	return newField;
@@ -149,7 +149,7 @@ MonoProperty* MonoClass::GetProperty(const String& name) const
 	if(property == nullptr)
 		return nullptr;
 
-	MonoProperty* newProperty = new(bs_alloc<MonoProperty>()) MonoProperty(property);
+	MonoProperty* newProperty = new(B3DAllocate<MonoProperty>()) MonoProperty(property);
 	mProperties[name] = newProperty;
 
 	return newProperty;

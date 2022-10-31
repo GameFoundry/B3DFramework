@@ -30,7 +30,7 @@ MonoObject* ScriptParticleEmitterConeShape::Create(const SPtr<ParticleEmitterCon
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleEmitterConeShape::InternalCreate(MonoObject* managedInstance,
 	PARTICLE_CONE_SHAPE_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_CONE_SHAPE_DESC::FromInterop(*desc);
 	SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
 }
 
 void ScriptParticleEmitterConeShape::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create();
-	new(bs_alloc<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, instance);
 }

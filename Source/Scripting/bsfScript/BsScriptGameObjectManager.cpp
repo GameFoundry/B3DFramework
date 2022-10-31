@@ -62,7 +62,7 @@ ScriptSceneObject* ScriptGameObjectManager::CreateScriptSceneObject(MonoObject* 
 	if(so != nullptr)
 		BS_EXCEPT(InvalidStateException, "Script object for this SceneObject already exists.");
 
-	ScriptSceneObject* nativeInstance = new(bs_alloc<ScriptSceneObject>()) ScriptSceneObject(existingInstance, sceneObject);
+	ScriptSceneObject* nativeInstance = new(B3DAllocate<ScriptSceneObject>()) ScriptSceneObject(existingInstance, sceneObject);
 	mScriptSceneObjects[sceneObject.GetInstanceId()] = nativeInstance;
 
 	return nativeInstance;
@@ -70,7 +70,7 @@ ScriptSceneObject* ScriptGameObjectManager::CreateScriptSceneObject(MonoObject* 
 
 ScriptManagedComponent* ScriptGameObjectManager::CreateManagedScriptComponent(MonoObject* existingInstance, const HManagedComponent& component)
 {
-	ScriptManagedComponent* nativeInstance = new(bs_alloc<ScriptManagedComponent>())
+	ScriptManagedComponent* nativeInstance = new(B3DAllocate<ScriptManagedComponent>())
 		ScriptManagedComponent(existingInstance, component);
 
 	u64 instanceId = component->GetInstanceId();
@@ -162,7 +162,7 @@ void ScriptGameObjectManager::DestroyScriptSceneObject(ScriptSceneObject* sceneO
 	u64 instanceId = sceneObject->GetNativeHandle().GetInstanceId();
 	mScriptSceneObjects.erase(instanceId);
 
-	bs_delete(sceneObject);
+	B3DDelete(sceneObject);
 }
 
 void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* component)
@@ -170,7 +170,7 @@ void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* compon
 	u64 instanceId = component->GetNativeHandle().GetInstanceId();
 	mScriptComponents.erase(instanceId);
 
-	bs_delete(component);
+	B3DDelete(component);
 }
 
 void ScriptGameObjectManager::SendComponentResetEvents()

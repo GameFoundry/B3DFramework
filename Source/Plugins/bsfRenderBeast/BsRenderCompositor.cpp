@@ -205,7 +205,7 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 void RenderCompositor::Clear()
 {
 	for(auto& entry : mNodeInfos)
-		bs_delete(entry.Node);
+		B3DDelete(entry.Node);
 
 	mNodeInfos.clear();
 	mIsValid = false;

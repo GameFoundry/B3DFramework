@@ -60,7 +60,7 @@ MonoObject* ScriptParticleSystemSettings::Create(const SPtr<ParticleSystemSettin
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleSystemSettings>()) ScriptParticleSystemSettings(managedInstance, value);
+	new(B3DAllocate<ScriptParticleSystemSettings>()) ScriptParticleSystemSettings(managedInstance, value);
 	return managedInstance;
 }
 

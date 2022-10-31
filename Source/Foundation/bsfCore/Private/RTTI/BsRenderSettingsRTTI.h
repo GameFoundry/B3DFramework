@@ -42,7 +42,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<AutoExposureSettings>();
+			return B3DMakeShared<AutoExposureSettings>();
 		}
 	};
 
@@ -73,7 +73,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<TonemappingSettings>();
+			return B3DMakeShared<TonemappingSettings>();
 		}
 	};
 
@@ -99,7 +99,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<WhiteBalanceSettings>();
+			return B3DMakeShared<WhiteBalanceSettings>();
 		}
 	};
 
@@ -127,7 +127,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ColorGradingSettings>();
+			return B3DMakeShared<ColorGradingSettings>();
 		}
 	};
 
@@ -168,7 +168,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<DepthOfFieldSettings>();
+			return B3DMakeShared<DepthOfFieldSettings>();
 		}
 	};
 
@@ -200,7 +200,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<AmbientOcclusionSettings>();
+			return B3DMakeShared<AmbientOcclusionSettings>();
 		}
 	};
 
@@ -229,7 +229,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<MotionBlurSettings>();
+			return B3DMakeShared<MotionBlurSettings>();
 		}
 	};
 
@@ -256,7 +256,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<TemporalAASettings>();
+			return B3DMakeShared<TemporalAASettings>();
 		}
 	};
 
@@ -284,7 +284,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ScreenSpaceReflectionsSettings>();
+			return B3DMakeShared<ScreenSpaceReflectionsSettings>();
 		}
 	};
 
@@ -314,7 +314,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<BloomSettings>();
+			return B3DMakeShared<BloomSettings>();
 		}
 	};
 
@@ -353,7 +353,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ScreenSpaceLensFlareSettings>();
+			return B3DMakeShared<ScreenSpaceLensFlareSettings>();
 		}
 	};
 
@@ -381,7 +381,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ChromaticAberrationSettings>();
+			return B3DMakeShared<ChromaticAberrationSettings>();
 		}
 	};
 
@@ -408,7 +408,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<FilmGrainSettings>();
+			return B3DMakeShared<FilmGrainSettings>();
 		}
 	};
 
@@ -436,7 +436,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ShadowSettings>();
+			return B3DMakeShared<ShadowSettings>();
 		}
 	};
 
@@ -486,7 +486,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<RenderSettings>();
+			return B3DMakeShared<RenderSettings>();
 		}
 	};
 

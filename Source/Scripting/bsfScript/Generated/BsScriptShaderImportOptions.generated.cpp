@@ -33,7 +33,7 @@ MonoObject* ScriptShaderImportOptions::Create(const SPtr<ShaderImportOptions>& v
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
@@ -84,7 +84,7 @@ void ScriptShaderImportOptions::InternalRemoveDefine(ScriptShaderImportOptions* 
 void ScriptShaderImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<ShaderImportOptions> instance = ShaderImportOptions::Create();
-	new(bs_alloc<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, instance);
 }
 
 ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* thisPtr)

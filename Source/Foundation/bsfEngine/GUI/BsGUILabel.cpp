@@ -12,15 +12,15 @@ using namespace bs;
 GUILabel::GUILabel(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions)
 	: GUIElement(styleName, dimensions), mContent(content), mImageSprite(nullptr)
 {
-	mTextSprite = bs_new<TextSprite>();
+	mTextSprite = B3DNew<TextSprite>();
 }
 
 GUILabel::~GUILabel()
 {
-	bs_delete(mTextSprite);
+	B3DDelete(mTextSprite);
 
 	if(mImageSprite != nullptr)
-		bs_delete(mImageSprite);
+		B3DDelete(mImageSprite);
 }
 
 u32 GUILabel::GetRenderElementDepthRangeInternal() const
@@ -36,7 +36,7 @@ void GUILabel::UpdateRenderElementsInternal()
 		mImageDesc.Texture = activeTex;
 
 		if(mImageSprite == nullptr)
-			mImageSprite = bs_new<ImageSprite>();
+			mImageSprite = B3DNew<ImageSprite>();
 	}
 	else
 	{
@@ -44,7 +44,7 @@ void GUILabel::UpdateRenderElementsInternal()
 
 		if(mImageSprite != nullptr)
 		{
-			bs_delete(mImageSprite);
+			B3DDelete(mImageSprite);
 			mImageSprite = nullptr;
 		}
 	}
@@ -141,12 +141,12 @@ GUILabel* GUILabel::Create(const HString& text, const GUIOptions& options, const
 
 GUILabel* GUILabel::Create(const GUIContent& content, const String& styleName)
 {
-	return new(bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create());
+	return new(B3DAllocate<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create());
 }
 
 GUILabel* GUILabel::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUILabel>()) GUILabel(GetStyleName<GUILabel>(styleName), content, GUIDimensions::Create(options));
 }
 
 const String& GUILabel::GetGuiTypeName()

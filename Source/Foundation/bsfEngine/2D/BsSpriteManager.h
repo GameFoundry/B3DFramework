@@ -93,7 +93,7 @@ namespace bs
 		template <class T, class... Args>
 		SpriteMaterial* RegisterMaterial(Args&&... args)
 		{
-			SpriteMaterial* newMaterial = bs_new<T>(std::forward<Args>(args)...);
+			SpriteMaterial* newMaterial = B3DNew<T>(std::forward<Args>(args)...);
 
 			u32 id = newMaterial->GetId();
 			auto iterFind = mMaterials.find(id);
@@ -101,7 +101,7 @@ namespace bs
 			{
 				// Already exists
 				BS_LOG(Warning, Generic, "Attempting to register a sprite material that already exists, ignoring request.");
-				bs_delete(newMaterial);
+				B3DDelete(newMaterial);
 				return iterFind->second;
 			}
 

@@ -40,14 +40,14 @@ MonoObject* ScriptAmbientOcclusionSettings::Create(const SPtr<AmbientOcclusionSe
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, value);
+	new(B3DAllocate<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptAmbientOcclusionSettings::InternalAmbientOcclusionSettings(MonoObject* managedInstance)
 {
-	SPtr<AmbientOcclusionSettings> instance = bs_shared_ptr_new<AmbientOcclusionSettings>();
-	new(bs_alloc<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, instance);
+	SPtr<AmbientOcclusionSettings> instance = B3DMakeShared<AmbientOcclusionSettings>();
+	new(B3DAllocate<ScriptAmbientOcclusionSettings>()) ScriptAmbientOcclusionSettings(managedInstance, instance);
 }
 
 bool ScriptAmbientOcclusionSettings::InternalGetEnabled(ScriptAmbientOcclusionSettings* thisPtr)

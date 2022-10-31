@@ -90,10 +90,10 @@ void FMODAudioClip::Initialize()
 	{
 		mStreamData->Seek(mStreamOffset);
 
-		u8* sampleBuffer = (u8*)bs_alloc(mStreamSize);
+		u8* sampleBuffer = (u8*)B3DAllocate(mStreamSize);
 		mStreamData->Read(sampleBuffer, mStreamSize);
 
-		mSourceStreamData = bs_shared_ptr_new<MemoryDataStream>(sampleBuffer, mStreamSize);
+		mSourceStreamData = B3DMakeShared<MemoryDataStream>(sampleBuffer, mStreamSize);
 		mSourceStreamSize = mStreamSize;
 	}
 
@@ -180,12 +180,12 @@ void FMODAudioClip::Initialize()
 				mStreamData = mSourceStreamData;
 			else
 			{
-				u8* data = (u8*)bs_alloc(mStreamSize);
+				u8* data = (u8*)B3DAllocate(mStreamSize);
 
 				mStreamData->Seek(mStreamOffset);
 				mStreamData->Read(data, mStreamSize);
 
-				mStreamData = bs_shared_ptr_new<MemoryDataStream>(data, mStreamSize);
+				mStreamData = B3DMakeShared<MemoryDataStream>(data, mStreamSize);
 			}
 
 			mStreamOffset = 0;
@@ -254,7 +254,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 			info.NumSamples = mNumSamples;
 			info.SampleRate = mDesc.Frequency;
 
-			FMODOggDecompressorData* decompressorData = bs_new<FMODOggDecompressorData>();
+			FMODOggDecompressorData* decompressorData = B3DNew<FMODOggDecompressorData>();
 			decompressorData->Clip = this;
 
 			if(!decompressorData->VorbisReader.Open(memStream, info, mStreamOffset))
@@ -321,7 +321,7 @@ void FMODAudioClip::ReleaseStreamingSound(FMOD::Sound* sound)
 	((FMOD::Sound*)sound)->getUserData((void**)&decompressorData);
 
 	if(decompressorData != nullptr)
-		bs_delete(decompressorData);
+		B3DDelete(decompressorData);
 
 	sound->release();
 }

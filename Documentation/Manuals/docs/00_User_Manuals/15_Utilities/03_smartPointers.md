@@ -7,7 +7,7 @@ Smart pointers allow the user to allocate objects dynamically, but without havin
 # Unique pointers
 Unique pointers hold ownership of a dynamically allocated object, and automatically free it when they go out of scope. As their name implies they cannot be copied - in other words, only one pointer to that object can exist. They are mostly useful for temporary allocations, or for places where object ownership is clearly defined to a single owner.
 
-In bs::f type're represented with @bs::UPtr, which is just a wrapper for the standard library's *std::unique_ptr*. Use @bs::bs_unique_ptr_new to create a unique pointer pointing to a new instance of T, or @bs::bs_unique_ptr to create one from an existing instance. 
+In bs::f type're represented with @bs::UPtr, which is just a wrapper for the standard library's *std::unique_ptr*. Use @bs::B3DMakeUnique to create a unique pointer pointing to a new instance of T, or @bs::B3DMakeUniqueFromExisting to create one from an existing instance. 
 
 ~~~~~~~~~~~~~{.cpp}
 // Helper structure
@@ -22,7 +22,7 @@ struct MyStruct
 	bool b; 
 };
 
-UPtr<MyStruct> ptr = bs_unique_ptr_new<MyStruct>(123, false);
+UPtr<MyStruct> ptr = B3DMakeUnique<MyStruct>(123, false);
 
 // No need to free "ptr", it will automatically be freed when it goes out of scope
 ~~~~~~~~~~~~~
@@ -31,7 +31,7 @@ UPtr<MyStruct> ptr = bs_unique_ptr_new<MyStruct>(123, false);
 Since only a single instance of a unique pointer to a specific object may exist, they cannot be copied. However sometimes it is useful to move them to another object (transfer of ownership). In such case you can use *std::move* as shown below:
 
 ~~~~~~~~~~~~~{.cpp}
-UPtr<MyStruct> ptr = bs_unique_ptr_new<MyStruct>(123, false);
+UPtr<MyStruct> ptr = B3DMakeUnique<MyStruct>(123, false);
 
 // Transfer ownership
 UPtr<MyStruct> ptrOther = std::move(ptr);
@@ -42,12 +42,12 @@ UPtr<MyStruct> ptrOther = std::move(ptr);
 # Shared pointers
 Shared pointers are similar to unique pointers, as they also don't require the object to be explicitly freed after creation. However, unlike unique pointers they can be copied (therefore their name "shared"). This means multiple entities can hold a shared pointer to a single object. Only once ALL such entities lose their shared pointers will the pointed-to object be destroyed.
 
-In bs::f they are represented with @bs::SPtr, which is just a wrapper for the standard library's *std::shared_ptr*. Use @bs::bs_shared_ptr_new to create a shared pointer pointing to a new instance of T, or @bs::bs_shared_ptr to create one from an existing instance. 
+In bs::f they are represented with @bs::SPtr, which is just a wrapper for the standard library's *std::shared_ptr*. Use @bs::B3DMakeShared to create a shared pointer pointing to a new instance of T, or @bs::B3DMakeSharedFromExisting to create one from an existing instance. 
 
 You will find bs::f uses shared pointers commonly all around its codebase.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MyStruct> ptr = bs_shared_ptr_new<MyStruct>(123, false);
+SPtr<MyStruct> ptr = B3DMakeShared<MyStruct>(123, false);
 SPtr<MyStruct> anotherPtr = ptr;
 
 // Object will be freed after both "ptr" and "anotherPtr" go out of scope. 

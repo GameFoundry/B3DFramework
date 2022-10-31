@@ -54,7 +54,7 @@ void HThread::BlockUntilComplete()
 
 void PooledThread::Initialize()
 {
-	mThread = bs_new<Thread>(std::bind(&PooledThread::Run, this));
+	mThread = B3DNew<Thread>(std::bind(&PooledThread::Run, this));
 
 	Lock lock(mMutex);
 
@@ -154,7 +154,7 @@ void PooledThread::Destroy()
 
 	mReadyCond.notify_one();
 	mThread->join();
-	bs_delete(mThread);
+	B3DDelete(mThread);
 }
 
 void PooledThread::BlockUntilComplete()
@@ -272,7 +272,7 @@ void ThreadPool::ClearUnused()
 void ThreadPool::DestroyThread(PooledThread* thread)
 {
 	thread->Destroy();
-	bs_delete(thread);
+	B3DDelete(thread);
 }
 
 PooledThread* ThreadPool::GetThread(const String& name)

@@ -64,7 +64,7 @@ namespace bs
 			if(IsStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
-			InstanceInternal() = bs_new<T>(std::forward<Args>(args)...);
+			InstanceInternal() = B3DNew<T>(std::forward<Args>(args)...);
 			IsStartedUp() = true;
 
 			((Module*)InstanceInternal())->OnStartUp();
@@ -82,7 +82,7 @@ namespace bs
 			if(IsStartedUp())
 				BS_EXCEPT(InternalErrorException, "Trying to start an already started module.");
 
-			InstanceInternal() = bs_new<SubType>(std::forward<Args>(args)...);
+			InstanceInternal() = B3DNew<SubType>(std::forward<Args>(args)...);
 			IsStartedUp() = true;
 
 			((Module*)InstanceInternal())->OnStartUp();
@@ -103,7 +103,7 @@ namespace bs
 
 			((Module*)InstanceInternal())->OnShutDown();
 
-			bs_delete(InstanceInternal());
+			B3DDelete(InstanceInternal());
 			IsDestroyed() = true;
 		}
 

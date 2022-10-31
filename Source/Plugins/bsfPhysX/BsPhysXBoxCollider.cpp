@@ -18,13 +18,13 @@ PhysXBoxCollider::PhysXBoxCollider(PxPhysics* physx, PxScene* scene, const Vecto
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 
-	mInternal = bs_new<FPhysXCollider>(scene, shape);
+	mInternal = B3DNew<FPhysXCollider>(scene, shape);
 	ApplyGeometry();
 }
 
 PhysXBoxCollider::~PhysXBoxCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void PhysXBoxCollider::SetScale(const Vector3& scale)

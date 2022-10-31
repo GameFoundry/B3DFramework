@@ -442,7 +442,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 		// Generate morph shape vertices
 		if(anim->MorphChannelWeightsDirty || hasMorphCurves)
 		{
-			SPtr<MeshData> meshData = bs_shared_ptr_new<MeshData>(anim->NumMorphVertices, 0, mBlendShapeVertexDesc);
+			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->NumMorphVertices, 0, mBlendShapeVertexDesc);
 
 			u8* bufferData = meshData->GetData();
 			memset(bufferData, 0, meshData->GetSize());

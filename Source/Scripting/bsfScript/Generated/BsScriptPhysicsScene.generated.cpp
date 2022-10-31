@@ -63,7 +63,7 @@ MonoObject* ScriptPhysicsScene::Create(const SPtr<PhysicsScene>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptPhysicsScene>()) ScriptPhysicsScene(managedInstance, value);
+	new(B3DAllocate<ScriptPhysicsScene>()) ScriptPhysicsScene(managedInstance, value);
 	return managedInstance;
 }
 

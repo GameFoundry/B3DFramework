@@ -194,7 +194,7 @@ SPtr<GpuBuffer> GpuBuffer::GetView(GpuBufferType type, GpuBufferFormat format, u
 
 	if(!mSharedBuffer)
 	{
-		mSharedBuffer = bs_shared_ptr(mBuffer, mBufferDeleter);
+		mSharedBuffer = B3DMakeSharedFromExisting(mBuffer, mBufferDeleter);
 		mIsExternalBuffer = false;
 	}
 

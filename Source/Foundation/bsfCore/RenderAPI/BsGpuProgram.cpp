@@ -13,7 +13,7 @@ using namespace bs;
 GpuProgramBytecode::~GpuProgramBytecode()
 {
 	if(Instructions.Data)
-		bs_free(Instructions.Data);
+		B3DFree(Instructions.Data);
 }
 
 RTTITypeBase* GpuProgramBytecode::GetRttiStatic()
@@ -87,7 +87,7 @@ namespace bs { namespace ct
 GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 	: mNeedsAdjacencyInfo(desc.RequiresAdjacency), mType(desc.Type), mEntryPoint(desc.EntryPoint), mSource(desc.Source), mBytecode(desc.Bytecode)
 {
-	mParametersDesc = bs_shared_ptr_new<GpuParamDesc>();
+	mParametersDesc = B3DMakeShared<GpuParamDesc>();
 }
 
 GpuProgram::~GpuProgram()

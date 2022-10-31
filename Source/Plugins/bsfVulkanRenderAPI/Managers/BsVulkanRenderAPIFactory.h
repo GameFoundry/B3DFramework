@@ -33,7 +33,7 @@ namespace bs
 					static SPtr<RenderAPIFactory> newFactory;
 					if(newFactory == nullptr)
 					{
-						newFactory = bs_shared_ptr_new<VulkanRenderAPIFactory>();
+						newFactory = B3DMakeShared<VulkanRenderAPIFactory>();
 						RenderAPIManager::Instance().RegisterFactory(newFactory);
 					}
 				}

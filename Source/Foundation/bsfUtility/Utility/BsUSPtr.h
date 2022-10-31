@@ -107,7 +107,7 @@ namespace bs
 			if(mPtr != nullptr)
 			{
 				if(mCounter == nullptr)
-					mCounter = bs_new<uint32_t>(1);
+					mCounter = B3DNew<uint32_t>(1);
 				else
 					++(*mCounter);
 			}
@@ -120,8 +120,8 @@ namespace bs
 				--(*mCounter);
 				if(*mCounter == 0)
 				{
-					bs_delete(mPtr);
-					bs_delete(mCounter);
+					B3DDelete(mPtr);
+					B3DDelete(mCounter);
 				}
 
 				mCounter = nullptr;
@@ -207,7 +207,7 @@ namespace bs
 	{
 		// Note: Ideally we merge the pointer and internal USPtr counter allocation in a single allocation
 
-		return USPtr<Type>(bs_new<Type>(std::forward<Args>(args)...));
+		return USPtr<Type>(B3DNew<Type>(std::forward<Args>(args)...));
 	}
 
 	/** Create a new unsafe shared pointer from a previously constructed object. */

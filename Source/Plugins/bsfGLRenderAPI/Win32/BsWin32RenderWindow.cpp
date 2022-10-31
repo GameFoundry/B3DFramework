@@ -71,7 +71,7 @@ SPtr<ct::Win32RenderWindow> Win32RenderWindow::GetCore() const
 SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
 {
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::Win32RenderWindow> coreObj = bs_shared_ptr_new<ct::Win32RenderWindow>(desc, mWindowId, mGLSupport);
+	SPtr<ct::Win32RenderWindow> coreObj = B3DMakeShared<ct::Win32RenderWindow>(desc, mWindowId, mGLSupport);
 	coreObj->SetThisPtrInternal(coreObj);
 
 	mGLSupport.NotifyWindowCreatedInternal(coreObj.get());
@@ -104,7 +104,7 @@ Win32RenderWindow::~Win32RenderWindow()
 	{
 		ReleaseDC(mWindow->GetHWnd(), mHDC);
 
-		bs_delete(mWindow);
+		B3DDelete(mWindow);
 		mWindow = nullptr;
 	}
 
@@ -112,7 +112,7 @@ Win32RenderWindow::~Win32RenderWindow()
 
 	if(mDeviceName != nullptr)
 	{
-		bs_free(mDeviceName);
+		B3DFree(mDeviceName);
 		mDeviceName = nullptr;
 	}
 
@@ -177,7 +177,7 @@ void Win32RenderWindow::Initialize()
 		props.IsHidden = mDesc.HideUntilSwap || mDesc.Hidden;
 	}
 
-	mWindow = bs_new<Win32Window>(windowDesc);
+	mWindow = B3DNew<Win32Window>(windowDesc);
 
 	props.Width = mWindow->GetWidth();
 	props.Height = mWindow->GetHeight();
@@ -532,7 +532,7 @@ void Win32RenderWindow::CopyToMemory(PixelData& dst, FrameBuffer buffer)
 	{
 		size_t rowSpan = dst.GetWidth() * PixelUtil::GetNumElemBytes(dst.GetFormat());
 		size_t height = dst.GetHeight();
-		u8* tmpData = (u8*)bs_alloc((u32)(rowSpan * height));
+		u8* tmpData = (u8*)B3DAllocate((u32)(rowSpan * height));
 		u8 *srcRow = (u8*)dst.GetData(), *tmpRow = tmpData + (height - 1) * rowSpan;
 
 		while(tmpRow >= tmpData)
@@ -543,7 +543,7 @@ void Win32RenderWindow::CopyToMemory(PixelData& dst, FrameBuffer buffer)
 		}
 		memcpy(dst.GetData(), tmpData, rowSpan * height);
 
-		bs_free(tmpData);
+		B3DFree(tmpData);
 	}
 }
 

@@ -16,7 +16,7 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	FBXImporter* importer = bs_new<FBXImporter>();
+	FBXImporter* importer = B3DNew<FBXImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
 	return nullptr;

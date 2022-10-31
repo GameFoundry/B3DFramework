@@ -86,7 +86,7 @@ void AnimationProxy::Clear()
 	}
 
 	// All of the memory is part of the same buffer, so we only need to free the first element
-	bs_free(Layers);
+	B3DFree(Layers);
 	Layers = nullptr;
 	GenericCurveOutputs = nullptr;
 	SceneObjectInfos = nullptr;
@@ -254,7 +254,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 		u32 morphChannelSize = NumMorphChannels * sizeof(MorphChannelInfo);
 		u32 morphShapeSize = NumMorphShapes * sizeof(MorphShapeInfo);
 
-		u8* data = (u8*)bs_alloc(layersSize + clipsSize + boneMappingSize + posCacheSize + rotCacheSize + scaleCacheSize + genCacheSize + genericCurveOutputSize + sceneObjectIdsSize + sceneObjectTransformsSize + morphChannelSize + morphShapeSize);
+		u8* data = (u8*)B3DAllocate(layersSize + clipsSize + boneMappingSize + posCacheSize + rotCacheSize + scaleCacheSize + genCacheSize + genericCurveOutputSize + sceneObjectIdsSize + sceneObjectTransformsSize + morphChannelSize + morphShapeSize);
 
 		Layers = (AnimationStateLayer*)data;
 		memcpy(Layers, tempLayers.data(), layersSize);
@@ -421,7 +421,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 				}
 				else
 				{
-					static SPtr<AnimationCurves> zeroCurves = bs_shared_ptr_new<AnimationCurves>();
+					static SPtr<AnimationCurves> zeroCurves = B3DMakeShared<AnimationCurves>();
 					state.Curves = zeroCurves;
 					state.Length = 0.0f;
 					state.Disabled = true;
@@ -639,7 +639,7 @@ void AnimationProxy::UpdateTime(const Vector<AnimationClipInfo>& clipInfos)
 Animation::Animation()
 {
 	mId = AnimationManager::Instance().RegisterAnimation(this);
-	mAnimProxy = bs_shared_ptr_new<AnimationProxy>(mId);
+	mAnimProxy = B3DMakeShared<AnimationProxy>(mId);
 }
 
 Animation::~Animation()
@@ -1276,9 +1276,9 @@ bool Animation::GetGenericCurveValue(u32 curveIdx, float& value)
 
 SPtr<Animation> Animation::Create()
 {
-	Animation* anim = new(bs_alloc<Animation>()) Animation();
+	Animation* anim = new(B3DAllocate<Animation>()) Animation();
 
-	SPtr<Animation> animPtr = bs_core_ptr(anim);
+	SPtr<Animation> animPtr = B3DMakeCoreFromExisting(anim);
 	animPtr->SetThisPtrInternal(animPtr);
 	animPtr->Initialize();
 

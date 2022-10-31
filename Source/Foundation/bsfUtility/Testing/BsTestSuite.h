@@ -50,7 +50,7 @@ namespace bs
 		{
 			static_assert((std::is_base_of<TestSuite, T>::value), "Invalid test suite type. It needs to derive from bs::TestSuite.");
 
-			return std::static_pointer_cast<TestSuite>(bs_shared_ptr_new<T>());
+			return std::static_pointer_cast<TestSuite>(B3DMakeShared<T>());
 		}
 
 	protected:

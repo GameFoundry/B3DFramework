@@ -54,7 +54,7 @@ public:
 			finalStyleName = getGUITypeName();
 
 		// Pass style name, and construct dimensions from the provided list of options
-		return bs_new<GUITexture>(finalStyleName, GUIDimensions::create(options));
+		return B3DNew<GUITexture>(finalStyleName, GUIDimensions::create(options));
 	}
 	
 	// create() overload using default dimensions
@@ -66,7 +66,7 @@ public:
 			finalStyleName = getGUITypeName();
 
 		// Pass style name, and construct default dimensions object
-		return bs_new<GUITexture>(finalStyleName, GUIDimensions::create());
+		return B3DNew<GUITexture>(finalStyleName, GUIDimensions::create());
 	}
 
 	// ... remaining GUITexture implementation

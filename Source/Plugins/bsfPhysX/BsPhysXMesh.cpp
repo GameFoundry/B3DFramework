@@ -37,7 +37,7 @@ bool cookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u
 	if(cooking->cookConvexMesh(convexDesc, output))
 	{
 		size = output.getSize();
-		*data = (u8*)bs_alloc(size);
+		*data = (u8*)B3DAllocate(size);
 
 		memcpy(*data, output.getData(), size);
 		return true;
@@ -48,7 +48,7 @@ bool cookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u
 	if(cooking->cookConvexMesh(convexDesc, output))
 	{
 		size = output.getSize();
-		*data = (u8*)bs_alloc(size);
+		*data = (u8*)B3DAllocate(size);
 
 		memcpy(*data, output.getData(), size);
 		return true;
@@ -83,7 +83,7 @@ bool cookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u
 	if(cooking->cookConvexMesh(convexDesc, output))
 	{
 		size = output.getSize();
-		*data = (u8*)bs_alloc(size);
+		*data = (u8*)B3DAllocate(size);
 
 		memcpy(*data, output.getData(), size);
 		return true;
@@ -154,7 +154,7 @@ bool cookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 			return false;
 
 		size = output.getSize();
-		*data = (u8*)bs_alloc(size);
+		*data = (u8*)B3DAllocate(size);
 
 		memcpy(*data, output.getData(), size);
 	}
@@ -169,7 +169,7 @@ PhysXMesh::PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 void PhysXMesh::Initialize()
 {
 	if(mInternal == nullptr) // Could be not-null if we're deserializing
-		mInternal = bs_shared_ptr_new<FPhysXMesh>(mInitMeshData, mType);
+		mInternal = B3DMakeShared<FPhysXMesh>(mInitMeshData, mType);
 
 	PhysicsMesh::Initialize();
 }
@@ -200,7 +200,7 @@ FPhysXMesh::~FPhysXMesh()
 {
 	if(mCookedData != nullptr)
 	{
-		bs_free(mCookedData);
+		B3DFree(mCookedData);
 
 		mCookedData = nullptr;
 		mCookedDataSize = 0;

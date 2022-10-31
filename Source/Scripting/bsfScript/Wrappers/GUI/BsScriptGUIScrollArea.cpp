@@ -76,7 +76,7 @@ void ScriptGUIScrollArea::InternalCreateInstance(MonoObject* instance, ScrollBar
 
 	GUIScrollArea* guiScrollArea = GUIScrollArea::Create(vertBarType, horzBarType, options, MonoUtil::MonoToString(scrollBarStyle), MonoUtil::MonoToString(scrollAreaStyle));
 
-	new(bs_alloc<ScriptGUIScrollArea>()) ScriptGUIScrollArea(instance, guiScrollArea);
+	new(B3DAllocate<ScriptGUIScrollArea>()) ScriptGUIScrollArea(instance, guiScrollArea);
 }
 
 void ScriptGUIScrollArea::InternalGetContentBounds(ScriptGUIScrollArea* nativeInstance, Rect2I* bounds)

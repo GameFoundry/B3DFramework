@@ -499,9 +499,9 @@ void GLTexture::CreateSurfaceList()
 	{
 		for(u32 mip = 0; mip <= mProperties.GetNumMipmaps(); mip++)
 		{
-			GLPixelBuffer* buf = bs_new<GLTextureBuffer>(GetGlTextureTarget(), mTextureID, face, mip, mInternalFormat, static_cast<GpuBufferUsage>(mProperties.GetUsage()), mProperties.IsHardwareGammaEnabled(), mProperties.GetNumSamples());
+			GLPixelBuffer* buf = B3DNew<GLTextureBuffer>(GetGlTextureTarget(), mTextureID, face, mip, mInternalFormat, static_cast<GpuBufferUsage>(mProperties.GetUsage()), mProperties.IsHardwareGammaEnabled(), mProperties.GetNumSamples());
 
-			mSurfaceList.push_back(bs_shared_ptr<GLPixelBuffer>(buf));
+			mSurfaceList.push_back(B3DMakeSharedFromExisting<GLPixelBuffer>(buf));
 			if(buf->GetWidth() == 0 || buf->GetHeight() == 0 || buf->GetDepth() == 0)
 			{
 				BS_EXCEPT(RenderingAPIException, "Zero sized texture surface on texture face " + toString(face) + " mipmap " + toString(mip) + ". Probably, the GL driver refused to create the texture.");
@@ -527,5 +527,5 @@ SPtr<GLPixelBuffer> GLTexture::GetBuffer(u32 face, u32 mipmap)
 
 SPtr<TextureView> GLTexture::CreateView(const TEXTURE_VIEW_DESC& desc)
 {
-	return bs_shared_ptr<GLTextureView>(new(bs_alloc<GLTextureView>()) GLTextureView(this, desc));
+	return B3DMakeSharedFromExisting<GLTextureView>(new(B3DAllocate<GLTextureView>()) GLTextureView(this, desc));
 }

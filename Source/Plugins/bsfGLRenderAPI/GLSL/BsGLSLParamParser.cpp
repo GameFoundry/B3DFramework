@@ -30,7 +30,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 	glGetProgramiv(glProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxNameSize);
 	BS_CHECK_GL_ERROR();
 
-	GLchar* attributeName = (GLchar*)bs_alloc(sizeof(GLchar) * maxNameSize);
+	GLchar* attributeName = (GLchar*)B3DAllocate(sizeof(GLchar) * maxNameSize);
 
 	Vector<VertexElement> elementList;
 	for(GLint i = 0; i < numAttributes; i++)
@@ -60,7 +60,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 		}
 	}
 
-	bs_free(attributeName);
+	B3DFree(attributeName);
 
 	return elementList;
 }
@@ -195,7 +195,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	maxBufferSize = std::max(maxBufferSize, maxBlockNameBufferSize);
 	maxBufferSize = std::max(maxBufferSize, maxStorageBlockNameBufferSize);
 
-	GLchar* uniformName = (GLchar*)bs_alloc(sizeof(GLchar) * maxBufferSize);
+	GLchar* uniformName = (GLchar*)B3DAllocate(sizeof(GLchar) * maxBufferSize);
 
 	GpuParamBlockDesc newGlobalBlockDesc;
 	newGlobalBlockDesc.Slot = 0;
@@ -696,7 +696,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	}
 #endif
 
-	bs_free(uniformName);
+	B3DFree(uniformName);
 }
 
 void GLSLParamParser::DetermineParamInfo(GpuParamDataDesc& desc, const String& paramName, GLuint programHandle, GLuint uniformIndex)

@@ -3166,7 +3166,7 @@ Vector<SPtr<PixelData>> PixelUtil::GenMipmaps(const PixelData& src, const MipMap
 	u32 curHeight = src.GetHeight();
 	for(u32 i = 0; i < numMips; i++)
 	{
-		rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
+		rgbaMipBuffers.push_back(B3DMakeShared<PixelData>(curWidth, curHeight, 1, interimFormat));
 		rgbaMipBuffers.back()->AllocateInternalBuffer();
 
 		if(curWidth > 1)
@@ -3176,7 +3176,7 @@ Vector<SPtr<PixelData>> PixelUtil::GenMipmaps(const PixelData& src, const MipMap
 			curHeight = curHeight / 2;
 	}
 
-	rgbaMipBuffers.push_back(bs_shared_ptr_new<PixelData>(curWidth, curHeight, 1, interimFormat));
+	rgbaMipBuffers.push_back(B3DMakeShared<PixelData>(curWidth, curHeight, 1, interimFormat));
 	rgbaMipBuffers.back()->AllocateInternalBuffer();
 
 	NVTTMipmapOutputHandler outputHandler(rgbaMipBuffers);
@@ -3197,7 +3197,7 @@ Vector<SPtr<PixelData>> PixelUtil::GenMipmaps(const PixelData& src, const MipMap
 	for(u32 i = 0; i < (u32)rgbaMipBuffers.size(); i++)
 	{
 		SPtr<PixelData> argbBuffer = rgbaMipBuffers[i];
-		SPtr<PixelData> outputBuffer = bs_shared_ptr_new<PixelData>(argbBuffer->GetWidth(), argbBuffer->GetHeight(), 1, src.GetFormat());
+		SPtr<PixelData> outputBuffer = B3DMakeShared<PixelData>(argbBuffer->GetWidth(), argbBuffer->GetHeight(), 1, src.GetFormat());
 		outputBuffer->AllocateInternalBuffer();
 
 		BulkPixelConversion(*argbBuffer, *outputBuffer);

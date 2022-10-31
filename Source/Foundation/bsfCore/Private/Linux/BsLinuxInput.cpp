@@ -238,7 +238,7 @@ bool parseGamepadInfo(int fileHandle, int eventHandlerIdx, GamepadInfo& info)
 
 void Input::initRawInput()
 {
-	mPlatformData = bs_new<InputPrivateData>();
+	mPlatformData = B3DNew<InputPrivateData>();
 
 	// Scan for valid gamepad devices
 	for(int i = 0; i < 64; ++i)
@@ -262,26 +262,26 @@ void Input::initRawInput()
 		close(file);
 	}
 
-	mKeyboard = bs_new<Keyboard>("Keyboard", this);
-	mMouse = bs_new<Mouse>("Mouse", this);
+	mKeyboard = B3DNew<Keyboard>("Keyboard", this);
+	mMouse = B3DNew<Mouse>("Mouse", this);
 
 	u32 numGamepads = getDeviceCount(InputDevice::Gamepad);
 	for(u32 i = 0; i < numGamepads; i++)
-		mGamepads.push_back(bs_new<Gamepad>(mPlatformData->gamepadInfos[i].name, mPlatformData->gamepadInfos[i], this));
+		mGamepads.push_back(B3DNew<Gamepad>(mPlatformData->gamepadInfos[i].name, mPlatformData->gamepadInfos[i], this));
 }
 
 void Input::cleanUpRawInput()
 {
 	if(mMouse != nullptr)
-		bs_delete(mMouse);
+		B3DDelete(mMouse);
 
 	if(mKeyboard != nullptr)
-		bs_delete(mKeyboard);
+		B3DDelete(mKeyboard);
 
 	for(auto& gamepad : mGamepads)
-		bs_delete(gamepad);
+		B3DDelete(gamepad);
 
-	bs_delete(mPlatformData);
+	B3DDelete(mPlatformData);
 }
 
 u32 Input::getDeviceCount(InputDevice device) const

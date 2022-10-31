@@ -18,8 +18,8 @@ HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
 
 SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
 {
-	SPtr<ScriptCode> scriptCodePtr = bs_core_ptr<ScriptCode>(
-		new(bs_alloc<ScriptCode>()) ScriptCode(data, editorScript));
+	SPtr<ScriptCode> scriptCodePtr = B3DMakeCoreFromExisting<ScriptCode>(
+		new(B3DAllocate<ScriptCode>()) ScriptCode(data, editorScript));
 	scriptCodePtr->SetThisPtrInternal(scriptCodePtr);
 	scriptCodePtr->Initialize();
 

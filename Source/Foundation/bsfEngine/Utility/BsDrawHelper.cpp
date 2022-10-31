@@ -22,20 +22,20 @@ DrawHelper::DrawHelper()
 {
 	mTransform = Matrix4::kIdentity;
 
-	mSolidVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	mSolidVertexDesc = B3DMakeShared<VertexDataDesc>();
 	mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
 	mSolidVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
-	mWireVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	mWireVertexDesc = B3DMakeShared<VertexDataDesc>();
 	mWireVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	mWireVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
-	mLineVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	mLineVertexDesc = B3DMakeShared<VertexDataDesc>();
 	mLineVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	mLineVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
 
-	mTextVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	mTextVertexDesc = B3DMakeShared<VertexDataDesc>();
 	mTextVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	mTextVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 	mTextVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
@@ -740,7 +740,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		}
 
 		U32String utf32text = UTF8::ToUtF32(shapeData.Text);
-		SPtr<TextData<>> textData = bs_shared_ptr_new<TextData<>>(utf32text, shapeData.Font, shapeData.Size);
+		SPtr<TextData<>> textData = B3DMakeShared<TextData<>>(utf32text, shapeData.Font, shapeData.Size);
 
 		u32 numPages = textData->GetNumPages();
 		for(u32 j = 0; j < numPages; j++)

@@ -9,7 +9,7 @@ using namespace bs;
 Resource::Resource(bool initializeOnRenderThread)
 	: CoreObject(initializeOnRenderThread), mSize(0), mKeepSourceData(true)
 {
-	mMetaData = bs_shared_ptr_new<ResourceMetaData>();
+	mMetaData = B3DMakeShared<ResourceMetaData>();
 }
 
 const String& Resource::GetName() const

@@ -32,12 +32,12 @@ GUICanvas::~GUICanvas()
 
 GUICanvas* GUICanvas::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create(options));
 }
 
 GUICanvas* GUICanvas::Create(const String& styleName)
 {
-	return new(bs_alloc<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create());
+	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUIDimensions::Create());
 }
 
 void GUICanvas::DrawLine(const Vector2I& a, const Vector2I& b, const Color& color, u8 depth)
@@ -88,7 +88,7 @@ void GUICanvas::DrawTexture(const HSpriteTexture& texture, const Rect2I& area, T
 	element.Color = color;
 	element.DataId = (u32)mImageData.size();
 	element.ScaleMode = scaleMode;
-	element.ImageSprite = bs_new<ImageSprite>();
+	element.ImageSprite = B3DNew<ImageSprite>();
 	element.Depth = depth;
 
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
@@ -184,7 +184,7 @@ void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFo
 	element.Color = color;
 	element.DataId = (u32)mTextData.size();
 	element.Size = size;
-	element.TextSprite = bs_new<TextSprite>();
+	element.TextSprite = B3DNew<TextSprite>();
 	element.Depth = depth;
 
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
@@ -198,10 +198,10 @@ void GUICanvas::Clear()
 	for(auto& element : mElements)
 	{
 		if(element.Type == CanvasElementType::Image && element.ImageSprite != nullptr)
-			bs_delete(element.ImageSprite);
+			B3DDelete(element.ImageSprite);
 
 		if(element.Type == CanvasElementType::Text && element.TextSprite != nullptr)
-			bs_delete(element.TextSprite);
+			B3DDelete(element.TextSprite);
 	}
 
 	mElements.clear();

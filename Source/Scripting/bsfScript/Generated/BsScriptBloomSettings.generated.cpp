@@ -37,14 +37,14 @@ MonoObject* ScriptBloomSettings::Create(const SPtr<BloomSettings>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, value);
+	new(B3DAllocate<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptBloomSettings::InternalBloomSettings(MonoObject* managedInstance)
 {
-	SPtr<BloomSettings> instance = bs_shared_ptr_new<BloomSettings>();
-	new(bs_alloc<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, instance);
+	SPtr<BloomSettings> instance = B3DMakeShared<BloomSettings>();
+	new(B3DAllocate<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, instance);
 }
 
 bool ScriptBloomSettings::InternalGetEnabled(ScriptBloomSettings* thisPtr)

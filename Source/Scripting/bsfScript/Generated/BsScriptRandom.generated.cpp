@@ -41,14 +41,14 @@ MonoObject* ScriptRandom::Create(const SPtr<Random>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, value);
+	new(B3DAllocate<ScriptRandom>()) ScriptRandom(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptRandom::InternalRandom(MonoObject* managedInstance, uint32_t seed)
 {
-	SPtr<Random> instance = bs_shared_ptr_new<Random>(seed);
-	new(bs_alloc<ScriptRandom>()) ScriptRandom(managedInstance, instance);
+	SPtr<Random> instance = B3DMakeShared<Random>(seed);
+	new(B3DAllocate<ScriptRandom>()) ScriptRandom(managedInstance, instance);
 }
 
 void ScriptRandom::InternalSetSeed(ScriptRandom* thisPtr, uint32_t seed)

@@ -55,7 +55,7 @@ bool ScriptGUISkin::InternalHasStyle(ScriptGUISkin* thisPtr, MonoString* name)
 
 MonoObject* ScriptGUISkin::InternalGetStyle(ScriptGUISkin* thisPtr, MonoString* guiElemType)
 {
-	SPtr<GUIElementStyle> tmp__output = bs_shared_ptr_new<GUIElementStyle>();
+	SPtr<GUIElementStyle> tmp__output = B3DMakeShared<GUIElementStyle>();
 	String tmpguiElemType;
 	tmpguiElemType = MonoUtil::MonoToString(guiElemType);
 	*tmp__output = *thisPtr->GetHandle()->GetStyle(tmpguiElemType);

@@ -141,7 +141,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 			VkQueue queue;
 			vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIdx, j, &queue);
 
-			mQueueInfos[i].Queues[j] = bs_new<VulkanQueue>(*this, queue, (GpuQueueType)i, j);
+			mQueueInfos[i].Queues[j] = B3DNew<VulkanQueue>(*this, queue, (GpuQueueType)i, j);
 		}
 	}
 
@@ -157,10 +157,10 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 	vmaCreateAllocator(&allocatorCI, &mAllocator);
 
 	// Create pools/managers
-	mCommandBufferPool = bs_new<VulkanCmdBufferPool>(*this);
-	mQueryPool = bs_new<VulkanQueryPool>(*this);
-	mDescriptorManager = bs_new<VulkanDescriptorManager>(*this);
-	mResourceManager = bs_new<VulkanResourceManager>(*this);
+	mCommandBufferPool = B3DNew<VulkanCmdBufferPool>(*this);
+	mQueryPool = B3DNew<VulkanQueryPool>(*this);
+	mDescriptorManager = B3DNew<VulkanDescriptorManager>(*this);
+	mResourceManager = B3DNew<VulkanResourceManager>(*this);
 }
 
 VulkanDevice::~VulkanDevice()
@@ -174,16 +174,16 @@ VulkanDevice::~VulkanDevice()
 		for(u32 j = 0; j < numQueues; j++)
 		{
 			mQueueInfos[i].Queues[j]->RefreshStates(true, true);
-			bs_delete(mQueueInfos[i].Queues[j]);
+			B3DDelete(mQueueInfos[i].Queues[j]);
 		}
 	}
 
-	bs_delete(mDescriptorManager);
-	bs_delete(mQueryPool);
-	bs_delete(mCommandBufferPool);
+	B3DDelete(mDescriptorManager);
+	B3DDelete(mQueryPool);
+	B3DDelete(mCommandBufferPool);
 
 	// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
-	bs_delete(mResourceManager);
+	B3DDelete(mResourceManager);
 
 	vmaDestroyAllocator(mAllocator);
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);

@@ -15,7 +15,7 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	RendererManager::Instance().RegisterFactoryInternal(bs_shared_ptr_new<NullRendererFactory>());
+	RendererManager::Instance().RegisterFactoryInternal(B3DMakeShared<NullRendererFactory>());
 
 	return nullptr;
 }

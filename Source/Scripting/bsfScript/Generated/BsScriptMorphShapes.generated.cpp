@@ -25,7 +25,7 @@ MonoObject* ScriptMorphShapes::Create(const SPtr<MorphShapes>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptMorphShapes>()) ScriptMorphShapes(managedInstance, value);
+	new(B3DAllocate<ScriptMorphShapes>()) ScriptMorphShapes(managedInstance, value);
 	return managedInstance;
 }
 

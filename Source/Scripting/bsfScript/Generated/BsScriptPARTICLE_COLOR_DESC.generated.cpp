@@ -44,7 +44,7 @@ __PARTICLE_COLOR_DESCInterop ScriptPARTICLE_COLOR_DESC::ToInterop(const PARTICLE
 	__PARTICLE_COLOR_DESCInterop output;
 	MonoObject* tmpColor;
 	SPtr<TColorDistribution<ColorGradient>> tmpColorcopy;
-	tmpColorcopy = bs_shared_ptr_new<TColorDistribution<ColorGradient>>(value.Color);
+	tmpColorcopy = B3DMakeShared<TColorDistribution<ColorGradient>>(value.Color);
 	tmpColor = ScriptTColorDistributionColorGradient::Create(tmpColorcopy);
 	output.Color = tmpColor;
 

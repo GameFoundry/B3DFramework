@@ -7,7 +7,7 @@ using namespace bs;
 
 SPtr<ScriptCodeImportOptions> ScriptCodeImportOptions::Create()
 {
-	return bs_shared_ptr_new<ScriptCodeImportOptions>();
+	return B3DMakeShared<ScriptCodeImportOptions>();
 }
 
 /************************************************************************/

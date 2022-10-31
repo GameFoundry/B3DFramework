@@ -35,7 +35,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ScriptCodeImportOptions>();
+			return B3DMakeShared<ScriptCodeImportOptions>();
 		}
 	};
 

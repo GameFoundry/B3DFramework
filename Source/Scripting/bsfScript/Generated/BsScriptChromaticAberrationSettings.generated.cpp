@@ -35,14 +35,14 @@ MonoObject* ScriptChromaticAberrationSettings::Create(const SPtr<ChromaticAberra
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, value);
+	new(B3DAllocate<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* managedInstance)
 {
-	SPtr<ChromaticAberrationSettings> instance = bs_shared_ptr_new<ChromaticAberrationSettings>();
-	new(bs_alloc<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, instance);
+	SPtr<ChromaticAberrationSettings> instance = B3DMakeShared<ChromaticAberrationSettings>();
+	new(B3DAllocate<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, instance);
 }
 
 MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* thisPtr)

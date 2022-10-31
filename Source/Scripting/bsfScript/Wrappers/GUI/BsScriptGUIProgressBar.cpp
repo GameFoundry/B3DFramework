@@ -43,7 +43,7 @@ void ScriptGUIProgressBar::InternalCreateInstance(MonoObject* instance, MonoStri
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
 	GUIProgressBar* progressBar = GUIProgressBar::Create(options, MonoUtil::MonoToString(style));
-	new(bs_alloc<ScriptGUIProgressBar>()) ScriptGUIProgressBar(instance, progressBar);
+	new(B3DAllocate<ScriptGUIProgressBar>()) ScriptGUIProgressBar(instance, progressBar);
 }
 
 void ScriptGUIProgressBar::InternalSetPercent(ScriptGUIProgressBar* nativeInstance, float percent)

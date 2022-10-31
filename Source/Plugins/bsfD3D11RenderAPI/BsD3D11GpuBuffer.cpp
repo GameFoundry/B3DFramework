@@ -93,9 +93,9 @@ GpuBufferView* D3D11GpuBuffer::RequestView(D3D11GpuBuffer* buffer, u32 firstElem
 	auto iterFind = buffer->mBufferViews.find(key);
 	if(iterFind == buffer->mBufferViews.end())
 	{
-		GpuBufferView* newView = bs_new<GpuBufferView>();
+		GpuBufferView* newView = B3DNew<GpuBufferView>();
 		newView->Initialize(buffer, key);
-		buffer->mBufferViews[key] = bs_new<GpuBufferReference>(newView);
+		buffer->mBufferViews[key] = B3DNew<GpuBufferReference>(newView);
 
 		iterFind = buffer->mBufferViews.find(key);
 	}
@@ -123,9 +123,9 @@ void D3D11GpuBuffer::ReleaseView(GpuBufferView* view)
 		buffer->mBufferViews.erase(iterFind);
 
 		if(toRemove->View != nullptr)
-			bs_delete(toRemove->View);
+			B3DDelete(toRemove->View);
 
-		bs_delete(toRemove);
+		B3DDelete(toRemove);
 	}
 }
 
@@ -134,9 +134,9 @@ void D3D11GpuBuffer::ClearBufferViews()
 	for(auto iter = mBufferViews.begin(); iter != mBufferViews.end(); ++iter)
 	{
 		if(iter->second->View != nullptr)
-			bs_delete(iter->second->View);
+			B3DDelete(iter->second->View);
 
-		bs_delete(iter->second);
+		B3DDelete(iter->second);
 	}
 
 	mBufferViews.clear();

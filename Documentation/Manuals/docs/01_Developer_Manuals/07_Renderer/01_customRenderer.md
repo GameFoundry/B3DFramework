@@ -167,7 +167,7 @@ For example:
 ~~~~~~~~~~~~~{.cpp}
 Vector<RenderableElement*> elements = ...; // Fill this up from a list of renderables
 
-SPtr<RenderQueue> queue = bs_shared_ptr_new<RenderQueue>(StateReduction::Distance);
+SPtr<RenderQueue> queue = B3DMakeShared<RenderQueue>(StateReduction::Distance);
 for(auto& element : elements)
 {
 	float distance = ...; // Calculate distance from element to camera, for sorting

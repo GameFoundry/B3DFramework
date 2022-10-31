@@ -259,12 +259,12 @@ GUISliderHorz::GUISliderHorz(const String& styleName, const GUIDimensions& dimen
 
 GUISliderHorz* GUISliderHorz::Create(const String& styleName)
 {
-	return new(bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create());
+	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create());
 }
 
 GUISliderHorz* GUISliderHorz::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUIDimensions::Create(options));
 }
 
 const String& GUISliderHorz::GetGuiTypeName()
@@ -280,12 +280,12 @@ GUISliderVert::GUISliderVert(const String& styleName, const GUIDimensions& dimen
 
 GUISliderVert* GUISliderVert::Create(const String& styleName)
 {
-	return new(bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create());
+	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create());
 }
 
 GUISliderVert* GUISliderVert::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUIDimensions::Create(options));
 }
 
 const String& GUISliderVert::GetGuiTypeName()

@@ -32,17 +32,17 @@ GUIListBox::~GUIListBox()
 
 GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const String& styleName)
 {
-	return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create());
+	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create());
 }
 
 GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, isMultiselect, GUIDimensions::Create(options));
 }
 
 GUIListBox* GUIListBox::Create(const Vector<HString>& elements, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, false, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleName<GUIListBox>(styleName), elements, false, GUIDimensions::Create(options));
 }
 
 void GUIListBox::SetElements(const Vector<HString>& elements)

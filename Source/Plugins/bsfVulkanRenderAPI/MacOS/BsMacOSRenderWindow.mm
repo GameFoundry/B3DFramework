@@ -47,7 +47,7 @@ namespace bs
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
 		props.isHidden = mDesc.hidden;
 
-		mWindow = bs_new<CocoaWindow>(windowDesc);
+		mWindow = B3DNew<CocoaWindow>(windowDesc);
 		mWindow->_setUserData(this);
 
 		Rect2I area = mWindow->getArea();
@@ -90,7 +90,7 @@ namespace bs
 
 		if (mWindow != nullptr)
 		{
-			bs_delete(mWindow);
+			B3DDelete(mWindow);
 			mWindow = nullptr;
 		}
 
@@ -100,7 +100,7 @@ namespace bs
 	SPtr<ct::CoreObject> MacOSRenderWindow::createCore() const
 	{
 		RENDER_WINDOW_DESC desc = mDesc;
-		SPtr<ct::CoreObject> obj = bs_shared_ptr_new<ct::MacOSRenderWindow>(
+		SPtr<ct::CoreObject> obj = B3DMakeShared<ct::MacOSRenderWindow>(
 				desc, mWindowId, mWindow->_getWindowId());
 		obj->_setThisPtr(obj);
 		return obj;

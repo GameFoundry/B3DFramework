@@ -51,7 +51,7 @@ namespace bs
 	{
 	public:
 		GameObjectHandleBase()
-			: mData(bs_shared_ptr_new<GameObjectHandleData>(nullptr))
+			: mData(B3DMakeShared<GameObjectHandleData>(nullptr))
 		{}
 
 		/**
@@ -135,7 +135,7 @@ namespace bs
 		{}
 
 		GameObjectHandleBase(std::nullptr_t ptr)
-			: mData(bs_shared_ptr_new<GameObjectHandleData>(nullptr))
+			: mData(B3DMakeShared<GameObjectHandleData>(nullptr))
 		{}
 
 		/**	Throws an exception if the referenced GameObject has been destroyed. */
@@ -181,7 +181,7 @@ namespace bs
 		GameObjectHandle()
 			: GameObjectHandleBase()
 		{
-			mData = bs_shared_ptr_new<GameObjectHandleData>();
+			mData = B3DMakeShared<GameObjectHandleData>();
 		}
 
 		/**	Copy constructor from another handle of the same type. */
@@ -193,7 +193,7 @@ namespace bs
 		/**	Invalidates the handle. */
 		GameObjectHandle<T>& operator=(std::nullptr_t ptr)
 		{
-			mData = bs_shared_ptr_new<GameObjectHandleData>();
+			mData = B3DMakeShared<GameObjectHandleData>();
 
 			return *this;
 		}

@@ -35,7 +35,7 @@ GLRenderTexture::GLRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
 GLRenderTexture::~GLRenderTexture()
 {
 	if(mFB != nullptr)
-		bs_delete(mFB);
+		B3DDelete(mFB);
 }
 
 void GLRenderTexture::Initialize()
@@ -43,9 +43,9 @@ void GLRenderTexture::Initialize()
 	RenderTexture::Initialize();
 
 	if(mFB != nullptr)
-		bs_delete(mFB);
+		B3DDelete(mFB);
 
-	mFB = bs_new<GLFrameBufferObject>();
+	mFB = B3DNew<GLFrameBufferObject>();
 
 	for(size_t i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 	{

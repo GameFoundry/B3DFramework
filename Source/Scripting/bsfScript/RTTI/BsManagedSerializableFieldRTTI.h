@@ -46,7 +46,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldKey>();
+			return B3DMakeShared<ManagedSerializableFieldKey>();
 		}
 	};
 
@@ -107,7 +107,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataEntry>();
+			return B3DMakeShared<ManagedSerializableFieldDataEntry>();
 		}
 	};
 
@@ -137,7 +137,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataBool>();
+			return B3DMakeShared<ManagedSerializableFieldDataBool>();
 		}
 	};
 
@@ -167,7 +167,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataBool>();
+			return B3DMakeShared<ManagedSerializableFieldDataBool>();
 		}
 	};
 
@@ -197,7 +197,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataI8>();
+			return B3DMakeShared<ManagedSerializableFieldDataI8>();
 		}
 	};
 
@@ -227,7 +227,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataU8>();
+			return B3DMakeShared<ManagedSerializableFieldDataU8>();
 		}
 	};
 
@@ -257,7 +257,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataI16>();
+			return B3DMakeShared<ManagedSerializableFieldDataI16>();
 		}
 	};
 
@@ -287,7 +287,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataU16>();
+			return B3DMakeShared<ManagedSerializableFieldDataU16>();
 		}
 	};
 
@@ -317,7 +317,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataI32>();
+			return B3DMakeShared<ManagedSerializableFieldDataI32>();
 		}
 	};
 
@@ -347,7 +347,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataU32>();
+			return B3DMakeShared<ManagedSerializableFieldDataU32>();
 		}
 	};
 
@@ -377,7 +377,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataI64>();
+			return B3DMakeShared<ManagedSerializableFieldDataI64>();
 		}
 	};
 
@@ -407,7 +407,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataU64>();
+			return B3DMakeShared<ManagedSerializableFieldDataU64>();
 		}
 	};
 
@@ -437,7 +437,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataFloat>();
+			return B3DMakeShared<ManagedSerializableFieldDataFloat>();
 		}
 	};
 
@@ -467,7 +467,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataDouble>();
+			return B3DMakeShared<ManagedSerializableFieldDataDouble>();
 		}
 	};
 
@@ -497,7 +497,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataString>();
+			return B3DMakeShared<ManagedSerializableFieldDataString>();
 		}
 	};
 
@@ -527,7 +527,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataResourceRef>();
+			return B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 		}
 	};
 
@@ -557,7 +557,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataGameObjectRef>();
+			return B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 		}
 	};
 
@@ -587,7 +587,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataReflectableRef>();
+			return B3DMakeShared<ManagedSerializableFieldDataReflectableRef>();
 		}
 	};
 
@@ -617,7 +617,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataObject>();
+			return B3DMakeShared<ManagedSerializableFieldDataObject>();
 		}
 	};
 
@@ -647,7 +647,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataArray>();
+			return B3DMakeShared<ManagedSerializableFieldDataArray>();
 		}
 	};
 
@@ -677,7 +677,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataList>();
+			return B3DMakeShared<ManagedSerializableFieldDataList>();
 		}
 	};
 
@@ -707,7 +707,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldDataDictionary>();
+			return B3DMakeShared<ManagedSerializableFieldDataDictionary>();
 		}
 	};
 

@@ -11,7 +11,7 @@ HString::HString()
 	mStringData = StringTableManager::Instance().GetTable(0)->GetStringData(u8"");
 
 	if(mStringData->NumParameters > 0)
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 }
 
 HString::HString(u32 stringTableId)
@@ -19,7 +19,7 @@ HString::HString(u32 stringTableId)
 	mStringData = StringTableManager::Instance().GetTable(stringTableId)->GetStringData(u8"");
 
 	if(mStringData->NumParameters > 0)
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 }
 
 HString::HString(const String& identifierString, u32 stringTableId)
@@ -27,7 +27,7 @@ HString::HString(const String& identifierString, u32 stringTableId)
 	mStringData = StringTableManager::Instance().GetTable(stringTableId)->GetStringData(identifierString);
 
 	if(mStringData->NumParameters > 0)
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 }
 
 HString::HString(const String& identifierString, const String& defaultString, u32 stringTableId)
@@ -38,7 +38,7 @@ HString::HString(const String& identifierString, const String& defaultString, u3
 	mStringData = table->GetStringData(identifierString);
 
 	if(mStringData->NumParameters > 0)
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 }
 
 HString::HString(const HString& copy)
@@ -49,7 +49,7 @@ HString::HString(const HString& copy)
 
 	if(copy.mStringData->NumParameters > 0)
 	{
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 		if(copy.mParameters != nullptr)
 		{
 			for(u32 i = 0; i < mStringData->NumParameters; i++)
@@ -68,7 +68,7 @@ HString::HString(const HString& copy)
 HString::~HString()
 {
 	if(mParameters != nullptr)
-		bs_deleteN(mParameters, mStringData->NumParameters);
+		B3DDeleteMultiple(mParameters, mStringData->NumParameters);
 }
 
 HString::operator const String&() const
@@ -80,7 +80,7 @@ HString& HString::operator=(const HString& rhs)
 {
 	if(mParameters != nullptr)
 	{
-		bs_deleteN(mParameters, mStringData->NumParameters);
+		B3DDeleteMultiple(mParameters, mStringData->NumParameters);
 		mParameters = nullptr;
 	}
 
@@ -90,7 +90,7 @@ HString& HString::operator=(const HString& rhs)
 
 	if(rhs.mStringData->NumParameters > 0)
 	{
-		mParameters = bs_newN<String>(mStringData->NumParameters);
+		mParameters = B3DNewMultiple<String>(mStringData->NumParameters);
 		if(rhs.mParameters != nullptr)
 		{
 			for(u32 i = 0; i < mStringData->NumParameters; i++)

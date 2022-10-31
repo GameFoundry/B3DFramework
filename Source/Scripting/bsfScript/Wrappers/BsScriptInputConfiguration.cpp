@@ -50,7 +50,7 @@ ScriptInputConfiguration* ScriptInputConfiguration::CreateScriptInputConfig(cons
 {
 	MonoObject* instance = metaData.ScriptClass->CreateInstance(false);
 
-	ScriptInputConfiguration* nativeInstance = new(bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(instance, inputConfig);
+	ScriptInputConfiguration* nativeInstance = new(B3DAllocate<ScriptInputConfiguration>()) ScriptInputConfiguration(instance, inputConfig);
 	return nativeInstance;
 }
 
@@ -58,7 +58,7 @@ void ScriptInputConfiguration::InternalCreateInstance(MonoObject* object)
 {
 	SPtr<InputConfiguration> inputConfig = VirtualInput::CreateConfiguration();
 
-	new(bs_alloc<ScriptInputConfiguration>()) ScriptInputConfiguration(object, inputConfig);
+	new(B3DAllocate<ScriptInputConfiguration>()) ScriptInputConfiguration(object, inputConfig);
 }
 
 void ScriptInputConfiguration::InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)

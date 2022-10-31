@@ -41,7 +41,7 @@ namespace bs
 		{
 			size = obj->GetInternalBufferSize();
 
-			return bs_shared_ptr_new<MemoryDataStream>(obj->GetData(), size);
+			return B3DMakeShared<MemoryDataStream>(obj->GetData(), size);
 		}
 
 		void SetData(MeshData* obj, const SPtr<DataStream>& value, u32 size)
@@ -64,7 +64,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr<MeshData>(new(bs_alloc<MeshData>()) MeshData());
+			return B3DMakeSharedFromExisting<MeshData>(new(B3DAllocate<MeshData>()) MeshData());
 		}
 
 		const String& GetRttiName()

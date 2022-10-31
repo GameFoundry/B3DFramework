@@ -40,14 +40,14 @@ MonoObject* ScriptAutoExposureSettings::Create(const SPtr<AutoExposureSettings>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, value);
+	new(B3DAllocate<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptAutoExposureSettings::InternalAutoExposureSettings(MonoObject* managedInstance)
 {
-	SPtr<AutoExposureSettings> instance = bs_shared_ptr_new<AutoExposureSettings>();
-	new(bs_alloc<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, instance);
+	SPtr<AutoExposureSettings> instance = B3DMakeShared<AutoExposureSettings>();
+	new(B3DAllocate<ScriptAutoExposureSettings>()) ScriptAutoExposureSettings(managedInstance, instance);
 }
 
 float ScriptAutoExposureSettings::InternalGetHistogramLog2Min(ScriptAutoExposureSettings* thisPtr)

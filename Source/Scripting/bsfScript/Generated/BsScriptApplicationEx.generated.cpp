@@ -31,7 +31,7 @@ MonoObject* ScriptApplicationEx::Create(const SPtr<ApplicationEx>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptApplicationEx>()) ScriptApplicationEx(managedInstance, value);
+	new(B3DAllocate<ScriptApplicationEx>()) ScriptApplicationEx(managedInstance, value);
 	return managedInstance;
 }
 

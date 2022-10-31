@@ -42,7 +42,7 @@ namespace ct {
 
 RenderBeast::RenderBeast()
 {
-	mOptions = bs_shared_ptr_new<RenderBeastOptions>();
+	mOptions = B3DMakeShared<RenderBeastOptions>();
 }
 
 const StringID& RenderBeast::GetName() const
@@ -94,10 +94,10 @@ void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 	IBLUtility::StartUp<RenderBeastIBLUtility>();
 	RendererTextures::StartUp(rendererTextures);
 
-	mCoreOptions = bs_shared_ptr_new<RenderBeastOptions>();
-	mScene = bs_shared_ptr_new<RendererScene>(mCoreOptions);
+	mCoreOptions = B3DMakeShared<RenderBeastOptions>();
+	mScene = B3DMakeShared<RendererScene>(mCoreOptions);
 
-	mMainViewGroup = bs_new<RendererViewGroup>(nullptr, 0, true);
+	mMainViewGroup = B3DNew<RendererViewGroup>(nullptr, 0, true);
 
 	StandardDeferred::StartUp();
 	ParticleRenderer::StartUp();
@@ -151,7 +151,7 @@ void RenderBeast::DestroyCore()
 	ParticleRenderer::ShutDown();
 	StandardDeferred::ShutDown();
 
-	bs_delete(mMainViewGroup);
+	B3DDelete(mMainViewGroup);
 
 	RendererTextures::ShutDown();
 	IBLUtility::ShutDown();
@@ -775,7 +775,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	viewDesc.StateReduction = mCoreOptions->StateReductionMode;
 	viewDesc.SceneCamera = nullptr;
 
-	SPtr<RenderSettings> renderSettings = bs_shared_ptr_new<RenderSettings>();
+	SPtr<RenderSettings> renderSettings = B3DMakeShared<RenderSettings>();
 	renderSettings->EnableHdr = settings.Hdr;
 	renderSettings->EnableShadows = true;
 	renderSettings->EnableIndirectLighting = false;

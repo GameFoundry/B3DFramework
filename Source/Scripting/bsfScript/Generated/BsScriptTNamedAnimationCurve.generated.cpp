@@ -60,7 +60,7 @@ __TNamedAnimationCurvefloatInterop ScriptTNamedAnimationCurvefloat::ToInterop(co
 	output.Flags = value.Flags;
 	MonoObject* tmpCurve;
 	SPtr<TAnimationCurve<float>> tmpCurvecopy;
-	tmpCurvecopy = bs_shared_ptr_new<TAnimationCurve<float>>(value.Curve);
+	tmpCurvecopy = B3DMakeShared<TAnimationCurve<float>>(value.Curve);
 	tmpCurve = ScriptTAnimationCurvefloat::Create(tmpCurvecopy);
 	output.Curve = tmpCurve;
 
@@ -111,7 +111,7 @@ __TNamedAnimationCurveVector3Interop ScriptTNamedAnimationCurveVector3::ToIntero
 	output.Flags = value.Flags;
 	MonoObject* tmpCurve;
 	SPtr<TAnimationCurve<Vector3>> tmpCurvecopy;
-	tmpCurvecopy = bs_shared_ptr_new<TAnimationCurve<Vector3>>(value.Curve);
+	tmpCurvecopy = B3DMakeShared<TAnimationCurve<Vector3>>(value.Curve);
 	tmpCurve = ScriptTAnimationCurveVector3::Create(tmpCurvecopy);
 	output.Curve = tmpCurve;
 
@@ -162,7 +162,7 @@ __TNamedAnimationCurveVector2Interop ScriptTNamedAnimationCurveVector2::ToIntero
 	output.Flags = value.Flags;
 	MonoObject* tmpCurve;
 	SPtr<TAnimationCurve<Vector2>> tmpCurvecopy;
-	tmpCurvecopy = bs_shared_ptr_new<TAnimationCurve<Vector2>>(value.Curve);
+	tmpCurvecopy = B3DMakeShared<TAnimationCurve<Vector2>>(value.Curve);
 	tmpCurve = ScriptTAnimationCurveVector2::Create(tmpCurvecopy);
 	output.Curve = tmpCurve;
 
@@ -213,7 +213,7 @@ __TNamedAnimationCurveQuaternionInterop ScriptTNamedAnimationCurveQuaternion::To
 	output.Flags = value.Flags;
 	MonoObject* tmpCurve;
 	SPtr<TAnimationCurve<Quaternion>> tmpCurvecopy;
-	tmpCurvecopy = bs_shared_ptr_new<TAnimationCurve<Quaternion>>(value.Curve);
+	tmpCurvecopy = B3DMakeShared<TAnimationCurve<Quaternion>>(value.Curve);
 	tmpCurve = ScriptTAnimationCurveQuaternion::Create(tmpCurvecopy);
 	output.Curve = tmpCurve;
 
@@ -264,7 +264,7 @@ __TNamedAnimationCurveint32_tInterop ScriptTNamedAnimationCurveint32_t::ToIntero
 	output.Flags = value.Flags;
 	MonoObject* tmpCurve;
 	SPtr<TAnimationCurve<int32_t>> tmpCurvecopy;
-	tmpCurvecopy = bs_shared_ptr_new<TAnimationCurve<int32_t>>(value.Curve);
+	tmpCurvecopy = B3DMakeShared<TAnimationCurve<int32_t>>(value.Curve);
 	tmpCurve = ScriptTAnimationCurveint32_t::Create(tmpCurvecopy);
 	output.Curve = tmpCurve;
 

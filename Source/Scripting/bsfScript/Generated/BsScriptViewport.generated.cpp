@@ -43,7 +43,7 @@ MonoObject* ScriptViewport::Create(const SPtr<Viewport>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, value);
+	new(B3DAllocate<ScriptViewport>()) ScriptViewport(managedInstance, value);
 	return managedInstance;
 }
 
@@ -166,5 +166,5 @@ void ScriptViewport::InternalCreate(MonoObject* managedInstance, MonoObject* tar
 	if(scripttarget != nullptr)
 		tmptarget = scripttarget->GetInternal();
 	SPtr<Viewport> instance = Viewport::Create(tmptarget, x, y, width, height);
-	new(bs_alloc<ScriptViewport>()) ScriptViewport(managedInstance, instance);
+	new(B3DAllocate<ScriptViewport>()) ScriptViewport(managedInstance, instance);
 }

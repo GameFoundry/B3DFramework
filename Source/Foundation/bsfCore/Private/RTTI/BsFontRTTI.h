@@ -42,7 +42,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<FontBitmap>();
+			return B3DMakeShared<FontBitmap>();
 		}
 	};
 
@@ -63,7 +63,7 @@ namespace bs
 
 		void SetBitmap(Font* obj, u32 idx, FontBitmap& value)
 		{
-			mFontDataPerSize[idx] = bs_shared_ptr_new<FontBitmap>();
+			mFontDataPerSize[idx] = B3DMakeShared<FontBitmap>();
 			*mFontDataPerSize[idx] = value;
 		}
 

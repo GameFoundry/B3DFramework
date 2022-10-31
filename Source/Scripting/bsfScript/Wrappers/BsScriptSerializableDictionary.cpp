@@ -33,7 +33,7 @@ MonoObject* ScriptSerializableDictionary::Create(const ScriptSerializablePropert
 	void* params[3] = { internalKeyType, internalValueType, managed };
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 3);
 
-	new(bs_alloc<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
+	new(B3DAllocate<ScriptSerializableDictionary>()) ScriptSerializableDictionary(managedInstance, dictTypeInfo);
 	return managedInstance;
 }
 

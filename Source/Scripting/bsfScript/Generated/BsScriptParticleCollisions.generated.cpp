@@ -37,7 +37,7 @@ MonoObject* ScriptParticleCollisions::Create(const SPtr<ParticleCollisions>& val
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
+	new(B3DAllocate<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
 	return managedInstance;
 }
 
@@ -133,11 +133,11 @@ void ScriptParticleCollisions::InternalGetOptions(ScriptParticleCollisions* this
 void ScriptParticleCollisions::InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc)
 {
 	SPtr<ParticleCollisions> instance = ParticleCollisions::Create(*desc);
-	new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
 }
 
 void ScriptParticleCollisions::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleCollisions> instance = ParticleCollisions::Create();
-	new(bs_alloc<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, instance);
 }

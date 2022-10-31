@@ -47,7 +47,7 @@ VulkanGLSLProgramFactory::~VulkanGLSLProgramFactory()
 
 SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<GpuProgram> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new(bs_alloc<VulkanGpuProgram>())
+	SPtr<GpuProgram> gpuProg = B3DMakeSharedFromExisting<VulkanGpuProgram>(new(B3DAllocate<VulkanGpuProgram>())
 																   VulkanGpuProgram(desc, deviceMask));
 	gpuProg->SetThisPtrInternal(gpuProg);
 
@@ -59,7 +59,7 @@ SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(GpuProgramType type, GpuDe
 	GPU_PROGRAM_DESC desc;
 	desc.Type = type;
 
-	SPtr<GpuProgram> gpuProg = bs_shared_ptr<VulkanGpuProgram>(new(bs_alloc<VulkanGpuProgram>())
+	SPtr<GpuProgram> gpuProg = B3DMakeSharedFromExisting<VulkanGpuProgram>(new(B3DAllocate<VulkanGpuProgram>())
 																   VulkanGpuProgram(desc, deviceMask));
 	gpuProg->SetThisPtrInternal(gpuProg);
 
@@ -235,7 +235,7 @@ SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PRO
 
 	// Copy the source into destination buffer
 	if(msl->instructions.data)
-		bs_free(msl->instructions.data);
+		B3DFree(msl->instructions.data);
 
 	if(source.empty())
 	{
@@ -252,7 +252,7 @@ SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PRO
 
 	u32 wordSize = Math::DivideAndRoundUp(size, 4U);
 
-	u8* buffer = (u8*)bs_alloc(wordSize * 4);
+	u8* buffer = (u8*)B3DAllocate(wordSize * 4);
 	u8* dst = buffer;
 
 	if(desc.type == GPT_COMPUTE_PROGRAM)

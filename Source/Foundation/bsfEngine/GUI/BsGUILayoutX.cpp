@@ -425,10 +425,10 @@ void GUILayoutX::UpdateLayoutInternalInternal(const GUILayoutData& data)
 
 GUILayoutX* GUILayoutX::Create()
 {
-	return bs_new<GUILayoutX>();
+	return B3DNew<GUILayoutX>();
 }
 
 GUILayoutX* GUILayoutX::Create(const GUIOptions& options)
 {
-	return bs_new<GUILayoutX>(GUIDimensions::Create(options));
+	return B3DNew<GUILayoutX>(GUIDimensions::Create(options));
 }

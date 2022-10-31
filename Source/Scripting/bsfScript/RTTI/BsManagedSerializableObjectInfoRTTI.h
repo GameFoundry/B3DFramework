@@ -68,7 +68,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ManagedSerializableAssemblyInfo>();
+			return B3DMakeShared<ManagedSerializableAssemblyInfo>();
 		}
 	};
 
@@ -138,7 +138,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableObjectInfo>();
+			return B3DMakeShared<ManagedSerializableObjectInfo>();
 		}
 	};
 
@@ -173,7 +173,7 @@ namespace bs
 		{
 			// This is an abstract class, but it wasn't always. For compatibility sake we return an object instance so old
 			// data can still be properly read.
-			return bs_shared_ptr_new<ManagedSerializableFieldInfo>();
+			return B3DMakeShared<ManagedSerializableFieldInfo>();
 		}
 	};
 
@@ -197,7 +197,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableFieldInfo>();
+			return B3DMakeShared<ManagedSerializableFieldInfo>();
 		}
 	};
 
@@ -221,7 +221,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializablePropertyInfo>();
+			return B3DMakeShared<ManagedSerializablePropertyInfo>();
 		}
 	};
 
@@ -275,7 +275,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoPrimitive>();
+			return B3DMakeShared<ManagedSerializableTypeInfoPrimitive>();
 		}
 	};
 
@@ -306,7 +306,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoEnum>();
+			return B3DMakeShared<ManagedSerializableTypeInfoEnum>();
 		}
 	};
 
@@ -338,7 +338,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoRef>();
+			return B3DMakeShared<ManagedSerializableTypeInfoRef>();
 		}
 	};
 
@@ -367,7 +367,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoRRef>();
+			return B3DMakeShared<ManagedSerializableTypeInfoRRef>();
 		}
 	};
 
@@ -401,7 +401,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoObject>();
+			return B3DMakeShared<ManagedSerializableTypeInfoObject>();
 		}
 	};
 
@@ -431,7 +431,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoArray>();
+			return B3DMakeShared<ManagedSerializableTypeInfoArray>();
 		}
 	};
 
@@ -460,7 +460,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoList>();
+			return B3DMakeShared<ManagedSerializableTypeInfoList>();
 		}
 	};
 
@@ -490,7 +490,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableTypeInfoDictionary>();
+			return B3DMakeShared<ManagedSerializableTypeInfoDictionary>();
 		}
 	};
 

@@ -8,7 +8,7 @@ using namespace bs;
 
 void GameObject::Initialize(const SPtr<GameObject>& object, u64 instanceId)
 {
-	mInstanceData = bs_shared_ptr_new<GameObjectInstanceData>();
+	mInstanceData = B3DMakeShared<GameObjectInstanceData>();
 	mInstanceData->Object = object;
 	mInstanceData->MInstanceId = instanceId;
 }

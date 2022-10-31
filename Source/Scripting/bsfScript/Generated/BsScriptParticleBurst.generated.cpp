@@ -48,7 +48,7 @@ __ParticleBurstInterop ScriptParticleBurst::ToInterop(const ParticleBurst& value
 	output.Time = value.Time;
 	MonoObject* tmpCount;
 	SPtr<TDistribution<float>> tmpCountcopy;
-	tmpCountcopy = bs_shared_ptr_new<TDistribution<float>>(value.Count);
+	tmpCountcopy = B3DMakeShared<TDistribution<float>>(value.Count);
 	tmpCount = ScriptTDistributionfloat::Create(tmpCountcopy);
 	output.Count = tmpCount;
 	output.Cycles = value.Cycles;

@@ -45,7 +45,7 @@ ScriptRRefBase* ScriptRRefBase::CreateInternal(const ResourceHandle<Resource>& h
 	}
 
 	MonoObject* obj = type->CreateInstance();
-	ScriptRRefBase* output = new(bs_alloc<ScriptRRefBase>()) ScriptRRefBase(obj, handle);
+	ScriptRRefBase* output = new(B3DAllocate<ScriptRRefBase>()) ScriptRRefBase(obj, handle);
 
 	// Note: It's important this method never returns null, handles should always be created to avoid extensive null
 	// checks

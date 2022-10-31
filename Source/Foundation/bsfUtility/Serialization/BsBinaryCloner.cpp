@@ -28,7 +28,7 @@ SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 		alloc.Clear();
 	}
 
-	SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer bs;
 	bs.Encode(object, stream, shallow ? BinarySerializerFlag::Shallow : BinarySerializerFlag::None);
 

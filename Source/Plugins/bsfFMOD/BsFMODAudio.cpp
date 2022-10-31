@@ -10,19 +10,19 @@ using namespace bs;
 
 void* F_CALLBACK FMODAlloc(unsigned int size, FMOD_MEMORY_TYPE type, const char* sourcestr)
 {
-	return bs_alloc(size);
+	return B3DAllocate(size);
 }
 
 void* F_CALLBACK FMODRealloc(void* ptr, unsigned int size, FMOD_MEMORY_TYPE type, const char* sourcestr)
 {
 	// Note: Not using framework's allocators, but have no easy alternative to implement realloc manually.
-	// This is okay to use in combination with general purpose bs_alloc/bs_free since they internally use malloc/free.
+	// This is okay to use in combination with general purpose B3DAllocate/B3DFree since they internally use malloc/free.
 	return realloc(ptr, size);
 }
 
 void F_CALLBACK FMODFree(void* ptr, FMOD_MEMORY_TYPE type, const char* sourcestr)
 {
-	bs_free(ptr);
+	B3DFree(ptr);
 }
 
 float F_CALLBACK FMOD3DRolloff(FMOD_CHANNELCONTROL* channelControl, float distance)
@@ -132,17 +132,17 @@ void FMODAudio::SetActiveDevice(const AudioDevice& device)
 
 SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	return bs_core_ptr_new<FMODAudioClip>(samples, streamSize, numSamples, desc);
+	return B3DMakeCoreShared<FMODAudioClip>(samples, streamSize, numSamples, desc);
 }
 
 SPtr<AudioListener> FMODAudio::CreateListener()
 {
-	return bs_shared_ptr_new<FMODAudioListener>();
+	return B3DMakeShared<FMODAudioListener>();
 }
 
 SPtr<AudioSource> FMODAudio::CreateSource()
 {
-	return bs_shared_ptr_new<FMODAudioSource>();
+	return B3DMakeShared<FMODAudioSource>();
 }
 
 void FMODAudio::RegisterListenerInternal(FMODAudioListener* listener)

@@ -12,7 +12,7 @@ GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage)
 {
 	if(mSize > 0)
 	{
-		mCachedData = (u8*)bs_alloc(mSize);
+		mCachedData = (u8*)B3DAllocate(mSize);
 		memset(mCachedData, 0, mSize);
 	}
 }
@@ -20,7 +20,7 @@ GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage)
 GpuParamBlockBuffer::~GpuParamBlockBuffer()
 {
 	if(mCachedData != nullptr)
-		bs_free(mCachedData);
+		B3DFree(mCachedData);
 }
 
 void GpuParamBlockBuffer::Write(u32 offset, const void* data, u32 size)
@@ -103,7 +103,7 @@ GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDevi
 {
 	if(mSize > 0)
 	{
-		mCachedData = (u8*)bs_alloc(mSize);
+		mCachedData = (u8*)B3DAllocate(mSize);
 		memset(mCachedData, 0, mSize);
 	}
 }
@@ -111,7 +111,7 @@ GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferUsage usage, GpuDevi
 GpuParamBlockBuffer::~GpuParamBlockBuffer()
 {
 	if(mCachedData != nullptr)
-		bs_free(mCachedData);
+		B3DFree(mCachedData);
 
 	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuParamBuffer);
 }

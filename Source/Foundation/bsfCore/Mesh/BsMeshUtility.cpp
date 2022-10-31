@@ -19,7 +19,7 @@ struct VertexConnectivity
 	VertexConnectivity(u8* indices, u32 numVertices, u32 numFaces, u32 indexSize)
 		: VertexFaces(nullptr), mMaxFacesPerVertex(0), mNumVertices(numVertices), mFaces(nullptr)
 	{
-		VertexFaces = bs_newN<struct VertexFaces>(numVertices);
+		VertexFaces = B3DNewMultiple<struct VertexFaces>(numVertices);
 
 		ResizeFaceArray(10);
 
@@ -45,10 +45,10 @@ struct VertexConnectivity
 	~VertexConnectivity()
 	{
 		if(VertexFaces != nullptr)
-			bs_deleteN(VertexFaces, mNumVertices);
+			B3DDeleteMultiple(VertexFaces, mNumVertices);
 
 		if(mFaces != nullptr)
-			bs_free(mFaces);
+			B3DFree(mFaces);
 	}
 
 	VertexFaces* VertexFaces;
@@ -56,14 +56,14 @@ struct VertexConnectivity
 private:
 	void ResizeFaceArray(u32 numFaces)
 	{
-		u32* newFaces = (u32*)bs_alloc(numFaces * mNumVertices * sizeof(u32));
+		u32* newFaces = (u32*)B3DAllocate(numFaces * mNumVertices * sizeof(u32));
 
 		if(mFaces != nullptr)
 		{
 			for(u32 i = 0; i < mNumVertices; i++)
 				memcpy(newFaces + (i * numFaces), mFaces + (i * mMaxFacesPerVertex), mMaxFacesPerVertex * sizeof(u32));
 
-			bs_free(mFaces);
+			B3DFree(mFaces);
 		}
 
 		for(u32 i = 0; i < mNumVertices; i++)
@@ -724,7 +724,7 @@ void MeshUtility::CalculateNormals(Vector3* vertices, u8* indices, u32 numVertic
 {
 	u32 numFaces = numIndices / 3;
 
-	Vector3* faceNormals = bs_newN<Vector3>(numFaces);
+	Vector3* faceNormals = B3DNewMultiple<Vector3>(numFaces);
 	for(u32 i = 0; i < numFaces; i++)
 	{
 		u32 triangle[3];
@@ -755,7 +755,7 @@ void MeshUtility::CalculateNormals(Vector3* vertices, u8* indices, u32 numVertic
 		normals[i].Normalize();
 	}
 
-	bs_deleteN(faceNormals, numFaces);
+	B3DDeleteMultiple(faceNormals, numFaces);
 }
 
 void MeshUtility::CalculateTangents(Vector3* vertices, Vector3* normals, Vector2* uv, u8* indices, u32 numVertices, u32 numIndices, Vector3* tangents, Vector3* bitangents, u32 indexSize, u32 vertexStride)
@@ -768,8 +768,8 @@ void MeshUtility::CalculateTangents(Vector3* vertices, Vector3* normals, Vector2
 	u8* normalBytes = (u8*)normals;
 	u8* uvBytes = (u8*)uv;
 
-	Vector3* faceTangents = bs_newN<Vector3>(numFaces);
-	Vector3* faceBitangents = bs_newN<Vector3>(numFaces);
+	Vector3* faceTangents = B3DNewMultiple<Vector3>(numFaces);
+	Vector3* faceBitangents = B3DNewMultiple<Vector3>(numFaces);
 	for(u32 i = 0; i < numFaces; i++)
 	{
 		u32 triangle[3];
@@ -837,8 +837,8 @@ void MeshUtility::CalculateTangents(Vector3* vertices, Vector3* normals, Vector2
 		bitangents[i].Normalize();
 	}
 
-	bs_deleteN(faceTangents, numFaces);
-	bs_deleteN(faceBitangents, numFaces);
+	B3DDeleteMultiple(faceTangents, numFaces);
+	B3DDeleteMultiple(faceBitangents, numFaces);
 
 	// TODO - Consider weighing tangents by triangle size and/or edge angles
 }

@@ -7,7 +7,7 @@ using namespace bs::ct;
 
 SPtr<ct::VertexBuffer> NullHardwareBufferManager::CreateVertexBufferInternal(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<NullVertexBuffer> ret = bs_shared_ptr_new<NullVertexBuffer>(desc, deviceMask);
+	SPtr<NullVertexBuffer> ret = B3DMakeShared<NullVertexBuffer>(desc, deviceMask);
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -15,7 +15,7 @@ SPtr<ct::VertexBuffer> NullHardwareBufferManager::CreateVertexBufferInternal(con
 
 SPtr<ct::IndexBuffer> NullHardwareBufferManager::CreateIndexBufferInternal(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<NullIndexBuffer> ret = bs_shared_ptr_new<NullIndexBuffer>(desc, deviceMask);
+	SPtr<NullIndexBuffer> ret = B3DMakeShared<NullIndexBuffer>(desc, deviceMask);
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -23,7 +23,7 @@ SPtr<ct::IndexBuffer> NullHardwareBufferManager::CreateIndexBufferInternal(const
 
 SPtr<ct::GpuParamBlockBuffer> NullHardwareBufferManager::CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage, GpuDeviceFlags deviceMask)
 {
-	SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = bs_shared_ptr_new<NullGpuParamBlockBuffer>(size, usage, deviceMask);
+	SPtr<GpuParamBlockBuffer> paramBlockBufferPtr = B3DMakeShared<NullGpuParamBlockBuffer>(size, usage, deviceMask);
 	paramBlockBufferPtr->SetThisPtrInternal(paramBlockBufferPtr);
 
 	return paramBlockBufferPtr;
@@ -31,7 +31,7 @@ SPtr<ct::GpuParamBlockBuffer> NullHardwareBufferManager::CreateGpuParamBlockBuff
 
 SPtr<ct::GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, deviceMask);
+	SPtr<NullGpuBuffer> bufferPtr = B3DMakeShared<NullGpuBuffer>(desc, deviceMask);
 	bufferPtr->SetThisPtrInternal(bufferPtr);
 
 	return bufferPtr;
@@ -39,7 +39,7 @@ SPtr<ct::GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU
 
 SPtr<ct::GpuBuffer> NullHardwareBufferManager::CreateGpuBufferInternal(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyingBuffer)
 {
-	SPtr<NullGpuBuffer> bufferPtr = bs_shared_ptr_new<NullGpuBuffer>(desc, std::move(underlyingBuffer));
+	SPtr<NullGpuBuffer> bufferPtr = B3DMakeShared<NullGpuBuffer>(desc, std::move(underlyingBuffer));
 	bufferPtr->SetThisPtrInternal(bufferPtr);
 
 	return bufferPtr;
@@ -88,13 +88,13 @@ void* NullHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u3
 {
 	assert(mStagingBuffer == nullptr);
 
-	mStagingBuffer = bs_alloc(mSize);
+	mStagingBuffer = B3DAllocate(mSize);
 	return mStagingBuffer;
 }
 
 void NullHardwareBuffer::Unmap()
 {
-	bs_free(mStagingBuffer);
+	B3DFree(mStagingBuffer);
 	mStagingBuffer = nullptr;
 }
 

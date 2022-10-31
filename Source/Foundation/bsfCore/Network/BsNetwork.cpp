@@ -271,7 +271,7 @@ struct NetworkPeer::Pimpl
 };
 
 NetworkPeer::NetworkPeer(const NETWORK_PEER_DESC& desc)
-	: m(bs_new<Pimpl>())
+	: m(B3DNew<Pimpl>())
 {
 	m->peer = RakPeerInterface::GetInstance();
 	m->networkIdMapping.resize(desc.maxNumConnections);
@@ -359,7 +359,7 @@ NetworkPeer::~NetworkPeer()
 {
 	RakPeerInterface::DestroyInstance(m->peer);
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 bool NetworkPeer::connect(const char* host, u16 port)
@@ -504,7 +504,7 @@ void NetworkObject::networkDespawn()
 
 NetworkEncoder::NetworkEncoder()
 {
-	mWriteBuffer = (u8*)bs_alloc(WRITE_BUFFER_SIZE);
+	mWriteBuffer = (u8*)B3DAllocate(WRITE_BUFFER_SIZE);
 }
 
 NetworkEncoder::~NetworkEncoder()
@@ -512,12 +512,12 @@ NetworkEncoder::~NetworkEncoder()
 	assert(mBufferPieces.empty());
 
 	for(auto& entry : mBufferPiecePool)
-		bs_free(entry.buffer);
+		B3DFree(entry.buffer);
 
 	if(mResultBuffer)
-		bs_free(mResultBuffer);
+		B3DFree(mResultBuffer);
 
-	bs_free(mWriteBuffer);
+	B3DFree(mWriteBuffer);
 }
 
 void NetworkEncoder::encode(u8 type, const UUID& uuid, IReflectable* object, SerializationContext* context)
@@ -603,11 +603,11 @@ u8* NetworkEncoder::getOutput(u32& size)
 	if(mResultBufferSize < bytesRequired)
 	{
 		if(mResultBuffer)
-			bs_free(mResultBuffer);
+			B3DFree(mResultBuffer);
 
 		u32 bufferSize = (u32)(bytesRequired * 1.25f); // 25% extra
 
-		mResultBuffer = (u8*)bs_alloc(bufferSize);
+		mResultBuffer = (u8*)B3DAllocate(bufferSize);
 		mResultBufferSize = bufferSize;
 	}
 
@@ -645,7 +645,7 @@ NetworkEncoder::BufferPiece NetworkEncoder::allocBufferPiece()
 		mBufferPiecePool.pop_back();
 	}
 	else
-		piece.buffer = (u8*)bs_alloc(WRITE_BUFFER_SIZE);
+		piece.buffer = (u8*)B3DAllocate(WRITE_BUFFER_SIZE);
 
 	piece.size = 0;
 	mBufferPieces.push_back(piece);
@@ -740,7 +740,7 @@ void Network::host(const SmallVector<NetworkAddress, 4>& listenAddresses, u32 ti
 	desc.maxNumConnections = maxConnections;
 	desc.maxNumIncomingConnections = maxConnections;
 
-	mPeer = bs_unique_ptr_new<NetworkPeer>(desc);
+	mPeer = B3DMakeUnique<NetworkPeer>(desc);
 	mState = NetworkState::Hosting;
 	mTickRate = tickRate;
 	mTimeAccumulator = 0.0f;
@@ -757,7 +757,7 @@ void Network::connect(const char* host, u16 port)
 	NETWORK_PEER_DESC desc;
 	desc.maxNumConnections = 1;
 
-	mPeer = bs_unique_ptr_new<NetworkPeer>(desc);
+	mPeer = B3DMakeUnique<NetworkPeer>(desc);
 	mPeer->connect(host, port);
 	mState = NetworkState::Connecting;
 }

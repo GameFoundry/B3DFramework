@@ -263,15 +263,15 @@ void GUIPanel::UpdateChildLayoutInternal(GUIElementBase* element, const GUILayou
 
 GUIPanel* GUIPanel::Create(i16 depth, u16 depthRangeMin, u16 depthRangeMax)
 {
-	return bs_new<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create());
+	return B3DNew<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create());
 }
 
 GUIPanel* GUIPanel::Create(const GUIOptions& options)
 {
-	return bs_new<GUIPanel>(0, -1, -1, GUIDimensions::Create(options));
+	return B3DNew<GUIPanel>(0, -1, -1, GUIDimensions::Create(options));
 }
 
 GUIPanel* GUIPanel::Create(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUIOptions& options)
 {
-	return bs_new<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create(options));
+	return B3DNew<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUIDimensions::Create(options));
 }

@@ -191,7 +191,7 @@ namespace bs
 			template <class Type, class... Args>
 			Type* Create(Args&&... args)
 			{
-				Type* resource = new(bs_alloc(sizeof(Type))) Type(this, std::forward<Args>(args)...);
+				Type* resource = new(B3DAllocate(sizeof(Type))) Type(this, std::forward<Args>(args)...);
 
 #if BS_DEBUG_MODE
 				Lock lock(mMutex);

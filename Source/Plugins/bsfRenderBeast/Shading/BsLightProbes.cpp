@@ -369,7 +369,7 @@ void LightProbes::UpdateProbes()
 	// frustum culling and possibly even sort by distance from camera.
 	u32 numVertices = mNumValidTetrahedra * 4 * 3 + numValidFaces * 9 * 3;
 
-	SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	vertexDesc->AddVertElem(VET_UINT1, VES_TEXCOORD);
 

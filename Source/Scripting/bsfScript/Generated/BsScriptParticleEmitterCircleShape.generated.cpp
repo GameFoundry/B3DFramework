@@ -30,7 +30,7 @@ MonoObject* ScriptParticleEmitterCircleShape::Create(const SPtr<ParticleEmitterC
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, value);
+	new(B3DAllocate<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleEmitterCircleShape::InternalCreate(MonoObject* managedInstanc
 	PARTICLE_CIRCLE_SHAPE_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_CIRCLE_SHAPE_DESC::FromInterop(*desc);
 	SPtr<ParticleEmitterCircleShape> instance = ParticleEmitterCircleShape::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, instance);
 }
 
 void ScriptParticleEmitterCircleShape::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleEmitterCircleShape> instance = ParticleEmitterCircleShape::Create();
-	new(bs_alloc<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, instance);
 }

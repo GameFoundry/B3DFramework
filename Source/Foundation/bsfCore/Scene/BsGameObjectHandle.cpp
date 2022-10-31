@@ -11,7 +11,7 @@ using namespace bs;
 
 GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& ptr)
 {
-	mData = bs_shared_ptr_new<GameObjectHandleData>(ptr->mInstanceData);
+	mData = B3DMakeShared<GameObjectHandleData>(ptr->mInstanceData);
 }
 
 bool GameObjectHandleBase::IsDestroyed(bool checkQueued) const

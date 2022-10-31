@@ -324,12 +324,12 @@ struct ParticleManager::Members
 };
 
 ParticleManager::ParticleManager()
-	: m(bs_new<Members>())
+	: m(B3DNew<Members>())
 {}
 
 ParticleManager::~ParticleManager()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& animData)

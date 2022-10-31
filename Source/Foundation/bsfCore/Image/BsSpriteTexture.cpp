@@ -141,9 +141,9 @@ SPtr<ct::CoreObject> SpriteTexture::CreateCore() const
 	if(mAtlasTexture.IsLoaded())
 		texturePtr = mAtlasTexture->GetCore();
 
-	ct::SpriteTexture* spriteTexture = new(bs_alloc<ct::SpriteTexture>()) ct::SpriteTexture(mUVOffset, mUVScale, std::move(texturePtr), mAnimation, mPlayback);
+	ct::SpriteTexture* spriteTexture = new(B3DAllocate<ct::SpriteTexture>()) ct::SpriteTexture(mUVOffset, mUVScale, std::move(texturePtr), mAnimation, mPlayback);
 
-	SPtr<ct::SpriteTexture> spriteTexPtr = bs_shared_ptr<ct::SpriteTexture>(spriteTexture);
+	SPtr<ct::SpriteTexture> spriteTexPtr = B3DMakeSharedFromExisting<ct::SpriteTexture>(spriteTexture);
 	spriteTexPtr->SetThisPtrInternal(spriteTexPtr);
 
 	return spriteTexPtr;
@@ -187,7 +187,7 @@ HSpriteTexture SpriteTexture::Create(const Vector2& uvOffset, const Vector2& uvS
 
 SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const HTexture& texture)
 {
-	SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>(new(bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), texture));
+	SPtr<SpriteTexture> texturePtr = B3DMakeCoreFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), texture));
 
 	texturePtr->SetThisPtrInternal(texturePtr);
 	texturePtr->Initialize();
@@ -197,7 +197,7 @@ SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const HTexture& texture)
 
 SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture)
 {
-	SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>(new(bs_alloc<SpriteTexture>()) SpriteTexture(uvOffset, uvScale, texture));
+	SPtr<SpriteTexture> texturePtr = B3DMakeCoreFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(uvOffset, uvScale, texture));
 
 	texturePtr->SetThisPtrInternal(texturePtr);
 	texturePtr->Initialize();
@@ -207,7 +207,7 @@ SPtr<SpriteTexture> SpriteTexture::CreatePtrInternal(const Vector2& uvOffset, co
 
 SPtr<SpriteTexture> SpriteTexture::CreateEmpty()
 {
-	SPtr<SpriteTexture> texturePtr = bs_core_ptr<SpriteTexture>(new(bs_alloc<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), HTexture()));
+	SPtr<SpriteTexture> texturePtr = B3DMakeCoreFromExisting<SpriteTexture>(new(B3DAllocate<SpriteTexture>()) SpriteTexture(Vector2(0.0f, 0.0f), Vector2(1.0f, 1.0f), HTexture()));
 
 	texturePtr->SetThisPtrInternal(texturePtr);
 

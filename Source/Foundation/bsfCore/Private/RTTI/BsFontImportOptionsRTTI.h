@@ -63,7 +63,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<FontImportOptions>();
+			return B3DMakeShared<FontImportOptions>();
 		}
 	};
 

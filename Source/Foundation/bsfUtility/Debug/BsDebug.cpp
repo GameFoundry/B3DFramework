@@ -98,14 +98,14 @@ void Debug::WriteAsBmp(u8* rawPixels, u32 bytesPerPixel, u32 width, u32 height, 
 	SPtr<DataStream> ds = FileSystem::CreateAndOpenFile(filePath);
 
 	u32 bmpDataSize = BitmapWriter::GetBmpSize(width, height, bytesPerPixel);
-	u8* bmpBuffer = bs_newN<u8>(bmpDataSize);
+	u8* bmpBuffer = B3DNewMultiple<u8>(bmpDataSize);
 
 	BitmapWriter::RawPixelsToBmp(rawPixels, bmpBuffer, width, height, bytesPerPixel);
 
 	ds->Write(bmpBuffer, bmpDataSize);
 	ds->Close();
 
-	bs_deleteN(bmpBuffer, bmpDataSize);
+	B3DDeleteMultiple(bmpBuffer, bmpDataSize);
 }
 
 void Debug::TriggerCallbacksInternal()

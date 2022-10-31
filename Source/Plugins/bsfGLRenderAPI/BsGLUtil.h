@@ -18,7 +18,7 @@ namespace bs
 		/**	Helper method that returns a platform specific GL support object. */
 		GLSupport* getGLSupport()
 		{
-			return bs_new<Win32GLSupport>();
+			return B3DNew<Win32GLSupport>();
 		}
 
 		/** @} */
@@ -40,7 +40,7 @@ namespace bs
 		/**	Helper method that returns a platform specific GL support object. */
 		GLSupport* getGLSupport()
 		{
-			return bs_new<LinuxGLSupport>();
+			return B3DNew<LinuxGLSupport>();
 		}
 
 		/** @} */
@@ -60,7 +60,7 @@ namespace bs::ct
 	/**	Helper method that returns a platform specific GL support object. */
 	GLSupport* getGLSupport()
 	{
-		return bs_new<MacOSGLSupport>();
+		return B3DNew<MacOSGLSupport>();
 	}
 
 	/** @} */

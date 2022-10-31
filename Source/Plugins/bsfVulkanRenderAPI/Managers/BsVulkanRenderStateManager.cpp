@@ -11,7 +11,7 @@ using namespace bs::ct;
 SPtr<ct::SamplerState> VulkanRenderStateManager::CreateSamplerStateInternalInternal(const SAMPLER_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 {
 	SPtr<VulkanSamplerState> samplerState =
-		bs_shared_ptr<VulkanSamplerState>(new(bs_alloc<VulkanSamplerState>()) VulkanSamplerState(desc, deviceMask));
+		B3DMakeSharedFromExisting<VulkanSamplerState>(new(B3DAllocate<VulkanSamplerState>()) VulkanSamplerState(desc, deviceMask));
 	samplerState->SetThisPtrInternal(samplerState);
 
 	return samplerState;
@@ -21,7 +21,7 @@ SPtr<ct::GraphicsPipelineState> VulkanRenderStateManager::CreateGraphicsPipeline
 	const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask) const
 {
 	SPtr<VulkanGraphicsPipelineState> pipelineState =
-		bs_shared_ptr<VulkanGraphicsPipelineState>(new(bs_alloc<VulkanGraphicsPipelineState>())
+		B3DMakeSharedFromExisting<VulkanGraphicsPipelineState>(new(B3DAllocate<VulkanGraphicsPipelineState>())
 													   VulkanGraphicsPipelineState(desc, deviceMask));
 	pipelineState->SetThisPtrInternal(pipelineState);
 
@@ -32,7 +32,7 @@ SPtr<ct::ComputePipelineState> VulkanRenderStateManager::CreateComputePipelineSt
 	const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask) const
 {
 	SPtr<VulkanComputePipelineState> pipelineState =
-		bs_shared_ptr<VulkanComputePipelineState>(new(bs_alloc<VulkanComputePipelineState>())
+		B3DMakeSharedFromExisting<VulkanComputePipelineState>(new(B3DAllocate<VulkanComputePipelineState>())
 													  VulkanComputePipelineState(program, deviceMask));
 	pipelineState->SetThisPtrInternal(pipelineState);
 
@@ -43,7 +43,7 @@ SPtr<ct::GpuPipelineParamInfo> VulkanRenderStateManager::CreatePipelineParamInfo
 	const GPU_PIPELINE_PARAMS_DESC& desc, GpuDeviceFlags deviceMask) const
 {
 	SPtr<VulkanGpuPipelineParamInfo> paramInfo =
-		bs_shared_ptr<VulkanGpuPipelineParamInfo>(new(bs_alloc<VulkanGpuPipelineParamInfo>())
+		B3DMakeSharedFromExisting<VulkanGpuPipelineParamInfo>(new(B3DAllocate<VulkanGpuPipelineParamInfo>())
 													  VulkanGpuPipelineParamInfo(desc, deviceMask));
 	paramInfo->SetThisPtrInternal(paramInfo);
 

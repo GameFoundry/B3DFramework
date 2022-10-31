@@ -255,7 +255,7 @@ int x11ErrorHandler(::Display* display, XErrorEvent* event)
 	return 0;
 }
 
-Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
+Platform::Pimpl* Platform::mData = B3DNew<Platform::Pimpl>();
 
 Platform::~Platform()
 {}
@@ -1390,7 +1390,7 @@ void Platform::ShutDownInternal()
 	XCloseDisplay(mData->xDisplay);
 	mData->xDisplay = nullptr;
 
-	bs_delete(mData);
+	B3DDelete(mData);
 	mData = nullptr;
 }
 

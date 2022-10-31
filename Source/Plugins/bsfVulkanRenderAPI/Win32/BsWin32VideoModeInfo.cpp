@@ -44,7 +44,7 @@ Win32VideoModeInfo::Win32VideoModeInfo()
 	u32 idx = 0;
 	for(auto& handle : handles)
 	{
-		mOutputs.push_back(bs_new<Win32VideoOutputInfo>(handle, idx++));
+		mOutputs.push_back(B3DNew<Win32VideoOutputInfo>(handle, idx++));
 	}
 }
 
@@ -81,7 +81,7 @@ Win32VideoOutputInfo::Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx
 
 		if(!foundVideoMode)
 		{
-			Win32VideoMode* videoMode = bs_new<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight, (float)devMode.dmDisplayFrequency, outputIdx);
+			Win32VideoMode* videoMode = B3DNew<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight, (float)devMode.dmDisplayFrequency, outputIdx);
 			videoMode->IsCustom = false;
 
 			mVideoModes.push_back(videoMode);
@@ -91,7 +91,7 @@ Win32VideoOutputInfo::Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx
 	// Get desktop display mode
 	EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
 
-	Win32VideoMode* desktopVideoMode = bs_new<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight, (float)devMode.dmDisplayFrequency, outputIdx);
+	Win32VideoMode* desktopVideoMode = B3DNew<Win32VideoMode>(devMode.dmPelsWidth, devMode.dmPelsHeight, (float)devMode.dmDisplayFrequency, outputIdx);
 	desktopVideoMode->IsCustom = false;
 
 	mDesktopVideoMode = desktopVideoMode;

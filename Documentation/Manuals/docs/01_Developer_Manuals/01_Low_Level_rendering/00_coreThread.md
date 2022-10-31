@@ -142,7 +142,7 @@ class MyCoreObject : public CoreObject
 {
 	SPtr<ct::CoreObject> createCore() override const 
 	{ 
-		SPtr<ct::MyCoreObject> ptr = bs_shared_ptr_new<ct::MyCoreObject>();
+		SPtr<ct::MyCoreObject> ptr = B3DMakeShared<ct::MyCoreObject>();
 		ptr->_setThisPtr(ptr);
 		
 		return ptr; 
@@ -152,15 +152,15 @@ class MyCoreObject : public CoreObject
 
 When creating your core object it's important to note they require specific initialization steps. As seen in the example, **ct::CoreObject** implementation needs to be created as a normal shared pointer, and the pointer instance must be assigned after creation by calling @bs::ct::CoreObject::_setThisPtr.
 
-For **CoreObject** implementation additional rules apply. Its shared pointer must be created using @bs::bs_core_ptr<T> method, followed by a call to @bs::CoreObject::_setThisPtr and finally a call to @bs::CoreObject::initialize. Due to the complex initialization procedure it is always suggested that you create a static `create` method that does these steps automatically. In fact **CoreObject** constructor is by default protected so you cannot accidently create it incorrectly.
+For **CoreObject** implementation additional rules apply. Its shared pointer must be created using @bs::B3DMakeCoreFromExisting<T> method, followed by a call to @bs::CoreObject::_setThisPtr and finally a call to @bs::CoreObject::initialize. Due to the complex initialization procedure it is always suggested that you create a static `create` method that does these steps automatically. In fact **CoreObject** constructor is by default protected so you cannot accidently create it incorrectly.
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<MyCoreObject> MyCoreObject::create()
 {
 	// Because of the protected constructor we need to use placement new operator
-	MyCoreObject* ptr = new (bs_alloc<MyCoreObject>()) MyCoreObject();
+	MyCoreObject* ptr = new (B3DAllocate<MyCoreObject>()) MyCoreObject();
 
-	SPtr<MyCoreObject> sptr = bs_core_ptr<MyCoreObject>(ptr);
+	SPtr<MyCoreObject> sptr = B3DMakeCoreFromExisting<MyCoreObject>(ptr);
 	sptr->_setThisPtr(sptr);
 	sptr->initialize();
 	

@@ -21,13 +21,13 @@ public:
 		mRemaining = mTotal;
 
 		if(mStream->IsFile())
-			mReadBuffer = (char*)bs_alloc(32768);
+			mReadBuffer = (char*)B3DAllocate(32768);
 	}
 
 	virtual ~DataStreamSource()
 	{
 		if(mReadBuffer != nullptr)
-			bs_free(mReadBuffer);
+			B3DFree(mReadBuffer);
 	}
 
 	size_t Available() const override
@@ -97,7 +97,7 @@ public:
 	virtual ~DataStreamSink()
 	{
 		for(auto& entry : mBufferPieces)
-			bs_free(entry.Buffer);
+			B3DFree(entry.Buffer);
 	}
 
 	void Append(const char* data, size_t n) override
@@ -105,7 +105,7 @@ public:
 		if(mBufferPieces.empty() || mBufferPieces.back().Buffer != data)
 		{
 			BufferPiece piece;
-			piece.Buffer = (char*)bs_alloc((u32)n);
+			piece.Buffer = (char*)B3DAllocate((u32)n);
 			piece.Size = n;
 
 			memcpy(piece.Buffer, data, n);
@@ -123,7 +123,7 @@ public:
 	char* GetAppendBuffer(size_t len, char* scratch) override
 	{
 		BufferPiece piece;
-		piece.Buffer = (char*)bs_alloc((u32)len);
+		piece.Buffer = (char*)B3DAllocate((u32)len);
 		piece.Size = 0;
 
 		mBufferPieces.push_back(piece);
@@ -133,7 +133,7 @@ public:
 	char* GetAppendBufferVariable(size_t min_size, size_t desired_size_hint, char* scratch, size_t scratch_size, size_t* allocated_size) override
 	{
 		BufferPiece piece;
-		piece.Buffer = (char*)bs_alloc((u32)desired_size_hint);
+		piece.Buffer = (char*)B3DAllocate((u32)desired_size_hint);
 		piece.Size = 0;
 
 		mBufferPieces.push_back(piece);
@@ -161,7 +161,7 @@ public:
 		for(auto& entry : mBufferPieces)
 			totalSize += entry.Size;
 
-		SPtr<MemoryDataStream> ds = bs_shared_ptr_new<MemoryDataStream>(totalSize);
+		SPtr<MemoryDataStream> ds = B3DMakeShared<MemoryDataStream>(totalSize);
 		for(auto& entry : mBufferPieces)
 			ds->Write(entry.Buffer, entry.Size);
 

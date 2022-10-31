@@ -38,7 +38,7 @@ HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
 
 SPtr<Prefab> Prefab::CreateEmpty()
 {
-	SPtr<Prefab> newPrefab = bs_core_ptr<Prefab>(new(bs_alloc<Prefab>()) Prefab());
+	SPtr<Prefab> newPrefab = B3DMakeCoreFromExisting<Prefab>(new(B3DAllocate<Prefab>()) Prefab());
 	newPrefab->SetThisPtrInternal(newPrefab);
 
 	return newPrefab;

@@ -74,7 +74,7 @@ SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
 	ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::Instance());
 
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::Win32RenderWindow>(desc, mWindowId, rapi);
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::Win32RenderWindow>(desc, mWindowId, rapi);
 	coreObj->SetThisPtrInternal(coreObj);
 
 	return coreObj;
@@ -93,7 +93,7 @@ Win32RenderWindow::~Win32RenderWindow()
 
 	if(mWindow != nullptr)
 	{
-		bs_delete(mWindow);
+		B3DDelete(mWindow);
 		mWindow = nullptr;
 	}
 
@@ -156,7 +156,7 @@ void Win32RenderWindow::Initialize()
 		props.IsHidden = mDesc.HideUntilSwap || mDesc.Hidden;
 	}
 
-	mWindow = bs_new<Win32Window>(windowDesc);
+	mWindow = B3DNew<Win32Window>(windowDesc);
 
 	mIsChild = windowDesc.Parent != nullptr;
 	mDisplayFrequency = Math::RoundToInt(mDesc.VideoMode.RefreshRate);

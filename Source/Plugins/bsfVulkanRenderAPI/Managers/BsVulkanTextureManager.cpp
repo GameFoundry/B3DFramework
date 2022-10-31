@@ -29,9 +29,9 @@ const static DummyTexFormat DummyTexTypes[] = {
 
 SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
 {
-	VulkanRenderTexture* tex = new(bs_alloc<VulkanRenderTexture>()) VulkanRenderTexture(desc);
+	VulkanRenderTexture* tex = new(B3DAllocate<VulkanRenderTexture>()) VulkanRenderTexture(desc);
 
-	return bs_core_ptr<VulkanRenderTexture>(tex);
+	return B3DMakeCoreFromExisting<VulkanRenderTexture>(tex);
 }
 
 PixelFormat VulkanTextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)
@@ -158,9 +158,9 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 
 SPtr<Texture> VulkanTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
-	VulkanTexture* tex = new(bs_alloc<VulkanTexture>()) VulkanTexture(desc, initialData, deviceMask);
+	VulkanTexture* tex = new(B3DAllocate<VulkanTexture>()) VulkanTexture(desc, initialData, deviceMask);
 
-	SPtr<VulkanTexture> texPtr = bs_shared_ptr<VulkanTexture>(tex);
+	SPtr<VulkanTexture> texPtr = B3DMakeSharedFromExisting<VulkanTexture>(tex);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;
@@ -168,7 +168,7 @@ SPtr<Texture> VulkanTextureManager::CreateTextureInternal(const TEXTURE_DESC& de
 
 SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
 {
-	SPtr<VulkanRenderTexture> texPtr = bs_shared_ptr_new<VulkanRenderTexture>(desc, deviceIdx);
+	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(desc, deviceIdx);
 	texPtr->SetThisPtrInternal(texPtr);
 
 	return texPtr;

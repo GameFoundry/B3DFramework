@@ -20,7 +20,7 @@ const String& GUISliderHandle::GetGuiTypeName()
 GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions)
 	: GUIElement(styleName, dimensions), mFlags(flags)
 {
-	mImageSprite = bs_new<ImageSprite>();
+	mImageSprite = B3DNew<ImageSprite>();
 
 	// Calling virtual method is okay in this case
 	StyleUpdated();
@@ -28,17 +28,17 @@ GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& style
 
 GUISliderHandle::~GUISliderHandle()
 {
-	bs_delete(mImageSprite);
+	B3DDelete(mImageSprite);
 }
 
 GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const String& styleName)
 {
-	return new(bs_alloc<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUIDimensions::Create());
+	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUIDimensions::Create());
 }
 
 GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUIDimensions::Create(options));
+	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUIDimensions::Create(options));
 }
 
 void GUISliderHandle::SetHandleSizeInternal(float pct)

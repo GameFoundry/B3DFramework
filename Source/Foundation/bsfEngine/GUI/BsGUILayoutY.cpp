@@ -426,10 +426,10 @@ void GUILayoutY::UpdateLayoutInternalInternal(const GUILayoutData& data)
 
 GUILayoutY* GUILayoutY::Create()
 {
-	return bs_new<GUILayoutY>();
+	return B3DNew<GUILayoutY>();
 }
 
 GUILayoutY* GUILayoutY::Create(const GUIOptions& options)
 {
-	return bs_new<GUILayoutY>(GUIDimensions::Create(options));
+	return B3DNew<GUILayoutY>(GUIDimensions::Create(options));
 }

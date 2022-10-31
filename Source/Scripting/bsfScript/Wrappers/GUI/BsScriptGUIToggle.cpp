@@ -68,7 +68,7 @@ void ScriptGUIToggle::InternalCreateInstance(MonoObject* instance, __GUIContentI
 	GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
 	GUIToggle* guiToggle = GUIToggle::Create(nativeContent, toggleGroup, options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
+	auto nativeInstance = new(B3DAllocate<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
 
 	guiToggle->OnClick.Connect(std::bind(&::bs::ScriptGUIToggle::OnClick, nativeInstance));
 	guiToggle->OnHover.Connect(std::bind(&::bs::ScriptGUIToggle::OnHover, nativeInstance));

@@ -40,14 +40,14 @@ MonoObject* ScriptFontImportOptions::Create(const SPtr<FontImportOptions>& value
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptFontImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<FontImportOptions> instance = FontImportOptions::Create();
-	new(bs_alloc<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptFontImportOptions>()) ScriptFontImportOptions(managedInstance, instance);
 }
 
 MonoArray* ScriptFontImportOptions::InternalGetFontSizes(ScriptFontImportOptions* thisPtr)

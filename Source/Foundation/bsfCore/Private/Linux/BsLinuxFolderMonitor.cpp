@@ -110,7 +110,7 @@ struct FileAction
 {
 	static FileAction* createAdded(const String& fileName)
 	{
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -129,7 +129,7 @@ struct FileAction
 
 	static FileAction* createRemoved(const String& fileName)
 	{
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -148,7 +148,7 @@ struct FileAction
 
 	static FileAction* createModified(const String& fileName)
 	{
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (fileName.size() + 1) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -167,7 +167,7 @@ struct FileAction
 
 	static FileAction* createRenamed(const String& oldFilename, const String& newfileName)
 	{
-		u8* bytes = (u8*)bs_alloc((u32)(sizeof(FileAction) + (oldFilename.size() + newfileName.size() + 2) * sizeof(String::value_type)));
+		u8* bytes = (u8*)B3DAllocate((u32)(sizeof(FileAction) + (oldFilename.size() + newfileName.size() + 2) * sizeof(String::value_type)));
 
 		FileAction* action = (FileAction*)bytes;
 		bytes += sizeof(FileAction);
@@ -191,7 +191,7 @@ struct FileAction
 
 	static void Destroy(FileAction* action)
 	{
-		bs_free(action);
+		B3DFree(action);
 	}
 
 	String::value_type* oldName;
@@ -217,7 +217,7 @@ struct FolderMonitor::Pimpl
 
 FolderMonitor::FolderMonitor()
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->workerThread = nullptr;
 	m->inHandle = 0;
 	m->started = false;
@@ -231,7 +231,7 @@ FolderMonitor::~FolderMonitor()
 	for(auto& action : m->fileActions)
 		FileAction::Destroy(action);
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, FolderChangeBits changeFilter)
@@ -276,7 +276,7 @@ void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, Fo
 		m->started = true;
 	}
 
-	FolderWatchInfo* watchInfo = bs_new<FolderWatchInfo>(folderPath, m->inHandle, subdirectories, changeFilter);
+	FolderWatchInfo* watchInfo = B3DNew<FolderWatchInfo>(folderPath, m->inHandle, subdirectories, changeFilter);
 
 	// Register and start the monitor
 	{
@@ -289,7 +289,7 @@ void FolderMonitor::startMonitor(const Path& folderPath, bool subdirectories, Fo
 	// Start the worker thread if it isn't already
 	if(m->workerThread == nullptr)
 	{
-		m->workerThread = bs_new<Thread>(std::bind(&FolderMonitor::workerThreadMain, this));
+		m->workerThread = B3DNew<Thread>(std::bind(&FolderMonitor::workerThreadMain, this));
 
 		if(m->workerThread == nullptr)
 			BS_LOG(Error, Platform, "Failed to create a new worker thread for folder monitoring");
@@ -312,7 +312,7 @@ void FolderMonitor::stopMonitor(const Path& folderPath)
 			FolderWatchInfo* watchInfo = *findIter;
 
 			watchInfo->stopMonitor();
-			bs_delete(watchInfo);
+			B3DDelete(watchInfo);
 
 			m->monitors.erase(findIter);
 		}
@@ -333,7 +333,7 @@ void FolderMonitor::stopMonitorAll()
 		for(auto& watchInfo : m->monitors)
 		{
 			watchInfo->stopMonitor();
-			bs_delete(watchInfo);
+			B3DDelete(watchInfo);
 		}
 
 		m->monitors.clear();
@@ -343,7 +343,7 @@ void FolderMonitor::stopMonitorAll()
 	if(m->workerThread != nullptr)
 	{
 		m->workerThread->join();
-		bs_delete(m->workerThread);
+		B3DDelete(m->workerThread);
 		m->workerThread = nullptr;
 	}
 

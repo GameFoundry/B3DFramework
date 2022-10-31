@@ -65,7 +65,7 @@ RTTITypeBase* ManagedSerializableDiff::Modification::GetRtti() const
 
 SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::ModifiedObject::Create()
 {
-	return bs_shared_ptr_new<ModifiedObject>();
+	return B3DMakeShared<ModifiedObject>();
 }
 
 RTTITypeBase* ManagedSerializableDiff::ModifiedObject::GetRttiStatic()
@@ -80,7 +80,7 @@ RTTITypeBase* ManagedSerializableDiff::ModifiedObject::GetRtti() const
 
 SPtr<ManagedSerializableDiff::ModifiedArray> ManagedSerializableDiff::ModifiedArray::Create()
 {
-	return bs_shared_ptr_new<ModifiedArray>();
+	return B3DMakeShared<ModifiedArray>();
 }
 
 RTTITypeBase* ManagedSerializableDiff::ModifiedArray::GetRttiStatic()
@@ -95,7 +95,7 @@ RTTITypeBase* ManagedSerializableDiff::ModifiedArray::GetRtti() const
 
 SPtr<ManagedSerializableDiff::ModifiedDictionary> ManagedSerializableDiff::ModifiedDictionary::Create()
 {
-	return bs_shared_ptr_new<ModifiedDictionary>();
+	return B3DMakeShared<ModifiedDictionary>();
 }
 
 RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::GetRttiStatic()
@@ -114,7 +114,7 @@ ManagedSerializableDiff::ModifiedEntry::ModifiedEntry(const SPtr<ManagedSerializ
 
 SPtr<ManagedSerializableDiff::ModifiedEntry> ManagedSerializableDiff::ModifiedEntry::Create(const SPtr<ManagedSerializableFieldData>& value)
 {
-	return bs_shared_ptr_new<ModifiedEntry>(value);
+	return B3DMakeShared<ModifiedEntry>(value);
 }
 
 RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::GetRttiStatic()
@@ -142,7 +142,7 @@ SPtr<ManagedSerializableDiff> ManagedSerializableDiff::Create(const ManagedSeria
 	if(!oldObjInfo->MTypeInfo->Matches(newObjInfo->MTypeInfo))
 		return nullptr;
 
-	SPtr<ManagedSerializableDiff> output = bs_shared_ptr_new<ManagedSerializableDiff>();
+	SPtr<ManagedSerializableDiff> output = B3DMakeShared<ManagedSerializableDiff>();
 	SPtr<ModifiedObject> modifications = output->GenerateDiff(oldObj, newObj);
 
 	if(modifications != nullptr)

@@ -2,7 +2,7 @@
 title: Advanced memory allocation
 ---
 
-bs::f allows you to allocate memory in various ways, so you can have fast memory allocations for many situations. We have already shown how to allocate memory for the general case, using **bs_new** / **bs_delete**, **bs_alloc**, **bs_free** and shown how to use shared pointers. But allocating memory using these general purpose allocators can be expensive. Therefore it is beneficial to have more specialized allocator types that have certain restrictions, but allocate memory with almost no overhead.
+bs::f allows you to allocate memory in various ways, so you can have fast memory allocations for many situations. We have already shown how to allocate memory for the general case, using **B3DNew** / **B3DDelete**, **B3DAllocate**, **B3DFree** and shown how to use shared pointers. But allocating memory using these general purpose allocators can be expensive. Therefore it is beneficial to have more specialized allocator types that have certain restrictions, but allocate memory with almost no overhead.
 
 # Stack allocator
 Stack allocator allows you to allocate memory quickly and with zero fragmentation. It comes with a restriction that it can only deallocate memory in the opposite order it was allocated. This usually only makes it suitable for temporary allocations within a single method, where you can guarantee the proper order.

@@ -12,7 +12,7 @@ const u32 ProfilerGPU::kMaxQueueElements = 5;
 
 ProfilerGPU::ProfilerGPU()
 {
-	mReadyReports = bs_newN<GPUProfilerReport>(kMaxQueueElements);
+	mReadyReports = B3DNewMultiple<GPUProfilerReport>(kMaxQueueElements);
 }
 
 ProfilerGPU::~ProfilerGPU()
@@ -25,7 +25,7 @@ ProfilerGPU::~ProfilerGPU()
 		mUnresolvedFrames.pop();
 	}
 
-	bs_deleteN(mReadyReports, kMaxQueueElements);
+	B3DDeleteMultiple(mReadyReports, kMaxQueueElements);
 }
 
 void ProfilerGPU::BeginFrame()

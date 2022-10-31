@@ -32,7 +32,7 @@ namespace bs
 		~GroupAlloc()
 		{
 			if(mNumBytes > 0)
-				bs_free(mData);
+				B3DFree(mData);
 		}
 
 		GroupAlloc& operator=(GroupAlloc&& other) noexcept
@@ -41,7 +41,7 @@ namespace bs
 				return *this;
 
 			if(mNumBytes > 0)
-				bs_free(mData);
+				B3DFree(mData);
 
 			mData = std::exchange(other.mData, nullptr);
 			mDataPtr = std::exchange(other.mDataPtr, nullptr);
@@ -59,7 +59,7 @@ namespace bs
 			assert(mData == nullptr);
 
 			if(mNumBytes > 0)
-				mData = (u8*)bs_alloc(mNumBytes);
+				mData = (u8*)B3DAllocate(mNumBytes);
 
 			mDataPtr = mData;
 		}
@@ -128,7 +128,7 @@ namespace bs
 		{
 			// Note: A debug check if user actually freed the memory could be helpful
 			if(mData)
-				bs_free(mData);
+				B3DFree(mData);
 
 			mNumBytes = 0;
 			mData = nullptr;

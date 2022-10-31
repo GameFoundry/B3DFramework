@@ -42,7 +42,7 @@ void ScriptGUIInputBox::InternalCreateInstance(MonoObject* instance, bool multil
 
 	GUIInputBox* guiInputBox = GUIInputBox::Create(multiline, options, MonoUtil::MonoToString(style));
 
-	auto nativeInstance = new(bs_alloc<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
+	auto nativeInstance = new(B3DAllocate<ScriptGUIInputBox>()) ScriptGUIInputBox(instance, guiInputBox);
 
 	guiInputBox->OnValueChanged.Connect(std::bind(&::bs::ScriptGUIInputBox::OnChanged, nativeInstance, _1));
 }

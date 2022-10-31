@@ -35,7 +35,7 @@ namespace bs
 		/** Creates a new deep copy of the object. */
 		virtual SPtr<SpriteMaterialExtraInfo> Clone() const
 		{
-			return bs_shared_ptr_new<SpriteMaterialExtraInfo>();
+			return B3DMakeShared<SpriteMaterialExtraInfo>();
 		}
 	};
 

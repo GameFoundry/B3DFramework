@@ -115,7 +115,7 @@ PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6_JOINT_DESC& desc)
 	PxD6Joint* joint = PxD6JointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 
 	// Calls to virtual methods are okay here
 	for(u32 i = 0; i < (u32)D6JointAxis::Count; i++)
@@ -134,7 +134,7 @@ PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6_JOINT_DESC& desc)
 
 PhysXD6Joint::~PhysXD6Joint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 D6JointMotion PhysXD6Joint::GetMotion(D6JointAxis axis) const

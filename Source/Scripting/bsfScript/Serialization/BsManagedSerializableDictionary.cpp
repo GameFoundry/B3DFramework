@@ -253,12 +253,12 @@ SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExi
 	if(ScriptAssemblyManager::Instance().GetBuiltinClasses().SystemGenericDictionaryClass->GetFullName() != fullName)
 		return nullptr;
 
-	return bs_shared_ptr_new<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, managedInstance);
+	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
 SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateNew(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
 {
-	return bs_shared_ptr_new<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo));
+	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo));
 }
 
 MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
@@ -276,7 +276,7 @@ MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<Mana
 
 SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateEmpty()
 {
-	return bs_shared_ptr_new<ManagedSerializableDictionary>(ConstructPrivately());
+	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately());
 }
 
 MonoObject* ManagedSerializableDictionary::GetManagedInstance() const

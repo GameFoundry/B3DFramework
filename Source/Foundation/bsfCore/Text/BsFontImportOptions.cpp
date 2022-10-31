@@ -7,7 +7,7 @@ using namespace bs;
 
 SPtr<FontImportOptions> FontImportOptions::Create()
 {
-	return bs_shared_ptr_new<FontImportOptions>();
+	return B3DMakeShared<FontImportOptions>();
 }
 
 /************************************************************************/

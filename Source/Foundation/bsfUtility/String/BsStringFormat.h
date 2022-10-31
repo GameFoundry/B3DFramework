@@ -132,7 +132,7 @@ namespace bs
 			// Copy the clean string into output buffer
 			u32 finalStringSize = charWriteIdx;
 
-			T* outputBuffer = (T*)bs_alloc(finalStringSize * sizeof(T));
+			T* outputBuffer = (T*)B3DAllocate(finalStringSize * sizeof(T));
 			u32 copySourceIdx = 0;
 			u32 copyDestIdx = 0;
 			for(u32 i = 0; i < paramRangeWriteIdx; i++)
@@ -155,12 +155,12 @@ namespace bs
 			memcpy(outputBuffer + copyDestIdx, source + copySourceIdx, (finalStringSize - copyDestIdx) * sizeof(T));
 
 			BasicString<T> outputStr(outputBuffer, finalStringSize);
-			bs_free(outputBuffer);
+			B3DFree(outputBuffer);
 
 			for(u32 i = 0; i < kMaxParams; i++)
 			{
 				if(parameters[i].Buffer != nullptr)
-					bs_free(parameters[i].Buffer);
+					B3DFree(parameters[i].Buffer);
 			}
 
 			return outputStr;
@@ -273,7 +273,7 @@ namespace bs
 				return;
 
 			BasicString<char> sourceParam = toString(param);
-			parameters[idx].Buffer = (char*)bs_alloc((u32)sourceParam.size() * sizeof(char));
+			parameters[idx].Buffer = (char*)B3DAllocate((u32)sourceParam.size() * sizeof(char));
 			parameters[idx].Size = (u32)sourceParam.size();
 
 			sourceParam.copy(parameters[idx].Buffer, parameters[idx].Size, 0);
@@ -291,7 +291,7 @@ namespace bs
 				return;
 
 			BasicString<wchar_t> sourceParam = toWString(param);
-			parameters[idx].buffer = (wchar_t*)bs_alloc((u32)sourceParam.size() * sizeof(wchar_t));
+			parameters[idx].buffer = (wchar_t*)B3DAllocate((u32)sourceParam.size() * sizeof(wchar_t));
 			parameters[idx].size = (u32)sourceParam.size();
 
 			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);

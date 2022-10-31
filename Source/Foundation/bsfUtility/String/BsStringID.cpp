@@ -22,7 +22,7 @@ StringID::InitStatics::InitStatics()
 	memset(mStringHashTable, 0, sizeof(mStringHashTable));
 	memset(mChunks, 0, sizeof(mChunks));
 
-	mChunks[0] = (InternalData*)bs_alloc(sizeof(InternalData) * kElementsPerChunk);
+	mChunks[0] = (InternalData*)B3DAllocate(sizeof(InternalData) * kElementsPerChunk);
 	memset(mChunks[0], 0, sizeof(InternalData) * kElementsPerChunk);
 
 	mNumChunks++;
@@ -94,7 +94,7 @@ StringID::InternalData* StringID::AllocEntry()
 
 	if(chunkIdx >= mNumChunks)
 	{
-		mChunks[chunkIdx] = (InternalData*)bs_alloc(sizeof(InternalData) * kElementsPerChunk);
+		mChunks[chunkIdx] = (InternalData*)B3DAllocate(sizeof(InternalData) * kElementsPerChunk);
 		memset(mChunks[chunkIdx], 0, sizeof(InternalData) * kElementsPerChunk);
 
 		mNumChunks++;

@@ -28,10 +28,10 @@ SPtr<ct::TransientMesh> TransientMesh::GetCore() const
 
 SPtr<ct::CoreObject> TransientMesh::CreateCore() const
 {
-	ct::TransientMesh* core = new(bs_alloc<ct::TransientMesh>()) ct::TransientMesh(
+	ct::TransientMesh* core = new(B3DAllocate<ct::TransientMesh>()) ct::TransientMesh(
 		mParentHeap->GetCore(), mId, mProperties.mNumVertices, mProperties.mNumIndices, mProperties.mSubMeshes);
 
-	SPtr<ct::CoreObject> meshCore = bs_shared_ptr<ct::TransientMesh>(core);
+	SPtr<ct::CoreObject> meshCore = B3DMakeSharedFromExisting<ct::TransientMesh>(core);
 	meshCore->SetThisPtrInternal(meshCore);
 
 	return meshCore;

@@ -30,7 +30,7 @@ MonoObject* ScriptParticleColor::Create(const SPtr<ParticleColor>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
+	new(B3DAllocate<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleColor::InternalCreate(MonoObject* managedInstance, __PARTICLE
 	PARTICLE_COLOR_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_COLOR_DESC::FromInterop(*desc);
 	SPtr<ParticleColor> instance = ParticleColor::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
 }
 
 void ScriptParticleColor::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleColor> instance = ParticleColor::Create();
-	new(bs_alloc<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleColor>()) ScriptParticleColor(managedInstance, instance);
 }

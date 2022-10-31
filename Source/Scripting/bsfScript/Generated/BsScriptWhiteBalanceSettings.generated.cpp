@@ -28,14 +28,14 @@ MonoObject* ScriptWhiteBalanceSettings::Create(const SPtr<WhiteBalanceSettings>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, value);
+	new(B3DAllocate<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings(MonoObject* managedInstance)
 {
-	SPtr<WhiteBalanceSettings> instance = bs_shared_ptr_new<WhiteBalanceSettings>();
-	new(bs_alloc<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, instance);
+	SPtr<WhiteBalanceSettings> instance = B3DMakeShared<WhiteBalanceSettings>();
+	new(B3DAllocate<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, instance);
 }
 
 float ScriptWhiteBalanceSettings::InternalGetTemperature(ScriptWhiteBalanceSettings* thisPtr)

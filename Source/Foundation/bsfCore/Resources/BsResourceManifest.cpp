@@ -18,12 +18,12 @@ ResourceManifest::ResourceManifest(const String& name)
 
 SPtr<ResourceManifest> ResourceManifest::Create(const String& name)
 {
-	return bs_shared_ptr_new<ResourceManifest>(name);
+	return B3DMakeShared<ResourceManifest>(name);
 }
 
 SPtr<ResourceManifest> ResourceManifest::CreateEmpty()
 {
-	return bs_shared_ptr_new<ResourceManifest>(ConstructPrivately());
+	return B3DMakeShared<ResourceManifest>(ConstructPrivately());
 }
 
 void ResourceManifest::RegisterResource(const UUID& uuid, const Path& filePath)

@@ -135,12 +135,12 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 
 SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create(const PARTICLE_TEXTURE_ANIMATION_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleTextureAnimation>(desc);
+	return B3DMakeShared<ParticleTextureAnimation>(desc);
 }
 
 SPtr<ParticleTextureAnimation> ParticleTextureAnimation::Create()
 {
-	return bs_shared_ptr_new<ParticleTextureAnimation>();
+	return B3DMakeShared<ParticleTextureAnimation>();
 }
 
 RTTITypeBase* ParticleTextureAnimation::GetRttiStatic()
@@ -201,12 +201,12 @@ void ParticleOrbit::Evolve(Random& random, const ParticleSystemState& state, Par
 
 SPtr<ParticleOrbit> ParticleOrbit::Create(const PARTICLE_ORBIT_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleOrbit>(desc);
+	return B3DMakeShared<ParticleOrbit>(desc);
 }
 
 SPtr<ParticleOrbit> ParticleOrbit::Create()
 {
-	return bs_shared_ptr_new<ParticleOrbit>();
+	return B3DMakeShared<ParticleOrbit>();
 }
 
 RTTITypeBase* ParticleOrbit::GetRttiStatic()
@@ -250,12 +250,12 @@ void ParticleVelocity::Evolve(Random& random, const ParticleSystemState& state, 
 
 SPtr<ParticleVelocity> ParticleVelocity::Create(const PARTICLE_VELOCITY_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleVelocity>(desc);
+	return B3DMakeShared<ParticleVelocity>(desc);
 }
 
 SPtr<ParticleVelocity> ParticleVelocity::Create()
 {
-	return bs_shared_ptr_new<ParticleVelocity>();
+	return B3DMakeShared<ParticleVelocity>();
 }
 
 RTTITypeBase* ParticleVelocity::GetRttiStatic()
@@ -299,12 +299,12 @@ void ParticleForce::Evolve(Random& random, const ParticleSystemState& state, Par
 
 SPtr<ParticleForce> ParticleForce::Create(const PARTICLE_FORCE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleForce>(desc);
+	return B3DMakeShared<ParticleForce>(desc);
 }
 
 SPtr<ParticleForce> ParticleForce::Create()
 {
-	return bs_shared_ptr_new<ParticleForce>();
+	return B3DMakeShared<ParticleForce>();
 }
 
 RTTITypeBase* ParticleForce::GetRttiStatic()
@@ -348,12 +348,12 @@ void ParticleGravity::Evolve(Random& random, const ParticleSystemState& state, P
 
 SPtr<ParticleGravity> ParticleGravity::Create(const PARTICLE_GRAVITY_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleGravity>(desc);
+	return B3DMakeShared<ParticleGravity>(desc);
 }
 
 SPtr<ParticleGravity> ParticleGravity::Create()
 {
-	return bs_shared_ptr_new<ParticleGravity>();
+	return B3DMakeShared<ParticleGravity>();
 }
 
 RTTITypeBase* ParticleGravity::GetRttiStatic()
@@ -386,12 +386,12 @@ void ParticleColor::Evolve(Random& random, const ParticleSystemState& state, Par
 
 SPtr<ParticleColor> ParticleColor::Create(const PARTICLE_COLOR_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleColor>(desc);
+	return B3DMakeShared<ParticleColor>(desc);
 }
 
 SPtr<ParticleColor> ParticleColor::Create()
 {
-	return bs_shared_ptr_new<ParticleColor>();
+	return B3DMakeShared<ParticleColor>();
 }
 
 RTTITypeBase* ParticleColor::GetRttiStatic()
@@ -438,12 +438,12 @@ void ParticleSize::Evolve(Random& random, const ParticleSystemState& state, Part
 
 SPtr<ParticleSize> ParticleSize::Create(const PARTICLE_SIZE_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleSize>(desc);
+	return B3DMakeShared<ParticleSize>(desc);
 }
 
 SPtr<ParticleSize> ParticleSize::Create()
 {
-	return bs_shared_ptr_new<ParticleSize>();
+	return B3DMakeShared<ParticleSize>();
 }
 
 RTTITypeBase* ParticleSize::GetRttiStatic()
@@ -490,12 +490,12 @@ void ParticleRotation::Evolve(Random& random, const ParticleSystemState& state, 
 
 SPtr<ParticleRotation> ParticleRotation::Create(const PARTICLE_ROTATION_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleRotation>(desc);
+	return B3DMakeShared<ParticleRotation>(desc);
 }
 
 SPtr<ParticleRotation> ParticleRotation::Create()
 {
-	return bs_shared_ptr_new<ParticleRotation>();
+	return B3DMakeShared<ParticleRotation>();
 }
 
 RTTITypeBase* ParticleRotation::GetRttiStatic()
@@ -753,12 +753,12 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 
 SPtr<ParticleCollisions> ParticleCollisions::Create(const PARTICLE_COLLISIONS_DESC& desc)
 {
-	return bs_shared_ptr_new<ParticleCollisions>(desc);
+	return B3DMakeShared<ParticleCollisions>(desc);
 }
 
 SPtr<ParticleCollisions> ParticleCollisions::Create()
 {
-	return bs_shared_ptr_new<ParticleCollisions>();
+	return B3DMakeShared<ParticleCollisions>();
 }
 
 RTTITypeBase* ParticleCollisions::GetRttiStatic()

@@ -65,7 +65,7 @@ MonoObject* ScriptPixelUtility::InternalConvertFormat(MonoObject* source, PixelF
 		return nullptr;
 
 	SPtr<PixelData> sourcePixelData = sourceScriptPixelData->GetInternal();
-	SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(sourcePixelData->GetWidth(), sourcePixelData->GetHeight(), sourcePixelData->GetDepth(), newFormat);
+	SPtr<PixelData> outputData = B3DMakeShared<PixelData>(sourcePixelData->GetWidth(), sourcePixelData->GetHeight(), sourcePixelData->GetDepth(), newFormat);
 	outputData->AllocateInternalBuffer();
 
 	PixelUtil::BulkPixelConversion(*sourcePixelData, *outputData);
@@ -80,7 +80,7 @@ MonoObject* ScriptPixelUtility::InternalCompress(MonoObject* source, Compression
 		return nullptr;
 
 	SPtr<PixelData> sourcePixelData = sourceScriptPixelData->GetInternal();
-	SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(sourcePixelData->GetWidth(), sourcePixelData->GetHeight(), sourcePixelData->GetDepth(), options->Format);
+	SPtr<PixelData> outputData = B3DMakeShared<PixelData>(sourcePixelData->GetWidth(), sourcePixelData->GetHeight(), sourcePixelData->GetDepth(), options->Format);
 	outputData->AllocateInternalBuffer();
 
 	PixelUtil::Compress(*sourcePixelData, *outputData, *options);
@@ -116,7 +116,7 @@ MonoObject* ScriptPixelUtility::InternalScale(MonoObject* source, PixelVolume* n
 		return nullptr;
 
 	SPtr<PixelData> sourcePixelData = sourceScriptPixelData->GetInternal();
-	SPtr<PixelData> outputData = bs_shared_ptr_new<PixelData>(newSize->GetWidth(), newSize->GetHeight(), newSize->GetDepth(), sourcePixelData->GetFormat());
+	SPtr<PixelData> outputData = B3DMakeShared<PixelData>(newSize->GetWidth(), newSize->GetHeight(), newSize->GetDepth(), sourcePixelData->GetFormat());
 	outputData->AllocateInternalBuffer();
 
 	PixelUtil::Scale(*sourcePixelData, *outputData, filter);

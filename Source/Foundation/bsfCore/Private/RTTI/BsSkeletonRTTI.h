@@ -26,7 +26,7 @@ namespace bs
 			obj->mNumBones = size;
 
 			assert(obj->mInvBindPoses == nullptr);
-			obj->mInvBindPoses = bs_newN<Matrix4>(size);
+			obj->mInvBindPoses = B3DNewMultiple<Matrix4>(size);
 		}
 
 		SkeletonBoneInfo& GetBoneInfo(Skeleton* obj, u32 idx) { return obj->mBoneInfo[idx]; }
@@ -38,7 +38,7 @@ namespace bs
 			obj->mNumBones = size;
 
 			assert(obj->mBoneInfo == nullptr);
-			obj->mBoneInfo = bs_newN<SkeletonBoneInfo>(size);
+			obj->mBoneInfo = B3DNewMultiple<SkeletonBoneInfo>(size);
 		}
 
 		Transform& GetBoneTransform(Skeleton* obj, u32 idx) { return obj->mBoneTransforms[idx]; }
@@ -50,7 +50,7 @@ namespace bs
 			obj->mNumBones = size;
 
 			assert(obj->mBoneTransforms == nullptr);
-			obj->mBoneTransforms = bs_newN<Transform>(size);
+			obj->mBoneTransforms = B3DNewMultiple<Transform>(size);
 		}
 
 		u32 GetNumBones(Skeleton* obj) { return obj->mNumBones; }

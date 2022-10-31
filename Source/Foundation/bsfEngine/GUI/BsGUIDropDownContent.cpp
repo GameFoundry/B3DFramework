@@ -32,7 +32,7 @@ GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu*
 	if(*curStyle == StringUtil::kBlank)
 		curStyle = &GUIDropDownContent::GetGuiTypeName();
 
-	return new(bs_alloc<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create());
+	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create());
 }
 
 GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style)
@@ -41,7 +41,7 @@ GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu*
 	if(*curStyle == StringUtil::kBlank)
 		curStyle = &GUIDropDownContent::GetGuiTypeName();
 
-	return new(bs_alloc<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create(options));
+	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create(options));
 }
 
 void GUIDropDownContent::StyleUpdated()

@@ -16,7 +16,7 @@ NullPhysicsMesh::NullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType
 void NullPhysicsMesh::Initialize()
 {
 	if(mInternal == nullptr) // Could be not-null if we're deserializing
-		mInternal = bs_shared_ptr_new<FNullPhysicsMesh>(mInitMeshData, mType);
+		mInternal = B3DMakeShared<FNullPhysicsMesh>(mInitMeshData, mType);
 
 	PhysicsMesh::Initialize();
 }

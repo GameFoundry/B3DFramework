@@ -26,7 +26,7 @@ void NullRenderAPI::Initialize()
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	mVideoModeInfo = bs_shared_ptr_new<VideoModeInfo>();
+	mVideoModeInfo = B3DMakeShared<VideoModeInfo>();
 
 	GPUInfo gpuInfo;
 	gpuInfo.NumGpUs = 0;
@@ -50,11 +50,11 @@ void NullRenderAPI::Initialize()
 	RenderStateManager::StartUp<NullRenderStateManager>();
 
 	// Pretend as if we can parse HLSL
-	mNullProgramFactory = bs_new<NullProgramFactory>();
+	mNullProgramFactory = B3DNew<NullProgramFactory>();
 	GpuProgramManager::Instance().AddFactory("hlsl", mNullProgramFactory);
 
 	mNumDevices = 1;
-	mCurrentCapabilities = bs_newN<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
 	mCurrentCapabilities->DeviceName = "Null";
 	mCurrentCapabilities->RenderApiName = GetName();
 	mCurrentCapabilities->DeviceVendor = GPU_UNKNOWN;
@@ -77,7 +77,7 @@ void NullRenderAPI::DestroyCore()
 
 	if(mNullProgramFactory != nullptr)
 	{
-		bs_delete(mNullProgramFactory);
+		B3DDelete(mNullProgramFactory);
 		mNullProgramFactory = nullptr;
 	}
 

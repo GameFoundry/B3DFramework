@@ -53,7 +53,7 @@ namespace bs
 		static void StartUp(const CrashHandlerSettings& settings = CrashHandlerSettings())
 		{
 			if(InstanceInternal() == nullptr)
-				InstanceInternal() = bs_new<CrashHandler>(settings);
+				InstanceInternal() = B3DNew<CrashHandler>(settings);
 		}
 
 		/** Shuts down this module and frees any resources it is using. */
@@ -61,7 +61,7 @@ namespace bs
 		{
 			if(InstanceInternal() != nullptr)
 			{
-				bs_delete(InstanceInternal());
+				B3DDelete(InstanceInternal());
 				InstanceInternal() = nullptr;
 			}
 		}

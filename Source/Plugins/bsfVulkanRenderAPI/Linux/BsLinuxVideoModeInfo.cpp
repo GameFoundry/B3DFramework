@@ -45,7 +45,7 @@ LinuxVideoModeInfo::LinuxVideoModeInfo()
 				continue;
 			}
 
-			VideoOutputInfo* output = bs_new<LinuxVideoOutputInfo>(display, i, outputInfo, crtcInfo, screenRes, screenRes->outputs[j], (u32)mOutputs.size());
+			VideoOutputInfo* output = B3DNew<LinuxVideoOutputInfo>(display, i, outputInfo, crtcInfo, screenRes, screenRes->outputs[j], (u32)mOutputs.size());
 
 			// Make sure the primary output is the first in the output list
 			if(i == defaultScreen && screenRes->outputs[j] == primaryOutput)
@@ -151,7 +151,7 @@ LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XR
 		else
 			refreshRate = 0.0f;
 
-		LinuxVideoMode* videoMode = new(bs_alloc<LinuxVideoMode>())
+		LinuxVideoMode* videoMode = new(B3DAllocate<LinuxVideoMode>())
 			LinuxVideoMode(width, height, refreshRate, outputIdx, modeInfo.id);
 		mVideoModes.push_back(videoMode);
 	}
@@ -161,7 +161,7 @@ LinuxVideoOutputInfo::LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XR
 	{
 		if(screenRes->modes[k].id == currentMode)
 		{
-			mDesktopVideoMode = new(bs_alloc<LinuxVideoMode>())
+			mDesktopVideoMode = new(B3DAllocate<LinuxVideoMode>())
 				LinuxVideoMode(mVideoModes[k]->width, mVideoModes[k]->height, mVideoModes[k]->refreshRate, mVideoModes[k]->outputIdx, currentMode);
 			break;
 		}

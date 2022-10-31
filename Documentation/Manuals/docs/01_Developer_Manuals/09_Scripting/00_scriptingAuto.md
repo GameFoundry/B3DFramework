@@ -363,7 +363,7 @@ public:
 		desc.val1 = val1;
 		desc.val2 = val2;
 		
-		return bs_shared_ptr_new<MyClass>(desc);
+		return B3DMakeShared<MyClass>(desc);
 	}
 
 	// External method because MyClass returns an array in raw form, but we need it in a Vector

@@ -8,9 +8,9 @@ using namespace bs::ct;
 
 SPtr<ct::GpuProgram> GLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	GLSLGpuProgram* prog = new(bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
+	GLSLGpuProgram* prog = new(B3DAllocate<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-	SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
+	SPtr<GLSLGpuProgram> gpuProg = B3DMakeSharedFromExisting<GLSLGpuProgram>(prog);
 	gpuProg->SetThisPtrInternal(gpuProg);
 
 	return gpuProg;
@@ -21,9 +21,9 @@ SPtr<ct::GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFl
 	GPU_PROGRAM_DESC desc;
 	desc.Type = type;
 
-	GLSLGpuProgram* prog = new(bs_alloc<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
+	GLSLGpuProgram* prog = new(B3DAllocate<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
-	SPtr<GLSLGpuProgram> gpuProg = bs_shared_ptr<GLSLGpuProgram>(prog);
+	SPtr<GLSLGpuProgram> gpuProg = B3DMakeSharedFromExisting<GLSLGpuProgram>(prog);
 	gpuProg->SetThisPtrInternal(gpuProg);
 
 	return gpuProg;
@@ -32,7 +32,7 @@ SPtr<ct::GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFl
 SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 {
 	// Note: No bytecode format for GLSL
-	SPtr<GpuProgramBytecode> bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+	SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = kOpenglCompilerId;
 
 	return bytecode;

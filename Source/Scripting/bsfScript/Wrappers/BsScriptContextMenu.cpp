@@ -22,7 +22,7 @@ ScriptContextMenu::ScriptContextMenu(MonoObject* instance)
 	: ScriptObject(instance)
 {
 	mGCHandle = MonoUtil::NewWeakGcHandle(instance);
-	mContextMenu = bs_shared_ptr_new<GUIContextMenu>();
+	mContextMenu = B3DMakeShared<GUIContextMenu>();
 }
 
 void ScriptContextMenu::InitRuntimeData()
@@ -38,7 +38,7 @@ void ScriptContextMenu::InitRuntimeData()
 
 void ScriptContextMenu::InternalCreateInstance(MonoObject* instance)
 {
-	new(bs_alloc<ScriptContextMenu>()) ScriptContextMenu(instance);
+	new(B3DAllocate<ScriptContextMenu>()) ScriptContextMenu(instance);
 }
 
 void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr)

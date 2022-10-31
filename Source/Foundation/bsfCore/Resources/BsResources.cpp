@@ -191,7 +191,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 			// loaded
 			if(!alreadyLoading)
 			{
-				ResourceLoadData* loadData = bs_new<ResourceLoadData>(output.Resource.GetWeak(), 0, output.Size);
+				ResourceLoadData* loadData = B3DNew<ResourceLoadData>(output.Resource.GetWeak(), 0, output.Size);
 				mInProgressResources[uuid] = loadData;
 
 				if(loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef))
@@ -231,7 +231,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 					// If load not in progress, register the resource for load
 					if(!loadInProgress)
 					{
-						loadData = bs_new<ResourceLoadData>(output.Resource.GetWeak(), 0, output.Size);
+						loadData = B3DNew<ResourceLoadData>(output.Resource.GetWeak(), 0, output.Size);
 						loadData->RemainingDependencies = 0;
 						loadData->Progress.store(0.0f, std::memory_order_relaxed);
 
@@ -278,7 +278,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 						if(!dependenciesToLoad.empty())
 							mInProgressResources[uuid] = loadData;
 						else
-							bs_delete(loadData);
+							B3DDelete(loadData);
 					}
 				}
 			}
@@ -685,7 +685,7 @@ void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePat
 		dependencyUUIDs[i] = dependencyList[i].Resource.GetUuid();
 
 	u32 compressionMethod = (compress && resource->IsCompressible()) ? 1 : 0;
-	SPtr<SavedResourceData> resourceData = bs_shared_ptr_new<SavedResourceData>(dependencyUUIDs, resource->AllowAsyncLoading(), compressionMethod);
+	SPtr<SavedResourceData> resourceData = B3DMakeShared<SavedResourceData>(dependencyUUIDs, resource->AllowAsyncLoading(), compressionMethod);
 
 	Path parentDir = filePath.GetDirectory();
 	if(!FileSystem::Exists(parentDir))
@@ -748,7 +748,7 @@ void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePat
 		uint32_t size = 0;
 		if(compressionMethod != 0)
 		{
-			SPtr<MemoryDataStream> tempStream = bs_shared_ptr_new<MemoryDataStream>();
+			SPtr<MemoryDataStream> tempStream = B3DMakeShared<MemoryDataStream>();
 			bs.Encode(resource.get(), tempStream);
 
 			size = (uint32_t)tempStream->Size();
@@ -1049,7 +1049,7 @@ void Resources::LoadComplete(HResource& resource, bool notifyProgress)
 		if(myLoadData->NotifyImmediately)
 			ResourceListenerManager::Instance().NotifyListeners(uuid);
 
-		bs_delete(myLoadData);
+		B3DDelete(myLoadData);
 	}
 }
 

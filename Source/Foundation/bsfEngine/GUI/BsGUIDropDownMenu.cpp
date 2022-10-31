@@ -119,7 +119,7 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	mAdditionalCaptureBounds = desc.AdditionalBounds;
 
 	Rect2I availableBounds = viewport->GetPixelArea();
-	mRootMenu = bs_new<DropDownSubMenu>(this, nullptr, desc.Placement, availableBounds, desc.DropDownData, type, 0);
+	mRootMenu = B3DNew<DropDownSubMenu>(this, nullptr, desc.Placement, availableBounds, desc.DropDownData, type, 0);
 }
 
 GUIDropDownMenu::~GUIDropDownMenu()
@@ -131,7 +131,7 @@ void GUIDropDownMenu::OnDestroyed()
 	GUIElement::Destroy(mFrontHitBox);
 	GUIElement::Destroy(mBackHitBox);
 	GUIElement::Destroy(mCaptureHitBox);
-	bs_delete(mRootMenu);
+	B3DDelete(mRootMenu);
 	mRootMenu = nullptr;
 
 	CGUIWidget::OnDestroyed();
@@ -461,7 +461,7 @@ void GUIDropDownMenu::DropDownSubMenu::CloseSubMenu()
 {
 	if(MSubMenu != nullptr)
 	{
-		bs_delete(MSubMenu);
+		B3DDelete(MSubMenu);
 		MSubMenu = nullptr;
 
 		MContent->SetKeyboardFocus(true);
@@ -485,7 +485,7 @@ void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const Rect2I& b
 	{
 		MContent->SetKeyboardFocus(false);
 
-		MSubMenu = bs_new<DropDownSubMenu>(MOwner, this, DropDownAreaPlacement::AroundBoundsVert(bounds), MAvailableBounds, MData.Entries[idx].GetSubMenuData(), MType, MDepthOffset + 1);
+		MSubMenu = B3DNew<DropDownSubMenu>(MOwner, this, DropDownAreaPlacement::AroundBoundsVert(bounds), MAvailableBounds, MData.Entries[idx].GetSubMenuData(), MType, MDepthOffset + 1);
 	}
 }
 

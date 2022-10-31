@@ -86,7 +86,7 @@ namespace bs
 			StructData(u32 _size)
 				: Size(_size)
 			{
-				Data = std::shared_ptr<void>(bs_alloc(_size), (void (*)(void*)) & bs_free);
+				Data = std::shared_ptr<void>(B3DAllocate(_size), (void (*)(void*)) & B3DFree);
 			}
 
 			/**

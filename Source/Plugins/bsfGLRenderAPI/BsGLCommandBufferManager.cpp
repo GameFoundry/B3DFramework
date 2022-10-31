@@ -8,6 +8,6 @@ using namespace bs::ct;
 
 SPtr<CommandBuffer> GLCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
-	CommandBuffer* buffer = new(bs_alloc<GLCommandBuffer>()) GLCommandBuffer(type, deviceIdx, queueIdx, secondary);
-	return bs_shared_ptr(buffer);
+	CommandBuffer* buffer = new(B3DAllocate<GLCommandBuffer>()) GLCommandBuffer(type, deviceIdx, queueIdx, secondary);
+	return B3DMakeSharedFromExisting(buffer);
 }

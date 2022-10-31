@@ -88,7 +88,7 @@ void AnimationCurves::RemoveGenericCurve(const String& name)
 }
 
 AnimationClip::AnimationClip()
-	: Resource(false), mVersion(0), mCurves(bs_shared_ptr_new<AnimationCurves>()), mRootMotion(bs_shared_ptr_new<RootMotion>()), mIsAdditive(false), mLength(0.0f), mSampleRate(1)
+	: Resource(false), mVersion(0), mCurves(B3DMakeShared<AnimationCurves>()), mRootMotion(B3DMakeShared<RootMotion>()), mIsAdditive(false), mLength(0.0f), mSampleRate(1)
 {
 }
 
@@ -96,10 +96,10 @@ AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditiv
 	: Resource(false), mVersion(0), mCurves(curves), mRootMotion(rootMotion), mIsAdditive(isAdditive), mLength(0.0f), mSampleRate(sampleRate)
 {
 	if(mCurves == nullptr)
-		mCurves = bs_shared_ptr_new<AnimationCurves>();
+		mCurves = B3DMakeShared<AnimationCurves>();
 
 	if(mRootMotion == nullptr)
-		mRootMotion = bs_shared_ptr_new<RootMotion>();
+		mRootMotion = B3DMakeShared<RootMotion>();
 
 	BuildNameMapping();
 	CalculateLength();
@@ -108,7 +108,7 @@ AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditiv
 HAnimationClip AnimationClip::Create(bool isAdditive)
 {
 	return static_resource_cast<AnimationClip>(GetResources().CreateResourceHandleInternal(
-		CreatePtrInternal(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
+		CreatePtrInternal(B3DMakeShared<AnimationCurves>(), isAdditive)));
 }
 
 HAnimationClip AnimationClip::Create(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
@@ -119,9 +119,9 @@ HAnimationClip AnimationClip::Create(const SPtr<AnimationCurves>& curves, bool i
 
 SPtr<AnimationClip> AnimationClip::CreateEmpty()
 {
-	AnimationClip* rawPtr = new(bs_alloc<AnimationClip>()) AnimationClip();
+	AnimationClip* rawPtr = new(B3DAllocate<AnimationClip>()) AnimationClip();
 
-	SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
+	SPtr<AnimationClip> newClip = B3DMakeCoreFromExisting<AnimationClip>(rawPtr);
 	newClip->SetThisPtrInternal(newClip);
 
 	return newClip;
@@ -129,9 +129,9 @@ SPtr<AnimationClip> AnimationClip::CreateEmpty()
 
 SPtr<AnimationClip> AnimationClip::CreatePtrInternal(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
 {
-	AnimationClip* rawPtr = new(bs_alloc<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate, rootMotion);
+	AnimationClip* rawPtr = new(B3DAllocate<AnimationClip>()) AnimationClip(curves, isAdditive, sampleRate, rootMotion);
 
-	SPtr<AnimationClip> newClip = bs_core_ptr<AnimationClip>(rawPtr);
+	SPtr<AnimationClip> newClip = B3DMakeCoreFromExisting<AnimationClip>(rawPtr);
 	newClip->SetThisPtrInternal(newClip);
 	newClip->Initialize();
 

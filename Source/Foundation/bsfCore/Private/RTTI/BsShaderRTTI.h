@@ -414,7 +414,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<SubShader>();
+			return B3DMakeShared<SubShader>();
 		}
 	};
 
@@ -569,7 +569,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ShaderMetaData>();
+			return B3DMakeShared<ShaderMetaData>();
 		}
 	};
 

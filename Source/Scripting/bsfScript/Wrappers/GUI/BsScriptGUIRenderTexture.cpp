@@ -45,7 +45,7 @@ void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance, Script
 
 	GUIRenderTexture* guiTexture = GUIRenderTexture::Create(renderTexture, transparent, options, MonoUtil::MonoToString(style));
 
-	new(bs_alloc<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
+	new(B3DAllocate<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
 }
 
 void ScriptGUIRenderTexture::InternalSetTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture)

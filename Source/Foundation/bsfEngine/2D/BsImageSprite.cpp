@@ -39,13 +39,13 @@ void ImageSprite::Update(const IMAGE_SPRITE_DESC& desc, u64 groupId)
 			u32 oldVertexCount = renderElem.NumQuads * 4;
 			u32 oldIndexCount = renderElem.NumQuads * 6;
 
-			if(renderElem.Vertices != nullptr) bs_deleteN(renderElem.Vertices, oldVertexCount);
-			if(renderElem.Uvs != nullptr) bs_deleteN(renderElem.Uvs, oldVertexCount);
-			if(renderElem.Indexes != nullptr) bs_deleteN(renderElem.Indexes, oldIndexCount);
+			if(renderElem.Vertices != nullptr) B3DDeleteMultiple(renderElem.Vertices, oldVertexCount);
+			if(renderElem.Uvs != nullptr) B3DDeleteMultiple(renderElem.Uvs, oldVertexCount);
+			if(renderElem.Indexes != nullptr) B3DDeleteMultiple(renderElem.Indexes, oldIndexCount);
 
-			renderElem.Vertices = bs_newN<Vector2>(newNumQuads * 4);
-			renderElem.Uvs = bs_newN<Vector2>(newNumQuads * 4);
-			renderElem.Indexes = bs_newN<u32>(newNumQuads * 6);
+			renderElem.Vertices = B3DNewMultiple<Vector2>(newNumQuads * 4);
+			renderElem.Uvs = B3DNewMultiple<Vector2>(newNumQuads * 4);
+			renderElem.Indexes = B3DNewMultiple<u32>(newNumQuads * 6);
 			renderElem.NumQuads = newNumQuads;
 		}
 
@@ -245,19 +245,19 @@ void ImageSprite::ClearMesh()
 
 		if(renderElem.Vertices != nullptr)
 		{
-			bs_deleteN(renderElem.Vertices, vertexCount);
+			B3DDeleteMultiple(renderElem.Vertices, vertexCount);
 			renderElem.Vertices = nullptr;
 		}
 
 		if(renderElem.Uvs != nullptr)
 		{
-			bs_deleteN(renderElem.Uvs, vertexCount);
+			B3DDeleteMultiple(renderElem.Uvs, vertexCount);
 			renderElem.Uvs = nullptr;
 		}
 
 		if(renderElem.Indexes != nullptr)
 		{
-			bs_deleteN(renderElem.Indexes, indexCount);
+			B3DDeleteMultiple(renderElem.Indexes, indexCount);
 			renderElem.Indexes = nullptr;
 		}
 	}

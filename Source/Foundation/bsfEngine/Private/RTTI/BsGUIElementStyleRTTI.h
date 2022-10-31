@@ -82,7 +82,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<GUIElementStyle>();
+			return B3DMakeShared<GUIElementStyle>();
 		}
 	};
 

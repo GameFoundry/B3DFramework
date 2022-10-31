@@ -42,7 +42,7 @@ HSceneObject SceneObject::Create(const String& name, u32 flags)
 
 HSceneObject SceneObject::CreateInternal(const String& name, u32 flags)
 {
-	SPtr<SceneObject> sceneObjectPtr = SPtr<SceneObject>(new(bs_alloc<SceneObject>()) SceneObject(name, flags), &bs_delete<SceneObject>, StdAlloc<SceneObject>());
+	SPtr<SceneObject> sceneObjectPtr = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject(name, flags), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
 	sceneObjectPtr->mUUID = UUIDGenerator::GenerateRandom();
 
 	HSceneObject sceneObject = static_object_cast<SceneObject>(
@@ -759,7 +759,7 @@ HSceneObject SceneObject::Clone(bool instantiate, bool preserveUUIDs)
 	else
 		UnsetFlagsInternal(SOF_DontInstantiate);
 
-	SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(this, stream);
 
@@ -768,7 +768,7 @@ HSceneObject SceneObject::Clone(bool instantiate, bool preserveUUIDs)
 		flags |= GODM_UseNewUUID;
 
 	CoreSerializationContext serzContext;
-	serzContext.GoState = bs_shared_ptr_new<GameObjectDeserializationState>(flags);
+	serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>(flags);
 
 	stream->Seek(0);
 	SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(

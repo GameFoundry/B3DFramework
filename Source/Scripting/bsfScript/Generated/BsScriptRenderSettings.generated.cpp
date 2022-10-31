@@ -92,19 +92,19 @@ MonoObject* ScriptRenderSettings::Create(const SPtr<RenderSettings>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, value);
+	new(B3DAllocate<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptRenderSettings::InternalRenderSettings(MonoObject* managedInstance)
 {
-	SPtr<RenderSettings> instance = bs_shared_ptr_new<RenderSettings>();
-	new(bs_alloc<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, instance);
+	SPtr<RenderSettings> instance = B3DMakeShared<RenderSettings>();
+	new(B3DAllocate<ScriptRenderSettings>()) ScriptRenderSettings(managedInstance, instance);
 }
 
 MonoObject* ScriptRenderSettings::InternalGetDepthOfField(ScriptRenderSettings* thisPtr)
 {
-	SPtr<DepthOfFieldSettings> tmp__output = bs_shared_ptr_new<DepthOfFieldSettings>();
+	SPtr<DepthOfFieldSettings> tmp__output = B3DMakeShared<DepthOfFieldSettings>();
 	*tmp__output = thisPtr->GetInternal()->DepthOfField;
 
 	MonoObject* __output;
@@ -125,7 +125,7 @@ void ScriptRenderSettings::InternalSetDepthOfField(ScriptRenderSettings* thisPtr
 
 MonoObject* ScriptRenderSettings::InternalGetChromaticAberration(ScriptRenderSettings* thisPtr)
 {
-	SPtr<ChromaticAberrationSettings> tmp__output = bs_shared_ptr_new<ChromaticAberrationSettings>();
+	SPtr<ChromaticAberrationSettings> tmp__output = B3DMakeShared<ChromaticAberrationSettings>();
 	*tmp__output = thisPtr->GetInternal()->ChromaticAberration;
 
 	MonoObject* __output;
@@ -162,7 +162,7 @@ void ScriptRenderSettings::InternalSetEnableAutoExposure(ScriptRenderSettings* t
 
 MonoObject* ScriptRenderSettings::InternalGetAutoExposure(ScriptRenderSettings* thisPtr)
 {
-	SPtr<AutoExposureSettings> tmp__output = bs_shared_ptr_new<AutoExposureSettings>();
+	SPtr<AutoExposureSettings> tmp__output = B3DMakeShared<AutoExposureSettings>();
 	*tmp__output = thisPtr->GetInternal()->AutoExposure;
 
 	MonoObject* __output;
@@ -199,7 +199,7 @@ void ScriptRenderSettings::InternalSetEnableTonemapping(ScriptRenderSettings* th
 
 MonoObject* ScriptRenderSettings::InternalGetTonemapping(ScriptRenderSettings* thisPtr)
 {
-	SPtr<TonemappingSettings> tmp__output = bs_shared_ptr_new<TonemappingSettings>();
+	SPtr<TonemappingSettings> tmp__output = B3DMakeShared<TonemappingSettings>();
 	*tmp__output = thisPtr->GetInternal()->Tonemapping;
 
 	MonoObject* __output;
@@ -220,7 +220,7 @@ void ScriptRenderSettings::InternalSetTonemapping(ScriptRenderSettings* thisPtr,
 
 MonoObject* ScriptRenderSettings::InternalGetWhiteBalance(ScriptRenderSettings* thisPtr)
 {
-	SPtr<WhiteBalanceSettings> tmp__output = bs_shared_ptr_new<WhiteBalanceSettings>();
+	SPtr<WhiteBalanceSettings> tmp__output = B3DMakeShared<WhiteBalanceSettings>();
 	*tmp__output = thisPtr->GetInternal()->WhiteBalance;
 
 	MonoObject* __output;
@@ -241,7 +241,7 @@ void ScriptRenderSettings::InternalSetWhiteBalance(ScriptRenderSettings* thisPtr
 
 MonoObject* ScriptRenderSettings::InternalGetColorGrading(ScriptRenderSettings* thisPtr)
 {
-	SPtr<ColorGradingSettings> tmp__output = bs_shared_ptr_new<ColorGradingSettings>();
+	SPtr<ColorGradingSettings> tmp__output = B3DMakeShared<ColorGradingSettings>();
 	*tmp__output = thisPtr->GetInternal()->ColorGrading;
 
 	MonoObject* __output;
@@ -262,7 +262,7 @@ void ScriptRenderSettings::InternalSetColorGrading(ScriptRenderSettings* thisPtr
 
 MonoObject* ScriptRenderSettings::InternalGetAmbientOcclusion(ScriptRenderSettings* thisPtr)
 {
-	SPtr<AmbientOcclusionSettings> tmp__output = bs_shared_ptr_new<AmbientOcclusionSettings>();
+	SPtr<AmbientOcclusionSettings> tmp__output = B3DMakeShared<AmbientOcclusionSettings>();
 	*tmp__output = thisPtr->GetInternal()->AmbientOcclusion;
 
 	MonoObject* __output;
@@ -283,7 +283,7 @@ void ScriptRenderSettings::InternalSetAmbientOcclusion(ScriptRenderSettings* thi
 
 MonoObject* ScriptRenderSettings::InternalGetScreenSpaceReflections(ScriptRenderSettings* thisPtr)
 {
-	SPtr<ScreenSpaceReflectionsSettings> tmp__output = bs_shared_ptr_new<ScreenSpaceReflectionsSettings>();
+	SPtr<ScreenSpaceReflectionsSettings> tmp__output = B3DMakeShared<ScreenSpaceReflectionsSettings>();
 	*tmp__output = thisPtr->GetInternal()->ScreenSpaceReflections;
 
 	MonoObject* __output;
@@ -304,7 +304,7 @@ void ScriptRenderSettings::InternalSetScreenSpaceReflections(ScriptRenderSetting
 
 MonoObject* ScriptRenderSettings::InternalGetBloom(ScriptRenderSettings* thisPtr)
 {
-	SPtr<BloomSettings> tmp__output = bs_shared_ptr_new<BloomSettings>();
+	SPtr<BloomSettings> tmp__output = B3DMakeShared<BloomSettings>();
 	*tmp__output = thisPtr->GetInternal()->Bloom;
 
 	MonoObject* __output;
@@ -325,7 +325,7 @@ void ScriptRenderSettings::InternalSetBloom(ScriptRenderSettings* thisPtr, MonoO
 
 MonoObject* ScriptRenderSettings::InternalGetScreenSpaceLensFlare(ScriptRenderSettings* thisPtr)
 {
-	SPtr<ScreenSpaceLensFlareSettings> tmp__output = bs_shared_ptr_new<ScreenSpaceLensFlareSettings>();
+	SPtr<ScreenSpaceLensFlareSettings> tmp__output = B3DMakeShared<ScreenSpaceLensFlareSettings>();
 	*tmp__output = thisPtr->GetInternal()->ScreenSpaceLensFlare;
 
 	MonoObject* __output;
@@ -346,7 +346,7 @@ void ScriptRenderSettings::InternalSetScreenSpaceLensFlare(ScriptRenderSettings*
 
 MonoObject* ScriptRenderSettings::InternalGetFilmGrain(ScriptRenderSettings* thisPtr)
 {
-	SPtr<FilmGrainSettings> tmp__output = bs_shared_ptr_new<FilmGrainSettings>();
+	SPtr<FilmGrainSettings> tmp__output = B3DMakeShared<FilmGrainSettings>();
 	*tmp__output = thisPtr->GetInternal()->FilmGrain;
 
 	MonoObject* __output;
@@ -367,7 +367,7 @@ void ScriptRenderSettings::InternalSetFilmGrain(ScriptRenderSettings* thisPtr, M
 
 MonoObject* ScriptRenderSettings::InternalGetMotionBlur(ScriptRenderSettings* thisPtr)
 {
-	SPtr<MotionBlurSettings> tmp__output = bs_shared_ptr_new<MotionBlurSettings>();
+	SPtr<MotionBlurSettings> tmp__output = B3DMakeShared<MotionBlurSettings>();
 	*tmp__output = thisPtr->GetInternal()->MotionBlur;
 
 	MonoObject* __output;
@@ -388,7 +388,7 @@ void ScriptRenderSettings::InternalSetMotionBlur(ScriptRenderSettings* thisPtr, 
 
 MonoObject* ScriptRenderSettings::InternalGetTemporalAa(ScriptRenderSettings* thisPtr)
 {
-	SPtr<TemporalAASettings> tmp__output = bs_shared_ptr_new<TemporalAASettings>();
+	SPtr<TemporalAASettings> tmp__output = B3DMakeShared<TemporalAASettings>();
 	*tmp__output = thisPtr->GetInternal()->TemporalAa;
 
 	MonoObject* __output;
@@ -521,7 +521,7 @@ void ScriptRenderSettings::InternalSetEnableVelocityBuffer(ScriptRenderSettings*
 
 MonoObject* ScriptRenderSettings::InternalGetShadowSettings(ScriptRenderSettings* thisPtr)
 {
-	SPtr<ShadowSettings> tmp__output = bs_shared_ptr_new<ShadowSettings>();
+	SPtr<ShadowSettings> tmp__output = B3DMakeShared<ShadowSettings>();
 	*tmp__output = thisPtr->GetInternal()->ShadowSettings;
 
 	MonoObject* __output;

@@ -83,13 +83,13 @@ SPtr<ct::CoreObject> Technique::CreateCore() const
 	for(auto& pass : mPasses)
 		passes.push_back(pass->GetCore());
 
-	ct::Technique* technique = new(bs_alloc<ct::Technique>()) ct::Technique(
+	ct::Technique* technique = new(B3DAllocate<ct::Technique>()) ct::Technique(
 		mLanguage,
 		mTags,
 		mVariation,
 		passes);
 
-	SPtr<ct::Technique> techniquePtr = bs_shared_ptr<ct::Technique>(technique);
+	SPtr<ct::Technique> techniquePtr = B3DMakeSharedFromExisting<ct::Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 
 	return techniquePtr;
@@ -103,8 +103,8 @@ void Technique::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass>>& passes)
 {
-	Technique* technique = new(bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
-	SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
+	Technique* technique = new(B3DAllocate<Technique>()) Technique(language, {}, ShaderVariation(), passes);
+	SPtr<Technique> techniquePtr = B3DMakeCoreFromExisting<Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 	techniquePtr->Initialize();
 
@@ -113,8 +113,8 @@ SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass
 
 SPtr<Technique> Technique::Create(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes)
 {
-	Technique* technique = new(bs_alloc<Technique>()) Technique(language, tags, variation, passes);
-	SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
+	Technique* technique = new(B3DAllocate<Technique>()) Technique(language, tags, variation, passes);
+	SPtr<Technique> techniquePtr = B3DMakeCoreFromExisting<Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 	techniquePtr->Initialize();
 
@@ -123,8 +123,8 @@ SPtr<Technique> Technique::Create(const String& language, const Vector<StringID>
 
 SPtr<Technique> Technique::CreateEmpty()
 {
-	Technique* technique = new(bs_alloc<Technique>()) Technique();
-	SPtr<Technique> techniquePtr = bs_core_ptr<Technique>(technique);
+	Technique* technique = new(B3DAllocate<Technique>()) Technique();
+	SPtr<Technique> techniquePtr = B3DMakeCoreFromExisting<Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 
 	return techniquePtr;
@@ -148,8 +148,8 @@ Technique::Technique(const String& language, const Vector<StringID>& tags, const
 
 SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass>>& passes)
 {
-	Technique* technique = new(bs_alloc<Technique>()) Technique(language, {}, ShaderVariation(), passes);
-	SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
+	Technique* technique = new(B3DAllocate<Technique>()) Technique(language, {}, ShaderVariation(), passes);
+	SPtr<Technique> techniquePtr = B3DMakeSharedFromExisting<Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 	techniquePtr->Initialize();
 
@@ -158,8 +158,8 @@ SPtr<Technique> Technique::Create(const String& language, const Vector<SPtr<Pass
 
 SPtr<Technique> Technique::Create(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes)
 {
-	Technique* technique = new(bs_alloc<Technique>()) Technique(language, tags, variation, passes);
-	SPtr<Technique> techniquePtr = bs_shared_ptr<Technique>(technique);
+	Technique* technique = new(B3DAllocate<Technique>()) Technique(language, tags, variation, passes);
+	SPtr<Technique> techniquePtr = B3DMakeSharedFromExisting<Technique>(technique);
 	techniquePtr->SetThisPtrInternal(techniquePtr);
 	techniquePtr->Initialize();
 

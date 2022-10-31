@@ -186,7 +186,7 @@ namespace bs
 
 			if(newBlock == nullptr)
 			{
-				u8* data = (u8*)reinterpret_cast<u8*>(bs_alloc(blockSize + sizeof(MemBlock)));
+				u8* data = (u8*)reinterpret_cast<u8*>(B3DAllocate(blockSize + sizeof(MemBlock)));
 				newBlock = new(data) MemBlock(blockSize);
 				data += sizeof(MemBlock);
 
@@ -211,7 +211,7 @@ namespace bs
 		void DeallocBlock(MemBlock* block)
 		{
 			block->~MemBlock();
-			bs_free(block);
+			B3DFree(block);
 		}
 	};
 

@@ -27,7 +27,7 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 		}
 	}
 
-	SPtr<PooledRenderTexture> newTexture = bs_shared_ptr_new<PooledRenderTexture>(mCurrentFrame);
+	SPtr<PooledRenderTexture> newTexture = B3DMakeShared<PooledRenderTexture>(mCurrentFrame);
 	mTextures.Add(newTexture);
 
 	TEXTURE_DESC texDesc;
@@ -98,7 +98,7 @@ SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC&
 		}
 	}
 
-	SPtr<PooledStorageBuffer> newBuffer = bs_shared_ptr_new<PooledStorageBuffer>(mCurrentFrame);
+	SPtr<PooledStorageBuffer> newBuffer = B3DMakeShared<PooledStorageBuffer>(mCurrentFrame);
 	mBuffers.Add(newBuffer);
 
 	GPU_BUFFER_DESC bufferDesc;

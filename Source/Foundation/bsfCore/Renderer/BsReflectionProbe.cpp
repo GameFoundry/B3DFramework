@@ -153,8 +153,8 @@ SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
 
 SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 {
-	ReflectionProbe* probe = new(bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::kZero);
-	SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
+	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::kZero);
+	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
 	probePtr->SetThisPtrInternal(probePtr);
 	probePtr->Initialize();
 
@@ -163,8 +163,8 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 
 SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const Vector3& extents)
 {
-	ReflectionProbe* probe = new(bs_alloc<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
-	SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
+	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
+	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
 	probePtr->SetThisPtrInternal(probePtr);
 	probePtr->Initialize();
 
@@ -173,8 +173,8 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const Vector3& extents)
 
 SPtr<ReflectionProbe> ReflectionProbe::CreateEmpty()
 {
-	ReflectionProbe* probe = new(bs_alloc<ReflectionProbe>()) ReflectionProbe();
-	SPtr<ReflectionProbe> probePtr = bs_core_ptr<ReflectionProbe>(probe);
+	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe();
+	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
 	probePtr->SetThisPtrInternal(probePtr);
 
 	return probePtr;
@@ -186,8 +186,8 @@ SPtr<ct::CoreObject> ReflectionProbe::CreateCore() const
 	if(mFilteredTexture != nullptr)
 		filteredTexture = mFilteredTexture->GetCore();
 
-	ct::ReflectionProbe* probe = new(bs_alloc<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents, filteredTexture);
-	SPtr<ct::ReflectionProbe> probePtr = bs_shared_ptr<ct::ReflectionProbe>(probe);
+	ct::ReflectionProbe* probe = new(B3DAllocate<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents, filteredTexture);
+	SPtr<ct::ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ct::ReflectionProbe>(probe);
 	probePtr->SetThisPtrInternal(probePtr);
 
 	return probePtr;

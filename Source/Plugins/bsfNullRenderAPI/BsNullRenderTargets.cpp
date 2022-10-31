@@ -14,8 +14,8 @@ SPtr<RenderWindow> NullRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& desc,
 	}
 
 	// Create the window
-	NullRenderWindow* renderWindow = new(bs_alloc<NullRenderWindow>()) NullRenderWindow(desc, windowId);
-	return bs_core_ptr<NullRenderWindow>(renderWindow);
+	NullRenderWindow* renderWindow = new(B3DAllocate<NullRenderWindow>()) NullRenderWindow(desc, windowId);
+	return B3DMakeCoreFromExisting<NullRenderWindow>(renderWindow);
 }
 
 NullRenderWindow::NullRenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
@@ -36,7 +36,7 @@ void NullRenderWindow::SyncProperties()
 SPtr<ct::CoreObject> NullRenderWindow::CreateCore() const
 {
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::NullRenderWindow>(desc, mWindowId);
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::NullRenderWindow>(desc, mWindowId);
 	coreObj->SetThisPtrInternal(coreObj);
 
 	return coreObj;

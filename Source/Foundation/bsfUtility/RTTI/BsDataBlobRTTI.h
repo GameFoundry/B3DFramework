@@ -38,10 +38,10 @@ namespace bs
 			rtti_read_size_header(stream, compress, size);
 
 			if(data.Data != nullptr)
-				bs_free(data.Data);
+				B3DFree(data.Data);
 
 			data.Size = size.Bytes - sizeof(uint32_t);
-			data.Data = (uint8_t*)bs_alloc(data.Size);
+			data.Data = (uint8_t*)B3DAllocate(data.Size);
 
 			stream.ReadBytes(data.Data, data.Size);
 

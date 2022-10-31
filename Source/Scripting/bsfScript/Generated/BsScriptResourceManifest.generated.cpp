@@ -35,7 +35,7 @@ MonoObject* ScriptResourceManifest::Create(const SPtr<ResourceManifest>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, value);
+	new(B3DAllocate<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, value);
 	return managedInstance;
 }
 
@@ -146,6 +146,6 @@ void ScriptResourceManifest::InternalCreate(MonoObject* managedInstance, MonoStr
 	String tmpname;
 	tmpname = MonoUtil::MonoToString(name);
 	SPtr<ResourceManifest> instance = ResourceManifest::Create(tmpname);
-	new(bs_alloc<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, instance);
+	new(B3DAllocate<ScriptResourceManifest>()) ScriptResourceManifest(managedInstance, instance);
 }
 #endif

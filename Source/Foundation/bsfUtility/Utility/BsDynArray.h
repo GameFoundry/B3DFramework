@@ -56,7 +56,7 @@ namespace bs
 			for(auto& entry : *this)
 				entry.~Type();
 
-			bs_free(mElements);
+			B3DFree(mElements);
 		}
 
 		DynArray<ValueType>& operator=(const DynArray<ValueType>& other)
@@ -109,7 +109,7 @@ namespace bs
 			for(auto& entry : *this)
 				entry.~Type();
 
-			bs_free(mElements);
+			B3DFree(mElements);
 
 			mElements = std::exchange(other.mElements, nullptr);
 			mSize = std::exchange(other.mSize, 0);
@@ -573,7 +573,7 @@ namespace bs
 	private:
 		void Realloc(u32 capacity)
 		{
-			Type* buffer = bs_allocN<Type>(capacity);
+			Type* buffer = B3DAllocateMultiple<Type>(capacity);
 
 			if(mElements)
 			{
@@ -585,7 +585,7 @@ namespace bs
 				for(auto& entry : *this)
 					entry.~Type();
 
-				bs_free(mElements);
+				B3DFree(mElements);
 			}
 
 			mElements = buffer;

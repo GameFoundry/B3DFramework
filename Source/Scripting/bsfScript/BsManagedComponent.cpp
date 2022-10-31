@@ -48,7 +48,7 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 
 		if(serializableObject != nullptr)
 		{
-			SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+			SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 			BinarySerializer bs;
 
 			bs.Encode(serializableObject.get(), stream);
@@ -64,7 +64,7 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 	}
 	else
 	{
-		SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>();
+		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 
 		if(mSerializedObjectData != nullptr)
 		{
@@ -105,10 +105,10 @@ void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 		BinarySerializer bs;
 
 		CoreSerializationContext serzContext;
-		serzContext.GoState = bs_shared_ptr_new<GameObjectDeserializationState>();
+		serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>();
 
 		auto serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-			bs.Decode(bs_shared_ptr_new<MemoryDataStream>(data.Data, data.Size), data.Size, BinarySerializerFlag::None, &serzContext));
+			bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size, BinarySerializerFlag::None, &serzContext));
 
 		serzContext.GoState->Resolve();
 

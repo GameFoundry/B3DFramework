@@ -297,7 +297,7 @@ GpuPipelineParamInfo::GpuPipelineParamInfo(const GPU_PIPELINE_PARAMS_DESC& desc)
 SPtr<GpuPipelineParamInfo> GpuPipelineParamInfo::Create(const GPU_PIPELINE_PARAMS_DESC& desc)
 {
 	SPtr<GpuPipelineParamInfo> paramInfo =
-		bs_core_ptr<GpuPipelineParamInfo>(new(bs_alloc<GpuPipelineParamInfo>()) GpuPipelineParamInfo(desc));
+		B3DMakeCoreFromExisting<GpuPipelineParamInfo>(new(B3DAllocate<GpuPipelineParamInfo>()) GpuPipelineParamInfo(desc));
 	paramInfo->SetThisPtrInternal(paramInfo);
 	paramInfo->Initialize();
 

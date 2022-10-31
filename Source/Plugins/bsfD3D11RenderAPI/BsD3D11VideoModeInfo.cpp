@@ -13,7 +13,7 @@ D3D11VideoModeInfo::D3D11VideoModeInfo(IDXGIAdapter* dxgiAdapter)
 	IDXGIOutput* output = nullptr;
 	while(dxgiAdapter->EnumOutputs(outputIdx, &output) != DXGI_ERROR_NOT_FOUND)
 	{
-		mOutputs.push_back(bs_new<D3D11VideoOutputInfo>(output, outputIdx));
+		mOutputs.push_back(B3DNew<D3D11VideoOutputInfo>(output, outputIdx));
 		outputIdx++;
 	}
 }
@@ -34,12 +34,12 @@ D3D11VideoOutputInfo::D3D11VideoOutputInfo(IDXGIOutput* output, u32 outputIdx)
 		BS_EXCEPT(InternalErrorException, "Error while enumerating adapter output video modes.");
 	}
 
-	DXGI_MODE_DESC* modeDesc = bs_newN<DXGI_MODE_DESC>(numModes);
+	DXGI_MODE_DESC* modeDesc = B3DNewMultiple<DXGI_MODE_DESC>(numModes);
 
 	hr = output->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, 0, &numModes, modeDesc);
 	if(FAILED(hr))
 	{
-		bs_deleteN(modeDesc, numModes);
+		B3DDeleteMultiple(modeDesc, numModes);
 
 		SAFE_RELEASE(output);
 		BS_EXCEPT(InternalErrorException, "Error while enumerating adapter output video modes.");
@@ -66,13 +66,13 @@ D3D11VideoOutputInfo::D3D11VideoOutputInfo(IDXGIOutput* output, u32 outputIdx)
 		if(!foundVideoMode)
 		{
 			float refreshRate = displayMode.RefreshRate.Numerator / (float)displayMode.RefreshRate.Denominator;
-			D3D11VideoMode* videoMode = bs_new<D3D11VideoMode>(displayMode.Width, displayMode.Height, refreshRate, outputIdx, displayMode.RefreshRate.Numerator, displayMode.RefreshRate.Denominator, displayMode);
+			D3D11VideoMode* videoMode = B3DNew<D3D11VideoMode>(displayMode.Width, displayMode.Height, refreshRate, outputIdx, displayMode.RefreshRate.Numerator, displayMode.RefreshRate.Denominator, displayMode);
 
 			mVideoModes.push_back(videoMode);
 		}
 	}
 
-	bs_deleteN(modeDesc, numModes);
+	B3DDeleteMultiple(modeDesc, numModes);
 
 	// Get desktop display mode
 	HMONITOR hMonitor = outputDesc.Monitor;
@@ -101,7 +101,7 @@ D3D11VideoOutputInfo::D3D11VideoOutputInfo(IDXGIOutput* output, u32 outputIdx)
 	output->FindClosestMatchingMode(&currentMode, &nearestMode, nullptr);
 
 	float refreshRate = nearestMode.RefreshRate.Numerator / (float)nearestMode.RefreshRate.Denominator;
-	mDesktopVideoMode = bs_new<D3D11VideoMode>(nearestMode.Width, nearestMode.Height, refreshRate, outputIdx, nearestMode.RefreshRate.Numerator, nearestMode.RefreshRate.Denominator, nearestMode);
+	mDesktopVideoMode = B3DNew<D3D11VideoMode>(nearestMode.Width, nearestMode.Height, refreshRate, outputIdx, nearestMode.RefreshRate.Numerator, nearestMode.RefreshRate.Denominator, nearestMode);
 }
 
 D3D11VideoOutputInfo::~D3D11VideoOutputInfo()

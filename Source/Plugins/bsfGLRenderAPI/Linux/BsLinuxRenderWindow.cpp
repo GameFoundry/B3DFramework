@@ -60,7 +60,7 @@ SPtr<ct::LinuxRenderWindow> LinuxRenderWindow::getCore() const
 SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
 {
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, mGLSupport);
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::LinuxRenderWindow>(desc, mWindowId, mGLSupport);
 	coreObj->SetThisPtrInternal(coreObj);
 
 	return coreObj;
@@ -89,7 +89,7 @@ LinuxRenderWindow::~LinuxRenderWindow()
 
 		LinuxPlatform::lockX();
 
-		bs_delete(mWindow);
+		B3DDelete(mWindow);
 		mWindow = nullptr;
 
 		LinuxPlatform::unlockX();
@@ -140,7 +140,7 @@ void LinuxRenderWindow::Initialize()
 	mShowOnSwap = mDesc.hideUntilSwap && !mDesc.hidden;
 	props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
-	mWindow = bs_new<LinuxWindow>(windowDesc);
+	mWindow = B3DNew<LinuxWindow>(windowDesc);
 	mWindow->SetUserDataInternal(this);
 
 	props.width = mWindow->GetWidth();
@@ -569,7 +569,7 @@ void LinuxRenderWindow::copyToMemory(PixelData& dst, FrameBuffer buffer)
 	{
 		size_t rowSpan = dst.GetWidth() * PixelUtil::getNumElemBytes(dst.GetFormat());
 		size_t height = dst.GetHeight();
-		u8* tmpData = (u8*)bs_alloc((u32)(rowSpan * height));
+		u8* tmpData = (u8*)B3DAllocate((u32)(rowSpan * height));
 		u8 *srcRow = (u8*)dst.GetData(), *tmpRow = tmpData + (height - 1) * rowSpan;
 
 		while(tmpRow >= tmpData)
@@ -580,7 +580,7 @@ void LinuxRenderWindow::copyToMemory(PixelData& dst, FrameBuffer buffer)
 		}
 		memcpy(dst.GetData(), tmpData, rowSpan * height);
 
-		bs_free(tmpData);
+		B3DFree(tmpData);
 	}
 }
 

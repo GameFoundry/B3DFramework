@@ -206,7 +206,7 @@ MemoryDataStream::MemoryDataStream(const MemoryDataStream& sourceStream)
 	// Copy data from incoming stream
 	mSize = sourceStream.Size();
 
-	mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
+	mData = mCursor = static_cast<uint8_t*>(B3DAllocate(mSize));
 	mEnd = mData + sourceStream.Read(mData, mSize);
 
 	assert(mEnd >= mCursor);
@@ -218,7 +218,7 @@ MemoryDataStream::MemoryDataStream(const SPtr<DataStream>& sourceStream)
 	// Copy data from incoming stream
 	mSize = sourceStream->Size();
 
-	mData = mCursor = static_cast<uint8_t*>(bs_alloc(mSize));
+	mData = mCursor = static_cast<uint8_t*>(B3DAllocate(mSize));
 	mEnd = mData + sourceStream->Read(mData, mSize);
 
 	assert(mEnd >= mCursor);
@@ -253,7 +253,7 @@ MemoryDataStream& MemoryDataStream::operator=(const MemoryDataStream& other)
 	else
 	{
 		if(mData && mOwnsMemory)
-			bs_free(mData);
+			B3DFree(mData);
 
 		mSize = 0;
 		mData = nullptr;
@@ -279,7 +279,7 @@ MemoryDataStream& MemoryDataStream::operator=(MemoryDataStream&& other)
 		return *this;
 
 	if(mData && mOwnsMemory)
-		bs_free(mData);
+		B3DFree(mData);
 
 	this->mName = std::move(other.mName);
 	this->mAccess = std::exchange(other.mAccess, 0);
@@ -385,9 +385,9 @@ bool MemoryDataStream::Eof() const
 SPtr<DataStream> MemoryDataStream::Clone(bool copyData) const
 {
 	if(!copyData)
-		return bs_shared_ptr_new<MemoryDataStream>(mData, mSize);
+		return B3DMakeShared<MemoryDataStream>(mData, mSize);
 
-	return bs_shared_ptr_new<MemoryDataStream>(*this);
+	return B3DMakeShared<MemoryDataStream>(*this);
 }
 
 void MemoryDataStream::Close()
@@ -395,7 +395,7 @@ void MemoryDataStream::Close()
 	if(mData != nullptr)
 	{
 		if(mOwnsMemory)
-			bs_free(mData);
+			B3DFree(mData);
 
 		mData = nullptr;
 	}
@@ -408,14 +408,14 @@ void MemoryDataStream::Realloc(size_t numBytes)
 		assert(numBytes > mSize);
 
 		// Note: Eventually add support for custom allocators
-		auto buffer = bs_allocN<uint8_t>(numBytes);
+		auto buffer = B3DAllocateMultiple<uint8_t>(numBytes);
 		if(mData)
 		{
 			mCursor = buffer + (mCursor - mData);
 			mEnd = buffer + (mEnd - mData);
 
 			memcpy(buffer, mData, mSize);
-			bs_free(mData);
+			B3DFree(mData);
 		}
 		else
 		{
@@ -441,13 +441,13 @@ FileDataStream::FileDataStream(const Path& path, AccessMode accessMode, bool fre
 	if(((accessMode & WRITE) != 0))
 	{
 		mode |= std::ios::out;
-		mFStream = bs_shared_ptr_new<std::fstream>();
+		mFStream = B3DMakeShared<std::fstream>();
 		mFStream->open(path.ToPlatformString().c_str(), mode);
 		mInStream = mFStream;
 	}
 	else
 	{
-		mFStreamRO = bs_shared_ptr_new<std::ifstream>();
+		mFStreamRO = B3DMakeShared<std::ifstream>();
 		mFStreamRO->open(path.ToPlatformString().c_str(), mode);
 		mInStream = mFStreamRO;
 	}
@@ -525,7 +525,7 @@ bool FileDataStream::Eof() const
 
 SPtr<DataStream> FileDataStream::Clone(bool copyData) const
 {
-	return bs_shared_ptr_new<FileDataStream>(mPath, (AccessMode)GetAccessMode(), true);
+	return B3DMakeShared<FileDataStream>(mPath, (AccessMode)GetAccessMode(), true);
 }
 
 void FileDataStream::Close()

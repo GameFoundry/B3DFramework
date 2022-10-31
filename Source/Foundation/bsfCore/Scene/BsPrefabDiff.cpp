@@ -45,7 +45,7 @@ SPtr<PrefabDiff> PrefabDiff::Create(const HSceneObject& prefab, const HSceneObje
 	Vector<RenamedGameObject> renamedObjects;
 	RenameInstanceIds(prefab, instance, renamedObjects);
 
-	SPtr<PrefabDiff> output = bs_shared_ptr_new<PrefabDiff>();
+	SPtr<PrefabDiff> output = B3DMakeShared<PrefabDiff>();
 	output->mRoot = GenerateDiff(prefab, instance);
 
 	RestoreInstanceIds(renamedObjects);
@@ -59,7 +59,7 @@ void PrefabDiff::Apply(const HSceneObject& object)
 		return;
 
 	CoreSerializationContext serzContext;
-	serzContext.GoState = bs_shared_ptr_new<GameObjectDeserializationState>(GODM_UseNewIds | GODM_RestoreExternal);
+	serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>(GODM_UseNewIds | GODM_RestoreExternal);
 	serzContext.GoDeserializationActive = true;
 
 	ApplyDiff(mRoot, object, &serzContext);
@@ -165,7 +165,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 	if(prefab->GetName() != instance->GetName())
 	{
 		if(output == nullptr)
-			output = bs_shared_ptr_new<PrefabObjectDiff>();
+			output = B3DMakeShared<PrefabObjectDiff>();
 
 		output->Name = instance->GetName();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Name;
@@ -176,7 +176,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 	if(prefabTfrm.GetPosition() != instanceTfrm.GetPosition())
 	{
 		if(output == nullptr)
-			output = bs_shared_ptr_new<PrefabObjectDiff>();
+			output = B3DMakeShared<PrefabObjectDiff>();
 
 		output->Position = instanceTfrm.GetPosition();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Position;
@@ -185,7 +185,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 	if(prefabTfrm.GetRotation() != instanceTfrm.GetRotation())
 	{
 		if(output == nullptr)
-			output = bs_shared_ptr_new<PrefabObjectDiff>();
+			output = B3DMakeShared<PrefabObjectDiff>();
 
 		output->Rotation = instanceTfrm.GetRotation();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Rotation;
@@ -194,7 +194,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 	if(prefabTfrm.GetScale() != instanceTfrm.GetScale())
 	{
 		if(output == nullptr)
-			output = bs_shared_ptr_new<PrefabObjectDiff>();
+			output = B3DMakeShared<PrefabObjectDiff>();
 
 		output->Scale = instanceTfrm.GetScale();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Scale;
@@ -203,7 +203,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 	if(prefab->GetActive() != instance->GetActive())
 	{
 		if(output == nullptr)
-			output = bs_shared_ptr_new<PrefabObjectDiff>();
+			output = B3DMakeShared<PrefabObjectDiff>();
 
 		output->IsActive = instance->GetActive();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Active;
@@ -238,7 +238,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 			if(childDiff != nullptr)
 			{
 				if(output == nullptr)
-					output = bs_shared_ptr_new<PrefabObjectDiff>();
+					output = B3DMakeShared<PrefabObjectDiff>();
 
 				output->ChildDiffs.push_back(childDiff);
 			}
@@ -246,7 +246,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 		else
 		{
 			if(output == nullptr)
-				output = bs_shared_ptr_new<PrefabObjectDiff>();
+				output = B3DMakeShared<PrefabObjectDiff>();
 
 			output->RemovedChildren.push_back(prefabChild->GetLinkId());
 		}
@@ -280,7 +280,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceChild);
 
 			if(output == nullptr)
-				output = bs_shared_ptr_new<PrefabObjectDiff>();
+				output = B3DMakeShared<PrefabObjectDiff>();
 
 			output->AddedChildren.push_back(obj);
 		}
@@ -313,7 +313,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 
 				if(diff != nullptr)
 				{
-					childDiff = bs_shared_ptr_new<PrefabComponentDiff>();
+					childDiff = B3DMakeShared<PrefabComponentDiff>();
 					childDiff->Id = prefabComponent->GetLinkId();
 					childDiff->Data = diff;
 				}
@@ -328,7 +328,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 			if(childDiff != nullptr)
 			{
 				if(output == nullptr)
-					output = bs_shared_ptr_new<PrefabObjectDiff>();
+					output = B3DMakeShared<PrefabObjectDiff>();
 
 				output->ComponentDiffs.push_back(childDiff);
 			}
@@ -336,7 +336,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 		else
 		{
 			if(output == nullptr)
-				output = bs_shared_ptr_new<PrefabObjectDiff>();
+				output = B3DMakeShared<PrefabObjectDiff>();
 
 			output->RemovedComponents.push_back(prefabComponent->GetLinkId());
 		}
@@ -367,7 +367,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDiff(const HSceneObject& prefab, cons
 			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceComponent);
 
 			if(output == nullptr)
-				output = bs_shared_ptr_new<PrefabObjectDiff>();
+				output = B3DMakeShared<PrefabObjectDiff>();
 
 			output->AddedComponents.push_back(obj);
 		}

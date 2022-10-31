@@ -34,7 +34,7 @@ MonoObject* ScriptImportOptions::Create(const SPtr<ImportOptions>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptImportOptions>()) ScriptImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptImportOptions>()) ScriptImportOptions(managedInstance, value);
 	return managedInstance;
 }
 #endif

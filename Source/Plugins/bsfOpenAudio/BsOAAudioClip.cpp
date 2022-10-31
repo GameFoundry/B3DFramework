@@ -36,7 +36,7 @@ void OAAudioClip::Initialize()
 		{
 			mStreamData->Seek(mStreamOffset);
 
-			auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
+			auto memStream = B3DMakeShared<MemoryDataStream>(mStreamSize);
 			mSourceStreamData = memStream;
 
 			mStreamData->Read(memStream->Data(), mStreamSize);
@@ -99,7 +99,7 @@ void OAAudioClip::Initialize()
 					mStreamData = mSourceStreamData;
 				else
 				{
-					auto memStream = bs_shared_ptr_new<MemoryDataStream>(mStreamSize);
+					auto memStream = B3DMakeShared<MemoryDataStream>(mStreamSize);
 
 					mStreamData->Seek(mStreamOffset);
 					mStreamData->Read(memStream->Data(), mStreamSize);

@@ -152,7 +152,7 @@ TGpuParams<Core>::TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
 
 	u32 totalSize = paramBlocksSize + texturesSize + loadStoreTexturesSize + buffersSize + samplerStatesSize;
 
-	u8* data = (u8*)bs_alloc(totalSize);
+	u8* data = (u8*)B3DAllocate(totalSize);
 	mParamBlockBuffers = (ParamsBufferType*)data;
 	for(u32 i = 0; i < numParamBlocks; i++)
 		new(&mParamBlockBuffers[i]) ParamsBufferType();
@@ -217,7 +217,7 @@ TGpuParams<Core>::~TGpuParams()
 		mSamplerStates[i].~SamplerType();
 
 	// Everything is allocated in a single block, so it's enough to free the first element
-	bs_free(mParamBlockBuffers);
+	B3DFree(mParamBlockBuffers);
 }
 
 template <bool Core>

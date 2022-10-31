@@ -923,7 +923,7 @@ bool BinarySerializer::DecodeEntry(BufferedBitstreamReader& stream, size_t dataE
 						}
 						else
 						{
-							SPtr<MemoryDataStream> dataBlockStream = bs_shared_ptr_new<MemoryDataStream>(dataBlockSize);
+							SPtr<MemoryDataStream> dataBlockStream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 							stream.ReadBytes(dataBlockStream->Data(), dataBlockSize);
 
 							curField->SetValue(rttiInstance, output.get(), dataBlockStream, dataBlockSize);

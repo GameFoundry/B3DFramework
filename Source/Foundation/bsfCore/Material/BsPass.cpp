@@ -124,9 +124,9 @@ SPtr<ct::Pass> Pass::GetCore() const
 
 SPtr<ct::CoreObject> Pass::CreateCore() const
 {
-	ct::Pass* pass = new(bs_alloc<ct::Pass>()) ct::Pass(mData);
+	ct::Pass* pass = new(B3DAllocate<ct::Pass>()) ct::Pass(mData);
 
-	SPtr<ct::Pass> passPtr = bs_shared_ptr(pass);
+	SPtr<ct::Pass> passPtr = B3DMakeSharedFromExisting(pass);
 	passPtr->SetThisPtrInternal(passPtr);
 
 	return passPtr;
@@ -159,8 +159,8 @@ CoreSyncData Pass::SyncToCore(FrameAlloc* allocator)
 
 SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 {
-	Pass* newPass = new(bs_alloc<Pass>()) Pass(desc);
-	SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
+	Pass* newPass = new(B3DAllocate<Pass>()) Pass(desc);
+	SPtr<Pass> newPassPtr = B3DMakeCoreFromExisting<Pass>(newPass);
 	newPassPtr->SetThisPtrInternal(newPassPtr);
 	newPassPtr->Initialize();
 
@@ -169,8 +169,8 @@ SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 
 SPtr<Pass> Pass::CreateEmpty()
 {
-	Pass* newPass = new(bs_alloc<Pass>()) Pass();
-	SPtr<Pass> newPassPtr = bs_core_ptr<Pass>(newPass);
+	Pass* newPass = new(B3DAllocate<Pass>()) Pass();
+	SPtr<Pass> newPassPtr = B3DMakeCoreFromExisting<Pass>(newPass);
 	newPassPtr->SetThisPtrInternal(newPassPtr);
 
 	return newPassPtr;
@@ -208,8 +208,8 @@ void Pass::SyncToCore(const CoreSyncData& data)
 
 SPtr<Pass> Pass::Create(const PASS_DESC& desc)
 {
-	Pass* newPass = new(bs_alloc<Pass>()) Pass(desc);
-	SPtr<Pass> newPassPtr = bs_shared_ptr<Pass>(newPass);
+	Pass* newPass = new(B3DAllocate<Pass>()) Pass(desc);
+	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetThisPtrInternal(newPassPtr);
 	newPassPtr->Initialize();
 

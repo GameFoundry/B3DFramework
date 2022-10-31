@@ -9,7 +9,7 @@ using namespace bs;
 RTTITypeBase::~RTTITypeBase()
 {
 	for(const auto& item : mFields)
-		bs_delete(item);
+		B3DDelete(item);
 }
 
 RTTIField* RTTITypeBase::FindField(const String& name)
@@ -60,7 +60,7 @@ void RTTITypeBase::AddNewField(RTTIField* field)
 
 void RTTITypeBase::InitSchemaInternal()
 {
-	mSchema = bs_shared_ptr_new<RTTISchema>();
+	mSchema = B3DMakeShared<RTTISchema>();
 	mSchema->TypeId = GetRttiId();
 
 	RTTITypeBase* baseType = GetBaseClass();

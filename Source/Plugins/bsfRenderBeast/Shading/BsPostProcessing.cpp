@@ -1248,7 +1248,7 @@ BokehDOFMat::BokehDOFMat()
 	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gBokehTex", mBokehTexture);
 
 	// Prepare vertex declaration for rendering tiles
-	SPtr<VertexDataDesc> tileVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>();
 	tileVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 
 	mTileVertexDecl = VertexDeclaration::Create(tileVertexDesc);

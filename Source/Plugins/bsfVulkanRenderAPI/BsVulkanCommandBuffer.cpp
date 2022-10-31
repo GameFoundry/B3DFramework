@@ -87,7 +87,7 @@ VulkanCmdBufferPool::~VulkanCmdBufferPool()
 			if(buffer == nullptr)
 				break;
 
-			bs_delete(buffer);
+			B3DDelete(buffer);
 		}
 
 		vkDestroyCommandPool(mDevice.GetLogical(), poolInfo.Pool, gVulkanAllocator);
@@ -131,7 +131,7 @@ VulkanCmdBuffer* VulkanCmdBufferPool::CreateBuffer(u32 queueFamily, bool seconda
 
 	const PoolInfo& poolInfo = iterFind->second;
 
-	return bs_new<VulkanCmdBuffer>(mDevice, mNextId++, poolInfo.Pool, poolInfo.QueueFamily, secondary);
+	return B3DNew<VulkanCmdBuffer>(mDevice, mNextId++, poolInfo.Pool, poolInfo.QueueFamily, secondary);
 }
 
 /** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
@@ -201,7 +201,7 @@ VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, u32 id, VkCommandPool poo
 	: mId(id), mQueueFamily(queueFamily), mDevice(device), mPool(pool), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 {
 	u32 maxBoundDescriptorSets = device.GetDeviceProperties().limits.maxBoundDescriptorSets;
-	mDescriptorSetsTemp = (VkDescriptorSet*)bs_alloc(sizeof(VkDescriptorSet) * maxBoundDescriptorSets);
+	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maxBoundDescriptorSets);
 
 	VkCommandBufferAllocateInfo cmdBufferAllocInfo;
 	cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -291,7 +291,7 @@ VulkanCmdBuffer::~VulkanCmdBuffer()
 	vkDestroyFence(device, mFence, gVulkanAllocator);
 	vkFreeCommandBuffers(device, mPool, 1, &mCmdBuffer);
 
-	bs_free(mDescriptorSetsTemp);
+	B3DFree(mDescriptorSetsTemp);
 }
 
 u32 VulkanCmdBuffer::GetDeviceIdx() const

@@ -6,7 +6,7 @@
 using namespace bs;
 SPtr<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat format)
 {
-	SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(volume, format);
+	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(volume, format);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;
@@ -14,7 +14,7 @@ SPtr<PixelData> PixelDataEx::Create(const PixelVolume& volume, PixelFormat forma
 
 SPtr<PixelData> PixelDataEx::Create(u32 width, u32 height, u32 depth, PixelFormat format)
 {
-	SPtr<PixelData> pixelData = bs_shared_ptr_new<PixelData>(width, height, depth, format);
+	SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(width, height, depth, format);
 	pixelData->AllocateInternalBuffer();
 
 	return pixelData;

@@ -9,17 +9,17 @@ const u32 ProfilingManager::kNumSavedFrames = 200;
 
 ProfilingManager::ProfilingManager()
 {
-	mSavedSimReports = bs_newN<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
-	mSavedCoreReports = bs_newN<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
+	mSavedSimReports = B3DNewMultiple<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
+	mSavedCoreReports = B3DNewMultiple<ProfilerReport, ProfilerAlloc>(kNumSavedFrames);
 }
 
 ProfilingManager::~ProfilingManager()
 {
 	if(mSavedSimReports != nullptr)
-		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedSimReports, kNumSavedFrames);
+		B3DDeleteMultiple<ProfilerReport, ProfilerAlloc>(mSavedSimReports, kNumSavedFrames);
 
 	if(mSavedCoreReports != nullptr)
-		bs_deleteN<ProfilerReport, ProfilerAlloc>(mSavedCoreReports, kNumSavedFrames);
+		B3DDeleteMultiple<ProfilerReport, ProfilerAlloc>(mSavedCoreReports, kNumSavedFrames);
 }
 
 void ProfilingManager::UpdateInternal()

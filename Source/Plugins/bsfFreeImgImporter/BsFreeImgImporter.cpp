@@ -119,7 +119,7 @@ String FreeImgImporter::MagicNumToExtension(const u8* magic, u32 maxBytes) const
 
 SPtr<ImportOptions> FreeImgImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<TextureImportOptions>();
+	return B3DMakeShared<TextureImportOptions>();
 }
 
 SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
@@ -243,7 +243,7 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 		FreeImage_SetOutputMessage(FreeImageLoadErrorHandler);
 
 		// Buffer stream into memory (TODO: override IO functions instead?)
-		memStream = bs_unique_ptr_new<MemoryDataStream>(fileData);
+		memStream = B3DMakeUnique<MemoryDataStream>(fileData);
 		fileData->Close();
 	}
 
@@ -387,7 +387,7 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	u32 dstPitch = width * PixelUtil::GetNumElemBytes(format);
 
 	// Bind output buffer
-	SPtr<PixelData> texData = bs_shared_ptr_new<PixelData>(width, height, 1, format);
+	SPtr<PixelData> texData = B3DMakeShared<PixelData>(width, height, 1, format);
 	texData->AllocateInternalBuffer();
 	u8* output = texData->GetData();
 

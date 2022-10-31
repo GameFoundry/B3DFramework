@@ -36,20 +36,20 @@ MonoObject* ScriptColorGradient::Create(const SPtr<ColorGradient>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, value);
+	new(B3DAllocate<ScriptColorGradient>()) ScriptColorGradient(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptColorGradient::InternalColorGradient(MonoObject* managedInstance)
 {
-	SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>();
-	new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
+	SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>();
+	new(B3DAllocate<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 }
 
 void ScriptColorGradient::InternalColorGradient0(MonoObject* managedInstance, Color* color)
 {
-	SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>(*color);
-	new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
+	SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(*color);
+	new(B3DAllocate<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 }
 
 void ScriptColorGradient::InternalColorGradient1(MonoObject* managedInstance, MonoArray* keys)
@@ -64,8 +64,8 @@ void ScriptColorGradient::InternalColorGradient1(MonoObject* managedInstance, Mo
 			veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
 		}
 	}
-	SPtr<ColorGradient> instance = bs_shared_ptr_new<ColorGradient>(veckeys);
-	new(bs_alloc<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
+	SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(veckeys);
+	new(B3DAllocate<ScriptColorGradient>()) ScriptColorGradient(managedInstance, instance);
 }
 
 void ScriptColorGradient::InternalSetKeys(ScriptColorGradient* thisPtr, MonoArray* keys, float duration)

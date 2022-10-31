@@ -23,7 +23,7 @@ GUIMenuItem::GUIMenuItem(GUIMenuItem* parent, i32 priority, u32 seqIdx)
 GUIMenuItem::~GUIMenuItem()
 {
 	for(auto& child : mChildren)
-		bs_delete(child);
+		B3DDelete(child);
 }
 
 const GUIMenuItem* GUIMenuItem::FindChild(const String& name) const
@@ -55,7 +55,7 @@ void GUIMenuItem::RemoveChild(const String& name)
 
 	if(iterFind != mChildren.end())
 	{
-		bs_delete(*iterFind);
+		B3DDelete(*iterFind);
 		mChildren.erase(iterFind);
 	}
 }
@@ -66,7 +66,7 @@ void GUIMenuItem::RemoveChild(const GUIMenuItem* item)
 
 	if(iterFind != mChildren.end())
 	{
-		bs_delete(*iterFind);
+		B3DDelete(*iterFind);
 		mChildren.erase(iterFind);
 	}
 }
@@ -108,10 +108,10 @@ GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void
 			bool isLastElem = i == (u32)(pathElements.size() - 1);
 
 			if(isLastElem)
-				existingItem = bs_new<GUIMenuItem>(curSubMenu, pathElem, callback, priority, mNextIdx++, key);
+				existingItem = B3DNew<GUIMenuItem>(curSubMenu, pathElem, callback, priority, mNextIdx++, key);
 			else
 			{
-				existingItem = bs_alloc<GUIMenuItem>();
+				existingItem = B3DAllocate<GUIMenuItem>();
 				existingItem = new(existingItem) GUIMenuItem(curSubMenu, pathElem, nullptr, priority, mNextIdx++, ShortcutKey::kNone);
 			}
 
@@ -123,7 +123,7 @@ GUIMenuItem* GUIMenu::AddMenuItemInternal(const String& path, std::function<void
 
 	if(isSeparator)
 	{
-		GUIMenuItem* separatorItem = bs_new<GUIMenuItem>(curSubMenu, priority, mNextIdx++);
+		GUIMenuItem* separatorItem = B3DNew<GUIMenuItem>(curSubMenu, priority, mNextIdx++);
 		curSubMenu->AddChild(separatorItem);
 
 		return separatorItem;

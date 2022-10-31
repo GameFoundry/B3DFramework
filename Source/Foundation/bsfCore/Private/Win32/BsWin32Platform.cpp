@@ -61,7 +61,7 @@ Event<void(u32)> Platform::onCharInput;
 
 Event<void()> Platform::onMouseCaptureChanged;
 
-Platform::Pimpl* Platform::mData = bs_new<Platform::Pimpl>();
+Platform::Pimpl* Platform::mData = B3DNew<Platform::Pimpl>();
 
 /** Checks if any of the windows of the current application are active. */
 bool isAppActive(Platform::Pimpl* data)
@@ -92,7 +92,7 @@ void applyClipping(Platform::Pimpl* data)
 
 Platform::~Platform()
 {
-	bs_delete(mData);
+	B3DDelete(mData);
 	mData = nullptr;
 }
 
@@ -328,7 +328,7 @@ void Win32Platform::RegisterDropTarget(DropTarget* target)
 		u64 hwnd;
 		window->GetCustomAttribute("WINDOW", &hwnd);
 
-		win32DropTarget = bs_new<Win32DropTarget>((HWND)hwnd);
+		win32DropTarget = B3DNew<Win32DropTarget>((HWND)hwnd);
 		mData->MDropTargets.DropTargetsPerWindow[window] = win32DropTarget;
 
 		{

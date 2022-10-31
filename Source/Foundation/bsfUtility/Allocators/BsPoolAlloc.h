@@ -197,7 +197,7 @@ namespace bs
 				constexpr u32 blockDataSize = kActualElemSize * ElemsPerBlock;
 				size_t paddedBlockDataSize = blockDataSize + (Alignment - 1); // Padding for potential alignment correction
 
-				u8* data = (u8*)bs_alloc(sizeof(MemBlock) + (u32)paddedBlockDataSize);
+				u8* data = (u8*)B3DAllocate(sizeof(MemBlock) + (u32)paddedBlockDataSize);
 
 				void* blockData = data + sizeof(MemBlock);
 				blockData = std::align(Alignment, blockDataSize, blockData, paddedBlockDataSize);
@@ -216,7 +216,7 @@ namespace bs
 		void DeallocBlock(MemBlock* block)
 		{
 			block->~MemBlock();
-			bs_free(block);
+			B3DFree(block);
 
 			mNumBlocks--;
 		}

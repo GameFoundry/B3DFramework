@@ -181,5 +181,5 @@ void VulkanResourceManager::Destroy(VulkanResource* resource)
 	}
 #endif
 
-	bs_delete(resource);
+	B3DDelete(resource);
 }

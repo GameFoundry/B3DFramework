@@ -13,7 +13,7 @@ void ResourceMapping::Add(const Path& from, const Path& to)
 
 SPtr<ResourceMapping> ResourceMapping::Create()
 {
-	return bs_shared_ptr_new<ResourceMapping>();
+	return B3DMakeShared<ResourceMapping>();
 }
 
 RTTITypeBase* ResourceMapping::GetRttiStatic()
@@ -49,7 +49,7 @@ void StandaloneResourceLoader::SetMapping(const SPtr<ResourceMapping>& mapping)
 }
 
 GameResourceManager::GameResourceManager()
-	: mLoader(bs_shared_ptr_new<StandaloneResourceLoader>())
+	: mLoader(B3DMakeShared<StandaloneResourceLoader>())
 {
 }
 
@@ -68,5 +68,5 @@ void GameResourceManager::SetLoader(const SPtr<IGameResourceLoader>& loader)
 	mLoader = loader;
 
 	if(mLoader == nullptr)
-		mLoader = bs_shared_ptr_new<StandaloneResourceLoader>();
+		mLoader = B3DMakeShared<StandaloneResourceLoader>();
 }

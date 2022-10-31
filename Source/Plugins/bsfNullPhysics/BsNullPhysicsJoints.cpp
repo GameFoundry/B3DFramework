@@ -18,12 +18,12 @@ void FNullPhysicsJoint::SetTransform(JointBody body, const Vector3& position, co
 NullPhysicsD6Joint::NullPhysicsD6Joint(const D6_JOINT_DESC& desc)
 	: D6Joint(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsD6Joint::~NullPhysicsD6Joint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void NullPhysicsD6Joint::SetDriveTransform(const Vector3& position, const Quaternion& rotation)
@@ -41,12 +41,12 @@ void NullPhysicsD6Joint::SetDriveVelocity(const Vector3& linear, const Vector3& 
 NullPhysicsDistanceJoint::NullPhysicsDistanceJoint(const DISTANCE_JOINT_DESC& desc)
 	: DistanceJoint(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsDistanceJoint::~NullPhysicsDistanceJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void NullPhysicsDistanceJoint::SetFlag(DistanceJointFlag flag, bool enabled)
@@ -70,23 +70,23 @@ bool NullPhysicsDistanceJoint::HasFlag(DistanceJointFlag flag) const
 NullPhysicsFixedJoint::NullPhysicsFixedJoint(const FIXED_JOINT_DESC& desc)
 	: FixedJoint(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsFixedJoint::~NullPhysicsFixedJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 NullPhysicsHingeJoint::NullPhysicsHingeJoint(const HINGE_JOINT_DESC& desc)
 	: HingeJoint(desc), mDesc(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsHingeJoint::~NullPhysicsHingeJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void NullPhysicsHingeJoint::SetFlag(HingeJointFlag flag, bool enabled)
@@ -110,12 +110,12 @@ bool NullPhysicsHingeJoint::HasFlag(HingeJointFlag flag) const
 NullPhysicsSliderJoint::NullPhysicsSliderJoint(const SLIDER_JOINT_DESC& desc)
 	: SliderJoint(desc), mDesc(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsSliderJoint::~NullPhysicsSliderJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void NullPhysicsSliderJoint::SetFlag(SliderJointFlag flag, bool enabled)
@@ -139,12 +139,12 @@ bool NullPhysicsSliderJoint::HasFlag(SliderJointFlag flag) const
 NullPhysicsSphericalJoint::NullPhysicsSphericalJoint(const SPHERICAL_JOINT_DESC& desc)
 	: SphericalJoint(desc), mDesc(desc)
 {
-	mInternal = bs_new<FNullPhysicsJoint>(desc);
+	mInternal = B3DNew<FNullPhysicsJoint>(desc);
 }
 
 NullPhysicsSphericalJoint::~NullPhysicsSphericalJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void NullPhysicsSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)

@@ -56,7 +56,7 @@ __GUIContentInterop ScriptGUIContent::ToInterop(const GUIContent& value)
 	__GUIContentInterop output;
 	MonoObject* tmpText;
 	SPtr<HString> tmpTextcopy;
-	tmpTextcopy = bs_shared_ptr_new<HString>(value.Text);
+	tmpTextcopy = B3DMakeShared<HString>(value.Text);
 	tmpText = ScriptHString::Create(tmpTextcopy);
 	output.Text = tmpText;
 	__GUIContentImagesInterop tmpImages;
@@ -64,7 +64,7 @@ __GUIContentInterop ScriptGUIContent::ToInterop(const GUIContent& value)
 	output.Images = tmpImages;
 	MonoObject* tmpTooltip;
 	SPtr<HString> tmpTooltipcopy;
-	tmpTooltipcopy = bs_shared_ptr_new<HString>(value.Tooltip);
+	tmpTooltipcopy = B3DMakeShared<HString>(value.Tooltip);
 	tmpTooltip = ScriptHString::Create(tmpTooltipcopy);
 	output.Tooltip = tmpTooltip;
 

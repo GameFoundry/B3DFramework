@@ -30,14 +30,14 @@ MonoObject* ScriptFilmGrainSettings::Create(const SPtr<FilmGrainSettings>& value
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptFilmGrainSettings>()) ScriptFilmGrainSettings(managedInstance, value);
+	new(B3DAllocate<ScriptFilmGrainSettings>()) ScriptFilmGrainSettings(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptFilmGrainSettings::InternalFilmGrainSettings(MonoObject* managedInstance)
 {
-	SPtr<FilmGrainSettings> instance = bs_shared_ptr_new<FilmGrainSettings>();
-	new(bs_alloc<ScriptFilmGrainSettings>()) ScriptFilmGrainSettings(managedInstance, instance);
+	SPtr<FilmGrainSettings> instance = B3DMakeShared<FilmGrainSettings>();
+	new(B3DAllocate<ScriptFilmGrainSettings>()) ScriptFilmGrainSettings(managedInstance, instance);
 }
 
 bool ScriptFilmGrainSettings::InternalGetEnabled(ScriptFilmGrainSettings* thisPtr)

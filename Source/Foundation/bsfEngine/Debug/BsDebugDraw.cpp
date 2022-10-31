@@ -24,13 +24,13 @@ using namespace bs;
 
 DebugDraw::DebugDraw()
 {
-	mDrawHelper = bs_new<DrawHelper>();
+	mDrawHelper = B3DNew<DrawHelper>();
 	mRenderer = RendererExtension::Create<ct::DebugDrawRenderer>(nullptr);
 }
 
 DebugDraw::~DebugDraw()
 {
-	bs_delete(mDrawHelper);
+	B3DDelete(mDrawHelper);
 }
 
 void DebugDraw::SetColor(const Color& color)

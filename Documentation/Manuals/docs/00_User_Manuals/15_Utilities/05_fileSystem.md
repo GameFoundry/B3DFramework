@@ -60,14 +60,14 @@ SPtr<DataStream> fileStream = FileSystem::createAndOpenFile("C:/Path/To/File.txt
 fileStream->writeString("Writing to a file");
 
 // Write some binary data
-UINT8* myBuffer = bs_alloc(1024);
+UINT8* myBuffer = B3DAllocate(1024);
 
 // ... fill up the buffer with some data ...
 
 fileStream->write(myBuffer, 1024);
 fileStream->close();
 
-bs_free(myBuffer);
+B3DFree(myBuffer);
 ~~~~~~~~~~~~~
 
 Once you are done with a stream make sure to close it by calling @bs::DataStream::close. Stream will also be automatically closed when it goes out of scope.
@@ -83,11 +83,11 @@ String str = "Writing to a file";
 fileStream->seek(str.size());
 
 // Read the byte data
-UINT8* myBuffer = bs_alloc(1024);
+UINT8* myBuffer = B3DAllocate(1024);
 fileStream->read(myBuffer, 1024);
 
 fileStream->close();
-bs_free(myBuffer);
+B3DFree(myBuffer);
 ~~~~~~~~~~~~~
 
 Each time you read or write from the stream, the current read/write indices will advance. So subsequent calls to read/write will continue from the last position that was read/written.

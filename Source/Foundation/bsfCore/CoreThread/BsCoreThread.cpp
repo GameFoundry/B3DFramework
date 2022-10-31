@@ -22,13 +22,13 @@ void CoreThread::OnStartUp()
 {
 	for(u32 i = 0; i < kNumSyncBuffers; i++)
 	{
-		mFrameAllocs[i] = bs_new<FrameAlloc>();
+		mFrameAllocs[i] = B3DNew<FrameAlloc>();
 		mFrameAllocs[i]->SetOwnerThread(BS_THREAD_CURRENT_ID); // Sim thread
 	}
 
 	mSimThreadId = BS_THREAD_CURRENT_ID;
 	mCoreThreadId = mSimThreadId; // For now
-	mCommandQueue = bs_new<CommandQueue<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
+	mCommandQueue = B3DNew<CommandQueue<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
 
 	InitCoreThread();
 }
@@ -42,21 +42,21 @@ CoreThread::~CoreThread()
 		Lock lock(mSubmitMutex);
 
 		for(auto& queue : mAllQueues)
-			bs_delete(queue);
+			B3DDelete(queue);
 
 		mAllQueues.clear();
 	}
 
 	if(mCommandQueue != nullptr)
 	{
-		bs_delete(mCommandQueue);
+		B3DDelete(mCommandQueue);
 		mCommandQueue = nullptr;
 	}
 
 	for(u32 i = 0; i < kNumSyncBuffers; i++)
 	{
 		mFrameAllocs[i]->SetOwnerThread(BS_THREAD_CURRENT_ID); // Sim thread
-		bs_delete(mFrameAllocs[i]);
+		B3DDelete(mFrameAllocs[i]);
 	}
 }
 
@@ -166,8 +166,8 @@ SPtr<CommandQueue<CommandQueueSync>> CoreThread::GetQueue()
 {
 	if(mPerThreadQueue.current == nullptr)
 	{
-		SPtr<CommandQueue<CommandQueueSync>> newQueue = bs_shared_ptr_new<CommandQueue<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
-		mPerThreadQueue.current = bs_new<ThreadQueueContainer>();
+		SPtr<CommandQueue<CommandQueueSync>> newQueue = B3DMakeShared<CommandQueue<CommandQueueSync>>(BS_THREAD_CURRENT_ID);
+		mPerThreadQueue.current = B3DNew<ThreadQueueContainer>();
 		mPerThreadQueue.current->Queue = newQueue;
 		mPerThreadQueue.current->IsMain = BS_THREAD_CURRENT_ID == mSimThreadId;
 

@@ -47,11 +47,11 @@ To register your **SpecificImporter** implementation with the importer system yo
 ~~~~~~~~~~~~~{.cpp}
 Application::startUp(...);
 
-PlainTextImporter* myImporter = bs_new<PlainTextImporter>();
+PlainTextImporter* myImporter = B3DNew<PlainTextImporter>();
 GetImporter()._registerAssetImporter(myImporter);
 ~~~~~~~~~~~~~ 
 
-> Your importer must be allocated using a general purpose allocator (**bs_new**) because the importer system automatically frees it on shutdown, and it doesn't expect any special memory types.
+> Your importer must be allocated using a general purpose allocator (**B3DNew**) because the importer system automatically frees it on shutdown, and it doesn't expect any special memory types.
 
 Optionally you can do this on the higher level by providing a list of importers to @bs::Application::startUp method. This method expects a list of dynamic library file-names, which means you must implement your importer as a plugin, as described in the [plugins](../plugins) manual.
 

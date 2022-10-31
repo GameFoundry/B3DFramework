@@ -45,7 +45,7 @@ __PARTICLE_VELOCITY_DESCInterop ScriptPARTICLE_VELOCITY_DESC::ToInterop(const PA
 	__PARTICLE_VELOCITY_DESCInterop output;
 	MonoObject* tmpVelocity;
 	SPtr<TDistribution<Vector3>> tmpVelocitycopy;
-	tmpVelocitycopy = bs_shared_ptr_new<TDistribution<Vector3>>(value.Velocity);
+	tmpVelocitycopy = B3DMakeShared<TDistribution<Vector3>>(value.Velocity);
 	tmpVelocity = ScriptTDistributionVector3::Create(tmpVelocitycopy);
 	output.Velocity = tmpVelocity;
 	output.WorldSpace = value.WorldSpace;

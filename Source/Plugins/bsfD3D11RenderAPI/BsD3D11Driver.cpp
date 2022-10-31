@@ -51,7 +51,7 @@ void D3D11Driver::Construct()
 
 	mNumOutputs = outputIdx;
 
-	mVideoModeInfo = bs_shared_ptr_new<D3D11VideoModeInfo>(mDXGIAdapter);
+	mVideoModeInfo = B3DMakeShared<D3D11VideoModeInfo>(mDXGIAdapter);
 }
 
 D3D11Driver& D3D11Driver::operator=(const D3D11Driver& ob)
@@ -71,26 +71,26 @@ D3D11Driver& D3D11Driver::operator=(const D3D11Driver& ob)
 String D3D11Driver::GetDriverName() const
 {
 	size_t size = wcslen(mAdapterIdentifier.Description);
-	char* str = (char*)bs_alloc((u32)(size + 1));
+	char* str = (char*)B3DAllocate((u32)(size + 1));
 
 	wcstombs(str, mAdapterIdentifier.Description, size);
 	str[size] = '\0';
 	String Description = str;
 
-	bs_free(str);
+	B3DFree(str);
 	return String(Description);
 }
 
 String D3D11Driver::GetDriverDescription() const
 {
 	size_t size = wcslen(mAdapterIdentifier.Description);
-	char* str = (char*)bs_alloc((u32)(size + 1));
+	char* str = (char*)B3DAllocate((u32)(size + 1));
 
 	wcstombs(str, mAdapterIdentifier.Description, size);
 	str[size] = '\0';
 	String driverDescription = str;
 
-	bs_free(str);
+	B3DFree(str);
 	StringUtil::Trim(driverDescription);
 
 	return driverDescription;

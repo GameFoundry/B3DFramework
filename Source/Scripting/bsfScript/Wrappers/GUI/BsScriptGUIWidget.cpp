@@ -48,7 +48,7 @@ void ScriptGUIWidget::InitRuntimeData()
 
 void ScriptGUIWidget::InternalCreate(MonoObject* managedInstance)
 {
-	new(bs_alloc<ScriptGUIWidget>()) ScriptGUIWidget(managedInstance);
+	new(B3DAllocate<ScriptGUIWidget>()) ScriptGUIWidget(managedInstance);
 }
 
 void ScriptGUIWidget::InternalUpdateTransform(ScriptGUIWidget* thisPtr, ScriptSceneObject* parent)

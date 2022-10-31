@@ -18,12 +18,12 @@ PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vec
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 
-	mInternal = bs_new<FPhysXCollider>(scene, shape);
+	mInternal = B3DNew<FPhysXCollider>(scene, shape);
 }
 
 PhysXMeshCollider::~PhysXMeshCollider()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 void PhysXMeshCollider::SetScale(const Vector3& scale)

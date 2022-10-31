@@ -30,7 +30,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<FNullPhysicsMesh>();
+			return B3DMakeShared<FNullPhysicsMesh>();
 		}
 	};
 

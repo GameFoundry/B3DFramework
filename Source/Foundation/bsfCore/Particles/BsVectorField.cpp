@@ -69,9 +69,9 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 
 SPtr<ct::CoreObject> VectorField::CreateCore() const
 {
-	ct::VectorField* vectorField = new(bs_alloc<ct::VectorField>()) ct::VectorField(mDesc, mTexture->GetCore());
+	ct::VectorField* vectorField = new(B3DAllocate<ct::VectorField>()) ct::VectorField(mDesc, mTexture->GetCore());
 
-	SPtr<ct::VectorField> vectorFieldPtr = bs_shared_ptr<ct::VectorField>(vectorField);
+	SPtr<ct::VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<ct::VectorField>(vectorField);
 	vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 
 	return vectorFieldPtr;
@@ -108,9 +108,9 @@ HVectorField VectorField::Create(const VECTOR_FIELD_DESC& desc, const Vector<Vec
 
 SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)
 {
-	auto* vectorField = new(bs_alloc<VectorField>()) VectorField(desc, values);
+	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField(desc, values);
 
-	SPtr<VectorField> vectorFieldPtr = bs_shared_ptr<VectorField>(vectorField);
+	SPtr<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
 	vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 	vectorFieldPtr->Initialize();
 
@@ -119,9 +119,9 @@ SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, 
 
 SPtr<VectorField> VectorField::CreateEmptyInternal()
 {
-	auto* vectorField = new(bs_alloc<VectorField>()) VectorField();
+	auto* vectorField = new(B3DAllocate<VectorField>()) VectorField();
 
-	SPtr<VectorField> vectorFieldPtr = bs_shared_ptr<VectorField>(vectorField);
+	SPtr<VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<VectorField>(vectorField);
 	vectorFieldPtr->SetThisPtrInternal(vectorFieldPtr);
 
 	return vectorFieldPtr;

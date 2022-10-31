@@ -91,7 +91,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ShaderVariation>();
+			return B3DMakeShared<ShaderVariation>();
 		}
 	};
 

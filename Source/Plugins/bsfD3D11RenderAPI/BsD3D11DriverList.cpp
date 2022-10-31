@@ -16,7 +16,7 @@ D3D11DriverList::~D3D11DriverList(void)
 {
 	for(size_t i = 0; i < mDriverList.size(); i++)
 	{
-		bs_delete(mDriverList[i]);
+		B3DDelete(mDriverList[i]);
 	}
 
 	mDriverList.clear();
@@ -36,7 +36,7 @@ void D3D11DriverList::Enumerate(IDXGIFactory1* dxgiFactory)
 			BS_EXCEPT(InternalErrorException, "Enumerating adapters failed.");
 		}
 
-		mDriverList.push_back(bs_new<D3D11Driver>(adapterIdx, dxgiAdapter));
+		mDriverList.push_back(B3DNew<D3D11Driver>(adapterIdx, dxgiAdapter));
 
 		SAFE_RELEASE(dxgiAdapter);
 		adapterIdx++;

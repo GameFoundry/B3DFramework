@@ -30,7 +30,7 @@ MonoObject* ScriptParticleGravity::Create(const SPtr<ParticleGravity>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
+	new(B3DAllocate<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
 	return managedInstance;
 }
 
@@ -50,11 +50,11 @@ void ScriptParticleGravity::InternalGetOptions(ScriptParticleGravity* thisPtr, P
 void ScriptParticleGravity::InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc)
 {
 	SPtr<ParticleGravity> instance = ParticleGravity::Create(*desc);
-	new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
 }
 
 void ScriptParticleGravity::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleGravity> instance = ParticleGravity::Create();
-	new(bs_alloc<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, instance);
 }

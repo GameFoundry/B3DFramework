@@ -180,7 +180,7 @@ SPtr<TAnimationCurve<Quaternion>> AnimationUtility::EulerToQuaternionCurve(
 		setStepTangent(currentEulerKey, nextEulerKey, currentKey, nextKey);
 	}
 
-	return bs_shared_ptr_new<TAnimationCurve<Quaternion>>(quatKeyframes);
+	return B3DMakeShared<TAnimationCurve<Quaternion>>(quatKeyframes);
 }
 
 SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SPtr<TAnimationCurve<Quaternion>>& quatCurve)
@@ -251,7 +251,7 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SP
 		setStepTangent(currentQuatKey, nextQuatKey, currentKey, nextKey);
 	}
 
-	return bs_shared_ptr_new<TAnimationCurve<Vector3>>(eulerKeyframes);
+	return B3DMakeShared<TAnimationCurve<Vector3>>(eulerKeyframes);
 }
 
 template <class T>
@@ -350,7 +350,7 @@ Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve3D(const SPtr<T
 
 	Vector<SPtr<TAnimationCurve<float>>> output(3);
 	for(u32 i = 0; i < 3; i++)
-		output[i] = bs_shared_ptr_new<TAnimationCurve<float>>(keyFrames[i]);
+		output[i] = B3DMakeShared<TAnimationCurve<float>>(keyFrames[i]);
 
 	return output;
 }
@@ -365,7 +365,7 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::CombineCurve3D(const Vector<SPt
 		combineCurve(curves, keyFrames);
 	}
 
-	return bs_shared_ptr_new<TAnimationCurve<Vector3>>(keyFrames);
+	return B3DMakeShared<TAnimationCurve<Vector3>>(keyFrames);
 }
 
 Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const SPtr<TAnimationCurve<Vector2>>& compoundCurve)
@@ -377,7 +377,7 @@ Vector<SPtr<TAnimationCurve<float>>> AnimationUtility::SplitCurve2D(const SPtr<T
 
 	Vector<SPtr<TAnimationCurve<float>>> output(2);
 	for(u32 i = 0; i < 2; i++)
-		output[i] = bs_shared_ptr_new<TAnimationCurve<float>>(keyFrames[i]);
+		output[i] = B3DMakeShared<TAnimationCurve<float>>(keyFrames[i]);
 
 	return output;
 }
@@ -392,7 +392,7 @@ SPtr<TAnimationCurve<Vector2>> AnimationUtility::CombineCurve2D(const Vector<SPt
 		combineCurve(curves, keyFrames);
 	}
 
-	return bs_shared_ptr_new<TAnimationCurve<Vector2>>(keyFrames);
+	return B3DMakeShared<TAnimationCurve<Vector2>>(keyFrames);
 }
 
 template <class T>

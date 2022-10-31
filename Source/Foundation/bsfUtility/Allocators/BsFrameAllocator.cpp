@@ -256,7 +256,7 @@ FrameAlloc::MemBlock* FrameAlloc::AllocBlock(u32 wantedSize)
 	{
 		u32 alignOffset = 16 - (sizeof(MemBlock) & (16 - 1));
 
-		u8* data = (u8*)reinterpret_cast<u8*>(bs_alloc_aligned16(blockSize + sizeof(MemBlock) + alignOffset));
+		u8* data = (u8*)reinterpret_cast<u8*>(B3DAllocateAligned16(blockSize + sizeof(MemBlock) + alignOffset));
 		newBlock = new(data) MemBlock(blockSize);
 		data += sizeof(MemBlock) + alignOffset;
 		newBlock->MData = data;
@@ -273,7 +273,7 @@ FrameAlloc::MemBlock* FrameAlloc::AllocBlock(u32 wantedSize)
 void FrameAlloc::DeallocBlock(MemBlock* block)
 {
 	block->~MemBlock();
-	bs_free_aligned16(block);
+	B3DFreeAligned16(block);
 }
 
 void FrameAlloc::SetOwnerThread(ThreadId thread)

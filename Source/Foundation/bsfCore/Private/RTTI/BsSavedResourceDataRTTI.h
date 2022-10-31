@@ -38,7 +38,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<SavedResourceData>();
+			return B3DMakeShared<SavedResourceData>();
 		}
 	};
 

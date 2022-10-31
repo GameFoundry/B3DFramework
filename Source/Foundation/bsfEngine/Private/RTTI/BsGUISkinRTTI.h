@@ -60,7 +60,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<GUISkinEntry>();
+			return B3DMakeShared<GUISkinEntry>();
 		}
 	};
 

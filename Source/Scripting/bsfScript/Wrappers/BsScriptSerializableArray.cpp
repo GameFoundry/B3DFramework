@@ -31,7 +31,7 @@ MonoObject* ScriptSerializableArray::Create(const ScriptSerializableProperty* na
 	void* params[2] = { internalElementType, managed };
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 2);
 
-	new(bs_alloc<ScriptSerializableArray>()) ScriptSerializableArray(managedInstance, arrayTypeInfo);
+	new(B3DAllocate<ScriptSerializableArray>()) ScriptSerializableArray(managedInstance, arrayTypeInfo);
 
 	return managedInstance;
 }

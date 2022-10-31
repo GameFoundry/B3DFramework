@@ -30,7 +30,7 @@ MonoObject* ScriptParticleVelocity::Create(const SPtr<ParticleVelocity>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, value);
+	new(B3DAllocate<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleVelocity::InternalCreate(MonoObject* managedInstance, __PARTI
 	PARTICLE_VELOCITY_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_VELOCITY_DESC::FromInterop(*desc);
 	SPtr<ParticleVelocity> instance = ParticleVelocity::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
 }
 
 void ScriptParticleVelocity::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleVelocity> instance = ParticleVelocity::Create();
-	new(bs_alloc<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, instance);
 }

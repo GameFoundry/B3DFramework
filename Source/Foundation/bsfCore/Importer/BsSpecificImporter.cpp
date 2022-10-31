@@ -18,7 +18,7 @@ Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, SPtr<co
 
 SPtr<ImportOptions> SpecificImporter::CreateImportOptions() const
 {
-	return bs_shared_ptr_new<ImportOptions>();
+	return B3DMakeShared<ImportOptions>();
 }
 
 SPtr<const ImportOptions> SpecificImporter::GetDefaultImportOptions() const

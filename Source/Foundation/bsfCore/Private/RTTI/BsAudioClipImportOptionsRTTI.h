@@ -37,7 +37,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<AudioClipImportOptions>();
+			return B3DMakeShared<AudioClipImportOptions>();
 		}
 	};
 

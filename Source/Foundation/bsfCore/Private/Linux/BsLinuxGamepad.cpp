@@ -20,7 +20,7 @@ struct Gamepad::Pimpl
 Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->info = gamepadInfo;
 	m->povState = BC_UNASSIGNED;
 	m->HasInputFocus = true;
@@ -37,7 +37,7 @@ Gamepad::~Gamepad()
 	if(m->fileHandle != -1)
 		close(m->fileHandle);
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Gamepad::capture()

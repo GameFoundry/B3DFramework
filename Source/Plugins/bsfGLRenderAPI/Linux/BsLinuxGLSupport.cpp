@@ -91,7 +91,7 @@ SPtr<bs::RenderWindow> LinuxGLSupport::newWindow(RENDER_WINDOW_DESC& desc, u32 w
 		desc.platformSpecific["parentWindowHandle"] = toString((u64)x11window);
 	}
 
-	bs::LinuxRenderWindow* window = new(bs_alloc<bs::LinuxRenderWindow>()) bs::LinuxRenderWindow(desc, windowId, *this);
+	bs::LinuxRenderWindow* window = new(B3DAllocate<bs::LinuxRenderWindow>()) bs::LinuxRenderWindow(desc, windowId, *this);
 	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::LinuxRenderWindow, GenAlloc>);
 }
 
@@ -153,7 +153,7 @@ SPtr<LinuxContext> LinuxGLSupport::createContext(::Display* x11display, XVisualI
 
 	// If RenderAPI has initialized a context use that, otherwise we create our own
 	if(!rapi->IsContextInitializedInternal())
-		return bs_shared_ptr_new<LinuxContext>(x11display, visualInfo);
+		return B3DMakeShared<LinuxContext>(x11display, visualInfo);
 	else
 	{
 		SPtr<GLContext> context = rapi->GetMainContextInternal();
@@ -295,5 +295,5 @@ GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthSten
 
 SPtr<VideoModeInfo> LinuxGLSupport::getVideoModeInfo() const
 {
-	return bs_shared_ptr_new<LinuxVideoModeInfo>();
+	return B3DMakeShared<LinuxVideoModeInfo>();
 }

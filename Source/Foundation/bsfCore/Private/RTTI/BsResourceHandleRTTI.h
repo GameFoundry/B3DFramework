@@ -56,8 +56,8 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<TResourceHandleBase<false>> obj = bs_shared_ptr<TResourceHandleBase<false>>(new(bs_alloc<TResourceHandleBase<false>>()) TResourceHandleBase<false>());
-			obj->mData = bs_shared_ptr_new<ResourceHandleData>();
+			SPtr<TResourceHandleBase<false>> obj = B3DMakeSharedFromExisting<TResourceHandleBase<false>>(new(B3DAllocate<TResourceHandleBase<false>>()) TResourceHandleBase<false>());
+			obj->mData = B3DMakeShared<ResourceHandleData>();
 			obj->mData->MRefCount.fetch_add(1, std::memory_order_relaxed);
 
 			return obj;
@@ -101,8 +101,8 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<TResourceHandleBase<true>> obj = bs_shared_ptr<TResourceHandleBase<true>>(new(bs_alloc<TResourceHandleBase<true>>()) TResourceHandleBase<true>());
-			obj->mData = bs_shared_ptr_new<ResourceHandleData>();
+			SPtr<TResourceHandleBase<true>> obj = B3DMakeSharedFromExisting<TResourceHandleBase<true>>(new(B3DAllocate<TResourceHandleBase<true>>()) TResourceHandleBase<true>());
+			obj->mData = B3DMakeShared<ResourceHandleData>();
 
 			return obj;
 		}

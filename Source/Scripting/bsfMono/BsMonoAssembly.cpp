@@ -88,7 +88,7 @@ void MonoAssembly::Load()
 		if(mdbStream != nullptr)
 		{
 			u32 mdbSize = (u32)mdbStream->Size();
-			mDebugData = (u8*)bs_alloc(mdbSize);
+			mDebugData = (u8*)B3DAllocate(mdbSize);
 			mdbStream->Read(mDebugData, mdbSize);
 
 			mono_debug_open_image_from_memory(image, mDebugData, mdbSize);
@@ -134,7 +134,7 @@ void MonoAssembly::Unload()
 		return;
 
 	for(auto& entry : mClassesByRaw)
-		bs_delete(entry.second);
+		B3DDelete(entry.second);
 
 	mClasses.clear();
 	mClassesByRaw.clear();
@@ -147,7 +147,7 @@ void MonoAssembly::Unload()
 		{
 			mono_debug_close_image(mMonoImage);
 
-			bs_free(mDebugData);
+			B3DFree(mDebugData);
 			mDebugData = nullptr;
 		}
 
@@ -197,7 +197,7 @@ MonoClass* MonoAssembly::GetClass(const String& namespaceName, const String& nam
 	if(monoClass == nullptr)
 		return nullptr;
 
-	MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(namespaceName, name, monoClass, this);
+	MonoClass* newClass = new(B3DAllocate<MonoClass>()) MonoClass(namespaceName, name, monoClass, this);
 	mClasses[classId] = newClass;
 	mClassesByRaw[monoClass] = newClass;
 
@@ -226,7 +226,7 @@ MonoClass* MonoAssembly::GetClass(::MonoClass* rawMonoClass) const
 	if(classImage != mMonoImage)
 		return nullptr;
 
-	MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
+	MonoClass* newClass = new(B3DAllocate<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
 	mClassesByRaw[rawMonoClass] = newClass;
 
 	MonoAssembly::ClassId classId(ns, typeName);
@@ -248,7 +248,7 @@ MonoClass* MonoAssembly::GetClass(const String& ns, const String& typeName, ::Mo
 	if(iterFind != mClassesByRaw.end())
 		return iterFind->second;
 
-	MonoClass* newClass = new(bs_alloc<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
+	MonoClass* newClass = new(B3DAllocate<MonoClass>()) MonoClass(ns, typeName, rawMonoClass, this);
 
 	mClassesByRaw[rawMonoClass] = newClass;
 

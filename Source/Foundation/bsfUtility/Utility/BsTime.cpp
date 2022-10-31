@@ -14,7 +14,7 @@ const double Time::kMicrosecToSec = 1.0 / 1000000.0;
 
 Time::Time()
 {
-	mTimer = bs_new<Timer>();
+	mTimer = B3DNew<Timer>();
 	mAppStartTime = mTimer->GetStartMs();
 	mLastFrameTime = mTimer->GetMicroseconds();
 	mAppStartUpDate = std::time(nullptr);
@@ -22,7 +22,7 @@ Time::Time()
 
 Time::~Time()
 {
-	bs_delete(mTimer);
+	B3DDelete(mTimer);
 }
 
 void Time::UpdateInternal()

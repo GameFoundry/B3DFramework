@@ -31,7 +31,7 @@ namespace bs
 					static SPtr<RenderAPIFactory> newFactory;
 					if(newFactory == nullptr)
 					{
-						newFactory = bs_shared_ptr_new<NullRenderAPIFactory>();
+						newFactory = B3DMakeShared<NullRenderAPIFactory>();
 						RenderAPIManager::Instance().RegisterFactory(newFactory);
 					}
 				}

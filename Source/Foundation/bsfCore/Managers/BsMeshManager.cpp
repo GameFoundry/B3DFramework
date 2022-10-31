@@ -10,10 +10,10 @@ using namespace bs;
 
 void MeshManager::OnStartUp()
 {
-	SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 
-	mDummyMeshData = bs_shared_ptr_new<MeshData>(1, 3, vertexDesc);
+	mDummyMeshData = B3DMakeShared<MeshData>(1, 3, vertexDesc);
 
 	auto vecIter = mDummyMeshData->GetVec3DataIter(VES_POSITION);
 	vecIter.SetValue(Vector3(0, 0, 0));

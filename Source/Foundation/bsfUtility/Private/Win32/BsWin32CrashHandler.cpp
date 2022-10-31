@@ -20,12 +20,12 @@ using namespace bs;
 CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 	: mSettings(settings)
 {
-	m = bs_new<Data>();
+	m = B3DNew<Data>();
 }
 
 CrashHandler::~CrashHandler()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 /**
@@ -99,7 +99,7 @@ String win32_getStackTrace(CONTEXT context, u32 skip = 0)
 	numEntries = std::min((u32)BS_MAX_STACKTRACE_DEPTH, numEntries);
 
 	u32 bufferSize = sizeof(PIMAGEHLP_SYMBOL64) + BS_MAX_STACKTRACE_NAME_BYTES;
-	u8* buffer = (u8*)bs_alloc(bufferSize);
+	u8* buffer = (u8*)B3DAllocate(bufferSize);
 
 	PIMAGEHLP_SYMBOL64 symbol = (PIMAGEHLP_SYMBOL64)buffer;
 	symbol->SizeOfStruct = bufferSize;
@@ -150,7 +150,7 @@ String win32_getStackTrace(CONTEXT context, u32 skip = 0)
 		}
 	}
 
-	bs_free(buffer);
+	B3DFree(buffer);
 
 	return outputStream.str();
 }
@@ -173,7 +173,7 @@ void win32_initPSAPI()
 	if(gPSAPILib != nullptr)
 		return;
 
-	gPSAPILib = bs_new<DynamicLibrary>("PSAPI.dll");
+	gPSAPILib = B3DNew<DynamicLibrary>("PSAPI.dll");
 	gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->GetSymbol("EnumProcessModules");
 	gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->GetSymbol("GetModuleFileNameExA");
 	gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->GetSymbol("GetModuleBaseNameA");
@@ -187,7 +187,7 @@ void win32_unloadPSAPI()
 		return;
 
 	gPSAPILib->Unload();
-	bs_delete(gPSAPILib);
+	B3DDelete(gPSAPILib);
 	gPSAPILib = nullptr;
 }
 
@@ -221,7 +221,7 @@ void win32_loadSymbols()
 	DWORD bufferSize;
 	gEnumProcessModules(hProcess, nullptr, 0, &bufferSize);
 
-	HMODULE* modules = (HMODULE*)bs_alloc(bufferSize);
+	HMODULE* modules = (HMODULE*)B3DAllocate(bufferSize);
 	gEnumProcessModules(hProcess, modules, bufferSize, &bufferSize);
 
 	u32 numModules = bufferSize / sizeof(HMODULE);
@@ -270,7 +270,7 @@ void win32_loadSymbols()
 		}
 	}
 
-	bs_free(modules);
+	B3DFree(modules);
 	gSymbolsLoaded = true;
 }
 

@@ -50,14 +50,14 @@ MonoObject* ScriptRendererMeshData::Create(const SPtr<RendererMeshData>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
+	new(B3DAllocate<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptRendererMeshData::InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
 {
 	SPtr<RendererMeshData> instance = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
-	new(bs_alloc<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, instance);
+	new(B3DAllocate<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, instance);
 }
 
 MonoArray* ScriptRendererMeshData::InternalGetPositions(ScriptRendererMeshData* thisPtr)

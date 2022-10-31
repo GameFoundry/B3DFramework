@@ -47,7 +47,7 @@ public:
 	static HMyResource create()
 	{
 		// Standard core object initialization
-		SPtr<MyResource> sptr = bs_core_ptr<MyResource>(bs_new<MyResource>());
+		SPtr<MyResource> sptr = B3DMakeCoreFromExisting<MyResource>(B3DNew<MyResource>());
 		sptr->_setThisPtr(sptr);
 		sptr->initialize();
 	

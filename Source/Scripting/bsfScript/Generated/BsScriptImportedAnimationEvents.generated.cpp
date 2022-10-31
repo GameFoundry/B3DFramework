@@ -30,14 +30,14 @@ MonoObject* ScriptImportedAnimationEvents::Create(const SPtr<ImportedAnimationEv
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, value);
+	new(B3DAllocate<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptImportedAnimationEvents::InternalImportedAnimationEvents(MonoObject* managedInstance)
 {
-	SPtr<ImportedAnimationEvents> instance = bs_shared_ptr_new<ImportedAnimationEvents>();
-	new(bs_alloc<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, instance);
+	SPtr<ImportedAnimationEvents> instance = B3DMakeShared<ImportedAnimationEvents>();
+	new(B3DAllocate<ScriptImportedAnimationEvents>()) ScriptImportedAnimationEvents(managedInstance, instance);
 }
 
 MonoString* ScriptImportedAnimationEvents::InternalGetName(ScriptImportedAnimationEvents* thisPtr)

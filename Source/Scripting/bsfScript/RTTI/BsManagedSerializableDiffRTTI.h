@@ -68,7 +68,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedField>();
+			return B3DMakeShared<ManagedSerializableDiff::ModifiedField>();
 		}
 	};
 
@@ -115,7 +115,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedArrayEntry>();
+			return B3DMakeShared<ManagedSerializableDiff::ModifiedArrayEntry>();
 		}
 	};
 
@@ -162,7 +162,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableDiff::ModifiedDictionaryEntry>();
+			return B3DMakeShared<ManagedSerializableDiff::ModifiedDictionaryEntry>();
 		}
 	};
 
@@ -438,7 +438,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return bs_shared_ptr_new<ManagedSerializableDiff>();
+			return B3DMakeShared<ManagedSerializableDiff>();
 		}
 	};
 

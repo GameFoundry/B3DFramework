@@ -850,34 +850,34 @@ void HIDManager::capture(IOHIDDeviceRef device, bool ignoreEvents)
 
 void Input::initRawInput()
 {
-	mPlatformData = bs_new<InputPrivateData>();
+	mPlatformData = B3DNew<InputPrivateData>();
 
-	mKeyboard = bs_new<Keyboard>("Keyboard", this);
-	mMouse = bs_new<Mouse>("Mouse", this);
+	mKeyboard = B3DNew<Keyboard>("Keyboard", this);
+	mMouse = B3DNew<Mouse>("Mouse", this);
 
-	mPlatformData->gamepadHIDManager = bs_new<HIDManager>(HIDType::Gamepad, this);
+	mPlatformData->gamepadHIDManager = B3DNew<HIDManager>(HIDType::Gamepad, this);
 
 	for(auto& entry : mPlatformData->gamepadInfos)
 	{
 		entry.hid = mPlatformData->gamepadHIDManager;
-		mGamepads.push_back(bs_new<Gamepad>(entry.name, entry, this));
+		mGamepads.push_back(B3DNew<Gamepad>(entry.name, entry, this));
 	}
 }
 
 void Input::cleanUpRawInput()
 {
 	if(mMouse != nullptr)
-		bs_delete(mMouse);
+		B3DDelete(mMouse);
 
 	if(mKeyboard != nullptr)
-		bs_delete(mKeyboard);
+		B3DDelete(mKeyboard);
 
 	for(auto& gamepad : mGamepads)
-		bs_delete(gamepad);
+		B3DDelete(gamepad);
 
-	bs_delete(mPlatformData->gamepadHIDManager);
+	B3DDelete(mPlatformData->gamepadHIDManager);
 
-	bs_delete(mPlatformData);
+	B3DDelete(mPlatformData);
 }
 
 u32 Input::getDeviceCount(InputDevice device) const

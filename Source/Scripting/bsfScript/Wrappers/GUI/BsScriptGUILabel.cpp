@@ -41,7 +41,7 @@ void ScriptGUILabel::InternalCreateInstance(MonoObject* instance, __GUIContentIn
 	GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
 	GUILabel* guiLabel = GUILabel::Create(nativeContent, options, MonoUtil::MonoToString(style));
 
-	new(bs_alloc<ScriptGUILabel>()) ScriptGUILabel(instance, guiLabel);
+	new(B3DAllocate<ScriptGUILabel>()) ScriptGUILabel(instance, guiLabel);
 }
 
 void ScriptGUILabel::InternalSetContent(ScriptGUILabel* nativeInstance, __GUIContentInterop* content)

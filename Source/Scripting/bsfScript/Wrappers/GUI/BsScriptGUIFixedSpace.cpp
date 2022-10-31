@@ -40,7 +40,7 @@ void ScriptGUIFixedSpace::InternalCreateInstance(MonoObject* instance, u32 size)
 {
 	GUIFixedSpace* space = GUIFixedSpace::Create(size);
 
-	new(bs_alloc<ScriptGUIFixedSpace>()) ScriptGUIFixedSpace(instance, space);
+	new(B3DAllocate<ScriptGUIFixedSpace>()) ScriptGUIFixedSpace(instance, space);
 }
 
 void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* nativeInstance, u32 size)

@@ -22,12 +22,12 @@ LayoutSizeRange GUIFixedSpace::CalculateLayoutSizeRangeInternal() const
 
 GUIFixedSpace* GUIFixedSpace::Create(u32 size)
 {
-	return bs_new<GUIFixedSpace>(size);
+	return B3DNew<GUIFixedSpace>(size);
 }
 
 void GUIFixedSpace::Destroy(GUIFixedSpace* space)
 {
-	bs_delete(space);
+	B3DDelete(space);
 }
 
 GUIFlexibleSpace::~GUIFlexibleSpace()
@@ -48,10 +48,10 @@ LayoutSizeRange GUIFlexibleSpace::CalculateLayoutSizeRangeInternal() const
 
 GUIFlexibleSpace* GUIFlexibleSpace::Create()
 {
-	return bs_new<GUIFlexibleSpace>();
+	return B3DNew<GUIFlexibleSpace>();
 }
 
 void GUIFlexibleSpace::Destroy(GUIFlexibleSpace* space)
 {
-	bs_delete(space);
+	B3DDelete(space);
 }

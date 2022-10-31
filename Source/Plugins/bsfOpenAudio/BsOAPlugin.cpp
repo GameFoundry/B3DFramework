@@ -32,14 +32,14 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	OAImporter* importer = bs_new<OAImporter>();
+	OAImporter* importer = B3DNew<OAImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
-	return bs_new<OAFactory>();
+	return B3DNew<OAFactory>();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" BS_PLUGIN_EXPORT void unloadPlugin(OAFactory* instance)
 {
-	bs_delete(instance);
+	B3DDelete(instance);
 }

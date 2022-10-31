@@ -20,12 +20,12 @@ struct Mouse::Pimpl
 Mouse::Mouse(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>(owner);
+	m = B3DNew<Pimpl>(owner);
 }
 
 Mouse::~Mouse()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Mouse::capture()

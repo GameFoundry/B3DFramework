@@ -7,8 +7,8 @@ using namespace bs;
 
 SPtr<GpuProgram> GpuProgramManager::Create(const GPU_PROGRAM_DESC& desc)
 {
-	GpuProgram* program = new(bs_alloc<GpuProgram>()) GpuProgram(desc);
-	SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
+	GpuProgram* program = new(B3DAllocate<GpuProgram>()) GpuProgram(desc);
+	SPtr<GpuProgram> ret = B3DMakeCoreFromExisting<GpuProgram>(program);
 	ret->SetThisPtrInternal(ret);
 	ret->Initialize();
 
@@ -21,8 +21,8 @@ SPtr<GpuProgram> GpuProgramManager::CreateEmpty(const String& language, GpuProgr
 	desc.Language = language;
 	desc.Type = type;
 
-	GpuProgram* program = new(bs_alloc<GpuProgram>()) GpuProgram(desc);
-	SPtr<GpuProgram> ret = bs_core_ptr<GpuProgram>(program);
+	GpuProgram* program = new(B3DAllocate<GpuProgram>()) GpuProgram(desc);
+	SPtr<GpuProgram> ret = B3DMakeCoreFromExisting<GpuProgram>(program);
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -47,7 +47,7 @@ public:
 
 SPtr<GpuProgram> NullProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
 {
-	SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
+	SPtr<NullProgram> ret = B3DMakeShared<NullProgram>();
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -55,7 +55,7 @@ SPtr<GpuProgram> NullProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDev
 
 SPtr<GpuProgram> NullProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 {
-	SPtr<NullProgram> ret = bs_shared_ptr_new<NullProgram>();
+	SPtr<NullProgram> ret = B3DMakeShared<NullProgram>();
 	ret->SetThisPtrInternal(ret);
 
 	return ret;
@@ -63,7 +63,7 @@ SPtr<GpuProgram> NullProgramFactory::Create(GpuProgramType type, GpuDeviceFlags 
 
 SPtr<GpuProgramBytecode> NullProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
 {
-	auto bytecode = bs_shared_ptr_new<GpuProgramBytecode>();
+	auto bytecode = B3DMakeShared<GpuProgramBytecode>();
 	bytecode->CompilerId = "Null";
 
 	return bytecode;
@@ -71,13 +71,13 @@ SPtr<GpuProgramBytecode> NullProgramFactory::CompileBytecode(const GPU_PROGRAM_D
 
 GpuProgramManager::GpuProgramManager()
 {
-	mNullFactory = bs_new<NullProgramFactory>();
+	mNullFactory = B3DNew<NullProgramFactory>();
 	AddFactory(sNullLang, mNullFactory);
 }
 
 GpuProgramManager::~GpuProgramManager()
 {
-	bs_delete((NullProgramFactory*)mNullFactory);
+	B3DDelete((NullProgramFactory*)mNullFactory);
 }
 
 void GpuProgramManager::AddFactory(const String& language, GpuProgramFactory* factory)

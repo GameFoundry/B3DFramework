@@ -35,7 +35,7 @@ MonoObject* ScriptAnimationUtility::Create(const SPtr<AnimationUtility>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
+	new(B3DAllocate<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
 	return managedInstance;
 }
 

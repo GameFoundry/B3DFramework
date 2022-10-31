@@ -12,14 +12,14 @@ void MemStack::BeginThread()
 	if(ThreadMemStack != nullptr)
 		EndThread();
 
-	ThreadMemStack = bs_new<MemStackInternal<1024 * 1024>>();
+	ThreadMemStack = B3DNew<MemStackInternal<1024 * 1024>>();
 }
 
 void MemStack::EndThread()
 {
 	if(ThreadMemStack != nullptr)
 	{
-		bs_delete(ThreadMemStack);
+		B3DDelete(ThreadMemStack);
 		ThreadMemStack = nullptr;
 	}
 }

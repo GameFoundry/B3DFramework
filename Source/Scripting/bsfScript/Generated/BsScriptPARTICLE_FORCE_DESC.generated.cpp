@@ -45,7 +45,7 @@ __PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::ToInterop(const PARTICLE
 	__PARTICLE_FORCE_DESCInterop output;
 	MonoObject* tmpForce;
 	SPtr<TDistribution<Vector3>> tmpForcecopy;
-	tmpForcecopy = bs_shared_ptr_new<TDistribution<Vector3>>(value.Force);
+	tmpForcecopy = B3DMakeShared<TDistribution<Vector3>>(value.Force);
 	tmpForce = ScriptTDistributionVector3::Create(tmpForcecopy);
 	output.Force = tmpForce;
 	output.WorldSpace = value.WorldSpace;

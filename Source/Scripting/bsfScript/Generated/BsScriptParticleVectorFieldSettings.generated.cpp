@@ -49,7 +49,7 @@ MonoObject* ScriptParticleVectorFieldSettings::Create(const SPtr<ParticleVectorF
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleVectorFieldSettings>()) ScriptParticleVectorFieldSettings(managedInstance, value);
+	new(B3DAllocate<ScriptParticleVectorFieldSettings>()) ScriptParticleVectorFieldSettings(managedInstance, value);
 	return managedInstance;
 }
 
@@ -152,7 +152,7 @@ void ScriptParticleVectorFieldSettings::InternalSetRotation(ScriptParticleVector
 
 MonoObject* ScriptParticleVectorFieldSettings::InternalGetRotationRate(ScriptParticleVectorFieldSettings* thisPtr)
 {
-	SPtr<TDistribution<Vector3>> tmp__output = bs_shared_ptr_new<TDistribution<Vector3>>();
+	SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
 	*tmp__output = thisPtr->GetInternal()->RotationRate;
 
 	MonoObject* __output;

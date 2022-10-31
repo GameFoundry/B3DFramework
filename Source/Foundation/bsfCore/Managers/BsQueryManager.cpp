@@ -91,7 +91,7 @@ void QueryManager::ProcessDeletedQueue()
 		if(iterFind != mEventQueries.end())
 			mEventQueries.erase(iterFind);
 
-		bs_delete(query);
+		B3DDelete(query);
 	}
 
 	mDeletedEventQueries.clear();
@@ -103,7 +103,7 @@ void QueryManager::ProcessDeletedQueue()
 		if(iterFind != mTimerQueries.end())
 			mTimerQueries.erase(iterFind);
 
-		bs_delete(query);
+		B3DDelete(query);
 	}
 
 	mDeletedTimerQueries.clear();
@@ -115,7 +115,7 @@ void QueryManager::ProcessDeletedQueue()
 		if(iterFind != mOcclusionQueries.end())
 			mOcclusionQueries.erase(iterFind);
 
-		bs_delete(query);
+		B3DDelete(query);
 	}
 
 	mDeletedOcclusionQueries.clear();

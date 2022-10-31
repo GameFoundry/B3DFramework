@@ -36,7 +36,7 @@ PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SPHERICAL_JOINT
 	PxSphericalJoint* joint = PxSphericalJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 
 	PxSphericalJointFlags flags;
 
@@ -51,7 +51,7 @@ PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SPHERICAL_JOINT
 
 PhysXSphericalJoint::~PhysXSphericalJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 LimitConeRange PhysXSphericalJoint::GetLimit() const

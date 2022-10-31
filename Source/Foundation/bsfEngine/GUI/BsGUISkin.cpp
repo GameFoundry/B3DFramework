@@ -68,7 +68,7 @@ HGUISkin GUISkin::Create()
 
 SPtr<GUISkin> GUISkin::CreatePtrInternal()
 {
-	SPtr<GUISkin> newSkin = bs_core_ptr<GUISkin>(new(bs_alloc<GUISkin>()) GUISkin());
+	SPtr<GUISkin> newSkin = B3DMakeCoreFromExisting<GUISkin>(new(B3DAllocate<GUISkin>()) GUISkin());
 	newSkin->SetThisPtrInternal(newSkin);
 	newSkin->Initialize();
 

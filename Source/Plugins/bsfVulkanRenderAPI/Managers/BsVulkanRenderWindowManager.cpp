@@ -23,13 +23,13 @@ SPtr<RenderWindow> VulkanRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& des
 
 	// Create the window
 #if BS_PLATFORM == BS_PLATFORM_WIN32
-	Win32RenderWindow* renderWindow = new(bs_alloc<Win32RenderWindow>()) Win32RenderWindow(desc, windowId);
-	return bs_core_ptr<Win32RenderWindow>(renderWindow);
+	Win32RenderWindow* renderWindow = new(B3DAllocate<Win32RenderWindow>()) Win32RenderWindow(desc, windowId);
+	return B3DMakeCoreFromExisting<Win32RenderWindow>(renderWindow);
 #elif BS_PLATFORM == BS_PLATFORM_LINUX
-	LinuxRenderWindow* renderWindow = new(bs_alloc<LinuxRenderWindow>()) LinuxRenderWindow(desc, windowId);
-	return bs_core_ptr<LinuxRenderWindow>(renderWindow);
+	LinuxRenderWindow* renderWindow = new(B3DAllocate<LinuxRenderWindow>()) LinuxRenderWindow(desc, windowId);
+	return B3DMakeCoreFromExisting<LinuxRenderWindow>(renderWindow);
 #elif BS_PLATFORM == BS_PLATFORM_OSX
-	MacOSRenderWindow* renderWindow = new(bs_alloc<MacOSRenderWindow>()) MacOSRenderWindow(desc, windowId);
-	return bs_core_ptr<MacOSRenderWindow>(renderWindow);
+	MacOSRenderWindow* renderWindow = new(B3DAllocate<MacOSRenderWindow>()) MacOSRenderWindow(desc, windowId);
+	return B3DMakeCoreFromExisting<MacOSRenderWindow>(renderWindow);
 #endif
 }

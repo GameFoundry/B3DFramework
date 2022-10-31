@@ -84,5 +84,5 @@ const RectOffset& GUILayout::GetPaddingInternal() const
 
 void GUILayout::Destroy(GUILayout* layout)
 {
-	bs_delete(layout);
+	B3DDelete(layout);
 }

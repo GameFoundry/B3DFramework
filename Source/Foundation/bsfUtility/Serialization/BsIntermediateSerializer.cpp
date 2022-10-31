@@ -318,7 +318,7 @@ SPtr<SerializedObject> IntermediateSerializer::EncodeEntry(IReflectable* object,
 	};
 
 	bool replicableOnly = flags.IsSet(SerializedObjectEncodeFlag::ReplicableOnly);
-	SPtr<SerializedObject> output = bs_shared_ptr_new<SerializedObject>();
+	SPtr<SerializedObject> output = B3DMakeShared<SerializedObject>();
 
 	// If an object has base classes, we need to iterate through all of them
 	do
@@ -383,7 +383,7 @@ SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectabl
 		SPtr<SerializedArray> serializedArray;
 		if(wholeArray)
 		{
-			serializedArray = bs_shared_ptr_new<SerializedArray>();
+			serializedArray = B3DMakeShared<SerializedArray>();
 			serializedArray->NumElements = arrayNumElems;
 
 			output = serializedArray;
@@ -457,8 +457,8 @@ SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectabl
 					else
 						typeSize = curField->Schema.Size.Bytes;
 
-					const auto serializedField = bs_shared_ptr_new<SerializedField>();
-					serializedField->Value = (u8*)bs_alloc(typeSize);
+					const auto serializedField = B3DMakeShared<SerializedField>();
+					serializedField->Value = (u8*)B3DAllocate(typeSize);
 					serializedField->OwnsMemory = true;
 					serializedField->Size = typeSize;
 
@@ -520,8 +520,8 @@ SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectabl
 				else
 					typeSize = curField->Schema.Size.Bytes;
 
-				const auto serializedField = bs_shared_ptr_new<SerializedField>();
-				serializedField->Value = (u8*)bs_alloc(typeSize);
+				const auto serializedField = B3DMakeShared<SerializedField>();
+				serializedField->Value = (u8*)B3DAllocate(typeSize);
 				serializedField->OwnsMemory = true;
 				serializedField->Size = typeSize;
 
@@ -539,10 +539,10 @@ SPtr<SerializedInstance> IntermediateSerializer::EncodeFieldInternal(IReflectabl
 				u32 dataBlockSize = 0;
 				SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
 
-				SPtr<MemoryDataStream> stream = bs_shared_ptr_new<MemoryDataStream>(dataBlockSize);
+				SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
 				blockStream->Read(stream->Data(), dataBlockSize);
 
-				SPtr<SerializedDataBlock> serializedDataBlock = bs_shared_ptr_new<SerializedDataBlock>();
+				SPtr<SerializedDataBlock> serializedDataBlock = B3DMakeShared<SerializedDataBlock>();
 				serializedDataBlock->Stream = stream;
 				serializedDataBlock->Offset = 0;
 

@@ -65,7 +65,7 @@ SPtr<ct::CoreObject> LinuxRenderWindow::createCore() const
 	ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::Instance());
 
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = bs_shared_ptr_new<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::LinuxRenderWindow>(desc, mWindowId, rapi);
 	coreObj->SetThisPtrInternal(coreObj);
 
 	return coreObj;
@@ -97,7 +97,7 @@ LinuxRenderWindow::~LinuxRenderWindow()
 
 		LinuxPlatform::lockX();
 
-		bs_delete(mWindow);
+		B3DDelete(mWindow);
 		mWindow = nullptr;
 
 		LinuxPlatform::unlockX();
@@ -157,7 +157,7 @@ void LinuxRenderWindow::Initialize()
 	mShowOnSwap = mDesc.hideUntilSwap && !mDesc.hidden;
 	props.isHidden = mDesc.hideUntilSwap || mDesc.hidden;
 
-	mWindow = bs_new<LinuxWindow>(windowDesc);
+	mWindow = B3DNew<LinuxWindow>(windowDesc);
 	mWindow->SetUserDataInternal(this);
 
 	props.width = mWindow->GetWidth();

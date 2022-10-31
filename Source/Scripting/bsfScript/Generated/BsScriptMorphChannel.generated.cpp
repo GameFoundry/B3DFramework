@@ -26,7 +26,7 @@ MonoObject* ScriptMorphChannel::Create(const SPtr<MorphChannel>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptMorphChannel>()) ScriptMorphChannel(managedInstance, value);
+	new(B3DAllocate<ScriptMorphChannel>()) ScriptMorphChannel(managedInstance, value);
 	return managedInstance;
 }
 

@@ -25,7 +25,7 @@ SPtr<VertexDataDesc> GetGUITriangleMeshDesc()
 
 	if(!sDesc)
 	{
-		sDesc = bs_shared_ptr_new<VertexDataDesc>();
+		sDesc = B3DMakeShared<VertexDataDesc>();
 		sDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
 		sDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 	}
@@ -39,7 +39,7 @@ SPtr<VertexDataDesc> GetGUILineMeshDesc()
 
 	if(!sDesc)
 	{
-		sDesc = bs_shared_ptr_new<VertexDataDesc>();
+		sDesc = B3DMakeShared<VertexDataDesc>();
 		sDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
 	}
 
@@ -893,12 +893,12 @@ GUIWidget::~GUIWidget()
 
 SPtr<GUIWidget> GUIWidget::Create(const SPtr<Camera>& camera)
 {
-	return bs_shared_ptr(new(bs_alloc<GUIWidget>()) GUIWidget(camera));
+	return B3DMakeSharedFromExisting(new(B3DAllocate<GUIWidget>()) GUIWidget(camera));
 }
 
 SPtr<GUIWidget> GUIWidget::Create(const HCamera& camera)
 {
-	return bs_shared_ptr(new(bs_alloc<GUIWidget>()) GUIWidget(camera));
+	return B3DMakeSharedFromExisting(new(B3DAllocate<GUIWidget>()) GUIWidget(camera));
 }
 
 void GUIWidget::DestroyInternal()

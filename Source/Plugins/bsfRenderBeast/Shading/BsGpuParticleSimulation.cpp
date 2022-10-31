@@ -386,13 +386,13 @@ const SPtr<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
 GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 {
 	// Prepare vertex declaration for rendering tiles
-	SPtr<VertexDataDesc> tileVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>();
 	tileVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 
 	TileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
 
 	// Prepare vertex declaration for injecting new particles
-	SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>();
 	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
 	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
 	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Size, per instance
@@ -702,7 +702,7 @@ struct GpuParticleSimulation::Pimpl
 };
 
 GpuParticleSimulation::GpuParticleSimulation()
-	: m(bs_new<Pimpl>())
+	: m(B3DNew<Pimpl>())
 {
 	m->VectorFieldParams = gVectorFieldParamsDef.CreateBuffer();
 	m->DepthCollisionParams = gGpuParticleDepthCollisionParamsDef.CreateBuffer();
@@ -711,7 +711,7 @@ GpuParticleSimulation::GpuParticleSimulation()
 
 GpuParticleSimulation::~GpuParticleSimulation()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void GpuParticleSimulation::AddSystem(GpuParticleSystem* system)
@@ -1340,7 +1340,7 @@ GpuParticleCurves::GpuParticleCurves()
 	mRT = RenderTexture::Create(rtDesc);
 
 	// Prepare vertex declaration for injecting new curves
-	SPtr<VertexDataDesc> injectVertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>();
 	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
 	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1); // Data UV, per instance
 	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 1); // Pixel texture coordinates

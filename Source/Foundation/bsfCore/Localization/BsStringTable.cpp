@@ -12,7 +12,7 @@ const Language StringTable::kDefaultLanguage = Language::EnglishUS;
 LocalizedStringData::~LocalizedStringData()
 {
 	if(ParameterOffsets != nullptr)
-		bs_deleteN(ParameterOffsets, NumParameters);
+		B3DDeleteMultiple(ParameterOffsets, NumParameters);
 }
 
 void LocalizedStringData::ConcatenateString(bs::String& outputString, bs::String* parameters, u32 numParameterValues) const
@@ -65,7 +65,7 @@ void LocalizedStringData::ConcatenateString(bs::String& outputString, bs::String
 void LocalizedStringData::UpdateString(const bs::String& _string)
 {
 	if(ParameterOffsets != nullptr)
-		bs_deleteN(ParameterOffsets, NumParameters);
+		B3DDeleteMultiple(ParameterOffsets, NumParameters);
 
 	Vector<ParamOffset> paramOffsets;
 
@@ -153,7 +153,7 @@ void LocalizedStringData::UpdateString(const bs::String& _string)
 	std::sort(begin(paramOffsets), end(paramOffsets), [&](const ParamOffset& a, const ParamOffset& b)
 			  { return a.Location < b.Location; });
 
-	ParameterOffsets = bs_newN<ParamOffset>(NumParameters);
+	ParameterOffsets = B3DNewMultiple<ParamOffset>(NumParameters);
 	for(u32 i = 0; i < NumParameters; i++)
 		ParameterOffsets[i] = paramOffsets[i];
 }
@@ -161,7 +161,7 @@ void LocalizedStringData::UpdateString(const bs::String& _string)
 StringTable::StringTable()
 	: Resource(false), mActiveLanguageData(nullptr), mDefaultLanguageData(nullptr), mAllLanguages(nullptr)
 {
-	mAllLanguages = bs_newN<LanguageData>((u32)Language::Count);
+	mAllLanguages = B3DNewMultiple<LanguageData>((u32)Language::Count);
 
 	mDefaultLanguageData = &(mAllLanguages[(u32)kDefaultLanguage]);
 	mActiveLanguageData = mDefaultLanguageData;
@@ -170,7 +170,7 @@ StringTable::StringTable()
 
 StringTable::~StringTable()
 {
-	bs_deleteN(mAllLanguages, (u32)Language::Count);
+	B3DDeleteMultiple(mAllLanguages, (u32)Language::Count);
 }
 
 void StringTable::SetActiveLanguage(Language language)
@@ -205,7 +205,7 @@ void StringTable::SetString(const String& identifier, Language language, const S
 	SPtr<LocalizedStringData> stringData;
 	if(iterFind == curLanguage->Strings.end())
 	{
-		stringData = bs_shared_ptr_new<LocalizedStringData>();
+		stringData = B3DMakeShared<LocalizedStringData>();
 		curLanguage->Strings[identifier] = stringData;
 	}
 	else
@@ -275,8 +275,8 @@ HStringTable StringTable::Create()
 
 SPtr<StringTable> StringTable::CreatePtrInternal()
 {
-	SPtr<StringTable> scriptCodePtr = bs_core_ptr<StringTable>(
-		new(bs_alloc<StringTable>()) StringTable());
+	SPtr<StringTable> scriptCodePtr = B3DMakeCoreFromExisting<StringTable>(
+		new(B3DAllocate<StringTable>()) StringTable());
 	scriptCodePtr->SetThisPtrInternal(scriptCodePtr);
 	scriptCodePtr->Initialize();
 

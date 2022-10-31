@@ -203,9 +203,9 @@ SPtr<ct::Light> Light::GetCore() const
 
 SPtr<Light> Light::Create(LightType type, Color color, float intensity, float attRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 {
-	Light* handler = new(bs_alloc<Light>())
+	Light* handler = new(B3DAllocate<Light>())
 		Light(type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
-	SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
+	SPtr<Light> handlerPtr = B3DMakeCoreFromExisting<Light>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 	handlerPtr->Initialize();
 
@@ -214,8 +214,8 @@ SPtr<Light> Light::Create(LightType type, Color color, float intensity, float at
 
 SPtr<Light> Light::CreateEmpty()
 {
-	Light* handler = new(bs_alloc<Light>()) Light();
-	SPtr<Light> handlerPtr = bs_core_ptr<Light>(handler);
+	Light* handler = new(B3DAllocate<Light>()) Light();
+	SPtr<Light> handlerPtr = B3DMakeCoreFromExisting<Light>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;
@@ -223,9 +223,9 @@ SPtr<Light> Light::CreateEmpty()
 
 SPtr<ct::CoreObject> Light::CreateCore() const
 {
-	ct::Light* handler = new(bs_alloc<ct::Light>())
+	ct::Light* handler = new(B3DAllocate<ct::Light>())
 		ct::Light(mType, mColor, mIntensity, mAttRadius, mSourceRadius, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
-	SPtr<ct::Light> handlerPtr = bs_shared_ptr<ct::Light>(handler);
+	SPtr<ct::Light> handlerPtr = B3DMakeSharedFromExisting<ct::Light>(handler);
 	handlerPtr->SetThisPtrInternal(handlerPtr);
 
 	return handlerPtr;

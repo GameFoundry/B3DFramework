@@ -30,7 +30,7 @@ MonoObject* ScriptParticleForce::Create(const SPtr<ParticleForce>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleForce>()) ScriptParticleForce(managedInstance, value);
+	new(B3DAllocate<ScriptParticleForce>()) ScriptParticleForce(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleForce::InternalCreate(MonoObject* managedInstance, __PARTICLE
 	PARTICLE_FORCE_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_FORCE_DESC::FromInterop(*desc);
 	SPtr<ParticleForce> instance = ParticleForce::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleForce>()) ScriptParticleForce(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleForce>()) ScriptParticleForce(managedInstance, instance);
 }
 
 void ScriptParticleForce::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleForce> instance = ParticleForce::Create();
-	new(bs_alloc<ScriptParticleForce>()) ScriptParticleForce(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleForce>()) ScriptParticleForce(managedInstance, instance);
 }

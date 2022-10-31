@@ -30,7 +30,7 @@ MonoObject* ScriptParticleRotation::Create(const SPtr<ParticleRotation>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
+	new(B3DAllocate<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
 	return managedInstance;
 }
 
@@ -56,11 +56,11 @@ void ScriptParticleRotation::InternalCreate(MonoObject* managedInstance, __PARTI
 	PARTICLE_ROTATION_DESC tmpdesc;
 	tmpdesc = ScriptPARTICLE_ROTATION_DESC::FromInterop(*desc);
 	SPtr<ParticleRotation> instance = ParticleRotation::Create(tmpdesc);
-	new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
 }
 
 void ScriptParticleRotation::InternalCreate0(MonoObject* managedInstance)
 {
 	SPtr<ParticleRotation> instance = ParticleRotation::Create();
-	new(bs_alloc<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
+	new(B3DAllocate<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, instance);
 }

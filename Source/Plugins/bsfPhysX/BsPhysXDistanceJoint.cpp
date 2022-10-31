@@ -40,7 +40,7 @@ PhysXDistanceJoint::PhysXDistanceJoint(PxPhysics* physx, const DISTANCE_JOINT_DE
 	PxDistanceJoint* joint = PxDistanceJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 
 	// Calls to virtual methods are okay here
 	SetMinDistance(desc.MinDistance);
@@ -64,7 +64,7 @@ PhysXDistanceJoint::PhysXDistanceJoint(PxPhysics* physx, const DISTANCE_JOINT_DE
 
 PhysXDistanceJoint::~PhysXDistanceJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 float PhysXDistanceJoint::GetDistance() const

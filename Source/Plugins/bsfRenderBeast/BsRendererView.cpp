@@ -80,21 +80,21 @@ RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
 
 void RendererView::SetStateReductionMode(StateReduction reductionMode)
 {
-	mDeferredOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
-	mForwardOpaqueQueue = bs_shared_ptr_new<RenderQueue>(reductionMode);
+	mDeferredOpaqueQueue = B3DMakeShared<RenderQueue>(reductionMode);
+	mForwardOpaqueQueue = B3DMakeShared<RenderQueue>(reductionMode);
 
 	StateReduction transparentStateReduction = reductionMode;
 	if(transparentStateReduction == StateReduction::Material)
 		transparentStateReduction = StateReduction::Distance; // Transparent object MUST be sorted by distance
 
-	mTransparentQueue = bs_shared_ptr_new<RenderQueue>(transparentStateReduction);
-	mDecalQueue = bs_shared_ptr_new<RenderQueue>(StateReduction::Material);
+	mTransparentQueue = B3DMakeShared<RenderQueue>(transparentStateReduction);
+	mDecalQueue = B3DMakeShared<RenderQueue>(StateReduction::Material);
 }
 
 void RendererView::SetRenderSettings(const SPtr<RenderSettings>& settings)
 {
 	if(mRenderSettings == nullptr)
-		mRenderSettings = bs_shared_ptr_new<RenderSettings>();
+		mRenderSettings = B3DMakeShared<RenderSettings>();
 
 	if(settings != nullptr)
 		*mRenderSettings = *settings;

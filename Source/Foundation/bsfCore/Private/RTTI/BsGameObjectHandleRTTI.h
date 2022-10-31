@@ -63,7 +63,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<GameObjectHandleBase> obj = bs_shared_ptr<GameObjectHandleBase>(new(bs_alloc<GameObjectHandleBase>()) GameObjectHandleBase());
+			SPtr<GameObjectHandleBase> obj = B3DMakeSharedFromExisting<GameObjectHandleBase>(new(B3DAllocate<GameObjectHandleBase>()) GameObjectHandleBase());
 
 			return obj;
 		}

@@ -362,9 +362,9 @@ struct ParticleRenderer::Members
 };
 
 ParticleRenderer::ParticleRenderer()
-	: m(bs_new<Members>())
+	: m(B3DNew<Members>())
 {
-	SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
 	vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 	vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL);
@@ -414,7 +414,7 @@ ParticleRenderer::ParticleRenderer()
 
 ParticleRenderer::~ParticleRenderer()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void ParticleRenderer::DrawBillboards(u32 count)

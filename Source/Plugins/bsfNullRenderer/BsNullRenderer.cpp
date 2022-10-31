@@ -15,7 +15,7 @@ constexpr const char* NullRendererFactory::SystemName;
 
 SPtr<ct::Renderer> NullRendererFactory::Create()
 {
-	return bs_shared_ptr_new<ct::NullRenderer>();
+	return B3DMakeShared<ct::NullRenderer>();
 }
 
 const String& NullRendererFactory::Name() const

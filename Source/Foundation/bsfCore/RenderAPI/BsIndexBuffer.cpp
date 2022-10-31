@@ -158,7 +158,7 @@ SPtr<GpuBuffer> IndexBuffer::GetLoadStore(GpuBufferType type, GpuBufferFormat fo
 	desc.ElementCount = mBuffer->GetSize() / elemSize;
 
 	if(!mSharedBuffer)
-		mSharedBuffer = bs_shared_ptr(mBuffer, mBufferDeleter);
+		mSharedBuffer = B3DMakeSharedFromExisting(mBuffer, mBufferDeleter);
 
 	SPtr<GpuBuffer> newView = GpuBuffer::Create(desc, mSharedBuffer);
 	mLoadStoreViews.push_back(newView);

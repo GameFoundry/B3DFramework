@@ -456,7 +456,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 	// See if we can use the cheaper staging memory, rather than a staging buffer
 	if(!needRead && offset % 4 == 0 && length % 4 == 0 && length <= 65536)
 	{
-		mStagingMemory = (u8*)bs_alloc(length);
+		mStagingMemory = (u8*)B3DAllocate(length);
 		return mStagingMemory;
 	}
 
@@ -606,7 +606,7 @@ void VulkanHardwareBuffer::Unmap()
 
 		if(mStagingMemory != nullptr)
 		{
-			bs_free(mStagingMemory);
+			B3DFree(mStagingMemory);
 			mStagingMemory = nullptr;
 		}
 	}

@@ -70,7 +70,7 @@ void GpuResourceData::AllocateInternalBuffer(u32 size)
 
 	FreeInternalBuffer();
 
-	mData = (u8*)bs_alloc(size);
+	mData = (u8*)B3DAllocate(size);
 	mOwnsData = true;
 }
 
@@ -81,7 +81,7 @@ void GpuResourceData::FreeInternalBuffer()
 
 	verifyLockAndThread(this);
 
-	bs_free(mData);
+	B3DFree(mData);
 	mData = nullptr;
 }
 

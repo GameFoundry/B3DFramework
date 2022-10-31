@@ -18,9 +18,9 @@ using namespace bs;
 
 Importer::Importer()
 {
-	mAsyncOpSyncData = bs_shared_ptr_new<AsyncOpSyncData>();
+	mAsyncOpSyncData = B3DMakeShared<AsyncOpSyncData>();
 
-	RegisterAssetImporterInternal(bs_new<ShaderIncludeImporter>());
+	RegisterAssetImporterInternal(B3DNew<ShaderIncludeImporter>());
 }
 
 Importer::~Importer()
@@ -28,7 +28,7 @@ Importer::~Importer()
 	for(auto i = mAssetImporters.begin(); i != mAssetImporters.end(); ++i)
 	{
 		if((*i) != nullptr)
-			bs_delete(*i);
+			B3DDelete(*i);
 	}
 
 	mAssetImporters.clear();
@@ -92,7 +92,7 @@ SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const Im
 		output.push_back({ entry.Name, handle });
 	}
 
-	return bs_shared_ptr_new<MultiResource>(output);
+	return B3DMakeShared<MultiResource>(output);
 }
 
 TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
@@ -102,7 +102,7 @@ TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
 	{
-		output.CompleteOperationInternal(bs_shared_ptr_new<MultiResource>());
+		output.CompleteOperationInternal(B3DMakeShared<MultiResource>());
 		return output;
 	}
 
@@ -246,7 +246,7 @@ void doImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, cons
 		subresources.push_back({ entry.Name, handle });
 	}
 
-	op.CompleteOperationInternal(bs_shared_ptr_new<MultiResource>(subresources));
+	op.CompleteOperationInternal(B3DMakeShared<MultiResource>(subresources));
 }
 
 template <class ReturnType>

@@ -28,7 +28,7 @@ void ScriptObjectBase::EndRefresh(const ScriptObjectBackup& data)
 
 void ScriptObjectBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 {
-	bs_delete(this);
+	B3DDelete(this);
 }
 
 PersistentScriptObjectBase::PersistentScriptObjectBase(MonoObject* instance)

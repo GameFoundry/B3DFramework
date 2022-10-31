@@ -62,7 +62,7 @@ void ScriptCParticleSystem::InternalSetSettings(ScriptCParticleSystem* thisPtr, 
 
 MonoObject* ScriptCParticleSystem::InternalGetSettings(ScriptCParticleSystem* thisPtr)
 {
-	SPtr<ParticleSystemSettings> tmp__output = bs_shared_ptr_new<ParticleSystemSettings>();
+	SPtr<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
 	*tmp__output = thisPtr->GetHandle()->GetSettings();
 
 	MonoObject* __output;
@@ -83,7 +83,7 @@ void ScriptCParticleSystem::InternalSetGpuSimulationSettings(ScriptCParticleSyst
 
 MonoObject* ScriptCParticleSystem::InternalGetGpuSimulationSettings(ScriptCParticleSystem* thisPtr)
 {
-	SPtr<ParticleGpuSimulationSettings> tmp__output = bs_shared_ptr_new<ParticleGpuSimulationSettings>();
+	SPtr<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
 	*tmp__output = thisPtr->GetHandle()->GetGpuSimulationSettings();
 
 	MonoObject* __output;

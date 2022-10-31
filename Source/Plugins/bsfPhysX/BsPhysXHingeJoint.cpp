@@ -38,7 +38,7 @@ PhysXHingeJoint::PhysXHingeJoint(PxPhysics* physx, const HINGE_JOINT_DESC& desc)
 	PxRevoluteJoint* joint = PxRevoluteJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = bs_new<FPhysXJoint>(joint, desc);
+	mInternal = B3DNew<FPhysXJoint>(joint, desc);
 
 	PxRevoluteJointFlags flags;
 
@@ -58,7 +58,7 @@ PhysXHingeJoint::PhysXHingeJoint(PxPhysics* physx, const HINGE_JOINT_DESC& desc)
 
 PhysXHingeJoint::~PhysXHingeJoint()
 {
-	bs_delete(mInternal);
+	B3DDelete(mInternal);
 }
 
 Radian PhysXHingeJoint::GetAngle() const

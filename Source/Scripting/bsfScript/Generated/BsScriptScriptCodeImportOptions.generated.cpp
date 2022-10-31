@@ -29,14 +29,14 @@ MonoObject* ScriptScriptCodeImportOptions::Create(const SPtr<ScriptCodeImportOpt
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptScriptCodeImportOptions>()) ScriptScriptCodeImportOptions(managedInstance, value);
+	new(B3DAllocate<ScriptScriptCodeImportOptions>()) ScriptScriptCodeImportOptions(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptScriptCodeImportOptions::InternalCreate(MonoObject* managedInstance)
 {
 	SPtr<ScriptCodeImportOptions> instance = ScriptCodeImportOptions::Create();
-	new(bs_alloc<ScriptScriptCodeImportOptions>()) ScriptScriptCodeImportOptions(managedInstance, instance);
+	new(B3DAllocate<ScriptScriptCodeImportOptions>()) ScriptScriptCodeImportOptions(managedInstance, instance);
 }
 
 bool ScriptScriptCodeImportOptions::InternalGetEditorScript(ScriptScriptCodeImportOptions* thisPtr)

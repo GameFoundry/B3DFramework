@@ -50,7 +50,7 @@ struct LinuxWindow::Pimpl
 
 LinuxWindow::LinuxWindow(const WINDOW_DESC& desc)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 
 	if(desc.external)
 	{
@@ -240,7 +240,7 @@ LinuxWindow::~LinuxWindow()
 	if(m->xWindow != 0)
 		DestroyInternal();
 
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void LinuxWindow::move(i32 x, i32 y)

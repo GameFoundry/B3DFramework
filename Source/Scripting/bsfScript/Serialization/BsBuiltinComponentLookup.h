@@ -28,7 +28,7 @@ public:                                                                         
 	static ScriptComponentBase* Create##ScriptType(const HComponent& component)                            \
 	{                                                                                                      \
 		MonoObject* managedInstance = ScriptType::GetMetaData()->ScriptClass->CreateInstance();            \
-		ScriptType* scriptComponent = new(bs_alloc<ScriptType>())                                          \
+		ScriptType* scriptComponent = new(B3DAllocate<ScriptType>())                                          \
 			ScriptType(managedInstance, static_object_cast<ComponentType>(component));                     \
                                                                                                            \
 		return scriptComponent;                                                                            \

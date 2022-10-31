@@ -31,11 +31,11 @@ extern "C" BS_PLUGIN_EXPORT const char* getPluginName()
 /**	Entry point to the plugin. Called by the engine when the plugin is loaded. */
 extern "C" BS_PLUGIN_EXPORT void* loadPlugin()
 {
-	return bs_new<NullFactory>();
+	return B3DNew<NullFactory>();
 }
 
 /**	Exit point of the plugin. Called by the engine before the plugin is unloaded. */
 extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullFactory* instance)
 {
-	bs_delete(instance);
+	B3DDelete(instance);
 }

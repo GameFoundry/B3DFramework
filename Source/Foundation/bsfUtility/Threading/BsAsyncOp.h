@@ -52,14 +52,14 @@ namespace bs
 
 	public:
 		AsyncOpBase()
-			: mData(bs_shared_ptr_new<AsyncOpData>())
+			: mData(B3DMakeShared<AsyncOpData>())
 		{}
 
 		AsyncOpBase(AsyncOpEmpty empty)
 		{}
 
 		AsyncOpBase(const SPtr<AsyncOpSyncData>& syncData)
-			: mData(bs_shared_ptr_new<AsyncOpData>()), mSyncData(syncData)
+			: mData(B3DMakeShared<AsyncOpData>()), mSyncData(syncData)
 		{}
 
 		AsyncOpBase(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)

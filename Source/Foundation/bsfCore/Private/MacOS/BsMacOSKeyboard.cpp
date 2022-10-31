@@ -20,12 +20,12 @@ struct Keyboard::Pimpl
 Keyboard::Keyboard(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>(owner);
+	m = B3DNew<Pimpl>(owner);
 }
 
 Keyboard::~Keyboard()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Keyboard::capture()

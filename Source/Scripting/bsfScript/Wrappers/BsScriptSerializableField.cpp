@@ -38,7 +38,7 @@ MonoObject* ScriptSerializableField::Create(MonoObject* parentObject, const SPtr
 	void* params[4] = { parentObject, monoStrName, &fieldFlags, internalType };
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(params, 4);
 
-	new(bs_alloc<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
+	new(B3DAllocate<ScriptSerializableField>()) ScriptSerializableField(managedInstance, fieldInfo);
 	return managedInstance;
 }
 

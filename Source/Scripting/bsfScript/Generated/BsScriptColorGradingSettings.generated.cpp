@@ -32,7 +32,7 @@ MonoObject* ScriptColorGradingSettings::Create(const SPtr<ColorGradingSettings>&
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptColorGradingSettings>()) ScriptColorGradingSettings(managedInstance, value);
+	new(B3DAllocate<ScriptColorGradingSettings>()) ScriptColorGradingSettings(managedInstance, value);
 	return managedInstance;
 }
 

@@ -36,7 +36,7 @@ bool checkForGLSLError(const GLuint programObj, String& outErrorMsg)
 		{
 			GLint charsWritten = 0;
 
-			GLchar* infoLog = (GLchar*)bs_alloc(sizeof(GLchar) * infologLength);
+			GLchar* infoLog = (GLchar*)B3DAllocate(sizeof(GLchar) * infologLength);
 
 			glGetProgramInfoLog(programObj, infologLength, &charsWritten, infoLog);
 			BS_CHECK_GL_ERROR();
@@ -44,7 +44,7 @@ bool checkForGLSLError(const GLuint programObj, String& outErrorMsg)
 			stream << "Compile and linker info log: \n";
 			stream << String(infoLog);
 
-			bs_free(infoLog);
+			B3DFree(infoLog);
 		}
 	}
 

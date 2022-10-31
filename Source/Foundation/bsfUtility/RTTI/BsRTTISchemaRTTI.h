@@ -77,7 +77,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<RTTIFieldSchema>();
+			return B3DMakeShared<RTTIFieldSchema>();
 		}
 	};
 
@@ -104,7 +104,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return bs_shared_ptr_new<RTTISchema>();
+			return B3DMakeShared<RTTISchema>();
 		}
 	};
 

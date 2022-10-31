@@ -34,29 +34,29 @@ const String& GUIInputBox::GetGuiTypeName()
 GUIInputBox::GUIInputBox(const String& styleName, const GUIDimensions& dimensions, bool multiline)
 	: GUIElement(styleName, dimensions, GUIElementOption::AcceptsKeyFocus), mIsMultiline(multiline)
 {
-	mImageSprite = bs_new<ImageSprite>();
-	mTextSprite = bs_new<TextSprite>();
+	mImageSprite = B3DNew<ImageSprite>();
+	mTextSprite = B3DNew<TextSprite>();
 }
 
 GUIInputBox::~GUIInputBox()
 {
-	bs_delete(mTextSprite);
-	bs_delete(mImageSprite);
+	B3DDelete(mTextSprite);
+	B3DDelete(mImageSprite);
 }
 
 GUIInputBox* GUIInputBox::Create(bool multiline, const String& styleName)
 {
-	return new(bs_alloc<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(), multiline);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(), multiline);
 }
 
 GUIInputBox* GUIInputBox::Create(bool multiline, const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(options), multiline);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(options), multiline);
 }
 
 GUIInputBox* GUIInputBox::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(bs_alloc<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(options), false);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUIDimensions::Create(options), false);
 }
 
 void GUIInputBox::SetText(const String& text)
@@ -1203,7 +1203,7 @@ SPtr<GUIContextMenu> GUIInputBox::GetContextMenuInternal() const
 
 	if(contextMenu == nullptr)
 	{
-		contextMenu = bs_shared_ptr_new<GUIContextMenu>();
+		contextMenu = B3DMakeShared<GUIContextMenu>();
 
 		contextMenu->AddMenuItem("Cut", std::bind(&GUIInputBox::mText, const_cast<GUIInputBox*>(this)), 0);
 		contextMenu->AddMenuItem("Copy", std::bind(&GUIInputBox::CopyText, const_cast<GUIInputBox*>(this)), 0);

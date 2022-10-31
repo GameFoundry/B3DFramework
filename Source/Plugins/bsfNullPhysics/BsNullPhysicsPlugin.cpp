@@ -25,10 +25,10 @@ public:
 
 extern "C" BS_PLUGIN_EXPORT NullPhysicsFactory* loadPlugin()
 {
-	return bs_new<NullPhysicsFactory>();
+	return B3DNew<NullPhysicsFactory>();
 }
 
 extern "C" BS_PLUGIN_EXPORT void unloadPlugin(NullPhysicsFactory* instance)
 {
-	bs_delete(instance);
+	B3DDelete(instance);
 }

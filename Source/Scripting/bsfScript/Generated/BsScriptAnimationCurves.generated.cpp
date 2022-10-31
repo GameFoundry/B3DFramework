@@ -48,14 +48,14 @@ MonoObject* ScriptAnimationCurves::Create(const SPtr<AnimationCurves>& value)
 	void* ctorParams[1] = { &dummy };
 
 	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-	new(bs_alloc<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, value);
+	new(B3DAllocate<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, value);
 	return managedInstance;
 }
 
 void ScriptAnimationCurves::InternalAnimationCurves(MonoObject* managedInstance)
 {
-	SPtr<AnimationCurves> instance = bs_shared_ptr_new<AnimationCurves>();
-	new(bs_alloc<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, instance);
+	SPtr<AnimationCurves> instance = B3DMakeShared<AnimationCurves>();
+	new(B3DAllocate<ScriptAnimationCurves>()) ScriptAnimationCurves(managedInstance, instance);
 }
 
 void ScriptAnimationCurves::InternalAddPositionCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve)

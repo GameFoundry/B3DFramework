@@ -54,12 +54,12 @@ __PARTICLE_SIZE_DESCInterop ScriptPARTICLE_SIZE_DESC::ToInterop(const PARTICLE_S
 	__PARTICLE_SIZE_DESCInterop output;
 	MonoObject* tmpSize;
 	SPtr<TDistribution<float>> tmpSizecopy;
-	tmpSizecopy = bs_shared_ptr_new<TDistribution<float>>(value.Size);
+	tmpSizecopy = B3DMakeShared<TDistribution<float>>(value.Size);
 	tmpSize = ScriptTDistributionfloat::Create(tmpSizecopy);
 	output.Size = tmpSize;
 	MonoObject* tmpSize3D;
 	SPtr<TDistribution<Vector3>> tmpSize3Dcopy;
-	tmpSize3Dcopy = bs_shared_ptr_new<TDistribution<Vector3>>(value.Size3D);
+	tmpSize3Dcopy = B3DMakeShared<TDistribution<Vector3>>(value.Size3D);
 	tmpSize3D = ScriptTDistributionVector3::Create(tmpSize3Dcopy);
 	output.Size3D = tmpSize3D;
 	output.Use3DSize = value.Use3DSize;

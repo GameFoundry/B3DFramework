@@ -63,8 +63,8 @@ GUIManager::GUIManager()
 	mWindowLostFocusConn = RenderWindowManager::Instance().OnFocusLost.Connect(std::bind(&GUIManager::OnWindowFocusLost, this, _1));
 	mMouseLeftWindowConn = RenderWindowManager::Instance().OnMouseLeftWindow.Connect(std::bind(&GUIManager::OnMouseLeftWindow, this, _1));
 
-	mInputCaret = bs_new<GUIInputCaret>();
-	mInputSelection = bs_new<GUIInputSelection>();
+	mInputCaret = B3DNew<GUIInputCaret>();
+	mInputSelection = B3DNew<GUIInputSelection>();
 
 	DragAndDropManager::StartUp();
 	mDragEndedConn = DragAndDropManager::Instance().OnDragEnded.Connect(std::bind(&GUIManager::OnMouseDragEnded, this, _1, _2));
@@ -109,13 +109,13 @@ GUIManager::~GUIManager()
 
 	mMouseLeftWindowConn.Disconnect();
 
-	bs_delete(mInputCaret);
-	bs_delete(mInputSelection);
+	B3DDelete(mInputCaret);
+	B3DDelete(mInputSelection);
 }
 
 void GUIManager::DestroyCore(ct::GUIRenderer* core)
 {
-	bs_delete(core);
+	B3DDelete(core);
 }
 
 void GUIManager::RegisterWidget(GUIWidget* widget)
@@ -1296,7 +1296,7 @@ bool GUIManager::ProcessDestroyQueueIteration()
 
 	while(!toDestroy.empty())
 	{
-		bs_delete(toDestroy.top());
+		B3DDelete(toDestroy.top());
 		toDestroy.pop();
 	}
 
@@ -1805,7 +1805,7 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 			u32 numVertices = numQuads * 4;
 			u32 numIndices = numQuads * 6;
 
-			SPtr<VertexDataDesc> vertexDesc = bs_shared_ptr_new<VertexDataDesc>();
+			SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
 			vertexDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
 			vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
 

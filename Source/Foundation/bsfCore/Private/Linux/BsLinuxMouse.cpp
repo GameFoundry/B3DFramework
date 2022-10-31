@@ -15,13 +15,13 @@ struct Mouse::Pimpl
 Mouse::Mouse(const String& name, Input* owner)
 	: mName(name), mOwner(owner)
 {
-	m = bs_new<Pimpl>();
+	m = B3DNew<Pimpl>();
 	m->HasInputFocus = true;
 }
 
 Mouse::~Mouse()
 {
-	bs_delete(m);
+	B3DDelete(m);
 }
 
 void Mouse::capture()
