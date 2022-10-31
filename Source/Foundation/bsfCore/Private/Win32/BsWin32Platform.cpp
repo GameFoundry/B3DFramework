@@ -116,7 +116,7 @@ void Platform::SetCursorPosition(const Vector2I& screenPos)
 
 void Platform::CaptureMouse(const RenderWindow& window)
 {
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
@@ -125,7 +125,7 @@ void Platform::CaptureMouse(const RenderWindow& window)
 
 void Platform::ReleaseMouseCapture()
 {
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
@@ -134,7 +134,7 @@ void Platform::ReleaseMouseCapture()
 
 bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 {
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 
 	POINT point;
 	point.x = screenPos.X;
@@ -157,7 +157,7 @@ void Platform::HideCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
@@ -174,7 +174,7 @@ void Platform::ShowCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
@@ -252,7 +252,7 @@ void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 
@@ -281,7 +281,7 @@ void Platform::SetIcon(const PixelData& pixelData)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	u64 hwnd;
 	primaryWindow->GetCustomAttribute("WINDOW", &hwnd);
 

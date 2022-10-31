@@ -140,8 +140,8 @@ namespace bs
 	class Rect2;
 	class Rect3;
 	class Color;
-	class DynLib;
-	class DynLibManager;
+	class DynamicLibrary;
+	class DynamicLibraryManager;
 	class DataStream;
 	class MemoryDataStream;
 	class FileDataStream;

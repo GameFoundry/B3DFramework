@@ -125,7 +125,7 @@ String Time::GetAppStartUpDateString(bool isUTC)
 
 namespace bs
 {
-Time& gTime()
+Time& GetTime()
 {
 	return Time::Instance();
 }

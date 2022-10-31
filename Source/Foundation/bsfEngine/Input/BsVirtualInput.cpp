@@ -79,7 +79,7 @@ float VirtualInput::GetAxisValue(const VirtualAxis& axis, u32 deviceIdx) const
 	VIRTUAL_AXIS_DESC axisDesc;
 	if(mInputConfiguration->GetAxisInternal(axis, axisDesc))
 	{
-		float axisValue = gInput().GetAxisValue((u32)axisDesc.Type, deviceIdx);
+		float axisValue = GetInput().GetAxisValue((u32)axisDesc.Type, deviceIdx);
 
 		bool isMouseAxis = (u32)axisDesc.Type <= (u32)InputAxis::MouseZ;
 		bool isNormalized = axisDesc.Normalize || !isMouseAxis;
@@ -118,7 +118,7 @@ float VirtualInput::GetAxisValue(const VirtualAxis& axis, u32 deviceIdx) const
 
 void VirtualInput::UpdateInternal()
 {
-	u64 frameIdx = gTime().GetFrameIdx();
+	u64 frameIdx = GetTime().GetFrameIdx();
 	for(auto& deviceData : mDevices)
 	{
 		for(auto& state : deviceData.CachedStates)
@@ -136,7 +136,7 @@ void VirtualInput::UpdateInternal()
 
 	bool hasEvents = true;
 	u64 repeatInternal = mInputConfiguration->GetRepeatInterval();
-	u64 currentTime = gTime().GetTimeMs();
+	u64 currentTime = GetTime().GetTimeMs();
 
 	// Trigger all events
 	while(hasEvents)
@@ -238,7 +238,7 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 			data.Button = btn;
 			data.State = ButtonState::ToggledOn;
 			data.Timestamp = event.Timestamp;
-			data.UpdateFrameIdx = gTime().GetFrameIdx();
+			data.UpdateFrameIdx = GetTime().GetFrameIdx();
 			data.AllowRepeat = btnDesc.Repeatable;
 
 			VirtualButtonEvent virtualEvent;
@@ -283,7 +283,7 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 			data.Button = btn;
 			data.State = ButtonState::ToggledOff;
 			data.Timestamp = event.Timestamp;
-			data.UpdateFrameIdx = gTime().GetFrameIdx();
+			data.UpdateFrameIdx = GetTime().GetFrameIdx();
 			data.AllowRepeat = btnDesc.Repeatable;
 
 			VirtualButtonEvent virtualEvent;
@@ -300,8 +300,9 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 	}
 }
 
-namespace bs {
-VirtualInput& gVirtualInput()
+namespace bs
+{
+VirtualInput& GetVirtualInput()
 {
 	return VirtualInput::Instance();
 }

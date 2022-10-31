@@ -40,7 +40,7 @@ void StringTableManager::SetTable(u32 id, const HStringTable& table)
 		table->SetActiveLanguage(mActiveLanguage);
 }
 
-StringTableManager& gStringTableManager()
+StringTableManager& GetStringTableManager()
 {
 	return StringTableManager::Instance();
 }

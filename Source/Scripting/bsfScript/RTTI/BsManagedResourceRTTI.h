@@ -47,7 +47,7 @@ namespace bs
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 
 			SPtr<Resource> mrPtr = std::static_pointer_cast<Resource>(mr->GetThisPtr());
-			HManagedResource handle = static_resource_cast<ManagedResource>(gResources().CreateResourceHandleInternal(mrPtr));
+			HManagedResource handle = static_resource_cast<ManagedResource>(GetResources().CreateResourceHandleInternal(mrPtr));
 			mr->SetHandle(mSerializableObject->Deserialize(), handle);
 		}
 

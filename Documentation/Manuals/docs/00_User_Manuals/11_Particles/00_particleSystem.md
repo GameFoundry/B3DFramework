@@ -19,8 +19,8 @@ HSceneObject particleSystemSO = SceneObject::create("ParticleSystem");
 HParticleSystem particleSystem = particleSystemSO->addComponent<CParticleSystem>();
 
 // Create a material to use for rendering the particles
-HShader shader = gBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);
-HTexture texture = gBuiltinResources().getTexture(BuiltinTexture::White);
+HShader shader = GetBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);
+HTexture texture = GetBuiltinResources().getTexture(BuiltinTexture::White);
 
 HMaterial material = Material::create(shader);
 material->setTexture("gTexture", texture);
@@ -57,8 +57,8 @@ Multiple built-in shaders exist for the purpose of rendering particle systems:
  
 ~~~~~~~~~~~~~{.cpp}
 // Create a material to use for rendering the particles
-HShader shader = gBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);
-HTexture texture = gBuiltinResources().getTexture(BuiltinTexture::White);
+HShader shader = GetBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);
+HTexture texture = GetBuiltinResources().getTexture(BuiltinTexture::White);
 
 HMaterial material = Material::create(particleShader);
 material->setTexture("gTexture", texture);

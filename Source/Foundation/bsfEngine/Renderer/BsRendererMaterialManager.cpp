@@ -24,12 +24,12 @@ RendererMaterialManager::RendererMaterialManager()
 			shaders.push_back(nullptr);
 	}
 
-	gCoreThread().QueueCommand(std::bind(&RendererMaterialManager::InitOnCore, shaders), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&RendererMaterialManager::InitOnCore, shaders), CTQF_InternalQueue);
 }
 
 RendererMaterialManager::~RendererMaterialManager()
 {
-	gCoreThread().QueueCommand(std::bind(&RendererMaterialManager::DestroyOnCore));
+	GetCoreThread().QueueCommand(std::bind(&RendererMaterialManager::DestroyOnCore));
 }
 
 void RendererMaterialManager::RegisterMaterialInternal(ct::RendererMaterialMetaData* metaData, const char* shaderPath)

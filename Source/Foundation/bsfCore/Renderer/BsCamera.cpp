@@ -516,7 +516,7 @@ Vector2 CameraBase::ScreenToNdcPoint(const Vector2I& screenPoint) const
 	Vector2 ndcPoint;
 	ndcPoint.X = (float)(((screenPoint.X - viewport.X) / (float)viewport.Width) * 2.0f - 1.0f);
 
-	const Conventions& rapiConventions = ct::gCaps().Conventions;
+	const Conventions& rapiConventions = ct::GetRenderBackendCapabilities().Conventions;
 	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
 		ndcPoint.Y = (float)(((screenPoint.Y - viewport.Y) / (float)viewport.Height) * 2.0f - 1.0f);
 	else
@@ -561,7 +561,7 @@ Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
 	Vector2I screenPoint;
 	screenPoint.X = Math::RoundToInt(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
 
-	const Conventions& rapiConventions = ct::gCaps().Conventions;
+	const Conventions& rapiConventions = ct::GetRenderBackendCapabilities().Conventions;
 	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
 		screenPoint.Y = Math::RoundToInt(viewport.Y + (ndcPoint.Y + 1.0f) * 0.5f * viewport.Height);
 	else
@@ -730,13 +730,13 @@ void Camera::Initialize()
 
 	CoreObject::Initialize();
 
-	gSceneManager().RegisterCameraInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
+	GetSceneManager().RegisterCameraInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
 }
 
 void Camera::Destroy()
 {
 	if(IsInitialized())
-		gSceneManager().UnregisterCameraInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
+		GetSceneManager().UnregisterCameraInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
 
 	CoreObject::Destroy();
 }
@@ -744,7 +744,7 @@ void Camera::Destroy()
 void Camera::SetMain(bool main)
 {
 	mMain = main;
-	gSceneManager().NotifyMainCameraStateChangedInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
+	GetSceneManager().NotifyMainCameraStateChangedInternal(std::static_pointer_cast<Camera>(GetThisPtr()));
 }
 
 Rect2I Camera::GetViewportRect() const

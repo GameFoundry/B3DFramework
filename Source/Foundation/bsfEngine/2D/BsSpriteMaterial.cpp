@@ -27,12 +27,12 @@ SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariatio
 
 	mMaterialStored.store(true, std::memory_order_release);
 
-	gCoreThread().QueueCommand(std::bind(&SpriteMaterial::Initialize, this));
+	GetCoreThread().QueueCommand(std::bind(&SpriteMaterial::Initialize, this));
 }
 
 SpriteMaterial::~SpriteMaterial()
 {
-	gCoreThread().QueueCommand(std::bind(&SpriteMaterial::Destroy, mMaterial, mParams, mAlphaParams));
+	GetCoreThread().QueueCommand(std::bind(&SpriteMaterial::Destroy, mMaterial, mParams, mAlphaParams));
 }
 
 void SpriteMaterial::Initialize()
@@ -105,8 +105,8 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 			mParams->SetParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
 
 		mMaterial->UpdateParamsSet(mParams);
-		ct::gRendererUtility().SetPass(mMaterial, 0, mTechnique);
-		ct::gRendererUtility().SetPassParams(mParams);
+		ct::GetRendererUtility().SetPass(mMaterial, 0, mTechnique);
+		ct::GetRendererUtility().SetPassParams(mParams);
 	}
 	else
 	{
@@ -114,9 +114,9 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 			mAlphaParams->SetParamBlockBuffer(mAlphaParamBufferIdx, paramBuffer, true);
 
 		mMaterial->UpdateParamsSet(mAlphaParams);
-		ct::gRendererUtility().SetPass(mMaterial, 0, mAlphaTechnique);
-		ct::gRendererUtility().SetPassParams(mAlphaParams);
+		ct::GetRendererUtility().SetPass(mMaterial, 0, mAlphaTechnique);
+		ct::GetRendererUtility().SetPassParams(mAlphaParams);
 	}
 
-	ct::gRendererUtility().Draw(mesh, subMesh);
+	ct::GetRendererUtility().Draw(mesh, subMesh);
 }

@@ -155,7 +155,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to the RenderBeast renderer. */
-		SPtr<RenderBeast> gRenderBeast();
+		SPtr<RenderBeast> GetRenderBeast();
 
 		/** @} */
 	} // namespace ct

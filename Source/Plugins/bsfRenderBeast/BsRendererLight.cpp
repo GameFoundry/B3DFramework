@@ -260,7 +260,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		}
 	}
 
-	bool supportsStructuredBuffers = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	bool supportsStructuredBuffers = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(supportsStructuredBuffers)
 	{
 		u32 size = (u32)mVisibleLightData.size() * sizeof(LightData);

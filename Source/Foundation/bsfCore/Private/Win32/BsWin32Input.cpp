@@ -154,7 +154,7 @@ void Input::InitRawInput()
 {
 	mPlatformData = bs_new<InputPrivateData>();
 
-	bool isHeadless = ct::gCaps().DeviceName == "Null";
+	bool isHeadless = ct::GetRenderBackendCapabilities().DeviceName == "Null";
 	if(isHeadless)
 		return;
 

@@ -14,7 +14,7 @@ using namespace bs;
 FPhysXCollider::FPhysXCollider(PxScene* scene, PxShape* shape)
 	: mScene(scene), mShape(shape)
 {
-	mStaticBody = gPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
+	mStaticBody = GetPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
 	mStaticBody->attachShape(*mShape);
 
 	mScene->addActor(*mStaticBody);
@@ -122,7 +122,7 @@ void FPhysXCollider::SetIsStatic(bool value)
 
 	if(mIsStatic)
 	{
-		mStaticBody = gPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
+		mStaticBody = GetPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
 		mStaticBody->attachShape(*mShape);
 
 		mScene->addActor(*mStaticBody);
@@ -166,7 +166,7 @@ void FPhysXCollider::SetMaterial(const HPhysicsMaterial& material)
 	if(physXmaterial != nullptr)
 		materials[0] = physXmaterial->GetInternalInternal();
 	else
-		materials[0] = gPhysX().GetDefaultMaterial();
+		materials[0] = GetPhysX().GetDefaultMaterial();
 
 	mShape->setMaterials(materials, sizeof(materials) / sizeof(materials[0]));
 }

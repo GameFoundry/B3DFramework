@@ -706,7 +706,7 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 
 void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSample)
 {
-	mGPUFrameNumStr.SetParameter(0, toString((u64)gTime().GetFrameIdx()));
+	mGPUFrameNumStr.SetParameter(0, toString((u64)GetTime().GetFrameIdx()));
 	mGPUTimeStr.SetParameter(0, toString(frameSample.TimeMs));
 	mGPUDrawCallsStr.SetParameter(0, toString(frameSample.NumDrawCalls));
 	mGPURenTargetChangesStr.SetParameter(0, toString(frameSample.NumRenderTargetChanges));

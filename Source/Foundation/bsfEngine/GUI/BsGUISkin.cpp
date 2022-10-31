@@ -63,7 +63,7 @@ HGUISkin GUISkin::Create()
 {
 	SPtr<GUISkin> newSkin = CreatePtrInternal();
 
-	return static_resource_cast<GUISkin>(gResources().CreateResourceHandleInternal(newSkin));
+	return static_resource_cast<GUISkin>(GetResources().CreateResourceHandleInternal(newSkin));
 }
 
 SPtr<GUISkin> GUISkin::CreatePtrInternal()

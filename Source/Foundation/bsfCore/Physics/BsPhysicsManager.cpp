@@ -1,15 +1,15 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Physics/BsPhysicsManager.h"
-#include "Utility/BsDynLibManager.h"
-#include "Utility/BsDynLib.h"
+#include "Utility/BsDynamicLibraryManager.h"
+#include "Utility/BsDynamicLibrary.h"
 
 using namespace bs;
 
 PhysicsManager::PhysicsManager(const String& pluginName, bool cooking)
 	: mPlugin(nullptr), mFactory(nullptr)
 {
-	mPlugin = DynLibManager::Instance().Load(pluginName);
+	mPlugin = DynamicLibraryManager::Instance().Load(pluginName);
 
 	if(mPlugin != nullptr)
 	{
@@ -37,6 +37,6 @@ PhysicsManager::~PhysicsManager()
 			unloadPluginFunc(mFactory);
 		}
 
-		DynLibManager::Instance().Unload(mPlugin);
+		DynamicLibraryManager::Instance().Unload(mPlugin);
 	}
 }

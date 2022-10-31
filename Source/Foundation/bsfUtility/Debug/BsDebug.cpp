@@ -283,7 +283,7 @@ table td
 	stream << "<p>bs::framework version: " << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR << "." << BS_VERSION_PATCH << "</p>\n";
 
 	if(Time::IsStarted())
-		stream << "<p>Started on: " << gTime().GetAppStartUpDateString(false) << "</p>\n";
+		stream << "<p>Started on: " << GetTime().GetAppStartUpDateString(false) << "</p>\n";
 
 	SystemInfo systemInfo = PlatformUtility::GetSystemInfo();
 	stream << "<p>OS version: " << systemInfo.OsName << " " << (systemInfo.OsIs64Bit ? "64-bit" : "32-bit") << "</p>\n";
@@ -388,7 +388,7 @@ void Debug::SaveTextLog(const Path& path) const
 	stream << bsfOnlyHeader << BS_VERSION_MAJOR << "." << BS_VERSION_MINOR << "." << BS_VERSION_PATCH << "\n";
 #endif
 	if(Time::IsStarted())
-		stream << "Started on: " << gTime().GetAppStartUpDateString(false) << "\n";
+		stream << "Started on: " << GetTime().GetAppStartUpDateString(false) << "\n";
 
 	stream << "\n";
 	stream << "System information:\n"
@@ -470,7 +470,7 @@ void Debug::SaveTextLog(const Path& path) const
 
 namespace bs
 {
-BS_UTILITY_EXPORT Debug& gDebug()
+BS_UTILITY_EXPORT Debug& GetDebug()
 {
 	static Debug debug;
 	return debug;

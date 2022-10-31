@@ -129,7 +129,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to the VulkanCommandBufferManager. */
-		VulkanCommandBufferManager& gVulkanCBManager();
+		VulkanCommandBufferManager& GetVulkanCommandBufferManager();
 
 		/** @} */
 	} // namespace ct

@@ -4,7 +4,7 @@ title: GPU profiling
 
 GPU operations cannot be profiled using the CPU profiler as they are executed asynchronously. This means when you call a method that executes on the GPU (such as those on **RenderAPI**, as well as GPU resource read/write operations) it will return almost immediately, meaning the timing information reported by the CPU profiler will not be representative of the time it actually took to execute the operation. 
 
-Therefore GPU profiling is instead handled by @bs::ProfilerGPU, globally accessible from @bs::gProfilerGPU. It allows you to track execution times of GPU operations, as well as other helpful information.
+Therefore GPU profiling is instead handled by @bs::ProfilerGPU, globally accessible from @bs::GetProfilerGPU. It allows you to track execution times of GPU operations, as well as other helpful information.
 
 # Sampling
 
@@ -33,7 +33,7 @@ GPU profiler will generate a single report per **ProfilerGPU::beginFrame()** / *
 if(ProfilerGPU::instance().getNumAvailableReports() > 0)
 {
 	GPUProfilerReport report = ProfilerGPU::instance().getNextReport(); 
-	gDebug().logDebug("It took " + report.frameSample.timeMs + "ms to execute " + report.frameSample.numDrawCalls + " draw calls.");
+	GetDebug().logDebug("It took " + report.frameSample.timeMs + "ms to execute " + report.frameSample.numDrawCalls + " draw calls.");
 }
 ~~~~~~~~~~~~~
 

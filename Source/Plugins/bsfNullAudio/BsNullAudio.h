@@ -88,7 +88,7 @@ namespace bs
 	};
 
 	/** Provides easier access to the null audio manager. */
-	NullAudio& gNullAudio();
+	NullAudio& GetNullAudio();
 
 	/** @} */
 } // namespace bs

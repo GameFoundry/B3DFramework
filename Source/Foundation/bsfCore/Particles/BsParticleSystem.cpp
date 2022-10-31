@@ -266,7 +266,7 @@ void ParticleSystem::SimulateInternal(float timeDelta, const EvaluatedAnimationD
 	state.LocalToWorld = mTransform.GetMatrix();
 	state.WorldToLocal = state.LocalToWorld.InverseAffine();
 	state.System = this;
-	state.Scene = (mScene && mScene->IsActive()) ? mScene.get() : gSceneManager().GetMainScene().get();
+	state.Scene = (mScene && mScene->IsActive()) ? mScene.get() : GetSceneManager().GetMainScene().get();
 	state.AnimData = animData;
 
 	// For GPU simulation we only care about newly spawned particles, so clear old ones
@@ -496,12 +496,12 @@ namespace bs { namespace ct
 ParticleSystem::~ParticleSystem()
 {
 	if(mActive)
-		gRenderer()->NotifyParticleSystemRemoved(this);
+		GetRenderer()->NotifyParticleSystemRemoved(this);
 }
 
 void ParticleSystem::Initialize()
 {
-	gRenderer()->NotifyParticleSystemAdded(this);
+	GetRenderer()->NotifyParticleSystemAdded(this);
 }
 
 void ParticleSystem::SetLayer(u64 layer)
@@ -538,17 +538,17 @@ void ParticleSystem::SyncToCore(const CoreSyncData& data)
 		if(oldIsActive != mActive)
 		{
 			if(mActive)
-				gRenderer()->NotifyParticleSystemAdded(this);
+				GetRenderer()->NotifyParticleSystemAdded(this);
 			else
-				gRenderer()->NotifyParticleSystemRemoved(this);
+				GetRenderer()->NotifyParticleSystemRemoved(this);
 		}
 		else
 		{
 			if(mActive)
-				gRenderer()->NotifyParticleSystemUpdated(this, false);
+				GetRenderer()->NotifyParticleSystemUpdated(this, false);
 		}
 	}
 	else if((dirtyFlags & ((u32)ActorDirtyFlag::Mobility | (u32)ActorDirtyFlag::Transform)) != 0)
-		gRenderer()->NotifyParticleSystemUpdated(this, true);
+		GetRenderer()->NotifyParticleSystemUpdated(this, true);
 }
 }}

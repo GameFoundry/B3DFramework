@@ -105,7 +105,7 @@ AnimationClipState state;
 
 // Returns true if the clip was queued for playback (in any way) on the component
 if(animation->getState(animationClip, state))
-	gDebug().logDebug("Animation is currently at time: " + toString(state.time));
+	GetDebug().logDebug("Animation is currently at time: " + toString(state.time));
 ~~~~~~~~~~~~~
 
 More important that querying information, states can be used for starting playback, as well as having full control over blending and similar operations. Essentially all animation playback methods discussed so far can be implemented just by using states.

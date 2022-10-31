@@ -61,9 +61,9 @@ HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> 
 	SPtr<Resource> importedResource = ImportInternal(inputFilePath, importOptions);
 
 	if(UUID.Empty())
-		return gResources().CreateResourceHandleInternal(importedResource);
+		return GetResources().CreateResourceHandleInternal(importedResource);
 
-	return gResources().CreateResourceHandleInternal(importedResource, UUID);
+	return GetResources().CreateResourceHandleInternal(importedResource, UUID);
 }
 
 TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
@@ -88,7 +88,7 @@ SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const Im
 	Vector<SubResourceRaw> importedResource = ImportAllInternal(inputFilePath, importOptions);
 	for(auto& entry : importedResource)
 	{
-		HResource handle = gResources().CreateResourceHandleInternal(entry.Value);
+		HResource handle = GetResources().CreateResourceHandleInternal(entry.Value);
 		output.push_back({ entry.Name, handle });
 	}
 
@@ -227,9 +227,9 @@ void doImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& fi
 
 	HResource resource;
 	if(uuid.Empty())
-		resource = gResources().CreateResourceHandleInternal(resourcePtr);
+		resource = GetResources().CreateResourceHandleInternal(resourcePtr);
 	else
-		resource = gResources().CreateResourceHandleInternal(resourcePtr, uuid);
+		resource = GetResources().CreateResourceHandleInternal(resourcePtr, uuid);
 
 	op.CompleteOperationInternal(resource);
 }
@@ -242,7 +242,7 @@ void doImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, cons
 	Vector<SubResource> subresources;
 	for(auto& entry : rawSubresources)
 	{
-		HResource handle = gResources().CreateResourceHandleInternal(entry.Value);
+		HResource handle = GetResources().CreateResourceHandleInternal(entry.Value);
 		subresources.push_back({ entry.Name, handle });
 	}
 
@@ -353,7 +353,7 @@ SpecificImporter* Importer::GetImporterForFile(const Path& inputFilePath) const
 
 namespace bs
 {
-BS_CORE_EXPORT Importer& gImporter()
+BS_CORE_EXPORT Importer& GetImporter()
 {
 	return Importer::Instance();
 }

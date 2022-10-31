@@ -7,7 +7,7 @@ All GUI elements in bs::f are handled by a @bs::CGUIWidget component. Each such 
 The camera is created in the same way as we shown before, and you can in-fact use the same camera you use for normal scene rendering. GUI elements will not be affected by camera's position, orientation or projection properties - they might however be affected by the size of the camera's render target.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
+SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 
 HSceneObject cameraSO = SceneObject::create("Camera");
 HCamera camera = cameraSO->addComponent<CCamera>(primaryWindow);
@@ -55,7 +55,7 @@ In the example above we have asssumed you will use the same camera for GUI as yo
 Initial creation of the camera is identical, we just choose a render target:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
+SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 
 HSceneObject guiCameraSO = SceneObject::create("GUI camera");
 HCamera guiCamera = guiCameraSO->addComponent<CCamera>(primaryWindow);

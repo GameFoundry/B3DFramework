@@ -323,7 +323,7 @@ namespace bs
 		};
 
 		/** Provides easy access to RendererUtility. */
-		BS_EXPORT RendererUtility& gRendererUtility();
+		BS_EXPORT RendererUtility& GetRendererUtility();
 
 		/** @} */
 	} // namespace ct

@@ -228,7 +228,7 @@ namespace bs
 	 *
 	 * @see		CoreThread
 	 */
-	BS_CORE_EXPORT CoreThread& gCoreThread();
+	BS_CORE_EXPORT CoreThread& GetCoreThread();
 
 	/**	Throws an exception if current thread isn't the core thread. */
 	BS_CORE_EXPORT void throwIfNotCoreThread();

@@ -13,7 +13,7 @@ DecalParamDef gDecalParamDef;
 
 void DecalRenderElement::Draw() const
 {
-	gRendererUtility().Draw(Mesh, SubMesh);
+	GetRendererUtility().Draw(Mesh, SubMesh);
 }
 
 RendererDecal::RendererDecal()
@@ -51,7 +51,7 @@ void RendererDecal::UpdatePerObjectBuffer()
 
 	float flipDerivatives = 1.0f;
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 	if(rapiConventions.UvYAxis == Conventions::Axis::Up)
 		flipDerivatives = -1.0f;
 

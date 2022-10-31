@@ -134,7 +134,7 @@ TiledDeferredLightingMat* TiledDeferredLightingMat::GetVariation(u32 msaaCount)
 
 TextureArrayToMSAATexture::TextureArrayToMSAATexture()
 {
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
+	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "GetInput", mInputParam);
 }
 
 void TextureArrayToMSAATexture::Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
@@ -153,7 +153,7 @@ void TextureArrayToMSAATexture::Execute(const SPtr<Texture>& inputArray, const S
 	Bind();
 
 	Rect2 area(0.0f, 0.0f, (float)targetProps.GetWidth(), (float)targetProps.GetHeight());
-	gRendererUtility().DrawScreenQuad(area);
+	GetRendererUtility().DrawScreenQuad(area);
 }
 
 ClearLoadStoreParamDef gClearLoadStoreParamDef;

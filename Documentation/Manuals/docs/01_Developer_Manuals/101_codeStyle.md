@@ -21,7 +21,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
  - Methods, public fields and local variables must be in camelCase with first letter as lowercase (e.g. `void myMethod(); int myVar;`).
  - Class/struct/enum names must be in PascalCase with first letter as uppercase (e.g. `class MyClass`).
  - Non-public class/struct fields should be prefixed with `m`, followed by a capital first letter (e.g. `int mClassMemberField;`).
- - Non-constant global variables and methods should be prefixed with an `g`, followed by a capital first letter (e.g. `const Application& gApplication();`).
+ - Non-constant global variables and methods should be prefixed with an `g`, followed by a capital first letter (e.g. `const Application& GetApplication();`).
  - Constant global variables should be written in all caps with underscores separating the words (e.g. `int NUM_ELEMENTS = 5;`).
  - Macros should be written in all caps with underscores separating the words, and prefixed with `BS_` (e.g. `#define BS_EXCEPT`).
  - Static non-constant variables should be prefixed with an `s`, followed by a capital first letter (e.g. `bool sIsInitialized;`).

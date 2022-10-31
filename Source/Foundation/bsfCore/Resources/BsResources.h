@@ -407,7 +407,7 @@ namespace bs
 	};
 
 	/** Provides easier access to Resources manager. */
-	BS_CORE_EXPORT Resources& gResources();
+	BS_CORE_EXPORT Resources& GetResources();
 
 	/** @} */
 } // namespace bs

@@ -413,14 +413,14 @@ namespace bs
 	};
 
 	/** Provides global access to ProfilerCPU instance. */
-	BS_CORE_EXPORT ProfilerCPU& gProfilerCPU();
+	BS_CORE_EXPORT ProfilerCPU& GetProfilerCPU();
 
 	/** Shortcut for profiling a single function call. */
 #define PROFILE_CALL(call, name)              \
 	{                                         \
-		bs::gProfilerCPU().BeginSample(name); \
+		bs::GetProfilerCPU().BeginSample(name); \
 		call;                                 \
-		bs::gProfilerCPU().EndSample(name);   \
+		bs::GetProfilerCPU().EndSample(name);   \
 	}
 
 	/** @} */

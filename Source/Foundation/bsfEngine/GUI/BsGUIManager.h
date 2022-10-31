@@ -463,7 +463,7 @@ namespace bs
 	} // namespace ct
 
 	/** Provides easier access to GUIManager. */
-	BS_EXPORT GUIManager& gGUIManager();
+	BS_EXPORT GUIManager& GetGUIManager();
 
 	/** @} */
 } // namespace bs

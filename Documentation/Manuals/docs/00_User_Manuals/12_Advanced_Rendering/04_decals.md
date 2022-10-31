@@ -21,7 +21,7 @@ You must assign a **Material** to render the decal with. This is done by calling
 
 ~~~~~~~~~~~~~{.cpp}
 // Create the material
-HShader decalShader = gBuiltinResources().getBuiltinShader(BuiltinShader::Decal);
+HShader decalShader = GetBuiltinResources().getBuiltinShader(BuiltinShader::Decal);
 HMaterial decalMaterial = Material::create(decalShader);
 
 // Assign material textures
@@ -51,7 +51,7 @@ You may also enable different variants of the material through the **BLEND_MODE*
  
 ~~~~~~~~~~~~~{.cpp}
 // Create the material
-HShader decalShader = gBuiltinResources().getBuiltinShader(BuiltinShader::Decal);
+HShader decalShader = GetBuiltinResources().getBuiltinShader(BuiltinShader::Decal);
 HMaterial decalMaterial = Material::create(decalShader);
 
 // Enable normal-only blend mode

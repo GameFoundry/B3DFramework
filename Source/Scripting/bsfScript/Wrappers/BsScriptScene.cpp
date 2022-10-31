@@ -73,10 +73,10 @@ void ScriptScene::SetActiveScene(const HPrefab& prefab)
 	{
 		// If scene replace current root node, otherwise just append to the current root node
 		if(prefab->IsScene())
-			gSceneManager().LoadScene(prefab);
+			GetSceneManager().LoadScene(prefab);
 		else
 		{
-			gSceneManager().ClearScene();
+			GetSceneManager().ClearScene();
 			prefab->Instantiate();
 		}
 	}
@@ -139,8 +139,8 @@ MonoObject* ScriptScene::InternalGetRoot()
 
 MonoObject* ScriptScene::InternalGetMainCameraSo()
 {
-	SPtr<Camera> camera = gSceneManager().GetMainCamera();
-	HSceneObject so = gSceneManager().GetActorSOInternal(camera);
+	SPtr<Camera> camera = GetSceneManager().GetMainCamera();
+	HSceneObject so = GetSceneManager().GetActorSOInternal(camera);
 	if(so == nullptr)
 		return nullptr;
 
@@ -157,6 +157,6 @@ void ScriptScene::InternalSetActiveScene(ScriptPrefab* scriptPrefab)
 
 void ScriptScene::InternalClearScene()
 {
-	gSceneManager().ClearScene();
+	GetSceneManager().ClearScene();
 }
 #endif

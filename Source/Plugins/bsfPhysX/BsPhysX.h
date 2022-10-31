@@ -212,7 +212,7 @@ namespace bs
 	};
 
 	/** Provides easier access to PhysX. */
-	PhysX& gPhysX();
+	PhysX& GetPhysX();
 
 	/** @} */
 } // namespace bs

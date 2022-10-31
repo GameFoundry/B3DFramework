@@ -13,7 +13,7 @@ ShaderInclude::ShaderInclude(const String& includeString)
 
 HShaderInclude ShaderInclude::Create(const String& includeString)
 {
-	return static_resource_cast<ShaderInclude>(gResources().CreateResourceHandleInternal(CreatePtrInternal(includeString)));
+	return static_resource_cast<ShaderInclude>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(includeString)));
 }
 
 SPtr<ShaderInclude> ShaderInclude::CreatePtrInternal(const String& includeString)

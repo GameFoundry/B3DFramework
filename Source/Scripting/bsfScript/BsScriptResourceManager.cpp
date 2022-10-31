@@ -17,7 +17,7 @@ using namespace std::placeholders;
 using namespace bs;
 ScriptResourceManager::ScriptResourceManager()
 {
-	mResourceDestroyedConn = gResources().OnResourceDestroyed.Connect(std::bind(&ScriptResourceManager::OnResourceDestroyed, this, _1));
+	mResourceDestroyedConn = GetResources().OnResourceDestroyed.Connect(std::bind(&ScriptResourceManager::OnResourceDestroyed, this, _1));
 	mDomainUnloadedConn = MonoManager::Instance().OnDomainUnload.Connect(std::bind(&ScriptResourceManager::ClearRRefs, this));
 }
 

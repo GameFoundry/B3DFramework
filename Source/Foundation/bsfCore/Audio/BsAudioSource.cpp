@@ -51,7 +51,7 @@ void AudioSource::SetAttenuation(float attenuation)
 
 SPtr<AudioSource> AudioSource::Create()
 {
-	return gAudio().CreateSource();
+	return GetAudio().CreateSource();
 }
 
 void AudioSource::GetListenerResources(Vector<HResource>& resources)

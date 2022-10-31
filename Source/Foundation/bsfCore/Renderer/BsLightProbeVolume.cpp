@@ -232,7 +232,7 @@ void LightProbeVolume::RunRenderProbeTask()
 	mRendererTask = ct::RendererTask::Create("RenderLightProbes", renderProbes);
 
 	mRendererTask->OnComplete.Connect(renderComplete);
-	ct::gRenderer()->AddTask(mRendererTask);
+	ct::GetRenderer()->AddTask(mRendererTask);
 }
 
 void LightProbeVolume::UpdateCoefficients()
@@ -249,8 +249,8 @@ void LightProbeVolume::UpdateCoefficients()
 		coreVolume->GetProbeCoefficients(coeffInfo);
 	};
 
-	gCoreThread().QueueCommand(getSaveData);
-	gCoreThread().Submit(true);
+	GetCoreThread().QueueCommand(getSaveData);
+	GetCoreThread().Submit(true);
 
 	for(auto& entry : coeffInfo)
 	{
@@ -395,7 +395,7 @@ LightProbeVolume::LightProbeVolume(const UnorderedMap<u32, bs::LightProbeVolume:
 
 LightProbeVolume::~LightProbeVolume()
 {
-	gRenderer()->NotifyLightProbeVolumeRemoved(this);
+	GetRenderer()->NotifyLightProbeVolumeRemoved(this);
 }
 
 void LightProbeVolume::Initialize()
@@ -435,7 +435,7 @@ void LightProbeVolume::Initialize()
 	mCoefficients->WriteData(*coeffData, 0, 0, true);
 	mInitCoefficients.clear();
 
-	gRenderer()->NotifyLightProbeVolumeAdded(this);
+	GetRenderer()->NotifyLightProbeVolumeAdded(this);
 	CoreObject::Initialize();
 }
 
@@ -469,8 +469,8 @@ bool LightProbeVolume::RenderProbes(u32 maxProbes)
 			const Quaternion& rotation = tfrm.GetRotation();
 			Vector3 transformedPos = rotation.Rotate(localPos) + position;
 
-			gRenderer()->CaptureSceneCubeMap(cubemap, transformedPos, CaptureSettings());
-			gIBLUtility().FilterCubemapForIrradiance(cubemap, mCoefficients, probeInfo.BufferIdx);
+			GetRenderer()->CaptureSceneCubeMap(cubemap, transformedPos, CaptureSettings());
+			GetIBLUtility().FilterCubemapForIrradiance(cubemap, mCoefficients, probeInfo.BufferIdx);
 
 			probeInfo.Flags = LightProbeFlags::Clean;
 			numProbeUpdates++;
@@ -480,7 +480,7 @@ bool LightProbeVolume::RenderProbes(u32 maxProbes)
 			break;
 	}
 
-	gRenderer()->NotifyLightProbeVolumeUpdated(this);
+	GetRenderer()->NotifyLightProbeVolumeUpdated(this);
 
 	return mFirstDirtyProbe == (u32)mProbeInfos.size();
 }
@@ -602,9 +602,9 @@ void LightProbeVolume::SyncToCore(const CoreSyncData& data)
 	if(oldIsActive != mActive)
 	{
 		if(mActive)
-			gRenderer()->NotifyLightProbeVolumeAdded(this);
+			GetRenderer()->NotifyLightProbeVolumeAdded(this);
 		else
-			gRenderer()->NotifyLightProbeVolumeRemoved(this);
+			GetRenderer()->NotifyLightProbeVolumeRemoved(this);
 	}
 }
 

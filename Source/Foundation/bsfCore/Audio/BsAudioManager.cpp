@@ -1,14 +1,14 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Audio/BsAudioManager.h"
-#include "Utility/BsDynLibManager.h"
-#include "Utility/BsDynLib.h"
+#include "Utility/BsDynamicLibraryManager.h"
+#include "Utility/BsDynamicLibrary.h"
 
 using namespace bs;
 
 AudioManager::AudioManager(const String& pluginName)
 {
-	mPlugin = DynLibManager::Instance().Load(pluginName);
+	mPlugin = DynamicLibraryManager::Instance().Load(pluginName);
 
 	if(mPlugin != nullptr)
 	{
@@ -36,6 +36,6 @@ AudioManager::~AudioManager()
 			unloadPluginFunc(mFactory);
 		}
 
-		DynLibManager::Instance().Unload(mPlugin);
+		DynamicLibraryManager::Instance().Unload(mPlugin);
 	}
 }

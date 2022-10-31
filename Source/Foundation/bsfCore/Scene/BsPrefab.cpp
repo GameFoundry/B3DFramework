@@ -28,7 +28,7 @@ HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
 	PrefabUtility::ClearPrefabIds(sceneObject, true, false);
 	newPrefab->Initialize(sceneObject);
 
-	HPrefab handle = static_resource_cast<Prefab>(gResources().CreateResourceHandleInternal(newPrefab));
+	HPrefab handle = static_resource_cast<Prefab>(GetResources().CreateResourceHandleInternal(newPrefab));
 	newPrefab->mUUID = handle.GetUuid();
 	sceneObject->mPrefabLinkUUID = newPrefab->mUUID;
 	newPrefab->GetRootInternal()->mPrefabLinkUUID = newPrefab->mUUID;
@@ -135,7 +135,7 @@ HSceneObject Prefab::InstantiateInternal(bool preserveUUIDs) const
 		return HSceneObject();
 
 #if BS_IS_BANSHEE3D
-	if(gCoreApplication().IsEditor())
+	if(GetCoreApplication().IsEditor())
 	{
 		// Update any child prefab instances in case their prefabs changed
 		UpdateChildInstancesInternal();

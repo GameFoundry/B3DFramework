@@ -59,7 +59,7 @@ You can access current properties of the window, like its size and position, by 
 ~~~~~~~~~~~~~{.cpp}
 auto& props = newWindow->getProperties();
 
-gDebug().logDebug(toString(props.width) + " x " + toString(props.height));
+GetDebug().logDebug(toString(props.width) + " x " + toString(props.height));
 ~~~~~~~~~~~~~
 
 # Window events
@@ -68,7 +68,7 @@ Sometimes you might want to be notified if the user resizes the window externall
 ~~~~~~~~~~~~~{.cpp}
 void notifyResized()
 {
-	gDebug().logDebug("Window was resized.");
+	GetDebug().logDebug("Window was resized.");
 }
 
 newWindow->onResized.connect(&notifyResized);
@@ -111,6 +111,6 @@ for (UINT32 i = 0; i < numVideoModes; i++)
 
 	String videoModeString = toString(curVideoMode.width) + " x " + toString(curVideoMode.height) + " at " + toString(curVideoMode.refreshRate) + "Hz";
 	
-	gDebug().logDebug(videoModeString);
+	GetDebug().logDebug(videoModeString);
 }
 ~~~~~~~~~~~~~

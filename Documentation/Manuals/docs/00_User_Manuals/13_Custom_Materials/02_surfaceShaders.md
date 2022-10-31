@@ -331,7 +331,7 @@ Once the shader is created you need to apply it for rendering. Because the defer
 SPtr<Shader> customShader = ...; // Import the shader we created above
 
 // Apply the shader
-gRenderer().setGlobalShaderOverride(customShader);
+GetRenderer().setGlobalShaderOverride(customShader);
 ~~~~~~~~~~~~~ 
  
 # Forward

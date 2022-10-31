@@ -229,7 +229,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to the GpuResourcePool. */
-		BS_CORE_EXPORT GpuResourcePool& gGpuResourcePool();
+		BS_CORE_EXPORT GpuResourcePool& GetGpuResourcePool();
 
 		/** @} */
 	} // namespace ct

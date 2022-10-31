@@ -272,7 +272,7 @@ POOLED_STORAGE_BUFFER_DESC POOLED_STORAGE_BUFFER_DESC::CreateStructured(u32 elem
 	return desc;
 }
 
-GpuResourcePool& gGpuResourcePool()
+GpuResourcePool& GetGpuResourcePool()
 {
 	return GpuResourcePool::Instance();
 }

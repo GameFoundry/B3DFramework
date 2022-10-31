@@ -38,7 +38,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 		// Send out ResourceListener events right away, as whatever called this method probably also expects the
 		// listener events to trigger immediately as well
-		if(BS_THREAD_CURRENT_ID == gCoreApplication().GetSimThreadId())
+		if(BS_THREAD_CURRENT_ID == GetCoreApplication().GetSimThreadId())
 			ResourceListenerManager::Instance().NotifyListeners(mData->MUuid);
 	}
 
@@ -60,13 +60,13 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 void ResourceHandleBase::Release()
 {
-	gResources().Release(*this);
+	GetResources().Release(*this);
 }
 
 void ResourceHandleBase::Destroy()
 {
 	if(mData->MPtr)
-		gResources().Destroy(*this);
+		GetResources().Destroy(*this);
 }
 
 void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)

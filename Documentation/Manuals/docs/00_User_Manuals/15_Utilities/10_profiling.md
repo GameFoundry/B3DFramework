@@ -2,7 +2,7 @@
 title: Profiling
 ---
 
-Code profiling is an important process to determine performance bottlenecks. Profiling measures code execution times and memory allocations. bs::f provides a built-in profiler through the @bs::ProfilerCPU module. This module can be globally accessed through @bs::gProfilerCPU().
+Code profiling is an important process to determine performance bottlenecks. Profiling measures code execution times and memory allocations. bs::f provides a built-in profiler through the @bs::ProfilerCPU module. This module can be globally accessed through @bs::GetProfilerCPU().
 
 The profiler allows you to profile blocks of code and output information about how long the block took to execute, as well as information about number and amount of memory allocations.
 
@@ -21,9 +21,9 @@ void doSomethingIntensive()
 	// ...
 }
 
-gProfilerCPU().beginSample("myProfilingBlock");
+GetProfilerCPU().beginSample("myProfilingBlock");
 doSomethingIntensive();
-gProfilerCPU().endSample("myProfilingBlock");
+GetProfilerCPU().endSample("myProfilingBlock");
 ~~~~~~~~~~~~~
 
 Each sample needs to have a *begin()* and an *end()* pair. Samples can be nested between other samples.
@@ -34,7 +34,7 @@ Once you have placed sample points around your code, you can retrieve the profil
 Each sampling entry is represented either by @bs::CPUProfilerBasicSamplingEntry or @bs::CPUProfilerPreciseSamplingEntry. Sampling entries contain information about the time it took to execute the code in the sampled block of code, as well as number of memory allocations & deallocations, and total number of allocated and deallocated bytes. Each sample also contains a list of child samples (if any).
 
 ~~~~~~~~~~~~~{.cpp}
-CPUProfilerReport report = gProfilerCPU().generateReport();
+CPUProfilerReport report = GetProfilerCPU().generateReport();
 for(CPUProfilerBasicSamplingEntry& entry : report.getBasicSamplingData())
 { /* ... */ }
 
@@ -49,7 +49,7 @@ You can easily display the profiler reports on screen by calling @bs::Applicatio
 
 ~~~~~~~~~~~~~{.cpp}
 // Display CPU sample overlay on the main camera
-gApplication().showProfilerOverlay(ProfilerOverlayType::CPUSamples);
+GetApplication().showProfilerOverlay(ProfilerOverlayType::CPUSamples);
 ~~~~~~~~~~~~~
 
 To hide the overlay call @bs::Application::hideProfilerOverlay.

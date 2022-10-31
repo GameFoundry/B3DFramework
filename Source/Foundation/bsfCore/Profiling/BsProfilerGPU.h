@@ -215,12 +215,12 @@ namespace bs
 	};
 
 	/** Provides global access to ProfilerGPU instance. */
-	BS_CORE_EXPORT ProfilerGPU& gProfilerGPU();
+	BS_CORE_EXPORT ProfilerGPU& GetProfilerGPU();
 
 	/** Profiling macros that allow profiling functionality to be disabled at compile time. */
 #if BS_PROFILING_ENABLED
-#	define BS_GPU_PROFILE_BEGIN(name) gProfilerGPU().BeginSample(name);
-#	define BS_GPU_PROFILE_END(name) gProfilerGPU().EndSample(name);
+#	define BS_GPU_PROFILE_BEGIN(name) GetProfilerGPU().BeginSample(name);
+#	define BS_GPU_PROFILE_END(name) GetProfilerGPU().EndSample(name);
 #else
 #	define BS_GPU_PROFILE_BEGIN(name)
 #	define BS_GPU_PROFILE_END(name)
@@ -236,7 +236,7 @@ namespace bs
 		ProfileGPUBlock(ProfilerString name)
 		{
 			mSampleName = std::move(name);
-			gProfilerGPU().BeginSample(mSampleName);
+			GetProfilerGPU().BeginSample(mSampleName);
 		}
 #else
 		ProfileGPUBlock(const ProfilerString& name)
@@ -246,7 +246,7 @@ namespace bs
 #if BS_PROFILING_ENABLED
 		~ProfileGPUBlock()
 		{
-			gProfilerGPU().EndSample(mSampleName);
+			GetProfilerGPU().EndSample(mSampleName);
 		}
 #endif
 

@@ -119,7 +119,7 @@ AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, 
 		asyncOp.CompleteOperationInternal();
 	};
 
-	return gCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, discardEntireBuffer, std::placeholders::_1));
+	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, discardEntireBuffer, std::placeholders::_1));
 }
 
 AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
@@ -138,7 +138,7 @@ AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 		asyncOp.CompleteOperationInternal();
 	};
 
-	return gCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, std::placeholders::_1));
+	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, std::placeholders::_1));
 }
 
 TAsyncOp<SPtr<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
@@ -156,7 +156,7 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
 		op.CompleteOperationInternal(output);
 	};
 
-	gCoreThread().QueueCommand(func);
+	GetCoreThread().QueueCommand(func);
 	return op;
 }
 
@@ -292,14 +292,14 @@ HTexture Texture::Create(const TEXTURE_DESC& desc)
 {
 	SPtr<Texture> texturePtr = CreatePtrInternal(desc);
 
-	return static_resource_cast<Texture>(gResources().CreateResourceHandleInternal(texturePtr));
+	return static_resource_cast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
 }
 
 HTexture Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
 {
 	SPtr<Texture> texturePtr = CreatePtrInternal(pixelData, usage, hwGammaCorrection);
 
-	return static_resource_cast<Texture>(gResources().CreateResourceHandleInternal(texturePtr));
+	return static_resource_cast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
 }
 
 SPtr<Texture> Texture::CreatePtrInternal(const TEXTURE_DESC& desc)

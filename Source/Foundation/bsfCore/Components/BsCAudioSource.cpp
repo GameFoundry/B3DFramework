@@ -176,7 +176,7 @@ void CAudioSource::Update()
 {
 	const Vector3 worldPos = SO()->GetTransform().GetPosition();
 
-	const float frameDelta = gTime().GetFrameDelta();
+	const float frameDelta = ::GetTime().GetFrameDelta();
 	if(frameDelta > 0.0f)
 		mVelocity = (worldPos - mLastPosition) / frameDelta;
 	else

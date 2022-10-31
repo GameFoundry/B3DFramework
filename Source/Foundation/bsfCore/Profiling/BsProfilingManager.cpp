@@ -25,9 +25,9 @@ ProfilingManager::~ProfilingManager()
 void ProfilingManager::UpdateInternal()
 {
 #if BS_PROFILING_ENABLED
-	mSavedSimReports[mNextSimReportIdx].CpuReport = gProfilerCPU().GenerateReport();
+	mSavedSimReports[mNextSimReportIdx].CpuReport = GetProfilerCPU().GenerateReport();
 
-	gProfilerCPU().Reset();
+	GetProfilerCPU().Reset();
 
 	mNextSimReportIdx = (mNextSimReportIdx + 1) % kNumSavedFrames;
 #endif
@@ -37,9 +37,9 @@ void ProfilingManager::UpdateCoreInternal()
 {
 #if BS_PROFILING_ENABLED
 	Lock lock(mSync);
-	mSavedCoreReports[mNextCoreReportIdx].CpuReport = gProfilerCPU().GenerateReport();
+	mSavedCoreReports[mNextCoreReportIdx].CpuReport = GetProfilerCPU().GenerateReport();
 
-	gProfilerCPU().Reset();
+	GetProfilerCPU().Reset();
 
 	mNextCoreReportIdx = (mNextCoreReportIdx + 1) % kNumSavedFrames;
 #endif
@@ -69,7 +69,7 @@ const ProfilerReport& ProfilingManager::GetReport(ProfiledThread thread, u32 idx
 
 namespace bs
 {
-ProfilingManager& gProfiler()
+ProfilingManager& GetProfiler()
 {
 	return ProfilingManager::Instance();
 }

@@ -24,8 +24,8 @@ void throwIfNotSimThread()
 
 ResourceListenerManager::ResourceListenerManager()
 {
-	mResourceLoadedConn = gResources().OnResourceLoaded.Connect(std::bind(&::bs::ResourceListenerManager::OnResourceLoaded, this, _1));
-	mResourceModifiedConn = gResources().OnResourceModified.Connect(std::bind(&::bs::ResourceListenerManager::OnResourceModified, this, _1));
+	mResourceLoadedConn = GetResources().OnResourceLoaded.Connect(std::bind(&::bs::ResourceListenerManager::OnResourceLoaded, this, _1));
+	mResourceModifiedConn = GetResources().OnResourceModified.Connect(std::bind(&::bs::ResourceListenerManager::OnResourceModified, this, _1));
 }
 
 ResourceListenerManager::~ResourceListenerManager()

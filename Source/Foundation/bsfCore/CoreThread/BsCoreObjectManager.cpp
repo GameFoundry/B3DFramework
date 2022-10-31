@@ -63,7 +63,7 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 			SPtr<ct::CoreObject> coreObject = object->GetCore();
 			if(coreObject != nullptr)
 			{
-				CoreSyncData objSyncData = object->SyncToCore(gCoreThread().GetFrameAlloc());
+				CoreSyncData objSyncData = object->SyncToCore(GetCoreThread().GetFrameAlloc());
 
 				mDestroyedSyncData.push_back(CoreStoredSyncObjData(coreObject, internalId, objSyncData));
 
@@ -213,8 +213,8 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 
 void CoreObjectManager::SyncToCore()
 {
-	SyncDownload(gCoreThread().GetFrameAlloc());
-	gCoreThread().QueueCommand(std::bind(&CoreObjectManager::SyncUpload, this));
+	SyncDownload(GetCoreThread().GetFrameAlloc());
+	GetCoreThread().QueueCommand(std::bind(&CoreObjectManager::SyncUpload, this));
 }
 
 void CoreObjectManager::SyncToCore(CoreObject* object)
@@ -228,7 +228,7 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 
 	Lock lock(mObjectsMutex);
 
-	FrameAlloc* allocator = gCoreThread().GetFrameAlloc();
+	FrameAlloc* allocator = GetCoreThread().GetFrameAlloc();
 	Vector<IndividualCoreSyncData> syncData;
 
 	std::function<void(CoreObject*)> syncObject = [&](CoreObject* curObj)
@@ -287,7 +287,7 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 	};
 
 	if(syncData.size() > 0)
-		gCoreThread().QueueCommand(std::bind(callback, syncData));
+		GetCoreThread().QueueCommand(std::bind(callback, syncData));
 }
 
 void CoreObjectManager::SyncDownload(FrameAlloc* allocator)

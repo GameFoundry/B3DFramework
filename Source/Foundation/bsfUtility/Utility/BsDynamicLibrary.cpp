@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsDynLib.h"
+#include "Utility/BsDynamicLibrary.h"
 #include "Error/BsException.h"
 
 #if BS_PLATFORM == BS_PLATFORM_WIN32
@@ -17,18 +17,18 @@
 
 using namespace bs;
 
-DynLib::DynLib(String name)
+DynamicLibrary::DynamicLibrary(String name)
 	: mName(std::move(name))
 {
 	Load();
 }
 
-DynLib::~DynLib()
+DynamicLibrary::~DynamicLibrary()
 {
 	Unload();
 }
 
-void DynLib::Load()
+void DynamicLibrary::Load()
 {
 	if(mHandle)
 		return;
@@ -41,7 +41,7 @@ void DynLib::Load()
 	}
 }
 
-void DynLib::Unload()
+void DynamicLibrary::Unload()
 {
 	if(!mHandle)
 		return;
@@ -54,7 +54,7 @@ void DynLib::Unload()
 	mHandle = nullptr;
 }
 
-void* DynLib::GetSymbol(const String& strName) const
+void* DynamicLibrary::GetSymbol(const String& strName) const
 {
 	if(!mHandle)
 		return nullptr;
@@ -62,7 +62,7 @@ void* DynLib::GetSymbol(const String& strName) const
 	return (void*)DYNLIB_GETSYM(mHandle, strName.c_str());
 }
 
-String DynLib::DynlibError()
+String DynamicLibrary::DynlibError()
 {
 #if BS_PLATFORM == BS_PLATFORM_WIN32
 	LPVOID lpMsgBuf;

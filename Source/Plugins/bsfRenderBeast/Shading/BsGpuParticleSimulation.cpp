@@ -449,7 +449,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	auto* const indices = (u16*)SpriteIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
@@ -827,7 +827,7 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 
 void GpuParticleSimulation::Sort(const RendererView& view)
 {
-	const bool supportsCompute = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	const bool supportsCompute = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(!supportsCompute)
 		return;
 
@@ -1038,7 +1038,7 @@ SPtr<GpuParamBlockBuffer> createGpuParticleVertexInputBuffer()
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
 	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ (rapiConventions.NdcYAxis == Conventions::Axis::Down))
@@ -1370,7 +1370,7 @@ GpuParticleCurves::GpuParticleCurves()
 
 	mInjectIndices = IndexBuffer::Create(injectIndexBufferDesc);
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 
 	auto* const indices = (u16*)mInjectIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 

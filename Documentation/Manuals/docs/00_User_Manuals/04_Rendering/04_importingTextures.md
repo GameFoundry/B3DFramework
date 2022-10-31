@@ -9,7 +9,7 @@ Textures can be imported from various third party formats, using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a texture named "myTexture.jpg" from the disk
-HTexture texture = gImporter().import<Texture>("myTexture.jpg");
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg");
 ~~~~~~~~~~~~~
 
 Supported formats are:
@@ -36,10 +36,10 @@ Once a texture has been imported, you can retrieve its properties like width, he
 // Retrieve and print out various texture properties
 auto& props = texture->getProperties();
 
-gDebug().logDebug("Width: " + toString(props.getWidth()));
-gDebug().logDebug("Height: " + toString(props.getHeight()));
-gDebug().logDebug("Format: " + toString(props.getFormat()));
-gDebug().logDebug("Num. mip maps: " + toString(props.getNumMipmaps()));
+GetDebug().logDebug("Width: " + toString(props.getWidth()));
+GetDebug().logDebug("Height: " + toString(props.getHeight()));
+GetDebug().logDebug("Format: " + toString(props.getFormat()));
+GetDebug().logDebug("Num. mip maps: " + toString(props.getNumMipmaps()));
 ~~~~~~~~~~~~~
 
 # Customizing import
@@ -49,7 +49,7 @@ Texture import can be customized by providing a @bs::TextureImportOptions object
 auto importOptions = TextureImportOptions::create();
 // Set required options here (as described below)
 
-HTexture texture = gImporter().import<Texture>("myTexture.jpg", importOptions);
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg", importOptions);
 ~~~~~~~~~~~~~
 
 A variety of properties can be customized on import, the most important of which being image format, mip-map generation, sRGB state and caching.
@@ -109,7 +109,7 @@ Note that caching a texture means its data will be available in system memory, e
 importOptions->cpuCached = true;
 
 // Import texture
-HTexture texture = gImporter().import<Texture>("myTexture.jpg", importOptions);
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg", importOptions);
 
 // Allocate a buffer to hold texture contents
 SPtr<PixelData> pixelData = PixelData::create(1024, 1024, 1, PF_R8G8B8A8);

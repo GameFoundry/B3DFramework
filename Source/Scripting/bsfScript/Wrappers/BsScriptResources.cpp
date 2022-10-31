@@ -34,7 +34,7 @@ MonoObject* ScriptResources::InternalLoad(MonoString* path, ResourceLoadFlag fla
 
 	ResourceLoadFlags loadFlags = flags;
 
-	if(gApplication().IsEditor())
+	if(GetApplication().IsEditor())
 		loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 	HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, false);
@@ -49,10 +49,10 @@ MonoObject* ScriptResources::InternalLoadFromUuid(UUID* uuid, ResourceLoadFlag f
 {
 	ResourceLoadFlags loadFlags = flags;
 
-	if(gApplication().IsEditor())
+	if(GetApplication().IsEditor())
 		loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-	HResource resource = gResources().LoadFromUuid(*uuid, false, loadFlags);
+	HResource resource = GetResources().LoadFromUuid(*uuid, false, loadFlags);
 	if(!resource.IsLoaded(false))
 		return nullptr;
 
@@ -66,7 +66,7 @@ MonoObject* ScriptResources::InternalLoadAsync(MonoString* path, ResourceLoadFla
 
 	ResourceLoadFlags loadFlags = flags;
 
-	if(gApplication().IsEditor())
+	if(GetApplication().IsEditor())
 		loadFlags |= ResourceLoadFlag::KeepSourceData;
 
 	HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, true);
@@ -84,10 +84,10 @@ MonoObject* ScriptResources::InternalLoadAsyncFromUuid(UUID* uuid, ResourceLoadF
 {
 	ResourceLoadFlags loadFlags = flags;
 
-	if(gApplication().IsEditor())
+	if(GetApplication().IsEditor())
 		loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-	HResource resource = gResources().LoadFromUuid(*uuid, true, loadFlags);
+	HResource resource = GetResources().LoadFromUuid(*uuid, true, loadFlags);
 	if(resource == nullptr)
 		return nullptr;
 
@@ -100,7 +100,7 @@ MonoObject* ScriptResources::InternalLoadAsyncFromUuid(UUID* uuid, ResourceLoadF
 
 float ScriptResources::InternalGetLoadProgress(ScriptRRefBase* resource, bool loadDependencies)
 {
-	return gResources().GetLoadProgress(resource->GetHandle(), loadDependencies);
+	return GetResources().GetLoadProgress(resource->GetHandle(), loadDependencies);
 }
 
 void ScriptResources::InternalRelease(ScriptResourceBase* resource)
@@ -115,6 +115,6 @@ void ScriptResources::InternalReleaseRef(ScriptRRefBase* resourceRef)
 
 void ScriptResources::InternalUnloadUnused()
 {
-	gResources().UnloadAllUnused();
+	GetResources().UnloadAllUnused();
 }
 #endif

@@ -116,9 +116,9 @@ To load a custom plugin you can use:
 
 ~~~~~~~~~~~~~{.cpp}
 DynLib* pluginLib;
-gApplication()::loadPlugin("MyPlugin", &pluginLib);
+GetApplication()::loadPlugin("MyPlugin", &pluginLib);
 // Do something
-gApplication()::unloadPlugin(pluginLib);
+GetApplication()::unloadPlugin(pluginLib);
 ~~~~~~~~~~~~~ 
  
 Both of those methods internally call **DynLibManager** which we described earlier. In fact you can also use it directly for loading plugins, as an alternative to this approach.

@@ -456,7 +456,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to Renderer. */
-		SPtr<Renderer> BS_CORE_EXPORT gRenderer();
+		SPtr<Renderer> BS_CORE_EXPORT GetRenderer();
 
 		/**
 		 * Task that represents an asynchonous operation queued for execution on the core thread. All such tasks are executed

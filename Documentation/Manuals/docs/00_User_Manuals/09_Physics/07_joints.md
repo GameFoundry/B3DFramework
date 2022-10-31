@@ -365,7 +365,7 @@ joint->setBreakForce(500.0f);
 
 auto notify = []()
 {
-	gDebug().logDebug("Joint broken!");
+	GetDebug().logDebug("Joint broken!");
 };
 
 joint->onJointBreak.connect(notify);

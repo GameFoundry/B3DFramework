@@ -42,7 +42,7 @@ HMaterial material = Material::create(shader);
 As we mentioned, the main purpose of a material is to provide a way to set various parameters exposed by the shader. In the example below we show how to set the albedo texture parameter.
 
 ~~~~~~~~~~~~~{.cpp}
-HTexture texture = gImporter().import<Texture>("myTexture.png");
+HTexture texture = GetImporter().import<Texture>("myTexture.png");
 
 // Set the texture for the "gAlbedoTex" parameter.
 material->setTexture("gAlbedoTex", texture);

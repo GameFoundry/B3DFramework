@@ -8,7 +8,7 @@ Fonts can be imported from .TTF or .OTF formats using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a font named "lato.ttf" from disk
-HFont font = gImporter().import<Font>("lato.ttf");
+HFont font = GetImporter().import<Font>("lato.ttf");
 ~~~~~~~~~~~~~
 
 # Customizing import
@@ -18,7 +18,7 @@ Font import can be customized by providing a @bs::FontImportOptions object to th
 auto importOptions = FontImportOptions::create();
 // Set required options here (as described below)
 
-HFont font = gImporter().import<Font>("lato.ttf", importOptions);
+HFont font = GetImporter().import<Font>("lato.ttf", importOptions);
 ~~~~~~~~~~~~~
 
 A variety of properties can be customized on import, the most important of which being font size, font style, DPI and a range of characters to import.

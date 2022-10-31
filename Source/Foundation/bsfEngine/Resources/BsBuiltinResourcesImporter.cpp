@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
 			const bool fullReimport = modifications == 2;
 
 			sManifest = ResourceManifest::Create("BuiltinResources");
-			gResources().RegisterResourceManifest(sManifest);
+			GetResources().RegisterResourceManifest(sManifest);
 
 			processAssets(generateGenerated, fullReimport, lastUpdateTime);
 			BuiltinResourcesHelper::WriteTimestamp(sOutputFolder + kTimestampName);
@@ -142,9 +142,9 @@ void generateTextures()
 
 	auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& uuid)
 	{
-		HResource textureResource = gResources().CreateResourceHandleInternal(texture, UUID(uuid));
+		HResource textureResource = GetResources().CreateResourceHandleInternal(texture, UUID(uuid));
 
-		gResources().Save(textureResource, path, true);
+		GetResources().Save(textureResource, path, true);
 		sManifest->RegisterResource(textureResource.GetUuid(), path);
 	};
 
@@ -224,9 +224,9 @@ void generateMeshes()
 
 	auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& uuid)
 	{
-		HResource meshResource = gResources().CreateResourceHandleInternal(mesh, UUID(uuid));
+		HResource meshResource = GetResources().CreateResourceHandleInternal(mesh, UUID(uuid));
 
-		gResources().Save(meshResource, path, true);
+		GetResources().Save(meshResource, path, true);
 		sManifest->RegisterResource(meshResource.GetUuid(), path);
 	};
 
@@ -739,9 +739,9 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		const SPtr<GUISkin> skin = generateGUISkin();
 		const Path outputPath = sOutputFolder + (fileName + u8".asset");
 
-		HResource skinResource = gResources().CreateResourceHandleInternal(skin, UUID);
+		HResource skinResource = GetResources().CreateResourceHandleInternal(skin, UUID);
 
-		gResources().Save(skinResource, outputPath, true);
+		GetResources().Save(skinResource, outputPath, true);
 		sManifest->RegisterResource(skinResource.GetUuid(), outputPath);
 	}
 
@@ -754,10 +754,10 @@ void processAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		Path inputPath = sInputFolder + fileName;
 		Path outputPath = sOutputFolder + (fileName + ".asset");
 
-		auto textureIO = gImporter().CreateImportOptions<TextureImportOptions>(inputPath);
+		auto textureIO = GetImporter().CreateImportOptions<TextureImportOptions>(inputPath);
 		textureIO->CpuCached = true;
 		textureIO->GenerateMips = false;
-		HTexture splashTexture = gImporter().Import<Texture>(inputPath, textureIO);
+		HTexture splashTexture = GetImporter().Import<Texture>(inputPath, textureIO);
 
 		SPtr<PixelData> splashPixelData = splashTexture->GetProperties().AllocBuffer(0, 0);
 		splashTexture->ReadCachedData(*splashPixelData);

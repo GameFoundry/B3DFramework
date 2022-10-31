@@ -412,7 +412,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 			const SPtr<Shader>& shader = renElement.Material->GetShader();
 			ShaderFlags shaderFlags = shader->GetFlags();
 			const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
-			bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+			bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 			const Vector<ShaderVariationParamInfo>& variationParams = shader->GetVariationParams();
 			const bool shaderCanWriteVelocity = std::find_if(variationParams.begin(), variationParams.end(), [](const ShaderVariationParamInfo& x)
@@ -484,7 +484,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 		if(useForwardRendering)
 		{
-			const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+			const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 			element.ForwardLightingParams.Populate(gpuParams, supportsClusteredForward);
 			element.ImageBasedParams.Populate(gpuParams, GPT_FRAGMENT_PROGRAM, true, supportsClusteredForward, supportsClusteredForward);
@@ -769,7 +769,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	ShaderFlags shaderFlags = shader->GetFlags();
 	const bool requiresForwardLighting = shaderFlags.IsSet(ShaderFlag::Forward);
-	const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 
 	ParticleForwardLightingType forwardLightingType;
 	if(requiresForwardLighting)

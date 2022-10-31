@@ -40,7 +40,7 @@ void CReflectionProbe::OnInitialized()
 	else
 		mInternal = ReflectionProbe::CreateBox(Vector3::kOne);
 
-	gSceneManager().BindActorInternal(mInternal, SceneObject());
+	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 
 	// If filtered texture doesn't exist, ensure it is generated
 	SPtr<Texture> filteredTexture = mInternal->GetFilteredTexture();
@@ -55,7 +55,7 @@ void CReflectionProbe::OnInitialized()
 
 void CReflectionProbe::OnDestroyed()
 {
-	gSceneManager().UnbindActorInternal(mInternal);
+	GetSceneManager().UnbindActorInternal(mInternal);
 }
 
 RTTITypeBase* CReflectionProbe::GetRttiStatic()

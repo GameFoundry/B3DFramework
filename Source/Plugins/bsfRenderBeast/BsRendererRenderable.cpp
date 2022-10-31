@@ -25,9 +25,9 @@ void PerObjectBuffer::Update(SPtr<GpuParamBlockBuffer>& buffer, const Matrix4& t
 void RenderableElement::Draw() const
 {
 	if(MorphVertexDeclaration == nullptr)
-		gRendererUtility().Draw(Mesh, SubMesh);
+		GetRendererUtility().Draw(Mesh, SubMesh);
 	else
-		gRendererUtility().DrawMorph(Mesh, SubMesh, MorphShapeBuffer, MorphVertexDeclaration);
+		GetRendererUtility().DrawMorph(Mesh, SubMesh, MorphShapeBuffer, MorphVertexDeclaration);
 }
 
 RendererRenderable::RendererRenderable()

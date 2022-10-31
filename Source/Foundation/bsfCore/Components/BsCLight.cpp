@@ -47,12 +47,12 @@ void CLight::OnInitialized()
 			mSpotFalloffAngle);
 	}
 
-	gSceneManager().BindActorInternal(mInternal, SceneObject());
+	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 }
 
 void CLight::OnDestroyed()
 {
-	gSceneManager().UnbindActorInternal(mInternal);
+	GetSceneManager().UnbindActorInternal(mInternal);
 	mInternal->Destroy();
 }
 

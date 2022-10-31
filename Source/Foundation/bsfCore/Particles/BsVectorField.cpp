@@ -103,7 +103,7 @@ HVectorField VectorField::Create(const VECTOR_FIELD_DESC& desc, const Vector<Vec
 {
 	SPtr<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
 
-	return static_resource_cast<VectorField>(gResources().CreateResourceHandleInternal(vectorFieldPtr));
+	return static_resource_cast<VectorField>(GetResources().CreateResourceHandleInternal(vectorFieldPtr));
 }
 
 SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)

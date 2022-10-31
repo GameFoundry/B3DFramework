@@ -25,12 +25,12 @@ void AudioClip::Initialize()
 
 HAudioClip AudioClip::Create(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	return static_resource_cast<AudioClip>(gResources().CreateResourceHandleInternal(CreatePtrInternal(samples, streamSize, numSamples, desc)));
+	return static_resource_cast<AudioClip>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(samples, streamSize, numSamples, desc)));
 }
 
 SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	SPtr<AudioClip> newClip = gAudio().CreateClip(samples, streamSize, numSamples, desc);
+	SPtr<AudioClip> newClip = GetAudio().CreateClip(samples, streamSize, numSamples, desc);
 	newClip->SetThisPtrInternal(newClip);
 	newClip->Initialize();
 
@@ -41,7 +41,7 @@ SPtr<AudioClip> AudioClip::CreateEmpty()
 {
 	AUDIO_CLIP_DESC desc;
 
-	SPtr<AudioClip> newClip = gAudio().CreateClip(nullptr, 0, 0, desc);
+	SPtr<AudioClip> newClip = GetAudio().CreateClip(nullptr, 0, 0, desc);
 	newClip->SetThisPtrInternal(newClip);
 
 	return newClip;

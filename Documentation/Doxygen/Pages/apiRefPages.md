@@ -21,7 +21,7 @@ texture->readData(output);
 
 // Assuming we need the data right away, we submit the 
 // core thread queue and block until the command executes
-gCoreThread().submit(true);
+GetCoreThread().submit(true);
 
 // It's now safe to read the pixel data
 Color color = output->getColorAt(0, 0);

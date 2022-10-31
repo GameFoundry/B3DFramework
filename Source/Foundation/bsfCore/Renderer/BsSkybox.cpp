@@ -78,13 +78,13 @@ void Skybox::FilterTexture()
 	auto filterSkybox = [coreFilteredRadiance, coreIrradiance, coreSkybox]()
 	{
 		// Filter radiance
-		ct::gIBLUtility().ScaleCubemap(coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
-		ct::gIBLUtility().FilterCubemapForSpecular(coreFilteredRadiance, nullptr);
+		ct::GetIBLUtility().ScaleCubemap(coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
+		ct::GetIBLUtility().FilterCubemapForSpecular(coreFilteredRadiance, nullptr);
 
 		coreSkybox->mFilteredRadiance = coreFilteredRadiance;
 
 		// Generate irradiance
-		ct::gIBLUtility().FilterCubemapForIrradiance(coreSkybox->GetTexture(), coreIrradiance);
+		ct::GetIBLUtility().FilterCubemapForIrradiance(coreSkybox->GetTexture(), coreIrradiance);
 		coreSkybox->mIrradiance = coreIrradiance;
 
 		return true;
@@ -93,7 +93,7 @@ void Skybox::FilterTexture()
 	mRendererTask = ct::RendererTask::Create("SkyboxFilter", filterSkybox);
 
 	mRendererTask->OnComplete.Connect(renderComplete);
-	ct::gRenderer()->AddTask(mRendererTask);
+	ct::GetRenderer()->AddTask(mRendererTask);
 }
 
 void Skybox::SetTexture(const HTexture& texture)
@@ -194,12 +194,12 @@ Skybox::Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadia
 
 Skybox::~Skybox()
 {
-	gRenderer()->NotifySkyboxRemoved(this);
+	GetRenderer()->NotifySkyboxRemoved(this);
 }
 
 void Skybox::Initialize()
 {
-	gRenderer()->NotifySkyboxAdded(this);
+	GetRenderer()->NotifySkyboxAdded(this);
 
 	CoreObject::Initialize();
 }
@@ -218,16 +218,16 @@ void Skybox::SyncToCore(const CoreSyncData& data)
 	if(oldIsActive != mActive)
 	{
 		if(mActive)
-			gRenderer()->NotifySkyboxAdded(this);
+			GetRenderer()->NotifySkyboxAdded(this);
 		else
-			gRenderer()->NotifySkyboxRemoved(this);
+			GetRenderer()->NotifySkyboxRemoved(this);
 	}
 	else
 	{
 		if(dirtyFlags != SkyboxDirtyFlag::Texture)
 		{
-			gRenderer()->NotifySkyboxRemoved(this);
-			gRenderer()->NotifySkyboxAdded(this);
+			GetRenderer()->NotifySkyboxRemoved(this);
+			GetRenderer()->NotifySkyboxAdded(this);
 		}
 	}
 }

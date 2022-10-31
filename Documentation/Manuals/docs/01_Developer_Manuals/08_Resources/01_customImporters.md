@@ -48,7 +48,7 @@ To register your **SpecificImporter** implementation with the importer system yo
 Application::startUp(...);
 
 PlainTextImporter* myImporter = bs_new<PlainTextImporter>();
-gImporter()._registerAssetImporter(myImporter);
+GetImporter()._registerAssetImporter(myImporter);
 ~~~~~~~~~~~~~ 
 
 > Your importer must be allocated using a general purpose allocator (**bs_new**) because the importer system automatically frees it on shutdown, and it doesn't expect any special memory types.

@@ -13,7 +13,7 @@ ScriptCode::ScriptCode(const WString& data, bool editorScript)
 
 HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
 {
-	return static_resource_cast<ScriptCode>(gResources().CreateResourceHandleInternal(CreatePtrInternal(data, editorScript)));
+	return static_resource_cast<ScriptCode>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(data, editorScript)));
 }
 
 SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)

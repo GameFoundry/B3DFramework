@@ -93,7 +93,7 @@ Vector<HCollider> PhysicsScene::ConvexOverlap(const HPhysicsMesh& mesh, const Ve
 
 namespace bs
 {
-Physics& gPhysics()
+Physics& GetPhysics()
 {
 	return Physics::Instance();
 }

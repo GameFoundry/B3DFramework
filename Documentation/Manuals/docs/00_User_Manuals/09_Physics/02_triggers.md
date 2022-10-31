@@ -32,7 +32,7 @@ auto collisionStarted = [](const CollisionData& data)
 	String otherSceneObjectName = otherCollider->SO()->getName();
 	
 	Vector3 contactPoint = data.contactPoints[0].position;
-	gDebug().logDebug("Started colliding with " + otherSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Started colliding with " + otherSceneObjectName + " at point " + toString(contactPoint));
 };
 
 collider->setCollisionReportMode(CollisionReportMode::Report);

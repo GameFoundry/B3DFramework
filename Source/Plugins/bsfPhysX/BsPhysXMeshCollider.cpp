@@ -14,7 +14,7 @@ PhysXMeshCollider::PhysXMeshCollider(PxPhysics* physx, PxScene* scene, const Vec
 {
 	PxSphereGeometry geometry(0.01f); // Dummy
 
-	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	PxShape* shape = physx->createShape(geometry, *GetPhysX().GetDefaultMaterial(), true);
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 
@@ -70,7 +70,7 @@ void PhysXMeshCollider::SetGeometry(const PxGeometry& geometry)
 	PxShape* shape = GetInternal()->GetShapeInternal();
 	if(shape->getGeometryType() != geometry.getType())
 	{
-		PxShape* newShape = gPhysX().GetPhysX()->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+		PxShape* newShape = GetPhysX().GetPhysX()->createShape(geometry, *GetPhysX().GetDefaultMaterial(), true);
 		GetInternal()->SetShapeInternal(newShape);
 	}
 	else

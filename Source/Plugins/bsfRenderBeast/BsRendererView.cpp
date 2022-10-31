@@ -636,7 +636,7 @@ Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
 	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
 	// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
 
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 
 	float depthRange = caps.MaxDepth - caps.MinDepth;
 	float minDepth = caps.MinDepth;
@@ -699,7 +699,7 @@ Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
 
 Vector2 RendererView::GetNdczToDeviceZ()
 {
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 
 	Vector2 ndcZToDeviceZ;
 	ndcZToDeviceZ.X = 1.0f / (caps.MaxDepth - caps.MinDepth);
@@ -802,7 +802,7 @@ void RendererView::UpdatePerViewBuffer()
 
 Vector4 RendererView::GetNdcToUv() const
 {
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 	const Rect2I& viewRect = mProperties.Target.ViewRect;
 
 	float halfWidth = viewRect.Width * 0.5f;
@@ -932,7 +932,7 @@ void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
 	mVisibleLightData.Update(sceneInfo, *this);
 	mVisibleReflProbeData.Update(sceneInfo, *this);
 
-	const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(supportsClusteredForward)
 	{
 		for(u32 i = 0; i < numViews; i++)

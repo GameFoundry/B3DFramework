@@ -17,14 +17,14 @@ Ray ray(origin, direction);
 PhysicsQueryHit hitInfo;
 
 // Cast a ray into the scene and return information about first object hit
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 if(physicsScene->rayCast(ray, hitInfo))
 {
 	HCollider hitCollider = hitInfo.collider;
 	String hitSceneObjectName = hitCollider->SO()->getName();
 	
 	Vector3 contactPoint = hitInfo.point;
-	gDebug().logDebug("Hit " + hitSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Hit " + hitSceneObjectName + " at point " + toString(contactPoint));
 }
 ~~~~~~~~~~~~~
 
@@ -67,7 +67,7 @@ Sphere sphere(Vector3(0, 0, 0), 0.5f);
 Vector3 direction(0, 0, -1);
 
 // Find all objects intersecting the sphere traveling in the specified direction
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 Vector<PhysicsQueryHit> hits = physicsScene.sphereCastAll(sphere, direction);
 
 for(auto& entry : hits)
@@ -76,7 +76,7 @@ for(auto& entry : hits)
 	String hitSceneObjectName = hitCollider->SO()->getName();
 	
 	Vector3 contactPoint = entry.point;
-	gDebug().logDebug("Found hit with " + hitSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Found hit with " + hitSceneObjectName + " at point " + toString(contactPoint));
 }
 ~~~~~~~~~~~~~
 
@@ -108,14 +108,14 @@ Vector3 direction(0, 0, -1);
 
 // Find closest object intersecting the box traveling in the specified direction
 PhysicsQueryHit hitInfo;
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 if(physicsScene.boxCast(box, direction, hitInfo))
 {
 	HCollider hitCollider = hitInfo.collider;
 	String hitSceneObjectName = hitCollider->SO()->getName();
 	
 	Vector3 contactPoint = hitInfo.point;
-	gDebug().logDebug("Found hit with " + hitSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Found hit with " + hitSceneObjectName + " at point " + toString(contactPoint));
 }
 ~~~~~~~~~~~~~
 
@@ -136,9 +136,9 @@ Vector3 direction(0, 0, -1);
 Ray ray(origin, direction);
 
 // See if the ray intersects anything while traveling in the specified direction
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 if(physicsScene.rayCastAny(ray))
-	gDebug().logDebug("Found hit!");
+	GetDebug().logDebug("Found hit!");
 ~~~~~~~~~~~~~
 
 # Overlaps
@@ -168,13 +168,13 @@ They all share a common interface. As input they take a shape with its starting 
 Sphere sphere(Vector3(0, 0, 0), 0.5f);
 
 // Find all objects overlapping the sphere
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 Vector<HCollider> overlaps = physicsScene.sphereOverlap(sphere);
 
 for(auto& entry : overlaps)
 {
 	String overlappingSceneObjectName = entry->SO()->getName();
-	gDebug().logDebug("Found overlap with " + overlappingSceneObjectName);
+	GetDebug().logDebug("Found overlap with " + overlappingSceneObjectName);
 }
 ~~~~~~~~~~~~~
 
@@ -190,7 +190,7 @@ This is a set of overlap methods that returns only a boolean value if the overla
 Sphere sphere(Vector3(0, 0, 0), 0.5f);
 
 // Check if sphere overlaps anything
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 if(physicsScene.sphereOverlapAny(sphere))
-	gDebug().logDebug("Found overlap!");
+	GetDebug().logDebug("Found overlap!");
 ~~~~~~~~~~~~~

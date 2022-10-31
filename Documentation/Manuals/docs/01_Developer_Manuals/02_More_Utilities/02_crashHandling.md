@@ -5,7 +5,7 @@ title: Crash handling
 Whenever possible you should try to avoid triggering a crash, and instead try to recover from error conditions as best as possible. When crashing cannot be avoided you can use @bs::CrashHandler to report fatal errors. Call @bs::CrashHandler::reportCrash to manually trigger such an error. An error will be logged and a message box with relevant information displayed.
 
 ~~~~~~~~~~~~~{.cpp}
-gCrashHandler().reportCrash("My error", "My error description");
+GetCrashHandler().reportCrash("My error", "My error description");
 ~~~~~~~~~~~~~
 
 You can also use @BS_EXCEPT macro, which internally calls **CrashHandler::reportCrash()** but automatically adds file/line information and terminates the process after reporting the crash.

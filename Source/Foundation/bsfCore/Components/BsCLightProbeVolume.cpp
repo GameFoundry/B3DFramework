@@ -60,12 +60,12 @@ void CLightProbeVolume::OnInitialized()
 	else
 		mInternal = LightProbeVolume::Create(mVolume, mCellCount);
 
-	gSceneManager().BindActorInternal(mInternal, SceneObject());
+	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 }
 
 void CLightProbeVolume::OnDestroyed()
 {
-	gSceneManager().UnbindActorInternal(mInternal);
+	GetSceneManager().UnbindActorInternal(mInternal);
 }
 
 RTTITypeBase* CLightProbeVolume::GetRttiStatic()

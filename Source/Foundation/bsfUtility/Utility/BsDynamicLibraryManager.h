@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	Not thread safe.
 	 */
-	class BS_UTILITY_EXPORT DynLibManager : public Module<DynLibManager>
+	class BS_UTILITY_EXPORT DynamicLibraryManager : public Module<DynamicLibraryManager>
 	{
 	public:
 		/**
@@ -25,17 +25,17 @@ namespace bs
 		 *
 		 * @param[in]	name	The name of the library. The extension can be omitted.
 		 */
-		DynLib* Load(String name);
+		DynamicLibrary* Load(String name);
 
 		/** Unloads the given library. */
-		void Unload(DynLib* lib);
+		void Unload(DynamicLibrary* lib);
 
 	protected:
-		Set<UPtr<DynLib>, std::less<>> mLoadedLibraries;
+		Set<UPtr<DynamicLibrary>, std::less<>> mLoadedLibraries;
 	};
 
 	/** Easy way of accessing DynLibManager. */
-	BS_UTILITY_EXPORT DynLibManager& gDynLibManager();
+	BS_UTILITY_EXPORT DynamicLibraryManager& GetDynamicLibraryManager();
 
 	/** @} */
 } // namespace bs

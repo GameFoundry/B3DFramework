@@ -56,11 +56,11 @@ void RenderBeast::Initialize()
 	Renderer::Initialize();
 
 	LoadedRendererTextures textures;
-	HTexture bokehFlare = gBuiltinResources().GetTexture(BuiltinTexture::BokehFlare);
+	HTexture bokehFlare = GetBuiltinResources().GetTexture(BuiltinTexture::BokehFlare);
 	if(bokehFlare.IsLoaded(false))
 		textures.BokehFlare = bokehFlare->GetCore();
 
-	gCoreThread().QueueCommand([this, textures]()
+	GetCoreThread().QueueCommand([this, textures]()
 							   { InitializeCore(textures); },
 							   CTQF_InternalQueue);
 }
@@ -69,13 +69,13 @@ void RenderBeast::Destroy()
 {
 	Renderer::Destroy();
 
-	gCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::DestroyCore, this));
-	gCoreThread().Submit(true);
+	GetCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::DestroyCore, this));
+	GetCoreThread().Submit(true);
 }
 
 void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 {
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 
 	if(
 		!caps.HasCapability(RSC_COMPUTE_PROGRAM) ||
@@ -86,7 +86,7 @@ void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 	}
 
 	// Ensure profiler methods can be called from start-up methods
-	gProfilerGPU().BeginFrame();
+	GetProfilerGPU().BeginFrame();
 
 	RendererUtility::StartUp();
 	GpuSort::StartUp();
@@ -103,7 +103,7 @@ void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 	ParticleRenderer::StartUp();
 	GpuParticleSimulation::StartUp();
 
-	gProfilerGPU().EndFrame(true);
+	GetProfilerGPU().EndFrame(true);
 
 	RenderCompositor::RegisterNodeType<RCNodeSceneDepth>();
 	RenderCompositor::RegisterNodeType<RCNodeBasePass>();
@@ -349,7 +349,7 @@ void RenderBeast::SetGlobalShaderOverride(const String& name, const SPtr<bs::Sha
 			DeferredDirectionalLightMat::SetOverride(shaderCore);
 	};
 
-	gCoreThread().QueueCommand(setShaderOverride);
+	GetCoreThread().QueueCommand(setShaderOverride);
 }
 
 void RenderBeast::RenderAll(PerFrameData perFrameData)
@@ -359,24 +359,24 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 
 	if(mOptionsDirty)
 	{
-		gCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::SyncOptions, this, *mOptions));
+		GetCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::SyncOptions, this, *mOptions));
 		mOptionsDirty = false;
 	}
 
 	FrameTimings timings;
-	timings.Time = gTime().GetTime();
-	timings.TimeDelta = gTime().GetFrameDelta();
-	timings.FrameIdx = gTime().GetFrameIdx();
+	timings.Time = GetTime().GetTime();
+	timings.TimeDelta = GetTime().GetFrameDelta();
+	timings.FrameIdx = GetTime().GetFrameIdx();
 
-	gCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::RenderAllCore, this, timings, perFrameData));
+	GetCoreThread().QueueCommand(std::bind(&::bs::ct::RenderBeast::RenderAllCore, this, timings, perFrameData));
 }
 
 void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	gProfilerGPU().BeginFrame();
-	gProfilerCPU().BeginSample("Render");
+	GetProfilerGPU().BeginFrame();
+	GetProfilerCPU().BeginSample("Render");
 
 	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 
@@ -441,8 +441,8 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	// Tick pool frame
 	GpuResourcePool::Instance().Update();
 
-	gProfilerGPU().EndFrame();
-	gProfilerCPU().EndSample("Render");
+	GetProfilerGPU().EndFrame();
+	GetProfilerCPU().EndSample("Render");
 }
 
 bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
@@ -489,11 +489,11 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 		auto viewId = (u64)view;
 		const RendererViewTargetData& viewTarget = view->GetProperties().Target;
 		String title = StringUtil::Format("({0} x {1})", viewTarget.TargetWidth, viewTarget.TargetHeight);
-		gProfilerGPU().BeginView(viewId, ProfilerString(title.data(), title.size()));
+		GetProfilerGPU().BeginView(viewId, ProfilerString(title.data(), title.size()));
 
 		if(!view->ShouldDraw())
 		{
-			gProfilerGPU().EndView();
+			GetProfilerGPU().EndView();
 			continue;
 		}
 
@@ -509,7 +509,7 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 			anythingDrawn = true;
 		}
 
-		gProfilerGPU().EndView();
+		GetProfilerGPU().EndView();
 	}
 
 	return anythingDrawn;
@@ -517,7 +517,7 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 
 void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 {
-	gProfilerCPU().BeginSample("Render view");
+	GetProfilerCPU().BeginSample("Render view");
 
 	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 	auto& viewProps = view.GetProperties();
@@ -573,12 +573,12 @@ void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& v
 
 	view.EndFrame();
 
-	gProfilerCPU().EndSample("Render view");
+	GetProfilerCPU().EndSample("Render view");
 }
 
 bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
 {
-	gProfilerCPU().BeginSample("Render overlay");
+	GetProfilerCPU().BeginSample("Render overlay");
 
 	view.GetPerViewBuffer()->FlushToGpu();
 	view.BeginFrame(frameInfo);
@@ -642,7 +642,7 @@ bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
 
 	view.EndFrame();
 
-	gProfilerCPU().EndSample("Render overlay");
+	GetProfilerCPU().EndSample("Render overlay");
 	return needsRedraw;
 }
 
@@ -766,7 +766,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	viewDesc.VisibleLayers = 0xFFFFFFFFFFFFFFFF;
 	viewDesc.NearPlane = 0.5f;
 	viewDesc.FarPlane = 1000.0f;
-	viewDesc.FlipView = gCaps().Conventions.UvYAxis != Conventions::Axis::Up;
+	viewDesc.FlipView = GetRenderBackendCapabilities().Conventions.UvYAxis != Conventions::Axis::Up;
 
 	viewDesc.ViewOrigin = position;
 	viewDesc.ProjTransform = projTransform;
@@ -867,7 +867,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	RenderAPI::Instance().SetRenderTarget(nullptr);
 }
 
-SPtr<RenderBeast> gRenderBeast()
+SPtr<RenderBeast> GetRenderBeast()
 {
 	return std::static_pointer_cast<RenderBeast>(RendererManager::Instance().GetActive());
 }

@@ -62,7 +62,7 @@ namespace bs
 	};
 
 	/** Provides easier access to StringTableManager. */
-	BS_CORE_EXPORT StringTableManager& gStringTableManager();
+	BS_CORE_EXPORT StringTableManager& GetStringTableManager();
 
 	/** @} */
 } // namespace bs

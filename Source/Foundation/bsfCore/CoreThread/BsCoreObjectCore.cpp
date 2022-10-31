@@ -40,7 +40,7 @@ void CoreObject::Synchronize()
 			BS_EXCEPT(InternalErrorException, "You cannot call this method on the core thread. It will cause a deadlock!");
 #endif
 
-		gCoreThread().SubmitAll(true);
+		GetCoreThread().SubmitAll(true);
 
 		Lock lock(mCoreGpuObjectLoadedMutex);
 		while(!IsInitialized())

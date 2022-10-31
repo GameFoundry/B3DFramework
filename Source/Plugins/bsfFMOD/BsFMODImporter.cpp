@@ -47,7 +47,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		Lock fileLock = FileScheduler::GetLock(filePath);
 
 		String pathStr = filePath.ToString();
-		if(gFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
+		if(GetFMODAudio().GetFMODInternal()->createSound(pathStr.c_str(), FMOD_CREATESAMPLE, nullptr, &sound) != FMOD_OK)
 		{
 			BS_LOG(Error, Audio, "Failed importing audio file: {0}", pathStr);
 			return nullptr;

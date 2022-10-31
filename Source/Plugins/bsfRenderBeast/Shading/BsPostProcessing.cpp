@@ -76,9 +76,9 @@ void DownsampleMat::Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>
 	Bind();
 
 	if(MSAA)
-		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.GetWidth(), (float)rtProps.GetHeight()));
+		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)rtProps.GetWidth(), (float)rtProps.GetHeight()));
 	else
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -223,7 +223,7 @@ void EyeAdaptHistogramReduceMat::Execute(const SPtr<Texture>& sceneColor, const 
 	Bind();
 
 	Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::kHistogramNumTexels, 2.0f);
-	gRendererUtility().DrawScreenQuad(drawUV);
+	GetRendererUtility().DrawScreenQuad(drawUV);
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -263,7 +263,7 @@ void EyeAdaptationMat::Execute(const SPtr<Texture>& reducedHistogram, const SPtr
 	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -333,7 +333,7 @@ void EyeAdaptationBasicSetupMat::Execute(const SPtr<Texture>& input, const SPtr<
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -381,7 +381,7 @@ void EyeAdaptationBasicMat::Execute(const SPtr<Texture>& curFrame, const SPtr<Te
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -441,7 +441,7 @@ void CreateTonemapLUTMat::Execute2D(const SPtr<RenderTexture>& output, const Ren
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -539,7 +539,7 @@ void TonemappingMat::Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 TonemappingMat* TonemappingMat::GetVariation(bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA)
@@ -648,7 +648,7 @@ void BloomClipMat::Execute(const SPtr<Texture>& input, float threshold, const SP
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
@@ -692,7 +692,7 @@ void ScreenSpaceLensFlareMat::Execute(const SPtr<Texture>& input, const ScreenSp
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 ScreenSpaceLensFlareMat* ScreenSpaceLensFlareMat::GetVariation(bool halo, bool haloAspect, bool chromaticAberration)
@@ -761,7 +761,7 @@ void ChromaticAberrationMat::Execute(const SPtr<Texture>& input, const Chromatic
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 ChromaticAberrationMat* ChromaticAberrationMat::GetVariation(ChromaticAberrationType type)
@@ -802,7 +802,7 @@ void FilmGrainMat::Execute(const SPtr<Texture>& input, float time, const FilmGra
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 GaussianBlurParamDef gGaussianBlurParamDef;
@@ -832,7 +832,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 	const RenderTextureProperties& dstProps = destination->GetProperties();
 
 	POOLED_RENDER_TEXTURE_DESC tempTextureDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(srcProps.GetFormat(), dstProps.Width, dstProps.Height, TU_RENDERTARGET);
-	SPtr<PooledRenderTexture> tempTexture = gGpuResourcePool().Get(tempTextureDesc);
+	SPtr<PooledRenderTexture> tempTexture = GetGpuResourcePool().Get(tempTextureDesc);
 
 	// Horizontal pass
 	{
@@ -846,7 +846,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 		rapi.SetRenderTarget(tempTexture->RenderTexture);
 
 		Bind();
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 	}
 
 	// Vertical pass
@@ -866,7 +866,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 		rapi.SetRenderTarget(destination);
 
 		Bind();
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 	}
 }
 
@@ -1042,7 +1042,7 @@ void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Text
 	u32 outputHeight = std::max(1U, srcProps.GetHeight() / 2);
 
 	POOLED_RENDER_TEXTURE_DESC outputTexDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(srcProps.GetFormat(), outputWidth, outputHeight, TU_RENDERTARGET);
-	mOutput0 = gGpuResourcePool().Get(outputTexDesc);
+	mOutput0 = GetGpuResourcePool().Get(outputTexDesc);
 
 	bool near = mVariation.GetBool("NEAR");
 	bool far = mVariation.GetBool("FAR");
@@ -1050,7 +1050,7 @@ void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Text
 	SPtr<RenderTexture> rt;
 	if(near && far)
 	{
-		mOutput1 = gGpuResourcePool().Get(outputTexDesc);
+		mOutput1 = GetGpuResourcePool().Get(outputTexDesc);
 
 		RENDER_TEXTURE_DESC rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = mOutput0->Texture;
@@ -1079,7 +1079,7 @@ void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Text
 	rapi.SetRenderTarget(rt);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 SPtr<PooledRenderTexture> GaussianDOFSeparateMat::GetOutput(u32 idx)
@@ -1153,7 +1153,7 @@ void GaussianDOFCombineMat::Execute(const SPtr<Texture>& focused, const SPtr<Tex
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 GaussianDOFCombineMat* GaussianDOFCombineMat::GetVariation(bool near, bool far)
@@ -1208,9 +1208,9 @@ void BokehDOFPrepareMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>
 
 	bool MSAA = mVariation.GetInt("MSAA_COUNT") > 1;
 	if(MSAA)
-		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.GetWidth(), (float)srcProps.GetHeight()));
+		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.GetWidth(), (float)srcProps.GetHeight()));
 	else
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 }
 
 POOLED_RENDER_TEXTURE_DESC BokehDOFPrepareMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -1280,7 +1280,7 @@ BokehDOFMat::BokehDOFMat()
 
 	auto* const indices = (u16*)mTileIndexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 	for(u32 i = 0; i < kQuadsPerTile; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
@@ -1454,7 +1454,7 @@ void BokehDOFCombineMat::Execute(const SPtr<Texture>& unfocused, const SPtr<Text
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 BokehDOFCombineMat* BokehDOFCombineMat::GetVariation(MSAAMode msaaMode)
@@ -1523,7 +1523,7 @@ void MotionBlurMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& dep
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 BuildHiZFParamDef gBuildHiZParamDef;
@@ -1577,7 +1577,7 @@ void BuildHiZMat::Execute(const SPtr<Texture>& source, u32 srcMip, const Rect2& 
 	rapi.SetViewport(dstRect);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad(srcRect);
+	GetRendererUtility().DrawScreenQuad(srcRect);
 
 	rapi.SetViewport(Rect2(0, 0, 1, 1));
 }
@@ -1615,7 +1615,7 @@ void FXAAMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& des
 	rapi.SetRenderTarget(destination);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 SSAOParamDef gSSAOParamDef;
@@ -1772,7 +1772,7 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 	rapi.SetRenderTarget(destination);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 SSAOMat* SSAOMat::GetVariation(bool upsample, bool finalPass, int quality)
@@ -1861,7 +1861,7 @@ void SSAODownsampleMat::Execute(const RendererView& view, const SPtr<Texture>& d
 	rapi.SetRenderTarget(destination);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 SSAOBlurParamDef gSSAOBlurParamDef;
@@ -1925,7 +1925,7 @@ void SSAOBlurMat::Execute(const RendererView& view, const SPtr<Texture>& ao, con
 	rapi.SetRenderTarget(destination);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 SSAOBlurMat* SSAOBlurMat::GetVariation(bool horizontal)
@@ -1962,9 +1962,9 @@ void SSRStencilMat::Execute(const RendererView& view, GBufferTextures gbuffer, c
 	Bind();
 
 	if(viewProps.Target.NumSamples > 1)
-		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 }
 
 SSRStencilMat* SSRStencilMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -2030,7 +2030,7 @@ void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, con
 	ndcToHiZUV.W = 0.5f;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 
 	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ (rapiConventions.NdcYAxis == Conventions::Axis::Down))
 		ndcToHiZUV.Y = -ndcToHiZUV.Y;
@@ -2069,9 +2069,9 @@ void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, con
 	Bind();
 
 	if(viewProps.Target.NumSamples > 1)
-		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 }
 
 Vector2 SSRTraceMat::CalcRoughnessFadeScaleBias(float maxRoughness)
@@ -2202,7 +2202,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	Vector2 jitterUV;
 	jitterUV.X = jitter.X * 0.5f;
 
-	if((gCaps().Conventions.UvYAxis == Conventions::Axis::Up) ^ (gCaps().Conventions.NdcYAxis == Conventions::Axis::Down))
+	if((GetRenderBackendCapabilities().Conventions.UvYAxis == Conventions::Axis::Up) ^ (GetRenderBackendCapabilities().Conventions.NdcYAxis == Conventions::Axis::Down))
 		jitterUV.Y = jitter.Y * 0.5f;
 	else
 		jitterUV.Y = jitter.Y * -0.5f;
@@ -2293,9 +2293,9 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	Bind();
 
 	if(viewProps.Target.NumSamples > 1)
-		gRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 }
 
 TemporalFilteringMat* TemporalFilteringMat::GetVariation(TemporalFilteringType type, bool velocity, bool msaa)
@@ -2366,7 +2366,7 @@ void EncodeDepthMat::Execute(const SPtr<Texture>& depth, float near, float far, 
 	rapi.SetRenderTarget(output, 0, RT_COLOR0);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 MSAACoverageMat::MSAACoverageMat()
@@ -2384,7 +2384,7 @@ void MSAACoverageMat::Execute(const RendererView& view, GBufferTextures gbuffer)
 	mParams->SetParamBlockBuffer("PerCamera", perView);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
+	GetRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
 }
 
 MSAACoverageMat* MSAACoverageMat::GetVariation(u32 msaaCount)
@@ -2414,6 +2414,6 @@ void MSAACoverageStencilMat::Execute(const RendererView& view, const SPtr<Textur
 	mCoverageTexParam.Set(coverage);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
+	GetRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
 }
 }}

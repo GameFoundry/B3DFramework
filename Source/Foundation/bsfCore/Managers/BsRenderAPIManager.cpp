@@ -3,8 +3,8 @@
 #include "Managers/BsRenderAPIManager.h"
 #include "Error/BsException.h"
 #include "RenderAPI/BsRenderAPI.h"
-#include "Utility/BsDynLib.h"
-#include "Utility/BsDynLibManager.h"
+#include "Utility/BsDynamicLibrary.h"
+#include "Utility/BsDynamicLibraryManager.h"
 
 using namespace bs;
 
@@ -22,7 +22,7 @@ SPtr<RenderWindow> RenderAPIManager::Initialize(const String& pluginFilename, RE
 	if(mRenderAPIInitialized)
 		return nullptr;
 
-	DynLib* loadedLibrary = gDynLibManager().Load(pluginFilename);
+	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginFilename);
 	const char* name = "";
 
 	if(loadedLibrary != nullptr)

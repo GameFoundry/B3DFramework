@@ -18,7 +18,7 @@ MonoField* ScriptGUIWidget::sGUIPanelField = nullptr;
 ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
 	: ScriptObject(managedInstance), mGUIWidget(nullptr)
 {
-	SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
+	SPtr<Camera> mainCamera = GetSceneManager().GetMainCamera();
 
 	mGUIWidget = GUIWidget::Create(mainCamera);
 	mGUIWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
@@ -101,7 +101,7 @@ void ScriptGUIWidget::InternalSetCamera(ScriptGUIWidget* instance, ScriptCCamera
 		nativeCamera = camera->GetHandle()->GetCameraInternal();
 
 	if(nativeCamera == nullptr)
-		nativeCamera = gSceneManager().GetMainCamera();
+		nativeCamera = GetSceneManager().GetMainCamera();
 
 	SPtr<GUIWidget> widget = instance->GetInternal();
 	if(widget != nullptr)

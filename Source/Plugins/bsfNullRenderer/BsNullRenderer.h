@@ -49,7 +49,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to the null renderer. */
-		SPtr<NullRenderer> gNullRenderer();
+		SPtr<NullRenderer> GetNullRenderer();
 
 		/** @} */
 	} // namespace ct

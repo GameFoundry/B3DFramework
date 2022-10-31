@@ -73,7 +73,7 @@ namespace bs
 	};
 
 	/** Easy way to access Application. */
-	BS_EXPORT Application& gApplication();
+	BS_EXPORT Application& GetApplication();
 
 	/** @} */
 } // namespace bs

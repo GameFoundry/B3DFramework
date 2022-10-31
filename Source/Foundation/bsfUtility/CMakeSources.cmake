@@ -40,8 +40,8 @@ set(BS_UTILITY_SRC_IMAGE
 )
 
 set(BS_UTILITY_SRC_UTILITY
-	"bsfUtility/Utility/BsDynLib.cpp"
-	"bsfUtility/Utility/BsDynLibManager.cpp"
+	"bsfUtility/Utility/BsDynamicLibrary.cpp"
+	"bsfUtility/Utility/BsDynamicLibraryManager.cpp"
 	"bsfUtility/Utility/BsMessageHandler.cpp"
 	"bsfUtility/Utility/BsTimer.cpp"
 	"bsfUtility/Utility/BsTime.cpp"
@@ -84,8 +84,8 @@ set(BS_UTILITY_INC_UTILITY
 	"bsfUtility/Utility/BsBitstream.h"
 	"bsfUtility/Utility/BsBitLength.h"
 	"bsfUtility/Utility/BsBufferedBitstream.h"
-	"bsfUtility/Utility/BsDynLib.h"
-	"bsfUtility/Utility/BsDynLibManager.h"
+	"bsfUtility/Utility/BsDynamicLibrary.h"
+	"bsfUtility/Utility/BsDynamicLibraryManager.h"
 	"bsfUtility/Utility/BsEvent.h"
 	"bsfUtility/Utility/BsMessageHandler.h"
 	"bsfUtility/Utility/BsMessageHandlerFwd.h"
@@ -111,7 +111,7 @@ set(BS_UTILITY_INC_UTILITY
 )
 
 set(BS_UTILITY_SRC_ALLOCATORS
-	"bsfUtility/Allocators/BsFrameAlloc.cpp"
+	"bsfUtility/Allocators/BsFrameAllocator.cpp"
 	"bsfUtility/Allocators/BsStackAlloc.cpp"
 	"bsfUtility/Allocators/BsMemoryAllocator.cpp"
 )
@@ -149,7 +149,7 @@ set(BS_UTILITY_INC_RTTI
 )
 
 set(BS_UTILITY_INC_ALLOCATORS
-	"bsfUtility/Allocators/BsFrameAlloc.h"
+	"bsfUtility/Allocators/BsFrameAllocator.h"
 	"bsfUtility/Allocators/BsMemAllocProfiler.h"
 	"bsfUtility/Allocators/BsMemoryAllocator.h"
 	"bsfUtility/Allocators/BsStackAlloc.h"

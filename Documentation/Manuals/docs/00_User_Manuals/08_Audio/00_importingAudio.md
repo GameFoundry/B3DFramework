@@ -23,7 +23,7 @@ Different audio file formats are supported depending on which audio backend is u
   
 ~~~~~~~~~~~~~{.cpp}
 // Import an audio clip from disk
-HAudioClip clip = gImporter().import<AudioClip>("myAudioClip.ogg");
+HAudioClip clip = GetImporter().import<AudioClip>("myAudioClip.ogg");
 ~~~~~~~~~~~~~
 
 # Customizing import
@@ -33,7 +33,7 @@ Import can be customized by providing a @bs::AudioClipImportOptions object to th
 auto importOptions = AudioClipImportOptions::create();
 // Set required options here (as described below)
 
-HAudioClip clip = gImporter().import<AudioClip>("myAudioClip.ogg", importOptions);
+HAudioClip clip = GetImporter().import<AudioClip>("myAudioClip.ogg", importOptions);
 ~~~~~~~~~~~~~
 
 A variety of properties can be customized on import, the most important of which being audio format, compression/streaming mode, bit depth and 2D/3D toggle.

@@ -59,15 +59,15 @@ void CCamera::InstantiateInternal()
 
 void CCamera::OnInitialized()
 {
-	gSceneManager().BindActorInternal(mInternal, SO());
+	GetSceneManager().BindActorInternal(mInternal, SO());
 
 	// Make sure primary RT gets applied if camera gets deserialized with main camera state
-	gSceneManager().NotifyMainCameraStateChangedInternal(mInternal);
+	GetSceneManager().NotifyMainCameraStateChangedInternal(mInternal);
 }
 
 void CCamera::OnDestroyed()
 {
-	gSceneManager().UnbindActorInternal(mInternal);
+	GetSceneManager().UnbindActorInternal(mInternal);
 
 	mInternal->Destroy();
 }

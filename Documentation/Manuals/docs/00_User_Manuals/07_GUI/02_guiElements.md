@@ -117,7 +117,7 @@ To create a GUI texture element, call @bs::GUITexture::create which accepts thre
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a sprite texture for use
-HTexture tex = gImporter().import<Texture>("BansheLogoRoundSmall.png");
+HTexture tex = GetImporter().import<Texture>("BansheLogoRoundSmall.png");
 HSpriteTexture spriteTexture = SpriteTexture::create(tex);
 
 // Create the texture GUI element with our sprite texture and default scaling/transparency
@@ -142,7 +142,7 @@ GUI elements that can have either text or image contents (or both) accept a @bs:
 GUIContent textContents(HString("Click me!"));
 
 // Contents containing only an image
-HTexture tex = gImporter().import<Texture>("BansheLogoRoundSmall.png");
+HTexture tex = GetImporter().import<Texture>("BansheLogoRoundSmall.png");
 HSpriteTexture spriteTexture = SpriteTexture::create(tex);
 		
 GUIContent imageContents(spriteTexture);
@@ -166,7 +166,7 @@ Once created, user can interact with the button by mousing over it or clicking o
 ~~~~~~~~~~~~~{.cpp}
 auto buttonClicked = []()
 {
-	gDebug().logDebug("Button clicked!");
+	GetDebug().logDebug("Button clicked!");
 }
 
 // Print a message "Button clicked!" whenever user clicks the button
@@ -209,9 +209,9 @@ Once created you can subscribe to the @bs::GUIToggle::onToggled event, as well a
 auto elementToggled = [](bool toggled)
 {
 	if(toggled)
-		gDebug().logDebug("Toggled!");
+		GetDebug().logDebug("Toggled!");
 	else
-		gDebug().logDebug("Untoggled!");
+		GetDebug().logDebug("Untoggled!");
 }
 
 toggle->onClick.connect(elementToggled);
@@ -247,7 +247,7 @@ If you wish to get notified as the user is inputting text you can use the @bs::G
 ~~~~~~~~~~~~~{.cpp}
 auto respondToInput = [](const String& text)
 {
-	gDebug().logDebug("New input box value: " + text);
+	GetDebug().logDebug("New input box value: " + text);
 };
 
 multiLineInput->onValueChanged.connect(respondToInput);
@@ -300,7 +300,7 @@ for(auto& isSelected : selection)
 	if (isSelected)
 	{
 		String selectedValue = listElements[idx].getValue();
-		gDebug().logDebug("Element " + selectedValue + " is selected");
+		GetDebug().logDebug("Element " + selectedValue + " is selected");
 	}
 
 	idx++;
@@ -315,9 +315,9 @@ auto selectionToggled = [=](UINT32 idx, bool enabled)
 	String selectedValue = listElements[idx].getValue();
 
 	if (enabled)
-		gDebug().logDebug("User selected " + selectedValue);
+		GetDebug().logDebug("User selected " + selectedValue);
 	else
-		gDebug().logDebug("User deselected " + selectedValue);
+		GetDebug().logDebug("User deselected " + selectedValue);
 };
 
 listBox->onSelectionToggled.connect(selectionToggled);
@@ -352,7 +352,7 @@ You can also get notified immediately when the slider handle moves by subscribin
 ~~~~~~~~~~~~~{.cpp}
 auto sliderPositionChanged = [](float percent)
 {
-	gDebug().logDebug("Current slider position: " + toString(percent));
+	GetDebug().logDebug("Current slider position: " + toString(percent));
 };
 
 sliderHorz->onChanged.connect(sliderPositionChanged);

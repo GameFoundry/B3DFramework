@@ -267,7 +267,7 @@ namespace bs
 	};
 
 	/**	Provides easy access to BuiltinResources. */
-	BS_EXPORT BuiltinResources& gBuiltinResources();
+	BS_EXPORT BuiltinResources& GetBuiltinResources();
 
 	/** @} */
 } // namespace bs

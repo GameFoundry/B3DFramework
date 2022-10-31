@@ -806,7 +806,7 @@ HMaterial Material::Clone()
 	outputStream->Seek(0);
 	SPtr<Material> cloneObj = std::static_pointer_cast<Material>(serializer.Decode(outputStream, (u32)outputStream->Size()));
 
-	return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(cloneObj));
+	return static_resource_cast<Material>(GetResources().CreateResourceHandleInternal(cloneObj));
 }
 
 template <class T>
@@ -996,7 +996,7 @@ HMaterial Material::Create()
 	const SPtr<Material> materialPtr = CreateEmpty();
 	materialPtr->Initialize();
 
-	return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(materialPtr));
+	return static_resource_cast<Material>(GetResources().CreateResourceHandleInternal(materialPtr));
 }
 
 HMaterial Material::Create(const HShader& shader)
@@ -1010,7 +1010,7 @@ HMaterial Material::Create(const HShader& shader, const ShaderVariation& variati
 	materialPtr->SetThisPtrInternal(materialPtr);
 	materialPtr->Initialize();
 
-	return static_resource_cast<Material>(gResources().CreateResourceHandleInternal(materialPtr));
+	return static_resource_cast<Material>(GetResources().CreateResourceHandleInternal(materialPtr));
 }
 
 SPtr<Material> Material::CreateEmpty()

@@ -81,7 +81,7 @@ void OAAudioClip::Initialize()
 			}
 
 			alGenBuffers(1, &mBufferId);
-			gOAAudio().WriteToOpenALBufferInternal(mBufferId, sampleBuffer, info);
+			GetOAAudio().WriteToOpenALBufferInternal(mBufferId, sampleBuffer, info);
 
 			mStreamData = nullptr;
 			mStreamOffset = 0;

@@ -130,7 +130,7 @@ namespace bs
 	};
 
 	/** Provides easier access to OAAudio. */
-	OAAudio& gOAAudio();
+	OAAudio& GetOAAudio();
 
 	/** @} */
 } // namespace bs

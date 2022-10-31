@@ -477,6 +477,6 @@ namespace bs
 
 #include "Allocators/BsStackAlloc.h"
 #include "Allocators/BsFreeAlloc.h"
-#include "Allocators/BsFrameAlloc.h"
+#include "Allocators/BsFrameAllocator.h"
 #include "Allocators/BsStaticAlloc.h"
 #include "Allocators/BsMemAllocProfiler.h"

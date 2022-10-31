@@ -107,13 +107,13 @@ AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditiv
 
 HAnimationClip AnimationClip::Create(bool isAdditive)
 {
-	return static_resource_cast<AnimationClip>(gResources().CreateResourceHandleInternal(
+	return static_resource_cast<AnimationClip>(GetResources().CreateResourceHandleInternal(
 		CreatePtrInternal(bs_shared_ptr_new<AnimationCurves>(), isAdditive)));
 }
 
 HAnimationClip AnimationClip::Create(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
 {
-	return static_resource_cast<AnimationClip>(gResources().CreateResourceHandleInternal(
+	return static_resource_cast<AnimationClip>(GetResources().CreateResourceHandleInternal(
 		CreatePtrInternal(curves, isAdditive, sampleRate, rootMotion)));
 }
 

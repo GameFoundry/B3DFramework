@@ -35,8 +35,8 @@ Application::~Application()
 {
 	// Cleanup any new objects queued for destruction by unloaded scripts
 	CoreObjectManager::Instance().SyncToCore();
-	gCoreThread().Update();
-	gCoreThread().SubmitAll(true);
+	GetCoreThread().Update();
+	GetCoreThread().SubmitAll(true);
 
 	Cursor::ShutDown();
 
@@ -111,7 +111,7 @@ void Application::PostUpdate()
 
 void Application::ShowProfilerOverlay(ProfilerOverlayType type, const SPtr<Camera>& camera)
 {
-	const SPtr<Camera>& overlayCamera = camera ? camera : gSceneManager().GetMainCamera();
+	const SPtr<Camera>& overlayCamera = camera ? camera : GetSceneManager().GetMainCamera();
 	if(!overlayCamera)
 		return;
 
@@ -175,7 +175,7 @@ SPtr<IShaderIncludeHandler> Application::GetShaderIncludeHandler() const
 
 namespace bs
 {
-Application& gApplication()
+Application& GetApplication()
 {
 	return static_cast<Application&>(Application::Instance());
 }

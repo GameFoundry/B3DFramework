@@ -1001,7 +1001,7 @@ void ProfilerCPU::EstimateTimerOverhead()
 
 namespace bs
 {
-ProfilerCPU& gProfilerCPU()
+ProfilerCPU& GetProfilerCPU()
 {
 	return ProfilerCPU::Instance();
 }

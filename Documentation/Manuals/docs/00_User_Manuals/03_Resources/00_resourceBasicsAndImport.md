@@ -7,11 +7,11 @@ Resources represent data that you can load from disk and use in your application
 # Import
 Before you can use such resources in the engine, you must first import them, converting them from their original format (e.g. ".jpg") into an engine object (e.g. a **Texture**).
 
-You can import resources from its source format (e.g. ".jpg") into engine by using the @bs::Importer module, accessible globally through @bs::gImporter(). Lets see an example of importing a **Texture** resource:
+You can import resources from its source format (e.g. ".jpg") into engine by using the @bs::Importer module, accessible globally through @bs::GetImporter(). Lets see an example of importing a **Texture** resource:
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a texture named "myTexture.jpg" from the disk
-HTexture texture = gImporter().import<Texture>("myTexture.jpg");
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg");
 ~~~~~~~~~~~~~
 
 We will touch upon different resource types like meshes and textures in later chapters. For now don't worry about what **Texture** is or how it works, nor what other resources types exist, and focus instead on the more general resource logic.
@@ -32,7 +32,7 @@ auto importOptions = TextureImportOptions::create();
 importOptions->format  = PF_R8G8B8A8; 
 
 // Import a texture using the specified import options
-HTexture texture = gImporter().import<Texture>("myTexture.jpg", importOptions);
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg", importOptions);
 ~~~~~~~~~~~~~
 
 We'll touch more on import options as we talk about specific resource types in later chapters.

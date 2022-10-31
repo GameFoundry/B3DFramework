@@ -1043,7 +1043,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 	VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
 
-	VulkanCommandBufferManager& cbManager = gVulkanCBManager();
+	VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 	GpuQueueType queueType;
 	u32 localQueueIdx = CommandSyncMask::GetQueueIdxAndType(queueIdx, queueType);
 
@@ -1268,7 +1268,7 @@ void VulkanTexture::UnlockImpl()
 			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 			VulkanDevice& device = *rapi.GetDeviceInternal(mMappedDeviceIdx);
 
-			VulkanCommandBufferManager& cbManager = gVulkanCBManager();
+			VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 			GpuQueueType queueType;
 			u32 localQueueIdx = CommandSyncMask::GetQueueIdxAndType(mMappedGlobalQueueIdx, queueType);
 

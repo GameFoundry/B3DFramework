@@ -57,7 +57,7 @@ SPtr<DataStream> NullAudioClip::GetSourceStream(u32& size)
 	return mSourceStreamData;
 }
 
-NullAudio& gNullAudio()
+NullAudio& GetNullAudio()
 {
 	return static_cast<NullAudio&>(NullAudio::Instance());
 }

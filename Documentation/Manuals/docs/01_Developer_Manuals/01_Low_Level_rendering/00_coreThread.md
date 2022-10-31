@@ -31,7 +31,7 @@ void doSomething()
 { }
 
 // Queue doSomething method to be executed on the core thread
-gCoreThread().queueCommand(&doSomething);
+GetCoreThread().queueCommand(&doSomething);
 ~~~~~~~~~~~~~
 
 Note that each thread has its own internal command queue. So calling this method from different threads will fill up their separate command queues. This is important because queuing the command does not actually make it sent to the core thread yet. Instead you must submit the commands after you are done queuing.
@@ -41,7 +41,7 @@ Commands that are queued aren't yet visible to the core thread. In order to make
 
 ~~~~~~~~~~~~~{.cpp}
 // Submit all commands queued since the last submit call
-gCoreThread().submit();
+GetCoreThread().submit();
 ~~~~~~~~~~~~~
 
 By default commands are also submitted automatically at the end of every frame, just before rendering. Therefore normally you do not need to submit commands manually.
@@ -50,7 +50,7 @@ The most common case for submitting commands manually is when you need the resul
 
 ~~~~~~~~~~~~~{.cpp}
 // Submit all commands queued since the last submit call and wait until they're done executing
-gCoreThread().submit(true);
+GetCoreThread().submit(true);
 ~~~~~~~~~~~~~
 
 ## Internal queue
@@ -65,7 +65,7 @@ void doSomething()
 { }
 
 // Submit a command directly on the internal queue
-gCoreThread().queueCommand(&doSomething, CTQF_InternalQueue);
+GetCoreThread().queueCommand(&doSomething, CTQF_InternalQueue);
 ~~~~~~~~~~~~~
 
 There is only one internal command queue, so different threads can write to it in an interleaved manner, unlike with per-thread queues. Note that internal command queue is slower than per-thread queues and you should prefer them instead.
@@ -84,15 +84,15 @@ void doSomethingAndReturn(AsyncOp& asyncOp)
 	asyncOp._completeOperation(result);
 }
 
-AsyncOp asyncOp = gCoreThread().queueReturnCommand(&doSomethingAndReturn);
-gCoreThread().submit();
+AsyncOp asyncOp = GetCoreThread().queueReturnCommand(&doSomethingAndReturn);
+GetCoreThread().submit();
 
 // do something ...
 
 if(asyncOp.hasCompleted()) // Or just block until done, as mentioned below
 {
 	String valueStr = toString(asyncOp.getReturnValue<int>());
-	gDebug().logWarning("Returned value: " + valueStr);
+	GetDebug().logWarning("Returned value: " + valueStr);
 }
 ~~~~~~~~~~~~~
 

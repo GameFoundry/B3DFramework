@@ -4,7 +4,7 @@ title: Input polling
 
 Input polling refers to the process of querying the input system to check if user interacted with a input device in some way. This may include checking if the user pressed a keyboard, mouse or a gamepad button or moved the mouse or an analog axis. 
 
-All the input in bs::f is handled though the @bs::Input class, which can be globally accessed through the @bs::gInput method.
+All the input in bs::f is handled though the @bs::Input class, which can be globally accessed through the @bs::GetInput method.
 
 # Button presses
 Use the following methods to check if a button has been pressed, released or is currently being held down:
@@ -18,7 +18,7 @@ These methods work on any kind of input device buttons, including keyboard, game
 Vector3 position(BsZero);
 
 // Move 5 units forward for every frame while W key is pressed
-if(gInput().isButtonHeld(BC_W))
+if(GetInput().isButtonHeld(BC_W))
 	position.z += 5.0f;
 ~~~~~~~~~~~~~
 
@@ -31,7 +31,7 @@ In bs::f analog input is represented through the concept of *axes*. Use @bs::Inp
 Vector3 position(BsZero);
 
 // Move forward or backwards depending on how much does the user move the left gamepad stick forward or backwards
-position.z += gInput().getAxisValue(InputAxis::LeftStickY);
+position.z += GetInput().getAxisValue(InputAxis::LeftStickY);
 ~~~~~~~~~~~~~
 
 Most axes report their input in range [-1, 1], with the exception of mouse axes, which are unbound. 
@@ -42,12 +42,12 @@ Often it is useful to receive mouse position directly, rather than dealing with 
 Use @bs::Input::getPointerDelta to get the difference in coordinates between the position of the mouse on the previous and current frame.
 
 ~~~~~~~~~~~~~{.cpp}
-Vector2I screenPos = gInput().getPointerPosition();
+Vector2I screenPos = GetInput().getPointerPosition();
 ~~~~~~~~~~~~~
 
 You can also check if the left mouse button has been double-clicked by checking @bs::Input::isPointerDoubleClicked().
 
 ~~~~~~~~~~~~~{.cpp}
-if(gInput().isPointerDoubleClicked())
-	gDebug().logDebug("Mouse double-clicked!");
+if(GetInput().isPointerDoubleClicked())
+	GetDebug().logDebug("Mouse double-clicked!");
 ~~~~~~~~~~~~~

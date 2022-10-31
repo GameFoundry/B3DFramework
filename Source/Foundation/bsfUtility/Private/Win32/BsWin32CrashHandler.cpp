@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Debug/BsDebug.h"
-#include "Utility/BsDynLib.h"
+#include "Utility/BsDynamicLibrary.h"
 #include "FileSystem/BsFileSystem.h"
 #include "windows.h"
 #include <psapi.h>
@@ -160,7 +160,7 @@ typedef DWORD(WINAPI* GetModuleBaseNameType)(HANDLE hProcess, HMODULE hModule, L
 typedef DWORD(WINAPI* GetModuleFileNameExType)(HANDLE hProcess, HMODULE hModule, LPSTR lpFilename, DWORD nSize);
 typedef bool(WINAPI* GetModuleInformationType)(HANDLE hProcess, HMODULE hModule, LPMODULEINFO lpmodinfo, DWORD cb);
 
-static DynLib* gPSAPILib = nullptr;
+static DynamicLibrary* gPSAPILib = nullptr;
 
 static EnumProcessModulesType gEnumProcessModules;
 static GetModuleBaseNameType gGetModuleBaseName;
@@ -173,7 +173,7 @@ void win32_initPSAPI()
 	if(gPSAPILib != nullptr)
 		return;
 
-	gPSAPILib = bs_new<DynLib>("PSAPI.dll");
+	gPSAPILib = bs_new<DynamicLibrary>("PSAPI.dll");
 	gEnumProcessModules = (EnumProcessModulesType)gPSAPILib->GetSymbol("EnumProcessModules");
 	gGetModuleBaseName = (GetModuleBaseNameType)gPSAPILib->GetSymbol("GetModuleFileNameExA");
 	gGetModuleFileNameEx = (GetModuleFileNameExType)gPSAPILib->GetSymbol("GetModuleBaseNameA");

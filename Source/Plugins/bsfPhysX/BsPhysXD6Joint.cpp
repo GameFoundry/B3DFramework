@@ -178,7 +178,7 @@ LimitLinear PhysXD6Joint::GetLimitLinear() const
 
 void PhysXD6Joint::SetLimitLinear(const LimitLinear& limit)
 {
-	PxJointLinearLimit pxLimit(gPhysX().GetScale(), limit.Extent, limit.ContactDist);
+	PxJointLinearLimit pxLimit(GetPhysX().GetScale(), limit.Extent, limit.ContactDist);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;

@@ -40,7 +40,7 @@ Vector2I IBLUtility::GetShCoeffXyFromIdx(u32 idx, u32 shOrder)
 	return output;
 }
 
-const IBLUtility& gIBLUtility()
+const IBLUtility& GetIBLUtility()
 {
 	return IBLUtility::Instance();
 }

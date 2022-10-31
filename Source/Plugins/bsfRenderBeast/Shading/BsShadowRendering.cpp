@@ -517,9 +517,9 @@ public:
 						const RenderableElement& element = *command.Element;
 
 						if(element.MorphVertexDeclaration == nullptr)
-							gRendererUtility().Draw(element.Mesh, element.SubMesh);
+							GetRendererUtility().Draw(element.Mesh, element.SubMesh);
 						else
-							gRendererUtility().DrawMorph(element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDeclaration);
+							GetRendererUtility().DrawMorph(element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDeclaration);
 					}
 					else
 						opt.BindRenderable(command);
@@ -922,7 +922,7 @@ std::array<Vector3, 8> getFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
 {
 	std::array<Vector3, 8> output;
 
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 
 	float flipY = 1.0f;
 	if(caps.Conventions.NdcYAxis == Conventions::Axis::Down)
@@ -971,7 +971,7 @@ Matrix4 createMixedToShadowUVMatrix(const Matrix4& viewP, const Matrix4& viewInv
 
 	// Convert shadow clip space coordinates to UV coordinates relative to the shadow map rectangle, and normalize
 	// depth
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 
 	float flipY = -1.0f;
 	// Either of these flips the Y axis, but if they're both true they cancel out
@@ -1003,7 +1003,7 @@ void ShadowRendering::RenderShadowOcclusion(const RendererView& view, const Rend
 
 	ProfileGPUBlock sampleBlock("Render shadow occlusion");
 
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 	// TODO - Calculate and set a scissor rectangle for the light
 
 	SPtr<GpuParamBlockBuffer> shadowParamBuffer = gShadowProjectParamsDef.CreateBuffer();
@@ -1049,7 +1049,7 @@ void ShadowRendering::RenderShadowOcclusion(const RendererView& view, const Rend
 			ShadowProjectOmniMat* mat = ShadowProjectOmniMat::GetVariation(effectiveShadowQuality, viewerInsideVolume, viewProps.Target.NumSamples > 1);
 			mat->Bind(shadowParams);
 
-			gRendererUtility().Draw(gRendererUtility().GetSphereStencil());
+			GetRendererUtility().Draw(GetRendererUtility().GetSphereStencil());
 		}
 	}
 	else // Directional & spot
@@ -1179,7 +1179,7 @@ void ShadowRendering::RenderShadowOcclusion(const RendererView& view, const Rend
 			if(!isCSM)
 				DrawFrustum(frustumVertices);
 			else
-				gRendererUtility().DrawScreenQuad();
+				GetRendererUtility().DrawScreenQuad();
 		}
 	}
 }
@@ -1475,8 +1475,8 @@ void ShadowRendering::RenderRadialShadowMap(const RendererLight& rendererLight, 
 
 	ProfileGPUBlock profileSample("Project radial light shadows");
 
-	const RenderAPICapabilities& caps = gCaps();
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.ConvertProjectionMatrix(proj, proj);
@@ -1681,7 +1681,7 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 
 void ShadowRendering::DrawNearFarPlanes(float near, float far, bool drawNear) const
 {
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 	float flipY = (rapiConventions.NdcYAxis == Conventions::Axis::Down) ? -1.0f : 1.0f;
 
 	// Update VB with new vertices
@@ -1930,7 +1930,7 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 	if(light.GetType() == LightType::Spot)
 		rangeScale = 1.0f / depthRange;
 
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 	float deviceDepthRange = caps.MaxDepth - caps.MinDepth;
 
 	float defaultBias = 1.0f;

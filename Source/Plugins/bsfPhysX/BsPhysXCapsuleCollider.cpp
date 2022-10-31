@@ -14,7 +14,7 @@ PhysXCapsuleCollider::PhysXCapsuleCollider(PxPhysics* physx, PxScene* scene, con
 {
 	PxCapsuleGeometry geometry(radius, halfHeight);
 
-	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	PxShape* shape = physx->createShape(geometry, *GetPhysX().GetDefaultMaterial(), true);
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 

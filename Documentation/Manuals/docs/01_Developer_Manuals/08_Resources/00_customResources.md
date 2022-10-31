@@ -52,7 +52,7 @@ public:
 		sptr->initialize();
 	
 		// Create a handle
-		return static_resource_cast<MyResource>(gResources()._createResourceHandle(sptr));
+		return static_resource_cast<MyResource>(GetResources()._createResourceHandle(sptr));
 	}
 };
 ~~~~~~~~~~~~~

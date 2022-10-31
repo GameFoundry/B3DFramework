@@ -105,7 +105,7 @@ namespace bs
 	};
 
 	/** Provides easier access to Audio. */
-	BS_CORE_EXPORT Audio& gAudio();
+	BS_CORE_EXPORT Audio& GetAudio();
 
 	/** @} */
 } // namespace bs

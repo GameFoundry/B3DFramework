@@ -25,7 +25,7 @@ void ReflectionCubeDownsampleMat::Execute(const SPtr<Texture>& source, u32 face,
 
 	gReflectionCubeDownsampleParamDef.gCubeFace.Set(mParamBuffer, face);
 
-	const RenderAPICapabilities& caps = gCaps();
+	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
 	if(caps.HasCapability(RSC_TEXTURE_VIEWS))
 	{
 		mInputTexture.Set(source, TextureSurface(mip, 1, 0, 6));
@@ -41,7 +41,7 @@ void ReflectionCubeDownsampleMat::Execute(const SPtr<Texture>& source, u32 face,
 	rapi.SetRenderTarget(target);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 const u32 ReflectionCubeImportanceSampleMat::kNumSamples = 1024;
@@ -81,7 +81,7 @@ void ReflectionCubeImportanceSampleMat::Execute(const SPtr<Texture>& source, u32
 	rapi.SetRenderTarget(target);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
@@ -195,7 +195,7 @@ void IrradianceComputeSHFragMat::Execute(const SPtr<Texture>& source, u32 face, 
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -235,7 +235,7 @@ void IrradianceAccumulateSHMat::Execute(const SPtr<Texture>& source, u32 face, u
 	rapi.SetRenderTarget(output);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 }
@@ -288,7 +288,7 @@ void IrradianceAccumulateCubeSHMat::Execute(const SPtr<Texture>& source, u32 sou
 	rapi.SetViewport(viewRect);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 
 	rapi.SetRenderTarget(nullptr);
 	rapi.SetViewport(Rect2(0, 0, 1, 1));
@@ -306,7 +306,7 @@ IrradianceReduceSHMat::IrradianceReduceSHMat()
 	mParamBuffer = gIrradianceReduceSHParamDef.CreateBuffer();
 
 	mParams->SetParamBlockBuffer("Params", mParamBuffer);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
+	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "GetInput", mInputBuffer);
 	mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTexture);
 }
 
@@ -373,7 +373,7 @@ void IrradianceProjectSHMat::Execute(const SPtr<Texture>& shCoeffs, u32 face, co
 	rapi.SetRenderTarget(target);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
@@ -446,7 +446,7 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubema
 
 bool supportsComputeSH()
 {
-	return gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	return GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 }
 
 void RenderBeastIBLUtility::FilterCubemapForIrradiance(const SPtr<Texture>& cubemap, const SPtr<Texture>& output) const
@@ -467,7 +467,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(const SPtr<Texture>& cube
 	}
 	else
 	{
-		SPtr<PooledRenderTexture> finalCoeffs = gGpuResourcePool().Get(IrradianceAccumulateCubeSHMat::GetOutputDesc());
+		SPtr<PooledRenderTexture> finalCoeffs = GetGpuResourcePool().Get(IrradianceAccumulateCubeSHMat::GetOutputDesc());
 
 		FilterCubemapForIrradianceNonCompute(cubemap, 0, finalCoeffs->RenderTexture);
 		coeffTexture = finalCoeffs->Texture;
@@ -585,7 +585,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(const SPtr<Text
 {
 	static const u32 kNumCoeffs = 9;
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	IrradianceComputeSHFragMat* shCompute = IrradianceComputeSHFragMat::Get();
 	IrradianceAccumulateSHMat* shAccum = IrradianceAccumulateSHMat::Get();
 	IrradianceAccumulateCubeSHMat* shAccumCube = IrradianceAccumulateCubeSHMat::Get();

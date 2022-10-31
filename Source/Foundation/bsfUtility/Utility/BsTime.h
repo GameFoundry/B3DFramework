@@ -178,7 +178,7 @@ namespace bs
 	};
 
 	/** Easier way to access the Time module. */
-	BS_UTILITY_EXPORT Time& gTime();
+	BS_UTILITY_EXPORT Time& GetTime();
 
 	/** @} */
 } // namespace bs

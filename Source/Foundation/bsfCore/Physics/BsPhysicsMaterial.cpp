@@ -11,12 +11,12 @@ HPhysicsMaterial PhysicsMaterial::Create(float staticFriction, float dynamicFric
 {
 	SPtr<PhysicsMaterial> newMaterial = CreatePtrInternal(staticFriction, dynamicFriction, restitution);
 
-	return static_resource_cast<PhysicsMaterial>(gResources().CreateResourceHandleInternal(newMaterial));
+	return static_resource_cast<PhysicsMaterial>(GetResources().CreateResourceHandleInternal(newMaterial));
 }
 
 SPtr<PhysicsMaterial> PhysicsMaterial::CreatePtrInternal(float staticFriction, float dynamicFriction, float restitution)
 {
-	SPtr<PhysicsMaterial> newMaterial = gPhysics().CreateMaterial(staticFriction, dynamicFriction, restitution);
+	SPtr<PhysicsMaterial> newMaterial = GetPhysics().CreateMaterial(staticFriction, dynamicFriction, restitution);
 	newMaterial->SetThisPtrInternal(newMaterial);
 	newMaterial->Initialize();
 

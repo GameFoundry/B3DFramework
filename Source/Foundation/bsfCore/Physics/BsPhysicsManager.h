@@ -39,7 +39,7 @@ namespace bs
 		~PhysicsManager();
 
 	private:
-		DynLib* mPlugin;
+		DynamicLibrary* mPlugin;
 		PhysicsFactory* mFactory;
 	};
 

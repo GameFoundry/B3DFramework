@@ -29,7 +29,7 @@ To check if animation is currently playing call @bs::CAnimation::isPlaying.
 
 ~~~~~~~~~~~~~{.cpp}
 if(animation->isPlaying())
-	gDebug().logDebug("Animation is playing!");
+	GetDebug().logDebug("Animation is playing!");
 ~~~~~~~~~~~~~
 
 > While animation is playing the **SceneObject** will be updated with transform from the animation root bone. This means any transform values you have set manually will get overriden. If you require custom transform on the animated **SceneObject** you should instead create a parent **SceneObject** that you can apply your custom transform to.
@@ -83,7 +83,7 @@ UINT32 numChannels = morphShapes->getNumChannels();
 for(UINT32 i = 0; i < numChannels; i++)
 {
 	SPtr<MorphChannel> channel = morphShapes->getChannel(i);
-	gDebug().logDebug("Found morph channel: " + channel->getName());
+	GetDebug().logDebug("Found morph channel: " + channel->getName());
 }
 ~~~~~~~~~~~~~
 

@@ -527,7 +527,7 @@ namespace bs
 		};
 
 		/** Shorthand for RenderAPI::getCapabilities(). */
-		inline const RenderAPICapabilities& gCaps(u32 deviceIdx = 0)
+		inline const RenderAPICapabilities& GetRenderBackendCapabilities(u32 deviceIdx = 0)
 		{
 			return RenderAPI::Instance().GetCapabilities(deviceIdx);
 		}

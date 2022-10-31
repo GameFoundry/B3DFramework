@@ -6,12 +6,12 @@ Virtual input is a high-level input system, built on top of existing **Input** f
 
 This allows the application to use virtual buttons and axes without needing to know actual hardware buttons/axes the user is using. This means same virtual buttons can be used for multiple input devices (e.g. keyboard & gamepad), as well as allow the user to manually re-map keys with no additional gameplay logic.
 
-All virtual input is handled through the @bs::VirtualInput class, accessible through @bs::gVirtualInput(). You'll notice it shares a very similar interface with **Input**, with the only difference being how we represent buttons and axes.
+All virtual input is handled through the @bs::VirtualInput class, accessible through @bs::GetVirtualInput(). You'll notice it shares a very similar interface with **Input**, with the only difference being how we represent buttons and axes.
 
 Before we explain individual aspects, lets see a quick working example to give you a rough idea:
 ~~~~~~~~~~~~~{.cpp}
 // Set up input configuration that maps virtual keys to actual hardware keys
-SPtr<InputConfiguration> inputConfig = gVirtualInput().getConfiguration();
+SPtr<InputConfiguration> inputConfig = GetVirtualInput().getConfiguration();
 
 //// Virtual button named "Forward" maps to W and Up arrow keys
 inputConfig->registerButton("Forward", BC_W);
@@ -20,15 +20,15 @@ inputConfig->registerButton("Forward", BC_UP);
 // (Somewhere else in the app) Use the virtual key
 VirtualKey forwardKey("Forward");
 
-if(gVirtualInput().isButtonDown(forwardKey))
-	gDebug().logDebug("Moving forward...");
+if(GetVirtualInput().isButtonDown(forwardKey))
+	GetDebug().logDebug("Moving forward...");
 ~~~~~~~~~~~~~
 
 # Input configuration
 Before we can use the virtual input system, we must first create a set of virtual buttons and axes, name them, and map them to actual hardware keys. To do this we require an @bs::InputConfiguration object, which can be retrieved from **VirtualInput** by calling @bs::VirtualInput::getConfiguration().
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<InputConfiguration> inputConfig = gVirtualInput().getConfiguration();
+SPtr<InputConfiguration> inputConfig = GetVirtualInput().getConfiguration();
 ~~~~~~~~~~~~~
 
 # Virtual buttons
@@ -75,7 +75,7 @@ auto handleButtonHeld = [&](const VirtualButton& btn, UINT32 deviceIdx)
 };
 
 // Connect the callback to the event
-gVirtualInput().onButtonHeld.connect(handleButtonHeld);
+GetVirtualInput().onButtonHeld.connect(handleButtonHeld);
 ~~~~~~~~~~~~~
 
 And you can also use the following polling methods. Again, similar to **Input**:
@@ -87,7 +87,7 @@ And you can also use the following polling methods. Again, similar to **Input**:
 Vector3 position(BsZero);
 
 // Move 5 units forward for every frame while W or Up arrow is pressed
-if(gVirtualInput().isButtonHeld(forwardKey))
+if(GetVirtualInput().isButtonHeld(forwardKey))
 	position.z += 5.0f;
 ~~~~~~~~~~~~~
 
@@ -127,5 +127,5 @@ Degree lookAngle(0.0f);
 
 //...
 
-lookAngle += (Degree)gVirtualInput().getAxisValue(lookLeftRightAxis);
+lookAngle += (Degree)GetVirtualInput().getAxisValue(lookLeftRightAxis);
 ~~~~~~~~~~~~~

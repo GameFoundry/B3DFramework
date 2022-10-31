@@ -22,7 +22,7 @@ constexpr u32 BinarySerializer::kFlushAfterBytes;
 constexpr u32 BinarySerializer::kPreloadChunkBytes;
 
 BinarySerializer::BinarySerializer()
-	: mAlloc(&gFrameAlloc())
+	: mAlloc(&GetFrameAllocator())
 {}
 
 void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags, SerializationContext* context)

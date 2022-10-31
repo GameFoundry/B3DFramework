@@ -25,7 +25,7 @@ auto handleButtonDown = [&](const ButtonEvent& event)
 };
 
 // Connect the callback to the event
-gInput().onButtonDown.connect(handleButtonDown);
+GetInput().onButtonDown.connect(handleButtonDown);
 ~~~~~~~~~~~~~
 
 # Mouse/touch input
@@ -49,7 +49,7 @@ auto handlePointerMove = [&](const PointerEvent& event)
 };
 
 // Connect the callback to the event
-gInput().onPointerMoved.connect(handlePointerMove);
+GetInput().onPointerMoved.connect(handlePointerMove);
 ~~~~~~~~~~~~~
 
 Pointers may also receive specialized button down/up events, similar to *Input::onButtonDown* and *Input::onButtonUp*. They trigger at the same time, but provide *PointerEvent* structure instead of *ButtonEvent* - which may be more useful in certain situations. These methods are:
@@ -68,7 +68,7 @@ auto handleDoubleClick = [&](const PointerEvent& event)
 };
 
 // Connect the callback to the event
-gInput().onPointerDoubleClick.connect(handleDoubleClick);
+GetInput().onPointerDoubleClick.connect(handleDoubleClick);
 ~~~~~~~~~~~~~
 
 # Text input
@@ -84,7 +84,7 @@ auto handleDoubleClick = [&](const TextInputEvent& event)
 };
 
 // Connect the callback to the event
-gInput().onCharInput.connect(handleCharInput);
+GetInput().onCharInput.connect(handleCharInput);
 ~~~~~~~~~~~~~
 
 Note that the system will register keyboard buttons as both text input and as normal button presses - it's up to the caller to decide which to process when. If keyboard is used for gameplay then button presses should be used, but if user is actually typing text, then character input is better suited. This is because button events report button codes as physical keyboard keys, yet character input will actually translate those physical key presses into character codes depending on the user's keyboard settings, which ensures non-english keyboard layouts work as intended.

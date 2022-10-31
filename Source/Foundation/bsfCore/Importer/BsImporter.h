@@ -217,7 +217,7 @@ namespace bs
 	};
 
 	/** Provides easier access to Importer. */
-	BS_CORE_EXPORT Importer& gImporter();
+	BS_CORE_EXPORT Importer& GetImporter();
 
 	/** @} */
 } // namespace bs

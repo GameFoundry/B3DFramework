@@ -18,7 +18,7 @@ GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content,
 	mImageSprite = bs_new<ImageSprite>();
 	mTextSprite = bs_new<TextSprite>();
 
-	mImageDesc.AnimationStartTime = gTime().GetTime();
+	mImageDesc.AnimationStartTime = GetTime().GetTime();
 	mContentAnimationStartTime = mImageDesc.AnimationStartTime;
 
 	RefreshContentSprite();
@@ -37,7 +37,7 @@ void GUIButtonBase::SetContent(const GUIContent& content)
 {
 	Vector2I origSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 	mContent = content;
-	mContentAnimationStartTime = gTime().GetTime();
+	mContentAnimationStartTime = GetTime().GetTime();
 
 	RefreshContentSprite();
 
@@ -384,7 +384,7 @@ TEXT_SPRITE_DESC GUIButtonBase::GetTextDesc() const
 
 void GUIButtonBase::StyleUpdated()
 {
-	mImageDesc.AnimationStartTime = gTime().GetTime();
+	mImageDesc.AnimationStartTime = GetTime().GetTime();
 }
 
 void GUIButtonBase::SetStateInternal(GUIElementState state)
@@ -392,7 +392,7 @@ void GUIButtonBase::SetStateInternal(GUIElementState state)
 	Vector2I origSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 
 	if(mActiveState != state)
-		mImageDesc.AnimationStartTime = gTime().GetTime();
+		mImageDesc.AnimationStartTime = GetTime().GetTime();
 
 	mActiveState = state;
 	RefreshContentSprite();

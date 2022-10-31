@@ -103,7 +103,7 @@ bool cookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 	if(meshData == nullptr)
 		return false;
 
-	PxCooking* cooking = gPhysX().GetCooking();
+	PxCooking* cooking = GetPhysX().GetCooking();
 	if(cooking == nullptr)
 	{
 		BS_LOG(Warning, Physics, "Attempting to cook a physics mesh but cooking is not enabled globally.");
@@ -223,7 +223,7 @@ void FPhysXMesh::Initialize()
 {
 	if(mCookedData != nullptr && mCookedDataSize > 0)
 	{
-		PxPhysics* physx = gPhysX().GetPhysX();
+		PxPhysics* physx = GetPhysX().GetPhysX();
 
 		PxDefaultMemoryInputData input(mCookedData, mCookedDataSize);
 		if(mType == PhysicsMeshType::Convex)

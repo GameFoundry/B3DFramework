@@ -145,12 +145,12 @@ void findResourceDependenciesInternal(IReflectable& obj, FrameAlloc& alloc, bool
 
 Vector<ResourceDependency> Utility::FindResourceDependencies(IReflectable& obj, bool recursive)
 {
-	gFrameAlloc().MarkFrame();
+	GetFrameAllocator().MarkFrame();
 
 	Map<UUID, ResourceDependency> dependencies;
-	findResourceDependenciesInternal(obj, gFrameAlloc(), recursive, dependencies);
+	findResourceDependenciesInternal(obj, GetFrameAllocator(), recursive, dependencies);
 
-	gFrameAlloc().Clear();
+	GetFrameAllocator().Clear();
 
 	Vector<ResourceDependency> dependencyList(dependencies.size());
 	u32 i = 0;

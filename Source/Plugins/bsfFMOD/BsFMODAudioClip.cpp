@@ -155,7 +155,7 @@ void FMODAudioClip::Initialize()
 		stream->Seek(offset);
 		stream->Read(sampleBuffer, bufferSize);
 
-		FMOD::System* fmod = gFMODAudio().GetFMODInternal();
+		FMOD::System* fmod = GetFMODAudio().GetFMODInternal();
 		if(fmod->createSound((const char*)sampleBuffer, flags, &exInfo, &mSound) != FMOD_OK)
 		{
 			BS_LOG(Error, Audio, "Failed creating sound.");
@@ -304,7 +304,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	}
 
 	FMOD::Sound* sound = nullptr;
-	FMOD::System* fmod = gFMODAudio().GetFMODInternal();
+	FMOD::System* fmod = GetFMODAudio().GetFMODInternal();
 	if(fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
 	{
 		BS_LOG(Error, Audio, "Failed creating a streaming sound.");

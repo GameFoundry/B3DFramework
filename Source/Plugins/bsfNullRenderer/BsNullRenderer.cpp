@@ -35,7 +35,7 @@ void NullRenderer::RenderAll(PerFrameData perFrameData)
 	CoreObjectManager::Instance().SyncToCore();
 }
 
-SPtr<NullRenderer> gNullRenderer()
+SPtr<NullRenderer> GetNullRenderer()
 {
 	return std::static_pointer_cast<NullRenderer>(RendererManager::Instance().GetActive());
 }

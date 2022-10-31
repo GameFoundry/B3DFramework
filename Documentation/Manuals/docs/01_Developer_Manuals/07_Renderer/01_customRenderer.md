@@ -67,7 +67,7 @@ class MyRenderer : public Renderer
 		// ... do any sim thread operations if required ...
 		
 		// Queue rendering
-		gCoreThread().queueCommand(std::bind(&MyRenderer::renderAllCore, this));
+		GetCoreThread().queueCommand(std::bind(&MyRenderer::renderAllCore, this));
 	}
 	
 	void renderAllCore()
@@ -133,7 +133,7 @@ class MyRenderer : public Renderer
 While what we have shown so far is enough to create a custom renderer, there are also a variety of utilities that can help out in the process. These systems aren't critical for renderer creation, but instead provide an easier way to perform commonly required functions.
 
 ## RendererUtility
-@bs::ct::RendererUtility provides some commonly required functionality for rendering. For the most part it provides methods that are wrappers around various **RenderAPI** methods described previously. It can be accessed globally through @bs::ct::gRendererUtility() and the relevant methods are:
+@bs::ct::RendererUtility provides some commonly required functionality for rendering. For the most part it provides methods that are wrappers around various **RenderAPI** methods described previously. It can be accessed globally through @bs::ct::GetRendererUtility() and the relevant methods are:
  - @bs::ct::RendererUtility::setPass - Binds a pass from a specific **Material** for rendering. Any further draw calls will be rendered using this pass.
  - @bs::ct::RendererUtility::setPassParams - Binds parameters (textures, samplers, etc.) from a **Material**, in the form of **GpuParamsSet**. Any further draw calls will be rendered using these parameters.
  - @bs::ct::RendererUtility::draw - Draws a specific sub-mesh of the provided **ct::Mesh**, using the currently bound pass.
@@ -145,10 +145,10 @@ SPtr<Material> material = ...;
 SPtr<Mesh> mesh = ...;
 SPtr<GpuParamsSet> paramsSet = material->createParamsSet();
 
-gRendererUtility().setPass(material);
+GetRendererUtility().setPass(material);
 ... set material parameters as normal ...
-gRendererUtility().setPassParams(paramsSet);
-gRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
+GetRendererUtility().setPassParams(paramsSet);
+GetRendererUtility().draw(mesh, mesh->getProperties().getSubMesh(0));
 ~~~~~~~~~~~~~
 
 ## Render queue
@@ -232,7 +232,7 @@ class DownsampleMat : public RendererMaterial<DownsampleMat>
 		mInputTexture.set(input);
 		
 		bind();
-		gRendererUtility().drawScreenQuad();
+		GetRendererUtility().drawScreenQuad();
 	}
 
 	// ... other DownsampleMat code ...

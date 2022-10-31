@@ -75,7 +75,7 @@ You can also change the strength of gravity by changing its acceleration factor.
 
 ~~~~~~~~~~~~~{.cpp}
 // Set gravity of the main scene to the value on the Moon
-const SPtr<PhysicsScene>& physicsScene = gSceneManager().getMainScene()->getPhysicsScene();
+const SPtr<PhysicsScene>& physicsScene = GetSceneManager().getMainScene()->getPhysicsScene();
 physicsScene.setGravity(Vector3(0, -1.622f, 0)); // in m/s^2
 ~~~~~~~~~~~~~
 

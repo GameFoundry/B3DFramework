@@ -19,7 +19,7 @@ using namespace bs;
 
 namespace impl
 {
-SPtr<VertexDataDesc> gGUITriangleMeshDesc()
+SPtr<VertexDataDesc> GetGUITriangleMeshDesc()
 {
 	static SPtr<VertexDataDesc> sDesc;
 
@@ -33,7 +33,7 @@ SPtr<VertexDataDesc> gGUITriangleMeshDesc()
 	return sDesc;
 }
 
-SPtr<VertexDataDesc> gGUILineMeshDesc()
+SPtr<VertexDataDesc> GetGUILineMeshDesc()
 {
 	static SPtr<VertexDataDesc> sDesc;
 
@@ -404,7 +404,7 @@ GUIDrawGroupRenderDataUpdate GUIDrawGroups::RebuildDirty(bool forceRebuildMeshes
 
 		// Register elements that depend on render textures (currently these always correspond to input bridged elements)
 		SmallVector<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4> bridgedElements;
-		gGUIManager().GetBridgedElements(mWidget, bridgedElements);
+		GetGUIManager().GetBridgedElements(mWidget, bridgedElements);
 
 		for(auto& entry : bridgedElements)
 		{
@@ -661,7 +661,7 @@ void GUIDrawGroups::RebuildMeshes()
 		}
 
 		SPtr<MeshData> meshData[2];
-		SPtr<VertexDataDesc> vertexDesc[2] = { ::impl::gGUITriangleMeshDesc(), ::impl::gGUILineMeshDesc() };
+		SPtr<VertexDataDesc> vertexDesc[2] = { ::impl::GetGUITriangleMeshDesc(), ::impl::GetGUILineMeshDesc() };
 
 		u8* vertices[2] = { nullptr, nullptr };
 		u32* indices[2] = { nullptr, nullptr };

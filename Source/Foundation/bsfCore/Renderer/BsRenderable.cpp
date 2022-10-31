@@ -482,12 +482,12 @@ Renderable::Renderable()
 Renderable::~Renderable()
 {
 	if(mActive)
-		gRenderer()->NotifyRenderableRemoved(this);
+		GetRenderer()->NotifyRenderableRemoved(this);
 }
 
 void Renderable::Initialize()
 {
-	gRenderer()->NotifyRenderableAdded(this);
+	GetRenderer()->NotifyRenderableAdded(this);
 
 	CoreObject::Initialize();
 }
@@ -728,25 +728,25 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 		if(oldIsActive != mActive)
 		{
 			if(mActive)
-				gRenderer()->NotifyRenderableAdded(this);
+				GetRenderer()->NotifyRenderableAdded(this);
 			else
-				gRenderer()->NotifyRenderableRemoved(this);
+				GetRenderer()->NotifyRenderableRemoved(this);
 		}
 		else
 		{
-			gRenderer()->NotifyRenderableRemoved(this);
-			gRenderer()->NotifyRenderableAdded(this);
+			GetRenderer()->NotifyRenderableRemoved(this);
+			GetRenderer()->NotifyRenderableAdded(this);
 		}
 	}
 	else if((dirtyFlags & (u32)ActorDirtyFlag::Mobility) != 0)
 	{
-		gRenderer()->NotifyRenderableRemoved(this);
-		gRenderer()->NotifyRenderableAdded(this);
+		GetRenderer()->NotifyRenderableRemoved(this);
+		GetRenderer()->NotifyRenderableAdded(this);
 	}
 	else if((dirtyFlags & (u32)ActorDirtyFlag::Transform) != 0)
 	{
 		if(mActive)
-			gRenderer()->NotifyRenderableUpdated(this);
+			GetRenderer()->NotifyRenderableUpdated(this);
 	}
 }
 }}

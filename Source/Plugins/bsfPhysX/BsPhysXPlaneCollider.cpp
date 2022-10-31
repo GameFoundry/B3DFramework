@@ -13,7 +13,7 @@ PhysXPlaneCollider::PhysXPlaneCollider(PxPhysics* physx, PxScene* scene, const V
 {
 	PxPlaneGeometry geometry;
 
-	PxShape* shape = physx->createShape(geometry, *gPhysX().GetDefaultMaterial(), true);
+	PxShape* shape = physx->createShape(geometry, *GetPhysX().GetDefaultMaterial(), true);
 	shape->setLocalPose(toPxTransform(position, rotation));
 	shape->userData = this;
 

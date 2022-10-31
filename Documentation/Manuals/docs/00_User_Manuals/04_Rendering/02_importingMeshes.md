@@ -11,7 +11,7 @@ Meshes can be imported from various third party formats, using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a mesh named "dragon.fbx" from the disk
-HMesh mesh = gImporter().import<Mesh>("dragon.fbx");
+HMesh mesh = GetImporter().import<Mesh>("dragon.fbx");
 ~~~~~~~~~~~~~
 
 Supported formats are:
@@ -29,9 +29,9 @@ Once a mesh has been imported, you can retrieve its properties like vertex & ind
 // Retrieve and print out various mesh properties
 auto& props = mesh->getProperties();
 
-gDebug().logDebug("Num. vertices: " + toString(props.getNumVertices()));
-gDebug().logDebug("Num. indices: " + toString(props.getNumIndices()));
-gDebug().logDebug("Radius: " + toString(props.getBounds().getSphere().getRadius()));
+GetDebug().logDebug("Num. vertices: " + toString(props.getNumVertices()));
+GetDebug().logDebug("Num. indices: " + toString(props.getNumIndices()));
+GetDebug().logDebug("Radius: " + toString(props.getBounds().getSphere().getRadius()));
 ~~~~~~~~~~~~~
 
 > The debug logging functionality is explained in the [logging](../Utilities/logging) manual.
@@ -43,7 +43,7 @@ Mesh import can be customized by providing a @bs::MeshImportOptions object to th
 auto importOptions = MeshImportOptions::create();
 // Set required options here (as described below)
 
-HMesh mesh = gImporter().import<Mesh>("dragon.fbx", importOptions);
+HMesh mesh = GetImporter().import<Mesh>("dragon.fbx", importOptions);
 ~~~~~~~~~~~~~
 
 Lets see some of the options you can use for customizing import.
@@ -90,7 +90,7 @@ Note that caching a mesh means its data will be available in system memory, esse
 importOptions->cpuCached = true;
 
 // Import mesh
-HMesh mesh = gImporter().import<Mesh>("dragon.fbx", importOptions);
+HMesh mesh = GetImporter().import<Mesh>("dragon.fbx", importOptions);
 
 // Allocate a buffer to hold mesh contents
 //// Specify vertex properties. Assuming just a single property of a 3D position

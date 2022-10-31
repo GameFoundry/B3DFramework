@@ -714,7 +714,7 @@ SPtr<SerializedInstance> GenerateFieldDiff(RTTITypeBase* rtti, u32 fieldType, co
 {
 	SerializedObjectEncodeFlags flags = replicableOnly ? SerializedObjectEncodeFlag::ReplicableOnly : SerializedObjectEncodeFlags();
 	SerializationContext* context = nullptr;
-	FrameAlloc* alloc = &gFrameAlloc();
+	FrameAlloc* alloc = &GetFrameAllocator();
 
 	SPtr<SerializedInstance> modification;
 	switch(fieldType)
@@ -816,7 +816,7 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 {
 	SerializedObjectEncodeFlags flags = replicableOnly ? SerializedObjectEncodeFlag::ReplicableOnly : SerializedObjectEncodeFlags();
 	SerializationContext* context = nullptr;
-	FrameAlloc* alloc = &gFrameAlloc();
+	FrameAlloc* alloc = &GetFrameAllocator();
 
 	RTTISubObjectWrapperIterator<REFL_NEW> newObjTypeIter = newObj.GetSubObjectIterator();
 
@@ -1014,7 +1014,7 @@ SPtr<SerializedObject> IDiff::GenerateDiff(const SPtr<IReflectable>& orgObj, con
 
 void IDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, SerializationContext* context)
 {
-	FrameAlloc& alloc = gFrameAlloc();
+	FrameAlloc& alloc = GetFrameAllocator();
 	alloc.MarkFrame();
 
 	FrameVector<DiffCommand> commands;

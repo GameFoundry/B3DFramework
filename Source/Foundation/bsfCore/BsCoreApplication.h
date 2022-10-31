@@ -120,10 +120,10 @@ namespace bs
 		 * @param[in]	passThrough	Optional parameter that will be passed to the loadPlugin function.
 		 * @return					Value returned from the plugin start-up method.
 		 */
-		void* LoadPlugin(const String& pluginName, DynLib** library = nullptr, void* passThrough = nullptr);
+		void* LoadPlugin(const String& pluginName, DynamicLibrary** library = nullptr, void* passThrough = nullptr);
 
 		/**	Unloads a previously loaded plugin. */
-		void UnloadPlugin(DynLib* library);
+		void UnloadPlugin(DynamicLibrary* library);
 
 	protected:
 		void OnStartUp() override;
@@ -162,9 +162,9 @@ namespace bs
 		u64 mFrameStep = 16666; // 60 times a second in microseconds
 		u64 mLastFrameTime = 0; // Microseconds
 
-		DynLib* mRendererPlugin;
+		DynamicLibrary* mRendererPlugin;
 
-		Map<DynLib*, UpdatePluginFunc> mPluginUpdateFunctions;
+		Map<DynamicLibrary*, UpdatePluginFunc> mPluginUpdateFunctions;
 
 		bool mIsFrameRenderingFinished;
 		Mutex mFrameRenderingFinishedMutex;
@@ -175,7 +175,7 @@ namespace bs
 	};
 
 	/**	Provides easy access to CoreApplication. */
-	BS_CORE_EXPORT CoreApplication& gCoreApplication();
+	BS_CORE_EXPORT CoreApplication& GetCoreApplication();
 
 	/** @} */
 } // namespace bs

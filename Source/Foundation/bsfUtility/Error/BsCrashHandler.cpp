@@ -35,7 +35,7 @@ void CrashHandler::LogErrorAndStackTrace(const String& errorMsg, const String& s
 	errorMessage << "\n\nStack trace: \n";
 	errorMessage << stackTrace;
 
-	gDebug().Log(errorMessage.str(), LogVerbosity::Fatal);
+	GetDebug().Log(errorMessage.str(), LogVerbosity::Fatal);
 }
 
 void CrashHandler::LogErrorAndStackTrace(const String& type, const String& description, const String& function, const String& file, u32 line) const
@@ -50,12 +50,12 @@ void CrashHandler::LogErrorAndStackTrace(const String& type, const String& descr
 
 void CrashHandler::SaveCrashLog() const
 {
-	gDebug().SaveLog(GetCrashFolder() + kSCrashLogName, SavedLogType::HTML);
+	GetDebug().SaveLog(GetCrashFolder() + kSCrashLogName, SavedLogType::HTML);
 }
 
 namespace bs
 {
-CrashHandler& gCrashHandler()
+CrashHandler& GetCrashHandler()
 {
 	return CrashHandler::Instance();
 }

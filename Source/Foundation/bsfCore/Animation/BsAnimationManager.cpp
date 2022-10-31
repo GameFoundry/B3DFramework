@@ -55,7 +55,7 @@ const EvaluatedAnimationData* AnimationManager::Update(bool async)
 	if(mPaused)
 		return &mAnimData[mPoseReadBufferIdx];
 
-	mAnimationTime += gTime().GetFrameDelta();
+	mAnimationTime += GetTime().GetFrameDelta();
 	if(mAnimationTime < mNextAnimationUpdateTime)
 		return &mAnimData[mPoseReadBufferIdx];
 
@@ -87,7 +87,7 @@ const EvaluatedAnimationData* AnimationManager::Update(bool async)
 	// Build frustums for culling
 	mCullFrustums.clear();
 
-	auto& allCameras = gSceneManager().GetAllCameras();
+	auto& allCameras = GetSceneManager().GetAllCameras();
 	for(auto& entry : allCameras)
 	{
 		// Note: This should also check on-demand cameras as there's no point in updating them if they wont render this frame
@@ -532,7 +532,7 @@ void AnimationManager::UnregisterAnimation(u64 animId)
 
 namespace bs
 {
-AnimationManager& gAnimation()
+AnimationManager& GetAnimationManager()
 {
 	return AnimationManager::Instance();
 }

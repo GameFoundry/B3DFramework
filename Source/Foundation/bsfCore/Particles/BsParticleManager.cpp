@@ -363,7 +363,7 @@ ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& anim
 		mNumActiveWorkers = (u32)mSystems.size();
 	}
 
-	float timeDelta = gTime().GetFrameDelta();
+	float timeDelta = GetTime().GetFrameDelta();
 
 	ParticleSimulationDataPool& simDataPool = m->SimDataPool[mWriteBufferIdx];
 	simDataPool.Clear();

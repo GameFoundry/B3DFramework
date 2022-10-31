@@ -10,8 +10,8 @@
 #include "Math/BsVector2.h"
 #include "CoreThread/BsCoreObjectManager.h"
 #include "Scene/BsGameObjectManager.h"
-#include "Utility/BsDynLib.h"
-#include "Utility/BsDynLibManager.h"
+#include "Utility/BsDynamicLibrary.h"
+#include "Utility/BsDynamicLibraryManager.h"
 #include "Scene/BsSceneManager.h"
 #include "Importer/BsImporter.h"
 #include "Resources/BsResources.h"
@@ -74,7 +74,7 @@ CoreApplication::CoreApplication(START_UP_DESC desc)
 	// Ensure all errors are reported properly
 	CrashHandler::StartUp(desc.CrashHandling);
 	if(desc.LogCallback)
-		gDebug().SetLogCallback(desc.LogCallback);
+		GetDebug().SetLogCallback(desc.LogCallback);
 }
 
 CoreApplication::~CoreApplication()
@@ -112,8 +112,8 @@ CoreApplication::~CoreApplication()
 	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 	// we need to wait for those objects to get destroyed before continuing.
 	CoreObjectManager::Instance().SyncToCore();
-	gCoreThread().Update();
-	gCoreThread().SubmitAll(true);
+	GetCoreThread().Update();
+	GetCoreThread().SubmitAll(true);
 
 	UnloadPlugin(mRendererPlugin);
 
@@ -122,7 +122,7 @@ CoreApplication::~CoreApplication()
 	GpuProgramManager::ShutDown();
 
 	CoreObjectManager::ShutDown(); // Must shut down before DynLibManager to ensure all objects are destroyed before unloading their libraries
-	DynLibManager::ShutDown();
+	DynamicLibraryManager::ShutDown();
 	Time::ShutDown();
 	DeferredCallManager::ShutDown();
 
@@ -159,7 +159,7 @@ void CoreApplication::OnStartUp()
 	StringTableManager::StartUp();
 	DeferredCallManager::StartUp();
 	Time::StartUp();
-	DynLibManager::StartUp();
+	DynamicLibraryManager::StartUp();
 	CoreObjectManager::StartUp();
 	GameObjectManager::StartUp();
 	Resources::StartUp();
@@ -207,7 +207,7 @@ void CoreApplication::RunMainLoop()
 		// Limit FPS if needed
 		if(mFrameStep > 0)
 		{
-			u64 currentTime = gTime().GetTimePrecise();
+			u64 currentTime = GetTime().GetTimePrecise();
 			u64 nextFrameTime = mLastFrameTime + mFrameStep;
 			while(nextFrameTime > currentTime)
 			{
@@ -217,7 +217,7 @@ void CoreApplication::RunMainLoop()
 				if(waitTime >= 2000)
 				{
 					Platform::Sleep(waitTime / 1000);
-					currentTime = gTime().GetTimePrecise();
+					currentTime = GetTime().GetTimePrecise();
 				}
 				else
 				{
@@ -225,7 +225,7 @@ void CoreApplication::RunMainLoop()
 					// millisecond otherwise.
 					// Note: For mobiles where power might be more important than input latency, consider using sleep.
 					while(nextFrameTime > currentTime)
-						currentTime = gTime().GetTimePrecise();
+						currentTime = GetTime().GetTimePrecise();
 				}
 			}
 
@@ -250,41 +250,41 @@ void CoreApplication::EndMainLoop()
 
 void CoreApplication::RunMainLoopFrame()
 {
-	gProfilerCPU().BeginThread("Sim");
+	GetProfilerCPU().BeginThread("Sim");
 
 	Platform::UpdateInternal();
 	DeferredCallManager::Instance().UpdateInternal();
-	gTime().UpdateInternal();
-	gInput().UpdateInternal();
+	GetTime().UpdateInternal();
+	GetInput().UpdateInternal();
 	// RenderWindowManager::update needs to happen after Input::update and before Input::_triggerCallbacks,
 	// so that all input is properly captured in case there is a focus change, and so that
 	// focus change is registered before input events are sent out (mouse press can result in code
 	// checking if a window is in focus, so it has to be up to date)
 	RenderWindowManager::Instance().UpdateInternal();
-	gInput().TriggerCallbacksInternal();
-	gDebug().TriggerCallbacksInternal();
+	GetInput().TriggerCallbacksInternal();
+	GetDebug().TriggerCallbacksInternal();
 
 	PreUpdate();
 
 	// Trigger fixed updates if required
 	{
 		u64 step;
-		const u32 numIterations = gTime().GetFixedUpdateStepInternal(step);
+		const u32 numIterations = GetTime().GetFixedUpdateStepInternal(step);
 
 		const float stepSeconds = step / 1000000.0f;
 		for(u32 i = 0; i < numIterations; i++)
 		{
 			FixedUpdate();
-			PROFILE_CALL(gSceneManager().FixedUpdateInternal(), "Scene fixed update");
-			PROFILE_CALL(gPhysics().FixedUpdate(stepSeconds), "Physics simulation");
+			PROFILE_CALL(GetSceneManager().FixedUpdateInternal(), "Scene fixed update");
+			PROFILE_CALL(GetPhysics().FixedUpdate(stepSeconds), "Physics simulation");
 
-			gTime().AdvanceFixedUpdateInternal(step);
+			GetTime().AdvanceFixedUpdateInternal(step);
 		}
 	}
 
-	PROFILE_CALL(gSceneManager().UpdateInternal(), "Scene update");
-	gAudio().UpdateInternal();
-	gPhysics().Update();
+	PROFILE_CALL(GetSceneManager().UpdateInternal(), "Scene update");
+	GetAudio().UpdateInternal();
+	GetPhysics().Update();
 
 	// Update plugins
 	for(auto& pluginUpdateFunc : mPluginUpdateFunctions)
@@ -306,7 +306,7 @@ void CoreApplication::RunMainLoopFrame()
 	// a chance to respond to the callback).
 	RendererManager::Instance().GetActive()->Update();
 
-	gSceneManager().UpdateCoreObjectTransformsInternal();
+	GetSceneManager().UpdateCoreObjectTransformsInternal();
 	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
 	// Core and sim thread run in lockstep. This will result in a larger input latency than if I was
@@ -326,20 +326,20 @@ void CoreApplication::RunMainLoopFrame()
 		mIsFrameRenderingFinished = false;
 	}
 
-	gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::BeginCoreProfiling, this), CTQF_InternalQueue);
-	gCoreThread().QueueCommand(&Platform::CoreUpdateInternal, CTQF_InternalQueue);
-	gCoreThread().QueueCommand(std::bind(&ct::RenderWindowManager::UpdateInternal, ct::RenderWindowManager::InstancePtr()), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::BeginCoreProfiling, this), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(&Platform::CoreUpdateInternal, CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&ct::RenderWindowManager::UpdateInternal, ct::RenderWindowManager::InstancePtr()), CTQF_InternalQueue);
 
-	gCoreThread().Update();
-	gCoreThread().SubmitAll();
+	GetCoreThread().Update();
+	GetCoreThread().SubmitAll();
 
-	gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::FrameRenderingFinishedCallback, this), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::FrameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-	gCoreThread().QueueCommand(std::bind(&ct::QueryManager::UpdateInternal, ct::QueryManager::InstancePtr()), CTQF_InternalQueue);
-	gCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::EndCoreProfiling, this), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&ct::QueryManager::UpdateInternal, ct::QueryManager::InstancePtr()), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::EndCoreProfiling, this), CTQF_InternalQueue);
 
-	gProfilerCPU().EndThread();
-	gProfiler().UpdateInternal();
+	GetProfilerCPU().EndThread();
+	GetProfiler().UpdateInternal();
 }
 
 void CoreApplication::WaitUntilFrameFinished()
@@ -404,7 +404,7 @@ void CoreApplication::StartUpRenderer()
 void CoreApplication::BeginCoreProfiling()
 {
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-	gProfilerCPU().BeginThread("Core");
+	GetProfilerCPU().BeginThread("Core");
 #endif
 }
 
@@ -413,14 +413,14 @@ void CoreApplication::EndCoreProfiling()
 	ProfilerGPU::Instance().UpdateInternal();
 
 #if !BS_FORCE_SINGLETHREADED_RENDERING
-	gProfilerCPU().EndThread();
-	gProfiler().UpdateCoreInternal();
+	GetProfilerCPU().EndThread();
+	GetProfiler().UpdateCoreInternal();
 #endif
 }
 
-void* CoreApplication::LoadPlugin(const String& pluginName, DynLib** library, void* passThrough)
+void* CoreApplication::LoadPlugin(const String& pluginName, DynamicLibrary** library, void* passThrough)
 {
-	DynLib* loadedLibrary = gDynLibManager().Load(pluginName);
+	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginName);
 	if(library != nullptr)
 		*library = loadedLibrary;
 
@@ -455,7 +455,7 @@ void* CoreApplication::LoadPlugin(const String& pluginName, DynLib** library, vo
 	return retVal;
 }
 
-void CoreApplication::UnloadPlugin(DynLib* library)
+void CoreApplication::UnloadPlugin(DynamicLibrary* library)
 {
 	typedef void (*UnloadPluginFunc)();
 
@@ -465,7 +465,7 @@ void CoreApplication::UnloadPlugin(DynLib* library)
 		unloadPluginFunc();
 
 	mPluginUpdateFunctions.erase(library);
-	gDynLibManager().Unload(library);
+	GetDynamicLibraryManager().Unload(library);
 }
 
 SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const
@@ -475,7 +475,7 @@ SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const
 
 namespace bs
 {
-CoreApplication& gCoreApplication()
+CoreApplication& GetCoreApplication()
 {
 	return CoreApplication::Instance();
 }

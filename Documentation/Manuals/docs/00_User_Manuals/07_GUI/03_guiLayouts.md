@@ -229,7 +229,7 @@ Lets show an example of using a GUI panel to manually position and size a GUI el
 
 ~~~~~~~~~~~~~{.cpp}
 // Load texture to use for the underlay
-HTexture tex = gImporter().import<Texture>("BansheLogoRoundSmall.png");
+HTexture tex = GetImporter().import<Texture>("BansheLogoRoundSmall.png");
 HSpriteTexture spriteTexture = SpriteTexture::create(tex);
 
 // Render this panel below the main panel

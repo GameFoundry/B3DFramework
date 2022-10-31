@@ -43,7 +43,7 @@ void VisibleReflProbeData::Update(const SceneInfo& sceneInfo, const RendererView
 	mNumProbes = (u32)mReflProbeData.size();
 
 	// Move refl. probe data into a GPU buffer
-	bool supportsStructuredBuffers = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	bool supportsStructuredBuffers = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(supportsStructuredBuffers)
 	{
 		u32 size = mNumProbes * sizeof(ReflProbeData);

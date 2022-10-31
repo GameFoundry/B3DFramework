@@ -56,7 +56,7 @@ NullPhysicsScene::NullPhysicsScene(const PHYSICS_INIT_DESC& input)
 
 NullPhysicsScene::~NullPhysicsScene()
 {
-	gNullPhysics().NotifySceneDestroyedInternal(this);
+	GetNullPhysics().NotifySceneDestroyedInternal(this);
 }
 
 SPtr<Rigidbody> NullPhysicsScene::CreateRigidbody(const HSceneObject& linkedSO)
@@ -125,7 +125,7 @@ SPtr<CharacterController> NullPhysicsScene::CreateCharacterController(const CHAR
 }
 
 namespace bs {
-NullPhysics& gNullPhysics()
+NullPhysics& GetNullPhysics()
 {
 	return static_cast<NullPhysics&>(NullPhysics::Instance());
 }

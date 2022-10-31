@@ -93,7 +93,7 @@ rapi.setVertexBuffers(0, { perVertexVB, perInstanceVB });
 ~~~~~~~~~~~~~
 
 # Drawing helper
-As a way of making drawing easier you can also use @bs::ct::RendererUtility::draw helper method, accessible globally through @bs::ct::gRendererUtility(). This method accepts a **ct::Mesh** as input and will automatically:
+As a way of making drawing easier you can also use @bs::ct::RendererUtility::draw helper method, accessible globally through @bs::ct::GetRendererUtility(). This method accepts a **ct::Mesh** as input and will automatically:
  - Bind vertex & index buffer
  - Bind vertex declaration
  - Set draw operation type
@@ -101,5 +101,5 @@ As a way of making drawing easier you can also use @bs::ct::RendererUtility::dra
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<Mesh> mesh = ...;
-gRendererUtility().draw(mesh);
+GetRendererUtility().draw(mesh);
 ~~~~~~~~~~~~~

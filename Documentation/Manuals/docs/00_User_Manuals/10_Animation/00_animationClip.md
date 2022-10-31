@@ -25,7 +25,7 @@ To enable animation clip import you must set @bs::MeshImportOptions::importAnima
 auto importOptions = MeshImportOptions::create();
 importOptions->importAnimation = true;
 
-auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
+auto resources = GetImporter().importAll("humanAnimated.fbx", importOptions);
 HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].value);
 ~~~~~~~~~~~~~
 
@@ -66,7 +66,7 @@ splitInfos[2].startFrame = 240;
 splitInfos[2].endFrame = 300;
 
 importOptions->animationSplits = splitInfos;
-auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
+auto resources = GetImporter().importAll("humanAnimated.fbx", importOptions);
 
 HAnimationClip walkClip, runClip, waveClip;
 for(auto& entry : resource)
@@ -119,7 +119,7 @@ Animation curves are represented through the @bs::TAnimationCurve<T> object. You
 // Import animation with root motion
 importOptions->importRootMotion = true;
 
-auto resources = gImporter().importAll("humanAnimated.fbx", importOptions);
+auto resources = GetImporter().importAll("humanAnimated.fbx", importOptions);
 HAnimationClip animationClip = static_resource_cast<AnimationClip>(resources[1].value);
 
 SPtr<RootMotion> rootMotion = animationClip->getRootMotion();
@@ -132,7 +132,7 @@ Vector3 lastRootMotion = rootMotion->translation->evaluate(0.0f);
 float time = 0.0f;
 
 // While W key is pressed move character forward
-if(gInput().isButtonHeld(BC_W))
+if(GetInput().isButtonHeld(BC_W))
 {
 	// Find out how much the animation changed between this and previous frame
 	Vector3 curRootMotion = rootMotion->translation->evaluate(time);
@@ -141,7 +141,7 @@ if(gInput().isButtonHeld(BC_W))
 	// Apply that change to actual movement
 	characterPosition += movementDiff;
 	
-	time += gTime().frameDelta();
+	time += GetTime().frameDelta();
 	lastRootMotion = curRootMotion;
 }
 ~~~~~~~~~~~~~

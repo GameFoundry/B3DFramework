@@ -41,7 +41,7 @@ SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const
 
 SceneManager::SceneManager()
 	: mMainScene(
-		  bs_shared_ptr_new<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", SceneObject::CreateInternal("SceneRoot"), gPhysics().CreatePhysicsScene()))
+		  bs_shared_ptr_new<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", SceneObject::CreateInternal("SceneRoot"), GetPhysics().CreatePhysicsScene()))
 {
 	mMainScene->mRoot->SetScene(mMainScene);
 }
@@ -567,7 +567,7 @@ void SceneManager::OnMainRenderTargetResized()
 
 namespace bs
 {
-SceneManager& gSceneManager()
+SceneManager& GetSceneManager()
 {
 	return SceneManager::Instance();
 }

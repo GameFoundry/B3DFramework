@@ -270,7 +270,7 @@ SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, L
 
 HStringTable StringTable::Create()
 {
-	return static_resource_cast<StringTable>(gResources().CreateResourceHandleInternal(CreatePtrInternal()));
+	return static_resource_cast<StringTable>(GetResources().CreateResourceHandleInternal(CreatePtrInternal()));
 }
 
 SPtr<StringTable> StringTable::CreatePtrInternal()

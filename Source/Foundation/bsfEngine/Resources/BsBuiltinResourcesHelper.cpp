@@ -69,7 +69,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		Path relativeAssetPath = fileName;
 		relativeAssetPath.SetFilename(relativeAssetPath.GetFilename() + u8".asset");
 
-		SPtr<ImportOptions> importOptions = gImporter().CreateImportOptions(filePath);
+		SPtr<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
 		if(importOptions != nullptr)
 		{
 			if(rtti_is_of_type<TextureImportOptions>(importOptions))
@@ -94,7 +94,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 		Path outputPath = outputFolder + relativeAssetPath;
 
-		TAsyncOp<HResource> op = gImporter().ImportAsync(filePath, importOptions, UUID);
+		TAsyncOp<HResource> op = GetImporter().ImportAsync(filePath, importOptions, UUID);
 		queuedOps.emplace_back(op, outputPath, entry);
 	};
 
@@ -106,7 +106,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		outputPath.SetFilename("sprite_" + fileName + ".asset");
 
 		SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreatePtrInternal(texture);
-		HResource spriteTex = gResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
+		HResource spriteTex = GetResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
 
 		Resources::Instance().Save(spriteTex, outputPath, true, compress);
 		manifest->RegisterResource(spriteTex.GetUuid(), outputPath);
@@ -124,7 +124,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		spriteTexPtr->SetAnimation(animation);
 		spriteTexPtr->SetAnimationPlayback(playback);
 
-		HResource spriteTex = gResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
+		HResource spriteTex = GetResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
 
 		Resources::Instance().Save(spriteTex, outputPath, true, compress);
 		manifest->RegisterResource(spriteTex.GetUuid(), outputPath);
@@ -279,12 +279,12 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		data.Source->ReadData(data.SrcData);
 	}
 
-	gCoreThread().Submit(true);
+	GetCoreThread().Submit(true);
 
 	auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 	{
 		SPtr<Texture> texturePtr = Texture::CreatePtrInternal(pixelData);
-		HResource texture = gResources().CreateResourceHandleInternal(texturePtr, UUID(uuid.c_str()));
+		HResource texture = GetResources().CreateResourceHandleInternal(texturePtr, UUID(uuid.c_str()));
 
 		Resources::Instance().Save(texture, path, true, compress);
 		manifest->RegisterResource(texture.GetUuid(), path);
@@ -673,7 +673,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 
 void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
 {
-	HShader shader = gResources().Load<Shader>(path, ResourceLoadFlag::KeepSourceData);
+	HShader shader = GetResources().Load<Shader>(path, ResourceLoadFlag::KeepSourceData);
 	if(!shader)
 		return;
 
@@ -713,7 +713,7 @@ void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
 	for(auto& technique : techniques)
 		technique->Compile();
 
-	gResources().Save(shader, path, true, true);
+	GetResources().Save(shader, path, true, true);
 }
 
 GUIElementStyle BuiltinResourcesHelper::LoadGuiStyleFromJson(const nlohmann::json& entry, const GUIElementStyleLoader& loader)
@@ -872,7 +872,7 @@ HSpriteTexture BuiltinResourceGUIElementStyleLoader::LoadTexture(const String& n
 	Path texturePath = mTexturePath;
 	texturePath.Append(u8"sprite_" + name + u8".asset");
 
-	return gResources().Load<SpriteTexture>(texturePath);
+	return GetResources().Load<SpriteTexture>(texturePath);
 }
 
 HFont BuiltinResourceGUIElementStyleLoader::LoadFont(const String& name) const
@@ -880,5 +880,5 @@ HFont BuiltinResourceGUIElementStyleLoader::LoadFont(const String& name) const
 	Path fontPath = mFontPath;
 	fontPath.Append(name + u8".asset");
 
-	return gResources().Load<Font>(fontPath);
+	return GetResources().Load<Font>(fontPath);
 }

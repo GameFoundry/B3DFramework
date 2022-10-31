@@ -500,7 +500,7 @@ void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 #endif
 	}
 
-	if(gPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgressInternal())
 		return;
 
 	const Transform& tfrm = SO()->GetTransform();

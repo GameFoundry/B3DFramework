@@ -93,7 +93,7 @@ void CParticleSystem::RestoreInternal()
 	if(mInternal == nullptr)
 	{
 		mInternal = ParticleSystem::Create();
-		gSceneManager().BindActorInternal(mInternal, SceneObject());
+		GetSceneManager().BindActorInternal(mInternal, SceneObject());
 	}
 
 	mInternal->SetSettings(mSettings);
@@ -110,7 +110,7 @@ void CParticleSystem::DestroyInternal()
 		mEmitters = mInternal->GetEmitters();
 		mEvolvers = mInternal->GetEvolvers();
 
-		gSceneManager().UnbindActorInternal(mInternal);
+		GetSceneManager().UnbindActorInternal(mInternal);
 	}
 
 	// This should release the last reference and destroy the internal object

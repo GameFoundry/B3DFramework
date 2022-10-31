@@ -112,10 +112,10 @@ CollisionReportMode Collider::GetCollisionReportMode() const
 
 bool Collider::RayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist) const
 {
-	return gPhysics().RayCastInternal(ray.GetOrigin(), ray.GetDirection(), *this, hit, maxDist);
+	return GetPhysics().RayCastInternal(ray.GetOrigin(), ray.GetDirection(), *this, hit, maxDist);
 }
 
 bool Collider::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, float maxDist) const
 {
-	return gPhysics().RayCastInternal(origin, unitDir, *this, hit, maxDist);
+	return GetPhysics().RayCastInternal(origin, unitDir, *this, hit, maxDist);
 }

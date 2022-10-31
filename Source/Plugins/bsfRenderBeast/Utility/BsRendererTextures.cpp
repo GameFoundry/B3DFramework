@@ -233,7 +233,7 @@ SPtr<ct::Texture> generateDefaultIndirect()
 	irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
 	SPtr<ct::Texture> irradiance = ct::Texture::Create(irradianceCubemapDesc);
-	gIBLUtility().FilterCubemapForIrradiance(skyTexture, irradiance);
+	GetIBLUtility().FilterCubemapForIrradiance(skyTexture, irradiance);
 
 	return irradiance;
 }

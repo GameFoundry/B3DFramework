@@ -753,7 +753,7 @@ VulkanCommandBuffer* VulkanRenderAPI::GetCb(const SPtr<CommandBuffer>& buffer)
 }
 
 namespace bs { namespace ct {
-VulkanRenderAPI& gVulkanRenderAPI()
+VulkanRenderAPI& GetVulkanRenderAPI()
 {
 	return static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 }

@@ -130,7 +130,7 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 
 	// Don't update the transform if it's due to Physics update since then we can guarantee it will remain at the same
 	// relative transform to its parent
-	if(gPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgressInternal())
 		return;
 
 	if((flags & (TCF_Parent | TCF_Transform)) != 0)

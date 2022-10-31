@@ -281,7 +281,7 @@ void restoreUnlinkedInstanceData(const HSceneObject& so, SceneObjectProxy& proxy
 void PrefabUtility::RevertToPrefab(const HSceneObject& so)
 {
 	UUID prefabLinkUUID = so->GetPrefabLink();
-	HPrefab prefabLink = static_resource_cast<Prefab>(gResources().LoadFromUuid(prefabLinkUUID, false, ResourceLoadFlag::None));
+	HPrefab prefabLink = static_resource_cast<Prefab>(GetResources().LoadFromUuid(prefabLinkUUID, false, ResourceLoadFlag::None));
 
 	if(!prefabLink.IsLoaded(false))
 		return;
@@ -369,7 +369,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& so)
 	for(auto iter = prefabInstanceRoots.rbegin(); iter != prefabInstanceRoots.rend(); ++iter)
 	{
 		HSceneObject current = *iter;
-		HPrefab prefabLink = static_resource_cast<Prefab>(gResources().LoadFromUuid(current->mPrefabLinkUUID, false, ResourceLoadFlag::None));
+		HPrefab prefabLink = static_resource_cast<Prefab>(GetResources().LoadFromUuid(current->mPrefabLinkUUID, false, ResourceLoadFlag::None));
 
 		if(prefabLink.IsLoaded(false) && prefabLink->GetHash() != current->mPrefabHash)
 		{
@@ -418,7 +418,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& so)
 			entry.NewInstance->InstantiateInternal(true);
 	}
 
-	gResources().UnloadAllUnused();
+	GetResources().UnloadAllUnused();
 }
 
 void PrefabUtility::GeneratePrefabIds(const HSceneObject& sceneObject)
@@ -553,7 +553,7 @@ void PrefabUtility::RecordPrefabDiff(const HSceneObject& sceneObject)
 		{
 			current->mPrefabDiff = nullptr;
 
-			HPrefab prefabLink = static_resource_cast<Prefab>(gResources().LoadFromUuid(current->mPrefabLinkUUID, false, ResourceLoadFlag::None));
+			HPrefab prefabLink = static_resource_cast<Prefab>(GetResources().LoadFromUuid(current->mPrefabLinkUUID, false, ResourceLoadFlag::None));
 			if(prefabLink.IsLoaded(false))
 				current->mPrefabDiff = PrefabDiff::Create(prefabLink->GetRootInternal(), current->GetHandle());
 		}
@@ -566,5 +566,5 @@ void PrefabUtility::RecordPrefabDiff(const HSceneObject& sceneObject)
 		}
 	}
 
-	gResources().UnloadAllUnused();
+	GetResources().UnloadAllUnused();
 }

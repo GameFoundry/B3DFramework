@@ -27,7 +27,7 @@ ScopeGuard<T> make_scope_guard(T callback)
 } // namespace impl
 
 BinaryCompare::BinaryCompare()
-	: mAlloc(&gFrameAlloc())
+	: mAlloc(&GetFrameAllocator())
 {}
 
 bool BinaryCompare::Run(IReflectable& a, IReflectable& b)

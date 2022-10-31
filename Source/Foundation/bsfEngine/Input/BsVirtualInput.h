@@ -136,7 +136,7 @@ namespace bs
 	};
 
 	/** Provides easier access to VirtualInput. */
-	BS_EXPORT VirtualInput& gVirtualInput();
+	BS_EXPORT VirtualInput& GetVirtualInput();
 
 	/** @} */
 } // namespace bs

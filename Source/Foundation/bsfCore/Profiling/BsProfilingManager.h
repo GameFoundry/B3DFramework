@@ -72,7 +72,7 @@ namespace bs
 	};
 
 	/** Easy way to access ProfilingManager. */
-	BS_CORE_EXPORT ProfilingManager& gProfiler();
+	BS_CORE_EXPORT ProfilingManager& GetProfiler();
 
 	/** @} */
 } // namespace bs

@@ -17,15 +17,15 @@ Once created you must assign it a **Mesh** to render, and a **Material** to rend
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a standard PBR material
-HShader shader = gBuiltinResources().getBuiltinShader(BuiltinShader::Standard);
+HShader shader = GetBuiltinResources().getBuiltinShader(BuiltinShader::Standard);
 HMaterial material = Material::create(shader);
 
 // Import and assign a texture to the material
-HTexture texture = gImporter().import<Texture>("myTexture.png");
+HTexture texture = GetImporter().import<Texture>("myTexture.png");
 material->setTexture("gAlbedoTex", texture);
 
 // Import a mesh
-HMesh mesh = gImporter().import<Mesh>("myMesh.fbx");
+HMesh mesh = GetImporter().import<Mesh>("myMesh.fbx");
 
 // Create a renderable
 HSceneObject renderableSO = SceneObject::create("3D object");
@@ -51,7 +51,7 @@ It is up to the artist (creator of the mesh) to specify the regions of the mesh 
 You can assign a different material to a sub-mesh by calling a @bs::CRenderable::setMaterial(UINT32, HMaterial) overload which accepts an additional index parameter, specifying which sub-mesh to apply the material on.
 
 ~~~~~~~~~~~~~{.cpp}
-HMesh mesh = gImporter().import<Mesh>("myMesh.fbx");
+HMesh mesh = GetImporter().import<Mesh>("myMesh.fbx");
 renderable->setMesh(mesh);
 
 // Count the number of sub-meshes

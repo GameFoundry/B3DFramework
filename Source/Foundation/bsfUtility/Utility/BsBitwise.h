@@ -345,7 +345,7 @@ namespace bs
 		template <uint32_t bits = 8>
 		static uint32_t SnormToUint(float value)
 		{
-			return unormToUint<bits>((value + 1.0f) * 0.5f);
+			return UnormToUint<bits>((value + 1.0f) * 0.5f);
 		}
 
 		/** Converts an unsigned integer to a floating point in range [0, 1]. */

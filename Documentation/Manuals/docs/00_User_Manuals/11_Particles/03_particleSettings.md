@@ -66,13 +66,13 @@ When rendering as a 3D mesh you will need to specify the mesh to use in the @bs:
 // Set up rendering of 3D particles
 
 // Grab a mesh to use
-HMesh mesh = gBuiltinResources().getMesh(BuiltinMesh::Sphere);
+HMesh mesh = GetBuiltinResources().getMesh(BuiltinMesh::Sphere);
 
 // Set up a material that supports lighting
-HShader particleShader = gBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesLitOpaque);
+HShader particleShader = GetBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesLitOpaque);
 HMaterial particleMaterial = Material::create(particleShader);
 
-particleMaterial->setTexture("gAlbedoTex", gBuiltinResources().getTexture(BuiltinTexture::White));
+particleMaterial->setTexture("gAlbedoTex", GetBuiltinResources().getTexture(BuiltinTexture::White));
 
 // Enable 3D particles
 ParticleSystemSettings psSettings;

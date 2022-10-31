@@ -51,12 +51,12 @@ An external object can register itself with an event by calling @bs::Event<RetTy
 // Define a couple of methods that trigger when events are triggered
 auto playerJumpedCallback = [&]()
 {
-	gDebug().logDebug("Player jumped!");
+	GetDebug().logDebug("Player jumped!");
 };
 
 auto playerCollectedCoinsCallback = [&](UINT32 numCoins)
 {
-	gDebug().logDebug("Player collected: " + toString(numCoins) + " coins!");
+	GetDebug().logDebug("Player collected: " + toString(numCoins) + " coins!");
 };
 
 MyPlayerController playerController;
@@ -112,7 +112,7 @@ class MyEventSubscriber
 {
 	void playerJumpedCallback() // Has a hidden "this" pointer parameter
 	{
-		gDebug().logDebug("Player jumped!");
+		GetDebug().logDebug("Player jumped!");
 	}
 	
 	// Assuming the same player controller class we defined earlier
@@ -134,7 +134,7 @@ class MyEventSubscriber
 {
 	void playerJumpedCallback() // Has a hidden "this" pointer parameter
 	{
-		gDebug().logDebug("Player jumped!");
+		GetDebug().logDebug("Player jumped!");
 	}
 	
 	void subscribeToEvents(MyPlayerController& playerController)

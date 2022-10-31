@@ -41,7 +41,7 @@ void TGpuDataParam<T, Core>::Set(const T& value, u32 arrayIdx) const
 	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-	const bool transposeMatrices = ct::gCaps().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
+	const bool transposeMatrices = ct::GetRenderBackendCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
 	if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 	{
 		auto transposed = TransposePolicy<T>::Transpose(value);

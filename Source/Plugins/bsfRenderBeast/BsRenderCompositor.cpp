@@ -38,9 +38,9 @@ void renderQueueElements(const Vector<RenderQueueElement>& elements)
 	for(auto& entry : elements)
 	{
 		if(entry.ApplyPass)
-			gRendererUtility().SetPass(entry.RenderElem->Material, entry.PassIdx, entry.TechniqueIdx);
+			GetRendererUtility().SetPass(entry.RenderElem->Material, entry.PassIdx, entry.TechniqueIdx);
 
-		gRendererUtility().SetPassParams(entry.RenderElem->Params, entry.PassIdx);
+		GetRendererUtility().SetPassParams(entry.RenderElem->Params, entry.PassIdx);
 
 		entry.RenderElem->Draw();
 	}
@@ -169,13 +169,13 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 #if BS_PROFILING_ENABLED
 			const ProfilerString sampleName = ProfilerString("RC: ") + entry.NodeType->Id.CStr();
 			BS_GPU_PROFILE_BEGIN(sampleName);
-			gProfilerCPU().BeginSample(sampleName.c_str());
+			GetProfilerCPU().BeginSample(sampleName.c_str());
 #endif
 
 			entry.Node->Render(inputs);
 
 #if BS_PROFILING_ENABLED
-			gProfilerCPU().EndSample(sampleName.c_str());
+			GetProfilerCPU().EndSample(sampleName.c_str());
 			BS_GPU_PROFILE_END(sampleName);
 #endif
 
@@ -219,7 +219,7 @@ void RCNodeSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 	u32 height = viewProps.Target.ViewRect.Height;
 	u32 numSamples = viewProps.Target.NumSamples;
 
-	DepthTex = gGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, numSamples, false));
+	DepthTex = GetGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, numSamples, false));
 }
 
 void RCNodeSceneDepth::Clear()
@@ -235,7 +235,7 @@ SmallVector<StringID, 4> RCNodeSceneDepth::GetDependencies(const RendererView& v
 void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 {
 	// Allocate necessary textures & targets
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	const u32 width = viewProps.Target.ViewRect.Width;
@@ -498,7 +498,7 @@ SmallVector<StringID, 4> RCNodeBasePass::GetDependencies(const RendererView& vie
 
 void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 {
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	u32 width = viewProps.Target.ViewRect.Width;
@@ -603,7 +603,7 @@ void RCNodeMSAACoverage::Render(const RenderCompositorNodeInputs& inputs)
 	u32 height = viewProps.Target.ViewRect.Height;
 
 	// We just allocate the texture, while the base pass is responsible for filling it out
-	Output = gGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET));
+	Output = GetGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET));
 }
 
 void RCNodeMSAACoverage::Clear()
@@ -726,7 +726,7 @@ SmallVector<StringID, 4> RCNodeParticleSort::GetDependencies(const RendererView&
 
 void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 {
-	bool supportsTiledDeferred = gRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+	bool supportsTiledDeferred = GetRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 	if(!supportsTiledDeferred)
 	{
 		// If tiled deferred is not supported, we don't need a separate texture for light accumulation, instead we
@@ -738,7 +738,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 		return;
 	}
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	RCNodeSceneDepth* depthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[0]);
@@ -819,7 +819,7 @@ SmallVector<StringID, 4> RCNodeLightAccumulation::GetDependencies(const Renderer
 {
 	SmallVector<StringID, 4> deps;
 
-	const bool supportsTiledDeferred = gRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
+	const bool supportsTiledDeferred = GetRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 	if(!supportsTiledDeferred)
 		deps.Add(RCNodeSceneColor::GetNodeId());
 	else
@@ -910,7 +910,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 	}
 
 	// Allocate light occlusion
-	SPtr<PooledRenderTexture> lightOcclusionTex = gGpuResourcePool().Get(
+	SPtr<PooledRenderTexture> lightOcclusionTex = GetGpuResourcePool().Get(
 		POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET, numSamples, false));
 
 	bool rebuildRT = false;
@@ -1001,7 +1001,7 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.InputNodes[2]);
 	RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.InputNodes[3]);
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	const LightProbes& lightProbes = inputs.Scene.LightProbes;
@@ -1027,7 +1027,7 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 		RenderAPI& rapi = RenderAPI::Instance();
 		rapi.SetRenderTarget(rt);
 		rapi.ClearRenderTarget(FBT_DEPTH);
-		gRendererUtility().Clear(-1);
+		GetRendererUtility().Clear(-1);
 
 		TetrahedraRenderMat* renderTetrahedra =
 			TetrahedraRenderMat::GetVariation(viewProps.Target.NumSamples > 1, true);
@@ -1138,7 +1138,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 		bool isMSAA = viewProps.Target.NumSamples > 1;
 
-		SPtr<PooledRenderTexture> iblRadianceTex = gGpuResourcePool().Get(
+		SPtr<PooledRenderTexture> iblRadianceTex = GetGpuResourcePool().Get(
 			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET, numSamples, false));
 
 		RENDER_TEXTURE_DESC rtDesc;
@@ -1164,7 +1164,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 			DeferredIBLSetupMat* mat = DeferredIBLSetupMat::GetVariation(isMSAA, true);
 			mat->Bind(gbuffer, perViewBuffer, ssrNode->Output, ssaoNode->Output, reflProbeParams.Buffer);
 
-			gRendererUtility().DrawScreenQuad();
+			GetRendererUtility().DrawScreenQuad();
 
 			// Draw pixels requiring per-sample evaluation
 			if(isMSAA)
@@ -1172,7 +1172,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 				DeferredIBLSetupMat* msaaMat = DeferredIBLSetupMat::GetVariation(true, false);
 				msaaMat->Bind(gbuffer, perViewBuffer, ssrNode->Output, ssaoNode->Output, reflProbeParams.Buffer);
 
-				gRendererUtility().DrawScreenQuad();
+				GetRendererUtility().DrawScreenQuad();
 			}
 		}
 
@@ -1197,7 +1197,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 				DeferredIBLSkyMat* skymat = DeferredIBLSkyMat::GetVariation(isMSAA, true);
 				skymat->Bind(gbuffer, perViewBuffer, skybox, reflProbeParams.Buffer);
 
-				gRendererUtility().DrawScreenQuad();
+				GetRendererUtility().DrawScreenQuad();
 
 				// Draw pixels requiring per-sample evaluation
 				if(isMSAA)
@@ -1205,7 +1205,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 					DeferredIBLSkyMat* msaaMat = DeferredIBLSkyMat::GetVariation(true, false);
 					msaaMat->Bind(gbuffer, perViewBuffer, skybox, reflProbeParams.Buffer);
 
-					gRendererUtility().DrawScreenQuad();
+					GetRendererUtility().DrawScreenQuad();
 				}
 			}
 		}
@@ -1217,7 +1217,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 			DeferredIBLFinalizeMat* mat = DeferredIBLFinalizeMat::GetVariation(isMSAA, true);
 			mat->Bind(gbuffer, perViewBuffer, iblRadianceTex->Texture, RendererTextures::preintegratedEnvGF, reflProbeParams.Buffer);
 
-			gRendererUtility().DrawScreenQuad();
+			GetRendererUtility().DrawScreenQuad();
 
 			// Draw pixels requiring per-sample evaluation
 			if(isMSAA)
@@ -1225,7 +1225,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 				DeferredIBLFinalizeMat* msaaMat = DeferredIBLFinalizeMat::GetVariation(true, false);
 				msaaMat->Bind(gbuffer, perViewBuffer, iblRadianceTex->Texture, RendererTextures::preintegratedEnvGF, reflProbeParams.Buffer);
 
-				gRendererUtility().DrawScreenQuad();
+				GetRendererUtility().DrawScreenQuad();
 			}
 		}
 
@@ -1271,7 +1271,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		SPtr<GpuParamBlockBuffer> LightAndReflProbeParamsParamBlock;
 	} standardForwardBuffers;
 
-	const bool supportsClusteredForward = gRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
+	const bool supportsClusteredForward = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(supportsClusteredForward)
 	{
 		const LightGrid& lightGrid = inputs.View.GetLightGrid();
@@ -1569,8 +1569,8 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	rapi.SetViewport(area);
 
-	SPtr<Mesh> mesh = gRendererUtility().GetSkyBoxMesh();
-	gRendererUtility().Draw(mesh, mesh->GetProperties().GetSubMesh(0));
+	SPtr<Mesh> mesh = GetRendererUtility().GetSkyBoxMesh();
+	GetRendererUtility().Draw(mesh, mesh->GetProperties().GetSubMesh(0));
 }
 
 void RCNodeSkybox::Clear()
@@ -1609,7 +1609,7 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	rapi.SetRenderTarget(target);
 	rapi.SetViewport(viewProps.Target.NrmViewRect);
 
-	gRendererUtility().Blit(input, Rect2I::kEmpty, viewProps.FlipView);
+	GetRendererUtility().Blit(input, Rect2I::kEmpty, viewProps.FlipView);
 
 	if(viewProps.EncodeDepth)
 	{
@@ -1665,7 +1665,7 @@ void RCNodePostProcess::GetAndSwitch(const RendererView& view, SPtr<RenderTextur
 
 	if(!mOutput[mCurrentIdx])
 	{
-		mOutput[mCurrentIdx] = gGpuResourcePool().Get(
+		mOutput[mCurrentIdx] = GetGpuResourcePool().Get(
 			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, width, height, TU_RENDERTARGET, 1, false));
 	}
 
@@ -1706,7 +1706,7 @@ SmallVector<StringID, 4> RCNodePostProcess::GetDependencies(const RendererView& 
 
 void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 {
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
@@ -1860,7 +1860,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 			{
 				CreateTonemapLUTMat* createLUT = CreateTonemapLUTMat::GetVariation(volumeLUT);
 				if(mTonemapLUT == nullptr)
-					mTonemapLUT = gGpuResourcePool().Get(createLUT->GetOutputDesc());
+					mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
 
 				if(volumeLUT)
 					createLUT->Execute3D(mTonemapLUT->Texture, settings);
@@ -1955,12 +1955,12 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Downsample scene and store depth in .w
 	SPtr<PooledRenderTexture> halfResSceneAndDepth =
-		gGpuResourcePool().Get(BokehDOFPrepareMat::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
+		GetGpuResourcePool().Get(BokehDOFPrepareMat::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
 
 	prepareMat->Execute(sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, halfResSceneAndDepth->RenderTexture);
 
 	SPtr<PooledRenderTexture> unfocusedTex =
-		gGpuResourcePool().Get(BokehDOFMat::GetOutputDesc(halfResSceneAndDepth->Texture));
+		GetGpuResourcePool().Get(BokehDOFMat::GetOutputDesc(halfResSceneAndDepth->Texture));
 
 	renderMat->Execute(halfResSceneAndDepth->Texture, inputs.View, settings, unfocusedTex->RenderTexture);
 	halfResSceneAndDepth = nullptr;
@@ -2014,7 +2014,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	auto* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[2]);
 	auto* basePassNode = static_cast<RCNodeBasePass*>(inputs.InputNodes[3]);
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	u32 width = viewProps.Target.ViewRect.Width;
@@ -2027,7 +2027,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		rapi.SetRenderTarget(resolvedSceneColor->RenderTexture);
-		gRendererUtility().Blit(sceneColor->Texture);
+		GetRendererUtility().Blit(sceneColor->Texture);
 
 		sceneColor = resolvedSceneColor;
 	}
@@ -2161,7 +2161,7 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	// Note: Perhaps set up stencil so I can avoid performing blur on unused parts of the textures?
 	const TextureProperties& texProps = nearTex ? nearTex->Texture->GetProperties() : farTex->Texture->GetProperties();
 	POOLED_RENDER_TEXTURE_DESC tempTexDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(texProps.GetFormat(), texProps.GetWidth(), texProps.GetHeight(), TU_RENDERTARGET);
-	SPtr<PooledRenderTexture> tempTexture = gGpuResourcePool().Get(tempTexDesc);
+	SPtr<PooledRenderTexture> tempTexture = GetGpuResourcePool().Get(tempTexDesc);
 
 	SPtr<Texture> blurredNearTex;
 	if(nearTex)
@@ -2291,7 +2291,7 @@ void RCNodeHalfSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 	const bool msaa = viewProps.Target.NumSamples > 1;
 	DownsampleMat* downsampleMat = DownsampleMat::GetVariation(1, msaa);
 
-	Output = gGpuResourcePool().Get(DownsampleMat::GetOutputDesc(input));
+	Output = GetGpuResourcePool().Get(DownsampleMat::GetOutputDesc(input));
 
 	downsampleMat->Execute(input, Output->RenderTexture);
 }
@@ -2310,7 +2310,7 @@ constexpr u32 RCNodeSceneColorDownsamples::kMaxNumDownsamples;
 
 void RCNodeSceneColorDownsamples::Render(const RenderCompositorNodeInputs& inputs)
 {
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 
 	auto* halfSceneColorNode = static_cast<RCNodeHalfSceneColor*>(inputs.InputNodes[0]);
 	const TextureProperties& halfSceneProps = halfSceneColorNode->Output->Texture->GetProperties();
@@ -2357,13 +2357,13 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		u32 width = viewProps.Target.ViewRect.Width;
 		u32 height = viewProps.Target.ViewRect.Height;
 
-		Output = gGpuResourcePool().Get(
+		Output = GetGpuResourcePool().Get(
 			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
 
 		RenderAPI& rapi = RenderAPI::Instance();
 		rapi.SetRenderTarget(Output->RenderTexture);
 		rapi.ClearRenderTarget(FBT_STENCIL);
-		gRendererUtility().Blit(sceneDepthNode->DepthTex->Texture, Rect2I::kEmpty, false, true);
+		GetRendererUtility().Blit(sceneDepthNode->DepthTex->Texture, Rect2I::kEmpty, false, true);
 	}
 	else
 		Output = sceneDepthNode->DepthTex;
@@ -2396,7 +2396,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	// Note: Use the 32-bit buffer here as 16-bit causes too much banding (most of the scene gets assigned 4-5 different
 	// depth values).
 	//  - When I add UNORM 16-bit format I should be able to switch to that
-	Output = gGpuResourcePool().Get(
+	Output = GetGpuResourcePool().Get(
 		POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R32F, size, size, TU_RENDERTARGET, 1, false, 1, numMips));
 
 	Rect2 srcRect = viewProps.Target.NrmViewRect;
@@ -2405,7 +2405,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	srcRect.Width += (viewProps.Target.ViewRect.Width % 2) * (1.0f / viewProps.Target.ViewRect.Width);
 	srcRect.Height += (viewProps.Target.ViewRect.Height % 2) * (1.0f / viewProps.Target.ViewRect.Height);
 
-	bool noTextureViews = !gCaps().HasCapability(RSC_TEXTURE_VIEWS);
+	bool noTextureViews = !GetRenderBackendCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
 
 	BuildHiZMat* material = BuildHiZMat::GetVariation(noTextureViews);
 
@@ -2439,7 +2439,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 		srcAreaInt.Width = (u32)(srcRect.Width * viewProps.Target.ViewRect.Width);
 		srcAreaInt.Height = (u32)(srcRect.Height * viewProps.Target.ViewRect.Height);
 
-		gRendererUtility().Blit(resolvedSceneDepth->Output->Texture, srcAreaInt);
+		GetRendererUtility().Blit(resolvedSceneDepth->Output->Texture, srcAreaInt);
 		rapi.SetViewport(Rect2(0, 0, 1, 1));
 	}
 
@@ -2479,7 +2479,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		return;
 	}
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	RCNodeResolvedSceneDepth* resolvedDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.InputNodes[0]);
@@ -2498,7 +2498,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		resolvedNormals = resPool.Get(desc);
 
 		rapi.SetRenderTarget(resolvedNormals->RenderTexture);
-		gRendererUtility().Blit(sceneNormals);
+		GetRendererUtility().Blit(sceneNormals);
 
 		sceneNormals = resolvedNormals->Texture;
 	}
@@ -2667,7 +2667,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.InputNodes[3]);
 	RCNodeResolvedSceneDepth* resolvedSceneDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.InputNodes[4]);
 
-	GpuResourcePool& resPool = gGpuResourcePool();
+	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	u32 width = viewProps.Target.ViewRect.Width;
@@ -2685,7 +2685,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		rapi.SetRenderTarget(resolvedSceneColor->RenderTexture);
-		gRendererUtility().Blit(sceneColor);
+		GetRendererUtility().Blit(sceneColor);
 
 		sceneColor = resolvedSceneColor->Texture;
 	}
@@ -2809,7 +2809,7 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 
 		const TextureProperties& inputProps = downsampledTex->Texture->GetProperties();
 
-		SPtr<PooledRenderTexture> filterOutput = gGpuResourcePool().Get(
+		SPtr<PooledRenderTexture> filterOutput = GetGpuResourcePool().Get(
 			POOLED_RENDER_TEXTURE_DESC::Create2D(
 				inputProps.GetFormat(),
 				inputProps.GetWidth(),

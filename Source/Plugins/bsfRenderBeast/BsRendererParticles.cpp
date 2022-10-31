@@ -100,7 +100,7 @@ void ParticlesRenderElement::Draw() const
 	if(NumParticles > 0)
 	{
 		if(Is3D)
-			gRendererUtility().Draw(Mesh, NumParticles);
+			GetRendererUtility().Draw(Mesh, NumParticles);
 		else
 			ParticleRenderer::Instance().DrawBillboards(NumParticles);
 	}

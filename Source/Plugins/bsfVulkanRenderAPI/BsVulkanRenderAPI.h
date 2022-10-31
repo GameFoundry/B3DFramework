@@ -101,7 +101,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to the VulkanRenderAPI. */
-		VulkanRenderAPI& gVulkanRenderAPI();
+		VulkanRenderAPI& GetVulkanRenderAPI();
 
 		extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 		extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;

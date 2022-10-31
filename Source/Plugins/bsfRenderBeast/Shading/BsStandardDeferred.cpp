@@ -277,7 +277,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 		DeferredDirectionalLightMat* material = DeferredDirectionalLightMat::GetVariation(isMSAA, true);
 		material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-		gRendererUtility().DrawScreenQuad();
+		GetRendererUtility().DrawScreenQuad();
 
 		// Draw pixels requiring per-sample evaluation
 		if(isMSAA)
@@ -285,7 +285,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 			DeferredDirectionalLightMat* msaaMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
 			msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-			gRendererUtility().DrawScreenQuad();
+			GetRendererUtility().DrawScreenQuad();
 		}
 	}
 	else // Radial or spot
@@ -310,7 +310,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 		material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 		// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
-		gRendererUtility().Draw(stencilMesh);
+		GetRendererUtility().Draw(stencilMesh);
 
 		// Draw pixels requiring per-sample evaluation
 		if(isMSAA)
@@ -318,7 +318,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 			DeferredPointLightMat* msaaMaterial = DeferredPointLightMat::GetVariation(isInside, true, false);
 			msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
-			gRendererUtility().Draw(stencilMesh);
+			GetRendererUtility().Draw(stencilMesh);
 		}
 	}
 }
@@ -359,7 +359,7 @@ void StandardDeferred::RenderReflProbe(const ReflProbeData& probeData, const Ren
 	material->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
 	// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
-	gRendererUtility().Draw(stencilMesh);
+	GetRendererUtility().Draw(stencilMesh);
 
 	// Draw pixels requiring per-sample evaluation
 	if(isMSAA)
@@ -367,7 +367,7 @@ void StandardDeferred::RenderReflProbe(const ReflProbeData& probeData, const Ren
 		DeferredIBLProbeMat* msaaMaterial = DeferredIBLProbeMat::GetVariation(isInside, true, false);
 		msaaMaterial->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
-		gRendererUtility().Draw(stencilMesh);
+		GetRendererUtility().Draw(stencilMesh);
 	}
 }
 }} // namespace bs::ct

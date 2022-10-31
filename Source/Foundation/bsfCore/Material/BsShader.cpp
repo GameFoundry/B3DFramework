@@ -607,7 +607,7 @@ HShader Shader::Create(const String& name, const SHADER_DESC& desc)
 {
 	SPtr<Shader> newShader = CreatePtrInternal(name, desc);
 
-	return static_resource_cast<Shader>(gResources().CreateResourceHandleInternal(newShader));
+	return static_resource_cast<Shader>(GetResources().CreateResourceHandleInternal(newShader));
 }
 
 SPtr<Shader> Shader::CreatePtrInternal(const String& name, const SHADER_DESC& desc)

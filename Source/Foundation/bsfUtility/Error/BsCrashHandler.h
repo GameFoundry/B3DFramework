@@ -137,7 +137,7 @@ namespace bs
 	};
 
 	/** Easier way of accessing the CrashHandler. */
-	BS_UTILITY_EXPORT CrashHandler& gCrashHandler();
+	BS_UTILITY_EXPORT CrashHandler& GetCrashHandler();
 
 	/** @} */
 	/** @} */

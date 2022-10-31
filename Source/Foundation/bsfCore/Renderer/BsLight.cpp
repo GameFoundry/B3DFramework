@@ -275,13 +275,13 @@ Light::Light(LightType type, Color color, float intensity, float attRadius, floa
 
 Light::~Light()
 {
-	gRenderer()->NotifyLightRemoved(this);
+	GetRenderer()->NotifyLightRemoved(this);
 }
 
 void Light::Initialize()
 {
 	UpdateBounds();
-	gRenderer()->NotifyLightAdded(this);
+	GetRenderer()->NotifyLightAdded(this);
 
 	CoreObject::Initialize();
 }
@@ -305,12 +305,12 @@ void Light::SyncToCore(const CoreSyncData& data)
 		if(oldIsActive != mActive)
 		{
 			if(mActive)
-				gRenderer()->NotifyLightAdded(this);
+				GetRenderer()->NotifyLightAdded(this);
 			else
 			{
 				LightType newType = mType;
 				mType = oldType;
-				gRenderer()->NotifyLightRemoved(this);
+				GetRenderer()->NotifyLightRemoved(this);
 				mType = newType;
 			}
 		}
@@ -318,21 +318,21 @@ void Light::SyncToCore(const CoreSyncData& data)
 		{
 			LightType newType = mType;
 			mType = oldType;
-			gRenderer()->NotifyLightRemoved(this);
+			GetRenderer()->NotifyLightRemoved(this);
 			mType = newType;
 
-			gRenderer()->NotifyLightAdded(this);
+			GetRenderer()->NotifyLightAdded(this);
 		}
 	}
 	else if((dirtyFlags & (u32)ActorDirtyFlag::Mobility) != 0)
 	{
-		gRenderer()->NotifyLightRemoved(this);
-		gRenderer()->NotifyLightAdded(this);
+		GetRenderer()->NotifyLightRemoved(this);
+		GetRenderer()->NotifyLightAdded(this);
 	}
 	else if((dirtyFlags & (u32)ActorDirtyFlag::Transform) != 0)
 	{
 		if(mActive)
-			gRenderer()->NotifyLightUpdated(this);
+			GetRenderer()->NotifyLightUpdated(this);
 	}
 }
 }}

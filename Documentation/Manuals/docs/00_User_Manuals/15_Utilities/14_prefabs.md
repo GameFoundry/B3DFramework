@@ -50,7 +50,7 @@ PrefabUtility::updateFromPrefab(instance2);
 Note that this process is recursive, so you can call **PrefabUtility::updateFromPrefab()** on the entire scene, in order to update all prefabs.
 
 ~~~~~~~~~~~~~{.cpp}
-PrefabUtility::updateFromPrefab(gSceneManager().getMainScene()->getRoot());
+PrefabUtility::updateFromPrefab(GetSceneManager().getMainScene()->getRoot());
 ~~~~~~~~~~~~~
 
 ## Links
@@ -64,7 +64,7 @@ instance1->breakPrefabLink();
 If a scene using prefabs is saved to disk, and if you plan on updating the prefab later, you must save the prefabs same as we save scenes. Otherwise the next time you call **PrefabUtility::updateFromPrefab()** the system will be unable to find the prefab.
 
 ~~~~~~~~~~~~~{.cpp}
-gResources().save(renderablePrefab, "myPrefab.asset");
+GetResources().save(renderablePrefab, "myPrefab.asset");
 ~~~~~~~~~~~~~
 
 > Prefabs generally won't be updated during normal application runs, and therefore non-scene prefabs don't need to be distributed with your application or used outside of development.

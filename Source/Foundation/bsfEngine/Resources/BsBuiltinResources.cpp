@@ -106,7 +106,7 @@ BuiltinResources::BuiltinResources()
 	if(mResourceManifest == nullptr)
 		mResourceManifest = ResourceManifest::Create("BuiltinResources");
 
-	gResources().RegisterResourceManifest(mResourceManifest);
+	GetResources().RegisterResourceManifest(mResourceManifest);
 
 	// Load basic resources
 	mShaderSpriteText = GetShader(kShaderSpriteTextFile);
@@ -131,8 +131,8 @@ BuiltinResources::BuiltinResources()
 	mWhiteSpriteTexture = GetSkinTexture(kWhiteTex);
 	mDummySpriteTexture = SpriteTexture::Create(mDummyTexture);
 
-	mFont = gResources().Load<Font>(mBuiltinDataFolder + (String(kDefaultFontName) + u8".asset"));
-	mSkin = gResources().Load<GUISkin>(mBuiltinDataFolder + (String(kGuiSkinFile) + u8".json.asset"));
+	mFont = GetResources().Load<Font>(mBuiltinDataFolder + (String(kDefaultFontName) + u8".asset"));
+	mSkin = GetResources().Load<GUISkin>(mBuiltinDataFolder + (String(kGuiSkinFile) + u8".json.asset"));
 	mEmptySkin = GUISkin::Create();
 
 	/************************************************************************/
@@ -187,12 +187,12 @@ BuiltinResources::BuiltinResources()
 	Path iconPath = mBuiltinDataFolder + kIconFolder;
 	iconPath.Append(String(kIconTextureName) + u8".asset");
 
-	HTexture iconTex = gResources().Load<Texture>(iconPath);
+	HTexture iconTex = GetResources().Load<Texture>(iconPath);
 
 	mFrameworkIcon = iconTex->GetProperties().AllocBuffer(0, 0);
 	iconTex->ReadData(mFrameworkIcon);
 
-	gCoreThread().Submit(true);
+	GetCoreThread().Submit(true);
 }
 
 HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
@@ -200,7 +200,7 @@ HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 	Path texturePath = mEngineSkinSpritesFolder;
 	texturePath.Append(u8"sprite_" + name + u8".asset");
 
-	return gResources().Load<SpriteTexture>(texturePath);
+	return GetResources().Load<SpriteTexture>(texturePath);
 }
 
 HShader BuiltinResources::GetShader(const Path& path) const
@@ -209,7 +209,7 @@ HShader BuiltinResources::GetShader(const Path& path) const
 	programPath.Append(path);
 	programPath.SetExtension(programPath.GetExtension() + ".asset");
 
-	return gResources().Load<Shader>(programPath);
+	return GetResources().Load<Shader>(programPath);
 }
 
 HTexture BuiltinResources::GetCursorTexture(const String& name) const
@@ -217,7 +217,7 @@ HTexture BuiltinResources::GetCursorTexture(const String& name) const
 	Path cursorPath = mEngineCursorFolder;
 	cursorPath.Append(name + u8".asset");
 
-	return gResources().Load<Texture>(cursorPath);
+	return GetResources().Load<Texture>(cursorPath);
 }
 
 const PixelData& BuiltinResources::GetCursorArrow(Vector2I& hotSpot)
@@ -333,7 +333,7 @@ HMesh BuiltinResources::GetMesh(BuiltinMesh mesh) const
 		break;
 	}
 
-	return gResources().Load<Mesh>(meshPath);
+	return GetResources().Load<Mesh>(meshPath);
 }
 
 HShader BuiltinResources::GetBuiltinShader(BuiltinShader type) const
@@ -380,7 +380,7 @@ HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 		break;
 	}
 
-	return gResources().Load<Texture>(texturePath);
+	return GetResources().Load<Texture>(texturePath);
 }
 
 HMaterial BuiltinResources::CreateSpriteTextMaterial() const
@@ -400,7 +400,7 @@ HMaterial BuiltinResources::CreateSpriteLineMaterial() const
 
 namespace bs
 {
-BuiltinResources& gBuiltinResources()
+BuiltinResources& GetBuiltinResources()
 {
 	return BuiltinResources::Instance();
 }

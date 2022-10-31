@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Prerequisites/BsPrerequisitesUtil.h"
-#include "Allocators/BsFrameAlloc.h"
+#include "Allocators/BsFrameAllocator.h"
 #include "Error/BsException.h"
 
 using namespace bs;
@@ -284,7 +284,7 @@ namespace bs
 {
 BS_THREADLOCAL FrameAlloc* _GlobalFrameAlloc = nullptr;
 
-BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc()
+BS_UTILITY_EXPORT FrameAlloc& GetFrameAllocator()
 {
 	if(_GlobalFrameAlloc == nullptr)
 	{
@@ -298,31 +298,31 @@ BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc()
 
 BS_UTILITY_EXPORT u8* bs_frame_alloc(u32 numBytes)
 {
-	return gFrameAlloc().Alloc(numBytes);
+	return GetFrameAllocator().Alloc(numBytes);
 }
 
 BS_UTILITY_EXPORT u8* bs_frame_alloc_aligned(u32 count, u32 align)
 {
-	return gFrameAlloc().AllocAligned(count, align);
+	return GetFrameAllocator().AllocAligned(count, align);
 }
 
 BS_UTILITY_EXPORT void bs_frame_free(void* data)
 {
-	gFrameAlloc().Free((u8*)data);
+	GetFrameAllocator().Free((u8*)data);
 }
 
 BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data)
 {
-	gFrameAlloc().Free((u8*)data);
+	GetFrameAllocator().Free((u8*)data);
 }
 
 BS_UTILITY_EXPORT void bs_frame_mark()
 {
-	gFrameAlloc().MarkFrame();
+	GetFrameAllocator().MarkFrame();
 }
 
 BS_UTILITY_EXPORT void bs_frame_clear()
 {
-	gFrameAlloc().Clear();
+	GetFrameAllocator().Clear();
 }
 } // namespace bs

@@ -12,7 +12,7 @@ HAudioSource audioSource = audioSourceSO->addComponent<CAudioSource>();
 Each audio source can have a single **AudioClip** associated with it. We can attach the clip to the source by calling @bs::CAudioSource.
 
 ~~~~~~~~~~~~~{.cpp}
-HAudioClip clip = gImporter().import<AudioClip>("myAudioClip.ogg");
+HAudioClip clip = GetImporter().import<AudioClip>("myAudioClip.ogg");
 
 audioSource->setClip(clip);
 ~~~~~~~~~~~~~
@@ -109,25 +109,25 @@ setAttenuation->setMinDistance(2.0f);
 ~~~~~~~~~~~~~
 
 # Global controls
-Audio options can also be controlled globally though the @bs::Audio system, accessible though @bs::gAudio. 
+Audio options can also be controlled globally though the @bs::Audio system, accessible though @bs::GetAudio. 
 
 You can change the audio volume globally by calling @bs::Audio::setVolume.
 ~~~~~~~~~~~~~{.cpp}
 // Mute all sounds
-gAudio().setVolume(0.0f);
+GetAudio().setVolume(0.0f);
 ~~~~~~~~~~~~~
 
 You can also pause/unpause all sounds globally by calling @bs::Audio::setPaused.
 ~~~~~~~~~~~~~{.cpp}
 // Pause all sounds
-gAudio().setPaused(true);
+GetAudio().setPaused(true);
 ~~~~~~~~~~~~~
 
 # Direct clip playback
 Sometimes you do not need all the features offered by **AudioSource** component, and just want to play a sound with no extra options. In that case you can call @bs::Audio::play and provide it with an **AudioClip** to play. The clip will play at the provided volume & position. It will stop once it ends (no looping), and you won't have any control over its playback once it starts. This is useful for short one-shot effects.
 
 ~~~~~~~~~~~~~{.cpp}
-gAudio().play(clip);
+GetAudio().play(clip);
 ~~~~~~~~~~~~~
 
 # Device enumeration & switching
@@ -141,7 +141,7 @@ To retrieve the default audio device (the one user selected in the operating sys
 
 ~~~~~~~~~~~~~{.cpp}
 // Enumerate devices and choose the second one available if present
-Vector<AudioDevice> devices = gAudio().getAllDevices();
+Vector<AudioDevice> devices = GetAudio().getAllDevices();
 if(devices.size() > 1)
-	gAudio().setActiveDevice(devices[1]);
+	GetAudio().setActiveDevice(devices[1]);
 ~~~~~~~~~~~~~

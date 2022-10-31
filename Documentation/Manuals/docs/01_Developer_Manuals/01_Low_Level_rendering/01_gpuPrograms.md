@@ -32,7 +32,7 @@ Once the GPU program has been created it is not guaranteed to be usable. The com
 
 ~~~~~~~~~~~~~{.cpp}
 if(!myProgram->isCompiled())
-	gDebug().logError("GPU program compilation failed with error: " + myProgram->getCompileErrorMessage());
+	GetDebug().logError("GPU program compilation failed with error: " + myProgram->getCompileErrorMessage());
 ~~~~~~~~~~~~~ 
 
 Be aware that shader compilation happens on the core thread. Therefore if calling these methods on the sim thread GPU program, you must first ensure the GPU program is initialized by calling **CoreThread::submit()** with `blockUntilComplete` parameter set to true, or use the core-object-specific method @bs::CoreObject::blockUntilCoreInitialized.
@@ -42,7 +42,7 @@ Be aware that shader compilation happens on the core thread. Therefore if callin
 myProgram->blockUntilCoreInitialized();
 
 if(!myProgram->isCompiled())
-	gDebug().logError("GPU program compilation failed with error: " + myProgram->getCompileErrorMessage());
+	GetDebug().logError("GPU program compilation failed with error: " + myProgram->getCompileErrorMessage());
 ~~~~~~~~~~~~~ 
 
 # Using GPU programs for rendering

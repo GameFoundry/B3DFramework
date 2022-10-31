@@ -217,7 +217,7 @@ spriteTexture->setAnimation(gridAnim);
 spriteTexture->setAnimationPlayback(SpriteAnimationPlayback::Normal)
 
 // Assign the sprite texture to the particle material
-HShader shader = gBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);		
+HShader shader = GetBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);		
 HMaterial material = Material::create(shader);
 material->setSpriteTexture("gTexture", spriteTexture);
 

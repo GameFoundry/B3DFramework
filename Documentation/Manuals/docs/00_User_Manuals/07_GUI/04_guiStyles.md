@@ -9,7 +9,7 @@ Each style must be given a unique name and then registered with a @bs::GUISkin o
 ~~~~~~~~~~~~~{.cpp}
 HGUISkin skin = GUISkin::create();
 
-HTexture myButtonTex = gImporter().import<Texture>("MyButton.png");
+HTexture myButtonTex = GetImporter().import<Texture>("MyButton.png");
 HSpriteTexture myButtonSpriteTex = SpriteTexture::create(myButtonTex);
 
 // Create a style that displayes a fixed size 20x50 image
@@ -78,9 +78,9 @@ Each of these eight states is a @bs::GUIElementStateStyle object, which contains
 
 An example that sets up a button style that has different textures depending if the button is in normal, hovered or active state:
 ~~~~~~~~~~~~~{.cpp}
-HTexture normalTex = gImporter().import<Texture>("normal.png");
-HTexture hoverTex = gImporter().import<Texture>("hover.png");
-HTexture activeTex = gImporter().import<Texture>("active.png");
+HTexture normalTex = GetImporter().import<Texture>("normal.png");
+HTexture hoverTex = GetImporter().import<Texture>("hover.png");
+HTexture activeTex = GetImporter().import<Texture>("active.png");
 
 GUIElementStyle myButtonStyle;
 myButtonStyle.normal.texture = SpriteTexture::create(normalTex);
@@ -98,7 +98,7 @@ As the name implies, this set of properties is relevant for GUI elements that di
  
 An example customizing text display on a GUI element:
 ~~~~~~~~~~~~~{.cpp}
-HFont font = gResources().load<Font>("MyFont.asset");
+HFont font = GetResources().load<Font>("MyFont.asset");
 
 // Style with some previously imported font of size 11, with vertically & horizontally centered and no word wrap (overflowing text will be clipped)
 GUIElementStyle myButtonStyle;

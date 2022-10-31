@@ -37,7 +37,7 @@ namespace bs
 		~AudioManager();
 
 	private:
-		DynLib* mPlugin = nullptr;
+		DynamicLibrary* mPlugin = nullptr;
 		AudioFactory* mFactory = nullptr;
 	};
 

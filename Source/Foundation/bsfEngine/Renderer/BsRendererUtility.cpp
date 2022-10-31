@@ -298,7 +298,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 	// Note: Consider drawing the quad using a single large triangle for possibly better performance
 	// Note2: Consider setting quad size in shader instead of rebuilding the mesh every time
 
-	const Conventions& rapiConventions = gCaps().Conventions;
+	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
 	Vector3 vertices[4];
 
 	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
@@ -372,7 +372,7 @@ void RendererUtility::Clear(u32 value)
 	clearMat->Execute(value);
 }
 
-RendererUtility& gRendererUtility()
+RendererUtility& GetRendererUtility()
 {
 	return RendererUtility::Instance();
 }
@@ -391,9 +391,9 @@ void BlitMat::Execute(const SPtr<Texture>& source, const Rect2& area, bool flipU
 	Bind();
 
 	if(!mIsFiltered)
-		gRendererUtility().DrawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
+		GetRendererUtility().DrawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
 	else
-		gRendererUtility().DrawScreenQuad(Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
+		GetRendererUtility().DrawScreenQuad(Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 }
 
 BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered)
@@ -451,7 +451,7 @@ void ClearMat::Execute(u32 value)
 	gClearParamDef.gClearValue.Set(mParamBuffer, value);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 CompositeParamDef gCompositeParamDef;
@@ -478,7 +478,7 @@ void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>
 	rapi.SetRenderTarget(target);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 BicubicUpsampleParamDef gBicubicUpsampleParamDef;
@@ -514,7 +514,7 @@ void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderT
 	rapi.SetRenderTarget(target);
 
 	Bind();
-	gRendererUtility().DrawScreenQuad();
+	GetRendererUtility().DrawScreenQuad();
 }
 
 BicubicUpsampleMat* BicubicUpsampleMat::GetVariation(bool hermite)

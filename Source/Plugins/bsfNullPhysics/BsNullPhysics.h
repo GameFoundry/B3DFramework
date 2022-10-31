@@ -105,7 +105,7 @@ namespace bs
 	};
 
 	/** Provides easier access to NullPhysics. */
-	NullPhysics& gNullPhysics();
+	NullPhysics& GetNullPhysics();
 
 	/** @} */
 } // namespace bs

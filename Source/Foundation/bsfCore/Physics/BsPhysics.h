@@ -140,7 +140,7 @@ namespace bs
 	};
 
 	/** Provides easier access to Physics. */
-	BS_CORE_EXPORT Physics& gPhysics();
+	BS_CORE_EXPORT Physics& GetPhysics();
 
 	/** Contains parameters used for initializing the physics system. */
 	struct PHYSICS_INIT_DESC

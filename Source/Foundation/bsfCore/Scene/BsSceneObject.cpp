@@ -35,7 +35,7 @@ HSceneObject SceneObject::Create(const String& name, u32 flags)
 	HSceneObject newObject = CreateInternal(name, flags);
 
 	if(newObject->IsInstantiated())
-		gSceneManager().RegisterNewSo(newObject);
+		GetSceneManager().RegisterNewSo(newObject);
 
 	return newObject;
 }
@@ -93,7 +93,7 @@ void SceneObject::DestroyInternal(GameObjectHandleBase& handle, bool immediate)
 			component->SetIsDestroyedInternal();
 
 			if(IsInstantiated())
-				gSceneManager().NotifyComponentDestroyedInternal(component, immediate);
+				GetSceneManager().NotifyComponentDestroyedInternal(component, immediate);
 
 			component->DestroyInternal(component, true);
 			mComponents.erase(mComponents.end() - 1);
@@ -201,7 +201,7 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 		obj->mFlags &= ~SOF_DontInstantiate;
 
 		if(obj->mParent == nullptr)
-			gSceneManager().RegisterNewSo(obj->mThisHandle);
+			GetSceneManager().RegisterNewSo(obj->mThisHandle);
 
 		for(auto& component : obj->mComponents)
 			component->InstantiateInternal();
@@ -216,7 +216,7 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 	std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
 	{
 		for(auto& component : obj->mComponents)
-			gSceneManager().NotifyComponentCreatedInternal(component, obj->GetActive());
+			GetSceneManager().NotifyComponentCreatedInternal(component, obj->GetActive());
 
 		for(auto& child : obj->mChildren)
 		{
@@ -444,7 +444,7 @@ void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
 			if(entry->SupportsNotify(flags))
 			{
 				bool alwaysRun = entry->HasFlag(ComponentFlag::AlwaysRun);
-				if(alwaysRun || gSceneManager().IsRunning())
+				if(alwaysRun || GetSceneManager().IsRunning())
 					entry->OnTransformChanged(componentFlags);
 			}
 		}
@@ -503,7 +503,7 @@ void SceneObject::SetParent(const HSceneObject& parent, bool keepWorldTransform)
 	SetParentInternal(parent, keepWorldTransform);
 
 #if BS_IS_BANSHEE3D
-	if(gCoreApplication().IsEditor())
+	if(GetCoreApplication().IsEditor())
 	{
 		UUID newPrefab = GetPrefabLink();
 		if(originalPrefab != newPrefab)
@@ -558,7 +558,7 @@ const SPtr<SceneInstance>& SceneObject::GetScene() const
 		return mParentScene;
 
 	BS_LOG(Warning, Scene, "Attempting to access a scene of a SceneObject with no scene, returning main scene instead.");
-	return gSceneManager().GetMainScene();
+	return GetSceneManager().GetMainScene();
 }
 
 void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
@@ -712,12 +712,12 @@ void SceneObject::SetActiveHierarchy(bool active, bool triggerEvents)
 			if(activeHierarchy)
 			{
 				for(auto& component : mComponents)
-					gSceneManager().NotifyComponentActivatedInternal(component, triggerEvents);
+					GetSceneManager().NotifyComponentActivatedInternal(component, triggerEvents);
 			}
 			else
 			{
 				for(auto& component : mComponents)
-					gSceneManager().NotifyComponentDeactivatedInternal(component, triggerEvents);
+					GetSceneManager().NotifyComponentDeactivatedInternal(component, triggerEvents);
 			}
 		}
 	}
@@ -811,7 +811,7 @@ void SceneObject::DestroyComponent(const HComponent component, bool immediate)
 		(*iter)->SetIsDestroyedInternal();
 
 		if(IsInstantiated())
-			gSceneManager().NotifyComponentDestroyedInternal(*iter, immediate);
+			GetSceneManager().NotifyComponentDestroyedInternal(*iter, immediate);
 
 		(*iter)->DestroyInternal(*iter, immediate);
 		mComponents.erase(iter);
@@ -880,7 +880,7 @@ void SceneObject::AddAndInitializeComponent(const HComponent& component)
 	{
 		component->InstantiateInternal();
 
-		gSceneManager().NotifyComponentCreatedInternal(component, GetActive());
+		GetSceneManager().NotifyComponentCreatedInternal(component, GetActive());
 	}
 }
 

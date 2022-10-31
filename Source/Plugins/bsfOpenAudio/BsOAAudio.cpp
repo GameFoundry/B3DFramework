@@ -450,7 +450,7 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 }
 
 namespace bs {
-OAAudio& gOAAudio()
+OAAudio& GetOAAudio()
 {
 	return static_cast<OAAudio&>(OAAudio::Instance());
 }

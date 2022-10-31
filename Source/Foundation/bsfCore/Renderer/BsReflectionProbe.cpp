@@ -114,11 +114,11 @@ void ReflectionProbe::CaptureAndFilter()
 			settings.DepthEncodeNear = radius;
 			settings.DepthEncodeFar = radius + 1; // + 1 arbitrary, make it a customizable value?
 
-			ct::gRenderer()->CaptureSceneCubeMap(coreTexture, coreProbe->GetTransform().GetPosition(), settings);
-			ct::gIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
+			ct::GetRenderer()->CaptureSceneCubeMap(coreTexture, coreProbe->GetTransform().GetPosition(), settings);
+			ct::GetIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
 
 			coreProbe->mFilteredTexture = coreTexture;
-			ct::gRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
+			ct::GetRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
 
 			return true;
 		};
@@ -130,11 +130,11 @@ void ReflectionProbe::CaptureAndFilter()
 		SPtr<ct::Texture> coreCustomTex = mCustomTexture->GetCore();
 		auto filterReflProbe = [coreCustomTex, coreTexture, coreProbe]()
 		{
-			ct::gIBLUtility().ScaleCubemap(coreCustomTex, 0, coreTexture, 0);
-			ct::gIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
+			ct::GetIBLUtility().ScaleCubemap(coreCustomTex, 0, coreTexture, 0);
+			ct::GetIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
 
 			coreProbe->mFilteredTexture = coreTexture;
-			ct::gRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
+			ct::GetRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
 
 			return true;
 		};
@@ -143,7 +143,7 @@ void ReflectionProbe::CaptureAndFilter()
 	}
 
 	mRendererTask->OnComplete.Connect(renderComplete);
-	ct::gRenderer()->AddTask(mRendererTask);
+	ct::GetRenderer()->AddTask(mRendererTask);
 }
 
 SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
@@ -238,13 +238,13 @@ ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const V
 
 ReflectionProbe::~ReflectionProbe()
 {
-	gRenderer()->NotifyReflectionProbeRemoved(this);
+	GetRenderer()->NotifyReflectionProbeRemoved(this);
 }
 
 void ReflectionProbe::Initialize()
 {
 	UpdateBounds();
-	gRenderer()->NotifyReflectionProbeAdded(this);
+	GetRenderer()->NotifyReflectionProbeAdded(this);
 
 	CoreObject::Initialize();
 }
@@ -266,19 +266,19 @@ void ReflectionProbe::SyncToCore(const CoreSyncData& data)
 	if(dirtyFlags == (u32)ActorDirtyFlag::Transform)
 	{
 		if(mActive)
-			gRenderer()->NotifyReflectionProbeUpdated(this, false);
+			GetRenderer()->NotifyReflectionProbeUpdated(this, false);
 	}
 	else
 	{
 		if(oldIsActive != mActive)
 		{
 			if(mActive)
-				gRenderer()->NotifyReflectionProbeAdded(this);
+				GetRenderer()->NotifyReflectionProbeAdded(this);
 			else
 			{
 				ReflectionProbeType newType = mType;
 				mType = oldType;
-				gRenderer()->NotifyReflectionProbeRemoved(this);
+				GetRenderer()->NotifyReflectionProbeRemoved(this);
 				mType = newType;
 			}
 		}
@@ -286,10 +286,10 @@ void ReflectionProbe::SyncToCore(const CoreSyncData& data)
 		{
 			ReflectionProbeType newType = mType;
 			mType = oldType;
-			gRenderer()->NotifyReflectionProbeRemoved(this);
+			GetRenderer()->NotifyReflectionProbeRemoved(this);
 			mType = newType;
 
-			gRenderer()->NotifyReflectionProbeAdded(this);
+			GetRenderer()->NotifyReflectionProbeAdded(this);
 		}
 	}
 }

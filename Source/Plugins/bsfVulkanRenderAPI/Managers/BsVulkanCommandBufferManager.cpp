@@ -218,7 +218,7 @@ void VulkanCommandBufferManager::FlushTransferBuffers(u32 deviceIdx)
 	}
 }
 
-VulkanCommandBufferManager& gVulkanCBManager()
+VulkanCommandBufferManager& GetVulkanCommandBufferManager()
 {
 	return static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
 }

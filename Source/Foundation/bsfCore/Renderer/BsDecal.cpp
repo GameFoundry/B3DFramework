@@ -165,13 +165,13 @@ Decal::Decal(const SPtr<Material>& material, const Vector2& size, float maxDista
 
 Decal::~Decal()
 {
-	gRenderer()->NotifyDecalRemoved(this);
+	GetRenderer()->NotifyDecalRemoved(this);
 }
 
 void Decal::Initialize()
 {
 	UpdateBounds();
-	gRenderer()->NotifyDecalAdded(this);
+	GetRenderer()->NotifyDecalAdded(this);
 
 	CoreObject::Initialize();
 }
@@ -195,21 +195,21 @@ void Decal::SyncToCore(const CoreSyncData& data)
 	if(dirtyFlags == (u32)ActorDirtyFlag::Transform)
 	{
 		if(mActive)
-			gRenderer()->NotifyDecalUpdated(this);
+			GetRenderer()->NotifyDecalUpdated(this);
 	}
 	else
 	{
 		if(oldIsActive != mActive)
 		{
 			if(mActive)
-				gRenderer()->NotifyDecalAdded(this);
+				GetRenderer()->NotifyDecalAdded(this);
 			else
-				gRenderer()->NotifyDecalRemoved(this);
+				GetRenderer()->NotifyDecalRemoved(this);
 		}
 		else
 		{
-			gRenderer()->NotifyDecalRemoved(this);
-			gRenderer()->NotifyDecalAdded(this);
+			GetRenderer()->NotifyDecalRemoved(this);
+			GetRenderer()->NotifyDecalAdded(this);
 		}
 	}
 }

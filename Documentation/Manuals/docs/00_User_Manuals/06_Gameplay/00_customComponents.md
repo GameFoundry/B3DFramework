@@ -92,10 +92,10 @@ private:
 	void update() override
 	{
 		// Check if any movement or rotation keys are being held
-		bool goingForward = gVirtualInput().isButtonHeld(mMoveForward);
-		bool goingBack = gVirtualInput().isButtonHeld(mMoveBack);
-		bool goingLeft = gVirtualInput().isButtonHeld(mMoveLeft);
-		bool goingRight = gVirtualInput().isButtonHeld(mMoveRight);	
+		bool goingForward = GetVirtualInput().isButtonHeld(mMoveForward);
+		bool goingBack = GetVirtualInput().isButtonHeld(mMoveBack);
+		bool goingLeft = GetVirtualInput().isButtonHeld(mMoveLeft);
+		bool goingRight = GetVirtualInput().isButtonHeld(mMoveRight);	
 	
 		// If the movement button is pressed, determine direction to move in
 		Vector3 direction = Vector3::ZERO;
@@ -105,7 +105,7 @@ private:
 		if (goingLeft) direction -= SO()->getRight();
 		
 		// Multiply direction with speed and move in the direction
-		float frameDelta = gTime().getFrameDelta();
+		float frameDelta = GetTime().getFrameDelta();
 		float speed = 10.0f;
 		
 		Vector3 velocity = direction * speed;
@@ -131,7 +131,7 @@ private:
 
 > Use @bs::Component::SO() to access the scene object the component is attached to.
 		
-> **gTime()** method provides access to a variety of timing related functionality, and is explained later in the [timing manual](../Utilities/time).
+> **GetTime()** method provides access to a variety of timing related functionality, and is explained later in the [timing manual](../Utilities/time).
 		
 # Component handle
 You will also likely want to declare a handle you can use to easily access the component, same as **HCamera** or **HRenderable**. This is done by simply creating a *typedef* of a @bs::GameObjectHandle<T>.
@@ -167,12 +167,12 @@ class CCameraFlyer : public Component
 	
 	void onDisabled() override
 	{
-		gDebug().log("Component disabled.");
+		GetDebug().log("Component disabled.");
 	}	
 	
 	void onEnabled() override
 	{
-		gDebug().log("Component enabled.");
+		GetDebug().log("Component enabled.");
 	}
 	
 	...
@@ -191,10 +191,10 @@ class CCameraFlyer : public Component
 	void onTransformChanged(TransformChangedFlags flags) override
 	{
 		if((flags & TCF_Transform) != 0)
-			gDebug().logDebug("Parent SO moved.");
+			GetDebug().logDebug("Parent SO moved.");
 		
 		if((flags & TCF_Parent) != 0)
-			gDebug().logDebug("Scene object parent changed.");
+			GetDebug().logDebug("Scene object parent changed.");
 	}	
 	
 	...

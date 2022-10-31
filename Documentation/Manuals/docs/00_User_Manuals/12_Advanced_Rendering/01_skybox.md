@@ -14,7 +14,7 @@ tio->cubemap = true;
 tio->cubemapSourceType = CubemapSourceType::Cylindrical;
 tio->format = PF_FLOAT_R11G11B10; // Or the 16-bit floating point format
 
-HTexture skyTexture = gImporter().import<Texture>("MySkybox.hdr", tio);
+HTexture skyTexture = GetImporter().import<Texture>("MySkybox.hdr", tio);
 
 // Set up the skybox
 HSceneObject skyboxSO = SceneObject::create("Skybox");

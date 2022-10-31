@@ -8,12 +8,12 @@ using namespace bs;
 
 FMODAudioSource::FMODAudioSource()
 {
-	gFMODAudio().RegisterSourceInternal(this);
+	GetFMODAudio().RegisterSourceInternal(this);
 }
 
 FMODAudioSource::~FMODAudioSource()
 {
-	gFMODAudio().UnregisterSourceInternal(this);
+	GetFMODAudio().UnregisterSourceInternal(this);
 
 	if(mStreamingSound != nullptr)
 		FMODAudioClip::ReleaseStreamingSound(mStreamingSound);
@@ -99,7 +99,7 @@ void FMODAudioSource::Play()
 	{
 		assert(mStreamingSound == nullptr);
 
-		FMOD::System* fmod = gFMODAudio().GetFMODInternal();
+		FMOD::System* fmod = GetFMODAudio().GetFMODInternal();
 
 		FMODAudioClip* fmodClip = static_cast<FMODAudioClip*>(mAudioClip.Get());
 		FMOD::Sound* sound;

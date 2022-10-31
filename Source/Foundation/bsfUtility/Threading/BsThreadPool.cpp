@@ -135,7 +135,7 @@ void PooledThread::RunFunctionHelper(const std::function<void()>& function) cons
 	{
 		function();
 	}
-	__except(gCrashHandler().ReportCrash(GetExceptionInformation()))
+	__except(GetCrashHandler().ReportCrash(GetExceptionInformation()))
 	{
 		PlatformUtility::Terminate(true);
 	}

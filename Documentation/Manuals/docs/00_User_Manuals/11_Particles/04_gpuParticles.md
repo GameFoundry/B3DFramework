@@ -95,7 +95,7 @@ To enable the vector field you must assign a @bs::VectorField resource to @bs::P
 Vector fields are represented through their own **VectorField** resource. A variety of third party tools exist that allow you to create your own vector fields, including Maya Fluid Effects or VectorayGen. The framework can import vector fields in the ".fga" (Fluid Grid ASCII) format.
 
 ~~~~~~~~~~~~~{.cpp}
-HVectorField vectorField = gImporter().import<VectorField>("MyVectorField.fga");
+HVectorField vectorField = GetImporter().import<VectorField>("MyVectorField.fga");
 gpuSimSettings.vectorField.vectorField = vectorField;
 ~~~~~~~~~~~~~
 

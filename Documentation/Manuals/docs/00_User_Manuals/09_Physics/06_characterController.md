@@ -31,7 +31,7 @@ Similar to a rigidbody, when needing to move the controller you should use a spe
 
 ~~~~~~~~~~~~~{.cpp}
 // Move 1 unit forward for every frame while W key is pressed
-if(gInput().isButtonHeld(BC_W))
+if(GetInput().isButtonHeld(BC_W))
 	charController->move(Vector3(0, 0, 1.0f));
 ~~~~~~~~~~~~~
 
@@ -79,7 +79,7 @@ auto colliderHit = [](const ControllerColliderCollision& data)
 	String hitSceneObjectName = hitCollider->SO()->getName();
 	
 	Vector3 contactPoint = data.position;
-	gDebug().logDebug("Hit " + hitSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Hit " + hitSceneObjectName + " at point " + toString(contactPoint));
 };
 
 charController->onColliderHit.connect(colliderHit);
@@ -96,7 +96,7 @@ auto controllerHit = [](const ControllerControllerCollision& data)
 	String otherSceneObjectName = otherController->SO()->getName();
 	
 	Vector3 contactPoint = data.position;
-	gDebug().logDebug("Hit " + otherSceneObjectName + " at point " + toString(contactPoint));
+	GetDebug().logDebug("Hit " + otherSceneObjectName + " at point " + toString(contactPoint));
 };
 
 collider->onControllerHit.connect(controllerHit);

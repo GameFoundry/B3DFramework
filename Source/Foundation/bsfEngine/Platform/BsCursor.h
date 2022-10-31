@@ -118,7 +118,7 @@ namespace bs
 	};
 
 	/** Easy way to access Cursor. */
-	BS_EXPORT Cursor& gCursor();
+	BS_EXPORT Cursor& GetCursor();
 
 	/** @} */
 } // namespace bs

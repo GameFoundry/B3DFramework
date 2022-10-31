@@ -42,7 +42,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<PhysicsMesh> mesh = gPhysics().CreateMesh(nullptr, PhysicsMeshType::Convex);
+			SPtr<PhysicsMesh> mesh = GetPhysics().CreateMesh(nullptr, PhysicsMeshType::Convex);
 			mesh->SetThisPtrInternal(mesh);
 
 			return mesh;

@@ -2,7 +2,7 @@
 title: Cursors
 ---
 
-If developing an application that accepts mouse input, you can control the behaviour of the cursor through the @bs::Cursor class, accessible globally through @bs::gCursor. It allows you to manipulate cursor position, look and clipping behaviour.
+If developing an application that accepts mouse input, you can control the behaviour of the cursor through the @bs::Cursor class, accessible globally through @bs::GetCursor. It allows you to manipulate cursor position, look and clipping behaviour.
 
 # Position
 You can retrieve the current position of the cursor by calling @bs::Cursor::getScreenPosition. Note that this same information is reported by the input system, and is generally preferred to use those values instead.
@@ -11,7 +11,7 @@ You can also change the cursor position directly by calling @bs::Cursor::setScre
 
 ~~~~~~~~~~~~~{.cpp}
 // Move cursor to the top left corner of the screen
-gCursor().setScreenPosition(Vector2I(0, 0));
+GetCursor().setScreenPosition(Vector2I(0, 0));
 ~~~~~~~~~~~~~
 
 # Visibility
@@ -19,10 +19,10 @@ Cursor can be hidden by calling @bs::Cursor::hide, and shown again by calling @b
 
 ~~~~~~~~~~~~~{.cpp}
 // Hide the cursor if user is holding right mouse button (e.g. rotating the camera)
-if(gInput().isButtonHeld(BC_MOUSE_RIGHT))
-	gCursor().hide();
+if(GetInput().isButtonHeld(BC_MOUSE_RIGHT))
+	GetCursor().hide();
 else
-	gCursor().show();	
+	GetCursor().show();	
 ~~~~~~~~~~~~~
 
 # Icon
@@ -30,7 +30,7 @@ You can change the cursor's icon by calling @bs::Cursor::setCursor(CursorType) a
 
 ~~~~~~~~~~~~~{.cpp}
 // Change to wait cursor in case we're doing some processing
-gCursor().setCursor(CursorType::Wait);
+GetCursor().setCursor(CursorType::Wait);
 ~~~~~~~~~~~~~
 
 You can also define your own cursor icons by calling @bs::Cursor::setCursorIcon(const String&, const PixelData&, const Vector2I&). You'll need to provide a unique name for your cursor, a **PixelData** object containing the image to use, and a cursor *hot-spot*. Hot spot determines at which part of the image will the user's clicks be registered (e.g. in case of an arrow icon, it would be at the top of the arrow).
@@ -39,13 +39,13 @@ You can also define your own cursor icons by calling @bs::Cursor::setCursorIcon(
 SPtr<PixelData> pixelData = ...; // Manually fill or read pixel data from a texture
 Vector2I hotSpot(5, 5);
 
-gCursor().setCursorIcon("MyCustomCursor", *pixelData, hotSpot);
+GetCursor().setCursorIcon("MyCustomCursor", *pixelData, hotSpot);
 ~~~~~~~~~~~~~
 
 Once you have registered the icon you can apply it by calling an overload of @bs::Cursor::setCursor(const String&) that accepts a cursor name.
 
 ~~~~~~~~~~~~~{.cpp}
-gCursor().setCursor("MyCustomCursor");
+GetCursor().setCursor("MyCustomCursor");
 ~~~~~~~~~~~~~
 
 You can also change icons of the built-in cursor types by calling @bs::Cursor::setCursorIcon(CursorType, const PixelData&, const Vector2I&) overload that accepts a **CursorType** as its first parameter.
@@ -57,13 +57,13 @@ Sometimes it is useful to limit the cursor to a specific area of the screen (e.g
 
 ~~~~~~~~~~~~~{.cpp}
 // Limit cursor movement to the primary application window
-SPtr<RenderWindow> window = gApplication().getPrimaryWindow();
-gCursor().clipToWindow(window);
+SPtr<RenderWindow> window = GetApplication().getPrimaryWindow();
+GetCursor().clipToWindow(window);
 ~~~~~~~~~~~~~
 
 When you wish to disable clipping, you can call @bs::Cursor::clipDisable.
 
 ~~~~~~~~~~~~~{.cpp}
 // Remove any limits to cursor movement
-gCursor().clipDisable();
+GetCursor().clipDisable();
 ~~~~~~~~~~~~~

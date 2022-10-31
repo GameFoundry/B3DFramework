@@ -19,7 +19,7 @@ Then in order to perform actual import we call @bs::Importer::importAll, instead
 **Importer::importAll()** will return an array of resources as @bs::SubResource objects. In our case there are two sub resources, first one is the normal **Mesh**, and the second one will be the physics mesh we requested.
 
 ~~~~~~~~~~~~~{.cpp}
-auto resources = gImporter().importAll("dragon.fbx", importOptions);
+auto resources = GetImporter().importAll("dragon.fbx", importOptions);
 
 HPhysicsMesh physicsMesh = static_resource_cast<PhysicsMesh>(resources[1].value);
 ~~~~~~~~~~~~~

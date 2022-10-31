@@ -81,16 +81,16 @@ void GUIInputBox::SetText(const String& text)
 		{
 			TEXT_SPRITE_DESC textDesc = GetTextDesc();
 
-			gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-			gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+			GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+			GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 
 			if(mNumChars > 0)
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(mNumChars - 1, CARET_AFTER);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(mNumChars - 1, CARET_AFTER);
 			else
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 
 			if(mSelectionShown)
-				gGUIManager().GetInputSelectionTool()->SelectAll();
+				GetGUIManager().GetInputSelectionTool()->SelectAll();
 
 			ScrollTextToCaret();
 		}
@@ -123,18 +123,18 @@ void GUIInputBox::UpdateRenderElementsInternal()
 	mTextSprite->Update(textDesc, (u64)GetParentWidgetInternal());
 
 	ImageSprite* caretSprite = nullptr;
-	if(mCaretShown && gGUIManager().GetCaretBlinkState())
+	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
-		gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
-		gGUIManager().GetInputCaretTool()->UpdateSprite();
+		GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		GetGUIManager().GetInputCaretTool()->UpdateSprite();
 
-		caretSprite = gGUIManager().GetInputCaretTool()->GetSprite();
+		caretSprite = GetGUIManager().GetInputCaretTool()->GetSprite();
 	}
 
 	if(mSelectionShown)
 	{
-		gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
-		gGUIManager().GetInputSelectionTool()->UpdateSprite();
+		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		GetGUIManager().GetInputSelectionTool()->UpdateSprite();
 	}
 
 	// When text bounds are reduced the scroll needs to be adjusted so that
@@ -149,7 +149,7 @@ void GUIInputBox::UpdateRenderElementsInternal()
 
 		if(mSelectionShown)
 		{
-			const Vector<ImageSprite*>& sprites = gGUIManager().GetInputSelectionTool()->GetSprites();
+			const Vector<ImageSprite*>& sprites = GetGUIManager().GetInputSelectionTool()->GetSprites();
 			for(auto& entry : sprites)
 			{
 				for(u32 i = 0; i < entry->GetNumRenderElements(); i++)
@@ -194,21 +194,21 @@ Sprite* GUIInputBox::RenderElemToSprite(u32 renderElemIdx, u32& localRenderElemI
 		return mImageSprite;
 	}
 
-	if(mCaretShown && gGUIManager().GetCaretBlinkState())
+	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
 		oldNumElements = newNumElements;
-		newNumElements += gGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
+		newNumElements += GetGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
 
 		if(renderElemIdx < newNumElements)
 		{
 			localRenderElemIdx = renderElemIdx - oldNumElements;
-			return gGUIManager().GetInputCaretTool()->GetSprite();
+			return GetGUIManager().GetInputCaretTool()->GetSprite();
 		}
 	}
 
 	if(mSelectionShown)
 	{
-		const Vector<ImageSprite*>& sprites = gGUIManager().GetInputSelectionTool()->GetSprites();
+		const Vector<ImageSprite*>& sprites = GetGUIManager().GetInputSelectionTool()->GetSprites();
 		for(auto& selectionSprite : sprites)
 		{
 			oldNumElements = newNumElements;
@@ -240,26 +240,26 @@ Vector2I GUIInputBox::RenderElemToOffset(u32 renderElemIdx) const
 		return Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y);
 	;
 
-	if(mCaretShown && gGUIManager().GetCaretBlinkState())
+	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
 		oldNumElements = newNumElements;
-		newNumElements += gGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
+		newNumElements += GetGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
 
 		if(renderElemIdx < newNumElements)
-			return gGUIManager().GetInputCaretTool()->GetSpriteOffset();
+			return GetGUIManager().GetInputCaretTool()->GetSpriteOffset();
 	}
 
 	if(mSelectionShown)
 	{
 		u32 spriteIdx = 0;
-		const Vector<ImageSprite*>& sprites = gGUIManager().GetInputSelectionTool()->GetSprites();
+		const Vector<ImageSprite*>& sprites = GetGUIManager().GetInputSelectionTool()->GetSprites();
 		for(auto& selectionSprite : sprites)
 		{
 			oldNumElements = newNumElements;
 			newNumElements += selectionSprite->GetNumRenderElements();
 
 			if(renderElemIdx < newNumElements)
-				return gGUIManager().GetInputSelectionTool()->GetSelectionSpriteOffset(spriteIdx);
+				return GetGUIManager().GetInputSelectionTool()->GetSelectionSpriteOffset(spriteIdx);
 
 			spriteIdx++;
 		}
@@ -281,28 +281,28 @@ Rect2I GUIInputBox::RenderElemToClipRect(u32 renderElemIdx) const
 	if(renderElemIdx < newNumElements)
 		return mLayoutData.GetLocalClipRect();
 
-	if(mCaretShown && gGUIManager().GetCaretBlinkState())
+	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
 		oldNumElements = newNumElements;
-		newNumElements += gGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
+		newNumElements += GetGUIManager().GetInputCaretTool()->GetSprite()->GetNumRenderElements();
 
 		if(renderElemIdx < newNumElements)
 		{
-			return gGUIManager().GetInputCaretTool()->GetSpriteClipRect(GetTextClipRect());
+			return GetGUIManager().GetInputCaretTool()->GetSpriteClipRect(GetTextClipRect());
 		}
 	}
 
 	if(mSelectionShown)
 	{
 		u32 spriteIdx = 0;
-		const Vector<ImageSprite*>& sprites = gGUIManager().GetInputSelectionTool()->GetSprites();
+		const Vector<ImageSprite*>& sprites = GetGUIManager().GetInputSelectionTool()->GetSprites();
 		for(auto& selectionSprite : sprites)
 		{
 			oldNumElements = newNumElements;
 			newNumElements += selectionSprite->GetNumRenderElements();
 
 			if(renderElemIdx < newNumElements)
-				return gGUIManager().GetInputSelectionTool()->GetSelectionSpriteClipRect(spriteIdx, GetTextClipRect());
+				return GetGUIManager().GetInputSelectionTool()->GetSelectionSpriteClipRect(spriteIdx, GetTextClipRect());
 
 			spriteIdx++;
 		}
@@ -431,7 +431,7 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 		if(!IsDisabledInternal())
 		{
 			ShowSelection(0);
-			gGUIManager().GetInputSelectionTool()->SelectAll();
+			GetGUIManager().GetInputSelectionTool()->SelectAll();
 
 			MarkContentAsDirtyInternal();
 		}
@@ -445,11 +445,11 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 			if(ev.IsShiftDown())
 			{
 				if(!mSelectionShown)
-					ShowSelection(gGUIManager().GetInputCaretTool()->GetCaretPos());
+					ShowSelection(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 			}
 			else
 			{
-				bool focusGainedThisFrame = mHasFocus && mFocusGainedFrame == gTime().GetFrameIdx();
+				bool focusGainedThisFrame = mHasFocus && mFocusGainedFrame == GetTime().GetFrameIdx();
 
 				// We want to select all on focus gain, so don't override that
 				if(!focusGainedThisFrame)
@@ -459,12 +459,12 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 			}
 
 			if(mNumChars > 0)
-				gGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
+				GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
 			else
-				gGUIManager().GetInputCaretTool()->MoveCaretToStart();
+				GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
 
 			if(ev.IsShiftDown())
-				gGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(gGUIManager().GetInputCaretTool()->GetCaretPos());
+				GetGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 			ScrollTextToCaret();
 			MarkContentAsDirtyInternal();
@@ -480,9 +480,9 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 			{
 				mDragInProgress = true;
 
-				u32 caretPos = gGUIManager().GetInputCaretTool()->GetCaretPos();
+				u32 caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPos();
 				ShowSelection(caretPos);
-				gGUIManager().GetInputSelectionTool()->SelectionDragStart(caretPos);
+				GetGUIManager().GetInputSelectionTool()->SelectionDragStart(caretPos);
 				MarkContentAsDirtyInternal();
 
 				return true;
@@ -497,7 +497,7 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 			{
 				mDragInProgress = false;
 
-				gGUIManager().GetInputSelectionTool()->SelectionDragEnd();
+				GetGUIManager().GetInputSelectionTool()->SelectionDragEnd();
 				MarkContentAsDirtyInternal();
 				return true;
 			}
@@ -510,11 +510,11 @@ bool GUIInputBox::MouseEventInternal(const GUIMouseEvent& ev)
 			if(!ev.IsShiftDown())
 			{
 				if(mNumChars > 0)
-					gGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
+					GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
 				else
-					gGUIManager().GetInputCaretTool()->MoveCaretToStart();
+					GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
 
-				gGUIManager().GetInputSelectionTool()->SelectionDragUpdate(gGUIManager().GetInputCaretTool()->GetCaretPos());
+				GetGUIManager().GetInputSelectionTool()->SelectionDragUpdate(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 				ScrollTextToCaret();
 				MarkContentAsDirtyInternal();
@@ -536,7 +536,7 @@ bool GUIInputBox::TextInputEventInternal(const GUITextInputEvent& ev)
 	if(mSelectionShown)
 		DeleteSelectedText(true);
 
-	u32 charIdx = gGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+	u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 	bool filterOkay = true;
 	if(mFilter != nullptr)
@@ -553,7 +553,7 @@ bool GUIInputBox::TextInputEventInternal(const GUITextInputEvent& ev)
 	{
 		InsertChar(charIdx, ev.GetInputChar());
 
-		gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+		GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
 		ScrollTextToCaret();
 
 		if(!OnValueChanged.Empty())
@@ -588,10 +588,10 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 		mState = State::Focused;
 
 		ShowSelection(0);
-		gGUIManager().GetInputSelectionTool()->SelectAll();
+		GetGUIManager().GetInputSelectionTool()->SelectAll();
 
 		mHasFocus = true;
-		mFocusGainedFrame = gTime().GetFrameIdx();
+		mFocusGainedFrame = GetTime().GetFrameIdx();
 
 		Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 		if(origSize != newSize)
@@ -632,7 +632,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 			}
 			else
 			{
-				u32 charIdx = gGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos() - 1;
+				u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos() - 1;
 
 				if(charIdx < mNumChars)
 				{
@@ -655,10 +655,10 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 						{
 							charIdx--;
 
-							gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
 						}
 						else
-							gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_BEFORE);
+							GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_BEFORE);
 
 						ScrollTextToCaret();
 
@@ -689,7 +689,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 			}
 			else
 			{
-				u32 charIdx = gGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+				u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 				if(charIdx < mNumChars)
 				{
 					bool filterOkay = true;
@@ -710,7 +710,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 						if(charIdx > 0)
 							charIdx--;
 
-						gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
+						GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx, CARET_AFTER);
 
 						ScrollTextToCaret();
 
@@ -734,19 +734,19 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	{
 		if(mSelectionShown)
 		{
-			u32 selStart = gGUIManager().GetInputSelectionTool()->GetSelectionStart();
+			u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
 			ClearSelection();
 
 			if(!mCaretShown)
 				ShowCaret();
 
 			if(selStart > 0)
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(selStart - 1, CARET_AFTER);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selStart - 1, CARET_AFTER);
 			else
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 		}
 		else
-			gGUIManager().GetInputCaretTool()->MoveCaretLeft();
+			GetGUIManager().GetInputCaretTool()->MoveCaretLeft();
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -756,10 +756,10 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	if(ev.GetType() == GUICommandEventType::SelectLeft)
 	{
 		if(!mSelectionShown)
-			ShowSelection(gGUIManager().GetInputCaretTool()->GetCaretPos());
+			ShowSelection(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
-		gGUIManager().GetInputCaretTool()->MoveCaretLeft();
-		gGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(gGUIManager().GetInputCaretTool()->GetCaretPos());
+		GetGUIManager().GetInputCaretTool()->MoveCaretLeft();
+		GetGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -770,19 +770,19 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	{
 		if(mSelectionShown)
 		{
-			u32 selEnd = gGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+			u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 			ClearSelection();
 
 			if(!mCaretShown)
 				ShowCaret();
 
 			if(selEnd > 0)
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(selEnd - 1, CARET_AFTER);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(selEnd - 1, CARET_AFTER);
 			else
-				gGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
+				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 		}
 		else
-			gGUIManager().GetInputCaretTool()->MoveCaretRight();
+			GetGUIManager().GetInputCaretTool()->MoveCaretRight();
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -792,10 +792,10 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	if(ev.GetType() == GUICommandEventType::SelectRight)
 	{
 		if(!mSelectionShown)
-			ShowSelection(gGUIManager().GetInputCaretTool()->GetCaretPos());
+			ShowSelection(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
-		gGUIManager().GetInputCaretTool()->MoveCaretRight();
-		gGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(gGUIManager().GetInputCaretTool()->GetCaretPos());
+		GetGUIManager().GetInputCaretTool()->MoveCaretRight();
+		GetGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -810,7 +810,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 		if(!mCaretShown)
 			ShowCaret();
 
-		gGUIManager().GetInputCaretTool()->MoveCaretUp();
+		GetGUIManager().GetInputCaretTool()->MoveCaretUp();
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -820,11 +820,11 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	if(ev.GetType() == GUICommandEventType::SelectUp)
 	{
 		if(!mSelectionShown)
-			ShowSelection(gGUIManager().GetInputCaretTool()->GetCaretPos());
+			ShowSelection(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 		;
 
-		gGUIManager().GetInputCaretTool()->MoveCaretUp();
-		gGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(gGUIManager().GetInputCaretTool()->GetCaretPos());
+		GetGUIManager().GetInputCaretTool()->MoveCaretUp();
+		GetGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -839,7 +839,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 		if(!mCaretShown)
 			ShowCaret();
 
-		gGUIManager().GetInputCaretTool()->MoveCaretDown();
+		GetGUIManager().GetInputCaretTool()->MoveCaretDown();
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -849,10 +849,10 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 	if(ev.GetType() == GUICommandEventType::SelectDown)
 	{
 		if(!mSelectionShown)
-			ShowSelection(gGUIManager().GetInputCaretTool()->GetCaretPos());
+			ShowSelection(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
-		gGUIManager().GetInputCaretTool()->MoveCaretDown();
-		gGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(gGUIManager().GetInputCaretTool()->GetCaretPos());
+		GetGUIManager().GetInputCaretTool()->MoveCaretDown();
+		GetGUIManager().GetInputSelectionTool()->MoveSelectionToCaret(GetGUIManager().GetInputCaretTool()->GetCaretPos());
 
 		ScrollTextToCaret();
 		MarkContentAsDirtyInternal();
@@ -868,7 +868,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 			if(mSelectionShown)
 				DeleteSelectedText();
 
-			u32 charIdx = gGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+			u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 			bool filterOkay = true;
 			if(mFilter != nullptr)
@@ -884,7 +884,7 @@ bool GUIInputBox::CommandEventInternal(const GUICommandEvent& ev)
 			{
 				InsertChar(charIdx, '\n');
 
-				gGUIManager().GetInputCaretTool()->MoveCaretRight();
+				GetGUIManager().GetInputCaretTool()->MoveCaretRight();
 				ScrollTextToCaret();
 
 				if(!OnValueChanged.Empty())
@@ -935,7 +935,7 @@ bool GUIInputBox::VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev)
 	else if(ev.GetButton() == mSelectAllVB)
 	{
 		ShowSelection(0);
-		gGUIManager().GetInputSelectionTool()->SelectAll();
+		GetGUIManager().GetInputSelectionTool()->SelectAll();
 		MarkContentAsDirtyInternal();
 
 		return true;
@@ -949,7 +949,7 @@ void GUIInputBox::ShowCaret()
 	mCaretShown = true;
 
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
-	gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
 }
 
 void GUIInputBox::HideCaret()
@@ -960,15 +960,15 @@ void GUIInputBox::HideCaret()
 void GUIInputBox::ShowSelection(u32 anchorCaretPos)
 {
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
-	gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 
-	gGUIManager().GetInputSelectionTool()->ShowSelection(anchorCaretPos);
+	GetGUIManager().GetInputSelectionTool()->ShowSelection(anchorCaretPos);
 	mSelectionShown = true;
 }
 
 void GUIInputBox::ClearSelection()
 {
-	gGUIManager().GetInputSelectionTool()->ClearSelectionVisuals();
+	GetGUIManager().GetInputSelectionTool()->ClearSelectionVisuals();
 	mSelectionShown = false;
 }
 
@@ -977,8 +977,8 @@ void GUIInputBox::ScrollTextToCaret()
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
 
 	Vector2I textOffset = GetTextOffset();
-	Vector2I caretPos = gGUIManager().GetInputCaretTool()->GetCaretPosition(textOffset);
-	u32 caretHeight = gGUIManager().GetInputCaretTool()->GetCaretHeight();
+	Vector2I caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition(textOffset);
+	u32 caretHeight = GetGUIManager().GetInputCaretTool()->GetCaretHeight();
 	u32 caretWidth = 1;
 
 	i32 left = textOffset.X - mTextOffset.X;
@@ -1014,8 +1014,8 @@ void GUIInputBox::ScrollTextToCaret()
 
 	mTextOffset += offset;
 
-	gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 }
 
 void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
@@ -1032,8 +1032,8 @@ void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
 	{
 		mTextOffset = newTextOffset;
 
-		gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-		gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+		GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 	}
 }
 
@@ -1046,8 +1046,8 @@ void GUIInputBox::InsertString(u32 charIdx, const String& string)
 
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
 
-	gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 }
 
 void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
@@ -1060,8 +1060,8 @@ void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
 
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
 
-	gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 }
 
 void GUIInputBox::EraseChar(u32 charIdx)
@@ -1074,14 +1074,14 @@ void GUIInputBox::EraseChar(u32 charIdx)
 
 	TEXT_SPRITE_DESC textDesc = GetTextDesc();
 
-	gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 }
 
 void GUIInputBox::DeleteSelectedText(bool internal)
 {
-	u32 selStart = gGUIManager().GetInputSelectionTool()->GetSelectionStart();
-	u32 selEnd = gGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+	u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
+	u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 
 	u32 byteStart = UTF8::CharToByteIndex(mText, selStart);
 	u32 byteEnd = UTF8::CharToByteIndex(mText, selEnd);
@@ -1104,17 +1104,17 @@ void GUIInputBox::DeleteSelectedText(bool internal)
 		mNumChars = UTF8::Count(mText);
 
 		TEXT_SPRITE_DESC textDesc = GetTextDesc();
-		gGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-		gGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+		GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
 
 		if(selStart > 0)
 		{
 			u32 newCaretPos = selStart - 1;
-			gGUIManager().GetInputCaretTool()->MoveCaretToChar(newCaretPos, CARET_AFTER);
+			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(newCaretPos, CARET_AFTER);
 		}
 		else
 		{
-			gGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
+			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(0, CARET_BEFORE);
 		}
 
 		ScrollTextToCaret();
@@ -1128,8 +1128,8 @@ void GUIInputBox::DeleteSelectedText(bool internal)
 
 String GUIInputBox::GetSelectedText()
 {
-	u32 selStart = gGUIManager().GetInputSelectionTool()->GetSelectionStart();
-	u32 selEnd = gGUIManager().GetInputSelectionTool()->GetSelectionEnd();
+	u32 selStart = GetGUIManager().GetInputSelectionTool()->GetSelectionStart();
+	u32 selEnd = GetGUIManager().GetInputSelectionTool()->GetSelectionEnd();
 
 	u32 byteStart = UTF8::CharToByteIndex(mText, selStart);
 	u32 byteEnd = UTF8::CharToByteIndex(mText, selEnd);
@@ -1244,7 +1244,7 @@ void GUIInputBox::PasteText()
 	DeleteSelectedText(true);
 
 	String textInClipboard = Platform::CopyFromClipboard();
-	u32 charIdx = gGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
+	u32 charIdx = GetGUIManager().GetInputCaretTool()->GetCharIdxAtCaretPos();
 
 	bool filterOkay = true;
 	if(mFilter != nullptr)
@@ -1264,7 +1264,7 @@ void GUIInputBox::PasteText()
 
 		u32 numChars = UTF8::Count(textInClipboard);
 		if(numChars > 0)
-			gGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx + (numChars - 1), CARET_AFTER);
+			GetGUIManager().GetInputCaretTool()->MoveCaretToChar(charIdx + (numChars - 1), CARET_AFTER);
 
 		ScrollTextToCaret();
 

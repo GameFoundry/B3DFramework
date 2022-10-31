@@ -186,7 +186,7 @@ void CJoint::OnTransformChanged(TransformChangedFlags flags)
 	// user to ensure rigidbodies are always parented to the joint in such a case (It's an unlikely situation that
 	// I can't think of an use for - joint transform will almost always be set as an initialization step and not a
 	// physics response).
-	if(gPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgressInternal())
 		return;
 
 	UpdateTransform(JointBody::Target);
@@ -229,7 +229,7 @@ void CJoint::NotifyRigidbodyMoved(const HRigidbody& body)
 		return;
 
 	// If physics update is in progress do nothing, as its the joint itself that's probably moving the body
-	if(gPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgressInternal())
 		return;
 
 	if(mBodies[0] == body)

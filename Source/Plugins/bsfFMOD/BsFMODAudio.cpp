@@ -192,7 +192,7 @@ void FMODAudio::UnregisterSourceInternal(FMODAudioSource* source)
 }
 
 namespace bs {
-FMODAudio& gFMODAudio()
+FMODAudio& GetFMODAudio()
 {
 	return static_cast<FMODAudio&>(FMODAudio::Instance());
 }

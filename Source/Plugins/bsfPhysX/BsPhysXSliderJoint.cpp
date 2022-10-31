@@ -82,7 +82,7 @@ LimitLinearRange PhysXSliderJoint::GetLimit() const
 
 void PhysXSliderJoint::SetLimit(const LimitLinearRange& limit)
 {
-	PxJointLinearLimitPair pxLimit(gPhysX().GetScale(), limit.Lower, limit.Upper, limit.ContactDist);
+	PxJointLinearLimitPair pxLimit(GetPhysX().GetScale(), limit.Lower, limit.Upper, limit.ContactDist);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;

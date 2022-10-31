@@ -27,10 +27,10 @@ stringTable->setString("_myStringId", Language::German, "Hallo!");
 stringTable->setString("_myStringId", Language::Spanish, "!Hola!");
 ~~~~~~~~~~~~~
 
-Finally, you need to register the string table with @bs::StringTableManager by calling @bs::StringTableManager::setTable. **StringTableManager** is accessible globally through @bs::gStringTableManager.
+Finally, you need to register the string table with @bs::StringTableManager by calling @bs::StringTableManager::setTable. **StringTableManager** is accessible globally through @bs::GetStringTableManager.
 
 ~~~~~~~~~~~~~{.cpp}
-gStringTableManager().setTable(0, stringTable);
+GetStringTableManager().setTable(0, stringTable);
 ~~~~~~~~~~~~~
 
 > Note: Multiple string tables are supported by giving them different identifiers. By default all **HString**%s will use the 0th string table, so it is suggest to always set that one for most common localizations.
@@ -38,7 +38,7 @@ gStringTableManager().setTable(0, stringTable);
 After the string table is set you can call @bs::StringTableManager::setActiveLanguage to change the current language. If the string table has a localization for the specified language, it will be used by any GUI elements referencing the localized string. The default language is English.
 
 ~~~~~~~~~~~~~{.cpp}
-gStringTableManager().setActiveLanguage(Language::German);
+GetStringTableManager().setActiveLanguage(Language::German);
 ~~~~~~~~~~~~~
 
 # Default localization

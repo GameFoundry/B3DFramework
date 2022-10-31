@@ -76,7 +76,7 @@ void Renderer::AddTask(const SPtr<RendererTask>& task)
 	assert(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 	task->mState.store(0); // Reset state in case the task is getting re-queued
 
-	mQueuedTasks.push_back(RendererTaskQueuedInfo(task, gTime().GetFrameIdx()));
+	mQueuedTasks.push_back(RendererTaskQueuedInfo(task, GetTime().GetFrameIdx()));
 	mUnresolvedTasks.push_back(task);
 }
 
@@ -150,14 +150,14 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	{
 		task.mState.store(1);
 
-		gProfilerGPU().BeginFrame();
-		gProfilerCPU().BeginThread("RenderTask");
+		GetProfilerGPU().BeginFrame();
+		GetProfilerCPU().BeginThread("RenderTask");
 		{
 			ProfileGPUBlock sampleBlock("Renderer task: " + ProfilerString(task.mName.data(), task.mName.size()));
 			complete = task.mTaskWorker();
 		}
-		gProfilerCPU().EndThread();
-		gProfilerGPU().EndFrame(true);
+		GetProfilerCPU().EndThread();
+		GetProfilerGPU().EndFrame(true);
 
 		if(complete)
 			task.mState.store(2);
@@ -167,7 +167,7 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	}
 }
 
-SPtr<Renderer> gRenderer()
+SPtr<Renderer> GetRenderer()
 {
 	return std::static_pointer_cast<Renderer>(RendererManager::Instance().GetActive());
 }
@@ -197,16 +197,16 @@ void RendererTask::Wait()
 	// the core thread first.
 	// Note: wait() might only get called during serialization, in which case we might call these methods just once
 	// before a level save, instead for every individual component
-	gSceneManager().UpdateCoreObjectTransformsInternal();
+	GetSceneManager().UpdateCoreObjectTransformsInternal();
 	CoreObjectManager::Instance().SyncToCore();
 
 	auto worker = [this]()
 	{
-		gRenderer()->ProcessTask(*this, true);
+		GetRenderer()->ProcessTask(*this, true);
 	};
 
-	gCoreThread().QueueCommand(worker);
-	gCoreThread().Submit(true);
+	GetCoreThread().QueueCommand(worker);
+	GetCoreThread().Submit(true);
 
 	// Note: Tigger on complete callback and clear it from Renderer?
 }

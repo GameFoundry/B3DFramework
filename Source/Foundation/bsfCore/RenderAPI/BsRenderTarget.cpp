@@ -23,7 +23,7 @@ void RenderTarget::SetPriority(i32 priority)
 		renderTarget->SetPriority(priority);
 	};
 
-	gCoreThread().QueueCommand(std::bind(windowedFunc, GetCore(), priority));
+	GetCoreThread().QueueCommand(std::bind(windowedFunc, GetCore(), priority));
 }
 
 SPtr<ct::RenderTarget> RenderTarget::GetCore() const

@@ -27,7 +27,7 @@ Input::DeviceData::DeviceData()
 
 Input::Input()
 {
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	primaryWindow->GetCustomAttribute("WINDOW", &mWindowHandle);
 
 	// Subscribe to events
@@ -303,15 +303,15 @@ void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
 
 	// Update sample times used for determining sampling rate. But only if something was
 	// actually sampled, and only if this isn't the first non-zero sample.
-	if(mLastMouseUpdateFrame != gTime().GetFrameIdx())
+	if(mLastMouseUpdateFrame != GetTime().GetFrameIdx())
 	{
 		if(relX != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[0], 0.0f))
-			mTotalMouseSamplingTime[0] += gTime().GetFrameDelta();
+			mTotalMouseSamplingTime[0] += GetTime().GetFrameDelta();
 
 		if(relY != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[1], 0.0f))
-			mTotalMouseSamplingTime[1] += gTime().GetFrameDelta();
+			mTotalMouseSamplingTime[1] += GetTime().GetFrameDelta();
 
-		mLastMouseUpdateFrame = gTime().GetFrameIdx();
+		mLastMouseUpdateFrame = GetTime().GetFrameIdx();
 	}
 
 	AxisMoved(0, (float)relZ, (u32)InputAxis::MouseZ);
@@ -601,7 +601,7 @@ float Input::SmoothMouse(float value, u32 idx)
 {
 	u32 sampleCount = 1;
 
-	float deltaTime = gTime().GetFrameDelta();
+	float deltaTime = GetTime().GetFrameDelta();
 	if(deltaTime < 0.25f)
 	{
 		float secondsPerSample = mTotalMouseSamplingTime[idx] / mTotalMouseNumSamples[idx];
@@ -639,7 +639,7 @@ float Input::SmoothMouse(float value, u32 idx)
 
 namespace bs
 {
-Input& gInput()
+Input& GetInput()
 {
 	return Input::Instance();
 }

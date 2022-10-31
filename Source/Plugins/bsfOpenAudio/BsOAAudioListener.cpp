@@ -8,13 +8,13 @@ using namespace bs;
 
 OAAudioListener::OAAudioListener()
 {
-	gOAAudio().RegisterListenerInternal(this);
+	GetOAAudio().RegisterListenerInternal(this);
 	Rebuild();
 }
 
 OAAudioListener::~OAAudioListener()
 {
-	gOAAudio().UnregisterListenerInternal(this);
+	GetOAAudio().UnregisterListenerInternal(this);
 }
 
 void OAAudioListener::SetTransform(const Transform& transform)
@@ -22,11 +22,11 @@ void OAAudioListener::SetTransform(const Transform& transform)
 	SceneActor::SetTransform(transform);
 
 	std::array<float, 6> orientation = GetOrientation();
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 
 	if(contexts.size() > 1) // If only one context is available it is guaranteed it is always active, so we can avoid setting it
 	{
-		auto context = gOAAudio().GetContextInternal(this);
+		auto context = GetOAAudio().GetContextInternal(this);
 		alcMakeContextCurrent(context);
 	}
 
@@ -38,10 +38,10 @@ void OAAudioListener::SetVelocity(const Vector3& velocity)
 {
 	AudioListener::SetVelocity(velocity);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	if(contexts.size() > 1)
 	{
-		auto context = gOAAudio().GetContextInternal(this);
+		auto context = GetOAAudio().GetContextInternal(this);
 		alcMakeContextCurrent(context);
 	}
 
@@ -50,14 +50,14 @@ void OAAudioListener::SetVelocity(const Vector3& velocity)
 
 void OAAudioListener::Rebuild()
 {
-	auto contexts = gOAAudio().GetContextsInternal();
+	auto contexts = GetOAAudio().GetContextsInternal();
 
-	float globalVolume = gAudio().GetVolume();
+	float globalVolume = GetAudio().GetVolume();
 	std::array<float, 6> orientation = GetOrientation();
 
 	if(contexts.size() > 1)
 	{
-		auto context = gOAAudio().GetContextInternal(this);
+		auto context = GetOAAudio().GetContextInternal(this);
 		alcMakeContextCurrent(context);
 	}
 

@@ -286,7 +286,7 @@ namespace bs
 	 *
 	 * @note	Thread safe.
 	 */
-	BS_UTILITY_EXPORT FrameAlloc& gFrameAlloc();
+	BS_UTILITY_EXPORT FrameAlloc& GetFrameAllocator();
 
 	/**
 	 * Allocates some memory using the global frame allocator.

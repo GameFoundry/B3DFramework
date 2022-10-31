@@ -155,13 +155,13 @@ void RenderWindowManager::UpdateInternal()
 			OnMouseLeftWindow(*window);
 	}
 
-	SPtr<RenderWindow> primaryWindow = gCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
 	for(auto& entry : closeRequestedWindows)
 	{
 		// Default behaviour for primary window is to quit the app on close
 		if(entry == primaryWindow.get() && entry->OnCloseRequested.Empty())
 		{
-			gCoreApplication().QuitRequested();
+			GetCoreApplication().QuitRequested();
 			continue;
 		}
 

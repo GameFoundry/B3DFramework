@@ -69,7 +69,7 @@ PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager,
 {
 	PxCapsuleControllerDesc pxDesc = toPxDesc(desc);
 	pxDesc.reportCallback = this;
-	pxDesc.material = gPhysX().GetDefaultMaterial();
+	pxDesc.material = GetPhysX().GetDefaultMaterial();
 	pxDesc.height = pxDesc.height <= 0 ? 0.01f : pxDesc.height;
 
 	mController = static_cast<PxCapsuleController*>(manager->createController(pxDesc));
@@ -89,7 +89,7 @@ CharacterCollisionFlags PhysXCharacterController::Move(const Vector3& displaceme
 	filters.mFilterFlags = PxQueryFlag::eANY_HIT | PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 	filters.mCCTFilterCallback = this;
 
-	float curTime = gTime().GetTime();
+	float curTime = GetTime().GetTime();
 	float delta = curTime - mLastMoveCall;
 	mLastMoveCall = curTime;
 
@@ -254,7 +254,7 @@ PxQueryHitType::Enum PhysXCharacterController::preFilter(const PxFilterData& fil
 	PxFilterData colliderFilterData = shape->getSimulationFilterData();
 	u64 colliderLayer = *(u64*)&colliderFilterData.word0;
 
-	bool canCollide = gPhysics().IsCollisionEnabled(colliderLayer, GetLayer());
+	bool canCollide = GetPhysics().IsCollisionEnabled(colliderLayer, GetLayer());
 
 	if(canCollide)
 		return PxSceneQueryHitType::eBLOCK;
@@ -272,6 +272,6 @@ bool PhysXCharacterController::filter(const PxController& a, const PxController&
 	CharacterController* controllerA = (CharacterController*)a.getUserData();
 	CharacterController* controllerB = (CharacterController*)b.getUserData();
 
-	bool canCollide = gPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
+	bool canCollide = GetPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
 	return canCollide;
 }

@@ -2,7 +2,7 @@
 title: Resource saving and loading
 ---
 
-All resource save and load operations are managed through the @bs::Resources module, accessible through @bs::gResources()().
+All resource save and load operations are managed through the @bs::Resources module, accessible through @bs::GetResources()().
 
 # Saving
 Once a resource has been imported you can save it for later use. The advantage of saving a resource (instead of importing it every time) is performance - resource import is usually a costly operation. Saved resources remain in engine-friendly format and can be easily loaded later. 
@@ -11,10 +11,10 @@ To save a resource call @bs::Resources::save. Lets see an example where we impor
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a texture named "myTexture.jpg" from the disk
-HTexture texture = gImporter().import<Texture>("myTexture.jpg");
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg");
 
 // Save the texture for later use
-gResources().save(texture, "myTexture.asset");
+GetResources().save(texture, "myTexture.asset");
 ~~~~~~~~~~~~~
 
 Note that resources can also be created within the engine, and don't necessarily have to be imported. e.g. you can populate texture pixels or mesh vertices programatically, and then save the resource in this same manner. We will show later how to manually create resources.
@@ -23,7 +23,7 @@ Note that resources can also be created within the engine, and don't necessarily
 Once a resource has been saved you can load it at any time using @bs::Resources::load. Lets load the texture we just saved:
 
 ~~~~~~~~~~~~~{.cpp}
-HTexture loadedTexture = gResources().load<Texture>("myTexture.asset");
+HTexture loadedTexture = GetResources().load<Texture>("myTexture.asset");
 ~~~~~~~~~~~~~
 
 > If you attempt to load a resource that has already been loaded, the system will return the existing resource.
@@ -34,7 +34,7 @@ Resources can be loaded asynchronously (in the background) by calling @bs::Resou
 You can check if a resource handle is pointing to a loaded resource by calling @bs::ResourceHandle::isLoaded.
 
 ~~~~~~~~~~~~~{.cpp}
-HMesh mesh = gResources().loadAsync("myMesh.asset");
+HMesh mesh = GetResources().loadAsync("myMesh.asset");
 
 if(mesh.isLoaded())
 {
@@ -57,7 +57,7 @@ Whenever you load a resource, that resource will be kept loaded until all refere
 This internal reference must be released by calling @bs::Resources::release().
 
 ~~~~~~~~~~~~~{.cpp}
-gResources().release(mesh);
+GetResources().release(mesh);
 ~~~~~~~~~~~~~
 
 > Note that if you called **Resources::load()** multiple times, you must also call **Resources::release()** the same amount of times.
@@ -65,7 +65,7 @@ gResources().release(mesh);
 But you can also force the system to not create the internal reference by passing a custom @bs::ResourceLoadFlag to the @bs::Resources::load() method. This flag should not include the @bs::ResourceLoadFlag::KeepInternalRef.
 
 ~~~~~~~~~~~~~{.cpp}
-HMesh mesh = gResources().load("myMesh.asset", ResourceLoadFlags(ResourceLoadFlag::Default) & ~ResourceLoadFlag::KeepInternalRef);
+HMesh mesh = GetResources().load("myMesh.asset", ResourceLoadFlags(ResourceLoadFlag::Default) & ~ResourceLoadFlag::KeepInternalRef);
 ~~~~~~~~~~~~~ 
 
 # Weak handles
@@ -73,7 +73,7 @@ In case you want to keep a reference to a resource without incrementing the refe
 
 ~~~~~~~~~~~~~{.cpp}
 // Load a mesh and store a handle as normal
-HMesh mesh = gResources().load("myMesh.asset");
+HMesh mesh = GetResources().load("myMesh.asset");
 
 // Create a weak handle
 WeakResourceHandle<Mesh> weakMesh = mesh.getWeak();
@@ -86,5 +86,5 @@ In case you wish to prevent that you can not provide the @bs::ResourceLoadFlag::
 
 ~~~~~~~~~~~~~{.cpp}
 // Loads a resource without any dependencies, nor keeps an internal reference
-HMesh mesh = gResources().load("myMesh.asset", ResourceLoadFlag::None);
+HMesh mesh = GetResources().load("myMesh.asset", ResourceLoadFlag::None);
 ~~~~~~~~~~~~~ 

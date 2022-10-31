@@ -38,7 +38,7 @@ void ScriptDebug::InitRuntimeData()
 
 void ScriptDebug::StartUp()
 {
-	mOnLogEntryAddedConn = gDebug().OnLogEntryAdded.Connect(&ScriptDebug::OnLogEntryAdded);
+	mOnLogEntryAddedConn = GetDebug().OnLogEntryAdded.Connect(&ScriptDebug::OnLogEntryAdded);
 }
 
 void ScriptDebug::ShutDown()
@@ -55,32 +55,32 @@ void ScriptDebug::OnLogEntryAdded(const LogEntry& entry)
 
 void ScriptDebug::InternalLog(MonoString* message, u32 category)
 {
-	gDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Info, category);
+	GetDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Info, category);
 }
 
 void ScriptDebug::InternalLogWarning(MonoString* message, u32 category)
 {
-	gDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Warning, category);
+	GetDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Warning, category);
 }
 
 void ScriptDebug::InternalLogError(MonoString* message, u32 category)
 {
-	gDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Error, category);
+	GetDebug().Log(MonoUtil::MonoToString(message), LogVerbosity::Error, category);
 }
 
 void ScriptDebug::InternalLogMessage(MonoString* message, LogVerbosity type, u32 category)
 {
-	gDebug().Log(MonoUtil::MonoToString(message), type, category);
+	GetDebug().Log(MonoUtil::MonoToString(message), type, category);
 }
 
 void ScriptDebug::InternalClear(LogVerbosity verbosity, u32 category)
 {
-	gDebug().GetLog().Clear(verbosity, category);
+	GetDebug().GetLog().Clear(verbosity, category);
 }
 
 MonoArray* ScriptDebug::InternalGetMessages()
 {
-	Vector<LogEntry> entries = gDebug().GetLog().GetEntries();
+	Vector<LogEntry> entries = GetDebug().GetLog().GetEntries();
 
 	u32 numEntries = (u32)entries.size();
 	ScriptArray output = ScriptArray::Create<ScriptLogEntry>(numEntries);

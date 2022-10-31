@@ -177,7 +177,7 @@ void Cursor::UpdateCursorImage()
 	Platform::SetCursor(customIcon.PixelData, customIcon.HotSpot);
 }
 
-Cursor& gCursor()
+Cursor& GetCursor()
 {
 	return static_cast<Cursor&>(Cursor::Instance());
 }

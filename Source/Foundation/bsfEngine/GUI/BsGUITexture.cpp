@@ -18,7 +18,7 @@ GUITexture::GUITexture(const String& styleName, const HSpriteTexture& texture, T
 	: GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
 {
 	mImageSprite = bs_new<ImageSprite>();
-	mDesc.AnimationStartTime = gTime().GetTime();
+	mDesc.AnimationStartTime = GetTime().GetTime();
 
 	if(texture != nullptr)
 	{
@@ -102,7 +102,7 @@ void GUITexture::SetTexture(const HSpriteTexture& texture)
 	mActiveTextureHeight = isTexLoaded ? mActiveTexture->GetFrameHeight() : 0;
 
 	mUsingStyleTexture = false;
-	mDesc.AnimationStartTime = gTime().GetTime();
+	mDesc.AnimationStartTime = GetTime().GetTime();
 
 	Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
 	if(origSize != newSize)
@@ -181,7 +181,7 @@ void GUITexture::StyleUpdated()
 	if(mUsingStyleTexture)
 	{
 		mActiveTexture = GetStyleInternal()->Normal.Texture;
-		mDesc.AnimationStartTime = gTime().GetTime();
+		mDesc.AnimationStartTime = GetTime().GetTime();
 
 		bool isTexLoaded = SpriteTexture::CheckIsLoaded(mActiveTexture);
 		mActiveTextureWidth = isTexLoaded ? mActiveTexture->GetFrameWidth() : 0;

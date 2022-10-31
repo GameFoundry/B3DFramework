@@ -44,7 +44,7 @@ AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 		asyncOp.CompleteOperationInternal();
 	};
 
-	return gCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, discardEntireBuffer, std::placeholders::_1));
+	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, discardEntireBuffer, std::placeholders::_1));
 }
 
 AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
@@ -62,7 +62,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 		asyncOp.CompleteOperationInternal();
 	};
 
-	return gCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, std::placeholders::_1));
+	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, std::placeholders::_1));
 }
 
 SPtr<MeshData> Mesh::AllocBuffer() const
@@ -185,25 +185,25 @@ HMesh Mesh::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& 
 	desc.IndexType = indexType;
 
 	SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
-	return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
+	return static_resource_cast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
 HMesh Mesh::Create(const MESH_DESC& desc)
 {
 	SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
-	return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
+	return static_resource_cast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
 HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
 {
 	SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, desc);
-	return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
+	return static_resource_cast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
 HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
 {
 	SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, usage, drawOp);
-	return static_resource_cast<Mesh>(gResources().CreateResourceHandleInternal(meshPtr));
+	return static_resource_cast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
 SPtr<Mesh> Mesh::CreatePtrInternal(const MESH_DESC& desc)

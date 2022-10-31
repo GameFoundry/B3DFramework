@@ -349,7 +349,7 @@ SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 
 namespace bs
 {
-ProfilerGPU& gProfilerGPU()
+ProfilerGPU& GetProfilerGPU()
 {
 	return ProfilerGPU::Instance();
 }

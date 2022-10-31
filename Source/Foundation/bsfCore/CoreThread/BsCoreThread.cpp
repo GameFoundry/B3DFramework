@@ -377,7 +377,7 @@ void CoreThread::CommandCompletedNotify(u32 commandId)
 
 namespace bs
 {
-CoreThread& gCoreThread()
+CoreThread& GetCoreThread()
 {
 	return CoreThread::Instance();
 }

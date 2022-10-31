@@ -137,7 +137,7 @@ void DebugDraw::UpdateInternal()
 	Vector<MeshRenderData> proxyData = CreateMeshProxyData(mActiveMeshes);
 
 	ct::DebugDrawRenderer* renderer = mRenderer.get();
-	gCoreThread().QueueCommand(std::bind(&ct::DebugDrawRenderer::UpdateData, renderer, proxyData));
+	GetCoreThread().QueueCommand(std::bind(&ct::DebugDrawRenderer::UpdateData, renderer, proxyData));
 }
 
 namespace bs { namespace ct
@@ -157,7 +157,7 @@ void DebugDrawMat::Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<M
 	mParams->SetParamBlockBuffer("Params", params);
 
 	Bind();
-	gRendererUtility().Draw(mesh, subMesh);
+	GetRendererUtility().Draw(mesh, subMesh);
 }
 
 DebugDrawMat* DebugDrawMat::GetVariation(DebugDrawMaterial mat)

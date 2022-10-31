@@ -24,7 +24,7 @@ void ScriptTime::InitRuntimeData()
 
 float ScriptTime::InternalGetRealElapsed()
 {
-	return gTime().GetTime();
+	return GetTime().GetTime();
 }
 
 float ScriptTime::InternalGetElapsed()
@@ -34,15 +34,15 @@ float ScriptTime::InternalGetElapsed()
 
 float ScriptTime::InternalGetFrameDelta()
 {
-	return gTime().GetFrameDelta();
+	return GetTime().GetFrameDelta();
 }
 
 u64 ScriptTime::InternalGetFrameNumber()
 {
-	return gTime().GetFrameIdx();
+	return GetTime().GetFrameIdx();
 }
 
 u64 ScriptTime::InternalGetPrecise()
 {
-	return gTime().GetTimePrecise();
+	return GetTime().GetTimePrecise();
 }

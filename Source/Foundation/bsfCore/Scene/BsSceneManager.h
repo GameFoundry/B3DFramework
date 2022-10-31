@@ -280,7 +280,7 @@ namespace bs
 	};
 
 	/**	Provides easy access to the SceneManager. */
-	BS_CORE_EXPORT SceneManager& gSceneManager();
+	BS_CORE_EXPORT SceneManager& GetSceneManager();
 
 	template <class T>
 	Vector<GameObjectHandle<T>> SceneManager::FindComponents(bool activeOnly)

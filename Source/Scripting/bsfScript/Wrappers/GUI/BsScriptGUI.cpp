@@ -26,7 +26,7 @@ ScriptGUI::~ScriptGUI()
 
 void ScriptGUI::StartUp()
 {
-	SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
+	SPtr<Camera> mainCamera = GetSceneManager().GetMainCamera();
 	sGUIWidget = GUIWidget::Create(mainCamera);
 	sGUIWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
 
@@ -59,7 +59,7 @@ void ScriptGUI::Update()
 	if(sGUIWidget == nullptr)
 		return;
 
-	SPtr<Camera> mainCamera = gSceneManager().GetMainCamera();
+	SPtr<Camera> mainCamera = GetSceneManager().GetMainCamera();
 	if(mainCamera != sGUIWidget->GetCamera())
 		sGUIWidget->SetCamera(mainCamera);
 

@@ -10,14 +10,14 @@ using namespace bs;
 OAAudioSource::OAAudioSource()
 	: mStreamBuffers(), mBusyBuffers()
 {
-	gOAAudio().RegisterSourceInternal(this);
+	GetOAAudio().RegisterSourceInternal(this);
 	Rebuild();
 }
 
 OAAudioSource::~OAAudioSource()
 {
 	Clear();
-	gOAAudio().UnregisterSourceInternal(this);
+	GetOAAudio().UnregisterSourceInternal(this);
 }
 
 void OAAudioSource::SetClip(const HAudioClip& clip)
@@ -34,7 +34,7 @@ void OAAudioSource::SetTransform(const Transform& transform)
 {
 	SceneActor::SetTransform(transform);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -55,7 +55,7 @@ void OAAudioSource::SetVelocity(const Vector3& velocity)
 {
 	AudioSource::SetVelocity(velocity);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -73,7 +73,7 @@ void OAAudioSource::SetVolume(float volume)
 {
 	AudioSource::SetVolume(volume);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -88,7 +88,7 @@ void OAAudioSource::SetPitch(float pitch)
 {
 	AudioSource::SetPitch(pitch);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -107,7 +107,7 @@ void OAAudioSource::SetIsLooping(bool loop)
 	if(RequiresStreaming())
 		loop = false;
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -129,7 +129,7 @@ void OAAudioSource::SetMinDistance(float distance)
 {
 	AudioSource::SetMinDistance(distance);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -144,7 +144,7 @@ void OAAudioSource::SetAttenuation(float attenuation)
 {
 	AudioSource::SetAttenuation(attenuation);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -171,7 +171,7 @@ void OAAudioSource::Play()
 		}
 	}
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -191,7 +191,7 @@ void OAAudioSource::Play()
 
 void OAAudioSource::Pause()
 {
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -204,7 +204,7 @@ void OAAudioSource::Pause()
 
 void OAAudioSource::Stop()
 {
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -237,7 +237,7 @@ void OAAudioSource::SetGlobalPause(bool pause)
 	{
 		if(pause)
 		{
-			auto& contexts = gOAAudio().GetContextsInternal();
+			auto& contexts = GetOAAudio().GetContextsInternal();
 			u32 numContexts = (u32)contexts.size();
 			for(u32 i = 0; i < numContexts; i++)
 			{
@@ -281,7 +281,7 @@ void OAAudioSource::SetTime(float time)
 		}
 	}
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -302,7 +302,7 @@ float OAAudioSource::GetTime() const
 {
 	Lock lock(mMutex);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 
 	if(contexts.size() > 1)
 		alcMakeContextCurrent(contexts[0]);
@@ -350,7 +350,7 @@ void OAAudioSource::Clear()
 	mSavedTime = GetTime();
 	Stop();
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 
 	Lock lock(mMutex);
@@ -368,7 +368,7 @@ void OAAudioSource::Clear()
 
 void OAAudioSource::Rebuild()
 {
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 
 	{
@@ -446,7 +446,7 @@ void OAAudioSource::StartStreaming()
 	assert(!mIsStreaming);
 
 	alGenBuffers(kStreamBufferCount, mStreamBuffers);
-	gOAAudio().StartStreaming(this);
+	GetOAAudio().StartStreaming(this);
 
 	memset(&mBusyBuffers, 0, sizeof(mBusyBuffers));
 	mIsStreaming = true;
@@ -457,9 +457,9 @@ void OAAudioSource::StopStreaming()
 	assert(mIsStreaming);
 
 	mIsStreaming = false;
-	gOAAudio().StopStreaming(this);
+	GetOAAudio().StopStreaming(this);
 
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -496,7 +496,7 @@ void OAAudioSource::StreamUnlocked()
 
 	// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
 	// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -604,7 +604,7 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSample
 	mStreamQueuedPosition += numSamples;
 
 	info.NumSamples = numSamples;
-	gOAAudio().WriteToOpenALBufferInternal(buffer, samples, info);
+	GetOAAudio().WriteToOpenALBufferInternal(buffer, samples, info);
 
 	bs_stack_free(samples);
 
@@ -613,7 +613,7 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSample
 
 void OAAudioSource::ApplyClip()
 {
-	auto& contexts = gOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContextsInternal();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{

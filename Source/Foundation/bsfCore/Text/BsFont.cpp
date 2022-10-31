@@ -105,7 +105,7 @@ HFont Font::Create(const Vector<SPtr<FontBitmap>>& fontData)
 {
 	SPtr<Font> newFont = CreatePtrInternal(fontData);
 
-	return static_resource_cast<Font>(gResources().CreateResourceHandleInternal(newFont));
+	return static_resource_cast<Font>(GetResources().CreateResourceHandleInternal(newFont));
 }
 
 SPtr<Font> Font::CreatePtrInternal(const Vector<SPtr<FontBitmap>>& fontData)

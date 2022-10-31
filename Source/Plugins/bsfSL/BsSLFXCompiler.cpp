@@ -2093,7 +2093,7 @@ BSLFXCompileResult BSLFXCompiler::CompileShader(String source, const UnorderedMa
 		ct::ShaderExtensionPointInfo extPointInfo = renderer->GetShaderExtensionPointInfo(entry.Name);
 		for(auto& extPointShader : extPointInfo.Shaders)
 		{
-			Path path = gBuiltinResources().GetRawShaderFolder();
+			Path path = GetBuiltinResources().GetRawShaderFolder();
 			path.Append(extPointShader.Path);
 			path.SetExtension(path.GetExtension());
 

@@ -74,7 +74,7 @@ namespace bs
 		};
 
 		/**	Provides easy access to IBLUtility. */
-		BS_CORE_EXPORT const IBLUtility& gIBLUtility();
+		BS_CORE_EXPORT const IBLUtility& GetIBLUtility();
 
 		/** @} */
 	} // namespace ct

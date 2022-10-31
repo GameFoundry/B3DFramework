@@ -13,7 +13,7 @@ void AudioListener::SetVelocity(const Vector3& velocity)
 
 SPtr<AudioListener> AudioListener::Create()
 {
-	return gAudio().CreateListener();
+	return GetAudio().CreateListener();
 }
 
 RTTITypeBase* AudioListener::GetRttiStatic()

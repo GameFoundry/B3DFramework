@@ -30,7 +30,7 @@ namespace bs
 #endif
 
 	/** Class that holds data about a dynamic library. */
-	class BS_UTILITY_EXPORT DynLib final
+	class BS_UTILITY_EXPORT DynamicLibrary final
 	{
 	public:
 		/** Platform-specific file extension for a dynamic library (e.g. "dll"). */
@@ -56,8 +56,8 @@ namespace bs
 #endif
 
 		/** Constructs the dynamic library object and loads the library with the specified name. */
-		DynLib(String name);
-		~DynLib();
+		DynamicLibrary(String name);
+		~DynamicLibrary();
 
 		/** Loads the library. Does nothing if library is already loaded. */
 		void Load();
@@ -77,7 +77,7 @@ namespace bs
 		void* GetSymbol(const String& strName) const;
 
 	protected:
-		friend class DynLibManager;
+		friend class DynamicLibraryManager;
 
 		/** Gets the last loading error. */
 		String DynlibError();

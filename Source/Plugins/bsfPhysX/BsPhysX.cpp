@@ -189,7 +189,7 @@ class PhysXEventCallback : public PxSimulationEventCallback
 			event.Other = (Collider*)pair.otherShape->userData;
 			event.Type = type;
 
-			gPhysX().ReportTriggerEventInternal(event);
+			GetPhysX().ReportTriggerEventInternal(event);
 		}
 	}
 
@@ -264,7 +264,7 @@ class PhysXEventCallback : public PxSimulationEventCallback
 			event.ColliderA = (Collider*)pair.shapes[0]->userData;
 			event.ColliderB = (Collider*)pair.shapes[1]->userData;
 
-			gPhysX().ReportContactEventInternal(event);
+			GetPhysX().ReportContactEventInternal(event);
 		}
 	}
 
@@ -283,7 +283,7 @@ class PhysXEventCallback : public PxSimulationEventCallback
 			event.Joint = (Joint*)pxJoint->userData;
 
 			if(event.Joint != nullptr)
-				gPhysX().ReportJointBreakEventInternal(event);
+				GetPhysX().ReportJointBreakEventInternal(event);
 		}
 	}
 };
@@ -350,7 +350,7 @@ PxFilterFlags PhysXFilterShader(PxFilterObjectAttributes attr0, PxFilterData dat
 	u64 groupA = *(u64*)&data0.word0;
 	u64 groupB = *(u64*)&data1.word0;
 
-	bool canCollide = gPhysics().IsCollisionEnabled(groupA, groupB);
+	bool canCollide = GetPhysics().IsCollisionEnabled(groupA, groupB);
 	if(!canCollide)
 		return PxFilterFlag::eSUPPRESS;
 
@@ -787,7 +787,7 @@ PhysXScene::~PhysXScene()
 	mCharManager->release();
 	mScene->release();
 
-	gPhysX().NotifySceneDestroyedInternal(this);
+	GetPhysX().NotifySceneDestroyedInternal(this);
 }
 
 SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
@@ -1207,7 +1207,7 @@ void PhysXScene::ClearBroadPhaseRegions()
 }
 
 namespace bs {
-PhysX& gPhysX()
+PhysX& GetPhysX()
 {
 	return static_cast<PhysX&>(PhysX::Instance());
 }

@@ -51,12 +51,12 @@ GUIManager::GUIManager()
 	// Note: Hidden dependency. GUI must receive input events before other systems, in order so it can mark them as used
 	// if required. e.g. clicking on a context menu should mark the event as used so that other non-GUI systems know
 	// that they probably should not process such event themselves.
-	mOnPointerMovedConn = gInput().OnPointerMoved.Connect(std::bind(&GUIManager::OnPointerMoved, this, _1));
-	mOnPointerPressedConn = gInput().OnPointerPressed.Connect(std::bind(&GUIManager::OnPointerPressed, this, _1));
-	mOnPointerReleasedConn = gInput().OnPointerReleased.Connect(std::bind(&GUIManager::OnPointerReleased, this, _1));
-	mOnPointerDoubleClick = gInput().OnPointerDoubleClick.Connect(std::bind(&GUIManager::OnPointerDoubleClick, this, _1));
-	mOnTextInputConn = gInput().OnCharInput.Connect(std::bind(&GUIManager::OnTextInput, this, _1));
-	mOnInputCommandConn = gInput().OnInputCommand.Connect(std::bind(&GUIManager::OnInputCommandEntered, this, _1));
+	mOnPointerMovedConn = GetInput().OnPointerMoved.Connect(std::bind(&GUIManager::OnPointerMoved, this, _1));
+	mOnPointerPressedConn = GetInput().OnPointerPressed.Connect(std::bind(&GUIManager::OnPointerPressed, this, _1));
+	mOnPointerReleasedConn = GetInput().OnPointerReleased.Connect(std::bind(&GUIManager::OnPointerReleased, this, _1));
+	mOnPointerDoubleClick = GetInput().OnPointerDoubleClick.Connect(std::bind(&GUIManager::OnPointerDoubleClick, this, _1));
+	mOnTextInputConn = GetInput().OnCharInput.Connect(std::bind(&GUIManager::OnTextInput, this, _1));
+	mOnInputCommandConn = GetInput().OnInputCommand.Connect(std::bind(&GUIManager::OnInputCommandEntered, this, _1));
 	mOnVirtualButtonDown = VirtualInput::Instance().OnButtonDown.Connect(std::bind(&GUIManager::OnVirtualButtonDown, this, _1, _2));
 
 	mWindowGainedFocusConn = RenderWindowManager::Instance().OnFocusGained.Connect(std::bind(&GUIManager::OnWindowFocusGained, this, _1));
@@ -168,7 +168,7 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 	if(camera != nullptr)
 	{
 		auto widgetId = (u64)widget;
-		gCoreThread().QueueCommand([renderer = mRenderer.get(),
+		GetCoreThread().QueueCommand([renderer = mRenderer.get(),
 									camera = camera->GetCore(),
 									widgetId]()
 								   { renderer->ClearDrawGroups(camera, widgetId); });
@@ -182,8 +182,8 @@ void GUIManager::Update()
 	// Show tooltip if needed
 	if(mShowTooltip)
 	{
-		float diff = gTime().GetTime() - mTooltipElementHoverStart;
-		if(diff >= kTooltipHoverTime || gInput().IsButtonHeld(BC_LCONTROL) || gInput().IsButtonHeld(BC_RCONTROL))
+		float diff = GetTime().GetTime() - mTooltipElementHoverStart;
+		if(diff >= kTooltipHoverTime || GetInput().IsButtonHeld(BC_LCONTROL) || GetInput().IsButtonHeld(BC_RCONTROL))
 		{
 			for(auto& entry : mElementsUnderPointer)
 			{
@@ -195,7 +195,7 @@ void GUIManager::Update()
 					const RenderWindow* window = GetWidgetWindow(*parentWidget);
 					if(window != nullptr)
 					{
-						Vector2I windowPos = window->ScreenToWindowPos(gInput().GetPointerPosition());
+						Vector2I windowPos = window->ScreenToWindowPos(GetInput().GetPointerPosition());
 
 						GUITooltipManager::Instance().Show(*parentWidget, windowPos, tooltipText);
 						break;
@@ -208,12 +208,12 @@ void GUIManager::Update()
 	}
 
 	// Update layouts
-	gProfilerCPU().BeginSample("UpdateLayout");
+	GetProfilerCPU().BeginSample("UpdateLayout");
 	for(auto& widgetInfo : mWidgets)
 	{
 		widgetInfo.Widget->UpdateLayoutInternal();
 	}
-	gProfilerCPU().EndSample("UpdateLayout");
+	GetProfilerCPU().EndSample("UpdateLayout");
 
 	// Destroy all queued elements (and loop in case any new ones get queued during destruction)
 	do
@@ -322,7 +322,7 @@ void GUIManager::Update()
 	while(ProcessDestroyQueueIteration());
 
 	// Blink caret
-	float curTime = gTime().GetTime();
+	float curTime = GetTime().GetTime();
 
 	if((curTime - mCaretLastBlinkTime) >= mCaretBlinkInterval)
 	{
@@ -350,7 +350,7 @@ void GUIManager::Update()
 			continue;
 
 		auto widgetId = (u64)widget;
-		gCoreThread().QueueCommand([renderer = mRenderer.get(),
+		GetCoreThread().QueueCommand([renderer = mRenderer.get(),
 									updateData = std::move(updateData),
 									camera = camera->GetCore(),
 									widgetId,
@@ -359,7 +359,7 @@ void GUIManager::Update()
 								   { renderer->UpdateDrawGroups(camera, widgetId, widgetDepth, worldTransform, updateData); });
 	}
 
-	gCoreThread().QueueCommand([renderer = mRenderer.get(), time = gTime().GetTime()]()
+	GetCoreThread().QueueCommand([renderer = mRenderer.get(), time = GetTime().GetTime()]()
 							   { renderer->Update(time); });
 }
 
@@ -1111,7 +1111,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 	if(mElementsUnderPointer.size() > 0)
 		mShowTooltip = true;
 
-	mTooltipElementHoverStart = gTime().GetTime();
+	mTooltipElementHoverStart = GetTime().GetTime();
 
 	return eventProcessed;
 }
@@ -1551,7 +1551,7 @@ bool GUIManager::SendVirtualButtonEvent(GUIElement* element, const GUIVirtualBut
 
 namespace bs
 {
-GUIManager& gGUIManager()
+GUIManager& GetGUIManager()
 {
 	return GUIManager::Instance();
 }
@@ -1613,7 +1613,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 
 	float invViewportWidth = 1.0f / (camera.GetViewport()->GetPixelArea().Width * 0.5f);
 	float invViewportHeight = 1.0f / (camera.GetViewport()->GetPixelArea().Height * 0.5f);
-	bool viewflipYFlip = gCaps().Conventions.NdcYAxis == Conventions::Axis::Down;
+	bool viewflipYFlip = GetRenderBackendCapabilities().Conventions.NdcYAxis == Conventions::Axis::Down;
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	for(auto& widget : widgetRenderData)
@@ -1798,7 +1798,7 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 		auto numQuads = (u32)widget->DrawGroups.size();
 		if(numQuads > 0)
 		{
-			bool flipUVY = gCaps().Conventions.UvYAxis == Conventions::Axis::Up;
+			bool flipUVY = GetRenderBackendCapabilities().Conventions.UvYAxis == Conventions::Axis::Up;
 			float uvTop = flipUVY ? 1.0f : 0.0f;
 			float uvBottom = flipUVY ? 0.0f : 1.0f;
 

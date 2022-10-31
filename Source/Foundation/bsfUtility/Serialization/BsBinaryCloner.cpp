@@ -21,7 +21,7 @@ SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 	ObjectReferenceData referenceData;
 	if(shallow)
 	{
-		FrameAlloc& alloc = gFrameAlloc();
+		FrameAlloc& alloc = GetFrameAllocator();
 
 		alloc.MarkFrame();
 		GatherReferences(object, alloc, referenceData);
@@ -37,7 +37,7 @@ SPtr<IReflectable> BinaryCloner::Clone(IReflectable* object, bool shallow)
 
 	if(shallow)
 	{
-		FrameAlloc& alloc = gFrameAlloc();
+		FrameAlloc& alloc = GetFrameAllocator();
 
 		alloc.MarkFrame();
 		RestoreReferences(clonedObj.get(), alloc, referenceData);

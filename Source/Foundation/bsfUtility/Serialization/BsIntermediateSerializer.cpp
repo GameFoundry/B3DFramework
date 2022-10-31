@@ -8,7 +8,7 @@
 using namespace bs;
 
 IntermediateSerializer::IntermediateSerializer()
-	: mAlloc(&gFrameAlloc())
+	: mAlloc(&GetFrameAllocator())
 {}
 
 SPtr<IReflectable> IntermediateSerializer::Decode(const SerializedObject* serializedObject, SerializationContext* context)

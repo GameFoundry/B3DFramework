@@ -20,11 +20,11 @@ Before the camera can render anything, you need to assign the render target to w
 To assign the window, retrieve the @bs::Viewport object from the camera, and set its target using the @bs::Viewport::setTarget method.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
+SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 camera->getViewport()->setTarget(primaryWindow);
 ~~~~~~~~~~~~~
 
-> **Application** is a singleton and its instance can be accessed through @bs::Application::instance(), or the helper method @bs::gApplication(). All other singletons in the framework follow the same design.
+> **Application** is a singleton and its instance can be accessed through @bs::Application::instance(), or the helper method @bs::GetApplication(). All other singletons in the framework follow the same design.
 
 Or alternatively, you can just mark the camera as 'main', which will render to the default render target (in this case, the primary window).
 
@@ -82,7 +82,7 @@ Aspect ratio allows you to control the ratio of the camera's width and height. I
 Normally you want to set it to the ratio of the render target's width and height, as shown below.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
+SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 auto& windowProps = primaryWindow->getProperties();
 
 float aspectRatio = windowProps.width / (float)windowProps.height;
@@ -102,7 +102,7 @@ camera->setOrthoWindow(500, 500);
 For example, if you are making a 2D game, your world units are most likely pixels. In which case you will want to set the ortographic size to the same size as the render target size (resolution):
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<RenderWindow> primaryWindow = gApplication().getPrimaryWindow();
+SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 auto& windowProps = primaryWindow->getProperties();
 
 camera->setOrthoWindow(windowProps.width, windowProps.height);

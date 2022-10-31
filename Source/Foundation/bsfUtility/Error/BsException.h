@@ -173,7 +173,7 @@ namespace bs
 		{                                                                                                                          \
 			static_assert((std::is_base_of<bs::Exception, type>::value), "Invalid exception type (" #type ") for BS_EXCEPT macro." \
 																		 " It needs to derive from bs::Exception.");               \
-			gCrashHandler().ReportCrash(#type, desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);                                     \
+			GetCrashHandler().ReportCrash(#type, desc, __PRETTY_FUNCTION__, __FILE__, __LINE__);                                     \
 			PlatformUtility::Terminate(true);                                                                                      \
 		}
 #endif

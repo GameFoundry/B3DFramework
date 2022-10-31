@@ -32,15 +32,15 @@ HResource StandaloneResourceLoader::Load(const Path& path, ResourceLoadFlags fla
 	if(iterFind != mMapping.end())
 	{
 		if(!async)
-			return gResources().Load(iterFind->second, flags);
+			return GetResources().Load(iterFind->second, flags);
 		else
-			return gResources().LoadAsync(iterFind->second, flags);
+			return GetResources().LoadAsync(iterFind->second, flags);
 	}
 
 	if(!async)
-		return gResources().Load(path, flags);
+		return GetResources().Load(path, flags);
 	else
-		return gResources().LoadAsync(path, flags);
+		return GetResources().LoadAsync(path, flags);
 }
 
 void StandaloneResourceLoader::SetMapping(const SPtr<ResourceMapping>& mapping)

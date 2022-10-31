@@ -14,18 +14,18 @@ using namespace bs;
 PlayInEditor::PlayInEditor()
 	: mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), mFrameStepActive(false), mScheduledStateChange(false), mPausableTime(0.0f)
 {
-	if(!gApplication().IsEditor())
+	if(!GetApplication().IsEditor())
 		mState = PlayInEditorState::Playing;
 	else
 	{
 		SetSystemsPauseState(true);
-		gSceneManager().SetComponentState(ComponentState::Stopped);
+		GetSceneManager().SetComponentState(ComponentState::Stopped);
 	}
 }
 
 void PlayInEditor::SetState(PlayInEditorState state)
 {
-	if(!gApplication().IsEditor())
+	if(!GetApplication().IsEditor())
 		return;
 
 	// Delay state change to next frame as this method could be called in middle of object update, in which case
@@ -51,9 +51,9 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 
 			SetSystemsPauseState(true);
 
-			gSceneManager().SetComponentState(ComponentState::Stopped);
+			GetSceneManager().SetComponentState(ComponentState::Stopped);
 			mSavedScene->InstantiateInternal();
-			gSceneManager().SetRootNodeInternal(mSavedScene);
+			GetSceneManager().SetRootNodeInternal(mSavedScene);
 
 			mSavedScene = nullptr;
 			OnStopped();
@@ -64,9 +64,9 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 			if(oldState == PlayInEditorState::Stopped)
 				SaveSceneInMemory();
 
-			gSceneManager().SetComponentState(ComponentState::Running);
+			GetSceneManager().SetComponentState(ComponentState::Running);
 			SetSystemsPauseState(false);
-			gAnimation().SetPaused(false);
+			GetAnimationManager().SetPaused(false);
 
 			if(oldState == PlayInEditorState::Stopped)
 				OnPlay();
@@ -78,12 +78,12 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 		{
 			mFrameStepActive = false;
 			SetSystemsPauseState(true);
-			gAnimation().SetPaused(true);
+			GetAnimationManager().SetPaused(true);
 
 			if(oldState == PlayInEditorState::Stopped)
 				SaveSceneInMemory();
 
-			gSceneManager().SetComponentState(ComponentState::Paused);
+			GetSceneManager().SetComponentState(ComponentState::Paused);
 
 			if(oldState == PlayInEditorState::Stopped)
 				OnPlay();
@@ -98,7 +98,7 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 
 void PlayInEditor::FrameStep()
 {
-	if(!gApplication().IsEditor())
+	if(!GetApplication().IsEditor())
 		return;
 
 	switch(mState)
@@ -117,7 +117,7 @@ void PlayInEditor::FrameStep()
 void PlayInEditor::Update()
 {
 	if(mState == PlayInEditorState::Playing)
-		mPausableTime += gTime().GetFrameDelta();
+		mPausableTime += GetTime().GetFrameDelta();
 
 	if(mScheduledStateChange)
 	{
@@ -158,6 +158,6 @@ void PlayInEditor::SaveSceneInMemory()
 
 void PlayInEditor::SetSystemsPauseState(bool paused)
 {
-	gPhysics().SetPaused(paused);
-	gAudio().SetPaused(paused);
+	GetPhysics().SetPaused(paused);
+	GetAudio().SetPaused(paused);
 }

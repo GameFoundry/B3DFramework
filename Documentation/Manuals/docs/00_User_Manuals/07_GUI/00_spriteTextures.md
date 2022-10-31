@@ -14,7 +14,7 @@ They're created by calling @bs::SpriteTexture::create. As a parameter it expects
 UV coordinates begin in the top left corner, and are in range [0, 1], where top left is (0, 0), and bottom right (1, 1).
 
 ~~~~~~~~~~~~~{.cpp}
-HTexture texture = gImporter().import<Texture>("myTexture.jpg");
+HTexture texture = GetImporter().import<Texture>("myTexture.jpg");
 
 // Sprite texture covering the entire area of "texture"
 HSpriteTexture spriteTexComplete = SpriteTexture::create(texture);

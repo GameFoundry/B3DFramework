@@ -105,10 +105,10 @@ MonoObject* ScriptRRefBase::InternalGetResource(ScriptRRefBase* thisPtr)
 	{
 		ResourceLoadFlags loadFlags = ResourceLoadFlag::LoadDependencies;
 
-		if(gApplication().IsEditor())
+		if(GetApplication().IsEditor())
 			loadFlags |= ResourceLoadFlag::KeepSourceData;
 
-		const HResource loadedResource = gResources().LoadFromUuid(thisPtr->GetHandle().GetUuid(), false, loadFlags);
+		const HResource loadedResource = GetResources().LoadFromUuid(thisPtr->GetHandle().GetUuid(), false, loadFlags);
 		thisPtr->mScriptResource = ScriptResourceManager::Instance().GetScriptResource(loadedResource, true);
 	}
 

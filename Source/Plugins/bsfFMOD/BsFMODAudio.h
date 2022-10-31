@@ -72,7 +72,7 @@ namespace bs
 	};
 
 	/** Provides easier access to FMODAudio. */
-	FMODAudio& gFMODAudio();
+	FMODAudio& GetFMODAudio();
 
 	/** @} */
 } // namespace bs

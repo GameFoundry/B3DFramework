@@ -50,7 +50,7 @@ Radian myAngle2 = myAngle;
 void printAngle(Degree angle)
 {
 	float angleValue = angle.valueDegrees();
-	gDebug().logDebug("Angle is " + toString(angleValue));
+	GetDebug().logDebug("Angle is " + toString(angleValue));
 }
 
 // Caller doesn't need to care if the method accepts radians or degrees
@@ -204,7 +204,7 @@ Matrices can be inverted by calling @bs::Matrix3::inverse. Not all matrices have
 ~~~~~~~~~~~~~{.cpp}
 Matrix3 inverseMat;
 if(mat.inverse(inverseMat))
-	gDebug().logDebug("Inverse found!");
+	GetDebug().logDebug("Inverse found!");
 ~~~~~~~~~~~~~
 
 You can decompose a matrix back into rotation & scale components by calling @bs::Matrix3::decomposition. Note that this is only able to work if the matrix contains rotation and/or uniform scale, without any other transformations. Otherwise returned values will likely not be accurate.
@@ -291,7 +291,7 @@ Matrices can be inverted by calling @bs::Matrix4::inverse. Not all matrices have
 ~~~~~~~~~~~~~{.cpp}
 Matrix4 inverseMat;
 if(mat.inverse(inverseMat))
-	gDebug().logDebug("Inverse found!");
+	GetDebug().logDebug("Inverse found!");
 ~~~~~~~~~~~~~
 
 You can decompose a matrix back into rotation, scale and translation components by calling @bs::Matrix4::decomposition. Note that this is only able to work if the matrix contains rotation, translation and uniform scale, without any other transformations. Otherwise returned values will likely not be accurate.

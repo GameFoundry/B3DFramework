@@ -155,5 +155,5 @@ auto executeOnCore = [&]()
 	myExtension->myCustomUpdateMethod(newValue);
 };
 
-gCoreThread().queueCommand(executeOnCore);
+GetCoreThread().queueCommand(executeOnCore);
 ~~~~~~~~~~~~~

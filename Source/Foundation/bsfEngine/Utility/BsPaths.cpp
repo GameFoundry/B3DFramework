@@ -3,7 +3,7 @@
 #include "BsPrerequisites.h"
 #include "BsEngineConfig.h"
 #include "FileSystem/BsFileSystem.h"
-#include "Utility/BsDynLib.h"
+#include "Utility/BsDynamicLibrary.h"
 
 using namespace bs;
 
@@ -49,7 +49,7 @@ const Path& Paths::GetBinariesPath()
 
 		// Look for bsf library to find the right path
 		Path anchorFile = path;
-		anchorFile.SetFilename("bsf." + String(DynLib::kExtension));
+		anchorFile.SetFilename("bsf." + String(DynamicLibrary::kExtension));
 
 		if(!FileSystem::Exists(anchorFile))
 		{

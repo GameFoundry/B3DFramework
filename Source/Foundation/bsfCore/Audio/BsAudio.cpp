@@ -42,7 +42,7 @@ void Audio::UpdateInternal()
 
 namespace bs
 {
-Audio& gAudio()
+Audio& GetAudio()
 {
 	return Audio::Instance();
 }

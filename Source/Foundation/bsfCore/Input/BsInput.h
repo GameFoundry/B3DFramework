@@ -348,7 +348,7 @@ namespace bs
 	};
 
 	/** Provides global access to Input. */
-	BS_CORE_EXPORT Input& gInput();
+	BS_CORE_EXPORT Input& GetInput();
 
 	/** @} */
 } // namespace bs
