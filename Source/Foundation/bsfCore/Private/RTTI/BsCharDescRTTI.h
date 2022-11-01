@@ -28,22 +28,22 @@ namespace bs
 
 		static BitLength ToMemory(const CharDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.CharId, stream);
-				size += rtti_write(data.Page, stream);
-				size += rtti_write(data.UvX, stream);
-				size += rtti_write(data.UvY, stream);
-				size += rtti_write(data.UvWidth, stream);
-				size += rtti_write(data.UvHeight, stream);
-				size += rtti_write(data.Width, stream);
-				size += rtti_write(data.Height, stream);
-				size += rtti_write(data.XOffset, stream);
-				size += rtti_write(data.YOffset, stream);
-				size += rtti_write(data.XAdvance, stream);
-				size += rtti_write(data.YAdvance, stream);
-				size += rtti_write(data.KerningPairs, stream);
+				size += B3DRTTIWrite(data.CharId, stream);
+				size += B3DRTTIWrite(data.Page, stream);
+				size += B3DRTTIWrite(data.UvX, stream);
+				size += B3DRTTIWrite(data.UvY, stream);
+				size += B3DRTTIWrite(data.UvWidth, stream);
+				size += B3DRTTIWrite(data.UvHeight, stream);
+				size += B3DRTTIWrite(data.Width, stream);
+				size += B3DRTTIWrite(data.Height, stream);
+				size += B3DRTTIWrite(data.XOffset, stream);
+				size += B3DRTTIWrite(data.YOffset, stream);
+				size += B3DRTTIWrite(data.XAdvance, stream);
+				size += B3DRTTIWrite(data.YAdvance, stream);
+				size += B3DRTTIWrite(data.KerningPairs, stream);
 
 				return size; });
 		}
@@ -51,29 +51,29 @@ namespace bs
 		static BitLength FromMemory(CharDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
-			rtti_read(data.CharId, stream);
-			rtti_read(data.Page, stream);
-			rtti_read(data.UvX, stream);
-			rtti_read(data.UvY, stream);
-			rtti_read(data.UvWidth, stream);
-			rtti_read(data.UvHeight, stream);
-			rtti_read(data.Width, stream);
-			rtti_read(data.Height, stream);
-			rtti_read(data.XOffset, stream);
-			rtti_read(data.YOffset, stream);
-			rtti_read(data.XAdvance, stream);
-			rtti_read(data.YAdvance, stream);
-			rtti_read(data.KerningPairs, stream);
+			B3DRTTIReadSizeHeader(stream, compress, size);
+			B3DRTTIRead(data.CharId, stream);
+			B3DRTTIRead(data.Page, stream);
+			B3DRTTIRead(data.UvX, stream);
+			B3DRTTIRead(data.UvY, stream);
+			B3DRTTIRead(data.UvWidth, stream);
+			B3DRTTIRead(data.UvHeight, stream);
+			B3DRTTIRead(data.Width, stream);
+			B3DRTTIRead(data.Height, stream);
+			B3DRTTIRead(data.XOffset, stream);
+			B3DRTTIRead(data.YOffset, stream);
+			B3DRTTIRead(data.XAdvance, stream);
+			B3DRTTIRead(data.YAdvance, stream);
+			B3DRTTIRead(data.KerningPairs, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const CharDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.CharId) + rtti_size(data.Page) + rtti_size(data.UvX) + rtti_size(data.UvY) + rtti_size(data.UvWidth) + rtti_size(data.UvHeight) + rtti_size(data.Width) + rtti_size(data.Height) + rtti_size(data.XOffset) + rtti_size(data.YOffset) + rtti_size(data.XAdvance) + rtti_size(data.YAdvance) + rtti_size(data.KerningPairs);
+			BitLength dataSize = B3DRTTISize(data.CharId) + B3DRTTISize(data.Page) + B3DRTTISize(data.UvX) + B3DRTTISize(data.UvY) + B3DRTTISize(data.UvWidth) + B3DRTTISize(data.UvHeight) + B3DRTTISize(data.Width) + B3DRTTISize(data.Height) + B3DRTTISize(data.XOffset) + B3DRTTISize(data.YOffset) + B3DRTTISize(data.XAdvance) + B3DRTTISize(data.YAdvance) + B3DRTTISize(data.KerningPairs);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

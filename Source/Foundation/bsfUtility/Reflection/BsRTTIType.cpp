@@ -116,7 +116,7 @@ RTTITypeBase* SerializationContext::GetRtti() const
 
 namespace bs
 {
-SPtr<IReflectable> rtti_create(u32 rttiId)
+SPtr<IReflectable> B3DRTTICreate(u32 rttiId)
 {
 	return IReflectable::CreateInstanceFromTypeId(rttiId);
 }

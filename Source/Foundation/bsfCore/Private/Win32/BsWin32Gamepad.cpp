@@ -89,7 +89,7 @@ void handlePOV(Input* owner, Gamepad::Pimpl* m, int pov, DIDEVICEOBJECTDATA& di)
 	else
 	{
 		POVState newPOVState;
-		bs_zero_out(newPOVState);
+		B3DZeroOut(newPOVState);
 
 		switch(di.dwData)
 		{
@@ -205,9 +205,9 @@ Gamepad::Gamepad(const String& name, const GamepadInfo& gamepadInfo, Input* owne
 	m->Info = gamepadInfo;
 	m->Gamepad = nullptr;
 	m->HWnd = (HWND)owner->GetWindowHandleInternal();
-	bs_zero_out(m->PovState);
-	bs_zero_out(m->AxisState);
-	bs_zero_out(m->ButtonState);
+	B3DZeroOut(m->PovState);
+	B3DZeroOut(m->AxisState);
+	B3DZeroOut(m->ButtonState);
 
 	if(!m->Info.IsXInput)
 		initializeDirectInput(m, m->HWnd);
@@ -239,7 +239,7 @@ void Gamepad::Capture()
 		};
 
 		AxisState axisState[6];
-		bs_zero_out(axisState);
+		B3DZeroOut(axisState);
 
 		// Note: Order of axes must match InputAxis enum
 		// Left stick
@@ -356,7 +356,7 @@ void Gamepad::Capture()
 		};
 
 		AxisState axisState[24];
-		bs_zero_out(axisState);
+		B3DZeroOut(axisState);
 
 		// Note: Not reporting slider or POV events
 		for(u32 i = 0; i < numEntries; ++i)

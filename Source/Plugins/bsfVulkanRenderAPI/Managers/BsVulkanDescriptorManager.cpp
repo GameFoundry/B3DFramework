@@ -64,7 +64,7 @@ size_t VulkanPipelineLayoutKey::CalculateHash() const
 {
 	size_t hash = 0;
 	for(u32 i = 0; i < NumLayouts; i++)
-		bs_hash_combine(hash, Layouts[i]->GetHash());
+		B3DCombineHash(hash, Layouts[i]->GetHash());
 
 	return hash;
 }
@@ -149,7 +149,7 @@ VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayo
 		return iterFind->second;
 
 	// Create new
-	VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)bs_stack_alloc(sizeof(VkDescriptorSetLayout) * numLayouts);
+	VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)B3DStackAllocate(sizeof(VkDescriptorSetLayout) * numLayouts);
 	for(u32 i = 0; i < numLayouts; i++)
 		setLayouts[i] = layouts[i]->GetHandle();
 
@@ -166,7 +166,7 @@ VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayo
 	VkResult result = vkCreatePipelineLayout(mDevice.GetLogical(), &layoutCI, gVulkanAllocator, &pipelineLayout);
 	assert(result == VK_SUCCESS);
 
-	bs_stack_free(setLayouts);
+	B3DStackFree(setLayouts);
 
 	key.Layouts = (VulkanDescriptorLayout**)B3DAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
 	memcpy(key.Layouts, layouts, sizeof(VulkanDescriptorLayout*) * numLayouts);

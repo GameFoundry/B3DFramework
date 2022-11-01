@@ -334,7 +334,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 		if(mPSUAVsBound || mCSUAVsBound)
 		{
 			ID3D11UnorderedAccessView* emptyUAVs[D3D11_PS_CS_UAV_REGISTER_COUNT];
-			bs_zero_out(emptyUAVs);
+			B3DZeroOut(emptyUAVs);
 
 			if(mPSUAVsBound)
 			{
@@ -353,7 +353,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 			}
 		}
 
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 		{
 			FrameVector<ID3D11ShaderResourceView*> srvs(8);
 			FrameVector<ID3D11UnorderedAccessView*> uavs(8);
@@ -584,7 +584,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 			if(numSamplers > 0)
 				context->CSSetSamplers(0, numSamplers, samplers.data());
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 
 		if(mDevice->HasError())
 			BS_EXCEPT(RenderingAPIException, "Failed to set GPU parameters: " + mDevice->GetErrorDescription());

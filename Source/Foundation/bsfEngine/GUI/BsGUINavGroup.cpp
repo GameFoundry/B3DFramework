@@ -75,7 +75,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 		constexpr static i32 kRowHeight = 5;
 
 		const auto unindexedRange = mOrderedElements.equal_range(0);
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 		{
 			struct YCompare
 			{
@@ -208,7 +208,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				return;
 			}
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 
 		// No more elements with no tab index. Check elements with positive tab index
 		const auto iterAfterUnindexed = unindexedRange.second;

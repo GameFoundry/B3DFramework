@@ -312,22 +312,22 @@ namespace bs
 
 		static BitLength ToMemory(const MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			rtti_write(data.Type, stream);
-			rtti_write(data.DataType, stream);
-			rtti_write(data.Index, stream);
-			rtti_write(data.ArraySize, stream);
-			rtti_write((u64)0, stream);
+			B3DRTTIWrite(data.Type, stream);
+			B3DRTTIWrite(data.DataType, stream);
+			B3DRTTIWrite(data.Index, stream);
+			B3DRTTIWrite(data.ArraySize, stream);
+			B3DRTTIWrite((u64)0, stream);
 
 			return sizeof(MaterialParamsBase::ParamData);
 		}
 
 		static BitLength FromMemory(MaterialParamsBase::ParamData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			rtti_read(data.Type, stream);
-			rtti_read(data.DataType, stream);
-			rtti_read(data.Index, stream);
-			rtti_read(data.ArraySize, stream);
-			rtti_read(data.Version, stream);
+			B3DRTTIRead(data.Type, stream);
+			B3DRTTIRead(data.DataType, stream);
+			B3DRTTIRead(data.Index, stream);
+			B3DRTTIRead(data.ArraySize, stream);
+			B3DRTTIRead(data.Version, stream);
 
 			// Not a field we should serialize, but we do because this struct is serialized as a whole
 			data.Version = 1;
@@ -357,11 +357,11 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 1;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Offset, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Offset, stream);
 
 				uint32_t curveType = 0; // No curve
 
@@ -372,13 +372,13 @@ namespace bs
 				else if (data.SpriteTextureIdx != (uint32_t)-1)
 					curveType = 3;
 
-				size += rtti_write(curveType, stream);
+				size += B3DRTTIWrite(curveType, stream);
 				if (data.FloatCurve)
-					size += rtti_write(*data.FloatCurve, stream);
+					size += B3DRTTIWrite(*data.FloatCurve, stream);
 				else if (data.ColorGradient)
-					size += rtti_write(*data.ColorGradient, stream);
+					size += B3DRTTIWrite(*data.ColorGradient, stream);
 				else if (data.SpriteTextureIdx != (uint32_t)-1)
-					size += rtti_write(data.SpriteTextureIdx, stream);
+					size += B3DRTTIWrite(data.SpriteTextureIdx, stream);
 
 				return size; });
 		}
@@ -386,20 +386,20 @@ namespace bs
 		static BitLength FromMemory(MaterialParamsBase::DataParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
 			case 1:
 				{
-					rtti_read(data.Offset, stream);
+					B3DRTTIRead(data.Offset, stream);
 
 					uint32_t curveType = 0;
-					rtti_read(curveType, stream);
+					B3DRTTIRead(curveType, stream);
 
 					data.FloatCurve = nullptr;
 					data.ColorGradient = nullptr;
@@ -408,27 +408,27 @@ namespace bs
 					switch(curveType)
 					{
 					case 1:
-						data.FloatCurve = bs_pool_new<TAnimationCurve<float>>();
-						rtti_read(*data.FloatCurve, stream);
+						data.FloatCurve = B3DPoolNew<TAnimationCurve<float>>();
+						B3DRTTIRead(*data.FloatCurve, stream);
 						break;
 					case 2:
 						if(version == 0)
 						{
 							// Version 0 stores non-HDR gradients
 							ColorGradient temp;
-							rtti_read(temp, stream);
+							B3DRTTIRead(temp, stream);
 
-							data.ColorGradient = bs_pool_new<ColorGradientHDR>(temp.GetKeys());
+							data.ColorGradient = B3DPoolNew<ColorGradientHDR>(temp.GetKeys());
 						}
 						else
 						{
-							data.ColorGradient = bs_pool_new<ColorGradientHDR>();
-							rtti_read(*data.ColorGradient, stream);
+							data.ColorGradient = B3DPoolNew<ColorGradientHDR>();
+							B3DRTTIRead(*data.ColorGradient, stream);
 						}
 
 						break;
 					case 3:
-						rtti_read(data.SpriteTextureIdx, stream);
+						B3DRTTIRead(data.SpriteTextureIdx, stream);
 						break;
 					default:
 						break;
@@ -445,16 +445,16 @@ namespace bs
 
 		static BitLength GetSize(const MaterialParamsBase::DataParamInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength size = rtti_size(data.Offset) + sizeof(uint32_t) * 2;
+			BitLength size = B3DRTTISize(data.Offset) + sizeof(uint32_t) * 2;
 
 			if(data.FloatCurve)
-				size += rtti_size(*data.FloatCurve);
+				size += B3DRTTISize(*data.FloatCurve);
 			else if(data.ColorGradient)
-				size += rtti_size(*data.ColorGradient);
+				size += B3DRTTISize(*data.ColorGradient);
 			else if(data.SpriteTextureIdx != (uint32_t)-1)
-				size += rtti_size(data.SpriteTextureIdx);
+				size += B3DRTTISize(data.SpriteTextureIdx);
 
-			rtti_add_header_size(size, compress);
+			B3DRTTIAddHeaderSize(size, compress);
 			return size;
 		}
 	};
@@ -476,15 +476,15 @@ namespace bs
 		{
 			static constexpr u32 kVersion = 1;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Data, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Data, stream);
 
 				// Version 1 data
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Index, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Index, stream);
 
 				return size; });
 		}
@@ -493,20 +493,20 @@ namespace bs
 		{
 			BitLength size;
 
-			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
-			sizeRead += rtti_read(data.Name, stream);
-			sizeRead += rtti_read(data.Data, stream);
+			BitLength sizeRead = B3DRTTIReadSizeHeader(stream, compress, size);
+			sizeRead += B3DRTTIRead(data.Name, stream);
+			sizeRead += B3DRTTIRead(data.Data, stream);
 
 			// More fields means a newer version of the data format
 			if(size > sizeRead)
 			{
 				uint32_t version = 0;
-				rtti_read(version, stream);
+				B3DRTTIRead(version, stream);
 
 				switch(version)
 				{
 				case 1:
-					rtti_read(data.Index, stream);
+					B3DRTTIRead(data.Index, stream);
 					break;
 				default:
 					BS_LOG(Error, RTTI, "Unknown version. Unable to deserialize.");
@@ -521,10 +521,10 @@ namespace bs
 
 		static BitLength GetSize(const MaterialParamsRTTI::MaterialParam& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength size = rtti_size(data.Name) + rtti_size(data.Data) + rtti_size(data.Index) +
+			BitLength size = B3DRTTISize(data.Name) + B3DRTTISize(data.Data) + B3DRTTISize(data.Index) +
 				sizeof(uint32_t) * 1;
 
-			rtti_add_header_size(size, compress);
+			B3DRTTIAddHeaderSize(size, compress);
 			return size;
 		}
 	};

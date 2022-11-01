@@ -137,17 +137,17 @@ namespace bs
 		{
 			assert(Capacity >= other.Capacity);
 
-			bs_copy(PrevPosition, other.PrevPosition, other.Capacity);
-			bs_copy(Position, other.Position, other.Capacity);
-			bs_copy(Velocity, other.Velocity, other.Capacity);
-			bs_copy(Size, other.Size, other.Capacity);
-			bs_copy(Rotation, other.Rotation, other.Capacity);
-			bs_copy(Lifetime, other.Lifetime, other.Capacity);
-			bs_copy(InitialLifetime, other.InitialLifetime, other.Capacity);
-			bs_copy(Color, other.Color, other.Capacity);
-			bs_copy(Seed, other.Seed, other.Capacity);
-			bs_copy(Frame, other.Frame, other.Capacity);
-			bs_copy(Indices, other.Indices, other.Capacity);
+			B3DCopy(PrevPosition, other.PrevPosition, other.Capacity);
+			B3DCopy(Position, other.Position, other.Capacity);
+			B3DCopy(Velocity, other.Velocity, other.Capacity);
+			B3DCopy(Size, other.Size, other.Capacity);
+			B3DCopy(Rotation, other.Rotation, other.Capacity);
+			B3DCopy(Lifetime, other.Lifetime, other.Capacity);
+			B3DCopy(InitialLifetime, other.InitialLifetime, other.Capacity);
+			B3DCopy(Color, other.Color, other.Capacity);
+			B3DCopy(Seed, other.Seed, other.Capacity);
+			B3DCopy(Frame, other.Frame, other.Capacity);
+			B3DCopy(Indices, other.Indices, other.Capacity);
 		}
 
 		GroupAlloc alloc;

@@ -15,11 +15,11 @@ GLGpuParamBlockBuffer::GLGpuParamBlockBuffer(u32 size, GpuBufferUsage usage, Gpu
 GLGpuParamBlockBuffer::~GLGpuParamBlockBuffer()
 {
 	if(mBuffer)
-		bs_pool_delete(static_cast<GLHardwareBuffer*>(mBuffer));
+		B3DPoolDelete(static_cast<GLHardwareBuffer*>(mBuffer));
 }
 
 void GLGpuParamBlockBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<GLHardwareBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
+	mBuffer = B3DPoolNew<GLHardwareBuffer>(GL_UNIFORM_BUFFER, mSize, mUsage);
 	GpuParamBlockBuffer::Initialize();
 }

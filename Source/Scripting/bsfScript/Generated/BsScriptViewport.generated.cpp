@@ -65,7 +65,7 @@ MonoObject* ScriptViewport::InternalGetTarget(ScriptViewport* thisPtr)
 	MonoObject* __output;
 	if(tmp__output)
 	{
-		if(rtti_is_of_type<RenderTexture>(tmp__output))
+		if(B3DRTTIIsOfType<RenderTexture>(tmp__output))
 			__output = ScriptRenderTexture::Create(std::static_pointer_cast<RenderTexture>(tmp__output));
 		else
 			__output = ScriptRenderTarget::Create(tmp__output);

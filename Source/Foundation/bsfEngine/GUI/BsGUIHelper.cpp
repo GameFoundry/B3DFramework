@@ -43,7 +43,7 @@ Vector2I GUIHelper::CalcOptimalContentsSize(const String& text, const GUIElement
 
 	if(style.Font != nullptr && !text.empty())
 	{
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 
 		const U32String utf32text = UTF8::ToUtF32(text);
 		TextData<FrameAlloc> textData(utf32text, style.Font, style.FontSize, wordWrapWidth, 0, style.WordWrap);
@@ -51,7 +51,7 @@ Vector2I GUIHelper::CalcOptimalContentsSize(const String& text, const GUIElement
 		contentWidth += textData.GetWidth();
 		contentHeight += textData.GetNumLines() * textData.GetLineHeight();
 
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 	}
 
 	return Vector2I(contentWidth, contentHeight);
@@ -62,7 +62,7 @@ Vector2I GUIHelper::CalcTextSize(const String& text, const HFont& font, u32 font
 	Vector2I size;
 	if(font != nullptr)
 	{
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 
 		const U32String utf32text = UTF8::ToUtF32(text);
 		TextData<FrameAlloc> textData(utf32text, font, fontSize, 0, 0, false);
@@ -70,7 +70,7 @@ Vector2I GUIHelper::CalcTextSize(const String& text, const HFont& font, u32 font
 		size.X = textData.GetWidth();
 		size.Y = textData.GetNumLines() * textData.GetLineHeight();
 
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 	}
 
 	return size;

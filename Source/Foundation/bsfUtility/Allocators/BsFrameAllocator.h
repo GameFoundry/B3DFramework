@@ -293,36 +293,36 @@ namespace bs
 	 *
 	 * @param[in]	numBytes	Number of bytes to allocate.
 	 */
-	BS_UTILITY_EXPORT u8* bs_frame_alloc(u32 numBytes);
+	BS_UTILITY_EXPORT u8* B3DFrameAllocate(u32 numBytes);
 
 	/**
 	 * Allocates the specified number of bytes aligned to the provided boundary, using the global frame allocator. Boundary
 	 * is in bytes and must be a power of two.
 	 */
-	BS_UTILITY_EXPORT u8* bs_frame_alloc_aligned(u32 count, u32 align);
+	BS_UTILITY_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align);
 
 	/**
 	 * Deallocates memory allocated with the global frame allocator.
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	BS_UTILITY_EXPORT void bs_frame_free(void* data);
+	BS_UTILITY_EXPORT void B3DFrameFree(void* data);
 
 	/**
-	 * Frees memory previously allocated with bs_frame_alloc_aligned().
+	 * Frees memory previously allocated with B3DFrameAllocateAligned().
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data);
+	BS_UTILITY_EXPORT void B3DFrameFreeAligned(void* data);
 
 	/**
 	 * Allocates enough memory to hold the object of specified type using the global frame allocator, but does not
 	 * construct the object.
 	 */
 	template <class T>
-	T* bs_frame_alloc()
+	T* B3DFrameAllocate()
 	{
-		return (T*)bs_frame_alloc(sizeof(T));
+		return (T*)B3DFrameAllocate(sizeof(T));
 	}
 
 	/**
@@ -330,9 +330,9 @@ namespace bs
 	 * construct the object.
 	 */
 	template <class T>
-	T* bs_frame_alloc(u32 count)
+	T* B3DFrameAllocate(u32 count)
 	{
-		return (T*)bs_frame_alloc(sizeof(T) * count);
+		return (T*)B3DFrameAllocate(sizeof(T) * count);
 	}
 
 	/**
@@ -340,9 +340,9 @@ namespace bs
 	 * and constructs them.
 	 */
 	template <class T>
-	T* bs_frame_new(u32 count = 0)
+	T* B3DFrameNew(u32 count = 0)
 	{
-		T* data = bs_frame_alloc<T>(count);
+		T* data = B3DFrameAllocate<T>(count);
 
 		for(unsigned int i = 0; i < count; i++)
 			new((void*)&data[i]) T;
@@ -354,9 +354,9 @@ namespace bs
 	 * Allocates enough memory to hold the object(s) of specified type using the global frame allocator, and constructs them.
 	 */
 	template <class T, class... Args>
-	T* bs_frame_new(Args&&... args, u32 count = 0)
+	T* B3DFrameNew(Args&&... args, u32 count = 0)
 	{
-		T* data = bs_frame_alloc<T>(count);
+		T* data = B3DFrameAllocate<T>(count);
 
 		for(unsigned int i = 0; i < count; i++)
 			new((void*)&data[i]) T(std::forward<Args>(args)...);
@@ -370,11 +370,11 @@ namespace bs
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
 	template <class T>
-	void bs_frame_delete(T* data)
+	void B3DFrameDelete(T* data)
 	{
 		data->~T();
 
-		bs_frame_free((u8*)data);
+		B3DFrameFree((u8*)data);
 	}
 
 	/**
@@ -383,19 +383,19 @@ namespace bs
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
 	template <class T>
-	void bs_frame_delete(T* data, u32 count)
+	void B3DFrameDelete(T* data, u32 count)
 	{
 		for(unsigned int i = 0; i < count; i++)
 			data[i].~T();
 
-		bs_frame_free((u8*)data);
+		B3DFrameFree((u8*)data);
 	}
 
 	/** @copydoc FrameAlloc::MarkFrame */
-	BS_UTILITY_EXPORT void bs_frame_mark();
+	BS_UTILITY_EXPORT void B3DMarkAllocatorFrame();
 
 	/** @copydoc FrameAlloc::Clear */
-	BS_UTILITY_EXPORT void bs_frame_clear();
+	BS_UTILITY_EXPORT void B3DClearAllocatorFrame();
 
 	/** String allocated with a frame allocator. */
 	typedef std::basic_string<char, std::char_traits<char>, StdAlloc<char, FrameAlloc>> FrameString;
@@ -453,7 +453,7 @@ namespace bs
 		/** @copydoc MemoryAllocator::Allocate */
 		static void* Allocate(size_t bytes)
 		{
-			return bs_frame_alloc((u32)bytes);
+			return B3DFrameAllocate((u32)bytes);
 		}
 
 		/** @copydoc MemoryAllocator::AllocateAligned */
@@ -463,7 +463,7 @@ namespace bs
 			IncAllocCount();
 #endif
 
-			return bs_frame_alloc_aligned((u32)bytes, (u32)alignment);
+			return B3DFrameAllocateAligned((u32)bytes, (u32)alignment);
 		}
 
 		/** @copydoc MemoryAllocator::AllocateAligned16 */
@@ -473,13 +473,13 @@ namespace bs
 			IncAllocCount();
 #endif
 
-			return bs_frame_alloc_aligned((u32)bytes, 16);
+			return B3DFrameAllocateAligned((u32)bytes, 16);
 		}
 
 		/** @copydoc MemoryAllocator::Free */
 		static void Free(void* ptr)
 		{
-			bs_frame_free(ptr);
+			B3DFrameFree(ptr);
 		}
 
 		/** @copydoc MemoryAllocator::FreeAligned */
@@ -489,7 +489,7 @@ namespace bs
 			IncFreeCount();
 #endif
 
-			bs_frame_free_aligned(ptr);
+			B3DFrameFreeAligned(ptr);
 		}
 
 		/** @copydoc MemoryAllocator::FreeAligned16 */
@@ -499,7 +499,7 @@ namespace bs
 			IncFreeCount();
 #endif
 
-			bs_frame_free_aligned(ptr);
+			B3DFrameFreeAligned(ptr);
 		}
 	};
 

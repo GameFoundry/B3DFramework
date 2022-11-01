@@ -767,7 +767,7 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 	rapi.SetVertexDeclaration(m->HelperBuffers.TileVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { m->HelperBuffers.TileUVs };
-	rapi.SetVertexBuffers(0, buffers, (u32)bs_size(buffers));
+	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	rapi.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
@@ -966,7 +966,7 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 	rapi.SetVertexDeclaration(m->HelperBuffers.TileVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { m->HelperBuffers.TileUVs };
-	rapi.SetVertexBuffers(0, buffers, (u32)bs_size(buffers));
+	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	rapi.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
@@ -1006,7 +1006,7 @@ void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles
 	rapi.SetVertexDeclaration(m->HelperBuffers.InjectVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { m->HelperBuffers.InjectScratch, m->HelperBuffers.ParticleUVs };
-	rapi.SetVertexBuffers(0, buffers, (u32)bs_size(buffers));
+	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	rapi.SetIndexBuffer(m->HelperBuffers.SpriteIndices);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 
@@ -1448,7 +1448,7 @@ void GpuParticleCurves::ApplyChanges()
 	rapi.SetVertexDeclaration(mInjectVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { mInjectScratch, mInjectUV };
-	rapi.SetVertexBuffers(0, buffers, (u32)bs_size(buffers));
+	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	rapi.SetIndexBuffer(mInjectIndices);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 

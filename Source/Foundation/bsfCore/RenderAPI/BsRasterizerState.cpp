@@ -65,15 +65,15 @@ SPtr<RasterizerState> RasterizerState::Create(const RASTERIZER_STATE_DESC& desc)
 u64 RasterizerState::GenerateHash(const RASTERIZER_STATE_DESC& desc)
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, (u32)desc.PolygonMode);
-	bs_hash_combine(hash, (u32)desc.CullMode);
-	bs_hash_combine(hash, desc.DepthBias);
-	bs_hash_combine(hash, desc.DepthBiasClamp);
-	bs_hash_combine(hash, desc.SlopeScaledDepthBias);
-	bs_hash_combine(hash, desc.DepthClipEnable);
-	bs_hash_combine(hash, desc.ScissorEnable);
-	bs_hash_combine(hash, desc.MultisampleEnable);
-	bs_hash_combine(hash, desc.AntialiasedLineEnable);
+	B3DCombineHash(hash, (u32)desc.PolygonMode);
+	B3DCombineHash(hash, (u32)desc.CullMode);
+	B3DCombineHash(hash, desc.DepthBias);
+	B3DCombineHash(hash, desc.DepthBiasClamp);
+	B3DCombineHash(hash, desc.SlopeScaledDepthBias);
+	B3DCombineHash(hash, desc.DepthClipEnable);
+	B3DCombineHash(hash, desc.ScissorEnable);
+	B3DCombineHash(hash, desc.MultisampleEnable);
+	B3DCombineHash(hash, desc.AntialiasedLineEnable);
 
 	return (u64)hash;
 }

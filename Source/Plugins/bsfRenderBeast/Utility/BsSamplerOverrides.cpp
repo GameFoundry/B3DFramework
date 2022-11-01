@@ -20,7 +20,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 	if(shader == nullptr)
 		return nullptr;
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		// Generate a list of all sampler state overrides
 		FrameUnorderedMap<String, u32> overrideLookup;
@@ -62,7 +62,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		u32 numPasses = paramsSet->GetNumPasses();
 
 		// First pass just determine if we even need to override and count the number of sampler states
-		u32* numSetsPerPass = (u32*)bs_stack_alloc<u32>(numPasses);
+		u32* numSetsPerPass = (u32*)B3DStackAllocate<u32>(numPasses);
 		memset(numSetsPerPass, 0, sizeof(u32) * numPasses);
 
 		u32 totalNumSets = 0;
@@ -90,7 +90,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		}
 
 		u32 totalNumSamplerStates = 0;
-		u32* slotsPerSet = (u32*)bs_stack_alloc<u32>(totalNumSets);
+		u32* slotsPerSet = (u32*)B3DStackAllocate<u32>(totalNumSets);
 		memset(slotsPerSet, 0, sizeof(u32) * totalNumSets);
 
 		u32* slotsPerSetIter = slotsPerSet;
@@ -190,10 +190,10 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 			output->Overrides[i] = overrides[i];
 		}
 
-		bs_stack_free(slotsPerSet);
-		bs_stack_free(numSetsPerPass);
+		B3DStackFree(slotsPerSet);
+		B3DStackFree(numSetsPerPass);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	return output;
 }

@@ -9,7 +9,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<VulkanHardwareBuffer*>(buffer));
 }
 
 VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -18,7 +18,7 @@ VulkanVertexBuffer::VulkanVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDevice
 
 void VulkanVertexBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+	mBuffer = B3DPoolNew<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_VERTEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 	mBufferDeleter = &deleteBuffer;
 
 	VertexBuffer::Initialize();

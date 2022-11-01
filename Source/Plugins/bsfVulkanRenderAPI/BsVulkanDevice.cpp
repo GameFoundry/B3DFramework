@@ -234,7 +234,7 @@ SurfaceFormat VulkanDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool g
 	assert(result == VK_SUCCESS);
 	assert(numFormats > 0);
 
-	VkSurfaceFormatKHR* surfaceFormats = bs_stack_alloc<VkSurfaceFormatKHR>(numFormats);
+	VkSurfaceFormatKHR* surfaceFormats = B3DStackAllocate<VkSurfaceFormatKHR>(numFormats);
 	result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, surfaceFormats);
 	assert(result == VK_SUCCESS);
 
@@ -323,7 +323,7 @@ SurfaceFormat VulkanDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool g
 		}
 	}
 
-	bs_stack_free(surfaceFormats);
+	B3DStackFree(surfaceFormats);
 	return output;
 }
 

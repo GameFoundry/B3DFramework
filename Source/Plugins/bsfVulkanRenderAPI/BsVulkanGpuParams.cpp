@@ -88,7 +88,7 @@ void VulkanGpuParams::Initialize()
 	Lock lock(mMutex); // Set write operations need to be thread safe
 
 	mSetsDirty = mAlloc.Alloc<bool>(numSets);
-	bs_zero_out(mSetsDirty, numSets);
+	B3DZeroOut(mSetsDirty, numSets);
 
 	VulkanSamplerState* defaultSampler = static_cast<VulkanSamplerState*>(SamplerState::GetDefault().get());
 	VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
@@ -111,11 +111,11 @@ void VulkanGpuParams::Initialize()
 		mPerDeviceData[i].Buffers = mAlloc.Alloc<VkBuffer>(numBuffers);
 		mPerDeviceData[i].Samplers = mAlloc.Alloc<VkSampler>(numSamplers);
 
-		bs_zero_out(mPerDeviceData[i].SampledImages, numTextures);
-		bs_zero_out(mPerDeviceData[i].StorageImages, numStorageTextures);
-		bs_zero_out(mPerDeviceData[i].UniformBuffers, numParamBlocks);
-		bs_zero_out(mPerDeviceData[i].Buffers, numBuffers);
-		bs_zero_out(mPerDeviceData[i].Samplers, numSamplers);
+		B3DZeroOut(mPerDeviceData[i].SampledImages, numTextures);
+		B3DZeroOut(mPerDeviceData[i].StorageImages, numStorageTextures);
+		B3DZeroOut(mPerDeviceData[i].UniformBuffers, numParamBlocks);
+		B3DZeroOut(mPerDeviceData[i].Buffers, numBuffers);
+		B3DZeroOut(mPerDeviceData[i].Samplers, numSamplers);
 
 		VulkanDescriptorManager& descManager = devices[i]->GetDescriptorManager();
 		VulkanSampler* vkDefaultSampler = defaultSampler->GetResource(i);

@@ -22,7 +22,7 @@ using namespace bs;
 template <class T>
 bool compareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)
 {
-	if(rtti_is_of_type<T>(b))
+	if(B3DRTTIIsOfType<T>(b))
 	{
 		auto castObj = std::static_pointer_cast<T>(b);
 		return a->Value == castObj->Value;
@@ -46,9 +46,9 @@ bool compareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const S
 
 bool isPrimitiveOrEnumType(const SPtr<ManagedSerializableTypeInfo>& typeInfo, ScriptPrimitiveType underlyingType)
 {
-	if(const auto primitiveTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+	if(const auto primitiveTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
 		return primitiveTypeInfo->MType == underlyingType;
-	else if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+	else if(const auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
 		return enumTypeInfo->MUnderlyingType == underlyingType;
 
 	return false;
@@ -89,9 +89,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	{
 		ScriptPrimitiveType primitiveType = ScriptPrimitiveType::I32;
 
-		if(auto primitiveTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+		if(auto primitiveTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
 			primitiveType = primitiveTypeInfo->MType;
-		else if(auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+		else if(auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
 			primitiveType = enumTypeInfo->MUnderlyingType;
 
 		switch(primitiveType)
@@ -927,7 +927,7 @@ bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFi
 
 bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other)
 {
-	if(rtti_is_of_type<ManagedSerializableFieldDataString>(other))
+	if(B3DRTTIIsOfType<ManagedSerializableFieldDataString>(other))
 	{
 		auto castObj = std::static_pointer_cast<ManagedSerializableFieldDataString>(other);
 		return (IsNull == true && IsNull == castObj->IsNull) || Value == castObj->Value;
@@ -953,7 +953,7 @@ bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerial
 
 bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other)
 {
-	if(auto otherObj = rtti_cast<ManagedSerializableFieldDataObject>(other))
+	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataObject>(other))
 	{
 		if(!Value && !otherObj->Value)
 			return true;
@@ -969,7 +969,7 @@ bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFi
 
 bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other)
 {
-	if(auto otherObj = rtti_cast<ManagedSerializableFieldDataArray>(other))
+	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataArray>(other))
 	{
 		if(!Value && !otherObj->Value)
 			return true;
@@ -1000,7 +1000,7 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 
 bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other)
 {
-	if(auto otherObj = rtti_cast<ManagedSerializableFieldDataList>(other))
+	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataList>(other))
 	{
 		if(!Value && !otherObj->Value)
 			return true;
@@ -1031,7 +1031,7 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 
 bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other)
 {
-	if(auto otherObj = rtti_cast<ManagedSerializableFieldDataDictionary>(other))
+	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataDictionary>(other))
 	{
 		if(!Value && !otherObj->Value)
 			return true;
@@ -1069,102 +1069,102 @@ bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializab
 
 size_t ManagedSerializableFieldDataBool::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataChar::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataI8::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataU8::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataI16::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataU16::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataI32::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataU32::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataI64::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataU64::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataFloat::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataDouble::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataString::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataResourceRef::GetHash()
 {
-	return bs_hash(Value.GetUuid());
+	return B3DHash(Value.GetUuid());
 }
 
 size_t ManagedSerializableFieldDataGameObjectRef::GetHash()
 {
-	return bs_hash(Value.GetInstanceId());
+	return B3DHash(Value.GetInstanceId());
 }
 
 size_t ManagedSerializableFieldDataReflectableRef::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataObject::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataArray::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataList::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 size_t ManagedSerializableFieldDataDictionary::GetHash()
 {
-	return bs_hash(Value);
+	return B3DHash(Value);
 }
 
 void ManagedSerializableFieldDataObject::Serialize()

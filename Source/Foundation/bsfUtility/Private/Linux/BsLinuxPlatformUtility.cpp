@@ -183,7 +183,7 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	int32_t bufferLen = 0;
 	u_strFromUTF8(nullptr, 0, &bufferLen, input.data(), inputLen, &errorCode);
 
-	auto uStr = bs_stack_alloc<UChar>((u32)bufferLen);
+	auto uStr = B3DStackAllocate<UChar>((u32)bufferLen);
 	int32_t uStrLen = 0;
 	errorCode = U_ZERO_ERROR;
 	u_strFromUTF8(uStr, bufferLen * sizeof(UChar), &uStrLen, input.data(), inputLen, &errorCode);
@@ -194,7 +194,7 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	else
 		bufferLen = u_strToLower(nullptr, 0, uStr, uStrLen, nullptr, &errorCode);
 
-	auto convertedUStr = bs_stack_alloc<UChar>((u32)bufferLen);
+	auto convertedUStr = B3DStackAllocate<UChar>((u32)bufferLen);
 	int32_t convertedUStrLen = 0;
 
 	errorCode = U_ZERO_ERROR;
@@ -207,16 +207,16 @@ String PlatformUtility::convertCaseUTF8(const String& input, bool toUpper)
 	u_strToUTF8(nullptr, 0, &bufferLen, convertedUStr, convertedUStrLen, &errorCode);
 
 	int32_t outputStrLen = 0;
-	auto outputStr = bs_stack_alloc<char>(bufferLen);
+	auto outputStr = B3DStackAllocate<char>(bufferLen);
 
 	errorCode = U_ZERO_ERROR;
 	u_strToUTF8(outputStr, bufferLen, &outputStrLen, convertedUStr, convertedUStrLen, &errorCode);
 
 	String output(outputStr, outputStrLen);
 
-	bs_stack_free(outputStr);
-	bs_stack_free(convertedUStr);
-	bs_stack_free(uStr);
+	B3DStackFree(outputStr);
+	B3DStackFree(convertedUStr);
+	B3DStackFree(uStr);
 
 	return output;
 }

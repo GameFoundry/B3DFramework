@@ -48,8 +48,8 @@ struct hash<ValidParamKey>
 	size_t operator()(const ValidParamKey& key) const
 	{
 		size_t hash = 0;
-		bs::bs_hash_combine(hash, key.Name);
-		bs::bs_hash_combine(hash, key.Type);
+		bs::B3DCombineHash(hash, key.Name);
+		bs::B3DCombineHash(hash, key.Type);
 
 		return hash;
 	}
@@ -611,12 +611,12 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	}
 
 	// Generate information about object parameters
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<ObjectParamInfo> objParamInfos;
 
 		u32 offsetsSize = numPasses * kNumStages * 4 * sizeof(u32);
-		u32* offsets = (u32*)bs_frame_alloc(offsetsSize);
+		u32* offsets = (u32*)B3DFrameAllocate(offsetsSize);
 		memset(offsets, 0, offsetsSize);
 
 		// First store all objects in temporary arrays since we don't know how many of them are
@@ -782,9 +782,9 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			}
 		}
 
-		bs_frame_free(offsets);
+		B3DFrameFree(offsets);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 template <bool Core>
@@ -1077,7 +1077,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 		else
 		{
 			u32 paramSize = params->GetStructSize(*materialParamInfo);
-			void* paramData = bs_stack_alloc(paramSize);
+			void* paramData = B3DStackAllocate(paramSize);
 			for(u32 i = 0; i < arraySize; i++)
 			{
 				params->GetStructData(*materialParamInfo, paramData, paramSize, i);
@@ -1085,7 +1085,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 				u32 writeOffset = (paramInfo.Offset + paramInfo.ArrayStride * i) * sizeof(u32);
 				paramBlock->Write(writeOffset, paramData, paramSize);
 			}
-			bs_stack_free(paramData);
+			B3DStackFree(paramData);
 		}
 	}
 

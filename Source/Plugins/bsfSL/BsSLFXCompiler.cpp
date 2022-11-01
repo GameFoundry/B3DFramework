@@ -1741,7 +1741,7 @@ BSLFXCompileResult BSLFXCompiler::PopulateVariations(Vector<std::pair<ASTFXNode*
 	BSLFXCompileResult output;
 
 	// Inherit variations from mixins
-	bool* mixinWasParsed = bs_stack_alloc<bool>((u32)shaderMetaData.size());
+	bool* mixinWasParsed = B3DStackAllocate<bool>((u32)shaderMetaData.size());
 
 	std::function<bool(const ShaderMetaData&, ShaderMetaData&)> parseInherited =
 		[&](const ShaderMetaData& metaData, ShaderMetaData& combinedMetaData)
@@ -1800,18 +1800,18 @@ BSLFXCompileResult BSLFXCompiler::PopulateVariations(Vector<std::pair<ASTFXNode*
 		if(metaData.IsMixin)
 			continue;
 
-		bs_zero_out(mixinWasParsed, shaderMetaData.size());
+		B3DZeroOut(mixinWasParsed, shaderMetaData.size());
 		ShaderMetaData combinedMetaData = metaData;
 		if(!parseInherited(metaData, combinedMetaData))
 		{
-			bs_stack_free(mixinWasParsed);
+			B3DStackFree(mixinWasParsed);
 			return output;
 		}
 
 		entry.second = combinedMetaData;
 	}
 
-	bs_stack_free(mixinWasParsed);
+	B3DStackFree(mixinWasParsed);
 
 	return output;
 }
@@ -2174,7 +2174,7 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 		}
 	}
 
-	bool* mixinWasParsed = bs_stack_alloc<bool>((u32)shaderData.size());
+	bool* mixinWasParsed = B3DStackAllocate<bool>((u32)shaderData.size());
 	std::function<bool(const ShaderMetaData&, ShaderData&)> parseInherited =
 		[&](const ShaderMetaData& metaData, ShaderData& outShader)
 	{
@@ -2233,18 +2233,18 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 		if(metaData.IsMixin)
 			continue;
 
-		bs_zero_out(mixinWasParsed, shaderData.size());
+		B3DZeroOut(mixinWasParsed, shaderData.size());
 		if(!parseInherited(metaData, entry.second))
 		{
 			parseStateDelete(parseState);
-			bs_stack_free(mixinWasParsed);
+			B3DStackFree(mixinWasParsed);
 			return output;
 		}
 
 		ParseShader(entry.first, codeBlocks, entry.second);
 	}
 
-	bs_stack_free(mixinWasParsed);
+	B3DStackFree(mixinWasParsed);
 
 	IncludeLink* includeLink = parseState->Includes;
 	while(includeLink != nullptr)

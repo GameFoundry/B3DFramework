@@ -149,12 +149,12 @@ bool VertexElement::operator!=(const VertexElement& rhs) const
 size_t VertexElement::GetHash(const VertexElement& element)
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, element.mType);
-	bs_hash_combine(hash, element.mIndex);
-	bs_hash_combine(hash, element.mOffset);
-	bs_hash_combine(hash, element.mSemantic);
-	bs_hash_combine(hash, element.mSource);
-	bs_hash_combine(hash, element.mInstanceStepRate);
+	B3DCombineHash(hash, element.mType);
+	B3DCombineHash(hash, element.mIndex);
+	B3DCombineHash(hash, element.mOffset);
+	B3DCombineHash(hash, element.mSemantic);
+	B3DCombineHash(hash, element.mSource);
+	B3DCombineHash(hash, element.mInstanceStepRate);
 
 	return hash;
 }

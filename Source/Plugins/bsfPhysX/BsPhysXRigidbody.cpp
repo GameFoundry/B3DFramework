@@ -302,7 +302,7 @@ void PhysXRigidbody::SetFlags(RigidbodyFlag flags)
 
 		// Enable/disable CCD on shapes so the filter can handle them properly
 		u32 numShapes = mInternal->getNbShapes();
-		PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
+		PxShape** shapes = (PxShape**)B3DStackAllocate(sizeof(PxShape*) * numShapes);
 
 		mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
@@ -373,17 +373,17 @@ void PhysXRigidbody::UpdateMassDistribution()
 			return;
 		}
 
-		PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
+		PxShape** shapes = (PxShape**)B3DStackAllocate(sizeof(PxShape*) * numShapes);
 		mInternal->getShapes(shapes, numShapes);
 
-		float* masses = (float*)bs_stack_alloc(sizeof(float) * numShapes);
+		float* masses = (float*)B3DStackAllocate(sizeof(float) * numShapes);
 		for(u32 i = 0; i < numShapes; i++)
 			masses[i] = ((Collider*)shapes[i]->userData)->GetMass();
 
 		PxRigidBodyExt::setMassAndUpdateInertia(*mInternal, masses, numShapes);
 
-		bs_stack_free(masses);
-		bs_stack_free(shapes);
+		B3DStackFree(masses);
+		B3DStackFree(shapes);
 	}
 }
 
@@ -412,7 +412,7 @@ void PhysXRigidbody::RemoveCollider(Collider* collider)
 void PhysXRigidbody::RemoveColliders()
 {
 	u32 numShapes = mInternal->getNbShapes();
-	PxShape** shapes = (PxShape**)bs_stack_alloc(sizeof(PxShape*) * numShapes);
+	PxShape** shapes = (PxShape**)B3DStackAllocate(sizeof(PxShape*) * numShapes);
 
 	mInternal->getShapes(shapes, sizeof(PxShape*) * numShapes);
 
@@ -424,5 +424,5 @@ void PhysXRigidbody::RemoveColliders()
 		mInternal->detachShape(*shapes[i]);
 	}
 
-	bs_stack_free(shapes);
+	B3DStackFree(shapes);
 }

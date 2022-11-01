@@ -100,10 +100,10 @@ namespace std
 		size_t operator()(const bs::UUID& value) const
 		{
 			size_t hash = 0;
-			bs::bs_hash_combine(hash, value.mData[0]);
-			bs::bs_hash_combine(hash, value.mData[1]);
-			bs::bs_hash_combine(hash, value.mData[2]);
-			bs::bs_hash_combine(hash, value.mData[3]);
+			bs::B3DCombineHash(hash, value.mData[0]);
+			bs::B3DCombineHash(hash, value.mData[1]);
+			bs::B3DCombineHash(hash, value.mData[2]);
+			bs::B3DCombineHash(hash, value.mData[3]);
 
 			return hash;
 		}

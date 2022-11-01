@@ -33,19 +33,19 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
+				size += B3DRTTIWrite(kVersion, stream);
 
 				for (uint32_t i = 0; i < ColorGradient::kMaxKeys; i++)
 				{
-					size += rtti_write(data.mColors[i], stream);
-					size += rtti_write(data.mTimes[i], stream);
+					size += B3DRTTIWrite(data.mColors[i], stream);
+					size += B3DRTTIWrite(data.mTimes[i], stream);
 				}
 
-				size += rtti_write(data.mNumKeys, stream);
-				size += rtti_write(data.mDuration, stream);
+				size += B3DRTTIWrite(data.mNumKeys, stream);
+				size += B3DRTTIWrite(data.mDuration, stream);
 
 				return size; });
 		}
@@ -53,22 +53,22 @@ namespace bs
 		static BitLength FromMemory(ColorGradient& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
 				for(uint32_t i = 0; i < ColorGradient::kMaxKeys; i++)
 				{
-					rtti_read(data.mColors[i], stream);
-					rtti_read(data.mTimes[i], stream);
+					B3DRTTIRead(data.mColors[i], stream);
+					B3DRTTIRead(data.mTimes[i], stream);
 				}
 
-				rtti_read(data.mNumKeys, stream);
-				rtti_read(data.mDuration, stream);
+				B3DRTTIRead(data.mNumKeys, stream);
+				B3DRTTIRead(data.mDuration, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ColorGradient data. Unable to deserialize.");
@@ -81,11 +81,11 @@ namespace bs
 		static BitLength GetSize(const ColorGradient& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize =
-				rtti_size(data.mColors[0]) * ColorGradient::kMaxKeys +
-				rtti_size(data.mTimes[0]) * ColorGradient::kMaxKeys +
-				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
+				B3DRTTISize(data.mColors[0]) * ColorGradient::kMaxKeys +
+				B3DRTTISize(data.mTimes[0]) * ColorGradient::kMaxKeys +
+				B3DRTTISize(data.mNumKeys) + B3DRTTISize(data.mDuration) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -107,19 +107,19 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
+				size += B3DRTTIWrite(kVersion, stream);
 
 				for(uint32_t i = 0; i < ColorGradientHDR::kMaxKeys; i++)
 				{
-					size += rtti_write(data.mColors[i], stream);
-					size += rtti_write(data.mTimes[i], stream);
+					size += B3DRTTIWrite(data.mColors[i], stream);
+					size += B3DRTTIWrite(data.mTimes[i], stream);
 				}
 
-				size += rtti_write(data.mNumKeys, stream);
-				size += rtti_write(data.mDuration, stream);
+				size += B3DRTTIWrite(data.mNumKeys, stream);
+				size += B3DRTTIWrite(data.mDuration, stream);
 
 				return size; });
 		}
@@ -127,22 +127,22 @@ namespace bs
 		static BitLength FromMemory(ColorGradientHDR& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
 				for(uint32_t i = 0; i < ColorGradientHDR::kMaxKeys; i++)
 				{
-					rtti_read(data.mColors[i], stream);
-					rtti_read(data.mTimes[i], stream);
+					B3DRTTIRead(data.mColors[i], stream);
+					B3DRTTIRead(data.mTimes[i], stream);
 				}
 
-				rtti_read(data.mNumKeys, stream);
-				rtti_read(data.mDuration, stream);
+				B3DRTTIRead(data.mNumKeys, stream);
+				B3DRTTIRead(data.mDuration, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ColorGradientHDR data. Unable to deserialize.");
@@ -155,11 +155,11 @@ namespace bs
 		static BitLength GetSize(const ColorGradientHDR& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize =
-				rtti_size(data.mColors[0]) * ColorGradientHDR::kMaxKeys +
-				rtti_size(data.mTimes[0]) * ColorGradientHDR::kMaxKeys +
-				rtti_size(data.mNumKeys) + rtti_size(data.mDuration) + sizeof(uint32_t);
+				B3DRTTISize(data.mColors[0]) * ColorGradientHDR::kMaxKeys +
+				B3DRTTISize(data.mTimes[0]) * ColorGradientHDR::kMaxKeys +
+				B3DRTTISize(data.mNumKeys) + B3DRTTISize(data.mDuration) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

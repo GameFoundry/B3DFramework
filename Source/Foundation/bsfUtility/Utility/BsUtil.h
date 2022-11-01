@@ -10,7 +10,7 @@ namespace bs
 
 	/** Generates a new hash for the provided type using the default standard hasher and combines it with a previous hash. */
 	template <class T>
-	void bs_hash_combine(std::size_t& seed, const T& v)
+	void B3DCombineHash(std::size_t& seed, const T& v)
 	{
 		using HashType = typename std::conditional<std::is_enum<T>::value, EnumClassHash, std::hash<T>>::type;
 
@@ -20,7 +20,7 @@ namespace bs
 
 	/** Generates a hash for the provided type. Type must have a std::hash specialization. */
 	template <class T>
-	size_t bs_hash(const T& v)
+	size_t B3DHash(const T& v)
 	{
 		using HashType = typename std::conditional<std::is_enum<T>::value, EnumClassHash, std::hash<T>>::type;
 
@@ -36,21 +36,21 @@ namespace bs
 
 	/** Sets contents of a struct to zero. */
 	template <class T>
-	void bs_zero_out(T& s)
+	void B3DZeroOut(T& s)
 	{
 		std::memset(&s, 0, sizeof(T));
 	}
 
 	/** Sets contents of a static array to zero. */
 	template <class T, size_t N>
-	void bs_zero_out(T (&arr)[N])
+	void B3DZeroOut(T (&arr)[N])
 	{
 		std::memset(arr, 0, sizeof(T) * N);
 	}
 
 	/** Sets contents of a block of memory to zero. */
 	template <class T>
-	void bs_zero_out(T* arr, size_t count)
+	void B3DZeroOut(T* arr, size_t count)
 	{
 		assert(arr != nullptr);
 		std::memset(arr, 0, sizeof(T) * count);
@@ -58,21 +58,21 @@ namespace bs
 
 	/** Copies the contents of one array to another. Automatically accounts for array element size. */
 	template <class T, size_t N>
-	void bs_copy(T (&dst)[N], T (&src)[N], size_t count)
+	void B3DCopy(T (&dst)[N], T (&src)[N], size_t count)
 	{
 		std::memcpy(dst, src, sizeof(T) * count);
 	}
 
 	/** Copies the contents of one array to another. Automatically accounts for array element size. */
 	template <class T>
-	void bs_copy(T* dst, T* src, size_t count)
+	void B3DCopy(T* dst, T* src, size_t count)
 	{
 		std::memcpy(dst, src, sizeof(T) * count);
 	}
 
 	/** Returns the size of the provided static array. */
 	template <class T, std::size_t N>
-	constexpr size_t bs_size(const T (&array)[N])
+	constexpr size_t B3DSize(const T (&array)[N])
 	{
 		return N;
 	}
@@ -83,7 +83,7 @@ namespace bs
 	 * within the element. Returns true if a swap occurred, or false if the element was already at the end of the container.
 	 */
 	template <class T, class A = StdAlloc<T>>
-	bool bs_swap_and_erase(Vector<T, A>& container, const typename Vector<T, A>::iterator iter)
+	bool B3DSwapAndErase(Vector<T, A>& container, const typename Vector<T, A>::iterator iter)
 	{
 		assert(!container.empty());
 

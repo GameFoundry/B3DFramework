@@ -696,7 +696,7 @@ String Platform::keyCodeToUnicode(u32 buttonCode)
 	}
 
 	XKeyPressedEvent event;
-	bs_zero_out(event);
+	B3DZeroOut(event);
 	event.type = KeyPress;
 	event.keycode = iterFind->second;
 	event.display = mData->xDisplay;
@@ -724,12 +724,12 @@ void Platform::openFolder(const Path& path)
 
 	const char* commandPattern = "xdg-open '%s'";
 
-	char* commandStr = (char*)bs_stack_alloc((u32)pathString.size() + (u32)strlen(commandPattern) + 1);
+	char* commandStr = (char*)B3DStackAllocate((u32)pathString.size() + (u32)strlen(commandPattern) + 1);
 	sprintf(commandStr, commandPattern, pathString.c_str());
 
 	if(system(commandStr))
 	{};
-	bs_stack_free(commandStr);
+	B3DStackFree(commandStr);
 }
 
 /**

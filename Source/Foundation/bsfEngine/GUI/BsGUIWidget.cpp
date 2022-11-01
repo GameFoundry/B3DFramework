@@ -470,7 +470,7 @@ void GUIDrawGroups::RebuildMeshes()
 		SortedGroupSet SortedGroups;
 	};
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		// Make a list of all GUI elements, sorted from farthest to nearest (highest depth to lowest)
 		auto elemComp = [](const GUIGroupRenderElement& a, const GUIGroupRenderElement& b)
@@ -737,7 +737,7 @@ void GUIDrawGroups::RebuildMeshes()
 			mLineMesh = Mesh::CreatePtrInternal(meshData[1], MU_STATIC, DOT_LINE_LIST);
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 GUIDrawGroups::GUIDrawGroup& GUIDrawGroups::Split(u32 groupIdx, u32 depth)
@@ -1007,7 +1007,7 @@ void GUIWidget::UpdateLayoutInternal()
 		}
 	}
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 
 	// Determine dirty contents and layouts
 	FrameStack<GUIElementBase*> todo;
@@ -1036,7 +1036,7 @@ void GUIWidget::UpdateLayoutInternal()
 		}
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
@@ -1076,7 +1076,7 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 	}
 
 	// Mark dirty contents
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameStack<GUIElementBase*> todo;
 		todo.push(elem);
@@ -1094,7 +1094,7 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 				todo.push(currentElem->GetChildInternal(i));
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void GUIWidget::RegisterElementInternal(GUIElementBase* elem)

@@ -715,13 +715,13 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	if(settings.GpuSimulation)
 	{
 		if(!rendererParticles.GpuParticleSystem)
-			rendererParticles.GpuParticleSystem = bs_pool_new<GpuParticleSystem>(particleSystem);
+			rendererParticles.GpuParticleSystem = B3DPoolNew<GpuParticleSystem>(particleSystem);
 	}
 	else
 	{
 		if(rendererParticles.GpuParticleSystem)
 		{
-			bs_pool_delete(rendererParticles.GpuParticleSystem);
+			B3DPoolDelete(rendererParticles.GpuParticleSystem);
 			rendererParticles.GpuParticleSystem = nullptr;
 		}
 	}
@@ -955,7 +955,7 @@ void RendererScene::UnregisterParticleSystem(ParticleSystem* particleSystem)
 
 	if(rendererParticles.GpuParticleSystem)
 	{
-		bs_pool_delete(rendererParticles.GpuParticleSystem);
+		B3DPoolDelete(rendererParticles.GpuParticleSystem);
 		rendererParticles.GpuParticleSystem = nullptr;
 	}
 

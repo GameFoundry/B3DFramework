@@ -37,7 +37,7 @@ const char* MODULE_NAME = "bsfGLRenderAPI.dll";
 using namespace bs;
 using namespace bs::ct;
 
-const char* bs_get_gl_error_string(GLenum errorCode)
+const char* B3DGetOpenGLErrorString(GLenum errorCode)
 {
 	switch(errorCode)
 	{
@@ -51,7 +51,7 @@ const char* bs_get_gl_error_string(GLenum errorCode)
 	return nullptr;
 }
 
-void bs_check_gl_error(const char* function, const char* file, i32 line)
+void B3DCheckForOpenGLError(const char* function, const char* file, i32 line)
 {
 	GLenum errorCode = glGetError();
 	if(errorCode != GL_NO_ERROR)
@@ -61,7 +61,7 @@ void bs_check_gl_error(const char* function, const char* file, i32 line)
 
 		while(errorCode != GL_NO_ERROR)
 		{
-			const char* errorString = ::bs_get_gl_error_string(errorCode);
+			const char* errorString = ::B3DGetOpenGLErrorString(errorCode);
 			if(errorString)
 				errorOutput << "\t - " << errorString;
 
@@ -388,7 +388,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 		}
 #endif
 
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 		{
 			FrameVector<u32> textureUnits;
 			textureUnits.reserve(12);
@@ -718,7 +718,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 					// 0 means uniforms are not in block, in which case we handle it specially
 					if(binding == 0)
 					{
-						u8* uniformBufferData = (u8*)bs_stack_alloc(buffer->GetSize());
+						u8* uniformBufferData = (u8*)B3DStackAllocate(buffer->GetSize());
 						buffer->Read(0, uniformBufferData, buffer->GetSize());
 
 						for(auto iter = paramDesc->Params.begin(); iter != paramDesc->Params.end(); ++iter)
@@ -858,7 +858,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 						}
 
 						if(uniformBufferData != nullptr)
-							bs_stack_free(uniformBufferData);
+							B3DStackFree(uniformBufferData);
 					}
 					else
 					{
@@ -874,7 +874,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				}
 			}
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 
 		ActivateGlTextureUnit(0);
 	};

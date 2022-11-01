@@ -9,7 +9,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<D3D11HardwareBuffer*>(buffer));
 }
 
 D3D11IndexBuffer::D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -20,7 +20,7 @@ D3D11IndexBuffer::D3D11IndexBuffer(D3D11Device& device, const INDEX_BUFFER_DESC&
 
 void D3D11IndexBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, mDevice);
+	mBuffer = B3DPoolNew<D3D11HardwareBuffer>(D3D11HardwareBuffer::BT_INDEX, mUsage, 1, mSize, mDevice);
 	mBufferDeleter = &deleteBuffer;
 
 	IndexBuffer::Initialize();

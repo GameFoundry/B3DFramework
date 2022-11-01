@@ -12,7 +12,7 @@ MacOSVideoModeInfo::MacOSVideoModeInfo()
 	CGDisplayCount numDisplays;
 	CGGetOnlineDisplayList(0, nullptr, &numDisplays);
 
-	auto displays = (CGDirectDisplayID*)bs_stack_alloc(sizeof(CGDirectDisplayID) * numDisplays);
+	auto displays = (CGDirectDisplayID*)B3DStackAllocate(sizeof(CGDirectDisplayID) * numDisplays);
 	CGGetOnlineDisplayList(numDisplays, displays, &numDisplays);
 
 	for(u32 i = 0; i < numDisplays; i++)
@@ -32,7 +32,7 @@ MacOSVideoModeInfo::MacOSVideoModeInfo()
 		else
 			mOutputs.push_back(output);
 	}
-	bs_stack_free(displays);
+	B3DStackFree(displays);
 }
 
 MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outputIdx)
@@ -50,7 +50,7 @@ MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outp
 	CFIndex numNames = CFDictionaryGetCount(locNames);
 	if(numNames > 0)
 	{
-		auto keys = (CFStringRef*)bs_stack_alloc(numNames * sizeof(CFTypeRef));
+		auto keys = (CFStringRef*)B3DStackAllocate(numNames * sizeof(CFTypeRef));
 		CFDictionaryGetKeysAndValues(locNames, (const void**)keys, nullptr);
 
 		auto value = (CFStringRef)CFDictionaryGetValue(locNames, keys[0]);
@@ -62,18 +62,18 @@ MacOSVideoOutputInfo::MacOSVideoOutputInfo(CGDirectDisplayID displayID, u32 outp
 			else
 			{
 				CFIndex stringLength = CFStringGetLength(value) + 1;
-				auto buffer = bs_stack_alloc<char>((u32)stringLength);
+				auto buffer = B3DStackAllocate<char>((u32)stringLength);
 
 				CFStringGetCString(value, buffer, stringLength, kCFStringEncodingUTF8);
 
 				mName = buffer;
-				bs_stack_free(buffer);
+				B3DStackFree(buffer);
 			}
 		}
 		else
 			mName = "Unknown";
 
-		bs_stack_free(keys);
+		B3DStackFree(keys);
 	}
 
 	CFRelease(deviceInfo);

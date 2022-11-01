@@ -467,7 +467,7 @@ void ParticleManager::SortParticles(const ParticleSet& set, ParticleSortMode sor
 	const u32 count = set.GetParticleCount();
 	const ParticleSetData& particles = set.GetParticles();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<ParticleSortData> sortData;
 		sortData.reserve(count);
@@ -504,7 +504,7 @@ void ParticleManager::SortParticles(const ParticleSet& set, ParticleSortMode sor
 		for(u32 i = 0; i < count; i++)
 			indices[i] = sortData[i].Idx;
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 u32 ParticleManager::RegisterParticleSystem(ParticleSystem* system)

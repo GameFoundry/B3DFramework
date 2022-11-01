@@ -119,7 +119,7 @@ namespace bs
 	 *
 	 * @tparam Key		Type that represents the key in the map. Must have a specialization for DenseMapInfo<Type>,
 	 *					that provides a value representing an empty key value and a tombstone key value
-	 *					(@see DenseMapInfo<Type>). Also must have a @p bs_hash<T> specialization, and an equality
+	 *					(@see DenseMapInfo<Type>). Also must have a @p B3DHash<T> specialization, and an equality
 	 *					operator.
 	 * @tparam	Value	Type of values to store in the hash-map.
 	 * @tparam	KeyInfo	Type that provides information about empty and tombstone key values for the provided type. The
@@ -549,7 +549,7 @@ namespace bs
 
 		u32 getTombstones() const { return mTombstones; }
 
-		static u32 getHashValue(const Key& key) { return bs_hash(key); }
+		static u32 getHashValue(const Key& key) { return B3DHash(key); }
 
 		static const Key getEmptyKey() { return KeyInfo::getEmptyKey(); }
 

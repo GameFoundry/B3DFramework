@@ -34,15 +34,15 @@ namespace bs
 
 		static BitLength ToMemory(const std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
-					size += rtti_write(item, stream);
+					size += B3DRTTIWrite(item, stream);
 
 				return size; });
 		}
@@ -50,16 +50,16 @@ namespace bs
 		static BitLength FromMemory(std::vector<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			data.clear();
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				rtti_read(element, stream);
+				B3DRTTIRead(element, stream);
 
 				data.push_back(element);
 			}
@@ -72,9 +72,9 @@ namespace bs
 			BitLength dataSize = sizeof(uint32_t);
 
 			for(const auto& item : data)
-				dataSize += rtti_size(item);
+				dataSize += B3DRTTISize(item);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -99,15 +99,15 @@ namespace bs
 
 		static BitLength ToMemory(const std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
-					size += rtti_write(item, stream);
+					size += B3DRTTIWrite(item, stream);
 
 				return size; });
 		}
@@ -115,15 +115,15 @@ namespace bs
 		static BitLength FromMemory(std::list<T, StdAlloc<T>>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			uint32_t size = 0;
-			rtti_read(size, stream);
+			B3DRTTIRead(size, stream);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				rtti_read(element, stream);
+				B3DRTTIRead(element, stream);
 
 				data.push_back(element);
 			}
@@ -136,9 +136,9 @@ namespace bs
 			BitLength dataSize = sizeof(uint32_t);
 
 			for(const auto& item : data)
-				dataSize += rtti_size(item);
+				dataSize += B3DRTTISize(item);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -165,15 +165,15 @@ namespace bs
 
 		static BitLength ToMemory(const SetType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
-					size += rtti_write(item, stream);
+					size += B3DRTTIWrite(item, stream);
 
 				return size; });
 		}
@@ -181,15 +181,15 @@ namespace bs
 		static BitLength FromMemory(SetType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				rtti_read(element, stream);
+				B3DRTTIRead(element, stream);
 				data.insert(element);
 			}
 
@@ -201,9 +201,9 @@ namespace bs
 			BitLength dataSize = sizeof(uint32_t);
 
 			for(const auto& item : data)
-				dataSize += rtti_size(item);
+				dataSize += B3DRTTISize(item);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -230,17 +230,17 @@ namespace bs
 
 		static BitLength ToMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
 				{
-					size += rtti_write(item.first, stream);
-					size += rtti_write(item.second, stream);
+					size += B3DRTTIWrite(item.first, stream);
+					size += B3DRTTIWrite(item.second, stream);
 				}
 
 				return size; });
@@ -249,18 +249,18 @@ namespace bs
 		static BitLength FromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				rtti_read(key, stream);
+				B3DRTTIRead(key, stream);
 
 				Value value;
-				rtti_read(value, stream);
+				B3DRTTIRead(value, stream);
 
 				data[key] = value;
 			}
@@ -274,11 +274,11 @@ namespace bs
 
 			for(const auto& item : data)
 			{
-				dataSize += rtti_size(item.first);
-				dataSize += rtti_size(item.second);
+				dataSize += B3DRTTISize(item.first);
+				dataSize += B3DRTTISize(item.second);
 			}
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -305,17 +305,17 @@ namespace bs
 
 		static BitLength ToMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
 				{
-					size += rtti_write(item.first, stream);
-					size += rtti_write(item.second, stream);
+					size += B3DRTTIWrite(item.first, stream);
+					size += B3DRTTIWrite(item.second, stream);
 				}
 
 				return size; });
@@ -324,18 +324,18 @@ namespace bs
 		static BitLength FromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				rtti_read(key, stream);
+				B3DRTTIRead(key, stream);
 
 				Value value;
-				rtti_read(value, stream);
+				B3DRTTIRead(value, stream);
 
 				data[key] = value;
 			}
@@ -349,11 +349,11 @@ namespace bs
 
 			for(const auto& item : data)
 			{
-				dataSize += rtti_size(item.first);
-				dataSize += rtti_size(item.second);
+				dataSize += B3DRTTISize(item.first);
+				dataSize += B3DRTTISize(item.second);
 			}
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -380,15 +380,15 @@ namespace bs
 
 		static BitLength ToMemory(const MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
-					size += rtti_write(item, stream);
+					size += B3DRTTIWrite(item, stream);
 
 				return size; });
 		}
@@ -396,15 +396,15 @@ namespace bs
 		static BitLength FromMemory(MapType& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				Key key;
-				rtti_read(key, stream);
+				B3DRTTIRead(key, stream);
 
 				data.insert(key);
 			}
@@ -417,9 +417,9 @@ namespace bs
 			BitLength dataSize = sizeof(uint32_t);
 
 			for(const auto& item : data)
-				dataSize += rtti_size(item);
+				dataSize += B3DRTTISize(item);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -444,11 +444,11 @@ namespace bs
 
 		static BitLength ToMemory(const std::pair<A, B>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.first, stream);
-				size += rtti_write(data.second, stream);
+				size += B3DRTTIWrite(data.first, stream);
+				size += B3DRTTIWrite(data.second, stream);
 
 				return size; });
 		}
@@ -456,10 +456,10 @@ namespace bs
 		static BitLength FromMemory(std::pair<A, B>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.first, stream);
-			rtti_read(data.second, stream);
+			B3DRTTIRead(data.first, stream);
+			B3DRTTIRead(data.second, stream);
 
 			return size;
 		}
@@ -467,10 +467,10 @@ namespace bs
 		static BitLength GetSize(const std::pair<A, B>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize;
-			dataSize += rtti_size(data.first);
-			dataSize += rtti_size(data.second);
+			dataSize += B3DRTTISize(data.first);
+			dataSize += B3DRTTISize(data.second);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

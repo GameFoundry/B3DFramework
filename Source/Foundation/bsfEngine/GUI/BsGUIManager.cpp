@@ -312,7 +312,7 @@ void GUIManager::Update()
 					mCommandEvent.SetType(GUICommandEventType::FocusLost);
 
 					SendCommandEvent(iterFind->Element, mCommandEvent);
-					bs_swap_and_erase(mElementsInFocus, iterFind);
+					B3DSwapAndErase(mElementsInFocus, iterFind);
 				}
 			}
 		}

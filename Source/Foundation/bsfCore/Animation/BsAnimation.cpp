@@ -119,7 +119,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 {
 	Clear();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<bool> clipLoadState(clipInfos.size());
 		FrameVector<AnimationStateLayer> tempLayers;
@@ -186,7 +186,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 			NumGenericCurves = (u32)curves->Generic.size();
 		}
 
-		u32* mappedBoneIndices = (u32*)bs_frame_alloc(sizeof(u32) * NumSceneObjects);
+		u32* mappedBoneIndices = (u32*)B3DFrameAllocate(sizeof(u32) * NumSceneObjects);
 		for(u32 i = 0; i < NumSceneObjects; i++)
 			mappedBoneIndices[i] = -1;
 
@@ -545,9 +545,9 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 			}
 		}
 
-		bs_frame_free(mappedBoneIndices);
+		B3DFrameFree(mappedBoneIndices);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void AnimationProxy::UpdateClipInfos(const Vector<AnimationClipInfo>& clipInfos)
@@ -993,7 +993,7 @@ void Animation::Sample(const HAnimationClip& clip, float time)
 
 void Animation::Stop(u32 layer)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<AnimationClipInfo> newClips;
 		for(auto& clipInfo : mClipInfos)
@@ -1008,7 +1008,7 @@ void Animation::Stop(u32 layer)
 		for(u32 i = 0; i < (u32)newClips.size(); i++)
 			mClipInfos[i] = newClips[i];
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void Animation::StopAll()
@@ -1039,7 +1039,7 @@ AnimationClipInfo* Animation::AddClip(const HAnimationClip& clip, u32 layer, boo
 	// Doesn't exist or found extra animations, rebuild
 	if(output == nullptr || hasExisting)
 	{
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 		{
 			FrameVector<AnimationClipInfo> newClips;
 			for(auto& clipInfo : mClipInfos)
@@ -1057,7 +1057,7 @@ AnimationClipInfo* Animation::AddClip(const HAnimationClip& clip, u32 layer, boo
 
 			mDirty |= AnimDirtyStateFlag::Layout;
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 	}
 
 	// If new clip was added, get its address

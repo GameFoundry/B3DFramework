@@ -28,14 +28,14 @@ namespace bs
 
 		static BitLength ToMemory(const DataBlob& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   { return stream.WriteBytes(data.Data, data.Size); });
 		}
 
 		static BitLength FromMemory(DataBlob& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			if(data.Data != nullptr)
 				B3DFree(data.Data);
@@ -52,7 +52,7 @@ namespace bs
 		{
 			BitLength dataSize = data.Size;
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

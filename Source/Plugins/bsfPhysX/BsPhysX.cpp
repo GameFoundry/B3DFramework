@@ -540,8 +540,8 @@ void PhysX::FixedUpdate(float step)
 
 	// Note: Consider delaying fetchResults one frame. This could improve performance because Physics update would be
 	//       able to run parallel to the simulation thread, but at a cost to input latency.
-	bs_frame_mark();
-	u8* scratchBuffer = bs_frame_alloc_aligned(kScratchBufferSize, 16);
+	B3DMarkAllocatorFrame();
+	u8* scratchBuffer = B3DFrameAllocateAligned(kScratchBufferSize, 16);
 
 	for(auto& scene : mScenes)
 	{
@@ -552,8 +552,8 @@ void PhysX::FixedUpdate(float step)
 			BS_LOG(Warning, Physics, "Physics simulation failed. Error code: {0}", errorState);
 	}
 
-	bs_frame_free_aligned(scratchBuffer);
-	bs_frame_clear();
+	B3DFrameFreeAligned(scratchBuffer);
+	B3DClearAllocatorFrame();
 
 	// Update rigidbodies with new transforms
 	for(auto& scene : mScenes)

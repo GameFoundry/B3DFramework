@@ -503,7 +503,7 @@ bool RTTIFieldWrapper<false>::ComparePlain(const RTTIFieldWrapper<true>& other) 
 
 	u32 otherTypeSize = other.GetPlainSize();
 
-	auto buffer = bs_stack_alloc<u8>(otherTypeSize);
+	auto buffer = B3DStackAllocate<u8>(otherTypeSize);
 	other.GetPlainData(buffer, otherTypeSize);
 
 	bool isModified = curFieldData->Size != otherTypeSize;
@@ -601,12 +601,12 @@ bool RTTIFieldWrapper<true>::ComparePlain(const RTTIFieldWrapper<true>& other) c
 {
 	u32 curTypeSize = GetPlainSize();
 
-	auto curBuffer = bs_stack_alloc<u8>(curTypeSize);
+	auto curBuffer = B3DStackAllocate<u8>(curTypeSize);
 	GetPlainData(curBuffer, curTypeSize);
 
 	u32 otherTypeSize = other.GetPlainSize();
 
-	auto otherBuffer = bs_stack_alloc<u8>(otherTypeSize);
+	auto otherBuffer = B3DStackAllocate<u8>(otherTypeSize);
 	other.GetPlainData(otherBuffer, otherTypeSize);
 
 	bool isModified = curTypeSize != otherTypeSize;
@@ -622,7 +622,7 @@ bool RTTIFieldWrapper<true>::ComparePlain(const RTTIFieldWrapper<false>& other) 
 
 	u32 curTypeSize = other.GetPlainSize();
 
-	auto buffer = bs_stack_alloc<u8>(curTypeSize);
+	auto buffer = B3DStackAllocate<u8>(curTypeSize);
 	GetPlainData(buffer, curTypeSize);
 
 	bool isModified = otherFieldData->Size != curTypeSize;
@@ -770,7 +770,7 @@ SPtr<SerializedInstance> GenerateFieldDiff(RTTITypeBase* rtti, u32 fieldType, co
 				u8* orgStreamData = nullptr;
 				if(orgFieldStream->IsFile())
 				{
-					orgStreamData = (u8*)bs_stack_alloc(orgFieldDataSize);
+					orgStreamData = (u8*)B3DStackAllocate(orgFieldDataSize);
 					orgFieldStream->Seek(orgFieldOffset);
 					orgFieldStream->Read(orgStreamData, orgFieldDataSize);
 				}
@@ -783,7 +783,7 @@ SPtr<SerializedInstance> GenerateFieldDiff(RTTITypeBase* rtti, u32 fieldType, co
 				u8* newStreamData = nullptr;
 				if(newFieldStream->IsFile())
 				{
-					newStreamData = (u8*)bs_stack_alloc(newFieldDataSize);
+					newStreamData = (u8*)B3DStackAllocate(newFieldDataSize);
 					newFieldStream->Seek(newFieldOffset);
 					newFieldStream->Read(newStreamData, newFieldDataSize);
 				}
@@ -796,10 +796,10 @@ SPtr<SerializedInstance> GenerateFieldDiff(RTTITypeBase* rtti, u32 fieldType, co
 				isModified = memcmp(orgStreamData, newStreamData, newFieldDataSize) != 0;
 
 				if(newFieldStream->IsFile())
-					bs_stack_free(newStreamData);
+					B3DStackFree(newStreamData);
 
 				if(orgFieldStream->IsFile())
-					bs_stack_free(orgStreamData);
+					B3DStackFree(orgStreamData);
 			}
 
 			if(isModified)

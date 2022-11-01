@@ -39,7 +39,7 @@ namespace bs
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
 		{
-			if(context == nullptr || !rtti_is_of_type<CoreSerializationContext>(context))
+			if(context == nullptr || !B3DRTTIIsOfType<CoreSerializationContext>(context))
 				return;
 
 			auto coreContext = static_cast<CoreSerializationContext*>(context);

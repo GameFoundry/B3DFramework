@@ -327,7 +327,7 @@ void Renderable::MarkResourcesDirtyInternal()
 CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 {
 	const u32 dirtyFlags = GetCoreDirtyFlags();
-	u32 size = rtti_size(dirtyFlags).Bytes;
+	u32 size = B3DRTTISize(dirtyFlags).Bytes;
 	SceneActor::RttiEnumFields(RttiCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
 
 	// The most common case if only the transform changed, so we sync only transform related options
@@ -343,14 +343,14 @@ CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 			animationId = (u64)-1;
 
 		size +=
-			rtti_size(mLayer).Bytes +
-			rtti_size(mOverrideBounds).Bytes +
-			rtti_size(mUseOverrideBounds).Bytes +
-			rtti_size(mWriteVelocity).Bytes +
-			rtti_size(numMaterials).Bytes +
-			rtti_size(animationId).Bytes +
-			rtti_size(mAnimType).Bytes +
-			rtti_size(mCullDistanceFactor).Bytes +
+			B3DRTTISize(mLayer).Bytes +
+			B3DRTTISize(mOverrideBounds).Bytes +
+			B3DRTTISize(mUseOverrideBounds).Bytes +
+			B3DRTTISize(mWriteVelocity).Bytes +
+			B3DRTTISize(numMaterials).Bytes +
+			B3DRTTISize(animationId).Bytes +
+			B3DRTTISize(mAnimType).Bytes +
+			B3DRTTISize(mCullDistanceFactor).Bytes +
 			sizeof(SPtr<ct::Mesh>) +
 			numMaterials * sizeof(SPtr<ct::Material>);
 	}
@@ -358,19 +358,19 @@ CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 	u8* data = allocator->Alloc(size);
 	Bitstream stream(data, size);
 
-	rtti_write(dirtyFlags, stream);
+	B3DRTTIWrite(dirtyFlags, stream);
 	SceneActor::RttiEnumFields(RttiCoreSyncWriter(stream), (ActorDirtyFlags)dirtyFlags);
 
 	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
 	{
-		rtti_write(mLayer, stream);
-		rtti_write(mOverrideBounds, stream);
-		rtti_write(mUseOverrideBounds, stream);
-		rtti_write(mWriteVelocity, stream);
-		rtti_write(numMaterials, stream);
-		rtti_write(animationId, stream);
-		rtti_write(mAnimType, stream);
-		rtti_write(mCullDistanceFactor, stream);
+		B3DRTTIWrite(mLayer, stream);
+		B3DRTTIWrite(mOverrideBounds, stream);
+		B3DRTTIWrite(mUseOverrideBounds, stream);
+		B3DRTTIWrite(mWriteVelocity, stream);
+		B3DRTTIWrite(numMaterials, stream);
+		B3DRTTIWrite(animationId, stream);
+		B3DRTTIWrite(mAnimType, stream);
+		B3DRTTIWrite(mCullDistanceFactor, stream);
 
 		SPtr<ct::Mesh>* mesh = new(stream.Cursor()) SPtr<ct::Mesh>();
 		if(mMesh.IsLoaded())
@@ -674,7 +674,7 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 	u32 dirtyFlags = 0;
 	bool oldIsActive = mActive;
 
-	rtti_read(dirtyFlags, stream);
+	B3DRTTIRead(dirtyFlags, stream);
 	SceneActor::RttiEnumFields(RttiCoreSyncReader(stream), (ActorDirtyFlags)dirtyFlags);
 
 	mTfrmMatrix = mTransform.GetMatrix();
@@ -682,14 +682,14 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 
 	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
 	{
-		rtti_read(mLayer, stream);
-		rtti_read(mOverrideBounds, stream);
-		rtti_read(mUseOverrideBounds, stream);
-		rtti_read(mWriteVelocity, stream);
-		rtti_read(numMaterials, stream);
-		rtti_read(mAnimationId, stream);
-		rtti_read(mAnimType, stream);
-		rtti_read(mCullDistanceFactor, stream);
+		B3DRTTIRead(mLayer, stream);
+		B3DRTTIRead(mOverrideBounds, stream);
+		B3DRTTIRead(mUseOverrideBounds, stream);
+		B3DRTTIRead(mWriteVelocity, stream);
+		B3DRTTIRead(numMaterials, stream);
+		B3DRTTIRead(mAnimationId, stream);
+		B3DRTTIRead(mAnimType, stream);
+		B3DRTTIRead(mCullDistanceFactor, stream);
 
 		SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.Cursor();
 		mMesh = *mesh;

@@ -32,13 +32,13 @@ namespace bs
 		{
 			static constexpr uint8_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Type, stream);
-				size += rtti_write(data.I, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Type, stream);
+				size += B3DRTTIWrite(data.I, stream);
 
 				return size; });
 		}
@@ -46,15 +46,15 @@ namespace bs
 		static BitLength FromMemory(ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint8_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == 0);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Type, stream);
-			rtti_read(data.I, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Type, stream);
+			B3DRTTIRead(data.I, stream);
 
 			return size;
 		}
@@ -62,11 +62,11 @@ namespace bs
 		static BitLength GetSize(const ShaderVariation::Param& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);
-			dataSize += rtti_size(data.Name);
-			dataSize += rtti_size(data.Type);
-			dataSize += rtti_size(data.I);
+			dataSize += B3DRTTISize(data.Name);
+			dataSize += B3DRTTISize(data.Type);
+			dataSize += B3DRTTISize(data.I);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

@@ -30,20 +30,20 @@ namespace bs
 
 		static BitLength ToMemory(const TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			rtti_write(data.Value, stream);
-			rtti_write(data.InTangent, stream);
-			rtti_write(data.OutTangent, stream);
-			rtti_write(data.Time, stream);
+			B3DRTTIWrite(data.Value, stream);
+			B3DRTTIWrite(data.InTangent, stream);
+			B3DRTTIWrite(data.OutTangent, stream);
+			B3DRTTIWrite(data.Time, stream);
 
 			return sizeof(TKeyframe<T>);
 		}
 
 		static BitLength FromMemory(TKeyframe<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			rtti_read(data.Value, stream);
-			rtti_read(data.InTangent, stream);
-			rtti_read(data.OutTangent, stream);
-			rtti_read(data.Time, stream);
+			B3DRTTIRead(data.Value, stream);
+			B3DRTTIRead(data.InTangent, stream);
+			B3DRTTIRead(data.OutTangent, stream);
+			B3DRTTIRead(data.Time, stream);
 
 			return sizeof(TKeyframe<T>);
 		}
@@ -69,16 +69,16 @@ namespace bs
 
 		static BitLength ToMemory(const TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				constexpr uint32_t VERSION = 0; // In case the data structure changes
 
 				BitLength size = 0;
-				size += rtti_write(VERSION, stream);
-				size += rtti_write(data.mStart, stream);
-				size += rtti_write(data.mEnd, stream);
-				size += rtti_write(data.mLength, stream);
-				size += rtti_write(data.mKeyframes, stream);
+				size += B3DRTTIWrite(VERSION, stream);
+				size += B3DRTTIWrite(data.mStart, stream);
+				size += B3DRTTIWrite(data.mEnd, stream);
+				size += B3DRTTIWrite(data.mLength, stream);
+				size += B3DRTTIWrite(data.mKeyframes, stream);
 
 				return size; });
 		}
@@ -86,15 +86,15 @@ namespace bs
 		static BitLength FromMemory(TAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
-			rtti_read(data.mStart, stream);
-			rtti_read(data.mEnd, stream);
-			rtti_read(data.mLength, stream);
-			rtti_read(data.mKeyframes, stream);
+			B3DRTTIRead(data.mStart, stream);
+			B3DRTTIRead(data.mEnd, stream);
+			B3DRTTIRead(data.mLength, stream);
+			B3DRTTIRead(data.mKeyframes, stream);
 
 			return size;
 		}
@@ -102,11 +102,11 @@ namespace bs
 		static BitLength GetSize(const TAnimationCurve<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
-			dataSize += rtti_size(data.mStart);
-			dataSize += rtti_size(data.mEnd);
-			dataSize += rtti_size(data.mLength);
-			dataSize += rtti_size(data.mKeyframes);
-			rtti_add_header_size(dataSize, compress);
+			dataSize += B3DRTTISize(data.mStart);
+			dataSize += B3DRTTISize(data.mEnd);
+			dataSize += B3DRTTISize(data.mLength);
+			dataSize += B3DRTTISize(data.mKeyframes);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 
 			return dataSize;
 		}
@@ -127,12 +127,12 @@ namespace bs
 
 		static BitLength ToMemory(const TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Flags, stream);
-				size += rtti_write(data.Curve, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Flags, stream);
+				size += B3DRTTIWrite(data.Curve, stream);
 
 				return size; });
 		}
@@ -140,11 +140,11 @@ namespace bs
 		static BitLength FromMemory(TNamedAnimationCurve<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Flags, stream);
-			rtti_read(data.Curve, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Flags, stream);
+			B3DRTTIRead(data.Curve, stream);
 
 			return size;
 		}
@@ -152,10 +152,10 @@ namespace bs
 		static BitLength GetSize(const TNamedAnimationCurve<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize;
-			dataSize += rtti_size(data.Name);
-			dataSize += rtti_size(data.Flags);
-			dataSize += rtti_size(data.Curve);
-			rtti_add_header_size(dataSize, compress);
+			dataSize += B3DRTTISize(data.Name);
+			dataSize += B3DRTTISize(data.Flags);
+			dataSize += B3DRTTISize(data.Curve);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 
 			return dataSize;
 		}

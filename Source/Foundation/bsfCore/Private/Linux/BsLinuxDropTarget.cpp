@@ -325,7 +325,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		}
 		else
 		{
-			propertyList = bs_stack_alloc<Atom>(3);
+			propertyList = B3DStackAllocate<Atom>(3);
 
 			for(int i = 0; i < 3; i++)
 			{
@@ -358,7 +358,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		if(isList)
 			XFree(propertyList);
 		else
-			bs_stack_free(propertyList);
+			B3DStackFree(propertyList);
 
 		sDragActive = foundSupportedType;
 	}
@@ -372,7 +372,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 
 		// Respond with a status message, we either accept or reject the dnd
 		XClientMessageEvent response;
-		bs_zero_out(response);
+		B3DZeroOut(response);
 
 		response.type = ClientMessage;
 		response.display = event.display;
@@ -482,7 +482,7 @@ bool LinuxDragAndDrop::handleClientMessage(XClientMessageEvent& event)
 		{
 			// Respond with a status message that we reject the drop
 			XClientMessageEvent response;
-			bs_zero_out(response);
+			B3DZeroOut(response);
 
 			response.type = ClientMessage;
 			response.display = event.display;
@@ -553,7 +553,7 @@ bool LinuxDragAndDrop::handleSelectionNotify(XSelectionEvent& event)
 
 	// Respond with a status message that we accepted the drop
 	XClientMessageEvent response;
-	bs_zero_out(response);
+	B3DZeroOut(response);
 
 	response.type = ClientMessage;
 	response.display = event.display;

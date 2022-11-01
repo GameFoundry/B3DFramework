@@ -9,7 +9,7 @@ using namespace bs;
 GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DESC& desc)
 	: mNumSets(0), mNumElements(0), mSetInfos(nullptr), mResourceInfos()
 {
-	bs_zero_out(mNumElementsPerType);
+	B3DZeroOut(mNumElementsPerType);
 
 	mParamDescs[GPT_FRAGMENT_PROGRAM] = desc.FragmentParams;
 	mParamDescs[GPT_VERTEX_PROGRAM] = desc.VertexParams;
@@ -52,8 +52,8 @@ GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DES
 			countElements(sampler.second, ParamType::SamplerState);
 	}
 
-	u32* numSlotsPerSet = (u32*)bs_stack_alloc(mNumSets * sizeof(u32));
-	bs_zero_out(numSlotsPerSet, mNumSets);
+	u32* numSlotsPerSet = (u32*)B3DStackAllocate(mNumSets * sizeof(u32));
+	B3DZeroOut(numSlotsPerSet, mNumSets);
 
 	for(u32 i = 0; i < numParamDescs; i++)
 	{
@@ -99,12 +99,12 @@ GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DES
 	mSetInfos = mAlloc.Alloc<SetInfo>(mNumSets);
 
 	if(mSetInfos != nullptr)
-		bs_zero_out(mSetInfos, mNumSets);
+		B3DZeroOut(mSetInfos, mNumSets);
 
 	for(u32 i = 0; i < mNumSets; i++)
 		mSetInfos[i].NumSlots = numSlotsPerSet[i];
 
-	bs_stack_free(numSlotsPerSet);
+	B3DStackFree(numSlotsPerSet);
 
 	for(u32 i = 0; i < mNumSets; i++)
 	{

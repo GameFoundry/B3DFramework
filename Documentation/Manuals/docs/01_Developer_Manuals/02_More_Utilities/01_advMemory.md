@@ -7,34 +7,34 @@ bs::f allows you to allocate memory in various ways, so you can have fast memory
 # Stack allocator
 Stack allocator allows you to allocate memory quickly and with zero fragmentation. It comes with a restriction that it can only deallocate memory in the opposite order it was allocated. This usually only makes it suitable for temporary allocations within a single method, where you can guarantee the proper order.
 
-Use @bs::bs_stack_alloc / @bs::bs_stack_free or @bs::bs_stack_new / @bs::bs_stack_delete to allocate/free memory using the stack allocator.
+Use @bs::B3DStackAllocate / @bs::B3DStackFree or @bs::B3DStackNew / @bs::B3DStackDelete to allocate/free memory using the stack allocator.
 
 ~~~~~~~~~~~~~{.cpp}
-UINT8* buffer = bs_stack_alloc(1024);
+UINT8* buffer = B3DStackAllocate(1024);
 ... do something with buffer ...
-UINT8* buffer2 = bs_stack_alloc(512);
+UINT8* buffer2 = B3DStackAllocate(512);
 ... do something with buffer2 ...
-bs_stack_free(buffer2); // Must free buffer2 first!
-bs_stack_free(buffer);
+B3DStackFree(buffer2); // Must free buffer2 first!
+B3DStackFree(buffer);
 ~~~~~~~~~~~~~
 
 # Frame allocator
 Frame allocator segments all allocated memory into *frames*. These frames are stored in a stack-like fashion, and must be deallocated in the opposite order they were allocated, similar to how the stack allocator works. However there are no restrictions on memory deallocation within a single frame, which makes this type of allocator usable in many more situations than the stack allocator. Its downside is that it doesn't deallocate memory until the whole frame is freed - which means it usually uses up more memory than it would otherwise need to.
 
-Use @bs::bs_frame_mark to start a new frame, and use @bs::bs_frame_clear to free all of the memory in a single frame. The frames have to be released in opposite order they were created. 
+Use @bs::B3DMarkAllocatorFrame to start a new frame, and use @bs::B3DClearAllocatorFrame to free all of the memory in a single frame. The frames have to be released in opposite order they were created. 
 
-Once you have started a frame use @bs::bs_frame_alloc / @bs::bs_frame_free or @bs::bs_frame_new / @bs::bs_frame_delete to allocate/free memory using the frame allocator. Calls to **bs_frame_free()** / **bs_frame_delete()** are required even through the frame allocator doesn't process individual deallocations, and this is used primarily for debug purposes.
+Once you have started a frame use @bs::B3DFrameAllocate / @bs::B3DFrameFree or @bs::B3DFrameNew / @bs::B3DFrameDelete to allocate/free memory using the frame allocator. Calls to **B3DFrameFree()** / **B3DFrameDelete()** are required even through the frame allocator doesn't process individual deallocations, and this is used primarily for debug purposes.
 
 ~~~~~~~~~~~~~{.cpp}
 // Mark a new frame
-bs_frame_mark();
-UINT8* buffer = bs_frame_alloc(1024);
+B3DMarkAllocatorFrame();
+UINT8* buffer = B3DFrameAllocate(1024);
 ... do something with buffer ...
-UINT8* buffer2 = bs_frame_alloc(512);
+UINT8* buffer2 = B3DFrameAllocate(512);
 ... do something with buffer2 ...
-bs_frame_free(buffer); // Only does some checks in debug mode, doesn't actually free anything
-bs_frame_free(buffer2); // Only does some checks in debug mode, doesn't actually free anything
-bs_frame_clear(); // Frees memory for both buffers
+B3DFrameFree(buffer); // Only does some checks in debug mode, doesn't actually free anything
+B3DFrameFree(buffer2); // Only does some checks in debug mode, doesn't actually free anything
+B3DClearAllocatorFrame(); // Frees memory for both buffers
 ~~~~~~~~~~~~~
 
 ## Local frame allocators
@@ -61,12 +61,12 @@ You may also use frame allocator to allocate containers like **String**, **Vecto
 
 ~~~~~~~~~~~~~{.cpp}
 // Mark a new frame
-bs_frame_mark();
+B3DMarkAllocatorFrame();
 {
 	FrameVector<UINT8> vector;
 	... populate the vector ... // No dynamic memory allocation cost as with a normal Vector
-} // Block making sure the vector is deallocated before calling bs_frame_clear
-bs_frame_clear(); // Frees memory for the vector
+} // Block making sure the vector is deallocated before calling B3DClearAllocatorFrame
+B3DClearAllocatorFrame(); // Frees memory for the vector
 ~~~~~~~~~~~~~
 
 # Pool allocator

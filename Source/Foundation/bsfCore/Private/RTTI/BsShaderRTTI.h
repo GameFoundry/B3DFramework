@@ -36,19 +36,19 @@ namespace bs
 		{
 			static constexpr u32 kVersion = 1;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
-				size += rtti_write(data.ArraySize, stream);
-				size += rtti_write(data.RendererSemantic, stream);
-				size += rtti_write(data.Type, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.GpuVariableName, stream);
-				size += rtti_write(data.ElementSize, stream);
-				size += rtti_write(data.DefaultValueIdx, stream);
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.AttribIdx, stream);
+				size += B3DRTTIWrite(data.ArraySize, stream);
+				size += B3DRTTIWrite(data.RendererSemantic, stream);
+				size += B3DRTTIWrite(data.Type, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.GpuVariableName, stream);
+				size += B3DRTTIWrite(data.ElementSize, stream);
+				size += B3DRTTIWrite(data.DefaultValueIdx, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.AttribIdx, stream);
 
 				return size; });
 		}
@@ -56,26 +56,26 @@ namespace bs
 		static BitLength FromMemory(SHADER_DATA_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
+			BitLength sizeRead = B3DRTTIReadSizeHeader(stream, compress, size);
 
-			sizeRead += rtti_read(data.ArraySize, stream);
-			sizeRead += rtti_read(data.RendererSemantic, stream);
-			sizeRead += rtti_read(data.Type, stream);
-			sizeRead += rtti_read(data.Name, stream);
-			sizeRead += rtti_read(data.GpuVariableName, stream);
-			sizeRead += rtti_read(data.ElementSize, stream);
-			sizeRead += rtti_read(data.DefaultValueIdx, stream);
+			sizeRead += B3DRTTIRead(data.ArraySize, stream);
+			sizeRead += B3DRTTIRead(data.RendererSemantic, stream);
+			sizeRead += B3DRTTIRead(data.Type, stream);
+			sizeRead += B3DRTTIRead(data.Name, stream);
+			sizeRead += B3DRTTIRead(data.GpuVariableName, stream);
+			sizeRead += B3DRTTIRead(data.ElementSize, stream);
+			sizeRead += B3DRTTIRead(data.DefaultValueIdx, stream);
 
 			// There's more to read, meaning we're reading a newer version of the format
 			// (In the first version, version field is missing, so we check this way).
 			if(sizeRead < size)
 			{
 				uint32_t version = 0;
-				rtti_read(version, stream);
+				B3DRTTIRead(version, stream);
 				switch(version)
 				{
 				case 1:
-					rtti_read(data.AttribIdx, stream);
+					B3DRTTIRead(data.AttribIdx, stream);
 					break;
 				default:
 					BS_LOG(Error, RTTI, "Unknown version. Unable to deserialize.");
@@ -88,11 +88,11 @@ namespace bs
 
 		static BitLength GetSize(const SHADER_DATA_PARAM_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.ArraySize) + rtti_size(data.RendererSemantic) + rtti_size(data.Type) +
-				rtti_size(data.Name) + rtti_size(data.GpuVariableName) + rtti_size(data.ElementSize) +
-				rtti_size(data.DefaultValueIdx) + rtti_size(data.AttribIdx) + sizeof(uint32_t);
+			BitLength dataSize = B3DRTTISize(data.ArraySize) + B3DRTTISize(data.RendererSemantic) + B3DRTTISize(data.Type) +
+				B3DRTTISize(data.Name) + B3DRTTISize(data.GpuVariableName) + B3DRTTISize(data.ElementSize) +
+				B3DRTTISize(data.DefaultValueIdx) + B3DRTTISize(data.AttribIdx) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -114,16 +114,16 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 1;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.RendererSemantic, stream);
-				size += rtti_write(data.Type, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.GpuVariableNames, stream);
-				size += rtti_write(data.DefaultValueIdx, stream);
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.AttribIdx, stream);
+				size += B3DRTTIWrite(data.RendererSemantic, stream);
+				size += B3DRTTIWrite(data.Type, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.GpuVariableNames, stream);
+				size += B3DRTTIWrite(data.DefaultValueIdx, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.AttribIdx, stream);
 
 				return size; });
 		}
@@ -131,24 +131,24 @@ namespace bs
 		static BitLength FromMemory(SHADER_OBJECT_PARAM_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			BitLength sizeRead = rtti_read_size_header(stream, compress, size);
+			BitLength sizeRead = B3DRTTIReadSizeHeader(stream, compress, size);
 
-			sizeRead += rtti_read(data.RendererSemantic, stream);
-			sizeRead += rtti_read(data.Type, stream);
-			sizeRead += rtti_read(data.Name, stream);
-			sizeRead += rtti_read(data.GpuVariableNames, stream);
-			sizeRead += rtti_read(data.DefaultValueIdx, stream);
+			sizeRead += B3DRTTIRead(data.RendererSemantic, stream);
+			sizeRead += B3DRTTIRead(data.Type, stream);
+			sizeRead += B3DRTTIRead(data.Name, stream);
+			sizeRead += B3DRTTIRead(data.GpuVariableNames, stream);
+			sizeRead += B3DRTTIRead(data.DefaultValueIdx, stream);
 
 			// There's more to read, meaning we're reading a newer version of the format
 			// (In the first version, version field is missing, so we check this way).
 			if(sizeRead < size)
 			{
 				uint32_t version = 0;
-				rtti_read(version, stream);
+				B3DRTTIRead(version, stream);
 				switch(version)
 				{
 				case 1:
-					rtti_read(data.AttribIdx, stream);
+					B3DRTTIRead(data.AttribIdx, stream);
 					break;
 				default:
 					BS_LOG(Error, RTTI, "Unknown version. Unable to deserialize.");
@@ -161,11 +161,11 @@ namespace bs
 
 		static BitLength GetSize(const SHADER_OBJECT_PARAM_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.RendererSemantic) + rtti_size(data.Type) +
-				rtti_size(data.Name) + rtti_size(data.GpuVariableNames) +
-				rtti_size(data.DefaultValueIdx) + rtti_size(data.AttribIdx) + sizeof(uint32_t);
+			BitLength dataSize = B3DRTTISize(data.RendererSemantic) + B3DRTTISize(data.Type) +
+				B3DRTTISize(data.Name) + B3DRTTISize(data.GpuVariableNames) +
+				B3DRTTISize(data.DefaultValueIdx) + B3DRTTISize(data.AttribIdx) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -185,13 +185,13 @@ namespace bs
 
 		static BitLength ToMemory(const SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.Shared, stream);
-				size += rtti_write(data.Usage, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.RendererSemantic, stream);
+				size += B3DRTTIWrite(data.Shared, stream);
+				size += B3DRTTIWrite(data.Usage, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.RendererSemantic, stream);
 
 				return size; });
 		}
@@ -199,22 +199,22 @@ namespace bs
 		static BitLength FromMemory(SHADER_PARAM_BLOCK_DESC& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.Shared, stream);
-			rtti_read(data.Usage, stream);
-			rtti_read(data.Name, stream);
-			rtti_read(data.RendererSemantic, stream);
+			B3DRTTIRead(data.Shared, stream);
+			B3DRTTIRead(data.Usage, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.RendererSemantic, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const SHADER_PARAM_BLOCK_DESC& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.Shared) + rtti_size(data.Usage) +
-				rtti_size(data.Name) + rtti_size(data.RendererSemantic);
+			BitLength dataSize = B3DRTTISize(data.Shared) + B3DRTTISize(data.Usage) +
+				B3DRTTISize(data.Name) + B3DRTTISize(data.RendererSemantic);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -236,13 +236,13 @@ namespace bs
 		{
 			static constexpr u32 kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Type, stream);
-				size += rtti_write(data.Value, stream);
-				size += rtti_write(data.NextParamIdx, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Type, stream);
+				size += B3DRTTIWrite(data.Value, stream);
+				size += B3DRTTIWrite(data.NextParamIdx, stream);
 
 				return size; });
 		}
@@ -250,17 +250,17 @@ namespace bs
 		static BitLength FromMemory(SHADER_PARAM_ATTRIBUTE& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				rtti_read(data.Type, stream);
-				rtti_read(data.Value, stream);
-				rtti_read(data.NextParamIdx, stream);
+				B3DRTTIRead(data.Type, stream);
+				B3DRTTIRead(data.Value, stream);
+				B3DRTTIRead(data.NextParamIdx, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version. Unable to deserialize.");
@@ -272,10 +272,10 @@ namespace bs
 
 		static BitLength GetSize(const SHADER_PARAM_ATTRIBUTE& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.Type) + rtti_size(data.Value) +
-				rtti_size(data.NextParamIdx) + sizeof(uint32_t);
+			BitLength dataSize = B3DRTTISize(data.Type) + B3DRTTISize(data.Value) +
+				B3DRTTISize(data.NextParamIdx) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -297,12 +297,12 @@ namespace bs
 		{
 			static constexpr uint8_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Value, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Value, stream);
 
 				return size; });
 		}
@@ -310,14 +310,14 @@ namespace bs
 		static BitLength FromMemory(ShaderVariationParamValue& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint8_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == 0);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Value, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Value, stream);
 
 			return size;
 		}
@@ -325,10 +325,10 @@ namespace bs
 		static BitLength GetSize(const ShaderVariationParamValue& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);
-			dataSize += rtti_size(data.Name);
-			dataSize += rtti_size(data.Value);
+			dataSize += B3DRTTISize(data.Name);
+			dataSize += B3DRTTISize(data.Value);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -350,14 +350,14 @@ namespace bs
 		{
 			static constexpr uint8_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Identifier, stream);
-				size += rtti_write(data.IsInternal, stream);
-				size += rtti_write(data.Values, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Identifier, stream);
+				size += B3DRTTIWrite(data.IsInternal, stream);
+				size += B3DRTTIWrite(data.Values, stream);
 
 				return size; });
 		}
@@ -365,16 +365,16 @@ namespace bs
 		static BitLength FromMemory(ShaderVariationParamInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint8_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == 0);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Identifier, stream);
-			rtti_read(data.IsInternal, stream);
-			rtti_read(data.Values, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Identifier, stream);
+			B3DRTTIRead(data.IsInternal, stream);
+			B3DRTTIRead(data.Values, stream);
 
 			return size;
 		}
@@ -382,12 +382,12 @@ namespace bs
 		static BitLength GetSize(const ShaderVariationParamInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);
-			dataSize += rtti_size(data.Name);
-			dataSize += rtti_size(data.Identifier);
-			dataSize += rtti_size(data.IsInternal);
-			dataSize += rtti_size(data.Values);
+			dataSize += B3DRTTISize(data.Name);
+			dataSize += B3DRTTISize(data.Identifier);
+			dataSize += B3DRTTISize(data.IsInternal);
+			dataSize += B3DRTTISize(data.Values);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

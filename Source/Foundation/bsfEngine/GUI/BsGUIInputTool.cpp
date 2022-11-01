@@ -17,7 +17,7 @@ void GUIInputTool::UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC&
 
 	mLineDescs.clear();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		const U32String utf32text = UTF8::ToUtF32(mTextDesc.Text);
 		TextData<FrameAlloc> textData(utf32text, mTextDesc.Font, mTextDesc.FontSize, mTextDesc.Width, mTextDesc.Height, mTextDesc.WordWrap, mTextDesc.WordBreak);
@@ -40,7 +40,7 @@ void GUIInputTool::UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC&
 		u32 curCharIdx = 0;
 		u32 curLineIdx = 0;
 
-		Vector2I* alignmentOffsets = bs_frame_new<Vector2I>(numLines);
+		Vector2I* alignmentOffsets = B3DFrameNew<Vector2I>(numLines);
 		TextSprite::GetAlignmentOffsets(textData, mTextDesc.Width, mTextDesc.Height, mTextDesc.HorzAlign, mTextDesc.VertAlign, alignmentOffsets);
 
 		for(u32 i = 0; i < numLines; i++)
@@ -62,9 +62,9 @@ void GUIInputTool::UpdateText(const GUIElement* element, const TEXT_SPRITE_DESC&
 			curLineIdx++;
 		}
 
-		bs_frame_delete(alignmentOffsets);
+		B3DFrameDelete(alignmentOffsets);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 Vector2I GUIInputTool::GetTextOffset() const

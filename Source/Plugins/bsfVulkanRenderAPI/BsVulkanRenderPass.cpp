@@ -15,9 +15,9 @@ VulkanRenderPass::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfa
 size_t VulkanRenderPass::VariantKey::HashFunction::operator()(const VariantKey& v) const
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, v.ReadMask);
-	bs_hash_combine(hash, v.LoadMask);
-	bs_hash_combine(hash, v.ClearMask);
+	B3DCombineHash(hash, v.ReadMask);
+	B3DCombineHash(hash, v.LoadMask);
+	B3DCombineHash(hash, v.ClearMask);
 
 	return hash;
 }
@@ -300,16 +300,16 @@ VulkanRenderPasses::VariantKey::VariantKey(const VkDevice& device, const VULKAN_
 size_t VulkanRenderPasses::VariantKey::HashFunction::operator()(const VariantKey& v) const
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, v.Device);
-	bs_hash_combine(hash, v.Desc.Offscreen);
-	bs_hash_combine(hash, v.Desc.NumSamples);
-	bs_hash_combine(hash, v.Desc.Depth.Enabled);
-	bs_hash_combine(hash, v.Desc.Depth.Format);
+	B3DCombineHash(hash, v.Device);
+	B3DCombineHash(hash, v.Desc.Offscreen);
+	B3DCombineHash(hash, v.Desc.NumSamples);
+	B3DCombineHash(hash, v.Desc.Depth.Enabled);
+	B3DCombineHash(hash, v.Desc.Depth.Format);
 
-	for(u32 i = 0; i < bs_size(v.Desc.Color); i++)
+	for(u32 i = 0; i < B3DSize(v.Desc.Color); i++)
 	{
-		bs_hash_combine(hash, v.Desc.Color[i].Enabled);
-		bs_hash_combine(hash, v.Desc.Color[i].Format);
+		B3DCombineHash(hash, v.Desc.Color[i].Enabled);
+		B3DCombineHash(hash, v.Desc.Color[i].Format);
 	}
 
 	return hash;
@@ -324,7 +324,7 @@ bool VulkanRenderPasses::VariantKey::EqualFunction::operator()(const VariantKey&
 	   lhs.Desc.Depth.Format != rhs.Desc.Depth.Format)
 		return false;
 
-	for(u32 i = 0; i < bs_size(lhs.Desc.Color); i++)
+	for(u32 i = 0; i < B3DSize(lhs.Desc.Color); i++)
 	{
 		if(lhs.Desc.Color[i].Enabled != rhs.Desc.Color[i].Enabled ||
 		   lhs.Desc.Color[i].Format != rhs.Desc.Color[i].Format)

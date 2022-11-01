@@ -75,7 +75,7 @@ size_t HardwareBufferManager::VertexDeclarationKey::HashFunction::operator()(con
 {
 	size_t hash = 0;
 	for(auto& entry : v.Elements)
-		bs_hash_combine(hash, VertexElement::GetHash(entry));
+		B3DCombineHash(hash, VertexElement::GetHash(entry));
 
 	return hash;
 }

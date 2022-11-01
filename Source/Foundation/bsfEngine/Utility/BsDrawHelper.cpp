@@ -1199,8 +1199,8 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 
 				// Note: Need temporary buffers because TextLine doesn't support arbitrary vertex stride. Eventually
 				// that should be supported (should be almost trivial to implement)
-				Vector2* tempVertices = bs_stack_alloc<Vector2>(shapeData.NumVertices);
-				Vector2* tempUVs = bs_stack_alloc<Vector2>(shapeData.NumVertices);
+				Vector2* tempVertices = B3DStackAllocate<Vector2>(shapeData.NumVertices);
+				Vector2* tempUVs = B3DStackAllocate<Vector2>(shapeData.NumVertices);
 
 				u32 numLines = renderData.TextData->GetNumLines();
 				u32 quadOffset = 0;
@@ -1231,8 +1231,8 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 					colorIter[typeIdx].AddValue(text2DData.Color.GetAsRgba());
 				}
 
-				bs_stack_free(tempUVs);
-				bs_stack_free(tempVertices);
+				B3DStackFree(tempUVs);
+				B3DStackFree(tempVertices);
 
 				vertexOffset[typeIdx] += shapeData.NumVertices;
 				indexOffset[typeIdx] += shapeData.NumIndices;

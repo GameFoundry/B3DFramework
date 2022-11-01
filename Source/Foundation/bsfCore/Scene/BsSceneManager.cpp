@@ -97,7 +97,7 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 	u32 numChildren = oldRoot->GetNumChildren();
 	// Make sure to keep persistent objects
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<HSceneObject> toRemove;
 		for(u32 i = 0; i < numChildren; i++)
@@ -111,7 +111,7 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 		for(auto& entry : toRemove)
 			entry->SetParent(root, false);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	mMainScene->mRoot = root;
 	mMainScene->mRoot->SetParentInternal(HSceneObject());

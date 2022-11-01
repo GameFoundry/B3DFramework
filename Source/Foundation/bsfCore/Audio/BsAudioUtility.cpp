@@ -150,7 +150,7 @@ void AudioUtility::ConvertBitDepth(const u8* input, u32 inBitDepth, u8* output, 
 
 	const bool needTempBuffer = inBitDepth != 32;
 	if(needTempBuffer)
-		srcBuffer = (i32*)bs_stack_alloc(numSamples * sizeof(i32));
+		srcBuffer = (i32*)B3DStackAllocate(numSamples * sizeof(i32));
 	else
 		srcBuffer = (i32*)input;
 
@@ -197,7 +197,7 @@ void AudioUtility::ConvertBitDepth(const u8* input, u32 inBitDepth, u8* output, 
 
 	if(needTempBuffer)
 	{
-		bs_stack_free(srcBuffer);
+		B3DStackFree(srcBuffer);
 		srcBuffer = nullptr;
 	}
 }

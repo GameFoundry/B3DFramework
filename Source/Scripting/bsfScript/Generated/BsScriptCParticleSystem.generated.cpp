@@ -168,23 +168,23 @@ MonoArray* ScriptCParticleSystem::InternalGetEvolvers(ScriptCParticleSystem* thi
 		MonoObject* arrayElem__output;
 		if(arrayElemPtr__output)
 		{
-			if(rtti_is_of_type<ParticleGravity>(arrayElemPtr__output))
+			if(B3DRTTIIsOfType<ParticleGravity>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleGravity::Create(std::static_pointer_cast<ParticleGravity>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleForce>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleForce>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleForce::Create(std::static_pointer_cast<ParticleForce>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleVelocity>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleVelocity>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleVelocity::Create(std::static_pointer_cast<ParticleVelocity>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleTextureAnimation>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleTextureAnimation>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleTextureAnimation::Create(std::static_pointer_cast<ParticleTextureAnimation>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleOrbit>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleOrbit>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleOrbit::Create(std::static_pointer_cast<ParticleOrbit>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleColor>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleColor>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleColor::Create(std::static_pointer_cast<ParticleColor>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleSize>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleSize>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleSize::Create(std::static_pointer_cast<ParticleSize>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleRotation>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleRotation>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleRotation::Create(std::static_pointer_cast<ParticleRotation>(arrayElemPtr__output));
-			else if(rtti_is_of_type<ParticleCollisions>(arrayElemPtr__output))
+			else if(B3DRTTIIsOfType<ParticleCollisions>(arrayElemPtr__output))
 				arrayElem__output = ScriptParticleCollisions::Create(std::static_pointer_cast<ParticleCollisions>(arrayElemPtr__output));
 			else
 				arrayElem__output = ScriptParticleEvolver::Create(arrayElemPtr__output);

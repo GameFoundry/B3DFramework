@@ -100,7 +100,7 @@ namespace bs
 		{
 			PrefabDiff* prefabDiff = static_cast<PrefabDiff*>(obj);
 
-			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
+			BS_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
 
 			if(coreContext->GoState)
@@ -112,7 +112,7 @@ namespace bs
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
-			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
+			BS_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			const auto coreContext = static_cast<CoreSerializationContext*>(context);
 			BS_ASSERT(coreContext->GoState);
 
@@ -205,20 +205,20 @@ namespace bs
 					if(entryData == nullptr)
 						continue;
 
-					if(rtti_is_of_type<SerializedArray>(entryData))
+					if(B3DRTTIIsOfType<SerializedArray>(entryData))
 					{
 						SPtr<SerializedArray> arrayData = std::static_pointer_cast<SerializedArray>(entryData);
 
 						for(auto& arrayElem : arrayData->Entries)
 						{
-							if(arrayElem.second.Serialized != nullptr && rtti_is_of_type<SerializedObject>(arrayElem.second.Serialized))
+							if(arrayElem.second.Serialized != nullptr && B3DRTTIIsOfType<SerializedObject>(arrayElem.second.Serialized))
 							{
 								SPtr<SerializedObject> arrayElemData = std::static_pointer_cast<SerializedObject>(arrayElem.second.Serialized);
 								FindGameObjectHandles(arrayElemData, handleObjects);
 							}
 						}
 					}
-					else if(rtti_is_of_type<SerializedObject>(entryData))
+					else if(B3DRTTIIsOfType<SerializedObject>(entryData))
 					{
 						SPtr<SerializedObject> fieldObjectData = std::static_pointer_cast<SerializedObject>(entryData);
 						FindGameObjectHandles(fieldObjectData, handleObjects);

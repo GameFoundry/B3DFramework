@@ -390,12 +390,12 @@ bool BinarySerializer::EncodeEntry(IReflectable* object, u32 objectId, BufferedB
 							stream.WriteBytes(dataBlockSize);
 
 						// Data block data
-						auto dataToStore = (u8*)bs_stack_alloc(dataBlockSize);
+						auto dataToStore = (u8*)B3DStackAllocate(dataBlockSize);
 						blockStream->Read(dataToStore, dataBlockSize);
 
 						stream.Align();
 						stream.WriteBytes(dataToStore, dataBlockSize);
-						bs_stack_free(dataToStore);
+						B3DStackFree(dataToStore);
 
 						break;
 					}
@@ -718,7 +718,7 @@ bool BinarySerializer::DecodeEntry(BufferedBitstreamReader& stream, size_t dataE
 							if(compressed)
 							{
 								BitLength typeSize;
-								BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
+								BitLength headerSize = B3DRTTIReadSizeHeader(stream, true, typeSize);
 								stream.Skip(-(int64_t)headerSize.GetBits());
 
 								typeSizeBits = typeSize.GetBits();
@@ -858,7 +858,7 @@ bool BinarySerializer::DecodeEntry(BufferedBitstreamReader& stream, size_t dataE
 						if(compressed)
 						{
 							BitLength typeSize;
-							BitLength headerSize = rtti_read_size_header(stream, true, typeSize);
+							BitLength headerSize = B3DRTTIReadSizeHeader(stream, true, typeSize);
 							stream.Skip(-(int64_t)headerSize.GetBits());
 
 							typeSizeBits = typeSize.GetBits();

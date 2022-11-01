@@ -159,7 +159,7 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 		data = stream->GetAsString();
 	}
 
-	auto chars = bs_managed_stack_alloc<char>((u32)data.size() + 1);
+	auto chars = B3DManagedStackAllocate<char>((u32)data.size() + 1);
 	memcpy(chars, data.data(), data.size());
 	chars[data.size()] = '\0';
 

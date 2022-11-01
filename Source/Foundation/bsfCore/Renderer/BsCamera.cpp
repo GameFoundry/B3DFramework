@@ -756,7 +756,7 @@ CoreSyncData Camera::SyncToCore(FrameAlloc* allocator)
 {
 	u32 dirtyFlag = GetCoreDirtyFlags();
 
-	u32 size = rtti_size(dirtyFlag).Bytes;
+	u32 size = B3DRTTISize(dirtyFlag).Bytes;
 
 	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
 	{
@@ -769,7 +769,7 @@ CoreSyncData Camera::SyncToCore(FrameAlloc* allocator)
 	u8* buffer = allocator->Alloc(size);
 	Bitstream stream(buffer, size);
 
-	rtti_write(dirtyFlag, stream);
+	B3DRTTIWrite(dirtyFlag, stream);
 
 	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
 	{
@@ -838,7 +838,7 @@ void Camera::SyncToCore(const CoreSyncData& data)
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 	u32 dirtyFlag;
-	rtti_read(dirtyFlag, stream);
+	B3DRTTIRead(dirtyFlag, stream);
 
 	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
 	{

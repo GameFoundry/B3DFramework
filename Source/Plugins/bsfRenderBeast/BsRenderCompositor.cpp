@@ -55,7 +55,7 @@ void RenderCompositor::Build(const RendererView& view, const StringID& finalNode
 {
 	Clear();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameUnorderedMap<StringID, u32> processedNodes;
 		mIsValid = true;
@@ -149,7 +149,7 @@ void RenderCompositor::Build(const RendererView& view, const StringID& finalNode
 		if(!mIsValid)
 			Clear();
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
@@ -157,7 +157,7 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 	if(!mIsValid)
 		return;
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<const NodeInfo*> activeNodes;
 
@@ -196,7 +196,7 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 			idx++;
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	if(!mNodeInfos.empty())
 		mNodeInfos.back().Node->Clear();
@@ -657,7 +657,7 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 	const auto numParticleSystems = (u32)inputs.Scene.ParticleSystems.size();
 
 	// Sort particles
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		struct SortData
 		{
@@ -711,7 +711,7 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 		TaskScheduler::Instance().AddTaskGroup(sortTask);
 		sortTask->Wait();
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void RCNodeParticleSort::Clear()

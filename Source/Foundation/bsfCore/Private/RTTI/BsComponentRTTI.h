@@ -27,7 +27,7 @@ namespace bs
 			if(comp->mRTTIData.Empty())
 				return;
 
-			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
+			BS_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
 
 			GODeserializationData& deserializationData = any_cast_ref<GODeserializationData>(comp->mRTTIData);

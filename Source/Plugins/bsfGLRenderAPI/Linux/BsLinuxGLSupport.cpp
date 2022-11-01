@@ -186,7 +186,7 @@ GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthSten
 
 	i32 numConfigs;
 	GLXFBConfig* configs = glXChooseFBConfig(display, DefaultScreen(display), VISUAL_ATTRIBS, &numConfigs);
-	GLVisualCapabilities* caps = bs_stack_new<GLVisualCapabilities>(numConfigs);
+	GLVisualCapabilities* caps = B3DStackNew<GLVisualCapabilities>(numConfigs);
 
 	// Find a config that best matches the requested properties
 	i32 bestScore = 0;
@@ -275,7 +275,7 @@ GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthSten
 		{
 			// Something went wrong
 			XFree(configs);
-			bs_stack_delete(caps, (u32)numConfigs);
+			B3DStackDelete(caps, (u32)numConfigs);
 
 			return output;
 		}
@@ -288,7 +288,7 @@ GLVisualConfig LinuxGLSupport::findBestVisual(::Display* display, bool depthSten
 
 	XFree(configs);
 	XFree(visualInfo);
-	bs_stack_delete(caps, numConfigs);
+	B3DStackDelete(caps, numConfigs);
 
 	return output;
 }

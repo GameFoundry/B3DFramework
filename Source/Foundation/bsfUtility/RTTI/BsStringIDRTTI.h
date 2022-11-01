@@ -28,12 +28,12 @@ namespace bs
 
 		static BitLength ToMemory(const StringID& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				bool isEmpty = data.Empty();
-				size += rtti_write(isEmpty, stream);
+				size += B3DRTTIWrite(isEmpty, stream);
 
 				if (!isEmpty)
 				{
@@ -47,21 +47,21 @@ namespace bs
 		static BitLength FromMemory(StringID& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			bool empty = false;
-			rtti_read(empty, stream);
+			B3DRTTIRead(empty, stream);
 
 			if(!empty)
 			{
 				u32 length = (size.Bytes - sizeof(u32) - sizeof(bool)) / sizeof(char);
 
-				auto name = (uint8_t*)bs_stack_alloc(length + 1);
+				auto name = (uint8_t*)B3DStackAllocate(length + 1);
 				stream.ReadBytes(name, length);
 				name[length] = '\0';
 
 				data = StringID((char*)name);
-				bs_stack_free(name);
+				B3DStackFree(name);
 			}
 
 			return size;
@@ -78,7 +78,7 @@ namespace bs
 				dataSize += length * sizeof(char);
 			}
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

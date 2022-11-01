@@ -11,7 +11,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<GLHardwareBuffer*>(buffer));
 }
 
 GLVertexBuffer::GLVertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -28,7 +28,7 @@ GLVertexBuffer::~GLVertexBuffer()
 
 void GLVertexBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
+	mBuffer = B3DPoolNew<GLHardwareBuffer>(GL_ARRAY_BUFFER, mSize, mUsage);
 	mBufferDeleter = &deleteBuffer;
 
 	VertexBuffer::Initialize();

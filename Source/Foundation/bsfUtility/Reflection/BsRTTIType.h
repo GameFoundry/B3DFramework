@@ -720,7 +720,7 @@ namespace bs
 
 	/** Returns true if the provided object can be safely cast into type T. */
 	template <class T>
-	bool rtti_is_of_type(IReflectable* object)
+	bool B3DRTTIIsOfType(IReflectable* object)
 	{
 		static_assert((std::is_base_of<bs::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
@@ -729,7 +729,7 @@ namespace bs
 
 	/** Returns true if the provided object can be safely cast into type T. */
 	template <class T>
-	bool rtti_is_of_type(SPtr<IReflectable> object)
+	bool B3DRTTIIsOfType(SPtr<IReflectable> object)
 	{
 		static_assert((std::is_base_of<bs::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
@@ -737,11 +737,11 @@ namespace bs
 	}
 
 	/** Creates a new object just from its type ID. */
-	BS_UTILITY_EXPORT SPtr<IReflectable> rtti_create(u32 rttiId);
+	BS_UTILITY_EXPORT SPtr<IReflectable> B3DRTTICreate(u32 rttiId);
 
 	/** Checks is the current object a subclass of some type. */
 	template <class T>
-	bool rtti_is_subclass(IReflectable* object)
+	bool B3DRTTIIsSubclass(IReflectable* object)
 	{
 		static_assert((std::is_base_of<bs::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
@@ -750,7 +750,7 @@ namespace bs
 
 	/** Checks is the current object a subclass of some type. */
 	template <class T>
-	bool rtti_is_subclass(const SPtr<IReflectable>& object)
+	bool B3DRTTIIsSubclass(const SPtr<IReflectable>& object)
 	{
 		static_assert((std::is_base_of<bs::IReflectable, T>::value), "Invalid data type for type checking. It needs to derive from bs::IReflectable.");
 
@@ -759,9 +759,9 @@ namespace bs
 
 	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
 	template <class T>
-	T* rtti_cast(IReflectable* object)
+	T* B3DRTTICast(IReflectable* object)
 	{
-		if(rtti_is_subclass<T>(object))
+		if(B3DRTTIIsSubclass<T>(object))
 			return (T*)object;
 
 		return nullptr;
@@ -769,9 +769,9 @@ namespace bs
 
 	/** Attempts to cast the object to the provided type, or returns null if cast is not valid. */
 	template <class T>
-	SPtr<T> rtti_cast(const SPtr<IReflectable> object)
+	SPtr<T> B3DRTTICast(const SPtr<IReflectable> object)
 	{
-		if(rtti_is_subclass<T>(object))
+		if(B3DRTTIIsSubclass<T>(object))
 			return std::static_pointer_cast<T>(object);
 
 		return nullptr;

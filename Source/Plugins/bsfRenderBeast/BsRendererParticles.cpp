@@ -443,7 +443,7 @@ void ParticleRenderer::SortByDistance(const Vector3& refPoint, const PixelData& 
 	const u32 size = positions.GetWidth();
 	u8* positionPtr = positions.GetData();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<ParticleSortData> sortData;
 		sortData.reserve(numParticles);
@@ -472,6 +472,6 @@ void ParticleRenderer::SortByDistance(const Vector3& refPoint, const PixelData& 
 		for(u32 i = 0; i < numParticles; i++)
 			indices[i] = sortData[i].Idx;
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 }} // namespace bs::ct

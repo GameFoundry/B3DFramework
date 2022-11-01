@@ -80,10 +80,10 @@ u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 		textureId = info.Texture->GetInternalId();
 
 	size_t hash = 0;
-	bs_hash_combine(hash, info.GroupId);
-	bs_hash_combine(hash, GetId());
-	bs_hash_combine(hash, textureId);
-	bs_hash_combine(hash, info.Tint);
+	B3DCombineHash(hash, info.GroupId);
+	B3DCombineHash(hash, GetId());
+	B3DCombineHash(hash, textureId);
+	B3DCombineHash(hash, info.Tint);
 
 	return (u64)hash;
 }

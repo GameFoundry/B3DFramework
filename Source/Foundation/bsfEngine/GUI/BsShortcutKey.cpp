@@ -12,8 +12,8 @@ const ShortcutKey ShortcutKey::kNone = ShortcutKey();
 size_t ShortcutKey::Hash::operator()(const ShortcutKey& x) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, (u32)x.Button);
-	bs_hash_combine(seed, (u32)x.Modifier);
+	B3DCombineHash(seed, (u32)x.Button);
+	B3DCombineHash(seed, (u32)x.Modifier);
 
 	return seed;
 }

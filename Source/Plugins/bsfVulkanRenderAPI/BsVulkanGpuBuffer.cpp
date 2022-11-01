@@ -12,7 +12,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<VulkanHardwareBuffer*>(buffer));
 }
 
 VulkanGpuBuffer::VulkanGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -57,7 +57,7 @@ void VulkanGpuBuffer::Initialize()
 			bufferType = VulkanHardwareBuffer::BT_GENERIC;
 
 		u32 size = props.GetElementCount() * props.GetElementSize();
-		mBuffer = bs_pool_new<VulkanHardwareBuffer>(bufferType, props.GetFormat(), props.GetUsage(), size, mDeviceMask);
+		mBuffer = B3DPoolNew<VulkanHardwareBuffer>(bufferType, props.GetFormat(), props.GetUsage(), size, mDeviceMask);
 	}
 
 	UpdateViews();

@@ -25,7 +25,7 @@ Vector2I GUILayoutUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayo
 	Rect2I* elementAreas = nullptr;
 
 	if(numElements > 0)
-		elementAreas = bs_stack_new<Rect2I>(numElements);
+		elementAreas = B3DStackNew<Rect2I>(numElements);
 
 	Rect2I parentArea;
 	parentArea.Width = width;
@@ -84,7 +84,7 @@ Vector2I GUILayoutUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayo
 	Vector2I actualSize = max - min;
 
 	if(elementAreas != nullptr)
-		bs_stack_free(elementAreas);
+		B3DStackFree(elementAreas);
 
 	return actualSize;
 }

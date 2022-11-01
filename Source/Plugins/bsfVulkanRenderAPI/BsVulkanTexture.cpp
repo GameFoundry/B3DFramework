@@ -472,7 +472,7 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 		return barrier;
 	};
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<bool> processed(numSubresources, false);
 
@@ -586,7 +586,7 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 			}
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout)
@@ -799,7 +799,7 @@ void VulkanTexture::CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, V
 	u32 mipHeight = mProperties.GetHeight();
 	u32 mipDepth = mProperties.GetDepth();
 
-	VkImageCopy* imageRegions = bs_stack_alloc<VkImageCopy>(numMipmaps);
+	VkImageCopy* imageRegions = B3DStackAllocate<VkImageCopy>(numMipmaps);
 
 	for(u32 i = 0; i < numMipmaps; i++)
 	{
@@ -857,7 +857,7 @@ void VulkanTexture::CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, V
 	cb->GetCb()->RegisterImageTransfer(srcImage, range, srcFinalLayout, VulkanAccessFlag::Read);
 	cb->GetCb()->RegisterImageTransfer(dstImage, range, dstFinalLayout, VulkanAccessFlag::Write);
 
-	bs_stack_free(imageRegions);
+	B3DStackFree(imageRegions);
 }
 
 void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer)

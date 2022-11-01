@@ -27,7 +27,7 @@ namespace bs
 
 		static BitLength ToMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				uint32_t size = (uint32_t)(data.size() * sizeof(String::value_type));
 				stream.WriteBytes((uint8_t*)data.data(), size);
@@ -38,16 +38,16 @@ namespace bs
 		static BitLength FromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t stringSize = size.Bytes - sizeof(size.Bytes);
-			uint8_t* buffer = (uint8_t*)bs_stack_alloc(stringSize + 1);
+			uint8_t* buffer = (uint8_t*)B3DStackAllocate(stringSize + 1);
 
 			stream.ReadBytes(buffer, stringSize);
 			buffer[stringSize] = '\0';
 			data = String((String::value_type*)buffer);
 
-			bs_stack_free(buffer);
+			B3DStackFree(buffer);
 			return size;
 		}
 
@@ -55,7 +55,7 @@ namespace bs
 		{
 			BitLength dataSize = (uint32_t)(data.size() * sizeof(String::value_type));
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -75,7 +75,7 @@ namespace bs
 
 		static BitLength ToMemory(const WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				uint32_t size = (uint32_t)(data.size() * sizeof(WString::value_type));
 				stream.WriteBytes((uint8_t*)data.data(), size);
@@ -86,10 +86,10 @@ namespace bs
 		static BitLength FromMemory(WString& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t stringSize = size.Bytes - sizeof(size.Bytes);
-			auto buffer = (WString::value_type*)bs_stack_alloc(stringSize + sizeof(WString::value_type));
+			auto buffer = (WString::value_type*)B3DStackAllocate(stringSize + sizeof(WString::value_type));
 
 			stream.ReadBytes((uint8_t*)buffer, stringSize);
 
@@ -97,7 +97,7 @@ namespace bs
 			buffer[numChars] = L'\0';
 			data = WString((WString::value_type*)buffer);
 
-			bs_stack_free(buffer);
+			B3DStackFree(buffer);
 			return size;
 		}
 
@@ -105,7 +105,7 @@ namespace bs
 		{
 			BitLength dataSize = (uint32_t)(data.size() * sizeof(WString::value_type));
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

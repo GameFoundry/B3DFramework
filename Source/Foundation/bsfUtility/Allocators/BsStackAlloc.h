@@ -261,7 +261,7 @@ namespace bs
 	 */
 
 	/** @copydoc MemStackInternal::Alloc() */
-	inline void* bs_stack_alloc(u32 amount)
+	inline void* B3DStackAllocate(u32 amount)
 	{
 		return (void*)MemStack::Alloc(amount);
 	}
@@ -272,7 +272,7 @@ namespace bs
 	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
-	T* bs_stack_alloc()
+	T* B3DStackAllocate()
 	{
 		return (T*)MemStack::Alloc(sizeof(T));
 	}
@@ -285,7 +285,7 @@ namespace bs
 	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
-	T* bs_stack_alloc(u32 amount)
+	T* B3DStackAllocate(u32 amount)
 	{
 		return (T*)MemStack::Alloc(sizeof(T) * amount);
 	}
@@ -296,9 +296,9 @@ namespace bs
 	 * @see	MemStackInternal::Alloc()
 	 */
 	template <class T>
-	T* bs_stack_new(u32 count = 0)
+	T* B3DStackNew(u32 count = 0)
 	{
-		T* data = bs_stack_alloc<T>(count);
+		T* data = B3DStackAllocate<T>(count);
 
 		for(unsigned int i = 0; i < count; i++)
 			new((void*)&data[i]) T;
@@ -312,9 +312,9 @@ namespace bs
 	 * @see MemStackInternal::Alloc()
 	 */
 	template <class T, class... Args>
-	T* bs_stack_new(Args&&... args, u32 count = 0)
+	T* B3DStackNew(Args&&... args, u32 count = 0)
 	{
-		T* data = bs_stack_alloc<T>(count);
+		T* data = B3DStackAllocate<T>(count);
 
 		for(unsigned int i = 0; i < count; i++)
 			new((void*)&data[i]) T(std::forward<Args>(args)...);
@@ -328,7 +328,7 @@ namespace bs
 	 * @see MemStackInternal::Dealloc()
 	 */
 	template <class T>
-	void bs_stack_delete(T* data)
+	void B3DStackDelete(T* data)
 	{
 		data->~T();
 
@@ -341,7 +341,7 @@ namespace bs
 	 * @see	MemStackInternal::Dealloc()
 	 */
 	template <class T>
-	void bs_stack_delete(T* data, u32 count)
+	void B3DStackDelete(T* data, u32 count)
 	{
 		for(unsigned int i = 0; i < count; i++)
 			data[i].~T();
@@ -349,13 +349,13 @@ namespace bs
 		MemStack::DeallocLast((u8*)data);
 	}
 
-	inline void bs_stack_delete(void* data, u32 count)
+	inline void B3DStackDelete(void* data, u32 count)
 	{
 		MemStack::DeallocLast((u8*)data);
 	}
 
 	/** @copydoc MemStackInternal::Dealloc() */
-	inline void bs_stack_free(void* data)
+	inline void B3DStackFree(void* data)
 	{
 		return MemStack::DeallocLast((u8*)data);
 	}
@@ -377,10 +377,10 @@ namespace bs
 		}
 
 		/*
-		 * This ensures that the result of bs_managed_stack_alloc() doesn't get passed to a function call as a temporary,
+		 * This ensures that the result of B3DManagedStackAllocate() doesn't get passed to a function call as a temporary,
 		 * or immediately assigned as a T*. Instead, the user of this class is forced to deal with this class as itself,
-		 * when handling the return value of bs_managed_stack_alloc() preventing an immediate (and erroneous) call to
-		 * bs_stack_free().
+		 * when handling the return value of B3DManagedStackAllocate() preventing an immediate (and erroneous) call to
+		 * B3DStackFree().
 		 */
 		constexpr operator T*() const&& noexcept = delete;
 
@@ -404,9 +404,9 @@ namespace bs
 			if(mPtr != nullptr)
 			{
 				if(mCount >= 1)
-					bs_stack_delete(mPtr, (u32)mCount);
+					B3DStackDelete(mPtr, (u32)mCount);
 				else
-					bs_stack_free(mPtr);
+					B3DStackFree(mPtr);
 			}
 		}
 
@@ -416,52 +416,52 @@ namespace bs
 	};
 
 	/**
-	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of
+	 * Same as B3DStackAllocate() except the returned object takes care of automatically cleaning up when it goes out of
 	 * scope.
 	 */
-	inline StackMemory<void> bs_managed_stack_alloc(u32 amount)
+	inline StackMemory<void> B3DManagedStackAllocate(u32 amount)
 	{
-		return StackMemory<void>(bs_stack_alloc(amount));
+		return StackMemory<void>(B3DStackAllocate(amount));
 	}
 
 	/**
-	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of
-	 * scope.
-	 */
-	template <class T>
-	StackMemory<T> bs_managed_stack_alloc()
-	{
-		return StackMemory<T>(bs_stack_alloc<T>());
-	}
-
-	/**
-	 * Same as bs_stack_alloc() except the returned object takes care of automatically cleaning up when it goes out of
+	 * Same as B3DStackAllocate() except the returned object takes care of automatically cleaning up when it goes out of
 	 * scope.
 	 */
 	template <class T>
-	StackMemory<T> bs_managed_stack_alloc(u32 amount)
+	StackMemory<T> B3DManagedStackAllocate()
 	{
-		return StackMemory<T>(bs_stack_alloc<T>(amount));
+		return StackMemory<T>(B3DStackAllocate<T>());
 	}
 
 	/**
-	 * Same as bs_stack_new() except the returned object takes care of automatically cleaning up when it goes out of
+	 * Same as B3DStackAllocate() except the returned object takes care of automatically cleaning up when it goes out of
 	 * scope.
 	 */
 	template <class T>
-	StackMemory<T> bs_managed_stack_new(size_t count = 1)
+	StackMemory<T> B3DManagedStackAllocate(u32 amount)
 	{
-		return StackMemory<T>(bs_stack_new<T>(count), count);
+		return StackMemory<T>(B3DStackAllocate<T>(amount));
 	}
 
 	/**
-	 * Same as bs_stack_new() except the returned object takes care of automatically cleaning up when it goes out of
+	 * Same as B3DStackNew() except the returned object takes care of automatically cleaning up when it goes out of
+	 * scope.
+	 */
+	template <class T>
+	StackMemory<T> B3DManagedStackNew(size_t count = 1)
+	{
+		return StackMemory<T>(B3DStackNew<T>(count), count);
+	}
+
+	/**
+	 * Same as B3DStackNew() except the returned object takes care of automatically cleaning up when it goes out of
 	 * scope.
 	 */
 	template <class T, class... Args>
-	StackMemory<T> bs_managed_stack_new(Args&&... args, size_t count = 1)
+	StackMemory<T> B3DManagedStackNew(Args&&... args, size_t count = 1)
 	{
-		return StackMemory<T>(bs_stack_new<T>(std::forward<Args>(args)..., count), count);
+		return StackMemory<T>(B3DStackNew<T>(std::forward<Args>(args)..., count), count);
 	}
 
 	/** @} */
@@ -493,12 +493,12 @@ namespace bs
 	public:
 		static void* Allocate(size_t bytes)
 		{
-			return bs_stack_alloc((u32)bytes);
+			return B3DStackAllocate((u32)bytes);
 		}
 
 		static void Free(void* ptr)
 		{
-			bs_stack_free(ptr);
+			B3DStackFree(ptr);
 		}
 	};
 

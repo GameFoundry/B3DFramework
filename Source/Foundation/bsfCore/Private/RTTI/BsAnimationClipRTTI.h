@@ -31,14 +31,14 @@ namespace bs
 
 		static BitLength ToMemory(const AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 					constexpr uint8_t VERSION = 0;
 
 					BitLength size = 0;
-					size += rtti_write(VERSION, stream);
-					size += rtti_write(data.Time, stream);
-					size += rtti_write(data.Name, stream);
+					size += B3DRTTIWrite(VERSION, stream);
+					size += B3DRTTIWrite(data.Time, stream);
+					size += B3DRTTIWrite(data.Name, stream);
 
 					return size; });
 		}
@@ -46,14 +46,14 @@ namespace bs
 		static BitLength FromMemory(AnimationEvent& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint8_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == 0);
 
-			rtti_read(data.Time, stream);
-			rtti_read(data.Name, stream);
+			B3DRTTIRead(data.Time, stream);
+			B3DRTTIRead(data.Name, stream);
 
 			return size;
 		}
@@ -61,10 +61,10 @@ namespace bs
 		static BitLength GetSize(const AnimationEvent& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);
-			dataSize += rtti_size(data.Time);
-			dataSize += rtti_size(data.Name);
+			dataSize += B3DRTTISize(data.Time);
+			dataSize += B3DRTTISize(data.Name);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 
 			return dataSize;
 		}

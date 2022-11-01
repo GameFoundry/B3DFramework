@@ -461,7 +461,7 @@ public:
 
 		const SceneInfo& sceneInfo = scene.GetSceneInfo();
 
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 		{
 			FrameVector<Command> commands[4];
 
@@ -484,7 +484,7 @@ public:
 				opt.Prepare(renderableCommand, bounds);
 
 				bool renderableBound[4];
-				bs_zero_out(renderableBound);
+				B3DZeroOut(renderableBound);
 
 				for(auto& element : renderable->Elements)
 				{
@@ -526,7 +526,7 @@ public:
 				}
 			}
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 	}
 };
 

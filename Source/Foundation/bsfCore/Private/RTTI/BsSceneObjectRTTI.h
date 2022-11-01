@@ -118,7 +118,7 @@ namespace bs
 			if(so->mRTTIData.Empty())
 				return;
 
-			if(context == nullptr || !rtti_is_of_type<CoreSerializationContext>(context))
+			if(context == nullptr || !B3DRTTIIsOfType<CoreSerializationContext>(context))
 				return;
 
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
@@ -141,7 +141,7 @@ namespace bs
 			if(so->mRTTIData.Empty())
 				return;
 
-			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
+			BS_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
 
 			GODeserializationData& goDeserializationData = any_cast_ref<GODeserializationData>(so->mRTTIData);

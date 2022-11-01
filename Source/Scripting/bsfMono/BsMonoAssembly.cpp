@@ -20,9 +20,9 @@ size_t MonoAssembly::ClassId::Hash::operator()(const MonoAssembly::ClassId& v) c
 	size_t genInstanceAddr = (size_t)v.GenericInstance;
 
 	size_t seed = 0;
-	bs_hash_combine(seed, v.NamespaceName);
-	bs_hash_combine(seed, v.Name);
-	bs_hash_combine(seed, genInstanceAddr);
+	B3DCombineHash(seed, v.NamespaceName);
+	B3DCombineHash(seed, v.Name);
+	B3DCombineHash(seed, genInstanceAddr);
 
 	return seed;
 }
@@ -61,14 +61,14 @@ void MonoAssembly::Load()
 	}
 
 	u32 assemblySize = (u32)assemblyStream->Size();
-	char* assemblyData = (char*)bs_stack_alloc(assemblySize);
+	char* assemblyData = (char*)B3DStackAllocate(assemblySize);
 	assemblyStream->Read(assemblyData, assemblySize);
 
 	String imageName = mPath.GetFilename();
 
 	MonoImageOpenStatus status = MONO_IMAGE_OK;
 	MonoImage* image = mono_image_open_from_data_with_name(assemblyData, assemblySize, true, &status, false, imageName.c_str());
-	bs_stack_free(assemblyData);
+	B3DStackFree(assemblyData);
 
 	if(status != MONO_IMAGE_OK || image == nullptr)
 	{

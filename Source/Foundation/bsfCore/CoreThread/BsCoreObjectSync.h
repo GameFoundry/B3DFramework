@@ -134,7 +134,7 @@ namespace bs
 	 */
 
 	/**
-	 * Writes the provided values into the underlying buffer using rtti_write(). Each write advances the buffer to the
+	 * Writes the provided values into the underlying buffer using B3DRTTIWrite(). Each write advances the buffer to the
 	 * next write location. Caller is responsible for not writing out of range.
 	 *
 	 * As input accepts any trivially copyable types, types with RTTIPlainType specializations, any shared pointer, as well
@@ -169,7 +169,7 @@ namespace bs
 		template <class T>
 		void WriteInternal(T&& value, std::enable_if_t<!detail::is_shared_ptr<std::decay_t<T>>::value>* = 0)
 		{
-			rtti_write(value, mStream);
+			B3DRTTIWrite(value, mStream);
 		}
 
 		template <class T>
@@ -187,7 +187,7 @@ namespace bs
 	};
 
 	/**
-	 * Reads values from the underlying buffer and writes them to the output object using rtti_read(). Each read advances
+	 * Reads values from the underlying buffer and writes them to the output object using B3DRTTIRead(). Each read advances
 	 * the buffer to the next value. Caller is responsible for not reading out of range.
 	 *
 	 * As output accepts any trivially copyable types, types with RTTIPlainType specializations and any shared pointers.
@@ -219,7 +219,7 @@ namespace bs
 		template <class T>
 		void ReadInternal(T&& value, std::enable_if_t<!detail::is_shared_ptr<std::decay_t<T>>::value>* = 0)
 		{
-			rtti_read(value, mStream);
+			B3DRTTIRead(value, mStream);
 		}
 
 		template <class T>
@@ -238,7 +238,7 @@ namespace bs
 	};
 
 	/**
-	 * Calculates size of provided values using rtti_size(). All sizes are accumulated in the location provided upon
+	 * Calculates size of provided values using B3DRTTISize(). All sizes are accumulated in the location provided upon
 	 * construction.
 	 *
 	 * As input accepts any trivially copyable types, types with RTTIPlainType specializations, any shared pointers,
@@ -272,7 +272,7 @@ namespace bs
 		template <class T>
 		void GetSizeInternal(T&& value, std::enable_if_t<!detail::is_shared_ptr<std::decay_t<T>>::value>* = 0)
 		{
-			mSize += rtti_size(value).Bytes;
+			mSize += B3DRTTISize(value).Bytes;
 		}
 
 		template <class T>

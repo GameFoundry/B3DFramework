@@ -18,7 +18,7 @@ template <class T, class CB>
 void iterateSorted(const Map<String, T>& entries, CB callback)
 {
 	auto count = (u32)entries.size();
-	auto sortedEntries = bs_managed_stack_alloc<const T*>(count);
+	auto sortedEntries = B3DManagedStackAllocate<const T*>(count);
 
 	u32 i = 0;
 	for(auto& entry : entries)
@@ -119,7 +119,7 @@ SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PRO
 
 		auto count = msl->paramDesc->paramBlocks.size() + msl->paramDesc->textures.size() + msl->paramDesc->samplers.size() + msl->paramDesc->loadStoreTextures.size() + msl->paramDesc->buffers.size();
 
-		auto sortedEntries = bs_managed_stack_alloc<spirv_cross::MSLResourceBinding>((u32)count);
+		auto sortedEntries = B3DManagedStackAllocate<spirv_cross::MSLResourceBinding>((u32)count);
 		size_t i = 0;
 
 		for(auto& entry : msl->paramDesc->paramBlocks)

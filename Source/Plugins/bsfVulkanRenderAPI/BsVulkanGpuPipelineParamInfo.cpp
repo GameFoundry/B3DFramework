@@ -59,13 +59,13 @@ void VulkanGpuPipelineParamInfo::Initialize()
 	mSetExtraInfos = mAlloc.Alloc<SetExtraInfo>(mNumSets);
 
 	if(bindings != nullptr)
-		bs_zero_out(bindings, mNumElements);
+		B3DZeroOut(bindings, mNumElements);
 
 	if(types != nullptr)
-		bs_zero_out(types, mNumElements);
+		B3DZeroOut(types, mNumElements);
 
 	if(elementTypes != nullptr)
-		bs_zero_out(elementTypes, mNumElements);
+		B3DZeroOut(elementTypes, mNumElements);
 
 	u32 globalBindingIdx = 0;
 	for(u32 i = 0; i < mNumSets; i++)

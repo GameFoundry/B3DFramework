@@ -448,7 +448,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 			memset(bufferData, 0, meshData->GetSize());
 
 			u32 tempDataSize = (sizeof(Vector3) + sizeof(float)) * anim->NumMorphVertices;
-			u8* tempData = (u8*)bs_stack_alloc(tempDataSize);
+			u8* tempData = (u8*)B3DStackAllocate(tempDataSize);
 			memset(tempData, 0, tempDataSize);
 
 			Vector3* tempNormals = (Vector3*)tempData;
@@ -499,7 +499,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 				}
 			}
 
-			bs_stack_free(tempData);
+			B3DStackFree(tempData);
 
 			animInfo.MorphShapeInfo.MeshData = meshData;
 

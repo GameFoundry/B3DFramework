@@ -176,8 +176,8 @@ UnorderedSet<CommandQueueBase::QueueBreakpoint, CommandQueueBase::QueueBreakpoin
 inline size_t CommandQueueBase::QueueBreakpoint::HashFunction::operator()(const QueueBreakpoint& v) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, v.QueueIdx);
-	bs_hash_combine(seed, v.CommandIdx);
+	B3DCombineHash(seed, v.QueueIdx);
+	B3DCombineHash(seed, v.CommandIdx);
 	return seed;
 }
 

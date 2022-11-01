@@ -215,7 +215,7 @@ static void HIDDeviceAddedCallback(void* context, IOReturn result, void* sender,
 
 	HIDDevice newDevice;
 	newDevice.ref = device;
-	bs_zero_out(newDevice.gamepadAxisTimestamps);
+	B3DZeroOut(newDevice.gamepadAxisTimestamps);
 
 	// Parse device name
 	CFTypeRef propertyRef = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
@@ -550,7 +550,7 @@ HIDManager::HIDManager(HIDType type, Input* input)
 {
 	mData.type = type;
 	mData.owner = input;
-	bs_zero_out(mData.mouseAxisValues);
+	B3DZeroOut(mData.mouseAxisValues);
 
 	mHIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDManagerOptionNone);
 	if(mHIDManager == nullptr)
@@ -624,7 +624,7 @@ HIDManager::~HIDManager()
 void HIDManager::capture(IOHIDDeviceRef device, bool ignoreEvents)
 {
 	if(mData.type == HIDType::Mouse)
-		bs_zero_out(mData.mouseAxisValues);
+		B3DZeroOut(mData.mouseAxisValues);
 
 	// First trigger any callbacks
 	CFStringRef runLoopMode = getRunLoopMode(mData.type);
@@ -648,7 +648,7 @@ void HIDManager::capture(IOHIDDeviceRef device, bool ignoreEvents)
 			};
 
 			AxisState axisValues[HID_NUM_GAMEPAD_AXES];
-			bs_zero_out(axisValues);
+			B3DZeroOut(axisValues);
 
 			for(auto& axis : entry.axes)
 			{

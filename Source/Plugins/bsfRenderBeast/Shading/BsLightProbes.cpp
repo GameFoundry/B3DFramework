@@ -192,8 +192,8 @@ struct pair_hash
 	size_t operator()(const std::pair<i32, i32>& key) const
 	{
 		size_t hash = 0;
-		bs::bs_hash_combine(hash, key.first);
-		bs::bs_hash_combine(hash, key.second);
+		bs::B3DCombineHash(hash, key.first);
+		bs::B3DCombineHash(hash, key.second);
 
 		return hash;
 	}
@@ -332,7 +332,7 @@ void LightProbes::UpdateProbes()
 	// Find valid tetrahedrons
 	u32 numTetrahedra = (u32)mTetrahedronInfos.size();
 
-	bool* validTets = (bool*)bs_stack_alloc(sizeof(bool) * numTetrahedra);
+	bool* validTets = (bool*)B3DStackAllocate(sizeof(bool) * numTetrahedra);
 	mNumValidTetrahedra = 0;
 	for(u32 i = 0; i < (u32)mTetrahedronInfos.size(); i++)
 	{
@@ -729,7 +729,7 @@ void LightProbes::UpdateProbes()
 
 	mTetrahedronFaceInfosGPU->Unlock();
 
-	bs_stack_free(validTets);
+	B3DStackFree(validTets);
 
 	mTempTetrahedronPositions.clear();
 	mTempTetrahedronBufferIndices.clear();
@@ -808,7 +808,7 @@ void LightProbes::ResizeCoefficientTexture(u32 numRows)
 
 void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<TetrahedronData>& tetrahedra, Vector<TetrahedronFaceData>& faces, bool generateExtrapolationVolume)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		TetrahedronVolume volume = Triangulation::Tetrahedralize(positions);
 
@@ -1186,6 +1186,6 @@ void LightProbes::GenerateTetrahedronData(Vector<Vector3>& positions, Vector<Tet
 			tetrahedra.push_back(entry);
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 }}

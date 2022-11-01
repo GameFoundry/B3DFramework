@@ -266,16 +266,16 @@ namespace bs
 
 	/** Allocates a new object of type T using the global pool allocator, without constructing it. */
 	template <class T>
-	T* bs_pool_alloc()
+	T* B3DPoolAllocate()
 	{
 		return (T*)GlobalPoolAlloc<T>::m.Alloc();
 	}
 
 	/** Allocates and constructs a new object of type T using the global pool allocator. */
 	template <class T, class... Args>
-	T* bs_pool_new(Args&&... args)
+	T* B3DPoolNew(Args&&... args)
 	{
-		T* data = bs_pool_alloc<T>();
+		T* data = B3DPoolAllocate<T>();
 		new((void*)data) T(std::forward<Args>(args)...);
 
 		return data;
@@ -283,17 +283,17 @@ namespace bs
 
 	/** Frees the provided object using its global pool allocator, without destructing it. */
 	template <class T>
-	void bs_pool_free(T* ptr)
+	void B3DPoolFree(T* ptr)
 	{
 		GlobalPoolAlloc<T>::m.Free(ptr);
 	}
 
 	/** Frees and destructs the provided object using its global pool allocator. */
 	template <class T>
-	void bs_pool_delete(T* ptr)
+	void B3DPoolDelete(T* ptr)
 	{
 		ptr->~T();
-		bs_pool_free(ptr);
+		B3DPoolFree(ptr);
 	}
 
 	/** @} */

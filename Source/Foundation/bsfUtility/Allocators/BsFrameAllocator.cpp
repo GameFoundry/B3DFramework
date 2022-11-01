@@ -296,32 +296,32 @@ BS_UTILITY_EXPORT FrameAlloc& GetFrameAllocator()
 	return *_GlobalFrameAlloc;
 }
 
-BS_UTILITY_EXPORT u8* bs_frame_alloc(u32 numBytes)
+BS_UTILITY_EXPORT u8* B3DFrameAllocate(u32 numBytes)
 {
 	return GetFrameAllocator().Alloc(numBytes);
 }
 
-BS_UTILITY_EXPORT u8* bs_frame_alloc_aligned(u32 count, u32 align)
+BS_UTILITY_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align)
 {
 	return GetFrameAllocator().AllocAligned(count, align);
 }
 
-BS_UTILITY_EXPORT void bs_frame_free(void* data)
+BS_UTILITY_EXPORT void B3DFrameFree(void* data)
 {
 	GetFrameAllocator().Free((u8*)data);
 }
 
-BS_UTILITY_EXPORT void bs_frame_free_aligned(void* data)
+BS_UTILITY_EXPORT void B3DFrameFreeAligned(void* data)
 {
 	GetFrameAllocator().Free((u8*)data);
 }
 
-BS_UTILITY_EXPORT void bs_frame_mark()
+BS_UTILITY_EXPORT void B3DMarkAllocatorFrame()
 {
 	GetFrameAllocator().MarkFrame();
 }
 
-BS_UTILITY_EXPORT void bs_frame_clear()
+BS_UTILITY_EXPORT void B3DClearAllocatorFrame()
 {
 	GetFrameAllocator().Clear();
 }

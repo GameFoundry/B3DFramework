@@ -17,8 +17,8 @@ VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 	mNumUsedHandles = 0;
 	mNumBoundHandles = 0;
 
-	bs_zero_out(mReadUses);
-	bs_zero_out(mWriteUses);
+	B3DZeroOut(mReadUses);
+	B3DZeroOut(mWriteUses);
 }
 
 VulkanResource::~VulkanResource()

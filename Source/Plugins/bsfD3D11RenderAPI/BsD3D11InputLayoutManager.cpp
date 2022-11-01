@@ -15,8 +15,8 @@ using namespace bs::ct;
 size_t D3D11InputLayoutManager::HashFunc::operator()(const D3D11InputLayoutManager::VertexDeclarationKey& key) const
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, key.VertxDeclId);
-	bs_hash_combine(hash, key.VertexProgramId);
+	B3DCombineHash(hash, key.VertxDeclId);
+	B3DCombineHash(hash, key.VertexProgramId);
 
 	return hash;
 }

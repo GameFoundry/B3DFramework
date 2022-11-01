@@ -217,7 +217,7 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 	auto writeCallback = [&](u8* buffer, u32 size)
 	{
 		EncodedBlock newBlock;
-		newBlock.Data = bs_frame_alloc(size);
+		newBlock.Data = B3DFrameAllocate(size);
 		newBlock.Size = size;
 
 		memcpy(newBlock.Data, buffer, size);
@@ -225,7 +225,7 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 		totalEncodedSize += size;
 	};
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 
 	OggVorbisEncoder writer;
 	writer.Open(writeCallback, info.SampleRate, info.BitDepth, info.NumChannels);
@@ -240,10 +240,10 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 		memcpy(output->Data() + offset, block.Data, block.Size);
 		offset += block.Size;
 
-		bs_frame_free(block.Data);
+		B3DFrameFree(block.Data);
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	size = totalEncodedSize;
 	return output;

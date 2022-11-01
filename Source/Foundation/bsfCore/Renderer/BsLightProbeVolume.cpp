@@ -300,7 +300,7 @@ CoreSyncData LightProbeVolume::SyncToCore(FrameAlloc* allocator)
 	u32 size = 0;
 	u8* buffer = nullptr;
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<std::pair<u32, ProbeInfo>> dirtyProbes;
 		FrameVector<u32> removedProbes;
@@ -325,8 +325,8 @@ CoreSyncData LightProbeVolume::SyncToCore(FrameAlloc* allocator)
 		u32 numRemovedProbes = (u32)removedProbes.size();
 
 		size += csync_size((SceneActor&)*this);
-		size += rtti_size(numDirtyProbes).Bytes;
-		size += rtti_size(numRemovedProbes).Bytes;
+		size += B3DRTTISize(numDirtyProbes).Bytes;
+		size += B3DRTTISize(numRemovedProbes).Bytes;
 		size += (sizeof(u32) + sizeof(Vector3) + sizeof(LightProbeFlags)) * numDirtyProbes;
 		size += sizeof(u32) * numRemovedProbes;
 
@@ -334,20 +334,20 @@ CoreSyncData LightProbeVolume::SyncToCore(FrameAlloc* allocator)
 		Bitstream stream(buffer, size);
 
 		csync_write((SceneActor&)*this, stream);
-		rtti_write(numDirtyProbes, stream);
-		rtti_write(numRemovedProbes, stream);
+		B3DRTTIWrite(numDirtyProbes, stream);
+		B3DRTTIWrite(numRemovedProbes, stream);
 
 		for(auto& entry : dirtyProbes)
 		{
-			rtti_write(entry.first, stream);
-			rtti_write(entry.second.Position, stream);
-			rtti_write(entry.second.Flags, stream);
+			B3DRTTIWrite(entry.first, stream);
+			B3DRTTIWrite(entry.second.Position, stream);
+			B3DRTTIWrite(entry.second.Flags, stream);
 		}
 
 		for(auto& entry : removedProbes)
-			rtti_write(entry, stream);
+			B3DRTTIWrite(entry, stream);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	return CoreSyncData(buffer, size);
 }
@@ -494,19 +494,19 @@ void LightProbeVolume::SyncToCore(const CoreSyncData& data)
 	csync_read((SceneActor&)*this, stream);
 
 	u32 numDirtyProbes, numRemovedProbes;
-	rtti_read(numDirtyProbes, stream);
-	rtti_read(numRemovedProbes, stream);
+	B3DRTTIRead(numDirtyProbes, stream);
+	B3DRTTIRead(numRemovedProbes, stream);
 
 	for(u32 i = 0; i < numDirtyProbes; ++i)
 	{
 		u32 handle;
-		rtti_read(handle, stream);
+		B3DRTTIRead(handle, stream);
 
 		Vector3 position;
-		rtti_read(position, stream);
+		B3DRTTIRead(position, stream);
 
 		LightProbeFlags flags;
-		rtti_read(flags, stream);
+		B3DRTTIRead(flags, stream);
 
 		auto iterFind = mProbeMap.find(handle);
 		if(iterFind != mProbeMap.end())
@@ -567,7 +567,7 @@ void LightProbeVolume::SyncToCore(const CoreSyncData& data)
 	for(u32 i = 0; i < numRemovedProbes; ++i)
 	{
 		u32 idx;
-		rtti_read(idx, stream);
+		B3DRTTIRead(idx, stream);
 
 		auto iterFind = mProbeMap.find(idx);
 		if(iterFind != mProbeMap.end())
@@ -616,7 +616,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 
 	output.resize(numActiveProbes);
 
-	LightProbeSHCoefficients* coefficients = bs_stack_alloc<LightProbeSHCoefficients>(numActiveProbes);
+	LightProbeSHCoefficients* coefficients = B3DStackAllocate<LightProbeSHCoefficients>(numActiveProbes);
 
 	SPtr<PixelData> coeffData = mCoefficients->GetProperties().AllocBuffer(0, 0);
 	mCoefficients->ReadData(*coeffData);
@@ -649,7 +649,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 		output[i].Handle = mProbeInfos[i].Handle;
 	}
 
-	bs_stack_free(coefficients);
+	B3DStackFree(coefficients);
 }
 
 void LightProbeVolume::ResizeCoefficientTexture(u32 count)

@@ -837,9 +837,9 @@ void SceneObject::DestroyComponent(Component* component, bool immediate)
 
 HComponent SceneObject::AddComponent(u32 typeId)
 {
-	SPtr<IReflectable> newObj = rtti_create(typeId);
+	SPtr<IReflectable> newObj = B3DRTTICreate(typeId);
 
-	if(!rtti_is_subclass<Component>(newObj.get()))
+	if(!B3DRTTIIsSubclass<Component>(newObj.get()))
 	{
 		BS_LOG(Error, Scene, "Specified type is not a valid Component.");
 		return HComponent();

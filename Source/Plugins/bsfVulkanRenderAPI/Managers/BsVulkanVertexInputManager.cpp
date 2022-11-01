@@ -17,8 +17,8 @@ const int VulkanVertexInputManager::NUM_ELEMENTS_TO_PRUNE;
 size_t VulkanVertexInputManager::HashFunc::operator()(const VertexDeclarationKey& key) const
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, key.BufferDeclId);
-	bs_hash_combine(hash, key.ShaderDeclId);
+	B3DCombineHash(hash, key.BufferDeclId);
+	B3DCombineHash(hash, key.ShaderDeclId);
 
 	return hash;
 }

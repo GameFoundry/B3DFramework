@@ -19,10 +19,10 @@ GLVertexArrayObject::GLVertexArrayObject(GLuint handle, u64 vertexProgramId, GLV
 ::std::size_t GLVertexArrayObject::Hash::operator()(const GLVertexArrayObject& vao) const
 {
 	std::size_t seed = 0;
-	bs_hash_combine(seed, vao.mVertProgId);
+	B3DCombineHash(seed, vao.mVertProgId);
 
 	for(u32 i = 0; i < vao.mNumBuffers; i++)
-		bs_hash_combine(seed, vao.mAttachedBuffers[i]->GetGlBufferId());
+		B3DCombineHash(seed, vao.mAttachedBuffers[i]->GetGlBufferId());
 
 	return seed;
 }
@@ -80,8 +80,8 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 
 	u32 numStreams = maxStreamIdx + 1;
 	u32 numUsedBuffers = 0;
-	i32* streamToSeqIdx = bs_stack_alloc<i32>(numStreams);
-	GLVertexBuffer** usedBuffers = bs_stack_alloc<GLVertexBuffer*>((u32)boundBuffers.size());
+	i32* streamToSeqIdx = B3DStackAllocate<i32>(numStreams);
+	GLVertexBuffer** usedBuffers = B3DStackAllocate<GLVertexBuffer*>((u32)boundBuffers.size());
 
 	memset(usedBuffers, 0, (u32)boundBuffers.size() * sizeof(GLVertexBuffer*));
 
@@ -113,8 +113,8 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 	auto findIter = mVAObjects.find(wantedVAO);
 	if(findIter != mVAObjects.end())
 	{
-		bs_stack_free(usedBuffers);
-		bs_stack_free(streamToSeqIdx);
+		B3DStackFree(usedBuffers);
+		B3DStackFree(streamToSeqIdx);
 
 		return *findIter; // Found existing, return that
 	}
@@ -205,8 +205,8 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 		usedBuffers[i]->RegisterVao(wantedVAO);
 	}
 
-	bs_stack_free(usedBuffers);
-	bs_stack_free(streamToSeqIdx);
+	B3DStackFree(usedBuffers);
+	B3DStackFree(streamToSeqIdx);
 
 	auto iter = mVAObjects.insert(wantedVAO);
 

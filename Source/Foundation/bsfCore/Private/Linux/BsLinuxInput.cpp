@@ -29,7 +29,7 @@ bool isBitSet(u8 bits[], u32 bit)
 bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 {
 	u8 eventBits[1 + EV_MAX / 8];
-	bs_zero_out(eventBits);
+	B3DZeroOut(eventBits);
 
 	if(ioctl(fileHandle, EVIOCGBIT(0, sizeof(eventBits)), eventBits) == -1)
 		return false;
@@ -41,7 +41,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 			if(i == EV_ABS)
 			{
 				u8 absAxisBits[1 + ABS_MAX / 8];
-				bs_zero_out(absAxisBits);
+				B3DZeroOut(absAxisBits);
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(absAxisBits)), absAxisBits) == -1)
 				{
@@ -63,7 +63,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 			else if(i == EV_REL)
 			{
 				u8 relAxisBits[1 + REL_MAX / 8];
-				bs_zero_out(relAxisBits);
+				B3DZeroOut(relAxisBits);
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(relAxisBits)), relAxisBits) == -1)
 				{
@@ -80,7 +80,7 @@ bool getEventInfo(int fileHandle, EventInfo& eventInfo)
 			else if(i == EV_KEY)
 			{
 				u8 keyBits[1 + KEY_MAX / 8];
-				bs_zero_out(keyBits);
+				B3DZeroOut(keyBits);
 
 				if(ioctl(fileHandle, EVIOCGBIT(i, sizeof(keyBits)), keyBits) == -1)
 				{

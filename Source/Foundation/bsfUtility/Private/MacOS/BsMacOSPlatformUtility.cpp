@@ -99,13 +99,13 @@ String PlatformUtility::convertCaseUTF8(const bs::String& input, bool toUpper)
 	}
 
 	CFIndex stringLength = CFStringGetLength(mutableString) + 1;
-	auto buffer = bs_stack_alloc<char>((u32)stringLength);
+	auto buffer = B3DStackAllocate<char>((u32)stringLength);
 
 	CFStringGetCString(mutableString, buffer, stringLength, kCFStringEncodingUTF8);
 	CFRelease(mutableString);
 
 	String output(buffer);
-	bs_stack_free(buffer);
+	B3DStackFree(buffer);
 
 	return output;
 }

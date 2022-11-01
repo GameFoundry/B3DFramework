@@ -45,14 +45,14 @@ namespace bs
 
 		static BitLength ToMemory(const SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				uint32_t version;
-				size += rtti_write(version, stream);
-				size += rtti_write(data.Positions, stream);
-				size += rtti_write(data.Coefficients, stream);
+				size += B3DRTTIWrite(version, stream);
+				size += B3DRTTIWrite(data.Positions, stream);
+				size += B3DRTTIWrite(data.Coefficients, stream);
 
 				return size; });
 		}
@@ -60,16 +60,16 @@ namespace bs
 		static BitLength FromMemory(SavedLightProbeInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				rtti_read(data.Positions, stream);
-				rtti_read(data.Coefficients, stream);
+				B3DRTTIRead(data.Positions, stream);
+				B3DRTTIRead(data.Coefficients, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of SavedLightProbeInfo data. Unable to deserialize.");
@@ -81,9 +81,9 @@ namespace bs
 
 		static BitLength GetSize(const SavedLightProbeInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.Positions) + rtti_size(data.Coefficients) + sizeof(uint32_t);
+			BitLength dataSize = B3DRTTISize(data.Positions) + B3DRTTISize(data.Coefficients) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

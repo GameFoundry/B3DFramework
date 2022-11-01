@@ -44,7 +44,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 	if(waitForDependencies)
 	{
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 
 		{
 			FrameVector<HResource> dependencies;
@@ -54,7 +54,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 				dependency.BlockUntilLoaded(waitForDependencies);
 		}
 
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 	}
 }
 

@@ -38,7 +38,7 @@ namespace bs
 
 		void OnDeserializationStarted(IReflectable* ptr, SerializationContext* context)
 		{
-			BS_ASSERT(context != nullptr && rtti_is_of_type<CoreSerializationContext>(context));
+			BS_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
 
 			// Make sure external IDs are broken because we do some ID matching when dealing with prefabs and keeping

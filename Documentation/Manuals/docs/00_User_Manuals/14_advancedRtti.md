@@ -209,7 +209,7 @@ After the specialization is implemented you will be able to use the type in gett
 ## Dynamic size 
 If your structure has dynamic size or is fixed size that is more than 256 bytes you must set the **hasDynamicSize** flag to 1. The size of the structure should be returned from the **getSize()** method. If the size is dynamic you must also encode the size as the first four bytes in a call to **toMemory()**.
 
-For example, you should use **hasDynamicSize** with **String** as each instance will have a different size depending on the string stored. Fields with dynamic size must write the actual size as a header before all encoded data. You can use the helper methods @bs::rtti_write_with_size_header to write the data with a header, @bs::rtti_read_size_header to read the size from the header and @bs::rtti_add_header_size to calculate the header size.
+For example, you should use **hasDynamicSize** with **String** as each instance will have a different size depending on the string stored. Fields with dynamic size must write the actual size as a header before all encoded data. You can use the helper methods @bs::B3DRTTIWriteWithSizeHeader to write the data with a header, @bs::B3DRTTIReadSizeHeader to read the size from the header and @bs::B3DRTTIAddHeaderSize to calculate the header size.
 
 For example if we wanted to serialize a string:
 ~~~~~~~~~~~~~{.cpp}
@@ -219,7 +219,7 @@ template<> struct RTTIPlainType<String>
 
 	static BitLength toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& info, bool compress)
 	{ 
-		return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+		return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 		{
 			stream.writeBytes((uint8_t*)data.data(), data.size());
 			return data.size();
@@ -229,7 +229,7 @@ template<> struct RTTIPlainType<String>
 	static BitLength fromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 	{
 		BitLength size;
-		BitLength headerSize = rtti_read_size_header(stream, compress, size);
+		BitLength headerSize = B3DRTTIReadSizeHeader(stream, compress, size);
 
 		// 'size' includes the size of the header, so subtract that
 		BitLength stringSize = size - headerSize;
@@ -242,7 +242,7 @@ template<> struct RTTIPlainType<String>
 	{ 
 		BitLength dataSize = data.size();
 
-		rtti_add_header_size(dataSize, compress);
+		B3DRTTIAddHeaderSize(dataSize, compress);
 		return dataSize;
 	}	
 }; 
@@ -265,9 +265,9 @@ BS_ALLOW_MEMCPY_SERIALIZATION(SimpleData)
 
 ## Helper methods
 **RTTIPlainType** specializations can also be used as a more traditional form of serialization in case you find the RTTI system an overkill. For example if you needed to transfer data over a network and don't require advanced versioning features. The system provides helper methods that allow you to easily work with plain types in such a case:
- - @bs::rtti_read - Deserializes an object from the provided stream, advances the stream cursor and returns number of bytes/bits read
- - @bs::rtti_write - Serializes an object into the provided stream, advances the stream cursor and returns number of bytes/bits written
- - @bs::rtti_size - Returns a size an object as **BitLength**
+ - @bs::B3DRTTIRead - Deserializes an object from the provided stream, advances the stream cursor and returns number of bytes/bits read
+ - @bs::B3DRTTIWrite - Serializes an object into the provided stream, advances the stream cursor and returns number of bytes/bits written
+ - @bs::B3DRTTISize - Returns a size an object as **BitLength**
  
 ~~~~~~~~~~~~~{.cpp}
 // Assuming Vector has a RTTIPlainType<T> specialization (which it has, bs::f provides it by default)
@@ -276,15 +276,15 @@ Vector<SimpleData> myData;
 // fill out myData
 
 // Serialize the entire vector and all of its contents
-BitLength size = rtti_size(myData);
+BitLength size = B3DRTTISize(myData);
 
 Bitstream stream(size.bytes);
-rtti_write(myData, stream);
+B3DRTTIWrite(myData, stream);
 
 // Deserialize the data
 stream.seek(0); // Reset cursor to beginning
 Vector<SimpleData> myDataCopy;
-rtti_read(myDataCopy, stream);
+B3DRTTIRead(myDataCopy, stream);
 ~~~~~~~~~~~~~
 
 # Querying more RTTI information
@@ -306,10 +306,10 @@ You can manually query the class hierarchy and well as class members from the RT
 ~~~~~~~~~~~~~{.cpp}
 IReflectable* myObject = ...;
 
-rtti_is_of_type<Texture>(myObject);
-rtti_is_subclass<Texture>(myObject);
-rtti_create(TID_Texture);
-Texture* myTexture = rtti_cast<Texture>(myObject);
+B3DRTTIIsOfType<Texture>(myObject);
+B3DRTTIIsSubclass<Texture>(myObject);
+B3DRTTICreate(TID_Texture);
+Texture* myTexture = B3DRTTICast<Texture>(myObject);
 
 myObject->getTypeName();
 myObject->getTypeId();

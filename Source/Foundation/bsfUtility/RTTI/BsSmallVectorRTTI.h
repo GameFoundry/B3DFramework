@@ -28,15 +28,15 @@ namespace bs
 
 		static BitLength ToMemory(const SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.Size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (const auto& item : data)
-					size += rtti_write(item, stream);
+					size += B3DRTTIWrite(item, stream);
 
 				return size; });
 		}
@@ -44,16 +44,16 @@ namespace bs
 		static BitLength FromMemory(SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			data.Clear();
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				T element;
-				rtti_read(element, stream);
+				B3DRTTIRead(element, stream);
 
 				data.Add(element);
 			}
@@ -66,9 +66,9 @@ namespace bs
 			BitLength dataSize = sizeof(uint32_t);
 
 			for(const auto& item : data)
-				dataSize += rtti_size(item);
+				dataSize += B3DRTTISize(item);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

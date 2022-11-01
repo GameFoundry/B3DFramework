@@ -10,11 +10,11 @@ namespace bs { namespace ct
 size_t TextureView::HashFunction::operator()(const TEXTURE_VIEW_DESC &key) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, key.MostDetailMip);
-	bs_hash_combine(seed, key.NumMips);
-	bs_hash_combine(seed, key.FirstArraySlice);
-	bs_hash_combine(seed, key.NumArraySlices);
-	bs_hash_combine(seed, key.Usage);
+	B3DCombineHash(seed, key.MostDetailMip);
+	B3DCombineHash(seed, key.NumMips);
+	B3DCombineHash(seed, key.FirstArraySlice);
+	B3DCombineHash(seed, key.NumArraySlices);
+	B3DCombineHash(seed, key.Usage);
 
 	return seed;
 }

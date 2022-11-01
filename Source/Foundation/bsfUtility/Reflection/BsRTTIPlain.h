@@ -276,7 +276,7 @@ namespace bs
 	 * Returns the size of the element when serialized.
 	 */
 	template <class ElemType>
-	BitLength rtti_size(const ElemType& data, bool compress = false)
+	BitLength B3DRTTISize(const ElemType& data, bool compress = false)
 	{
 		return RTTIPlainType<ElemType>::GetSize(data, RTTIFieldInfo(), compress);
 	}
@@ -286,7 +286,7 @@ namespace bs
 	 * written to the provided stream and its write cursor advanced.
 	 */
 	template <class ElemType>
-	BitLength rtti_write(const ElemType& data, Bitstream& stream, bool compress = false)
+	BitLength B3DRTTIWrite(const ElemType& data, Bitstream& stream, bool compress = false)
 	{
 		return RTTIPlainType<ElemType>::ToMemory(data, stream, RTTIFieldInfo(), compress);
 	}
@@ -296,7 +296,7 @@ namespace bs
 	 * read from the provided stream and its read cursor advanced.
 	 */
 	template <class ElemType>
-	BitLength rtti_read(ElemType& data, Bitstream& stream, bool compress = false)
+	BitLength B3DRTTIRead(ElemType& data, Bitstream& stream, bool compress = false)
 	{
 		return RTTIPlainType<ElemType>::FromMemory(data, stream, RTTIFieldInfo(), compress);
 	}
@@ -309,11 +309,11 @@ namespace bs
 	 * determined by the return value from @p t. Returns the size written.
 	 */
 	template <class T, class P>
-	BitLength rtti_write_with_size_header(Bitstream& stream, const T& data, bool compress, P p)
+	BitLength B3DRTTIWriteWithSizeHeader(Bitstream& stream, const T& data, bool compress, P p)
 	{
 		if(compress)
 		{
-			BitLength size = rtti_size(data);
+			BitLength size = B3DRTTISize(data);
 			uint64_t headerSize = stream.WriteVarInt(size.Bytes);
 			headerSize += stream.WriteBits(&size.Bits, 3);
 
@@ -341,12 +341,12 @@ namespace bs
 	}
 
 	/**
-	 * Reads the size header that was encoded with rtti_write_with_size_header. @p will contain
+	 * Reads the size header that was encoded with B3DRTTIWriteWithSizeHeader. @p will contain
 	 * the size value read from the stream, while the return value represents the number of bits
 	 * read from the header itself (e.g. 4 bytes for uncompressed size).
 	 */
 	template <class T = Bitstream>
-	BitLength rtti_read_size_header(T& stream, bool compress, BitLength& size)
+	BitLength B3DRTTIReadSizeHeader(T& stream, bool compress, BitLength& size)
 	{
 		if(compress)
 		{
@@ -369,7 +369,7 @@ namespace bs
 	}
 
 	/** Increments the provided size with the required size of the header. */
-	inline void rtti_add_header_size(BitLength& size, bool compress)
+	inline void B3DRTTIAddHeaderSize(BitLength& size, bool compress)
 	{
 		if(compress)
 		{

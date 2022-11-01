@@ -30,13 +30,13 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.mType, stream);
-				size += rtti_write(data.mMinGradient, stream);
-				size += rtti_write(data.mMaxGradient, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.mType, stream);
+				size += B3DRTTIWrite(data.mMinGradient, stream);
+				size += B3DRTTIWrite(data.mMaxGradient, stream);
 
 				return size; });
 		}
@@ -44,17 +44,17 @@ namespace bs
 		static BitLength FromMemory(ColorDistribution& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				rtti_read(data.mType, stream);
-				rtti_read(data.mMinGradient, stream);
-				rtti_read(data.mMaxGradient, stream);
+				B3DRTTIRead(data.mType, stream);
+				B3DRTTIRead(data.mMinGradient, stream);
+				B3DRTTIRead(data.mMaxGradient, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
@@ -67,11 +67,11 @@ namespace bs
 		static BitLength GetSize(const ColorDistribution& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
-			dataSize += rtti_size(data.mType);
-			dataSize += rtti_size(data.mMinGradient);
-			dataSize += rtti_size(data.mMaxGradient);
+			dataSize += B3DRTTISize(data.mType);
+			dataSize += B3DRTTISize(data.mMinGradient);
+			dataSize += B3DRTTISize(data.mMaxGradient);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -93,13 +93,13 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.mType, stream);
-				size += rtti_write(data.mMinCurve, stream);
-				size += rtti_write(data.mMaxCurve, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.mType, stream);
+				size += B3DRTTIWrite(data.mMinCurve, stream);
+				size += B3DRTTIWrite(data.mMaxCurve, stream);
 
 				return size; });
 		}
@@ -107,17 +107,17 @@ namespace bs
 		static BitLength FromMemory(TDistribution<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				rtti_read(data.mType, stream);
-				rtti_read(data.mMinCurve, stream);
-				rtti_read(data.mMaxCurve, stream);
+				B3DRTTIRead(data.mType, stream);
+				B3DRTTIRead(data.mMinCurve, stream);
+				B3DRTTIRead(data.mMaxCurve, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of TDistribution<T> data. Unable to deserialize.");
@@ -130,11 +130,11 @@ namespace bs
 		static BitLength GetSize(const TDistribution<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
-			dataSize += rtti_size(data.mType);
-			dataSize += rtti_size(data.mMinCurve);
-			dataSize += rtti_size(data.mMaxCurve);
+			dataSize += B3DRTTISize(data.mType);
+			dataSize += B3DRTTISize(data.mMinCurve);
+			dataSize += B3DRTTISize(data.mMaxCurve);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

@@ -87,17 +87,17 @@ namespace bs
 
 		static BitLength ToMemory(const LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
 				auto numElements = (uint32_t)data.Strings.size();
-				size += rtti_write(numElements, stream);
+				size += B3DRTTIWrite(numElements, stream);
 
 				for (auto& entry : data.Strings)
 				{
-					size += rtti_write(entry.first, stream);
-					size += rtti_write(*entry.second, stream);
+					size += B3DRTTIWrite(entry.first, stream);
+					size += B3DRTTIWrite(*entry.second, stream);
 				}
 
 				return size; });
@@ -106,19 +106,19 @@ namespace bs
 		static BitLength FromMemory(LanguageData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t numElements = 0;
-			rtti_read(numElements, stream);
+			B3DRTTIRead(numElements, stream);
 
 			data.Strings.clear();
 			for(uint32_t i = 0; i < numElements; i++)
 			{
 				String identifier;
-				rtti_read(identifier, stream);
+				B3DRTTIRead(identifier, stream);
 
 				SPtr<LocalizedStringData> entryData = B3DMakeShared<LocalizedStringData>();
-				rtti_read(*entryData, stream);
+				B3DRTTIRead(*entryData, stream);
 
 				data.Strings[identifier] = entryData;
 			}
@@ -132,11 +132,11 @@ namespace bs
 
 			for(auto& entry : data.Strings)
 			{
-				dataSize += rtti_size(entry.first);
-				dataSize += rtti_size(*entry.second);
+				dataSize += B3DRTTISize(entry.first);
+				dataSize += B3DRTTISize(*entry.second);
 			}
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -161,15 +161,15 @@ namespace bs
 
 		static BitLength ToMemory(const LocalizedStringData& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
 
-				size += rtti_write(data.String, stream);
-				size += rtti_write(data.NumParameters, stream);
+				size += B3DRTTIWrite(data.String, stream);
+				size += B3DRTTIWrite(data.NumParameters, stream);
 
 				for (uint32_t i = 0; i < data.NumParameters; i++)
-					size += rtti_write(data.ParameterOffsets[i], stream);
+					size += B3DRTTIWrite(data.ParameterOffsets[i], stream);
 
 				return size; });
 		}
@@ -180,14 +180,14 @@ namespace bs
 				B3DDeleteMultiple(data.ParameterOffsets, data.NumParameters);
 
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.String, stream);
-			rtti_read(data.NumParameters, stream);
+			B3DRTTIRead(data.String, stream);
+			B3DRTTIRead(data.NumParameters, stream);
 
 			data.ParameterOffsets = B3DNewMultiple<LocalizedStringData::ParamOffset>(data.NumParameters);
 			for(uint32_t i = 0; i < data.NumParameters; i++)
-				rtti_read(data.ParameterOffsets[i], stream);
+				B3DRTTIRead(data.ParameterOffsets[i], stream);
 
 			return size;
 		}
@@ -196,13 +196,13 @@ namespace bs
 		{
 			BitLength dataSize;
 
-			dataSize += rtti_size(data.String);
-			dataSize += rtti_size(data.NumParameters);
+			dataSize += B3DRTTISize(data.String);
+			dataSize += B3DRTTISize(data.NumParameters);
 
 			for(uint32_t i = 0; i < data.NumParameters; i++)
-				dataSize = rtti_size(data.ParameterOffsets[i]);
+				dataSize = B3DRTTISize(data.ParameterOffsets[i]);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

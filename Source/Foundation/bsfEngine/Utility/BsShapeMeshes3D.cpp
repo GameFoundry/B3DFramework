@@ -1779,8 +1779,8 @@ void ShapeMeshes3D::GenerateArcVertices(const Vector3& center, const Vector3& up
 
 void ShapeMeshes3D::GenerateTangents(u8* positions, u8* normals, u8* uv, u32* indices, u32 numVertices, u32 numIndices, u32 vertexOffset, u32 indexOffset, u32 vertexStride, u8* tangents)
 {
-	Vector3* tempTangents = bs_stack_alloc<Vector3>(numVertices);
-	Vector3* tempBitangents = bs_stack_alloc<Vector3>(numVertices);
+	Vector3* tempTangents = B3DStackAllocate<Vector3>(numVertices);
+	Vector3* tempBitangents = B3DStackAllocate<Vector3>(numVertices);
 
 	MeshUtility::CalculateTangents(
 		(Vector3*)(positions + vertexOffset * vertexStride),
@@ -1802,6 +1802,6 @@ void ShapeMeshes3D::GenerateTangents(u8* positions, u8* normals, u8* uv, u32* in
 		memcpy(tangents + (vertexOffset + i) * vertexStride, &packedTangent, sizeof(Vector4));
 	}
 
-	bs_stack_free(tempBitangents);
-	bs_stack_free(tempTangents);
+	B3DStackFree(tempBitangents);
+	B3DStackFree(tempTangents);
 }

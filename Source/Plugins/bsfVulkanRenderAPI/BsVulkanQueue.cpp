@@ -63,7 +63,7 @@ void VulkanQueue::SubmitQueued()
 	u32 totalNumWaitSemaphores = (u32)mQueuedSemaphores.size() + numCBs;
 	u32 signalSemaphoresPerCB = (BS_MAX_VULKAN_CB_DEPENDENCIES + 1);
 
-	u8* data = (u8*)bs_stack_alloc((sizeof(VkSubmitInfo) + sizeof(VkCommandBuffer)) * numCBs + sizeof(VkSemaphore) * signalSemaphoresPerCB * numCBs + sizeof(VkSemaphore) * totalNumWaitSemaphores);
+	u8* data = (u8*)B3DStackAllocate((sizeof(VkSubmitInfo) + sizeof(VkCommandBuffer)) * numCBs + sizeof(VkSemaphore) * signalSemaphoresPerCB * numCBs + sizeof(VkSemaphore) * totalNumWaitSemaphores);
 	u8* dataPtr = data;
 
 	VkSubmitInfo* submitInfos = (VkSubmitInfo*)dataPtr;
@@ -114,7 +114,7 @@ void VulkanQueue::SubmitQueued()
 	mQueuedBuffers.clear();
 	mQueuedSemaphores.clear();
 
-	bs_stack_free(data);
+	B3DStackFree(data);
 }
 
 void VulkanQueue::GetSubmitInfo(VkCommandBuffer* cmdBuffer, VkSemaphore* signalSemaphores, u32 numSignalSemaphores, VkSemaphore* waitSemaphores, u32 numWaitSemaphores, VkSubmitInfo& submitInfo)

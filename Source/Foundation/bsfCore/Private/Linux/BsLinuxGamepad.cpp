@@ -52,7 +52,7 @@ void Gamepad::capture()
 	};
 
 	AxisState axisState[24];
-	bs_zero_out(axisState);
+	B3DZeroOut(axisState);
 
 	input_event events[BUFFER_SIZE_GAMEPAD];
 	while(true)

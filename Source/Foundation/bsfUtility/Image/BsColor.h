@@ -273,10 +273,10 @@ namespace std
 		size_t operator()(const bs::Color& color) const
 		{
 			size_t hash = 0;
-			bs::bs_hash_combine(hash, color.R);
-			bs::bs_hash_combine(hash, color.G);
-			bs::bs_hash_combine(hash, color.B);
-			bs::bs_hash_combine(hash, color.A);
+			bs::B3DCombineHash(hash, color.R);
+			bs::B3DCombineHash(hash, color.G);
+			bs::B3DCombineHash(hash, color.B);
+			bs::B3DCombineHash(hash, color.A);
 
 			return hash;
 		}

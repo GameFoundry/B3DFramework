@@ -15,7 +15,7 @@ TextSprite::~TextSprite()
 
 void TextSprite::Update(const TEXT_SPRITE_DESC& desc, u64 groupId)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		const U32String utf32text = UTF8::ToUtF32(desc.Text);
 		TextData<FrameAlloc> textData(utf32text, desc.Font, desc.FontSize, desc.Width, desc.Height, desc.WordWrap, desc.WordBreak);
@@ -69,7 +69,7 @@ void TextSprite::Update(const TEXT_SPRITE_DESC& desc, u64 groupId)
 		}
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	UpdateBounds();
 }
@@ -79,7 +79,7 @@ u32 TextSprite::GenTextQuads(u32 page, const TextDataBase& textData, u32 width, 
 	u32 numLines = textData.GetNumLines();
 	u32 newNumQuads = textData.GetNumQuadsForPage(page);
 
-	Vector2I* alignmentOffsets = bs_stack_new<Vector2I>(numLines);
+	Vector2I* alignmentOffsets = B3DStackNew<Vector2I>(numLines);
 	GetAlignmentOffsets(textData, width, height, horzAlign, vertAlign, alignmentOffsets);
 	Vector2I offset = GetAnchorOffset(anchor, width, height);
 
@@ -100,7 +100,7 @@ u32 TextSprite::GenTextQuads(u32 page, const TextDataBase& textData, u32 width, 
 		quadOffset += writtenQuads;
 	}
 
-	bs_stack_delete(alignmentOffsets, numLines);
+	B3DStackDelete(alignmentOffsets, numLines);
 	return newNumQuads;
 }
 
@@ -109,7 +109,7 @@ u32 TextSprite::GenTextQuads(const TextDataBase& textData, u32 width, u32 height
 	u32 numLines = textData.GetNumLines();
 	u32 numPages = textData.GetNumPages();
 
-	Vector2I* alignmentOffsets = bs_stack_new<Vector2I>(numLines);
+	Vector2I* alignmentOffsets = B3DStackNew<Vector2I>(numLines);
 	GetAlignmentOffsets(textData, width, height, horzAlign, vertAlign, alignmentOffsets);
 	Vector2I offset = GetAnchorOffset(anchor, width, height);
 
@@ -135,7 +135,7 @@ u32 TextSprite::GenTextQuads(const TextDataBase& textData, u32 width, u32 height
 		}
 	}
 
-	bs_stack_delete(alignmentOffsets, numLines);
+	B3DStackDelete(alignmentOffsets, numLines);
 	return quadOffset;
 }
 

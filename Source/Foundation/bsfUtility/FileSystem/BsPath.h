@@ -474,12 +474,12 @@ namespace std
 		size_t operator()(const bs::Path& path) const
 		{
 			size_t hash = 0;
-			bs::bs_hash_combine(hash, path.mFilename);
-			bs::bs_hash_combine(hash, path.mDevice);
-			bs::bs_hash_combine(hash, path.mNode);
+			bs::B3DCombineHash(hash, path.mFilename);
+			bs::B3DCombineHash(hash, path.mDevice);
+			bs::B3DCombineHash(hash, path.mNode);
 
 			for(auto& dir : path.mDirectories)
-				bs::bs_hash_combine(hash, dir);
+				bs::B3DCombineHash(hash, dir);
 
 			return hash;
 		}

@@ -10,7 +10,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<GLHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<GLHardwareBuffer*>(buffer));
 }
 
 GLGpuBuffer::GLGpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -48,7 +48,7 @@ void GLGpuBuffer::Initialize()
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 			const auto& props = GetProperties();
 			u32 size = props.GetElementCount() * props.GetElementSize();
-			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.GetUsage());
+			mBuffer = B3DPoolNew<GLHardwareBuffer>(GL_SHADER_STORAGE_BUFFER, size, props.GetUsage());
 #else
 			BS_LOG(Warning, RenderBackend, "SSBOs are not supported on the current OpenGL version.");
 #endif
@@ -57,7 +57,7 @@ void GLGpuBuffer::Initialize()
 		{
 			const auto& props = GetProperties();
 			u32 size = props.GetElementCount() * props.GetElementSize();
-			mBuffer = bs_pool_new<GLHardwareBuffer>(GL_TEXTURE_BUFFER, size, props.GetUsage());
+			mBuffer = B3DPoolNew<GLHardwareBuffer>(GL_TEXTURE_BUFFER, size, props.GetUsage());
 		}
 	}
 

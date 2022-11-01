@@ -104,7 +104,7 @@ void MeshWeightedTriangles::GetTriangle(const Random& random, std::array<u32, 3>
 	if(findIter != mWeights.end())
 		memcpy(indices.data(), findIter->Indices, sizeof(indices));
 	else
-		bs_zero_out(indices);
+		B3DZeroOut(indices);
 }
 
 template <class Pr>
@@ -1327,7 +1327,7 @@ u32 ParticleEmitter::Spawn(u32 count, Random& random, const ParticleSystemState&
 	const u32 endIdx = firstIdx + count;
 
 	ParticleSetData& particles = set.GetParticles();
-	float* emitterT = bs_stack_alloc<float>(sizeof(float) * count);
+	float* emitterT = B3DStackAllocate<float>(sizeof(float) * count);
 
 	if(spacing)
 	{
@@ -1423,7 +1423,7 @@ u32 ParticleEmitter::Spawn(u32 count, Random& random, const ParticleSystemState&
 			particles.Velocity[i] = state.LocalToWorld.MultiplyDirection(particles.Velocity[i]);
 	}
 
-	bs_stack_free(emitterT);
+	B3DStackFree(emitterT);
 
 	return count;
 }

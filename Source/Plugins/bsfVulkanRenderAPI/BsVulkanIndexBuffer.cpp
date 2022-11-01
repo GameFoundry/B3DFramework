@@ -9,7 +9,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<VulkanHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<VulkanHardwareBuffer*>(buffer));
 }
 
 VulkanIndexBuffer::VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -18,7 +18,7 @@ VulkanIndexBuffer::VulkanIndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFla
 
 void VulkanIndexBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+	mBuffer = B3DPoolNew<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 	mBufferDeleter = &deleteBuffer;
 
 	Initialize();

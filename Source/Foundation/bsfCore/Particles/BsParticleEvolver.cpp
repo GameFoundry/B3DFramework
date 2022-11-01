@@ -617,7 +617,7 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 
 		if(!mCollisionPlaneObjects.empty())
 		{
-			objPlanes = bs_stack_alloc<Plane>((u32)mCollisionPlaneObjects.size());
+			objPlanes = B3DStackAllocate<Plane>((u32)mCollisionPlaneObjects.size());
 			for(auto& entry : mCollisionPlaneObjects)
 			{
 				if(entry.IsDestroyed())
@@ -642,7 +642,7 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 		else
 		{
 			const Matrix4& worldToLocal = state.WorldToLocal;
-			localPlanes = bs_stack_alloc<Plane>((u32)mCollisionPlanes.size());
+			localPlanes = B3DStackAllocate<Plane>((u32)mCollisionPlanes.size());
 
 			for(u32 i = 0; i < (u32)mCollisionPlanes.size(); i++)
 				localPlanes[i] = worldToLocal.MultiplyAffine(mCollisionPlanes[i]);
@@ -657,7 +657,7 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 			Vector3& position = particles.Position[i];
 			Vector3& velocity = particles.Velocity[i];
 
-			for(u32 j = 0; j < bs_size(planes); j++)
+			for(u32 j = 0; j < B3DSize(planes); j++)
 			{
 				for(u32 k = 0; k < numPlanes[j]; k++)
 				{
@@ -690,10 +690,10 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 		}
 
 		if(objPlanes)
-			bs_stack_free(objPlanes);
+			B3DStackFree(objPlanes);
 
 		if(localPlanes)
-			bs_stack_free(localPlanes);
+			B3DStackFree(localPlanes);
 	}
 	else
 	{
@@ -701,8 +701,8 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 		const u32 rayEnd = endIdx;
 		const u32 numRays = rayEnd - rayStart;
 
-		const auto segments = bs_stack_alloc<LineSegment3>(numRays);
-		const auto hits = bs_stack_alloc<ParticleHitInfo>(numRays);
+		const auto segments = B3DStackAllocate<LineSegment3>(numRays);
+		const auto hits = B3DStackAllocate<ParticleHitInfo>(numRays);
 
 		for(u32 i = 0; i < numRays; i++)
 		{
@@ -746,8 +746,8 @@ void ParticleCollisions::Evolve(Random& random, const ParticleSystemState& state
 			particles.Lifetime[particleIdx] -= mDesc.LifetimeLoss * particles.InitialLifetime[particleIdx];
 		}
 
-		bs_stack_free(hits);
-		bs_stack_free(segments);
+		B3DStackFree(hits);
+		B3DStackFree(segments);
 	}
 }
 

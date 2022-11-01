@@ -692,7 +692,7 @@ CoreSyncData Material::SyncToCore(FrameAlloc* allocator)
 	u8* buffer = allocator->Alloc(size);
 	Bitstream stream(buffer, size);
 
-	rtti_write(syncAllParams, stream);
+	B3DRTTIWrite(syncAllParams, stream);
 
 	SPtr<ct::Shader>* shader = new(stream.Cursor()) SPtr<ct::Shader>();
 	if(mShader.IsLoaded(false))
@@ -701,7 +701,7 @@ CoreSyncData Material::SyncToCore(FrameAlloc* allocator)
 		*shader = nullptr;
 
 	stream.SkipBytes(sizeof(SPtr<ct::Shader>));
-	rtti_write(numTechniques, stream);
+	B3DRTTIWrite(numTechniques, stream);
 
 	for(u32 i = 0; i < numTechniques; i++)
 	{
@@ -711,7 +711,7 @@ CoreSyncData Material::SyncToCore(FrameAlloc* allocator)
 		stream.SkipBytes(sizeof(SPtr<ct::Technique>));
 	}
 
-	rtti_write(paramsSize, stream);
+	B3DRTTIWrite(paramsSize, stream);
 	if(mParams != nullptr)
 		mParams->GetSyncData(stream.Cursor(), paramsSize, syncAllParams);
 
@@ -883,14 +883,14 @@ void Material::SetParams(const SPtr<MaterialParams>& params)
 				if(param.second.ElementSize != structSize)
 					continue;
 
-				u8* structData = (u8*)bs_stack_alloc(structSize);
+				u8* structData = (u8*)B3DStackAllocate(structSize);
 				for(u32 i = 0; i < elemsToCopy; i++)
 				{
 					params->GetStructData(*paramData, structData, structSize, i);
 					curParam.Set(structData, structSize, i);
 				}
 
-				bs_stack_free(structData);
+				B3DStackFree(structData);
 			}
 		}
 
@@ -1064,7 +1064,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 
 	bool syncAllParams;
-	rtti_read(syncAllParams, stream);
+	B3DRTTIRead(syncAllParams, stream);
 
 	u64 initialParamVersion = mParams != nullptr ? mParams->GetParamVersion() : 1;
 	if(syncAllParams)
@@ -1077,7 +1077,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 	stream.SkipBytes(sizeof(SPtr<Shader>));
 
 	u32 numTechniques;
-	rtti_read(numTechniques, stream);
+	B3DRTTIRead(numTechniques, stream);
 
 	mTechniques.resize(numTechniques);
 	for(u32 i = 0; i < numTechniques; i++)
@@ -1089,7 +1089,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 	}
 
 	u32 paramsSize = 0;
-	rtti_read(paramsSize, stream);
+	B3DRTTIRead(paramsSize, stream);
 	if(mParams == nullptr && mShader != nullptr)
 		mParams = B3DMakeShared<MaterialParams>(mShader, initialParamVersion);
 

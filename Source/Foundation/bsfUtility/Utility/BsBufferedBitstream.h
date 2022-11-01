@@ -268,7 +268,7 @@ namespace bs
 		Bitstream::QuantType* remainingData = nullptr;
 		if(remainingBytes > 0)
 		{
-			remainingData = bs_stack_alloc<Bitstream::QuantType>(remainingBytes);
+			remainingData = B3DStackAllocate<Bitstream::QuantType>(remainingBytes);
 			mBitstream->ReadBytes(remainingData, remainingBytes);
 		}
 
@@ -277,7 +277,7 @@ namespace bs
 		mBitstream->Seek(remainingBits);
 
 		if(remainingData)
-			bs_stack_free(remainingData);
+			B3DStackFree(remainingData);
 	}
 
 	inline BufferedBitstreamWriter::BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter)

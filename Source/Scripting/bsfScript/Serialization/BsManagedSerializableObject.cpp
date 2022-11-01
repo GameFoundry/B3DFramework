@@ -13,8 +13,8 @@ using namespace bs;
 size_t ManagedSerializableObject::Hash::operator()(const ManagedSerializableFieldKey& x) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, (u32)x.MFieldId);
-	bs_hash_combine(seed, (u32)x.MTypeId);
+	B3DCombineHash(seed, (u32)x.MFieldId);
+	B3DCombineHash(seed, (u32)x.MTypeId);
 
 	return seed;
 }

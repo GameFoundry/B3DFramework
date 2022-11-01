@@ -262,7 +262,7 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 	auto sectionHeaderPos = optionalHeaderPos + (std::ifstream::pos_type)coffHeader.SizeOptHeader;
 	stream.seekg(sectionHeaderPos);
 
-	PESectionHeader* sectionHeaders = bs_stack_alloc<PESectionHeader>(numSectionHeaders);
+	PESectionHeader* sectionHeaders = B3DStackAllocate<PESectionHeader>(numSectionHeaders);
 	stream.read((char*)sectionHeaders, sizeof(PESectionHeader) * numSectionHeaders);
 
 	// Look for .rsrc section header
@@ -301,7 +301,7 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 		if(strcmp(sectionHeaders[i].Name, ".rsrc") == 0)
 		{
 			u32 imageSize = sectionHeaders[i].PhysicalSize;
-			u8* imageData = (u8*)bs_stack_alloc(imageSize);
+			u8* imageData = (u8*)B3DStackAllocate(imageSize);
 
 			stream.seekg(sectionHeaders[i].PhysicalAddress);
 			stream.read((char*)imageData, imageSize);
@@ -313,11 +313,11 @@ void IconUtility::UpdateIconExe(const Path& path, const Map<u32, SPtr<PixelData>
 			stream.seekp(sectionHeaders[i].PhysicalAddress);
 			stream.write((char*)imageData, imageSize);
 
-			bs_stack_free(imageData);
+			B3DStackFree(imageData);
 		}
 	}
 
-	bs_stack_free(sectionHeaders);
+	B3DStackFree(sectionHeaders);
 	stream.close();
 }
 

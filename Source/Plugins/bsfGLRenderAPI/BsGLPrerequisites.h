@@ -73,13 +73,13 @@ namespace bs
 	namespace ct
 	{
 		/** Translated an OpenGL error code enum to an error code string. */
-		const char* bs_get_gl_error_string(GLenum errorCode);
+		const char* B3DGetOpenGLErrorString(GLenum errorCode);
 
 		/** Checks if there have been any OpenGL errors since the last call, and if so reports them. */
-		void bs_check_gl_error(const char* function, const char* file, i32 line);
+		void B3DCheckForOpenGLError(const char* function, const char* file, i32 line);
 
 #if BS_DEBUG_MODE && (!BS_OPENGL_4_3 && !BS_OPENGLES_3_2)
-#	define BS_CHECK_GL_ERROR() bs_check_gl_error(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#	define BS_CHECK_GL_ERROR() B3DCheckForOpenGLError(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 #else
 #	define BS_CHECK_GL_ERROR()
 #endif

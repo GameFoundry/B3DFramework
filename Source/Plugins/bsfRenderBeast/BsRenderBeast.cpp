@@ -651,7 +651,7 @@ void RenderBeast::UpdateReflProbeArray()
 	SceneInfo& sceneInfo = mScene->GetSceneInfoInternal();
 	u32 numProbes = (u32)sceneInfo.ReflProbes.size();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		u32 currentCubeArraySize = 0;
 
@@ -730,7 +730,7 @@ void RenderBeast::UpdateReflProbeArray()
 			// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)

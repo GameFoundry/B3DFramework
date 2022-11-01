@@ -123,7 +123,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const B
 			bool typeIsSerializable = true;
 			bool typeIsInspectable = true;
 
-			if(const auto* objTypeInfo = rtti_cast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
+			if(const auto* objTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
 			{
 				typeIsSerializable = objTypeInfo->MFlags.IsSet(ScriptTypeFlag::Serializable);
 				typeIsInspectable = typeIsSerializable || objTypeInfo->MFlags.IsSet(ScriptTypeFlag::Inspectable);
@@ -165,7 +165,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const B
 			if(field->HasAttribute(mBuiltin.LayerMaskAttribute))
 			{
 				// Layout mask attribute is only relevant for 64-bit integer types
-				if(const auto* primTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+				if(const auto* primTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
 				{
 					if(primTypeInfo->MType == ScriptPrimitiveType::I64 ||
 					   primTypeInfo->MType == ScriptPrimitiveType::U64)
@@ -210,7 +210,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const B
 			bool typeIsSerializable = true;
 			bool typeIsInspectable = true;
 
-			if(const auto* objTypeInfo = rtti_cast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
+			if(const auto* objTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoObject>(typeInfo.get()))
 			{
 				typeIsSerializable = objTypeInfo->MFlags.IsSet(ScriptTypeFlag::Serializable);
 				typeIsInspectable = typeIsSerializable || objTypeInfo->MFlags.IsSet(ScriptTypeFlag::Inspectable);
@@ -244,7 +244,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const B
 				if(property->HasAttribute(mBuiltin.LayerMaskAttribute))
 				{
 					// Layout mask attribute is only relevant for 64-bit integer types
-					if(const auto* primTypeInfo = rtti_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+					if(const auto* primTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
 					{
 						if(primTypeInfo->MType == ScriptPrimitiveType::I64 ||
 						   primTypeInfo->MType == ScriptPrimitiveType::U64)

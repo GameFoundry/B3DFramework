@@ -42,13 +42,13 @@ void FPhysXCollider::SetShapeInternal(PxShape* shape)
 
 		u32 numMaterials = mShape->getNbMaterials();
 		u32 bufferSize = sizeof(PxMaterial*) * numMaterials;
-		PxMaterial** materials = (PxMaterial**)bs_stack_alloc(bufferSize);
+		PxMaterial** materials = (PxMaterial**)B3DStackAllocate(bufferSize);
 
 		mShape->getMaterials(materials, bufferSize);
 		shape->setMaterials(materials, numMaterials);
 		shape->userData = mShape->userData;
 
-		bs_stack_free(materials);
+		B3DStackFree(materials);
 
 		PxActor* actor = mShape->getActor();
 		if(actor != nullptr)

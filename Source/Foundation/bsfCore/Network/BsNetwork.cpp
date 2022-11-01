@@ -280,7 +280,7 @@ NetworkPeer::NetworkPeer(const NETWORK_PEER_DESC& desc)
 		m->networkIdMapping[i].id = NetworkId(i);
 
 	u32 numDescriptors = (u32)desc.listenAddresses.size();
-	SocketDescriptor* descriptors = bs_stack_alloc<SocketDescriptor>(numDescriptors);
+	SocketDescriptor* descriptors = B3DStackAllocate<SocketDescriptor>(numDescriptors);
 
 	for(u32 i = 0; i < numDescriptors; i++)
 	{
@@ -310,7 +310,7 @@ NetworkPeer::NetworkPeer(const NETWORK_PEER_DESC& desc)
 
 	StartupResult result = m->peer->Startup(desc.maxNumConnections, descriptors, numDescriptors);
 
-	bs_stack_free(descriptors);
+	B3DStackFree(descriptors);
 
 	switch(result)
 	{
@@ -665,8 +665,8 @@ SPtr<IReflectable> NetworkDecoder::decode(u8& type, UUID& uuid, SerializationCon
 
 	char* data = (char*)mInputStream->GetCurrentPtr();
 	u32 offset = 0;
-	data = rtti_read(type, data, offset);
-	data = rtti_read(uuid, data, offset);
+	data = B3DRTTIRead(type, data, offset);
+	data = B3DRTTIRead(uuid, data, offset);
 
 	mInputStream->skip(offset);
 

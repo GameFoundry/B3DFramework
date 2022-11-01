@@ -62,7 +62,7 @@ void OAAudioClip::Initialize()
 			}
 
 			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
-			u8* sampleBuffer = (u8*)bs_stack_alloc(bufferSize);
+			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
 			// Decompress from Ogg
 			if(mDesc.Format == AudioFormat::VORBIS)
@@ -87,7 +87,7 @@ void OAAudioClip::Initialize()
 			mStreamOffset = 0;
 			mStreamSize = 0;
 
-			bs_stack_free(sampleBuffer);
+			B3DStackFree(sampleBuffer);
 		}
 		// Load compressed data for streaming from memory
 		else if(mDesc.ReadMode == AudioReadMode::LoadCompressed)

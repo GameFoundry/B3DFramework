@@ -232,7 +232,7 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	Rect2I* elementAreas = nullptr;
 
 	if(numElements > 0)
-		elementAreas = bs_stack_new<Rect2I>(numElements);
+		elementAreas = B3DStackNew<Rect2I>(numElements);
 
 	u32 layoutIdx = 0;
 	u32 horzScrollIdx = 0;
@@ -343,7 +343,7 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	}
 
 	if(elementAreas != nullptr)
-		bs_stack_free(elementAreas);
+		B3DStackFree(elementAreas);
 }
 
 void GUIScrollArea::VertScrollUpdate(float scrollPos)

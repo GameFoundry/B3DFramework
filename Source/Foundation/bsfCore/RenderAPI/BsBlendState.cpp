@@ -135,19 +135,19 @@ SPtr<BlendState> BlendState::Create(const BLEND_STATE_DESC& desc)
 u64 BlendState::GenerateHash(const BLEND_STATE_DESC& desc)
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, desc.AlphaToCoverageEnable);
-	bs_hash_combine(hash, desc.IndependantBlendEnable);
+	B3DCombineHash(hash, desc.AlphaToCoverageEnable);
+	B3DCombineHash(hash, desc.IndependantBlendEnable);
 
 	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
 	{
-		bs_hash_combine(hash, desc.RenderTargetDesc[i].BlendEnable);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].SrcBlend);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].DstBlend);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].BlendOp);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].SrcBlendAlpha);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].DstBlendAlpha);
-		bs_hash_combine(hash, (u32)desc.RenderTargetDesc[i].BlendOpAlpha);
-		bs_hash_combine(hash, desc.RenderTargetDesc[i].RenderTargetWriteMask);
+		B3DCombineHash(hash, desc.RenderTargetDesc[i].BlendEnable);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].SrcBlend);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].DstBlend);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].BlendOp);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].SrcBlendAlpha);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].DstBlendAlpha);
+		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].BlendOpAlpha);
+		B3DCombineHash(hash, desc.RenderTargetDesc[i].RenderTargetWriteMask);
 	}
 
 	return (u64)hash;

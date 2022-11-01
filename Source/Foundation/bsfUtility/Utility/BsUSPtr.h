@@ -203,7 +203,7 @@ namespace bs
 
 	/** Create a new unsafe shared pointer using a custom allocator category. */
 	template <typename Type, typename... Args>
-	USPtr<Type> bs_ushared_ptr_new(Args&&... args)
+	USPtr<Type> B3DMakeUnsafeShared(Args&&... args)
 	{
 		// Note: Ideally we merge the pointer and internal USPtr counter allocation in a single allocation
 
@@ -212,7 +212,7 @@ namespace bs
 
 	/** Create a new unsafe shared pointer from a previously constructed object. */
 	template <typename Type>
-	USPtr<Type> bs_ushared_ptr(Type* data)
+	USPtr<Type> B3DMakeUnsafeSharedFromExisting(Type* data)
 	{
 		return USPtr<Type>(data);
 	}

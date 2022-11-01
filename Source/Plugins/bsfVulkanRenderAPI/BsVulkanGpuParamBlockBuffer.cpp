@@ -14,12 +14,12 @@ VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(u32 size, GpuBufferUsage us
 VulkanGpuParamBlockBuffer::~VulkanGpuParamBlockBuffer()
 {
 	if(mBuffer != nullptr)
-		bs_pool_delete(static_cast<VulkanHardwareBuffer*>(mBuffer));
+		B3DPoolDelete(static_cast<VulkanHardwareBuffer*>(mBuffer));
 }
 
 void VulkanGpuParamBlockBuffer::Initialize()
 {
-	mBuffer = bs_pool_new<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
+	mBuffer = B3DPoolNew<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_UNIFORM, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 
 	GpuParamBlockBuffer::Initialize();
 }

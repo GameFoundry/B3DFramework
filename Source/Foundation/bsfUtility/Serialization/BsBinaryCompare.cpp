@@ -167,8 +167,8 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 								return false;
 
 							// Note: Ideally avoid doing copies here, and compare field values directly
-							auto dataA = bs_managed_stack_alloc(typeSizeA);
-							auto dataB = bs_managed_stack_alloc(typeSizeB);
+							auto dataA = B3DManagedStackAllocate(typeSizeA);
+							auto dataB = B3DManagedStackAllocate(typeSizeB);
 
 							Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 							Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
@@ -258,8 +258,8 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 							return false;
 
 						// Note: Ideally avoid doing copies here, and compare field values directly
-						auto dataA = bs_managed_stack_alloc(typeSizeA);
-						auto dataB = bs_managed_stack_alloc(typeSizeB);
+						auto dataA = B3DManagedStackAllocate(typeSizeA);
+						auto dataB = B3DManagedStackAllocate(typeSizeB);
 
 						Bitstream streamA((uint8_t*)static_cast<void*>(dataA), typeSizeA);
 						Bitstream streamB((uint8_t*)static_cast<void*>(dataB), typeSizeB);
@@ -283,8 +283,8 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 						if(dataBlockSizeA != dataBlockSizeB)
 							return false;
 
-						auto dataA = bs_managed_stack_alloc(dataBlockSizeA);
-						auto dataB = bs_managed_stack_alloc(dataBlockSizeB);
+						auto dataA = B3DManagedStackAllocate(dataBlockSizeA);
+						auto dataB = B3DManagedStackAllocate(dataBlockSizeB);
 
 						blockStreamA->Read(dataA, dataBlockSizeA);
 						blockStreamB->Read(dataB, dataBlockSizeB);

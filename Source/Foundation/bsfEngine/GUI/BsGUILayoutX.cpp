@@ -103,10 +103,10 @@ void GUILayoutX::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* eleme
 
 	if(mChildren.size() > 0)
 	{
-		processedElements = bs_stack_alloc<bool>((u32)mChildren.size());
+		processedElements = B3DStackAllocate<bool>((u32)mChildren.size());
 		memset(processedElements, 0, mChildren.size() * sizeof(bool));
 
-		elementScaleWeights = bs_stack_alloc<float>((u32)mChildren.size());
+		elementScaleWeights = B3DStackAllocate<float>((u32)mChildren.size());
 		memset(elementScaleWeights, 0, mChildren.size() * sizeof(float));
 	}
 
@@ -384,10 +384,10 @@ void GUILayoutX::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* eleme
 	}
 
 	if(elementScaleWeights != nullptr)
-		bs_stack_free(elementScaleWeights);
+		B3DStackFree(elementScaleWeights);
 
 	if(processedElements != nullptr)
-		bs_stack_free(processedElements);
+		B3DStackFree(processedElements);
 }
 
 void GUILayoutX::UpdateLayoutInternalInternal(const GUILayoutData& data)
@@ -396,7 +396,7 @@ void GUILayoutX::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	Rect2I* elementAreas = nullptr;
 
 	if(numElements > 0)
-		elementAreas = bs_stack_new<Rect2I>(numElements);
+		elementAreas = B3DStackNew<Rect2I>(numElements);
 
 	GetElementAreasInternal(data.Area, elementAreas, numElements, mChildSizeRanges, mSizeRange);
 
@@ -420,7 +420,7 @@ void GUILayoutX::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	}
 
 	if(elementAreas != nullptr)
-		bs_stack_free(elementAreas);
+		B3DStackFree(elementAreas);
 }
 
 GUILayoutX* GUILayoutX::Create()

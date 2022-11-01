@@ -145,7 +145,7 @@ void GLSLGpuProgram::Initialize()
 			{
 				assert(sizeof(source[i]) == sizeof(GLchar));
 
-				GLchar* lineData = (GLchar*)bs_stack_alloc(sizeof(GLchar) * (lineLength + 2));
+				GLchar* lineData = (GLchar*)B3DStackAllocate(sizeof(GLchar) * (lineLength + 2));
 				memcpy(lineData, &source[i - lineLength], sizeof(GLchar) * lineLength);
 
 				lineData[lineLength] = '\n';
@@ -181,7 +181,7 @@ void GLSLGpuProgram::Initialize()
 			u32 end = (u32)source.size() - 1;
 			assert(sizeof(source[end]) == sizeof(GLchar));
 
-			GLchar* lineData = (GLchar*)bs_stack_alloc(sizeof(GLchar) * (lineLength + 1));
+			GLchar* lineData = (GLchar*)B3DStackAllocate(sizeof(GLchar) * (lineLength + 1));
 			memcpy(lineData, &source[source.size() - lineLength], sizeof(GLchar) * lineLength);
 			lineData[lineLength] = '\0';
 
@@ -199,7 +199,7 @@ void GLSLGpuProgram::Initialize()
 
 			u32 length = (u32)strlen(versionLine) + 1;
 
-			GLchar* extraLineData = (GLchar*)bs_stack_alloc(length);
+			GLchar* extraLineData = (GLchar*)B3DStackAllocate(length);
 			memcpy(extraLineData, versionLine, length);
 
 			lines.insert(lines.begin(), extraLineData);
@@ -222,7 +222,7 @@ void GLSLGpuProgram::Initialize()
 		{
 			u32 length = (u32)strlen(EXTRA_LINES[i]) + 1;
 
-			GLchar* extraLineData = (GLchar*)bs_stack_alloc(length);
+			GLchar* extraLineData = (GLchar*)B3DStackAllocate(length);
 			memcpy(extraLineData, EXTRA_LINES[i], length);
 
 			lines.insert(lines.begin() + extraLineOffset + numInsertedLines, extraLineData);
@@ -234,13 +234,13 @@ void GLSLGpuProgram::Initialize()
 			codeStream << entry;
 
 		for(i32 i = numInsertedLines - 1; i >= 0; i--)
-			bs_stack_free(lines[extraLineOffset + i]);
+			B3DStackFree(lines[extraLineOffset + i]);
 
 		if(numInsertedLines > 0)
 			lines.erase(lines.begin() + extraLineOffset, lines.begin() + extraLineOffset + numInsertedLines);
 
 		for(auto iter = lines.rbegin(); iter != lines.rend(); ++iter)
-			bs_stack_free(*iter);
+			B3DStackFree(*iter);
 
 		String code = codeStream.str();
 		const char* codeRaw = code.c_str();

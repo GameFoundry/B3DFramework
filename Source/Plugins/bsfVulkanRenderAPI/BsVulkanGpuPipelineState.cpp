@@ -40,10 +40,10 @@ VulkanGraphicsPipelineState::GpuPipelineKey::GpuPipelineKey(
 size_t VulkanGraphicsPipelineState::HashFunc::operator()(const GpuPipelineKey& key) const
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, key.FramebufferId);
-	bs_hash_combine(hash, key.VertexInputId);
-	bs_hash_combine(hash, key.ReadOnlyFlags);
-	bs_hash_combine(hash, key.DrawOp);
+	B3DCombineHash(hash, key.FramebufferId);
+	B3DCombineHash(hash, key.VertexInputId);
+	B3DCombineHash(hash, key.ReadOnlyFlags);
+	B3DCombineHash(hash, key.DrawOp);
 
 	return hash;
 }
@@ -300,14 +300,14 @@ void VulkanGraphicsPipelineState::Initialize()
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
 		u32 numLayouts = vkParamInfo.GetNumSets();
-		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
 		for(u32 j = 0; j < numLayouts; j++)
 			layouts[j] = vkParamInfo.GetLayout(i, j);
 
 		mPerDeviceData[i].PipelineLayout = descManager.GetPipelineLayout(layouts, numLayouts);
 
-		bs_stack_free(layouts);
+		B3DStackFree(layouts);
 	}
 
 	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
@@ -490,7 +490,7 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIdx, Vulka
 VulkanComputePipelineState::VulkanComputePipelineState(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask)
 	: ComputePipelineState(program, deviceMask), mDeviceMask(deviceMask)
 {
-	bs_zero_out(mPerDeviceData);
+	B3DZeroOut(mPerDeviceData);
 }
 
 VulkanComputePipelineState::~VulkanComputePipelineState()
@@ -549,7 +549,7 @@ void VulkanComputePipelineState::Initialize()
 		VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
 		u32 numLayouts = vkParamInfo.GetNumSets();
-		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)bs_stack_alloc(sizeof(VulkanDescriptorLayout*) * numLayouts);
+		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
 
 		for(u32 j = 0; j < numLayouts; j++)
 			layouts[j] = vkParamInfo.GetLayout(i, j);
@@ -569,7 +569,7 @@ void VulkanComputePipelineState::Initialize()
 
 		mPerDeviceData[i].Pipeline = rescManager.Create<VulkanPipeline>(pipeline);
 		mPerDeviceData[i].PipelineLayout = pipelineCI.layout;
-		bs_stack_free(layouts);
+		B3DStackFree(layouts);
 	}
 
 	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);

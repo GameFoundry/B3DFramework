@@ -33,13 +33,13 @@ size_t VulkanDescriptorLayout::CalculateHash(VkDescriptorSetLayoutBinding* bindi
 	for(u32 i = 0; i < numBindings; i++)
 	{
 		size_t bindingHash = 0;
-		bs_hash_combine(bindingHash, bindings[i].binding);
-		bs_hash_combine(bindingHash, bindings[i].descriptorCount);
-		bs_hash_combine(bindingHash, bindings[i].descriptorType);
-		bs_hash_combine(bindingHash, bindings[i].stageFlags);
+		B3DCombineHash(bindingHash, bindings[i].binding);
+		B3DCombineHash(bindingHash, bindings[i].descriptorCount);
+		B3DCombineHash(bindingHash, bindings[i].descriptorType);
+		B3DCombineHash(bindingHash, bindings[i].stageFlags);
 		assert(bindings[i].pImmutableSamplers == nullptr); // Not accounted for in hash, assumed always null
 
-		bs_hash_combine(hash, bindingHash);
+		B3DCombineHash(hash, bindingHash);
 	}
 
 	return hash;

@@ -595,7 +595,7 @@ namespace bs
 			if(nodeToCollapse)
 			{
 				// Add all the child node elements to the current node
-				bs_frame_mark();
+				B3DMarkAllocatorFrame();
 				{
 					FrameStack<Node*> todo;
 					todo.push(node);
@@ -620,7 +620,7 @@ namespace bs
 						}
 					}
 				}
-				bs_frame_clear();
+				B3DClearAllocatorFrame();
 
 				node->mIsLeaf = true;
 

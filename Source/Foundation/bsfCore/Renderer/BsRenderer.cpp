@@ -91,7 +91,7 @@ void Renderer::ProcessTasks(bool forceAll, u64 upToFrame)
 			if(mQueuedTasks[i].FrameIdx <= upToFrame)
 			{
 				mRunningTasks.push_back(mQueuedTasks[i].Task);
-				bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+				B3DSwapAndErase(mQueuedTasks, mQueuedTasks.begin() + i);
 
 				continue;
 			}
@@ -138,7 +138,7 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 			if(mQueuedTasks[i].Task.get() == &task)
 			{
 				mRunningTasks.push_back(mQueuedTasks[i].Task);
-				bs_swap_and_erase(mQueuedTasks, mQueuedTasks.begin() + i);
+				B3DSwapAndErase(mQueuedTasks, mQueuedTasks.begin() + i);
 
 				break;
 			}

@@ -2038,7 +2038,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanImage* image, const VkImageSubresou
 		{
 			std::array<VkImageSubresourceRange, 5> tempCutRanges;
 
-			bs_frame_mark();
+			B3DMarkAllocatorFrame();
 			{
 				// We orphan previously allocated memory (we reset it after submit() anyway)
 				u32 newSubresourceIdx = (u32)mSubresourceInfoStorage.size();
@@ -2140,7 +2140,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanImage* image, const VkImageSubresou
 				imageInfo.SubresourceInfoIdx = newSubresourceIdx;
 				imageInfo.NumSubresourceInfos = (u32)mSubresourceInfoStorage.size() - newSubresourceIdx;
 			}
-			bs_frame_clear();
+			B3DClearAllocatorFrame();
 		}
 	}
 

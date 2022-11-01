@@ -67,14 +67,14 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0;
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.NumRows, stream);
-				size += rtti_write(data.NumColumns, stream);
-				size += rtti_write(data.Count, stream);
-				size += rtti_write(data.Fps, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.NumRows, stream);
+				size += B3DRTTIWrite(data.NumColumns, stream);
+				size += B3DRTTIWrite(data.Count, stream);
+				size += B3DRTTIWrite(data.Fps, stream);
 
 				return size; });
 		}
@@ -82,19 +82,19 @@ namespace bs
 		static BitLength FromMemory(SpriteSheetGridAnimation& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
 				{
-					rtti_read(data.NumRows, stream);
-					rtti_read(data.NumColumns, stream);
-					rtti_read(data.Count, stream);
-					rtti_read(data.Fps, stream);
+					B3DRTTIRead(data.NumRows, stream);
+					B3DRTTIRead(data.NumColumns, stream);
+					B3DRTTIRead(data.Count, stream);
+					B3DRTTIRead(data.Fps, stream);
 				}
 				break;
 			default:
@@ -107,10 +107,10 @@ namespace bs
 
 		static BitLength GetSize(const SpriteSheetGridAnimation& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.NumRows) + rtti_size(data.NumColumns) +
-				rtti_size(data.Count) + rtti_size(data.Fps) + sizeof(uint32_t);
+			BitLength dataSize = B3DRTTISize(data.NumRows) + B3DRTTISize(data.NumColumns) +
+				B3DRTTISize(data.Count) + B3DRTTISize(data.Fps) + sizeof(uint32_t);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

@@ -367,35 +367,35 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 			if(IsExtensionSupportedInternal("AL_EXT_float32"))
 			{
 				u32 bufferSize = info.NumSamples * sizeof(float);
-				float* sampleBufferFloat = (float*)bs_stack_alloc(bufferSize);
+				float* sampleBufferFloat = (float*)B3DStackAllocate(bufferSize);
 
 				AudioUtility::ConvertToFloat(samples, info.BitDepth, sampleBufferFloat, info.NumSamples);
 
 				ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, info.BitDepth);
 				alBufferData(bufferId, format, sampleBufferFloat, bufferSize, info.SampleRate);
 
-				bs_stack_free(sampleBufferFloat);
+				B3DStackFree(sampleBufferFloat);
 			}
 			else
 			{
 				BS_LOG(Warning, RenderBackend, "OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
 
 				u32 bufferSize = info.NumSamples * 2;
-				u8* sampleBuffer16 = (u8*)bs_stack_alloc(bufferSize);
+				u8* sampleBuffer16 = (u8*)B3DStackAllocate(bufferSize);
 
 				AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer16, 16, info.NumSamples);
 
 				ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
 				alBufferData(bufferId, format, sampleBuffer16, bufferSize, info.SampleRate);
 
-				bs_stack_free(sampleBuffer16);
+				B3DStackFree(sampleBuffer16);
 			}
 		}
 		else if(info.BitDepth == 8)
 		{
 			// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
 			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
-			u8* sampleBuffer = (u8*)bs_stack_alloc(bufferSize);
+			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
 			for(u32 i = 0; i < info.NumSamples; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
@@ -403,7 +403,7 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
-			bs_stack_free(sampleBuffer);
+			B3DStackFree(sampleBuffer);
 		}
 		else
 		{
@@ -418,20 +418,20 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 		if(info.BitDepth == 24) // 24-bit not supported, convert to 32-bit
 		{
 			u32 bufferSize = info.NumSamples * sizeof(i32);
-			u8* sampleBuffer32 = (u8*)bs_stack_alloc(bufferSize);
+			u8* sampleBuffer32 = (u8*)B3DStackAllocate(bufferSize);
 
 			AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer32, 32, info.NumSamples);
 
 			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 32);
 			alBufferData(bufferId, format, sampleBuffer32, bufferSize, info.SampleRate);
 
-			bs_stack_free(sampleBuffer32);
+			B3DStackFree(sampleBuffer32);
 		}
 		else if(info.BitDepth == 8)
 		{
 			// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
 			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
-			u8* sampleBuffer = (u8*)bs_stack_alloc(bufferSize);
+			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
 			for(u32 i = 0; i < info.NumSamples; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
@@ -439,7 +439,7 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
-			bs_stack_free(sampleBuffer);
+			B3DStackFree(sampleBuffer);
 		}
 		else
 		{

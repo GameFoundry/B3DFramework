@@ -72,14 +72,14 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		SPtr<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
 		if(importOptions != nullptr)
 		{
-			if(rtti_is_of_type<TextureImportOptions>(importOptions))
+			if(B3DRTTIIsOfType<TextureImportOptions>(importOptions))
 			{
 				SPtr<TextureImportOptions> texImportOptions =
 					std::static_pointer_cast<TextureImportOptions>(importOptions);
 
 				texImportOptions->GenerateMips = mipmap;
 			}
-			else if(rtti_is_of_type<ShaderImportOptions>(importOptions))
+			else if(B3DRTTIIsOfType<ShaderImportOptions>(importOptions))
 			{
 				ShaderDefines defines = RendererMaterialManager::GetDefinesInternal(relativePath);
 
@@ -181,7 +181,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 				else if(mode == AssetType::Sprite)
 					isIcon = entry.find("TextureUUID16") != entry.end();
 
-				if(rtti_is_of_type<Shader>(outputRes.Get()))
+				if(B3DRTTIIsOfType<Shader>(outputRes.Get()))
 				{
 					HShader shader = static_resource_cast<Shader>(outputRes);
 					if(!VerifyAndReportShader(shader))
@@ -325,7 +325,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<u32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
 {
 	SPtr<ImportOptions> fontImportOptions = Importer::Instance().CreateImportOptions(inputFile);
-	if(rtti_is_of_type<FontImportOptions>(fontImportOptions))
+	if(B3DRTTIIsOfType<FontImportOptions>(fontImportOptions))
 	{
 		FontImportOptions* importOptions = static_cast<FontImportOptions*>(fontImportOptions.get());
 

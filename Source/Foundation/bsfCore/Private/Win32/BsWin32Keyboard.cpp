@@ -70,7 +70,7 @@ Keyboard::Keyboard(const String& name, Input* owner)
 	m->DirectInput = pvtData->DirectInput;
 	m->CoopSettings = pvtData->KbSettings;
 	m->Keyboard = nullptr;
-	bs_zero_out(m->KeyBuffer);
+	B3DZeroOut(m->KeyBuffer);
 
 	initializeDirectInput(m, (HWND)owner->GetWindowHandleInternal());
 }

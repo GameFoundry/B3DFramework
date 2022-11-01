@@ -68,20 +68,20 @@ SPtr<DepthStencilState> DepthStencilState::Create(const DEPTH_STENCIL_STATE_DESC
 u64 DepthStencilState::GenerateHash(const DEPTH_STENCIL_STATE_DESC& desc)
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, desc.DepthReadEnable);
-	bs_hash_combine(hash, desc.DepthWriteEnable);
-	bs_hash_combine(hash, (u32)desc.DepthComparisonFunc);
-	bs_hash_combine(hash, desc.StencilEnable);
-	bs_hash_combine(hash, desc.StencilReadMask);
-	bs_hash_combine(hash, desc.StencilWriteMask);
-	bs_hash_combine(hash, (u32)desc.FrontStencilFailOp);
-	bs_hash_combine(hash, (u32)desc.FrontStencilZFailOp);
-	bs_hash_combine(hash, (u32)desc.FrontStencilPassOp);
-	bs_hash_combine(hash, (u32)desc.FrontStencilComparisonFunc);
-	bs_hash_combine(hash, (u32)desc.BackStencilFailOp);
-	bs_hash_combine(hash, (u32)desc.BackStencilZFailOp);
-	bs_hash_combine(hash, (u32)desc.BackStencilPassOp);
-	bs_hash_combine(hash, (u32)desc.BackStencilComparisonFunc);
+	B3DCombineHash(hash, desc.DepthReadEnable);
+	B3DCombineHash(hash, desc.DepthWriteEnable);
+	B3DCombineHash(hash, (u32)desc.DepthComparisonFunc);
+	B3DCombineHash(hash, desc.StencilEnable);
+	B3DCombineHash(hash, desc.StencilReadMask);
+	B3DCombineHash(hash, desc.StencilWriteMask);
+	B3DCombineHash(hash, (u32)desc.FrontStencilFailOp);
+	B3DCombineHash(hash, (u32)desc.FrontStencilZFailOp);
+	B3DCombineHash(hash, (u32)desc.FrontStencilPassOp);
+	B3DCombineHash(hash, (u32)desc.FrontStencilComparisonFunc);
+	B3DCombineHash(hash, (u32)desc.BackStencilFailOp);
+	B3DCombineHash(hash, (u32)desc.BackStencilZFailOp);
+	B3DCombineHash(hash, (u32)desc.BackStencilPassOp);
+	B3DCombineHash(hash, (u32)desc.BackStencilComparisonFunc);
 
 	return (u64)hash;
 }

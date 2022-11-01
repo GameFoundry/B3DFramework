@@ -29,8 +29,8 @@ namespace bs
 		static BitLength ToMemory(const BitLength& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			size += rtti_write(data.Bytes, stream);
-			size += rtti_write(data.Bits, stream);
+			size += B3DRTTIWrite(data.Bytes, stream);
+			size += B3DRTTIWrite(data.Bits, stream);
 
 			return size;
 		}
@@ -38,15 +38,15 @@ namespace bs
 		static BitLength FromMemory(BitLength& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			size += rtti_read(data.Bytes, stream);
-			size += rtti_read(data.Bits, stream);
+			size += B3DRTTIRead(data.Bytes, stream);
+			size += B3DRTTIRead(data.Bits, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const BitLength& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_size(data.Bytes) + rtti_size(data.Bits);
+			return B3DRTTISize(data.Bytes) + B3DRTTISize(data.Bits);
 		}
 	};
 

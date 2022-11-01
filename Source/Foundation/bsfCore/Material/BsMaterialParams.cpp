@@ -176,13 +176,13 @@ MaterialParamsBase::~MaterialParamsBase()
 
 		if(paramInfo.FloatCurve)
 		{
-			bs_pool_free(paramInfo.FloatCurve);
+			B3DPoolFree(paramInfo.FloatCurve);
 			paramInfo.FloatCurve = nullptr;
 		}
 
 		if(paramInfo.ColorGradient)
 		{
-			bs_pool_free(paramInfo.ColorGradient);
+			B3DPoolFree(paramInfo.ColorGradient);
 			paramInfo.ColorGradient = nullptr;
 		}
 	}
@@ -229,9 +229,9 @@ void MaterialParamsBase::SetColorGradientParam(const ParamData& param, u32 array
 {
 	DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 	if(paramInfo.ColorGradient)
-		bs_pool_free(paramInfo.ColorGradient);
+		B3DPoolFree(paramInfo.ColorGradient);
 
-	paramInfo.ColorGradient = bs_pool_new<ColorGradientHDR>(input);
+	paramInfo.ColorGradient = B3DPoolNew<ColorGradientHDR>(input);
 
 	param.Version = ++mParamVersion;
 }
@@ -853,7 +853,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 							dataParamSize += sizeof(u32);
 
 							// Curve data
-							dataParamSize += rtti_size(*paramInfo.FloatCurve).Bytes;
+							dataParamSize += B3DRTTISize(*paramInfo.FloatCurve).Bytes;
 						}
 						else if(paramInfo.ColorGradient && param.DataType == GPDT_COLOR)
 						{
@@ -861,7 +861,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 							dataParamSize += sizeof(u32);
 
 							// Curve data
-							dataParamSize += rtti_size(*paramInfo.ColorGradient).Bytes;
+							dataParamSize += B3DRTTISize(*paramInfo.ColorGradient).Bytes;
 						}
 					}
 
@@ -908,11 +908,11 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 	Bitstream stream((uint8_t*)buffer, size);
 
 	// Dirty counts for each parameter type
-	rtti_write(numDirtyDataParams, stream);
-	rtti_write(numDirtyTextureParams, stream);
-	rtti_write(numDirtyBufferParams, stream);
-	rtti_write(numDirtySamplerParams, stream);
-	rtti_write(numDirtyStructParams, stream);
+	B3DRTTIWrite(numDirtyDataParams, stream);
+	B3DRTTIWrite(numDirtyTextureParams, stream);
+	B3DRTTIWrite(numDirtyBufferParams, stream);
+	B3DRTTIWrite(numDirtySamplerParams, stream);
+	B3DRTTIWrite(numDirtyStructParams, stream);
 
 	u64 dirtyDataParamOffset = 0;
 	u64 dirtyTextureParamIdx = 0;
@@ -938,7 +938,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 
 					// Param index
 					stream.Seek((structParamsOffset + dirtyStructParamOffset) * 8);
-					dirtyStructParamOffset += rtti_write(i, stream).Bytes;
+					dirtyStructParamOffset += B3DRTTIWrite(i, stream).Bytes;
 
 					// Param data
 					for(u32 j = 0; j < arraySize; j++)
@@ -957,7 +957,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 
 					// Param index
 					stream.Seek((dataParamsOffset + dirtyDataParamOffset) * 8);
-					dirtyDataParamOffset += rtti_write(i, stream).Bytes;
+					dirtyDataParamOffset += B3DRTTIWrite(i, stream).Bytes;
 
 					// Param data
 					// Note: This relies on the fact that all data params in the array are sequential
@@ -976,20 +976,20 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 						if(arrParamInfo.FloatCurve && param.DataType == GPDT_FLOAT1)
 						{
 							// Array index
-							dirtyDataParamOffset += rtti_write(j, stream).Bytes;
+							dirtyDataParamOffset += B3DRTTIWrite(j, stream).Bytes;
 
 							// Curve data
-							dirtyDataParamOffset += rtti_write(*arrParamInfo.FloatCurve, stream).Bytes;
+							dirtyDataParamOffset += B3DRTTIWrite(*arrParamInfo.FloatCurve, stream).Bytes;
 
 							numDirtyCurves++;
 						}
 						else if(arrParamInfo.ColorGradient && param.DataType == GPDT_COLOR)
 						{
 							// Array index
-							dirtyDataParamOffset += rtti_write(j, stream).Bytes;
+							dirtyDataParamOffset += B3DRTTIWrite(j, stream).Bytes;
 
 							// Curve data
-							dirtyDataParamOffset += rtti_write(*arrParamInfo.ColorGradient, stream).Bytes;
+							dirtyDataParamOffset += B3DRTTIWrite(*arrParamInfo.ColorGradient, stream).Bytes;
 
 							numDirtyCurves++;
 						}
@@ -1003,7 +1003,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 		case ParamType::Texture:
 			{
 				stream.Seek((textureParamsOffset + dirtyTextureParamIdx * textureEntrySize) * 8);
-				rtti_write(i, stream);
+				B3DRTTIWrite(i, stream);
 
 				const MaterialParamTextureData& textureData = mTextureParams[param.Index];
 				MaterialParamTextureDataCore* coreTexData = (MaterialParamTextureDataCore*)stream.Cursor();
@@ -1024,7 +1024,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 		case ParamType::Buffer:
 			{
 				stream.Seek((bufferParamsOffset + dirtyBufferParamIdx * bufferEntrySize) * 8);
-				rtti_write(i, stream);
+				B3DRTTIWrite(i, stream);
 
 				const MaterialParamBufferData& bufferData = mBufferParams[param.Index];
 				MaterialParamBufferDataCore* coreBufferData = (MaterialParamBufferDataCore*)stream.Cursor();
@@ -1039,7 +1039,7 @@ void MaterialParams::GetSyncData(u8* buffer, u32& size, bool forceAll)
 		case ParamType::Sampler:
 			{
 				stream.Seek((samplerStateParamsOffset + dirtySamplerParamIdx * samplerStateEntrySize) * 8);
-				rtti_write(i, stream);
+				B3DRTTIWrite(i, stream);
 
 				const MaterialParamSamplerStateData& samplerData = mSamplerStateParams[param.Index];
 				MaterialParamSamplerStateDataCore* coreSamplerData = (MaterialParamSamplerStateDataCore*)stream.Cursor();
@@ -1163,10 +1163,10 @@ MaterialParams::MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::Materi
 						DataParamInfo& dstParamInfo = mDataParams[param.Index + i];
 
 						if(srcParamInfo.FloatCurve)
-							dstParamInfo.FloatCurve = bs_pool_new<TAnimationCurve<float>>(*srcParamInfo.FloatCurve);
+							dstParamInfo.FloatCurve = B3DPoolNew<TAnimationCurve<float>>(*srcParamInfo.FloatCurve);
 
 						if(srcParamInfo.ColorGradient)
-							dstParamInfo.ColorGradient = bs_pool_new<ColorGradientHDR>(*srcParamInfo.ColorGradient);
+							dstParamInfo.ColorGradient = B3DPoolNew<ColorGradientHDR>(*srcParamInfo.ColorGradient);
 					}
 				}
 			}
@@ -1227,11 +1227,11 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	u32 numDirtySamplerParams = 0;
 	u32 numDirtyStructParams = 0;
 
-	rtti_read(numDirtyDataParams, stream);
-	rtti_read(numDirtyTextureParams, stream);
-	rtti_read(numDirtyBufferParams, stream);
-	rtti_read(numDirtySamplerParams, stream);
-	rtti_read(numDirtyStructParams, stream);
+	B3DRTTIRead(numDirtyDataParams, stream);
+	B3DRTTIRead(numDirtyTextureParams, stream);
+	B3DRTTIRead(numDirtyBufferParams, stream);
+	B3DRTTIRead(numDirtySamplerParams, stream);
+	B3DRTTIRead(numDirtyStructParams, stream);
 
 	mParamVersion++;
 
@@ -1239,7 +1239,7 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	{
 		// Param index
 		u32 paramIdx = 0;
-		rtti_read(paramIdx, stream);
+		B3DRTTIRead(paramIdx, stream);
 
 		ParamData& param = mParams[paramIdx];
 		param.Version = mParamVersion;
@@ -1258,28 +1258,28 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 
 		// Param curves
 		u32 numDirtyCurves = 0;
-		rtti_read(numDirtyCurves, stream);
+		B3DRTTIRead(numDirtyCurves, stream);
 		for(u32 j = 0; j < numDirtyCurves; j++)
 		{
 			u32 localIdx = 0;
-			rtti_read(localIdx, stream);
+			B3DRTTIRead(localIdx, stream);
 
 			DataParamInfo& arrParamInfo = mDataParams[param.Index + localIdx];
 			if(param.DataType == GPDT_FLOAT1)
 			{
 				if(arrParamInfo.FloatCurve)
-					bs_pool_free(arrParamInfo.FloatCurve);
+					B3DPoolFree(arrParamInfo.FloatCurve);
 
-				arrParamInfo.FloatCurve = bs_pool_new<TAnimationCurve<float>>();
-				rtti_read(*arrParamInfo.FloatCurve, stream);
+				arrParamInfo.FloatCurve = B3DPoolNew<TAnimationCurve<float>>();
+				B3DRTTIRead(*arrParamInfo.FloatCurve, stream);
 			}
 			else if(param.DataType == GPDT_COLOR)
 			{
 				if(arrParamInfo.ColorGradient)
-					bs_pool_free(arrParamInfo.ColorGradient);
+					B3DPoolFree(arrParamInfo.ColorGradient);
 
-				arrParamInfo.ColorGradient = bs_pool_new<ColorGradientHDR>();
-				rtti_read(*arrParamInfo.ColorGradient, stream);
+				arrParamInfo.ColorGradient = B3DPoolNew<ColorGradientHDR>();
+				B3DRTTIRead(*arrParamInfo.ColorGradient, stream);
 			}
 		}
 	}
@@ -1287,7 +1287,7 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	for(u32 i = 0; i < numDirtyTextureParams; i++)
 	{
 		u32 paramIdx = 0;
-		rtti_read(paramIdx, stream);
+		B3DRTTIRead(paramIdx, stream);
 
 		ParamData& param = mParams[paramIdx];
 		param.Version = mParamVersion;
@@ -1302,7 +1302,7 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	for(u32 i = 0; i < numDirtyBufferParams; i++)
 	{
 		u32 paramIdx = 0;
-		rtti_read(paramIdx, stream);
+		B3DRTTIRead(paramIdx, stream);
 
 		ParamData& param = mParams[paramIdx];
 		param.Version = mParamVersion;
@@ -1317,7 +1317,7 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	for(u32 i = 0; i < numDirtySamplerParams; i++)
 	{
 		u32 paramIdx = 0;
-		rtti_read(paramIdx, stream);
+		B3DRTTIRead(paramIdx, stream);
 
 		ParamData& param = mParams[paramIdx];
 		param.Version = mParamVersion;
@@ -1333,7 +1333,7 @@ void MaterialParams::SetSyncData(u8* buffer, u32 size)
 	{
 		// Param index
 		u32 paramIdx = 0;
-		rtti_read(paramIdx, stream);
+		B3DRTTIRead(paramIdx, stream);
 
 		ParamData& param = mParams[paramIdx];
 		param.Version = mParamVersion;

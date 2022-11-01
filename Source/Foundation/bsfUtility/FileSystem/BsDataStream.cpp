@@ -134,7 +134,7 @@ String DataStream::GetAsString()
 	// Read the entire buffer - ideally in one read, but if the size of the buffer is unknown, do multiple fixed size
 	// reads.
 	size_t bufSize = (mSize > 0 ? mSize : 4096);
-	auto tempBuffer = bs_stack_alloc<std::stringstream::char_type>((u32)bufSize);
+	auto tempBuffer = B3DStackAllocate<std::stringstream::char_type>((u32)bufSize);
 
 	std::stringstream result;
 	while(!Eof())
@@ -143,7 +143,7 @@ String DataStream::GetAsString()
 		result.write(tempBuffer, numReadBytes);
 	}
 
-	bs_stack_free(tempBuffer);
+	B3DStackFree(tempBuffer);
 
 	std::string string = result.str();
 

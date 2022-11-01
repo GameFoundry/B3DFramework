@@ -140,7 +140,7 @@ RTTITypeBase* ManagedSerializableTypeInfo::GetRtti() const
 
 bool ManagedSerializableTypeInfoPrimitive::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoPrimitive>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoPrimitive>(typeInfo))
 		return false;
 
 	auto primTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
@@ -202,7 +202,7 @@ RTTITypeBase* ManagedSerializableTypeInfoPrimitive::GetRtti() const
 
 bool ManagedSerializableTypeInfoEnum::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(const auto enumTypeInfo = rtti_cast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+	if(const auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
 	{
 		return enumTypeInfo->MTypeNamespace == MTypeNamespace &&
 			enumTypeInfo->MTypeName == MTypeName &&
@@ -240,7 +240,7 @@ RTTITypeBase* ManagedSerializableTypeInfoEnum::GetRtti() const
 
 bool ManagedSerializableTypeInfoRef::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoRef>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoRef>(typeInfo))
 		return false;
 
 	auto objTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
@@ -306,7 +306,7 @@ RTTITypeBase* ManagedSerializableTypeInfoRef::GetRtti() const
 
 bool ManagedSerializableTypeInfoRRef::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoRRef>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoRRef>(typeInfo))
 		return false;
 
 	auto resourceTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRRef>(typeInfo);
@@ -350,7 +350,7 @@ RTTITypeBase* ManagedSerializableTypeInfoRRef::GetRtti() const
 
 bool ManagedSerializableTypeInfoObject::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoObject>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoObject>(typeInfo))
 		return false;
 
 	auto objTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoObject>(typeInfo);
@@ -385,7 +385,7 @@ RTTITypeBase* ManagedSerializableTypeInfoObject::GetRtti() const
 
 bool ManagedSerializableTypeInfoArray::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoArray>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoArray>(typeInfo))
 		return false;
 
 	auto arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
@@ -419,7 +419,7 @@ RTTITypeBase* ManagedSerializableTypeInfoArray::GetRtti() const
 
 bool ManagedSerializableTypeInfoList::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoList>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoList>(typeInfo))
 		return false;
 
 	auto listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
@@ -456,7 +456,7 @@ RTTITypeBase* ManagedSerializableTypeInfoList::GetRtti() const
 
 bool ManagedSerializableTypeInfoDictionary::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
 {
-	if(!rtti_is_of_type<ManagedSerializableTypeInfoDictionary>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoDictionary>(typeInfo))
 		return false;
 
 	auto dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);

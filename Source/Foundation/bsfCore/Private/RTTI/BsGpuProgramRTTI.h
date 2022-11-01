@@ -137,21 +137,21 @@ namespace bs
 
 		static BitLength ToMemory(const GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
+				size += B3DRTTIWrite(kVersion, stream);
 
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.ElementSize, stream);
-				size += rtti_write(data.ArraySize, stream);
-				size += rtti_write(data.ArrayElementStride, stream);
-				size += rtti_write(data.Type, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.ElementSize, stream);
+				size += B3DRTTIWrite(data.ArraySize, stream);
+				size += B3DRTTIWrite(data.ArrayElementStride, stream);
+				size += B3DRTTIWrite(data.Type, stream);
 
-				size += rtti_write(data.ParamBlockSlot, stream);
-				size += rtti_write(data.ParamBlockSet, stream);
-				size += rtti_write(data.GpuMemOffset, stream);
-				size += rtti_write(data.CpuMemOffset, stream);
+				size += B3DRTTIWrite(data.ParamBlockSlot, stream);
+				size += B3DRTTIWrite(data.ParamBlockSet, stream);
+				size += B3DRTTIWrite(data.GpuMemOffset, stream);
+				size += B3DRTTIWrite(data.CpuMemOffset, stream);
 
 				return size; });
 		}
@@ -159,34 +159,34 @@ namespace bs
 		static BitLength FromMemory(GpuParamDataDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == kVersion);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.ElementSize, stream);
-			rtti_read(data.ArraySize, stream);
-			rtti_read(data.ArrayElementStride, stream);
-			rtti_read(data.Type, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.ElementSize, stream);
+			B3DRTTIRead(data.ArraySize, stream);
+			B3DRTTIRead(data.ArrayElementStride, stream);
+			B3DRTTIRead(data.Type, stream);
 
-			rtti_read(data.ParamBlockSlot, stream);
-			rtti_read(data.ParamBlockSet, stream);
-			rtti_read(data.GpuMemOffset, stream);
-			rtti_read(data.CpuMemOffset, stream);
+			B3DRTTIRead(data.ParamBlockSlot, stream);
+			B3DRTTIRead(data.ParamBlockSet, stream);
+			B3DRTTIRead(data.GpuMemOffset, stream);
+			B3DRTTIRead(data.CpuMemOffset, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const GpuParamDataDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(kVersion) + rtti_size(data.Name) + rtti_size(data.ElementSize) +
-				rtti_size(data.ArraySize) + rtti_size(data.ArrayElementStride) + rtti_size(data.Type) +
-				rtti_size(data.ParamBlockSlot) + rtti_size(data.ParamBlockSet) +
-				rtti_size(data.GpuMemOffset) + rtti_size(data.CpuMemOffset);
+			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.ElementSize) +
+				B3DRTTISize(data.ArraySize) + B3DRTTISize(data.ArrayElementStride) + B3DRTTISize(data.Type) +
+				B3DRTTISize(data.ParamBlockSlot) + B3DRTTISize(data.ParamBlockSet) +
+				B3DRTTISize(data.GpuMemOffset) + B3DRTTISize(data.CpuMemOffset);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -208,15 +208,15 @@ namespace bs
 
 		static BitLength ToMemory(const GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Type, stream);
-				size += rtti_write(data.Slot, stream);
-				size += rtti_write(data.Set, stream);
-				size += rtti_write(data.ElementType, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Type, stream);
+				size += B3DRTTIWrite(data.Slot, stream);
+				size += B3DRTTIWrite(data.Set, stream);
+				size += B3DRTTIWrite(data.ElementType, stream);
 
 				return size; });
 		}
@@ -224,28 +224,28 @@ namespace bs
 		static BitLength FromMemory(GpuParamObjectDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Type, stream);
-			rtti_read(data.Slot, stream);
-			rtti_read(data.Set, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Type, stream);
+			B3DRTTIRead(data.Slot, stream);
+			B3DRTTIRead(data.Set, stream);
 
 			if(version > 1)
-				rtti_read(data.ElementType, stream);
+				B3DRTTIRead(data.ElementType, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const GpuParamObjectDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(kVersion) + rtti_size(data.Name) + rtti_size(data.Type) +
-				rtti_size(data.Slot) + rtti_size(data.Set) + rtti_size(data.ElementType);
+			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.Type) +
+				B3DRTTISize(data.Slot) + B3DRTTISize(data.Set) + B3DRTTISize(data.ElementType);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};
@@ -267,15 +267,15 @@ namespace bs
 
 		static BitLength ToMemory(const GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Set, stream);
-				size += rtti_write(data.Slot, stream);
-				size += rtti_write(data.BlockSize, stream);
-				size += rtti_write(data.IsShareable, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Set, stream);
+				size += B3DRTTIWrite(data.Slot, stream);
+				size += B3DRTTIWrite(data.BlockSize, stream);
+				size += B3DRTTIWrite(data.IsShareable, stream);
 
 				return size; });
 		}
@@ -283,27 +283,27 @@ namespace bs
 		static BitLength FromMemory(GpuParamBlockDesc& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version = 0;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 			assert(version == kVersion);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Set, stream);
-			rtti_read(data.Slot, stream);
-			rtti_read(data.BlockSize, stream);
-			rtti_read(data.IsShareable, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Set, stream);
+			B3DRTTIRead(data.Slot, stream);
+			B3DRTTIRead(data.BlockSize, stream);
+			B3DRTTIRead(data.IsShareable, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const GpuParamBlockDesc& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(kVersion) + rtti_size(data.Name) + rtti_size(data.Set) +
-				rtti_size(data.Slot) + rtti_size(data.BlockSize) + rtti_size(data.IsShareable);
+			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.Set) +
+				B3DRTTISize(data.Slot) + B3DRTTISize(data.BlockSize) + B3DRTTISize(data.IsShareable);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

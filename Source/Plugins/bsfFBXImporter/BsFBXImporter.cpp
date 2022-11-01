@@ -952,7 +952,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 				meshData->SetIndices(orderedIndices, numIndices * sizeof(u32));
 			else
 			{
-				u32* flippedIndices = bs_stack_alloc<u32>(numIndices);
+				u32* flippedIndices = B3DStackAllocate<u32>(numIndices);
 
 				for(u32 i = 0; i < numIndices; i += 3)
 				{
@@ -962,30 +962,30 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 				}
 
 				meshData->SetIndices(flippedIndices, numIndices * sizeof(u32));
-				bs_stack_free(flippedIndices);
+				B3DStackFree(flippedIndices);
 			}
 
 			// Copy & transform positions
 			u32 positionsSize = sizeof(Vector3) * (u32)numVertices;
-			Vector3* transformedPositions = (Vector3*)bs_stack_alloc(positionsSize);
+			Vector3* transformedPositions = (Vector3*)B3DStackAllocate(positionsSize);
 
 			for(u32 i = 0; i < (u32)numVertices; i++)
 				transformedPositions[i] = worldTransform.MultiplyAffine((Vector3)mesh->Positions[i]);
 
 			meshData->SetPositions(transformedPositions, positionsSize);
-			bs_stack_free(transformedPositions);
+			B3DStackFree(transformedPositions);
 
 			// Copy & transform normals
 			if(hasNormals)
 			{
 				u32 normalsSize = sizeof(Vector3) * (u32)numVertices;
-				Vector3* transformedNormals = (Vector3*)bs_stack_alloc(normalsSize);
+				Vector3* transformedNormals = (Vector3*)B3DStackAllocate(normalsSize);
 
 				// Copy, convert & transform tangents & bitangents
 				if(hasTangents)
 				{
 					u32 tangentsSize = sizeof(Vector4) * (u32)numVertices;
-					Vector4* transformedTangents = (Vector4*)bs_stack_alloc(tangentsSize);
+					Vector4* transformedTangents = (Vector4*)B3DStackAllocate(tangentsSize);
 
 					for(u32 i = 0; i < (u32)numVertices; i++)
 					{
@@ -1006,7 +1006,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 					}
 
 					meshData->SetTangents(transformedTangents, tangentsSize);
-					bs_stack_free(transformedTangents);
+					B3DStackFree(transformedTangents);
 				}
 				else // Just normals
 				{
@@ -1015,7 +1015,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 				}
 
 				meshData->SetNormals(transformedNormals, normalsSize);
-				bs_stack_free(transformedNormals);
+				B3DStackFree(transformedNormals);
 			}
 
 			// Copy colors
@@ -1031,7 +1031,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 				if(uvLayer.size() == numVertices)
 				{
 					u32 size = sizeof(Vector2) * (u32)numVertices;
-					Vector2* transformedUV = (Vector2*)bs_stack_alloc(size);
+					Vector2* transformedUV = (Vector2*)B3DStackAllocate(size);
 
 					u32 i = 0;
 					for(auto& uv : uvLayer)
@@ -1047,7 +1047,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 					else if(writeUVIDx == 1)
 						meshData->SetUV1(transformedUV, size);
 
-					bs_stack_free(transformedUV);
+					B3DStackFree(transformedUV);
 
 					writeUVIDx++;
 				}
@@ -1057,7 +1057,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 			if(hasBoneInfluences)
 			{
 				u32 bufferSize = sizeof(BoneWeight) * (u32)numVertices;
-				BoneWeight* weights = (BoneWeight*)bs_stack_alloc(bufferSize);
+				BoneWeight* weights = (BoneWeight*)B3DStackAllocate(bufferSize);
 				for(u32 i = 0; i < (u32)numVertices; i++)
 				{
 					int* indices[] = { &weights[i].Index0, &weights[i].Index1, &weights[i].Index2, &weights[i].Index3 };
@@ -1084,7 +1084,7 @@ SPtr<RendererMeshData> FBXImporter::GenerateMeshData(const FBXImportScene& scene
 				}
 
 				meshData->SetBoneWeights(weights, bufferSize);
-				bs_stack_free(weights);
+				B3DStackFree(weights);
 			}
 
 			allMeshData.push_back(meshData->GetData());
@@ -1919,7 +1919,7 @@ void FBXImporter::BakeTransforms(FbxScene* scene)
 
 	double frameRate = FbxTime::GetFrameRate(scene->GetGlobalSettings().GetTimeMode());
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameStack<FbxNode*> todo;
 		todo.push(scene->GetRootNode());
@@ -1964,7 +1964,7 @@ void FBXImporter::BakeTransforms(FbxScene* scene)
 
 		scene->GetRootNode()->ConvertPivotAnimationRecursive(nullptr, FbxNode::eDestinationPivot, frameRate, false);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 TAnimationCurve<Vector3> FBXImporter::ReduceKeyframes(TAnimationCurve<Vector3>& curve)

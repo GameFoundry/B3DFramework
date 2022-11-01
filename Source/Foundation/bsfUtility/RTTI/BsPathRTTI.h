@@ -29,14 +29,14 @@ namespace bs
 
 		static BitLength ToMemory(const Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.mDevice, stream);
-				size += rtti_write(data.mNode, stream);
-				size += rtti_write(data.mFilename, stream);
-				size += rtti_write(data.mIsAbsolute, stream);
-				size += rtti_write(data.mDirectories, stream);
+				size += B3DRTTIWrite(data.mDevice, stream);
+				size += B3DRTTIWrite(data.mNode, stream);
+				size += B3DRTTIWrite(data.mFilename, stream);
+				size += B3DRTTIWrite(data.mIsAbsolute, stream);
+				size += B3DRTTIWrite(data.mDirectories, stream);
 
 				return size; });
 		}
@@ -44,23 +44,23 @@ namespace bs
 		static BitLength FromMemory(Path& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.mDevice, stream);
-			rtti_read(data.mNode, stream);
-			rtti_read(data.mFilename, stream);
-			rtti_read(data.mIsAbsolute, stream);
-			rtti_read(data.mDirectories, stream);
+			B3DRTTIRead(data.mDevice, stream);
+			B3DRTTIRead(data.mNode, stream);
+			B3DRTTIRead(data.mFilename, stream);
+			B3DRTTIRead(data.mIsAbsolute, stream);
+			B3DRTTIRead(data.mDirectories, stream);
 
 			return size;
 		}
 
 		static BitLength GetSize(const Path& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			BitLength dataSize = rtti_size(data.mDevice) + rtti_size(data.mNode) +
-				rtti_size(data.mFilename) + rtti_size(data.mIsAbsolute) + rtti_size(data.mDirectories);
+			BitLength dataSize = B3DRTTISize(data.mDevice) + B3DRTTISize(data.mNode) +
+				B3DRTTISize(data.mFilename) + B3DRTTISize(data.mIsAbsolute) + B3DRTTISize(data.mDirectories);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

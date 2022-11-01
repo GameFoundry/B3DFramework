@@ -105,7 +105,7 @@ SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, u32 numBones)
 
 void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationClip& clip, float time, bool loop)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<AnimationCurveMapping> boneToCurveMapping(mNumBones);
 
@@ -137,7 +137,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 
 		GetPose(pose, localPose, mask, &layer, 1);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const SkeletonMask& mask, const AnimationStateLayer* layers, u32 numLayers)
@@ -153,8 +153,8 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		localPose.Scales[i] = Vector3::kOne;
 	}
 
-	bool* hasAnimCurve = bs_stack_alloc<bool>(mNumBones);
-	bs_zero_out(hasAnimCurve, mNumBones);
+	bool* hasAnimCurve = B3DStackAllocate<bool>(mNumBones);
+	B3DZeroOut(hasAnimCurve, mNumBones);
 
 	// Note: For a possible performance improvement consider keeping an array of only active (non-disabled) bones and
 	// just iterate over them without mask checks. Possibly also a list of active curve mappings to avoid those checks
@@ -265,7 +265,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 
 	// Calculate local pose matrices
 	u32 isGlobalBytes = sizeof(bool) * mNumBones;
-	bool* isGlobal = (bool*)bs_stack_alloc(isGlobalBytes);
+	bool* isGlobal = (bool*)B3DStackAllocate(isGlobalBytes);
 	memset(isGlobal, 0, isGlobalBytes);
 
 	for(u32 i = 0; i < mNumBones; i++)
@@ -313,8 +313,8 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 	for(u32 i = 0; i < mNumBones; i++)
 		pose[i] = pose[i] * mInvBindPoses[i];
 
-	bs_stack_free(isGlobal);
-	bs_stack_free(hasAnimCurve);
+	B3DStackFree(isGlobal);
+	B3DStackFree(hasAnimCurve);
 }
 
 Transform Skeleton::CalcBoneTransform(u32 idx) const

@@ -441,7 +441,7 @@ void TriangleClipperBase::GetOrderedFaces(FrameVector<FrameVector<u32>>& sortedF
 			// element of the array are the same since the polyline is
 			// closed.
 			u32 numSortedVerts = (u32)face.Edges.size() + 1;
-			u32* sortedVerts = (u32*)bs_stack_alloc(sizeof(u32) * numSortedVerts);
+			u32* sortedVerts = (u32*)B3DStackAllocate(sizeof(u32) * numSortedVerts);
 
 			GetOrderedVertices(face, sortedVerts);
 
@@ -466,7 +466,7 @@ void TriangleClipperBase::GetOrderedFaces(FrameVector<FrameVector<u32>>& sortedF
 			}
 
 			sortedFaces.push_back(faceVerts);
-			bs_stack_free(sortedVerts);
+			B3DStackFree(sortedVerts);
 		}
 	}
 }
@@ -474,7 +474,7 @@ void TriangleClipperBase::GetOrderedFaces(FrameVector<FrameVector<u32>>& sortedF
 void TriangleClipperBase::GetOrderedVertices(const ClipFace& face, u32* sortedVerts)
 {
 	u32 numEdges = (u32)face.Edges.size();
-	u32* sortedEdges = (u32*)bs_stack_alloc(sizeof(u32) * numEdges);
+	u32* sortedEdges = (u32*)B3DStackAllocate(sizeof(u32) * numEdges);
 	for(u32 i = 0; i < numEdges; i++)
 		sortedEdges[i] = face.Edges[i];
 
@@ -512,7 +512,7 @@ void TriangleClipperBase::GetOrderedVertices(const ClipFace& face, u32* sortedVe
 			sortedVerts[i + 1] = edge.Verts[0];
 	}
 
-	bs_stack_free(sortedEdges);
+	B3DStackFree(sortedEdges);
 }
 
 Vector3 TriangleClipperBase::GetNormal(u32* sortedVertices, u32 numVertices)
@@ -582,7 +582,7 @@ void TriangleClipper2D::Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStrid
 
 void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2*, u32)>& writeCallback)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<FrameVector<u32>> allFaces;
 		GetOrderedFaces(allFaces);
@@ -622,7 +622,7 @@ void TriangleClipper2D::ConvertToMesh(const std::function<void(Vector2*, Vector2
 		if(numWritten > 0)
 			writeCallback(vertexBuffer, uvBuffer, numWritten);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 /** Clips three-dimensional triangles against a set of provided planes. */
@@ -681,7 +681,7 @@ void TriangleClipper3D::Clip(u8* vertices, u8* uvs, u32 numTris, u32 vertexStrid
 
 void TriangleClipper3D::ConvertToMesh(const std::function<void(Vector3*, Vector2*, u32)>& writeCallback)
 {
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<FrameVector<u32>> allFaces;
 		GetOrderedFaces(allFaces);
@@ -717,7 +717,7 @@ void TriangleClipper3D::ConvertToMesh(const std::function<void(Vector3*, Vector2
 		if(numWritten > 0)
 			writeCallback(vertexBuffer, uvBuffer, numWritten);
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void MeshUtility::CalculateNormals(Vector3* vertices, u8* indices, u32 numVertices, u32 numIndices, Vector3* normals, u32 indexSize)

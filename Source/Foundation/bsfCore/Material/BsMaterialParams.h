@@ -305,13 +305,13 @@ namespace bs
 			DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 			if(paramInfo.FloatCurve)
 			{
-				bs_pool_free(paramInfo.FloatCurve);
+				B3DPoolFree(paramInfo.FloatCurve);
 				paramInfo.FloatCurve = nullptr;
 			}
 
 			if(paramInfo.ColorGradient)
 			{
-				bs_pool_free(paramInfo.ColorGradient);
+				B3DPoolFree(paramInfo.ColorGradient);
 				paramInfo.ColorGradient = nullptr;
 			}
 
@@ -361,9 +361,9 @@ namespace bs
 			{
 				DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 				if(paramInfo.FloatCurve)
-					bs_pool_free(paramInfo.FloatCurve);
+					B3DPoolFree(paramInfo.FloatCurve);
 
-				paramInfo.FloatCurve = bs_pool_new<TAnimationCurve<T>>(std::move(input));
+				paramInfo.FloatCurve = B3DPoolNew<TAnimationCurve<T>>(std::move(input));
 
 				param.Version = ++mParamVersion;
 			}

@@ -14,7 +14,7 @@ using namespace bs::ct;
 
 static void deleteBuffer(HardwareBuffer* buffer)
 {
-	bs_pool_delete(static_cast<D3D11HardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<D3D11HardwareBuffer*>(buffer));
 }
 
 D3D11GpuBuffer::D3D11GpuBuffer(const GPU_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
@@ -58,7 +58,7 @@ void D3D11GpuBuffer::Initialize()
 			BS_EXCEPT(InvalidParametersException, "Unsupported buffer type " + toString(props.GetType()));
 		}
 
-		mBuffer = bs_pool_new<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.GetElementCount(), props.GetElementSize(), rapi->GetPrimaryDevice(), false, false);
+		mBuffer = B3DPoolNew<D3D11HardwareBuffer>(bufferType, props.GetUsage(), props.GetElementCount(), props.GetElementSize(), rapi->GetPrimaryDevice(), false, false);
 	}
 
 	u32 usage = GVU_DEFAULT;

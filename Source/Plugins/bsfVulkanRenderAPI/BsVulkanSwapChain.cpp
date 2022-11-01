@@ -43,7 +43,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	assert(result == VK_SUCCESS);
 	assert(numPresentModes > 0);
 
-	VkPresentModeKHR* presentModes = bs_stack_alloc<VkPresentModeKHR>(numPresentModes);
+	VkPresentModeKHR* presentModes = B3DStackAllocate<VkPresentModeKHR>(numPresentModes);
 	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &numPresentModes, presentModes);
 	assert(result == VK_SUCCESS);
 
@@ -79,7 +79,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 #endif
 	}
 
-	bs_stack_free(presentModes);
+	B3DStackFree(presentModes);
 
 	uint32_t numImages = surfaceCaps.minImageCount;
 
@@ -116,7 +116,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	assert(result == VK_SUCCESS);
 
 	// Get the swap chain images
-	VkImage* images = bs_stack_alloc<VkImage>(numImages);
+	VkImage* images = B3DStackAllocate<VkImage>(numImages);
 	result = vkGetSwapchainImagesKHR(mDevice, mSwapChain, &numImages, images);
 	assert(result == VK_SUCCESS);
 
@@ -140,7 +140,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		mSurfaces[i].Sync = owner->Create<VulkanSemaphore>();
 	}
 
-	bs_stack_free(images);
+	B3DStackFree(images);
 
 	// Create depth stencil image
 	if(createDepth)

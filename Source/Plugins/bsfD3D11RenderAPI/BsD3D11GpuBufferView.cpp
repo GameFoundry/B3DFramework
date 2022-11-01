@@ -14,12 +14,12 @@ using namespace bs::ct;
 size_t GpuBufferView::HashFunction::operator()(const GPU_BUFFER_VIEW_DESC& key) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, key.ElementWidth);
-	bs_hash_combine(seed, key.FirstElement);
-	bs_hash_combine(seed, key.NumElements);
-	bs_hash_combine(seed, key.UseCounter);
-	bs_hash_combine(seed, key.Usage);
-	bs_hash_combine(seed, key.Format);
+	B3DCombineHash(seed, key.ElementWidth);
+	B3DCombineHash(seed, key.FirstElement);
+	B3DCombineHash(seed, key.NumElements);
+	B3DCombineHash(seed, key.UseCounter);
+	B3DCombineHash(seed, key.Usage);
+	B3DCombineHash(seed, key.Format);
 
 	return seed;
 }

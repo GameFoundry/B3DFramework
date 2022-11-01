@@ -281,14 +281,14 @@ namespace bs
 		{
 			static constexpr uint32_t kVersion = 0; // In case the data structure changes
 
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(kVersion, stream);
-				size += rtti_write(data.Time, stream);
-				size += rtti_write(data.Cycles, stream);
-				size += rtti_write(data.Count, stream);
-				size += rtti_write(data.Interval, stream);
+				size += B3DRTTIWrite(kVersion, stream);
+				size += B3DRTTIWrite(data.Time, stream);
+				size += B3DRTTIWrite(data.Cycles, stream);
+				size += B3DRTTIWrite(data.Count, stream);
+				size += B3DRTTIWrite(data.Interval, stream);
 
 				return size; });
 		}
@@ -296,18 +296,18 @@ namespace bs
 		static BitLength FromMemory(ParticleBurst& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
 			uint32_t version;
-			rtti_read(version, stream);
+			B3DRTTIRead(version, stream);
 
 			switch(version)
 			{
 			case 0:
-				rtti_read(data.Time, stream);
-				rtti_read(data.Cycles, stream);
-				rtti_read(data.Count, stream);
-				rtti_read(data.Interval, stream);
+				B3DRTTIRead(data.Time, stream);
+				B3DRTTIRead(data.Cycles, stream);
+				B3DRTTIRead(data.Count, stream);
+				B3DRTTIRead(data.Interval, stream);
 				break;
 			default:
 				BS_LOG(Error, RTTI, "Unknown version of ParticleBurst data. Unable to deserialize.");
@@ -320,12 +320,12 @@ namespace bs
 		static BitLength GetSize(const ParticleBurst& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
-			dataSize += rtti_size(data.Time);
-			dataSize += rtti_size(data.Cycles);
-			dataSize += rtti_size(data.Count);
-			dataSize += rtti_size(data.Interval);
+			dataSize += B3DRTTISize(data.Time);
+			dataSize += B3DRTTISize(data.Cycles);
+			dataSize += B3DRTTISize(data.Count);
+			dataSize += B3DRTTISize(data.Interval);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

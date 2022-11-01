@@ -2888,7 +2888,7 @@ void PixelUtil::Mirror(PixelData& pixelData, MirrorMode mode)
 	if(mode.IsSet(MirrorModeBits::Z))
 	{
 		u32 sliceSize = width * height * elemSize;
-		u8* sliceTemp = bs_stack_alloc<u8>(sliceSize);
+		u8* sliceTemp = B3DStackAllocate<u8>(sliceSize);
 
 		u8* dataPtr = pixelData.GetData();
 		u32 halfDepth = depth / 2;
@@ -2904,13 +2904,13 @@ void PixelUtil::Mirror(PixelData& pixelData, MirrorMode mode)
 
 		// Note: If flipping Y or X as well I could do it here without an extra set of memcpys
 
-		bs_stack_free(sliceTemp);
+		B3DStackFree(sliceTemp);
 	}
 
 	if(mode.IsSet(MirrorModeBits::Y))
 	{
 		u32 rowSize = width * elemSize;
-		u8* rowTemp = bs_stack_alloc<u8>(rowSize);
+		u8* rowTemp = B3DStackAllocate<u8>(rowSize);
 
 		u8* slicePtr = pixelData.GetData();
 		for(u32 z = 0; z < depth; z++)
@@ -2931,12 +2931,12 @@ void PixelUtil::Mirror(PixelData& pixelData, MirrorMode mode)
 			slicePtr += pixelData.GetSlicePitch();
 		}
 
-		bs_stack_free(rowTemp);
+		B3DStackFree(rowTemp);
 	}
 
 	if(mode.IsSet(MirrorModeBits::X))
 	{
-		u8* elemTemp = bs_stack_alloc<u8>(elemSize);
+		u8* elemTemp = B3DStackAllocate<u8>(elemSize);
 
 		u8* slicePtr = pixelData.GetData();
 		for(u32 z = 0; z < depth; z++)
@@ -2961,7 +2961,7 @@ void PixelUtil::Mirror(PixelData& pixelData, MirrorMode mode)
 			slicePtr += pixelData.GetSlicePitch();
 		}
 
-		bs_stack_free(elemTemp);
+		B3DStackFree(elemTemp);
 	}
 }
 

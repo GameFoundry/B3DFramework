@@ -1357,7 +1357,7 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 	rapi.SetVertexDeclaration(mTileVertexDecl);
 
 	SPtr<VertexBuffer> buffers[] = { mTileVertexBuffer };
-	rapi.SetVertexBuffers(0, buffers, (u32)bs_size(buffers));
+	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));
 	rapi.SetIndexBuffer(mTileIndexBuffer);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
 

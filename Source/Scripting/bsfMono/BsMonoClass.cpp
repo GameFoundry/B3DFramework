@@ -16,8 +16,8 @@ namespace bs {
 size_t MonoClass::MethodId::Hash::operator()(const MonoClass::MethodId& v) const
 {
 	size_t seed = 0;
-	bs_hash_combine(seed, v.Name);
-	bs_hash_combine(seed, v.NumParams);
+	B3DCombineHash(seed, v.Name);
+	B3DCombineHash(seed, v.NumParams);
 	return seed;
 }
 

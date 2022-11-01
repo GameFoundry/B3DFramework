@@ -10,11 +10,11 @@ using namespace bs::ct;
 ::std::size_t GLSLProgramPipelineManager::ProgramPipelineKeyHashFunction::operator()(const GLSLProgramPipelineManager::ProgramPipelineKey& key) const
 {
 	std::size_t seed = 0;
-	bs_hash_combine(seed, key.VertexProgKey);
-	bs_hash_combine(seed, key.FragmentProgKey);
-	bs_hash_combine(seed, key.GeometryProgKey);
-	bs_hash_combine(seed, key.HullProgKey);
-	bs_hash_combine(seed, key.DomainProgKey);
+	B3DCombineHash(seed, key.VertexProgKey);
+	B3DCombineHash(seed, key.FragmentProgKey);
+	B3DCombineHash(seed, key.GeometryProgKey);
+	B3DCombineHash(seed, key.HullProgKey);
+	B3DCombineHash(seed, key.DomainProgKey);
 
 	return seed;
 }

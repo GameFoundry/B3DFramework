@@ -72,18 +72,18 @@ const SPtr<SamplerState>& SamplerState::GetDefault()
 u64 SamplerState::GenerateHash(const SAMPLER_STATE_DESC& desc)
 {
 	size_t hash = 0;
-	bs_hash_combine(hash, (u32)desc.AddressMode.U);
-	bs_hash_combine(hash, (u32)desc.AddressMode.V);
-	bs_hash_combine(hash, (u32)desc.AddressMode.W);
-	bs_hash_combine(hash, (u32)desc.MinFilter);
-	bs_hash_combine(hash, (u32)desc.MagFilter);
-	bs_hash_combine(hash, (u32)desc.MipFilter);
-	bs_hash_combine(hash, desc.MaxAniso);
-	bs_hash_combine(hash, desc.MipmapBias);
-	bs_hash_combine(hash, desc.MipMin);
-	bs_hash_combine(hash, desc.MipMax);
-	bs_hash_combine(hash, desc.BorderColor);
-	bs_hash_combine(hash, (u32)desc.ComparisonFunc);
+	B3DCombineHash(hash, (u32)desc.AddressMode.U);
+	B3DCombineHash(hash, (u32)desc.AddressMode.V);
+	B3DCombineHash(hash, (u32)desc.AddressMode.W);
+	B3DCombineHash(hash, (u32)desc.MinFilter);
+	B3DCombineHash(hash, (u32)desc.MagFilter);
+	B3DCombineHash(hash, (u32)desc.MipFilter);
+	B3DCombineHash(hash, desc.MaxAniso);
+	B3DCombineHash(hash, desc.MipmapBias);
+	B3DCombineHash(hash, desc.MipMin);
+	B3DCombineHash(hash, desc.MipMax);
+	B3DCombineHash(hash, desc.BorderColor);
+	B3DCombineHash(hash, (u32)desc.ComparisonFunc);
 
 	return (u64)hash;
 }

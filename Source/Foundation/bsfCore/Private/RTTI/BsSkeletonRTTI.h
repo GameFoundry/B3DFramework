@@ -95,11 +95,11 @@ namespace bs
 
 		static BitLength ToMemory(const SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
-			return rtti_write_with_size_header(stream, data, compress, [&data, &stream]()
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
 				BitLength size = 0;
-				size += rtti_write(data.Name, stream);
-				size += rtti_write(data.Parent, stream);
+				size += B3DRTTIWrite(data.Name, stream);
+				size += B3DRTTIWrite(data.Parent, stream);
 
 				return size; });
 		}
@@ -107,10 +107,10 @@ namespace bs
 		static BitLength FromMemory(SkeletonBoneInfo& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
-			rtti_read_size_header(stream, compress, size);
+			B3DRTTIReadSizeHeader(stream, compress, size);
 
-			rtti_read(data.Name, stream);
-			rtti_read(data.Parent, stream);
+			B3DRTTIRead(data.Name, stream);
+			B3DRTTIRead(data.Parent, stream);
 
 			return size;
 		}
@@ -118,10 +118,10 @@ namespace bs
 		static BitLength GetSize(const SkeletonBoneInfo& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize;
-			dataSize += rtti_size(data.Name);
-			dataSize += rtti_size(data.Parent);
+			dataSize += B3DRTTISize(data.Name);
+			dataSize += B3DRTTISize(data.Parent);
 
-			rtti_add_header_size(dataSize, compress);
+			B3DRTTIAddHeaderSize(dataSize, compress);
 			return dataSize;
 		}
 	};

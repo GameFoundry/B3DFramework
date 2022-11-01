@@ -136,7 +136,7 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 {
 	u64 id = object->GetInternalId();
 
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameVector<CoreObject*> toRemove;
 		FrameVector<CoreObject*> toAdd;
@@ -208,7 +208,7 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 			}
 		}
 	}
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 void CoreObjectManager::SyncToCore()
@@ -300,7 +300,7 @@ void CoreObjectManager::SyncDownload(FrameAlloc* allocator)
 	syncData.Alloc = allocator;
 
 	// Add all objects dependant on the dirty objects
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 	{
 		FrameSet<CoreObject*> dirtyDependants;
 		for(auto& objectData : mDirtyObjects)
@@ -331,7 +331,7 @@ void CoreObjectManager::SyncDownload(FrameAlloc* allocator)
 		}
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 
 	// Order in which objects are recursed in matters, ones with lower ID will have been created before
 	// ones with higher ones and should be updated first.

@@ -218,7 +218,7 @@ Win32Window::Win32Window(const WINDOW_DESC& desc)
 	}
 
 	// Handle modal windows
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 
 	{
 		FrameVector<HWND> windowsToDisable;
@@ -268,7 +268,7 @@ Win32Window::Win32Window(const WINDOW_DESC& desc)
 			SetFocus(m->HWnd);
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 }
 
 Win32Window::~Win32Window()
@@ -276,7 +276,7 @@ Win32Window::~Win32Window()
 	if(m->HWnd && !m->IsExternal)
 	{
 		// Handle modal windows
-		bs_frame_mark();
+		B3DMarkAllocatorFrame();
 
 		{
 			FrameVector<HWND> windowsToEnable;
@@ -319,7 +319,7 @@ Win32Window::~Win32Window()
 			for(auto& entry : windowsToEnable)
 				EnableWindow(entry, TRUE);
 		}
-		bs_frame_clear();
+		B3DClearAllocatorFrame();
 
 		DestroyWindow(m->HWnd);
 	}

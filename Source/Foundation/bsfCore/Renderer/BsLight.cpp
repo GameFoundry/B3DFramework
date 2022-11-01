@@ -234,14 +234,14 @@ SPtr<ct::CoreObject> Light::CreateCore() const
 CoreSyncData Light::SyncToCore(FrameAlloc* allocator)
 {
 	u32 size = 0;
-	size += rtti_size(GetCoreDirtyFlags()).Bytes;
+	size += B3DRTTISize(GetCoreDirtyFlags()).Bytes;
 	size += csync_size((SceneActor&)*this);
 	size += csync_size(*this);
 
 	u8* buffer = allocator->Alloc(size);
 
 	Bitstream stream(buffer, size);
-	rtti_write(GetCoreDirtyFlags(), stream);
+	B3DRTTIWrite(GetCoreDirtyFlags(), stream);
 	csync_write((SceneActor&)*this, stream);
 	csync_write(*this, stream);
 
@@ -294,7 +294,7 @@ void Light::SyncToCore(const CoreSyncData& data)
 	bool oldIsActive = mActive;
 	LightType oldType = mType;
 
-	rtti_read(dirtyFlags, stream);
+	B3DRTTIRead(dirtyFlags, stream);
 	csync_read((SceneActor&)*this, stream);
 	csync_read(*this, stream);
 

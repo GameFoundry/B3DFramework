@@ -268,10 +268,10 @@ SPtr<IReflectable> myObjectCopy2 = bs.decode(stream, stream->size());
 Aside from using RTTI for serialization, you can also use it to manually query various information about objects, as well as create and cast object instances. 
 
 Global queries:
- - @bs::rtti_is_of_type - Checks is a specific object of type *T*
- - @bs::rtti_is_subclass - Checks is a specific object derived from type *T*
- - @bs::rtti_create - Creates a new object from its type ID
- - @bs::rtti_cast - Casts an object to the specified type if the cast is valid, or returns null otherwise
+ - @bs::B3DRTTIIsOfType - Checks is a specific object of type *T*
+ - @bs::B3DRTTIIsSubclass - Checks is a specific object derived from type *T*
+ - @bs::B3DRTTICreate - Creates a new object from its type ID
+ - @bs::B3DRTTICast - Casts an object to the specified type if the cast is valid, or returns null otherwise
  
 **IReflectable** queries:
  - @bs::IReflectable::getTypeName - Gets the name of the object's type
@@ -280,10 +280,10 @@ Global queries:
 ~~~~~~~~~~~~~{.cpp}
 IReflectable* myObject = ...;
 
-rtti_is_of_type<Texture>(myObject);
-rtti_is_subclass<Texture>(myObject);
-rtti_create(TID_Texture);
-Texture* myTexture = rtti_cast<Texture>(myObject);
+B3DRTTIIsOfType<Texture>(myObject);
+B3DRTTIIsSubclass<Texture>(myObject);
+B3DRTTICreate(TID_Texture);
+Texture* myTexture = B3DRTTICast<Texture>(myObject);
 
 myObject->getTypeName();
 myObject->getTypeId();

@@ -596,7 +596,7 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSample
 	u32 numSamples = std::min(numRemainingSamples, info.SampleRate * info.NumChannels); // 1 second of data
 	u32 sampleBufferSize = numSamples * (info.BitDepth / 8);
 
-	u8* samples = (u8*)bs_stack_alloc(sampleBufferSize);
+	u8* samples = (u8*)B3DStackAllocate(sampleBufferSize);
 
 	OAAudioClip* audioClip = static_cast<OAAudioClip*>(mAudioClip.Get());
 
@@ -606,7 +606,7 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSample
 	info.NumSamples = numSamples;
 	GetOAAudio().WriteToOpenALBufferInternal(buffer, samples, info);
 
-	bs_stack_free(samples);
+	B3DStackFree(samples);
 
 	return true;
 }

@@ -36,7 +36,7 @@ void Resource::GetResourceDependencies(FrameVector<HResource>& dependencies) con
 bool Resource::AreDependenciesLoaded() const
 {
 	Lock lock(mDependenciesMutex);
-	bs_frame_mark();
+	B3DMarkAllocatorFrame();
 
 	bool areLoaded = true;
 	{
@@ -50,7 +50,7 @@ bool Resource::AreDependenciesLoaded() const
 		}
 	}
 
-	bs_frame_clear();
+	B3DClearAllocatorFrame();
 	return areLoaded;
 }
 

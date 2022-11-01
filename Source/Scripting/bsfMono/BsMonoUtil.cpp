@@ -244,7 +244,7 @@ MonoPrimitiveType MonoUtil::GetPrimitiveType(::MonoClass* monoClass)
 
 ::MonoClass* MonoUtil::BindGenericParameters(::MonoClass* klass, ::MonoClass** params, u32 numParams)
 {
-	auto buffer = bs_managed_stack_alloc<MonoType*>(numParams);
+	auto buffer = B3DManagedStackAllocate<MonoType*>(numParams);
 
 	MonoType** types = buffer;
 	for(u32 i = 0; i < numParams; i++)
