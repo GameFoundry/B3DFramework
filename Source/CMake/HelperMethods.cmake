@@ -76,7 +76,7 @@ endfunction()
 MACRO(gen_default_lib_search_dirs LIB_NAME)
 	set(${LIB_NAME}_INCLUDE_SEARCH_DIRS "${${LIB_NAME}_INSTALL_DIR}/include")
 
-	if(BS_64BIT)
+	if(B3D_IS_64BIT)
 		list(APPEND ${LIB_NAME}_LIBRARY_RELEASE_SEARCH_DIRS "${${LIB_NAME}_INSTALL_DIR}/lib/x64/Release")
 		list(APPEND ${LIB_NAME}_LIBRARY_DEBUG_SEARCH_DIRS "${${LIB_NAME}_INSTALL_DIR}/lib/x64/Debug")
 	else()
@@ -85,7 +85,7 @@ MACRO(gen_default_lib_search_dirs LIB_NAME)
 	endif()
 
 	# Allow for paths without a configuration specified
-	if(BS_64BIT)
+	if(B3D_IS_64BIT)
 		list(APPEND ${LIB_NAME}_LIBRARY_RELEASE_SEARCH_DIRS "${${LIB_NAME}_INSTALL_DIR}/lib/x64")
 		list(APPEND ${LIB_NAME}_LIBRARY_DEBUG_SEARCH_DIRS "${${LIB_NAME}_INSTALL_DIR}/lib/x64")
 	else()
@@ -203,7 +203,7 @@ function(install_dependency_binary FILE_PATH CONFIG)
 	string(REGEX REPLACE "\\.[^.]*$" "" FILE_NAME ${FILE_NAME})
 	
 	if(WIN32)
-		if(BS_64BIT)
+		if(B3D_IS_64BIT)
 			set(PLATFORM "x64")
 		else()
 			set(PLATFORM "x86")
@@ -272,7 +272,7 @@ ENDMACRO()
 # Dependency .dll install is handled automatically if the imported .lib has the same name as the .dll
 # and the .dll is in the project root bin folder. Otherwise you need to call this manually.
 MACRO(install_dependency_dll FOLDER_NAME SRC_DIR LIB_NAME)
-	if(BS_64BIT)
+	if(B3D_IS_64BIT)
 		set(PLATFORM "x64")
 	else()
 		set(PLATFORM "x86")
@@ -550,7 +550,7 @@ function(add_common_flags target)
 		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL "/DEBUG /LTCG /INCREMENTAL:NO /OPT:REF")
 		set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE "/DEBUG /LTCG /INCREMENTAL:NO /OPT:REF")
 
-		if(BS_64BIT)
+		if(B3D_IS_64BIT)
 			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELWITHDEBINFO " /OPT:ICF")
 			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_MINSIZEREL " /OPT:ICF")
 			set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS_RELEASE " /OPT:ICF")
@@ -566,7 +566,7 @@ function(add_common_flags target)
 
 		set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:Debug>:/Od /RTC1 /MDd -DDEBUG>)
 
-		if(BS_64BIT) # Debug edit and continue for 64-bit
+		if(B3D_IS_64BIT) # Debug edit and continue for 64-bit
 			set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:Debug>:/ZI>)
 		else() # Normal debug for 32-bit
 			set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS $<$<CONFIG:Debug>:/Zi>)

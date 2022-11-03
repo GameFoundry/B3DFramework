@@ -25,12 +25,12 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(ShadowParamsDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
-			BS_PARAM_BLOCK_ENTRY(float, gDepthBias)
-			BS_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowParamsDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
+			B3D_PARAM_BLOCK_ENTRY(float, gDepthBias)
+			B3D_PARAM_BLOCK_ENTRY(float, gInvDepthRange)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowParamsDef gShadowParamsDef;
 
@@ -136,15 +136,15 @@ namespace bs
 			static ShadowDepthDirectionalMat* GetVariation(bool skinned, bool morph);
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ShadowCubeMatricesDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowCubeMatricesDef)
+			B3D_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowCubeMatricesDef gShadowCubeMatricesDef;
 
-		BS_PARAM_BLOCK_BEGIN(ShadowCubeMasksDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(int, gFaceMasks, 6)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowCubeMasksDef)
+			B3D_PARAM_BLOCK_ENTRY_ARRAY(int, gFaceMasks, 6)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowCubeMasksDef gShadowCubeMasksDef;
 
@@ -182,9 +182,9 @@ namespace bs
 			static ShadowDepthCubeMat* GetVariation(bool skinned, bool morph);
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ShadowProjectVertParamsDef)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gPositionAndScale)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowProjectVertParamsDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gPositionAndScale)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
@@ -247,16 +247,16 @@ namespace bs
 			GBufferTextures Gbuffer;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSizeInv)
-			BS_PARAM_BLOCK_ENTRY(float, gSoftTransitionScale)
-			BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
-			BS_PARAM_BLOCK_ENTRY(float, gFadePlaneDepth)
-			BS_PARAM_BLOCK_ENTRY(float, gInvFadePlaneRange)
-			BS_PARAM_BLOCK_ENTRY(float, gFace)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowProjectParamsDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMixedToShadowSpace)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSize)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gShadowMapSizeInv)
+			B3D_PARAM_BLOCK_ENTRY(float, gSoftTransitionScale)
+			B3D_PARAM_BLOCK_ENTRY(float, gFadePercent)
+			B3D_PARAM_BLOCK_ENTRY(float, gFadePlaneDepth)
+			B3D_PARAM_BLOCK_ENTRY(float, gInvFadePlaneRange)
+			B3D_PARAM_BLOCK_ENTRY(float, gFace)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowProjectParamsDef gShadowProjectParamsDef;
 
@@ -302,13 +302,13 @@ namespace bs
 			GpuParamSampState mShadowSamplerParam;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightPosAndRadius)
-			BS_PARAM_BLOCK_ENTRY(float, gInvResolution)
-			BS_PARAM_BLOCK_ENTRY(float, gFadePercent)
-			BS_PARAM_BLOCK_ENTRY(float, gDepthBias)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ShadowProjectOmniParamsDef)
+			B3D_PARAM_BLOCK_ENTRY_ARRAY(Matrix4, gFaceVPMatrices, 6)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightPosAndRadius)
+			B3D_PARAM_BLOCK_ENTRY(float, gInvResolution)
+			B3D_PARAM_BLOCK_ENTRY(float, gFadePercent)
+			B3D_PARAM_BLOCK_ENTRY(float, gDepthBias)
+		B3D_PARAM_BLOCK_END
 
 		extern ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 

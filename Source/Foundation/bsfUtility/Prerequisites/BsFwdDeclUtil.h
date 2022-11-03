@@ -59,7 +59,7 @@ namespace bs
  * When applied to a parameter or a field of ResourceHandle type, makes that element be exported as a raw resource in
  * script code.
  */
-#	define BS_NORREF __attribute__((annotate("norref")))
+#	define B3D_NO_RREF __attribute__((annotate("norref")))
 #else
 /** @ref scriptBindingMacro */
 #	define B3D_SCRIPT_EXPORT(...)
@@ -74,7 +74,7 @@ namespace bs
  * When applied to a parameter or a field of ResourceHandle type, makes that element be exported as a raw resource in
  * script code.
  */
-#	define BS_NORREF
+#	define B3D_NO_RREF
 #endif
 
 	/** @addtogroup Math

@@ -18,14 +18,14 @@ namespace bs
 	class B3D_EXPORT GameSettingsRTTI : public RTTIType<GameSettings, IReflectable, GameSettingsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(MainSceneUuid, 0)
-			BS_RTTI_MEMBER_PLAIN(Fullscreen, 1)
-			BS_RTTI_MEMBER_PLAIN(UseDesktopResolution, 2)
-			BS_RTTI_MEMBER_PLAIN(ResolutionWidth, 3)
-			BS_RTTI_MEMBER_PLAIN(ResolutionHeight, 4)
-			BS_RTTI_MEMBER_PLAIN(TitleBarText, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(MainSceneUuid, 0)
+			B3D_RTTI_MEMBER_PLAIN(Fullscreen, 1)
+			B3D_RTTI_MEMBER_PLAIN(UseDesktopResolution, 2)
+			B3D_RTTI_MEMBER_PLAIN(ResolutionWidth, 3)
+			B3D_RTTI_MEMBER_PLAIN(ResolutionHeight, 4)
+			B3D_RTTI_MEMBER_PLAIN(TitleBarText, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()

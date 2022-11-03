@@ -24,13 +24,13 @@ bool CheckForGlslError(const GLuint programObj, String& outErrorMsg)
 
 	GLint linkCompileSuccess = 0;
 	glGetProgramiv(programObj, GL_LINK_STATUS, &linkCompileSuccess);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(!linkCompileSuccess && programObj > 0)
 	{
 		GLint infologLength = 0;
 		glGetProgramiv(programObj, GL_INFO_LOG_LENGTH, &infologLength);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		if(infologLength > 0)
 		{
@@ -39,7 +39,7 @@ bool CheckForGlslError(const GLuint programObj, String& outErrorMsg)
 			GLchar* infoLog = (GLchar*)B3DAllocate(sizeof(GLchar) * infologLength);
 
 			glGetProgramInfoLog(programObj, infologLength, &charsWritten, infoLog);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 
 			stream << "Compile and linker info log: \n";
 			stream << String(infoLog);
@@ -61,12 +61,12 @@ GLSLGpuProgram::~GLSLGpuProgram()
 	if(mIsCompiled && mGLHandle != 0)
 	{
 		glDeleteProgram(mGLHandle);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mGLHandle = 0;
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
 }
 
 void GLSLGpuProgram::Initialize()
@@ -245,7 +245,7 @@ void GLSLGpuProgram::Initialize()
 		String code = codeStream.str();
 		const char* codeRaw = code.c_str();
 		mGLHandle = glCreateShaderProgramv(shaderType, 1, (const GLchar**)&codeRaw);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mCompileMessages = "";
 		mIsCompiled = !CheckForGlslError(mGLHandle, mCompileMessages);
@@ -263,7 +263,7 @@ void GLSLGpuProgram::Initialize()
 		}
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);
 	GpuProgram::Initialize();
 }
 

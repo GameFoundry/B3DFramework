@@ -17,9 +17,9 @@ namespace bs
 	class B3D_CORE_EXPORT ResourceMetaDataRTTI : public RTTIType<ResourceMetaData, IReflectable, ResourceMetaDataRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(DisplayName, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(DisplayName, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()

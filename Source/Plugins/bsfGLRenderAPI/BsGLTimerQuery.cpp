@@ -14,12 +14,12 @@ GLTimerQuery::GLTimerQuery(u32 deviceIdx)
 
 	GLuint queries[2];
 	glGenQueries(2, queries);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	mQueryStartObj = queries[0];
 	mQueryEndObj = queries[1];
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 GLTimerQuery::~GLTimerQuery()
@@ -29,9 +29,9 @@ GLTimerQuery::~GLTimerQuery()
 	queries[1] = mQueryEndObj;
 
 	glDeleteQueries(2, queries);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void GLTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
@@ -39,7 +39,7 @@ void GLTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	auto execute = [&]()
 	{
 		glQueryCounter(mQueryStartObj, GL_TIMESTAMP);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		SetActive(true);
 		mEndIssued = false;
@@ -59,7 +59,7 @@ void GLTimerQuery::End(const SPtr<CommandBuffer>& cb)
 	auto execute = [&]()
 	{
 		glQueryCounter(mQueryEndObj, GL_TIMESTAMP);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mEndIssued = true;
 		mFinalized = false;
@@ -81,7 +81,7 @@ bool GLTimerQuery::IsReady() const
 
 	GLint done = 0;
 	glGetQueryObjectiv(mQueryEndObj, GL_QUERY_RESULT_AVAILABLE, &done);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	return done == GL_TRUE;
 }
@@ -104,10 +104,10 @@ void GLTimerQuery::Finalize()
 	GLuint64 timeEnd;
 
 	glGetQueryObjectui64v(mQueryStartObj, GL_QUERY_RESULT, &timeStart);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glGetQueryObjectui64v(mQueryEndObj, GL_QUERY_RESULT, &timeEnd);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	mTimeDelta = (timeEnd - timeStart) / 1000000.0f;
 }

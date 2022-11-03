@@ -14,8 +14,8 @@
 #define B3D_COMPILER_ID_INTEL 3
 #define B3D_COMPILER_ID_CLANG 4
 
-#define BS_ARCHITECTURE_x86_32 1
-#define BS_ARCHITECTURE_x86_64 2
+#define B3D_ARCHITECTURE_ID_x86_32 1
+#define B3D_ARCHITECTURE_ID_x86_64 2
 
 #define BS_ENDIAN_LITTLE 1
 #define BS_ENDIAN_BIG 2
@@ -67,9 +67,9 @@
 
 // Find the architecture type
 #if defined(__x86_64__) || defined(_M_X64)
-#	define BS_ARCH_TYPE BS_ARCHITECTURE_x86_64
+#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_x86_64
 #else
-#	define BS_ARCH_TYPE BS_ARCHITECTURE_x86_32
+#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_x86_32
 #endif
 
 // DLL export

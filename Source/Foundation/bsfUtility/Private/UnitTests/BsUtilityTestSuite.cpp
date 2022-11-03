@@ -121,15 +121,15 @@ void UtilityTestSuite::ShutDown()
 
 UtilityTestSuite::UtilityTestSuite()
 {
-	BS_ADD_TEST(UtilityTestSuite::testOctree);
-	BS_ADD_TEST(UtilityTestSuite::testBitfield)
-	BS_ADD_TEST(UtilityTestSuite::testSmallVector)
-	BS_ADD_TEST(UtilityTestSuite::testDynArray)
-	BS_ADD_TEST(UtilityTestSuite::testComplex)
-	BS_ADD_TEST(UtilityTestSuite::testMinHeap)
-	BS_ADD_TEST(UtilityTestSuite::testQuadtree)
-	BS_ADD_TEST(UtilityTestSuite::testVarInt)
-	BS_ADD_TEST(UtilityTestSuite::testBitStream)
+	B3D_ADD_TEST(UtilityTestSuite::testOctree);
+	B3D_ADD_TEST(UtilityTestSuite::testBitfield)
+	B3D_ADD_TEST(UtilityTestSuite::testSmallVector)
+	B3D_ADD_TEST(UtilityTestSuite::testDynArray)
+	B3D_ADD_TEST(UtilityTestSuite::testComplex)
+	B3D_ADD_TEST(UtilityTestSuite::testMinHeap)
+	B3D_ADD_TEST(UtilityTestSuite::testQuadtree)
+	B3D_ADD_TEST(UtilityTestSuite::testVarInt)
+	B3D_ADD_TEST(UtilityTestSuite::testBitStream)
 }
 
 void UtilityTestSuite::testBitfield()
@@ -143,12 +143,12 @@ void UtilityTestSuite::testBitfield()
 	u32 i = 0;
 	for(auto iter : bitfield)
 	{
-		BS_TEST_ASSERT(iter == true)
+		B3D_TEST_ASSERT(iter == true)
 		i++;
 	}
 
 	u32 curCount = COUNT;
-	BS_TEST_ASSERT(i == curCount);
+	B3D_TEST_ASSERT(i == curCount);
 
 	// Dynamic additon
 	bitfield.add(false);
@@ -162,12 +162,12 @@ void UtilityTestSuite::testBitfield()
 	for(uint32_t j = 0; j < 32; j++)
 		bitfield.add(false);
 
-	BS_TEST_ASSERT(bitfield.size() == curCount);
+	B3D_TEST_ASSERT(bitfield.size() == curCount);
 
-	BS_TEST_ASSERT(bitfield[COUNT + 0] == false);
-	BS_TEST_ASSERT(bitfield[COUNT + 1] == false);
-	BS_TEST_ASSERT(bitfield[COUNT + 2] == true);
-	BS_TEST_ASSERT(bitfield[COUNT + 3] == false);
+	B3D_TEST_ASSERT(bitfield[COUNT + 0] == false);
+	B3D_TEST_ASSERT(bitfield[COUNT + 1] == false);
+	B3D_TEST_ASSERT(bitfield[COUNT + 2] == true);
+	B3D_TEST_ASSERT(bitfield[COUNT + 3] == false);
 
 	// Modify during iteration
 	i = 0;
@@ -184,10 +184,10 @@ void UtilityTestSuite::testBitfield()
 	bitfield[6] = false;
 
 	for(u32 j = 50; j < 70; j++)
-		BS_TEST_ASSERT(bitfield[j] == false);
+		B3D_TEST_ASSERT(bitfield[j] == false);
 
-	BS_TEST_ASSERT(bitfield[5] == false);
-	BS_TEST_ASSERT(bitfield[6] == false);
+	B3D_TEST_ASSERT(bitfield[5] == false);
+	B3D_TEST_ASSERT(bitfield[6] == false);
 
 	// Removal
 	bitfield.remove(10);
@@ -195,16 +195,16 @@ void UtilityTestSuite::testBitfield()
 	curCount -= 2;
 
 	for(u32 j = 48; j < 68; j++)
-		BS_TEST_ASSERT(bitfield[j] == false);
+		B3D_TEST_ASSERT(bitfield[j] == false);
 
-	BS_TEST_ASSERT(bitfield[5] == false);
-	BS_TEST_ASSERT(bitfield[6] == false);
+	B3D_TEST_ASSERT(bitfield[5] == false);
+	B3D_TEST_ASSERT(bitfield[6] == false);
 
-	BS_TEST_ASSERT(bitfield.size() == curCount);
+	B3D_TEST_ASSERT(bitfield.size() == curCount);
 
 	// Find
-	BS_TEST_ASSERT(bitfield.find(true) == 0);
-	BS_TEST_ASSERT(bitfield.find(false) == 5);
+	B3D_TEST_ASSERT(bitfield.find(true) == 0);
+	B3D_TEST_ASSERT(bitfield.find(false) == 5);
 }
 
 void UtilityTestSuite::testOctree()
@@ -273,7 +273,7 @@ void UtilityTestSuite::testOctree()
 		overlapElements.push_back(element);
 
 		// Manually check for intersections
-		BS_TEST_ASSERT(octreeData.elements[element].box.intersects(queryBounds));
+		B3D_TEST_ASSERT(octreeData.elements[element].box.intersects(queryBounds));
 	}
 
 	// Ensure that all we have found all possible overlaps by manually testing all elements
@@ -283,7 +283,7 @@ void UtilityTestSuite::testOctree()
 		if(entry.box.intersects(queryBounds))
 		{
 			auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
-			BS_TEST_ASSERT(iterFind != overlapElements.end());
+			B3D_TEST_ASSERT(iterFind != overlapElements.end());
 		}
 
 		elemIdx++;
@@ -304,80 +304,80 @@ void UtilityTestSuite::testSmallVector()
 
 	// Make sure initial construction works
 	SmallVector<SomeElem, 4> v(4);
-	BS_TEST_ASSERT(v.size() == 4);
-	BS_TEST_ASSERT(v.capacity() == 4);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[3].b == 0);
+	B3D_TEST_ASSERT(v.size() == 4);
+	B3D_TEST_ASSERT(v.capacity() == 4);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[3].b == 0);
 
 	// Making the vector dynamic
 	v.add({ 3, 4 });
-	BS_TEST_ASSERT(v.size() == 5);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[3].b == 0);
-	BS_TEST_ASSERT(v[4].a == 3);
-	BS_TEST_ASSERT(v[4].b == 4);
+	B3D_TEST_ASSERT(v.size() == 5);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[3].b == 0);
+	B3D_TEST_ASSERT(v[4].a == 3);
+	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Make a copy
 	SmallVector<SomeElem, 4> v2 = v;
-	BS_TEST_ASSERT(v2.size() == 5);
-	BS_TEST_ASSERT(v2[0].a == 10);
-	BS_TEST_ASSERT(v2[3].a == 10);
-	BS_TEST_ASSERT(v2[3].b == 0);
-	BS_TEST_ASSERT(v2[4].a == 3);
-	BS_TEST_ASSERT(v2[4].b == 4);
+	B3D_TEST_ASSERT(v2.size() == 5);
+	B3D_TEST_ASSERT(v2[0].a == 10);
+	B3D_TEST_ASSERT(v2[3].a == 10);
+	B3D_TEST_ASSERT(v2[3].b == 0);
+	B3D_TEST_ASSERT(v2[4].a == 3);
+	B3D_TEST_ASSERT(v2[4].b == 4);
 
 	// Pop an element
 	v2.pop();
-	BS_TEST_ASSERT(v2.size() == 4);
-	BS_TEST_ASSERT(v2[0].a == 10);
-	BS_TEST_ASSERT(v2[3].a == 10);
-	BS_TEST_ASSERT(v2[3].b == 0);
+	B3D_TEST_ASSERT(v2.size() == 4);
+	B3D_TEST_ASSERT(v2[0].a == 10);
+	B3D_TEST_ASSERT(v2[3].a == 10);
+	B3D_TEST_ASSERT(v2[3].b == 0);
 
 	// Make a static only copy
 	SmallVector<SomeElem, 4> v3 = v2;
-	BS_TEST_ASSERT(v3.size() == 4);
-	BS_TEST_ASSERT(v3.capacity() == 4);
-	BS_TEST_ASSERT(v3[0].a == 10);
-	BS_TEST_ASSERT(v3[3].a == 10);
-	BS_TEST_ASSERT(v3[3].b == 0);
+	B3D_TEST_ASSERT(v3.size() == 4);
+	B3D_TEST_ASSERT(v3.capacity() == 4);
+	B3D_TEST_ASSERT(v3[0].a == 10);
+	B3D_TEST_ASSERT(v3[3].a == 10);
+	B3D_TEST_ASSERT(v3[3].b == 0);
 
 	// Remove an element
 	v.remove(2);
-	BS_TEST_ASSERT(v.size() == 4);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[2].a == 10);
-	BS_TEST_ASSERT(v[3].a == 3);
-	BS_TEST_ASSERT(v[3].b == 4);
+	B3D_TEST_ASSERT(v.size() == 4);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[2].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 3);
+	B3D_TEST_ASSERT(v[3].b == 4);
 
 	// Move a static vector
 	SmallVector<SomeElem, 4> v4 = std::move(v3);
-	BS_TEST_ASSERT(v3.size() == 0);
-	BS_TEST_ASSERT(v4.size() == 4);
-	BS_TEST_ASSERT(v4.capacity() == 4);
-	BS_TEST_ASSERT(v4[0].a == 10);
-	BS_TEST_ASSERT(v4[3].a == 10);
-	BS_TEST_ASSERT(v4[3].b == 0);
+	B3D_TEST_ASSERT(v3.size() == 0);
+	B3D_TEST_ASSERT(v4.size() == 4);
+	B3D_TEST_ASSERT(v4.capacity() == 4);
+	B3D_TEST_ASSERT(v4[0].a == 10);
+	B3D_TEST_ASSERT(v4[3].a == 10);
+	B3D_TEST_ASSERT(v4[3].b == 0);
 
 	// Move a dynamic vector
 	SmallVector<SomeElem, 4> v5 = std::move(v2);
-	BS_TEST_ASSERT(v2.size() == 0);
-	BS_TEST_ASSERT(v5.size() == 4);
-	BS_TEST_ASSERT(v5[0].a == 10);
-	BS_TEST_ASSERT(v5[3].a == 10);
-	BS_TEST_ASSERT(v5[3].b == 0);
+	B3D_TEST_ASSERT(v2.size() == 0);
+	B3D_TEST_ASSERT(v5.size() == 4);
+	B3D_TEST_ASSERT(v5[0].a == 10);
+	B3D_TEST_ASSERT(v5[3].a == 10);
+	B3D_TEST_ASSERT(v5[3].b == 0);
 
 	// Move a dynamic vector into a dynamic vector
 	v.add({ 33, 44 });
 	SmallVector<SomeElem, 4> v6 = std::move(v);
-	BS_TEST_ASSERT(v.size() == 0);
-	BS_TEST_ASSERT(v6.size() == 5);
-	BS_TEST_ASSERT(v6[0].a == 10);
-	BS_TEST_ASSERT(v6[3].a == 3);
-	BS_TEST_ASSERT(v6[3].b == 4);
-	BS_TEST_ASSERT(v6[4].a == 33);
-	BS_TEST_ASSERT(v6[4].b == 44);
+	B3D_TEST_ASSERT(v.size() == 0);
+	B3D_TEST_ASSERT(v6.size() == 5);
+	B3D_TEST_ASSERT(v6[0].a == 10);
+	B3D_TEST_ASSERT(v6[3].a == 3);
+	B3D_TEST_ASSERT(v6[3].b == 4);
+	B3D_TEST_ASSERT(v6[4].a == 33);
+	B3D_TEST_ASSERT(v6[4].b == 44);
 }
 
 void UtilityTestSuite::testDynArray()
@@ -390,188 +390,188 @@ void UtilityTestSuite::testDynArray()
 
 	// Make sure initial construction works
 	DynArray<SomeElem> v(4);
-	BS_TEST_ASSERT(v.size() == 4);
-	BS_TEST_ASSERT(v.capacity() == 4);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[3].b == 0);
+	B3D_TEST_ASSERT(v.size() == 4);
+	B3D_TEST_ASSERT(v.capacity() == 4);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[3].b == 0);
 
 	// Add an element
 	v.add({ 3, 4 });
-	BS_TEST_ASSERT(v.size() == 5);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[3].b == 0);
-	BS_TEST_ASSERT(v[4].a == 3);
-	BS_TEST_ASSERT(v[4].b == 4);
+	B3D_TEST_ASSERT(v.size() == 5);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[3].b == 0);
+	B3D_TEST_ASSERT(v[4].a == 3);
+	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Make a copy
 	DynArray<SomeElem> v2 = v;
-	BS_TEST_ASSERT(v2.size() == 5);
-	BS_TEST_ASSERT(v2[0].a == 10);
-	BS_TEST_ASSERT(v2[3].a == 10);
-	BS_TEST_ASSERT(v2[3].b == 0);
-	BS_TEST_ASSERT(v2[4].a == 3);
-	BS_TEST_ASSERT(v2[4].b == 4);
+	B3D_TEST_ASSERT(v2.size() == 5);
+	B3D_TEST_ASSERT(v2[0].a == 10);
+	B3D_TEST_ASSERT(v2[3].a == 10);
+	B3D_TEST_ASSERT(v2[3].b == 0);
+	B3D_TEST_ASSERT(v2[4].a == 3);
+	B3D_TEST_ASSERT(v2[4].b == 4);
 
 	// Pop an element
 	v2.pop();
-	BS_TEST_ASSERT(v2.size() == 4);
-	BS_TEST_ASSERT(v2[0].a == 10);
-	BS_TEST_ASSERT(v2[3].a == 10);
-	BS_TEST_ASSERT(v2[3].b == 0);
+	B3D_TEST_ASSERT(v2.size() == 4);
+	B3D_TEST_ASSERT(v2[0].a == 10);
+	B3D_TEST_ASSERT(v2[3].a == 10);
+	B3D_TEST_ASSERT(v2[3].b == 0);
 
 	// Remove an element
 	v.remove(2);
-	BS_TEST_ASSERT(v.size() == 4);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[2].a == 10);
-	BS_TEST_ASSERT(v[3].a == 3);
-	BS_TEST_ASSERT(v[3].b == 4);
+	B3D_TEST_ASSERT(v.size() == 4);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[2].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 3);
+	B3D_TEST_ASSERT(v[3].b == 4);
 
 	// Insert an element
 	v.insert(v.begin() + 2, { 99, 100 });
-	BS_TEST_ASSERT(v.size() == 5);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[2].a == 99);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[4].a == 3);
-	BS_TEST_ASSERT(v[4].b == 4);
+	B3D_TEST_ASSERT(v.size() == 5);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[2].a == 99);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[4].a == 3);
+	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Insert a list
 	v.insert(v.begin() + 1, { { 55, 100 }, { 56, 100 }, { 57, 100 } });
-	BS_TEST_ASSERT(v.size() == 8);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[1].a == 55);
-	BS_TEST_ASSERT(v[2].a == 56);
-	BS_TEST_ASSERT(v[3].a == 57);
-	BS_TEST_ASSERT(v[4].a == 10);
-	BS_TEST_ASSERT(v[5].a == 99);
-	BS_TEST_ASSERT(v[6].a == 10);
-	BS_TEST_ASSERT(v[7].a == 3);
-	BS_TEST_ASSERT(v[7].b == 4);
+	B3D_TEST_ASSERT(v.size() == 8);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[1].a == 55);
+	B3D_TEST_ASSERT(v[2].a == 56);
+	B3D_TEST_ASSERT(v[3].a == 57);
+	B3D_TEST_ASSERT(v[4].a == 10);
+	B3D_TEST_ASSERT(v[5].a == 99);
+	B3D_TEST_ASSERT(v[6].a == 10);
+	B3D_TEST_ASSERT(v[7].a == 3);
+	B3D_TEST_ASSERT(v[7].b == 4);
 
 	// Erase a range of elements
 	v.erase(v.begin() + 2, v.begin() + 5);
-	BS_TEST_ASSERT(v.size() == 5);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[1].a == 55);
-	BS_TEST_ASSERT(v[2].a == 99);
-	BS_TEST_ASSERT(v[3].a == 10);
-	BS_TEST_ASSERT(v[4].a == 3);
-	BS_TEST_ASSERT(v[4].b == 4);
+	B3D_TEST_ASSERT(v.size() == 5);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[1].a == 55);
+	B3D_TEST_ASSERT(v[2].a == 99);
+	B3D_TEST_ASSERT(v[3].a == 10);
+	B3D_TEST_ASSERT(v[4].a == 3);
+	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Insert a range
 	v.insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
-	BS_TEST_ASSERT(v.size() == 7);
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[1].a == 10);
-	BS_TEST_ASSERT(v[2].a == 10);
-	BS_TEST_ASSERT(v[3].a == 55);
-	BS_TEST_ASSERT(v[4].a == 99);
-	BS_TEST_ASSERT(v[5].a == 10);
-	BS_TEST_ASSERT(v[6].a == 3);
-	BS_TEST_ASSERT(v[6].b == 4);
+	B3D_TEST_ASSERT(v.size() == 7);
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[1].a == 10);
+	B3D_TEST_ASSERT(v[2].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 55);
+	B3D_TEST_ASSERT(v[4].a == 99);
+	B3D_TEST_ASSERT(v[5].a == 10);
+	B3D_TEST_ASSERT(v[6].a == 3);
+	B3D_TEST_ASSERT(v[6].b == 4);
 
 	// Shrink capacity
 	v.shrink();
-	BS_TEST_ASSERT(v.size() == v.capacity());
-	BS_TEST_ASSERT(v[0].a == 10);
-	BS_TEST_ASSERT(v[1].a == 10);
-	BS_TEST_ASSERT(v[2].a == 10);
-	BS_TEST_ASSERT(v[3].a == 55);
-	BS_TEST_ASSERT(v[4].a == 99);
-	BS_TEST_ASSERT(v[5].a == 10);
-	BS_TEST_ASSERT(v[6].a == 3);
-	BS_TEST_ASSERT(v[6].b == 4);
+	B3D_TEST_ASSERT(v.size() == v.capacity());
+	B3D_TEST_ASSERT(v[0].a == 10);
+	B3D_TEST_ASSERT(v[1].a == 10);
+	B3D_TEST_ASSERT(v[2].a == 10);
+	B3D_TEST_ASSERT(v[3].a == 55);
+	B3D_TEST_ASSERT(v[4].a == 99);
+	B3D_TEST_ASSERT(v[5].a == 10);
+	B3D_TEST_ASSERT(v[6].a == 3);
+	B3D_TEST_ASSERT(v[6].b == 4);
 
 	// Move it
 	DynArray<SomeElem> v3 = std::move(v2);
-	BS_TEST_ASSERT(v2.size() == 0);
-	BS_TEST_ASSERT(v3.size() == 4);
-	BS_TEST_ASSERT(v3[0].a == 10);
-	BS_TEST_ASSERT(v3[3].a == 10);
-	BS_TEST_ASSERT(v3[3].b == 0);
+	B3D_TEST_ASSERT(v2.size() == 0);
+	B3D_TEST_ASSERT(v3.size() == 4);
+	B3D_TEST_ASSERT(v3[0].a == 10);
+	B3D_TEST_ASSERT(v3[3].a == 10);
+	B3D_TEST_ASSERT(v3[3].b == 0);
 }
 
 void UtilityTestSuite::testComplex()
 {
 	Complex<float> c(10.0, 4.0);
-	BS_TEST_ASSERT(c.real() == 10.0);
-	BS_TEST_ASSERT(c.imag() == 4.0);
+	B3D_TEST_ASSERT(c.real() == 10.0);
+	B3D_TEST_ASSERT(c.imag() == 4.0);
 
 	Complex<float> c2(15.0, 5.0);
-	BS_TEST_ASSERT(c2.real() == 15.0);
-	BS_TEST_ASSERT(c2.imag() == 5.0);
+	B3D_TEST_ASSERT(c2.real() == 15.0);
+	B3D_TEST_ASSERT(c2.imag() == 5.0);
 
 	Complex<float> c3 = c + c2;
-	BS_TEST_ASSERT(c3.real() == 25.0);
-	BS_TEST_ASSERT(c3.imag() == 9.0);
+	B3D_TEST_ASSERT(c3.real() == 25.0);
+	B3D_TEST_ASSERT(c3.imag() == 9.0);
 
 	Complex<float> c4 = c - c2;
-	BS_TEST_ASSERT(c4.real() == -5.0);
-	BS_TEST_ASSERT(c4.imag() == -1.0);
+	B3D_TEST_ASSERT(c4.real() == -5.0);
+	B3D_TEST_ASSERT(c4.imag() == -1.0);
 
 	Complex<float> c5 = c * c2;
-	BS_TEST_ASSERT(c5.real() == 130.0);
-	BS_TEST_ASSERT(c5.imag() == 110.0);
+	B3D_TEST_ASSERT(c5.real() == 130.0);
+	B3D_TEST_ASSERT(c5.imag() == 110.0);
 
 	Complex<float> c6 = c / c2;
-	BS_TEST_ASSERT(c6.real() == 0.680000007f);
-	BS_TEST_ASSERT(c6.imag() == 0.0399999991f);
+	B3D_TEST_ASSERT(c6.real() == 0.680000007f);
+	B3D_TEST_ASSERT(c6.imag() == 0.0399999991f);
 
-	BS_TEST_ASSERT(Complex<float>::abs(c) == 10.7703295f);
-	BS_TEST_ASSERT(Complex<float>::arg(c) == 0.380506366f);
-	BS_TEST_ASSERT(Complex<float>::norm(c) == 116);
+	B3D_TEST_ASSERT(Complex<float>::abs(c) == 10.7703295f);
+	B3D_TEST_ASSERT(Complex<float>::arg(c) == 0.380506366f);
+	B3D_TEST_ASSERT(Complex<float>::norm(c) == 116);
 
 	Complex<float> c7 = Complex<float>::conj(c);
-	BS_TEST_ASSERT(c7.real() == 10);
-	BS_TEST_ASSERT(c7.imag() == -4);
+	B3D_TEST_ASSERT(c7.real() == 10);
+	B3D_TEST_ASSERT(c7.imag() == -4);
 	c7 = 0;
 
 	c7 = Complex<float>::polar(2.0, 0.5);
-	BS_TEST_ASSERT(c7.real() == 1.75516510f);
-	BS_TEST_ASSERT(c7.imag() == 0.958851099f);
+	B3D_TEST_ASSERT(c7.real() == 1.75516510f);
+	B3D_TEST_ASSERT(c7.imag() == 0.958851099f);
 	c7 = 0;
 
 	c7 = Complex<float>::cos(c);
-	BS_TEST_ASSERT(c7.real() == -22.9135609f);
-	BS_TEST_ASSERT(c7.imag() == 14.8462915f);
+	B3D_TEST_ASSERT(c7.real() == -22.9135609f);
+	B3D_TEST_ASSERT(c7.imag() == 14.8462915f);
 	c7 = 0;
 
 	c7 = Complex<float>::cosh(c);
-	BS_TEST_ASSERT(c7.real() == -7198.72949f);
-	BS_TEST_ASSERT(c7.imag() == -8334.84180f);
+	B3D_TEST_ASSERT(c7.real() == -7198.72949f);
+	B3D_TEST_ASSERT(c7.imag() == -8334.84180f);
 	c7 = 0;
 
 	c7 = Complex<float>::exp(c);
-	BS_TEST_ASSERT(c7.real() == -14397.4580f);
-	BS_TEST_ASSERT(c7.imag() == -16669.6836f);
+	B3D_TEST_ASSERT(c7.real() == -14397.4580f);
+	B3D_TEST_ASSERT(c7.imag() == -16669.6836f);
 	c7 = 0;
 
 	c7 = Complex<float>::log(c);
-	BS_TEST_ASSERT(c7.real() == 2.37679505f);
-	BS_TEST_ASSERT(c7.imag() == 0.380506366f);
+	B3D_TEST_ASSERT(c7.real() == 2.37679505f);
+	B3D_TEST_ASSERT(c7.imag() == 0.380506366f);
 	c7 = 0;
 
 	c7 = Complex<float>::pow(c, 2.0);
-	BS_TEST_ASSERT(c7.real() == 84.0000000f);
-	BS_TEST_ASSERT(c7.imag() == 79.9999924f);
+	B3D_TEST_ASSERT(c7.real() == 84.0000000f);
+	B3D_TEST_ASSERT(c7.imag() == 79.9999924f);
 	c7 = 0;
 
 	c7 = Complex<float>::sin(c);
-	BS_TEST_ASSERT(c7.real() == -14.8562555f);
-	BS_TEST_ASSERT(c7.imag() == -22.8981915f);
+	B3D_TEST_ASSERT(c7.real() == -14.8562555f);
+	B3D_TEST_ASSERT(c7.imag() == -22.8981915f);
 	c7 = 0;
 
 	c7 = Complex<float>::sinh(c);
-	BS_TEST_ASSERT(c7.real() == -7198.72900f);
-	BS_TEST_ASSERT(c7.imag() == -8334.84277f);
+	B3D_TEST_ASSERT(c7.real() == -7198.72900f);
+	B3D_TEST_ASSERT(c7.imag() == -8334.84277f);
 	c7 = 0;
 
 	c7 = Complex<float>::sqrt(c);
-	BS_TEST_ASSERT(c7.real() == 3.22260213f);
-	BS_TEST_ASSERT(c7.imag() == 0.620616496f);
+	B3D_TEST_ASSERT(c7.real() == 3.22260213f);
+	B3D_TEST_ASSERT(c7.imag() == 0.620616496f);
 	c7 = 0;
 }
 
@@ -585,35 +585,35 @@ void UtilityTestSuite::testMinHeap()
 
 	MinHeap<SomeElem, int> m;
 	m.resize(8);
-	BS_TEST_ASSERT(m.valid() == true);
+	B3D_TEST_ASSERT(m.valid() == true);
 
 	SomeElem elements;
 	elements.a = 4;
 	elements.b = 5;
 
 	m.insert(elements, 10);
-	BS_TEST_ASSERT(m[0].key.a == 4);
-	BS_TEST_ASSERT(m[0].key.b == 5);
-	BS_TEST_ASSERT(m[0].value == 10);
-	BS_TEST_ASSERT(m.size() == 1);
+	B3D_TEST_ASSERT(m[0].key.a == 4);
+	B3D_TEST_ASSERT(m[0].key.b == 5);
+	B3D_TEST_ASSERT(m[0].value == 10);
+	B3D_TEST_ASSERT(m.size() == 1);
 
 	int v = 11;
 	m.insert(elements, v);
-	BS_TEST_ASSERT(m[1].key.a == 4);
-	BS_TEST_ASSERT(m[1].key.b == 5);
-	BS_TEST_ASSERT(m[1].value == 11);
-	BS_TEST_ASSERT(m.size() == 2);
+	B3D_TEST_ASSERT(m[1].key.a == 4);
+	B3D_TEST_ASSERT(m[1].key.b == 5);
+	B3D_TEST_ASSERT(m[1].value == 11);
+	B3D_TEST_ASSERT(m.size() == 2);
 
 	SomeElem minKey;
 	int minValue;
 
 	m.minimum(minKey, minValue);
-	BS_TEST_ASSERT(minKey.a == 4);
-	BS_TEST_ASSERT(minKey.b == 5);
-	BS_TEST_ASSERT(minValue == 10);
+	B3D_TEST_ASSERT(minKey.a == 4);
+	B3D_TEST_ASSERT(minKey.b == 5);
+	B3D_TEST_ASSERT(minValue == 10);
 
 	m.erase(elements, v);
-	BS_TEST_ASSERT(m.size() == 1);
+	B3D_TEST_ASSERT(m.size() == 1);
 }
 
 void UtilityTestSuite::testQuadtree()
@@ -717,13 +717,13 @@ void UtilityTestSuite::testVarInt()
 	u8 output[50];
 
 	u32 writeIdx = Bitwise::encodeVarInt(u0, output);
-	BS_TEST_ASSERT(writeIdx == 1);
+	B3D_TEST_ASSERT(writeIdx == 1);
 
 	writeIdx += Bitwise::encodeVarInt(u1, output + writeIdx);
-	BS_TEST_ASSERT(writeIdx == 2);
+	B3D_TEST_ASSERT(writeIdx == 2);
 
 	writeIdx += Bitwise::encodeVarInt(u2, output + writeIdx);
-	BS_TEST_ASSERT(writeIdx == 4);
+	B3D_TEST_ASSERT(writeIdx == 4);
 
 	writeIdx += Bitwise::encodeVarInt(u3, output + writeIdx);
 
@@ -736,41 +736,41 @@ void UtilityTestSuite::testVarInt()
 	u32 readIdx = 0;
 	u32 uv;
 	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(uv == u0);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(uv == u0);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(uv == u1);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(uv == u1);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(uv == u2);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(uv == u2);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(uv == u3);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(uv == u3);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	i32 iv;
 	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(iv == i0);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(iv == i0);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(iv == i1);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(iv == i1);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(iv == i2);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(iv == i2);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(iv == i3);
-	BS_TEST_ASSERT(writeIdx > readIdx);
+	B3D_TEST_ASSERT(iv == i3);
+	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
-	BS_TEST_ASSERT(iv == i4);
-	BS_TEST_ASSERT(writeIdx == readIdx);
+	B3D_TEST_ASSERT(iv == i4);
+	B3D_TEST_ASSERT(writeIdx == readIdx);
 }
 
 void UtilityTestSuite::testBitStream()
@@ -810,7 +810,7 @@ void UtilityTestSuite::testBitStream()
 	bs.align(); // 352
 	bs.write(v11); // 352 - 416
 
-	BS_TEST_ASSERT(bs.size() == 416);
+	B3D_TEST_ASSERT(bs.size() == 416);
 
 	uint32_t uv;
 	uint64_t ulv;
@@ -821,49 +821,49 @@ void UtilityTestSuite::testBitStream()
 
 	bs.seek(0);
 	bs.read(uv);
-	BS_TEST_ASSERT(uv == v0);
+	B3D_TEST_ASSERT(uv == v0);
 
 	bs.read(bv);
-	BS_TEST_ASSERT(bv == v1);
+	B3D_TEST_ASSERT(bv == v1);
 
 	bs.read(uv);
-	BS_TEST_ASSERT(uv == v2);
+	B3D_TEST_ASSERT(uv == v2);
 
 	bs.read(bv);
-	BS_TEST_ASSERT(bv == v3);
+	B3D_TEST_ASSERT(bv == v3);
 
 	bs.read(bv);
-	BS_TEST_ASSERT(bv == v4);
+	B3D_TEST_ASSERT(bv == v4);
 
 	uv = 0;
 	bs.readBits((uint8_t*)&uv, 10);
-	BS_TEST_ASSERT(uv == v5);
+	B3D_TEST_ASSERT(uv == v5);
 
 	bs.read(sv);
-	BS_TEST_ASSERT(sv == v6);
+	B3D_TEST_ASSERT(sv == v6);
 
 	bs.readVarInt(iv);
-	BS_TEST_ASSERT(iv == v7);
+	B3D_TEST_ASSERT(iv == v7);
 
 	bs.readVarIntDelta(iv, 0);
-	BS_TEST_ASSERT(iv == v7);
+	B3D_TEST_ASSERT(iv == v7);
 
 	bs.readVarInt(ulv);
-	BS_TEST_ASSERT(ulv == v8);
+	B3D_TEST_ASSERT(ulv == v8);
 
 	bs.readVarIntDelta(v8, v8);
-	BS_TEST_ASSERT(ulv == v8);
+	B3D_TEST_ASSERT(ulv == v8);
 
 	bs.readNorm(fv);
-	BS_TEST_ASSERT(Math::ApproxEquals(fv, v9, 0.01f));
+	B3D_TEST_ASSERT(Math::ApproxEquals(fv, v9, 0.01f));
 
 	bs.readRange(fv, 5.0f, 15.0f);
-	BS_TEST_ASSERT(Math::ApproxEquals(fv, v10, 0.01f));
+	B3D_TEST_ASSERT(Math::ApproxEquals(fv, v10, 0.01f));
 
 	bs.readRange(uv, 500U, 1000U);
-	BS_TEST_ASSERT(uv == v5);
+	B3D_TEST_ASSERT(uv == v5);
 
 	bs.align();
 	bs.read(ulv);
-	BS_TEST_ASSERT(ulv == v11);
+	B3D_TEST_ASSERT(ulv == v11);
 }

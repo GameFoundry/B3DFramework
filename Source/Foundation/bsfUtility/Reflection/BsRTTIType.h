@@ -23,10 +23,10 @@ namespace bs
 	 */
 
 	/**
-	 * Starts definitions for member fields within a RTTI type. Follow this with calls to BS_RTTI_MEMBER* calls, and finish by
-	 * calling BS_END_RTTI_MEMBERS.
+	 * Starts definitions for member fields within a RTTI type. Follow this with calls to B3D_RTTI_MEMBER* calls, and finish by
+	 * calling B3D_RTTI_END_MEMBERS.
 	 */
-#define BS_BEGIN_RTTI_MEMBERS                       \
+#define B3D_RTTI_BEGIN_MEMBERS                       \
 	struct META_FirstEntry                          \
 	{};                                             \
 	void META_InitPrevEntry(META_FirstEntry typeId) \
@@ -35,10 +35,10 @@ namespace bs
 	typedef META_FirstEntry
 
 	/**
-	 * Same as BS_RTTI_MEMBER_PLAIN, but allows you to specify separate names for the field name and the member variable,
+	 * Same as B3D_RTTI_MEMBER_PLAIN, but allows you to specify separate names for the field name and the member variable,
 	 * as well as an optional info structure further describing the field.
 	 */
-#define BS_RTTI_MEMBER_PLAIN_FULL(name, field, id, info)                        \
+#define B3D_RTTI_MEMBER_PLAIN_FULL(name, field, id, info)                        \
 	META_Entry_##name;                                                          \
                                                                                 \
 	decltype(OwnerType::field)& get##name(OwnerType* obj)                       \
@@ -65,19 +65,19 @@ namespace bs
 	 * The type of the member must be a valid plain type. Each field must specify a unique ID for @p id.
 	 * An optional @p RTTIFieldInfo structure can be provided to provide further information about the field.
 	 */
-#define BS_RTTI_MEMBER_PLAIN(name, id) BS_RTTI_MEMBER_PLAIN_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_PLAIN(name, id) B3D_RTTI_MEMBER_PLAIN_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
-	/** Same as BS_RTTI_MEMBER_PLAIN, but allows you to specify separate names for the field name and the member variable. */
-#define BS_RTTI_MEMBER_PLAIN_NAMED(name, field, id) BS_RTTI_MEMBER_PLAIN_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
+	/** Same as B3D_RTTI_MEMBER_PLAIN, but allows you to specify separate names for the field name and the member variable. */
+#define B3D_RTTI_MEMBER_PLAIN_NAMED(name, field, id) B3D_RTTI_MEMBER_PLAIN_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
 
-	/** Same as BS_RTTI_MEMBER_PLAIN, but allows you to specify an info structure that further describes the field. */
-#define BS_RTTI_MEMBER_PLAIN_INFO(name, id, info) BS_RTTI_MEMBER_PLAIN_FULL(name, name, id, info)
+	/** Same as B3D_RTTI_MEMBER_PLAIN, but allows you to specify an info structure that further describes the field. */
+#define B3D_RTTI_MEMBER_PLAIN_INFO(name, id, info) B3D_RTTI_MEMBER_PLAIN_FULL(name, name, id, info)
 
 	/**
-	 * Same as BS_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify separate names for the field name and the member
+	 * Same as B3D_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify separate names for the field name and the member
 	 * variable, as well as an optional info structure further describing the field.
 	 */
-#define BS_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, field, id, info)                                                                       \
+#define B3D_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, field, id, info)                                                                       \
 	META_Entry_##name;                                                                                                               \
                                                                                                                                      \
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::u32 idx)                         \
@@ -111,23 +111,23 @@ namespace bs
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
  * The type of the member must be an array of valid plain types. Each field must specify a unique ID for @p id.
  */
-#define BS_RTTI_MEMBER_PLAIN_ARRAY(name, id) BS_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_PLAIN_ARRAY(name, id) B3D_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
 	/**
-	 * Same as BS_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify separate names for the field name and the member variable.
+	 * Same as B3D_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify separate names for the field name and the member variable.
 	 */
-#define BS_RTTI_MEMBER_PLAIN_ARRAY_NAMED(name, field, id) BS_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_PLAIN_ARRAY_NAMED(name, field, id) B3D_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
 
 	/**
-	 * Same as BS_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify an info structure that further describes the field.
+	 * Same as B3D_RTTI_MEMBER_PLAIN_ARRAY, but allows you to specify an info structure that further describes the field.
 	 */
-#define BS_RTTI_MEMBER_PLAIN_ARRAY_INFO(name, id, info) BS_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, name, id, info)
+#define B3D_RTTI_MEMBER_PLAIN_ARRAY_INFO(name, id, info) B3D_RTTI_MEMBER_PLAIN_ARRAY_FULL(name, name, id, info)
 
 /**
- * Same as BS_RTTI_MEMBER_REFL, but allows you to specify separate names for the field name and the member variable,
+ * Same as B3D_RTTI_MEMBER_REFL, but allows you to specify separate names for the field name and the member variable,
  * as well as an optional info structure further describing the field.
  */
-#define BS_RTTI_MEMBER_REFL_FULL(name, field, id, info)                               \
+#define B3D_RTTI_MEMBER_REFL_FULL(name, field, id, info)                               \
 	META_Entry_##name;                                                                \
                                                                                       \
 	decltype(OwnerType::field)& get##name(OwnerType* obj)                             \
@@ -153,19 +153,19 @@ namespace bs
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
  * The type of the member must be a valid reflectable (non-pointer) type. Each field must specify a unique ID for @p id.
  */
-#define BS_RTTI_MEMBER_REFL(name, id) BS_RTTI_MEMBER_REFL_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFL(name, id) B3D_RTTI_MEMBER_REFL_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
-/** Same as BS_RTTI_MEMBER_REFL, but allows you to specify separate names for the field name and the member variable. */
-#define BS_RTTI_MEMBER_REFL_NAMED(name, field, id) BS_RTTI_MEMBER_REFL_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
+/** Same as B3D_RTTI_MEMBER_REFL, but allows you to specify separate names for the field name and the member variable. */
+#define B3D_RTTI_MEMBER_REFL_NAMED(name, field, id) B3D_RTTI_MEMBER_REFL_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
 
-/** Same as BS_RTTI_MEMBER_REFL, but allows you to specify an info structure that further describes the field. */
-#define BS_RTTI_MEMBER_REFL_INFO(name, id, info) BS_RTTI_MEMBER_REFL_FULL(name, name, id, info)
+/** Same as B3D_RTTI_MEMBER_REFL, but allows you to specify an info structure that further describes the field. */
+#define B3D_RTTI_MEMBER_REFL_INFO(name, id, info) B3D_RTTI_MEMBER_REFL_FULL(name, name, id, info)
 
 /**
- * Same as BS_RTTI_MEMBER_REFL_ARRAY, but allows you to specify separate names for the field name and the member variable,
+ * Same as B3D_RTTI_MEMBER_REFL_ARRAY, but allows you to specify separate names for the field name and the member variable,
  * as well as an optional info structure further describing the field.
  */
-#define BS_RTTI_MEMBER_REFL_ARRAY_FULL(name, field, id, info)                                                                              \
+#define B3D_RTTI_MEMBER_REFL_ARRAY_FULL(name, field, id, info)                                                                              \
 	META_Entry_##name;                                                                                                                     \
                                                                                                                                            \
 	std::common_type<decltype(OwnerType::field)>::type::value_type& get##name(OwnerType* obj, ::bs::u32 idx)                               \
@@ -200,23 +200,23 @@ namespace bs
  * The type of the member must be an array of valid reflectable (non-pointer) types. Each field must specify a unique ID for
  * @p id.
  */
-#define BS_RTTI_MEMBER_REFL_ARRAY(name, id) BS_RTTI_MEMBER_REFL_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFL_ARRAY(name, id) B3D_RTTI_MEMBER_REFL_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
 /**
- * Same as BS_RTTI_MEMBER_REFL_ARRAY, but allows you to specify separate names for the field name and the member variable.
+ * Same as B3D_RTTI_MEMBER_REFL_ARRAY, but allows you to specify separate names for the field name and the member variable.
  */
-#define BS_RTTI_MEMBER_REFL_ARRAY_NAMED(name, field, id) BS_RTTI_MEMBER_REFL_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFL_ARRAY_NAMED(name, field, id) B3D_RTTI_MEMBER_REFL_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
 
 /**
- * Same as BS_RTTI_MEMBER_REFL_ARRAY, but allows you to specify an info structure that further describes the field.
+ * Same as B3D_RTTI_MEMBER_REFL_ARRAY, but allows you to specify an info structure that further describes the field.
  */
-#define BS_RTTI_MEMBER_REFL_ARRAY_INFO(name, id, info) BS_RTTI_MEMBER_REFL_ARRAY_FULL(name, name, id, info)
+#define B3D_RTTI_MEMBER_REFL_ARRAY_INFO(name, id, info) B3D_RTTI_MEMBER_REFL_ARRAY_FULL(name, name, id, info)
 
 /**
- * Same as BS_RTTI_MEMBER_REFLPTR, but allows you to specify separate names for the field name and the member variable,
+ * Same as B3D_RTTI_MEMBER_REFLPTR, but allows you to specify separate names for the field name and the member variable,
  * as well as an optional info structure further describing the field.
  */
-#define BS_RTTI_MEMBER_REFLPTR_FULL(name, field, id, info)                               \
+#define B3D_RTTI_MEMBER_REFLPTR_FULL(name, field, id, info)                               \
 	META_Entry_##name;                                                                   \
                                                                                          \
 	decltype(OwnerType::field) get##name(OwnerType* obj)                                 \
@@ -242,19 +242,19 @@ namespace bs
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
  * The type of the member must be a valid reflectable pointer type. Each field must specify a unique ID for @p id.
  */
-#define BS_RTTI_MEMBER_REFLPTR(name, id) BS_RTTI_MEMBER_REFLPTR_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFLPTR(name, id) B3D_RTTI_MEMBER_REFLPTR_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
-/** Same as BS_RTTI_MEMBER_REFLPTR, but allows you to specify separate names for the field name and the member variable. */
-#define BS_RTTI_MEMBER_REFLPTR_NAMED(name, field, id) BS_RTTI_MEMBER_REFLPTR_FULL(name, field, id, RTTIFieldInfo::DEFAULT)
+/** Same as B3D_RTTI_MEMBER_REFLPTR, but allows you to specify separate names for the field name and the member variable. */
+#define B3D_RTTI_MEMBER_REFLPTR_NAMED(name, field, id) B3D_RTTI_MEMBER_REFLPTR_FULL(name, field, id, RTTIFieldInfo::DEFAULT)
 
-/** Same as BS_RTTI_MEMBER_REFLPTR, but allows you to specify an info structure that further describes the field. */
-#define BS_RTTI_MEMBER_REFLPTR_INFO(name, id, info) BS_RTTI_MEMBER_REFLPTR_FULL(name, name, id, info)
+/** Same as B3D_RTTI_MEMBER_REFLPTR, but allows you to specify an info structure that further describes the field. */
+#define B3D_RTTI_MEMBER_REFLPTR_INFO(name, id, info) B3D_RTTI_MEMBER_REFLPTR_FULL(name, name, id, info)
 
 	/**
-	 * Same as BS_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify separate names for the field name and the member
+	 * Same as B3D_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify separate names for the field name and the member
 	 * variable, as well as an optional info structure further describing the field.
 	 */
-#define BS_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, field, id, info)                                                                              \
+#define B3D_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, field, id, info)                                                                              \
 	META_Entry_##name;                                                                                                                        \
                                                                                                                                               \
 	std::common_type<decltype(OwnerType::field)>::type::value_type get##name(OwnerType* obj, ::bs::u32 idx)                                   \
@@ -288,19 +288,19 @@ namespace bs
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
  * The type of the member must be a valid reflectable pointer type. Each field must specify a unique ID for @p id.
  */
-#define BS_RTTI_MEMBER_REFLPTR_ARRAY(name, id) BS_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFLPTR_ARRAY(name, id) B3D_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
 	/**
-	 * Same as BS_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify separate names for the field name and the member
+	 * Same as B3D_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify separate names for the field name and the member
 	 * variable.
 	 */
-#define BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(name, field, id) BS_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(name, field, id) B3D_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, field, id, bs::RTTIFieldInfo::DEFAULT)
 
-	/** Same as BS_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify an info structure that further describes the field. */
-#define BS_RTTI_MEMBER_REFLPTR_ARRAY_INFO(name, id, info) BS_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, name, id, info)
+	/** Same as B3D_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify an info structure that further describes the field. */
+#define B3D_RTTI_MEMBER_REFLPTR_ARRAY_INFO(name, id, info) B3D_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, name, id, info)
 
-/** Ends definitions for member fields with a RTTI type. Must follow BS_BEGIN_RTTI_MEMBERS. */
-#define BS_END_RTTI_MEMBERS                                  \
+/** Ends definitions for member fields with a RTTI type. Must follow B3D_RTTI_BEGIN_MEMBERS. */
+#define B3D_RTTI_END_MEMBERS                                  \
 	META_LastEntry;                                          \
                                                              \
 	struct META_InitAllMembers                               \

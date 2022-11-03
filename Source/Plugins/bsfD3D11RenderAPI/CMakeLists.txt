@@ -11,7 +11,7 @@ add_common_flags(bsfD3D11RenderAPI)
 target_include_directories(bsfD3D11RenderAPI PRIVATE "./")
 
 # Libraries
-if(BS_64BIT)
+if(B3D_IS_64BIT)
 	link_directories("$(DXSDK_DIR)Lib/x64")
 else()
 	link_directories("$(DXSDK_DIR)Lib/x86")

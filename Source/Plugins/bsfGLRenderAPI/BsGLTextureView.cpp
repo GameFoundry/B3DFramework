@@ -68,7 +68,7 @@ GLTextureView::GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& 
 	GLuint originalTexture = texture->GetGlid();
 
 	glGenTextures(1, &mViewID);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glTextureView(
 		mViewID,
@@ -79,7 +79,7 @@ GLTextureView::GLTextureView(const GLTexture* texture, const TEXTURE_VIEW_DESC& 
 		desc.NumMips,
 		desc.FirstArraySlice,
 		desc.NumArraySlices);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #endif
 
 	mTarget = GLTexture::GetGlTextureTarget(props.GetTextureType(), props.GetNumSamples(), desc.NumArraySlices);
@@ -90,6 +90,6 @@ GLTextureView::~GLTextureView()
 	if(mViewID != 0)
 	{
 		glDeleteTextures(1, &mViewID);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }

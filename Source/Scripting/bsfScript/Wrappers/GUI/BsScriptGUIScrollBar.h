@@ -49,7 +49,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
+		typedef void(B3D_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
 		static OnScrolledThunkDef onScrolledThunk;
 	};
 
@@ -70,7 +70,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
+		typedef void(B3D_THUNKCALL* OnScrolledThunkDef)(MonoObject*, float, MonoException**);
 		static OnScrolledThunkDef onScrolledThunk;
 	};
 
@@ -91,7 +91,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
+		typedef void(B3D_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
 		static OnScrollOrResizeThunkDef onScrollOrResizeThunk;
 	};
 
@@ -112,7 +112,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
 
-		typedef void(BS_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
+		typedef void(B3D_THUNKCALL* OnScrollOrResizeThunkDef)(MonoObject*, float, float, MonoException**);
 		static OnScrollOrResizeThunkDef onScrollOrResizeThunk;
 	};
 

@@ -17,7 +17,7 @@ D3D11SamplerState::~D3D11SamplerState()
 {
 	SAFE_RELEASE(mSamplerState);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_SamplerState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_SamplerState);
 }
 
 void D3D11SamplerState::CreateInternal()
@@ -102,7 +102,7 @@ void D3D11SamplerState::CreateInternal()
 		B3D_EXCEPT(RenderingAPIException, "Cannot create sampler state.\nError Description:" + errorDescription);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_SamplerState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_SamplerState);
 
 	SamplerState::CreateInternal();
 }

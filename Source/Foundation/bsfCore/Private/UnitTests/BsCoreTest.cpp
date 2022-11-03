@@ -29,8 +29,8 @@ private:
 
 CoreTestSuite::CoreTestSuite()
 {
-	BS_ADD_TEST(CoreTestSuite::testAnimCurveIntegration);
-	BS_ADD_TEST(CoreTestSuite::testLookupTable);
+	B3D_ADD_TEST(CoreTestSuite::testAnimCurveIntegration);
+	B3D_ADD_TEST(CoreTestSuite::testLookupTable);
 }
 
 void CoreTestSuite::testAnimCurveIntegration()

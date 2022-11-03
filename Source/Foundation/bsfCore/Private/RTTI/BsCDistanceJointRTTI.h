@@ -16,14 +16,14 @@ namespace bs
 
 	class B3D_CORE_EXPORT CDistanceJointRTTI : public RTTIType<CDistanceJoint, CJoint, CDistanceJointRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.Flag, 0)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mMinDistance, mDesc.MinDistance, 1)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mMaxDistance, mDesc.MaxDistance, 2)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mTolerance, mDesc.Tolerance, 3)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.Spring.Damping, 4)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.Spring.Stiffness, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.Flag, 0)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mMinDistance, mDesc.MinDistance, 1)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mMaxDistance, mDesc.MaxDistance, 2)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mTolerance, mDesc.Tolerance, 3)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.Spring.Damping, 4)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.Spring.Stiffness, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override

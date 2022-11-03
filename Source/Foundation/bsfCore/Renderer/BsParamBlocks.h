@@ -116,9 +116,9 @@ namespace bs
 /**
  * Starts a new custom parameter block. Custom parameter blocks allow you to create C++ structures that map directly
  * to GPU program buffers (for example uniform buffer in OpenGL or constant buffer in DX). Must be followed by
- * BS_PARAM_BLOCK_END.
+ * B3D_PARAM_BLOCK_END.
  */
-#define BS_PARAM_BLOCK_BEGIN(Name)                                                                   \
+#define B3D_PARAM_BLOCK_BEGIN(Name)                                                                   \
 	struct Name : ParamBlock                                                                         \
 	{                                                                                                \
 		Name()                                                                                       \
@@ -155,9 +155,9 @@ namespace bs
 		typedef META_FirstEntry
 
 /**
- * Registers a new entry in a parameter block. Must be called in between BS_PARAM_BLOCK_BEGIN and BS_PARAM_BLOCK_END calls.
+ * Registers a new entry in a parameter block. Must be called in between B3D_PARAM_BLOCK_BEGIN and B3D_PARAM_BLOCK_END calls.
  */
-#define BS_PARAM_BLOCK_ENTRY_ARRAY(Type_, Name_, ElementCount)                                          \
+#define B3D_PARAM_BLOCK_ENTRY_ARRAY(Type_, Name_, ElementCount)                                          \
 	META_Entry_##Name_;                                                                                 \
                                                                                                         \
 	struct META_NextEntry_##Name_                                                                       \
@@ -187,12 +187,12 @@ private:                                                                        
 	typedef META_NextEntry_##Name_
 
 /**
- * Registers a new entry in a parameter block. Must be called in between BS_PARAM_BLOCK_BEGIN and BS_PARAM_BLOCK_END calls.
+ * Registers a new entry in a parameter block. Must be called in between B3D_PARAM_BLOCK_BEGIN and B3D_PARAM_BLOCK_END calls.
  */
-#define BS_PARAM_BLOCK_ENTRY(Type, Name) BS_PARAM_BLOCK_ENTRY_ARRAY(Type, Name, 1)
+#define B3D_PARAM_BLOCK_ENTRY(Type, Name) B3D_PARAM_BLOCK_ENTRY_ARRAY(Type, Name, 1)
 
-/** Ends parameter block definition. See BS_PARAM_BLOCK_BEGIN. */
-#define BS_PARAM_BLOCK_END                                                      \
+/** Ends parameter block definition. See B3D_PARAM_BLOCK_BEGIN. */
+#define B3D_PARAM_BLOCK_END                                                      \
 	META_LastEntry;                                                             \
                                                                                 \
 	static Vector<GpuParamDataDesc> GetEntries()                                \

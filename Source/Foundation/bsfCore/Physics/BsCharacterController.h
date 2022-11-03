@@ -42,7 +42,7 @@ namespace bs
 
 	/** @copydoc CharacterCollisionFlag */
 	typedef Flags<CharacterCollisionFlag> CharacterCollisionFlags;
-	BS_FLAGS_OPERATORS(CharacterCollisionFlag)
+	B3D_FLAGS_OPERATORS(CharacterCollisionFlag)
 
 	struct CHAR_CONTROLLER_DESC;
 	struct ControllerColliderCollision;

@@ -495,7 +495,7 @@ namespace bs
 	};
 
 	typedef Flags<ShaderFlag> ShaderFlags;
-	BS_FLAGS_OPERATORS(ShaderFlag)
+	B3D_FLAGS_OPERATORS(ShaderFlag)
 
 	/** Valid types of a mesh used for physics. */
 	enum class B3D_SCRIPT_EXPORT() PhysicsMeshType
@@ -578,7 +578,7 @@ namespace bs
 	};
 
 	typedef Flags<RenderSurfaceMaskBits> RenderSurfaceMask;
-	BS_FLAGS_OPERATORS(RenderSurfaceMaskBits);
+	B3D_FLAGS_OPERATORS(RenderSurfaceMaskBits);
 
 	/**
 	 * Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to

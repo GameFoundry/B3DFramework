@@ -45,14 +45,14 @@ namespace bs
 	class B3D_CORE_EXPORT SerializedGpuProgramDataRTTI : public RTTIType<SerializedGpuProgramData, IReflectable, SerializedGpuProgramDataRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Source, 0)
-			BS_RTTI_MEMBER_PLAIN(EntryPoint, 1)
-			BS_RTTI_MEMBER_PLAIN(Language, 2)
-			BS_RTTI_MEMBER_PLAIN(Type, 3)
-			BS_RTTI_MEMBER_PLAIN(RequiresAdjacency, 4)
-			BS_RTTI_MEMBER_REFLPTR(Bytecode, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Source, 0)
+			B3D_RTTI_MEMBER_PLAIN(EntryPoint, 1)
+			B3D_RTTI_MEMBER_PLAIN(Language, 2)
+			B3D_RTTI_MEMBER_PLAIN(Type, 3)
+			B3D_RTTI_MEMBER_PLAIN(RequiresAdjacency, 4)
+			B3D_RTTI_MEMBER_REFLPTR(Bytecode, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
@@ -85,13 +85,13 @@ namespace bs
 	class B3D_CORE_EXPORT PassRTTI : public RTTIType<Pass, IReflectable, PassRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN_NAMED(blendStateDesc, mData.BlendStateDesc, 0)
-			BS_RTTI_MEMBER_PLAIN_NAMED(rasterizerStateDesc, mData.RasterizerStateDesc, 1)
-			BS_RTTI_MEMBER_PLAIN_NAMED(depthStencilState, mData.DepthStencilStateDesc, 2)
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(blendStateDesc, mData.BlendStateDesc, 0)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(rasterizerStateDesc, mData.RasterizerStateDesc, 1)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(depthStencilState, mData.DepthStencilStateDesc, 2)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(stencilRefValue, mData.StencilRefValue, 9)
-		BS_END_RTTI_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(stencilRefValue, mData.StencilRefValue, 9)
+		B3D_RTTI_END_MEMBERS
 
 		SerializedGpuProgramData& GetVertexProgramDesc(Pass* obj)
 		{

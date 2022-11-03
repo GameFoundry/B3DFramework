@@ -64,12 +64,12 @@ VertexBuffer::~VertexBuffer()
 	if(mBuffer && !mSharedBuffer)
 		mBufferDeleter(mBuffer);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_VertexBuffer);
 }
 
 void VertexBuffer::Initialize()
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_VertexBuffer);
 	CoreObject::Initialize();
 }
 
@@ -78,12 +78,12 @@ void* VertexBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 devi
 #if BS_PROFILING_ENABLED
 	if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_VertexBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_VertexBuffer);
 	}
 
 	if(options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_VertexBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_VertexBuffer);
 	}
 #endif
 
@@ -98,13 +98,13 @@ void VertexBuffer::Unmap()
 void VertexBuffer::ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx, u32 queueIdx)
 {
 	mBuffer->ReadData(offset, length, dest, deviceIdx, queueIdx);
-	BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_VertexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_VertexBuffer);
 }
 
 void VertexBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, u32 queueIdx)
 {
 	mBuffer->WriteData(offset, length, source, writeFlags, queueIdx);
-	BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_VertexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_VertexBuffer);
 }
 
 void VertexBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)

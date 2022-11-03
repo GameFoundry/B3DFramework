@@ -17,15 +17,15 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(LightGridParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
-			BS_PARAM_BLOCK_ENTRY(i32, gNumReflProbes)
-			BS_PARAM_BLOCK_ENTRY(i32, gNumCells)
-			BS_PARAM_BLOCK_ENTRY(Vector3I, gGridSize)
-			BS_PARAM_BLOCK_ENTRY(i32, gMaxNumLightsPerCell)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gGridPixelSize)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(LightGridParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
+			B3D_PARAM_BLOCK_ENTRY(i32, gNumReflProbes)
+			B3D_PARAM_BLOCK_ENTRY(i32, gNumCells)
+			B3D_PARAM_BLOCK_ENTRY(Vector3I, gGridSize)
+			B3D_PARAM_BLOCK_ENTRY(i32, gMaxNumLightsPerCell)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gGridPixelSize)
+		B3D_PARAM_BLOCK_END
 
 		extern LightGridParamDef gLightGridParamDefDef;
 

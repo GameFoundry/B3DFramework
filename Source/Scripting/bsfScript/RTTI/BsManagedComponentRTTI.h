@@ -21,11 +21,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedComponentRTTI : public RTTIType<ManagedComponent, Component, ManagedComponentRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mNamespace, 0)
-			BS_RTTI_MEMBER_PLAIN(mTypeName, 1)
-			BS_RTTI_MEMBER_PLAIN(mMissingType, 3)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mNamespace, 0)
+			B3D_RTTI_MEMBER_PLAIN(mTypeName, 1)
+			B3D_RTTI_MEMBER_PLAIN(mMissingType, 3)
+		B3D_RTTI_END_MEMBERS
 
 		SPtr<ManagedSerializableObject> GetObjectData(ManagedComponent* obj)
 		{

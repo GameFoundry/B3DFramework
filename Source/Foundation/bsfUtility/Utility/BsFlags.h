@@ -233,10 +233,10 @@ namespace bs
 	};
 
 /** Defines global operators for a Flags<Enum, Storage> implementation. */
-#define BS_FLAGS_OPERATORS(Enum) BS_FLAGS_OPERATORS_EXT(Enum, u32)
+#define B3D_FLAGS_OPERATORS(Enum) B3D_FLAGS_OPERATORS_EXT(Enum, u32)
 
 /** Defines global operators for a Flags<Enum, Storage> implementation. */
-#define BS_FLAGS_OPERATORS_EXT(Enum, Storage)             \
+#define B3D_FLAGS_OPERATORS_EXT(Enum, Storage)             \
 	inline Flags<Enum, Storage> operator|(Enum a, Enum b) \
 	{                                                     \
 		Flags<Enum, Storage> r(a);                        \

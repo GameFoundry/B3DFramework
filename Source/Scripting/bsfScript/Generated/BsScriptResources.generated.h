@@ -32,11 +32,11 @@ namespace bs
 		static void OnResourceDestroyed(const UUID& p0);
 		static void OnResourceModified(const ResourceHandle<Resource>& p0);
 
-		typedef void(BS_THUNKCALL* OnResourceLoadedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnResourceLoadedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceLoadedThunkDef OnResourceLoadedThunk;
-		typedef void(BS_THUNKCALL* OnResourceDestroyedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnResourceDestroyedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceDestroyedThunkDef OnResourceDestroyedThunk;
-		typedef void(BS_THUNKCALL* OnResourceModifiedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnResourceModifiedThunkDef)(MonoObject* p0, MonoException**);
 		static OnResourceModifiedThunkDef OnResourceModifiedThunk;
 
 		static HEvent OnResourceLoadedConn;

@@ -21,11 +21,11 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(TiledLightingParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightCounts)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gLightStrides)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
+		B3D_PARAM_BLOCK_END
 
 		extern TiledLightingParamDef gTiledLightingParamDef;
 
@@ -88,11 +88,11 @@ namespace bs
 			GpuParamTexture mInputParam;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gSize)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gFloatClearVal)
-			BS_PARAM_BLOCK_ENTRY(Vector4I, gIntClearVal)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ClearLoadStoreParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gSize)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gFloatClearVal)
+			B3D_PARAM_BLOCK_ENTRY(Vector4I, gIntClearVal)
+		B3D_PARAM_BLOCK_END
 
 		extern ClearLoadStoreParamDef gClearLoadStoreParamDef;
 
@@ -155,9 +155,9 @@ namespace bs
 			SPtr<GpuParamBlockBuffer> mParamBuffer;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(TiledImageBasedLightingParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gFramebufferSize)
+		B3D_PARAM_BLOCK_END
 
 		extern TiledImageBasedLightingParamDef gTiledImageBasedLightingParamDef;
 

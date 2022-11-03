@@ -24,7 +24,7 @@ namespace bs
 	};
 
 	typedef Flags<ComponentFlag> ComponentFlags;
-	BS_FLAGS_OPERATORS(ComponentFlag)
+	B3D_FLAGS_OPERATORS(ComponentFlag)
 
 	/**
 	 * Components represent primary logic elements in the scene. They are attached to scene objects.

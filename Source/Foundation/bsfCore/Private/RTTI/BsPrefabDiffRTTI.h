@@ -21,10 +21,10 @@ namespace bs
 	class B3D_CORE_EXPORT PrefabComponentDiffRTTI : public RTTIType<PrefabComponentDiff, IReflectable, PrefabComponentDiffRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Id, 0)
-			BS_RTTI_MEMBER_REFLPTR(Data, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Id, 0)
+			B3D_RTTI_MEMBER_REFLPTR(Data, 1)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{
@@ -46,24 +46,24 @@ namespace bs
 	class B3D_CORE_EXPORT PrefabObjectDiffRTTI : public RTTIType<PrefabObjectDiff, IReflectable, PrefabObjectDiffRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Id, 0)
-			BS_RTTI_MEMBER_PLAIN(Name, 1)
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Id, 0)
+			B3D_RTTI_MEMBER_PLAIN(Name, 1)
 
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(ComponentDiffs, 2)
-			BS_RTTI_MEMBER_PLAIN_ARRAY(RemovedComponents, 3)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(AddedComponents, 4)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(ChildDiffs, 5)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(ComponentDiffs, 2)
+			B3D_RTTI_MEMBER_PLAIN_ARRAY(RemovedComponents, 3)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(AddedComponents, 4)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(ChildDiffs, 5)
 
-			BS_RTTI_MEMBER_PLAIN_ARRAY(RemovedChildren, 6)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(AddedChildren, 7)
+			B3D_RTTI_MEMBER_PLAIN_ARRAY(RemovedChildren, 6)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(AddedChildren, 7)
 
-			BS_RTTI_MEMBER_PLAIN(Position, 8)
-			BS_RTTI_MEMBER_PLAIN(Rotation, 9)
-			BS_RTTI_MEMBER_PLAIN(Scale, 10)
-			BS_RTTI_MEMBER_PLAIN(IsActive, 11)
-			BS_RTTI_MEMBER_PLAIN(SoFlags, 12)
-		BS_END_RTTI_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Position, 8)
+			B3D_RTTI_MEMBER_PLAIN(Rotation, 9)
+			B3D_RTTI_MEMBER_PLAIN(Scale, 10)
+			B3D_RTTI_MEMBER_PLAIN(IsActive, 11)
+			B3D_RTTI_MEMBER_PLAIN(SoFlags, 12)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{
@@ -92,9 +92,9 @@ namespace bs
 		};
 
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR(mRoot, 0)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR(mRoot, 0)
+		B3D_RTTI_END_MEMBERS
 	public:
 		void OnDeserializationStarted(IReflectable* obj, SerializationContext* context) override
 		{

@@ -12,17 +12,17 @@ GLEventQuery::GLEventQuery(u32 deviceIdx)
 	B3D_ASSERT(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 
 	glGenQueries(1, &mQueryObj);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 GLEventQuery::~GLEventQuery()
 {
 	glDeleteQueries(1, &mQueryObj);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void GLEventQuery::Begin(const SPtr<CommandBuffer>& cb)
@@ -30,7 +30,7 @@ void GLEventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	auto execute = [&]()
 	{
 		glQueryCounter(mQueryObj, GL_TIMESTAMP);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		SetActive(true);
 	};
@@ -48,7 +48,7 @@ bool GLEventQuery::IsReady() const
 {
 	GLint done = 0;
 	glGetQueryObjectiv(mQueryObj, GL_QUERY_RESULT_AVAILABLE, &done);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	return done == GL_TRUE;
 }

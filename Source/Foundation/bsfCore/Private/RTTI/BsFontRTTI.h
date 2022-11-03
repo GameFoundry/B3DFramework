@@ -18,15 +18,15 @@ namespace bs
 	class B3D_CORE_EXPORT FontBitmapRTTI : public RTTIType<FontBitmap, IReflectable, FontBitmapRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Size, 0)
-			BS_RTTI_MEMBER_PLAIN(BaselineOffset, 1)
-			BS_RTTI_MEMBER_PLAIN(LineHeight, 2)
-			BS_RTTI_MEMBER_PLAIN(MissingGlyph, 3)
-			BS_RTTI_MEMBER_PLAIN(SpaceWidth, 4)
-			BS_RTTI_MEMBER_REFL_ARRAY(TexturePages, 5)
-			BS_RTTI_MEMBER_PLAIN(Characters, 6)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Size, 0)
+			B3D_RTTI_MEMBER_PLAIN(BaselineOffset, 1)
+			B3D_RTTI_MEMBER_PLAIN(LineHeight, 2)
+			B3D_RTTI_MEMBER_PLAIN(MissingGlyph, 3)
+			B3D_RTTI_MEMBER_PLAIN(SpaceWidth, 4)
+			B3D_RTTI_MEMBER_REFL_ARRAY(TexturePages, 5)
+			B3D_RTTI_MEMBER_PLAIN(Characters, 6)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()

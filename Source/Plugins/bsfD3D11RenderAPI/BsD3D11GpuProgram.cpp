@@ -27,7 +27,7 @@ D3D11GpuProgram::~D3D11GpuProgram()
 {
 	mInputDeclaration = nullptr;
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
 }
 
 void D3D11GpuProgram::Initialize()
@@ -68,7 +68,7 @@ void D3D11GpuProgram::Initialize()
 
 	mProgramId = GlobalProgramId++;
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);
 
 	GpuProgram::Initialize();
 }

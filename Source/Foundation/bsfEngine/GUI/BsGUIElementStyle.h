@@ -25,7 +25,7 @@ namespace bs
 	/**	Specific texture and text color used in a particular GUI element style. */
 	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) GUIElementStateStyle
 	{
-		BS_NORREF HSpriteTexture Texture;
+		B3D_NO_RREF HSpriteTexture Texture;
 		Color TextColor;
 	};
 
@@ -39,7 +39,7 @@ namespace bs
 		GUIElementStyle() = default;
 
 		B3D_SCRIPT_EXPORT()
-		BS_NORREF HFont Font; /**< Font to use for all text within the GUI element. */
+		B3D_NO_RREF HFont Font; /**< Font to use for all text within the GUI element. */
 
 		B3D_SCRIPT_EXPORT()
 		u32 FontSize = 8; /**< Font size to use for all text within the GUI element. */

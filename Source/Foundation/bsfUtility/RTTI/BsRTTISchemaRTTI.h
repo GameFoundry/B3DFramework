@@ -52,16 +52,16 @@ namespace bs
 	class RTTIFieldSchemaRTTI : public RTTIType<RTTIFieldSchema, IReflectable, RTTIFieldSchemaRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Id, 0)
-			BS_RTTI_MEMBER_PLAIN(Type, 1)
-			BS_RTTI_MEMBER_PLAIN(IsArray, 2)
-			BS_RTTI_MEMBER_PLAIN(HasDynamicSize, 3)
-			BS_RTTI_MEMBER_PLAIN(Size, 4)
-			BS_RTTI_MEMBER_PLAIN(FieldTypeId, 5)
-			BS_RTTI_MEMBER_REFLPTR(FieldTypeSchema, 6)
-			BS_RTTI_MEMBER_PLAIN(Info, 7)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Id, 0)
+			B3D_RTTI_MEMBER_PLAIN(Type, 1)
+			B3D_RTTI_MEMBER_PLAIN(IsArray, 2)
+			B3D_RTTI_MEMBER_PLAIN(HasDynamicSize, 3)
+			B3D_RTTI_MEMBER_PLAIN(Size, 4)
+			B3D_RTTI_MEMBER_PLAIN(FieldTypeId, 5)
+			B3D_RTTI_MEMBER_REFLPTR(FieldTypeSchema, 6)
+			B3D_RTTI_MEMBER_PLAIN(Info, 7)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()
@@ -84,11 +84,11 @@ namespace bs
 	class RTTISchemaRTTI : public RTTIType<RTTISchema, IReflectable, RTTISchemaRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(TypeId, 0)
-			BS_RTTI_MEMBER_REFLPTR(BaseTypeSchema, 1)
-			BS_RTTI_MEMBER_REFL_ARRAY(FieldSchemas, 2)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(TypeId, 0)
+			B3D_RTTI_MEMBER_REFLPTR(BaseTypeSchema, 1)
+			B3D_RTTI_MEMBER_REFL_ARRAY(FieldSchemas, 2)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override

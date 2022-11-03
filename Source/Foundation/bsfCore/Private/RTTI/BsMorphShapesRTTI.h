@@ -17,11 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT MorphShapeRTTI : public RTTIType<MorphShape, IReflectable, MorphShapeRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mName, 0)
-			BS_RTTI_MEMBER_PLAIN(mWeight, 1)
-			BS_RTTI_MEMBER_PLAIN_ARRAY(mVertices, 2)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mName, 0)
+			B3D_RTTI_MEMBER_PLAIN(mWeight, 1)
+			B3D_RTTI_MEMBER_PLAIN_ARRAY(mVertices, 2)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()
@@ -44,10 +44,10 @@ namespace bs
 	class B3D_CORE_EXPORT MorphChannelRTTI : public RTTIType<MorphChannel, IReflectable, MorphChannelRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mName, 0)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(mShapes, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mName, 0)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mShapes, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
@@ -70,10 +70,10 @@ namespace bs
 	class B3D_CORE_EXPORT MorphShapesRTTI : public RTTIType<MorphShapes, IReflectable, MorphShapesRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(mChannels, 0)
-			BS_RTTI_MEMBER_PLAIN(mNumVertices, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mChannels, 0)
+			B3D_RTTI_MEMBER_PLAIN(mNumVertices, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
@@ -93,7 +93,7 @@ namespace bs
 		}
 	};
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(MorphVertex);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(MorphVertex);
 
 	/** @} */
 	/** @endcond */

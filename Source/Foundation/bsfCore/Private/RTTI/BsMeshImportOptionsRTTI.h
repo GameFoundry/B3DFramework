@@ -19,20 +19,20 @@ namespace bs
 	class B3D_CORE_EXPORT MeshImportOptionsRTTI : public RTTIType<MeshImportOptions, ImportOptions, MeshImportOptionsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(CpuCached, 0)
-			BS_RTTI_MEMBER_PLAIN(ImportNormals, 1)
-			BS_RTTI_MEMBER_PLAIN(ImportTangents, 2)
-			BS_RTTI_MEMBER_PLAIN(ImportBlendShapes, 3)
-			BS_RTTI_MEMBER_PLAIN(ImportSkin, 4)
-			BS_RTTI_MEMBER_PLAIN(ImportAnimation, 5)
-			BS_RTTI_MEMBER_PLAIN(ImportScale, 6)
-			BS_RTTI_MEMBER_PLAIN(CollisionMeshType, 7)
-			BS_RTTI_MEMBER_REFL_ARRAY(AnimationSplits, 8)
-			BS_RTTI_MEMBER_PLAIN(ReduceKeyFrames, 9)
-			BS_RTTI_MEMBER_REFL_ARRAY(AnimationEvents, 10)
-			BS_RTTI_MEMBER_PLAIN(ImportRootMotion, 11)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(CpuCached, 0)
+			B3D_RTTI_MEMBER_PLAIN(ImportNormals, 1)
+			B3D_RTTI_MEMBER_PLAIN(ImportTangents, 2)
+			B3D_RTTI_MEMBER_PLAIN(ImportBlendShapes, 3)
+			B3D_RTTI_MEMBER_PLAIN(ImportSkin, 4)
+			B3D_RTTI_MEMBER_PLAIN(ImportAnimation, 5)
+			B3D_RTTI_MEMBER_PLAIN(ImportScale, 6)
+			B3D_RTTI_MEMBER_PLAIN(CollisionMeshType, 7)
+			B3D_RTTI_MEMBER_REFL_ARRAY(AnimationSplits, 8)
+			B3D_RTTI_MEMBER_PLAIN(ReduceKeyFrames, 9)
+			B3D_RTTI_MEMBER_REFL_ARRAY(AnimationEvents, 10)
+			B3D_RTTI_MEMBER_PLAIN(ImportRootMotion, 11)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{
@@ -54,10 +54,10 @@ namespace bs
 	class B3D_CORE_EXPORT ImportedAnimationEventsRTTI : public RTTIType<ImportedAnimationEvents, IReflectable, ImportedAnimationEventsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Name, 0)
-			BS_RTTI_MEMBER_PLAIN(Events, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Name, 0)
+			B3D_RTTI_MEMBER_PLAIN(Events, 1)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{
@@ -79,12 +79,12 @@ namespace bs
 	class B3D_CORE_EXPORT AnimationSplitInfoRTTI : public RTTIType<AnimationSplitInfo, IReflectable, AnimationSplitInfoRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Name, 0)
-			BS_RTTI_MEMBER_PLAIN(StartFrame, 1)
-			BS_RTTI_MEMBER_PLAIN(EndFrame, 2)
-			BS_RTTI_MEMBER_PLAIN(IsAdditive, 3)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Name, 0)
+			B3D_RTTI_MEMBER_PLAIN(StartFrame, 1)
+			B3D_RTTI_MEMBER_PLAIN(EndFrame, 2)
+			B3D_RTTI_MEMBER_PLAIN(IsAdditive, 3)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

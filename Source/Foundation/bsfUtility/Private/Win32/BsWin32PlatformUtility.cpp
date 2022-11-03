@@ -104,7 +104,7 @@ SystemInfo PlatformUtility::GetSystemInfo()
 
 	output.MemoryAmountMb = (u32)(statex.ullTotalPhys / (1024 * 1024));
 
-	if(BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64)
+	if(B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64)
 		output.OsIs64Bit = true;
 	else
 	{

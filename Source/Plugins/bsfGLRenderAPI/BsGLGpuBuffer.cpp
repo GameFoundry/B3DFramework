@@ -32,7 +32,7 @@ GLGpuBuffer::~GLGpuBuffer()
 	if(mProperties.GetType() != GBT_STRUCTURED)
 	{
 		glDeleteTextures(1, &mTextureID);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -65,13 +65,13 @@ void GLGpuBuffer::Initialize()
 	{
 		// Create texture with a specific format
 		glGenTextures(1, &mTextureID);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glBindTexture(GL_TEXTURE_BUFFER, mTextureID);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glTexBuffer(GL_TEXTURE_BUFFER, mFormat, static_cast<GLHardwareBuffer*>(mBuffer)->GetGlBufferId());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	GpuBuffer::Initialize();

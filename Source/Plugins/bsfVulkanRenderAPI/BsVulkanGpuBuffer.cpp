@@ -37,12 +37,12 @@ VulkanGpuBuffer::~VulkanGpuBuffer()
 		}
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuBuffer);
 }
 
 void VulkanGpuBuffer::Initialize()
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuBuffer);
 
 	const GpuBufferProperties& props = GetProperties();
 	mBufferDeleter = &DeleteHardwareBuffer;

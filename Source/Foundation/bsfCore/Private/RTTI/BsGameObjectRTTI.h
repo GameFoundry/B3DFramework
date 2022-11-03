@@ -27,11 +27,11 @@ namespace bs
 	class B3D_CORE_EXPORT GameObjectRTTI : public RTTIType<GameObject, IReflectable, GameObjectRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mName, 1)
-			BS_RTTI_MEMBER_PLAIN(mLinkId, 2)
-			BS_RTTI_MEMBER_PLAIN(mUUID, 3)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mName, 1)
+			B3D_RTTI_MEMBER_PLAIN(mLinkId, 2)
+			B3D_RTTI_MEMBER_PLAIN(mUUID, 3)
+		B3D_RTTI_END_MEMBERS
 
 		u64& GetInstanceId(GameObject* obj) { return obj->mInstanceData->MInstanceId; }
 

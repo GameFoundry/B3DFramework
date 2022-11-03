@@ -27,7 +27,7 @@ namespace bs
 	};
 
 	typedef Flags<ClearFlagBits> ClearFlags;
-	BS_FLAGS_OPERATORS(ClearFlagBits)
+	B3D_FLAGS_OPERATORS(ClearFlagBits)
 
 	/** Common base type used for both sim and core thread variants of Viewport. */
 	class B3D_CORE_EXPORT ViewportBase

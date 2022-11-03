@@ -13,7 +13,7 @@ using namespace bs::ct;
 VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanDevice& device, bool binary)
 	: OcclusionQuery(binary), mDevice(device), mQueryEndCalled(false), mQueryFinalized(false)
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 VulkanOcclusionQuery::~VulkanOcclusionQuery()
@@ -23,7 +23,7 @@ VulkanOcclusionQuery::~VulkanOcclusionQuery()
 
 	mQueries.clear();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)

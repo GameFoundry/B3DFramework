@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(DEPTH_STENCIL_STATE_DESC);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(DEPTH_STENCIL_STATE_DESC);
 
 	class B3D_CORE_EXPORT DepthStencilStateRTTI : public RTTIType<DepthStencilState, IReflectable, DepthStencilStateRTTI>
 	{

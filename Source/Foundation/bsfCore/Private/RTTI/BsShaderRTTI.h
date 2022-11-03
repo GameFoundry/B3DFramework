@@ -395,10 +395,10 @@ namespace bs
 	class B3D_CORE_EXPORT SubShaderRTTI : public RTTIType<SubShader, IReflectable, SubShaderRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Name, 0)
-			BS_RTTI_MEMBER_REFLPTR(Shader, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Name, 0)
+			B3D_RTTI_MEMBER_REFLPTR(Shader, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
@@ -421,24 +421,24 @@ namespace bs
 	class B3D_CORE_EXPORT ShaderRTTI : public RTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mTechniques, mDesc.Techniques, 0)
-			BS_RTTI_MEMBER_PLAIN(mName, 1)
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mTechniques, mDesc.Techniques, 0)
+			B3D_RTTI_MEMBER_PLAIN(mName, 1)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mQueueSortType, mDesc.QueueSortType, 7)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mQueuePriority, mDesc.QueuePriority, 8)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mSeparablePasses, mDesc.SeparablePasses, 9)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mQueueSortType, mDesc.QueueSortType, 7)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mQueuePriority, mDesc.QueuePriority, 8)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mSeparablePasses, mDesc.SeparablePasses, 9)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mDataDefaultValues, mDesc.DataDefaultValues, 10)
-			BS_RTTI_MEMBER_REFL_ARRAY_NAMED(mTextureDefaultValues, mDesc.TextureDefaultValues, 11)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mSamplerDefaultValues, mDesc.SamplerDefaultValues, 12)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mDataDefaultValues, mDesc.DataDefaultValues, 10)
+			B3D_RTTI_MEMBER_REFL_ARRAY_NAMED(mTextureDefaultValues, mDesc.TextureDefaultValues, 11)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mSamplerDefaultValues, mDesc.SamplerDefaultValues, 12)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mFlags, mDesc.Flags, 13)
-			BS_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.SubShaders, 14)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mFlags, mDesc.Flags, 13)
+			B3D_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.SubShaders, 14)
 
-			BS_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mParamAttributes, mDesc.ParamAttributes, 15)
-			BS_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mVariationParams, mDesc.VariationParams, 16)
-		BS_END_RTTI_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mParamAttributes, mDesc.ParamAttributes, 15)
+			B3D_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mVariationParams, mDesc.VariationParams, 16)
+		B3D_RTTI_END_MEMBERS
 
 		SHADER_DATA_PARAM_DESC& GetDataParam(Shader* obj, u32 idx)
 		{

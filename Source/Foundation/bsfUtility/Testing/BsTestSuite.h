@@ -89,7 +89,7 @@ namespace bs
 	};
 
 /** Registers a new unit test within an implementation of TestSuite. */
-#define BS_ADD_TEST(func) AddTest(static_cast<Func>(&func), #func);
+#define B3D_ADD_TEST(func) AddTest(static_cast<Func>(&func), #func);
 
 	/** @} */
 } // namespace bs

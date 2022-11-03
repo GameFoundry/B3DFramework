@@ -28,7 +28,7 @@ D3D11OcclusionQuery::D3D11OcclusionQuery(bool binary, u32 deviceIdx)
 
 	mContext = device.GetImmediateContext();
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 D3D11OcclusionQuery::~D3D11OcclusionQuery()
@@ -36,7 +36,7 @@ D3D11OcclusionQuery::~D3D11OcclusionQuery()
 	if(mQuery != nullptr)
 		mQuery->Release();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void D3D11OcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)

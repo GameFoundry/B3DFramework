@@ -16,13 +16,13 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(RadixSortParamsDef)
-			BS_PARAM_BLOCK_ENTRY(int, gBitOffset)
-			BS_PARAM_BLOCK_ENTRY(int, gTilesPerGroup)
-			BS_PARAM_BLOCK_ENTRY(int, gNumGroups)
-			BS_PARAM_BLOCK_ENTRY(int, gNumExtraTiles)
-			BS_PARAM_BLOCK_ENTRY(int, gNumExtraKeys)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(RadixSortParamsDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gBitOffset)
+			B3D_PARAM_BLOCK_ENTRY(int, gTilesPerGroup)
+			B3D_PARAM_BLOCK_ENTRY(int, gNumGroups)
+			B3D_PARAM_BLOCK_ENTRY(int, gNumExtraTiles)
+			B3D_PARAM_BLOCK_ENTRY(int, gNumExtraKeys)
+		B3D_PARAM_BLOCK_END
 
 		extern RadixSortParamsDef gRadixSortParamsDef;
 

@@ -40,11 +40,11 @@ namespace bs
 		void ScriptUpdateFloatPropertiesInternal();
 		void ScriptOnEventTriggeredInternal(const ResourceHandle<AnimationClip>& p0, const String& p1);
 
-		typedef void(BS_THUNKCALL* ScriptRebuildFloatPropertiesInternalThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* ScriptRebuildFloatPropertiesInternalThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static ScriptRebuildFloatPropertiesInternalThunkDef ScriptRebuildFloatPropertiesInternalThunk;
-		typedef void(BS_THUNKCALL* ScriptUpdateFloatPropertiesInternalThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* ScriptUpdateFloatPropertiesInternalThunkDef)(MonoObject*, MonoException**);
 		static ScriptUpdateFloatPropertiesInternalThunkDef ScriptUpdateFloatPropertiesInternalThunk;
-		typedef void(BS_THUNKCALL* ScriptOnEventTriggeredInternalThunkDef)(MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
+		typedef void(B3D_THUNKCALL* ScriptOnEventTriggeredInternalThunkDef)(MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
 		static ScriptOnEventTriggeredInternalThunkDef ScriptOnEventTriggeredInternalThunk;
 
 		static void InternalSetDefaultClip(ScriptCAnimation* thisPtr, MonoObject* clip);

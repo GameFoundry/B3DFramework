@@ -14,15 +14,15 @@ namespace bs
 	{
 		class RendererLight;
 
-		BS_PARAM_BLOCK_BEGIN(PerLightParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightPositionAndSrcRadius)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightColorAndLuminance)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightSpotAnglesAndSqrdInvAttRadius)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightDirectionAndBoundRadius)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gShiftedLightPositionAndType)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gLightGeometry)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatConeTransform)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerLightParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightPositionAndSrcRadius)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightColorAndLuminance)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightSpotAnglesAndSqrdInvAttRadius)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightDirectionAndBoundRadius)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gShiftedLightPositionAndType)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gLightGeometry)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatConeTransform)
+		B3D_PARAM_BLOCK_END
 
 		extern PerLightParamDef gPerLightParamDef;
 
@@ -102,14 +102,14 @@ namespace bs
 			GpuParamTexture mLightOcclusionTexParam;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(PerProbeParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector3, gPosition)
-			BS_PARAM_BLOCK_ENTRY(Vector3, gExtents)
-			BS_PARAM_BLOCK_ENTRY(float, gTransitionDistance)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gInvBoxTransform)
-			BS_PARAM_BLOCK_ENTRY(i32, gCubemapIdx)
-			BS_PARAM_BLOCK_ENTRY(i32, gType)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerProbeParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector3, gPosition)
+			B3D_PARAM_BLOCK_ENTRY(Vector3, gExtents)
+			B3D_PARAM_BLOCK_ENTRY(float, gTransitionDistance)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gInvBoxTransform)
+			B3D_PARAM_BLOCK_ENTRY(i32, gCubemapIdx)
+			B3D_PARAM_BLOCK_ENTRY(i32, gType)
+		B3D_PARAM_BLOCK_END
 
 		extern PerProbeParamDef gPerProbeParamDef;
 

@@ -51,7 +51,7 @@ namespace bs
 	};
 
 	using BinarySerializerFlags = Flags<BinarySerializerFlag>;
-	BS_FLAGS_OPERATORS(BinarySerializerFlag)
+	B3D_FLAGS_OPERATORS(BinarySerializerFlag)
 
 	/**
 	 * Encodes/decodes all the fields of the provided object into/from a binary format. Fields are encoded using their

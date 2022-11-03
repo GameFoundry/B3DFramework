@@ -12,16 +12,16 @@ GLHardwareBuffer::GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage
 	: HardwareBuffer(size, usage, GDF_DEFAULT), mTarget(target)
 {
 	glGenBuffers(1, &mBufferId);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(!mBufferId)
 		B3D_EXCEPT(InternalErrorException, "Cannot create GL buffer");
 
 	glBindBuffer(target, mBufferId);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glBufferData(target, size, nullptr, GLHardwareBufferManager::GetGlUsage(usage));
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 GLHardwareBuffer::~GLHardwareBuffer()
@@ -29,7 +29,7 @@ GLHardwareBuffer::~GLHardwareBuffer()
 	if(mBufferId != 0)
 	{
 		glDeleteBuffers(1, &mBufferId);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -43,7 +43,7 @@ void* GLHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 
 	GLenum access = 0;
 
 	glBindBuffer(mTarget, mBufferId);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if((options == GBL_WRITE_ONLY) || (options == GBL_WRITE_ONLY_NO_OVERWRITE) || (options == GBL_WRITE_ONLY_DISCARD))
 	{
@@ -64,7 +64,7 @@ void* GLHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 
 	if(length > 0)
 	{
 		buffer = glMapBufferRange(mTarget, offset, length, access);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		if(buffer == nullptr)
 			B3D_EXCEPT(InternalErrorException, "Cannot map OpenGL buffer.");
@@ -83,13 +83,13 @@ void GLHardwareBuffer::Unmap()
 		return;
 
 	glBindBuffer(mTarget, mBufferId);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(!mZeroLocked)
 	{
 		if(!glUnmapBuffer(mTarget))
 		{
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 			B3D_EXCEPT(InternalErrorException, "Buffer data corrupted, please reload.");
 		}
 	}
@@ -131,13 +131,13 @@ void GLHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 ds
 		GLHardwareBuffer& glSrcBuffer = static_cast<GLHardwareBuffer&>(srcBuffer);
 
 		glBindBuffer(GL_COPY_READ_BUFFER, glSrcBuffer.GetGlBufferId());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glBindBuffer(GL_COPY_WRITE_BUFFER, mBufferId);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcOffset, dstOffset, length);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	};
 
 	if(commandBuffer == nullptr)

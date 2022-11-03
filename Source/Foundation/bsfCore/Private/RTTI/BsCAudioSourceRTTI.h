@@ -16,17 +16,17 @@ namespace bs
 
 	class B3D_CORE_EXPORT CAudioSourceRTTI : public RTTIType<CAudioSource, Component, CAudioSourceRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			// BS_RTTI_MEMBER_REFLPTR(mInternal, 0)
-			BS_RTTI_MEMBER_PLAIN(mPlayOnStart, 1)
-			BS_RTTI_MEMBER_REFL(mAudioClip, 2)
-			BS_RTTI_MEMBER_PLAIN(mVolume, 3)
-			BS_RTTI_MEMBER_PLAIN(mPitch, 4)
-			BS_RTTI_MEMBER_PLAIN(mLoop, 5)
-			BS_RTTI_MEMBER_PLAIN(mPriority, 6)
-			BS_RTTI_MEMBER_PLAIN(mMinDistance, 7)
-			BS_RTTI_MEMBER_PLAIN(mAttenuation, 8)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			// B3D_RTTI_MEMBER_REFLPTR(mInternal, 0)
+			B3D_RTTI_MEMBER_PLAIN(mPlayOnStart, 1)
+			B3D_RTTI_MEMBER_REFL(mAudioClip, 2)
+			B3D_RTTI_MEMBER_PLAIN(mVolume, 3)
+			B3D_RTTI_MEMBER_PLAIN(mPitch, 4)
+			B3D_RTTI_MEMBER_PLAIN(mLoop, 5)
+			B3D_RTTI_MEMBER_PLAIN(mPriority, 6)
+			B3D_RTTI_MEMBER_PLAIN(mMinDistance, 7)
+			B3D_RTTI_MEMBER_PLAIN(mAttenuation, 8)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

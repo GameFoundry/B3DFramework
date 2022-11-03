@@ -35,7 +35,7 @@ namespace bs
 	};
 
 	typedef Flags<GUIElementOption> GUIElementOptions;
-	BS_FLAGS_OPERATORS(GUIElementOption)
+	B3D_FLAGS_OPERATORS(GUIElementOption)
 
 	/** Contains information about a single renderable element within a GUIElement. */
 	struct GUIRenderElement : SpriteRenderElement

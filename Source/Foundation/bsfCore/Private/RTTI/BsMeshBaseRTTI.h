@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(SubMesh);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(SubMesh);
 
 	class MeshBaseRTTI : public RTTIType<MeshBase, Resource, MeshBaseRTTI>
 	{

@@ -55,7 +55,7 @@ namespace bs
 		static void InternalSetActiveScene(ScriptPrefab* scriptPrefab);
 		static void InternalClearScene();
 
-		typedef void(BS_THUNKCALL* OnUpdateThunkDef)(MonoException**);
+		typedef void(B3D_THUNKCALL* OnUpdateThunkDef)(MonoException**);
 		static OnUpdateThunkDef onUpdateThunk;
 #endif
 	};

@@ -17,7 +17,7 @@ D3D11DepthStencilState::~D3D11DepthStencilState()
 {
 	SAFE_RELEASE(mDepthStencilState);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_DepthStencilState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_DepthStencilState);
 }
 
 void D3D11DepthStencilState::CreateInternal()
@@ -57,7 +57,7 @@ void D3D11DepthStencilState::CreateInternal()
 		B3D_EXCEPT(RenderingAPIException, "Cannot create depth stencil state.\nError Description:" + errorDescription);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_DepthStencilState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_DepthStencilState);
 
 	DepthStencilState::CreateInternal();
 }

@@ -164,7 +164,7 @@ SystemInfo PlatformUtility::getSystemInfo()
 	// Note: This won't report the exact distro
 	output.osName = String(osInfo.sysname) + String(osInfo.version);
 
-	if(BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64)
+	if(B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64)
 		output.osIs64Bit = true;
 	else
 		output.osIs64Bit = strstr(osInfo.machine, "64") != nullptr;

@@ -181,10 +181,10 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(DebugDrawParamsDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gViewDir)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(DebugDrawParamsDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gViewDir)
+		B3D_PARAM_BLOCK_END
 
 		extern DebugDrawParamsDef gDebugDrawParamsDef;
 

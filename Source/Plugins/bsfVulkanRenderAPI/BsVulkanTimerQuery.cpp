@@ -13,7 +13,7 @@ using namespace bs::ct;
 VulkanTimerQuery::VulkanTimerQuery(VulkanDevice& device)
 	: mDevice(device), mQueryEndCalled(false), mQueryFinalized(false)
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 VulkanTimerQuery::~VulkanTimerQuery()
@@ -29,7 +29,7 @@ VulkanTimerQuery::~VulkanTimerQuery()
 
 	mQueries.clear();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void VulkanTimerQuery::Begin(const SPtr<CommandBuffer>& cb)

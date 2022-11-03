@@ -16,7 +16,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(IndexType);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(IndexType);
 
 	class B3D_CORE_EXPORT MeshDataRTTI : public RTTIType<MeshData, GpuResourceData, MeshDataRTTI>
 	{

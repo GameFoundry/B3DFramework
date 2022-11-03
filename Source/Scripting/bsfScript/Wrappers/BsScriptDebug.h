@@ -41,7 +41,7 @@ namespace bs
 		static void InternalClear(LogVerbosity verbosity, u32 category);
 		static MonoArray* InternalGetMessages();
 
-		typedef void(BS_THUNKCALL* OnAddedThunkDef)(MonoString*, u32, u32, MonoException**);
+		typedef void(B3D_THUNKCALL* OnAddedThunkDef)(MonoString*, u32, u32, MonoException**);
 
 		static OnAddedThunkDef onAddedThunk;
 	};

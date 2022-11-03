@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(RASTERIZER_STATE_DESC);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(RASTERIZER_STATE_DESC);
 
 	class B3D_CORE_EXPORT RasterizerStateRTTI : public RTTIType<RasterizerState, IReflectable, RasterizerStateRTTI>
 	{

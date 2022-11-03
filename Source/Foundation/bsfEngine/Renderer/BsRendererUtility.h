@@ -61,9 +61,9 @@ namespace bs
 			bool mIsFiltered = false;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(CompositeParamDef)
-			BS_PARAM_BLOCK_ENTRY(Color, gTint)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(CompositeParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
+		B3D_PARAM_BLOCK_END
 
 		extern CompositeParamDef gCompositeParamDef;
 
@@ -90,12 +90,12 @@ namespace bs
 			GpuParamTexture mSourceTex;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(BicubicUpsampleParamDef)
-			BS_PARAM_BLOCK_ENTRY(Color, gTint)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gTextureSize)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gInvPixel)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gInvTwoPixels)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(BicubicUpsampleParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gTextureSize)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvPixel)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gInvTwoPixels)
+		B3D_PARAM_BLOCK_END
 
 		extern BicubicUpsampleParamDef gBicubicUpsampleParamDef;
 
@@ -140,9 +140,9 @@ namespace bs
 			GpuParamTexture mSourceTex;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ClearParamDef)
-			BS_PARAM_BLOCK_ENTRY(i32, gClearValue)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ClearParamDef)
+			B3D_PARAM_BLOCK_ENTRY(i32, gClearValue)
+		B3D_PARAM_BLOCK_END
 
 		extern ClearParamDef gClearParamDef;
 

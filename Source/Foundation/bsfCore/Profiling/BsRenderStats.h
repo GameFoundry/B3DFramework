@@ -146,13 +146,13 @@ namespace bs
 	};
 
 #if BS_PROFILING_ENABLED
-#	define BS_INC_RENDER_STAT_CAT(Stat, Category) RenderStats::Instance().Inc##Stat((u32)Category)
-#	define BS_INC_RENDER_STAT(Stat) RenderStats::Instance().Inc##Stat()
-#	define BS_ADD_RENDER_STAT(Stat, Count) RenderStats::Instance().Add##Stat(Count)
+#	define B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(Stat, Category) RenderStats::Instance().Inc##Stat((u32)Category)
+#	define B3D_INCREMENT_RENDER_STATISTIC(Stat) RenderStats::Instance().Inc##Stat()
+#	define B3D_ADD_RENDER_STATISTIC(Stat, Count) RenderStats::Instance().Add##Stat(Count)
 #else
-#	define BS_INC_RENDER_STAT_CAT(Stat, Category)
-#	define BS_INC_RENDER_STAT(Stat)
-#	define BS_ADD_RENDER_STAT(Stat, Count)
+#	define B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(Stat, Category)
+#	define B3D_INCREMENT_RENDER_STATISTIC(Stat)
+#	define B3D_ADD_RENDER_STATISTIC(Stat, Count)
 #endif
 
 	/** @} */

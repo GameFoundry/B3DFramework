@@ -113,12 +113,12 @@ GpuParamBlockBuffer::~GpuParamBlockBuffer()
 	if(mCachedData != nullptr)
 		B3DFree(mCachedData);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuParamBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuParamBuffer);
 }
 
 void GpuParamBlockBuffer::Initialize()
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuParamBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuParamBuffer);
 
 	CoreObject::Initialize();
 }
@@ -186,7 +186,7 @@ void GpuParamBlockBuffer::WriteToGpu(const u8* data, u32 queueIdx)
 {
 	mBuffer->WriteData(0, mSize, data, BWT_DISCARD, queueIdx);
 
-	BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuParamBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_GpuParamBuffer);
 }
 
 void GpuParamBlockBuffer::SyncToCore(const CoreSyncData& data)

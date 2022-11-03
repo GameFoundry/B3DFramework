@@ -16,10 +16,10 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(ReflectionCubeDownsampleParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-			BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ReflectionCubeDownsampleParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			B3D_PARAM_BLOCK_ENTRY(int, gMipLevel)
+		B3D_PARAM_BLOCK_END
 
 		extern ReflectionCubeDownsampleParamDef gReflectionCubeDownsampleParamDef;
 
@@ -39,12 +39,12 @@ namespace bs
 			GpuParamTexture mInputTexture;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-			BS_PARAM_BLOCK_ENTRY(int, gMipLevel)
-			BS_PARAM_BLOCK_ENTRY(int, gNumMips)
-			BS_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(ReflectionCubeImportanceSampleParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			B3D_PARAM_BLOCK_ENTRY(int, gMipLevel)
+			B3D_PARAM_BLOCK_ENTRY(int, gNumMips)
+			B3D_PARAM_BLOCK_ENTRY(float, gPrecomputedMipFactor)
+		B3D_PARAM_BLOCK_END
 
 		extern ReflectionCubeImportanceSampleParamDef gReflectionCubeImportanceSampleParamDef;
 
@@ -108,11 +108,11 @@ namespace bs
 			float Weight;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-			BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gDispatchSize)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceComputeSHParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			B3D_PARAM_BLOCK_ENTRY(int, gFaceSize)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gDispatchSize)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceComputeSHParamDef gIrradianceComputeSHParamDef;
 
@@ -158,10 +158,10 @@ namespace bs
 			GpuParamBuffer mOutputBuffer;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gOutputIdx)
-			BS_PARAM_BLOCK_ENTRY(int, gNumEntries)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceReduceSHParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gOutputIdx)
+			B3D_PARAM_BLOCK_ENTRY(int, gNumEntries)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
 
@@ -210,12 +210,12 @@ namespace bs
 			GpuParamLoadStoreTexture mOutputTexture;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceComputeSHFragParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-			BS_PARAM_BLOCK_ENTRY(int, gFaceSize)
-			BS_PARAM_BLOCK_ENTRY(int, gCoeffEntryIdx)
-			BS_PARAM_BLOCK_ENTRY(int, gCoeffComponentIdx)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceComputeSHFragParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			B3D_PARAM_BLOCK_ENTRY(int, gFaceSize)
+			B3D_PARAM_BLOCK_ENTRY(int, gCoeffEntryIdx)
+			B3D_PARAM_BLOCK_ENTRY(int, gCoeffComponentIdx)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceComputeSHFragParamDef gIrradianceComputeSHFragParamDef;
 
@@ -251,11 +251,11 @@ namespace bs
 			GpuParamTexture mInputTexture;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceAccumulateSHParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeMip)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gHalfPixel)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceAccumulateSHParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeMip)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gHalfPixel)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceAccumulateSHParamDef gIrradianceAccumulateSHParamDef;
 
@@ -316,9 +316,9 @@ namespace bs
 			GpuParamTexture mInputTexture;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceProjectSHParamDef)
-			BS_PARAM_BLOCK_ENTRY(int, gCubeFace)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceProjectSHParamDef)
+			B3D_PARAM_BLOCK_ENTRY(int, gCubeFace)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceProjectSHParamDef gIrradianceProjectSHParamDef;
 

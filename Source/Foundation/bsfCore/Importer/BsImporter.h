@@ -20,7 +20,7 @@ namespace bs
 	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), ExportAsStruct(true), API(Framework)) SubResource
 	{
 		String Name; /**< Unique name of the sub-resource. */
-		BS_NORREF HResource Value; /**< Contents of the sub-resource. */
+		B3D_NO_RREF HResource Value; /**< Contents of the sub-resource. */
 	};
 
 	/** Contains a group of resources imported from a single source file. */
@@ -62,7 +62,7 @@ namespace bs
 		 * @note	Thread safe.
 		 */
 		B3D_SCRIPT_EXPORT()
-		BS_NORREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
+		B3D_NO_RREF HResource Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty);
 
 		/** @copydoc Import */
 		template <class T>

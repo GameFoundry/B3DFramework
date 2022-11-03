@@ -13,19 +13,19 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(CharRange)
+	B3D_ALLOW_MEMCPY_SERIALIZATION(CharRange)
 
 	class B3D_CORE_EXPORT FontImportOptionsRTTI : public RTTIType<FontImportOptions, ImportOptions, FontImportOptionsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(FontSizes, 0)
-			BS_RTTI_MEMBER_PLAIN(Dpi, 2)
-			BS_RTTI_MEMBER_PLAIN(RenderMode, 3)
-			BS_RTTI_MEMBER_PLAIN(Bold, 4)
-			BS_RTTI_MEMBER_PLAIN(Italic, 5)
-			BS_RTTI_MEMBER_PLAIN(CharIndexRanges, 6)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(FontSizes, 0)
+			B3D_RTTI_MEMBER_PLAIN(Dpi, 2)
+			B3D_RTTI_MEMBER_PLAIN(RenderMode, 3)
+			B3D_RTTI_MEMBER_PLAIN(Bold, 4)
+			B3D_RTTI_MEMBER_PLAIN(Italic, 5)
+			B3D_RTTI_MEMBER_PLAIN(CharIndexRanges, 6)
+		B3D_RTTI_END_MEMBERS
 
 		// For compability with old version
 		Vector<std::pair<u32, u32>>& GetCharIndexRangesOld(FontImportOptions* obj)

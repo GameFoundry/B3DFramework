@@ -100,7 +100,7 @@ namespace bs
 			/**
 			 * Binds the buffers to a frame buffer object at the specified attachment point.
 			 *
-			 * @param[in]	attachment	Attachment point index in the range [0, BS_MAX_MULTIPLE_RENDER_TARGETS).
+			 * @param[in]	attachment	Attachment point index in the range [0, B3D_MAXIMUM_RENDER_TARGET_COUNT).
 			 * @param[in]	zoffset		Depth slice to bind, in the case of a 3D texture.
 			 * @param[in]	allLayers	Should all layers of the texture be bound, or just one (zoffset is ignored if true).
 			 */

@@ -16,10 +16,10 @@ MyFlag combined = (MyFlag)((UINT32)MyFlag::Flag1 | (UINT32)MyFlag::Flag2);
 
 Which is cumbersome. Flags require an additional step to define the enum, but after that allow you to manipulate values much more nicely. 
 
-To create a **Flags<Enum, Storage>** type for an enum simply define a `typedef` with your enum type provided as the template parameter. You must also follow that definition with a @BS_FLAGS_OPERATORS macro in order to ensure all operators are properly defined.
+To create a **Flags<Enum, Storage>** type for an enum simply define a `typedef` with your enum type provided as the template parameter. You must also follow that definition with a @B3D_FLAGS_OPERATORS macro in order to ensure all operators are properly defined.
 ~~~~~~~~~~~~~{.cpp}
 typedef Flags<MyFlag> MyFlags;
-BS_FLAGS_OPERATORS(MyFlag)
+B3D_FLAGS_OPERATORS(MyFlag)
 ~~~~~~~~~~~~~
 
 Now you can do something like this:

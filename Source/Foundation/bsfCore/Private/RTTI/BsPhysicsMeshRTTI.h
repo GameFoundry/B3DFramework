@@ -18,9 +18,9 @@ namespace bs
 	class B3D_CORE_EXPORT PhysicsMeshRTTI : public RTTIType<PhysicsMesh, Resource, PhysicsMeshRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR(mInternal, 0)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
@@ -52,9 +52,9 @@ namespace bs
 	class B3D_CORE_EXPORT FPhysicsMeshRTTI : public RTTIType<FPhysicsMesh, IReflectable, FPhysicsMeshRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mType, 0)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mType, 0)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{

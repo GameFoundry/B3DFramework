@@ -16,7 +16,7 @@ void GLSupport::InitializeExtensions()
 {
 #if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 	GlewContextInit(this);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #endif
 
 	// Set version string
@@ -34,7 +34,7 @@ void GLSupport::InitializeExtensions()
 	// Set extension list
 	i32 numExtensions = 0;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	for(i32 i = 0; i < numExtensions; i++)
 		extensionList.insert(String((char*)glGetStringi(GL_EXTENSIONS, i)));

@@ -24,7 +24,7 @@ namespace bs
 		class VulkanResourceManager;
 
 		typedef Flags<VulkanAccessFlag> VulkanAccessFlags;
-		BS_FLAGS_OPERATORS(VulkanAccessFlag);
+		B3D_FLAGS_OPERATORS(VulkanAccessFlag);
 
 		/**
 		 * Wraps one or multiple native Vulkan objects. Allows the object usage to be tracked in command buffers, handles

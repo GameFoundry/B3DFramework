@@ -61,7 +61,7 @@ namespace bs
 	};
 
 	typedef Flags<AnimDirtyStateFlag> AnimDirtyState;
-	BS_FLAGS_OPERATORS(AnimDirtyStateFlag)
+	B3D_FLAGS_OPERATORS(AnimDirtyStateFlag)
 
 	/** Type of playback for animation clips. */
 	enum class AnimPlaybackType

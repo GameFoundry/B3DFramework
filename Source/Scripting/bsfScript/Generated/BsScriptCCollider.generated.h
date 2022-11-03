@@ -39,11 +39,11 @@ namespace bs
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
 
-		typedef void(BS_THUNKCALL* OnCollisionBeginThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnCollisionBeginThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionBeginThunkDef OnCollisionBeginThunk;
-		typedef void(BS_THUNKCALL* OnCollisionStayThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnCollisionStayThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionStayThunkDef OnCollisionStayThunk;
-		typedef void(BS_THUNKCALL* OnCollisionEndThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL* OnCollisionEndThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
 		static void InternalSetIsTrigger(ScriptCColliderBase* thisPtr, bool value);

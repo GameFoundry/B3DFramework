@@ -86,7 +86,7 @@ VulkanGraphicsPipelineState::~VulkanGraphicsPipelineState()
 			entry.second->Destroy();
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_PipelineState);
 }
 
 void VulkanGraphicsPipelineState::Initialize()
@@ -310,7 +310,7 @@ void VulkanGraphicsPipelineState::Initialize()
 		B3DStackFree(layouts);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
 VulkanPipeline* VulkanGraphicsPipelineState::GetPipeline(
@@ -572,7 +572,7 @@ void VulkanComputePipelineState::Initialize()
 		B3DStackFree(layouts);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
 VulkanPipeline* VulkanComputePipelineState::GetPipeline(u32 deviceIdx) const

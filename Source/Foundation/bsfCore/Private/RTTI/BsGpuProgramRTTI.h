@@ -21,14 +21,14 @@ namespace bs
 	class B3D_CORE_EXPORT GpuProgramBytecodeRTTI : public RTTIType<GpuProgramBytecode, IReflectable, GpuProgramBytecodeRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Instructions, 0)
-			BS_RTTI_MEMBER_REFLPTR(ParamDesc, 1)
-			BS_RTTI_MEMBER_PLAIN(VertexInput, 2)
-			BS_RTTI_MEMBER_PLAIN(Messages, 3)
-			BS_RTTI_MEMBER_PLAIN(CompilerId, 4)
-			BS_RTTI_MEMBER_PLAIN(CompilerVersion, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Instructions, 0)
+			B3D_RTTI_MEMBER_REFLPTR(ParamDesc, 1)
+			B3D_RTTI_MEMBER_PLAIN(VertexInput, 2)
+			B3D_RTTI_MEMBER_PLAIN(Messages, 3)
+			B3D_RTTI_MEMBER_PLAIN(CompilerId, 4)
+			B3D_RTTI_MEMBER_PLAIN(CompilerVersion, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()
@@ -51,14 +51,14 @@ namespace bs
 	class B3D_CORE_EXPORT GpuParamDescRTTI : public RTTIType<GpuParamDesc, IReflectable, GpuParamDescRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(ParamBlocks, 0)
-			BS_RTTI_MEMBER_PLAIN(Params, 1)
-			BS_RTTI_MEMBER_PLAIN(Samplers, 2)
-			BS_RTTI_MEMBER_PLAIN(Textures, 3)
-			BS_RTTI_MEMBER_PLAIN(LoadStoreTextures, 4)
-			BS_RTTI_MEMBER_PLAIN(Buffers, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(ParamBlocks, 0)
+			B3D_RTTI_MEMBER_PLAIN(Params, 1)
+			B3D_RTTI_MEMBER_PLAIN(Samplers, 2)
+			B3D_RTTI_MEMBER_PLAIN(Textures, 3)
+			B3D_RTTI_MEMBER_PLAIN(LoadStoreTextures, 4)
+			B3D_RTTI_MEMBER_PLAIN(Buffers, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName() override
@@ -81,13 +81,13 @@ namespace bs
 	class B3D_CORE_EXPORT GpuProgramRTTI : public RTTIType<GpuProgram, IReflectable, GpuProgramRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mType, 2)
-			BS_RTTI_MEMBER_PLAIN(mNeedsAdjacencyInfo, 3)
-			BS_RTTI_MEMBER_PLAIN(mEntryPoint, 4)
-			BS_RTTI_MEMBER_PLAIN(mSource, 6)
-			BS_RTTI_MEMBER_PLAIN(mLanguage, 7)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mType, 2)
+			B3D_RTTI_MEMBER_PLAIN(mNeedsAdjacencyInfo, 3)
+			B3D_RTTI_MEMBER_PLAIN(mEntryPoint, 4)
+			B3D_RTTI_MEMBER_PLAIN(mSource, 6)
+			B3D_RTTI_MEMBER_PLAIN(mLanguage, 7)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override

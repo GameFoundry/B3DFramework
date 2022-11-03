@@ -34,7 +34,7 @@ GpuBufferView::~GpuBufferView()
 	SAFE_RELEASE(mSRV);
 	SAFE_RELEASE(mUAV);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_ResourceView);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_ResourceView);
 }
 
 void GpuBufferView::Initialize(D3D11GpuBuffer* buffer, GPU_BUFFER_VIEW_DESC& desc)
@@ -53,7 +53,7 @@ void GpuBufferView::Initialize(D3D11GpuBuffer* buffer, GPU_BUFFER_VIEW_DESC& des
 		B3D_EXCEPT(NotImplementedException, "Invalid usage flags for a GPU buffer view.");
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_ResourceView);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_ResourceView);
 }
 
 ID3D11ShaderResourceView* GpuBufferView::CreateSrv(D3D11GpuBuffer* buffer, u32 firstElement, u32 elementWidth, u32 numElements)

@@ -163,11 +163,11 @@ namespace bs
 		static u32 MostSignificantBit(u64 val)
 		{
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#	if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
+#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
 			unsigned long index;
 			_BitScanReverse64(&index, val);
 			return index;
-#	else // BS_ARCH_TYPE
+#	else // B3D_ARCHITECTURE
 			if(static_cast<u32>(val >> 32) != 0)
 			{
 				_BitScanReverse(&index, static_cast<u32>(val >> 32));
@@ -178,7 +178,7 @@ namespace bs
 				_BitScanReverse(&index, static_cast<u32>(val));
 				return index;
 			}
-#	endif // BS_ARCH_TYPE
+#	endif // B3D_ARCHITECTURE
 #elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return 31 - __builtin_clzll(val);
 #else // B3D_COMPILER
@@ -190,11 +190,11 @@ namespace bs
 		static u32 LeastSignificantBit(u64 val)
 		{
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#	if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
+#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
 			unsigned long index;
 			_BitScanForward64(&index, val);
 			return index;
-#	else // BS_ARCH_TYPE
+#	else // B3D_ARCHITECTURE
 			if(static_cast<u32>(val) != 0)
 			{
 				_BitScanForward(&index, static_cast<u32>(val));
@@ -205,7 +205,7 @@ namespace bs
 				_BitScanForward(&index, static_cast<u32>(val >> 32));
 				return index + 32;
 			}
-#	endif // BS_ARCH_TYPE
+#	endif // B3D_ARCHITECTURE
 #elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return __builtin_ctzll(val);
 #else // B3D_COMPILER

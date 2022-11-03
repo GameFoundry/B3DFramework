@@ -27,7 +27,7 @@ namespace bs
 	};
 
 	using ShadingLanguageFlags = Flags<ShadingLanguageFlag>;
-	BS_FLAGS_OPERATORS(ShadingLanguageFlag)
+	B3D_FLAGS_OPERATORS(ShadingLanguageFlag)
 
 	/** Contains import options you may use to control how is a shader imported. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) ShaderImportOptions : public ImportOptions

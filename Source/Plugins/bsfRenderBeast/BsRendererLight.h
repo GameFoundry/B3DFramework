@@ -200,16 +200,16 @@ namespace bs
 			Vector<LightData> mVisibleLightData;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(LightsParamDef)
-			BS_PARAM_BLOCK_ENTRY_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(LightsParamDef)
+			B3D_PARAM_BLOCK_ENTRY_ARRAY(LightData, gLights, kStandardForwardMaxNumLights)
+		B3D_PARAM_BLOCK_END
 
 		extern LightsParamDef gLightsParamDef;
 
-		BS_PARAM_BLOCK_BEGIN(LightAndReflProbeParamsParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector4I, gLightOffsets)
-			BS_PARAM_BLOCK_ENTRY(int, gReflProbeCount)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(LightAndReflProbeParamsParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector4I, gLightOffsets)
+			B3D_PARAM_BLOCK_ENTRY(int, gReflProbeCount)
+		B3D_PARAM_BLOCK_END
 
 		extern LightAndReflProbeParamsParamDef gLightAndReflProbeParamsParamDef;
 

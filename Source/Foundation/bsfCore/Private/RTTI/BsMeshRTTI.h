@@ -20,13 +20,13 @@ namespace bs
 
 	class MeshRTTI : public RTTIType<Mesh, MeshBase, MeshRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFLPTR(mVertexDesc, 0)
-			BS_RTTI_MEMBER_PLAIN(mIndexType, 1)
-			BS_RTTI_MEMBER_PLAIN(mUsage, 2)
-			BS_RTTI_MEMBER_REFLPTR(mSkeleton, 4)
-			BS_RTTI_MEMBER_REFLPTR(mMorphShapes, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR(mVertexDesc, 0)
+			B3D_RTTI_MEMBER_PLAIN(mIndexType, 1)
+			B3D_RTTI_MEMBER_PLAIN(mUsage, 2)
+			B3D_RTTI_MEMBER_REFLPTR(mSkeleton, 4)
+			B3D_RTTI_MEMBER_REFLPTR(mMorphShapes, 5)
+		B3D_RTTI_END_MEMBERS
 
 		SPtr<MeshData> GetMeshData(Mesh* obj)
 		{

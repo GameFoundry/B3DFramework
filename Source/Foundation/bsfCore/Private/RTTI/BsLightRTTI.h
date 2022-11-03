@@ -19,21 +19,21 @@ namespace bs
 	class B3D_CORE_EXPORT LightRTTI : public RTTIType<Light, IReflectable, LightRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(mTransform, 0)
-			BS_RTTI_MEMBER_PLAIN(mActive, 1)
-			BS_RTTI_MEMBER_PLAIN(mMobility, 2)
-			BS_RTTI_MEMBER_PLAIN(mType, 3)
-			BS_RTTI_MEMBER_PLAIN(mCastsShadows, 4)
-			BS_RTTI_MEMBER_PLAIN(mColor, 5)
-			BS_RTTI_MEMBER_PLAIN(mAttRadius, 6)
-			BS_RTTI_MEMBER_PLAIN(mIntensity, 7)
-			BS_RTTI_MEMBER_PLAIN(mSpotAngle, 8)
-			BS_RTTI_MEMBER_PLAIN(mSpotFalloffAngle, 9)
-			BS_RTTI_MEMBER_PLAIN(mAutoAttenuation, 10)
-			BS_RTTI_MEMBER_PLAIN(mSourceRadius, 11)
-			BS_RTTI_MEMBER_PLAIN(mShadowBias, 12)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(mTransform, 0)
+			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
+			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
+			B3D_RTTI_MEMBER_PLAIN(mType, 3)
+			B3D_RTTI_MEMBER_PLAIN(mCastsShadows, 4)
+			B3D_RTTI_MEMBER_PLAIN(mColor, 5)
+			B3D_RTTI_MEMBER_PLAIN(mAttRadius, 6)
+			B3D_RTTI_MEMBER_PLAIN(mIntensity, 7)
+			B3D_RTTI_MEMBER_PLAIN(mSpotAngle, 8)
+			B3D_RTTI_MEMBER_PLAIN(mSpotFalloffAngle, 9)
+			B3D_RTTI_MEMBER_PLAIN(mAutoAttenuation, 10)
+			B3D_RTTI_MEMBER_PLAIN(mSourceRadius, 11)
+			B3D_RTTI_MEMBER_PLAIN(mShadowBias, 12)
+		B3D_RTTI_END_MEMBERS
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{

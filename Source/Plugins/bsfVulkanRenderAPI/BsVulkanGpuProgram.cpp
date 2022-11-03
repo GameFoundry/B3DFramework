@@ -42,7 +42,7 @@ VulkanGpuProgram::~VulkanGpuProgram()
 			mModules[i]->Destroy();
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
 }
 
 void VulkanGpuProgram::Initialize()
@@ -137,7 +137,7 @@ void VulkanGpuProgram::Initialize()
 		}
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuProgram);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);
 
 	GpuProgram::Initialize();
 }

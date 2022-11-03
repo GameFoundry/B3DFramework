@@ -466,7 +466,7 @@ void Win32RenderWindow::Restore()
 void Win32RenderWindow::SetVSync(bool enabled, u32 interval)
 {
 	wglSwapIntervalEXT(interval);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	mProperties.Vsync = enabled;
 	mProperties.VsyncInterval = interval;
@@ -516,17 +516,17 @@ void Win32RenderWindow::CopyToMemory(PixelData& dst, FrameBuffer buffer)
 
 	// Must change the packing to ensure no overruns!
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glReadBuffer((buffer == FB_FRONT) ? GL_FRONT : GL_BACK);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glReadPixels((GLint)dst.GetLeft(), (GLint)dst.GetTop(), (GLsizei)dst.GetWidth(), (GLsizei)dst.GetHeight(), format, type, dst.GetData());
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// restore default alignment
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// vertical flip
 	{

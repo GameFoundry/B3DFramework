@@ -290,7 +290,7 @@ void D3D11RenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipe
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void D3D11RenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
@@ -318,7 +318,7 @@ void D3D11RenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipeli
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
@@ -596,7 +596,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumGpuParamBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumGpuParamBinds);
 }
 
 void D3D11RenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
@@ -656,7 +656,7 @@ void D3D11RenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u3
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumVertexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumVertexBufferBinds);
 }
 
 void D3D11RenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
@@ -684,7 +684,7 @@ void D3D11RenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumIndexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
 void D3D11RenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
@@ -749,9 +749,9 @@ void D3D11RenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, 
 
 	u32 primCount = VertexCountToPrimCount(mActiveDrawOp, vertexCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 }
 
 void D3D11RenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, const SPtr<CommandBuffer>& commandBuffer)
@@ -784,9 +784,9 @@ void D3D11RenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffse
 
 	u32 primCount = VertexCountToPrimCount(mActiveDrawOp, indexCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 }
 
 void D3D11RenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<CommandBuffer>& commandBuffer)
@@ -809,7 +809,7 @@ void D3D11RenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGrou
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumComputeCalls);
+	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
 void D3D11RenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
@@ -874,7 +874,7 @@ void D3D11RenderAPI::ClearViewport(u32 buffers, const Color& color, float depth,
 		{
 			// TODO - Ignoring targetMask here
 			D3D11RenderUtility::Instance().DrawClearQuad(buffers, color, depth, stencil);
-			BS_INC_RENDER_STAT(NumClears);
+			B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 
 			NotifyRenderTargetModified();
 		}
@@ -956,7 +956,7 @@ void D3D11RenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float de
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumClears);
+	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
 void D3D11RenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask, const SPtr<CommandBuffer>& commandBuffer)
@@ -1009,7 +1009,7 @@ void D3D11RenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readO
 	SPtr<D3D11CommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumRenderTargetChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
 
 void D3D11RenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
@@ -1019,7 +1019,7 @@ void D3D11RenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
 	SubmitCommandBuffer(mMainCommandBuffer, syncMask);
 	target->SwapBuffers();
 
-	BS_INC_RENDER_STAT(NumPresents);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
 
 void D3D11RenderAPI::AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)

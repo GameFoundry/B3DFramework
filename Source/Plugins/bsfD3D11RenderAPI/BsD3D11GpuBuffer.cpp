@@ -68,7 +68,7 @@ void D3D11GpuBuffer::Initialize()
 	// Keep a single view of the entire buffer, we don't support views of sub-sets (yet)
 	mBufferView = RequestView(this, 0, props.GetElementCount(), (GpuViewUsage)usage);
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuBuffer);
 
 	GpuBuffer::Initialize();
 }

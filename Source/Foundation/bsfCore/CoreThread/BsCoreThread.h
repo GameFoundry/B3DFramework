@@ -36,7 +36,7 @@ namespace bs
 	};
 
 	typedef Flags<CoreThreadQueueFlag> CoreThreadQueueFlags;
-	BS_FLAGS_OPERATORS(CoreThreadQueueFlag)
+	B3D_FLAGS_OPERATORS(CoreThreadQueueFlag)
 
 	/**
 	 * Manager for the core thread. Takes care of starting, running, queuing commands and shutting down the core thread.

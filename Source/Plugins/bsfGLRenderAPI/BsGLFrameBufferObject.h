@@ -40,7 +40,7 @@ namespace bs
 			/**
 			 * Binds a color surface to the specific attachment point. Call rebuild() to apply changes.
 			 *
-			 * @param[in]	attachment	Attachment point index in the range [0, BS_MAX_MULTIPLE_RENDER_TARGETS).
+			 * @param[in]	attachment	Attachment point index in the range [0, B3D_MAXIMUM_RENDER_TARGET_COUNT).
 			 * @param[in]	target		Description of the color surface to attach.
 			 *
 			 * @note
@@ -52,7 +52,7 @@ namespace bs
 			/**
 			 * Unbinds the attachment at the specified attachment index. Call rebuild() to apply changes.
 			 *
-			 * @param[in]	attachment	Attachment point index in the range [0, BS_MAX_MULTIPLE_RENDER_TARGETS).
+			 * @param[in]	attachment	Attachment point index in the range [0, B3D_MAXIMUM_RENDER_TARGET_COUNT).
 			 */
 			void UnbindSurface(u32 attachment);
 
@@ -83,7 +83,7 @@ namespace bs
 		private:
 			GLuint mFB;
 
-			GLSurfaceDesc mColor[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			GLSurfaceDesc mColor[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			SPtr<GLPixelBuffer> mDepthStencilBuffer;
 			bool mDepthStencilAllLayers = false;
 		};

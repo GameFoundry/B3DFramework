@@ -52,7 +52,7 @@ namespace bs
 
 	/** @copydoc CharacterCollisionFlag */
 	typedef Flags<PhysicsFlag> PhysicsFlags;
-	BS_FLAGS_OPERATORS(PhysicsFlag)
+	B3D_FLAGS_OPERATORS(PhysicsFlag)
 
 	/** Provides global physics settings, factory methods for physics objects and scene queries. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Physics : public Module<Physics>

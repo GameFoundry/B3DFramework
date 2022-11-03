@@ -19,9 +19,9 @@ namespace bs
 	class B3D_CORE_EXPORT ShaderImportOptionsRTTI : public RTTIType<ShaderImportOptions, ImportOptions, ShaderImportOptionsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Languages, 1)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Languages, 1)
+		B3D_RTTI_END_MEMBERS
 
 		std::pair<String, String>& GetDefinePair(ShaderImportOptions* obj, u32 idx)
 		{

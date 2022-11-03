@@ -123,10 +123,10 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 	const Vector<VertexElement>& inputAttributes = vertexProgram->GetInputDeclaration()->GetProperties().GetElements();
 
 	glGenVertexArrays(1, &wantedVAO.mHandle);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glBindVertexArray(wantedVAO.mHandle);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	for(auto& elem : decl)
 	{
@@ -157,7 +157,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 		const VertexBufferProperties& vbProps = vertexBuffer->GetProperties();
 
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->GetGlBufferId());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		void* bufferData = VBO_BUFFER_OFFSET(elem.GetOffset());
 
@@ -183,19 +183,19 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 		if(isInteger)
 		{
 			glVertexAttribIPointer(attribLocation, typeCount, glType, vertexSize, bufferData);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else
 		{
 			glVertexAttribPointer(attribLocation, typeCount, glType, normalized, vertexSize, bufferData);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		glVertexAttribDivisor(attribLocation, elem.GetInstanceStepRate());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glEnableVertexAttribArray(attribLocation);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	wantedVAO.mAttachedBuffers = (GLVertexBuffer**)B3DAllocate(numUsedBuffers * sizeof(GLVertexBuffer*));
@@ -210,7 +210,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 
 	auto iter = mVAObjects.insert(wantedVAO);
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_VertexArrayObject);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_VertexArrayObject);
 	return *iter.first;
 }
 
@@ -225,9 +225,9 @@ void GLVertexArrayObjectManager::NotifyBufferDestroyed(GLVertexArrayObject vao)
 	}
 
 	glDeleteVertexArrays(1, &vao.mHandle);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	B3DFree(vao.mAttachedBuffers);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_VertexArrayObject);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_VertexArrayObject);
 }

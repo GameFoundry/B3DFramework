@@ -45,7 +45,7 @@ void VulkanEvent::Reset()
 VulkanEventQuery::VulkanEventQuery(VulkanDevice& device)
 	: mDevice(device), mEvent(nullptr)
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 VulkanEventQuery::~VulkanEventQuery()
@@ -53,7 +53,7 @@ VulkanEventQuery::~VulkanEventQuery()
 	if(mEvent != nullptr)
 		mEvent->Destroy();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void VulkanEventQuery::Begin(const SPtr<CommandBuffer>& cb)

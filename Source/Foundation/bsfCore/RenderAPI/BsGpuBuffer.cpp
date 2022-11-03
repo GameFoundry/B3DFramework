@@ -122,7 +122,7 @@ GpuBuffer::GpuBuffer(const GPU_BUFFER_DESC& desc, SPtr<HardwareBuffer> underlyin
 
 GpuBuffer::~GpuBuffer()
 {
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuBuffer);
 
 	if(mBuffer && !mSharedBuffer)
 		mBufferDeleter(mBuffer);
@@ -130,7 +130,7 @@ GpuBuffer::~GpuBuffer()
 
 void GpuBuffer::Initialize()
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuBuffer);
 	CoreObject::Initialize();
 }
 
@@ -139,12 +139,12 @@ void* GpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceI
 #if BS_PROFILING_ENABLED
 	if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_GpuBuffer);
 	}
 
 	if(options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_GpuBuffer);
 	}
 #endif
 
@@ -158,14 +158,14 @@ void GpuBuffer::Unmap()
 
 void GpuBuffer::ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx, u32 queueIdx)
 {
-	BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_GpuBuffer);
 
 	mBuffer->ReadData(offset, length, dest, deviceIdx, queueIdx);
 }
 
 void GpuBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, u32 queueIdx)
 {
-	BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_GpuBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_GpuBuffer);
 
 	mBuffer->WriteData(offset, length, source, writeFlags, queueIdx);
 }

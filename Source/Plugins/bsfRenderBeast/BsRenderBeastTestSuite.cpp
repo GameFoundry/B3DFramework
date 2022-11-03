@@ -17,7 +17,7 @@ private:
 
 RenderBeastTestSuite::RenderBeastTestSuite()
 {
-	BS_ADD_TEST(RenderBeastTestSuite::TestTextureRowAllocator);
+	B3D_ADD_TEST(RenderBeastTestSuite::TestTextureRowAllocator);
 }
 
 void RenderBeastTestSuite::TestTextureRowAllocator()

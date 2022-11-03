@@ -17,15 +17,15 @@ namespace bs
 	class B3D_CORE_EXPORT TextureImportOptionsRTTI : public RTTIType<TextureImportOptions, ImportOptions, TextureImportOptionsRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(Format, 0)
-			BS_RTTI_MEMBER_PLAIN(GenerateMips, 1)
-			BS_RTTI_MEMBER_PLAIN(MaxMip, 2)
-			BS_RTTI_MEMBER_PLAIN(CpuCached, 3)
-			BS_RTTI_MEMBER_PLAIN(SRgb, 4)
-			BS_RTTI_MEMBER_PLAIN(Cubemap, 5)
-			BS_RTTI_MEMBER_PLAIN(CubemapSourceType, 6)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Format, 0)
+			B3D_RTTI_MEMBER_PLAIN(GenerateMips, 1)
+			B3D_RTTI_MEMBER_PLAIN(MaxMip, 2)
+			B3D_RTTI_MEMBER_PLAIN(CpuCached, 3)
+			B3D_RTTI_MEMBER_PLAIN(SRgb, 4)
+			B3D_RTTI_MEMBER_PLAIN(Cubemap, 5)
+			B3D_RTTI_MEMBER_PLAIN(CubemapSourceType, 6)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()

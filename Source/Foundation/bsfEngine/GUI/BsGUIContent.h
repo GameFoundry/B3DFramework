@@ -37,14 +37,14 @@ namespace bs
 			: Normal(image), Hover(image), Active(image), Focused(image), NormalOn(image), HoverOn(image), ActiveOn(image), FocusedOn(image)
 		{}
 
-		BS_NORREF HSpriteTexture Normal;
-		BS_NORREF HSpriteTexture Hover;
-		BS_NORREF HSpriteTexture Active;
-		BS_NORREF HSpriteTexture Focused;
-		BS_NORREF HSpriteTexture NormalOn;
-		BS_NORREF HSpriteTexture HoverOn;
-		BS_NORREF HSpriteTexture ActiveOn;
-		BS_NORREF HSpriteTexture FocusedOn;
+		B3D_NO_RREF HSpriteTexture Normal;
+		B3D_NO_RREF HSpriteTexture Hover;
+		B3D_NO_RREF HSpriteTexture Active;
+		B3D_NO_RREF HSpriteTexture Focused;
+		B3D_NO_RREF HSpriteTexture NormalOn;
+		B3D_NO_RREF HSpriteTexture HoverOn;
+		B3D_NO_RREF HSpriteTexture ActiveOn;
+		B3D_NO_RREF HSpriteTexture FocusedOn;
 	};
 
 	/**

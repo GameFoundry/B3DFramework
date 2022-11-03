@@ -49,7 +49,7 @@ u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[BS_MAX_STACKTRACE_DEPT
 	stackFrame.AddrStack.Mode = AddrModeFlat;
 	stackFrame.AddrFrame.Mode = AddrModeFlat;
 
-#if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
 	stackFrame.AddrPC.Offset = context.Rip;
 	stackFrame.AddrStack.Offset = context.Rsp;
 	stackFrame.AddrFrame.Offset = context.Rbp;

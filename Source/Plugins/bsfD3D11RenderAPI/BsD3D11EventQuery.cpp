@@ -29,7 +29,7 @@ D3D11EventQuery::D3D11EventQuery(u32 deviceIdx)
 
 	mContext = device.GetImmediateContext();
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 D3D11EventQuery::~D3D11EventQuery()
@@ -39,7 +39,7 @@ D3D11EventQuery::~D3D11EventQuery()
 		mQuery->Release();
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void D3D11EventQuery::Begin(const SPtr<CommandBuffer>& cb)

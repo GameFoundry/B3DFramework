@@ -16,7 +16,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(VertexElement);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(VertexElement);
 
 	class VertexDeclarationRTTI : public RTTIType<VertexDeclaration, IReflectable, VertexDeclarationRTTI>
 	{

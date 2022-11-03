@@ -49,32 +49,32 @@ namespace bs
 		{ /* Do nothing */
 		}
 
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearExtent, mDesc.LimitLinear.Extent, 5)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearContactDist, mDesc.LimitTwist.ContactDist, 6)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearRestitution, mDesc.LimitTwist.Restitution, 7)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearSpringDamping, mDesc.LimitTwist.Spring.Damping, 8)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearSpringStiffness, mDesc.LimitTwist.Spring.Stiffness, 9)
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearExtent, mDesc.LimitLinear.Extent, 5)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearContactDist, mDesc.LimitTwist.ContactDist, 6)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearRestitution, mDesc.LimitTwist.Restitution, 7)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearSpringDamping, mDesc.LimitTwist.Spring.Damping, 8)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitLinearSpringStiffness, mDesc.LimitTwist.Spring.Stiffness, 9)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistLower, mDesc.LimitTwist.Lower, 10)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistUpper, mDesc.LimitTwist.Upper, 11)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistContactDist, mDesc.LimitTwist.ContactDist, 12)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistRestitution, mDesc.LimitTwist.Restitution, 13)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistSpringDamping, mDesc.LimitTwist.Spring.Damping, 14)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistSpringStiffness, mDesc.LimitTwist.Spring.Stiffness, 15)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistLower, mDesc.LimitTwist.Lower, 10)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistUpper, mDesc.LimitTwist.Upper, 11)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistContactDist, mDesc.LimitTwist.ContactDist, 12)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistRestitution, mDesc.LimitTwist.Restitution, 13)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistSpringDamping, mDesc.LimitTwist.Spring.Damping, 14)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitTwistSpringStiffness, mDesc.LimitTwist.Spring.Stiffness, 15)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingYLimitAngle, mDesc.LimitSwing.YLimitAngle, 16)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingZLimitAngle, mDesc.LimitSwing.ZLimitAngle, 17)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingContactDist, mDesc.LimitSwing.ContactDist, 18)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingRestitution, mDesc.LimitSwing.Restitution, 19)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingSpringDamping, mDesc.LimitSwing.Spring.Damping, 20)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingSpringStiffness, mDesc.LimitSwing.Spring.Stiffness, 21)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingYLimitAngle, mDesc.LimitSwing.YLimitAngle, 16)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingZLimitAngle, mDesc.LimitSwing.ZLimitAngle, 17)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingContactDist, mDesc.LimitSwing.ContactDist, 18)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingRestitution, mDesc.LimitSwing.Restitution, 19)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingSpringDamping, mDesc.LimitSwing.Spring.Damping, 20)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitSwingSpringStiffness, mDesc.LimitSwing.Spring.Stiffness, 21)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mDrivePosition, mDesc.DrivePosition, 22)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveRotation, mDesc.DriveRotation, 23)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveLinearVelocity, mDesc.DriveLinearVelocity, 24)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mDriveAngularVelocity, mDesc.DriveAngularVelocity, 25)
-		BS_END_RTTI_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mDrivePosition, mDesc.DrivePosition, 22)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mDriveRotation, mDesc.DriveRotation, 23)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mDriveLinearVelocity, mDesc.DriveLinearVelocity, 24)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mDriveAngularVelocity, mDesc.DriveAngularVelocity, 25)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		CD6JointRTTI()

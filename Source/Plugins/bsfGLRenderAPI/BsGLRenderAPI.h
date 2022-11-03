@@ -336,7 +336,7 @@ namespace bs
 			u32 mNumTextureUnits = 0;
 			TextureInfo* mTextureInfos = nullptr;
 			bool mDepthWrite = true;
-			bool mColorWrite[BS_MAX_MULTIPLE_RENDER_TARGETS][4];
+			bool mColorWrite[B3D_MAXIMUM_RENDER_TARGET_COUNT][4];
 
 			GLSupport* mGLSupport;
 			bool mGLInitialised;

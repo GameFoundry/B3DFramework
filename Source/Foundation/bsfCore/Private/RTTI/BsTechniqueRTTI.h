@@ -19,13 +19,13 @@ namespace bs
 	class B3D_CORE_EXPORT TechniqueRTTI : public RTTIType<Technique, IReflectable, TechniqueRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			// BS_RTTI_MEMBER_PLAIN(mRenderer, 1)
-			BS_RTTI_MEMBER_REFLPTR_ARRAY(mPasses, 2)
-			BS_RTTI_MEMBER_PLAIN_ARRAY(mTags, 3)
-			BS_RTTI_MEMBER_PLAIN(mLanguage, 4)
-			BS_RTTI_MEMBER_REFL(mVariation, 5)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			// B3D_RTTI_MEMBER_PLAIN(mRenderer, 1)
+			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mPasses, 2)
+			B3D_RTTI_MEMBER_PLAIN_ARRAY(mTags, 3)
+			B3D_RTTI_MEMBER_PLAIN(mLanguage, 4)
+			B3D_RTTI_MEMBER_REFL(mVariation, 5)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override

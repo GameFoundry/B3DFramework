@@ -19,7 +19,7 @@ namespace bs
 	};
 
 	typedef Flags<FolderChangeBit> FolderChangeBits;
-	BS_FLAGS_OPERATORS(FolderChangeBit)
+	B3D_FLAGS_OPERATORS(FolderChangeBit)
 
 	/**
 	 * Allows monitoring a file system folder for changes. Depending on the flags set this monitor can notify you when file

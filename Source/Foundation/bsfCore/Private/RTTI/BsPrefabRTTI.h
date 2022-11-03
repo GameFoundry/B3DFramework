@@ -19,12 +19,12 @@ namespace bs
 	class B3D_CORE_EXPORT PrefabRTTI : public RTTIType<Prefab, Resource, PrefabRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mHash, 1)
-			// BS_RTTI_MEMBER_PLAIN(mNextLinkId, 2)
-			BS_RTTI_MEMBER_PLAIN(mUUID, 3)
-			BS_RTTI_MEMBER_PLAIN(mIsScene, 4)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mHash, 1)
+			// B3D_RTTI_MEMBER_PLAIN(mNextLinkId, 2)
+			B3D_RTTI_MEMBER_PLAIN(mUUID, 3)
+			B3D_RTTI_MEMBER_PLAIN(mIsScene, 4)
+		B3D_RTTI_END_MEMBERS
 
 		SPtr<SceneObject> GetSceneObject(Prefab* obj) { return obj->mRoot.GetInternalPtr(); }
 

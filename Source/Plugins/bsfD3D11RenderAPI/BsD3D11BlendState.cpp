@@ -17,7 +17,7 @@ D3D11BlendState::~D3D11BlendState()
 {
 	SAFE_RELEASE(mBlendState);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_BlendState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_BlendState);
 }
 
 void D3D11BlendState::CreateInternal()
@@ -50,7 +50,7 @@ void D3D11BlendState::CreateInternal()
 		B3D_EXCEPT(RenderingAPIException, "Cannot create blend state.\nError Description:" + errorDescription);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_BlendState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_BlendState);
 
 	BlendState::CreateInternal();
 }

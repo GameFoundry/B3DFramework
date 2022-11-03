@@ -5,7 +5,7 @@ title: Advanced RTTI
 This manual is a continuation of the [RTTI](User_Manuals/Gameplay/serializingObjects) manual, focusing on some more advanced features of the RTTI system.
 
 # Manually defining fields
-Previously we have shown how to define RTTI member fields by using the BS_RTTI_MEMBER_ macros. While this method is in most cases preferable, it might not be useful if more advanced functionality is required. The macro approach is only able to reference class fields directly, but sometimes we might wish to access data returned by a method, or we might want to process the data in some way (e.g. compressing it).
+Previously we have shown how to define RTTI member fields by using the B3D_RTTI_MEMBER_ macros. While this method is in most cases preferable, it might not be useful if more advanced functionality is required. The macro approach is only able to reference class fields directly, but sometimes we might wish to access data returned by a method, or we might want to process the data in some way (e.g. compressing it).
 
 We can do this by manually defining fields. In order to manually register fields the systems supports a several sets of `add*Field` methods, each expecting a unique name/id, and a pair of getter/setter methods. The getter/setter methods can then be used for any more advanced processing.
 
@@ -249,7 +249,7 @@ template<> struct RTTIPlainType<String>
 ~~~~~~~~~~~~~
 
 ## Plain old data types
-For very simple structures you can also use the @BS_ALLOW_MEMCPY_SERIALIZATION macro as a shortcut. It will create a basic **RTTIPlainType<T>** specialization which basically just does a *memcpy()* and uses *sizeof()* to determine the object size.
+For very simple structures you can also use the @B3D_ALLOW_MEMCPY_SERIALIZATION macro as a shortcut. It will create a basic **RTTIPlainType<T>** specialization which basically just does a *memcpy()* and uses *sizeof()* to determine the object size.
 
 ~~~~~~~~~~~~~{.cpp}
 // Simple plain old data type
@@ -260,7 +260,7 @@ struct SimpleData
 	float here;
 };
 
-BS_ALLOW_MEMCPY_SERIALIZATION(SimpleData)
+B3D_ALLOW_MEMCPY_SERIALIZATION(SimpleData)
 ~~~~~~~~~~~~~
 
 ## Helper methods

@@ -26,11 +26,11 @@ GLTexture::~GLTexture()
 {
 	mSurfaceList.clear();
 	glDeleteTextures(1, &mTextureID);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	ClearBufferViews();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 }
 
 void GLTexture::Initialize()
@@ -79,17 +79,17 @@ void GLTexture::Initialize()
 
 	// Generate texture handle
 	glGenTextures(1, &mTextureID);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Set texture type
 	glBindTexture(GetGlTextureTarget(), mTextureID);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(mProperties.GetNumSamples() <= 1)
 	{
 		// This needs to be set otherwise the texture doesn't get rendered
 		glTexParameteri(GetGlTextureTarget(), GL_TEXTURE_MAX_LEVEL, numMips - 1);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	// Allocate internal buffer so that glTexSubImageXD can be used
@@ -103,10 +103,10 @@ void GLTexture::Initialize()
 			// Create immutable storage if available, fallback to mutable
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 			glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleCount, mGLFormat, width, height, GL_TRUE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 #else
 			glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, sampleCount, mGLFormat, width, height, GL_TRUE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 #endif
 		}
 		else
@@ -114,10 +114,10 @@ void GLTexture::Initialize()
 			// Create immutable storage if available, fallback to mutable
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_2
 			glTexStorage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, sampleCount, mGLFormat, width, height, numFaces, GL_TRUE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 #else
 			glTexImage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, sampleCount, mGLFormat, width, height, numFaces, GL_TRUE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 #endif
 		}
 	}
@@ -132,12 +132,12 @@ void GLTexture::Initialize()
 				if(numFaces <= 1)
 				{
 					glTexStorage1D(GL_TEXTURE_1D, numMips, mGLFormat, width);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 				else
 				{
 					glTexStorage2D(GL_TEXTURE_1D_ARRAY, numMips, mGLFormat, width, numFaces);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 			break;
@@ -146,30 +146,30 @@ void GLTexture::Initialize()
 				if(numFaces <= 1)
 				{
 					glTexStorage2D(GL_TEXTURE_2D, numMips, mGLFormat, width, height);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 				else
 				{
 					glTexStorage3D(GL_TEXTURE_2D_ARRAY, numMips, mGLFormat, width, height, numFaces);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 			break;
 		case TEX_TYPE_3D:
 			glTexStorage3D(GL_TEXTURE_3D, numMips, mGLFormat, width, height, depth);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 			break;
 		case TEX_TYPE_CUBE_MAP:
 			{
 				if(numFaces <= 6)
 				{
 					glTexStorage2D(GL_TEXTURE_CUBE_MAP, numMips, mGLFormat, width, height);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 				else
 				{
 					glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, numMips, mGLFormat, width, height, numFaces);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 			break;
@@ -185,12 +185,12 @@ void GLTexture::Initialize()
 				if(numFaces <= 1)
 				{
 					glTexImage2D(GL_TEXTURE_2D, 0, mGLFormat, width, height, 0, depthStencilFormat, depthStencilType, nullptr);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 				else
 				{
 					glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, mGLFormat, width, height, numFaces, 0, depthStencilFormat, depthStencilType, nullptr);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 			else if(texType == TEX_TYPE_CUBE_MAP)
@@ -200,13 +200,13 @@ void GLTexture::Initialize()
 					for(u32 face = 0; face < 6; face++)
 					{
 						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, 0, mGLFormat, width, height, 0, depthStencilFormat, depthStencilType, nullptr);
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 					}
 				}
 				else
 				{
 					glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, mGLFormat, width, height, numFaces, 0, depthStencilFormat, depthStencilType, nullptr);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 			else
@@ -228,12 +228,12 @@ void GLTexture::Initialize()
 						if(numFaces <= 1)
 						{
 							glTexImage1D(GL_TEXTURE_1D, mip, mGLFormat, width, 0, baseFormat, baseDataType, nullptr);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 						}
 						else
 						{
 							glTexImage2D(GL_TEXTURE_1D_ARRAY, mip, mGLFormat, width, numFaces, 0, baseFormat, baseDataType, nullptr);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 						}
 					}
 					break;
@@ -242,18 +242,18 @@ void GLTexture::Initialize()
 						if(numFaces <= 1)
 						{
 							glTexImage2D(GL_TEXTURE_2D, mip, mGLFormat, width, height, 0, baseFormat, baseDataType, nullptr);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 						}
 						else
 						{
 							glTexImage3D(GL_TEXTURE_2D_ARRAY, mip, mGLFormat, width, height, numFaces, 0, baseFormat, baseDataType, nullptr);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 						}
 					}
 					break;
 				case TEX_TYPE_3D:
 					glTexImage3D(GL_TEXTURE_3D, mip, mGLFormat, width, height, depth, 0, baseFormat, baseDataType, nullptr);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 					break;
 				case TEX_TYPE_CUBE_MAP:
 					{
@@ -262,13 +262,13 @@ void GLTexture::Initialize()
 							for(u32 face = 0; face < 6; face++)
 							{
 								glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, mip, mGLFormat, width, height, 0, baseFormat, baseDataType, nullptr);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 							}
 						}
 						else
 						{
 							glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, mip, mGLFormat, width, height, numFaces, 0, baseFormat, baseDataType, nullptr);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 						}
 					}
 					break;
@@ -289,7 +289,7 @@ void GLTexture::Initialize()
 
 	CreateSurfaceList();
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
 	Texture::Initialize();
 }
 

@@ -37,7 +37,7 @@ namespace bs
 	};
 
 	typedef Flags<ResourceLoadFlag> ResourceLoadFlags;
-	BS_FLAGS_OPERATORS(ResourceLoadFlag);
+	B3D_FLAGS_OPERATORS(ResourceLoadFlag);
 
 	/**
 	 * Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.
@@ -112,7 +112,7 @@ namespace bs
 		 * @see		release(ResourceHandleBase&), unloadAllUnused()
 		 */
 		B3D_SCRIPT_EXPORT()
-		BS_NORREF HResource Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
+		B3D_NO_RREF HResource Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
 		/** @copydoc Load(const Path&, ResourceLoadFlags) */
 		template <class T>
@@ -217,7 +217,7 @@ namespace bs
 		 * Thread safe if you guarantee the resource isn't being written to from another thread.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void Save(BS_NORREF const HResource& resource, const Path& filePath, bool overwrite, bool compress = false);
+		void Save(B3D_NO_RREF const HResource& resource, const Path& filePath, bool overwrite, bool compress = false);
 
 		/**
 		 * Saves an existing resource to its previous location.
@@ -237,7 +237,7 @@ namespace bs
 		 * Thread safe if you guarantee the resource isn't being written to from another thread.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void Save(BS_NORREF const HResource& resource, bool compress = false);
+		void Save(B3D_NO_RREF const HResource& resource, bool compress = false);
 
 		/**
 		 * Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the
@@ -322,7 +322,7 @@ namespace bs
 		 * being loaded asynchronously.
 		 */
 		B3D_SCRIPT_EXPORT()
-		Event<void(BS_NORREF const HResource&)> OnResourceLoaded;
+		Event<void(B3D_NO_RREF const HResource&)> OnResourceLoaded;
 
 		/**
 		 * Called when the resource has been destroyed. Provides UUID of the destroyed resource.
@@ -338,7 +338,7 @@ namespace bs
 		 * @note	It is undefined from which thread this will get called from.
 		 */
 		B3D_SCRIPT_EXPORT()
-		Event<void(BS_NORREF const HResource&)> OnResourceModified;
+		Event<void(B3D_NO_RREF const HResource&)> OnResourceModified;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

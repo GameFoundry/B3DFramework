@@ -85,7 +85,7 @@ GLRenderAPI::GLRenderAPI()
 	// Get our GLSupport
 	mGLSupport = ct::GetGlSupport();
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		mColorWrite[i][0] = mColorWrite[i][1] = mColorWrite[i][2] = mColorWrite[i][3] = true;
 
 	mCurrentContext = 0;
@@ -151,20 +151,20 @@ void GLRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	GLVertexArrayObjectManager::StartUp();
 
 	glFrontFace(GL_CW);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Ensure cubemaps are filtered across seams
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	GPUInfo gpuInfo;
 	gpuInfo.NumGpUs = 1;
 
 	const char* vendor = (const char*)glGetString(GL_VENDOR);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	const char* renderer = (const char*)glGetString(GL_RENDERER);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	gpuInfo.Names[0] = String(vendor) + " " + String(renderer);
 
@@ -289,7 +289,7 @@ void GLRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelin
 			// Alpha to coverage
 			SetAlphaToCoverage(stateProps.GetAlphaToCoverageEnabled());
 
-			for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+			for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 			{
 				// Blending
 				if(stateProps.GetBlendEnabled(i))
@@ -346,7 +346,7 @@ void GLRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelin
 	SPtr<GLCommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void GLRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
@@ -371,7 +371,7 @@ void GLRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineS
 	SPtr<GLCommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
@@ -384,7 +384,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 		for(u32 i = 0; i < 8; i++)
 		{
 			glBindImageTexture(i, 0, 0, false, 0, GL_READ_WRITE, GL_R32F);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 #endif
 
@@ -496,11 +496,11 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 					if(texInfo.Type != newTextureType)
 					{
 						glBindTexture(texInfo.Type, 0);
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 					}
 
 					glBindTexture(newTextureType, texId);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 
 					texInfo.Type = newTextureType;
 
@@ -510,7 +510,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 						GLuint glProgram = activeProgram->GetGlHandle();
 
 						glProgramUniform1i(glProgram, binding, unit);
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 					}
 				}
 
@@ -574,13 +574,13 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 							if(mTextureInfos[unit].Type != GL_TEXTURE_BUFFER)
 							{
 								glBindTexture(mTextureInfos[unit].Type, 0);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 							}
 
 							mTextureInfos[unit].Type = GL_TEXTURE_BUFFER;
 
 							glBindTexture(GL_TEXTURE_BUFFER, texId);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 
 							SPtr<GLSLGpuProgram> activeProgram = GetActiveProgram(type);
 							if(activeProgram != nullptr)
@@ -588,7 +588,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 								GLuint glProgram = activeProgram->GetGlHandle();
 
 								glProgramUniform1i(glProgram, binding, unit);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 							}
 						}
 						break;
@@ -606,7 +606,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 							}
 
 							glBindImageTexture(unit, texId, 0, false, 0, GL_READ_WRITE, format);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 
 							SPtr<GLSLGpuProgram> activeProgram = GetActiveProgram(type);
 							if(activeProgram != nullptr)
@@ -614,7 +614,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 								GLuint glProgram = activeProgram->GetGlHandle();
 
 								glProgramUniform1i(glProgram, binding, unit);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 							}
 						}
 						break;
@@ -629,7 +629,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 								bufferId = glBuffer->GetGlBufferId();
 
 							glBindBufferBase(GL_SHADER_STORAGE_BUFFER, unit, bufferId);
-							BS_CHECK_GL_ERROR();
+							B3D_CHECK_GL_ERROR();
 
 							SPtr<GLSLGpuProgram> activeProgram = GetActiveProgram(type);
 							if(activeProgram != nullptr)
@@ -637,7 +637,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 								GLuint glProgram = activeProgram->GetGlHandle();
 
 								glShaderStorageBlockBinding(glProgram, binding, unit);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 							}
 						}
 						break;
@@ -689,7 +689,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 					}
 
 					glBindImageTexture(unit, texId, mipLevel, bindAllLayers, face, GL_READ_WRITE, format);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 
 					SPtr<GLSLGpuProgram> activeProgram = GetActiveProgram(type);
 					if(activeProgram != nullptr)
@@ -697,7 +697,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 						GLuint glProgram = activeProgram->GetGlHandle();
 
 						glProgramUniform1i(glProgram, binding, unit);
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 					}
 				}
 #endif
@@ -736,19 +736,19 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 							{
 							case GPDT_FLOAT1:
 								glProgramUniform1fv(glProgram, param.GpuMemOffset, param.ArraySize, (GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_FLOAT2:
 								glProgramUniform2fv(glProgram, param.GpuMemOffset, param.ArraySize, (GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_FLOAT3:
 								glProgramUniform3fv(glProgram, param.GpuMemOffset, param.ArraySize, (GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_FLOAT4:
 								glProgramUniform4fv(glProgram, param.GpuMemOffset, param.ArraySize, (GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_2X2:
 								glProgramUniformMatrix2fv(
@@ -757,7 +757,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_2X3:
 								glProgramUniformMatrix3x2fv(
@@ -766,7 +766,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_2X4:
 								glProgramUniformMatrix4x2fv(
@@ -775,7 +775,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_3X2:
 								glProgramUniformMatrix2x3fv(
@@ -784,7 +784,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_3X3:
 								glProgramUniformMatrix3fv(
@@ -793,7 +793,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_3X4:
 								glProgramUniformMatrix4x3fv(
@@ -802,7 +802,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_4X2:
 								glProgramUniformMatrix2x4fv(
@@ -811,7 +811,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_4X3:
 								glProgramUniformMatrix3x4fv(
@@ -820,7 +820,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_MATRIX_4X4:
 								glProgramUniformMatrix4fv(
@@ -829,27 +829,27 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 									param.ArraySize,
 									GL_FALSE,
 									(GLfloat*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_INT1:
 								glProgramUniform1iv(glProgram, param.GpuMemOffset, param.ArraySize, (GLint*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_INT2:
 								glProgramUniform2iv(glProgram, param.GpuMemOffset, param.ArraySize, (GLint*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_INT3:
 								glProgramUniform3iv(glProgram, param.GpuMemOffset, param.ArraySize, (GLint*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_INT4:
 								glProgramUniform4iv(glProgram, param.GpuMemOffset, param.ArraySize, (GLint*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							case GPDT_BOOL:
 								glProgramUniform1uiv(glProgram, param.GpuMemOffset, param.ArraySize, (GLuint*)ptrData);
-								BS_CHECK_GL_ERROR();
+								B3D_CHECK_GL_ERROR();
 								break;
 							default:
 							case GPDT_UNKNOWN:
@@ -866,10 +866,10 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 
 						u32 unit = getUniformUnit(binding - 1);
 						glUniformBlockBinding(glProgram, binding - 1, unit);
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 
 						glBindBufferBase(GL_UNIFORM_BUFFER, unit, glParamBlockBuffer->GetGlBufferId());
-						BS_CHECK_GL_ERROR();
+						B3D_CHECK_GL_ERROR();
 					}
 				}
 			}
@@ -885,7 +885,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 	SPtr<GLCommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumGpuParamBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumGpuParamBinds);
 }
 
 void GLRenderAPI::SetStencilRef(u32 stencilRefValue, const SPtr<CommandBuffer>& commandBuffer)
@@ -957,18 +957,18 @@ void GLRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnly
 			if(target->GetProperties().HwGamma)
 			{
 				glEnable(GL_FRAMEBUFFER_SRGB);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 			else
 			{
 				glDisable(GL_FRAMEBUFFER_SRGB);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 		}
 		else
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		ApplyViewport();
@@ -980,7 +980,7 @@ void GLRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnly
 	SPtr<GLCommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumRenderTargetChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
 
 void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer)
@@ -1074,12 +1074,12 @@ void GLRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, con
 		if(instanceCount <= 1)
 		{
 			glDrawArrays(primType, vertexOffset, vertexCount);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else
 		{
 			glDrawArraysInstanced(primType, vertexOffset, vertexCount, instanceCount);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		EndDraw();
@@ -1093,9 +1093,9 @@ void GLRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, con
 
 	u32 primCount = VertexCountToPrimCount(mCurrentDrawOperation, vertexCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 }
 
 void GLRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, const SPtr<CommandBuffer>& commandBuffer)
@@ -1119,7 +1119,7 @@ void GLRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, 
 		SPtr<GLIndexBuffer> indexBuffer = std::static_pointer_cast<GLIndexBuffer>(mBoundIndexBuffer);
 		const IndexBufferProperties& ibProps = indexBuffer->GetProperties();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->GetGlBufferId());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		GLenum indexType = (ibProps.GetType() == IT_16BIT) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 
@@ -1131,7 +1131,7 @@ void GLRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, 
 				indexType,
 				(GLvoid*)(u64)(ibProps.GetIndexSize() * startIndex),
 				vertexOffset);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else
 		{
@@ -1142,7 +1142,7 @@ void GLRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, 
 				(GLvoid*)(u64)(ibProps.GetIndexSize() * startIndex),
 				instanceCount,
 				vertexOffset);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		EndDraw();
@@ -1156,11 +1156,11 @@ void GLRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, 
 
 	u32 primCount = VertexCountToPrimCount(mCurrentDrawOperation, vertexCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 
-	BS_INC_RENDER_STAT(NumIndexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
 void GLRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<CommandBuffer>& commandBuffer)
@@ -1177,10 +1177,10 @@ void GLRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		glUseProgram(mCurrentComputeProgram->GetGlHandle());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glMemoryBarrier(GL_ALL_BARRIER_BITS);
 #else
@@ -1194,7 +1194,7 @@ void GLRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ
 	SPtr<GLCommandBuffer> cb = GetCb(commandBuffer);
 	cb->QueueCommand(execute);
 
-	BS_INC_RENDER_STAT(NumComputeCalls);
+	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
 void GLRenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
@@ -1276,7 +1276,7 @@ void GLRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
 
 	target->SwapBuffers();
 
-	BS_INC_RENDER_STAT(NumPresents);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
 
 void GLRenderAPI::AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)
@@ -1316,12 +1316,12 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 		return;
 
 	u32 numColorBuffers = 1;
-	bool colorMasks[BS_MAX_MULTIPLE_RENDER_TARGETS] = { 0 };
+	bool colorMasks[B3D_MAXIMUM_RENDER_TARGET_COUNT] = { 0 };
 	if(!mActiveRenderTarget->GetProperties().IsWindow)
 	{
 		RenderTexture* renderTexture = static_cast<RenderTexture*>(mActiveRenderTarget.get());
 
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
 			SPtr<Texture> texture = renderTexture->GetColorTexture(i);
 			if(texture)
@@ -1341,7 +1341,7 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 	if(scissorTestEnabled)
 	{
 		glDisable(GL_SCISSOR_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	const RenderTargetProperties& rtProps = mActiveRenderTarget->GetProperties();
@@ -1358,12 +1358,12 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 	if(buffers & FBT_COLOR)
 	{
 		// Enable buffer for writing if it isn't
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
 			if(colorMasks[i])
 			{
 				glColorMaski(i, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 		}
 	}
@@ -1373,14 +1373,14 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 		if(!mDepthWrite)
 		{
 			glDepthMask(GL_TRUE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 	}
 	if(buffers & FBT_STENCIL)
 	{
 		// Enable buffer for writing if it isn't
 		glStencilMask(0xFFFFFFFF);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	if(targetMask == 0xFF)
@@ -1391,7 +1391,7 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 			flags |= GL_COLOR_BUFFER_BIT;
 
 			glClearColor(color.R, color.G, color.B, color.A);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(buffers & FBT_DEPTH)
@@ -1399,7 +1399,7 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 			flags |= GL_DEPTH_BUFFER_BIT;
 
 			glClearDepth(depth);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(buffers & FBT_STENCIL)
@@ -1407,12 +1407,12 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 			flags |= GL_STENCIL_BUFFER_BIT;
 
 			glClearStencil(stencil);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		// Clear buffers
 		glClear(flags);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
@@ -1421,12 +1421,12 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 
 		if(buffers & FBT_COLOR)
 		{
-			for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+			for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 			{
 				if(fbo->HasColorBuffer(i) && ((1 << i) & targetMask) != 0)
 				{
 					glClearBufferfv(GL_COLOR, i, (GLfloat*)&color);
-					BS_CHECK_GL_ERROR();
+					B3D_CHECK_GL_ERROR();
 				}
 			}
 		}
@@ -1436,19 +1436,19 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 			if(buffers & FBT_STENCIL)
 			{
 				glClearBufferfi(GL_DEPTH_STENCIL, 0, depth, stencil);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 			else
 			{
 				glClearBufferfv(GL_DEPTH, 0, &depth);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 		}
 		else if(buffers & FBT_STENCIL)
 		{
 			i32 stencilClear = (i32)stencil;
 			glClearBufferiv(GL_STENCIL, 0, &stencilClear);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 	}
 
@@ -1461,7 +1461,7 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 	if(scissorTestEnabled)
 	{
 		glEnable(GL_SCISSOR_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mScissorTop = oldScissorTop;
 		mScissorBottom = oldScissorBottom;
@@ -1473,17 +1473,17 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 	if(!mDepthWrite && (buffers & FBT_DEPTH))
 	{
 		glDepthMask(GL_FALSE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	if((buffers & FBT_COLOR))
 	{
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
 			if(colorMasks[i])
 			{
 				glColorMaski(i, mColorWrite[i][0], mColorWrite[i][1], mColorWrite[i][2], mColorWrite[i][3]);
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 		}
 	}
@@ -1491,11 +1491,11 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 	if(buffers & FBT_STENCIL)
 	{
 		glStencilMask(mStencilWriteMask);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	NotifyRenderTargetModified();
-	BS_INC_RENDER_STAT(NumClears);
+	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
 /************************************************************************/
@@ -1505,35 +1505,35 @@ void GLRenderAPI::ClearArea(u32 buffers, const Color& color, float depth, u16 st
 void GLRenderAPI::SetTextureAddressingMode(u16 unit, const UVWAddressingMode& uvw)
 {
 	glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_WRAP_S, GetTextureAddressingMode(uvw.U));
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_WRAP_T, GetTextureAddressingMode(uvw.V));
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_WRAP_R, GetTextureAddressingMode(uvw.W));
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetTextureBorderColor(u16 unit, const Color& color)
 {
 	GLfloat border[4] = { color.R, color.G, color.B, color.A };
 	glTexParameterfv(mTextureInfos[unit].Type, GL_TEXTURE_BORDER_COLOR, border);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetTextureMipmapBias(u16 unit, float bias)
 {
 	glTexParameterf(mTextureInfos[unit].Type, GL_TEXTURE_LOD_BIAS, bias);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetTextureMipmapRange(u16 unit, float min, float max)
 {
 	glTexParameterf(mTextureInfos[unit].Type, GL_TEXTURE_MIN_LOD, min);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glTexParameterf(mTextureInfos[unit].Type, GL_TEXTURE_MAX_LOD, max);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFactor destFactor, BlendOperation op)
@@ -1543,15 +1543,15 @@ void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFa
 	if(sourceFactor == BF_ONE && destFactor == BF_ZERO)
 	{
 		glDisablei(GL_BLEND, target);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glEnablei(GL_BLEND, target);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glBlendFunci(target, sourceBlend, destBlend);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	GLint func = GL_FUNC_ADD;
@@ -1575,7 +1575,7 @@ void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFa
 	}
 
 	glBlendEquationi(target, func);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFactor destFactor, BlendFactor sourceFactorAlpha, BlendFactor destFactorAlpha, BlendOperation op, BlendOperation alphaOp)
@@ -1588,15 +1588,15 @@ void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFa
 	if(sourceFactor == BF_ONE && destFactor == BF_ZERO && sourceFactorAlpha == BF_ONE && destFactorAlpha == BF_ZERO)
 	{
 		glDisablei(GL_BLEND, target);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glEnablei(GL_BLEND, target);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glBlendFuncSeparatei(target, sourceBlend, destBlend, sourceBlendAlpha, destBlendAlpha);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	GLint func = GL_FUNC_ADD, alphaFunc = GL_FUNC_ADD;
@@ -1640,7 +1640,7 @@ void GLRenderAPI::SetSceneBlending(u32 target, BlendFactor sourceFactor, BlendFa
 	}
 
 	glBlendEquationSeparatei(target, func, alphaFunc);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetAlphaToCoverage(bool enable)
@@ -1652,12 +1652,12 @@ void GLRenderAPI::SetAlphaToCoverage(bool enable)
 		if(enable)
 		{
 			glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else
 		{
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		lasta2c = enable;
@@ -1674,7 +1674,7 @@ void GLRenderAPI::SetScissorTestEnable(bool enable)
 	if(enable)
 	{
 		glEnable(GL_SCISSOR_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		x = mScissorLeft;
 		y = rtProps.Height - mScissorBottom;
@@ -1682,12 +1682,12 @@ void GLRenderAPI::SetScissorTestEnable(bool enable)
 		h = mScissorBottom - mScissorTop;
 
 		glScissor(x, y, w, h);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_SCISSOR_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		// GL requires you to reset the scissor when disabling
 		x = mViewportLeft;
@@ -1696,7 +1696,7 @@ void GLRenderAPI::SetScissorTestEnable(bool enable)
 		h = mViewportHeight;
 
 		glScissor(x, y, w, h);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 
 	mScissorEnabled = enable;
@@ -1708,12 +1708,12 @@ void GLRenderAPI::SetMultisamplingEnable(bool enable)
 	if(enable)
 	{
 		glEnable(GL_MULTISAMPLE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_MULTISAMPLE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1722,12 +1722,12 @@ void GLRenderAPI::SetDepthClipEnable(bool enable)
 	if(!enable) // If clipping disabled, clamp is enabled
 	{
 		glEnable(GL_DEPTH_CLAMP);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_DEPTH_CLAMP);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1736,12 +1736,12 @@ void GLRenderAPI::SetAntialiasedLineEnable(bool enable)
 	if(enable)
 	{
 		glEnable(GL_LINE_SMOOTH);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_LINE_SMOOTH);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1753,7 +1753,7 @@ void GLRenderAPI::SetCullingMode(CullingMode mode)
 	{
 	case CULL_NONE:
 		glDisable(GL_CULL_FACE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 		return;
 	default:
 	case CULL_CLOCKWISE:
@@ -1765,10 +1765,10 @@ void GLRenderAPI::SetCullingMode(CullingMode mode)
 	}
 
 	glEnable(GL_CULL_FACE);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glCullFace(cullMode);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetDepthBufferCheckEnabled(bool enabled)
@@ -1776,15 +1776,15 @@ void GLRenderAPI::SetDepthBufferCheckEnabled(bool enabled)
 	if(enabled)
 	{
 		glClearDepth(1.0f);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glEnable(GL_DEPTH_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_DEPTH_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1792,7 +1792,7 @@ void GLRenderAPI::SetDepthBufferWriteEnabled(bool enabled)
 {
 	GLboolean flag = enabled ? GL_TRUE : GL_FALSE;
 	glDepthMask(flag);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	mDepthWrite = enabled;
 }
@@ -1800,7 +1800,7 @@ void GLRenderAPI::SetDepthBufferWriteEnabled(bool enabled)
 void GLRenderAPI::SetDepthBufferFunction(CompareFunction func)
 {
 	glDepthFunc(ConvertCompareFunction(func));
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetDepthBias(float constantBias, float slopeScaleBias)
@@ -1808,37 +1808,37 @@ void GLRenderAPI::SetDepthBias(float constantBias, float slopeScaleBias)
 	if(constantBias != 0 || slopeScaleBias != 0)
 	{
 		glEnable(GL_POLYGON_OFFSET_FILL);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glEnable(GL_POLYGON_OFFSET_POINT);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glEnable(GL_POLYGON_OFFSET_LINE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		float scaledConstantBias = -constantBias * float((1 << 24) - 1); // Note: Assumes 24-bit depth buffer
 		glPolygonOffset(slopeScaleBias, scaledConstantBias);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_POLYGON_OFFSET_FILL);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glDisable(GL_POLYGON_OFFSET_POINT);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glDisable(GL_POLYGON_OFFSET_LINE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
 void GLRenderAPI::SetColorBufferWriteEnabled(u32 target, bool red, bool green, bool blue, bool alpha)
 {
 	glColorMaski(target, red, green, blue, alpha);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	if(target < BS_MAX_MULTIPLE_RENDER_TARGETS)
+	if(target < B3D_MAXIMUM_RENDER_TARGET_COUNT)
 	{
 		mColorWrite[target][0] = red;
 		mColorWrite[target][1] = blue;
@@ -1862,7 +1862,7 @@ void GLRenderAPI::SetPolygonMode(PolygonMode level)
 	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, glmode);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetStencilCheckEnabled(bool enabled)
@@ -1870,12 +1870,12 @@ void GLRenderAPI::SetStencilCheckEnabled(bool enabled)
 	if(enabled)
 	{
 		glEnable(GL_STENCIL_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glDisable(GL_STENCIL_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1888,7 +1888,7 @@ void GLRenderAPI::SetStencilBufferOperations(StencilOperation stencilFailOp, Ste
 			ConvertStencilOp(stencilFailOp),
 			ConvertStencilOp(depthFailOp),
 			ConvertStencilOp(passOp));
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
@@ -1897,7 +1897,7 @@ void GLRenderAPI::SetStencilBufferOperations(StencilOperation stencilFailOp, Ste
 			ConvertStencilOp(stencilFailOp),
 			ConvertStencilOp(depthFailOp),
 			ConvertStencilOp(passOp));
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1909,13 +1909,13 @@ void GLRenderAPI::SetStencilBufferFunc(CompareFunction func, u32 mask, bool fron
 	{
 		mStencilCompareFront = func;
 		glStencilFuncSeparate(GL_FRONT, ConvertCompareFunction(mStencilCompareFront), mStencilRefValue, mStencilReadMask);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		mStencilCompareBack = func;
 		glStencilFuncSeparate(GL_BACK, ConvertCompareFunction(mStencilCompareBack), mStencilRefValue, mStencilReadMask);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -1924,7 +1924,7 @@ void GLRenderAPI::SetStencilBufferWriteMask(u32 mask)
 	mStencilWriteMask = mask;
 
 	glStencilMask(mask);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetStencilRefValue(u32 refValue)
@@ -1934,10 +1934,10 @@ void GLRenderAPI::SetStencilRefValue(u32 refValue)
 	mStencilRefValue = refValue;
 
 	glStencilFuncSeparate(GL_FRONT, ConvertCompareFunction(mStencilCompareFront), mStencilRefValue, mStencilReadMask);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glStencilFuncSeparate(GL_BACK, ConvertCompareFunction(mStencilCompareBack), mStencilRefValue, mStencilReadMask);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetTextureFiltering(u16 unit, FilterType ftype, FilterOptions fo)
@@ -1948,7 +1948,7 @@ void GLRenderAPI::SetTextureFiltering(u16 unit, FilterType ftype, FilterOptions 
 		mMinFilter = fo;
 		// Combine with existing mip filter
 		glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_MIN_FILTER, GetCombinedMinMipFilter());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 		break;
 	case FT_MAG:
 		switch(fo)
@@ -1956,12 +1956,12 @@ void GLRenderAPI::SetTextureFiltering(u16 unit, FilterType ftype, FilterOptions 
 		case FO_ANISOTROPIC: // GL treats linear and aniso the same
 		case FO_LINEAR:
 			glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 			break;
 		case FO_POINT:
 		case FO_NONE:
 			glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 			break;
 		default:
 			break;
@@ -1971,7 +1971,7 @@ void GLRenderAPI::SetTextureFiltering(u16 unit, FilterType ftype, FilterOptions 
 		mMipFilter = fo;
 		// Combine with existing min filter
 		glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_MIN_FILTER, GetCombinedMinMipFilter());
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 		break;
 	}
 }
@@ -1980,7 +1980,7 @@ void GLRenderAPI::SetTextureAnisotropy(u16 unit, u32 maxAnisotropy)
 {
 	GLfloat maxSupportAnisotropy = 0;
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxSupportAnisotropy);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(maxAnisotropy > maxSupportAnisotropy)
 		maxAnisotropy = maxSupportAnisotropy ? static_cast<u32>(maxSupportAnisotropy) : 1;
@@ -1989,7 +1989,7 @@ void GLRenderAPI::SetTextureAnisotropy(u16 unit, u32 maxAnisotropy)
 		maxAnisotropy = 1;
 
 	glTexParameterf(mTextureInfos[unit].Type, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)maxAnisotropy);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::SetTextureCompareMode(u16 unit, CompareFunction compare)
@@ -1997,15 +1997,15 @@ void GLRenderAPI::SetTextureCompareMode(u16 unit, CompareFunction compare)
 	if(compare == CMPF_ALWAYS_PASS)
 	{
 		glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 	else
 	{
 		glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glTexParameteri(mTextureInfos[unit].Type, GL_TEXTURE_COMPARE_FUNC, ConvertCompareFunction(compare));
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 
@@ -2016,7 +2016,7 @@ bool GLRenderAPI::ActivateGlTextureUnit(u16 unit)
 		if(unit < GetCapabilities(0).NumCombinedTextureUnits)
 		{
 			glActiveTexture(GL_TEXTURE0 + unit);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 
 			mActiveTextureUnit = unit;
 			return true;
@@ -2068,12 +2068,12 @@ void GLRenderAPI::BeginDraw()
 	const GLSLProgramPipeline* pipeline = mProgramPipelineManager->GetPipeline(mCurrentVertexProgram.get(), mCurrentFragmentProgram.get(), mCurrentGeometryProgram.get(), mCurrentHullProgram.get(), mCurrentDomainProgram.get());
 
 	glUseProgram(0);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	if(mActivePipeline != pipeline)
 	{
 		glBindProgramPipeline(pipeline->GlHandle);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mActivePipeline = pipeline;
 	}
@@ -2084,9 +2084,9 @@ void GLRenderAPI::BeginDraw()
 		mBoundVertexBuffers);
 
 	glBindVertexArray(vao.GetGlHandle());
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT(NumVertexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumVertexBufferBinds);
 }
 
 void GLRenderAPI::EndDraw()
@@ -2106,7 +2106,7 @@ GLfloat GLRenderAPI::GetCurrentAnisotropy(u16 unit)
 {
 	GLfloat curAniso = 0;
 	glGetTexParameterfv(mTextureInfos[unit].Type, GL_TEXTURE_MAX_ANISOTROPY_EXT, &curAniso);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	return curAniso ? curAniso : 1;
 }
@@ -2358,14 +2358,14 @@ void GLRenderAPI::SwitchContext(const SPtr<GLContext>& context, const RenderWind
 	// Must reset depth/colour write mask to according with user desired, otherwise, clearFrameBuffer would be wrong
 	// because the value we recorded may be different from the real state stored in GL context.
 	glDepthMask(mDepthWrite);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		glColorMask(mColorWrite[i][0], mColorWrite[i][1], mColorWrite[i][2], mColorWrite[i][3]);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	glStencilMask(mStencilWriteMask);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }
 
 void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
@@ -2437,7 +2437,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 	glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES, &maxOutputVertices);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #else
 	maxOutputVertices = 0;
 #endif
@@ -2447,25 +2447,25 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 	// Max number of fragment shader textures
 	GLint units;
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &units);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = static_cast<u16>(units);
 
 	// Max number of vertex shader textures
 	GLint vUnits;
 	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &vUnits);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] = static_cast<u16>(vUnits);
 
 	GLint numUniformBlocks;
 	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &numUniformBlocks);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumGpuParamBlockBuffersPerStage[GPT_VERTEX_PROGRAM] = numUniformBlocks;
 
 	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &numUniformBlocks);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumGpuParamBlockBuffersPerStage[GPT_FRAGMENT_PROGRAM] = numUniformBlocks;
 
@@ -2474,7 +2474,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 		glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &geomUnits);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		geomUnits = 0;
 #endif
@@ -2483,7 +2483,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 		glGetIntegerv(GL_MAX_GEOMETRY_UNIFORM_BLOCKS, &numUniformBlocks);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		numUniformBlocks = 0;
 #endif
@@ -2499,7 +2499,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 		glGetIntegerv(GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS, &numUniformBlocks);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		numUniformBlocks = 0;
 #endif
@@ -2508,7 +2508,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_1 || BS_OPENGLES_3_2
 		glGetIntegerv(GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS, &numUniformBlocks);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		numUniformBlocks = 0;
 #endif
@@ -2526,7 +2526,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		glGetIntegerv(GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS, &computeUnits);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		computeUnits = 0;
 #endif
@@ -2535,7 +2535,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		glGetIntegerv(GL_MAX_COMPUTE_UNIFORM_BLOCKS, &numUniformBlocks);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		numUniformBlocks = 0;
 #endif
@@ -2547,7 +2547,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 		glGetIntegerv(GL_MAX_FRAGMENT_IMAGE_UNIFORMS, &lsfUnits);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		lsfUnits = 0;
 #endif
@@ -2558,7 +2558,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		glGetIntegerv(GL_MAX_COMPUTE_IMAGE_UNIFORMS, &lscUnits);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		lscUnits = 0;
 #endif
@@ -2569,7 +2569,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 #if BS_OPENGL_4_2 || BS_OPENGLES_3_1
 		glGetIntegerv(GL_MAX_IMAGE_UNITS, &combinedLoadStoreTextureUnits);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		combinedLoadStoreTextureUnits = 0;
 #endif
@@ -2579,13 +2579,13 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 
 	GLint combinedTexUnits;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &combinedTexUnits);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumCombinedTextureUnits = static_cast<u16>(combinedTexUnits);
 
 	GLint combinedUniformBlockUnits;
 	glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, &combinedUniformBlockUnits);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	caps.NumCombinedParamBlockBuffers = static_cast<u16>(combinedUniformBlockUnits);
 	caps.NumMultiRenderTargets = 8;
@@ -2618,16 +2618,16 @@ void GLRenderAPI::ApplyViewport()
 	mViewportHeight = (u32)(rtProps.Height * mViewportNorm.Height);
 
 	glViewport(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Configure the viewport clipping
 	if(!mScissorEnabled)
 	{
 		glEnable(GL_SCISSOR_TEST);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		glScissor(mViewportLeft, mViewportTop, mViewportWidth, mViewportHeight);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 	}
 }
 

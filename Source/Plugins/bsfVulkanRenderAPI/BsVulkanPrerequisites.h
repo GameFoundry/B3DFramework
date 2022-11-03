@@ -104,7 +104,7 @@ namespace bs
 		};
 
 		typedef Flags<ClearMaskBits> ClearMask;
-		BS_FLAGS_OPERATORS(ClearMaskBits);
+		B3D_FLAGS_OPERATORS(ClearMaskBits);
 	} // namespace ct
 } // namespace bs
 

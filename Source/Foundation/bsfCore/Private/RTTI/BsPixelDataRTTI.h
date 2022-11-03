@@ -19,17 +19,17 @@ namespace bs
 	{
 		static u32 VERSION;
 
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN_NAMED(left, mExtents.Left, 0)
-			BS_RTTI_MEMBER_PLAIN_NAMED(top, mExtents.Top, 1)
-			BS_RTTI_MEMBER_PLAIN_NAMED(right, mExtents.Right, 2)
-			BS_RTTI_MEMBER_PLAIN_NAMED(bottom, mExtents.Bottom, 3)
-			BS_RTTI_MEMBER_PLAIN_NAMED(front, mExtents.Front, 4)
-			BS_RTTI_MEMBER_PLAIN_NAMED(back, mExtents.Back, 5)
-			BS_RTTI_MEMBER_PLAIN(mRowPitch, 6)
-			BS_RTTI_MEMBER_PLAIN(mSlicePitch, 7)
-			BS_RTTI_MEMBER_PLAIN(mFormat, 8)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(left, mExtents.Left, 0)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(top, mExtents.Top, 1)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(right, mExtents.Right, 2)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(bottom, mExtents.Bottom, 3)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(front, mExtents.Front, 4)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(back, mExtents.Back, 5)
+			B3D_RTTI_MEMBER_PLAIN(mRowPitch, 6)
+			B3D_RTTI_MEMBER_PLAIN(mSlicePitch, 7)
+			B3D_RTTI_MEMBER_PLAIN(mFormat, 8)
+		B3D_RTTI_END_MEMBERS
 
 		u32& GetVersion(PixelData* obj) { return VERSION; }
 

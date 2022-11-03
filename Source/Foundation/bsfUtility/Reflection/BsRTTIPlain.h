@@ -63,7 +63,7 @@ namespace bs
 	};
 
 	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;
-	BS_FLAGS_OPERATORS(RTTIFieldFlag)
+	B3D_FLAGS_OPERATORS(RTTIFieldFlag)
 
 	/** Provides various optional information regarding a RTTI field. */
 	struct B3D_UTILITY_EXPORT RTTIFieldInfo
@@ -99,7 +99,7 @@ namespace bs
 	struct RTTIPlainType
 	{
 		static_assert(std::is_pod<T>::value, "Provided type isn't plain-old-data. You need to specialize RTTIPlainType template in order to serialize this type. "
-											 " (Or call BS_ALLOW_MEMCPY_SERIALIZATION(type) macro if you are sure the type can be properly serialized using just memcpy.)");
+											 " (Or call B3D_ALLOW_MEMCPY_SERIALIZATION(type) macro if you are sure the type can be properly serialized using just memcpy.)");
 
 		enum
 		{
@@ -406,7 +406,7 @@ namespace bs
 	 *
 	 * @see		RTTIPlainType<T>
 	 */
-#define BS_ALLOW_MEMCPY_SERIALIZATION(type)                                                                           \
+#define B3D_ALLOW_MEMCPY_SERIALIZATION(type)                                                                           \
 	static_assert(std::is_trivially_copyable<type>() == true, #type " is not trivially copyable");                    \
 	template <>                                                                                                       \
 	struct RTTIPlainType<type>                                                                                        \

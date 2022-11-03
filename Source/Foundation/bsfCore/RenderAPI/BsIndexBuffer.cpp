@@ -74,12 +74,12 @@ IndexBuffer::~IndexBuffer()
 	if(mBuffer && !mSharedBuffer)
 		mBufferDeleter(mBuffer);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_IndexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_IndexBuffer);
 }
 
 void IndexBuffer::Initialize()
 {
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_IndexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_IndexBuffer);
 	CoreObject::Initialize();
 }
 
@@ -88,12 +88,12 @@ void* IndexBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 devic
 #if BS_PROFILING_ENABLED
 	if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_IndexBuffer);
 	}
 
 	if(options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_IndexBuffer);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_IndexBuffer);
 	}
 #endif
 
@@ -109,14 +109,14 @@ void IndexBuffer::ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx, u3
 {
 	mBuffer->ReadData(offset, length, dest, deviceIdx, queueIdx);
 
-	BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_IndexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_IndexBuffer);
 }
 
 void IndexBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, u32 queueIdx)
 {
 	mBuffer->WriteData(offset, length, source, writeFlags, queueIdx);
 
-	BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_IndexBuffer);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_IndexBuffer);
 }
 
 void IndexBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)

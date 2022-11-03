@@ -406,14 +406,14 @@ namespace bs
 
 	namespace ct
 	{
-		BS_PARAM_BLOCK_BEGIN(GUISpriteParamBlockDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
-			BS_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
-			BS_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
-			BS_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
-			BS_PARAM_BLOCK_ENTRY(Color, gTint)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(GUISpriteParamBlockDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
+			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
+			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
+			B3D_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
+			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
+		B3D_PARAM_BLOCK_END
 
 		extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
 

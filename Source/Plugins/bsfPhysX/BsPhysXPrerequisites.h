@@ -95,7 +95,7 @@ namespace bs
 
 	/** @copydoc PhysXObjectFilterFlag */
 	typedef Flags<PhysXObjectFilterFlag> PhysXObjectFilterFlags;
-	BS_FLAGS_OPERATORS(PhysXObjectFilterFlag)
+	B3D_FLAGS_OPERATORS(PhysXObjectFilterFlag)
 
 	/** @} */
 } // namespace bs

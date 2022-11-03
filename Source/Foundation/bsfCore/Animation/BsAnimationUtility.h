@@ -196,7 +196,7 @@ namespace bs
 	};
 
 	typedef Flags<TangentModeBits> TangentMode;
-	BS_FLAGS_OPERATORS(TangentModeBits)
+	B3D_FLAGS_OPERATORS(TangentModeBits)
 
 	/* Structure containing a reference to a keyframe as a curve index, and a keyframe index within that curve. */
 	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Animation)) KeyframeRef

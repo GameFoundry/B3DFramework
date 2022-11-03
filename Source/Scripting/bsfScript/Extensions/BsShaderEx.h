@@ -45,7 +45,7 @@ namespace bs
 	};
 
 	using ShaderParameterFlags = Flags<ShaderParameterFlag>;
-	BS_FLAGS_OPERATORS(ShaderParameterFlag)
+	B3D_FLAGS_OPERATORS(ShaderParameterFlag)
 
 	/** Contains information about a single shader parameter. */
 	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportAsStruct(true)) ShaderParameter

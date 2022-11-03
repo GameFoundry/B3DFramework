@@ -30,9 +30,9 @@ GLSLProgramPipelineManager::~GLSLProgramPipelineManager()
 	for(auto& pipeline : mPipelines)
 	{
 		glDeleteProgramPipelines(1, &pipeline.second.GlHandle);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_PipelineObject);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_PipelineObject);
 	}
 }
 
@@ -52,41 +52,41 @@ const GLSLProgramPipeline* GLSLProgramPipelineManager::GetPipeline(GLSLGpuProgra
 		GLSLProgramPipeline newPipeline;
 
 		glGenProgramPipelines(1, &newPipeline.GlHandle);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		if(vertexProgram != nullptr)
 		{
 			glUseProgramStages(newPipeline.GlHandle, GL_VERTEX_SHADER_BIT, vertexProgram->GetGlHandle());
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(fragmentProgram != nullptr)
 		{
 			glUseProgramStages(newPipeline.GlHandle, GL_FRAGMENT_SHADER_BIT, fragmentProgram->GetGlHandle());
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(geometryProgram != nullptr)
 		{
 			glUseProgramStages(newPipeline.GlHandle, GL_GEOMETRY_SHADER_BIT, geometryProgram->GetGlHandle());
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(hullProgram != nullptr)
 		{
 			glUseProgramStages(newPipeline.GlHandle, GL_TESS_CONTROL_SHADER_BIT, hullProgram->GetGlHandle());
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		if(domainProgram != nullptr)
 		{
 			glUseProgramStages(newPipeline.GlHandle, GL_TESS_EVALUATION_SHADER_BIT, domainProgram->GetGlHandle());
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 
 		mPipelines[key] = newPipeline;
 
-		BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_PipelineObject);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineObject);
 		return &mPipelines[key];
 	}
 	else

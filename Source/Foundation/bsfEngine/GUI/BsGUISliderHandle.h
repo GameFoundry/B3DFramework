@@ -30,7 +30,7 @@ namespace bs
 	};
 
 	typedef Flags<GUISliderHandleFlag> GUISliderHandleFlags;
-	BS_FLAGS_OPERATORS(GUISliderHandleFlag);
+	B3D_FLAGS_OPERATORS(GUISliderHandleFlag);
 
 	/** A handle that can be dragged from its predefined minimum and maximum position, either horizontally or vertically. */
 	class B3D_EXPORT GUISliderHandle : public GUIElement

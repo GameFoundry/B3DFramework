@@ -16,16 +16,16 @@ namespace bs
 	class B3D_CORE_EXPORT RenderableRTTI : public RTTIType<Renderable, IReflectable, RenderableRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(mTransform, 0)
-			BS_RTTI_MEMBER_PLAIN(mActive, 1)
-			BS_RTTI_MEMBER_PLAIN(mMobility, 2)
-			BS_RTTI_MEMBER_REFL(mMesh, 3)
-			BS_RTTI_MEMBER_PLAIN(mLayer, 4)
-			BS_RTTI_MEMBER_REFL_ARRAY(mMaterials, 5)
-			BS_RTTI_MEMBER_PLAIN(mCullDistanceFactor, 6)
-			BS_RTTI_MEMBER_PLAIN(mWriteVelocity, 7)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(mTransform, 0)
+			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
+			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
+			B3D_RTTI_MEMBER_REFL(mMesh, 3)
+			B3D_RTTI_MEMBER_PLAIN(mLayer, 4)
+			B3D_RTTI_MEMBER_REFL_ARRAY(mMaterials, 5)
+			B3D_RTTI_MEMBER_PLAIN(mCullDistanceFactor, 6)
+			B3D_RTTI_MEMBER_PLAIN(mWriteVelocity, 7)
+		B3D_RTTI_END_MEMBERS
 
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)

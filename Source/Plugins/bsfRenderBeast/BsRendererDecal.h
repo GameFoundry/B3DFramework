@@ -19,13 +19,13 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(DecalParamDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldToDecal)
-			BS_PARAM_BLOCK_ENTRY(Vector3, gDecalNormal)
-			BS_PARAM_BLOCK_ENTRY(float, gNormalTolerance)
-			BS_PARAM_BLOCK_ENTRY(float, gFlipDerivatives)
-			BS_PARAM_BLOCK_ENTRY(i32, gLayerMask)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(DecalParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldToDecal)
+			B3D_PARAM_BLOCK_ENTRY(Vector3, gDecalNormal)
+			B3D_PARAM_BLOCK_ENTRY(float, gNormalTolerance)
+			B3D_PARAM_BLOCK_ENTRY(float, gFlipDerivatives)
+			B3D_PARAM_BLOCK_ENTRY(i32, gLayerMask)
+		B3D_PARAM_BLOCK_END
 
 		extern DecalParamDef gDecalParamDef;
 

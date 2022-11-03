@@ -153,7 +153,7 @@ namespace bs
 		static MonoString* InternalGetStyle(ScriptGUIElementBaseTBase* nativeInstance);
 		static void InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstance, MonoString* style);
 
-		typedef void(BS_THUNKCALL* OnFocusChangedThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnFocusChangedThunkDef)(MonoObject*, MonoException**);
 
 	public:
 		static OnFocusChangedThunkDef onFocusGainedThunk;

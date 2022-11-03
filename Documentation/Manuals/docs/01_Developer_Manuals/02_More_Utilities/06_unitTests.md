@@ -4,7 +4,7 @@ title: Unit tests
 
 All unit tests are implemented as a part of a @bs::TestSuite class. You can create your own test suites, or add tests to the existing ones. 
 
-To register new tests call @BS_ADD_TEST in the test suite's constructor. The test method must not accept any parameters or return any values. To report test failure call @BS_TEST_ASSERT or @BS_TEST_ASSERT_MSG. If neither of those trigger, test is assumed to be successful.
+To register new tests call @B3D_ADD_TEST in the test suite's constructor. The test method must not accept any parameters or return any values. To report test failure call @BS_TEST_ASSERT or @BS_TEST_ASSERT_MSG. If neither of those trigger, test is assumed to be successful.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyTestSuite : TestSuite
@@ -12,7 +12,7 @@ class MyTestSuite : TestSuite
 public:
 	MyTestSuite()
 	{
-		BS_ADD_TEST(MyTestSuite::myTest);
+		B3D_ADD_TEST(MyTestSuite::myTest);
 	}
 	
 private:

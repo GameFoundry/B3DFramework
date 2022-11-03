@@ -16,16 +16,16 @@ namespace bs
 
 	class B3D_CORE_EXPORT CJointRTTI : public RTTIType<CJoint, Component, CJointRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL_NAMED(mBodyA, mBodies[0], 0)
-			BS_RTTI_MEMBER_REFL_NAMED(mBodyB, mBodies[1], 1)
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL_NAMED(mBodyA, mBodies[0], 0)
+			B3D_RTTI_MEMBER_REFL_NAMED(mBodyB, mBodies[1], 1)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mPositionA, mPositions[0], 2)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mPositionB, mPositions[1], 3)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mPositionA, mPositions[0], 2)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mPositionB, mPositions[1], 3)
 
-			BS_RTTI_MEMBER_PLAIN_NAMED(mRotationA, mRotations[0], 4)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mRotationB, mRotations[1], 5)
-		BS_END_RTTI_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mRotationA, mRotations[0], 4)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mRotationB, mRotations[1], 5)
+		B3D_RTTI_END_MEMBERS
 
 		float& GetBreakForce(OwnerType* obj) { return obj->mDesc.BreakForce; }
 

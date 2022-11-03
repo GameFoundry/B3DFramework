@@ -18,21 +18,21 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(PerObjectParamDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatWorld)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorld)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldNoScale)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorldNoScale)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatPrevWorld)
-			BS_PARAM_BLOCK_ENTRY(float, gWorldDeterminantSign)
-			BS_PARAM_BLOCK_ENTRY(i32, gLayer)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerObjectParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorld)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorld)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldNoScale)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvWorldNoScale)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatPrevWorld)
+			B3D_PARAM_BLOCK_ENTRY(float, gWorldDeterminantSign)
+			B3D_PARAM_BLOCK_ENTRY(i32, gLayer)
+		B3D_PARAM_BLOCK_END
 
 		extern PerObjectParamDef gPerObjectParamDef;
 
-		BS_PARAM_BLOCK_BEGIN(PerCallParamDef)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldViewProj)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerCallParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatWorldViewProj)
+		B3D_PARAM_BLOCK_END
 
 		extern PerCallParamDef gPerCallParamDef;
 

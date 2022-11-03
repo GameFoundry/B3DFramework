@@ -70,9 +70,9 @@ namespace bs
 		static void InternalGetPointerPosition(Vector2I* position);
 		static void InternalGetPointerDelta(Vector2I* position);
 
-		typedef void(BS_THUNKCALL* OnButtonEventThunkDef)(ButtonCode, u32, bool, MonoException**);
-		typedef void(BS_THUNKCALL* OnCharInputEventThunkDef)(u32, bool, MonoException**);
-		typedef void(BS_THUNKCALL* OnPointerEventThunkDef)(MonoObject*, MonoObject*, PointerEventButton, bool, bool, bool, float, bool, MonoException**);
+		typedef void(B3D_THUNKCALL* OnButtonEventThunkDef)(ButtonCode, u32, bool, MonoException**);
+		typedef void(B3D_THUNKCALL* OnCharInputEventThunkDef)(u32, bool, MonoException**);
+		typedef void(B3D_THUNKCALL* OnPointerEventThunkDef)(MonoObject*, MonoObject*, PointerEventButton, bool, bool, bool, float, bool, MonoException**);
 
 		static OnButtonEventThunkDef OnButtonPressedThunk;
 		static OnButtonEventThunkDef OnButtonReleasedThunk;

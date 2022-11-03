@@ -57,7 +57,7 @@ namespace bs
 	};
 
 	typedef Flags<MirrorModeBits> MirrorMode;
-	BS_FLAGS_OPERATORS(MirrorModeBits);
+	B3D_FLAGS_OPERATORS(MirrorModeBits);
 
 	/**	Options used to control texture compression. */
 	struct CompressionOptions

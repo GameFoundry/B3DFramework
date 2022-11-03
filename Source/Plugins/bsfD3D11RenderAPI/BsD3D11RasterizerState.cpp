@@ -18,7 +18,7 @@ D3D11RasterizerState::~D3D11RasterizerState()
 {
 	SAFE_RELEASE(mRasterizerState);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_RasterizerState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_RasterizerState);
 }
 
 void D3D11RasterizerState::CreateInternal()
@@ -49,6 +49,6 @@ void D3D11RasterizerState::CreateInternal()
 		B3D_EXCEPT(RenderingAPIException, "Cannot create rasterizer state.\nError Description:" + errorDescription);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_RasterizerState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_RasterizerState);
 	RasterizerState::CreateInternal();
 }

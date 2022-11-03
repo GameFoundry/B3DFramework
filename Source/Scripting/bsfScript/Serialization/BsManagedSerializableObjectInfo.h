@@ -68,7 +68,7 @@ namespace bs
 	};
 
 	typedef Flags<ScriptFieldFlag> ScriptFieldFlags;
-	BS_FLAGS_OPERATORS(ScriptFieldFlag);
+	B3D_FLAGS_OPERATORS(ScriptFieldFlag);
 
 	/** Flags that are used to further desribe a type of a managed serializable object. */
 	enum class ScriptTypeFlag
@@ -78,7 +78,7 @@ namespace bs
 	};
 
 	typedef Flags<ScriptTypeFlag> ScriptTypeFlags;
-	BS_FLAGS_OPERATORS(ScriptTypeFlag);
+	B3D_FLAGS_OPERATORS(ScriptTypeFlag);
 
 	/**	Contains information about a type of a managed serializable object. */
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfo : public IReflectable

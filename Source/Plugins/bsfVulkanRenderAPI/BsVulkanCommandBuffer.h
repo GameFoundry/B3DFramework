@@ -82,7 +82,7 @@ namespace bs
 		};
 
 		typedef Flags<DescriptorSetBindFlag> DescriptorSetBindFlags;
-		BS_FLAGS_OPERATORS(DescriptorSetBindFlag)
+		B3D_FLAGS_OPERATORS(DescriptorSetBindFlag)
 
 		/** Bits that represent different ways an image subresource can be used. */
 		enum class ImageUseFlagBits
@@ -93,7 +93,7 @@ namespace bs
 		};
 
 		typedef Flags<ImageUseFlagBits> ImageUseFlags;
-		BS_FLAGS_OPERATORS(ImageUseFlagBits)
+		B3D_FLAGS_OPERATORS(ImageUseFlagBits)
 
 		/** Bits that represent different ways a buffer can be used. */
 		enum class BufferUseFlagBits
@@ -106,7 +106,7 @@ namespace bs
 		};
 
 		typedef Flags<BufferUseFlagBits> BufferUseFlags;
-		BS_FLAGS_OPERATORS(BufferUseFlagBits)
+		B3D_FLAGS_OPERATORS(BufferUseFlagBits)
 
 		/**
 		 * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a

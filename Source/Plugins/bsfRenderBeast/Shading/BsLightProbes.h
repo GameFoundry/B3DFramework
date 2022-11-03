@@ -24,9 +24,9 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(TetrahedraRenderParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector2I, gDepthTexSize)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(TetrahedraRenderParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gDepthTexSize)
+		B3D_PARAM_BLOCK_END
 
 		extern TetrahedraRenderParamDef gTetrahedraRenderParamDef;
 
@@ -83,10 +83,10 @@ namespace bs
 			GpuParamTexture mDepthBufferTex;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(IrradianceEvaluateParamDef)
-			BS_PARAM_BLOCK_ENTRY(float, gSkyBrightness)
-			BS_PARAM_BLOCK_ENTRY(i32, gNumTetrahedra)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(IrradianceEvaluateParamDef)
+			B3D_PARAM_BLOCK_ENTRY(float, gSkyBrightness)
+			B3D_PARAM_BLOCK_ENTRY(i32, gNumTetrahedra)
+		B3D_PARAM_BLOCK_END
 
 		extern IrradianceEvaluateParamDef gIrradianceEvaluateParamDef;
 

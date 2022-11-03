@@ -22,7 +22,7 @@ namespace bs
 	};
 
 	typedef Flags<ActorDirtyFlag> ActorDirtyFlags;
-	BS_FLAGS_OPERATORS(ActorDirtyFlag)
+	B3D_FLAGS_OPERATORS(ActorDirtyFlag)
 
 	/**
 	 * A base class for objects that can be placed in the scene. It has a transform object that allows it to be positioned,

@@ -43,7 +43,7 @@ D3D11InputLayoutManager::~D3D11InputLayoutManager()
 		B3DDelete(firstElem->second);
 
 		mInputLayoutMap.erase(firstElem);
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_InputLayout);
 	}
 }
 
@@ -160,7 +160,7 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 
 	mInputLayoutMap[pair] = newEntry;
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_InputLayout);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_InputLayout);
 }
 
 void D3D11InputLayoutManager::RemoveLeastUsed()
@@ -189,7 +189,7 @@ void D3D11InputLayoutManager::RemoveLeastUsed()
 		B3DDelete(inputLayoutIter->second);
 
 		mInputLayoutMap.erase(inputLayoutIter);
-		BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_InputLayout);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_InputLayout);
 
 		elemsRemoved++;
 		if(elemsRemoved >= NUM_ELEMENTS_TO_PRUNE)

@@ -75,14 +75,14 @@ namespace bs
 		 */
 		void Initialize(ScriptManagedComponent* owner);
 
-		typedef void(BS_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnUpdateThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnDestroyedThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnResetThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnEnabledThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnDisabledThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnTransformChangedThunkDef)(MonoObject*, TransformChangedFlags, MonoException**);
+		typedef void(B3D_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnUpdateThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnDestroyedThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnResetThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnEnabledThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnDisabledThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnTransformChangedThunkDef)(MonoObject*, TransformChangedFlags, MonoException**);
 
 		MonoClass* mManagedClass = nullptr;
 		MonoReflectionType* mRuntimeType = nullptr;

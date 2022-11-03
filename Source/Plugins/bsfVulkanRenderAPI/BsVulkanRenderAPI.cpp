@@ -374,7 +374,7 @@ void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pip
 
 	vkCB->SetPipelineState(pipelineState);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
@@ -384,7 +384,7 @@ void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipel
 
 	vkCB->SetPipelineState(pipelineState);
 
-	BS_INC_RENDER_STAT(NumPipelineStateChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
 void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
@@ -412,7 +412,7 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<
 
 	vkCB->SetGpuParams(gpuParams);
 
-	BS_INC_RENDER_STAT(NumGpuParamBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumGpuParamBinds);
 }
 
 void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
@@ -430,7 +430,7 @@ void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u
 
 	vkCB->SetVertexBuffers(index, buffers, numBuffers);
 
-	BS_INC_RENDER_STAT(NumVertexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumVertexBufferBinds);
 }
 
 void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
@@ -440,7 +440,7 @@ void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr
 
 	vkCB->SetIndexBuffer(buffer);
 
-	BS_INC_RENDER_STAT(NumIndexBufferBinds);
+	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
 void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
@@ -468,9 +468,9 @@ void VulkanRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount,
 
 	vkCB->Draw(vertexOffset, vertexCount, instanceCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 }
 
 void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, const SPtr<CommandBuffer>& commandBuffer)
@@ -482,9 +482,9 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 
 	vkCB->DrawIndexed(startIndex, indexCount, vertexOffset, instanceCount);
 
-	BS_INC_RENDER_STAT(NumDrawCalls);
-	BS_ADD_RENDER_STAT(NumVertices, vertexCount);
-	BS_ADD_RENDER_STAT(NumPrimitives, primCount);
+	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
+	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
+	B3D_ADD_RENDER_STATISTIC(NumPrimitives, primCount);
 }
 
 void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<CommandBuffer>& commandBuffer)
@@ -494,7 +494,7 @@ void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGro
 
 	vkCB->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
 
-	BS_INC_RENDER_STAT(NumComputeCalls);
+	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
 void VulkanRenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
@@ -521,7 +521,7 @@ void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth
 
 	vkCB->ClearViewport(buffers, color, depth, stencil, targetMask);
 
-	BS_INC_RENDER_STAT(NumClears);
+	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
 void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
@@ -531,7 +531,7 @@ void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float d
 
 	vkCB->ClearRenderTarget(buffers, color, depth, stencil, targetMask);
 
-	BS_INC_RENDER_STAT(NumClears);
+	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
 
 void VulkanRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask, const SPtr<CommandBuffer>& commandBuffer)
@@ -541,7 +541,7 @@ void VulkanRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 read
 
 	vkCB->SetRenderTarget(target, readOnlyFlags, loadMask);
 
-	BS_INC_RENDER_STAT(NumRenderTargetChanges);
+	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
 
 void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
@@ -555,7 +555,7 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 	for(u32 i = 0; i < (u32)mDevices.size(); i++)
 		mDevices[i]->RefreshStates();
 
-	BS_INC_RENDER_STAT(NumPresents);
+	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
 
 void VulkanRenderAPI::AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary)

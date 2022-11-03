@@ -17,12 +17,12 @@ namespace bs
 	class B3D_CORE_EXPORT SkyboxRTTI : public RTTIType<Skybox, IReflectable, SkyboxRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(mTexture, 0)
-			BS_RTTI_MEMBER_PLAIN(mBrightness, 1)
-			BS_RTTI_MEMBER_REFLPTR(mFilteredRadiance, 2)
-			BS_RTTI_MEMBER_REFLPTR(mIrradiance, 3)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(mTexture, 0)
+			B3D_RTTI_MEMBER_PLAIN(mBrightness, 1)
+			B3D_RTTI_MEMBER_REFLPTR(mFilteredRadiance, 2)
+			B3D_RTTI_MEMBER_REFLPTR(mIrradiance, 3)
+		B3D_RTTI_END_MEMBERS
 	public:
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
 		{

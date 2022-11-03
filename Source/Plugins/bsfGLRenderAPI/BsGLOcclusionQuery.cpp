@@ -14,17 +14,17 @@ GLOcclusionQuery::GLOcclusionQuery(bool binary, u32 deviceIdx)
 	B3D_ASSERT(deviceIdx == 0 && "Multiple GPUs not supported natively on OpenGL.");
 
 	glGenQueries(1, &mQueryObj);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Query);
 }
 
 GLOcclusionQuery::~GLOcclusionQuery()
 {
 	glDeleteQueries(1, &mQueryObj);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Query);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Query);
 }
 
 void GLOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
@@ -32,7 +32,7 @@ void GLOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	auto execute = [&]()
 	{
 		glBeginQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED, mQueryObj);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mNumSamples = 0;
 		mEndIssued = false;
@@ -53,7 +53,7 @@ void GLOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
 	auto execute = [&]()
 	{
 		glEndQuery(mBinary ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mEndIssued = true;
 		mFinalized = false;
@@ -75,7 +75,7 @@ bool GLOcclusionQuery::IsReady() const
 
 	GLint done = 0;
 	glGetQueryObjectiv(mQueryObj, GL_QUERY_RESULT_AVAILABLE, &done);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	return done == GL_TRUE;
 }
@@ -98,7 +98,7 @@ void GLOcclusionQuery::Finalize()
 	{
 		GLuint anyPassed = GL_FALSE;
 		glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &anyPassed);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mNumSamples = anyPassed == GL_TRUE ? 1 : 0;
 	}
@@ -106,7 +106,7 @@ void GLOcclusionQuery::Finalize()
 	{
 		GLuint numSamples = 0;
 		glGetQueryObjectuiv(mQueryObj, GL_QUERY_RESULT, &numSamples);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		mNumSamples = (u32)numSamples;
 	}

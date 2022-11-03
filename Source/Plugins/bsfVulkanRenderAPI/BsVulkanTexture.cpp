@@ -610,7 +610,7 @@ VulkanTexture::~VulkanTexture()
 
 	B3D_ASSERT(mStagingBuffer == nullptr);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 }
 
 void VulkanTexture::Initialize()
@@ -725,7 +725,7 @@ void VulkanTexture::Initialize()
 		mImages[i] = CreateImage(*devices[i], mInternalFormats[i]);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
 	Texture::Initialize();
 }
 
@@ -1013,12 +1013,12 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 #if BS_PROFILING_ENABLED
 	if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_Texture);
 	}
 
 	if(options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_Texture);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
 	}
 #endif
 
@@ -1404,7 +1404,7 @@ void VulkanTexture::ReadDataImpl(PixelData& dest, u32 mipLevel, u32 face, u32 de
 	PixelUtil::BulkPixelConversion(myData, dest);
 	Unlock();
 
-	BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_Texture);
 }
 
 void VulkanTexture::WriteDataImpl(const PixelData& src, u32 mipLevel, u32 face, bool discardWholeBuffer, u32 queueIdx)
@@ -1438,5 +1438,5 @@ void VulkanTexture::WriteDataImpl(const PixelData& src, u32 mipLevel, u32 face, 
 		Unlock();
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
 }

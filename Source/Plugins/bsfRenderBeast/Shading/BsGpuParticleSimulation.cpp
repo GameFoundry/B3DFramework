@@ -19,9 +19,9 @@
 
 namespace bs { namespace ct {
 
-BS_PARAM_BLOCK_BEGIN(GpuParticleTileVertexParamsDef)
-	BS_PARAM_BLOCK_ENTRY(Vector4, gUVToNDC)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(GpuParticleTileVertexParamsDef)
+	B3D_PARAM_BLOCK_ENTRY(Vector4, gUVToNDC)
+B3D_PARAM_BLOCK_END
 
 GpuParticleTileVertexParamsDef gGpuParticleTileVertexParamsDef;
 
@@ -58,35 +58,35 @@ public:
 	GpuParticleCurveInjectMat();
 };
 
-BS_PARAM_BLOCK_BEGIN(VectorFieldParamsDef)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gFieldBounds)
-	BS_PARAM_BLOCK_ENTRY(float, gFieldIntensity)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gFieldTiling)
-	BS_PARAM_BLOCK_ENTRY(float, gFieldTightness)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gWorldToField)
-	BS_PARAM_BLOCK_ENTRY(Matrix3, gFieldToWorld)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(VectorFieldParamsDef)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gFieldBounds)
+	B3D_PARAM_BLOCK_ENTRY(float, gFieldIntensity)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gFieldTiling)
+	B3D_PARAM_BLOCK_ENTRY(float, gFieldTightness)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldToField)
+	B3D_PARAM_BLOCK_ENTRY(Matrix3, gFieldToWorld)
+B3D_PARAM_BLOCK_END
 
 VectorFieldParamsDef gVectorFieldParamsDef;
 
-BS_PARAM_BLOCK_BEGIN(GpuParticleDepthCollisionParamsDef)
-	BS_PARAM_BLOCK_ENTRY(float, gCollisionRange)
-	BS_PARAM_BLOCK_ENTRY(float, gRestitution)
-	BS_PARAM_BLOCK_ENTRY(float, gDampening)
-	BS_PARAM_BLOCK_ENTRY(float, gCollisionRadiusScale)
-	BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveOffset)
-	BS_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveScale)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(GpuParticleDepthCollisionParamsDef)
+	B3D_PARAM_BLOCK_ENTRY(float, gCollisionRange)
+	B3D_PARAM_BLOCK_ENTRY(float, gRestitution)
+	B3D_PARAM_BLOCK_ENTRY(float, gDampening)
+	B3D_PARAM_BLOCK_ENTRY(float, gCollisionRadiusScale)
+	B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveOffset)
+	B3D_PARAM_BLOCK_ENTRY(Vector2, gSizeScaleCurveScale)
+B3D_PARAM_BLOCK_END
 
 GpuParticleDepthCollisionParamsDef gGpuParticleDepthCollisionParamsDef;
 
-BS_PARAM_BLOCK_BEGIN(GpuParticleSimulateParamsDef)
-	BS_PARAM_BLOCK_ENTRY(i32, gNumVectorFields)
-	BS_PARAM_BLOCK_ENTRY(i32, gNumIterations)
-	BS_PARAM_BLOCK_ENTRY(float, gDT)
-	BS_PARAM_BLOCK_ENTRY(float, gDrag)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gAcceleration)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(GpuParticleSimulateParamsDef)
+	B3D_PARAM_BLOCK_ENTRY(i32, gNumVectorFields)
+	B3D_PARAM_BLOCK_ENTRY(i32, gNumIterations)
+	B3D_PARAM_BLOCK_ENTRY(float, gDT)
+	B3D_PARAM_BLOCK_ENTRY(float, gDrag)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gAcceleration)
+B3D_PARAM_BLOCK_END
 
 GpuParticleSimulateParamsDef gGpuParticleSimulateParamsDef;
 
@@ -150,11 +150,11 @@ private:
 	bool mSupportsDepthCollisions;
 };
 
-BS_PARAM_BLOCK_BEGIN(GpuParticleBoundsParamsDef)
-	BS_PARAM_BLOCK_ENTRY(u32, gIterationsPerGroup)
-	BS_PARAM_BLOCK_ENTRY(u32, gNumExtraIterations)
-	BS_PARAM_BLOCK_ENTRY(u32, gNumParticles)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(GpuParticleBoundsParamsDef)
+	B3D_PARAM_BLOCK_ENTRY(u32, gIterationsPerGroup)
+	B3D_PARAM_BLOCK_ENTRY(u32, gNumExtraIterations)
+	B3D_PARAM_BLOCK_ENTRY(u32, gNumParticles)
+B3D_PARAM_BLOCK_END
 
 GpuParticleBoundsParamsDef gGpuParticleBoundsParamsDef;
 
@@ -187,14 +187,14 @@ private:
 	SPtr<GpuParamBlockBuffer> mInputBuffer;
 };
 
-BS_PARAM_BLOCK_BEGIN(GpuParticleSortPrepareParamDef)
-	BS_PARAM_BLOCK_ENTRY(i32, gIterationsPerGroup)
-	BS_PARAM_BLOCK_ENTRY(i32, gNumExtraIterations)
-	BS_PARAM_BLOCK_ENTRY(i32, gNumParticles)
-	BS_PARAM_BLOCK_ENTRY(i32, gOutputOffset)
-	BS_PARAM_BLOCK_ENTRY(i32, gSystemKey)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gLocalViewOrigin)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(GpuParticleSortPrepareParamDef)
+	B3D_PARAM_BLOCK_ENTRY(i32, gIterationsPerGroup)
+	B3D_PARAM_BLOCK_ENTRY(i32, gNumExtraIterations)
+	B3D_PARAM_BLOCK_ENTRY(i32, gNumParticles)
+	B3D_PARAM_BLOCK_ENTRY(i32, gOutputOffset)
+	B3D_PARAM_BLOCK_ENTRY(i32, gSystemKey)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gLocalViewOrigin)
+B3D_PARAM_BLOCK_END
 
 GpuParticleSortPrepareParamDef gGpuParticleSortPrepareParamDef;
 

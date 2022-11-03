@@ -13,7 +13,7 @@ namespace bs
 	 *  @{
 	 */
 
-	BS_ALLOW_MEMCPY_SERIALIZATION(RectOffset);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(RectOffset);
 
 	/** @} */
 	/** @endcond */

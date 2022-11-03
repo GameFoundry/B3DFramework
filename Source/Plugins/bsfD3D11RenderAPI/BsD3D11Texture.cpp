@@ -31,7 +31,7 @@ D3D11Texture::~D3D11Texture()
 	SAFE_RELEASE(m3DTex);
 	SAFE_RELEASE(mStagingBuffer);
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 }
 
 void D3D11Texture::Initialize()
@@ -54,7 +54,7 @@ void D3D11Texture::Initialize()
 		B3D_EXCEPT(RenderingAPIException, "Unknown texture type");
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_Texture);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
 	Texture::Initialize();
 }
 
@@ -153,12 +153,12 @@ PixelData D3D11Texture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face,
 #if BS_PROFILING_ENABLED
 	if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResRead, RenderStatObject_Texture);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResRead, RenderStatObject_Texture);
 	}
 
 	if(options == GBL_READ_WRITE || options == GBL_WRITE_ONLY || options == GBL_WRITE_ONLY_DISCARD || options == GBL_WRITE_ONLY_NO_OVERWRITE)
 	{
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_Texture);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
 	}
 #endif
 
@@ -271,7 +271,7 @@ void D3D11Texture::WriteDataImpl(const PixelData& src, u32 mipLevel, u32 face, b
 			B3D_EXCEPT(RenderingAPIException, "D3D11 device cannot map texture\nError Description:" + errorDescription);
 		}
 
-		BS_INC_RENDER_STAT_CAT(ResWrite, RenderStatObject_Texture);
+		B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_Texture);
 	}
 	else
 	{

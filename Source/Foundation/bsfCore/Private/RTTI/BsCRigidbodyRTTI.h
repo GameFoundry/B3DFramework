@@ -17,22 +17,22 @@ namespace bs
 	class B3D_CORE_EXPORT CRigidbodyRTTI : public RTTIType<CRigidbody, Component, CRigidbodyRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mPositionSolverCount, 0)
-			BS_RTTI_MEMBER_PLAIN(mVelocitySolverCount, 1)
-			BS_RTTI_MEMBER_PLAIN(mFlags, 2)
-			BS_RTTI_MEMBER_PLAIN(mCMassPosition, 3)
-			BS_RTTI_MEMBER_PLAIN(mCMassRotation, 4)
-			BS_RTTI_MEMBER_PLAIN(mInertiaTensor, 5)
-			BS_RTTI_MEMBER_PLAIN(mMass, 6)
-			BS_RTTI_MEMBER_PLAIN(mMaxAngularVelocity, 7)
-			BS_RTTI_MEMBER_PLAIN(mLinearDrag, 8)
-			BS_RTTI_MEMBER_PLAIN(mAngularDrag, 9)
-			BS_RTTI_MEMBER_PLAIN(mSleepThreshold, 10)
-			BS_RTTI_MEMBER_PLAIN(mUseGravity, 11)
-			BS_RTTI_MEMBER_PLAIN(mIsKinematic, 12)
-			BS_RTTI_MEMBER_PLAIN(mCollisionReportMode, 14)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mPositionSolverCount, 0)
+			B3D_RTTI_MEMBER_PLAIN(mVelocitySolverCount, 1)
+			B3D_RTTI_MEMBER_PLAIN(mFlags, 2)
+			B3D_RTTI_MEMBER_PLAIN(mCMassPosition, 3)
+			B3D_RTTI_MEMBER_PLAIN(mCMassRotation, 4)
+			B3D_RTTI_MEMBER_PLAIN(mInertiaTensor, 5)
+			B3D_RTTI_MEMBER_PLAIN(mMass, 6)
+			B3D_RTTI_MEMBER_PLAIN(mMaxAngularVelocity, 7)
+			B3D_RTTI_MEMBER_PLAIN(mLinearDrag, 8)
+			B3D_RTTI_MEMBER_PLAIN(mAngularDrag, 9)
+			B3D_RTTI_MEMBER_PLAIN(mSleepThreshold, 10)
+			B3D_RTTI_MEMBER_PLAIN(mUseGravity, 11)
+			B3D_RTTI_MEMBER_PLAIN(mIsKinematic, 12)
+			B3D_RTTI_MEMBER_PLAIN(mCollisionReportMode, 14)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

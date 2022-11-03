@@ -12,7 +12,7 @@ set(PhysX_INSTALL_DIR ${BSF_SOURCE_DIR}/../Dependencies/PhysX CACHE PATH "")
 gen_default_lib_search_dirs(PhysX)
 
 if(NOT APPLE)
-	if(BS_64BIT)
+	if(B3D_IS_64BIT)
 		set(BS_PHYSX_SUFFIX _x64)
 	else()
 		set(BS_PHYSX_SUFFIX _x86)

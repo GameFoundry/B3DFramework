@@ -82,7 +82,7 @@ namespace bs
 	};
 
 	using SerializedObjectEncodeFlags = Flags<SerializedObjectEncodeFlag>;
-	BS_FLAGS_OPERATORS(SerializedObjectEncodeFlag)
+	B3D_FLAGS_OPERATORS(SerializedObjectEncodeFlag)
 
 	/**
 	 * Represents a serialized version of an IReflectable object. Data for all leaf fields will be serialized into raw

@@ -17,19 +17,19 @@ namespace bs
 	class B3D_CORE_EXPORT AudioSourceRTTI : public RTTIType<AudioSource, IReflectable, AudioSourceRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(mTransform, 0)
-			BS_RTTI_MEMBER_PLAIN(mActive, 1)
-			BS_RTTI_MEMBER_PLAIN(mMobility, 2)
-			BS_RTTI_MEMBER_PLAIN(mVelocity, 3)
-			BS_RTTI_MEMBER_REFL(mAudioClip, 4)
-			BS_RTTI_MEMBER_PLAIN(mVolume, 5)
-			BS_RTTI_MEMBER_PLAIN(mPitch, 6)
-			BS_RTTI_MEMBER_PLAIN(mLoop, 7)
-			BS_RTTI_MEMBER_PLAIN(mPriority, 8)
-			BS_RTTI_MEMBER_PLAIN(mMinDistance, 9)
-			BS_RTTI_MEMBER_PLAIN(mAttenuation, 10)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(mTransform, 0)
+			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
+			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
+			B3D_RTTI_MEMBER_PLAIN(mVelocity, 3)
+			B3D_RTTI_MEMBER_REFL(mAudioClip, 4)
+			B3D_RTTI_MEMBER_PLAIN(mVolume, 5)
+			B3D_RTTI_MEMBER_PLAIN(mPitch, 6)
+			B3D_RTTI_MEMBER_PLAIN(mLoop, 7)
+			B3D_RTTI_MEMBER_PLAIN(mPriority, 8)
+			B3D_RTTI_MEMBER_PLAIN(mMinDistance, 9)
+			B3D_RTTI_MEMBER_PLAIN(mAttenuation, 10)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{

@@ -27,32 +27,32 @@ namespace bs
 		 *  @{
 		 */
 
-		BS_PARAM_BLOCK_BEGIN(PerCameraParamDef)
-			BS_PARAM_BLOCK_ENTRY(Vector3, gViewDir)
-			BS_PARAM_BLOCK_ENTRY(Vector3, gViewOrigin)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatView)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatProj)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvProj)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatPrevViewProj)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gMatScreenToWorld)
-			BS_PARAM_BLOCK_ENTRY(Matrix4, gNDCToPrevNDC)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gDeviceZToWorldZ)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToWorldZ)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
-			BS_PARAM_BLOCK_ENTRY(Vector2, gNearFar)
-			BS_PARAM_BLOCK_ENTRY(Vector4I, gViewportRectangle)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gClipToUVScaleOffset)
-			BS_PARAM_BLOCK_ENTRY(Vector4, gUVToClipScaleOffset)
-			BS_PARAM_BLOCK_ENTRY(float, gAmbientFactor)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerCameraParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Vector3, gViewDir)
+			B3D_PARAM_BLOCK_ENTRY(Vector3, gViewOrigin)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatView)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatProj)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvProj)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatPrevViewProj)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatScreenToWorld)
+			B3D_PARAM_BLOCK_ENTRY(Matrix4, gNDCToPrevNDC)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gDeviceZToWorldZ)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gNDCZToWorldZ)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gNDCZToDeviceZ)
+			B3D_PARAM_BLOCK_ENTRY(Vector2, gNearFar)
+			B3D_PARAM_BLOCK_ENTRY(Vector4I, gViewportRectangle)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gClipToUVScaleOffset)
+			B3D_PARAM_BLOCK_ENTRY(Vector4, gUVToClipScaleOffset)
+			B3D_PARAM_BLOCK_ENTRY(float, gAmbientFactor)
+		B3D_PARAM_BLOCK_END
 
 		extern PerCameraParamDef gPerCameraParamDef;
 
-		BS_PARAM_BLOCK_BEGIN(SkyboxParamDef)
-			BS_PARAM_BLOCK_ENTRY(Color, gClearColor)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(SkyboxParamDef)
+			B3D_PARAM_BLOCK_ENTRY(Color, gClearColor)
+		B3D_PARAM_BLOCK_END
 
 		extern SkyboxParamDef gSkyboxParamDef;
 

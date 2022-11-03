@@ -266,7 +266,7 @@ namespace bs
 	};
 
 	typedef Flags<AnimationCurveFlag> AnimationCurveFlags;
-	BS_FLAGS_OPERATORS(AnimationCurveFlag);
+	B3D_FLAGS_OPERATORS(AnimationCurveFlag);
 
 	/** An animation curve and its name. */
 	template <class T>

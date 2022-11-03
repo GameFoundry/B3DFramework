@@ -98,7 +98,7 @@ D3D11RenderWindow::~D3D11RenderWindow()
 		mSwapChain->SetFullscreenState(false, nullptr);
 
 	SAFE_RELEASE(mSwapChain);
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_SwapChain);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_SwapChain);
 
 	if(mWindow != nullptr)
 	{
@@ -702,7 +702,7 @@ void D3D11RenderWindow::CreateSwapChain()
 	if(FAILED(hr))
 		B3D_EXCEPT(RenderingAPIException, "Unable to create swap chain. Error code: " + ToString(hr));
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_SwapChain);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_SwapChain);
 }
 
 void D3D11RenderWindow::CreateSizeDependedD3DResources()

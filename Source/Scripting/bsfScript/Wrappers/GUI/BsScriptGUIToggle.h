@@ -46,11 +46,11 @@ namespace bs
 		static void InternalSetValue(ScriptGUIToggle* nativeInstance, bool value);
 		static void InternalSetTint(ScriptGUIToggle* nativeInstance, Color* color);
 
-		typedef void(BS_THUNKCALL* OnClickThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnHoverThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnOutThunkDef)(MonoObject*, MonoException**);
-		typedef void(BS_THUNKCALL* OnToggledThunkDef)(MonoObject*, bool toggled, MonoException**);
-		typedef void(BS_THUNKCALL* OnDoubleClickThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnClickThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnHoverThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnOutThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnToggledThunkDef)(MonoObject*, bool toggled, MonoException**);
+		typedef void(B3D_THUNKCALL* OnDoubleClickThunkDef)(MonoObject*, MonoException**);
 
 		static OnClickThunkDef onClickThunk;
 		static OnHoverThunkDef onHoverThunk;

@@ -24,11 +24,11 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 {
 	GLint numAttributes = 0;
 	glGetProgramiv(glProgram, GL_ACTIVE_ATTRIBUTES, &numAttributes);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	GLint maxNameSize = 0;
 	glGetProgramiv(glProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxNameSize);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	GLchar* attributeName = (GLchar*)B3DAllocate(sizeof(GLchar) * maxNameSize);
 
@@ -38,7 +38,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 		GLint attribSize = 0;
 		GLenum attribType = 0;
 		glGetActiveAttrib(glProgram, i, maxNameSize, nullptr, &attribSize, &attribType, attributeName);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		VertexElementSemantic semantic = VES_POSITION;
 		u16 index = 0;
@@ -46,7 +46,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 		{
 			VertexElementType type = GlTypeToAttributeType(attribType);
 			u32 slot = glGetAttribLocation(glProgram, attributeName);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 
 			elementList.push_back(VertexElement(0, slot, type, semantic, index));
 		}
@@ -179,17 +179,17 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	// Scan through the active uniform blocks
 	GLint maxBufferSize = 0;
 	glGetProgramiv(glProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxBufferSize);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	GLint maxBlockNameBufferSize = 0;
 	glGetProgramiv(glProgram, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &maxBlockNameBufferSize);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	GLint maxStorageBlockNameBufferSize = 0;
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 	glGetProgramInterfaceiv(glProgram, GL_SHADER_STORAGE_BLOCK, GL_MAX_NAME_LENGTH, &maxStorageBlockNameBufferSize);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #endif
 
 	maxBufferSize = std::max(maxBufferSize, maxBlockNameBufferSize);
@@ -213,11 +213,11 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 	// Use program interface extension if available
 	glGetProgramInterfaceiv(glProgram, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &uniformBlockCount);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #else
 	// Fall back to old API if not available
 	glGetProgramiv(glProgram, GL_ACTIVE_UNIFORM_BLOCKS, &uniformBlockCount);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 #endif
 
 	Map<u32, String> blockSlotToName;
@@ -228,10 +228,10 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 #if BS_OPENGL_4_3 || BS_OPENGLES_3_1
 		glGetProgramResourceName(glProgram, GL_UNIFORM_BLOCK, index, maxBufferSize, &unusedSize, uniformName);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #else
 		glGetActiveUniformBlockName(glProgram, index, maxBlockNameBufferSize, &unusedSize, uniformName);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 #endif
 
 		GpuParamBlockDesc newBlockDesc;
@@ -250,13 +250,13 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	// Scan through the shared storage blocks
 	GLint storageBlockCount = 0;
 	glGetProgramInterfaceiv(glProgram, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &storageBlockCount);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	for(GLuint index = 0; index < (GLuint)storageBlockCount; index++)
 	{
 		GLsizei unusedSize = 0;
 		glGetProgramResourceName(glProgram, GL_SHADER_STORAGE_BLOCK, index, maxBufferSize, &unusedSize, uniformName);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		GpuParamObjectDesc bufferParam;
 		bufferParam.Name = uniformName;
@@ -274,7 +274,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	// Get the number of active uniforms
 	GLint uniformCount = 0;
 	glGetProgramiv(glProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Loop over each of the active uniforms, and add them to the reference container
 	// only do this for user defined uniforms, ignore built in gl state uniforms
@@ -282,7 +282,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 	{
 		GLsizei arraySize = 0;
 		glGetActiveUniformName(glProgram, index, maxBufferSize, &arraySize, uniformName);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		String paramName = String(uniformName);
 
@@ -376,7 +376,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 		GLint uniformType;
 		glGetActiveUniformsiv(glProgram, 1, &index, GL_UNIFORM_TYPE, &uniformType);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		GpuParamObjectType samplerType = GPOT_UNKNOWN;
 		GpuParamObjectType textureType = GPOT_UNKNOWN;
@@ -529,7 +529,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 			returnParamDesc.Samplers.insert(std::make_pair(paramName, samplerParam));
 			returnParamDesc.Textures.insert(std::make_pair(paramName, textureParam));
 
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else if(isImage)
 		{
@@ -541,7 +541,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 			returnParamDesc.LoadStoreTextures.insert(std::make_pair(paramName, textureParam));
 
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else if(isBuffer)
 		{
@@ -553,7 +553,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 			returnParamDesc.Buffers.insert(std::make_pair(paramName, bufferParam));
 
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else if(isRWBuffer)
 		{
@@ -565,7 +565,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 			returnParamDesc.Buffers.insert(std::make_pair(paramName, bufferParam));
 
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 		else
 		{
@@ -576,7 +576,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 			GLint blockIndex;
 			glGetActiveUniformsiv(glProgram, 1, &index, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 
 			GpuParamDataDesc gpuParam;
 
@@ -604,7 +604,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 				gpuParam.CpuMemOffset = blockOffset;
 				curBlockDesc.BlockSize = std::max(curBlockDesc.BlockSize, gpuParam.CpuMemOffset + gpuParam.ArrayElementStride * gpuParam.ArraySize);
 
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 			else
 			{
@@ -615,7 +615,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 				globalBlockDesc.BlockSize = std::max(globalBlockDesc.BlockSize, gpuParam.CpuMemOffset + gpuParam.ArrayElementStride * gpuParam.ArraySize);
 
-				BS_CHECK_GL_ERROR();
+				B3D_CHECK_GL_ERROR();
 			}
 
 			// If parameter is not a part of a struct we're done. Also done if parameter is part of a struct, but
@@ -686,7 +686,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 
 		GLint blockSize = 0;
 		glGetActiveUniformBlockiv(glProgram, iter->second.Slot - 1, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		B3D_ASSERT(blockSize % 4 == 0);
 		blockSize = blockSize / 4;
@@ -703,12 +703,12 @@ void GLSLParamParser::DetermineParamInfo(GpuParamDataDesc& desc, const String& p
 {
 	GLint arraySize;
 	glGetActiveUniformsiv(programHandle, 1, &uniformIndex, GL_UNIFORM_SIZE, &arraySize);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 	desc.ArraySize = arraySize;
 
 	GLint uniformType;
 	glGetActiveUniformsiv(programHandle, 1, &uniformIndex, GL_UNIFORM_TYPE, &uniformType);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	switch(uniformType)
 	{
@@ -796,7 +796,7 @@ void GLSLParamParser::DetermineParamInfo(GpuParamDataDesc& desc, const String& p
 	{
 		GLint arrayStride;
 		glGetActiveUniformsiv(programHandle, 1, &uniformIndex, GL_UNIFORM_ARRAY_STRIDE, &arrayStride);
-		BS_CHECK_GL_ERROR();
+		B3D_CHECK_GL_ERROR();
 
 		if(arrayStride > 0)
 		{

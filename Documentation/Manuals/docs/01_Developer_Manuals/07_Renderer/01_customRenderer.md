@@ -354,18 +354,18 @@ cbuffer PerCamera
 
 Such parameter block buffers are primarily useful when you need to share the same data between multiple materials. Instead of accessing parametes individually through **Material** or **GpuParams**, you would instead create a **GpuParamBlockBuffer** object, populate it, and then bind to **Material** or **GpuParams**.
 
-When we talked about them earlier we have shown how to manually create a **GpuParamBlockBuffer** object and write to it by reading the **GpuParamDesc** object of the **GpuProgram**. This is cumbersome and requires a lot of boilerplate code. A simpler way of creating and populating a parameter block is to use @BS_PARAM_BLOCK_BEGIN, @BS_PARAM_BLOCK_ENTRY and @BS_PARAM_BLOCK_END macros. You simply define the parameter block structure using these macros in C++, to match the structure in HLSL/GLSL code.
+When we talked about them earlier we have shown how to manually create a **GpuParamBlockBuffer** object and write to it by reading the **GpuParamDesc** object of the **GpuProgram**. This is cumbersome and requires a lot of boilerplate code. A simpler way of creating and populating a parameter block is to use @B3D_PARAM_BLOCK_BEGIN, @B3D_PARAM_BLOCK_ENTRY and @B3D_PARAM_BLOCK_END macros. You simply define the parameter block structure using these macros in C++, to match the structure in HLSL/GLSL code.
 
 ~~~~~~~~~~~~~{.cpp}
-BS_PARAM_BLOCK_BEGIN(PerCameraParamBlockDef)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gViewDir)
-	BS_PARAM_BLOCK_ENTRY(Vector3, gViewOrigin)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gMatView)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gMatProj)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvProj)
-	BS_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
-BS_PARAM_BLOCK_END
+B3D_PARAM_BLOCK_BEGIN(PerCameraParamBlockDef)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gViewDir)
+	B3D_PARAM_BLOCK_ENTRY(Vector3, gViewOrigin)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatViewProj)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatView)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatProj)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvProj)
+	B3D_PARAM_BLOCK_ENTRY(Matrix4, gMatInvViewProj)
+B3D_PARAM_BLOCK_END
 ~~~~~~~~~~~~~
 
 Once your parameter block definition is created, you can instantiate a parameter block buffer, assign values to it, and assign the blocks to materials, like so:

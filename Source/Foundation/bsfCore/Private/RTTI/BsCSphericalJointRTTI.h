@@ -17,15 +17,15 @@ namespace bs
 
 	class B3D_CORE_EXPORT CSphericalJointRTTI : public RTTIType<CSphericalJoint, CJoint, CSphericalJointRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.Flag, 0)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mYLimitAngle, mDesc.Limit.YLimitAngle, 1)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mZLimitAngle, mDesc.Limit.ZLimitAngle, 2)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitContactDist, mDesc.Limit.ContactDist, 3)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mLimitRestitution, mDesc.Limit.Restitution, 4)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.Limit.Spring.Damping, 5)
-			BS_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.Limit.Spring.Stiffness, 6)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mFlag, mDesc.Flag, 0)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mYLimitAngle, mDesc.Limit.YLimitAngle, 1)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mZLimitAngle, mDesc.Limit.ZLimitAngle, 2)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitContactDist, mDesc.Limit.ContactDist, 3)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mLimitRestitution, mDesc.Limit.Restitution, 4)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mSpringDamping, mDesc.Limit.Spring.Damping, 5)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(mSpringStiffness, mDesc.Limit.Spring.Stiffness, 6)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

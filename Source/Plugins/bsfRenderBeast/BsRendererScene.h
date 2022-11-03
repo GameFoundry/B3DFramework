@@ -241,9 +241,9 @@ namespace bs
 			SPtr<RenderBeastOptions> mOptions;
 		};
 
-		BS_PARAM_BLOCK_BEGIN(PerFrameParamDef)
-			BS_PARAM_BLOCK_ENTRY(float, gTime)
-		BS_PARAM_BLOCK_END
+		B3D_PARAM_BLOCK_BEGIN(PerFrameParamDef)
+			B3D_PARAM_BLOCK_ENTRY(float, gTime)
+		B3D_PARAM_BLOCK_END
 
 		extern PerFrameParamDef gPerFrameParamDef;
 

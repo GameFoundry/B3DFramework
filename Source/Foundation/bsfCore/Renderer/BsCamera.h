@@ -33,7 +33,7 @@ namespace bs
 	};
 
 	using CameraFlags = Flags<CameraFlag>;
-	BS_FLAGS_OPERATORS(CameraFlag)
+	B3D_FLAGS_OPERATORS(CameraFlag)
 
 	/** @} */
 

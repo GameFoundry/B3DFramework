@@ -16,9 +16,9 @@ namespace bs
 
 	class B3D_CORE_EXPORT CBoneRTTI : public RTTIType<CBone, Component, CBoneRTTI>
 	{
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mBoneName, 0)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mBoneName, 0)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

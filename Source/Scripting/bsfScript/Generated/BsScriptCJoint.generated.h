@@ -33,7 +33,7 @@ namespace bs
 	private:
 		void OnJointBreak();
 
-		typedef void(BS_THUNKCALL* OnJointBreakThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL* OnJointBreakThunkDef)(MonoObject*, MonoException**);
 		static OnJointBreakThunkDef OnJointBreakThunk;
 
 		static MonoObject* InternalGetBody(ScriptCJointBase* thisPtr, JointBody body);

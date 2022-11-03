@@ -39,7 +39,7 @@ void NullBlendState::createInternal()
 		B3D_EXCEPT(RenderingAPIException, "Cannot create blend state.\nError Description:" + errorDescription);
 	}
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_BlendState);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_BlendState);
 
 	BlendState::createInternal();
 }

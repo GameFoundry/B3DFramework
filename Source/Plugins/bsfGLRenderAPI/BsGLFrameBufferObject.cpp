@@ -12,31 +12,31 @@ using namespace bs::ct;
 GLFrameBufferObject::GLFrameBufferObject()
 {
 	glGenFramebuffers(1, &mFB);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
+	for(u32 x = 0; x < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++x)
 		mColor[x].Buffer = nullptr;
 
-	BS_INC_RENDER_STAT_CAT(ResCreated, RenderStatObject_FrameBufferObject);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_FrameBufferObject);
 }
 
 GLFrameBufferObject::~GLFrameBufferObject()
 {
 	glDeleteFramebuffers(1, &mFB);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
-	BS_INC_RENDER_STAT_CAT(ResDestroyed, RenderStatObject_FrameBufferObject);
+	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_FrameBufferObject);
 }
 
 void GLFrameBufferObject::BindSurface(u32 attachment, const GLSurfaceDesc &target)
 {
-	B3D_ASSERT(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(attachment < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 	mColor[attachment] = target;
 }
 
 void GLFrameBufferObject::UnbindSurface(u32 attachment)
 {
-	B3D_ASSERT(attachment < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(attachment < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 	mColor[attachment].Buffer = nullptr;
 }
 
@@ -58,7 +58,7 @@ void GLFrameBufferObject::Rebuild()
 
 	// Bind simple buffer to add color attachments
 	glBindFramebuffer(GL_FRAMEBUFFER, mFB);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Bind all attachment points to frame buffer
 	for(u16 x = 0; x < maxSupportedMRTs; ++x)
@@ -74,7 +74,7 @@ void GLFrameBufferObject::Rebuild()
 		{
 			// Detach
 			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + x, 0, 0);
-			BS_CHECK_GL_ERROR();
+			B3D_CHECK_GL_ERROR();
 		}
 	}
 
@@ -92,9 +92,9 @@ void GLFrameBufferObject::Rebuild()
 	}
 
 	// Do glDrawBuffer calls
-	GLenum bufs[BS_MAX_MULTIPLE_RENDER_TARGETS];
+	GLenum bufs[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 	GLsizei n = 0;
-	for(u32 x = 0; x < BS_MAX_MULTIPLE_RENDER_TARGETS; ++x)
+	for(u32 x = 0; x < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++x)
 	{
 		// Fill attached colour buffers
 		if(mColor[x].Buffer)
@@ -110,20 +110,20 @@ void GLFrameBufferObject::Rebuild()
 	}
 
 	glDrawBuffers(n, bufs);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// No read buffer, by default, if we want to read anyway we must not forget to set this.
 	glReadBuffer(GL_NONE);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Check status
 	GLuint status;
 	status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	// Bind main buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 
 	switch(status)
 	{
@@ -140,5 +140,5 @@ void GLFrameBufferObject::Rebuild()
 void GLFrameBufferObject::Bind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, mFB);
-	BS_CHECK_GL_ERROR();
+	B3D_CHECK_GL_ERROR();
 }

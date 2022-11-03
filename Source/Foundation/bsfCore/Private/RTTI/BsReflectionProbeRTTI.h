@@ -17,17 +17,17 @@ namespace bs
 	class B3D_CORE_EXPORT ReflectionProbeRTTI : public RTTIType<ReflectionProbe, IReflectable, ReflectionProbeRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(mTransform, 0)
-			BS_RTTI_MEMBER_PLAIN(mActive, 1)
-			BS_RTTI_MEMBER_PLAIN(mMobility, 2)
-			BS_RTTI_MEMBER_PLAIN(mType, 3)
-			BS_RTTI_MEMBER_PLAIN(mRadius, 4)
-			BS_RTTI_MEMBER_PLAIN(mExtents, 5)
-			BS_RTTI_MEMBER_PLAIN(mTransitionDistance, 6)
-			BS_RTTI_MEMBER_REFL(mCustomTexture, 7)
-			BS_RTTI_MEMBER_REFLPTR(mFilteredTexture, 8)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(mTransform, 0)
+			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
+			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
+			B3D_RTTI_MEMBER_PLAIN(mType, 3)
+			B3D_RTTI_MEMBER_PLAIN(mRadius, 4)
+			B3D_RTTI_MEMBER_PLAIN(mExtents, 5)
+			B3D_RTTI_MEMBER_PLAIN(mTransitionDistance, 6)
+			B3D_RTTI_MEMBER_REFL(mCustomTexture, 7)
+			B3D_RTTI_MEMBER_REFLPTR(mFilteredTexture, 8)
+		B3D_RTTI_END_MEMBERS
 	public:
 		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
 		{

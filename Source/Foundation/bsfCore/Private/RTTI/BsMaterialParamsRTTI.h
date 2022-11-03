@@ -24,12 +24,12 @@ namespace bs
 	class B3D_CORE_EXPORT MaterialParamTextureDataRTTI : public RTTIType<MaterialParamTextureData, IReflectable, MaterialParamTextureDataRTTI>
 	{
 	public:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_REFL(Texture, 0)
-			BS_RTTI_MEMBER_PLAIN(IsLoadStore, 1)
-			BS_RTTI_MEMBER_PLAIN(Surface, 2)
-			BS_RTTI_MEMBER_REFL(SpriteTexture, 3)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFL(Texture, 0)
+			B3D_RTTI_MEMBER_PLAIN(IsLoadStore, 1)
+			B3D_RTTI_MEMBER_PLAIN(Surface, 2)
+			B3D_RTTI_MEMBER_REFL(SpriteTexture, 3)
+		B3D_RTTI_END_MEMBERS
 
 		const String& GetRttiName() override
 		{

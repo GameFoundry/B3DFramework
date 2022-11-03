@@ -19,13 +19,13 @@ namespace bs
 	class B3D_CORE_EXPORT ViewportRTTI : public RTTIType<Viewport, IReflectable, ViewportRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mNormArea, 0)
-			BS_RTTI_MEMBER_PLAIN(mClearColorValue, 1)
-			BS_RTTI_MEMBER_PLAIN(mClearDepthValue, 2)
-			BS_RTTI_MEMBER_PLAIN(mClearStencilValue, 3)
-			BS_RTTI_MEMBER_PLAIN(mClearFlags, 4)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mNormArea, 0)
+			B3D_RTTI_MEMBER_PLAIN(mClearColorValue, 1)
+			B3D_RTTI_MEMBER_PLAIN(mClearDepthValue, 2)
+			B3D_RTTI_MEMBER_PLAIN(mClearStencilValue, 3)
+			B3D_RTTI_MEMBER_PLAIN(mClearFlags, 4)
+		B3D_RTTI_END_MEMBERS
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{

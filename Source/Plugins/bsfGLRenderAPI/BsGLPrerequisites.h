@@ -79,9 +79,9 @@ namespace bs
 		void B3DCheckForOpenGLError(const char* function, const char* file, i32 line);
 
 #if B3D_DEBUG && (!BS_OPENGL_4_3 && !BS_OPENGLES_3_2)
-#	define BS_CHECK_GL_ERROR() B3DCheckForOpenGLError(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#	define B3D_CHECK_GL_ERROR() B3DCheckForOpenGLError(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 #else
-#	define BS_CHECK_GL_ERROR()
+#	define B3D_CHECK_GL_ERROR()
 #endif
 
 		extern const char* MODULE_NAME;

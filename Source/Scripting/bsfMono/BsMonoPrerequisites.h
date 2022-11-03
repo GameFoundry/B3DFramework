@@ -87,9 +87,9 @@ namespace bs
 } // namespace bs
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	define BS_THUNKCALL BS_STDCALL
+#	define B3D_THUNKCALL BS_STDCALL
 #else
-#	define BS_THUNKCALL
+#	define B3D_THUNKCALL
 #endif
 
 typedef struct _MonoClass MonoClass;

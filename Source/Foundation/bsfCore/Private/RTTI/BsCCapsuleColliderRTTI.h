@@ -17,11 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CCapsuleColliderRTTI : public RTTIType<CCapsuleCollider, CCollider, CCapsuleColliderRTTI>
 	{
 	private:
-		BS_BEGIN_RTTI_MEMBERS
-			BS_RTTI_MEMBER_PLAIN(mNormal, 0)
-			BS_RTTI_MEMBER_PLAIN(mRadius, 1)
-			BS_RTTI_MEMBER_PLAIN(mHalfHeight, 2)
-		BS_END_RTTI_MEMBERS
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(mNormal, 0)
+			B3D_RTTI_MEMBER_PLAIN(mRadius, 1)
+			B3D_RTTI_MEMBER_PLAIN(mHalfHeight, 2)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{
