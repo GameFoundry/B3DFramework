@@ -445,7 +445,7 @@ void CRigidbody::OnEnabled()
 
 	UpdateColliders();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	CheckForNestedRigibody();
 #endif
 
@@ -495,7 +495,7 @@ void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
 			mInternal->UpdateMassDistribution();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		CheckForNestedRigibody();
 #endif
 	}

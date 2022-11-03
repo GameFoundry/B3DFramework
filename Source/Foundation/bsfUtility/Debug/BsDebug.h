@@ -111,7 +111,7 @@ namespace bs
 	B3D_UTILITY_EXPORT Debug& GetDebug();
 
 #ifndef B3D_LOG_VERBOSITY
-#	if BS_DEBUG_MODE
+#	if B3D_DEBUG
 #		define B3D_LOG_VERBOSITY LogVerbosity::Log
 #	else
 #		define B3D_LOG_VERBOSITY LogVerbosity::Warning

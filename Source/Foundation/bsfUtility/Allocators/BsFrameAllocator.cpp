@@ -32,7 +32,7 @@ FrameAlloc::~FrameAlloc()
 
 u8* FrameAlloc::Alloc(u32 amount)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	amount += sizeof(u32);
 #endif
 	u32 freeMem = 0;
@@ -44,7 +44,7 @@ u8* FrameAlloc::Alloc(u32 amount)
 
 	u8* data = mFreeBlock->Alloc(amount);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	mTotalAllocBytes += amount;
 
 	u32* storedSize = reinterpret_cast<u32*>(data);
@@ -58,7 +58,7 @@ u8* FrameAlloc::Alloc(u32 amount)
 
 u8* FrameAlloc::AllocAligned(u32 amount, u32 alignment)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	amount += sizeof(u32);
 #endif
 
@@ -68,7 +68,7 @@ u8* FrameAlloc::AllocAligned(u32 amount, u32 alignment)
 	{
 		freeMem = mFreeBlock->MSize - mFreeBlock->MFreePtr;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		freePtr = mFreeBlock->MFreePtr + sizeof(u32);
 #else
 		freePtr = mFreeBlock->mFreePtr;
@@ -81,7 +81,7 @@ u8* FrameAlloc::AllocAligned(u32 amount, u32 alignment)
 		// New blocks are allocated on a 16 byte boundary, ensure enough space is allocated taking into account
 		// the requested alignment
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		alignOffset = (alignment - (sizeof(u32) & (alignment - 1))) & (alignment - 1);
 #else
 		if(alignment > 16)
@@ -96,7 +96,7 @@ u8* FrameAlloc::AllocAligned(u32 amount, u32 alignment)
 	amount += alignOffset;
 	u8* data = mFreeBlock->Alloc(amount);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	mTotalAllocBytes += amount;
 
 	u32* storedSize = reinterpret_cast<u32*>(data + alignOffset);
@@ -113,7 +113,7 @@ void FrameAlloc::Free(u8* data)
 	// Dealloc is only used for debug and can be removed if needed. All the actual deallocation
 	// happens in clear()
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(data)
 	{
 		data -= sizeof(u32);
@@ -141,7 +141,7 @@ void FrameAlloc::Clear()
 		u8* framePtr = (u8*)mLastFrame;
 		mLastFrame = *(void**)mLastFrame;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		framePtr -= sizeof(u32);
 #endif
 
@@ -203,7 +203,7 @@ void FrameAlloc::Clear()
 	}
 	else
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		if(mTotalAllocBytes.load() > 0)
 			B3D_EXCEPT(InvalidStateException, "Not all frame allocated bytes were properly released.");
 #endif

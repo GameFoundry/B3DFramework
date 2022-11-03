@@ -19,11 +19,11 @@
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanRenderPass.h"
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Win32/BsWin32RenderWindow.h"
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 #	include "Linux/BsLinuxRenderWindow.h"
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include "MacOS/BsMacOSRenderWindow.h"
 #else
 static_assert(false, "Other platforms go here");
@@ -153,7 +153,7 @@ VkPipelineStageFlags getPipelineStageFlags(VkAccessFlags accessFlags)
 
 		// MoltenVK doesn't support geometry and tessellation shaders
 		// Note: Once we upgrade to a newer version they should be supported and we can remove this
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 		flags |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
 		flags |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
 		flags |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
@@ -853,11 +853,11 @@ void VulkanCmdBuffer::SetRenderTarget(const SPtr<RenderTarget>& rt, u32 readOnly
 	{
 		if(rt->GetProperties().IsWindow)
 		{
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 			Win32RenderWindow* window = static_cast<Win32RenderWindow*>(rt.get());
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 			LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(rt.get());
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 			MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(rt.get());
 #endif
 			window->AcquireBackBuffer();

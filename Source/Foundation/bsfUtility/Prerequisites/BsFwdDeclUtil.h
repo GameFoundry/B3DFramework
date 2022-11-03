@@ -45,7 +45,7 @@ namespace bs
 	 *		   determine namespace and/or module (e.g. m:Animation to place it in the Animation module). Usable on types.
 	 */
 
-#if BS_COMPILER == BS_COMPILER_CLANG
+#if B3D_COMPILER == B3D_COMPILER_ID_CLANG
 /** @ref scriptBindingMacro */
 #	define B3D_SCRIPT_EXPORT(...) __attribute__((annotate("se," #	__VA_ARGS__)))
 

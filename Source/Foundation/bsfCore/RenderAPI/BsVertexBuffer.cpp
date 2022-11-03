@@ -23,7 +23,7 @@ VertexBufferProperties::VertexBufferProperties(u32 numVertices, u32 vertexSize)
 VertexBuffer::VertexBuffer(const VERTEX_BUFFER_DESC& desc)
 	: mProperties(desc.NumVerts, desc.VertexSize), mUsage(desc.Usage), mStreamOut(desc.StreamOut)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	CheckValidDesc(desc);
 #endif
 }
@@ -54,7 +54,7 @@ namespace bs { namespace ct
 VertexBuffer::VertexBuffer(const VERTEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMask)
 	: HardwareBuffer(desc.VertexSize * desc.NumVerts, desc.Usage, deviceMask), mProperties(desc.NumVerts, desc.VertexSize)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	CheckValidDesc(desc);
 #endif
 }

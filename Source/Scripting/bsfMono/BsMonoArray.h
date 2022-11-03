@@ -45,7 +45,7 @@ namespace bs
 		 */
 		u8* GetRaw(u32 idx, u32 size)
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			B3D_ASSERT(size == ElementSize());
 #endif
 			return GetArrayAddrInternal(mInternal, size, idx);
@@ -58,7 +58,7 @@ namespace bs
 		template <class T>
 		T* GetRaw(u32 idx = 0)
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			B3D_ASSERT(sizeof(T) == ElementSize());
 #endif
 			return (T*)GetArrayAddrInternal(mInternal, sizeof(T), idx);

@@ -677,7 +677,7 @@ void GLSLParamParser::BuildUniformDescriptions(GLuint glProgram, GpuProgramType 
 			blockDesc.BlockSize += (4 - (blockDesc.BlockSize % 4));
 	}
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	// Check if manually calculated and OpenGL buffer sizes match
 	for(auto iter = returnParamDesc.ParamBlocks.begin(); iter != returnParamDesc.ParamBlocks.end(); ++iter)
 	{

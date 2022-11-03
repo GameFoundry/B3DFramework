@@ -53,7 +53,7 @@ extern "C" {
 #include <sys/stat.h>
 }
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	undef min
 #	undef max
 #	if !defined(NOMINMAX) && defined(_MSC_VER)
@@ -64,7 +64,7 @@ extern "C" {
 #	endif
 #endif
 
-#if BS_PLATFORM == BS_PLATFORM_LINUX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 extern "C" {
 
 #	include <unistd.h>
@@ -72,7 +72,7 @@ extern "C" {
 }
 #endif
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 extern "C" {
 
 #	include <unistd.h>

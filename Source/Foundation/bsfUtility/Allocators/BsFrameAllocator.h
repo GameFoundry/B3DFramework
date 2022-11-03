@@ -151,7 +151,7 @@ namespace bs
 		std::atomic<u32> mTotalAllocBytes;
 		void* mLastFrame;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		ThreadId mOwnerThread;
 #endif
 

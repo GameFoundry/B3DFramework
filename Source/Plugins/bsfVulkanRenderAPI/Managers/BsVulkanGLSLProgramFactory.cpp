@@ -6,7 +6,7 @@
 #include "BsVulkanGLSLToSPIRV.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include "spirv_cross/spirv_msl.hpp"
 #	include "spirv_cross/spirv_glsl.hpp"
 #endif
@@ -70,7 +70,7 @@ SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PRO
 {
 	SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(desc);
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	// We'll just re-purpose the existing data structure
 	SPtr<GpuProgramBytecode> msl = spirv;
 	msl->compilerId = MOLTENVK_COMPILER_ID;

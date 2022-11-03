@@ -13,7 +13,7 @@
 		}                   \
 	}
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 #	define D3D_DEBUG_INFO
 #endif
 

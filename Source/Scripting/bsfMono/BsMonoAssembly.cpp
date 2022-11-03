@@ -77,7 +77,7 @@ void MonoAssembly::Load()
 	}
 
 	// Load MDB file
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	Path mdbPath = mPath;
 	mdbPath.SetExtension(mdbPath.GetExtension() + ".mdb");
 

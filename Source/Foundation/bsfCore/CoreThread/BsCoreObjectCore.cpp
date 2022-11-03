@@ -35,7 +35,7 @@ void CoreObject::Synchronize()
 {
 	if(!IsInitialized())
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		if(BS_THREAD_CURRENT_ID == CoreThread::Instance().GetCoreThreadId())
 			B3D_EXCEPT(InternalErrorException, "You cannot call this method on the core thread. It will cause a deadlock!");
 #endif

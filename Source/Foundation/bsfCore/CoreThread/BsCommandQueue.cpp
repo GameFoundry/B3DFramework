@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 CommandQueueBase::CommandQueueBase(ThreadId threadId)
 	: mMyThreadId(threadId), mMaxDebugIdx(0)
 {
@@ -43,7 +43,7 @@ CommandQueueBase::~CommandQueueBase()
 
 AsyncOp CommandQueueBase::QueueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete, u32 _callbackId)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	BreakIfNeeded(mCommandQueueIdx, mMaxDebugIdx);
 
 	QueuedCommand newCommand(commandCallback, mMaxDebugIdx++, mAsyncOpSyncData, _notifyWhenComplete, _callbackId);
@@ -63,7 +63,7 @@ AsyncOp CommandQueueBase::QueueReturn(std::function<void(AsyncOp&)> commandCallb
 
 void CommandQueueBase::Queue(std::function<void()> commandCallback, bool _notifyWhenComplete, u32 _callbackId)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	BreakIfNeeded(mCommandQueueIdx, mMaxDebugIdx);
 
 	QueuedCommand newCommand(commandCallback, mMaxDebugIdx++, _notifyWhenComplete, _callbackId);
@@ -166,7 +166,7 @@ void CommandQueueBase::ThrowInvalidThreadException(const String& message) const
 	B3D_EXCEPT(InternalErrorException, message);
 }
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 Mutex CommandQueueBase::CommandQueueBreakpointMutex;
 
 u32 CommandQueueBase::MaxCommandQueueIdx = 0;

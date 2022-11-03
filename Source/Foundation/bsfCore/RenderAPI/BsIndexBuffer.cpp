@@ -33,7 +33,7 @@ IndexBufferProperties::IndexBufferProperties(IndexType idxType, u32 numIndices)
 IndexBuffer::IndexBuffer(const INDEX_BUFFER_DESC& desc)
 	: mProperties(desc.IndexType, desc.NumIndices), mUsage(desc.Usage)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	CheckValidDesc(desc);
 #endif
 }
@@ -64,7 +64,7 @@ IndexBuffer::IndexBuffer(const INDEX_BUFFER_DESC& desc, GpuDeviceFlags deviceMas
 	: HardwareBuffer(CalcIndexSize(desc.IndexType) * desc.NumIndices, desc.Usage, deviceMask)
 	, mProperties(desc.IndexType, desc.NumIndices)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	CheckValidDesc(desc);
 #endif
 }

@@ -103,7 +103,7 @@ SPtr<Win32Context> Win32GLSupport::CreateContext(HDC hdc, HGLRC externalGlrc)
 				attribs[i++] = WGL_CONTEXT_PROFILE_MASK_ARB;
 				attribs[i++] = WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
 
-#if(BS_DEBUG_MODE && (BS_OPENGL_4_3 || BS_OPENGLES_3_2))
+#if(B3D_DEBUG && (BS_OPENGL_4_3 || BS_OPENGLES_3_2))
 				attribs[i++] = WGL_CONTEXT_FLAGS_ARB;
 				attribs[i++] = WGL_CONTEXT_DEBUG_BIT_ARB;
 #endif

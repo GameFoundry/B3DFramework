@@ -5,7 +5,7 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsMath.h"
 
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	include <intrin.h>
 #endif
 
@@ -127,18 +127,18 @@ namespace bs
 
 			return res;
 		}
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	pragma intrinsic(_BitScanReverse, _BitScanForward)
 #endif
 
 		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 MostSignificantBit(u32 val)
 		{
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 			unsigned long index;
 			_BitScanReverse(&index, val);
 			return index;
-#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return 31 - __builtin_clz(val);
 #else
 			static_assert(false, "Not implemented");
@@ -148,11 +148,11 @@ namespace bs
 		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 LeastSignificantBit(u32 val)
 		{
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 			unsigned long index;
 			_BitScanForward(&index, val);
 			return index;
-#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return __builtin_ctz(val);
 #else
 			static_assert(false, "Not implemented");
@@ -162,7 +162,7 @@ namespace bs
 		/** Finds the most-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 MostSignificantBit(u64 val)
 		{
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
 			unsigned long index;
 			_BitScanReverse64(&index, val);
@@ -179,17 +179,17 @@ namespace bs
 				return index;
 			}
 #	endif // BS_ARCH_TYPE
-#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return 31 - __builtin_clzll(val);
-#else // BS_COMPILER
+#else // B3D_COMPILER
 			static_assert(false, "Not implemented");
-#endif // BS_COMPILER
+#endif // B3D_COMPILER
 		}
 
 		/** Finds the least-significant non-zero bit in the provided value and returns the index of that bit. */
 		static u32 LeastSignificantBit(u64 val)
 		{
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	if BS_ARCH_TYPE == BS_ARCHITECTURE_x86_64
 			unsigned long index;
 			_BitScanForward64(&index, val);
@@ -206,11 +206,11 @@ namespace bs
 				return index + 32;
 			}
 #	endif // BS_ARCH_TYPE
-#elif BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#elif B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 			return __builtin_ctzll(val);
-#else // BS_COMPILER
+#else // B3D_COMPILER
 			static_assert(false, "Not implemented");
-#endif // BS_COMPILER
+#endif // B3D_COMPILER
 		}
 
 		/** Determines whether the number is power-of-two or not. */

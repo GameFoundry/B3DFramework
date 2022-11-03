@@ -15,7 +15,7 @@ D3D11Device::D3D11Device(ID3D11Device* device)
 	{
 		device->GetImmediateContext(&mImmediateContext);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		// This interface is not available unless we created the device with debug layer
 		HRESULT hr = mD3D11Device->QueryInterface(__uuidof(ID3D11InfoQueue), (LPVOID*)&mInfoQueue);
 

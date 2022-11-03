@@ -264,7 +264,7 @@ VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanDevice& device, u32 size,
 	{
 		flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 		// Note: Use non-coherent memory when the buffer will be used as a uniform texel buffer. This is because
 		// coherent memory gets allocated under 'shared' storage mode under Metal, which is not supported as backing
 		// storage mode for textures (and a uniform texel buffer is classified as a texture in Metal). Technically

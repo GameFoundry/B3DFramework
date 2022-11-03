@@ -62,7 +62,7 @@ namespace bs
 	 */
 	struct QueuedCommand
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		QueuedCommand(std::function<void(AsyncOp&)> _callback, u32 _debugId, const SPtr<AsyncOpSyncData>& asyncOpSyncData, bool _notifyWhenComplete = false, u32 _callbackId = 0)
 			: DebugId(_debugId), CallbackWithReturnValue(_callback), AsyncOp(asyncOpSyncData), ReturnsValue(true), CallbackId(_callbackId), NotifyWhenComplete(_notifyWhenComplete)
 		{}
@@ -94,7 +94,7 @@ namespace bs
 			CallbackId = source.CallbackId;
 			NotifyWhenComplete = source.NotifyWhenComplete;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			DebugId = source.DebugId;
 #endif
 		}
@@ -108,7 +108,7 @@ namespace bs
 			CallbackId = rhs.CallbackId;
 			NotifyWhenComplete = rhs.NotifyWhenComplete;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			DebugId = rhs.DebugId;
 #endif
 
@@ -234,7 +234,7 @@ namespace bs
 
 		// Various variables that allow for easier debugging by allowing us to trigger breakpoints
 		// when a certain command was queued.
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		struct QueueBreakpoint
 		{
 			class HashFunction
@@ -292,7 +292,7 @@ namespace bs
 		/** @copydoc CommandQueueBase::QueueReturn */
 		AsyncOp QueueReturn(std::function<void(AsyncOp&)> commandCallback, bool _notifyWhenComplete = false, u32 _callbackId = 0)
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!this->IsValidThread(GetThreadId()))
 				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
@@ -306,7 +306,7 @@ namespace bs
 		/** @copydoc CommandQueueBase::Queue */
 		void Queue(std::function<void()> commandCallback, bool _notifyWhenComplete = false, u32 _callbackId = 0)
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!this->IsValidThread(GetThreadId()))
 				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
@@ -318,7 +318,7 @@ namespace bs
 		/** @copydoc CommandQueueBase::Flush */
 		bs::Queue<QueuedCommand>* Flush()
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!this->IsValidThread(GetThreadId()))
 				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
@@ -332,7 +332,7 @@ namespace bs
 		/** @copydoc CommandQueueBase::CancelAll */
 		void CancelAll()
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!this->IsValidThread(GetThreadId()))
 				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif
@@ -344,7 +344,7 @@ namespace bs
 		/** @copydoc CommandQueueBase::IsEmpty */
 		bool IsEmpty()
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!this->IsValidThread(GetThreadId()))
 				ThrowInvalidThreadException("Command queue accessed outside of its creation thread.");
 #endif

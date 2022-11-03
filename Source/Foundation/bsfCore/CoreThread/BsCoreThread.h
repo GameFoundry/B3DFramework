@@ -236,7 +236,7 @@ namespace bs
 	/** Throws an exception if current thread is the core thread. */
 	B3D_CORE_EXPORT void ThrowIfCoreThread();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 #	define THROW_IF_NOT_CORE_THREAD ThrowIfNotCoreThread();
 #	define THROW_IF_CORE_THREAD ThrowIfCoreThread();
 #else

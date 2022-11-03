@@ -97,7 +97,7 @@ MonoManager::MonoManager()
 	mono_set_dirs(libDir.ToString().c_str(), etcDir.ToString().c_str());
 	mono_set_assemblies_path(assembliesDir.ToString().c_str());
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	// Note: For proper debugging experience make sure to open a console window to display stdout and stderr, as Mono
 	// uses them for much of its logging.
 	mono_debug_init(MONO_DEBUG_FORMAT_MONO);
@@ -328,7 +328,7 @@ Path MonoManager::GetMonoExecPath() const
 {
 	Path path = Paths::GetBinariesPath();
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	path.Append("MonoExec.exe");
 #else
 	path.append("MonoExec");

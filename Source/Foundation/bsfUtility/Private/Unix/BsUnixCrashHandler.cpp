@@ -85,7 +85,7 @@ String CrashHandler::getStackTrace()
 
 	for(int i = 0; i < traceSize && messages != nullptr; ++i)
 	{
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 		stackTrace << std::to_string(i) << ") " << messages[i];
 
 		// Try parsing a human readable name
@@ -121,7 +121,7 @@ String CrashHandler::getStackTrace()
 		}
 		else
 			stackTrace << String(messages[i]);
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 		// Try to find the characters surrounding the mangled name: '(' and '+'
 		char* mangedName = nullptr;
 		char* offsetBegin = nullptr;

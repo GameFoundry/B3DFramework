@@ -98,7 +98,7 @@ namespace bs
 		 */
 		Any GetGenericReturnValue() const
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!HasCompleted())
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
@@ -141,7 +141,7 @@ namespace bs
 		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
 		ReturnType GetReturnValue() const
 		{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			if(!HasCompleted())
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif

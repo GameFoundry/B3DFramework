@@ -68,7 +68,7 @@ LinuxContext::LinuxContext(::Display* display, XVisualInfo& visualInfo)
 				attributes[5] = GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 			}
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			attributes[6] = GLX_CONTEXT_FLAGS_ARB;
 			attributes[7] = GLX_CONTEXT_DEBUG_BIT_ARB;
 #endif

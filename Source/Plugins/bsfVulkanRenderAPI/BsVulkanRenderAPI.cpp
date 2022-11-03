@@ -22,18 +22,18 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderPass.h"
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Win32/BsWin32VideoModeInfo.h"
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 #	include "Linux/BsLinuxVideoModeInfo.h"
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include "MacOS/BsMacOSVideoModeInfo.h"
 #	include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 static_assert(false, "Other platform includes go here.");
 #endif
 
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 #	define USE_VALIDATION_LAYERS 1
 #else
 #	define USE_VALIDATION_LAYERS 0
@@ -94,7 +94,7 @@ static VkBool32 DebugMessageCallback(VkDebugReportFlagsEXT flags, VkDebugReportO
 
 VulkanRenderAPI::VulkanRenderAPI()
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	mDebugCallback = nullptr;
 #endif
 }
@@ -120,13 +120,13 @@ void VulkanRenderAPI::Initialize()
 
 	// MoltenVK doesn't support 1.1, but we don't need it since the only feature we use from it right now is SPIR-V 1.3,
 	// and that's not relevant for MoltenVK as SPIR-V gets translated to MSL anyway.
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	appInfo.apiVersion = VK_API_VERSION_1_0;
 #else
 	appInfo.apiVersion = VK_API_VERSION_1_1;
 #endif
 
-#if BS_DEBUG_MODE && USE_VALIDATION_LAYERS
+#if B3D_DEBUG && USE_VALIDATION_LAYERS
 	const char* layers[] = {
 		"VK_LAYER_LUNARG_standard_validation"
 	};
@@ -150,13 +150,13 @@ void VulkanRenderAPI::Initialize()
 
 	extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-#elif BS_PLATFORM == BS_PLATFORM_ANDROID
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_ANDROID
 	extensions[1] = VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 	extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	extensions[1] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 #else
 	static_assert(false, "Other platform includes go here.");
@@ -178,7 +178,7 @@ void VulkanRenderAPI::Initialize()
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	// Set up debugging
-#if BS_DEBUG_MODE && USE_VALIDATION_LAYERS
+#if B3D_DEBUG && USE_VALIDATION_LAYERS
 	VkDebugReportFlagsEXT debugFlags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
 		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
@@ -196,12 +196,12 @@ void VulkanRenderAPI::Initialize()
 	B3D_ASSERT(result == VK_SUCCESS);
 #endif
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	MVKConfiguration mvkConfig;
 	size_t mvkConfigSize = sizeof(MVKConfiguration);
 	vkGetMoltenVKConfigurationMVK(mInstance, &mvkConfig, &mvkConfigSize);
 
-#	if BS_DEBUG_MODE
+#	if B3D_DEBUG
 	mvkConfig.debugMode = VK_TRUE;
 #	endif
 
@@ -250,11 +250,11 @@ void VulkanRenderAPI::Initialize()
 		mPrimaryDevices.push_back(mDevices[0]);
 	}
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 	mVideoModeInfo = B3DMakeShared<LinuxVideoModeInfo>();
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	mVideoModeInfo = B3DMakeShared<MacOSVideoModeInfo>();
 #else
 	static_assert(false, "mVideoModeInfo needs to be created.");
@@ -311,7 +311,7 @@ void VulkanRenderAPI::Initialize()
 	// Create & register GPU program factories
 	mGLSLFactory = B3DNew<VulkanGLSLProgramFactory>();
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	GpuProgramManager::Instance().addFactory("mvksl", mGLSLFactory);
 #else
 	GpuProgramManager::Instance().AddFactory("vksl", mGLSLFactory);
@@ -357,7 +357,7 @@ void VulkanRenderAPI::DestroyCore()
 	mPrimaryDevices.clear();
 	mDevices.clear();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(mDebugCallback != nullptr)
 		vkDestroyDebugReportCallbackEXT(mInstance, mDebugCallback, gVulkanAllocator);
 #endif

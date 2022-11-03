@@ -985,7 +985,7 @@ void GLRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnly
 
 void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	u32 lastIdx = index + numBuffers;
 	if(lastIdx > kMaxVbCount)
 	{
@@ -2316,7 +2316,7 @@ void GLRenderAPI::InitFromCaps(RenderAPICapabilities* caps)
 		B3D_EXCEPT(InvalidParametersException, "Trying to initialize GLRenderAPI from RenderSystemCapabilities that do not support OpenGL");
 	}
 
-#if BS_DEBUG_MODE && (BS_OPENGL_4_3 || BS_OPENGLES_3_2)
+#if B3D_DEBUG && (BS_OPENGL_4_3 || BS_OPENGLES_3_2)
 	if(mGLSupport->CheckExtension("GL_ARB_debug_output"))
 	{
 		glDebugMessageCallback(&OpenGlErrorCallback, 0);
@@ -2424,7 +2424,7 @@ void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
 	caps.SetCapability(RSC_TEXTURE_VIEWS);
 #endif
 
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 	caps.SetCapability(RSC_RENDER_TARGET_LAYERS);
 #endif
 

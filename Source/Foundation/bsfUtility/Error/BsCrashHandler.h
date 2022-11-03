@@ -15,7 +15,7 @@ namespace bs
 		/** Called when reporting a crash begins. Return true to skip default action. */
 		std::function<bool(const String& type, const String& description, const String& function, const String& file, u32 line)> OnBeforeReportCrash;
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 		/** Called when a windows SEH exception is started to be handled. Return true to skip default action */
 		std::function<bool(void* exceptionData)> OnBeforeWindowsSehReportCrash;
 #endif
@@ -80,7 +80,7 @@ namespace bs
 		 */
 		void ReportCrash(const String& type, const String& description, const String& function = StringUtil::kBlank, const String& file = StringUtil::kBlank, u32 line = 0) const;
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 		/**
 		 * Records a crash resulting from a Windows-specific SEH exception.
 		 *
@@ -130,7 +130,7 @@ namespace bs
 		/** Error message to display on program failure. */
 		static const String kSFatalErrorMsg;
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 		struct Data;
 		Data* m;
 #endif

@@ -5,16 +5,16 @@
 #include "Platform/BsPlatform.h"
 #include <chrono>
 
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	include <intrin.h>
 #endif
 
-#if BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#if B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 #	include "BsCpuid.h"
 #endif
 
-#if BS_COMPILER == BS_COMPILER_CLANG
-#	if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_COMPILER == B3D_COMPILER_ID_CLANG
+#	if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #		include "intrin.h"
 #	else
 #		include <x86intrin.h>
@@ -75,7 +75,7 @@ void ProfilerCPU::TimerPrecise::Reset()
 
 inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 {
-#if BS_COMPILER == BS_COMPILER_GNUC || BS_COMPILER == BS_COMPILER_CLANG
+#if B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
 	unsigned int a = 0;
 	unsigned int b[4];
 	__get_cpuid(a, &b[0], &b[1], &b[2], &b[3]);
@@ -91,7 +91,7 @@ inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 					 : "=A"(x));
 	return x;
 #	endif
-#elif BS_COMPILER == BS_COMPILER_MSVC
+#elif B3D_COMPILER == B3D_COMPILER_ID_MSVC
 	int a[4];
 	int b = 0;
 	__cpuid(a, b);
@@ -352,7 +352,7 @@ void ProfilerCPU::EndSample(const char* name)
 	ThreadInfo* thread = ThreadInfo::activeThread;
 	ProfiledBlock* block = thread->ActiveBlock.Block;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(block == nullptr)
 	{
 		B3D_LOG(Warning, Profiler, "Mismatched CPUProfiler::endSample. No beginSample was called.");
@@ -420,7 +420,7 @@ void ProfilerCPU::EndSamplePrecise(const char* name)
 	ThreadInfo* thread = ThreadInfo::activeThread;
 	ProfiledBlock* block = thread->ActiveBlock.Block;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(block == nullptr)
 	{
 		B3D_LOG(Warning, Profiler, "Mismatched Profiler::endSamplePrecise. No beginSamplePrecise was called.");

@@ -3,16 +3,16 @@
 #include "Threading/BsThreadPool.h"
 #include "Debug/BsDebug.h"
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "windows.h"
 
-#	if BS_COMPILER == BS_COMPILER_MSVC
+#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 // disable: nonstandard extension used: 'X' uses SEH and 'Y' has destructor
 // We don't care about this as any exception is meant to crash the program.
 #		pragma warning(disable : 4509)
-#	endif // BS_COMPILER == BS_COMPILER_MSVC
+#	endif // B3D_COMPILER == B3D_COMPILER_ID_MSVC
 
-#endif // BS_PLATFORM == BS_PLATFORM_WIN32
+#endif // B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 
 using namespace bs;
 
@@ -109,7 +109,7 @@ void PooledThread::Run()
 			}
 		}
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 		RunFunctionHelper(worker);
 #else
 		worker();
@@ -128,7 +128,7 @@ void PooledThread::Run()
 	}
 }
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 void PooledThread::RunFunctionHelper(const std::function<void()>& function) const
 {
 	__try

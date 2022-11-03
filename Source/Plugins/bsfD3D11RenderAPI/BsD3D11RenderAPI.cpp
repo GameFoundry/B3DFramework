@@ -77,7 +77,7 @@ void D3D11RenderAPI::Initialize()
 	const u32 numRequestedLevels = sizeof(requestedLevels) / sizeof(requestedLevels[0]);
 
 	u32 deviceFlags = 0;
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -735,7 +735,7 @@ void D3D11RenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, 
 
 		NotifyRenderTargetModified();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		if(mDevice->HasError())
 			B3D_LOG(Warning, RenderBackend, mDevice->GetErrorDescription());
 #endif
@@ -770,7 +770,7 @@ void D3D11RenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffse
 
 		NotifyRenderTargetModified();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		if(mDevice->HasError())
 			B3D_LOG(Warning, RenderBackend, mDevice->GetErrorDescription());
 #endif
@@ -797,7 +797,7 @@ void D3D11RenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGrou
 
 		mDevice->GetImmediateContext()->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		if(mDevice->HasError())
 			B3D_LOG(Warning, RenderBackend, mDevice->GetErrorDescription());
 #endif

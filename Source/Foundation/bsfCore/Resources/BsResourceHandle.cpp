@@ -110,7 +110,7 @@ void ResourceHandleBase::RemoveInternalRef()
 
 void ResourceHandleBase::ThrowIfNotLoaded() const
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(!IsLoaded(false))
 	{
 		B3D_EXCEPT(InternalErrorException, "Trying to access a resource that hasn't been loaded yet.");

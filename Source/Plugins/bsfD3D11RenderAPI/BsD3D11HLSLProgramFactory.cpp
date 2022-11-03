@@ -136,7 +136,7 @@ SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::CompileBytecode(const GPU_PROG
 	}
 
 	UINT compileFlags = 0;
-#if defined(BS_DEBUG_MODE)
+#if defined(B3D_DEBUG)
 	compileFlags |= D3DCOMPILE_DEBUG;
 	compileFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif

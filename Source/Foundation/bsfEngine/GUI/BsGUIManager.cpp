@@ -918,7 +918,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 	for(auto& widgetInfo : mWidgets)
 		widgetWindows.push_back(GetWidgetWindow(*widgetInfo.Widget));
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	// Checks if all referenced windows actually exist
 	Vector<RenderWindow*> activeWindows = RenderWindowManager::Instance().GetRenderWindows();
 	for(auto& window : widgetWindows)

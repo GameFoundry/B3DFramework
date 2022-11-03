@@ -33,7 +33,7 @@ namespace bs
 			 */
 			void Set(const SPtr<GpuParamBlockBuffer>& paramBlock, const T& value, u32 arrayIdx = 0) const
 			{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 				if(arrayIdx >= mParamDesc.ArraySize)
 				{
 					B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc.ArraySize) + ". Requested size: " + ToString(arrayIdx));
@@ -66,7 +66,7 @@ namespace bs
 			 */
 			T Get(const SPtr<GpuParamBlockBuffer>& paramBlock, u32 arrayIdx = 0) const
 			{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 				if(arrayIdx >= mParamDesc.ArraySize)
 				{
 					B3D_LOG(Error, Material, "Array index out of range. Array size: {0}. Requested size: {1}", mParamDesc.ArraySize, arrayIdx);

@@ -187,7 +187,7 @@ GpuPipelineParamInfoBase::GpuPipelineParamInfoBase(const GPU_PIPELINE_PARAMS_DES
 
 u32 GpuPipelineParamInfoBase::GetSequentialSlot(ParamType type, u32 set, u32 slot) const
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(set >= mNumSets)
 	{
 		B3D_LOG(Error, RenderBackend, "Set index out of range: Valid range: [0, {0}). Requested: {1}.", mNumSets, set);
@@ -221,7 +221,7 @@ u32 GpuPipelineParamInfoBase::GetSequentialSlot(ParamType type, u32 set, u32 slo
 
 void GpuPipelineParamInfoBase::GetBinding(ParamType type, u32 sequentialSlot, u32& set, u32& slot) const
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(sequentialSlot >= mNumElementsPerType[(int)type])
 	{
 		B3D_LOG(Error, RenderBackend, "Sequential slot index out of range: Valid range: [0, {0}). Requested: {1}.", mNumElementsPerType[(int)type], sequentialSlot);

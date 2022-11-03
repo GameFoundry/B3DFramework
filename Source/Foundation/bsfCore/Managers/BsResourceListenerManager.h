@@ -91,7 +91,7 @@ namespace bs
 
 		RecursiveMutex mMutex;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		Set<IResourceListener*> mActiveListeners;
 #endif
 	};

@@ -10,7 +10,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 void throwIfNotSimThread()
 {
 	if(BS_THREAD_CURRENT_ID != CoreApplication::Instance().GetSimThreadId())
@@ -38,7 +38,7 @@ ResourceListenerManager::~ResourceListenerManager()
 
 void ResourceListenerManager::RegisterListener(IResourceListener* listener)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	RecursiveLock lock(mMutex);
 	mActiveListeners.insert(listener);
 #endif
@@ -46,7 +46,7 @@ void ResourceListenerManager::RegisterListener(IResourceListener* listener)
 
 void ResourceListenerManager::UnregisterListener(IResourceListener* listener)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	{
 		RecursiveLock lock(mMutex);
 		mActiveListeners.erase(listener);
@@ -167,7 +167,7 @@ void ResourceListenerManager::SendResourceLoaded(const HResource& resource)
 	const Vector<IResourceListener*> relevantListeners = iterFind->second;
 	for(auto& listener : relevantListeners)
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		B3D_ASSERT(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 
@@ -186,7 +186,7 @@ void ResourceListenerManager::SendResourceModified(const HResource& resource)
 	const Vector<IResourceListener*> relevantListeners = iterFind->second;
 	for(auto& listener : relevantListeners)
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		B3D_ASSERT(mActiveListeners.find(listener) != mActiveListeners.end() && "Attempting to notify a destroyed IResourceListener");
 #endif
 

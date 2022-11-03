@@ -5,8 +5,8 @@
 #include "BsMonoPrerequisites.h"
 
 // DLL export
-#if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
-#	if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows
+#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #		if defined(BS_SCR_BE_STATIC_LIB) || defined(BS_SBGEN)
 #			define B3D_SCRIPT_INTEROP_EXPORT
 #		else

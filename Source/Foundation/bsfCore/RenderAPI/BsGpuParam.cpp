@@ -31,7 +31,7 @@ void TGpuDataParam<T, Core>::Set(const T& value, u32 arrayIdx) const
 	if(paramBlock == nullptr)
 		return;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(arrayIdx >= mParamDesc->ArraySize)
 	{
 		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
@@ -70,7 +70,7 @@ T TGpuDataParam<T, Core>::Get(u32 arrayIdx) const
 	if(paramBlock == nullptr)
 		return T();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(arrayIdx >= mParamDesc->ArraySize)
 	{
 		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
@@ -108,7 +108,7 @@ void TGpuParamStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayIdx) 
 
 	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
 	{
 		B3D_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."
@@ -148,7 +148,7 @@ void TGpuParamStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) const
 
 	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
 	{
 		B3D_LOG(Warning, RenderBackend, "Provided element size larger than maximum element size. Maximum size: {0}."

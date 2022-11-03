@@ -25,7 +25,7 @@ CoreObject::~CoreObject()
 		B3D_EXCEPT(InternalErrorException, "Destructor called but object is not destroyed. This will result in nasty issues.");
 	}
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(!mThis.expired())
 	{
 		B3D_EXCEPT(InternalErrorException, "Shared pointer to this object still has active references but "

@@ -5,8 +5,8 @@
 #include "BsPrerequisites.h"
 
 // DLL export
-#if BS_PLATFORM == BS_PLATFORM_WIN32 // Windows
-#	if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows
+#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #		if defined(BS_MONO_STATIC_LIB)
 #			define B3D_MONO_EXPORT
 #		else
@@ -86,7 +86,7 @@ namespace bs
 	};
 } // namespace bs
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	define BS_THUNKCALL BS_STDCALL
 #else
 #	define BS_THUNKCALL

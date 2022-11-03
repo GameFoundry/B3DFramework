@@ -166,7 +166,7 @@ VulkanResourceManager::VulkanResourceManager(VulkanDevice& device)
 
 VulkanResourceManager::~VulkanResourceManager()
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	Lock lock(mMutex);
 	B3D_ASSERT(mResources.empty() && "Resource manager shutting down but not all resources were released.");
 #endif
@@ -174,7 +174,7 @@ VulkanResourceManager::~VulkanResourceManager()
 
 void VulkanResourceManager::Destroy(VulkanResource* resource)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	{
 		Lock lock(mMutex);
 		mResources.erase(resource);

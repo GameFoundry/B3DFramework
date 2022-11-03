@@ -11,7 +11,7 @@
 // 4.1 is the minimum supported version for OpenGL
 #define BS_OPENGL_4_1 1
 
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 #	define BS_OPENGL_4_2 1
 #	define BS_OPENGL_4_3 1
 #	define BS_OPENGL_4_4 1
@@ -23,7 +23,7 @@
 #define BS_OPENGLES_3_1 0
 #define BS_OPENGLES_3_2 0
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	if !defined(__MINGW32__)
 #		define WIN32_LEAN_AND_MEAN
 #		ifndef NOMINMAX
@@ -34,11 +34,11 @@
 #	include <wingdi.h>
 #	include <GL/glew.h>
 #	include <GL/wglew.h>
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 #	include <GL/glew.h>
 #	include <GL/glu.h>
 #	define GL_GLEXT_PROTOTYPES
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	define GL_SILENCE_DEPRECATION 1
 #	include <OpenGL/gl3.h>
 #	include <OpenGL/gl3ext.h>
@@ -47,7 +47,7 @@
 #if BS_THREAD_SUPPORT == 1
 GLEWContext* glewGetContext();
 
-#	if BS_PLATFORM == BS_PLATFORM_WIN32
+#	if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 WGLEWContext* wglewGetContext();
 #	endif
 
@@ -78,7 +78,7 @@ namespace bs
 		/** Checks if there have been any OpenGL errors since the last call, and if so reports them. */
 		void B3DCheckForOpenGLError(const char* function, const char* file, i32 line);
 
-#if BS_DEBUG_MODE && (!BS_OPENGL_4_3 && !BS_OPENGLES_3_2)
+#if B3D_DEBUG && (!BS_OPENGL_4_3 && !BS_OPENGLES_3_2)
 #	define BS_CHECK_GL_ERROR() B3DCheckForOpenGLError(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 #else
 #	define BS_CHECK_GL_ERROR()

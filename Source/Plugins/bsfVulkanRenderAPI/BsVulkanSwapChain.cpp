@@ -66,7 +66,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	{
 		// Mailbox comes with lower input latency than FIFO, but can waste GPU power by rendering frames that are never
 		// displayed, especially if the app runs much faster than the refresh rate. This is a concern for mobiles.
-#if BS_PLATFORM != BS_PLATFORM_ANDROID && BS_PLATFORM != BS_PLATFORM_IOS
+#if B3D_PLATFORM != B3D_PLATFORM_ID_ANDROID && B3D_PLATFORM != B3D_PLATFORM_ID_IOS
 		for(u32 i = 0; i < numPresentModes; i++)
 		{
 

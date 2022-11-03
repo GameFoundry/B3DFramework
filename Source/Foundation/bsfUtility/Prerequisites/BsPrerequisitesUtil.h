@@ -140,7 +140,7 @@
 // Platform-specific stuff
 #include "Prerequisites/BsPlatformDefines.h"
 
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 
 // TODO - This is not deactivated anywhere, therefore it applies to any file that includes this header.
 //      - Right now I don't have an easier way to apply these warnings globally so I'm keeping it this way.
@@ -172,31 +172,31 @@
 #endif
 
 // Windows Settings
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 // Win32 compilers use _DEBUG for specifying debug builds.
 // for MinGW, we set DEBUG
 #	if defined(_DEBUG) || defined(DEBUG)
-#		define BS_DEBUG_MODE 1
+#		define B3D_DEBUG 1
 #	else
-#		define BS_DEBUG_MODE 0
+#		define B3D_DEBUG 0
 #	endif
 
 #endif
 
 // Linux/Apple Settings
-#if BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_LINUX || B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 // A quick define to overcome different names for the same function
 #	define stricmp strcasecmp
 
 #	ifdef DEBUG
-#		define BS_DEBUG_MODE 1
+#		define B3D_DEBUG 1
 #	else
-#		define BS_DEBUG_MODE 0
+#		define B3D_DEBUG 0
 #	endif
 
 #endif
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 #	define BS_DEBUG_ONLY(x) x
 #	define B3D_ASSERT(x) assert(x)
 #else

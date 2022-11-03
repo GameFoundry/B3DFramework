@@ -57,7 +57,7 @@ namespace bs
 		/**	Moves the iterator to the next position. Returns true if there are more elements. */
 		bool MoveNext()
 		{
-#ifdef BS_DEBUG_MODE
+#ifdef B3D_DEBUG
 			if(mData >= mEnd)
 			{
 				B3D_EXCEPT(InternalErrorException, "Vertex element iterator out of buffer bounds.");

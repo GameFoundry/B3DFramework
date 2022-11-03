@@ -193,7 +193,7 @@ namespace bs
 			{
 				Type* resource = new(B3DAllocate(sizeof(Type))) Type(this, std::forward<Args>(args)...);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 				Lock lock(mMutex);
 				mResources.insert(resource);
 #endif
@@ -215,7 +215,7 @@ namespace bs
 
 			VulkanDevice& mDevice;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			UnorderedSet<VulkanResource*> mResources;
 			Mutex mMutex;
 #endif

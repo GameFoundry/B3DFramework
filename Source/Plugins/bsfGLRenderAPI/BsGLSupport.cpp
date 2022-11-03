@@ -3,7 +3,7 @@
 #include "BsGLSupport.h"
 #include "BsGLTexture.h"
 
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 #	include "GL/glew.h"
 
 GLenum GlewContextInit(bs::ct::GLSupport* glSupport);
@@ -14,7 +14,7 @@ using namespace bs::ct;
 
 void GLSupport::InitializeExtensions()
 {
-#if BS_PLATFORM != BS_PLATFORM_OSX
+#if B3D_PLATFORM != B3D_PLATFORM_ID_MACOS
 	GlewContextInit(this);
 	BS_CHECK_GL_ERROR();
 #endif

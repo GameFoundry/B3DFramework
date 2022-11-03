@@ -57,7 +57,7 @@ COLOR TColorGradient<COLOR, TIME>::Evaluate(float t) const
 template <class COLOR, class TIME>
 void TColorGradient<COLOR, TIME>::SetKeys(const Vector<ColorGradientKey>& keys, float duration)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	// Ensure keys are sorted
 	if(!keys.empty())
 	{

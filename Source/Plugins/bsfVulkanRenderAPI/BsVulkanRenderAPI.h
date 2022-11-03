@@ -95,7 +95,7 @@ namespace bs
 
 			VulkanGLSLProgramFactory* mGLSLFactory;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			VkDebugReportCallbackEXT mDebugCallback;
 #endif
 		};

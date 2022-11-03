@@ -613,7 +613,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 {
 	if(!shader.IsLoaded(false) || shader->GetNumTechniques() == 0)
 	{
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 		B3D_EXCEPT(InvalidStateException, "Error occured while compiling a shader. Check earlier log messages for exact error.");
 #else
 		B3D_LOG(Error, Importer, "Error occured while compiling a shader. Check earlier log messages for exact error.");
@@ -657,7 +657,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 				{
 					String errMsg = "Error occured while compiling a shader \"" + shader->GetName() + "\". Error message: " + program->GetCompileErrorMessage();
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 					B3D_EXCEPT(InvalidStateException, errMsg);
 #else
 					B3D_LOG(Error, Importer, errMsg);

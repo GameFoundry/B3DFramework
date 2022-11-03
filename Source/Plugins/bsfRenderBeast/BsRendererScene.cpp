@@ -424,7 +424,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 			renElement.DefaultTechniqueIdx = InitAndRetrieveBasePassTechnique(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultTechniqueIdx, *vertexDecl);
 #endif
 
@@ -436,7 +436,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 			{
 				renElement.WriteVelocityTechniqueIdx = InitAndRetrieveBasePassTechnique(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 				ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityTechniqueIdx, *vertexDecl);
 #endif
 

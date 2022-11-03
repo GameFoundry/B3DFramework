@@ -12,7 +12,7 @@
 #	include "BsEngineConfig.h"
 #endif
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32 && BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 && B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	include <windows.h>
 #	include <iostream>
 

@@ -122,7 +122,7 @@ VertexElementType VertexElement::GetBestColorVertexElementType()
 	else
 	{
 		// We can't know the specific type right now, so pick a type based on platform
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 		return VET_COLOR_ARGB; // prefer D3D format on Windows
 #else
 		return VET_COLOR_ABGR; // prefer GL format on everything else

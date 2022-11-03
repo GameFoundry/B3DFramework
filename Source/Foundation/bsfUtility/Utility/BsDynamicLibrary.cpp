@@ -3,7 +3,7 @@
 #include "Utility/BsDynamicLibrary.h"
 #include "Error/BsException.h"
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	define WIN32_LEAN_AND_MEAN
 #	if !defined(NOMINMAX) && defined(_MSC_VER)
 #		define NOMINMAX // required to stop windows.h messing up std::min
@@ -11,7 +11,7 @@
 #	include <windows.h>
 #endif
 
-#if BS_PLATFORM == BS_PLATFORM_OSX
+#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include <dlfcn.h>
 #endif
 
@@ -64,7 +64,7 @@ void* DynamicLibrary::GetSymbol(const String& strName) const
 
 String DynamicLibrary::DynlibError()
 {
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	LPVOID lpMsgBuf;
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -82,7 +82,7 @@ String DynamicLibrary::DynlibError()
 	// Free the buffer.
 	LocalFree(lpMsgBuf);
 	return ret;
-#elif BS_PLATFORM == BS_PLATFORM_LINUX || BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX || B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	return String(dlerror());
 #else
 	return String();

@@ -14,7 +14,7 @@ GLCommandBuffer::GLCommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx,
 
 void GLCommandBuffer::QueueCommand(const std::function<void()> command)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(GetState() == CommandBufferState::Executing)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot modify a command buffer that's still executing.");
@@ -32,7 +32,7 @@ void GLCommandBuffer::QueueCommand(const std::function<void()> command)
 
 void GLCommandBuffer::ExecuteCommands()
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	if(mIsSecondary)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot execute commands on a secondary buffer.");

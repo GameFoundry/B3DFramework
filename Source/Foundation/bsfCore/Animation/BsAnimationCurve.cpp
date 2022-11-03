@@ -615,7 +615,7 @@ template <class T>
 TAnimationCurve<T>::TAnimationCurve(const Vector<KeyFrame>& keyframes)
 	: mKeyframes(keyframes)
 {
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	// Ensure keyframes are sorted
 	if(!keyframes.empty())
 	{

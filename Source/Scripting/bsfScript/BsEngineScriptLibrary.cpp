@@ -160,7 +160,7 @@ Path EngineScriptLibrary::GetBuiltinAssemblyFolder() const
 	Path releaseAssemblyFolder = GetReleaseAssemblyPath();
 	Path debugAssemblyFolder = GetDebugAssemblyPath();
 
-#if BS_DEBUG_MODE == 0
+#if B3D_DEBUG == 0
 	if(FileSystem::Exists(releaseAssemblyFolder))
 		return releaseAssemblyFolder;
 

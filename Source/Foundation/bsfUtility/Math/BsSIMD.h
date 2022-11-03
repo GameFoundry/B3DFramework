@@ -10,13 +10,13 @@
 
 #define SIMDPP_ARCH_X86_SSE4_1
 
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	pragma warning(disable : 4244)
 #endif
 
 #include "ThirdParty/simdpp/simd.h"
 
-#if BS_COMPILER == BS_COMPILER_MSVC
+#if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	pragma warning(default : 4244)
 #endif
 

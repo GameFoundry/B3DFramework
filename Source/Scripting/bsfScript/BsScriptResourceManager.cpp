@@ -30,7 +30,7 @@ ScriptResourceManager::~ScriptResourceManager()
 ScriptManagedResource* ScriptResourceManager::CreateManagedScriptResource(const HManagedResource& resource, MonoObject* instance)
 {
 	const UUID& uuid = resource.GetUuid();
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
@@ -43,7 +43,7 @@ ScriptManagedResource* ScriptResourceManager::CreateManagedScriptResource(const 
 ScriptResourceBase* ScriptResourceManager::CreateBuiltinScriptResource(const HResource& resource, MonoObject* instance)
 {
 	const UUID& uuid = resource.GetUuid();
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
 #endif
 
@@ -110,7 +110,7 @@ void ScriptResourceManager::DestroyScriptResource(ScriptResourceBase* resource)
 	if(uuid.Empty())
 		B3D_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 	for(auto& kvp : mScriptRRefsPerType)
 	{
 		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = kvp.second;

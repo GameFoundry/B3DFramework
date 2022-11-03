@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#if BS_PLATFORM == BS_PLATFORM_WIN32
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 
 #	include "Win32/BsWin32GLSupport.h"
 #	include "Win32/BsWin32VideoModeInfo.h"
@@ -25,7 +25,7 @@ namespace bs
 	} // namespace ct
 } // namespace bs
 
-#elif BS_PLATFORM == BS_PLATFORM_LINUX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 
 #	include "Linux/BsLinuxGLSupport.h"
 
@@ -47,7 +47,7 @@ namespace bs
 	} // namespace ct
 } // namespace bs
 
-#elif BS_PLATFORM == BS_PLATFORM_OSX
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 
 #	include "MacOS/BsMacOSGLSupport.h"
 

@@ -82,7 +82,7 @@ namespace bs
 			if(amount == 0)
 				return nullptr;
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			amount += sizeof(u32);
 #endif
 
@@ -97,7 +97,7 @@ namespace bs
 				mFreePtr += amount;
 			}
 
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			mTotalAllocBytes += amount;
 
 			u32* storedSize = reinterpret_cast<u32*>(data);
@@ -116,7 +116,7 @@ namespace bs
 				return;
 
 			u8* dataPtr = (u8*)data;
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			dataPtr -= sizeof(u32);
 
 			u32* storedSize = (u32*)(dataPtr);
@@ -139,7 +139,7 @@ namespace bs
 				return;
 
 			u8* dataPtr = (u8*)data;
-#if BS_DEBUG_MODE
+#if B3D_DEBUG
 			dataPtr -= sizeof(u32);
 
 			u32* storedSize = (u32*)(dataPtr);
