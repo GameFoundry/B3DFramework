@@ -10,18 +10,18 @@ namespace bs
 	{
 	public:
 		UtilityTestSuite();
-		void startUp() override;
-		void shutDown() override;
+		void StartUp() override;
+		void ShutDown() override;
 
 	private:
-		void testBitfield();
-		void testOctree();
-		void testSmallVector();
-		void testDynArray();
-		void testComplex();
-		void testMinHeap();
-		void testQuadtree();
-		void testVarInt();
-		void testBitStream();
+		void TestBitfield();
+		void TestOctree();
+		void TestSmallVector();
+		void TestDynArray();
+		void TestComplex();
+		void TestMinHeap();
+		void TestQuadtree();
+		void TestVarInt();
+		void TestBitStream();
 	};
 } // namespace bs

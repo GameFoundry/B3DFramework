@@ -15,13 +15,13 @@ using namespace bs;
 
 struct DebugOctreeElem
 {
-	AABox box;
-	mutable OctreeElementId octreeId;
+	AABox Box;
+	mutable OctreeElementId OctreeId;
 };
 
 struct DebugOctreeData
 {
-	Vector<DebugOctreeElem> elements;
+	Vector<DebugOctreeElem> Elements;
 };
 
 struct DebugOctreeOptions
@@ -46,16 +46,16 @@ struct DebugOctreeOptions
 		MaxDepth = 12
 	};
 
-	static simd::AABox getBounds(u32 elem, void* context)
+	static simd::AABox GetBounds(u32 elem, void* context)
 	{
 		DebugOctreeData* octreeData = (DebugOctreeData*)context;
-		return simd::AABox(octreeData->elements[elem].box);
+		return simd::AABox(octreeData->Elements[elem].Box);
 	}
 
-	static void setElementId(u32 elem, const OctreeElementId& id, void* context)
+	static void SetElementId(u32 elem, const OctreeElementId& id, void* context)
 	{
 		DebugOctreeData* octreeData = (DebugOctreeData*)context;
-		octreeData->elements[elem].octreeId = id;
+		octreeData->Elements[elem].OctreeId = id;
 	}
 };
 
@@ -63,13 +63,13 @@ typedef Octree<u32, DebugOctreeOptions> DebugOctree;
 
 struct DebugQuadtreeElem
 {
-	Rect2 box;
-	mutable QuadtreeElementId quadtreeId;
+	Rect2 Box;
+	mutable QuadtreeElementId QuadtreeId;
 };
 
 struct DebugQuadtreeData
 {
-	Vector<DebugQuadtreeElem> elements;
+	Vector<DebugQuadtreeElem> Elements;
 };
 
 struct DebugQuadtreeOptions
@@ -94,16 +94,16 @@ struct DebugQuadtreeOptions
 		MaxDepth = 6
 	};
 
-	static simd::Rect2 getBounds(u32 elem, void* context)
+	static simd::Rect2 GetBounds(u32 elem, void* context)
 	{
 		DebugQuadtreeData* quadtreeData = (DebugQuadtreeData*)context;
-		return simd::Rect2(quadtreeData->elements[elem].box);
+		return simd::Rect2(quadtreeData->Elements[elem].Box);
 	}
 
-	static void setElementId(u32 elem, const QuadtreeElementId& id, void* context)
+	static void SetElementId(u32 elem, const QuadtreeElementId& id, void* context)
 	{
 		DebugQuadtreeData* quadtreeData = (DebugQuadtreeData*)context;
-		quadtreeData->elements[elem].quadtreeId = id;
+		quadtreeData->Elements[elem].QuadtreeId = id;
 	}
 };
 
@@ -111,8 +111,8 @@ typedef Quadtree<u32, DebugQuadtreeOptions> DebugQuadtree;
 
 void UtilityTestSuite::StartUp()
 {
-	SPtr<TestSuite> fileSystemTests = create<FileSystemTestSuite>();
-	add(fileSystemTests);
+	SPtr<TestSuite> fileSystemTests = Create<FileSystemTestSuite>();
+	Add(fileSystemTests);
 }
 
 void UtilityTestSuite::ShutDown()
@@ -121,23 +121,23 @@ void UtilityTestSuite::ShutDown()
 
 UtilityTestSuite::UtilityTestSuite()
 {
-	B3D_ADD_TEST(UtilityTestSuite::testOctree);
-	B3D_ADD_TEST(UtilityTestSuite::testBitfield)
-	B3D_ADD_TEST(UtilityTestSuite::testSmallVector)
-	B3D_ADD_TEST(UtilityTestSuite::testDynArray)
-	B3D_ADD_TEST(UtilityTestSuite::testComplex)
-	B3D_ADD_TEST(UtilityTestSuite::testMinHeap)
-	B3D_ADD_TEST(UtilityTestSuite::testQuadtree)
-	B3D_ADD_TEST(UtilityTestSuite::testVarInt)
-	B3D_ADD_TEST(UtilityTestSuite::testBitStream)
+	B3D_ADD_TEST(UtilityTestSuite::TestOctree);
+	B3D_ADD_TEST(UtilityTestSuite::TestBitfield);
+	B3D_ADD_TEST(UtilityTestSuite::TestSmallVector);
+	B3D_ADD_TEST(UtilityTestSuite::TestDynArray);
+	B3D_ADD_TEST(UtilityTestSuite::TestComplex);
+	B3D_ADD_TEST(UtilityTestSuite::TestMinHeap);
+	B3D_ADD_TEST(UtilityTestSuite::TestQuadtree)
+	B3D_ADD_TEST(UtilityTestSuite::TestVarInt)
+	B3D_ADD_TEST(UtilityTestSuite::TestBitStream)
 }
 
-void UtilityTestSuite::testBitfield()
+void UtilityTestSuite::TestBitfield()
 {
-	static constexpr u32 COUNT = 100;
-	static constexpr u32 EXTRA_COUNT = 32;
+	static constexpr u32 kCount = 100;
+	static constexpr u32 kExtraCount = 32;
 
-	Bitfield bitfield(true, COUNT);
+	Bitfield bitfield(true, kCount);
 
 	// Basic iteration
 	u32 i = 0;
@@ -147,27 +147,27 @@ void UtilityTestSuite::testBitfield()
 		i++;
 	}
 
-	u32 curCount = COUNT;
+	u32 curCount = kCount;
 	B3D_TEST_ASSERT(i == curCount);
 
 	// Dynamic additon
-	bitfield.add(false);
-	bitfield.add(false);
-	bitfield.add(true);
-	bitfield.add(false);
+	bitfield.Add(false);
+	bitfield.Add(false);
+	bitfield.Add(true);
+	bitfield.Add(false);
 	curCount += 4;
 
 	// Realloc
-	curCount += EXTRA_COUNT;
+	curCount += kExtraCount;
 	for(uint32_t j = 0; j < 32; j++)
-		bitfield.add(false);
+		bitfield.Add(false);
 
-	B3D_TEST_ASSERT(bitfield.size() == curCount);
+	B3D_TEST_ASSERT(bitfield.Size() == curCount);
 
-	B3D_TEST_ASSERT(bitfield[COUNT + 0] == false);
-	B3D_TEST_ASSERT(bitfield[COUNT + 1] == false);
-	B3D_TEST_ASSERT(bitfield[COUNT + 2] == true);
-	B3D_TEST_ASSERT(bitfield[COUNT + 3] == false);
+	B3D_TEST_ASSERT(bitfield[kCount + 0] == false);
+	B3D_TEST_ASSERT(bitfield[kCount + 1] == false);
+	B3D_TEST_ASSERT(bitfield[kCount + 2] == true);
+	B3D_TEST_ASSERT(bitfield[kCount + 3] == false);
 
 	// Modify during iteration
 	i = 0;
@@ -190,8 +190,8 @@ void UtilityTestSuite::testBitfield()
 	B3D_TEST_ASSERT(bitfield[6] == false);
 
 	// Removal
-	bitfield.remove(10);
-	bitfield.remove(10);
+	bitfield.Remove(10);
+	bitfield.Remove(10);
 	curCount -= 2;
 
 	for(u32 j = 48; j < 68; j++)
@@ -200,23 +200,23 @@ void UtilityTestSuite::testBitfield()
 	B3D_TEST_ASSERT(bitfield[5] == false);
 	B3D_TEST_ASSERT(bitfield[6] == false);
 
-	B3D_TEST_ASSERT(bitfield.size() == curCount);
+	B3D_TEST_ASSERT(bitfield.Size() == curCount);
 
 	// Find
-	B3D_TEST_ASSERT(bitfield.find(true) == 0);
-	B3D_TEST_ASSERT(bitfield.find(false) == 5);
+	B3D_TEST_ASSERT(bitfield.Find(true) == 0);
+	B3D_TEST_ASSERT(bitfield.Find(false) == 5);
 }
 
-void UtilityTestSuite::testOctree()
+void UtilityTestSuite::TestOctree()
 {
 	DebugOctreeData octreeData;
-	DebugOctree octree(Vector3::ZERO, 800.0f, &octreeData);
+	DebugOctree octree(Vector3::kZero, 800.0f, &octreeData);
 
 	struct SizeAndCount
 	{
-		float sizeMin;
-		float sizeMax;
-		u32 count;
+		float SizeMin;
+		float SizeMax;
+		u32 Count;
 	};
 
 	SizeAndCount types[]{
@@ -230,7 +230,7 @@ void UtilityTestSuite::testOctree()
 	float placementExtents = 750.0f;
 	for(u32 i = 0; i < sizeof(types) / sizeof(types[0]); i++)
 	{
-		for(u32 j = 0; j < types[i].count; j++)
+		for(u32 j = 0; j < types[i].Count; j++)
 		{
 			Vector3 position(
 				((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents,
@@ -238,49 +238,49 @@ void UtilityTestSuite::testOctree()
 				((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents);
 
 			Vector3 extents(
-				types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f,
-				types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f,
-				types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f);
+				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f,
+				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f,
+				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f);
 
 			DebugOctreeElem elem;
-			elem.box = AABox(position - extents, position + extents);
+			elem.Box = AABox(position - extents, position + extents);
 
-			u32 elemIdx = (u32)octreeData.elements.size();
-			octreeData.elements.push_back(elem);
+			u32 elemIdx = (u32)octreeData.Elements.size();
+			octreeData.Elements.push_back(elem);
 			octree.AddElement(elemIdx);
 		}
 	}
 
 	DebugOctreeElem manualElems[3];
-	manualElems[0].box = AABox(Vector3(100.0f, 100.0f, 100.f), Vector3(110.0f, 115.0f, 110.0f));
-	manualElems[1].box = AABox(Vector3(200.0f, 100.0f, 100.f), Vector3(250.0f, 150.0f, 150.0f));
-	manualElems[2].box = AABox(Vector3(90.0f, 90.0f, 90.f), Vector3(105.0f, 105.0f, 110.0f));
+	manualElems[0].Box = AABox(Vector3(100.0f, 100.0f, 100.f), Vector3(110.0f, 115.0f, 110.0f));
+	manualElems[1].Box = AABox(Vector3(200.0f, 100.0f, 100.f), Vector3(250.0f, 150.0f, 150.0f));
+	manualElems[2].Box = AABox(Vector3(90.0f, 90.0f, 90.f), Vector3(105.0f, 105.0f, 110.0f));
 
 	for(u32 i = 0; i < 3; i++)
 	{
-		u32 elemIdx = (u32)octreeData.elements.size();
-		octreeData.elements.push_back(manualElems[i]);
+		u32 elemIdx = (u32)octreeData.Elements.size();
+		octreeData.Elements.push_back(manualElems[i]);
 		octree.AddElement(elemIdx);
 	}
 
-	AABox queryBounds = manualElems[0].box;
+	AABox queryBounds = manualElems[0].Box;
 	DebugOctree::BoxIntersectIterator interIter(octree, queryBounds);
 
 	Vector<u32> overlapElements;
-	while(interIter.moveNext())
+	while(interIter.MoveNext())
 	{
-		u32 element = interIter.getElement();
+		u32 element = interIter.GetElement();
 		overlapElements.push_back(element);
 
 		// Manually check for intersections
-		B3D_TEST_ASSERT(octreeData.elements[element].box.intersects(queryBounds));
+		B3D_TEST_ASSERT(octreeData.Elements[element].Box.Intersects(queryBounds));
 	}
 
 	// Ensure that all we have found all possible overlaps by manually testing all elements
 	u32 elemIdx = 0;
-	for(auto& entry : octreeData.elements)
+	for(auto& entry : octreeData.Elements)
 	{
-		if(entry.box.intersects(queryBounds))
+		if(entry.Box.Intersects(queryBounds))
 		{
 			auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
 			B3D_TEST_ASSERT(iterFind != overlapElements.end());
@@ -290,28 +290,28 @@ void UtilityTestSuite::testOctree()
 	}
 
 	// Ensure nothing goes wrong during element removal
-	for(auto& entry : octreeData.elements)
-		octree.removeElement(entry.octreeId);
+	for(auto& entry : octreeData.Elements)
+		octree.RemoveElement(entry.OctreeId);
 }
 
-void UtilityTestSuite::testSmallVector()
+void UtilityTestSuite::TestSmallVector()
 {
 	struct SomeElem
 	{
-		int a = 10;
-		int b = 0;
+		int A = 10;
+		int B = 0;
 	};
 
 	// Make sure initial construction works
 	SmallVector<SomeElem, 4> v(4);
 	B3D_TEST_ASSERT(v.size() == 4);
 	B3D_TEST_ASSERT(v.capacity() == 4);
-	B3D_TEST_ASSERT(v[0].a == 10);
-	B3D_TEST_ASSERT(v[3].a == 10);
-	B3D_TEST_ASSERT(v[3].b == 0);
+	B3D_TEST_ASSERT(v[0].A == 10);
+	B3D_TEST_ASSERT(v[3].A == 10);
+	B3D_TEST_ASSERT(v[3].B == 0);
 
 	// Making the vector dynamic
-	v.add({ 3, 4 });
+	v.Add({ 3, 4 });
 	B3D_TEST_ASSERT(v.size() == 5);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[3].a == 10);
@@ -329,7 +329,7 @@ void UtilityTestSuite::testSmallVector()
 	B3D_TEST_ASSERT(v2[4].b == 4);
 
 	// Pop an element
-	v2.pop();
+	v2.Pop();
 	B3D_TEST_ASSERT(v2.size() == 4);
 	B3D_TEST_ASSERT(v2[0].a == 10);
 	B3D_TEST_ASSERT(v2[3].a == 10);
@@ -344,7 +344,7 @@ void UtilityTestSuite::testSmallVector()
 	B3D_TEST_ASSERT(v3[3].b == 0);
 
 	// Remove an element
-	v.remove(2);
+	v.Remove(2);
 	B3D_TEST_ASSERT(v.size() == 4);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[2].a == 10);
@@ -369,7 +369,7 @@ void UtilityTestSuite::testSmallVector()
 	B3D_TEST_ASSERT(v5[3].b == 0);
 
 	// Move a dynamic vector into a dynamic vector
-	v.add({ 33, 44 });
+	v.Add({ 33, 44 });
 	SmallVector<SomeElem, 4> v6 = std::move(v);
 	B3D_TEST_ASSERT(v.size() == 0);
 	B3D_TEST_ASSERT(v6.size() == 5);
@@ -380,25 +380,25 @@ void UtilityTestSuite::testSmallVector()
 	B3D_TEST_ASSERT(v6[4].b == 44);
 }
 
-void UtilityTestSuite::testDynArray()
+void UtilityTestSuite::TestDynArray()
 {
 	struct SomeElem
 	{
-		int a = 10;
-		int b = 0;
+		int A = 10;
+		int B = 0;
 	};
 
 	// Make sure initial construction works
 	DynArray<SomeElem> v(4);
-	B3D_TEST_ASSERT(v.size() == 4);
-	B3D_TEST_ASSERT(v.capacity() == 4);
+	B3D_TEST_ASSERT(v.Size() == 4);
+	B3D_TEST_ASSERT(v.Capacity() == 4);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[3].a == 10);
 	B3D_TEST_ASSERT(v[3].b == 0);
 
 	// Add an element
-	v.add({ 3, 4 });
-	B3D_TEST_ASSERT(v.size() == 5);
+	v.Add({ 3, 4 });
+	B3D_TEST_ASSERT(v.Size() == 5);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[3].a == 10);
 	B3D_TEST_ASSERT(v[3].b == 0);
@@ -407,7 +407,7 @@ void UtilityTestSuite::testDynArray()
 
 	// Make a copy
 	DynArray<SomeElem> v2 = v;
-	B3D_TEST_ASSERT(v2.size() == 5);
+	B3D_TEST_ASSERT(v2.Size() == 5);
 	B3D_TEST_ASSERT(v2[0].a == 10);
 	B3D_TEST_ASSERT(v2[3].a == 10);
 	B3D_TEST_ASSERT(v2[3].b == 0);
@@ -415,32 +415,32 @@ void UtilityTestSuite::testDynArray()
 	B3D_TEST_ASSERT(v2[4].b == 4);
 
 	// Pop an element
-	v2.pop();
-	B3D_TEST_ASSERT(v2.size() == 4);
+	v2.Pop();
+	B3D_TEST_ASSERT(v2.Size() == 4);
 	B3D_TEST_ASSERT(v2[0].a == 10);
 	B3D_TEST_ASSERT(v2[3].a == 10);
 	B3D_TEST_ASSERT(v2[3].b == 0);
 
 	// Remove an element
-	v.remove(2);
-	B3D_TEST_ASSERT(v.size() == 4);
+	v.Remove(2);
+	B3D_TEST_ASSERT(v.Size() == 4);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[2].a == 10);
 	B3D_TEST_ASSERT(v[3].a == 3);
 	B3D_TEST_ASSERT(v[3].b == 4);
 
 	// Insert an element
-	v.insert(v.begin() + 2, { 99, 100 });
-	B3D_TEST_ASSERT(v.size() == 5);
-	B3D_TEST_ASSERT(v[0].a == 10);
-	B3D_TEST_ASSERT(v[2].a == 99);
-	B3D_TEST_ASSERT(v[3].a == 10);
+	v.Insert(v.begin() + 2, { 99, 100 });
+	B3D_TEST_ASSERT(v.Size() == 5);
+	B3D_TEST_ASSERT(v[0].A == 10);
+	B3D_TEST_ASSERT(v[2].A == 99);
+	B3D_TEST_ASSERT(v[3].A == 10);
 	B3D_TEST_ASSERT(v[4].a == 3);
 	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Insert a list
-	v.insert(v.begin() + 1, { { 55, 100 }, { 56, 100 }, { 57, 100 } });
-	B3D_TEST_ASSERT(v.size() == 8);
+	v.Insert(v.begin() + 1, { { 55, 100 }, { 56, 100 }, { 57, 100 } });
+	B3D_TEST_ASSERT(v.Size() == 8);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[1].a == 55);
 	B3D_TEST_ASSERT(v[2].a == 56);
@@ -452,8 +452,8 @@ void UtilityTestSuite::testDynArray()
 	B3D_TEST_ASSERT(v[7].b == 4);
 
 	// Erase a range of elements
-	v.erase(v.begin() + 2, v.begin() + 5);
-	B3D_TEST_ASSERT(v.size() == 5);
+	v.Erase(v.begin() + 2, v.begin() + 5);
+	B3D_TEST_ASSERT(v.Size() == 5);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[1].a == 55);
 	B3D_TEST_ASSERT(v[2].a == 99);
@@ -462,8 +462,8 @@ void UtilityTestSuite::testDynArray()
 	B3D_TEST_ASSERT(v[4].b == 4);
 
 	// Insert a range
-	v.insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
-	B3D_TEST_ASSERT(v.size() == 7);
+	v.Insert(v.begin() + 1, v2.begin() + 1, v2.begin() + 3);
+	B3D_TEST_ASSERT(v.Size() == 7);
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[1].a == 10);
 	B3D_TEST_ASSERT(v[2].a == 10);
@@ -474,8 +474,8 @@ void UtilityTestSuite::testDynArray()
 	B3D_TEST_ASSERT(v[6].b == 4);
 
 	// Shrink capacity
-	v.shrink();
-	B3D_TEST_ASSERT(v.size() == v.capacity());
+	v.Shrink();
+	B3D_TEST_ASSERT(v.Size() == v.Capacity());
 	B3D_TEST_ASSERT(v[0].a == 10);
 	B3D_TEST_ASSERT(v[1].a == 10);
 	B3D_TEST_ASSERT(v[2].a == 10);
@@ -487,14 +487,14 @@ void UtilityTestSuite::testDynArray()
 
 	// Move it
 	DynArray<SomeElem> v3 = std::move(v2);
-	B3D_TEST_ASSERT(v2.size() == 0);
-	B3D_TEST_ASSERT(v3.size() == 4);
+	B3D_TEST_ASSERT(v2.Size() == 0);
+	B3D_TEST_ASSERT(v3.Size() == 4);
 	B3D_TEST_ASSERT(v3[0].a == 10);
 	B3D_TEST_ASSERT(v3[3].a == 10);
 	B3D_TEST_ASSERT(v3[3].b == 0);
 }
 
-void UtilityTestSuite::testComplex()
+void UtilityTestSuite::TestComplex()
 {
 	Complex<float> c(10.0, 4.0);
 	B3D_TEST_ASSERT(c.real() == 10.0);
@@ -575,12 +575,12 @@ void UtilityTestSuite::testComplex()
 	c7 = 0;
 }
 
-void UtilityTestSuite::testMinHeap()
+void UtilityTestSuite::TestMinHeap()
 {
 	struct SomeElem
 	{
-		int a;
-		int b;
+		int A;
+		int B;
 	};
 
 	MinHeap<SomeElem, int> m;
@@ -588,19 +588,19 @@ void UtilityTestSuite::testMinHeap()
 	B3D_TEST_ASSERT(m.valid() == true);
 
 	SomeElem elements;
-	elements.a = 4;
-	elements.b = 5;
+	elements.A = 4;
+	elements.B = 5;
 
 	m.insert(elements, 10);
-	B3D_TEST_ASSERT(m[0].key.a == 4);
-	B3D_TEST_ASSERT(m[0].key.b == 5);
+	B3D_TEST_ASSERT(m[0].key.A == 4);
+	B3D_TEST_ASSERT(m[0].key.B == 5);
 	B3D_TEST_ASSERT(m[0].value == 10);
 	B3D_TEST_ASSERT(m.size() == 1);
 
 	int v = 11;
 	m.insert(elements, v);
-	B3D_TEST_ASSERT(m[1].key.a == 4);
-	B3D_TEST_ASSERT(m[1].key.b == 5);
+	B3D_TEST_ASSERT(m[1].key.A == 4);
+	B3D_TEST_ASSERT(m[1].key.B == 5);
 	B3D_TEST_ASSERT(m[1].value == 11);
 	B3D_TEST_ASSERT(m.size() == 2);
 
@@ -608,24 +608,24 @@ void UtilityTestSuite::testMinHeap()
 	int minValue;
 
 	m.minimum(minKey, minValue);
-	B3D_TEST_ASSERT(minKey.a == 4);
-	B3D_TEST_ASSERT(minKey.b == 5);
+	B3D_TEST_ASSERT(minKey.A == 4);
+	B3D_TEST_ASSERT(minKey.B == 5);
 	B3D_TEST_ASSERT(minValue == 10);
 
 	m.erase(elements, v);
 	B3D_TEST_ASSERT(m.size() == 1);
 }
 
-void UtilityTestSuite::testQuadtree()
+void UtilityTestSuite::TestQuadtree()
 {
 	DebugQuadtreeData quadtreeData;
 	DebugQuadtree quadtree(Vector2(0, 0), 800.0f, &quadtreeData);
 
 	struct SizeAndCount
 	{
-		float sizeMin;
-		float sizeMax;
-		u32 count;
+		float SizeMin;
+		float SizeMax;
+		u32 Count;
 	};
 
 	SizeAndCount types[]{
@@ -639,38 +639,38 @@ void UtilityTestSuite::testQuadtree()
 	float placementExtents = 750.0f;
 	for(u32 i = 0; i < sizeof(types) / sizeof(types[0]); i++)
 	{
-		for(u32 j = 0; j < types[i].count; j++)
+		for(u32 j = 0; j < types[i].Count; j++)
 		{
 			Vector2 position(
 				((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents,
 				((rand() / (float)RAND_MAX) * 2.0f - 1.0f) * placementExtents);
 
 			Vector2 extents(
-				types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f,
-				types[i].sizeMin + ((rand() / (float)RAND_MAX)) * (types[i].sizeMax - types[i].sizeMin) * 0.5f);
+				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f,
+				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f);
 
 			DebugQuadtreeElem elem;
-			elem.box = Rect2(position - extents, extents);
+			elem.Box = Rect2(position - extents, extents);
 
-			u32 elemIdx = (u32)quadtreeData.elements.size();
-			quadtreeData.elements.push_back(elem);
+			u32 elemIdx = (u32)quadtreeData.Elements.size();
+			quadtreeData.Elements.push_back(elem);
 			quadtree.AddElement(elemIdx);
 		}
 	}
 
 	DebugQuadtreeElem manualElems[3];
-	manualElems[0].box = Rect2(Vector2(100.0f, 100.0f), Vector2(110.0f, 115.0f));
-	manualElems[1].box = Rect2(Vector2(200.0f, 100.0f), Vector2(250.0f, 150.0f));
-	manualElems[2].box = Rect2(Vector2(90.0f, 90.0f), Vector2(105.0f, 105.0f));
+	manualElems[0].Box = Rect2(Vector2(100.0f, 100.0f), Vector2(110.0f, 115.0f));
+	manualElems[1].Box = Rect2(Vector2(200.0f, 100.0f), Vector2(250.0f, 150.0f));
+	manualElems[2].Box = Rect2(Vector2(90.0f, 90.0f), Vector2(105.0f, 105.0f));
 
 	for(u32 i = 0; i < 3; i++)
 	{
-		u32 elemIdx = (u32)quadtreeData.elements.size();
-		quadtreeData.elements.push_back(manualElems[i]);
+		u32 elemIdx = (u32)quadtreeData.Elements.size();
+		quadtreeData.Elements.push_back(manualElems[i]);
 		quadtree.AddElement(elemIdx);
 	}
 
-	Rect2 queryBounds = manualElems[0].box;
+	Rect2 queryBounds = manualElems[0].Box;
 	DebugQuadtree::BoxIntersectIterator interIter(quadtree, queryBounds);
 
 	Vector<u32> overlapElements;
@@ -680,14 +680,14 @@ void UtilityTestSuite::testQuadtree()
 		overlapElements.push_back(element);
 
 		// Manually check for intersections
-		B3D_ASSERT(quadtreeData.elements[element].box.overlaps(queryBounds));
+		B3D_ASSERT(quadtreeData.Elements[element].Box.Overlaps(queryBounds));
 	}
 
 	// Ensure that all we have found all possible overlaps by manually testing all elements
 	u32 elemIdx = 0;
-	for(auto& entry : quadtreeData.elements)
+	for(auto& entry : quadtreeData.Elements)
 	{
-		if(entry.box.overlaps(queryBounds))
+		if(entry.Box.Overlaps(queryBounds))
 		{
 			auto iterFind = std::find(overlapElements.begin(), overlapElements.end(), elemIdx);
 			B3D_ASSERT(iterFind != overlapElements.end());
@@ -697,11 +697,11 @@ void UtilityTestSuite::testQuadtree()
 	}
 
 	// Ensure nothing goes wrong during element removal
-	for(auto& entry : quadtreeData.elements)
+	for(auto& entry : quadtreeData.Elements)
 		quadtree.removeElement(entry.quadtreeId);
 }
 
-void UtilityTestSuite::testVarInt()
+void UtilityTestSuite::TestVarInt()
 {
 	u32 u0 = 0;
 	u32 u1 = 127;
@@ -716,64 +716,64 @@ void UtilityTestSuite::testVarInt()
 
 	u8 output[50];
 
-	u32 writeIdx = Bitwise::encodeVarInt(u0, output);
+	u32 writeIdx = Bitwise::EncodeVarInt(u0, output);
 	B3D_TEST_ASSERT(writeIdx == 1);
 
-	writeIdx += Bitwise::encodeVarInt(u1, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(u1, output + writeIdx);
 	B3D_TEST_ASSERT(writeIdx == 2);
 
-	writeIdx += Bitwise::encodeVarInt(u2, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(u2, output + writeIdx);
 	B3D_TEST_ASSERT(writeIdx == 4);
 
-	writeIdx += Bitwise::encodeVarInt(u3, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(u3, output + writeIdx);
 
-	writeIdx += Bitwise::encodeVarInt(i0, output + writeIdx);
-	writeIdx += Bitwise::encodeVarInt(i1, output + writeIdx);
-	writeIdx += Bitwise::encodeVarInt(i2, output + writeIdx);
-	writeIdx += Bitwise::encodeVarInt(i3, output + writeIdx);
-	writeIdx += Bitwise::encodeVarInt(i4, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(i0, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(i1, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(i2, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(i3, output + writeIdx);
+	writeIdx += Bitwise::EncodeVarInt(i4, output + writeIdx);
 
 	u32 readIdx = 0;
 	u32 uv;
-	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(uv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(uv == u0);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(uv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(uv == u1);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(uv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(uv == u2);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(uv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(uv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(uv == u3);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
 	i32 iv;
-	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(iv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(iv == i0);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(iv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(iv == i1);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(iv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(iv == i2);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(iv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(iv == i3);
 	B3D_TEST_ASSERT(writeIdx > readIdx);
 
-	readIdx += Bitwise::decodeVarInt(iv, output + readIdx, writeIdx - readIdx);
+	readIdx += Bitwise::DecodeVarInt(iv, output + readIdx, writeIdx - readIdx);
 	B3D_TEST_ASSERT(iv == i4);
 	B3D_TEST_ASSERT(writeIdx == readIdx);
 }
 
-void UtilityTestSuite::testBitStream()
+void UtilityTestSuite::TestBitStream()
 {
 	uint32_t v0 = 12345;
 	bool v1 = true;
@@ -791,26 +791,26 @@ void UtilityTestSuite::testBitStream()
 
 	Bitstream bs;
 
-	bs.write(v0); // 0  - 32
-	bs.write(v1); // 32 - 33
-	bs.write(v2); // 33 - 65
-	bs.write(v3); // 65 - 66
-	bs.write(v4); // 66 - 67
+	bs.Write(v0); // 0  - 32
+	bs.Write(v1); // 32 - 33
+	bs.Write(v2); // 33 - 65
+	bs.Write(v3); // 65 - 66
+	bs.Write(v4); // 66 - 67
 
-	bs.writeBits((uint8_t*)&v5, 10); // 67 - 77
-	bs.write(v6); // 77 - 213
-	bs.writeVarInt(v7); // 213 - 229
-	bs.writeVarIntDelta(v7, 0); // 229 - 246
-	bs.writeVarInt(v8); // 246 - 310
-	bs.writeVarIntDelta(v8, v8); // 310 - 311
-	bs.writeNorm(v9); // 311 - 327
-	bs.writeRange(v10, 5.0f, 15.0f); // 327 - 343
-	bs.writeRange(v5, 500U, 1000U); // 343 - 352
+	bs.WriteBits((uint8_t*)&v5, 10); // 67 - 77
+	bs.Write(v6); // 77 - 213
+	bs.WriteVarInt(v7); // 213 - 229
+	bs.WriteVarIntDelta(v7, 0); // 229 - 246
+	bs.WriteVarInt(v8); // 246 - 310
+	bs.WriteVarIntDelta(v8, v8); // 310 - 311
+	bs.WriteNorm(v9); // 311 - 327
+	bs.WriteRange(v10, 5.0f, 15.0f); // 327 - 343
+	bs.WriteRange(v5, 500U, 1000U); // 343 - 352
 
-	bs.align(); // 352
-	bs.write(v11); // 352 - 416
+	bs.Align(); // 352
+	bs.Write(v11); // 352 - 416
 
-	B3D_TEST_ASSERT(bs.size() == 416);
+	B3D_TEST_ASSERT(bs.Size() == 416);
 
 	uint32_t uv;
 	uint64_t ulv;
@@ -819,11 +819,11 @@ void UtilityTestSuite::testBitStream()
 	float fv;
 	String sv;
 
-	bs.seek(0);
-	bs.read(uv);
+	bs.Seek(0);
+	bs.Read(uv);
 	B3D_TEST_ASSERT(uv == v0);
 
-	bs.read(bv);
+	bs.Read(bv);
 	B3D_TEST_ASSERT(bv == v1);
 
 	bs.read(uv);

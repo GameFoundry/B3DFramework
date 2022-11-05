@@ -211,9 +211,9 @@ if(B3D_BUILD_TESTS)
 	enable_testing()
 
 	add_executable(UtilityTest
-		Foundation/bsfUtility/Private/UnitTests/BsUtilityTest.cpp
-		Foundation/bsfUtility/Private/UnitTests/BsUtilityTestSuite.cpp
-		Foundation/bsfUtility/Private/UnitTests/BsFileSystemTestSuite.cpp)
+		Tests/BsUtilityTest.cpp
+		Tests/BsUtilityTestSuite.cpp
+		Tests/BsFileSystemTestSuite.cpp)
 		
 	target_link_libraries(UtilityTest bsf)
 	target_include_directories(UtilityTest PRIVATE
@@ -221,7 +221,7 @@ if(B3D_BUILD_TESTS)
 		"Foundation/bsfUtility/ThirdParty")
 
 	add_executable(CoreTest
-		Foundation/bsfCore/Private/UnitTests/BsCoreTest.cpp)
+		Tests/BsCoreTest.cpp)
 		
 	target_link_libraries(CoreTest bsf)
 	
