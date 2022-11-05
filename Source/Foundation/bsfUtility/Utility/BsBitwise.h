@@ -163,7 +163,7 @@ namespace bs
 		static u32 MostSignificantBit(u64 val)
 		{
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
+#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 			unsigned long index;
 			_BitScanReverse64(&index, val);
 			return index;
@@ -190,7 +190,7 @@ namespace bs
 		static u32 LeastSignificantBit(u64 val)
 		{
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
+#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 			unsigned long index;
 			_BitScanForward64(&index, val);
 			return index;

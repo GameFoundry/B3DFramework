@@ -259,7 +259,7 @@ namespace bs
 	 * Implements a global pool for the specified type. The pool will initially have enough room for ElemsPerBlock and
 	 * will grow by that amount when exceeded. Global pools are thread safe by default.
 	 */
-#define IMPLEMENT_GLOBAL_POOL(Type, ElemsPerBlock)                            \
+#define B3D_IMPLEMENT_GLOBAL_POOL(Type, ElemsPerBlock)                            \
 	template <>                                                               \
 	class GlobalPoolAlloc<Type> : public StaticPoolAlloc<Type, ElemsPerBlock> \
 	{};

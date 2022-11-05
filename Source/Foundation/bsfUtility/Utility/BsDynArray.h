@@ -26,17 +26,17 @@ namespace bs
 
 		DynArray(u32 size, const ValueType& value = ValueType())
 		{
-			append(size, value);
+			Append(size, value);
 		}
 
 		DynArray(Iterator first, Iterator last)
 		{
-			append(first, last);
+			Append(first, last);
 		}
 
 		DynArray(std::initializer_list<ValueType> list)
 		{
-			append(list);
+			Append(list);
 		}
 
 		DynArray(const DynArray<ValueType>& other)
@@ -308,7 +308,7 @@ namespace bs
 
 		void Remove(u32 index)
 		{
-			erase(begin() + index);
+			Erase(begin() + index);
 		}
 
 		bool Contains(const Type& element)
@@ -394,7 +394,7 @@ namespace bs
 
 		void Append(std::initializer_list<Type> list)
 		{
-			append(list.begin(), list.end());
+			Append(list.begin(), list.end());
 		}
 
 		void Swap(DynArray<ValueType>& other)

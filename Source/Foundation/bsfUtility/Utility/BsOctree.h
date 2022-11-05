@@ -65,8 +65,8 @@ namespace bs
 		 */
 		struct ElementGroup
 		{
-			ElemType v[Options::MaxElementsPerNode];
-			ElementGroup* next = nullptr;
+			ElemType V[Options::MaxElementsPerNode];
+			ElementGroup* Next = nullptr;
 		};
 
 		/**
@@ -75,16 +75,16 @@ namespace bs
 		 */
 		struct ElementBoundGroup
 		{
-			simd::AABox v[Options::MaxElementsPerNode];
-			ElementBoundGroup* next = nullptr;
+			simd::AABox V[Options::MaxElementsPerNode];
+			ElementBoundGroup* Next = nullptr;
 		};
 
 		/** Container class for all elements (and their bounds) within a single node. */
 		struct NodeElements
 		{
-			ElementGroup* values = nullptr;
-			ElementBoundGroup* bounds = nullptr;
-			u32 count = 0;
+			ElementGroup* Values = nullptr;
+			ElementBoundGroup* Bounds = nullptr;
+			u32 Count = 0;
 		};
 
 	public:
@@ -95,29 +95,29 @@ namespace bs
 			{
 				struct
 				{
-					u32 x : 1;
-					u32 y : 1;
-					u32 z : 1;
-					u32 empty : 1;
+					u32 X : 1;
+					u32 Y : 1;
+					u32 Z : 1;
+					u32 Empty : 1;
 				};
 
 				struct
 				{
-					u32 index : 3;
-					u32 empty2 : 1;
+					u32 Index : 3;
+					u32 Empty2 : 1;
 				};
 			};
 
 			HChildNode()
-				: empty(true)
+				: Empty(true)
 			{}
 
 			HChildNode(u32 x, u32 y, u32 z)
-				: x(x), y(y), z(z), empty(false)
+				: X(x), Y(y), Z(z),Empty(false)
 			{}
 
 			HChildNode(u32 index)
-				: index(index), empty2(false)
+				: Index(index), Empty2(false)
 			{}
 		};
 
@@ -128,38 +128,38 @@ namespace bs
 			{
 				struct
 				{
-					u32 posX : 1;
-					u32 posY : 1;
-					u32 posZ : 1;
-					u32 negX : 1;
-					u32 negY : 1;
-					u32 negZ : 1;
+					u32 PosX : 1;
+					u32 PosY : 1;
+					u32 PosZ : 1;
+					u32 NegX : 1;
+					u32 NegY : 1;
+					u32 NegZ : 1;
 				};
 
 				struct
 				{
-					u32 posBits : 3;
-					u32 negBits : 3;
+					u32 PosBits : 3;
+					u32 NegBits : 3;
 				};
 
-				u32 allBits : 6;
+				u32 AllBits : 6;
 			};
 
 			/** Constructs a range overlapping no nodes. */
 			NodeChildRange()
-				: allBits(0)
+				: AllBits(0)
 			{}
 
 			/** Constructs a range overlapping a single node. */
 			NodeChildRange(HChildNode child)
-				: posBits(child.index), negBits(~child.index)
+				: PosBits(child.Index), NegBits(~child.Index)
 			{}
 
 			/** Checks if the range contains the provided child. */
-			bool contains(HChildNode child)
+			bool Contains(HChildNode child)
 			{
 				NodeChildRange childRange(child);
-				return (allBits & childRange.allBits) == childRange.allBits;
+				return (AllBits & childRange.AllBits) == childRange.AllBits;
 			}
 		};
 
@@ -173,15 +173,15 @@ namespace bs
 			{}
 
 			/** Returns a child node with the specified index. May return null. */
-			Node* getChild(HChildNode child) const
+			Node* GetChild(HChildNode child) const
 			{
-				return mChildren[child.index];
+				return mChildren[child.Index];
 			}
 
 			/** Checks has the specified child node been created. */
-			bool hasChild(HChildNode child) const
+			bool HasChild(HChildNode child) const
 			{
-				return mChildren[child.index] != nullptr;
+				return mChildren[child.Index] != nullptr;
 			}
 
 		private:
@@ -189,17 +189,17 @@ namespace bs
 			friend class Octree;
 
 			/** Maps a global element index to a set of element groups and an index within those groups. */
-			u32 mapToGroup(u32 elementIdx, ElementGroup** elements, ElementBoundGroup** bounds)
+			u32 MapToGroup(u32 elementIdx, ElementGroup** elements, ElementBoundGroup** bounds)
 			{
-				u32 numGroups = Math::DivideAndRoundUp(mElements.count, (u32)Options::MaxElementsPerNode);
+				u32 numGroups = Math::DivideAndRoundUp(mElements.Count, (u32)Options::MaxElementsPerNode);
 				u32 groupIdx = numGroups - elementIdx / Options::MaxElementsPerNode - 1;
 
-				*elements = mElements.values;
-				*bounds = mElements.bounds;
+				*elements = mElements.Values;
+				*bounds = mElements.Bounds;
 				for(u32 i = 0; i < groupIdx; i++)
 				{
-					*elements = (*elements)->next;
-					*bounds = (*bounds)->next;
+					*elements = (*elements)->Next;
+					*bounds = (*bounds)->Next;
 				}
 
 				return elementIdx % Options::MaxElementsPerNode;
@@ -228,21 +228,21 @@ namespace bs
 			NodeBounds(const simd::AABox& bounds)
 				: mBounds(bounds)
 			{
-				static constexpr float childExtentScale = 0.5f * (1.0f + 1.0f / Options::LoosePadding);
+				static constexpr float kChildExtentScale = 0.5f * (1.0f + 1.0f / Options::LoosePadding);
 
-				mChildExtent = bounds.extents.x * childExtentScale;
-				mChildOffset = bounds.extents.x - mChildExtent;
+				mChildExtent = bounds.Extents.X * kChildExtentScale;
+				mChildOffset = bounds.Extents.X - mChildExtent;
 			}
 
 			/** Returns the bounds of the node this object represents. */
-			const simd::AABox& getBounds() const { return mBounds; }
+			const simd::AABox& GetBounds() const { return mBounds; }
 
 			/** Attempts to find a child node that can fully contain the provided bounds. */
-			HChildNode findContainingChild(const simd::AABox& bounds) const
+			HChildNode FindContainingChild(const simd::AABox& bounds) const
 			{
-				auto queryCenter = simd::load<simd::float32x4>(&bounds.center);
+				auto queryCenter = simd::load<simd::float32x4>(&bounds.Center);
 
-				auto nodeCenter = simd::load<simd::float32x4>(&mBounds.center);
+				auto nodeCenter = simd::load<simd::float32x4>(&mBounds.Center);
 				auto childOffset = simd::load_splat<simd::float32x4>(&mChildOffset);
 
 				auto negativeCenter = simd::sub(nodeCenter, childOffset);
@@ -253,7 +253,7 @@ namespace bs
 
 				auto diff = simd::min(negativeDiff, positiveDiff);
 
-				auto queryExtents = simd::load<simd::float32x4>(&bounds.extents);
+				auto queryExtents = simd::load<simd::float32x4>(&bounds.Extents);
 				auto childExtent = simd::load_splat<simd::float32x4>(&mChildExtent);
 
 				HChildNode output;
@@ -271,26 +271,26 @@ namespace bs
 					Vector4I scalarResult;
 					simd::store(&scalarResult, result);
 
-					output.x = scalarResult.x;
-					output.y = scalarResult.y;
-					output.z = scalarResult.z;
+					output.X = scalarResult.X;
+					output.Y = scalarResult.Y;
+					output.Z = scalarResult.Z;
 
-					output.empty = false;
+					output.Empty = false;
 				}
 
 				return output;
 			}
 
 			/** Returns a range of child nodes that intersect the provided bounds. */
-			NodeChildRange findIntersectingChildren(const simd::AABox& bounds) const
+			NodeChildRange FindIntersectingChildren(const simd::AABox& bounds) const
 			{
-				auto queryCenter = simd::load<simd::float32x4>(&bounds.center);
-				auto queryExtents = simd::load<simd::float32x4>(&bounds.extents);
+				auto queryCenter = simd::load<simd::float32x4>(&bounds.Center);
+				auto queryExtents = simd::load<simd::float32x4>(&bounds.Extents);
 
 				auto queryMax = simd::add(queryCenter, queryExtents);
 				auto queryMin = simd::sub(queryCenter, queryExtents);
 
-				auto nodeCenter = simd::load<simd::float32x4>(&mBounds.center);
+				auto nodeCenter = simd::load<simd::float32x4>(&mBounds.Center);
 				auto childOffset = simd::load_splat<simd::float32x4>(&mChildOffset);
 
 				auto negativeCenter = simd::sub(nodeCenter, childOffset);
@@ -311,33 +311,33 @@ namespace bs
 				Vector4I scalarResult;
 				simd::store(&scalarResult, result);
 
-				output.posX = scalarResult.x;
-				output.posY = scalarResult.y;
-				output.posZ = scalarResult.z;
+				output.PosX = scalarResult.X;
+				output.PosY = scalarResult.Y;
+				output.PosZ = scalarResult.Z;
 
 				mask = simd::cmp_le(queryMin, negativeMax);
 				result = simd::blend(ones, zeroes, mask);
 
 				simd::store(&scalarResult, result);
 
-				output.negX = scalarResult.x;
-				output.negY = scalarResult.y;
-				output.negZ = scalarResult.z;
+				output.NegX = scalarResult.X;
+				output.NegY = scalarResult.Y;
+				output.NegZ = scalarResult.Z;
 
 				return output;
 			}
 
 			/** Calculates bounds for the provided child node. */
-			NodeBounds getChild(HChildNode child) const
+			NodeBounds GetChild(HChildNode child) const
 			{
 				static constexpr const float map[2] = { -1.0f, 1.0f };
 
 				return NodeBounds(
 					simd::AABox(
 						Vector3(
-							mBounds.center.x + mChildOffset * map[child.x],
-							mBounds.center.y + mChildOffset * map[child.y],
-							mBounds.center.z + mChildOffset * map[child.z]),
+							mBounds.Center.X + mChildOffset * map[child.X],
+							mBounds.Center.Y + mChildOffset * map[child.Y],
+							mBounds.Center.Z + mChildOffset * map[child.Z]),
 						mChildExtent));
 			}
 
@@ -358,10 +358,10 @@ namespace bs
 			{}
 
 			/** Returns the referenced node. */
-			const Node* getNode() const { return mNode; }
+			const Node* GetNode() const { return mNode; }
 
 			/** Returns the node bounds. */
-			const NodeBounds& getBounds() const { return mBounds; }
+			const NodeBounds& GetBounds() const { return mBounds; }
 
 		private:
 			const Node* mNode = nullptr;
@@ -394,14 +394,14 @@ namespace bs
 			 * Returns a reference to the current node. moveNext() must be called at least once and it must return true
 			 * prior to attempting to access this data.
 			 */
-			const HNode& getCurrent() const { return mCurrentNode; }
+			const HNode& GetCurrent() const { return mCurrentNode; }
 
 			/**
 			 * Moves to the next entry in the iterator. Iterator starts at a position before the first element, therefore
 			 * this method must be called at least once before attempting to access the current node. If the method returns
 			 * false it means the iterator end has been reached and attempting to access data will result in an error.
 			 */
-			bool moveNext()
+			bool MoveNext()
 			{
 				if(mNodeStack.empty())
 				{
@@ -416,10 +416,10 @@ namespace bs
 			}
 
 			/** Inserts a child of the current node to be iterated over. */
-			void pushChild(const HChildNode& child)
+			void PushChild(const HChildNode& child)
 			{
-				Node* childNode = mCurrentNode.getNode()->GetChild(child);
-				NodeBounds childBounds = mCurrentNode.getBounds().getChild(child);
+				Node* childNode = mCurrentNode.GetNode()->GetChild(child);
+				NodeBounds childBounds = mCurrentNode.GetBounds().GetChild(child);
 
 				mNodeStack.emplace_back(childNode, childBounds);
 			}
@@ -439,11 +439,11 @@ namespace bs
 			/** Constructs an iterator that iterates over the specified node's elements. */
 			ElementIterator(const Node* node)
 				: mCurrentIdx(-1)
-				, mCurrentElemGroup(node->mElements.values)
-				, mCurrentBoundGroup(node->mElements.bounds)
+				, mCurrentElemGroup(node->mElements.Values)
+				, mCurrentBoundGroup(node->mElements.Bounds)
 			{
-				u32 numGroups = Math::DivideAndRoundUp(node->mElements.count, (u32)Options::MaxElementsPerNode);
-				mElemsInGroup = node->mElements.count - (numGroups - 1) * Options::MaxElementsPerNode;
+				u32 numGroups = Math::DivideAndRoundUp(node->mElements.Count, (u32)Options::MaxElementsPerNode);
+				mElemsInGroup = node->mElements.Count - (numGroups - 1) * Options::MaxElementsPerNode;
 			}
 
 			/**
@@ -451,7 +451,7 @@ namespace bs
 			 * this method must be called at least once before attempting to access the current element data. If the method
 			 * returns false it means iterator end has been reached and attempting to access data will result in an error.
 			 */
-			bool moveNext()
+			bool MoveNext()
 			{
 				if(!mCurrentElemGroup)
 					return false;
@@ -460,8 +460,8 @@ namespace bs
 
 				if((u32)mCurrentIdx == mElemsInGroup) // Next group
 				{
-					mCurrentElemGroup = mCurrentElemGroup->next;
-					mCurrentBoundGroup = mCurrentBoundGroup->next;
+					mCurrentElemGroup = mCurrentElemGroup->Next;
+					mCurrentBoundGroup = mCurrentBoundGroup->Next;
 					mElemsInGroup = Options::MaxElementsPerNode; // Following groups are always full
 					mCurrentIdx = 0;
 
@@ -476,13 +476,13 @@ namespace bs
 			 * Returns the bounds of the current element. moveNext() must be called at least once and it must return true
 			 * prior to attempting to access this data.
 			 */
-			const simd::AABox& getCurrentBounds() const { return mCurrentBoundGroup->v[mCurrentIdx]; }
+			const simd::AABox& GetCurrentBounds() const { return mCurrentBoundGroup->V[mCurrentIdx]; }
 
 			/**
 			 * Returns the contents of the current element. moveNext() must be called at least once and it must return true
 			 * prior to attempting to access this data.
 			 */
-			const ElemType& getCurrentElem() const { return mCurrentElemGroup->v[mCurrentIdx]; }
+			const ElemType& GetCurrentElem() const { return mCurrentElemGroup->V[mCurrentIdx]; }
 
 		private:
 			i32 mCurrentIdx = -1;
@@ -507,9 +507,9 @@ namespace bs
 			 * Returns the contents of the current element. moveNext() must be called at least once and it must return true
 			 * prior to attempting to access this data.
 			 */
-			const ElemType& getElement() const
+			const ElemType& GetElement() const
 			{
-				return mElemIter.getCurrentElem();
+				return mElemIter.GetCurrentElem();
 			}
 
 			/**
@@ -517,31 +517,31 @@ namespace bs
 			 * this method must be called at least once before attempting to access the current element data. If the method
 			 * returns false it means iterator end has been reached and attempting to access data will result in an error.
 			 */
-			bool moveNext()
+			bool MoveNext()
 			{
 				while(true)
 				{
 					// First check elements of the current node (if any)
-					while(mElemIter.moveNext())
+					while(mElemIter.MoveNext())
 					{
-						const simd::AABox& bounds = mElemIter.getCurrentBounds();
-						if(bounds.intersects(mBounds))
+						const simd::AABox& bounds = mElemIter.GetCurrentBounds();
+						if(bounds.Intersects(mBounds))
 							return true;
 					}
 
 					// No more elements in this node, move to the next one
-					if(!mNodeIter.moveNext())
+					if(!mNodeIter.MoveNext())
 						return false; // No more nodes to check
 
-					const HNode& nodeRef = mNodeIter.getCurrent();
-					mElemIter = ElementIterator(nodeRef.getNode());
+					const HNode& nodeRef = mNodeIter.GetCurrent();
+					mElemIter = ElementIterator(nodeRef.GetNode());
 
 					// Add all intersecting child nodes to the iterator
-					NodeChildRange childRange = nodeRef.getBounds().findIntersectingChildren(mBounds);
+					NodeChildRange childRange = nodeRef.GetBounds().FindIntersectingChildren(mBounds);
 					for(u32 i = 0; i < 8; i++)
 					{
-						if(childRange.contains(i) && nodeRef.getNode()->HasChild(i))
-							mNodeIter.pushChild(i);
+						if(childRange.Contains(i) && nodeRef.GetNode()->HasChild(i))
+							mNodeIter.PushChild(i);
 					}
 				}
 
@@ -571,7 +571,7 @@ namespace bs
 
 		~Octree()
 		{
-			destroyNode(&mRoot);
+			DestroyNode(&mRoot);
 		}
 
 		/** Adds a new element to the octree. */
@@ -581,11 +581,11 @@ namespace bs
 		}
 
 		/** Removes an existing element from the octree. */
-		void removeElement(const OctreeElementId& elemId)
+		void RemoveElement(const OctreeElementId& elemId)
 		{
 			Node* node = (Node*)elemId.node;
 
-			popElement(node, elemId.elementIdx);
+			PopElement(node, elemId.elementIdx);
 
 			// Reduce element counts in this and any parent nodes, check if nodes need collapsing
 			Node* iterNode = node;
@@ -620,8 +620,8 @@ namespace bs
 								Node* childNode = curNode->GetChild(i);
 
 								ElementIterator elemIter(childNode);
-								while(elemIter.moveNext())
-									pushElement(node, elemIter.getCurrentElem(), elemIter.getCurrentBounds());
+								while(elemIter.MoveNext())
+									PushElement(node, elemIter.GetCurrentElem(), elemIter.GetCurrentBounds());
 
 								todo.push(childNode);
 							}
@@ -637,9 +637,9 @@ namespace bs
 				{
 					if(node->mChildren[i])
 					{
-						destroyNode(node->mChildren[i]);
+						DestroyNode(node->mChildren[i]);
 
-						mNodeAlloc.destruct(node->mChildren[i]);
+						mNodeAlloc.Destruct(node->mChildren[i]);
 						node->mChildren[i] = nullptr;
 					}
 				}
@@ -650,15 +650,15 @@ namespace bs
 		/** Adds a new element to the specified node. Potentially also subdivides the node. */
 		void AddElementToNode(const ElemType& elem, Node* node, const NodeBounds& nodeBounds)
 		{
-			simd::AABox elemBounds = Options::getBounds(elem, mContext);
+			simd::AABox elemBounds = Options::GetBounds(elem, mContext);
 
 			++node->mTotalNumElements;
 			if(node->mIsLeaf)
 			{
-				const simd::AABox& bounds = nodeBounds.getBounds();
+				const simd::AABox& bounds = nodeBounds.GetBounds();
 
 				// Check if the node has too many elements and should be broken up
-				if((node->mElements.count + 1) > Options::MaxElementsPerNode && bounds.extents.x > mMinNodeExtent)
+				if((node->mElements.Count + 1) > Options::MaxElementsPerNode && bounds.Extents.X > mMinNodeExtent)
 				{
 					// Clear all elements from the current node
 					NodeElements elements = node->mElements;
@@ -671,11 +671,11 @@ namespace bs
 					node->mTotalNumElements = 0;
 
 					// Re-insert all previous elements into this node (likely creating child nodes)
-					while(elemIter.moveNext())
-						AddElementToNode(elemIter.getCurrentElem(), node, nodeBounds);
+					while(elemIter.MoveNext())
+						AddElementToNode(elemIter.GetCurrentElem(), node, nodeBounds);
 
 					// Free the element and bound groups from this node
-					freeElements(elements);
+					FreeElements(elements);
 
 					// Insert the current element
 					AddElementToNode(elem, node, nodeBounds);
@@ -683,130 +683,130 @@ namespace bs
 				else
 				{
 					// No need to sub-divide, just add the element to this node
-					pushElement(node, elem, elemBounds);
+					PushElement(node, elem, elemBounds);
 				}
 			}
 			else
 			{
 				// Attempt to find a child the element fits into
-				HChildNode child = nodeBounds.findContainingChild(elemBounds);
+				HChildNode child = nodeBounds.FindContainingChild(elemBounds);
 
-				if(child.empty)
+				if(child.Empty)
 				{
 					// Element doesn't fit into a child, add it to this node
-					pushElement(node, elem, elemBounds);
+					PushElement(node, elem, elemBounds);
 				}
 				else
 				{
 					// Create the child node if needed, and add the element to it
-					if(!node->mChildren[child.index])
-						node->mChildren[child.index] = mNodeAlloc.template construct<Node>(node);
+					if(!node->mChildren[child.Index])
+						node->mChildren[child.Index] = mNodeAlloc.template Construct<Node>(node);
 
-					AddElementToNode(elem, node->mChildren[child.index], nodeBounds.getChild(child));
+					AddElementToNode(elem, node->mChildren[child.Index], nodeBounds.GetChild(child));
 				}
 			}
 		}
 
 		/** Cleans up memory used by the provided node. Should be called instead of the node destructor. */
-		void destroyNode(Node* node)
+		void DestroyNode(Node* node)
 		{
-			freeElements(node->mElements);
+			FreeElements(node->mElements);
 
 			for(auto& entry : node->mChildren)
 			{
 				if(entry != nullptr)
 				{
-					destroyNode(entry);
-					mNodeAlloc.destruct(entry);
+					DestroyNode(entry);
+					mNodeAlloc.Destruct(entry);
 				}
 			}
 		}
 
 		/** Adds a new element to the node's element list. */
-		void pushElement(Node* node, const ElemType& elem, const simd::AABox& bounds)
+		void PushElement(Node* node, const ElemType& elem, const simd::AABox& bounds)
 		{
 			NodeElements& elements = node->mElements;
 
-			u32 freeIdx = elements.count % Options::MaxElementsPerNode;
+			u32 freeIdx = elements.Count % Options::MaxElementsPerNode;
 			if(freeIdx == 0) // New group needed
 			{
-				ElementGroup* elementGroup = (ElementGroup*)mElemAlloc.template construct<ElementGroup>();
-				ElementBoundGroup* boundGroup = (ElementBoundGroup*)mElemBoundsAlloc.template construct<ElementBoundGroup>();
+				ElementGroup* elementGroup = (ElementGroup*)mElemAlloc.template Construct<ElementGroup>();
+				ElementBoundGroup* boundGroup = (ElementBoundGroup*)mElemBoundsAlloc.template Construct<ElementBoundGroup>();
 
-				elementGroup->next = elements.values;
-				boundGroup->next = elements.bounds;
+				elementGroup->Next = elements.Values;
+				boundGroup->Next = elements.Bounds;
 
-				elements.values = elementGroup;
-				elements.bounds = boundGroup;
+				elements.Values = elementGroup;
+				elements.Bounds = boundGroup;
 			}
 
-			elements.values->v[freeIdx] = elem;
-			elements.bounds->v[freeIdx] = bounds;
+			elements.Values->V[freeIdx] = elem;
+			elements.Bounds->V[freeIdx] = bounds;
 
-			u32 elementIdx = elements.count;
-			Options::setElementId(elem, OctreeElementId(node, elementIdx), mContext);
+			u32 elementIdx = elements.Count;
+			Options::SetElementId(elem, OctreeElementId(node, elementIdx), mContext);
 
-			++elements.count;
+			++elements.Count;
 		}
 
 		/** Removes the specified element from the node's element list. */
-		void popElement(Node* node, u32 elementIdx)
+		void PopElement(Node* node, u32 elementIdx)
 		{
 			NodeElements& elements = node->mElements;
 
 			ElementGroup* elemGroup;
 			ElementBoundGroup* boundGroup;
-			elementIdx = node->mapToGroup(elementIdx, &elemGroup, &boundGroup);
+			elementIdx = node->MapToGroup(elementIdx, &elemGroup, &boundGroup);
 
 			ElementGroup* lastElemGroup;
 			ElementBoundGroup* lastBoundGroup;
-			u32 lastElementIdx = node->mapToGroup(elements.count - 1, &lastElemGroup, &lastBoundGroup);
+			u32 lastElementIdx = node->MapToGroup(elements.Count - 1, &lastElemGroup, &lastBoundGroup);
 
-			if(elements.count > 1)
+			if(elements.Count > 1)
 			{
-				std::swap(elemGroup->v[elementIdx], lastElemGroup->v[lastElementIdx]);
-				std::swap(boundGroup->v[elementIdx], lastBoundGroup->v[lastElementIdx]);
+				std::swap(elemGroup->V[elementIdx], lastElemGroup->V[lastElementIdx]);
+				std::swap(boundGroup->V[elementIdx], lastBoundGroup->V[lastElementIdx]);
 
-				Options::setElementId(elemGroup->v[elementIdx], OctreeElementId(node, elementIdx), mContext);
+				Options::SetElementId(elemGroup->V[elementIdx], OctreeElementId(node, elementIdx), mContext);
 			}
 
 			if(lastElementIdx == 0) // Last element in that group, remove it completely
 			{
-				elements.values = lastElemGroup->next;
-				elements.bounds = lastBoundGroup->next;
+				elements.Values = lastElemGroup->Next;
+				elements.Bounds = lastBoundGroup->Next;
 
-				mElemAlloc.destruct(lastElemGroup);
-				mElemBoundsAlloc.destruct(lastBoundGroup);
+				mElemAlloc.Destruct(lastElemGroup);
+				mElemBoundsAlloc.Destruct(lastBoundGroup);
 			}
 
-			--elements.count;
+			--elements.Count;
 		}
 
 		/** Clears all elements from a node. */
-		void freeElements(NodeElements& elements)
+		void FreeElements(NodeElements& elements)
 		{
 			// Free the element and bound groups from this node
-			ElementGroup* curElemGroup = elements.values;
+			ElementGroup* curElemGroup = elements.Values;
 			while(curElemGroup)
 			{
 				ElementGroup* toDelete = curElemGroup;
-				curElemGroup = curElemGroup->next;
+				curElemGroup = curElemGroup->Next;
 
-				mElemAlloc.destruct(toDelete);
+				mElemAlloc.Destruct(toDelete);
 			}
 
-			ElementBoundGroup* curBoundGroup = elements.bounds;
+			ElementBoundGroup* curBoundGroup = elements.Bounds;
 			while(curBoundGroup)
 			{
 				ElementBoundGroup* toDelete = curBoundGroup;
-				curBoundGroup = curBoundGroup->next;
+				curBoundGroup = curBoundGroup->Next;
 
-				mElemBoundsAlloc.destruct(toDelete);
+				mElemBoundsAlloc.Destruct(toDelete);
 			}
 
-			elements.values = nullptr;
-			elements.bounds = nullptr;
-			elements.count = 0;
+			elements.Values = nullptr;
+			elements.Bounds = nullptr;
+			elements.Count = 0;
 		}
 
 		Node mRoot{ nullptr };

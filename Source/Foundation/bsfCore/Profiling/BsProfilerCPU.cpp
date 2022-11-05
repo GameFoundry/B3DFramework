@@ -80,7 +80,7 @@ inline u64 ProfilerCPU::TimerPrecise::GetNumCycles()
 	unsigned int b[4];
 	__get_cpuid(a, &b[0], &b[1], &b[2], &b[3]);
 
-#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
+#	if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 	u32 __a, __d;
 	__asm__ __volatile__("rdtsc"
 						 : "=a"(__a), "=d"(__d));

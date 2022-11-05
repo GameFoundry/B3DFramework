@@ -315,5 +315,5 @@ namespace bs
 
 	/** @} */
 
-	IMPLEMENT_GLOBAL_POOL(TAnimationCurve<float>, 32)
+	B3D_IMPLEMENT_GLOBAL_POOL(TAnimationCurve<float>, 32)
 } // namespace bs

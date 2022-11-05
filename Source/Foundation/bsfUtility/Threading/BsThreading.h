@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#define BS_AUTO_MUTEX_NAME mutex
+#define B3D_AUTO_MUTEX_NAME mutex
 
 #include <thread>
 #include <chrono>

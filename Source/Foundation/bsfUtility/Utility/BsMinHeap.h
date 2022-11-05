@@ -14,9 +14,9 @@ namespace bs
 	template <class K, class V>
 	struct HeapNode
 	{
-		K key;
-		V value;
-		u32 index;
+		K Key;
+		V Value;
+		u32 Index;
 	};
 
 	/**
@@ -35,17 +35,17 @@ namespace bs
 
 		MinHeap(u32 elements)
 		{
-			resize(elements);
+			Resize(elements);
 		}
 
 		MinHeap<K, V>& operator=(const MinHeap<K, V>& other)
 		{
 			mSize = other.mSize;
 			mNode = other.mNode;
-			mPtr.resize(other.mPtr.size());
+			mPtr.Resize(other.mPtr.Size());
 
 			for(auto& entry : mNode)
-				mPtr[entry.index] = &entry;
+				mPtr[entry.Index] = &entry;
 
 			return *this;
 		}
@@ -54,41 +54,41 @@ namespace bs
 
 		const HeapNode<K, V> operator[](u32 index) const { return mNode[index]; }
 
-		bool empty() const { return mSize == 0; }
+		bool Empty() const { return mSize == 0; }
 
-		u32 size() const { return mSize; }
+		u32 Size() const { return mSize; }
 
-		void minimum(K& key, V& value)
+		void Minimum(K& key, V& value)
 		{
 			B3D_ASSERT(mSize > 0);
 
-			key = mPtr[0]->key;
-			value = mPtr[0]->value;
+			key = mPtr[0]->Key;
+			value = mPtr[0]->Value;
 		}
 
-		HeapNode<K, V>* insert(const K& key, const V& value)
+		HeapNode<K, V>* Insert(const K& key, const V& value)
 		{
-			if(mSize == mNode.size())
+			if(mSize == mNode.Size())
 				return nullptr;
 
 			int child = mSize++;
 			HeapNode<K, V>* node = mPtr[child];
 
-			node->key = key;
-			node->value = value;
+			node->Key = key;
+			node->Value = value;
 
 			while(child > 0)
 			{
 				const int parent = (child - 1) / 2;
 
-				if(mPtr[parent]->value <= value)
+				if(mPtr[parent]->Value <= value)
 					break;
 
 				mPtr[child] = mPtr[parent];
-				mPtr[child]->index = child;
+				mPtr[child]->Index = child;
 
 				mPtr[parent] = node;
-				mPtr[parent]->index = parent;
+				mPtr[parent]->Index = parent;
 
 				child = parent;
 			}
@@ -96,13 +96,13 @@ namespace bs
 			return mPtr[child];
 		}
 
-		void erase(K& key, V& value)
+		void Erase(K& key, V& value)
 		{
 			B3D_ASSERT(mSize > 0);
 
 			HeapNode<K, V>* root = mPtr[0];
-			key = root->key;
-			value = root->value;
+			key = root->Key;
+			value = root->Value;
 
 			const int last = --mSize;
 			HeapNode<K, V>* node = mPtr[last];
@@ -116,28 +116,28 @@ namespace bs
 				{
 					const int child2 = child + 1;
 
-					if(mPtr[child2]->value < mPtr[child]->value)
+					if(mPtr[child2]->Value < mPtr[child]->Value)
 						child = child2;
 				}
 
-				if(node->value <= mPtr[child]->value)
+				if(node->Value <= mPtr[child]->Value)
 					break;
 
 				mPtr[parent] = mPtr[child];
-				mPtr[parent]->index = parent;
+				mPtr[parent]->Index = parent;
 
 				parent = child;
 				child = 2 * child + 1;
 			}
 
 			mPtr[parent] = node;
-			mPtr[parent]->index = parent;
+			mPtr[parent]->Index = parent;
 
 			mPtr[last] = root;
-			mPtr[last]->index = last;
+			mPtr[last]->Index = last;
 		}
 
-		void update(HeapNode<K, V>* node, const V& value)
+		void Update(HeapNode<K, V>* node, const V& value)
 		{
 			if(!node)
 				return;
@@ -147,10 +147,10 @@ namespace bs
 			int child2 = 0;
 			int maxChild = 0;
 
-			if(node->value < value)
+			if(node->Value < value)
 			{
-				node->value = value;
-				parent = node->index;
+				node->Value = value;
+				parent = node->Index;
 				child = 2 * parent + 1;
 
 				while(child < mSize)
@@ -158,7 +158,7 @@ namespace bs
 					child2 = child + 1;
 					if(child2 < mSize)
 					{
-						if(mPtr[child]->value <= mPtr[child2]->value)
+						if(mPtr[child]->Value <= mPtr[child2]->Value)
 							maxChild = child;
 						else
 							maxChild = child2;
@@ -166,72 +166,72 @@ namespace bs
 					else
 						maxChild = child;
 
-					if(value <= mPtr[maxChild]->value)
+					if(value <= mPtr[maxChild]->Value)
 						break;
 
 					mPtr[parent] = mPtr[maxChild];
-					mPtr[parent]->index = parent;
+					mPtr[parent]->Index = parent;
 
 					mPtr[maxChild] = node;
-					mPtr[maxChild]->index = maxChild;
+					mPtr[maxChild]->Index = maxChild;
 
 					parent = maxChild;
 					child = 2 * parent + 1;
 				}
 			}
-			else if(value < node->value)
+			else if(value < node->Value)
 			{
-				node->value = value;
-				child = node->index;
+				node->Value = value;
+				child = node->Index;
 
 				while(child > 0)
 				{
 					parent = (child - 1) / 2;
 
-					if(mPtr[parent]->value <= value)
+					if(mPtr[parent]->Value <= value)
 						break;
 
 					mPtr[child] = mPtr[parent];
-					mPtr[child]->index = child;
+					mPtr[child]->Index = child;
 
 					mPtr[parent] = node;
-					mPtr[parent]->index = parent;
+					mPtr[parent]->Index = parent;
 
 					child = parent;
 				}
 			}
 		}
 
-		void resize(u32 elements)
+		void Resize(u32 elements)
 		{
 			mSize = 0;
 			if(elements > 0)
 			{
-				mNode.resize(elements);
-				mPtr.resize(elements);
+				mNode.Resize(elements);
+				mPtr.Resize(elements);
 
 				for(u32 i = 0; i < elements; ++i)
 				{
 					mPtr[i] = &mNode[i];
-					mPtr[i]->index = i;
+					mPtr[i]->Index = i;
 				}
 			}
 			else
 			{
-				mNode.clear();
-				mPtr.clear();
+				mNode.Clear();
+				mPtr.Clear();
 			}
 		}
 
-		bool valid() const
+		bool Valid() const
 		{
 			for(int i = 0; i < (int)mSize; ++i)
 			{
 				int parent = (i - 1) / 2;
 				if(parent > 0)
 				{
-					if(mPtr[i]->value < mPtr[parent]->value ||
-					   (int)mPtr[parent]->index != parent)
+					if(mPtr[i]->Value < mPtr[parent]->Value ||
+					   (int)mPtr[parent]->Index != parent)
 						return false;
 				}
 			}

@@ -155,6 +155,7 @@ namespace bs
 	B3D_LOG_CATEGORY(Generic, 3)
 	B3D_LOG_CATEGORY(Platform, 4)
 	B3D_LOG_CATEGORY(Serialization, 5)
+	B3D_LOG_CATEGORY(UnitTest, 6)
 
 	/** @} */
 } // namespace bs

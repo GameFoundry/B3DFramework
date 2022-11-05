@@ -36,7 +36,7 @@ CrashHandler::~CrashHandler()
  * 							called function and following address is its caller and so on.
  * @return					Number of functions in the call stack.
  */
-u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[BS_MAX_STACKTRACE_DEPTH])
+u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[B3D_MAX_STACKTRACE_DEPTH])
 {
 	HANDLE hProcess = GetCurrentProcess();
 	HANDLE hThread = GetCurrentThread();
@@ -49,7 +49,7 @@ u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[BS_MAX_STACKTRACE_DEPT
 	stackFrame.AddrStack.Mode = AddrModeFlat;
 	stackFrame.AddrFrame.Mode = AddrModeFlat;
 
-#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_x86_64
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 	stackFrame.AddrPC.Offset = context.Rip;
 	stackFrame.AddrStack.Offset = context.Rsp;
 	stackFrame.AddrFrame.Offset = context.Rbp;
@@ -71,7 +71,7 @@ u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[BS_MAX_STACKTRACE_DEPT
 			break;
 		}
 
-		if(numEntries < BS_MAX_STACKTRACE_DEPTH)
+		if(numEntries < B3D_MAX_STACKTRACE_DEPTH)
 			stackTrace[numEntries] = stackFrame.AddrPC.Offset;
 
 		numEntries++;
@@ -93,17 +93,17 @@ u32 Win32GetRawStackTrace(CONTEXT context, u64 stackTrace[BS_MAX_STACKTRACE_DEPT
  */
 String Win32GetStackTrace(CONTEXT context, u32 skip = 0)
 {
-	u64 rawStackTrace[BS_MAX_STACKTRACE_DEPTH];
+	u64 rawStackTrace[B3D_MAX_STACKTRACE_DEPTH];
 	u32 numEntries = Win32GetRawStackTrace(context, rawStackTrace);
 
-	numEntries = std::min((u32)BS_MAX_STACKTRACE_DEPTH, numEntries);
+	numEntries = std::min((u32)B3D_MAX_STACKTRACE_DEPTH, numEntries);
 
-	u32 bufferSize = sizeof(PIMAGEHLP_SYMBOL64) + BS_MAX_STACKTRACE_NAME_BYTES;
+	u32 bufferSize = sizeof(PIMAGEHLP_SYMBOL64) + B3D_MAX_STACKTRACE_NAME_BYTES;
 	u8* buffer = (u8*)B3DAllocate(bufferSize);
 
 	PIMAGEHLP_SYMBOL64 symbol = (PIMAGEHLP_SYMBOL64)buffer;
 	symbol->SizeOfStruct = bufferSize;
-	symbol->MaxNameLength = BS_MAX_STACKTRACE_NAME_BYTES;
+	symbol->MaxNameLength = B3D_MAX_STACKTRACE_NAME_BYTES;
 
 	HANDLE hProcess = GetCurrentProcess();
 
@@ -229,16 +229,16 @@ void Win32LoadSymbols()
 	{
 		MODULEINFO moduleInfo;
 
-		char moduleName[BS_MAX_STACKTRACE_NAME_BYTES];
-		char imageName[BS_MAX_STACKTRACE_NAME_BYTES];
+		char moduleName[B3D_MAX_STACKTRACE_NAME_BYTES];
+		char imageName[B3D_MAX_STACKTRACE_NAME_BYTES];
 
 		gGetModuleInformation(hProcess, modules[i], &moduleInfo, sizeof(moduleInfo));
-		gGetModuleFileNameEx(hProcess, modules[i], imageName, BS_MAX_STACKTRACE_NAME_BYTES);
-		gGetModuleBaseName(hProcess, modules[i], moduleName, BS_MAX_STACKTRACE_NAME_BYTES);
+		gGetModuleFileNameEx(hProcess, modules[i], imageName, B3D_MAX_STACKTRACE_NAME_BYTES);
+		gGetModuleBaseName(hProcess, modules[i], moduleName, B3D_MAX_STACKTRACE_NAME_BYTES);
 
-		char pdbSearchPath[BS_MAX_STACKTRACE_NAME_BYTES];
+		char pdbSearchPath[B3D_MAX_STACKTRACE_NAME_BYTES];
 		char* fileName = nullptr;
-		GetFullPathNameA(moduleName, BS_MAX_STACKTRACE_NAME_BYTES, pdbSearchPath, &fileName);
+		GetFullPathNameA(moduleName, B3D_MAX_STACKTRACE_NAME_BYTES, pdbSearchPath, &fileName);
 		*fileName = '\0';
 
 		SymSetSearchPath(GetCurrentProcess(), pdbSearchPath);

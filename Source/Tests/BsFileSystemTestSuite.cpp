@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Private/UnitTests/BsFileSystemTestSuite.h"
+#include "BsFileSystemTestSuite.h"
 
 #include "Debug/BsDebug.h"
 #include "Error/BsException.h"
@@ -11,26 +11,26 @@
 
 using namespace bs;
 
-const String testDirectoryName = "FileSystemTestDirectory/";
+const String kTestDirectoryName = "FileSystemTestDirectory/";
 
-void createFile(Path path, String content)
+void CreateFile(Path path, String content)
 {
 	std::ofstream fs;
-	fs.open(path.toPlatformString().c_str());
+	fs.open(path.ToPlatformString().c_str());
 	fs << content;
 	fs.close();
 }
 
-void createEmptyFile(Path path)
+void CreateEmptyFile(Path path)
 {
-	createFile(path, "");
+	CreateFile(path, "");
 }
 
-String readFile(Path path)
+String ReadFile(Path path)
 {
 	String content;
 	std::ifstream fs;
-	fs.open(path.toPlatformString().c_str());
+	fs.open(path.ToPlatformString().c_str());
 	fs >> content;
 	fs.close();
 	return content;
@@ -38,10 +38,10 @@ String readFile(Path path)
 
 void FileSystemTestSuite::StartUp()
 {
-	mTestDirectory = FileSystem::GetWorkingDirectoryPath() + testDirectoryName;
+	mTestDirectory = FileSystem::GetWorkingDirectoryPath() + kTestDirectoryName;
 	if(FileSystem::Exists(mTestDirectory))
 	{
-		B3D_EXCEPT(InternalErrorException, String("Directory '") + testDirectoryName + "' should not already exist; you should remove it manually.");
+		B3D_EXCEPT(InternalErrorException, String("Directory '") + kTestDirectoryName + "' should not already exist; you should remove it manually.");
 	}
 	else
 	{
@@ -55,43 +55,43 @@ void FileSystemTestSuite::ShutDown()
 	FileSystem::Remove(mTestDirectory, true);
 	if(FileSystem::Exists(mTestDirectory))
 	{
-		LOGERR("FileSystemTestSuite failed to delete '" + mTestDirectory.toString() + "', you should remove it manually.");
+		B3D_LOG(Error, UnitTest, "FileSystemTestSuite failed to delete '{0}', you should remove it manually.", mTestDirectory);
 	}
 }
 
 FileSystemTestSuite::FileSystemTestSuite()
 {
-	B3D_ADD_TEST(FileSystemTestSuite::testExists_yes_file);
-	B3D_ADD_TEST(FileSystemTestSuite::testExists_yes_dir);
-	B3D_ADD_TEST(FileSystemTestSuite::testExists_no);
-	B3D_ADD_TEST(FileSystemTestSuite::testGetFileSize_zero);
-	B3D_ADD_TEST(FileSystemTestSuite::testGetFileSize_not_zero);
-	B3D_ADD_TEST(FileSystemTestSuite::testIsFile_yes);
-	B3D_ADD_TEST(FileSystemTestSuite::testIsFile_no);
-	B3D_ADD_TEST(FileSystemTestSuite::testIsDirectory_yes);
-	B3D_ADD_TEST(FileSystemTestSuite::testIsDirectory_no);
-	B3D_ADD_TEST(FileSystemTestSuite::testRemove_file);
-	B3D_ADD_TEST(FileSystemTestSuite::testRemove_directory);
-	B3D_ADD_TEST(FileSystemTestSuite::testMove);
-	B3D_ADD_TEST(FileSystemTestSuite::testMove_overwrite_existing);
-	B3D_ADD_TEST(FileSystemTestSuite::testMove_no_overwrite_existing);
-	B3D_ADD_TEST(FileSystemTestSuite::testCopy);
-	B3D_ADD_TEST(FileSystemTestSuite::testCopy_overwrite_existing);
-	B3D_ADD_TEST(FileSystemTestSuite::testCopy_no_overwrite_existing);
-	B3D_ADD_TEST(FileSystemTestSuite::testGetChildren);
-	B3D_ADD_TEST(FileSystemTestSuite::testGetLastModifiedTime);
-	B3D_ADD_TEST(FileSystemTestSuite::testGetTempDirectoryPath);
+	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesFile);
+	B3D_ADD_TEST(FileSystemTestSuite::TestExistsYesDir);
+	B3D_ADD_TEST(FileSystemTestSuite::TestExistsNo);
+	B3D_ADD_TEST(FileSystemTestSuite::TestGetFileSizeZero);
+	B3D_ADD_TEST(FileSystemTestSuite::TestGetFileSizeNotZero);
+	B3D_ADD_TEST(FileSystemTestSuite::TestIsFileYes);
+	B3D_ADD_TEST(FileSystemTestSuite::TestIsFileNo);
+	B3D_ADD_TEST(FileSystemTestSuite::TestIsDirectoryYes);
+	B3D_ADD_TEST(FileSystemTestSuite::TestIsDirectoryNo);
+	B3D_ADD_TEST(FileSystemTestSuite::TestRemoveFile);
+	B3D_ADD_TEST(FileSystemTestSuite::TestRemoveDirectory);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMove);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMoveOverwriteExisting);
+	B3D_ADD_TEST(FileSystemTestSuite::TestMoveNoOverwriteExisting);
+	B3D_ADD_TEST(FileSystemTestSuite::TestCopy);
+	B3D_ADD_TEST(FileSystemTestSuite::TestCopyOverwriteExisting);
+	B3D_ADD_TEST(FileSystemTestSuite::TestCopyNoOverwriteExisting);
+	B3D_ADD_TEST(FileSystemTestSuite::TestGetChildren);
+	B3D_ADD_TEST(FileSystemTestSuite::TestGetLastModifiedTime);
+	B3D_ADD_TEST(FileSystemTestSuite::TestGetTempDirectoryPath);
 }
 
-void FileSystemTestSuite::testExists_yes_file()
+void FileSystemTestSuite::TestExistsYesFile()
 {
 	Path path = mTestDirectory + "plop";
-	createEmptyFile(path);
+	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(FileSystem::Exists(path));
 	FileSystem::Remove(path);
 }
 
-void FileSystemTestSuite::testExists_yes_dir()
+void FileSystemTestSuite::TestExistsYesDir()
 {
 	Path path = mTestDirectory + "plop/";
 	FileSystem::CreateDir(path);
@@ -99,65 +99,65 @@ void FileSystemTestSuite::testExists_yes_dir()
 	FileSystem::Remove(path);
 }
 
-void FileSystemTestSuite::testExists_no()
+void FileSystemTestSuite::TestExistsNo()
 {
 	B3D_TEST_ASSERT(!FileSystem::Exists(Path("this-file-does-not-exist")));
 }
 
-void FileSystemTestSuite::testGetFileSize_zero()
+void FileSystemTestSuite::TestGetFileSizeZero()
 {
 	Path path = mTestDirectory + "file-size-test-1";
-	createEmptyFile(path);
+	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(FileSystem::GetFileSize(path) == 0);
 	FileSystem::Remove(path);
 }
 
-void FileSystemTestSuite::testGetFileSize_not_zero()
+void FileSystemTestSuite::TestGetFileSizeNotZero()
 {
 	Path path = mTestDirectory + "file-size-test-2";
-	createFile(path, "0123456789");
+	CreateFile(path, "0123456789");
 	B3D_TEST_ASSERT(FileSystem::GetFileSize(path) == 10);
 	FileSystem::Remove(path);
 }
 
-void FileSystemTestSuite::testIsFile_yes()
+void FileSystemTestSuite::TestIsFileYes()
 {
 	Path path = mTestDirectory + "some-file-1";
-	createEmptyFile(path);
+	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(FileSystem::IsFile(path));
 }
 
-void FileSystemTestSuite::testIsFile_no()
+void FileSystemTestSuite::TestIsFileNo()
 {
 	Path path = mTestDirectory + "some-directory-1/";
 	FileSystem::CreateDir(path);
 	B3D_TEST_ASSERT(!FileSystem::IsFile(path));
 }
 
-void FileSystemTestSuite::testIsDirectory_yes()
+void FileSystemTestSuite::TestIsDirectoryYes()
 {
 	Path path = mTestDirectory + "some-directory-2/";
 	FileSystem::CreateDir(path);
 	B3D_TEST_ASSERT(FileSystem::IsDirectory(path));
 }
 
-void FileSystemTestSuite::testIsDirectory_no()
+void FileSystemTestSuite::TestIsDirectoryNo()
 {
 	Path path = mTestDirectory + "some-file-2";
-	createEmptyFile(path);
+	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(!FileSystem::IsDirectory(path));
 }
 
-void FileSystemTestSuite::testRemove_file()
+void FileSystemTestSuite::TestRemoveFile()
 {
 	Path path = mTestDirectory + "file-to-remove";
-	createEmptyFile(path);
+	CreateEmptyFile(path);
 	B3D_TEST_ASSERT(FileSystem::Exists(path));
 	FileSystem::Remove(path);
 	B3D_TEST_ASSERT(!FileSystem::Exists(path));
 }
 
-void FileSystemTestSuite::testRemove_directory()
+void FileSystemTestSuite::TestRemoveDirectory()
 {
 	Path path = mTestDirectory + "directory-to-remove/";
 	FileSystem::CreateDir(path);
@@ -166,130 +166,130 @@ void FileSystemTestSuite::testRemove_directory()
 	B3D_TEST_ASSERT(!FileSystem::Exists(path));
 }
 
-void FileSystemTestSuite::testMove()
+void FileSystemTestSuite::TestMove()
 {
 	Path source = mTestDirectory + "move-source-1";
 	Path destination = mTestDirectory + "move-destination-1";
-	createFile(source, "move-data-source-1");
+	CreateFile(source, "move-data-source-1");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(!FileSystem::Exists(destination));
 	FileSystem::Move(source, destination);
 	B3D_TEST_ASSERT(!FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(destination) == "move-data-source-1");
+	B3D_TEST_ASSERT(ReadFile(destination) == "move-data-source-1");
 }
 
-void FileSystemTestSuite::testMove_overwrite_existing()
+void FileSystemTestSuite::TestMoveOverwriteExisting()
 {
 	Path source = mTestDirectory + "move-source-2";
 	Path destination = mTestDirectory + "move-destination-2";
-	createFile(source, "move-data-source-2");
-	createFile(destination, "move-data-destination-2");
+	CreateFile(source, "move-data-source-2");
+	CreateFile(destination, "move-data-destination-2");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
 	FileSystem::Move(source, destination, true);
 	B3D_TEST_ASSERT(!FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(destination) == "move-data-source-2");
+	B3D_TEST_ASSERT(ReadFile(destination) == "move-data-source-2");
 }
 
-void FileSystemTestSuite::testMove_no_overwrite_existing()
+void FileSystemTestSuite::TestMoveNoOverwriteExisting()
 {
 	Path source = mTestDirectory + "move-source-3";
 	Path destination = mTestDirectory + "move-destination-3";
-	createFile(source, "move-data-source-3");
-	createFile(destination, "move-data-destination-3");
+	CreateFile(source, "move-data-source-3");
+	CreateFile(destination, "move-data-destination-3");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
 	FileSystem::Move(source, destination, false);
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(destination) == "move-data-destination-3");
+	B3D_TEST_ASSERT(ReadFile(destination) == "move-data-destination-3");
 }
 
-void FileSystemTestSuite::testCopy()
+void FileSystemTestSuite::TestCopy()
 {
 	Path source = mTestDirectory + "copy-source-1";
 	Path destination = mTestDirectory + "copy-destination-1";
-	createFile(source, "copy-data-source-1");
+	CreateFile(source, "copy-data-source-1");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(!FileSystem::Exists(destination));
 	FileSystem::Copy(source, destination);
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(source) == "copy-data-source-1");
-	B3D_TEST_ASSERT(readFile(destination) == "copy-data-source-1");
+	B3D_TEST_ASSERT(ReadFile(source) == "copy-data-source-1");
+	B3D_TEST_ASSERT(ReadFile(destination) == "copy-data-source-1");
 }
 
-void FileSystemTestSuite::testCopy_overwrite_existing()
+void FileSystemTestSuite::TestCopyOverwriteExisting()
 {
 	Path source = mTestDirectory + "copy-source-2";
 	Path destination = mTestDirectory + "copy-destination-2";
-	createFile(source, "copy-data-source-2");
-	createFile(destination, "copy-data-destination-2");
+	CreateFile(source, "copy-data-source-2");
+	CreateFile(destination, "copy-data-destination-2");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
 	FileSystem::Copy(source, destination, true);
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(source) == "copy-data-source-2");
-	B3D_TEST_ASSERT(readFile(destination) == "copy-data-source-2");
+	B3D_TEST_ASSERT(ReadFile(source) == "copy-data-source-2");
+	B3D_TEST_ASSERT(ReadFile(destination) == "copy-data-source-2");
 }
 
-void FileSystemTestSuite::testCopy_no_overwrite_existing()
+void FileSystemTestSuite::TestCopyNoOverwriteExisting()
 {
 	Path source = mTestDirectory + "copy-source-3";
 	Path destination = mTestDirectory + "copy-destination-3";
-	createFile(source, "copy-data-source-3");
-	createFile(destination, "copy-data-destination-3");
+	CreateFile(source, "copy-data-source-3");
+	CreateFile(destination, "copy-data-destination-3");
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
 	FileSystem::Copy(source, destination, false);
 	B3D_TEST_ASSERT(FileSystem::Exists(source));
 	B3D_TEST_ASSERT(FileSystem::Exists(destination));
-	B3D_TEST_ASSERT(readFile(source) == "copy-data-source-3");
-	B3D_TEST_ASSERT(readFile(destination) == "copy-data-destination-3");
+	B3D_TEST_ASSERT(ReadFile(source) == "copy-data-source-3");
+	B3D_TEST_ASSERT(ReadFile(destination) == "copy-data-destination-3");
 }
 
-#define CONTAINS(v, e) (std::find(v.begin(), v.end(), e) != v.end())
+#define B3D_CONTAINS(v, e) (std::find(v.begin(), v.end(), e) != v.end())
 
-void FileSystemTestSuite::testGetChildren()
+void FileSystemTestSuite::TestGetChildren()
 {
 	Path path = mTestDirectory + "get-children-test/";
 	FileSystem::CreateDir(path);
 	FileSystem::CreateDir(path + "foo/");
 	FileSystem::CreateDir(path + "bar/");
 	FileSystem::CreateDir(path + "baz/");
-	createEmptyFile(path + "ga");
-	createEmptyFile(path + "bu");
-	createEmptyFile(path + "zo");
-	createEmptyFile(path + "meu");
+	CreateEmptyFile(path + "ga");
+	CreateEmptyFile(path + "bu");
+	CreateEmptyFile(path + "zo");
+	CreateEmptyFile(path + "meu");
 	Vector<Path> files, directories;
 	FileSystem::GetChildren(path, files, directories);
 	B3D_TEST_ASSERT(files.size() == 4);
-	B3D_TEST_ASSERT(CONTAINS(files, path + "ga"));
-	B3D_TEST_ASSERT(CONTAINS(files, path + "bu"));
-	B3D_TEST_ASSERT(CONTAINS(files, path + "zo"));
-	B3D_TEST_ASSERT(CONTAINS(files, path + "meu"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(files, path + "ga"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(files, path + "bu"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(files, path + "zo"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(files, path + "meu"));
 	B3D_TEST_ASSERT(directories.size() == 3);
-	B3D_TEST_ASSERT(CONTAINS(directories, path + "foo"));
-	B3D_TEST_ASSERT(CONTAINS(directories, path + "bar"));
-	B3D_TEST_ASSERT(CONTAINS(directories, path + "baz"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(directories, path + "foo"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(directories, path + "bar"));
+	B3D_TEST_ASSERT(B3D_CONTAINS(directories, path + "baz"));
 }
 
-void FileSystemTestSuite::testGetLastModifiedTime()
+void FileSystemTestSuite::TestGetLastModifiedTime()
 {
 	std::time_t beforeTime;
 	time(&beforeTime);
 
 	Path path = mTestDirectory + "blah1234";
-	createFile(path, "blah");
+	CreateFile(path, "blah");
 	std::time_t mtime = FileSystem::GetLastModifiedTime(path);
 	B3D_TEST_ASSERT(mtime >= beforeTime);
 	B3D_TEST_ASSERT(mtime <= beforeTime + 10);
 }
 
-void FileSystemTestSuite::testGetTempDirectoryPath()
+void FileSystemTestSuite::TestGetTempDirectoryPath()
 {
 	Path path = FileSystem::GetTempDirectoryPath();
 	/* No judging. */

@@ -814,7 +814,7 @@ namespace bs
 		else
 		{
 			Write(false);
-			return writeVarInt(value) + 1;
+			return WriteVarInt(value) + 1;
 		}
 	}
 
@@ -830,7 +830,7 @@ namespace bs
 			return 1;
 		}
 		else
-			return readVarInt(value) + 1;
+			return ReadVarInt(value) + 1;
 	}
 
 	inline void Bitstream::WriteNorm(float value, uint32_t bits)

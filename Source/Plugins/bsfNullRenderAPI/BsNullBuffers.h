@@ -93,5 +93,5 @@ namespace bs
 
 namespace bs
 {
-	IMPLEMENT_GLOBAL_POOL(ct::NullHardwareBuffer, 32)
+	B3D_IMPLEMENT_GLOBAL_POOL(ct::NullHardwareBuffer, 32)
 }

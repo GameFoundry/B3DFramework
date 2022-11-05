@@ -8,7 +8,7 @@
 #include "Math/BsSphere.h"
 #include "Math/BsRect2.h"
 
-#define SIMDPP_ARCH_X86_SSE4_1
+#define B3D_SIMDPP_ARCH_X86_SS_E4_1
 
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	pragma warning(disable : 4244)
@@ -38,47 +38,47 @@ namespace bs
 		{
 			/** Center of the bounds, W component unused. */
 			SIMDPP_ALIGN(16)
-			Vector4 center;
+			Vector4 Center;
 
 			/** Extents (half-size) of the bounds, W component unused. */
 			SIMDPP_ALIGN(16)
-			Vector4 extents;
+			Vector4 Extents;
 
 			AABox() = default;
 
 			/** Initializes bounds from an AABox. */
 			AABox(const bs::AABox& box)
 			{
-				center = Vector4(box.GetCenter());
-				extents = Vector4(box.GetHalfSize());
+				Center = Vector4(box.GetCenter());
+				Extents = Vector4(box.GetHalfSize());
 			}
 
 			/** Initializes bounds from a Sphere. */
 			AABox(const Sphere& sphere)
 			{
-				center = Vector4(sphere.GetCenter());
+				Center = Vector4(sphere.GetCenter());
 
 				float radius = sphere.GetRadius();
-				extents = Vector4(radius, radius, radius, 0.0f);
+				Extents = Vector4(radius, radius, radius, 0.0f);
 			}
 
 			/** Initializes bounds from a vector representing the center and equal extents in all directions. */
 			AABox(const Vector3& center, float extent)
 			{
-				this->center = Vector4(center);
-				extents = Vector4(extent, extent, extent, 0.0f);
+				this->Center = Vector4(center);
+				Extents = Vector4(extent, extent, extent, 0.0f);
 			}
 
 			/** Returns true if the current bounds object intersects the provided object. */
-			bool intersects(const AABox& other) const
+			bool Intersects(const AABox& other) const
 			{
-				auto myCenter = load<float32x4>(&center);
-				auto otherCenter = load<float32x4>(&other.center);
+				auto myCenter = load<float32x4>(&Center);
+				auto otherCenter = load<float32x4>(&other.Center);
 
 				float32x4 diff = abs(sub(myCenter, otherCenter));
 
-				auto myExtents = simd::load<float32x4>(&extents);
-				auto otherExtents = simd::load<float32x4>(&other.extents);
+				auto myExtents = simd::load<float32x4>(&Extents);
+				auto otherExtents = simd::load<float32x4>(&other.Extents);
 
 				float32x4 extents = add(myExtents, otherExtents);
 
@@ -93,38 +93,38 @@ namespace bs
 		{
 			/** Center of the bounds. Z and W component unused.*/
 			SIMDPP_ALIGN(16)
-			Vector4 center;
+			Vector4 Center;
 
 			/** Extents (half-size) of the bounds. Z and W component unused. */
 			SIMDPP_ALIGN(16)
-			Vector4 extents;
+			Vector4 Extents;
 
 			Rect2() = default;
 
 			/** Initializes bounds from an Rect2. */
 			Rect2(const bs::Rect2& rect)
 			{
-				center = Vector4(rect.GetCenter().X, rect.GetCenter().Y, 0.0f, 0.0f);
-				extents = Vector4(rect.GetHalfSize().X, rect.GetHalfSize().Y, 0.0f, 0.0f);
+				Center = Vector4(rect.GetCenter().X, rect.GetCenter().Y, 0.0f, 0.0f);
+				Extents = Vector4(rect.GetHalfSize().X, rect.GetHalfSize().Y, 0.0f, 0.0f);
 			}
 
 			/** Initializes bounds from a vector representing the center and equal extents in all directions. */
 			Rect2(const Vector2& center, float extent)
 			{
-				this->center = Vector4(center.X, center.Y, 0.0f, 0.0f);
-				extents = Vector4(extent, extent, 0.0f, 0.0f);
+				this->Center = Vector4(center.X, center.Y, 0.0f, 0.0f);
+				Extents = Vector4(extent, extent, 0.0f, 0.0f);
 			}
 
 			/** Returns true if the current bounds object intersects the provided object. */
-			bool overlaps(const Rect2& other) const
+			bool Overlaps(const Rect2& other) const
 			{
-				auto myCenter = load<float32x4>(&center);
-				auto otherCenter = load<float32x4>(&other.center);
+				auto myCenter = load<float32x4>(&Center);
+				auto otherCenter = load<float32x4>(&other.Center);
 
 				float32x4 diff = abs(sub(myCenter, otherCenter));
 
-				auto myExtents = simd::load<float32x4>(&extents);
-				auto otherExtents = simd::load<float32x4>(&other.extents);
+				auto myExtents = simd::load<float32x4>(&Extents);
+				auto otherExtents = simd::load<float32x4>(&other.Extents);
 
 				float32x4 extents = add(myExtents, otherExtents);
 

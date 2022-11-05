@@ -254,7 +254,7 @@ namespace bs
 			if(num > static_cast<size_t>(-1) / sizeof(T))
 				return nullptr; // Error
 
-			void* const pv = mStaticAlloc->alloc((u32)(num * sizeof(T)));
+			void* const pv = mStaticAlloc->Alloc((u32)(num * sizeof(T)));
 			if(!pv)
 				return nullptr; // Error
 

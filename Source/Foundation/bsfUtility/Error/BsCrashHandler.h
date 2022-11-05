@@ -4,8 +4,8 @@
 
 #include <functional>
 
-#define BS_MAX_STACKTRACE_DEPTH 200
-#define BS_MAX_STACKTRACE_NAME_BYTES 1024
+#define B3D_MAX_STACKTRACE_DEPTH 200
+#define B3D_MAX_STACKTRACE_NAME_BYTES 1024
 
 namespace bs
 {

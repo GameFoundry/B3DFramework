@@ -380,11 +380,11 @@ namespace bs
 /* cases (private destructor) it is not possible. In which case you may	*/
 /* use these instead.							*/
 /************************************************************************/
-#define BS_PVT_DELETE(T, ptr) \
+#define B3D_PVT_DELETE(T, ptr) \
 	(ptr)->~T();              \
 	MemoryAllocator<GenAlloc>::free(ptr);
 
-#define BS_PVT_DELETE_A(T, ptr, Alloc) \
+#define B3D_PVT_DELETE_A(T, ptr, Alloc) \
 	(ptr)->~T();                       \
 	MemoryAllocator<Alloc>::free(ptr);
 

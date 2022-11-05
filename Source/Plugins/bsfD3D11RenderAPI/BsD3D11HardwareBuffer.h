@@ -72,5 +72,5 @@ namespace bs
 
 namespace bs
 {
-	IMPLEMENT_GLOBAL_POOL(ct::D3D11HardwareBuffer, 32)
+	B3D_IMPLEMENT_GLOBAL_POOL(ct::D3D11HardwareBuffer, 32)
 }

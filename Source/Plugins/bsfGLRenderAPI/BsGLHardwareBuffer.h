@@ -46,5 +46,5 @@ namespace bs
 
 namespace bs
 {
-	IMPLEMENT_GLOBAL_POOL(ct::GLHardwareBuffer, 32)
+	B3D_IMPLEMENT_GLOBAL_POOL(ct::GLHardwareBuffer, 32)
 }

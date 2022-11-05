@@ -14,8 +14,8 @@
 #define B3D_COMPILER_ID_INTEL 3
 #define B3D_COMPILER_ID_CLANG 4
 
-#define B3D_ARCHITECTURE_ID_x86_32 1
-#define B3D_ARCHITECTURE_ID_x86_64 2
+#define B3D_ARCHITECTURE_ID_X86_32 1
+#define B3D_ARCHITECTURE_ID_X86_64 2
 
 #define B3D_ENDIAN_ID_LITTLE 1
 #define B3D_ENDIAN_BIG 2
@@ -67,9 +67,9 @@
 
 // Find the architecture type
 #if defined(__x86_64__) || defined(_M_X64)
-#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_x86_64
+#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_X86_64
 #else
-#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_x86_32
+#	define B3D_ARCHITECTURE B3D_ARCHITECTURE_ID_X86_32
 #endif
 
 // DLL export
@@ -95,7 +95,7 @@
 #			endif
 #		endif
 #	endif
-#	define BS_UTILITY_HIDDEN
+#	define B3D_UTILITY_HIDDEN
 #else // Linux/Mac settings
 #	define B3D_UTILITY_EXPORT __attribute__((visibility("default")))
 #	define BS_UTILITY_HIDDEN __attribute__((visibility("hidden")))
@@ -108,7 +108,7 @@
 #	else
 #		define B3D_PLUGIN_EXPORT __attribute__((dllexport))
 #	endif
-#	define BS_UTILITY_HIDDEN
+#	define B3D_UTILITY_HIDDEN
 #else // Linux/Mac settings
 #	define B3D_PLUGIN_EXPORT __attribute__((visibility("default")))
 #endif

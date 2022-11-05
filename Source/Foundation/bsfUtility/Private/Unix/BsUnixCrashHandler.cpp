@@ -78,9 +78,9 @@ String CrashHandler::getCrashTimestamp()
 String CrashHandler::getStackTrace()
 {
 	StringStream stackTrace;
-	void* trace[BS_MAX_STACKTRACE_DEPTH];
+	void* trace[B3D_MAX_STACKTRACE_DEPTH];
 
-	int traceSize = backtrace(trace, BS_MAX_STACKTRACE_DEPTH);
+	int traceSize = backtrace(trace, B3D_MAX_STACKTRACE_DEPTH);
 	char** messages = backtrace_symbols(trace, traceSize);
 
 	for(int i = 0; i < traceSize && messages != nullptr; ++i)
