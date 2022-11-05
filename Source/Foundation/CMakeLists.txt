@@ -1,7 +1,16 @@
-# Source files and their filters
-include(bsfUtility/CMakeSources.cmake)
-include(bsfCore/CMakeSources.cmake)
-include(bsfEngine/CMakeSources.cmake)
+# Source files
+set(coreSourceFoldersToIgnore "")
+if(NOT B3D_EXPERIMENTAL_ENABLE_NETWORKING)
+	list(APPEND coreSourceFoldersToIgnore "Network")
+endif()
+
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "bsfUtility/" "" BS_UTILITY_SRC)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "bsfCore/" ${coreSourceFoldersToIgnore} BS_CORE_SRC)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "bsfEngine/" "" BS_ENGINE_SRC)
+
+if(MSVC)
+	list(APPEND BS_CORE_SRC "bsfCore/VSVisualizations.natvis")
+endif()
 
 # Ensure pre-built binary dependencies are up to date
 if(B3D_USE_BUNDLED_LIBRARIES)

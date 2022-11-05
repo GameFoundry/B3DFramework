@@ -1,3 +1,68 @@
+# Parses all C++ source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
+# For each sub-folder found it also creates a source group with the folder hierarchy.
+#
+# @param	parentPath		Folder path in which to perform the search. All output paths will be relative to this path.
+# @param	path			Additional path to append after @p parentPath. This will limit the search to this particular
+#							sub-path, but the output paths will still remain relative to @p parentPath. Must include
+#							the closing '/' if not empty.
+# @param	foldersToIgnore	Optional list of folders to ignore in the search
+# @param	outSourceFiles	List of all found source files, relative to @p parentPath.
+function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
+	set(sourceFiles "")
+
+	list(APPEND pathsToProcess ${path})
+	list(APPEND sourceGroups "")
+
+	while(pathsToProcess)
+		list(POP_FRONT pathsToProcess currentPath)
+
+		set(fullPath "${parentPath}/${currentPath}")
+		file(GLOB directChildren RELATIVE "${fullPath}" "${fullPath}*")
+
+		set(sourceGroupFiles "")
+		list(POP_FRONT sourceGroups currentSourceGroup)
+
+		# For each direct child (file or folder) of the current path
+		foreach(child ${directChildren})
+			# If folder, check all the files in the folder, and define a source group for it. Any child folders
+			if(IS_DIRECTORY "${fullPath}${child}")
+
+				# Skip platform specific files that aren't for the current platform
+				if( (${child} MATCHES "Win32" AND NOT WIN32) OR
+				(${child} MATCHES "MacOS" AND NOT APPLE) OR
+				(${child} MATCHES "Linux" AND NOT LINUX) OR
+				(${child} MATCHES "Unix" AND NOT LINUX AND NOT APPLE))
+					continue()
+				endif()
+
+				if(${child} IN_LIST foldersToIgnore)
+					continue()
+				endif()
+
+				list(APPEND pathsToProcess ${currentPath}${child}/)
+				list(APPEND sourceGroups ${currentSourceGroup}${child}/)
+			else()
+				if(${child} MATCHES ".*\.[cpp|cxx|c|hpp|h|mm|m]$")
+					list(APPEND sourceFiles "${currentPath}${child}")
+					list(APPEND sourceGroupFiles "${currentPath}${child}")
+				endif()
+			endif()
+
+			if(sourceGroupFiles)
+				if(NOT currentSourceGroup)
+					source_group("" FILES ${sourceGroupFiles})
+				else()
+					source_group(${currentSourceGroup} FILES ${sourceGroupFiles})
+				endif()
+			endif()
+
+		endforeach()
+
+	endwhile()
+
+	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
+endfunction()
+
 function(add_prefix var prefix)
    SET(listVar "")
    FOREACH(f ${ARGN})
