@@ -1,5 +1,5 @@
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_PHYSX_SRC)
 
 # Packages
 if(B3D_PHYSICS_BACKEND MATCHES "PhysX" OR B3D_INCLUDE_ALL_IN_WORKFLOW)

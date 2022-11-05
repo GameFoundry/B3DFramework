@@ -5,8 +5,8 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 1 VERSIONINFO
-FILEVERSION    	B3D_VERSION_MAJOR,B3D_VERSION_MINOR,B3D_VERSION_PATCH,0
-PRODUCTVERSION 	B3D_VERSION_MAJOR,B3D_VERSION_MINOR,B3D_VERSION_PATCH,0
+FILEVERSION    	B3D_FRAMEWORK_VERSION_MAJOR,B3D_FRAMEWORK_VERSION_MINOR,B3D_FRAMEWORK_VERSION_PATCH,0
+PRODUCTVERSION 	B3D_FRAMEWORK_VERSION_MAJOR,B3D_FRAMEWORK_VERSION_MINOR,B3D_FRAMEWORK_VERSION_PATCH,0
 FILEOS         	VOS__WINDOWS32
 FILETYPE       	VFT_DLL
 BEGIN
@@ -16,12 +16,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",            "Marko Pintera and contributors"
             VALUE "FileDescription",        "Null renderer plugin for bs::framework"
-            VALUE "FileVersion",            B3D_VERSION_STRING
+            VALUE "FileVersion",            B3D_FRAMEWORK_VERSION_STRING
             VALUE "ProductName",            "bs::framework"
             VALUE "Licence",                "Released under the MIT License"
-            VALUE "LegalCopyright",         "Copyright (c) 2014-" _MKSTR(B3D_CURRENT_RELEASE_YEAR) " Marko Pintera and contributors"
+            VALUE "LegalCopyright",         "Copyright (c) 2014-" _MKSTR(B3D_FRAMEWORK_CURRENT_RELEASE_YEAR) " Marko Pintera and contributors"
             VALUE "Info",                   "https://bsframework.io"
-            VALUE "ProductVersion",         B3D_VERSION_STRING
+            VALUE "ProductVersion",         B3D_FRAMEWORK_VERSION_STRING
         END
     END
     BLOCK "VarFileInfo"

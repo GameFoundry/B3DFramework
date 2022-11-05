@@ -1333,7 +1333,7 @@ void BSLFXCompiler::ParseRenderTargetBlendState(BLEND_STATE_DESC& desc, ASTFXNod
 		}
 	}
 
-	if(index >= BS_MAX_MULTIPLE_RENDER_TARGETS)
+	if(index >= B3D_MAXIMUM_RENDER_TARGET_COUNT)
 		return;
 
 	RENDER_TARGET_BLEND_STATE_DESC& rtDesc = desc.RenderTargetDesc[index];

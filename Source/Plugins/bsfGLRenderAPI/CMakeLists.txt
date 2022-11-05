@@ -1,5 +1,6 @@
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_GLRENDERAPI_SRC)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_GLRENDERAPI_SRC)
 
 # Find packages
 if(LINUX)

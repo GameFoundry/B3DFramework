@@ -28,7 +28,7 @@ if(B3D_USE_BUNDLED_LIBRARIES)
 endif()
 
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SL_SRC)
 
 # Find package
 find_package(XShaderCompiler)

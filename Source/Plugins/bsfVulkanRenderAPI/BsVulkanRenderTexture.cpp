@@ -40,7 +40,7 @@ void VulkanRenderTexture::Initialize()
 	fbDesc.Height = mProperties.Height;
 	fbDesc.Layers = mProperties.NumSlices;
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; ++i)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++i)
 	{
 		if(mColorSurfaces[i] == nullptr)
 			continue;

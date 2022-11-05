@@ -28,7 +28,7 @@ void D3D11BlendState::CreateInternal()
 	blendStateDesc.AlphaToCoverageEnable = mProperties.GetAlphaToCoverageEnabled();
 	blendStateDesc.IndependentBlendEnable = mProperties.GetIndependantBlendEnable();
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		blendStateDesc.RenderTarget[i].BlendEnable = mProperties.GetBlendEnabled(i);
 		blendStateDesc.RenderTarget[i].BlendOp = D3D11Mappings::Get(mProperties.GetBlendOperation(i));

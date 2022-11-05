@@ -16,11 +16,11 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderP
 {
 	mId = sNextValidId++;
 
-	VkImageView attachmentViews[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
+	VkImageView attachmentViews[B3D_MAXIMUM_RENDER_TARGET_COUNT + 1];
 	VkFramebufferCreateInfo framebufferCI;
 
 	u32 attachmentIdx = 0;
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		if(desc.Color[i].Image == nullptr)
 			continue;

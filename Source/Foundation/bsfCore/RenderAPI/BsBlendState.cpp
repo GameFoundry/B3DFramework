@@ -27,7 +27,7 @@ bool BLEND_STATE_DESC::operator==(const BLEND_STATE_DESC& rhs) const
 
 	if(equals)
 	{
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
 			equals &= RenderTargetDesc[i] == rhs.RenderTargetDesc[i];
 		}
@@ -42,56 +42,56 @@ BlendProperties::BlendProperties(const BLEND_STATE_DESC& desc)
 
 bool BlendProperties::GetBlendEnabled(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].BlendEnable;
 }
 
 BlendFactor BlendProperties::GetSrcBlend(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].SrcBlend;
 }
 
 BlendFactor BlendProperties::GetDstBlend(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].DstBlend;
 }
 
 BlendOperation BlendProperties::GetBlendOperation(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].BlendOp;
 }
 
 BlendFactor BlendProperties::GetAlphaSrcBlend(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].SrcBlendAlpha;
 }
 
 BlendFactor BlendProperties::GetAlphaDstBlend(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].DstBlendAlpha;
 }
 
 BlendOperation BlendProperties::GetAlphaBlendOperation(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].BlendOpAlpha;
 }
 
 u8 BlendProperties::GetRenderTargetWriteMask(u32 renderTargetIdx) const
 {
-	B3D_ASSERT(renderTargetIdx < BS_MAX_MULTIPLE_RENDER_TARGETS);
+	B3D_ASSERT(renderTargetIdx < B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	return mData.RenderTargetDesc[renderTargetIdx].RenderTargetWriteMask;
 }
@@ -138,7 +138,7 @@ u64 BlendState::GenerateHash(const BLEND_STATE_DESC& desc)
 	B3DCombineHash(hash, desc.AlphaToCoverageEnable);
 	B3DCombineHash(hash, desc.IndependantBlendEnable);
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		B3DCombineHash(hash, desc.RenderTargetDesc[i].BlendEnable);
 		B3DCombineHash(hash, (u32)desc.RenderTargetDesc[i].SrcBlend);

@@ -614,7 +614,7 @@ namespace bs
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParams> mBoundParams;
 
-			std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> mClearValues{};
+			std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mClearValues{};
 			ClearMask mClearMask;
 			Rect2I mClearArea;
 

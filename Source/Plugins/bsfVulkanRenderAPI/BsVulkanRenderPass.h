@@ -27,7 +27,7 @@ namespace bs
 		struct VULKAN_RENDER_PASS_DESC
 		{
 			/** Description of the color attachments, and their enabled states. */
-			VULKAN_RENDER_PASS_ATTACHMENT_DESC Color[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			VULKAN_RENDER_PASS_ATTACHMENT_DESC Color[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 
 			/** Description of the depth attachment, and its enabled state. */
 			VULKAN_RENDER_PASS_ATTACHMENT_DESC Depth;
@@ -122,13 +122,13 @@ namespace bs
 			u32 mId;
 			u32 mNumAttachments;
 			u32 mNumColorAttachments;
-			u32 mIndices[BS_MAX_MULTIPLE_RENDER_TARGETS]{ 0 };
+			u32 mIndices[B3D_MAXIMUM_RENDER_TARGET_COUNT]{ 0 };
 			bool mHasDepth;
 			VkSampleCountFlagBits mSampleFlags = VK_SAMPLE_COUNT_1_BIT;
 			VkDevice mDevice;
 
-			mutable VkAttachmentDescription mAttachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
-			mutable VkAttachmentReference mColorReferences[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			mutable VkAttachmentDescription mAttachments[B3D_MAXIMUM_RENDER_TARGET_COUNT + 1];
+			mutable VkAttachmentReference mColorReferences[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			mutable VkAttachmentReference mDepthReference;
 			mutable VkSubpassDescription mSubpassDesc;
 			mutable VkSubpassDependency mDependencies[2];

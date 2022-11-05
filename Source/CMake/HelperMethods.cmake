@@ -8,13 +8,21 @@
 # @param	foldersToIgnore	Optional list of folders to ignore in the search
 # @param	outSourceFiles	List of all found source files, relative to @p parentPath.
 function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
-	set(sourceFiles "")
+	if(NOT path)
+		# Need to assign some value to path, otherwise the list below is treated as empty
+		set(path "/")
+	endif()
 
 	list(APPEND pathsToProcess ${path})
 	list(APPEND sourceGroups "")
 
+	set(sourceFiles "")
 	while(pathsToProcess)
 		list(POP_FRONT pathsToProcess currentPath)
+
+		if(${currentPath} STREQUAL "/")
+			set(currentPath "")
+		endif()
 
 		set(fullPath "${parentPath}/${currentPath}")
 		file(GLOB directChildren RELATIVE "${fullPath}" "${fullPath}*")
@@ -60,6 +68,7 @@ function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
 
 	endwhile()
 
+	list(APPEND sourceFiles ${${outSourceFiles}})
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
 endfunction()
 

@@ -30,7 +30,7 @@ bool TPass<Core>::HasBlending() const
 {
 	bool transparent = false;
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		// Transparent if destination color is taken into account
 		if(mData.BlendStateDesc.RenderTargetDesc[i].DstBlend != BF_ZERO ||

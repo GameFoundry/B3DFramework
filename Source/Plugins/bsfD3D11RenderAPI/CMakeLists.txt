@@ -1,6 +1,6 @@
 # Source files and their filters
-include(CMakeSources.cmake)
-	
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_D3D11RENDERAPI_SRC)
+
 # Target
 add_library(bsfD3D11RenderAPI SHARED ${BS_D3D11RENDERAPI_SRC})
 

@@ -18,7 +18,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS>& colorReadOnly, bool depthStencilReadOnly)
+VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly)
 	: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor(colorReadOnly), mReadOnlyDepth(depthStencilReadOnly)
 {}
 
@@ -217,7 +217,7 @@ void VulkanGraphicsPipelineState::Initialize()
 	mDepthStencilInfo.back = stencilBackInfo;
 	mDepthStencilInfo.stencilTestEnable = dsProps.GetStencilEnable();
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		u32 rtIdx = 0;
 		if(blendProps.GetIndependantBlendEnable())
@@ -421,12 +421,12 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIdx, Vulka
 		depthReadOnly = true;
 	}
 
-	std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS> colorReadOnly;
+	std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT> colorReadOnly;
 	if(renderPass->GetNumColorAttachments() > 0)
 	{
 		mPipelineInfo.pColorBlendState = &mColorBlendStateInfo;
 
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		{
 			VkPipelineColorBlendAttachmentState& blendState = mAttachmentBlendStates[i];
 			colorReadOnly[i] = blendState.colorWriteMask == 0;
@@ -436,7 +436,7 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIdx, Vulka
 	{
 		mPipelineInfo.pColorBlendState = nullptr;
 
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 			colorReadOnly[i] = true;
 	}
 

@@ -22,7 +22,7 @@ void D3D11RenderTexture::GetCustomAttribute(const String& name, void* data) cons
 	if(name == "RTV")
 	{
 		ID3D11RenderTargetView** rtvs = (ID3D11RenderTargetView**)data;
-		for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; ++i)
+		for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++i)
 		{
 			if(mColorSurfaces[i] == nullptr)
 				continue;

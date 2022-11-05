@@ -32,7 +32,7 @@ namespace bs
 		struct VULKAN_FRAMEBUFFER_DESC
 		{
 			/** Images describing the color attachments. */
-			VULKAN_ATTACHMENT_DESC Color[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			VULKAN_ATTACHMENT_DESC Color[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 
 			/** Image describing the depth attachment. */
 			VULKAN_ATTACHMENT_DESC Depth;
@@ -108,7 +108,7 @@ namespace bs
 			u32 mWidth;
 			u32 mHeight;
 			u32 mNumLayers;
-			VulkanFramebufferAttachment mColorAttachments[BS_MAX_MULTIPLE_RENDER_TARGETS]{};
+			VulkanFramebufferAttachment mColorAttachments[B3D_MAXIMUM_RENDER_TARGET_COUNT]{};
 			VulkanFramebufferAttachment mDepthStencilAttachment;
 
 			static u32 sNextValidId;

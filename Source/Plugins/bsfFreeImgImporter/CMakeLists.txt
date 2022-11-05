@@ -1,5 +1,5 @@
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_FREEIMGIMPORTER_SRC)
 
 # Packages
 find_package(freeimg REQUIRED)

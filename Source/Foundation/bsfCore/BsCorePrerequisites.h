@@ -183,7 +183,7 @@
 /** @} */
 
 /** Maximum number of color surfaces that can be attached to a multi render target. */
-#define BS_MAX_MULTIPLE_RENDER_TARGETS 8
+#define B3D_MAXIMUM_RENDER_TARGET_COUNT 8
 #define BS_FORCE_SINGLETHREADED_RENDERING 0
 
 /**

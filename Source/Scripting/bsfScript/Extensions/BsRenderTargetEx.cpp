@@ -77,7 +77,7 @@ SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface
 			depthStencilSurfaceDesc.Texture = depthStencilSurface;
 	}
 
-	u32 numSurfaces = std::min((u32)colorSurfaces.size(), (u32)BS_MAX_MULTIPLE_RENDER_TARGETS);
+	u32 numSurfaces = std::min((u32)colorSurfaces.size(), (u32)B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
 	RENDER_TEXTURE_DESC desc;
 	for(u32 i = 0; i < numSurfaces; i++)
@@ -102,7 +102,7 @@ SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface
 
 Vector<HTexture> RenderTextureEx::GetColorSurfaces(const SPtr<RenderTexture>& thisPtr)
 {
-	u32 numColorSurfaces = BS_MAX_MULTIPLE_RENDER_TARGETS;
+	u32 numColorSurfaces = B3D_MAXIMUM_RENDER_TARGET_COUNT;
 
 	Vector<HTexture> output;
 	output.reserve(numColorSurfaces);

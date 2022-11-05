@@ -1,6 +1,6 @@
 # Source files and their filters
-include(CMakeSources.cmake)
-	
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULLRENDERAPI_SRC)
+
 # Target
 add_library(bsfNullRenderAPI SHARED ${BS_NULLRENDERAPI_SRC})
 

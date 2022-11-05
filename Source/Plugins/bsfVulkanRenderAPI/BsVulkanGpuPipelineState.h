@@ -20,7 +20,7 @@ namespace bs
 		class VulkanPipeline : public VulkanResource
 		{
 		public:
-			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS>& colorReadOnly, bool depthStencilReadOnly);
+			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly);
 			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline);
 			~VulkanPipeline();
 
@@ -36,7 +36,7 @@ namespace bs
 		private:
 			VkPipeline mPipeline;
 
-			std::array<bool, BS_MAX_MULTIPLE_RENDER_TARGETS> mReadOnlyColor;
+			std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT> mReadOnlyColor;
 			bool mReadOnlyDepth = false;
 		};
 
@@ -142,7 +142,7 @@ namespace bs
 			VkPipelineRasterizationStateCreateInfo mRasterizationInfo;
 			VkPipelineMultisampleStateCreateInfo mMultiSampleInfo;
 			VkPipelineDepthStencilStateCreateInfo mDepthStencilInfo;
-			VkPipelineColorBlendAttachmentState mAttachmentBlendStates[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			VkPipelineColorBlendAttachmentState mAttachmentBlendStates[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			VkPipelineColorBlendStateCreateInfo mColorBlendStateInfo;
 			VkPipelineDynamicStateCreateInfo mDynamicStateInfo;
 			VkDynamicState mDynamicStates[3];

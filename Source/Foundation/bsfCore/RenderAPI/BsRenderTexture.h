@@ -15,7 +15,7 @@ namespace bs
 	/**	Structure that describes a render texture color and depth/stencil surfaces. */
 	struct B3D_CORE_EXPORT RENDER_TEXTURE_DESC
 	{
-		RENDER_SURFACE_DESC ColorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		RENDER_SURFACE_DESC ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 		RENDER_SURFACE_DESC DepthStencilSurface;
 	};
 
@@ -90,7 +90,7 @@ namespace bs
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 	protected:
-		HTexture mBindableColorTex[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		HTexture mBindableColorTex[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 		HTexture mBindableDepthStencilTex;
 
 		RENDER_TEXTURE_DESC mDesc;
@@ -119,7 +119,7 @@ namespace bs
 		 */
 		struct B3D_CORE_EXPORT RENDER_TEXTURE_DESC
 		{
-			RENDER_SURFACE_DESC ColorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			RENDER_SURFACE_DESC ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			RENDER_SURFACE_DESC DepthStencilSurface;
 		};
 
@@ -166,7 +166,7 @@ namespace bs
 		protected:
 			friend class bs::RenderTexture;
 
-			SPtr<TextureView> mColorSurfaces[BS_MAX_MULTIPLE_RENDER_TARGETS];
+			SPtr<TextureView> mColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			SPtr<TextureView> mDepthStencilSurface;
 
 			RENDER_TEXTURE_DESC mDesc;

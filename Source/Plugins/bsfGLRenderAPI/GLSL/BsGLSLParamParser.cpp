@@ -789,7 +789,7 @@ void GLSLParamParser::DetermineParamInfo(GpuParamDataDesc& desc, const String& p
 		desc.ElementSize = 12;
 		break;
 	default:
-		B3D_EXCEPT(InternalErrorException, "Invalid shader parameter type: " + toString(uniformType) + " for parameter " + paramName);
+		B3D_EXCEPT(InternalErrorException, "Invalid shader parameter type: " + ToString(uniformType) + " for parameter " + paramName);
 	}
 
 	if(arraySize > 1)

@@ -1,5 +1,5 @@
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_OPENAUDIO_SRC)
 
 # Find packages
 if(B3D_AUDIO_BACKEND MATCHES "OpenAudio")

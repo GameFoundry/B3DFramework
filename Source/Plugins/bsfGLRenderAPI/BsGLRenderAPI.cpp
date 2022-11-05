@@ -57,7 +57,7 @@ void B3DCheckForOpenGLError(const char* function, const char* file, i32 line)
 	if(errorCode != GL_NO_ERROR)
 	{
 		StringStream errorOutput;
-		errorOutput << "OpenGL error in " << function << " [" << file << ":" << toString(line) << "]:\n";
+		errorOutput << "OpenGL error in " << function << " [" << file << ":" << ToString(line) << "]:\n";
 
 		while(errorCode != GL_NO_ERROR)
 		{
@@ -2303,7 +2303,7 @@ SPtr<GLSLGpuProgram> GLRenderAPI::GetActiveProgram(GpuProgramType gptype) const
 	case GPT_COMPUTE_PROGRAM:
 		return mCurrentComputeProgram;
 	default:
-		B3D_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + toString(gptype));
+		B3D_EXCEPT(InvalidParametersException, "Unsupported gpu program type: " + ToString(gptype));
 	}
 
 	return nullptr;

@@ -1,5 +1,5 @@
 # Source files and their filters
-include(CMakeSources.cmake)
+B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULL_PHYSICS_SRC)
 
 # Target
 add_library(bsfNullPhysics SHARED ${BS_NULL_PHYSICS_SRC})

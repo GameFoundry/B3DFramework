@@ -14,7 +14,7 @@ RenderTextureProperties::RenderTextureProperties(const RENDER_TEXTURE_DESC& desc
 {
 	u32 firstIdx = (u32)-1;
 	bool requiresHwGamma = false;
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		HTexture texture = desc.ColorSurfaces[i].Texture;
 
@@ -49,7 +49,7 @@ RenderTextureProperties::RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& 
 {
 	u32 firstIdx = (u32)-1;
 	bool requiresHwGamma = false;
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		SPtr<ct::Texture> texture = desc.ColorSurfaces[i].Texture;
 
@@ -113,7 +113,7 @@ SPtr<ct::RenderTexture> RenderTexture::GetCore() const
 RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc)
 	: mDesc(desc)
 {
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		if(desc.ColorSurfaces[i].Texture != nullptr)
 			mBindableColorTex[i] = desc.ColorSurfaces[i].Texture;
@@ -127,7 +127,7 @@ SPtr<ct::CoreObject> RenderTexture::CreateCore() const
 {
 	ct::RENDER_TEXTURE_DESC coreDesc;
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		ct::RENDER_SURFACE_DESC surfaceDesc;
 		if(mDesc.ColorSurfaces[i].Texture.IsLoaded())
@@ -190,7 +190,7 @@ void RenderTexture::Initialize()
 {
 	RenderTarget::Initialize();
 
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		if(mDesc.ColorSurfaces[i].Texture != nullptr)
 		{
@@ -235,7 +235,7 @@ const RenderTextureProperties& RenderTexture::GetProperties() const
 void RenderTexture::ThrowIfBuffersDontMatch() const
 {
 	u32 firstSurfaceIdx = (u32)-1;
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		if(mColorSurfaces[i] == nullptr)
 			continue;

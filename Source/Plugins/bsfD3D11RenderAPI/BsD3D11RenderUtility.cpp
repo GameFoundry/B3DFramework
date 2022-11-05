@@ -115,7 +115,7 @@ void D3D11RenderUtility::InitClearQuadResources()
 	mClearQuadBlendStateYesC = RenderStateManager::Instance().CreateBlendState(blendStateDescYesC);
 
 	BLEND_STATE_DESC blendStateDescNoC;
-	for(int i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(int i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 		blendStateDescNoC.RenderTargetDesc[i].RenderTargetWriteMask = 0;
 
 	mClearQuadBlendStateNoC = RenderStateManager::Instance().CreateBlendState(blendStateDescNoC);

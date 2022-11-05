@@ -980,7 +980,7 @@ void VulkanCmdBuffer::ClearViewport(const Rect2I& area, u32 buffers, const Color
 	// Add clear command if currently in render pass
 	if(IsInRenderPass())
 	{
-		VkClearAttachment attachments[BS_MAX_MULTIPLE_RENDER_TARGETS + 1];
+		VkClearAttachment attachments[B3D_MAXIMUM_RENDER_TARGET_COUNT + 1];
 		u32 baseLayer = 0;
 
 		u32 attachmentIdx = 0;
@@ -1077,7 +1077,7 @@ void VulkanCmdBuffer::ClearViewport(const Rect2I& area, u32 buffers, const Color
 	else
 	{
 		ClearMask clearMask;
-		std::array<VkClearValue, BS_MAX_MULTIPLE_RENDER_TARGETS + 1> clearValues = mClearValues;
+		std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = mClearValues;
 
 		u32 numColorAttachments = renderPass->GetNumColorAttachments();
 		if((buffers & FBT_COLOR) != 0)

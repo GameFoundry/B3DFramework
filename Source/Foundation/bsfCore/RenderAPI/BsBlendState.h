@@ -97,7 +97,7 @@ namespace bs
 		 */
 		bool IndependantBlendEnable = false;
 
-		RENDER_TARGET_BLEND_STATE_DESC RenderTargetDesc[BS_MAX_MULTIPLE_RENDER_TARGETS];
+		RENDER_TARGET_BLEND_STATE_DESC RenderTargetDesc[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 	};
 
 	/** Properties of a BlendState. Shared between sim and core thread versions of BlendState. */

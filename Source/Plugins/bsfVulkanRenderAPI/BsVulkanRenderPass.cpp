@@ -37,7 +37,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VULKAN_RENDER_P
 	mSampleFlags = VulkanUtility::GetSampleFlags(desc.NumSamples);
 
 	u32 attachmentIdx = 0;
-	for(u32 i = 0; i < BS_MAX_MULTIPLE_RENDER_TARGETS; i++)
+	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		if(!desc.Color[i].Enabled)
 			continue;
@@ -256,7 +256,7 @@ u32 VulkanRenderPass::GetNumClearEntries(ClearMask clearMask) const
 		return GetNumAttachments();
 
 	u32 numAttachments = 0;
-	for(i32 i = BS_MAX_MULTIPLE_RENDER_TARGETS - 1; i >= 0; i--)
+	for(i32 i = B3D_MAXIMUM_RENDER_TARGET_COUNT - 1; i >= 0; i--)
 	{
 		if(((1 << i) & (u32)clearMask) != 0)
 		{
