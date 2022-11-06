@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,18 +8,14 @@
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
 
-namespace bs
-{
-	class ShaderImportOptions;
-}
-
+namespace bs { class ShaderImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderImportOptions : public TScriptReflectable<ScriptShaderImportOptions, ShaderImportOptions, ScriptImportOptionsBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ShaderImportOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShaderImportOptions")
 
 		ScriptShaderImportOptions(MonoObject* managedInstance, const SPtr<ShaderImportOptions>& value);
 
@@ -35,4 +31,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-} // namespace bs
+}

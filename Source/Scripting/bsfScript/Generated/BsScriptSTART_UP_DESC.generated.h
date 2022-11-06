@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -27,7 +27,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSTART_UP_DESC : public ScriptObject<ScriptSTART_UP_DESC>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "StartUpDesc")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "StartUpDesc")
 
 		static MonoObject* Box(const __START_UP_DESCInterop& value);
 		static __START_UP_DESCInterop Unbox(MonoObject* value);
@@ -36,6 +36,7 @@ namespace bs
 
 	private:
 		ScriptSTART_UP_DESC(MonoObject* managedInstance);
+
 	};
 #endif
-} // namespace bs
+}

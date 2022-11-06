@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -11,11 +11,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs
-{
-	struct ParticleGpuSimulationSettings;
-}
-
+namespace bs { struct ParticleGpuSimulationSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGpuSimulationSettings : public TScriptReflectable<ScriptParticleGpuSimulationSettings, ParticleGpuSimulationSettings>
@@ -41,4 +37,4 @@ namespace bs
 		static MonoObject* InternalGetDepthCollision(ScriptParticleGpuSimulationSettings* thisPtr);
 		static void InternalSetDepthCollision(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -22,27 +22,10 @@
 #include "Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs
-{
-	template <class T0>
-	class TAnimationCurve;
-}
-
-namespace bs
-{
-	struct __TKeyframeVector2Interop;
-}
-
-namespace bs
-{
-	struct __TKeyframeVector3Interop;
-}
-
-namespace bs
-{
-	struct __TKeyframeQuaternionInterop;
-}
-
+namespace bs { template<class T0> class TAnimationCurve; }
+namespace bs { struct __TKeyframeVector2Interop; }
+namespace bs { struct __TKeyframeVector3Interop; }
+namespace bs { struct __TKeyframeQuaternionInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTAnimationCurvefloat : public ScriptObject<ScriptTAnimationCurvefloat>
@@ -53,7 +36,6 @@ namespace bs
 		ScriptTAnimationCurvefloat(MonoObject* managedInstance, const SPtr<TAnimationCurve<float>>& value);
 
 		SPtr<TAnimationCurve<float>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TAnimationCurve<float>>& value);
 
 	private:
@@ -72,7 +54,6 @@ namespace bs
 		ScriptTAnimationCurveVector3(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector3>>& value);
 
 		SPtr<TAnimationCurve<Vector3>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TAnimationCurve<Vector3>>& value);
 
 	private:
@@ -91,7 +72,6 @@ namespace bs
 		ScriptTAnimationCurveVector2(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector2>>& value);
 
 		SPtr<TAnimationCurve<Vector2>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TAnimationCurve<Vector2>>& value);
 
 	private:
@@ -110,7 +90,6 @@ namespace bs
 		ScriptTAnimationCurveQuaternion(MonoObject* managedInstance, const SPtr<TAnimationCurve<Quaternion>>& value);
 
 		SPtr<TAnimationCurve<Quaternion>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TAnimationCurve<Quaternion>>& value);
 
 	private:
@@ -129,7 +108,6 @@ namespace bs
 		ScriptTAnimationCurveint32_t(MonoObject* managedInstance, const SPtr<TAnimationCurve<int32_t>>& value);
 
 		SPtr<TAnimationCurve<int32_t>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TAnimationCurve<int32_t>>& value);
 
 	private:
@@ -139,4 +117,4 @@ namespace bs
 		static int32_t InternalEvaluate(ScriptTAnimationCurveint32_t* thisPtr, float time, bool loop);
 		static MonoArray* InternalGetKeyFrames(ScriptTAnimationCurveint32_t* thisPtr);
 	};
-} // namespace bs
+}

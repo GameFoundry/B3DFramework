@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,11 +8,7 @@
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
 
-namespace bs
-{
-	class SpriteTexture;
-}
-
+namespace bs { class SpriteTexture; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteTexture : public TScriptResource<ScriptSpriteTexture, SpriteTexture>
@@ -44,4 +40,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* texture);
 		static void InternalCreate0(MonoObject* managedInstance, Vector2* uvOffset, Vector2* uvScale, MonoObject* texture);
 	};
-} // namespace bs
+}

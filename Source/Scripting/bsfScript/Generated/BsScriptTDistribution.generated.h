@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -17,12 +17,7 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs
-{
-	template <class T0>
-	struct TDistribution;
-}
-
+namespace bs { template<class T0> struct TDistribution; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTDistributionfloat : public ScriptObject<ScriptTDistributionfloat>
@@ -33,7 +28,6 @@ namespace bs
 		ScriptTDistributionfloat(MonoObject* managedInstance, const SPtr<TDistribution<float>>& value);
 
 		SPtr<TDistribution<float>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TDistribution<float>>& value);
 
 	private:
@@ -61,7 +55,6 @@ namespace bs
 		ScriptTDistributionVector3(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value);
 
 		SPtr<TDistribution<Vector3>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TDistribution<Vector3>>& value);
 
 	private:
@@ -89,7 +82,6 @@ namespace bs
 		ScriptTDistributionVector2(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value);
 
 		SPtr<TDistribution<Vector2>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TDistribution<Vector2>>& value);
 
 	private:
@@ -108,4 +100,4 @@ namespace bs
 		static void InternalEvaluate(ScriptTDistributionVector2* thisPtr, float t, float factor, Vector2* __output);
 		static void InternalEvaluate0(ScriptTDistributionVector2* thisPtr, float t, MonoObject* factor, Vector2* __output);
 	};
-} // namespace bs
+}

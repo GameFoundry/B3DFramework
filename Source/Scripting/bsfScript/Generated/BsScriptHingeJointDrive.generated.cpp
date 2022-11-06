@@ -1,25 +1,27 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptHingeJointDrive.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-using namespace bs;
-ScriptHingeJointDrive::ScriptHingeJointDrive(MonoObject* managedInstance)
-	: ScriptObject(managedInstance)
-{}
-
-void ScriptHingeJointDrive::InitRuntimeData()
-{}
-
-MonoObject* ScriptHingeJointDrive::Box(const HingeJointDrive& value)
+namespace bs
 {
-	return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
-}
+	ScriptHingeJointDrive::ScriptHingeJointDrive(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{ }
 
-HingeJointDrive ScriptHingeJointDrive::Unbox(MonoObject* value)
-{
-	return *(HingeJointDrive*)MonoUtil::Unbox(value);
-}
+	void ScriptHingeJointDrive::InitRuntimeData()
+	{ }
 
+	MonoObject*ScriptHingeJointDrive::Box(const HingeJointDrive& value)
+	{
+		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
+	}
+
+	HingeJointDrive ScriptHingeJointDrive::Unbox(MonoObject* value)
+	{
+		return *(HingeJointDrive*)MonoUtil::Unbox(value);
+	}
+
+}

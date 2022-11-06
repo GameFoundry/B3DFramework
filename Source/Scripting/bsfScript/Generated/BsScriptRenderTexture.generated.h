@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,16 +8,8 @@
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 
-namespace bs
-{
-	class RenderTexture;
-}
-
-namespace bs
-{
-	class RenderTextureEx;
-}
-
+namespace bs { class RenderTexture; }
+namespace bs { class RenderTextureEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderTexture : public TScriptReflectable<ScriptRenderTexture, RenderTexture, ScriptRenderTargetBase>
@@ -39,4 +31,4 @@ namespace bs
 		static MonoArray* InternalGetColorSurfaces(ScriptRenderTexture* thisPtr);
 		static MonoObject* InternalGetDepthStencilSurface(ScriptRenderTexture* thisPtr);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,16 +6,8 @@
 #include "Wrappers/BsScriptResource.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 
-namespace bs
-{
-	class PhysicsMesh;
-}
-
-namespace bs
-{
-	class PhysicsMeshEx;
-}
-
+namespace bs { class PhysicsMesh; }
+namespace bs { class PhysicsMeshEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsMesh : public TScriptResource<ScriptPhysicsMesh, PhysicsMesh>
@@ -34,4 +26,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* meshData, PhysicsMeshType type);
 		static MonoObject* InternalGetMeshData(ScriptPhysicsMesh* thisPtr);
 	};
-} // namespace bs
+}

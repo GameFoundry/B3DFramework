@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,16 +12,8 @@
 #include "Math/BsQuaternion.h"
 #include "Math/BsCapsule.h"
 
-namespace bs
-{
-	struct __PhysicsQueryHitInterop;
-}
-
-namespace bs
-{
-	class PhysicsScene;
-}
-
+namespace bs { struct __PhysicsQueryHitInterop; }
+namespace bs { class PhysicsScene; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsScene : public ScriptObject<ScriptPhysicsScene>
@@ -32,7 +24,6 @@ namespace bs
 		ScriptPhysicsScene(MonoObject* managedInstance, const SPtr<PhysicsScene>& value);
 
 		SPtr<PhysicsScene> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<PhysicsScene>& value);
 
 	private:
@@ -70,4 +61,4 @@ namespace bs
 		static void InternalRemoveBroadPhaseRegion(ScriptPhysicsScene* thisPtr, uint32_t handle);
 		static void InternalClearBroadPhaseRegions(ScriptPhysicsScene* thisPtr);
 	};
-} // namespace bs
+}

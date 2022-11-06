@@ -1,15 +1,11 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 
-namespace bs
-{
-	class Font;
-}
-
+namespace bs { class Font; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFont : public TScriptResource<ScriptFont, Font>
@@ -27,4 +23,4 @@ namespace bs
 		static MonoObject* InternalGetBitmap(ScriptFont* thisPtr, uint32_t size);
 		static int32_t InternalGetClosestSize(ScriptFont* thisPtr, uint32_t size);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,11 +8,7 @@
 #include "Math/BsVector2.h"
 #include "Math/BsDegree.h"
 
-namespace bs
-{
-	class Random;
-}
-
+namespace bs { class Random; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>
@@ -23,7 +19,6 @@ namespace bs
 		ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value);
 
 		SPtr<Random> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<Random>& value);
 
 	private:
@@ -45,4 +40,4 @@ namespace bs
 		static void InternalGetPointInArcShell(ScriptRandom* thisPtr, Degree* angle, float thickness, Vector2* __output);
 		static void InternalGetBarycentric(ScriptRandom* thisPtr, Vector3* __output);
 	};
-} // namespace bs
+}

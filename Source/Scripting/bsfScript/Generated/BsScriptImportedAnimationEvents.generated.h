@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,23 +7,15 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
 
-namespace bs
-{
-	struct ImportedAnimationEvents;
-}
-
-namespace bs
-{
-	struct __AnimationEventInterop;
-}
-
+namespace bs { struct ImportedAnimationEvents; }
+namespace bs { struct __AnimationEventInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptImportedAnimationEvents : public TScriptReflectable<ScriptImportedAnimationEvents, ImportedAnimationEvents>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ImportedAnimationEvents")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ImportedAnimationEvents")
 
 		ScriptImportedAnimationEvents(MonoObject* managedInstance, const SPtr<ImportedAnimationEvents>& value);
 
@@ -37,4 +29,4 @@ namespace bs
 		static void InternalSetEvents(ScriptImportedAnimationEvents* thisPtr, MonoArray* value);
 	};
 #endif
-} // namespace bs
+}

@@ -1,15 +1,11 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 
-namespace bs
-{
-	class HString;
-}
-
+namespace bs { class HString; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptHString : public ScriptObject<ScriptHString>
@@ -20,7 +16,6 @@ namespace bs
 		ScriptHString(MonoObject* managedInstance, const SPtr<HString>& value);
 
 		SPtr<HString> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<HString>& value);
 
 	private:
@@ -33,4 +28,4 @@ namespace bs
 		static MonoString* InternalGetValue(ScriptHString* thisPtr);
 		static void InternalSetParameter(ScriptHString* thisPtr, uint32_t idx, MonoString* value);
 	};
-} // namespace bs
+}

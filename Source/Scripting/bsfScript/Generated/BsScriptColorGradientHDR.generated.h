@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,21 +7,9 @@
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 
-namespace bs
-{
-	class ColorGradientHDR;
-}
-
-namespace bs
-{
-	class ColorGradientHDREx;
-}
-
-namespace bs
-{
-	struct __ColorGradientKeyInterop;
-}
-
+namespace bs { class ColorGradientHDR; }
+namespace bs { class ColorGradientHDREx; }
+namespace bs { struct __ColorGradientKeyInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorGradientHDR : public ScriptObject<ScriptColorGradientHDR>
@@ -32,7 +20,6 @@ namespace bs
 		ScriptColorGradientHDR(MonoObject* managedInstance, const SPtr<ColorGradientHDR>& value);
 
 		SPtr<ColorGradientHDR> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<ColorGradientHDR>& value);
 
 	private:
@@ -48,4 +35,4 @@ namespace bs
 		static void InternalSetConstant(ScriptColorGradientHDR* thisPtr, Color* color);
 		static void InternalEvaluate(ScriptColorGradientHDR* thisPtr, float t, Color* __output);
 	};
-} // namespace bs
+}

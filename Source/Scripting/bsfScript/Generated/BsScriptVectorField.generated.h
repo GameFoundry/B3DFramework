@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,16 +7,8 @@
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsVectorField.h"
 
-namespace bs
-{
-	class VectorField;
-}
-
-namespace bs
-{
-	struct __VECTOR_FIELD_DESCInterop;
-}
-
+namespace bs { class VectorField; }
+namespace bs { struct __VECTOR_FIELD_DESCInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorField : public TScriptResource<ScriptVectorField, VectorField>
@@ -33,4 +25,4 @@ namespace bs
 
 		static void InternalCreate(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,21 +12,9 @@
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
 
-namespace bs
-{
-	class CCharacterController;
-}
-
-namespace bs
-{
-	struct __ControllerColliderCollisionInterop;
-}
-
-namespace bs
-{
-	struct __ControllerControllerCollisionInterop;
-}
-
+namespace bs { class CCharacterController; }
+namespace bs { struct __ControllerColliderCollisionInterop; }
+namespace bs { struct __ControllerControllerCollisionInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCCharacterController : public TScriptComponent<ScriptCCharacterController, CCharacterController>
@@ -40,9 +28,9 @@ namespace bs
 		void OnColliderHit(const ControllerColliderCollision& p0);
 		void OnControllerHit(const ControllerControllerCollision& p0);
 
-		typedef void(B3D_THUNKCALL* OnColliderHitThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnColliderHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnColliderHitThunkDef OnColliderHitThunk;
-		typedef void(B3D_THUNKCALL* OnControllerHitThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnControllerHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnControllerHitThunkDef OnControllerHitThunk;
 
 		static CharacterCollisionFlag InternalMove(ScriptCCharacterController* thisPtr, Vector3* displacement);
@@ -69,4 +57,4 @@ namespace bs
 		static uint64_t InternalGetLayer(ScriptCCharacterController* thisPtr);
 		static void InternalSetLayer(ScriptCCharacterController* thisPtr, uint64_t layer);
 	};
-} // namespace bs
+}

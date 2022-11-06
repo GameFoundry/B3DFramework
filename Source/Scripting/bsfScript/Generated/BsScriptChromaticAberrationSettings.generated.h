@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,11 +7,7 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs
-{
-	struct ChromaticAberrationSettings;
-}
-
+namespace bs { struct ChromaticAberrationSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectable<ScriptChromaticAberrationSettings, ChromaticAberrationSettings>
@@ -34,4 +30,4 @@ namespace bs
 		static float InternalGetShiftAmount(ScriptChromaticAberrationSettings* thisPtr);
 		static void InternalSetShiftAmount(ScriptChromaticAberrationSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

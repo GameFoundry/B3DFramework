@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,16 +7,8 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs
-{
-	struct RootMotion;
-}
-
-namespace bs
-{
-	class RootMotionEx;
-}
-
+namespace bs { struct RootMotion; }
+namespace bs { class RootMotionEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRootMotion : public ScriptObject<ScriptRootMotion>
@@ -27,7 +19,6 @@ namespace bs
 		ScriptRootMotion(MonoObject* managedInstance, const SPtr<RootMotion>& value);
 
 		SPtr<RootMotion> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<RootMotion>& value);
 
 	private:
@@ -36,4 +27,4 @@ namespace bs
 		static MonoObject* InternalGetPositionCurves(ScriptRootMotion* thisPtr);
 		static MonoObject* InternalGetRotationCurves(ScriptRootMotion* thisPtr);
 	};
-} // namespace bs
+}

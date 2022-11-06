@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,11 +7,7 @@
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
 
-namespace bs
-{
-	class CSphereCollider;
-}
-
+namespace bs { class CSphereCollider; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSphereCollider : public TScriptComponent<ScriptCSphereCollider, CSphereCollider, ScriptCColliderBase>
@@ -27,4 +23,4 @@ namespace bs
 		static void InternalSetCenter(ScriptCSphereCollider* thisPtr, Vector3* center);
 		static void InternalGetCenter(ScriptCSphereCollider* thisPtr, Vector3* __output);
 	};
-} // namespace bs
+}

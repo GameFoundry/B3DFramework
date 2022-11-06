@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs
-{
-	struct TonemappingSettings;
-}
-
+namespace bs { struct TonemappingSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTonemappingSettings : public TScriptReflectable<ScriptTonemappingSettings, TonemappingSettings>
@@ -39,4 +35,4 @@ namespace bs
 		static float InternalGetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr);
 		static void InternalSetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

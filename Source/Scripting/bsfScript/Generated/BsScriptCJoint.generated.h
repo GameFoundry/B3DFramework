@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,18 +8,13 @@
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"
 
-namespace bs
-{
-	class CJoint;
-}
-
+namespace bs { class CJoint; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCJointBase : public ScriptComponentBase
 	{
 	public:
 		ScriptCJointBase(MonoObject* instance);
-
 		virtual ~ScriptCJointBase() {}
 	};
 
@@ -33,7 +28,7 @@ namespace bs
 	private:
 		void OnJointBreak();
 
-		typedef void(B3D_THUNKCALL* OnJointBreakThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
 		static OnJointBreakThunkDef OnJointBreakThunk;
 
 		static MonoObject* InternalGetBody(ScriptCJointBase* thisPtr, JointBody body);
@@ -48,4 +43,4 @@ namespace bs
 		static bool InternalGetEnableCollision(ScriptCJointBase* thisPtr);
 		static void InternalSetEnableCollision(ScriptCJointBase* thisPtr, bool value);
 	};
-} // namespace bs
+}

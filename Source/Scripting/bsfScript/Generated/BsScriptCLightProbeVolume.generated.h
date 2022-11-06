@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -9,16 +9,8 @@
 #include "Math/BsAABox.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
 
-namespace bs
-{
-	class CLightProbeVolume;
-}
-
-namespace bs
-{
-	struct __LightProbeInfoInterop;
-}
-
+namespace bs { class CLightProbeVolume; }
+namespace bs { struct __LightProbeInfoInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCLightProbeVolume : public TScriptComponent<ScriptCLightProbeVolume, CLightProbeVolume>
@@ -42,4 +34,4 @@ namespace bs
 		static void InternalGetGridVolume(ScriptCLightProbeVolume* thisPtr, AABox* __output);
 		static void InternalGetCellCount(ScriptCLightProbeVolume* thisPtr, Vector3I* __output);
 	};
-} // namespace bs
+}

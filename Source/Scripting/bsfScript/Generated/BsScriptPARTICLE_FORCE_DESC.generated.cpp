@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptPARTICLE_FORCE_DESC.generated.h"
 #include "BsMonoMethod.h"
@@ -7,49 +7,51 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "BsScriptTDistribution.generated.h"
 
-using namespace bs;
-ScriptPARTICLE_FORCE_DESC::ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance)
-	: ScriptObject(managedInstance)
-{}
-
-void ScriptPARTICLE_FORCE_DESC::InitRuntimeData()
-{}
-
-MonoObject* ScriptPARTICLE_FORCE_DESC::Box(const __PARTICLE_FORCE_DESCInterop& value)
+namespace bs
 {
-	return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
-}
+	ScriptPARTICLE_FORCE_DESC::ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{ }
 
-__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::Unbox(MonoObject* value)
-{
-	return *(__PARTICLE_FORCE_DESCInterop*)MonoUtil::Unbox(value);
-}
+	void ScriptPARTICLE_FORCE_DESC::InitRuntimeData()
+	{ }
 
-PARTICLE_FORCE_DESC ScriptPARTICLE_FORCE_DESC::FromInterop(const __PARTICLE_FORCE_DESCInterop& value)
-{
-	PARTICLE_FORCE_DESC output;
-	SPtr<TDistribution<Vector3>> tmpForce;
-	ScriptTDistributionVector3* scriptForce;
-	scriptForce = ScriptTDistributionVector3::ToNative(value.Force);
-	if(scriptForce != nullptr)
-		tmpForce = scriptForce->GetInternal();
-	if(tmpForce != nullptr)
+	MonoObject*ScriptPARTICLE_FORCE_DESC::Box(const __PARTICLE_FORCE_DESCInterop& value)
+	{
+		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
+	}
+
+	__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::Unbox(MonoObject* value)
+	{
+		return *(__PARTICLE_FORCE_DESCInterop*)MonoUtil::Unbox(value);
+	}
+
+	PARTICLE_FORCE_DESC ScriptPARTICLE_FORCE_DESC::FromInterop(const __PARTICLE_FORCE_DESCInterop& value)
+	{
+		PARTICLE_FORCE_DESC output;
+		SPtr<TDistribution<Vector3>> tmpForce;
+		ScriptTDistributionVector3* scriptForce;
+		scriptForce = ScriptTDistributionVector3::ToNative(value.Force);
+		if(scriptForce != nullptr)
+			tmpForce = scriptForce->GetInternal();
+		if(tmpForce != nullptr)
 		output.Force = *tmpForce;
-	output.WorldSpace = value.WorldSpace;
+		output.WorldSpace = value.WorldSpace;
 
-	return output;
+		return output;
+	}
+
+	__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::ToInterop(const PARTICLE_FORCE_DESC& value)
+	{
+		__PARTICLE_FORCE_DESCInterop output;
+		MonoObject* tmpForce;
+		SPtr<TDistribution<Vector3>> tmpForcecopy;
+		tmpForcecopy = B3DMakeShared<TDistribution<Vector3>>(value.Force);
+		tmpForce = ScriptTDistributionVector3::Create(tmpForcecopy);
+		output.Force = tmpForce;
+		output.WorldSpace = value.WorldSpace;
+
+		return output;
+	}
+
 }
-
-__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::ToInterop(const PARTICLE_FORCE_DESC& value)
-{
-	__PARTICLE_FORCE_DESCInterop output;
-	MonoObject* tmpForce;
-	SPtr<TDistribution<Vector3>> tmpForcecopy;
-	tmpForcecopy = B3DMakeShared<TDistribution<Vector3>>(value.Force);
-	tmpForce = ScriptTDistributionVector3::Create(tmpForcecopy);
-	output.Force = tmpForce;
-	output.WorldSpace = value.WorldSpace;
-
-	return output;
-}
-

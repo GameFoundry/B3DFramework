@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,23 +6,14 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 
-namespace bs
-{
-	class RenderTarget;
-}
-
-namespace bs
-{
-	class RenderTargetEx;
-}
-
+namespace bs { class RenderTarget; }
+namespace bs { class RenderTargetEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderTargetBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptRenderTargetBase(MonoObject* instance);
-
 		virtual ~ScriptRenderTargetBase() {}
 
 		SPtr<RenderTarget> GetInternal() const;
@@ -45,4 +36,4 @@ namespace bs
 		static void InternalSetPriority(ScriptRenderTargetBase* thisPtr, int32_t priority);
 		static uint32_t InternalGetSampleCount(ScriptRenderTargetBase* thisPtr);
 	};
-} // namespace bs
+}

@@ -3098,10 +3098,10 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Range within which the objects remain fully in focus. This range is applied relative to the focal distance. This parameter should usually be non-zero when using the Gaussian depth of field effect. When using other types of depth-of-field you can set this to zero for a more physically-based effect, or keep it non-zero for more artistic control. In world units (meters).</doc>
 		</property>
 		<property name="NearTransitionRange" type="float" getter="GetNearTransitionRange" setter="SetNearTransitionRange" static="false">
-			<doc>Determines the size of the range within which objects transition from focused to fully unfocused, at the near  plane. Only relevant for Gaussian and Bokeh depth of field. In world units (meters).</doc>
+			<doc>Determines the size of the range within which objects transition from focused to fully unfocused, at the near plane. Only relevant for Gaussian and Bokeh depth of field. In world units (meters).</doc>
 		</property>
 		<property name="FarTransitionRange" type="float" getter="GetFarTransitionRange" setter="SetFarTransitionRange" static="false">
-			<doc>Determines the size of the range within which objects transition from focused to fully unfocused, at the far  plane. Only relevant for Gaussian and Bokeh depth of field. In world units (meters).</doc>
+			<doc>Determines the size of the range within which objects transition from focused to fully unfocused, at the far plane. Only relevant for Gaussian and Bokeh depth of field. In world units (meters).</doc>
 		</property>
 		<property name="NearBlurAmount" type="float" getter="GetNearBlurAmount" setter="SetNearBlurAmount" static="false">
 			<doc>Determines the amount of blur to apply to fully unfocused objects that are closer to camera than the in-focus zone. Set to zero to disable near-field blur. Only relevant for Gaussian depth of field.</doc>
@@ -3110,13 +3110,13 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Determines the amount of blur to apply to fully unfocused objects that are farther away from camera than the in-focus zone. Set to zero to disable far-field blur. Only relevant for Gaussian depth of field.</doc>
 		</property>
 		<property name="MaxBokehSize" type="float" getter="GetMaxBokehSize" setter="SetMaxBokehSize" static="false">
-			<doc>Determines the maximum size of the blur kernel, in percent of view size. Larger values cost more performance.  Only relevant when using Bokeh depth of field.</doc>
+			<doc>Determines the maximum size of the blur kernel, in percent of view size. Larger values cost more performance. Only relevant when using Bokeh depth of field.</doc>
 		</property>
 		<property name="AdaptiveColorThreshold" type="float" getter="GetAdaptiveColorThreshold" setter="SetAdaptiveColorThreshold" static="false">
 			<doc>Determines the maximum color difference between surrounding pixels allowed (as a sum of all channels) before higher fidelity sampling is triggered. Increasing this value can improve performance as less higher fidelity samples will be required, but may decrease quality of the effect. Only relevant when using Bokeh depth of field.</doc>
 		</property>
 		<property name="AdaptiveRadiusThreshold" type="float" getter="GetAdaptiveRadiusThreshold" setter="SetAdaptiveRadiusThreshold" static="false">
-			<doc>Determines the minimum circle of confusion size before higher fidelity sampling is triggered. Small values trigger high fidelity sampling because they can otherwise produce aliasing, and they are small enough so they don&apos;t cost much. Increasing this value can improve performance as less higher fidelity samples will be required,  but may decrease quality of the effect. Only relevant when using Bokeh depth of field.</doc>
+			<doc>Determines the minimum circle of confusion size before higher fidelity sampling is triggered. Small values trigger high fidelity sampling because they can otherwise produce aliasing, and they are small enough so they don&apos;t cost much. Increasing this value can improve performance as less higher fidelity samples will be required, but may decrease quality of the effect. Only relevant when using Bokeh depth of field.</doc>
 		</property>
 		<property name="ApertureSize" type="float" getter="GetApertureSize" setter="SetApertureSize" static="false">
 			<doc>Camera aperture size in mm. Only relevant when using Bokeh depth of field.</doc>
@@ -3125,7 +3125,7 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Focal length of the camera&apos;s lens (e.g. 75mm). Only relevant when using Bokeh depth of field.</doc>
 		</property>
 		<property name="SensorSize" type="Vector2" getter="GetSensorSize" setter="SetSensorSize" static="false">
-			<doc>Camera sensor width and height, in mm. Used for controlling the size of the circle of confusion. Only relevant  when using Bokeh depth of field.</doc>
+			<doc>Camera sensor width and height, in mm. Used for controlling the size of the circle of confusion. Only relevant when using Bokeh depth of field.</doc>
 		</property>
 		<property name="BokehOcclusion" type="bool" getter="GetBokehOcclusion" setter="SetBokehOcclusion" static="false">
 			<doc>Set to true if Bokeh flare should use soft depth testing to ensure they don&apos;t render on top of foreground geometry. This can help reduce background bleeding into the foreground, which can be especially noticeable if the background is much brighter than the foreground. Use <see cref="occlusionDepthRange"/> to tweak the effect.</doc>

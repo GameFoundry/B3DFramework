@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,16 +6,8 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudio.h"
 
-namespace bs
-{
-	class Audio;
-}
-
-namespace bs
-{
-	struct __AudioDeviceInterop;
-}
-
+namespace bs { class Audio; }
+namespace bs { struct __AudioDeviceInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudio : public ScriptObject<ScriptAudio>
@@ -35,4 +27,4 @@ namespace bs
 		static void InternalGetDefaultDevice(__AudioDeviceInterop* __output);
 		static MonoArray* InternalGetAllDevices();
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,18 +6,13 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
-namespace bs
-{
-	class ParticleEvolver;
-}
-
+namespace bs { class ParticleEvolver; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolverBase : public ScriptReflectableBase
 	{
 	public:
 		ScriptParticleEvolverBase(MonoObject* instance);
-
 		virtual ~ScriptParticleEvolverBase() {}
 
 		SPtr<ParticleEvolver> GetInternal() const;
@@ -34,4 +29,4 @@ namespace bs
 
 	private:
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs
-{
-	struct ScreenSpaceLensFlareSettings;
-}
-
+namespace bs { struct ScreenSpaceLensFlareSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptScreenSpaceLensFlareSettings : public TScriptReflectable<ScriptScreenSpaceLensFlareSettings, ScreenSpaceLensFlareSettings>
@@ -55,4 +51,4 @@ namespace bs
 		static bool InternalGetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr);
 		static void InternalSetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* thisPtr, bool value);
 	};
-} // namespace bs
+}

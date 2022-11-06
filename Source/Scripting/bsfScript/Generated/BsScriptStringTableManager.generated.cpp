@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptStringTableManager.generated.h"
 #include "BsMonoMethod.h"
@@ -9,64 +9,67 @@
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
-using namespace bs;
-ScriptStringTableManager::ScriptStringTableManager(MonoObject* managedInstance)
-	: ScriptObject(managedInstance)
+namespace bs
 {
-}
+	ScriptStringTableManager::ScriptStringTableManager(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{
+	}
 
-void ScriptStringTableManager::InitRuntimeData()
-{
-	metaData.ScriptClass->AddInternalCall("Internal_SetActiveLanguage", (void*)&ScriptStringTableManager::InternalSetActiveLanguage);
-	metaData.ScriptClass->AddInternalCall("Internal_GetActiveLanguage", (void*)&ScriptStringTableManager::InternalGetActiveLanguage);
-	metaData.ScriptClass->AddInternalCall("Internal_GetTable", (void*)&ScriptStringTableManager::InternalGetTable);
-	metaData.ScriptClass->AddInternalCall("Internal_RemoveTable", (void*)&ScriptStringTableManager::InternalRemoveTable);
-	metaData.ScriptClass->AddInternalCall("Internal_SetTable", (void*)&ScriptStringTableManager::InternalSetTable);
-}
+	void ScriptStringTableManager::InitRuntimeData()
+	{
+		metaData.ScriptClass->AddInternalCall("Internal_SetActiveLanguage", (void*)&ScriptStringTableManager::InternalSetActiveLanguage);
+		metaData.ScriptClass->AddInternalCall("Internal_GetActiveLanguage", (void*)&ScriptStringTableManager::InternalGetActiveLanguage);
+		metaData.ScriptClass->AddInternalCall("Internal_GetTable", (void*)&ScriptStringTableManager::InternalGetTable);
+		metaData.ScriptClass->AddInternalCall("Internal_RemoveTable", (void*)&ScriptStringTableManager::InternalRemoveTable);
+		metaData.ScriptClass->AddInternalCall("Internal_SetTable", (void*)&ScriptStringTableManager::InternalSetTable);
 
-void ScriptStringTableManager::InternalSetActiveLanguage(Language language)
-{
-	StringTableManager::Instance().SetActiveLanguage(language);
-}
+	}
 
-Language ScriptStringTableManager::InternalGetActiveLanguage()
-{
-	Language tmp__output;
-	tmp__output = StringTableManager::Instance().GetActiveLanguage();
+	void ScriptStringTableManager::InternalSetActiveLanguage(Language language)
+	{
+		StringTableManager::Instance().SetActiveLanguage(language);
+	}
 
-	Language __output;
-	__output = tmp__output;
+	Language ScriptStringTableManager::InternalGetActiveLanguage()
+	{
+		Language tmp__output;
+		tmp__output = StringTableManager::Instance().GetActiveLanguage();
 
-	return __output;
-}
+		Language __output;
+		__output = tmp__output;
 
-MonoObject* ScriptStringTableManager::InternalGetTable(uint32_t id)
-{
-	ResourceHandle<StringTable> tmp__output;
-	tmp__output = StringTableManager::Instance().GetTable(id);
+		return __output;
+	}
 
-	MonoObject* __output;
-	ScriptRRefBase* script__output;
-	script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
-	if(script__output != nullptr)
-		__output = script__output->GetManagedInstance();
-	else
-		__output = nullptr;
+	MonoObject* ScriptStringTableManager::InternalGetTable(uint32_t id)
+	{
+		ResourceHandle<StringTable> tmp__output;
+		tmp__output = StringTableManager::Instance().GetTable(id);
 
-	return __output;
-}
+		MonoObject* __output;
+		ScriptRRefBase* script__output;
+		script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
+		if(script__output != nullptr)
+			__output = script__output->GetManagedInstance();
+		else
+			__output = nullptr;
 
-void ScriptStringTableManager::InternalRemoveTable(uint32_t id)
-{
-	StringTableManager::Instance().RemoveTable(id);
-}
+		return __output;
+	}
 
-void ScriptStringTableManager::InternalSetTable(uint32_t id, MonoObject* table)
-{
-	ResourceHandle<StringTable> tmptable;
-	ScriptRRefBase* scripttable;
-	scripttable = ScriptRRefBase::ToNative(table);
-	if(scripttable != nullptr)
-		tmptable = B3DStaticResourceCast<StringTable>(scripttable->GetHandle());
-	StringTableManager::Instance().SetTable(id, tmptable);
+	void ScriptStringTableManager::InternalRemoveTable(uint32_t id)
+	{
+		StringTableManager::Instance().RemoveTable(id);
+	}
+
+	void ScriptStringTableManager::InternalSetTable(uint32_t id, MonoObject* table)
+	{
+		ResourceHandle<StringTable> tmptable;
+		ScriptRRefBase* scripttable;
+		scripttable = ScriptRRefBase::ToNative(table);
+		if(scripttable != nullptr)
+			tmptable = B3DStaticResourceCast<StringTable>(scripttable->GetHandle());
+		StringTableManager::Instance().SetTable(id, tmptable);
+	}
 }

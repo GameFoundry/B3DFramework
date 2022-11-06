@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptCMeshCollider.generated.h"
 #include "BsMonoMethod.h"
@@ -9,40 +9,43 @@
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsMesh.h"
 
-using namespace bs;
-ScriptCMeshCollider::ScriptCMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
-	: TScriptComponent(managedInstance, value)
+namespace bs
 {
-}
+	ScriptCMeshCollider::ScriptCMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
+		:TScriptComponent(managedInstance, value)
+	{
+	}
 
-void ScriptCMeshCollider::InitRuntimeData()
-{
-	metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptCMeshCollider::InternalSetMesh);
-	metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptCMeshCollider::InternalGetMesh);
-}
+	void ScriptCMeshCollider::InitRuntimeData()
+	{
+		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptCMeshCollider::InternalSetMesh);
+		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptCMeshCollider::InternalGetMesh);
 
-void ScriptCMeshCollider::InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh)
-{
-	ResourceHandle<PhysicsMesh> tmpmesh;
-	ScriptRRefBase* scriptmesh;
-	scriptmesh = ScriptRRefBase::ToNative(mesh);
-	if(scriptmesh != nullptr)
-		tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
-	thisPtr->GetHandle()->SetMesh(tmpmesh);
-}
+	}
 
-MonoObject* ScriptCMeshCollider::InternalGetMesh(ScriptCMeshCollider* thisPtr)
-{
-	ResourceHandle<PhysicsMesh> tmp__output;
-	tmp__output = thisPtr->GetHandle()->GetMesh();
+	void ScriptCMeshCollider::InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh)
+	{
+		ResourceHandle<PhysicsMesh> tmpmesh;
+		ScriptRRefBase* scriptmesh;
+		scriptmesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptmesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
+		thisPtr->GetHandle()->SetMesh(tmpmesh);
+	}
 
-	MonoObject* __output;
-	ScriptRRefBase* script__output;
-	script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
-	if(script__output != nullptr)
-		__output = script__output->GetManagedInstance();
-	else
-		__output = nullptr;
+	MonoObject* ScriptCMeshCollider::InternalGetMesh(ScriptCMeshCollider* thisPtr)
+	{
+		ResourceHandle<PhysicsMesh> tmp__output;
+		tmp__output = thisPtr->GetHandle()->GetMesh();
 
-	return __output;
+		MonoObject* __output;
+		ScriptRRefBase* script__output;
+		script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
+		if(script__output != nullptr)
+			__output = script__output->GetManagedInstance();
+		else
+			__output = nullptr;
+
+		return __output;
+	}
 }

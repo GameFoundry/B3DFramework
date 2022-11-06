@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,16 +12,8 @@
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"
 
-namespace bs
-{
-	class RendererMeshData;
-}
-
-namespace bs
-{
-	class MeshDataEx;
-}
-
+namespace bs { class RendererMeshData; }
+namespace bs { class MeshDataEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRendererMeshData : public ScriptObject<ScriptRendererMeshData>
@@ -32,7 +24,6 @@ namespace bs
 		ScriptRendererMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value);
 
 		SPtr<RendererMeshData> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<RendererMeshData>& value);
 
 	private:
@@ -58,4 +49,4 @@ namespace bs
 		static int32_t InternalGetVertexCount(ScriptRendererMeshData* thisPtr);
 		static int32_t InternalGetIndexCount(ScriptRendererMeshData* thisPtr);
 	};
-} // namespace bs
+}

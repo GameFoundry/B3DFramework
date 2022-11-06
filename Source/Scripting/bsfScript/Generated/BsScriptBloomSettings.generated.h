@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,11 +7,7 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Image/BsColor.h"
 
-namespace bs
-{
-	struct BloomSettings;
-}
-
+namespace bs { struct BloomSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
@@ -38,4 +34,4 @@ namespace bs
 		static float InternalGetFilterSize(ScriptBloomSettings* thisPtr);
 		static void InternalSetFilterSize(ScriptBloomSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

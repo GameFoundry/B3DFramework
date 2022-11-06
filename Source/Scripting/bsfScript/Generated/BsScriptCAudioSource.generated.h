@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioSource.h"
 
-namespace bs
-{
-	class CAudioSource;
-}
-
+namespace bs { class CAudioSource; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCAudioSource : public TScriptComponent<ScriptCAudioSource, CAudioSource>
@@ -44,4 +40,4 @@ namespace bs
 		static void InternalStop(ScriptCAudioSource* thisPtr);
 		static AudioSourceState InternalGetState(ScriptCAudioSource* thisPtr);
 	};
-} // namespace bs
+}

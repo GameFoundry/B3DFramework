@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -10,16 +10,8 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs
-{
-	class ParticleEmitter;
-}
-
-namespace bs
-{
-	struct __ParticleBurstInterop;
-}
-
+namespace bs { class ParticleEmitter; }
+namespace bs { struct __ParticleBurstInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
@@ -64,4 +56,4 @@ namespace bs
 		static float InternalGetFlipV(ScriptParticleEmitter* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
-} // namespace bs
+}

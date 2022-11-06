@@ -1,51 +1,53 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptVideoMode.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-using namespace bs;
+namespace bs
+{
 #if !B3D_IS_ENGINE
-ScriptVideoMode::ScriptVideoMode(MonoObject* managedInstance)
-	: ScriptObject(managedInstance)
-{}
+	ScriptVideoMode::ScriptVideoMode(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{ }
 
-void ScriptVideoMode::InitRuntimeData()
-{}
+	void ScriptVideoMode::InitRuntimeData()
+	{ }
 
-MonoObject* ScriptVideoMode::Box(const __VideoModeInterop& value)
-{
-	return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
-}
+	MonoObject*ScriptVideoMode::Box(const __VideoModeInterop& value)
+	{
+		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
+	}
 
-__VideoModeInterop ScriptVideoMode::Unbox(MonoObject* value)
-{
-	return *(__VideoModeInterop*)MonoUtil::Unbox(value);
-}
+	__VideoModeInterop ScriptVideoMode::Unbox(MonoObject* value)
+	{
+		return *(__VideoModeInterop*)MonoUtil::Unbox(value);
+	}
 
-VideoMode ScriptVideoMode::FromInterop(const __VideoModeInterop& value)
-{
-	VideoMode output;
-	output.Width = value.Width;
-	output.Height = value.Height;
-	output.RefreshRate = value.RefreshRate;
-	output.OutputIdx = value.OutputIdx;
-	output.IsCustom = value.IsCustom;
+	VideoMode ScriptVideoMode::FromInterop(const __VideoModeInterop& value)
+	{
+		VideoMode output;
+		output.Width = value.Width;
+		output.Height = value.Height;
+		output.RefreshRate = value.RefreshRate;
+		output.OutputIdx = value.OutputIdx;
+		output.IsCustom = value.IsCustom;
 
-	return output;
-}
+		return output;
+	}
 
-__VideoModeInterop ScriptVideoMode::ToInterop(const VideoMode& value)
-{
-	__VideoModeInterop output;
-	output.Width = value.Width;
-	output.Height = value.Height;
-	output.RefreshRate = value.RefreshRate;
-	output.OutputIdx = value.OutputIdx;
-	output.IsCustom = value.IsCustom;
+	__VideoModeInterop ScriptVideoMode::ToInterop(const VideoMode& value)
+	{
+		__VideoModeInterop output;
+		output.Width = value.Width;
+		output.Height = value.Height;
+		output.RefreshRate = value.RefreshRate;
+		output.OutputIdx = value.OutputIdx;
+		output.IsCustom = value.IsCustom;
 
-	return output;
-}
+		return output;
+	}
 
 #endif
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -11,31 +11,11 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs
-{
-	struct __TNamedAnimationCurvefloatInterop;
-}
-
-namespace bs
-{
-	struct __TNamedAnimationCurveQuaternionInterop;
-}
-
-namespace bs
-{
-	struct AnimationCurves;
-}
-
-namespace bs
-{
-	struct __TNamedAnimationCurveVector3Interop;
-}
-
-namespace bs
-{
-	class AnimationCurvesEx;
-}
-
+namespace bs { struct __TNamedAnimationCurvefloatInterop; }
+namespace bs { struct __TNamedAnimationCurveQuaternionInterop; }
+namespace bs { struct AnimationCurves; }
+namespace bs { struct __TNamedAnimationCurveVector3Interop; }
+namespace bs { class AnimationCurvesEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public ScriptObject<ScriptAnimationCurves>
@@ -46,7 +26,6 @@ namespace bs
 		ScriptAnimationCurves(MonoObject* managedInstance, const SPtr<AnimationCurves>& value);
 
 		SPtr<AnimationCurves> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<AnimationCurves>& value);
 
 	private:
@@ -70,4 +49,4 @@ namespace bs
 		static MonoArray* InternalGetGenericCurves(ScriptAnimationCurves* thisPtr);
 		static void InternalSetGenericCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
 	};
-} // namespace bs
+}

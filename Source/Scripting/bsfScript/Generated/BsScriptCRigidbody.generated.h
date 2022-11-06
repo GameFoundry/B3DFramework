@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,16 +12,8 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 
-namespace bs
-{
-	class CRigidbody;
-}
-
-namespace bs
-{
-	struct __CollisionDataInterop;
-}
-
+namespace bs { class CRigidbody; }
+namespace bs { struct __CollisionDataInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCRigidbody : public TScriptComponent<ScriptCRigidbody, CRigidbody>
@@ -36,11 +28,11 @@ namespace bs
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
 
-		typedef void(B3D_THUNKCALL* OnCollisionBeginThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnCollisionBeginThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionBeginThunkDef OnCollisionBeginThunk;
-		typedef void(B3D_THUNKCALL* OnCollisionStayThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnCollisionStayThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionStayThunkDef OnCollisionStayThunk;
-		typedef void(B3D_THUNKCALL* OnCollisionEndThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
 		static void InternalMove(ScriptCRigidbody* thisPtr, Vector3* position);
@@ -85,4 +77,4 @@ namespace bs
 		static void InternalAddForceAtPoint(ScriptCRigidbody* thisPtr, Vector3* force, Vector3* position, PointForceMode mode);
 		static void InternalGetVelocityAtPoint(ScriptCRigidbody* thisPtr, Vector3* point, Vector3* __output);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,21 +7,9 @@
 #include "../../../Foundation/bsfCore/Animation/BsSkeleton.h"
 #include "../Extensions/BsSkeletonEx.h"
 
-namespace bs
-{
-	class Skeleton;
-}
-
-namespace bs
-{
-	class SkeletonEx;
-}
-
-namespace bs
-{
-	struct __SkeletonBoneInfoExInterop;
-}
-
+namespace bs { class Skeleton; }
+namespace bs { class SkeletonEx; }
+namespace bs { struct __SkeletonBoneInfoExInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSkeleton : public TScriptReflectable<ScriptSkeleton, Skeleton>
@@ -37,4 +25,4 @@ namespace bs
 		static uint32_t InternalGetNumBones(ScriptSkeleton* thisPtr);
 		static void InternalGetBoneInfo(ScriptSkeleton* thisPtr, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output);
 	};
-} // namespace bs
+}

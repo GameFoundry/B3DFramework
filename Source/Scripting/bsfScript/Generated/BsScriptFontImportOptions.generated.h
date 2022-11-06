@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -9,18 +9,14 @@
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 
-namespace bs
-{
-	class FontImportOptions;
-}
-
+namespace bs { class FontImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontImportOptions : public TScriptReflectable<ScriptFontImportOptions, FontImportOptions, ScriptImportOptionsBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "FontImportOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FontImportOptions")
 
 		ScriptFontImportOptions(MonoObject* managedInstance, const SPtr<FontImportOptions>& value);
 
@@ -42,4 +38,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-} // namespace bs
+}

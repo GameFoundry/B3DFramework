@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
-namespace bs
-{
-	class AnimationUtility;
-}
-
+namespace bs { class AnimationUtility; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationUtility : public ScriptObject<ScriptAnimationUtility>
@@ -21,7 +17,6 @@ namespace bs
 		ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value);
 
 		SPtr<AnimationUtility> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<AnimationUtility>& value);
 
 	private:
@@ -35,4 +30,4 @@ namespace bs
 		static MonoObject* InternalCombineCurve2D(MonoArray* curveComponents);
 		static void InternalCalculateRange(MonoArray* curves, float* xMin, float* xMax, float* yMin, float* yMax);
 	};
-} // namespace bs
+}

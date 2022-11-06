@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -11,21 +11,9 @@
 #include "Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 
-namespace bs
-{
-	struct __Blend2DInfoInterop;
-}
-
-namespace bs
-{
-	class CAnimation;
-}
-
-namespace bs
-{
-	struct __Blend1DInfoInterop;
-}
-
+namespace bs { struct __Blend2DInfoInterop; }
+namespace bs { class CAnimation; }
+namespace bs { struct __Blend1DInfoInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCAnimation : public TScriptComponent<ScriptCAnimation, CAnimation>
@@ -40,11 +28,11 @@ namespace bs
 		void ScriptUpdateFloatPropertiesInternal();
 		void ScriptOnEventTriggeredInternal(const ResourceHandle<AnimationClip>& p0, const String& p1);
 
-		typedef void(B3D_THUNKCALL* ScriptRebuildFloatPropertiesInternalThunkDef)(MonoObject*, MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *ScriptRebuildFloatPropertiesInternalThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static ScriptRebuildFloatPropertiesInternalThunkDef ScriptRebuildFloatPropertiesInternalThunk;
-		typedef void(B3D_THUNKCALL* ScriptUpdateFloatPropertiesInternalThunkDef)(MonoObject*, MonoException**);
+		typedef void(B3D_THUNKCALL *ScriptUpdateFloatPropertiesInternalThunkDef) (MonoObject*, MonoException**);
 		static ScriptUpdateFloatPropertiesInternalThunkDef ScriptUpdateFloatPropertiesInternalThunk;
-		typedef void(B3D_THUNKCALL* ScriptOnEventTriggeredInternalThunkDef)(MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
+		typedef void(B3D_THUNKCALL *ScriptOnEventTriggeredInternalThunkDef) (MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
 		static ScriptOnEventTriggeredInternalThunkDef ScriptOnEventTriggeredInternalThunk;
 
 		static void InternalSetDefaultClip(ScriptCAnimation* thisPtr, MonoObject* clip);
@@ -77,4 +65,4 @@ namespace bs
 		static bool InternalGetGenericCurveValueInternal(ScriptCAnimation* thisPtr, uint32_t curveIdx, float* value);
 		static bool InternalTogglePreviewModeInternal(ScriptCAnimation* thisPtr, bool enabled);
 	};
-} // namespace bs
+}

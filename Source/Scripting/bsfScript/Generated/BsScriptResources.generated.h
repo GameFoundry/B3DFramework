@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,18 +7,14 @@
 #include "../../../Foundation/bsfCore/Resources/BsResources.h"
 #include "Utility/BsUUID.h"
 
-namespace bs
-{
-	class Resources;
-}
-
+namespace bs { class Resources; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptResources : public ScriptObject<ScriptResources>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Resources")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Resources")
 
 		ScriptResources(MonoObject* managedInstance);
 
@@ -32,11 +28,11 @@ namespace bs
 		static void OnResourceDestroyed(const UUID& p0);
 		static void OnResourceModified(const ResourceHandle<Resource>& p0);
 
-		typedef void(B3D_THUNKCALL* OnResourceLoadedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnResourceLoadedThunkDef) (MonoObject* p0, MonoException**);
 		static OnResourceLoadedThunkDef OnResourceLoadedThunk;
-		typedef void(B3D_THUNKCALL* OnResourceDestroyedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnResourceDestroyedThunkDef) (MonoObject* p0, MonoException**);
 		static OnResourceDestroyedThunkDef OnResourceDestroyedThunk;
-		typedef void(B3D_THUNKCALL* OnResourceModifiedThunkDef)(MonoObject* p0, MonoException**);
+		typedef void(B3D_THUNKCALL *OnResourceModifiedThunkDef) (MonoObject* p0, MonoException**);
 		static OnResourceModifiedThunkDef OnResourceModifiedThunk;
 
 		static HEvent OnResourceLoadedConn;
@@ -61,4 +57,4 @@ namespace bs
 		static bool InternalGetUuidFromFilePath(MonoString* path, UUID* uuid);
 	};
 #endif
-} // namespace bs
+}

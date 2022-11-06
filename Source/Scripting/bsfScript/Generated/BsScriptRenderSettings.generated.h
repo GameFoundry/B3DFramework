@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -20,11 +20,7 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs
-{
-	struct RenderSettings;
-}
-
+namespace bs { struct RenderSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
@@ -93,4 +89,4 @@ namespace bs
 		static float InternalGetCullDistance(ScriptRenderSettings* thisPtr);
 		static void InternalSetCullDistance(ScriptRenderSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

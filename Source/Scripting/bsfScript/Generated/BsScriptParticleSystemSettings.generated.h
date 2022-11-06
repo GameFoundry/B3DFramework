@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,11 +12,7 @@
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
-namespace bs
-{
-	struct ParticleSystemSettings;
-}
-
+namespace bs { struct ParticleSystemSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSystemSettings : public TScriptReflectable<ScriptParticleSystemSettings, ParticleSystemSettings>
@@ -62,4 +58,4 @@ namespace bs
 		static void InternalGetCustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* __output);
 		static void InternalSetCustomBounds(ScriptParticleSystemSettings* thisPtr, AABox* value);
 	};
-} // namespace bs
+}

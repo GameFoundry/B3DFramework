@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,18 +6,14 @@
 #include "BsScriptObject.h"
 #include "Utility/BsUUID.h"
 
-namespace bs
-{
-	class Importer;
-}
-
+namespace bs { class Importer; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptImporter : public ScriptObject<ScriptImporter>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "Importer")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Importer")
 
 		ScriptImporter(MonoObject* managedInstance);
 
@@ -29,4 +25,4 @@ namespace bs
 		static bool InternalSupportsFileType(MonoString* extension);
 	};
 #endif
-} // namespace bs
+}

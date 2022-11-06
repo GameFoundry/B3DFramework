@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,11 +7,7 @@
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
-namespace bs
-{
-	class AudioClip;
-}
-
+namespace bs { class AudioClip; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioClip : public TScriptResource<ScriptAudioClip, AudioClip>
@@ -35,4 +31,4 @@ namespace bs
 		static uint32_t InternalGetNumSamples(ScriptAudioClip* thisPtr);
 		static bool InternalIs3D(ScriptAudioClip* thisPtr);
 	};
-} // namespace bs
+}

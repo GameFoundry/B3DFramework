@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Importer/BsImportOptions.h"
 
-namespace bs
-{
-	class ImportOptions;
-}
-
+namespace bs { class ImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
@@ -18,7 +14,6 @@ namespace bs
 	{
 	public:
 		ScriptImportOptionsBase(MonoObject* instance);
-
 		virtual ~ScriptImportOptionsBase() {}
 
 		SPtr<ImportOptions> GetInternal() const;
@@ -27,7 +22,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptImportOptions : public TScriptReflectable<ScriptImportOptions, ImportOptions, ScriptImportOptionsBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ImportOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ImportOptions")
 
 		ScriptImportOptions(MonoObject* managedInstance, const SPtr<ImportOptions>& value);
 
@@ -36,4 +31,4 @@ namespace bs
 	private:
 	};
 #endif
-} // namespace bs
+}

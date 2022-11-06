@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,26 +7,10 @@
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
 #include "../Extensions/BsShaderEx.h"
 
-namespace bs
-{
-	class Shader;
-}
-
-namespace bs
-{
-	class ShaderEx;
-}
-
-namespace bs
-{
-	struct __ShaderVariationParamInfoInterop;
-}
-
-namespace bs
-{
-	struct __ShaderParameterInterop;
-}
-
+namespace bs { class Shader; }
+namespace bs { class ShaderEx; }
+namespace bs { struct __ShaderVariationParamInfoInterop; }
+namespace bs { struct __ShaderParameterInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptShader : public TScriptResource<ScriptShader, Shader>
@@ -44,4 +28,4 @@ namespace bs
 		static MonoArray* InternalGetVariationParams(ScriptShader* thisPtr);
 		static MonoArray* InternalGetParameters(ScriptShader* thisPtr);
 	};
-} // namespace bs
+}

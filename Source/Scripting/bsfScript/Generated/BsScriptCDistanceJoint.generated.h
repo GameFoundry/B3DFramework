@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,11 +8,7 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsDistanceJoint.h"
 
-namespace bs
-{
-	class CDistanceJoint;
-}
-
+namespace bs { class CDistanceJoint; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCDistanceJoint : public TScriptComponent<ScriptCDistanceJoint, CDistanceJoint, ScriptCJointBase>
@@ -35,4 +31,4 @@ namespace bs
 		static void InternalSetFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsVector2.h"
 
-namespace bs
-{
-	class CDecal;
-}
-
+namespace bs { class CDecal; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCDecal : public TScriptComponent<ScriptCDecal, CDecal>
@@ -32,4 +28,4 @@ namespace bs
 		static void InternalSetLayerMask(ScriptCDecal* thisPtr, uint32_t mask);
 		static uint32_t InternalGetLayerMask(ScriptCDecal* thisPtr);
 	};
-} // namespace bs
+}

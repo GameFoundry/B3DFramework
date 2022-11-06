@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,12 +12,7 @@
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
-namespace bs
-{
-	template <class T0>
-	struct TColorDistribution;
-}
-
+namespace bs { template<class T0> struct TColorDistribution; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTColorDistributionColorGradient : public ScriptObject<ScriptTColorDistributionColorGradient>
@@ -28,7 +23,6 @@ namespace bs
 		ScriptTColorDistributionColorGradient(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradient>>& value);
 
 		SPtr<TColorDistribution<ColorGradient>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TColorDistribution<ColorGradient>>& value);
 
 	private:
@@ -54,7 +48,6 @@ namespace bs
 		ScriptTColorDistributionColorGradientHDR(MonoObject* managedInstance, const SPtr<TColorDistribution<ColorGradientHDR>>& value);
 
 		SPtr<TColorDistribution<ColorGradientHDR>> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<TColorDistribution<ColorGradientHDR>>& value);
 
 	private:
@@ -71,4 +64,4 @@ namespace bs
 		static MonoObject* InternalGetMinGradient(ScriptTColorDistributionColorGradientHDR* thisPtr);
 		static MonoObject* InternalGetMaxGradient(ScriptTColorDistributionColorGradientHDR* thisPtr);
 	};
-} // namespace bs
+}

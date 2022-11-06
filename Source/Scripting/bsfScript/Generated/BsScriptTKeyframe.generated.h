@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -29,6 +29,7 @@ namespace bs
 
 	private:
 		ScriptTKeyframeint32_t(MonoObject* managedInstance);
+
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframefloat : public ScriptObject<ScriptTKeyframefloat>
@@ -41,6 +42,7 @@ namespace bs
 
 	private:
 		ScriptTKeyframefloat(MonoObject* managedInstance);
+
 	};
 
 	struct __TKeyframeVector3Interop
@@ -63,6 +65,7 @@ namespace bs
 
 	private:
 		ScriptTKeyframeVector3(MonoObject* managedInstance);
+
 	};
 
 	struct __TKeyframeVector2Interop
@@ -85,6 +88,7 @@ namespace bs
 
 	private:
 		ScriptTKeyframeVector2(MonoObject* managedInstance);
+
 	};
 
 	struct __TKeyframeQuaternionInterop
@@ -107,5 +111,6 @@ namespace bs
 
 	private:
 		ScriptTKeyframeQuaternion(MonoObject* managedInstance);
+
 	};
-} // namespace bs
+}

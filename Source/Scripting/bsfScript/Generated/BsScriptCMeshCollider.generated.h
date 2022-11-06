@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCCollider.generated.h"
 
-namespace bs
-{
-	class CMeshCollider;
-}
-
+namespace bs { class CMeshCollider; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCMeshCollider : public TScriptComponent<ScriptCMeshCollider, CMeshCollider, ScriptCColliderBase>
@@ -24,4 +20,4 @@ namespace bs
 		static void InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh);
 		static MonoObject* InternalGetMesh(ScriptCMeshCollider* thisPtr);
 	};
-} // namespace bs
+}

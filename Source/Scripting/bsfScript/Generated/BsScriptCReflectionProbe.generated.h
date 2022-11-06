@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,11 +7,7 @@
 #include "../../../Foundation/bsfCore/Renderer/BsReflectionProbe.h"
 #include "Math/BsVector3.h"
 
-namespace bs
-{
-	class CReflectionProbe;
-}
-
+namespace bs { class CReflectionProbe; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCReflectionProbe : public TScriptComponent<ScriptCReflectionProbe, CReflectionProbe>
@@ -32,4 +28,4 @@ namespace bs
 		static void InternalSetCustomTexture(ScriptCReflectionProbe* thisPtr, MonoObject* texture);
 		static void InternalCapture(ScriptCReflectionProbe* thisPtr);
 	};
-} // namespace bs
+}

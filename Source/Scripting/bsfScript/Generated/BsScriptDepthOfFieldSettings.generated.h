@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,11 +8,7 @@
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector2.h"
 
-namespace bs
-{
-	struct DepthOfFieldSettings;
-}
-
+namespace bs { struct DepthOfFieldSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
@@ -61,4 +57,4 @@ namespace bs
 		static float InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr);
 		static void InternalSetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

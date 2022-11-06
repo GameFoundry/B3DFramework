@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,16 +8,8 @@
 #include "../../../Foundation/bsfCore/Physics/BsSliderJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 
-namespace bs
-{
-	struct __LimitLinearRangeInterop;
-}
-
-namespace bs
-{
-	class CSliderJoint;
-}
-
+namespace bs { struct __LimitLinearRangeInterop; }
+namespace bs { class CSliderJoint; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSliderJoint : public TScriptComponent<ScriptCSliderJoint, CSliderJoint, ScriptCJointBase>
@@ -35,4 +27,4 @@ namespace bs
 		static void InternalSetFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag);
 	};
-} // namespace bs
+}

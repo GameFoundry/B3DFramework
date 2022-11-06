@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -8,16 +8,8 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
-namespace bs
-{
-	struct __PARTICLE_CONE_SHAPE_DESCInterop;
-}
-
-namespace bs
-{
-	class ParticleEmitterConeShape;
-}
-
+namespace bs { struct __PARTICLE_CONE_SHAPE_DESCInterop; }
+namespace bs { class ParticleEmitterConeShape; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterConeShape : public TScriptReflectable<ScriptParticleEmitterConeShape, ParticleEmitterConeShape, ScriptParticleEmitterShapeBase>
@@ -35,4 +27,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_CONE_SHAPE_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};
-} // namespace bs
+}

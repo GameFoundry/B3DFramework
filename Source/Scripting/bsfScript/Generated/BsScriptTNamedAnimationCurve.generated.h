@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -41,6 +41,7 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurvefloat(MonoObject* managedInstance);
+
 	};
 
 	struct __TNamedAnimationCurveVector3Interop
@@ -62,6 +63,7 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveVector3(MonoObject* managedInstance);
+
 	};
 
 	struct __TNamedAnimationCurveVector2Interop
@@ -83,6 +85,7 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveVector2(MonoObject* managedInstance);
+
 	};
 
 	struct __TNamedAnimationCurveQuaternionInterop
@@ -104,6 +107,7 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveQuaternion(MonoObject* managedInstance);
+
 	};
 
 	struct __TNamedAnimationCurveint32_tInterop
@@ -125,5 +129,6 @@ namespace bs
 
 	private:
 		ScriptTNamedAnimationCurveint32_t(MonoObject* managedInstance);
+
 	};
-} // namespace bs
+}

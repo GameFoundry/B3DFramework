@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -9,16 +9,8 @@
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 
-namespace bs
-{
-	class TextureEx;
-}
-
-namespace bs
-{
-	class Texture;
-}
-
+namespace bs { class TextureEx; }
+namespace bs { class Texture; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTexture : public TScriptResource<ScriptTexture, Texture>
@@ -48,4 +40,4 @@ namespace bs
 		static void InternalSetPixels(ScriptTexture* thisPtr, MonoObject* data, uint32_t face, uint32_t mipLevel);
 		static void InternalSetPixelsArray(ScriptTexture* thisPtr, MonoArray* colors, uint32_t face, uint32_t mipLevel);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -12,16 +12,8 @@
 #include "../../../Foundation/bsfCore/RenderAPI/BsSubMesh.h"
 #include "Math/BsAABox.h"
 
-namespace bs
-{
-	class Mesh;
-}
-
-namespace bs
-{
-	class MeshEx;
-}
-
+namespace bs { class Mesh; }
+namespace bs { class MeshEx; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMesh : public TScriptResource<ScriptMesh, Mesh>
@@ -48,4 +40,4 @@ namespace bs
 		static MonoObject* InternalGetMeshData(ScriptMesh* thisPtr);
 		static void InternalSetMeshData(ScriptMesh* thisPtr, MonoObject* value);
 	};
-} // namespace bs
+}

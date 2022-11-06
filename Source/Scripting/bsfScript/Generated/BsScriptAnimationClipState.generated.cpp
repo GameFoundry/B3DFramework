@@ -1,25 +1,27 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptAnimationClipState.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 
-using namespace bs;
-ScriptAnimationClipState::ScriptAnimationClipState(MonoObject* managedInstance)
-	: ScriptObject(managedInstance)
-{}
-
-void ScriptAnimationClipState::InitRuntimeData()
-{}
-
-MonoObject* ScriptAnimationClipState::Box(const AnimationClipState& value)
+namespace bs
 {
-	return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
-}
+	ScriptAnimationClipState::ScriptAnimationClipState(MonoObject* managedInstance)
+		:ScriptObject(managedInstance)
+	{ }
 
-AnimationClipState ScriptAnimationClipState::Unbox(MonoObject* value)
-{
-	return *(AnimationClipState*)MonoUtil::Unbox(value);
-}
+	void ScriptAnimationClipState::InitRuntimeData()
+	{ }
 
+	MonoObject*ScriptAnimationClipState::Box(const AnimationClipState& value)
+	{
+		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
+	}
+
+	AnimationClipState ScriptAnimationClipState::Unbox(MonoObject* value)
+	{
+		return *(AnimationClipState*)MonoUtil::Unbox(value);
+	}
+
+}

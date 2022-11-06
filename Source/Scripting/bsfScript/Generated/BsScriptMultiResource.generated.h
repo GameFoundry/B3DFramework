@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,28 +6,19 @@
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 
-namespace bs
-{
-	struct MultiResource;
-}
-
-namespace bs
-{
-	struct __SubResourceInterop;
-}
-
+namespace bs { struct MultiResource; }
+namespace bs { struct __SubResourceInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMultiResource : public ScriptObject<ScriptMultiResource>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "MultiResource")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MultiResource")
 
 		ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value);
 
 		SPtr<MultiResource> GetInternal() const { return mInternal; }
-
 		static MonoObject* Create(const SPtr<MultiResource>& value);
 
 	private:
@@ -39,4 +30,4 @@ namespace bs
 		static void InternalSetEntries(ScriptMultiResource* thisPtr, MonoArray* value);
 	};
 #endif
-} // namespace bs
+}

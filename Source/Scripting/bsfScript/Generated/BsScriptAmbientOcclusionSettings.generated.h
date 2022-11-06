@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
-namespace bs
-{
-	struct AmbientOcclusionSettings;
-}
-
+namespace bs { struct AmbientOcclusionSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectable<ScriptAmbientOcclusionSettings, AmbientOcclusionSettings>
@@ -41,4 +37,4 @@ namespace bs
 		static uint32_t InternalGetQuality(ScriptAmbientOcclusionSettings* thisPtr);
 		static void InternalSetQuality(ScriptAmbientOcclusionSettings* thisPtr, uint32_t value);
 	};
-} // namespace bs
+}

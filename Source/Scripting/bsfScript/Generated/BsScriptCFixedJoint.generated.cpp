@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptCFixedJoint.generated.h"
 #include "BsMonoMethod.h"
@@ -6,13 +6,16 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCFixedJoint.h"
 
-using namespace bs;
-ScriptCFixedJoint::ScriptCFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value)
-	: TScriptComponent(managedInstance, value)
+namespace bs
 {
-}
+	ScriptCFixedJoint::ScriptCFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value)
+		:TScriptComponent(managedInstance, value)
+	{
+	}
 
-void ScriptCFixedJoint::InitRuntimeData()
-{
-}
+	void ScriptCFixedJoint::InitRuntimeData()
+	{
 
+	}
+
+}

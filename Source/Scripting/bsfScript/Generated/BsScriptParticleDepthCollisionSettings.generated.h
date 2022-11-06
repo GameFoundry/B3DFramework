@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 
-namespace bs
-{
-	struct ParticleDepthCollisionSettings;
-}
-
+namespace bs { struct ParticleDepthCollisionSettings; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleDepthCollisionSettings : public TScriptReflectable<ScriptParticleDepthCollisionSettings, ParticleDepthCollisionSettings>
@@ -33,4 +29,4 @@ namespace bs
 		static float InternalGetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr);
 		static void InternalSetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr, float value);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -7,18 +7,14 @@
 #include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #include "Utility/BsUUID.h"
 
-namespace bs
-{
-	class ResourceManifest;
-}
-
+namespace bs { class ResourceManifest; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptResourceManifest : public TScriptReflectable<ScriptResourceManifest, ResourceManifest>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "ResourceManifest")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ResourceManifest")
 
 		ScriptResourceManifest(MonoObject* managedInstance, const SPtr<ResourceManifest>& value);
 
@@ -37,4 +33,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance, MonoString* name);
 	};
 #endif
-} // namespace bs
+}

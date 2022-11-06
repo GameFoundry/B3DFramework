@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 
-namespace bs
-{
-	class MorphChannel;
-}
-
+namespace bs { class MorphChannel; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMorphChannel : public TScriptReflectable<ScriptMorphChannel, MorphChannel>
@@ -26,4 +22,4 @@ namespace bs
 		static MonoString* InternalGetName(ScriptMorphChannel* thisPtr);
 		static MonoArray* InternalGetShapes(ScriptMorphChannel* thisPtr);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -9,11 +9,7 @@
 #include "Image/BsColor.h"
 #include "Math/BsDegree.h"
 
-namespace bs
-{
-	class CLight;
-}
-
+namespace bs { class CLight; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCLight : public TScriptComponent<ScriptCLight, CLight>
@@ -46,4 +42,4 @@ namespace bs
 		static float InternalGetShadowBias(ScriptCLight* thisPtr);
 		static void InternalGetBounds(ScriptCLight* thisPtr, Sphere* __output);
 	};
-} // namespace bs
+}

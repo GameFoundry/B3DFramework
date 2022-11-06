@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptCSliderJoint.generated.h"
 #include "BsMonoMethod.h"
@@ -7,73 +7,76 @@
 #include "../../../Foundation/bsfCore/Components/BsCSliderJoint.h"
 #include "BsScriptLimitLinearRange.generated.h"
 
-using namespace bs;
-ScriptCSliderJoint::ScriptCSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value)
-	: TScriptComponent(managedInstance, value)
+namespace bs
 {
-}
+	ScriptCSliderJoint::ScriptCSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value)
+		:TScriptComponent(managedInstance, value)
+	{
+	}
 
-void ScriptCSliderJoint::InitRuntimeData()
-{
-	metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptCSliderJoint::InternalGetPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptCSliderJoint::InternalGetSpeed);
-	metaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptCSliderJoint::InternalGetLimit);
-	metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptCSliderJoint::InternalSetLimit);
-	metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCSliderJoint::InternalSetFlag);
-	metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCSliderJoint::InternalHasFlag);
-}
+	void ScriptCSliderJoint::InitRuntimeData()
+	{
+		metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptCSliderJoint::InternalGetPosition);
+		metaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptCSliderJoint::InternalGetSpeed);
+		metaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptCSliderJoint::InternalGetLimit);
+		metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptCSliderJoint::InternalSetLimit);
+		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCSliderJoint::InternalSetFlag);
+		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCSliderJoint::InternalHasFlag);
 
-float ScriptCSliderJoint::InternalGetPosition(ScriptCSliderJoint* thisPtr)
-{
-	float tmp__output;
-	tmp__output = thisPtr->GetHandle()->GetPosition();
+	}
 
-	float __output;
-	__output = tmp__output;
+	float ScriptCSliderJoint::InternalGetPosition(ScriptCSliderJoint* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = thisPtr->GetHandle()->GetPosition();
 
-	return __output;
-}
+		float __output;
+		__output = tmp__output;
 
-float ScriptCSliderJoint::InternalGetSpeed(ScriptCSliderJoint* thisPtr)
-{
-	float tmp__output;
-	tmp__output = thisPtr->GetHandle()->GetSpeed();
+		return __output;
+	}
 
-	float __output;
-	__output = tmp__output;
+	float ScriptCSliderJoint::InternalGetSpeed(ScriptCSliderJoint* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = thisPtr->GetHandle()->GetSpeed();
 
-	return __output;
-}
+		float __output;
+		__output = tmp__output;
 
-void ScriptCSliderJoint::InternalGetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* __output)
-{
-	LimitLinearRange tmp__output;
-	tmp__output = thisPtr->GetHandle()->GetLimit();
+		return __output;
+	}
 
-	__LimitLinearRangeInterop interop__output;
-	interop__output = ScriptLimitLinearRange::ToInterop(tmp__output);
-	MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinearRange::GetMetaData()->ScriptClass->GetInternalClassInternal());
-}
+	void ScriptCSliderJoint::InternalGetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* __output)
+	{
+		LimitLinearRange tmp__output;
+		tmp__output = thisPtr->GetHandle()->GetLimit();
 
-void ScriptCSliderJoint::InternalSetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* limit)
-{
-	LimitLinearRange tmplimit;
-	tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
-	thisPtr->GetHandle()->SetLimit(tmplimit);
-}
+		__LimitLinearRangeInterop interop__output;
+		interop__output = ScriptLimitLinearRange::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinearRange::GetMetaData()->ScriptClass->GetInternalClassInternal());
+	}
 
-void ScriptCSliderJoint::InternalSetFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag, bool enabled)
-{
-	thisPtr->GetHandle()->SetFlag(flag, enabled);
-}
+	void ScriptCSliderJoint::InternalSetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* limit)
+	{
+		LimitLinearRange tmplimit;
+		tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
+		thisPtr->GetHandle()->SetLimit(tmplimit);
+	}
 
-bool ScriptCSliderJoint::InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag)
-{
-	bool tmp__output;
-	tmp__output = thisPtr->GetHandle()->HasFlag(flag);
+	void ScriptCSliderJoint::InternalSetFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag, bool enabled)
+	{
+		thisPtr->GetHandle()->SetFlag(flag, enabled);
+	}
 
-	bool __output;
-	__output = tmp__output;
+	bool ScriptCSliderJoint::InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag)
+	{
+		bool tmp__output;
+		tmp__output = thisPtr->GetHandle()->HasFlag(flag);
 
-	return __output;
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
 }

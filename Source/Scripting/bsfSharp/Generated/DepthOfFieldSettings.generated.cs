@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 using System;
 using System.Runtime.CompilerServices;
@@ -71,7 +71,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the size of the range within which objects transition from focused to fully unfocused, at the near  plane. 
+		/// Determines the size of the range within which objects transition from focused to fully unfocused, at the near plane. 
 		/// Only relevant for Gaussian and Bokeh depth of field. In world units (meters).
 		/// </summary>
 		[ShowInInspector]
@@ -83,7 +83,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the size of the range within which objects transition from focused to fully unfocused, at the far  plane. 
+		/// Determines the size of the range within which objects transition from focused to fully unfocused, at the far plane. 
 		/// Only relevant for Gaussian and Bokeh depth of field. In world units (meters).
 		/// </summary>
 		[ShowInInspector]
@@ -119,7 +119,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Determines the maximum size of the blur kernel, in percent of view size. Larger values cost more performance.  Only 
+		/// Determines the maximum size of the blur kernel, in percent of view size. Larger values cost more performance. Only 
 		/// relevant when using Bokeh depth of field.
 		/// </summary>
 		[ShowInInspector]
@@ -148,7 +148,7 @@ namespace bs
 		/// <summary>
 		/// Determines the minimum circle of confusion size before higher fidelity sampling is triggered. Small values trigger 
 		/// high fidelity sampling because they can otherwise produce aliasing, and they are small enough so they don&apos;t cost 
-		/// much. Increasing this value can improve performance as less higher fidelity samples will be required,  but may 
+		/// much. Increasing this value can improve performance as less higher fidelity samples will be required, but may 
 		/// decrease quality of the effect. Only relevant when using Bokeh depth of field.
 		/// </summary>
 		[ShowInInspector]
@@ -181,7 +181,7 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Camera sensor width and height, in mm. Used for controlling the size of the circle of confusion. Only relevant  when 
+		/// Camera sensor width and height, in mm. Used for controlling the size of the circle of confusion. Only relevant when 
 		/// using Bokeh depth of field.
 		/// </summary>
 		[ShowInInspector]

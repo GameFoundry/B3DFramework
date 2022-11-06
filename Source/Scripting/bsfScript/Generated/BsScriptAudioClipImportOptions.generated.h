@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -9,18 +9,14 @@
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
 
-namespace bs
-{
-	class AudioClipImportOptions;
-}
-
+namespace bs { class AudioClipImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioClipImportOptions : public TScriptReflectable<ScriptAudioClipImportOptions, AudioClipImportOptions, ScriptImportOptionsBase>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "AudioClipImportOptions")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioClipImportOptions")
 
 		ScriptAudioClipImportOptions(MonoObject* managedInstance, const SPtr<AudioClipImportOptions>& value);
 
@@ -38,4 +34,4 @@ namespace bs
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif
-} // namespace bs
+}

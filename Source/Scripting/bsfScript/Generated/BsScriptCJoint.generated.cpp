@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptCJoint.generated.h"
 #include "BsMonoMethod.h"
@@ -10,133 +10,134 @@
 #include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptQuaternion.h"
 
-using namespace bs;
-ScriptCJointBase::ScriptCJointBase(MonoObject* managedInstance)
-	: ScriptComponentBase(managedInstance)
-{}
-
-ScriptCJoint::OnJointBreakThunkDef ScriptCJoint::OnJointBreakThunk;
-
-ScriptCJoint::ScriptCJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value)
-	: TScriptComponent(managedInstance, value)
+namespace bs
 {
-	value->OnJointBreak.Connect(std::bind(&ScriptCJoint::OnJointBreak, this));
-}
+	ScriptCJointBase::ScriptCJointBase(MonoObject* managedInstance)
+		:ScriptComponentBase(managedInstance)
+	 { }
 
-void ScriptCJoint::InitRuntimeData()
-{
-	metaData.ScriptClass->AddInternalCall("Internal_GetBody", (void*)&ScriptCJoint::InternalGetBody);
-	metaData.ScriptClass->AddInternalCall("Internal_SetBody", (void*)&ScriptCJoint::InternalSetBody);
-	metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptCJoint::InternalGetPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_GetRotation", (void*)&ScriptCJoint::InternalGetRotation);
-	metaData.ScriptClass->AddInternalCall("Internal_SetTransform", (void*)&ScriptCJoint::InternalSetTransform);
-	metaData.ScriptClass->AddInternalCall("Internal_GetBreakForce", (void*)&ScriptCJoint::InternalGetBreakForce);
-	metaData.ScriptClass->AddInternalCall("Internal_SetBreakForce", (void*)&ScriptCJoint::InternalSetBreakForce);
-	metaData.ScriptClass->AddInternalCall("Internal_GetBreakTorque", (void*)&ScriptCJoint::InternalGetBreakTorque);
-	metaData.ScriptClass->AddInternalCall("Internal_SetBreakTorque", (void*)&ScriptCJoint::InternalSetBreakTorque);
-	metaData.ScriptClass->AddInternalCall("Internal_GetEnableCollision", (void*)&ScriptCJoint::InternalGetEnableCollision);
-	metaData.ScriptClass->AddInternalCall("Internal_SetEnableCollision", (void*)&ScriptCJoint::InternalSetEnableCollision);
+	ScriptCJoint::OnJointBreakThunkDef ScriptCJoint::OnJointBreakThunk; 
 
-	OnJointBreakThunk = (OnJointBreakThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnJointBreak", "")->GetThunk();
-}
+	ScriptCJoint::ScriptCJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value)
+		:TScriptComponent(managedInstance, value)
+	{
+		value->OnJointBreak.Connect(std::bind(&ScriptCJoint::OnJointBreak, this));
+	}
 
-void ScriptCJoint::OnJointBreak()
-{
-	MonoUtil::InvokeThunk(OnJointBreakThunk, GetManagedInstance());
-}
+	void ScriptCJoint::InitRuntimeData()
+	{
+		metaData.ScriptClass->AddInternalCall("Internal_GetBody", (void*)&ScriptCJoint::InternalGetBody);
+		metaData.ScriptClass->AddInternalCall("Internal_SetBody", (void*)&ScriptCJoint::InternalSetBody);
+		metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptCJoint::InternalGetPosition);
+		metaData.ScriptClass->AddInternalCall("Internal_GetRotation", (void*)&ScriptCJoint::InternalGetRotation);
+		metaData.ScriptClass->AddInternalCall("Internal_SetTransform", (void*)&ScriptCJoint::InternalSetTransform);
+		metaData.ScriptClass->AddInternalCall("Internal_GetBreakForce", (void*)&ScriptCJoint::InternalGetBreakForce);
+		metaData.ScriptClass->AddInternalCall("Internal_SetBreakForce", (void*)&ScriptCJoint::InternalSetBreakForce);
+		metaData.ScriptClass->AddInternalCall("Internal_GetBreakTorque", (void*)&ScriptCJoint::InternalGetBreakTorque);
+		metaData.ScriptClass->AddInternalCall("Internal_SetBreakTorque", (void*)&ScriptCJoint::InternalSetBreakTorque);
+		metaData.ScriptClass->AddInternalCall("Internal_GetEnableCollision", (void*)&ScriptCJoint::InternalGetEnableCollision);
+		metaData.ScriptClass->AddInternalCall("Internal_SetEnableCollision", (void*)&ScriptCJoint::InternalSetEnableCollision);
 
-MonoObject* ScriptCJoint::InternalGetBody(ScriptCJointBase* thisPtr, JointBody body)
-{
-	GameObjectHandle<CRigidbody> tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBody(body);
+		OnJointBreakThunk = (OnJointBreakThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnJointBreak", "")->GetThunk();
+	}
 
-	MonoObject* __output;
-	ScriptComponentBase* script__output = nullptr;
-	if(tmp__output)
-		script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(tmp__output));
-	if(script__output != nullptr)
-		__output = script__output->GetManagedInstance();
-	else
-		__output = nullptr;
+	void ScriptCJoint::OnJointBreak()
+	{
+		MonoUtil::InvokeThunk(OnJointBreakThunk, GetManagedInstance());
+	}
+	MonoObject* ScriptCJoint::InternalGetBody(ScriptCJointBase* thisPtr, JointBody body)
+	{
+		GameObjectHandle<CRigidbody> tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBody(body);
 
-	return __output;
-}
+		MonoObject* __output;
+		ScriptComponentBase* script__output = nullptr;
+		if(tmp__output)
+			script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(tmp__output));
+		if(script__output != nullptr)
+			__output = script__output->GetManagedInstance();
+		else
+			__output = nullptr;
 
-void ScriptCJoint::InternalSetBody(ScriptCJointBase* thisPtr, JointBody body, MonoObject* value)
-{
-	GameObjectHandle<CRigidbody> tmpvalue;
-	ScriptCRigidbody* scriptvalue;
-	scriptvalue = ScriptCRigidbody::ToNative(value);
-	if(scriptvalue != nullptr)
-		tmpvalue = scriptvalue->GetHandle();
-	B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBody(body, tmpvalue);
-}
+		return __output;
+	}
 
-void ScriptCJoint::InternalGetPosition(ScriptCJointBase* thisPtr, JointBody body, Vector3* __output)
-{
-	Vector3 tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetPosition(body);
+	void ScriptCJoint::InternalSetBody(ScriptCJointBase* thisPtr, JointBody body, MonoObject* value)
+	{
+		GameObjectHandle<CRigidbody> tmpvalue;
+		ScriptCRigidbody* scriptvalue;
+		scriptvalue = ScriptCRigidbody::ToNative(value);
+		if(scriptvalue != nullptr)
+			tmpvalue = scriptvalue->GetHandle();
+		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBody(body, tmpvalue);
+	}
 
-	*__output = tmp__output;
-}
+	void ScriptCJoint::InternalGetPosition(ScriptCJointBase* thisPtr, JointBody body, Vector3* __output)
+	{
+		Vector3 tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetPosition(body);
 
-void ScriptCJoint::InternalGetRotation(ScriptCJointBase* thisPtr, JointBody body, Quaternion* __output)
-{
-	Quaternion tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetRotation(body);
+		*__output = tmp__output;
+	}
 
-	*__output = tmp__output;
-}
+	void ScriptCJoint::InternalGetRotation(ScriptCJointBase* thisPtr, JointBody body, Quaternion* __output)
+	{
+		Quaternion tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetRotation(body);
 
-void ScriptCJoint::InternalSetTransform(ScriptCJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation)
-{
-	B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetTransform(body, *position, *rotation);
-}
+		*__output = tmp__output;
+	}
 
-float ScriptCJoint::InternalGetBreakForce(ScriptCJointBase* thisPtr)
-{
-	float tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBreakForce();
+	void ScriptCJoint::InternalSetTransform(ScriptCJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation)
+	{
+		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetTransform(body, *position, *rotation);
+	}
 
-	float __output;
-	__output = tmp__output;
+	float ScriptCJoint::InternalGetBreakForce(ScriptCJointBase* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBreakForce();
 
-	return __output;
-}
+		float __output;
+		__output = tmp__output;
 
-void ScriptCJoint::InternalSetBreakForce(ScriptCJointBase* thisPtr, float force)
-{
-	B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBreakForce(force);
-}
+		return __output;
+	}
 
-float ScriptCJoint::InternalGetBreakTorque(ScriptCJointBase* thisPtr)
-{
-	float tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBreakTorque();
+	void ScriptCJoint::InternalSetBreakForce(ScriptCJointBase* thisPtr, float force)
+	{
+		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBreakForce(force);
+	}
 
-	float __output;
-	__output = tmp__output;
+	float ScriptCJoint::InternalGetBreakTorque(ScriptCJointBase* thisPtr)
+	{
+		float tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetBreakTorque();
 
-	return __output;
-}
+		float __output;
+		__output = tmp__output;
 
-void ScriptCJoint::InternalSetBreakTorque(ScriptCJointBase* thisPtr, float torque)
-{
-	B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBreakTorque(torque);
-}
+		return __output;
+	}
 
-bool ScriptCJoint::InternalGetEnableCollision(ScriptCJointBase* thisPtr)
-{
-	bool tmp__output;
-	tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetEnableCollision();
+	void ScriptCJoint::InternalSetBreakTorque(ScriptCJointBase* thisPtr, float torque)
+	{
+		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBreakTorque(torque);
+	}
 
-	bool __output;
-	__output = tmp__output;
+	bool ScriptCJoint::InternalGetEnableCollision(ScriptCJointBase* thisPtr)
+	{
+		bool tmp__output;
+		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetEnableCollision();
 
-	return __output;
-}
+		bool __output;
+		__output = tmp__output;
 
-void ScriptCJoint::InternalSetEnableCollision(ScriptCJointBase* thisPtr, bool value)
-{
-	B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetEnableCollision(value);
+		return __output;
+	}
+
+	void ScriptCJoint::InternalSetEnableCollision(ScriptCJointBase* thisPtr, bool value)
+	{
+		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetEnableCollision(value);
+	}
 }

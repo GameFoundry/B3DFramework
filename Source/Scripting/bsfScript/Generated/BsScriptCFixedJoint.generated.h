@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -6,11 +6,7 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCJoint.generated.h"
 
-namespace bs
-{
-	class CFixedJoint;
-}
-
+namespace bs { class CFixedJoint; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCFixedJoint : public TScriptComponent<ScriptCFixedJoint, CFixedJoint, ScriptCJointBase>
@@ -22,4 +18,4 @@ namespace bs
 
 	private:
 	};
-} // namespace bs
+}

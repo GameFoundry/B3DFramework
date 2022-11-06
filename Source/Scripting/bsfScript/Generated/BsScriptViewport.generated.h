@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -10,11 +10,7 @@
 #include "Math/BsRect2.h"
 #include "Math/BsRect2I.h"
 
-namespace bs
-{
-	class Viewport;
-}
-
+namespace bs { class Viewport; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptViewport : public TScriptReflectable<ScriptViewport, Viewport>
@@ -42,4 +38,4 @@ namespace bs
 		static uint16_t InternalGetClearStencilValue(ScriptViewport* thisPtr);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* target, float x, float y, float width, float height);
 	};
-} // namespace bs
+}

@@ -1,4 +1,4 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSubResource : public ScriptObject<ScriptSubResource>
 	{
 	public:
-		SCRIPT_OBJ(ENGINE_ASSEMBLY, ENGINE_NS, "SubResource")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SubResource")
 
 		static MonoObject* Box(const __SubResourceInterop& value);
 		static __SubResourceInterop Unbox(MonoObject* value);
@@ -27,6 +27,7 @@ namespace bs
 
 	private:
 		ScriptSubResource(MonoObject* managedInstance);
+
 	};
 #endif
-} // namespace bs
+}
