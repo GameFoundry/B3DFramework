@@ -9,9 +9,9 @@ set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will b
 
 # Grab examples projects
 if(B3D_BUILD_EXAMPLES)
-	find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" "Examples")
+	find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${BSF_DIRECTORY}/Examples" NO_DEFAULT_PATH NO_CACHE)
 	if(NOT EXAMPLE_SUBMODULE_SOURCES)
-		execute_process(COMMAND git submodule update 
+		execute_process(COMMAND git submodule update
 							--init 
 							-- Examples
 						WORKING_DIRECTORY ${BSF_DIRECTORY})
