@@ -210,6 +210,7 @@ void RendererScene::UpdateCamera(Camera* camera, u32 updateFlag)
 
 		view->SetView(viewDesc);
 		view->SetRenderSettings(camera->GetRenderSettings());
+		view->UpdatePerViewBuffer();
 
 		UpdateCameraRenderTargets(camera);
 		return;
