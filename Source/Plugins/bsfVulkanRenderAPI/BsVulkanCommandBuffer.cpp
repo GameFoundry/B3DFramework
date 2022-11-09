@@ -1411,21 +1411,19 @@ void VulkanCmdBuffer::BindVertexInputs()
 		}
 	}
 
-	VkBuffer vkBuffer = VK_NULL_HANDLE;
-	VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 	if(mIndexBuffer != nullptr)
 	{
 		VulkanBuffer* resource = mIndexBuffer->GetResource(mDevice.GetIndex());
 		if(resource != nullptr)
 		{
-			vkBuffer = resource->GetHandle();
-			indexType = VulkanUtility::GetIndexType(mIndexBuffer->GetProperties().GetType());
+			VkBuffer vkBuffer = resource->GetHandle();
+			VkIndexType indexType = VulkanUtility::GetIndexType(mIndexBuffer->GetProperties().GetType());
 
 			RegisterBuffer(resource, BufferUseFlagBits::Index, VulkanAccessFlag::Read);
+
+			vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
 		}
 	}
-
-	vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
 }
 
 void VulkanCmdBuffer::BindGpuParams()
@@ -2367,12 +2365,18 @@ void VulkanCmdBuffer::UpdateShaderSubresource(VulkanImage* image, u32 imageInfoI
 		}
 	}
 
+	bool isResetRenderPassRequired = false;
 	if(subresourceInfo.CurrentLayout != subresourceInfo.RequiredLayout)
+	{
+		// Queue a layout transition
 		mQueuedLayoutTransitions[image] = imageInfoIdx;
+
+		// We also need to end the current pass, as we cannot do a layout transition within a pass
+		isResetRenderPassRequired = true;
+	}
 
 	// If a FB attachment was just bound as a shader input, we might need to restart the render pass with a FB
 	// attachment that supports read-only attachments using the GENERAL or DEPTH_READ_ONLY layout
-	bool resetRenderPass = false;
 	if(!subresourceInfo.UseFlags.IsSet(ImageUseFlagBits::Shader))
 	{
 		if(subresourceInfo.UseFlags.IsSet(ImageUseFlagBits::Framebuffer))
@@ -2381,10 +2385,10 @@ void VulkanCmdBuffer::UpdateShaderSubresource(VulkanImage* image, u32 imageInfoI
 			// taken care of setting the valid state anyway, so no need to end the render pass
 			if(subresourceInfo.RequiredLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 			{
-				resetRenderPass = ((mRenderTargetReadOnlyFlags & FBT_DEPTH) == 0 && (mRenderTargetReadOnlyFlags & FBT_STENCIL) == 0);
+				isResetRenderPassRequired = ((mRenderTargetReadOnlyFlags & FBT_DEPTH) == 0 && (mRenderTargetReadOnlyFlags & FBT_STENCIL) == 0);
 			}
 			else
-				resetRenderPass = true;
+				isResetRenderPassRequired = true;
 		}
 	}
 
@@ -2407,7 +2411,7 @@ void VulkanCmdBuffer::UpdateShaderSubresource(VulkanImage* image, u32 imageInfoI
 
 			// End render pass as we perform memory barriers at the beggining a render pass/dispatch call, so this
 			// will force them to execute
-			resetRenderPass = true;
+			isResetRenderPassRequired = true;
 		}
 	}
 
@@ -2422,7 +2426,7 @@ void VulkanCmdBuffer::UpdateShaderSubresource(VulkanImage* image, u32 imageInfoI
 
 			// End render pass as we perform memory barriers at the beggining a render pass/dispatch call, so this
 			// will force them to execute
-			resetRenderPass = true;
+			isResetRenderPassRequired = true;
 		}
 	}
 
@@ -2435,7 +2439,7 @@ void VulkanCmdBuffer::UpdateShaderSubresource(VulkanImage* image, u32 imageInfoI
 	subresourceInfo.UseFlags |= ImageUseFlagBits::Shader;
 
 	// If we need to switch frame-buffers or execute memory barriers, end current render pass
-	if(resetRenderPass && IsInRenderPass())
+	if(isResetRenderPassRequired && IsInRenderPass())
 		EndRenderPass();
 }
 
