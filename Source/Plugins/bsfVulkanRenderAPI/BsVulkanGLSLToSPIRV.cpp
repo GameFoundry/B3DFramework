@@ -705,7 +705,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuParamDesc& desc, 
 				if(paramTType->getBasicType() == glslang::EbtStruct)
 				{
 					// Structs are always aligned and rounded up to vec4
-					stride = Math::DivideAndRoundUp(elementSize, 16U) * 4;
+					stride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
 					bufferOffset = Math::DivideAndRoundUp(bufferOffset, 4U) * 4;
 				}
 				else
