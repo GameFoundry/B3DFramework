@@ -39,9 +39,9 @@ static_assert(false, "Other platform includes go here.");
 #	define USE_VALIDATION_LAYERS 0
 #endif
 
+namespace bs { namespace ct {
 VkAllocationCallbacks* gVulkanAllocator = nullptr;
 
-namespace bs { namespace ct {
 PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = nullptr;
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = nullptr;
 

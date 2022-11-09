@@ -44,6 +44,10 @@ namespace bs
 		auto iter = mDesc.platformSpecific.find("parentWindowHandle");
 		mIsChild = iter != mDesc.platformSpecific.end();
 
+		iter = mDesc.platformSpecific.find("externalWindowHandle");
+		if(iter != mDesc.platformSpecific.end())
+			windowDesc.externalNSView = (void*)parseUINT64(iter->second);
+
 		props.isFullScreen = mDesc.fullscreen && !mIsChild;
 		props.isHidden = mDesc.hidden;
 
@@ -60,7 +64,7 @@ namespace bs
 		props.hwGamma = mDesc.gamma;
 		props.multisampleCount = mDesc.multisampleCount;
 
-		if(mDesc.fullscreen && !mIsChild)
+		if(mDesc.fullscreen && !mIsChild && !windowDesc.externalNSView)
 			setFullscreen(mDesc.videoMode);
 
 		RenderWindow::initialize();

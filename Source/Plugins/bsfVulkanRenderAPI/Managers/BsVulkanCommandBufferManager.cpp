@@ -218,7 +218,9 @@ void VulkanCommandBufferManager::FlushTransferBuffers(u32 deviceIdx)
 	}
 }
 
+namespace bs { namespace ct {
 VulkanCommandBufferManager& GetVulkanCommandBufferManager()
 {
 	return static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
 }
+}} // namespace bs::ct

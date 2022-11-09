@@ -145,6 +145,8 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VULKAN_RENDER_P
 
 VulkanRenderPass::~VulkanRenderPass()
 {
+	vkDestroyRenderPass(mDevice, mDefault, gVulkanAllocator);
+
 	for(auto& entry : mVariants)
 		vkDestroyRenderPass(mDevice, entry.second, gVulkanAllocator);
 }
