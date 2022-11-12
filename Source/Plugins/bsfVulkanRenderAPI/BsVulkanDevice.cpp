@@ -149,6 +149,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 	VmaAllocatorCreateInfo allocatorCI = {};
 	allocatorCI.physicalDevice = device;
 	allocatorCI.device = mLogicalDevice;
+	allocatorCI.instance = GetVulkanRenderAPI().GetInstanceInternal();
 	allocatorCI.pAllocationCallbacks = gVulkanAllocator;
 
 	if(dedicatedAllocExt && getMemReqExt)

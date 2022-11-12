@@ -128,7 +128,7 @@ void VulkanRenderAPI::Initialize()
 
 #if B3D_DEBUG && USE_VALIDATION_LAYERS
 	const char* layers[] = {
-		"VK_LAYER_LUNARG_standard_validation"
+		"VK_LAYER_KHRONOS_validation"
 	};
 
 	const char* extensions[] = {

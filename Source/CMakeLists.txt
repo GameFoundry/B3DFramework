@@ -82,9 +82,9 @@ check_and_update_builtin_assets(bsf ${BSF_SOURCE_DIR}/../Data/Raw Raw ${BS_FRAME
 ## Set names of libraries used in the config file
 if(B3D_RENDER_BACKEND MATCHES "DirectX 11")
 	set(RENDER_API_MODULE_LIB bsfD3D11RenderAPI)
-elseif(RENDER_API_MODULE MATCHES "Vulkan")
+elseif(B3D_RENDER_BACKEND MATCHES "Vulkan")
 	set(RENDER_API_MODULE_LIB bsfVulkanRenderAPI)
-elseif(RENDER_API_MODULE MATCHES "OpenGL")
+elseif(B3D_RENDER_BACKEND MATCHES "OpenGL")
 	set(RENDER_API_MODULE_LIB bsfGLRenderAPI)
 else()
 	set(RENDER_API_MODULE_LIB bsfNullRenderAPI)

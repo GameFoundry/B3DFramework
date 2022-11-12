@@ -21,7 +21,7 @@ void VulkanIndexBuffer::Initialize()
 	mBuffer = B3DPoolNew<VulkanHardwareBuffer>(VulkanHardwareBuffer::BT_INDEX, BF_UNKNOWN, mUsage, mSize, mDeviceMask);
 	mBufferDeleter = &DeleteHardwareBuffer;
 
-	Initialize();
+	IndexBuffer::Initialize();
 }
 
 VulkanBuffer* VulkanIndexBuffer::GetResource(u32 deviceIdx) const

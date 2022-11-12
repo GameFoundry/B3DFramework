@@ -347,6 +347,12 @@ float RendererView::GetCurrentExposure() const
 
 void RendererView::NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
 {
+	if(cb == nullptr)
+	{
+		B3D_LOG(Error, Renderer, "Cannot queue luminance update. (Null command buffer provided.)");
+		return;
+	}
+
 	mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
 }
 

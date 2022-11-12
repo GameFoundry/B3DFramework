@@ -29,7 +29,7 @@ VulkanRenderTexture::~VulkanRenderTexture()
 
 void VulkanRenderTexture::Initialize()
 {
-	Initialize();
+	RenderTexture::Initialize();
 
 	VULKAN_RENDER_PASS_DESC rpDesc;
 	rpDesc.NumSamples = mProperties.MultisampleCount > 1 ? mProperties.MultisampleCount : 1;
