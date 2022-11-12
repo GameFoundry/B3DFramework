@@ -5,15 +5,15 @@ title: Advanced meshes
 In this chapter we'll learn how to create meshes manually and populate them with data. 
 
 # Creating a mesh
-To create a mesh call @bs::Mesh::create or one if its overloads. You'll need to populate the @bs::MESH_DESC structure and pass it as a parameter. At minimum the structure requires you to provide:
- - @bs::MESH_DESC::numVertices - Number of vertices in the mesh
- - @bs::MESH_DESC::numIndices - Number of indices in the mesh
- - @bs::MESH_DESC::vertexDesc - Structure of type @bs::VertexDataDesc that describes what kind of data does each individual vertex contains, which we'll discuss in detail later.
+To create a mesh call @bs::Mesh::create or one if its overloads. You'll need to populate the @bs::MeshCreateInformation structure and pass it as a parameter. At minimum the structure requires you to provide:
+ - @bs::MeshCreateInformation::VertexCount - Number of vertices in the mesh
+ - @bs::MeshCreateInformation::IndexCount - Number of indices in the mesh
+ - @bs::MeshCreateInformation::VertexDescription - Structure of type @bs::VertexDataDesc that describes what kind of data does each individual vertex contains, which we'll discuss in detail later.
 
 Optionally you can also provide:
- - @bs::MESH_DESC::indexType - Type of each index in the index buffer. They can be 32 or 16 bit, as specified by the @bs::IndexType enum.
- - @bs::MESH_DESC::subMeshes - A mesh can have multiple sub-meshes. Each sub-mesh is described by an offset and a range of indices that belong to it. Sub-meshes can be used for rendering sections of a mesh, instead of all of it (for example if a single mesh uses different materials). By default all indices are considered to be part of a single mesh.
- - @bs::MESH_DESC::usage - Usage flag that specifies how the mesh is intended to be used, in a form of @bs::MeshUsage enum.
+ - @bs::MeshCreateInformation::IndexType - Type of each index in the index buffer. They can be 32 or 16 bit, as specified by the @bs::IndexType enum.
+ - @bs::MeshCreateInformation::SubMeshes - A mesh can have multiple sub-meshes. Each sub-mesh is described by an offset and a range of indices that belong to it. Sub-meshes can be used for rendering sections of a mesh, instead of all of it (for example if a single mesh uses different materials). By default all indices are considered to be part of a single mesh.
+ - @bs::MeshCreateInformation::Usage - Usage flag that specifies how the mesh is intended to be used, in a form of @bs::MeshUsage enum.
  
 Supported mesh usage flags are:
  - @bs::MU_STATIC - Specify for normal meshes that are created once (or updated very rarely)
@@ -22,14 +22,14 @@ Supported mesh usage flags are:
  
 ~~~~~~~~~~~~~{.cpp}
 // Creates an empty mesh with 36 indices and 8 vertices
-MESH_DESC meshDesc;
-meshDesc.numVertices = 8;
-meshDesc.numIndices = 36;
+MeshCreateInformation meshCreateInformation;
+meshCreateInformation.VertexCount = 8;
+meshCreateInformation.IndexCount = 36;
 
-SPtr<VertexDataDesc> vertexDesc = ...; // Vertex description creation is explained below
-meshDesc.vertexDesc = vertexDesc;
+SPtr<VertexDataDesc> vertexDescription = ...; // Vertex description creation is explained below
+meshDesc.VertexDescription = vertexDescription;
 
-HMesh mesh = Mesh::create(meshDesc);
+HMesh mesh = Mesh::create(meshCreateInformation);
 ~~~~~~~~~~~~~
 
 ## Vertex description

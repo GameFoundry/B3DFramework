@@ -189,7 +189,7 @@ void RendererUtility::SetPassParams(const SPtr<GpuParamsSet>& params, u32 passId
 
 void RendererUtility::Draw(const SPtr<MeshBase>& mesh, u32 numInstances)
 {
-	Draw(mesh, mesh->GetProperties().GetSubMesh(0), numInstances);
+	Draw(mesh, mesh->GetProperties().SubMeshes[0], numInstances);
 }
 
 void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u32 numInstances)
@@ -231,7 +231,7 @@ void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u
 	u32 indexCount = subMesh.IndexCount;
 	rapi.DrawIndexed(subMesh.IndexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(), vertexData->VertexCount, numInstances);
 
-	mesh->NotifyUsedOnGPUInternal();
+	mesh->NotifyUsedOnGPU();
 }
 
 void RendererUtility::DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<VertexBuffer>& morphVertices, const SPtr<VertexDeclaration>& morphVertexDeclaration)
@@ -273,7 +273,7 @@ void RendererUtility::DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMe
 	u32 indexCount = subMesh.IndexCount;
 	rapi.DrawIndexed(subMesh.IndexOffset + mesh->GetIndexOffset(), indexCount, mesh->GetVertexOffset(), vertexData->VertexCount, 1);
 
-	mesh->NotifyUsedOnGPUInternal();
+	mesh->NotifyUsedOnGPU();
 }
 
 void RendererUtility::Blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)

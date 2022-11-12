@@ -24,11 +24,11 @@ using namespace bs;
  */
 bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u32& size)
 {
-	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
+	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDescription();
 
 	// Try to create hull from points
 	PxConvexMeshDesc convexDesc;
-	convexDesc.points.count = meshData->GetNumVertices();
+	convexDesc.points.count = meshData->GetVertexCount();
 	convexDesc.points.stride = vertexDesc->GetVertexStride();
 	convexDesc.points.data = meshData->GetElementData(VES_POSITION);
 	convexDesc.flags |= PxConvexFlag::eCOMPUTE_CONVEX;
@@ -110,7 +110,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 		return false;
 	}
 
-	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDesc();
+	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDescription();
 	if(!vertexDesc->HasElement(VES_POSITION))
 	{
 		B3D_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
@@ -129,11 +129,11 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 	else
 	{
 		PxTriangleMeshDesc meshDesc;
-		meshDesc.points.count = meshData->GetNumVertices();
+		meshDesc.points.count = meshData->GetVertexCount();
 		meshDesc.points.stride = vertexDesc->GetVertexStride();
 		meshDesc.points.data = meshData->GetElementData(VES_POSITION);
 
-		meshDesc.triangles.count = meshData->GetNumIndices() / 3;
+		meshDesc.triangles.count = meshData->GetIndexCount() / 3;
 		meshDesc.flags |= PxMeshFlag::eFLIPNORMALS;
 
 		IndexType indexType = meshData->GetIndexType();

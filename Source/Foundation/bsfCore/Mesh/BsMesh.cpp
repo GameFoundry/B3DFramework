@@ -14,15 +14,15 @@
 
 using namespace bs;
 
-MESH_DESC MESH_DESC::DEFAULT = MESH_DESC();
+const MeshCreateInformation MeshCreateInformation::kDefault = MeshCreateInformation();
 
-Mesh::Mesh(const MESH_DESC& desc)
-	: MeshBase(desc.NumVertices, desc.NumIndices, desc.SubMeshes), mVertexDesc(desc.VertexDesc), mUsage(desc.Usage), mIndexType(desc.IndexType), mSkeleton(desc.Skeleton), mMorphShapes(desc.MorphShapes)
+Mesh::Mesh(const MeshCreateInformation& meshCreateInformation)
+	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexDescription(meshCreateInformation.VertexDescription), mUsage(meshCreateInformation.Usage), mIndexType(meshCreateInformation.IndexType), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 {
 }
 
-Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
-	: MeshBase(initialMeshData->GetNumVertices(), initialMeshData->GetNumIndices(), desc.SubMeshes), mCPUData(initialMeshData), mVertexDesc(initialMeshData->GetVertexDesc()), mUsage(desc.Usage), mIndexType(initialMeshData->GetIndexType()), mSkeleton(desc.Skeleton), mMorphShapes(desc.MorphShapes)
+Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
+	: MeshBase(initialMeshData->GetVertexCount(), initialMeshData->GetIndexCount(), meshCreateInformation.SubMeshes), mCPUData(initialMeshData), mVertexDescription(initialMeshData->GetVertexDescription()), mUsage(meshCreateInformation.Usage), mIndexType(initialMeshData->GetIndexType()), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 {}
 
 Mesh::Mesh()
@@ -67,7 +67,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 
 SPtr<MeshData> Mesh::AllocBuffer() const
 {
-	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(mProperties.mNumVertices, mProperties.mNumIndices, mVertexDesc, mIndexType);
+	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(mProperties.VertexCount, mProperties.IndexCount, mVertexDescription, mIndexType);
 
 	return meshData;
 }
@@ -85,7 +85,7 @@ void Mesh::Initialize()
 
 void Mesh::UpdateBounds(const MeshData& meshData)
 {
-	mProperties.mBounds = meshData.CalculateBounds();
+	mProperties.Bounds = meshData.CalculateBounds();
 	MarkCoreDirty();
 }
 
@@ -96,17 +96,17 @@ SPtr<ct::Mesh> Mesh::GetCore() const
 
 SPtr<ct::CoreObject> Mesh::CreateCore() const
 {
-	MESH_DESC desc;
-	desc.NumVertices = mProperties.mNumVertices;
-	desc.NumIndices = mProperties.mNumIndices;
-	desc.VertexDesc = mVertexDesc;
-	desc.SubMeshes = mProperties.mSubMeshes;
-	desc.Usage = mUsage;
-	desc.IndexType = mIndexType;
-	desc.Skeleton = mSkeleton;
-	desc.MorphShapes = mMorphShapes;
+	MeshCreateInformation meshCreateInformation;
+	meshCreateInformation.VertexCount = mProperties.VertexCount;
+	meshCreateInformation.IndexCount = mProperties.IndexCount;
+	meshCreateInformation.VertexDescription = mVertexDescription;
+	meshCreateInformation.SubMeshes = mProperties.SubMeshes;
+	meshCreateInformation.Usage = mUsage;
+	meshCreateInformation.IndexType = mIndexType;
+	meshCreateInformation.Skeleton = mSkeleton;
+	meshCreateInformation.MorphShapes = mMorphShapes;
 
-	ct::Mesh* obj = new(B3DAllocate<ct::Mesh>()) ct::Mesh(mCPUData, desc, GDF_DEFAULT);
+	ct::Mesh* obj = new(B3DAllocate<ct::Mesh>()) ct::Mesh(mCPUData, meshCreateInformation, GDF_DEFAULT);
 
 	SPtr<ct::CoreObject> meshCore = B3DMakeSharedFromExisting<ct::Mesh>(obj);
 	meshCore->SetThisPtrInternal(meshCore);
@@ -117,21 +117,21 @@ SPtr<ct::CoreObject> Mesh::CreateCore() const
 	return meshCore;
 }
 
-void Mesh::UpdateCpuBuffer(u32 subresourceIdx, const MeshData& pixelData)
+void Mesh::UpdateCpuBuffer(u32 subresourceIndex, const MeshData& pixelData)
 {
 	if((mUsage & MU_CPUCACHED) == 0)
 		return;
 
-	if(subresourceIdx > 0)
+	if(subresourceIndex > 0)
 	{
-		B3D_LOG(Error, Mesh, "Invalid subresource index: {0}. Supported range: 0 .. 1.", subresourceIdx);
+		B3D_LOG(Error, Mesh, "Invalid subresource index: {0}. Supported range: 0 .. 1.", subresourceIndex);
 		return;
 	}
 
-	if(pixelData.GetNumIndices() != mProperties.GetNumIndices() ||
-	   pixelData.GetNumVertices() != mProperties.GetNumVertices() ||
+	if(pixelData.GetIndexCount() != mProperties.IndexCount ||
+	   pixelData.GetVertexCount() != mProperties.VertexCount ||
 	   pixelData.GetIndexType() != mIndexType ||
-	   pixelData.GetVertexDesc()->GetVertexStride() != mVertexDesc->GetVertexStride())
+	   pixelData.GetVertexDescription()->GetVertexStride() != mVertexDescription->GetVertexStride())
 	{
 		B3D_LOG(Error, Mesh, "Provided buffer is not of valid dimensions or format in order to update this mesh.");
 		return;
@@ -174,70 +174,70 @@ RTTITypeBase* Mesh::GetRtti() const
 /* 								STATICS		                     		*/
 /************************************************************************/
 
-HMesh Mesh::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage, DrawOperationType drawOp, IndexType indexType)
+HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType)
 {
-	MESH_DESC desc;
-	desc.NumVertices = numVertices;
-	desc.NumIndices = numIndices;
-	desc.VertexDesc = vertexDesc;
-	desc.Usage = usage;
-	desc.SubMeshes.push_back(SubMesh(0, numIndices, drawOp));
-	desc.IndexType = indexType;
+	MeshCreateInformation meshCreateInformation;
+	meshCreateInformation.VertexCount = vertexCount;
+	meshCreateInformation.IndexCount = indexCount;
+	meshCreateInformation.VertexDescription = vertexDescription;
+	meshCreateInformation.Usage = usage;
+	meshCreateInformation.SubMeshes.push_back(SubMesh(0, indexCount, primitiveType));
+	meshCreateInformation.IndexType = indexType;
 
-	SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
+	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
-HMesh Mesh::Create(const MESH_DESC& desc)
+HMesh Mesh::Create(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> meshPtr = CreatePtrInternal(desc);
+	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
-HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, desc);
+	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, meshCreateInformation);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
-HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType primitiveType)
 {
-	SPtr<Mesh> meshPtr = CreatePtrInternal(initialMeshData, usage, drawOp);
+	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, usage, primitiveType);
 	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
 }
 
-SPtr<Mesh> Mesh::CreatePtrInternal(const MESH_DESC& desc)
+SPtr<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(meshCreateInformation));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc)
+SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreatePtrInternal(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp)
+SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType primitiveType)
 {
-	MESH_DESC desc;
-	desc.Usage = usage;
-	desc.SubMeshes.push_back(SubMesh(0, initialMeshData->GetNumIndices(), drawOp));
+	MeshCreateInformation meshCreateInformation;
+	meshCreateInformation.Usage = usage;
+	meshCreateInformation.SubMeshes.push_back(SubMesh(0, initialMeshData->GetIndexCount(), primitiveType));
 
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc));
+	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::CreateEmpty()
+SPtr<Mesh> Mesh::CreateEmptyShared()
 {
 	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
 	mesh->SetThisPtrInternal(mesh);
@@ -247,8 +247,8 @@ SPtr<Mesh> Mesh::CreateEmpty()
 
 namespace bs { namespace ct
 {
-Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
-	: MeshBase(desc.NumVertices, desc.NumIndices, desc.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDesc(desc.VertexDesc), mUsage(desc.Usage), mIndexType(desc.IndexType), mDeviceMask(deviceMask), mTempInitialMeshData(initialMeshData), mSkeleton(desc.Skeleton), mMorphShapes(desc.MorphShapes)
+Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask)
+	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDesc(meshCreateInformation.VertexDescription), mUsage(meshCreateInformation.Usage), mIndexType(meshCreateInformation.IndexType), mDeviceMask(deviceMask), mTempInitialMeshData(initialMeshData), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 
 {}
 
@@ -271,13 +271,13 @@ void Mesh::Initialize()
 
 	INDEX_BUFFER_DESC ibDesc;
 	ibDesc.IndexType = mIndexType;
-	ibDesc.NumIndices = mProperties.mNumIndices;
+	ibDesc.NumIndices = mProperties.IndexCount;
 	ibDesc.Usage = (GpuBufferUsage)usage;
 
 	mIndexBuffer = IndexBuffer::Create(ibDesc, mDeviceMask);
 
 	mVertexData = B3DMakeShared<VertexData>();
-	mVertexData->VertexCount = mProperties.mNumVertices;
+	mVertexData->VertexCount = mProperties.VertexCount;
 	mVertexData->VertexDeclaration = VertexDeclaration::Create(mVertexDesc, mDeviceMask);
 
 	for(u32 i = 0; i <= mVertexDesc->GetMaxStreamIdx(); i++)
@@ -319,7 +319,7 @@ SPtr<IndexBuffer> Mesh::GetIndexBuffer() const
 	return mIndexBuffer;
 }
 
-SPtr<VertexDataDesc> Mesh::GetVertexDesc() const
+SPtr<VertexDataDesc> Mesh::GetVertexDescription() const
 {
 	THROW_IF_NOT_CORE_THREAD;
 
@@ -374,12 +374,12 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 		if(!mVertexDesc->HasStream(i))
 			continue;
 
-		if(!meshData.GetVertexDesc()->HasStream(i))
+		if(!meshData.GetVertexDescription()->HasStream(i))
 			continue;
 
 		// Ensure both have the same sized vertices
 		u32 myVertSize = mVertexDesc->GetVertexStride(i);
-		u32 otherVertSize = meshData.GetVertexDesc()->GetVertexStride(i);
+		u32 otherVertSize = meshData.GetVertexDescription()->GetVertexStride(i);
 		if(myVertSize != otherVertSize)
 		{
 			B3D_LOG(Error, Mesh, "Provided vertex size for stream {0} doesn't match meshes vertex size. "
@@ -435,7 +435,7 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 		else
 			indices = (u8*)meshData.GetIndices32();
 
-		u32 numIndicesToCopy = std::min(mProperties.mNumIndices, meshData.GetNumIndices());
+		u32 numIndicesToCopy = std::min(mProperties.IndexCount, meshData.GetIndexCount());
 
 		u32 indicesSize = numIndicesToCopy * idxElemSize;
 		if(indicesSize > meshData.GetIndexBufferSize())
@@ -456,7 +456,7 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 		u32 streamIdx = 0;
 		for(auto iter = vertexBuffers.begin(); iter != vertexBuffers.end(); ++iter)
 		{
-			if(!meshData.GetVertexDesc()->HasStream(streamIdx))
+			if(!meshData.GetVertexDescription()->HasStream(streamIdx))
 				continue;
 
 			SPtr<VertexBuffer> vertexBuffer = iter->second;
@@ -464,7 +464,7 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 
 			// Ensure both have the same sized vertices
 			u32 myVertSize = mVertexDesc->GetVertexStride(streamIdx);
-			u32 otherVertSize = meshData.GetVertexDesc()->GetVertexStride(streamIdx);
+			u32 otherVertSize = meshData.GetVertexDescription()->GetVertexStride(streamIdx);
 			if(myVertSize != otherVertSize)
 			{
 				B3D_LOG(Error, Mesh, "Provided vertex size for stream {0} doesn't match meshes vertex size. "
@@ -474,7 +474,7 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 				continue;
 			}
 
-			u32 numVerticesToCopy = meshData.GetNumVertices();
+			u32 numVerticesToCopy = meshData.GetVertexCount();
 			u32 bufferSize = vbProps.GetVertexSize() * numVerticesToCopy;
 
 			if(bufferSize > vertexBuffer->GetSize())
@@ -497,31 +497,31 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 
 void Mesh::UpdateBounds(const MeshData& meshData)
 {
-	mProperties.mBounds = meshData.CalculateBounds();
+	mProperties.Bounds = meshData.CalculateBounds();
 
 	// TODO - Sync this to sim-thread possibly?
 }
 
-SPtr<Mesh> Mesh::Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage, DrawOperationType drawOp, IndexType indexType, GpuDeviceFlags deviceMask)
+SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType, GpuDeviceFlags deviceMask)
 {
-	MESH_DESC desc;
-	desc.NumVertices = numVertices;
-	desc.NumIndices = numIndices;
-	desc.VertexDesc = vertexDesc;
-	desc.SubMeshes.push_back(SubMesh(0, numIndices, drawOp));
-	desc.Usage = usage;
-	desc.IndexType = indexType;
+	MeshCreateInformation meshCreateInformation;
+	meshCreateInformation.VertexCount = vertexCount;
+	meshCreateInformation.IndexCount = indexCount;
+	meshCreateInformation.VertexDescription = vertexDescription;
+	meshCreateInformation.SubMeshes.push_back(SubMesh(0, indexCount, primitiveType));
+	meshCreateInformation.Usage = usage;
+	meshCreateInformation.IndexType = indexType;
 
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, desc, deviceMask));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation, deviceMask));
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
 
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::Create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<Mesh> Mesh::Create(const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask)
 {
-	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, desc, deviceMask));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(nullptr, meshCreateInformation, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
@@ -529,16 +529,16 @@ SPtr<Mesh> Mesh::Create(const MESH_DESC& desc, GpuDeviceFlags deviceMask)
 	return mesh;
 }
 
-SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask)
 {
-	MESH_DESC descCopy = desc;
-	descCopy.NumVertices = initialMeshData->GetNumVertices();
-	descCopy.NumIndices = initialMeshData->GetNumIndices();
-	descCopy.VertexDesc = initialMeshData->GetVertexDesc();
-	descCopy.IndexType = initialMeshData->GetIndexType();
+	MeshCreateInformation meshCreateInformationCopy = meshCreateInformation;
+	meshCreateInformationCopy.VertexCount = initialMeshData->GetVertexCount();
+	meshCreateInformationCopy.IndexCount = initialMeshData->GetIndexCount();
+	meshCreateInformationCopy.VertexDescription = initialMeshData->GetVertexDescription();
+	meshCreateInformationCopy.IndexType = initialMeshData->GetIndexType();
 
 	SPtr<Mesh> mesh =
-		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, descCopy, deviceMask));
+		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformationCopy, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();
@@ -548,16 +548,16 @@ SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, const MESH_DESC& 
 
 SPtr<Mesh> Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType drawOp, GpuDeviceFlags deviceMask)
 {
-	MESH_DESC desc;
-	desc.NumVertices = initialMeshData->GetNumVertices();
-	desc.NumIndices = initialMeshData->GetNumIndices();
-	desc.VertexDesc = initialMeshData->GetVertexDesc();
-	desc.IndexType = initialMeshData->GetIndexType();
-	desc.SubMeshes.push_back(SubMesh(0, initialMeshData->GetNumIndices(), drawOp));
-	desc.Usage = usage;
+	MeshCreateInformation meshCreateInformation;
+	meshCreateInformation.VertexCount = initialMeshData->GetVertexCount();
+	meshCreateInformation.IndexCount = initialMeshData->GetIndexCount();
+	meshCreateInformation.VertexDescription = initialMeshData->GetVertexDescription();
+	meshCreateInformation.IndexType = initialMeshData->GetIndexType();
+	meshCreateInformation.SubMeshes.push_back(SubMesh(0, initialMeshData->GetIndexCount(), drawOp));
+	meshCreateInformation.Usage = usage;
 
 	SPtr<Mesh> mesh =
-		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, desc, deviceMask));
+		B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation, deviceMask));
 
 	mesh->SetThisPtrInternal(mesh);
 	mesh->Initialize();

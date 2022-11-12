@@ -6,10 +6,10 @@
 using namespace bs;
 HMesh MeshEx::Create(int numVertices, int numIndices, DrawOperationType topology, MeshUsage usage, VertexLayout vertex, IndexType index)
 {
-	MESH_DESC desc;
-	desc.NumVertices = numVertices;
-	desc.NumIndices = numIndices;
-	desc.VertexDesc = RendererMeshData::VertexLayoutVertexDesc(vertex);
+	MeshCreateInformation desc;
+	desc.VertexCount = numVertices;
+	desc.IndexCount = numIndices;
+	desc.VertexDescription = RendererMeshData::VertexLayoutVertexDesc(vertex);
 	desc.SubMeshes = { SubMesh(0, numIndices, topology) };
 	desc.Usage = usage;
 	desc.IndexType = index;
@@ -19,10 +19,10 @@ HMesh MeshEx::Create(int numVertices, int numIndices, DrawOperationType topology
 
 HMesh MeshEx::Create(int numVertices, int numIndices, const Vector<SubMesh>& subMeshes, MeshUsage usage, VertexLayout vertex, IndexType index)
 {
-	MESH_DESC desc;
-	desc.NumVertices = numVertices;
-	desc.NumIndices = numIndices;
-	desc.VertexDesc = RendererMeshData::VertexLayoutVertexDesc(vertex);
+	MeshCreateInformation desc;
+	desc.VertexCount = numVertices;
+	desc.IndexCount = numIndices;
+	desc.VertexDescription = RendererMeshData::VertexLayoutVertexDesc(vertex);
 	desc.SubMeshes = subMeshes;
 	desc.Usage = usage;
 	desc.IndexType = index;
@@ -38,9 +38,9 @@ HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, DrawOperationType topol
 
 	u32 numIndices = 0;
 	if(meshData != nullptr)
-		numIndices = meshData->GetNumIndices();
+		numIndices = meshData->GetIndexCount();
 
-	MESH_DESC desc;
+	MeshCreateInformation desc;
 	desc.SubMeshes = { SubMesh(0, numIndices, topology) };
 	desc.Usage = usage;
 
@@ -53,7 +53,7 @@ HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& 
 	if(data != nullptr)
 		meshData = data->GetData();
 
-	MESH_DESC desc;
+	MeshCreateInformation desc;
 	desc.SubMeshes = subMeshes;
 	desc.Usage = usage;
 
@@ -62,22 +62,22 @@ HMesh MeshEx::Create(const SPtr<RendererMeshData>& data, const Vector<SubMesh>& 
 
 Vector<SubMesh> MeshEx::GetSubMeshes(const HMesh& thisPtr)
 {
-	u32 numSubMeshes = thisPtr->GetProperties().GetNumSubMeshes();
-	Vector<SubMesh> output(numSubMeshes);
-	for(u32 i = 0; i < numSubMeshes; i++)
-		output[i] = thisPtr->GetProperties().GetSubMesh(i);
+	const u32 subMeshCount = (u32)thisPtr->GetProperties().SubMeshes.size();
+	Vector<SubMesh> output(subMeshCount);
+	for(u32 i = 0; i < subMeshCount; i++)
+		output[i] = thisPtr->GetProperties().SubMeshes[i];
 
 	return output;
 }
 
 u32 MeshEx::GetSubMeshCount(const HMesh& thisPtr)
 {
-	return thisPtr->GetProperties().GetNumSubMeshes();
+	return (u32)thisPtr->GetProperties().SubMeshes.size();
 }
 
 void MeshEx::GetBounds(const HMesh& thisPtr, AABox* box, Sphere* sphere)
 {
-	Bounds bounds = thisPtr->GetProperties().GetBounds();
+	Bounds bounds = thisPtr->GetProperties().Bounds;
 	*box = bounds.GetBox();
 	*sphere = bounds.GetSphere();
 }

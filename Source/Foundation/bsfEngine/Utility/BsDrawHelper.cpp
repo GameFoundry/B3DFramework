@@ -717,8 +717,8 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		rawData.MeshType = MeshType::Wire;
 		rawData.ShapeType = ShapeType::WireMesh;
 		rawData.Distance = shapeData.Center.Distance(reference);
-		rawData.NumVertices = shapeData.MeshData->GetNumVertices();
-		rawData.NumIndices = shapeData.MeshData->GetNumIndices();
+		rawData.NumVertices = shapeData.MeshData->GetVertexCount();
+		rawData.NumIndices = shapeData.MeshData->GetIndexCount();
 	}
 
 	struct TextRenderData
@@ -1244,7 +1244,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 	for(u32 i = 0; i < 4; i++)
 	{
 		if(meshData[i])
-			meshes[i] = Mesh::CreatePtrInternal(meshData[i]);
+			meshes[i] = Mesh::CreateShared(meshData[i]);
 	}
 
 	for(auto& entry : meshInfos)

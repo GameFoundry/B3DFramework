@@ -99,7 +99,7 @@ SPtr<ImportOptions> FBXImporter::CreateImportOptions() const
 
 SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOptions> importOptions)
 {
-	MESH_DESC desc;
+	MeshCreateInformation desc;
 
 	Vector<FBXAnimationClipData> dummy;
 	SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, dummy, desc.Skeleton, desc.MorphShapes);
@@ -110,7 +110,7 @@ SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOption
 	if(meshImportOptions->CpuCached)
 		desc.Usage |= MU_CPUCACHED;
 
-	SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->GetData(), desc);
+	SPtr<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), desc);
 
 	const String fileName = filePath.GetFilename(false);
 	mesh->SetName(fileName);
@@ -120,7 +120,7 @@ SPtr<Resource> FBXImporter::Import(const Path& filePath, SPtr<const ImportOption
 
 Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const ImportOptions> importOptions)
 {
-	MESH_DESC desc;
+	MeshCreateInformation desc;
 
 	Vector<FBXAnimationClipData> animationClips;
 	SPtr<RendererMeshData> rendererMeshData = ImportMeshData(filePath, importOptions, desc.SubMeshes, animationClips, desc.Skeleton, desc.MorphShapes);
@@ -131,7 +131,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 	if(meshImportOptions->CpuCached)
 		desc.Usage |= MU_CPUCACHED;
 
-	SPtr<Mesh> mesh = Mesh::CreatePtrInternal(rendererMeshData->GetData(), desc);
+	SPtr<Mesh> mesh = Mesh::CreateShared(rendererMeshData->GetData(), desc);
 
 	const String fileName = filePath.GetFilename(false);
 	mesh->SetName(fileName);

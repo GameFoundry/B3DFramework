@@ -21,7 +21,7 @@ MeshWeightedTriangles::MeshWeightedTriangles(const MeshData& meshData)
 
 void MeshWeightedTriangles::Calculate(const MeshData& meshData)
 {
-	const u32 numIndices = meshData.GetNumIndices();
+	const u32 numIndices = meshData.GetIndexCount();
 	B3D_ASSERT(numIndices % 3 == 0);
 
 	const u32 numTriangles = numIndices / 3;
@@ -29,7 +29,7 @@ void MeshWeightedTriangles::Calculate(const MeshData& meshData)
 
 	u8* vertices = meshData.GetElementData(VES_POSITION);
 
-	const SPtr<VertexDataDesc>& vertexDesc = meshData.GetVertexDesc();
+	const SPtr<VertexDataDesc>& vertexDesc = meshData.GetVertexDescription();
 	const u32 stride = vertexDesc->GetVertexStride();
 
 	float totalArea = 0.0f;
@@ -759,7 +759,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 		return false;
 	}
 
-	const SPtr<VertexDataDesc>& vertexDesc = mMeshData->GetVertexDesc();
+	const SPtr<VertexDataDesc>& vertexDesc = mMeshData->GetVertexDescription();
 	const VertexElement* positionElement = vertexDesc->GetElement(VES_POSITION);
 	if(positionElement == nullptr)
 	{
@@ -773,7 +773,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 		return false;
 	}
 
-	if(!perVertex && (mMeshData->GetNumIndices() % 3 != 0))
+	if(!perVertex && (mMeshData->GetIndexCount() % 3 != 0))
 	{
 		B3D_LOG(Error, Particles, "Unless using the per-vertex emission mode, mesh particle emitter requires the number "
 								 "of indices to be divisible by three, using a triangle list layout.");
@@ -807,7 +807,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 
 	// Initialize
 	mVertices = mMeshData->GetElementData(VES_POSITION);
-	mNumVertices = mMeshData->GetNumVertices();
+	mNumVertices = mMeshData->GetVertexCount();
 	mVertexStride = vertexDesc->GetVertexStride();
 
 	const VertexElement* normalElement = vertexDesc->GetElement(VES_NORMAL);
@@ -1031,7 +1031,7 @@ u32 ParticleEmitterStaticMeshShape::SpawnInternal(const Random& random, Particle
 void ParticleEmitterStaticMeshShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
 	if(mInfo.Mesh.IsLoaded(false))
-		shape = mInfo.Mesh->GetProperties().GetBounds().GetBox();
+		shape = mInfo.Mesh->GetProperties().Bounds.GetBox();
 	else
 		shape = AABox::kBoxEmpty;
 
@@ -1199,7 +1199,7 @@ void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) 
 		{
 			const HMesh& mesh = renderable->GetMesh();
 			if(mesh.IsLoaded(false))
-				shape = mesh->GetProperties().GetBounds().GetBox();
+				shape = mesh->GetProperties().Bounds.GetBox();
 			else
 				shape = AABox::kBoxEmpty;
 		}

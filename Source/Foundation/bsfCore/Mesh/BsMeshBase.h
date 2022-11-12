@@ -36,40 +36,20 @@ namespace bs
 	{
 	public:
 		MeshProperties();
-		MeshProperties(u32 numVertices, u32 numIndices, DrawOperationType drawOp);
-		MeshProperties(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes);
+		MeshProperties(u32 vertexCount, u32 indexCount, DrawOperationType primitiveType);
+		MeshProperties(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes);
 
-		/**
-		 * Retrieves a sub-mesh containing data used for rendering a certain portion of this mesh. If no sub-meshes are
-		 * specified manually a special sub-mesh containing all indices is returned.
-		 */
-		const SubMesh& GetSubMesh(u32 subMeshIdx = 0) const;
+		/** Contains data used for rendering a certain portion(s) of this mesh. */
+		Vector<SubMesh> SubMeshes;
 
-		/** Retrieves a total number of sub-meshes in this mesh. */
-		u32 GetNumSubMeshes() const;
+		/**	Maximum number of vertices the mesh may store. */
+		u32 VertexCount;
 
-		/**	Returns maximum number of vertices the mesh may store. */
-		u32 GetNumVertices() const { return mNumVertices; }
+		/**	Maximum number of indices the mesh may store. */
+		u32 IndexCount;
 
-		/**	Returns maximum number of indices the mesh may store. */
-		u32 GetNumIndices() const { return mNumIndices; }
-
-		/**	Returns bounds of the geometry contained in the vertex buffers for all sub-meshes. */
-		const Bounds& GetBounds() const { return mBounds; }
-
-	protected:
-		friend class MeshBase;
-		friend class ct::MeshBase;
-		friend class Mesh;
-		friend class ct::Mesh;
-		friend class TransientMesh;
-		friend class ct::TransientMesh;
-		friend class MeshBaseRTTI;
-
-		Vector<SubMesh> mSubMeshes;
-		u32 mNumVertices;
-		u32 mNumIndices;
-		Bounds mBounds;
+		/**	Bounds of the geometry contained in the vertex buffers for all sub-meshes. */
+		Bounds Bounds;
 	};
 
 	/** @} */
@@ -90,23 +70,23 @@ namespace bs
 		/**
 		 * Constructs a new mesh with no sub-meshes.
 		 *
-		 * @param[in]	numVertices		Number of vertices in the mesh.
-		 * @param[in]	numIndices		Number of indices in the mesh.
+		 * @param[in]	vertexCount		Number of vertices in the mesh.
+		 * @param[in]	indexCount		Number of indices in the mesh.
 		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default
 		 *								option is triangles, where three indices represent a single triangle.
 		 */
-		MeshBase(u32 numVertices, u32 numIndices, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+		MeshBase(u32 vertexCount, u32 indexCount, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
 
 		/**
 		 * Constructs a new mesh with one or multiple sub-meshes. (When using just one sub-mesh it is equivalent to using
 		 * the other overload).
 		 *
-		 * @param[in]	numVertices		Number of vertices in the mesh.
-		 * @param[in]	numIndices		Number of indices in the mesh.
+		 * @param[in]	vertexCount		Number of vertices in the mesh.
+		 * @param[in]	indexCount		Number of indices in the mesh.
 		 * @param[in]	subMeshes		Defines how are indices separated into sub-meshes, and how are those sub-meshes
 		 *								rendered.
 		 */
-		MeshBase(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes);
+		MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes);
 
 		virtual ~MeshBase();
 
@@ -145,7 +125,7 @@ namespace bs
 		class B3D_CORE_EXPORT MeshBase : public CoreObject
 		{
 		public:
-			MeshBase(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes);
+			MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes);
 
 			virtual ~MeshBase() {}
 
@@ -172,14 +152,14 @@ namespace bs
 			virtual u32 GetIndexOffset() const { return 0; }
 
 			/** Returns a structure that describes how are the vertices stored in the mesh's vertex buffer. */
-			virtual SPtr<VertexDataDesc> GetVertexDesc() const = 0;
+			virtual SPtr<VertexDataDesc> GetVertexDescription() const = 0;
 
 			/**
 			 * Called whenever this mesh starts being used on the GPU.
 			 *
 			 * @note	Needs to be called after all commands referencing this mesh have been sent to the GPU.
 			 */
-			virtual void NotifyUsedOnGPUInternal() {}
+			virtual void NotifyUsedOnGPU() {}
 
 			/**	Returns properties that contain information about the mesh. */
 			const MeshProperties& GetProperties() const { return mProperties; }

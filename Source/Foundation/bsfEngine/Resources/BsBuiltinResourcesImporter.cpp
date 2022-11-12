@@ -174,7 +174,7 @@ void GenerateMeshes()
 	AABox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
 
 	ShapeMeshes3D::SolidAaBox(box, boxMeshData, 0, 0);
-	SPtr<Mesh> boxMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(boxMeshData));
+	SPtr<Mesh> boxMesh = Mesh::CreateShared(RendererMeshData::Convert(boxMeshData));
 
 	u32 sphereNumVertices = 0;
 	u32 sphereNumIndices = 0;
@@ -182,7 +182,7 @@ void GenerateMeshes()
 	SPtr<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidSphere(Sphere(Vector3::kZero, 1.0f), sphereMeshData, 0, 0, 3);
-	SPtr<Mesh> sphereMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(sphereMeshData));
+	SPtr<Mesh> sphereMesh = Mesh::CreateShared(RendererMeshData::Convert(sphereMeshData));
 
 	u32 coneNumVertices = 0;
 	u32 coneNumIndices = 0;
@@ -190,7 +190,7 @@ void GenerateMeshes()
 	SPtr<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidCone(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, coneMeshData, 0, 0);
-	SPtr<Mesh> coneMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(coneMeshData));
+	SPtr<Mesh> coneMesh = Mesh::CreateShared(RendererMeshData::Convert(coneMeshData));
 
 	u32 cylinderNumVertices = 0;
 	u32 cylinderNumIndices = 0;
@@ -198,7 +198,7 @@ void GenerateMeshes()
 	SPtr<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidCylinder(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, cylinderMeshData, 0, 0);
-	SPtr<Mesh> cylinderMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(cylinderMeshData));
+	SPtr<Mesh> cylinderMesh = Mesh::CreateShared(RendererMeshData::Convert(cylinderMeshData));
 
 	u32 quadNumVertices = 8;
 	u32 quadNumIndices = 12;
@@ -209,7 +209,7 @@ void GenerateMeshes()
 	std::array<float, 2> sizes = { { 1.0f, 1.0f } };
 	Rect3 rect(Vector3::kZero, axes, sizes);
 	ShapeMeshes3D::SolidQuad(rect, quadMeshData, 0, 0);
-	SPtr<Mesh> quadMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(quadMeshData));
+	SPtr<Mesh> quadMesh = Mesh::CreateShared(RendererMeshData::Convert(quadMeshData));
 
 	u32 discNumVertices = 0;
 	u32 discNumIndices = 0;
@@ -217,7 +217,7 @@ void GenerateMeshes()
 	SPtr<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDesc);
 
 	ShapeMeshes3D::SolidDisc(Vector3::kZero, 1.0f, Vector3::kUnitY, discMeshData, 0, 0);
-	SPtr<Mesh> discMesh = Mesh::CreatePtrInternal(RendererMeshData::Convert(discMeshData));
+	SPtr<Mesh> discMesh = Mesh::CreateShared(RendererMeshData::Convert(discMeshData));
 
 	// Save all meshes
 	const Path outputDir = sOutputFolder + BuiltinResources::kMeshFolder;

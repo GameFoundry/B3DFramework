@@ -21,7 +21,7 @@ namespace bs
 	class MeshRTTI : public RTTIType<Mesh, MeshBase, MeshRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFLPTR(mVertexDesc, 0)
+			B3D_RTTI_MEMBER_REFLPTR(mVertexDescription, 0)
 			B3D_RTTI_MEMBER_PLAIN(mIndexType, 1)
 			B3D_RTTI_MEMBER_PLAIN(mUsage, 2)
 			B3D_RTTI_MEMBER_REFLPTR(mSkeleton, 4)
@@ -57,7 +57,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return Mesh::CreateEmpty();
+			return Mesh::CreateEmptyShared();
 		}
 
 		const String& GetRttiName() override

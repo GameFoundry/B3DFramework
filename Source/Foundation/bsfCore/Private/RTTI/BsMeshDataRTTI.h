@@ -21,21 +21,12 @@ namespace bs
 	class B3D_CORE_EXPORT MeshDataRTTI : public RTTIType<MeshData, GpuResourceData, MeshDataRTTI>
 	{
 	private:
-		SPtr<VertexDataDesc> GetVertexData(MeshData* obj) { return obj->mVertexData; }
-
-		void SetVertexData(MeshData* obj, SPtr<VertexDataDesc> value) { obj->mVertexData = value; }
-
-		IndexType& GetIndexType(MeshData* obj) { return obj->mIndexType; }
-
-		void SetIndexType(MeshData* obj, IndexType& value) { obj->mIndexType = value; }
-
-		u32& GetNumVertices(MeshData* obj) { return obj->mNumVertices; }
-
-		void SetNumVertices(MeshData* obj, u32& value) { obj->mNumVertices = value; }
-
-		u32& GetNumIndices(MeshData* obj) { return obj->mNumIndices; }
-
-		void SetNumIndices(MeshData* obj, u32& value) { obj->mNumIndices = value; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_REFLPTR(mVertexDescription, 0)
+			B3D_RTTI_MEMBER_PLAIN(mIndexType, 1)
+			B3D_RTTI_MEMBER_PLAIN(mVertexCount, 2)
+			B3D_RTTI_MEMBER_PLAIN(mIndexCount, 3)
+		B3D_RTTI_END_MEMBERS
 
 		SPtr<DataStream> GetData(MeshData* obj, u32& size)
 		{
@@ -53,12 +44,6 @@ namespace bs
 	public:
 		MeshDataRTTI()
 		{
-			AddReflectablePtrField("mVertexData", 0, &MeshDataRTTI::GetVertexData, &MeshDataRTTI::SetVertexData);
-
-			AddPlainField("mIndexType", 1, &MeshDataRTTI::GetIndexType, &MeshDataRTTI::SetIndexType);
-			AddPlainField("mNumVertices", 2, &MeshDataRTTI::GetNumVertices, &MeshDataRTTI::SetNumVertices);
-			AddPlainField("mNumIndices", 3, &MeshDataRTTI::GetNumIndices, &MeshDataRTTI::SetNumIndices);
-
 			AddDataBlockField("data", 4, &MeshDataRTTI::GetData, &MeshDataRTTI::SetData);
 		}
 

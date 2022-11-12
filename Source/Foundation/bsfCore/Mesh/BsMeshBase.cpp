@@ -7,44 +7,29 @@
 using namespace bs;
 
 MeshProperties::MeshProperties()
-	: mNumVertices(0), mNumIndices(0)
+	: VertexCount(0), IndexCount(0)
 {
-	mSubMeshes.reserve(10);
+	SubMeshes.reserve(10);
 }
 
-MeshProperties::MeshProperties(u32 numVertices, u32 numIndices, DrawOperationType drawOp)
-	: mNumVertices(numVertices), mNumIndices(numIndices)
+MeshProperties::MeshProperties(u32 vertexCount, u32 indexCount, DrawOperationType primitiveType)
+	: VertexCount(vertexCount), IndexCount(indexCount)
 {
-	mSubMeshes.push_back(SubMesh(0, numIndices, drawOp));
+	SubMeshes.push_back(SubMesh(0, indexCount, primitiveType));
 }
 
-MeshProperties::MeshProperties(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes)
-	: mNumVertices(numVertices), mNumIndices(numIndices)
+MeshProperties::MeshProperties(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes)
+	: VertexCount(vertexCount), IndexCount(indexCount)
 {
-	mSubMeshes = subMeshes;
+	SubMeshes = subMeshes;
 }
 
-const SubMesh& MeshProperties::GetSubMesh(u32 subMeshIdx) const
-{
-	if(subMeshIdx >= mSubMeshes.size())
-	{
-		B3D_EXCEPT(InvalidParametersException, "Invalid sub-mesh index (" + ToString(subMeshIdx) + "). Number of sub-meshes available: " + ToString((int)mSubMeshes.size()));
-	}
-
-	return mSubMeshes[subMeshIdx];
-}
-
-u32 MeshProperties::GetNumSubMeshes() const
-{
-	return (u32)mSubMeshes.size();
-}
-
-MeshBase::MeshBase(u32 numVertices, u32 numIndices, DrawOperationType drawOp)
-	: mProperties(numVertices, numIndices, drawOp)
+MeshBase::MeshBase(u32 vertexCount, u32 indexCount, DrawOperationType drawOp)
+	: mProperties(vertexCount, indexCount, drawOp)
 {}
 
-MeshBase::MeshBase(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes)
-	: mProperties(numVertices, numIndices, subMeshes)
+MeshBase::MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes)
+	: mProperties(vertexCount, indexCount, subMeshes)
 {}
 
 MeshBase::~MeshBase()
@@ -55,7 +40,7 @@ CoreSyncData MeshBase::SyncToCore(FrameAlloc* allocator)
 	u32 size = sizeof(Bounds);
 	u8* buffer = allocator->Alloc(size);
 
-	memcpy(buffer, &mProperties.mBounds, size);
+	memcpy(buffer, &mProperties.Bounds, size);
 	return CoreSyncData(buffer, size);
 }
 
@@ -80,12 +65,12 @@ RTTITypeBase* MeshBase::GetRtti() const
 
 namespace bs { namespace ct
 {
-MeshBase::MeshBase(u32 numVertices, u32 numIndices, const Vector<SubMesh>& subMeshes)
-	: mProperties(numVertices, numIndices, subMeshes)
+MeshBase::MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes)
+	: mProperties(vertexCount, indexCount, subMeshes)
 {}
 
 void MeshBase::SyncToCore(const CoreSyncData& data)
 {
-	mProperties.mBounds = data.GetData<Bounds>();
+	mProperties.Bounds = data.GetData<Bounds>();
 }
 }}

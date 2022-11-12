@@ -14,23 +14,18 @@
 
 using namespace bs;
 
-MeshData::MeshData(u32 numVertices, u32 numIndexes, const SPtr<VertexDataDesc>& vertexData, IndexType indexType)
-	: mNumVertices(numVertices), mNumIndices(numIndexes), mIndexType(indexType), mVertexData(vertexData)
+MeshData::MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, IndexType indexType)
+	: mVertexCount(vertexCount), mIndexCount(indexCount), mIndexType(indexType), mVertexDescription(vertexDescription)
 {
 	AllocateInternalBuffer();
 }
 
 MeshData::MeshData()
-	: mNumVertices(0), mNumIndices(0), mIndexType(IT_32BIT)
+	: mVertexCount(0), mIndexCount(0), mIndexType(IT_32BIT)
 {}
 
 MeshData::~MeshData()
 {}
-
-u32 MeshData::GetNumIndices() const
-{
-	return mNumIndices;
-}
 
 u16* MeshData::GetIndices16() const
 {
@@ -64,8 +59,8 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	u32 totalIndexCount = 0;
 	for(auto& meshData : meshes)
 	{
-		totalVertexCount += meshData->GetNumVertices();
-		totalIndexCount += meshData->GetNumIndices();
+		totalVertexCount += meshData->GetVertexCount();
+		totalIndexCount += meshData->GetIndexCount();
 	}
 
 	SPtr<VertexDataDesc> vertexData = B3DMakeShared<VertexDataDesc>();
@@ -73,9 +68,9 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	Vector<VertexElement> combinedVertexElements;
 	for(auto& meshData : meshes)
 	{
-		for(u32 i = 0; i < meshData->GetVertexDesc()->GetNumElements(); i++)
+		for(u32 i = 0; i < meshData->GetVertexDescription()->GetNumElements(); i++)
 		{
-			const VertexElement& newElement = meshData->GetVertexDesc()->GetElement(i);
+			const VertexElement& newElement = meshData->GetVertexDescription()->GetElement(i);
 
 			i32 alreadyExistsIdx = -1;
 			u32 idx = 0;
@@ -112,15 +107,15 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	u32* idxPtr = combinedMeshData->GetIndices32();
 	for(auto& meshData : meshes)
 	{
-		u32 numIndices = meshData->GetNumIndices();
+		u32 indexCount = meshData->GetIndexCount();
 		u32* srcData = meshData->GetIndices32();
 
-		for(u32 j = 0; j < numIndices; j++)
+		for(u32 j = 0; j < indexCount; j++)
 			idxPtr[j] = srcData[j] + vertexOffset;
 
-		indexOffset += numIndices;
-		idxPtr += numIndices;
-		vertexOffset += meshData->GetNumVertices();
+		indexOffset += indexCount;
+		idxPtr += indexCount;
+		vertexOffset += meshData->GetVertexCount();
 	}
 
 	// Copy sub-meshes
@@ -128,7 +123,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	indexOffset = 0;
 	for(auto& meshData : meshes)
 	{
-		u32 numIndices = meshData->GetNumIndices();
+		u32 indexCount = meshData->GetIndexCount();
 		const Vector<SubMesh> curSubMeshes = allSubMeshes[meshIdx];
 
 		for(auto& subMesh : curSubMeshes)
@@ -136,7 +131,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			subMeshes.push_back(SubMesh(subMesh.IndexOffset + indexOffset, subMesh.IndexCount, subMesh.DrawOp));
 		}
 
-		indexOffset += numIndices;
+		indexOffset += indexCount;
 		meshIdx++;
 	}
 
@@ -150,15 +145,15 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			u8* dstData = combinedMeshData->GetElementData(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
 			dstData += vertexOffset * dstVertexStride;
 
-			u32 numSrcVertices = meshData->GetNumVertices();
+			u32 sourceVertexCount = meshData->GetVertexCount();
 			u32 vertexSize = vertexData->GetElementSize(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
 
-			if(meshData->GetVertexDesc()->HasElement(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx()))
+			if(meshData->GetVertexDescription()->HasElement(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx()))
 			{
-				u32 srcVertexStride = meshData->GetVertexDesc()->GetVertexStride(element.GetStreamIdx());
+				u32 srcVertexStride = meshData->GetVertexDescription()->GetVertexStride(element.GetStreamIdx());
 				u8* srcData = meshData->GetElementData(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
 
-				for(u32 i = 0; i < numSrcVertices; i++)
+				for(u32 i = 0; i < sourceVertexCount; i++)
 				{
 					memcpy(dstData, srcData, vertexSize);
 					dstData += dstVertexStride;
@@ -167,7 +162,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			}
 			else
 			{
-				for(u32 i = 0; i < numSrcVertices; i++)
+				for(u32 i = 0; i < sourceVertexCount; i++)
 				{
 					memset(dstData, 0, vertexSize);
 					dstData += dstVertexStride;
@@ -175,26 +170,26 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			}
 		}
 
-		vertexOffset += meshData->GetNumVertices();
+		vertexOffset += meshData->GetVertexCount();
 	}
 
 	return combinedMeshData;
 }
 
-void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 size, u32 semanticIdx, u32 streamIdx)
+void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 size, u32 semanticIndex, u32 streamIndex)
 {
 	B3D_ASSERT(data != nullptr);
 
-	if(!mVertexData->HasElement(semantic, semanticIdx, streamIdx))
+	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
 	{
 		B3D_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
 							  "Semantic index: {1}, Stream index: {2}",
-			   semantic, semanticIdx, streamIdx);
+			   semantic, semanticIndex, streamIndex);
 		return;
 	}
 
-	u32 elementSize = mVertexData->GetElementSize(semantic, semanticIdx, streamIdx);
-	u32 totalSize = elementSize * mNumVertices;
+	u32 elementSize = mVertexDescription->GetElementSize(semantic, semanticIndex, streamIndex);
+	u32 totalSize = elementSize * mVertexCount;
 
 	if(totalSize != size)
 	{
@@ -203,12 +198,12 @@ void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 
-	u32 elementOffset = GetElementOffset(semantic, semanticIdx, streamIdx);
-	u32 vertexStride = mVertexData->GetVertexStride(streamIdx);
+	u32 elementOffset = GetElementOffset(semantic, semanticIndex, streamIndex);
+	u32 vertexStride = mVertexDescription->GetVertexStride(streamIndex);
 
 	u8* dst = GetData() + indexBufferOffset + elementOffset;
 	u8* src = (u8*)data;
-	for(u32 i = 0; i < mNumVertices; i++)
+	for(u32 i = 0; i < mVertexCount; i++)
 	{
 		memcpy(dst, src, elementSize);
 		dst += vertexStride;
@@ -216,20 +211,20 @@ void MeshData::SetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 	}
 }
 
-void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 size, u32 semanticIdx, u32 streamIdx)
+void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 size, u32 semanticIndex, u32 streamIndex)
 {
 	B3D_ASSERT(data != nullptr);
 
-	if(!mVertexData->HasElement(semantic, semanticIdx, streamIdx))
+	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
 	{
 		B3D_LOG(Warning, Mesh, "MeshData doesn't contain an element of specified type: Semantic: {0}, "
 							  "Semantic index: {1}, Stream index: {2}",
-			   semantic, semanticIdx, streamIdx);
+			   semantic, semanticIndex, streamIndex);
 		return;
 	}
 
-	u32 elementSize = mVertexData->GetElementSize(semantic, semanticIdx, streamIdx);
-	u32 totalSize = elementSize * mNumVertices;
+	u32 elementSize = mVertexDescription->GetElementSize(semantic, semanticIndex, streamIndex);
+	u32 totalSize = elementSize * mVertexCount;
 
 	if(totalSize != size)
 	{
@@ -238,12 +233,12 @@ void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 
-	u32 elementOffset = GetElementOffset(semantic, semanticIdx, streamIdx);
-	u32 vertexStride = mVertexData->GetVertexStride(streamIdx);
+	u32 elementOffset = GetElementOffset(semantic, semanticIndex, streamIndex);
+	u32 vertexStride = mVertexDescription->GetVertexStride(streamIndex);
 
 	u8* src = GetData() + indexBufferOffset + elementOffset;
 	u8* dst = (u8*)data;
-	for(u32 i = 0; i < mNumVertices; i++)
+	for(u32 i = 0; i < mVertexCount; i++)
 	{
 		memcpy(dst, src, elementSize);
 		dst += elementSize;
@@ -251,55 +246,55 @@ void MeshData::GetVertexData(VertexElementSemantic semantic, void* data, u32 siz
 	}
 }
 
-VertexElemIter<Vector2> MeshData::GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx)
+VertexElemIter<Vector2> MeshData::GetVec2DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
-	GetDataForIterator(semantic, semanticIdx, streamIdx, data, vertexStride);
+	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector2>(data, vertexStride, mNumVertices);
+	return VertexElemIter<Vector2>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<Vector3> MeshData::GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx)
+VertexElemIter<Vector3> MeshData::GetVec3DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
-	GetDataForIterator(semantic, semanticIdx, streamIdx, data, vertexStride);
+	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector3>(data, vertexStride, mNumVertices);
+	return VertexElemIter<Vector3>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<Vector4> MeshData::GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx)
+VertexElemIter<Vector4> MeshData::GetVec4DataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
-	GetDataForIterator(semantic, semanticIdx, streamIdx, data, vertexStride);
+	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<Vector4>(data, vertexStride, mNumVertices);
+	return VertexElemIter<Vector4>(data, vertexStride, mVertexCount);
 }
 
-VertexElemIter<u32> MeshData::GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx)
+VertexElemIter<u32> MeshData::GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex)
 {
 	u8* data;
 	u32 vertexStride;
-	GetDataForIterator(semantic, semanticIdx, streamIdx, data, vertexStride);
+	GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
 
-	return VertexElemIter<u32>(data, vertexStride, mNumVertices);
+	return VertexElemIter<u32>(data, vertexStride, mVertexCount);
 }
 
-void MeshData::GetDataForIterator(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx, u8*& data, u32& stride) const
+void MeshData::GetDataForIterator(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex, u8*& data, u32& stride) const
 {
-	if(!mVertexData->HasElement(semantic, semanticIdx, streamIdx))
+	if(!mVertexDescription->HasElement(semantic, semanticIndex, streamIndex))
 	{
-		B3D_EXCEPT(InvalidParametersException, "MeshData doesn't contain an element of specified type: Semantic: " + ToString(semantic) + ", Semantic index: " + ToString(semanticIdx) + ", Stream index: " + ToString(streamIdx));
+		B3D_EXCEPT(InvalidParametersException, "MeshData doesn't contain an element of specified type: Semantic: " + ToString(semantic) + ", Semantic index: " + ToString(semanticIndex) + ", Stream index: " + ToString(streamIndex));
 	}
 
 	u32 indexBufferOffset = GetIndexBufferSize();
 
-	u32 elementOffset = GetElementOffset(semantic, semanticIdx, streamIdx);
+	u32 elementOffset = GetElementOffset(semantic, semanticIndex, streamIndex);
 
 	data = GetData() + indexBufferOffset + elementOffset;
-	stride = mVertexData->GetVertexStride(streamIdx);
+	stride = mVertexDescription->GetVertexStride(streamIndex);
 }
 
 u32 MeshData::GetIndexBufferOffset() const
@@ -309,9 +304,9 @@ u32 MeshData::GetIndexBufferOffset() const
 
 u32 MeshData::GetStreamOffset(u32 streamIdx) const
 {
-	u32 streamOffset = mVertexData->GetStreamOffset(streamIdx);
+	u32 streamOffset = mVertexDescription->GetStreamOffset(streamIdx);
 
-	return streamOffset * mNumVertices;
+	return streamOffset * mVertexCount;
 }
 
 u8* MeshData::GetElementData(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx) const
@@ -324,36 +319,31 @@ u8* MeshData::GetStreamData(u32 streamIdx) const
 	return GetData() + GetIndexBufferSize() + GetStreamOffset(streamIdx);
 }
 
-u32 MeshData::GetIndexElementSize() const
-{
-	return mIndexType == IT_32BIT ? sizeof(u32) : sizeof(u16);
-}
-
 u32 MeshData::GetElementOffset(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx) const
 {
-	return GetStreamOffset(streamIdx) + mVertexData->GetElementOffsetFromStream(semantic, semanticIdx, streamIdx);
+	return GetStreamOffset(streamIdx) + mVertexDescription->GetElementOffsetFromStream(semantic, semanticIdx, streamIdx);
 }
 
 u32 MeshData::GetIndexBufferSize() const
 {
-	return mNumIndices * GetIndexElementSize();
+	return mIndexCount * GetIndexElementSize();
 }
 
-u32 MeshData::GetStreamSize(u32 streamIdx) const
+u32 MeshData::GetStreamSize(u32 streamIndex) const
 {
-	return mVertexData->GetVertexStride(streamIdx) * mNumVertices;
+	return mVertexDescription->GetVertexStride(streamIndex) * mVertexCount;
 }
 
 u32 MeshData::GetStreamSize() const
 {
-	return mVertexData->GetVertexStride() * mNumVertices;
+	return mVertexDescription->GetVertexStride() * mVertexCount;
 }
 
 Bounds MeshData::CalculateBounds() const
 {
 	Bounds bounds;
 
-	SPtr<VertexDataDesc> vertexDesc = GetVertexDesc();
+	SPtr<VertexDataDesc> vertexDesc = GetVertexDescription();
 	for(u32 i = 0; i < vertexDesc->GetNumElements(); i++)
 	{
 		const VertexElement& curElement = vertexDesc->GetElement(i);
@@ -364,14 +354,14 @@ Bounds MeshData::CalculateBounds() const
 		u8* data = GetElementData(curElement.GetSemantic(), curElement.GetSemanticIdx(), curElement.GetStreamIdx());
 		u32 stride = vertexDesc->GetVertexStride(curElement.GetStreamIdx());
 
-		if(GetNumVertices() > 0)
+		if(GetVertexCount() > 0)
 		{
 			Vector3 curPosition = *(Vector3*)data;
 			Vector3 accum = curPosition;
 			Vector3 min = curPosition;
 			Vector3 max = curPosition;
 
-			for(u32 i = 1; i < GetNumVertices(); i++)
+			for(u32 i = 1; i < GetVertexCount(); i++)
 			{
 				curPosition = *(Vector3*)(data + stride * i);
 				accum += curPosition;
@@ -379,10 +369,10 @@ Bounds MeshData::CalculateBounds() const
 				max = Vector3::Max(max, curPosition);
 			}
 
-			Vector3 center = accum / (float)GetNumVertices();
+			Vector3 center = accum / (float)GetVertexCount();
 			float radiusSqrd = 0.0f;
 
-			for(u32 i = 0; i < GetNumVertices(); i++)
+			for(u32 i = 0; i < GetVertexCount(); i++)
 			{
 				curPosition = *(Vector3*)(data + stride * i);
 				float dist = center.SquaredDistance(curPosition);

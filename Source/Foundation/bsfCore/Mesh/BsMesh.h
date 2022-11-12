@@ -15,23 +15,23 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Descriptor object used for creation of a new Mesh object. */
-	struct B3D_CORE_EXPORT MESH_DESC
+	/** Information used for creation of a new Mesh object. */
+	struct B3D_CORE_EXPORT MeshCreateInformation
 	{
-		MESH_DESC() {}
+		MeshCreateInformation() {}
 
 		/** Number of vertices in the mesh. */
-		u32 NumVertices = 0;
+		u32 VertexCount = 0;
 
 		/** Number of indices in the mesh. */
-		u32 NumIndices = 0;
+		u32 IndexCount = 0;
 
 		/**
 		 * Vertex description structure that describes how are vertices organized in the vertex buffer. When binding a mesh
 		 * to the pipeline you must ensure vertex description at least partially matches the input description of the
 		 * currently bound vertex GPU program.
 		 */
-		SPtr<VertexDataDesc> VertexDesc;
+		SPtr<VertexDataDesc> VertexDescription;
 
 		/**
 		 * Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be
@@ -54,7 +54,7 @@ namespace bs
 		/** Optional set of morph shapes that can be used for per-vertex animation of the mesh. */
 		SPtr<MorphShapes> MorphShapes;
 
-		static MESH_DESC DEFAULT;
+		static const MeshCreateInformation kDefault;
 	};
 
 	/**
@@ -114,12 +114,10 @@ namespace bs
 
 		/** Gets the skeleton required for animation of this mesh, if any is available. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Skeleton))
-
 		SPtr<Skeleton> GetSkeleton() const { return mSkeleton; }
 
 		/** Returns an object containing all shapes used for morph animation, if any are available. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MorphShapes))
-
 		SPtr<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
 
 		/** Retrieves a core implementation of a mesh usable only from the core thread. */
@@ -131,8 +129,8 @@ namespace bs
 	protected:
 		friend class MeshManager;
 
-		Mesh(const MESH_DESC& desc);
-		Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc);
+		Mesh(const MeshCreateInformation& meshCreateInformation);
+		Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation);
 
 		/**	Updates bounds by calculating them from the vertices in the provided mesh data object. */
 		void UpdateBounds(const MeshData& meshData);
@@ -147,11 +145,11 @@ namespace bs
 		void CreateCpuBuffer();
 
 		/**	Updates the cached CPU buffers with new data. */
-		void UpdateCpuBuffer(u32 subresourceIdx, const MeshData& data);
+		void UpdateCpuBuffer(u32 subresourceIndex, const MeshData& data);
 
 		mutable SPtr<MeshData> mCPUData;
 
-		SPtr<VertexDataDesc> mVertexDesc;
+		SPtr<VertexDataDesc> mVertexDescription;
 		int mUsage = MU_STATIC;
 		IndexType mIndexType = IT_32BIT;
 		SPtr<Skeleton> mSkeleton; // Immutable
@@ -176,37 +174,37 @@ namespace bs
 		/**
 		 * Creates a new empty mesh. Created mesh will have no sub-meshes.
 		 *
-		 * @param[in]	numVertices		Number of vertices in the mesh.
-		 * @param[in]	numIndices		Number of indices in the mesh.
-		 * @param[in]	vertexDesc		Vertex description structure that describes how are vertices organized in the
+		 * @param[in]	vertexCount		Number of vertices in the mesh.
+		 * @param[in]	indexCount		Number of indices in the mesh.
+		 * @param[in]	vertexDescription		Vertex description structure that describes how are vertices organized in the
 		 *								vertex buffer. When binding a mesh to the pipeline you must ensure vertex
 		 *								description at least partially matches the input description of the currently bound
 		 *								vertex GPU program.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
-		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default
+		 * @param[in]	primitiveType	Determines how should the provided indices be interpreted by the pipeline. Default
 		 *								option is a triangle list, where three indices represent a single triangle.
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
 		 */
-		static HMesh Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+		static HMesh Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
 
 		/**
 		 * Creates a new empty mesh.
 		 *
-		 * @param[in]	desc	Descriptor containing the properties of the mesh to create.
+		 * @param[in]	meshCreateInformation	Descriptor containing the properties of the mesh to create.
 		 */
-		static HMesh Create(const MESH_DESC& desc);
+		static HMesh Create(const MeshCreateInformation& meshCreateInformation);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
 		 * by the mesh data exactly. Mesh will have no sub-meshes.
 		 *
-		 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
-		 * @param[in]	desc			Descriptor containing the properties of the mesh to create. Vertex and index count,
-		 *								vertex descriptor and index type properties are ignored and are read from provided
-		 *								mesh data instead.
+		 * @param[in]	initialData						Vertex and index data to initialize the mesh with.
+		 * @param[in]	meshCreateInformation			Descriptor containing the properties of the mesh to create. Vertex and index count,
+		 *												vertex descriptor and index type properties are ignored and are read from provided
+		 *												mesh data instead.
 		 */
-		static HMesh Create(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+		static HMesh Create(const SPtr<MeshData>& initialData, const MeshCreateInformation& meshCreateInformation);
 
 		/**
 		 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
@@ -214,42 +212,42 @@ namespace bs
 		 *
 		 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
 		 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
-		 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default
+		 * @param[in]	primitiveType	Determines how should the provided indices be interpreted by the pipeline. Default
 		 *								option is a triangle strip, where three indices represent a single triangle.
 		 */
-		static HMesh Create(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+		static HMesh Create(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
 
 		/** @name Internal
 		 *  @{
 		 */
 
 		/**
-		 * @copydoc	Create(const MESH_DESC&)
+		 * @copydoc	Create(const MeshCreateInformation&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> CreatePtrInternal(const MESH_DESC& desc);
+		static SPtr<Mesh> CreateShared(const MeshCreateInformation& meshCreateInformation);
 
 		/**
-		 * @copydoc	Create(const SPtr<MeshData>&, const MESH_DESC&)
+		 * @copydoc	Create(const SPtr<MeshData>&, const MeshCreateInformation&)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> CreatePtrInternal(const SPtr<MeshData>& initialData, const MESH_DESC& desc);
+		static SPtr<Mesh> CreateShared(const SPtr<MeshData>& initialData, const MeshCreateInformation& meshCreateInformation);
 
 		/**
 		 * @copydoc	Create(const SPtr<MeshData>&, int, DrawOperationType)
 		 *
 		 * @note	Internal method. Use create() for normal use.
 		 */
-		static SPtr<Mesh> CreatePtrInternal(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST);
+		static SPtr<Mesh> CreateShared(const SPtr<MeshData>& initialData, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST);
 
 		/**
 		 * Creates a new empty and uninitialized mesh. You will need to manually initialize the mesh before using it.
 		 *
 		 * @note	This should only be used for special cases like serialization and is not meant for normal use.
 		 */
-		static SPtr<Mesh> CreateEmpty();
+		static SPtr<Mesh> CreateEmptyShared();
 
 		/** @} */
 	};
@@ -270,20 +268,15 @@ namespace bs
 		class B3D_CORE_EXPORT Mesh : public MeshBase
 		{
 		public:
-			Mesh(const SPtr<MeshData>& initialMeshData, const MESH_DESC& desc, GpuDeviceFlags deviceMask);
+			Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask);
 
 			~Mesh();
 
 			void Initialize() override;
 
-			/** @copydoc MeshBase::GetVertexData */
-			SPtr<VertexData> GetVertexData() const;
-
-			/** @copydoc MeshBase::GetIndexBuffer */
-			SPtr<IndexBuffer> GetIndexBuffer() const;
-
-			/** @copydoc MeshBase::GetVertexDesc */
-			SPtr<VertexDataDesc> GetVertexDesc() const;
+			SPtr<VertexData> GetVertexData() const override;
+			SPtr<IndexBuffer> GetIndexBuffer() const override;
+			SPtr<VertexDataDesc> GetVertexDescription() const override;
 
 			/** Returns a skeleton that can be used for animating the mesh. */
 			SPtr<Skeleton> GetSkeleton() const { return mSkeleton; }
@@ -320,40 +313,40 @@ namespace bs
 			/**
 			 * Creates a new empty mesh. Created mesh will have no sub-meshes.
 			 *
-			 * @param[in]	numVertices		Number of vertices in the mesh.
-			 * @param[in]	numIndices		Number of indices in the mesh.
-			 * @param[in]	vertexDesc		Vertex description structure that describes how are vertices organized in the
-			 *								vertex buffer. When binding a mesh to the pipeline you must ensure vertex
-			 *								description at least partially matches the input description of the currently
-			 *								bound vertex GPU program.
-			 * @param[in]	usage			Optimizes performance depending on planned usage of the mesh.
-			 * @param[in]	drawOp			Determines how should the provided indices be interpreted by the pipeline. Default
-			 *								option is a triangle list, where three indices represent a single triangle.
-			 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
-			 *								go over the number of vertices limited by the size.
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+			 * @param[in]	vertexCount			Number of vertices in the mesh.
+			 * @param[in]	indexCount			Number of indices in the mesh.
+			 * @param[in]	vertexDescription	Vertex description structure that describes how are vertices organized in the
+			 *									vertex buffer. When binding a mesh to the pipeline you must ensure vertex
+			 *									description at least partially matches the input description of the currently
+			 *									bound vertex GPU program.
+			 * @param[in]	usage				Optimizes performance depending on planned usage of the mesh.
+			 * @param[in]	primitiveType		Determines how should the provided indices be interpreted by the pipeline. Default
+			 *									option is a triangle list, where three indices represent a single triangle.
+			 * @param[in]	indexType			Size of indices, use smaller size for better performance, however be careful not to
+			 *									go over the number of vertices limited by the size.
+			 * @param[in]	deviceMask			Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<Mesh> Create(u32 numVertices, u32 numIndices, const SPtr<VertexDataDesc>& vertexDesc, int usage = MU_STATIC, DrawOperationType drawOp = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<Mesh> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Creates a new empty mesh.
 			 *
-			 * @param[in]	desc			Descriptor containing the properties of the mesh to create.
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+			 * @param[in]	meshCreateInformation	Descriptor containing the properties of the mesh to create.
+			 * @param[in]	deviceMask				Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<Mesh> Create(const MESH_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<Mesh> Create(const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described
 			 * by the mesh data exactly.
 			 *
-			 * @param[in]	initialData		Vertex and index data to initialize the mesh with.
-			 * @param[in]	desc			Descriptor containing the properties of the mesh to create. Vertex and index count,
-			 *								vertex descriptor and index type properties are ignored and are read from provided
-			 *								mesh data instead.
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
+			 * @param[in]	initialData				Vertex and index data to initialize the mesh with.
+			 * @param[in]	meshCreateInformation	Descriptor containing the properties of the mesh to create. Vertex and index count,
+			 *										vertex descriptor and index type properties are ignored and are read from provided
+			 *										mesh data instead.
+			 * @param[in]	deviceMask				Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<Mesh> Create(const SPtr<MeshData>& initialData, const MESH_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<Mesh> Create(const SPtr<MeshData>& initialData, const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described

@@ -114,7 +114,7 @@ struct TVertexDataAccessor<(int)VertexLayout::BoneWeights>
 template <int Semantic, class TNative>
 Vector<TNative> GetVertexDataArray(const SPtr<RendererMeshData>& meshData)
 {
-	u32 numElements = meshData->GetData()->GetNumVertices();
+	u32 numElements = meshData->GetData()->GetVertexCount();
 	Vector<TNative> output(numElements);
 
 	TVertexDataAccessor<Semantic>::Get(meshData, (u8*)output.data(), numElements * sizeof(TNative));
@@ -124,7 +124,7 @@ Vector<TNative> GetVertexDataArray(const SPtr<RendererMeshData>& meshData)
 template <int Semantic, class TNative>
 void SetVertexDataArray(const SPtr<RendererMeshData>& meshData, const Vector<TNative>& input)
 {
-	u32 numElements = meshData->GetData()->GetNumVertices();
+	u32 numElements = meshData->GetData()->GetVertexCount();
 
 	TVertexDataAccessor<Semantic>::Set(meshData, (u8*)input.data(), numElements * sizeof(TNative));
 }
@@ -206,7 +206,7 @@ void MeshDataEx::SetBoneWeights(const SPtr<RendererMeshData>& thisPtr, const Vec
 
 Vector<u32> MeshDataEx::GetIndices(const SPtr<RendererMeshData>& thisPtr)
 {
-	u32 numElements = thisPtr->GetData()->GetNumIndices();
+	u32 numElements = thisPtr->GetData()->GetIndexCount();
 
 	Vector<u32> output(numElements);
 	thisPtr->GetIndices(output.data(), numElements * sizeof(u32));
@@ -216,17 +216,17 @@ Vector<u32> MeshDataEx::GetIndices(const SPtr<RendererMeshData>& thisPtr)
 
 void MeshDataEx::SetIndices(const SPtr<RendererMeshData>& thisPtr, const Vector<u32>& value)
 {
-	u32 numElements = thisPtr->GetData()->GetNumIndices();
+	u32 numElements = thisPtr->GetData()->GetIndexCount();
 
 	thisPtr->SetIndices((u32*)value.data(), numElements * sizeof(u32));
 }
 
 int MeshDataEx::GetVertexCount(const SPtr<RendererMeshData>& thisPtr)
 {
-	return (int)thisPtr->GetData()->GetNumVertices();
+	return (int)thisPtr->GetData()->GetVertexCount();
 }
 
 int MeshDataEx::GetIndexCount(const SPtr<RendererMeshData>& thisPtr)
 {
-	return (int)thisPtr->GetData()->GetNumIndices();
+	return (int)thisPtr->GetData()->GetIndexCount();
 }

@@ -59,11 +59,11 @@ void TRenderable<Core>::SetMesh(const MeshType& mesh)
 {
 	mMesh = mesh;
 
-	int numSubMeshes = 0;
+	u32 subMeshCount = 0;
 	if(IsMeshValid(mesh))
-		numSubMeshes = mesh->GetProperties().GetNumSubMeshes();
+		subMeshCount = (u32)mesh->GetProperties().SubMeshes.size();
 
-	mMaterials.resize(numSubMeshes);
+	mMaterials.resize(subMeshCount);
 
 	OnMeshChanged();
 
@@ -217,7 +217,7 @@ Bounds Renderable::GetBounds() const
 	}
 	else
 	{
-		Bounds bounds = mesh->GetProperties().GetBounds();
+		Bounds bounds = mesh->GetProperties().Bounds;
 		bounds.TransformAffine(mTfrmMatrix);
 
 		return bounds;
@@ -517,7 +517,7 @@ Bounds Renderable::GetBounds() const
 	}
 	else
 	{
-		Bounds bounds = mesh->GetProperties().GetBounds();
+		Bounds bounds = mesh->GetProperties().Bounds;
 		bounds.TransformAffine(mTfrmMatrix);
 
 		return bounds;
@@ -715,7 +715,7 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 		if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
 			SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-			*vertexDesc = *mMesh->GetVertexDesc();
+			*vertexDesc = *mMesh->GetVertexDescription();
 
 			vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
 			vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);

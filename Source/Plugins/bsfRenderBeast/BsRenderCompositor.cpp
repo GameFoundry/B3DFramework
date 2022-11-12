@@ -1570,7 +1570,7 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	rapi.SetViewport(area);
 
 	SPtr<Mesh> mesh = GetRendererUtility().GetSkyBoxMesh();
-	GetRendererUtility().Draw(mesh, mesh->GetProperties().GetSubMesh(0));
+	GetRendererUtility().Draw(mesh, mesh->GetProperties().SubMeshes[0]);
 }
 
 void RCNodeSkybox::Clear()

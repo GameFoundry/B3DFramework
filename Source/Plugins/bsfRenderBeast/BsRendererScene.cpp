@@ -380,14 +380,14 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 		const MeshProperties& meshProps = mesh->GetProperties();
 		SPtr<VertexDeclaration> vertexDecl = mesh->GetVertexData()->VertexDeclaration;
 
-		for(u32 i = 0; i < meshProps.GetNumSubMeshes(); i++)
+		for(u32 i = 0; i < (u32)meshProps.SubMeshes.size(); i++)
 		{
 			rendererRenderable->Elements.push_back(RenderableElement());
 			RenderableElement& renElement = rendererRenderable->Elements.back();
 
 			renElement.Type = (u32)RenderElementType::Renderable;
 			renElement.Mesh = mesh;
-			renElement.SubMesh = meshProps.GetSubMesh(i);
+			renElement.SubMesh = meshProps.SubMeshes[i];
 			renElement.AnimType = renderable->GetAnimType();
 			renElement.AnimationId = renderable->GetAnimationId();
 			renElement.MorphShapeVersion = 0;
@@ -992,7 +992,7 @@ void RendererScene::RegisterDecal(Decal* decal)
 	DecalRenderElement& renElement = rendererDecal.RenderElement;
 	renElement.Type = (u32)RenderElementType::Decal;
 	renElement.Mesh = RendererUtility::Instance().GetBoxStencil();
-	renElement.SubMesh = renElement.Mesh->GetProperties().GetSubMesh();
+	renElement.SubMesh = renElement.Mesh->GetProperties().SubMeshes[0];
 
 	renElement.Material = decal->GetMaterial();
 
@@ -1455,7 +1455,7 @@ void RendererScene::FreeSamplerStateOverrides(RenderElement& elem)
 	samplerOverrides->RefCount--;
 	if(samplerOverrides->RefCount == 0)
 	{
-		PassSamplerOverrides(samplerOverrides);
+		SamplerOverrideUtility::DestroySamplerOverrides(samplerOverrides);
 		mSamplerOverrides.erase(iterFind);
 	}
 }

@@ -390,7 +390,7 @@ ParticleRenderer::ParticleRenderer()
 	uvIter.AddValue(Vector2(1.0f, 1.0f));
 	uvIter.AddValue(Vector2(1.0f, 0.0f));
 
-	u32 stride = meshData.GetVertexDesc()->GetVertexStride(0);
+	u32 stride = meshData.GetVertexDescription()->GetVertexStride(0);
 
 	Vector3 normal = Vector3::kUnitY;
 	Vector4 tangent(1.0f, 0.0f, 0.0f, 1.0f);

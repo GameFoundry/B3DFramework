@@ -18,8 +18,8 @@ void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData,
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
 
-	B3D_ASSERT((vertexOffset + 4) <= meshData->GetNumVertices());
-	B3D_ASSERT((indexOffset + 6) <= meshData->GetNumIndices());
+	B3D_ASSERT((vertexOffset + 4) <= meshData->GetVertexCount());
+	B3D_ASSERT((indexOffset + 6) <= meshData->GetIndexCount());
 
 	Vector<Vector2> points;
 	points.push_back(Vector2(area.X, area.Y));
@@ -27,7 +27,7 @@ void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData,
 	points.push_back(Vector2(area.X + area.Width, area.Y + area.Height));
 	points.push_back(Vector2(area.X, area.Y + area.Height));
 
-	PixelSolidPolygon(points, positionData, vertexOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, indexOffset);
+	PixelSolidPolygon(points, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
 void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
@@ -35,10 +35,10 @@ void ShapeMeshes2D::PixelLine(const Vector2& a, const Vector2& b, const SPtr<Mes
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
 
-	B3D_ASSERT((vertexOffset + 2) <= meshData->GetNumVertices());
-	B3D_ASSERT((indexOffset + 2) <= meshData->GetNumIndices());
+	B3D_ASSERT((vertexOffset + 2) <= meshData->GetVertexCount());
+	B3D_ASSERT((indexOffset + 2) <= meshData->GetIndexCount());
 
-	PixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, indexOffset);
+	PixelLine(a, b, positionData, vertexOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, indexOffset);
 }
 
 void ShapeMeshes2D::QuadLine(const Vector2& a, const Vector2& b, float width, float border, const Color& color, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
@@ -51,8 +51,8 @@ void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<
 {
 	B3D_ASSERT(linePoints.size() % 2 == 0);
 
-	B3D_ASSERT((vertexOffset + linePoints.size() * 2) <= meshData->GetNumVertices());
-	B3D_ASSERT((indexOffset + linePoints.size() * 2) <= meshData->GetNumIndices());
+	B3D_ASSERT((vertexOffset + linePoints.size() * 2) <= meshData->GetVertexCount());
+	B3D_ASSERT((indexOffset + linePoints.size() * 2) <= meshData->GetIndexCount());
 
 	u32 curVertOffset = vertexOffset;
 	u32 curIdxOffset = indexOffset;
@@ -63,7 +63,7 @@ void ShapeMeshes2D::PixelLineList(const Vector<Vector2>& linePoints, const SPtr<
 	u32 numPoints = (u32)linePoints.size();
 	for(u32 i = 0; i < numPoints; i += 2)
 	{
-		PixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDesc()->GetVertexStride(), indexData, curIdxOffset);
+		PixelLine(linePoints[i], linePoints[i + 1], positionData, curVertOffset, meshData->GetVertexDescription()->GetVertexStride(), indexData, curIdxOffset);
 
 		curVertOffset += 2;
 		curIdxOffset += 2;
@@ -76,14 +76,14 @@ void ShapeMeshes2D::QuadLineList(const Vector<Vector2>& linePoints, float width,
 	B3D_ASSERT(numPoints >= 2);
 
 	u32 numLines = (u32)linePoints.size() - 1;
-	B3D_ASSERT((vertexOffset + (numLines * 2 + 2)) <= meshData->GetNumVertices());
-	B3D_ASSERT((indexOffset + (numLines * 6)) <= meshData->GetNumIndices());
+	B3D_ASSERT((vertexOffset + (numLines * 2 + 2)) <= meshData->GetVertexCount());
+	B3D_ASSERT((indexOffset + (numLines * 6)) <= meshData->GetIndexCount());
 
 	u32* outIndices = indexOffset + meshData->GetIndices32();
 	u8* outVertices = vertexOffset + meshData->GetElementData(VES_POSITION);
 	u8* outColors = vertexOffset + meshData->GetElementData(VES_COLOR);
 
-	u32 vertexStride = meshData->GetVertexDesc()->GetVertexStride();
+	u32 vertexStride = meshData->GetVertexDescription()->GetVertexStride();
 	QuadLineList(&linePoints[0], numPoints, width, border, outVertices, vertexStride, true);
 
 	RGBA colorValue = color.GetAsRgba();

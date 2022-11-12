@@ -728,10 +728,10 @@ void GUIDrawGroups::RebuildMeshes()
 		}
 
 		if(meshData[0])
-			mTriangleMesh = Mesh::CreatePtrInternal(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
+			mTriangleMesh = Mesh::CreateShared(meshData[0], MU_STATIC, DOT_TRIANGLE_LIST);
 
 		if(meshData[1])
-			mLineMesh = Mesh::CreatePtrInternal(meshData[1], MU_STATIC, DOT_LINE_LIST);
+			mLineMesh = Mesh::CreateShared(meshData[1], MU_STATIC, DOT_LINE_LIST);
 	}
 
 	B3DClearAllocatorFrame();
