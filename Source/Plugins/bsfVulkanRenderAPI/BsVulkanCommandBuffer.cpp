@@ -364,7 +364,7 @@ void VulkanCmdBuffer::BeginRenderPass()
 	renderPassBeginInfo.renderArea.offset.y = 0;
 	renderPassBeginInfo.renderArea.extent.width = mFramebuffer->GetWidth();
 	renderPassBeginInfo.renderArea.extent.height = mFramebuffer->GetHeight();
-	renderPassBeginInfo.clearValueCount = renderPass->GetNumClearEntries(mClearMask);
+	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(mClearMask);
 	renderPassBeginInfo.pClearValues = mClearValues.data();
 
 	vkCmdBeginRenderPass(mCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -909,7 +909,7 @@ void VulkanCmdBuffer::SetRenderTarget(const SPtr<RenderTarget>& rt, u32 readOnly
 	if(mFramebuffer != nullptr)
 	{
 		VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-		u32 numColorAttachments = renderPass->GetNumColorAttachments();
+		u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 		for(u32 i = 0; i < numColorAttachments; i++)
 		{
 			const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(i);
@@ -986,7 +986,7 @@ void VulkanCmdBuffer::ClearViewport(const Rect2I& area, u32 buffers, const Color
 		u32 attachmentIdx = 0;
 		if((buffers & FBT_COLOR) != 0)
 		{
-			u32 numColorAttachments = renderPass->GetNumColorAttachments();
+			u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 			for(u32 i = 0; i < numColorAttachments; i++)
 			{
 				const VulkanFramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(i);
@@ -1079,7 +1079,7 @@ void VulkanCmdBuffer::ClearViewport(const Rect2I& area, u32 buffers, const Color
 		ClearMask clearMask;
 		std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> clearValues = mClearValues;
 
-		u32 numColorAttachments = renderPass->GetNumColorAttachments();
+		u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 		if((buffers & FBT_COLOR) != 0)
 		{
 			for(u32 i = 0; i < numColorAttachments; i++)
@@ -1281,7 +1281,7 @@ bool VulkanCmdBuffer::BindGraphicsPipeline()
 		return false;
 
 	// Check that pipeline matches the read-only state of any framebuffer attachments
-	u32 numColorAttachments = renderPass->GetNumColorAttachments();
+	u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 	for(u32 i = 0; i < numColorAttachments; i++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(i);
@@ -1560,7 +1560,7 @@ void VulkanCmdBuffer::UpdateFinalLayouts()
 		return;
 
 	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
-	u32 numColorAttachments = renderPass->GetNumColorAttachments();
+	u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 	for(u32 i = 0; i < numColorAttachments; i++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(i);
@@ -1598,7 +1598,7 @@ void VulkanCmdBuffer::ExecuteClearPass()
 	renderPassBeginInfo.renderArea.offset.y = mClearArea.Y;
 	renderPassBeginInfo.renderArea.extent.width = mClearArea.Width;
 	renderPassBeginInfo.renderArea.extent.height = mClearArea.Height;
-	renderPassBeginInfo.clearValueCount = renderPass->GetNumClearEntries(mClearMask);
+	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(mClearMask);
 	renderPassBeginInfo.pClearValues = mClearValues.data();
 
 	vkCmdBeginRenderPass(mCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -1861,7 +1861,7 @@ VkImageLayout VulkanCmdBuffer::GetCurrentLayout(VulkanImage* image, const VkImag
 				}
 				else // It is a color attachment
 				{
-					u32 numColorAttachments = renderPass->GetNumColorAttachments();
+					u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 					for(u32 j = 0; j < numColorAttachments; j++)
 					{
 						const VulkanFramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(j);
@@ -2279,7 +2279,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanFramebuffer* res, RenderSurfaceMask
 
 	// Register any sub-resources
 	VulkanRenderPass* renderPass = res->GetRenderPass();
-	u32 numColorAttachments = renderPass->GetNumColorAttachments();
+	u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 	for(u32 i = 0; i < numColorAttachments; i++)
 	{
 		const VulkanFramebufferAttachment& attachment = res->GetColorAttachment(i);
@@ -2288,7 +2288,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanFramebuffer* res, RenderSurfaceMask
 		// these values because that's what VulkanFramebuffer expects as initialLayout.
 		VkImageLayout layout;
 		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << i)))
-			layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			layout = attachment.Image->IsShaderReadAllowed() ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		else
 			layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -2594,7 +2594,7 @@ RenderSurfaceMask VulkanCmdBuffer::GetFbReadMask()
 	VulkanRenderPass* renderPass = mFramebuffer->GetRenderPass();
 	RenderSurfaceMask readMask = RT_NONE;
 
-	u32 numColorAttachments = renderPass->GetNumColorAttachments();
+	u32 numColorAttachments = renderPass->GetColorAttachmentCount();
 	for(u32 i = 0; i < numColorAttachments; i++)
 	{
 		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(i);

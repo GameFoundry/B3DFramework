@@ -28,87 +28,145 @@ bool VulkanRenderPass::VariantKey::EqualFunction::operator()(
 	return lhs.LoadMask == rhs.LoadMask && lhs.ReadMask == rhs.ReadMask && lhs.ClearMask == rhs.ClearMask;
 }
 
+size_t VulkanRenderPassAttachmentCreateInformation::CalculateCompatibilityHash(bool isDepth) const
+{
+	size_t hash = 0;
+	B3DCombineHash(hash, IsEnabled);
+	B3DCombineHash(hash, Format);
+
+	if(!isDepth)
+		B3DCombineHash(hash, IsShaderReadAllowed);
+
+	return hash;
+}
+
+bool VulkanRenderPassAttachmentCreateInformation::IsCompatible(bool isDepth, const VulkanRenderPassAttachmentCreateInformation& other) const
+{
+	return IsEnabled == other.IsEnabled && Format == other.Format && (isDepth || IsShaderReadAllowed == other.IsShaderReadAllowed);
+}
+
+size_t VulkanRenderPassCreateInformation::CalculateCompatibilityHash() const
+{
+	size_t hash = 0;
+	B3DCombineHash(hash, IsOffscreenSurface);
+	B3DCombineHash(hash, SampleCount);
+
+	for(u32 i = 0; i < B3DSize(ColorAttachments); i++)
+	{
+		B3DCombineHash(hash, ColorAttachments[i].CalculateCompatibilityHash(false));
+	}
+
+	B3DCombineHash(hash, DepthAttachment.CalculateCompatibilityHash(true));
+
+	return hash;
+}
+
+bool VulkanRenderPassCreateInformation::IsCompatible(const VulkanRenderPassCreateInformation& other) const
+{
+	if(IsOffscreenSurface != other.IsOffscreenSurface || SampleCount != other.SampleCount)
+		return false;
+
+	for(u32 i = 0; i < B3DSize(ColorAttachments); i++)
+	{
+		if(!ColorAttachments[i].IsCompatible(false, other.ColorAttachments[i]))
+			return false;
+	}
+
+	if(!DepthAttachment.IsCompatible(true, other.DepthAttachment))
+		return false;
+
+	return true;
+}
+
+
 u32 VulkanRenderPass::sNextValidId = 1;
 
-VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VULKAN_RENDER_PASS_DESC& desc)
+VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPassCreateInformation& createInformation)
 	: mDevice(device)
 {
 	mId = sNextValidId++;
-	mSampleFlags = VulkanUtility::GetSampleFlags(desc.NumSamples);
+	mSampleFlags = VulkanUtility::GetSampleFlags(createInformation.SampleCount);
 
-	u32 attachmentIdx = 0;
+	u32 sequentialAttachmentIndex = 0;
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		if(!desc.Color[i].Enabled)
-			continue;
+		const VulkanRenderPassAttachmentCreateInformation& attachmentCreateInformation = createInformation.ColorAttachments[i];
 
-		VkAttachmentDescription& attachmentDesc = mAttachments[attachmentIdx];
-		attachmentDesc.flags = 0;
-		attachmentDesc.format = desc.Color[i].Format;
-		attachmentDesc.samples = mSampleFlags;
-		attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		VkAttachmentReference& vkAttachmentReference = mColorReferences[sequentialAttachmentIndex];
 
-		// If offscreen we make the assumption the surface will be read by a shader
-		if(desc.Offscreen)
-			attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		if(attachmentCreateInformation.IsEnabled)
+		{
+			VkAttachmentDescription& vkAttachmentDescription = mAttachments[sequentialAttachmentIndex];
+			vkAttachmentDescription.flags = 0;
+			vkAttachmentDescription.format = attachmentCreateInformation.Format;
+			vkAttachmentDescription.samples = mSampleFlags;
+			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+			if(createInformation.IsOffscreenSurface)
+				vkAttachmentDescription.finalLayout = attachmentCreateInformation.IsShaderReadAllowed ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			else
+				vkAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			vkAttachmentReference.attachment = sequentialAttachmentIndex;
+			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			mColorAttachmentSequentialToAttachmentIndexMap[sequentialAttachmentIndex] = i;
+			mIsShaderReadAllowedForColorAttachment[i] = attachmentCreateInformation.IsShaderReadAllowed;
+
+			mMaximumColorAttachmentIndex = i;
+			sequentialAttachmentIndex++;
+		}
 		else
-			attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		{
+			vkAttachmentReference.attachment = VK_ATTACHMENT_UNUSED;
+			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		VkAttachmentReference& ref = mColorReferences[attachmentIdx];
-		ref.attachment = attachmentIdx;
-		ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-		mIndices[attachmentIdx] = i;
-		attachmentIdx++;
+			mIsShaderReadAllowedForColorAttachment[i] = false;
+		}
 	}
 
-	mNumColorAttachments = attachmentIdx;
-	mHasDepth = desc.Depth.Enabled;
+	mColorAttachmentCount = sequentialAttachmentIndex;
+	mHasDepthAttachment = createInformation.DepthAttachment.IsEnabled;
 
-	if(mHasDepth)
+	if(mHasDepthAttachment)
 	{
-		VkAttachmentDescription& attachmentDesc = mAttachments[attachmentIdx];
-		attachmentDesc.flags = 0;
-		attachmentDesc.format = desc.Depth.Format;
-		attachmentDesc.samples = mSampleFlags;
-		attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		attachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-		attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachmentDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		VkAttachmentDescription& vkAttachmentDescription = mAttachments[sequentialAttachmentIndex];
+		vkAttachmentDescription.flags = 0;
+		vkAttachmentDescription.format = createInformation.DepthAttachment.Format;
+		vkAttachmentDescription.samples = mSampleFlags;
+		vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		vkAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		vkAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+		vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		vkAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkAttachmentReference& ref = mDepthReference;
-		ref.attachment = attachmentIdx;
-		ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		mDepthReference.attachment = sequentialAttachmentIndex;
+		mDepthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		attachmentIdx++;
+		sequentialAttachmentIndex++;
 	}
 
-	mNumAttachments = attachmentIdx;
+	mAttachmentCount = sequentialAttachmentIndex;
 
-	mSubpassDesc.flags = 0;
-	mSubpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	mSubpassDesc.colorAttachmentCount = mNumColorAttachments;
-	mSubpassDesc.inputAttachmentCount = 0;
-	mSubpassDesc.pInputAttachments = nullptr;
-	mSubpassDesc.preserveAttachmentCount = 0;
-	mSubpassDesc.pPreserveAttachments = nullptr;
-	mSubpassDesc.pResolveAttachments = nullptr;
+	mSubpassDescription.flags = 0;
+	mSubpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	mSubpassDescription.colorAttachmentCount = mColorAttachmentCount > 0 ? (mMaximumColorAttachmentIndex + 1) : 0;
+	mSubpassDescription.inputAttachmentCount = 0;
+	mSubpassDescription.pInputAttachments = nullptr;
+	mSubpassDescription.preserveAttachmentCount = 0;
+	mSubpassDescription.pPreserveAttachments = nullptr;
+	mSubpassDescription.pResolveAttachments = nullptr;
+	mSubpassDescription.pColorAttachments = mColorReferences;
 
-	if(mNumColorAttachments > 0)
-		mSubpassDesc.pColorAttachments = mColorReferences;
+	if(mHasDepthAttachment)
+		mSubpassDescription.pDepthStencilAttachment = &mDepthReference;
 	else
-		mSubpassDesc.pColorAttachments = nullptr;
-
-	if(mHasDepth)
-		mSubpassDesc.pDepthStencilAttachment = &mDepthReference;
-	else
-		mSubpassDesc.pDepthStencilAttachment = nullptr;
+		mSubpassDescription.pDepthStencilAttachment = nullptr;
 
 	// Subpass dependencies for layout transitions
 	mDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -133,10 +191,10 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VULKAN_RENDER_P
 	mRenderPassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	mRenderPassCI.pNext = nullptr;
 	mRenderPassCI.flags = 0;
-	mRenderPassCI.attachmentCount = mNumAttachments;
+	mRenderPassCI.attachmentCount = mAttachmentCount;
 	mRenderPassCI.pAttachments = mAttachments;
 	mRenderPassCI.subpassCount = 1;
-	mRenderPassCI.pSubpasses = &mSubpassDesc;
+	mRenderPassCI.pSubpasses = &mSubpassDescription;
 	mRenderPassCI.dependencyCount = 2;
 	mRenderPassCI.pDependencies = mDependencies;
 
@@ -153,58 +211,59 @@ VulkanRenderPass::~VulkanRenderPass()
 
 VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const
 {
-	for(u32 i = 0; i < mNumColorAttachments; i++)
+	for(u32 sequentialAttachmentIndex = 0; sequentialAttachmentIndex < mColorAttachmentCount; sequentialAttachmentIndex++)
 	{
-		VkAttachmentDescription& attachmentDesc = mAttachments[i];
-		VkAttachmentReference& attachmentRef = mColorReferences[i];
-		u32 index = mIndices[i];
+		const u32 attachmentIndex = mColorAttachmentSequentialToAttachmentIndexMap[sequentialAttachmentIndex];
 
-		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << index)))
+		VkAttachmentDescription& vkAttachmentDescription = mAttachments[sequentialAttachmentIndex];
+		VkAttachmentReference& vkAttachmentReference = mColorReferences[attachmentIndex];
+
+		if(loadMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
 		{
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			vkAttachmentDescription.initialLayout = mIsShaderReadAllowedForColorAttachment[attachmentIndex] ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
-		else if(clearMask.IsSet((ClearMaskBits)(1 << index)))
+		else if(clearMask.IsSet((ClearMaskBits)(1 << attachmentIndex)))
 		{
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		}
 		else
 		{
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		}
 
-		if(readMask.IsSet((RenderSurfaceMaskBits)(1 << index)))
-			attachmentRef.layout = VK_IMAGE_LAYOUT_GENERAL;
+		if(readMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
+			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_GENERAL;
 		else
-			attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			vkAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	}
 
-	if(mHasDepth)
+	if(mHasDepthAttachment)
 	{
-		VkAttachmentDescription& attachmentDesc = mAttachments[mNumColorAttachments];
-		VkAttachmentReference& attachmentRef = mDepthReference;
+		VkAttachmentDescription& vkAttachmentDescription = mAttachments[mColorAttachmentCount];
+		VkAttachmentReference& vkAttachmentReference = mDepthReference;
 
 		if(loadMask.IsSet(RT_DEPTH) || loadMask.IsSet(RT_STENCIL))
 		{
-			attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}
 		else
 		{
 			if(clearMask.IsSet(CLEAR_DEPTH))
-				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else
-				attachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
 			if(clearMask.IsSet(CLEAR_STENCIL))
-				attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else
-				attachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			attachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		}
 
 		// When depth-stencil is readable it's up to the caller to ensure he doesn't try to write to it as well, so we
@@ -212,16 +271,16 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		if(readMask.IsSet(RT_DEPTH))
 		{
 			if(readMask.IsSet(RT_STENCIL))
-				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				vkAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 			else // Depth readable but stencil isn't
-				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
+				vkAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
 		}
 		else
 		{
 			if(readMask.IsSet(RT_STENCIL)) // Stencil readable but depth isn't
-				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
+				vkAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
 			else
-				attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				vkAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		}
 	}
 
@@ -248,26 +307,26 @@ VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, Rende
 	return newVariant;
 }
 
-u32 VulkanRenderPass::GetNumClearEntries(ClearMask clearMask) const
+u32 VulkanRenderPass::GetClearEntryCount(ClearMask clearMask) const
 {
 	if(clearMask == CLEAR_NONE)
 		return 0;
 	else if(clearMask == CLEAR_ALL)
-		return GetNumAttachments();
+		return GetAttachmentCount();
 	else if(((u32)clearMask & (u32)(CLEAR_DEPTH | CLEAR_STENCIL)) != 0 && HasDepthAttachment())
-		return GetNumAttachments();
+		return GetAttachmentCount();
 
-	u32 numAttachments = 0;
+	u32 attachmentCount = 0;
 	for(i32 i = B3D_MAXIMUM_RENDER_TARGET_COUNT - 1; i >= 0; i--)
 	{
 		if(((1 << i) & (u32)clearMask) != 0)
 		{
-			numAttachments = i + 1;
+			attachmentCount = i + 1;
 			break;
 		}
 	}
 
-	return std::min(numAttachments, GetNumColorAttachments());
+	return std::min(attachmentCount, GetColorAttachmentCount());
 }
 
 VulkanRenderPasses::~VulkanRenderPasses()
@@ -276,7 +335,7 @@ VulkanRenderPasses::~VulkanRenderPasses()
 		B3DDelete(entry.second);
 }
 
-VulkanRenderPass* VulkanRenderPasses::Get(const VkDevice& device, const VULKAN_RENDER_PASS_DESC& desc)
+VulkanRenderPass* VulkanRenderPasses::Get(const VkDevice& device, const VulkanRenderPassCreateInformation& desc)
 {
 	VariantKey key(device, desc);
 
@@ -295,44 +354,21 @@ VulkanRenderPass* VulkanRenderPasses::Get(const VkDevice& device, const VULKAN_R
 	return pass;
 }
 
-VulkanRenderPasses::VariantKey::VariantKey(const VkDevice& device, const VULKAN_RENDER_PASS_DESC& desc)
-	: Device(device), Desc(desc)
+VulkanRenderPasses::VariantKey::VariantKey(const VkDevice& device, const VulkanRenderPassCreateInformation& createInformation)
+	: Device(device), CreateInformation(createInformation)
 {}
 
 size_t VulkanRenderPasses::VariantKey::HashFunction::operator()(const VariantKey& v) const
 {
 	size_t hash = 0;
 	B3DCombineHash(hash, v.Device);
-	B3DCombineHash(hash, v.Desc.Offscreen);
-	B3DCombineHash(hash, v.Desc.NumSamples);
-	B3DCombineHash(hash, v.Desc.Depth.Enabled);
-	B3DCombineHash(hash, v.Desc.Depth.Format);
-
-	for(u32 i = 0; i < B3DSize(v.Desc.Color); i++)
-	{
-		B3DCombineHash(hash, v.Desc.Color[i].Enabled);
-		B3DCombineHash(hash, v.Desc.Color[i].Format);
-	}
+	B3DCombineHash(hash, v.CreateInformation.CalculateCompatibilityHash());
 
 	return hash;
 }
 
 bool VulkanRenderPasses::VariantKey::EqualFunction::operator()(const VariantKey& lhs, const VariantKey& rhs) const
 {
-	if(lhs.Device != rhs.Device ||
-	   lhs.Desc.Offscreen != rhs.Desc.Offscreen ||
-	   lhs.Desc.NumSamples != rhs.Desc.NumSamples ||
-	   lhs.Desc.Depth.Enabled != rhs.Desc.Depth.Enabled ||
-	   lhs.Desc.Depth.Format != rhs.Desc.Depth.Format)
-		return false;
-
-	for(u32 i = 0; i < B3DSize(lhs.Desc.Color); i++)
-	{
-		if(lhs.Desc.Color[i].Enabled != rhs.Desc.Color[i].Enabled ||
-		   lhs.Desc.Color[i].Format != rhs.Desc.Color[i].Format)
-			return false;
-	}
-
-	return true;
+	return lhs.Device == rhs.Device && lhs.CreateInformation.IsCompatible(rhs.CreateInformation);
 }
 

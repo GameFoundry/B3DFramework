@@ -35,28 +35,31 @@ namespace bs
 		{
 		public:
 			/**
-			 * @param[in]	owner			Resource manager that keeps track of lifetime of this resource.
-			 * @param[in]	image			Internal image Vulkan object.
-			 * @param[in]	allocation		Information about the memory bound to the image.
-			 * @param[in]	layout			Initial layout of the image.
-			 * @param[in]	actualFormat	Actual format the image was created with (rather than the requested format).
-			 * @param[in]	props			Properties describing the image.
-			 * @param[in]	ownsImage		If true, this object will take care of releasing the image and its memory, otherwise
-			 *								it is expected they will be released externally.
+			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
+			 * @param	image					Internal image Vulkan object.
+			 * @param	allocation				Information about the memory bound to the image.
+			 * @param	layout					Initial layout of the image.
+			 * @param	actualFormat			Actual format the image was created with (rather than the requested format).
+			 * @param	props					Properties describing the image.
+			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
+			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage = true);
+			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage = true, bool isShaderReadAllowed = true);
 
 			/**
-			 * @param[in]	owner		Resource manager that keeps track of lifetime of this resource.
-			 * @param[in]	desc		Describes the image to assign.
-			 * @param[in]	ownsImage	If true, this object will take care of releasing the image and its memory, otherwise
-			 *							it is expected they will be released externally.
+			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
+			 * @param	desc					Describes the image to assign.
+			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
+			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage = true);
+			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage = true, bool isShaderReadAllowed = true);
 			~VulkanImage();
 
 			/** Returns the internal handle to the Vulkan object. */
 			VkImage GetHandle() const { return mImage; }
+
+			/** Returns true if the image can be read from a shader. If false, it may only be used as a framebuffer attachment. */
+			bool IsShaderReadAllowed() const { return mIsShaderReadAllowed; }
 
 			/** Returns the preferred (not necessarily current) layout of the image. */
 			VkImageLayout GetOptimalLayout() const;
@@ -182,6 +185,7 @@ namespace bs
 			VkImageView mFramebufferMainView;
 			i32 mUsage;
 			bool mOwnsImage;
+			bool mIsShaderReadAllowed = true;
 
 			u32 mFaceCount;
 			u32 mDepthSliceCount;

@@ -137,7 +137,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 
 		mSurfaces[i].Acquired = false;
 		mSurfaces[i].NeedsWait = false;
-		mSurfaces[i].Image = owner->Create<VulkanImage>(imageDesc, false);
+		mSurfaces[i].Image = owner->Create<VulkanImage>(imageDesc, false, false);
 		mSurfaces[i].Sync = owner->Create<VulkanSemaphore>();
 	}
 
@@ -172,22 +172,24 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		imageDesc.Format = depthFormat;
 		imageDesc.Allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true);
+		mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true, false);
 	}
 	else
 		mDepthStencilImage = nullptr;
 
 	// Create a render pass
-	VULKAN_RENDER_PASS_DESC rpDesc;
-	rpDesc.NumSamples = 1;
-	rpDesc.Offscreen = false;
-	rpDesc.Color[0].Format = colorFormat;
-	rpDesc.Color[0].Enabled = true;
+	VulkanRenderPassCreateInformation rpDesc;
+	rpDesc.SampleCount = 1;
+	rpDesc.IsOffscreenSurface = false;
+	rpDesc.ColorAttachments[0].Format = colorFormat;
+	rpDesc.ColorAttachments[0].IsShaderReadAllowed = false;
+	rpDesc.ColorAttachments[0].IsEnabled = true;
 
 	if(mDepthStencilImage)
 	{
-		rpDesc.Depth.Format = depthFormat;
-		rpDesc.Depth.Enabled = true;
+		rpDesc.DepthAttachment.Format = depthFormat;
+		rpDesc.DepthAttachment.IsShaderReadAllowed = false;
+		rpDesc.DepthAttachment.IsEnabled = true;
 	}
 
 	VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().Get(mDevice, rpDesc);

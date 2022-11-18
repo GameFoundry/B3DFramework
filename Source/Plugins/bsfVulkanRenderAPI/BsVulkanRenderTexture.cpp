@@ -31,9 +31,9 @@ void VulkanRenderTexture::Initialize()
 {
 	RenderTexture::Initialize();
 
-	VULKAN_RENDER_PASS_DESC rpDesc;
-	rpDesc.NumSamples = mProperties.MultisampleCount > 1 ? mProperties.MultisampleCount : 1;
-	rpDesc.Offscreen = true;
+	VulkanRenderPassCreateInformation rpDesc;
+	rpDesc.SampleCount = mProperties.MultisampleCount > 1 ? mProperties.MultisampleCount : 1;
+	rpDesc.IsOffscreenSurface = true;
 
 	VULKAN_FRAMEBUFFER_DESC fbDesc;
 	fbDesc.Width = mProperties.Width;
@@ -87,8 +87,9 @@ void VulkanRenderTexture::Initialize()
 		fbDesc.Color[i].Image = image;
 		fbDesc.Color[i].Surface = surface;
 
-		rpDesc.Color[i].Enabled = true;
-		rpDesc.Color[i].Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
+		rpDesc.ColorAttachments[i].IsEnabled = true;
+		rpDesc.ColorAttachments[i].IsShaderReadAllowed = image->IsShaderReadAllowed();
+		rpDesc.ColorAttachments[i].Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
 	}
 
 	if(mDepthStencilSurface != nullptr)
@@ -129,8 +130,9 @@ void VulkanRenderTexture::Initialize()
 			fbDesc.Depth.Surface = surface;
 			fbDesc.Depth.BaseLayer = viewSurface.Face;
 
-			rpDesc.Depth.Enabled = true;
-			rpDesc.Depth.Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
+			rpDesc.DepthAttachment.IsEnabled = true;
+			rpDesc.DepthAttachment.IsShaderReadAllowed = image->IsShaderReadAllowed();
+			rpDesc.DepthAttachment.Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
 		}
 	}
 

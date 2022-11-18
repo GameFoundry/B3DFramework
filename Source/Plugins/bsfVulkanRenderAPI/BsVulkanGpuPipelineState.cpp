@@ -370,7 +370,7 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIdx, Vulka
 	mInputAssemblyInfo.topology = VulkanUtility::GetDrawOp(drawOp);
 	mTesselationInfo.patchControlPoints = 3; // Not provided by our shaders for now
 	mMultiSampleInfo.rasterizationSamples = renderPass->GetSampleFlags();
-	mColorBlendStateInfo.attachmentCount = renderPass->GetNumColorAttachments();
+	mColorBlendStateInfo.attachmentCount = renderPass->GetColorAttachmentCount() > 0 ? (renderPass->GetMaximumColorAttachmentIndex() + 1) : 0;
 
 	DepthStencilState* dsState = GetDepthStencilState().get();
 	if(dsState == nullptr)
@@ -422,7 +422,7 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIdx, Vulka
 	}
 
 	std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT> colorReadOnly;
-	if(renderPass->GetNumColorAttachments() > 0)
+	if(renderPass->GetColorAttachmentCount() > 0)
 	{
 		mPipelineInfo.pColorBlendState = &mColorBlendStateInfo;
 
