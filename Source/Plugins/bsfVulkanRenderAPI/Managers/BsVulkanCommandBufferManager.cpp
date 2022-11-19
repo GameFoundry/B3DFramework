@@ -40,51 +40,6 @@ void VulkanTransferBuffer::Allocate()
 	mCB = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
 }
 
-void VulkanTransferBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
-{
-	mCB->memoryBarrier(buffer, srcAccessFlags, dstAccessFlags, srcStage, dstStage);
-}
-
-void VulkanTransferBuffer::SetLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range)
-{
-	mCB->SetLayout(image, srcAccessFlags, dstAccessFlags, oldLayout, newLayout, range);
-}
-
-void VulkanTransferBuffer::SetLayout(VulkanImage* image, const VkImageSubresourceRange& range, VkAccessFlags newAccessMask, VkImageLayout newLayout)
-{
-	image->GetBarriers(range, mBarriersTemp);
-
-	if(mBarriersTemp.size() == 0)
-		return;
-
-	i32 count = (i32)mBarriersTemp.size();
-	for(i32 i = 0; i < count; i++)
-	{
-		VkImageMemoryBarrier& barrier = mBarriersTemp[i];
-
-		// Remove barriers that don't signify a layout change
-		if(barrier.oldLayout == newLayout)
-		{
-			if(i < (count - 1))
-				std::swap(mBarriersTemp[i], mBarriersTemp[count - 1]);
-
-			mBarriersTemp.erase(mBarriersTemp.begin() + count - 1);
-			count--;
-			i--;
-		}
-	}
-
-	for(auto& entry : mBarriersTemp)
-	{
-		entry.dstAccessMask = newAccessMask;
-		entry.newLayout = newLayout;
-	}
-
-	vkCmdPipelineBarrier(mCB->GetHandle(), VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, (u32)mBarriersTemp.size(), mBarriersTemp.data());
-
-	mBarriersTemp.clear();
-}
-
 void VulkanTransferBuffer::Flush(bool wait)
 {
 	if(mCB == nullptr)

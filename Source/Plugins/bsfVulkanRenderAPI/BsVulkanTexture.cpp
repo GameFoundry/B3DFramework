@@ -278,26 +278,6 @@ const TextureSurface& VulkanImage::CalculateExplicitSurface(TextureSurface& surf
 	return surface;
 }
 
-
-VkImageLayout VulkanImage::GetOptimalLayout() const
-{
-	// If it's load-store, no other flags matter, it must be in general layout
-	if((mUsage & TU_LOADSTORE) != 0)
-		return VK_IMAGE_LAYOUT_GENERAL;
-
-	if((mUsage & TU_RENDERTARGET) != 0)
-		return mIsShaderReadAllowed ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	else if((mUsage & TU_DEPTHSTENCIL) != 0)
-		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	else
-	{
-		if((mUsage & TU_DYNAMIC) != 0)
-			return VK_IMAGE_LAYOUT_GENERAL;
-
-		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	}
-}
-
 VkImageAspectFlags VulkanImage::GetAspectFlags() const
 {
 	if((mUsage & TU_DEPTHSTENCIL) != 0)
@@ -343,6 +323,46 @@ VulkanImageSubresource* VulkanImage::GetSubresource(u32 face, u32 mipLevel)
 {
 	B3D_ASSERT(mipLevel * mFaceCount + face < mFaceCount * mMipLevelCount);
 	return mSubresources[mipLevel * mFaceCount + face];
+}
+
+VkSubresourceLayout VulkanImage::GetSubresourceLayout(u32 face, u32 mipLevel) const
+{
+	VulkanDevice& device = mOwner->GetDevice();
+
+	VkImageSubresource subresourceRange;
+	subresourceRange.mipLevel = mipLevel;
+	subresourceRange.arrayLayer = face;
+
+	if(mImageViewCI.subresourceRange.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT)
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	else
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT; // Ignoring stencil
+
+	VkSubresourceLayout layout;
+	vkGetImageSubresourceLayout(device.GetLogical(), mImage, &subresourceRange, &layout);
+	
+	return layout;
+}
+
+ImageSubresourcePitch VulkanImage::ConvertSubresourceLayoutToBlocks(const VkSubresourceLayout& subresourceLayout, PixelFormat format)
+{
+	const u32 blockSize = PixelUtil::GetBlockSize(format);
+
+	B3D_ASSERT(subresourceLayout.rowPitch % blockSize == 0);
+	B3D_ASSERT(subresourceLayout.depthPitch % blockSize == 0);
+
+	u32 rowPitchInPixels = (u32)(subresourceLayout.rowPitch / blockSize);
+	u32 depthPitch = (u32)(subresourceLayout.depthPitch / blockSize);
+
+	if(PixelUtil::IsCompressed(format))
+	{
+		// For compressed formats, we return the pitch in blocks
+		const Vector2I blockDimension = PixelUtil::GetBlockDimensions(format);
+		rowPitchInPixels *= blockDimension.X;
+		depthPitch *= blockDimension.X * blockDimension.Y;
+	}
+
+	return ImageSubresourcePitch(rowPitchInPixels, rowPitchInPixels != 0 ? depthPitch / rowPitchInPixels : 0);
 }
 
 void VulkanImage::Map(u32 face, u32 mipLevel, PixelData& output) const
@@ -399,21 +419,6 @@ void VulkanImage::Unmap()
 	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
 
 	vkUnmapMemory(device.GetLogical(), memory);
-}
-
-void VulkanImage::Copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, const VkExtent3D& extent, const VkImageSubresourceLayers& range, VkImageLayout layout)
-{
-	VkBufferImageCopy region;
-	region.bufferRowLength = destination->GetRowPitch();
-	region.bufferImageHeight = destination->GetSliceHeight();
-	region.bufferOffset = 0;
-	region.imageOffset.x = 0;
-	region.imageOffset.y = 0;
-	region.imageOffset.z = 0;
-	region.imageExtent = extent;
-	region.imageSubresource = range;
-
-	vkCmdCopyImageToBuffer(cb->GetCb()->GetHandle(), mImage, layout, destination->GetHandle(), 1, &region);
 }
 
 VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
@@ -844,18 +849,18 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData
 	return device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation, rowPitchInPixels, slicePitchInPixels);
 }
 
-void VulkanTexture::CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, VkImageLayout srcFinalLayout, VkImageLayout dstFinalLayout)
+void VulkanTexture::CopyImageToImage(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
 {
-	u32 numFaces = mProperties.GetNumFaces();
-	u32 numMipmaps = mProperties.GetNumMipmaps() + 1;
+	const u32 faceCount = mProperties.GetNumFaces();
+	const u32 mipCount = mProperties.GetNumMipmaps() + 1;
 
 	u32 mipWidth = mProperties.GetWidth();
 	u32 mipHeight = mProperties.GetHeight();
 	u32 mipDepth = mProperties.GetDepth();
 
-	VkImageCopy* imageRegions = B3DStackAllocate<VkImageCopy>(numMipmaps);
+	VkImageCopy *const imageRegions = B3DStackAllocate<VkImageCopy>(mipCount);
 
-	for(u32 i = 0; i < numMipmaps; i++)
+	for(u32 i = 0; i < mipCount; i++)
 	{
 		VkImageCopy& imageRegion = imageRegions[i];
 
@@ -863,11 +868,11 @@ void VulkanTexture::CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, V
 		imageRegion.dstOffset = { 0, 0, 0 };
 		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
 		imageRegion.srcSubresource.baseArrayLayer = 0;
-		imageRegion.srcSubresource.layerCount = numFaces;
+		imageRegion.srcSubresource.layerCount = faceCount;
 		imageRegion.srcSubresource.mipLevel = i;
 		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		imageRegion.dstSubresource.baseArrayLayer = 0;
-		imageRegion.dstSubresource.layerCount = numFaces;
+		imageRegion.dstSubresource.layerCount = faceCount;
 		imageRegion.dstSubresource.mipLevel = i;
 		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
@@ -879,42 +884,74 @@ void VulkanTexture::CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, V
 	VkImageSubresourceRange range;
 	range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	range.baseArrayLayer = 0;
-	range.layerCount = numFaces;
+	range.layerCount = faceCount;
 	range.baseMipLevel = 0;
-	range.levelCount = numMipmaps;
+	range.levelCount = mipCount;
 
-	VkImageLayout transferSrcLayout, transferDstLayout;
+	VkImageLayout transferSourceLayout, transferDestinationLayout;
 	if(mDirectlyMappable)
 	{
-		transferSrcLayout = VK_IMAGE_LAYOUT_GENERAL;
-		transferDstLayout = VK_IMAGE_LAYOUT_GENERAL;
+		transferSourceLayout = VK_IMAGE_LAYOUT_GENERAL;
+		transferDestinationLayout = VK_IMAGE_LAYOUT_GENERAL;
 	}
 	else
 	{
-		transferSrcLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-		transferDstLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		transferSourceLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		transferDestinationLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	}
 
-	// Transfer textures to a valid layout
-	cb->SetLayout(srcImage, range, VK_ACCESS_TRANSFER_READ_BIT, transferSrcLayout);
-	cb->SetLayout(dstImage, range, VK_ACCESS_TRANSFER_WRITE_BIT, transferDstLayout);
-
-	vkCmdCopyImage(cb->GetCb()->GetHandle(), srcImage->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstImage->GetHandle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, numMipmaps, imageRegions);
-
-	// Transfer back to final layouts
-	VkAccessFlags srcAccessMask = srcImage->GetAccessFlags(srcFinalLayout);
-	cb->SetLayout(srcImage->GetHandle(), VK_ACCESS_TRANSFER_READ_BIT, srcAccessMask, transferSrcLayout, srcFinalLayout, range);
-
-	VkAccessFlags dstAccessMask = dstImage->GetAccessFlags(dstFinalLayout);
-	cb->SetLayout(dstImage->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, dstAccessMask, transferDstLayout, dstFinalLayout, range);
-
-	cb->GetCb()->RegisterImageTransfer(srcImage, range, srcFinalLayout, VulkanAccessFlag::Read);
-	cb->GetCb()->RegisterImageTransfer(dstImage, range, dstFinalLayout, VulkanAccessFlag::Write);
+	commandBuffer->GetCb()->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
 
 	B3DStackFree(imageRegions);
 }
 
-void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer)
+ImageSubresourcePitch VulkanTexture::GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const
+{
+	VkSubresourceLayout subresourceLayout;
+	if(mDirectlyMappable)
+	{
+		subresourceLayout = image->GetSubresourceLayout(face, mipLevel);
+	}
+	else
+	{
+		u32 mipWidth, mipHeight, mipDepth;
+		PixelUtil::GetSizeForMipLevel(mProperties.GetWidth(), mProperties.GetHeight(), mProperties.GetDepth(), mipLevel, mipWidth, mipHeight, mipDepth);
+
+		u32 rowPitch, depthPitch;
+		PixelUtil::GetPitch(mipWidth, mipHeight, mipDepth, mProperties.GetFormat(), rowPitch, depthPitch);
+
+		subresourceLayout.rowPitch = rowPitch;
+		subresourceLayout.depthPitch = depthPitch;
+	}
+
+	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.GetFormat());
+}
+
+void VulkanTexture::CopyImageSubresourceToBuffer(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
+{
+	VkExtent3D extent;
+	PixelUtil::GetSizeForMipLevel(mProperties.GetWidth(), mProperties.GetHeight(), mProperties.GetDepth(), sourceMipLevel, extent.width, extent.height, extent.depth);
+
+	const ImageSubresourcePitch pitch = GetPitchForSubresource(sourceImage, sourceFace, sourceMipLevel);
+
+	VkImageSubresourceRange subresourceRange;
+	subresourceRange.baseArrayLayer = sourceFace;
+	subresourceRange.layerCount = 1;
+	subresourceRange.baseMipLevel = sourceMipLevel;
+	subresourceRange.levelCount = 1;
+
+	if((mProperties.GetUsage() & TU_DEPTHSTENCIL) != 0)
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+	else
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	commandBuffer->GetCb()->CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
+
+	const VkAccessFlags stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | (isBufferReadOnly ? 0 : VK_ACCESS_HOST_WRITE_BIT);
+	commandBuffer->GetCb()->MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+}
+
+void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& copyInformation, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanTexture* other = static_cast<VulkanTexture*>(target.get());
 
@@ -941,14 +978,14 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DES
 		}
 	}
 
-	VkImageLayout transferSrcLayout = mDirectlyMappable ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	VkImageLayout transferDstLayout = other->mDirectlyMappable ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	VkImageLayout transferSourceLayout = mDirectlyMappable ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	VkImageLayout transferDestinationLayout = other->mDirectlyMappable ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
 	u32 mipWidth, mipHeight, mipDepth;
 
-	bool copyEntireSurface = desc.SrcVolume.GetWidth() == 0 ||
-		desc.SrcVolume.GetHeight() == 0 ||
-		desc.SrcVolume.GetDepth() == 0;
+	bool copyEntireSurface = copyInformation.SourceVolume.GetWidth() == 0 ||
+		copyInformation.SourceVolume.GetHeight() == 0 ||
+		copyInformation.SourceVolume.GetDepth() == 0;
 
 	if(copyEntireSurface)
 	{
@@ -956,57 +993,34 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DES
 			srcProps.GetWidth(),
 			srcProps.GetHeight(),
 			srcProps.GetDepth(),
-			desc.SrcMip,
+			copyInformation.SourceMip,
 			mipWidth,
 			mipHeight,
 			mipDepth);
 	}
 	else
 	{
-		mipWidth = desc.SrcVolume.GetWidth();
-		mipHeight = desc.SrcVolume.GetHeight();
-		mipDepth = desc.SrcVolume.GetDepth();
+		mipWidth = copyInformation.SourceVolume.GetWidth();
+		mipHeight = copyInformation.SourceVolume.GetHeight();
+		mipDepth = copyInformation.SourceVolume.GetDepth();
 	}
 
-	VkImageResolve resolveRegion;
-	resolveRegion.srcOffset = { (i32)desc.SrcVolume.Left, (i32)desc.SrcVolume.Top, (i32)desc.SrcVolume.Front };
-	resolveRegion.dstOffset = { desc.DstPosition.X, desc.DstPosition.Y, desc.DstPosition.Z };
-	resolveRegion.extent = { mipWidth, mipHeight, mipDepth };
-	resolveRegion.srcSubresource.baseArrayLayer = desc.SrcFace;
-	resolveRegion.srcSubresource.layerCount = 1;
-	resolveRegion.srcSubresource.mipLevel = desc.SrcMip;
-	resolveRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	resolveRegion.dstSubresource.baseArrayLayer = desc.DstFace;
-	resolveRegion.dstSubresource.layerCount = 1;
-	resolveRegion.dstSubresource.mipLevel = desc.DstMip;
-	resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	if(mipWidth == 0 || mipHeight == 0 || mipDepth == 0)
+		return;
 
-	VkImageCopy imageRegion;
-	imageRegion.srcOffset = { (i32)desc.SrcVolume.Left, (i32)desc.SrcVolume.Top, (i32)desc.SrcVolume.Front };
-	imageRegion.dstOffset = { desc.DstPosition.X, desc.DstPosition.Y, desc.DstPosition.Z };
-	imageRegion.extent = { mipWidth, mipHeight, mipDepth };
-	imageRegion.srcSubresource.baseArrayLayer = desc.SrcFace;
-	imageRegion.srcSubresource.layerCount = 1;
-	imageRegion.srcSubresource.mipLevel = desc.SrcMip;
-	imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	imageRegion.dstSubresource.baseArrayLayer = desc.DstFace;
-	imageRegion.dstSubresource.layerCount = 1;
-	imageRegion.dstSubresource.mipLevel = desc.DstMip;
-	imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	VkImageSubresourceRange sourceRange;
+	sourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	sourceRange.baseArrayLayer = copyInformation.SourceFace;
+	sourceRange.layerCount = 1;
+	sourceRange.baseMipLevel = copyInformation.SourceMip;
+	sourceRange.levelCount = 1;
 
-	VkImageSubresourceRange srcRange;
-	srcRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	srcRange.baseArrayLayer = desc.SrcFace;
-	srcRange.layerCount = 1;
-	srcRange.baseMipLevel = desc.SrcMip;
-	srcRange.levelCount = 1;
-
-	VkImageSubresourceRange dstRange;
-	dstRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	dstRange.baseArrayLayer = desc.DstFace;
-	dstRange.layerCount = 1;
-	dstRange.baseMipLevel = desc.DstMip;
-	dstRange.levelCount = 1;
+	VkImageSubresourceRange destinationRange;
+	destinationRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	destinationRange.baseArrayLayer = copyInformation.DestinationFace;
+	destinationRange.layerCount = 1;
+	destinationRange.baseMipLevel = copyInformation.DestinationMip;
+	destinationRange.levelCount = 1;
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 
@@ -1018,40 +1032,49 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DES
 
 	u32 deviceIdx = vkCB->GetDeviceIdx();
 
-	VulkanImage* srcImage = mImages[deviceIdx];
-	VulkanImage* dstImage = other->GetResource(deviceIdx);
+	VulkanImage* sourceImage = mImages[deviceIdx];
+	VulkanImage* destinationImage = other->GetResource(deviceIdx);
 
-	if(srcImage == nullptr || dstImage == nullptr)
+	if(sourceImage == nullptr || destinationImage == nullptr)
 		return;
-
-	VkImageLayout srcLayout = vkCB->GetCurrentLayout(srcImage, srcRange, false);
-	VkImageLayout dstLayout = vkCB->GetCurrentLayout(dstImage, dstRange, false);
-
-	VkCommandBuffer vkCmdBuf = vkCB->GetHandle();
-
-	VkAccessFlags srcAccessMask = srcImage->GetAccessFlags(srcLayout);
-	VkAccessFlags dstAccessMask = dstImage->GetAccessFlags(dstLayout);
 
 	if(vkCB->IsInRenderPass())
 		vkCB->EndRenderPass();
 
-	// Transfer textures to a valid layout
-	vkCB->SetLayout(srcImage->GetHandle(), srcAccessMask, VK_ACCESS_TRANSFER_READ_BIT, srcLayout, transferSrcLayout, srcRange);
-
-	vkCB->SetLayout(dstImage->GetHandle(), dstAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT, dstLayout, transferDstLayout, dstRange);
-
 	if(srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 	{
-		vkCmdResolveImage(vkCmdBuf, srcImage->GetHandle(), transferSrcLayout, dstImage->GetHandle(), transferDstLayout, 1, &resolveRegion);
+		VkImageResolve resolveRegion;
+		resolveRegion.srcOffset = { (i32)copyInformation.SourceVolume.Left, (i32)copyInformation.SourceVolume.Top, (i32)copyInformation.SourceVolume.Front };
+		resolveRegion.dstOffset = { copyInformation.DestinationPosition.X, copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z };
+		resolveRegion.extent = { mipWidth, mipHeight, mipDepth };
+		resolveRegion.srcSubresource.baseArrayLayer = copyInformation.SourceFace;
+		resolveRegion.srcSubresource.layerCount = 1;
+		resolveRegion.srcSubresource.mipLevel = copyInformation.SourceMip;
+		resolveRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		resolveRegion.dstSubresource.baseArrayLayer = copyInformation.DestinationFace;
+		resolveRegion.dstSubresource.layerCount = 1;
+		resolveRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
+		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		vkCB->Resolve(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
 	}
 	else // Just a normal copy
 	{
-		vkCmdCopyImage(vkCmdBuf, srcImage->GetHandle(), transferSrcLayout, dstImage->GetHandle(), transferDstLayout, 1, &imageRegion);
-	}
+		VkImageCopy imageRegion;
+		imageRegion.srcOffset = { (i32)copyInformation.SourceVolume.Left, (i32)copyInformation.SourceVolume.Top, (i32)copyInformation.SourceVolume.Front };
+		imageRegion.dstOffset = { copyInformation.DestinationPosition.X, copyInformation.DestinationPosition.Y, copyInformation.DestinationPosition.Z };
+		imageRegion.extent = { mipWidth, mipHeight, mipDepth };
+		imageRegion.srcSubresource.baseArrayLayer = copyInformation.SourceFace;
+		imageRegion.srcSubresource.layerCount = 1;
+		imageRegion.srcSubresource.mipLevel = copyInformation.SourceMip;
+		imageRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageRegion.dstSubresource.baseArrayLayer = copyInformation.DestinationFace;
+		imageRegion.dstSubresource.layerCount = 1;
+		imageRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
+		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-	// Notify the command buffer that these resources are being used on it
-	vkCB->RegisterImageTransfer(srcImage, srcRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
-	vkCB->RegisterImageTransfer(dstImage, dstRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanAccessFlag::Write);
+		vkCB->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageRegion);
+	}
 }
 
 PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face, u32 deviceIdx, u32 queueIdx)
@@ -1246,48 +1269,8 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 			transferCB->AppendMask(writeUseMask);
 		}
 
-		VkImageSubresourceRange range;
-		range.aspectMask = image->GetAspectFlags();
-		range.baseArrayLayer = face;
-		range.layerCount = 1;
-		range.baseMipLevel = mipLevel;
-		range.levelCount = 1;
-
-		VkImageSubresourceLayers rangeLayers;
-		if((props.GetUsage() & TU_DEPTHSTENCIL) != 0)
-			rangeLayers.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		else
-			rangeLayers.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-
-		rangeLayers.baseArrayLayer = range.baseArrayLayer;
-		rangeLayers.layerCount = range.layerCount;
-		rangeLayers.mipLevel = range.baseMipLevel;
-
-		VkExtent3D extent;
-		PixelUtil::GetSizeForMipLevel(props.GetWidth(), props.GetHeight(), props.GetDepth(), mMappedMip, extent.width, extent.height, extent.depth);
-
-		// Transfer texture to a valid layout
-		VkAccessFlags currentAccessMask = image->GetAccessFlags(subresource->GetLayout());
-		transferCB->SetLayout(image->GetHandle(), currentAccessMask, VK_ACCESS_TRANSFER_READ_BIT, subresource->GetLayout(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, range);
-
-		// Queue copy command
-		image->Copy(transferCB, mStagingBuffer, extent, rangeLayers, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-		// Transfer back to original layout
-		VkImageLayout dstLayout = image->GetOptimalLayout();
-		currentAccessMask = image->GetAccessFlags(dstLayout);
-
-		transferCB->SetLayout(image->GetHandle(), VK_ACCESS_TRANSFER_READ_BIT, currentAccessMask, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstLayout, range);
-		transferCB->GetCb()->RegisterImageTransfer(image, range, dstLayout, VulkanAccessFlag::Read);
-
-		// Ensure data written to the staging buffer is visible
-		VkAccessFlags stagingAccessFlags;
-		if(options == GBL_READ_ONLY)
-			stagingAccessFlags = VK_ACCESS_HOST_READ_BIT;
-		else // Must be read/write
-			stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | VK_ACCESS_HOST_WRITE_BIT;
-
-		transferCB->memoryBarrier(mStagingBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+		const bool isReadOnly = (options & (GBL_READ_WRITE | GBL_WRITE_ONLY | GBL_WRITE_ONLY_DISCARD | GBL_WRITE_ONLY_DISCARD_RANGE | GBL_WRITE_ONLY_NO_OVERWRITE)) == 0;
+		CopyImageSubresourceToBuffer(transferCB, image, face, mipLevel, mStagingBuffer, isReadOnly);
 
 		// Submit the command buffer and wait until it finishes
 		transferCB->Flush(true);
@@ -1384,10 +1367,7 @@ void VulkanTexture::UnlockImpl()
 					// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 					if(props.GetNumMipmaps() > 0 || props.GetNumFaces() > 1)
 					{
-						VkImageLayout oldImgLayout = image->GetOptimalLayout();
-
-						curLayout = newImage->GetOptimalLayout();
-						CopyImage(transferCB, image, newImage, oldImgLayout, curLayout);
+						CopyImageToImage(transferCB, image, newImage);
 					}
 
 					image->Destroy();
@@ -1403,12 +1383,6 @@ void VulkanTexture::UnlockImpl()
 			range.baseMipLevel = mMappedMip;
 			range.levelCount = 1;
 
-			VkImageSubresourceLayers rangeLayers;
-			rangeLayers.aspectMask = range.aspectMask;
-			rangeLayers.baseArrayLayer = range.baseArrayLayer;
-			rangeLayers.layerCount = range.layerCount;
-			rangeLayers.mipLevel = range.baseMipLevel;
-
 			VkExtent3D extent;
 			PixelUtil::GetSizeForMipLevel(props.GetWidth(), props.GetHeight(), props.GetDepth(), mMappedMip, extent.width, extent.height, extent.depth);
 
@@ -1418,22 +1392,10 @@ void VulkanTexture::UnlockImpl()
 			else
 				transferLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-			// Transfer texture to a valid layout
-			VkAccessFlags currentAccessMask = image->GetAccessFlags(curLayout);
-			transferCB->SetLayout(image->GetHandle(), currentAccessMask, VK_ACCESS_TRANSFER_WRITE_BIT, curLayout, transferLayout, range);
+			const ImageSubresourcePitch pitch = GetPitchForSubresource(image, mMappedFace, mMappedMip);
 
 			// Queue copy command
-			mStagingBuffer->Copy(transferCB->GetCb(), image, extent, rangeLayers, transferLayout);
-
-			// Transfer back to original  (or optimal if initial layout was undefined/preinitialized)
-			VkImageLayout dstLayout = image->GetOptimalLayout();
-
-			currentAccessMask = image->GetAccessFlags(dstLayout);
-			transferCB->SetLayout(image->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, currentAccessMask, transferLayout, dstLayout, range);
-
-			// Notify the command buffer that these resources are being used on it
-			transferCB->GetCb()->RegisterBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-			transferCB->GetCb()->RegisterImageTransfer(image, range, dstLayout, VulkanAccessFlag::Write);
+			transferCB->GetCb()->CopyBufferToImage(mStagingBuffer, image, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 
 			// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 			// done automatically before next "normal" command buffer submission.

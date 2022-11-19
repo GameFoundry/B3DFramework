@@ -408,9 +408,9 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubema
 	// Copy base mip level to scratch cubemap
 	for(u32 face = 0; face < 6; face++)
 	{
-		TEXTURE_COPY_DESC copyDesc;
-		copyDesc.SrcFace = face;
-		copyDesc.DstFace = face;
+		TextureCopyInformation copyDesc;
+		copyDesc.SourceFace = face;
+		copyDesc.DestinationFace = face;
 
 		cubemap->Copy(scratchCubemap, copyDesc);
 	}
@@ -551,11 +551,11 @@ void RenderBeastIBLUtility::ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, c
 	{
 		for(u32 face = 0; face < 6; face++)
 		{
-			TEXTURE_COPY_DESC copyDesc;
-			copyDesc.SrcFace = face;
-			copyDesc.SrcMip = srcMip;
-			copyDesc.DstFace = face;
-			copyDesc.DstMip = dstMip;
+			TextureCopyInformation copyDesc;
+			copyDesc.SourceFace = face;
+			copyDesc.SourceMip = srcMip;
+			copyDesc.DestinationFace = face;
+			copyDesc.DestinationMip = dstMip;
 
 			src->Copy(dst, copyDesc);
 		}

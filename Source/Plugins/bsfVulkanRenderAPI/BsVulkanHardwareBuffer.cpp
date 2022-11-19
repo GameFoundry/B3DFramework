@@ -57,31 +57,6 @@ void VulkanBuffer::Unmap()
 	vkUnmapMemory(device.GetLogical(), memory);
 }
 
-void VulkanBuffer::Copy(VulkanCmdBuffer* cb, VulkanBuffer* destination, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize length)
-{
-	VkBufferCopy region;
-	region.size = length;
-	region.srcOffset = srcOffset;
-	region.dstOffset = dstOffset;
-
-	vkCmdCopyBuffer(cb->GetHandle(), mBuffer, destination->GetHandle(), 1, &region);
-}
-
-void VulkanBuffer::Copy(VulkanCmdBuffer* cb, VulkanImage* destination, const VkExtent3D& extent, const VkImageSubresourceLayers& range, VkImageLayout layout)
-{
-	VkBufferImageCopy region;
-	region.bufferRowLength = mRowPitch;
-	region.bufferImageHeight = mSliceHeight;
-	region.bufferOffset = 0;
-	region.imageOffset.x = 0;
-	region.imageOffset.y = 0;
-	region.imageOffset.z = 0;
-	region.imageExtent = extent;
-	region.imageSubresource = range;
-
-	vkCmdCopyBufferToImage(cb->GetHandle(), mBuffer, destination->GetHandle(), layout, 1, &region);
-}
-
 void VulkanBuffer::Update(VulkanCmdBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length)
 {
 	vkCmdUpdateBuffer(cb->GetHandle(), mBuffer, offset, length, (uint32_t*)data);
@@ -409,7 +384,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 				// Issue a barrier so :
 				//  - If reading: the device makes the written memory available for read (read-after-write hazard)
 				//  - If writing: ensures our writes properly overlap with GPU writes (write-after-write hazard)
-				transferCB->memoryBarrier(buffer->GetHandle(), VK_ACCESS_SHADER_WRITE_BIT, accessFlags,
+				transferCB->GetCb()->MemoryBarrier(buffer->GetHandle(), VK_ACCESS_SHADER_WRITE_BIT, accessFlags,
 										  // Last stages that could have written to the buffer:
 										  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 			}
@@ -477,10 +452,10 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 		}
 
 		// Queue copy command
-		buffer->Copy(transferCB->GetCb(), mStagingBuffer, offset, 0, length);
+		transferCB->GetCb()->CopyBufferToBuffer(buffer, mStagingBuffer, offset, 0, length);
 
 		// Ensure data written to the staging buffer is visible
-		transferCB->memoryBarrier(mStagingBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, accessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+		transferCB->GetCb()->MemoryBarrier(mStagingBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, accessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 
 		// Submit the command buffer and wait until it finishes
 		transferCB->Flush(true);
@@ -570,8 +545,9 @@ void VulkanHardwareBuffer::Unmap()
 					// Avoid copying original contents if the staging buffer completely covers it
 					if(mMappedOffset > 0 || mMappedSize != mSize)
 					{
-						buffer->Copy(transferCB->GetCb(), newBuffer, 0, 0, mSize);
+						transferCB->GetCb()->CopyBufferToBuffer(buffer, newBuffer, 0, 0, mSize);
 
+						// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
 						transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 					}
 
@@ -584,7 +560,9 @@ void VulkanHardwareBuffer::Unmap()
 			// Queue copy/update command
 			if(mStagingBuffer != nullptr)
 			{
-				mStagingBuffer->Copy(transferCB->GetCb(), buffer, 0, mMappedOffset, mMappedSize);
+				transferCB->GetCb()->CopyBufferToBuffer(mStagingBuffer, buffer, 0, mMappedOffset, mMappedSize);
+
+				// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
 				transferCB->GetCb()->RegisterBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 			}
 			else // Staging memory
@@ -592,6 +570,7 @@ void VulkanHardwareBuffer::Unmap()
 				buffer->Update(transferCB->GetCb(), mStagingMemory, mMappedOffset, mMappedSize);
 			}
 
+			// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
 			transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 			// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
@@ -654,9 +633,10 @@ void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u3
 	if(vkCB->IsInRenderPass())
 		vkCB->EndRenderPass();
 
-	src->Copy(vkCB, dst, srcOffset, dstOffset, length);
+	vkCB->CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
 
 	// Notify the command buffer that these resources are being used on it
+	// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
 	vkCB->RegisterBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 	vkCB->RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 }

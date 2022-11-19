@@ -440,24 +440,24 @@ void GLTexture::WriteDataImpl(const PixelData& src, u32 mipLevel, u32 face, bool
 		GetBuffer(face, mipLevel)->Upload(src, src.GetExtents());
 }
 
-void GLTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer)
+void GLTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& desc, const SPtr<CommandBuffer>& commandBuffer)
 {
-	auto executeRef = [this](const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc)
+	auto executeRef = [this](const SPtr<Texture>& target, const TextureCopyInformation& desc)
 	{
 		GLTexture* destTex = static_cast<GLTexture*>(target.get());
-		GLTextureBuffer* dest = static_cast<GLTextureBuffer*>(destTex->GetBuffer(desc.DstFace, desc.DstMip).get());
-		GLTextureBuffer* src = static_cast<GLTextureBuffer*>(GetBuffer(desc.SrcFace, desc.SrcMip).get());
+		GLTextureBuffer* dest = static_cast<GLTextureBuffer*>(destTex->GetBuffer(desc.DestinationFace, desc.DestinationMip).get());
+		GLTextureBuffer* src = static_cast<GLTextureBuffer*>(GetBuffer(desc.SourceFace, desc.SourceMip).get());
 
-		bool copyEntireSurface = desc.SrcVolume.GetWidth() == 0 ||
-			desc.SrcVolume.GetHeight() == 0 ||
-			desc.SrcVolume.GetDepth() == 0;
+		bool copyEntireSurface = desc.SourceVolume.GetWidth() == 0 ||
+			desc.SourceVolume.GetHeight() == 0 ||
+			desc.SourceVolume.GetDepth() == 0;
 
-		PixelVolume srcVolume = desc.SrcVolume;
+		PixelVolume srcVolume = desc.SourceVolume;
 
 		PixelVolume dstVolume;
-		dstVolume.Left = (u32)desc.DstPosition.X;
-		dstVolume.Top = (u32)desc.DstPosition.Y;
-		dstVolume.Front = (u32)desc.DstPosition.Z;
+		dstVolume.Left = (u32)desc.DestinationPosition.X;
+		dstVolume.Top = (u32)desc.DestinationPosition.Y;
+		dstVolume.Front = (u32)desc.DestinationPosition.Z;
 
 		if(copyEntireSurface)
 		{
@@ -471,9 +471,9 @@ void GLTexture::CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& d
 		}
 		else
 		{
-			dstVolume.Right = dstVolume.Left + desc.SrcVolume.GetWidth();
-			dstVolume.Bottom = dstVolume.Top + desc.SrcVolume.GetHeight();
-			dstVolume.Back = dstVolume.Front + desc.SrcVolume.GetDepth();
+			dstVolume.Right = dstVolume.Left + desc.SourceVolume.GetWidth();
+			dstVolume.Bottom = dstVolume.Top + desc.SourceVolume.GetHeight();
+			dstVolume.Back = dstVolume.Front + desc.SourceVolume.GetDepth();
 		}
 
 		dest->BlitFromTexture(src, srcVolume, dstVolume);

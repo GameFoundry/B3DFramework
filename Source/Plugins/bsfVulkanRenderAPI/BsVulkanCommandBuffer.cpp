@@ -135,7 +135,7 @@ VulkanCmdBuffer* VulkanCmdBufferPool::CreateBuffer(u32 queueFamily, bool seconda
 }
 
 /** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
-VkPipelineStageFlags getPipelineStageFlags(VkAccessFlags accessFlags)
+static VkPipelineStageFlags GetPipelineStageFlags(VkAccessFlags accessFlags)
 {
 	VkPipelineStageFlags flags = 0;
 
@@ -182,12 +182,12 @@ VkPipelineStageFlags getPipelineStageFlags(VkAccessFlags accessFlags)
 }
 
 template <class T>
-void getPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src, VkPipelineStageFlags& dst)
+void GetPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src, VkPipelineStageFlags& dst)
 {
 	for(auto& entry : barriers)
 	{
-		src |= getPipelineStageFlags(entry.srcAccessMask);
-		dst |= getPipelineStageFlags(entry.dstAccessMask);
+		src |= GetPipelineStageFlags(entry.srcAccessMask);
+		dst |= GetPipelineStageFlags(entry.dstAccessMask);
 	}
 
 	if(src == 0)
@@ -594,7 +594,7 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
-		getPipelineStageFlags(barriers.ImageBarriers, srcStage, dstStage);
+		GetPipelineStageFlags(barriers.ImageBarriers, srcStage, dstStage);
 
 		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, numBufferBarriers, barriers.BufferBarriers.data(), numImgBarriers, barriers.ImageBarriers.data());
 
@@ -679,7 +679,7 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
-		getPipelineStageFlags(barriers.ImageBarriers, srcStage, dstStage);
+		GetPipelineStageFlags(barriers.ImageBarriers, srcStage, dstStage);
 
 		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, numBufferBarriers, barriers.BufferBarriers.data(), numImgBarriers, barriers.ImageBarriers.data());
 
@@ -1493,7 +1493,7 @@ void VulkanCmdBuffer::ExecuteLayoutTransitions()
 
 	VkPipelineStageFlags srcStage = 0;
 	VkPipelineStageFlags dstStage = 0;
-	getPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
+	GetPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
 
 	if(!mLayoutTransitionBarriersTemp.empty())
 	{
@@ -1773,7 +1773,90 @@ void VulkanCmdBuffer::ResetQuery(VulkanQuery* query)
 		query->Reset(mCmdBuffer);
 }
 
-void VulkanCmdBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
+void VulkanCmdBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, VkDeviceSize sourceOffset, VkDeviceSize destinationOffset, VkDeviceSize length)
+{
+	VkBufferCopy region;
+	region.size = length;
+	region.srcOffset = sourceOffset;
+	region.dstOffset = destinationOffset;
+
+	vkCmdCopyBuffer(GetHandle(), source->GetHandle(), destination->GetHandle(), 1, &region);
+}
+
+void VulkanCmdBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
+{
+	RegisterBuffer(source, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+	RegisterImageTransfer(destination, subresourceRange, layout, VulkanAccessFlag::Write);
+
+	VkImageSubresourceLayers rangeLayers;
+	rangeLayers.aspectMask = subresourceRange.aspectMask;
+	rangeLayers.baseArrayLayer = subresourceRange.baseArrayLayer;
+	rangeLayers.layerCount = subresourceRange.layerCount;
+	rangeLayers.mipLevel = subresourceRange.baseMipLevel;
+
+	VkBufferImageCopy copyRegion;
+	copyRegion.bufferRowLength = rowPitch;
+	copyRegion.bufferImageHeight = sliceHeight;
+	copyRegion.bufferOffset = 0;
+	copyRegion.imageOffset.x = 0;
+	copyRegion.imageOffset.y = 0;
+	copyRegion.imageOffset.z = 0;
+	copyRegion.imageExtent = region;
+	copyRegion.imageSubresource = rangeLayers;
+
+	vkCmdCopyBufferToImage(GetHandle(), source->GetHandle(), destination->GetHandle(), layout, 1, &copyRegion);
+}
+
+void VulkanCmdBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
+{
+	RegisterImageTransfer(source, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
+	RegisterBuffer(destination, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
+
+	VkImageSubresourceLayers rangeLayers;
+	rangeLayers.aspectMask = subresourceRange.aspectMask;
+	rangeLayers.baseArrayLayer = subresourceRange.baseArrayLayer;
+	rangeLayers.layerCount = subresourceRange.layerCount;
+	rangeLayers.mipLevel = subresourceRange.baseMipLevel;
+
+	VkBufferImageCopy copyRegion;
+	copyRegion.bufferRowLength = rowPitch;
+	copyRegion.bufferImageHeight = sliceHeight;
+	copyRegion.bufferOffset = 0;
+	copyRegion.imageOffset.x = 0;
+	copyRegion.imageOffset.y = 0;
+	copyRegion.imageOffset.z = 0;
+	copyRegion.imageExtent = region;
+	copyRegion.imageSubresource = rangeLayers;
+
+	vkCmdCopyImageToBuffer(GetHandle(), source->GetHandle(), layout, destination->GetHandle(), 1, &copyRegion);
+}
+
+void VulkanCmdBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions)
+{
+	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
+	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
+
+	vkCmdCopyImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions);
+}
+
+void VulkanCmdBuffer::Blit(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions)
+{
+	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
+	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
+
+	vkCmdBlitImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions, VK_FILTER_LINEAR);
+}
+
+void VulkanCmdBuffer::Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions)
+{
+	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
+	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
+
+	vkCmdResolveImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions);
+}
+
+
+void VulkanCmdBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 {
 	VkBufferMemoryBarrier barrier;
 	barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -1787,26 +1870,6 @@ void VulkanCmdBuffer::memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlag
 	barrier.size = VK_WHOLE_SIZE;
 
 	vkCmdPipelineBarrier(GetHandle(), srcStage, dstStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
-}
-
-void VulkanCmdBuffer::SetLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range)
-{
-	VkImageMemoryBarrier barrier;
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.pNext = nullptr;
-	barrier.srcAccessMask = srcAccessFlags;
-	barrier.dstAccessMask = dstAccessFlags;
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.oldLayout = oldLayout;
-	barrier.newLayout = newLayout;
-	barrier.image = image;
-	barrier.subresourceRange = range;
-
-	VkPipelineStageFlags srcStage = getPipelineStageFlags(srcAccessFlags);
-	VkPipelineStageFlags dstStage = getPipelineStageFlags(dstAccessFlags);
-
-	vkCmdPipelineBarrier(GetHandle(), srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 VkImageLayout VulkanCmdBuffer::GetCurrentLayout(VulkanImage* image, const VkImageSubresourceRange& range, bool inRenderPass)
@@ -2015,7 +2078,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanImage* image, const VkImageSubresou
 						UpdateFramebufferSubresource(image, imageInfoIdx, subresources[i], layout, finalLayout, access, stages);
 						break;
 					case ImageUseFlagBits::Transfer:
-						UpdateTransferSubresource(image, imageInfoIdx, subresources[i], layout, access, stages);
+						UpdateTransferSubresource(image, subresources[i], layout, access, stages);
 						break;
 					}
 
@@ -2079,7 +2142,7 @@ void VulkanCmdBuffer::RegisterResource(VulkanImage* image, const VkImageSubresou
 									UpdateFramebufferSubresource(image, imageInfoIdx, newInfo, layout, finalLayout, access, stages);
 									break;
 								case ImageUseFlagBits::Transfer:
-									UpdateTransferSubresource(image, imageInfoIdx, newInfo, layout, access, stages);
+									UpdateTransferSubresource(image, newInfo, layout, access, stages);
 									break;
 								}
 
@@ -2513,10 +2576,38 @@ void VulkanCmdBuffer::UpdateFramebufferSubresource(VulkanImage* image, u32 image
 		EndRenderPass();
 }
 
-void VulkanCmdBuffer::UpdateTransferSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages)
+void VulkanCmdBuffer::UpdateTransferSubresource(VulkanImage* image, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages)
 {
-	// Note: Currently it is assumed that all images submitted for a transfer operation will have their pre-operation
-	// layout set externally.
+	// External code must end the render pass before attempting transfer operations
+	B3D_ASSERT(!IsInRenderPass());
+
+	// Ensure previously queued transitions execute
+	ExecuteLayoutTransitions();
+	B3D_ASSERT(subresourceInfo.CurrentLayout == subresourceInfo.RequiredLayout);
+
+	// Transition to a valid transfer layout
+	if(subresourceInfo.CurrentLayout != layout)
+	{
+		const VkAccessFlags sourceAccessFlags = image->GetAccessFlags(layout);
+		const VkAccessFlags destinationAccessFlags = access.IsSet(VulkanAccessFlag::Write) ? VK_ACCESS_TRANSFER_WRITE_BIT : VK_ACCESS_TRANSFER_READ_BIT;
+
+		VkImageMemoryBarrier barrier;
+		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.pNext = nullptr;
+		barrier.srcAccessMask = sourceAccessFlags;
+		barrier.dstAccessMask = destinationAccessFlags;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout = subresourceInfo.CurrentLayout;
+		barrier.newLayout = layout;
+		barrier.image = image->GetHandle();
+		barrier.subresourceRange = subresourceInfo.Range;
+
+		const VkPipelineStageFlags sourceStage = GetPipelineStageFlags(sourceAccessFlags);
+		const VkPipelineStageFlags destinationStage = GetPipelineStageFlags(destinationAccessFlags);
+
+		vkCmdPipelineBarrier(GetHandle(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+	}
 
 	subresourceInfo.CurrentLayout = layout;
 	subresourceInfo.RequiredLayout = layout;

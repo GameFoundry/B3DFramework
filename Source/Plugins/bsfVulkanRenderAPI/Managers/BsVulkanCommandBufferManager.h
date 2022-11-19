@@ -33,25 +33,6 @@ namespace bs
 			void ClearMask() { mSyncMask = 0; }
 
 			/**
-			 * Issues a pipeline barrier on the provided buffer. See vkCmdPipelineBarrier in Vulkan spec. for usage
-			 * information.
-			 */
-			void memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
-
-			/**
-			 * Issues a pipeline barrier on the provided image, changing its layout. See vkCmdPipelineBarrier in Vulkan spec.
-			 * for usage information.
-			 */
-			void SetLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range);
-
-			/**
-			 * Issues one or multiple pipeline barrier on the provided image, changing the layout of its subresources.
-			 * Automatically determines original layout for individual sub-resources, groups the pipeline barriers and issues
-			 * them.
-			 */
-			void SetLayout(VulkanImage* image, const VkImageSubresourceRange& range, VkAccessFlags newAccessMask, VkImageLayout newLayout);
-
-			/**
 			 * Submits the command buffer on the queue.
 			 *
 			 *	@param[in]	wait	If true, the caller thread will wait until all device operations on the command buffer's
@@ -76,8 +57,6 @@ namespace bs
 
 			VulkanCmdBuffer* mCB = nullptr;
 			u32 mSyncMask = 0;
-
-			Vector<VkImageMemoryBarrier> mBarriersTemp;
 		};
 
 		/**

@@ -61,9 +61,6 @@ namespace bs
 			/** Returns true if the image can be read from a shader. If false, it may only be used as a framebuffer attachment. */
 			bool IsShaderReadAllowed() const { return mIsShaderReadAllowed; }
 
-			/** Returns the preferred (not necessarily current) layout of the image. */
-			VkImageLayout GetOptimalLayout() const;
-
 			/**
 			 * Returns an image view that covers all faces and mip maps of the texture.
 			 *
@@ -137,12 +134,6 @@ namespace bs
 			void Unmap();
 
 			/**
-			 * Queues a command on the provided command buffer. The command copies the contents of the current image
-			 * subresource to the destination buffer.
-			 */
-			void Copy(VulkanTransferBuffer* cb, VulkanBuffer* destination, const VkExtent3D& extent, const VkImageSubresourceLayers& range, VkImageLayout layout);
-
-			/**
 			 * Determines a set of access flags based on the current image and provided image layout. This method makes
 			 * certain assumptions about image usage, so it might not be valid in all situations.
 			 *
@@ -158,6 +149,12 @@ namespace bs
 			 * sub-resources as possibly.
 			 */
 			void GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers);
+
+			/** Returns the subresource layout (pitch values in bytes) for a specific image subresource. */
+			VkSubresourceLayout GetSubresourceLayout(u32 face, u32 mipLevel) const;
+
+			/** Converts a VkSubresourceLayout (which is in bytes) into blocks based on the provided format. */
+			static ImageSubresourcePitch ConvertSubresourceLayoutToBlocks(const VkSubresourceLayout& subresourceLayout, PixelFormat format);
 
 		private:
 			/** Creates a new view of the provided part (or entirety) of surface. */
@@ -236,7 +233,7 @@ namespace bs
 			void Initialize() override;
 			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void UnlockImpl() override;
-			void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) override;
+			void CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& copyInformation, const SPtr<CommandBuffer>& commandBuffer) override;
 			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) override;
 
@@ -259,7 +256,16 @@ namespace bs
 			 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the
 			 * provided image matches the current texture properties (i.e. num faces, mips, size).
 			 */
-			void CopyImage(VulkanTransferBuffer* cb, VulkanImage* srcImage, VulkanImage* dstImage, VkImageLayout srcFinalLayout, VkImageLayout dstFinalLayout);
+			void CopyImageToImage(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
+
+			/**
+			 * Copies a single subresource from the source image into the destination buffer. Caller must ensure the destination buffer provides adequate
+			 * space for the texture data. Set @p isBufferReadOnly to true if the CPU only needs to read from the destination buffer, or false if it also needs to write to it.
+			 */
+			void CopyImageSubresourceToBuffer(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
+
+			/** Returns pitch information for a particular image subresource. */
+			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;
 
 			VulkanImage* mImages[BS_MAX_DEVICES];
 			PixelFormat mInternalFormats[BS_MAX_DEVICES];

@@ -148,12 +148,6 @@ namespace bs
 			/** Ends command buffer command recording (as started with begin()). */
 			void End();
 
-			/** Begins render pass recording. Must be called within begin()/end() calls. */
-			void BeginRenderPass();
-
-			/** Ends render pass recording (as started with beginRenderPass(). */
-			void EndRenderPass();
-
 			/**
 			 * Submits the command buffer for execution.
 			 *
@@ -275,6 +269,12 @@ namespace bs
 			/* 								COMMANDS	                     		*/
 			/************************************************************************/
 
+			/** Begins render pass recording. Must be called within begin()/end() calls. */
+			void BeginRenderPass();
+
+			/** Ends render pass recording (as started with beginRenderPass(). */
+			void EndRenderPass();
+
 			/**
 			 * Assigns a render target the the command buffer. This render target's framebuffer and render pass will be used
 			 * when beginRenderPass() is called. Command buffer must not be currently recording a render pass.
@@ -345,13 +345,94 @@ namespace bs
 			 * Issues a pipeline barrier on the provided buffer. See vkCmdPipelineBarrier in Vulkan spec. for usage
 			 * information.
 			 */
-			void memoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
+			void MemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage);
 
 			/**
-			 * Issues a pipeline barrier on the provided image, changing its layout. See vkCmdPipelineBarrier in Vulkan spec.
-			 * for usage information.
+			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided
+			 * offsets and length are within valid bounds of both buffers.
+			 *
+			 * @param	source				Source buffer to copy from.
+			 * @param	destination			Destination buffer to copy to.
+			 * @param	sourceOffset		Offset into the source buffer, from which to start copying, in bytes.
+			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
+			 * @param	length				Size of the data to copy, in bytes.
 			 */
-			void SetLayout(VkImage image, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkImageLayout oldLayout, VkImageLayout newLayout, const VkImageSubresourceRange& range);
+			void CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, VkDeviceSize sourceOffset, VkDeviceSize destinationOffset, VkDeviceSize length);
+
+			/**
+			 * Copies the contents of the source buffer to the destination image subresource. Caller must ensure the
+			 * provided extents are within valid bounds of the image and that the provided buffer is large enough.
+			 *
+			 * @param	source				Source buffer to copy from.
+			 * @param	destination			Destination image to copy to.
+			 * @param	region				Region of the image to copy to.
+			 * @param	subresourceRange	Subresource(s) of the image to copy to.
+			 * @param	layout				Current layout of the image subresources in the provided range.
+			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the source buffer.
+			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the source buffer.
+			 */
+			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight);
+
+			/**
+			 * Copies the contents of the image subresource into the destination buffer. Caller must ensure the provided
+			 * extents are within valid bounds of the image and that the provided buffer is large enough.
+			 *
+			 * @param	source				Source image to copy from.
+			 * @param	destination			Destination buffer to copy to.
+			 * @param	region				Region of the image to copy from.
+			 * @param	subresourceRange	Subresource(s) of the image to copy from.
+			 * @param	layout				Current layout of the image subresources in the provided range.
+			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the destination buffer.
+			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the destination buffer.
+			 */
+			void CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight);
+
+			/**
+			 * Copies one or multiple regions from one or multiple image sub-resources from the source image to the destination image.
+			 * Caller must ensure the region extents and sub-resources are valid for both source and destination images.
+			 *
+			 * @param	source						Source image to copy from.
+			 * @param	destination					Destination image to copy to.
+			 * @param	sourceLayout				Current layout of the source image subresources in the provided range.
+			 * @param	destinationLayout			Current layout of the destination image subresources in the provided range.
+			 * @param	sourceSubresourceRange		Subresource(s) of the image to copy from.
+			 * @param	destinationSubresourceRange	Subresource(s) of the image to copy to.
+			 * @param	regionCount					Number of regions in the @p regions array.
+			 * @param	regions						One or multiple regions which to copy.
+			 */
+			void CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions);
+
+			/**
+			 * Blits one or multiple regions from one or multiple image sub-resources from the source image to the destination image.
+			 * Caller must ensure the region extents and sub-resources are valid for both source and destination images.
+			 *
+			 * @param	source						Source image to blit from.
+			 * @param	destination					Destination image to blit to.
+			 * @param	sourceLayout				Current layout of the source image subresources in the provided range.
+			 * @param	destinationLayout			Current layout of the destination image subresources in the provided range.
+			 * @param	sourceSubresourceRange		Subresource(s) of the image to blit from.
+			 * @param	destinationSubresourceRange	Subresource(s) of the image to blit to.
+			 * @param	regionCount					Number of regions in the @p regions array.
+			 * @param	regions						One or multiple regions which to blit.
+			 */
+			void Blit(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions);
+
+			/**
+			 * Resolves multisampled images into non-multiplesampled ones, from one or multiple regions from one or multiple image sub-resources
+			 * from the source image to the destination image. Caller must ensure the region extents and sub-resources are valid for both source
+			 * and destination images. Source image must have multiple samples while the destination image must have a single sample. Samples from
+			 * the source image will be resolved into a single sample in the destination image.
+			 * 
+			 * @param	source						Source image to resolve.
+			 * @param	destination					Destination image to write the resolved data into.
+			 * @param	sourceLayout				Current layout of the source image subresources in the provided range.
+			 * @param	destinationLayout			Current layout of the destination image subresources in the provided range.
+			 * @param	sourceSubresourceRange		Subresource(s) of the image to resolve.
+			 * @param	destinationSubresourceRange	Subresource(s) of the image to resolve to.
+			 * @param	regionCount					Number of regions in the @p regions array.
+			 * @param	regions						One or multiple regions which to resolve.
+			 */
+			void Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions);
 
 			/**
 			 * Returns the current layout of the specified image, as seen by this command buffer. This is different from the
@@ -546,7 +627,7 @@ namespace bs
 			 * Updates an existing image sub-resource with new access and stage flags for the purposes of being used for a
 			 * transfer operation. Sets up any necessary execution and memory barriers, as well as layout transitions.
 			 */
-			void UpdateTransferSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void UpdateTransferSubresource(VulkanImage* image, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
 
 			/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
 			ImageSubresourceInfo& FindSubresourceInfo(VulkanImage* image, u32 face, u32 mip);

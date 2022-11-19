@@ -23,6 +23,7 @@
 #define BS_MAX_UNIQUE_QUEUES BS_MAX_QUEUES_PER_TYPE* bs::GQT_COUNT // Must fit within 4 bytes
 
 #include "vulkan/vulkan.h"
+#undef MemoryBarrier // Conflicting define from winnt.h
 #undef None // Conflicting define from Xlib
 
 #include "ThirdParty/vk_mem_alloc.h"
@@ -84,6 +85,20 @@ namespace bs
 		{
 			Vector<VkImageMemoryBarrier> ImageBarriers;
 			Vector<VkBufferMemoryBarrier> BufferBarriers;
+		};
+
+		/** Contains the row pitch and slice height for an image subresource. */
+		struct ImageSubresourcePitch
+		{
+			ImageSubresourcePitch(u32 rowPitch = 0, u32 sliceHeight = 0)
+				: RowPitch(rowPitch), SliceHeight(sliceHeight)
+			{ }
+
+			/** Number of blocks before advancing to the next row. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+			u32 RowPitch = 0;
+
+			/** Number of block columns before advancing to the next slice. For non-compressed formats this is equal to the number of pixels. For compressed it depends on the block size. */
+			u32 SliceHeight = 0;
 		};
 
 		/** Bits that map to a specific part of a render target and signify whether it should be cleared or not. */

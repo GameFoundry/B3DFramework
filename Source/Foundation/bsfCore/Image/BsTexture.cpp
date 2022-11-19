@@ -12,7 +12,7 @@
 
 using namespace bs;
 
-TEXTURE_COPY_DESC TEXTURE_COPY_DESC::DEFAULT = TEXTURE_COPY_DESC();
+const TextureCopyInformation TextureCopyInformation::kDefault = TextureCopyInformation();
 
 TextureProperties::TextureProperties(const TEXTURE_DESC& desc)
 	: mDesc(desc)
@@ -404,7 +404,7 @@ void Texture::Unlock()
 	UnlockImpl();
 }
 
-void Texture::Copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer)
+void Texture::Copy(const SPtr<Texture>& target, const TextureCopyInformation& desc, const SPtr<CommandBuffer>& commandBuffer)
 {
 	THROW_IF_NOT_CORE_THREAD;
 
@@ -426,25 +426,25 @@ void Texture::Copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, c
 		return;
 	}
 
-	if(desc.SrcFace >= mProperties.GetNumFaces())
+	if(desc.SourceFace >= mProperties.GetNumFaces())
 	{
 		B3D_LOG(Error, Texture, "Invalid source face index.");
 		return;
 	}
 
-	if(desc.DstFace >= target->mProperties.GetNumFaces())
+	if(desc.DestinationFace >= target->mProperties.GetNumFaces())
 	{
 		B3D_LOG(Error, Texture, "Invalid destination face index.");
 		return;
 	}
 
-	if(desc.SrcMip > mProperties.GetNumMipmaps())
+	if(desc.SourceMip > mProperties.GetNumMipmaps())
 	{
 		B3D_LOG(Error, Texture, "Source mip level out of range. Valid range is [0, {0}].", mProperties.GetNumMipmaps());
 		return;
 	}
 
-	if(desc.DstMip > target->mProperties.GetNumMipmaps())
+	if(desc.DestinationMip > target->mProperties.GetNumMipmaps())
 	{
 		B3D_LOG(Error, Texture, "Destination mip level out of range. Valid range is [0, {0}].", target->mProperties.GetNumMipmaps());
 		return;
@@ -455,7 +455,7 @@ void Texture::Copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, c
 		mProperties.GetWidth(),
 		mProperties.GetHeight(),
 		mProperties.GetDepth(),
-		desc.SrcMip,
+		desc.SourceMip,
 		srcWidth,
 		srcHeight,
 		srcDepth);
@@ -465,39 +465,39 @@ void Texture::Copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, c
 		target->mProperties.GetWidth(),
 		target->mProperties.GetHeight(),
 		target->mProperties.GetDepth(),
-		desc.DstMip,
+		desc.DestinationMip,
 		dstWidth,
 		dstHeight,
 		dstDepth);
 
-	if(desc.DstPosition.X < 0 || desc.DstPosition.X >= (i32)dstWidth ||
-	   desc.DstPosition.Y < 0 || desc.DstPosition.Y >= (i32)dstHeight ||
-	   desc.DstPosition.Z < 0 || desc.DstPosition.Z >= (i32)dstDepth)
+	if(desc.DestinationPosition.X < 0 || desc.DestinationPosition.X >= (i32)dstWidth ||
+	   desc.DestinationPosition.Y < 0 || desc.DestinationPosition.Y >= (i32)dstHeight ||
+	   desc.DestinationPosition.Z < 0 || desc.DestinationPosition.Z >= (i32)dstDepth)
 	{
 		B3D_LOG(Error, Texture, "Destination position falls outside the destination texture.");
 		return;
 	}
 
-	bool entireSurface = desc.SrcVolume.GetWidth() == 0 ||
-		desc.SrcVolume.GetHeight() == 0 ||
-		desc.SrcVolume.GetDepth() == 0;
+	bool entireSurface = desc.SourceVolume.GetWidth() == 0 ||
+		desc.SourceVolume.GetHeight() == 0 ||
+		desc.SourceVolume.GetDepth() == 0;
 
-	u32 dstRight = (u32)desc.DstPosition.X;
-	u32 dstBottom = (u32)desc.DstPosition.Y;
-	u32 dstBack = (u32)desc.DstPosition.Z;
+	u32 dstRight = (u32)desc.DestinationPosition.X;
+	u32 dstBottom = (u32)desc.DestinationPosition.Y;
+	u32 dstBack = (u32)desc.DestinationPosition.Z;
 	if(!entireSurface)
 	{
-		if(desc.SrcVolume.Left >= srcWidth || desc.SrcVolume.Right > srcWidth ||
-		   desc.SrcVolume.Top >= srcHeight || desc.SrcVolume.Bottom > srcHeight ||
-		   desc.SrcVolume.Front >= srcDepth || desc.SrcVolume.Back > srcDepth)
+		if(desc.SourceVolume.Left >= srcWidth || desc.SourceVolume.Right > srcWidth ||
+		   desc.SourceVolume.Top >= srcHeight || desc.SourceVolume.Bottom > srcHeight ||
+		   desc.SourceVolume.Front >= srcDepth || desc.SourceVolume.Back > srcDepth)
 		{
 			B3D_LOG(Error, Texture, "Source volume falls outside the source texture.");
 			return;
 		}
 
-		dstRight += desc.SrcVolume.GetWidth();
-		dstBottom += desc.SrcVolume.GetHeight();
-		dstBack += desc.SrcVolume.GetDepth();
+		dstRight += desc.SourceVolume.GetWidth();
+		dstBottom += desc.SourceVolume.GetHeight();
+		dstBack += desc.SourceVolume.GetDepth();
 	}
 	else
 	{

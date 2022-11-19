@@ -82,36 +82,36 @@ namespace bs
 	};
 
 	/** Structure used for specifying information about a texture copy operation. */
-	struct TEXTURE_COPY_DESC
+	struct TextureCopyInformation
 	{
 		/**
 		 * Face from which to copy. This can be an entry in an array of textures, or a single face of a cube map. If cubemap
 		 * array, then each array entry takes up six faces.
 		 */
-		u32 SrcFace = 0;
+		u32 SourceFace = 0;
 
 		/** Mip level from which to copy. */
-		u32 SrcMip = 0;
+		u32 SourceMip = 0;
 
 		/** Pixel volume from which to copy from. This defaults to all pixels of the face. */
-		PixelVolume SrcVolume = PixelVolume(0, 0, 0, 0, 0, 0);
+		PixelVolume SourceVolume = PixelVolume(0, 0, 0, 0, 0, 0);
 
 		/**
 		 * Face to which to copy. This can be an entry in an array of textures, or a single face of a cube map. If cubemap
 		 * array, then each array entry takes up six faces.
 		 */
-		u32 DstFace = 0;
+		u32 DestinationFace = 0;
 
 		/** Mip level to which to copy. */
-		u32 DstMip = 0;
+		u32 DestinationMip = 0;
 
 		/**
 		 * Coordinates to write the source pixels to. The destination texture must have enough pixels to fit the entire
 		 * source volume.
 		 */
-		Vector3I DstPosition;
+		Vector3I DestinationPosition;
 
-		B3D_CORE_EXPORT static TEXTURE_COPY_DESC DEFAULT;
+		B3D_CORE_EXPORT static const TextureCopyInformation kDefault;
 	};
 
 	/** Properties of a Texture. Shared between sim and core thread versions of a Texture. */
@@ -397,7 +397,7 @@ namespace bs
 			 * @param[in]	commandBuffer		Command buffer to queue the copy operation on. If null, main command buffer is
 			 *									used.
 			 */
-			void Copy(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc = TEXTURE_COPY_DESC::DEFAULT, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+			void Copy(const SPtr<Texture>& target, const TextureCopyInformation& desc = TextureCopyInformation::kDefault, const SPtr<CommandBuffer>& commandBuffer = nullptr);
 
 			/**
 			 * Sets all the pixels of the specified face and mip level to the provided value.
@@ -481,7 +481,7 @@ namespace bs
 			virtual void UnlockImpl() = 0;
 
 			/** @copydoc Copy */
-			virtual void CopyImpl(const SPtr<Texture>& target, const TEXTURE_COPY_DESC& desc, const SPtr<CommandBuffer>& commandBuffer) = 0;
+			virtual void CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& desc, const SPtr<CommandBuffer>& commandBuffer) = 0;
 
 			/** @copydoc ReadData */
 			virtual void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) = 0;

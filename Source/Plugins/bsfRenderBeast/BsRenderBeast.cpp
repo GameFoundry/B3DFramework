@@ -713,11 +713,11 @@ void RenderBeast::UpdateReflProbeArray()
 					{
 						for(u32 mip = 0; mip <= srcProps.GetNumMipmaps(); mip++)
 						{
-							TEXTURE_COPY_DESC copyDesc;
-							copyDesc.SrcFace = face;
-							copyDesc.SrcMip = mip;
-							copyDesc.DstFace = probeInfo.ArrayIdx * 6 + face;
-							copyDesc.DstMip = mip;
+							TextureCopyInformation copyDesc;
+							copyDesc.SourceFace = face;
+							copyDesc.SourceMip = mip;
+							copyDesc.DestinationFace = probeInfo.ArrayIdx * 6 + face;
+							copyDesc.DestinationMip = mip;
 
 							texture->Copy(sceneInfo.ReflProbeCubemapsTex, copyDesc);
 						}

@@ -281,8 +281,8 @@ void LightProbes::UpdateProbes()
 	u32 rowIdx = 0;
 	for(auto& entry : mVolumes)
 	{
-		TEXTURE_COPY_DESC copyDesc;
-		copyDesc.DstPosition = Vector3I(0, rowIdx, 0);
+		TextureCopyInformation copyDesc;
+		copyDesc.DestinationPosition = Vector3I(0, rowIdx, 0);
 
 		SPtr<Texture> localTexture = entry.Volume->GetCoefficientsTexture();
 		localTexture->Copy(mProbeCoefficientsGPU, copyDesc);
