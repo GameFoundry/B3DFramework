@@ -13,52 +13,52 @@ using namespace bs::ct;
 VulkanTransferBuffer::VulkanTransferBuffer(VulkanDevice* device, GpuQueueType type, u32 queueIdx)
 	: mDevice(device), mType(type), mQueueIdx(queueIdx)
 {
-	u32 numQueues = device->GetNumQueues(mType);
-	if(numQueues == 0)
+	u32 queueCount = device->GetNumQueues(mType);
+	if(queueCount == 0)
 	{
 		mType = GQT_GRAPHICS;
-		numQueues = device->GetNumQueues(GQT_GRAPHICS);
+		queueCount = device->GetNumQueues(GQT_GRAPHICS);
 	}
 
-	u32 physicalQueueIdx = queueIdx % numQueues;
-	mQueue = device->GetQueue(mType, physicalQueueIdx);
+	const u32 physicalQueueIndex = queueIdx % queueCount;
+	mQueue = device->GetQueue(mType, physicalQueueIndex);
 	mQueueMask = device->GetQueueMask(mType, queueIdx);
 }
 
 VulkanTransferBuffer::~VulkanTransferBuffer()
 {
-	if(mCB != nullptr)
-		mCB->End();
+	if(mCommandBuffer != nullptr)
+		mCommandBuffer->End();
 }
 
 void VulkanTransferBuffer::Allocate()
 {
-	if(mCB != nullptr)
+	if(mCommandBuffer != nullptr)
 		return;
 
-	u32 queueFamily = mDevice->GetQueueFamily(mType);
-	mCB = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
+	const u32 queueFamily = mDevice->GetQueueFamily(mType);
+	mCommandBuffer = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
 }
 
 void VulkanTransferBuffer::Flush(bool wait)
 {
-	if(mCB == nullptr)
+	if(mCommandBuffer == nullptr)
 		return;
 
-	u32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
+	const u32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
 
-	mCB->End();
-	mCB->Submit(mQueue, mQueueIdx, syncMask);
+	mCommandBuffer->End();
+	mCommandBuffer->Submit(mQueue, mQueueIdx, syncMask);
 
 	if(wait)
 	{
 		mQueue->WaitIdle();
 		mDevice->RefreshStates(true);
 
-		B3D_ASSERT(!mCB->IsSubmitted());
+		B3D_ASSERT(!mCommandBuffer->IsSubmitted());
 	}
 
-	mCB = nullptr;
+	mCommandBuffer = nullptr;
 }
 
 VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
@@ -67,7 +67,7 @@ VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& ra
 	mDeviceData = B3DNewMultiple<PerDeviceData>(mNumDevices);
 	for(u32 i = 0; i < mNumDevices; i++)
 	{
-		SPtr<VulkanDevice> device = rapi.GetDeviceInternal(i);
+		SPtr<VulkanDevice> device = rapi.GetDevice(i);
 
 		for(u32 j = 0; j < GQT_COUNT; j++)
 		{
@@ -86,7 +86,7 @@ VulkanCommandBufferManager::~VulkanCommandBufferManager()
 
 SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
-	u32 numDevices = mRapi.GetNumDevicesInternal();
+	u32 numDevices = mRapi.GetDeviceCount();
 	if(deviceIdx >= numDevices)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).", deviceIdx, numDevices);
@@ -94,7 +94,7 @@ SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type
 		return nullptr;
 	}
 
-	SPtr<VulkanDevice> device = mRapi.GetDeviceInternal(deviceIdx);
+	SPtr<VulkanDevice> device = mRapi.GetDevice(deviceIdx);
 
 	CommandBuffer* buffer =
 		new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
@@ -105,40 +105,40 @@ SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type
 void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, VulkanSemaphore** semaphores, u32& count)
 {
 	bool semaphoreRequestFailed = false;
-	SPtr<VulkanDevice> device = mRapi.GetDeviceInternal(deviceIdx);
+	SPtr<VulkanDevice> device = mRapi.GetDevice(deviceIdx);
 
-	u32 semaphoreIdx = 0;
-	for(u32 i = 0; i < GQT_COUNT; i++)
+	u32 semaphoreIndex = 0;
+	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
-		GpuQueueType queueType = (GpuQueueType)i;
+		const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
 
-		u32 numQueues = device->GetNumQueues(queueType);
-		for(u32 j = 0; j < numQueues; j++)
+		const u32 queueCount = device->GetNumQueues(queueType);
+		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			VulkanQueue* queue = device->GetQueue(queueType, j);
-			VulkanCmdBuffer* lastCB = queue->GetLastCommandBuffer();
+			VulkanQueue* queue = device->GetQueue(queueType, queueIndex);
+			VulkanCmdBuffer* lastCommandBuffer = queue->GetLastCommandBuffer();
 
 			// Check if a buffer is currently executing on the queue
-			if(lastCB == nullptr || !lastCB->IsSubmitted())
+			if(lastCommandBuffer == nullptr || (!lastCommandBuffer->IsSubmitted() && !lastCommandBuffer->IsDone()))
 				continue;
 
 			// Check if we care about this specific queue
-			u32 queueMask = device->GetQueueMask(queueType, j);
+			u32 queueMask = device->GetQueueMask(queueType, queueIndex);
 			if((syncMask & queueMask) == 0)
 				continue;
 
-			VulkanSemaphore* semaphore = lastCB->RequestInterQueueSemaphore();
+			VulkanSemaphore* semaphore = lastCommandBuffer->RequestInterQueueSemaphore();
 			if(semaphore == nullptr)
 			{
 				semaphoreRequestFailed = true;
 				continue;
 			}
 
-			semaphores[semaphoreIdx++] = semaphore;
+			semaphores[semaphoreIndex++] = semaphore;
 		}
 	}
 
-	count = semaphoreIdx;
+	count = semaphoreIndex;
 
 	if(semaphoreRequestFailed)
 	{

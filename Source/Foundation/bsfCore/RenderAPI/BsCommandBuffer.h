@@ -66,7 +66,7 @@ namespace bs
 		class B3D_CORE_EXPORT CommandBuffer
 		{
 		public:
-			virtual ~CommandBuffer() = default;
+			virtual ~CommandBuffer();
 
 			/**
 			 * Creates a new CommandBuffer.
@@ -108,6 +108,12 @@ namespace bs
 			 */
 			virtual void Reset() = 0;
 
+			/** Triggers when the command buffer finishes execution on the GPU. */
+			Event<void()> OnDidComplete;
+
+			/** Triggered just before a command buffer is about to be destroyed. Provided parameters determines if the command buffer was ever submitted or not. */
+			Event<void(bool)> OnDestroyed;
+
 		protected:
 			CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
 
@@ -115,6 +121,7 @@ namespace bs
 			u32 mDeviceIdx;
 			u32 mQueueIdx;
 			bool mIsSecondary;
+			bool mIsSubmitted = false;
 		};
 
 		/** @} */

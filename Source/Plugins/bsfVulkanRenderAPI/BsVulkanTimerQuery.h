@@ -26,13 +26,13 @@ namespace bs
 			float GetTimeMs() override;
 
 			/** Returns true if the query begin() was called, but not end(). */
-			bool IsInProgressInternal() const;
+			bool IsInProgress() const;
 
 			/**
 			 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
 			 * open during command buffer submission.
 			 */
-			void InterruptInternal(VulkanCmdBuffer& cb);
+			void Interrupt(VulkanCmdBuffer& cb);
 
 		private:
 			VulkanDevice& mDevice;

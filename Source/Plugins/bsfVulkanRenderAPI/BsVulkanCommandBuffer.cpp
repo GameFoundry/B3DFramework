@@ -226,7 +226,7 @@ VulkanCmdBuffer::~VulkanCmdBuffer()
 {
 	VkDevice device = mDevice.GetLogical();
 
-	if(mState == State::Submitted)
+	if(mState == State::Submitted || mState == State::Done)
 	{
 		// Wait 1s
 		u64 waitTime = 1000 * 1000 * 1000;
@@ -438,10 +438,6 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 {
 	B3D_ASSERT(IsReadyForSubmit());
 
-	// Make sure to reset the CB fence before we submit it
-	VkResult result = vkResetFences(mDevice.GetLogical(), 1, &mFence);
-	B3D_ASSERT(result == VK_SUCCESS);
-
 	// If there are any query resets needed, execute those first
 	VulkanDevice& device = queue->GetDevice();
 	if(!mQueuedQueryResets.empty())
@@ -527,10 +523,10 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 			u32 mipEnd = range.baseMipLevel + range.levelCount;
 			u32 faceEnd = range.baseArrayLayer + range.layerCount;
 
+			bool layoutMismatch = false;
 			VkImageLayout initialLayout = subresourceInfo.InitialLayout;
 			if(initialLayout != VK_IMAGE_LAYOUT_UNDEFINED)
 			{
-				bool layoutMismatch = false;
 				for(u32 mip = range.baseMipLevel; mip < mipEnd; mip++)
 				{
 					for(u32 face = range.baseArrayLayer; face < faceEnd; face++)
@@ -547,17 +543,25 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 						break;
 				}
 
-				if(layoutMismatch)
+			}
+
+			if(layoutMismatch || queueMismatch)
+			{
+				u32 startIdx = (u32)localBarriers.size();
+				resource->GetBarriers(subresourceInfo.Range, localBarriers);
+
+				for(u32 j = startIdx; j < (u32)localBarriers.size(); j++)
 				{
-					u32 startIdx = (u32)localBarriers.size();
-					resource->GetBarriers(subresourceInfo.Range, localBarriers);
+					VkImageMemoryBarrier& barrier = localBarriers[j];
 
-					for(u32 j = startIdx; j < (u32)localBarriers.size(); j++)
+					barrier.dstAccessMask = resource->GetAccessFlags(initialLayout, subresourceInfo.InitialReadOnly);
+					barrier.newLayout = layoutMismatch ? initialLayout : barrier.oldLayout;
+
+					if(queueMismatch)
 					{
-						VkImageMemoryBarrier& barrier = localBarriers[j];
-
-						barrier.dstAccessMask = resource->GetAccessFlags(initialLayout, subresourceInfo.InitialReadOnly);
-						barrier.newLayout = initialLayout;
+						barrier.srcAccessMask = 0;
+						barrier.srcQueueFamilyIndex = currentQueueFamily;
+						barrier.dstQueueFamilyIndex = mQueueFamily;
 					}
 				}
 			}
@@ -589,14 +593,14 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 		TransitionInfo& barriers = entry.second;
-		u32 numImgBarriers = (u32)barriers.ImageBarriers.size();
-		u32 numBufferBarriers = (u32)barriers.BufferBarriers.size();
+		const u32 imageBarrierCount = (u32)barriers.ImageBarriers.size();
+		const u32 bufferBarrierCount = (u32)barriers.BufferBarriers.size();
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
 		GetPipelineStageFlags(barriers.ImageBarriers, srcStage, dstStage);
 
-		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, numBufferBarriers, barriers.BufferBarriers.data(), numImgBarriers, barriers.ImageBarriers.data());
+		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, bufferBarrierCount, barriers.BufferBarriers.data(), imageBarrierCount, barriers.ImageBarriers.data());
 
 		// Find an appropriate queue to execute on
 		u32 otherQueueIdx = 0;
@@ -668,6 +672,10 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 	{
 		bool empty = entry.second.ImageBarriers.size() == 0 && entry.second.BufferBarriers.size() == 0;
 		if(empty)
+			continue;
+
+		u32 entryQueueFamily = entry.first;
+		if(entryQueueFamily != (u32)-1 && entryQueueFamily != mQueueFamily)
 			continue;
 
 		VulkanCmdBuffer* cmdBuffer = device.GetCmdBufferPool().GetBuffer(mQueueFamily, false);
@@ -757,20 +765,33 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 	mActiveSwapChains.clear();
 }
 
-bool VulkanCmdBuffer::CheckFenceStatus(bool block) const
+bool VulkanCmdBuffer::UpdateExecutionStatus(bool block)
 {
 	VkResult result = vkWaitForFences(mDevice.GetLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
 	B3D_ASSERT(result == VK_SUCCESS || result == VK_TIMEOUT);
 
-	return result == VK_SUCCESS;
+	if(result == VK_SUCCESS)
+	{
+		if(mState == State::Submitted)
+		{
+			mState = State::Done;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 void VulkanCmdBuffer::Reset()
 {
-	bool wasSubmitted = mState == State::Submitted;
+	bool wasSubmitted = mState == State::Submitted || mState == State::Done;
 
 	mState = State::Ready;
 	vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
+
+	const VkResult result = vkResetFences(mDevice.GetLogical(), 1, &mFence);
+	B3D_ASSERT(result == VK_SUCCESS);
 
 	if(wasSubmitted)
 	{
@@ -841,6 +862,11 @@ void VulkanCmdBuffer::Reset()
 	mMemoryBarrierSrcAccess = 0;
 	mMemoryBarrierDstStages = 0;
 	mMemoryBarrierSrcStages = 0;
+
+	if(mOwner && wasSubmitted)
+	{
+		mOwner->NotifyExecutionCompleted();
+	}
 }
 
 void VulkanCmdBuffer::SetRenderTarget(const SPtr<RenderTarget>& rt, u32 readOnlyFlags, RenderSurfaceMask loadMask)
@@ -2643,13 +2669,13 @@ void VulkanCmdBuffer::GetInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vec
 {
 	for(auto& query : mTimerQueries)
 	{
-		if(query->IsInProgressInternal())
+		if(query->IsInProgress())
 			timer.push_back(query);
 	}
 
 	for(auto& query : mOcclusionQueries)
 	{
-		if(query->IsInProgressInternal())
+		if(query->IsInProgress())
 			occlusion.push_back(query);
 	}
 }
@@ -2717,15 +2743,22 @@ RenderSurfaceMask VulkanCmdBuffer::GetFbReadMask()
 	return readMask;
 }
 
+VulkanCommandBuffer::~VulkanCommandBuffer()
+{
+	if(mBuffer != nullptr)
+		mBuffer->SetOwner(nullptr);
+}
+
 void VulkanCommandBuffer::AcquireNewBuffer()
 {
 	VulkanCmdBufferPool& pool = mDevice.GetCmdBufferPool();
 
 	if(mBuffer != nullptr)
-		B3D_ASSERT(mBuffer->IsSubmitted());
+		B3D_ASSERT(mBuffer->IsDone());
 
 	u32 queueFamily = mDevice.GetQueueFamily(mType);
 	mBuffer = pool.GetBuffer(queueFamily, mIsSecondary);
+	mBuffer->SetOwner(this);
 }
 
 void VulkanCommandBuffer::Submit(u32 syncMask)
@@ -2757,10 +2790,10 @@ void VulkanCommandBuffer::Submit(u32 syncMask)
 			   timerQueries.size(), occlusionQueries.size());
 
 		for(auto& query : timerQueries)
-			query->InterruptInternal(*mBuffer);
+			query->Interrupt(*mBuffer);
 
 		for(auto& query : occlusionQueries)
-			query->InterruptInternal(*mBuffer);
+			query->Interrupt(*mBuffer);
 	}
 
 	if(mBuffer->IsRecording())
@@ -2771,19 +2804,33 @@ void VulkanCommandBuffer::Submit(u32 syncMask)
 		mBuffer->Submit(mQueue, mQueueIdx, syncMask);
 		mDevice.RefreshStates(false);
 	}
+
+	mIsSubmitted = true;
 }
 
 CommandBufferState VulkanCommandBuffer::GetState() const
 {
-	if(mBuffer->IsSubmitted())
-		return mBuffer->CheckFenceStatus(false) ? CommandBufferState::Done : CommandBufferState::Executing;
+	if(mBuffer == nullptr || mBuffer->IsDone())
+		return CommandBufferState::Done;
 
-	bool recording = mBuffer->IsRecording() || mBuffer->IsReadyForSubmit() || mBuffer->IsInRenderPass();
-	return recording ? CommandBufferState::Recording : CommandBufferState::Empty;
+	const bool isRecording = mBuffer->IsRecording() || mBuffer->IsReadyForSubmit() || mBuffer->IsInRenderPass();
+	if(isRecording)
+		return CommandBufferState::Recording;
+
+	if(mBuffer->IsSubmitted())
+		return CommandBufferState::Executing;
+
+	return CommandBufferState::Empty;
 }
 
 void VulkanCommandBuffer::Reset()
 {
 	AcquireNewBuffer();
+	mIsSubmitted = false;
 }
 
+void VulkanCommandBuffer::NotifyExecutionCompleted()
+{
+	mBuffer->SetOwner(nullptr);
+	mBuffer = nullptr;
+}

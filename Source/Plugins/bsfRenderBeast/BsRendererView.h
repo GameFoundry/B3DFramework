@@ -472,7 +472,7 @@ namespace bs
 			 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
 			 * will be read from the provided texture when the command buffer finishes executing.
 			 */
-			void NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
+			void NotifyLuminanceUpdated(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const;
 
 			/**
 			 * Extracts the necessary values from the projection matrix that allow you to transform device Z value (range [0, 1]
@@ -503,13 +503,14 @@ namespace bs
 		private:
 			struct LuminanceUpdate
 			{
-				LuminanceUpdate(u64 frameIdx, SPtr<CommandBuffer> commandBuffer, SPtr<PooledRenderTexture> outputTexture)
-					: FrameIdx(frameIdx), CommandBuffer(std::move(commandBuffer)), OutputTexture(std::move(outputTexture))
+				LuminanceUpdate(u64 frameIdx, TAsyncOp<SPtr<PixelData>> readbackAsyncOp, SPtr<PooledRenderTexture> outputTexture)
+					: FrameIdx(frameIdx), OutputTexture(std::move(outputTexture)), ReadbackAsyncOp(std::move(readbackAsyncOp))
 				{}
 
 				u64 FrameIdx;
 				SPtr<CommandBuffer> CommandBuffer;
 				SPtr<PooledRenderTexture> OutputTexture;
+				TAsyncOp<SPtr<PixelData>> ReadbackAsyncOp;
 			};
 
 			RendererViewProperties mProperties;

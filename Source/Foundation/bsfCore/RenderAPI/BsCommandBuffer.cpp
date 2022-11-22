@@ -71,6 +71,11 @@ CommandBuffer::CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, boo
 {
 }
 
+CommandBuffer::~CommandBuffer()
+{
+	OnDestroyed(mIsSubmitted);
+}
+
 SPtr<CommandBuffer> CommandBuffer::Create(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
 	return CommandBufferManager::Instance().Create(type, deviceIdx, queueIdx, secondary);

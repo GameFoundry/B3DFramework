@@ -96,7 +96,7 @@ bool D3D11OcclusionQuery::IsReady() const
 	}
 }
 
-u32 D3D11OcclusionQuery::GetNumSamples()
+u32 D3D11OcclusionQuery::GetSampleCount()
 {
 	if(!mFinalized && IsReady())
 	{

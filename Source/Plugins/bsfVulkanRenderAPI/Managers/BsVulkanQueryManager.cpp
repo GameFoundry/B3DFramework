@@ -156,7 +156,7 @@ VulkanQueryManager::VulkanQueryManager(VulkanRenderAPI& rapi)
 
 SPtr<EventQuery> VulkanQueryManager::CreateEventQuery(u32 deviceIdx) const
 {
-	SPtr<VulkanDevice> device = mRenderAPI.GetDeviceInternal(deviceIdx);
+	SPtr<VulkanDevice> device = mRenderAPI.GetDevice(deviceIdx);
 
 	SPtr<EventQuery> query = SPtr<VulkanEventQuery>(B3DNew<VulkanEventQuery>(*device), &QueryManager::DeleteEventQuery, StdAlloc<VulkanEventQuery>());
 	mEventQueries.push_back(query.get());
@@ -166,7 +166,7 @@ SPtr<EventQuery> VulkanQueryManager::CreateEventQuery(u32 deviceIdx) const
 
 SPtr<TimerQuery> VulkanQueryManager::CreateTimerQuery(u32 deviceIdx) const
 {
-	SPtr<VulkanDevice> device = mRenderAPI.GetDeviceInternal(deviceIdx);
+	SPtr<VulkanDevice> device = mRenderAPI.GetDevice(deviceIdx);
 
 	SPtr<TimerQuery> query = SPtr<VulkanTimerQuery>(B3DNew<VulkanTimerQuery>(*device), &QueryManager::DeleteTimerQuery, StdAlloc<VulkanTimerQuery>());
 	mTimerQueries.push_back(query.get());
@@ -176,7 +176,7 @@ SPtr<TimerQuery> VulkanQueryManager::CreateTimerQuery(u32 deviceIdx) const
 
 SPtr<OcclusionQuery> VulkanQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
 {
-	SPtr<VulkanDevice> device = mRenderAPI.GetDeviceInternal(deviceIdx);
+	SPtr<VulkanDevice> device = mRenderAPI.GetDevice(deviceIdx);
 
 	SPtr<OcclusionQuery> query = SPtr<VulkanOcclusionQuery>(B3DNew<VulkanOcclusionQuery>(*device, binary), &QueryManager::DeleteOcclusionQuery, StdAlloc<VulkanOcclusionQuery>());
 	mOcclusionQueries.push_back(query.get());

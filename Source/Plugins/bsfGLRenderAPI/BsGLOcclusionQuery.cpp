@@ -80,7 +80,7 @@ bool GLOcclusionQuery::IsReady() const
 	return done == GL_TRUE;
 }
 
-u32 GLOcclusionQuery::GetNumSamples()
+u32 GLOcclusionQuery::GetSampleCount()
 {
 	if(!mFinalized && IsReady())
 	{

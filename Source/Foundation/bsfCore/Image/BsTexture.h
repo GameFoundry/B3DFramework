@@ -422,6 +422,18 @@ namespace bs
 			void ReadData(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0);
 
 			/**
+			 * Performs a non-blocking read operation. The GPU will execute the read when the command buffer reaches the execution point
+			 * and the asynchronous operation will be signaled with the return value.
+			 *
+			 * @param[in]	mipLevel		(optional) Mipmap level to read from.
+			 * @param[in]	face			(optional) Texture face to read from.
+			 * @param[in]	deviceIndex		Index of the device whose memory to read. If the buffer doesn't exist on this device,
+			 *								no data will be read.
+			 * @param[in]	commandBuffer	Command buffer to queue the operation on. Main command buffer is used.
+			 */
+			virtual TAsyncOp<SPtr<PixelData>> ReadDataAsync(u32 mipLevel = 0, u32 face = 0, u32 deviceIndex = 0, const SPtr<CommandBuffer>& commandBuffer = nullptr);
+
+			/**
 			 * Writes data from the provided buffer into the texture buffer.
 			 *
 			 * @param[in]	src					Buffer to retrieve the data from.

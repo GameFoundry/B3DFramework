@@ -58,7 +58,7 @@ namespace bs
 			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override {}
 			void End(const SPtr<CommandBuffer>& cb = nullptr) override {}
 			bool IsReady() const override { return true; }
-			u32 GetNumSamples() override { return 0; }
+			u32 GetSampleCount() override { return 0; }
 
 		private:
 			friend class QueryManager;

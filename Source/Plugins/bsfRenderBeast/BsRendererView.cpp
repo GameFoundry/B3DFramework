@@ -301,7 +301,7 @@ void RendererView::UpdateAsyncOperations()
 	auto lastFinishedIter = mLuminanceUpdates.end();
 	for(auto iter = mLuminanceUpdates.begin(); iter != mLuminanceUpdates.end(); ++iter)
 	{
-		if(iter->CommandBuffer->GetState() == CommandBufferState::Executing)
+		if(!iter->ReadbackAsyncOp.HasCompleted())
 			break;
 
 		lastFinishedIter = iter;
@@ -312,9 +312,8 @@ void RendererView::UpdateAsyncOperations()
 		// Get new luminance value
 		mPreviousEyeAdaptation = mCurrentEyeAdaptation;
 
-		PixelData data = lastFinishedIter->OutputTexture->Texture->Lock(GBL_READ_ONLY);
-		mCurrentEyeAdaptation = data.GetColorAt(0, 0).R;
-		lastFinishedIter->OutputTexture->Texture->Unlock();
+		const SPtr<PixelData> pixelData = lastFinishedIter->ReadbackAsyncOp.GetReturnValue();
+		mCurrentEyeAdaptation = pixelData->GetColorAt(0, 0).R;
 
 		// We've received information about eye adaptation, use that to determine if redrawing
 		// is required (technically we're drawing a few frames extra, as this information is always
@@ -345,7 +344,7 @@ float RendererView::GetCurrentExposure() const
 	return Math::Pow(2.0f, mRenderSettings->ExposureScale);
 }
 
-void RendererView::NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
+void RendererView::NotifyLuminanceUpdated(u64 frameIdx, SPtr<CommandBuffer> cb, SPtr<PooledRenderTexture> texture) const
 {
 	if(cb == nullptr)
 	{
@@ -353,7 +352,8 @@ void RendererView::NotifyLuminanceUpdatedInternal(u64 frameIdx, SPtr<CommandBuff
 		return;
 	}
 
-	mLuminanceUpdates.emplace_back(frameIdx, cb, texture);
+	TAsyncOp<SPtr<PixelData>> readbackAsyncOp = texture->Texture->ReadDataAsync(0, 0, 0, cb);
+	mLuminanceUpdates.emplace_back(frameIdx, std::move(readbackAsyncOp), std::move(texture));
 }
 
 void RendererView::DetermineVisible(const Vector<RendererRenderable*>& renderables, const Vector<CullInfo>& cullInfos, Vector<bool>* visibility)

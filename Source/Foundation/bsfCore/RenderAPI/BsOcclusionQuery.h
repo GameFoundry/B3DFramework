@@ -47,7 +47,7 @@ namespace bs
 			 * If the query is binary, this will return 0 or 1. 1 meaning one or more samples were rendered, but will not give
 			 * you the exact count.
 			 */
-			virtual u32 GetNumSamples() = 0;
+			virtual u32 GetSampleCount() = 0;
 
 			/** Triggered when the query has completed. Argument provided is the number of samples counted by the query. */
 			Event<void(u32)> OnComplete;

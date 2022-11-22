@@ -899,7 +899,7 @@ void VulkanGpuParams::PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* s
 
 	// Acquire sets as needed, and updated their contents if dirty
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
+	VulkanDevice& device = *rapi.GetDevice(deviceIdx);
 	VulkanDescriptorManager& descManager = device.GetDescriptorManager();
 
 	for(u32 i = 0; i < numSets; i++)

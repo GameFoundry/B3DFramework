@@ -137,7 +137,7 @@ void VulkanRenderTexture::Initialize()
 	}
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	SPtr<VulkanDevice> device = rapi.GetDeviceInternal(mDeviceIdx);
+	SPtr<VulkanDevice> device = rapi.GetDevice(mDeviceIdx);
 
 	VulkanRenderPass* renderPass = VulkanRenderPasses::Instance().Get(device->GetLogical(), rpDesc);
 	mFramebuffer = device->GetResourceManager().Create<VulkanFramebuffer>(renderPass, fbDesc);

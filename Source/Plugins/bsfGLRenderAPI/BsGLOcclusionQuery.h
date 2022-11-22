@@ -23,7 +23,7 @@ namespace bs
 			void Begin(const SPtr<CommandBuffer>& cb = nullptr) override;
 			void End(const SPtr<CommandBuffer>& cb = nullptr) override;
 			bool IsReady() const override;
-			u32 GetNumSamples() override;
+			u32 GetSampleCount() override;
 
 		private:
 			friend class QueryManager;

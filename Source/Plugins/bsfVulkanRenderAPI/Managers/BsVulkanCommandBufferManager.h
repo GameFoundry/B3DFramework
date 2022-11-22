@@ -41,7 +41,7 @@ namespace bs
 			void Flush(bool wait);
 
 			/** Returns the internal command buffer. */
-			VulkanCmdBuffer* GetCb() const { return mCB; }
+			VulkanCmdBuffer* GetCb() const { return mCommandBuffer; }
 
 		private:
 			friend class VulkanCommandBufferManager;
@@ -55,7 +55,7 @@ namespace bs
 			VulkanQueue* mQueue = nullptr;
 			u32 mQueueMask = 0;
 
-			VulkanCmdBuffer* mCB = nullptr;
+			VulkanCmdBuffer* mCommandBuffer = nullptr;
 			u32 mSyncMask = 0;
 		};
 

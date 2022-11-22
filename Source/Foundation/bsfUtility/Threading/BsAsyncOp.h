@@ -119,7 +119,7 @@ namespace bs
 	 * You are allowed (and meant to) to copy this by value.
 	 */
 	template <class ReturnType>
-	class B3D_UTILITY_EXPORT TAsyncOp : public AsyncOpBase
+	class TAsyncOp : public AsyncOpBase
 	{
 	public:
 		using ReturnValueType = ReturnType;
@@ -155,7 +155,7 @@ namespace bs
 		 */
 
 		/** Mark the async operation as completed, without setting a return value. */
-		void CompleteOperationInternal()
+		void CompleteOperation()
 		{
 			mData->MIsCompleted.store(true, std::memory_order_release);
 
@@ -164,10 +164,10 @@ namespace bs
 		}
 
 		/** Mark the async operation as completed. */
-		void CompleteOperationInternal(const ReturnType& returnValue)
+		void CompleteOperation(const ReturnType& returnValue)
 		{
 			mData->MReturnValue = returnValue;
-			CompleteOperationInternal();
+			CompleteOperation();
 		}
 
 		/** @} */

@@ -29,7 +29,7 @@ QueryManager::~QueryManager()
 	for(auto& query : mOcclusionQueries)
 	{
 		if(query->IsActive())
-			query->OnComplete(query->GetNumSamples());
+			query->OnComplete(query->GetSampleCount());
 	}
 
 	ProcessDeletedQueue();
@@ -59,7 +59,7 @@ void QueryManager::UpdateInternal()
 	{
 		if(query->IsActive() && query->IsReady())
 		{
-			query->OnComplete(query->GetNumSamples());
+			query->OnComplete(query->GetSampleCount());
 			query->SetActive(false);
 		}
 	}

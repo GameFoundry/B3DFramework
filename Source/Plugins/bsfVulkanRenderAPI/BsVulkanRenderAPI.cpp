@@ -276,7 +276,7 @@ void VulkanRenderAPI::Initialize()
 	GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	GET_INSTANCE_PROC_ADDR(mInstance, GetPhysicalDeviceSurfacePresentModesKHR);
 
-	VkDevice presentDevice = GetPresentDeviceInternal()->GetLogical();
+	VkDevice presentDevice = GetPresentDevice()->GetLogical();
 	GET_DEVICE_PROC_ADDR(presentDevice, CreateSwapchainKHR);
 	GET_DEVICE_PROC_ADDR(presentDevice, DestroySwapchainKHR);
 	GET_DEVICE_PROC_ADDR(presentDevice, GetSwapchainImagesKHR);
@@ -557,6 +557,19 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 	for(u32 i = 0; i < (u32)mDevices.size(); i++)
 		mDevices[i]->RefreshStates();
 
+	for(auto it = mSubmittedCommandBuffers.begin(); it != mSubmittedCommandBuffers.end();)
+	{
+		if((*it)->GetState() == CommandBufferState::Done)
+		{
+			SPtr<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(*it);
+			vulkanCommandBuffer->OnDidComplete();
+
+			it = mSubmittedCommandBuffers.erase(it);
+		}
+		else
+			++it;
+	}
+
 	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
 
@@ -578,7 +591,14 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuff
 	cmdBuffer->Submit(syncMask);
 
 	if(cmdBuffer == mMainCommandBuffer.get())
+	{
+		mSubmittedCommandBuffers.push_back(mMainCommandBuffer);
 		mMainCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(CommandBuffer::Create(GQT_GRAPHICS));
+	}
+	else
+	{
+		mSubmittedCommandBuffers.push_back(commandBuffer);
+	}
 }
 
 SPtr<CommandBuffer> VulkanRenderAPI::GetMainCommandBuffer() const

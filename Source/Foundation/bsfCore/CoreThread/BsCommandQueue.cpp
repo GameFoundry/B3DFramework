@@ -117,7 +117,7 @@ void CommandQueueBase::PlaybackWithNotify(bs::Queue<QueuedCommand>* commands, st
 			{
 				B3D_LOG(Warning, CoreThread, "Async operation return value wasn't resolved properly. Resolving automatically to nullptr. "
 											"Make sure to complete the operation before returning from the command callback method.");
-				command.AsyncOp.CompleteOperationInternal(nullptr);
+				command.AsyncOp.CompleteOperation(nullptr);
 			}
 		}
 		else

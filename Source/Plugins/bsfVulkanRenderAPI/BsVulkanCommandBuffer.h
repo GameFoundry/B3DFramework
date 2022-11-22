@@ -126,7 +126,9 @@ namespace bs
 				/** Buffer is done recording but hasn't been submitted. */
 				RecordingDone,
 				/** Buffer is done recording and is currently submitted on a queue. */
-				Submitted
+				Submitted,
+				/** Buffer is done executing on the device. */
+				Done
 			};
 
 		public:
@@ -190,6 +192,9 @@ namespace bs
 			 */
 			void AllocateSemaphores(VkSemaphore* semaphores);
 
+			/** Sets the VulkanCommandBuffer that currently owns this command buffer. */
+			void SetOwner(VulkanCommandBuffer* owner) { mOwner = owner; }
+
 			/** Returns true if the command buffer is currently being processed by the device. */
 			bool IsSubmitted() const { return mState == State::Submitted; }
 
@@ -202,12 +207,16 @@ namespace bs
 			/** Returns true if the command buffer is currently recording a render pass. */
 			bool IsInRenderPass() const { return mState == State::RecordingRenderPass; }
 
+			/** Returns true if the command buffer is done executing on the device. */
+			bool IsDone() const { return mState == State::Done; }
+
 			/**
-			 * Checks the internal fence if done executing.
+			 * Checks is the command buffer still executing on the GPU. Internal state will be updated if execution finishes.
 			 *
-			 * @param[in]	block	If true, the system will block until the fence is signaled.
+			 * @param[in]	block	If true, the system will block until the command buffer is done executing.
+			 * @return				True if execution has finished (or was never submitted), false if still running.
 			 */
-			bool CheckFenceStatus(bool block) const;
+			bool UpdateExecutionStatus(bool block);
 
 			/**
 			 * Resets the command buffer back in Ready state. Should be called when command buffer is done executing on a
@@ -645,6 +654,7 @@ namespace bs
 			u32 mQueueFamily;
 			State mState = State::Ready;
 			VulkanDevice& mDevice;
+			VulkanCommandBuffer* mOwner = nullptr;
 			VkCommandPool mPool;
 			VkCommandBuffer mCmdBuffer;
 			VkFence mFence;
@@ -718,6 +728,8 @@ namespace bs
 		class VulkanCommandBuffer : public CommandBuffer
 		{
 		public:
+			~VulkanCommandBuffer();
+		
 			/**
 			 * Submits the command buffer for execution.
 			 *
@@ -725,6 +737,9 @@ namespace bs
 			 *							(if any). See description of @p syncMask parameter in RenderAPI::executeCommands().
 			 */
 			void Submit(u32 syncMask);
+
+			/** Called by the backend when we have been notified the command buffer has finished executing on the GPU. */
+			void NotifyExecutionCompleted();
 
 			/**
 			 * Returns the internal command buffer.

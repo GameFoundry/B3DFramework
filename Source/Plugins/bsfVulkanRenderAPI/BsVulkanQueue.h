@@ -33,7 +33,7 @@ namespace bs
 			/**
 			 * Checks if anything is currently executing on this queue.
 			 *
-			 * @note	This status is only updated after a VulkanCommandBufferManager::refreshStates() call.
+			 * @note	This status is only updated after a VulkanCommandBufferManager::RefreshStates() call.
 			 */
 			bool IsExecuting() const;
 
@@ -97,13 +97,13 @@ namespace bs
 			struct SubmitInfo
 			{
 				SubmitInfo(VulkanCmdBuffer* cmdBuffer, u32 submitIdx, u32 numSemaphores, u32 numCommandBuffers)
-					: CmdBuffer(cmdBuffer), SubmitIdx(submitIdx), NumSemaphores(numSemaphores), NumCommandBuffers(numCommandBuffers)
+					: CmdBuffer(cmdBuffer), SubmitIdx(submitIdx), SemaphoreCount(numSemaphores), CommandBufferCount(numCommandBuffers)
 				{}
 
 				VulkanCmdBuffer* CmdBuffer;
 				u32 SubmitIdx;
-				u32 NumSemaphores;
-				u32 NumCommandBuffers;
+				u32 SemaphoreCount;
+				u32 CommandBufferCount;
 			};
 
 			VulkanDevice& mDevice;

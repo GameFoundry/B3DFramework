@@ -267,7 +267,7 @@ void ProfilerGPU::ResolveSample(const ProfiledSample& sample, GPUProfileSample& 
 	reportSample.TimeMs = sample.ActiveTimeQuery->GetTimeMs();
 
 	if(sample.ActiveOcclusionQuery)
-		reportSample.NumDrawnSamples = sample.ActiveOcclusionQuery->GetNumSamples();
+		reportSample.NumDrawnSamples = sample.ActiveOcclusionQuery->GetSampleCount();
 	else
 		reportSample.NumDrawnSamples = 0;
 

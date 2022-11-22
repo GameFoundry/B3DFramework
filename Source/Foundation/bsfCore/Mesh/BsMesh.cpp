@@ -41,7 +41,7 @@ AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 	{
 		mesh->WriteData(*_meshData, _discardEntireBuffer, false);
 		_meshData->UnlockInternal();
-		asyncOp.CompleteOperationInternal();
+		asyncOp.CompleteOperation();
 	};
 
 	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, discardEntireBuffer, std::placeholders::_1));
@@ -59,7 +59,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 
 		mesh->ReadData(*_meshData);
 		_meshData->UnlockInternal();
-		asyncOp.CompleteOperationInternal();
+		asyncOp.CompleteOperation();
 	};
 
 	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), data, std::placeholders::_1));

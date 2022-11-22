@@ -79,7 +79,7 @@ void VulkanEventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	if(cb != nullptr)
 		vulkanCB = static_cast<VulkanCommandBuffer*>(cb.get());
 	else
-		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainCommandBufferInternal());
+		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainVulkanCommandBuffer());
 
 	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
 	internalCB->RegisterResource(mEvent, VulkanAccessFlag::Read);

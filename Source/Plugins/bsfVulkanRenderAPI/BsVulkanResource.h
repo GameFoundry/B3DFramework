@@ -106,6 +106,13 @@ namespace bs
 				return mNumBoundHandles > 0;
 			}
 
+			/** Checks has the resource been destroyed. */
+			bool IsDestroyed() const
+			{
+				Lock lock(mMutex);
+				return mState == State::Destroyed;
+			}
+
 			/**
 			 * Returns the queue family the resource is currently owned by. Returns -1 if owned by no queue.
 			 *

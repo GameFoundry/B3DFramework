@@ -849,7 +849,7 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData
 	return device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation, rowPitchInPixels, slicePitchInPixels);
 }
 
-void VulkanTexture::CopyImageToImage(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
+void VulkanTexture::CopyImageToImage(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
 {
 	const u32 faceCount = mProperties.GetNumFaces();
 	const u32 mipCount = mProperties.GetNumMipmaps() + 1;
@@ -900,7 +900,7 @@ void VulkanTexture::CopyImageToImage(VulkanTransferBuffer* commandBuffer, Vulkan
 		transferDestinationLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	}
 
-	commandBuffer->GetCb()->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
+	commandBuffer->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
 
 	B3DStackFree(imageRegions);
 }
@@ -927,7 +927,7 @@ ImageSubresourcePitch VulkanTexture::GetPitchForSubresource(VulkanImage* image, 
 	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.GetFormat());
 }
 
-void VulkanTexture::CopyImageSubresourceToBuffer(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
+void VulkanTexture::CopyImageSubresourceToBuffer(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
 {
 	VkExtent3D extent;
 	PixelUtil::GetSizeForMipLevel(mProperties.GetWidth(), mProperties.GetHeight(), mProperties.GetDepth(), sourceMipLevel, extent.width, extent.height, extent.depth);
@@ -945,10 +945,10 @@ void VulkanTexture::CopyImageSubresourceToBuffer(VulkanTransferBuffer* commandBu
 	else
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-	commandBuffer->GetCb()->CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
+	commandBuffer->CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
 
 	const VkAccessFlags stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | (isBufferReadOnly ? 0 : VK_ACCESS_HOST_WRITE_BIT);
-	commandBuffer->GetCb()->MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+	commandBuffer->MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
 void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& copyInformation, const SPtr<CommandBuffer>& commandBuffer)
@@ -1028,7 +1028,7 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInfor
 	if(commandBuffer != nullptr)
 		vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->GetInternal();
 	else
-		vkCB = rapi.GetMainCommandBufferInternal()->GetInternal();
+		vkCB = rapi.GetMainVulkanCommandBuffer()->GetInternal();
 
 	u32 deviceIdx = vkCB->GetDeviceIdx();
 
@@ -1118,7 +1118,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 	mMappedLockOptions = options;
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanDevice& device = *rapi.GetDeviceInternal(deviceIdx);
+	VulkanDevice& device = *rapi.GetDevice(deviceIdx);
 
 	VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 	GpuQueueType queueType;
@@ -1270,7 +1270,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 		}
 
 		const bool isReadOnly = (options & (GBL_READ_WRITE | GBL_WRITE_ONLY | GBL_WRITE_ONLY_DISCARD | GBL_WRITE_ONLY_DISCARD_RANGE | GBL_WRITE_ONLY_NO_OVERWRITE)) == 0;
-		CopyImageSubresourceToBuffer(transferCB, image, face, mipLevel, mStagingBuffer, isReadOnly);
+		CopyImageSubresourceToBuffer(transferCB->GetCb(), image, face, mipLevel, mStagingBuffer, isReadOnly);
 
 		// Submit the command buffer and wait until it finishes
 		transferCB->Flush(true);
@@ -1303,7 +1303,7 @@ void VulkanTexture::UnlockImpl()
 		if(isWrite)
 		{
 			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-			VulkanDevice& device = *rapi.GetDeviceInternal(mMappedDeviceIdx);
+			VulkanDevice& device = *rapi.GetDevice(mMappedDeviceIdx);
 
 			VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 			GpuQueueType queueType;
@@ -1367,7 +1367,7 @@ void VulkanTexture::UnlockImpl()
 					// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 					if(props.GetNumMipmaps() > 0 || props.GetNumFaces() > 1)
 					{
-						CopyImageToImage(transferCB, image, newImage);
+						CopyImageToImage(transferCB->GetCb(), image, newImage);
 					}
 
 					image->Destroy();
@@ -1406,6 +1406,66 @@ void VulkanTexture::UnlockImpl()
 	}
 
 	mIsMapped = false;
+}
+
+
+TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(u32 mipLevel, u32 face, u32 deviceIndex, const SPtr<CommandBuffer>& commandBuffer)
+{
+	VulkanImage *const image = mImages[deviceIndex];
+	if(image == nullptr)
+	{
+		TAsyncOp<SPtr<PixelData>> operation;
+		operation.CompleteOperation(nullptr);
+
+		return operation;
+	}
+
+	VulkanRenderAPI& vulkanBackend = GetVulkanRenderAPI();
+	VulkanDevice& device = *vulkanBackend.GetDevice(deviceIndex);
+
+	VulkanCmdBuffer* vulkanCommandBufffer;
+	if(commandBuffer != nullptr)
+		vulkanCommandBufffer = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->GetInternal();
+	else
+		vulkanCommandBufffer = vulkanBackend.GetMainVulkanCommandBuffer()->GetInternal();
+
+	const u32 mipWidth = Math::Max(1u, mProperties.GetWidth() >> mipLevel);
+	const u32 mipHeight = Math::Max(1u, mProperties.GetHeight() >> mipLevel);
+	const u32 mipDepth = Math::Max(1u, mProperties.GetDepth() >> mipLevel);
+
+	const SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, mInternalFormats[deviceIndex]);
+
+	VulkanBuffer* const buffer = CreateStaging(device, *pixelData, true);
+	CopyImageSubresourceToBuffer(vulkanCommandBufffer, image, face, mipLevel, buffer, true);
+
+	TAsyncOp<SPtr<PixelData>> op;
+	auto fnOnCommandBufferCompleted = [buffer, op, pixelData]() mutable
+	{
+		UINT8* data = buffer->Map(0, pixelData->GetSize());
+
+		pixelData->AllocateInternalBuffer();
+		memcpy(pixelData->GetData(), data, pixelData->GetSize());
+
+		buffer->Unmap();
+		buffer->Destroy();
+
+		op.CompleteOperation(pixelData);
+	};
+
+	auto fnOnCommandBufferDestroyed = [buffer, op](bool isSubmitted) mutable
+	{
+		// In this case the completion callback will trigger.
+		if(isSubmitted)
+			return;
+
+		buffer->Destroy();
+		op.CompleteOperation(nullptr);
+	};
+
+	commandBuffer->OnDidComplete.Connect(fnOnCommandBufferCompleted);
+	commandBuffer->OnDestroyed.Connect(fnOnCommandBufferDestroyed);
+
+	return op;
 }
 
 void VulkanTexture::ReadDataImpl(PixelData& dest, u32 mipLevel, u32 face, u32 deviceIdx, u32 queueIdx)

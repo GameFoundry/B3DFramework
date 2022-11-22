@@ -234,8 +234,10 @@ namespace bs
 			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void UnlockImpl() override;
 			void CopyImpl(const SPtr<Texture>& target, const TextureCopyInformation& copyInformation, const SPtr<CommandBuffer>& commandBuffer) override;
+			TAsyncOp<SPtr<PixelData>> ReadDataAsync(UINT32 mipLevel = 0, UINT32 face = 0, UINT32 deviceIndex = 0, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void ReadDataImpl(PixelData& dest, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteDataImpl(const PixelData& src, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, u32 queueIdx = 0) override;
+
 
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */
@@ -256,13 +258,13 @@ namespace bs
 			 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the
 			 * provided image matches the current texture properties (i.e. num faces, mips, size).
 			 */
-			void CopyImageToImage(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
+			void CopyImageToImage(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
 
 			/**
 			 * Copies a single subresource from the source image into the destination buffer. Caller must ensure the destination buffer provides adequate
 			 * space for the texture data. Set @p isBufferReadOnly to true if the CPU only needs to read from the destination buffer, or false if it also needs to write to it.
 			 */
-			void CopyImageSubresourceToBuffer(VulkanTransferBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
+			void CopyImageSubresourceToBuffer(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
 
 			/** Returns pitch information for a particular image subresource. */
 			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;

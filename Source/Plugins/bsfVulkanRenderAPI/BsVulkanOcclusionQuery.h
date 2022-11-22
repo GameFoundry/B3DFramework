@@ -23,16 +23,16 @@ namespace bs
 			void Begin(const SPtr<CommandBuffer>& cb) override;
 			void End(const SPtr<CommandBuffer>& cb) override;
 			bool IsReady() const override;
-			u32 GetNumSamples() override;
+			u32 GetSampleCount() override;
 
 			/** Returns true if the query begin() was called, but not end(). */
-			bool IsInProgressInternal() const;
+			bool IsInProgress() const;
 
 			/**
 			 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
 			 * open during command buffer submission.
 			 */
-			void InterruptInternal(VulkanCmdBuffer& cb);
+			void Interrupt(VulkanCmdBuffer& cb);
 
 		private:
 			friend class QueryManager;

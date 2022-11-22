@@ -589,7 +589,7 @@ VkSamplerMipmapMode VulkanUtility::GetMipFilter(FilterOptions filter)
 
 void VulkanUtility::GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice* (&devices)[BS_MAX_DEVICES])
 {
-	u32 numDevices = rapi.GetNumDevicesInternal();
+	u32 numDevices = rapi.GetDeviceCount();
 
 	for(u32 i = 0; i < BS_MAX_DEVICES; i++)
 	{
@@ -599,7 +599,7 @@ void VulkanUtility::GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags
 			continue;
 		}
 
-		VulkanDevice* device = rapi.GetDeviceInternal(i).get();
+		VulkanDevice* device = rapi.GetDevice(i).get();
 
 		if(IsDeviceIdxSet(rapi, i, flags))
 			devices[i] = device;
@@ -635,7 +635,7 @@ VkPipelineStageFlags VulkanUtility::ShaderToPipelineStage(VkShaderStageFlags sha
 
 bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags)
 {
-	VulkanDevice* device = rapi.GetDeviceInternal(idx).get();
+	VulkanDevice* device = rapi.GetDevice(idx).get();
 
 	return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->IsPrimary()));
 }

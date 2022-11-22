@@ -1801,7 +1801,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 
 		// Notify the view eye adaptation value will change
 		SPtr<CommandBuffer> cb = RenderAPI::Instance().GetMainCommandBuffer();
-		view.NotifyLuminanceUpdatedInternal(inputs.FrameInfo.Timings.FrameIdx, cb, Output);
+		view.NotifyLuminanceUpdated(inputs.FrameInfo.Timings.FrameIdx, cb, Output);
 	}
 	else
 	{

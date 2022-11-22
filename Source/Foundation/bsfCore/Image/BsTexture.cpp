@@ -9,6 +9,7 @@
 #include "Threading/BsAsyncOp.h"
 #include "Resources/BsResources.h"
 #include "Image/BsPixelUtil.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 using namespace bs;
 
@@ -116,7 +117,7 @@ AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, 
 	{
 		texture->WriteData(*_pixData, _mipLevel, _face, _discardEntireBuffer);
 		_pixData->UnlockInternal();
-		asyncOp.CompleteOperationInternal();
+		asyncOp.CompleteOperation();
 	};
 
 	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, discardEntireBuffer, std::placeholders::_1));
@@ -135,7 +136,7 @@ AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 
 		texture->ReadData(*_pixData, _mipLevel, _face);
 		_pixData->UnlockInternal();
-		asyncOp.CompleteOperationInternal();
+		asyncOp.CompleteOperation();
 	};
 
 	return GetCoreThread().QueueReturnCommand(std::bind(func, GetCore(), face, mipLevel, data, std::placeholders::_1));
@@ -153,7 +154,7 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
 		SPtr<PixelData> output = texture->GetProperties().AllocBuffer(face, mipLevel);
 		texture->ReadData(*output, mipLevel, face);
 
-		op.CompleteOperationInternal(output);
+		op.CompleteOperation(output);
 	};
 
 	GetCoreThread().QueueCommand(func);
@@ -376,6 +377,26 @@ void Texture::ReadData(PixelData& dest, u32 mipLevel, u32 face, u32 deviceIdx, u
 	}
 
 	ReadDataImpl(pixelData, mipLevel, face, deviceIdx, queueIdx);
+}
+
+TAsyncOp<SPtr<PixelData>> Texture::ReadDataAsync(u32 mipLevel, u32 face, u32 deviceIndex, const SPtr<CommandBuffer>& commandBuffer)
+{
+	SPtr<PixelData> pixelData = GetProperties().AllocBuffer(face, mipLevel);
+
+	u32 queueIdx = 0;
+	const SPtr<CommandBuffer> usedCommandBuffer = commandBuffer != nullptr ? commandBuffer : RenderAPI::Instance().GetMainCommandBuffer();
+	if(usedCommandBuffer)
+	{
+		queueIdx = CommandSyncMask::GetGlobalQueueIdx(usedCommandBuffer->GetType(), usedCommandBuffer->GetQueueIdx());
+	}
+
+	// We fall-back to sync read if the backend doesn't implement an async method
+	ReadData(*pixelData, mipLevel, face, deviceIndex, queueIdx);
+
+	TAsyncOp<SPtr<PixelData>> output;
+	output.CompleteOperation(pixelData);
+
+	return output;
 }
 
 PixelData Texture::Lock(GpuLockOptions options, u32 mipLevel, u32 face, u32 deviceIdx, u32 queueIdx)

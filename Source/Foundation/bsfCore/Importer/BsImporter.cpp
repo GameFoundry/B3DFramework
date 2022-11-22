@@ -73,7 +73,7 @@ TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const 
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
 	{
-		output.CompleteOperationInternal(HResource());
+		output.CompleteOperation(HResource());
 		return output;
 	}
 
@@ -102,7 +102,7 @@ TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
 	{
-		output.CompleteOperationInternal(B3DMakeShared<MultiResource>());
+		output.CompleteOperation(B3DMakeShared<MultiResource>());
 		return output;
 	}
 
@@ -231,7 +231,7 @@ void DoImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& fi
 	else
 		resource = GetResources().CreateResourceHandleInternal(resourcePtr, uuid);
 
-	op.CompleteOperationInternal(resource);
+	op.CompleteOperation(resource);
 }
 
 template <>
@@ -246,7 +246,7 @@ void DoImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, cons
 		subresources.push_back({ entry.Name, handle });
 	}
 
-	op.CompleteOperationInternal(B3DMakeShared<MultiResource>(subresources));
+	op.CompleteOperation(B3DMakeShared<MultiResource>(subresources));
 }
 
 template <class ReturnType>

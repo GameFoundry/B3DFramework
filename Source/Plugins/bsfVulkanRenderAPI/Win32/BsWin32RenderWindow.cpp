@@ -88,7 +88,7 @@ Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowI
 
 Win32RenderWindow::~Win32RenderWindow()
 {
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 	presentDevice->WaitIdle();
 
 	if(mWindow != nullptr)
@@ -98,7 +98,7 @@ Win32RenderWindow::~Win32RenderWindow()
 	}
 
 	mSwapChain->Destroy();
-	vkDestroySurfaceKHR(mRenderAPI.GetInstanceInternal(), mSurface, gVulkanAllocator);
+	vkDestroySurfaceKHR(mRenderAPI.GetInstance(), mSurface, gVulkanAllocator);
 
 	Platform::ResetNonClientAreas(*this);
 }
@@ -178,11 +178,11 @@ void Win32RenderWindow::Initialize()
 	surfaceCreateInfo.hwnd = mWindow->GetHWnd();
 	surfaceCreateInfo.hinstance = windowDesc.Module;
 
-	VkInstance instance = mRenderAPI.GetInstanceInternal();
+	VkInstance instance = mRenderAPI.GetInstance();
 	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
 
 	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
@@ -271,7 +271,7 @@ void Win32RenderWindow::SwapBuffers(u32 syncMask)
 		SetHidden(false);
 
 	// Get a command buffer on which we'll submit
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 
 	// Assuming present queue is always graphics
 	B3D_ASSERT(presentDevice->GetQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
@@ -584,7 +584,7 @@ void Win32RenderWindow::RebuildSwapChain()
 	//// Need to make sure nothing is using the swap buffer before we re-create it
 	// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
 	// on those
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDeviceInternal();
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 	presentDevice->WaitIdle();
 
 	VulkanSwapChain* oldSwapChain = mSwapChain;
