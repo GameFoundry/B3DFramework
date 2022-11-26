@@ -1,7 +1,7 @@
 # Features
 
 * __General__
-	* Modern C++14 code
+	* Modern C++17 code
 	* Clean layered design
 	* Modular & plugin based
 	* Fully documented

@@ -51,8 +51,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
 	add_compile_options(-fno-rtti)
 endif()
 
-# Make sure to use the C++14 standard
-set(CMAKE_CXX_STANDARD 14)
+# Make sure to use the C++17 standard
+set(CMAKE_CXX_STANDARD 17)
 
 # Build an executable from the provided C++ files
 add_executable(myApp WIN32 "Main.cpp")
