@@ -405,7 +405,7 @@ VulkanPipeline* VulkanGraphicsPipelineState::CreatePipeline(u32 deviceIndex, Vul
 	// Note: We can use the default render pass here (default clear/load/read flags), even though that might not be the
 	// exact one currently bound. This is because load/store operations and layout transitions are allowed to differ
 	// (as per spec 7.2., such render passes are considered compatible).
-	mPipelineInfo.renderPass = renderPass->GetVkRenderPass(RT_NONE, RT_NONE, CLEAR_NONE);
+	mPipelineInfo.renderPass = renderPass->GetVkRenderPass(RT_NONE, RT_NONE, RT_NONE);
 	mPipelineInfo.layout = mPerDeviceData[deviceIndex].PipelineLayout;
 	mPipelineInfo.pVertexInputState = vertexInput->GetCreateInfo();
 

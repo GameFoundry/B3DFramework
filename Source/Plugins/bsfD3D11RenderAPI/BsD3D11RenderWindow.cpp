@@ -156,7 +156,7 @@ void D3D11RenderWindow::Initialize()
 
 	if(mDesc.VideoMode.IsCustom)
 	{
-		mRefreshRateNumerator = Math::RoundToInt(mDesc.VideoMode.RefreshRate);
+		mRefreshRateNumerator = Math::RoundToI32(mDesc.VideoMode.RefreshRate);
 		mRefreshRateDenominator = 1;
 	}
 	else
@@ -347,7 +347,7 @@ void D3D11RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 
 	modeDesc.Width = width;
 	modeDesc.Height = height;
-	modeDesc.RefreshRate.Numerator = Math::RoundToInt(refreshRate);
+	modeDesc.RefreshRate.Numerator = Math::RoundToI32(refreshRate);
 	modeDesc.RefreshRate.Denominator = 1;
 	modeDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;

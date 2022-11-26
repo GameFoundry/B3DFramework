@@ -631,7 +631,7 @@ void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u3
 		return;
 
 	if(vkCB->IsInRenderPass())
-		vkCB->EndRenderPass();
+		vkCB->EndRenderPass(true);
 
 	vkCB->CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
 

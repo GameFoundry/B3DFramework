@@ -1039,7 +1039,7 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInfor
 		return;
 
 	if(vkCB->IsInRenderPass())
-		vkCB->EndRenderPass();
+		vkCB->EndRenderPass(true);
 
 	if(srcHasMultisample && !destHasMultisample) // Resolving from MS to non-MS texture
 	{

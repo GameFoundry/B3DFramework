@@ -559,13 +559,13 @@ Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
 	Rect2I viewport = GetViewportRect();
 
 	Vector2I screenPoint;
-	screenPoint.X = Math::RoundToInt(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
+	screenPoint.X = Math::RoundToI32(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
 
 	const Conventions& rapiConventions = ct::GetRenderBackendCapabilities().Conventions;
 	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
-		screenPoint.Y = Math::RoundToInt(viewport.Y + (ndcPoint.Y + 1.0f) * 0.5f * viewport.Height);
+		screenPoint.Y = Math::RoundToI32(viewport.Y + (ndcPoint.Y + 1.0f) * 0.5f * viewport.Height);
 	else
-		screenPoint.Y = Math::RoundToInt(viewport.Y + (1.0f - (ndcPoint.Y + 1.0f) * 0.5f) * viewport.Height);
+		screenPoint.Y = Math::RoundToI32(viewport.Y + (1.0f - (ndcPoint.Y + 1.0f) * 0.5f) * viewport.Height);
 
 	return screenPoint;
 }

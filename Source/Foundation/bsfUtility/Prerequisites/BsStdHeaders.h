@@ -112,13 +112,17 @@ namespace bs
 	template <typename Key>
 	using HashType = typename std::conditional<std::is_enum<Key>::value, EnumClassHash, std::hash<Key>>::type;
 
-	/** Double ended queue. Allows for fast insertion and removal at both its beggining and end. */
+	/** Double ended queue. Allows for fast insertion and removal at both its beginning and end. */
 	template <typename T, typename A = StdAlloc<T>>
 	using Deque = std::deque<T, A>;
 
-	/** Dynamically sized array that stores element contigously. */
+	/** Dynamically sized array that stores elements contiguously. */
 	template <typename T, typename A = StdAlloc<T>>
 	using Vector = std::vector<T, A>;
+
+	/** Constant array that stores elements contiguously. */
+	template <typename ElementType, size_t Size>
+	using Array = std::array<ElementType, Size>;
 
 	/**
 	 * Container that supports constant time insertion and removal for elements with known locations, but without fast

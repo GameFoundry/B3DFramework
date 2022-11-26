@@ -1339,7 +1339,7 @@ Vector2I GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const Vector2
 	const Matrix4& worldTfrm = widget->GetWorldTfrm();
 
 	Vector4 vecLocalPos = worldTfrm.Inverse().MultiplyAffine(Vector4((float)windowPos.X, (float)windowPos.Y, 0.0f, 1.0f));
-	Vector2I curLocalPos(Math::RoundToInt(vecLocalPos.X), Math::RoundToInt(vecLocalPos.Y));
+	Vector2I curLocalPos(Math::RoundToI32(vecLocalPos.X), Math::RoundToI32(vecLocalPos.Y));
 
 	return curLocalPos;
 }
@@ -1372,7 +1372,7 @@ Vector2I GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, con
 		float scaleX = bridgeBounds.Width > 0 ? rtProps.Width / (float)bridgeBounds.Width : 0.0f;
 		float scaleY = bridgeBounds.Height > 0 ? rtProps.Height / (float)bridgeBounds.Height : 0.0f;
 
-		return Vector2I(Math::RoundToInt(x * scaleX), Math::RoundToInt(y * scaleY));
+		return Vector2I(Math::RoundToI32(x * scaleX), Math::RoundToI32(y * scaleY));
 	}
 
 	return windowPos;

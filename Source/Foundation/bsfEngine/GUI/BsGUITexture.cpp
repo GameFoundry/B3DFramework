@@ -133,13 +133,13 @@ void GUITexture::UpdateRenderElementsInternal()
 
 			if(aspectY > aspectX)
 			{
-				destSize.X = Math::RoundToPosInt(textureSize.X / aspectY);
-				destSize.Y = Math::RoundToPosInt(textureSize.Y / aspectY);
+				destSize.X = Math::RoundToU32(textureSize.X / aspectY);
+				destSize.Y = Math::RoundToU32(textureSize.Y / aspectY);
 			}
 			else
 			{
-				destSize.X = Math::RoundToPosInt(textureSize.X / aspectX);
-				destSize.Y = Math::RoundToPosInt(textureSize.Y / aspectX);
+				destSize.X = Math::RoundToU32(textureSize.X / aspectX);
+				destSize.Y = Math::RoundToU32(textureSize.Y / aspectX);
 			}
 		}
 

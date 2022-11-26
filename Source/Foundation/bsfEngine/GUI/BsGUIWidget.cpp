@@ -1231,7 +1231,7 @@ bool GUIWidget::InBounds(const Vector2I& position) const
 	Vector3 vecPos((float)position.X, (float)position.Y, 0.0f);
 	vecPos = mTransform.Inverse().MultiplyAffine(vecPos);
 
-	Vector2I localPos(Math::RoundToInt(vecPos.X), Math::RoundToInt(vecPos.Y));
+	Vector2I localPos(Math::RoundToI32(vecPos.X), Math::RoundToI32(vecPos.Y));
 	return mBounds.Contains(localPos);
 }
 

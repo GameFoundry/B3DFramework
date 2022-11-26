@@ -79,7 +79,7 @@ namespace bs
 			 * @param[in]	clearMask	Mask that controls which render targets should be cleared on render pass start. Target
 			 *							cannot have both load and clear bits set. If load bit is set, clear will be ignored.
 			 */
-			VkRenderPass GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const;
+			VkRenderPass GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const;
 
 			/**
 			 * Returns the attachment descriptor for the specified color attachment. The attachment index is sequential in
@@ -112,13 +112,13 @@ namespace bs
 			 * Returns the maximum required number of clear entries to provide in a render pass start structure. This depends on
 			 * the clear mask and the number of attachments.
 			 */
-			u32 GetClearEntryCount(ClearMask clearMask) const;
+			u32 GetClearEntryCount(RenderSurfaceMask clearMask) const;
 
 		private:
 			/** Key used for identifying different types of frame-buffer variants. */
 			struct VariantKey
 			{
-				VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask);
+				VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask);
 
 				class HashFunction
 				{
@@ -134,11 +134,11 @@ namespace bs
 
 				RenderSurfaceMask LoadMask;
 				RenderSurfaceMask ReadMask;
-				ClearMask ClearMask;
+				RenderSurfaceMask ClearMask;
 			};
 
 			/** Creates a new variant of the render pass. */
-			VkRenderPass CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const;
+			VkRenderPass CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const;
 
 			u32 mId;
 			u32 mAttachmentCount;

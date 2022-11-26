@@ -98,13 +98,13 @@ void GUIButtonBase::UpdateRenderElementsInternal()
 
 		if(horzRatio < vertRatio)
 		{
-			contentWidth = Math::RoundToInt(contentWidth * horzRatio);
-			contentHeight = Math::RoundToInt(contentHeight * horzRatio);
+			contentWidth = Math::RoundToI32(contentWidth * horzRatio);
+			contentHeight = Math::RoundToI32(contentHeight * horzRatio);
 		}
 		else
 		{
-			contentWidth = Math::RoundToInt(contentWidth * vertRatio);
-			contentHeight = Math::RoundToInt(contentHeight * vertRatio);
+			contentWidth = Math::RoundToI32(contentWidth * vertRatio);
+			contentHeight = Math::RoundToI32(contentHeight * vertRatio);
 		}
 
 		IMAGE_SPRITE_DESC contentImgDesc;

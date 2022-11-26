@@ -104,10 +104,10 @@ Rect2I GUIInputTool::GetLocalCharRect(u32 charIdx) const
 		u32 vertIdx = quadIdx * 4;
 
 		Rect2I charRect;
-		charRect.X = Math::RoundToInt(mQuads[vertIdx + 0].X);
-		charRect.Y = Math::RoundToInt(mQuads[vertIdx + 0].Y);
-		charRect.Width = Math::RoundToInt(mQuads[vertIdx + 3].X - charRect.X);
-		charRect.Height = Math::RoundToInt(mQuads[vertIdx + 3].Y - charRect.Y);
+		charRect.X = Math::RoundToI32(mQuads[vertIdx + 0].X);
+		charRect.Y = Math::RoundToI32(mQuads[vertIdx + 0].Y);
+		charRect.Width = Math::RoundToI32(mQuads[vertIdx + 3].X - charRect.X);
+		charRect.Height = Math::RoundToI32(mQuads[vertIdx + 3].Y - charRect.Y);
 
 		return charRect;
 	}

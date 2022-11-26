@@ -8,7 +8,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanRenderPass::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ::bs::ct::ClearMask clearMask)
+VulkanRenderPass::VariantKey::VariantKey(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask)
 	: LoadMask(loadMask), ReadMask(readMask), ClearMask(clearMask)
 {}
 
@@ -198,7 +198,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 	mRenderPassCI.dependencyCount = 2;
 	mRenderPassCI.pDependencies = mDependencies;
 
-	mDefault = CreateVariant(RT_NONE, RT_NONE, CLEAR_NONE);
+	mDefault = CreateVariant(RT_NONE, RT_NONE, RT_NONE);
 }
 
 VulkanRenderPass::~VulkanRenderPass()
@@ -209,7 +209,7 @@ VulkanRenderPass::~VulkanRenderPass()
 		vkDestroyRenderPass(mDevice, entry.second, gVulkanAllocator);
 }
 
-VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const
+VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const
 {
 	for(u32 sequentialAttachmentIndex = 0; sequentialAttachmentIndex < mColorAttachmentCount; sequentialAttachmentIndex++)
 	{
@@ -223,7 +223,7 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 			vkAttachmentDescription.initialLayout = mIsShaderReadAllowedForColorAttachment[attachmentIndex] ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		}
-		else if(clearMask.IsSet((ClearMaskBits)(1 << attachmentIndex)))
+		else if(clearMask.IsSet((RenderSurfaceMaskBits)(1 << attachmentIndex)))
 		{
 			vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			vkAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -253,12 +253,12 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 		}
 		else
 		{
-			if(clearMask.IsSet(CLEAR_DEPTH))
+			if(clearMask.IsSet(RT_DEPTH))
 				vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else
 				vkAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			if(clearMask.IsSet(CLEAR_STENCIL))
+			if(clearMask.IsSet(RT_STENCIL))
 				vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 			else
 				vkAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -291,9 +291,9 @@ VkRenderPass VulkanRenderPass::CreateVariant(RenderSurfaceMask loadMask, RenderS
 	return output;
 }
 
-VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, ClearMask clearMask) const
+VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, RenderSurfaceMask readMask, RenderSurfaceMask clearMask) const
 {
-	if(loadMask == RT_NONE && readMask == RT_NONE && clearMask == CLEAR_NONE)
+	if(loadMask == RT_NONE && readMask == RT_NONE && clearMask == RT_NONE)
 		return mDefault;
 
 	VariantKey key(loadMask, readMask, clearMask);
@@ -307,13 +307,13 @@ VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, Rende
 	return newVariant;
 }
 
-u32 VulkanRenderPass::GetClearEntryCount(ClearMask clearMask) const
+u32 VulkanRenderPass::GetClearEntryCount(RenderSurfaceMask clearMask) const
 {
-	if(clearMask == CLEAR_NONE)
+	if(clearMask == RT_NONE)
 		return 0;
-	else if(clearMask == CLEAR_ALL)
+	else if(clearMask == RT_ALL)
 		return GetAttachmentCount();
-	else if(((u32)clearMask & (u32)(CLEAR_DEPTH | CLEAR_STENCIL)) != 0 && HasDepthAttachment())
+	else if(((u32)clearMask & (u32)(RT_DEPTH | RT_STENCIL)) != 0 && HasDepthAttachment())
 		return GetAttachmentCount();
 
 	u32 attachmentCount = 0;

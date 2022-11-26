@@ -105,12 +105,12 @@ void SpriteTexture::SetTexture(const HTexture& texture)
 
 u32 SpriteTexture::GetWidth() const
 {
-	return Math::RoundToInt(mAtlasTexture->GetProperties().GetWidth() * mUVScale.X);
+	return Math::RoundToI32(mAtlasTexture->GetProperties().GetWidth() * mUVScale.X);
 }
 
 u32 SpriteTexture::GetHeight() const
 {
-	return Math::RoundToInt(mAtlasTexture->GetProperties().GetHeight() * mUVScale.Y);
+	return Math::RoundToI32(mAtlasTexture->GetProperties().GetHeight() * mUVScale.Y);
 }
 
 u32 SpriteTexture::GetFrameWidth() const

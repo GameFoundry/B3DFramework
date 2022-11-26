@@ -20,6 +20,18 @@ bool Rect2::Contains(const Vector2& point) const
 	return false;
 }
 
+bool Rect2::Contains(const Rect2& other) const
+{
+	const float right = X + Width;
+	const float bottom = Y + Height;
+
+	const float otherRight = other.X + other.Width;
+	const float otherBottom = other.Y + other.Height;
+
+	return other.X >= X && otherRight <= right &&
+		other.Y >= Y && otherBottom <= bottom;
+}
+
 bool Rect2::Overlaps(const Rect2& other) const
 {
 	float otherRight = other.X + other.Width;

@@ -281,8 +281,8 @@ namespace bs
 			/** Begins render pass recording. Must be called within begin()/end() calls. */
 			void BeginRenderPass();
 
-			/** Ends render pass recording (as started with beginRenderPass(). */
-			void EndRenderPass();
+			/** Ends render pass recording (as started with BeginRenderPass(). */
+			void EndRenderPass() { EndRenderPass(false); }
 
 			/**
 			 * Assigns a render target the the command buffer. This render target's framebuffer and render pass will be used
@@ -306,7 +306,7 @@ namespace bs
 			void SetGpuParams(const SPtr<GpuParams>& gpuParams);
 
 			/** Sets the current viewport which determine to which portion of the render target to render to. */
-			void SetViewport(const Rect2& area);
+			void SetNormalizedViewportArea(const Rect2& area);
 
 			/**
 			 * Sets the scissor rectangle area which determines in which area if the viewport are the fragments allowed to be
@@ -461,6 +461,8 @@ namespace bs
 			friend class VulkanCmdBufferPool;
 			friend class VulkanCommandBuffer;
 			friend class VulkanQueue;
+			friend class VulkanHardwareBuffer;
+			friend class VulkanTexture;
 
 			/** Contains information about a single Vulkan resource bound/used on this command buffer. */
 			struct ResourceUseHandle
@@ -564,6 +566,13 @@ namespace bs
 				VkImageLayout RenderPassLayout;
 			};
 
+			/**
+			 * Ends render pass recording (as started with BeginRenderPass().
+			 *
+			 * @param isInternalInterrupt		This will be true if we're ending the render pass temporarily, as a requirement for some internal operation (such as memory barriers), rather than explicitly requested by the user.
+			 */
+			void EndRenderPass(bool isInternalInterrupt);
+
 			/** Checks if all the prerequisites for rendering have been made (e.g. render target and pipeline state are set.) */
 			bool IsReadyForRender();
 
@@ -586,8 +595,20 @@ namespace bs
 			/** Binds the currently stored GPU parameters object, if dirty. */
 			void BindGpuParams();
 
-			/** Clears the specified area of the currently bound render target. */
+			/**
+			 * Clears the specified area of the currently bound render target. If in the middle of the render pass this will issue a clear command,
+			 * but if render pass has not begun yet it will instead attempt to perform the clear at the next render pass start.
+			 */
 			void ClearViewport(const Rect2I& area, u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
+
+			/**
+			 * Executes a clear command in the command buffer.
+			 *
+			 * @param area			Area in the currently bound render target to clear.
+			 * @param clearMask		Mask specifying which surfaces of the currently bound render target to clear.
+			 * @param clearValues	Values used for clearing attachments.
+			 */
+			void ExecuteClearCommand(const Rect2I& area, RenderSurfaceMask clearMask, const Array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1>& clearValues);
 
 			/** Starts and ends a render pass, intended only for a clear operation. */
 			void ExecuteClearPass();
@@ -645,7 +666,13 @@ namespace bs
 			void GetInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vector<VulkanOcclusionQuery*>& occlusion) const;
 
 			/** Returns the read mask for the current framebuffer. */
-			RenderSurfaceMask GetFbReadMask();
+			RenderSurfaceMask GetFramebufferReadMask();
+
+			/** Returns the current viewport area in pixels. This depends on the currently bound framebuffer and normalized viewport area. */
+			Rect2I GetViewportArea() const;
+
+			/** Returns the current area of the render pass in pixels. This depends on the currently bound framebuffer. */
+			Rect2I GetRenderPassArea() const;
 
 			/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
 			void NotifyRenderTargetModified();
@@ -690,7 +717,7 @@ namespace bs
 			SPtr<VertexDeclaration> mVertexDecl;
 			SPtr<VulkanIndexBuffer> mIndexBuffer;
 			Vector<SPtr<VulkanVertexBuffer>> mVertexBuffers;
-			Rect2 mViewport{ 0.0f, 0.0f, 1.0f, 1.0f };
+			Rect2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Rect2I mScissor{ 0, 0, 0, 0 };
 			u32 mStencilRef = 0;
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
@@ -703,11 +730,12 @@ namespace bs
 			bool mScissorRequiresBind : 1;
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
+			bool mIsRenderPassInterrupted = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParams> mBoundParams;
 
 			std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mClearValues{};
-			ClearMask mClearMask;
+			RenderSurfaceMask mClearMask;
 			Rect2I mClearArea;
 
 			Vector<VulkanSemaphore*> mSemaphoresTemp{ BS_MAX_UNIQUE_QUEUES };

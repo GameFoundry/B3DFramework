@@ -302,7 +302,7 @@ namespace bs
 		{
 			if(value <= 0.0f) return 0;
 			if(value >= 1.0f) return (1 << bits) - 1;
-			return Math::RoundToInt(value * (1 << bits));
+			return Math::RoundToI32(value * (1 << bits));
 		}
 
 		/**
@@ -335,7 +335,7 @@ namespace bs
 		{
 			if(value <= 0.0f) return 0;
 			if(value >= 1.0f) return (1 << bits) - 1;
-			return Math::RoundToInt(value * (1 << bits));
+			return Math::RoundToI32(value * (1 << bits));
 		}
 
 		/**

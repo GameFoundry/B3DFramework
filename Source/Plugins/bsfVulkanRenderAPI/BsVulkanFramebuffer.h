@@ -92,7 +92,7 @@ namespace bs
 			 * Gets the number of layers in each framebuffer surface. A layer is an element in a texture array, or a depth
 			 * slice in a 3D texture).
 			 */
-			u32 GetNumLayers() const { return mNumLayers; }
+			u32 GetLayerCount() const { return mNumLayers; }
 
 			/** Returns information about a color attachment at the specified index. */
 			const VulkanFramebufferAttachment& GetColorAttachment(u32 colorIdx) const { return mColorAttachments[colorIdx]; }

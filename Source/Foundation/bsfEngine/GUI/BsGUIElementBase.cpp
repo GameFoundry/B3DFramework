@@ -176,7 +176,7 @@ Rect2I GUIElementBase::GetScreenBounds() const
 		Vector2I localPos(area.X, area.Y);
 
 		const Vector4 widgetPosFlt = widgetTfrm.MultiplyAffine(Vector4((float)localPos.X, (float)localPos.Y, 0.0f, 1.0f));
-		const Vector2I widgetPos(Math::RoundToInt(widgetPosFlt.X), Math::RoundToInt(widgetPosFlt.Y));
+		const Vector2I widgetPos(Math::RoundToI32(widgetPosFlt.X), Math::RoundToI32(widgetPosFlt.Y));
 
 		const RenderWindow* parentWindow = GUIManager::Instance().GetWidgetWindow(*mParentWidget);
 		if(parentWindow)

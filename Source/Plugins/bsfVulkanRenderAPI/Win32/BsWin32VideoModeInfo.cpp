@@ -71,7 +71,7 @@ Win32VideoOutputInfo::Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx
 		{
 			Win32VideoMode* win32VideoMode = static_cast<Win32VideoMode*>(videoMode);
 
-			u32 intRefresh = Math::RoundToInt(win32VideoMode->RefreshRate);
+			u32 intRefresh = Math::RoundToI32(win32VideoMode->RefreshRate);
 			if(win32VideoMode->Width == devMode.dmPelsWidth && win32VideoMode->Height == devMode.dmPelsHeight && intRefresh == devMode.dmDisplayFrequency)
 			{
 				foundVideoMode = true;

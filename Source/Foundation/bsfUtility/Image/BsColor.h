@@ -22,6 +22,10 @@ namespace bs
 	class B3D_UTILITY_EXPORT Color
 	{
 	public:
+		constexpr explicit Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f)
+			: R(red), G(green), B(blue), A(alpha)
+		{}
+
 		static const Color kZero;
 		static const Color kBlack;
 		static const Color kWhite;
@@ -30,10 +34,6 @@ namespace bs
 		static const Color kBlue;
 		static const Color kLightGray;
 		static const Color kBansheeOrange;
-
-		constexpr explicit Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f)
-			: R(red), G(green), B(blue), A(alpha)
-		{}
 
 		bool operator==(const Color& rhs) const;
 		bool operator!=(const Color& rhs) const;

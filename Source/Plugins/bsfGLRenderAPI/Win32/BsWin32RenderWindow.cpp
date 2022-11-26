@@ -125,7 +125,7 @@ void Win32RenderWindow::Initialize()
 
 	props.IsFullScreen = mDesc.Fullscreen;
 	mIsChild = false;
-	mDisplayFrequency = Math::RoundToInt(mDesc.VideoMode.RefreshRate);
+	mDisplayFrequency = Math::RoundToI32(mDesc.VideoMode.RefreshRate);
 
 	WINDOW_DESC windowDesc;
 	windowDesc.ShowTitleBar = mDesc.ShowTitleBar;
@@ -285,7 +285,7 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	u32 actualMonitorIdx = std::min(monitorIdx, numOutputs - 1);
 	const Win32VideoOutputInfo& outputInfo = static_cast<const Win32VideoOutputInfo&>(videoModeInfo.GetOutputInfo(actualMonitorIdx));
 
-	mDisplayFrequency = Math::RoundToInt(refreshRate);
+	mDisplayFrequency = Math::RoundToI32(refreshRate);
 	props.IsFullScreen = true;
 
 	DEVMODE displayDeviceMode;

@@ -28,6 +28,9 @@ namespace bs
 		/** Returns true if the rectangle contains the provided point. */
 		bool Contains(const Vector2I& point) const;
 
+		/** Returns true if the rectangle fully contains the provided rectangle. */
+		bool Contains(const Rect2I& other) const;
+
 		/**
 		 * Returns true if the rectangle overlaps the provided rectangle. Also returns true if the rectangles are contained
 		 * within each other completely (no intersecting edges).

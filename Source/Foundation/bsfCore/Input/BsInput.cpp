@@ -298,8 +298,8 @@ void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
 	mMouseSampleAccumulator[0] += relX;
 	mMouseSampleAccumulator[1] += relY;
 
-	mTotalMouseNumSamples[0] += Math::RoundToInt(Math::Abs((float)relX));
-	mTotalMouseNumSamples[1] += Math::RoundToInt(Math::Abs((float)relY));
+	mTotalMouseNumSamples[0] += Math::RoundToI32(Math::Abs((float)relX));
+	mTotalMouseNumSamples[1] += Math::RoundToI32(Math::Abs((float)relY));
 
 	// Update sample times used for determining sampling rate. But only if something was
 	// actually sampled, and only if this isn't the first non-zero sample.
@@ -622,7 +622,7 @@ float Input::SmoothMouse(float value, u32 idx)
 				if(deltaTime < secondsPerSample * (sampleCount + 1))
 					value = value * deltaTime / (secondsPerSample * sampleCount);
 				else
-					sampleCount = Math::RoundToInt(deltaTime / secondsPerSample);
+					sampleCount = Math::RoundToI32(deltaTime / secondsPerSample);
 			}
 
 			mMouseSmoothedAxis[idx] = value / sampleCount;

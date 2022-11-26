@@ -633,6 +633,17 @@ VkPipelineStageFlags VulkanUtility::ShaderToPipelineStage(VkShaderStageFlags sha
 	return output;
 }
 
+VkRect2D VulkanUtility::ToVulkanRect(const Rect2I& input)
+{
+	VkRect2D output;
+	output.offset.x = input.X;
+	output.offset.y = input.Y;
+	output.extent.width = input.Width;
+	output.extent.height = input.Height;
+
+	return output;
+}
+
 bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags)
 {
 	VulkanDevice* device = rapi.GetDevice(idx).get();

@@ -20,6 +20,17 @@ bool Rect2I::Contains(const Vector2I& point) const
 	return false;
 }
 
+bool Rect2I::Contains(const Rect2I& other) const
+{
+	const i32 right = X + (i32)Width;
+	const i32 bottom = Y + (i32)Height;
+
+	const i32 otherRight = other.X + (i32)other.Width;
+	const i32 otherBottom = other.Y + (i32)other.Height;
+
+	return other.X >= X && otherRight <= right && other.Y >= Y && otherBottom <= bottom;
+}
+
 bool Rect2I::Overlaps(const Rect2I& other) const
 {
 	i32 otherRight = other.X + (i32)other.Width;

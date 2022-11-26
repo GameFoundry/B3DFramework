@@ -194,12 +194,12 @@ namespace bs
 		 * Returns the integer nearest to the provided value. If you are sure the input is positive use roundToPosInt()
 		 * for a slightly faster operation.
 		 */
-		static int32_t RoundToInt(float val) { return FloorToInt(val + 0.5f); }
+		static int32_t RoundToI32(float val) { return FloorToInt(val + 0.5f); }
 
 		/**
 		 * Returns the integer nearest to the provided value. Value must be non-negative. Slightly faster than roundToInt().
 		 */
-		static uint32_t RoundToPosInt(float val) { return FloorToPosInt(val + 0.5f); }
+		static uint32_t RoundToU32(float val) { return FloorToPosInt(val + 0.5f); }
 
 		/**
 		 * Divides an integer by another integer and returns the result, rounded up. Only works if both integers are
