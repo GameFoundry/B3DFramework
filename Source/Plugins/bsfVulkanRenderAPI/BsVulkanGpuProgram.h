@@ -24,6 +24,9 @@ namespace bs
 			/** Returns the internal handle to the Vulkan object. */
 			VkShaderModule GetHandle() const { return mModule; }
 
+			/** Assigns an name to the shader module, primarily used for easier debugging. */
+			void SetName(const StringView& name);
+
 		private:
 			VkShaderModule mModule;
 		};
@@ -33,6 +36,8 @@ namespace bs
 		{
 		public:
 			virtual ~VulkanGpuProgram();
+
+			void SetName(const StringView& name) override;
 
 			/**
 			 * Returns the shader module for the specified device. If program device mask doesn't include the provided device,
@@ -46,7 +51,7 @@ namespace bs
 		protected:
 			friend class VulkanGLSLProgramFactory;
 
-			VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			VulkanGpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void Initialize() override;
 

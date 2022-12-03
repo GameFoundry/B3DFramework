@@ -19,11 +19,9 @@ namespace bs
 	{
 	private:
 		u32& GetSize(Resource* obj) { return obj->mSize; }
-
 		void SetSize(Resource* obj, u32& size) { obj->mSize = size; }
 
 		SPtr<ResourceMetaData> GetMetaData(Resource* obj) { return obj->mMetaData; }
-
 		void SetMetaData(Resource* obj, SPtr<ResourceMetaData> value) { obj->mMetaData = value; }
 
 	public:

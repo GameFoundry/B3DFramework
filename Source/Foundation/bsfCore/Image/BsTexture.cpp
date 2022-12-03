@@ -15,7 +15,7 @@ using namespace bs;
 
 const TextureCopyInformation TextureCopyInformation::kDefault = TextureCopyInformation();
 
-TextureProperties::TextureProperties(const TEXTURE_DESC& desc)
+TextureProperties::TextureProperties(const TextureCreateInformation& desc)
 	: mDesc(desc)
 {
 }
@@ -29,7 +29,7 @@ u32 TextureProperties::GetNumFaces() const
 {
 	u32 facesPerSlice = GetTextureType() == TEX_TYPE_CUBE_MAP ? 6 : 1;
 
-	return facesPerSlice * mDesc.NumArraySlices;
+	return facesPerSlice * mDesc.ArraySliceCount;
 }
 
 void TextureProperties::MapFromSubresourceIdx(u32 subresourceIdx, u32& face, u32& mip) const
@@ -64,16 +64,16 @@ SPtr<PixelData> TextureProperties::AllocBuffer(u32 face, u32 mipLevel) const
 	return dst;
 }
 
-Texture::Texture(const TEXTURE_DESC& desc)
-	: mProperties(desc)
-{
-}
-
-Texture::Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData)
-	: mProperties(desc), mInitData(pixelData)
+Texture::Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& pixelData)
+	: Resource(true, createInformation.Name), mProperties(createInformation), mInitData(pixelData)
 {
 	if(mInitData != nullptr)
 		mInitData->LockInternal();
+}
+
+Texture::Texture(const TextureCreateInformation& createInformation)
+	: Texture(createInformation, nullptr)
+{
 }
 
 void Texture::Initialize()
@@ -94,14 +94,15 @@ void Texture::Initialize()
 
 SPtr<ct::CoreObject> Texture::CreateCore() const
 {
-	const TextureProperties& props = GetProperties();
+	TextureCreateInformation createInformation = mProperties.mDesc;
+	createInformation.Name = GetName();
 
-	SPtr<ct::CoreObject> coreObj = ct::TextureManager::Instance().CreateTextureInternal(props.mDesc, mInitData);
+	SPtr<ct::CoreObject> coreObject = ct::TextureManager::Instance().CreateTextureInternal(createInformation, mInitData);
 
 	if((mProperties.GetUsage() & TU_CPUCACHED) == 0)
 		mInitData = nullptr;
 
-	return coreObj;
+	return coreObject;
 }
 
 AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
@@ -289,47 +290,47 @@ RTTITypeBase* Texture::GetRtti() const
 /************************************************************************/
 /* 								STATICS	                      			*/
 /************************************************************************/
-HTexture Texture::Create(const TEXTURE_DESC& desc)
+HTexture Texture::Create(const TextureCreateInformation& desc)
 {
-	SPtr<Texture> texturePtr = CreatePtrInternal(desc);
+	SPtr<Texture> texturePtr = CreateShared(desc);
 
 	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
 }
 
 HTexture Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
 {
-	SPtr<Texture> texturePtr = CreatePtrInternal(pixelData, usage, hwGammaCorrection);
+	SPtr<Texture> texturePtr = CreateShared(pixelData, usage, hwGammaCorrection);
 
 	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
 }
 
-SPtr<Texture> Texture::CreatePtrInternal(const TEXTURE_DESC& desc)
+SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& desc)
 {
 	return TextureManager::Instance().CreateTexture(desc);
 }
 
-SPtr<Texture> Texture::CreatePtrInternal(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
+SPtr<Texture> Texture::CreateShared(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
 {
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
 	desc.Type = pixelData->GetDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
 	desc.Width = pixelData->GetWidth();
 	desc.Height = pixelData->GetHeight();
 	desc.Depth = pixelData->GetDepth();
 	desc.Format = pixelData->GetFormat();
 	desc.Usage = usage;
-	desc.HwGamma = hwGammaCorrection;
+	desc.UseHardwareSRGB = hwGammaCorrection;
 
 	return TextureManager::Instance().CreateTexture(desc, pixelData);
 }
 
 namespace bs { namespace ct
 {
-SPtr<Texture> Texture::WHITE;
-SPtr<Texture> Texture::BLACK;
-SPtr<Texture> Texture::NORMAL;
+SPtr<Texture> Texture::kWhite;
+SPtr<Texture> Texture::kBlack;
+SPtr<Texture> Texture::kNormal;
 
-Texture::Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask)
-	: mProperties(desc), mInitData(initData)
+Texture::Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask)
+	: mProperties(createInformation), mInitData(initData), mName(createInformation.Name)
 {}
 
 void Texture::Initialize()
@@ -601,21 +602,21 @@ SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsa
 /************************************************************************/
 /* 								STATICS	                      			*/
 /************************************************************************/
-SPtr<Texture> Texture::Create(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<Texture> Texture::Create(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	return TextureManager::Instance().CreateTexture(desc, deviceMask);
 }
 
 SPtr<Texture> Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection, GpuDeviceFlags deviceMask)
 {
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
 	desc.Type = pixelData->GetDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
 	desc.Width = pixelData->GetWidth();
 	desc.Height = pixelData->GetHeight();
 	desc.Depth = pixelData->GetDepth();
 	desc.Format = pixelData->GetFormat();
 	desc.Usage = usage;
-	desc.HwGamma = hwGammaCorrection;
+	desc.UseHardwareSRGB = hwGammaCorrection;
 
 	SPtr<Texture> newTex = TextureManager::Instance().CreateTextureInternal(desc, pixelData, deviceMask);
 	newTex->Initialize();

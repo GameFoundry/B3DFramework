@@ -6,10 +6,11 @@
 
 using namespace bs;
 
-Resource::Resource(bool initializeOnRenderThread)
+Resource::Resource(bool initializeOnRenderThread, const String& name)
 	: CoreObject(initializeOnRenderThread), mSize(0), mKeepSourceData(true)
 {
 	mMetaData = B3DMakeShared<ResourceMetaData>();
+	mMetaData->DisplayName = name;
 }
 
 const String& Resource::GetName() const

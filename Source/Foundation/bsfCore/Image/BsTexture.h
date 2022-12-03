@@ -45,8 +45,11 @@ namespace bs
 	};
 
 	/** Descriptor structure used for initialization of a Texture. */
-	struct TEXTURE_DESC
+	struct TextureCreateInformation
 	{
+		/** Optional name of the texture. Used primarily for easier debugging. */
+		String Name;
+
 		/** Type of the texture. */
 		TextureType Type = TEX_TYPE_2D;
 
@@ -63,22 +66,19 @@ namespace bs
 		u32 Depth = 1;
 
 		/** Number of mip-maps the texture has. This number excludes the full resolution map. */
-		u32 NumMips = 0;
+		u32 MipMapCount = 0;
 
 		/** Describes how the caller plans on using the texture in the pipeline. */
 		i32 Usage = TU_DEFAULT;
 
-		/**
-		 * If true the texture data is assumed to have been gamma corrected and will be converted back to linear space when
-		 * sampled on GPU.
-		 */
-		bool HwGamma = false;
+		/** If true the texture data is assumed to be in SRGB space and will be converted back to linear space when sampled on GPU. */
+		bool UseHardwareSRGB = false;
 
 		/** Number of samples per pixel. Set to 1 or 0 to use the default of a single sample per pixel. */
-		u32 NumSamples = 0;
+		u32 SampleCount = 0;
 
 		/** Number of texture slices to create if creating a texture array. Ignored for 3D textures. */
-		u32 NumArraySlices = 1;
+		u32 ArraySliceCount = 1;
 	};
 
 	/** Structure used for specifying information about a texture copy operation. */
@@ -119,7 +119,7 @@ namespace bs
 	{
 	public:
 		TextureProperties() = default;
-		TextureProperties(const TEXTURE_DESC& desc);
+		TextureProperties(const TextureCreateInformation& desc);
 
 		/**	Gets the type of texture. */
 		TextureType GetTextureType() const { return mDesc.Type; }
@@ -128,17 +128,17 @@ namespace bs
 		 * Gets the number of mipmaps to be used for this texture. This number excludes the top level map (which is always
 		 * assumed to be present).
 		 */
-		u32 GetNumMipmaps() const { return mDesc.NumMips; }
+		u32 GetNumMipmaps() const { return mDesc.MipMapCount; }
 
 		/**
 		 * Determines does the texture contain gamma corrected data. If true then the GPU will automatically convert the
 		 * pixels to linear space before reading from the texture, and convert them to gamma space when writing to the
 		 * texture.
 		 */
-		bool IsHardwareGammaEnabled() const { return mDesc.HwGamma; }
+		bool IsHardwareGammaEnabled() const { return mDesc.UseHardwareSRGB; }
 
 		/**	Gets the number of samples used for multisampling (0 or 1 if multisampling is not used). */
-		u32 GetNumSamples() const { return mDesc.NumSamples; }
+		u32 GetNumSamples() const { return mDesc.SampleCount; }
 
 		/**	Returns the height of the texture.  */
 		u32 GetHeight() const { return mDesc.Height; }
@@ -165,7 +165,7 @@ namespace bs
 		u32 GetNumFaces() const;
 
 		/** Returns the number of array slices of the texture (if the texture is an array texture). */
-		u32 GetNumArraySlices() const { return mDesc.NumArraySlices; }
+		u32 GetNumArraySlices() const { return mDesc.ArraySliceCount; }
 
 		/**
 		 * Allocates a buffer that exactly matches the format of the texture described by these properties, for the provided
@@ -191,7 +191,7 @@ namespace bs
 		 */
 		u32 MapToSubresourceIdx(u32 face, u32 mip) const;
 
-		TEXTURE_DESC mDesc;
+		TextureCreateInformation mDesc;
 	};
 
 	/**
@@ -278,7 +278,7 @@ namespace bs
 		 *
 		 * @param[in]	desc  	Description of the texture to create.
 		 */
-		static HTexture Create(const TEXTURE_DESC& desc);
+		static HTexture Create(const TextureCreateInformation& desc);
 
 		/**
 		 * Creates a new 2D or 3D texture initialized using the provided pixel data. Texture will not have any mipmaps.
@@ -294,19 +294,19 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Same as create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> CreatePtrInternal(const TEXTURE_DESC& desc);
+		/** Same as Create() excepts it creates a pointer to the texture instead of a texture handle. */
+		static SPtr<Texture> CreateShared(const TextureCreateInformation& desc);
 
-		/** Same as create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> CreatePtrInternal(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
+		/** Same as Create() excepts it creates a pointer to the texture instead of a texture handle. */
+		static SPtr<Texture> CreateShared(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
 
 		/** @} */
 
 	protected:
 		friend class TextureManager;
 
-		Texture(const TEXTURE_DESC& desc);
-		Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData);
+		Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& pixelData);
+		Texture(const TextureCreateInformation& createInformation);
 
 		void Initialize() override;
 		SPtr<ct::CoreObject> CreateCore() const override;
@@ -356,11 +356,13 @@ namespace bs
 		class B3D_CORE_EXPORT Texture : public CoreObject
 		{
 		public:
-			Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask);
-
+			Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask);
 			virtual ~Texture() {}
 
 			void Initialize() override;
+
+			/** Assigns an name to the image, primarily used for easier debugging. */
+			virtual void SetName(const StringView& name) { mName = name; }
 
 			/**
 			 * Locks the buffer for reading or writing.
@@ -456,7 +458,7 @@ namespace bs
 			 * @copydoc bs::Texture::Create(const TEXTURE_DESC&)
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<Texture> Create(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<Texture> Create(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * @copydoc bs::Texture::Create(const SPtr<PixelData>&, int, bool)
@@ -477,13 +479,13 @@ namespace bs
 			SPtr<TextureView> RequestView(const TextureSurface& surface, GpuViewUsage usage);
 
 			/** Returns a plain white texture. */
-			static SPtr<Texture> WHITE;
+			static SPtr<Texture> kWhite;
 
 			/** Returns a plain black texture. */
-			static SPtr<Texture> BLACK;
+			static SPtr<Texture> kBlack;
 
 			/** Returns a plain normal map texture with normal pointing up (in Y direction). */
-			static SPtr<Texture> NORMAL;
+			static SPtr<Texture> kNormal;
 
 		protected:
 			/** @copydoc Lock */
@@ -515,6 +517,7 @@ namespace bs
 			void ClearBufferViews();
 
 			UnorderedMap<TextureViewInformation, SPtr<TextureView>, TextureView::HashFunction, TextureView::EqualFunction> mTextureViews;
+			String mName;
 			TextureProperties mProperties;
 			SPtr<PixelData> mInitData;
 		};

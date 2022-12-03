@@ -397,6 +397,13 @@ namespace bs
 	/** @copydoc FrameAlloc::Clear */
 	B3D_UTILITY_EXPORT void B3DClearAllocatorFrame();
 
+	/** Opens a frame scope on construction and closes it on destruction. See B3DMarkAllocatorFrame(). */
+	struct FrameScope
+	{
+		FrameScope() { B3DMarkAllocatorFrame(); }
+		~FrameScope() { B3DClearAllocatorFrame();  }
+	};
+
 	/** String allocated with a frame allocator. */
 	typedef std::basic_string<char, std::char_traits<char>, StdAlloc<char, FrameAlloc>> FrameString;
 

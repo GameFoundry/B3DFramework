@@ -206,7 +206,7 @@ void EyeAdaptHistogramReduceMat::Execute(const SPtr<Texture>& sceneColor, const 
 
 	SPtr<Texture> eyeAdaptationTex;
 	if(prevFrame == nullptr) // Could be that this is the first run
-		eyeAdaptationTex = Texture::WHITE;
+		eyeAdaptationTex = Texture::kWhite;
 	else
 		eyeAdaptationTex = prevFrame;
 
@@ -365,7 +365,7 @@ void EyeAdaptationBasicMat::Execute(const SPtr<Texture>& curFrame, const SPtr<Te
 	mCurFrameTexParam.Set(curFrame);
 
 	if(prevFrame == nullptr) // Could be that this is the first run
-		mPrevFrameTexParam.Set(Texture::WHITE);
+		mPrevFrameTexParam.Set(Texture::kWhite);
 	else
 		mPrevFrameTexParam.Set(prevFrame);
 
@@ -532,7 +532,7 @@ void TonemappingMat::Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture
 	mInputTex.Set(sceneColor);
 	mColorLUT.Set(colorLUT);
 	mEyeAdaptationTex.Set(eyeAdaptation);
-	mBloomTex.Set(bloom != nullptr ? bloom : Texture::BLACK);
+	mBloomTex.Set(bloom != nullptr ? bloom : Texture::kBlack);
 
 	// Render
 	RenderAPI& rapi = RenderAPI::Instance();
@@ -840,7 +840,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 		mInputTexture.Set(source);
 
 		if(mIsAdditive)
-			mAdditiveTexture.Set(Texture::BLACK);
+			mAdditiveTexture.Set(Texture::kBlack);
 
 		RenderAPI& rapi = RenderAPI::Instance();
 		rapi.SetRenderTarget(tempTexture->RenderTexture);
@@ -859,7 +859,7 @@ void GaussianBlurMat::Execute(const SPtr<Texture>& source, float filterSize, con
 			if(additive)
 				mAdditiveTexture.Set(additive);
 			else
-				mAdditiveTexture.Set(Texture::BLACK);
+				mAdditiveTexture.Set(Texture::kBlack);
 		}
 
 		RenderAPI& rapi = RenderAPI::Instance();
@@ -2172,7 +2172,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 
 	SPtr<Texture> velocityTex = velocity;
 	if(!velocityTex)
-		velocityTex = Texture::BLACK;
+		velocityTex = Texture::kBlack;
 
 	mPrevColorTexture.Set(prevFrame);
 	mSceneColorTexture.Set(curFrame);

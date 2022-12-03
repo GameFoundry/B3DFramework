@@ -33,7 +33,7 @@ GLTextureManager::GLTextureManager(GLSupport& support)
 	: mGLSupport(support)
 {}
 
-SPtr<Texture> GLTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+SPtr<Texture> GLTextureManager::CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
 	GLTexture* tex = new(B3DAllocate<GLTexture>()) GLTexture(mGLSupport, desc, initialData, deviceMask);
 

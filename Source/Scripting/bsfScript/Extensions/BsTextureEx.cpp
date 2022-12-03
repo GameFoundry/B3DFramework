@@ -13,7 +13,8 @@ HTexture TextureEx::Create(PixelFormat format, u32 width, u32 height, u32 depth,
 	if(hasMipmaps)
 		numMips = PixelUtil::GetMaxMipmaps(width, height, 1, format);
 
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
+	texDesc.Name = "Script Texture";
 	texDesc.Type = texType;
 	texDesc.Width = width;
 	texDesc.Height = height;
@@ -23,11 +24,11 @@ HTexture TextureEx::Create(PixelFormat format, u32 width, u32 height, u32 depth,
 	else
 		texDesc.Depth = 1;
 
-	texDesc.NumMips = numMips;
+	texDesc.MipMapCount = numMips;
 	texDesc.Format = format;
 	texDesc.Usage = usage;
-	texDesc.HwGamma = gammaCorrection;
-	texDesc.NumSamples = numSamples;
+	texDesc.UseHardwareSRGB = gammaCorrection;
+	texDesc.SampleCount = numSamples;
 
 	return Texture::Create(texDesc);
 }

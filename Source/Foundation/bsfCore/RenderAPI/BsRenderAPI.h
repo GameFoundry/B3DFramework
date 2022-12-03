@@ -412,6 +412,21 @@ namespace bs
 			virtual void AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) = 0;
 
 			/**
+			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
+			 * tools for easier debugging.
+			 */
+			virtual void BeginLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) { }
+
+			/** Closes the label scope as provided by the previous call to BeginLabel(). */
+			virtual void EndLabel(const SPtr<CommandBuffer>& commandBuffer = nullptr) { }
+
+			/**
+			 * Inserts a label at the specified location in the command buffer. This may be used by external tools
+			 * for easier debugging.
+			 */
+			virtual void InsertLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) { }
+
+			/**
 			 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
 			 *
 			 * @param[in]	commandBuffer	Command buffer whose commands to execute. Set to null to submit the main command
@@ -530,6 +545,12 @@ namespace bs
 		inline const RenderAPICapabilities& GetRenderBackendCapabilities(u32 deviceIdx = 0)
 		{
 			return RenderAPI::Instance().GetCapabilities(deviceIdx);
+		}
+
+		/**	Provides easy access to render API. */
+		inline RenderAPI& GetRenderAPI()
+		{
+			return RenderAPI::Instance();
 		}
 
 		/** @} */

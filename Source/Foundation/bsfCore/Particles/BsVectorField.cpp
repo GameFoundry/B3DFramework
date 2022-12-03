@@ -61,7 +61,7 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 		}
 	}
 
-	mTexture = Texture::CreatePtrInternal(pixelData);
+	mTexture = Texture::CreateShared(pixelData);
 }
 
 SPtr<ct::CoreObject> VectorField::CreateCore() const

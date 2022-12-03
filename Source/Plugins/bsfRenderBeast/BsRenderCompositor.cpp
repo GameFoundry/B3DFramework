@@ -172,7 +172,9 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 			GetProfilerCPU().BeginSample(sampleName.c_str());
 #endif
 
+			GetRenderAPI().BeginLabel(entry.NodeType->Id);
 			entry.Node->Render(inputs);
+			GetRenderAPI().EndLabel();
 
 #if B3D_PROFILING_ENABLED
 			GetProfilerCPU().EndSample(sampleName.c_str());
@@ -904,7 +906,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 				u32 lightIdx = j;
 				const RendererLight& light = *lights[lightIdx];
 
-				StandardDeferred::Instance().RenderLight(lightType, light, inputs.View, gbuffer, Texture::BLACK);
+				StandardDeferred::Instance().RenderLight(lightType, light, inputs.View, gbuffer, Texture::kBlack);
 			}
 		}
 	}
@@ -1378,8 +1380,8 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		}
 
 		iblParams.SkyReflectionsTexParam.Set(skyFilteredRadiance);
-		iblParams.AmbientOcclusionTexParam.Set(Texture::WHITE); // Note: Add SSAO here?
-		iblParams.SsrTexParam.Set(Texture::BLACK); // Note: Add SSR here?
+		iblParams.AmbientOcclusionTexParam.Set(Texture::kWhite); // Note: Add SSAO here?
+		iblParams.SsrTexParam.Set(Texture::kBlack); // Note: Add SSR here?
 
 		iblParams.ReflectionProbeCubemapsTexParam.Set(sceneInfo.ReflProbeCubemapsTex);
 		iblParams.PreintegratedEnvBrdfParam.Set(RendererTextures::preintegratedEnvGF);
@@ -2474,7 +2476,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 	const AmbientOcclusionSettings& settings = inputs.View.GetRenderSettings().AmbientOcclusion;
 	if(!settings.Enabled)
 	{
-		Output = Texture::WHITE;
+		Output = Texture::kWhite;
 		mPooledOutput = nullptr;
 		return;
 	}
@@ -2655,7 +2657,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 		DeallocOutputs();
 
 		mPooledOutput = nullptr;
-		Output = Texture::BLACK;
+		Output = Texture::kBlack;
 		return;
 	}
 

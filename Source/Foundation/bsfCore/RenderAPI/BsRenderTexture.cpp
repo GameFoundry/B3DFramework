@@ -95,7 +95,7 @@ void RenderTextureProperties::Construct(const TextureProperties* textureProps, u
 	this->HwGamma = hwGamma;
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const TEXTURE_DESC& desc, bool createDepth, PixelFormat depthStencilFormat)
+SPtr<RenderTexture> RenderTexture::Create(const TextureCreateInformation& desc, bool createDepth, PixelFormat depthStencilFormat)
 {
 	return TextureManager::Instance().CreateRenderTexture(desc, createDepth, depthStencilFormat);
 }

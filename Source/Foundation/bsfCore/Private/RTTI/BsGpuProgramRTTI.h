@@ -87,6 +87,7 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(mEntryPoint, 4)
 			B3D_RTTI_MEMBER_PLAIN(mSource, 6)
 			B3D_RTTI_MEMBER_PLAIN(mLanguage, 7)
+			B3D_RTTI_MEMBER_PLAIN(mName, 8)
 		B3D_RTTI_END_MEMBERS
 
 	public:

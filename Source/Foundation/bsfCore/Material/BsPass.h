@@ -26,12 +26,12 @@ namespace bs
 		DEPTH_STENCIL_STATE_DESC DepthStencilStateDesc;
 		u32 StencilRefValue;
 
-		GPU_PROGRAM_DESC VertexProgramDesc;
-		GPU_PROGRAM_DESC FragmentProgramDesc;
-		GPU_PROGRAM_DESC GeometryProgramDesc;
-		GPU_PROGRAM_DESC HullProgramDesc;
-		GPU_PROGRAM_DESC DomainProgramDesc;
-		GPU_PROGRAM_DESC ComputeProgramDesc;
+		GpuProgramCreateInformation VertexProgramDesc;
+		GpuProgramCreateInformation FragmentProgramDesc;
+		GpuProgramCreateInformation GeometryProgramDesc;
+		GpuProgramCreateInformation HullProgramDesc;
+		GpuProgramCreateInformation DomainProgramDesc;
+		GpuProgramCreateInformation ComputeProgramDesc;
 	};
 
 	/** @} */
@@ -65,7 +65,7 @@ namespace bs
 		u32 GetStencilRefValue() const { return mData.StencilRefValue; }
 
 		/** Returns the GPU program descriptor for the specified GPU program type. */
-		const GPU_PROGRAM_DESC& GetProgramDesc(bs::GpuProgramType type) const;
+		const GpuProgramCreateInformation& GetProgramDesc(bs::GpuProgramType type) const;
 
 		/**
 		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.

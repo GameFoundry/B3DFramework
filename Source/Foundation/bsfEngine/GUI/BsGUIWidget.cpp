@@ -355,13 +355,14 @@ GUIDrawGroupRenderDataUpdate GUIDrawGroups::RebuildDirty(bool forceRebuildMeshes
 			{
 				entry.OutputTexture = nullptr;
 
-				TEXTURE_DESC texDesc;
-				texDesc.Width = entry.Bounds.Width;
-				texDesc.Height = entry.Bounds.Height;
-				texDesc.Format = PF_RGBA8;
-				texDesc.Usage = TU_RENDERTARGET;
+				TextureCreateInformation textureCreateInformation;
+				textureCreateInformation.Name = "GUIWidget Output";
+				textureCreateInformation.Width = entry.Bounds.Width;
+				textureCreateInformation.Height = entry.Bounds.Height;
+				textureCreateInformation.Format = PF_RGBA8;
+				textureCreateInformation.Usage = TU_RENDERTARGET;
 
-				HTexture texture = Texture::Create(texDesc);
+				HTexture texture = Texture::Create(textureCreateInformation);
 
 				RENDER_TEXTURE_DESC rtDesc;
 				rtDesc.ColorSurfaces[0].Texture = texture;

@@ -19,10 +19,11 @@ namespace bs
 	 */
 
 	/** Helper class used for serialization of GPU_PROGRAM_DESC. */
-	struct SerializedGpuProgramData : GPU_PROGRAM_DESC, IReflectable
+	struct SerializedGpuProgramData : GpuProgramCreateInformation, IReflectable
 	{
-		const SerializedGpuProgramData& operator=(const GPU_PROGRAM_DESC& desc)
+		const SerializedGpuProgramData& operator=(const GpuProgramCreateInformation& desc)
 		{
+			Name = desc.Name;
 			Source = desc.Source;
 			EntryPoint = desc.EntryPoint;
 			Language = desc.Language;
@@ -52,6 +53,7 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(Type, 3)
 			B3D_RTTI_MEMBER_PLAIN(RequiresAdjacency, 4)
 			B3D_RTTI_MEMBER_REFLPTR(Bytecode, 5)
+			B3D_RTTI_MEMBER_PLAIN(Name, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -175,7 +177,7 @@ namespace bs
 			mDomainProgramDesc = pass->mData.DomainProgramDesc;
 			mComputeProgramDesc = pass->mData.ComputeProgramDesc;
 
-			auto initBytecode = [](const SPtr<GpuProgram>& prog, GPU_PROGRAM_DESC& desc)
+			auto initBytecode = [](const SPtr<GpuProgram>& prog, GpuProgramCreateInformation& desc)
 			{
 				if(prog)
 				{

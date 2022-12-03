@@ -453,7 +453,8 @@ bool LightProbeVolume::RenderProbes(u32 maxProbes)
 
 		if(probeInfo.Flags == LightProbeFlags::Dirty)
 		{
-			TEXTURE_DESC cubemapDesc;
+			TextureCreateInformation cubemapDesc;
+			cubemapDesc.Name = "LightProbeVolume Cubemap";
 			cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 			cubemapDesc.Format = PF_RGBA16F;
 			cubemapDesc.Width = 256; // Note: Test different sizes and their effect on quality
@@ -656,7 +657,8 @@ void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 {
 	Vector2I texSize = IBLUtility::GetShCoeffTextureSize(count, 3);
 
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
+	desc.Name = "LightProbeVolume coefficients";
 	desc.Width = (u32)texSize.X;
 	desc.Height = (u32)texSize.Y;
 	desc.Usage = TU_LOADSTORE | TU_RENDERTARGET;

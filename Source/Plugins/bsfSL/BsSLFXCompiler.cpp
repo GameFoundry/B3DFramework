@@ -2424,15 +2424,43 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 			passDesc.DepthStencilStateDesc = passData.DepthStencilDesc;
 
 			auto createProgram =
-				[](const String& language, const String& entry, const String& code, GpuProgramType type) -> GPU_PROGRAM_DESC
+				[&name](const String& language, const String& entry, const String& code, GpuProgramType type) -> GpuProgramCreateInformation
 			{
-				GPU_PROGRAM_DESC desc;
-				desc.Language = language;
-				desc.EntryPoint = entry;
-				desc.Source = code;
-				desc.Type = type;
+				const char* typeString;
+				switch(type)
+				{
+				case GPT_VERTEX_PROGRAM:
+					typeString = "Vertex";
+					break;
+				case GPT_FRAGMENT_PROGRAM:
+					typeString = "Fragment";
+					break;
+				case GPT_GEOMETRY_PROGRAM:
+					typeString = "Geometry";
+					break;
+				case GPT_DOMAIN_PROGRAM:
+					typeString = "Domain";
+					break;
+				case GPT_HULL_PROGRAM:
+					typeString = "Hull";
+					break;
+				case GPT_COMPUTE_PROGRAM:
+					typeString = "Compute";
+					break;
+				default:
+					typeString = "Unknown";
+					break;
+				}
 
-				return desc;
+
+				GpuProgramCreateInformation gpuProgramCreateInformation;
+				gpuProgramCreateInformation.Name = StringUtil::Format("{0} ({1} Program)", name, typeString);
+				gpuProgramCreateInformation.Language = language;
+				gpuProgramCreateInformation.EntryPoint = entry;
+				gpuProgramCreateInformation.Source = code;
+				gpuProgramCreateInformation.Type = type;
+
+				return gpuProgramCreateInformation;
 			};
 
 			bool isHLSL = metaData.Language == "hlsl";

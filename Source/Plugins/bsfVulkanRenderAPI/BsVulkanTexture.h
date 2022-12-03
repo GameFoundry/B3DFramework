@@ -58,6 +58,9 @@ namespace bs
 			/** Returns the internal handle to the Vulkan object. */
 			VkImage GetHandle() const { return mImage; }
 
+			/** Assigns an name to the image, primarily used for easier debugging. */
+			void SetName(const StringView& name);
+
 			/** Returns true if the image can be read from a shader. If false, it may only be used as a framebuffer attachment. */
 			bool IsShaderReadAllowed() const { return mIsShaderReadAllowed; }
 
@@ -225,10 +228,12 @@ namespace bs
 			 */
 			VulkanImage* GetResource(u32 deviceIdx) const { return mImages[deviceIdx]; }
 
+			void SetName(const StringView& name) override;
+
 		protected:
 			friend class VulkanTextureManager;
 
-			VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
+			VulkanTexture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
 
 			void Initialize() override;
 			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;

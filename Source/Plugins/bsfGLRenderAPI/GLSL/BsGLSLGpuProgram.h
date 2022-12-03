@@ -30,7 +30,7 @@ namespace bs
 		private:
 			friend class GLSLProgramFactory;
 
-			GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			GLSLGpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void Initialize() override;
 

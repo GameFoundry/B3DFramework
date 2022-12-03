@@ -770,7 +770,7 @@ GLSLToSPIRV::~GLSLToSPIRV()
 	glslang::FinalizeProcess();
 }
 
-SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation& desc)
 {
 	TBuiltInResource resources = DefaultTBuiltInResource;
 	glslang::TProgram* program = B3DNew<glslang::TProgram>();

@@ -117,7 +117,7 @@ void GenerateTextures()
 	blackPixelData->SetColorAt(Color::kBlack, 1, 0);
 	blackPixelData->SetColorAt(Color::kBlack, 1, 1);
 
-	SPtr<Texture> blackTexture = Texture::CreatePtrInternal(blackPixelData);
+	SPtr<Texture> blackTexture = Texture::CreateShared(blackPixelData);
 
 	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
@@ -125,7 +125,7 @@ void GenerateTextures()
 	whitePixelData->SetColorAt(Color::kWhite, 1, 0);
 	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
-	SPtr<Texture> whiteTexture = Texture::CreatePtrInternal(whitePixelData);
+	SPtr<Texture> whiteTexture = Texture::CreateShared(whitePixelData);
 
 	SPtr<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
@@ -135,7 +135,7 @@ void GenerateTextures()
 	normalPixelData->SetColorAt(encodedNormal, 1, 0);
 	normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
-	SPtr<Texture> normalTexture = Texture::CreatePtrInternal(normalPixelData);
+	SPtr<Texture> normalTexture = Texture::CreateShared(normalPixelData);
 
 	// Save all textures
 	Path outputDir = sOutputFolder + BuiltinResources::kTextureFolder;

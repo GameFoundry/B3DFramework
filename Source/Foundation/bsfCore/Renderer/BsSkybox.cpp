@@ -43,27 +43,29 @@ void Skybox::FilterTexture()
 		mRendererTask->Cancel();
 
 	{
-		TEXTURE_DESC cubemapDesc;
+		TextureCreateInformation cubemapDesc;
+		cubemapDesc.Name = "Skybox filtered radiance cubemap";
 		cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		cubemapDesc.Format = PF_RG11B10F;
 		cubemapDesc.Width = ct::IBLUtility::kReflectionCubemapSize;
 		cubemapDesc.Height = ct::IBLUtility::kReflectionCubemapSize;
-		cubemapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
+		cubemapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-		mFilteredRadiance = Texture::CreatePtrInternal(cubemapDesc);
+		mFilteredRadiance = Texture::CreateShared(cubemapDesc);
 	}
 
 	{
-		TEXTURE_DESC irradianceCubemapDesc;
+		TextureCreateInformation irradianceCubemapDesc;
+		irradianceCubemapDesc.Name = "Skybox irradiance cubemap";
 		irradianceCubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		irradianceCubemapDesc.Format = PF_RG11B10F;
 		irradianceCubemapDesc.Width = ct::IBLUtility::kIrradianceCubemapSize;
 		irradianceCubemapDesc.Height = ct::IBLUtility::kIrradianceCubemapSize;
-		irradianceCubemapDesc.NumMips = 0;
+		irradianceCubemapDesc.MipMapCount = 0;
 		irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-		mIrradiance = Texture::CreatePtrInternal(irradianceCubemapDesc);
+		mIrradiance = Texture::CreateShared(irradianceCubemapDesc);
 	}
 
 	auto renderComplete = [this]()

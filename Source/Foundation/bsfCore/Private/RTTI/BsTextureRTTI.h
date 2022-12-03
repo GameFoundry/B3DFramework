@@ -27,9 +27,9 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN_NAMED(height, mProperties.mDesc.Height, 2)
 			B3D_RTTI_MEMBER_PLAIN_NAMED(width, mProperties.mDesc.Width, 3)
 			B3D_RTTI_MEMBER_PLAIN_NAMED(depth, mProperties.mDesc.Depth, 4)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(numMips, mProperties.mDesc.NumMips, 5)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(hwGamma, mProperties.mDesc.HwGamma, 6)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(numSamples, mProperties.mDesc.NumSamples, 7)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(numMips, mProperties.mDesc.MipMapCount, 5)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(hwGamma, mProperties.mDesc.UseHardwareSRGB, 6)
+			B3D_RTTI_MEMBER_PLAIN_NAMED(numSamples, mProperties.mDesc.SampleCount, 7)
 			B3D_RTTI_MEMBER_PLAIN_NAMED(type, mProperties.mDesc.Type, 9)
 			B3D_RTTI_MEMBER_PLAIN_NAMED(format, mProperties.mDesc.Format, 10)
 		B3D_RTTI_END_MEMBERS

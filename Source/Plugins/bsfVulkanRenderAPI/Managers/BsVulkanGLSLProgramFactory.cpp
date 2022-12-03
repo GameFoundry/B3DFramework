@@ -45,7 +45,7 @@ VulkanGLSLProgramFactory::~VulkanGLSLProgramFactory()
 	GLSLToSPIRV::ShutDown();
 }
 
-SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	SPtr<GpuProgram> gpuProg = B3DMakeSharedFromExisting<VulkanGpuProgram>(new(B3DAllocate<VulkanGpuProgram>())
 																   VulkanGpuProgram(desc, deviceMask));
@@ -56,7 +56,7 @@ SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(const GPU_PROGRAM_DESC& de
 
 SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 {
-	GPU_PROGRAM_DESC desc;
+	GpuProgramCreateInformation desc;
 	desc.Type = type;
 
 	SPtr<GpuProgram> gpuProg = B3DMakeSharedFromExisting<VulkanGpuProgram>(new(B3DAllocate<VulkanGpuProgram>())
@@ -66,7 +66,7 @@ SPtr<ct::GpuProgram> VulkanGLSLProgramFactory::Create(GpuProgramType type, GpuDe
 	return gpuProg;
 }
 
-SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgramBytecode> VulkanGLSLProgramFactory::CompileBytecode(const GpuProgramCreateInformation& desc)
 {
 	SPtr<GpuProgramBytecode> spirv = GLSLToSPIRV::Instance().Convert(desc);
 

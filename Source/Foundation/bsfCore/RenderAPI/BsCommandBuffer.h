@@ -90,6 +90,9 @@ namespace bs
 			 */
 			static SPtr<CommandBuffer> Create(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
 
+			/** Assigns an name to the command buffer, primarily used for easier debugging. */
+			virtual void SetName(const StringView& name) { mName = name; }
+
 			/** Returns the type of queue the command buffer will execute on. */
 			GpuQueueType GetType() const { return mType; }
 
@@ -118,6 +121,7 @@ namespace bs
 			CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
 
 			GpuQueueType mType;
+			String mName;
 			u32 mDeviceIdx;
 			u32 mQueueIdx;
 			bool mIsSecondary;

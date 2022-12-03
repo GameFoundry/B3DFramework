@@ -93,10 +93,11 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 		break;
 	}
 
+	const String fileName = filePath.GetFilename(false);
 	FT_Render_Mode renderMode = FT_LOAD_TARGET_MODE(loadFlags);
 
 	Vector<SPtr<FontBitmap>> dataPerSize;
-	for(size_t i = 0; i < fontSizes.size(); i++)
+	for(size_t sizeIndex = 0; sizeIndex < fontSizes.size(); sizeIndex++)
 	{
 		// Note: Disabled as its not working and I have bigger issues to handle than to figure this out atm
 		// FT_Matrix m;
@@ -115,7 +116,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 
 		// FT_Set_Transform(face, &m, nullptr);
 
-		FT_F26Dot6 ftSize = (FT_F26Dot6)(fontSizes[i] * (1 << 6));
+		FT_F26Dot6 ftSize = (FT_F26Dot6)(fontSizes[sizeIndex] * (1 << 6));
 		if(FT_Set_Char_Size(face, ftSize, 0, dpi, dpi))
 			B3D_EXCEPT(InternalErrorException, "Could not set character size.");
 
@@ -321,12 +322,15 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 				}
 			}
 
-			TEXTURE_DESC texDesc;
-			texDesc.Width = pageIter->Width;
-			texDesc.Height = pageIter->Height;
-			texDesc.Format = PF_RG8;
+			const String textureName = StringUtil::Format("Font {0} Page:{1} Size:{2}", fileName, pageIdx, fontSizes[sizeIndex]);
 
-			HTexture newTex = Texture::Create(texDesc);
+			TextureCreateInformation textureCreateInformation;
+			textureCreateInformation.Name = textureName;
+			textureCreateInformation.Width = pageIter->Width;
+			textureCreateInformation.Height = pageIter->Height;
+			textureCreateInformation.Format = PF_RG8;
+
+			HTexture newTex = Texture::Create(textureCreateInformation);
 
 			// It's possible the formats no longer match
 			if(newTex->GetProperties().GetFormat() != pixelData->GetFormat())
@@ -341,13 +345,13 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 				newTex->WriteData(pixelData);
 			}
 
-			newTex->SetName(u8"FontPage" + ToString((u32)fontData->TexturePages.size()));
+			newTex->SetName(textureName);
 
 			fontData->TexturePages.push_back(newTex);
 			pageIdx++;
 		}
 
-		fontData->Size = fontSizes[i];
+		fontData->Size = fontSizes[sizeIndex];
 		fontData->BaselineOffset = baselineOffset;
 		fontData->LineHeight = lineHeight;
 
@@ -366,7 +370,6 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 
 	FT_Done_FreeType(library);
 
-	const String fileName = filePath.GetFilename(false);
 	newFont->SetName(fileName);
 
 	return newFont;

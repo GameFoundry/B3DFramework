@@ -661,13 +661,14 @@ void RenderBeast::UpdateReflProbeArray()
 		bool forceArrayUpdate = false;
 		if(sceneInfo.ReflProbeCubemapsTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != kMaxReflectionCubemaps))
 		{
-			TEXTURE_DESC cubeMapDesc;
+			TextureCreateInformation cubeMapDesc;
+			cubeMapDesc.Name = "Reflection Probe Cubemap Array";
 			cubeMapDesc.Type = TEX_TYPE_CUBE_MAP;
 			cubeMapDesc.Format = PF_RG11B10F;
 			cubeMapDesc.Width = IBLUtility::kReflectionCubemapSize;
 			cubeMapDesc.Height = IBLUtility::kReflectionCubemapSize;
-			cubeMapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
-			cubeMapDesc.NumArraySlices = std::min(kMaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
+			cubeMapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
+			cubeMapDesc.ArraySliceCount = std::min(kMaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
 
 			sceneInfo.ReflProbeCubemapsTex = Texture::Create(cubeMapDesc);
 

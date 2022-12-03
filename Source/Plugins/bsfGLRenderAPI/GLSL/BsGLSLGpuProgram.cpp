@@ -52,7 +52,7 @@ bool CheckForGlslError(const GLuint programObj, String& outErrorMsg)
 	return !linkCompileSuccess;
 }
 
-GLSLGpuProgram::GLSLGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+GLSLGpuProgram::GLSLGpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: GpuProgram(desc, deviceMask)
 {}
 

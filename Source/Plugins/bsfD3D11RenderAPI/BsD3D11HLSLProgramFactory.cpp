@@ -10,7 +10,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-SPtr<ct::GpuProgram> D3D11HLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<ct::GpuProgram> D3D11HLSLProgramFactory::Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	SPtr<GpuProgram> gpuProg;
 
@@ -52,7 +52,7 @@ SPtr<ct::GpuProgram> D3D11HLSLProgramFactory::Create(GpuProgramType type, GpuDev
 {
 	SPtr<GpuProgram> gpuProg;
 
-	GPU_PROGRAM_DESC desc;
+	GpuProgramCreateInformation desc;
 	desc.Type = type;
 
 	switch(type)
@@ -108,7 +108,7 @@ u32 parseErrorMessage(const char* message)
 	return 0;
 }
 
-SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::CompileBytecode(const GpuProgramCreateInformation& desc)
 {
 	String hlslProfile;
 	switch(desc.Type)

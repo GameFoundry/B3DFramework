@@ -26,7 +26,7 @@ namespace bs
 			u32 GetProgramId() const { return mProgramId; }
 
 		protected:
-			D3D11GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void Initialize() override;
 
@@ -51,7 +51,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuVertexProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuVertexProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
@@ -71,7 +71,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuFragmentProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuFragmentProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
@@ -91,7 +91,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuDomainProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuDomainProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
@@ -111,7 +111,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuHullProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuHullProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
@@ -131,7 +131,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuGeometryProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuGeometryProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 
@@ -151,7 +151,7 @@ namespace bs
 		protected:
 			friend class D3D11HLSLProgramFactory;
 
-			D3D11GpuComputeProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			D3D11GpuComputeProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			void LoadFromMicrocode(D3D11Device& device, const DataBlob& microcode) override;
 

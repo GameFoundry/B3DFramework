@@ -39,6 +39,9 @@ namespace bs
 			void DispatchCompute(u32 numGroupsX, u32 numGroupsY = 1, u32 numGroupsZ = 1, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask = 0xFFFFFFFF) override;
 			void AddCommands(const SPtr<CommandBuffer>& commandBuffer, const SPtr<CommandBuffer>& secondary) override;
+			void BeginLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void EndLabel(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void InsertLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) override;
 			SPtr<CommandBuffer> GetMainCommandBuffer() const override;
 			void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
@@ -97,13 +100,17 @@ namespace bs
 
 			VulkanGLSLProgramFactory* mGLSLFactory;
 
-#if B3D_DEBUG
-			VkDebugReportCallbackEXT mDebugCallback;
-#endif
+			VkDebugReportCallbackEXT mDebugReportCallback;
+			VkDebugUtilsMessengerEXT mDebugUtilsMessenger;
 		};
 
 		/**	Provides easy access to the VulkanRenderAPI. */
 		VulkanRenderAPI& GetVulkanRenderAPI();
+
+		extern PFN_vkCmdBeginDebugUtilsLabelEXT vkCmdBeginDebugUtilsLabelEXT;
+		extern PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT;
+		extern PFN_vkCmdInsertDebugUtilsLabelEXT vkCmdInsertDebugUtilsLabelEXT;
+		extern PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT;
 
 		extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 		extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;

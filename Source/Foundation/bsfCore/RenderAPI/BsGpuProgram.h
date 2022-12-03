@@ -17,8 +17,9 @@ namespace bs
 	struct GpuProgramBytecode;
 
 	/** Descriptor structure used for initialization of a GpuProgram. */
-	struct GPU_PROGRAM_DESC
+	struct GpuProgramCreateInformation
 	{
+		String Name; /**< Name of the program. Used primarily for debugging. */
 		String Source; /**< Source code to compile the program from. */
 		String EntryPoint; /**< Name of the entry point function, for example "main". */
 		String Language; /**< Language the source is written in, for example "hlsl" or "glsl". */
@@ -27,7 +28,7 @@ namespace bs
 
 		/**
 		 * Optional intermediate version of the GPU program. Can significantly speed up GPU program compilation/creation
-		 * when supported by the render backend. Call ct::GpuProgram::compileBytecode to generate it.
+		 * when supported by the render backend. Call ct::GpuProgram::CompileBytecode to generate it.
 		 */
 		SPtr<GpuProgramBytecode> Bytecode;
 	};
@@ -79,18 +80,19 @@ namespace bs
 		 *
 		 * @param[in]	desc		Description of the program to create.
 		 */
-		static SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc);
+		static SPtr<GpuProgram> Create(const GpuProgramCreateInformation& desc);
 
 	protected:
 		friend class GpuProgramManager;
 
-		GpuProgram(const GPU_PROGRAM_DESC& desc);
+		GpuProgram(const GpuProgramCreateInformation& createInformation);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 	protected:
 		bool mNeedsAdjacencyInfo;
 		String mLanguage;
+		String mName;
 		GpuProgramType mType;
 		String mEntryPoint;
 		String mSource;
@@ -159,6 +161,9 @@ namespace bs
 		public:
 			virtual ~GpuProgram();
 
+			/** Assigns an name to the image, primarily used for easier debugging. */
+			virtual void SetName(const StringView& name) { mName = name; }
+
 			/** Returns whether this program can be supported on the current renderer and hardware. */
 			virtual bool IsSupported() const;
 
@@ -198,18 +203,18 @@ namespace bs
 			 * @copydoc bs::GpuProgram::Create(const GPU_PROGRAM_DESC&)
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<GpuProgram> Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Compiles the GPU program to an intermediate bytecode format. The bytecode can be cached and used for
 			 * quicker compilation/creation of GPU programs.
 			 */
-			static SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc);
+			static SPtr<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& desc);
 
 		protected:
 			friend class GpuProgramRTTI;
 
-			GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask);
+			GpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask);
 
 			bool mNeedsAdjacencyInfo;
 
@@ -220,6 +225,7 @@ namespace bs
 			SPtr<VertexDeclaration> mInputDeclaration;
 
 			GpuProgramType mType;
+			String mName;
 			String mEntryPoint;
 			String mSource;
 

@@ -52,7 +52,7 @@ namespace bs
 		virtual ~RenderTexture() = default;
 
 		/** @copydoc TextureManager::CreateRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
-		static SPtr<RenderTexture> Create(const TEXTURE_DESC& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
+		static SPtr<RenderTexture> Create(const TextureCreateInformation& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
 
 		/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&) */
 		static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc);

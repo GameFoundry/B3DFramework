@@ -32,6 +32,9 @@ namespace bs
 			/** Returns the internal handle to the Vulkan object. */
 			VkBuffer GetHandle() const { return mBuffer; }
 
+			/** Assigns an name to the buffer, primarily used for easier debugging. */
+			void SetName(const StringView& name);
+
 			/**
 			 * If buffer represents an image sub-resource, this is the number of elements that separate one row of the
 			 * sub-resource from another (if no padding, it is equal to image width).
@@ -127,6 +130,7 @@ namespace bs
 			VulkanHardwareBuffer(BufferType type, GpuBufferFormat format, GpuBufferUsage usage, u32 size, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 			~VulkanHardwareBuffer();
 
+			void SetName(const StringView& name) override;
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
 			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;

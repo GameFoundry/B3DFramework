@@ -334,7 +334,8 @@ SPtr<Texture> IrradianceReduceSHMat::CreateOutputTexture(u32 numCoeffSets)
 	u32 shOrder = (u32)mVariation.GetInt("SH_ORDER");
 	Vector2I size = IBLUtility::GetShCoeffTextureSize(numCoeffSets, shOrder);
 
-	TEXTURE_DESC textureDesc;
+	TextureCreateInformation textureDesc;
+	textureDesc.Name = "Irradiance Reduce Output";
 	textureDesc.Width = (u32)size.X;
 	textureDesc.Height = (u32)size.Y;
 	textureDesc.Format = PF_RGBA32F;
@@ -383,12 +384,13 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(const SPtr<Texture>& cubema
 	SPtr<Texture> scratchCubemap = scratch;
 	if(scratchCubemap == nullptr)
 	{
-		TEXTURE_DESC cubemapDesc;
+		TextureCreateInformation cubemapDesc;
+		cubemapDesc.Name = "Specular Cubemap Filter Scratch";
 		cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		cubemapDesc.Format = props.GetFormat();
 		cubemapDesc.Width = props.GetWidth();
 		cubemapDesc.Height = props.GetHeight();
-		cubemapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
+		cubemapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
 		scratchCubemap = Texture::Create(cubemapDesc);
@@ -529,21 +531,22 @@ void RenderBeastIBLUtility::ScaleCubemap(const SPtr<Texture>& src, u32 srcMip, c
 		u32 mipSize = (u32)exp2((float)(sizeSrcLog2 - 1));
 		u32 numDownsamples = sizeLog2Diff - 1;
 
-		TEXTURE_DESC cubemapDesc;
+		TextureCreateInformation cubemapDesc;
+		cubemapDesc.Name = "Scale Cubemap Scratch";
 		cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 		cubemapDesc.Format = srcProps.GetFormat();
 		cubemapDesc.Width = mipSize;
 		cubemapDesc.Height = mipSize;
-		cubemapDesc.NumMips = numDownsamples - 1;
+		cubemapDesc.MipMapCount = numDownsamples - 1;
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
 		scratchTex = Texture::Create(cubemapDesc);
 
 		DownsampleCubemap(src, srcMip, scratchTex, 0);
-		for(u32 i = 0; i < cubemapDesc.NumMips; i++)
+		for(u32 i = 0; i < cubemapDesc.MipMapCount; i++)
 			DownsampleCubemap(scratchTex, i, scratchTex, i + 1);
 
-		srcMip = cubemapDesc.NumMips;
+		srcMip = cubemapDesc.MipMapCount;
 	}
 
 	// Same size so just copy

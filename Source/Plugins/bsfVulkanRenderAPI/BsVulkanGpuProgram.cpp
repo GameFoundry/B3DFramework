@@ -29,7 +29,22 @@ VulkanShaderModule::~VulkanShaderModule()
 	vkDestroyShaderModule(mOwner->GetDevice().GetLogical(), mModule, gVulkanAllocator);
 }
 
-VulkanGpuProgram::VulkanGpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+void VulkanShaderModule::SetName(const StringView& name)
+{
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	VkDebugUtilsObjectNameInfoEXT objectNameInfo;
+	objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	objectNameInfo.pNext = nullptr;
+	objectNameInfo.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
+	objectNameInfo.objectHandle = (uint64_t)mModule;
+	objectNameInfo.pObjectName = name.data();
+
+	vkSetDebugUtilsObjectNameEXT(mOwner->GetDevice().GetLogical(), &objectNameInfo);
+}
+
+VulkanGpuProgram::VulkanGpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: GpuProgram(desc, deviceMask), mDeviceMask(deviceMask), mModules()
 {
 }
@@ -63,7 +78,8 @@ void VulkanGpuProgram::Initialize()
 	   mBytecode->CompilerId != VULKAN_COMPILER_ID || mBytecode->CompilerVersion != VULKAN_COMPILER_VERSION)
 #endif
 	{
-		GPU_PROGRAM_DESC desc;
+		GpuProgramCreateInformation desc;
+		desc.Name = mName;
 		desc.Type = mType;
 		desc.EntryPoint = mEntryPoint;
 #if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
@@ -125,6 +141,7 @@ void VulkanGpuProgram::Initialize()
 					vkSetWorkgroupSizeMVK(shaderModule, workgroupSize[0], workgroupSize[1], workgroupSize[2]);
 #endif
 				mModules[i] = rescManager.Create<VulkanShaderModule>(shaderModule);
+				mModules[i]->SetName(mName);
 			}
 		}
 
@@ -140,4 +157,24 @@ void VulkanGpuProgram::Initialize()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuProgram);
 
 	GpuProgram::Initialize();
+}
+
+void VulkanGpuProgram::SetName(const StringView& name)
+{
+	GpuProgram::SetName(name);
+
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
+	VulkanDevice* devices[B3D_MAX_DEVICES];
+	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
+
+	for(UINT32 i = 0; i < B3D_MAX_DEVICES; i++)
+	{
+		if(mModules[i] == nullptr)
+			continue;
+
+		mModules[i]->SetName(name);
+	}
 }

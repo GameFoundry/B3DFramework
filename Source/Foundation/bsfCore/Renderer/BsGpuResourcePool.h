@@ -137,6 +137,7 @@ namespace bs
 		/** Structure used for creating a new pooled render texture. */
 		struct B3D_CORE_EXPORT POOLED_RENDER_TEXTURE_DESC
 		{
+			// TODO - Add a required Name parameter to each Create method, and propagate it to created textures
 		public:
 			POOLED_RENDER_TEXTURE_DESC() {}
 

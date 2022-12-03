@@ -139,6 +139,11 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		mSurfaces[i].NeedsWait = false;
 		mSurfaces[i].Image = owner->Create<VulkanImage>(imageDesc, false, false);
 		mSurfaces[i].Sync = owner->Create<VulkanSemaphore>();
+
+		if(mSurfaces[i].Image != nullptr)
+		{
+			mSurfaces[i].Image->SetName(StringUtil::Format("Color attachment #{0}", i));
+		}
 	}
 
 	B3DStackFree(images);
@@ -173,6 +178,11 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		imageDesc.Allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true, false);
+
+		if(mDepthStencilImage != nullptr)
+		{
+			mDepthStencilImage->SetName("Depth-stencil attachment");
+		}
 	}
 	else
 		mDepthStencilImage = nullptr;

@@ -88,7 +88,8 @@ float CalcMicrofacetShadowingSmithGgx(float roughness4, float NoV, float NoL)
 
 SPtr<ct::Texture> GeneratePreintegratedEnvBrdf()
 {
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
+	desc.Name = "Preintegrated BRDF";
 	desc.Type = TEX_TYPE_2D;
 	desc.Format = PF_RG16F;
 	desc.Width = 128;
@@ -178,7 +179,8 @@ SPtr<ct::Texture> GeneratePreintegratedEnvBrdf()
 
 SPtr<ct::Texture> GenerateDefaultIndirect()
 {
-	TEXTURE_DESC dummySkyDesc;
+	TextureCreateInformation dummySkyDesc;
+	dummySkyDesc.Name = "Dummy Sky";
 	dummySkyDesc.Type = TEX_TYPE_CUBE_MAP;
 	dummySkyDesc.Format = PF_RG11B10F;
 	dummySkyDesc.Width = 2;
@@ -224,12 +226,13 @@ SPtr<ct::Texture> GenerateDefaultIndirect()
 		skyTexture->Unlock();
 	}
 
-	TEXTURE_DESC irradianceCubemapDesc;
+	TextureCreateInformation irradianceCubemapDesc;
+	irradianceCubemapDesc.Name = "Default Irradiance Cubemap";
 	irradianceCubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 	irradianceCubemapDesc.Format = PF_RG11B10F;
 	irradianceCubemapDesc.Width = IBLUtility::kIrradianceCubemapSize;
 	irradianceCubemapDesc.Height = IBLUtility::kIrradianceCubemapSize;
-	irradianceCubemapDesc.NumMips = 0;
+	irradianceCubemapDesc.MipMapCount = 0;
 	irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
 	SPtr<ct::Texture> irradiance = ct::Texture::Create(irradianceCubemapDesc);

@@ -296,7 +296,8 @@ ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 s
 {
 	ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
+	texDesc.Name = "Particle Billboard Position & Size";
 	texDesc.Type = TEX_TYPE_2D;
 	texDesc.Width = size;
 	texDesc.Height = size;
@@ -306,9 +307,11 @@ ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 s
 	output->PositionAndRotation = Texture::Create(texDesc);
 
 	texDesc.Format = PF_RGBA8;
+	texDesc.Name = "Particle Billboard Color";
 	output->Color = Texture::Create(texDesc);
 
 	texDesc.Format = PF_RGBA16F;
+	texDesc.Name = "Particle Billboard Size & Frame Index";
 	output->SizeAndFrameIdx = Texture::Create(texDesc);
 
 	GPU_BUFFER_DESC bufferDesc;
@@ -326,22 +329,26 @@ ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 {
 	ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
 	texDesc.Type = TEX_TYPE_2D;
 	texDesc.Width = size;
 	texDesc.Height = size;
 	texDesc.Usage = TU_DYNAMIC;
 
 	texDesc.Format = PF_RGBA32F;
+	texDesc.Name = "Particle Mesh Position";
 	output->Position = Texture::Create(texDesc);
 
 	texDesc.Format = PF_RGBA8;
+	texDesc.Name = "Particle Mesh Color";
 	output->Color = Texture::Create(texDesc);
 
 	texDesc.Format = PF_RGBA16F;
+	texDesc.Name = "Particle Mesh Size";
 	output->Size = Texture::Create(texDesc);
 
 	texDesc.Format = PF_RGBA16F;
+	texDesc.Name = "Particle Mesh Rotation";
 	output->Rotation = Texture::Create(texDesc);
 
 	GPU_BUFFER_DESC bufferDesc;

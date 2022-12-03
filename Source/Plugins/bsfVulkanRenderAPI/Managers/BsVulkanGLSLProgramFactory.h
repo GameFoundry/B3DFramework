@@ -20,9 +20,9 @@ namespace bs
 			VulkanGLSLProgramFactory();
 			~VulkanGLSLProgramFactory();
 
-			SPtr<GpuProgram> Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<GpuProgram> Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<GpuProgram> Create(GpuProgramType type, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<GpuProgramBytecode> CompileBytecode(const GPU_PROGRAM_DESC& desc) override;
+			SPtr<GpuProgramBytecode> CompileBytecode(const GpuProgramCreateInformation& desc) override;
 
 		protected:
 			static const String LANGUAGE_NAME;

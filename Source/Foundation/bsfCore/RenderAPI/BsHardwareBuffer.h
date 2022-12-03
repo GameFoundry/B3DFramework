@@ -22,6 +22,9 @@ namespace bs
 	public:
 		virtual ~HardwareBuffer() = default;
 
+		/** Assigns an name to the buffer, primarily used for easier debugging. */
+		virtual void SetName(const StringView& name) { mName = name; }
+
 		/**
 		 * Locks a portion of the buffer and returns pointer to the locked area. You must call unlock() when done.
 		 *
@@ -150,6 +153,7 @@ namespace bs
 		virtual void Unmap() {}
 
 	protected:
+		String mName;
 		u32 mSize;
 		GpuBufferUsage mUsage;
 		GpuDeviceFlags mDeviceMask;

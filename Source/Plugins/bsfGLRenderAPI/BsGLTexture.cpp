@@ -16,7 +16,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-GLTexture::GLTexture(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+GLTexture::GLTexture(GLSupport& support, const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	: Texture(desc, initialData, deviceMask), mGLSupport(support)
 {
 	B3D_ASSERT((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on OpenGL.");

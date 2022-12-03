@@ -36,13 +36,14 @@ u32 RenderTargetEx::GetSampleCount(const SPtr<RenderTarget>& thisPtr)
 
 SPtr<RenderTexture> RenderTextureEx::Create(PixelFormat format, int width, int height, int numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 {
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
+	texDesc.Name = "Script Render Texture Target";
 	texDesc.Type = TEX_TYPE_2D;
 	texDesc.Width = width;
 	texDesc.Height = height;
 	texDesc.Format = format;
-	texDesc.HwGamma = gammaCorrection;
-	texDesc.NumSamples = numSamples;
+	texDesc.UseHardwareSRGB = gammaCorrection;
+	texDesc.SampleCount = numSamples;
 
 	return RenderTexture::Create(texDesc, createDepth, depthStencilFormat);
 }

@@ -170,18 +170,20 @@ SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOp
 	if(textureImportOptions->CpuCached)
 		usage |= TU_CPUCACHED;
 
-	bool sRGB = textureImportOptions->SRgb;
+	const bool sRGB = textureImportOptions->SRgb;
+	const String fileName = filePath.GetFilename(false);
 
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
+	texDesc.Name = fileName;
 	texDesc.Type = texType;
 	texDesc.Width = faceData[0]->GetWidth();
 	texDesc.Height = faceData[0]->GetHeight();
-	texDesc.NumMips = numMips;
+	texDesc.MipMapCount = numMips;
 	texDesc.Format = textureImportOptions->Format;
 	texDesc.Usage = usage;
-	texDesc.HwGamma = sRGB;
+	texDesc.UseHardwareSRGB = sRGB;
 
-	SPtr<Texture> newTexture = Texture::CreatePtrInternal(texDesc);
+	SPtr<Texture> newTexture = Texture::CreateShared(texDesc);
 
 	u32 numFaces = (u32)faceData.size();
 	for(u32 i = 0; i < numFaces; i++)
@@ -205,9 +207,6 @@ SPtr<Resource> FreeImgImporter::Import(const Path& filePath, SPtr<const ImportOp
 			newTexture->WriteData(dst, i, mip);
 		}
 	}
-
-	const String fileName = filePath.GetFilename(false);
-	newTexture->SetName(fileName);
 
 	return newTexture;
 }

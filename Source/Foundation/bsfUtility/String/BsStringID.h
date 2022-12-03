@@ -88,6 +88,9 @@ namespace bs
 		/** Implicitly converts to a normal string. */
 		operator String() const { return String(mData->Chars); }
 
+		/** Implicitly converts to a string view. */
+		operator StringView() const { return mData->Chars; }
+
 		/**	Returns true if the string id has no value assigned. */
 		bool Empty() const
 		{

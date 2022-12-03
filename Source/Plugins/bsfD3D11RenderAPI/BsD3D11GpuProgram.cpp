@@ -17,7 +17,7 @@ using namespace bs::ct;
 
 u32 D3D11GpuProgram::GlobalProgramId = 0;
 
-D3D11GpuProgram::D3D11GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuProgram::D3D11GpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: GpuProgram(desc, deviceMask)
 {
 	B3D_ASSERT((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
@@ -43,7 +43,8 @@ void D3D11GpuProgram::Initialize()
 
 	if(!mBytecode || mBytecode->CompilerId != DIRECTX_COMPILER_ID)
 	{
-		GPU_PROGRAM_DESC desc;
+		GpuProgramCreateInformation desc;
+		desc.Name = mName;
 		desc.Type = mType;
 		desc.EntryPoint = mEntryPoint;
 		desc.Source = mSource;
@@ -73,7 +74,7 @@ void D3D11GpuProgram::Initialize()
 	GpuProgram::Initialize();
 }
 
-D3D11GpuVertexProgram::D3D11GpuVertexProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuVertexProgram::D3D11GpuVertexProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mVertexShader(nullptr)
 {}
 
@@ -99,7 +100,7 @@ ID3D11VertexShader* D3D11GpuVertexProgram::GetVertexShader() const
 	return mVertexShader;
 }
 
-D3D11GpuFragmentProgram::D3D11GpuFragmentProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuFragmentProgram::D3D11GpuFragmentProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mPixelShader(nullptr)
 {}
 
@@ -125,7 +126,7 @@ ID3D11PixelShader* D3D11GpuFragmentProgram::GetPixelShader() const
 	return mPixelShader;
 }
 
-D3D11GpuGeometryProgram::D3D11GpuGeometryProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuGeometryProgram::D3D11GpuGeometryProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mGeometryShader(nullptr)
 {}
 
@@ -151,7 +152,7 @@ ID3D11GeometryShader* D3D11GpuGeometryProgram::GetGeometryShader() const
 	return mGeometryShader;
 }
 
-D3D11GpuDomainProgram::D3D11GpuDomainProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuDomainProgram::D3D11GpuDomainProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mDomainShader(nullptr)
 {}
 
@@ -177,7 +178,7 @@ ID3D11DomainShader* D3D11GpuDomainProgram::GetDomainShader() const
 	return mDomainShader;
 }
 
-D3D11GpuHullProgram::D3D11GpuHullProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuHullProgram::D3D11GpuHullProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mHullShader(nullptr)
 {}
 
@@ -204,7 +205,7 @@ ID3D11HullShader* D3D11GpuHullProgram::GetHullShader() const
 	return mHullShader;
 }
 
-D3D11GpuComputeProgram::D3D11GpuComputeProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+D3D11GpuComputeProgram::D3D11GpuComputeProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: D3D11GpuProgram(desc, deviceMask), mComputeShader(nullptr)
 {}
 

@@ -30,19 +30,19 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 	SPtr<PooledRenderTexture> newTexture = B3DMakeShared<PooledRenderTexture>(mCurrentFrame);
 	mTextures.Add(newTexture);
 
-	TEXTURE_DESC texDesc;
+	TextureCreateInformation texDesc;
 	texDesc.Type = desc.type;
 	texDesc.Width = desc.width;
 	texDesc.Height = desc.height;
 	texDesc.Depth = desc.depth;
 	texDesc.Format = desc.format;
 	texDesc.Usage = desc.flag;
-	texDesc.HwGamma = desc.hwGamma;
-	texDesc.NumSamples = desc.numSamples;
-	texDesc.NumMips = desc.numMipLevels;
+	texDesc.UseHardwareSRGB = desc.hwGamma;
+	texDesc.SampleCount = desc.numSamples;
+	texDesc.MipMapCount = desc.numMipLevels;
 
 	if(desc.type != TEX_TYPE_3D)
-		texDesc.NumArraySlices = desc.arraySize;
+		texDesc.ArraySliceCount = desc.arraySize;
 
 	newTexture->Texture = Texture::Create(texDesc);
 

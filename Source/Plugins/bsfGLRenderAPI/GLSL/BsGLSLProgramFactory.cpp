@@ -6,7 +6,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-SPtr<ct::GpuProgram> GLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<ct::GpuProgram> GLSLProgramFactory::Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	GLSLGpuProgram* prog = new(B3DAllocate<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
 
@@ -18,7 +18,7 @@ SPtr<ct::GpuProgram> GLSLProgramFactory::Create(const GPU_PROGRAM_DESC& desc, Gp
 
 SPtr<ct::GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFlags deviceMask)
 {
-	GPU_PROGRAM_DESC desc;
+	GpuProgramCreateInformation desc;
 	desc.Type = type;
 
 	GLSLGpuProgram* prog = new(B3DAllocate<GLSLGpuProgram>()) GLSLGpuProgram(desc, deviceMask);
@@ -29,7 +29,7 @@ SPtr<ct::GpuProgram> GLSLProgramFactory::Create(GpuProgramType type, GpuDeviceFl
 	return gpuProg;
 }
 
-SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgramBytecode> GLSLProgramFactory::CompileBytecode(const GpuProgramCreateInformation& desc)
 {
 	// Note: No bytecode format for GLSL
 	SPtr<GpuProgramBytecode> bytecode = B3DMakeShared<GpuProgramBytecode>();

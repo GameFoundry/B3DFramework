@@ -792,7 +792,7 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 
 void LightProbes::ResizeCoefficientTexture(u32 numRows)
 {
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
 	desc.Width = 4096;
 	desc.Height = numRows;
 	desc.Usage = TU_LOADSTORE | TU_RENDERTARGET;

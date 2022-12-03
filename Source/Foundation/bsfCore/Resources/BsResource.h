@@ -16,14 +16,14 @@ namespace bs
 	class B3D_CORE_EXPORT Resource : public IReflectable, public CoreObject
 	{
 	public:
-		Resource(bool requiresGpuInitialization = true);
+		Resource(bool requiresGpuInitialization = true, const String& name = StringUtil::kBlank);
 		virtual ~Resource() = default;
 
 		/**	Returns the name of the resource. */
 		const String& GetName() const;
 
 		/**	Sets the name of the resource.  */
-		void SetName(const String& name);
+		virtual void SetName(const String& name);
 
 		/**	Retrieves meta-data containing various information describing a resource. */
 		SPtr<ResourceMetaData> GetMetaData() const { return mMetaData; }

@@ -216,4 +216,5 @@ u32 RenderAPI::VertexCountToPrimCount(DrawOperationType type, u32 elementCount)
 
 	return primCount;
 }
+
 }}

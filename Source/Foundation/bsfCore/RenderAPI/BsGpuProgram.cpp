@@ -26,8 +26,8 @@ RTTITypeBase* GpuProgramBytecode::GetRtti() const
 	return GpuProgramBytecode::GetRttiStatic();
 }
 
-GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc)
-	: mNeedsAdjacencyInfo(desc.RequiresAdjacency), mLanguage(desc.Language), mType(desc.Type), mEntryPoint(desc.EntryPoint), mSource(desc.Source)
+GpuProgram::GpuProgram(const GpuProgramCreateInformation& createInformation)
+	: mNeedsAdjacencyInfo(createInformation.RequiresAdjacency), mLanguage(createInformation.Language), mName(createInformation.Name), mType(createInformation.Type), mEntryPoint(createInformation.EntryPoint), mSource(createInformation.Source)
 {
 }
 
@@ -53,18 +53,19 @@ SPtr<ct::GpuProgram> GpuProgram::GetCore() const
 
 SPtr<ct::CoreObject> GpuProgram::CreateCore() const
 {
-	GPU_PROGRAM_DESC desc;
-	desc.Source = mSource;
-	desc.EntryPoint = mEntryPoint;
-	desc.Language = mLanguage;
-	desc.Type = mType;
-	desc.RequiresAdjacency = mNeedsAdjacencyInfo;
-	desc.Bytecode = mBytecode;
+	GpuProgramCreateInformation createInformation;
+	createInformation.Name = mName;
+	createInformation.Source = mSource;
+	createInformation.EntryPoint = mEntryPoint;
+	createInformation.Language = mLanguage;
+	createInformation.Type = mType;
+	createInformation.RequiresAdjacency = mNeedsAdjacencyInfo;
+	createInformation.Bytecode = mBytecode;
 
-	return ct::GpuProgramManager::Instance().CreateInternal(desc);
+	return ct::GpuProgramManager::Instance().CreateInternal(createInformation);
 }
 
-SPtr<GpuProgram> GpuProgram::Create(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgram> GpuProgram::Create(const GpuProgramCreateInformation& desc)
 {
 	return GpuProgramManager::Instance().Create(desc);
 }
@@ -84,8 +85,8 @@ RTTITypeBase* GpuProgram::GetRtti() const
 
 namespace bs { namespace ct
 {
-GpuProgram::GpuProgram(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
-	: mNeedsAdjacencyInfo(desc.RequiresAdjacency), mType(desc.Type), mEntryPoint(desc.EntryPoint), mSource(desc.Source), mBytecode(desc.Bytecode)
+GpuProgram::GpuProgram(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
+	: mNeedsAdjacencyInfo(desc.RequiresAdjacency), mName(desc.Name), mType(desc.Type), mEntryPoint(desc.EntryPoint), mSource(desc.Source), mBytecode(desc.Bytecode)
 {
 	mParametersDesc = B3DMakeShared<GpuParamDesc>();
 }
@@ -98,12 +99,12 @@ bool GpuProgram::IsSupported() const
 	return true;
 }
 
-SPtr<GpuProgram> GpuProgram::Create(const GPU_PROGRAM_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<GpuProgram> GpuProgram::Create(const GpuProgramCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	return GpuProgramManager::Instance().Create(desc, deviceMask);
 }
 
-SPtr<GpuProgramBytecode> GpuProgram::CompileBytecode(const GPU_PROGRAM_DESC& desc)
+SPtr<GpuProgramBytecode> GpuProgram::CompileBytecode(const GpuProgramCreateInformation& desc)
 {
 	return GpuProgramManager::Instance().CompileBytecode(desc);
 }

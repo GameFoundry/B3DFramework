@@ -16,7 +16,7 @@ PixelFormat NullTextureManager::GetNativeFormat(TextureType ttype, PixelFormat f
 }
 
 namespace bs { namespace ct {
-SPtr<Texture> NullTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+SPtr<Texture> NullTextureManager::CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
 	SPtr<NullTexture> texPtr = B3DMakeShared<NullTexture>(desc, initialData, deviceMask);
 	texPtr->SetThisPtrInternal(texPtr);
@@ -32,7 +32,7 @@ SPtr<RenderTexture> NullTextureManager::CreateRenderTextureInternal(const RENDER
 	return texPtr;
 }
 
-NullTexture::NullTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+NullTexture::NullTexture(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	: Texture(desc, initialData, deviceMask)
 {}
 

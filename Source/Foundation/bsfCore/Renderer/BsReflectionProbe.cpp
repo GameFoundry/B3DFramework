@@ -85,15 +85,16 @@ void ReflectionProbe::CaptureAndFilter()
 	if(mRendererTask != nullptr)
 		mRendererTask->Cancel();
 
-	TEXTURE_DESC cubemapDesc;
+	TextureCreateInformation cubemapDesc;
+	cubemapDesc.Name = "ReflectionProbe Cubemap";
 	cubemapDesc.Type = TEX_TYPE_CUBE_MAP;
 	cubemapDesc.Format = PF_RG11B10F;
 	cubemapDesc.Width = ct::IBLUtility::kReflectionCubemapSize;
 	cubemapDesc.Height = ct::IBLUtility::kReflectionCubemapSize;
-	cubemapDesc.NumMips = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
+	cubemapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 	cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-	mFilteredTexture = Texture::CreatePtrInternal(cubemapDesc);
+	mFilteredTexture = Texture::CreateShared(cubemapDesc);
 
 	auto renderComplete = [this]()
 	{

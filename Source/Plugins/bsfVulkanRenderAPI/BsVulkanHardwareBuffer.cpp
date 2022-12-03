@@ -31,6 +31,21 @@ VulkanBuffer::~VulkanBuffer()
 	device.FreeMemory(mAllocation);
 }
 
+void VulkanBuffer::SetName(const StringView& name)
+{
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	VkDebugUtilsObjectNameInfoEXT objectNameInfo;
+	objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	objectNameInfo.pNext = nullptr;
+	objectNameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
+	objectNameInfo.objectHandle = (uint64_t)mBuffer;
+	objectNameInfo.pObjectName = name.data();
+
+	vkSetDebugUtilsObjectNameEXT(mOwner->GetDevice().GetLogical(), &objectNameInfo);
+}
+
 u8* VulkanBuffer::Map(VkDeviceSize offset, VkDeviceSize length) const
 {
 	VulkanDevice& device = mOwner->GetDevice();
@@ -265,7 +280,33 @@ VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanDevice& device, u32 size,
 	VmaAllocation allocation = device.AllocateMemory(buffer, flags);
 
 	mBufferCI.usage = usage; // Restore original usage
-	return device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation);
+	VulkanBuffer *const vulkanBuffer = device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation);
+
+	if(vulkanBuffer != nullptr)
+	{
+		if(staging)
+			vulkanBuffer->SetName(StringUtil::Format("Staging buffer ({0})", mName));
+		else
+			vulkanBuffer->SetName(mName);
+	}
+
+	return vulkanBuffer;
+}
+
+void VulkanHardwareBuffer::SetName(const StringView& name)
+{
+	HardwareBuffer::SetName(name);
+
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	for(UINT32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	{
+		if(mBuffers[deviceIndex] == nullptr)
+			continue;
+
+		mBuffers[deviceIndex]->SetName(name);
+	}
 }
 
 void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)

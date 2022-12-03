@@ -47,7 +47,7 @@ bool TPass<Core>::HasBlending() const
 }
 
 template <bool Core>
-const GPU_PROGRAM_DESC& TPass<Core>::GetProgramDesc(bs::GpuProgramType type) const
+const GpuProgramCreateInformation& TPass<Core>::GetProgramDesc(bs::GpuProgramType type) const
 {
 	switch(type)
 	{

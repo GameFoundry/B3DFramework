@@ -374,9 +374,10 @@ void GUIManager::UpdateCaretTexture()
 {
 	if(mCaretTexture == nullptr)
 	{
-		TEXTURE_DESC texDesc; // Default
+		TextureCreateInformation textureCreateInformation; // Default
+		textureCreateInformation.Name = "Input Caret";
 
-		HTexture newTex = Texture::Create(texDesc);
+		HTexture newTex = Texture::Create(textureCreateInformation);
 		mCaretTexture = SpriteTexture::Create(newTex);
 	}
 
@@ -391,9 +392,10 @@ void GUIManager::UpdateTextSelectionTexture()
 {
 	if(mTextSelectionTexture == nullptr)
 	{
-		TEXTURE_DESC texDesc; // Default
+		TextureCreateInformation textureCreateInformation; // Default
+		textureCreateInformation.Name = "Input Caret";
 
-		HTexture newTex = Texture::Create(texDesc);
+		HTexture newTex = Texture::Create(textureCreateInformation);
 		mTextSelectionTexture = SpriteTexture::Create(newTex);
 	}
 
@@ -1669,13 +1671,14 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			SPtr<Texture> colorTex = drawGroup.Destination->GetColorTexture(0);
 			const TextureProperties& colorProps = colorTex->GetProperties();
 
-			TEXTURE_DESC texDesc;
-			texDesc.Width = colorProps.GetWidth();
-			texDesc.Height = colorProps.GetHeight();
-			texDesc.Format = PF_D24S8; // TODO: Can we create a stencil only texture here?
-			texDesc.Usage = TU_DEPTHSTENCIL;
+			TextureCreateInformation textureCreateInformation;
+			textureCreateInformation.Name = "GUI Alpha Stencil";
+			textureCreateInformation.Width = colorProps.GetWidth();
+			textureCreateInformation.Height = colorProps.GetHeight();
+			textureCreateInformation.Format = PF_D24S8; // TODO: Can we create a stencil only texture here?
+			textureCreateInformation.Usage = TU_DEPTHSTENCIL;
 
-			SPtr<Texture> stencilTexture = Texture::Create(texDesc);
+			SPtr<Texture> stencilTexture = Texture::Create(textureCreateInformation);
 
 			RENDER_TEXTURE_DESC rtDesc;
 			rtDesc.ColorSurfaces[0].Texture = colorTex;

@@ -61,20 +61,22 @@ void VulkanTextureManager::OnStartUp()
 				for(int width = 0; width < entry.Width; width++)
 					pixelData->SetColorAt(Color::kWhite, width, height, depth);
 
-		TEXTURE_DESC desc;
-		desc.Type = entry.Type;
-		desc.Width = entry.Width;
-		desc.Height = entry.Height;
-		desc.Depth = entry.Depth;
-		desc.NumArraySlices = entry.ArraySize;
-		desc.Format = PF_RGBA8;
-		desc.Usage = TU_STATIC | TU_MUTABLEFORMAT;
+		TextureCreateInformation createInformation;
+		createInformation.Type = entry.Type;
+		createInformation.Width = entry.Width;
+		createInformation.Height = entry.Height;
+		createInformation.Depth = entry.Depth;
+		createInformation.ArraySliceCount = entry.ArraySize;
+		createInformation.Format = PF_RGBA8;
+		createInformation.Usage = TU_STATIC | TU_MUTABLEFORMAT;
 
-		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(desc));
+		createInformation.Name = "VulkanDummyRead";
+		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(createInformation));
 		mDummyReadTextures[idx]->WriteData(*pixelData);
 
-		desc.Usage = TU_LOADSTORE;
-		mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(desc));
+		createInformation.Name = "VulkanDummyStorage";
+		createInformation.Usage = TU_LOADSTORE;
+		mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(createInformation));
 
 		idx++;
 	}
@@ -156,7 +158,7 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	}
 }
 
-SPtr<Texture> VulkanTextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+SPtr<Texture> VulkanTextureManager::CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
 	VulkanTexture* tex = new(B3DAllocate<VulkanTexture>()) VulkanTexture(desc, initialData, deviceMask);
 

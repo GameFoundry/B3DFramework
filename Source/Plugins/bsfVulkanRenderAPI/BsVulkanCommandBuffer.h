@@ -144,6 +144,9 @@ namespace bs
 			/** Returns the index of the device this command buffer will execute on. */
 			u32 GetDeviceIdx() const;
 
+			/** Assigns an name to the command buffer, primarily used for easier debugging. */
+			void SetName(const StringView& name);
+
 			/** Makes the command buffer ready to start recording commands. */
 			void Begin();
 
@@ -444,6 +447,21 @@ namespace bs
 			void Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions);
 
 			/**
+			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
+			 * tools for easier debugging.
+			 */
+			void BeginLabel(const StringView& name);
+
+			/** Closes the label scope as provided by the previous call to BeginLabel(). */
+			void EndLabel();
+
+			/**
+			 * Inserts a label at the specified location in the command buffer. This may be used by external tools
+			 * for easier debugging.
+			 */
+			void InsertLabel(const StringView& name);
+
+			/**
 			 * Returns the current layout of the specified image, as seen by this command buffer. This is different from the
 			 * global layout stored in VulkanImage itself, as it includes any transitions performed by the command buffer
 			 * (at the current point in time), while the global layout is only updated after a command buffer as been submitted.
@@ -731,6 +749,7 @@ namespace bs
 			bool mBoundParamsDirty : 1;
 			bool mVertexInputsDirty : 1;
 			bool mIsRenderPassInterrupted = false;
+			bool mIsDebugLabelOpen = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
 			SPtr<VulkanGpuParams> mBoundParams;
 
@@ -777,6 +796,7 @@ namespace bs
 			 */
 			VulkanCmdBuffer* GetInternal() const { return mBuffer; }
 
+			void SetName(const StringView& name) override;
 			CommandBufferState GetState() const override;
 			void Reset() override;
 

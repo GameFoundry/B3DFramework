@@ -283,7 +283,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 	{
-		SPtr<Texture> texturePtr = Texture::CreatePtrInternal(pixelData);
+		SPtr<Texture> texturePtr = Texture::CreateShared(pixelData);
 		HResource texture = GetResources().CreateResourceHandleInternal(texturePtr, UUID(uuid.c_str()));
 
 		Resources::Instance().Save(texture, path, true, compress);
@@ -688,7 +688,7 @@ void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
 
 			for(u32 j = 0; j < GPT_COUNT; j++)
 			{
-				const GPU_PROGRAM_DESC& desc = pass->GetProgramDesc((GpuProgramType)j);
+				const GpuProgramCreateInformation& desc = pass->GetProgramDesc((GpuProgramType)j);
 				if(desc.Source.empty())
 					continue;
 

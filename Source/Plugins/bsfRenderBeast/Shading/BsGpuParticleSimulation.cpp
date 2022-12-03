@@ -259,13 +259,15 @@ struct GpuParticleHelperBuffers
 GpuParticleResources::GpuParticleResources()
 {
 	// Allocate textures
-	TEXTURE_DESC positionAndTimeDesc;
+	TextureCreateInformation positionAndTimeDesc;
+	positionAndTimeDesc.Name = "GPU Particles Position & Time";
 	positionAndTimeDesc.Format = PF_RGBA32F;
 	positionAndTimeDesc.Width = kTexSize;
 	positionAndTimeDesc.Height = kTexSize;
 	positionAndTimeDesc.Usage = TU_RENDERTARGET;
 
-	TEXTURE_DESC velocityDesc;
+	TextureCreateInformation velocityDesc;
+	positionAndTimeDesc.Name = "GPU Particles Velocity";
 	velocityDesc.Format = PF_RGBA16F;
 	velocityDesc.Width = kTexSize;
 	velocityDesc.Height = kTexSize;
@@ -277,7 +279,8 @@ GpuParticleResources::GpuParticleResources()
 		mStateTextures[i].VelocityTex = Texture::Create(velocityDesc);
 	}
 
-	TEXTURE_DESC sizeAndRotationDesc;
+	TextureCreateInformation sizeAndRotationDesc;
+	positionAndTimeDesc.Name = "GPU Particles Size & Rotation";
 	sizeAndRotationDesc.Format = PF_RGBA16F;
 	sizeAndRotationDesc.Width = kTexSize;
 	sizeAndRotationDesc.Height = kTexSize;
@@ -1326,13 +1329,14 @@ struct GpuParticleCurveInject
 
 GpuParticleCurves::GpuParticleCurves()
 {
-	TEXTURE_DESC textureDesc;
-	textureDesc.Format = PF_RGBA16F;
-	textureDesc.Width = kTexSize;
-	textureDesc.Height = kTexSize;
-	textureDesc.Usage = TU_RENDERTARGET;
+	TextureCreateInformation textureCreateInformation;
+	textureCreateInformation.Name = "GPU Particles Curves";
+	textureCreateInformation.Format = PF_RGBA16F;
+	textureCreateInformation.Width = kTexSize;
+	textureCreateInformation.Height = kTexSize;
+	textureCreateInformation.Usage = TU_RENDERTARGET;
 
-	mCurveTexture = Texture::Create(textureDesc);
+	mCurveTexture = Texture::Create(textureCreateInformation);
 
 	RENDER_TEXTURE_DESC rtDesc;
 	rtDesc.ColorSurfaces[0].Texture = mCurveTexture;

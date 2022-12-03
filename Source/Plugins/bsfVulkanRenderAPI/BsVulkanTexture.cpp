@@ -115,6 +115,21 @@ VulkanImage::~VulkanImage()
 	}
 }
 
+void VulkanImage::SetName(const StringView& name)
+{
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	VkDebugUtilsObjectNameInfoEXT objectNameInfo;
+	objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	objectNameInfo.pNext = nullptr;
+	objectNameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
+	objectNameInfo.objectHandle = (uint64_t)mImage;
+	objectNameInfo.pObjectName = name.data();
+
+	vkSetDebugUtilsObjectNameEXT(mOwner->GetDevice().GetLogical(), &objectNameInfo);
+}
+
 VkImageView VulkanImage::GetView(bool isPartOfFramebuffer) const
 {
 	if(isPartOfFramebuffer)
@@ -648,8 +663,8 @@ VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkI
 	: VulkanResource(owner, false), mLayout(layout)
 {}
 
-VulkanTexture::VulkanTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
-	: Texture(desc, initialData, deviceMask), mImages(), mInternalFormats(), mDeviceMask(deviceMask), mStagingBuffer(nullptr), mMappedDeviceIdx((u32)-1), mMappedGlobalQueueIdx((u32)-1), mMappedMip(0), mMappedFace(0), mMappedRowPitch(0), mMappedSlicePitch(0), mMappedLockOptions(GBL_WRITE_ONLY), mDirectlyMappable(false), mSupportsGPUWrites(false), mIsMapped(false)
+VulkanTexture::VulkanTexture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+	: Texture(createInformation, initialData, deviceMask), mImages(), mInternalFormats(), mDeviceMask(deviceMask), mStagingBuffer(nullptr), mMappedDeviceIdx((u32)-1), mMappedGlobalQueueIdx((u32)-1), mMappedMip(0), mMappedFace(0), mMappedRowPitch(0), mMappedSlicePitch(0), mMappedLockOptions(GBL_WRITE_ONLY), mDirectlyMappable(false), mSupportsGPUWrites(false), mIsMapped(false)
 {
 }
 
@@ -788,6 +803,19 @@ void VulkanTexture::Initialize()
 	Texture::Initialize();
 }
 
+void VulkanTexture::SetName(const StringView& name)
+{
+	Texture::SetName(name);
+
+	for(UINT32 i = 0; i < B3D_MAX_DEVICES; i++)
+	{
+		if(mImages[i] == nullptr)
+			continue;
+
+		mImages[i]->SetName(name);
+	}
+}
+
 VulkanImage* VulkanTexture::CreateImage(VulkanDevice& device, PixelFormat format)
 {
 	bool directlyMappable = mImageCI.tiling == VK_IMAGE_TILING_LINEAR;
@@ -804,7 +832,10 @@ VulkanImage* VulkanTexture::CreateImage(VulkanDevice& device, PixelFormat format
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	VmaAllocation allocation = device.AllocateMemory(image, flags);
-	return device.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format, GetProperties());
+	VulkanImage *const vulkanImage = device.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format, GetProperties());
+	vulkanImage->SetName(mName);
+
+	return vulkanImage;
 }
 
 VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData& pixelData, bool readable)
@@ -846,7 +877,10 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData
 		slicePitchInPixels *= blockDim.X * blockDim.Y;
 	}
 
-	return device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation, rowPitchInPixels, slicePitchInPixels);
+	VulkanBuffer *const vulkanBuffer = device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation, rowPitchInPixels, slicePitchInPixels);
+	vulkanBuffer->SetName(StringUtil::Format("Staging buffer ({0})", mName));
+
+	return vulkanBuffer;
 }
 
 void VulkanTexture::CopyImageToImage(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)

@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc)
+SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc)
 {
 	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc);
 	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
@@ -18,7 +18,7 @@ SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc)
 	return ret;
 }
 
-SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc, const SPtr<PixelData>& pixelData)
+SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc, const SPtr<PixelData>& pixelData)
 {
 	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc, pixelData);
 	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
@@ -38,11 +38,11 @@ SPtr<Texture> TextureManager::CreateEmptyInternal()
 	return texture;
 }
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TEXTURE_DESC& colorDesc, bool createDepth, PixelFormat depthStencilFormat)
+SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth, PixelFormat depthStencilFormat)
 {
-	TEXTURE_DESC textureDesc = colorDesc;
+	TextureCreateInformation textureDesc = colorDesc;
 	textureDesc.Usage = TU_RENDERTARGET;
-	textureDesc.NumMips = 0;
+	textureDesc.MipMapCount = 0;
 
 	HTexture texture = Texture::Create(textureDesc);
 
@@ -50,7 +50,7 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TEXTURE_DESC& colo
 	if(createDepth)
 	{
 		textureDesc.Format = depthStencilFormat;
-		textureDesc.HwGamma = false;
+		textureDesc.UseHardwareSRGB = false;
 		textureDesc.Usage = TU_DEPTHSTENCIL;
 
 		depthStencil = Texture::Create(textureDesc);
@@ -85,7 +85,7 @@ namespace bs { namespace ct
 {
 void TextureManager::OnStartUp()
 {
-	TEXTURE_DESC desc;
+	TextureCreateInformation desc;
 	desc.Type = TEX_TYPE_2D;
 	desc.Width = 2;
 	desc.Height = 2;
@@ -93,6 +93,7 @@ void TextureManager::OnStartUp()
 	desc.Usage = TU_STATIC;
 
 	// White built-in texture
+	desc.Name = "Builtin White";
 	SPtr<Texture> whiteTexture = CreateTexture(desc);
 
 	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
@@ -102,9 +103,10 @@ void TextureManager::OnStartUp()
 	whitePixelData->SetColorAt(Color::kWhite, 1, 1);
 
 	whiteTexture->WriteData(*whitePixelData);
-	Texture::WHITE = whiteTexture;
+	Texture::kWhite = whiteTexture;
 
 	// Black built-in texture
+	desc.Name = "Builtin Black";
 	SPtr<Texture> blackTexture = CreateTexture(desc);
 
 	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
@@ -114,9 +116,10 @@ void TextureManager::OnStartUp()
 	blackPixelData->SetColorAt(Color::kZero, 1, 1);
 
 	blackTexture->WriteData(*blackPixelData);
-	Texture::BLACK = blackTexture;
+	Texture::kBlack = blackTexture;
 
 	// Normal (Y = Up) built-in texture
+	desc.Name = "Builtin Normal";
 	SPtr<Texture> normalTexture = CreateTexture(desc);
 	SPtr<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
@@ -127,18 +130,18 @@ void TextureManager::OnStartUp()
 	normalPixelData->SetColorAt(encodedNormal, 1, 1);
 
 	normalTexture->WriteData(*normalPixelData);
-	Texture::NORMAL = normalTexture;
+	Texture::kNormal = normalTexture;
 }
 
 void TextureManager::OnShutDown()
 {
 	// Need to make sure these are freed while still on the core thread
-	Texture::WHITE = nullptr;
-	Texture::BLACK = nullptr;
-	Texture::NORMAL = nullptr;
+	Texture::kWhite = nullptr;
+	Texture::kBlack = nullptr;
+	Texture::kNormal = nullptr;
 }
 
-SPtr<Texture> TextureManager::CreateTexture(const TEXTURE_DESC& desc, GpuDeviceFlags deviceMask)
+SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	SPtr<Texture> newTex = CreateTextureInternal(desc, nullptr, deviceMask);
 	newTex->Initialize();

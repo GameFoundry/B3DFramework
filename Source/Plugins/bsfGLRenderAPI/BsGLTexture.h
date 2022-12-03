@@ -51,7 +51,7 @@ namespace bs
 		protected:
 			friend class GLTextureManager;
 
-			GLTexture(GLSupport& support, const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
+			GLTexture(GLSupport& support, const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
 
 			void Initialize() override;
 			PixelData LockImpl(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0, u32 deviceIdx = 0, u32 queueIdx = 0) override;

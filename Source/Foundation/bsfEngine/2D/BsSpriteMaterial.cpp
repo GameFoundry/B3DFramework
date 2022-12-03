@@ -94,7 +94,7 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 	if(texture != nullptr)
 		spriteTexture = texture;
 	else
-		spriteTexture = ct::Texture::WHITE;
+		spriteTexture = ct::Texture::kWhite;
 
 	mTextureParam.Set(spriteTexture);
 	mSamplerParam.Set(sampler);

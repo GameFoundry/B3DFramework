@@ -23,7 +23,7 @@ PixelFormat D3D11TextureManager::GetNativeFormat(TextureType ttype, PixelFormat 
 }
 
 namespace bs { namespace ct {
-SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+SPtr<Texture> D3D11TextureManager::CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 {
 	D3D11Texture* tex = new(B3DAllocate<D3D11Texture>()) D3D11Texture(desc, initialData, deviceMask);
 

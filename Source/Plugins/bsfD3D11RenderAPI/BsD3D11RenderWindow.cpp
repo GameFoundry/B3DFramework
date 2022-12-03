@@ -736,13 +736,13 @@ void D3D11RenderWindow::CreateSizeDependedD3DResources()
 
 	if(mDesc.DepthBuffer)
 	{
-		TEXTURE_DESC texDesc;
+		TextureCreateInformation texDesc;
 		texDesc.Type = TEX_TYPE_2D;
 		texDesc.Width = BBDesc.Width;
 		texDesc.Height = BBDesc.Height;
 		texDesc.Format = PF_D32_S8X24;
 		texDesc.Usage = TU_DEPTHSTENCIL;
-		texDesc.NumSamples = GetProperties().MultisampleCount;
+		texDesc.SampleCount = GetProperties().MultisampleCount;
 
 		mDepthStencilBuffer = Texture::Create(texDesc);
 		mDepthStencilView = mDepthStencilBuffer->RequestView(TextureSurface(0, 1, 0, 1), GVU_DEPTHSTENCIL);

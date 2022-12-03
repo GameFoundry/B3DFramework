@@ -15,7 +15,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-D3D11Texture::D3D11Texture(const TEXTURE_DESC& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+D3D11Texture::D3D11Texture(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
 	: Texture(desc, initialData, deviceMask)
 {
 	B3D_ASSERT((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
@@ -84,11 +84,11 @@ void D3D11Texture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInform
 			else
 			{
 				// Need to first resolve to a temporary texture, then copy
-				TEXTURE_DESC tempDesc;
+				TextureCreateInformation tempDesc;
 				tempDesc.Width = mProperties.GetWidth();
 				tempDesc.Height = mProperties.GetHeight();
 				tempDesc.Format = mProperties.GetFormat();
-				tempDesc.HwGamma = mProperties.IsHardwareGammaEnabled();
+				tempDesc.UseHardwareSRGB = mProperties.IsHardwareGammaEnabled();
 
 				SPtr<D3D11Texture> temporary = std::static_pointer_cast<D3D11Texture>(Texture::Create(tempDesc));
 				device.GetImmediateContext()->ResolveSubresource(temporary->GetDX11Resource(), 0, mTex, srcResIdx, mDXGIFormat);

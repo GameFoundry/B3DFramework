@@ -198,6 +198,8 @@ void GetPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src,
 		dst = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 }
 
+const Color kDebugLabelColor = Color::kBansheeOrange;
+
 VulkanCmdBuffer::VulkanCmdBuffer(VulkanDevice& device, u32 id, VkCommandPool pool, u32 queueFamily, bool secondary)
 	: mId(id), mQueueFamily(queueFamily), mDevice(device), mPool(pool), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 {
@@ -300,6 +302,21 @@ u32 VulkanCmdBuffer::GetDeviceIdx() const
 	return mDevice.GetIndex();
 }
 
+void VulkanCmdBuffer::SetName(const StringView& name)
+{
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	VkDebugUtilsObjectNameInfoEXT objectNameInfo;
+	objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+	objectNameInfo.pNext = nullptr;
+	objectNameInfo.objectType = VK_OBJECT_TYPE_COMMAND_BUFFER;
+	objectNameInfo.objectHandle = (uint64_t)mCmdBuffer;
+	objectNameInfo.pObjectName = name.data();
+
+	vkSetDebugUtilsObjectNameEXT(mDevice.GetLogical(), &objectNameInfo);
+}
+
 void VulkanCmdBuffer::Begin()
 {
 	B3D_ASSERT(mState == State::Ready);
@@ -323,6 +340,9 @@ void VulkanCmdBuffer::End()
 	// If a clear is queued, execute the render pass with no additional instructions
 	if(mClearMask)
 		ExecuteClearPass();
+
+	if(mIsDebugLabelOpen)
+		EndLabel();
 
 	VkResult result = vkEndCommandBuffer(mCmdBuffer);
 	B3D_ASSERT(result == VK_SUCCESS);
@@ -522,6 +542,8 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 	if(!mQueuedQueryResets.empty())
 	{
 		VulkanCmdBuffer* cmdBuffer = device.GetCmdBufferPool().GetBuffer(mQueueFamily, false);
+		cmdBuffer->SetName("Query reset");
+
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 		for(auto& entry : mQueuedQueryResets)
@@ -669,6 +691,7 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 			continue;
 
 		VulkanCmdBuffer* cmdBuffer = device.GetCmdBufferPool().GetBuffer(entryQueueFamily, false);
+		cmdBuffer->SetName("Layout transition");
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 		TransitionInfo& barriers = entry.second;
@@ -758,6 +781,8 @@ void VulkanCmdBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
 			continue;
 
 		VulkanCmdBuffer* cmdBuffer = device.GetCmdBufferPool().GetBuffer(mQueueFamily, false);
+		cmdBuffer->SetName("Queue ownership");
+
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
 		TransitionInfo& barriers = entry.second;
@@ -1950,6 +1975,49 @@ void VulkanCmdBuffer::Resolve(VulkanImage* source, VulkanImage* destination, VkI
 	vkCmdResolveImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions);
 }
 
+void VulkanCmdBuffer::BeginLabel(const StringView& name)
+{
+	if(!IsRecording() || vkCmdBeginDebugUtilsLabelEXT == nullptr)
+		return;
+
+	VkDebugUtilsLabelEXT labelInfo;
+	labelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+	labelInfo.pNext = nullptr;
+	labelInfo.pLabelName = name.data();
+	labelInfo.color[0] = kDebugLabelColor.R;
+	labelInfo.color[1] = kDebugLabelColor.G;
+	labelInfo.color[2] = kDebugLabelColor.B;
+	labelInfo.color[3] = kDebugLabelColor.A;
+
+	vkCmdBeginDebugUtilsLabelEXT(mCmdBuffer, &labelInfo);
+	mIsDebugLabelOpen = true;
+}
+
+void VulkanCmdBuffer::EndLabel()
+{
+	if(!IsRecording() || vkCmdBeginDebugUtilsLabelEXT == nullptr)
+		return;
+
+	vkCmdEndDebugUtilsLabelEXT(mCmdBuffer);
+	mIsDebugLabelOpen = false;
+}
+
+void VulkanCmdBuffer::InsertLabel(const StringView& name)
+{
+	if(!IsRecording() || vkCmdBeginDebugUtilsLabelEXT == nullptr)
+		return;
+
+	VkDebugUtilsLabelEXT labelInfo;
+	labelInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
+	labelInfo.pNext = nullptr;
+	labelInfo.pLabelName = name.data();
+	labelInfo.color[0] = kDebugLabelColor.R;
+	labelInfo.color[1] = kDebugLabelColor.G;
+	labelInfo.color[2] = kDebugLabelColor.B;
+	labelInfo.color[3] = kDebugLabelColor.A;
+
+	vkCmdInsertDebugUtilsLabelEXT(mCmdBuffer, &labelInfo);
+}
 
 void VulkanCmdBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags srcAccessFlags, VkAccessFlags dstAccessFlags, VkPipelineStageFlags srcStage, VkPipelineStageFlags dstStage)
 {
@@ -2855,6 +2923,7 @@ void VulkanCommandBuffer::AcquireNewBuffer()
 	u32 queueFamily = mDevice.GetQueueFamily(mType);
 	mBuffer = pool.GetBuffer(queueFamily, mIsSecondary);
 	mBuffer->SetOwner(this);
+	mBuffer->SetName(mName);
 }
 
 void VulkanCommandBuffer::Submit(u32 syncMask)
@@ -2902,6 +2971,18 @@ void VulkanCommandBuffer::Submit(u32 syncMask)
 	}
 
 	mIsSubmitted = true;
+}
+
+
+void VulkanCommandBuffer::SetName(const StringView& name)
+{
+	CommandBuffer::SetName(name);
+
+	if(vkSetDebugUtilsObjectNameEXT == nullptr)
+		return;
+
+	if(mBuffer != nullptr)
+		mBuffer->SetName(name);
 }
 
 CommandBufferState VulkanCommandBuffer::GetState() const
