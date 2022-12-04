@@ -380,7 +380,7 @@ ImageSubresourcePitch VulkanImage::ConvertSubresourceLayoutToBlocks(const VkSubr
 	return ImageSubresourcePitch(rowPitchInPixels, rowPitchInPixels != 0 ? depthPitch / rowPitchInPixels : 0);
 }
 
-void VulkanImage::Map(u32 face, u32 mipLevel, PixelData& output) const
+void VulkanImage::Map(u32 face, u32 mipLevel, PixelData& output, bool isInvalidateRequired) const
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
@@ -399,41 +399,33 @@ void VulkanImage::Map(u32 face, u32 mipLevel, PixelData& output) const
 	output.SetRowPitch((u32)layout.rowPitch);
 	output.SetSlicePitch((u32)layout.depthPitch);
 
-	VkDeviceMemory memory;
-	VkDeviceSize memoryOffset;
-	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
-
-	u8* data;
-	VkResult result = vkMapMemory(device.GetLogical(), memory, memoryOffset + layout.offset, layout.size, 0, (void**)&data);
-	B3D_ASSERT(result == VK_SUCCESS);
-
+	u8 *const data = Map(layout.offset, layout.size, isInvalidateRequired);
 	output.SetExternalBuffer(data);
 }
 
-u8* VulkanImage::Map(u32 offset, u32 size) const
+u8* VulkanImage::Map(VkDeviceSize offset, VkDeviceSize size, bool isInvalidateRequired) const
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
-	VkDeviceMemory memory;
-	VkDeviceSize memoryOffset;
-	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
+	if(isInvalidateRequired)
+		device.InvalidateMemory(mAllocation, offset, size);
 
-	u8* data;
-	VkResult result = vkMapMemory(device.GetLogical(), memory, memoryOffset + offset, size, 0, (void**)&data);
-	B3D_ASSERT(result == VK_SUCCESS);
+	void* data = device.MapMemory(mAllocation);
 
-	return data;
+	mMappedOffset = offset;
+	mMappedSize = size;
+
+	return (u8*)data + offset;
 }
 
-void VulkanImage::Unmap()
+void VulkanImage::Unmap(bool isFlushRequired)
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
-	VkDeviceMemory memory;
-	VkDeviceSize memoryOffset;
-	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
+	device.UnmapMemory(mAllocation);
 
-	vkUnmapMemory(device.GetLogical(), memory);
+	if(isFlushRequired)
+		device.FlushMemory(mAllocation, mMappedOffset, mMappedSize);
 }
 
 VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
@@ -819,8 +811,7 @@ void VulkanTexture::SetName(const StringView& name)
 VulkanImage* VulkanTexture::CreateImage(VulkanDevice& device, PixelFormat format)
 {
 	bool directlyMappable = mImageCI.tiling == VK_IMAGE_TILING_LINEAR;
-	VkMemoryPropertyFlags flags = directlyMappable ? (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : // Note: Try using cached memory
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	VmaMemoryUsage memoryUsage = directlyMappable ? VMA_MEMORY_USAGE_CPU_TO_GPU : VMA_MEMORY_USAGE_GPU_ONLY;
 
 	VkDevice vkDevice = device.GetLogical();
 
@@ -831,7 +822,7 @@ VulkanImage* VulkanTexture::CreateImage(VulkanDevice& device, PixelFormat format
 	VkResult result = vkCreateImage(vkDevice, &mImageCI, gVulkanAllocator, &image);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VmaAllocation allocation = device.AllocateMemory(image, flags);
+	VmaAllocation allocation = device.AllocateMemory(image, memoryUsage);
 	VulkanImage *const vulkanImage = device.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format, GetProperties());
 	vulkanImage->SetName(mName);
 
@@ -859,8 +850,7 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData
 	VkResult result = vkCreateBuffer(vkDevice, &bufferCI, gVulkanAllocator, &buffer);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	VmaAllocation allocation = device.AllocateMemory(buffer, flags);
+	VmaAllocation allocation = device.AllocateMemory(buffer, VMA_MEMORY_USAGE_CPU_ONLY);
 
 	u32 blockSize = PixelUtil::GetBlockSize(pixelData.GetFormat());
 
@@ -1174,6 +1164,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 		// Check is the GPU currently reading from the image
 		u32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read);
 		bool isUsedOnGPU = useMask != 0;
+		const bool isReadRequired = options == GBL_READ_ONLY || options == GBL_READ_WRITE;
 
 		// We're safe to map directly since GPU isn't using the subresource
 		if(!isUsedOnGPU)
@@ -1191,13 +1182,13 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 					VkMemoryRequirements memReqs;
 					vkGetImageMemoryRequirements(device.GetLogical(), image->GetHandle(), &memReqs);
 
-					u8* src = image->Map(0, (u32)memReqs.size);
+					u8* src = image->Map(0, (u32)memReqs.size, true);
 					u8* dst = newImage->Map(0, (u32)memReqs.size);
 
 					memcpy(dst, src, memReqs.size);
 
 					image->Unmap();
-					newImage->Unmap();
+					newImage->Unmap(true);
 				}
 
 				image->Destroy();
@@ -1205,7 +1196,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 				mImages[deviceIdx] = image;
 			}
 
-			image->Map(face, mipLevel, lockedArea);
+			image->Map(face, mipLevel, lockedArea, isReadRequired);
 			return lockedArea;
 		}
 
@@ -1231,7 +1222,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 		}
 
 		// We need to read the buffer contents
-		if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
+		if(isReadRequired)
 		{
 			VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
 
@@ -1256,20 +1247,20 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 				VkMemoryRequirements memReqs;
 				vkGetImageMemoryRequirements(device.GetLogical(), image->GetHandle(), &memReqs);
 
-				u8* src = image->Map(0, (u32)memReqs.size);
+				u8* src = image->Map(0, (u32)memReqs.size, true);
 				u8* dst = newImage->Map(0, (u32)memReqs.size);
 
 				memcpy(dst, src, memReqs.size);
 
 				image->Unmap();
-				newImage->Unmap();
+				newImage->Unmap(true);
 
 				image->Destroy();
 				image = newImage;
 				mImages[deviceIdx] = image;
 			}
 
-			image->Map(face, mipLevel, lockedArea);
+			image->Map(face, mipLevel, lockedArea, true);
 			return lockedArea;
 		}
 
@@ -1326,7 +1317,7 @@ void VulkanTexture::UnlockImpl()
 	// a pipeline barrier because (as per spec) host writes are implicitly visible to the device.
 
 	if(mStagingBuffer == nullptr)
-		mImages[mMappedDeviceIdx]->Unmap();
+		mImages[mMappedDeviceIdx]->Unmap(true);
 	else
 	{
 		mStagingBuffer->Unmap();

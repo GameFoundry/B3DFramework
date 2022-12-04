@@ -116,25 +116,37 @@ namespace bs
 			VulkanImageSubresource* GetSubresource(u32 face, u32 mipLevel);
 
 			/**
-			 * Returns a pointer to internal image memory for the specified sub-resource. Must be followed by unmap(). Caller
+			 * Returns a pointer to internal image memory for the specified sub-resource. Must be followed by Unmap(). Caller
 			 * must ensure the image was created in CPU readable memory, and that image isn't currently being written to by the
 			 * GPU.
 			 *
-			 * @param[in]	face		Index of the face to map.
-			 * @param[in]	mipLevel	Index of the mip level to map.
-			 * @param[in]	output		Output object containing the pointer to the sub-resource data.
+			 * @param	face					Index of the face to map.
+			 * @param	mipLevel				Index of the mip level to map.
+			 * @param	output					Output object containing the pointer to the sub-resource data.
+			 * @param	isInvalidateRequired	Ensures any GPU writes are made visible to the CPU before mapping. This is required for image
+			 *									allocated in non-coherent memory and will be ignored for ones allocated in coherent memory.
 			 */
-			void Map(u32 face, u32 mipLevel, PixelData& output) const;
+			void Map(u32 face, u32 mipLevel, PixelData& output, bool isInvalidateRequired = false) const;
 
 			/**
-			 * Returns a pointer to internal image memory for the entire resource. Must be followed by unmap(). Caller
+			 * Returns a pointer to internal image memory for the entire resource. Must be followed by Unmap(). Caller
 			 * must ensure the image was created in CPU readable memory, and that image isn't currently being written to by the
 			 * GPU.
+			 *
+			 * @param	offset					Offset into the allocation which to map from, in bytes.
+			 * @param	size					Amount of bytes to map, starting with @p offset.
+			 * @param	isInvalidateRequired	Ensures any GPU writes are made visible to the CPU before mapping. This is required for buffers
+			 *									allocated in non-coherent memory and will be ignored for ones allocated in coherent memory.
 			 */
-			u8* Map(u32 offset, u32 size) const;
+			u8* Map(VkDeviceSize offset, VkDeviceSize size, bool isInvalidateRequired = false) const;
 
-			/** Unmaps a buffer previously mapped with map(). */
-			void Unmap();
+			/**
+			 * Unmaps a buffer previously mapped with map().
+			 *
+			 * @param	isFlushRequired			Ensures any CPU writes are made visible to the GPU after unmapping. This is required for buffers
+			 *									allocated in non-coherent memory and will be ignored for ones allocated in coherent memory.
+			 */
+			void Unmap(bool isFlushRequired = false);
 
 			/**
 			 * Determines a set of access flags based on the current image and provided image layout. This method makes
@@ -194,6 +206,9 @@ namespace bs
 
 			mutable VkImageViewCreateInfo mImageViewCI;
 			mutable Vector<ImageViewInformation> mImageInfos;
+
+			mutable VkDeviceSize mMappedOffset = 0;
+			mutable VkDeviceSize mMappedSize = 0;
 		};
 
 		/** Represents a single sub-resource (face & mip level) of a larger image object. */

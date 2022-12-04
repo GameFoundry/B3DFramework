@@ -46,30 +46,29 @@ void VulkanBuffer::SetName(const StringView& name)
 	vkSetDebugUtilsObjectNameEXT(mOwner->GetDevice().GetLogical(), &objectNameInfo);
 }
 
-u8* VulkanBuffer::Map(VkDeviceSize offset, VkDeviceSize length) const
+u8* VulkanBuffer::Map(VkDeviceSize offset, VkDeviceSize size, bool isInvalidateRequired) const
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
-	VkDeviceMemory memory;
-	VkDeviceSize memoryOffset;
-	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
+	if(isInvalidateRequired)
+		device.InvalidateMemory(mAllocation, offset, size);
 
-	u8* data;
-	VkResult result = vkMapMemory(device.GetLogical(), memory, memoryOffset + offset, length, 0, (void**)&data);
-	B3D_ASSERT(result == VK_SUCCESS);
+	void* data = device.MapMemory(mAllocation);
 
-	return data;
+	mMappedOffset = offset;
+	mMappedSize = size;
+
+	return (u8*)data + offset;
 }
 
-void VulkanBuffer::Unmap()
+void VulkanBuffer::Unmap(bool isFlushRequired)
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
-	VkDeviceMemory memory;
-	VkDeviceSize memoryOffset;
-	device.GetAllocationInfo(mAllocation, memory, memoryOffset);
+	device.UnmapMemory(mAllocation);
 
-	vkUnmapMemory(device.GetLogical(), memory);
+	if(isFlushRequired)
+		device.FlushMemory(mAllocation, mMappedOffset, mMappedSize);
 }
 
 void VulkanBuffer::Update(VulkanCmdBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length)
@@ -235,6 +234,10 @@ VulkanHardwareBuffer::~VulkanHardwareBuffer()
 
 VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanDevice& device, u32 size, bool staging, bool readable)
 {
+	// Not allowed to have size 0 buffer
+	if(size == 0)
+		size = 64;
+
 	VkBufferUsageFlags usage = mBufferCI.usage;
 	if(staging)
 	{
@@ -249,27 +252,13 @@ VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanDevice& device, u32 size,
 
 	mBufferCI.size = size;
 
-	VkMemoryPropertyFlags flags;
-	if(mDirectlyMappable || staging)
-	{
-		flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-
-#if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-		// Note: Use non-coherent memory when the buffer will be used as a uniform texel buffer. This is because
-		// coherent memory gets allocated under 'shared' storage mode under Metal, which is not supported as backing
-		// storage mode for textures (and a uniform texel buffer is classified as a texture in Metal). Technically
-		// this still works but will cause a Metal validation error.
-		//
-		// Note that we also don't need to perform explicit flushing, despite being non-coherent, as that will be handled
-		// by MoltenVK internally.
-		if(staging || (usage & VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT) == 0)
-			flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-#else
-		flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-#endif
-	}
+	VmaMemoryUsage memoryUsage;
+	if(staging)
+		memoryUsage = VMA_MEMORY_USAGE_CPU_ONLY;
+	else if(mDirectlyMappable)
+		memoryUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
 	else
-		flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		memoryUsage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 	VkDevice vkDevice = device.GetLogical();
 
@@ -277,7 +266,7 @@ VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanDevice& device, u32 size,
 	VkResult result = vkCreateBuffer(vkDevice, &mBufferCI, gVulkanAllocator, &buffer);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VmaAllocation allocation = device.AllocateMemory(buffer, flags);
+	VmaAllocation allocation = device.AllocateMemory(buffer, memoryUsage);
 
 	mBufferCI.usage = usage; // Restore original usage
 	VulkanBuffer *const vulkanBuffer = device.GetResourceManager().Create<VulkanBuffer>(buffer, allocation);
@@ -361,7 +350,8 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 		// being used because the write could have completed yet still not visible, so we need to issue a pipeline
 		// barrier below.
-		bool isUsedOnGPU = useMask != 0 || mSupportsGPUWrites;
+		const bool isUsedOnGPU = useMask != 0 || mSupportsGPUWrites;
+		const bool isReadRequired = options == GBL_READ_ONLY || options == GBL_READ_WRITE;
 
 		// We're safe to map directly since GPU isn't using the buffer
 		if(!isUsedOnGPU)
@@ -376,13 +366,13 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 				// care about the current contents
 				if(options != GBL_WRITE_ONLY_DISCARD)
 				{
-					u8* src = buffer->Map(offset, length);
-					u8* dst = newBuffer->Map(offset, length);
+					u8* src = buffer->Map(0, mSize, true);
+					u8* dst = newBuffer->Map(0, mSize);
 
 					memcpy(dst, src, length);
 
 					buffer->Unmap();
-					newBuffer->Unmap();
+					newBuffer->Unmap(true);
 				}
 
 				buffer->Destroy();
@@ -390,7 +380,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 				mBuffers[deviceIdx] = buffer;
 			}
 
-			return buffer->Map(offset, length);
+			return buffer->Map(offset, length, isReadRequired);
 		}
 
 		// Caller doesn't care about buffer contents, so just discard the existing buffer and create a new one
@@ -405,7 +395,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 		}
 
 		// We need to read the buffer contents
-		if(options == GBL_READ_ONLY || options == GBL_READ_WRITE)
+		if(isReadRequired)
 		{
 			// We need to wait until (potential) read/write operations complete
 			VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(deviceIdx, queueType, localQueueIdx);
@@ -440,20 +430,20 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 				VulkanBuffer* newBuffer = CreateBuffer(device, mSize, false, true);
 
 				// Copy contents of the current buffer to the new one
-				u8* src = buffer->Map(offset, length);
-				u8* dst = newBuffer->Map(offset, length);
+				u8* src = buffer->Map(0, mSize, true);
+				u8* dst = newBuffer->Map(0, mSize);
 
 				memcpy(dst, src, length);
 
 				buffer->Unmap();
-				newBuffer->Unmap();
+				newBuffer->Unmap(true);
 
 				buffer->Destroy();
 				buffer = newBuffer;
 				mBuffers[deviceIdx] = buffer;
 			}
 
-			return buffer->Map(offset, length);
+			return buffer->Map(offset, length, true);
 		}
 
 		// Otherwise, we're doing write only, in which case it's best to use the staging buffer to avoid waiting
@@ -517,7 +507,7 @@ void VulkanHardwareBuffer::Unmap()
 
 	if(mStagingMemory == nullptr && mStagingBuffer == nullptr) // We directly mapped the buffer
 	{
-		mBuffers[mMappedDeviceIdx]->Unmap();
+		mBuffers[mMappedDeviceIdx]->Unmap(true);
 	}
 	else
 	{

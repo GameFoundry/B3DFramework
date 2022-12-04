@@ -48,13 +48,23 @@ namespace bs
 			u32 GetSliceHeight() const { return mSliceHeight; }
 
 			/**
-			 * Returns a pointer to internal buffer memory. Must be followed by unmap(). Caller must ensure the buffer was
+			 * Returns a pointer to internal buffer memory. Must be followed by Unmap(). Caller must ensure the buffer was
 			 * created in CPU readable memory, and that buffer isn't currently being written to by the GPU.
+			 *
+			 * @param	offset					Offset into the allocation which to map from, in bytes.
+			 * @param	size					Amount of bytes to map, starting with @p offset.
+			 * @param	isInvalidateRequired	Ensures any GPU writes are made visible to the CPU before mapping. This is required for buffers
+			 *									allocated in non-coherent memory and will be ignored for ones allocated in coherent memory.
 			 */
-			u8* Map(VkDeviceSize offset, VkDeviceSize length) const;
+			u8* Map(VkDeviceSize offset, VkDeviceSize size, bool isInvalidateRequired = false) const;
 
-			/** Unmaps a buffer previously mapped with map(). */
-			void Unmap();
+			/**
+			 * Unmaps a buffer previously mapped with Map().
+			 *
+			 * @param	isFlushRequired			Ensures any CPU writes are made visible to the GPU after unmapping. This is required for buffers
+			 *									allocated in non-coherent memory and will be ignored for ones allocated in coherent memory.
+			 */
+			void Unmap(bool isFlushRequired = false);
 
 			/**
 			 * Queues a command on the provided command buffer. The command copies the contents of the provided memory location
@@ -106,6 +116,9 @@ namespace bs
 
 			u32 mRowPitch;
 			u32 mSliceHeight;
+
+			mutable VkDeviceSize mMappedOffset = 0;
+			mutable VkDeviceSize mMappedSize = 0;
 		};
 
 		/**	Class containing common functionality for all Vulkan hardware buffers. */

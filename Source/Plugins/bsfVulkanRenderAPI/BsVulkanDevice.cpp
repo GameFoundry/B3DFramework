@@ -364,33 +364,33 @@ SurfaceFormat VulkanDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool g
 	return output;
 }
 
-VmaAllocation VulkanDevice::AllocateMemory(VkImage image, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::AllocateMemory(VkImage image, VmaMemoryUsage usage)
 {
-	VmaAllocationCreateInfo allocCI = {};
-	allocCI.requiredFlags = flags;
+	VmaAllocationCreateInfo allocationCreateInformation = {};
+	allocationCreateInformation.usage = usage;
 
-	VmaAllocationInfo allocInfo;
+	VmaAllocationInfo allocationInfo;
 	VmaAllocation allocation;
-	VkResult result = vmaAllocateMemoryForImage(mAllocator, image, &allocCI, &allocation, &allocInfo);
+	VkResult result = vmaAllocateMemoryForImage(mAllocator, image, &allocationCreateInformation, &allocation, &allocationInfo);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	result = vkBindImageMemory(mLogicalDevice, image, allocInfo.deviceMemory, allocInfo.offset);
+	result = vkBindImageMemory(mLogicalDevice, image, allocationInfo.deviceMemory, allocationInfo.offset);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	return allocation;
 }
 
-VmaAllocation VulkanDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags)
+VmaAllocation VulkanDevice::AllocateMemory(VkBuffer buffer, VmaMemoryUsage usage)
 {
-	VmaAllocationCreateInfo allocCI = {};
-	allocCI.requiredFlags = flags;
+	VmaAllocationCreateInfo allocationCreateInformation = {};
+	allocationCreateInformation.usage = usage;
 
-	VmaAllocationInfo allocInfo;
+	VmaAllocationInfo allocationInfo;
 	VmaAllocation memory;
-	VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocCI, &memory, &allocInfo);
+	VkResult result = vmaAllocateMemoryForBuffer(mAllocator, buffer, &allocationCreateInformation, &memory, &allocationInfo);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	result = vkBindBufferMemory(mLogicalDevice, buffer, allocInfo.deviceMemory, allocInfo.offset);
+	result = vkBindBufferMemory(mLogicalDevice, buffer, allocationInfo.deviceMemory, allocationInfo.offset);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	return memory;
@@ -399,6 +399,32 @@ VmaAllocation VulkanDevice::AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlag
 void VulkanDevice::FreeMemory(VmaAllocation allocation)
 {
 	vmaFreeMemory(mAllocator, allocation);
+}
+
+void* VulkanDevice::MapMemory(const VmaAllocation& allocation) const
+{
+	void* data;
+	VkResult result = vmaMapMemory(mAllocator, allocation, &data);
+	B3D_ASSERT(result == VK_SUCCESS);
+
+	return data;
+}
+
+void VulkanDevice::UnmapMemory(const VmaAllocation& allocation) const
+{
+	vmaUnmapMemory(mAllocator, allocation);
+}
+
+void VulkanDevice::InvalidateMemory(const VmaAllocation& allocation, VkDeviceSize offset, VkDeviceSize size) const
+{
+	VkResult result = vmaInvalidateAllocation(mAllocator, allocation, offset, size);
+	B3D_ASSERT(result == VK_SUCCESS);
+}
+
+void VulkanDevice::FlushMemory(const VmaAllocation& allocation, VkDeviceSize offset, VkDeviceSize size) const
+{
+	VkResult result = vmaFlushAllocation(mAllocator, allocation, offset, size);
+	B3D_ASSERT(result == VK_SUCCESS);
 }
 
 void VulkanDevice::GetAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset)

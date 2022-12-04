@@ -96,16 +96,39 @@ namespace bs
 			 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
 			 * with the specified flags.
 			 */
-			VmaAllocation AllocateMemory(VkImage image, VkMemoryPropertyFlags flags);
+			VmaAllocation AllocateMemory(VkImage image, VmaMemoryUsage usage);
 
 			/**
 			 * Allocates memory for the provided buffer, and binds it to the buffer. Returns null if it cannot find memory
 			 * with the specified flags.
 			 */
-			VmaAllocation AllocateMemory(VkBuffer buffer, VkMemoryPropertyFlags flags);
+			VmaAllocation AllocateMemory(VkBuffer buffer, VmaMemoryUsage usage);
 
 			/** Frees a previously allocated block of memory. */
 			void FreeMemory(VmaAllocation allocation);
+
+			/**
+			 * Returns a pointer to internal buffer memory. The allocation must be in host visible memory. The GPU
+			 * must not be currently writing to the buffer. If the allocation is done in non-coherent memory, you need
+			 * to call InvalidateMemory() on the touched memory range before accessing it. Must be followed by
+			 * UnmapMemory() once done using the buffer.
+			 */
+			void* MapMemory(const VmaAllocation& allocation) const;
+
+			/** Unmaps the memory mapped via MapMemory(). */
+			void UnmapMemory(const VmaAllocation& allocation) const;
+
+			/**
+			 * Invalidates a memory range of the provided allocation. This ensures any data written by the GPU will be visible
+			 * to the CPU. Only relevant for non-coherent memory.
+			 */
+			void InvalidateMemory(const VmaAllocation& allocation, VkDeviceSize offset = 0 , VkDeviceSize size = VK_WHOLE_SIZE) const;
+
+			/**
+			 * Flushes a memory range of the provided allocation. This ensures any data written by the CPU will be visible
+			 * to the GPU. Only relevant for non-coherent memory.
+			 */
+			void FlushMemory(const VmaAllocation& allocation, VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) const;
 
 			/** Returns the device memory block and offset into the block for a specific memory allocation. */
 			void GetAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset);

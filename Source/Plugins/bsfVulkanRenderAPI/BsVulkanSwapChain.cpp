@@ -175,7 +175,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		imageDesc.Image = depthStencilImage;
 		imageDesc.Usage = TU_DEPTHSTENCIL;
 		imageDesc.Format = depthFormat;
-		imageDesc.Allocation = device.AllocateMemory(depthStencilImage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		imageDesc.Allocation = device.AllocateMemory(depthStencilImage, VMA_MEMORY_USAGE_GPU_ONLY);
 
 		mDepthStencilImage = owner->Create<VulkanImage>(imageDesc, true, false);
 
