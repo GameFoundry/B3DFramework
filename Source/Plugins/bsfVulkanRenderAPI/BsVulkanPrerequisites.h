@@ -55,8 +55,8 @@ namespace bs
 		class VulkanDescriptorLayout;
 		class VulkanDescriptorSet;
 		class VulkanDescriptorManager;
-		class VulkanCmdBufferPool;
-		class VulkanCmdBuffer;
+		class VulkanCommandBufferPool;
+		class VulkanInternalCommandBuffer;
 		class VulkanCommandBuffer;
 		class VulkanQueue;
 		class VulkanResourceManager;
@@ -78,6 +78,15 @@ namespace bs
 		enum VulkanRenderStatResourceType
 		{
 			RenderStatObject_PipelineState = 100
+		};
+
+		/** Threads Vulkan operations can execute on. */
+		enum class VulkanThread // TODO: This needs to be removed after command buffer encoding is supported on any thread
+		{
+			Undefined,
+			Render,
+			Submit,
+			Count // Total number of threads, keep at end of the enum
 		};
 
 		/** Contains lists of images and buffers that require pipeline barrier transitions. */

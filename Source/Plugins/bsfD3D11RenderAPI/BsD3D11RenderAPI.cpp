@@ -32,6 +32,7 @@
 #include "BsD3D11GpuBuffer.h"
 #include "BsD3D11CommandBuffer.h"
 #include "BsD3D11CommandBufferManager.h"
+#include "BsD3D11RenderWindow.h"
 
 using namespace bs;
 using namespace bs::ct;
@@ -1016,8 +1017,13 @@ void D3D11RenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
 {
 	THROW_IF_NOT_CORE_THREAD;
 
+	if(target == nullptr || !target->GetProperties().IsWindow)
+		return;
+
+	D3D11RenderWindow *const window = static_cast<D3D11RenderWindow*>(target.get());
+
 	SubmitCommandBuffer(mMainCommandBuffer, syncMask);
-	target->SwapBuffers();
+	window->SwapBuffers();
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }

@@ -400,6 +400,9 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	// Make sure any renderer tasks finish first, as rendering might depend on them
 	ProcessTasks(false, timings.FrameIdx);
 
+	RenderAPI& renderAPI = GetRenderAPI();
+	renderAPI.BeginFrame();
+
 	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
 	UpdateReflProbeArray();
 
@@ -432,11 +435,19 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 		PROFILE_CALL(mMainViewGroup->DetermineVisibility(sceneInfo), "Determine visibility")
 
 		// Render everything
-		bool anythingDrawn = RenderViews(*mMainViewGroup, frameInfo);
+		const bool anythingDrawn = RenderViews(*mMainViewGroup, frameInfo);
+		if(anythingDrawn)
+		{
+			RenderAPI::Instance().SubmitCommandBuffer(nullptr);
 
-		if(rtInfo.Target->GetProperties().IsWindow && anythingDrawn)
-			PROFILE_CALL(RenderAPI::Instance().SwapBuffers(rtInfo.Target), "Swap buffers");
+			if(rtInfo.Target->GetProperties().IsWindow)
+			{
+				RenderAPI::Instance().SwapBuffers(rtInfo.Target);
+			}
+		}
 	}
+
+	renderAPI.EndFrame();
 
 	// Tick pool frame
 	GpuResourcePool::Instance().Update();

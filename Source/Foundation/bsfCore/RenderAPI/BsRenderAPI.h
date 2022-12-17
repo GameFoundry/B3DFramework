@@ -427,6 +427,15 @@ namespace bs
 			virtual void InsertLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) { }
 
 			/**
+			 * Prepares the backend for rendering a single frame. A frame involves a set of submitted command buffers followed by any optional present operations on the window surfaces.
+			 * Must be followed by an EndFrame() call after all command buffers and present operations have been submitted.
+			 */
+			virtual void BeginFrame() {}
+
+			/** Notifies the backend the rendering for the current frame has ended. See BeginFrame(). */
+			virtual void EndFrame() {}
+
+			/**
 			 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
 			 *
 			 * @param[in]	commandBuffer	Command buffer whose commands to execute. Set to null to submit the main command

@@ -1700,7 +1700,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			}
 
 			// Draw the color values
-			rapi.SetRenderTarget(drawGroup.Destination);
+			rapi.SetRenderTarget(drawGroup.Destination, 0, RT_ALL);
 
 			for(auto& entry : drawGroup.CachedElements)
 			{

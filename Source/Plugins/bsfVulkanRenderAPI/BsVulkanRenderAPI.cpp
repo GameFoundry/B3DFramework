@@ -23,6 +23,8 @@
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderPass.h"
+#include "BsVulkanSubmitThread.h"
+#include "BsVulkanSwapChain.h"
 #include "Win32/BsWin32RenderWindow.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
@@ -464,6 +466,9 @@ void VulkanRenderAPI::Initialize()
 	bs::HardwareBufferManager::StartUp();
 	HardwareBufferManager::StartUp<VulkanHardwareBufferManager>();
 
+	// Start the submit thread
+	VulkanSubmitThread::StartUp();
+
 	// Create render window manager
 	bs::RenderWindowManager::StartUp<bs::VulkanRenderWindowManager>();
 	RenderWindowManager::StartUp();
@@ -495,12 +500,29 @@ void VulkanRenderAPI::DestroyCore()
 {
 	THROW_IF_NOT_CORE_THREAD;
 
+	GetVulkanSubmitThread().WaitUntilIdle(true);
+	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
+
+	for(auto it = mSubmittedCommandBuffers.begin(); it != mSubmittedCommandBuffers.end();)
+	{
+		if((*it)->GetState() == CommandBufferState::Done)
+		{
+			SPtr<VulkanCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(*it);
+			vulkanCommandBuffer->OnDidComplete();
+
+			it = mSubmittedCommandBuffers.erase(it);
+		}
+		else
+			++it;
+	}
+
 	if(mGLSLFactory != nullptr)
 	{
 		B3DDelete(mGLSLFactory);
 		mGLSLFactory = nullptr;
 	}
 
+	VulkanSubmitThread::ShutDown();
 	VulkanVertexInputManager::ShutDown();
 	QueryManager::ShutDown();
 	RenderStateManager::ShutDown();
@@ -517,7 +539,7 @@ void VulkanRenderAPI::DestroyCore()
 
 	// Make sure everything finishes and all resources get freed
 	for(u32 i = 0; i < (u32)mDevices.size(); i++)
-		mDevices[i]->WaitIdle();
+		mDevices[i]->WaitUntilIdle();
 
 	CommandBufferManager::ShutDown();
 
@@ -538,7 +560,7 @@ void VulkanRenderAPI::DestroyCore()
 void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetPipelineState(pipelineState);
 
@@ -548,7 +570,7 @@ void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pip
 void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetPipelineState(pipelineState);
 
@@ -558,7 +580,7 @@ void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipel
 void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	u32 globalQueueIdx = CommandSyncMask::GetGlobalQueueIdx(cb->GetType(), cb->GetQueueIdx());
 
@@ -586,7 +608,7 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<
 void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetNormalizedViewportArea(vp);
 }
@@ -594,7 +616,7 @@ void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& co
 void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetVertexBuffers(index, buffers, numBuffers);
 
@@ -604,7 +626,7 @@ void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u
 void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetIndexBuffer(buffer);
 
@@ -614,7 +636,7 @@ void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr
 void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetVertexDeclaration(vertexDeclaration);
 }
@@ -622,7 +644,7 @@ void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertex
 void VulkanRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetDrawOp(op);
 }
@@ -632,7 +654,7 @@ void VulkanRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount,
 	u32 primCount = 0;
 
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->Draw(vertexOffset, vertexCount, instanceCount);
 
@@ -646,7 +668,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 	u32 primCount = 0;
 
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->DrawIndexed(startIndex, indexCount, vertexOffset, instanceCount);
 
@@ -658,7 +680,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
 
@@ -668,7 +690,7 @@ void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGro
 void VulkanRenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	Rect2I area(left, top, right - left, bottom - top);
 	vkCB->SetScissorRect(area);
@@ -677,7 +699,7 @@ void VulkanRenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, c
 void VulkanRenderAPI::SetStencilRef(u32 value, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetStencilRef(value);
 }
@@ -685,7 +707,7 @@ void VulkanRenderAPI::SetStencilRef(u32 value, const SPtr<CommandBuffer>& comman
 void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->ClearViewport(buffers, color, depth, stencil, targetMask);
 
@@ -695,7 +717,7 @@ void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth
 void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->ClearRenderTarget(buffers, color, depth, stencil, targetMask);
 
@@ -705,45 +727,18 @@ void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float d
 void VulkanRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanCmdBuffer* vkCB = cb->GetInternal();
+	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetRenderTarget(target, readOnlyFlags, loadMask);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
 
-void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
+void VulkanRenderAPI::BeginFrame()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	THROW_IF_NOT_CORE_THREAD
 
-	// Retrieve the swap chain before command buffer submit, as the submit might internally rebuild the swap chain.
-	VulkanSwapChain* swapChain = nullptr;
-
-	if(target != nullptr && target->GetProperties().IsWindow)
-	{
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-		Win32RenderWindow* window = static_cast<Win32RenderWindow*>(target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-		LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-		MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(target.get());
-#endif
-
-		swapChain = window->GetSwapChain();
-		window->NotifyNewSwapChainImageIsRequired();
-	}
-
-	SubmitCommandBuffer(mMainCommandBuffer, syncMask);
-
-	if(swapChain != nullptr)
-	{
-		// Delaying swap operation because it may block the calling thread until GPU finishes
-		mQueuedSwapOperations.push_back(QueuedSwapOperation(target, swapChain, syncMask));
-	}
-
-	// See if any command buffers finished executing
-	for(u32 i = 0; i < (u32)mDevices.size(); i++)
-		mDevices[i]->RefreshStates();
+	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 
 	for(auto it = mSubmittedCommandBuffers.begin(); it != mSubmittedCommandBuffers.end();)
 	{
@@ -757,6 +752,50 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 		else
 			++it;
 	}
+}
+
+void VulkanRenderAPI::EndFrame()
+{
+	for(const auto& entry : mPrimaryDevices)
+	{
+		if(entry == nullptr)
+			continue;
+
+		// Submit transfer buffers
+		VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
+		commandBufferManager.FlushTransferBuffers(entry->GetIndex());
+
+		GetVulkanSubmitThread().QueueRefreshCommandBufferCompletionStates(entry.get());
+	}
+}
+
+void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
+{
+	THROW_IF_NOT_CORE_THREAD
+
+	if(target == nullptr || !target->GetProperties().IsWindow)
+		return;
+
+	// Retrieve the swap chain before command buffer submit, as the submit might internally rebuild the swap chain.
+	VulkanSwapChain* swapChain = nullptr;
+
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+	Win32RenderWindow* window = static_cast<Win32RenderWindow*>(target.get());
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
+	LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(target.get());
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
+	MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(target.get());
+#endif
+
+	swapChain = window->GetSwapChain();
+
+	VulkanQueue* const presentQueue = GetPresentDevice()->GetQueue(GQT_GRAPHICS, 0);
+	GetVulkanSubmitThread().QueuePresent(*presentQueue, *swapChain, syncMask);
+
+	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
+	swapChain->WaitUntilFirstImageAcquired();
+
+	GetVulkanSubmitThread().QueueImageAcquire(*swapChain);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
@@ -771,7 +810,7 @@ void VulkanRenderAPI::BeginLabel(const StringView& name, const SPtr<CommandBuffe
 	THROW_IF_NOT_CORE_THREAD
 
 	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
-	VulkanCmdBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
+	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
 
 	internalCommandBuffer->BeginLabel(name);
 }
@@ -781,7 +820,7 @@ void VulkanRenderAPI::EndLabel(const SPtr<CommandBuffer>& commandBuffer)
 	THROW_IF_NOT_CORE_THREAD
 
 	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
-	VulkanCmdBuffer* internalCommmandBuffer = vulkanCommandBuffer->GetInternal();
+	VulkanInternalCommandBuffer* internalCommmandBuffer = vulkanCommandBuffer->GetInternal();
 
 	internalCommmandBuffer->EndLabel();
 }
@@ -791,7 +830,7 @@ void VulkanRenderAPI::InsertLabel(const StringView& name, const SPtr<CommandBuff
 	THROW_IF_NOT_CORE_THREAD
 
 	VulkanCommandBuffer* vulkanCOmmandBuffer = GetCb(commandBuffer);
-	VulkanCmdBuffer* internalCommandBuffer = vulkanCOmmandBuffer->GetInternal();
+	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCOmmandBuffer->GetInternal();
 
 	internalCommandBuffer->InsertLabel(name);
 }
@@ -800,17 +839,15 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuff
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	SubmitQueuedSwapOperations();
-
-	VulkanCommandBuffer* cmdBuffer = GetCb(commandBuffer);
+	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
 
 	// Submit all transfer buffers first
-	VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
-	cbm.FlushTransferBuffers(cmdBuffer->GetDeviceIdx());
+	VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
+	commandBufferManager.FlushTransferBuffers(vulkanCommandBuffer->GetDeviceIdx());
 
-	cmdBuffer->Submit(syncMask);
+	vulkanCommandBuffer->Submit(syncMask);
 
-	if(cmdBuffer == mMainCommandBuffer.get())
+	if(vulkanCommandBuffer == mMainCommandBuffer.get())
 	{
 		mSubmittedCommandBuffers.push_back(mMainCommandBuffer);
 		mMainCommandBuffer = std::static_pointer_cast<VulkanCommandBuffer>(CommandBuffer::Create(GQT_GRAPHICS));
@@ -819,31 +856,6 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuff
 	{
 		mSubmittedCommandBuffers.push_back(commandBuffer);
 	}
-}
-
-void VulkanRenderAPI::SubmitQueuedSwapOperations()
-{
-	for(const auto& entry : mQueuedSwapOperations)
-	{
-		if(entry.Target == nullptr || !entry.Target->GetProperties().IsWindow)
-			continue;
-
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-		Win32RenderWindow* window = static_cast<Win32RenderWindow*>(entry.Target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-		LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(entry.Target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_OSX
-		MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(entry.Target.get());
-#endif
-
-		// If the swap chain changed, we ignore the queued swaps for the destroyed swap chain
-		if(window->GetSwapChain() != entry.SwapChain)
-			continue;
-
-		entry.Target->SwapBuffers(entry.SyncMask);
-	}
-
-	mQueuedSwapOperations.clear();
 }
 
 SPtr<CommandBuffer> VulkanRenderAPI::GetMainCommandBuffer() const

@@ -101,7 +101,7 @@ VulkanQuery* VulkanQueryPool::GetQuery(VkQueryType type)
 	return query;
 }
 
-VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanCmdBuffer* cb)
+VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanInternalCommandBuffer* cb)
 {
 	Lock lock(mMutex);
 
@@ -118,7 +118,7 @@ VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanCmdBuffer* cb)
 	return query;
 }
 
-VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanCmdBuffer* cb, bool precise)
+VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanInternalCommandBuffer* cb, bool precise)
 {
 	Lock lock(mMutex);
 
@@ -135,7 +135,7 @@ VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanCmdBuffer* cb, bool prec
 	return query;
 }
 
-void VulkanQueryPool::EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb)
+void VulkanQueryPool::EndOcclusionQuery(VulkanQuery* query, VulkanInternalCommandBuffer* cb)
 {
 	Lock lock(mMutex);
 

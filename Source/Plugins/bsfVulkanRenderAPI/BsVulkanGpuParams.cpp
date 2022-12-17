@@ -571,7 +571,7 @@ u32 VulkanGpuParams::GetNumSets() const
 	return mParamInfo->GetNumSets();
 }
 
-void VulkanGpuParams::PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets)
+void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* sets)
 {
 	u32 deviceIdx = buffer.GetDeviceIdx();
 

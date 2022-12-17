@@ -23,8 +23,6 @@ VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 
 VulkanResource::~VulkanResource()
 {
-	THROW_IF_NOT_CORE_THREAD
-
 	Lock lock(mMutex);
 	B3D_ASSERT(mState == State::Destroyed && "Vulkan resource getting destructed without Destroy() called first.");
 }
@@ -51,7 +49,7 @@ void VulkanResource::NotifyUsed(u32 globalQueueIdx, u32 queueFamily, VulkanAcces
 	mNumUsedHandles++;
 	mQueueFamily = queueFamily;
 
-	B3D_ASSERT(globalQueueIdx < MAX_UNIQUE_QUEUES);
+	B3D_ASSERT(globalQueueIdx < kMaximumUniqueQueueCount);
 
 	if(useFlags.IsSet(VulkanAccessFlag::Read))
 	{
@@ -117,7 +115,7 @@ u32 VulkanResource::GetUseInfo(VulkanAccessFlags useFlags) const
 
 	if(useFlags.IsSet(VulkanAccessFlag::Read))
 	{
-		for(u32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
+		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
 		{
 			if(mReadUses[i] > 0)
 				mask |= 1 << i;
@@ -126,7 +124,7 @@ u32 VulkanResource::GetUseInfo(VulkanAccessFlags useFlags) const
 
 	if(useFlags.IsSet(VulkanAccessFlag::Write))
 	{
-		for(u32 i = 0; i < MAX_UNIQUE_QUEUES; i++)
+		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
 		{
 			if(mWriteUses[i] > 0)
 				mask |= 1 << i;

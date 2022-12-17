@@ -32,7 +32,7 @@ namespace bs
 			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
 			 *							caller is done accessing it.
 			 */
-			VulkanQuery* BeginTimerQuery(VulkanCmdBuffer* cb);
+			VulkanQuery* BeginTimerQuery(VulkanInternalCommandBuffer* cb);
 
 			/**
 			 * Begins an occlusion query on the provided command buffer. Must be followed with a call to endOcclusionQuery
@@ -44,7 +44,7 @@ namespace bs
 			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
 			 *							caller is done accessing it.
 			 */
-			VulkanQuery* BeginOcclusionQuery(VulkanCmdBuffer* cb, bool precise);
+			VulkanQuery* BeginOcclusionQuery(VulkanInternalCommandBuffer* cb, bool precise);
 
 			/**
 			 * End am occlusion query query on the provided command buffer.
@@ -52,7 +52,7 @@ namespace bs
 			 * @param[in]	query		Query previously begun with beginOcclusionQuery().
 			 * @param[in]	cb			Command buffer to end the query on.
 			 */
-			void EndOcclusionQuery(VulkanQuery* query, VulkanCmdBuffer* cb);
+			void EndOcclusionQuery(VulkanQuery* query, VulkanInternalCommandBuffer* cb);
 
 			/** Releases a previously retrieved query, ensuring it can be re-used. */
 			void ReleaseQuery(VulkanQuery* query);

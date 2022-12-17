@@ -46,7 +46,7 @@ void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	else
 		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainVulkanCommandBuffer());
 
-	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	VulkanInternalCommandBuffer* internalCB = vulkanCB->GetInternal();
 	mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
 	internalCB->RegisterQuery(this);
 
@@ -75,7 +75,7 @@ void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)
 		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainVulkanCommandBuffer());
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	VulkanInternalCommandBuffer* internalCB = vulkanCB->GetInternal();
 	queryPool.EndOcclusionQuery(mQueries.back(), internalCB);
 }
 
@@ -84,7 +84,7 @@ bool VulkanOcclusionQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
-void VulkanOcclusionQuery::Interrupt(VulkanCmdBuffer& cb)
+void VulkanOcclusionQuery::Interrupt(VulkanInternalCommandBuffer& cb)
 {
 	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
 

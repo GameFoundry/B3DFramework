@@ -37,12 +37,11 @@ namespace bs
 			 *
 			 * @param	wait	If true, the caller thread will wait until all device operations on the command buffer's
 			 *					queue complete.
-			 * @return			Sequential index of the submit on the queue the command buffer was submitted on, or ~0u if nothing was submitted.
 			 */
-			u32 Flush(bool wait);
+			void Flush(bool wait);
 
 			/** Returns the internal command buffer. */
-			VulkanCmdBuffer* GetCb() const { return mCommandBuffer; }
+			VulkanInternalCommandBuffer* GetInternalCommandBuffer() const { return mCommandBuffer; }
 
 		private:
 			friend class VulkanCommandBufferManager;
@@ -52,11 +51,11 @@ namespace bs
 
 			VulkanDevice* mDevice = nullptr;
 			GpuQueueType mType = GQT_GRAPHICS;
-			u32 mQueueIdx = 0;
+			u32 mQueueIndex = 0;
 			VulkanQueue* mQueue = nullptr;
 			u32 mQueueMask = 0;
 
-			VulkanCmdBuffer* mCommandBuffer = nullptr;
+			VulkanInternalCommandBuffer* mCommandBuffer = nullptr;
 			u32 mSyncMask = 0;
 		};
 
@@ -76,12 +75,14 @@ namespace bs
 			/**
 			 * Returns a set of command buffer semaphores depending on the provided sync mask.
 			 *
-			 * @param[in]	deviceIdx	Index of the device to get the semaphores for.
-			 * @param[in]	syncMask	Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
+			 * @param	deviceIdx	Index of the device to get the semaphores for.
+			 * @param	syncMask	Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
 			 *							If the command buffer is not currently executing, semaphore won't be returned.
-			 * @param[out]	semaphores	List containing all the required semaphores. Semaphores are tightly packed at the
+			 * @param	semaphores	List containing all the required semaphores. Semaphores are tightly packed at the
 			 *							beginning of the array. Must be able to hold at least BS_MAX_UNIQUE_QUEUES entries.
-			 * @param[out]	count		Number of semaphores provided in the @p semaphores array.
+			 * @param	count		Number of semaphores provided in the @p semaphores array.
+			 *
+			 * @note	Submit thread only.
 			 */
 			void GetSyncSemaphores(u32 deviceIdx, u32 syncMask, VulkanSemaphore** semaphores, u32& count);
 

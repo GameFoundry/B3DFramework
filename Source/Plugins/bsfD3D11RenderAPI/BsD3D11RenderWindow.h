@@ -69,7 +69,7 @@ namespace bs
 			void SetFullscreen(const VideoMode& videoMode) override;
 			void SetWindowed(u32 width, u32 height) override;
 			void SetVSync(bool enabled, u32 interval = 1) override;
-			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
+			void SwapBuffers(u32 syncMask = 0xFFFFFFFF);
 			void GetCustomAttribute(const String& name, void* pData) const override;
 			void WindowMovedOrResizedInternal() override;
 

@@ -41,14 +41,12 @@ namespace bs
 			/** Returns the unique index of the device. */
 			u32 GetIndex() const { return mDeviceIdx; }
 
-			/** Blocks the calling thread until all operations on the device finish. */
-			void WaitIdle();
-
 			/**
-			 * Checks if any of the active command buffers finished executing on the device and updates their states
-			 * accordingly.
+			 * Blocks the calling thread until all operations on the device finish.
+			 *
+			 * @note	Submit thread only.
 			 */
-			void RefreshStates(bool forceWait = false);
+			void WaitUntilIdle() const;
 
 			/** Returns a set of properties describing the physical device. */
 			const VkPhysicalDeviceProperties& GetDeviceProperties() const { return mDeviceProperties; }
@@ -60,7 +58,7 @@ namespace bs
 			const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return mMemoryProperties; }
 
 			/** Returns the number of queue supported on the device, per type. */
-			u32 GetNumQueues(GpuQueueType type) const { return (u32)mQueueInfos[(int)type].Queues.size(); }
+			u32 GetQueueCountForType(GpuQueueType type) const { return (u32)mQueueInfos[(int)type].Queues.size(); }
 
 			/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()). */
 			VulkanQueue* GetQueue(GpuQueueType type, u32 idx) const { return mQueueInfos[(int)type].Queues[idx]; }
@@ -77,11 +75,14 @@ namespace bs
 			 */
 			u32 GetQueueMask(GpuQueueType type, u32 queueIdx) const;
 
+			/** Perform an operation for each queue on the device. */
+			void DoForEachQueue(const std::function<void(VulkanQueue&)>&& callback) const;
+
 			/** Returns the best matching surface format according to the provided parameters. */
 			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const;
 
 			/** Returns a pool that can be used for allocating command buffers for all queues on this device. */
-			VulkanCmdBufferPool& GetCmdBufferPool() const { return *mCommandBufferPool; }
+			VulkanCommandBufferPool& GetCommandBufferPool() const { return *mCommandBufferPool; }
 
 			/** Returns a pool that can be used for allocating queries on this device. */
 			VulkanQueryPool& GetQueryPool() const { return *mQueryPool; }
@@ -150,7 +151,7 @@ namespace bs
 			bool mIsPrimary = false;
 			u32 mDeviceIdx;
 
-			VulkanCmdBufferPool* mCommandBufferPool;
+			VulkanCommandBufferPool* mCommandBufferPool;
 			VulkanQueryPool* mQueryPool;
 			VulkanDescriptorManager* mDescriptorManager;
 			VulkanResourceManager* mResourceManager;

@@ -25,6 +25,35 @@ namespace bs
 			VulkanFramebufferInformation FramebufferInformation;
 		};
 
+		/** Result of a swap chain acquire operation. */
+		struct ImageAcquireResult
+		{
+			ImageAcquireResult(VkResult resultCode = VK_ERROR_UNKNOWN, u32 acquiredImageIndex = 0)
+				: ResultCode(resultCode), AcquiredImageIndex(acquiredImageIndex)
+			{
+			}
+
+			VkResult ResultCode = VK_ERROR_UNKNOWN;
+			u32 AcquiredImageIndex = 0;
+		};
+
+		/** Wraps a Vulkan surface. */
+		class VulkanSurface
+		{
+		public:
+			VulkanSurface(VkSurfaceKHR surface)
+				: mSurface(surface)
+			{}
+
+			~VulkanSurface();
+
+			/** Returns the underlying Vulkan surface object. */
+			VkSurfaceKHR GetVkHandle() const { return mSurface; }
+
+		private:
+			VkSurfaceKHR mSurface;
+		};
+
 		/** Vulkan swap chain containing two or more buffers for rendering and presenting onto the screen. */
 		class VulkanSwapChain : public VulkanResource, INonCopyable
 		{
@@ -33,7 +62,7 @@ namespace bs
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
 			 * ensure the swap chain is not used at the device when this is called.
 			 */
-			VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr);
+			VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr);
 			~VulkanSwapChain();
 
 			/**
@@ -51,52 +80,100 @@ namespace bs
 			/**
 			 * Attempts to acquire a new swap chain image. Caller can retrieve the surface by calling GetImage(). Caller
 			 * must wait on the semaphore provided by the surface before rendering to it. Method might fail if the swap
-			 * chain is no longer valid, and failure result will be returned. Index of the returned image will be returned
-			 * in @p outAcquiredImageIndex.
+			 * chain is no longer valid, and failure result will be returned. If this happens a swap chain rebuild
+			 * should be attempted. If successful index of the returned image will be returned.
 			 *
-			 * @note Must only be called once in-between Present() calls, or before the first Present() call.
+			 * @note	Submit thread only.
 			 */
-			VkResult AcquireImage(u32& outAcquiredImageIndex);
+			ImageAcquireResult AcquireImage();
 
 			/**
-			 * Prepares the swap chain for the present operation for the first image that has been acquired but not yet presented.
-			 *
-			 * @param[out] outImageIndex	Index of the image representing the current back buffer.
-			 * @return						True if there is anything to present, false otherwise.
+			 * Blocks the calling thread until acquire operations for all swap chains complete. If there are multiple acquire operations queued for the 
+			 * swap chain then the method only waits until the first queued operation completes.
 			 */
-			bool PrepareForPresent(u32& outImageIndex);
+			void WaitUntilFirstImageAcquired();
 
-			/** Notifies the swap chain that the semaphore waiting for the provided swap chain image to become available is being waited on. */
-			void NotifyBackBufferWaitIssued(u32 imageIndex);
+			/**
+			 * Retrieves the image index of the first acquired image. Returns false if no image is acquired. After
+			 * NotifyImagePresented() is called this method will start returning the next available acquired image index, if
+			 * any was acquired. To notify a new image was acquired used NotifyImageAcquired().
+			 */
+			bool TryGetFirstAcquiredImageIndex(u32& outImageIndex) const;
 
-			/** Returns information describing the swap chain image at the provided index. */
-			const SwapChainImage& GetImage(u32 imageIndex) const { return mSurfaces[imageIndex]; }
+			/**
+			 * Issues the swap chain present operation on the provided queue. The first acquired but not presented image will
+			 * be presented.
+			 *
+			 * @param	imageIndex	Index of the image to present. Must have been previously acquired, and image semaphore waited on
+			 *						before presenting.
+			 * @param	queue		Queue to submit the operation on. Queue must support present operations.
+			 * @param	syncMask	Mask that controls which other command buffers does the present depend upon
+			 *						(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
+			 *
+			 * @note	Submit thread only.
+			 */
+			void Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask);
 
-			/** Returns the number of available color surfaces. */
-			u32 GetColorSurfaceCount() const { return (u32)mSurfaces.size(); }
+			/** Returns the number of available color images. */
+			u32 GetColorImageCount() const { return (u32)mSurfaces.size(); }
 
 			/** Returns the internal swap chain handle. */
 			VkSwapchainKHR GetHandle() const { return mSwapChain; }
 
-			/** Returns the image index of the last acquired swap chain image. */
-			u32 GetLastAcquiredImageIndex() const { return mLastAcquiredImageIndex; }
+			/** Returns a framebuffer that can be used for rendering to the requested swap chain image. */
+			VulkanFramebuffer* GetFramebufferForImage(u32 imageIndex) const { return mSurfaces[imageIndex].Framebuffer; }
 
+			/**
+			 * If the image at the provided index requires a wait before it can be rendered to, this will append the required
+			 * semaphores to @p outSemaphores.
+			 * 
+			 * @param	imageIndex		Index of the swap chain image which might require the wait.
+			 * @param	semaphoreIndex	Index in @p outSemaphores at which to append the semaphore.
+			 * @param	outSemaphores	Pre-allocated array in which to add the wait semaphore if needed.
+			 * @return					True if the wait semaphore was added, or false otherwise.
+			 */
+			bool AppendWaitSemaphoreIfRequired(u32 imageIndex, u32 semaphoreIndex, VulkanSemaphore** outSemaphores);
+
+			/** Lets the swap chain know that it is invalid and it should rebuilt itself. */
+			void MarkAsInvalid() { mIsValid = false; }
+
+			/** Swap chain that was marked as invalid cannot be used for acquiring more images, instead the caller should trigger a swap chain rebuild. */
+			bool IsValid() const { return mIsValid; }
+
+			/** Marks the swap chain as retired. Retired swap chain can still be used for presenting images that were already acquired, but you cannot acquire new images. */
+			void MarkAsRetired() { mIsRetired = true; }
+
+			/** Checks if the swap chain is retired. */
+			bool IsRetired() const { return mIsRetired; }
+
+			/** Notifies that an image has been queued for acquire on the submit thread. */
+			void NotifyWasImageAcquireQueued();
+
+			/** Notifies the swap chain that the specified image has been queued for present. This prevents it from being returned by GetFirstAcquiredImageIndex(). */
+			void NotifyWasPresentQueued(u32 imageIndex);
 		private:
-			/** Destroys current swap chain and depth stencil image (if any). */
-			void Clear(VkSwapchainKHR swapChain);
-
 			VkDevice mDevice = VK_NULL_HANDLE;
 			VkSwapchainKHR mSwapChain = VK_NULL_HANDLE;
+			SPtr<VulkanSurface> mSurface;
 
 			u32 mWidth = 0;
 			u32 mHeight = 0;
 			Vector<SwapChainImage> mSurfaces;
-
-			VulkanImage* mDepthStencilImage = nullptr;
+			SmallVector<u32, 4> mAcquiredImageIndicesOnRenderThread;
+			u32 mAcquiredImageCountOnSubmitThread = 0;
 
 			u32 mLastAcquiredSemaphoreIndex = 0;
-			u32 mLastAcquiredImageIndex = 0;
-			u32 mAcquiredImageCount = 0;
+			bool mIsSwapChainOutdated = false;
+			bool mIsValid = true;
+			bool mIsRetired = false;
+
+			Mutex mImageAcquireMutex;
+			Signal mImageAcquireSignal;
+			u32 mQueuedImageAcquireOperationCount = 0;
+			SmallVector<ImageAcquireResult, 4> mImageAcquireResults;
+
+			VulkanImage* mDepthStencilImage = nullptr;
+			VulkanSemaphore* mSemaphoresBuffer[kMaximumUniqueQueueCount + 1]; // +1 for present semaphore
 		};
 
 		/** @} */

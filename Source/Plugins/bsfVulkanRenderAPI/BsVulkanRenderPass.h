@@ -159,6 +159,7 @@ namespace bs
 
 			VkRenderPass mDefault;
 			mutable UnorderedMap<VariantKey, VkRenderPass, VariantKey::HashFunction, VariantKey::EqualFunction> mVariants;
+			mutable Mutex mMutex;
 
 			static u32 sNextValidId;
 		};

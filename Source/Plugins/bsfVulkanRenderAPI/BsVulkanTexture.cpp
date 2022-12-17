@@ -7,6 +7,7 @@
 #include "BsVulkanUtility.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanSubmitThread.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Profiling/BsRenderStats.h"
 #include "Math/BsMath.h"
@@ -106,8 +107,12 @@ VulkanImage::~VulkanImage()
 	B3DFree(mSubresources);
 	mSubresources = nullptr;
 
-	for(auto& entry : mImageInfos)
-		vkDestroyImageView(vkDevice, entry.View, gVulkanAllocator);
+	{
+		Lock lock(mViewsMutex);
+
+		for(auto& entry : mImageInfos)
+			vkDestroyImageView(vkDevice, entry.View, gVulkanAllocator);
+	}
 
 	if(mOwnsImage)
 	{
@@ -172,6 +177,7 @@ VkImageView VulkanImage::GetView(VkFormat format, const TextureSurface& surface,
 	TextureSurface explicitSurface = surface;
 	CalculateExplicitSurface(explicitSurface, isPartOfFrameBuffer);
 
+	Lock lock(mViewsMutex);
 	for(auto& entry : mImageInfos)
 	{
 		// Check if framebuffer field matches, but only if this is a depth-stencil framebuffer attachment or a 3D render texture attachment. For all other
@@ -510,13 +516,15 @@ VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
 
 void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers)
 {
-	u32 numSubresources = range.levelCount * range.layerCount;
+	AssertIfNotVulkanSubmitThread();
+
+	u32 subresourceCount = range.levelCount * range.layerCount;
 
 	// Nothing to do
-	if(numSubresources == 0)
+	if(subresourceCount == 0)
 		return;
 
-	u32 mip = range.baseMipLevel;
+	u32 mipLevel = range.baseMipLevel;
 	u32 face = range.baseArrayLayer;
 	u32 lastMip = range.baseMipLevel + range.levelCount - 1;
 	u32 lastFace = range.baseArrayLayer + range.layerCount - 1;
@@ -548,15 +556,15 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 
 	B3DMarkAllocatorFrame();
 	{
-		FrameVector<bool> processed(numSubresources, false);
+		FrameVector<bool> processed(subresourceCount, false);
 
 		// Add first subresource
-		VulkanImageSubresource* subresource = GetSubresource(face, mip);
-		addNewBarrier(subresource, face, mip);
-		numSubresources--;
+		VulkanImageSubresource* subresource = GetSubresource(face, mipLevel);
+		addNewBarrier(subresource, face, mipLevel);
+		subresourceCount--;
 		processed[0] = true;
 
-		while(numSubresources > 0)
+		while(subresourceCount > 0)
 		{
 			// Try to expand the barrier as much as possible
 			VkImageMemoryBarrier* barrier = &barriers.back();
@@ -581,7 +589,7 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 					if(expandedFace)
 					{
 						barrier->subresourceRange.layerCount++;
-						numSubresources -= barrier->subresourceRange.levelCount;
+						subresourceCount -= barrier->subresourceRange.levelCount;
 						face++;
 
 						for(u32 i = 0; i < barrier->subresourceRange.levelCount; i++)
@@ -597,12 +605,12 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 
 				// Expand by one in the Y direction
 				bool expandedMip = true;
-				if(mip < lastMip)
+				if(mipLevel < lastMip)
 				{
 					for(u32 i = 0; i < barrier->subresourceRange.layerCount; i++)
 					{
 						u32 curFace = barrier->subresourceRange.baseArrayLayer + i;
-						VulkanImageSubresource* subresource = GetSubresource(curFace, mip + 1);
+						VulkanImageSubresource* subresource = GetSubresource(curFace, mipLevel + 1);
 						if(barrier->oldLayout != subresource->GetLayout())
 						{
 							expandedMip = false;
@@ -613,13 +621,13 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 					if(expandedMip)
 					{
 						barrier->subresourceRange.levelCount++;
-						numSubresources -= barrier->subresourceRange.layerCount;
-						mip++;
+						subresourceCount -= barrier->subresourceRange.layerCount;
+						mipLevel++;
 
 						for(u32 i = 0; i < barrier->subresourceRange.layerCount; i++)
 						{
 							u32 curFace = (barrier->subresourceRange.baseArrayLayer + i) - range.baseArrayLayer;
-							u32 idx = (mip - range.baseMipLevel) * range.layerCount + curFace;
+							u32 idx = (mipLevel - range.baseMipLevel) * range.layerCount + curFace;
 							processed[idx] = true;
 						}
 					}
@@ -641,7 +649,7 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 					u32 idx = i * range.layerCount + j;
 					if(!processed[idx])
 					{
-						mip = range.baseMipLevel + i;
+						mipLevel = range.baseMipLevel + i;
 						face = range.baseArrayLayer + j;
 
 						found = true;
@@ -652,9 +660,9 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 
 				if(found)
 				{
-					VulkanImageSubresource* subresource = GetSubresource(face, mip);
-					addNewBarrier(subresource, face, mip);
-					numSubresources--;
+					VulkanImageSubresource* subresource = GetSubresource(face, mipLevel);
+					addNewBarrier(subresource, face, mipLevel);
+					subresourceCount--;
 					break;
 				}
 			}
@@ -885,7 +893,7 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanDevice& device, const PixelData
 	return vulkanBuffer;
 }
 
-void VulkanTexture::CopyImageToImage(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
+void VulkanTexture::CopyImageToImage(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
 {
 	const u32 faceCount = mProperties.GetNumFaces();
 	const u32 mipCount = mProperties.GetNumMipmaps() + 1;
@@ -963,7 +971,7 @@ ImageSubresourcePitch VulkanTexture::GetPitchForSubresource(VulkanImage* image, 
 	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.GetFormat());
 }
 
-void VulkanTexture::CopyImageSubresourceToBuffer(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
+void VulkanTexture::CopyImageSubresourceToBuffer(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
 {
 	VkExtent3D extent;
 	PixelUtil::GetSizeForMipLevel(mProperties.GetWidth(), mProperties.GetHeight(), mProperties.GetDepth(), sourceMipLevel, extent.width, extent.height, extent.depth);
@@ -1060,7 +1068,7 @@ void VulkanTexture::CopyImpl(const SPtr<Texture>& target, const TextureCopyInfor
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 
-	VulkanCmdBuffer* vkCB;
+	VulkanInternalCommandBuffer* vkCB;
 	if(commandBuffer != nullptr)
 		vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->GetInternal();
 	else
@@ -1307,7 +1315,7 @@ PixelData VulkanTexture::LockImpl(GpuLockOptions options, u32 mipLevel, u32 face
 		}
 
 		const bool isReadOnly = (options & (GBL_READ_WRITE | GBL_WRITE_ONLY | GBL_WRITE_ONLY_DISCARD | GBL_WRITE_ONLY_DISCARD_RANGE | GBL_WRITE_ONLY_NO_OVERWRITE)) == 0;
-		CopyImageSubresourceToBuffer(transferCB->GetCb(), image, face, mipLevel, mStagingBuffer, isReadOnly);
+		CopyImageSubresourceToBuffer(transferCB->GetInternalCommandBuffer(), image, face, mipLevel, mStagingBuffer, isReadOnly);
 
 		// Submit the command buffer and wait until it finishes
 		transferCB->Flush(true);
@@ -1350,7 +1358,6 @@ void VulkanTexture::UnlockImpl()
 			VulkanTransferBuffer* transferCB = cbManager.GetTransferBuffer(mMappedDeviceIdx, queueType, localQueueIdx);
 
 			VulkanImageSubresource* subresource = image->GetSubresource(mMappedFace, mMappedMip);
-			VkImageLayout curLayout = subresource->GetLayout();
 
 			// If the subresource is used in any way on the GPU, we need to wait for that use to finish before
 			// we issue our copy
@@ -1404,7 +1411,7 @@ void VulkanTexture::UnlockImpl()
 					// Avoid copying original contents if the image only has one sub-resource, which we'll overwrite anyway
 					if(props.GetNumMipmaps() > 0 || props.GetNumFaces() > 1)
 					{
-						CopyImageToImage(transferCB->GetCb(), image, newImage);
+						CopyImageToImage(transferCB->GetInternalCommandBuffer(), image, newImage);
 					}
 
 					image->Destroy();
@@ -1432,7 +1439,7 @@ void VulkanTexture::UnlockImpl()
 			const ImageSubresourcePitch pitch = GetPitchForSubresource(image, mMappedFace, mMappedMip);
 
 			// Queue copy command
-			transferCB->GetCb()->CopyBufferToImage(mStagingBuffer, image, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
+			transferCB->GetInternalCommandBuffer()->CopyBufferToImage(mStagingBuffer, image, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 
 			// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 			// done automatically before next "normal" command buffer submission.
@@ -1460,7 +1467,7 @@ TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(u32 mipLevel, u32 face, u
 	VulkanRenderAPI& vulkanBackend = GetVulkanRenderAPI();
 	VulkanDevice& device = *vulkanBackend.GetDevice(deviceIndex);
 
-	VulkanCmdBuffer* vulkanCommandBufffer;
+	VulkanInternalCommandBuffer* vulkanCommandBufffer;
 	if(commandBuffer != nullptr)
 		vulkanCommandBufffer = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->GetInternal();
 	else

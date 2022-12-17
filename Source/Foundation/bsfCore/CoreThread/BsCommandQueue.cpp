@@ -99,8 +99,6 @@ bs::Queue<QueuedCommand>* CommandQueueBase::Flush()
 
 void CommandQueueBase::PlaybackWithNotify(bs::Queue<QueuedCommand>* commands, std::function<void(u32)> notifyCallback)
 {
-	THROW_IF_NOT_CORE_THREAD;
-
 	if(commands == nullptr)
 		return;
 

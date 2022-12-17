@@ -14,6 +14,7 @@
 #include "BsVulkanCommandBuffer.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanQueue.h"
+#include "BsVulkanSubmitThread.h"
 #include "Math/BsMath.h"
 
 using namespace bs;
@@ -83,13 +84,12 @@ SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
 namespace bs {
 namespace ct {
 Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, VulkanRenderAPI& renderAPI)
-	: RenderWindow(desc, windowId), mProperties(desc), mSyncedProperties(desc), mWindow(nullptr), mIsChild(false), mShowOnSwap(false), mDisplayFrequency(0), mRenderAPI(renderAPI), mRequiresNewSwapChainImage(true)
+	: RenderWindow(desc, windowId), mProperties(desc), mSyncedProperties(desc), mWindow(nullptr), mIsChild(false), mShowOnSwap(false), mDisplayFrequency(0), mRenderAPI(renderAPI)
 {}
 
 Win32RenderWindow::~Win32RenderWindow()
 {
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
-	presentDevice->WaitIdle();
+	GetVulkanSubmitThread().WaitUntilIdle();
 
 	if(mWindow != nullptr)
 	{
@@ -98,7 +98,6 @@ Win32RenderWindow::~Win32RenderWindow()
 	}
 
 	mSwapChain->Destroy();
-	vkDestroySurfaceKHR(mRenderAPI.GetInstance(), mSurface, gVulkanAllocator);
 
 	Platform::ResetNonClientAreas(*this);
 }
@@ -178,9 +177,12 @@ void Win32RenderWindow::Initialize()
 	surfaceCreateInfo.hwnd = mWindow->GetHWnd();
 	surfaceCreateInfo.hinstance = windowDesc.Module;
 
-	VkInstance instance = mRenderAPI.GetInstance();
-	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &mSurface);
+	VkInstance instance = mRenderAPI.GetVkInstance();
+	VkSurfaceKHR vkSurface;
+	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
+
+	mSurface = B3DMakeShared<VulkanSurface>(vkSurface);
 
 	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
@@ -188,7 +190,7 @@ void Win32RenderWindow::Initialize()
 	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
 
 	VkBool32 supportsPresent;
-	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, mSurface, &supportsPresent);
+	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, vkSurface, &supportsPresent);
 
 	if(!supportsPresent)
 	{
@@ -198,7 +200,7 @@ void Win32RenderWindow::Initialize()
 		B3D_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
 	}
 
-	SurfaceFormat format = presentDevice->GetSurfaceFormat(mSurface, mDesc.Gamma);
+	SurfaceFormat format = presentDevice->GetSurfaceFormat(vkSurface, mDesc.Gamma);
 	mColorFormat = format.ColorFormat;
 	mColorSpace = format.ColorSpace;
 	mDepthFormat = format.DepthFormat;
@@ -245,75 +247,6 @@ void Win32RenderWindow::Initialize()
 
 	bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 	RenderWindow::Initialize();
-}
-
-u32 Win32RenderWindow::AcquireNextSwapChainImageIfRequired()
-{
-	// We haven't presented the current back buffer yet, so just use that one
-	if(!mRequiresNewSwapChainImage)
-		return mSwapChain->GetLastAcquiredImageIndex();
-
-	u32 imageIndex = 0;
-
-	const VkResult acquireResult = mSwapChain->AcquireImage(imageIndex);
-	if(acquireResult == VK_SUBOPTIMAL_KHR || acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		RebuildSwapChain();
-		mSwapChain->AcquireImage(imageIndex);
-	}
-
-	mRequiresNewSwapChainImage = false;
-	return imageIndex;
-}
-
-void Win32RenderWindow::NotifyNewSwapChainImageIsRequired()
-{
-	mRequiresNewSwapChainImage = true;
-}
-
-void Win32RenderWindow::SwapBuffers(u32 syncMask)
-{
-	THROW_IF_NOT_CORE_THREAD;
-
-	if(mShowOnSwap)
-		SetHidden(false);
-
-	// Get a command buffer on which we'll submit
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
-
-	// Assuming present queue is always graphics
-	B3D_ASSERT(presentDevice->GetQueueFamily(GQT_GRAPHICS) == mPresentQueueFamily);
-
-	// Find an appropriate queue to execute on
-	VulkanQueue* queue = presentDevice->GetQueue(GQT_GRAPHICS, 0);
-	const u32 queueMask = presentDevice->GetQueueMask(GQT_GRAPHICS, 0);
-
-	// Ignore myself as this semaphore is handled in VulkanQueue::present() already
-	syncMask &= ~queueMask;
-
-	u32 deviceIdx = presentDevice->GetIndex();
-	VulkanCommandBufferManager& cbm = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
-
-	u32 semaphoreCount;
-	cbm.GetSyncSemaphores(deviceIdx, syncMask, mSemaphoresTemp, semaphoreCount);
-
-	u32 swapChainImageIndex = 0;
-	if(!mSwapChain->PrepareForPresent(swapChainImageIndex))
-		return; // Nothing to present
-
-	// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
-	const SwapChainImage& surface = mSwapChain->GetImage(swapChainImageIndex);
-	if(surface.NeedsWait)
-	{
-		mSemaphoresTemp[semaphoreCount] = surface.Semaphore;
-		semaphoreCount++;
-
-		mSwapChain->NotifyBackBufferWaitIssued(swapChainImageIndex);
-	}
-
-	VkResult presentResult = queue->Present(mSwapChain, swapChainImageIndex, mSemaphoresTemp, semaphoreCount);
-	if(presentResult == VK_SUBOPTIMAL_KHR || presentResult == VK_ERROR_OUT_OF_DATE_KHR)
-		RebuildSwapChain();
 }
 
 void Win32RenderWindow::Move(i32 left, i32 top)
@@ -520,7 +453,8 @@ void Win32RenderWindow::SetVSync(bool enabled, u32 interval)
 	mProperties.Vsync = enabled;
 	mProperties.VsyncInterval = interval;
 
-	RebuildSwapChain();
+	if(mSwapChain != nullptr)
+		mSwapChain->MarkAsInvalid();
 
 	{
 		ScopedSpinLock lock(mLock);
@@ -573,16 +507,15 @@ void Win32RenderWindow::SyncProperties()
 
 void Win32RenderWindow::RebuildSwapChain()
 {
-	//// Need to make sure nothing is using the swap buffer before we re-create it
-	// Note: Optionally I can detect exactly on which queues (if any) are the swap chain images used on, and only wait
-	// on those
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
-	presentDevice->WaitIdle();
+	GetVulkanSubmitThread().WaitUntilIdle();
 
+	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
 	VulkanSwapChain* oldSwapChain = mSwapChain;
+	oldSwapChain->MarkAsRetired();
 
 	mSwapChain = presentDevice->GetResourceManager().Create<VulkanSwapChain>(mSurface, mProperties.Width, mProperties.Height, mProperties.Vsync, mColorFormat, mColorSpace, mDesc.DepthBuffer, mDepthFormat, oldSwapChain);
-
 	oldSwapChain->Destroy();
+
+	OnSwapChainDidRebuild();
 }
 }} // namespace bs::ct

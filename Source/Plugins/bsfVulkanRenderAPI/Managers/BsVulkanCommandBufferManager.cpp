@@ -5,19 +5,20 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
 #include "BsVulkanQueue.h"
+#include "BsVulkanSubmitThread.h"
 #include "BsVulkanTexture.h"
 
 using namespace bs;
 using namespace bs::ct;
 
 VulkanTransferBuffer::VulkanTransferBuffer(VulkanDevice* device, GpuQueueType type, u32 queueIdx)
-	: mDevice(device), mType(type), mQueueIdx(queueIdx)
+	: mDevice(device), mType(type), mQueueIndex(queueIdx)
 {
-	u32 queueCount = device->GetNumQueues(mType);
+	u32 queueCount = device->GetQueueCountForType(mType);
 	if(queueCount == 0)
 	{
 		mType = GQT_GRAPHICS;
-		queueCount = device->GetNumQueues(GQT_GRAPHICS);
+		queueCount = device->GetQueueCountForType(GQT_GRAPHICS);
 	}
 
 	const u32 physicalQueueIndex = queueIdx % queueCount;
@@ -37,29 +38,26 @@ void VulkanTransferBuffer::Allocate()
 		return;
 
 	const u32 queueFamily = mDevice->GetQueueFamily(mType);
-	mCommandBuffer = mDevice->GetCmdBufferPool().GetBuffer(queueFamily, false);
+	mCommandBuffer = mDevice->GetCommandBufferPool().GetBuffer(queueFamily, false);
 }
 
-u32 VulkanTransferBuffer::Flush(bool wait)
+void VulkanTransferBuffer::Flush(bool wait)
 {
 	if(mCommandBuffer == nullptr)
-		return ~0u;
+		return;
 
 	const u32 syncMask = mSyncMask & ~mQueueMask; // Don't sync with itself
 
 	mCommandBuffer->End();
-	const u32 submitIndex = mCommandBuffer->Submit(mQueue, mQueueIdx, syncMask);
+
+	GetVulkanSubmitThread().QueueSubmit(*mCommandBuffer, *mQueue, mQueueIndex, syncMask);
+	mCommandBuffer = nullptr;
 
 	if(wait)
 	{
-		mQueue->WaitIdle();
-		mDevice->RefreshStates(true);
-
-		B3D_ASSERT(!mCommandBuffer->IsSubmitted());
+		GetVulkanSubmitThread().WaitUntilIdle();
+		GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 	}
-
-	mCommandBuffer = nullptr;
-	return submitIndex;
 }
 
 VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
@@ -87,10 +85,10 @@ VulkanCommandBufferManager::~VulkanCommandBufferManager()
 
 SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
-	u32 numDevices = mRapi.GetDeviceCount();
-	if(deviceIdx >= numDevices)
+	const u32 deviceCount = mRapi.GetDeviceCount();
+	if(deviceIdx >= deviceCount)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).", deviceIdx, numDevices);
+		B3D_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).", deviceIdx, deviceCount);
 
 		return nullptr;
 	}
@@ -105,6 +103,8 @@ SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type
 
 void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, VulkanSemaphore** semaphores, u32& count)
 {
+	AssertIfNotVulkanSubmitThread();
+
 	bool semaphoreRequestFailed = false;
 	SPtr<VulkanDevice> device = mRapi.GetDevice(deviceIdx);
 
@@ -113,11 +113,11 @@ void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, 
 	{
 		const GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
 
-		const u32 queueCount = device->GetNumQueues(queueType);
+		const u32 queueCount = device->GetQueueCountForType(queueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
 			VulkanQueue* queue = device->GetQueue(queueType, queueIndex);
-			VulkanCmdBuffer* lastCommandBuffer = queue->GetLastCommandBuffer();
+			VulkanInternalCommandBuffer* lastCommandBuffer = queue->GetLastCommandBuffer();
 
 			// Check if a buffer is currently executing on the queue
 			if(lastCommandBuffer == nullptr || (!lastCommandBuffer->IsSubmitted() && !lastCommandBuffer->IsDone()))

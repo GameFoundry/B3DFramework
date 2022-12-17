@@ -35,6 +35,8 @@ namespace bs
 		class VulkanResource
 		{
 		public:
+			static constexpr u32 kMaximumUniqueQueueCount = BS_MAX_QUEUES_PER_TYPE * GQT_COUNT;
+
 			VulkanResource(VulkanResourceManager* owner, bool concurrency);
 			virtual ~VulkanResource();
 
@@ -165,14 +167,12 @@ namespace bs
 				Destroyed
 			};
 
-			static const u32 MAX_UNIQUE_QUEUES = BS_MAX_QUEUES_PER_TYPE * GQT_COUNT;
-
 			VulkanResourceManager* mOwner;
 			u32 mQueueFamily;
 			State mState;
 
-			u8 mReadUses[MAX_UNIQUE_QUEUES];
-			u8 mWriteUses[MAX_UNIQUE_QUEUES];
+			u8 mReadUses[kMaximumUniqueQueueCount];
+			u8 mWriteUses[kMaximumUniqueQueueCount];
 
 			u32 mNumUsedHandles;
 			u32 mNumBoundHandles;

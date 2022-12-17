@@ -47,6 +47,8 @@ namespace bs
 
 	namespace ct
 	{
+		class VulkanSurface;
+
 		/**
 		 * Render window implementation for Windows and Vulkan.
 		 *
@@ -70,18 +72,14 @@ namespace bs
 			void SetWindowed(u32 width, u32 height) override;
 			void SetVSync(bool enabled, u32 interval = 1) override;
 
-			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
 			void GetCustomAttribute(const String& name, void* data) const override;
 			void WindowMovedOrResizedInternal() override;
 
-			/** Prepares the next swap chain image for rendering if required. Returns the index of the acquired swap chain image, or ~0u if it was unable to acquire the image. If acquire is not required, returns the index of the last acquired image. */
-			u32 AcquireNextSwapChainImageIfRequired();
-
-			/** Notifies the swap chain that a new swap chain image should be returned when calling AcquireNextSwapChainImageIfRequired(). This should be called after an image has been processed and is ready to present. */
-			void NotifyNewSwapChainImageIsRequired();
-
 			/** Returns the swap chain owned by the window. */
 			VulkanSwapChain* GetSwapChain() const { return mSwapChain; }
+
+			/** Rebuilds the swap chain according to the currently set properties. */
+			void RebuildSwapChain();
 
 			/**	Returns internal window handle. */
 			HWND GetWindowHandleInternal() const;
@@ -94,9 +92,6 @@ namespace bs
 			RenderWindowProperties& GetSyncedProperties() override { return mSyncedProperties; }
 			void SyncProperties() override;
 
-			/** Rebuilds the swap chain according to the currently set properties. */
-			void RebuildSwapChain();
-
 		protected:
 			Win32Window* mWindow;
 			bool mIsChild;
@@ -104,14 +99,12 @@ namespace bs
 			i32 mDisplayFrequency;
 
 			VulkanRenderAPI& mRenderAPI;
-			VkSurfaceKHR mSurface;
+			SPtr<VulkanSurface> mSurface;
 			VkColorSpaceKHR mColorSpace;
 			VkFormat mColorFormat;
 			VkFormat mDepthFormat;
 			u32 mPresentQueueFamily;
 			VulkanSwapChain* mSwapChain = nullptr;
-			VulkanSemaphore* mSemaphoresTemp[BS_MAX_UNIQUE_QUEUES + 1]; // +1 for present semaphore
-			bool mRequiresNewSwapChainImage;
 
 			RenderWindowProperties mProperties;
 			RenderWindowProperties mSyncedProperties;

@@ -4,14 +4,21 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
+#include "BsVulkanQueue.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanRenderPass.h"
+#include "Threading/BsTaskScheduler.h"
 
 using namespace bs;
 using namespace bs::ct;
 
-VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain)
-	: VulkanResource(owner, false)
+VulkanSurface::~VulkanSurface()
+{
+	vkDestroySurfaceKHR(GetVulkanRenderAPI().GetVkInstance(), mSurface, gVulkanAllocator);
+}
+
+VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain)
+	: VulkanResource(owner, false), mSurface(surface)
 {
 	VulkanDevice& device = owner->GetDevice();
 	mDevice = device.GetLogical();
@@ -19,9 +26,11 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	VkResult result;
 	VkPhysicalDevice physicalDevice = device.GetPhysical();
 
+	VkSurfaceKHR vkSurface = surface->GetVkHandle();
+
 	// Determine swap chain dimensions
 	VkSurfaceCapabilitiesKHR surfaceCaps;
-	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps);
+	result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, vkSurface, &surfaceCaps);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	VkExtent2D swapchainExtent;
@@ -38,19 +47,19 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	mHeight = swapchainExtent.height;
 
 	// Find present mode
-	uint32_t numPresentModes;
-	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &numPresentModes, nullptr);
+	uint32_t presentModeCount;
+	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, vkSurface, &presentModeCount, nullptr);
 	B3D_ASSERT(result == VK_SUCCESS);
-	B3D_ASSERT(numPresentModes > 0);
+	B3D_ASSERT(presentModeCount > 0);
 
-	VkPresentModeKHR* presentModes = B3DStackAllocate<VkPresentModeKHR>(numPresentModes);
-	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &numPresentModes, presentModes);
+	VkPresentModeKHR* presentModes = B3DStackAllocate<VkPresentModeKHR>(presentModeCount);
+	result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, vkSurface, &presentModeCount, presentModes);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
 	if(!vsync)
 	{
-		for(u32 i = 0; i < numPresentModes; i++)
+		for(u32 i = 0; i < presentModeCount; i++)
 		{
 			if(presentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR)
 			{
@@ -67,7 +76,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 		// Mailbox comes with lower input latency than FIFO, but can waste GPU power by rendering frames that are never
 		// displayed, especially if the app runs much faster than the refresh rate. This is a concern for mobiles.
 #if B3D_PLATFORM != B3D_PLATFORM_ID_ANDROID && B3D_PLATFORM != B3D_PLATFORM_ID_IOS
-		for(u32 i = 0; i < numPresentModes; i++)
+		for(u32 i = 0; i < presentModeCount; i++)
 		{
 
 			if(presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
@@ -85,6 +94,9 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	constexpr u32 kPreferredImageCount = 3; // One extra required due to the separate submit thread.
 	u32 imageCount = Math::Clamp(kPreferredImageCount, surfaceCaps.minImageCount, surfaceCaps.maxImageCount);
 
+	if(imageCount < kPreferredImageCount)
+		B3D_LOG(Error, RenderBackend, "Unable to allocate adequate number of swap chain images.");
+
 	VkSurfaceTransformFlagsKHR transform;
 	if(surfaceCaps.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
 		transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
@@ -95,7 +107,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapChainCI.pNext = nullptr;
 	swapChainCI.flags = 0;
-	swapChainCI.surface = surface;
+	swapChainCI.surface = vkSurface;
 	swapChainCI.minImageCount = imageCount;
 	swapChainCI.imageFormat = colorFormat;
 	swapChainCI.imageColorSpace = colorSpace;
@@ -207,21 +219,21 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, VkSurfaceKHR surf
 	VulkanRenderPass* renderPass = VulkanRenderPassCache::Instance().FindOrCreateRenderPass(mDevice, rpDesc);
 
 	// Create a framebuffer for each swap chain buffer
-	u32 numFramebuffers = (u32)mSurfaces.size();
-	for(u32 i = 0; i < numFramebuffers; i++)
+	const u32 framebufferCount = (u32)mSurfaces.size();
+	for(u32 framebufferIndex = 0; framebufferIndex < framebufferCount; framebufferIndex++)
 	{
-		VulkanFramebufferInformation& desc = mSurfaces[i].FramebufferInformation;
-		desc.Width = mWidth;
-		desc.Height = mHeight;
-		desc.Layers = 1;
-		desc.Color[0].Image = mSurfaces[i].Image;
-		desc.Color[0].Surface = TextureSurface::kComplete;
-		desc.Color[0].BaseLayer = 0;
-		desc.Depth.Image = mDepthStencilImage;
-		desc.Depth.Surface = TextureSurface::kComplete;
-		desc.Depth.BaseLayer = 0;
+		VulkanFramebufferInformation& framebufferInformation = mSurfaces[framebufferIndex].FramebufferInformation;
+		framebufferInformation.Width = mWidth;
+		framebufferInformation.Height = mHeight;
+		framebufferInformation.Layers = 1;
+		framebufferInformation.Color[0].Image = mSurfaces[framebufferIndex].Image;
+		framebufferInformation.Color[0].Surface = TextureSurface::kComplete;
+		framebufferInformation.Color[0].BaseLayer = 0;
+		framebufferInformation.Depth.Image = mDepthStencilImage;
+		framebufferInformation.Depth.Surface = TextureSurface::kComplete;
+		framebufferInformation.Depth.BaseLayer = 0;
 
-		mSurfaces[i].Framebuffer = owner->Create<VulkanFramebuffer>(renderPass, desc);
+		mSurfaces[framebufferIndex].Framebuffer = owner->Create<VulkanFramebuffer>(renderPass, framebufferInformation);
 	}
 }
 
@@ -256,20 +268,46 @@ VulkanSwapChain::~VulkanSwapChain()
 	}
 }
 
-VkResult VulkanSwapChain::AcquireImage(u32& outAcquiredImageIndex)
+ImageAcquireResult VulkanSwapChain::AcquireImage()
 {
-	const u32 maximumImageCount = (u32)(mSurfaces.size() - 1);
-	if(mAcquiredImageCount >= maximumImageCount)
+	AssertIfNotVulkanSubmitThread();
+
+	ImageAcquireResult output;
+
+	// Ensure we don't have too many acquired images in flight
+	const u32 acquiredImageCount = mAcquiredImageCountOnSubmitThread;
+	const u32 allowedImageCount = (u32)mSurfaces.size() - 1u; // One reserved for the OS compositor
+	if(acquiredImageCount >= allowedImageCount)
 	{
-		B3D_LOG(Error, RenderBackend, "Unable to acquire a swap chain image. Maximum number of images has already been acquired.");
-		return VK_NOT_READY;
+		// If outdated ignore the error, everything should be back to normal once it is rebuilt.
+		if(!mIsSwapChainOutdated)
+		{
+			B3D_LOG(Error, RenderBackend, "Unable to acquire a swap chain image. Maximum number of images has already been acquired.");
+		}
+
+		output = ImageAcquireResult(VK_ERROR_UNKNOWN, 0);
+
+		Lock lock(mImageAcquireMutex);
+		mImageAcquireResults.Add(output);
+		mImageAcquireSignal.notify_all();
+
+		return output;
 	}
 
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mSurfaces[mLastAcquiredSemaphoreIndex].Semaphore->GetHandle(), VK_NULL_HANDLE, &imageIndex);
 
-	if(result != VK_SUCCESS)
-		return result;
+	// Return the error to the caller, so he can attempt to rebuild the swap chain
+	if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		output = ImageAcquireResult(result, 0);
+
+		Lock lock(mImageAcquireMutex);
+		mImageAcquireResults.Add(output);
+		mImageAcquireSignal.notify_all();
+
+		return output;
+	}
 
 	// In case surfaces aren't being distributed in round-robin fashion the image and semaphore indices might not match,
 	// in which case just move the semaphores
@@ -278,37 +316,176 @@ VkResult VulkanSwapChain::AcquireImage(u32& outAcquiredImageIndex)
 
 	mLastAcquiredSemaphoreIndex = (mLastAcquiredSemaphoreIndex + 1) % mSurfaces.size();
 
-	B3D_ASSERT(!mSurfaces[imageIndex].Acquired && "Same swap chain surface being acquired twice in a row without present().");
+	B3D_ASSERT(!mSurfaces[imageIndex].Acquired && "Swap chain image being acquired twice.");
 	mSurfaces[imageIndex].Acquired = true;
 	mSurfaces[imageIndex].NeedsWait = true;
 
-	mLastAcquiredImageIndex = imageIndex;
-	mAcquiredImageCount++;
+	output = ImageAcquireResult(result, imageIndex);
+	mAcquiredImageCountOnSubmitThread++;
 
-	outAcquiredImageIndex = imageIndex;
-	return VK_SUCCESS;
+	{
+		Lock lock(mImageAcquireMutex);
+		mImageAcquireResults.Add(output);
+		mImageAcquireSignal.notify_all();
+	}
+
+	return output;
 }
 
-bool VulkanSwapChain::PrepareForPresent(u32& outImageIndex)
+void VulkanSwapChain::WaitUntilFirstImageAcquired()
 {
-	if(mAcquiredImageCount == 0)
+	Lock lock(mImageAcquireMutex);
+
+	// Nothing queued
+	if(mQueuedImageAcquireOperationCount == 0)
+		return;
+
+	// Wait until all the acquire operations finish
+	while(mQueuedImageAcquireOperationCount != (u32)mImageAcquireResults.size())
+	{
+		TaskScheduler::Instance().AddWorker();
+		mImageAcquireSignal.wait(lock);
+		TaskScheduler::Instance().RemoveWorker();
+	}
+
+	for(const auto& acquireResult : mImageAcquireResults)
+	{
+		if(acquireResult.ResultCode == VK_SUCCESS || acquireResult.ResultCode == VK_SUBOPTIMAL_KHR)
+		{
+			mAcquiredImageIndicesOnRenderThread.Add(acquireResult.AcquiredImageIndex);
+
+			if(acquireResult.ResultCode == VK_SUBOPTIMAL_KHR)
+				MarkAsInvalid();
+		}
+		else
+		{
+			MarkAsInvalid();
+		}
+	}
+
+	mQueuedImageAcquireOperationCount = 0;
+	mImageAcquireResults.clear();
+}
+
+void VulkanSwapChain::Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask)
+{
+	AssertIfNotVulkanSubmitThread();
+	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
+
+	if(!mSurfaces[imageIndex].Acquired)
+		return;
+
+	// Ensure the image is in the correct layout
+	VulkanImage *const image = mSurfaces[imageIndex].Image;
+	VulkanImageSubresource* const imageSubresource = image->GetSubresource(0, 0);
+	const VkImageLayout imageLayout = imageSubresource->GetLayout();
+
+	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
+	{
+		VulkanDevice& device = queue.GetDevice();
+		VulkanCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex());
+
+		const u32 queueFamily = device.GetQueueFamily(queue.GetType());
+
+		VulkanInternalCommandBuffer* const commandBuffer = commandBufferPool.GetBuffer(queueFamily, false);
+		commandBuffer->SetName("Swap chain image layout transition");
+
+		VkCommandBuffer vkCommandBuffer = commandBuffer->GetHandle();
+
+		VkImageMemoryBarrier layoutTransitionBarrier;
+		layoutTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		layoutTransitionBarrier.pNext = nullptr;
+		layoutTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		layoutTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		layoutTransitionBarrier.image = image->GetHandle();
+		layoutTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		layoutTransitionBarrier.subresourceRange.layerCount = 1;
+		layoutTransitionBarrier.subresourceRange.levelCount = 1;
+		layoutTransitionBarrier.subresourceRange.baseArrayLayer = 0;
+		layoutTransitionBarrier.subresourceRange.baseMipLevel = 0;
+		layoutTransitionBarrier.srcAccessMask = 0;
+		layoutTransitionBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		layoutTransitionBarrier.oldLayout = imageLayout;
+		layoutTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		vkCmdPipelineBarrier(vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &layoutTransitionBarrier);
+
+		commandBuffer->End();
+		queue.Submit(commandBuffer, nullptr, 0);
+
+		imageSubresource->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	}
+
+	VulkanDevice& presentDevice = queue.GetDevice();
+	const u32 queueMask = presentDevice.GetQueueMask(queue.GetType(), queue.GetIndex());
+
+	// Ignore myself as we handle this in VulkanQueue::Present() already
+	syncMask &= ~queueMask;
+
+	const u32 deviceIndex = presentDevice.GetIndex();
+	VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
+
+	u32 semaphoreCount;
+	commandBufferManager.GetSyncSemaphores(deviceIndex, syncMask, mSemaphoresBuffer, semaphoreCount);
+
+	// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
+	if(AppendWaitSemaphoreIfRequired(imageIndex, semaphoreCount, mSemaphoresBuffer))
+		semaphoreCount++;
+
+	const VkResult result = queue.Present(this, imageIndex, mSemaphoresBuffer, semaphoreCount);
+	if(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
+	{
+		// As far as validation layers are concerned, when present fails the image is no longer considered as acquired.
+		mSurfaces[imageIndex].Acquired = false;
+
+		B3D_ASSERT(mAcquiredImageCountOnSubmitThread > 0);
+		mAcquiredImageCountOnSubmitThread--;
+	}
+	else
+	{
+		mIsSwapChainOutdated = true;
+	}
+}
+
+bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, u32 semaphoreIndex, VulkanSemaphore** outSemaphores)
+{
+	AssertIfNotVulkanSubmitThread();
+
+	if(!mSurfaces[imageIndex].NeedsWait)
 		return false;
 
-	const u32 imageCount = (UINT32)mSurfaces.size();
-	const u32 offset = (imageCount - mAcquiredImageCount) + 1;
-	const u32 imageToPresent = (mLastAcquiredImageIndex + offset) % imageCount;
+	outSemaphores[semaphoreIndex] = mSurfaces[imageIndex].Semaphore;
+	mSurfaces[imageIndex].NeedsWait = false;
 
-	if(!mSurfaces[imageToPresent].Acquired)
-		return false;
-
-	mSurfaces[imageToPresent].Acquired = false;
-	mAcquiredImageCount--;
-
-	outImageIndex = imageToPresent;
 	return true;
 }
 
-void VulkanSwapChain::NotifyBackBufferWaitIssued(u32 imageIndex)
+bool VulkanSwapChain::TryGetFirstAcquiredImageIndex(u32& outImageIndex) const
 {
-	mSurfaces[imageIndex].NeedsWait = false;
+	if(mAcquiredImageIndicesOnRenderThread.Empty())
+		return false;
+
+	outImageIndex = mAcquiredImageIndicesOnRenderThread.Front();
+	return true;
+}
+
+void VulkanSwapChain::NotifyWasImageAcquireQueued()
+{
+	{
+		Lock lock(mImageAcquireMutex);
+		mQueuedImageAcquireOperationCount++;
+	}
+
+	NotifyBound();
+}
+
+void VulkanSwapChain::NotifyWasPresentQueued(u32 imageIndex)
+{
+	const auto found = std::find(mAcquiredImageIndicesOnRenderThread.begin(), mAcquiredImageIndicesOnRenderThread.end(), imageIndex);
+	if(found != mAcquiredImageIndicesOnRenderThread.end())
+		mAcquiredImageIndicesOnRenderThread.erase(found);
+	else
+		B3D_ASSERT(false);
+
+	NotifyBound();
 }

@@ -42,7 +42,7 @@ namespace bs
 			 *
 			 * @note	Thread safe.
 			 */
-			void PrepareForBind(VulkanCmdBuffer& buffer, VkDescriptorSet* sets);
+			void PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* sets);
 
 		protected:
 			/** Contains data about writing to either buffer or a texture descriptor. */

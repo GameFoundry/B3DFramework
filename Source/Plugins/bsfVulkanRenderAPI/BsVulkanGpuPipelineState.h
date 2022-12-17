@@ -82,7 +82,7 @@ namespace bs
 			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever
 			 * a pipeline is bound to a command buffer.
 			 */
-			void RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer);
+			void RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer);
 
 		protected:
 			friend class VulkanRenderStateManager;
@@ -182,7 +182,7 @@ namespace bs
 			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever
 			 * a pipeline is bound to a command buffer.
 			 */
-			void RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer);
+			void RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer);
 
 		protected:
 			friend class VulkanRenderStateManager;

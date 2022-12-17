@@ -58,7 +58,7 @@ void VulkanTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	else
 		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainVulkanCommandBuffer());
 
-	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	VulkanInternalCommandBuffer* internalCB = vulkanCB->GetInternal();
 	VulkanQuery* beginQuery = queryPool.BeginTimerQuery(internalCB);
 	internalCB->RegisterQuery(this);
 
@@ -85,7 +85,7 @@ void VulkanTimerQuery::End(const SPtr<CommandBuffer>& cb)
 		vulkanCB = static_cast<VulkanCommandBuffer*>(GetVulkanRenderAPI().GetMainVulkanCommandBuffer());
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	VulkanCmdBuffer* internalCB = vulkanCB->GetInternal();
+	VulkanInternalCommandBuffer* internalCB = vulkanCB->GetInternal();
 	VulkanQuery* endQuery = queryPool.BeginTimerQuery(internalCB);
 	internalCB->RegisterQuery(this);
 
@@ -97,7 +97,7 @@ bool VulkanTimerQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
-void VulkanTimerQuery::Interrupt(VulkanCmdBuffer& cb)
+void VulkanTimerQuery::Interrupt(VulkanInternalCommandBuffer& cb)
 {
 	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
 

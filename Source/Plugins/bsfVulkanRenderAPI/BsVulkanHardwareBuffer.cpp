@@ -24,8 +24,11 @@ VulkanBuffer::~VulkanBuffer()
 {
 	VulkanDevice& device = mOwner->GetDevice();
 
-	for(auto& entry : mViews)
-		vkDestroyBufferView(device.GetLogical(), entry.View, gVulkanAllocator);
+	{
+		Lock lock(mMutex);
+		for(auto& entry : mViews)
+			vkDestroyBufferView(device.GetLogical(), entry.View, gVulkanAllocator);
+	}
 
 	vkDestroyBuffer(device.GetLogical(), mBuffer, gVulkanAllocator);
 	device.FreeMemory(mAllocation);
@@ -71,7 +74,7 @@ void VulkanBuffer::Unmap(bool isFlushRequired)
 		device.FlushMemory(mAllocation, mMappedOffset, mMappedSize);
 }
 
-void VulkanBuffer::Update(VulkanCmdBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length)
+void VulkanBuffer::Update(VulkanInternalCommandBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length)
 {
 	vkCmdUpdateBuffer(cb->GetHandle(), mBuffer, offset, length, (uint32_t*)data);
 }
@@ -108,6 +111,8 @@ void VulkanBuffer::NotifyUnbound()
 
 VkBufferView VulkanBuffer::GetView(VkFormat format)
 {
+	Lock lock(mViewsMutex);
+
 	const auto iterFind = std::find_if(mViews.begin(), mViews.end(), [format](const ViewInfo& x)
 									   { return x.Format == format; });
 
@@ -136,6 +141,8 @@ VkBufferView VulkanBuffer::GetView(VkFormat format)
 
 void VulkanBuffer::FreeView(VkBufferView view)
 {
+	Lock lock(mViewsMutex);
+
 	const auto iterFind = std::find_if(mViews.begin(), mViews.end(), [view](const ViewInfo& x)
 									   { return x.View == view; });
 
@@ -152,6 +159,8 @@ void VulkanBuffer::FreeView(VkBufferView view)
 
 void VulkanBuffer::DestroyUnusedViews()
 {
+	Lock lock(mViewsMutex);
+
 	for(auto iter = mViews.begin(); iter != mViews.end();)
 	{
 		if(iter->UseCount == 0)
@@ -415,7 +424,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 				// Issue a barrier so :
 				//  - If reading: the device makes the written memory available for read (read-after-write hazard)
 				//  - If writing: ensures our writes properly overlap with GPU writes (write-after-write hazard)
-				transferCB->GetCb()->MemoryBarrier(buffer->GetHandle(), VK_ACCESS_SHADER_WRITE_BIT, accessFlags,
+				transferCB->GetInternalCommandBuffer()->MemoryBarrier(buffer->GetHandle(), VK_ACCESS_SHADER_WRITE_BIT, accessFlags,
 										  // Last stages that could have written to the buffer:
 										  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 			}
@@ -483,10 +492,10 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 		}
 
 		// Queue copy command
-		transferCB->GetCb()->CopyBufferToBuffer(buffer, mStagingBuffer, offset, 0, length);
+		transferCB->GetInternalCommandBuffer()->CopyBufferToBuffer(buffer, mStagingBuffer, offset, 0, length);
 
 		// Ensure data written to the staging buffer is visible
-		transferCB->GetCb()->MemoryBarrier(mStagingBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, accessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+		transferCB->GetInternalCommandBuffer()->MemoryBarrier(mStagingBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, accessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 
 		// Submit the command buffer and wait until it finishes
 		transferCB->Flush(true);
@@ -576,10 +585,10 @@ void VulkanHardwareBuffer::Unmap()
 					// Avoid copying original contents if the staging buffer completely covers it
 					if(mMappedOffset > 0 || mMappedSize != mSize)
 					{
-						transferCB->GetCb()->CopyBufferToBuffer(buffer, newBuffer, 0, 0, mSize);
+						transferCB->GetInternalCommandBuffer()->CopyBufferToBuffer(buffer, newBuffer, 0, 0, mSize);
 
 						// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-						transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+						transferCB->GetInternalCommandBuffer()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 					}
 
 					buffer->Destroy();
@@ -591,18 +600,18 @@ void VulkanHardwareBuffer::Unmap()
 			// Queue copy/update command
 			if(mStagingBuffer != nullptr)
 			{
-				transferCB->GetCb()->CopyBufferToBuffer(mStagingBuffer, buffer, 0, mMappedOffset, mMappedSize);
+				transferCB->GetInternalCommandBuffer()->CopyBufferToBuffer(mStagingBuffer, buffer, 0, mMappedOffset, mMappedSize);
 
 				// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-				transferCB->GetCb()->RegisterBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+				transferCB->GetInternalCommandBuffer()->RegisterBuffer(mStagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 			}
 			else // Staging memory
 			{
-				buffer->Update(transferCB->GetCb(), mStagingMemory, mMappedOffset, mMappedSize);
+				buffer->Update(transferCB->GetInternalCommandBuffer(), mStagingMemory, mMappedOffset, mMappedSize);
 			}
 
 			// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-			transferCB->GetCb()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
+			transferCB->GetInternalCommandBuffer()->RegisterBuffer(buffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 			// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 			// done automatically before next "normal" command buffer submission.
@@ -647,7 +656,7 @@ void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u3
 	VulkanHardwareBuffer& vkSource = static_cast<VulkanHardwareBuffer&>(srcBuffer);
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanCmdBuffer* vkCB;
+	VulkanInternalCommandBuffer* vkCB;
 	if(commandBuffer != nullptr)
 		vkCB = static_cast<VulkanCommandBuffer*>(commandBuffer.get())->GetInternal();
 	else

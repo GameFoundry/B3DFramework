@@ -8,6 +8,7 @@
 #include "Managers/BsVulkanQueryManager.h"
 
 #define VMA_IMPLEMENTATION
+#include "BsVulkanSubmitThread.h"
 #include "ThirdParty/vk_mem_alloc.h"
 
 using namespace bs;
@@ -185,7 +186,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 	VmaAllocatorCreateInfo allocatorCI = {};
 	allocatorCI.physicalDevice = device;
 	allocatorCI.device = mLogicalDevice;
-	allocatorCI.instance = GetVulkanRenderAPI().GetInstance();
+	allocatorCI.instance = GetVulkanRenderAPI().GetVkInstance();
 	allocatorCI.pAllocationCallbacks = gVulkanAllocator;
 
 	if(dedicatedAllocExt && getMemReqExt)
@@ -194,7 +195,8 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 	vmaCreateAllocator(&allocatorCI, &mAllocator);
 
 	// Create pools/managers
-	mCommandBufferPool = B3DNew<VulkanCmdBufferPool>(*this);
+	mCommandBufferPool = B3DNew<VulkanCommandBufferPool>(*this, VulkanThread::Render);
+
 	mQueryPool = B3DNew<VulkanQueryPool>(*this);
 	mDescriptorManager = B3DNew<VulkanDescriptorManager>(*this);
 	mResourceManager = B3DNew<VulkanResourceManager>(*this);
@@ -202,19 +204,6 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 
 VulkanDevice::~VulkanDevice()
 {
-	VkResult result = vkDeviceWaitIdle(mLogicalDevice);
-	B3D_ASSERT(result == VK_SUCCESS);
-
-	for(u32 i = 0; i < GQT_COUNT; i++)
-	{
-		u32 numQueues = (u32)mQueueInfos[i].Queues.size();
-		for(u32 j = 0; j < numQueues; j++)
-		{
-			mQueueInfos[i].Queues[j]->RefreshStates(true, true);
-			B3DDelete(mQueueInfos[i].Queues[j]);
-		}
-	}
-
 	B3DDelete(mDescriptorManager);
 	B3DDelete(mQueryPool);
 	B3DDelete(mCommandBufferPool);
@@ -226,30 +215,32 @@ VulkanDevice::~VulkanDevice()
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 }
 
-void VulkanDevice::WaitIdle()
+void VulkanDevice::WaitUntilIdle() const
 {
+	AssertIfNotVulkanSubmitThread();
+
 	VkResult result = vkDeviceWaitIdle(mLogicalDevice);
 	B3D_ASSERT(result == VK_SUCCESS);
-
-	RefreshStates(true);
 }
 
-void VulkanDevice::RefreshStates(bool forceWait)
+void VulkanDevice::DoForEachQueue(const std::function<void(VulkanQueue&)>&& callback) const
 {
-	for(u32 i = 0; i < GQT_COUNT; i++)
+	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
-		u32 numQueues = GetNumQueues((GpuQueueType)i);
-		for(u32 j = 0; j < numQueues; j++)
+		GpuQueueType queueType = (GpuQueueType)queueTypeIndex;
+
+		const u32 queueCount = GetQueueCountForType(queueType);
+		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			VulkanQueue* queue = GetQueue((GpuQueueType)i, j);
-			queue->RefreshStates(forceWait, false);
+			VulkanQueue* const queue = GetQueue(queueType, queueIndex);
+			callback(*queue);
 		}
 	}
 }
 
 u32 VulkanDevice::GetQueueMask(GpuQueueType type, u32 queueIdx) const
 {
-	u32 numQueues = GetNumQueues(type);
+	u32 numQueues = GetQueueCountForType(type);
 	if(numQueues == 0)
 		return 0;
 

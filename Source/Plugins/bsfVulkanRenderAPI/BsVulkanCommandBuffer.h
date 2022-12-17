@@ -41,36 +41,37 @@ namespace bs
 			VkSemaphore mSemaphore;
 		};
 
-		class VulkanCmdBuffer;
+		class VulkanInternalCommandBuffer;
 
 		/** Pool that allocates and distributes Vulkan command buffers. */
-		class VulkanCmdBufferPool
+		class VulkanCommandBufferPool
 		{
 		public:
-			VulkanCmdBufferPool(VulkanDevice& device);
-			~VulkanCmdBufferPool();
+			VulkanCommandBufferPool(VulkanDevice& device, VulkanThread ownerThread);
+			~VulkanCommandBufferPool();
 
 			/**
 			 * Attempts to find a free command buffer, or creates a new one if not found. Caller must guarantee the provided
 			 * queue family is valid.
 			 */
-			VulkanCmdBuffer* GetBuffer(u32 queueFamily, bool secondary);
+			VulkanInternalCommandBuffer* GetBuffer(u32 queueFamily, bool secondary);
 
 		private:
 			/** Command buffer pool and related information. */
 			struct PoolInfo
 			{
 				VkCommandPool Pool = VK_NULL_HANDLE;
-				VulkanCmdBuffer* Buffers[BS_MAX_VULKAN_CB_PER_QUEUE_FAMILY];
+				VulkanInternalCommandBuffer* Buffers[BS_MAX_VULKAN_CB_PER_QUEUE_FAMILY];
 				u32 QueueFamily = -1;
 			};
 
 			/** Creates a new command buffer. */
-			VulkanCmdBuffer* CreateBuffer(u32 queueFamily, bool secondary);
+			VulkanInternalCommandBuffer* CreateBuffer(u32 queueFamily, bool secondary);
 
 			VulkanDevice& mDevice;
 			UnorderedMap<u32, PoolInfo> mPools;
 			u32 mNextId = 1;
+			VulkanThread mOwnerThread;
 		};
 
 		/** Determines where are the current descriptor sets bound to. */
@@ -112,7 +113,7 @@ namespace bs
 		 * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a
 		 * higher level class, and it allows for re-use by internally using multiple low-level command buffers.
 		 */
-		class VulkanCmdBuffer
+		class VulkanInternalCommandBuffer
 		{
 			/** Possible states a command buffer can be in. */
 			enum class State
@@ -132,8 +133,8 @@ namespace bs
 			};
 
 		public:
-			VulkanCmdBuffer(VulkanDevice& device, u32 id, VkCommandPool pool, u32 queueFamily, bool secondary);
-			~VulkanCmdBuffer();
+			VulkanInternalCommandBuffer(VulkanDevice& device, VulkanThread ownerThread, u32 id, VkCommandPool pool, u32 queueFamily, bool secondary);
+			~VulkanInternalCommandBuffer();
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
@@ -143,6 +144,9 @@ namespace bs
 
 			/** Returns the index of the device this command buffer will execute on. */
 			u32 GetDeviceIdx() const;
+
+			/** Returns the thread that the command buffer is allowed to be used on. */
+			VulkanThread GetOwnerThread() const { return mOwnerThread; }
 
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			void SetName(const StringView& name);
@@ -163,8 +167,13 @@ namespace bs
 			 * @param	syncMask	Mask that controls which other command buffers does this command buffer depend upon
 			 *						(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
 			 * @return				Sequential index of the submit on the queue, or ~0u if nothing was submitted.
+			 *
+			 * @note	Submit thread only.
 			 */
 			u32 Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask);
+
+			/** Called when the command buffer is about to be sent to the submit queue for submit. */
+			void NotifyWillQueueForSubmit();
 
 			/** Returns the handle to the internal Vulkan command buffer wrapped by this object. */
 			VkCommandBuffer GetHandle() const { return mCmdBuffer; }
@@ -217,8 +226,10 @@ namespace bs
 			/**
 			 * Checks is the command buffer still executing on the GPU. Internal state will be updated if execution finishes.
 			 *
-			 * @param[in]	block	If true, the system will block until the command buffer is done executing.
-			 * @return				True if execution has finished (or was never submitted), false if still running.
+			 * @param	block	If true, the system will block until the command buffer is done executing.
+			 * @return			True if execution has finished (or was never submitted), false if still running.
+			 *
+			 * @note	Submit thread only.
 			 */
 			bool UpdateExecutionStatus(bool block);
 
@@ -477,7 +488,7 @@ namespace bs
 			VkImageLayout GetCurrentLayout(VulkanImage* image, const VkImageSubresourceRange& range, bool inRenderPass);
 
 		private:
-			friend class VulkanCmdBufferPool;
+			friend class VulkanCommandBufferPool;
 			friend class VulkanCommandBuffer;
 			friend class VulkanQueue;
 			friend class VulkanHardwareBuffer;
@@ -711,6 +722,7 @@ namespace bs
 			VkCommandPool mPool;
 			VkCommandBuffer mCmdBuffer;
 			VkFence mFence;
+			VulkanThread mOwnerThread = VulkanThread::Undefined;
 
 			VulkanSemaphore* mIntraQueueSemaphore = nullptr;
 			VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES]{};
@@ -791,9 +803,8 @@ namespace bs
 			 *
 			 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
 			 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
-			 * @return					Sequential index of the submit on the queue, or ~0u if nothing was submitted.
 			 */
-			u32 Submit(u32 syncMask);
+			void Submit(u32 syncMask);
 
 			/** Called by the backend when we have been notified the command buffer has finished executing on the GPU. */
 			void NotifyExecutionCompleted();
@@ -803,7 +814,7 @@ namespace bs
 			 *
 			 * @note	This buffer will change after a submit() call.
 			 */
-			VulkanCmdBuffer* GetInternal() const { return mBuffer; }
+			VulkanInternalCommandBuffer* GetInternal() const { return mBuffer; }
 
 			void SetName(const StringView& name) override;
 			CommandBufferState GetState() const override;
@@ -820,10 +831,11 @@ namespace bs
 			 */
 			void AcquireNewBuffer();
 
-			VulkanCmdBuffer* mBuffer;
+			VulkanInternalCommandBuffer* mBuffer;
 			VulkanDevice& mDevice;
 			VulkanQueue* mQueue;
 			u32 mIdMask;
+			bool mIsCompleted = false;
 		};
 
 		/** @} */

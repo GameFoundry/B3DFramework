@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanResource.h"
+#include "BsVulkanSubmitThread.h"
 #include "Image/BsTexture.h"
 
 namespace bs
@@ -164,6 +165,8 @@ namespace bs
 			 * Generates a set of image barriers that are grouped depending on the current layout of individual sub-resources
 			 * in the specified range. The method will try to reduce the number of generated barriers by grouping as many
 			 * sub-resources as possibly.
+			 *
+			 * @note	Submit thread only.
 			 */
 			void GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers);
 
@@ -211,6 +214,7 @@ namespace bs
 
 			mutable VkDeviceSize mMappedOffset = 0;
 			mutable VkDeviceSize mMappedSize = 0;
+			mutable Mutex mViewsMutex;
 		};
 
 		/** Represents a single sub-resource (face & mip level) of a larger image object. */
@@ -223,11 +227,27 @@ namespace bs
 			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
 			 * different command buffers, and will only be updated only after command buffer submit() call. In short this means
 			 * you should only care about this value on the core thread.
+			 *
+			 * @note	Submit thread only.
 			 */
-			VkImageLayout GetLayout() const { return mLayout; }
+			VkImageLayout GetLayout() const
+			{
+				AssertIfNotVulkanSubmitThread();
 
-			/** Notifies the resource that the current subresource layout has changed. */
-			void SetLayout(VkImageLayout layout) { mLayout = layout; }
+				return mLayout;
+			}
+
+			/**
+			 * Notifies the resource that the current subresource layout has changed.
+			 *
+			 * @note	Submit thread only.
+			 */
+			void SetLayout(VkImageLayout layout)
+			{
+				AssertIfNotVulkanSubmitThread();
+
+				mLayout = layout;
+			}
 
 		private:
 			VkImageLayout mLayout;
@@ -280,13 +300,13 @@ namespace bs
 			 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the
 			 * provided image matches the current texture properties (i.e. num faces, mips, size).
 			 */
-			void CopyImageToImage(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
+			void CopyImageToImage(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
 
 			/**
 			 * Copies a single subresource from the source image into the destination buffer. Caller must ensure the destination buffer provides adequate
 			 * space for the texture data. Set @p isBufferReadOnly to true if the CPU only needs to read from the destination buffer, or false if it also needs to write to it.
 			 */
-			void CopyImageSubresourceToBuffer(VulkanCmdBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
+			void CopyImageSubresourceToBuffer(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
 
 			/** Returns pitch information for a particular image subresource. */
 			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;

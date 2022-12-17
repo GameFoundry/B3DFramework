@@ -24,10 +24,10 @@ namespace bs
 
 		bool IsValidThread(ThreadId ownerThread) const
 		{
-			return B3D_CURRENT_THREAD_ID == ownerThread;
+			return true;
 		}
 
-		LockGuard Lock();
+		LockGuard Lock() { return LockGuard(); }
 	};
 
 	/**
@@ -141,6 +141,9 @@ namespace bs
 		 *			used on multiple threads.
 		 */
 		ThreadId GetThreadId() const { return mMyThreadId; }
+
+		/** Sets the thread the command queue is allowed to be used on. */
+		void SetThreadId(ThreadId newThreadId) { mMyThreadId = newThreadId; }
 
 		/**
 		 * Executes all provided commands one by one in order. To get the commands you should call flush().

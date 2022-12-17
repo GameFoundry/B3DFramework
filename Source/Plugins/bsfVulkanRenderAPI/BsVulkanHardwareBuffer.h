@@ -71,7 +71,7 @@ namespace bs
 			 * the destination buffer. Caller must ensure the provided offset and length are within valid bounds of
 			 * both buffers. Caller must ensure the offset and size is a multiple of 4, and size is equal to or less then 65536.
 			 */
-			void Update(VulkanCmdBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length);
+			void Update(VulkanInternalCommandBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
 			void NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags) override;
 			void NotifyUnbound() override;
@@ -119,6 +119,7 @@ namespace bs
 
 			mutable VkDeviceSize mMappedOffset = 0;
 			mutable VkDeviceSize mMappedSize = 0;
+			mutable Mutex mViewsMutex;
 		};
 
 		/**	Class containing common functionality for all Vulkan hardware buffers. */

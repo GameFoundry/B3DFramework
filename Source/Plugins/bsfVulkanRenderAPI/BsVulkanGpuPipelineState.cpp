@@ -341,7 +341,7 @@ VkPipelineLayout VulkanGraphicsPipelineState::GetPipelineLayout(u32 deviceIdx) c
 	return mPerDeviceData[deviceIdx].PipelineLayout;
 }
 
-void VulkanGraphicsPipelineState::RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer)
+void VulkanGraphicsPipelineState::RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer)
 {
 	u32 deviceIdx = cmdBuffer->GetDeviceIdx();
 
@@ -585,7 +585,7 @@ VkPipelineLayout VulkanComputePipelineState::GetPipelineLayout(u32 deviceIndex) 
 	return mPerDeviceData[deviceIndex].PipelineLayout;
 }
 
-void VulkanComputePipelineState::RegisterPipelineResources(VulkanCmdBuffer* cmdBuffer)
+void VulkanComputePipelineState::RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer)
 {
 	u32 deviceIdx = cmdBuffer->GetDeviceIdx();
 

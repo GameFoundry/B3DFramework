@@ -33,21 +33,32 @@ namespace bs
 			/**
 			 * Checks if anything is currently executing on this queue.
 			 *
-			 * @note	This status is only updated after a VulkanCommandBufferManager::RefreshStates() call.
+			 * @note	This status is only updated after RefreshCompletionStateOnSubmitThread has been called.
+			 * @note	Submit thread only.
 			 */
 			bool IsExecuting() const;
 
-			/** Submits the provided command buffer on the queue. Returns a sequential index of the submit on the queue, or ~0u if nothing was submitted. */
-			u32 Submit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			/**
+			 * Submits the provided command buffer on the queue. Returns a sequential index of the submit on the queue, or ~0u if nothing was submitted.
+			 *
+			 * @note	Submit thread only.
+			 */
+			u32 Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
 
 			/**
 			 * Stores information about a submit internally, but doesn't actually execute it. The intended use is to queue
 			 * multiple submits and execute them all at once using submitQueued(), ensuring better performance than queuing them
 			 * all individually.
+			 *
+			 * @note	Submit thread only.
 			 */
-			void QueueSubmit(VulkanCmdBuffer* cmdBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			void QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
 
-			/** Submits all previously queued commands buffers, as recorded by QueueSubmit(). Returns a sequential index of the last submitted buffer on the queue, or ~0u if nothing was submitted.*/
+			/**
+			 * Submits all previously queued commands buffers, as recorded by QueueSubmit(). Returns a sequential index of the last submitted buffer on the queue, or ~0u if nothing was submitted.
+			 *
+			 * @note	Submit thread only.
+			 */
 			u32 SubmitQueued();
 
 			/**
@@ -58,32 +69,50 @@ namespace bs
 			 * @param	waitSemaphores		Optional semaphores to wait on before presenting the queue.
 			 * @param	semaphoresCount		Number of semaphores in the @p semaphores array.
 			 * @return						Return code of the present operation.
+			 *
+			 * @note	Submit thread only.
 			 */
 			VkResult Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
 
-			/** Blocks the calling thread until all operations on the queue finish. */
-			void WaitIdle() const;
+			/**
+			 * Blocks the calling thread until all operations on the queue finish.
+			 *
+			 * @note	Submit thread only.
+			 */
+			void WaitUntilIdle() const;
 
 			/**
-			 * Checks if any of the active command buffers finished executing on the queue and updates their states
-			 * accordingly.
+			 * Checks if any of the active command buffers finished executing on the queue and updates their states accordingly. Note that you must follow this call
+			 * with a call to RefreshCompletionStateOnRenderThread() in order for the states to correctly update if the command buffers are owned by the render thread.
 			 *
 			 * @param	forceWait				Set to true if the system should wait until all command buffers finish executing.
 			 * @param	queueEmpty				Set to true if the caller guarantees the queue will be empty (e.g. on shutdown). This
 			 *									allows the system to free all needed resources.
 			 * @param	lastSubmitIndex			Index of the last submitted command buffer which should be checked. If ~0u is provided, all submitted command buffers will be checked.
+			 *
+			 * @note	Submit thread only.
 			 */
-			void RefreshStates(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
+			void RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
 
-			/** Returns the last command buffer that was submitted on this queue. */
-			VulkanCmdBuffer* GetLastCommandBuffer() const { return mLastCommandBuffer; }
+			/**
+			 * Refreshes states of the command buffers that were marked as completed by the previous call to RefreshCompletionStateOnSubmitThread. This will mark as
+			 * resources as done being used by the command buffer and reset the command buffer.
+			 */
+			void RefreshCompletionStateOnRenderThread();
+
+			/**
+			 * Returns the last command buffer that was submitted on this queue.
+			 *
+			 * @note	Submit thread only.
+			 */
+			VulkanInternalCommandBuffer* GetLastCommandBuffer() const { return mLastSubmittedCommandBuffer; }
 
 		protected:
 			/**
 			 * Generates a submit-info structure that can be used for submitting the command buffer to the queue, but doesn't
 			 * perform the actual submit.
 			 */
-			void GetSubmitInfo(VkCommandBuffer* cmdBuffer, VkSemaphore* signalSemaphores, u32 numSignalSemaphores, VkSemaphore* waitSemaphores, u32 numWaitSemaphores, VkSubmitInfo& submitInfo);
+			void GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* signalSemaphores, u32 signalSemaphoreCount, VkSemaphore* waitSemaphores, u32 waitSemaphoreCount, VkSubmitInfo& submitInfo);
 
 			/**
 			 * Prepares a list of semaphores that can be provided to submit or present calls. *
@@ -95,17 +124,32 @@ namespace bs
 			 */
 			void PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, u32& semaphoresCount);
 
-			/** Information about a single submitted command buffer. */
-			struct SubmitInfo
+			/** Information about one or multiple submitted command buffers on a queue. */
+			struct QueueSubmissionInformation
 			{
-				SubmitInfo(VulkanCmdBuffer* cmdBuffer, u32 submitIdx, u32 numSemaphores, u32 numCommandBuffers)
-					: CmdBuffer(cmdBuffer), SubmitIdx(submitIdx), SemaphoreCount(numSemaphores), CommandBufferCount(numCommandBuffers)
+				QueueSubmissionInformation(VulkanInternalCommandBuffer* lastSubmittedCommandBuffer, u32 submitIndex, u32 commandBufferCount)
+					: LastSubmittedCommandBuffer(lastSubmittedCommandBuffer), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
 				{}
 
-				VulkanCmdBuffer* CmdBuffer;
-				u32 SubmitIdx;
-				u32 SemaphoreCount;
+				QueueSubmissionInformation(VulkanSwapChain* swapChain, u32 submitIndex, u32 commandBufferCount)
+					: PresentOperationSwapChain(swapChain), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
+				{}
+
+				VulkanInternalCommandBuffer* LastSubmittedCommandBuffer = nullptr; /**< Last command buffer that was submitted, if the submit operation had any command buffers. */
+				VulkanSwapChain* PresentOperationSwapChain = nullptr; /**< Swap chain in case the submit operation was a present operation. */
+				u32 SubmitIndex;
 				u32 CommandBufferCount;
+			};
+
+			/** Information about a single submitted command buffer. */
+			struct QueueSubmissionEntryInformation
+			{
+				QueueSubmissionEntryInformation(VulkanInternalCommandBuffer* commandBuffer, u32 semaphoreCount)
+					: CommandBuffer(commandBuffer), SemaphoreCount(semaphoreCount)
+				{}
+
+				VulkanInternalCommandBuffer* CommandBuffer; /**< Submitted command buffer. If null, the submission is a present call. */
+				u32 SemaphoreCount;
 			};
 
 			VulkanDevice& mDevice;
@@ -114,17 +158,24 @@ namespace bs
 			u32 mIndex;
 			VkPipelineStageFlags mSubmitDstWaitMask[BS_MAX_UNIQUE_QUEUES];
 
-			Vector<SubmitInfo> mQueuedBuffers;
+			Vector<QueueSubmissionEntryInformation> mQueuedCommandBuffers;
 			Vector<VulkanSemaphore*> mQueuedSemaphores;
 
-			List<SubmitInfo> mActiveSubmissions;
-			Queue<VulkanCmdBuffer*> mActiveBuffers;
+			Queue<QueueSubmissionEntryInformation> mActiveCommandBuffers;
 			Queue<VulkanSemaphore*> mActiveSemaphores;
-			VulkanCmdBuffer* mLastCommandBuffer = nullptr;
+
+			List<QueueSubmissionInformation> mActiveSubmissions;
+
+			VulkanInternalCommandBuffer* mLastSubmittedCommandBuffer = nullptr;
 			bool mLastCBSemaphoreUsed = false;
 			u32 mNextSubmitIndex = 1;
 
 			Vector<VkSemaphore> mSemaphoresTemp;
+
+			Mutex mMutex;
+			Vector<VulkanInternalCommandBuffer*> mCommandBuffersToResetOnRenderThread;
+			Vector<VulkanSemaphore*> mSemaphoresToReleaseOnRenderThread;
+			Vector<VulkanSwapChain*> mPresentedSwapChainsToUnbindOnRenderThread;
 		};
 
 		/** @} */

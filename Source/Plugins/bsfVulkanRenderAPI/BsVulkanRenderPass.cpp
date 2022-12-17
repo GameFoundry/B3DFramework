@@ -203,6 +203,8 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 
 VulkanRenderPass::~VulkanRenderPass()
 {
+	Lock lock(mMutex);
+
 	vkDestroyRenderPass(mDevice, mDefault, gVulkanAllocator);
 
 	for(auto& entry : mVariants)
@@ -296,6 +298,7 @@ VkRenderPass VulkanRenderPass::GetVkRenderPass(RenderSurfaceMask loadMask, Rende
 	if(loadMask == RT_NONE && readMask == RT_NONE && clearMask == RT_NONE)
 		return mDefault;
 
+	Lock lock(mMutex);
 	VariantKey key(loadMask, readMask, clearMask);
 	auto iterFind = mVariants.find(key);
 	if(iterFind != mVariants.end())

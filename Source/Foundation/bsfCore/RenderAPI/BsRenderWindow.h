@@ -224,6 +224,17 @@ namespace bs
 		 */
 		virtual void SetWindowed(u32 width, u32 height);
 
+		/**
+		 * Swaps the frame buffers to display the next frame.
+		 *
+		 * @param[in]	syncMask	Optional synchronization mask that determines for which queues should the system wait
+		 *							before performing the swap buffer operation. By default the system waits for all queues.
+		 *							However if certain queues are performing non-rendering operations, or operations not
+		 *							related to this render target, you can exclude them from the sync mask for potentially
+		 *							better performance. You can use CommandSyncMask to generate a valid sync mask.
+		 */
+		virtual void SwapBuffers(u32 syncMask = 0xFFFFFFFF) {}
+
 		/**	Retrieves a core implementation of a render window usable only from the core thread. */
 		SPtr<ct::RenderWindow> GetCore() const;
 
@@ -370,6 +381,9 @@ namespace bs
 
 			/** Method that triggers whenever the window changes size or position. */
 			virtual void WindowMovedOrResizedInternal() {}
+
+			/** Triggered when the window swap chain has been recreated. */
+			mutable Event<void()> OnSwapChainDidRebuild;
 
 		protected:
 			friend class bs::RenderWindow;

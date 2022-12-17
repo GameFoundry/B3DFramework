@@ -42,6 +42,8 @@ namespace bs
 			void BeginLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void EndLabel(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void InsertLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void BeginFrame() override;
+			void EndFrame() override;
 			void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) override;
 			SPtr<CommandBuffer> GetMainCommandBuffer() const override;
 			void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
@@ -52,11 +54,8 @@ namespace bs
 			 * @{
 			 */
 
-			/** Submits any queued swap buffer operations for execution. */
-			void SubmitQueuedSwapOperations();
-
 			/** Returns the internal Vulkan instance object. */
-			VkInstance GetInstance() const { return mInstance; }
+			VkInstance GetVkInstance() const { return mInstance; }
 
 			/** Returns a Vulkan device at the specified index. Must be in range [0, GetNumDevicesInternal()) */
 			SPtr<VulkanDevice> GetDevice(u32 idx) const { return mDevices[idx]; }
@@ -112,8 +111,6 @@ namespace bs
 
 			SPtr<VulkanCommandBuffer> mMainCommandBuffer;
 			Vector<SPtr<CommandBuffer>> mSubmittedCommandBuffers;
-
-			Vector<QueuedSwapOperation> mQueuedSwapOperations;
 
 			VulkanGLSLProgramFactory* mGLSLFactory;
 
