@@ -78,6 +78,9 @@ static const bool kEnableVulkanValidationLayers = B3D_DEBUG;
 /** Enabled Vulkan debug labels for objects. */
 static const bool kEnableVulkanDebugLabels = B3D_DEBUG;
 
+/** If specified, allows you to select which is the primary GPU to use. If ~0u system will pick the best GPU according to other options. */
+static const u32 kPreferredGPUIndex = ~0u;
+
 }} // namespace bs::ct
 
 using namespace bs;
@@ -378,12 +381,12 @@ void VulkanRenderAPI::Initialize()
 #endif
 
 	// Enumerate all devices
-	u32 phyicalDeviceCount = 0;
-	result = vkEnumeratePhysicalDevices(mInstance, &phyicalDeviceCount, nullptr);
+	u32 physicalDeviceCount = 0;
+	result = vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	Vector<VkPhysicalDevice> physicalDevices(phyicalDeviceCount);
-	result = vkEnumeratePhysicalDevices(mInstance, &phyicalDeviceCount, physicalDevices.data());
+	Vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+	result = vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices.data());
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	// For now always initialize a single device, as otherwise we run into problems with RenderDoc
@@ -394,28 +397,34 @@ void VulkanRenderAPI::Initialize()
 		mDevices[i] = B3DMakeShared<VulkanDevice>(physicalDevices[i], i);
 
 	// Find primary device
-	uint32_t primaryDeviceIndex = 0;
-	for(uint32_t i = 0; i < phyicalDeviceCount; i++)
-	{
-		VkPhysicalDeviceProperties deviceProperties;
-		vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
+	uint32_t primaryDeviceIndex = ~0u;
 
-		const bool isPrimary = kVulkanPreferIntegratedGPU ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-		if(isPrimary)
+	if(kPreferredGPUIndex != ~0u && kPreferredGPUIndex < physicalDeviceCount)
+		primaryDeviceIndex = kPreferredGPUIndex;
+
+	if(primaryDeviceIndex == ~0u)
+	{
+		for(uint32_t deviceIndex = 0; deviceIndex < physicalDeviceCount; deviceIndex++)
 		{
-			primaryDeviceIndex = i;
+			VkPhysicalDeviceProperties deviceProperties;
+			vkGetPhysicalDeviceProperties(physicalDevices[deviceIndex], &deviceProperties);
+
+			const bool isPrimary = kVulkanPreferIntegratedGPU ? deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+
+			if(isPrimary)
+			{
+				primaryDeviceIndex = deviceIndex;
+				break;
+			}
 		}
+
+		if(primaryDeviceIndex == ~0u)
+			primaryDeviceIndex = 0;
 	}
 
 	mDevices[0] = B3DMakeShared<VulkanDevice>(physicalDevices[primaryDeviceIndex], 0);
 	mDevices[0]->SetIsPrimary();
 	mPrimaryDevices.push_back(mDevices[0]);
-
-	if(mPrimaryDevices.empty())
-	{
-		mDevices[0]->SetIsPrimary();
-		mPrimaryDevices.push_back(mDevices[0]);
-	}
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
@@ -787,6 +796,7 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 	MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(target.get());
 #endif
 
+	window->SwapBuffers();
 	swapChain = window->GetSwapChain();
 
 	VulkanQueue* const presentQueue = GetPresentDevice()->GetQueue(GQT_GRAPHICS, 0);

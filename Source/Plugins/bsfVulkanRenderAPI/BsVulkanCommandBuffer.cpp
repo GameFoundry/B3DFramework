@@ -1505,13 +1505,7 @@ void VulkanInternalCommandBuffer::BindDynamicStates(bool forceAll)
 {
 	if(mViewportRequiresBind || forceAll)
 	{
-		VkViewport viewport;
-		viewport.x = mNormalizedViewportArea.X * mFramebuffer->GetWidth();
-		viewport.y = mNormalizedViewportArea.Y * mFramebuffer->GetHeight();
-		viewport.width = mNormalizedViewportArea.Width * mFramebuffer->GetWidth();
-		viewport.height = mNormalizedViewportArea.Height * mFramebuffer->GetHeight();
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
+		const VkViewport viewport = VulkanUtility::ToVulkanViewport(GetViewportArea(), 0.0f, 1.0f);
 
 		vkCmdSetViewport(mCmdBuffer, 0, 1, &viewport);
 		mViewportRequiresBind = false;
@@ -2947,10 +2941,10 @@ RenderSurfaceMask VulkanInternalCommandBuffer::GetFramebufferReadMask()
 Rect2I VulkanInternalCommandBuffer::GetViewportArea() const
 {
 	Rect2I area;
-	area.X = Math::RoundToI32(mNormalizedViewportArea.X * (float)mFramebuffer->GetWidth());
-	area.Y = Math::RoundToI32(mNormalizedViewportArea.Y * (float)mFramebuffer->GetHeight());
-	area.Width = Math::RoundToU32(mNormalizedViewportArea.Width * (float)mFramebuffer->GetWidth());
-	area.Height = Math::RoundToU32(mNormalizedViewportArea.Height * (float)mFramebuffer->GetHeight());
+	area.X = (i32)Math::Round(mNormalizedViewportArea.X * (float)mFramebuffer->GetWidth());
+	area.Y = (i32)Math::Round(mNormalizedViewportArea.Y * (float)mFramebuffer->GetHeight());
+	area.Width = (u32)Math::Round(mNormalizedViewportArea.Width * (float)mFramebuffer->GetWidth());
+	area.Height = (u32)Math::Round(mNormalizedViewportArea.Height * (float)mFramebuffer->GetHeight());
 
 	area.X = Math::Clamp(area.X, 0, std::max(0, (i32)mFramebuffer->GetWidth() - 1));
 	area.Y = Math::Clamp(area.Y, 0, std::max(0, (i32)mFramebuffer->GetHeight() - 1));

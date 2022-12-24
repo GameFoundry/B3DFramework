@@ -644,6 +644,19 @@ VkRect2D VulkanUtility::ToVulkanRect(const Rect2I& input)
 	return output;
 }
 
+VkViewport VulkanUtility::ToVulkanViewport(const Rect2I& input, float minDepth, float maxDepth)
+{
+	VkViewport output;
+	output.x = (float)input.X;
+	output.y = (float)input.Y;
+	output.width = (float)input.Width;
+	output.height = (float)input.Height;
+	output.minDepth = minDepth;
+	output.maxDepth = maxDepth;
+	
+	return output;
+}
+
 bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags)
 {
 	VulkanDevice* device = rapi.GetDevice(idx).get();

@@ -265,6 +265,13 @@ namespace bs
 			 */
 			VulkanImage* GetResource(u32 deviceIdx) const { return mImages[deviceIdx]; }
 
+			/** Returns the internal format of the texture when used on the specified device. This may differ from the requested format if the device doesn't support it. */
+			PixelFormat GetInternalFormat(u32 deviceIndex) const
+			{
+				B3D_ASSERT(deviceIndex < B3DSize(mInternalFormats));
+				return mInternalFormats[deviceIndex];
+			}
+
 			void SetName(const StringView& name) override;
 
 		protected:

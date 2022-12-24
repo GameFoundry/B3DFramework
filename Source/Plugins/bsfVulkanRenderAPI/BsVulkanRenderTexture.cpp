@@ -34,13 +34,14 @@ void VulkanRenderTexture::Initialize()
 	framebufferInformation.Width = mProperties.Width;
 	framebufferInformation.Height = mProperties.Height;
 
-	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++i)
+	const SPtr<VulkanDevice>& device = GetVulkanRenderAPI().GetDevice(mDeviceIdx);
+	for(u32 renderTargetIndex = 0; renderTargetIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++renderTargetIndex)
 	{
-		if(mColorSurfaces[i] == nullptr)
+		if(mColorSurfaces[renderTargetIndex] == nullptr)
 			continue;
 
-		const SPtr<TextureView>& view = mColorSurfaces[i];
-		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.ColorSurfaces[i].Texture.get());
+		const SPtr<TextureView>& view = mColorSurfaces[renderTargetIndex];
+		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.ColorSurfaces[renderTargetIndex].Texture.get());
 
 		VulkanImage* image = texture->GetResource(mDeviceIdx);
 		if(image == nullptr)
@@ -67,7 +68,7 @@ void VulkanRenderTexture::Initialize()
 			surface.Face = 0;
 			surface.FaceCount = layerCount;
 
-			framebufferInformation.Color[i].BaseLayer = 0;
+			framebufferInformation.Color[renderTargetIndex].BaseLayer = 0;
 			framebufferInformation.Layers = layerCount;
 		}
 		else
@@ -75,16 +76,20 @@ void VulkanRenderTexture::Initialize()
 			surface.Face = viewSurface.Face;
 			surface.FaceCount = viewExplicitLayerCount;
 
-			framebufferInformation.Color[i].BaseLayer = viewSurface.Face;
+			framebufferInformation.Color[renderTargetIndex].BaseLayer = viewSurface.Face;
 			framebufferInformation.Layers = viewExplicitLayerCount;
 		}
 
-		framebufferInformation.Color[i].Image = image;
-		framebufferInformation.Color[i].Surface = surface;
+		framebufferInformation.Color[renderTargetIndex].Image = image;
+		framebufferInformation.Color[renderTargetIndex].Surface = surface;
 
-		renderPassInformation.ColorAttachments[i].IsEnabled = true;
-		renderPassInformation.ColorAttachments[i].IsShaderReadAllowed = image->IsShaderReadAllowed();
-		renderPassInformation.ColorAttachments[i].Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
+		renderPassInformation.ColorAttachments[renderTargetIndex].IsEnabled = true;
+		renderPassInformation.ColorAttachments[renderTargetIndex].IsShaderReadAllowed = image->IsShaderReadAllowed();
+
+		const TextureProperties& textureProperties = texture->GetProperties();
+		const PixelFormat internalFormat = texture->GetInternalFormat(mDeviceIdx);
+
+		renderPassInformation.ColorAttachments[renderTargetIndex].Format = VulkanUtility::GetPixelFormat(internalFormat, textureProperties.IsHardwareGammaEnabled());
 	}
 
 	if(mDepthStencilSurface != nullptr)
@@ -127,12 +132,13 @@ void VulkanRenderTexture::Initialize()
 
 			renderPassInformation.DepthAttachment.IsEnabled = true;
 			renderPassInformation.DepthAttachment.IsShaderReadAllowed = image->IsShaderReadAllowed();
-			renderPassInformation.DepthAttachment.Format = VulkanUtility::GetPixelFormat(texture->GetProperties().GetFormat(), texture->GetProperties().IsHardwareGammaEnabled());
+
+			const TextureProperties& textureProperties = texture->GetProperties();
+			const PixelFormat internalFormat = texture->GetInternalFormat(mDeviceIdx);
+
+			renderPassInformation.DepthAttachment.Format = VulkanUtility::GetPixelFormat(internalFormat, textureProperties.IsHardwareGammaEnabled());
 		}
 	}
-
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	SPtr<VulkanDevice> device = rapi.GetDevice(mDeviceIdx);
 
 	mFramebuffer = VulkanFramebufferCache::Instance().FindOrCreateFramebuffer(*device, framebufferInformation, renderPassInformation);
 }

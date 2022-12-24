@@ -465,6 +465,14 @@ void Win32RenderWindow::SetVSync(bool enabled, u32 interval)
 	bs::RenderWindowManager::Instance().NotifySyncDataDirty(this);
 }
 
+void Win32RenderWindow::SwapBuffers()
+{
+	THROW_IF_NOT_CORE_THREAD
+
+	if(mShowOnSwap)
+		SetHidden(false);
+}
+
 HWND Win32RenderWindow::GetWindowHandleInternal() const
 {
 	return mWindow->GetHWnd();

@@ -78,8 +78,11 @@ namespace bs
 			/** Converts a set of shader stage flags into a pipeline stage flags set containing the relevant shader stages. */
 			static VkPipelineStageFlags ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags);
 
-			/** Converts the engine rectangle into the Vulkan rectangle. */
+			/** Converts the engine rectangle into a VkRect2D. */
 			static VkRect2D ToVulkanRect(const Rect2I& input);
+
+			/** Converts the engine rectangle into a VkViewport. */
+			static VkViewport ToVulkanViewport(const Rect2I& input, float minDepth, float maxDepth);
 
 			/**
 			 * Populates the provided array with Vulkan devices that correspond to provided flags. Sets null in unused slots.
