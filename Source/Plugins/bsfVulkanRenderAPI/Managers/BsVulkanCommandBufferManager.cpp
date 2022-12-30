@@ -61,7 +61,7 @@ void VulkanTransferBuffer::Flush(bool wait)
 }
 
 VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
-	: mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetNumDevices())
+	: mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetDeviceCount())
 {
 	mDeviceData = B3DNewMultiple<PerDeviceData>(mNumDevices);
 	for(u32 i = 0; i < mNumDevices; i++)

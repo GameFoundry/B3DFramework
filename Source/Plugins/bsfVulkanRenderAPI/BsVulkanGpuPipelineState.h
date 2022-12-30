@@ -50,9 +50,6 @@ namespace bs
 		public:
 			~VulkanGraphicsPipelineState();
 
-			/** Checks does the pipeline enable scissor tests. */
-			bool IsScissorEnabled() const { return mScissorEnabled; }
-
 			/** Returns the vertex input declaration from the vertex GPU program bound on the pipeline. */
 			SPtr<VertexDeclaration> GetInputDeclaration() const { return mVertexDecl; }
 
@@ -151,7 +148,6 @@ namespace bs
 			VkPipelineDynamicStateCreateInfo mDynamicStateInfo;
 			VkDynamicState mDynamicStates[3];
 			VkGraphicsPipelineCreateInfo mPipelineInfo;
-			bool mScissorEnabled;
 			SPtr<VertexDeclaration> mVertexDecl;
 
 			GpuDeviceFlags mDeviceMask;

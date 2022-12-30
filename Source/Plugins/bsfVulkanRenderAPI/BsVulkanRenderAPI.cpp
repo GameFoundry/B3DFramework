@@ -574,7 +574,7 @@ void VulkanRenderAPI::DestroyCore()
 
 void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetPipelineState(pipelineState);
@@ -584,7 +584,7 @@ void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GraphicsPipelineState>& pip
 
 void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineState, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetPipelineState(pipelineState);
@@ -594,7 +594,7 @@ void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipel
 
 void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	u32 globalQueueIdx = CommandSyncMask::GetGlobalQueueIdx(cb->GetType(), cb->GetQueueIdx());
@@ -622,7 +622,7 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<
 
 void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetNormalizedViewportArea(vp);
@@ -630,7 +630,7 @@ void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& co
 
 void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetVertexBuffers(index, buffers, numBuffers);
@@ -640,7 +640,7 @@ void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u
 
 void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetIndexBuffer(buffer);
@@ -650,7 +650,7 @@ void VulkanRenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr
 
 void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetVertexDeclaration(vertexDeclaration);
@@ -658,7 +658,7 @@ void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertex
 
 void VulkanRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetDrawOp(op);
@@ -668,7 +668,7 @@ void VulkanRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount,
 {
 	u32 primCount = 0;
 
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->Draw(vertexOffset, vertexCount, instanceCount);
@@ -682,7 +682,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 {
 	u32 primCount = 0;
 
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->DrawIndexed(startIndex, indexCount, vertexOffset, instanceCount);
@@ -694,7 +694,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 
 void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
@@ -702,18 +702,26 @@ void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGro
 	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
 
-void VulkanRenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
+void VulkanRenderAPI::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
+	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
+	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
 
 	Rect2I area(left, top, right - left, bottom - top);
-	vkCB->SetScissorRect(area);
+	internalCommandBuffer->EnableScissorTest(area);
+}
+
+void VulkanRenderAPI::DisableScissorTest(const SPtr<CommandBuffer>& commandBuffer)
+{
+	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
+	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
+
+	internalCommandBuffer->DisableScissorTest();
 }
 
 void VulkanRenderAPI::SetStencilRef(u32 value, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetStencilRef(value);
@@ -721,7 +729,7 @@ void VulkanRenderAPI::SetStencilRef(u32 value, const SPtr<CommandBuffer>& comman
 
 void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->ClearViewport(buffers, color, depth, stencil, targetMask);
@@ -731,7 +739,7 @@ void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth
 
 void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->ClearRenderTarget(buffers, color, depth, stencil, targetMask);
@@ -741,7 +749,7 @@ void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float d
 
 void VulkanRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask, const SPtr<CommandBuffer>& commandBuffer)
 {
-	VulkanCommandBuffer* cb = GetCb(commandBuffer);
+	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	vkCB->SetRenderTarget(target, readOnlyFlags, loadMask);
@@ -825,7 +833,7 @@ void VulkanRenderAPI::BeginLabel(const StringView& name, const SPtr<CommandBuffe
 {
 	THROW_IF_NOT_CORE_THREAD
 
-	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
+	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
 
 	internalCommandBuffer->BeginLabel(name);
@@ -835,7 +843,7 @@ void VulkanRenderAPI::EndLabel(const SPtr<CommandBuffer>& commandBuffer)
 {
 	THROW_IF_NOT_CORE_THREAD
 
-	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
+	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* internalCommmandBuffer = vulkanCommandBuffer->GetInternal();
 
 	internalCommmandBuffer->EndLabel();
@@ -845,7 +853,7 @@ void VulkanRenderAPI::InsertLabel(const StringView& name, const SPtr<CommandBuff
 {
 	THROW_IF_NOT_CORE_THREAD
 
-	VulkanCommandBuffer* vulkanCOmmandBuffer = GetCb(commandBuffer);
+	VulkanCommandBuffer* vulkanCOmmandBuffer = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCOmmandBuffer->GetInternal();
 
 	internalCommandBuffer->InsertLabel(name);
@@ -855,7 +863,7 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuff
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	VulkanCommandBuffer* vulkanCommandBuffer = GetCb(commandBuffer);
+	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
 
 	// Submit all transfer buffers first
 	VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
@@ -871,6 +879,25 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuff
 	else
 	{
 		mSubmittedCommandBuffers.push_back(commandBuffer);
+	}
+}
+
+void VulkanRenderAPI::WaitUntilIdle() const
+{
+	GetVulkanSubmitThread().WaitUntilIdle();
+	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
+
+	for(auto it = mSubmittedCommandBuffers.begin(); it != mSubmittedCommandBuffers.end();)
+	{
+		if((*it)->GetState() == CommandBufferState::Done)
+		{
+			(*it)->OnDidComplete();
+			it = mSubmittedCommandBuffers.erase(it);
+		}
+		else
+		{
+			++it;
+		}
 	}
 }
 
@@ -1040,7 +1067,7 @@ void VulkanRenderAPI::InitCapabilites()
 	}
 }
 
-VulkanCommandBuffer* VulkanRenderAPI::GetCb(const SPtr<CommandBuffer>& buffer)
+VulkanCommandBuffer* VulkanRenderAPI::EnsureCommandBuffer(const SPtr<CommandBuffer>& buffer)
 {
 	if(buffer != nullptr)
 		return static_cast<VulkanCommandBuffer*>(buffer.get());

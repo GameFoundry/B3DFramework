@@ -28,7 +28,8 @@ namespace bs
 			void ClearViewport(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags = 0, RenderSurfaceMask loadMask = RT_NONE, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SetViewport(const Rect2& area, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
-			void SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void DisableScissorTest(const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SetStencilRef(u32 value, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
@@ -45,6 +46,7 @@ namespace bs
 			void BeginFrame() override;
 			void EndFrame() override;
 			void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) override;
+			void WaitUntilIdle() const override;
 			SPtr<CommandBuffer> GetMainCommandBuffer() const override;
 			void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
 			GpuParameterBlockInformation GenerateParamBlockDesc(const String& name, Vector<GpuDataParameterInformation>& params) override;
@@ -89,7 +91,7 @@ namespace bs
 			 * Returns a valid command buffer. Uses the provided buffer if not null. Otherwise returns the default command
 			 * buffer.
 			 */
-			VulkanCommandBuffer* GetCb(const SPtr<CommandBuffer>& buffer);
+			VulkanCommandBuffer* EnsureCommandBuffer(const SPtr<CommandBuffer>& buffer);
 
 		private:
 			/** Queued swap chain operation. */
@@ -110,7 +112,7 @@ namespace bs
 			Vector<SPtr<VulkanDevice>> mPrimaryDevices;
 
 			SPtr<VulkanCommandBuffer> mMainCommandBuffer;
-			Vector<SPtr<CommandBuffer>> mSubmittedCommandBuffers;
+			mutable Vector<SPtr<CommandBuffer>> mSubmittedCommandBuffers;
 
 			VulkanGLSLProgramFactory* mGLSLFactory;
 

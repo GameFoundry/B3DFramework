@@ -47,13 +47,13 @@ namespace bs
 		 * Cuts the current rectangle with the provided rectangle and outputs the pieces. The pieces will contain all area
 		 * of the current rectangle without including the cut rectangle area.
 		 */
-		void Cut(const Rect2I& cutRect, Vector<Rect2I>& pieces);
+		u32 Cut(const Rect2I& rectangleToCutWith, Array<Rect2I, 4>& outPieces) const;
 
 		/**
 		 * Cuts the current rectangle with the provided rectangles and outputs the pieces. The pieces will contain all area
 		 * of the current rectangle without including the cut rectangles area.
 		 */
-		void Cut(const Vector<Rect2I>& cutRects, Vector<Rect2I>& pieces);
+		void Cut(const Vector<Rect2I>& rectanglesToCutWith, Vector<Rect2I>& outPieces) const;
 
 		/**
 		 * Transforms the bounds by the given matrix. Resulting value is an axis aligned rectangle encompassing the

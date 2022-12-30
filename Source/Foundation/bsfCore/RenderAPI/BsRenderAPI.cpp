@@ -72,11 +72,6 @@ void RenderAPI::SetDrawOperation(DrawOperationType op)
 	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetDrawOperation, ct::RenderAPI::InstancePtr(), op, nullptr));
 }
 
-void RenderAPI::SetScissorRect(u32 left, u32 top, u32 right, u32 bottom)
-{
-	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetScissorRect, ct::RenderAPI::InstancePtr(), left, top, right, bottom, nullptr));
-}
-
 void RenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask)
 {
 	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetRenderTarget, ct::RenderAPI::InstancePtr(), target->GetCore(), readOnlyFlags, loadMask, nullptr));

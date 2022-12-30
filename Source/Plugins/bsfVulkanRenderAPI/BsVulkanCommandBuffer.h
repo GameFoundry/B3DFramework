@@ -325,10 +325,13 @@ namespace bs
 			void SetNormalizedViewportArea(const Rect2& area);
 
 			/**
-			 * Sets the scissor rectangle area which determines in which area if the viewport are the fragments allowed to be
-			 * generated. Only relevant if enabled on the pipeline state.
+			 * Enables scissor test and sets the scissor rectangle area which determines in which area if the viewport are the fragments allowed to be
+			 * generated.
 			 */
-			void SetScissorRect(const Rect2I& area);
+			void EnableScissorTest(const Rect2I& area);
+
+			/** Disables the scissor test enabled via EnableScissorTest(). */
+			void DisableScissorTest();
 
 			/** Sets a stencil reference value that will be used for comparisons in stencil operations, if enabled. */
 			void SetStencilRef(u32 value);
@@ -758,6 +761,7 @@ namespace bs
 			Vector<SPtr<VulkanVertexBuffer>> mVertexBuffers;
 			Rect2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Rect2I mScissor{ 0, 0, 0, 0 };
+			bool mIsScissorTestEnabled = false;
 			u32 mStencilRef = 0;
 			DrawOperationType mDrawOp = DOT_TRIANGLE_LIST;
 			u32 mRequiredVertexBufferBindingCount = 0;

@@ -84,94 +84,102 @@ void Rect2I::Clip(const Rect2I& clipRect)
 	Height = std::max(0, newBottom - newTop);
 }
 
-void Rect2I::Cut(const Rect2I& cutRect, Vector<Rect2I>& pieces)
+u32 Rect2I::Cut(const Rect2I& rectangleToCutWith, Array<Rect2I, 4>& outPieces) const
 {
-	u32 initialPieces = (u32)pieces.size();
+	u32 cutPieceCount = 0;
 
 	// Cut horizontal
-	if(cutRect.X > X && cutRect.X < (X + (i32)Width))
+	if(rectangleToCutWith.X > X && rectangleToCutWith.X < (X + (i32)Width))
 	{
 		Rect2I leftPiece;
 		leftPiece.X = X;
-		leftPiece.Width = cutRect.X - X;
+		leftPiece.Width = rectangleToCutWith.X - X;
 		leftPiece.Y = Y;
 		leftPiece.Height = Height;
 
-		pieces.push_back(leftPiece);
+		outPieces[cutPieceCount++] = leftPiece;
 	}
 
-	if((cutRect.X + (i32)cutRect.Width) > X && (cutRect.X + (i32)cutRect.Width) < (X + (i32)Width))
+	if((rectangleToCutWith.X + (i32)rectangleToCutWith.Width) > X && (rectangleToCutWith.X + (i32)rectangleToCutWith.Width) < (X + (i32)Width))
 	{
 		Rect2I rightPiece;
-		rightPiece.X = cutRect.X + cutRect.Width;
-		rightPiece.Width = (X + Width) - (cutRect.X + cutRect.Width);
+		rightPiece.X = rectangleToCutWith.X + rectangleToCutWith.Width;
+		rightPiece.Width = (X + Width) - (rectangleToCutWith.X + rectangleToCutWith.Width);
 		rightPiece.Y = Y;
 		rightPiece.Height = Height;
 
-		pieces.push_back(rightPiece);
+		outPieces[cutPieceCount++] = rightPiece;
 	}
 
 	// Cut vertical
-	i32 cutLeft = std::min(std::max(X, cutRect.X), X + (i32)Width);
-	i32 cutRight = std::max(std::min(X + (i32)Width, cutRect.X + (i32)cutRect.Width), X);
+	i32 cutLeft = std::min(std::max(X, rectangleToCutWith.X), X + (i32)Width);
+	i32 cutRight = std::max(std::min(X + (i32)Width, rectangleToCutWith.X + (i32)rectangleToCutWith.Width), X);
 
 	if(cutLeft != cutRight)
 	{
-		if(cutRect.Y > Y && cutRect.Y < (Y + (i32)Height))
+		if(rectangleToCutWith.Y > Y && rectangleToCutWith.Y < (Y + (i32)Height))
 		{
 			Rect2I topPiece;
 			topPiece.Y = Y;
-			topPiece.Height = cutRect.Y - Y;
+			topPiece.Height = rectangleToCutWith.Y - Y;
 			topPiece.X = cutLeft;
 			topPiece.Width = cutRight - cutLeft;
 
-			pieces.push_back(topPiece);
+			outPieces[cutPieceCount++] = topPiece;
 		}
 
-		if((cutRect.Y + (i32)cutRect.Height) > Y && (cutRect.Y + (i32)cutRect.Height) < (Y + (i32)Height))
+		if((rectangleToCutWith.Y + (i32)rectangleToCutWith.Height) > Y && (rectangleToCutWith.Y + (i32)rectangleToCutWith.Height) < (Y + (i32)Height))
 		{
 			Rect2I bottomPiece;
-			bottomPiece.Y = cutRect.Y + cutRect.Height;
-			bottomPiece.Height = (Y + Height) - (cutRect.Y + cutRect.Height);
+			bottomPiece.Y = rectangleToCutWith.Y + rectangleToCutWith.Height;
+			bottomPiece.Height = (Y + Height) - (rectangleToCutWith.Y + rectangleToCutWith.Height);
 			bottomPiece.X = cutLeft;
 			bottomPiece.Width = cutRight - cutLeft;
 
-			pieces.push_back(bottomPiece);
+			outPieces[cutPieceCount++] = bottomPiece;
 		}
 	}
 
 	// No cut
-	if(initialPieces == (u32)pieces.size())
+	if(cutPieceCount == 0)
 	{
-		if(cutRect.X <= X && (cutRect.X + (i32)cutRect.Width) >= (X + (i32)Width) &&
-		   cutRect.Y <= Y && (cutRect.Y + (i32)cutRect.Height) >= (Y + (i32)Height))
+		if(rectangleToCutWith.X <= X && (rectangleToCutWith.X + (i32)rectangleToCutWith.Width) >= (X + (i32)Width) &&
+		   rectangleToCutWith.Y <= Y && (rectangleToCutWith.Y + (i32)rectangleToCutWith.Height) >= (Y + (i32)Height))
 		{
 			// Cut rectangle completely encompasses this one
 		}
 		else
-			pieces.push_back(*this); // Cut rectangle doesn't even touch this one
+			outPieces[cutPieceCount++] = *this; // Cut rectangle doesn't even touch this one
 	}
+
+	return cutPieceCount;
 }
 
-void Rect2I::Cut(const Vector<Rect2I>& cutRects, Vector<Rect2I>& pieces)
+void Rect2I::Cut(const Vector<Rect2I>& rectanglesToCutWith, Vector<Rect2I>& pieces) const
 {
-	Vector<Rect2I> tempPieces[2];
-	u32 bufferIdx = 0;
+	FrameScope frameScope;
+	FrameVector<Rect2I> temporaryPieceBuffers[2];
+	u32 outputBufferIndex = 0;
 
-	tempPieces[0].push_back(*this);
+	temporaryPieceBuffers[0].push_back(*this);
 
-	for(auto& cutRect : cutRects)
+	for(auto& rectangleToCutWith : rectanglesToCutWith)
 	{
-		u32 currentBufferIdx = bufferIdx;
+		const u32 inputBufferIndex = outputBufferIndex;
 
-		bufferIdx = (bufferIdx + 1) % 2;
-		tempPieces[bufferIdx].clear();
+		outputBufferIndex = (outputBufferIndex + 1) % 2;
+		temporaryPieceBuffers[outputBufferIndex].clear();
 
-		for(auto& rect : tempPieces[currentBufferIdx])
-			rect.Cut(cutRect, tempPieces[bufferIdx]);
+		for(auto& rectangleToCut : temporaryPieceBuffers[inputBufferIndex])
+		{
+			Array<Rect2I, 4> cutPieces;
+			const u32 pieceCount = rectangleToCut.Cut(rectangleToCutWith, cutPieces);
+
+			temporaryPieceBuffers[outputBufferIndex].insert(temporaryPieceBuffers[outputBufferIndex].end(), cutPieces.data(), cutPieces.data() + pieceCount);
+		}
 	}
 
-	pieces = tempPieces[bufferIdx];
+	pieces = Vector<Rect2I>(temporaryPieceBuffers[outputBufferIndex].begin(), temporaryPieceBuffers[outputBufferIndex].end());
 }
 
 void Rect2I::Transform(const Matrix4& matrix)

@@ -97,13 +97,6 @@ namespace bs
 		static void SetDrawOperation(DrawOperationType op);
 
 		/**
-		 * @see ct::RenderAPI::setScissorRect()
-		 *
-		 * @note This is an @ref asyncMethod "asynchronous method".
-		 */
-		static void SetScissorRect(u32 left = 0, u32 top = 0, u32 right = 800, u32 bottom = 600);
-
-		/**
 		 * @see ct::RenderAPI::setRenderTarget()
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
@@ -244,7 +237,10 @@ namespace bs
 			 *								is executed immediately. Otherwise it is executed when executeCommands() is called.
 			 *								Buffer must support graphics operations.
 			 */
-			virtual void SetScissorRect(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+
+			/** Disables scissor test set via EnableScissorTest(). */
+			virtual void DisableScissorTest(const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/**
 			 * Sets a reference value that will be used for stencil compare operations.
@@ -453,6 +449,9 @@ namespace bs
 			 */
 			virtual void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) = 0;
 
+			/**	Waits until all the command buffers submitted thus far have finished executing on the GPU. */
+			virtual void WaitUntilIdle() const = 0;
+
 			/**
 			 * Returns the currently active main command buffer instance. All commands queues without a user-provided command
 			 * buffer will be queued on this command buffer. The command buffer instance will change after it has been submitted.
@@ -469,7 +468,7 @@ namespace bs
 			const RenderAPICapabilities& GetCapabilities(u32 deviceIdx) const;
 
 			/** Returns the number of devices supported by this render API. */
-			u32 GetNumDevices() const { return mNumDevices; }
+			u32 GetDeviceCount() const { return mNumDevices; }
 
 			/**
 			 * Returns information about available output devices and their video modes.

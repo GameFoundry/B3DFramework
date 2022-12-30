@@ -1375,12 +1375,22 @@ void VulkanInternalCommandBuffer::SetNormalizedViewportArea(const Rect2& area)
 	mViewportRequiresBind = true;
 }
 
-void VulkanInternalCommandBuffer::SetScissorRect(const Rect2I& value)
+void VulkanInternalCommandBuffer::EnableScissorTest(const Rect2I& value)
 {
-	if(mScissor == value)
+	if(mIsScissorTestEnabled && mScissor == value)
 		return;
 
 	mScissor = value;
+	mIsScissorTestEnabled = true;
+	mScissorRequiresBind = true;
+}
+
+void VulkanInternalCommandBuffer::DisableScissorTest()
+{
+	if(!mIsScissorTestEnabled)
+		return;
+
+	mIsScissorTestEnabled = false;
 	mScissorRequiresBind = true;
 }
 
@@ -1533,7 +1543,7 @@ void VulkanInternalCommandBuffer::BindDynamicStates(bool forceAll)
 	if(mScissorRequiresBind || forceAll)
 	{
 		VkRect2D scissorRect;
-		if(mGraphicsPipeline->IsScissorEnabled())
+		if(mIsScissorTestEnabled)
 		{
 			scissorRect.offset.x = mScissor.X;
 			scissorRect.offset.y = mScissor.Y;

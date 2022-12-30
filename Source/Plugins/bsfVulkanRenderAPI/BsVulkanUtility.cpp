@@ -26,7 +26,7 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanDevice& de
 		wantedFeatureFlags |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
 
 	VkFormatProperties props;
-	auto isSupported = [&](VkFormat vkFmt)
+	auto fnIsFormatSupported = [&](VkFormat vkFmt)
 	{
 		vkGetPhysicalDeviceFormatProperties(device.GetPhysical(), vkFmt, &props);
 		VkFormatFeatureFlags featureFlags = optimalTiling ? props.optimalTilingFeatures : props.linearTilingFeatures;
@@ -35,8 +35,10 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanDevice& de
 	};
 
 	VkFormat vkFormat = GetPixelFormat(format, hwGamma);
-	if(!isSupported(vkFormat))
+	if(!fnIsFormatSupported(vkFormat))
 	{
+		const PixelFormat originalFormat = format;
+
 		if((usage & TU_DEPTHSTENCIL) != 0)
 		{
 			bool hasStencil = format == PF_D24S8 || format == PF_D32_S8X24;
@@ -44,7 +46,7 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanDevice& de
 			// Spec guarantees at least one depth-only, and one depth-stencil format to be supported
 			if(hasStencil)
 			{
-				if(isSupported(VK_FORMAT_D32_SFLOAT_S8_UINT))
+				if(fnIsFormatSupported(VK_FORMAT_D32_SFLOAT_S8_UINT))
 					format = PF_D32_S8X24;
 				else
 					format = PF_D24S8;
@@ -61,16 +63,26 @@ PixelFormat VulkanUtility::GetClosestSupportedPixelFormat(const VulkanDevice& de
 		}
 		else
 		{
-			int bitDepths[4];
-			PixelUtil::GetBitDepths(format, bitDepths);
+			const PixelComponentType& formatComponentType = PixelUtil::GetElementType(format);
 
-			if(bitDepths[0] == 16) // 16-bit format, fall back to 4-channel 16-bit, guaranteed to be supported
+			if(formatComponentType == PCT_FLOAT16) // 16-bit format, fall back to 4-channel 16-bit, guaranteed to be supported
 				format = PF_RGBA16F;
-			else if(format == PF_BC6H) // Fall back to uncompressed alternative
-				format = PF_RGBA16F;
+			else if(formatComponentType == PCT_FLOAT32) // 32-bit float format, fall back to 4-channel 32-bit, guaranteed to be supported
+				format = PF_RGBA32F;
+			else if(formatComponentType == PCT_INT) // 32-bit integer format, fall back to 4-channel 32-bit, guaranteed to be supported
+				format = PF_RGBA32I;
+			else if(formatComponentType == PCT_BYTE) // 8-bit integer Type, fall back to 4-channel 8-bit, guaranteed to be supported
+				format = PF_RGBA8;
 			else // Must be 8-bit per channel format, compressed format or some uneven format
 				format = PF_RGBA8;
+
+			// Final check in case the format is still not supported
+			const VkFormat vkFormat = GetPixelFormat(format, hwGamma);
+			if(format != originalFormat && format != PF_RGBA8 && !fnIsFormatSupported(vkFormat))
+				format = PF_RGBA8;
 		}
+
+		B3D_LOG(Error, Generic, "Provided an unsupported Vulkan image format with ID={0}. Falling back to format with ID={1}", originalFormat, format);
 	}
 
 	return format;

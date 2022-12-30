@@ -66,7 +66,7 @@ bool VulkanGraphicsPipelineState::EqualFunc::operator()(const GpuPipelineKey& a,
 }
 
 VulkanGraphicsPipelineState::VulkanGraphicsPipelineState(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask)
-	: GraphicsPipelineState(desc, deviceMask), mScissorEnabled(false), mDeviceMask(deviceMask)
+	: GraphicsPipelineState(desc, deviceMask), mDeviceMask(deviceMask)
 {
 	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
 	{
@@ -278,8 +278,6 @@ void VulkanGraphicsPipelineState::Initialize()
 	mPipelineInfo.subpass = 0;
 	mPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	mPipelineInfo.basePipelineIndex = -1;
-
-	mScissorEnabled = rstProps.GetScissorEnable();
 
 	if(mData.VertexProgram != nullptr)
 		mVertexDecl = mData.VertexProgram->GetInputDeclaration();
