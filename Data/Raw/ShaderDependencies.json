@@ -148,9 +148,6 @@
     ],
     "DeferredIBLSky.bsl": [
         {
-            "Path": "GBufferInput.bslinc"
-        },
-        {
             "Path": "DirectLightAccumulator.bslinc"
         },
         {
@@ -173,6 +170,9 @@
         },
         {
             "Path": "PPBase.bslinc"
+        },
+        {
+            "Path": "GBufferInput.bslinc"
         }
     ],
     "DeferredPointLight.bsl": [
@@ -542,32 +542,6 @@
             "Path": "PPBase.bslinc"
         }
     ],
-    "PPSSRResolve.bsl": [
-        {
-            "Path": "PPBase.bslinc"
-        },
-        {
-            "Path": "TemporalResolve.bslinc"
-        },
-        {
-            "Path": "SurfaceData.bslinc"
-        },
-        {
-            "Path": "ColorSpace.bslinc"
-        },
-        {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
-            "Path": "GBufferInput.bslinc"
-        },
-        {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
-            "Path": "SurfaceData.bslinc"
-        }
-    ],
     "PPSSRStencil.bsl": [
         {
             "Path": "GBufferInput.bslinc"
@@ -838,32 +812,6 @@
             "Path": "SpriteCommon.bslinc"
         }
     ],
-    "TemporalFiltering.bsl": [
-        {
-            "Path": "PPBase.bslinc"
-        },
-        {
-            "Path": "TemporalResolve.bslinc"
-        },
-        {
-            "Path": "SurfaceData.bslinc"
-        },
-        {
-            "Path": "ColorSpace.bslinc"
-        },
-        {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
-            "Path": "GBufferInput.bslinc"
-        },
-        {
-            "Path": "PerCameraData.bslinc"
-        },
-        {
-            "Path": "SurfaceData.bslinc"
-        }
-    ],
     "TetrahedraRender.bsl": [
         {
             "Path": "PerCameraData.bslinc"
@@ -948,10 +896,10 @@
             "Path": "SurfaceData.bslinc"
         },
         {
-            "Path": "BasePass.bslinc"
+            "Path": "LightGridCommon.bslinc"
         },
         {
-            "Path": "LightGridCommon.bslinc"
+            "Path": "BasePass.bslinc"
         },
         {
             "Path": "VertexInput.bslinc"
