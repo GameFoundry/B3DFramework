@@ -552,10 +552,6 @@ void VulkanRenderAPI::DestroyCore()
 
 	mMainCommandBuffer = nullptr;
 
-	// Make sure everything finishes and all resources get freed
-	for(u32 i = 0; i < (u32)mDevices.size(); i++)
-		mDevices[i]->WaitUntilIdle();
-
 	CommandBufferManager::ShutDown();
 
 	mPrimaryDevices.clear();

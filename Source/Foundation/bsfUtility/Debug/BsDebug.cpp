@@ -385,7 +385,7 @@ void Debug::SaveTextLog(const Path& path) const
 	stream << engineHeader << B3D_VERSION_MAJOR << "." << B3D_VERSION_MINOR << "." << B3D_VERSION_PATCH << "\n";
 	stream << bsfBasedHeader << B3D_FRAMEWORK_VERSION_MAJOR << "." << B3D_FRAMEWORK_VERSION_MINOR << "." << B3D_FRAMEWORK_VERSION_PATCH << "\n";
 #else
-	stream << bsfOnlyHeader << B3D_VERSION_MAJOR << "." << B3D_VERSION_MINOR << "." << B3D_VERSION_PATCH << "\n";
+	stream << bsfOnlyHeader << B3D_FRAMEWORK_VERSION_MAJOR << "." << B3D_FRAMEWORK_VERSION_MINOR << "." << B3D_FRAMEWORK_VERSION_PATCH << "\n";
 #endif
 	if(Time::IsStarted())
 		stream << "Started on: " << GetTime().GetAppStartUpDateString(false) << "\n";

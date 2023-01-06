@@ -17,6 +17,12 @@
 #include "Importer/BsImporter.h"
 #include "Importer/BsTextureImportOptions.h"
 
+
+#define B3DIMPORTTOOL_WAIT_FOR_DEBUGGER 0
+#if B3DIMPORTTOOL_WAIT_FOR_DEBUGGER
+#include <windows.h>
+#endif
+
 using namespace bs;
 
 static constexpr const char* kTimestampName = u8"Timestamp.asset";
@@ -35,6 +41,14 @@ void ProcessAssets(bool, bool, time_t);
 int main(int argc, char* argv[])
 {
 	using namespace bs;
+
+#if B3DIMPORTTOOL_WAIT_FOR_DEBUGGER
+	while (!::IsDebuggerPresent())
+	{
+		::Sleep(100);
+	}
+	::DebugBreak();
+#endif
 
 	if(argc < 3)
 		return 2;
@@ -142,7 +156,7 @@ void GenerateTextures()
 
 	auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& uuid)
 	{
-		HResource textureResource = GetResources().CreateResourceHandleInternal(texture, UUID(uuid));
+		HResource textureResource = GetResources().CreateResourceHandleInternal(texture, bs::UUID(uuid));
 
 		GetResources().Save(textureResource, path, true);
 		sManifest->RegisterResource(textureResource.GetUuid(), path);
@@ -224,7 +238,7 @@ void GenerateMeshes()
 
 	auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& uuid)
 	{
-		HResource meshResource = GetResources().CreateResourceHandleInternal(mesh, UUID(uuid));
+		HResource meshResource = GetResources().CreateResourceHandleInternal(mesh, bs::UUID(uuid));
 
 		GetResources().Save(meshResource, path, true);
 		sManifest->RegisterResource(meshResource.GetUuid(), path);
@@ -719,7 +733,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 
 			String inputName(path.data(), path.size());
 			String outputName(name.data(), name.size());
-			UUID UUID(String(uuidStr.data(), uuidStr.size()));
+			bs::UUID UUID(String(uuidStr.data(), uuidStr.size()));
 
 			const Path fontSourcePath = sInputFolder + inputName;
 
@@ -734,7 +748,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		std::string uuidStr = guiSkinJSON["UUID"];
 
 		String fileName(name.data(), name.size());
-		UUID UUID(String(uuidStr.data(), uuidStr.size()));
+		bs::UUID UUID(String(uuidStr.data(), uuidStr.size()));
 
 		const SPtr<GUISkin> skin = GenerateGuiSkin();
 		const Path outputPath = sOutputFolder + (fileName + u8".asset");

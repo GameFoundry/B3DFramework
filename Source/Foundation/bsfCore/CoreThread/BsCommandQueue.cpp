@@ -203,7 +203,7 @@ void CommandQueueBase::BreakIfNeeded(u32 queueIdx, u32 commandIdx)
 	}
 }
 #else
-void CommandQueueBase::addBreakpoint(u32 queueIdx, u32 commandIdx)
+void CommandQueueBase::AddBreakpoint(u32 queueIdx, u32 commandIdx)
 {
 	// Do nothing, no breakpoints in release
 }

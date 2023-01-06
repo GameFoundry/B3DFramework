@@ -3008,12 +3008,11 @@ VulkanCommandBuffer::~VulkanCommandBuffer()
 
 void VulkanCommandBuffer::AcquireNewBuffer()
 {
+	B3D_ASSERT(mBuffer == nullptr || mBuffer->IsDone());
+
 	VulkanCommandBufferPool& pool = mDevice.GetCommandBufferPool();
 
-	if(mBuffer != nullptr)
-		B3D_ASSERT(mBuffer->IsDone());
-
-	u32 queueFamily = mDevice.GetQueueFamily(mType);
+	const u32 queueFamily = mDevice.GetQueueFamily(mType);
 	mBuffer = pool.GetBuffer(queueFamily, mIsSecondary);
 	mBuffer->SetOwner(this);
 	mBuffer->SetName(mName);

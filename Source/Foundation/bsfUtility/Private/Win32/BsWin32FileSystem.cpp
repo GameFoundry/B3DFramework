@@ -4,8 +4,8 @@
 #include "Error/BsException.h"
 #include "FileSystem/BsDataStream.h"
 #include "Debug/BsDebug.h"
-#include <windows.h>
 #include "String/BsUnicode.h"
+#include <windows.h>
 
 #undef CopyFile
 #undef MoveFile
@@ -468,8 +468,18 @@ std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 
 Path FileSystem::GetWorkingDirectoryPath()
 {
-	const String utf8dir = UTF8::FromWide(Win32GetCurrentDirectory());
-	return Path(utf8dir);
+	wchar_t path[MAX_PATH];
+	DWORD characterCount = GetModuleFileNameW(nullptr, path, B3DSize(path));
+	if(characterCount == 0)
+	{
+		B3D_LOG(Error, FileSystem, "Internal error. Failed to retrieve current module path.");
+		return Path::kBlank;
+	}
+
+	Path pathToModule(UTF8::FromWide(path));
+	pathToModule = pathToModule.GetParent();
+
+	return pathToModule;
 }
 
 Path FileSystem::GetTempDirectoryPath()

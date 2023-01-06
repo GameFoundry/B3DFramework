@@ -71,7 +71,7 @@ u8* FrameAlloc::AllocAligned(u32 amount, u32 alignment)
 #if B3D_DEBUG
 		freePtr = mFreeBlock->MFreePtr + sizeof(u32);
 #else
-		freePtr = mFreeBlock->mFreePtr;
+		freePtr = mFreeBlock->MFreePtr;
 #endif
 	}
 
