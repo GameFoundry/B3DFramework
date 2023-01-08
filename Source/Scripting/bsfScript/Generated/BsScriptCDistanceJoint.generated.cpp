@@ -9,28 +9,28 @@
 
 namespace bs
 {
-	ScriptCDistanceJoint::ScriptCDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value)
+	ScriptDistanceJoint::ScriptDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCDistanceJoint::InitRuntimeData()
+	void ScriptDistanceJoint::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptCDistanceJoint::InternalGetDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptCDistanceJoint::InternalGetMinDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMinDistance", (void*)&ScriptCDistanceJoint::InternalSetMinDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptCDistanceJoint::InternalGetMaxDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaxDistance", (void*)&ScriptCDistanceJoint::InternalSetMaxDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTolerance", (void*)&ScriptCDistanceJoint::InternalGetTolerance);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTolerance", (void*)&ScriptCDistanceJoint::InternalSetTolerance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSpring", (void*)&ScriptCDistanceJoint::InternalGetSpring);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSpring", (void*)&ScriptCDistanceJoint::InternalSetSpring);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptCDistanceJoint::InternalSetFlag);
-		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptCDistanceJoint::InternalHasFlag);
+		metaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptDistanceJoint::InternalGetDistance);
+		metaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptDistanceJoint::InternalGetMinDistance);
+		metaData.ScriptClass->AddInternalCall("Internal_SetMinDistance", (void*)&ScriptDistanceJoint::InternalSetMinDistance);
+		metaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptDistanceJoint::InternalGetMaxDistance);
+		metaData.ScriptClass->AddInternalCall("Internal_SetMaxDistance", (void*)&ScriptDistanceJoint::InternalSetMaxDistance);
+		metaData.ScriptClass->AddInternalCall("Internal_GetTolerance", (void*)&ScriptDistanceJoint::InternalGetTolerance);
+		metaData.ScriptClass->AddInternalCall("Internal_SetTolerance", (void*)&ScriptDistanceJoint::InternalSetTolerance);
+		metaData.ScriptClass->AddInternalCall("Internal_GetSpring", (void*)&ScriptDistanceJoint::InternalGetSpring);
+		metaData.ScriptClass->AddInternalCall("Internal_SetSpring", (void*)&ScriptDistanceJoint::InternalSetSpring);
+		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptDistanceJoint::InternalSetFlag);
+		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptDistanceJoint::InternalHasFlag);
 
 	}
 
-	float ScriptCDistanceJoint::InternalGetDistance(ScriptCDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetDistance(ScriptDistanceJoint* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDistance();
@@ -41,7 +41,7 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptCDistanceJoint::InternalGetMinDistance(ScriptCDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetMinDistance(ScriptDistanceJoint* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMinDistance();
@@ -52,12 +52,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCDistanceJoint::InternalSetMinDistance(ScriptCDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetMinDistance(ScriptDistanceJoint* thisPtr, float value)
 	{
 		thisPtr->GetHandle()->SetMinDistance(value);
 	}
 
-	float ScriptCDistanceJoint::InternalGetMaxDistance(ScriptCDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetMaxDistance(ScriptDistanceJoint* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMaxDistance();
@@ -68,12 +68,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCDistanceJoint::InternalSetMaxDistance(ScriptCDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetMaxDistance(ScriptDistanceJoint* thisPtr, float value)
 	{
 		thisPtr->GetHandle()->SetMaxDistance(value);
 	}
 
-	float ScriptCDistanceJoint::InternalGetTolerance(ScriptCDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetTolerance(ScriptDistanceJoint* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetTolerance();
@@ -84,12 +84,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCDistanceJoint::InternalSetTolerance(ScriptCDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetTolerance(ScriptDistanceJoint* thisPtr, float value)
 	{
 		thisPtr->GetHandle()->SetTolerance(value);
 	}
 
-	void ScriptCDistanceJoint::InternalGetSpring(ScriptCDistanceJoint* thisPtr, Spring* __output)
+	void ScriptDistanceJoint::InternalGetSpring(ScriptDistanceJoint* thisPtr, Spring* __output)
 	{
 		Spring tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSpring();
@@ -97,17 +97,17 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCDistanceJoint::InternalSetSpring(ScriptCDistanceJoint* thisPtr, Spring* value)
+	void ScriptDistanceJoint::InternalSetSpring(ScriptDistanceJoint* thisPtr, Spring* value)
 	{
 		thisPtr->GetHandle()->SetSpring(*value);
 	}
 
-	void ScriptCDistanceJoint::InternalSetFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled)
+	void ScriptDistanceJoint::InternalSetFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled)
 	{
 		thisPtr->GetHandle()->SetFlag(flag, enabled);
 	}
 
-	bool ScriptCDistanceJoint::InternalHasFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag)
+	bool ScriptDistanceJoint::InternalHasFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag)
 	{
 		bool tmp__output;
 		tmp__output = thisPtr->GetHandle()->HasFlag(flag);

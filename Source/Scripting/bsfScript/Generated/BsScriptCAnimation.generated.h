@@ -16,12 +16,12 @@ namespace bs { class CAnimation; }
 namespace bs { struct __Blend1DInfoInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCAnimation : public TScriptComponent<ScriptCAnimation, CAnimation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimation : public TScriptComponent<ScriptAnimation, CAnimation>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Animation")
 
-		ScriptCAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value);
+		ScriptAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value);
 
 	private:
 		void ScriptRebuildFloatPropertiesInternal(const ResourceHandle<AnimationClip>& p0);
@@ -35,34 +35,34 @@ namespace bs
 		typedef void(B3D_THUNKCALL *ScriptOnEventTriggeredInternalThunkDef) (MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
 		static ScriptOnEventTriggeredInternalThunkDef ScriptOnEventTriggeredInternalThunk;
 
-		static void InternalSetDefaultClip(ScriptCAnimation* thisPtr, MonoObject* clip);
-		static MonoObject* InternalGetDefaultClip(ScriptCAnimation* thisPtr);
-		static void InternalSetWrapMode(ScriptCAnimation* thisPtr, AnimWrapMode wrapMode);
-		static AnimWrapMode InternalGetWrapMode(ScriptCAnimation* thisPtr);
-		static void InternalSetSpeed(ScriptCAnimation* thisPtr, float speed);
-		static float InternalGetSpeed(ScriptCAnimation* thisPtr);
-		static void InternalPlay(ScriptCAnimation* thisPtr, MonoObject* clip);
-		static void InternalBlendAdditive(ScriptCAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer);
-		static void InternalBlend1D(ScriptCAnimation* thisPtr, __Blend1DInfoInterop* info, float t);
-		static void InternalBlend2D(ScriptCAnimation* thisPtr, __Blend2DInfoInterop* info, Vector2* t);
-		static void InternalCrossFade(ScriptCAnimation* thisPtr, MonoObject* clip, float fadeLength);
-		static void InternalSample(ScriptCAnimation* thisPtr, MonoObject* clip, float time);
-		static void InternalStop(ScriptCAnimation* thisPtr, uint32_t layer);
-		static void InternalStopAll(ScriptCAnimation* thisPtr);
-		static bool InternalIsPlaying(ScriptCAnimation* thisPtr);
-		static bool InternalGetState(ScriptCAnimation* thisPtr, MonoObject* clip, AnimationClipState* state);
-		static void InternalSetState(ScriptCAnimation* thisPtr, MonoObject* clip, AnimationClipState* state);
-		static void InternalSetMorphChannelWeight(ScriptCAnimation* thisPtr, MonoString* name, float weight);
-		static void InternalSetBounds(ScriptCAnimation* thisPtr, AABox* bounds);
-		static void InternalGetBounds(ScriptCAnimation* thisPtr, AABox* __output);
-		static void InternalSetUseBounds(ScriptCAnimation* thisPtr, bool enable);
-		static bool InternalGetUseBounds(ScriptCAnimation* thisPtr);
-		static void InternalSetEnableCull(ScriptCAnimation* thisPtr, bool enable);
-		static bool InternalGetEnableCull(ScriptCAnimation* thisPtr);
-		static uint32_t InternalGetNumClips(ScriptCAnimation* thisPtr);
-		static MonoObject* InternalGetClip(ScriptCAnimation* thisPtr, uint32_t idx);
-		static void InternalRefreshClipMappingsInternal(ScriptCAnimation* thisPtr);
-		static bool InternalGetGenericCurveValueInternal(ScriptCAnimation* thisPtr, uint32_t curveIdx, float* value);
-		static bool InternalTogglePreviewModeInternal(ScriptCAnimation* thisPtr, bool enabled);
+		static void InternalSetDefaultClip(ScriptAnimation* thisPtr, MonoObject* clip);
+		static MonoObject* InternalGetDefaultClip(ScriptAnimation* thisPtr);
+		static void InternalSetWrapMode(ScriptAnimation* thisPtr, AnimWrapMode wrapMode);
+		static AnimWrapMode InternalGetWrapMode(ScriptAnimation* thisPtr);
+		static void InternalSetSpeed(ScriptAnimation* thisPtr, float speed);
+		static float InternalGetSpeed(ScriptAnimation* thisPtr);
+		static void InternalPlay(ScriptAnimation* thisPtr, MonoObject* clip);
+		static void InternalBlendAdditive(ScriptAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer);
+		static void InternalBlend1D(ScriptAnimation* thisPtr, __Blend1DInfoInterop* info, float t);
+		static void InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, Vector2* t);
+		static void InternalCrossFade(ScriptAnimation* thisPtr, MonoObject* clip, float fadeLength);
+		static void InternalSample(ScriptAnimation* thisPtr, MonoObject* clip, float time);
+		static void InternalStop(ScriptAnimation* thisPtr, uint32_t layer);
+		static void InternalStopAll(ScriptAnimation* thisPtr);
+		static bool InternalIsPlaying(ScriptAnimation* thisPtr);
+		static bool InternalGetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state);
+		static void InternalSetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state);
+		static void InternalSetMorphChannelWeight(ScriptAnimation* thisPtr, MonoString* name, float weight);
+		static void InternalSetBounds(ScriptAnimation* thisPtr, AABox* bounds);
+		static void InternalGetBounds(ScriptAnimation* thisPtr, AABox* __output);
+		static void InternalSetUseBounds(ScriptAnimation* thisPtr, bool enable);
+		static bool InternalGetUseBounds(ScriptAnimation* thisPtr);
+		static void InternalSetEnableCull(ScriptAnimation* thisPtr, bool enable);
+		static bool InternalGetEnableCull(ScriptAnimation* thisPtr);
+		static uint32_t InternalGetNumClips(ScriptAnimation* thisPtr);
+		static MonoObject* InternalGetClip(ScriptAnimation* thisPtr, uint32_t idx);
+		static void InternalRefreshClipMappingsInternal(ScriptAnimation* thisPtr);
+		static bool InternalGetGenericCurveValueInternal(ScriptAnimation* thisPtr, uint32_t curveIdx, float* value);
+		static bool InternalTogglePreviewModeInternal(ScriptAnimation* thisPtr, bool enabled);
 	};
 }

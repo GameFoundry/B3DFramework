@@ -29,7 +29,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTNamedAnimationCurvefloat : public ScriptObject<ScriptTNamedAnimationCurvefloat>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedFloatCurve : public ScriptObject<ScriptNamedFloatCurve>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedFloatCurve")
@@ -40,7 +40,7 @@ namespace bs
 		static __TNamedAnimationCurvefloatInterop ToInterop(const TNamedAnimationCurve<float>& value);
 
 	private:
-		ScriptTNamedAnimationCurvefloat(MonoObject* managedInstance);
+		ScriptNamedFloatCurve(MonoObject* managedInstance);
 
 	};
 
@@ -51,7 +51,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTNamedAnimationCurveVector3 : public ScriptObject<ScriptTNamedAnimationCurveVector3>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector3Curve : public ScriptObject<ScriptNamedVector3Curve>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedVector3Curve")
@@ -62,7 +62,7 @@ namespace bs
 		static __TNamedAnimationCurveVector3Interop ToInterop(const TNamedAnimationCurve<Vector3>& value);
 
 	private:
-		ScriptTNamedAnimationCurveVector3(MonoObject* managedInstance);
+		ScriptNamedVector3Curve(MonoObject* managedInstance);
 
 	};
 
@@ -73,7 +73,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTNamedAnimationCurveVector2 : public ScriptObject<ScriptTNamedAnimationCurveVector2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector2Curve : public ScriptObject<ScriptNamedVector2Curve>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedVector2Curve")
@@ -84,7 +84,7 @@ namespace bs
 		static __TNamedAnimationCurveVector2Interop ToInterop(const TNamedAnimationCurve<Vector2>& value);
 
 	private:
-		ScriptTNamedAnimationCurveVector2(MonoObject* managedInstance);
+		ScriptNamedVector2Curve(MonoObject* managedInstance);
 
 	};
 
@@ -95,7 +95,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTNamedAnimationCurveQuaternion : public ScriptObject<ScriptTNamedAnimationCurveQuaternion>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedQuaternionCurve : public ScriptObject<ScriptNamedQuaternionCurve>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
@@ -106,7 +106,7 @@ namespace bs
 		static __TNamedAnimationCurveQuaternionInterop ToInterop(const TNamedAnimationCurve<Quaternion>& value);
 
 	private:
-		ScriptTNamedAnimationCurveQuaternion(MonoObject* managedInstance);
+		ScriptNamedQuaternionCurve(MonoObject* managedInstance);
 
 	};
 
@@ -117,7 +117,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTNamedAnimationCurveint32_t : public ScriptObject<ScriptTNamedAnimationCurveint32_t>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedIntegerCurve : public ScriptObject<ScriptNamedIntegerCurve>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedIntegerCurve")
@@ -128,7 +128,7 @@ namespace bs
 		static __TNamedAnimationCurveint32_tInterop ToInterop(const TNamedAnimationCurve<int32_t>& value);
 
 	private:
-		ScriptTNamedAnimationCurveint32_t(MonoObject* managedInstance);
+		ScriptNamedIntegerCurve(MonoObject* managedInstance);
 
 	};
 }

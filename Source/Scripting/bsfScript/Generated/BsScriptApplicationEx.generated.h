@@ -13,12 +13,12 @@ namespace bs { struct __VideoModeInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptApplicationEx : public ScriptObject<ScriptApplicationEx>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptApplication : public ScriptObject<ScriptApplication>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Application")
 
-		ScriptApplicationEx(MonoObject* managedInstance, const SPtr<ApplicationEx>& value);
+		ScriptApplication(MonoObject* managedInstance, const SPtr<ApplicationEx>& value);
 
 		SPtr<ApplicationEx> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<ApplicationEx>& value);

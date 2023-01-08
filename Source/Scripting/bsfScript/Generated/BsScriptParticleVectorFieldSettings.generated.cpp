@@ -163,7 +163,7 @@ namespace bs
 		*tmp__output = thisPtr->GetInternal()->RotationRate;
 
 		MonoObject* __output;
-		__output = ScriptTDistributionVector3::Create(tmp__output);
+		__output = ScriptVector3Distribution::Create(tmp__output);
 
 		return __output;
 	}
@@ -171,8 +171,8 @@ namespace bs
 	void ScriptParticleVectorFieldSettings::InternalSetRotationRate(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TDistribution<Vector3>> tmpvalue;
-		ScriptTDistributionVector3* scriptvalue;
-		scriptvalue = ScriptTDistributionVector3::ToNative(value);
+		ScriptVector3Distribution* scriptvalue;
+		scriptvalue = ScriptVector3Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->GetInternal();
 		thisPtr->GetInternal()->RotationRate = *tmpvalue;

@@ -19,7 +19,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframeint32_t : public ScriptObject<ScriptTKeyframeint32_t>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameInt : public ScriptObject<ScriptKeyFrameInt>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameInt")
@@ -28,11 +28,11 @@ namespace bs
 		static TKeyframe<int32_t> Unbox(MonoObject* value);
 
 	private:
-		ScriptTKeyframeint32_t(MonoObject* managedInstance);
+		ScriptKeyFrameInt(MonoObject* managedInstance);
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframefloat : public ScriptObject<ScriptTKeyframefloat>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrame : public ScriptObject<ScriptKeyFrame>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrame")
@@ -41,7 +41,7 @@ namespace bs
 		static TKeyframe<float> Unbox(MonoObject* value);
 
 	private:
-		ScriptTKeyframefloat(MonoObject* managedInstance);
+		ScriptKeyFrame(MonoObject* managedInstance);
 
 	};
 
@@ -53,7 +53,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframeVector3 : public ScriptObject<ScriptTKeyframeVector3>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec3 : public ScriptObject<ScriptKeyFrameVec3>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec3")
@@ -64,7 +64,7 @@ namespace bs
 		static __TKeyframeVector3Interop ToInterop(const TKeyframe<Vector3>& value);
 
 	private:
-		ScriptTKeyframeVector3(MonoObject* managedInstance);
+		ScriptKeyFrameVec3(MonoObject* managedInstance);
 
 	};
 
@@ -76,7 +76,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframeVector2 : public ScriptObject<ScriptTKeyframeVector2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec2 : public ScriptObject<ScriptKeyFrameVec2>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec2")
@@ -87,7 +87,7 @@ namespace bs
 		static __TKeyframeVector2Interop ToInterop(const TKeyframe<Vector2>& value);
 
 	private:
-		ScriptTKeyframeVector2(MonoObject* managedInstance);
+		ScriptKeyFrameVec2(MonoObject* managedInstance);
 
 	};
 
@@ -99,7 +99,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTKeyframeQuaternion : public ScriptObject<ScriptTKeyframeQuaternion>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameQuat : public ScriptObject<ScriptKeyFrameQuat>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameQuat")
@@ -110,7 +110,7 @@ namespace bs
 		static __TKeyframeQuaternionInterop ToInterop(const TKeyframe<Quaternion>& value);
 
 	private:
-		ScriptTKeyframeQuaternion(MonoObject* managedInstance);
+		ScriptKeyFrameQuat(MonoObject* managedInstance);
 
 	};
 }

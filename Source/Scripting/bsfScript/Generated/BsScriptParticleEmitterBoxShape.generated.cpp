@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleEmitterBoxShape::InternalSetOptions(ScriptParticleEmitterBoxShape* thisPtr, __PARTICLE_BOX_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_BOX_SHAPE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_BOX_SHAPE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleBoxShapeOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_BOX_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_BOX_SHAPE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_BOX_SHAPE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleBoxShapeOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleBoxShapeOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleEmitterBoxShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_BOX_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_BOX_SHAPE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_BOX_SHAPE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleBoxShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterBoxShape> instance = ParticleEmitterBoxShape::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleEmitterBoxShape>())ScriptParticleEmitterBoxShape(managedInstance, instance);
 	}

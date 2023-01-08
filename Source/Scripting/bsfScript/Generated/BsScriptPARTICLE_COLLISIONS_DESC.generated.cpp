@@ -7,19 +7,19 @@
 
 namespace bs
 {
-	ScriptPARTICLE_COLLISIONS_DESC::ScriptPARTICLE_COLLISIONS_DESC(MonoObject* managedInstance)
+	ScriptParticleCollisionsOptions::ScriptParticleCollisionsOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_COLLISIONS_DESC::InitRuntimeData()
+	void ScriptParticleCollisionsOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_COLLISIONS_DESC::Box(const PARTICLE_COLLISIONS_DESC& value)
+	MonoObject*ScriptParticleCollisionsOptions::Box(const PARTICLE_COLLISIONS_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	PARTICLE_COLLISIONS_DESC ScriptPARTICLE_COLLISIONS_DESC::Unbox(MonoObject* value)
+	PARTICLE_COLLISIONS_DESC ScriptParticleCollisionsOptions::Unbox(MonoObject* value)
 	{
 		return *(PARTICLE_COLLISIONS_DESC*)MonoUtil::Unbox(value);
 	}

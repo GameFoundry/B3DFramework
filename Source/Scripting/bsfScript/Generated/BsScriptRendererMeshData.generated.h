@@ -16,12 +16,12 @@ namespace bs { class RendererMeshData; }
 namespace bs { class MeshDataEx; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRendererMeshData : public ScriptObject<ScriptRendererMeshData>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshData : public ScriptObject<ScriptMeshData>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MeshData")
 
-		ScriptRendererMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value);
+		ScriptMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value);
 
 		SPtr<RendererMeshData> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<RendererMeshData>& value);
@@ -30,23 +30,23 @@ namespace bs
 		SPtr<RendererMeshData> mInternal;
 
 		static void InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType);
-		static MonoArray* InternalGetPositions(ScriptRendererMeshData* thisPtr);
-		static void InternalSetPositions(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetNormals(ScriptRendererMeshData* thisPtr);
-		static void InternalSetNormals(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetTangents(ScriptRendererMeshData* thisPtr);
-		static void InternalSetTangents(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetColors(ScriptRendererMeshData* thisPtr);
-		static void InternalSetColors(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetUV0(ScriptRendererMeshData* thisPtr);
-		static void InternalSetUV0(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetUV1(ScriptRendererMeshData* thisPtr);
-		static void InternalSetUV1(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetBoneWeights(ScriptRendererMeshData* thisPtr);
-		static void InternalSetBoneWeights(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetIndices(ScriptRendererMeshData* thisPtr);
-		static void InternalSetIndices(ScriptRendererMeshData* thisPtr, MonoArray* value);
-		static int32_t InternalGetVertexCount(ScriptRendererMeshData* thisPtr);
-		static int32_t InternalGetIndexCount(ScriptRendererMeshData* thisPtr);
+		static MonoArray* InternalGetPositions(ScriptMeshData* thisPtr);
+		static void InternalSetPositions(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetNormals(ScriptMeshData* thisPtr);
+		static void InternalSetNormals(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetTangents(ScriptMeshData* thisPtr);
+		static void InternalSetTangents(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetColors(ScriptMeshData* thisPtr);
+		static void InternalSetColors(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetUV0(ScriptMeshData* thisPtr);
+		static void InternalSetUV0(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetUV1(ScriptMeshData* thisPtr);
+		static void InternalSetUV1(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetBoneWeights(ScriptMeshData* thisPtr);
+		static void InternalSetBoneWeights(ScriptMeshData* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetIndices(ScriptMeshData* thisPtr);
+		static void InternalSetIndices(ScriptMeshData* thisPtr, MonoArray* value);
+		static int32_t InternalGetVertexCount(ScriptMeshData* thisPtr);
+		static int32_t InternalGetIndexCount(ScriptMeshData* thisPtr);
 	};
 }

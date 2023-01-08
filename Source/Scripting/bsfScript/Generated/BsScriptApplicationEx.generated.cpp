@@ -11,21 +11,21 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptApplicationEx::ScriptApplicationEx(MonoObject* managedInstance, const SPtr<ApplicationEx>& value)
+	ScriptApplication::ScriptApplication(MonoObject* managedInstance, const SPtr<ApplicationEx>& value)
 		:ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
-	void ScriptApplicationEx::InitRuntimeData()
+	void ScriptApplication::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_StartUp", (void*)&ScriptApplicationEx::InternalStartUp);
-		metaData.ScriptClass->AddInternalCall("Internal_StartUp0", (void*)&ScriptApplicationEx::InternalStartUp0);
-		metaData.ScriptClass->AddInternalCall("Internal_RunMainLoop", (void*)&ScriptApplicationEx::InternalRunMainLoop);
-		metaData.ScriptClass->AddInternalCall("Internal_ShutDown", (void*)&ScriptApplicationEx::InternalShutDown);
+		metaData.ScriptClass->AddInternalCall("Internal_StartUp", (void*)&ScriptApplication::InternalStartUp);
+		metaData.ScriptClass->AddInternalCall("Internal_StartUp0", (void*)&ScriptApplication::InternalStartUp0);
+		metaData.ScriptClass->AddInternalCall("Internal_RunMainLoop", (void*)&ScriptApplication::InternalRunMainLoop);
+		metaData.ScriptClass->AddInternalCall("Internal_ShutDown", (void*)&ScriptApplication::InternalShutDown);
 
 	}
 
-	MonoObject* ScriptApplicationEx::Create(const SPtr<ApplicationEx>& value)
+	MonoObject* ScriptApplication::Create(const SPtr<ApplicationEx>& value)
 	{
 		if(value == nullptr) return nullptr; 
 
@@ -33,17 +33,17 @@ namespace bs
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptApplicationEx>()) ScriptApplicationEx(managedInstance, value);
+		new (B3DAllocate<ScriptApplication>()) ScriptApplication(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptApplicationEx::InternalStartUp(__START_UP_DESCInterop* desc)
+	void ScriptApplication::InternalStartUp(__START_UP_DESCInterop* desc)
 	{
 		START_UP_DESC tmpdesc;
-		tmpdesc = ScriptSTART_UP_DESC::FromInterop(*desc);
+		tmpdesc = ScriptStartUpDesc::FromInterop(*desc);
 		ApplicationEx::StartUp(tmpdesc);
 	}
 
-	void ScriptApplicationEx::InternalStartUp0(__VideoModeInterop* videoMode, MonoString* title, bool fullscreen)
+	void ScriptApplication::InternalStartUp0(__VideoModeInterop* videoMode, MonoString* title, bool fullscreen)
 	{
 		VideoMode tmpvideoMode;
 		tmpvideoMode = ScriptVideoMode::FromInterop(*videoMode);
@@ -52,12 +52,12 @@ namespace bs
 		ApplicationEx::StartUp(tmpvideoMode, tmptitle, fullscreen);
 	}
 
-	void ScriptApplicationEx::InternalRunMainLoop()
+	void ScriptApplication::InternalRunMainLoop()
 	{
 		ApplicationEx::RunMainLoop();
 	}
 
-	void ScriptApplicationEx::InternalShutDown()
+	void ScriptApplication::InternalShutDown()
 	{
 		ApplicationEx::ShutDown();
 	}

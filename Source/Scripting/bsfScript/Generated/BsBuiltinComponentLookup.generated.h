@@ -6,12 +6,12 @@
 #include "Reflection/BsRTTIType.h"
 #include "../../../Foundation/bsfCore/Components/BsCBoxCollider.h"
 #include "BsScriptCBoxCollider.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsCAnimation.h"
+#include "BsScriptCAnimation.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCamera.h"
 #include "BsScriptCCamera.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
 #include "BsScriptCCharacterController.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsCAnimation.h"
-#include "BsScriptCAnimation.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAudioListener.h"
 #include "BsScriptCAudioListener.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCAudioSource.h"
@@ -62,33 +62,33 @@
 namespace bs
 {
 	LOOKUP_BEGIN(BuiltinComponent)
-		ADD_ENTRY(CBoxCollider, ScriptCBoxCollider)
-		ADD_ENTRY(CCamera, ScriptCCamera)
-		ADD_ENTRY(CCharacterController, ScriptCCharacterController)
-		ADD_ENTRY(CAnimation, ScriptCAnimation)
-		ADD_ENTRY(CAudioListener, ScriptCAudioListener)
-		ADD_ENTRY(CAudioSource, ScriptCAudioSource)
-		ADD_ENTRY(CBone, ScriptCBone)
-		ADD_ENTRY(CCollider, ScriptCCollider)
-		ADD_ENTRY(CHingeJoint, ScriptCHingeJoint)
-		ADD_ENTRY(CCapsuleCollider, ScriptCCapsuleCollider)
-		ADD_ENTRY(CJoint, ScriptCJoint)
-		ADD_ENTRY(CD6Joint, ScriptCD6Joint)
-		ADD_ENTRY(CDecal, ScriptCDecal)
-		ADD_ENTRY(CDistanceJoint, ScriptCDistanceJoint)
-		ADD_ENTRY(CFixedJoint, ScriptCFixedJoint)
-		ADD_ENTRY(CLight, ScriptCLight)
-		ADD_ENTRY(CLightProbeVolume, ScriptCLightProbeVolume)
-		ADD_ENTRY(CMeshCollider, ScriptCMeshCollider)
-		ADD_ENTRY(CSphericalJoint, ScriptCSphericalJoint)
-		ADD_ENTRY(CReflectionProbe, ScriptCReflectionProbe)
-		ADD_ENTRY(CParticleSystem, ScriptCParticleSystem)
-		ADD_ENTRY(CPlaneCollider, ScriptCPlaneCollider)
-		ADD_ENTRY(CRenderable, ScriptCRenderable)
-		ADD_ENTRY(CRigidbody, ScriptCRigidbody)
-		ADD_ENTRY(CSkybox, ScriptCSkybox)
-		ADD_ENTRY(CSliderJoint, ScriptCSliderJoint)
-		ADD_ENTRY(CSphereCollider, ScriptCSphereCollider)
+		ADD_ENTRY(CBoxCollider, ScriptBoxCollider)
+		ADD_ENTRY(CAnimation, ScriptAnimation)
+		ADD_ENTRY(CCamera, ScriptCamera)
+		ADD_ENTRY(CCharacterController, ScriptCharacterController)
+		ADD_ENTRY(CAudioListener, ScriptAudioListener)
+		ADD_ENTRY(CAudioSource, ScriptAudioSource)
+		ADD_ENTRY(CBone, ScriptBone)
+		ADD_ENTRY(CCollider, ScriptCollider)
+		ADD_ENTRY(CHingeJoint, ScriptHingeJoint)
+		ADD_ENTRY(CCapsuleCollider, ScriptCapsuleCollider)
+		ADD_ENTRY(CJoint, ScriptJoint)
+		ADD_ENTRY(CD6Joint, ScriptD6Joint)
+		ADD_ENTRY(CDecal, ScriptDecal)
+		ADD_ENTRY(CDistanceJoint, ScriptDistanceJoint)
+		ADD_ENTRY(CFixedJoint, ScriptFixedJoint)
+		ADD_ENTRY(CLight, ScriptLight)
+		ADD_ENTRY(CLightProbeVolume, ScriptLightProbeVolume)
+		ADD_ENTRY(CMeshCollider, ScriptMeshCollider)
+		ADD_ENTRY(CSphericalJoint, ScriptSphericalJoint)
+		ADD_ENTRY(CReflectionProbe, ScriptReflectionProbe)
+		ADD_ENTRY(CParticleSystem, ScriptParticleSystem)
+		ADD_ENTRY(CPlaneCollider, ScriptPlaneCollider)
+		ADD_ENTRY(CRenderable, ScriptRenderable)
+		ADD_ENTRY(CRigidbody, ScriptRigidbody)
+		ADD_ENTRY(CSkybox, ScriptSkybox)
+		ADD_ENTRY(CSliderJoint, ScriptSliderJoint)
+		ADD_ENTRY(CSphereCollider, ScriptSphereCollider)
 	LOOKUP_END
 }
 #undef LOOKUP_BEGIN

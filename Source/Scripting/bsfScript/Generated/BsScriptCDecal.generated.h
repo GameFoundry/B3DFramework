@@ -9,23 +9,23 @@
 namespace bs { class CDecal; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCDecal : public TScriptComponent<ScriptCDecal, CDecal>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDecal : public TScriptComponent<ScriptDecal, CDecal>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Decal")
 
-		ScriptCDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value);
+		ScriptDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value);
 
 	private:
-		static void InternalSetMaterial(ScriptCDecal* thisPtr, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptCDecal* thisPtr);
-		static void InternalSetSize(ScriptCDecal* thisPtr, Vector2* size);
-		static void InternalGetSize(ScriptCDecal* thisPtr, Vector2* __output);
-		static void InternalSetMaxDistance(ScriptCDecal* thisPtr, float distance);
-		static float InternalGetMaxDistance(ScriptCDecal* thisPtr);
-		static void InternalSetLayer(ScriptCDecal* thisPtr, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptCDecal* thisPtr);
-		static void InternalSetLayerMask(ScriptCDecal* thisPtr, uint32_t mask);
-		static uint32_t InternalGetLayerMask(ScriptCDecal* thisPtr);
+		static void InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptDecal* thisPtr);
+		static void InternalSetSize(ScriptDecal* thisPtr, Vector2* size);
+		static void InternalGetSize(ScriptDecal* thisPtr, Vector2* __output);
+		static void InternalSetMaxDistance(ScriptDecal* thisPtr, float distance);
+		static float InternalGetMaxDistance(ScriptDecal* thisPtr);
+		static void InternalSetLayer(ScriptDecal* thisPtr, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptDecal* thisPtr);
+		static void InternalSetLayerMask(ScriptDecal* thisPtr, uint32_t mask);
+		static uint32_t InternalGetLayerMask(ScriptDecal* thisPtr);
 	};
 }

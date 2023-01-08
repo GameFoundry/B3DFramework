@@ -72,7 +72,7 @@ namespace bs
 		*tmp__output = thisPtr->GetInternal()->ColorOverLifetime;
 
 		MonoObject* __output;
-		__output = ScriptTColorDistributionColorGradient::Create(tmp__output);
+		__output = ScriptColorDistribution::Create(tmp__output);
 
 		return __output;
 	}
@@ -80,8 +80,8 @@ namespace bs
 	void ScriptParticleGpuSimulationSettings::InternalSetColorOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
-		ScriptTColorDistributionColorGradient* scriptvalue;
-		scriptvalue = ScriptTColorDistributionColorGradient::ToNative(value);
+		ScriptColorDistribution* scriptvalue;
+		scriptvalue = ScriptColorDistribution::ToNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->GetInternal();
 		thisPtr->GetInternal()->ColorOverLifetime = *tmpvalue;
@@ -93,7 +93,7 @@ namespace bs
 		*tmp__output = thisPtr->GetInternal()->SizeScaleOverLifetime;
 
 		MonoObject* __output;
-		__output = ScriptTDistributionVector2::Create(tmp__output);
+		__output = ScriptVector2Distribution::Create(tmp__output);
 
 		return __output;
 	}
@@ -101,8 +101,8 @@ namespace bs
 	void ScriptParticleGpuSimulationSettings::InternalSetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TDistribution<Vector2>> tmpvalue;
-		ScriptTDistributionVector2* scriptvalue;
-		scriptvalue = ScriptTDistributionVector2::ToNative(value);
+		ScriptVector2Distribution* scriptvalue;
+		scriptvalue = ScriptVector2Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->GetInternal();
 		thisPtr->GetInternal()->SizeScaleOverLifetime = *tmpvalue;

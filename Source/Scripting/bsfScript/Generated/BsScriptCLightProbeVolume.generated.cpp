@@ -6,34 +6,34 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCLightProbeVolume.h"
 #include "Wrappers/BsScriptVector.h"
+#include "BsScriptTVector3I.generated.h"
 #include "BsScriptLightProbeInfo.generated.h"
-#include "BsScriptVector3I.generated.h"
 
 namespace bs
 {
-	ScriptCLightProbeVolume::ScriptCLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value)
+	ScriptLightProbeVolume::ScriptLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCLightProbeVolume::InitRuntimeData()
+	void ScriptLightProbeVolume::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_AddProbe", (void*)&ScriptCLightProbeVolume::InternalAddProbe);
-		metaData.ScriptClass->AddInternalCall("Internal_SetProbePosition", (void*)&ScriptCLightProbeVolume::InternalSetProbePosition);
-		metaData.ScriptClass->AddInternalCall("Internal_GetProbePosition", (void*)&ScriptCLightProbeVolume::InternalGetProbePosition);
-		metaData.ScriptClass->AddInternalCall("Internal_RemoveProbe", (void*)&ScriptCLightProbeVolume::InternalRemoveProbe);
-		metaData.ScriptClass->AddInternalCall("Internal_GetProbes", (void*)&ScriptCLightProbeVolume::InternalGetProbes);
-		metaData.ScriptClass->AddInternalCall("Internal_RenderProbe", (void*)&ScriptCLightProbeVolume::InternalRenderProbe);
-		metaData.ScriptClass->AddInternalCall("Internal_RenderProbes", (void*)&ScriptCLightProbeVolume::InternalRenderProbes);
-		metaData.ScriptClass->AddInternalCall("Internal_Resize", (void*)&ScriptCLightProbeVolume::InternalResize);
-		metaData.ScriptClass->AddInternalCall("Internal_Clip", (void*)&ScriptCLightProbeVolume::InternalClip);
-		metaData.ScriptClass->AddInternalCall("Internal_Reset", (void*)&ScriptCLightProbeVolume::InternalReset);
-		metaData.ScriptClass->AddInternalCall("Internal_GetGridVolume", (void*)&ScriptCLightProbeVolume::InternalGetGridVolume);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCellCount", (void*)&ScriptCLightProbeVolume::InternalGetCellCount);
+		metaData.ScriptClass->AddInternalCall("Internal_AddProbe", (void*)&ScriptLightProbeVolume::InternalAddProbe);
+		metaData.ScriptClass->AddInternalCall("Internal_SetProbePosition", (void*)&ScriptLightProbeVolume::InternalSetProbePosition);
+		metaData.ScriptClass->AddInternalCall("Internal_GetProbePosition", (void*)&ScriptLightProbeVolume::InternalGetProbePosition);
+		metaData.ScriptClass->AddInternalCall("Internal_RemoveProbe", (void*)&ScriptLightProbeVolume::InternalRemoveProbe);
+		metaData.ScriptClass->AddInternalCall("Internal_GetProbes", (void*)&ScriptLightProbeVolume::InternalGetProbes);
+		metaData.ScriptClass->AddInternalCall("Internal_RenderProbe", (void*)&ScriptLightProbeVolume::InternalRenderProbe);
+		metaData.ScriptClass->AddInternalCall("Internal_RenderProbes", (void*)&ScriptLightProbeVolume::InternalRenderProbes);
+		metaData.ScriptClass->AddInternalCall("Internal_Resize", (void*)&ScriptLightProbeVolume::InternalResize);
+		metaData.ScriptClass->AddInternalCall("Internal_Clip", (void*)&ScriptLightProbeVolume::InternalClip);
+		metaData.ScriptClass->AddInternalCall("Internal_Reset", (void*)&ScriptLightProbeVolume::InternalReset);
+		metaData.ScriptClass->AddInternalCall("Internal_GetGridVolume", (void*)&ScriptLightProbeVolume::InternalGetGridVolume);
+		metaData.ScriptClass->AddInternalCall("Internal_GetCellCount", (void*)&ScriptLightProbeVolume::InternalGetCellCount);
 
 	}
 
-	uint32_t ScriptCLightProbeVolume::InternalAddProbe(ScriptCLightProbeVolume* thisPtr, Vector3* position)
+	uint32_t ScriptLightProbeVolume::InternalAddProbe(ScriptLightProbeVolume* thisPtr, Vector3* position)
 	{
 		uint32_t tmp__output;
 		tmp__output = thisPtr->GetHandle()->AddProbe(*position);
@@ -44,12 +44,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCLightProbeVolume::InternalSetProbePosition(ScriptCLightProbeVolume* thisPtr, uint32_t handle, Vector3* position)
+	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* position)
 	{
 		thisPtr->GetHandle()->SetProbePosition(handle, *position);
 	}
 
-	void ScriptCLightProbeVolume::InternalGetProbePosition(ScriptCLightProbeVolume* thisPtr, uint32_t handle, Vector3* __output)
+	void ScriptLightProbeVolume::InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetProbePosition(handle);
@@ -57,12 +57,12 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCLightProbeVolume::InternalRemoveProbe(ScriptCLightProbeVolume* thisPtr, uint32_t handle)
+	void ScriptLightProbeVolume::InternalRemoveProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle)
 	{
 		thisPtr->GetHandle()->RemoveProbe(handle);
 	}
 
-	MonoArray* ScriptCLightProbeVolume::InternalGetProbes(ScriptCLightProbeVolume* thisPtr)
+	MonoArray* ScriptLightProbeVolume::InternalGetProbes(ScriptLightProbeVolume* thisPtr)
 	{
 		Vector<LightProbeInfo> vec__output;
 		vec__output = thisPtr->GetHandle()->GetProbes();
@@ -79,32 +79,32 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCLightProbeVolume::InternalRenderProbe(ScriptCLightProbeVolume* thisPtr, uint32_t handle)
+	void ScriptLightProbeVolume::InternalRenderProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle)
 	{
 		thisPtr->GetHandle()->RenderProbe(handle);
 	}
 
-	void ScriptCLightProbeVolume::InternalRenderProbes(ScriptCLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalRenderProbes(ScriptLightProbeVolume* thisPtr)
 	{
 		thisPtr->GetHandle()->RenderProbes();
 	}
 
-	void ScriptCLightProbeVolume::InternalResize(ScriptCLightProbeVolume* thisPtr, AABox* volume, Vector3I* cellCount)
+	void ScriptLightProbeVolume::InternalResize(ScriptLightProbeVolume* thisPtr, AABox* volume, TVector3I<int32_t>* cellCount)
 	{
 		thisPtr->GetHandle()->Resize(*volume, *cellCount);
 	}
 
-	void ScriptCLightProbeVolume::InternalClip(ScriptCLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalClip(ScriptLightProbeVolume* thisPtr)
 	{
 		thisPtr->GetHandle()->Clip();
 	}
 
-	void ScriptCLightProbeVolume::InternalReset(ScriptCLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalReset(ScriptLightProbeVolume* thisPtr)
 	{
 		thisPtr->GetHandle()->Reset();
 	}
 
-	void ScriptCLightProbeVolume::InternalGetGridVolume(ScriptCLightProbeVolume* thisPtr, AABox* __output)
+	void ScriptLightProbeVolume::InternalGetGridVolume(ScriptLightProbeVolume* thisPtr, AABox* __output)
 	{
 		AABox tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetGridVolume();
@@ -112,9 +112,9 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCLightProbeVolume::InternalGetCellCount(ScriptCLightProbeVolume* thisPtr, Vector3I* __output)
+	void ScriptLightProbeVolume::InternalGetCellCount(ScriptLightProbeVolume* thisPtr, TVector3I<int32_t>* __output)
 	{
-		Vector3I tmp__output;
+		TVector3I<int32_t> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCellCount();
 
 		*__output = tmp__output;

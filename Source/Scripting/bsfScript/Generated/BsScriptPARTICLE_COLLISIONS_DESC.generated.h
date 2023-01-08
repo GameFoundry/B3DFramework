@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_COLLISIONS_DESC : public ScriptObject<ScriptPARTICLE_COLLISIONS_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisionsOptions : public ScriptObject<ScriptParticleCollisionsOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleCollisionsOptions")
@@ -17,7 +17,7 @@ namespace bs
 		static PARTICLE_COLLISIONS_DESC Unbox(MonoObject* value);
 
 	private:
-		ScriptPARTICLE_COLLISIONS_DESC(MonoObject* managedInstance);
+		ScriptParticleCollisionsOptions(MonoObject* managedInstance);
 
 	};
 }

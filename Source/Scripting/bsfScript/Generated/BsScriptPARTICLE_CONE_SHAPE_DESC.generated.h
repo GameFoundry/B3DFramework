@@ -22,7 +22,7 @@ namespace bs
 		ParticleEmissionMode Mode;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_CONE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_CONE_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleConeShapeOptions : public ScriptObject<ScriptParticleConeShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleConeShapeOptions")
@@ -33,7 +33,7 @@ namespace bs
 		static __PARTICLE_CONE_SHAPE_DESCInterop ToInterop(const PARTICLE_CONE_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_CONE_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleConeShapeOptions(MonoObject* managedInstance);
 
 	};
 }

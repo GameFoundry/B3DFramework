@@ -12,19 +12,19 @@ namespace bs { struct __LimitLinearRangeInterop; }
 namespace bs { class CSliderJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSliderJoint : public TScriptComponent<ScriptCSliderJoint, CSliderJoint, ScriptCJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSliderJoint : public TScriptComponent<ScriptSliderJoint, CSliderJoint, ScriptJointBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SliderJoint")
 
-		ScriptCSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value);
+		ScriptSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value);
 
 	private:
-		static float InternalGetPosition(ScriptCSliderJoint* thisPtr);
-		static float InternalGetSpeed(ScriptCSliderJoint* thisPtr);
-		static void InternalGetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* __output);
-		static void InternalSetLimit(ScriptCSliderJoint* thisPtr, __LimitLinearRangeInterop* limit);
-		static void InternalSetFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptCSliderJoint* thisPtr, SliderJointFlag flag);
+		static float InternalGetPosition(ScriptSliderJoint* thisPtr);
+		static float InternalGetSpeed(ScriptSliderJoint* thisPtr);
+		static void InternalGetLimit(ScriptSliderJoint* thisPtr, __LimitLinearRangeInterop* __output);
+		static void InternalSetLimit(ScriptSliderJoint* thisPtr, __LimitLinearRangeInterop* limit);
+		static void InternalSetFlag(ScriptSliderJoint* thisPtr, SliderJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptSliderJoint* thisPtr, SliderJointFlag flag);
 	};
 }

@@ -40,7 +40,7 @@ namespace bs
 	void ScriptVectorField::InternalCreate(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values)
 	{
 		VECTOR_FIELD_DESC tmpdesc;
-		tmpdesc = ScriptVECTOR_FIELD_DESC::FromInterop(*desc);
+		tmpdesc = ScriptVectorFieldOptions::FromInterop(*desc);
 		Vector<Vector3> vecvalues;
 		if(values != nullptr)
 		{

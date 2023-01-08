@@ -17,7 +17,7 @@ namespace bs
 		bool Use3DSize;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_SIZE_DESC : public ScriptObject<ScriptPARTICLE_SIZE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSizeOptions : public ScriptObject<ScriptParticleSizeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSizeOptions")
@@ -28,7 +28,7 @@ namespace bs
 		static __PARTICLE_SIZE_DESCInterop ToInterop(const PARTICLE_SIZE_DESC& value);
 
 	private:
-		ScriptPARTICLE_SIZE_DESC(MonoObject* managedInstance);
+		ScriptParticleSizeOptions(MonoObject* managedInstance);
 
 	};
 }

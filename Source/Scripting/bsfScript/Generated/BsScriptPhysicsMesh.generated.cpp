@@ -53,8 +53,8 @@ namespace bs
 	void ScriptPhysicsMesh::InternalCreate(MonoObject* managedInstance, MonoObject* meshData, PhysicsMeshType type)
 	{
 		SPtr<RendererMeshData> tmpmeshData;
-		ScriptRendererMeshData* scriptmeshData;
-		scriptmeshData = ScriptRendererMeshData::ToNative(meshData);
+		ScriptMeshData* scriptmeshData;
+		scriptmeshData = ScriptMeshData::ToNative(meshData);
 		if(scriptmeshData != nullptr)
 			tmpmeshData = scriptmeshData->GetInternal();
 		ResourceHandle<PhysicsMesh> instance = PhysicsMeshEx::Create(tmpmeshData, type);
@@ -67,7 +67,7 @@ namespace bs
 		tmp__output = PhysicsMeshEx::GetMeshData(thisPtr->GetHandle());
 
 		MonoObject* __output;
-		__output = ScriptRendererMeshData::Create(tmp__output);
+		__output = ScriptMeshData::Create(tmp__output);
 
 		return __output;
 	}

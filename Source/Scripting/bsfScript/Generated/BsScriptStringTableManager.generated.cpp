@@ -11,27 +11,27 @@
 
 namespace bs
 {
-	ScriptStringTableManager::ScriptStringTableManager(MonoObject* managedInstance)
+	ScriptStringTables::ScriptStringTables(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{
 	}
 
-	void ScriptStringTableManager::InitRuntimeData()
+	void ScriptStringTables::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetActiveLanguage", (void*)&ScriptStringTableManager::InternalSetActiveLanguage);
-		metaData.ScriptClass->AddInternalCall("Internal_GetActiveLanguage", (void*)&ScriptStringTableManager::InternalGetActiveLanguage);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTable", (void*)&ScriptStringTableManager::InternalGetTable);
-		metaData.ScriptClass->AddInternalCall("Internal_RemoveTable", (void*)&ScriptStringTableManager::InternalRemoveTable);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTable", (void*)&ScriptStringTableManager::InternalSetTable);
+		metaData.ScriptClass->AddInternalCall("Internal_SetActiveLanguage", (void*)&ScriptStringTables::InternalSetActiveLanguage);
+		metaData.ScriptClass->AddInternalCall("Internal_GetActiveLanguage", (void*)&ScriptStringTables::InternalGetActiveLanguage);
+		metaData.ScriptClass->AddInternalCall("Internal_GetTable", (void*)&ScriptStringTables::InternalGetTable);
+		metaData.ScriptClass->AddInternalCall("Internal_RemoveTable", (void*)&ScriptStringTables::InternalRemoveTable);
+		metaData.ScriptClass->AddInternalCall("Internal_SetTable", (void*)&ScriptStringTables::InternalSetTable);
 
 	}
 
-	void ScriptStringTableManager::InternalSetActiveLanguage(Language language)
+	void ScriptStringTables::InternalSetActiveLanguage(Language language)
 	{
 		StringTableManager::Instance().SetActiveLanguage(language);
 	}
 
-	Language ScriptStringTableManager::InternalGetActiveLanguage()
+	Language ScriptStringTables::InternalGetActiveLanguage()
 	{
 		Language tmp__output;
 		tmp__output = StringTableManager::Instance().GetActiveLanguage();
@@ -42,7 +42,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptStringTableManager::InternalGetTable(uint32_t id)
+	MonoObject* ScriptStringTables::InternalGetTable(uint32_t id)
 	{
 		ResourceHandle<StringTable> tmp__output;
 		tmp__output = StringTableManager::Instance().GetTable(id);
@@ -58,12 +58,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptStringTableManager::InternalRemoveTable(uint32_t id)
+	void ScriptStringTables::InternalRemoveTable(uint32_t id)
 	{
 		StringTableManager::Instance().RemoveTable(id);
 	}
 
-	void ScriptStringTableManager::InternalSetTable(uint32_t id, MonoObject* table)
+	void ScriptStringTables::InternalSetTable(uint32_t id, MonoObject* table)
 	{
 		ResourceHandle<StringTable> tmptable;
 		ScriptRRefBase* scripttable;

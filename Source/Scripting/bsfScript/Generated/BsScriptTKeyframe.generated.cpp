@@ -13,60 +13,60 @@
 
 namespace bs
 {
-	ScriptTKeyframeint32_t::ScriptTKeyframeint32_t(MonoObject* managedInstance)
+	ScriptKeyFrameInt::ScriptKeyFrameInt(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTKeyframeint32_t::InitRuntimeData()
+	void ScriptKeyFrameInt::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptTKeyframeint32_t::Box(const TKeyframe<int32_t>& value)
+	MonoObject*ScriptKeyFrameInt::Box(const TKeyframe<int32_t>& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	TKeyframe<int32_t> ScriptTKeyframeint32_t::Unbox(MonoObject* value)
+	TKeyframe<int32_t> ScriptKeyFrameInt::Unbox(MonoObject* value)
 	{
 		return *(TKeyframe<int32_t>*)MonoUtil::Unbox(value);
 	}
 
 
-	ScriptTKeyframefloat::ScriptTKeyframefloat(MonoObject* managedInstance)
+	ScriptKeyFrame::ScriptKeyFrame(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTKeyframefloat::InitRuntimeData()
+	void ScriptKeyFrame::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptTKeyframefloat::Box(const TKeyframe<float>& value)
+	MonoObject*ScriptKeyFrame::Box(const TKeyframe<float>& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	TKeyframe<float> ScriptTKeyframefloat::Unbox(MonoObject* value)
+	TKeyframe<float> ScriptKeyFrame::Unbox(MonoObject* value)
 	{
 		return *(TKeyframe<float>*)MonoUtil::Unbox(value);
 	}
 
 
-	ScriptTKeyframeVector3::ScriptTKeyframeVector3(MonoObject* managedInstance)
+	ScriptKeyFrameVec3::ScriptKeyFrameVec3(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTKeyframeVector3::InitRuntimeData()
+	void ScriptKeyFrameVec3::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptTKeyframeVector3::Box(const __TKeyframeVector3Interop& value)
+	MonoObject*ScriptKeyFrameVec3::Box(const __TKeyframeVector3Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TKeyframeVector3Interop ScriptTKeyframeVector3::Unbox(MonoObject* value)
+	__TKeyframeVector3Interop ScriptKeyFrameVec3::Unbox(MonoObject* value)
 	{
 		return *(__TKeyframeVector3Interop*)MonoUtil::Unbox(value);
 	}
 
-	TKeyframe<Vector3> ScriptTKeyframeVector3::FromInterop(const __TKeyframeVector3Interop& value)
+	TKeyframe<Vector3> ScriptKeyFrameVec3::FromInterop(const __TKeyframeVector3Interop& value)
 	{
 		TKeyframe<Vector3> output;
 		output.Value = value.Value;
@@ -77,7 +77,7 @@ namespace bs
 		return output;
 	}
 
-	__TKeyframeVector3Interop ScriptTKeyframeVector3::ToInterop(const TKeyframe<Vector3>& value)
+	__TKeyframeVector3Interop ScriptKeyFrameVec3::ToInterop(const TKeyframe<Vector3>& value)
 	{
 		__TKeyframeVector3Interop output;
 		output.Value = value.Value;
@@ -89,24 +89,24 @@ namespace bs
 	}
 
 
-	ScriptTKeyframeVector2::ScriptTKeyframeVector2(MonoObject* managedInstance)
+	ScriptKeyFrameVec2::ScriptKeyFrameVec2(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTKeyframeVector2::InitRuntimeData()
+	void ScriptKeyFrameVec2::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptTKeyframeVector2::Box(const __TKeyframeVector2Interop& value)
+	MonoObject*ScriptKeyFrameVec2::Box(const __TKeyframeVector2Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TKeyframeVector2Interop ScriptTKeyframeVector2::Unbox(MonoObject* value)
+	__TKeyframeVector2Interop ScriptKeyFrameVec2::Unbox(MonoObject* value)
 	{
 		return *(__TKeyframeVector2Interop*)MonoUtil::Unbox(value);
 	}
 
-	TKeyframe<Vector2> ScriptTKeyframeVector2::FromInterop(const __TKeyframeVector2Interop& value)
+	TKeyframe<Vector2> ScriptKeyFrameVec2::FromInterop(const __TKeyframeVector2Interop& value)
 	{
 		TKeyframe<Vector2> output;
 		output.Value = value.Value;
@@ -117,7 +117,7 @@ namespace bs
 		return output;
 	}
 
-	__TKeyframeVector2Interop ScriptTKeyframeVector2::ToInterop(const TKeyframe<Vector2>& value)
+	__TKeyframeVector2Interop ScriptKeyFrameVec2::ToInterop(const TKeyframe<Vector2>& value)
 	{
 		__TKeyframeVector2Interop output;
 		output.Value = value.Value;
@@ -129,24 +129,24 @@ namespace bs
 	}
 
 
-	ScriptTKeyframeQuaternion::ScriptTKeyframeQuaternion(MonoObject* managedInstance)
+	ScriptKeyFrameQuat::ScriptKeyFrameQuat(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptTKeyframeQuaternion::InitRuntimeData()
+	void ScriptKeyFrameQuat::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptTKeyframeQuaternion::Box(const __TKeyframeQuaternionInterop& value)
+	MonoObject*ScriptKeyFrameQuat::Box(const __TKeyframeQuaternionInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TKeyframeQuaternionInterop ScriptTKeyframeQuaternion::Unbox(MonoObject* value)
+	__TKeyframeQuaternionInterop ScriptKeyFrameQuat::Unbox(MonoObject* value)
 	{
 		return *(__TKeyframeQuaternionInterop*)MonoUtil::Unbox(value);
 	}
 
-	TKeyframe<Quaternion> ScriptTKeyframeQuaternion::FromInterop(const __TKeyframeQuaternionInterop& value)
+	TKeyframe<Quaternion> ScriptKeyFrameQuat::FromInterop(const __TKeyframeQuaternionInterop& value)
 	{
 		TKeyframe<Quaternion> output;
 		output.Value = value.Value;
@@ -157,7 +157,7 @@ namespace bs
 		return output;
 	}
 
-	__TKeyframeQuaternionInterop ScriptTKeyframeQuaternion::ToInterop(const TKeyframe<Quaternion>& value)
+	__TKeyframeQuaternionInterop ScriptKeyFrameQuat::ToInterop(const TKeyframe<Quaternion>& value)
 	{
 		__TKeyframeQuaternionInterop output;
 		output.Value = value.Value;

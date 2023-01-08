@@ -8,8 +8,8 @@
 #include "../Extensions/BsShaderEx.h"
 
 namespace bs { class Shader; }
+namespace bs { struct __ShaderVariationParameterInformationInterop; }
 namespace bs { class ShaderEx; }
-namespace bs { struct __ShaderVariationParamInfoInterop; }
 namespace bs { struct __ShaderParameterInterop; }
 namespace bs
 {

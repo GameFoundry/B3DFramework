@@ -10,24 +10,24 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptSTART_UP_DESC::ScriptSTART_UP_DESC(MonoObject* managedInstance)
+	ScriptStartUpDesc::ScriptStartUpDesc(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptSTART_UP_DESC::InitRuntimeData()
+	void ScriptStartUpDesc::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptSTART_UP_DESC::Box(const __START_UP_DESCInterop& value)
+	MonoObject*ScriptStartUpDesc::Box(const __START_UP_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__START_UP_DESCInterop ScriptSTART_UP_DESC::Unbox(MonoObject* value)
+	__START_UP_DESCInterop ScriptStartUpDesc::Unbox(MonoObject* value)
 	{
 		return *(__START_UP_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	START_UP_DESC ScriptSTART_UP_DESC::FromInterop(const __START_UP_DESCInterop& value)
+	START_UP_DESC ScriptStartUpDesc::FromInterop(const __START_UP_DESCInterop& value)
 	{
 		START_UP_DESC output;
 		String tmpRenderApi;
@@ -48,7 +48,7 @@ namespace bs
 		output.PhysicsCooking = value.PhysicsCooking;
 		output.AsyncAnimation = value.AsyncAnimation;
 		RENDER_WINDOW_DESC tmpPrimaryWindowDesc;
-		tmpPrimaryWindowDesc = ScriptRENDER_WINDOW_DESC::FromInterop(value.PrimaryWindowDesc);
+		tmpPrimaryWindowDesc = ScriptRenderWindowDesc::FromInterop(value.PrimaryWindowDesc);
 		output.PrimaryWindowDesc = tmpPrimaryWindowDesc;
 		Vector<String> vecImporters;
 		if(value.Importers != nullptr)
@@ -65,7 +65,7 @@ namespace bs
 		return output;
 	}
 
-	__START_UP_DESCInterop ScriptSTART_UP_DESC::ToInterop(const START_UP_DESC& value)
+	__START_UP_DESCInterop ScriptStartUpDesc::ToInterop(const START_UP_DESC& value)
 	{
 		__START_UP_DESCInterop output;
 		MonoString* tmpRenderApi;
@@ -86,7 +86,7 @@ namespace bs
 		output.PhysicsCooking = value.PhysicsCooking;
 		output.AsyncAnimation = value.AsyncAnimation;
 		__RENDER_WINDOW_DESCInterop tmpPrimaryWindowDesc;
-		tmpPrimaryWindowDesc = ScriptRENDER_WINDOW_DESC::ToInterop(value.PrimaryWindowDesc);
+		tmpPrimaryWindowDesc = ScriptRenderWindowDesc::ToInterop(value.PrimaryWindowDesc);
 		output.PrimaryWindowDesc = tmpPrimaryWindowDesc;
 		int arraySizeImporters = (int)value.Importers.size();
 		MonoArray* vecImporters;

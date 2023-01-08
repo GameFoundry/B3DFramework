@@ -10,22 +10,22 @@
 namespace bs { class CReflectionProbe; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCReflectionProbe : public TScriptComponent<ScriptCReflectionProbe, CReflectionProbe>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptReflectionProbe : public TScriptComponent<ScriptReflectionProbe, CReflectionProbe>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ReflectionProbe")
 
-		ScriptCReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value);
+		ScriptReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value);
 
 	private:
-		static ReflectionProbeType InternalGetType(ScriptCReflectionProbe* thisPtr);
-		static void InternalSetType(ScriptCReflectionProbe* thisPtr, ReflectionProbeType type);
-		static float InternalGetRadius(ScriptCReflectionProbe* thisPtr);
-		static void InternalSetRadius(ScriptCReflectionProbe* thisPtr, float radius);
-		static void InternalGetExtents(ScriptCReflectionProbe* thisPtr, Vector3* __output);
-		static void InternalSetExtents(ScriptCReflectionProbe* thisPtr, Vector3* extents);
-		static MonoObject* InternalGetCustomTexture(ScriptCReflectionProbe* thisPtr);
-		static void InternalSetCustomTexture(ScriptCReflectionProbe* thisPtr, MonoObject* texture);
-		static void InternalCapture(ScriptCReflectionProbe* thisPtr);
+		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* thisPtr);
+		static void InternalSetType(ScriptReflectionProbe* thisPtr, ReflectionProbeType type);
+		static float InternalGetRadius(ScriptReflectionProbe* thisPtr);
+		static void InternalSetRadius(ScriptReflectionProbe* thisPtr, float radius);
+		static void InternalGetExtents(ScriptReflectionProbe* thisPtr, Vector3* __output);
+		static void InternalSetExtents(ScriptReflectionProbe* thisPtr, Vector3* extents);
+		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* thisPtr);
+		static void InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture);
+		static void InternalCapture(ScriptReflectionProbe* thisPtr);
 	};
 }

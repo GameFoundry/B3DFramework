@@ -16,7 +16,7 @@ namespace bs
 		MonoObject* Renderable;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSkinnedMeshShapeOptions : public ScriptObject<ScriptParticleSkinnedMeshShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSkinnedMeshShapeOptions")
@@ -27,7 +27,7 @@ namespace bs
 		static __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ToInterop(const PARTICLE_SKINNED_MESH_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleSkinnedMeshShapeOptions(MonoObject* managedInstance);
 
 	};
 }

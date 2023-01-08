@@ -11,24 +11,24 @@
 namespace bs { class CDistanceJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCDistanceJoint : public TScriptComponent<ScriptCDistanceJoint, CDistanceJoint, ScriptCJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptComponent<ScriptDistanceJoint, CDistanceJoint, ScriptJointBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "DistanceJoint")
 
-		ScriptCDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value);
+		ScriptDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value);
 
 	private:
-		static float InternalGetDistance(ScriptCDistanceJoint* thisPtr);
-		static float InternalGetMinDistance(ScriptCDistanceJoint* thisPtr);
-		static void InternalSetMinDistance(ScriptCDistanceJoint* thisPtr, float value);
-		static float InternalGetMaxDistance(ScriptCDistanceJoint* thisPtr);
-		static void InternalSetMaxDistance(ScriptCDistanceJoint* thisPtr, float value);
-		static float InternalGetTolerance(ScriptCDistanceJoint* thisPtr);
-		static void InternalSetTolerance(ScriptCDistanceJoint* thisPtr, float value);
-		static void InternalGetSpring(ScriptCDistanceJoint* thisPtr, Spring* __output);
-		static void InternalSetSpring(ScriptCDistanceJoint* thisPtr, Spring* value);
-		static void InternalSetFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptCDistanceJoint* thisPtr, DistanceJointFlag flag);
+		static float InternalGetDistance(ScriptDistanceJoint* thisPtr);
+		static float InternalGetMinDistance(ScriptDistanceJoint* thisPtr);
+		static void InternalSetMinDistance(ScriptDistanceJoint* thisPtr, float value);
+		static float InternalGetMaxDistance(ScriptDistanceJoint* thisPtr);
+		static void InternalSetMaxDistance(ScriptDistanceJoint* thisPtr, float value);
+		static float InternalGetTolerance(ScriptDistanceJoint* thisPtr);
+		static void InternalSetTolerance(ScriptDistanceJoint* thisPtr, float value);
+		static void InternalGetSpring(ScriptDistanceJoint* thisPtr, Spring* __output);
+		static void InternalSetSpring(ScriptDistanceJoint* thisPtr, Spring* value);
+		static void InternalSetFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag);
 	};
 }

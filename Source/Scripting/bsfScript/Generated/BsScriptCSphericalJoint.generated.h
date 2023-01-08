@@ -12,17 +12,17 @@ namespace bs { struct __LimitConeRangeInterop; }
 namespace bs { class CSphericalJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSphericalJoint : public TScriptComponent<ScriptCSphericalJoint, CSphericalJoint, ScriptCJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptComponent<ScriptSphericalJoint, CSphericalJoint, ScriptJointBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SphericalJoint")
 
-		ScriptCSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value);
+		ScriptSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value);
 
 	private:
-		static void InternalGetLimit(ScriptCSphericalJoint* thisPtr, __LimitConeRangeInterop* __output);
-		static void InternalSetLimit(ScriptCSphericalJoint* thisPtr, __LimitConeRangeInterop* limit);
-		static void InternalSetFlag(ScriptCSphericalJoint* thisPtr, SphericalJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptCSphericalJoint* thisPtr, SphericalJointFlag flag);
+		static void InternalGetLimit(ScriptSphericalJoint* thisPtr, __LimitConeRangeInterop* __output);
+		static void InternalSetLimit(ScriptSphericalJoint* thisPtr, __LimitConeRangeInterop* limit);
+		static void InternalSetFlag(ScriptSphericalJoint* thisPtr, SphericalJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptSphericalJoint* thisPtr, SphericalJointFlag flag);
 	};
 }

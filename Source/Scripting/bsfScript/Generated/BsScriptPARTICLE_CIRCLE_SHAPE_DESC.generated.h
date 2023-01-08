@@ -18,7 +18,7 @@ namespace bs
 		ParticleEmissionMode Mode;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_CIRCLE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_CIRCLE_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCircleShapeOptions : public ScriptObject<ScriptParticleCircleShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleCircleShapeOptions")
@@ -29,7 +29,7 @@ namespace bs
 		static __PARTICLE_CIRCLE_SHAPE_DESCInterop ToInterop(const PARTICLE_CIRCLE_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_CIRCLE_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleCircleShapeOptions(MonoObject* managedInstance);
 
 	};
 }

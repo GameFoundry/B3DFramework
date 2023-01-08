@@ -32,6 +32,53 @@ namespace bs
 			this.Z = z;
 		}
 
+		public Vector3I(int value)
+		{
+			this.X = 0;
+			this.Y = 0;
+			this.Z = 0;
+		}
+
+		public int X;
+		public int Y;
+		public int Z;
+	}
+
+	/** @} */
+
+	/** @addtogroup Math
+	 *  @{
+	 */
+
+	/// <summary>A three dimensional vector with integer coordinates.</summary>
+	[StructLayout(LayoutKind.Sequential), SerializeObject]
+	public partial struct Vector3UI
+	{
+		/// <summary>Initializes the struct with default values.</summary>
+		public static Vector3UI Default()
+		{
+			Vector3UI value = new Vector3UI();
+			value.X = 0;
+			value.Y = 0;
+			value.Z = 0;
+
+			return value;
+		}
+
+		public Vector3UI(int x, int y, int z)
+		{
+			this.X = 0;
+			this.Y = 0;
+			this.Z = 0;
+		}
+
+		public Vector3UI(int value)
+		{
+			this.X = 0;
+			this.Y = 0;
+			this.Z = 0;
+		}
+
 		public int X;
 		public int Y;
 		public int Z;

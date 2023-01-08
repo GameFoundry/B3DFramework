@@ -9,26 +9,26 @@
 
 namespace bs
 {
-	ScriptCBoxCollider::ScriptCBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value)
+	ScriptBoxCollider::ScriptBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCBoxCollider::InitRuntimeData()
+	void ScriptBoxCollider::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptCBoxCollider::InternalSetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptCBoxCollider::InternalGetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCBoxCollider::InternalSetCenter);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCBoxCollider::InternalGetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptBoxCollider::InternalSetExtents);
+		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptBoxCollider::InternalGetExtents);
+		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptBoxCollider::InternalSetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptBoxCollider::InternalGetCenter);
 
 	}
 
-	void ScriptCBoxCollider::InternalSetExtents(ScriptCBoxCollider* thisPtr, Vector3* extents)
+	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* thisPtr, Vector3* extents)
 	{
 		thisPtr->GetHandle()->SetExtents(*extents);
 	}
 
-	void ScriptCBoxCollider::InternalGetExtents(ScriptCBoxCollider* thisPtr, Vector3* __output)
+	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetExtents();
@@ -36,12 +36,12 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCBoxCollider::InternalSetCenter(ScriptCBoxCollider* thisPtr, Vector3* center)
+	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* thisPtr, Vector3* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptCBoxCollider::InternalGetCenter(ScriptCBoxCollider* thisPtr, Vector3* __output)
+	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();

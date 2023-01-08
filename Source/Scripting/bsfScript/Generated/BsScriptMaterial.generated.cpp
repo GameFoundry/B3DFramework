@@ -150,8 +150,8 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<TAnimationCurve<float>> tmpvalue;
-		ScriptTAnimationCurvefloat* scriptvalue;
-		scriptvalue = ScriptTAnimationCurvefloat::ToNative(value);
+		ScriptAnimationCurve* scriptvalue;
+		scriptvalue = ScriptAnimationCurve::ToNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->GetInternal();
 		thisPtr->GetHandle()->SetFloatCurve(tmpname, *tmpvalue, arrayIdx);
@@ -232,7 +232,7 @@ namespace bs
 		*tmp__output = thisPtr->GetHandle()->GetFloatCurve(tmpname, arrayIdx);
 
 		MonoObject* __output;
-		__output = ScriptTAnimationCurvefloat::Create(tmp__output);
+		__output = ScriptAnimationCurve::Create(tmp__output);
 
 		return __output;
 	}

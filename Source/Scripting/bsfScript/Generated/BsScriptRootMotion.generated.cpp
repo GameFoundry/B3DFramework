@@ -40,7 +40,7 @@ namespace bs
 		*tmp__output = RootMotionEx::GetPositionCurves(thisPtr->GetInternal());
 
 		MonoObject* __output;
-		__output = ScriptTAnimationCurveVector3::Create(tmp__output);
+		__output = ScriptVector3Curve::Create(tmp__output);
 
 		return __output;
 	}
@@ -51,7 +51,7 @@ namespace bs
 		*tmp__output = RootMotionEx::GetRotationCurves(thisPtr->GetInternal());
 
 		MonoObject* __output;
-		__output = ScriptTAnimationCurveQuaternion::Create(tmp__output);
+		__output = ScriptQuaternionCurve::Create(tmp__output);
 
 		return __output;
 	}

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_SPHERE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_SPHERE_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSphereShapeOptions : public ScriptObject<ScriptParticleSphereShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSphereShapeOptions")
@@ -17,7 +17,7 @@ namespace bs
 		static PARTICLE_SPHERE_SHAPE_DESC Unbox(MonoObject* value);
 
 	private:
-		ScriptPARTICLE_SPHERE_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleSphereShapeOptions(MonoObject* managedInstance);
 
 	};
 }

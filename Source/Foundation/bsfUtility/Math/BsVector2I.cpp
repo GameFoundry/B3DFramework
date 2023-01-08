@@ -4,5 +4,8 @@
 
 using namespace bs;
 
-const Vector2I Vector2I::kZero(0, 0);
+template<typename T> const TVector2I<T> TVector2I<T>::kZero = TVector2I<T>(BS_ZERO());
+
+template struct B3D_UTILITY_EXPORT TVector2I<i32>;
+template struct B3D_UTILITY_EXPORT TVector2I<u32>;
 

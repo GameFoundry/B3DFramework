@@ -92,48 +92,6 @@
 		<enumentry native="ZYX" script="ZYX">
 		</enumentry>
 	</enum>
-	<struct native="BlendClipInfo" script="BlendClipInfo">
-		<doc>Represents an animation clip used in 1D blending. Each clip has a position on the number line.</doc>
-		<ctor>
-		</ctor>
-		<field name="Clip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-		<field name="Position" type="float">
-		</field>
-	</struct>
-	<struct native="KeyframeRef" script="KeyframeRef">
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="curveIdx" type="int">
-			</param>
-			<param name="keyIdx" type="int">
-			</param>
-		</ctor>
-		<field name="CurveIdx" type="int">
-		</field>
-		<field name="KeyIdx" type="int">
-		</field>
-	</struct>
-	<struct native="Vector3I" script="Vector3I">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
 	<enum native="LogVerbosity" script="LogVerbosity">
 		<doc>Represents verbosity level at which a specific log message will be displayed.</doc>
 		<enumentry native="Fatal" script="Fatal">
@@ -241,6 +199,139 @@
 		<field name="Color" type="Color">
 		</field>
 		<field name="Time" type="float">
+		</field>
+	</struct>
+	<class native="CAnimation" script="Animation">
+		<method native="Play" script="Play" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+		</method>
+		<method native="BlendAdditive" script="BlendAdditive" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="weight" type="float">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="Blend1D" script="Blend1D" static="false">
+			<param name="info" type="Blend1DInfo">
+			</param>
+			<param name="t" type="float">
+			</param>
+		</method>
+		<method native="Blend2D" script="Blend2D" static="false">
+			<param name="info" type="Blend2DInfo">
+			</param>
+			<param name="t" type="Vector2">
+			</param>
+		</method>
+		<method native="CrossFade" script="CrossFade" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+		</method>
+		<method native="Sample" script="Sample" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="time" type="float">
+			</param>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="StopAll" script="StopAll" static="false">
+		</method>
+		<method native="GetState" script="GetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="SetState" script="SetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+		</method>
+		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
+			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
+			<param name="name" type="string">
+				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
+			</param>
+			<param name="weight" type="float">
+				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
+			</param>
+		</method>
+		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
+			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
+		</property>
+		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
+		</property>
+		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
+		</property>
+		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
+			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
+		</property>
+		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
+			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
+		</property>
+		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
+			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
+		</property>
+	</class>
+	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+	</struct>
+	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
 		</field>
 	</struct>
 	<class native="ApplicationEx" script="Application">
@@ -658,6 +749,49 @@
 			<doc>Returns a list of all keyframes in the curve.</doc>
 		</property>
 	</class>
+	<struct native="Blend1DInfo" script="Blend1DInfo">
+		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
+		<field name="Clips" type="BlendClipInfo">
+		</field>
+	</struct>
+	<struct native="TVector2I&lt;int32_t&gt;" script="Vector2I">
+		<doc>A two dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
+	<struct native="TVector2I&lt;uint32_t&gt;" script="Vector2UI">
+		<doc>A two dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
 	<class native="CCamera" script="Camera">
 		<method native="NotifyNeedsRedraw" script="NotifyNeedsRedraw" static="false">
 		</method>
@@ -1447,24 +1581,29 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<ctor>
 			<param name="mipLevel" type="int">
 			</param>
-			<param name="numMipLevels" type="int">
+			<param name="mipLevelCount" type="int">
 			</param>
 			<param name="face" type="int">
 			</param>
-			<param name="numFaces" type="int">
+			<param name="faceCount" type="int">
+			</param>
+			<param name="isBoundAs2DArray" type="bool">
 			</param>
 		</ctor>
 		<field name="MipLevel" type="int">
 			<doc>First mip level to reference.</doc>
 		</field>
-		<field name="NumMipLevels" type="int">
+		<field name="MipLevelCount" type="int">
 			<doc>Number of mip levels to reference. Must be greater than zero.</doc>
 		</field>
 		<field name="Face" type="int">
 			<doc>First face to reference. Face can represent a single cubemap face, or a single array entry in a texture array. If cubemaps are laid out in a texture array then every six sequential faces represent a single array entry.</doc>
 		</field>
-		<field name="NumFaces" type="int">
+		<field name="FaceCount" type="int">
 			<doc>Number of faces to reference, if the texture has more than one.</doc>
+		</field>
+		<field name="IsBoundAs2DArray" type="bool">
+			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
 		</field>
 	</struct>
 	<class native="MorphShapes" script="MorphShapes">
@@ -1528,9 +1667,27 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback (e.g. for blending where animation weight controls the animation).</doc>
 		</field>
 	</struct>
-	<struct native="Blend1DInfo" script="Blend1DInfo">
-		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
-		<field name="Clips" type="BlendClipInfo">
+	<struct native="BlendClipInfo" script="BlendClipInfo">
+		<doc>Represents an animation clip used in 1D blending. Each clip has a position on the number line.</doc>
+		<ctor>
+		</ctor>
+		<field name="Clip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+		<field name="Position" type="float">
+		</field>
+	</struct>
+	<struct native="KeyframeRef" script="KeyframeRef">
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="curveIdx" type="int">
+			</param>
+			<param name="keyIdx" type="int">
+			</param>
+		</ctor>
+		<field name="CurveIdx" type="int">
+		</field>
+		<field name="KeyIdx" type="int">
 		</field>
 	</struct>
 	<struct native="GUIElementStateStyle" script="GUIElementStateStyle">
@@ -2483,93 +2640,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain additional information that allows the video mode to be used more accurately and you should use them when possible.</doc>
 		</field>
 	</struct>
-	<class native="CAnimation" script="Animation">
-		<method native="Play" script="Play" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-		</method>
-		<method native="BlendAdditive" script="BlendAdditive" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="weight" type="float">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="Blend1D" script="Blend1D" static="false">
-			<param name="info" type="Blend1DInfo">
-			</param>
-			<param name="t" type="float">
-			</param>
-		</method>
-		<method native="Blend2D" script="Blend2D" static="false">
-			<param name="info" type="Blend2DInfo">
-			</param>
-			<param name="t" type="Vector2">
-			</param>
-		</method>
-		<method native="CrossFade" script="CrossFade" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-		</method>
-		<method native="Sample" script="Sample" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="time" type="float">
-			</param>
-		</method>
-		<method native="Stop" script="Stop" static="false">
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="StopAll" script="StopAll" static="false">
-		</method>
-		<method native="GetState" script="GetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetState" script="SetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-		</method>
-		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
-			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
-			<param name="name" type="string">
-				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
-			</param>
-			<param name="weight" type="float">
-				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
-			</param>
-		</method>
-		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
-			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
-		</property>
-		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
-		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
-		</property>
-		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
-		</property>
-		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
-			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
-		</property>
-		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
-			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
-		</property>
-		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
-			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
-		</property>
-	</class>
 	<class native="CAudioListener" script="AudioListener">
 	</class>
 	<class native="CAudioSource" script="AudioSource">
@@ -4945,7 +5015,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 	</class>
 	<class native="Shader" script="Shader">
 		<doc>Contains definitions of GPU programs used for rendering, as well as a set of global parameters to control those programs.</doc>
-		<property name="VariationParams" type="ShaderVariationParamInfo" getter="GetVariationParams" setter="" static="false">
+		<property name="VariationParams" type="ShaderVariationParameterInformation" getter="GetVariationParams" setter="" static="false">
 			<doc>Returns the list of all variation parameters supported by this shader, possible values of each parameter and other meta-data.</doc>
 		</property>
 		<property name="Parameters" type="ShaderParameter" getter="GetParameters" setter="" static="false">
@@ -5690,26 +5760,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<param name="UUID" type="UUID">
 			</param>
 			<returns type="AsyncOp&lt;RRefBase&gt;">
-			</returns>
-		</method>
-		<method native="ImportAll" script="ImportAll" static="false">
-			<doc>Imports a resource at the specified location, and returns the loaded data. This method returns all imported resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both a mesh and animations).</doc>
-			<param name="inputFilePath" type="string">
-				<doc>Pathname of the input file.</doc>
-			</param>
-			<param name="importOptions" type="ImportOptions">
-			</param>
-			<returns type="MultiResource">
-				<doc>A list of all imported resources. The primary resource is always the first returned resource.</doc>
-			</returns>
-		</method>
-		<method native="ImportAllAsync" script="ImportAllAsync" static="false">
-			<doc>Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will contain a list of the imported resources, after the import ends.</doc>
-			<param name="inputFilePath" type="string">
-			</param>
-			<param name="importOptions" type="ImportOptions">
-			</param>
-			<returns type="AsyncOp&lt;MultiResource&gt;">
 			</returns>
 		</method>
 	</class>
@@ -6661,7 +6711,7 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the techniques that have the provided parameters with the provided values will match. This will control which technique is considered the default technique and which subset of techniques are searched during a call to findTechnique().</doc>
 		</property>
 	</class>
-	<struct native="ShaderVariationParamValue" script="ShaderVariationParamValue">
+	<struct native="ShaderVariationParameterValue" script="ShaderVariationParameterValue">
 		<doc>Represents a single potential value of a shader variation parameter and optionally its name.</doc>
 		<ctor>
 		</ctor>
@@ -6672,7 +6722,7 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>Integer value of the parameter.</doc>
 		</field>
 	</struct>
-	<struct native="ShaderVariationParamInfo" script="ShaderVariationParamInfo">
+	<struct native="ShaderVariationParameterInformation" script="ShaderVariationParameterInformation">
 		<doc>Represents a single shader variation parameter and a set of all possible values.</doc>
 		<ctor>
 		</ctor>
@@ -6685,7 +6735,7 @@ Optionally if the parameter is an array you may provide an array index you which
 		<field name="IsInternal" type="bool">
 			<doc>True if the parameter is for internal use by the renderer, and false if its intended to be set by the user.</doc>
 		</field>
-		<field name="Values" type="ShaderVariationParamValue">
+		<field name="Values" type="ShaderVariationParameterValue">
 			<doc>A list of potential values this parameter can take on.</doc>
 		</field>
 	</struct>

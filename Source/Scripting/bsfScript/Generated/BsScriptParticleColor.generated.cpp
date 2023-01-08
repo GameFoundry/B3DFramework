@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleColor::InternalSetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* options)
 	{
 		PARTICLE_COLOR_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_COLOR_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleColorOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_COLOR_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_COLOR_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_COLOR_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleColorOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleColorOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleColor::InternalCreate(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc)
 	{
 		PARTICLE_COLOR_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_COLOR_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleColorOptions::FromInterop(*desc);
 		SPtr<ParticleColor> instance = ParticleColor::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, instance);
 	}

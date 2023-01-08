@@ -33,7 +33,7 @@ namespace bs
 		bool HideUntilSwap;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRENDER_WINDOW_DESC : public ScriptObject<ScriptRENDER_WINDOW_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderWindowDesc : public ScriptObject<ScriptRenderWindowDesc>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RenderWindowDesc")
@@ -44,7 +44,7 @@ namespace bs
 		static __RENDER_WINDOW_DESCInterop ToInterop(const RENDER_WINDOW_DESC& value);
 
 	private:
-		ScriptRENDER_WINDOW_DESC(MonoObject* managedInstance);
+		ScriptRenderWindowDesc(MonoObject* managedInstance);
 
 	};
 #endif

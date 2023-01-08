@@ -15,36 +15,36 @@
 
 namespace bs
 {
-	ScriptRendererMeshData::ScriptRendererMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value)
+	ScriptMeshData::ScriptMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value)
 		:ScriptObject(managedInstance), mInternal(value)
 	{
 	}
 
-	void ScriptRendererMeshData::InitRuntimeData()
+	void ScriptMeshData::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptRendererMeshData::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_GetPositions", (void*)&ScriptRendererMeshData::InternalGetPositions);
-		metaData.ScriptClass->AddInternalCall("Internal_SetPositions", (void*)&ScriptRendererMeshData::InternalSetPositions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetNormals", (void*)&ScriptRendererMeshData::InternalGetNormals);
-		metaData.ScriptClass->AddInternalCall("Internal_SetNormals", (void*)&ScriptRendererMeshData::InternalSetNormals);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTangents", (void*)&ScriptRendererMeshData::InternalGetTangents);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTangents", (void*)&ScriptRendererMeshData::InternalSetTangents);
-		metaData.ScriptClass->AddInternalCall("Internal_GetColors", (void*)&ScriptRendererMeshData::InternalGetColors);
-		metaData.ScriptClass->AddInternalCall("Internal_SetColors", (void*)&ScriptRendererMeshData::InternalSetColors);
-		metaData.ScriptClass->AddInternalCall("Internal_GetUV0", (void*)&ScriptRendererMeshData::InternalGetUV0);
-		metaData.ScriptClass->AddInternalCall("Internal_SetUV0", (void*)&ScriptRendererMeshData::InternalSetUV0);
-		metaData.ScriptClass->AddInternalCall("Internal_GetUV1", (void*)&ScriptRendererMeshData::InternalGetUV1);
-		metaData.ScriptClass->AddInternalCall("Internal_SetUV1", (void*)&ScriptRendererMeshData::InternalSetUV1);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBoneWeights", (void*)&ScriptRendererMeshData::InternalGetBoneWeights);
-		metaData.ScriptClass->AddInternalCall("Internal_SetBoneWeights", (void*)&ScriptRendererMeshData::InternalSetBoneWeights);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIndices", (void*)&ScriptRendererMeshData::InternalGetIndices);
-		metaData.ScriptClass->AddInternalCall("Internal_SetIndices", (void*)&ScriptRendererMeshData::InternalSetIndices);
-		metaData.ScriptClass->AddInternalCall("Internal_GetVertexCount", (void*)&ScriptRendererMeshData::InternalGetVertexCount);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIndexCount", (void*)&ScriptRendererMeshData::InternalGetIndexCount);
+		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptMeshData::InternalCreate);
+		metaData.ScriptClass->AddInternalCall("Internal_GetPositions", (void*)&ScriptMeshData::InternalGetPositions);
+		metaData.ScriptClass->AddInternalCall("Internal_SetPositions", (void*)&ScriptMeshData::InternalSetPositions);
+		metaData.ScriptClass->AddInternalCall("Internal_GetNormals", (void*)&ScriptMeshData::InternalGetNormals);
+		metaData.ScriptClass->AddInternalCall("Internal_SetNormals", (void*)&ScriptMeshData::InternalSetNormals);
+		metaData.ScriptClass->AddInternalCall("Internal_GetTangents", (void*)&ScriptMeshData::InternalGetTangents);
+		metaData.ScriptClass->AddInternalCall("Internal_SetTangents", (void*)&ScriptMeshData::InternalSetTangents);
+		metaData.ScriptClass->AddInternalCall("Internal_GetColors", (void*)&ScriptMeshData::InternalGetColors);
+		metaData.ScriptClass->AddInternalCall("Internal_SetColors", (void*)&ScriptMeshData::InternalSetColors);
+		metaData.ScriptClass->AddInternalCall("Internal_GetUV0", (void*)&ScriptMeshData::InternalGetUV0);
+		metaData.ScriptClass->AddInternalCall("Internal_SetUV0", (void*)&ScriptMeshData::InternalSetUV0);
+		metaData.ScriptClass->AddInternalCall("Internal_GetUV1", (void*)&ScriptMeshData::InternalGetUV1);
+		metaData.ScriptClass->AddInternalCall("Internal_SetUV1", (void*)&ScriptMeshData::InternalSetUV1);
+		metaData.ScriptClass->AddInternalCall("Internal_GetBoneWeights", (void*)&ScriptMeshData::InternalGetBoneWeights);
+		metaData.ScriptClass->AddInternalCall("Internal_SetBoneWeights", (void*)&ScriptMeshData::InternalSetBoneWeights);
+		metaData.ScriptClass->AddInternalCall("Internal_GetIndices", (void*)&ScriptMeshData::InternalGetIndices);
+		metaData.ScriptClass->AddInternalCall("Internal_SetIndices", (void*)&ScriptMeshData::InternalSetIndices);
+		metaData.ScriptClass->AddInternalCall("Internal_GetVertexCount", (void*)&ScriptMeshData::InternalGetVertexCount);
+		metaData.ScriptClass->AddInternalCall("Internal_GetIndexCount", (void*)&ScriptMeshData::InternalGetIndexCount);
 
 	}
 
-	MonoObject* ScriptRendererMeshData::Create(const SPtr<RendererMeshData>& value)
+	MonoObject* ScriptMeshData::Create(const SPtr<RendererMeshData>& value)
 	{
 		if(value == nullptr) return nullptr; 
 
@@ -52,16 +52,16 @@ namespace bs
 		void* ctorParams[1] = { &dummy };
 
 		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptRendererMeshData>()) ScriptRendererMeshData(managedInstance, value);
+		new (B3DAllocate<ScriptMeshData>()) ScriptMeshData(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptRendererMeshData::InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
+	void ScriptMeshData::InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
 	{
 		SPtr<RendererMeshData> instance = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
-		new (B3DAllocate<ScriptRendererMeshData>())ScriptRendererMeshData(managedInstance, instance);
+		new (B3DAllocate<ScriptMeshData>())ScriptMeshData(managedInstance, instance);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetPositions(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetPositions(ScriptMeshData* thisPtr)
 	{
 		Vector<Vector3> vec__output;
 		vec__output = MeshDataEx::GetPositions(thisPtr->GetInternal());
@@ -78,7 +78,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetPositions(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetPositions(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Vector3> vecvalue;
 		if(value != nullptr)
@@ -93,7 +93,7 @@ namespace bs
 		MeshDataEx::SetPositions(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetNormals(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetNormals(ScriptMeshData* thisPtr)
 	{
 		Vector<Vector3> vec__output;
 		vec__output = MeshDataEx::GetNormals(thisPtr->GetInternal());
@@ -110,7 +110,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetNormals(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetNormals(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Vector3> vecvalue;
 		if(value != nullptr)
@@ -125,7 +125,7 @@ namespace bs
 		MeshDataEx::SetNormals(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetTangents(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetTangents(ScriptMeshData* thisPtr)
 	{
 		Vector<Vector4> vec__output;
 		vec__output = MeshDataEx::GetTangents(thisPtr->GetInternal());
@@ -142,7 +142,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetTangents(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetTangents(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Vector4> vecvalue;
 		if(value != nullptr)
@@ -157,7 +157,7 @@ namespace bs
 		MeshDataEx::SetTangents(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetColors(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetColors(ScriptMeshData* thisPtr)
 	{
 		Vector<Color> vec__output;
 		vec__output = MeshDataEx::GetColors(thisPtr->GetInternal());
@@ -174,7 +174,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetColors(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetColors(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Color> vecvalue;
 		if(value != nullptr)
@@ -189,7 +189,7 @@ namespace bs
 		MeshDataEx::SetColors(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetUV0(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetUV0(ScriptMeshData* thisPtr)
 	{
 		Vector<Vector2> vec__output;
 		vec__output = MeshDataEx::GetUV0(thisPtr->GetInternal());
@@ -206,7 +206,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetUV0(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetUV0(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Vector2> vecvalue;
 		if(value != nullptr)
@@ -221,7 +221,7 @@ namespace bs
 		MeshDataEx::SetUV0(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetUV1(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetUV1(ScriptMeshData* thisPtr)
 	{
 		Vector<Vector2> vec__output;
 		vec__output = MeshDataEx::GetUV1(thisPtr->GetInternal());
@@ -238,7 +238,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetUV1(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetUV1(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<Vector2> vecvalue;
 		if(value != nullptr)
@@ -253,7 +253,7 @@ namespace bs
 		MeshDataEx::SetUV1(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetBoneWeights(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetBoneWeights(ScriptMeshData* thisPtr)
 	{
 		Vector<BoneWeight> vec__output;
 		vec__output = MeshDataEx::GetBoneWeights(thisPtr->GetInternal());
@@ -270,7 +270,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetBoneWeights(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetBoneWeights(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<BoneWeight> vecvalue;
 		if(value != nullptr)
@@ -285,7 +285,7 @@ namespace bs
 		MeshDataEx::SetBoneWeights(thisPtr->GetInternal(), vecvalue);
 	}
 
-	MonoArray* ScriptRendererMeshData::InternalGetIndices(ScriptRendererMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetIndices(ScriptMeshData* thisPtr)
 	{
 		Vector<uint32_t> vec__output;
 		vec__output = MeshDataEx::GetIndices(thisPtr->GetInternal());
@@ -302,7 +302,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRendererMeshData::InternalSetIndices(ScriptRendererMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetIndices(ScriptMeshData* thisPtr, MonoArray* value)
 	{
 		Vector<uint32_t> vecvalue;
 		if(value != nullptr)
@@ -317,7 +317,7 @@ namespace bs
 		MeshDataEx::SetIndices(thisPtr->GetInternal(), vecvalue);
 	}
 
-	int32_t ScriptRendererMeshData::InternalGetVertexCount(ScriptRendererMeshData* thisPtr)
+	int32_t ScriptMeshData::InternalGetVertexCount(ScriptMeshData* thisPtr)
 	{
 		int32_t tmp__output;
 		tmp__output = MeshDataEx::GetVertexCount(thisPtr->GetInternal());
@@ -328,7 +328,7 @@ namespace bs
 		return __output;
 	}
 
-	int32_t ScriptRendererMeshData::InternalGetIndexCount(ScriptRendererMeshData* thisPtr)
+	int32_t ScriptMeshData::InternalGetIndexCount(ScriptMeshData* thisPtr)
 	{
 		int32_t tmp__output;
 		tmp__output = MeshDataEx::GetIndexCount(thisPtr->GetInternal());

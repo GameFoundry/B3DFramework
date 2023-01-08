@@ -11,36 +11,36 @@
 
 namespace bs
 {
-	ScriptPARTICLE_ROTATION_DESC::ScriptPARTICLE_ROTATION_DESC(MonoObject* managedInstance)
+	ScriptParticleRotationOptions::ScriptParticleRotationOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_ROTATION_DESC::InitRuntimeData()
+	void ScriptParticleRotationOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_ROTATION_DESC::Box(const __PARTICLE_ROTATION_DESCInterop& value)
+	MonoObject*ScriptParticleRotationOptions::Box(const __PARTICLE_ROTATION_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_ROTATION_DESCInterop ScriptPARTICLE_ROTATION_DESC::Unbox(MonoObject* value)
+	__PARTICLE_ROTATION_DESCInterop ScriptParticleRotationOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_ROTATION_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_ROTATION_DESC ScriptPARTICLE_ROTATION_DESC::FromInterop(const __PARTICLE_ROTATION_DESCInterop& value)
+	PARTICLE_ROTATION_DESC ScriptParticleRotationOptions::FromInterop(const __PARTICLE_ROTATION_DESCInterop& value)
 	{
 		PARTICLE_ROTATION_DESC output;
 		SPtr<TDistribution<float>> tmpRotation;
-		ScriptTDistributionfloat* scriptRotation;
-		scriptRotation = ScriptTDistributionfloat::ToNative(value.Rotation);
+		ScriptFloatDistribution* scriptRotation;
+		scriptRotation = ScriptFloatDistribution::ToNative(value.Rotation);
 		if(scriptRotation != nullptr)
 			tmpRotation = scriptRotation->GetInternal();
 		if(tmpRotation != nullptr)
 		output.Rotation = *tmpRotation;
 		SPtr<TDistribution<Vector3>> tmpRotation3D;
-		ScriptTDistributionVector3* scriptRotation3D;
-		scriptRotation3D = ScriptTDistributionVector3::ToNative(value.Rotation3D);
+		ScriptVector3Distribution* scriptRotation3D;
+		scriptRotation3D = ScriptVector3Distribution::ToNative(value.Rotation3D);
 		if(scriptRotation3D != nullptr)
 			tmpRotation3D = scriptRotation3D->GetInternal();
 		if(tmpRotation3D != nullptr)
@@ -50,18 +50,18 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_ROTATION_DESCInterop ScriptPARTICLE_ROTATION_DESC::ToInterop(const PARTICLE_ROTATION_DESC& value)
+	__PARTICLE_ROTATION_DESCInterop ScriptParticleRotationOptions::ToInterop(const PARTICLE_ROTATION_DESC& value)
 	{
 		__PARTICLE_ROTATION_DESCInterop output;
 		MonoObject* tmpRotation;
 		SPtr<TDistribution<float>> tmpRotationcopy;
 		tmpRotationcopy = B3DMakeShared<TDistribution<float>>(value.Rotation);
-		tmpRotation = ScriptTDistributionfloat::Create(tmpRotationcopy);
+		tmpRotation = ScriptFloatDistribution::Create(tmpRotationcopy);
 		output.Rotation = tmpRotation;
 		MonoObject* tmpRotation3D;
 		SPtr<TDistribution<Vector3>> tmpRotation3Dcopy;
 		tmpRotation3Dcopy = B3DMakeShared<TDistribution<Vector3>>(value.Rotation3D);
-		tmpRotation3D = ScriptTDistributionVector3::Create(tmpRotation3Dcopy);
+		tmpRotation3D = ScriptVector3Distribution::Create(tmpRotation3Dcopy);
 		output.Rotation3D = tmpRotation3D;
 		output.Use3DRotation = value.Use3DRotation;
 

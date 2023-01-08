@@ -12,26 +12,26 @@
 
 namespace bs
 {
-	ScriptCReflectionProbe::ScriptCReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value)
+	ScriptReflectionProbe::ScriptReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCReflectionProbe::InitRuntimeData()
+	void ScriptReflectionProbe::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptCReflectionProbe::InternalGetType);
-		metaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptCReflectionProbe::InternalSetType);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCReflectionProbe::InternalGetRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptCReflectionProbe::InternalSetRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptCReflectionProbe::InternalGetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptCReflectionProbe::InternalSetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCustomTexture", (void*)&ScriptCReflectionProbe::InternalGetCustomTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCustomTexture", (void*)&ScriptCReflectionProbe::InternalSetCustomTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_Capture", (void*)&ScriptCReflectionProbe::InternalCapture);
+		metaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptReflectionProbe::InternalGetType);
+		metaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptReflectionProbe::InternalSetType);
+		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptReflectionProbe::InternalGetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptReflectionProbe::InternalSetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptReflectionProbe::InternalGetExtents);
+		metaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptReflectionProbe::InternalSetExtents);
+		metaData.ScriptClass->AddInternalCall("Internal_GetCustomTexture", (void*)&ScriptReflectionProbe::InternalGetCustomTexture);
+		metaData.ScriptClass->AddInternalCall("Internal_SetCustomTexture", (void*)&ScriptReflectionProbe::InternalSetCustomTexture);
+		metaData.ScriptClass->AddInternalCall("Internal_Capture", (void*)&ScriptReflectionProbe::InternalCapture);
 
 	}
 
-	ReflectionProbeType ScriptCReflectionProbe::InternalGetType(ScriptCReflectionProbe* thisPtr)
+	ReflectionProbeType ScriptReflectionProbe::InternalGetType(ScriptReflectionProbe* thisPtr)
 	{
 		ReflectionProbeType tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetType();
@@ -42,12 +42,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCReflectionProbe::InternalSetType(ScriptCReflectionProbe* thisPtr, ReflectionProbeType type)
+	void ScriptReflectionProbe::InternalSetType(ScriptReflectionProbe* thisPtr, ReflectionProbeType type)
 	{
 		thisPtr->GetHandle()->SetType(type);
 	}
 
-	float ScriptCReflectionProbe::InternalGetRadius(ScriptCReflectionProbe* thisPtr)
+	float ScriptReflectionProbe::InternalGetRadius(ScriptReflectionProbe* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetRadius();
@@ -58,12 +58,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCReflectionProbe::InternalSetRadius(ScriptCReflectionProbe* thisPtr, float radius)
+	void ScriptReflectionProbe::InternalSetRadius(ScriptReflectionProbe* thisPtr, float radius)
 	{
 		thisPtr->GetHandle()->SetRadius(radius);
 	}
 
-	void ScriptCReflectionProbe::InternalGetExtents(ScriptCReflectionProbe* thisPtr, Vector3* __output)
+	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetExtents();
@@ -71,12 +71,12 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCReflectionProbe::InternalSetExtents(ScriptCReflectionProbe* thisPtr, Vector3* extents)
+	void ScriptReflectionProbe::InternalSetExtents(ScriptReflectionProbe* thisPtr, Vector3* extents)
 	{
 		thisPtr->GetHandle()->SetExtents(*extents);
 	}
 
-	MonoObject* ScriptCReflectionProbe::InternalGetCustomTexture(ScriptCReflectionProbe* thisPtr)
+	MonoObject* ScriptReflectionProbe::InternalGetCustomTexture(ScriptReflectionProbe* thisPtr)
 	{
 		ResourceHandle<Texture> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCustomTexture();
@@ -92,7 +92,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCReflectionProbe::InternalSetCustomTexture(ScriptCReflectionProbe* thisPtr, MonoObject* texture)
+	void ScriptReflectionProbe::InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture)
 	{
 		ResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;
@@ -102,7 +102,7 @@ namespace bs
 		thisPtr->GetHandle()->SetCustomTexture(tmptexture);
 	}
 
-	void ScriptCReflectionProbe::InternalCapture(ScriptCReflectionProbe* thisPtr)
+	void ScriptReflectionProbe::InternalCapture(ScriptReflectionProbe* thisPtr)
 	{
 		thisPtr->GetHandle()->Capture();
 	}

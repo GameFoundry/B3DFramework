@@ -18,8 +18,8 @@ namespace bs
 		public static LimitConeRange Default()
 		{
 			LimitConeRange value = new LimitConeRange();
-			value.YLimitAngle = Radian.Default();
-			value.ZLimitAngle = Radian.Default();
+			value.YLimitAngle = new Radian(1.57079637f);
+			value.ZLimitAngle = new Radian(1.57079637f);
 			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();

@@ -10,17 +10,17 @@
 namespace bs { class CPlaneCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCPlaneCollider : public TScriptComponent<ScriptCPlaneCollider, CPlaneCollider, ScriptCColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlaneCollider : public TScriptComponent<ScriptPlaneCollider, CPlaneCollider, ScriptColliderBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PlaneCollider")
 
-		ScriptCPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value);
+		ScriptPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value);
 
 	private:
-		static void InternalSetNormal(ScriptCPlaneCollider* thisPtr, Vector3* normal);
-		static void InternalGetNormal(ScriptCPlaneCollider* thisPtr, Vector3* __output);
-		static void InternalSetDistance(ScriptCPlaneCollider* thisPtr, float distance);
-		static float InternalGetDistance(ScriptCPlaneCollider* thisPtr);
+		static void InternalSetNormal(ScriptPlaneCollider* thisPtr, Vector3* normal);
+		static void InternalGetNormal(ScriptPlaneCollider* thisPtr, Vector3* __output);
+		static void InternalSetDistance(ScriptPlaneCollider* thisPtr, float distance);
+		static float InternalGetDistance(ScriptPlaneCollider* thisPtr);
 	};
 }

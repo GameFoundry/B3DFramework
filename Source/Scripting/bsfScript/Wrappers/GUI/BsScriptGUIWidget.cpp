@@ -66,7 +66,7 @@ void ScriptGUIWidget::InternalUpdateTransform(ScriptGUIWidget* thisPtr, ScriptSc
 	}
 }
 
-void ScriptGUIWidget::InternalUpdateMainCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
+void ScriptGUIWidget::InternalUpdateMainCamera(ScriptGUIWidget* instance, ScriptCamera* camera)
 {
 	SPtr<GUIWidget> widget = instance->GetInternal();
 
@@ -94,7 +94,7 @@ void ScriptGUIWidget::InternalSetSkin(ScriptGUIWidget* instance, ScriptGUISkin* 
 		widget->SetSkin(guiSkin);
 }
 
-void ScriptGUIWidget::InternalSetCamera(ScriptGUIWidget* instance, ScriptCCamera* camera)
+void ScriptGUIWidget::InternalSetCamera(ScriptGUIWidget* instance, ScriptCamera* camera)
 {
 	SPtr<Camera> nativeCamera;
 	if(camera != nullptr)

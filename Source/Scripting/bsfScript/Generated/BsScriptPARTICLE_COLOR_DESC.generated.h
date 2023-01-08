@@ -14,7 +14,7 @@ namespace bs
 		MonoObject* Color;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_COLOR_DESC : public ScriptObject<ScriptPARTICLE_COLOR_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColorOptions : public ScriptObject<ScriptParticleColorOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleColorOptions")
@@ -25,7 +25,7 @@ namespace bs
 		static __PARTICLE_COLOR_DESCInterop ToInterop(const PARTICLE_COLOR_DESC& value);
 
 	private:
-		ScriptPARTICLE_COLOR_DESC(MonoObject* managedInstance);
+		ScriptParticleColorOptions(MonoObject* managedInstance);
 
 	};
 }

@@ -11,43 +11,43 @@
 
 namespace bs
 {
-	ScriptPARTICLE_ORBIT_DESC::ScriptPARTICLE_ORBIT_DESC(MonoObject* managedInstance)
+	ScriptParticleOrbitOptions::ScriptParticleOrbitOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_ORBIT_DESC::InitRuntimeData()
+	void ScriptParticleOrbitOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_ORBIT_DESC::Box(const __PARTICLE_ORBIT_DESCInterop& value)
+	MonoObject*ScriptParticleOrbitOptions::Box(const __PARTICLE_ORBIT_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_ORBIT_DESCInterop ScriptPARTICLE_ORBIT_DESC::Unbox(MonoObject* value)
+	__PARTICLE_ORBIT_DESCInterop ScriptParticleOrbitOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_ORBIT_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_ORBIT_DESC ScriptPARTICLE_ORBIT_DESC::FromInterop(const __PARTICLE_ORBIT_DESCInterop& value)
+	PARTICLE_ORBIT_DESC ScriptParticleOrbitOptions::FromInterop(const __PARTICLE_ORBIT_DESCInterop& value)
 	{
 		PARTICLE_ORBIT_DESC output;
 		SPtr<TDistribution<Vector3>> tmpCenter;
-		ScriptTDistributionVector3* scriptCenter;
-		scriptCenter = ScriptTDistributionVector3::ToNative(value.Center);
+		ScriptVector3Distribution* scriptCenter;
+		scriptCenter = ScriptVector3Distribution::ToNative(value.Center);
 		if(scriptCenter != nullptr)
 			tmpCenter = scriptCenter->GetInternal();
 		if(tmpCenter != nullptr)
 		output.Center = *tmpCenter;
 		SPtr<TDistribution<Vector3>> tmpVelocity;
-		ScriptTDistributionVector3* scriptVelocity;
-		scriptVelocity = ScriptTDistributionVector3::ToNative(value.Velocity);
+		ScriptVector3Distribution* scriptVelocity;
+		scriptVelocity = ScriptVector3Distribution::ToNative(value.Velocity);
 		if(scriptVelocity != nullptr)
 			tmpVelocity = scriptVelocity->GetInternal();
 		if(tmpVelocity != nullptr)
 		output.Velocity = *tmpVelocity;
 		SPtr<TDistribution<float>> tmpRadial;
-		ScriptTDistributionfloat* scriptRadial;
-		scriptRadial = ScriptTDistributionfloat::ToNative(value.Radial);
+		ScriptFloatDistribution* scriptRadial;
+		scriptRadial = ScriptFloatDistribution::ToNative(value.Radial);
 		if(scriptRadial != nullptr)
 			tmpRadial = scriptRadial->GetInternal();
 		if(tmpRadial != nullptr)
@@ -57,23 +57,23 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_ORBIT_DESCInterop ScriptPARTICLE_ORBIT_DESC::ToInterop(const PARTICLE_ORBIT_DESC& value)
+	__PARTICLE_ORBIT_DESCInterop ScriptParticleOrbitOptions::ToInterop(const PARTICLE_ORBIT_DESC& value)
 	{
 		__PARTICLE_ORBIT_DESCInterop output;
 		MonoObject* tmpCenter;
 		SPtr<TDistribution<Vector3>> tmpCentercopy;
 		tmpCentercopy = B3DMakeShared<TDistribution<Vector3>>(value.Center);
-		tmpCenter = ScriptTDistributionVector3::Create(tmpCentercopy);
+		tmpCenter = ScriptVector3Distribution::Create(tmpCentercopy);
 		output.Center = tmpCenter;
 		MonoObject* tmpVelocity;
 		SPtr<TDistribution<Vector3>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<Vector3>>(value.Velocity);
-		tmpVelocity = ScriptTDistributionVector3::Create(tmpVelocitycopy);
+		tmpVelocity = ScriptVector3Distribution::Create(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		MonoObject* tmpRadial;
 		SPtr<TDistribution<float>> tmpRadialcopy;
 		tmpRadialcopy = B3DMakeShared<TDistribution<float>>(value.Radial);
-		tmpRadial = ScriptTDistributionfloat::Create(tmpRadialcopy);
+		tmpRadial = ScriptFloatDistribution::Create(tmpRadialcopy);
 		output.Radial = tmpRadial;
 		output.WorldSpace = value.WorldSpace;
 

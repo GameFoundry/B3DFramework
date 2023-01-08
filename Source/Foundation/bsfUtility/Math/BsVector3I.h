@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Math/BsVector3.h"
 
 namespace bs
 {
@@ -11,54 +12,215 @@ namespace bs
 	 */
 
 	/** A three dimensional vector with integer coordinates. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) Vector3I
+	template<class T>
+	struct TVector3I
 	{
-		i32 X = 0;
-		i32 Y = 0;
-		i32 Z = 0;
+		T X = 0;
+		T Y = 0;
+		T Z = 0;
 
-		constexpr Vector3I() = default;
+		constexpr TVector3I() = default;
 
-		constexpr Vector3I(i32 x, i32 y, i32 z)
+		constexpr TVector3I(T x, T y, T z)
 			: X(x), Y(y), Z(z)
 		{}
 
-		i32 operator[](size_t i) const
-		{
-			B3D_ASSERT(i < 3);
+		constexpr explicit TVector3I(T value)
+			: X(value), Y(value), Z(value)
+		{}
 
-			switch(i)
-			{
-			case 0: return X;
-			case 1: return Y;
-			case 2: return Z;
-			default: return 0;
-			}
+		/** Exchange the contents of this vector with another. */
+		void Swap(TVector3I& other)
+		{
+			std::swap(X, other.X);
+			std::swap(Y, other.Y);
+			std::swap(Z, other.Z);
 		}
 
-		i32& operator[](size_t i)
+		Vector3 ToFloat() const
 		{
-			B3D_ASSERT(i < 3);
-
-			switch(i)
-			{
-			case 0: return X;
-			case 1: return Y;
-			case 2: return Z;
-			default: return X;
-			}
+			return Vector3((float)X, (float)Y, (float)Z);
 		}
 
-		bool operator==(const Vector3I& rhs) const
+		/** Returns the manhattan distance between this and another point. */
+		T CalculateManhattanDistance(const TVector3I& other) const
 		{
-			return X == rhs.X && Y == rhs.Y && Z == rhs.Z;
+			return (T)std::abs((i32)(other.X - X)) + (T)std::abs((i32)(other.Y - Y)) + (T)std::abs((i32)(other.Z - Z));
 		}
 
-		bool operator!=(const Vector3I& rhs) const
+		T operator[](size_t index) const
 		{
-			return !operator==(rhs);
+			B3D_ASSERT(index < 3);
+
+			return *(&X + index);
 		}
+
+		T& operator[](size_t index)
+		{
+			B3D_ASSERT(index < 3);
+
+			return *(&X + index);
+		}
+
+		TVector3I& operator=(T value)
+		{
+			X = value;
+			Y = value;
+			Z = value;
+
+			return *this;
+		}
+
+		bool operator==(const TVector3I& rhs) const
+		{
+			return (X == rhs.X && Y == rhs.Y && Z == rhs.Z);
+		}
+
+		bool operator!=(const TVector3I& rhs) const
+		{
+			return (X != rhs.X || Y != rhs.Y) || Z != rhs.Z;
+		}
+
+		TVector3I operator+(const TVector3I& rhs) const
+		{
+			return TVector3I(X + rhs.X, Y + rhs.Y, Z + rhs.Z);
+		}
+
+		TVector3I operator-(const TVector3I& rhs) const
+		{
+			return TVector3I(X - rhs.X, Y - rhs.Y, Z - rhs.Z);
+		}
+
+		TVector3I operator*(T value) const
+		{
+			return TVector3I(X * value, Y * value, Z * value);
+		}
+
+		Vector3 operator*(float value) const
+		{
+			return Vector3((float)X * value, (float)Y * value, (float)Z * value);
+		}
+
+		TVector3I operator*(const TVector3I& rhs) const
+		{
+			return TVector3I(X * rhs.X, Y * rhs.Y, Z * rhs.Z);
+		}
+
+		TVector3I operator/(T value) const
+		{
+			B3D_ASSERT(value != 0);
+
+			return TVector3I(X / value, Y / value, Z / value);
+		}
+
+		Vector3 operator/(float value) const
+		{
+			B3D_ASSERT(value != 0.0f);
+
+			return Vector3((float)X / value, (float)Y / value, (float)Z / value);
+		}
+
+		TVector3I operator/(const TVector3I& rhs) const
+		{
+			return TVector3I(X / rhs.X, Y / rhs.Y, Z / rhs.Z);
+		}
+
+		const TVector3I& operator+() const
+		{
+			return *this;
+		}
+
+		TVector3I operator-() const
+		{
+			return TVector3I(-X, -Y, -Z);
+		}
+
+		friend TVector3I operator*(T lhs, const TVector3I& rhs)
+		{
+			return TVector3I(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
+		}
+
+		friend TVector3I operator/(T lhs, const TVector3I& rhs)
+		{
+			return TVector3I(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z);
+		}
+
+		TVector3I& operator+=(const TVector3I& rhs)
+		{
+			X += rhs.X;
+			Y += rhs.Y;
+			Z += rhs.Z;
+
+			return *this;
+		}
+
+		TVector3I& operator-=(const TVector3I& rhs)
+		{
+			X -= rhs.X;
+			Y -= rhs.Y;
+			Z -= rhs.Z;
+
+			return *this;
+		}
+
+		TVector3I& operator*=(T val)
+		{
+			X *= val;
+			Y *= val;
+			Z *= val;
+
+			return *this;
+		}
+
+		TVector3I& operator*=(const TVector3I& rhs)
+		{
+			X *= rhs.X;
+			Y *= rhs.Y;
+			Z *= rhs.Z;
+
+			return *this;
+		}
+
+		TVector3I& operator/=(T value)
+		{
+			B3D_ASSERT(value != 0);
+
+			X /= value;
+			Y /= value;
+			Z /= value;
+
+			return *this;
+		}
+
+		TVector3I& operator/=(const TVector3I& rhs)
+		{
+			X /= rhs.X;
+			Y /= rhs.Y;
+			Z /= rhs.Z;
+
+			return *this;
+		}
+
+		/** Returns the square of the length(magnitude) of the vector. */
+		T SquaredLength() const
+		{
+			return X * X + Y * Y + Z * Z;
+		}
+
+		/** Calculates the dot (scalar) product of this vector with another. */
+		T Dot(const TVector3I& other) const
+		{
+			return X * other.X + Y * other.Y + Z * other.Z;
+		}
+
+		static const TVector3I kZero;
 	};
+
+	template<> const TVector3I<i32> TVector3I<i32>::kZero;
+	template<> const TVector3I<u32> TVector3I<u32>::kZero;
+
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3I)) TVector3I<i32>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3UI)) TVector3I<u32>;
 
 	/** @} */
 } // namespace bs

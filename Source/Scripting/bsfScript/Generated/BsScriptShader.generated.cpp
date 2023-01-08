@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
-#include "BsScriptShaderVariationParamInfo.generated.h"
+#include "BsScriptShaderVariationParameterInformation.generated.h"
 #include "BsScriptShaderParameter.generated.h"
 #include "../Extensions/BsShaderEx.h"
 
@@ -43,10 +43,10 @@ namespace bs
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptShaderVariationParamInfo>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<ScriptShaderVariationParameterInformation>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
-			array__output.Set(i, ScriptShaderVariationParamInfo::ToInterop(vec__output[i]));
+			array__output.Set(i, ScriptShaderVariationParameterInformation::ToInterop(vec__output[i]));
 		}
 		__output = array__output.GetInternal();
 

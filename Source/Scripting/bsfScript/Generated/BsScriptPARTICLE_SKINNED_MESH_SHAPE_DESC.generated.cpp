@@ -10,31 +10,31 @@
 
 namespace bs
 {
-	ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC(MonoObject* managedInstance)
+	ScriptParticleSkinnedMeshShapeOptions::ScriptParticleSkinnedMeshShapeOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::InitRuntimeData()
+	void ScriptParticleSkinnedMeshShapeOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::Box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
+	MonoObject*ScriptParticleSkinnedMeshShapeOptions::Box(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::Unbox(MonoObject* value)
+	__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ScriptParticleSkinnedMeshShapeOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_SKINNED_MESH_SHAPE_DESC ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::FromInterop(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
+	PARTICLE_SKINNED_MESH_SHAPE_DESC ScriptParticleSkinnedMeshShapeOptions::FromInterop(const __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop& value)
 	{
 		PARTICLE_SKINNED_MESH_SHAPE_DESC output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
 		GameObjectHandle<CRenderable> tmpRenderable;
-		ScriptCRenderable* scriptRenderable;
-		scriptRenderable = ScriptCRenderable::ToNative(value.Renderable);
+		ScriptRenderable* scriptRenderable;
+		scriptRenderable = ScriptRenderable::ToNative(value.Renderable);
 		if(scriptRenderable != nullptr)
 			tmpRenderable = scriptRenderable->GetHandle();
 		output.Renderable = tmpRenderable;
@@ -42,7 +42,7 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ScriptPARTICLE_SKINNED_MESH_SHAPE_DESC::ToInterop(const PARTICLE_SKINNED_MESH_SHAPE_DESC& value)
+	__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop ScriptParticleSkinnedMeshShapeOptions::ToInterop(const PARTICLE_SKINNED_MESH_SHAPE_DESC& value)
 	{
 		__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop output;
 		output.Type = value.Type;

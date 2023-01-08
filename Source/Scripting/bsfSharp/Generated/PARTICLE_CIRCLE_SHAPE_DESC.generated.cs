@@ -20,7 +20,7 @@ namespace bs
 			ParticleCircleShapeOptions value = new ParticleCircleShapeOptions();
 			value.Radius = 1f;
 			value.Thickness = 0f;
-			value.Arc = Degree.Default();
+			value.Arc = new Degree(360f);
 			value.Mode = ParticleEmissionMode.Default();
 
 			return value;

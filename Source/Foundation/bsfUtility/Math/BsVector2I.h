@@ -12,49 +12,55 @@ namespace bs
 	 */
 
 	/** A two dimensional vector with integer coordinates.*/
-	struct B3D_UTILITY_EXPORT Vector2I
+	template<class T>
+	struct TVector2I
 	{
-		i32 X = 0;
-		i32 Y = 0;
+		T X = 0;
+		T Y = 0;
 
-		constexpr Vector2I() = default;
+		constexpr TVector2I() = default;
 
-		constexpr Vector2I(i32 _x, i32 _y)
-			: X(_x), Y(_y)
+		constexpr TVector2I(T x, T y)
+			: X(x), Y(y)
 		{}
 
-		constexpr explicit Vector2I(int val)
-			: X(val), Y(val)
+		constexpr explicit TVector2I(T value)
+			: X(value), Y(value)
 		{}
 
 		/** Exchange the contents of this vector with another. */
-		void Swap(Vector2I& other)
+		void Swap(TVector2I& other)
 		{
 			std::swap(X, other.X);
 			std::swap(Y, other.Y);
 		}
 
+		Vector2 ToFloat() const
+		{
+			return Vector2((float)X, (float)Y);
+		}
+
 		/** Returns the manhattan distance between this and another point. */
-		u32 ManhattanDist(const Vector2I& other) const
+		T CalculateManhattanDistance(const TVector2I& other) const
 		{
-			return (u32)std::abs(other.X - X) + (u32)std::abs(other.Y - Y);
+			return (T)std::abs((i32)(other.X - X)) + (T)std::abs((i32)(other.Y - Y));
 		}
 
-		i32 operator[](size_t i) const
+		T operator[](size_t index) const
 		{
-			B3D_ASSERT(i < 2);
+			B3D_ASSERT(index < 2);
 
-			return *(&X + i);
+			return *(&X + index);
 		}
 
-		i32& operator[](size_t i)
+		T& operator[](size_t index)
 		{
-			B3D_ASSERT(i < 2);
+			B3D_ASSERT(index < 2);
 
-			return *(&X + i);
+			return *(&X + index);
 		}
 
-		Vector2I& operator=(int val)
+		TVector2I& operator=(T val)
 		{
 			X = val;
 			Y = val;
@@ -62,81 +68,81 @@ namespace bs
 			return *this;
 		}
 
-		bool operator==(const Vector2I& rhs) const
+		bool operator==(const TVector2I& rhs) const
 		{
 			return (X == rhs.X && Y == rhs.Y);
 		}
 
-		bool operator!=(const Vector2I& rhs) const
+		bool operator!=(const TVector2I& rhs) const
 		{
 			return (X != rhs.X || Y != rhs.Y);
 		}
 
-		Vector2I operator+(const Vector2I& rhs) const
+		TVector2I operator+(const TVector2I& rhs) const
 		{
-			return Vector2I(X + rhs.X, Y + rhs.Y);
+			return TVector2I(X + rhs.X, Y + rhs.Y);
 		}
 
-		Vector2I operator-(const Vector2I& rhs) const
+		TVector2I operator-(const TVector2I& rhs) const
 		{
-			return Vector2I(X - rhs.X, Y - rhs.Y);
+			return TVector2I(X - rhs.X, Y - rhs.Y);
 		}
 
-		Vector2I operator*(int val) const
+		TVector2I operator*(T value) const
 		{
-			return Vector2I(X * val, Y * val);
+			return TVector2I(X * value, Y * value);
 		}
 
-		Vector2 operator*(float val) const
+		Vector2 operator*(float value) const
 		{
-			return Vector2(X * val, Y * val);
+			return Vector2((float)X * value, (float)Y * value);
 		}
 
-		Vector2I operator*(const Vector2I& rhs) const
+		TVector2I operator*(const TVector2I& rhs) const
 		{
-			return Vector2I(X * rhs.X, Y * rhs.Y);
+			return TVector2I(X * rhs.X, Y * rhs.Y);
 		}
 
-		Vector2I operator/(int val) const
+		TVector2I operator/(T value) const
 		{
-			B3D_ASSERT(val != 0);
+			B3D_ASSERT(value != 0);
 
-			return Vector2I(X / val, Y / val);
+			return TVector2I(X / value, Y / value);
 		}
 
-		Vector2 operator/(float val) const
+		Vector2 operator/(float value) const
 		{
-			B3D_ASSERT(val != 0);
+			B3D_ASSERT(value != 0.0f);
 
-			return Vector2(X / val, Y / val);
+			return Vector2((float)X / value, (float)Y / value);
 		}
 
-		Vector2I operator/(const Vector2I& rhs) const
+		TVector2I operator/(const TVector2I& rhs) const
 		{
-			return Vector2I(X / rhs.X, Y / rhs.Y);
+			return TVector2I(X / rhs.X, Y / rhs.Y);
 		}
 
-		const Vector2I& operator+() const
+		const TVector2I& operator+() const
 		{
 			return *this;
 		}
 
-		Vector2I operator-() const
+		TVector2I operator-() const
 		{
-			return Vector2I(-X, -Y);
+			return TVector2I(-X, -Y);
 		}
 
-		friend Vector2I operator*(int lhs, const Vector2I& rhs)
+		friend TVector2I operator*(T lhs, const TVector2I& rhs)
 		{
-			return Vector2I(lhs * rhs.X, lhs * rhs.Y);
+			return TVector2I(lhs * rhs.X, lhs * rhs.Y);
 		}
 
-		friend Vector2I operator/(int lhs, const Vector2I& rhs)
+		friend TVector2I operator/(T lhs, const TVector2I& rhs)
 		{
-			return Vector2I(lhs / rhs.X, lhs / rhs.Y);
+			return TVector2I(lhs / rhs.X, lhs / rhs.Y);
 		}
 
-		Vector2I& operator+=(const Vector2I& rhs)
+		TVector2I& operator+=(const TVector2I& rhs)
 		{
 			X += rhs.X;
 			Y += rhs.Y;
@@ -144,7 +150,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2I& operator-=(const Vector2I& rhs)
+		TVector2I& operator-=(const TVector2I& rhs)
 		{
 			X -= rhs.X;
 			Y -= rhs.Y;
@@ -152,7 +158,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2I& operator*=(i32 val)
+		TVector2I& operator*=(T val)
 		{
 			X *= val;
 			Y *= val;
@@ -160,7 +166,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2I& operator*=(const Vector2I& rhs)
+		TVector2I& operator*=(const TVector2I& rhs)
 		{
 			X *= rhs.X;
 			Y *= rhs.Y;
@@ -168,17 +174,17 @@ namespace bs
 			return *this;
 		}
 
-		Vector2I& operator/=(i32 val)
+		TVector2I& operator/=(T value)
 		{
-			B3D_ASSERT(val != 0);
+			B3D_ASSERT(value != 0);
 
-			X /= val;
-			Y /= val;
+			X /= value;
+			Y /= value;
 
 			return *this;
 		}
 
-		Vector2I& operator/=(const Vector2I& rhs)
+		TVector2I& operator/=(const TVector2I& rhs)
 		{
 			X /= rhs.X;
 			Y /= rhs.Y;
@@ -187,19 +193,25 @@ namespace bs
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */
-		i32 SquaredLength() const
+		T SquaredLength() const
 		{
 			return X * X + Y * Y;
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
-		i32 Dot(const Vector2I& vec) const
+		T Dot(const TVector2I& other) const
 		{
-			return X * vec.X + Y * vec.Y;
+			return X * other.X + Y * other.Y;
 		}
 
-		static const Vector2I kZero;
+		static const TVector2I kZero;
 	};
+
+	template<> const TVector2I<i32> TVector2I<i32>::kZero;
+	template<> const TVector2I<u32> TVector2I<u32>::kZero;
+
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2I)) TVector2I<i32>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2UI)) TVector2I<u32>;
 
 	/** @} */
 } // namespace bs

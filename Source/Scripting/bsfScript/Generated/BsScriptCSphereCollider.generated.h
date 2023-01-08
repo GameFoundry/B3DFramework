@@ -10,17 +10,17 @@
 namespace bs { class CSphereCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSphereCollider : public TScriptComponent<ScriptCSphereCollider, CSphereCollider, ScriptCColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphereCollider : public TScriptComponent<ScriptSphereCollider, CSphereCollider, ScriptColliderBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SphereCollider")
 
-		ScriptCSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value);
+		ScriptSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value);
 
 	private:
-		static void InternalSetRadius(ScriptCSphereCollider* thisPtr, float radius);
-		static float InternalGetRadius(ScriptCSphereCollider* thisPtr);
-		static void InternalSetCenter(ScriptCSphereCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptCSphereCollider* thisPtr, Vector3* __output);
+		static void InternalSetRadius(ScriptSphereCollider* thisPtr, float radius);
+		static float InternalGetRadius(ScriptSphereCollider* thisPtr);
+		static void InternalSetCenter(ScriptSphereCollider* thisPtr, Vector3* center);
+		static void InternalGetCenter(ScriptSphereCollider* thisPtr, Vector3* __output);
 	};
 }

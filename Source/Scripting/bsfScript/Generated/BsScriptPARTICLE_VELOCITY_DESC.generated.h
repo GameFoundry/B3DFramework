@@ -15,7 +15,7 @@ namespace bs
 		bool WorldSpace;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_VELOCITY_DESC : public ScriptObject<ScriptPARTICLE_VELOCITY_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVelocityOptions : public ScriptObject<ScriptParticleVelocityOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleVelocityOptions")
@@ -26,7 +26,7 @@ namespace bs
 		static __PARTICLE_VELOCITY_DESCInterop ToInterop(const PARTICLE_VELOCITY_DESC& value);
 
 	private:
-		ScriptPARTICLE_VELOCITY_DESC(MonoObject* managedInstance);
+		ScriptParticleVelocityOptions(MonoObject* managedInstance);
 
 	};
 }

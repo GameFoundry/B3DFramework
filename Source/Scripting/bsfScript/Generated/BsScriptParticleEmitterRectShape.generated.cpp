@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleEmitterRectShape::InternalSetOptions(ScriptParticleEmitterRectShape* thisPtr, __PARTICLE_RECT_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_RECT_SHAPE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_RECT_SHAPE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleRectShapeOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_RECT_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_RECT_SHAPE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_RECT_SHAPE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleRectShapeOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleRectShapeOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleEmitterRectShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_RECT_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_RECT_SHAPE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_RECT_SHAPE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleRectShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterRectShape> instance = ParticleEmitterRectShape::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, instance);
 	}

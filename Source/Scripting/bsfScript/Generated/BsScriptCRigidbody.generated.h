@@ -16,12 +16,12 @@ namespace bs { class CRigidbody; }
 namespace bs { struct __CollisionDataInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCRigidbody : public TScriptComponent<ScriptCRigidbody, CRigidbody>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRigidbody : public TScriptComponent<ScriptRigidbody, CRigidbody>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Rigidbody")
 
-		ScriptCRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value);
+		ScriptRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value);
 
 	private:
 		void OnCollisionBegin(const CollisionData& p0);
@@ -35,46 +35,46 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
-		static void InternalMove(ScriptCRigidbody* thisPtr, Vector3* position);
-		static void InternalRotate(ScriptCRigidbody* thisPtr, Quaternion* rotation);
-		static void InternalSetMass(ScriptCRigidbody* thisPtr, float mass);
-		static float InternalGetMass(ScriptCRigidbody* thisPtr);
-		static void InternalSetIsKinematic(ScriptCRigidbody* thisPtr, bool kinematic);
-		static bool InternalGetIsKinematic(ScriptCRigidbody* thisPtr);
-		static bool InternalIsSleeping(ScriptCRigidbody* thisPtr);
-		static void InternalSleep(ScriptCRigidbody* thisPtr);
-		static void InternalWakeUp(ScriptCRigidbody* thisPtr);
-		static void InternalSetSleepThreshold(ScriptCRigidbody* thisPtr, float threshold);
-		static float InternalGetSleepThreshold(ScriptCRigidbody* thisPtr);
-		static void InternalSetUseGravity(ScriptCRigidbody* thisPtr, bool gravity);
-		static bool InternalGetUseGravity(ScriptCRigidbody* thisPtr);
-		static void InternalSetVelocity(ScriptCRigidbody* thisPtr, Vector3* velocity);
-		static void InternalGetVelocity(ScriptCRigidbody* thisPtr, Vector3* __output);
-		static void InternalSetAngularVelocity(ScriptCRigidbody* thisPtr, Vector3* velocity);
-		static void InternalGetAngularVelocity(ScriptCRigidbody* thisPtr, Vector3* __output);
-		static void InternalSetDrag(ScriptCRigidbody* thisPtr, float drag);
-		static float InternalGetDrag(ScriptCRigidbody* thisPtr);
-		static void InternalSetAngularDrag(ScriptCRigidbody* thisPtr, float drag);
-		static float InternalGetAngularDrag(ScriptCRigidbody* thisPtr);
-		static void InternalSetInertiaTensor(ScriptCRigidbody* thisPtr, Vector3* tensor);
-		static void InternalGetInertiaTensor(ScriptCRigidbody* thisPtr, Vector3* __output);
-		static void InternalSetMaxAngularVelocity(ScriptCRigidbody* thisPtr, float maxVelocity);
-		static float InternalGetMaxAngularVelocity(ScriptCRigidbody* thisPtr);
-		static void InternalSetCenterOfMassPosition(ScriptCRigidbody* thisPtr, Vector3* position);
-		static void InternalGetCenterOfMassPosition(ScriptCRigidbody* thisPtr, Vector3* __output);
-		static void InternalSetCenterOfMassRotation(ScriptCRigidbody* thisPtr, Quaternion* rotation);
-		static void InternalGetCenterOfMassRotation(ScriptCRigidbody* thisPtr, Quaternion* __output);
-		static void InternalSetPositionSolverCount(ScriptCRigidbody* thisPtr, uint32_t count);
-		static uint32_t InternalGetPositionSolverCount(ScriptCRigidbody* thisPtr);
-		static void InternalSetVelocitySolverCount(ScriptCRigidbody* thisPtr, uint32_t count);
-		static uint32_t InternalGetVelocitySolverCount(ScriptCRigidbody* thisPtr);
-		static void InternalSetCollisionReportMode(ScriptCRigidbody* thisPtr, CollisionReportMode mode);
-		static CollisionReportMode InternalGetCollisionReportMode(ScriptCRigidbody* thisPtr);
-		static void InternalSetFlags(ScriptCRigidbody* thisPtr, RigidbodyFlag flags);
-		static RigidbodyFlag InternalGetFlags(ScriptCRigidbody* thisPtr);
-		static void InternalAddForce(ScriptCRigidbody* thisPtr, Vector3* force, ForceMode mode);
-		static void InternalAddTorque(ScriptCRigidbody* thisPtr, Vector3* torque, ForceMode mode);
-		static void InternalAddForceAtPoint(ScriptCRigidbody* thisPtr, Vector3* force, Vector3* position, PointForceMode mode);
-		static void InternalGetVelocityAtPoint(ScriptCRigidbody* thisPtr, Vector3* point, Vector3* __output);
+		static void InternalMove(ScriptRigidbody* thisPtr, Vector3* position);
+		static void InternalRotate(ScriptRigidbody* thisPtr, Quaternion* rotation);
+		static void InternalSetMass(ScriptRigidbody* thisPtr, float mass);
+		static float InternalGetMass(ScriptRigidbody* thisPtr);
+		static void InternalSetIsKinematic(ScriptRigidbody* thisPtr, bool kinematic);
+		static bool InternalGetIsKinematic(ScriptRigidbody* thisPtr);
+		static bool InternalIsSleeping(ScriptRigidbody* thisPtr);
+		static void InternalSleep(ScriptRigidbody* thisPtr);
+		static void InternalWakeUp(ScriptRigidbody* thisPtr);
+		static void InternalSetSleepThreshold(ScriptRigidbody* thisPtr, float threshold);
+		static float InternalGetSleepThreshold(ScriptRigidbody* thisPtr);
+		static void InternalSetUseGravity(ScriptRigidbody* thisPtr, bool gravity);
+		static bool InternalGetUseGravity(ScriptRigidbody* thisPtr);
+		static void InternalSetVelocity(ScriptRigidbody* thisPtr, Vector3* velocity);
+		static void InternalGetVelocity(ScriptRigidbody* thisPtr, Vector3* __output);
+		static void InternalSetAngularVelocity(ScriptRigidbody* thisPtr, Vector3* velocity);
+		static void InternalGetAngularVelocity(ScriptRigidbody* thisPtr, Vector3* __output);
+		static void InternalSetDrag(ScriptRigidbody* thisPtr, float drag);
+		static float InternalGetDrag(ScriptRigidbody* thisPtr);
+		static void InternalSetAngularDrag(ScriptRigidbody* thisPtr, float drag);
+		static float InternalGetAngularDrag(ScriptRigidbody* thisPtr);
+		static void InternalSetInertiaTensor(ScriptRigidbody* thisPtr, Vector3* tensor);
+		static void InternalGetInertiaTensor(ScriptRigidbody* thisPtr, Vector3* __output);
+		static void InternalSetMaxAngularVelocity(ScriptRigidbody* thisPtr, float maxVelocity);
+		static float InternalGetMaxAngularVelocity(ScriptRigidbody* thisPtr);
+		static void InternalSetCenterOfMassPosition(ScriptRigidbody* thisPtr, Vector3* position);
+		static void InternalGetCenterOfMassPosition(ScriptRigidbody* thisPtr, Vector3* __output);
+		static void InternalSetCenterOfMassRotation(ScriptRigidbody* thisPtr, Quaternion* rotation);
+		static void InternalGetCenterOfMassRotation(ScriptRigidbody* thisPtr, Quaternion* __output);
+		static void InternalSetPositionSolverCount(ScriptRigidbody* thisPtr, uint32_t count);
+		static uint32_t InternalGetPositionSolverCount(ScriptRigidbody* thisPtr);
+		static void InternalSetVelocitySolverCount(ScriptRigidbody* thisPtr, uint32_t count);
+		static uint32_t InternalGetVelocitySolverCount(ScriptRigidbody* thisPtr);
+		static void InternalSetCollisionReportMode(ScriptRigidbody* thisPtr, CollisionReportMode mode);
+		static CollisionReportMode InternalGetCollisionReportMode(ScriptRigidbody* thisPtr);
+		static void InternalSetFlags(ScriptRigidbody* thisPtr, RigidbodyFlag flags);
+		static RigidbodyFlag InternalGetFlags(ScriptRigidbody* thisPtr);
+		static void InternalAddForce(ScriptRigidbody* thisPtr, Vector3* force, ForceMode mode);
+		static void InternalAddTorque(ScriptRigidbody* thisPtr, Vector3* torque, ForceMode mode);
+		static void InternalAddForceAtPoint(ScriptRigidbody* thisPtr, Vector3* force, Vector3* position, PointForceMode mode);
+		static void InternalGetVelocityAtPoint(ScriptRigidbody* thisPtr, Vector3* point, Vector3* __output);
 	};
 }

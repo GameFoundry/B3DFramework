@@ -8,12 +8,12 @@
 
 namespace bs
 {
-	ScriptCAudioListener::ScriptCAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value)
+	ScriptAudioListener::ScriptAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCAudioListener::InitRuntimeData()
+	void ScriptAudioListener::InitRuntimeData()
 	{
 
 	}

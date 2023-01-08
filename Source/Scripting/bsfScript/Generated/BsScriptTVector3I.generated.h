@@ -5,6 +5,8 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
+#include "BsScriptObject.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
 
 namespace bs
 {
@@ -13,11 +15,24 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3I")
 
-		static MonoObject* Box(const Vector3I& value);
-		static Vector3I Unbox(MonoObject* value);
+		static MonoObject* Box(const TVector3I<int32_t>& value);
+		static TVector3I<int32_t> Unbox(MonoObject* value);
 
 	private:
 		ScriptVector3I(MonoObject* managedInstance);
+
+	};
+
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector3UI : public ScriptObject<ScriptVector3UI>
+	{
+	public:
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3UI")
+
+		static MonoObject* Box(const TVector3I<uint32_t>& value);
+		static TVector3I<uint32_t> Unbox(MonoObject* value);
+
+	private:
+		ScriptVector3UI(MonoObject* managedInstance);
 
 	};
 }

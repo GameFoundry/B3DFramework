@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleForce::InternalSetOptions(ScriptParticleForce* thisPtr, __PARTICLE_FORCE_DESCInterop* options)
 	{
 		PARTICLE_FORCE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_FORCE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleForceOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_FORCE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_FORCE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_FORCE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleForceOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleForceOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleForce::InternalCreate(MonoObject* managedInstance, __PARTICLE_FORCE_DESCInterop* desc)
 	{
 		PARTICLE_FORCE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_FORCE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleForceOptions::FromInterop(*desc);
 		SPtr<ParticleForce> instance = ParticleForce::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, instance);
 	}

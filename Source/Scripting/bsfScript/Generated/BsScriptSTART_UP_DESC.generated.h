@@ -24,7 +24,7 @@ namespace bs
 		MonoArray* Importers;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSTART_UP_DESC : public ScriptObject<ScriptSTART_UP_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptStartUpDesc : public ScriptObject<ScriptStartUpDesc>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "StartUpDesc")
@@ -35,7 +35,7 @@ namespace bs
 		static __START_UP_DESCInterop ToInterop(const START_UP_DESC& value);
 
 	private:
-		ScriptSTART_UP_DESC(MonoObject* managedInstance);
+		ScriptStartUpDesc(MonoObject* managedInstance);
 
 	};
 #endif

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_HEMISPHERE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_HEMISPHERE_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleHemisphereShapeOptions : public ScriptObject<ScriptParticleHemisphereShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleHemisphereShapeOptions")
@@ -17,7 +17,7 @@ namespace bs
 		static PARTICLE_HEMISPHERE_SHAPE_DESC Unbox(MonoObject* value);
 
 	private:
-		ScriptPARTICLE_HEMISPHERE_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleHemisphereShapeOptions(MonoObject* managedInstance);
 
 	};
 }

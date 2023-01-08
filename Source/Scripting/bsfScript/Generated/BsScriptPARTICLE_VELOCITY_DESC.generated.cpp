@@ -9,29 +9,29 @@
 
 namespace bs
 {
-	ScriptPARTICLE_VELOCITY_DESC::ScriptPARTICLE_VELOCITY_DESC(MonoObject* managedInstance)
+	ScriptParticleVelocityOptions::ScriptParticleVelocityOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_VELOCITY_DESC::InitRuntimeData()
+	void ScriptParticleVelocityOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_VELOCITY_DESC::Box(const __PARTICLE_VELOCITY_DESCInterop& value)
+	MonoObject*ScriptParticleVelocityOptions::Box(const __PARTICLE_VELOCITY_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_VELOCITY_DESCInterop ScriptPARTICLE_VELOCITY_DESC::Unbox(MonoObject* value)
+	__PARTICLE_VELOCITY_DESCInterop ScriptParticleVelocityOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_VELOCITY_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_VELOCITY_DESC ScriptPARTICLE_VELOCITY_DESC::FromInterop(const __PARTICLE_VELOCITY_DESCInterop& value)
+	PARTICLE_VELOCITY_DESC ScriptParticleVelocityOptions::FromInterop(const __PARTICLE_VELOCITY_DESCInterop& value)
 	{
 		PARTICLE_VELOCITY_DESC output;
 		SPtr<TDistribution<Vector3>> tmpVelocity;
-		ScriptTDistributionVector3* scriptVelocity;
-		scriptVelocity = ScriptTDistributionVector3::ToNative(value.Velocity);
+		ScriptVector3Distribution* scriptVelocity;
+		scriptVelocity = ScriptVector3Distribution::ToNative(value.Velocity);
 		if(scriptVelocity != nullptr)
 			tmpVelocity = scriptVelocity->GetInternal();
 		if(tmpVelocity != nullptr)
@@ -41,13 +41,13 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_VELOCITY_DESCInterop ScriptPARTICLE_VELOCITY_DESC::ToInterop(const PARTICLE_VELOCITY_DESC& value)
+	__PARTICLE_VELOCITY_DESCInterop ScriptParticleVelocityOptions::ToInterop(const PARTICLE_VELOCITY_DESC& value)
 	{
 		__PARTICLE_VELOCITY_DESCInterop output;
 		MonoObject* tmpVelocity;
 		SPtr<TDistribution<Vector3>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<Vector3>>(value.Velocity);
-		tmpVelocity = ScriptTDistributionVector3::Create(tmpVelocitycopy);
+		tmpVelocity = ScriptVector3Distribution::Create(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		output.WorldSpace = value.WorldSpace;
 

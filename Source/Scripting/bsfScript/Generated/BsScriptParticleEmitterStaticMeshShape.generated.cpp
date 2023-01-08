@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleEmitterStaticMeshShape::InternalSetOptions(ScriptParticleEmitterStaticMeshShape* thisPtr, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleStaticMeshShapeOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_STATIC_MESH_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleStaticMeshShapeOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleStaticMeshShapeOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleEmitterStaticMeshShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleStaticMeshShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
 	}

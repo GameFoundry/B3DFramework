@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleRotation::InternalSetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* options)
 	{
 		PARTICLE_ROTATION_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_ROTATION_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleRotationOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_ROTATION_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_ROTATION_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_ROTATION_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleRotationOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleRotationOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleRotation::InternalCreate(MonoObject* managedInstance, __PARTICLE_ROTATION_DESCInterop* desc)
 	{
 		PARTICLE_ROTATION_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_ROTATION_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleRotationOptions::FromInterop(*desc);
 		SPtr<ParticleRotation> instance = ParticleRotation::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, instance);
 	}

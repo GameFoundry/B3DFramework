@@ -7,24 +7,24 @@
 
 namespace bs
 {
-	ScriptVECTOR_FIELD_DESC::ScriptVECTOR_FIELD_DESC(MonoObject* managedInstance)
+	ScriptVectorFieldOptions::ScriptVectorFieldOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptVECTOR_FIELD_DESC::InitRuntimeData()
+	void ScriptVectorFieldOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptVECTOR_FIELD_DESC::Box(const __VECTOR_FIELD_DESCInterop& value)
+	MonoObject*ScriptVectorFieldOptions::Box(const __VECTOR_FIELD_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__VECTOR_FIELD_DESCInterop ScriptVECTOR_FIELD_DESC::Unbox(MonoObject* value)
+	__VECTOR_FIELD_DESCInterop ScriptVectorFieldOptions::Unbox(MonoObject* value)
 	{
 		return *(__VECTOR_FIELD_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	VECTOR_FIELD_DESC ScriptVECTOR_FIELD_DESC::FromInterop(const __VECTOR_FIELD_DESCInterop& value)
+	VECTOR_FIELD_DESC ScriptVectorFieldOptions::FromInterop(const __VECTOR_FIELD_DESCInterop& value)
 	{
 		VECTOR_FIELD_DESC output;
 		output.CountX = value.CountX;
@@ -35,7 +35,7 @@ namespace bs
 		return output;
 	}
 
-	__VECTOR_FIELD_DESCInterop ScriptVECTOR_FIELD_DESC::ToInterop(const VECTOR_FIELD_DESC& value)
+	__VECTOR_FIELD_DESCInterop ScriptVectorFieldOptions::ToInterop(const VECTOR_FIELD_DESC& value)
 	{
 		__VECTOR_FIELD_DESCInterop output;
 		output.CountX = value.CountX;

@@ -8,12 +8,12 @@
 namespace bs { class CAudioListener; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCAudioListener : public TScriptComponent<ScriptCAudioListener, CAudioListener>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioListener : public TScriptComponent<ScriptAudioListener, CAudioListener>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioListener")
 
-		ScriptCAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value);
+		ScriptAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value);
 
 	private:
 	};

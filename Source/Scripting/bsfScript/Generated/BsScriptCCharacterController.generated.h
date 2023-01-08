@@ -17,12 +17,12 @@ namespace bs { struct __ControllerColliderCollisionInterop; }
 namespace bs { struct __ControllerControllerCollisionInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCCharacterController : public TScriptComponent<ScriptCCharacterController, CCharacterController>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptComponent<ScriptCharacterController, CCharacterController>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CharacterController")
 
-		ScriptCCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value);
+		ScriptCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value);
 
 	private:
 		void OnColliderHit(const ControllerColliderCollision& p0);
@@ -33,28 +33,28 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnControllerHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnControllerHitThunkDef OnControllerHitThunk;
 
-		static CharacterCollisionFlag InternalMove(ScriptCCharacterController* thisPtr, Vector3* displacement);
-		static void InternalGetFootPosition(ScriptCCharacterController* thisPtr, Vector3* __output);
-		static void InternalSetFootPosition(ScriptCCharacterController* thisPtr, Vector3* position);
-		static float InternalGetRadius(ScriptCCharacterController* thisPtr);
-		static void InternalSetRadius(ScriptCCharacterController* thisPtr, float radius);
-		static float InternalGetHeight(ScriptCCharacterController* thisPtr);
-		static void InternalSetHeight(ScriptCCharacterController* thisPtr, float height);
-		static void InternalGetUp(ScriptCCharacterController* thisPtr, Vector3* __output);
-		static void InternalSetUp(ScriptCCharacterController* thisPtr, Vector3* up);
-		static CharacterClimbingMode InternalGetClimbingMode(ScriptCCharacterController* thisPtr);
-		static void InternalSetClimbingMode(ScriptCCharacterController* thisPtr, CharacterClimbingMode mode);
-		static CharacterNonWalkableMode InternalGetNonWalkableMode(ScriptCCharacterController* thisPtr);
-		static void InternalSetNonWalkableMode(ScriptCCharacterController* thisPtr, CharacterNonWalkableMode mode);
-		static float InternalGetMinMoveDistance(ScriptCCharacterController* thisPtr);
-		static void InternalSetMinMoveDistance(ScriptCCharacterController* thisPtr, float value);
-		static float InternalGetContactOffset(ScriptCCharacterController* thisPtr);
-		static void InternalSetContactOffset(ScriptCCharacterController* thisPtr, float value);
-		static float InternalGetStepOffset(ScriptCCharacterController* thisPtr);
-		static void InternalSetStepOffset(ScriptCCharacterController* thisPtr, float value);
-		static void InternalGetSlopeLimit(ScriptCCharacterController* thisPtr, Radian* __output);
-		static void InternalSetSlopeLimit(ScriptCCharacterController* thisPtr, Radian* value);
-		static uint64_t InternalGetLayer(ScriptCCharacterController* thisPtr);
-		static void InternalSetLayer(ScriptCCharacterController* thisPtr, uint64_t layer);
+		static CharacterCollisionFlag InternalMove(ScriptCharacterController* thisPtr, Vector3* displacement);
+		static void InternalGetFootPosition(ScriptCharacterController* thisPtr, Vector3* __output);
+		static void InternalSetFootPosition(ScriptCharacterController* thisPtr, Vector3* position);
+		static float InternalGetRadius(ScriptCharacterController* thisPtr);
+		static void InternalSetRadius(ScriptCharacterController* thisPtr, float radius);
+		static float InternalGetHeight(ScriptCharacterController* thisPtr);
+		static void InternalSetHeight(ScriptCharacterController* thisPtr, float height);
+		static void InternalGetUp(ScriptCharacterController* thisPtr, Vector3* __output);
+		static void InternalSetUp(ScriptCharacterController* thisPtr, Vector3* up);
+		static CharacterClimbingMode InternalGetClimbingMode(ScriptCharacterController* thisPtr);
+		static void InternalSetClimbingMode(ScriptCharacterController* thisPtr, CharacterClimbingMode mode);
+		static CharacterNonWalkableMode InternalGetNonWalkableMode(ScriptCharacterController* thisPtr);
+		static void InternalSetNonWalkableMode(ScriptCharacterController* thisPtr, CharacterNonWalkableMode mode);
+		static float InternalGetMinMoveDistance(ScriptCharacterController* thisPtr);
+		static void InternalSetMinMoveDistance(ScriptCharacterController* thisPtr, float value);
+		static float InternalGetContactOffset(ScriptCharacterController* thisPtr);
+		static void InternalSetContactOffset(ScriptCharacterController* thisPtr, float value);
+		static float InternalGetStepOffset(ScriptCharacterController* thisPtr);
+		static void InternalSetStepOffset(ScriptCharacterController* thisPtr, float value);
+		static void InternalGetSlopeLimit(ScriptCharacterController* thisPtr, Radian* __output);
+		static void InternalSetSlopeLimit(ScriptCharacterController* thisPtr, Radian* value);
+		static uint64_t InternalGetLayer(ScriptCharacterController* thisPtr);
+		static void InternalSetLayer(ScriptCharacterController* thisPtr, uint64_t layer);
 	};
 }

@@ -11,24 +11,24 @@
 
 namespace bs
 {
-	ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::ScriptPARTICLE_STATIC_MESH_SHAPE_DESC(MonoObject* managedInstance)
+	ScriptParticleStaticMeshShapeOptions::ScriptParticleStaticMeshShapeOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::InitRuntimeData()
+	void ScriptParticleStaticMeshShapeOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::Box(const __PARTICLE_STATIC_MESH_SHAPE_DESCInterop& value)
+	MonoObject*ScriptParticleStaticMeshShapeOptions::Box(const __PARTICLE_STATIC_MESH_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_STATIC_MESH_SHAPE_DESCInterop ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::Unbox(MonoObject* value)
+	__PARTICLE_STATIC_MESH_SHAPE_DESCInterop ScriptParticleStaticMeshShapeOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_STATIC_MESH_SHAPE_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_STATIC_MESH_SHAPE_DESC ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::FromInterop(const __PARTICLE_STATIC_MESH_SHAPE_DESCInterop& value)
+	PARTICLE_STATIC_MESH_SHAPE_DESC ScriptParticleStaticMeshShapeOptions::FromInterop(const __PARTICLE_STATIC_MESH_SHAPE_DESCInterop& value)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC output;
 		output.Type = value.Type;
@@ -43,7 +43,7 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_STATIC_MESH_SHAPE_DESCInterop ScriptPARTICLE_STATIC_MESH_SHAPE_DESC::ToInterop(const PARTICLE_STATIC_MESH_SHAPE_DESC& value)
+	__PARTICLE_STATIC_MESH_SHAPE_DESCInterop ScriptParticleStaticMeshShapeOptions::ToInterop(const PARTICLE_STATIC_MESH_SHAPE_DESC& value)
 	{
 		__PARTICLE_STATIC_MESH_SHAPE_DESCInterop output;
 		output.Type = value.Type;

@@ -31,8 +31,8 @@ namespace bs
 		ParticleBurst output;
 		output.Time = value.Time;
 		SPtr<TDistribution<float>> tmpCount;
-		ScriptTDistributionfloat* scriptCount;
-		scriptCount = ScriptTDistributionfloat::ToNative(value.Count);
+		ScriptFloatDistribution* scriptCount;
+		scriptCount = ScriptFloatDistribution::ToNative(value.Count);
 		if(scriptCount != nullptr)
 			tmpCount = scriptCount->GetInternal();
 		if(tmpCount != nullptr)
@@ -50,7 +50,7 @@ namespace bs
 		MonoObject* tmpCount;
 		SPtr<TDistribution<float>> tmpCountcopy;
 		tmpCountcopy = B3DMakeShared<TDistribution<float>>(value.Count);
-		tmpCount = ScriptTDistributionfloat::Create(tmpCountcopy);
+		tmpCount = ScriptFloatDistribution::Create(tmpCountcopy);
 		output.Count = tmpCount;
 		output.Cycles = value.Cycles;
 		output.Interval = value.Interval;

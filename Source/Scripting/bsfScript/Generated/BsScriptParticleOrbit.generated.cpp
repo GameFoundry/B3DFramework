@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleOrbit::InternalSetOptions(ScriptParticleOrbit* thisPtr, __PARTICLE_ORBIT_DESCInterop* options)
 	{
 		PARTICLE_ORBIT_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_ORBIT_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleOrbitOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_ORBIT_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_ORBIT_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_ORBIT_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleOrbitOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleOrbitOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleOrbit::InternalCreate(MonoObject* managedInstance, __PARTICLE_ORBIT_DESCInterop* desc)
 	{
 		PARTICLE_ORBIT_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_ORBIT_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleOrbitOptions::FromInterop(*desc);
 		SPtr<ParticleOrbit> instance = ParticleOrbit::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, instance);
 	}

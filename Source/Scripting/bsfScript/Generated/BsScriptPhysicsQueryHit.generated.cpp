@@ -41,8 +41,8 @@ namespace bs
 		output.TriangleIdx = value.TriangleIdx;
 		output.UnmappedTriangleIdx = value.UnmappedTriangleIdx;
 		GameObjectHandle<CCollider> tmpCollider;
-		ScriptCColliderBase* scriptCollider;
-		scriptCollider = (ScriptCColliderBase*)ScriptCCollider::ToNative(value.Collider);
+		ScriptColliderBase* scriptCollider;
+		scriptCollider = (ScriptColliderBase*)ScriptCollider::ToNative(value.Collider);
 		if(scriptCollider != nullptr)
 			tmpCollider = B3DStaticGameObjectCast<CCollider>(scriptCollider->GetComponent());
 		output.Collider = tmpCollider;

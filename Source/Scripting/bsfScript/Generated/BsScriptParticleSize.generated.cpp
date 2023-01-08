@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleSize::InternalSetOptions(ScriptParticleSize* thisPtr, __PARTICLE_SIZE_DESCInterop* options)
 	{
 		PARTICLE_SIZE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_SIZE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleSizeOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_SIZE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_SIZE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_SIZE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleSizeOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleSizeOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleSize::InternalCreate(MonoObject* managedInstance, __PARTICLE_SIZE_DESCInterop* desc)
 	{
 		PARTICLE_SIZE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_SIZE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleSizeOptions::FromInterop(*desc);
 		SPtr<ParticleSize> instance = ParticleSize::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleSize>())ScriptParticleSize(managedInstance, instance);
 	}

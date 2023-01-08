@@ -12,12 +12,12 @@ namespace bs
 
 	/// <summary>Represents a single shader variation parameter and a set of all possible values.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
-	public partial struct ShaderVariationParamInfo
+	public partial struct ShaderVariationParameterInformation
 	{
 		/// <summary>Initializes the struct with default values.</summary>
-		public static ShaderVariationParamInfo Default()
+		public static ShaderVariationParameterInformation Default()
 		{
-			ShaderVariationParamInfo value = new ShaderVariationParamInfo();
+			ShaderVariationParameterInformation value = new ShaderVariationParameterInformation();
 			value.Name = "";
 			value.Identifier = "";
 			value.IsInternal = true;
@@ -35,7 +35,7 @@ namespace bs
 		/// </summary>
 		public bool IsInternal;
 		/// <summary>A list of potential values this parameter can take on.</summary>
-		public ShaderVariationParamValue[] Values;
+		public ShaderVariationParameterValue[] Values;
 	}
 
 	/** @} */

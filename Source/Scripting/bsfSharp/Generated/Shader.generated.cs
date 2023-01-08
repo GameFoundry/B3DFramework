@@ -31,7 +31,7 @@ namespace bs
 		/// meta-data.
 		/// </summary>
 		[NativeWrapper]
-		public ShaderVariationParamInfo[] VariationParams
+		public ShaderVariationParameterInformation[] VariationParams
 		{
 			get { return Internal_GetVariationParams(mCachedPtr); }
 		}
@@ -55,7 +55,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Shader> Internal_GetRef(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ShaderVariationParamInfo[] Internal_GetVariationParams(IntPtr thisPtr);
+		private static extern ShaderVariationParameterInformation[] Internal_GetVariationParams(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ShaderParameter[] Internal_GetParameters(IntPtr thisPtr);
 	}

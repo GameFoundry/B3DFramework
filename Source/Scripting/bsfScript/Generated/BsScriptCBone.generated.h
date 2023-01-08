@@ -8,15 +8,15 @@
 namespace bs { class CBone; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCBone : public TScriptComponent<ScriptCBone, CBone>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptComponent<ScriptBone, CBone>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Bone")
 
-		ScriptCBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value);
+		ScriptBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value);
 
 	private:
-		static void InternalSetBoneName(ScriptCBone* thisPtr, MonoString* name);
-		static MonoString* InternalGetBoneName(ScriptCBone* thisPtr);
+		static void InternalSetBoneName(ScriptBone* thisPtr, MonoString* name);
+		static MonoString* InternalGetBoneName(ScriptBone* thisPtr);
 	};
 }

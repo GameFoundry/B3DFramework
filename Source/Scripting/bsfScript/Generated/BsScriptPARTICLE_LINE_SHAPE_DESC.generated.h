@@ -15,7 +15,7 @@ namespace bs
 		ParticleEmissionMode Mode;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_LINE_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_LINE_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleLineShapeOptions : public ScriptObject<ScriptParticleLineShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleLineShapeOptions")
@@ -26,7 +26,7 @@ namespace bs
 		static __PARTICLE_LINE_SHAPE_DESCInterop ToInterop(const PARTICLE_LINE_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_LINE_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleLineShapeOptions(MonoObject* managedInstance);
 
 	};
 }

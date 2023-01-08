@@ -32,8 +32,8 @@ namespace bs
 	{
 		GUIContent output;
 		SPtr<HString> tmpText;
-		ScriptHString* scriptText;
-		scriptText = ScriptHString::ToNative(value.Text);
+		ScriptLocString* scriptText;
+		scriptText = ScriptLocString::ToNative(value.Text);
 		if(scriptText != nullptr)
 			tmpText = scriptText->GetInternal();
 		if(tmpText != nullptr)
@@ -42,8 +42,8 @@ namespace bs
 		tmpImages = ScriptGUIContentImages::FromInterop(value.Images);
 		output.Images = tmpImages;
 		SPtr<HString> tmpTooltip;
-		ScriptHString* scriptTooltip;
-		scriptTooltip = ScriptHString::ToNative(value.Tooltip);
+		ScriptLocString* scriptTooltip;
+		scriptTooltip = ScriptLocString::ToNative(value.Tooltip);
 		if(scriptTooltip != nullptr)
 			tmpTooltip = scriptTooltip->GetInternal();
 		if(tmpTooltip != nullptr)
@@ -58,7 +58,7 @@ namespace bs
 		MonoObject* tmpText;
 		SPtr<HString> tmpTextcopy;
 		tmpTextcopy = B3DMakeShared<HString>(value.Text);
-		tmpText = ScriptHString::Create(tmpTextcopy);
+		tmpText = ScriptLocString::Create(tmpTextcopy);
 		output.Text = tmpText;
 		__GUIContentImagesInterop tmpImages;
 		tmpImages = ScriptGUIContentImages::ToInterop(value.Images);
@@ -66,7 +66,7 @@ namespace bs
 		MonoObject* tmpTooltip;
 		SPtr<HString> tmpTooltipcopy;
 		tmpTooltipcopy = B3DMakeShared<HString>(value.Tooltip);
-		tmpTooltip = ScriptHString::Create(tmpTooltipcopy);
+		tmpTooltip = ScriptLocString::Create(tmpTooltipcopy);
 		output.Tooltip = tmpTooltip;
 
 		return output;

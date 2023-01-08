@@ -8,26 +8,26 @@
 
 namespace bs
 {
-	ScriptCBone::ScriptCBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value)
+	ScriptBone::ScriptBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCBone::InitRuntimeData()
+	void ScriptBone::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptCBone::InternalSetBoneName);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBoneName", (void*)&ScriptCBone::InternalGetBoneName);
+		metaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptBone::InternalSetBoneName);
+		metaData.ScriptClass->AddInternalCall("Internal_GetBoneName", (void*)&ScriptBone::InternalGetBoneName);
 
 	}
 
-	void ScriptCBone::InternalSetBoneName(ScriptCBone* thisPtr, MonoString* name)
+	void ScriptBone::InternalSetBoneName(ScriptBone* thisPtr, MonoString* name)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		thisPtr->GetHandle()->SetBoneName(tmpname);
 	}
 
-	MonoString* ScriptCBone::InternalGetBoneName(ScriptCBone* thisPtr)
+	MonoString* ScriptBone::InternalGetBoneName(ScriptBone* thisPtr)
 	{
 		String tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetBoneName();

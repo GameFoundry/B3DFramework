@@ -38,8 +38,8 @@ namespace bs
 			ScriptArray arrayCollider(value.Collider);
 			for(int i = 0; i < (int)arrayCollider.Size(); i++)
 			{
-				ScriptCColliderBase* scriptCollider;
-				scriptCollider = (ScriptCColliderBase*)ScriptCCollider::ToNative(arrayCollider.Get<MonoObject*>(i));
+				ScriptColliderBase* scriptCollider;
+				scriptCollider = (ScriptColliderBase*)ScriptCollider::ToNative(arrayCollider.Get<MonoObject*>(i));
 				if(scriptCollider != nullptr)
 				{
 					GameObjectHandle<CCollider> arrayElemPtrCollider = B3DStaticGameObjectCast<CCollider>(scriptCollider->GetComponent());
@@ -70,7 +70,7 @@ namespace bs
 		__CollisionDataInterop output;
 		int arraySizeCollider = 2;
 		MonoArray* vecCollider;
-		ScriptArray arrayCollider = ScriptArray::Create<ScriptCCollider>(arraySizeCollider);
+		ScriptArray arrayCollider = ScriptArray::Create<ScriptCollider>(arraySizeCollider);
 		for(int i = 0; i < arraySizeCollider; i++)
 		{
 			ScriptComponentBase* scriptCollider = nullptr;

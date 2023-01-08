@@ -9,29 +9,29 @@
 
 namespace bs
 {
-	ScriptPARTICLE_COLOR_DESC::ScriptPARTICLE_COLOR_DESC(MonoObject* managedInstance)
+	ScriptParticleColorOptions::ScriptParticleColorOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_COLOR_DESC::InitRuntimeData()
+	void ScriptParticleColorOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_COLOR_DESC::Box(const __PARTICLE_COLOR_DESCInterop& value)
+	MonoObject*ScriptParticleColorOptions::Box(const __PARTICLE_COLOR_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_COLOR_DESCInterop ScriptPARTICLE_COLOR_DESC::Unbox(MonoObject* value)
+	__PARTICLE_COLOR_DESCInterop ScriptParticleColorOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_COLOR_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_COLOR_DESC ScriptPARTICLE_COLOR_DESC::FromInterop(const __PARTICLE_COLOR_DESCInterop& value)
+	PARTICLE_COLOR_DESC ScriptParticleColorOptions::FromInterop(const __PARTICLE_COLOR_DESCInterop& value)
 	{
 		PARTICLE_COLOR_DESC output;
 		SPtr<TColorDistribution<ColorGradient>> tmpColor;
-		ScriptTColorDistributionColorGradient* scriptColor;
-		scriptColor = ScriptTColorDistributionColorGradient::ToNative(value.Color);
+		ScriptColorDistribution* scriptColor;
+		scriptColor = ScriptColorDistribution::ToNative(value.Color);
 		if(scriptColor != nullptr)
 			tmpColor = scriptColor->GetInternal();
 		if(tmpColor != nullptr)
@@ -40,13 +40,13 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_COLOR_DESCInterop ScriptPARTICLE_COLOR_DESC::ToInterop(const PARTICLE_COLOR_DESC& value)
+	__PARTICLE_COLOR_DESCInterop ScriptParticleColorOptions::ToInterop(const PARTICLE_COLOR_DESC& value)
 	{
 		__PARTICLE_COLOR_DESCInterop output;
 		MonoObject* tmpColor;
 		SPtr<TColorDistribution<ColorGradient>> tmpColorcopy;
 		tmpColorcopy = B3DMakeShared<TColorDistribution<ColorGradient>>(value.Color);
-		tmpColor = ScriptTColorDistributionColorGradient::Create(tmpColorcopy);
+		tmpColor = ScriptColorDistribution::Create(tmpColorcopy);
 		output.Color = tmpColor;
 
 		return output;

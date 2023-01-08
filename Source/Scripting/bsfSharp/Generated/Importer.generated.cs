@@ -58,7 +58,7 @@ namespace bs
 		/// importer used for the file type.
 		/// </param>
 		/// <returns>A list of all imported resources. The primary resource is always the first returned resource.</returns>
-		public static MultiResource ImportAll(string inputFilePath, ImportOptions importOptions)
+		public static MultiResource ImportAll(string inputFilePath, ImportOptions importOptions = null)
 		{
 			return Internal_ImportAll(inputFilePath, importOptions);
 		}
@@ -67,7 +67,7 @@ namespace bs
 		/// Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will contain 
 		/// a list of the imported resources, after the import ends.
 		/// </summary>
-		public static AsyncOp<MultiResource> ImportAllAsync(string inputFilePath, ImportOptions importOptions)
+		public static AsyncOp<MultiResource> ImportAllAsync(string inputFilePath, ImportOptions importOptions = null)
 		{
 			return Internal_ImportAllAsync(inputFilePath, importOptions);
 		}
@@ -127,29 +127,6 @@ namespace bs
 			ImportOptions importOptions = null;
 			UUID UUID = new UUID();
 			return Internal_ImportAsync(inputFilePath, importOptions, ref UUID);
-		}
-
-		/// <summary>
-		/// Imports a resource at the specified location, and returns the loaded data. This method returns all imported 
-		/// resources, which is relevant for files that can contain multiple resources (for example an FBX which may contain both 
-		/// a mesh and animations).
-		/// </summary>
-		/// <param name="inputFilePath">Pathname of the input file.</param>
-		/// <returns>A list of all imported resources. The primary resource is always the first returned resource.</returns>
-		public static MultiResource ImportAll(string inputFilePath)
-		{
-			ImportOptions importOptions = null;
-			return Internal_ImportAll(inputFilePath, importOptions);
-		}
-
-		/// <summary>
-		/// Same as importAll(), except it imports a resource without blocking the main thread. The returned AsyncOp will contain 
-		/// a list of the imported resources, after the import ends.
-		/// </summary>
-		public static AsyncOp<MultiResource> ImportAllAsync(string inputFilePath)
-		{
-			ImportOptions importOptions = null;
-			return Internal_ImportAllAsync(inputFilePath, importOptions);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -59,7 +59,7 @@ void ScriptGUIListBox::InternalCreateInstance(MonoObject* instance, MonoArray* e
 			nativeElements.push_back(HString::Dummy());
 		else
 		{
-			ScriptHString* textScript = ScriptHString::ToNative(stringManaged);
+			ScriptLocString* textScript = ScriptLocString::ToNative(stringManaged);
 			nativeElements.push_back(*textScript->GetInternal());
 		}
 	}
@@ -84,7 +84,7 @@ void ScriptGUIListBox::InternalSetElements(ScriptGUIListBox* nativeInstance, Mon
 			nativeElements.push_back(HString::Dummy());
 		else
 		{
-			ScriptHString* textScript = ScriptHString::ToNative(stringManaged);
+			ScriptLocString* textScript = ScriptLocString::ToNative(stringManaged);
 			nativeElements.push_back(*textScript->GetInternal());
 		}
 	}

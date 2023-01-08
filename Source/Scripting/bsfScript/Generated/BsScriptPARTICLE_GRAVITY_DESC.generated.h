@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_GRAVITY_DESC : public ScriptObject<ScriptPARTICLE_GRAVITY_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravityOptions : public ScriptObject<ScriptParticleGravityOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleGravityOptions")
@@ -17,7 +17,7 @@ namespace bs
 		static PARTICLE_GRAVITY_DESC Unbox(MonoObject* value);
 
 	private:
-		ScriptPARTICLE_GRAVITY_DESC(MonoObject* managedInstance);
+		ScriptParticleGravityOptions(MonoObject* managedInstance);
 
 	};
 }

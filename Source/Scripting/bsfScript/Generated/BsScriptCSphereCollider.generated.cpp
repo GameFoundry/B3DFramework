@@ -9,26 +9,26 @@
 
 namespace bs
 {
-	ScriptCSphereCollider::ScriptCSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value)
+	ScriptSphereCollider::ScriptSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCSphereCollider::InitRuntimeData()
+	void ScriptSphereCollider::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptCSphereCollider::InternalSetRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCSphereCollider::InternalGetRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCSphereCollider::InternalSetCenter);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCSphereCollider::InternalGetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptSphereCollider::InternalSetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptSphereCollider::InternalGetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptSphereCollider::InternalSetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptSphereCollider::InternalGetCenter);
 
 	}
 
-	void ScriptCSphereCollider::InternalSetRadius(ScriptCSphereCollider* thisPtr, float radius)
+	void ScriptSphereCollider::InternalSetRadius(ScriptSphereCollider* thisPtr, float radius)
 	{
 		thisPtr->GetHandle()->SetRadius(radius);
 	}
 
-	float ScriptCSphereCollider::InternalGetRadius(ScriptCSphereCollider* thisPtr)
+	float ScriptSphereCollider::InternalGetRadius(ScriptSphereCollider* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetRadius();
@@ -39,12 +39,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCSphereCollider::InternalSetCenter(ScriptCSphereCollider* thisPtr, Vector3* center)
+	void ScriptSphereCollider::InternalSetCenter(ScriptSphereCollider* thisPtr, Vector3* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptCSphereCollider::InternalGetCenter(ScriptCSphereCollider* thisPtr, Vector3* __output)
+	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();

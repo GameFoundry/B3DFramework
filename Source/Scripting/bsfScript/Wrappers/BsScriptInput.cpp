@@ -6,7 +6,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
 #include "Input/BsInput.h"
-#include "Wrappers/BsScriptVector2I.h"
+#include "Generated//BsScriptTVector2I.generated.h"
 #include "BsPlayInEditor.h"
 
 using namespace bs;

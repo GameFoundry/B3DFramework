@@ -98,8 +98,8 @@ namespace bs
 	void ScriptMesh::InternalCreate1(MonoObject* managedInstance, MonoObject* data, DrawOperationType topology, MeshUsage usage)
 	{
 		SPtr<RendererMeshData> tmpdata;
-		ScriptRendererMeshData* scriptdata;
-		scriptdata = ScriptRendererMeshData::ToNative(data);
+		ScriptMeshData* scriptdata;
+		scriptdata = ScriptMeshData::ToNative(data);
 		if(scriptdata != nullptr)
 			tmpdata = scriptdata->GetInternal();
 		ResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, topology, usage);
@@ -109,8 +109,8 @@ namespace bs
 	void ScriptMesh::InternalCreate2(MonoObject* managedInstance, MonoObject* data, MonoArray* subMeshes, MeshUsage usage)
 	{
 		SPtr<RendererMeshData> tmpdata;
-		ScriptRendererMeshData* scriptdata;
-		scriptdata = ScriptRendererMeshData::ToNative(data);
+		ScriptMeshData* scriptdata;
+		scriptdata = ScriptMeshData::ToNative(data);
 		if(scriptdata != nullptr)
 			tmpdata = scriptdata->GetInternal();
 		Vector<SubMesh> vecsubMeshes;
@@ -167,7 +167,7 @@ namespace bs
 		tmp__output = MeshEx::GetMeshData(thisPtr->GetHandle());
 
 		MonoObject* __output;
-		__output = ScriptRendererMeshData::Create(tmp__output);
+		__output = ScriptMeshData::Create(tmp__output);
 
 		return __output;
 	}
@@ -175,8 +175,8 @@ namespace bs
 	void ScriptMesh::InternalSetMeshData(ScriptMesh* thisPtr, MonoObject* value)
 	{
 		SPtr<RendererMeshData> tmpvalue;
-		ScriptRendererMeshData* scriptvalue;
-		scriptvalue = ScriptRendererMeshData::ToNative(value);
+		ScriptMeshData* scriptvalue;
+		scriptvalue = ScriptMeshData::ToNative(value);
 		if(scriptvalue != nullptr)
 			tmpvalue = scriptvalue->GetInternal();
 		MeshEx::SetMeshData(thisPtr->GetHandle(), tmpvalue);

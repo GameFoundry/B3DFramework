@@ -454,7 +454,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 
 	if(mDragState == DragState::HeldWithoutDrag)
 	{
-		u32 dist = mLastPointerClickPos.ManhattanDist(event.ScreenPos);
+		u32 dist = mLastPointerClickPos.CalculateManhattanDistance(event.ScreenPos);
 
 		if(dist > kDragDistance)
 		{

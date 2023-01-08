@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_TEXTURE_ANIMATION_DESC : public ScriptObject<ScriptPARTICLE_TEXTURE_ANIMATION_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimationOptions : public ScriptObject<ScriptParticleTextureAnimationOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleTextureAnimationOptions")
@@ -17,7 +17,7 @@ namespace bs
 		static PARTICLE_TEXTURE_ANIMATION_DESC Unbox(MonoObject* value);
 
 	private:
-		ScriptPARTICLE_TEXTURE_ANIMATION_DESC(MonoObject* managedInstance);
+		ScriptParticleTextureAnimationOptions(MonoObject* managedInstance);
 
 	};
 }

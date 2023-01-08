@@ -18,8 +18,8 @@ namespace bs
 		public static LimitAngularRange Default()
 		{
 			LimitAngularRange value = new LimitAngularRange();
-			value.Lower = Radian.Default();
-			value.Upper = Radian.Default();
+			value.Lower = new Radian(0f);
+			value.Upper = new Radian(0f);
 			value.ContactDist = -1f;
 			value.Restitution = 0f;
 			value.Spring = Spring.Default();

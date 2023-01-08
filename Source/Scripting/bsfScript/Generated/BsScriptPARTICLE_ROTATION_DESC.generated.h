@@ -17,7 +17,7 @@ namespace bs
 		bool Use3DRotation;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_ROTATION_DESC : public ScriptObject<ScriptPARTICLE_ROTATION_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotationOptions : public ScriptObject<ScriptParticleRotationOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleRotationOptions")
@@ -28,7 +28,7 @@ namespace bs
 		static __PARTICLE_ROTATION_DESCInterop ToInterop(const PARTICLE_ROTATION_DESC& value);
 
 	private:
-		ScriptPARTICLE_ROTATION_DESC(MonoObject* managedInstance);
+		ScriptParticleRotationOptions(MonoObject* managedInstance);
 
 	};
 }

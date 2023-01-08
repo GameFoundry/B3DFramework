@@ -9,24 +9,24 @@
 
 namespace bs
 {
-	ScriptPARTICLE_BOX_SHAPE_DESC::ScriptPARTICLE_BOX_SHAPE_DESC(MonoObject* managedInstance)
+	ScriptParticleBoxShapeOptions::ScriptParticleBoxShapeOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_BOX_SHAPE_DESC::InitRuntimeData()
+	void ScriptParticleBoxShapeOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_BOX_SHAPE_DESC::Box(const __PARTICLE_BOX_SHAPE_DESCInterop& value)
+	MonoObject*ScriptParticleBoxShapeOptions::Box(const __PARTICLE_BOX_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_BOX_SHAPE_DESCInterop ScriptPARTICLE_BOX_SHAPE_DESC::Unbox(MonoObject* value)
+	__PARTICLE_BOX_SHAPE_DESCInterop ScriptParticleBoxShapeOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_BOX_SHAPE_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_BOX_SHAPE_DESC ScriptPARTICLE_BOX_SHAPE_DESC::FromInterop(const __PARTICLE_BOX_SHAPE_DESCInterop& value)
+	PARTICLE_BOX_SHAPE_DESC ScriptParticleBoxShapeOptions::FromInterop(const __PARTICLE_BOX_SHAPE_DESCInterop& value)
 	{
 		PARTICLE_BOX_SHAPE_DESC output;
 		output.Type = value.Type;
@@ -35,7 +35,7 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_BOX_SHAPE_DESCInterop ScriptPARTICLE_BOX_SHAPE_DESC::ToInterop(const PARTICLE_BOX_SHAPE_DESC& value)
+	__PARTICLE_BOX_SHAPE_DESCInterop ScriptParticleBoxShapeOptions::ToInterop(const PARTICLE_BOX_SHAPE_DESC& value)
 	{
 		__PARTICLE_BOX_SHAPE_DESCInterop output;
 		output.Type = value.Type;

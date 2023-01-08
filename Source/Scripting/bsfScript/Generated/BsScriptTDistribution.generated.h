@@ -20,12 +20,12 @@
 namespace bs { template<class T0> struct TDistribution; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTDistributionfloat : public ScriptObject<ScriptTDistributionfloat>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFloatDistribution : public ScriptObject<ScriptFloatDistribution>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FloatDistribution")
 
-		ScriptTDistributionfloat(MonoObject* managedInstance, const SPtr<TDistribution<float>>& value);
+		ScriptFloatDistribution(MonoObject* managedInstance, const SPtr<TDistribution<float>>& value);
 
 		SPtr<TDistribution<float>> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<TDistribution<float>>& value);
@@ -38,21 +38,21 @@ namespace bs
 		static void InternalTDistribution1(MonoObject* managedInstance, float minValue, float maxValue);
 		static void InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve);
 		static void InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve);
-		static PropertyDistributionType InternalGetType(ScriptTDistributionfloat* thisPtr);
-		static float InternalGetMinConstant(ScriptTDistributionfloat* thisPtr);
-		static float InternalGetMaxConstant(ScriptTDistributionfloat* thisPtr);
-		static MonoObject* InternalGetMinCurve(ScriptTDistributionfloat* thisPtr);
-		static MonoObject* InternalGetMaxCurve(ScriptTDistributionfloat* thisPtr);
-		static float InternalEvaluate(ScriptTDistributionfloat* thisPtr, float t, float factor);
-		static float InternalEvaluate0(ScriptTDistributionfloat* thisPtr, float t, MonoObject* factor);
+		static PropertyDistributionType InternalGetType(ScriptFloatDistribution* thisPtr);
+		static float InternalGetMinConstant(ScriptFloatDistribution* thisPtr);
+		static float InternalGetMaxConstant(ScriptFloatDistribution* thisPtr);
+		static MonoObject* InternalGetMinCurve(ScriptFloatDistribution* thisPtr);
+		static MonoObject* InternalGetMaxCurve(ScriptFloatDistribution* thisPtr);
+		static float InternalEvaluate(ScriptFloatDistribution* thisPtr, float t, float factor);
+		static float InternalEvaluate0(ScriptFloatDistribution* thisPtr, float t, MonoObject* factor);
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTDistributionVector3 : public ScriptObject<ScriptTDistributionVector3>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector3Distribution : public ScriptObject<ScriptVector3Distribution>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3Distribution")
 
-		ScriptTDistributionVector3(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value);
+		ScriptVector3Distribution(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value);
 
 		SPtr<TDistribution<Vector3>> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<TDistribution<Vector3>>& value);
@@ -65,21 +65,21 @@ namespace bs
 		static void InternalTDistribution1(MonoObject* managedInstance, Vector3* minValue, Vector3* maxValue);
 		static void InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve);
 		static void InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve);
-		static PropertyDistributionType InternalGetType(ScriptTDistributionVector3* thisPtr);
-		static void InternalGetMinConstant(ScriptTDistributionVector3* thisPtr, Vector3* __output);
-		static void InternalGetMaxConstant(ScriptTDistributionVector3* thisPtr, Vector3* __output);
-		static MonoObject* InternalGetMinCurve(ScriptTDistributionVector3* thisPtr);
-		static MonoObject* InternalGetMaxCurve(ScriptTDistributionVector3* thisPtr);
-		static void InternalEvaluate(ScriptTDistributionVector3* thisPtr, float t, float factor, Vector3* __output);
-		static void InternalEvaluate0(ScriptTDistributionVector3* thisPtr, float t, MonoObject* factor, Vector3* __output);
+		static PropertyDistributionType InternalGetType(ScriptVector3Distribution* thisPtr);
+		static void InternalGetMinConstant(ScriptVector3Distribution* thisPtr, Vector3* __output);
+		static void InternalGetMaxConstant(ScriptVector3Distribution* thisPtr, Vector3* __output);
+		static MonoObject* InternalGetMinCurve(ScriptVector3Distribution* thisPtr);
+		static MonoObject* InternalGetMaxCurve(ScriptVector3Distribution* thisPtr);
+		static void InternalEvaluate(ScriptVector3Distribution* thisPtr, float t, float factor, Vector3* __output);
+		static void InternalEvaluate0(ScriptVector3Distribution* thisPtr, float t, MonoObject* factor, Vector3* __output);
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTDistributionVector2 : public ScriptObject<ScriptTDistributionVector2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector2Distribution : public ScriptObject<ScriptVector2Distribution>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector2Distribution")
 
-		ScriptTDistributionVector2(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value);
+		ScriptVector2Distribution(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value);
 
 		SPtr<TDistribution<Vector2>> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<TDistribution<Vector2>>& value);
@@ -92,12 +92,12 @@ namespace bs
 		static void InternalTDistribution1(MonoObject* managedInstance, Vector2* minValue, Vector2* maxValue);
 		static void InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve);
 		static void InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve);
-		static PropertyDistributionType InternalGetType(ScriptTDistributionVector2* thisPtr);
-		static void InternalGetMinConstant(ScriptTDistributionVector2* thisPtr, Vector2* __output);
-		static void InternalGetMaxConstant(ScriptTDistributionVector2* thisPtr, Vector2* __output);
-		static MonoObject* InternalGetMinCurve(ScriptTDistributionVector2* thisPtr);
-		static MonoObject* InternalGetMaxCurve(ScriptTDistributionVector2* thisPtr);
-		static void InternalEvaluate(ScriptTDistributionVector2* thisPtr, float t, float factor, Vector2* __output);
-		static void InternalEvaluate0(ScriptTDistributionVector2* thisPtr, float t, MonoObject* factor, Vector2* __output);
+		static PropertyDistributionType InternalGetType(ScriptVector2Distribution* thisPtr);
+		static void InternalGetMinConstant(ScriptVector2Distribution* thisPtr, Vector2* __output);
+		static void InternalGetMaxConstant(ScriptVector2Distribution* thisPtr, Vector2* __output);
+		static MonoObject* InternalGetMinCurve(ScriptVector2Distribution* thisPtr);
+		static MonoObject* InternalGetMaxCurve(ScriptVector2Distribution* thisPtr);
+		static void InternalEvaluate(ScriptVector2Distribution* thisPtr, float t, float factor, Vector2* __output);
+		static void InternalEvaluate0(ScriptVector2Distribution* thisPtr, float t, MonoObject* factor, Vector2* __output);
 	};
 }

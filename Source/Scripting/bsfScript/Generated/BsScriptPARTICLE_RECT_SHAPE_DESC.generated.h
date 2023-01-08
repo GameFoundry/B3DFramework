@@ -14,7 +14,7 @@ namespace bs
 		Vector2 Extents;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_RECT_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_RECT_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRectShapeOptions : public ScriptObject<ScriptParticleRectShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleRectShapeOptions")
@@ -25,7 +25,7 @@ namespace bs
 		static __PARTICLE_RECT_SHAPE_DESCInterop ToInterop(const PARTICLE_RECT_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_RECT_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleRectShapeOptions(MonoObject* managedInstance);
 
 	};
 }

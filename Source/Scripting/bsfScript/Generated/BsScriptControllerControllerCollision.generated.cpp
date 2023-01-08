@@ -33,8 +33,8 @@ namespace bs
 	{
 		ControllerControllerCollision output;
 		GameObjectHandle<CCharacterController> tmpController;
-		ScriptCCharacterController* scriptController;
-		scriptController = ScriptCCharacterController::ToNative(value.Controller);
+		ScriptCharacterController* scriptController;
+		scriptController = ScriptCharacterController::ToNative(value.Controller);
 		if(scriptController != nullptr)
 			tmpController = scriptController->GetHandle();
 		output.Controller = tmpController;

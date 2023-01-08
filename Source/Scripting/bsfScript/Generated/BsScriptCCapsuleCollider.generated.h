@@ -10,21 +10,21 @@
 namespace bs { class CCapsuleCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCCapsuleCollider : public TScriptComponent<ScriptCCapsuleCollider, CCapsuleCollider, ScriptCColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptComponent<ScriptCapsuleCollider, CCapsuleCollider, ScriptColliderBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CapsuleCollider")
 
-		ScriptCCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value);
+		ScriptCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value);
 
 	private:
-		static void InternalSetNormal(ScriptCCapsuleCollider* thisPtr, Vector3* normal);
-		static void InternalGetNormal(ScriptCCapsuleCollider* thisPtr, Vector3* __output);
-		static void InternalSetCenter(ScriptCCapsuleCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptCCapsuleCollider* thisPtr, Vector3* __output);
-		static void InternalSetHalfHeight(ScriptCCapsuleCollider* thisPtr, float halfHeight);
-		static float InternalGetHalfHeight(ScriptCCapsuleCollider* thisPtr);
-		static void InternalSetRadius(ScriptCCapsuleCollider* thisPtr, float radius);
-		static float InternalGetRadius(ScriptCCapsuleCollider* thisPtr);
+		static void InternalSetNormal(ScriptCapsuleCollider* thisPtr, Vector3* normal);
+		static void InternalGetNormal(ScriptCapsuleCollider* thisPtr, Vector3* __output);
+		static void InternalSetCenter(ScriptCapsuleCollider* thisPtr, Vector3* center);
+		static void InternalGetCenter(ScriptCapsuleCollider* thisPtr, Vector3* __output);
+		static void InternalSetHalfHeight(ScriptCapsuleCollider* thisPtr, float halfHeight);
+		static float InternalGetHalfHeight(ScriptCapsuleCollider* thisPtr);
+		static void InternalSetRadius(ScriptCapsuleCollider* thisPtr, float radius);
+		static float InternalGetRadius(ScriptCapsuleCollider* thisPtr);
 	};
 }

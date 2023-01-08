@@ -16,7 +16,7 @@ namespace bs
 		Matrix4 InvBindPose;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSkeletonBoneInfoEx : public ScriptObject<ScriptSkeletonBoneInfoEx>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneInfo : public ScriptObject<ScriptBoneInfo>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BoneInfo")
@@ -27,7 +27,7 @@ namespace bs
 		static __SkeletonBoneInfoExInterop ToInterop(const SkeletonBoneInfoEx& value);
 
 	private:
-		ScriptSkeletonBoneInfoEx(MonoObject* managedInstance);
+		ScriptBoneInfo(MonoObject* managedInstance);
 
 	};
 }

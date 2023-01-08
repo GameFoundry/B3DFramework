@@ -12,34 +12,34 @@
 namespace bs { class CLight; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCLight : public TScriptComponent<ScriptCLight, CLight>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLight : public TScriptComponent<ScriptLight, CLight>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Light")
 
-		ScriptCLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value);
+		ScriptLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value);
 
 	private:
-		static void InternalSetType(ScriptCLight* thisPtr, LightType type);
-		static LightType InternalGetType(ScriptCLight* thisPtr);
-		static void InternalSetColor(ScriptCLight* thisPtr, Color* color);
-		static void InternalGetColor(ScriptCLight* thisPtr, Color* __output);
-		static void InternalSetIntensity(ScriptCLight* thisPtr, float intensity);
-		static float InternalGetIntensity(ScriptCLight* thisPtr);
-		static void InternalSetUseAutoAttenuation(ScriptCLight* thisPtr, bool enabled);
-		static bool InternalGetUseAutoAttenuation(ScriptCLight* thisPtr);
-		static void InternalSetAttenuationRadius(ScriptCLight* thisPtr, float radius);
-		static float InternalGetAttenuationRadius(ScriptCLight* thisPtr);
-		static void InternalSetSourceRadius(ScriptCLight* thisPtr, float radius);
-		static float InternalGetSourceRadius(ScriptCLight* thisPtr);
-		static void InternalSetSpotAngle(ScriptCLight* thisPtr, Degree* spotAngle);
-		static void InternalGetSpotAngle(ScriptCLight* thisPtr, Degree* __output);
-		static void InternalSetSpotFalloffAngle(ScriptCLight* thisPtr, Degree* spotAngle);
-		static void InternalGetSpotFalloffAngle(ScriptCLight* thisPtr, Degree* __output);
-		static void InternalSetCastsShadow(ScriptCLight* thisPtr, bool castsShadow);
-		static bool InternalGetCastsShadow(ScriptCLight* thisPtr);
-		static void InternalSetShadowBias(ScriptCLight* thisPtr, float bias);
-		static float InternalGetShadowBias(ScriptCLight* thisPtr);
-		static void InternalGetBounds(ScriptCLight* thisPtr, Sphere* __output);
+		static void InternalSetType(ScriptLight* thisPtr, LightType type);
+		static LightType InternalGetType(ScriptLight* thisPtr);
+		static void InternalSetColor(ScriptLight* thisPtr, Color* color);
+		static void InternalGetColor(ScriptLight* thisPtr, Color* __output);
+		static void InternalSetIntensity(ScriptLight* thisPtr, float intensity);
+		static float InternalGetIntensity(ScriptLight* thisPtr);
+		static void InternalSetUseAutoAttenuation(ScriptLight* thisPtr, bool enabled);
+		static bool InternalGetUseAutoAttenuation(ScriptLight* thisPtr);
+		static void InternalSetAttenuationRadius(ScriptLight* thisPtr, float radius);
+		static float InternalGetAttenuationRadius(ScriptLight* thisPtr);
+		static void InternalSetSourceRadius(ScriptLight* thisPtr, float radius);
+		static float InternalGetSourceRadius(ScriptLight* thisPtr);
+		static void InternalSetSpotAngle(ScriptLight* thisPtr, Degree* spotAngle);
+		static void InternalGetSpotAngle(ScriptLight* thisPtr, Degree* __output);
+		static void InternalSetSpotFalloffAngle(ScriptLight* thisPtr, Degree* spotAngle);
+		static void InternalGetSpotFalloffAngle(ScriptLight* thisPtr, Degree* __output);
+		static void InternalSetCastsShadow(ScriptLight* thisPtr, bool castsShadow);
+		static bool InternalGetCastsShadow(ScriptLight* thisPtr);
+		static void InternalSetShadowBias(ScriptLight* thisPtr, float bias);
+		static float InternalGetShadowBias(ScriptLight* thisPtr);
+		static void InternalGetBounds(ScriptLight* thisPtr, Sphere* __output);
 	};
 }

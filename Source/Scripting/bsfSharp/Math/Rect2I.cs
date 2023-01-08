@@ -50,9 +50,9 @@ namespace bs
         /// <returns>True if the point within rectangle bounds.</returns>
         public bool Contains(Vector2I point)
         {
-            if(point.x >= x && point.x < (x + width))
+            if(point.X >= x && point.X < (x + width))
             {
-                if(point.y >= y && point.y < (y + height))
+                if(point.Y >= y && point.Y < (y + height))
                     return true;
             }
 

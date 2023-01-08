@@ -9,35 +9,35 @@
 namespace bs { class CAudioSource; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCAudioSource : public TScriptComponent<ScriptCAudioSource, CAudioSource>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioSource : public TScriptComponent<ScriptAudioSource, CAudioSource>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioSource")
 
-		ScriptCAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value);
+		ScriptAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value);
 
 	private:
-		static void InternalSetClip(ScriptCAudioSource* thisPtr, MonoObject* clip);
-		static MonoObject* InternalGetClip(ScriptCAudioSource* thisPtr);
-		static void InternalSetVolume(ScriptCAudioSource* thisPtr, float volume);
-		static float InternalGetVolume(ScriptCAudioSource* thisPtr);
-		static void InternalSetPitch(ScriptCAudioSource* thisPtr, float pitch);
-		static float InternalGetPitch(ScriptCAudioSource* thisPtr);
-		static void InternalSetIsLooping(ScriptCAudioSource* thisPtr, bool loop);
-		static bool InternalGetIsLooping(ScriptCAudioSource* thisPtr);
-		static void InternalSetPriority(ScriptCAudioSource* thisPtr, uint32_t priority);
-		static uint32_t InternalGetPriority(ScriptCAudioSource* thisPtr);
-		static void InternalSetMinDistance(ScriptCAudioSource* thisPtr, float distance);
-		static float InternalGetMinDistance(ScriptCAudioSource* thisPtr);
-		static void InternalSetAttenuation(ScriptCAudioSource* thisPtr, float attenuation);
-		static float InternalGetAttenuation(ScriptCAudioSource* thisPtr);
-		static void InternalSetTime(ScriptCAudioSource* thisPtr, float time);
-		static float InternalGetTime(ScriptCAudioSource* thisPtr);
-		static void InternalSetPlayOnStart(ScriptCAudioSource* thisPtr, bool enable);
-		static bool InternalGetPlayOnStart(ScriptCAudioSource* thisPtr);
-		static void InternalPlay(ScriptCAudioSource* thisPtr);
-		static void InternalPause(ScriptCAudioSource* thisPtr);
-		static void InternalStop(ScriptCAudioSource* thisPtr);
-		static AudioSourceState InternalGetState(ScriptCAudioSource* thisPtr);
+		static void InternalSetClip(ScriptAudioSource* thisPtr, MonoObject* clip);
+		static MonoObject* InternalGetClip(ScriptAudioSource* thisPtr);
+		static void InternalSetVolume(ScriptAudioSource* thisPtr, float volume);
+		static float InternalGetVolume(ScriptAudioSource* thisPtr);
+		static void InternalSetPitch(ScriptAudioSource* thisPtr, float pitch);
+		static float InternalGetPitch(ScriptAudioSource* thisPtr);
+		static void InternalSetIsLooping(ScriptAudioSource* thisPtr, bool loop);
+		static bool InternalGetIsLooping(ScriptAudioSource* thisPtr);
+		static void InternalSetPriority(ScriptAudioSource* thisPtr, uint32_t priority);
+		static uint32_t InternalGetPriority(ScriptAudioSource* thisPtr);
+		static void InternalSetMinDistance(ScriptAudioSource* thisPtr, float distance);
+		static float InternalGetMinDistance(ScriptAudioSource* thisPtr);
+		static void InternalSetAttenuation(ScriptAudioSource* thisPtr, float attenuation);
+		static float InternalGetAttenuation(ScriptAudioSource* thisPtr);
+		static void InternalSetTime(ScriptAudioSource* thisPtr, float time);
+		static float InternalGetTime(ScriptAudioSource* thisPtr);
+		static void InternalSetPlayOnStart(ScriptAudioSource* thisPtr, bool enable);
+		static bool InternalGetPlayOnStart(ScriptAudioSource* thisPtr);
+		static void InternalPlay(ScriptAudioSource* thisPtr);
+		static void InternalPause(ScriptAudioSource* thisPtr);
+		static void InternalStop(ScriptAudioSource* thisPtr);
+		static AudioSourceState InternalGetState(ScriptAudioSource* thisPtr);
 	};
 }

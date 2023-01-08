@@ -72,7 +72,7 @@ void ScriptContextMenu::InternalAddSeparator(ScriptContextMenu* instance, MonoSt
 	contextMenu->AddSeparator(nativePath, 0);
 }
 
-void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptHString* name)
+void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptLocString* name)
 {
 	if(label == nullptr || name == nullptr)
 		return;

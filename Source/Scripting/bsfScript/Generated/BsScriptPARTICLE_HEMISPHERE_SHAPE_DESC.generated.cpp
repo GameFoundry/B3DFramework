@@ -7,19 +7,19 @@
 
 namespace bs
 {
-	ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::ScriptPARTICLE_HEMISPHERE_SHAPE_DESC(MonoObject* managedInstance)
+	ScriptParticleHemisphereShapeOptions::ScriptParticleHemisphereShapeOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::InitRuntimeData()
+	void ScriptParticleHemisphereShapeOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::Box(const PARTICLE_HEMISPHERE_SHAPE_DESC& value)
+	MonoObject*ScriptParticleHemisphereShapeOptions::Box(const PARTICLE_HEMISPHERE_SHAPE_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	PARTICLE_HEMISPHERE_SHAPE_DESC ScriptPARTICLE_HEMISPHERE_SHAPE_DESC::Unbox(MonoObject* value)
+	PARTICLE_HEMISPHERE_SHAPE_DESC ScriptParticleHemisphereShapeOptions::Unbox(MonoObject* value)
 	{
 		return *(PARTICLE_HEMISPHERE_SHAPE_DESC*)MonoUtil::Unbox(value);
 	}

@@ -1,32 +1,32 @@
 //********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptShaderVariationParamInfo.generated.h"
+#include "BsScriptShaderVariationParameterInformation.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
-#include "BsScriptShaderVariationParamValue.generated.h"
+#include "BsScriptShaderVariationParameterValue.generated.h"
 
 namespace bs
 {
-	ScriptShaderVariationParamInfo::ScriptShaderVariationParamInfo(MonoObject* managedInstance)
+	ScriptShaderVariationParameterInformation::ScriptShaderVariationParameterInformation(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptShaderVariationParamInfo::InitRuntimeData()
+	void ScriptShaderVariationParameterInformation::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptShaderVariationParamInfo::Box(const __ShaderVariationParamInfoInterop& value)
+	MonoObject*ScriptShaderVariationParameterInformation::Box(const __ShaderVariationParameterInformationInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__ShaderVariationParamInfoInterop ScriptShaderVariationParamInfo::Unbox(MonoObject* value)
+	__ShaderVariationParameterInformationInterop ScriptShaderVariationParameterInformation::Unbox(MonoObject* value)
 	{
-		return *(__ShaderVariationParamInfoInterop*)MonoUtil::Unbox(value);
+		return *(__ShaderVariationParameterInformationInterop*)MonoUtil::Unbox(value);
 	}
 
-	ShaderVariationParameterInformation ScriptShaderVariationParamInfo::FromInterop(const __ShaderVariationParamInfoInterop& value)
+	ShaderVariationParameterInformation ScriptShaderVariationParameterInformation::FromInterop(const __ShaderVariationParameterInformationInterop& value)
 	{
 		ShaderVariationParameterInformation output;
 		String tmpName;
@@ -43,7 +43,7 @@ namespace bs
 			vecValues.resize(arrayValues.Size());
 			for(int i = 0; i < (int)arrayValues.Size(); i++)
 			{
-				vecValues[i] = ScriptShaderVariationParamValue::FromInterop(arrayValues.Get<__ShaderVariationParamValueInterop>(i));
+				vecValues[i] = ScriptShaderVariationParameterValue::FromInterop(arrayValues.Get<__ShaderVariationParameterValueInterop>(i));
 			}
 		}
 		output.Values = vecValues;
@@ -51,9 +51,9 @@ namespace bs
 		return output;
 	}
 
-	__ShaderVariationParamInfoInterop ScriptShaderVariationParamInfo::ToInterop(const ShaderVariationParameterInformation& value)
+	__ShaderVariationParameterInformationInterop ScriptShaderVariationParameterInformation::ToInterop(const ShaderVariationParameterInformation& value)
 	{
-		__ShaderVariationParamInfoInterop output;
+		__ShaderVariationParameterInformationInterop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
@@ -63,10 +63,10 @@ namespace bs
 		output.IsInternal = value.IsInternal;
 		int arraySizeValues = (int)value.Values.size();
 		MonoArray* vecValues;
-		ScriptArray arrayValues = ScriptArray::Create<ScriptShaderVariationParamValue>(arraySizeValues);
+		ScriptArray arrayValues = ScriptArray::Create<ScriptShaderVariationParameterValue>(arraySizeValues);
 		for(int i = 0; i < arraySizeValues; i++)
 		{
-			arrayValues.Set(i, ScriptShaderVariationParamValue::ToInterop(value.Values[i]));
+			arrayValues.Set(i, ScriptShaderVariationParameterValue::ToInterop(value.Values[i]));
 		}
 		vecValues = arrayValues.GetInternal();
 		output.Values = vecValues;

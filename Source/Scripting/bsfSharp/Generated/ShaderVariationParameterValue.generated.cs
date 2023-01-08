@@ -12,12 +12,12 @@ namespace bs
 
 	/// <summary>Represents a single potential value of a shader variation parameter and optionally its name.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
-	public partial struct ShaderVariationParamValue
+	public partial struct ShaderVariationParameterValue
 	{
 		/// <summary>Initializes the struct with default values.</summary>
-		public static ShaderVariationParamValue Default()
+		public static ShaderVariationParameterValue Default()
 		{
-			ShaderVariationParamValue value = new ShaderVariationParamValue();
+			ShaderVariationParameterValue value = new ShaderVariationParameterValue();
 			value.Name = "";
 			value.Value = 0;
 

@@ -49,7 +49,7 @@ namespace bs
 		tmp__output = SkeletonEx::GetBoneInfo(thisPtr->GetInternal(), boneIdx);
 
 		__SkeletonBoneInfoExInterop interop__output;
-		interop__output = ScriptSkeletonBoneInfoEx::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptSkeletonBoneInfoEx::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptBoneInfo::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptBoneInfo::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 }

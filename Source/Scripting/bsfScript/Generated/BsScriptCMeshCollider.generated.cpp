@@ -11,19 +11,19 @@
 
 namespace bs
 {
-	ScriptCMeshCollider::ScriptCMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
+	ScriptMeshCollider::ScriptMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCMeshCollider::InitRuntimeData()
+	void ScriptMeshCollider::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptCMeshCollider::InternalSetMesh);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptCMeshCollider::InternalGetMesh);
+		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptMeshCollider::InternalSetMesh);
+		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptMeshCollider::InternalGetMesh);
 
 	}
 
-	void ScriptCMeshCollider::InternalSetMesh(ScriptCMeshCollider* thisPtr, MonoObject* mesh)
+	void ScriptMeshCollider::InternalSetMesh(ScriptMeshCollider* thisPtr, MonoObject* mesh)
 	{
 		ResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
@@ -33,7 +33,7 @@ namespace bs
 		thisPtr->GetHandle()->SetMesh(tmpmesh);
 	}
 
-	MonoObject* ScriptCMeshCollider::InternalGetMesh(ScriptCMeshCollider* thisPtr)
+	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* thisPtr)
 	{
 		ResourceHandle<PhysicsMesh> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMesh();

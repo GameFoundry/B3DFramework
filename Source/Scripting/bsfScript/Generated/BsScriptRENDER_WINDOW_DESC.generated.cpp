@@ -10,24 +10,24 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptRENDER_WINDOW_DESC::ScriptRENDER_WINDOW_DESC(MonoObject* managedInstance)
+	ScriptRenderWindowDesc::ScriptRenderWindowDesc(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptRENDER_WINDOW_DESC::InitRuntimeData()
+	void ScriptRenderWindowDesc::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptRENDER_WINDOW_DESC::Box(const __RENDER_WINDOW_DESCInterop& value)
+	MonoObject*ScriptRenderWindowDesc::Box(const __RENDER_WINDOW_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__RENDER_WINDOW_DESCInterop ScriptRENDER_WINDOW_DESC::Unbox(MonoObject* value)
+	__RENDER_WINDOW_DESCInterop ScriptRenderWindowDesc::Unbox(MonoObject* value)
 	{
 		return *(__RENDER_WINDOW_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	RENDER_WINDOW_DESC ScriptRENDER_WINDOW_DESC::FromInterop(const __RENDER_WINDOW_DESCInterop& value)
+	RENDER_WINDOW_DESC ScriptRenderWindowDesc::FromInterop(const __RENDER_WINDOW_DESCInterop& value)
 	{
 		RENDER_WINDOW_DESC output;
 		VideoMode tmpVideoMode;
@@ -58,7 +58,7 @@ namespace bs
 		return output;
 	}
 
-	__RENDER_WINDOW_DESCInterop ScriptRENDER_WINDOW_DESC::ToInterop(const RENDER_WINDOW_DESC& value)
+	__RENDER_WINDOW_DESCInterop ScriptRenderWindowDesc::ToInterop(const RENDER_WINDOW_DESC& value)
 	{
 		__RENDER_WINDOW_DESCInterop output;
 		__VideoModeInterop tmpVideoMode;

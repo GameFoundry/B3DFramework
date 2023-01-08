@@ -14,21 +14,21 @@ namespace bs { class CHingeJoint; }
 namespace bs { struct __LimitAngularRangeInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCHingeJoint : public TScriptComponent<ScriptCHingeJoint, CHingeJoint, ScriptCJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptComponent<ScriptHingeJoint, CHingeJoint, ScriptJointBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "HingeJoint")
 
-		ScriptCHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
+		ScriptHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
 
 	private:
-		static void InternalGetAngle(ScriptCHingeJoint* thisPtr, Radian* __output);
-		static float InternalGetSpeed(ScriptCHingeJoint* thisPtr);
-		static void InternalGetLimit(ScriptCHingeJoint* thisPtr, __LimitAngularRangeInterop* __output);
-		static void InternalSetLimit(ScriptCHingeJoint* thisPtr, __LimitAngularRangeInterop* limit);
-		static void InternalGetDrive(ScriptCHingeJoint* thisPtr, HingeJointDrive* __output);
-		static void InternalSetDrive(ScriptCHingeJoint* thisPtr, HingeJointDrive* drive);
-		static void InternalSetFlag(ScriptCHingeJoint* thisPtr, HingeJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptCHingeJoint* thisPtr, HingeJointFlag flag);
+		static void InternalGetAngle(ScriptHingeJoint* thisPtr, Radian* __output);
+		static float InternalGetSpeed(ScriptHingeJoint* thisPtr);
+		static void InternalGetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* __output);
+		static void InternalSetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* limit);
+		static void InternalGetDrive(ScriptHingeJoint* thisPtr, HingeJointDrive* __output);
+		static void InternalSetDrive(ScriptHingeJoint* thisPtr, HingeJointDrive* drive);
+		static void InternalSetFlag(ScriptHingeJoint* thisPtr, HingeJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptHingeJoint* thisPtr, HingeJointFlag flag);
 	};
 }

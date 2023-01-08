@@ -15,7 +15,7 @@ namespace bs
 		bool WorldSpace;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_FORCE_DESC : public ScriptObject<ScriptPARTICLE_FORCE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForceOptions : public ScriptObject<ScriptParticleForceOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleForceOptions")
@@ -26,7 +26,7 @@ namespace bs
 		static __PARTICLE_FORCE_DESCInterop ToInterop(const PARTICLE_FORCE_DESC& value);
 
 	private:
-		ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance);
+		ScriptParticleForceOptions(MonoObject* managedInstance);
 
 	};
 }

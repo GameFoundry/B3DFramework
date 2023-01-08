@@ -9,24 +9,24 @@
 
 namespace bs
 {
-	ScriptPARTICLE_CIRCLE_SHAPE_DESC::ScriptPARTICLE_CIRCLE_SHAPE_DESC(MonoObject* managedInstance)
+	ScriptParticleCircleShapeOptions::ScriptParticleCircleShapeOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_CIRCLE_SHAPE_DESC::InitRuntimeData()
+	void ScriptParticleCircleShapeOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_CIRCLE_SHAPE_DESC::Box(const __PARTICLE_CIRCLE_SHAPE_DESCInterop& value)
+	MonoObject*ScriptParticleCircleShapeOptions::Box(const __PARTICLE_CIRCLE_SHAPE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_CIRCLE_SHAPE_DESCInterop ScriptPARTICLE_CIRCLE_SHAPE_DESC::Unbox(MonoObject* value)
+	__PARTICLE_CIRCLE_SHAPE_DESCInterop ScriptParticleCircleShapeOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_CIRCLE_SHAPE_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_CIRCLE_SHAPE_DESC ScriptPARTICLE_CIRCLE_SHAPE_DESC::FromInterop(const __PARTICLE_CIRCLE_SHAPE_DESCInterop& value)
+	PARTICLE_CIRCLE_SHAPE_DESC ScriptParticleCircleShapeOptions::FromInterop(const __PARTICLE_CIRCLE_SHAPE_DESCInterop& value)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC output;
 		output.Radius = value.Radius;
@@ -37,7 +37,7 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_CIRCLE_SHAPE_DESCInterop ScriptPARTICLE_CIRCLE_SHAPE_DESC::ToInterop(const PARTICLE_CIRCLE_SHAPE_DESC& value)
+	__PARTICLE_CIRCLE_SHAPE_DESCInterop ScriptParticleCircleShapeOptions::ToInterop(const PARTICLE_CIRCLE_SHAPE_DESC& value)
 	{
 		__PARTICLE_CIRCLE_SHAPE_DESCInterop output;
 		output.Radius = value.Radius;

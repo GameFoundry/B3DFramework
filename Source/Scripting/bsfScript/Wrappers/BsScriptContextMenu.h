@@ -43,7 +43,7 @@ namespace bs
 		static void InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr);
 		static void InternalAddItem(ScriptContextMenu* instance, MonoString* path, u32 callbackIdx, ShortcutKey* shortcut);
 		static void InternalAddSeparator(ScriptContextMenu* instance, MonoString* path);
-		static void InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptHString* name);
+		static void InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptLocString* name);
 	};
 
 	/** @} */

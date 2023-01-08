@@ -10,17 +10,17 @@
 namespace bs { class CBoxCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCBoxCollider : public TScriptComponent<ScriptCBoxCollider, CBoxCollider, ScriptCColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoxCollider : public TScriptComponent<ScriptBoxCollider, CBoxCollider, ScriptColliderBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BoxCollider")
 
-		ScriptCBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value);
+		ScriptBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value);
 
 	private:
-		static void InternalSetExtents(ScriptCBoxCollider* thisPtr, Vector3* extents);
-		static void InternalGetExtents(ScriptCBoxCollider* thisPtr, Vector3* __output);
-		static void InternalSetCenter(ScriptCBoxCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptCBoxCollider* thisPtr, Vector3* __output);
+		static void InternalSetExtents(ScriptBoxCollider* thisPtr, Vector3* extents);
+		static void InternalGetExtents(ScriptBoxCollider* thisPtr, Vector3* __output);
+		static void InternalSetCenter(ScriptBoxCollider* thisPtr, Vector3* center);
+		static void InternalGetCenter(ScriptBoxCollider* thisPtr, Vector3* __output);
 	};
 }

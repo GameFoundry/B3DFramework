@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleEmitterConeShape::InternalSetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_CONE_SHAPE_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_CONE_SHAPE_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleConeShapeOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_CONE_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_CONE_SHAPE_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_CONE_SHAPE_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleConeShapeOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleConeShapeOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleEmitterConeShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_CONE_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_CONE_SHAPE_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_CONE_SHAPE_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleConeShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, instance);
 	}

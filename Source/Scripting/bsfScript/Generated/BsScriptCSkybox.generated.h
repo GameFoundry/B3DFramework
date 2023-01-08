@@ -8,17 +8,17 @@
 namespace bs { class CSkybox; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCSkybox : public TScriptComponent<ScriptCSkybox, CSkybox>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSkybox : public TScriptComponent<ScriptSkybox, CSkybox>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Skybox")
 
-		ScriptCSkybox(MonoObject* managedInstance, const GameObjectHandle<CSkybox>& value);
+		ScriptSkybox(MonoObject* managedInstance, const GameObjectHandle<CSkybox>& value);
 
 	private:
-		static MonoObject* InternalGetTexture(ScriptCSkybox* thisPtr);
-		static void InternalSetTexture(ScriptCSkybox* thisPtr, MonoObject* texture);
-		static void InternalSetBrightness(ScriptCSkybox* thisPtr, float brightness);
-		static float InternalGetBrightness(ScriptCSkybox* thisPtr);
+		static MonoObject* InternalGetTexture(ScriptSkybox* thisPtr);
+		static void InternalSetTexture(ScriptSkybox* thisPtr, MonoObject* texture);
+		static void InternalSetBrightness(ScriptSkybox* thisPtr, float brightness);
+		static float InternalGetBrightness(ScriptSkybox* thisPtr);
 	};
 }

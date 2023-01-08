@@ -20,10 +20,10 @@ namespace bs
 			ParticleConeShapeOptions value = new ParticleConeShapeOptions();
 			value.Type = ParticleEmitterConeType.Base;
 			value.Radius = 0f;
-			value.Angle = Degree.Default();
+			value.Angle = new Degree(45f);
 			value.Length = 1f;
 			value.Thickness = 1f;
-			value.Arc = Degree.Default();
+			value.Arc = new Degree(360f);
 			value.Mode = ParticleEmissionMode.Default();
 
 			return value;

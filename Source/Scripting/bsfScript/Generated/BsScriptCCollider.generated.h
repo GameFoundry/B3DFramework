@@ -11,19 +11,19 @@ namespace bs { struct __CollisionDataInterop; }
 namespace bs { class CCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCColliderBase : public ScriptComponentBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptColliderBase : public ScriptComponentBase
 	{
 	public:
-		ScriptCColliderBase(MonoObject* instance);
-		virtual ~ScriptCColliderBase() {}
+		ScriptColliderBase(MonoObject* instance);
+		virtual ~ScriptColliderBase() {}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCCollider : public TScriptComponent<ScriptCCollider, CCollider, ScriptCColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptComponent<ScriptCollider, CCollider, ScriptColliderBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Collider")
 
-		ScriptCCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value);
+		ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value);
 
 	private:
 		void OnCollisionBegin(const CollisionData& p0);
@@ -37,19 +37,19 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
-		static void InternalSetIsTrigger(ScriptCColliderBase* thisPtr, bool value);
-		static bool InternalGetIsTrigger(ScriptCColliderBase* thisPtr);
-		static void InternalSetMass(ScriptCColliderBase* thisPtr, float mass);
-		static float InternalGetMass(ScriptCColliderBase* thisPtr);
-		static void InternalSetMaterial(ScriptCColliderBase* thisPtr, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptCColliderBase* thisPtr);
-		static void InternalSetContactOffset(ScriptCColliderBase* thisPtr, float value);
-		static float InternalGetContactOffset(ScriptCColliderBase* thisPtr);
-		static void InternalSetRestOffset(ScriptCColliderBase* thisPtr, float value);
-		static float InternalGetRestOffset(ScriptCColliderBase* thisPtr);
-		static void InternalSetLayer(ScriptCColliderBase* thisPtr, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptCColliderBase* thisPtr);
-		static void InternalSetCollisionReportMode(ScriptCColliderBase* thisPtr, CollisionReportMode mode);
-		static CollisionReportMode InternalGetCollisionReportMode(ScriptCColliderBase* thisPtr);
+		static void InternalSetIsTrigger(ScriptColliderBase* thisPtr, bool value);
+		static bool InternalGetIsTrigger(ScriptColliderBase* thisPtr);
+		static void InternalSetMass(ScriptColliderBase* thisPtr, float mass);
+		static float InternalGetMass(ScriptColliderBase* thisPtr);
+		static void InternalSetMaterial(ScriptColliderBase* thisPtr, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptColliderBase* thisPtr);
+		static void InternalSetContactOffset(ScriptColliderBase* thisPtr, float value);
+		static float InternalGetContactOffset(ScriptColliderBase* thisPtr);
+		static void InternalSetRestOffset(ScriptColliderBase* thisPtr, float value);
+		static float InternalGetRestOffset(ScriptColliderBase* thisPtr);
+		static void InternalSetLayer(ScriptColliderBase* thisPtr, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptColliderBase* thisPtr);
+		static void InternalSetCollisionReportMode(ScriptColliderBase* thisPtr, CollisionReportMode mode);
+		static CollisionReportMode InternalGetCollisionReportMode(ScriptColliderBase* thisPtr);
 	};
 }

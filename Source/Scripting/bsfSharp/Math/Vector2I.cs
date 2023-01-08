@@ -12,12 +12,8 @@ namespace bs
     /// <summary>
     /// A two dimensional vector with integer coordinates.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vector2I // Note: Must match C++ class Vector2I
+    public partial struct Vector2I
     {
-        public int x;
-        public int y;
-
         /// <summary>
         /// Accesses a specific component of the vector.
         /// </summary>
@@ -30,9 +26,9 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        return x;
+                        return X;
                     case 1:
-                        return y;
+                        return Y;
                     default:
                         throw new IndexOutOfRangeException("Invalid Vector2I index.");
                 }
@@ -43,26 +39,15 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        x = value;
+                        X = value;
                         break;
                     case 1:
-                        y = value;
+                        Y = value;
                         break;
                     default:
                         throw new IndexOutOfRangeException("Invalid Vector2I index.");
                 }
             }
-        }
-
-        /// <summary>
-        /// Creates a new two dimensional vector.
-        /// </summary>
-        /// <param name="x">X coordinate.</param>
-        /// <param name="y">Y coordinate.</param>
-        public Vector2I(int x, int y)
-        {
-            this.x = x;
-            this.y = y;
         }
 
         /// <summary>
@@ -72,7 +57,7 @@ namespace bs
         {
             get
             {
-                return (float)MathEx.Sqrt(x * x + y * y);
+                return (float)MathEx.Sqrt(X * X + Y * Y);
             }
         }
 
@@ -83,7 +68,7 @@ namespace bs
         {
             get
             {
-                return (x * x + y * y);
+                return (X * X + Y * Y);
             }
         }
 
@@ -95,42 +80,42 @@ namespace bs
         /// <returns>Manhattan distance between the two points.</returns>
         public static int Distance(Vector2I a, Vector2I b)
         {
-            return Math.Abs(b.x - a.x) + Math.Abs(b.y - a.y);
+            return Math.Abs(b.X - a.X) + Math.Abs(b.Y - a.Y);
         }
 
         public static Vector2I operator +(Vector2I a, Vector2I b)
         {
-            return new Vector2I(a.x + b.x, a.y + b.y);
+            return new Vector2I(a.X + b.X, a.Y + b.Y);
         }
 
         public static Vector2I operator -(Vector2I a, Vector2I b)
         {
-            return new Vector2I(a.x - b.x, a.y - b.y);
+            return new Vector2I(a.X - b.X, a.Y - b.Y);
         }
 
         public static Vector2I operator -(Vector2I v)
         {
-            return new Vector2I(-v.x, -v.y);
+            return new Vector2I(-v.X, -v.Y);
         }
 
         public static Vector2I operator *(Vector2I v, int d)
         {
-            return new Vector2I(v.x * d, v.y * d);
+            return new Vector2I(v.X * d, v.Y * d);
         }
 
         public static Vector2I operator *(int d, Vector2I v)
         {
-            return new Vector2I(v.x * d, v.y * d);
+            return new Vector2I(v.X * d, v.Y * d);
         }
 
         public static Vector2I operator /(Vector2I v, int d)
         {
-            return new Vector2I(v.x / d, v.y / d);
+            return new Vector2I(v.X / d, v.Y / d);
         }
 
         public static bool operator ==(Vector2I lhs, Vector2I rhs)
         {
-            return lhs.x == rhs.x && lhs.y == rhs.y;
+            return lhs.X == rhs.X && lhs.Y == rhs.Y;
         }
 
         public static bool operator !=(Vector2I lhs, Vector2I rhs)
@@ -141,7 +126,7 @@ namespace bs
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return x.GetHashCode() ^ y.GetHashCode() << 2;
+            return X.GetHashCode() ^ Y.GetHashCode() << 2;
         }
 
         /// <inheritdoc/>
@@ -151,7 +136,7 @@ namespace bs
                 return false;
 
             Vector2I vec = (Vector2I)other;
-            if (x.Equals(vec.x) && y.Equals(vec.y))
+            if (X.Equals(vec.X) && Y.Equals(vec.Y))
                 return true;
 
             return false;
@@ -160,7 +145,7 @@ namespace bs
         /// <inheritdoc/>
         public override string ToString()
         {
-            return "(" + x + ", " + y + ")";
+            return "(" + X + ", " + Y + ")";
         }
     }
 

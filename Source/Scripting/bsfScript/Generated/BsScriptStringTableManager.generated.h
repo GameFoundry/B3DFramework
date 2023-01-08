@@ -9,12 +9,12 @@
 namespace bs { class StringTableManager; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptStringTableManager : public ScriptObject<ScriptStringTableManager>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptStringTables : public ScriptObject<ScriptStringTables>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "StringTables")
 
-		ScriptStringTableManager(MonoObject* managedInstance);
+		ScriptStringTables(MonoObject* managedInstance);
 
 	private:
 		static void InternalSetActiveLanguage(Language language);

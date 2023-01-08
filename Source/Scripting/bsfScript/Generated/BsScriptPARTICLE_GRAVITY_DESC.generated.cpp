@@ -7,19 +7,19 @@
 
 namespace bs
 {
-	ScriptPARTICLE_GRAVITY_DESC::ScriptPARTICLE_GRAVITY_DESC(MonoObject* managedInstance)
+	ScriptParticleGravityOptions::ScriptParticleGravityOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_GRAVITY_DESC::InitRuntimeData()
+	void ScriptParticleGravityOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_GRAVITY_DESC::Box(const PARTICLE_GRAVITY_DESC& value)
+	MonoObject*ScriptParticleGravityOptions::Box(const PARTICLE_GRAVITY_DESC& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	PARTICLE_GRAVITY_DESC ScriptPARTICLE_GRAVITY_DESC::Unbox(MonoObject* value)
+	PARTICLE_GRAVITY_DESC ScriptParticleGravityOptions::Unbox(MonoObject* value)
 	{
 		return *(PARTICLE_GRAVITY_DESC*)MonoUtil::Unbox(value);
 	}

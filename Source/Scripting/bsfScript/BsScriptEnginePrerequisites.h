@@ -116,7 +116,7 @@ namespace bs
 	class ManagedResourceMetaData;
 	class ScriptSerializableProperty;
 	class ScriptAssemblyManager;
-	class ScriptHString;
+	class ScriptLocString;
 	class ScriptContextMenu;
 	class ScriptGUISkin;
 	class ScriptResourceRef;

@@ -348,7 +348,7 @@ namespace bs
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCCollider>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			ScriptComponentBase* script__output = nullptr;
@@ -371,7 +371,7 @@ namespace bs
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCCollider>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			ScriptComponentBase* script__output = nullptr;
@@ -394,7 +394,7 @@ namespace bs
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCCollider>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			ScriptComponentBase* script__output = nullptr;
@@ -422,7 +422,7 @@ namespace bs
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCCollider>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			ScriptComponentBase* script__output = nullptr;

@@ -104,6 +104,14 @@ namespace bs
 		BsIdentity
 	};
 
+	template<typename T> struct TVector2I;
+	using Vector2I = TVector2I<i32>;
+	using Vector2UI = TVector2I<u32>;
+
+	template<typename T> struct TVector3I;
+	using Vector3I = TVector3I<i32>;
+	using Vector3UI = TVector3I<u32>;
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -135,7 +143,6 @@ namespace bs
 	class Vector2;
 	class Vector3;
 	class Vector4;
-	struct Vector2I;
 	class Rect2I;
 	class Rect2;
 	class Rect3;

@@ -9,30 +9,30 @@
 
 namespace bs
 {
-	ScriptCCapsuleCollider::ScriptCCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value)
+	ScriptCapsuleCollider::ScriptCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value)
 		:TScriptComponent(managedInstance, value)
 	{
 	}
 
-	void ScriptCCapsuleCollider::InitRuntimeData()
+	void ScriptCapsuleCollider::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptCCapsuleCollider::InternalSetNormal);
-		metaData.ScriptClass->AddInternalCall("Internal_GetNormal", (void*)&ScriptCCapsuleCollider::InternalGetNormal);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCCapsuleCollider::InternalSetCenter);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCCapsuleCollider::InternalGetCenter);
-		metaData.ScriptClass->AddInternalCall("Internal_SetHalfHeight", (void*)&ScriptCCapsuleCollider::InternalSetHalfHeight);
-		metaData.ScriptClass->AddInternalCall("Internal_GetHalfHeight", (void*)&ScriptCCapsuleCollider::InternalGetHalfHeight);
-		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptCCapsuleCollider::InternalSetRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCCapsuleCollider::InternalGetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptCapsuleCollider::InternalSetNormal);
+		metaData.ScriptClass->AddInternalCall("Internal_GetNormal", (void*)&ScriptCapsuleCollider::InternalGetNormal);
+		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptCapsuleCollider::InternalSetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptCapsuleCollider::InternalGetCenter);
+		metaData.ScriptClass->AddInternalCall("Internal_SetHalfHeight", (void*)&ScriptCapsuleCollider::InternalSetHalfHeight);
+		metaData.ScriptClass->AddInternalCall("Internal_GetHalfHeight", (void*)&ScriptCapsuleCollider::InternalGetHalfHeight);
+		metaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptCapsuleCollider::InternalSetRadius);
+		metaData.ScriptClass->AddInternalCall("Internal_GetRadius", (void*)&ScriptCapsuleCollider::InternalGetRadius);
 
 	}
 
-	void ScriptCCapsuleCollider::InternalSetNormal(ScriptCCapsuleCollider* thisPtr, Vector3* normal)
+	void ScriptCapsuleCollider::InternalSetNormal(ScriptCapsuleCollider* thisPtr, Vector3* normal)
 	{
 		thisPtr->GetHandle()->SetNormal(*normal);
 	}
 
-	void ScriptCCapsuleCollider::InternalGetNormal(ScriptCCapsuleCollider* thisPtr, Vector3* __output)
+	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetNormal();
@@ -40,12 +40,12 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCCapsuleCollider::InternalSetCenter(ScriptCCapsuleCollider* thisPtr, Vector3* center)
+	void ScriptCapsuleCollider::InternalSetCenter(ScriptCapsuleCollider* thisPtr, Vector3* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptCCapsuleCollider::InternalGetCenter(ScriptCCapsuleCollider* thisPtr, Vector3* __output)
+	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* thisPtr, Vector3* __output)
 	{
 		Vector3 tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();
@@ -53,12 +53,12 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCCapsuleCollider::InternalSetHalfHeight(ScriptCCapsuleCollider* thisPtr, float halfHeight)
+	void ScriptCapsuleCollider::InternalSetHalfHeight(ScriptCapsuleCollider* thisPtr, float halfHeight)
 	{
 		thisPtr->GetHandle()->SetHalfHeight(halfHeight);
 	}
 
-	float ScriptCCapsuleCollider::InternalGetHalfHeight(ScriptCCapsuleCollider* thisPtr)
+	float ScriptCapsuleCollider::InternalGetHalfHeight(ScriptCapsuleCollider* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetHalfHeight();
@@ -69,12 +69,12 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCCapsuleCollider::InternalSetRadius(ScriptCCapsuleCollider* thisPtr, float radius)
+	void ScriptCapsuleCollider::InternalSetRadius(ScriptCapsuleCollider* thisPtr, float radius)
 	{
 		thisPtr->GetHandle()->SetRadius(radius);
 	}
 
-	float ScriptCCapsuleCollider::InternalGetRadius(ScriptCCapsuleCollider* thisPtr)
+	float ScriptCapsuleCollider::InternalGetRadius(ScriptCapsuleCollider* thisPtr)
 	{
 		float tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetRadius();

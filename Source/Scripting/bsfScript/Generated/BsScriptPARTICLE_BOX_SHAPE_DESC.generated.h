@@ -16,7 +16,7 @@ namespace bs
 		Vector3 Extents;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPARTICLE_BOX_SHAPE_DESC : public ScriptObject<ScriptPARTICLE_BOX_SHAPE_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBoxShapeOptions : public ScriptObject<ScriptParticleBoxShapeOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleBoxShapeOptions")
@@ -27,7 +27,7 @@ namespace bs
 		static __PARTICLE_BOX_SHAPE_DESCInterop ToInterop(const PARTICLE_BOX_SHAPE_DESC& value);
 
 	private:
-		ScriptPARTICLE_BOX_SHAPE_DESC(MonoObject* managedInstance);
+		ScriptParticleBoxShapeOptions(MonoObject* managedInstance);
 
 	};
 }

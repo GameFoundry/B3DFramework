@@ -38,7 +38,7 @@ namespace bs
 	void ScriptParticleVelocity::InternalSetOptions(ScriptParticleVelocity* thisPtr, __PARTICLE_VELOCITY_DESCInterop* options)
 	{
 		PARTICLE_VELOCITY_DESC tmpoptions;
-		tmpoptions = ScriptPARTICLE_VELOCITY_DESC::FromInterop(*options);
+		tmpoptions = ScriptParticleVelocityOptions::FromInterop(*options);
 		thisPtr->GetInternal()->SetOptions(tmpoptions);
 	}
 
@@ -48,14 +48,14 @@ namespace bs
 		tmp__output = thisPtr->GetInternal()->GetOptions();
 
 		__PARTICLE_VELOCITY_DESCInterop interop__output;
-		interop__output = ScriptPARTICLE_VELOCITY_DESC::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptPARTICLE_VELOCITY_DESC::GetMetaData()->ScriptClass->GetInternalClassInternal());
+		interop__output = ScriptParticleVelocityOptions::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleVelocityOptions::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
 	void ScriptParticleVelocity::InternalCreate(MonoObject* managedInstance, __PARTICLE_VELOCITY_DESCInterop* desc)
 	{
 		PARTICLE_VELOCITY_DESC tmpdesc;
-		tmpdesc = ScriptPARTICLE_VELOCITY_DESC::FromInterop(*desc);
+		tmpdesc = ScriptParticleVelocityOptions::FromInterop(*desc);
 		SPtr<ParticleVelocity> instance = ParticleVelocity::Create(tmpdesc);
 		new (B3DAllocate<ScriptParticleVelocity>())ScriptParticleVelocity(managedInstance, instance);
 	}

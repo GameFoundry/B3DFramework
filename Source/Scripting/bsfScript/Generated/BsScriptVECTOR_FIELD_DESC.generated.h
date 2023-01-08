@@ -17,7 +17,7 @@ namespace bs
 		AABox Bounds;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVECTOR_FIELD_DESC : public ScriptObject<ScriptVECTOR_FIELD_DESC>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorFieldOptions : public ScriptObject<ScriptVectorFieldOptions>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VectorFieldOptions")
@@ -28,7 +28,7 @@ namespace bs
 		static __VECTOR_FIELD_DESCInterop ToInterop(const VECTOR_FIELD_DESC& value);
 
 	private:
-		ScriptVECTOR_FIELD_DESC(MonoObject* managedInstance);
+		ScriptVectorFieldOptions(MonoObject* managedInstance);
 
 	};
 }

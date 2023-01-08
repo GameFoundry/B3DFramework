@@ -33,8 +33,8 @@ namespace bs
 	{
 		ControllerColliderCollision output;
 		GameObjectHandle<CCollider> tmpCollider;
-		ScriptCColliderBase* scriptCollider;
-		scriptCollider = (ScriptCColliderBase*)ScriptCCollider::ToNative(value.Collider);
+		ScriptColliderBase* scriptCollider;
+		scriptCollider = (ScriptColliderBase*)ScriptCollider::ToNative(value.Collider);
 		if(scriptCollider != nullptr)
 			tmpCollider = B3DStaticGameObjectCast<CCollider>(scriptCollider->GetComponent());
 		output.Collider = tmpCollider;

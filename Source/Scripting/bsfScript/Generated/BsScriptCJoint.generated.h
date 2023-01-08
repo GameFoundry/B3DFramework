@@ -11,19 +11,19 @@
 namespace bs { class CJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCJointBase : public ScriptComponentBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptJointBase : public ScriptComponentBase
 	{
 	public:
-		ScriptCJointBase(MonoObject* instance);
-		virtual ~ScriptCJointBase() {}
+		ScriptJointBase(MonoObject* instance);
+		virtual ~ScriptJointBase() {}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCJoint : public TScriptComponent<ScriptCJoint, CJoint, ScriptCJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptJoint : public TScriptComponent<ScriptJoint, CJoint, ScriptJointBase>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Joint")
 
-		ScriptCJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value);
+		ScriptJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value);
 
 	private:
 		void OnJointBreak();
@@ -31,16 +31,16 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
 		static OnJointBreakThunkDef OnJointBreakThunk;
 
-		static MonoObject* InternalGetBody(ScriptCJointBase* thisPtr, JointBody body);
-		static void InternalSetBody(ScriptCJointBase* thisPtr, JointBody body, MonoObject* value);
-		static void InternalGetPosition(ScriptCJointBase* thisPtr, JointBody body, Vector3* __output);
-		static void InternalGetRotation(ScriptCJointBase* thisPtr, JointBody body, Quaternion* __output);
-		static void InternalSetTransform(ScriptCJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation);
-		static float InternalGetBreakForce(ScriptCJointBase* thisPtr);
-		static void InternalSetBreakForce(ScriptCJointBase* thisPtr, float force);
-		static float InternalGetBreakTorque(ScriptCJointBase* thisPtr);
-		static void InternalSetBreakTorque(ScriptCJointBase* thisPtr, float torque);
-		static bool InternalGetEnableCollision(ScriptCJointBase* thisPtr);
-		static void InternalSetEnableCollision(ScriptCJointBase* thisPtr, bool value);
+		static MonoObject* InternalGetBody(ScriptJointBase* thisPtr, JointBody body);
+		static void InternalSetBody(ScriptJointBase* thisPtr, JointBody body, MonoObject* value);
+		static void InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, Vector3* __output);
+		static void InternalGetRotation(ScriptJointBase* thisPtr, JointBody body, Quaternion* __output);
+		static void InternalSetTransform(ScriptJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation);
+		static float InternalGetBreakForce(ScriptJointBase* thisPtr);
+		static void InternalSetBreakForce(ScriptJointBase* thisPtr, float force);
+		static float InternalGetBreakTorque(ScriptJointBase* thisPtr);
+		static void InternalSetBreakTorque(ScriptJointBase* thisPtr, float torque);
+		static bool InternalGetEnableCollision(ScriptJointBase* thisPtr);
+		static void InternalSetEnableCollision(ScriptJointBase* thisPtr, bool value);
 	};
 }

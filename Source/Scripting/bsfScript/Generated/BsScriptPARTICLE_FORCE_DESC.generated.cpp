@@ -9,29 +9,29 @@
 
 namespace bs
 {
-	ScriptPARTICLE_FORCE_DESC::ScriptPARTICLE_FORCE_DESC(MonoObject* managedInstance)
+	ScriptParticleForceOptions::ScriptParticleForceOptions(MonoObject* managedInstance)
 		:ScriptObject(managedInstance)
 	{ }
 
-	void ScriptPARTICLE_FORCE_DESC::InitRuntimeData()
+	void ScriptParticleForceOptions::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptPARTICLE_FORCE_DESC::Box(const __PARTICLE_FORCE_DESCInterop& value)
+	MonoObject*ScriptParticleForceOptions::Box(const __PARTICLE_FORCE_DESCInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::Unbox(MonoObject* value)
+	__PARTICLE_FORCE_DESCInterop ScriptParticleForceOptions::Unbox(MonoObject* value)
 	{
 		return *(__PARTICLE_FORCE_DESCInterop*)MonoUtil::Unbox(value);
 	}
 
-	PARTICLE_FORCE_DESC ScriptPARTICLE_FORCE_DESC::FromInterop(const __PARTICLE_FORCE_DESCInterop& value)
+	PARTICLE_FORCE_DESC ScriptParticleForceOptions::FromInterop(const __PARTICLE_FORCE_DESCInterop& value)
 	{
 		PARTICLE_FORCE_DESC output;
 		SPtr<TDistribution<Vector3>> tmpForce;
-		ScriptTDistributionVector3* scriptForce;
-		scriptForce = ScriptTDistributionVector3::ToNative(value.Force);
+		ScriptVector3Distribution* scriptForce;
+		scriptForce = ScriptVector3Distribution::ToNative(value.Force);
 		if(scriptForce != nullptr)
 			tmpForce = scriptForce->GetInternal();
 		if(tmpForce != nullptr)
@@ -41,13 +41,13 @@ namespace bs
 		return output;
 	}
 
-	__PARTICLE_FORCE_DESCInterop ScriptPARTICLE_FORCE_DESC::ToInterop(const PARTICLE_FORCE_DESC& value)
+	__PARTICLE_FORCE_DESCInterop ScriptParticleForceOptions::ToInterop(const PARTICLE_FORCE_DESC& value)
 	{
 		__PARTICLE_FORCE_DESCInterop output;
 		MonoObject* tmpForce;
 		SPtr<TDistribution<Vector3>> tmpForcecopy;
 		tmpForcecopy = B3DMakeShared<TDistribution<Vector3>>(value.Force);
-		tmpForce = ScriptTDistributionVector3::Create(tmpForcecopy);
+		tmpForce = ScriptVector3Distribution::Create(tmpForcecopy);
 		output.Force = tmpForce;
 		output.WorldSpace = value.WorldSpace;
 
