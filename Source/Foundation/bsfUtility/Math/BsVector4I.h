@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsVector4.h"
 
 namespace bs
 {
@@ -11,57 +12,219 @@ namespace bs
 	 */
 
 	/** A four dimensional vector with integer coordinates. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) Vector4I
+	template<class T>
+	struct TVector4I
 	{
-		i32 X = 0;
-		i32 Y = 0;
-		i32 Z = 0;
-		i32 W = 0;
+		T X = (T)0;
+		T Y = (T)0;
+		T Z = (T)0;
+		T W = (T)0;
 
-		constexpr Vector4I() = default;
+		constexpr TVector4I() = default;
 
-		constexpr Vector4I(i32 x, i32 y, i32 z, i32 w)
+		constexpr TVector4I(T x, T y, T z, T w)
 			: X(x), Y(y), Z(z), W(w)
 		{}
 
-		i32 operator[](size_t i) const
-		{
-			B3D_ASSERT(i < 4);
+		constexpr explicit TVector4I(T value)
+			: X(value), Y(value), Z(value), W(value)
+		{}
 
-			switch(i)
-			{
-			case 0: return X;
-			case 1: return Y;
-			case 2: return Z;
-			case 3: return W;
-			default: return 0;
-			}
+		/** Exchange the contents of this vector with another. */
+		void Swap(TVector4I& other)
+		{
+			std::swap(X, other.X);
+			std::swap(Y, other.Y);
+			std::swap(Z, other.Z);
+			std::swap(W, other.W);
 		}
 
-		i32& operator[](size_t i)
+		Vector4 ToFloat() const
 		{
-			B3D_ASSERT(i < 4);
-
-			switch(i)
-			{
-			case 0: return X;
-			case 1: return Y;
-			case 2: return Z;
-			case 3: return W;
-			default: return X;
-			}
+			return Vector4((float)X, (float)Y, (float)Z, (float)W);
 		}
 
-		bool operator==(const Vector4I& rhs) const
+		T operator[](size_t index) const
 		{
-			return X == rhs.X && Y == rhs.Y && Z == rhs.Z && W == rhs.W;
+			B3D_ASSERT(index < 4);
+
+			return *(&X + index);
 		}
 
-		bool operator!=(const Vector4I& rhs) const
+		T& operator[](size_t index)
 		{
-			return !operator==(rhs);
+			B3D_ASSERT(index < 4);
+
+			return *(&X + index);
 		}
+
+		TVector4I& operator=(T value)
+		{
+			X = value;
+			Y = value;
+			Z = value;
+			W = value;
+
+			return *this;
+		}
+
+		bool operator==(const TVector4I& rhs) const
+		{
+			return (X == rhs.X && Y == rhs.Y && Z == rhs.Z && W == rhs.W);
+		}
+
+		bool operator!=(const TVector4I& rhs) const
+		{
+			return X != rhs.X || Y != rhs.Y || Z != rhs.Z || W != rhs.W;
+		}
+
+		TVector4I operator+(const TVector4I& rhs) const
+		{
+			return TVector4I(X + rhs.X, Y + rhs.Y, Z + rhs.Z, W + rhs.W);
+		}
+
+		TVector4I operator-(const TVector4I& rhs) const
+		{
+			return TVector4I(X - rhs.X, Y - rhs.Y, Z - rhs.Z, W + rhs.W);
+		}
+
+		TVector4I operator*(T value) const
+		{
+			return TVector4I(X * value, Y * value, Z * value, W * value);
+		}
+
+		Vector4 operator*(float value) const
+		{
+			return Vector4((float)X * value, (float)Y * value, (float)Z * value, (float)W * value);
+		}
+
+		TVector4I operator*(const TVector4I& rhs) const
+		{
+			return TVector4I(X * rhs.X, Y * rhs.Y, Z * rhs.Z, W * rhs.W);
+		}
+
+		TVector4I operator/(T value) const
+		{
+			B3D_ASSERT(value != 0);
+
+			return TVector4I(X / value, Y / value, Z / value, W / value);
+		}
+
+		Vector4 operator/(float value) const
+		{
+			B3D_ASSERT(value != 0.0f);
+
+			return Vector4((float)X / value, (float)Y / value, (float)Z / value, (float)W / value);
+		}
+
+		TVector4I operator/(const TVector4I& rhs) const
+		{
+			return TVector4I(X / rhs.X, Y / rhs.Y, Z / rhs.Z, W / rhs.W);
+		}
+
+		const TVector4I& operator+() const
+		{
+			return *this;
+		}
+
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
+		TVector4I operator-() const
+		{
+			return TVector4I(-X, -Y, -Z, -W);
+		}
+
+		friend TVector4I operator*(T lhs, const TVector4I& rhs)
+		{
+			return TVector4I(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+		}
+
+		friend TVector4I operator/(T lhs, const TVector4I& rhs)
+		{
+			return TVector4I(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z, lhs * rhs.W);
+		}
+
+		TVector4I& operator+=(const TVector4I& rhs)
+		{
+			X += rhs.X;
+			Y += rhs.Y;
+			Z += rhs.Z;
+			W += rhs.W;
+
+			return *this;
+		}
+
+		TVector4I& operator-=(const TVector4I& rhs)
+		{
+			X -= rhs.X;
+			Y -= rhs.Y;
+			Z -= rhs.Z;
+			W -= rhs.W;
+
+			return *this;
+		}
+
+		TVector4I& operator*=(T val)
+		{
+			X *= val;
+			Y *= val;
+			Z *= val;
+			W *= val;
+
+			return *this;
+		}
+
+		TVector4I& operator*=(const TVector4I& rhs)
+		{
+			X *= rhs.X;
+			Y *= rhs.Y;
+			Z *= rhs.Z;
+			W *= rhs.W;
+
+			return *this;
+		}
+
+		TVector4I& operator/=(T value)
+		{
+			B3D_ASSERT(value != 0);
+
+			X /= value;
+			Y /= value;
+			Z /= value;
+			W /= value;
+
+			return *this;
+		}
+
+		TVector4I& operator/=(const TVector4I& rhs)
+		{
+			X /= rhs.X;
+			Y /= rhs.Y;
+			Z /= rhs.Z;
+			W /= rhs.W;
+
+			return *this;
+		}
+
+		/** Returns the square of the length(magnitude) of the vector. */
+		T SquaredLength() const
+		{
+			return X * X + Y * Y + Z * Z + W * W;
+		}
+
+		/** Calculates the dot (scalar) product of this vector with another. */
+		T Dot(const TVector4I& other) const
+		{
+			return X * other.X + Y * other.Y + Z * other.Z + W * other.W;
+		}
+
+		static const TVector4I kZero;
 	};
+
+	template<> const TVector4I<i32> TVector4I<i32>::kZero{0, 0, 0, 0};
+	template<> const TVector4I<u32> TVector4I<u32>::kZero{0u, 0u, 0u, 0u};
+
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4I)) TVector4I<i32>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4UI)) TVector4I<u32>;
 
 	/** @} */
 } // namespace bs

@@ -188,7 +188,7 @@ namespace bs
 
 		Vector2 GetPointInArc(Degree angle) const
 		{
-			float val = GetUNorm() * angle.ValueRadians();
+			float val = GetUNorm() * angle.GetValueInRadians();
 			return Vector2(Math::Cos(val), Math::Sin(val));
 		}
 
@@ -204,7 +204,7 @@ namespace bs
 		{
 			const float minRadius = 1.0f - thickness;
 
-			const float val = GetUNorm() * angle.ValueRadians();
+			const float val = GetUNorm() * angle.GetValueInRadians();
 			const Vector2 dir(Math::Cos(val), Math::Sin(val));
 
 			return dir * (minRadius + thickness * std::pow(GetUNorm(), 1.0f / 2.0f));

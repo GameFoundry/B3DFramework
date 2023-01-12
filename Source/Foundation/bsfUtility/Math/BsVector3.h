@@ -15,59 +15,46 @@ namespace bs
 	 */
 
 	/** A three dimensional vector. */
-	class B3D_UTILITY_EXPORT Vector3
+	template<class T>
+	struct TVector3
 	{
-	public:
-		float X, Y, Z;
+		T X, Y, Z;
 
-	public:
-		Vector3() = default;
+		constexpr TVector3() = default;
 
-		constexpr Vector3(BS_ZERO)
-			: X(0.0f), Y(0.0f), Z(0.0f)
+		constexpr TVector3(BS_ZERO)
+			: X((T)0.0), Y((T)0.0), Z((T)0.0)
 		{}
 
-		constexpr Vector3(float x, float y, float z)
+		constexpr TVector3(T x, T y, T z)
 			: X(x), Y(y), Z(z)
 		{}
 
-		explicit Vector3(const Vector4& vec);
+		explicit TVector3(const Vector4& vec);
 
 		/** Exchange the contents of this vector with another. */
-		void Swap(Vector3& other)
+		void Swap(TVector3& other)
 		{
 			std::swap(X, other.X);
 			std::swap(Y, other.Y);
 			std::swap(Z, other.Z);
 		}
 
-		float operator[](u32 i) const
+		T operator[](u32 i) const
 		{
 			B3D_ASSERT(i < 3);
 
 			return *(&X + i);
 		}
 
-		float& operator[](u32 i)
+		T& operator[](u32 i)
 		{
 			B3D_ASSERT(i < 3);
 
 			return *(&X + i);
 		}
 
-		/** Pointer accessor for direct copying. */
-		float* Ptr()
-		{
-			return &X;
-		}
-
-		/** Pointer accessor for direct copying. */
-		const float* Ptr() const
-		{
-			return &X;
-		}
-
-		Vector3& operator=(float rhs)
+		TVector3& operator=(T rhs)
 		{
 			X = rhs;
 			Y = rhs;
@@ -76,90 +63,90 @@ namespace bs
 			return *this;
 		}
 
-		bool operator==(const Vector3& rhs) const
+		bool operator==(const TVector3& rhs) const
 		{
 			return (X == rhs.X && Y == rhs.Y && Z == rhs.Z);
 		}
 
-		bool operator!=(const Vector3& rhs) const
+		bool operator!=(const TVector3& rhs) const
 		{
 			return (X != rhs.X || Y != rhs.Y || Z != rhs.Z);
 		}
 
-		Vector3 operator+(const Vector3& rhs) const
+		TVector3 operator+(const TVector3& rhs) const
 		{
-			return Vector3(X + rhs.X, Y + rhs.Y, Z + rhs.Z);
+			return TVector3(X + rhs.X, Y + rhs.Y, Z + rhs.Z);
 		}
 
-		Vector3 operator-(const Vector3& rhs) const
+		TVector3 operator-(const TVector3& rhs) const
 		{
-			return Vector3(X - rhs.X, Y - rhs.Y, Z - rhs.Z);
+			return TVector3(X - rhs.X, Y - rhs.Y, Z - rhs.Z);
 		}
 
-		Vector3 operator*(float rhs) const
+		TVector3 operator*(T rhs) const
 		{
-			return Vector3(X * rhs, Y * rhs, Z * rhs);
+			return TVector3(X * rhs, Y * rhs, Z * rhs);
 		}
 
-		Vector3 operator*(const Vector3& rhs) const
+		TVector3 operator*(const TVector3& rhs) const
 		{
-			return Vector3(X * rhs.X, Y * rhs.Y, Z * rhs.Z);
+			return TVector3(X * rhs.X, Y * rhs.Y, Z * rhs.Z);
 		}
 
-		Vector3 operator/(float val) const
+		TVector3 operator/(T value) const
 		{
-			B3D_ASSERT(val != 0.0);
+			B3D_ASSERT(value != (T)0.0);
 
-			float fInv = 1.0f / val;
-			return Vector3(X * fInv, Y * fInv, Z * fInv);
+			const T inverse = (T)1.0 / value;
+			return TVector3(X * inverse, Y * inverse, Z * inverse);
 		}
 
-		Vector3 operator/(const Vector3& rhs) const
+		TVector3 operator/(const TVector3& rhs) const
 		{
-			return Vector3(X / rhs.X, Y / rhs.Y, Z / rhs.Z);
+			return TVector3(X / rhs.X, Y / rhs.Y, Z / rhs.Z);
 		}
 
-		const Vector3& operator+() const
+		const TVector3& operator+() const
 		{
 			return *this;
 		}
 
-		Vector3 operator-() const
+		TVector3 operator-() const
 		{
-			return Vector3(-X, -Y, -Z);
+			return TVector3(-X, -Y, -Z);
 		}
 
-		friend Vector3 operator*(float lhs, const Vector3& rhs)
+		friend TVector3 operator*(T lhs, const TVector3& rhs)
 		{
-			return Vector3(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
+			return TVector3(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
 		}
 
-		friend Vector3 operator/(float lhs, const Vector3& rhs)
+		friend TVector3 operator/(T lhs, const TVector3& rhs)
 		{
-			return Vector3(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z);
+			return TVector3(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z);
 		}
 
-		friend Vector3 operator+(const Vector3& lhs, float rhs)
+		friend TVector3 operator+(const TVector3& lhs, T rhs)
 		{
-			return Vector3(lhs.X + rhs, lhs.Y + rhs, lhs.Z + rhs);
+			return TVector3(lhs.X + rhs, lhs.Y + rhs, lhs.Z + rhs);
 		}
 
-		friend Vector3 operator+(float lhs, const Vector3& rhs)
+		friend TVector3 operator+(T lhs, const TVector3& rhs)
 		{
-			return Vector3(lhs + rhs.X, lhs + rhs.Y, lhs + rhs.Z);
+			return TVector3(lhs + rhs.X, lhs + rhs.Y, lhs + rhs.Z);
 		}
 
-		friend Vector3 operator-(const Vector3& lhs, float rhs)
+		friend TVector3 operator-(const TVector3& lhs, T rhs)
 		{
-			return Vector3(lhs.X - rhs, lhs.Y - rhs, lhs.Z - rhs);
+			return TVector3(lhs.X - rhs, lhs.Y - rhs, lhs.Z - rhs);
 		}
 
-		friend Vector3 operator-(float lhs, const Vector3& rhs)
+		friend TVector3 operator-(T lhs, const TVector3& rhs)
 		{
-			return Vector3(lhs - rhs.X, lhs - rhs.Y, lhs - rhs.Z);
+			return TVector3(lhs - rhs.X, lhs - rhs.Y, lhs - rhs.Z);
 		}
 
-		Vector3& operator+=(const Vector3& rhs)
+		TVector3& operator+=(const TVector3& rhs)
 		{
 			X += rhs.X;
 			Y += rhs.Y;
@@ -168,7 +155,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator+=(float rhs)
+		TVector3& operator+=(T rhs)
 		{
 			X += rhs;
 			Y += rhs;
@@ -177,7 +164,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator-=(const Vector3& rhs)
+		TVector3& operator-=(const TVector3& rhs)
 		{
 			X -= rhs.X;
 			Y -= rhs.Y;
@@ -186,7 +173,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator-=(float rhs)
+		TVector3& operator-=(T rhs)
 		{
 			X -= rhs;
 			Y -= rhs;
@@ -195,7 +182,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator*=(float rhs)
+		TVector3& operator*=(T rhs)
 		{
 			X *= rhs;
 			Y *= rhs;
@@ -204,7 +191,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator*=(const Vector3& rhs)
+		TVector3& operator*=(const TVector3& rhs)
 		{
 			X *= rhs.X;
 			Y *= rhs.Y;
@@ -213,20 +200,19 @@ namespace bs
 			return *this;
 		}
 
-		Vector3& operator/=(float rhs)
+		TVector3& operator/=(T rhs)
 		{
-			B3D_ASSERT(rhs != 0.0f);
+			B3D_ASSERT(rhs != (T)0.0);
 
-			float inv = 1.0f / rhs;
-
-			X *= inv;
-			Y *= inv;
-			Z *= inv;
+			const T inverse = (T)1.0 / rhs;
+			X *= inverse;
+			Y *= inverse;
+			Z *= inverse;
 
 			return *this;
 		}
 
-		Vector3& operator/=(const Vector3& rhs)
+		TVector3& operator/=(const TVector3& rhs)
 		{
 			X /= rhs.X;
 			Y /= rhs.Y;
@@ -236,111 +222,127 @@ namespace bs
 		}
 
 		/** Returns the length (magnitude) of the vector. */
-		float Length() const
+		T Length() const
 		{
 			return std::sqrt(X * X + Y * Y + Z * Z);
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */
-		float SquaredLength() const
+		T SquaredLength() const
 		{
 			return X * X + Y * Y + Z * Z;
 		}
 
 		/**	Returns the distance to another vector. */
-		float Distance(const Vector3& rhs) const
+		T Distance(const TVector3& rhs) const
 		{
 			return (*this - rhs).Length();
 		}
 
 		/** Returns the square of the distance to another vector. */
-		float SquaredDistance(const Vector3& rhs) const
+		T SquaredDistance(const TVector3& rhs) const
 		{
 			return (*this - rhs).SquaredLength();
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
-		float Dot(const Vector3& vec) const
+		T Dot(const TVector3& rhs) const
 		{
-			return X * vec.X + Y * vec.Y + Z * vec.Z;
+			return X * rhs.X + Y * rhs.Y + Z * rhs.Z;
 		}
 
-		/**
-		 * Normalizes this vector, and returns the previous length. If @p SAFE is true, checks if the magnitude is
-		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
-		 */
-		template <bool SAFE = true>
-		float Normalize(float tolerance = 1e-04f)
+		/** Normalizes this vector, and returns the previous length. */
+		T Normalize()
 		{
-			float len = Length();
-			if(!SAFE || len > (tolerance * tolerance))
-				*this *= 1.0f / len;
+			const T length = Length();
+			*this *= (T)1.0 / length;
 
-			return len;
+			return length;
+		}
+
+		/** Normalizes this vector, and returns the previous length. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. If false, no checks are made. */
+		T NormalizeChecked(T tolerance = (T)1e-04)
+		{
+			const T length = Length();
+			if(length > (tolerance * tolerance))
+				*this *= (T)1.0 / length;
+
+			return length;
 		}
 
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
-		Vector3 Cross(const Vector3& other) const
+		TVector3 Cross(const TVector3& other) const
 		{
-			return Vector3(
+			return TVector3(
 				Y * other.Z - Z * other.Y,
 				Z * other.X - X * other.Z,
 				X * other.Y - Y * other.X);
 		}
 
 		/** Sets this vector's components to the minimum of its own and the ones of the passed in vector. */
-		void Min(const Vector3& cmp)
+		void Min(const TVector3& other)
 		{
-			if(cmp.X < X) X = cmp.X;
-			if(cmp.Y < Y) Y = cmp.Y;
-			if(cmp.Z < Z) Z = cmp.Z;
+			if(other.X < X) X = other.X;
+			if(other.Y < Y) Y = other.Y;
+			if(other.Z < Z) Z = other.Z;
 		}
 
 		/** Sets this vector's components to the maximum of its own and the ones of the passed in vector. */
-		void Max(const Vector3& cmp)
+		void Max(const TVector3& other)
 		{
-			if(cmp.X > X) X = cmp.X;
-			if(cmp.Y > Y) Y = cmp.Y;
-			if(cmp.Z > Z) Z = cmp.Z;
+			if(other.X > X) X = other.X;
+			if(other.Y > Y) Y = other.Y;
+			if(other.Z > Z) Z = other.Z;
 		}
 
 		/** Generates a vector perpendicular to this vector. */
-		Vector3 Perpendicular() const
+		TVector3 Perpendicular() const
 		{
-			static const float kSquareZero = (float)(1e-06 * 1e-06);
+			static const T kSquareZero = (T)(1e-06 * 1e-06);
 
-			Vector3 perp = this->Cross(Vector3::kUnitX);
+			TVector3 perpendicular = this->Cross(TVector3::kUnitX);
+			if(perpendicular.SquaredLength() < kSquareZero)
+				perpendicular = this->Cross(TVector3::kUnitY);
 
-			if(perp.SquaredLength() < kSquareZero)
-				perp = this->Cross(Vector3::kUnitY);
-
-			perp.Normalize();
-			return perp;
+			perpendicular.Normalize();
+			return perpendicular;
 		}
 
 		/** Gets the angle between 2 vectors. */
-		inline Radian AngleBetween(const Vector3& dest) const;
+		TRadian<T> AngleBetween(const TVector3& other) const
+		{
+			T lengthProduct = Length() * other.Length();
+
+			// Divide by zero check
+			if(lengthProduct < (T)1e-6)
+				lengthProduct = (T)1e-6;
+
+			T f = Dot(other) / lengthProduct;
+
+			f = Math::Clamp(f, (T)-1.0, (T)1.0);
+			return Math::Acos(f);
+		}
 
 		/** Returns true if this vector is zero length. */
-		bool IsZeroLength(float tolerance = 1e-04f) const
+		bool IsZeroLength(T tolerance = (T)1e-04) const
 		{
-			float sqrdLen = X * X + Y * Y + Z * Z;
-			return sqrdLen < tolerance;
+			const T squaredLength = X * X + Y * Y + Z * Z;
+			return squaredLength < tolerance;
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
-		Vector3 Reflect(const Vector3& normal) const
+		TVector3 Reflect(const TVector3& normal) const
 		{
-			return Vector3(*this - (2 * this->Dot(normal) * normal));
+			return TVector3(*this - ((T)2.0 * this->Dot(normal) * normal));
 		}
 
 		/** Calculates two vectors orthonormal to the current vector, and normalizes the current vector if not already. */
-		void OrthogonalComplement(Vector3& a, Vector3& b)
+		void OrthogonalComplement(TVector3& a, TVector3& b)
 		{
 			if(std::abs(X) > std::abs(Y))
-				a = Vector3(-Z, 0, X);
+				a = TVector3(-Z, 0, X);
 			else
-				a = Vector3(0, Z, -Y);
+				a = TVector3(0, Z, -Y);
 
 			b = Cross(a);
 
@@ -348,44 +350,47 @@ namespace bs
 		}
 
 		/** Performs Gram-Schmidt orthonormalization. */
-		static void Orthonormalize(Vector3& vec0, Vector3& vec1, Vector3& vec2)
+		static void Orthonormalize(TVector3& vec0, TVector3& vec1, TVector3& vec2)
 		{
 			vec0.Normalize();
 
-			float dot0 = vec0.Dot(vec1);
+			T dot0 = vec0.Dot(vec1);
 			vec1 -= dot0 * vec0;
 			vec1.Normalize();
 
-			float dot1 = vec1.Dot(vec2);
+			const T dot1 = vec1.Dot(vec2);
 			dot0 = vec0.Dot(vec2);
 			vec2 -= dot0 * vec0 + dot1 * vec1;
 			vec2.Normalize();
 		}
 
 		/** Calculates the dot (scalar) product of two vectors. */
-		static float Dot(const Vector3& a, const Vector3& b)
+		static T Dot(const TVector3& a, const TVector3& b)
 		{
 			return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 		}
 
-		/**
-		 * Normalizes the provided vector and returns the result. If @p SAFE is true, checks if the magnitude is
-		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
-		 */
-		template <bool SAFE = true>
-		static Vector3 Normalize(const Vector3& v, float tolerance = 1e-04f)
+		/** Normalizes the provided vector and returns the result. */
+		static TVector3 Normalize(const TVector3& rhs)
 		{
-			float sqrdLen = Dot(v, v);
-			if(!SAFE || sqrdLen > tolerance)
-				return v * Math::InvSqrt(sqrdLen);
+			const T squaredLength = Dot(rhs, rhs);
+			return rhs * Math::InvSqrt(squaredLength);
+		}
 
-			return v;
+		/** Normalizes the provided vector and returns the result. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. If false, no checks are made. */
+		static TVector3 NormalizeChecked(const TVector3& rhs, T tolerance = (T)1e-04)
+		{
+			const T squaredLength = Dot(rhs, rhs);
+			if(squaredLength > tolerance)
+				return rhs * Math::InvSqrt(squaredLength);
+
+			return rhs;
 		}
 
 		/** Calculates the cross-product of 2 vectors, that is, the vector that lies perpendicular to them both. */
-		static Vector3 Cross(const Vector3& a, const Vector3& b)
+		static TVector3 Cross(const TVector3& a, const TVector3& b)
 		{
-			return Vector3(
+			return TVector3(
 				a.Y * b.Z - a.Z * b.Y,
 				a.Z * b.X - a.X * b.Z,
 				a.X * b.Y - a.Y * b.X);
@@ -395,33 +400,57 @@ namespace bs
 		 * Linearly interpolates between the two vectors using @p t. t should be in [0, 1] range, where t = 0 corresponds
 		 * to the left vector, while t = 1 corresponds to the right vector.
 		 */
-		static Vector3 Lerp(float t, const Vector3& a, const Vector3& b)
+		static TVector3 Lerp(T t, const TVector3& a, const TVector3& b)
 		{
-			return (1.0f - t) * a + t * b;
+			return ((T)1.0 - t) * a + t * b;
 		}
 
 		/** Checks are any of the vector components not a number. */
-		inline bool IsNaN() const;
+		bool IsNaN() const
+		{
+			return Math::IsNaN(X) || Math::IsNaN(Y) || Math::IsNaN(Z);
+		}
 
 		/** Returns the minimum of all the vector components as a new vector. */
-		static Vector3 Min(const Vector3& a, const Vector3& b)
+		static TVector3 Min(const TVector3& a, const TVector3& b)
 		{
-			return Vector3(std::min(a.X, b.X), std::min(a.Y, b.Y), std::min(a.Z, b.Z));
+			return TVector3(std::min(a.X, b.X), std::min(a.Y, b.Y), std::min(a.Z, b.Z));
 		}
 
 		/** Returns the maximum of all the vector components as a new vector. */
-		static Vector3 Max(const Vector3& a, const Vector3& b)
+		static TVector3 Max(const TVector3& a, const TVector3& b)
 		{
-			return Vector3(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z));
+			return TVector3(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z));
 		}
 
-		static const Vector3 kZero;
-		static const Vector3 kOne;
-		static const Vector3 kInf;
-		static const Vector3 kUnitX;
-		static const Vector3 kUnitY;
-		static const Vector3 kUnitZ;
+		static const TVector3 kZero;
+		static const TVector3 kOne;
+		static const TVector3 kInf;
+		static const TVector3 kUnitX;
+		static const TVector3 kUnitY;
+		static const TVector3 kUnitZ;
 	};
+
+	template<> const TVector3<float> TVector3<float>::kZero{BsZero};
+	template<> const TVector3<double> TVector3<double>::kZero{BsZero};
+
+	template<> const TVector3<float> TVector3<float>::kOne{1.0f, 1.0f, 1.0f};
+	template<> const TVector3<double> TVector3<double>::kOne{1.0, 1.0, 1.0};
+
+	template<> const TVector3<float> TVector3<float>::kInf{ std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity() };
+	template<> const TVector3<double> TVector3<double>::kInf{ std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity() };
+
+	template<> const TVector3<float> TVector3<float>::kUnitX{1.0f, 0.0f, 0.0f};
+	template<> const TVector3<double> TVector3<double>::kUnitX{1.0, 0.0, 0.0};
+
+	template<> const TVector3<float> TVector3<float>::kUnitY{0.0f, 1.0f, 0.0f};
+	template<> const TVector3<double> TVector3<double>::kUnitY{0.0, 1.0, 0.0};
+
+	template<> const TVector3<float> TVector3<float>::kUnitZ{0.0f, 0.0f, 1.0f};
+	template<> const TVector3<double> TVector3<double>::kUnitZ{0.0, 0.0, 1.0};
+
+	extern template struct TVector3<float>;
+	extern template struct TVector3<double>;
 
 	/** @} */
 } // namespace bs
@@ -430,15 +459,28 @@ namespace bs
 namespace std
 {
 	template <>
-	class numeric_limits<bs::Vector3>
+	class numeric_limits<bs::TVector3<float>>
 	{
 	public:
-		constexpr static bs::Vector3 infinity() // NOLINT
+		constexpr static bs::TVector3<float> infinity() // NOLINT
 		{
-			return bs::Vector3(
+			return bs::TVector3<float>(
 				std::numeric_limits<float>::infinity(),
 				std::numeric_limits<float>::infinity(),
 				std::numeric_limits<float>::infinity());
+		}
+	};
+
+	template <>
+	class numeric_limits<bs::TVector3<double>>
+	{
+	public:
+		constexpr static bs::TVector3<double> infinity() // NOLINT
+		{
+			return bs::TVector3<double>(
+				std::numeric_limits<double>::infinity(),
+				std::numeric_limits<double>::infinity(),
+				std::numeric_limits<double>::infinity());
 		}
 	};
 } // namespace std

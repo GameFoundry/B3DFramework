@@ -112,6 +112,30 @@ namespace bs
 	using Vector3I = TVector3I<i32>;
 	using Vector3UI = TVector3I<u32>;
 
+	template<typename T> struct TVector4I;
+	using Vector4I = TVector4I<i32>;
+	using Vector4UI = TVector4I<u32>;
+
+	template<typename T> struct TVector2;
+	using Vector2 = TVector2<float>;
+	using Vector2F = TVector2<float>;
+	using Vector2D = TVector2<double>;
+
+	template<typename T> struct TVector3;
+	using Vector3 = TVector3<float>;
+	using Vector3F = TVector3<float>;
+	using Vector3D = TVector3<double>;
+
+	template<typename T> class TRadian;
+	using Radian = TRadian<float>;
+	using RadianF = TRadian<float>;
+	using RadianD = TRadian<double>;
+
+	template<typename T> class TDegree;
+	using Degree = TDegree<float>;
+	using DegreeF = TDegree<float>;
+	using DegreeD = TDegree<double>;
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -130,18 +154,14 @@ namespace bs
 
 	class Angle;
 	class AABox;
-	class Degree;
 	class Math;
 	class Matrix3;
 	class Matrix4;
 	class Plane;
 	class Quaternion;
-	class Radian;
 	class Ray;
 	class Capsule;
 	class Sphere;
-	class Vector2;
-	class Vector3;
 	class Vector4;
 	class Rect2I;
 	class Rect2;

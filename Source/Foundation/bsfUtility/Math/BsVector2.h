@@ -12,56 +12,44 @@ namespace bs
 	 */
 
 	/** A two dimensional vector. */
-	class B3D_UTILITY_EXPORT Vector2
+	template<class T>
+	struct TVector2
 	{
-	public:
-		float X, Y;
+		T X;
+		T Y;
 
-	public:
-		Vector2() = default;
+		constexpr TVector2() = default;
 
-		constexpr Vector2(BS_ZERO)
-			: X(0.0f), Y(0.0f)
+		constexpr TVector2(BS_ZERO)
+			: X((T)0.0), Y((T)0.0)
 		{}
 
-		constexpr Vector2(float x, float y)
+		constexpr TVector2(T x, T y)
 			: X(x), Y(y)
 		{}
 
 		/** Exchange the contents of this vector with another. */
-		void Swap(Vector2& other)
+		void Swap(TVector2& other)
 		{
 			std::swap(X, other.X);
 			std::swap(Y, other.Y);
 		}
 
-		float operator[](u32 i) const
+		T operator[](u32 i) const
 		{
 			B3D_ASSERT(i < 2);
 
 			return *(&X + i);
 		}
 
-		float& operator[](u32 i)
+		T& operator[](u32 i)
 		{
 			B3D_ASSERT(i < 2);
 
 			return *(&X + i);
 		}
 
-		/** Pointer accessor for direct copying. */
-		float* Ptr()
-		{
-			return &X;
-		}
-
-		/** Pointer accessor for direct copying. */
-		const float* Ptr() const
-		{
-			return &X;
-		}
-
-		Vector2& operator=(float rhs)
+		TVector2& operator=(T rhs)
 		{
 			X = rhs;
 			Y = rhs;
@@ -69,91 +57,90 @@ namespace bs
 			return *this;
 		}
 
-		bool operator==(const Vector2& rhs) const
+		bool operator==(const TVector2& rhs) const
 		{
 			return (X == rhs.X && Y == rhs.Y);
 		}
 
-		bool operator!=(const Vector2& rhs) const
+		bool operator!=(const TVector2& rhs) const
 		{
 			return (X != rhs.X || Y != rhs.Y);
 		}
 
-		Vector2 operator+(const Vector2& rhs) const
+		TVector2 operator+(const TVector2& rhs) const
 		{
-			return Vector2(X + rhs.X, Y + rhs.Y);
+			return TVector2(X + rhs.X, Y + rhs.Y);
 		}
 
-		Vector2 operator-(const Vector2& rhs) const
+		TVector2 operator-(const TVector2& rhs) const
 		{
-			return Vector2(X - rhs.X, Y - rhs.Y);
+			return TVector2(X - rhs.X, Y - rhs.Y);
 		}
 
-		Vector2 operator*(const float rhs) const
+		TVector2 operator*(const T rhs) const
 		{
-			return Vector2(X * rhs, Y * rhs);
+			return TVector2(X * rhs, Y * rhs);
 		}
 
-		Vector2 operator*(const Vector2& rhs) const
+		TVector2 operator*(const TVector2& rhs) const
 		{
-			return Vector2(X * rhs.X, Y * rhs.Y);
+			return TVector2(X * rhs.X, Y * rhs.Y);
 		}
 
-		Vector2 operator/(const float rhs) const
+		TVector2 operator/(const T rhs) const
 		{
-			B3D_ASSERT(rhs != 0.0);
+			B3D_ASSERT(rhs != (T)0.0);
 
-			float fInv = 1.0f / rhs;
-
-			return Vector2(X * fInv, Y * fInv);
+			const T inverseRHS = (T)1.0 / rhs;
+			return TVector2(X * inverseRHS, Y * inverseRHS);
 		}
 
-		Vector2 operator/(const Vector2& rhs) const
+		TVector2 operator/(const TVector2& rhs) const
 		{
-			return Vector2(X / rhs.X, Y / rhs.Y);
+			return TVector2(X / rhs.X, Y / rhs.Y);
 		}
 
-		const Vector2& operator+() const
+		const TVector2& operator+() const
 		{
 			return *this;
 		}
 
-		Vector2 operator-() const
+		TVector2 operator-() const
 		{
-			return Vector2(-X, -Y);
+			return TVector2(-X, -Y);
 		}
 
-		friend Vector2 operator*(float lhs, const Vector2& rhs)
+		friend TVector2 operator*(T lhs, const TVector2& rhs)
 		{
-			return Vector2(lhs * rhs.X, lhs * rhs.Y);
+			return TVector2(lhs * rhs.X, lhs * rhs.Y);
 		}
 
-		friend Vector2 operator/(float lhs, const Vector2& rhs)
+		friend TVector2 operator/(T lhs, const TVector2& rhs)
 		{
-			return Vector2(lhs / rhs.X, lhs / rhs.Y);
+			return TVector2(lhs / rhs.X, lhs / rhs.Y);
 		}
 
-		friend Vector2 operator+(Vector2& lhs, float rhs)
+		friend TVector2 operator+(TVector2& lhs, T rhs)
 		{
-			return Vector2(lhs.X + rhs, lhs.Y + rhs);
+			return TVector2(lhs.X + rhs, lhs.Y + rhs);
 		}
 
-		friend Vector2 operator+(float lhs, const Vector2& rhs)
+		friend TVector2 operator+(T lhs, const TVector2& rhs)
 		{
-			return Vector2(lhs + rhs.X, lhs + rhs.Y);
+			return TVector2(lhs + rhs.X, lhs + rhs.Y);
 		}
 
-		friend Vector2 operator-(const Vector2& lhs, float rhs)
+		friend TVector2 operator-(const TVector2& lhs, T rhs)
 		{
-			return Vector2(lhs.X - rhs, lhs.Y - rhs);
+			return TVector2(lhs.X - rhs, lhs.Y - rhs);
 		}
 
-		friend Vector2 operator-(const float lhs, const Vector2& rhs)
+		friend TVector2 operator-(const T lhs, const TVector2& rhs)
 		{
-			return Vector2(lhs - rhs.X, lhs - rhs.Y);
+			return TVector2(lhs - rhs.X, lhs - rhs.Y);
 		}
 
-		Vector2& operator+=(const Vector2& rhs)
+		TVector2& operator+=(const TVector2& rhs)
 		{
 			X += rhs.X;
 			Y += rhs.Y;
@@ -161,7 +148,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator+=(float rhs)
+		TVector2& operator+=(T rhs)
 		{
 			X += rhs;
 			Y += rhs;
@@ -169,7 +156,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator-=(const Vector2& rhs)
+		TVector2& operator-=(const TVector2& rhs)
 		{
 			X -= rhs.X;
 			Y -= rhs.Y;
@@ -177,7 +164,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator-=(float rhs)
+		TVector2& operator-=(T rhs)
 		{
 			X -= rhs;
 			Y -= rhs;
@@ -185,7 +172,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator*=(float rhs)
+		TVector2& operator*=(T rhs)
 		{
 			X *= rhs;
 			Y *= rhs;
@@ -193,7 +180,7 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator*=(const Vector2& rhs)
+		TVector2& operator*=(const TVector2& rhs)
 		{
 			X *= rhs.X;
 			Y *= rhs.Y;
@@ -201,19 +188,18 @@ namespace bs
 			return *this;
 		}
 
-		Vector2& operator/=(float rhs)
+		TVector2& operator/=(T rhs)
 		{
-			B3D_ASSERT(rhs != 0.0f);
+			B3D_ASSERT(rhs != (T)0.0);
 
-			float inv = 1.0f / rhs;
-
-			X *= inv;
-			Y *= inv;
+			const T inverseRHS = (T)1.0 / rhs;
+			X *= inverseRHS;
+			Y *= inverseRHS;
 
 			return *this;
 		}
 
-		Vector2& operator/=(const Vector2& rhs)
+		TVector2& operator/=(const TVector2& rhs)
 		{
 			X /= rhs.X;
 			Y /= rhs.Y;
@@ -222,113 +208,121 @@ namespace bs
 		}
 
 		/** Returns the length (magnitude) of the vector. */
-		float Length() const
+		T Length() const
 		{
 			return Math::Sqrt(X * X + Y * Y);
 		}
 
 		/** Returns the square of the length(magnitude) of the vector. */
-		float SquaredLength() const
+		T SquaredLength() const
 		{
 			return X * X + Y * Y;
 		}
 
 		/** Returns the distance to another vector. */
-		float Distance(const Vector2& rhs) const
+		T Distance(const TVector2& rhs) const
 		{
 			return (*this - rhs).Length();
 		}
 
 		/** Returns the square of the distance to another vector. */
-		float SqrdDistance(const Vector2& rhs) const
+		T SquaredDistance(const TVector2& rhs) const
 		{
 			return (*this - rhs).SquaredLength();
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
-		float Dot(const Vector2& vec) const
+		T Dot(const TVector2& other) const
 		{
-			return X * vec.X + Y * vec.Y;
+			return X * other.X + Y * other.Y;
 		}
 
-		/**
-		 * Normalizes this vector, and returns the previous length. If @p SAFE is true, checks if the magnitude is
-		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
-		 */
-		template <bool SAFE = true>
-		float Normalize(float tolerance = 1e-04f)
+		/** Normalizes this vector, and returns the previous length. */
+		T Normalize()
 		{
-			float len = Length();
-			if(!SAFE || len > (tolerance * tolerance))
-				*this *= 1.0f / len;
+			const T length = Length();
+			*this *= (T)1.0 / length;
 
-			return len;
+			return length;
+		}
+
+		/** Normalizes this vector, and returns the previous length. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. */
+		T NormalizeChecked(T tolerance = (T)1e-04)
+		{
+			const T length = Length();
+			if(length > (tolerance * tolerance))
+				*this *= (T)1.0 / length;
+
+			return length;
 		}
 
 		/** Generates a vector perpendicular to this vector. */
-		Vector2 Perpendicular() const
+		TVector2 Perpendicular() const
 		{
-			return Vector2(-Y, X);
+			return TVector2(-Y, X);
 		}
 
 		/**
 		 * Calculates the 2 dimensional cross-product of 2 vectors, which results in a single floating point value which
 		 * is 2 times the area of the triangle.
 		 */
-		float Cross(const Vector2& other) const
+		T Cross(const TVector2& other) const
 		{
 			return X * other.Y - Y * other.X;
 		}
 
 		/** Sets this vector's components to the minimum of its own and the ones of the passed in vector. */
-		void Floor(const Vector2& cmp)
+		void Floor(const TVector2& other)
 		{
-			if(cmp.X < X) X = cmp.X;
-			if(cmp.Y < Y) Y = cmp.Y;
+			if(other.X < X) X = other.X;
+			if(other.Y < Y) Y = other.Y;
 		}
 
 		/** Sets this vector's components to the maximum of its own and the ones of the passed in vector. */
-		void Ceil(const Vector2& cmp)
+		void Ceil(const TVector2& other)
 		{
-			if(cmp.X > X) X = cmp.X;
-			if(cmp.Y > Y) Y = cmp.Y;
+			if(other.X > X) X = other.X;
+			if(other.Y > Y) Y = other.Y;
 		}
 
 		/** Returns true if this vector is zero length. */
-		bool IsZeroLength(float tolerance = 1e-04f) const
+		bool IsZeroLength(T tolerance = (T)1e-04) const
 		{
-			float sqrdLen = X * X + Y * Y;
-			return sqrdLen < tolerance;
+			const T squaredLength = X * X + Y * Y;
+			return squaredLength < tolerance;
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
-		Vector2 Reflect(const Vector2& normal) const
+		TVector2 Reflect(const TVector2& normal) const
 		{
-			return Vector2(*this - (2 * this->Dot(normal) * normal));
+			return TVector2(*this - ((T)2.0 * this->Dot(normal) * normal));
 		}
 
 		/** Performs Gram-Schmidt orthonormalization. */
-		static void Orthonormalize(Vector2& u, Vector2& v)
+		static void Orthonormalize(TVector2& u, TVector2& v)
 		{
 			u.Normalize();
 
-			float dot = u.Dot(v);
+			const T dot = u.Dot(v);
 			v -= u * dot;
 			v.Normalize();
 		}
 
-		/**
-		 * Normalizes the provided vector and returns the result. If @p SAFE is true, checks if the magnitude is
-		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
-		 */
-		template <bool SAFE = true>
-		static Vector2 Normalize(const Vector2& v, float tolerance = 1e-04f)
+		/** Normalizes the provided vector and returns the result. */
+		static TVector2 Normalize(const TVector2& value)
 		{
-			float sqrdLen = v.X * v.X + v.Y * v.Y;
-			if(!SAFE || sqrdLen > tolerance)
-				return v * Math::InvSqrt(sqrdLen);
+			const T squaredLength = value.X * value.X + value.Y * value.Y;
+			return value * Math::InvSqrt(squaredLength);
+		}
 
-			return v;
+		/** Normalizes the provided vector and returns the result. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. */
+		static TVector2 NormalizeChecked(const TVector2& value, T tolerance = (T)1e-04)
+		{
+			const T squaredLength = value.X * value.X + value.Y * value.Y;
+			if(squaredLength > tolerance)
+				return value * Math::InvSqrt(squaredLength);
+
+			return value;
 		}
 
 		/** Checks are any of the vector components NaN. */
@@ -338,22 +332,37 @@ namespace bs
 		}
 
 		/** Returns the minimum of all the vector components as a new vector. */
-		static Vector2 Min(const Vector2& a, const Vector2& b)
+		static TVector2 Min(const TVector2& a, const TVector2& b)
 		{
-			return Vector2(std::min(a.X, b.X), std::min(a.Y, b.Y));
+			return TVector2(std::min(a.X, b.X), std::min(a.Y, b.Y));
 		}
 
 		/** Returns the maximum of all the vector components as a new vector. */
-		static Vector2 Max(const Vector2& a, const Vector2& b)
+		static TVector2 Max(const TVector2& a, const TVector2& b)
 		{
-			return Vector2(std::max(a.X, b.X), std::max(a.Y, b.Y));
+			return TVector2(std::max(a.X, b.X), std::max(a.Y, b.Y));
 		}
 
-		static const Vector2 kZero;
-		static const Vector2 kOne;
-		static const Vector2 kUnitX;
-		static const Vector2 kUnitY;
+		static const TVector2 kZero;
+		static const TVector2 kOne;
+		static const TVector2 kUnitX;
+		static const TVector2 kUnitY;
 	};
+
+	template<> const TVector2<float> TVector2<float>::kZero{BsZero};
+	template<> const TVector2<double> TVector2<double>::kZero{BsZero};
+
+	template<> const TVector2<float> TVector2<float>::kOne{1.0f, 1.0f};
+	template<> const TVector2<double> TVector2<double>::kOne{1.0, 1.0};
+
+	template<> const TVector2<float> TVector2<float>::kUnitX{1.0f, 0.0f};
+	template<> const TVector2<double> TVector2<double>::kUnitX{1.0, 0.0};
+
+	template<> const TVector2<float> TVector2<float>::kUnitY{0.0f, 1.0f};
+	template<> const TVector2<double> TVector2<double>::kUnitY{0.0, 1.0};
+
+	extern template struct TVector2<float>;
+	extern template struct TVector2<double>;
 
 	/** @} */
 } // namespace bs

@@ -195,9 +195,9 @@ SPtr<TAnimationCurve<Vector3>> AnimationUtility::QuaternionToEulerCurve(const SP
 		quat.ToEulerAngles(x, y, z);
 
 		Vector3 euler(
-			x.ValueDegrees(),
-			y.ValueDegrees(),
-			z.ValueDegrees());
+			x.GetValueInDegrees(),
+			y.GetValueInDegrees(),
+			z.GetValueInDegrees());
 
 		return euler;
 	};

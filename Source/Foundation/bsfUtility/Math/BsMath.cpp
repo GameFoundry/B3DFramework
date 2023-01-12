@@ -10,21 +10,6 @@ using namespace bs;
 
 const float Math::kLoG2 = std::log(2.0f);
 
-Radian Math::Acos(float val)
-{
-	if(-1.0f < val)
-	{
-		if(val < 1.0f)
-			return Radian(std::acos(val));
-		else
-			return Radian(0.0f);
-	}
-	else
-	{
-		return Radian(kPi);
-	}
-}
-
 Radian Math::Asin(float val)
 {
 	if(-1.0f < val)
@@ -49,11 +34,6 @@ float Math::Sign(float val)
 		return -1.0f;
 
 	return 0.0f;
-}
-
-float Math::InvSqrt(float val)
-{
-	return 1.0f / sqrt(val);
 }
 
 float Math::FastSin0(float val)

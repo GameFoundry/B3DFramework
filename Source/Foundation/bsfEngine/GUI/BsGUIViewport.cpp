@@ -20,7 +20,7 @@ const String& GUIViewport::GetGuiTypeName()
 GUIViewport::GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUIDimensions& dimensions)
 	: GUIElement(styleName, dimensions), mCamera(camera), mAspectRatio(aspectRatio), mFieldOfView(fieldOfView)
 {
-	mVerticalFOV = 2.0f * Math::Atan(Math::Tan(mFieldOfView.ValueRadians() * 0.5f) * (1.0f / mAspectRatio));
+	mVerticalFOV = 2.0f * Math::Atan(Math::Tan(mFieldOfView.GetValueInRadians() * 0.5f) * (1.0f / mAspectRatio));
 }
 
 GUIViewport* GUIViewport::Create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)

@@ -884,7 +884,7 @@ void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3&
 	outNormals += vertexOffset * vertexStride;
 	outIndices += indexOffset;
 
-	bool reverseOrder = amountAngle.ValueDegrees() < 0.0f;
+	bool reverseOrder = amountAngle.GetValueInDegrees() < 0.0f;
 	Vector3 visibleNormal = normal;
 
 	outVertices = WriteVector3(outVertices, vertexStride, center);

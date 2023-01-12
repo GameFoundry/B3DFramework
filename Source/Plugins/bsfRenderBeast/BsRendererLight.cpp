@@ -31,7 +31,7 @@ void RendererLight::GetParameters(LightData& output) const
 	output.SrcRadius = Internal->GetSourceRadius();
 	output.Direction = -tfrm.GetRotation().ZAxis();
 	output.Luminance = Internal->GetLuminance();
-	output.SpotAngles.X = spotAngle.ValueRadians();
+	output.SpotAngles.X = spotAngle.GetValueInRadians();
 	output.SpotAngles.Y = Math::Cos(output.SpotAngles.X);
 	output.SpotAngles.Z = 1.0f / std::max(Math::Cos(spotFalloffAngle) - output.SpotAngles.Y, 0.001f);
 	output.AttRadiusSqrdInv = 1.0f / (Internal->GetAttenuationRadius() * Internal->GetAttenuationRadius());

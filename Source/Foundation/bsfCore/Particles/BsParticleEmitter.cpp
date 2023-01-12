@@ -237,13 +237,13 @@ ParticleEmitterConeShape::ParticleEmitterConeShape(const PARTICLE_CONE_SHAPE_DES
 
 u32 ParticleEmitterConeShape::SpawnInternal(const Random& random, ParticleSet& particles, u32 count, const ParticleSystemState& state) const
 {
-	return SpawnMultipleMode(this, mInfo.Mode.Type, mInfo.Arc.ValueRadians(), mInfo.Mode.Speed * Math::kDeG2Rad, mInfo.Mode.Interval * Math::kDeG2Rad, random, particles, count, state);
+	return SpawnMultipleMode(this, mInfo.Mode.Type, mInfo.Arc.GetValueInRadians(), mInfo.Mode.Speed * Math::kDeG2Rad, mInfo.Mode.Interval * Math::kDeG2Rad, random, particles, count, state);
 }
 
 void ParticleEmitterConeShape::SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const
 {
 	Vector2 pos2D;
-	if(Math::ApproxEquals(mInfo.Arc.ValueRadians(), 360.0f))
+	if(Math::ApproxEquals(mInfo.Arc.GetValueInRadians(), 360.0f))
 		pos2D = random.GetPointInCircleShell(mInfo.Thickness);
 	else
 		pos2D = random.GetPointInArcShell(mInfo.Arc, mInfo.Thickness);
@@ -636,13 +636,13 @@ ParticleEmitterCircleShape::ParticleEmitterCircleShape(const PARTICLE_CIRCLE_SHA
 
 u32 ParticleEmitterCircleShape::SpawnInternal(const Random& random, ParticleSet& particles, u32 count, const ParticleSystemState& state) const
 {
-	return SpawnMultipleMode(this, mInfo.Mode.Type, mInfo.Arc.ValueRadians(), mInfo.Mode.Speed * Math::kDeG2Rad, mInfo.Mode.Interval * Math::kDeG2Rad, random, particles, count, state);
+	return SpawnMultipleMode(this, mInfo.Mode.Type, mInfo.Arc.GetValueInRadians(), mInfo.Mode.Speed * Math::kDeG2Rad, mInfo.Mode.Interval * Math::kDeG2Rad, random, particles, count, state);
 }
 
 void ParticleEmitterCircleShape::SpawnInternal(const Random& random, Vector3& position, Vector3& normal) const
 {
 	Vector2 pos2D;
-	if(Math::ApproxEquals(mInfo.Arc.ValueDegrees(), 360.0f))
+	if(Math::ApproxEquals(mInfo.Arc.GetValueInDegrees(), 360.0f))
 		pos2D = random.GetPointInCircleShell(mInfo.Thickness);
 	else
 		pos2D = random.GetPointInArcShell(mInfo.Arc, mInfo.Thickness);
@@ -839,7 +839,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 	return true;
 }
 
-void MeshEmissionHelper::GetSequentialVertex(class Vector3& position, class Vector3& normal, u32& idx) const
+void MeshEmissionHelper::GetSequentialVertex(Vector3& position, Vector3& normal, u32& idx) const
 {
 	idx = mNextSequentialIdx;
 	position = *(Vector3*)(mVertices + mVertexStride * idx);

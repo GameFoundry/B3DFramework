@@ -15,9 +15,9 @@ namespace bs
 	template<class T>
 	struct TVector3I
 	{
-		T X = 0;
-		T Y = 0;
-		T Z = 0;
+		T X = (T)0;
+		T Y = (T)0;
+		T Z = (T)0;
 
 		constexpr TVector3I() = default;
 
@@ -130,6 +130,7 @@ namespace bs
 			return *this;
 		}
 
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
 		TVector3I operator-() const
 		{
 			return TVector3I(-X, -Y, -Z);
@@ -216,8 +217,8 @@ namespace bs
 		static const TVector3I kZero;
 	};
 
-	template<> const TVector3I<i32> TVector3I<i32>::kZero;
-	template<> const TVector3I<u32> TVector3I<u32>::kZero;
+	template<> const TVector3I<i32> TVector3I<i32>::kZero{0, 0, 0};
+	template<> const TVector3I<u32> TVector3I<u32>::kZero{0u, 0u, 0u};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3I)) TVector3I<i32>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector3UI)) TVector3I<u32>;

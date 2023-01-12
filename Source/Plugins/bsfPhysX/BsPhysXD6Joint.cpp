@@ -203,7 +203,7 @@ LimitAngularRange PhysXD6Joint::GetLimitTwist() const
 
 void PhysXD6Joint::SetLimitTwist(const LimitAngularRange& limit)
 {
-	PxJointAngularLimitPair pxLimit(limit.Lower.ValueRadians(), limit.Upper.ValueRadians(), limit.ContactDist);
+	PxJointAngularLimitPair pxLimit(limit.Lower.GetValueInRadians(), limit.Upper.GetValueInRadians(), limit.ContactDist);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
@@ -228,7 +228,7 @@ LimitConeRange PhysXD6Joint::GetLimitSwing() const
 
 void PhysXD6Joint::SetLimitSwing(const LimitConeRange& limit)
 {
-	PxJointLimitCone pxLimit(limit.YLimitAngle.ValueRadians(), limit.ZLimitAngle.ValueRadians(), limit.ContactDist);
+	PxJointLimitCone pxLimit(limit.YLimitAngle.GetValueInRadians(), limit.ZLimitAngle.GetValueInRadians(), limit.ContactDist);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;

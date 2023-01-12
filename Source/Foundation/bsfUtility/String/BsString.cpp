@@ -167,12 +167,12 @@ WString ToWString(double val, unsigned short precision, unsigned short width, ch
 
 WString ToWString(const Radian& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToWString(val.ValueRadians(), precision, width, fill, flags);
+	return ToWString(val.GetValueInRadians(), precision, width, fill, flags);
 }
 
 WString ToWString(const Degree& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToWString(val.ValueDegrees(), precision, width, fill, flags);
+	return ToWString(val.GetValueInDegrees(), precision, width, fill, flags);
 }
 
 WString ToWString(int val, unsigned short width, char fill, std::ios::fmtflags flags)
@@ -399,12 +399,12 @@ String ToString(double val, unsigned short precision, unsigned short width, char
 
 String ToString(const Radian& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToString(val.ValueRadians(), precision, width, fill, flags);
+	return ToString(val.GetValueInRadians(), precision, width, fill, flags);
 }
 
 String ToString(const Degree& val, unsigned short precision, unsigned short width, char fill, std::ios::fmtflags flags)
 {
-	return ToString(val.ValueDegrees(), precision, width, fill, flags);
+	return ToString(val.GetValueInDegrees(), precision, width, fill, flags);
 }
 
 String ToString(int val, unsigned short width, char fill, std::ios::fmtflags flags)

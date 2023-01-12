@@ -71,7 +71,7 @@ LimitConeRange PhysXSphericalJoint::GetLimit() const
 
 void PhysXSphericalJoint::SetLimit(const LimitConeRange& limit)
 {
-	PxJointLimitCone pxLimit(limit.YLimitAngle.ValueRadians(), limit.ZLimitAngle.ValueRadians(), limit.ContactDist);
+	PxJointLimitCone pxLimit(limit.YLimitAngle.GetValueInRadians(), limit.ZLimitAngle.GetValueInRadians(), limit.ContactDist);
 	pxLimit.stiffness = limit.Spring.Stiffness;
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;

@@ -5,49 +5,60 @@
 
 using namespace bs;
 
-Radian::Radian(const Degree& d)
-	: mRad(d.ValueRadians())
+template<class T>
+TRadian<T>::TRadian(const TDegree<T>& value)
+	: mRadians(value.GetValueInRadians())
 {}
 
-Radian Radian::Wrap()
+template<class T>
+TRadian<T> TRadian<T>::Wrap()
 {
-	mRad = fmod(mRad, Math::kTwoPi);
+	mRadians = fmod(mRadians, Math::kTwoPi);
 
-	if(mRad < 0)
-		mRad += Math::kTwoPi;
+	if(mRadians < 0)
+		mRadians += Math::kTwoPi;
 
 	return *this;
 }
 
-Radian& Radian::operator=(const Degree& d)
+template<class T>
+TRadian<T>& TRadian<T>::operator=(const TDegree<T>& rhs)
 {
-	mRad = d.ValueRadians();
+	mRadians = rhs.GetValueInRadians();
 	return *this;
 }
 
-Radian Radian::operator+(const Degree& d) const
+template<class T>
+TRadian<T> TRadian<T>::operator+(const TDegree<T>& rhs) const
 {
-	return Radian(mRad + d.ValueRadians());
+	return TRadian(mRadians + rhs.GetValueInRadians());
 }
 
-Radian& Radian::operator+=(const Degree& d)
+template<class T>
+TRadian<T>& TRadian<T>::operator+=(const TDegree<T>& rhs)
 {
-	mRad += d.ValueRadians();
+	mRadians += rhs.GetValueInRadians();
 	return *this;
 }
 
-Radian Radian::operator-(const Degree& d) const
+template<class T>
+TRadian<T> TRadian<T>::operator-(const TDegree<T>& rhs) const
 {
-	return Radian(mRad - d.ValueRadians());
+	return TRadian(mRadians - rhs.GetValueInRadians());
 }
 
-Radian& Radian::operator-=(const Degree& d)
+template<class T>
+TRadian<T>& TRadian<T>::operator-=(const TDegree<T>& rhs)
 {
-	mRad -= d.ValueRadians();
+	mRadians -= rhs.GetValueInRadians();
 	return *this;
 }
 
-float Radian::ValueDegrees() const
+template<class T>
+T TRadian<T>::GetValueInDegrees() const
 {
-	return mRad * Math::kRaD2Deg;
+	return mRadians * Math::kRaD2Deg;
 }
+
+template class B3D_UTILITY_EXPORT TRadian<float>;
+template class B3D_UTILITY_EXPORT TRadian<double>;

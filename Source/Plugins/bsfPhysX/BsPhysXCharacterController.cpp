@@ -55,7 +55,7 @@ PxCapsuleControllerDesc ToPxDesc(const CHAR_CONTROLLER_DESC& desc)
 	output.nonWalkableMode = ToPxEnum(desc.NonWalkableMode);
 	output.contactOffset = desc.ContactOffset;
 	output.stepOffset = desc.StepOffset;
-	output.slopeLimit = desc.SlopeLimit.ValueRadians();
+	output.slopeLimit = desc.SlopeLimit.GetValueInRadians();
 	output.height = desc.Height;
 	output.radius = desc.Radius;
 	output.upDirection = ToPxVector(desc.Up);
@@ -215,7 +215,7 @@ Radian PhysXCharacterController::GetSlopeLimit() const
 
 void PhysXCharacterController::SetSlopeLimit(Radian value)
 {
-	mController->setSlopeLimit(value.ValueRadians());
+	mController->setSlopeLimit(value.GetValueInRadians());
 }
 
 void PhysXCharacterController::onShapeHit(const PxControllerShapeHit& hit)

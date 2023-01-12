@@ -59,9 +59,9 @@ namespace bs
 
 	private:
 		String mMsg;
-		LogVerbosity mVerbosity;
-		u32 mCategory;
-		std::time_t mLocalTime;
+		LogVerbosity mVerbosity = LogVerbosity::Info;
+		u32 mCategory = 0;
+		std::time_t mLocalTime = 0;
 	};
 
 	/**

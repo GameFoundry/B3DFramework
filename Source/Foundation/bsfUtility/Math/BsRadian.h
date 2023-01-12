@@ -6,7 +6,8 @@
 
 namespace bs
 {
-	class Degree;
+	template<class T>
+	class TDegree;
 
 	/** @addtogroup Math
 	 *  @{
@@ -18,107 +19,96 @@ namespace bs
 	 * @note
 	 * Radian values are interchangeable with Degree values, and conversions will be done automatically between them.
 	 */
-	class B3D_UTILITY_EXPORT Radian
+	template<class T>
+	class TRadian
 	{
 	public:
-		constexpr Radian() = default;
-		constexpr Radian(const Radian&) = default;
-		constexpr Radian& operator=(const Radian&) = default;
+		constexpr TRadian() = default;
+		constexpr TRadian(const TRadian& value) = default;
+		TRadian(const TDegree<T>& value);
 
-		constexpr explicit Radian(float r)
-			: mRad(r) {}
+		constexpr explicit TRadian(T radians)
+			: mRadians(radians) {}
 
-		constexpr Radian& operator=(const float& f)
+		TRadian& operator=(const TDegree<T>& rhs);
+		constexpr TRadian& operator=(const TRadian& rhs) = default;
+		constexpr TRadian& operator=(const T& rhs)
 		{
-			mRad = f;
+			mRadians = rhs;
 			return *this;
 		}
 
-		Radian(const Degree& d);
-		Radian& operator=(const Degree& d);
 
 		/** Returns the value of the angle in degrees. */
-		float ValueDegrees() const;
+		T GetValueInDegrees() const;
 
 		/** Returns the value of the angle in radians. */
-		constexpr float ValueRadians() const { return mRad; }
+		constexpr T GetValueInRadians() const { return mRadians; }
 
 		/** Wraps the angle in [0, 2 *  PI) range. */
-		Radian Wrap();
+		TRadian Wrap();
 
-		const Radian& operator+() const { return *this; }
+		const TRadian& operator+() const { return *this; }
 
-		Radian operator+(const Radian& r) const { return Radian(mRad + r.mRad); }
+		TRadian operator+(const TRadian& rhs) const { return TRadian(mRadians + rhs.mRadians); }
+		TRadian operator+(const TDegree<T>& rhs) const;
 
-		Radian operator+(const Degree& d) const;
-
-		Radian& operator+=(const Radian& r)
+		TRadian& operator+=(const TDegree<T>& rhs);
+		TRadian& operator+=(const TRadian& rhs)
 		{
-			mRad += r.mRad;
+			mRadians += rhs.mRadians;
 			return *this;
 		}
 
-		Radian& operator+=(const Degree& d);
+		TRadian operator-() const { return TRadian(-mRadians); }
 
-		Radian operator-() const { return Radian(-mRad); }
+		TRadian operator-(const TDegree<T>& rhs) const;
+		TRadian operator-(const TRadian& rhs) const { return TRadian(mRadians - rhs.mRadians); }
 
-		Radian operator-(const Radian& r) const { return Radian(mRad - r.mRad); }
-
-		Radian operator-(const Degree& d) const;
-
-		Radian& operator-=(const Radian& r)
+		TRadian& operator-=(const TDegree<T>& rhs);
+		TRadian& operator-=(const TRadian& rhs)
 		{
-			mRad -= r.mRad;
+			mRadians -= rhs.mRadians;
 			return *this;
 		}
 
-		Radian& operator-=(const Degree& d);
+		TRadian operator*(T rhs) const { return TRadian(mRadians * rhs); }
+		TRadian operator*(const TRadian& rhs) const { return TRadian(mRadians * rhs.mRadians); }
 
-		Radian operator*(float f) const { return Radian(mRad * f); }
-
-		Radian operator*(const Radian& f) const { return Radian(mRad * f.mRad); }
-
-		Radian& operator*=(float f)
+		TRadian& operator*=(T rhs)
 		{
-			mRad *= f;
+			mRadians *= rhs;
 			return *this;
 		}
 
-		Radian operator/(float f) const { return Radian(mRad / f); }
+		TRadian operator/(T rhs) const { return TRadian(mRadians / rhs); }
 
-		Radian& operator/=(float f)
+		TRadian& operator/=(T rhs)
 		{
-			mRad /= f;
+			mRadians /= rhs;
 			return *this;
 		}
 
-		friend Radian operator*(float lhs, const Radian& rhs) { return Radian(lhs * rhs.mRad); }
+		friend TRadian operator*(T lhs, const TRadian& rhs) { return TRadian(lhs * rhs.mRadians); }
+		friend TRadian operator/(T lhs, const TRadian& rhs) { return TRadian(lhs / rhs.mRadians); }
+		friend TRadian operator+(TRadian& lhs, T rhs) { return TRadian(lhs.mRadians + rhs); }
+		friend TRadian operator+(T lhs, const TRadian& rhs) { return TRadian(lhs + rhs.mRadians); }
+		friend TRadian operator-(const TRadian& lhs, T rhs) { return TRadian(lhs.mRadians - rhs); }
+		friend TRadian operator-(const T lhs, const TRadian& rhs) { return TRadian(lhs - rhs.mRadians); }
 
-		friend Radian operator/(float lhs, const Radian& rhs) { return Radian(lhs / rhs.mRad); }
-
-		friend Radian operator+(Radian& lhs, float rhs) { return Radian(lhs.mRad + rhs); }
-
-		friend Radian operator+(float lhs, const Radian& rhs) { return Radian(lhs + rhs.mRad); }
-
-		friend Radian operator-(const Radian& lhs, float rhs) { return Radian(lhs.mRad - rhs); }
-
-		friend Radian operator-(const float lhs, const Radian& rhs) { return Radian(lhs - rhs.mRad); }
-
-		bool operator<(const Radian& r) const { return mRad < r.mRad; }
-
-		bool operator<=(const Radian& r) const { return mRad <= r.mRad; }
-
-		bool operator==(const Radian& r) const { return mRad == r.mRad; }
-
-		bool operator!=(const Radian& r) const { return mRad != r.mRad; }
-
-		bool operator>=(const Radian& r) const { return mRad >= r.mRad; }
-
-		bool operator>(const Radian& r) const { return mRad > r.mRad; }
+		bool operator<(const TRadian& rhs) const { return mRadians < rhs.mRadians; }
+		bool operator<=(const TRadian& rhs) const { return mRadians <= rhs.mRadians; }
+		bool operator==(const TRadian& rhs) const { return mRadians == rhs.mRadians; }
+		bool operator!=(const TRadian& rhs) const { return mRadians != rhs.mRadians; }
+		bool operator>=(const TRadian& rhs) const { return mRadians >= rhs.mRadians; }
+		bool operator>(const TRadian& rhs) const { return mRadians > rhs.mRadians; }
 
 	private:
-		float mRad = 0.0f;
+		T mRadians = (T)0.0;
 	};
+
+	extern template class TRadian<float>;
+	extern template class TRadian<double>;
 
 	/** @} */
 } // namespace bs

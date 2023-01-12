@@ -5,49 +5,60 @@
 
 using namespace bs;
 
-Degree::Degree(const Radian& r)
-	: mDeg(r.ValueDegrees())
+template<class T>
+TDegree<T>::TDegree(const TRadian<T>& value)
+	: mDegrees(value.GetValueInDegrees())
 {}
 
-Degree Degree::Wrap()
+template<class T>
+TDegree<T> TDegree<T>::Wrap()
 {
-	mDeg = fmod(mDeg, 360.0f);
+	mDegrees = fmod(mDegrees, (T)360.0);
 
-	if(mDeg < 0)
-		mDeg += 360.0f;
+	if(mDegrees < 0)
+		mDegrees += (T)360.0;
 
 	return *this;
 }
 
-Degree& Degree::operator=(const Radian& r)
+template<class T>
+TDegree<T>& TDegree<T>::operator=(const TRadian<T>& rhs)
 {
-	mDeg = r.ValueDegrees();
+	mDegrees = rhs.GetValueInDegrees();
 	return *this;
 }
 
-Degree Degree::operator+(const Radian& r) const
+template<class T>
+TDegree<T> TDegree<T>::operator+(const TRadian<T>& rhs) const
 {
-	return Degree(mDeg + r.ValueDegrees());
+	return TDegree(mDegrees + rhs.GetValueInDegrees());
 }
 
-Degree& Degree::operator+=(const Radian& r)
+template<class T>
+TDegree<T>& TDegree<T>::operator+=(const TRadian<T>& rhs)
 {
-	mDeg += r.ValueDegrees();
+	mDegrees += rhs.GetValueInDegrees();
 	return *this;
 }
 
-Degree Degree::operator-(const Radian& r) const
+template<class T>
+TDegree<T> TDegree<T>::operator-(const TRadian<T>& rhs) const
 {
-	return Degree(mDeg - r.ValueDegrees());
+	return TDegree(mDegrees - rhs.GetValueInDegrees());
 }
 
-Degree& Degree::operator-=(const Radian& r)
+template<class T>
+TDegree<T>& TDegree<T>::operator-=(const TRadian<T>& rhs)
 {
-	mDeg -= r.ValueDegrees();
+	mDegrees -= rhs.GetValueInDegrees();
 	return *this;
 }
 
-float Degree::ValueRadians() const
+template<class T>
+T TDegree<T>::GetValueInRadians() const
 {
-	return mDeg * Math::kDeG2Rad;
+	return mDegrees * Math::kDeG2Rad;
 }
+
+template class B3D_UTILITY_EXPORT TDegree<float>;
+template class B3D_UTILITY_EXPORT TDegree<double>;
