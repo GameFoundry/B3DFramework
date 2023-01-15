@@ -33,7 +33,9 @@ namespace bs
 		White,
 		Black,
 		Normal,
-		BokehFlare
+		BokehFlare,
+		White3D,
+		Black3D
 	};
 
 	/** Types of builtin shaders that are always available. */
@@ -182,6 +184,8 @@ namespace bs
 		static constexpr const char* kTextureWhiteFile = u8"White.asset";
 		static constexpr const char* kTextureBlackFile = u8"Black.asset";
 		static constexpr const char* kTextureNormalFile = u8"Normal.asset";
+		static constexpr const char* kTextureWhite3DFile = u8"White3D.asset";
+		static constexpr const char* kTextureBlack3DFile = u8"Black3D.asset";
 
 		static constexpr const char* kDefaultFontName = u8"arial.ttf";
 		static constexpr const u32 kDefaultFontSize = 8;

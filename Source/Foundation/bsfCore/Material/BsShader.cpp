@@ -605,12 +605,12 @@ u32 Shader::GetDataParamSize(GpuDataParameterType type)
 
 HShader Shader::Create(const String& name, const ShaderCreateInformation& createInformation)
 {
-	SPtr<Shader> newShader = CreatePtrInternal(name, createInformation);
+	SPtr<Shader> newShader = CreateShared(name, createInformation);
 
 	return B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandleInternal(newShader));
 }
 
-SPtr<Shader> Shader::CreatePtrInternal(const String& name, const ShaderCreateInformation& createInformation)
+SPtr<Shader> Shader::CreateShared(const String& name, const ShaderCreateInformation& createInformation)
 {
 	u32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");

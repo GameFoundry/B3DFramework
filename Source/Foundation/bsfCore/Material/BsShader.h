@@ -628,7 +628,7 @@ namespace bs
 		 *
 		 * @note	Internal method. Use Create() for normal use.
 		 */
-		static SPtr<Shader> CreatePtrInternal(const String& name, const ShaderCreateInformation& createInformation);
+		static SPtr<Shader> CreateShared(const String& name, const ShaderCreateInformation& createInformation);
 
 		/** @} */
 

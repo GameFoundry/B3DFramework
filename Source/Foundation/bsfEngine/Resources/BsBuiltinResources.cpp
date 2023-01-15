@@ -378,6 +378,12 @@ HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 	case BuiltinTexture::BokehFlare:
 		texturePath.Append(u8"BokehHex.png.asset");
 		break;
+	case BuiltinTexture::Black3D:
+		texturePath.Append(kTextureBlack3DFile);
+		break;
+	case BuiltinTexture::White3D:
+		texturePath.Append(kTextureWhite3DFile);
+		break;
 	}
 
 	return GetResources().Load<Texture>(texturePath);

@@ -25,6 +25,7 @@ namespace bs
 		SAMPLER_STATE_DESC(){};
 
 		bool operator==(const SAMPLER_STATE_DESC& rhs) const;
+		bool operator!=(const SAMPLER_STATE_DESC& rhs) const { return !this->operator==(rhs); }
 
 		/** Determines how are texture coordinates outside of [0, 1] range handled. */
 		UVWAddressingMode AddressMode;

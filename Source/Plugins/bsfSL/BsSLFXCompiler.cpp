@@ -31,7 +31,6 @@ extern "C" {
 }
 
 using namespace std;
-
 using namespace bs;
 
 // Print out the FX AST, only for debug purposes
@@ -295,7 +294,7 @@ GpuDataParameterType ReflTypeToDataType(Xsc::Reflection::DataType type)
 	}
 }
 
-HTexture GetBuiltinTexture(u32 idx)
+static HTexture GetBuiltinTexture(u32 idx)
 {
 	if(idx == 1)
 		return BuiltinResources::GetTexture(BuiltinTexture::White);
@@ -306,6 +305,17 @@ HTexture GetBuiltinTexture(u32 idx)
 
 	return HTexture();
 }
+
+static HTexture GetBuiltin3DTexture(u32 index)
+{
+	if (index == 1)
+		return BuiltinResources::GetTexture(BuiltinTexture::White3D);
+	else if (index == 2)
+		return BuiltinResources::GetTexture(BuiltinTexture::Black3D);
+
+	return HTexture();
+}
+
 
 u32 GetStructSize(i32 structIdx, const std::vector<Xsc::Reflection::Struct>& structLookup)
 {
@@ -375,97 +385,98 @@ CompareFunction ParseCompFunction(Xsc::Reflection::ComparisonFunc compFunc)
 	}
 }
 
-SPtr<SamplerState> ParseSamplerState(const Xsc::Reflection::SamplerState& sampState)
+static SAMPLER_STATE_DESC ParseSamplerState(const Xsc::Reflection::SamplerState& samplerReflectionInformation)
 {
-	SAMPLER_STATE_DESC desc;
+	SAMPLER_STATE_DESC samplerCreateInformation;
 
-	desc.AddressMode.U = ParseTexAddrMode(sampState.addressU);
-	desc.AddressMode.V = ParseTexAddrMode(sampState.addressV);
-	desc.AddressMode.W = ParseTexAddrMode(sampState.addressW);
+	samplerCreateInformation.AddressMode.U = ParseTexAddrMode(samplerReflectionInformation.addressU);
+	samplerCreateInformation.AddressMode.V = ParseTexAddrMode(samplerReflectionInformation.addressV);
+	samplerCreateInformation.AddressMode.W = ParseTexAddrMode(samplerReflectionInformation.addressW);
 
-	desc.BorderColor[0] = sampState.borderColor[0];
-	desc.BorderColor[1] = sampState.borderColor[1];
-	desc.BorderColor[2] = sampState.borderColor[2];
-	desc.BorderColor[3] = sampState.borderColor[3];
+	samplerCreateInformation.BorderColor[0] = samplerReflectionInformation.borderColor[0];
+	samplerCreateInformation.BorderColor[1] = samplerReflectionInformation.borderColor[1];
+	samplerCreateInformation.BorderColor[2] = samplerReflectionInformation.borderColor[2];
+	samplerCreateInformation.BorderColor[3] = samplerReflectionInformation.borderColor[3];
 
-	desc.ComparisonFunc = ParseCompFunction(sampState.comparisonFunc);
-	desc.MaxAniso = sampState.maxAnisotropy;
-	desc.MipMax = sampState.maxLOD;
-	desc.MipMin = sampState.minLOD;
-	desc.MipmapBias = sampState.mipLODBias;
+	samplerCreateInformation.ComparisonFunc = ParseCompFunction(samplerReflectionInformation.comparisonFunc);
+	samplerCreateInformation.MaxAniso = samplerReflectionInformation.maxAnisotropy;
+	samplerCreateInformation.MipMax = samplerReflectionInformation.maxLOD;
+	samplerCreateInformation.MipMin = samplerReflectionInformation.minLOD;
+	samplerCreateInformation.MipmapBias = samplerReflectionInformation.mipLODBias;
 
-	switch(sampState.filter)
+	switch(samplerReflectionInformation.filter)
 	{
 	case Xsc::Reflection::Filter::MinMagMipPoint:
 	case Xsc::Reflection::Filter::ComparisonMinMagMipPoint:
-		desc.MinFilter = FO_POINT;
-		desc.MagFilter = FO_POINT;
-		desc.MipFilter = FO_POINT;
+		samplerCreateInformation.MinFilter = FO_POINT;
+		samplerCreateInformation.MagFilter = FO_POINT;
+		samplerCreateInformation.MipFilter = FO_POINT;
 		break;
 	case Xsc::Reflection::Filter::MinMagPointMipLinear:
 	case Xsc::Reflection::Filter::ComparisonMinMagPointMipLinear:
-		desc.MinFilter = FO_POINT;
-		desc.MagFilter = FO_POINT;
-		desc.MipFilter = FO_LINEAR;
+		samplerCreateInformation.MinFilter = FO_POINT;
+		samplerCreateInformation.MagFilter = FO_POINT;
+		samplerCreateInformation.MipFilter = FO_LINEAR;
 		break;
 	case Xsc::Reflection::Filter::MinPointMagLinearMipPoint:
 	case Xsc::Reflection::Filter::ComparisonMinPointMagLinearMipPoint:
-		desc.MinFilter = FO_POINT;
-		desc.MagFilter = FO_LINEAR;
-		desc.MipFilter = FO_POINT;
+		samplerCreateInformation.MinFilter = FO_POINT;
+		samplerCreateInformation.MagFilter = FO_LINEAR;
+		samplerCreateInformation.MipFilter = FO_POINT;
 		break;
 	case Xsc::Reflection::Filter::MinPointMagMipLinear:
 	case Xsc::Reflection::Filter::ComparisonMinPointMagMipLinear:
-		desc.MinFilter = FO_POINT;
-		desc.MagFilter = FO_LINEAR;
-		desc.MipFilter = FO_LINEAR;
+		samplerCreateInformation.MinFilter = FO_POINT;
+		samplerCreateInformation.MagFilter = FO_LINEAR;
+		samplerCreateInformation.MipFilter = FO_LINEAR;
 		break;
 	case Xsc::Reflection::Filter::MinLinearMagMipPoint:
 	case Xsc::Reflection::Filter::ComparisonMinLinearMagMipPoint:
-		desc.MinFilter = FO_LINEAR;
-		desc.MagFilter = FO_POINT;
-		desc.MipFilter = FO_POINT;
+		samplerCreateInformation.MinFilter = FO_LINEAR;
+		samplerCreateInformation.MagFilter = FO_POINT;
+		samplerCreateInformation.MipFilter = FO_POINT;
 		break;
 	case Xsc::Reflection::Filter::MinLinearMagPointMipLinear:
 	case Xsc::Reflection::Filter::ComparisonMinLinearMagPointMipLinear:
-		desc.MinFilter = FO_LINEAR;
-		desc.MagFilter = FO_POINT;
-		desc.MipFilter = FO_LINEAR;
+		samplerCreateInformation.MinFilter = FO_LINEAR;
+		samplerCreateInformation.MagFilter = FO_POINT;
+		samplerCreateInformation.MipFilter = FO_LINEAR;
 		break;
 	case Xsc::Reflection::Filter::MinMagLinearMipPoint:
 	case Xsc::Reflection::Filter::ComparisonMinMagLinearMipPoint:
-		desc.MinFilter = FO_LINEAR;
-		desc.MagFilter = FO_LINEAR;
-		desc.MipFilter = FO_POINT;
+		samplerCreateInformation.MinFilter = FO_LINEAR;
+		samplerCreateInformation.MagFilter = FO_LINEAR;
+		samplerCreateInformation.MipFilter = FO_POINT;
 		break;
 	case Xsc::Reflection::Filter::MinMagMipLinear:
 	case Xsc::Reflection::Filter::ComparisonMinMagMipLinear:
-		desc.MinFilter = FO_LINEAR;
-		desc.MagFilter = FO_LINEAR;
-		desc.MipFilter = FO_LINEAR;
+		samplerCreateInformation.MinFilter = FO_LINEAR;
+		samplerCreateInformation.MagFilter = FO_LINEAR;
+		samplerCreateInformation.MipFilter = FO_LINEAR;
 		break;
 	case Xsc::Reflection::Filter::Anisotropic:
 	case Xsc::Reflection::Filter::ComparisonAnisotropic:
-		desc.MinFilter = FO_ANISOTROPIC;
-		desc.MagFilter = FO_ANISOTROPIC;
-		desc.MipFilter = FO_ANISOTROPIC;
+		samplerCreateInformation.MinFilter = FO_ANISOTROPIC;
+		samplerCreateInformation.MagFilter = FO_ANISOTROPIC;
+		samplerCreateInformation.MipFilter = FO_ANISOTROPIC;
 		break;
 	default:
 		break;
 	}
 
-	return SamplerState::Create(desc);
+	return samplerCreateInformation;
 }
 
-void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCreateInformation& desc)
+static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionData, BSLFXCompileResult& outCompileResult, ShaderCreateInformation& outShaderCreateInformation)
 {
-	for(auto& entry : reflData.uniforms)
+	for(auto& entry : reflectionData.uniforms)
 	{
 		if((entry.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0)
 			continue;
 
 		String ident = entry.ident.c_str();
-		auto parseCommonAttributes = [&entry, &ident, &desc]()
+		bool isBlockHiddenInInspector = false;
+		auto parseCommonAttributes = [&entry, &ident, &outShaderCreateInformation, &isBlockHiddenInInspector]()
 		{
 			if(!entry.readableName.empty())
 			{
@@ -474,16 +485,16 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::Name;
 
-				desc.SetParameterAttribute(ident, attribute);
+				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
 			}
 
-			if((entry.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0)
+			if((entry.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0 || isBlockHiddenInInspector)
 			{
 				ShaderParameterAttribute attribute;
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::HideInInspector;
 
-				desc.SetParameterAttribute(ident, attribute);
+				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
 			}
 
 			if((entry.flags & Xsc::Reflection::Uniform::Flags::HDR) != 0)
@@ -492,32 +503,56 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 				attribute.NextParameterIndex = (u32)-1;
 				attribute.Type = ShaderParamAttributeType::HDR;
 
-				desc.SetParameterAttribute(ident, attribute);
+				outShaderCreateInformation.SetParameterAttribute(ident, attribute);
 			}
 		};
 
 		switch(entry.type)
 		{
 		case Xsc::Reflection::VariableType::UniformBuffer:
-			desc.SetParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
+			outShaderCreateInformation.SetParamBlockAttribs(entry.ident.c_str(), false, GBU_STATIC);
 			break;
 		case Xsc::Reflection::VariableType::Buffer:
 			{
 				GpuParameterObjectType objType = ReflTypeToTextureType((Xsc::Reflection::BufferType)entry.baseType);
 				if(objType != GPOT_UNKNOWN)
 				{
-					// Ignore parameters that were already registered in some previous variation. Note that this implies
-					// you cannot have same names for different parameters in different variations.
-					if(desc.TextureParams.find(ident) != desc.TextureParams.end())
+					const bool hasDefaultValue = entry.defaultValue == -1;
+					HTexture defaultValue;
+
+					if (!hasDefaultValue)
+					{
+						const Xsc::Reflection::DefaultValue& reflectedDefaultValue = reflectionData.defaultValues[entry.defaultValue];
+						defaultValue = objType == GPOT_TEXTURE3D ? GetBuiltin3DTexture(reflectedDefaultValue.integer) : GetBuiltinTexture(reflectedDefaultValue.integer);
+					}
+
+					// Warn if parameter was already registered in some previous variation with a different value
+					if(auto foundTextureParameter = outShaderCreateInformation.TextureParams.find(ident); foundTextureParameter != outShaderCreateInformation.TextureParams.end())
+					{
+						const bool isExistingValueDefault = foundTextureParameter->second.DefaultValueIndex == ~0u;
+						if (hasDefaultValue != isExistingValueDefault)
+						{
+							outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Texture parameter '{0}' has a different default value across variations.", entry.ident.c_str());
+							return false;
+						}
+
+						if (!hasDefaultValue)
+						{
+							const HTexture existingTexture = outShaderCreateInformation.TextureDefaultValues[foundTextureParameter->second.DefaultValueIndex];
+							if (existingTexture != defaultValue)
+							{
+								outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Texture parameter '{0}' has a different default value across variations.", entry.ident.c_str());
+								return false;
+							}
+						}
+
 						continue;
+					}
 
 					if(entry.defaultValue == -1)
-						desc.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
+						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
 					else
-					{
-						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
-						desc.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize), GetBuiltinTexture(defVal.integer));
-					}
+						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize), defaultValue);
 
 					parseCommonAttributes();
 				}
@@ -525,11 +560,11 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 				{
 					// Ignore parameters that were already registered in some previous variation. Note that this implies
 					// you cannot have same names for different parameters in different variations.
-					if(desc.BufferParams.find(ident) != desc.BufferParams.end())
+					if(outShaderCreateInformation.BufferParams.find(ident) != outShaderCreateInformation.BufferParams.end())
 						continue;
 
 					objType = ReflTypeToBufferType((Xsc::Reflection::BufferType)entry.baseType);
-					desc.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
+					outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, objType, StringID::kNone, entry.arraySize));
 
 					parseCommonAttributes();
 				}
@@ -537,35 +572,59 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 			break;
 		case Xsc::Reflection::VariableType::Sampler:
 			{
-				auto findIter = reflData.samplerStates.find(entry.ident);
-				if(findIter != reflData.samplerStates.end())
+				if(auto foundSamplerReflectionData = reflectionData.samplerStates.find(entry.ident); foundSamplerReflectionData != reflectionData.samplerStates.end())
 				{
-					// Ignore parameters that were already registered in some previous variation. Note that this implies
-					// you cannot have same names for different parameters in different variations.
-					if(desc.SamplerParams.find(ident) != desc.SamplerParams.end())
-						continue;
+					SAMPLER_STATE_DESC defaultSamplerStateCreateInformation;
+					if (foundSamplerReflectionData->second.isNonDefault)
+						defaultSamplerStateCreateInformation = ParseSamplerState(foundSamplerReflectionData->second);
 
-					String alias = findIter->second.alias.c_str();
-
-					if(findIter->second.isNonDefault)
+					if (auto foundSamplerParameter = outShaderCreateInformation.SamplerParams.find(ident); foundSamplerParameter != outShaderCreateInformation.SamplerParams.end())
 					{
-						SPtr<SamplerState> defaultVal = ParseSamplerState(findIter->second);
-						desc.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D), defaultVal);
+						const bool isExistingValueNonDefault = foundSamplerParameter->second.DefaultValueIndex != ~0u;
+						if (foundSamplerReflectionData->second.isNonDefault != isExistingValueNonDefault)
+						{
+							outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Sampler parameter '{0}' has a different default value across variations.", entry.ident.c_str());
+							return false;
+						}
+
+						if (foundSamplerReflectionData->second.isNonDefault)
+						{
+							const SPtr<const SamplerState> existingSamplerState = outShaderCreateInformation.SamplerDefaultValues[foundSamplerParameter->second.DefaultValueIndex];
+							if (existingSamplerState->GetProperties().GetDesc() != defaultSamplerStateCreateInformation)
+							{
+								outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Sampler parameter '{0}' has a different default value across variations.", entry.ident.c_str());
+								return false;
+							}
+						}
+
+						continue;
+					}
+
+					const String alias = foundSamplerReflectionData->second.alias.c_str();
+					if(foundSamplerReflectionData->second.isNonDefault)
+					{
+						const SPtr<SamplerState> defaultValue = SamplerState::Create(defaultSamplerStateCreateInformation);
+						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D), defaultValue);
 
 						if(!alias.empty())
-							desc.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D), defaultVal);
+							outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D), defaultValue);
 					}
 					else
 					{
-						desc.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
+						// Ignore parameters that were already registered in some previous variation. Note that this implies
+						// you cannot have same names for different parameters in different variations.
+						if (outShaderCreateInformation.SamplerParams.find(ident) != outShaderCreateInformation.SamplerParams.end())
+							continue;
+
+						outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
 
 						if(!alias.empty())
-							desc.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D));
+							outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, alias, GPOT_SAMPLER2D));
 					}
 				}
 				else
 				{
-					desc.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
+					outShaderCreateInformation.AddParameter(ShaderObjectParameterInformation(ident, ident, GPOT_SAMPLER2D));
 				}
 				break;
 			}
@@ -574,12 +633,13 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 				bool isBlockInternal = false;
 				if(entry.uniformBlock != -1)
 				{
-					std::string blockName = reflData.constantBuffers[entry.uniformBlock].ident;
-					for(auto& uniform : reflData.uniforms)
+					std::string blockName = reflectionData.constantBuffers[entry.uniformBlock].ident;
+					for(auto& uniform : reflectionData.uniforms)
 					{
 						if(uniform.type == Xsc::Reflection::VariableType::UniformBuffer && uniform.ident == blockName)
 						{
 							isBlockInternal = (uniform.flags & Xsc::Reflection::Uniform::Flags::Internal) != 0;
+							isBlockHiddenInInspector = (uniform.flags & Xsc::Reflection::Uniform::Flags::HideInInspector) != 0;
 							break;
 						}
 					}
@@ -597,12 +657,12 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 					u32 arraySize = entry.arraySize;
 
 					if(entry.defaultValue == -1)
-						desc.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize));
+						outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize));
 					else
 					{
-						const Xsc::Reflection::DefaultValue& defVal = reflData.defaultValues[entry.defaultValue];
+						const Xsc::Reflection::DefaultValue& defVal = reflectionData.defaultValues[entry.defaultValue];
 
-						desc.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize, 0), (u8*)defVal.matrix);
+						outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, type, StringID::kNone, arraySize, 0), (u8*)defVal.matrix);
 					}
 
 					if(!entry.spriteUVRef.empty() && (type == GPDT_FLOAT4))
@@ -612,7 +672,7 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 						attribute.NextParameterIndex = (u32)-1;
 						attribute.Type = ShaderParamAttributeType::SpriteUV;
 
-						desc.SetParameterAttribute(ident, attribute);
+						outShaderCreateInformation.SetParameterAttribute(ident, attribute);
 					}
 
 					parseCommonAttributes();
@@ -622,14 +682,16 @@ void ParseParameters(const Xsc::Reflection::ReflectionData& reflData, ShaderCrea
 		case Xsc::Reflection::VariableType::Struct:
 			{
 				i32 structIdx = entry.baseType;
-				u32 structSize = GetStructSize(structIdx, reflData.structs);
+				u32 structSize = GetStructSize(structIdx, reflectionData.structs);
 
-				desc.AddParameter(ShaderDataParameterInformation(ident, ident, GPDT_STRUCT, StringID::kNone, entry.arraySize, structSize));
+				outShaderCreateInformation.AddParameter(ShaderDataParameterInformation(ident, ident, GPDT_STRUCT, StringID::kNone, entry.arraySize, structSize));
 			}
 			break;
 		default:;
 		}
 	}
+
+	return true;
 }
 
 /** Types of supported code output when cross compiling HLSL to GLSL. */
@@ -641,7 +703,7 @@ enum class CrossCompileOutput
 	MVKSL
 };
 
-String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCreateInformation* shaderDesc = nullptr, Vector<GpuProgramType>* detectedTypes = nullptr)
+String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, BSLFXCompileResult& outCompileResult, ShaderCreateInformation* shaderDesc = nullptr, Vector<GpuProgramType>* detectedTypes = nullptr)
 {
 	SPtr<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -660,7 +722,14 @@ String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput 
 		break;
 	}
 
-	*input << hlsl;
+	// Clear '\r' as it's breaking XShaderCompiler when used in mutiline preprocessor statements
+	for (const char& currentCharacter : hlsl)
+	{
+		if (currentCharacter == '\r')
+			continue;
+
+		*input << currentCharacter;
+	}
 
 	Xsc::ShaderInput inputDesc;
 	inputDesc.shaderVersion = Xsc::InputShaderVersion::HLSL5;
@@ -756,7 +825,7 @@ String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput 
 			StringStream logOutput;
 			log.GetMessages(logOutput);
 
-			B3D_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
+			outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
 			return "";
 		}
 	}
@@ -794,26 +863,29 @@ String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput 
 			StringStream logOutput;
 			log.GetMessages(logOutput);
 
-			B3D_LOG(Error, BSLCompiler, "Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
+			outCompileResult.ErrorMessage = StringUtil::Format("Shader cross compilation failed. Log: \n\n{0}", logOutput.str());
 			return "";
 		}
 	}
 
-	if(shaderDesc != nullptr)
-		ParseParameters(reflectionData, *shaderDesc);
+	if (shaderDesc != nullptr)
+	{
+		if (!ParseParameters(reflectionData, outCompileResult, *shaderDesc))
+			return "";
+	}
 
 	return output.str();
 }
 
-String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, u32& startBindingSlot)
+String CrossCompile(const String& hlsl, GpuProgramType type, CrossCompileOutput outputType, u32& startBindingSlot, BSLFXCompileResult& outCompileResult)
 {
-	return CrossCompile(hlsl, type, outputType, false, startBindingSlot);
+	return CrossCompile(hlsl, type, outputType, false, startBindingSlot, outCompileResult);
 }
 
-void ReflectHlsl(const String& hlsl, ShaderCreateInformation& shaderDesc, Vector<GpuProgramType>& entryPoints)
+void ReflectHlsl(const String& hlsl, ShaderCreateInformation& shaderDesc, Vector<GpuProgramType>& entryPoints, BSLFXCompileResult& outCompileResult)
 {
 	u32 dummy = 0;
-	CrossCompile(hlsl, GPT_VERTEX_PROGRAM, CrossCompileOutput::GLSL45, true, dummy, &shaderDesc, &entryPoints);
+	CrossCompile(hlsl, GPT_VERTEX_PROGRAM, CrossCompileOutput::GLSL45, true, dummy, outCompileResult, &shaderDesc, &entryPoints);
 }
 
 BSLFXCompileResult BSLFXCompiler::Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages)
@@ -824,9 +896,12 @@ BSLFXCompileResult BSLFXCompiler::Compile(const String& name, const String& sour
 
 	BSLFXCompileResult output = CompileShader(source, defines, languages, shaderDesc, includes);
 
-	// Generate a shader from the parsed information
-	output.Shader = Shader::CreatePtrInternal(name, shaderDesc);
-	output.Shader->SetIncludeFiles(includes);
+	if (output.ErrorMessage.empty())
+	{
+		// Generate a shader from the parsed information
+		output.Shader = Shader::CreateShared(name, shaderDesc);
+		output.Shader->SetIncludeFiles(includes);
+	}
 
 	return output;
 }
@@ -1963,8 +2038,11 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(
 			ParseState* variationParseState = ParseStateCreate();
 			output = ParseFx(variationParseState, source.c_str(), globalDefines);
 
-			if(!output.ErrorMessage.empty())
+			if (!output.ErrorMessage.empty())
+			{
 				ParseStateDelete(variationParseState);
+				return output;
+			}
 			else
 			{
 				Vector<String> codeBlocks;
@@ -2146,7 +2224,7 @@ BSLFXCompileResult BSLFXCompiler::CompileShader(String source, const UnorderedMa
 
 			SubShader subShader;
 			subShader.Name = extPointShader.Name;
-			subShader.Shader = Shader::CreatePtrInternal(subShader.Name, subShaderDesc);
+			subShader.Shader = Shader::CreateShared(subShader.Name, subShaderDesc);
 
 			shaderDesc.SubShaders.push_back(subShader);
 		}
@@ -2322,9 +2400,12 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 			// type. If performance is ever important here it could be good to update XShaderCompiler so it can
 			// somehow save the AST and then re-use it for multiple actions.
 			Vector<GpuProgramType> types;
-			ReflectHlsl(passData.Code, shaderDesc, types);
+			ReflectHlsl(passData.Code, shaderDesc, types, output);
 
-			auto crossCompilePass = [&types](PassData& passData, CrossCompileOutput language)
+			if (!output.ErrorMessage.empty())
+				return output;
+
+			auto crossCompilePass = [&types, &output](PassData& passData, CrossCompileOutput language)
 			{
 				u32 binding = 0;
 
@@ -2333,37 +2414,55 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 					switch(type)
 					{
 					case GPT_VERTEX_PROGRAM:
-						passData.VertexCode = CrossCompile(passData.Code, GPT_VERTEX_PROGRAM, language, binding);
+						passData.VertexCode = CrossCompile(passData.Code, GPT_VERTEX_PROGRAM, language, binding, output);
 						break;
 					case GPT_FRAGMENT_PROGRAM:
-						passData.FragmentCode = CrossCompile(passData.Code, GPT_FRAGMENT_PROGRAM, language, binding);
+						passData.FragmentCode = CrossCompile(passData.Code, GPT_FRAGMENT_PROGRAM, language, binding, output);
 						break;
 					case GPT_GEOMETRY_PROGRAM:
-						passData.GeometryCode = CrossCompile(passData.Code, GPT_GEOMETRY_PROGRAM, language, binding);
+						passData.GeometryCode = CrossCompile(passData.Code, GPT_GEOMETRY_PROGRAM, language, binding, output);
 						break;
 					case GPT_HULL_PROGRAM:
-						passData.HullCode = CrossCompile(passData.Code, GPT_HULL_PROGRAM, language, binding);
+						passData.HullCode = CrossCompile(passData.Code, GPT_HULL_PROGRAM, language, binding, output);
 						break;
 					case GPT_DOMAIN_PROGRAM:
-						passData.DomainCode = CrossCompile(passData.Code, GPT_DOMAIN_PROGRAM, language, binding);
+						passData.DomainCode = CrossCompile(passData.Code, GPT_DOMAIN_PROGRAM, language, binding, output);
 						break;
 					case GPT_COMPUTE_PROGRAM:
-						passData.ComputeCode = CrossCompile(passData.Code, GPT_COMPUTE_PROGRAM, language, binding);
+						passData.ComputeCode = CrossCompile(passData.Code, GPT_COMPUTE_PROGRAM, language, binding, output);
 						break;
 					default:
 						break;
 					}
+
+					if (!output.ErrorMessage.empty())
+						return;
 				}
 			};
 
-			if(languages.IsSet(ShadingLanguageFlag::GLSL))
+			if (languages.IsSet(ShadingLanguageFlag::GLSL))
+			{
 				crossCompilePass(glslShaderData.Passes[j], glslVersion);
 
-			if(languages.IsSet(ShadingLanguageFlag::VKSL))
+				if (!output.ErrorMessage.empty())
+					return output;
+			}
+
+			if (languages.IsSet(ShadingLanguageFlag::VKSL))
+			{
 				crossCompilePass(vkslShaderData.Passes[j], CrossCompileOutput::VKSL45);
 
-			if(languages.IsSet(ShadingLanguageFlag::MSL))
+				if (!output.ErrorMessage.empty())
+					return output;
+			}
+
+			if (languages.IsSet(ShadingLanguageFlag::MSL))
+			{
 				crossCompilePass(mvksl.Passes[j], CrossCompileOutput::MVKSL);
+
+				if (!output.ErrorMessage.empty())
+					return output;
+			}
 
 			if(languages.IsSet(ShadingLanguageFlag::HLSL))
 			{
@@ -2382,8 +2481,8 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 				hlslPassData.Code = regex_replace(hlslPassData.Code, kAttr2Regex, "");
 
 				static const std::regex kInitializerRegex(
-					R"(Texture2D\s*(\S*)\s*=.*;)");
-				hlslPassData.Code = regex_replace(hlslPassData.Code, kInitializerRegex, "Texture2D $1;");
+					R"((Texture2D|Texture3D)\s*(\S*)\s*=.*;)");
+				hlslPassData.Code = regex_replace(hlslPassData.Code, kInitializerRegex, "$1 $2;");
 
 				static const std::regex kWarpWithSyncRegex(
 					R"(Warp(Group|Device|All)MemoryBarrierWithWarpSync)");
@@ -2425,10 +2524,25 @@ BSLFXCompileResult BSLFXCompiler::CompileTechniques(ParseState* parseState, cons
 			}
 		}
 
-		outputShaderData.push_back(std::make_pair(nullptr, hlslShaderData));
-		outputShaderData.push_back(std::make_pair(nullptr, glslShaderData));
-		outputShaderData.push_back(std::make_pair(nullptr, vkslShaderData));
-		outputShaderData.push_back(std::make_pair(nullptr, mvksl));
+		if (languages.IsSet(ShadingLanguageFlag::HLSL))
+		{
+			outputShaderData.push_back(std::make_pair(nullptr, hlslShaderData));
+		}
+
+		if (languages.IsSet(ShadingLanguageFlag::GLSL))
+		{
+			outputShaderData.push_back(std::make_pair(nullptr, glslShaderData));
+		}
+
+		if (languages.IsSet(ShadingLanguageFlag::VKSL))
+		{
+			outputShaderData.push_back(std::make_pair(nullptr, vkslShaderData));
+		}
+
+		if (languages.IsSet(ShadingLanguageFlag::MSL))
+		{
+			outputShaderData.push_back(std::make_pair(nullptr, mvksl));
+		}
 	}
 
 	for(auto& entry : outputShaderData)

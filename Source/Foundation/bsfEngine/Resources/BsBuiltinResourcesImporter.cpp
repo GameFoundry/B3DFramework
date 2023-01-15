@@ -151,6 +151,31 @@ void GenerateTextures()
 
 	SPtr<Texture> normalTexture = Texture::CreateShared(normalPixelData);
 
+	SPtr<PixelData> black3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
+	black3DPixelData->SetColorAt(Color::kBlack, 0, 0, 0);
+	black3DPixelData->SetColorAt(Color::kBlack, 0, 1, 0);
+	black3DPixelData->SetColorAt(Color::kBlack, 1, 0, 0);
+	black3DPixelData->SetColorAt(Color::kBlack, 1, 1, 0);
+	black3DPixelData->SetColorAt(Color::kBlack, 0, 0, 1);
+	black3DPixelData->SetColorAt(Color::kBlack, 0, 1, 1);
+	black3DPixelData->SetColorAt(Color::kBlack, 1, 0, 1);
+	black3DPixelData->SetColorAt(Color::kBlack, 1, 1, 1);
+
+	SPtr<Texture> black3DTexture = Texture::CreateShared(black3DPixelData);
+
+	SPtr<PixelData> white3DPixelData = PixelData::Create(2, 2, 2, PF_RGBA8);
+	white3DPixelData->SetColorAt(Color::kWhite, 0, 0, 0);
+	white3DPixelData->SetColorAt(Color::kWhite, 0, 1, 0);
+	white3DPixelData->SetColorAt(Color::kWhite, 1, 0, 0);
+	white3DPixelData->SetColorAt(Color::kWhite, 1, 1, 0);
+	white3DPixelData->SetColorAt(Color::kWhite, 0, 0, 1);
+	white3DPixelData->SetColorAt(Color::kWhite, 0, 1, 1);
+	white3DPixelData->SetColorAt(Color::kWhite, 1, 0, 1);
+	white3DPixelData->SetColorAt(Color::kWhite, 1, 1, 1);
+
+	SPtr<Texture> white3DTexture = Texture::CreateShared(white3DPixelData);
+
+
 	// Save all textures
 	Path outputDir = sOutputFolder + BuiltinResources::kTextureFolder;
 
@@ -170,6 +195,12 @@ void GenerateTextures()
 
 	Path normalPath = outputDir + BuiltinResources::kTextureNormalFile;
 	saveTexture(normalPath, normalTexture, "afb29163-1ef0-4440-9cfb-c1ebb3b3d452");
+
+	Path white3DPath = outputDir + BuiltinResources::kTextureWhite3DFile;
+	saveTexture(white3DPath, white3DTexture, "dba4e37b-7ab3-407c-af71-7943cc262129");
+
+	Path black3DPath = outputDir + BuiltinResources::kTextureBlack3DFile;
+	saveTexture(black3DPath, black3DTexture, "36c8e112-0bb9-4c22-894e-d4ad160e498e");
 }
 
 void GenerateMeshes()

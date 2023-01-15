@@ -94,12 +94,12 @@ void RenderAPI::SwapBuffers(const SPtr<RenderTarget>& target)
 
 void RenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount)
 {
-	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::Draw, ct::RenderAPI::InstancePtr(), vertexOffset, vertexCount, instanceCount, nullptr));
+	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::Draw, ct::RenderAPI::InstancePtr(), vertexOffset, vertexCount, instanceCount, 0, nullptr));
 }
 
 void RenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount)
 {
-	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::DrawIndexed, ct::RenderAPI::InstancePtr(), startIndex, indexCount, vertexOffset, vertexCount, instanceCount, nullptr));
+	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::DrawIndexed, ct::RenderAPI::InstancePtr(), startIndex, indexCount, vertexOffset, vertexCount, instanceCount, 0, nullptr));
 }
 
 void RenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ)
