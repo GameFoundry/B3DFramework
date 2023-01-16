@@ -27,7 +27,7 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -66,7 +66,7 @@ T TGpuParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
 	if(mParent == nullptr)
 		return T();
 
-	GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return T();
 
@@ -102,7 +102,7 @@ void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayI
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -142,7 +142,7 @@ void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) co
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParamBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -253,7 +253,7 @@ void TGpuParameterStorageTexture<Core>::Set(const TextureType& texture, const Te
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetLoadStoreTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
+	mParent->SetStorageTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();

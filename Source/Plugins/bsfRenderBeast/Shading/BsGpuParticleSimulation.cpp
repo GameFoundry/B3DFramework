@@ -1059,8 +1059,8 @@ GpuParticleClearMat::GpuParticleClearMat()
 {
 	const SPtr<GpuParamBlockBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
 
-	mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
-	mParams->GetBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
+	mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mParams->GetBufferParameter(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
 }
 
 void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1078,62 +1078,62 @@ void GpuParticleClearMat::Bind(const SPtr<GpuBuffer>& tileUVs)
 GpuParticleInjectMat::GpuParticleInjectMat()
 {
 	const SPtr<GpuParamBlockBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 }
 
 GpuParticleCurveInjectMat::GpuParticleCurveInjectMat()
 {
 	const SPtr<GpuParamBlockBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 }
 
 GpuParticleSimulateMat::GpuParticleSimulateMat()
 {
 	const SPtr<GpuParamBlockBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mParams->SetParamBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
 
-	mParams->GetParamInfo()->GetBinding(
+	mParams->GetPipelineParameterInformation()->GetBinding(
 		GPT_FRAGMENT_PROGRAM,
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"Params",
 		mParamsBinding);
 
-	mParams->GetParamInfo()->GetBinding(
+	mParams->GetPipelineParameterInformation()->GetBinding(
 		GPT_FRAGMENT_PROGRAM,
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"VectorFieldParams",
 		mVectorFieldBinding);
 
-	mParams->GetBufferParam(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gVelocityTex", mVelocityTexParam);
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gVectorFieldTex", mVectorFieldTexParam);
+	mParams->GetBufferParameter(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gVelocityTex", mVelocityTexParam);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gVectorFieldTex", mVectorFieldTexParam);
 
 	mSupportsDepthCollisions = mVariation.GetUInt("DEPTH_COLLISIONS") > 0;
 	if(mSupportsDepthCollisions)
 	{
-		mParams->GetParamInfo()->GetBinding(
+		mParams->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"PerCamera",
 			mPerCameraBinding);
 
-		mParams->GetParamInfo()->GetBinding(
+		mParams->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"PerObject",
 			mPerObjectBinding);
 
-		mParams->GetParamInfo()->GetBinding(
+		mParams->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"DepthCollisionParams",
 			mDepthCollisionBinding);
 
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexParam);
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexParam);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexParam);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexParam);
 	}
 }
 
@@ -1148,14 +1148,14 @@ void GpuParticleSimulateMat::BindGlobal(GpuParticleResources& resources, const S
 	const GpuParticleStaticTextures& staticTextures = resources.GetStaticTextures();
 	GpuParticleCurves& curveTexture = resources.GetCurveTexture();
 
-	mParams->SetParamBlockBuffer(mParamsBinding.Set, mParamsBinding.Slot, simulationParams);
+	mParams->SetParameterBlockBuffer(mParamsBinding.Set, mParamsBinding.Slot, simulationParams);
 
 	mPosAndTimeTexParam.Set(prevState.PositionAndTimeTex);
 	mVelocityTexParam.Set(prevState.VelocityTex);
 
 	if(mSupportsDepthCollisions)
 	{
-		mParams->SetParamBlockBuffer(mPerCameraBinding.Set, mPerCameraBinding.Slot, viewParams);
+		mParams->SetParameterBlockBuffer(mPerCameraBinding.Set, mPerCameraBinding.Slot, viewParams);
 
 		mSizeRotationTexParam.Set(staticTextures.SizeAndRotationTex);
 		mCurvesTexParam.Set(curveTexture.GetTexture());
@@ -1169,13 +1169,13 @@ void GpuParticleSimulateMat::BindGlobal(GpuParticleResources& resources, const S
 void GpuParticleSimulateMat::BindPerCallParams(const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuParamBlockBuffer>& perObjectParams, const SPtr<GpuParamBlockBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuParamBlockBuffer>& depthCollisionParams)
 {
 	mTileUVParam.Set(tileUVs);
-	mParams->SetParamBlockBuffer(mVectorFieldBinding.Set, mVectorFieldBinding.Slot, vectorFieldParams);
+	mParams->SetParameterBlockBuffer(mVectorFieldBinding.Set, mVectorFieldBinding.Slot, vectorFieldParams);
 	mVectorFieldTexParam.Set(vectorFieldTexture);
 
 	if(mSupportsDepthCollisions)
 	{
-		mParams->SetParamBlockBuffer(mPerObjectBinding.Set, mPerObjectBinding.Slot, perObjectParams);
-		mParams->SetParamBlockBuffer(mDepthCollisionBinding.Set, mDepthCollisionBinding.Slot, depthCollisionParams);
+		mParams->SetParameterBlockBuffer(mPerObjectBinding.Set, mPerObjectBinding.Slot, perObjectParams);
+		mParams->SetParameterBlockBuffer(mDepthCollisionBinding.Set, mDepthCollisionBinding.Slot, depthCollisionParams);
 	}
 
 	BindParams();
@@ -1197,11 +1197,11 @@ GpuParticleSimulateMat* GpuParticleSimulateMat::GetVariation(bool depthCollision
 GpuParticleBoundsMat::GpuParticleBoundsMat()
 {
 	mInputBuffer = gGpuParticleBoundsParamsDef.CreateBuffer();
-	mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+	mParams->SetParameterBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
 
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gParticleIndices", mParticleIndicesParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gParticleIndices", mParticleIndicesParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 }
 
 void GpuParticleBoundsMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1261,12 +1261,12 @@ AABox GpuParticleBoundsMat::Execute(const SPtr<GpuBuffer>& indices, u32 numParti
 GpuParticleSortPrepareMat::GpuParticleSortPrepareMat()
 {
 	mInputBuffer = gGpuParticleSortPrepareParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+	mParams->SetParameterBlockBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
 
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
 }
 
 void GpuParticleSortPrepareMat::InitDefinesInternal(ShaderDefines& defines)

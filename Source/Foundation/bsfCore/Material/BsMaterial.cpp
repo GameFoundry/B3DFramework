@@ -959,7 +959,7 @@ void Material::SetParams(const SPtr<MaterialParams>& params)
 
 				HTexture texture;
 				TextureSurface surface;
-				params->GetLoadStoreTexture(*paramData, texture, surface);
+				params->GetStorageTexture(*paramData, texture, surface);
 				curParam.Set(texture, surface);
 			}
 			break;

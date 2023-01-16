@@ -437,7 +437,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 
 				GpuProgramType type = (GpuProgramType)i;
 
-				SPtr<GpuParamDesc> paramDesc = gpuParams->GetParamDesc(type);
+				SPtr<GpuParamDesc> paramDesc = gpuParams->GetParameterInformation(type);
 				if(paramDesc == nullptr)
 					continue;
 
@@ -647,8 +647,8 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				{
 					u32 binding = entry.second.Slot;
 
-					SPtr<Texture> texture = gpuParams->GetLoadStoreTexture(entry.second.Set, binding);
-					const TextureSurface& surface = gpuParams->GetLoadStoreSurface(entry.second.Set, binding);
+					SPtr<Texture> texture = gpuParams->GetStorageTexture(entry.second.Set, binding);
+					const TextureSurface& surface = gpuParams->GetStorageTextureSurface(entry.second.Set, binding);
 
 					u32 unit = getImageUnit(binding);
 					GLuint texId = 0;
@@ -700,7 +700,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				for(auto& entry : paramDesc->ParamBlocks)
 				{
 					u32 binding = entry.second.Slot;
-					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParamBlockBuffer(entry.second.Set, binding);
+					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParameterBlockBuffer(entry.second.Set, binding);
 
 					if(buffer == nullptr)
 						continue;

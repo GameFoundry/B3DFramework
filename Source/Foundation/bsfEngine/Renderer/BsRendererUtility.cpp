@@ -379,7 +379,7 @@ RendererUtility& GetRendererUtility()
 
 BlitMat::BlitMat()
 {
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
 	mIsFiltered = mVariation.GetInt("MODE") == 1;
 }
 
@@ -441,7 +441,7 @@ ClearParamDef gClearParamDef;
 ClearMat::ClearMat()
 {
 	mParamBuffer = gClearParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void ClearMat::Execute(u32 value)
@@ -459,9 +459,9 @@ CompositeParamDef gCompositeParamDef;
 CompositeMat::CompositeMat()
 {
 	mParamBuffer = gCompositeParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Input", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
 void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
@@ -486,9 +486,9 @@ BicubicUpsampleParamDef gBicubicUpsampleParamDef;
 BicubicUpsampleMat::BicubicUpsampleMat()
 {
 	mParamBuffer = gBicubicUpsampleParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Input", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
 void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)

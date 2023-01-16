@@ -608,7 +608,7 @@ namespace bs
 		 * @param[out]	value		Output value of the parameter.
 		 * @param[out]	surface		Surface describing which part of the texture is being accessed.
 		 */
-		void GetLoadStoreTexture(const String& name, TextureType& value, TextureSurface& surface) const;
+		void GetStorageTexture(const String& name, TextureType& value, TextureSurface& surface) const;
 
 		/**
 		 * Sets the value of a shader load/store texture parameter with the specified name. If the parameter name or
@@ -618,7 +618,7 @@ namespace bs
 		 * @param[in]	value		New value of the parameter.
 		 * @param[in]	surface		Surface describing which part of the texture is being accessed.
 		 */
-		void SetLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface);
+		void SetStorageTexture(const String& name, const TextureType& value, const TextureSurface& surface);
 
 		/**
 		 * Returns the value of a shader buffer parameter with the specified name. If the parameter name or type is not
@@ -729,14 +729,14 @@ namespace bs
 		 * parameter reference directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid
 		 * and belongs to this object.
 		 */
-		void GetLoadStoreTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const;
+		void GetStorageTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const;
 
 		/**
 		 * Equivalent to setLoadStoreTexture(const String&, const HTexture&, TextureSurface&) except it uses the internal
 		 * parameter reference directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid
 		 * and belongs to this object.
 		 */
-		void SetLoadStoreTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface);
+		void SetStorageTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface);
 
 		/**
 		 * Returns the type of texture that is currently assigned to the provided parameter. This can only be called on

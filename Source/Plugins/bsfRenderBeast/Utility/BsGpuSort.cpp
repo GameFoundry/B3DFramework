@@ -105,7 +105,7 @@ SPtr<GpuBuffer> CreateHelperBuffer()
 
 RadixSortClearMat::RadixSortClearMat()
 {
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", MOutputParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", MOutputParam);
 }
 
 void RadixSortClearMat::InitDefinesInternal(ShaderDefines& defines)
@@ -125,8 +125,8 @@ void RadixSortClearMat::Execute(const SPtr<GpuBuffer>& outputOffsets)
 
 RadixSortCountMat::RadixSortCountMat()
 {
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputCounts", MOutputCountsParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputCounts", MOutputCountsParam);
 }
 
 void RadixSortCountMat::InitDefinesInternal(ShaderDefines& defines)
@@ -141,7 +141,7 @@ void RadixSortCountMat::Execute(u32 numGroups, const SPtr<GpuParamBlockBuffer>& 
 	MInputKeysParam.Set(inputKeys);
 	MOutputCountsParam.Set(outputOffsets);
 
-	mParams->SetParamBlockBuffer("Params", params);
+	mParams->SetParameterBlockBuffer("Params", params);
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numGroups);
@@ -149,8 +149,8 @@ void RadixSortCountMat::Execute(u32 numGroups, const SPtr<GpuParamBlockBuffer>& 
 
 RadixSortPrefixScanMat::RadixSortPrefixScanMat()
 {
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputCounts", MInputCountsParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputOffsets", MOutputOffsetsParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputCounts", MInputCountsParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputOffsets", MOutputOffsetsParam);
 }
 
 void RadixSortPrefixScanMat::InitDefinesInternal(ShaderDefines& defines)
@@ -165,7 +165,7 @@ void RadixSortPrefixScanMat::Execute(const SPtr<GpuParamBlockBuffer>& params, co
 	MInputCountsParam.Set(inputCounts);
 	MOutputOffsetsParam.Set(outputOffsets);
 
-	mParams->SetParamBlockBuffer("Params", params);
+	mParams->SetParameterBlockBuffer("Params", params);
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(1);
@@ -173,11 +173,11 @@ void RadixSortPrefixScanMat::Execute(const SPtr<GpuParamBlockBuffer>& params, co
 
 RadixSortReorderMat::RadixSortReorderMat()
 {
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputOffsets", MInputOffsetsBufferParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysBufferParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gInputValues", MInputValuesBufferParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputKeys", MOutputKeysBufferParam);
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutputValues", MOutputValuesBufferParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputOffsets", MInputOffsetsBufferParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysBufferParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInputValues", MInputValuesBufferParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputKeys", MOutputKeysBufferParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputValues", MOutputValuesBufferParam);
 }
 
 void RadixSortReorderMat::InitDefinesInternal(ShaderDefines& defines)
@@ -197,7 +197,7 @@ void RadixSortReorderMat::Execute(u32 numGroups, const SPtr<GpuParamBlockBuffer>
 	MOutputKeysBufferParam.Set(buffers.Keys[outputBufferIdx]);
 	MOutputValuesBufferParam.Set(buffers.Values[outputBufferIdx]);
 
-	mParams->SetParamBlockBuffer("Params", params);
+	mParams->SetParameterBlockBuffer("Params", params);
 
 	Bind();
 	RenderAPI::Instance().DispatchCompute(numGroups);

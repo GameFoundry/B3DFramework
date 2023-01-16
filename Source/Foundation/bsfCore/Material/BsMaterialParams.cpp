@@ -508,7 +508,7 @@ void TMaterialParams<Core>::SetSpriteTexture(const String& name, const SpriteTex
 }
 
 template <bool Core>
-void TMaterialParams<Core>::GetLoadStoreTexture(const String& name, TextureType& value, TextureSurface& surface) const
+void TMaterialParams<Core>::GetStorageTexture(const String& name, TextureType& value, TextureSurface& surface) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -518,11 +518,11 @@ void TMaterialParams<Core>::GetLoadStoreTexture(const String& name, TextureType&
 		return;
 	}
 
-	GetLoadStoreTexture(*param, value, surface);
+	GetStorageTexture(*param, value, surface);
 }
 
 template <bool Core>
-void TMaterialParams<Core>::SetLoadStoreTexture(const String& name, const TextureType& value, const TextureSurface& surface)
+void TMaterialParams<Core>::SetStorageTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -532,7 +532,7 @@ void TMaterialParams<Core>::SetLoadStoreTexture(const String& name, const Textur
 		return;
 	}
 
-	SetLoadStoreTexture(*param, value, surface);
+	SetStorageTexture(*param, value, surface);
 }
 
 template <bool Core>
@@ -707,7 +707,7 @@ void TMaterialParams<Core>::SetBuffer(const ParamData& param, const BufferType& 
 }
 
 template <bool Core>
-void TMaterialParams<Core>::GetLoadStoreTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
+void TMaterialParams<Core>::GetStorageTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	value = textureParam.Texture;
@@ -715,7 +715,7 @@ void TMaterialParams<Core>::GetLoadStoreTexture(const ParamData& param, TextureT
 }
 
 template <bool Core>
-void TMaterialParams<Core>::SetLoadStoreTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
+void TMaterialParams<Core>::SetStorageTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	textureParam.Texture = value;

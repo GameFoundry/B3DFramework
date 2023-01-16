@@ -352,16 +352,17 @@ void VulkanGpuParams::Initialize()
 	GpuParams::Initialize();
 }
 
-void VulkanGpuParams::SetParamBlockBuffer(u32 set, u32 slot,const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex)
+bool VulkanGpuParams::SetParameterBlockBuffer(u32 set, u32 slot,const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex)
 {
-	GpuParams::SetParamBlockBuffer(set, slot, paramBlockBuffer, arrayIndex);
+	if (!GpuParams::SetParameterBlockBuffer(set, slot, paramBlockBuffer, arrayIndex))
+		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 	const u32 usedResourceSequentialIndex = pipelineParameterInformation.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", set, slot);
-		return;
+		return false;
 	}
 
 	const u32 sequentialResourceIndex = pipelineParameterInformation.GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::ParamBlock, set, slot, arrayIndex);
@@ -409,11 +410,14 @@ void VulkanGpuParams::SetParamBlockBuffer(u32 set, u32 slot,const SPtr<GpuParamB
 			mSetsDirty[set] = true;
 		}
 	}
+
+	return true;
 }
 
-void VulkanGpuParams::SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+bool VulkanGpuParams::SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 {
-	GpuParams::SetTexture(set, slot, texture, surface, arrayIndex);
+	if (!GpuParams::SetTexture(set, slot, texture, surface, arrayIndex))
+		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 
@@ -423,7 +427,7 @@ void VulkanGpuParams::SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture
 	if(usedResourceSequentialIndex == ~0u || usedBindingSequentialIndex == ~0u)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", set, slot);
-		return;
+		return false;
 	}
 
 	const u32 sequentialResourceIndex = pipelineParameterInformation.GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::Texture, set, slot, arrayIndex);
@@ -478,11 +482,14 @@ void VulkanGpuParams::SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture
 			mSetsDirty[set] = true;
 		}
 	}
+
+	return true;
 }
 
-void VulkanGpuParams::SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 {
-	GpuParams::SetLoadStoreTexture(set, slot, texture, surface, arrayIndex);
+	if (!GpuParams::SetStorageTexture(set, slot, texture, surface, arrayIndex))
+		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 	const u32 usedBindingSequentialIndex = pipelineParameterInformation.GetUsedBindingSequentialIndex(set, slot);
@@ -491,7 +498,7 @@ void VulkanGpuParams::SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>
 	if(usedBindingSequentialIndex == ~0u || usedResourceSequentialIndex == ~0u)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", set, slot);
-		return;
+		return false;
 	}
 
 	const u32 sequentialResourceIndex = pipelineParameterInformation.GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::LoadStoreTexture, set, slot, arrayIndex);
@@ -546,11 +553,14 @@ void VulkanGpuParams::SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>
 			mSetsDirty[set] = true;
 		}
 	}
+
+	return true;
 }
 
-void VulkanGpuParams::SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex)
+bool VulkanGpuParams::SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex)
 {
-	GpuParams::SetBuffer(set, slot, buffer, arrayIndex);
+	if (!GpuParams::SetBuffer(set, slot, buffer, arrayIndex))
+		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 	const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
@@ -559,7 +569,7 @@ void VulkanGpuParams::SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer
 	if(usedBindingSequentialIndex == ~0u || usedResourceSequentialIndex == ~0u)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", set, slot);
-		return;
+		return false;
 	}
 
 	const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::Buffer, set, slot, arrayIndex);
@@ -633,18 +643,21 @@ void VulkanGpuParams::SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer
 			mSetsDirty[set] = true;
 		}
 	}
+
+	return true;
 }
 
-void VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
+bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
 {
-	GpuParams::SetSamplerState(set, slot, sampler, arrayIndex);
+	if (!GpuParams::SetSamplerState(set, slot, sampler, arrayIndex))
+		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
 	const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided set/slot combination is not used by the GPU program: {0},{1}.", set, slot);
-		return;
+		return false;
 	}
 
 	const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::SamplerState, set, slot, arrayIndex);
@@ -681,6 +694,7 @@ void VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState
 	}
 
 	mSetsDirty[set] = true;
+	return true;
 }
 
 u32 VulkanGpuParams::GetSetCount() const
@@ -923,13 +937,13 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfoBase::ParamType::LoadStoreTexture, set, slot, arrayIndex);
 
 			VulkanImage* vulkanImage = nullptr;
-			if(mLoadStoreTextureData[sequentialResourceIndex].Texture != nullptr)
+			if(mStorageTextureData[sequentialResourceIndex].Texture != nullptr)
 			{
-				auto* element = static_cast<VulkanTexture*>(mLoadStoreTextureData[sequentialResourceIndex].Texture.get());
+				auto* element = static_cast<VulkanTexture*>(mStorageTextureData[sequentialResourceIndex].Texture.get());
 				vulkanImage = element->GetResource(deviceIdx);
 			}
 
-			const TextureSurface& surface = mLoadStoreTextureData[sequentialResourceIndex].Surface;
+			const TextureSurface& surface = mStorageTextureData[sequentialResourceIndex].Surface;
 			const GpuParameterObjectType* const types = vkParamInfo.GetLayoutTypes(set);
 			const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
 

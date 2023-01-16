@@ -532,12 +532,12 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 				{
 					ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
 
-					paramPtr->SetParamBlockBuffer(progType, paramBlockName, blockBuffer);
+					paramPtr->SetParameterBlockBuffer(progType, paramBlockName, blockBuffer);
 				}
 			}
 
 			// Create non-shareable ones (these are buffers defined by default by the RHI usually)
-			SPtr<GpuParamDesc> desc = paramPtr->GetParamDesc(progType);
+			SPtr<GpuParamDesc> desc = paramPtr->GetParameterInformation(progType);
 			if(desc == nullptr)
 				continue;
 
@@ -552,7 +552,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 					globalBlockIdx = (u32)mBlocks.size();
 
-					paramPtr->SetParamBlockBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
+					paramPtr->SetParameterBlockBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
 					mBlocks.emplace_back(iterBlockDesc->first, iterBlockDesc->second.Set, iterBlockDesc->second.Slot, newParamBlockBuffer, false);
 				}
 				else
@@ -657,7 +657,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 					}
 				};
 
-				SPtr<GpuParamDesc> desc = paramPtr->GetParamDesc(progType);
+				SPtr<GpuParamDesc> desc = paramPtr->GetParameterInformation(progType);
 				if(desc == nullptr)
 				{
 					stageOffsets += 4;
@@ -758,7 +758,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 				{
 					GpuProgramType progType = (GpuProgramType)j;
 
-					SPtr<GpuParamDesc> curDesc = paramPtr->GetParamDesc(progType);
+					SPtr<GpuParamDesc> curDesc = paramPtr->GetParameterInformation(progType);
 					if(curDesc == nullptr)
 					{
 						block.PassData[i].Bindings[j].Set = -1;
@@ -848,7 +848,7 @@ void TGpuParamsSet<Core>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType
 				const BlockBinding& binding = blockInfo.PassData[j].Bindings[progType];
 
 				if(binding.Slot != (u32)-1)
-					paramPtr->SetParamBlockBuffer(binding.Set, binding.Slot, paramBlock);
+					paramPtr->SetParameterBlockBuffer(binding.Set, binding.Slot, paramBlock);
 			}
 		}
 	}
@@ -1125,9 +1125,9 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 
 				TextureSurface surface;
 				TextureType texture;
-				params->GetLoadStoreTexture(*materialParamInfo, texture, surface);
+				params->GetStorageTexture(*materialParamInfo, texture, surface);
 
-				paramPtr->SetLoadStoreTexture(paramInfo.SetIdx, paramInfo.SlotIdx,texture, surface, 0);
+				paramPtr->SetStorageTexture(paramInfo.SetIdx, paramInfo.SlotIdx,texture, surface, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.NumBuffers; k++)

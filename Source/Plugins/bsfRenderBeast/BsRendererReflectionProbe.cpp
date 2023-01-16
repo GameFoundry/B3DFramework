@@ -105,41 +105,41 @@ void ImageBasedLightingParams::Populate(const SPtr<GpuParams>& params, GpuProgra
 {
 	// Sky
 	if(!optional || params->HasTexture(programType, "gSkyReflectionTex"))
-		params->GetTextureParam(programType, "gSkyReflectionTex", SkyReflectionsTexParam);
+		params->GetTextureParameter(programType, "gSkyReflectionTex", SkyReflectionsTexParam);
 
 	// Reflections
 	if(!optional || params->HasTexture(programType, "gReflProbeCubemaps"))
 	{
-		params->GetTextureParam(programType, "gReflProbeCubemaps", ReflectionProbeCubemapsTexParam);
+		params->GetTextureParameter(programType, "gReflProbeCubemaps", ReflectionProbeCubemapsTexParam);
 
 		if(probeArray)
-			params->GetBufferParam(programType, "gReflectionProbes", ReflectionProbesParam);
+			params->GetBufferParameter(programType, "gReflectionProbes", ReflectionProbesParam);
 	}
 
 	if(!optional || params->HasTexture(programType, "gPreintegratedEnvBRDF"))
-		params->GetTextureParam(programType, "gPreintegratedEnvBRDF", PreintegratedEnvBrdfParam);
+		params->GetTextureParameter(programType, "gPreintegratedEnvBRDF", PreintegratedEnvBrdfParam);
 
 	// AO
 	if(params->HasTexture(programType, "gAmbientOcclusionTex"))
-		params->GetTextureParam(programType, "gAmbientOcclusionTex", AmbientOcclusionTexParam);
+		params->GetTextureParameter(programType, "gAmbientOcclusionTex", AmbientOcclusionTexParam);
 
 	// SSR
 	if(params->HasTexture(programType, "gSSRTex"))
-		params->GetTextureParam(programType, "gSSRTex", SsrTexParam);
+		params->GetTextureParameter(programType, "gSSRTex", SsrTexParam);
 
 	if(gridIndices)
 	{
 		if(!optional || params->HasBuffer(programType, "gReflectionProbeIndices"))
-			params->GetBufferParam(programType, "gReflectionProbeIndices", ReflectionProbeIndicesParam);
+			params->GetBufferParameter(programType, "gReflectionProbeIndices", ReflectionProbeIndicesParam);
 	}
 
-	params->GetParamInfo()->GetBinding(
+	params->GetPipelineParameterInformation()->GetBinding(
 		programType,
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"ReflProbeParams",
 		ReflProbeParamBindings);
 
-	params->GetParamInfo()->GetBinding(
+	params->GetPipelineParameterInformation()->GetBinding(
 		programType,
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"ReflectionProbes",

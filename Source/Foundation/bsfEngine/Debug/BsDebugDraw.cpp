@@ -154,7 +154,7 @@ void DebugDrawMat::Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<M
 {
 	BS_RENMAT_PROFILE_BLOCK
 
-	mParams->SetParamBlockBuffer("Params", params);
+	mParams->SetParameterBlockBuffer("Params", params);
 
 	Bind();
 	GetRendererUtility().Draw(mesh, subMesh);

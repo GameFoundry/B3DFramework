@@ -18,7 +18,7 @@ TetrahedraRenderParamDef gTetrahedraRenderParamDef;
 
 TetrahedraRenderMat::TetrahedraRenderMat()
 {
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
 
 	SAMPLER_STATE_DESC pointSampDesc;
 	pointSampDesc.MinFilter = FO_POINT;
@@ -36,7 +36,7 @@ TetrahedraRenderMat::TetrahedraRenderMat()
 		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
 
 	mParamBuffer = gTetrahedraRenderParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void TetrahedraRenderMat::Execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
@@ -49,7 +49,7 @@ void TetrahedraRenderMat::Execute(const RendererView& view, const SPtr<Texture>&
 	gTetrahedraRenderParamDef.gDepthTexSize.Set(mParamBuffer, texSize);
 
 	mDepthBufferTex.Set(sceneDepth);
-	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mParams->SetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
@@ -89,19 +89,19 @@ IrradianceEvaluateMat::IrradianceEvaluateMat()
 {
 	mSkyOnly = mVariation.GetBool("SKY_ONLY");
 
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
 
 	if(!mSkyOnly)
 	{
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
-		mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
-		mParams->GetBufferParam(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
-		mParams->GetBufferParam(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
+		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
+		mParams->GetBufferParameter(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
+		mParams->GetBufferParameter(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
 	}
 
 	mParamBuffer = gIrradianceEvaluateParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void IrradianceEvaluateMat::Execute(const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output)
@@ -145,7 +145,7 @@ void IrradianceEvaluateMat::Execute(const RendererView& view, const GBufferTextu
 	gIrradianceEvaluateParamDef.gNumTetrahedra.Set(mParamBuffer, lightProbesInfo.NumTetrahedra);
 	mParamBuffer->FlushToGpu();
 
-	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mParams->SetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 	// Render
 	RenderAPI& rapi = RenderAPI::Instance();

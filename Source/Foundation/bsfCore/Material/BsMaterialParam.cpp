@@ -320,7 +320,7 @@ void TMaterialParameterStorageTexture<Core>::Set(const TextureType& texture, con
 	SPtr<MaterialParamsType> params = mMaterial->GetInternalParamsInternal();
 	const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-	params->SetLoadStoreTexture(*data, texture, surface);
+	params->SetStorageTexture(*data, texture, surface);
 	mMaterial->MarkCoreDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 	mMaterial->MarkResourcesDirtyInternal();
@@ -338,7 +338,7 @@ typename TMaterialParameterStorageTexture<Core>::TextureType TMaterialParameterS
 	SPtr<MaterialParamsType> params = mMaterial->GetInternalParamsInternal();
 	const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
-	params->GetLoadStoreTexture(*data, texture, surface);
+	params->GetStorageTexture(*data, texture, surface);
 
 	return texture;
 }

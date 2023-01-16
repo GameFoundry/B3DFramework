@@ -349,7 +349,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 			{
 				const GpuParamBinding& binding = element.PerCameraBindings[j];
 				if(binding.Slot != (u32)-1)
-					gpuParams->SetParamBlockBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
+					gpuParams->SetParameterBlockBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
 			}
 		}
 	}
@@ -404,7 +404,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		{
 			const GpuParamBinding& binding = renderElement.PerCameraBindings[j];
 			if(binding.Slot != (u32)-1)
-				gpuParams->SetParamBlockBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
+				gpuParams->SetParameterBlockBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
 		}
 
 		renderElement.DepthInputTexture.Set(sceneDepthTex->Texture);
@@ -1305,7 +1305,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		{
 			const GpuParamBinding& binding = fwdParams.GridParamsBindings[j];
 			if(binding.Slot != (u32)-1)
-				gpuParams.SetParamBlockBuffer(binding.Set, binding.Slot, lightGridOutputs.GridParams);
+				gpuParams.SetParameterBlockBuffer(binding.Set, binding.Slot, lightGridOutputs.GridParams);
 		}
 
 		fwdParams.GridLightOffsetsAndSizeParam.Set(lightGridOutputs.GridLightOffsetsAndSize);
@@ -1345,7 +1345,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 		if(iblParams.ReflProbesBinding.Set != (u32)-1)
 		{
-			gpuParams.SetParamBlockBuffer(
+			gpuParams.SetParameterBlockBuffer(
 				iblParams.ReflProbesBinding.Set,
 				iblParams.ReflProbesBinding.Slot,
 				standardForwardBuffers.ReflProbesParamBlock);
@@ -1353,7 +1353,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 		if(fwdParams.LightsParamBlockBinding.Set != (u32)-1)
 		{
-			gpuParams.SetParamBlockBuffer(
+			gpuParams.SetParameterBlockBuffer(
 				fwdParams.LightsParamBlockBinding.Set,
 				fwdParams.LightsParamBlockBinding.Slot,
 				standardForwardBuffers.LightsParamBlock);
@@ -1361,7 +1361,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 		if(fwdParams.LightAndReflProbeParamsParamBlockBinding.Set != (u32)-1)
 		{
-			gpuParams.SetParamBlockBuffer(
+			gpuParams.SetParameterBlockBuffer(
 				fwdParams.LightAndReflProbeParamsParamBlockBinding.Set,
 				fwdParams.LightAndReflProbeParamsParamBlockBinding.Slot,
 				standardForwardBuffers.LightAndReflProbeParamsParamBlock);
@@ -1373,7 +1373,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		// Note: Ideally these should be bound once (they are the same for all renderables)
 		if(iblParams.ReflProbeParamBindings.Set != (u32)-1)
 		{
-			gpuParams.SetParamBlockBuffer(
+			gpuParams.SetParameterBlockBuffer(
 				iblParams.ReflProbeParamBindings.Set,
 				iblParams.ReflProbeParamBindings.Slot,
 				reflProbeParamBuffer.Buffer);

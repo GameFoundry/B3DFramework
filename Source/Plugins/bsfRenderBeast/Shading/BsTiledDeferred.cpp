@@ -19,17 +19,17 @@ TiledDeferredLightingMat::TiledDeferredLightingMat()
 {
 	mSampleCount = mVariation.GetUInt("MSAA_COUNT");
 
-	mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
+	mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
 
-	if(mParams->HasLoadStoreTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
-		mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
+	if(mParams->HasStorageTexture(GPT_COMPUTE_PROGRAM, "gOutput"))
+		mParams->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
 	if(mSampleCount > 1)
-		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
+		mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
 	mParamBuffer = gTiledLightingParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void TiledDeferredLightingMat::InitDefinesInternal(ShaderDefines& defines)
@@ -98,7 +98,7 @@ void TiledDeferredLightingMat::Execute(const RendererView& view, const VisibleLi
 	mParamBuffer->FlushToGpu();
 
 	mGBufferParams.Bind(gbuffer);
-	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mParams->SetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
 	mInColorTextureParam.Set(inputTexture);
 
 	if(mSampleCount > 1)
@@ -134,7 +134,7 @@ TiledDeferredLightingMat* TiledDeferredLightingMat::GetVariation(u32 msaaCount)
 
 TextureArrayToMSAATexture::TextureArrayToMSAATexture()
 {
-	mParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
+	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInput", mInputParam);
 }
 
 void TextureArrayToMSAATexture::Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
@@ -163,12 +163,12 @@ ClearLoadStoreMat::ClearLoadStoreMat()
 	i32 objType = mVariation.GetInt("OBJ_TYPE");
 
 	if(objType == 0 || objType == 1)
-		mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
+		mParams->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 	else
-		mParams->GetBufferParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
+		mParams->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBufferParam);
 
 	mParamBuffer = gClearLoadStoreParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer(GPT_COMPUTE_PROGRAM, "Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer(GPT_COMPUTE_PROGRAM, "Params", mParamBuffer);
 }
 
 void ClearLoadStoreMat::InitDefinesInternal(ShaderDefines& defines)
@@ -293,23 +293,23 @@ TiledDeferredImageBasedLightingMat::TiledDeferredImageBasedLightingMat()
 {
 	mSampleCount = mVariation.GetUInt("MSAA_COUNT");
 
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferATex", mGBufferA);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferBTex", mGBufferB);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gGBufferCTex", mGBufferC);
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gDepthBufferTex", mGBufferDepth);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gGBufferATex", mGBufferA);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gGBufferBTex", mGBufferB);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gGBufferCTex", mGBufferC);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gDepthBufferTex", mGBufferDepth);
 
-	mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
-	mParams->GetLoadStoreTextureParam(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
+	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gInColor", mInColorTextureParam);
+	mParams->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTextureParam);
 
 	if(mSampleCount > 1)
-		mParams->GetTextureParam(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
+		mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gMSAACoverage", mMSAACoverageTexParam);
 
 	mParamBuffer = gTiledImageBasedLightingParamDef.CreateBuffer();
-	mParams->SetParamBlockBuffer("Params", mParamBuffer);
+	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
 
 	mImageBasedParams.Populate(mParams, GPT_COMPUTE_PROGRAM, false, false, true);
 
-	mParams->SetParamBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.Buffer);
+	mParams->SetParameterBlockBuffer("ReflProbeParams", mReflProbeParamBuffer.Buffer);
 }
 
 void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defines)
@@ -355,7 +355,7 @@ void TiledDeferredImageBasedLightingMat::Execute(const RendererView& view, const
 	mImageBasedParams.AmbientOcclusionTexParam.Set(inputs.AmbientOcclusion);
 	mImageBasedParams.SsrTexParam.Set(inputs.Ssr);
 
-	mParams->SetParamBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mParams->SetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
 
 	mInColorTextureParam.Set(inputs.LightAccumulation);
 	if(mSampleCount > 1)

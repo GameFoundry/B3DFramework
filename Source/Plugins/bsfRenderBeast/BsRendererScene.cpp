@@ -465,11 +465,11 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-		gpuParams->SetParamBlockBuffer("PerFrame", mPerFrameParamBuffer);
-		gpuParams->SetParamBlockBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
-		gpuParams->SetParamBlockBuffer("PerCall", rendererRenderable->PerCallParamBuffer);
+		gpuParams->TrySetParameterBlockBuffer("PerFrame", mPerFrameParamBuffer);
+		gpuParams->SetParameterBlockBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
+		gpuParams->TrySetParameterBlockBuffer("PerCall", rendererRenderable->PerCallParamBuffer);
 
-		gpuParams->GetParamInfo()->GetBindings(
+		gpuParams->GetPipelineParameterInformation()->GetBindings(
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"PerCamera",
 			element.PerCameraBindings);
@@ -808,9 +808,9 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	if(gpu)
 	{
-		gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
-		gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
-		gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gCurvesTex", renElement.ParamsGpu.CurvesTexture);
+		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
+		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
+		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gCurvesTex", renElement.ParamsGpu.CurvesTexture);
 
 		rendererParticles.GpuParticlesParamBuffer = gGpuParticlesParamDef.CreateBuffer();
 		renElement.Is3D = false;
@@ -820,17 +820,17 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		switch(settings.RenderMode)
 		{
 		case ParticleRenderMode::Billboard:
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
 
 			renElement.Is3D = false;
 			break;
 		case ParticleRenderMode::Mesh:
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuMesh.ColorTexture);
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
-			gpuParams->GetTextureParam(GPT_VERTEX_PROGRAM, "gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuMesh.ColorTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
+			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
 
 			renElement.Is3D = true;
 			renElement.Mesh = settings.Mesh;
@@ -844,13 +844,13 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-	gpuParams->SetParamBlockBuffer("ParticleParams", rendererParticles.ParticlesParamBuffer);
-	gpuParams->SetParamBlockBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
-	gpuParams->SetParamBlockBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
+	gpuParams->SetParameterBlockBuffer("ParticleParams", rendererParticles.ParticlesParamBuffer);
+	gpuParams->SetParameterBlockBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
+	gpuParams->SetParameterBlockBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
 
-	gpuParams->GetBufferParam(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
+	gpuParams->GetBufferParameter(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
 
-	gpuParams->GetParamInfo()->GetBindings(
+	gpuParams->GetPipelineParameterInformation()->GetBindings(
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"PerCamera",
 		renElement.PerCameraBindings);
@@ -940,7 +940,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	{
 		// Optional depth buffer input if requested
 		if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-			gpuParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+			gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
 	}
 }
 
@@ -1038,21 +1038,21 @@ void RendererScene::RegisterDecal(Decal* decal)
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-	gpuParams->SetParamBlockBuffer("PerFrame", mPerFrameParamBuffer);
-	gpuParams->SetParamBlockBuffer("DecalParams", rendererDecal.DecalParamBuffer);
-	gpuParams->SetParamBlockBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
-	gpuParams->SetParamBlockBuffer("PerCall", rendererDecal.PerCallParamBuffer);
+	gpuParams->SetParameterBlockBuffer("PerFrame", mPerFrameParamBuffer);
+	gpuParams->SetParameterBlockBuffer("DecalParams", rendererDecal.DecalParamBuffer);
+	gpuParams->SetParameterBlockBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
+	gpuParams->SetParameterBlockBuffer("PerCall", rendererDecal.PerCallParamBuffer);
 
-	gpuParams->GetParamInfo()->GetBindings(
+	gpuParams->GetPipelineParameterInformation()->GetBindings(
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"PerCamera",
 		renElement.PerCameraBindings);
 
 	if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-		gpuParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+		gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
 
 	if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gMaskTex"))
-		gpuParams->GetTextureParam(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.MaskInputTexture);
+		gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.MaskInputTexture);
 }
 
 void RendererScene::UpdateDecal(Decal* decal)
@@ -1294,7 +1294,7 @@ void RendererScene::RefreshSamplerOverrides(bool force)
 					{
 						GpuProgramType type = (GpuProgramType)k;
 
-						SPtr<GpuParamDesc> paramDesc = params->GetParamDesc(type);
+						SPtr<GpuParamDesc> paramDesc = params->GetParameterInformation(type);
 						if(paramDesc == nullptr)
 							continue;
 

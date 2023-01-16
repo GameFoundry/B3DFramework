@@ -24,23 +24,23 @@ GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
 	: mParamInfo(paramInfo)
 {}
 
-SPtr<GpuParamDesc> GpuParamsBase::GetParamDesc(GpuProgramType type) const
+SPtr<GpuParamDesc> GpuParamsBase::GetParameterInformation(GpuProgramType type) const
 {
 	return mParamInfo->GetParamDesc(type);
 }
 
-u32 GpuParamsBase::GetDataParamSize(GpuProgramType type, const String& name) const
+u32 GpuParamsBase::GetDataParameterSize(GpuProgramType type, const String& name) const
 {
-	GpuDataParameterInformation* desc = GetParamDesc(type, name);
+	GpuDataParameterInformation* desc = GetDataParameterInformation(type, name);
 	if(desc != nullptr)
 		return desc->ElementSize * 4;
 
 	return 0;
 }
 
-bool GpuParamsBase::HasParam(GpuProgramType type, const String& name) const
+bool GpuParamsBase::HasParameter(GpuProgramType type, const String& name) const
 {
-	return GetParamDesc(type, name) != nullptr;
+	return GetDataParameterInformation(type, name) != nullptr;
 }
 
 bool GpuParamsBase::HasTexture(GpuProgramType type, const String& name) const
@@ -69,7 +69,7 @@ bool GpuParamsBase::HasBuffer(GpuProgramType type, const String& name) const
 	return false;
 }
 
-bool GpuParamsBase::HasLoadStoreTexture(GpuProgramType type, const String& name) const
+bool GpuParamsBase::HasStorageTexture(GpuProgramType type, const String& name) const
 {
 	const SPtr<GpuParamDesc>& paramDesc = mParamInfo->GetParamDesc(type);
 	if(paramDesc == nullptr)
@@ -97,18 +97,30 @@ bool GpuParamsBase::HasSamplerState(GpuProgramType type, const String& name) con
 
 bool GpuParamsBase::HasParamBlock(GpuProgramType type, const String& name) const
 {
-	const SPtr<GpuParamDesc>& paramDesc = mParamInfo->GetParamDesc(type);
-	if(paramDesc == nullptr)
+	const SPtr<GpuParamDesc>& gpuParameterInformation = mParamInfo->GetParamDesc(type);
+	if(gpuParameterInformation == nullptr)
 		return false;
 
-	auto paramBlockIter = paramDesc->ParamBlocks.find(name);
-	if(paramBlockIter != paramDesc->ParamBlocks.end())
-		return true;
+	return gpuParameterInformation->ParamBlocks.find(name) != gpuParameterInformation->ParamBlocks.end();
+}
+
+bool GpuParamsBase::HasParamBlock(const String& name) const
+{
+	for (u32 gpuProgramTypeIndex = 0; gpuProgramTypeIndex < GPT_COUNT; gpuProgramTypeIndex++)
+	{
+		const SPtr<GpuParamDesc>& gpuParameterInformation = mParamInfo->GetParamDesc((GpuProgramType)gpuProgramTypeIndex);
+		if (gpuParameterInformation == nullptr)
+			continue;
+
+		auto found = gpuParameterInformation->ParamBlocks.find(name);
+		if (found != gpuParameterInformation->ParamBlocks.end())
+			return true;
+	}
 
 	return false;
 }
 
-GpuDataParameterInformation* GpuParamsBase::GetParamDesc(GpuProgramType type, const String& name) const
+GpuDataParameterInformation* GpuParamsBase::GetDataParameterInformation(GpuProgramType type, const String& name) const
 {
 	const SPtr<GpuParamDesc>& paramDesc = mParamInfo->GetParamDesc(type);
 	if(paramDesc == nullptr)
@@ -121,7 +133,7 @@ GpuDataParameterInformation* GpuParamsBase::GetParamDesc(GpuProgramType type, co
 	return nullptr;
 }
 
-GpuParameterBlockInformation* GpuParamsBase::GetParamBlockDesc(GpuProgramType type, const String& name) const
+GpuParameterBlockInformation* GpuParamsBase::GetParameterBlockDesc(GpuProgramType type, const String& name) const
 {
 	const SPtr<GpuParamDesc>& paramDesc = mParamInfo->GetParamDesc(type);
 	if(paramDesc == nullptr)
@@ -171,11 +183,11 @@ TGpuParams<Core>::TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo)
 	}
 
 	data += texturesBufferSize;
-	mLoadStoreTextureData = (TextureData*)data;
+	mStorageTextureData = (TextureData*)data;
 	for(u32 i = 0; i < storageTextureCount; i++)
 	{
-		new(&mLoadStoreTextureData[i].Texture) TextureType();
-		new(&mLoadStoreTextureData[i].Surface) TextureSurface(0, 0, 0, 0);
+		new(&mStorageTextureData[i].Texture) TextureType();
+		new(&mStorageTextureData[i].Surface) TextureSurface(0, 0, 0, 0);
 	}
 
 	data += loadStoreTexturesBufferSize;
@@ -211,8 +223,8 @@ TGpuParams<Core>::~TGpuParams()
 
 	for(u32 i = 0; i < loadStoreTextureCount; i++)
 	{
-		mLoadStoreTextureData[i].Texture.~TextureType();
-		mLoadStoreTextureData[i].Surface.~TextureSurface();
+		mStorageTextureData[i].Texture.~TextureType();
+		mStorageTextureData[i].Surface.~TextureSurface();
 	}
 
 	for(u32 i = 0; i < bufferCount; i++)
@@ -226,40 +238,64 @@ TGpuParams<Core>::~TGpuParams()
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetParamBlockBuffer(u32 set, u32 slot, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
+bool TGpuParams<Core>::SetParameterBlockBuffer(u32 set, u32 slot, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
 {
 	const u32 sequentialResourceIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::ParamBlock, set, slot, arrayIndex);
-	if(sequentialResourceIndex == ~0u)
-		return;
+	if (sequentialResourceIndex == ~0u)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find parameter block with the set/slot combination: {0}/{1}", set, slot);
+		return false;
+	}
 
 	mParamBlockBuffers[sequentialResourceIndex] = paramBlockBuffer;
 
 	MarkCoreDirtyInternal();
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetParamBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
+bool TGpuParams<Core>::SetParameterBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
 {
 	const SPtr<GpuParamDesc>& parameterInformation = mParamInfo->GetParamDesc(type);
 	if(parameterInformation == nullptr)
 	{
-		B3D_LOG(Warning, RenderBackend, "Cannot find parameter block with the name: '{0}'", name);
-		return;
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find parameter block with name: {0}", name);
+		return false;
 	}
 
 	auto iterFind = parameterInformation->ParamBlocks.find(name);
 	if(iterFind == parameterInformation->ParamBlocks.end())
 	{
-		B3D_LOG(Warning, RenderBackend, "Cannot find parameter block with the name: '{0}'", name);
-		return;
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find parameter block with name: {0}", name);
+		return false;
 	}
 
-	SetParamBlockBuffer(iterFind->second.Set, iterFind->second.Slot, paramBlockBuffer, arrayIndex);
+	return SetParameterBlockBuffer(iterFind->second.Set, iterFind->second.Slot, paramBlockBuffer, arrayIndex);
+}
+
+template<bool Core>
+bool TGpuParams<Core>::TrySetParameterBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& parameterBlockBuffer, u32 arrayIndex)
+{
+	if (!HasParamBlock(type, name))
+		return false;
+
+	return SetParameterBlockBuffer(type, name, parameterBlockBuffer, arrayIndex);
+}
+
+template<bool Core>
+bool TGpuParams<Core>::TrySetParameterBlockBuffer(const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
+{
+	if (!HasParamBlock(name))
+		return false;
+
+	return SetParameterBlockBuffer(name, paramBlockBuffer, arrayIndex);
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetParamBlockBuffer(const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
+bool TGpuParams<Core>::SetParameterBlockBuffer(const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex)
 {
+	bool foundMatchingParameter = false;
+	bool isParameterBound = false;
 	for(u32 i = 0; i < 6; i++)
 	{
 		const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc((GpuProgramType)i);
@@ -270,139 +306,193 @@ void TGpuParams<Core>::SetParamBlockBuffer(const String& name, const ParamsBuffe
 		if(iterFind == paramDescs->ParamBlocks.end())
 			continue;
 
-		SetParamBlockBuffer(iterFind->second.Set, iterFind->second.Slot, paramBlockBuffer, arrayIndex);
+		if (SetParameterBlockBuffer(iterFind->second.Set, iterFind->second.Slot, paramBlockBuffer, arrayIndex))
+			isParameterBound = true;
+
+		foundMatchingParameter = true;
 	}
+
+	if (!foundMatchingParameter)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find parameter block with name: {0}", name);
+		return false;
+	}
+
+	return isParameterBound;
 }
 
 template <bool Core>
 template <class T>
-void TGpuParams<Core>::GetParam(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const
+void TGpuParams<Core>::GetParameter(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const
 {
-	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
-	{
-		output = TGpuParameterPrimitive<T, Core>(nullptr, nullptr);
+	if(!TryGetParameter(type, name, output))
 		B3D_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
-		return;
-	}
-
-	auto iterFind = paramDescs->Params.find(name);
-	if(iterFind == paramDescs->Params.end())
-	{
-		output = TGpuParameterPrimitive<T, Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find parameter with the name: '{0}'", name);
-	}
-	else
-		output = TGpuParameterPrimitive<T, Core>(&iterFind->second, GetThisPtrInternal());
 }
 
 template <bool Core>
-void TGpuParams<Core>::GetStructParam(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const
+void TGpuParams<Core>::GetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const
 {
-	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
-	{
-		output = TGpuParameterStruct<Core>(nullptr, nullptr);
+	if(!TryGetStructParameter(type, name, output))
 		B3D_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
-		return;
-	}
-
-	auto iterFind = paramDescs->Params.find(name);
-	if(iterFind == paramDescs->Params.end() || iterFind->second.Type != GPDT_STRUCT)
-	{
-		output = TGpuParameterStruct<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find struct parameter with the name: '{0}'", name);
-	}
-	else
-		output = TGpuParameterStruct<Core>(&iterFind->second, GetThisPtrInternal());
 }
 
 template <bool Core>
-void TGpuParams<Core>::GetTextureParam(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const
+void TGpuParams<Core>::GetTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const
+{
+	if(!TryGetTextureParameter(type, name, output))
+		B3D_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
+}
+
+template <bool Core>
+void TGpuParams<Core>::GetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const
+{
+	if(!TryGetStorageTextureParameter(type, name, output))
+		B3D_LOG(Warning, RenderBackend, "Cannot find storage texture parameter with the name: '{0}'", name);
+}
+
+template <bool Core>
+void TGpuParams<Core>::GetBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const
+{
+	if(!TryGetBufferParameter(type, name, output))
+		B3D_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
+}
+
+template <bool Core>
+void TGpuParams<Core>::GetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const
+{
+	if(!TryGetSamplerStateParameter(type, name, output))
+		B3D_LOG(Warning, RenderBackend, "Cannot find sampler parameter with the name: '{0}'", name);
+}
+
+template <bool Core>
+template <class T>
+bool TGpuParams<Core>::TryGetParameter(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const
 {
 	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
+	if (paramDescs == nullptr)
+	{
+		output = TGpuParameterPrimitive<T, Core>(nullptr, nullptr);
+		return false;
+	}
+
+	auto iterFind = paramDescs->Params.find(name);
+	if (iterFind == paramDescs->Params.end())
+	{
+		output = TGpuParameterPrimitive<T, Core>(nullptr, nullptr);
+		return false;
+	}
+
+	output = TGpuParameterPrimitive<T, Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
+}
+
+template <bool Core>
+bool TGpuParams<Core>::TryGetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const
+{
+	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
+	if (paramDescs == nullptr)
+	{
+		output = TGpuParameterStruct<Core>(nullptr, nullptr);
+		return false;
+	}
+
+	auto iterFind = paramDescs->Params.find(name);
+	if (iterFind == paramDescs->Params.end() || iterFind->second.Type != GPDT_STRUCT)
+	{
+		output = TGpuParameterStruct<Core>(nullptr, nullptr);
+		return false;
+	}
+
+	output = TGpuParameterStruct<Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
+}
+
+template <bool Core>
+bool TGpuParams<Core>::TryGetTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const
+{
+	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
+	if (paramDescs == nullptr)
 	{
 		output = TGpuParameterSampledTexture<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
-		return;
+		return false;
 	}
 
 	auto iterFind = paramDescs->Textures.find(name);
-	if(iterFind == paramDescs->Textures.end())
+	if (iterFind == paramDescs->Textures.end())
 	{
 		output = TGpuParameterSampledTexture<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find texture parameter with the name: '{0}'", name);
+		return false;
 	}
-	else
-		output = TGpuParameterSampledTexture<Core>(&iterFind->second, GetThisPtrInternal());
+
+	output = TGpuParameterSampledTexture<Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::GetLoadStoreTextureParam(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const
+bool TGpuParams<Core>::TryGetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const
 {
 	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
+	if (paramDescs == nullptr)
 	{
 		output = TGpuParameterStorageTexture<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
-		return;
+		return false;
 	}
 
 	auto iterFind = paramDescs->LoadStoreTextures.find(name);
-	if(iterFind == paramDescs->LoadStoreTextures.end())
+	if (iterFind == paramDescs->LoadStoreTextures.end())
 	{
 		output = TGpuParameterStorageTexture<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find load-store parameter with the name: '{0}'", name);
+		return false;
 	}
-	else
-		output = TGpuParameterStorageTexture<Core>(&iterFind->second, GetThisPtrInternal());
+
+	output = TGpuParameterStorageTexture<Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::GetBufferParam(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const
+bool TGpuParams<Core>::TryGetBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const
 {
 	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
+	if (paramDescs == nullptr)
 	{
 		output = TGpuParameterBuffer<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
-		return;
+		return false;
 	}
 
 	auto iterFind = paramDescs->Buffers.find(name);
-	if(iterFind == paramDescs->Buffers.end())
+	if (iterFind == paramDescs->Buffers.end())
 	{
 		output = TGpuParameterBuffer<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find buffer parameter with the name: '{0}'", name);
+		return false;
 	}
-	else
-		output = TGpuParameterBuffer<Core>(&iterFind->second, GetThisPtrInternal());
+
+	output = TGpuParameterBuffer<Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::GetSamplerStateParam(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const
+bool TGpuParams<Core>::TryGetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const
 {
 	const SPtr<GpuParamDesc>& paramDescs = mParamInfo->GetParamDesc(type);
-	if(paramDescs == nullptr)
+	if (paramDescs == nullptr)
 	{
 		output = TGpuParameterSampler<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);
-		return;
+		return false;
 	}
 
 	auto iterFind = paramDescs->Samplers.find(name);
-	if(iterFind == paramDescs->Samplers.end())
+	if (iterFind == paramDescs->Samplers.end())
 	{
 		output = TGpuParameterSampler<Core>(nullptr, nullptr);
-		B3D_LOG(Warning, RenderBackend, "Cannot find sampler state parameter with the name: '{0}'", name);
+		return false;
 	}
-	else
-		output = TGpuParameterSampler<Core>(&iterFind->second, GetThisPtrInternal());
+
+	output = TGpuParameterSampler<Core>(&iterFind->second, GetThisPtrInternal());
+	return true;
 }
 
 template <bool Core>
-typename TGpuParams<Core>::ParamsBufferType TGpuParams<Core>::GetParamBlockBuffer(u32 set, u32 slot, u32 arrayIndex) const
+typename TGpuParams<Core>::ParamsBufferType TGpuParams<Core>::GetParameterBlockBuffer(u32 set, u32 slot, u32 arrayIndex) const
 {
 	const u32 sequentialResourceIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::ParamBlock, set, slot, arrayIndex);
 	if(sequentialResourceIndex == ~0u)
@@ -422,13 +512,13 @@ typename TGpuParams<Core>::TextureType TGpuParams<Core>::GetTexture(u32 set, u32
 }
 
 template <bool Core>
-typename TGpuParams<Core>::TextureType TGpuParams<Core>::GetLoadStoreTexture(u32 set, u32 slot, u32 arrayIndex) const
+typename TGpuParams<Core>::TextureType TGpuParams<Core>::GetStorageTexture(u32 set, u32 slot, u32 arrayIndex) const
 {
 	const u32 sequentialResourceIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::LoadStoreTexture, set, slot, arrayIndex);
 	if(sequentialResourceIndex == ~0u)
 		return TGpuParams<Core>::TextureType();
 
-	return mLoadStoreTextureData[sequentialResourceIndex].Texture;
+	return mStorageTextureData[sequentialResourceIndex].Texture;
 }
 
 template <bool Core>
@@ -464,7 +554,7 @@ const TextureSurface& TGpuParams<Core>::GetTextureSurface(u32 set, u32 slot, u32
 }
 
 template <bool Core>
-const TextureSurface& TGpuParams<Core>::GetLoadStoreSurface(u32 set, u32 slot, u32 arrayIndex) const
+const TextureSurface& TGpuParams<Core>::GetStorageTextureSurface(u32 set, u32 slot, u32 arrayIndex) const
 {
 	static TextureSurface emptySurface;
 
@@ -472,103 +562,123 @@ const TextureSurface& TGpuParams<Core>::GetLoadStoreSurface(u32 set, u32 slot, u
 	if(sequentialArrayIndex == ~0u)
 		return emptySurface;
 
-	return mLoadStoreTextureData[sequentialArrayIndex].Surface;
+	return mStorageTextureData[sequentialArrayIndex].Surface;
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex)
+bool TGpuParams<Core>::SetTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::Texture, set, slot, arrayIndex);
-	if(sequentialArrayIndex == ~0u)
-		return;
+	if (sequentialArrayIndex == ~0u)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find sampled texture parameter with the set/slot combination: {0}/{1}", set, slot);
+		return false;
+	}
 
 	mSampledTextureData[sequentialArrayIndex].Texture = texture;
 	mSampledTextureData[sequentialArrayIndex].Surface = surface;
 
 	MarkResourcesDirtyInternal();
 	MarkCoreDirtyInternal();
+
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetLoadStoreTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex)
+bool TGpuParams<Core>::SetStorageTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::LoadStoreTexture, set, slot, arrayIndex);
-	if(sequentialArrayIndex == ~0u)
-		return;
+	if (sequentialArrayIndex == ~0u)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find storage texture parameter with the set/slot combination: {0}/{1}", set, slot);
+		return false;
+	}
 
-	mLoadStoreTextureData[sequentialArrayIndex].Texture = texture;
-	mLoadStoreTextureData[sequentialArrayIndex].Surface = surface;
+	mStorageTextureData[sequentialArrayIndex].Texture = texture;
+	mStorageTextureData[sequentialArrayIndex].Surface = surface;
 
 	MarkResourcesDirtyInternal();
 	MarkCoreDirtyInternal();
+
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex)
+bool TGpuParams<Core>::SetBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::Buffer, set, slot, arrayIndex);
-	if(sequentialArrayIndex == ~0u)
-		return;
+	if (sequentialArrayIndex == ~0u)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find buffer parameter with the set/slot combination: {0}/{1}", set, slot);
+		return false;
+	}
 
 	mBuffers[sequentialArrayIndex] = buffer;
 
 	MarkResourcesDirtyInternal();
 	MarkCoreDirtyInternal();
+
+	return true;
 }
 
 template <bool Core>
-void TGpuParams<Core>::SetSamplerState(u32 set, u32 slot, const SamplerType& sampler, u32 arrayIndex)
+bool TGpuParams<Core>::SetSamplerState(u32 set, u32 slot, const SamplerType& sampler, u32 arrayIndex)
 {
 	const u32 sequentialArrayIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::ParamType::SamplerState, set, slot, arrayIndex);
-	if(sequentialArrayIndex == ~0u)
-		return;
+	if (sequentialArrayIndex == ~0u)
+	{
+		B3D_LOG(Warning, RenderBackend, "Unable to assign parameter. Cannot find sampler parameter with the set/slot combination: {0}/{1}", set, slot);
+		return false;
+	}
 
 	mSamplerStates[sequentialArrayIndex] = sampler;
 
 	MarkResourcesDirtyInternal();
 	MarkCoreDirtyInternal();
+
+	return true;
 }
 
 template class TGpuParams<false>;
 template class TGpuParams<true>;
 
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<float>(GpuProgramType type, const String&, TGpuParameterPrimitive<float, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<int>(GpuProgramType type, const String&, TGpuParameterPrimitive<int, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Color>(GpuProgramType type, const String&, TGpuParameterPrimitive<Color, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector2I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2I, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector3I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3I, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Vector4I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4I, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix2x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x3, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix2x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x4, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix3x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x2, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix3x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x4, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix4x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x2, false>&) const;
-template B3D_CORE_EXPORT void TGpuParams<false>::GetParam<Matrix4x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x3, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<float>(GpuProgramType type, const String&, TGpuParameterPrimitive<float, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<int>(GpuProgramType type, const String&, TGpuParameterPrimitive<int, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Color>(GpuProgramType type, const String&, TGpuParameterPrimitive<Color, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector2I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2I, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector3I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3I, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Vector4I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4I, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix2x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x3, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix2x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x4, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix3x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x2, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix3x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x4, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix4x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x2, false>&) const;
+template B3D_CORE_EXPORT void TGpuParams<false>::GetParameter<Matrix4x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x3, false>&) const;
 
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<float>(GpuProgramType type, const String&, TGpuParameterPrimitive<float, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<int>(GpuProgramType type, const String&, TGpuParameterPrimitive<int, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Color>(GpuProgramType type, const String&, TGpuParameterPrimitive<Color, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector2I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2I, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector3I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3I, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Vector4I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4I, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix2x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x3, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix2x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x4, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix3x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x2, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix3x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x4, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x2, true>&) const;
-template B3D_CORE_EXPORT void TGpuParams<true>::GetParam<Matrix4x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x3, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<float>(GpuProgramType type, const String&, TGpuParameterPrimitive<float, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<int>(GpuProgramType type, const String&, TGpuParameterPrimitive<int, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Color>(GpuProgramType type, const String&, TGpuParameterPrimitive<Color, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector2I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector2I, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector3I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector3I, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Vector4I>(GpuProgramType type, const String&, TGpuParameterPrimitive<Vector4I, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix2x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x3, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix2x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix2x4, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix3x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x2, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix3x4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix3x4, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x2, true>&) const;
+template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x3, true>&) const;
 
 const GpuDataParameterTypeInformationLookup GpuParams::kParamSizes;
 
@@ -680,12 +790,12 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 	for(u32 i = 0; i < numStorageTextures; i++)
 	{
 		new(&loadStoreSurfaces[i]) TextureSurface();
-		loadStoreSurfaces[i] = mLoadStoreTextureData[i].Surface;
+		loadStoreSurfaces[i] = mStorageTextureData[i].Surface;
 
 		new(&loadStoreTextures[i]) SPtr<ct::Texture>();
 
-		if(mLoadStoreTextureData[i].Texture.IsLoaded())
-			loadStoreTextures[i] = mLoadStoreTextureData[i].Texture->GetCore();
+		if(mStorageTextureData[i].Texture.IsLoaded())
+			loadStoreTextures[i] = mStorageTextureData[i].Texture->GetCore();
 		else
 			loadStoreTextures[i] = nullptr;
 	}
@@ -726,8 +836,8 @@ void GpuParams::GetListenerResources(Vector<HResource>& resources)
 
 	for(u32 i = 0; i < numStorageTextures; i++)
 	{
-		if(mLoadStoreTextureData[i].Texture != nullptr)
-			resources.push_back(mLoadStoreTextureData[i].Texture);
+		if(mStorageTextureData[i].Texture != nullptr)
+			resources.push_back(mStorageTextureData[i].Texture);
 	}
 }
 
@@ -799,10 +909,10 @@ void GpuParams::SyncToCore(const CoreSyncData& data)
 
 	for(u32 i = 0; i < numStorageTextures; i++)
 	{
-		mLoadStoreTextureData[i].Surface = loadStoreSurfaces[i];
+		mStorageTextureData[i].Surface = loadStoreSurfaces[i];
 		loadStoreSurfaces[i].~TextureSurface();
 
-		mLoadStoreTextureData[i].Texture = loadStoreTextures[i];
+		mStorageTextureData[i].Texture = loadStoreTextures[i];
 		loadStoreTextures[i].~SPtr<Texture>();
 	}
 

@@ -20,11 +20,11 @@ namespace bs
 		public:
 			~VulkanGpuParams() override;
 
-			void SetParamBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex = 0) override;
-			void SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
-			void SetLoadStoreTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
-			void SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex = 0) override;
-			void SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override;
+			bool SetParameterBlockBuffer(u32 set, u32 slot, const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex = 0) override;
+			bool SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;
+			bool SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex = 0) override;
+			bool SetBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex = 0) override;
+			bool SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override;
 
 			/** Returns the total number of descriptor sets used by this object. */
 			u32 GetSetCount() const;
