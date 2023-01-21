@@ -3,7 +3,7 @@
 #include "BsSLImporter.h"
 #include "FileSystem/BsDataStream.h"
 #include "FileSystem/BsFileSystem.h"
-#include "BsSLFXCompiler.h"
+#include "BsBSLCompiler.h"
 #include "Importer/BsShaderImportOptions.h"
 
 using namespace bs;
@@ -34,7 +34,7 @@ SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	SPtr<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
 	const String shaderName = filePath.GetFilename(false);
 	SPtr<Shader> shader;
-	BSLFXCompileResult result = BSLFXCompiler::Compile(shaderName, source, io->GetDefines(), io->Languages, shader);
+	BSLResult result = BSLCompiler::Compile(shaderName, source, io->GetDefines(), io->Languages, shader);
 
 	if(shader != nullptr)
 		shader->SetName(shaderName);
