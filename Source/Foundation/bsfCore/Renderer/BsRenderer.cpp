@@ -33,14 +33,6 @@ SPtr<RendererMeshData> Renderer::CreateMeshDataInternal(const SPtr<MeshData>& me
 											   RendererMeshData(meshData));
 }
 
-void Renderer::SetGlobalShaderOverride(const SPtr<bs::Shader>& shader)
-{
-	const Vector<bs::SubShader>& subShaders = shader->GetSubShaders();
-
-	for(auto& entry : subShaders)
-		SetGlobalShaderOverride(entry.Name, entry.Shader);
-}
-
 bool Renderer::CompareCallback(const RendererExtension* a, const RendererExtension* b)
 {
 	// Sort by alpha setting first, then by cull mode, then by index

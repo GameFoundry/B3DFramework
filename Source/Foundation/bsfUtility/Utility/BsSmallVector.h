@@ -22,6 +22,13 @@ namespace bs
 		typedef std::reverse_iterator<Type*> ReverseIterator;
 		typedef std::reverse_iterator<const Type*> ConstReverseIterator;
 
+		// For std compatibility
+		typedef Type value_type;
+		typedef Type* iterator;
+		typedef const Type* const_iterator;
+		typedef std::reverse_iterator<Type*> reverse_iterator;
+		typedef std::reverse_iterator<const Type*> const_reverse_iterator;
+
 		SmallVector() = default;
 
 		SmallVector(const SmallVector<ValueType, N>& other)

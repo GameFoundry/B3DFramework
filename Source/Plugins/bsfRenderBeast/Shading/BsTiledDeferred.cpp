@@ -222,13 +222,13 @@ void ClearLoadStoreMat::Execute(const SPtr<GpuBuffer>& target, const Color& clea
 
 /** Helper method used for initializing variations of the ClearLoadStore material. */
 template <ClearLoadStoreType OBJ_TYPE, ClearLoadStoreDataType DATA_TYPE, u32 NUM_COMPONENTS>
-static const ShaderVariation& GetClearLoadStoreVariation()
+static const ShaderVariationParameters& GetClearLoadStoreVariation()
 {
-	static ShaderVariation variation = ShaderVariation(
+	static ShaderVariationParameters variation = ShaderVariationParameters(
 		{
-			ShaderVariation::Param("OBJ_TYPE", (int)OBJ_TYPE),
-			ShaderVariation::Param("DATA_TYPE", (int)DATA_TYPE),
-			ShaderVariation::Param("NUM_COMPONENTS", NUM_COMPONENTS),
+			ShaderVariationParameter("OBJ_TYPE", (int)OBJ_TYPE),
+			ShaderVariationParameter("DATA_TYPE", (int)DATA_TYPE),
+			ShaderVariationParameter("NUM_COMPONENTS", NUM_COMPONENTS),
 
 		});
 
@@ -236,7 +236,7 @@ static const ShaderVariation& GetClearLoadStoreVariation()
 }
 
 template <ClearLoadStoreType BUFFER_TYPE, ClearLoadStoreDataType DATA_TYPE>
-const ShaderVariation& GetClearLoadStoreVariation(u32 numComponents)
+const ShaderVariationParameters& GetClearLoadStoreVariation(u32 numComponents)
 {
 	switch(numComponents)
 	{

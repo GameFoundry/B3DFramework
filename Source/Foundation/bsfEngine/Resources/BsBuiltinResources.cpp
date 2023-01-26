@@ -84,6 +84,8 @@ BuiltinResources::~BuiltinResources()
 	mCursorSizeNWSE = nullptr;
 	mCursorSizeWE = nullptr;
 	mFrameworkIcon = nullptr;
+
+	GetCoreThread().QueueCommand([]() { ct::BuiltinResources::ShutDown(); }, CTQF_InternalQueue);
 }
 
 BuiltinResources::BuiltinResources()
@@ -134,6 +136,25 @@ BuiltinResources::BuiltinResources()
 	mFont = GetResources().Load<Font>(mBuiltinDataFolder + (String(kDefaultFontName) + u8".asset"));
 	mSkin = GetResources().Load<GUISkin>(mBuiltinDataFolder + (String(kGuiSkinFile) + u8".json.asset"));
 	mEmptySkin = GUISkin::Create();
+
+	const HTexture whiteTexture2D = GetTexture(BuiltinTexture::White);
+	const HTexture blackTexture2D = GetTexture(BuiltinTexture::Black);
+	const HTexture normalTexture = GetTexture(BuiltinTexture::Normal);
+	const HTexture whiteTexture3D = GetTexture(BuiltinTexture::White3D);
+	const HTexture blackTexture3D = GetTexture(BuiltinTexture::Black3D);
+
+	auto fnInitializeCoreBuiltinResources = [whiteTexture2D = whiteTexture2D->GetCore(), blackTexture2D = blackTexture2D->GetCore(), normalTexture = normalTexture->GetCore(), whiteTexture3D = whiteTexture3D->GetCore(), blackTexture3D = blackTexture3D->GetCore()]()
+	{
+		ct::BuiltinResources::StartUp();
+		ct::BuiltinResources& coreBuiltinResources = ct::BuiltinResources::Instance();
+		coreBuiltinResources.WhiteTexture2D = whiteTexture2D;
+		coreBuiltinResources.BlackTexture2D = blackTexture2D;
+		coreBuiltinResources.NormalTexture2D = normalTexture;
+		coreBuiltinResources.WhiteTexture3D = whiteTexture3D;
+		coreBuiltinResources.BlackTexture3D = blackTexture3D;
+	};
+
+	GetCoreThread().QueueCommand(fnInitializeCoreBuiltinResources, CTQF_InternalQueue);
 
 	/************************************************************************/
 	/* 								CURSOR		                     		*/

@@ -41,11 +41,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool skinned, bool morph>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SKINNED", skinned),
-					  ShaderVariation::Param("MORPH", morph) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SKINNED", skinned),
+					  ShaderVariationParameter("MORPH", morph) });
 
 				return variation;
 			}
@@ -75,11 +75,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool skinned, bool morph>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SKINNED", skinned),
-					  ShaderVariation::Param("MORPH", morph) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SKINNED", skinned),
+					  ShaderVariationParameter("MORPH", morph) });
 
 				return variation;
 			}
@@ -109,11 +109,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool skinned, bool morph>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SKINNED", skinned),
-					  ShaderVariation::Param("MORPH", morph) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SKINNED", skinned),
+					  ShaderVariationParameter("MORPH", morph) });
 
 				return variation;
 			}
@@ -155,11 +155,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool skinned, bool morph>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SKINNED", skinned),
-					  ShaderVariation::Param("MORPH", morph) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SKINNED", skinned),
+					  ShaderVariationParameter("MORPH", morph) });
 
 				return variation;
 			}
@@ -195,11 +195,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool directional, bool useZFailStencil>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
-					  ShaderVariation::Param("USE_ZFAIL_STENCIL", useZFailStencil) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("NEEDS_TRANSFORM", !directional),
+					  ShaderVariationParameter("USE_ZFAIL_STENCIL", useZFailStencil) });
 
 				return variation;
 			};
@@ -267,13 +267,13 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 quality, bool directional, bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SHADOW_QUALITY", quality),
-					  ShaderVariation::Param("CASCADING", directional),
-					  ShaderVariation::Param("NEEDS_TRANSFORM", !directional),
-					  ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SHADOW_QUALITY", quality),
+					  ShaderVariationParameter("CASCADING", directional),
+					  ShaderVariationParameter("NEEDS_TRANSFORM", !directional),
+					  ShaderVariationParameter("MSAA_COUNT", MSAA ? 2 : 1) });
 
 				return variation;
 			};
@@ -319,13 +319,13 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 quality, bool inside, bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SHADOW_QUALITY", quality),
-					  ShaderVariation::Param("VIEWER_INSIDE_VOLUME", inside),
-					  ShaderVariation::Param("NEEDS_TRANSFORM", true),
-					  ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SHADOW_QUALITY", quality),
+					  ShaderVariationParameter("VIEWER_INSIDE_VOLUME", inside),
+					  ShaderVariationParameter("NEEDS_TRANSFORM", true),
+					  ShaderVariationParameter("MSAA_COUNT", MSAA ? 2 : 1) });
 
 				return variation;
 			};

@@ -36,61 +36,61 @@ namespace bs
 		UnorderedMap<String, String> mDefines;
 	};
 
+	/** Possible types of a variation parameter. */
+	enum class ShaderVariationParameterType
+	{
+		Int,
+		UInt,
+		Float,
+		Bool
+	};
+
+	/** Name, type and value of a variation parameter. */
+	struct ShaderVariationParameter
+	{
+		ShaderVariationParameter()
+			: I(0), Type(ShaderVariationParameterType::Int)
+		{}
+
+		ShaderVariationParameter(const String& name, i32 val)
+			: I(val), Name(name), Type(ShaderVariationParameterType::Int)
+		{}
+
+		ShaderVariationParameter(const String& name, u32 val)
+			: Ui(val), Name(name), Type(ShaderVariationParameterType::Int)
+		{}
+
+		ShaderVariationParameter(const String& name, float val)
+			: F(val), Name(name), Type(ShaderVariationParameterType::Float)
+		{}
+
+		ShaderVariationParameter(const String& name, bool val)
+			: I(val ? 1 : 0), Name(name), Type(ShaderVariationParameterType::Bool)
+		{}
+
+		union
+		{
+			i32 I;
+			u32 Ui;
+			float F;
+		};
+
+		StringID Name;
+		ShaderVariationParameterType Type;
+	};
+
 	/**
 	 * Contains information about a single variation of a Shader. Each variation can have a separate set of
 	 * \#defines that control shader compilation.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderVariation : public IReflectable
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderVariationParameters : public IReflectable
 	{
 	public:
-		/** Possible types of a variation parameter. */
-		enum ParamType
-		{
-			Int,
-			UInt,
-			Float,
-			Bool
-		};
-
-		/** Name, type and value of a variation parameter. */
-		struct Param
-		{
-			Param()
-				: I(0), Type(Int)
-			{}
-
-			Param(const String& name, i32 val)
-				: I(val), Name(name), Type(Int)
-			{}
-
-			Param(const String& name, u32 val)
-				: Ui(val), Name(name), Type(Int)
-			{}
-
-			Param(const String& name, float val)
-				: F(val), Name(name), Type(Float)
-			{}
-
-			Param(const String& name, bool val)
-				: I(val ? 1 : 0), Name(name), Type(Bool)
-			{}
-
-			union
-			{
-				i32 I;
-				u32 Ui;
-				float F;
-			};
-
-			StringID Name;
-			ParamType Type;
-		};
-
 		B3D_SCRIPT_EXPORT()
-		ShaderVariation() = default;
+		ShaderVariationParameters() = default;
 
 		/** Creates a new shader variation with the specified parameters. */
-		ShaderVariation(const SmallVector<Param, 4>& params);
+		ShaderVariationParameters(const SmallVector<ShaderVariationParameter, 4>& params);
 
 		/**
 		 * Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be
@@ -146,7 +146,7 @@ namespace bs
 		void SetBool(const StringID& name, bool value);
 
 		/** Registers a new parameter that controls the variation. */
-		void AddParam(const Param& param) { mParams[param.Name] = param; }
+		void AddParam(const ShaderVariationParameter& param) { mParams[param.Name] = param; }
 
 		/** Removes a parameter with the specified name. */
 		B3D_SCRIPT_EXPORT()
@@ -176,15 +176,15 @@ namespace bs
 		 *								parameters present in @p other is used for comparison, while any extra parameters
 		 *								present in this object are ignored.
 		 */
-		bool Matches(const ShaderVariation& other, bool exact = true) const;
+		bool Matches(const ShaderVariationParameters& other, bool exact = true) const;
 
 		/** Returns all the variation parameters. */
-		const UnorderedMap<StringID, Param>& GetParams() const { return mParams; }
+		const UnorderedMap<StringID, ShaderVariationParameter>& GetParams() const { return mParams; }
 
-		bool operator==(const ShaderVariation& rhs) const;
+		bool operator==(const ShaderVariationParameters& rhs) const;
 
 		/** Empty variation with no parameters. */
-		static const ShaderVariation kEmpty;
+		static const ShaderVariationParameters kEmpty;
 
 		/**
 		 * @name Internal
@@ -213,7 +213,7 @@ namespace bs
 	private:
 		friend class ShaderVariations;
 
-		UnorderedMap<StringID, Param> mParams;
+		UnorderedMap<StringID, ShaderVariationParameter> mParams;
 		mutable u32 mIdx = -1;
 
 		/************************************************************************/
@@ -231,22 +231,22 @@ namespace bs
 	{
 	public:
 		/** Registers a new variation. */
-		void Add(const ShaderVariation& variation);
+		void Add(const ShaderVariationParameters& variation);
 
 		/** Returns a variation at the specified index. Variations are indexed sequentially as they are added. */
-		const ShaderVariation& Get(u32 idx) { return mVariations[idx]; }
+		const ShaderVariationParameters& Get(u32 idx) { return mVariations[idx]; }
 
 		/**
 		 * Scans a list of stored variations and returns an index of a variation that has the same parameters as the
 		 * provided one, or -1 if one is not found.
 		 */
-		u32 Find(const ShaderVariation& variation) const;
+		u32 Find(const ShaderVariationParameters& variation) const;
 
 		/** Returns a list of all variations. */
-		const SmallVector<ShaderVariation, 4>& GetVariations() const { return mVariations; }
+		const SmallVector<ShaderVariationParameters, 4>& GetVariations() const { return mVariations; }
 
 	private:
-		SmallVector<ShaderVariation, 4> mVariations;
+		SmallVector<ShaderVariationParameters, 4> mVariations;
 		u32 mNextIdx = 0;
 	};
 

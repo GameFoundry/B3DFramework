@@ -13,20 +13,60 @@
 
 using namespace bs;
 
-RTTITypeBase* SubShader::GetRttiStatic()
-{
-	return SubShaderRTTI::Instance();
-}
-
-RTTITypeBase* SubShader::GetRtti() const
-{
-	return SubShader::GetRttiStatic();
-}
-
 template <bool Core>
 TShaderCreateInformation<Core>::TShaderCreateInformation()
 	: QueueSortType(QueueSortType::None), QueuePriority(0), SeparablePasses(false), Flags(0)
 {
+}
+
+template<bool Core>
+TShaderCreateInformation<true> TShaderCreateInformation<Core>::ConvertToCore(const TShaderCreateInformation<false>& value)
+{
+	ct::ShaderCreateInformation output;
+	output.DataParams = value.DataParams;
+	output.TextureParams = value.TextureParams;
+	output.SamplerParams = value.SamplerParams;
+	output.BufferParams = value.BufferParams;
+	output.ParamBlocks = value.ParamBlocks;
+	output.ParamAttributes = value.ParamAttributes;
+
+	output.DataDefaultValues = value.DataDefaultValues;
+
+	output.SamplerDefaultValues.resize(value.SamplerDefaultValues.size());
+	for(u32 i = 0; i < (u32)value.SamplerDefaultValues.size(); i++)
+	{
+		if(value.SamplerDefaultValues[i] != nullptr)
+			output.SamplerDefaultValues[i] = value.SamplerDefaultValues[i]->GetCore();
+		else
+			output.SamplerDefaultValues[i] = nullptr;
+	}
+
+	output.TextureDefaultValues.resize(value.TextureDefaultValues.size());
+	for(u32 i = 0; i < (u32)value.TextureDefaultValues.size(); i++)
+	{
+		if(value.TextureDefaultValues[i].IsLoaded())
+			output.TextureDefaultValues[i] = value.TextureDefaultValues[i]->GetCore();
+		else
+			output.TextureDefaultValues[i] = nullptr;
+	}
+
+	output.QueuePriority = value.QueuePriority;
+	output.QueueSortType = value.QueueSortType;
+	output.SeparablePasses = value.SeparablePasses;
+	output.Flags = value.Flags;
+
+	for(auto& entry : value.Techniques)
+	{
+		if(entry != nullptr)
+			output.Techniques.push_back(entry->GetCore());
+	}
+
+	output.VariationParams = value.VariationParams;
+	output.CompilerMetaData = value.CompilerMetaData;
+
+	// Ignoring default values as they are not needed for syncing since
+	// they're initialized through the material.
+	return output;
 }
 
 template <bool Core>
@@ -409,12 +449,12 @@ Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::GetCompatible
 
 template <bool Core>
 Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::GetCompatibleTechniques(
-	const ShaderVariation& variation, bool exact) const
+	const ShaderVariationParameters& variation, bool exact) const
 {
 	Vector<SPtr<TechniqueType>> output;
 	for(auto& technique : mDesc.Techniques)
 	{
-		if(technique->IsSupported() && technique->GetVariation().Matches(variation, exact))
+		if(technique->IsSupported() && technique->GetVariationParameters().Matches(variation, exact))
 			output.push_back(technique);
 	}
 
@@ -451,70 +491,11 @@ SPtr<ct::CoreObject> Shader::CreateCore() const
 	for(auto& technique : mDesc.Techniques)
 		techniques.push_back(technique->GetCore());
 
-	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ConvertDesc(mDesc), mId);
+	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, TShaderCreateInformation<true>::ConvertToCore(mDesc), mId);
 	SPtr<ct::Shader> shaderCorePtr = B3DMakeSharedFromExisting<ct::Shader>(shaderCore);
 	shaderCorePtr->SetShared(shaderCorePtr);
 
 	return shaderCorePtr;
-}
-
-ct::ShaderCreateInformation Shader::ConvertDesc(const ShaderCreateInformation& createInformation) const
-{
-	ct::ShaderCreateInformation output;
-	output.DataParams = createInformation.DataParams;
-	output.TextureParams = createInformation.TextureParams;
-	output.SamplerParams = createInformation.SamplerParams;
-	output.BufferParams = createInformation.BufferParams;
-	output.ParamBlocks = createInformation.ParamBlocks;
-	output.ParamAttributes = createInformation.ParamAttributes;
-
-	output.DataDefaultValues = createInformation.DataDefaultValues;
-
-	output.SamplerDefaultValues.resize(createInformation.SamplerDefaultValues.size());
-	for(u32 i = 0; i < (u32)createInformation.SamplerDefaultValues.size(); i++)
-	{
-		if(createInformation.SamplerDefaultValues[i] != nullptr)
-			output.SamplerDefaultValues[i] = createInformation.SamplerDefaultValues[i]->GetCore();
-		else
-			output.SamplerDefaultValues[i] = nullptr;
-	}
-
-	output.TextureDefaultValues.resize(createInformation.TextureDefaultValues.size());
-	for(u32 i = 0; i < (u32)createInformation.TextureDefaultValues.size(); i++)
-	{
-		if(createInformation.TextureDefaultValues[i].IsLoaded())
-			output.TextureDefaultValues[i] = createInformation.TextureDefaultValues[i]->GetCore();
-		else
-			output.TextureDefaultValues[i] = nullptr;
-	}
-
-	output.QueuePriority = createInformation.QueuePriority;
-	output.QueueSortType = createInformation.QueueSortType;
-	output.SeparablePasses = createInformation.SeparablePasses;
-	output.Flags = createInformation.Flags;
-
-	for(auto& entry : createInformation.Techniques)
-	{
-		if(entry)
-			output.Techniques.push_back(entry->GetCore());
-	}
-
-	for(auto& entry : createInformation.SubShaders)
-	{
-		ct::SubShader subShader;
-		subShader.Name = entry.Name;
-
-		if(entry.Shader)
-			subShader.Shader = entry.Shader->GetCore();
-
-		output.SubShaders.push_back(subShader);
-	}
-
-	output.VariationParams = createInformation.VariationParams;
-
-	// Ignoring default values as they are not needed for syncing since
-	// they're initialized through the material.
-	return output;
 }
 
 void Shader::GetCoreDependencies(Vector<CoreObject*>& dependencies)

@@ -32,11 +32,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 quality, bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("QUALITY", quality),
-					  ShaderVariation::Param("MSAA", MSAA) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("QUALITY", quality),
+					  ShaderVariationParameter("MSAA", MSAA) });
 
 				return variation;
 			};
@@ -245,11 +245,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool is3D>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("VOLUME_LUT", is3D),
+						ShaderVariationParameter("VOLUME_LUT", is3D),
 					});
 
 				return variation;
@@ -313,14 +313,14 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool volumeLUT, bool gammaOnly, bool autoExposure, bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("VOLUME_LUT", volumeLUT),
-						ShaderVariation::Param("GAMMA_ONLY", gammaOnly),
-						ShaderVariation::Param("AUTO_EXPOSURE", autoExposure),
-						ShaderVariation::Param("MSAA", MSAA),
+						ShaderVariationParameter("VOLUME_LUT", volumeLUT),
+						ShaderVariationParameter("GAMMA_ONLY", gammaOnly),
+						ShaderVariationParameter("AUTO_EXPOSURE", autoExposure),
+						ShaderVariationParameter("MSAA", MSAA),
 					});
 
 				return variation;
@@ -358,10 +358,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool AUTO_EXPOSURE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("AUTO_EXPOSURE", AUTO_EXPOSURE) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("AUTO_EXPOSURE", AUTO_EXPOSURE) });
 
 				return variation;
 			}
@@ -418,11 +418,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 HALO_MODE, bool CHROMATIC_ABERRATION>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("HALO_MODE", HALO_MODE),
-					  ShaderVariation::Param("CHROMATIC_ABERRATION", CHROMATIC_ABERRATION) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("HALO_MODE", HALO_MODE),
+					  ShaderVariationParameter("CHROMATIC_ABERRATION", CHROMATIC_ABERRATION) });
 
 				return variation;
 			}
@@ -475,10 +475,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool SIMPLE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SIMPLE", SIMPLE) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SIMPLE", SIMPLE) });
 
 				return variation;
 			}
@@ -559,11 +559,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool ADDITIVE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("ADDITIVE", ADDITIVE),
+						ShaderVariationParameter("ADDITIVE", ADDITIVE),
 					});
 
 				return variation;
@@ -646,11 +646,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool near, bool far>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("NEAR", near),
-					  ShaderVariation::Param("FAR", far) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("NEAR", near),
+					  ShaderVariationParameter("FAR", far) });
 
 				return variation;
 			}
@@ -708,12 +708,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool near, bool far>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("NEAR", near),
-						ShaderVariation::Param("FAR", far),
+						ShaderVariationParameter("NEAR", near),
+						ShaderVariationParameter("FAR", far),
 					});
 
 				return variation;
@@ -781,10 +781,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", MSAA ? 2 : 1) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", MSAA ? 2 : 1) });
 
 				return variation;
 			}
@@ -837,10 +837,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool DEPTH_OCCLUSION>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("DEPTH_OCCLUSION", DEPTH_OCCLUSION) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("DEPTH_OCCLUSION", DEPTH_OCCLUSION) });
 
 				return variation;
 			}
@@ -895,10 +895,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <MSAAMode MSAA_MODE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_MODE", (i32)MSAA_MODE) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_MODE", (i32)MSAA_MODE) });
 
 				return variation;
 			}
@@ -973,11 +973,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool noTextureViews>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("NO_TEXTURE_VIEWS", noTextureViews),
+						ShaderVariationParameter("NO_TEXTURE_VIEWS", noTextureViews),
 					});
 
 				return variation;
@@ -1080,12 +1080,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool upsample, bool finalPass, int quality>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MIX_WITH_UPSAMPLED", upsample),
-					  ShaderVariation::Param("FINAL_AO", finalPass),
-					  ShaderVariation::Param("QUALITY", quality) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MIX_WITH_UPSAMPLED", upsample),
+					  ShaderVariationParameter("FINAL_AO", finalPass),
+					  ShaderVariationParameter("QUALITY", quality) });
 
 				return variation;
 			}
@@ -1177,10 +1177,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool horizontal>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("DIR_HORZ", horizontal) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("DIR_HORZ", horizontal) });
 
 				return variation;
 			}
@@ -1221,11 +1221,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool msaa, bool singleSampleMSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
-					  ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", msaa ? 2 : 1),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA) });
 
 				return variation;
 			}
@@ -1276,12 +1276,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 quality, bool msaa, bool singleSampleMSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", msaa ? 2 : 1),
-					  ShaderVariation::Param("QUALITY", quality),
-					  ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", msaa ? 2 : 1),
+					  ShaderVariationParameter("QUALITY", quality),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA) });
 
 				return variation;
 			}
@@ -1359,13 +1359,13 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <TemporalFilteringType TYPE, bool PER_PIXEL_VELOCITY, bool MSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("TYPE", (int)TYPE),
-						ShaderVariation::Param("PER_PIXEL_VELOCITY", (int)PER_PIXEL_VELOCITY),
-						ShaderVariation::Param("MSAA", MSAA),
+						ShaderVariationParameter("TYPE", (int)TYPE),
+						ShaderVariationParameter("PER_PIXEL_VELOCITY", (int)PER_PIXEL_VELOCITY),
+						ShaderVariationParameter("MSAA", MSAA),
 					});
 
 				return variation;
@@ -1456,10 +1456,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 msaa>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", msaa) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", msaa) });
 
 				return variation;
 			}

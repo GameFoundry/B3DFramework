@@ -100,10 +100,10 @@ class GpuParticleSimulateMat : public RendererMaterial<GpuParticleSimulateMat>
 
 	/** Helper method used for initializing variations of this material. */
 	template <u32 DEPTH_COLLISIONS>
-	static const ShaderVariation& GetVariation()
+	static const ShaderVariationParameters& GetVariation()
 	{
-		static ShaderVariation variation = ShaderVariation(
-			{ ShaderVariation::Param("DEPTH_COLLISIONS", DEPTH_COLLISIONS) });
+		static ShaderVariationParameters variation = ShaderVariationParameters(
+			{ ShaderVariationParameter("DEPTH_COLLISIONS", DEPTH_COLLISIONS) });
 
 		return variation;
 	}

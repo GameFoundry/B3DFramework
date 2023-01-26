@@ -270,6 +270,23 @@ namespace bs
 		static const String kShaderSpriteLineFile;
 	};
 
+	namespace ct
+	{
+		/**	Built-in engine resources available to the render thread. */
+		class B3D_EXPORT BuiltinResources : public Module<BuiltinResources>
+		{
+		public:
+			SPtr<Texture> WhiteTexture2D;
+			SPtr<Texture> BlackTexture2D;
+			SPtr<Texture> NormalTexture2D;
+			SPtr<Texture> WhiteTexture3D;
+			SPtr<Texture> BlackTexture3D;
+
+		private:
+			friend class bs::BuiltinResources;
+		};
+	} // namespace ct
+
 	/**	Provides easy access to BuiltinResources. */
 	B3D_EXPORT BuiltinResources& GetBuiltinResources();
 

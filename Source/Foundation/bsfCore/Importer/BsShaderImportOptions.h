@@ -4,31 +4,13 @@
 
 #include "BsCorePrerequisites.h"
 #include "Importer/BsImportOptions.h"
+#include "Material/BsShaderCompiler.h"
 
 namespace bs
 {
 	/** @addtogroup Importer
 	 *  @{
 	 */
-
-	/** Supported types of low-level shading languages. */
-	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), ExportName(ShadingLanguageFlags), API(Framework), API(Editor)) ShadingLanguageFlag
-	{
-		/** High level shading language used by DirectX backend. */
-		HLSL = 1 << 0,
-		/** OpenGL shading language. */
-		GLSL = 1 << 1,
-		/** Variant of GLSL used for Vulkan. */
-		VKSL = 1 << 2,
-		/** Metal shading language. */
-		MSL = 1 << 3,
-		Count = 4,
-		/** Helper entry that includes all languages. */
-		All = HLSL | GLSL | VKSL | MSL
-	};
-
-	using ShadingLanguageFlags = Flags<ShadingLanguageFlag>;
-	B3D_FLAGS_OPERATORS(ShadingLanguageFlag)
 
 	/** Contains import options you may use to control how is a shader imported. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Importer), API(Framework), API(Editor)) ShaderImportOptions : public ImportOptions

@@ -13,7 +13,7 @@ bool SLImporter::IsExtensionSupported(const String& ext) const
 	String lowerCaseExt = ext;
 	StringUtil::ToLowerCase(lowerCaseExt);
 
-	return lowerCaseExt == u8"bsl";
+	return lowerCaseExt == kShaderExtensionWithoutLeadingDot;
 }
 
 bool SLImporter::IsMagicNumberSupported(const u8* magicNumPtr, u32 numBytes) const
@@ -33,8 +33,11 @@ SPtr<Resource> SLImporter::Import(const Path& filePath, SPtr<const ImportOptions
 
 	SPtr<const ShaderImportOptions> io = std::static_pointer_cast<const ShaderImportOptions>(importOptions);
 	const String shaderName = filePath.GetFilename(false);
+
+	const SPtr<IShaderCompiler> bslCompiler = ShaderCompilers::Instance().GetCompiler(kShaderExtensionWithoutLeadingDot);
+
 	SPtr<Shader> shader;
-	BSLResult result = BSLCompiler::Compile(shaderName, source, io->GetDefines(), io->Languages, shader);
+	ShaderCompilerResult result = bslCompiler->Compile(shaderName, source, io->GetDefines(), io->Languages, true, shader);
 
 	if(shader != nullptr)
 		shader->SetName(shaderName);

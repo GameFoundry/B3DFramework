@@ -52,12 +52,12 @@ namespace bs
 
 		/** Returns a specific decal shader variation. */
 		template <bool INSIDE_GEOMETRY, MSAAMode MSAA_MODE>
-		static const ShaderVariation& GetDecalShaderVariation()
+		static const ShaderVariationParameters& GetDecalShaderVariation()
 		{
-			static ShaderVariation variation = ShaderVariation(
+			static ShaderVariationParameters variation = ShaderVariationParameters(
 				{
-					ShaderVariation::Param("INSIDE_GEOMETRY", INSIDE_GEOMETRY),
-					ShaderVariation::Param("MSAA_MODE", (i32)MSAA_MODE),
+					ShaderVariationParameter("INSIDE_GEOMETRY", INSIDE_GEOMETRY),
+					ShaderVariationParameter("MSAA_MODE", (i32)MSAA_MODE),
 				});
 
 			return variation;

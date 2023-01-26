@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	ScriptShaderVariation::ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariation>& value)
+	ScriptShaderVariation::ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariationParameters>& value)
 		:TScriptReflectable(managedInstance, value)
 	{
 	}
@@ -30,7 +30,7 @@ namespace bs
 
 	}
 
-	MonoObject* ScriptShaderVariation::Create(const SPtr<ShaderVariation>& value)
+	MonoObject* ScriptShaderVariation::Create(const SPtr<ShaderVariationParameters>& value)
 	{
 		if(value == nullptr) return nullptr; 
 
@@ -43,7 +43,7 @@ namespace bs
 	}
 	void ScriptShaderVariation::InternalShaderVariation(MonoObject* managedInstance)
 	{
-		SPtr<ShaderVariation> instance = B3DMakeShared<ShaderVariation>();
+		SPtr<ShaderVariationParameters> instance = B3DMakeShared<ShaderVariationParameters>();
 		new (B3DAllocate<ScriptShaderVariation>())ScriptShaderVariation(managedInstance, instance);
 	}
 

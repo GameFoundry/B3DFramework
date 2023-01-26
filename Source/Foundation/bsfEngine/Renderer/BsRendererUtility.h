@@ -25,12 +25,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 MSAA, u32 MODE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					SmallVector<ShaderVariation::Param, 4>({
-						ShaderVariation::Param("MSAA_COUNT", MSAA),
-						ShaderVariation::Param("MODE", MODE),
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					SmallVector<ShaderVariationParameter, 4>({
+						ShaderVariationParameter("MSAA_COUNT", MSAA),
+						ShaderVariationParameter("MODE", MODE),
 					}));
 
 				return variation;
@@ -106,10 +106,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool HERMITE>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					SmallVector<ShaderVariation::Param, 4>({ ShaderVariation::Param("HERMITE", HERMITE) }));
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					SmallVector<ShaderVariationParameter, 4>({ ShaderVariationParameter("HERMITE", HERMITE) }));
 
 				return variation;
 			}

@@ -104,7 +104,7 @@ namespace bs
 			SPtr<ComputePipelineState> mComputePipeline;
 			u32 mStencilRef = 0;
 
-			ShaderVariation mVariation;
+			ShaderVariationParameters mVariation;
 			SPtr<Shader> mShader;
 		};
 
@@ -148,7 +148,7 @@ namespace bs
 			}
 
 			/** Retrieves an instance of a particular variation of this renderer material. */
-			static T* Get(const ShaderVariation& variation)
+			static T* Get(const ShaderVariationParameters& variation)
 			{
 				if(variation.GetIdx() == (u32)-1)
 					variation.SetIdx(mMetaData.Variations.Find(variation));
@@ -239,7 +239,7 @@ namespace bs
 					if(!entry->IsSupported())
 						continue;
 
-					if(entry->GetVariation() == mVariation)
+					if(entry->GetVariationParameters() == mVariation)
 					{
 						SPtr<Pass> pass = entry->GetPass(0);
 						pass->Compile();

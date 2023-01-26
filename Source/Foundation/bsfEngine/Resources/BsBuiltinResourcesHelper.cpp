@@ -626,7 +626,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 	{
 		technique->Compile();
 
-		u32 numPasses = technique->GetNumPasses();
+		u32 numPasses = technique->GetPassCount();
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<Pass> pass = technique->GetPass(i);
@@ -681,7 +681,7 @@ void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
 	bool hasBytecode = true;
 	for(auto& technique : techniques)
 	{
-		u32 numPasses = technique->GetNumPasses();
+		u32 numPasses = technique->GetPassCount();
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<Pass> pass = technique->GetPass(i);

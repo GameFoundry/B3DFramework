@@ -500,7 +500,7 @@ public:
 				}
 			}
 
-			static const ShaderVariation* VAR_LOOKUP[4];
+			static const ShaderVariationParameters* VAR_LOOKUP[4];
 			VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, false>(false);
 			VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, false>(false);
 			VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, false>(false);
@@ -553,7 +553,7 @@ struct ShadowRenderQueueCubeOptions
 			command.Mask |= (Frustums[j].Intersects(bounds) ? 1 : 0) << j;
 	}
 
-	void BindMaterial(const ShaderVariation& variation) const
+	void BindMaterial(const ShaderVariationParameters& variation) const
 	{
 		Material = ShadowDepthCubeMat::Get(variation);
 		Material->Bind(ShadowParamsBuffer, ShadowCubeMatricesBuffer);
@@ -596,7 +596,7 @@ struct ShadowRenderQueueCubeSingleOptions
 	{
 	}
 
-	void BindMaterial(const ShaderVariation& variation) const
+	void BindMaterial(const ShaderVariationParameters& variation) const
 	{
 		Material = ShadowDepthNormalNoPSMat::Get(variation);
 		Material->Bind(ShadowParamsBuffer);
@@ -633,7 +633,7 @@ struct ShadowRenderQueueSpotOptions
 	{
 	}
 
-	void BindMaterial(const ShaderVariation& variation) const
+	void BindMaterial(const ShaderVariationParameters& variation) const
 	{
 		Material = ShadowDepthNormalMat::Get(variation);
 		Material->Bind(ShadowParamsBuffer);
@@ -670,7 +670,7 @@ struct ShadowRenderQueueDirOptions
 	{
 	}
 
-	void BindMaterial(const ShaderVariation& variation) const
+	void BindMaterial(const ShaderVariationParameters& variation) const
 	{
 		Material = ShadowDepthDirectionalMat::Get(variation);
 		Material->Bind(ShadowParamsBuffer);

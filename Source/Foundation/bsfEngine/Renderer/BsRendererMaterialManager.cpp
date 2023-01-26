@@ -61,7 +61,7 @@ void RendererMaterialManager::InitOnCore(const Vector<SPtr<ct::Shader>>& shaders
 		materials[i].MetaData->Instances.Resize((u32)techniques.size());
 
 		for(auto& entry : techniques)
-			materials[i].MetaData->Variations.Add(entry->GetVariation());
+			materials[i].MetaData->Variations.Add(entry->GetVariationParameters());
 
 #if B3D_PROFILING_ENABLED
 		const String& filename = materials[i].ShaderPath.GetFilename(false);

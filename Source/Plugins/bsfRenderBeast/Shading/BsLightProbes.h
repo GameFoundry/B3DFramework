@@ -40,11 +40,11 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool msaa, bool singleSampleMSAA>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA", msaa),
-					  ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA", msaa),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA) });
 
 				return variation;
 			}
@@ -97,12 +97,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool msaa, bool singleSampleMSAA, bool skyOnly>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA", msaa),
-					  ShaderVariation::Param("MSAA_RESOLVE_0TH", singleSampleMSAA),
-					  ShaderVariation::Param("SKY_ONLY", skyOnly) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA", msaa),
+					  ShaderVariationParameter("MSAA_RESOLVE_0TH", singleSampleMSAA),
+					  ShaderVariationParameter("SKY_ONLY", skyOnly) });
 
 				return variation;
 			}

@@ -34,25 +34,25 @@ namespace bs
 
 		/** Returns a specific vertex input shader variation. */
 		template <bool SKINNED, bool MORPH, bool WRITE_VELOCITY>
-		static const ShaderVariation& GetVertexInputVariation(bool supportsVelocityWrites)
+		static const ShaderVariationParameters& GetVertexInputVariation(bool supportsVelocityWrites)
 		{
 			if(!supportsVelocityWrites)
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("SKINNED", SKINNED),
-						ShaderVariation::Param("MORPH", MORPH),
+						ShaderVariationParameter("SKINNED", SKINNED),
+						ShaderVariationParameter("MORPH", MORPH),
 					});
 
 				return variation;
 			}
 			else
 			{
-				static ShaderVariation variation = ShaderVariation(
+				static ShaderVariationParameters variation = ShaderVariationParameters(
 					{
-						ShaderVariation::Param("SKINNED", SKINNED),
-						ShaderVariation::Param("MORPH", MORPH),
-						ShaderVariation::Param("WRITE_VELOCITY", WRITE_VELOCITY),
+						ShaderVariationParameter("SKINNED", SKINNED),
+						ShaderVariationParameter("MORPH", MORPH),
+						ShaderVariationParameter("WRITE_VELOCITY", WRITE_VELOCITY),
 					});
 
 				return variation;
@@ -372,40 +372,6 @@ namespace bs
 
 			/**	Returns current set of options used for controlling the rendering. */
 			virtual SPtr<RendererOptions> GetOptions() const { return SPtr<RendererOptions>(); }
-
-			/**
-			 * Returns information about a set of shaders corresponding to a renderer extension point. These shaders are the
-			 * built-in shaders used by the renderer for specific functionality (e.g. deferred rendering). These shaders can
-			 * be customized (usually through BSL mixin overrides) to provide user specific functionality (e.g. a custom BRDF
-			 * model), without having to modify the (usually complex) original shaders.
-			 *
-			 * These modified shaders can then be passed back to the renderer through some means. If it's an extension point
-			 * that does some kind of per-object rendering (e.g. shadow projection, or lighting in a forward renderer), then
-			 * the shader should be passed as a SubShader of the Shader used by the Renderable's Material. If it's some global
-			 * shader (e.g. deferred rendering lighting) then call setGlobalShaderOverride(). In both cases, the name of the
-			 * extension point shader should be provided, as returned by this method.
-			 *
-			 * A single extension point can provide multiple shaders (e.g. deferred rendering can be implemented as both
-			 * standard and tiled deferred), in which case you'll likely want to override all the relevant shaders.
-			 *
-			 * @param[in]	name		Name of the sub-shader extension point, e.g. "DeferredDirectLighting",
-			 *							"ShadowProjection". These are renderer specific and you should look them up in
-			 *							renderer documentation.
-			 * @returns					A list of overridable shaders in the extension point.
-			 */
-			virtual ShaderExtensionPointInfo GetShaderExtensionPointInfo(const String& name) { return {}; }
-
-			/**
-			 * Allows the caller to override some built-in renderer functionality with a custom shader. The exact set of
-			 * overridable shaders can be retrieved through getShaderExtensionPointInfo().
-			 */
-			virtual void SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader) {}
-
-			/**
-			 * Provides the same functionality as setGlobalShaderOverride(const String&, const SPtr<bs::Shader>&), but it automatically
-			 * evaluates all sub-shaders of the provided shader and registers them as overrides.
-			 */
-			void SetGlobalShaderOverride(const SPtr<bs::Shader>& shader);
 
 		protected:
 			friend class RendererTask;

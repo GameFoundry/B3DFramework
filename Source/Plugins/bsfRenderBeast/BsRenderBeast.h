@@ -60,8 +60,6 @@ namespace bs
 			void Initialize() override;
 			void Destroy() override;
 			void CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
-			ShaderExtensionPointInfo GetShaderExtensionPointInfo(const String& name) override;
-			void SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader) override;
 
 		private:
 			void NotifyCameraAdded(Camera* camera) override;

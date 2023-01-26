@@ -303,55 +303,6 @@ void RenderBeast::SyncOptions(const RenderBeastOptions& options)
 	shadowRenderer.SetShadowMapSize(mCoreOptions->ShadowMapSize);
 }
 
-ShaderExtensionPointInfo RenderBeast::GetShaderExtensionPointInfo(const String& name)
-{
-	if(name == "DeferredDirectLighting")
-	{
-		ShaderExtensionPointInfo info;
-
-		ExtensionShaderInfo tiledDeferredInfo;
-		tiledDeferredInfo.Name = "TiledDeferredDirectLighting";
-		tiledDeferredInfo.Path = TiledDeferredLightingMat::GetShaderPath();
-		tiledDeferredInfo.Defines = TiledDeferredLightingMat::GetShaderDefines();
-		info.Shaders.push_back(tiledDeferredInfo);
-
-		ExtensionShaderInfo standardDeferredPointInfo;
-		standardDeferredPointInfo.Name = "StandardDeferredPointDirectLighting";
-		standardDeferredPointInfo.Path = DeferredPointLightMat::GetShaderPath();
-		standardDeferredPointInfo.Defines = DeferredPointLightMat::GetShaderDefines();
-		info.Shaders.push_back(standardDeferredPointInfo);
-
-		ExtensionShaderInfo standardDeferredDirInfo;
-		standardDeferredDirInfo.Name = "StandardDeferredDirDirectLighting";
-		standardDeferredDirInfo.Path = DeferredDirectionalLightMat::GetShaderPath();
-		standardDeferredDirInfo.Defines = DeferredDirectionalLightMat::GetShaderDefines();
-		info.Shaders.push_back(standardDeferredPointInfo);
-
-		return info;
-	}
-
-	return ShaderExtensionPointInfo();
-}
-
-void RenderBeast::SetGlobalShaderOverride(const String& name, const SPtr<bs::Shader>& shader)
-{
-	SPtr<ct::Shader> shaderCore;
-	if(shader)
-		shaderCore = shader->GetCore();
-
-	auto setShaderOverride = [name, shaderCore]()
-	{
-		if(name == "TiledDeferredDirectLighting")
-			TiledDeferredLightingMat::SetOverride(shaderCore);
-		else if(name == "StandardDeferredPointDirectLighting")
-			DeferredPointLightMat::SetOverride(shaderCore);
-		else if(name == "StandardDeferredDirDirectLighting")
-			DeferredDirectionalLightMat::SetOverride(shaderCore);
-	};
-
-	GetCoreThread().QueueCommand(setShaderOverride);
-}
-
 void RenderBeast::RenderAll(PerFrameData perFrameData)
 {
 	// Sync all dirty sim thread CoreObject data to core thread

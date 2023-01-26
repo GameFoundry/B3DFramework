@@ -87,7 +87,7 @@ namespace bs
 
 	void ScriptMaterial::InternalSetVariation(ScriptMaterial* thisPtr, MonoObject* variation)
 	{
-		SPtr<ShaderVariation> tmpvariation;
+		SPtr<ShaderVariationParameters> tmpvariation;
 		ScriptShaderVariation* scriptvariation;
 		scriptvariation = ScriptShaderVariation::ToNative(variation);
 		if(scriptvariation != nullptr)
@@ -129,7 +129,7 @@ namespace bs
 
 	MonoObject* ScriptMaterial::InternalGetVariation(ScriptMaterial* thisPtr)
 	{
-		SPtr<ShaderVariation> tmp__output = B3DMakeShared<ShaderVariation>();
+		SPtr<ShaderVariationParameters> tmp__output = B3DMakeShared<ShaderVariationParameters>();
 		*tmp__output = thisPtr->GetHandle()->GetVariation();
 
 		MonoObject* __output;

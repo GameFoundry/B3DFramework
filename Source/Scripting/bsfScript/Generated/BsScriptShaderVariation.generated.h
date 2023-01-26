@@ -6,17 +6,17 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
 
-namespace bs { class ShaderVariation; }
+namespace bs { class ShaderVariationParameters; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariation : public TScriptReflectable<ScriptShaderVariation, ShaderVariation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariation : public TScriptReflectable<ScriptShaderVariation, ShaderVariationParameters>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShaderVariation")
 
-		ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariation>& value);
+		ScriptShaderVariation(MonoObject* managedInstance, const SPtr<ShaderVariationParameters>& value);
 
-		static MonoObject* Create(const SPtr<ShaderVariation>& value);
+		static MonoObject* Create(const SPtr<ShaderVariationParameters>& value);
 
 	private:
 		static void InternalShaderVariation(MonoObject* managedInstance);

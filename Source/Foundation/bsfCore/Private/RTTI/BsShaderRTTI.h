@@ -390,32 +390,6 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT SubShaderRTTI : public RTTIType<SubShader, IReflectable, SubShaderRTTI>
-	{
-	private:
-		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Name, 0)
-			B3D_RTTI_MEMBER_REFLPTR(Shader, 1)
-		B3D_RTTI_END_MEMBERS
-
-	public:
-		const String& GetRttiName() override
-		{
-			static String name = "SubShader";
-			return name;
-		}
-
-		u32 GetRttiId() override
-		{
-			return TID_SubShader;
-		}
-
-		SPtr<IReflectable> NewRttiObject() override
-		{
-			return B3DMakeShared<SubShader>();
-		}
-	};
-
 	class B3D_CORE_EXPORT ShaderRTTI : public RTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:
@@ -432,7 +406,7 @@ namespace bs
 			B3D_RTTI_MEMBER_REFLPTR_ARRAY_NAMED(mSamplerDefaultValues, mDesc.SamplerDefaultValues, 12)
 
 			B3D_RTTI_MEMBER_PLAIN_NAMED(mFlags, mDesc.Flags, 13)
-			B3D_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.SubShaders, 14)
+			//B3D_RTTI_MEMBER_REFL_ARRAY_NAMED(mSubShaders, mDesc.SubShaders, 14)
 
 			B3D_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mParamAttributes, mDesc.ParamAttributes, 15)
 			B3D_RTTI_MEMBER_PLAIN_ARRAY_NAMED(mVariationParams, mDesc.VariationParams, 16)

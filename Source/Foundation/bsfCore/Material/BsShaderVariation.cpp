@@ -25,15 +25,15 @@ void ShaderDefines::Set(const String& name, const String& value)
 	mDefines[name] = value;
 }
 
-const ShaderVariation ShaderVariation::kEmpty;
+const ShaderVariationParameters ShaderVariationParameters::kEmpty;
 
-ShaderVariation::ShaderVariation(const SmallVector<Param, 4>& params)
+ShaderVariationParameters::ShaderVariationParameters(const SmallVector<ShaderVariationParameter, 4>& params)
 {
 	for(auto& entry : params)
 		mParams[entry.Name] = entry;
 }
 
-i32 ShaderVariation::GetInt(const StringID& name)
+i32 ShaderVariationParameters::GetInt(const StringID& name)
 {
 	auto iterFind = mParams.find(name);
 	if(iterFind == mParams.end())
@@ -42,7 +42,7 @@ i32 ShaderVariation::GetInt(const StringID& name)
 		return iterFind->second.I;
 }
 
-u32 ShaderVariation::GetUInt(const StringID& name)
+u32 ShaderVariationParameters::GetUInt(const StringID& name)
 {
 	auto iterFind = mParams.find(name);
 	if(iterFind == mParams.end())
@@ -51,7 +51,7 @@ u32 ShaderVariation::GetUInt(const StringID& name)
 		return iterFind->second.Ui;
 }
 
-float ShaderVariation::GetFloat(const StringID& name)
+float ShaderVariationParameters::GetFloat(const StringID& name)
 {
 	auto iterFind = mParams.find(name);
 	if(iterFind == mParams.end())
@@ -60,7 +60,7 @@ float ShaderVariation::GetFloat(const StringID& name)
 		return iterFind->second.F;
 }
 
-bool ShaderVariation::GetBool(const StringID& name)
+bool ShaderVariationParameters::GetBool(const StringID& name)
 {
 	auto iterFind = mParams.find(name);
 	if(iterFind == mParams.end())
@@ -69,27 +69,27 @@ bool ShaderVariation::GetBool(const StringID& name)
 		return iterFind->second.I > 0 ? true : false;
 }
 
-void ShaderVariation::SetInt(const StringID& name, i32 value)
+void ShaderVariationParameters::SetInt(const StringID& name, i32 value)
 {
-	AddParam(Param(name, value));
+	AddParam(ShaderVariationParameter(name, value));
 }
 
-void ShaderVariation::SetUInt(const StringID& name, u32 value)
+void ShaderVariationParameters::SetUInt(const StringID& name, u32 value)
 {
-	AddParam(Param(name, value));
+	AddParam(ShaderVariationParameter(name, value));
 }
 
-void ShaderVariation::SetFloat(const StringID& name, float value)
+void ShaderVariationParameters::SetFloat(const StringID& name, float value)
 {
-	AddParam(Param(name, value));
+	AddParam(ShaderVariationParameter(name, value));
 }
 
-void ShaderVariation::SetBool(const StringID& name, bool value)
+void ShaderVariationParameters::SetBool(const StringID& name, bool value)
 {
-	AddParam(Param(name, value));
+	AddParam(ShaderVariationParameter(name, value));
 }
 
-Vector<String> ShaderVariation::GetParamNames() const
+Vector<String> ShaderVariationParameters::GetParamNames() const
 {
 	Vector<String> params;
 	params.reserve(mParams.size());
@@ -100,21 +100,21 @@ Vector<String> ShaderVariation::GetParamNames() const
 	return params;
 }
 
-ShaderDefines ShaderVariation::GetDefines() const
+ShaderDefines ShaderVariationParameters::GetDefines() const
 {
 	ShaderDefines defines;
 	for(auto& entry : mParams)
 	{
 		switch(entry.second.Type)
 		{
-		case Int:
-		case Bool:
+		case ShaderVariationParameterType::Int:
+		case ShaderVariationParameterType::Bool:
 			defines.Set(entry.first.CStr(), entry.second.I);
 			break;
-		case UInt:
+		case ShaderVariationParameterType::UInt:
 			defines.Set(entry.first.CStr(), entry.second.Ui);
 			break;
-		case Float:
+		case ShaderVariationParameterType::Float:
 			defines.Set(entry.first.CStr(), entry.second.F);
 			break;
 		}
@@ -123,7 +123,7 @@ ShaderDefines ShaderVariation::GetDefines() const
 	return defines;
 }
 
-bool ShaderVariation::Matches(const ShaderVariation& other, bool exact) const
+bool ShaderVariationParameters::Matches(const ShaderVariationParameters& other, bool exact) const
 {
 	for(auto& entry : other.mParams)
 	{
@@ -151,19 +151,19 @@ bool ShaderVariation::Matches(const ShaderVariation& other, bool exact) const
 	return true;
 }
 
-bool ShaderVariation::operator==(const ShaderVariation& rhs) const
+bool ShaderVariationParameters::operator==(const ShaderVariationParameters& rhs) const
 {
 	return Matches(rhs, true);
 }
 
-void ShaderVariations::Add(const ShaderVariation& variation)
+void ShaderVariations::Add(const ShaderVariationParameters& variation)
 {
 	variation.mIdx = mNextIdx++;
 
 	mVariations.Add(variation);
 }
 
-u32 ShaderVariations::Find(const ShaderVariation& variation) const
+u32 ShaderVariations::Find(const ShaderVariationParameters& variation) const
 {
 	u32 idx = 0;
 	for(auto& entry : mVariations)
@@ -177,18 +177,18 @@ u32 ShaderVariations::Find(const ShaderVariation& variation) const
 	return (u32)-1;
 }
 
-RTTITypeBase* ShaderVariation::GetRttiStatic()
+RTTITypeBase* ShaderVariationParameters::GetRttiStatic()
 {
 	return ShaderVariationRTTI::Instance();
 }
 
-RTTITypeBase* ShaderVariation::GetRtti() const
+RTTITypeBase* ShaderVariationParameters::GetRtti() const
 {
-	return ShaderVariation::GetRttiStatic();
+	return ShaderVariationParameters::GetRttiStatic();
 }
 
 // This is here to solve a linking issue on Clang 7. The destructor apparently either doesn't get implicitly
 // instantiated. This means external libraries linking with bsf, using the same SmallVector template parameters will
 // trigger an undefined reference linker error. And why doesn't the library instantiate it itself? Don't know, either
 // a Clang issue or maybe even some part of the standard.
-template SmallVector<ShaderVariation::Param, 4>::~SmallVector();
+template SmallVector<ShaderVariationParameter, 4>::~SmallVector();

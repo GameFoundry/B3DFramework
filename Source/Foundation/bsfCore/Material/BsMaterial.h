@@ -36,37 +36,20 @@ namespace bs
 		Shader = 2 << 2
 	};
 
-	/** Structure used when searching for a specific technique in a Material. */
-	struct FIND_TECHNIQUE_DESC
+	/** Structure used when searching for a specific variation in a Material. */
+	struct FindVariationInformation
 	{
-		static constexpr u32 kMaxNumTags = 10;
-
-		/** A set of tags that the technique must have. */
-		StringID Tags[kMaxNumTags];
-
-		/** Number of valid tags in the @p tags array. */
-		u32 NumTags = 0;
-
-		/** Specified variation of the technique. Parameters not specified in the variation are assumed to be irrelevant. */
-		const ShaderVariation* Variation = nullptr;
+		/** Specified variation parameters. Parameters not specified are assumed to be irrelevant. */
+		const ShaderVariationParameters* VariationParameters = nullptr;
 
 		/**
-		 * Determines should the parameters in @p variation override any parameters that might have been defined on the
-		 * Material itself. If false then you are guaranteed to search only over the subset of techniques that match the
-		 * Material's internal variaton parameters. If true then you can search outside that range by setting a variation
+		 * Determines should the parameters in @p VariationParameters override any parameters that might have been defined on the
+		 * Material itself. If false then you are guaranteed to search only over the subset of variations that match the
+		 * Material's internal variation parameters. If true then you can search outside that range by setting a variation
 		 * parameter to some different value. Overriding can be useful for renderers which might need to override the user's
 		 * choice of variation.
 		 */
 		bool Override = false;
-
-		/** Registers a new tag to look for when searching for the technique. */
-		void AddTag(const StringID& tag)
-		{
-			B3D_ASSERT(NumTags < kMaxNumTags);
-
-			Tags[NumTags] = tag;
-			NumTags++;
-		}
 	};
 
 	/**
@@ -152,7 +135,7 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Variation), Property(Getter))
 
-		const ShaderVariation& GetVariation() const { return mVariation; }
+		const ShaderVariationParameters& GetVariation() const { return mVariation; }
 
 		/** Returns the total number of techniques supported by this material. */
 		u32 GetNumTechniques() const { return (u32)mTechniques.size(); }
@@ -168,7 +151,7 @@ namespace bs
 		 * @return							First technique that matches the tags & variation parameters specified in
 		 *									@p desc.
 		 */
-		u32 FindTechnique(const FIND_TECHNIQUE_DESC& desc) const;
+		u32 FindTechnique(const FindVariationInformation& desc) const;
 
 		/**
 		 * Finds the index of the default (primary) technique to use. This will be the first technique that matches the
@@ -755,7 +738,7 @@ namespace bs
 		ShaderType mShader;
 		SPtr<MaterialParamsType> mParams;
 		Vector<SPtr<TechniqueType>> mTechniques;
-		ShaderVariation mVariation;
+		ShaderVariationParameters mVariation;
 	};
 
 	/** @} */
@@ -779,7 +762,7 @@ namespace bs
 
 		/** @copydoc TMaterial<Core>::GetVariation() const */
 		B3D_SCRIPT_EXPORT(ExportName(Variation), Property(Setter), UI(Hide))
-		void SetVariation(const ShaderVariation& variation);
+		void SetVariation(const ShaderVariationParameters& variation);
 
 		/** Retrieves an implementation of a material usable only from the core thread. */
 		SPtr<ct::Material> GetCore() const;
@@ -806,7 +789,7 @@ namespace bs
 		 * Creates a new material with the specified shader, and a set of parameters that determine which subset of
 		 * techniques in the shader should the material use.
 		 */
-		static HMaterial Create(const HShader& shader, const ShaderVariation& variation);
+		static HMaterial Create(const HShader& shader, const ShaderVariationParameters& variation);
 
 		/** @name Internal
 		 *  @{
@@ -824,7 +807,7 @@ namespace bs
 		/** @} */
 	private:
 		Material();
-		Material(const HShader& shader, const ShaderVariation& variation);
+		Material(const HShader& shader, const ShaderVariationParameters& variation);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
@@ -882,7 +865,7 @@ namespace bs
 			 * technique is considered the default technique and which subset of techniques are searched during a call to
 			 * findTechnique().
 			 */
-			void SetVariation(const ShaderVariation& variation);
+			void SetVariation(const ShaderVariationParameters& variation);
 
 			/** Creates a new material with the specified shader. */
 			static SPtr<Material> Create(const SPtr<Shader>& shader);
@@ -891,8 +874,8 @@ namespace bs
 			friend class bs::Material;
 
 			Material() = default;
-			Material(const SPtr<Shader>& shader, const ShaderVariation& variation);
-			Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariation& variation);
+			Material(const SPtr<Shader>& shader, const ShaderVariationParameters& variation);
+			Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariationParameters& variation);
 
 			void SyncToCore(const CoreSyncData& data) override;
 		};

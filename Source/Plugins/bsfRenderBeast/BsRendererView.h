@@ -63,10 +63,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool color>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SOLID_COLOR", color) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SOLID_COLOR", color) });
 
 				return variation;
 			}

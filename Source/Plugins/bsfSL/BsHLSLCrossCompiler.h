@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsSLPrerequisites.h"
+#include "Material/BsShaderCompiler.h"
 
 namespace bs
 {
@@ -40,7 +41,7 @@ namespace bs
 		 * @param	outSource				Cross compiled shader source, if successful.
 		 * @return							A result object containing an error message if not successful.
 		 */
-		static BSLResult CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, u32& inOutStartBindingSlot, String& outSource);
+		static ShaderCompilerResult CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, u32& inOutStartBindingSlot, String& outSource);
 
 		/**
 		 * Parses the provided HLSL source code and outputs reflection information.
@@ -50,7 +51,20 @@ namespace bs
 		 * @param	outEntryPoints					A list of all detected entry points in the sshader.
 		 * @return									A result object containing an error message if not successful.
 		 */
-		static BSLResult Reflect(const String& hlsl, ShaderCreateInformation& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints); // TODO - Output reflection information in a more generalized form, rather than ShaderCreateInformation
+		static ShaderCompilerResult Reflect(const String& hlsl, ShaderCreateInformation& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints)
+		{
+			return TReflect(hlsl, outShaderCreateInformation, outEntryPoints);
+		}
+
+		/** @copydoc Reflect(const String&, ShaderCreateInformation&, SmallVector<GpuProgramType, 2>&) */
+		static ShaderCompilerResult Reflect(const String& hlsl, ct::ShaderCreateInformation& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints)
+		{
+			return TReflect(hlsl, outShaderCreateInformation, outEntryPoints);
+		}
+
+	private:
+		template<bool Core>
+		static ShaderCompilerResult TReflect(const String& hlsl, TShaderCreateInformation<Core>& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints); // TODO - Output reflection information in a more generalized form, rather than ShaderCreateInformation
 	};
 
 	/** @} */

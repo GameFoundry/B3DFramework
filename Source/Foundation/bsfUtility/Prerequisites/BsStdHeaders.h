@@ -32,6 +32,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <optional>
+
 // STL algorithms & functions
 #include <algorithm>
 #include <functional>
@@ -194,6 +196,10 @@ namespace bs
 	/** Holds a reference to an object whose lifetime is managed by a SPtr, but doesn't increment the reference count. */
 	template <typename T>
 	using WeakSPtr = std::weak_ptr<T>;
+
+	/** Contains an object of the specified type, or null. */
+	template <typename T>
+	using Optional = std::optional<T>;
 
 	/**
 	 * Smart pointer that retains shared ownership of an project through a pointer. Reference to the object must be unique.

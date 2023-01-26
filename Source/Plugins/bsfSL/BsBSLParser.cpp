@@ -65,7 +65,7 @@ void SLFXDebugPrint(ASTFXNode* node, String indent)
 	}
 }
 
-BSLResult BSLParser::RunParser(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines)
+ShaderCompilerResult BSLParser::RunParser(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines)
 {
 	for(auto& define : defines)
 	{
@@ -81,7 +81,7 @@ BSLResult BSLParser::RunParser(ParseState* parseState, const char* source, const
 	yyscan_t scanner;
 	YY_BUFFER_STATE state;
 
-	BSLResult parseResult;
+	ShaderCompilerResult parseResult;
 	if(yylex_init_extra(parseState, &scanner))
 	{
 		parseResult.ErrorMessage = "Internal error: Lexer failed to initialize.";
@@ -173,9 +173,10 @@ BSLParsedShaderMetaData BSLParser::ParseShaderMetaData(ASTFXNode* shader)
 	return metaData;
 }
 
-BSLResult BSLParser::ParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData, ShaderCreateInformation& shaderCreateInformation)
+template<bool Core>
+ShaderCompilerResult BSLParser::TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData, TShaderCreateInformation<Core>& shaderCreateInformation)
 {
-	BSLResult parseResult;
+	ShaderCompilerResult parseResult;
 
 	// Only enable for debug purposes
 	// SLFXDebugPrint(parseState->rootNode, "");
@@ -195,7 +196,7 @@ BSLResult BSLParser::ParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pa
 		switch(option->Type)
 		{
 		case OT_Options:
-			ParseOptions(option->Value.NodePtr, shaderCreateInformation);
+			TParseOptions(option->Value.NodePtr, shaderCreateInformation);
 			break;
 		case OT_Shader:
 			{
@@ -931,7 +932,8 @@ void BSLParser::ParseShader(ASTFXNode* shaderNode, const Vector<String>& codeBlo
 	}
 }
 
-void BSLParser::ParseOptions(ASTFXNode* optionsNode, ShaderCreateInformation& shaderDesc)
+template<bool Core>
+void BSLParser::TParseOptions(ASTFXNode* optionsNode, TShaderCreateInformation<Core>& outShaderCreateInformation)
 {
 	if(optionsNode == nullptr || optionsNode->Type != NT_Options)
 		return;
@@ -943,19 +945,19 @@ void BSLParser::ParseOptions(ASTFXNode* optionsNode, ShaderCreateInformation& sh
 		switch(option->Type)
 		{
 		case OT_Separable:
-			shaderDesc.SeparablePasses = option->Value.IntValue > 1;
+			outShaderCreateInformation.SeparablePasses = option->Value.IntValue > 1;
 			break;
 		case OT_Sort:
-			shaderDesc.QueueSortType = ParseSortType((CullAndSortModeValue)option->Value.IntValue);
+			outShaderCreateInformation.QueueSortType = ParseSortType((CullAndSortModeValue)option->Value.IntValue);
 			break;
 		case OT_Priority:
-			shaderDesc.QueuePriority = option->Value.IntValue;
+			outShaderCreateInformation.QueuePriority = option->Value.IntValue;
 			break;
 		case OT_Transparent:
-			shaderDesc.Flags |= ShaderFlag::Transparent;
+			outShaderCreateInformation.Flags |= ShaderFlag::Transparent;
 			break;
 		case OT_Forward:
-			shaderDesc.Flags |= ShaderFlag::Forward;
+			outShaderCreateInformation.Flags |= ShaderFlag::Forward;
 			break;
 		default:
 			break;
@@ -963,9 +965,9 @@ void BSLParser::ParseOptions(ASTFXNode* optionsNode, ShaderCreateInformation& sh
 	}
 }
 
-BSLResult BSLParser::PopulateVariations(Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData)
+ShaderCompilerResult BSLParser::PopulateVariations(Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData)
 {
-	BSLResult parseResult;
+	ShaderCompilerResult parseResult;
 
 	// Inherit variations from mixins
 	bool* mixinWasParsed = B3DStackAllocate<bool>((u32)shaderMetaData.size());
@@ -1043,7 +1045,8 @@ BSLResult BSLParser::PopulateVariations(Vector<std::pair<ASTFXNode*, BSLParsedSh
 	return parseResult;
 }
 
-void BSLParser::PopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, ShaderCreateInformation& shaderCreateInformation)
+template<bool Core>
+void BSLParser::TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, TShaderCreateInformation<Core>& shaderCreateInformation)
 {
 	for(auto& entry : shaderMetaData.Variations)
 	{
@@ -1065,10 +1068,11 @@ void BSLParser::PopulateVariationParameters(const BSLParsedShaderMetaData& shade
 	}
 }
 
-BSLResult BSLParser::ParseMetaData(const String& source, const UnorderedMap<String, String>& defines, ShaderCreateInformation& outShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
+template<bool Core>
+ShaderCompilerResult BSLParser::TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, TShaderCreateInformation<Core>& outShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
 {
 	ParseState* parseState = ParseStateCreate();
-	BSLResult parseResult = RunParser(parseState, source.c_str(), defines);
+	ShaderCompilerResult parseResult = RunParser(parseState, source.c_str(), defines);
 
 	if(!parseResult.ErrorMessage.empty())
 	{
@@ -1078,7 +1082,7 @@ BSLResult BSLParser::ParseMetaData(const String& source, const UnorderedMap<Stri
 
 	// Parse global shader options & shader meta-data
 	Vector<pair<ASTFXNode*, BSLParsedShaderMetaData>> shaderMetaDataWithNodes;
-	parseResult = ParseMetaDataAndOptions(parseState->RootNode, shaderMetaDataWithNodes, outShaderInformation);
+	parseResult = TParseMetaDataAndOptions(parseState->RootNode, shaderMetaDataWithNodes, outShaderInformation);
 
 	if(!parseResult.ErrorMessage.empty())
 	{
@@ -1120,7 +1124,7 @@ BSLResult BSLParser::ParseMetaData(const String& source, const UnorderedMap<Stri
 			continue;
 		}
 
-		PopulateVariationParameters(entry.second, outShaderInformation);
+		TPopulateVariationParameters(entry.second, outShaderInformation);
 		outShaderMetaData = entry.second;
 		foundShader = true;
 	}
@@ -1128,7 +1132,10 @@ BSLResult BSLParser::ParseMetaData(const String& source, const UnorderedMap<Stri
 	return parseResult;
 }
 
-BSLResult BSLParser::ParseVariation(const String& name, const String& source, const ShaderVariation& variation, const UnorderedMap<String, String>& defines, BSLParsedShaderData& outParsedShader)
+template ShaderCompilerResult BSLParser::TParseMetaData<false>(const String& source, const UnorderedMap<String, String>& defines, TShaderCreateInformation<false>& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
+template ShaderCompilerResult BSLParser::TParseMetaData<true>(const String& source, const UnorderedMap<String, String>& defines, TShaderCreateInformation<true>& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
+
+ShaderCompilerResult BSLParser::ParseVariation(const String& name, const String& source, const ShaderVariationParameters& variation, const UnorderedMap<String, String>& defines, BSLParsedShaderData& outParsedShader)
 {
 	UnorderedMap<String, String> globalDefines = defines;
 	UnorderedMap<String, String> variationDefines = variation.GetDefines().GetAll();
@@ -1137,7 +1144,7 @@ BSLResult BSLParser::ParseVariation(const String& name, const String& source, co
 		globalDefines[define.first] = define.second;
 
 	ParseState *const variationParseState = ParseStateCreate();
-	BSLResult parseResult = RunParser(variationParseState, source.c_str(), globalDefines);
+	ShaderCompilerResult parseResult = RunParser(variationParseState, source.c_str(), globalDefines);
 
 	if(!parseResult.ErrorMessage.empty())
 	{

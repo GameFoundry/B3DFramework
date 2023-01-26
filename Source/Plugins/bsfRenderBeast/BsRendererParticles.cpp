@@ -17,7 +17,7 @@ namespace bs {
 namespace ct {
 
 template <bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
-const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient)
+const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient)
 {
 	switch(orient)
 	{
@@ -32,7 +32,7 @@ const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation or
 }
 
 template <bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
-const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY)
+const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY)
 {
 	if(lockY)
 		return GetParticleShaderVariationInternal<true, GPU, IS_3D, FWD>(orient);
@@ -41,7 +41,7 @@ const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation or
 }
 
 template <bool IS_3D, ParticleForwardLightingType FWD>
-const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu)
+const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu)
 {
 	if(gpu)
 		return GetParticleShaderVariationInternal<true, IS_3D, FWD>(orient, lockY);
@@ -50,7 +50,7 @@ const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation or
 }
 
 template <ParticleForwardLightingType FWD>
-const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
+const ShaderVariationParameters& GetParticleShaderVariationInternal(ParticleOrientation orient, bool lockY, bool gpu, bool is3D)
 {
 	if(is3D)
 		return GetParticleShaderVariationInternal<true, FWD>(orient, lockY, gpu);
@@ -58,7 +58,7 @@ const ShaderVariation& GetParticleShaderVariationInternal(ParticleOrientation or
 	return GetParticleShaderVariationInternal<false, FWD>(orient, lockY, gpu);
 }
 
-const ShaderVariation& GetParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D, ParticleForwardLightingType forwardLighting)
+const ShaderVariationParameters& GetParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3D, ParticleForwardLightingType forwardLighting)
 {
 	switch(forwardLighting)
 	{

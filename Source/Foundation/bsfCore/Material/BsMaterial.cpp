@@ -69,7 +69,7 @@ void TMaterial<Core>::UpdateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, f
 }
 
 template <bool Core>
-u32 TMaterial<Core>::FindTechnique(const FIND_TECHNIQUE_DESC& desc) const
+u32 TMaterial<Core>::FindTechnique(const FindVariationInformation& desc) const
 {
 	u32 bestTechniqueIdx = (u32)-1;
 	u32 bestTechniqueScore = std::numeric_limits<u32>::max();
@@ -78,19 +78,8 @@ u32 TMaterial<Core>::FindTechnique(const FIND_TECHNIQUE_DESC& desc) const
 	{
 		// Make sure tags match
 		bool foundMatch = true;
-		for(u32 j = 0; j < desc.NumTags; j++)
-		{
-			if(!mTechniques[i]->HasTag(desc.Tags[j]))
-			{
-				foundMatch = false;
-				break;
-			}
-		}
 
-		if(!foundMatch)
-			continue;
-
-		const ShaderVariation& curVariation = mTechniques[i]->GetVariation();
+		const ShaderVariationParameters& curVariation = mTechniques[i]->GetVariationParameters();
 		const auto& curVarParams = curVariation.GetParams();
 		const auto& internalVarParams = mVariation.GetParams();
 
@@ -107,9 +96,9 @@ u32 TMaterial<Core>::FindTechnique(const FIND_TECHNIQUE_DESC& desc) const
 			};
 
 			SearchResult matchesSearch = NoParam;
-			if(desc.Variation)
+			if(desc.VariationParameters)
 			{
-				const auto& searchVarParams = desc.Variation->GetParams();
+				const auto& searchVarParams = desc.VariationParameters->GetParams();
 				const auto findSearch = searchVarParams.find(param.first);
 				if(findSearch != searchVarParams.end())
 					matchesSearch = findSearch->second.I == param.second.I ? Matching : NotMatching;
@@ -192,9 +181,9 @@ u32 TMaterial<Core>::FindTechnique(const FIND_TECHNIQUE_DESC& desc) const
 		if(!foundMatch)
 			continue;
 
-		if(desc.Variation)
+		if(desc.VariationParameters)
 		{
-			const auto& searchVarParams = desc.Variation->GetParams();
+			const auto& searchVarParams = desc.VariationParameters->GetParams();
 			if(numMatchedSearchParams != (u32)searchVarParams.size())
 				continue;
 		}
@@ -220,10 +209,7 @@ u32 TMaterial<Core>::GetDefaultTechnique() const
 
 	for(u32 i = 0; i < (u32)mTechniques.size(); i++)
 	{
-		if(mTechniques[i]->HasTags())
-			continue;
-
-		const ShaderVariation& curVariation = mTechniques[i]->GetVariation();
+		const ShaderVariationParameters& curVariation = mTechniques[i]->GetVariationParameters();
 		const auto& curVarParams = curVariation.GetParams();
 		const auto& internalVarParams = mVariation.GetParams();
 
@@ -288,7 +274,7 @@ u32 TMaterial<Core>::GetNumPasses(u32 techniqueIdx) const
 	if(techniqueIdx >= (u32)mTechniques.size())
 		return 0;
 
-	return mTechniques[techniqueIdx]->GetNumPasses();
+	return mTechniques[techniqueIdx]->GetPassCount();
 }
 
 template <bool Core>
@@ -300,7 +286,7 @@ SPtr<typename TMaterial<Core>::PassType> TMaterial<Core>::GetPass(u32 passIdx, u
 	if(techniqueIdx >= (u32)mTechniques.size())
 		return nullptr;
 
-	if(passIdx < 0 || passIdx >= mTechniques[techniqueIdx]->GetNumPasses())
+	if(passIdx < 0 || passIdx >= mTechniques[techniqueIdx]->GetPassCount())
 		return nullptr;
 
 	return mTechniques[techniqueIdx]->GetPass(passIdx);
@@ -596,7 +582,7 @@ Material::Material()
 	: mLoadFlags(Load_None)
 {}
 
-Material::Material(const HShader& shader, const ShaderVariation& variation)
+Material::Material(const HShader& shader, const ShaderVariationParameters& variation)
 	: mLoadFlags(Load_None)
 {
 	mShader = shader;
@@ -633,7 +619,7 @@ void Material::SetShader(const HShader& shader)
 	InitializeIfLoaded();
 }
 
-void Material::SetVariation(const ShaderVariation& variation)
+void Material::SetVariation(const ShaderVariationParameters& variation)
 {
 	mVariation = variation;
 	MarkCoreDirty();
@@ -1018,10 +1004,10 @@ HMaterial Material::Create()
 
 HMaterial Material::Create(const HShader& shader)
 {
-	return Create(shader, ShaderVariation::kEmpty);
+	return Create(shader, ShaderVariationParameters::kEmpty);
 }
 
-HMaterial Material::Create(const HShader& shader, const ShaderVariation& variation)
+HMaterial Material::Create(const HShader& shader, const ShaderVariationParameters& variation)
 {
 	SPtr<Material> materialPtr = B3DMakeCoreFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
 	materialPtr->SetThisPtrInternal(materialPtr);
@@ -1050,13 +1036,13 @@ RTTITypeBase* Material::GetRtti() const
 
 namespace bs { namespace ct
 {
-Material::Material(const SPtr<Shader>& shader, const ShaderVariation& variation)
+Material::Material(const SPtr<Shader>& shader, const ShaderVariationParameters& variation)
 {
 	mVariation = variation;
 	SetShader(shader);
 }
 
-Material::Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariation& variation)
+Material::Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariationParameters& variation)
 {
 	mShader = shader;
 	mParams = materialParams;
@@ -1071,7 +1057,7 @@ void Material::SetShader(const SPtr<Shader>& shader)
 	InitializeTechniques();
 }
 
-void Material::SetVariation(const ShaderVariation& variation)
+void Material::SetVariation(const ShaderVariationParameters& variation)
 {
 	mVariation = variation;
 }
@@ -1121,7 +1107,7 @@ void Material::SyncToCore(const CoreSyncData& data)
 
 SPtr<Material> Material::Create(const SPtr<Shader>& shader)
 {
-	Material* material = new(B3DAllocate<Material>()) Material(shader, ShaderVariation::kEmpty);
+	Material* material = new(B3DAllocate<Material>()) Material(shader, ShaderVariationParameters::kEmpty);
 	SPtr<Material> materialPtr = B3DMakeSharedFromExisting<Material>(material);
 	materialPtr->SetShared(materialPtr);
 	materialPtr->Initialize();

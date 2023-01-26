@@ -14,29 +14,38 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Data that may be passed to Technique on creation to initialize it with precompiled set of passes (rather than requiring on-demand compilation). */
+	template<bool Core>
+	struct TPrecompiledVariationData
+	{
+		using PassType = CoreVariantType<Pass, Core>;
+
+		TPrecompiledVariationData(const SmallVector<SPtr<PassType>, 1>& precompiledPasses = {})
+			: PrecompiledPasses(precompiledPasses)
+		{ }
+
+		SmallVector<SPtr<PassType>, 1> PrecompiledPasses;
+	};
+
+	using PrecompiledVariationData = TPrecompiledVariationData<false>;
+	namespace ct { using PrecompiledVariationData = TPrecompiledVariationData<true>; }
+
 	/** Base class that is used for implementing both sim and core versions of Technique. */
 	class B3D_CORE_EXPORT TechniqueBase
 	{
 	public:
-		TechniqueBase(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation);
+		TechniqueBase(const String& language, const ShaderVariationParameters& variationParameters);
 		virtual ~TechniqueBase() = default;
 
 		/**	Checks if this technique is supported based on current render and other systems. */
 		bool IsSupported() const;
 
-		/** Checks if the technique has the specified tag. */
-		bool HasTag(const StringID& tag);
-
-		/** Checks if the technique has any tags. */
-		u32 HasTags() const { return !mTags.empty(); }
-
 		/** Returns a set of preprocessor defines used for compiling this particular technique. */
-		const ShaderVariation& GetVariation() const { return mVariation; }
+		const ShaderVariationParameters& GetVariationParameters() const { return mVariationParameters; }
 
 	protected:
 		String mLanguage;
-		Vector<StringID> mTags;
-		ShaderVariation mVariation;
+		ShaderVariationParameters mVariationParameters;
 	};
 
 	/** Templated class that is used for implementing both sim and core versions of Technique. */
@@ -45,22 +54,43 @@ namespace bs
 	{
 	public:
 		using PassType = CoreVariantType<Pass, Core>;
+		using ShaderType = CoreVariantType<Shader, Core>;
+		using TechniqueType = CoreVariantType<Technique, Core>;
 
 		TTechnique();
-		TTechnique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<PassType>>& passes);
+		TTechnique(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<TPrecompiledVariationData<Core>>& precompiledData);
 		virtual ~TTechnique() = default;
 
 		/**	Returns a pass with the specified index. */
-		SPtr<PassType> GetPass(u32 idx) const;
+		SPtr<PassType> GetPass(u32 index) const;
 
 		/**	Returns total number of passes. */
-		u32 GetNumPasses() const { return (u32)mPasses.size(); }
+		u32 GetPassCount() const;
 
-		/** Compiles all the passes in a technique. @see Pass::compile. */
+		/** Compiles the variation in case it was not initialized with precompiled data. */
 		void Compile();
 
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** Assigns a set of compiled passes to the technique. This should be called only when a technique has not been initialized with precompiled pass data, and compilation for the technique finished. */
+		void SetCompiledPassData(SmallVector<SPtr<PassType>, 1> compiledPasses);
+
+		/** Sets the shader that owns this variation. */
+		void SetOwner(const WeakSPtr<ShaderType>& owner) { mOwner = owner; }
+
+		/***/
+
 	protected:
-		Vector<SPtr<PassType>> mPasses;
+		/** Returns a reference to itself using the most derived type. */
+		virtual TechniqueType& GetSelf() = 0;
+
+		WeakSPtr<ShaderType> mOwner;
+		SmallVector<SPtr<PassType>, 1> mPasses;
+		bool mHasPassData = false;
+		bool mIsCompiled = false;
 	};
 
 	/** @} */
@@ -82,38 +112,27 @@ namespace bs
 	class B3D_CORE_EXPORT Technique : public IReflectable, public CoreObject, public TTechnique<false>
 	{
 	public:
-		Technique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
+		Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);
 
 		/** Retrieves an implementation of a technique usable only from the core thread. */
 		SPtr<ct::Technique> GetCore() const;
 
 		/**
-		 * Creates a new technique.
+		 * Creates a new variation.
 		 *
-		 * @param[in]	language	Shading language used by the technique. The engine will not use this technique unless
-		 *							this language is supported by the render API.
-		 * @param[in]	passes		A set of passes that define the technique.
-		 * @return					Newly creted technique.
+		 * @param		owner				Shader that owns the variation.
+		 * @param		language			Shading language used by the variation. The engine will not use this variation unless this language is supported by the render backend.
+		 * @param		variation			Variation parameters used for compiling this variation.
+		 * @param		precompiledData		Optional set of precompiled variation data. If not provided, you must manually call Compile() on the variation before use.
+		 * @return							Newly creted variation.
 		 */
-		static SPtr<Technique> Create(const String& language, const Vector<SPtr<Pass>>& passes);
-
-		/**
-		 * Creates a new technique.
-		 *
-		 * @param[in]	language	Shading language used by the technique. The engine will not use this technique unless
-		 *							this language is supported by the render API.
-		 * @param[in]	tags		An optional set of tags that can be used for further identifying under which
-		 *							circumstances should a technique be used.
-		 * @param[in]	variation	A set of preprocessor directives that were used for compiling this particular technique.
-		 *							Used for shaders that have multiple variations.
-		 * @param[in]	passes		A set of passes that define the technique.
-		 * @return					Newly creted technique.
-		 */
-		static SPtr<Technique> Create(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
+		static SPtr<Technique> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData = {});
 
 	protected:
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
+
+		Technique& GetSelf() override { return *this; }
 
 		/**	Creates a new technique but doesn't initialize it. */
 		static SPtr<Technique> CreateEmpty();
@@ -144,15 +163,13 @@ namespace bs
 		class B3D_CORE_EXPORT Technique : public CoreObject, public TTechnique<true>
 		{
 		public:
-			Technique(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
+			Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);
 
-			/** @copydoc bs::Technique::Create(const String&, const Vector<SPtr<Pass>>&) */
-			static SPtr<Technique> Create(const String& language, const Vector<SPtr<Pass>>& passes);
+			/** @copydoc bs::Technique::Create(const WeakSPtr<Shader>&, const String&, const ShaderVariationParameters&, const Optional<PrecompiledVariationData>&) */
+			static SPtr<Technique> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData = {});
 
-			/**
-			 * @copydoc bs::Technique::Create(const String&, const Vector<StringID>&, const ShaderVariation&, const Vector<SPtr<Pass>>&)
-			 */
-			static SPtr<Technique> Create(const String& language, const Vector<StringID>& tags, const ShaderVariation& variation, const Vector<SPtr<Pass>>& passes);
+		protected:
+			Technique& GetSelf() override { return *this; }
 		};
 
 		/** @} */

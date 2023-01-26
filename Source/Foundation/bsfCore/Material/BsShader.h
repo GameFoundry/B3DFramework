@@ -15,22 +15,12 @@ namespace bs
 	 */
 
 	class Shader;
+	struct ShaderCompilerMetaData;
 
 	namespace ct
 	{
 		class Shader;
 	}
-
-	/** Templated version of SubShader that can be used for both core and sim threads. */
-	template <bool Core>
-	struct TSubShader
-	{
-		using TechniqueType = CoreVariantType<Technique, Core>;
-		using ShaderType = SPtr<CoreVariantType<Shader, Core>>;
-
-		String Name;
-		ShaderType Shader;
-	};
 
 	/** Information about a shader parameter. */
 	struct ShaderParameterInformation
@@ -186,45 +176,11 @@ namespace bs
 		SmallVector<ShaderVariationParameterValue, 4> Values;
 	};
 
-	/**
-	 * Sub-shader represents a set of techniques not used by the main shader, but rather a specialized set of techniques
-	 * used by the renderer for a specific purpose. The renderer identifies these techniques by a unique name, and utilizes
-	 * them when present, or uses the default built-in techniques otherwise. Note that sub-shader techniques need to follow
-	 * a specific interface that can be utilized by the renderer, usually similar/identical to the default built-in
-	 * technique.
-	 */
-	struct B3D_CORE_EXPORT SubShader : TSubShader<false>, IReflectable
-	{
-		/************************************************************************/
-		/* 								SERIALIZATION                      		*/
-		/************************************************************************/
-	public:
-		friend class SubShaderRTTI;
-		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const override;
-	};
-
 	/** @} */
 
 	/** @addtogroup Implementation
 	 *  @{
 	 */
-
-	template <bool Core>
-	struct TSubShaderType
-	{};
-
-	template <>
-	struct TSubShaderType<false>
-	{
-		typedef SubShader Type;
-	};
-
-	template <>
-	struct TSubShaderType<true>
-	{
-		typedef TSubShader<true> Type;
-	};
 
 	/** Structure used for initializing a shader. */
 	template <bool Core>
@@ -233,9 +189,11 @@ namespace bs
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
 		using TechniqueType = CoreVariantType<Technique, Core>;
-		using SubShaderType = typename TSubShaderType<Core>::Type;
 
 		TShaderCreateInformation();
+
+		/** Converts non-core variant of the object into the core variant. */
+		static TShaderCreateInformation<true> ConvertToCore(const TShaderCreateInformation<false>& value);
 
 		/**
 		 * Registers a new data (int, Vector2, etc.) parameter you that you may then use via Material by providing the
@@ -353,14 +311,14 @@ namespace bs
 		/** Techniques to initialize the shader with. */
 		Vector<SPtr<TechniqueType>> Techniques;
 
-		/** Optional set of sub-shaders to initialize the shader with. */
-		Vector<SubShaderType> SubShaders;
-
 		/**
 		 * Information about all variation parameters and their possible values. Each permutation of variation parameters
 		 * represents a separate shader technique.
 		 */
 		Vector<ShaderVariationParameterInformation> VariationParams;
+
+		/** Meta-data required by the shader compiler when compiling shader variations on demand. Can be null if the shader is being initialized with precompiled variations. */
+		SPtr<ShaderCompilerMetaData> CompilerMetaData;
 
 		Map<String, ShaderDataParameterInformation> DataParams;
 		Map<String, ShaderObjectParameterInformation> TextureParams;
@@ -390,11 +348,13 @@ namespace bs
 		using TechniqueType = CoreVariantType<Technique, Core>;
 		using TextureType = typename TShaderCreateInformation<Core>::TextureType;
 		using SamplerStateType = typename TShaderCreateInformation<Core>::SamplerStateType;
-		using SubShaderType = typename TSubShaderType<Core>::Type;
 
 		TShader(u32 id);
 		TShader(const String& name, const TShaderCreateInformation<Core>& desc, u32 id);
 		virtual ~TShader();
+
+		/** Returns the name of the shader. */
+		String GetShaderName() const { return mName; }
 
 		/** Returns the total number of techniques in this shader. */
 		u32 GetTechniqueCount() const { return (u32)mDesc.Techniques.size(); }
@@ -412,20 +372,16 @@ namespace bs
 		 *								of parameters is used for comparison, while any extra parameters present in
 		 *								the technique are not compared.
 		 */
-		Vector<SPtr<TechniqueType>> GetCompatibleTechniques(const ShaderVariation& variation, bool exact) const;
+		Vector<SPtr<TechniqueType>> GetCompatibleTechniques(const ShaderVariationParameters& variation, bool exact) const;
 
 		/** Returns a list of all techniques in this shader. */
 		const Vector<SPtr<TechniqueType>>& GetTechniques() const { return mDesc.Techniques; }
-
-		/** Returns a list of all sub-shaders in this shader. */
-		const Vector<SubShaderType>& GetSubShaders() const { return mDesc.SubShaders; }
 
 		/**
 		 * Returns the list of all variation parameters supported by this shader, possible values of each parameter and
 		 * other meta-data.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(VariationParams), Property(Getter))
-
 		const Vector<ShaderVariationParameterInformation> GetVariationParams() const { return mDesc.VariationParams; }
 
 		/**
@@ -535,6 +491,16 @@ namespace bs
 		/** Returns the unique shader ID. */
 		u32 GetId() const { return mId; }
 
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** Returns the meta-data required by the shader compiler to compile individual shader variations. */
+		const SPtr<ShaderCompilerMetaData>& GetCompilerMetaData() const { return mDesc.CompilerMetaData; }
+
+		/** @} */
+
 	protected:
 		String mName;
 		TShaderCreateInformation<Core> mDesc;
@@ -550,9 +516,6 @@ namespace bs
 		 */
 
 		typedef TShaderCreateInformation<true> ShaderCreateInformation;
-
-		/** Core thread version of bs::SubShader. */
-		typedef TSubShader<true> SubShader;
 
 		/** @} */
 	} // namespace ct
@@ -637,9 +600,6 @@ namespace bs
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		SPtr<ct::CoreObject> CreateCore() const override;
-
-		/** Converts a sim thread version of the shader descriptor to a core thread version. */
-		ct::ShaderCreateInformation ConvertDesc(const ShaderCreateInformation& createInformation) const;
 
 	private:
 		/************************************************************************/

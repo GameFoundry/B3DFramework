@@ -36,10 +36,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 msaa>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", msaa) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", msaa) });
 
 				return variation;
 			}
@@ -168,10 +168,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <u32 msaa>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("MSAA_COUNT", msaa) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("MSAA_COUNT", msaa) });
 
 				return variation;
 			}

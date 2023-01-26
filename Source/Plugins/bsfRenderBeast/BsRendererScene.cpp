@@ -23,7 +23,7 @@ namespace bs { namespace ct {
 
 PerFrameParamDef gPerFrameParamDef;
 
-static const ShaderVariation* DECAL_VAR_LOOKUP[2][3] = {
+static const ShaderVariationParameters* DECAL_VAR_LOOKUP[2][3] = {
 	{ &GetDecalShaderVariation<false, MSAAMode::None>(),
 	  &GetDecalShaderVariation<false, MSAAMode::Single>(),
 	  &GetDecalShaderVariation<false, MSAAMode::Full>() },
@@ -34,27 +34,27 @@ static const ShaderVariation* DECAL_VAR_LOOKUP[2][3] = {
 
 /** Returns a specific forward rendering shader variation. */
 template <bool SKINNED, bool MORPH, bool CLUSTERED, bool WRITE_VELOCITY>
-static const ShaderVariation& GetForwardRenderingVariation(bool supportsVelocityWrites)
+static const ShaderVariationParameters& GetForwardRenderingVariation(bool supportsVelocityWrites)
 {
 	if(!supportsVelocityWrites)
 	{
-		static ShaderVariation variation = ShaderVariation(
+		static ShaderVariationParameters variation = ShaderVariationParameters(
 			{
-				ShaderVariation::Param("SKINNED", SKINNED),
-				ShaderVariation::Param("MORPH", MORPH),
-				ShaderVariation::Param("CLUSTERED", CLUSTERED),
+				ShaderVariationParameter("SKINNED", SKINNED),
+				ShaderVariationParameter("MORPH", MORPH),
+				ShaderVariationParameter("CLUSTERED", CLUSTERED),
 			});
 
 		return variation;
 	}
 	else
 	{
-		static ShaderVariation variation = ShaderVariation(
+		static ShaderVariationParameters variation = ShaderVariationParameters(
 			{
-				ShaderVariation::Param("SKINNED", SKINNED),
-				ShaderVariation::Param("MORPH", MORPH),
-				ShaderVariation::Param("CLUSTERED", CLUSTERED),
-				ShaderVariation::Param("WRITE_VELOCITY", WRITE_VELOCITY),
+				ShaderVariationParameter("SKINNED", SKINNED),
+				ShaderVariationParameter("MORPH", MORPH),
+				ShaderVariationParameter("CLUSTERED", CLUSTERED),
+				ShaderVariationParameter("WRITE_VELOCITY", WRITE_VELOCITY),
 			});
 
 		return variation;
@@ -63,9 +63,9 @@ static const ShaderVariation& GetForwardRenderingVariation(bool supportsVelocity
 
 /** Returns a specific forward rendering shader variation. */
 template <bool CLUSTERED, bool WRITE_VELOCITY>
-static const ShaderVariation* GetClusteredForwardRenderingVariation(RenderableAnimType animType, bool shaderCanWriteVelocity)
+static const ShaderVariationParameters* GetClusteredForwardRenderingVariation(RenderableAnimType animType, bool shaderCanWriteVelocity)
 {
-	const ShaderVariation* VAR_LOOKUP[4];
+	const ShaderVariationParameters* VAR_LOOKUP[4];
 	VAR_LOOKUP[0] = &GetForwardRenderingVariation<false, false, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
 	VAR_LOOKUP[1] = &GetForwardRenderingVariation<true, false, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
 	VAR_LOOKUP[2] = &GetForwardRenderingVariation<false, true, CLUSTERED, WRITE_VELOCITY>(shaderCanWriteVelocity);
@@ -76,7 +76,7 @@ static const ShaderVariation* GetClusteredForwardRenderingVariation(RenderableAn
 
 /** Returns a specific base pass shader variation. */
 template <bool WRITE_VELOCITY>
-static const ShaderVariation* GetBasePassVariation(bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, RenderableAnimType animType)
+static const ShaderVariationParameters* GetBasePassVariation(bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, RenderableAnimType animType)
 {
 	if(useForwardRendering)
 	{
@@ -87,7 +87,7 @@ static const ShaderVariation* GetBasePassVariation(bool useForwardRendering, boo
 	}
 	else
 	{
-		const ShaderVariation* VAR_LOOKUP[4];
+		const ShaderVariationParameters* VAR_LOOKUP[4];
 		VAR_LOOKUP[0] = &GetVertexInputVariation<false, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
 		VAR_LOOKUP[1] = &GetVertexInputVariation<true, false, WRITE_VELOCITY>(shaderCanWriteVelocity);
 		VAR_LOOKUP[2] = &GetVertexInputVariation<false, true, WRITE_VELOCITY>(shaderCanWriteVelocity);
@@ -100,10 +100,10 @@ static const ShaderVariation* GetBasePassVariation(bool useForwardRendering, boo
 /** Initializes a specific base pass technique on the provided material and returns the technique index. */
 static u32 InitAndRetrieveBasePassTechnique(Material& material, bool useForwardRendering, bool supportsClusteredForward, bool shaderCanWriteVelocity, bool writeVelocity, RenderableAnimType animType)
 {
-	const ShaderVariation* variation = writeVelocity ? GetBasePassVariation<true>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType);
+	const ShaderVariationParameters* variation = writeVelocity ? GetBasePassVariation<true>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType) : GetBasePassVariation<false>(useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, animType);
 
-	FIND_TECHNIQUE_DESC findDesc;
-	findDesc.Variation = variation;
+	FindVariationInformation findDesc;
+	findDesc.VariationParameters = variation;
 	findDesc.Override = true;
 
 	u32 techniqueIdx = material.FindTechnique(findDesc);
@@ -782,10 +782,10 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	else
 		forwardLightingType = ParticleForwardLightingType::None;
 
-	const ShaderVariation* variation = &GetParticleShaderVariation(orientation, lockY, gpu, is3d, forwardLightingType);
+	const ShaderVariationParameters* variation = &GetParticleShaderVariation(orientation, lockY, gpu, is3d, forwardLightingType);
 
-	FIND_TECHNIQUE_DESC findDesc;
-	findDesc.Variation = variation;
+	FindVariationInformation findDesc;
+	findDesc.VariationParameters = variation;
 	findDesc.Override = true;
 
 	u32 techniqueIdx = renElement.Material->FindTechnique(findDesc);
@@ -1007,8 +1007,8 @@ void RendererScene::RegisterDecal(Decal* decal)
 	{
 		for(u32 j = 0; j < 3; j++)
 		{
-			FIND_TECHNIQUE_DESC findDesc;
-			findDesc.Variation = DECAL_VAR_LOOKUP[i][j];
+			FindVariationInformation findDesc;
+			findDesc.VariationParameters = DECAL_VAR_LOOKUP[i][j];
 			findDesc.Override = true;
 
 			u32 techniqueIdx = renElement.Material->FindTechnique(findDesc);

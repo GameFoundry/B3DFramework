@@ -26,6 +26,8 @@ namespace bs
 		ImporterAsyncMode GetAsyncMode() const override { return ImporterAsyncMode::Single; }
 		SPtr<Resource> Import(const Path& filePath, SPtr<const ImportOptions> importOptions) override;
 		SPtr<ImportOptions> CreateImportOptions() const override;
+
+		static inline constexpr const char* kShaderExtensionWithoutLeadingDot = u8"bsl";
 	};
 
 	/** @} */

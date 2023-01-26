@@ -226,7 +226,7 @@ namespace bs
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(TextureImportOptions, ScriptTextureImportOptions)
 #endif
-		ADD_ENTRY(ShaderVariation, ScriptShaderVariation)
+		ADD_ENTRY(ShaderVariationParameters, ScriptShaderVariation)
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(FontImportOptions, ScriptFontImportOptions)
 #endif

@@ -76,7 +76,7 @@ Vector<SPtr<GpuParamDesc>> getAllParamDescs(const SPtr<Technique>& technique)
 	Vector<SPtr<GpuParamDesc>> allParamDescs;
 
 	// Make sure all gpu programs are fully loaded
-	for(u32 i = 0; i < technique->GetNumPasses(); i++)
+	for(u32 i = 0; i < technique->GetPassCount(); i++)
 	{
 		SPtr<Pass> curPass = technique->GetPass(i);
 
@@ -139,7 +139,7 @@ Vector<SPtr<GpuParamDesc>> getAllParamDescs(const SPtr<ct::Technique>& technique
 	Vector<SPtr<GpuParamDesc>> allParamDescs;
 
 	// Make sure all gpu programs are fully loaded
-	for(u32 i = 0; i < technique->GetNumPasses(); i++)
+	for(u32 i = 0; i < technique->GetPassCount(); i++)
 	{
 		SPtr<ct::Pass> curPass = technique->GetPass(i);
 
@@ -469,9 +469,9 @@ const u32 TGpuParamsSet<Core>::kNumStages = 6;
 
 template <bool Core>
 TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, const SPtr<MaterialParamsType>& params)
-	: mPassParams(technique->GetNumPasses()), mParamVersion(0)
+	: mPassParams(technique->GetPassCount()), mParamVersion(0)
 {
-	u32 numPasses = technique->GetNumPasses();
+	u32 numPasses = technique->GetPassCount();
 
 	// Create GpuParams for each pass and shader stage
 	for(u32 i = 0; i < numPasses; i++)

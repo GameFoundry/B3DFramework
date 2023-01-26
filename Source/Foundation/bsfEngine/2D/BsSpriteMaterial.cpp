@@ -11,13 +11,13 @@
 
 using namespace bs;
 
-SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariation variation, bool allowBatching)
+SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariationParameters variation, bool allowBatching)
 	: mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 {
 	mMaterial = material->GetCore();
 
-	FIND_TECHNIQUE_DESC findTechniqueDesc;
-	findTechniqueDesc.Variation = &variation;
+	FindVariationInformation findTechniqueDesc;
+	findTechniqueDesc.VariationParameters = &variation;
 
 	variation.SetBool("ALPHA", false);
 	mTechnique = mMaterial->FindTechnique(findTechniqueDesc);

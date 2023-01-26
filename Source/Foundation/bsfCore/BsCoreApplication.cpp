@@ -42,6 +42,7 @@
 #include "Audio/BsAudioManager.h"
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationManager.h"
+#include "Material/BsShaderCompiler.h"
 #include "Renderer/BsParamBlocks.h"
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsVectorField.h"
@@ -134,6 +135,7 @@ CoreApplication::~CoreApplication()
 	ProfilerCPU::ShutDown();
 	MessageHandler::ShutDown();
 	ShaderManager::ShutDown();
+	ShaderCompilers::ShutDown();
 
 	MemStack::EndThread();
 	Platform::ShutDownInternal();
@@ -148,6 +150,7 @@ void CoreApplication::OnStartUp()
 	Platform::StartUpInternal();
 	MemStack::BeginThread();
 
+	ShaderCompilers::StartUp();
 	ShaderManager::StartUp(GetShaderIncludeHandler());
 	MessageHandler::StartUp();
 	ProfilerCPU::StartUp();

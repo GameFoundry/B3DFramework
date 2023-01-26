@@ -76,14 +76,14 @@ namespace bs
 		 * @tparam FWD		Determines what form of forward lighting should the shader support.
 		 */
 		template <ParticleOrientation ORIENT, bool LOCK_Y, bool GPU, bool IS_3D, ParticleForwardLightingType FWD>
-		static const ShaderVariation& GetParticleShaderVariation()
+		static const ShaderVariationParameters& GetParticleShaderVariation()
 		{
 			static bool initialized = false;
-			static SmallVector<ShaderVariation::Param, 4> params({
-				ShaderVariation::Param("ORIENT", (u32)ORIENT),
-				ShaderVariation::Param("LOCK_Y", LOCK_Y),
-				ShaderVariation::Param("GPU", GPU),
-				ShaderVariation::Param("IS_3D", IS_3D),
+			static SmallVector<ShaderVariationParameter, 4> params({
+				ShaderVariationParameter("ORIENT", (u32)ORIENT),
+				ShaderVariationParameter("LOCK_Y", LOCK_Y),
+				ShaderVariationParameter("GPU", GPU),
+				ShaderVariationParameter("IS_3D", IS_3D),
 			});
 
 			if(!initialized)
@@ -91,10 +91,10 @@ namespace bs
 				switch(FWD)
 				{
 				case ParticleForwardLightingType::Clustered:
-					params.Add(ShaderVariation::Param("CLUSTERED", true));
+					params.Add(ShaderVariationParameter("CLUSTERED", true));
 					break;
 				case ParticleForwardLightingType::Standard:
-					params.Add(ShaderVariation::Param("CLUSTERED", false));
+					params.Add(ShaderVariationParameter("CLUSTERED", false));
 					break;
 				case ParticleForwardLightingType::None:
 					break;
@@ -103,7 +103,7 @@ namespace bs
 				initialized = true;
 			}
 
-			static ShaderVariation variation = ShaderVariation(params);
+			static ShaderVariationParameters variation = ShaderVariationParameters(params);
 			return variation;
 		}
 
@@ -119,7 +119,7 @@ namespace bs
 		 * @param[in]	forwardLighting		Form of forward lighting the shader should support.
 		 * @return							Object that can be used for looking up the variation technique in the material.
 		 */
-		const ShaderVariation& GetParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3d, ParticleForwardLightingType forwardLighting);
+		const ShaderVariationParameters& GetParticleShaderVariation(ParticleOrientation orient, bool lockY, bool gpu, bool is3d, ParticleForwardLightingType forwardLighting);
 
 		/** Contains information required for rendering a single particle system. */
 		class ParticlesRenderElement : public RenderElement

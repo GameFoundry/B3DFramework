@@ -16,7 +16,7 @@ namespace bs
 	 */
 
 	template <>
-	struct RTTIPlainType<ShaderVariation::Param>
+	struct RTTIPlainType<ShaderVariationParameter>
 	{
 		enum
 		{
@@ -28,7 +28,7 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		static BitLength ToMemory(const ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength ToMemory(const ShaderVariationParameter& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			static constexpr uint8_t kVersion = 0;
 
@@ -43,7 +43,7 @@ namespace bs
 				return size; });
 		}
 
-		static BitLength FromMemory(ShaderVariation::Param& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength FromMemory(ShaderVariationParameter& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
 			B3DRTTIReadSizeHeader(stream, compress, size);
@@ -59,7 +59,7 @@ namespace bs
 			return size;
 		}
 
-		static BitLength GetSize(const ShaderVariation::Param& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength GetSize(const ShaderVariationParameter& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint8_t);
 			dataSize += B3DRTTISize(data.Name);
@@ -71,7 +71,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderVariationRTTI : public RTTIType<ShaderVariation, IReflectable, ShaderVariationRTTI>
+	class B3D_CORE_EXPORT ShaderVariationRTTI : public RTTIType<ShaderVariationParameters, IReflectable, ShaderVariationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -91,7 +91,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeShared<ShaderVariation>();
+			return B3DMakeShared<ShaderVariationParameters>();
 		}
 	};
 

@@ -18,10 +18,10 @@ u32 GetMaterialId(SpriteMaterialTransparency transparency, bool animated)
 	}
 }
 
-ShaderVariation GetMaterialVariation(SpriteMaterialTransparency transparency, bool animated)
+ShaderVariationParameters GetMaterialVariation(SpriteMaterialTransparency transparency, bool animated)
 {
-	return ShaderVariation(SmallVector<ShaderVariation::Param, 4>({ ShaderVariation::Param("TRANSPARENCY", (i32)transparency),
-																	ShaderVariation::Param("ANIMATED", animated) }));
+	return ShaderVariationParameters(SmallVector<ShaderVariationParameter, 4>({ ShaderVariationParameter("TRANSPARENCY", (i32)transparency),
+																	ShaderVariationParameter("ANIMATED", animated) }));
 }
 
 SpriteImageMaterial::SpriteImageMaterial(SpriteMaterialTransparency transparency, bool animated)

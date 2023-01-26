@@ -123,10 +123,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <int shOrder>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SH_ORDER", shOrder) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SH_ORDER", shOrder) });
 
 				return variation;
 			}
@@ -175,10 +175,10 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <int shOrder>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SH_ORDER", shOrder) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SH_ORDER", shOrder) });
 
 				return variation;
 			}

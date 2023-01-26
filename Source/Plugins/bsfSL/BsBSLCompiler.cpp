@@ -17,16 +17,35 @@
 using namespace std;
 using namespace bs;
 
-BSLResult BSLCompiler::Compile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, SPtr<Shader>& outShader)
+static SPtr<Shader> CreateShader(const String& name, const ShaderCreateInformation& shaderCreateInformation, const Vector<String>& includes)
 {
-	SPtr<BSLFXShaderMetaData> shaderMetaData;
-	BSLResult compileStatus = CompileMetaData(source, defines, shaderMetaData);
-	if(!compileStatus.ErrorMessage.empty())
-		return compileStatus;
+	SPtr<Shader> shader = Shader::CreateShared(name, shaderCreateInformation);
+	shader->SetIncludeFiles(includes);
 
-	B3D_ASSERT(shaderMetaData != nullptr);
+	return shader;
+}
 
-		BSLResult compileResult;
+static SPtr<ct::Shader> CreateShader(const String& name, const ct::ShaderCreateInformation& shaderCreateInformation, const Vector<String>& includes)
+{
+	return ct::Shader::Create(name, shaderCreateInformation);
+}
+
+template<bool Core>
+ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, Core>>& outShader)
+{
+	TShaderCreateInformation<Core> shaderCreateInformation;
+	Vector<String> shaderIncludes;
+
+	BSLParsedShaderMetaData parsedShaderMetaData;
+	ShaderCompilerResult compileResult = BSLParser::ParseMetaData(source, defines, shaderCreateInformation, parsedShaderMetaData, shaderIncludes);
+
+	if(!compileResult.ErrorMessage.empty())
+		return compileResult;
+
+	SPtr<ShaderCompilerMetaData> compilerMetaData = B3DMakeShared<ShaderCompilerMetaData>();
+	compilerMetaData->Source = source;
+	compilerMetaData->Variations = CreateShaderVariations(parsedShaderMetaData);
+	compilerMetaData->Defines = defines;
 
 	SmallVector<ShadingLanguageFlag, (u32)ShadingLanguageFlag::Count> requiredLanguageSet;
 	for(u32 shadingLanguageIndex = 0; shadingLanguageIndex < (u32)ShadingLanguageFlag::Count; shadingLanguageIndex++)
@@ -35,170 +54,130 @@ BSLResult BSLCompiler::Compile(const String& name, const String& source, const U
 			requiredLanguageSet.Add((ShadingLanguageFlag)(1 << shadingLanguageIndex));
 	}
 
+	SPtr<CoreVariantType<Shader, Core>> shader;
+	for(auto& variationParameters : compilerMetaData->Variations)
+	{
+		for(u32 languageIndex = 0; languageIndex < requiredLanguageSet.size(); ++languageIndex)
+		{
+			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
+			SPtr<CoreVariantType<Technique, Core>> variation = CoreVariantType<Technique, Core>::Create(shader, languageName, variationParameters);
+
+			shaderCreateInformation.Techniques.push_back(std::move(variation));
+		}
+	}
+
+	if(!compileVariations)
+	{
+		shaderCreateInformation.CompilerMetaData = compilerMetaData;
+	}
+
 	// For every variation, re-parse the file with relevant defines
-	for(auto& variation : shaderMetaData->Variations)
+	u32 variationIndex = 0;
+	bool wasShaderCreationAttempted = false;
+	for(auto& variationParameters : compilerMetaData->Variations)
 	{
 		BSLParsedShaderData parsedNode;
-		compileResult = BSLParser::ParseVariation(shaderMetaData->Name, source, variation, defines, parsedNode);
 
-		if(!compileResult.ErrorMessage.empty())
-			return compileResult;
+		if(compileVariations || !wasShaderCreationAttempted)
+		{
+			compileResult = BSLParser::ParseVariation(name, source, variationParameters, defines, parsedNode);
+
+			if(!compileResult.ErrorMessage.empty())
+				return compileResult;
+		}
 
 		for(u32 languageIndex = 0; languageIndex < requiredLanguageSet.size(); ++languageIndex)
 		{
-			const auto passCount = (u32)parsedNode.Passes.size();
-			for(u32 passIndex = 0; passIndex < passCount; passIndex++)
+			if(!wasShaderCreationAttempted)
 			{
-				const BSLParsedShaderPassData& parsedShaderPassNode = parsedNode.Passes[passIndex];
-
-				// Find valid entry points and parameters
-				// Note: Ideally we don't need to do a full reflection pass for each GPU program type (i.e. by adding some kind of AST caching to XShaderCompiler)
-				compileStatus = HLSLCrossCompiler::Reflect(parsedShaderPassNode.Code, shaderMetaData->ShaderInformation, shaderMetaData->GPUProgramTypes);
-			}
-
-			SPtr<Technique> compiledVariation;
-			compileStatus = CompileVariation(shaderMetaData->Name, parsedNode, *shaderMetaData, variation, requiredLanguageSet[languageIndex], compiledVariation);
-
-			if(!compileStatus.ErrorMessage.empty())
-				return compileStatus;
-
-			shaderMetaData->ShaderInformation.Techniques.push_back(compiledVariation);
-		}
-	}
-
-	// Verify techniques compile correctly
-	bool hasError = false;
-	StringStream gpuProgError;
-	for(auto& technique : shaderMetaData->ShaderInformation.Techniques)
-	{
-		if(!technique->IsSupported())
-			continue;
-
-		u32 numPasses = technique->GetNumPasses();
-		technique->Compile();
-
-		for(u32 i = 0; i < numPasses; i++)
-		{
-			SPtr<Pass> pass = technique->GetPass(i);
-
-			auto checkCompileStatus = [&](const String& prefix, const SPtr<GpuProgram>& prog)
-			{
-				if(prog != nullptr)
+				const auto passCount = (u32)parsedNode.Passes.size();
+				for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 				{
-					prog->BlockUntilCoreInitialized();
+					const BSLParsedShaderPassData& parsedShaderPassNode = parsedNode.Passes[passIndex];
 
-					if(!prog->IsCompiled())
-					{
-						hasError = true;
-						gpuProgError << prefix << ": " << prog->GetCompileErrorMessage() << std::endl;
-					}
+					// Find valid entry points and parameters
+					// Note: Ideally we don't need to do a full reflection pass for each GPU program type (i.e. by adding some kind of AST caching to XShaderCompiler)
+					compileResult = HLSLCrossCompiler::Reflect(parsedShaderPassNode.Code, shaderCreateInformation, compilerMetaData->GPUProgramTypes);
 				}
-			};
 
-			const SPtr<GraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
-			if(graphicsPipeline)
-			{
-				checkCompileStatus("Vertex program", graphicsPipeline->GetVertexProgram());
-				checkCompileStatus("Fragment program", graphicsPipeline->GetFragmentProgram());
-				checkCompileStatus("Geometry program", graphicsPipeline->GetGeometryProgram());
-				checkCompileStatus("Hull program", graphicsPipeline->GetHullProgram());
-				checkCompileStatus("Domain program", graphicsPipeline->GetDomainProgram());
+				if(compileResult.ErrorMessage.empty())
+					shader = CreateShader(parsedShaderMetaData.Name, shaderCreateInformation, shaderIncludes);
+
+				wasShaderCreationAttempted = true;
 			}
 
-			const SPtr<ComputePipelineState>& computePipeline = pass->GetComputePipelineState();
-			if(computePipeline)
-				checkCompileStatus("Compute program", computePipeline->GetProgram());
+			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
+			const SPtr<CoreVariantType<Technique, Core>>& variation = shaderCreateInformation.Techniques[variationIndex];
+
+			if(compileVariations)
+			{
+				compileResult = TCompileVariation<Core>(parsedShaderMetaData.Name, parsedNode, *compilerMetaData, requiredLanguageSet[languageIndex], *variation);
+
+				if(!compileResult.ErrorMessage.empty())
+					return compileResult;
+			}
+
+			variation->SetOwner(shader);
+			variationIndex++;
 		}
 	}
 
-	if(hasError)
+	if(compileResult.ErrorMessage.empty())
 	{
-		compileResult.ErrorMessage = "Failed compiling GPU program(s): " + gpuProgError.str();
-		compileResult.ErrorLine = 0;
-		compileResult.ErrorColumn = 0;
-	}
-
-	if(compileStatus.ErrorMessage.empty())
-	{
-		outShader = Shader::CreateShared(name, shaderMetaData->ShaderInformation);
-		outShader->SetIncludeFiles(shaderMetaData->Includes);
+		outShader = shader;
 	}
 
 	return compileResult;
 }
 
-BSLResult BSLCompiler::CompileMetaData(const String& source, const UnorderedMap<String, String>& defines, SPtr<BSLFXShaderMetaData>& outShaderMetaData)
+template ShaderCompilerResult BSLCompiler::TCompile<false>(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, SPtr<CoreVariantType<Shader, false>>&);
+template ShaderCompilerResult BSLCompiler::TCompile<true>(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, SPtr<CoreVariantType<Shader, true>>&);
+
+template<bool Core>
+ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader, Core>& shader, const ShaderVariationParameters& variationParameters, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& outVariation)
 {
-	SPtr<BSLFXShaderMetaData> shaderMetaData = B3DMakeShared<BSLFXShaderMetaData>();
+	SPtr<ShaderCompilerMetaData> compilerMetaData = shader.GetCompilerMetaData();
+	if(compilerMetaData == nullptr)
+	{
+		ShaderCompilerResult returnStatus;
+		returnStatus.ErrorMessage = "Cannot compile technique as parent shader does not contain compilation meta-data.";
 
-	BSLParsedShaderMetaData parsedShaderMetaData;
-	BSLResult compileResult = BSLParser::ParseMetaData(source, defines, shaderMetaData->ShaderInformation, parsedShaderMetaData, shaderMetaData->Includes);
+		return returnStatus;
+	}
 
-	if(!compileResult.ErrorMessage.empty())
-		return compileResult;
-
-	shaderMetaData->Variations = CreateShaderVariations(parsedShaderMetaData);
-	shaderMetaData->Name = parsedShaderMetaData.Name;
-	shaderMetaData->Defines = defines;
-
-	outShaderMetaData = shaderMetaData;
-	return compileResult;
-}
-
-BSLResult BSLCompiler::CompileVariation(const String& source, const ShaderVariation& variation, ShadingLanguageFlag language, BSLFXShaderMetaData& inOutShaderMetaData, SPtr<Technique>& outVariation)
-{
 	BSLParsedShaderData parsedNode;
-	BSLResult compileResult = BSLParser::ParseVariation(inOutShaderMetaData.Name, source, variation, inOutShaderMetaData.Defines, parsedNode);
+	ShaderCompilerResult compileResult = BSLParser::ParseVariation(shader.GetShaderName(), compilerMetaData->Source, variationParameters, compilerMetaData->Defines, parsedNode);
 
 	if(!compileResult.ErrorMessage.empty())
 		return compileResult;
 
-	if(!inOutShaderMetaData.HasGPUProgramMetaData)
-	{
-		const auto passCount = (u32)parsedNode.Passes.size();
-		for(u32 passIndex = 0; passIndex < passCount; passIndex++)
-		{
-			const BSLParsedShaderPassData& parsedShaderPassNode = parsedNode.Passes[passIndex];
-
-			// Find valid entry points and parameters
-			// Note: Ideally we don't need to do a full reflection pass for each GPU program type (i.e. by adding some kind of AST caching to XShaderCompiler)
-			compileResult = HLSLCrossCompiler::Reflect(parsedShaderPassNode.Code, inOutShaderMetaData.ShaderInformation, inOutShaderMetaData.GPUProgramTypes);
-		}
-
-		inOutShaderMetaData.HasGPUProgramMetaData = true;
-	}
-
-	return CompileVariation(inOutShaderMetaData.Name, parsedNode, inOutShaderMetaData, variation, language, outVariation);
+	return TCompileVariation<Core>(shader.GetShaderName(), parsedNode, *compilerMetaData, language, outVariation);
 }
 
-BSLResult BSLCompiler::CompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const BSLFXShaderMetaData& shaderMetaData, const ShaderVariation& variation, ShadingLanguageFlag language, SPtr<Technique>& outVariation)
+template ShaderCompilerResult BSLCompiler::TCompileVariation<false>(const CoreVariantType<Shader, false>&, const ShaderVariationParameters&, ShadingLanguageFlag, CoreVariantType<Technique, false>& outVariation);
+template ShaderCompilerResult BSLCompiler::TCompileVariation<true>(const CoreVariantType<Shader, true>&, const ShaderVariationParameters&, ShadingLanguageFlag, CoreVariantType<Technique, true>& outVariation);
+
+template<bool Core>
+ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& outVariation)
 {
 	B3D_ASSERT(!parsedShader.MetaData.IsMixin);
 	B3D_ASSERT(shaderMetaData.GPUProgramTypes.size() > 0);
 
-	BSLResult compileResult;
+	ShaderCompilerResult compileResult;
 
 	HLSLCrossCompileOutput crossCompileOutputLanguage = HLSLCrossCompileOutput::VKSL45;
-	String crossCompileOutputLanguageName;
+	const String crossCompileOutputLanguageName = ShaderCompilers::GetShadingLanguageName(language);
 	if(language == ShadingLanguageFlag::GLSL)
 	{
 		crossCompileOutputLanguage = HLSLCrossCompileOutput::GLSL45;
-		crossCompileOutputLanguageName = "glsl";
 	}
 	else if(language == ShadingLanguageFlag::VKSL)
 	{
 		crossCompileOutputLanguage = HLSLCrossCompileOutput::VKSL45;
-		crossCompileOutputLanguageName = "vksl";
 	}
 	else if(language == ShadingLanguageFlag::MSL)
 	{
 		crossCompileOutputLanguage = HLSLCrossCompileOutput::MVKSL;
-		crossCompileOutputLanguageName = "mvksl";
-	}
-	else if(language == ShadingLanguageFlag::HLSL)
-	{
-		// No cross compile needed
-		crossCompileOutputLanguageName = "hlsl";
 	}
 
 	struct CrossCompilePassOutput
@@ -206,7 +185,9 @@ BSLResult BSLCompiler::CompileVariation(const String& name, const BSLParsedShade
 		String ProgramCodePerType[GPT_COUNT];
 	};
 
-	Map<u32, SPtr<Pass>, std::greater<u32>> passes;
+	using PassType = CoreVariantType<Pass, Core>;
+
+	Map<u32, SPtr<CoreVariantType<Pass, Core>>, std::greater<u32>> passes;
 	const auto passCount = (u32)parsedShader.Passes.size();
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
@@ -351,29 +332,29 @@ BSLResult BSLCompiler::CompileVariation(const String& name, const BSLParsedShade
 
 		shaderPassInformation.StencilRefValue = parsedShaderPass.StencilReferenceValue;
 
-		const SPtr<Pass> pass = Pass::Create(shaderPassInformation);
+		const SPtr<PassType> pass = PassType::Create(shaderPassInformation);
 		if(pass != nullptr)
 		{
 			passes[parsedShaderPass.SequentialIndex] = pass;
 		}
 	}
 
-	Vector<SPtr<Pass>> orderedPasses;
-	for(auto& KVP : passes)
-		orderedPasses.push_back(KVP.second);
 
-	if(!orderedPasses.empty())
-		outVariation = Technique::Create(crossCompileOutputLanguageName, parsedShader.MetaData.Tags, variation, orderedPasses);
+	SmallVector<SPtr<PassType>, 1> orderedPasses;
+	for(auto& KVP : passes)
+		orderedPasses.Add(KVP.second);
+
+	outVariation.SetCompiledPassData(orderedPasses);
 
 	return compileResult;
 }
 
-Vector<ShaderVariation> BSLCompiler::CreateShaderVariations(const BSLParsedShaderMetaData& shaderMetaData)
+Vector<ShaderVariationParameters> BSLCompiler::CreateShaderVariations(const BSLParsedShaderMetaData& shaderMetaData)
 {
 	if(shaderMetaData.Variations.empty())
-		return { ShaderVariation() };
+		return { ShaderVariationParameters() };
 
-	Vector<ShaderVariation> variations;
+	Vector<ShaderVariationParameters> variations;
 
 	FrameScope frameScope;
 	FrameVector<const BSLParsedVariationData*> variationsToProcess;
@@ -391,10 +372,10 @@ Vector<ShaderVariation> BSLCompiler::CreateShaderVariations(const BSLParsedShade
 			// This is the first variation parameter, register new variations
 			if(variations.empty())
 			{
-				ShaderVariation a;
-				ShaderVariation b;
+				ShaderVariationParameters a;
+				ShaderVariationParameters b;
 
-				b.AddParam(ShaderVariation::Param(currentVariation->Identifier, 1));
+				b.AddParam(ShaderVariationParameter(currentVariation->Identifier, 1));
 
 				variations.push_back(a);
 				variations.push_back(b);
@@ -408,7 +389,7 @@ Vector<ShaderVariation> BSLCompiler::CreateShaderVariations(const BSLParsedShade
 					variations.push_back(variations[variationIndex]);
 
 					// Add the parameter to existing variation
-					variations[variationIndex].AddParam(ShaderVariation::Param(currentVariation->Identifier, 1));
+					variations[variationIndex].AddParam(ShaderVariationParameter(currentVariation->Identifier, 1));
 				}
 			}
 		}
@@ -419,8 +400,8 @@ Vector<ShaderVariation> BSLCompiler::CreateShaderVariations(const BSLParsedShade
 			{
 				for(u32 variationValueIndex = 0; variationValueIndex < (u32)currentVariation->Values.size(); variationValueIndex++)
 				{
-					ShaderVariation variation;
-					variation.AddParam(ShaderVariation::Param(currentVariation->Identifier, currentVariation->Values[variationValueIndex].Value));
+					ShaderVariationParameters variation;
+					variation.AddParam(ShaderVariationParameter(currentVariation->Identifier, currentVariation->Values[variationValueIndex].Value));
 
 					variations.push_back(variation);
 				}
@@ -432,13 +413,13 @@ Vector<ShaderVariation> BSLCompiler::CreateShaderVariations(const BSLParsedShade
 				{
 					for(u32 variationValueIndex = 1; variationValueIndex < (u32)currentVariation->Values.size(); variationValueIndex++)
 					{
-						ShaderVariation copy = variations[variationIndex];
-						copy.AddParam(ShaderVariation::Param(currentVariation->Identifier, currentVariation->Values[variationValueIndex].Value));
+						ShaderVariationParameters copy = variations[variationIndex];
+						copy.AddParam(ShaderVariationParameter(currentVariation->Identifier, currentVariation->Values[variationValueIndex].Value));
 
 						variations.push_back(copy);
 					}
 
-					variations[variationIndex].AddParam(ShaderVariation::Param(currentVariation->Identifier, currentVariation->Values[0].Value));
+					variations[variationIndex].AddParam(ShaderVariationParameter(currentVariation->Identifier, currentVariation->Values[0].Value));
 				}
 			}
 		}

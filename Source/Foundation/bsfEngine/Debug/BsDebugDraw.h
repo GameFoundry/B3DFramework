@@ -195,12 +195,12 @@ namespace bs
 
 			/** Helper method used for initializing variations of this material. */
 			template <bool solid, bool line, bool wire>
-			static const ShaderVariation& GetVariation()
+			static const ShaderVariationParameters& GetVariation()
 			{
-				static ShaderVariation variation = ShaderVariation(
-					{ ShaderVariation::Param("SOLID", solid),
-					  ShaderVariation::Param("LINE", line),
-					  ShaderVariation::Param("WIRE", wire) });
+				static ShaderVariationParameters variation = ShaderVariationParameters(
+					{ ShaderVariationParameter("SOLID", solid),
+					  ShaderVariationParameter("LINE", line),
+					  ShaderVariationParameter("WIRE", wire) });
 
 				return variation;
 			}
