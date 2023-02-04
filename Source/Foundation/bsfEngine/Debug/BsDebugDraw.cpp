@@ -145,16 +145,11 @@ namespace bs { namespace ct
 
 DebugDrawParamsDef gDebugDrawParamsDef;
 
-DebugDrawMat::DebugDrawMat()
-{
-	// Do nothing
-}
-
 void DebugDrawMat::Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
-	mParams->SetParameterBlockBuffer("Params", params);
+	mGPUParameters->SetParameterBlockBuffer("Params", params);
 
 	Bind();
 	GetRendererUtility().Draw(mesh, subMesh);

@@ -106,6 +106,9 @@ namespace bs
 		}
 	};
 
+	template <typename F>
+	using Function = std::function<F>;
+
 	/** @addtogroup Containers
 	 *  @{
 	 */

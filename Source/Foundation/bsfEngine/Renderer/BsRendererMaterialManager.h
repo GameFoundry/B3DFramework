@@ -31,6 +31,15 @@ namespace bs
 		RendererMaterialManager();
 		~RendererMaterialManager();
 
+		/** To be called every frame from the main thread. */
+		void Update();
+
+		/** Queues an operation to be executed on the render thread. Thread safe. */
+		void QueueOnRenderThread(Function<void()> callback);
+
+		/** Blocks all operations queued via QueueOnRenderThread have been processed. */
+		void BlockUntilQueueEmpty();
+
 		/**	Registers a new material that should be initialized on module start-up. */
 		static void RegisterMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath);
 
@@ -42,8 +51,8 @@ namespace bs
 		friend class RendererMaterial;
 		friend class ct::RendererMaterialBase;
 
-		/**	Initializes all materials on the core thread. */
-		static void InitOnCore(const Vector<SPtr<ct::Shader>>& shaders);
+		/**	Initializes the manager on the core thread. */
+		static void InitOnCore();
 
 		/**	Destroys all materials on the core thread. */
 		static void DestroyOnCore();
@@ -53,6 +62,11 @@ namespace bs
 
 		/**	Returns a mutex used for inter-thread access to the materials list. */
 		static Mutex& GetMutex();
+
+		Mutex mAsyncCompilationMutex;
+		Signal mQueuedOperationCompletedSignal;
+		Queue<Function<void()>> mQueuedOperationsOnWorkerThread;
+		Queue<Function<void()>> mQueuedOperationsOnRenderThread;
 	};
 
 	/** @} */

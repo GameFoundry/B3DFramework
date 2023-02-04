@@ -63,8 +63,8 @@ namespace bs
 	struct QueuedCommand
 	{
 #if B3D_DEBUG
-		QueuedCommand(std::function<void(AsyncOp&)> _callback, u32 _debugId, const SPtr<AsyncOpSyncData>& asyncOpSyncData, bool _notifyWhenComplete = false, u32 _callbackId = 0)
-			: DebugId(_debugId), CallbackWithReturnValue(_callback), AsyncOp(asyncOpSyncData), ReturnsValue(true), CallbackId(_callbackId), NotifyWhenComplete(_notifyWhenComplete)
+		QueuedCommand(std::function<void(AsyncOp&)> _callback, u32 _debugId, bool _notifyWhenComplete = false, u32 _callbackId = 0)
+			: DebugId(_debugId), CallbackWithReturnValue(_callback), ReturnsValue(true), CallbackId(_callbackId), NotifyWhenComplete(_notifyWhenComplete)
 		{}
 
 		QueuedCommand(std::function<void()> _callback, u32 _debugId, bool _notifyWhenComplete = false, u32 _callbackId = 0)
@@ -229,7 +229,6 @@ namespace bs
 	private:
 		bs::Queue<QueuedCommand>* mCommands;
 
-		SPtr<AsyncOpSyncData> mAsyncOpSyncData;
 		ThreadId mMyThreadId;
 
 		Stack<bs::Queue<QueuedCommand>*> mEmptyCommandQueues; /**< List of empty queues for reuse. */

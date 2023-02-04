@@ -1167,7 +1167,7 @@ ShaderCompilerResult BSLParser::ParseVariation(const String& name, const String&
 	{
 		ParseStateDelete(variationParseState);
 
-		parseResult.ErrorMessage = "Unable to parse RSL shader. Root node is null or not a shader.";
+		parseResult.ErrorMessage = "Unable to parse BSL shader. Root node is null or not a shader.";
 		return parseResult;
 	}
 

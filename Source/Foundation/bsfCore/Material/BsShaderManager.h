@@ -20,8 +20,17 @@ namespace bs
 	public:
 		virtual ~IShaderIncludeHandler() = default;
 
-		/** Attempts to find a shader include resource based on its name. */
+		/**
+		 * Attempts to find a shader include resource based on its name.
+		 *
+		 * @note
+		 * The name is usually a path to the resource relative to the working folder, but can be other things depending on
+		 * active handler.
+		 */
 		virtual HShaderInclude FindInclude(const String& name) const = 0;
+
+		/** Attempts to find a shader include based on the include name and returns the include source code if found. */
+		virtual Optional<String> FindIncludeSource(const String& name) const = 0;
 
 		/** Registers a path in which to look for shader include files, along the default places. */
 		virtual void AddSearchPath(const Path& path) {}
@@ -35,6 +44,7 @@ namespace bs
 	{
 	public:
 		HShaderInclude FindInclude(const String& name) const override;
+		Optional<String> FindIncludeSource(const String& name) const override;
 	};
 
 	/**	A global manager that handles various shader specific operations. */
@@ -43,14 +53,11 @@ namespace bs
 	public:
 		ShaderManager(const SPtr<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }
 
-		/**
-		 * Attempts to find a shader include based on the include name.
-		 *
-		 * @note
-		 * The name is usually a path to the resource relative to the working folder, but can be other things depending on
-		 * active handler.
-		 */
+		/** @copydoc IShaderIncludeHandler::FindInclude */
 		HShaderInclude FindInclude(const String& name) const;
+
+		/** @copydoc IShaderIncludeHandler::FindIncludeSource */
+		Optional<String> FindIncludeSource(const String& name) const;
 
 		/** Changes the active include handler that determines how is a shader include name mapped to the actual resource. */
 		void SetIncludeHandler(const SPtr<IShaderIncludeHandler>& handler) { mIncludeHandler = handler; }

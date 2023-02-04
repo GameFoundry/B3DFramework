@@ -104,6 +104,20 @@ namespace bs
 		/** Returns the compiler for the specified language. */
 		SPtr<IShaderCompiler> GetCompiler(const String& language);
 
+		/**
+		 * Attempts to retrieve a Shader object from cache or builds the Shader and adds it to the cache.
+		 *
+		 * @param	shaderPath		Absolute path to the shader source file.
+		 * @param	cachePrefix		Folder within the cache to perform the lookup in.
+		 * @param	defines			Optional set of defines to use when compiling the shader.
+		 * @return					Shader object on success, or null on failure.
+		 */
+		template <bool Core>
+		SPtr<CoreVariantType<Shader, Core>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+
+		/** Detects shading language supported by the current render backend. */
+		static ShadingLanguageFlag DetectActiveShadingLanguage();
+
 		/** Converts a shading language name to a corresponding enum entry. */
 		static ShadingLanguageFlag ParseShadingLanguage(const String& name);
 

@@ -39,7 +39,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("RadixSortClear.bsl");
 
 		public:
-			RadixSortClearMat();
+			RadixSortClearMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the material, running the compute kernel.
@@ -61,7 +62,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("RadixSortCount.bsl");
 
 		public:
-			RadixSortCountMat();
+			RadixSortCountMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the material, running the compute kernel.
@@ -88,7 +90,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("RadixSortPrefixScan.bsl");
 
 		public:
-			RadixSortPrefixScanMat();
+			RadixSortPrefixScanMat() = default;
+			void Initialize() override;
 
 			/*
 			 * Executes the material, running the compute kernel.
@@ -112,7 +115,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("RadixSortReorder.bsl");
 
 		public:
-			RadixSortReorderMat();
+			RadixSortReorderMat() = default;
+			void Initialize() override;
 
 			/*
 			 * Executes the material, running the compute kernel.

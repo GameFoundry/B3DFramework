@@ -8,7 +8,10 @@
 #include "Material/BsShaderVariation.h"
 #include "Material/BsShader.h"
 #include "Material/BsPass.h"
+#include "Material/BsShaderCompiler.h"
 #include "RenderAPI/BsRenderAPI.h"
+#include "Resources/BsBuiltinResources.h"
+#include "Threading/BsTaskScheduler.h"
 
 #if B3D_PROFILING_ENABLED
 #	include "Profiling/BsProfilerGPU.h"
@@ -50,15 +53,48 @@ namespace bs
 		 *  @{
 		 */
 
-		/**	Contains data common to all render material instances of a specific type. */
+		/** Compilation state for RendererMaterial shader. */
+		enum class RendererMaterialShaderState
+		{
+			NotInitialized, /**< Shader has not been initialized and is not in the process of being initialized. */
+			InitializeInProgressOnWorkerThread, /**< Initialization in progress on the worker thread. */
+			WaitingForFinalizeOnRenderThread, /**< Initialization finished on worker, waiting to be finalized on the render thread. */
+			Initialized /**< Shader has finished initialization. */
+		};
+
+		/** Compilation state for RendererMaterial variation. */
+		enum class RendererMaterialVariationState
+		{
+			NotCompiled, /**< Variation has not been compiled and is not in progress. */
+			CompilationWaitingOnShader, /**< Variation compilation is waiting for the parent Shader to be initialized first. */
+			CompilationInProgressOnWorkerThread, /**< Compilation is in progress on the worker thread. */
+			WaitingForFinalizeOnRenderThread, /**< Compilation finished on worker, waiting to be finalized on the render thread. */
+			Compiled /**< Variation has been compiled. */
+		};
+
+		/* Contains information about a single renderer material variation. */
+		struct RendererMaterialVariationInformation
+		{
+			RendererMaterialBase* RendererMaterialInstance = nullptr; /**< Instance of the material to be created once the shader variation has been created. */
+			SPtr<Technique> ShaderVariation; /**< Shader variation used by the material. */
+			RendererMaterialVariationState State = RendererMaterialVariationState::NotCompiled;
+
+			TAsyncOp<RendererMaterialBase*> VariationCompileOperation{ AsyncOpEmpty() }; /**< Operation tracking variation creation as a whole. */
+			TAsyncOp<bool> BackendCompileOperation{ AsyncOpEmpty() }; /**< Operation tracking ShaderVariation::Compile() progress on the render backend. */
+		};
+
+		/**	Contains data common to all render material variations for a specific render material. */
 		struct RendererMaterialMetaData
 		{
 			Path ShaderPath;
-			SPtr<ct::Shader> Shader;
-			SPtr<ct::Shader> OverrideShader;
-			SmallVector<RendererMaterialBase*, 4> Instances;
-			ShaderVariations Variations;
+			SPtr<Shader> Shader;
+			std::atomic<RendererMaterialShaderState> ShaderState = RendererMaterialShaderState::NotInitialized;
+			TAsyncOp<SPtr<ct::Shader>> ShaderInitializeOperation{ AsyncOpEmpty() };
+
+			ShaderVariations VariationParameterSet;
 			ShaderDefines Defines;
+
+			SmallVector<RendererMaterialVariationInformation, 4> VariationInformation;
 
 #if B3D_PROFILING_ENABLED
 			ProfilerString ProfilerSampleName;
@@ -84,27 +120,34 @@ namespace bs
 		public:
 			virtual ~RendererMaterialBase() = default;
 
+			/** Initializes the material. Use this instead of the constructor to perform any one-time setup before using the material. */
+			virtual void Initialize() {}
+
 			/** Returns the shader used by the material. */
 			SPtr<Shader> GetShader() const { return mShader; }
 
 			/** Returns the internal parameter set containing GPU bindable parameters. */
-			SPtr<GpuParams> GetParams() const { return mParams; }
+			SPtr<GpuParams> GetParams() const { return mGPUParameters; }
 
 			/**
-			 * Helper field to be set before construction. Identifiers the variation of the material to initialize this
-			 * object with.
+			 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
+			 * draw calls, or executing dispatch calls. If @p bindParameters is false you need to call BindParameters() separately
+			 * to bind material parameters (if any).
 			 */
-			u32 VarIdx;
+			void Bind(bool bindParameters = true) const;
+
+			/** Binds the material parameters to the pipeline. */
+			void BindParameters() const;
 
 		protected:
-			friend class RendererMaterialManager;
+			friend class bs::RendererMaterialManager;
 
-			SPtr<GpuParams> mParams;
-			SPtr<GraphicsPipelineState> mGfxPipeline;
+			SPtr<GpuParams> mGPUParameters;
+			SPtr<GraphicsPipelineState> mGraphicsPipeline;
 			SPtr<ComputePipelineState> mComputePipeline;
-			u32 mStencilRef = 0;
+			u32 mStencilReferenceValue = 0;
 
-			ShaderVariationParameters mVariation;
+			ShaderVariationParameters mVariationParameters;
 			SPtr<Shader> mShader;
 		};
 
@@ -133,59 +176,10 @@ namespace bs
 			 * Retrieves an instance of this renderer material. If material has multiple variations the first available
 			 * variation will be returned.
 			 */
-			static T* Get()
-			{
-				if(mMetaData.Instances[0] == nullptr)
-				{
-					RendererMaterialBase* mat = B3DAllocate<T>();
-					mat->VarIdx = 0;
-					new(mat) T();
-
-					mMetaData.Instances[0] = mat;
-				}
-
-				return (T*)mMetaData.Instances[0];
-			}
+			static T* Get();
 
 			/** Retrieves an instance of a particular variation of this renderer material. */
-			static T* Get(const ShaderVariationParameters& variation)
-			{
-				if(variation.GetIdx() == (u32)-1)
-					variation.SetIdx(mMetaData.Variations.Find(variation));
-
-				u32 varIdx = variation.GetIdx();
-				if(mMetaData.Instances[varIdx] == nullptr)
-				{
-					RendererMaterialBase* mat = B3DAllocate<T>();
-					mat->VarIdx = varIdx;
-					new(mat) T();
-
-					mMetaData.Instances[varIdx] = mat;
-				}
-
-				return (T*)mMetaData.Instances[varIdx];
-			}
-
-			/**
-			 * Sets a shader that is to be used instead of the default shader for this material. Set to null to revert back
-			 * to using the default shader. All existing instances of the material will be invalidated (get() methods need to
-			 * be called again).
-			 */
-			static void SetOverride(const SPtr<Shader>& shader)
-			{
-				if(mMetaData.OverrideShader == shader)
-					return;
-
-				for(u32 i = 0; i < mMetaData.Instances.Size(); i++)
-				{
-					if(mMetaData.Instances[i] != nullptr)
-						B3DDelete(mMetaData.Instances[i]);
-
-					mMetaData.Instances[i] = nullptr;
-				}
-
-				mMetaData.OverrideShader = shader;
-			}
+			static T* Get(const ShaderVariationParameters& variationParameters);
 
 			/** Returns the path to the built-in (non-overriden) shader used by this material. */
 			static Path GetShaderPath() { return mMetaData.ShaderPath; }
@@ -193,121 +187,383 @@ namespace bs
 			/** Returns a set of dynamically defined defines used when compiling this shader. */
 			static ShaderDefines GetShaderDefines() { return mMetaData.Defines; }
 
-			/**
-			 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
-			 * draw calls, or executing dispatch calls. If @p bindParams is false you need to call bindParams() separately
-			 * to bind material parameters (if any).
-			 */
-			void Bind(bool bindParams = true) const
-			{
-				RenderAPI& rapi = RenderAPI::Instance();
-
-				if(mGfxPipeline)
-				{
-					rapi.SetGraphicsPipeline(mGfxPipeline);
-					rapi.SetStencilRef(mStencilRef);
-				}
-				else
-					rapi.SetComputePipeline(mComputePipeline);
-
-				if(bindParams)
-					rapi.SetGpuParams(mParams);
-			}
-
-			/** Binds the material parameters to the pipeline. */
-			void BindParams() const
-			{
-				RenderAPI& rapi = RenderAPI::Instance();
-				rapi.SetGpuParams(mParams);
-			}
-
 		protected:
-			RendererMaterial()
-			{
-				mInitOnStart.Instantiate();
+			RendererMaterial();
 
-				if(mMetaData.OverrideShader)
-					mShader = mMetaData.OverrideShader;
-				else
-					mShader = mMetaData.Shader;
+			/** Initializes the renderer material. To be called right after construction. */
+			void InitializeInternal(u32 variationIndex);
 
-				mVariation = mMetaData.Variations.Get(VarIdx);
+			/** Checks if the Shader object has been created. Not variations of the material can be compiled until the shader is created first. */
+			static bool IsShaderInitialized();
 
-				const Vector<SPtr<Technique>>& techniques = mShader->GetTechniques();
-				for(auto& entry : techniques)
-				{
-					if(!entry->IsSupported())
-						continue;
+			/** Checks if a particular variation has been compiled and initialized. */
+			static bool IsRendereMaterialVariationCompiled(u32 variationIndex);
 
-					if(entry->GetVariationParameters() == mVariation)
-					{
-						SPtr<Pass> pass = entry->GetPass(0);
-						pass->Compile();
+			/** Initializes the Shader object. This needs to be done before attempting to compile any instances for the material. */
+			static TAsyncOp<SPtr<Shader>> InitializeShader();
 
-						mGfxPipeline = pass->GetGraphicsPipelineState();
-						if(mGfxPipeline != nullptr)
-							mParams = GpuParams::Create(mGfxPipeline);
-						else
-						{
-							mComputePipeline = pass->GetComputePipelineState();
-							mParams = GpuParams::Create(mComputePipeline);
-						}
+			/** Compiles and initializes a particular variation of the renderer material. */
+			static TAsyncOp<RendererMaterialBase*> CompileRendererMaterialVariation(const ShaderVariationParameters& variationParameters);
 
-						// Assign default values from the shader
-						const auto& textureParams = mShader->GetTextureParams();
-						for(auto& param : textureParams)
-						{
-							u32 defaultValueIdx = param.second.DefaultValueIndex;
-							if(defaultValueIdx == (u32)-1)
-								continue;
+			/** Compiles and initializes a particular variation of the renderer material. */
+			static TAsyncOp<RendererMaterialBase*> CompileRendererMaterialVariation(u32 variationIndex);
 
-							for(u32 i = 0; i < 6; i++)
-							{
-								GpuProgramType progType = (GpuProgramType)i;
+			/** Compiles a particular shader variation. */
+			static void CompileShaderVariation(u32 variationIndex);
 
-								for(auto& varName : param.second.GpuVariableNames)
-								{
-									if(mParams->HasTexture(progType, varName))
-									{
-										SPtr<Texture> texture = mShader->GetDefaultTexture(defaultValueIdx);
-										mParams->SetTexture(progType, varName, texture);
-									}
-								}
-							}
-						}
-
-						const auto& samplerParams = mShader->GetSamplerParams();
-						for(auto& param : samplerParams)
-						{
-							u32 defaultValueIdx = param.second.DefaultValueIndex;
-							if(defaultValueIdx == (u32)-1)
-								continue;
-
-							for(u32 i = 0; i < 6; i++)
-							{
-								GpuProgramType progType = (GpuProgramType)i;
-
-								for(auto& varName : param.second.GpuVariableNames)
-								{
-									if(mParams->HasSamplerState(progType, varName))
-									{
-										SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
-										mParams->SetSamplerState(progType, varName, samplerState);
-									}
-								}
-							}
-						}
-
-						mStencilRef = pass->GetStencilRefValue();
-					}
-				}
-			}
-
-			friend class RendererMaterialManager;
+			friend class bs::RendererMaterialManager;
 
 			static RendererMaterialMetaData mMetaData;
 			static InitRendererMaterialStart<T> mInitOnStart;
 		};
+
+		template <class T>
+		T* RendererMaterial<T>::Get()
+		{
+			if(!IsShaderInitialized())
+			{
+				TAsyncOp<SPtr<Shader>> operation = InitializeShader();
+				operation.BlockUntilComplete();
+			}
+
+			if(!IsRendereMaterialVariationCompiled(0))
+			{
+				TAsyncOp<RendererMaterialBase*> operation = CompileRendererMaterialVariation(0);
+				operation.BlockUntilComplete();
+			}
+
+			return (T*)mMetaData.VariationInformation[0].RendererMaterialInstance;
+		}
+
+		template <class T>
+		T* RendererMaterial<T>::Get(const ShaderVariationParameters& variationParameters)
+		{
+			if(!IsShaderInitialized())
+			{
+				TAsyncOp<SPtr<Shader>> operation = InitializeShader();
+				operation.BlockUntilComplete();
+			}
+
+			if(variationParameters.GetIdx() == ~0u)
+			{
+				variationParameters.SetIdx(mMetaData.VariationParameterSet.Find(variationParameters));
+			}
+
+			const u32 variationIndex = variationParameters.GetIdx();
+
+			if(!IsRendereMaterialVariationCompiled(variationIndex))
+			{
+				TAsyncOp<RendererMaterialBase*> operation = CompileRendererMaterialVariation(variationParameters);
+				operation.BlockUntilComplete();
+			}
+
+			return (T*)mMetaData.VariationInformation[variationIndex].RendererMaterialInstance;
+		}
+
+		template <class T>
+		TAsyncOp<SPtr<Shader>> RendererMaterial<T>::InitializeShader()
+		{
+			B3D_ASSERT(!IsShaderInitialized());
+
+			if(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread || mMetaData.ShaderState == RendererMaterialShaderState::WaitingForFinalizeOnRenderThread)
+				return mMetaData.ShaderInitializeOperation;
+
+			mMetaData.ShaderState = RendererMaterialShaderState::InitializeInProgressOnWorkerThread;
+
+			// Finishes shader initialization on render thread (i.e. this thread).
+			auto fnFinishInitializeShader = []()
+			{
+				const Vector<SPtr<Technique>> variations = mMetaData.Shader->GetCompatibleTechniques();
+
+				static SmallVector<RendererMaterialVariationInformation, 4> newVariationInformation;
+				static ShaderVariations newVariationParameterSet;
+
+				B3D_ASSERT(newVariationInformation.Empty());
+				B3D_ASSERT(newVariationParameterSet.IsEmpty());
+
+				newVariationInformation.resize((u32)variations.size());
+				newVariationParameterSet = ShaderVariations();
+
+				for(u32 variationIndex = 0; variationIndex < (u32)variations.size(); ++variationIndex)
+				{
+					const SPtr<Technique>& shaderVariation = variations[variationIndex];
+
+					for(u32 preliminaryVariationIndex = 0; preliminaryVariationIndex < mMetaData.VariationInformation.size(); ++preliminaryVariationIndex)
+					{
+						const ShaderVariationParameters& preliminaryVariationParameters = mMetaData.VariationParameterSet.Get(preliminaryVariationIndex);
+						RendererMaterialVariationInformation& preliminaryVariationInformation = mMetaData.VariationInformation[preliminaryVariationIndex];
+
+						B3D_ASSERT(preliminaryVariationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader);
+
+						if(preliminaryVariationParameters == shaderVariation->GetVariationParameters())
+						{
+							newVariationInformation[variationIndex].State = RendererMaterialVariationState::CompilationWaitingOnShader;
+							newVariationInformation[variationIndex].VariationCompileOperation = preliminaryVariationInformation.VariationCompileOperation;
+							break;
+						}
+					}
+
+					newVariationInformation[variationIndex].ShaderVariation = shaderVariation;
+					newVariationParameterSet.Add(shaderVariation->GetVariationParameters());
+				}
+
+				std::swap(newVariationInformation, mMetaData.VariationInformation);
+				std::swap(newVariationParameterSet, mMetaData.VariationParameterSet);
+
+				newVariationInformation.Clear();
+				newVariationParameterSet.Clear();
+
+				mMetaData.ShaderState = RendererMaterialShaderState::Initialized;
+				mMetaData.ShaderInitializeOperation.CompleteOperation(mMetaData.Shader);
+				mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>(AsyncOpEmpty());
+
+				u32 variationIndex = 0;
+				for(const auto& entry : mMetaData.VariationInformation)
+				{
+					if(entry.State == RendererMaterialVariationState::CompilationWaitingOnShader)
+						CompileShaderVariation(variationIndex);
+
+					variationIndex++;
+				}
+			};
+
+			// Performs shader initialization asynchronously on a worker thread.
+			auto fnInitializeShader = [fnFinishInitializeShader]() mutable
+			{
+				static const String kRendererMaterialShaderCachePrefix = "RendererMaterialShaders/";
+
+				const Path fullPathToShader = GetBuiltinResources().GetRawShaderFolder() + mMetaData.ShaderPath;
+				mMetaData.Shader = ShaderCompilers::Instance().GetOrCompileShader<true>(fullPathToShader, kRendererMaterialShaderCachePrefix, mMetaData.Defines);
+				mMetaData.ShaderState = RendererMaterialShaderState::WaitingForFinalizeOnRenderThread;
+
+				RendererMaterialManager::Instance().QueueOnRenderThread(fnFinishInitializeShader);
+			};
+
+			const SPtr<Task> compileShaderTask = Task::Create("Compile shader meta-data", fnInitializeShader);
+			auto fnFlush = [taskWeak = WeakSPtr<Task>(compileShaderTask)]()
+			{
+				const SPtr<Task> task = taskWeak.lock();
+				if(task != nullptr)
+					task->Wait();
+
+				RendererMaterialManager::Instance().BlockUntilQueueEmpty();
+			};
+
+			mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>();
+			mMetaData.ShaderInitializeOperation.SetFlushCallback(fnFlush);
+
+			TaskScheduler::Instance().AddTask(compileShaderTask);
+
+			return mMetaData.ShaderInitializeOperation;
+		}
+
+		template <class T>
+		TAsyncOp<RendererMaterialBase*> RendererMaterial<T>::CompileRendererMaterialVariation(const ShaderVariationParameters& variationParameters)
+		{
+			if(!IsShaderInitialized())
+			{
+				B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread || mMetaData.ShaderState == RendererMaterialShaderState::WaitingForFinalizeOnRenderThread);
+
+				auto fnFlush = [variationParameters]()
+				{
+					mMetaData.ShaderInitializeOperation.BlockUntilComplete();
+
+					const u32 variationIndex = mMetaData.VariationParameterSet.Find(variationParameters);
+					B3D_ASSERT(variationIndex != ~0u);
+
+					RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+					variationInformation.BackendCompileOperation.BlockUntilComplete();
+
+					RendererMaterialManager::Instance().BlockUntilQueueEmpty();
+				};
+
+				// Until the shader is ready we use the parameter set only for variations that are queued for compilation
+				const u32 foundVariationIndex = mMetaData.VariationParameterSet.Find(variationParameters);
+				if(foundVariationIndex == ~0u)
+				{
+					RendererMaterialVariationInformation variationInformation;
+					variationInformation.State = RendererMaterialVariationState::CompilationWaitingOnShader;
+					variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>();
+					variationInformation.VariationCompileOperation.SetFlushCallback(fnFlush);
+
+					mMetaData.VariationInformation.Add(variationInformation);
+					mMetaData.VariationParameterSet.Add(variationParameters);
+
+					return variationInformation.VariationCompileOperation;
+				}
+				else
+				{
+					B3D_ASSERT(foundVariationIndex >= mMetaData.VariationInformation.Size());
+					B3D_ASSERT(mMetaData.VariationInformation[foundVariationIndex].State == RendererMaterialVariationState::CompilationWaitingOnShader);
+
+					return mMetaData.VariationInformation[foundVariationIndex].VariationCompileOperation;
+				}
+			}
+
+			if(variationParameters.GetIdx() == ~0u)
+				variationParameters.SetIdx(mMetaData.VariationParameterSet.Find(variationParameters));
+
+			const u32 variationIndex = variationParameters.GetIdx();
+			return CompileRendererMaterialVariation(variationIndex);
+		}
+
+		template <class T>
+		TAsyncOp<RendererMaterialBase*> RendererMaterial<T>::CompileRendererMaterialVariation(u32 variationIndex)
+		{
+			B3D_ASSERT(IsShaderInitialized());
+			B3D_ASSERT(variationIndex != ~0u);
+			B3D_ASSERT(!IsRendereMaterialVariationCompiled(variationIndex));
+
+			RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+			if(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader || variationInformation.State == RendererMaterialVariationState::WaitingForFinalizeOnRenderThread)
+				return variationInformation.VariationCompileOperation;
+
+			auto fnFlush = [variationIndex]()
+			{
+				RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+				variationInformation.BackendCompileOperation.BlockUntilComplete();
+
+				RendererMaterialManager::Instance().BlockUntilQueueEmpty();
+			};
+
+			variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>();
+			variationInformation.VariationCompileOperation.SetFlushCallback(fnFlush);
+
+			CompileShaderVariation(variationIndex);
+
+			return variationInformation.VariationCompileOperation;
+		}
+
+		template<class T>
+		void RendererMaterial<T>::CompileShaderVariation(u32 variationIndex)
+		{
+			B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::Initialized && mMetaData.Shader != nullptr);
+
+			RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+			B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::NotCompiled || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader);
+
+			variationInformation.State = RendererMaterialVariationState::CompilationInProgressOnWorkerThread;
+			variationInformation.BackendCompileOperation = variationInformation.ShaderVariation->Compile();
+			variationInformation.BackendCompileOperation.DoOnComplete([variationIndex](const AsyncOpBase&)
+			{
+				B3D_ASSERT(mMetaData.VariationInformation[variationIndex].State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
+				mMetaData.VariationInformation[variationIndex].State = RendererMaterialVariationState::WaitingForFinalizeOnRenderThread;
+
+				RendererMaterialManager::Instance().QueueOnRenderThread([this, variationIndex]
+				{
+					RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+					B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::WaitingForFinalizeOnRenderThread);
+					B3D_ASSERT(variationInformation.RendererMaterialInstance == nullptr);
+
+					RendererMaterial* const rendererMaterialInstance = new(B3DAllocate<T>()) T();
+					rendererMaterialInstance->InitializeInternal(variationIndex);
+
+					variationInformation.RendererMaterialInstance = rendererMaterialInstance;
+
+					variationInformation.BackendCompileOperation = TAsyncOp<bool>(AsyncOpEmpty());
+					variationInformation.State = RendererMaterialVariationState::Compiled;
+
+					variationInformation.VariationCompileOperation.CompleteOperation(variationInformation.RendererMaterialInstance);
+					variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>(AsyncOpEmpty());
+				});
+			});
+		}
+	
+		template <class T>
+		bool RendererMaterial<T>::IsShaderInitialized()
+		{
+			return mMetaData.ShaderState == RendererMaterialShaderState::Initialized;
+		}
+
+		template <class T>
+		bool RendererMaterial<T>::IsRendereMaterialVariationCompiled(u32 variationIndex)
+		{
+			if(variationIndex == ~0u)
+				return false;
+
+			if(mMetaData.VariationInformation.size() <= variationIndex)
+				return false;
+
+			return mMetaData.VariationInformation[variationIndex].State == RendererMaterialVariationState::Compiled && mMetaData.VariationInformation[variationIndex].RendererMaterialInstance != nullptr;
+		}
+
+		template<class T>
+		RendererMaterial<T>::RendererMaterial()
+		{
+			mInitOnStart.Instantiate();
+		}
+
+		template<class T>
+		void RendererMaterial<T>::InitializeInternal(u32 variationIndex)
+		{
+			mShader = mMetaData.Shader;
+			mVariationParameters = mMetaData.VariationParameterSet.Get(variationIndex);
+
+			const SPtr<Technique>& shaderVariation = mMetaData.VariationInformation[variationIndex].ShaderVariation;
+			B3D_ASSERT(shaderVariation->IsSupported());
+			B3D_ASSERT(shaderVariation->GetVariationParameters() == mVariationParameters);
+
+			const SPtr<Pass> pass = shaderVariation->GetPass(0);
+			pass->Compile();
+
+			mGraphicsPipeline = pass->GetGraphicsPipelineState();
+			if(mGraphicsPipeline != nullptr)
+				mGPUParameters = GpuParams::Create(mGraphicsPipeline);
+			else
+			{
+				mComputePipeline = pass->GetComputePipelineState();
+				mGPUParameters = GpuParams::Create(mComputePipeline);
+			}
+
+			// Assign default values from the shader
+			const auto& textureParams = mShader->GetTextureParams();
+			for(auto& param : textureParams)
+			{
+				u32 defaultValueIdx = param.second.DefaultValueIndex;
+				if(defaultValueIdx == (u32)-1)
+					continue;
+
+				for(u32 i = 0; i < GPT_COUNT; i++)
+				{
+					GpuProgramType progType = (GpuProgramType)i;
+
+					for(auto& varName : param.second.GpuVariableNames)
+					{
+						if(mGPUParameters->HasTexture(progType, varName))
+						{
+							SPtr<Texture> texture = mShader->GetDefaultTexture(defaultValueIdx);
+							mGPUParameters->SetTexture(progType, varName, texture);
+						}
+					}
+				}
+			}
+
+			const auto& samplerParams = mShader->GetSamplerParams();
+			for(auto& param : samplerParams)
+			{
+				u32 defaultValueIdx = param.second.DefaultValueIndex;
+				if(defaultValueIdx == ~0u)
+					continue;
+
+				for(u32 i = 0; i < GPT_COUNT; i++)
+				{
+					GpuProgramType progType = (GpuProgramType)i;
+
+					for(auto& varName : param.second.GpuVariableNames)
+					{
+						if(mGPUParameters->HasSamplerState(progType, varName))
+						{
+							SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
+							mGPUParameters->SetSamplerState(progType, varName, samplerState);
+						}
+					}
+				}
+			}
+
+			mStencilReferenceValue = pass->GetStencilRefValue();
+
+			Initialize();
+		}
 
 		template <class T>
 		InitRendererMaterialStart<T> RendererMaterial<T>::mInitOnStart;

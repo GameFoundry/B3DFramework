@@ -29,7 +29,8 @@ namespace bs
 			RMAT_DEF("ReflectionCubeDownsample.bsl")
 
 		public:
-			ReflectionCubeDownsampleMat();
+			ReflectionCubeDownsampleMat() = default;
+			void Initialize() override;
 
 			/** Downsamples the provided texture face and outputs it to the provided target. */
 			void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
@@ -54,7 +55,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("ReflectionCubeImportanceSample.bsl")
 
 		public:
-			ReflectionCubeImportanceSampleMat();
+			ReflectionCubeImportanceSampleMat() = default;
+			void Initialize() override;
 
 			/** Importance samples the provided texture face and outputs it to the provided target. */
 			void Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target);
@@ -132,7 +134,8 @@ namespace bs
 			}
 
 		public:
-			IrradianceComputeSHMat();
+			IrradianceComputeSHMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Computes spherical harmonic coefficients from a radiance texture and outputs a buffer containing a list of
@@ -184,7 +187,8 @@ namespace bs
 			}
 
 		public:
-			IrradianceReduceSHMat();
+			IrradianceReduceSHMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Sums spherical harmonic coefficients calculated by each thread group of IrradianceComputeSHMat and outputs a
@@ -228,7 +232,8 @@ namespace bs
 			RMAT_DEF("IrradianceComputeSHFrag.bsl")
 
 		public:
-			IrradianceComputeSHFragMat();
+			IrradianceComputeSHFragMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Computes spherical harmonic coefficients from a face of an input cube radiance texture and outputs them to the
@@ -268,7 +273,8 @@ namespace bs
 			RMAT_DEF("IrradianceAccumulateSH.bsl")
 
 		public:
-			IrradianceAccumulateSHMat();
+			IrradianceAccumulateSHMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Downsamples the provided face and mip level of the source texture and outputs the downsampled (i.e summed up)
@@ -297,7 +303,8 @@ namespace bs
 			RMAT_DEF("IrradianceAccumulateCubeSH.bsl")
 
 		public:
-			IrradianceAccumulateCubeSHMat();
+			IrradianceAccumulateCubeSHMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Sums up all faces of the input cube texture and writes the value to the corresponding index in the output
@@ -331,7 +338,8 @@ namespace bs
 			RMAT_DEF("IrradianceProjectSH.bsl")
 
 		public:
-			IrradianceProjectSHMat();
+			IrradianceProjectSHMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Projects spherical harmonic coefficients calculated by IrradianceReduceSHMat and projects them onto faces of

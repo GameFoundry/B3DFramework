@@ -1,6 +1,9 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/BsShaderManager.h"
+
+#include "FileSystem/BsDataStream.h"
+#include "FileSystem/BsFileSystem.h"
 #include "Resources/BsResources.h"
 #include "Importer/BsImporter.h"
 
@@ -11,9 +14,34 @@ HShaderInclude DefaultShaderIncludeHandler::FindInclude(const String& name) cons
 	return Importer::Instance().Import<ShaderInclude>(name);
 }
 
+Optional<String> DefaultShaderIncludeHandler::FindIncludeSource(const String& name) const
+{
+	const Path filePath = FileSystem::GetWorkingDirectoryPath() + name;
+	if(FileSystem::IsFile(filePath))
+	{
+		Lock fileLock = FileScheduler::GetLock(filePath);
+
+		if(const SPtr<DataStream> stream = FileSystem::OpenFile(filePath))
+			return stream->GetAsString();
+	}
+
+	return nullptr;
+}
+
 HShaderInclude ShaderManager::FindInclude(const String& name) const
 {
+	if(!mIncludeHandler)
+		return nullptr;
+
 	return mIncludeHandler->FindInclude(name);
+}
+
+Optional<String> ShaderManager::FindIncludeSource(const String& name) const
+{
+	if(!mIncludeHandler)
+		return nullptr;
+
+	return mIncludeHandler->FindIncludeSource(name);
 }
 
 void ShaderManager::AddSearchPath(const Path& path)

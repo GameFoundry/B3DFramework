@@ -77,7 +77,8 @@ namespace bs
 		class GBufferParams
 		{
 		public:
-			GBufferParams(GpuProgramType type, const SPtr<GpuParams>& gpuParams);
+			/** Initializes the required parameters. To be called once before use. */
+			void Initialize(GpuProgramType type, const SPtr<GpuParams>& gpuParams);
 
 			/** Binds the GBuffer textures to the pipeline. */
 			void Bind(const GBufferTextures& gbuffer);

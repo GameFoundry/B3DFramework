@@ -80,7 +80,7 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 
 		if(compileVariations || !wasShaderCreationAttempted)
 		{
-			compileResult = BSLParser::ParseVariation(name, source, variationParameters, defines, parsedNode);
+			compileResult = BSLParser::ParseVariation(parsedShaderMetaData.Name, source, variationParameters, defines, parsedNode);
 
 			if(!compileResult.ErrorMessage.empty())
 				return compileResult;

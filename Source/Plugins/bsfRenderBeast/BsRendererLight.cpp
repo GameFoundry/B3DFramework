@@ -103,9 +103,10 @@ Vector3 RendererLight::GetShiftedLightPosition() const
 		return tfrm.GetPosition();
 }
 
-GBufferParams::GBufferParams(GpuProgramType type, const SPtr<GpuParams>& gpuParams)
-	: mParams(gpuParams)
+void GBufferParams::Initialize(GpuProgramType type, const SPtr<GpuParams>& gpuParams)
 {
+	mParams = gpuParams;
+
 	if(mParams->HasTexture(type, "gGBufferATex"))
 		mParams->GetTextureParameter(type, "gGBufferATex", mGBufferA);
 

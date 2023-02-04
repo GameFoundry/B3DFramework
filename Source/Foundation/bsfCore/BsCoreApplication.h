@@ -116,14 +116,17 @@ namespace bs
 		 * Loads a plugin.
 		 *
 		 * @param[in]	pluginName	Name of the plugin to load, without extension.
-		 * @param[out]	library		Specify as not null to receive a reference to the loaded library.
+		 * @param[out]	outLibrary	Specify as not null to receive a reference to the loaded library.
 		 * @param[in]	passThrough	Optional parameter that will be passed to the loadPlugin function.
 		 * @return					Value returned from the plugin start-up method.
 		 */
-		void* LoadPlugin(const String& pluginName, DynamicLibrary** library = nullptr, void* passThrough = nullptr);
+		void* LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary = nullptr, void* passThrough = nullptr);
 
 		/**	Unloads a previously loaded plugin. */
-		void UnloadPlugin(DynamicLibrary* library);
+		void UnloadPlugin(const String& pluginName);
+
+		/** Unloads all loaded plugins. */
+		void UnloadAllPlugins();
 
 	protected:
 		void OnStartUp() override;
@@ -153,7 +156,16 @@ namespace bs
 		void EndCoreProfiling();
 
 	protected:
-		typedef void (*UpdatePluginFunc)();
+		typedef void (*UpdatePluginFunctionPointer)();
+		typedef void (*UnloadPluginFunctionPointer)();
+
+		/** Information about a loaded plugin. */
+		struct LoadedPlugin
+		{
+			DynamicLibrary* Library = nullptr;
+			UpdatePluginFunctionPointer UpdateCallback = nullptr;
+			UnloadPluginFunctionPointer UnloadCallback = nullptr;
+		};
 
 		SPtr<RenderWindow> mPrimaryWindow;
 		START_UP_DESC mStartUpDesc;
@@ -162,9 +174,7 @@ namespace bs
 		u64 mFrameStep = 16666; // 60 times a second in microseconds
 		u64 mLastFrameTime = 0; // Microseconds
 
-		DynamicLibrary* mRendererPlugin;
-
-		Map<DynamicLibrary*, UpdatePluginFunc> mPluginUpdateFunctions;
+		UnorderedMap<String, LoadedPlugin> mLoadedPlugins;
 
 		bool mIsFrameRenderingFinished;
 		Mutex mFrameRenderingFinishedMutex;

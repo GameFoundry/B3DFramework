@@ -194,7 +194,6 @@ namespace bs
 
 		Vector<SpecificImporter*> mAssetImporters;
 
-		SPtr<AsyncOpSyncData> mAsyncOpSyncData;
 		mutable Mutex mLastTaskMutex;
 		mutable Signal mTaskCompleted;
 		mutable Mutex mImportMutex;

@@ -85,7 +85,7 @@ namespace bs
 			}
 
 		public:
-			ShadowDepthNormalNoPSMat();
+			ShadowDepthNormalNoPSMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(const SPtr<GpuParamBlockBuffer>& shadowParams);
@@ -119,7 +119,7 @@ namespace bs
 			}
 
 		public:
-			ShadowDepthDirectionalMat();
+			ShadowDepthDirectionalMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(const SPtr<GpuParamBlockBuffer>& shadowParams);
@@ -165,7 +165,7 @@ namespace bs
 			}
 
 		public:
-			ShadowDepthCubeMat();
+			ShadowDepthCubeMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
 			void Bind(const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& shadowCubeParams);
@@ -205,7 +205,8 @@ namespace bs
 			};
 
 		public:
-			ShadowProjectStencilMat();
+			ShadowProjectStencilMat() = default;
+			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
 			void Bind(const SPtr<GpuParamBlockBuffer>& perCamera);
@@ -279,7 +280,8 @@ namespace bs
 			};
 
 		public:
-			ShadowProjectMat();
+			ShadowProjectMat() = default;
+			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
 			void Bind(const ShadowProjectParams& params);
@@ -331,7 +333,8 @@ namespace bs
 			};
 
 		public:
-			ShadowProjectOmniMat();
+			ShadowProjectOmniMat() = default;
+			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
 			void Bind(const ShadowProjectParams& params);

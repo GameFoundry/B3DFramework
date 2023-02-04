@@ -37,7 +37,8 @@ namespace bs
 			}
 
 		public:
-			BlitMat();
+			BlitMat() = default;
+			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, copying from @p source. */
 			void Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV);
@@ -73,7 +74,8 @@ namespace bs
 			RMAT_DEF("Composite.bsl");
 
 		public:
-			CompositeMat();
+			CompositeMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -115,7 +117,8 @@ namespace bs
 			}
 
 		public:
-			BicubicUpsampleMat();
+			BicubicUpsampleMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -152,7 +155,8 @@ namespace bs
 			RMAT_DEF("Clear.bsl");
 
 		public:
-			ClearMat();
+			ClearMat() = default;
+			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, clearing to to @p value. */
 			void Execute(u32 value);

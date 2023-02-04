@@ -42,7 +42,8 @@ namespace bs
 			};
 
 		public:
-			DownsampleMat();
+			DownsampleMat() = default;
+			void Initialize() override;
 
 			/** Renders the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output);
@@ -72,7 +73,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("PPEyeAdaptHistogram.bsl");
 
 		public:
-			EyeAdaptHistogramMat();
+			EyeAdaptHistogramMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings);
@@ -115,7 +117,8 @@ namespace bs
 			RMAT_DEF("PPEyeAdaptHistogramReduce.bsl");
 
 		public:
-			EyeAdaptHistogramReduceMat();
+			EyeAdaptHistogramReduceMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output);
@@ -142,7 +145,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("PPEyeAdaptation.bsl");
 
 		public:
-			EyeAdaptationMat();
+			EyeAdaptationMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
@@ -173,7 +177,8 @@ namespace bs
 			RMAT_DEF("PPEyeAdaptationBasicSetup.bsl");
 
 		public:
-			EyeAdaptationBasicSetupMat();
+			EyeAdaptationBasicSetupMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
@@ -201,7 +206,8 @@ namespace bs
 			RMAT_DEF("PPEyeAdaptationBasic.bsl");
 
 		public:
-			EyeAdaptationBasicMat();
+			EyeAdaptationBasicMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
@@ -241,7 +247,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("PPCreateTonemap2DLUT.bsl")
 
 		public:
-			CreateTonemap2DLUTMat();
+			CreateTonemap2DLUTMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters, generating an unwrapped 2D LUT using the vertex & fragment shader pipeline. */
 			void Execute(const SPtr<RenderTexture>& output, const RenderSettings& settings);
@@ -269,7 +276,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("PPCreateTonemap3DLUT.bsl");
 
 		public:
-			CreateTonemap3DLUTMat();
+			CreateTonemap3DLUTMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters, generating a 3D LUT using a compute shader. */
 			void Execute(const SPtr<Texture>& output, const RenderSettings& settings);
@@ -315,7 +323,8 @@ namespace bs
 			}
 
 		public:
-			TonemappingMat();
+			TonemappingMat() = default;
+			void Initialize() override;
 
 			/** Executes the post-process effect with the provided parameters. */
 			void Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& bloom, const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings);
@@ -355,7 +364,8 @@ namespace bs
 			}
 
 		public:
-			BloomClipMat();
+			BloomClipMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the currently bound
@@ -416,7 +426,8 @@ namespace bs
 			}
 
 		public:
-			ScreenSpaceLensFlareMat();
+			ScreenSpaceLensFlareMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -472,7 +483,8 @@ namespace bs
 			}
 
 		public:
-			ChromaticAberrationMat();
+			ChromaticAberrationMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -511,7 +523,8 @@ namespace bs
 			RMAT_DEF("PPFilmGrain.bsl");
 
 		public:
-			FilmGrainMat();
+			FilmGrainMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
@@ -565,7 +578,8 @@ namespace bs
 				DirHorizontal
 			};
 
-			GaussianBlurMat();
+			GaussianBlurMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -644,7 +658,8 @@ namespace bs
 			}
 
 		public:
-			GaussianDOFSeparateMat();
+			GaussianDOFSeparateMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -708,7 +723,8 @@ namespace bs
 			}
 
 		public:
-			GaussianDOFCombineMat();
+			GaussianDOFCombineMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -778,7 +794,8 @@ namespace bs
 			}
 
 		public:
-			BokehDOFPrepareMat();
+			BokehDOFPrepareMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -837,7 +854,8 @@ namespace bs
 			static constexpr u32 kNearFarPadding = 128;
 			static constexpr u32 kQuadsPerTile = 8;
 
-			BokehDOFMat();
+			BokehDOFMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -892,7 +910,8 @@ namespace bs
 			}
 
 		public:
-			BokehDOFCombineMat();
+			BokehDOFCombineMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -928,7 +947,8 @@ namespace bs
 			RMAT_DEF("PPMotionBlur.bsl");
 
 		public:
-			MotionBlurMat();
+			MotionBlurMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -972,7 +992,8 @@ namespace bs
 			}
 
 		public:
-			BuildHiZMat();
+			BuildHiZMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1012,7 +1033,8 @@ namespace bs
 			RMAT_DEF("PPFXAA.bsl");
 
 		public:
-			FXAAMat();
+			FXAAMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1079,7 +1101,8 @@ namespace bs
 			}
 
 		public:
-			SSAOMat();
+			SSAOMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1129,7 +1152,8 @@ namespace bs
 			RMAT_DEF("PPSSAODownsample.bsl");
 
 		public:
-			SSAODownsampleMat();
+			SSAODownsampleMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1174,7 +1198,8 @@ namespace bs
 			}
 
 		public:
-			SSAOBlurMat();
+			SSAOBlurMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1219,7 +1244,8 @@ namespace bs
 			}
 
 		public:
-			SSRStencilMat();
+			SSRStencilMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.
@@ -1275,7 +1301,8 @@ namespace bs
 			}
 
 		public:
-			SSRTraceMat();
+			SSRTraceMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the effect with the provided parameters.
@@ -1360,7 +1387,8 @@ namespace bs
 			}
 
 		public:
-			TemporalFilteringMat();
+			TemporalFilteringMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the effect with the provided parameters.
@@ -1415,7 +1443,8 @@ namespace bs
 			RMAT_DEF("PPEncodeDepth.bsl");
 
 		public:
-			EncodeDepthMat();
+			EncodeDepthMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the post-process effect with the provided parameters.
@@ -1453,7 +1482,8 @@ namespace bs
 			}
 
 		public:
-			MSAACoverageMat();
+			MSAACoverageMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.
@@ -1480,7 +1510,8 @@ namespace bs
 			RMAT_DEF("MSAACoverageStencil.bsl");
 
 		public:
-			MSAACoverageStencilMat();
+			MSAACoverageStencilMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Renders the effect with the provided parameters, using the currently bound render target.

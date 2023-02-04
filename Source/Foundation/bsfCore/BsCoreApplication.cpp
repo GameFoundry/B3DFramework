@@ -70,7 +70,7 @@ B3D_LOG_CATEGORY_IMPL(Script)
 B3D_LOG_CATEGORY_IMPL(Importer)
 
 CoreApplication::CoreApplication(START_UP_DESC desc)
-	: mPrimaryWindow(nullptr), mStartUpDesc(desc), mRendererPlugin(nullptr), mIsFrameRenderingFinished(true), mSimThreadId(B3D_CURRENT_THREAD_ID), mRunMainLoop(false)
+	: mPrimaryWindow(nullptr), mStartUpDesc(desc), mIsFrameRenderingFinished(true), mSimThreadId(B3D_CURRENT_THREAD_ID), mRunMainLoop(false)
 {
 	// Ensure all errors are reported properly
 	CrashHandler::StartUp(desc.CrashHandling);
@@ -116,17 +116,19 @@ CoreApplication::~CoreApplication()
 	GetCoreThread().Update();
 	GetCoreThread().SubmitAll(true);
 
-	UnloadPlugin(mRendererPlugin);
+	UnloadPlugin(mStartUpDesc.Renderer);
 
 	RenderAPIManager::ShutDown();
 	ct::GpuProgramManager::ShutDown();
 	GpuProgramManager::ShutDown();
 
 	CoreObjectManager::ShutDown(); // Must shut down before DynLibManager to ensure all objects are destroyed before unloading their libraries
+
+	UnloadAllPlugins();
 	DynamicLibraryManager::ShutDown();
+
 	Time::ShutDown();
 	DeferredCallManager::ShutDown();
-
 	CoreThread::ShutDown();
 	RenderStats::ShutDown();
 	TaskScheduler::ShutDown();
@@ -178,7 +180,7 @@ void CoreApplication::OnStartUp()
 	Input::StartUp();
 	RendererManager::StartUp();
 
-	LoadPlugin(mStartUpDesc.Renderer, &mRendererPlugin);
+	LoadPlugin(mStartUpDesc.Renderer);
 
 	// Must be initialized before the scene manager, as game scene creation triggers physics scene creation
 	PhysicsManager::StartUp(mStartUpDesc.Physics, mStartUpDesc.PhysicsCooking);
@@ -290,8 +292,11 @@ void CoreApplication::RunMainLoopFrame()
 	GetPhysics().Update();
 
 	// Update plugins
-	for(auto& pluginUpdateFunc : mPluginUpdateFunctions)
-		pluginUpdateFunc.second();
+	for(const auto& pair : mLoadedPlugins)
+	{
+		if(pair.second.UpdateCallback != nullptr)
+			pair.second.UpdateCallback();
+	}
 
 	PostUpdate();
 
@@ -421,54 +426,71 @@ void CoreApplication::EndCoreProfiling()
 #endif
 }
 
-void* CoreApplication::LoadPlugin(const String& pluginName, DynamicLibrary** library, void* passThrough)
+void* CoreApplication::LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary, void* passThrough)
 {
-	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginName);
-	if(library != nullptr)
-		*library = loadedLibrary;
+	B3D_ASSERT(mLoadedPlugins.find(pluginName) == mLoadedPlugins.end());
 
-	void* retVal = nullptr;
+	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginName);
+	if(outLibrary != nullptr)
+		*outLibrary = loadedLibrary;
+
+	void* returnValue = nullptr;
 	if(loadedLibrary != nullptr)
 	{
 		if(passThrough == nullptr)
 		{
-			typedef void* (*LoadPluginFunc)();
+			typedef void* (*LoadPluginFunctionPointer)();
 
-			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->GetSymbol("LoadPlugin");
+			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
 
-			if(loadPluginFunc != nullptr)
-				retVal = loadPluginFunc();
+			if(loadFunction != nullptr)
+				returnValue = loadFunction();
 		}
 		else
 		{
-			typedef void* (*LoadPluginFunc)(void*);
+			typedef void* (*LoadPluginFunctionPointer)(void*);
 
-			LoadPluginFunc loadPluginFunc = (LoadPluginFunc)loadedLibrary->GetSymbol("LoadPlugin");
+			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
 
-			if(loadPluginFunc != nullptr)
-				retVal = loadPluginFunc(passThrough);
+			if(loadFunction != nullptr)
+				returnValue = loadFunction(passThrough);
 		}
 
-		UpdatePluginFunc loadPluginFunc = (UpdatePluginFunc)loadedLibrary->GetSymbol("UpdatePlugin");
+		LoadedPlugin loadedPlugin;
+		loadedPlugin.Library = loadedLibrary;
+		loadedPlugin.UpdateCallback = (UpdatePluginFunctionPointer)loadedLibrary->GetSymbol("UpdatePlugin");
+		loadedPlugin.UnloadCallback = (UnloadPluginFunctionPointer)loadedLibrary->GetSymbol("UnloadPlugin");
 
-		if(loadPluginFunc != nullptr)
-			mPluginUpdateFunctions[loadedLibrary] = loadPluginFunc;
+		mLoadedPlugins[pluginName] = loadedPlugin;
 	}
 
-	return retVal;
+	return returnValue;
 }
 
-void CoreApplication::UnloadPlugin(DynamicLibrary* library)
+void CoreApplication::UnloadPlugin(const String& pluginName)
 {
-	typedef void (*UnloadPluginFunc)();
+	auto found = mLoadedPlugins.find(pluginName);
+	if(found == mLoadedPlugins.end())
+		return;
 
-	UnloadPluginFunc unloadPluginFunc = (UnloadPluginFunc)library->GetSymbol("UnloadPlugin");
+	if(found->second.UnloadCallback != nullptr)
+		found->second.UnloadCallback();
 
-	if(unloadPluginFunc != nullptr)
-		unloadPluginFunc();
+	GetDynamicLibraryManager().Unload(found->second.Library);
+	mLoadedPlugins.erase(found);
+}
 
-	mPluginUpdateFunctions.erase(library);
-	GetDynamicLibraryManager().Unload(library);
+void CoreApplication::UnloadAllPlugins()
+{
+	for(auto& entryPair : mLoadedPlugins)
+	{
+		if(entryPair.second.UnloadCallback != nullptr)
+			entryPair.second.UnloadCallback();
+
+		GetDynamicLibraryManager().Unload(entryPair.second.Library);
+	}
+
+	mLoadedPlugins.clear();
 }
 
 SPtr<IShaderIncludeHandler> CoreApplication::GetShaderIncludeHandler() const

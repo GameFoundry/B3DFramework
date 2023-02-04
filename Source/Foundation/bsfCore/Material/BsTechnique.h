@@ -14,6 +14,16 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Flags that signal which part of ShaderVariation changed. */
+	enum class ShaderVariationDirtyFlag
+	{
+		Parent = 1 << 0,
+		Passes = 1 << 1
+	};
+
+	using ShaderVariationDirtyFlags = Flags<ShaderVariationDirtyFlag, u32>;
+	B3D_FLAGS_OPERATORS(ShaderVariationDirtyFlags)
+
 	/** Data that may be passed to Technique on creation to initialize it with precompiled set of passes (rather than requiring on-demand compilation). */
 	template<bool Core>
 	struct TPrecompiledVariationData
@@ -44,6 +54,12 @@ namespace bs
 		const ShaderVariationParameters& GetVariationParameters() const { return mVariationParameters; }
 
 	protected:
+		/** Marks the contents as dirty, causing it to sync with the render thread object. */
+		virtual void MarkCoreDirty(ShaderVariationDirtyFlags flag) {}
+
+		/** @copydoc CoreObject::SyncToCore */
+		virtual void SyncToCore() {};
+
 		String mLanguage;
 		ShaderVariationParameters mVariationParameters;
 	};
@@ -68,7 +84,10 @@ namespace bs
 		u32 GetPassCount() const;
 
 		/** Compiles the variation in case it was not initialized with precompiled data. */
-		void Compile();
+		TAsyncOp<bool> Compile();
+
+		/** Returns true if the technique has been fully compiled. */
+		bool IsCompiled() const { return mIsCompiled; }
 
 		/**
 		 * @name Internal
@@ -79,7 +98,7 @@ namespace bs
 		void SetCompiledPassData(SmallVector<SPtr<PassType>, 1> compiledPasses);
 
 		/** Sets the shader that owns this variation. */
-		void SetOwner(const WeakSPtr<ShaderType>& owner) { mOwner = owner; }
+		void SetOwner(const WeakSPtr<ShaderType>& owner);
 
 		/***/
 
@@ -131,6 +150,9 @@ namespace bs
 	protected:
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
+		void MarkCoreDirty(ShaderVariationDirtyFlags flag) override;
+		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		void SyncToCore() override;
 
 		Technique& GetSelf() override { return *this; }
 
@@ -169,6 +191,7 @@ namespace bs
 			static SPtr<Technique> Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData = {});
 
 		protected:
+			void SyncToCore(const CoreSyncData& data) override;
 			Technique& GetSelf() override { return *this; }
 		};
 

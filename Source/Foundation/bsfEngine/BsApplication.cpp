@@ -98,6 +98,8 @@ void Application::PreUpdate()
 
 	if(mProfilerOverlay)
 		mProfilerOverlay->Update();
+
+	RendererMaterialManager::Instance().Update();
 }
 
 void Application::PostUpdate()

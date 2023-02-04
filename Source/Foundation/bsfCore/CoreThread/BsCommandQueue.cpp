@@ -11,7 +11,6 @@ using namespace bs;
 CommandQueueBase::CommandQueueBase(ThreadId threadId)
 	: mMyThreadId(threadId), mMaxDebugIdx(0)
 {
-	mAsyncOpSyncData = B3DMakeShared<AsyncOpSyncData>();
 	mCommands = B3DNew<bs::Queue<QueuedCommand>>();
 
 	{
@@ -46,9 +45,9 @@ AsyncOp CommandQueueBase::QueueReturn(std::function<void(AsyncOp&)> commandCallb
 #if B3D_DEBUG
 	BreakIfNeeded(mCommandQueueIdx, mMaxDebugIdx);
 
-	QueuedCommand newCommand(commandCallback, mMaxDebugIdx++, mAsyncOpSyncData, _notifyWhenComplete, _callbackId);
+	QueuedCommand newCommand(commandCallback, mMaxDebugIdx++, _notifyWhenComplete, _callbackId);
 #else
-	QueuedCommand newCommand(commandCallback, mAsyncOpSyncData, _notifyWhenComplete, _callbackId);
+	QueuedCommand newCommand(commandCallback, _notifyWhenComplete, _callbackId);
 #endif
 
 	mCommands->push(newCommand);

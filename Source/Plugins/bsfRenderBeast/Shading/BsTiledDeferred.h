@@ -45,7 +45,8 @@ namespace bs
 			}
 
 		public:
-			TiledDeferredLightingMat();
+			TiledDeferredLightingMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
 			void Execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
@@ -79,7 +80,8 @@ namespace bs
 			RMAT_DEF("TextureArrayToMSAATexture.bsl");
 
 		public:
-			TextureArrayToMSAATexture();
+			TextureArrayToMSAATexture() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
 			void Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
@@ -118,7 +120,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("ClearLoadStore.bsl");
 
 		public:
-			ClearLoadStoreMat();
+			ClearLoadStoreMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
@@ -190,7 +193,8 @@ namespace bs
 				SPtr<Texture> MsaaCoverage;
 			};
 
-			TiledDeferredImageBasedLightingMat();
+			TiledDeferredImageBasedLightingMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
 			void Execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs);

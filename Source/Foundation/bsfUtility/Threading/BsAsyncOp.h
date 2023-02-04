@@ -16,18 +16,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Thread synchronization primitives used by AsyncOps and their callers. */
-	class B3D_UTILITY_EXPORT AsyncOpSyncData
-	{
-	public:
-		Mutex MMutex;
-		Signal MCondition;
-	};
-
-	/**
-	 * Flag used for creating async operations signaling that we want to create an empty AsyncOp with no internal
-	 * memory storage.
-	 */
+	/** Flag used for creating async operations signaling that we want to create an empty AsyncOp with no internal memory storage. */
 	struct B3D_UTILITY_EXPORT AsyncOpEmpty
 	{};
 
@@ -41,13 +30,15 @@ namespace bs
 	/** Common base for all TAsyncOp specializations. */
 	class B3D_UTILITY_EXPORT AsyncOpBase
 	{
-	private:
+	protected:
 		struct AsyncOpData
 		{
-			AsyncOpData() = default;
-
-			Any MReturnValue;
-			volatile std::atomic<bool> MIsCompleted{ false };
+			Any ReturnValue;
+			Function<void()> FlushCallback;
+			SmallVector<Function<void(const AsyncOpBase&)>, 1> CompletionCallbacks;
+			bool IsCompleted = false;
+			Mutex Mutex;
+			Signal Signal;
 		};
 
 	public:
@@ -58,18 +49,59 @@ namespace bs
 		AsyncOpBase(AsyncOpEmpty empty)
 		{}
 
-		AsyncOpBase(const SPtr<AsyncOpSyncData>& syncData)
-			: mData(B3DMakeShared<AsyncOpData>()), mSyncData(syncData)
-		{}
+		AsyncOpBase(const AsyncOpBase& other) = default;
+		AsyncOpBase(AsyncOpBase&& other)
+			: mData(std::exchange(other.mData, nullptr))
+		{ }
 
-		AsyncOpBase(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)
-			: mSyncData(syncData)
-		{}
+		AsyncOpBase& operator=(const AsyncOpBase& other) = default;
+		AsyncOpBase& operator=(AsyncOpBase&& other)
+		{
+			if(&other != this)
+			{
+				mData = std::exchange(other.mData, nullptr);
+			}
+
+			return *this;
+		}
 
 		/** Returns true if the async operation has completed. */
 		bool HasCompleted() const
 		{
-			return mData->MIsCompleted.load(std::memory_order_acquire);
+			if(mData == nullptr)
+				return false;
+
+			Lock lock(mData->Mutex);
+			return mData->IsCompleted;
+		}
+
+		/** Assigns a callback that will trigger during a BlockUntilComplete() call. Allows the operation to perform additional work before waiting on completion. */
+		void SetFlushCallback(Function<void()> callback)
+		{
+			if(mData == nullptr)
+				mData = B3DMakeShared<AsyncOpData>();
+
+			Lock lock(mData->Mutex);
+			mData->FlushCallback = std::move(callback);
+		}
+
+		/** Assigns a callback that triggers when the async operation completes. Triggers immediately if already completed. */
+		void DoOnComplete(Function<void(const AsyncOpBase&)> callback)
+		{
+			if(mData == nullptr)
+				mData = B3DMakeShared<AsyncOpData>();
+
+			{
+				Lock lock(mData->Mutex);
+
+				if(!mData->IsCompleted)
+				{
+					mData->CompletionCallbacks.Add(std::move(callback));
+					return;
+				}
+			}
+
+			callback(*this);
 		}
 
 		/**
@@ -81,15 +113,37 @@ namespace bs
 		 */
 		void BlockUntilComplete() const
 		{
-			if(mSyncData == nullptr)
+			// If not initialized, nothing to wait on
+			if(mData == nullptr)
 			{
-				B3D_LOG(Error, Generic, "No sync data is available. Cannot block until AsyncOp is complete.");
+				B3D_LOG(Error, Generic, "Unable to block until complete. Async operation was never initialized with data.");
 				return;
 			}
 
-			Lock lock(mSyncData->MMutex);
-			while(!HasCompleted())
-				mSyncData->MCondition.wait(lock);
+			Function<void()> flushCallback;
+			{
+				Lock lock(mData->Mutex);
+				flushCallback = mData->FlushCallback;
+			}
+
+			if(flushCallback != nullptr)
+			{
+				if(mData->IsCompleted)
+					return;
+
+				// No need to flush if already completed
+				{
+					Lock lock(mData->Mutex);
+					if(mData->IsCompleted)
+						return;
+				}
+
+				flushCallback();
+			}
+
+			Lock lock(mData->Mutex);
+			while(!mData->IsCompleted)
+				mData->Signal.wait(lock);
 		}
 
 		/**
@@ -98,17 +152,20 @@ namespace bs
 		 */
 		Any GetGenericReturnValue() const
 		{
+			if(mData == nullptr)
+				return Any();
+
+			Lock lock(mData->Mutex);
 #if B3D_DEBUG
-			if(!HasCompleted())
+			if(!mData->IsCompleted)
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
 
-			return mData->MReturnValue;
+			return mData->ReturnValue;
 		}
 
 	protected:
 		SPtr<AsyncOpData> mData;
-		SPtr<AsyncOpSyncData> mSyncData;
 	};
 
 	/**
@@ -130,23 +187,30 @@ namespace bs
 			: AsyncOpBase(empty)
 		{}
 
-		TAsyncOp(const SPtr<AsyncOpSyncData>& syncData)
-			: AsyncOpBase(syncData)
-		{}
+		TAsyncOp(const TAsyncOp& other) = default;
+		TAsyncOp(TAsyncOp&& other)
+			: AsyncOpBase(std::move(other))
+		{ }
 
-		TAsyncOp(AsyncOpEmpty empty, const SPtr<AsyncOpSyncData>& syncData)
-			: AsyncOpBase(empty, syncData)
-		{}
+		TAsyncOp& operator=(const TAsyncOp& other) = default;
+		TAsyncOp& operator=(TAsyncOp&& other)
+		{
+			return static_cast<TAsyncOp&>(AsyncOpBase::operator=(std::move(other)));
+		}
 
 		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
 		ReturnType GetReturnValue() const
 		{
+			B3D_ASSERT(mData != nullptr);
+
+			Lock lock(mData->Mutex);
+
 #if B3D_DEBUG
-			if(!HasCompleted())
+			if(!mData->IsCompleted)
 				B3D_LOG(Error, Generic, "Trying to get AsyncOp return value but the operation hasn't completed.");
 #endif
 
-			return AnyCast<ReturnType>(mData->MReturnValue);
+			return AnyCast<ReturnType>(mData->ReturnValue);
 		}
 
 	public: // ***** INTERNAL ******
@@ -157,17 +221,52 @@ namespace bs
 		/** Mark the async operation as completed, without setting a return value. */
 		void CompleteOperation()
 		{
-			mData->MIsCompleted.store(true, std::memory_order_release);
+			if(mData == nullptr)
+				mData = B3DMakeShared<AsyncOpData>();
 
-			if(mSyncData != nullptr)
-				mSyncData->MCondition.notify_all();
+			SmallVector<Function<void(const AsyncOpBase&)>, 1> callbacks;
+			{
+				Lock lock(mData->Mutex);
+
+				mData->IsCompleted = true;
+				mData->Signal.notify_all();
+
+				std::swap(callbacks, mData->CompletionCallbacks);
+			}
+
+			for(auto& callback : callbacks)
+			{
+				if(callback == nullptr)
+					continue;
+
+				callback(*this);
+			}
 		}
 
 		/** Mark the async operation as completed. */
 		void CompleteOperation(const ReturnType& returnValue)
 		{
-			mData->MReturnValue = returnValue;
-			CompleteOperation();
+			if(mData == nullptr)
+				mData = B3DMakeShared<AsyncOpData>();
+
+			SmallVector<Function<void(const AsyncOpBase&)>, 1> callbacks;
+			{
+				Lock lock(mData->Mutex);
+
+				mData->ReturnValue = returnValue;
+				mData->IsCompleted = true;
+				mData->Signal.notify_all();
+
+				std::swap(callbacks, mData->CompletionCallbacks);
+			}
+
+			for(auto& callback : callbacks)
+			{
+				if(callback == nullptr)
+					continue;
+
+				callback(*this);
+			}
 		}
 
 		/** @} */

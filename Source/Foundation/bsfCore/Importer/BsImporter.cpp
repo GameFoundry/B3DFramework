@@ -18,8 +18,6 @@ using namespace bs;
 
 Importer::Importer()
 {
-	mAsyncOpSyncData = B3DMakeShared<AsyncOpSyncData>();
-
 	RegisterAssetImporterInternal(B3DNew<ShaderIncludeImporter>());
 }
 
@@ -68,7 +66,7 @@ HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> 
 
 TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
 {
-	TAsyncOp<HResource> output(mAsyncOpSyncData);
+	TAsyncOp<HResource> output;
 
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)
@@ -97,7 +95,7 @@ SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const Im
 
 TAsyncOp<SPtr<MultiResource>> Importer::ImportAllAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions)
 {
-	TAsyncOp<SPtr<MultiResource>> output(mAsyncOpSyncData);
+	TAsyncOp<SPtr<MultiResource>> output;
 
 	SpecificImporter* importer = PrepareForImport(inputFilePath, importOptions);
 	if(!importer)

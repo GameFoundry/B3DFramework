@@ -206,7 +206,7 @@ namespace bs
 			}
 
 		public:
-			DebugDrawMat();
+			DebugDrawMat() = default;
 
 			/** Executes the material using the provided parameters. */
 			void Execute(const SPtr<GpuParamBlockBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);

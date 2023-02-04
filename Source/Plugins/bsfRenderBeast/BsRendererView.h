@@ -72,7 +72,8 @@ namespace bs
 			}
 
 		public:
-			SkyboxMat();
+			SkyboxMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor);

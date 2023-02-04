@@ -43,7 +43,8 @@ namespace bs
 			}
 
 		public:
-			DeferredDirectionalLightMat();
+			DeferredDirectionalLightMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight);
@@ -81,7 +82,8 @@ namespace bs
 			}
 
 		public:
-			DeferredPointLightMat();
+			DeferredPointLightMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight);
@@ -135,7 +137,8 @@ namespace bs
 			}
 
 		public:
-			DeferredIBLSetupMat();
+			DeferredIBLSetupMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuParamBlockBuffer>& reflProbeParams);
@@ -178,7 +181,8 @@ namespace bs
 			}
 
 		public:
-			DeferredIBLProbeMat();
+			DeferredIBLProbeMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuParamBlockBuffer>& reflProbeParams);
@@ -222,7 +226,8 @@ namespace bs
 			}
 
 		public:
-			DeferredIBLSkyMat();
+			DeferredIBLSkyMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuParamBlockBuffer>& reflProbeParams);
@@ -264,7 +269,8 @@ namespace bs
 			}
 
 		public:
-			DeferredIBLFinalizeMat();
+			DeferredIBLFinalizeMat() = default;
+			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
 			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuParamBlockBuffer>& reflProbeParams);

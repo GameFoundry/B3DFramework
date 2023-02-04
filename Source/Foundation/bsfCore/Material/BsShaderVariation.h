@@ -183,6 +183,8 @@ namespace bs
 
 		bool operator==(const ShaderVariationParameters& rhs) const;
 
+		bool operator!=(const ShaderVariationParameters& rhs) const { return !operator==(rhs); }
+
 		/** Empty variation with no parameters. */
 		static const ShaderVariationParameters kEmpty;
 
@@ -244,6 +246,16 @@ namespace bs
 
 		/** Returns a list of all variations. */
 		const SmallVector<ShaderVariationParameters, 4>& GetVariations() const { return mVariations; }
+
+		/** Clears all the shader variations from the set. */
+		void Clear()
+		{
+			mVariations.clear();
+			mNextIdx = 0;
+		}
+
+		/** Returns true if the object contains zero variations. */
+		bool IsEmpty() const { return mVariations.Empty(); }
 
 	private:
 		SmallVector<ShaderVariationParameters, 4> mVariations;

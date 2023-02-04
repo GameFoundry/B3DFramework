@@ -377,10 +377,10 @@ RendererUtility& GetRendererUtility()
 	return RendererUtility::Instance();
 }
 
-BlitMat::BlitMat()
+void BlitMat::Initialize()
 {
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
-	mIsFiltered = mVariation.GetInt("MODE") == 1;
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
+	mIsFiltered = mVariationParameters.GetInt("MODE") == 1;
 }
 
 void BlitMat::Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
@@ -438,10 +438,10 @@ BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered)
 
 ClearParamDef gClearParamDef;
 
-ClearMat::ClearMat()
+void ClearMat::Initialize()
 {
 	mParamBuffer = gClearParamDef.CreateBuffer();
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void ClearMat::Execute(u32 value)
@@ -456,12 +456,12 @@ void ClearMat::Execute(u32 value)
 
 CompositeParamDef gCompositeParamDef;
 
-CompositeMat::CompositeMat()
+void CompositeMat::Initialize()
 {
 	mParamBuffer = gCompositeParamDef.CreateBuffer();
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
 void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
@@ -483,12 +483,12 @@ void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>
 
 BicubicUpsampleParamDef gBicubicUpsampleParamDef;
 
-BicubicUpsampleMat::BicubicUpsampleMat()
+void BicubicUpsampleMat::Initialize()
 {
 	mParamBuffer = gBicubicUpsampleParamDef.CreateBuffer();
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
 void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)

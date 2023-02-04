@@ -69,7 +69,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("LightGridLLCreation.bsl");
 
 		public:
-			LightGridLLCreationMat();
+			LightGridLLCreationMat() = default;
+			void Initialize() override;
 
 			/** Binds parameter buffers and prepares any internal buffers. Must be called before execute(). */
 			void SetParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams, const SPtr<GpuBuffer>& lightsBuffer, const SPtr<GpuBuffer>& probesBuffer);
@@ -109,7 +110,8 @@ namespace bs
 			RMAT_DEF_CUSTOMIZED("LightGridLLReduction.bsl");
 
 		public:
-			LightGridLLReductionMat();
+			LightGridLLReductionMat() = default;
+			void Initialize() override;
 
 			/** Binds parameter buffers and prepares any internal buffers. Must be called before execute(). */
 			void SetParams(const Vector3I& gridSize, const SPtr<GpuParamBlockBuffer>& gridParams, const SPtr<GpuBuffer>& lightLLHeads, const SPtr<GpuBuffer>& lightLL, const SPtr<GpuBuffer>& probeLLHeads, const SPtr<GpuBuffer>& probeLL);

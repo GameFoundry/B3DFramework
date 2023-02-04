@@ -139,6 +139,14 @@ namespace bs
 		 */
 		HShader GetShader(const Path& path) const;
 
+		/**
+		 * Loads the shader with the specified name from the cache if available, or compiles the shader from source if not available.
+		 *
+		 * @param	path		Absolute path to the shader source file.
+		 * @return				Valid shader if successful, or null otherwise.
+		 */
+		HShader GetOrCompileShader(const Path& path) const;
+
 		/** Returns the default font used by the engine. */
 		HFont GetDefaultFont() const { return mFont; }
 
@@ -147,6 +155,9 @@ namespace bs
 
 		/**	Returns absolute path to the builtin shader folder where raw shader files are located. */
 		static Path GetRawShaderFolder();
+
+		/**	Returns absolute path to the builtin shader folder where raw shader include files are located. */
+		static Path GetRawShaderIncludeFolder();
 
 		/**	Returns absolute path to the builtin shader include folder. */
 		static Path GetShaderIncludeFolder();
@@ -157,6 +168,9 @@ namespace bs
 #if B3D_IS_ENGINE || defined BS_IS_ASSET_TOOL
 		/**	Returns absolute path to the editor builtin shader include folder. */
 		static Path GetEditorShaderIncludeFolder();
+
+		/**	Returns absolute path to the editor builtin raw shader include folder. */
+		static Path GetEditorRawShaderIncludeFolder();
 
 #endif
 
@@ -231,6 +245,7 @@ namespace bs
 		HShader mShaderDecal;
 
 		SPtr<ResourceManifest> mResourceManifest;
+		mutable UnorderedMap<Path, HShader> mCompiledShaders;
 
 		Path mBuiltinRawDataFolder;
 		Path mBuiltinDataFolder;

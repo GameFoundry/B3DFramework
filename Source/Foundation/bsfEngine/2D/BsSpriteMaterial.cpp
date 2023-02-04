@@ -41,6 +41,21 @@ void SpriteMaterial::Initialize()
 	const bool materialStored = mMaterialStored.load(std::memory_order_acquire);
 	B3D_ASSERT(materialStored == true);
 
+	auto fnPrepareTechnique = [this](const u32 techniqueIndex)
+	{
+		const SPtr<ct::Technique> technique = mMaterial->GetTechnique(techniqueIndex);
+		B3D_ASSERT(technique != nullptr);
+
+		if(!technique->IsCompiled())
+		{
+			const TAsyncOp<bool> operation = technique->Compile();
+			operation.BlockUntilComplete();
+		}
+	};
+
+	fnPrepareTechnique(mTechnique);
+	fnPrepareTechnique(mAlphaTechnique);
+
 	const SPtr<ct::Pass>& pass = mMaterial->GetPass(0, mTechnique);
 
 	if(pass)

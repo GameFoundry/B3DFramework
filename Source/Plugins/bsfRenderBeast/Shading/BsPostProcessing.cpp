@@ -33,14 +33,14 @@ void SetSamplerState(const SPtr<GpuParams>& params, GpuProgramType gpType, const
 
 DownsampleParamDef gDownsampleParamDef;
 
-DownsampleMat::DownsampleMat()
+void DownsampleMat::Initialize()
 {
 	mParamBuffer = gDownsampleParamDef.CreateBuffer();
 
-	if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
-		mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	if(mGPUParameters->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
+		mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void DownsampleMat::Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
@@ -52,7 +52,7 @@ void DownsampleMat::Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>
 
 	const TextureProperties& rtProps = input->GetProperties();
 
-	bool MSAA = mVariation.GetInt("MSAA") > 0;
+	bool MSAA = mVariationParameters.GetInt("MSAA") > 0;
 	if(MSAA)
 	{
 		gDownsampleParamDef.gOffsets.Set(mParamBuffer, Vector2(-1.0f, -1.0f));
@@ -113,13 +113,13 @@ DownsampleMat* DownsampleMat::GetVariation(u32 quality, bool msaa)
 
 EyeAdaptHistogramParamDef gEyeAdaptHistogramParamDef;
 
-EyeAdaptHistogramMat::EyeAdaptHistogramMat()
+void EyeAdaptHistogramMat::Initialize()
 {
 	mParamBuffer = gEyeAdaptHistogramParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gSceneColorTex", mSceneColor);
-	mParams->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gSceneColorTex", mSceneColor);
+	mGPUParameters->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 }
 
 void EyeAdaptHistogramMat::InitDefinesInternal(ShaderDefines& defines)
@@ -188,13 +188,13 @@ Vector2 EyeAdaptHistogramMat::GetHistogramScaleOffset(const AutoExposureSettings
 
 EyeAdaptHistogramReduceParamDef gEyeAdaptHistogramReduceParamDef;
 
-EyeAdaptHistogramReduceMat::EyeAdaptHistogramReduceMat()
+void EyeAdaptHistogramReduceMat::Initialize()
 {
 	mParamBuffer = gEyeAdaptHistogramReduceParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mHistogramTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mHistogramTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
 }
 
 void EyeAdaptHistogramReduceMat::Execute(const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output)
@@ -235,12 +235,12 @@ POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::GetOutputDesc()
 
 EyeAdaptationParamDef gEyeAdaptationParamDef;
 
-EyeAdaptationMat::EyeAdaptationMat()
+void EyeAdaptationMat::Initialize()
 {
 	mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("EyeAdaptationParams", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
+	mGPUParameters->SetParameterBlockBuffer("EyeAdaptationParams", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHistogramTex", mReducedHistogramTex);
 }
 
 void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
@@ -303,12 +303,12 @@ void EyeAdaptationMat::PopulateParams(const SPtr<GpuParamBlockBuffer>& paramBuff
 	gEyeAdaptationParamDef.gEyeAdaptationParams.Set(paramBuffer, eyeAdaptationParams[2], 2);
 }
 
-EyeAdaptationBasicSetupMat::EyeAdaptationBasicSetupMat()
+void EyeAdaptationBasicSetupMat::Initialize()
 {
 	mParamBuffer = gEyeAdaptationParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("EyeAdaptationParams", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->SetParameterBlockBuffer("EyeAdaptationParams", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 
 	SAMPLER_STATE_DESC desc;
 	desc.MinFilter = FO_POINT;
@@ -316,7 +316,7 @@ EyeAdaptationBasicSetupMat::EyeAdaptationBasicSetupMat()
 	desc.MipFilter = FO_POINT;
 
 	SPtr<SamplerState> samplerState = SamplerState::Create(desc);
-	SetSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
+	SetSamplerState(mGPUParameters, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
 }
 
 void EyeAdaptationBasicSetupMat::Execute(const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
@@ -346,15 +346,15 @@ POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<
 
 EyeAdaptationBasicParamsMatDef gEyeAdaptationBasicParamsMatDef;
 
-EyeAdaptationBasicMat::EyeAdaptationBasicMat()
+void EyeAdaptationBasicMat::Initialize()
 {
 	mEyeAdaptationParamsBuffer = gEyeAdaptationParamDef.CreateBuffer();
 	mParamsBuffer = gEyeAdaptationBasicParamsMatDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("EyeAdaptationParams", mEyeAdaptationParamsBuffer);
-	mParams->SetParameterBlockBuffer("Input", mParamsBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gCurFrameTex", mCurFrameTexParam);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gPrevFrameTex", mPrevFrameTexParam);
+	mGPUParameters->SetParameterBlockBuffer("EyeAdaptationParams", mEyeAdaptationParamsBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamsBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gCurFrameTex", mCurFrameTexParam);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gPrevFrameTex", mPrevFrameTexParam);
 }
 
 void EyeAdaptationBasicMat::Execute(const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
@@ -394,13 +394,13 @@ POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::GetOutputDesc()
 CreateTonemapLUTParamDef gCreateTonemapLUTParamDef;
 WhiteBalanceParamDef gWhiteBalanceParamDef;
 
-CreateTonemap2DLUTMat::CreateTonemap2DLUTMat()
+void CreateTonemap2DLUTMat::Initialize()
 {
 	mParamBuffer = gCreateTonemapLUTParamDef.CreateBuffer();
 	mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->SetParameterBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
 }
 
 void CreateTonemap2DLUTMat::InitDefinesInternal(ShaderDefines& defines)
@@ -466,15 +466,15 @@ POOLED_RENDER_TEXTURE_DESC CreateTonemap2DLUTMat::GetOutputDesc() const
 	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, kLutSize * kLutSize, kLutSize, TU_RENDERTARGET);
 }
 
-CreateTonemap3DLUTMat::CreateTonemap3DLUTMat()
+void CreateTonemap3DLUTMat::Initialize()
 {
 	mParamBuffer = gCreateTonemapLUTParamDef.CreateBuffer();
 	mWhiteBalanceParamBuffer = gWhiteBalanceParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->SetParameterBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("WhiteBalanceInput", mWhiteBalanceParamBuffer);
 
-	mParams->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
+	mGPUParameters->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutputTex", mOutputTex);
 }
 
 void CreateTonemap3DLUTMat::InitDefinesInternal(ShaderDefines& defines)
@@ -505,17 +505,17 @@ POOLED_RENDER_TEXTURE_DESC CreateTonemap3DLUTMat::GetOutputDesc() const
 
 TonemappingParamDef gTonemappingParamDef;
 
-TonemappingMat::TonemappingMat()
+void TonemappingMat::Initialize()
 {
 	mParamBuffer = gTonemappingParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gBloomTex", mBloomTex);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gBloomTex", mBloomTex);
 
-	if(!mVariation.GetBool("GAMMA_ONLY"))
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
+	if(!mVariationParameters.GetBool("GAMMA_ONLY"))
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gColorLUT", mColorLUT);
 }
 
 void TonemappingMat::InitDefinesInternal(ShaderDefines& defines)
@@ -629,13 +629,13 @@ TonemappingMat* TonemappingMat::GetVariation(bool volumeLUT, bool gammaOnly, boo
 
 BloomClipParamDef gBloomClipParamDef;
 
-BloomClipMat::BloomClipMat()
+void BloomClipMat::Initialize()
 {
 	mParamBuffer = gBloomClipParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_VERTEX_PROGRAM, "gEyeAdaptationTex", mEyeAdaptationTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 }
 
 void BloomClipMat::Execute(const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings, const SPtr<RenderTarget>& output)
@@ -668,13 +668,13 @@ BloomClipMat* BloomClipMat::GetVariation(bool autoExposure)
 
 ScreenSpaceLensFlareParamDef gScreenSpaceLensFlareParamDef;
 
-ScreenSpaceLensFlareMat::ScreenSpaceLensFlareMat()
+void ScreenSpaceLensFlareMat::Initialize()
 {
 	mParamBuffer = gScreenSpaceLensFlareParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gGradientTex", mGradientTex);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gGradientTex", mGradientTex);
 }
 
 void ScreenSpaceLensFlareMat::Execute(const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, const SPtr<RenderTarget>& output)
@@ -734,13 +734,13 @@ ChromaticAberrationParamDef gChromaticAberrationParamDef;
 
 constexpr int ChromaticAberrationMat::kMaxSamples;
 
-ChromaticAberrationMat::ChromaticAberrationMat()
+void ChromaticAberrationMat::Initialize()
 {
 	mParamBuffer = gChromaticAberrationParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFringeTex", mFringeTex);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFringeTex", mFringeTex);
 }
 
 void ChromaticAberrationMat::Execute(const SPtr<Texture>& input, const ChromaticAberrationSettings& settings, const SPtr<RenderTarget>& output)
@@ -786,12 +786,12 @@ void ChromaticAberrationMat::InitDefinesInternal(ShaderDefines& defines)
 
 FilmGrainParamDef gFilmGrainParamDef;
 
-FilmGrainMat::FilmGrainMat()
+void FilmGrainMat::Initialize()
 {
 	mParamBuffer = gFilmGrainParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTex);
 }
 
 void FilmGrainMat::Execute(const SPtr<Texture>& input, float time, const FilmGrainSettings& settings, const SPtr<RenderTarget>& output)
@@ -814,16 +814,16 @@ void FilmGrainMat::Execute(const SPtr<Texture>& input, float time, const FilmGra
 
 GaussianBlurParamDef gGaussianBlurParamDef;
 
-GaussianBlurMat::GaussianBlurMat()
+void GaussianBlurMat::Initialize()
 {
 	mParamBuffer = gGaussianBlurParamDef.CreateBuffer();
-	mIsAdditive = mVariation.GetBool("ADDITIVE");
+	mIsAdditive = mVariationParameters.GetBool("ADDITIVE");
 
-	mParams->SetParameterBlockBuffer("GaussianBlurParams", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetParameterBlockBuffer("GaussianBlurParams", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 
 	if(mIsAdditive)
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gAdditiveTex", mAdditiveTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gAdditiveTex", mAdditiveTexture);
 }
 
 void GaussianBlurMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1019,13 +1019,13 @@ GaussianBlurMat* GaussianBlurMat::GetVariation(bool additive)
 
 GaussianDOFParamDef gGaussianDOFParamDef;
 
-GaussianDOFSeparateMat::GaussianDOFSeparateMat()
+void GaussianDOFSeparateMat::Initialize()
 {
 	mParamBuffer = gGaussianDOFParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gColorTex", mColorTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gColorTex", mColorTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
 	SAMPLER_STATE_DESC desc;
 	desc.MinFilter = FO_POINT;
@@ -1036,7 +1036,7 @@ GaussianDOFSeparateMat::GaussianDOFSeparateMat()
 	desc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> samplerState = SamplerState::Create(desc);
-	SetSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gColorSamp", "gColorTex", samplerState);
+	SetSamplerState(mGPUParameters, GPT_FRAGMENT_PROGRAM, "gColorSamp", "gColorTex", samplerState);
 }
 
 void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
@@ -1051,8 +1051,8 @@ void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Text
 	POOLED_RENDER_TEXTURE_DESC outputTexDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(srcProps.Format, outputWidth, outputHeight, TU_RENDERTARGET);
 	mOutput0 = GetGpuResourcePool().Get(outputTexDesc);
 
-	bool near = mVariation.GetBool("NEAR");
-	bool far = mVariation.GetBool("FAR");
+	bool near = mVariationParameters.GetBool("NEAR");
+	bool far = mVariationParameters.GetBool("FAR");
 
 	SPtr<RenderTexture> rt;
 	if(near && far)
@@ -1080,7 +1080,7 @@ void GaussianDOFSeparateMat::Execute(const SPtr<Texture>& color, const SPtr<Text
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(rt);
@@ -1118,20 +1118,20 @@ GaussianDOFSeparateMat* GaussianDOFSeparateMat::GetVariation(bool near, bool far
 		return Get(GetVariation<false, true>());
 }
 
-GaussianDOFCombineMat::GaussianDOFCombineMat()
+void GaussianDOFCombineMat::Initialize()
 {
 	mParamBuffer = gGaussianDOFParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
-	if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gNearTex"))
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNearTex", mNearTexture);
+	if(mGPUParameters->HasTexture(GPT_FRAGMENT_PROGRAM, "gNearTex"))
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNearTex", mNearTexture);
 
-	if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gFarTex"))
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFarTex", mFarTexture);
+	if(mGPUParameters->HasTexture(GPT_FRAGMENT_PROGRAM, "gFarTex"))
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFarTex", mFarTexture);
 }
 
 void GaussianDOFCombineMat::Execute(const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, const DepthOfFieldSettings& settings)
@@ -1154,7 +1154,7 @@ void GaussianDOFCombineMat::Execute(const SPtr<Texture>& focused, const SPtr<Tex
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
@@ -1179,16 +1179,16 @@ GaussianDOFCombineMat* GaussianDOFCombineMat::GetVariation(bool near, bool far)
 DepthOfFieldCommonParamDef gDepthOfFieldCommonParamDef;
 BokehDOFPrepareParamDef gBokehDOFPrepareParamDef;
 
-BokehDOFPrepareMat::BokehDOFPrepareMat()
+void BokehDOFPrepareMat::Initialize()
 {
 	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
 	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
 }
 
 void BokehDOFPrepareMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
@@ -1206,14 +1206,14 @@ void BokehDOFPrepareMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
 
 	Bind();
 
-	bool MSAA = mVariation.GetInt("MSAA_COUNT") > 1;
+	bool MSAA = mVariationParameters.GetInt("MSAA_COUNT") > 1;
 	if(MSAA)
 		GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)srcProps.Width, (float)srcProps.Height));
 	else
@@ -1243,16 +1243,16 @@ BokehDOFParamDef gBokehDOFParamDef;
 constexpr u32 BokehDOFMat::kNearFarPadding;
 constexpr u32 BokehDOFMat::kQuadsPerTile;
 
-BokehDOFMat::BokehDOFMat()
+void BokehDOFMat::Initialize()
 {
 	mParamBuffer = gBokehDOFParamDef.CreateBuffer();
 	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
-	mParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gInputTex", mInputTextureVS);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTextureFS);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gBokehTex", mBokehTexture);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_VERTEX_PROGRAM, "gInputTex", mInputTextureVS);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTextureFS);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gBokehTex", mBokehTexture);
 
 	// Prepare vertex declaration for rendering tiles
 	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>();
@@ -1356,7 +1356,7 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 	mBokehTexture.Set(bokehTexture);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -1419,17 +1419,17 @@ BokehDOFMat* BokehDOFMat::GetVariation(bool depthOcclusion)
 
 BokehDOFCombineParamDef gBokehDOFCombineParamDef;
 
-BokehDOFCombineMat::BokehDOFCombineMat()
+void BokehDOFCombineMat::Initialize()
 {
 	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
 	mCommonParamBuffer = gDepthOfFieldCommonParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("DepthOfFieldParams", mCommonParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gUnfocusedTex", mUnfocusedTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gUnfocusedTex", mUnfocusedTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gFocusedTex", mFocusedTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
 }
 
 void BokehDOFCombineMat::Execute(const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
@@ -1455,7 +1455,7 @@ void BokehDOFCombineMat::Execute(const SPtr<Texture>& unfocused, const SPtr<Text
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
@@ -1480,14 +1480,14 @@ BokehDOFCombineMat* BokehDOFCombineMat::GetVariation(MSAAMode msaaMode)
 
 MotionBlurParamDef gMotionBlurParamDef;
 
-MotionBlurMat::MotionBlurMat()
+void MotionBlurMat::Initialize()
 {
 	mParamBuffer = gBokehDOFPrepareParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthTexture);
 
 	SAMPLER_STATE_DESC pointSampDesc;
 	pointSampDesc.MinFilter = FO_POINT;
@@ -1499,8 +1499,8 @@ MotionBlurMat::MotionBlurMat()
 
 	SPtr<SamplerState> pointSampState = SamplerState::Create(pointSampDesc);
 
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
 }
 
 void MotionBlurMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings, const SPtr<RenderTarget>& output)
@@ -1524,7 +1524,7 @@ void MotionBlurMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& dep
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
@@ -1535,17 +1535,17 @@ void MotionBlurMat::Execute(const SPtr<Texture>& input, const SPtr<Texture>& dep
 
 BuildHiZFParamDef gBuildHiZParamDef;
 
-BuildHiZMat::BuildHiZMat()
+void BuildHiZMat::Initialize()
 {
-	mNoTextureViews = mVariation.GetBool("NO_TEXTURE_VIEWS");
+	mNoTextureViews = mVariationParameters.GetBool("NO_TEXTURE_VIEWS");
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mInputTexture);
 
 	// If no texture view support, we must manually pick a valid mip level in the shader
 	if(mNoTextureViews)
 	{
 		mParamBuffer = gBuildHiZParamDef.CreateBuffer();
-		mParams->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
+		mGPUParameters->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 
 		SAMPLER_STATE_DESC inputSampDesc;
 		inputSampDesc.MinFilter = FO_POINT;
@@ -1553,7 +1553,7 @@ BuildHiZMat::BuildHiZMat()
 		inputSampDesc.MipFilter = FO_POINT;
 
 		SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
-		SetSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gDepthSamp", "gDepthTex", inputSampState);
+		SetSamplerState(mGPUParameters, GPT_FRAGMENT_PROGRAM, "gDepthSamp", "gDepthTex", inputSampState);
 	}
 }
 
@@ -1599,12 +1599,12 @@ BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
 
 FXAAParamDef gFXAAParamDef;
 
-FXAAMat::FXAAMat()
+void FXAAMat::Initialize()
 {
 	mParamBuffer = gFXAAParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void FXAAMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
@@ -1627,28 +1627,28 @@ void FXAAMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& des
 
 SSAOParamDef gSSAOParamDef;
 
-SSAOMat::SSAOMat()
+void SSAOMat::Initialize()
 {
-	bool isFinal = mVariation.GetBool("FINAL_AO");
-	bool mixWithUpsampled = mVariation.GetBool("MIX_WITH_UPSAMPLED");
+	bool isFinal = mVariationParameters.GetBool("FINAL_AO");
+	bool mixWithUpsampled = mVariationParameters.GetBool("MIX_WITH_UPSAMPLED");
 
 	mParamBuffer = gSSAOParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 
 	if(isFinal)
 	{
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
 	}
 
 	if(!isFinal || mixWithUpsampled)
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSetupAO", mSetupAOTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSetupAO", mSetupAOTexture);
 
 	if(mixWithUpsampled)
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDownsampledAO", mDownsampledAOTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDownsampledAO", mDownsampledAOTexture);
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gRandomTex", mRandomTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gRandomTex", mRandomTexture);
 
 	SAMPLER_STATE_DESC inputSampDesc;
 	inputSampDesc.MinFilter = FO_POINT;
@@ -1659,21 +1659,21 @@ SSAOMat::SSAOMat()
 	inputSampDesc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 	else
 	{
 		if(isFinal)
 		{
-			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
-			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gNormalsTex", inputSampState);
+			mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
+			mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gNormalsTex", inputSampState);
 		}
 
 		if(!isFinal || mixWithUpsampled)
-			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSetupAO", inputSampState);
+			mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSetupAO", inputSampState);
 
 		if(mixWithUpsampled)
-			mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDownsampledAO", inputSampState);
+			mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDownsampledAO", inputSampState);
 	}
 
 	SAMPLER_STATE_DESC randomSampDesc;
@@ -1685,7 +1685,7 @@ SSAOMat::SSAOMat()
 	randomSampDesc.AddressMode.W = TAM_WRAP;
 
 	SPtr<SamplerState> randomSampState = SamplerState::Create(randomSampDesc);
-	SetSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gRandomSamp", "gRandomTex", randomSampState);
+	SetSamplerState(mGPUParameters, GPT_FRAGMENT_PROGRAM, "gRandomSamp", "gRandomTex", randomSampState);
 }
 
 void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
@@ -1734,7 +1734,7 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 	gSSAOParamDef.gPower.Set(mParamBuffer, settings.Power);
 	gSSAOParamDef.gIntensity.Set(mParamBuffer, settings.Intensity);
 
-	bool upsample = mVariation.GetBool("MIX_WITH_UPSAMPLED");
+	bool upsample = mVariationParameters.GetBool("MIX_WITH_UPSAMPLED");
 	if(upsample)
 	{
 		const TextureProperties& props = textures.AoDownsampled->GetProperties();
@@ -1760,7 +1760,7 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 
 	mSetupAOTexture.Set(textures.AoSetup);
 
-	bool finalPass = mVariation.GetBool("FINAL_AO");
+	bool finalPass = mVariationParameters.GetBool("FINAL_AO");
 	if(finalPass)
 	{
 		mDepthTexture.Set(textures.SceneDepth);
@@ -1773,7 +1773,7 @@ void SSAOMat::Execute(const RendererView& view, const SSAOTextureInputs& texture
 	mRandomTexture.Set(textures.RandomRotations);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(destination);
@@ -1815,13 +1815,13 @@ SSAOMat* SSAOMat::GetVariation(bool upsample, bool finalPass, int quality)
 
 SSAODownsampleParamDef gSSAODownsampleParamDef;
 
-SSAODownsampleMat::SSAODownsampleMat()
+void SSAODownsampleMat::Initialize()
 {
 	mParamBuffer = gSSAODownsampleParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexture);
 
 	SAMPLER_STATE_DESC inputSampDesc;
 	inputSampDesc.MinFilter = FO_LINEAR;
@@ -1833,12 +1833,12 @@ SSAODownsampleMat::SSAODownsampleMat()
 
 	SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
 
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 	else
 	{
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gNormalsTex", inputSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gNormalsTex", inputSampState);
 	}
 }
 
@@ -1862,7 +1862,7 @@ void SSAODownsampleMat::Execute(const RendererView& view, const SPtr<Texture>& d
 	mNormalsTexture.Set(normals);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(destination);
@@ -1873,13 +1873,13 @@ void SSAODownsampleMat::Execute(const RendererView& view, const SPtr<Texture>& d
 
 SSAOBlurParamDef gSSAOBlurParamDef;
 
-SSAOBlurMat::SSAOBlurMat()
+void SSAOBlurMat::Initialize()
 {
 	mParamBuffer = gSSAOBlurParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mAOTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mAOTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexture);
 
 	SAMPLER_STATE_DESC inputSampDesc;
 	inputSampDesc.MinFilter = FO_POINT;
@@ -1890,12 +1890,12 @@ SSAOBlurMat::SSAOBlurMat()
 	inputSampDesc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> inputSampState = SamplerState::Create(inputSampDesc);
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputSamp", inputSampState);
 	else
 	{
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputTex", inputSampState);
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gInputTex", inputSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthTex", inputSampState);
 	}
 }
 
@@ -1911,7 +1911,7 @@ void SSAOBlurMat::Execute(const RendererView& view, const SPtr<Texture>& ao, con
 	pixelSize.Y = 1.0f / texProps.Height;
 
 	Vector2 pixelOffset(BsZero);
-	if(mVariation.GetBool("DIR_HORZ"))
+	if(mVariationParameters.GetBool("DIR_HORZ"))
 		pixelOffset.X = pixelSize.X;
 	else
 		pixelOffset.Y = pixelSize.Y;
@@ -1926,7 +1926,7 @@ void SSAOBlurMat::Execute(const RendererView& view, const SPtr<Texture>& ao, con
 	mDepthTexture.Set(depth);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(destination);
@@ -1945,11 +1945,11 @@ SSAOBlurMat* SSAOBlurMat::GetVariation(bool horizontal)
 
 SSRStencilParamDef gSSRStencilParamDef;
 
-SSRStencilMat::SSRStencilMat()
-	: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
+void SSRStencilMat::Initialize()
 {
+	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
 	mParamBuffer = gSSRStencilParamDef.CreateBuffer();
-	mParams->SetParameterBlockBuffer("Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
 }
 
 void SSRStencilMat::Execute(const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
@@ -1962,7 +1962,7 @@ void SSRStencilMat::Execute(const RendererView& view, GBufferTextures gbuffer, c
 	gSSRStencilParamDef.gRoughnessScaleBias.Set(mParamBuffer, roughnessScaleBias);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const Rect2I& viewRect = viewProps.Target.ViewRect;
@@ -1989,16 +1989,16 @@ SSRStencilMat* SSRStencilMat::GetVariation(bool msaa, bool singleSampleMSAA)
 
 SSRTraceParamDef gSSRTraceParamDef;
 
-SSRTraceMat::SSRTraceMat()
-	: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
+void SSRTraceMat::Initialize()
 {
+	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
 	mParamBuffer = gSSRTraceParamDef.CreateBuffer();
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHiZ", mHiZTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gHiZ", mHiZTexture);
 
-	if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
-		mParams->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
+	if(mGPUParameters->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Input"))
+		mGPUParameters->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
 
 	SAMPLER_STATE_DESC desc;
 	desc.MinFilter = FO_POINT;
@@ -2009,10 +2009,10 @@ SSRTraceMat::SSRTraceMat()
 	desc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> hiZSamplerState = SamplerState::Create(desc);
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp", hiZSamplerState);
-	else if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ", hiZSamplerState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZSamp", hiZSamplerState);
+	else if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gHiZ", hiZSamplerState);
 }
 
 void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, const SPtr<RenderTarget>& destination)
@@ -2068,7 +2068,7 @@ void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, con
 	gSSRTraceParamDef.gTemporalJitter.Set(mParamBuffer, temporalJitter);
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(destination, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
@@ -2124,21 +2124,21 @@ SSRTraceMat* SSRTraceMat::GetVariation(u32 quality, bool msaa, bool singleSample
 TemporalResolveParamDef gTemporalResolveParamDef;
 TemporalFilteringParamDef gTemporalFilteringParamDef;
 
-TemporalFilteringMat::TemporalFilteringMat()
+void TemporalFilteringMat::Initialize()
 {
 	mParamBuffer = gTemporalFilteringParamDef.CreateBuffer();
 	mTemporalParamBuffer = gTemporalResolveParamDef.CreateBuffer();
 
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneDepth", mSceneDepthTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gPrevColor", mPrevColorTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneDepth", mSceneDepthTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSceneColor", mSceneColorTexture);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gPrevColor", mPrevColorTexture);
 
-	mHasVelocityTexture = mVariation.GetBool("PER_PIXEL_VELOCITY");
+	mHasVelocityTexture = mVariationParameters.GetBool("PER_PIXEL_VELOCITY");
 	if(mHasVelocityTexture)
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gVelocity", mVelocityTexture);
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gVelocity", mVelocityTexture);
 
-	mParams->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
-	mParams->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "TemporalInput", mTemporalParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "Input", mParamBuffer);
+	mGPUParameters->SetParameterBlockBuffer(GPT_FRAGMENT_PROGRAM, "TemporalInput", mTemporalParamBuffer);
 
 	SAMPLER_STATE_DESC pointSampDesc;
 	pointSampDesc.MinFilter = FO_POINT;
@@ -2150,10 +2150,10 @@ TemporalFilteringMat::TemporalFilteringMat()
 
 	SPtr<SamplerState> pointSampState = SamplerState::Create(pointSampDesc);
 
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler", pointSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gPointSampler", pointSampState);
 	else
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSceneDepth", pointSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSceneDepth", pointSampState);
 
 	SAMPLER_STATE_DESC linearSampDesc;
 	linearSampDesc.MinFilter = FO_POINT;
@@ -2164,12 +2164,12 @@ TemporalFilteringMat::TemporalFilteringMat()
 	linearSampDesc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> linearSampState = SamplerState::Create(linearSampDesc);
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler"))
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler", linearSampState);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler"))
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gLinearSampler", linearSampState);
 	else
 	{
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSceneColor", linearSampState);
-		mParams->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gPrevColor", linearSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gSceneColor", linearSampState);
+		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gPrevColor", linearSampState);
 	}
 }
 
@@ -2289,7 +2289,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	}
 
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(destination);
@@ -2341,12 +2341,12 @@ TemporalFilteringMat* TemporalFilteringMat::GetVariation(TemporalFilteringType t
 
 EncodeDepthParamDef gEncodeDepthParamDef;
 
-EncodeDepthMat::EncodeDepthMat()
+void EncodeDepthMat::Initialize()
 {
 	mParamBuffer = gEncodeDepthParamDef.CreateBuffer();
 
-	mParams->SetParameterBlockBuffer("Params", mParamBuffer);
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 
 	SAMPLER_STATE_DESC sampDesc;
 	sampDesc.MinFilter = FO_POINT;
@@ -2357,7 +2357,7 @@ EncodeDepthMat::EncodeDepthMat()
 	sampDesc.AddressMode.W = TAM_CLAMP;
 
 	SPtr<SamplerState> samplerState = SamplerState::Create(sampDesc);
-	SetSamplerState(mParams, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
+	SetSamplerState(mGPUParameters, GPT_FRAGMENT_PROGRAM, "gInputSamp", "gInputTex", samplerState);
 }
 
 void EncodeDepthMat::Execute(const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
@@ -2376,9 +2376,10 @@ void EncodeDepthMat::Execute(const SPtr<Texture>& depth, float near, float far, 
 	GetRendererUtility().DrawScreenQuad();
 }
 
-MSAACoverageMat::MSAACoverageMat()
-	: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
-{}
+void MSAACoverageMat::Initialize()
+{
+	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
+}
 
 void MSAACoverageMat::Execute(const RendererView& view, GBufferTextures gbuffer)
 {
@@ -2388,7 +2389,7 @@ void MSAACoverageMat::Execute(const RendererView& view, GBufferTextures gbuffer)
 
 	const Rect2I& viewRect = view.GetProperties().Target.ViewRect;
 	SPtr<GpuParamBlockBuffer> perView = view.GetPerViewBuffer();
-	mParams->SetParameterBlockBuffer("PerCamera", perView);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perView);
 
 	Bind();
 	GetRendererUtility().DrawScreenQuad(Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
@@ -2408,9 +2409,9 @@ MSAACoverageMat* MSAACoverageMat::GetVariation(u32 msaaCount)
 	}
 }
 
-MSAACoverageStencilMat::MSAACoverageStencilMat()
+void MSAACoverageStencilMat::Initialize()
 {
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gMSAACoverage", mCoverageTexParam);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gMSAACoverage", mCoverageTexParam);
 }
 
 void MSAACoverageStencilMat::Execute(const RendererView& view, const SPtr<Texture>& coverage)

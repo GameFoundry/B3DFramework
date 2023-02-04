@@ -50,7 +50,8 @@ namespace bs
 			}
 
 		public:
-			TetrahedraRenderMat();
+			TetrahedraRenderMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the material using the provided parameters.
@@ -108,7 +109,8 @@ namespace bs
 			}
 
 		public:
-			IrradianceEvaluateMat();
+			IrradianceEvaluateMat() = default;
+			void Initialize() override;
 
 			/**
 			 * Executes the material using the provided parameters.

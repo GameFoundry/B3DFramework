@@ -14,6 +14,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsFileSystem.h"
 #include "CoreThread/BsCoreThread.h"
+#include "Material/BsShaderCompiler.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Mesh/BsMesh.h"
 
@@ -226,11 +227,35 @@ HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const
 
 HShader BuiltinResources::GetShader(const Path& path) const
 {
-	Path programPath = mEngineShaderFolder;
-	programPath.Append(path);
-	programPath.SetExtension(programPath.GetExtension() + ".asset");
+	const Path fullShaderPath = GetRawShaderFolder() + path;
+	return GetOrCompileShader(fullShaderPath);
+}
 
-	return GetResources().Load<Shader>(programPath);
+HShader BuiltinResources::GetOrCompileShader(const Path& path) const
+{
+#ifndef BS_IS_ASSET_TOOL
+	auto found = mCompiledShaders.find(path);
+	if(found != mCompiledShaders.end())
+		return found->second;
+
+	HShader shader;
+	if(shader == nullptr)
+	{
+				//const Path fullPathToShader = BuiltinResources::GetRawShaderFolder() + mMetaData.ShaderPath;
+		static const String kBuiltinShaderCachePrefix = "BuiltinShaders/";
+		const SPtr<Shader> shaderShared = ShaderCompilers::Instance().GetOrCompileShader<false>(path, kBuiltinShaderCachePrefix, {});
+
+		if(shaderShared != nullptr)
+		{
+			shader = B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandleInternal(shaderShared));
+		}
+	}
+
+	mCompiledShaders[path] = shader;
+	return shader;
+#endif
+
+	return HShader();
 }
 
 HTexture BuiltinResources::GetCursorTexture(const String& name) const
@@ -311,6 +336,11 @@ Path BuiltinResources::GetRawShaderFolder()
 	return Paths::GetDataPath() + "Raw/" + kShaderFolder;
 }
 
+Path BuiltinResources::GetRawShaderIncludeFolder()
+{
+	return Paths::GetDataPath() + "Raw/" + kShaderIncludeFolder;
+}
+
 Path BuiltinResources::GetShaderIncludeFolder()
 {
 	return Paths::GetDataPath() + kShaderIncludeFolder;
@@ -325,6 +355,11 @@ Path BuiltinResources::GetIconFolder()
 Path BuiltinResources::GetEditorShaderIncludeFolder()
 {
 	return Paths::GetEditorDataPath() + kShaderIncludeFolder;
+}
+
+Path BuiltinResources::GetEditorRawShaderIncludeFolder()
+{
+	return Paths::GetEditorDataPath() + "Raw/" + kShaderIncludeFolder;
 }
 #endif
 

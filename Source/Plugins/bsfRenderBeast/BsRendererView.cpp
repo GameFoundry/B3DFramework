@@ -20,20 +20,20 @@ namespace ct {
 PerCameraParamDef gPerCameraParamDef;
 SkyboxParamDef gSkyboxParamDef;
 
-SkyboxMat::SkyboxMat()
+void SkyboxMat::Initialize()
 {
-	if(mParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
-		mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
+	if(mGPUParameters->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
+		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
 
 	mParamBuffer = gSkyboxParamDef.CreateBuffer();
 
-	if(mParams->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
-		mParams->SetParameterBlockBuffer("Params", mParamBuffer);
+	if(mGPUParameters->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
+		mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
 }
 
 void SkyboxMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 {
-	mParams->SetParameterBlockBuffer("PerCamera", perCamera);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
 
 	mSkyTextureParam.Set(texture);
 

@@ -10,21 +10,7 @@ using namespace bs;
 
 RendererMaterialManager::RendererMaterialManager()
 {
-	BuiltinResources& br = BuiltinResources::Instance();
-
-	// Note: Ideally I want to avoid loading all materials, and instead just load those that are used.
-	Vector<RendererMaterialData>& materials = GetMaterials();
-	Vector<SPtr<ct::Shader>> shaders;
-	for(auto& material : materials)
-	{
-		HShader shader = br.GetShader(material.ShaderPath);
-		if(shader.IsLoaded())
-			shaders.push_back(shader->GetCore());
-		else
-			shaders.push_back(nullptr);
-	}
-
-	GetCoreThread().QueueCommand(std::bind(&RendererMaterialManager::InitOnCore, shaders), CTQF_InternalQueue);
+	GetCoreThread().QueueCommand([this]() { InitOnCore(); }, CTQF_InternalQueue);
 }
 
 RendererMaterialManager::~RendererMaterialManager()
@@ -40,7 +26,7 @@ void RendererMaterialManager::RegisterMaterial(ct::RendererMaterialMetaData* met
 	materials.push_back({ metaData, shaderPath });
 }
 
-void RendererMaterialManager::InitOnCore(const Vector<SPtr<ct::Shader>>& shaders)
+void RendererMaterialManager::InitOnCore()
 {
 	Lock lock(GetMutex());
 
@@ -48,20 +34,6 @@ void RendererMaterialManager::InitOnCore(const Vector<SPtr<ct::Shader>>& shaders
 	for(u32 i = 0; i < materials.size(); i++)
 	{
 		materials[i].MetaData->ShaderPath = materials[i].ShaderPath;
-		materials[i].MetaData->Shader = shaders[i];
-
-		if(!shaders[i])
-		{
-			B3D_LOG(Error, Renderer, "Failed to load renderer material: {0}", materials[i].ShaderPath);
-			continue;
-		}
-
-		// Note: Making the assumption here that all the techniques are generated due to shader variations
-		Vector<SPtr<ct::Technique>> techniques = shaders[i]->GetCompatibleTechniques();
-		materials[i].MetaData->Instances.Resize((u32)techniques.size());
-
-		for(auto& entry : techniques)
-			materials[i].MetaData->Variations.Add(entry->GetVariationParameters());
 
 #if B3D_PROFILING_ENABLED
 		const String& filename = materials[i].ShaderPath.GetFilename(false);
@@ -69,6 +41,42 @@ void RendererMaterialManager::InitOnCore(const Vector<SPtr<ct::Shader>>& shaders
 			ProfilerString(filename.data(), filename.size());
 #endif
 	}
+}
+
+void RendererMaterialManager::QueueOnRenderThread(Function<void()> callback)
+{
+	Lock lock(mAsyncCompilationMutex);
+	mQueuedOperationsOnWorkerThread.push(std::move(callback));
+}
+
+void RendererMaterialManager::BlockUntilQueueEmpty()
+{
+	THROW_IF_NOT_CORE_THREAD
+
+	{
+		Lock lock(mAsyncCompilationMutex);
+
+		B3D_ASSERT(mQueuedOperationsOnRenderThread.empty());
+		std::swap(mQueuedOperationsOnWorkerThread, mQueuedOperationsOnRenderThread);
+	}
+
+	while(!mQueuedOperationsOnRenderThread.empty())
+	{
+		Function<void()> callback = std::move(mQueuedOperationsOnRenderThread.front());
+		mQueuedOperationsOnRenderThread.pop();
+
+		if(callback != nullptr)
+			callback();
+	}
+}
+
+void RendererMaterialManager::Update()
+{
+	auto fnUpdateOnRenderThread = [this]() {
+		BlockUntilQueueEmpty();
+	};
+
+	GetCoreThread().QueueCommand(fnUpdateOnRenderThread, CTQF_InternalQueue);
 }
 
 ShaderDefines RendererMaterialManager::GetDefinesInternal(const Path& shaderPath)
@@ -93,15 +101,14 @@ void RendererMaterialManager::DestroyOnCore()
 	for(u32 i = 0; i < materials.size(); i++)
 	{
 		materials[i].MetaData->Shader = nullptr;
-		materials[i].MetaData->OverrideShader = nullptr;
 
-		for(auto& entry : materials[i].MetaData->Instances)
+		for(auto& entry : materials[i].MetaData->VariationInformation)
 		{
-			if(entry != nullptr)
-				B3DDelete(entry);
+			if(entry.RendererMaterialInstance != nullptr)
+				B3DDelete(entry.RendererMaterialInstance);
 		}
 
-		materials[i].MetaData->Instances.Clear();
+		materials[i].MetaData->VariationInformation.Clear();
 	}
 }
 

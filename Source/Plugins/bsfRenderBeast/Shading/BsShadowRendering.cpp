@@ -19,17 +19,17 @@ ShadowParamsDef gShadowParamsDef;
 
 void ShadowDepthNormalMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 {
-	mParams->SetParameterBlockBuffer("ShadowParams", shadowParams);
+	mGPUParameters->SetParameterBlockBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGfxPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilRef);
+	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
 void ShadowDepthNormalMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 {
-	mParams->SetParameterBlockBuffer("PerObject", perObjectParams);
+	mGPUParameters->SetParameterBlockBuffer("PerObject", perObjectParams);
 
-	RenderAPI::Instance().SetGpuParams(mParams);
+	RenderAPI::Instance().SetGpuParams(mGPUParameters);
 }
 
 ShadowDepthNormalMat* ShadowDepthNormalMat::GetVariation(bool skinned, bool morph)
@@ -50,22 +50,19 @@ ShadowDepthNormalMat* ShadowDepthNormalMat::GetVariation(bool skinned, bool morp
 	}
 }
 
-ShadowDepthNormalNoPSMat::ShadowDepthNormalNoPSMat()
-{}
-
 void ShadowDepthNormalNoPSMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 {
-	mParams->SetParameterBlockBuffer("ShadowParams", shadowParams);
+	mGPUParameters->SetParameterBlockBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGfxPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilRef);
+	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
 void ShadowDepthNormalNoPSMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 {
-	mParams->SetParameterBlockBuffer("PerObject", perObjectParams);
+	mGPUParameters->SetParameterBlockBuffer("PerObject", perObjectParams);
 
-	RenderAPI::Instance().SetGpuParams(mParams);
+	RenderAPI::Instance().SetGpuParams(mGPUParameters);
 }
 
 ShadowDepthNormalNoPSMat* ShadowDepthNormalNoPSMat::GetVariation(bool skinned, bool morph)
@@ -86,21 +83,18 @@ ShadowDepthNormalNoPSMat* ShadowDepthNormalNoPSMat::GetVariation(bool skinned, b
 	}
 }
 
-ShadowDepthDirectionalMat::ShadowDepthDirectionalMat()
-{}
-
 void ShadowDepthDirectionalMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams)
 {
-	mParams->SetParameterBlockBuffer("ShadowParams", shadowParams);
+	mGPUParameters->SetParameterBlockBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGfxPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilRef);
+	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
 void ShadowDepthDirectionalMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams)
 {
-	mParams->SetParameterBlockBuffer("PerObject", perObjectParams);
-	RenderAPI::Instance().SetGpuParams(mParams);
+	mGPUParameters->SetParameterBlockBuffer("PerObject", perObjectParams);
+	RenderAPI::Instance().SetGpuParams(mGPUParameters);
 }
 
 ShadowDepthDirectionalMat* ShadowDepthDirectionalMat::GetVariation(bool skinned, bool morph)
@@ -124,24 +118,21 @@ ShadowDepthDirectionalMat* ShadowDepthDirectionalMat::GetVariation(bool skinned,
 ShadowCubeMatricesDef gShadowCubeMatricesDef;
 ShadowCubeMasksDef gShadowCubeMasksDef;
 
-ShadowDepthCubeMat::ShadowDepthCubeMat()
-{}
-
 void ShadowDepthCubeMat::Bind(const SPtr<GpuParamBlockBuffer>& shadowParams, const SPtr<GpuParamBlockBuffer>& shadowCubeMatrices)
 {
-	mParams->SetParameterBlockBuffer("ShadowParams", shadowParams);
-	mParams->SetParameterBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
+	mGPUParameters->SetParameterBlockBuffer("ShadowParams", shadowParams);
+	mGPUParameters->SetParameterBlockBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGfxPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilRef);
+	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
 void ShadowDepthCubeMat::SetPerObjectBuffer(const SPtr<GpuParamBlockBuffer>& perObjectParams, const SPtr<GpuParamBlockBuffer>& shadowCubeMasks)
 {
-	mParams->SetParameterBlockBuffer("PerObject", perObjectParams);
-	mParams->SetParameterBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
+	mGPUParameters->SetParameterBlockBuffer("PerObject", perObjectParams);
+	mGPUParameters->SetParameterBlockBuffer("ShadowCubeMasks", shadowCubeMasks);
 
-	RenderAPI::Instance().SetGpuParams(mParams);
+	RenderAPI::Instance().SetGpuParams(mGPUParameters);
 }
 
 ShadowDepthCubeMat* ShadowDepthCubeMat::GetVariation(bool skinned, bool morph)
@@ -165,11 +156,11 @@ ShadowDepthCubeMat* ShadowDepthCubeMat::GetVariation(bool skinned, bool morph)
 ShadowProjectParamsDef gShadowProjectParamsDef;
 ShadowProjectVertParamsDef gShadowProjectVertParamsDef;
 
-ShadowProjectStencilMat::ShadowProjectStencilMat()
+void ShadowProjectStencilMat::Initialize()
 {
 	mVertParams = gShadowProjectVertParamsDef.CreateBuffer();
-	if(mParams->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-		mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
+	if(mGPUParameters->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+		mGPUParameters->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 }
 
 void ShadowProjectStencilMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera)
@@ -177,7 +168,7 @@ void ShadowProjectStencilMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera)
 	Vector4 lightPosAndScale(0, 0, 0, 1);
 	gShadowProjectVertParamsDef.gPositionAndScale.Set(mVertParams, lightPosAndScale);
 
-	mParams->SetParameterBlockBuffer("PerCamera", perCamera);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
 
 	RendererMaterial::Bind();
 }
@@ -195,14 +186,14 @@ ShadowProjectStencilMat* ShadowProjectStencilMat::GetVariation(bool directional,
 	}
 }
 
-ShadowProjectMat::ShadowProjectMat()
-	: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
+void ShadowProjectMat::Initialize()
 {
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowSampler"))
-		mParams->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
+	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowMapParam);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowSampler"))
+		mGPUParameters->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowSampler", mShadowSamplerParam);
 	else
-		mParams->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowSamplerParam);
+		mGPUParameters->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowTex", mShadowSamplerParam);
 
 	SAMPLER_STATE_DESC desc;
 	desc.MinFilter = FO_POINT;
@@ -215,8 +206,8 @@ ShadowProjectMat::ShadowProjectMat()
 	mSamplerState = SamplerState::Create(desc);
 
 	mVertParams = gShadowProjectVertParamsDef.CreateBuffer();
-	if(mParams->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-		mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
+	if(mGPUParameters->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+		mGPUParameters->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 }
 
 void ShadowProjectMat::Bind(const ShadowProjectParams& params)
@@ -229,8 +220,8 @@ void ShadowProjectMat::Bind(const ShadowProjectParams& params)
 	mShadowMapParam.Set(params.ShadowMap);
 	mShadowSamplerParam.Set(mSamplerState);
 
-	mParams->SetParameterBlockBuffer("Params", params.ShadowParams);
-	mParams->SetParameterBlockBuffer("PerCamera", params.PerCamera);
+	mGPUParameters->SetParameterBlockBuffer("Params", params.ShadowParams);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", params.PerCamera);
 
 	RendererMaterial::Bind();
 }
@@ -264,15 +255,15 @@ ShadowProjectMat* ShadowProjectMat::GetVariation(u32 quality, bool directional, 
 
 ShadowProjectOmniParamsDef gShadowProjectOmniParamsDef;
 
-ShadowProjectOmniMat::ShadowProjectOmniMat()
-	: mGBufferParams(GPT_FRAGMENT_PROGRAM, mParams)
+void ShadowProjectOmniMat::Initialize()
 {
-	mParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
+	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
+	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowMapParam);
 
-	if(mParams->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler"))
-		mParams->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
+	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler"))
+		mGPUParameters->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeSampler", mShadowSamplerParam);
 	else
-		mParams->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowSamplerParam);
+		mGPUParameters->GetSamplerStateParameter(GPT_FRAGMENT_PROGRAM, "gShadowCubeTex", mShadowSamplerParam);
 
 	SAMPLER_STATE_DESC desc;
 	desc.MinFilter = FO_LINEAR;
@@ -286,8 +277,8 @@ ShadowProjectOmniMat::ShadowProjectOmniMat()
 	mSamplerState = SamplerState::Create(desc);
 
 	mVertParams = gShadowProjectVertParamsDef.CreateBuffer();
-	if(mParams->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
-		mParams->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
+	if(mGPUParameters->HasParamBlock(GPT_VERTEX_PROGRAM, "VertParams"))
+		mGPUParameters->SetParameterBlockBuffer(GPT_VERTEX_PROGRAM, "VertParams", mVertParams);
 }
 
 void ShadowProjectOmniMat::Bind(const ShadowProjectParams& params)
@@ -300,8 +291,8 @@ void ShadowProjectOmniMat::Bind(const ShadowProjectParams& params)
 	mShadowMapParam.Set(params.ShadowMap);
 	mShadowSamplerParam.Set(mSamplerState);
 
-	mParams->SetParameterBlockBuffer("Params", params.ShadowParams);
-	mParams->SetParameterBlockBuffer("PerCamera", params.PerCamera);
+	mGPUParameters->SetParameterBlockBuffer("Params", params.ShadowParams);
+	mGPUParameters->SetParameterBlockBuffer("PerCamera", params.PerCamera);
 
 	RendererMaterial::Bind();
 }
