@@ -692,6 +692,8 @@ namespace bs
 		TID_PackageResourceMetaData = 1213,
 		TID_PackageResourceUserMetaData = 1214,
 		TID_Package = 1215,
+		TID_PersistentCacheObject = 1216,
+		TID_PersistentCacheMetaData = 1217,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

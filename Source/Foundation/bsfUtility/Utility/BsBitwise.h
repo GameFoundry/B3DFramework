@@ -73,6 +73,10 @@ namespace bs
 	class Bitwise
 	{
 	public:
+		static constexpr u32 kBytesInKilobyte = 1024;
+		static constexpr u32 kBytesInMegabyte = 1024 * 1024;
+		static constexpr u32 kBytesInGigabyte = 1024 * 1024 * 1024;
+
 		/** Returns the power-of-two number greater or equal to the provided value. */
 		static u32 NextPow2(u32 n)
 		{
