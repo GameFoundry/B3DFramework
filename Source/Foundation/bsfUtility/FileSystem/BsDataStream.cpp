@@ -179,6 +179,27 @@ WString DataStream::GetAsWString()
 	return UTF8::ToWide(u8string);
 }
 
+size_t DataStream::ReadBits(uint8_t* data, uint32_t count)
+{
+	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
+	return Read(data, numBytes) * 8;
+}
+
+size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
+{
+	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
+	return Write(data, numBytes) * 8;
+}
+
+void DataStream::Align(uint32_t count)
+{
+	if(count <= 1)
+		return;
+
+	u32 alignOffset = (count - (Tell() & (count - 1))) & (count - 1);
+	Skip(alignOffset);
+}
+
 MemoryDataStream::MemoryDataStream()
 	: DataStream(READ | WRITE)
 {
@@ -339,18 +360,6 @@ size_t MemoryDataStream::Write(const void* buf, size_t count)
 	return written;
 }
 
-size_t DataStream::ReadBits(uint8_t* data, uint32_t count)
-{
-	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
-	return Read(data, numBytes) * 8;
-}
-
-size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
-{
-	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
-	return Write(data, numBytes) * 8;
-}
-
 void MemoryDataStream::Skip(size_t count)
 {
 	B3D_ASSERT((mCursor + count) <= mEnd);
@@ -361,15 +370,6 @@ void MemoryDataStream::Seek(size_t pos)
 {
 	B3D_ASSERT((mData + pos) <= mEnd);
 	mCursor = std::min(mData + pos, mEnd);
-}
-
-void DataStream::Align(uint32_t count)
-{
-	if(count <= 1)
-		return;
-
-	u32 alignOffset = (count - (Tell() & (count - 1))) & (count - 1);
-	Skip(alignOffset);
 }
 
 size_t MemoryDataStream::Tell() const
@@ -390,7 +390,7 @@ SPtr<DataStream> MemoryDataStream::Clone(bool copyData) const
 	return B3DMakeShared<MemoryDataStream>(*this);
 }
 
-void MemoryDataStream::Close()
+bool MemoryDataStream::Close()
 {
 	if(mData != nullptr)
 	{
@@ -399,6 +399,8 @@ void MemoryDataStream::Close()
 
 		mData = nullptr;
 	}
+
+	return true;
 }
 
 void MemoryDataStream::Realloc(size_t numBytes)
@@ -428,60 +430,59 @@ void MemoryDataStream::Realloc(size_t numBytes)
 	}
 }
 
-FileDataStream::FileDataStream(const Path& path, AccessMode accessMode, bool freeOnClose)
-	: DataStream(accessMode), mPath(path), mFreeOnClose(freeOnClose)
-{
-	// Always open in binary mode
-	// Also, always include reading
-	std::ios::openmode mode = std::ios::binary;
-
-	if((accessMode & READ) != 0)
-		mode |= std::ios::in;
-
-	if(((accessMode & WRITE) != 0))
-	{
-		mode |= std::ios::out;
-		mFStream = B3DMakeShared<std::fstream>();
-		mFStream->open(path.ToPlatformString().c_str(), mode);
-		mInStream = mFStream;
-	}
-	else
-	{
-		mFStreamRO = B3DMakeShared<std::ifstream>();
-		mFStreamRO->open(path.ToPlatformString().c_str(), mode);
-		mInStream = mFStreamRO;
-	}
-
-	// Should check ensure open succeeded, in case fail for some reason.
-	if(mInStream->fail())
-	{
-		B3D_LOG(Warning, FileSystem, "Cannot open file: {0}", path.ToString());
-		return;
-	}
-
-	mInStream->seekg(0, std::ios_base::end);
-	mSize = (size_t)mInStream->tellg();
-	mInStream->seekg(0, std::ios_base::beg);
-}
+FileDataStream::FileDataStream(const Path& path, AccessMode accessMode)
+	: DataStream(accessMode), mPath(path)
+{ }
 
 FileDataStream::~FileDataStream()
 {
+	if(!mFileStream.is_open())
+		return;
+
 	Close();
+}
+
+bool FileDataStream::Open()
+{
+	// Always open in binary mode
+	std::ios::openmode mode = std::ios::binary;
+
+	if((mAccess & READ) != 0)
+		mode |= std::ios::in;
+
+	if(((mAccess & WRITE) != 0))
+		mode |= std::ios::out;
+
+	mFileStream.open(mPath.ToPlatformString().c_str(), mode);
+
+	if(mFileStream.fail())
+		return false;
+
+	mFileStream.seekg(0, std::ios_base::end);
+	mSize = (size_t)mFileStream.tellg();
+	mFileStream.seekg(0, std::ios_base::beg);
+
+	return true;
 }
 
 size_t FileDataStream::Read(void* buf, size_t count) const
 {
-	mInStream->read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return 0;
 
-	return (size_t)mInStream->gcount();
+	const_cast<std::fstream&>(mFileStream).read(static_cast<char*>(buf), static_cast<std::streamsize>(count));
+	return (size_t)mFileStream.gcount();
 }
 
 size_t FileDataStream::Write(const void* buf, size_t count)
 {
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return 0;
+
 	size_t written = 0;
-	if(IsWriteable() && mFStream)
+	if(B3D_ENSURE(IsWriteable()))
 	{
-		mFStream->write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
+		mFileStream.write(static_cast<const char*>(buf), static_cast<std::streamsize>(count));
 		written = count;
 	}
 
@@ -490,62 +491,79 @@ size_t FileDataStream::Write(const void* buf, size_t count)
 
 void FileDataStream::Skip(size_t count)
 {
-	mInStream->clear(); // Clear fail status in case eof was set
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return;
+
+	// Clear fail status in case eof was set
+	if(mFileStream.eof() && !mFileStream.bad())
+		mFileStream.clear();
+
+	if(((mAccess & READ) != 0))
+		mFileStream.seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 
 	if(((mAccess & WRITE) != 0))
-		mFStream->seekp(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
-	else
-		mInStream->seekg(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
+		mFileStream.seekp(static_cast<std::ifstream::pos_type>(count), std::ios::cur);
 }
 
 void FileDataStream::Seek(size_t pos)
 {
-	mInStream->clear(); // Clear fail status in case eof was set
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return;
+
+	// Clear fail status in case eof was set
+	if(mFileStream.eof() && !mFileStream.bad())
+		mFileStream.clear();
+
+	if(((mAccess & READ) != 0))
+		mFileStream.seekg(static_cast<std::streamoff>(pos), std::ios::beg);
 
 	if(((mAccess & WRITE) != 0))
-		mFStream->seekp(static_cast<std::ifstream::pos_type>(pos), std::ios::beg);
-	else
-		mInStream->seekg(static_cast<std::streamoff>(pos), std::ios::beg);
+		mFileStream.seekp(static_cast<std::ifstream::pos_type>(pos), std::ios::beg);
 }
 
 size_t FileDataStream::Tell() const
 {
-	mInStream->clear(); // Clear fail status in case eof was set
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return 0;
+
+	// Clear fail status in case eof was set
+	if(mFileStream.eof() && !mFileStream.bad())
+		const_cast<std::fstream&>(mFileStream).clear();
 
 	if(((mAccess & WRITE) != 0))
-		return (size_t)mFStream->tellp();
+		return (size_t)const_cast<std::fstream&>(mFileStream).tellp();
 
-	return (size_t)mInStream->tellg();
+	return (size_t)const_cast<std::fstream&>(mFileStream).tellg();
 }
 
 bool FileDataStream::Eof() const
 {
-	return mInStream->eof();
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return false;
+
+	return mFileStream.eof();
 }
 
 SPtr<DataStream> FileDataStream::Clone(bool copyData) const
 {
-	return B3DMakeShared<FileDataStream>(mPath, (AccessMode)GetAccessMode(), true);
+	return B3DMakeShared<FileDataStream>(mPath, (AccessMode)GetAccessMode());
 }
 
-void FileDataStream::Close()
+bool FileDataStream::Flush()
 {
-	if(mInStream)
-	{
-		if(mFStreamRO)
-			mFStreamRO->close();
+	if(!B3D_ENSURE(mFileStream.is_open()))
+		return false;
 
-		if(mFStream)
-		{
-			mFStream->flush();
-			mFStream->close();
-		}
+	mFileStream.flush();
+	return !mFileStream.bad();
+}
 
-		if(mFreeOnClose)
-		{
-			mInStream = nullptr;
-			mFStreamRO = nullptr;
-			mFStream = nullptr;
-		}
-	}
+
+bool FileDataStream::Close()
+{
+	const bool flushResult = Flush();
+	if(mFileStream.is_open())
+		mFileStream.close();
+
+	return flushResult;
 }

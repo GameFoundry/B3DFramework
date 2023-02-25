@@ -44,7 +44,7 @@ namespace bs
 		 * @param[in]	recursively	(optional) If true, folders will have their contents deleted as well. Otherwise an
 		 *							exception will be thrown for non-empty folders.
 		 */
-		static void Remove(const Path& fullPath, bool recursively = true);
+		static bool Remove(const Path& fullPath, bool recursively = true);
 
 		/**
 		 * Moves a file or a folder from one to another path. This can also be used as a rename operation.
@@ -54,7 +54,7 @@ namespace bs
 		 * @param[in]	overwriteExisting	(optional) If true, any existing file/folder at the new location will be
 		 *									overwritten, otherwise an exception will be thrown if a file/folder already exists.
 		 */
-		static void Move(const Path& oldPath, const Path& newPath, bool overwriteExisting = true);
+		static bool Move(const Path& oldPath, const Path& newPath, bool overwriteExisting = true);
 
 		/**
 		 * Makes a copy of a file or a folder in the specified path.
@@ -64,14 +64,14 @@ namespace bs
 		 * @param[in]	overwriteExisting	(optional) If true, any existing file/folder at the new location will be
 		 *									overwritten, otherwise an exception will be thrown if a file/folder already exists.
 		 */
-		static void Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting = true);
+		static bool Copy(const Path& oldPath, const Path& newPath, bool overwriteExisting = true);
 
 		/**
 		 * Creates a folder at the specified path.
 		 *
 		 * @param[in]	fullPath	Full path to a full folder to create.
 		 */
-		static void CreateDir(const Path& fullPath);
+		static bool CreateDir(const Path& fullPath);
 
 		/**
 		 * Returns true if a file or a folder exists at the specified path.
@@ -132,11 +132,11 @@ namespace bs
 
 	private:
 		/** Copy a single file. Internal function used by copy(). */
-		static void CopyFile(const Path& oldPath, const Path& newPath);
+		static bool CopyFile(const Path& oldPath, const Path& newPath);
 		/** Remove a single file. Internal function used by remove(). */
-		static void RemoveFile(const Path& path);
+		static bool RemoveFile(const Path& path);
 		/** Move a single file. Internal function used by move(). */
-		static void MoveFile(const Path& oldPath, const Path& newPath);
+		static bool MoveFile(const Path& oldPath, const Path& newPath);
 	};
 
 	/**

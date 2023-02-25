@@ -79,22 +79,30 @@ bool unix_createDirectory(const String& path)
 	return true;
 }
 
-void FileSystem::RemoveFile(const Path& path)
+bool FileSystem::RemoveFile(const Path& path)
 {
 	String pathStr = path.toString();
 	if(unix_isDirectory(pathStr))
 	{
 		if(rmdir(pathStr.c_str()))
+		{
 			HANDLE_PATH_ERROR(pathStr, errno);
+			return false;
+		}
 	}
 	else
 	{
 		if(unlink(pathStr.c_str()))
+		{
 			HANDLE_PATH_ERROR(pathStr, errno);
+			return false;
+		}
 	}
+
+	return true;
 }
 
-void FileSystem::CopyFile(const Path& source, const Path& destination)
+bool FileSystem::CopyFile(const Path& source, const Path& destination)
 {
 	std::ifstream sourceStream(source.toString().c_str(), std::ios::binary);
 	std::ofstream destinationStream(destination.toString().c_str(), std::ios::binary);
@@ -102,9 +110,11 @@ void FileSystem::CopyFile(const Path& source, const Path& destination)
 	destinationStream << sourceStream.rdbuf();
 	sourceStream.close();
 	destinationStream.close();
+
+	return !destinationStream.bad();
 }
 
-void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
+bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 {
 	String oldPathStr = oldPath.toString();
 	String newPathStr = newPath.toString();
@@ -120,31 +130,48 @@ void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 		if(!src)
 		{
 			B3D_LOG(Error, FileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
-			return; // Do not remove source if we failed!
+			return false; // Do not remove source if we failed!
 		}
 
 		// Then, remove source file (hopefully succeeds)
 		if(std::remove(oldPathStr.c_str()) == -1)
 		{
 			B3D_LOG(Error, FileSystem, String(__FUNCTION__) + ": renaming " + oldPathStr + " to " + newPathStr + ": " + strerror(errno));
+			return false;
 		}
 	}
+
+	return true;
 }
 
 SPtr<DataStream> FileSystem::OpenFile(const Path& path, bool readOnly)
 {
-	String pathString = path.toString();
+	String pathString = path.ToString();
 
 	DataStream::AccessMode accessMode = DataStream::READ;
 	if(!readOnly)
 		accessMode = (DataStream::AccessMode)((u32)accessMode | (u32)DataStream::WRITE);
 
-	return B3DMakeShared<FileDataStream>(path, accessMode, true);
+	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, accessMode);
+	if(!fileDataStream->Open())
+	{
+		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File stream failed to open.", path);
+		return nullptr;
+	}
+
+	return fileDataStream;
 }
 
 SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& path)
 {
-	return B3DMakeShared<FileDataStream>(path, DataStream::AccessMode::WRITE, true);
+	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(path, DataStream::AccessMode::WRITE);
+	if(!fileDataStream->Open())
+	{
+		B3D_LOG(Warning, Platform, "Failed to create file at path '{0}'. File stream failed to open.", path);
+		return nullptr;
+	}
+
+	return fileDataStream;
 }
 
 u64 FileSystem::GetFileSize(const Path& path)
@@ -179,7 +206,7 @@ bool FileSystem::IsDirectory(const Path& path)
 	return unix_pathExists(pathStr) && unix_isDirectory(pathStr);
 }
 
-void FileSystem::CreateDir(const Path& path)
+bool FileSystem::CreateDir(const Path& path)
 {
 	Path parentPath = path;
 	while(!exists(parentPath) && parentPath.getNumDirectories() > 0)
@@ -189,13 +216,17 @@ void FileSystem::CreateDir(const Path& path)
 
 	for(u32 i = parentPath.getNumDirectories(); i < path.getNumDirectories(); i++)
 	{
-		parentPath.append(path[i]);
-		unix_createDirectory(parentPath.toString());
+		parentPath.Append(path[i]);
+		if(!unix_createDirectory(parentPath.toString()))
+			return false;
 	}
 
 	// Last "file" entry is also considered a directory
-	if(!parentPath.equals(path))
-		unix_createDirectory(path.toString());
+	if(!parentPath.Equals(path))
+	{
+		if(!unix_createDirectory(path.ToString()))
+			return false;
+	}
 }
 
 void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)

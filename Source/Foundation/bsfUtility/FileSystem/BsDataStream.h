@@ -176,8 +176,11 @@ namespace bs
 		 */
 		virtual SPtr<DataStream> Clone(bool copyData = true) const = 0;
 
-		/** Close the stream. This makes further operations invalid. */
-		virtual void Close() = 0;
+		/** Flushes the stream, writing any buffer data to the destination. Returns false if some error occurred and data was not written correctly. Does not need to be called if stream was just read from. */
+		virtual bool Flush() = 0;
+
+		/** Closes the stream. This makes further operations invalid. Executes a Flush() before closing, and passes the return value from Flush(). */
+		virtual bool Close() = 0;
 
 	protected:
 		static const u32 kStreamTempSize;
@@ -246,7 +249,8 @@ namespace bs
 		size_t Tell() const override;
 		bool Eof() const override;
 		SPtr<DataStream> Clone(bool copyData = true) const override;
-		void Close() override;
+		bool Flush() override { return true; }
+		bool Close() override;
 
 		/**
 		 * Disowns the internal memory buffer, ensuring it wont be released when the stream goes out of scope.
@@ -274,16 +278,16 @@ namespace bs
 	{
 	public:
 		/**
-		 * Construct a file stream.
+		 * Constructs a file stream.
 		 *
-		 * @param[in]	filePath	Path of the file to open.
-		 * @param[in]	accessMode	Determines should the file be opened in read, write or read/write mode.
-		 * @param[in]	freeOnClose	Determines should the internal stream be freed once the data stream is closed or goes
-		 *							out of scope.
+		 * @param	filePath	Path of the file to open.
+		 * @param	accessMode	Determines should the file be opened in read, write or read/write mode.
 		 */
-		FileDataStream(const Path& filePath, AccessMode accessMode = READ, bool freeOnClose = true);
+		FileDataStream(const Path& filePath, AccessMode accessMode = READ);
 		~FileDataStream() override;
 
+		/** Opens the file stream. Must be called before any actions on the stream. Returns false if not successful. */
+		bool Open();
 		bool IsFile() const override { return true; }
 		size_t Read(void* buf, size_t count) const override;
 		size_t Write(const void* buf, size_t count) override;
@@ -292,17 +296,15 @@ namespace bs
 		size_t Tell() const override;
 		bool Eof() const override;
 		SPtr<DataStream> Clone(bool copyData = true) const override;
-		void Close() override;
+		bool Flush() override;
+		bool Close() override;
 
 		/** Returns the path of the file opened by the stream. */
 		const Path& GetPath() const { return mPath; }
 
 	protected:
 		Path mPath;
-		SPtr<std::istream> mInStream;
-		SPtr<std::ifstream> mFStreamRO;
-		SPtr<std::fstream> mFStream;
-		bool mFreeOnClose;
+		std::fstream mFileStream;
 	};
 
 	/** @} */

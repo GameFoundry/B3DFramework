@@ -209,7 +209,10 @@ bool Win32CreateDirectory(const WString& path)
 		return false;
 
 	if(CreateDirectoryW(path.c_str(), 0) == FALSE)
+	{
 		Win32HandleError(GetLastError(), path);
+		return false;
+	}
 
 	return true;
 }
@@ -239,37 +242,55 @@ std::time_t Win32GetLastModifiedTime(const WString& path)
 	return (std::time_t)((ull.QuadPart / 10000000ULL) - 11644473600ULL);
 }
 
-void FileSystem::RemoveFile(const Path& path)
+bool FileSystem::RemoveFile(const Path& path)
 {
 	WString pathStr = UTF8::ToWide(path.ToString());
 	if(Win32IsDirectory(pathStr))
 	{
 		if(RemoveDirectoryW(pathStr.c_str()) == 0)
+		{
 			Win32HandleError(GetLastError(), pathStr);
+			return false;
+		}
 	}
 	else
 	{
 		if(DeleteFileW(pathStr.c_str()) == 0)
+		{
 			Win32HandleError(GetLastError(), pathStr);
+			return false;
+		}
 	}
+
+	return true;
 }
 
-void FileSystem::CopyFile(const Path& from, const Path& to)
+bool FileSystem::CopyFile(const Path& from, const Path& to)
 {
 	WString fromStr = UTF8::ToWide(from.ToString());
 	WString toStr = UTF8::ToWide(to.ToString());
 
 	if(CopyFileW(fromStr.c_str(), toStr.c_str(), FALSE) == FALSE)
+	{
 		Win32HandleError(GetLastError(), fromStr);
+		return false;
+	}
+
+	return true;
 }
 
-void FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
+bool FileSystem::MoveFile(const Path& oldPath, const Path& newPath)
 {
 	WString oldPathStr = UTF8::ToWide(oldPath.ToString());
 	WString newPathStr = UTF8::ToWide(newPath.ToString());
 
 	if(MoveFileW(oldPathStr.c_str(), newPathStr.c_str()) == 0)
+	{
 		Win32HandleError(GetLastError(), oldPathStr);
+		return false;
+	}
+
+	return true;
 }
 
 SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
@@ -279,7 +300,7 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 
 	if(!Win32PathExists(pathString) || !Win32IsFile(pathString))
 	{
-		B3D_LOG(Warning, Platform, "Attempting to open a file that doesn't exist: {0}", fullPath);
+		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File doesn't exist.", fullPath);
 		return nullptr;
 	}
 
@@ -287,12 +308,26 @@ SPtr<DataStream> FileSystem::OpenFile(const Path& fullPath, bool readOnly)
 	if(!readOnly)
 		accessMode = (DataStream::AccessMode)(accessMode | (u32)DataStream::WRITE);
 
-	return B3DMakeShared<FileDataStream>(fullPath, accessMode, true);
+	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, accessMode);
+	if(!fileDataStream->Open())
+	{
+		B3D_LOG(Warning, Platform, "Failed to open file at path '{0}'. File stream failed to open.", fullPath);
+		return nullptr;
+	}
+
+	return fileDataStream;
 }
 
 SPtr<DataStream> FileSystem::CreateAndOpenFile(const Path& fullPath)
 {
-	return B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE, true);
+	SPtr<FileDataStream> fileDataStream = B3DMakeShared<FileDataStream>(fullPath, DataStream::AccessMode::WRITE);
+	if(!fileDataStream->Open())
+	{
+		B3D_LOG(Warning, Platform, "Failed to create file at path '{0}'. File stream failed to open.", fullPath);
+		return nullptr;
+	}
+
+	return fileDataStream;
 }
 
 u64 FileSystem::GetFileSize(const Path& fullPath)
@@ -319,7 +354,7 @@ bool FileSystem::IsDirectory(const Path& fullPath)
 	return Win32PathExists(pathStr) && Win32IsDirectory(pathStr);
 }
 
-void FileSystem::CreateDir(const Path& fullPath)
+bool FileSystem::CreateDir(const Path& fullPath)
 {
 	Path parentPath = fullPath;
 	while(!Exists(parentPath) && parentPath.GetDirectoryCount() > 0)
@@ -330,11 +365,17 @@ void FileSystem::CreateDir(const Path& fullPath)
 	for(u32 i = parentPath.GetDirectoryCount(); i < fullPath.GetDirectoryCount(); i++)
 	{
 		parentPath.Append(fullPath[i]);
-		Win32CreateDirectory(UTF8::ToWide(parentPath.ToString()));
+		if(!Win32CreateDirectory(UTF8::ToWide(parentPath.ToString())))
+			return false;
 	}
 
 	if(fullPath.IsFile())
-		Win32CreateDirectory(UTF8::ToWide(fullPath.ToString()));
+	{
+		if(!Win32CreateDirectory(UTF8::ToWide(fullPath.ToString())))
+			return false;
+	}
+
+	return true;
 }
 
 void FileSystem::GetChildren(const Path& dirPath, Vector<Path>& files, Vector<Path>& directories)
