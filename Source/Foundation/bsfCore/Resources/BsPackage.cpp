@@ -10,6 +10,7 @@
 #include "Serialization/BsBinarySerializer.h"
 #include "Serialization/BsFileSerializer.h"
 #include "Threading/BsTaskScheduler.h"
+#include "Utility/BsScopeGuard.h"
 #include "Utility/BsUtility.h"
 
 using namespace bs;
@@ -947,6 +948,13 @@ void Package::Save(const SPtr<DataStream>& stream, bool compressResources, bool 
 	const u32 resourceCount = (u32)mResourceInformationByUUID.size();
 	CompressionType* savedCompressionTypesPerResource = B3DStackAllocate<CompressionType>(resourceCount);
 
+	auto fnCleanupStack = [savedCompressionTypesPerResource]()
+	{
+		B3DStackFree(savedCompressionTypesPerResource);
+	};
+
+	ScopeGuard cleanupStack(fnCleanupStack);
+
 	constexpr CompressionType kDefaultCompressionType = CompressionType::Default;
 
 	u32 resourceIndex = 0;
@@ -967,8 +975,18 @@ void Package::Save(const SPtr<DataStream>& stream, bool compressResources, bool 
 		resourceIndex++;
 	}
 
-	B3DStackFree(savedCompressionTypesPerResource);
-	savedCompressionTypesPerResource = nullptr;
+#if B3D_DEBUG
+	if(saveMetaDataOnly)
+	{
+		SPtr<MemoryDataStream> metaDataStream = B3DMakeShared<MemoryDataStream>();
+		FileEncoder metaDataEncoder(metaDataStream);
+		metaDataEncoder.Encode(this);	
+
+		if(!B3D_ENSURE(mAssociatedPackageFilePath.IsEmpty() || metaDataStream->Tell() == mSerializedMetaDataEnd))
+			return;
+		
+	}
+#endif
 
 	// Package structure:
 	// 1. Meta data
@@ -978,6 +996,7 @@ void Package::Save(const SPtr<DataStream>& stream, bool compressResources, bool 
 	FileEncoder fileEncoder(stream);
 	fileEncoder.Encode(this);
 
+	// TODO - This can cause problems if the meta-data is different size than the original
 	if (saveMetaDataOnly)
 		return;
 
@@ -1205,6 +1224,7 @@ SPtr<Package> Package::Load(const SPtr<DataStream>& stream)
 	if (package == nullptr)
 		return nullptr;
 
+	package->mSerializedMetaDataEnd = stream->Tell();
 	const u32 resourceCount = (u32)package->mResourceInformationByUUID.size();
 
 	Vector<SerializedResourceHeader> headers(resourceCount);

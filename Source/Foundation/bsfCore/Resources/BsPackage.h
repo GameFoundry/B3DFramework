@@ -448,6 +448,7 @@ namespace bs
 		UUID mId;
 		Path mAssociatedPackageFilePath; /**< Path to the file in which the package data has been saved. Empty if package hasn't been saved yet. */
 		SPtr<PackageMetaData> mPackageMetaData;
+		size_t mSerializedMetaDataEnd = 0;
 
 		UnorderedMap<Path, ResourceInformation*, PathHashFunction<true>, PathEqualsFunction<true>> mResourceInformationByPath;
 		UnorderedMap<UUID, UPtr<ResourceInformation>> mResourceInformationByUUID;

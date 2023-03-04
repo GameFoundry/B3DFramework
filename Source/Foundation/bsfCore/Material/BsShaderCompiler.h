@@ -53,7 +53,9 @@ namespace bs
 		SmallVector<GpuProgramType, 2> GPUProgramTypes; /**< Types of GPU programs used by the shader. */
 		Vector<ShaderVariationParameters> Variations; /**< Sets of defines controlling which variations of the shader are present. */
 		UnorderedMap<String, String> Defines; /**< Optional list of defines to provide when compiling the shader variations. This is added along with the shader variation defines. */
-		UnorderedMap<String, Array<u64, 2>> IncludeHashes; /**< Hash value for each referenced include file. */
+
+		// Note: Important this is ordered, as we create another set of hashes from this
+		Map<String, Array<u64, 2>> IncludeHashes; /**< Hash value for each referenced include file. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

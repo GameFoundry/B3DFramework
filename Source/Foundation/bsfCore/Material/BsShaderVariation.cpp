@@ -108,11 +108,14 @@ String ShaderVariationParameters::CreateVariationName() const
 	{
 		if(isFirst)
 		{
-			output << "-";
 			isFirst = false;
 		}
+		else
+		{
+			output << "-";
+		}
 
-		output << entry.first.CStr() << "-";
+		output << entry.first.CStr() << "=";
 
 		switch(entry.second.Type)
 		{
