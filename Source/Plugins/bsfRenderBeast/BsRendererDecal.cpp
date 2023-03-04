@@ -51,8 +51,8 @@ void RendererDecal::UpdatePerObjectBuffer()
 
 	float flipDerivatives = 1.0f;
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
-	if(rapiConventions.UvYAxis == Conventions::Axis::Up)
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		flipDerivatives = -1.0f;
 
 	gDecalParamDef.gWorldToDecal.Set(DecalParamBuffer, worldToDecal);

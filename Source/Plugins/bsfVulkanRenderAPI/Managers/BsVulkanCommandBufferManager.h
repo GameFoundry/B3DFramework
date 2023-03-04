@@ -67,7 +67,7 @@ namespace bs
 		class VulkanCommandBufferManager : public CommandBufferManager
 		{
 		public:
-			VulkanCommandBufferManager(const VulkanRenderAPI& rapi);
+			VulkanCommandBufferManager();
 			~VulkanCommandBufferManager();
 
 			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false) override;
@@ -103,10 +103,8 @@ namespace bs
 				VulkanTransferBuffer TransferBuffers[GQT_COUNT][BS_MAX_QUEUES_PER_TYPE];
 			};
 
-			const VulkanRenderAPI& mRapi;
-
 			PerDeviceData* mDeviceData;
-			u32 mNumDevices;
+			u32 mDeviceCount;
 		};
 
 		/**	Provides easy access to the VulkanCommandBufferManager. */

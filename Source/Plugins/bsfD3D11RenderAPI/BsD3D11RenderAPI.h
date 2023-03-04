@@ -98,7 +98,7 @@ namespace bs
 			void NotifyRenderTargetModified();
 
 			/** Creates and populates a set of render system capabilities describing which functionality is available. */
-			void InitCapabilites(IDXGIAdapter* adapter, RenderAPICapabilities& caps) const;
+			void InitCapabilites(IDXGIAdapter* adapter, GpuDeviceCapabilities& caps) const;
 
 		private:
 			IDXGIFactory1* mDXGIFactory = nullptr;

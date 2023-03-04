@@ -40,6 +40,8 @@
 
 namespace bs
 {
+	extern VkAllocationCallbacks* gVulkanAllocator;
+
 	namespace ct
 	{
 		class VulkanRenderAPI;
@@ -71,8 +73,6 @@ namespace bs
 		class VulkanQueryPool;
 		class VulkanVertexInput;
 		class VulkanSemaphore;
-
-		extern VkAllocationCallbacks* gVulkanAllocator;
 
 		/**	Vulkan specific types to track resource statistics for. */
 		enum VulkanRenderStatResourceType

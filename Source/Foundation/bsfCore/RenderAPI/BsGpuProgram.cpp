@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuProgram.h"
-#include "RenderAPI/BsRenderAPICapabilities.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsGpuParamDesc.h"

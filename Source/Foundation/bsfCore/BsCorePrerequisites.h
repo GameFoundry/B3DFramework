@@ -371,7 +371,7 @@ namespace bs
 	class GpuProgramManager;
 	class GpuProgramFactory;
 	class IndexData;
-	class RenderAPICapabilities;
+	class GpuDeviceCapabilities;
 	class RenderTargetProperties;
 	class TextureManager;
 	class Input;

@@ -43,7 +43,7 @@ namespace bs
 				u32 elementSizeBytes = mParamDesc.ElementSize * sizeof(u32);
 				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-				const bool transposeMatrices = GetRenderBackendCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
+				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);
@@ -81,7 +81,7 @@ namespace bs
 				const u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 				const u32 offset = (mParamDesc.CpuMemOffset + arrayIndex * mParamDesc.ArrayElementStride) * sizeof(u32);
 
-				const bool transposeMatrices = GetRenderBackendCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
+				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);

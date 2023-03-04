@@ -54,7 +54,7 @@ void NullRenderAPI::Initialize()
 	GpuProgramManager::Instance().AddFactory("hlsl", mNullProgramFactory);
 
 	mNumDevices = 1;
-	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<GpuDeviceCapabilities>(mNumDevices);
 	mCurrentCapabilities->DeviceName = "Null";
 	mCurrentCapabilities->RenderApiName = GetName();
 	mCurrentCapabilities->DeviceVendor = GPU_UNKNOWN;

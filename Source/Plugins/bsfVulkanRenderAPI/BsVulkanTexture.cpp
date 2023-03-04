@@ -1279,8 +1279,7 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 	mMappedMip = mipLevel;
 	mMappedLockOptions = options;
 
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanDevice& device = *rapi.GetDevice(deviceIdx);
+	VulkanDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
 
 	VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 	GpuQueueType queueType;
@@ -1465,8 +1464,7 @@ void VulkanTexture::UnlockInternal()
 		// If the caller wrote anything to the staging buffer, we need to upload it back to the main buffer
 		if(isWrite)
 		{
-			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-			VulkanDevice& device = *rapi.GetDevice(mMappedDeviceIdx);
+			VulkanDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(mMappedDeviceIdx);
 
 			VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 			GpuQueueType queueType;
@@ -1583,7 +1581,7 @@ TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(u32 mipLevel, u32 face, u
 	}
 
 	VulkanRenderAPI& vulkanBackend = GetVulkanRenderAPI();
-	VulkanDevice& device = *vulkanBackend.GetDevice(deviceIndex);
+	VulkanDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 
 	VulkanInternalCommandBuffer* vulkanCommandBufffer;
 	if(commandBuffer != nullptr)

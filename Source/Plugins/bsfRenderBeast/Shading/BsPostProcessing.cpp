@@ -1287,12 +1287,12 @@ void BokehDOFMat::Initialize()
 
 	auto* const indices = (u16*)mTileIndexBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 	for(u32 i = 0; i < kQuadsPerTile; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
-		if(rapiConventions.UvYAxis == Conventions::Axis::Up)
+		if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		{
 			indices[i * 6 + 0] = i * 4 + 2;
 			indices[i * 6 + 1] = i * 4 + 1;
@@ -2037,9 +2037,9 @@ void SSRTraceMat::Execute(const RendererView& view, GBufferTextures gbuffer, con
 	ndcToHiZUV.W = 0.5f;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
-	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ (rapiConventions.NdcYAxis == Conventions::Axis::Down))
+	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 		ndcToHiZUV.Y = -ndcToHiZUV.Y;
 
 	// Maps from [0, 1] to area of HiZ where depth is stored in
@@ -2209,7 +2209,7 @@ void TemporalFilteringMat::Execute(const RendererView& view, const SPtr<Texture>
 	Vector2 jitterUV;
 	jitterUV.X = jitter.X * 0.5f;
 
-	if((GetRenderBackendCapabilities().Conventions.UvYAxis == Conventions::Axis::Up) ^ (GetRenderBackendCapabilities().Conventions.NdcYAxis == Conventions::Axis::Down))
+	if((GetGpuDeviceCapabilities().Conventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (GetGpuDeviceCapabilities().Conventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 		jitterUV.Y = jitter.Y * 0.5f;
 	else
 		jitterUV.Y = jitter.Y * -0.5f;

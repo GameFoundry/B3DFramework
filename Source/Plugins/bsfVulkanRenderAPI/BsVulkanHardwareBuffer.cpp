@@ -331,8 +331,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 	mMappedSize = length;
 	mMappedLockOptions = options;
 
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanDevice& device = *rapi.GetDevice(deviceIdx);
+	VulkanDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
 
 	VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 	GpuQueueType queueType;
@@ -533,7 +532,7 @@ void VulkanHardwareBuffer::Unmap()
 		if(isWrite)
 		{
 			VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-			VulkanDevice& device = *rapi.GetDevice(mMappedDeviceIdx);
+			VulkanDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(mMappedDeviceIdx);
 
 			VulkanCommandBufferManager& cbManager = GetVulkanCommandBufferManager();
 			GpuQueueType queueType;

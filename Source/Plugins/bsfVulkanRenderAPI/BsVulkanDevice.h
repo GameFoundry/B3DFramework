@@ -5,9 +5,13 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsVulkanDescriptorManager.h"
+#include "RenderAPI/BsGpuDevice.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 namespace bs
 {
+	class VulkanGpuBackend;
+
 	namespace ct
 	{
 		/** @addtogroup Vulkan
@@ -23,11 +27,20 @@ namespace bs
 		};
 
 		/** Represents a single GPU device usable by Vulkan. */
-		class VulkanDevice
+		class VulkanDevice : public GpuDevice
 		{
 		public:
 			VulkanDevice(VkPhysicalDevice device, u32 deviceIdx);
 			~VulkanDevice();
+
+			bool IsInitialized() const override { return true; }
+			bool Initialize() override { return true; } // Initialized on construction
+
+			const GpuDeviceCapabilities& GetCapabilities() override { return mCapabilities; }
+			const VideoModeInfo& GetVideoModeInfo() const override { return *mVideoModeInfo; }
+
+			//SPtr<EventQuery> CreateEventQuery() override;
+			//SPtr<TimerQuery> CreateTimerQuery() override;
 
 			/** Returns an object describing the physical properties of the device. */
 			VkPhysicalDevice GetPhysical() const { return mPhysicalDevice; }
@@ -136,6 +149,10 @@ namespace bs
 
 		private:
 			friend class VulkanRenderAPI;
+			friend class bs::VulkanGpuBackend;
+
+			/** Initializes the capabilities of the device. */
+			void InitializeCapabilities();
 
 			/** Attempts to find a memory type that matches the requirements bits and the requested flags. */
 			uint32_t FindMemoryType(uint32_t requirementBits, VkMemoryPropertyFlags wantedFlags);
@@ -169,6 +186,8 @@ namespace bs
 			};
 
 			QueueInfo mQueueInfos[GQT_COUNT];
+			GpuDeviceCapabilities mCapabilities;
+			SPtr<VideoModeInfo> mVideoModeInfo;
 		};
 
 		/** @} */

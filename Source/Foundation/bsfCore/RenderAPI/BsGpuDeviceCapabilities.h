@@ -20,7 +20,7 @@ namespace bs
 	 */
 
 	/** Categories of render API capabilities. */
-	enum CapabilitiesCategory : u64
+	enum GpuCapabilityCategory : u64
 	{
 		CAPS_CATEGORY_COMMON = 0,
 		CAPS_CATEGORY_GL = 1,
@@ -30,7 +30,7 @@ namespace bs
 	};
 
 	/** Enum describing the different hardware capabilities we can check for. */
-	enum Capabilities : u64
+	enum GpuCapabilityBits : u64
 	{
 		/** Supports compressed textures in the BC formats. */
 		RSC_TEXTURE_COMPRESSION_BC = BS_CAPS_VALUE(CAPS_CATEGORY_COMMON, 0),
@@ -62,7 +62,7 @@ namespace bs
 	};
 
 	/** Conventions used for a specific render backend. */
-	struct B3D_CORE_EXPORT Conventions
+	struct B3D_CORE_EXPORT GpuBackendConventions
 	{
 		enum class Axis : u8
 		{
@@ -87,9 +87,9 @@ namespace bs
 	};
 
 	/** Holds data about render system driver version. */
-	struct B3D_CORE_EXPORT DriverVersion
+	struct B3D_CORE_EXPORT GpuDriverVersion
 	{
-		DriverVersion() = default;
+		GpuDriverVersion() = default;
 
 		/**	Returns the driver version as a single string. */
 		String ToString() const
@@ -132,20 +132,20 @@ namespace bs
 	};
 
 	/** Information about hardware (GPU) and driver capabilities, such as supported features, limits and conventions. */
-	class B3D_CORE_EXPORT RenderAPICapabilities final
+	class B3D_CORE_EXPORT GpuDeviceCapabilities final
 	{
 	public:
-		/** The identifier associated with the render API. */
-		StringID RenderApiName;
+		/** The identifier associated with the GPU backend. */
+		StringID BackendName; // TODO - Move outside of capabilities into a separate structure
 
-		/** Current version of the driver (render backend). */
-		DriverVersion DriverVersion;
+		/** Current version of the GPU driver. */
+		GpuDriverVersion DriverVersion; // TODO - Move outside of capabilities into a separate structure
 
-		/** The name of the device (GPU) as reported by the render system. */
-		String DeviceName;
+		/** The name of the GPU device as reported by the GPU backend. */
+		String DeviceName; // TODO - Move outside of capabilities into a separate structure
 
-		/** Vendor of the device (GPU). */
-		GPUVendor DeviceVendor = GPU_UNKNOWN;
+		/** Vendor of the GPU device. */
+		GPUVendor DeviceVendor = GPU_UNKNOWN; // TODO - Move outside of capabilities into a separate structure
 
 		/** The number of texture units available per stage. */
 		u16 NumTextureUnitsPerStage[GPT_COUNT]{ 0 };
@@ -190,27 +190,27 @@ namespace bs
 		float MaxDepth = 1.0f;
 
 		/** Returns various conventions expected by the render backend. */
-		Conventions Conventions;
+		GpuBackendConventions Conventions;
 
 		/** Native type used for vertex colors. */
 		VertexElementType VertexColorType = VET_COLOR_ABGR;
 
 		/**	Sets a capability flag indicating this capability is supported. */
-		void SetCapability(const Capabilities c)
+		void SetCapability(const GpuCapabilityBits c)
 		{
 			u64 index = (CAPS_CATEGORY_MASK & c) >> BS_CAPS_BITSHIFT;
 			mCapabilities[index] |= (c & ~CAPS_CATEGORY_MASK);
 		}
 
 		/**	Remove a capability flag indicating this capability is not supported (default). */
-		void UnsetCapability(const Capabilities c)
+		void UnsetCapability(const GpuCapabilityBits c)
 		{
 			u64 index = (CAPS_CATEGORY_MASK & c) >> BS_CAPS_BITSHIFT;
 			mCapabilities[index] &= (~c | CAPS_CATEGORY_MASK);
 		}
 
 		/**	Checks is the specified capability supported. */
-		bool HasCapability(const Capabilities c) const
+		bool HasCapability(const GpuCapabilityBits c) const
 		{
 			u64 index = (CAPS_CATEGORY_MASK & c) >> BS_CAPS_BITSHIFT;
 

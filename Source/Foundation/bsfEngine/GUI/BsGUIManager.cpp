@@ -1615,7 +1615,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 
 	float invViewportWidth = 1.0f / (camera.GetViewport()->GetPixelArea().Width * 0.5f);
 	float invViewportHeight = 1.0f / (camera.GetViewport()->GetPixelArea().Height * 0.5f);
-	bool viewflipYFlip = GetRenderBackendCapabilities().Conventions.NdcYAxis == Conventions::Axis::Down;
+	bool viewflipYFlip = GetGpuDeviceCapabilities().Conventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	for(auto& widget : widgetRenderData)
@@ -1801,7 +1801,7 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 		auto numQuads = (u32)widget->DrawGroups.size();
 		if(numQuads > 0)
 		{
-			bool flipUVY = GetRenderBackendCapabilities().Conventions.UvYAxis == Conventions::Axis::Up;
+			bool flipUVY = GetGpuDeviceCapabilities().Conventions.UvYAxis == GpuBackendConventions::Axis::Up;
 			float uvTop = flipUVY ? 1.0f : 0.0f;
 			float uvBottom = flipUVY ? 0.0f : 1.0f;
 

@@ -25,7 +25,7 @@ void ReflectionCubeDownsampleMat::Execute(const SPtr<Texture>& source, u32 face,
 
 	gReflectionCubeDownsampleParamDef.gCubeFace.Set(mParamBuffer, face);
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 	if(caps.HasCapability(RSC_TEXTURE_VIEWS))
 	{
 		mInputTexture.Set(source, TextureSurface(mip, 1, 0, 6));

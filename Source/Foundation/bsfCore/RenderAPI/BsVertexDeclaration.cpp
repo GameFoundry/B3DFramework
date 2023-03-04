@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsVertexDeclaration.h"
+
+#include "BsGpuDeviceCapabilities.h"
 #include "Private/RTTI/BsVertexDeclarationRTTI.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsRenderAPI.h"
@@ -115,9 +117,9 @@ unsigned short VertexElement::GetTypeCount(VertexElementType etype)
 VertexElementType VertexElement::GetBestColorVertexElementType()
 {
 	// Use the current render system to determine if possible
-	if(ct::RenderAPI::InstancePtr() != nullptr)
+	if(GpuBackend::InstancePtr() != nullptr && GpuBackend::Instance().GetDevice(0) != nullptr)
 	{
-		return ct::RenderAPI::Instance().GetCapabilities(0).VertexColorType;
+		return GpuBackend::Instance().GetDevice(0)->GetCapabilities().VertexColorType;
 	}
 	else
 	{

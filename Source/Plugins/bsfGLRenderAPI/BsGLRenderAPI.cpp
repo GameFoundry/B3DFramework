@@ -144,7 +144,7 @@ void GLRenderAPI::InitializeWithWindow(const SPtr<RenderWindow>& primaryWindow)
 	mGLSupport->InitializeExtensions();
 
 	mNumDevices = 1;
-	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<GpuDeviceCapabilities>(mNumDevices);
 	InitCapabilities(mCurrentCapabilities[0]);
 
 	InitFromCaps(mCurrentCapabilities);
@@ -2304,7 +2304,7 @@ SPtr<GLSLGpuProgram> GLRenderAPI::GetActiveProgram(GpuProgramType gptype) const
 	return nullptr;
 }
 
-void GLRenderAPI::InitFromCaps(RenderAPICapabilities* caps)
+void GLRenderAPI::InitFromCaps(GpuDeviceCapabilities* caps)
 {
 	if(caps->RenderApiName != GetName())
 	{
@@ -2363,7 +2363,7 @@ void GLRenderAPI::SwitchContext(const SPtr<GLContext>& context, const RenderWind
 	B3D_CHECK_GL_ERROR();
 }
 
-void GLRenderAPI::InitCapabilities(RenderAPICapabilities& caps) const
+void GLRenderAPI::InitCapabilities(GpuDeviceCapabilities& caps) const
 {
 	Vector<String> tokens = StringUtil::Split(mGLSupport->GetGlVersion(), ".");
 

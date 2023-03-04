@@ -97,10 +97,10 @@ namespace bs
 			GLint GetGlDrawMode() const;
 
 			/**	Creates render system capabilities that specify which features are or aren't supported. */
-			void InitCapabilities(RenderAPICapabilities& caps) const;
+			void InitCapabilities(GpuDeviceCapabilities& caps) const;
 
 			/**	Finish initialization by setting up any systems dependant on render systemcapabilities. */
-			void InitFromCaps(RenderAPICapabilities* caps);
+			void InitFromCaps(GpuDeviceCapabilities* caps);
 
 			/**
 			 * Switch the currently used OpenGL context. You will need to re-bind any previously bound values manually

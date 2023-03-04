@@ -617,17 +617,17 @@ VkSamplerMipmapMode VulkanUtility::GetMipFilter(FilterOptions filter)
 
 void VulkanUtility::GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanDevice* (&devices)[B3D_MAX_DEVICES])
 {
-	u32 numDevices = rapi.GetDeviceCount();
+	const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 
 	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
 	{
-		if(i >= numDevices)
+		if(i >= deviceCount)
 		{
 			devices[i] = nullptr;
 			continue;
 		}
 
-		VulkanDevice* device = rapi.GetDevice(i).get();
+		VulkanDevice* device = GetVulkanGpuBackend().GetVulkanDevice(i).get();
 
 		if(IsDeviceIdxSet(rapi, i, flags))
 			devices[i] = device;
@@ -687,7 +687,7 @@ VkViewport VulkanUtility::ToVulkanViewport(const Rect2I& input, float minDepth, 
 
 bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags)
 {
-	VulkanDevice* device = rapi.GetDevice(idx).get();
+	VulkanDevice* device = GetVulkanGpuBackend().GetVulkanDevice(idx).get();
 
 	return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->IsPrimary()));
 }

@@ -120,7 +120,7 @@ void D3D11RenderAPI::Initialize()
 	mMainCommandBuffer = std::static_pointer_cast<D3D11CommandBuffer>(CommandBuffer::Create(GQT_GRAPHICS));
 
 	mNumDevices = 1;
-	mCurrentCapabilities = B3DNewMultiple<RenderAPICapabilities>(mNumDevices);
+	mCurrentCapabilities = B3DNewMultiple<GpuDeviceCapabilities>(mNumDevices);
 	InitCapabilites(selectedAdapter, mCurrentCapabilities[0]);
 
 	GpuProgramManager::Instance().AddFactory("hlsl", mHLSLFactory);
@@ -1091,7 +1091,7 @@ void D3D11RenderAPI::NotifyRenderTargetModified()
 	mActiveRenderTargetModified = true;
 }
 
-void D3D11RenderAPI::InitCapabilites(IDXGIAdapter* adapter, RenderAPICapabilities& caps) const
+void D3D11RenderAPI::InitCapabilites(IDXGIAdapter* adapter, GpuDeviceCapabilities& caps) const
 {
 	THROW_IF_NOT_CORE_THREAD;
 

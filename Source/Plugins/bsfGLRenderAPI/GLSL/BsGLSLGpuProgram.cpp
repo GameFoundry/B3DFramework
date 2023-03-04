@@ -269,8 +269,7 @@ void GLSLGpuProgram::Initialize()
 
 bool GLSLGpuProgram::IsSupported() const
 {
-	RenderAPI* rapi = RenderAPI::InstancePtr();
-	const RenderAPICapabilities& caps = rapi->GetCapabilities(0);
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 
 	switch(mType)
 	{

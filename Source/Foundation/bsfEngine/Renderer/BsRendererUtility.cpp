@@ -298,10 +298,10 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 	// Note: Consider drawing the quad using a single large triangle for possibly better performance
 	// Note2: Consider setting quad size in shader instead of rebuilding the mesh every time
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 	Vector3 vertices[4];
 
-	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
+	if(rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
 	{
 		vertices[0] = Vector3(-1.0f, -1.0f, 0.0f);
 		vertices[1] = Vector3(1.0f, -1.0f, 0.0f);
@@ -317,7 +317,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 	}
 
 	Vector2 uvs[4];
-	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ flipUV)
+	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ flipUV)
 	{
 		uvs[0] = Vector2(uv.X, uv.Y + uv.Height);
 		uvs[1] = Vector2(uv.X + uv.Width, uv.Y + uv.Height);

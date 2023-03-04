@@ -60,13 +60,13 @@ void VulkanTransferBuffer::Flush(bool wait)
 	}
 }
 
-VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& rapi)
-	: mRapi(rapi), mDeviceData(nullptr), mNumDevices(rapi.GetDeviceCount())
+VulkanCommandBufferManager::VulkanCommandBufferManager()
+	: mDeviceData(nullptr), mDeviceCount(GetVulkanGpuBackend().GetDeviceCount())
 {
-	mDeviceData = B3DNewMultiple<PerDeviceData>(mNumDevices);
-	for(u32 i = 0; i < mNumDevices; i++)
+	mDeviceData = B3DNewMultiple<PerDeviceData>(mDeviceCount);
+	for(u32 i = 0; i < mDeviceCount; i++)
 	{
-		SPtr<VulkanDevice> device = rapi.GetDevice(i);
+		const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(i);
 
 		for(u32 j = 0; j < GQT_COUNT; j++)
 		{
@@ -80,12 +80,12 @@ VulkanCommandBufferManager::VulkanCommandBufferManager(const VulkanRenderAPI& ra
 
 VulkanCommandBufferManager::~VulkanCommandBufferManager()
 {
-	B3DDeleteMultiple(mDeviceData, mNumDevices);
+	B3DDeleteMultiple(mDeviceData, mDeviceCount);
 }
 
 SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
-	const u32 deviceCount = mRapi.GetDeviceCount();
+	const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 	if(deviceIdx >= deviceCount)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).", deviceIdx, deviceCount);
@@ -93,10 +93,9 @@ SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type
 		return nullptr;
 	}
 
-	SPtr<VulkanDevice> device = mRapi.GetDevice(deviceIdx);
+	const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
 
-	CommandBuffer* buffer =
-		new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
+	CommandBuffer* buffer = new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
 
 	return B3DMakeSharedFromExisting(buffer);
 }
@@ -106,7 +105,7 @@ void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, 
 	AssertIfNotVulkanSubmitThread();
 
 	bool semaphoreRequestFailed = false;
-	SPtr<VulkanDevice> device = mRapi.GetDevice(deviceIdx);
+	const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
 
 	u32 semaphoreIndex = 0;
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
@@ -153,7 +152,7 @@ void VulkanCommandBufferManager::GetSyncSemaphores(u32 deviceIdx, u32 syncMask, 
 
 VulkanTransferBuffer* VulkanCommandBufferManager::GetTransferBuffer(u32 deviceIdx, GpuQueueType type, u32 queueIdx)
 {
-	B3D_ASSERT(deviceIdx < mNumDevices);
+	B3D_ASSERT(deviceIdx < mDeviceCount);
 
 	PerDeviceData& deviceData = mDeviceData[deviceIdx];
 
@@ -164,7 +163,7 @@ VulkanTransferBuffer* VulkanCommandBufferManager::GetTransferBuffer(u32 deviceId
 
 void VulkanCommandBufferManager::FlushTransferBuffers(u32 deviceIdx)
 {
-	B3D_ASSERT(deviceIdx < mNumDevices);
+	B3D_ASSERT(deviceIdx < mDeviceCount);
 
 	PerDeviceData& deviceData = mDeviceData[deviceIdx];
 	for(u32 i = 0; i < GQT_COUNT; i++)

@@ -913,10 +913,10 @@ std::array<Vector3, 8> GetFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
 {
 	std::array<Vector3, 8> output;
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 
 	float flipY = 1.0f;
-	if(caps.Conventions.NdcYAxis == Conventions::Axis::Down)
+	if(caps.Conventions.NdcYAxis == GpuBackendConventions::Axis::Down)
 		flipY = -1.0f;
 
 	AABox frustumCube(
@@ -962,11 +962,11 @@ Matrix4 CreateMixedToShadowUvMatrix(const Matrix4& viewP, const Matrix4& viewInv
 
 	// Convert shadow clip space coordinates to UV coordinates relative to the shadow map rectangle, and normalize
 	// depth
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
 	float flipY = -1.0f;
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ (rapiConventions.NdcYAxis == Conventions::Axis::Down))
+	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 		flipY = -flipY;
 
 	Matrix4 shadowMapTfrm(
@@ -994,7 +994,7 @@ void ShadowRendering::RenderShadowOcclusion(const RendererView& view, const Rend
 
 	ProfileGPUBlock sampleBlock("Render shadow occlusion");
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 	// TODO - Calculate and set a scissor rectangle for the light
 
 	SPtr<GpuParamBlockBuffer> shadowParamBuffer = gShadowProjectParamsDef.CreateBuffer();
@@ -1466,15 +1466,15 @@ void ShadowRendering::RenderRadialShadowMap(const RendererLight& rendererLight, 
 
 	ProfileGPUBlock profileSample("Project radial light shadows");
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.ConvertProjectionMatrix(proj, proj);
 
 	// Render cubemaps upside down if necessary
 	Matrix4 adjustedProj = proj;
-	if(caps.Conventions.UvYAxis == Conventions::Axis::Up)
+	if(caps.Conventions.UvYAxis == GpuBackendConventions::Axis::Up)
 	{
 		// All big APIs use the same cubemap sampling coordinates, as well as the same face order. But APIs that
 		// use bottom-up UV coordinates require the cubemap faces to be stored upside down in order to get the same
@@ -1672,8 +1672,8 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 
 void ShadowRendering::DrawNearFarPlanes(float near, float far, bool drawNear) const
 {
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
-	float flipY = (rapiConventions.NdcYAxis == Conventions::Axis::Down) ? -1.0f : 1.0f;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	float flipY = (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down) ? -1.0f : 1.0f;
 
 	// Update VB with new vertices
 	Vector3 vertices[8] = {
@@ -1921,7 +1921,7 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 	if(light.GetType() == LightType::Spot)
 		rangeScale = 1.0f / depthRange;
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 	float deviceDepthRange = caps.MaxDepth - caps.MinDepth;
 
 	float defaultBias = 1.0f;

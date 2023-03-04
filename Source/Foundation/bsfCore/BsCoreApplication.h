@@ -10,7 +10,8 @@
 
 namespace bs
 {
-	/** @addtogroup Application-Core
+class GpuDevice;
+/** @addtogroup Application-Core
 	 *  @{
 	 */
 
@@ -103,6 +104,9 @@ namespace bs
 		/**	Returns the main window that was created on application start-up. */
 		SPtr<RenderWindow> GetPrimaryWindow() const { return mPrimaryWindow; }
 
+		/** Returns the primary GPU on which to perform rendering. */
+		SPtr<GpuDevice> GetPrimaryGpuDevice() const { return mPrimaryGpu; }
+
 		/**
 		 * Returns the id of the simulation thread.
 		 *
@@ -172,6 +176,7 @@ namespace bs
 		};
 
 		SPtr<RenderWindow> mPrimaryWindow;
+		SPtr<GpuDevice> mPrimaryGpu;
 		START_UP_DESC mStartUpDesc;
 
 		// Frame limiting

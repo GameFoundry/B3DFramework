@@ -4,6 +4,7 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanDevice.h"
+#include "BsVulkanGpuBackend.h"
 #include "BsVulkanQueue.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanRenderPass.h"
@@ -14,7 +15,7 @@ using namespace bs::ct;
 
 VulkanSurface::~VulkanSurface()
 {
-	vkDestroySurfaceKHR(GetVulkanRenderAPI().GetVkInstance(), mSurface, gVulkanAllocator);
+	vkDestroySurfaceKHR(GetVulkanGpuBackend().GetVkInstance(), mSurface, gVulkanAllocator);
 }
 
 VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain)

@@ -516,8 +516,8 @@ Vector2 CameraBase::ScreenToNdcPoint(const Vector2I& screenPoint) const
 	Vector2 ndcPoint;
 	ndcPoint.X = (float)(((screenPoint.X - viewport.X) / (float)viewport.Width) * 2.0f - 1.0f);
 
-	const Conventions& rapiConventions = ct::GetRenderBackendCapabilities().Conventions;
-	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
+	const GpuBackendConventions& rapiConventions = ct::GetGpuDeviceCapabilities().Conventions;
+	if(rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
 		ndcPoint.Y = (float)(((screenPoint.Y - viewport.Y) / (float)viewport.Height) * 2.0f - 1.0f);
 	else
 		ndcPoint.Y = (float)((1.0f - ((screenPoint.Y - viewport.Y) / (float)viewport.Height)) * 2.0f - 1.0f);
@@ -561,8 +561,8 @@ Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
 	Vector2I screenPoint;
 	screenPoint.X = Math::RoundToI32(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
 
-	const Conventions& rapiConventions = ct::GetRenderBackendCapabilities().Conventions;
-	if(rapiConventions.NdcYAxis == Conventions::Axis::Down)
+	const GpuBackendConventions& rapiConventions = ct::GetGpuDeviceCapabilities().Conventions;
+	if(rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
 		screenPoint.Y = Math::RoundToI32(viewport.Y + (ndcPoint.Y + 1.0f) * 0.5f * viewport.Height);
 	else
 		screenPoint.Y = Math::RoundToI32(viewport.Y + (1.0f - (ndcPoint.Y + 1.0f) * 0.5f) * viewport.Height);

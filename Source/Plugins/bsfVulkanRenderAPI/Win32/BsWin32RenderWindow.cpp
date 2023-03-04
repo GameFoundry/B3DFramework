@@ -12,6 +12,7 @@
 #include "BsVulkanSwapChain.h"
 #include "BsVulkanDevice.h"
 #include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuBackend.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanQueue.h"
 #include "BsVulkanSubmitThread.h"
@@ -139,7 +140,7 @@ void Win32RenderWindow::Initialize()
 	if(opt != mDesc.PlatformSpecific.end())
 		windowDesc.External = (HWND)Parseu64(opt->second);
 
-	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	u32 numOutputs = videoModeInfo.GetNumOutputs();
 	if(numOutputs > 0)
 	{
@@ -177,14 +178,14 @@ void Win32RenderWindow::Initialize()
 	surfaceCreateInfo.hwnd = mWindow->GetHWnd();
 	surfaceCreateInfo.hinstance = windowDesc.Module;
 
-	VkInstance instance = mRenderAPI.GetVkInstance();
+	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
 	VkSurfaceKHR vkSurface;
 	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	mSurface = B3DMakeShared<VulkanSurface>(vkSurface);
 
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
+	SPtr<VulkanDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
 
 	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
@@ -342,7 +343,7 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	if(mIsChild)
 		return;
 
-	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetVideoModeInfo());
+	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	u32 numOutputs = videoModeInfo.GetNumOutputs();
 	if(numOutputs == 0)
 		return;
@@ -517,7 +518,7 @@ void Win32RenderWindow::RebuildSwapChain()
 {
 	GetVulkanSubmitThread().WaitUntilIdle();
 
-	SPtr<VulkanDevice> presentDevice = mRenderAPI.GetPresentDevice();
+	SPtr<VulkanDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
 	VulkanSwapChain* oldSwapChain = mSwapChain;
 	oldSwapChain->MarkAsRetired();
 

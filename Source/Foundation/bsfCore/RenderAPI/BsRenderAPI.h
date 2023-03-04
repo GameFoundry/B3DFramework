@@ -2,14 +2,16 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 #include "BsCorePrerequisites.h"
+#include "BsGpuBackend.h"
+#include "BsGpuDevice.h"
 #include "RenderAPI/BsSamplerState.h"
 #include "CoreThread/BsCommandQueue.h"
-#include "RenderAPI/BsRenderAPICapabilities.h"
 #include "RenderAPI/BsRenderTarget.h"
 #include "RenderAPI/BsRenderTexture.h"
 #include "RenderAPI/BsRenderWindow.h"
 #include "RenderAPI/BsGpuProgram.h"
 #include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 #include "Math/BsPlane.h"
 #include "Utility/BsModule.h"
 #include "Utility/BsEvent.h"
@@ -144,9 +146,6 @@ namespace bs
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
 		static void DispatchCompute(u32 numGroupsX, u32 numGroupsY = 1, u32 numGroupsZ = 1);
-
-		/** @copydoc ct::RenderAPI::GetVideoModeInfo */
-		static const VideoModeInfo& GetVideoModeInfo();
 
 		/** @copydoc ct::RenderAPI::ConvertProjectionMatrix */
 		static void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest);
@@ -459,24 +458,8 @@ namespace bs
 			 */
 			virtual SPtr<CommandBuffer> GetMainCommandBuffer() const = 0;
 
-			/**
-			 * Gets the capabilities of a specific GPU.
-			 *
-			 * @param[in]	deviceIdx	Index of the device to get the capabilities for.
-			 *
-			 * @note	Thread safe.
-			 */
-			const RenderAPICapabilities& GetCapabilities(u32 deviceIdx) const;
-
-			/** Returns the number of devices supported by this render API. */
-			u32 GetDeviceCount() const { return mNumDevices; }
-
-			/**
-			 * Returns information about available output devices and their video modes.
-			 *
-			 * @note	Thread safe.
-			 */
-			const VideoModeInfo& GetVideoModeInfo() const { return *mVideoModeInfo; }
+			/** Returns the primary GPU on which to perform rendering. */
+			virtual SPtr<GpuDevice> GetPrimaryGpuDevice() const = 0;
 
 			/************************************************************************/
 			/* 								UTILITY METHODS                    		*/
@@ -544,16 +527,12 @@ namespace bs
 
 			SPtr<RenderTarget> mActiveRenderTarget;
 			bool mActiveRenderTargetModified = false;
-
-			RenderAPICapabilities* mCurrentCapabilities;
-			u32 mNumDevices;
-			SPtr<VideoModeInfo> mVideoModeInfo;
 		};
 
-		/** Shorthand for RenderAPI::getCapabilities(). */
-		inline const RenderAPICapabilities& GetRenderBackendCapabilities(u32 deviceIdx = 0)
+		/** Shorthand for GpuDevice::GetCapabilities(). */
+		inline const GpuDeviceCapabilities& GetGpuDeviceCapabilities(u32 deviceIndex = 0)
 		{
-			return RenderAPI::Instance().GetCapabilities(deviceIdx);
+			return GpuBackend::Instance().GetDevice(deviceIndex)->GetCapabilities();
 		}
 
 		/**	Provides easy access to render API. */

@@ -2416,7 +2416,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	srcRect.Width += (viewProps.Target.ViewRect.Width % 2) * (1.0f / viewProps.Target.ViewRect.Width);
 	srcRect.Height += (viewProps.Target.ViewRect.Height % 2) * (1.0f / viewProps.Target.ViewRect.Height);
 
-	bool noTextureViews = !GetRenderBackendCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
+	bool noTextureViews = !GetGpuDeviceCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
 
 	BuildHiZMat* material = BuildHiZMat::GetVariation(noTextureViews);
 

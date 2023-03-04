@@ -251,6 +251,9 @@ void PersistentCache::RunEviction(u64 targetSizeInMb)
 
 void PersistentCache::WriteDirtyMetaData()
 {
+	// TODO - This is corrupting the cache. Disabling for now.
+	return;
+
 	const FrameScope frameScope;
 	FrameVector<Path> entriesToUpdate;
 

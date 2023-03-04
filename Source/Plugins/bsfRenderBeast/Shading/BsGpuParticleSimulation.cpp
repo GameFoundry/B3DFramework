@@ -458,12 +458,12 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	auto* const indices = (u16*)SpriteIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
-		if(rapiConventions.UvYAxis == Conventions::Axis::Up)
+		if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		{
 			indices[i * 6 + 0] = i * 4 + 2;
 			indices[i * 6 + 1] = i * 4 + 1;
@@ -1047,10 +1047,10 @@ SPtr<GpuParamBlockBuffer> CreateGpuParticleVertexInputBuffer()
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((rapiConventions.UvYAxis == Conventions::Axis::Up) ^ (rapiConventions.NdcYAxis == Conventions::Axis::Down))
+	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 	{
 		uvToNdc.Y = -uvToNdc.Y;
 		uvToNdc.W = -uvToNdc.W;
@@ -1380,13 +1380,13 @@ GpuParticleCurves::GpuParticleCurves()
 
 	mInjectIndices = IndexBuffer::Create(injectIndexBufferDesc);
 
-	const Conventions& rapiConventions = GetRenderBackendCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
 	auto* const indices = (u16*)mInjectIndices->Lock(GBL_WRITE_ONLY_DISCARD);
 
 	// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 	// get culled.
-	if(rapiConventions.UvYAxis == Conventions::Axis::Up)
+	if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 	{
 		indices[0] = 2;
 		indices[1] = 1;

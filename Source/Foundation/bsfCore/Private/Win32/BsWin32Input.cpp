@@ -154,7 +154,7 @@ void Input::InitRawInput()
 {
 	mPlatformData = B3DNew<InputPrivateData>();
 
-	bool isHeadless = ct::GetRenderBackendCapabilities().DeviceName == "Null";
+	bool isHeadless = ct::GetGpuDeviceCapabilities().DeviceName == "Null";
 	if(isHeadless)
 		return;
 

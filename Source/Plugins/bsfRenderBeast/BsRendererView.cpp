@@ -642,7 +642,7 @@ Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
 	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
 	// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
 
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 
 	float depthRange = caps.MaxDepth - caps.MinDepth;
 	float minDepth = caps.MinDepth;
@@ -705,7 +705,7 @@ Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
 
 Vector2 RendererView::GetNdczToDeviceZ()
 {
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 
 	Vector2 ndcZToDeviceZ;
 	ndcZToDeviceZ.X = 1.0f / (caps.MaxDepth - caps.MinDepth);
@@ -808,7 +808,7 @@ void RendererView::UpdatePerViewBuffer()
 
 Vector4 RendererView::GetNdcToUv() const
 {
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 	const Rect2I& viewRect = mProperties.Target.ViewRect;
 
 	float halfWidth = viewRect.Width * 0.5f;
@@ -824,7 +824,7 @@ Vector4 RendererView::GetNdcToUv() const
 	ndcToUV.W = viewRect.Y / rtHeight + (halfHeight + caps.VerticalTexelOffset) / rtHeight;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((caps.Conventions.UvYAxis == Conventions::Axis::Up) ^ (caps.Conventions.NdcYAxis == Conventions::Axis::Down))
+	if((caps.Conventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (caps.Conventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 		ndcToUV.Y = -ndcToUV.Y;
 
 	return ndcToUV;

@@ -75,7 +75,7 @@ void RenderBeast::Destroy()
 
 void RenderBeast::InitializeCore(const LoadedRendererTextures& rendererTextures)
 {
-	const RenderAPICapabilities& caps = GetRenderBackendCapabilities();
+	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
 
 	if(
 		!caps.HasCapability(RSC_COMPUTE_PROGRAM) ||
@@ -729,7 +729,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	viewDesc.VisibleLayers = 0xFFFFFFFFFFFFFFFF;
 	viewDesc.NearPlane = 0.5f;
 	viewDesc.FarPlane = 1000.0f;
-	viewDesc.FlipView = GetRenderBackendCapabilities().Conventions.UvYAxis != Conventions::Axis::Up;
+	viewDesc.FlipView = GetGpuDeviceCapabilities().Conventions.UvYAxis != GpuBackendConventions::Axis::Up;
 
 	viewDesc.ViewOrigin = position;
 	viewDesc.ProjTransform = projTransform;

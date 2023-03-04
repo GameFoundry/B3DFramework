@@ -121,6 +121,7 @@ CoreApplication::~CoreApplication()
 
 	UnloadPlugin(mStartUpDesc.Renderer);
 
+	mPrimaryGpu = nullptr;
 	RenderAPIManager::ShutDown();
 	ct::GpuProgramManager::ShutDown();
 	GpuProgramManager::ShutDown();
@@ -181,6 +182,10 @@ void CoreApplication::OnStartUp()
 	RenderAPIManager::StartUp();
 
 	mPrimaryWindow = RenderAPIManager::Instance().Initialize(mStartUpDesc.RenderApi, mStartUpDesc.PrimaryWindowDesc);
+
+	// TODO - Currently the GpuBackend always only initializes a single device. Once we change it to support multiple, pick the device here and initialize it1
+	mPrimaryGpu = GpuBackend::Instance().GetDevice(0);
+	B3D_ENSURE(mPrimaryGpu->IsInitialized()); // Must have already been initialized by RenderAPI
 
 	ct::ParamBlockManager::StartUp();
 	Input::StartUp();

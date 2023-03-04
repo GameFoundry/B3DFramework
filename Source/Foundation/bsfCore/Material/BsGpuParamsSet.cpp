@@ -908,7 +908,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 			u8* data = params->GetData(materialParamInfo->Index);
 			if(!isAnimated)
 			{
-				const bool transposeMatrices = ct::GetRenderBackendCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
+				const bool transposeMatrices = ct::GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(transposeMatrices)
 				{
 					auto writeTransposed = [&paramInfo, &paramSize, &arraySize, &paramBlock, data](auto& temp)

@@ -4,11 +4,23 @@
 #include "BsVulkanQueue.h"
 #include "BsVulkanCommandBuffer.h"
 #include "BsVulkanUtility.h"
+#include "BsVulkanGpuBackend.h"
+#include "BsVulkanSubmitThread.h"
 #include "Managers/BsVulkanDescriptorManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+#	include "Win32/BsWin32VideoModeInfo.h"
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
+#	include "Linux/BsLinuxVideoModeInfo.h"
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
+#	include "MacOS/BsMacOSVideoModeInfo.h"
+#	include <MoltenVK/vk_mvk_moltenvk.h>
+#else
+static_assert(false, "Other platform includes go here.");
+#endif
+
 #define VMA_IMPLEMENTATION
-#include "BsVulkanSubmitThread.h"
 #include "ThirdParty/vk_mem_alloc.h"
 
 using namespace bs;
@@ -186,7 +198,7 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 	VmaAllocatorCreateInfo allocatorCI = {};
 	allocatorCI.physicalDevice = device;
 	allocatorCI.device = mLogicalDevice;
-	allocatorCI.instance = GetVulkanRenderAPI().GetVkInstance();
+	allocatorCI.instance = GetVulkanGpuBackend().GetVkInstance();
 	allocatorCI.pAllocationCallbacks = gVulkanAllocator;
 
 	if(dedicatedAllocExt && getMemReqExt)
@@ -194,12 +206,26 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice device, u32 deviceIdx)
 
 	vmaCreateAllocator(&allocatorCI, &mAllocator);
 
+	// Initialize capabilities
+	InitializeCapabilities();
+
 	// Create pools/managers
 	mCommandBufferPool = B3DNew<VulkanCommandBufferPool>(*this, VulkanThread::Render);
 
 	mQueryPool = B3DNew<VulkanQueryPool>(*this);
 	mDescriptorManager = B3DNew<VulkanDescriptorManager>(*this);
 	mResourceManager = B3DNew<VulkanResourceManager>(*this);
+
+	// Initialize video mode information
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+	mVideoModeInfo = B3DMakeShared<Win32VideoModeInfo>();
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
+	mVideoModeInfo = B3DMakeShared<LinuxVideoModeInfo>();
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
+	mVideoModeInfo = B3DMakeShared<MacOSVideoModeInfo>();
+#else
+	static_assert(false, "mVideoModeInfo needs to be created.");
+#endif
 }
 
 VulkanDevice::~VulkanDevice()
@@ -440,3 +466,103 @@ uint32_t VulkanDevice::FindMemoryType(uint32_t requirementBits, VkMemoryProperty
 
 	return -1;
 }
+
+void VulkanDevice::InitializeCapabilities()
+{
+	const VkPhysicalDeviceProperties& deviceProperties = GetDeviceProperties();
+	const VkPhysicalDeviceFeatures& deviceFeatures =GetDeviceFeatures();
+	const VkPhysicalDeviceLimits& deviceLimits = deviceProperties.limits;
+
+	GpuDriverVersion driverVersion;
+	driverVersion.Major = ((uint32_t)(deviceProperties.apiVersion) >> 22);
+	driverVersion.Minor = ((uint32_t)(deviceProperties.apiVersion) >> 12) & 0x3ff;
+	driverVersion.Release = (uint32_t)(deviceProperties.apiVersion) & 0xfff;
+	driverVersion.Build = 0;
+
+	mCapabilities.DriverVersion = driverVersion;
+	mCapabilities.DeviceName = deviceProperties.deviceName;
+
+	// Determine vendor
+	switch(deviceProperties.vendorID)
+	{
+	case 0x10DE:
+		mCapabilities.DeviceVendor = GPU_NVIDIA;
+		break;
+	case 0x1002:
+		mCapabilities.DeviceVendor = GPU_AMD;
+		break;
+	case 0x163C:
+	case 0x8086:
+		mCapabilities.DeviceVendor = GPU_INTEL;
+		break;
+	default:
+		mCapabilities.DeviceVendor = GPU_UNKNOWN;
+		break;
+	};
+
+	mCapabilities.BackendName = GetVulkanRenderAPI().GetName();
+
+	if(deviceFeatures.textureCompressionBC)
+		mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
+
+	if(deviceFeatures.textureCompressionETC2)
+		mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ETC2);
+
+	if(deviceFeatures.textureCompressionASTC_LDR)
+		mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ASTC);
+
+	mCapabilities.SetCapability(RSC_COMPUTE_PROGRAM);
+	mCapabilities.SetCapability(RSC_LOAD_STORE);
+	mCapabilities.SetCapability(RSC_LOAD_STORE_MSAA);
+	mCapabilities.SetCapability(RSC_BYTECODE_CACHING);
+	mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
+	mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
+	mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+
+	mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;
+	mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
+
+	mCapabilities.MaxBoundVertexBuffers = deviceLimits.maxVertexInputBindings;
+	mCapabilities.NumMultiRenderTargets = deviceLimits.maxColorAttachments;
+
+	mCapabilities.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+	mCapabilities.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+	mCapabilities.NumTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+
+	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_VERTEX_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+
+	mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
+	mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = deviceLimits.maxPerStageDescriptorStorageImages;
+
+	if(deviceFeatures.geometryShader)
+	{
+		mCapabilities.SetCapability(RSC_GEOMETRY_PROGRAM);
+		mCapabilities.AddShaderProfile("gs_5_0");
+		mCapabilities.NumTextureUnitsPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_GEOMETRY_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+		mCapabilities.GeometryProgramNumOutputVertices = deviceLimits.maxGeometryOutputVertices;
+	}
+
+	if(deviceFeatures.tessellationShader)
+	{
+		mCapabilities.SetCapability(RSC_TESSELLATION_PROGRAM);
+
+		mCapabilities.NumTextureUnitsPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+		mCapabilities.NumTextureUnitsPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorSampledImages;
+
+		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_HULL_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+		mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_DOMAIN_PROGRAM] = deviceLimits.maxPerStageDescriptorUniformBuffers;
+	}
+
+	mCapabilities.NumCombinedTextureUnits = mCapabilities.NumTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_HULL_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.NumTextureUnitsPerStage[GPT_COMPUTE_PROGRAM];
+
+	mCapabilities.NumCombinedParamBlockBuffers = mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_VERTEX_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_GEOMETRY_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_HULL_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_DOMAIN_PROGRAM] + mCapabilities.NumGpuParamBlockBuffersPerStage[GPT_COMPUTE_PROGRAM];
+
+	mCapabilities.NumCombinedLoadStoreTextureUnits = mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] + mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM];
+	mCapabilities.MinimumUniformBufferOffsetAlignment = (u32)deviceLimits.minUniformBufferOffsetAlignment;
+
+	mCapabilities.AddShaderProfile("glsl");
+}
+

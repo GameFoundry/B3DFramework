@@ -24,10 +24,10 @@ VulkanSubmitThread::VulkanSubmitThread()
 {
 	auto fnInitialize = [this]()
 	{
-		const u32 deviceCount = GetVulkanRenderAPI().GetDeviceCount();
+		const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 		for(u32 deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
 		{
-			const SPtr<VulkanDevice> device = GetVulkanRenderAPI().GetDevice(deviceIndex);
+			const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 			mCommandBufferPools[deviceIndex] = B3DMakeUnique<VulkanCommandBufferPool>(*device, VulkanThread::Submit);
 		}
 	};
@@ -126,10 +126,10 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [performCleanupForShutdown]()
 	{
-		const u32 deviceCount = GetVulkanRenderAPI().GetDeviceCount();
+		const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 		for(u32 deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
 		{
-			const SPtr<VulkanDevice> device = GetVulkanRenderAPI().GetDevice(deviceIndex);
+			const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 
 			TaskScheduler::Instance().AddWorker();
 			device->WaitUntilIdle();
@@ -153,10 +153,10 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 
 void VulkanSubmitThread::RefreshCommandBufferCompletionStates() const
 {
-	const u32 deviceCount = GetVulkanRenderAPI().GetDeviceCount();
+	const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 	for(u32 deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
 	{
-		const SPtr<VulkanDevice> device = GetVulkanRenderAPI().GetDevice(deviceIndex);
+		const SPtr<VulkanDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 
 		device->DoForEachQueue([](VulkanQueue& queue) { queue.RefreshCompletionStateOnRenderThread(); });
 	}

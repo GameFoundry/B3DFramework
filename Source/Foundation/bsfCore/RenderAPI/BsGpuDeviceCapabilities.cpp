@@ -1,17 +1,17 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/BsRenderAPICapabilities.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 using namespace bs;
 
-char const* const RenderAPICapabilities::kGpuVendorStrings[GPU_VENDOR_COUNT] = {
+char const* const GpuDeviceCapabilities::kGpuVendorStrings[GPU_VENDOR_COUNT] = {
 	"unknown",
 	"nvidia"
 	"amd"
 	"intel"
 };
 
-GPUVendor RenderAPICapabilities::VendorFromString(const String& vendorString)
+GPUVendor GpuDeviceCapabilities::VendorFromString(const String& vendorString)
 {
 	GPUVendor ret = GPU_UNKNOWN;
 	String cmpString = vendorString;
@@ -28,7 +28,7 @@ GPUVendor RenderAPICapabilities::VendorFromString(const String& vendorString)
 	return ret;
 }
 
-String RenderAPICapabilities::VendorToString(GPUVendor vendor)
+String GpuDeviceCapabilities::VendorToString(GPUVendor vendor)
 {
 	return kGpuVendorStrings[vendor];
 }

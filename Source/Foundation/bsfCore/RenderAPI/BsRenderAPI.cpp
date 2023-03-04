@@ -107,11 +107,6 @@ void RenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ)
 	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::DispatchCompute, ct::RenderAPI::InstancePtr(), numGroupsX, numGroupsY, numGroupsZ, nullptr));
 }
 
-const VideoModeInfo& RenderAPI::GetVideoModeInfo()
-{
-	return ct::RenderAPI::Instance().GetVideoModeInfo();
-}
-
 void RenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 {
 	ct::RenderAPI::Instance().ConvertProjectionMatrix(matrix, dest);
@@ -120,16 +115,12 @@ void RenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
 namespace bs { namespace ct
 {
 RenderAPI::RenderAPI()
-	: mCurrentCapabilities(nullptr), mNumDevices(0)
 {
 }
 
 RenderAPI::~RenderAPI()
 {
 	// Base classes need to call virtual destroy_internal method instead of a destructor
-
-	B3DDeleteMultiple(mCurrentCapabilities, mNumDevices);
-	mCurrentCapabilities = nullptr;
 }
 
 SPtr<bs::RenderWindow> RenderAPI::Initialize(const RENDER_WINDOW_DESC& primaryWindowDesc)
@@ -166,17 +157,6 @@ void RenderAPI::Destroy()
 void RenderAPI::DestroyCore()
 {
 	mActiveRenderTarget = nullptr;
-}
-
-const RenderAPICapabilities& RenderAPI::GetCapabilities(u32 deviceIdx) const
-{
-	if(deviceIdx >= mNumDevices)
-	{
-		B3D_LOG(Warning, RenderBackend, "Invalid device index provided: {0}. Valid range is: [0, {1}).", deviceIdx, mNumDevices);
-		return mCurrentCapabilities[0];
-	}
-
-	return mCurrentCapabilities[deviceIdx];
 }
 
 u32 RenderAPI::VertexCountToPrimCount(DrawOperationType type, u32 elementCount)
