@@ -85,8 +85,6 @@ void VulkanEventQuery::Begin(const SPtr<CommandBuffer>& cb)
 	internalCB->RegisterResource(mEvent, VulkanAccessFlag::Read);
 
 	internalCB->SetEvent(mEvent);
-
-	SetActive(true);
 }
 
 bool VulkanEventQuery::IsReady() const

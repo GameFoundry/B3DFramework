@@ -29,7 +29,6 @@
 #include "Profiling/BsProfilingManager.h"
 #include "Profiling/BsProfilerCPU.h"
 #include "Profiling/BsProfilerGPU.h"
-#include "Managers/BsQueryManager.h"
 #include "Threading/BsThreadPool.h"
 #include "Threading/BsTaskScheduler.h"
 #include "Profiling/BsRenderStats.h"
@@ -355,7 +354,6 @@ void CoreApplication::RunMainLoopFrame()
 
 	GetCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::FrameRenderingFinishedCallback, this), CTQF_InternalQueue);
 
-	GetCoreThread().QueueCommand(std::bind(&ct::QueryManager::UpdateInternal, ct::QueryManager::InstancePtr()), CTQF_InternalQueue);
 	GetCoreThread().QueueCommand(std::bind(&::bs::CoreApplication::EndCoreProfiling, this), CTQF_InternalQueue);
 
 	GetProfilerCPU().EndThread();

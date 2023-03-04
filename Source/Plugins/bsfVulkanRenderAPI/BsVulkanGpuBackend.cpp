@@ -446,9 +446,6 @@ void VulkanGpuBackend::OnStartUp()
 	RenderWindowManager::StartUp<VulkanRenderWindowManager>();
 	ct::RenderWindowManager::StartUp();
 
-	// Create query manager
-	QueryManager::StartUp<VulkanQueryManager>();
-
 	// Create vertex input manager
 	VulkanVertexInputManager::StartUp();
 
@@ -477,7 +474,6 @@ void VulkanGpuBackend::OnShutDown()
 
 	VulkanSubmitThread::ShutDown();
 	VulkanVertexInputManager::ShutDown();
-	QueryManager::ShutDown();
 	ct::RenderStateManager::ShutDown();
 	ct::RenderWindowManager::ShutDown();
 	RenderWindowManager::ShutDown();

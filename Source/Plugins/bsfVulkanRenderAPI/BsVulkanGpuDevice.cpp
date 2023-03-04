@@ -21,6 +21,9 @@ static_assert(false, "Other platform includes go here.");
 #endif
 
 #define VMA_IMPLEMENTATION
+#include "BsVulkanEventQuery.h"
+#include "BsVulkanOcclusionQuery.h"
+#include "BsVulkanTimerQuery.h"
 #include "ThirdParty/vk_mem_alloc.h"
 
 using namespace bs;
@@ -239,6 +242,21 @@ VulkanGpuDevice::~VulkanGpuDevice()
 
 	vmaDestroyAllocator(mAllocator);
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
+}
+
+SPtr<EventQuery> VulkanGpuDevice::CreateEventQuery()
+{
+	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanEventQuery>()) VulkanEventQuery(*this));
+}
+
+SPtr<TimerQuery> VulkanGpuDevice::CreateTimerQuery()
+{
+	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanTimerQuery>()) VulkanTimerQuery(*this));
+}
+
+SPtr<OcclusionQuery> VulkanGpuDevice::CreateOcclusionQuery(bool isBinary)
+{
+	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanOcclusionQuery>()) VulkanOcclusionQuery(*this, isBinary));
 }
 
 void VulkanGpuDevice::WaitUntilIdle() const

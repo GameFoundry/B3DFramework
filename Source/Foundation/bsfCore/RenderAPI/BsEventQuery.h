@@ -12,57 +12,18 @@ namespace bs
 		 *  @{
 		 */
 
-		/**
-		 * Represents a GPU query that gets triggered when GPU starts processing the query.
-		 *
-		 * @note
-		 * Normally GPU will have many commands in its command buffer. When begin() is called it is placed in that command
-		 * buffer. Once the buffer empties and GPU reaches the EventQuery command, the query callback is triggered.
-		 * @note
-		 * Core thread only.
-		 */
+		/** Represents a GPU query that gets signaled when GPU starts processing the query. */
 		class B3D_CORE_EXPORT EventQuery
 		{
 		public:
 			EventQuery() = default;
 			virtual ~EventQuery() = default;
 
-			/**
-			 * Starts the query.
-			 *
-			 * @param[in]	cb		Optional command buffer to queue the operation on. If not provided operation
-			 *						is executed on the main command buffer. Otherwise it is executed when
-			 *						RenderAPI::executeCommands() is called. Buffer must support graphics or compute operations.
-			 *
-			 * @note
-			 * Once the query is started you may poll isReady() method to check when query has finished, or you may hook up
-			 * an #onTriggered callback and be notified that way.
-			 */
+			/** Schedules the query for execution on the command buffer. Once the GPU reaches this point the query will be set in the signaled state. */
 			virtual void Begin(const SPtr<CommandBuffer>& cb = nullptr) = 0;
 
-			/** Check if GPU has processed the query. */
+			/**	Checks if query results are ready. */
 			virtual bool IsReady() const = 0;
-
-			/**	Triggered when GPU starts processing the query. */
-			Event<void()> OnTriggered;
-
-			/**
-			 * Creates a new query, but does not schedule it on GPU.
-			 *
-			 * @param[in]	deviceIdx	Index of the GPU device to create the query on.
-			 */
-			static SPtr<EventQuery> Create(u32 deviceIdx = 0);
-
-		protected:
-			friend class QueryManager;
-
-			/**	Returns true if the has still not been completed by the GPU. */
-			bool IsActive() const { return mActive; }
-
-			void SetActive(bool active) { mActive = active; }
-
-		protected:
-			bool mActive = false;
 		};
 
 		/** @} */

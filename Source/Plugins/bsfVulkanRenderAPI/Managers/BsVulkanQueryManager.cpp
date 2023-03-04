@@ -50,7 +50,7 @@ VulkanQueryPool::PoolInfo& VulkanQueryPool::AllocatePool(VkQueryType type)
 	queryPoolCI.pNext = nullptr;
 	queryPoolCI.flags = 0;
 	queryPoolCI.pipelineStatistics = 0;
-	queryPoolCI.queryCount = NUM_QUERIES_PER_POOL;
+	queryPoolCI.queryCount = kQueriesPerPoolCount;
 	queryPoolCI.queryType = type;
 
 	PoolInfo poolInfo;
@@ -58,12 +58,12 @@ VulkanQueryPool::PoolInfo& VulkanQueryPool::AllocatePool(VkQueryType type)
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	Vector<PoolInfo>& poolInfos = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerPools : mOcclusionPools;
-	poolInfo.StartIdx = (u32)poolInfos.size() * NUM_QUERIES_PER_POOL;
+	poolInfo.StartIdx = (u32)poolInfos.size() * kQueriesPerPoolCount;
 
 	poolInfos.push_back(poolInfo);
 
 	Vector<VulkanQuery*>& queries = type == VK_QUERY_TYPE_TIMESTAMP ? mTimerQueries : mOcclusionQueries;
-	for(u32 i = 0; i < NUM_QUERIES_PER_POOL; i++)
+	for(u32 i = 0; i < kQueriesPerPoolCount; i++)
 		queries.push_back(nullptr);
 
 	return poolInfos.back();
@@ -79,7 +79,7 @@ VulkanQuery* VulkanQueryPool::GetQuery(VkQueryType type)
 		VulkanQuery* curQuery = queries[i];
 		if(curQuery == nullptr)
 		{
-			div_t divResult = std::div(i, (i32)NUM_QUERIES_PER_POOL);
+			div_t divResult = std::div(i, (i32)kQueriesPerPoolCount);
 			u32 poolIdx = (u32)divResult.quot;
 			u32 queryIdx = (u32)divResult.rem;
 
@@ -93,7 +93,7 @@ VulkanQuery* VulkanQueryPool::GetQuery(VkQueryType type)
 	}
 
 	PoolInfo& poolInfo = AllocatePool(type);
-	u32 queryIdx = poolInfo.StartIdx % NUM_QUERIES_PER_POOL;
+	u32 queryIdx = poolInfo.StartIdx % kQueriesPerPoolCount;
 
 	VulkanQuery* query = mDevice.GetResourceManager().Create<VulkanQuery>(poolInfo.Pool, queryIdx);
 	queries[poolInfo.StartIdx] = query;
@@ -148,39 +148,6 @@ void VulkanQueryPool::ReleaseQuery(VulkanQuery* query)
 	Lock lock(mMutex);
 
 	query->mFree = true;
-}
-
-VulkanQueryManager::VulkanQueryManager()
-{}
-
-SPtr<EventQuery> VulkanQueryManager::CreateEventQuery(u32 deviceIdx) const
-{
-	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-
-	SPtr<EventQuery> query = SPtr<VulkanEventQuery>(B3DNew<VulkanEventQuery>(*device), &QueryManager::DeleteEventQuery, StdAlloc<VulkanEventQuery>());
-	mEventQueries.push_back(query.get());
-
-	return query;
-}
-
-SPtr<TimerQuery> VulkanQueryManager::CreateTimerQuery(u32 deviceIdx) const
-{
-	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-
-	SPtr<TimerQuery> query = SPtr<VulkanTimerQuery>(B3DNew<VulkanTimerQuery>(*device), &QueryManager::DeleteTimerQuery, StdAlloc<VulkanTimerQuery>());
-	mTimerQueries.push_back(query.get());
-
-	return query;
-}
-
-SPtr<OcclusionQuery> VulkanQueryManager::CreateOcclusionQuery(bool binary, u32 deviceIdx) const
-{
-	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-
-	SPtr<OcclusionQuery> query = SPtr<VulkanOcclusionQuery>(B3DNew<VulkanOcclusionQuery>(*device, binary), &QueryManager::DeleteOcclusionQuery, StdAlloc<VulkanOcclusionQuery>());
-	mOcclusionQueries.push_back(query.get());
-
-	return query;
 }
 
 VulkanQuery::VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx)

@@ -5,6 +5,7 @@
 #include "RenderAPI/BsTimerQuery.h"
 #include "RenderAPI/BsOcclusionQuery.h"
 #include "Error/BsException.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 using namespace bs;
 
@@ -331,7 +332,11 @@ SPtr<ct::TimerQuery> ProfilerGPU::GetTimerQuery() const
 		return timerQuery;
 	}
 
-	return ct::TimerQuery::Create();
+	const SPtr<GpuDevice>& device = ct::RenderAPI::Instance().GetPrimaryGpuDevice();
+	if(device == nullptr)
+		return nullptr;
+
+	return device->CreateTimerQuery();
 }
 
 SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
@@ -344,7 +349,11 @@ SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 		return occlusionQuery;
 	}
 
-	return ct::OcclusionQuery::Create(false);
+	const SPtr<GpuDevice>& device = ct::RenderAPI::Instance().GetPrimaryGpuDevice();
+	if(device == nullptr)
+		return nullptr;
+
+	return device->CreateOcclusionQuery(false);
 }
 
 namespace bs

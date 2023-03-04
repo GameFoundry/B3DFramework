@@ -63,8 +63,6 @@ void VulkanTimerQuery::Begin(const SPtr<CommandBuffer>& cb)
 	internalCB->RegisterQuery(this);
 
 	mQueries.push_back(std::make_pair(beginQuery, nullptr));
-
-	SetActive(true);
 }
 
 void VulkanTimerQuery::End(const SPtr<CommandBuffer>& cb)

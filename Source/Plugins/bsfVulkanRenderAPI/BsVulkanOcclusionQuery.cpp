@@ -49,8 +49,6 @@ void VulkanOcclusionQuery::Begin(const SPtr<CommandBuffer>& cb)
 	VulkanInternalCommandBuffer* internalCB = vulkanCB->GetInternal();
 	mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
 	internalCB->RegisterQuery(this);
-
-	SetActive(true);
 }
 
 void VulkanOcclusionQuery::End(const SPtr<CommandBuffer>& cb)

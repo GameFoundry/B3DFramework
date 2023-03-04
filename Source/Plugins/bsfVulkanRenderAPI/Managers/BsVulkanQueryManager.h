@@ -4,7 +4,6 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanResource.h"
-#include "Managers/BsQueryManager.h"
 
 namespace bs
 {
@@ -71,7 +70,7 @@ namespace bs
 			/** Creates a new Vulkan query pool object. */
 			PoolInfo& AllocatePool(VkQueryType type);
 
-			static const u32 NUM_QUERIES_PER_POOL = 16;
+			static constexpr u32 kQueriesPerPoolCount = 16;
 
 			VulkanGpuDevice& mDevice;
 
@@ -82,17 +81,6 @@ namespace bs
 			Vector<PoolInfo> mOcclusionPools;
 
 			Mutex mMutex;
-		};
-
-		/**	Handles creation of Vulkan queries. */
-		class VulkanQueryManager : public QueryManager
-		{
-		public:
-			VulkanQueryManager();
-
-			SPtr<EventQuery> CreateEventQuery(u32 deviceIdx = 0) const override;
-			SPtr<TimerQuery> CreateTimerQuery(u32 deviceIdx = 0) const override;
-			SPtr<OcclusionQuery> CreateOcclusionQuery(bool binary, u32 deviceIdx = 0) const override;
 		};
 
 		/** Wrapper around a single query in a Vulkan query pool object. */

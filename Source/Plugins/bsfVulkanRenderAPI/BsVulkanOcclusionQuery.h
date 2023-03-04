@@ -35,8 +35,6 @@ namespace bs
 			void Interrupt(VulkanInternalCommandBuffer& cb);
 
 		private:
-			friend class QueryManager;
-
 			VulkanGpuDevice& mDevice;
 			Vector<VulkanQuery*> mQueries;
 

@@ -39,8 +39,9 @@ namespace bs
 			const GpuDeviceCapabilities& GetCapabilities() override { return mCapabilities; }
 			const VideoModeInfo& GetVideoModeInfo() const override { return *mVideoModeInfo; }
 
-			//SPtr<EventQuery> CreateEventQuery() override;
-			//SPtr<TimerQuery> CreateTimerQuery() override;
+			SPtr<EventQuery> CreateEventQuery() override;
+			SPtr<TimerQuery> CreateTimerQuery() override;
+			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
 
 			/** Returns an object describing the physical properties of the device. */
 			VkPhysicalDevice GetPhysical() const { return mPhysicalDevice; }
