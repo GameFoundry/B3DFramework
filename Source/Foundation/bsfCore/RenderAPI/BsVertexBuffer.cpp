@@ -52,7 +52,7 @@ SPtr<VertexBuffer> VertexBuffer::Create(const VertexBufferCreateInformation& des
 namespace bs { namespace ct
 {
 VertexBuffer::VertexBuffer(const VertexBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
-	: HardwareBuffer(HardwareBufferType::Vertex, desc.VertexSize * desc.VertexCount, desc.Flags, deviceMask), mProperties(desc.VertexCount, desc.VertexSize)
+	: GpuBuffer(GpuBufferType::Vertex, desc.VertexSize * desc.VertexCount, desc.Flags, deviceMask), mProperties(desc.VertexCount, desc.VertexSize)
 {
 #if B3D_DEBUG
 	CheckValidDesc(desc);
@@ -107,13 +107,13 @@ void VertexBuffer::WriteData(u32 offset, u32 length, const void* source, BufferW
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResWrite, RenderStatObject_VertexBuffer);
 }
 
-void VertexBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
+void VertexBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
 {
 	auto& srcVertexBuffer = static_cast<VertexBuffer&>(srcBuffer);
 	mBuffer->CopyData(*srcVertexBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 }
 
-SPtr<GenericGpuBuffer> VertexBuffer::GetLoadStore(GpuBufferType type, GpuBufferFormat format, u32 elementSize)
+SPtr<GenericGpuBuffer> VertexBuffer::GetLoadStore(GenericGpuBufferType type, GpuBufferFormat format, u32 elementSize)
 {
 	if(!mBufferFlags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
 		return nullptr;

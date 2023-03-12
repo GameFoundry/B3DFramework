@@ -9,7 +9,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteBuffer(HardwareBuffer* buffer)
+static void DeleteBuffer(GpuBuffer* buffer)
 {
 	B3DPoolDelete(static_cast<GLHardwareBuffer*>(buffer));
 }

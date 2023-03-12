@@ -1,11 +1,11 @@
 //************************************ bs::framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "Managers/BsHardwareBufferManager.h"
 
 using namespace bs;
 
-HardwareBuffer::HardwareBuffer(HardwareBufferType type, u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask)
+GpuBuffer::GpuBuffer(GpuBufferType type, u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask)
 	: mType(type), mSize(size), mBufferFlags(flags), mDeviceMask(deviceMask)
 {
 	if(flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
@@ -14,7 +14,7 @@ HardwareBuffer::HardwareBuffer(HardwareBufferType type, u32 size, GpuBufferFlags
 	}
 }
 
-HardwareBuffer::~HardwareBuffer()
+GpuBuffer::~GpuBuffer()
 {
 	if(mCache != nullptr)
 	{
@@ -23,7 +23,7 @@ HardwareBuffer::~HardwareBuffer()
 }
 
 
-void HardwareBuffer::WriteToCache(u32 offset, u32 length, const void* source)
+void GpuBuffer::WriteToCache(u32 offset, u32 length, const void* source)
 {
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;
@@ -35,7 +35,7 @@ void HardwareBuffer::WriteToCache(u32 offset, u32 length, const void* source)
 	mIsCacheDirty = true;
 }
 
-void HardwareBuffer::ZeroOutCache(u32 offset, u32 length)
+void GpuBuffer::ZeroOutCache(u32 offset, u32 length)
 {
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;
@@ -47,7 +47,7 @@ void HardwareBuffer::ZeroOutCache(u32 offset, u32 length)
 	mIsCacheDirty = true;
 }
 
-void HardwareBuffer::FlushCache()
+void GpuBuffer::FlushCache()
 {
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;

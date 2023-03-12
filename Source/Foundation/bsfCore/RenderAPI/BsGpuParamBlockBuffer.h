@@ -3,12 +3,12 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "BsHardwareBuffer.h"
+#include "BsGpuBuffer.h"
 #include "CoreThread/BsCoreObject.h"
 
 namespace bs
 {
-	class HardwareBuffer;
+	class GpuBuffer;
 
 	/** @addtogroup RenderAPI
 	 *  @{
@@ -87,7 +87,7 @@ namespace bs
 		{
 		public:
 			GpuParamBlockBuffer(u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask);
-			GpuParamBlockBuffer(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size);
+			GpuParamBlockBuffer(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size);
 			virtual ~GpuParamBlockBuffer();
 
 			/**
@@ -155,14 +155,14 @@ namespace bs
 			 * @param	size				Size of the parameter buffer in bytes.
 			 * @return						Newly created buffer.
 			 */
-			static SPtr<GpuParamBlockBuffer> Create(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size);
+			static SPtr<GpuParamBlockBuffer> Create(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size);
 		protected:
 			friend class HardwareBufferManager;
 
 			void SyncToCore(const CoreSyncData& data) override;
 			void Initialize() override;
 
-			SPtr<HardwareBuffer> mBuffer;
+			SPtr<GpuBuffer> mBuffer;
 
 			GpuBufferFlags mBufferFlags;
 			GpuDeviceFlags mDeviceMask = GDF_DEFAULT;

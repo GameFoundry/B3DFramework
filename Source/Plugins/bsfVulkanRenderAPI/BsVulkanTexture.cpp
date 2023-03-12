@@ -6,7 +6,7 @@
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanUtility.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "BsVulkanSubmitThread.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Profiling/BsRenderStats.h"

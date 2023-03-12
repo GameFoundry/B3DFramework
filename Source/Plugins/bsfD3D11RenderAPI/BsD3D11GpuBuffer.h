@@ -56,7 +56,7 @@ namespace bs
 			friend class D3D11HardwareBufferManager;
 
 			D3D11GpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask);
-			D3D11GpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer);
+			D3D11GpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer);
 
 			/**	Destroys all buffer views regardless if their reference count is zero or not. */
 			void ClearBufferViews();

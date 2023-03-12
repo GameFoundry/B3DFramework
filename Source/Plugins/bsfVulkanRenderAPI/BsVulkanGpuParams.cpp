@@ -7,7 +7,7 @@
 #include "BsVulkanGpuParamBlockBuffer.h"
 #include "BsVulkanGenericGpuBuffer.h"
 #include "BsVulkanTexture.h"
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "BsVulkanDescriptorSet.h"
 #include "BsVulkanDescriptorLayout.h"
 #include "BsVulkanSamplerState.h"
@@ -295,14 +295,14 @@ void VulkanGpuParams::Initialize()
 
 								if(isParameterBlock)
 								{
-									VulkanHardwareBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
+									VulkanGpuBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
 									bufferInfos[arrayIndex].buffer = buffer->GetResource(deviceIndex)->GetHandle();
 
 									mPerDeviceData[deviceIndex].UniformBuffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;
 								}
 								else
 								{
-									VulkanHardwareBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
+									VulkanGpuBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
 									bufferInfos[arrayIndex].buffer = buffer->GetResource(deviceIndex)->GetHandle();
 
 									mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;

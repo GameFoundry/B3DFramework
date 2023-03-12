@@ -152,7 +152,7 @@ SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(u32 s
 	return paramBlockPtr;
 }
 
-SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(const SPtr<HardwareBuffer>& owner, u32 offset, u32 size)
+SPtr<GpuParamBlockBuffer> HardwareBufferManager::CreateGpuParamBlockBuffer(const SPtr<GpuBuffer>& owner, u32 offset, u32 size)
 {
 	SPtr<GpuParamBlockBuffer> paramBlockPtr = CreateGpuParamBlockBufferInternal(owner, offset, size);
 	paramBlockPtr->Initialize();
@@ -168,7 +168,7 @@ SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBu
 	return gbuf;
 }
 
-SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 {
 	SPtr<GenericGpuBuffer> gbuf = CreateGpuBufferInternal(desc, std::move(underlyingBuffer));
 	gbuf->Initialize();

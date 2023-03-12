@@ -11,7 +11,7 @@ using namespace bs;
 using namespace bs::ct;
 
 D3D11HardwareBuffer::D3D11HardwareBuffer(BufferType btype, GpuBufferUsage usage, u32 elementCount, u32 elementSize, D3D11Device& device, bool useSystemMem, bool streamOut)
-	: HardwareBuffer(elementCount * elementSize, usage, GDF_DEFAULT)
+	: GpuBuffer(elementCount * elementSize, usage, GDF_DEFAULT)
 	, mBufferType(btype)
 	, mElementCount(elementCount)
 	, mElementSize(elementSize)
@@ -253,9 +253,9 @@ void D3D11HardwareBuffer::Unmap()
 	}
 }
 
-void D3D11HardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
+void D3D11HardwareBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
 {
-	auto executeRef = [this](HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length)
+	auto executeRef = [this](GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length)
 	{
 		// If we're copying same-size buffers in their entirety
 		if(srcOffset == 0 && dstOffset == 0 &&

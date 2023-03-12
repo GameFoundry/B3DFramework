@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGpuParamBlockBuffer.h"
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
 using namespace bs;
@@ -11,11 +11,11 @@ VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(u32 size, GpuBufferFlags fl
 	: GpuParamBlockBuffer(size, flags, deviceMask)
 {}
 
-VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size)
+VulkanGpuParamBlockBuffer::VulkanGpuParamBlockBuffer(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size)
 	: GpuParamBlockBuffer(backingMemory, offset, size)
 {}
 
 VulkanBuffer* VulkanGpuParamBlockBuffer::GetResource(u32 deviceIdx) const
 {
-	return static_cast<VulkanHardwareBuffer*>(mBuffer.get())->GetResource(deviceIdx);
+	return static_cast<VulkanGpuBuffer*>(mBuffer.get())->GetResource(deviceIdx);
 }

@@ -9,7 +9,7 @@
 #include "BsVulkanTexture.h"
 #include "BsVulkanIndexBuffer.h"
 #include "BsVulkanVertexBuffer.h"
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "BsVulkanFramebuffer.h"
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanEventQuery.h"

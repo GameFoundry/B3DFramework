@@ -222,7 +222,7 @@ namespace bs
 		private:
 			friend class GpuResourcePool;
 
-			GpuBufferType type;
+			GenericGpuBufferType type;
 			GpuBufferFormat format;
 			GpuBufferFlags flags;
 			u32 numElements;

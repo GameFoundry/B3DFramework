@@ -10,9 +10,9 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Determines in what way will a HardwareBuffer be used in. */
-	enum class HardwareBufferType
-	{
+	/**	Determines in what way will a GpuBuffer be used in. */
+	enum class GpuBufferType
+{
 		Vertex, /**< Contains mesh vertices and associated properties. */
 		Index, /**< Contains mesh indices that determine which vertices form a triangle. */
 		Uniform, /**< Contains read-only GPU program parameters. */
@@ -59,17 +59,11 @@ namespace bs
 	using GpuBufferFlags = Flags<GpuBufferFlag>;
 	B3D_FLAGS_OPERATORS(GpuBufferFlag);
 
-	/**
-	 * Abstract class defining common features of hardware buffers. Hardware buffers usually represent areas of memory the
-	 * GPU or the driver can access directly.
-	 *
-	 * @note	Core thread only.
-	 * @note	Be aware that reading from non-system memory hardware buffers is usually slow and should be avoided.
-	 */
-	class B3D_CORE_EXPORT HardwareBuffer
+	/** Defines a buffer that can be used for operations on the GPU. */
+	class B3D_CORE_EXPORT GpuBuffer
 	{
 	public:
-		virtual ~HardwareBuffer();
+		virtual ~GpuBuffer();
 
 		/** Assigns an name to the buffer, primarily used for easier debugging. */
 		virtual void SetName(const StringView& name) { mName = name; }
@@ -157,7 +151,7 @@ namespace bs
 		 * @param[in]	commandBuffer		Command buffer to queue the copy operation on. If null, main command buffer is
 		 *									used.
 		 */
-		virtual void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) = 0;
+		virtual void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) = 0;
 
 		/**
 		 * Copy data from the provided buffer into this buffer. If buffers are not the same size, smaller size will be used.
@@ -165,7 +159,7 @@ namespace bs
 		 * @param	source			Hardware buffer to copy from.
 		 * @param	commandBuffer	Command buffer to queue the copy operation on. If null, main command buffer is used.
 		 */
-		virtual void CopyData(HardwareBuffer& source, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr)
+		virtual void CopyData(GpuBuffer& source, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr)
 		{
 			const u32 sizeToCopy = std::min(GetSize(), source.GetSize());
 			CopyData(source, 0, 0, sizeToCopy, true, commandBuffer);
@@ -201,12 +195,12 @@ namespace bs
 		/**
 		 * Constructs a new buffer.
 		 *
-		 * @param	type			Determines how will the buffer be used.
+		 * @param	type			Determines in which portions of the GPU pipeline can this buffer be bound.
 		 * @param	size			Size of the buffer, in bytes.
 		 * @param	flags			Flags that control the behavior of the buffer.
 		 * @param	deviceMask		Mask that determines on which GPU devices should the object be created on.
 		 */
-		HardwareBuffer(HardwareBufferType type, u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask);
+		GpuBuffer(GpuBufferType type, u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask);
 
 		/** @copydoc Lock */
 		virtual void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) { return nullptr; }
@@ -215,7 +209,7 @@ namespace bs
 		virtual void Unmap() {}
 
 	protected:
-		HardwareBufferType mType = HardwareBufferType::Generic;
+		GpuBufferType mType = GpuBufferType::Generic;
 		String mName;
 		u32 mSize;
 		GpuBufferFlags mBufferFlags;

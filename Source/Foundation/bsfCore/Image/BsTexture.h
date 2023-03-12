@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Resources/BsResource.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsTextureView.h"
 #include "Math/BsVector3I.h"

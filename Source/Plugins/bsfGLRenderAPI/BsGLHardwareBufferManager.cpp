@@ -4,7 +4,7 @@
 #include "BsGLVertexBuffer.h"
 #include "BsGLIndexBuffer.h"
 #include "BsGLGpuBuffer.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "BsGLGpuParamBlockBuffer.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsRenderAPICapabilities.h"
@@ -49,7 +49,7 @@ SPtr<ct::GenericGpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(cons
 	return bufferPtr;
 }
 
-SPtr<ct::GenericGpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+SPtr<ct::GenericGpuBuffer> GLHardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 {
 	GLGpuBuffer* buffer = new(B3DAllocate<GLGpuBuffer>()) GLGpuBuffer(desc, std::move(underlyingBuffer));
 

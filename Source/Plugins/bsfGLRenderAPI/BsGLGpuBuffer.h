@@ -36,7 +36,7 @@ namespace bs
 			friend class GLHardwareBufferManager;
 
 			GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask);
-			GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer);
+			GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer);
 
 			void Initialize() override;
 

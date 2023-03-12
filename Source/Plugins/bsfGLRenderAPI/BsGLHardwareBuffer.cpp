@@ -9,7 +9,7 @@ using namespace bs;
 using namespace bs::ct;
 
 GLHardwareBuffer::GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage)
-	: HardwareBuffer(size, usage, GDF_DEFAULT), mTarget(target)
+	: GpuBuffer(size, usage, GDF_DEFAULT), mTarget(target)
 {
 	glGenBuffers(1, &mBufferId);
 	B3D_CHECK_GL_ERROR();
@@ -121,12 +121,12 @@ void GLHardwareBuffer::WriteData(u32 offset, u32 length, const void* source, Buf
 	Unlock();
 }
 
-void GLHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
+void GLHardwareBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<ct::CommandBuffer>& commandBuffer)
 {
 	if(mBufferId == 0)
 		return;
 
-	auto executeRef = [this](HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length)
+	auto executeRef = [this](GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length)
 	{
 		GLHardwareBuffer& glSrcBuffer = static_cast<GLHardwareBuffer&>(srcBuffer);
 

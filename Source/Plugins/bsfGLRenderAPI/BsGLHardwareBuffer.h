@@ -16,8 +16,8 @@ namespace bs
 		 */
 
 		/** Wrapper around a generic OpenGL buffer. */
-		class GLHardwareBuffer : public HardwareBuffer
-		{
+		class GLHardwareBuffer : public GpuBuffer
+	{
 		public:
 			/** Creates and initializes the buffer object. */
 			GLHardwareBuffer(GLenum target, u32 size, GpuBufferUsage usage);
@@ -25,7 +25,7 @@ namespace bs
 
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<ct::CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**	Returns internal OpenGL buffer ID. */
 			GLuint GetGlBufferId() const { return mBufferId; }

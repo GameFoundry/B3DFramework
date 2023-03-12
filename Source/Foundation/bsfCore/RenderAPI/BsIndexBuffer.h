@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "CoreThread/BsCoreObject.h"
 
 namespace bs
@@ -83,8 +83,8 @@ namespace bs
 		 */
 
 		/** Core thread specific implementation of an bs::IndexBuffer. */
-		class B3D_CORE_EXPORT IndexBuffer : public CoreObject, public HardwareBuffer
-		{
+		class B3D_CORE_EXPORT IndexBuffer : public CoreObject, public GpuBuffer
+	{
 		public:
 			IndexBuffer(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 			virtual ~IndexBuffer();
@@ -94,7 +94,7 @@ namespace bs
 
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Returns a view of this buffer that can be used for load-store operations. Buffer must have been created with
@@ -112,7 +112,7 @@ namespace bs
 			 *								can happen if the buffer hasn't been created with GBU_LOADSTORE usage or if the
 			 *								element size doesn't divide the current buffer size.
 			 */
-			SPtr<GenericGpuBuffer> GetLoadStore(GpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
+			SPtr<GenericGpuBuffer> GetLoadStore(GenericGpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
 
 			/** @copydoc HardwareBufferManager::CreateIndexBuffer */
 			static SPtr<IndexBuffer> Create(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
@@ -126,11 +126,11 @@ namespace bs
 
 			IndexBufferProperties mProperties;
 
-			HardwareBuffer* mBuffer = nullptr;
-			SPtr<HardwareBuffer> mSharedBuffer;
+			GpuBuffer* mBuffer = nullptr;
+			SPtr<GpuBuffer> mSharedBuffer;
 			Vector<SPtr<GenericGpuBuffer>> mLoadStoreViews;
 
-			typedef void (*Deleter)(HardwareBuffer*);
+			typedef void (*Deleter)(GpuBuffer*);
 			Deleter mBufferDeleter = nullptr;
 		};
 

@@ -51,7 +51,7 @@ SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(c
 	return bufferPtr;
 }
 
-SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 {
 	D3D11GpuBuffer* buffer = new(B3DAllocate<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, std::move(underlyingBuffer));
 

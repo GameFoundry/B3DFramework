@@ -7,7 +7,7 @@
 #include "String/BsStringID.h"
 #include "Resources/BsResourceMetaData.h"
 #include "Material/BsTechnique.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsSamplerState.h"
 
 namespace bs

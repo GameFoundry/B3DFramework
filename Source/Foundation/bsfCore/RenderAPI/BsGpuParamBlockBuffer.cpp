@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuParamBlockBuffer.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
 
@@ -108,7 +108,7 @@ GpuParamBlockBuffer::GpuParamBlockBuffer(u32 size, GpuBufferFlags flags, GpuDevi
 	}
 }
 
-GpuParamBlockBuffer::GpuParamBlockBuffer(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size)
+GpuParamBlockBuffer::GpuParamBlockBuffer(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size)
 	: mBufferFlags(GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU), mSize(size), mOffset(offset), mBuffer(backingMemory), mCachedData(nullptr), mGPUBufferDirty(false), mDeviceMask(GDF_DEFAULT)
 {
 }
@@ -127,7 +127,7 @@ void GpuParamBlockBuffer::Initialize()
 
 	if(mBuffer == nullptr)
 	{
-		mBuffer = HardwareBufferManager::Instance().CreateHardwareBuffer(HardwareBufferType::Uniform, mSize, mBufferFlags, mDeviceMask);
+		mBuffer = HardwareBufferManager::Instance().CreateHardwareBuffer(GpuBufferType::Uniform, mSize, mBufferFlags, mDeviceMask);
 	}
 
 	CoreObject::Initialize();
@@ -229,7 +229,7 @@ SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(u32 size, GpuBufferFlags f
 	return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(size, flags, deviceMask);
 }
 
-SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size)
+SPtr<GpuParamBlockBuffer> GpuParamBlockBuffer::Create(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size)
 {
 	return HardwareBufferManager::Instance().CreateGpuParamBlockBuffer(backingMemory, offset, size);
 }

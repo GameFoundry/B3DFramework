@@ -495,7 +495,7 @@ namespace bs
 			friend class VulkanCommandBufferPool;
 			friend class VulkanCommandBuffer;
 			friend class VulkanQueue;
-			friend class VulkanHardwareBuffer;
+			friend class VulkanGpuBuffer;
 			friend class VulkanTexture;
 
 			/** Contains information about a single Vulkan resource bound/used on this command buffer. */

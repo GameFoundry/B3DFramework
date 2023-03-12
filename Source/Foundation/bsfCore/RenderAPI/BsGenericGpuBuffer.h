@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "CoreThread/BsCoreObject.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 
 namespace bs
 {
@@ -25,7 +25,7 @@ namespace bs
 		u32 ElementSize = 0;
 
 		/** Type of the buffer. Determines how is buffer seen by the GPU program and in what ways can it be used. */
-		GpuBufferType Type = GBT_STANDARD;
+		GenericGpuBufferType Type = GBT_STANDARD;
 
 		/** Format if the data in the buffer. Only relevant for standard buffers, must be BF_UNKNOWN otherwise. */
 		GpuBufferFormat Format = BF_32X4F;
@@ -47,7 +47,7 @@ namespace bs
 		 * Returns the type of the GPU buffer. Type determines which kind of views (if any) can be created for the buffer,
 		 * and how is data read or modified in it.
 		 */
-		GpuBufferType GetType() const { return mDesc.Type; }
+		GenericGpuBufferType GetType() const { return mDesc.Type; }
 
 		/** Returns format used by the buffer. Only relevant for standard buffers. */
 		GpuBufferFormat GetFormat() const { return mDesc.Format; }
@@ -113,8 +113,8 @@ namespace bs
 		 *
 		 * @note	Core thread only.
 		 */
-		class B3D_CORE_EXPORT GenericGpuBuffer : public CoreObject, public HardwareBuffer
-		{
+		class B3D_CORE_EXPORT GenericGpuBuffer : public CoreObject, public GpuBuffer
+	{
 		public:
 			virtual ~GenericGpuBuffer();
 
@@ -123,7 +123,7 @@ namespace bs
 
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Returns a view of this buffer with specified format/type.
@@ -138,7 +138,7 @@ namespace bs
 			 *								deduced from format).
 			 * @return						New view of the buffer, using the provided format and type.
 			 */
-			SPtr<GenericGpuBuffer> GetView(GpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
+			SPtr<GenericGpuBuffer> GetView(GenericGpuBufferType type, GpuBufferFormat format, u32 elementSize = 0);
 
 			/** @copydoc bs::HardwareBufferManager::CreateGpuBuffer */
 			static SPtr<GenericGpuBuffer> Create(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
@@ -148,13 +148,13 @@ namespace bs
 			 * will be used for all internal operations instead. Information provided in @p desc (such as element size and
 			 * count) must match the provided @p underlyingBuffer.
 			 */
-			static SPtr<GenericGpuBuffer> Create(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer);
+			static SPtr<GenericGpuBuffer> Create(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer);
 
 		protected:
 			friend class HardwareBufferManager;
 
 			GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask);
-			GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer);
+			GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer);
 
 			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void Unmap() override;
@@ -162,11 +162,11 @@ namespace bs
 
 			GenericGpuBufferProperties mProperties;
 
-			HardwareBuffer* mBuffer = nullptr;
-			SPtr<HardwareBuffer> mSharedBuffer;
+			GpuBuffer* mBuffer = nullptr;
+			SPtr<GpuBuffer> mSharedBuffer;
 			bool mIsExternalBuffer = false;
 
-			typedef void (*Deleter)(HardwareBuffer*);
+			typedef void (*Deleter)(GpuBuffer*);
 			Deleter mBufferDeleter = nullptr;
 		};
 

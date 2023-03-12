@@ -4,7 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanResource.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "Allocators/BsPoolAlloc.h"
 
 namespace bs
@@ -123,16 +123,16 @@ namespace bs
 		};
 
 		/**	Class containing common functionality for all Vulkan hardware buffers. */
-		class VulkanHardwareBuffer : public HardwareBuffer
+		class VulkanGpuBuffer : public GpuBuffer
 		{
 		public:
-			VulkanHardwareBuffer(HardwareBufferType type, GpuBufferFlags flags, u32 size, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-			~VulkanHardwareBuffer();
+			VulkanGpuBuffer(GpuBufferType type, GpuBufferFlags flags, u32 size, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			~VulkanGpuBuffer();
 
 			void SetName(const StringView& name) override;
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**
 			 * Gets the resource wrapping the buffer object, on the specified device. If hardware buffer device mask doesn't
@@ -170,5 +170,5 @@ namespace bs
 
 namespace bs
 {
-	B3D_IMPLEMENT_GLOBAL_POOL(ct::VulkanHardwareBuffer, 32)
+	B3D_IMPLEMENT_GLOBAL_POOL(ct::VulkanGpuBuffer, 32)
 }

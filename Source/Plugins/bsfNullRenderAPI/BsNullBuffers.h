@@ -24,18 +24,18 @@ namespace bs
 			SPtr<IndexBuffer> CreateIndexBufferInternal(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<GpuParamBlockBuffer> CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer) override;
+			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer) override;
 		};
 
 		/**	Class containing common functionality for all Null hardware buffers. */
-		class NullHardwareBuffer final : public HardwareBuffer
+		class NullHardwareBuffer final : public GpuBuffer
 		{
 		public:
 			NullHardwareBuffer(GpuBufferUsage usage, u32 elementCount, u32 elementSize);
 
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override {}
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override {}
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override {}
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override {}
 
 		protected:
 			void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) override;
@@ -49,7 +49,7 @@ namespace bs
 		{
 		public:
 			NullGpuBuffer(const GpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask);
-			NullGpuBuffer(const GpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer);
+			NullGpuBuffer(const GpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer);
 
 		protected:
 			friend class NullHardwareBufferManager;

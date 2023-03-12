@@ -49,7 +49,7 @@ namespace bs
 		class VulkanTexture;
 		class Win32VideoMode;
 		class VulkanVertexDeclaration;
-		class VulkanHardwareBuffer;
+		class VulkanGpuBuffer;
 		class VulkanGpuDevice;
 		class VulkanGLSLProgramFactory;
 		class VulkanSwapChain;

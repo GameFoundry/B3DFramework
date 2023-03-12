@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsD3D11Prerequisites.h"
-#include "RenderAPI/BsHardwareBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "Allocators/BsPoolAlloc.h"
 
 namespace bs
@@ -15,8 +15,8 @@ namespace bs
 		 */
 
 		/**	Class containing common functionality for all DirectX 11 hardware buffers. */
-		class D3D11HardwareBuffer : public HardwareBuffer
-		{
+		class D3D11HardwareBuffer : public GpuBuffer
+	{
 		public:
 			/**	Available types of DX11 buffers. */
 			enum BufferType
@@ -42,7 +42,7 @@ namespace bs
 
 			void ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx = 0, u32 queueIdx = 0) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, u32 queueIdx = 0) override;
-			void CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
+			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 
 			/**	Returns the internal DX11 buffer object. */
 			ID3D11Buffer* GetD3DBuffer() const { return mD3DBuffer; }

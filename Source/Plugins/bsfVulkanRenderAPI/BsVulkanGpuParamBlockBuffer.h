@@ -18,7 +18,7 @@ namespace bs
 		{
 		public:
 			VulkanGpuParamBlockBuffer(u32 size, GpuBufferFlags flags, GpuDeviceFlags deviceMask);
-			VulkanGpuParamBlockBuffer(const SPtr<HardwareBuffer>& backingMemory, u32 offset, u32 size);
+			VulkanGpuParamBlockBuffer(const SPtr<GpuBuffer>& backingMemory, u32 offset, u32 size);
 
 			/**
 			 * Gets the resource wrapping the buffer object, on the specified device. If GPU param block buffer's device mask

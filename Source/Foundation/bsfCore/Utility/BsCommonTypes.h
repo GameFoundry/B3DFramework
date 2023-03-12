@@ -187,7 +187,7 @@ namespace bs
 	};
 
 	/** Types of generic GPU buffers that may be attached to GPU programs. */
-	enum GpuBufferType
+	enum GenericGpuBufferType
 	{
 		/** Buffer containing an array of primitives (e.g. float4's). */
 		GBT_STANDARD,

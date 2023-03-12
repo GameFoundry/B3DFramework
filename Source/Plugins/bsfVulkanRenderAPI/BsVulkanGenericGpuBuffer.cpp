@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGenericGpuBuffer.h"
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "Profiling/BsRenderStats.h"
 #include "Error/BsException.h"
 #include "BsVulkanUtility.h"
@@ -10,16 +10,16 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteHardwareBuffer(HardwareBuffer* buffer)
+static void DeleteHardwareBuffer(GpuBuffer* buffer)
 {
-	B3DPoolDelete(static_cast<VulkanHardwareBuffer*>(buffer));
+	B3DPoolDelete(static_cast<VulkanGpuBuffer*>(buffer));
 }
 
 VulkanGenericGpuBuffer::VulkanGenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
 	: GenericGpuBuffer(desc, deviceMask)
 {}
 
-VulkanGenericGpuBuffer::VulkanGenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+VulkanGenericGpuBuffer::VulkanGenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 	: GenericGpuBuffer(desc, std::move(underlyingBuffer))
 {}
 
@@ -32,7 +32,7 @@ VulkanGenericGpuBuffer::~VulkanGenericGpuBuffer()
 			if(mBufferViews[i] == VK_NULL_HANDLE)
 				continue;
 
-			VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(i);
+			VulkanBuffer* buffer = static_cast<VulkanGpuBuffer*>(mBuffer)->GetResource(i);
 			buffer->FreeView(mBufferViews[i]);
 		}
 	}
@@ -50,14 +50,14 @@ void VulkanGenericGpuBuffer::Initialize()
 	// Create a new buffer if external buffer is not provided
 	if(!mBuffer)
 	{
-		HardwareBufferType bufferType;
+		GpuBufferType bufferType;
 		if(props.GetType() == GBT_STRUCTURED)
-			bufferType = HardwareBufferType::Structured;
+			bufferType = GpuBufferType::Structured;
 		else
-			bufferType = HardwareBufferType::Generic;
+			bufferType = GpuBufferType::Generic;
 
 		u32 size = props.GetElementCount() * props.GetElementSize();
-		mBuffer = B3DPoolNew<VulkanHardwareBuffer>(bufferType, props.GetFlags(), size, mDeviceMask);
+		mBuffer = B3DPoolNew<VulkanGpuBuffer>(bufferType, props.GetFlags(), size, mDeviceMask);
 	}
 
 	UpdateViews();
@@ -93,7 +93,7 @@ void VulkanGenericGpuBuffer::WriteData(u32 offset, u32 length, const void* sourc
 
 VulkanBuffer* VulkanGenericGpuBuffer::GetResource(u32 deviceIdx) const
 {
-	return static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(deviceIdx);
+	return static_cast<VulkanGpuBuffer*>(mBuffer)->GetResource(deviceIdx);
 }
 
 VkBufferView VulkanGenericGpuBuffer::GetView(u32 deviceIdx) const
@@ -108,7 +108,7 @@ void VulkanGenericGpuBuffer::UpdateViews()
 
 	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
 	{
-		VulkanBuffer* buffer = static_cast<VulkanHardwareBuffer*>(mBuffer)->GetResource(i);
+		VulkanBuffer* buffer = static_cast<VulkanGpuBuffer*>(mBuffer)->GetResource(i);
 
 		VkBuffer newBufferHandle = VK_NULL_HANDLE;
 

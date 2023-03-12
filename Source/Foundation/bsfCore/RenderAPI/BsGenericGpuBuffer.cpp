@@ -112,7 +112,7 @@ SPtr<GenericGpuBuffer> GenericGpuBuffer::Create(const GenericGpuBufferCreateInfo
 namespace bs { namespace ct
 {
 GenericGpuBuffer::GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
-	: HardwareBuffer(HardwareBufferType::Generic, GetBufferSize(desc), desc.Flags, deviceMask), mProperties(desc)
+	: GpuBuffer(GpuBufferType::Generic, GetBufferSize(desc), desc.Flags, deviceMask), mProperties(desc)
 {
 	if(desc.Type != GBT_STANDARD)
 		B3D_ASSERT(desc.Format == BF_UNKNOWN && "Format must be set to BF_UNKNOWN when using non-standard buffers");
@@ -120,8 +120,8 @@ GenericGpuBuffer::GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc
 		B3D_ASSERT(desc.ElementSize == 0 && "No element size can be provided for standard buffer. Size is determined from format.");
 }
 
-GenericGpuBuffer::GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
-	: HardwareBuffer(HardwareBufferType::Generic, GetBufferSize(desc), desc.Flags, underlyingBuffer->GetDeviceMask()), mProperties(desc), mBuffer(underlyingBuffer.get()), mSharedBuffer(std::move(underlyingBuffer)), mIsExternalBuffer(true)
+GenericGpuBuffer::GenericGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
+	: GpuBuffer(GpuBufferType::Generic, GetBufferSize(desc), desc.Flags, underlyingBuffer->GetDeviceMask()), mProperties(desc), mBuffer(underlyingBuffer.get()), mSharedBuffer(std::move(underlyingBuffer)), mIsExternalBuffer(true)
 {
 	const auto& props = GetProperties();
 	B3D_ASSERT(mSharedBuffer->GetSize() == (props.GetElementCount() * props.GetElementSize()));
@@ -182,13 +182,13 @@ void GenericGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buf
 	mBuffer->WriteData(offset, length, source, writeFlags, queueIdx);
 }
 
-void GenericGpuBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
+void GenericGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
 {
 	auto& srcGpuBuffer = static_cast<GenericGpuBuffer&>(srcBuffer);
 	mBuffer->CopyData(*srcGpuBuffer.mBuffer, srcOffset, dstOffset, length, discardWholeBuffer, commandBuffer);
 }
 
-SPtr<GenericGpuBuffer> GenericGpuBuffer::GetView(GpuBufferType type, GpuBufferFormat format, u32 elementSize)
+SPtr<GenericGpuBuffer> GenericGpuBuffer::GetView(GenericGpuBufferType type, GpuBufferFormat format, u32 elementSize)
 {
 	const u32 elemSize = type == GBT_STANDARD ? bs::GenericGpuBuffer::GetFormatSize(format) : elementSize;
 	if((mBuffer->GetSize() % elemSize) != 0)
@@ -219,7 +219,7 @@ SPtr<GenericGpuBuffer> GenericGpuBuffer::Create(const GenericGpuBufferCreateInfo
 	return HardwareBufferManager::Instance().CreateGpuBuffer(desc, deviceMask);
 }
 
-SPtr<GenericGpuBuffer> GenericGpuBuffer::Create(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+SPtr<GenericGpuBuffer> GenericGpuBuffer::Create(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 {
 	return HardwareBufferManager::Instance().CreateGpuBuffer(desc, std::move(underlyingBuffer));
 }

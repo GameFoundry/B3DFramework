@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanHardwareBuffer.h"
+#include "BsVulkanGpuBuffer.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanUtility.h"
@@ -173,25 +173,25 @@ void VulkanBuffer::DestroyUnusedViews()
 	}
 }
 
-VulkanHardwareBuffer::VulkanHardwareBuffer(HardwareBufferType type, GpuBufferFlags flags, u32 size, GpuDeviceFlags deviceMask)
-	: HardwareBuffer(type, size, flags, deviceMask), mBuffers(), mStagingBuffer(nullptr), mStagingMemory(nullptr), mMappedDeviceIdx(-1), mMappedGlobalQueueIdx(-1), mMappedOffset(0), mMappedSize(0), mMappedLockOptions(GBL_WRITE_ONLY), mDirectlyMappable((flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::StoreOnCPU)) != 0), mSupportsGPUWrites(flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU)), mIsMapped(false)
+VulkanGpuBuffer::VulkanGpuBuffer(GpuBufferType type, GpuBufferFlags flags, u32 size, GpuDeviceFlags deviceMask)
+	: GpuBuffer(type, size, flags, deviceMask), mBuffers(), mStagingBuffer(nullptr), mStagingMemory(nullptr), mMappedDeviceIdx(-1), mMappedGlobalQueueIdx(-1), mMappedOffset(0), mMappedSize(0), mMappedLockOptions(GBL_WRITE_ONLY), mDirectlyMappable((flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::StoreOnCPU)) != 0), mSupportsGPUWrites(flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU)), mIsMapped(false)
 {
 	VkBufferUsageFlags usageFlags = 0;
 	switch(type)
 	{
-	case HardwareBufferType::Vertex:
+	case GpuBufferType::Vertex:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		break;
-	case HardwareBufferType::Index:
+	case GpuBufferType::Index:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 		break;
-	case HardwareBufferType::Uniform:
+	case GpuBufferType::Uniform:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		break;
-	case HardwareBufferType::Generic:
+	case GpuBufferType::Generic:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
 		break;
-	case HardwareBufferType::Structured:
+	case GpuBufferType::Structured:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		break;
 	}
@@ -221,7 +221,7 @@ VulkanHardwareBuffer::VulkanHardwareBuffer(HardwareBufferType type, GpuBufferFla
 	}
 }
 
-VulkanHardwareBuffer::~VulkanHardwareBuffer()
+VulkanGpuBuffer::~VulkanGpuBuffer()
 {
 	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
 	{
@@ -234,7 +234,7 @@ VulkanHardwareBuffer::~VulkanHardwareBuffer()
 	B3D_ASSERT(mStagingBuffer == nullptr);
 }
 
-VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)
+VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)
 {
 	// Not allowed to have size 0 buffer
 	if(size == 0)
@@ -284,9 +284,9 @@ VulkanBuffer* VulkanHardwareBuffer::CreateBuffer(VulkanGpuDevice& device, u32 si
 	return vulkanBuffer;
 }
 
-void VulkanHardwareBuffer::SetName(const StringView& name)
+void VulkanGpuBuffer::SetName(const StringView& name)
 {
-	HardwareBuffer::SetName(name);
+	GpuBuffer::SetName(name);
 
 	if(vkSetDebugUtilsObjectNameEXT == nullptr)
 		return;
@@ -300,7 +300,7 @@ void VulkanHardwareBuffer::SetName(const StringView& name)
 	}
 }
 
-void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)
+void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx)
 {
 	if((offset + length) > mSize)
 	{
@@ -501,7 +501,7 @@ void* VulkanHardwareBuffer::Map(u32 offset, u32 length, GpuLockOptions options, 
 	return mStagingBuffer->Map(0, length);
 }
 
-void VulkanHardwareBuffer::Unmap()
+void VulkanGpuBuffer::Unmap()
 {
 	// Possibly map() failed with some error
 	if(!mIsMapped)
@@ -633,7 +633,7 @@ void VulkanHardwareBuffer::Unmap()
 	mIsMapped = false;
 }
 
-void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
+void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<CommandBuffer>& commandBuffer)
 {
 	if((dstOffset + length) > mSize)
 	{
@@ -653,7 +653,7 @@ void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u3
 		return;
 	}
 
-	VulkanHardwareBuffer& vkSource = static_cast<VulkanHardwareBuffer&>(srcBuffer);
+	VulkanGpuBuffer& vkSource = static_cast<VulkanGpuBuffer&>(srcBuffer);
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 	VulkanInternalCommandBuffer* vkCB;
@@ -681,14 +681,14 @@ void VulkanHardwareBuffer::CopyData(HardwareBuffer& srcBuffer, u32 srcOffset, u3
 	vkCB->RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 }
 
-void VulkanHardwareBuffer::ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx, u32 queueIdx)
+void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* dest, u32 deviceIdx, u32 queueIdx)
 {
 	void* lockedData = Lock(offset, length, GBL_READ_ONLY, deviceIdx, queueIdx);
 	memcpy(dest, lockedData, length);
 	Unlock();
 }
 
-void VulkanHardwareBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, u32 queueIdx)
+void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, u32 queueIdx)
 {
 	GpuLockOptions lockOptions = GBL_WRITE_ONLY_DISCARD_RANGE;
 

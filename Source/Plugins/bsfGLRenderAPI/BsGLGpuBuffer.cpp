@@ -8,7 +8,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteBuffer(HardwareBuffer* buffer)
+static void DeleteBuffer(GpuBuffer* buffer)
 {
 	B3DPoolDelete(static_cast<GLHardwareBuffer*>(buffer));
 }
@@ -21,7 +21,7 @@ GLGpuBuffer::GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDevic
 	mFormat = GLPixelUtil::GetBufferFormat(desc.Format);
 }
 
-GLGpuBuffer::GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<HardwareBuffer> underlyingBuffer)
+GLGpuBuffer::GLGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 	: GenericGpuBuffer(desc, std::move(underlyingBuffer))
 {
 	mFormat = GLPixelUtil::GetBufferFormat(desc.Format);
