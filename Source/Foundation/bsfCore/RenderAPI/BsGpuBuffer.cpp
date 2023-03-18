@@ -2,7 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuBuffer.h"
 
+#include "BsCoreApplication.h"
 #include "BsGenericGpuBuffer.h"
+#include "BsGpuDevice.h"
 #include "Managers/BsHardwareBufferManager.h"
 
 using namespace bs;
@@ -25,6 +27,34 @@ static u32 CalculateBufferSize(const GpuBufferCreateInformation& createInformati
 
 	B3D_ENSURE(false);
 	return 128;
+}
+
+GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
+	: mInformation(createInformation)
+{ }
+
+SPtr<ct::GpuBuffer> GpuBuffer::GetCore() const
+{
+	return std::static_pointer_cast<ct::GpuBuffer>(mCoreSpecific);
+}
+
+SPtr<ct::CoreObject> GpuBuffer::CreateCore() const
+{
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(!gpuDevice)
+		return nullptr;
+
+	const GpuBufferCreateInformation createInformation = mInformation;
+	return gpuDevice->CreateGpuBuffer(createInformation);
+}
+
+SPtr<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
+{
+	SPtr<GpuBuffer> buffer = B3DMakeCoreFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
+	buffer->SetShared(buffer);
+	buffer->Initialize();
+
+	return buffer;
 }
 
 namespace bs::ct

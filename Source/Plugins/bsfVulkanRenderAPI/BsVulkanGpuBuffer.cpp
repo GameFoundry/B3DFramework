@@ -175,12 +175,25 @@ void VulkanBuffer::DestroyUnusedViews()
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
 	: GpuBuffer(createInformation), mDevice(device), mDirectlyMappable((mBufferFlags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::StoreOnCPU)) != 0), mSupportsGPUWrites(mBufferFlags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU)), mIsMapped(false)
+{ }
+
+VulkanGpuBuffer::~VulkanGpuBuffer()
+{
+	if(mBuffer != nullptr)
+		mBuffer->Destroy();
+
+	B3D_ASSERT(mStagingBuffer == nullptr);
+}
+
+void VulkanGpuBuffer::Initialize()
 {
 	VkBufferUsageFlags usageFlags = 0;
-	switch(createInformation.Type)
+	switch(mType)
 	{
 	case GpuBufferType::Vertex:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	if(mBufferFlags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
+		usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 		break;
 	case GpuBufferType::Index:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
@@ -197,7 +210,12 @@ VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateI
 	}
 
 	if(mBufferFlags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
-		usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT; // TODO - Perhaps have a separate flag for UNIFORM_TEXEL?
+	{
+		if(mType == GpuBufferType::SimpleStorage)
+			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+		else
+			usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+	}
 
 	mBufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	mBufferCI.pNext = nullptr;
@@ -208,14 +226,6 @@ VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateI
 	mBufferCI.pQueueFamilyIndices = nullptr;
 
 	mBuffer = CreateBuffer(mDevice, mSize, false, true);
-}
-
-VulkanGpuBuffer::~VulkanGpuBuffer()
-{
-	if(mBuffer != nullptr)
-		mBuffer->Destroy();
-
-	B3D_ASSERT(mStagingBuffer == nullptr);
 }
 
 VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)

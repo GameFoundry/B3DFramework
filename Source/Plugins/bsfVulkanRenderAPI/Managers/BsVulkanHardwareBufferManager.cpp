@@ -22,20 +22,11 @@ VulkanHardwareBufferManager::VulkanHardwareBufferManager()
 		return;
 
 	// Note: When multi-GPU is properly tested, make sure to create these textures on all GPUs
-	mDummyReadBuffer = B3DNew<VulkanGpuBuffer>(*vulkanGpuDevice, GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU));
-	mDummyStorageBuffer = B3DNew<VulkanGpuBuffer>(*vulkanGpuDevice, GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU));
-	mDummyUniformBuffer = B3DNew<VulkanGpuBuffer>(*vulkanGpuDevice, GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnGPU));
-	mDummyStructuredBuffer = B3DNew<VulkanGpuBuffer>(*vulkanGpuDevice, GpuBufferCreateInformation::CreateStructuredStorage(16, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU));
-	mDummyVertexBuffer = B3DNew<VulkanGpuBuffer>(*vulkanGpuDevice, GpuBufferCreateInformation::CreateVertex(16, 1, GpuBufferFlag::StoreOnGPU));
-}
-
-VulkanHardwareBufferManager::~VulkanHardwareBufferManager()
-{
-	B3DDelete(mDummyReadBuffer);
-	B3DDelete(mDummyStorageBuffer);
-	B3DDelete(mDummyUniformBuffer);
-	B3DDelete(mDummyStructuredBuffer);
-	B3DDelete(mDummyVertexBuffer);
+	mDummyReadBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU)));
+	mDummyStorageBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateSimpleStorage(BF_32X4F, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU)));
+	mDummyUniformBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnGPU)));
+	mDummyStructuredBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(16, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU)));
+	mDummyVertexBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 1, GpuBufferFlag::StoreOnGPU)));
 }
 
 SPtr<ct::VertexBuffer> VulkanHardwareBufferManager::CreateVertexBufferInternal(const VertexBufferCreateInformation& desc, GpuDeviceFlags deviceMask)

@@ -18,22 +18,21 @@ namespace bs
 		{
 		public:
 			VulkanHardwareBufferManager();
-			~VulkanHardwareBufferManager();
 
 			/** Returns a buffer that can be used for buffer read operations when no other buffer is bound. */
-			VulkanGpuBuffer* GetDummyReadBuffer() const { return mDummyReadBuffer; }
+			VulkanGpuBuffer* GetDummyReadBuffer() const { return mDummyReadBuffer.get(); }
 
 			/** Returns a buffer that can be used for buffer storage operations when no other buffer is bound. */
-			VulkanGpuBuffer* GetDummyStorageBuffer() const { return mDummyStorageBuffer; }
+			VulkanGpuBuffer* GetDummyStorageBuffer() const { return mDummyStorageBuffer.get(); }
 
 			/** Returns a buffer that can be used for uniform storage when no other buffer is bound. */
-			VulkanGpuBuffer* GetDummyUniformBuffer() const { return mDummyUniformBuffer; }
+			VulkanGpuBuffer* GetDummyUniformBuffer() const { return mDummyUniformBuffer.get(); }
 
 			/** Returns a buffer that can be used for structured storage when no other buffer is bound. */
-			VulkanGpuBuffer* GetDummyStructuredBuffer() const { return mDummyStructuredBuffer; }
+			VulkanGpuBuffer* GetDummyStructuredBuffer() const { return mDummyStructuredBuffer.get(); }
 
 			/** Returns a buffer that can be used for vertex buffers when no other buffer is bound. */
-			VulkanGpuBuffer* GetDummyVertexBuffer() const { return mDummyVertexBuffer; }
+			VulkanGpuBuffer* GetDummyVertexBuffer() const { return mDummyVertexBuffer.get(); }
 		protected:
 			SPtr<VertexBuffer> CreateVertexBufferInternal(const VertexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<IndexBuffer> CreateIndexBufferInternal(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
@@ -43,11 +42,11 @@ namespace bs
 			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer) override;
 			SPtr<GpuParams> CreateGpuParamsInternal(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
-			VulkanGpuBuffer* mDummyReadBuffer;
-			VulkanGpuBuffer* mDummyStorageBuffer;
-			VulkanGpuBuffer* mDummyUniformBuffer;
-			VulkanGpuBuffer* mDummyStructuredBuffer;
-			VulkanGpuBuffer* mDummyVertexBuffer;
+			SPtr<VulkanGpuBuffer> mDummyReadBuffer;
+			SPtr<VulkanGpuBuffer> mDummyStorageBuffer;
+			SPtr<VulkanGpuBuffer> mDummyUniformBuffer;
+			SPtr<VulkanGpuBuffer> mDummyStructuredBuffer;
+			SPtr<VulkanGpuBuffer> mDummyVertexBuffer;
 		};
 
 		/** @} */

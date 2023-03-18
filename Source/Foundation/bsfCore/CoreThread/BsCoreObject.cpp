@@ -57,7 +57,7 @@ void CoreObject::Initialize()
 	CoreObjectManager::Instance().RegisterObject(this);
 	mCoreSpecific = CreateCore();
 
-	if(mCoreSpecific != nullptr)
+	if(mCoreSpecific != nullptr && !mCoreSpecific->IsInitialized())
 	{
 		if(RequiresInitOnCoreThread())
 		{
@@ -72,12 +72,6 @@ void CoreObject::Initialize()
 		else
 		{
 			mCoreSpecific->Initialize();
-
-			// Even though this object might not require initialization on the core thread, it will be used on it, therefore
-			// do a memory barrier to ensure any stores are finished before continuing (When it requires init on core thread
-			// we use the core queue which uses a mutex, and therefore executes all stores as well, so we dont need to
-			// do this explicitly)
-			std::atomic_thread_fence(std::memory_order_release); // TODO - Need atomic variable, currently this does nothing
 		}
 	}
 

@@ -83,7 +83,7 @@ namespace bs
 		 */
 
 		/** Core thread specific implementation of an bs::IndexBuffer. */
-		class B3D_CORE_EXPORT IndexBuffer : public CoreObject, public GpuBuffer
+		class B3D_CORE_EXPORT IndexBuffer : public GpuBuffer
 	{
 		public:
 			IndexBuffer(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);

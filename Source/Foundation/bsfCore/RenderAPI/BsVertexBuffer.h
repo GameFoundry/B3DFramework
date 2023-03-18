@@ -80,7 +80,7 @@ namespace bs
 		 */
 
 		/** Core thread specific implementation of a bs::VertexBuffer. */
-		class B3D_CORE_EXPORT VertexBuffer : public CoreObject, public GpuBuffer
+		class B3D_CORE_EXPORT VertexBuffer : public GpuBuffer
 	{
 		public:
 			VertexBuffer(const VertexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);

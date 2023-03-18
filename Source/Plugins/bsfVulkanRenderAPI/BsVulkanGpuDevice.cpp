@@ -245,9 +245,12 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	vkDestroyDevice(mLogicalDevice, gVulkanAllocator);
 }
 
-SPtr<GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation)
+SPtr<ct::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation)
 {
-	return B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation));
+	SPtr<GpuBuffer> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuBuffer>()) VulkanGpuBuffer(*this, createInformation));
+	output->Initialize();
+
+	return output;
 }
 
 SPtr<EventQuery> VulkanGpuDevice::CreateEventQuery()

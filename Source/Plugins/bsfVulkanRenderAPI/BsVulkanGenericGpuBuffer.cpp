@@ -12,7 +12,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteHardwareBuffer(GpuBuffer* buffer)
+static void DeleteHardwareBuffer(ct::GpuBuffer* buffer)
 {
 	B3DPoolDelete(static_cast<VulkanGpuBuffer*>(buffer));
 }
@@ -69,6 +69,7 @@ void VulkanGenericGpuBuffer::Initialize()
 		}
 
 		mBuffer = B3DPoolNew<VulkanGpuBuffer>(*GetVulkanGpuBackend().GetVulkanDevice(0), createInformation);
+		mBuffer->Initialize();
 	}
 
 	UpdateViews();

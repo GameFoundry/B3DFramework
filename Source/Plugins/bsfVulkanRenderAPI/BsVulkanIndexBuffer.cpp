@@ -8,7 +8,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteHardwareBuffer(GpuBuffer* buffer)
+static void DeleteHardwareBuffer(ct::GpuBuffer* buffer)
 {
 	B3DPoolDelete(static_cast<VulkanGpuBuffer*>(buffer));
 }
@@ -20,6 +20,8 @@ VulkanIndexBuffer::VulkanIndexBuffer(const IndexBufferCreateInformation& desc, G
 void VulkanIndexBuffer::Initialize()
 {
 	mBuffer = B3DPoolNew<VulkanGpuBuffer>(*GetVulkanGpuBackend().GetVulkanDevice(0), GpuBufferCreateInformation::CreateIndex(mProperties.GetType(), mProperties.GetNumIndices(), mBufferFlags));
+	mBuffer->Initialize();
+
 	mBufferDeleter = &DeleteHardwareBuffer;
 
 	IndexBuffer::Initialize();

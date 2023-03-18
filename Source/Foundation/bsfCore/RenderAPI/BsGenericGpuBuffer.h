@@ -113,7 +113,7 @@ namespace bs
 		 *
 		 * @note	Core thread only.
 		 */
-		class B3D_CORE_EXPORT GenericGpuBuffer : public CoreObject, public GpuBuffer
+		class B3D_CORE_EXPORT GenericGpuBuffer : public GpuBuffer
 	{
 		public:
 			virtual ~GenericGpuBuffer();

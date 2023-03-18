@@ -9,7 +9,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-static void DeleteHardwareBuffer(GpuBuffer* buffer)
+static void DeleteHardwareBuffer(ct::GpuBuffer* buffer)
 {
 	B3DPoolDelete(static_cast<VulkanGpuBuffer*>(buffer));
 }
@@ -21,6 +21,8 @@ VulkanVertexBuffer::VulkanVertexBuffer(const VertexBufferCreateInformation& desc
 void VulkanVertexBuffer::Initialize()
 {
 	mBuffer = B3DPoolNew<VulkanGpuBuffer>(*GetVulkanGpuBackend().GetVulkanDevice(0), GpuBufferCreateInformation::CreateVertex(mProperties.GetVertexSize(), mProperties.GetVertexCount(), mBufferFlags));
+	mBuffer->Initialize();
+
 	mBufferDeleter = &DeleteHardwareBuffer;
 
 	VertexBuffer::Initialize();
