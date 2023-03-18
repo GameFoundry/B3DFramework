@@ -10,8 +10,59 @@
 using namespace bs;
 
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
-	: mInformation(createInformation)
+	: mInformation(createInformation), mSize(CalculateBufferSize(createInformation))
 { }
+
+void GpuBuffer::Initialize()
+{
+	if(mInformation.Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
+	{
+		mCache = (u8*)B3DAllocate(mSize);
+	}
+}
+
+void GpuBuffer::Destroy()
+{
+	if(mCache != nullptr)
+	{
+		B3DFree(mCache);
+	}
+}
+
+void GpuBuffer::WriteData(u32 offset, u32 length, const void* source)
+{
+	if(!B3D_ENSURE(mCache != nullptr))
+		return;
+
+	if(!B3D_ENSURE((offset + length) > mSize))
+		return;
+
+	memcpy(mCache + offset, source, length);
+	MarkCoreDirty();
+}
+
+void GpuBuffer::ZeroOutData(u32 offset, u32 length)
+{
+	if(!B3D_ENSURE(mCache != nullptr))
+		return;
+
+	if(!B3D_ENSURE((offset + length) > mSize))
+		return;
+
+	memset(mCache + offset, 0, length);
+	MarkCoreDirty();
+}
+
+void GpuBuffer::ReadCached(u32 offset, u32 length, void* destination)
+{
+	if(!B3D_ENSURE(mCache != nullptr))
+		return;
+
+	if(!B3D_ENSURE((offset + length) > mSize))
+		return;
+
+	memcpy(destination, mCache + offset, length);
+}
 
 SPtr<ct::GpuBuffer> GpuBuffer::GetCore() const
 {
@@ -26,6 +77,17 @@ SPtr<ct::CoreObject> GpuBuffer::CreateCore() const
 
 	const GpuBufferCreateInformation createInformation = mInformation;
 	return gpuDevice->CreateGpuBuffer(createInformation);
+}
+
+CoreSyncData GpuBuffer::SyncToCore(FrameAlloc* allocator)
+{
+	if(!mInformation.Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
+		return CoreSyncData(nullptr, 0);
+
+	u8* buffer = allocator->Alloc(mSize);
+	ReadCached(0, mSize, buffer);
+
+	return CoreSyncData(buffer, mSize);
 }
 
 SPtr<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
@@ -170,8 +232,18 @@ namespace bs::ct
 		if(!mIsCacheDirty)
 			return;
 
-		// TODO - Support dynamic offset here?
 		WriteData(0, mSize, mCache, BWT_NORMAL);
 		mIsCacheDirty = false;
+	}
+
+	void GpuBuffer::SyncToCore(const CoreSyncData& data)
+	{
+		if(data.GetBuffer() == nullptr)
+			return;
+
+		if(!B3D_ENSURE(mSize == data.GetBufferSize()))
+			return;
+
+		WriteData(0, data.GetBufferSize(), data.GetBuffer());
 	}
 }

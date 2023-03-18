@@ -189,13 +189,35 @@ namespace bs
 	class B3D_CORE_EXPORT GpuBuffer : public CoreObject
 	{
 	public:
-		virtual ~GpuBuffer() {}
+		virtual ~GpuBuffer() = default;
+
+		/** Returns the size of the buffer, in bytes. */
+		u32 GetSize() const { return mSize; }
 
 		/** Returns information describing the buffer. */
 		const GpuBufferInformation& GetInformation() const { return mInformation; }
 
 		/** Retrieves a core implementation of the buffer usable only from the core thread. */
 		SPtr<ct::GpuBuffer> GetCore() const;
+
+		/**
+		 * Writes the data into the CPU cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
+		 * with the core thread counterpart on the next sync call.
+		 */
+		virtual void WriteData(u32 offset, u32 length, const void* source);
+
+		/**
+		 * Clears the specified area of the cache. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
+		 * with the core thread counterpart on the next sync call.
+		 */
+		virtual void ZeroOutData(u32 offset, u32 length);
+
+		/**
+		 * Reads the data from the cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. Note the cached data
+		 * only includes writes done by WriteData() and ZeroOutData() calls. It will not account for writes done explicitly on the core
+		 * object, or on the GPU.
+		 */
+		virtual void ReadCached(u32 offset, u32 length, void* destination);
 
 		/** Creates a new buffer. */
 		static SPtr<GpuBuffer> Create(const GpuBufferCreateInformation& createInformation);
@@ -212,9 +234,14 @@ namespace bs
 	protected:
 		GpuBuffer(const GpuBufferCreateInformation& createInformation);
 
+		void Initialize() override;
+		void Destroy() override;
 		SPtr<ct::CoreObject> CreateCore() const override;
+		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
 
 		GpuBufferInformation mInformation;
+		u32 mSize = 0;
+		u8* mCache = nullptr;
 	};
 }
 
@@ -355,6 +382,8 @@ namespace bs::ct
 
 		/** Constructs a new GPU buffer. */
 		GpuBuffer(const GpuBufferCreateInformation& createInformation);
+
+		void SyncToCore(const CoreSyncData& data) override;
 
 		/** @copydoc Lock */
 		virtual void* Map(u32 offset, u32 length, GpuLockOptions options, u32 deviceIdx, u32 queueIdx) { return nullptr; }
