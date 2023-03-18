@@ -528,11 +528,11 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			for(auto& block : paramBlockData)
 			{
 				const String& paramBlockName = block.Name;
-				if(paramPtr->HasParamBlock(progType, paramBlockName))
+				if(paramPtr->HasUniformBuffer(progType, paramBlockName))
 				{
 					ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
 
-					paramPtr->SetParameterBlockBuffer(progType, paramBlockName, blockBuffer);
+					paramPtr->SetUniformBuffer(progType, paramBlockName, blockBuffer);
 				}
 			}
 
@@ -552,7 +552,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 					globalBlockIdx = (u32)mBlocks.size();
 
-					paramPtr->SetParameterBlockBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
+					paramPtr->SetUniformBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
 					mBlocks.emplace_back(iterBlockDesc->first, iterBlockDesc->second.Set, iterBlockDesc->second.Slot, newParamBlockBuffer, false);
 				}
 				else
@@ -848,7 +848,7 @@ void TGpuParamsSet<Core>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType
 				const BlockBinding& binding = blockInfo.PassData[j].Bindings[progType];
 
 				if(binding.Slot != (u32)-1)
-					paramPtr->SetParameterBlockBuffer(binding.Set, binding.Slot, paramBlock);
+					paramPtr->SetUniformBuffer(binding.Set, binding.Slot, paramBlock);
 			}
 		}
 	}
@@ -1112,7 +1112,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 				TextureType texture;
 				params->GetTexture(*materialParamInfo, texture, surface);
 
-				paramPtr->SetTexture(paramInfo.SetIdx, paramInfo.SlotIdx, texture, surface, 0);
+				paramPtr->SetSampledTexture(paramInfo.SetIdx, paramInfo.SlotIdx, texture, surface, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.NumLoadStoreTextures; k++)
@@ -1141,7 +1141,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 				BufferType buffer;
 				params->GetBuffer(*materialParamInfo, buffer);
 
-				paramPtr->SetBuffer(paramInfo.SetIdx, paramInfo.SlotIdx, buffer, 0);
+				paramPtr->SetStorageBuffer(paramInfo.SetIdx, paramInfo.SlotIdx, buffer, 0);
 			}
 
 			for(u32 k = 0; k < stageInfo.NumSamplerStates; k++)

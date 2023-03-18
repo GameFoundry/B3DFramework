@@ -352,9 +352,9 @@ void VulkanGpuParams::Initialize()
 	GpuParams::Initialize();
 }
 
-bool VulkanGpuParams::SetParameterBlockBuffer(u32 set, u32 slot,const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex)
+bool VulkanGpuParams::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuParamBlockBuffer>& paramBlockBuffer, u32 arrayIndex, u32 offset)
 {
-	if (!GpuParams::SetParameterBlockBuffer(set, slot, paramBlockBuffer, arrayIndex))
+	if (!GpuParams::SetUniformBuffer(set, slot, paramBlockBuffer, arrayIndex, offset))
 		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
@@ -414,9 +414,9 @@ bool VulkanGpuParams::SetParameterBlockBuffer(u32 set, u32 slot,const SPtr<GpuPa
 	return true;
 }
 
-bool VulkanGpuParams::SetTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+bool VulkanGpuParams::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 {
-	if (!GpuParams::SetTexture(set, slot, texture, surface, arrayIndex))
+	if (!GpuParams::SetSampledTexture(set, slot, texture, surface, arrayIndex))
 		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
@@ -557,9 +557,9 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetBuffer(u32 set, u32 slot, const SPtr<GenericGpuBuffer>& buffer, u32 arrayIndex, u32 offset)
+bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuBuffer>& buffer, u32 arrayIndex, u32 offset)
 {
-	if (!GpuParams::SetBuffer(set, slot, buffer, arrayIndex, offset))
+	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, offset))
 		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
@@ -746,12 +746,12 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
 			u32 dynamicOffset = 0;
 
-			if(mParamBlockBuffers[sequentialResourceIndex] != nullptr)
+			if(mUniformBufferData[sequentialResourceIndex].Buffer != nullptr)
 			{
-				VulkanGpuParamBlockBuffer *const element = static_cast<VulkanGpuParamBlockBuffer*>(mParamBlockBuffers[sequentialResourceIndex].get());
+				VulkanGpuParamBlockBuffer *const element = static_cast<VulkanGpuParamBlockBuffer*>(mUniformBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetResource(deviceIdx);
 				bufferSize = element->GetSize();
-				dynamicOffset = element->GetOffset();
+				dynamicOffset = mUniformBufferData[sequentialResourceIndex].Offset;
 			}
 
 			if(resource == nullptr)
@@ -808,12 +808,12 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 			const bool supportsDynamicOffset = type == GPOT_STRUCTURED_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER;
 			u32 dynamicOffset = supportsDynamicOffset ? 0 : ~0u;
 
-			if(mBufferData[sequentialResourceIndex].Buffer != nullptr)
+			if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 			{
 				if(supportsDynamicOffset)
-					dynamicOffset = mBufferData[sequentialResourceIndex].Offset;
+					dynamicOffset = mStorageBufferData[sequentialResourceIndex].Offset;
 
-				auto* element = static_cast<VulkanGenericGpuBuffer*>(mBufferData[sequentialResourceIndex].Buffer.get());
+				auto* element = static_cast<VulkanGenericGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetResource(deviceIdx);
 
 				if(element->GetProperties().GetFlags().IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
@@ -862,9 +862,9 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 				VkBufferView view = VK_NULL_HANDLE;
 				if(type != GPOT_STRUCTURED_BUFFER && type != GPOT_RWSTRUCTURED_BUFFER)
 				{
-					if(mBufferData[sequentialResourceIndex].Buffer != nullptr)
+					if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 					{
-						auto* element = static_cast<VulkanGenericGpuBuffer*>(mBufferData[sequentialResourceIndex].Buffer.get());
+						auto* element = static_cast<VulkanGenericGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
 						view = element->GetView(deviceIdx);
 					}
 					else

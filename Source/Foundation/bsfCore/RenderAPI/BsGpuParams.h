@@ -279,22 +279,22 @@ namespace bs
 		bool HasParameter(GpuProgramType type, const String& name) const;
 
 		/**	Checks if texture parameter with the specified name exists. */
-		bool HasTexture(GpuProgramType type, const String& name) const;
+		bool HasSampledTexture(GpuProgramType type, const String& name) const;
 
 		/**	Checks if load/store texture parameter with the specified name exists. */
 		bool HasStorageTexture(GpuProgramType type, const String& name) const;
 
 		/**	Checks if buffer parameter with the specified name exists. */
-		bool HasBuffer(GpuProgramType type, const String& name) const;
+		bool HasStorageBuffer(GpuProgramType type, const String& name) const;
 
 		/**	Checks if sampler state parameter with the specified name exists. */
 		bool HasSamplerState(GpuProgramType type, const String& name) const;
 
 		/** Checks if a parameter block with the specified name exists for the specific GPU program type. */
-		bool HasParamBlock(GpuProgramType type, const String& name) const;
+		bool HasUniformBuffer(GpuProgramType type, const String& name) const;
 
 		/** Checks if a parameter block with the specified name exists. */
-		bool HasParamBlock(const String& name) const;
+		bool HasUniformBuffer(const String& name) const;
 
 		/**	Gets a descriptor for a parameter block buffer with the specified name. */
 		GpuParameterBlockInformation* GetParameterBlockDesc(GpuProgramType type, const String& name) const;
@@ -323,7 +323,7 @@ namespace bs
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using BufferType = SPtr<CoreVariantType<GenericGpuBuffer, Core>>;
 		using SamplerType = SPtr<CoreVariantType<SamplerState, Core>>;
-		using ParamsBufferType = SPtr<CoreVariantType<GpuParamBlockBuffer, Core>>;
+		using UniformBufferType = SPtr<CoreVariantType<GpuParamBlockBuffer, Core>>;
 
 		virtual ~TGpuParams();
 
@@ -342,13 +342,13 @@ namespace bs
 		void GetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		void GetSampledTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
 
 		/** @copydoc GetParameter */
 		void GetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
+		void GetStorageBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
 
 		/** @copydoc GetParameter */
 		void GetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const;
@@ -360,28 +360,28 @@ namespace bs
 		bool TryGetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		bool TryGetSampledTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
 		bool TryGetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
+		bool TryGetStorageBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
 		bool TryGetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const;
 
-		/**	Gets a parameter block buffer from the specified set/slot/array index combination. */
-		ParamsBufferType GetParameterBlockBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
+		/**	Gets a uniform buffer from the specified set/slot/array index combination. */
+		UniformBufferType GetUniformBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
 
 		/**	Gets a texture bound to the specified set/slot/array index combination. */
-		TextureType GetTexture(u32 set, u32 slot, u32 arrayIndex = 0) const;
+		TextureType GetSampledTexture(u32 set, u32 slot, u32 arrayIndex = 0) const;
 
 		/**	Gets a storage texture bound to the specified set/slot/array index combination. */
 		TextureType GetStorageTexture(u32 set, u32 slot, u32 arrayIndex = 0) const;
 
 		/**	Gets a buffer bound to the specified set/slot/array index combination. */
-		BufferType GetBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
+		BufferType GetStorageBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
 
 		/**	Gets a sampler state bound to the specified set/slot/array index combination. */
 		SamplerType GetSamplerState(u32 set, u32 slot, u32 arrayIndex = 0) const;
@@ -393,54 +393,7 @@ namespace bs
 		const TextureSurface& GetStorageTextureSurface(u32 set, u32 slot, u32 arrayIndex = 0) const;
 
 		/**
-		 * Assigns the provided parameter block buffer to a buffer with the specified name, for the specified GPU program
-		 * stage. Any following parameter reads or writes that are referencing that buffer will use the new buffer.
-		 *
-		 * It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
-		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		bool SetParameterBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex = 0);
-
-		/**
-		 * Assigns the provided parameter block buffer to a buffer with the specified name, for any stages that reference
-		 * the buffer. Any following parameter reads or writes that are referencing that buffer will use the new buffer.
-		 *
-		 * It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
-		 * It is up to the caller that all stages using this buffer name refer to the same buffer type.
-		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		bool SetParameterBlockBuffer(const String& name, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex = 0);
-
-		/** Equivalent to SetParamBlockBuffer(const String&, const ParamsBufferType&, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		bool TrySetParameterBlockBuffer(const String& name, const ParamsBufferType& parameterBlockBuffer, u32 arrayIndex = 0);
-
-		/** Equivalent to SetParamBlockBuffer(GpuProgramType, const String&, const ParamsBufferType&), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		bool TrySetParameterBlockBuffer(GpuProgramType type, const String& name, const ParamsBufferType& parameterBlockBuffer, u32 arrayIndex = 0);
-
-		/**
-		 * Sets the parameter buffer with the specified set/slot/array index combination.Any following parameter reads or writes that are
-		 * referencing that buffer will use the new buffer. Set/slot/array index information for a specific buffer can be extracted
-		 * from GPUProgram's GpuParamDesc structure.
-		 *
-		 * It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
-		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		virtual bool SetParameterBlockBuffer(u32 set, u32 slot, const ParamsBufferType& paramBlockBuffer, u32 arrayIndex = 0);
-
-		/**
-		 * Sets a texture at the specified set/slot combination.
-		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		virtual bool SetTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0);
-
-		/**
-		 * Sets a storage texture at the specified set/slot combination.
-		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		virtual bool SetStorageTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex = 0);
-
-		/**
-		 * Sets a buffer at the specified set/slot combination.
+		 * Sets an uniform buffer at the specified set/slot combination. It is up to the caller to guarantee the provided buffer matches parameter block descriptor for this slot.
 		 *
 		 * @param	set			Set at which to bind the buffer, as defined by the pipeline GPU program.
 		 * @param	slot		Slot at which to bind the buffer, as defined by the pipeline GPU program.
@@ -449,7 +402,62 @@ namespace bs
 		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
 		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
 		 */
-		virtual bool SetBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+		virtual bool SetUniformBuffer(u32 set, u32 slot, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+
+		/**
+		 * Sets an uniform buffer with the specified name in the specified GPU program type. It is up to the caller to guarantee the provided buffer matches
+		 * parameter block descriptor for this slot.
+		 *
+		 * @param	type		Type of the GPU program in which to bind the buffer.
+		 * @param	name		Name of the buffer to bind.
+		 * @param	buffer		Buffer to bind.
+		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
+		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
+		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
+		 */
+		bool SetUniformBuffer(GpuProgramType type, const String& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+
+		/**
+		 * Sets an uniform buffer with the specified name in all GPU programs containing a buffer with that name. It is up to the caller to guarantee the provided buffer matches
+		 * parameter block descriptor for this slot.
+		 *
+		 * @param	name		Name of the buffer to bind.
+		 * @param	buffer		Buffer to bind.
+		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
+		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
+		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
+		 */
+		bool SetUniformBuffer(const String& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+
+		/** Equivalent to SetParamBlockBuffer(const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
+		bool TrySetUniformBuffer(const String& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
+
+		/** Equivalent to SetParamBlockBuffer(GpuProgramType, const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
+		bool TrySetUniformBuffer(GpuProgramType type, const String& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
+
+		/**
+		 * Sets a texture at the specified set/slot combination.
+		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
+		 */
+		virtual bool SetSampledTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0);
+
+		/**
+		 * Sets a storage texture at the specified set/slot combination.
+		 * Returns true if the operation succeeded, otherwise logs and errors and returns false.
+		 */
+		virtual bool SetStorageTexture(u32 set, u32 slot, const TextureType& texture, const TextureSurface& surface, u32 arrayIndex = 0);
+
+		/**
+		 * Sets a storage buffer at the specified set/slot combination.
+		 *
+		 * @param	set			Set at which to bind the buffer, as defined by the pipeline GPU program.
+		 * @param	slot		Slot at which to bind the buffer, as defined by the pipeline GPU program.
+		 * @param	buffer		Buffer to bind.
+		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
+		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
+		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
+		 */
+		virtual bool SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/**
 		 * Sets a sampler state at the specified set/slot combination.
@@ -467,10 +475,10 @@ namespace bs
 		}
 
 		/**	Assigns a texture to the parameter with the specified name. */
-		void SetTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
+		void SetSampledTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
 		{
 			TGpuParameterSampledTexture<Core> param;
-			GetTextureParameter(type, name, param);
+			GetSampledTextureParameter(type, name, param);
 			param.Set(texture, surface);
 		}
 
@@ -483,7 +491,7 @@ namespace bs
 		}
 
 		/**
-		 * Sets a buffer with the specified name in the specified GPU program type.
+		 * Sets a storage buffer with the specified name in the specified GPU program type.
 		 *
 		 * @param	type		Type of the GPU program in which to bind the buffer.
 		 * @param	name		Name of the buffer to bind.
@@ -491,10 +499,10 @@ namespace bs
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
 		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
 		 */
-		void SetBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0)
+		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0)
 		{
 			TGpuParameterBuffer<Core> param;
-			GetBufferParameter(type, name, param);
+			GetStorageBufferParameter(type, name, param);
 			param.Set(buffer, arrayIndex, offset);
 		}
 
@@ -519,25 +527,32 @@ namespace bs
 			TextureSurface Surface;
 		};
 
-		/** Data for a single bound buffer. */
-		struct BufferData
+		/** Data for a single bound storage buffer. */
+		struct StorageBufferData
 		{
-			BufferData()
+			StorageBufferData()
 				: Offset(0)
 			{ }
 
 			BufferType Buffer;
 			union
 			{
-				u32 Offset; /**< Dynamic buffer offset, relevant for uniform and structured storage buffer types. */
+				u32 Offset; /**< Dynamic buffer offset, relevant for structured storage buffer types. */
 				GpuBufferFormat ViewFormat; /**< Buffer view, relevant for simple storage buffer types. */
 			};
 		};
 
-		ParamsBufferType* mParamBlockBuffers = nullptr;
+		/** Data for a single bound uniform buffer. */
+		struct UniformBufferData
+		{
+			UniformBufferType Buffer;
+			u32 Offset = 0; /**< Dynamic buffer offset. */
+		};
+
+		UniformBufferData* mUniformBufferData = nullptr;
 		TextureData* mSampledTextureData = nullptr;
 		TextureData* mStorageTextureData = nullptr;
-		BufferData* mBufferData = nullptr;
+		StorageBufferData* mStorageBufferData = nullptr;
 		SamplerType* mSamplerStates = nullptr;
 	};
 

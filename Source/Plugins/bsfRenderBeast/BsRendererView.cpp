@@ -22,18 +22,18 @@ SkyboxParamDef gSkyboxParamDef;
 
 void SkyboxMat::Initialize()
 {
-	if(mGPUParameters->HasTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
-		mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
+	if(mGPUParameters->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
+		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
 
 	mParamBuffer = gSkyboxParamDef.CreateBuffer();
 
-	if(mGPUParameters->HasParamBlock(GPT_FRAGMENT_PROGRAM, "Params"))
-		mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
+	if(mGPUParameters->HasUniformBuffer(GPT_FRAGMENT_PROGRAM, "Params"))
+		mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
 void SkyboxMat::Bind(const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 {
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
 
 	mSkyTextureParam.Set(texture);
 

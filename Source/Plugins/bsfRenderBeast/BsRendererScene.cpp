@@ -465,20 +465,20 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-		gpuParams->TrySetParameterBlockBuffer("PerFrame", mPerFrameParamBuffer);
-		gpuParams->SetParameterBlockBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
-		gpuParams->TrySetParameterBlockBuffer("PerCall", rendererRenderable->PerCallParamBuffer);
+		gpuParams->TrySetUniformBuffer("PerFrame", mPerFrameParamBuffer);
+		gpuParams->SetUniformBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
+		gpuParams->TrySetUniformBuffer("PerCall", rendererRenderable->PerCallParamBuffer);
 
 		gpuParams->GetPipelineParameterInformation()->GetBindings(
 			GpuPipelineParamInfoBase::ParamType::ParamBlock,
 			"PerCamera",
 			element.PerCameraBindings);
 
-		if(gpuParams->HasBuffer(GPT_VERTEX_PROGRAM, "boneMatrices"))
-			gpuParams->SetBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.BoneMatrixBuffer);
+		if(gpuParams->HasStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices"))
+			gpuParams->SetStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.BoneMatrixBuffer);
 
-		if(gpuParams->HasBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices"))
-			gpuParams->SetBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices", element.BonePrevMatrixBuffer);
+		if(gpuParams->HasStorageBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices"))
+			gpuParams->SetStorageBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices", element.BonePrevMatrixBuffer);
 
 		ShaderFlags shaderFlags = shader->GetFlags();
 		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
@@ -808,9 +808,9 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	if(gpu)
 	{
-		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
-		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
-		gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gCurvesTex", renElement.ParamsGpu.CurvesTexture);
+		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
+		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
+		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gCurvesTex", renElement.ParamsGpu.CurvesTexture);
 
 		rendererParticles.GpuParticlesParamBuffer = gGpuParticlesParamDef.CreateBuffer();
 		renElement.Is3D = false;
@@ -820,17 +820,17 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		switch(settings.RenderMode)
 		{
 		case ParticleRenderMode::Billboard:
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
 
 			renElement.Is3D = false;
 			break;
 		case ParticleRenderMode::Mesh:
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuMesh.ColorTexture);
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
-			gpuParams->GetTextureParameter(GPT_VERTEX_PROGRAM, "gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuMesh.ColorTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
+			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
 
 			renElement.Is3D = true;
 			renElement.Mesh = settings.Mesh;
@@ -844,11 +844,11 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-	gpuParams->SetParameterBlockBuffer("ParticleParams", rendererParticles.ParticlesParamBuffer);
-	gpuParams->SetParameterBlockBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
-	gpuParams->SetParameterBlockBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
+	gpuParams->SetUniformBuffer("ParticleParams", rendererParticles.ParticlesParamBuffer);
+	gpuParams->SetUniformBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
+	gpuParams->SetUniformBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
 
-	gpuParams->GetBufferParameter(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
+	gpuParams->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
 
 	gpuParams->GetPipelineParameterInformation()->GetBindings(
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
@@ -939,8 +939,8 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	if(isTransparent)
 	{
 		// Optional depth buffer input if requested
-		if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-			gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+		if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+			gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
 	}
 }
 
@@ -1038,21 +1038,21 @@ void RendererScene::RegisterDecal(Decal* decal)
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
-	gpuParams->SetParameterBlockBuffer("PerFrame", mPerFrameParamBuffer);
-	gpuParams->SetParameterBlockBuffer("DecalParams", rendererDecal.DecalParamBuffer);
-	gpuParams->SetParameterBlockBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
-	gpuParams->SetParameterBlockBuffer("PerCall", rendererDecal.PerCallParamBuffer);
+	gpuParams->SetUniformBuffer("PerFrame", mPerFrameParamBuffer);
+	gpuParams->SetUniformBuffer("DecalParams", rendererDecal.DecalParamBuffer);
+	gpuParams->SetUniformBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
+	gpuParams->SetUniformBuffer("PerCall", rendererDecal.PerCallParamBuffer);
 
 	gpuParams->GetPipelineParameterInformation()->GetBindings(
 		GpuPipelineParamInfoBase::ParamType::ParamBlock,
 		"PerCamera",
 		renElement.PerCameraBindings);
 
-	if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-		gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+	if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
+		gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
 
-	if(gpuParams->HasTexture(GPT_FRAGMENT_PROGRAM, "gMaskTex"))
-		gpuParams->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.MaskInputTexture);
+	if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gMaskTex"))
+		gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.MaskInputTexture);
 }
 
 void RendererScene::UpdateDecal(Decal* decal)

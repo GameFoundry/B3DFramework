@@ -104,33 +104,33 @@ void RendererReflectionProbe::GetParameters(ReflProbeData& output) const
 void ImageBasedLightingParams::Populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
 {
 	// Sky
-	if(!optional || params->HasTexture(programType, "gSkyReflectionTex"))
-		params->GetTextureParameter(programType, "gSkyReflectionTex", SkyReflectionsTexParam);
+	if(!optional || params->HasSampledTexture(programType, "gSkyReflectionTex"))
+		params->GetSampledTextureParameter(programType, "gSkyReflectionTex", SkyReflectionsTexParam);
 
 	// Reflections
-	if(!optional || params->HasTexture(programType, "gReflProbeCubemaps"))
+	if(!optional || params->HasSampledTexture(programType, "gReflProbeCubemaps"))
 	{
-		params->GetTextureParameter(programType, "gReflProbeCubemaps", ReflectionProbeCubemapsTexParam);
+		params->GetSampledTextureParameter(programType, "gReflProbeCubemaps", ReflectionProbeCubemapsTexParam);
 
 		if(probeArray)
-			params->GetBufferParameter(programType, "gReflectionProbes", ReflectionProbesParam);
+			params->GetStorageBufferParameter(programType, "gReflectionProbes", ReflectionProbesParam);
 	}
 
-	if(!optional || params->HasTexture(programType, "gPreintegratedEnvBRDF"))
-		params->GetTextureParameter(programType, "gPreintegratedEnvBRDF", PreintegratedEnvBrdfParam);
+	if(!optional || params->HasSampledTexture(programType, "gPreintegratedEnvBRDF"))
+		params->GetSampledTextureParameter(programType, "gPreintegratedEnvBRDF", PreintegratedEnvBrdfParam);
 
 	// AO
-	if(params->HasTexture(programType, "gAmbientOcclusionTex"))
-		params->GetTextureParameter(programType, "gAmbientOcclusionTex", AmbientOcclusionTexParam);
+	if(params->HasSampledTexture(programType, "gAmbientOcclusionTex"))
+		params->GetSampledTextureParameter(programType, "gAmbientOcclusionTex", AmbientOcclusionTexParam);
 
 	// SSR
-	if(params->HasTexture(programType, "gSSRTex"))
-		params->GetTextureParameter(programType, "gSSRTex", SsrTexParam);
+	if(params->HasSampledTexture(programType, "gSSRTex"))
+		params->GetSampledTextureParameter(programType, "gSSRTex", SsrTexParam);
 
 	if(gridIndices)
 	{
-		if(!optional || params->HasBuffer(programType, "gReflectionProbeIndices"))
-			params->GetBufferParameter(programType, "gReflectionProbeIndices", ReflectionProbeIndicesParam);
+		if(!optional || params->HasStorageBuffer(programType, "gReflectionProbeIndices"))
+			params->GetStorageBufferParameter(programType, "gReflectionProbeIndices", ReflectionProbeIndicesParam);
 	}
 
 	params->GetPipelineParameterInformation()->GetBinding(

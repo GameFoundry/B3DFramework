@@ -17,15 +17,15 @@ PerLightParamDef gPerLightParamDef;
 void DeferredDirectionalLightMat::Initialize()
 {
 	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
 void DeferredDirectionalLightMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight)
 {
 	mGBufferParams.Bind(gBufferInput);
 	mLightOcclusionTexParam.Set(lightOcclusion);
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("PerLight", perLight);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("PerLight", perLight);
 
 	RendererMaterial::Bind();
 }
@@ -46,15 +46,15 @@ DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa
 void DeferredPointLightMat::Initialize()
 {
 	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
 void DeferredPointLightMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuParamBlockBuffer>& perCamera, const SPtr<GpuParamBlockBuffer>& perLight)
 {
 	mGBufferParams.Bind(gBufferInput);
 	mLightOcclusionTexParam.Set(lightOcclusion);
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("PerLight", perLight);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("PerLight", perLight);
 
 	RendererMaterial::Bind();
 }
@@ -99,8 +99,8 @@ void DeferredIBLSetupMat::Bind(const GBufferTextures& gBufferInput, const SPtr<G
 {
 	mGBufferParams.Bind(gBufferInput);
 
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("ReflProbeParams", reflProbeParams);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
 	mIBLParams.AmbientOcclusionTexParam.Set(ao);
 	mIBLParams.SsrTexParam.Set(ssr);
@@ -129,15 +129,15 @@ void DeferredIBLProbeMat::Initialize()
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 
 	mParamBuffer = gPerProbeParamDef.CreateBuffer();
-	mGPUParameters->SetParameterBlockBuffer("PerProbe", mParamBuffer);
+	mGPUParameters->SetUniformBuffer("PerProbe", mParamBuffer);
 }
 
 void DeferredIBLProbeMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuParamBlockBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuParamBlockBuffer>& reflProbeParams)
 {
 	mGBufferParams.Bind(gBufferInput);
 
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("ReflProbeParams", reflProbeParams);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
 	gPerProbeParamDef.gPosition.Set(mParamBuffer, probeData.Position);
 
@@ -197,8 +197,8 @@ void DeferredIBLSkyMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Gpu
 {
 	mGBufferParams.Bind(gBufferInput);
 
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("ReflProbeParams", reflProbeParams);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
 	if(skybox != nullptr)
 		mIBLParams.SkyReflectionsTexParam.Set(skybox->GetFilteredRadiance());
@@ -224,7 +224,7 @@ DeferredIBLSkyMat* DeferredIBLSkyMat::GetVariation(bool msaa, bool singleSampleM
 void DeferredIBLFinalizeMat::Initialize()
 {
 	mGBufferParams.Initialize(GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gIBLRadianceTex", mIBLRadiance);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gIBLRadianceTex", mIBLRadiance);
 
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 }
@@ -233,8 +233,8 @@ void DeferredIBLFinalizeMat::Bind(const GBufferTextures& gBufferInput, const SPt
 {
 	mGBufferParams.Bind(gBufferInput);
 
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", perCamera);
-	mGPUParameters->SetParameterBlockBuffer("ReflProbeParams", reflProbeParams);
+	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
+	mGPUParameters->SetUniformBuffer("ReflProbeParams", reflProbeParams);
 
 	mIBLParams.PreintegratedEnvBrdfParam.Set(preintegratedBrdf);
 

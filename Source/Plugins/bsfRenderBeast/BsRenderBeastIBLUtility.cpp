@@ -15,8 +15,8 @@ void ReflectionCubeDownsampleMat::Initialize()
 {
 	mParamBuffer = gReflectionCubeDownsampleParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void ReflectionCubeDownsampleMat::Execute(const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
@@ -51,8 +51,8 @@ void ReflectionCubeImportanceSampleMat::Initialize()
 {
 	mParamBuffer = gReflectionCubeImportanceSampleParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Input", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void ReflectionCubeImportanceSampleMat::InitDefinesInternal(ShaderDefines& defines)
@@ -97,9 +97,9 @@ void IrradianceComputeSHMat::Initialize()
 {
 	mParamBuffer = gIrradianceComputeSHParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_COMPUTE_PROGRAM, "gInputTex", mInputTexture);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_COMPUTE_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputBuffer);
 }
 
 void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
@@ -174,8 +174,8 @@ void IrradianceComputeSHFragMat::Initialize()
 {
 	mParamBuffer = gIrradianceComputeSHFragParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void IrradianceComputeSHFragMat::Execute(const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output)
@@ -212,8 +212,8 @@ void IrradianceAccumulateSHMat::Initialize()
 {
 	mParamBuffer = gIrradianceAccumulateSHParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void IrradianceAccumulateSHMat::Execute(const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output)
@@ -254,8 +254,8 @@ void IrradianceAccumulateCubeSHMat::Initialize()
 {
 	mParamBuffer = gIrradianceAccumulateSHParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mInputTexture);
 }
 
 void IrradianceAccumulateCubeSHMat::Execute(const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const SPtr<RenderTarget>& output)
@@ -305,8 +305,8 @@ void IrradianceReduceSHMat::Initialize()
 {
 	mParamBuffer = gIrradianceReduceSHParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInput", mInputBuffer);
 	mGPUParameters->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTexture);
 }
 
@@ -358,8 +358,8 @@ void IrradianceProjectSHMat::Initialize()
 {
 	mParamBuffer = gIrradianceProjectSHParamDef.CreateBuffer();
 
-	mGPUParameters->SetParameterBlockBuffer("Params", mParamBuffer);
-	mGPUParameters->GetTextureParameter(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputTexture);
+	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
+	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mInputTexture);
 }
 
 void IrradianceProjectSHMat::Execute(const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target)

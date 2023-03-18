@@ -27,7 +27,7 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -66,7 +66,7 @@ T TGpuParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
 	if(mParent == nullptr)
 		return T();
 
-	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return T();
 
@@ -102,7 +102,7 @@ void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayI
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -142,7 +142,7 @@ void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) co
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetParameterBlockBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
@@ -191,7 +191,7 @@ void TGpuParameterSampledTexture<Core>::Set(const TextureType& texture, const Te
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
+	mParent->SetSampledTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();
@@ -203,7 +203,7 @@ typename TGpuParameterSampledTexture<Core>::TextureType TGpuParameterSampledText
 	if(mParent == nullptr)
 		return TextureType();
 
-	return mParent->GetTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetSampledTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
 }
 
 template <bool Core>
@@ -222,7 +222,7 @@ void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, u3
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetBuffer(mParamDesc->Set, mParamDesc->Slot, buffer, arrayIndex, offset);
+	mParent->SetStorageBuffer(mParamDesc->Set, mParamDesc->Slot, buffer, arrayIndex, offset);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();
@@ -234,7 +234,7 @@ typename TGpuParameterBuffer<Core>::BufferType TGpuParameterBuffer<Core>::Get(u3
 	if(mParent == nullptr)
 		return BufferType();
 
-	return mParent->GetBuffer(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetStorageBuffer(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
 }
 
 template <bool Core>
@@ -265,7 +265,7 @@ typename TGpuParameterStorageTexture<Core>::TextureType TGpuParameterStorageText
 	if(mParent == nullptr)
 		return TextureType();
 
-	return mParent->GetTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetSampledTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
 }
 
 template <bool Core>

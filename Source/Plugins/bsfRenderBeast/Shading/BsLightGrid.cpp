@@ -21,15 +21,15 @@ LightGridParamDef gLightGridParamDefDef;
 
 void LightGridLLCreationMat::Initialize()
 {
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gReflectionProbes", mProbesBufferParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesCounter", mProbesCounterParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gReflectionProbes", mProbesBufferParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesCounter", mProbesCounterParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
 
 	GenericGpuBufferCreateInformation desc;
 	desc.ElementCount = 1;
@@ -101,7 +101,7 @@ void LightGridLLCreationMat::SetParams(const Vector3I& gridSize, const SPtr<GpuP
 	clearMat->Execute(mLightsLLHeads, clearColor);
 	clearMat->Execute(mProbesLLHeads, clearColor);
 
-	mGPUParameters->SetParameterBlockBuffer("GridParams", gridParams);
+	mGPUParameters->SetUniformBuffer("GridParams", gridParams);
 	mLightBufferParam.Set(lightsBuffer);
 	mProbesBufferParam.Set(probesBuffer);
 }
@@ -110,7 +110,7 @@ void LightGridLLCreationMat::Execute(const RendererView& view)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
-	mGPUParameters->SetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 
 	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
 	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;
@@ -132,19 +132,19 @@ void LightGridLLReductionMat::Initialize()
 {
 	mBufferNumCells = 0;
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gGridDataCounter", mGridDataCounterParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridDataCounter", mGridDataCounterParam);
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightIndices", mGridLightIndicesParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightIndices", mGridLightIndicesParam);
 
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
-	mGPUParameters->GetBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeIndices", mGridProbeIndicesParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
+	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeIndices", mGridProbeIndicesParam);
 
 	GenericGpuBufferCreateInformation desc;
 	desc.ElementCount = 2;
@@ -199,7 +199,7 @@ void LightGridLLReductionMat::SetParams(const Vector3I& gridSize, const SPtr<Gpu
 		ClearLoadStoreType::StructuredBuffer, ClearLoadStoreDataType::Int, 1);
 	clearMat->Execute(mGridDataCounter);
 
-	mGPUParameters->SetParameterBlockBuffer("GridParams", gridParams);
+	mGPUParameters->SetUniformBuffer("GridParams", gridParams);
 
 	mLightsLLHeadsParam.Set(lightsLLHeads);
 	mLightsLLParam.Set(lightsLL);
@@ -212,7 +212,7 @@ void LightGridLLReductionMat::Execute(const RendererView& view)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
-	mGPUParameters->TrySetParameterBlockBuffer("PerCamera", view.GetPerViewBuffer());
+	mGPUParameters->TrySetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 
 	u32 numGroupsX = (mGridSize[0] + kThreadgroupSize - 1) / kThreadgroupSize;
 	u32 numGroupsY = (mGridSize[1] + kThreadgroupSize - 1) / kThreadgroupSize;

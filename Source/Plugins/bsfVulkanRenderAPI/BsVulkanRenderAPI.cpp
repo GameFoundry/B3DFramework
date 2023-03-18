@@ -123,7 +123,7 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<
 		// Flush all param block buffers
 		for(auto iter = paramDesc->ParamBlocks.begin(); iter != paramDesc->ParamBlocks.end(); ++iter)
 		{
-			SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParameterBlockBuffer(iter->second.Set, iter->second.Slot);
+			SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetUniformBuffer(iter->second.Set, iter->second.Slot);
 
 			if(buffer != nullptr)
 				buffer->FlushToGpu(globalQueueIdx);

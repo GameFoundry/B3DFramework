@@ -531,10 +531,10 @@ namespace bs
 
 					for(auto& varName : param.second.GpuVariableNames)
 					{
-						if(mGPUParameters->HasTexture(progType, varName))
+						if(mGPUParameters->HasSampledTexture(progType, varName))
 						{
 							const SPtr<Texture> texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(defaultValueIdx) : mShader->GetDefault2DTexture(defaultValueIdx);
-							mGPUParameters->SetTexture(progType, varName, texture);
+							mGPUParameters->SetSampledTexture(progType, varName, texture);
 						}
 					}
 				}

@@ -169,7 +169,7 @@ void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderD
 	{
 		const GpuParamBinding& binding = RenderElement.PerCameraBindings[j];
 		if(binding.Slot != (u32)-1)
-			gpuParams->SetParameterBlockBuffer(binding.Set, binding.Slot, view.GetPerViewBuffer());
+			gpuParams->SetUniformBuffer(binding.Set, binding.Slot, view.GetPerViewBuffer());
 	}
 }
 
@@ -204,7 +204,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 	{
 		const GpuParamBinding& binding = RenderElement.PerCameraBindings[j];
 		if(binding.Slot != (u32)-1)
-			gpuParams->SetParameterBlockBuffer(binding.Set, binding.Slot, view.GetPerViewBuffer());
+			gpuParams->SetUniformBuffer(binding.Set, binding.Slot, view.GetPerViewBuffer());
 	}
 }
 

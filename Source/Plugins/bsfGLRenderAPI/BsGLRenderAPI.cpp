@@ -444,7 +444,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				for(auto& entry : paramDesc->Textures)
 				{
 					u32 binding = entry.second.Slot;
-					SPtr<Texture> texture = gpuParams->GetTexture(entry.second.Set, binding);
+					SPtr<Texture> texture = gpuParams->GetSampledTexture(entry.second.Set, binding);
 					const TextureSurface& surface = gpuParams->GetTextureSurface(entry.second.Set, binding);
 
 					u32 unit = getTexUnit(binding);
@@ -550,7 +550,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				for(auto& entry : paramDesc->Buffers)
 				{
 					u32 binding = entry.second.Slot;
-					SPtr<GenericGpuBuffer> buffer = gpuParams->GetBuffer(entry.second.Set, binding);
+					SPtr<GenericGpuBuffer> buffer = gpuParams->GetStorageBuffer(entry.second.Set, binding);
 
 					GLGpuBuffer* glBuffer = static_cast<GLGpuBuffer*>(buffer.get());
 
@@ -700,7 +700,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 				for(auto& entry : paramDesc->ParamBlocks)
 				{
 					u32 binding = entry.second.Slot;
-					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParameterBlockBuffer(entry.second.Set, binding);
+					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetUniformBuffer(entry.second.Set, binding);
 
 					if(buffer == nullptr)
 						continue;

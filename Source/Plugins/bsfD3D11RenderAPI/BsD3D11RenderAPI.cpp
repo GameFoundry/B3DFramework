@@ -376,7 +376,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 				{
 					u32 slot = iter->second.Slot;
 
-					SPtr<Texture> texture = gpuParams->GetTexture(iter->second.Set, slot);
+					SPtr<Texture> texture = gpuParams->GetSampledTexture(iter->second.Set, slot);
 					const TextureSurface& surface = gpuParams->GetTextureSurface(iter->second.Set, slot);
 
 					while(slot >= (u32)srvs.size())
@@ -394,7 +394,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 				for(auto iter = paramDesc->Buffers.begin(); iter != paramDesc->Buffers.end(); ++iter)
 				{
 					u32 slot = iter->second.Slot;
-					SPtr<GenericGpuBuffer> buffer = gpuParams->GetBuffer(iter->second.Set, slot);
+					SPtr<GenericGpuBuffer> buffer = gpuParams->GetStorageBuffer(iter->second.Set, slot);
 
 					bool isLoadStore = iter->second.Type != GPOT_BYTE_BUFFER &&
 						iter->second.Type != GPOT_STRUCTURED_BUFFER;
@@ -465,7 +465,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 				for(auto iter = paramDesc->ParamBlocks.begin(); iter != paramDesc->ParamBlocks.end(); ++iter)
 				{
 					u32 slot = iter->second.Slot;
-					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetParameterBlockBuffer(iter->second.Set, slot);
+					SPtr<GpuParamBlockBuffer> buffer = gpuParams->GetUniformBuffer(iter->second.Set, slot);
 
 					while(slot >= (u32)constBuffers.size())
 						constBuffers.push_back(nullptr);
