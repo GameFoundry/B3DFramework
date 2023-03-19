@@ -59,6 +59,23 @@ namespace bs
 		static bool TransposeEnabled(bool enabled) { return enabled; }
 	};
 
+	/** Information that controls how is the buffer viewed when bound to a GPU pipeline. */
+	struct GpuStorageBufferViewInformation
+	{
+		GpuStorageBufferViewInformation() = default;
+
+		GpuStorageBufferViewInformation(u32 offset)
+			: Offset(offset)
+		{ }
+
+		GpuStorageBufferViewInformation(GpuBufferFormat format)
+			: Format(format)
+		{ }
+
+		u32 Offset = 0; /**< Offset from which to start reading the buffer. Only relevant for structured storage buffers. */
+		GpuBufferFormat Format = BF_UNKNOWN; /**< Format to interpret the buffer contents as. If not specified, default buffer format will be used. Only relevant for simple storage buffers. */
+	};
+
 	/**
 	 * A handle that allows you to set a GpuProgram parameter. Internally keeps a reference to the GPU parameter buffer and
 	 * the necessary offsets. You should specialize this type for specific parameter types.
@@ -237,7 +254,7 @@ namespace bs
 		TGpuParameterBuffer(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
-		void Set(const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0) const;
+		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation()) const;
 
 		/** @copydoc TGpuDataParam::Get */
 		BufferType Get(u32 arrayIndex = 0) const;

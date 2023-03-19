@@ -73,45 +73,29 @@ namespace bs
 			 */
 			void Update(VulkanInternalCommandBuffer* cb, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
-			void NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags) override;
-			void NotifyUnbound() override;
-
 			/**
 			 * Creates a new view of this buffer or returns an existing view if one of this format was already created. Views
 			 * must be freed by calling freeView() when doing using them. Only UNIFORM_TEXEL and STORAGE_TEXEL buffer types
 			 * support buffer views.
 			 */
-			VkBufferView GetView(VkFormat format);
-
-			/**
-			 * Frees a previously allocated buffer view. Calling this is optional as all buffer views will be deallocated
-			 * when the buffer is destroyed.
-			 */
-			void FreeView(VkBufferView view);
+			VkBufferView GetOrCreateView(VkFormat format);
 
 		private:
 			/** Information about a view of this buffer. */
-			struct ViewInfo
+			struct ViewInformation
 			{
-				ViewInfo() = default;
+				ViewInformation() = default;
 
-				ViewInfo(VkFormat format, VkBufferView view)
-					: Format(format), View(view), UseCount(1)
+				ViewInformation(VkFormat format, VkBufferView view)
+					: Format(format), View(view)
 				{}
 
 				VkFormat Format = VK_FORMAT_UNDEFINED;
 				VkBufferView View = VK_NULL_HANDLE;
-				u32 UseCount = 0;
 			};
 
-			/**
-			 * Destroys any buffer views are currently not being used. This must only be called after the buffer is done
-			 * being used on a command buffer.
-			 */
-			void DestroyUnusedViews();
-
 			VkBuffer mBuffer;
-			Vector<ViewInfo> mViews;
+			SmallVector<ViewInformation, 2> mViews;
 			VmaAllocation mAllocation;
 
 			u32 mRowPitch;
@@ -144,8 +128,21 @@ namespace bs
 				return mBuffer;
 			}
 
+			/** Returns a view of the buffer object using the provided format. Only relevant for simple storage buffers. If Unknown format is provided, returns the default view. If the view was previously created, returns the existing buffer view. */
+			VkBufferView GetOrCreateView(GpuBufferFormat format) const;
+
 		protected:
 			friend class VulanGpuDevice;
+
+			/** Information about a created buffer view. */
+			struct ViewInformation
+			{
+				ViewInformation(GpuBufferFormat format, VkBufferView view)
+					: Format(format), View(view) {}
+
+				GpuBufferFormat Format = BF_UNKNOWN;
+				VkBufferView View = VK_NULL_HANDLE;
+			};
 
 			void Initialize() override;
 

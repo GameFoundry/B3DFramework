@@ -324,7 +324,7 @@ void VulkanGpuParams::Initialize()
 								buffer = vkBufManager.GetDummyReadBuffer()->GetResource(deviceIndex);
 
 							const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[layoutBindingIndex]);
-							const VkBufferView bufferView = buffer->GetView(format);
+							const VkBufferView bufferView = buffer->GetOrCreateView(format);
 
 							const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
 							const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, setIndex, slot, 0);
@@ -556,9 +556,9 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuBuffer>& buffer, u32 arrayIndex, u32 offset)
+bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
 {
-	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, offset))
+	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
 		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
@@ -605,7 +605,7 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuB
 
 				const GpuBufferFormat* const elementTypes = vkParamInfo.GetLayoutElementTypes(set);
 				const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[usedBindingSequentialIndex]);
-				vkBufferView = bufferResource->GetView(format);
+				vkBufferView = bufferResource->GetOrCreateView(format);
 			}
 			else
 			{
@@ -810,7 +810,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 			if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 			{
 				if(supportsDynamicOffset)
-					dynamicOffset = mStorageBufferData[sequentialResourceIndex].Offset;
+					dynamicOffset = mStorageBufferData[sequentialResourceIndex].View.Offset;
 
 				auto* element = static_cast<VulkanGenericGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetResource(deviceIdx);
@@ -869,7 +869,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 					else
 					{
 						GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(set);
-						view = resource->GetView(VulkanUtility::GetBufferFormat(elementTypes[usedBindingSequentialIndex]));
+						view = resource->GetOrCreateView(VulkanUtility::GetBufferFormat(elementTypes[usedBindingSequentialIndex]));
 					}
 				}
 

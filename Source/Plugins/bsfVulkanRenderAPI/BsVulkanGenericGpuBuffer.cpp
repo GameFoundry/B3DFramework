@@ -35,7 +35,6 @@ VulkanGenericGpuBuffer::~VulkanGenericGpuBuffer()
 				continue;
 
 			VulkanBuffer* buffer = static_cast<VulkanGpuBuffer*>(mBuffer)->GetResource(i);
-			buffer->FreeView(mBufferViews[i]);
 		}
 	}
 
@@ -128,7 +127,7 @@ void VulkanGenericGpuBuffer::UpdateViews()
 	if(mCachedBuffers[0] != newBufferHandle)
 	{
 		if(newBufferHandle != VK_NULL_HANDLE)
-			mBufferViews[0] = buffer->GetView(VulkanUtility::GetBufferFormat(mProperties.GetFormat()));
+			mBufferViews[0] = buffer->GetOrCreateView(VulkanUtility::GetBufferFormat(mProperties.GetFormat()));
 		else
 			mBufferViews[0] = VK_NULL_HANDLE;
 

@@ -454,10 +454,10 @@ namespace bs
 		 * @param	slot		Slot at which to bind the buffer, as defined by the pipeline GPU program.
 		 * @param	buffer		Buffer to bind.
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
-		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
+		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
 		 */
-		virtual bool SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
+		virtual bool SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation());
 
 		/**
 		 * Sets a sampler state at the specified set/slot combination.
@@ -497,13 +497,13 @@ namespace bs
 		 * @param	name		Name of the buffer to bind.
 		 * @param	buffer		Buffer to bind.
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
-		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
+		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 */
-		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, u32 offset = 0)
+		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation())
 		{
 			TGpuParameterBuffer<Core> param;
 			GetStorageBufferParameter(type, name, param);
-			param.Set(buffer, arrayIndex, offset);
+			param.Set(buffer, arrayIndex, view);
 		}
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
@@ -531,15 +531,10 @@ namespace bs
 		struct StorageBufferData
 		{
 			StorageBufferData()
-				: Offset(0)
 			{ }
 
 			BufferType Buffer;
-			union
-			{
-				u32 Offset; /**< Dynamic buffer offset, relevant for structured storage buffer types. */
-				GpuBufferFormat ViewFormat; /**< Buffer view, relevant for simple storage buffer types. */
-			};
+			GpuStorageBufferViewInformation View; /**< Controls how is the buffer viewed when bound to the pipeline. */
 		};
 
 		/** Data for a single bound uniform buffer. */

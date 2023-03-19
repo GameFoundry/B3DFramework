@@ -605,7 +605,7 @@ bool TGpuParams<Core>::SetStorageTexture(u32 set, u32 slot, const TextureType& t
 }
 
 template <bool Core>
-bool TGpuParams<Core>::SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex, u32 offset)
+bool TGpuParams<Core>::SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
 {
 	const u32 sequentialArrayIndex = mParamInfo->GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, set, slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
@@ -615,7 +615,7 @@ bool TGpuParams<Core>::SetStorageBuffer(u32 set, u32 slot, const BufferType& buf
 	}
 
 	mStorageBufferData[sequentialArrayIndex].Buffer = buffer;
-	mStorageBufferData[sequentialArrayIndex].Offset = offset;
+	mStorageBufferData[sequentialArrayIndex].View = view;
 
 	MarkResourcesDirtyInternal();
 	MarkCoreDirtyInternal();
@@ -817,8 +817,8 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 
 	for(u32 i = 0; i < storageBufferCount; i++)
 	{
-		storageBufferOffsets[i] = mStorageBufferData->Offset;
-		storageBufferFormats[i] = mStorageBufferData->ViewFormat;
+		storageBufferOffsets[i] = mStorageBufferData->View.Offset;
+		storageBufferFormats[i] = mStorageBufferData->View.Format;
 
 		new(&storageBuffers[i]) SPtr<ct::GenericGpuBuffer>();
 
@@ -948,8 +948,8 @@ void GpuParams::SyncToCore(const CoreSyncData& data)
 	for(u32 i = 0; i < storageBufferCount; i++)
 	{
 		mStorageBufferData[i].Buffer = storageBuffers[i];
-		mStorageBufferData[i].Offset = storageBufferOffsets[i];
-		mStorageBufferData[i].ViewFormat = storageBufferFormats[i];
+		mStorageBufferData[i].View.Offset = storageBufferOffsets[i];
+		mStorageBufferData[i].View.Format = storageBufferFormats[i];
 
 		storageBuffers[i].~SPtr<GenericGpuBuffer>();
 	}

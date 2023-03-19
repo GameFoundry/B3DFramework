@@ -79,98 +79,30 @@ void VulkanBuffer::Update(VulkanInternalCommandBuffer* cb, u8* data, VkDeviceSiz
 	vkCmdUpdateBuffer(cb->GetHandle(), mBuffer, offset, length, (uint32_t*)data);
 }
 
-void VulkanBuffer::NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags)
-{
-	{
-		Lock lock(mMutex);
-
-		// Note: With often used buffers this block might never execute, in which case views won't  get freed.
-		// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.
-		bool isLastHandle = mNumBoundHandles == 1;
-		if(isLastHandle)
-			DestroyUnusedViews();
-	}
-
-	VulkanResource::NotifyDone(globalQueueIdx, useFlags);
-}
-
-void VulkanBuffer::NotifyUnbound()
-{
-	{
-		Lock lock(mMutex);
-
-		// Note: With often used buffers this block might never execute, in which case views won't  get freed.
-		// If that ever becomes an issue (unlikely) then we'll need to track usage per-view.
-		bool isLastHandle = mNumBoundHandles == 1;
-		if(isLastHandle)
-			DestroyUnusedViews();
-	}
-
-	VulkanResource::NotifyUnbound();
-}
-
-VkBufferView VulkanBuffer::GetView(VkFormat format)
+VkBufferView VulkanBuffer::GetOrCreateView(VkFormat format)
 {
 	Lock lock(mViewsMutex);
 
-	const auto iterFind = std::find_if(mViews.begin(), mViews.end(), [format](const ViewInfo& x)
-									   { return x.Format == format; });
+	const auto found = std::find_if(mViews.begin(), mViews.end(), [format](const ViewInformation& x) { return x.Format == format; });
 
-	if(iterFind != mViews.end())
-	{
-		iterFind->UseCount++;
-		return iterFind->View;
-	}
+	if(found != mViews.end())
+		return found->View;
 
-	VkBufferViewCreateInfo viewCI;
-	viewCI.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
-	viewCI.pNext = nullptr;
-	viewCI.flags = 0;
-	viewCI.offset = 0;
-	viewCI.range = VK_WHOLE_SIZE;
-	viewCI.format = format;
-	viewCI.buffer = mBuffer;
+	VkBufferViewCreateInfo bufferViewCreateInfo;
+	bufferViewCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+	bufferViewCreateInfo.pNext = nullptr;
+	bufferViewCreateInfo.flags = 0;
+	bufferViewCreateInfo.offset = 0;
+	bufferViewCreateInfo.range = VK_WHOLE_SIZE;
+	bufferViewCreateInfo.format = format;
+	bufferViewCreateInfo.buffer = mBuffer;
 
 	VkBufferView view;
-	VkResult result = vkCreateBufferView(GetDevice().GetLogical(), &viewCI, gVulkanAllocator, &view);
+	VkResult result = vkCreateBufferView(GetDevice().GetLogical(), &bufferViewCreateInfo, gVulkanAllocator, &view);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	mViews.push_back(ViewInfo(format, view));
+	mViews.Add(ViewInformation(format, view));
 	return view;
-}
-
-void VulkanBuffer::FreeView(VkBufferView view)
-{
-	Lock lock(mViewsMutex);
-
-	const auto iterFind = std::find_if(mViews.begin(), mViews.end(), [view](const ViewInfo& x)
-									   { return x.View == view; });
-
-	if(iterFind != mViews.end())
-	{
-		B3D_ASSERT(iterFind->UseCount > 0);
-		iterFind->UseCount--;
-	}
-	else
-	{
-		B3D_ASSERT(false);
-	}
-}
-
-void VulkanBuffer::DestroyUnusedViews()
-{
-	Lock lock(mViewsMutex);
-
-	for(auto iter = mViews.begin(); iter != mViews.end();)
-	{
-		if(iter->UseCount == 0)
-		{
-			vkDestroyBufferView(GetDevice().GetLogical(), iter->View, gVulkanAllocator);
-			iter = mViews.erase(iter);
-		}
-		else
-			++iter;
-	}
 }
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
@@ -372,6 +304,7 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options, u32 d
 
 				buffer->Destroy();
 				buffer = newBuffer;
+
 				mBuffer = buffer;
 			}
 
@@ -694,4 +627,15 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 		memcpy(lockedData, source, length);
 		Unlock();
 	}
+}
+
+VkBufferView VulkanGpuBuffer::GetOrCreateView(GpuBufferFormat format) const
+{
+	if(mInformation.Type != GpuBufferType::SimpleStorage || mBuffer == nullptr)
+		return nullptr;
+
+	if(format == BF_UNKNOWN)
+		format = mInformation.SimpleStorage.Format;
+
+	return mBuffer->GetOrCreateView(VulkanUtility::GetBufferFormat(mInformation.SimpleStorage.Format));
 }
