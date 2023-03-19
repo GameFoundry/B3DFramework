@@ -5,7 +5,6 @@
 #include "Renderer/BsSkybox.h"
 #include "Renderer/BsCamera.h"
 #include "Renderer/BsRendererUtility.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "Utility/BsBitwise.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsGpuParamsSet.h"

@@ -43,7 +43,7 @@ namespace bs
 				: mLastUsedFrame(lastUsedFrame)
 			{}
 
-			SPtr<GenericGpuBuffer> Buffer;
+			SPtr<GpuBuffer> Buffer;
 
 		private:
 			friend class GpuResourcePool;
@@ -58,6 +58,8 @@ namespace bs
 		class B3D_CORE_EXPORT GpuResourcePool : public Module<GpuResourcePool>
 		{
 		public:
+			GpuResourcePool();
+
 			/**
 			 * Attempts to find the unused render texture with the specified parameters in the pool, or creates a new texture
 			 * otherwise.
@@ -126,8 +128,9 @@ namespace bs
 			 * @param[in]	desc	Descriptor structure that describes what kind of buffer to match.
 			 * @return				True if the buffer matches the descriptor, false otherwise.
 			 */
-			static bool Matches(const SPtr<GenericGpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
+			static bool Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc);
 
+			SPtr<GpuDevice> mDevice;
 			DynArray<SPtr<PooledRenderTexture>> mTextures;
 			DynArray<SPtr<PooledStorageBuffer>> mBuffers;
 
@@ -222,7 +225,7 @@ namespace bs
 		private:
 			friend class GpuResourcePool;
 
-			GenericGpuBufferType type;
+			GpuBufferType type;
 			GpuBufferFormat format;
 			GpuBufferFlags flags;
 			u32 numElements;

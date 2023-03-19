@@ -7,7 +7,6 @@
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "Math/BsVector2.h"
 #include "Image/BsTexture.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "RenderAPI/BsSamplerState.h"
 #include "Debug/BsDebug.h"
 #include "Error/BsException.h"
@@ -745,7 +744,7 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 	const u32 uniformBufferOffsetsArraySize = uniformBufferCount * sizeof(u32);
 	const u32 sampledTextureArraySize = sampledTextureCount * sizeof(SPtr<ct::Texture>);
 	const u32 storageTextureArraySize = storageTextureCount * sizeof(SPtr<ct::Texture>);
-	const u32 storageBufferArraySize = storageBufferCount * sizeof(SPtr<ct::GenericGpuBuffer>);
+	const u32 storageBufferArraySize = storageBufferCount * sizeof(SPtr<ct::GpuBuffer>);
 	const u32 storageBufferOffsetArraySize = storageBufferCount * sizeof(u32);
 	const u32 storageBufferFormatArraySize = storageBufferCount * sizeof(GpuBufferFormat);
 	const u32 samplerArraySize = samplerCount * sizeof(SPtr<ct::SamplerState>);
@@ -771,7 +770,7 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 	u32* uniformBufferOffsets = (u32*)(data + uniformBufferOffsetArrayOffset);
 	SPtr<ct::Texture>* sampledTextures = (SPtr<ct::Texture>*)(data + sampledTextureArrayOffset);
 	SPtr<ct::Texture>* storageTextures = (SPtr<ct::Texture>*)(data + storageTextureArrayOffset);
-	SPtr<ct::GenericGpuBuffer>* storageBuffers = (SPtr<ct::GenericGpuBuffer>*)(data + storageBufferArrayOffset);
+	SPtr<ct::GpuBuffer>* storageBuffers = (SPtr<ct::GpuBuffer>*)(data + storageBufferArrayOffset);
 	u32* storageBufferOffsets = (u32*)(data + storageBufferOffsetArrayOffset);
 	GpuBufferFormat* storageBufferFormats = (GpuBufferFormat*)(data + storageBufferFormatArrayOffset);
 	SPtr<ct::SamplerState>* samplers = (SPtr<ct::SamplerState>*)(data + samplerArrayOffset);
@@ -820,7 +819,7 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 		storageBufferOffsets[i] = mStorageBufferData->View.Offset;
 		storageBufferFormats[i] = mStorageBufferData->View.Format;
 
-		new(&storageBuffers[i]) SPtr<ct::GenericGpuBuffer>();
+		new(&storageBuffers[i]) SPtr<ct::GpuBuffer>();
 
 		if(mStorageBufferData[i].Buffer != nullptr)
 			storageBuffers[i] = mStorageBufferData[i].Buffer->GetCore();
@@ -885,7 +884,7 @@ void GpuParams::SyncToCore(const CoreSyncData& data)
 	const u32 uniformBufferOffsetsArraySize = uniformBufferCount * sizeof(u32);
 	const u32 sampledTextureArraySize = sampledTextureCount * sizeof(SPtr<Texture>);
 	const u32 storageTextureArraySize = storageTextureCount * sizeof(SPtr<Texture>);
-	const u32 storageBufferArraySize = storageBufferCount * sizeof(SPtr<GenericGpuBuffer>);
+	const u32 storageBufferArraySize = storageBufferCount * sizeof(SPtr<GpuBuffer>);
 	const u32 storageBufferOffsetArraySize = storageBufferCount * sizeof(u32);
 	const u32 storageBufferFormatArraySize = storageBufferCount * sizeof(GpuBufferFormat);
 	const u32 samplerArraySize = samplerCount * sizeof(SPtr<SamplerState>);
@@ -913,7 +912,7 @@ void GpuParams::SyncToCore(const CoreSyncData& data)
 	u32* uniformBufferOffsets = (u32*)(dataPtr + uniformBufferOffsetArrayOffset);
 	SPtr<Texture>* sampledTextures = (SPtr<Texture>*)(dataPtr + sampledTextureArrayOffset);
 	SPtr<Texture>* storageTextures = (SPtr<Texture>*)(dataPtr + storageTextureArrayOffset);
-	SPtr<GenericGpuBuffer>* storageBuffers = (SPtr<GenericGpuBuffer>*)(dataPtr + storageBufferArrayOffset);
+	SPtr<GpuBuffer>* storageBuffers = (SPtr<GpuBuffer>*)(dataPtr + storageBufferArrayOffset);
 	u32* storageBufferOffsets = (u32*)(dataPtr + storageBufferOffsetArrayOffset);
 	GpuBufferFormat* storageBufferFormats = (GpuBufferFormat*)(dataPtr + storageBufferFormatArrayOffset);
 	SPtr<SamplerState>* samplers = (SPtr<SamplerState>*)(dataPtr + samplerArrayOffset);
@@ -951,7 +950,7 @@ void GpuParams::SyncToCore(const CoreSyncData& data)
 		mStorageBufferData[i].View.Offset = storageBufferOffsets[i];
 		mStorageBufferData[i].View.Format = storageBufferFormats[i];
 
-		storageBuffers[i].~SPtr<GenericGpuBuffer>();
+		storageBuffers[i].~SPtr<GpuBuffer>();
 	}
 
 	for(u32 i = 0; i < samplerCount; i++)

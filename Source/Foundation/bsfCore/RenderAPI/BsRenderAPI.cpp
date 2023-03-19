@@ -10,7 +10,6 @@
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsDepthStencilState.h"
 #include "RenderAPI/BsRasterizerState.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 
 using namespace std::placeholders;

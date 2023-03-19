@@ -65,10 +65,10 @@ namespace bs
 			bool FreeInactiveTiles(GpuParticleResources& resources);
 
 			/** Returns a buffer containing UV coordinates to which each of the allocate tiles map to. */
-			SPtr<GenericGpuBuffer> GetTileUVs() const { return mTileUVs; }
+			SPtr<GpuBuffer> GetTileUVs() const { return mTileUVs; }
 
 			/** Returns a buffer containing per-particle indices used for locating particle data in the particle textures. */
-			SPtr<GenericGpuBuffer> GetParticleIndices() const { return mParticleIndices; }
+			SPtr<GpuBuffer> GetParticleIndices() const { return mParticleIndices; }
 
 			/**
 			 * Returns the total number of tiles used by this particle system. This may include inactive tiles unless you have
@@ -128,8 +128,8 @@ namespace bs
 			u32 mSortOffset = 0;
 			Random mRandom;
 
-			SPtr<GenericGpuBuffer> mTileUVs;
-			SPtr<GenericGpuBuffer> mParticleIndices;
+			SPtr<GpuBuffer> mTileUVs;
+			SPtr<GpuBuffer> mParticleIndices;
 		};
 
 		/** Performs simulation for all particle systems that have GPU simulation enabled. */
@@ -306,7 +306,7 @@ namespace bs
 			const SPtr<RenderTexture>& GetSimulationTarget() const { return mSimulateRT[mWriteBufferIdx]; }
 
 			/** Returns a global buffer containing particle indices for sorted particle systems. */
-			const SPtr<GenericGpuBuffer>& GetSortedIndices() const;
+			const SPtr<GpuBuffer>& GetSortedIndices() const;
 
 			/**
 			 * Attempts to allocate a new tile in particle textures. Returns index of the tile if successful or -1 if no more
@@ -342,7 +342,7 @@ namespace bs
 			GpuParticleStaticTextures mStaticTextures;
 			GpuParticleCurves mCurveTexture;
 			GpuSortBuffers mSortBuffers;
-			SPtr<GenericGpuBuffer> mSortedIndices[2];
+			SPtr<GpuBuffer> mSortedIndices[2];
 			u32 mSortedIndicesBufferIdx = 0;
 
 			SPtr<RenderTexture> mSimulateRT[2];

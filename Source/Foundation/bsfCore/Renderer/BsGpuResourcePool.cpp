@@ -1,14 +1,21 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsGpuResourcePool.h"
+
+#include "BsCoreApplication.h"
 #include "RenderAPI/BsRenderTexture.h"
 #include "Image/BsTexture.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 
 namespace bs { namespace ct
 {
+GpuResourcePool::GpuResourcePool()
+{
+	mDevice = GetCoreApplication().GetPrimaryGpuDevice();
+}
+
 SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC& desc)
 {
 	for(auto& entry : mTextures)
@@ -101,14 +108,23 @@ SPtr<PooledStorageBuffer> GpuResourcePool::Get(const POOLED_STORAGE_BUFFER_DESC&
 	SPtr<PooledStorageBuffer> newBuffer = B3DMakeShared<PooledStorageBuffer>(mCurrentFrame);
 	mBuffers.Add(newBuffer);
 
-	GenericGpuBufferCreateInformation bufferDesc;
-	bufferDesc.Type = desc.type;
-	bufferDesc.ElementSize = desc.elementSize;
-	bufferDesc.ElementCount = desc.numElements;
-	bufferDesc.Format = desc.format;
-	bufferDesc.Flags = desc.flags;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = desc.type;
+	bufferCreateInformation.Flags = desc.flags;
 
-	newBuffer->Buffer = GenericGpuBuffer::Create(bufferDesc);
+	if(bufferCreateInformation.Type == GpuBufferType::SimpleStorage)
+	{
+		bufferCreateInformation.SimpleStorage.Count = desc.numElements;
+		bufferCreateInformation.SimpleStorage.Format = desc.format;
+	}
+	else
+	{
+		B3D_ENSURE(bufferCreateInformation.Type == GpuBufferType::StructuredStorage);
+		bufferCreateInformation.StructuredStorage.ElementSize = desc.elementSize;
+		bufferCreateInformation.StructuredStorage.Count = desc.numElements;
+	}
+
+	newBuffer->Buffer = mDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	return newBuffer;
 }
@@ -178,20 +194,20 @@ bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const POOLED_RENDER_
 	return match;
 }
 
-bool GpuResourcePool::Matches(const SPtr<GenericGpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
+bool GpuResourcePool::Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAGE_BUFFER_DESC& desc)
 {
-	const GenericGpuBufferProperties& props = buffer->GetProperties();
+	const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
 
-	bool match = props.GetType() == desc.type && props.GetElementCount() == desc.numElements;
+	bool match = gpuBufferInformation.Type == desc.type;
 	if(match)
 	{
-		if(desc.type == GBT_STANDARD)
-			match = props.GetFormat() == desc.format;
+		if(desc.type == GpuBufferType::SimpleStorage)
+			match = gpuBufferInformation.SimpleStorage.Format == desc.format && gpuBufferInformation.SimpleStorage.Count == desc.numElements;
 		else // Structured
-			match = props.GetElementSize() == desc.elementSize;
+			match = gpuBufferInformation.StructuredStorage.ElementSize == desc.elementSize && gpuBufferInformation.StructuredStorage.Count == desc.numElements;
 
 		if(match)
-			match = props.GetFlags() == desc.flags;
+			match = gpuBufferInformation.Flags == desc.flags;
 	}
 
 	return match;
@@ -251,7 +267,7 @@ POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::CreateCube(PixelFormat fo
 POOLED_STORAGE_BUFFER_DESC POOLED_STORAGE_BUFFER_DESC::CreateStandard(GpuBufferFormat format, u32 numElements, GpuBufferFlags flags)
 {
 	POOLED_STORAGE_BUFFER_DESC desc;
-	desc.type = GBT_STANDARD;
+	desc.type = GpuBufferType::SimpleStorage;
 	desc.format = format;
 	desc.numElements = numElements;
 	desc.elementSize = 0;
@@ -263,7 +279,7 @@ POOLED_STORAGE_BUFFER_DESC POOLED_STORAGE_BUFFER_DESC::CreateStandard(GpuBufferF
 POOLED_STORAGE_BUFFER_DESC POOLED_STORAGE_BUFFER_DESC::CreateStructured(u32 elementSize, u32 numElements, GpuBufferFlags flags)
 {
 	POOLED_STORAGE_BUFFER_DESC desc;
-	desc.type = GBT_STRUCTURED;
+	desc.type = GpuBufferType::StructuredStorage;
 	desc.format = BF_UNKNOWN;
 	desc.numElements = numElements;
 	desc.elementSize = elementSize;

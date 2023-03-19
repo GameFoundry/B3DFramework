@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsVertexData.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "RenderAPI/BsVertexDeclaration.h"
 #include "RenderAPI/BsVertexDataDesc.h"
 #include "RenderAPI/BsGpuParams.h"
@@ -18,15 +17,6 @@ SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPt
 	declPtr->Initialize();
 
 	return declPtr;
-}
-
-SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBufferCreateInformation& createInformation)
-{
-	SPtr<GenericGpuBuffer> gbuf = B3DMakeCoreFromExisting<GenericGpuBuffer>(new(B3DAllocate<GenericGpuBuffer>()) GenericGpuBuffer(createInformation));
-	gbuf->SetShared(gbuf);
-	gbuf->Initialize();
-
-	return gbuf;
 }
 
 SPtr<GpuParams> HardwareBufferManager::CreateGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
@@ -103,22 +93,6 @@ SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const Vec
 
 	mCachedDeclarations[key] = declPtr;
 	return declPtr;
-}
-
-SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
-{
-	SPtr<GenericGpuBuffer> gbuf = CreateGpuBufferInternal(desc, deviceMask);
-	gbuf->Initialize();
-
-	return gbuf;
-}
-
-SPtr<GenericGpuBuffer> HardwareBufferManager::CreateGpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
-{
-	SPtr<GenericGpuBuffer> gbuf = CreateGpuBufferInternal(desc, std::move(underlyingBuffer));
-	gbuf->Initialize();
-
-	return gbuf;
 }
 
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclarationInternal(

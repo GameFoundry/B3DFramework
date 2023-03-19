@@ -15,7 +15,7 @@ namespace bs
 		/**
 		 * Descriptor structure used for initializing a GpuBufferView.
 		 *
-		 * @see		GenericGpuBuffer
+		 * @see		GpuBuffer
 		 */
 		struct B3D_CORE_EXPORT GPU_BUFFER_VIEW_DESC
 		{
@@ -28,7 +28,7 @@ namespace bs
 		};
 
 		/**
-		 * Represents a specific view of a GenericGpuBuffer. Different views all of the same buffer be used in different situations
+		 * Represents a specific view of a GpuBuffer. Different views all of the same buffer be used in different situations
 		 * (for example for reading from a shader, or for a unordered read/write operation).
 		 */
 		class GpuBufferView

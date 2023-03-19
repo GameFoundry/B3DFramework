@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsLightProbes.h"
 #include "Renderer/BsLightProbeVolume.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "BsRendererView.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "Mesh/BsMesh.h"
@@ -218,7 +217,9 @@ struct TetrahedronFaceDataGPU
 
 LightProbes::LightProbes()
 	: mTetrahedronVolumeDirty(false), mMaxCoefficientRows(0), mMaxTetrahedra(0), mMaxFaces(0), mNumValidTetrahedra(0)
-{}
+{
+	mGpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+}
 
 void LightProbes::NotifyAdded(LightProbeVolume* volume)
 {
@@ -764,14 +765,13 @@ void LightProbes::ResizeTetrahedronBuffer(u32 count)
 {
 	static constexpr u32 kElementSize = Math::DivideAndRoundUp((u32)sizeof(TetrahedronDataGPU), 4U);
 
-	GenericGpuBufferCreateInformation desc;
-	desc.Type = GBT_STANDARD;
-	desc.ElementSize = 0;
-	desc.ElementCount = count * kElementSize;
-	desc.Flags = GpuBufferFlag::StoreOnGPU;
-	desc.Format = BF_32X4U;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
+	bufferCreateInformation.SimpleStorage.Count = count * kElementSize;
+	bufferCreateInformation.SimpleStorage.Format = BF_32X4U;
 
-	mTetrahedronInfosGPU = GenericGpuBuffer::Create(desc);
+	mTetrahedronInfosGPU = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
 	mMaxTetrahedra = count;
 }
 
@@ -779,14 +779,13 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 {
 	static constexpr u32 kElementSize = Math::DivideAndRoundUp((u32)sizeof(TetrahedronFaceDataGPU), 4U);
 
-	GenericGpuBufferCreateInformation desc;
-	desc.Type = GBT_STANDARD;
-	desc.ElementSize = 0;
-	desc.ElementCount = count * kElementSize;
-	desc.Flags = GpuBufferFlag::StoreOnGPU;
-	desc.Format = BF_32X4F;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
+	bufferCreateInformation.SimpleStorage.Count = count * kElementSize;
+	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 
-	mTetrahedronFaceInfosGPU = GenericGpuBuffer::Create(desc);
+	mTetrahedronFaceInfosGPU = mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
 	mMaxFaces = count;
 }
 

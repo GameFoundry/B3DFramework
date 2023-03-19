@@ -41,7 +41,7 @@ SPtr<ct::GpuBuffer> D3D11HardwareBufferManager::CreateGpuParamBlockBufferInterna
 	return paramBlockBufferPtr;
 }
 
-SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
+SPtr<ct::GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
 {
 	D3D11GpuBuffer* buffer = new(B3DAllocate<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, deviceMask);
 
@@ -51,7 +51,7 @@ SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(c
 	return bufferPtr;
 }
 
-SPtr<ct::GenericGpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
+SPtr<ct::GpuBuffer> D3D11HardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
 {
 	D3D11GpuBuffer* buffer = new(B3DAllocate<D3D11GpuBuffer>()) D3D11GpuBuffer(desc, std::move(underlyingBuffer));
 

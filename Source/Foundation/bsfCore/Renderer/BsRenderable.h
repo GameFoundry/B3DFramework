@@ -261,10 +261,10 @@ namespace bs
 			void UpdatePrevFrameAnimationBuffers();
 
 			/** Returns the GPU buffer containing element's bone matrices, if it has any. */
-			const SPtr<GenericGpuBuffer>& GetBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
+			const SPtr<GpuBuffer>& GetBoneMatrixBuffer() const { return mBoneMatrixBuffer; }
 
 			/** Returns the GPU buffer containing element's bone matrices for the previous frame, if it has any. */
-			const SPtr<GenericGpuBuffer>& GetBonePrevMatrixBuffer() const { return mBonePrevMatrixBuffer; }
+			const SPtr<GpuBuffer>& GetBonePrevMatrixBuffer() const { return mBonePrevMatrixBuffer; }
 
 			/** Returns the vertex buffer containing element's morph shape vertices, if it has any. */
 			const SPtr<GpuBuffer>& GetMorphShapeBuffer() const { return mMorphShapeBuffer; }
@@ -290,8 +290,8 @@ namespace bs
 			u64 mAnimationId;
 			u32 mMorphShapeVersion;
 
-			SPtr<GenericGpuBuffer> mBoneMatrixBuffer;
-			SPtr<GenericGpuBuffer> mBonePrevMatrixBuffer;
+			SPtr<GpuBuffer> mBoneMatrixBuffer;
+			SPtr<GpuBuffer> mBonePrevMatrixBuffer;
 			SPtr<GpuBuffer> mMorphShapeBuffer;
 			SPtr<VertexDeclaration> mMorphVertexDeclaration;
 		};

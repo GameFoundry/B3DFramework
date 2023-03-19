@@ -247,7 +247,7 @@ namespace bs
 		friend class ct::GpuParams;
 
 		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
-		using BufferType = SPtr<CoreVariantType<GenericGpuBuffer, Core>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 
 	public:
 		TGpuParameterBuffer();

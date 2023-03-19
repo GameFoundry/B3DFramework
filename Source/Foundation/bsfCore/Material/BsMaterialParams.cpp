@@ -5,7 +5,7 @@
 #include "Material/BsShader.h"
 #include "Image/BsTexture.h"
 #include "Image/BsSpriteTexture.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsSamplerState.h"
 #include "Image/BsColorGradient.h"
 #include "Animation/BsAnimationCurve.h"
@@ -1193,8 +1193,8 @@ MaterialParams::MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::Materi
 			break;
 		case ParamType::Buffer:
 			{
-				SPtr<bs::GenericGpuBuffer> buffer = params->mBufferParams[param.Index].Value;
-				SPtr<GenericGpuBuffer> bufferCore;
+				SPtr<bs::GpuBuffer> buffer = params->mBufferParams[param.Index].Value;
+				SPtr<GpuBuffer> bufferCore;
 				if(buffer != nullptr)
 					bufferCore = buffer->GetCore();
 

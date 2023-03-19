@@ -4,7 +4,6 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanGenericGpuBuffer.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanGpuBuffer.h"
 #include "BsVulkanDescriptorSet.h"
@@ -556,7 +555,7 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
+bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
 {
 	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
 		return false;
@@ -575,7 +574,7 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuB
 
 	Lock lock(mMutex);
 
-	VulkanGenericGpuBuffer* vulkanBuffer = static_cast<VulkanGenericGpuBuffer*>(buffer.get());
+	VulkanGpuBuffer* vulkanBuffer = static_cast<VulkanGpuBuffer*>(buffer.get());
 	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
 	{
 		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
@@ -616,7 +615,8 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GenericGpuB
 		{
 			if(useView)
 			{
-				vkBufferView = vulkanBuffer->GetView(deviceIndex);
+				const GpuBufferFormat format = mStorageBufferData[sequentialResourceIndex].View.Format;
+				vkBufferView = vulkanBuffer->GetOrCreateView(format);
 			}
 		}
 
@@ -812,10 +812,10 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 				if(supportsDynamicOffset)
 					dynamicOffset = mStorageBufferData[sequentialResourceIndex].View.Offset;
 
-				auto* element = static_cast<VulkanGenericGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
+				auto* element = static_cast<VulkanGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetResource(deviceIdx);
 
-				if(element->GetProperties().GetFlags().IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
+				if(element->GetInformation().Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
 					useFlags |= VulkanAccessFlag::Write;
 			}
 
@@ -863,8 +863,8 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 				{
 					if(mStorageBufferData[sequentialResourceIndex].Buffer != nullptr)
 					{
-						auto* element = static_cast<VulkanGenericGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
-						view = element->GetView(deviceIdx);
+						auto* element = static_cast<VulkanGpuBuffer*>(mStorageBufferData[sequentialResourceIndex].Buffer.get());
+						view = element->GetOrCreateView(mStorageBufferData[sequentialResourceIndex].View.Format);
 					}
 					else
 					{

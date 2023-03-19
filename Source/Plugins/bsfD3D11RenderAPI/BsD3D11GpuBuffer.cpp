@@ -18,13 +18,13 @@ static void DeleteHardwareBuffer(GpuBuffer* buffer)
 }
 
 D3D11GpuBuffer::D3D11GpuBuffer(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
-	: GenericGpuBuffer(desc, deviceMask)
+	: GpuBuffer(desc, deviceMask)
 {
 	B3D_ASSERT((deviceMask == GDF_DEFAULT || deviceMask == GDF_PRIMARY) && "Multiple GPUs not supported natively on DirectX 11.");
 }
 
 D3D11GpuBuffer::D3D11GpuBuffer(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
-	: GenericGpuBuffer(desc, std::move(underlyingBuffer))
+	: GpuBuffer(desc, std::move(underlyingBuffer))
 {}
 
 D3D11GpuBuffer::~D3D11GpuBuffer()
@@ -70,7 +70,7 @@ void D3D11GpuBuffer::Initialize()
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_GpuBuffer);
 
-	GenericGpuBuffer::Initialize();
+	GpuBuffer::Initialize();
 }
 
 ID3D11Buffer* D3D11GpuBuffer::GetDX11Buffer() const

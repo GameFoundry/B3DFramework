@@ -3,7 +3,6 @@
 #include "RenderAPI/BsGpuBuffer.h"
 
 #include "BsCoreApplication.h"
-#include "BsGenericGpuBuffer.h"
 #include "BsGpuDevice.h"
 #include "Managers/BsHardwareBufferManager.h"
 

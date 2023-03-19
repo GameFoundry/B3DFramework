@@ -29,8 +29,8 @@ namespace bs
 		/** Buffers to contain both inputs and outputs for the GpuSort algorithm. */
 		struct GpuSortBuffers
 		{
-			SPtr<GenericGpuBuffer> Keys[2];
-			SPtr<GenericGpuBuffer> Values[2];
+			SPtr<GpuBuffer> Keys[2];
+			SPtr<GpuBuffer> Values[2];
 		};
 
 		/** Zeroes out the provided buffer. Should be called on the count output buffer before executing RadixSortCountMat. */
@@ -47,7 +47,7 @@ namespace bs
 			 *
 			 * @param[in]	outputCounts	Pre-allocated buffer to zero out.
 			 */
-			void Execute(const SPtr<GenericGpuBuffer>& outputCounts);
+			void Execute(const SPtr<GpuBuffer>& outputCounts);
 
 			GpuParameterBuffer MOutputParam;
 		};
@@ -74,7 +74,7 @@ namespace bs
 			 *								representing this buffer.
 			 * @param[in]	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputKeys, const SPtr<GenericGpuBuffer>& outputCounts);
+			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputCounts);
 
 			GpuParameterBuffer MInputKeysParam;
 			GpuParameterBuffer MOutputCountsParam;
@@ -100,7 +100,7 @@ namespace bs
 			 * @param[in]	inputCounts		Counts as output by the RadixSortCountMat material.
 			 * @param[in]	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputCounts, const SPtr<GenericGpuBuffer>& outputOffsets);
+			void Execute(const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets);
 
 			GpuParameterBuffer MInputCountsParam;
 			GpuParameterBuffer MOutputOffsetsParam;
@@ -131,7 +131,7 @@ namespace bs
 			 * @return						Index of the buffer that should be used as input for the next iteration of the
 			 *								algorithm. (In case the keys were only partially sorted)
 			 */
-			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
+			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
 
 			GpuParameterBuffer MInputOffsetsBufferParam;
 			GpuParameterBuffer MInputKeysBufferParam;
@@ -184,7 +184,7 @@ namespace bs
 			static GpuSortBuffers CreateSortBuffers(u32 numElements, bool values = false);
 
 		private:
-			SPtr<GenericGpuBuffer> mHelperBuffers[2];
+			SPtr<GpuBuffer> mHelperBuffers[2];
 		};
 
 		/* @} */

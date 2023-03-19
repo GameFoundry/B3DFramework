@@ -460,14 +460,14 @@ namespace bs
 	class B3D_CORE_EXPORT MaterialParamBufferDataCore
 	{
 	public:
-		SPtr<ct::GenericGpuBuffer> Value;
+		SPtr<ct::GpuBuffer> Value;
 	};
 
 	/** Data for a single buffer parameter. */
 	class B3D_CORE_EXPORT MaterialParamBufferData
 	{
 	public:
-		SPtr<GenericGpuBuffer> Value;
+		SPtr<GpuBuffer> Value;
 	};
 
 	/** Data for a single sampler state parameter. */
@@ -516,7 +516,7 @@ namespace bs
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using ShaderType = CoreVariantHandleType<Shader, Core>;
 		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
-		using BufferType = SPtr<CoreVariantType<GenericGpuBuffer, Core>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 		using SamplerType = SPtr<CoreVariantType<SamplerState, Core>>;
 
 		using ParamStructDataType = typename TMaterialParamsTypes<Core>::StructParamDataType;
@@ -711,14 +711,14 @@ namespace bs
 		void SetSpriteTexture(const ParamData& param, const SpriteTextureType& value);
 
 		/**
-		 * Equivalent to getBuffer(const String&, SPtr<GenericGpuBuffer>&) except it uses the internal parameter reference
+		 * Equivalent to getBuffer(const String&, SPtr<GpuBuffer>&) except it uses the internal parameter reference
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */
 		void GetBuffer(const ParamData& param, BufferType& value) const;
 
 		/**
-		 * Equivalent to setBuffer(const String&, const SPtr<GenericGpuBuffer>&) except it uses the internal parameter reference
+		 * Equivalent to setBuffer(const String&, const SPtr<GpuBuffer>&) except it uses the internal parameter reference
 		 * directly, avoiding the name lookup. Caller must guarantee the parameter reference is valid and belongs to this
 		 * object.
 		 */

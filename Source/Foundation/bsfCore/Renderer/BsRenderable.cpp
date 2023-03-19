@@ -12,10 +12,10 @@
 #include "Renderer/BsRenderer.h"
 #include "Animation/BsAnimation.h"
 #include "Animation/BsMorphShapes.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "Animation/BsAnimationManager.h"
 #include "Scene/BsSceneManager.h"
 #include "CoreThread/BsCoreObjectSync.h"
+#include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
@@ -527,16 +527,16 @@ Bounds Renderable::GetBounds() const
 	}
 }
 
-SPtr<GenericGpuBuffer> CreateBoneMatrixBuffer(u32 numBones)
+SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 numBones)
 {
-	GenericGpuBufferCreateInformation desc;
-	desc.ElementCount = numBones * 3;
-	desc.ElementSize = 0;
-	desc.Type = GBT_STANDARD;
-	desc.Format = BF_32X4F;
-	desc.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	bufferCreateInformation.SimpleStorage.Count = numBones * 3;
+	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 
-	SPtr<GenericGpuBuffer> buffer = GenericGpuBuffer::Create(desc);
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	SPtr<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 	u8* dest = (u8*)buffer->Lock(0, numBones * 3 * sizeof(Vector4), GBL_WRITE_ONLY_DISCARD);
 
 	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it

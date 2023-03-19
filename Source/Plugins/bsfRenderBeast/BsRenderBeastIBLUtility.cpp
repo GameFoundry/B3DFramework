@@ -4,7 +4,6 @@
 #include "Image/BsTexture.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Renderer/BsRendererUtility.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "BsRenderBeast.h"
 
 namespace bs { namespace ct {
@@ -109,7 +108,7 @@ void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("PIXELS_PER_THREAD", kPixelsPerThread);
 }
 
-void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, u32 face, const SPtr<GenericGpuBuffer>& output)
+void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -134,7 +133,7 @@ void IrradianceComputeSHMat::Execute(const SPtr<Texture>& source, u32 face, cons
 	rapi.DispatchCompute(dispatchSize.X, dispatchSize.Y);
 }
 
-SPtr<GenericGpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets)
+SPtr<GpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets)
 {
 	auto& props = source->GetProperties();
 	u32 faceSize = props.Width;
@@ -146,18 +145,17 @@ SPtr<GenericGpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Tex
 
 	numCoeffSets = dispatchSize.X * dispatchSize.Y * 6;
 
-	GenericGpuBufferCreateInformation bufferDesc;
-	bufferDesc.Type = GBT_STRUCTURED;
-	bufferDesc.ElementCount = numCoeffSets;
-	bufferDesc.Format = BF_UNKNOWN;
-	bufferDesc.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
+	bufferCreateInformation.StructuredStorage.Count = numCoeffSets;
 
 	if(mVariationParameters.GetInt("SH_ORDER") == 3)
-		bufferDesc.ElementSize = sizeof(SHCoeffsAndWeight3);
+		bufferCreateInformation.StructuredStorage.ElementSize = sizeof(SHCoeffsAndWeight3);
 	else
-		bufferDesc.ElementSize = sizeof(SHCoeffsAndWeight5);
+		bufferCreateInformation.StructuredStorage.ElementSize = sizeof(SHCoeffsAndWeight5);
 
-	return GenericGpuBuffer::Create(bufferDesc);
+	return mGpuDevice->CreateGpuBuffer(bufferCreateInformation);
 }
 
 IrradianceComputeSHMat* IrradianceComputeSHMat::GetVariation(int order)
@@ -310,7 +308,7 @@ void IrradianceReduceSHMat::Initialize()
 	mGPUParameters->GetStorageTextureParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputTexture);
 }
 
-void IrradianceReduceSHMat::Execute(const SPtr<GenericGpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx)
+void IrradianceReduceSHMat::Execute(const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -460,7 +458,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(const SPtr<Texture>& cube
 		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::GetVariation(5);
 
 		u32 numCoeffSets;
-		SPtr<GenericGpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+		SPtr<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
 		for(u32 face = 0; face < 6; face++)
 			shCompute->Execute(cubemap, face, coeffSetBuffer);
 
@@ -497,7 +495,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(const SPtr<Texture>& cube
 		IrradianceReduceSHMat* shReduce = IrradianceReduceSHMat::GetVariation(3);
 
 		u32 numCoeffSets;
-		SPtr<GenericGpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
+		SPtr<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
 		for(u32 face = 0; face < 6; face++)
 			shCompute->Execute(cubemap, face, coeffSetBuffer);
 

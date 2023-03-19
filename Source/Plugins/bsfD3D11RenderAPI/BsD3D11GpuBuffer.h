@@ -15,7 +15,7 @@ namespace bs
 		 */
 
 		/**	DirectX 11 implementation of a generic GPU buffer. */
-		class D3D11GpuBuffer : public GenericGpuBuffer
+		class D3D11GpuBuffer : public GpuBuffer
 		{
 		public:
 			~D3D11GpuBuffer();

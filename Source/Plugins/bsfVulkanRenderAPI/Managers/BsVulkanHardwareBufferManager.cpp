@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/BsVulkanHardwareBufferManager.h"
-#include "BsVulkanGenericGpuBuffer.h"
 #include "BsVulkanGpuBackend.h"
 #include "BsVulkanGpuParams.h"
 #include "BsVulkanGpuBuffer.h"
@@ -24,26 +23,6 @@ VulkanHardwareBufferManager::VulkanHardwareBufferManager()
 	mDummyUniformBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(16, GpuBufferFlag::StoreOnGPU)));
 	mDummyStructuredBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateStructuredStorage(16, 1, GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU)));
 	mDummyVertexBuffer = std::static_pointer_cast<VulkanGpuBuffer>(vulkanGpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateVertex(16, 1, GpuBufferFlag::StoreOnGPU)));
-}
-
-SPtr<ct::GenericGpuBuffer> VulkanHardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask)
-{
-	VulkanGenericGpuBuffer* buffer = new(B3DAllocate<VulkanGenericGpuBuffer>()) VulkanGenericGpuBuffer(desc, deviceMask);
-
-	SPtr<VulkanGenericGpuBuffer> bufferPtr = B3DMakeSharedFromExisting<VulkanGenericGpuBuffer>(buffer);
-	bufferPtr->SetShared(bufferPtr);
-
-	return bufferPtr;
-}
-
-SPtr<ct::GenericGpuBuffer> VulkanHardwareBufferManager::CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer)
-{
-	VulkanGenericGpuBuffer* buffer = new(B3DAllocate<VulkanGenericGpuBuffer>()) VulkanGenericGpuBuffer(desc, std::move(underlyingBuffer));
-
-	SPtr<VulkanGenericGpuBuffer> bufferPtr = B3DMakeSharedFromExisting<VulkanGenericGpuBuffer>(buffer);
-	bufferPtr->SetShared(bufferPtr);
-
-	return bufferPtr;
 }
 
 SPtr<ct::GpuParams> VulkanHardwareBufferManager::CreateGpuParamsInternal(

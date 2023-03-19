@@ -394,7 +394,7 @@ void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<C
 				for(auto iter = paramDesc->Buffers.begin(); iter != paramDesc->Buffers.end(); ++iter)
 				{
 					u32 slot = iter->second.Slot;
-					SPtr<GenericGpuBuffer> buffer = gpuParams->GetStorageBuffer(iter->second.Set, slot);
+					SPtr<GpuBuffer> buffer = gpuParams->GetStorageBuffer(iter->second.Set, slot);
 
 					bool isLoadStore = iter->second.Type != GPOT_BYTE_BUFFER &&
 						iter->second.Type != GPOT_STRUCTURED_BUFFER;

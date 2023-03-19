@@ -186,23 +186,6 @@ namespace bs
 		GPT_COUNT // Keep at end
 	};
 
-	/** Types of generic GPU buffers that may be attached to GPU programs. */
-	enum GenericGpuBufferType
-	{
-		/** Buffer containing an array of primitives (e.g. float4's). */
-		GBT_STANDARD,
-		/**
-		 * Buffer containing an array of structures. Structure parameters can usually be easily accessed from within the
-		 * GPU program.
-		 */
-		GBT_STRUCTURED,
-		/**
-		 * Special type of buffer allowing you to specify arguments for draw operations inside the buffer instead of
-		 * providing them directly. Useful when you want to control drawing directly from GPU.
-		 */
-		GBT_INDIRECTARGUMENT,
-	};
-
 	/** Types of valid formats used for standard GPU buffers. */
 	enum GpuBufferFormat
 	{

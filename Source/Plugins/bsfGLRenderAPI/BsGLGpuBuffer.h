@@ -15,7 +15,7 @@ namespace bs
 		 */
 
 		/**	OpenGL implementation of a generic GPU buffer. */
-		class GLGpuBuffer : public GenericGpuBuffer
+		class GLGpuBuffer : public GpuBuffer
 		{
 		public:
 			~GLGpuBuffer();

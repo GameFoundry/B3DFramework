@@ -49,7 +49,7 @@ namespace bs
 			void Update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup);
 
 			/** Returns a GPU bindable buffer containing information about every reflection probe. */
-			SPtr<GenericGpuBuffer> GetProbeBuffer() const { return mProbeBuffer; }
+			SPtr<GpuBuffer> GetProbeBuffer() const { return mProbeBuffer; }
 
 			/** Returns the number of reflection probes in the probe buffer. */
 			u32 GetNumProbes() const { return mNumProbes; }
@@ -59,7 +59,7 @@ namespace bs
 
 		private:
 			Vector<ReflProbeData> mReflProbeData;
-			SPtr<GenericGpuBuffer> mProbeBuffer;
+			SPtr<GpuBuffer> mProbeBuffer;
 			u32 mNumProbes = 0;
 		};
 

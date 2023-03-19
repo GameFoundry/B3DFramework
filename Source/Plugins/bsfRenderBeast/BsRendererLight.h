@@ -154,7 +154,7 @@ namespace bs
 			void Update(const SceneInfo& sceneInfo, const RendererViewGroup& viewGroup);
 
 			/** Returns a GPU bindable buffer containing information about every light. */
-			SPtr<GenericGpuBuffer> GetLightBuffer() const { return mLightBuffer; }
+			SPtr<GpuBuffer> GetLightBuffer() const { return mLightBuffer; }
 
 			/**
 			 * Scans the list of lights visible in the view frustum to find the ones influencing the object described by
@@ -191,7 +191,7 @@ namespace bs
 			const Vector<const RendererLight*>& GetLights(LightType type) const { return mVisibleLights[(u32)type]; }
 
 		private:
-			SPtr<GenericGpuBuffer> mLightBuffer;
+			SPtr<GpuBuffer> mLightBuffer;
 
 			u32 mNumLights[(u32)LightType::Count];
 			u32 mNumShadowedLights[(u32)LightType::Count];

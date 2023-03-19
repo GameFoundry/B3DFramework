@@ -110,7 +110,7 @@ namespace bs
 	public:
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
-		using BufferType = SPtr<CoreVariantType<GenericGpuBuffer, Core>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
 		using GpuProgramPtrType = SPtr<CoreVariantType<GpuProgram, Core>>;
 		using PassType = CoreVariantType<Pass, Core>;

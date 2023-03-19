@@ -972,7 +972,7 @@ void Material::SetParams(const SPtr<MaterialParams>& params)
 
 		TMaterialParameterBuffer<false> curParam = GetParamBuffer(param.first);
 
-		SPtr<GenericGpuBuffer> buffer;
+		SPtr<GpuBuffer> buffer;
 		params->GetBuffer(*paramData, buffer);
 		curParam.Set(buffer);
 	}

@@ -35,8 +35,6 @@ namespace bs
 			/** Returns a buffer that can be used for vertex buffers when no other buffer is bound. */
 			VulkanGpuBuffer* GetDummyVertexBuffer() const { return mDummyVertexBuffer.get(); }
 		protected:
-			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GenericGpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer) override;
 			SPtr<GpuParams> CreateGpuParamsInternal(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 
 			SPtr<VulkanGpuBuffer> mDummyReadBuffer;

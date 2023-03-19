@@ -3,7 +3,6 @@
 #include "BsRendererLight.h"
 #include "Material/BsMaterial.h"
 #include "Material/BsGpuParamsSet.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "RenderAPI/BsGpuParams.h"
 #include "Renderer/BsLight.h"
 #include "Renderer/BsRendererUtility.h"
@@ -277,13 +276,13 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 			// Allocate at least one block even if no lights, to avoid issues with null buffers
 			u32 bufferSize = std::max(1, Math::CeilToInt(size / (float)kLightDataBufferIncrement)) * kLightDataBufferIncrement;
 
-			GenericGpuBufferCreateInformation bufferDesc;
-			bufferDesc.Type = GBT_STRUCTURED;
-			bufferDesc.ElementCount = bufferSize / sizeof(LightData);
-			bufferDesc.ElementSize = sizeof(LightData);
-			bufferDesc.Format = BF_UNKNOWN;
+			GpuBufferCreateInformation bufferCreateInformation;
+			bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
+			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(LightData);
+			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(LightData);
 
-			mLightBuffer = GenericGpuBuffer::Create(bufferDesc);
+			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			mLightBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 		}
 
 		if(size > 0)

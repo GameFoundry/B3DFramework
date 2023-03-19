@@ -133,7 +133,7 @@ namespace bs
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for buffers.
 			 */
-			void Execute(const SPtr<GenericGpuBuffer>& target, const Color& clearValue = Color::kZero);
+			void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::kZero);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

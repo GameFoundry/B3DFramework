@@ -23,8 +23,8 @@ namespace bs
 			SPtr<VertexBuffer> CreateVertexBufferInternal(const VertexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<IndexBuffer> CreateIndexBufferInternal(const IndexBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
 			SPtr<GpuBuffer> CreateGpuParamBlockBufferInternal(u32 size, GpuBufferUsage usage = GBU_DYNAMIC, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<GenericGpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer) override;
+			SPtr<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
+			SPtr<GpuBuffer> CreateGpuBufferInternal(const GpuBufferCreateInformation& desc, SPtr<GpuBuffer> underlyingBuffer) override;
 		};
 
 		/**	Class containing common functionality for all Null hardware buffers. */
@@ -45,7 +45,7 @@ namespace bs
 		};
 
 		/**	Null implementation of a generic GPU buffer. */
-		class NullGpuBuffer final : public GenericGpuBuffer
+		class NullGpuBuffer final : public GpuBuffer
 		{
 		public:
 			NullGpuBuffer(const GpuBufferCreateInformation& desc, GpuDeviceFlags deviceMask);

@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsTiledDeferred.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "Renderer/BsReflectionProbe.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
@@ -202,13 +201,23 @@ void ClearLoadStoreMat::Execute(const SPtr<Texture>& target, const Color& clearV
 	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY);
 }
 
-void ClearLoadStoreMat::Execute(const SPtr<GenericGpuBuffer>& target, const Color& clearValue)
+void ClearLoadStoreMat::Execute(const SPtr<GpuBuffer>& target, const Color& clearValue)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
 	mOutputBufferParam.Set(target);
 
-	u32 width = target->GetProperties().GetElementCount();
+	const GpuBufferInformation& bufferInformation = target->GetInformation();
+
+	u32 width = 0;
+	if(bufferInformation.Type == GpuBufferType::SimpleStorage)
+		width = bufferInformation.SimpleStorage.Count;
+	else
+	{
+		B3D_ENSURE(bufferInformation.Type == GpuBufferType::StructuredStorage);
+		width = bufferInformation.StructuredStorage.Count;
+	}
+
 	u32 height = 1;
 	gClearLoadStoreParamDef.gSize.Set(mParamBuffer, Vector2I((i32)width, (i32)height));
 	gClearLoadStoreParamDef.gFloatClearVal.Set(mParamBuffer, Vector4(clearValue.R, clearValue.G, clearValue.A, clearValue.A));

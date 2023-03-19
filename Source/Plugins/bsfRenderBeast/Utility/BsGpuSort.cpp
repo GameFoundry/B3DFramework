@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsGpuSort.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
 #include "Math/BsRandom.h"
 #include "Renderer/BsRendererUtility.h"
 
@@ -69,7 +68,7 @@ SPtr<GpuBuffer> CreateGpuSortParams(const GpuSortProperties& props)
  * Checks can the provided buffer be used for GPU sort operation. Returns a pointer to the error message if check failed
  * or nullptr if check passed.
  */
-const char* CheckSortBuffer(GenericGpuBuffer& buffer)
+const char* CheckSortBuffer(GpuBuffer& buffer)
 {
 	static constexpr const char* kInvalidGpuWriteMsg =
 		"All buffers provided to GpuSort must be created with GBU_LOADSTORE flags enabled.";
@@ -78,29 +77,30 @@ const char* CheckSortBuffer(GenericGpuBuffer& buffer)
 	static constexpr const char* kInvalidFormatMsg =
 		"All buffers provided to GpuSort must use a 32-bit unsigned integer format.";
 
-	const GenericGpuBufferProperties& bufferProps = buffer.GetProperties();
-	if(!bufferProps.GetFlags().IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
+	const GpuBufferInformation& bufferInformation = buffer.GetInformation();
+	if(!bufferInformation.Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
 		return kInvalidGpuWriteMsg;
 
-	if(bufferProps.GetType() != GBT_STANDARD)
+	if(bufferInformation.Type != GpuBufferType::SimpleStorage)
 		return kInvalidTypeMsg;
 
-	if(bufferProps.GetFormat() != BF_32X1U)
+	if(bufferInformation.SimpleStorage.Format != BF_32X1U)
 		return kInvalidFormatMsg;
 
 	return nullptr;
 }
 
 /** Creates a helper buffers used for storing intermediate information during GpuSort::sort. */
-SPtr<GenericGpuBuffer> CreateHelperBuffer()
+SPtr<GpuBuffer> CreateHelperBuffer()
 {
-	GenericGpuBufferCreateInformation desc;
-	desc.ElementCount = kMaxNumGroups * kNumDigits;
-	desc.Format = BF_32X1U;
-	desc.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
-	desc.Type = GBT_STANDARD;
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
+	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	bufferCreateInformation.SimpleStorage.Count = kMaxNumGroups * kNumDigits;
+	bufferCreateInformation.SimpleStorage.Format = BF_32X1U;
 
-	return GenericGpuBuffer::Create(desc);
+	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	return gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 }
 
 void RadixSortClearMat::Initialize()
@@ -113,7 +113,7 @@ void RadixSortClearMat::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortClearMat::Execute(const SPtr<GenericGpuBuffer>& outputOffsets)
+void RadixSortClearMat::Execute(const SPtr<GpuBuffer>& outputOffsets)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -134,7 +134,7 @@ void RadixSortCountMat::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortCountMat::Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputKeys, const SPtr<GenericGpuBuffer>& outputOffsets)
+void RadixSortCountMat::Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputOffsets)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -158,7 +158,7 @@ void RadixSortPrefixScanMat::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortPrefixScanMat::Execute(const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputCounts, const SPtr<GenericGpuBuffer>& outputOffsets)
+void RadixSortPrefixScanMat::Execute(const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -185,7 +185,7 @@ void RadixSortReorderMat::InitDefinesInternal(ShaderDefines& defines)
 	InitCommonDefines(defines);
 }
 
-void RadixSortReorderMat::Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GenericGpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
+void RadixSortReorderMat::Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -193,9 +193,9 @@ void RadixSortReorderMat::Execute(u32 numGroups, const SPtr<GpuBuffer>& params, 
 
 	MInputOffsetsBufferParam.Set(inputPrefix);
 	MInputKeysBufferParam.Set(buffers.Keys[inputBufferIdx]);
-	MInputValuesBufferParam.Set(buffers.Values[inputBufferIdx]);
+	MInputValuesBufferParam.Set(buffers.Values[inputBufferIdx], 0, BF_32X1U);
 	MOutputKeysBufferParam.Set(buffers.Keys[outputBufferIdx]);
-	MOutputValuesBufferParam.Set(buffers.Values[outputBufferIdx]);
+	MOutputValuesBufferParam.Set(buffers.Values[outputBufferIdx], 0, BF_32X1U);
 
 	mGPUParameters->SetUniformBuffer("Params", params);
 
@@ -276,21 +276,22 @@ u32 GpuSort::Sort(const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask)
 
 GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	GpuSortBuffers output;
 
-	GenericGpuBufferCreateInformation bufferDesc;
-	bufferDesc.ElementCount = numElements;
-	bufferDesc.Format = BF_32X1U;
-	bufferDesc.Type = GBT_STANDARD;
-	bufferDesc.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
+	GpuBufferCreateInformation createBufferInformation;
+	createBufferInformation.Type = GpuBufferType::SimpleStorage;
+	createBufferInformation.Flags = GpuBufferFlag::StoreOnGPU | GpuBufferFlag::AllowWritesOnTheGPU;
+	createBufferInformation.SimpleStorage.Count = numElements;
+	createBufferInformation.SimpleStorage.Format = BF_32X1U;
 
-	output.Keys[0] = GenericGpuBuffer::Create(bufferDesc);
-	output.Keys[1] = GenericGpuBuffer::Create(bufferDesc);
+	output.Keys[0] = gpuDevice->CreateGpuBuffer(createBufferInformation);
+	output.Keys[1] = gpuDevice->CreateGpuBuffer(createBufferInformation);
 
 	if(values)
 	{
-		output.Values[0] = GenericGpuBuffer::Create(bufferDesc);
-		output.Values[1] = GenericGpuBuffer::Create(bufferDesc);
+		output.Values[0] = gpuDevice->CreateGpuBuffer(createBufferInformation);
+		output.Values[1] = gpuDevice->CreateGpuBuffer(createBufferInformation);
 	}
 
 	return output;
@@ -323,7 +324,7 @@ void RunSortTest()
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
 	sortBuffers.Keys[0]->WriteData(0, sortBuffers.Keys[0]->GetSize(), inputKeys.data(), BWT_DISCARD);
 
-	SPtr<GenericGpuBuffer> helperBuffers[2];
+	SPtr<GpuBuffer> helperBuffers[2];
 	helperBuffers[0] = CreateHelperBuffer();
 	helperBuffers[1] = CreateHelperBuffer();
 
@@ -454,7 +455,7 @@ void RunSortTest()
 	RenderAPI::Instance().SubmitCommandBuffer(nullptr);
 
 	// Compare with GPU count
-	const u32 helperBufferLength = helperBuffers[0]->GetProperties().GetElementCount();
+	const u32 helperBufferLength = helperBuffers[0]->GetInformation().SimpleStorage.Count;
 	Vector<u32> bufferCounts(helperBufferLength);
 	helperBuffers[0]->ReadData(0, helperBufferLength * sizeof(u32), bufferCounts.data());
 

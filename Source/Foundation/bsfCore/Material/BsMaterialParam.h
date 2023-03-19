@@ -220,7 +220,7 @@ namespace bs
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using BufferType = SPtr<CoreVariantType<GenericGpuBuffer, Core>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 
 	public:
 		TMaterialParameterBuffer(const String& name, const MaterialPtrType& material);

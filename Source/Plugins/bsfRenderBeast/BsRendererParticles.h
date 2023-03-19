@@ -274,7 +274,7 @@ namespace bs
 			SPtr<Texture> PositionAndRotation;
 			SPtr<Texture> Color;
 			SPtr<Texture> SizeAndFrameIdx;
-			SPtr<GenericGpuBuffer> Indices;
+			SPtr<GpuBuffer> Indices;
 		};
 
 		/**
@@ -287,7 +287,7 @@ namespace bs
 			SPtr<Texture> Color;
 			SPtr<Texture> Size;
 			SPtr<Texture> Rotation;
-			SPtr<GenericGpuBuffer> Indices;
+			SPtr<GpuBuffer> Indices;
 		};
 
 		/** Keeps a pool of textures used for the purposes of the particle system. */

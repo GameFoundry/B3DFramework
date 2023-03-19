@@ -142,10 +142,10 @@ namespace bs
 			 * coefficient sets (one set of coefficients for each thread group). Coefficients must be reduced and normalized
 			 * by IrradianceReduceSHMat before use. Output buffer should be created by calling createOutputBuffer().
 			 */
-			void Execute(const SPtr<Texture>& source, u32 face, const SPtr<GenericGpuBuffer>& output);
+			void Execute(const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output);
 
 			/** Creates a buffer of adequate size to be used as output for this material. */
-			SPtr<GenericGpuBuffer> CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets);
+			SPtr<GpuBuffer> CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -195,7 +195,7 @@ namespace bs
 			 * single set of normalized coefficients. Output texture should be created by calling createOutputTexture(). The
 			 * value will be recorded at the @p outputIdx position in the texture.
 			 */
-			void Execute(const SPtr<GenericGpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx);
+			void Execute(const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx);
 
 			/** Creates a texture of adequate size to be used as output for this material. */
 			SPtr<Texture> CreateOutputTexture(u32 numCoeffSets);
