@@ -9,19 +9,19 @@
 
 using namespace bs;
 
-VertexElement::VertexElement(u16 source, u32 offset, VertexElementType theType, VertexElementSemantic semantic, u16 index, u32 instanceStepRate)
-	: mSource(source), mOffset(offset), mType(theType), mSemantic(semantic), mIndex(index), mInstanceStepRate(instanceStepRate)
+VertexElement::VertexElement(VertexElementType type, VertexElementSemantic semantic, u16 semanticIndex, u32 streamIndex, u32 instanceStepRate, u32 offset)
+	: mStreamIndex(streamIndex), mOffset(offset), mType(type), mSemantic(semantic), mIndex(semanticIndex), mInstanceStepRate(instanceStepRate)
 {
 }
 
 u32 VertexElement::GetSize(void) const
 {
-	return GetTypeSize(mType);
+	return GetSizeForType(mType);
 }
 
-u32 VertexElement::GetTypeSize(VertexElementType etype)
+u32 VertexElement::GetSizeForType(VertexElementType type)
 {
-	switch(etype)
+	switch(type)
 	{
 	case VET_COLOR:
 	case VET_COLOR_ABGR:
@@ -74,9 +74,9 @@ u32 VertexElement::GetTypeSize(VertexElementType etype)
 	return 0;
 }
 
-unsigned short VertexElement::GetTypeCount(VertexElementType etype)
+unsigned short VertexElement::GetComponentCountForType(VertexElementType type)
 {
-	switch(etype)
+	switch(type)
 	{
 	case VET_COLOR:
 	case VET_COLOR_ABGR:
@@ -135,7 +135,7 @@ VertexElementType VertexElement::GetBestColorVertexElementType()
 bool VertexElement::operator==(const VertexElement& rhs) const
 {
 	if(mType != rhs.mType || mIndex != rhs.mIndex || mOffset != rhs.mOffset ||
-	   mSemantic != rhs.mSemantic || mSource != rhs.mSource || mInstanceStepRate != rhs.mInstanceStepRate)
+	   mSemantic != rhs.mSemantic || mStreamIndex != rhs.mStreamIndex || mInstanceStepRate != rhs.mInstanceStepRate)
 	{
 		return false;
 	}
@@ -148,14 +148,14 @@ bool VertexElement::operator!=(const VertexElement& rhs) const
 	return !(*this == rhs);
 }
 
-size_t VertexElement::GetHash(const VertexElement& element)
+size_t VertexElement::CalculateHash(const VertexElement& element)
 {
 	size_t hash = 0;
 	B3DCombineHash(hash, element.mType);
 	B3DCombineHash(hash, element.mIndex);
 	B3DCombineHash(hash, element.mOffset);
 	B3DCombineHash(hash, element.mSemantic);
-	B3DCombineHash(hash, element.mSource);
+	B3DCombineHash(hash, element.mStreamIndex);
 	B3DCombineHash(hash, element.mInstanceStepRate);
 
 	return hash;
@@ -170,7 +170,7 @@ VertexDeclarationProperties::VertexDeclarationProperties(const Vector<VertexElem
 		if(elem.GetType() == VET_COLOR)
 			type = VertexElement::GetBestColorVertexElementType();
 
-		mElementList.push_back(VertexElement(elem.GetStreamIdx(), elem.GetOffset(), type, elem.GetSemantic(), elem.GetSemanticIdx(), elem.GetInstanceStepRate()));
+		mElementList.push_back(VertexElement(type, elem.GetSemantic(), elem.GetSemanticIndex(), elem.GetStreamIndex(), elem.GetInstanceStepRate(), elem.GetOffset()));
 	}
 }
 
@@ -211,7 +211,7 @@ const VertexElement* VertexDeclarationProperties::FindElementBySemantic(VertexEl
 {
 	for(auto& elem : mElementList)
 	{
-		if(elem.GetSemantic() == sem && elem.GetSemanticIdx() == index)
+		if(elem.GetSemantic() == sem && elem.GetSemanticIndex() == index)
 		{
 			return &elem;
 		}
@@ -225,7 +225,7 @@ Vector<VertexElement> VertexDeclarationProperties::FindElementsBySource(u16 sour
 	Vector<VertexElement> retList;
 	for(auto& elem : mElementList)
 	{
-		if(elem.GetStreamIdx() == source)
+		if(elem.GetStreamIndex() == source)
 			retList.push_back(elem);
 	}
 
@@ -238,7 +238,7 @@ u32 VertexDeclarationProperties::GetVertexSize(u16 source) const
 
 	for(auto& elem : mElementList)
 	{
-		if(elem.GetStreamIdx() == source)
+		if(elem.GetStreamIndex() == source)
 		{
 			size += elem.GetSize();
 		}
@@ -321,6 +321,11 @@ VertexDeclaration::VertexDeclaration(const Vector<VertexElement>& elements, GpuD
 {
 }
 
+VertexDeclaration::VertexDeclaration(const SmallVector<VertexElement, 8>& elements)
+	: mProperties(Vector<VertexElement>(elements.begin(), elements.end()))
+{
+}
+
 void VertexDeclaration::Initialize()
 {
 	mId = NextFreeId++;
@@ -342,7 +347,7 @@ bool VertexDeclaration::IsCompatible(const SPtr<VertexDeclaration>& shaderDecl)
 		const VertexElement* foundElement = nullptr;
 		for(auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 		{
-			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIdx() == bufferIter->GetSemanticIdx())
+			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIndex() == bufferIter->GetSemanticIndex())
 			{
 				foundElement = &(*bufferIter);
 				break;
@@ -368,7 +373,7 @@ Vector<VertexElement> VertexDeclaration::GetMissingElements(const SPtr<VertexDec
 		const VertexElement* foundElement = nullptr;
 		for(auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 		{
-			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIdx() == bufferIter->GetSemanticIdx())
+			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIndex() == bufferIter->GetSemanticIndex())
 			{
 				foundElement = &(*bufferIter);
 				break;

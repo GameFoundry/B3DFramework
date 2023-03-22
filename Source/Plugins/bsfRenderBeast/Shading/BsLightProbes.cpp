@@ -370,10 +370,11 @@ void LightProbes::UpdateProbes()
 	// frustum culling and possibly even sort by distance from camera.
 	u32 numVertices = mNumValidTetrahedra * 4 * 3 + numValidFaces * 9 * 3;
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	vertexDesc->AddVertElem(VET_UINT1, VES_TEXCOORD);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	vertexElements.Add(VertexElement(VET_UINT1, VES_TEXCOORD));
 
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	SPtr<MeshData> meshData = MeshData::Create(numVertices, numVertices, vertexDesc);
 	auto posIter = meshData->GetVec3DataIter(VES_POSITION);
 	auto idIter = meshData->GetDwordDataIter(VES_TEXCOORD);

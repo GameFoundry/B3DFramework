@@ -1255,9 +1255,10 @@ void BokehDOFMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gBokehTex", mBokehTexture);
 
 	// Prepare vertex declaration for rendering tiles
-	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>();
-	tileVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+	SmallVector<VertexElement, 8> tileVertexElements;
+	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
+	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>(tileVertexElements);
 	mTileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
 
 	// Prepare vertex buffer for rendering tiles

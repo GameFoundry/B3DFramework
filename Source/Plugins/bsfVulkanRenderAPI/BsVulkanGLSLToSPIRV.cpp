@@ -555,7 +555,7 @@ static bool ParseVertexAttributes(const glslang::TProgram* program, Vector<Verte
 			if(type == VET_UNKNOWN)
 				B3D_LOG(Error, RenderBackend, "Cannot determine vertex input attribute type for attribute: {0}", attribName);
 
-			elementList.push_back(VertexElement(0, location, type, semantic, index));
+			elementList.push_back(VertexElement(type, semantic, index, 0, 0, location));
 		}
 		else
 		{

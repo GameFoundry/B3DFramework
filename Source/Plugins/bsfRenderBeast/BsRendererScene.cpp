@@ -137,8 +137,8 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 			if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
 			{
 				auto removeIter = std::remove_if(missingElements.begin(), missingElements.end(), [](const VertexElement& x)
-												 { return (x.GetSemantic() == VES_POSITION && x.GetSemanticIdx() == 1) ||
-													   (x.GetSemantic() == VES_NORMAL && x.GetSemanticIdx() == 1); });
+												 { return (x.GetSemantic() == VES_POSITION && x.GetSemanticIndex() == 1) ||
+													   (x.GetSemantic() == VES_NORMAL && x.GetSemanticIndex() == 1); });
 
 				missingElements.erase(removeIter, missingElements.end());
 			}
@@ -151,7 +151,7 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 						  << std::endl;
 
 				for(auto& entry : missingElements)
-					wrnStream << "\t" << ToString(entry.GetSemantic()) << entry.GetSemanticIdx() << std::endl;
+					wrnStream << "\t" << ToString(entry.GetSemantic()) << entry.GetSemanticIndex() << std::endl;
 
 				B3D_LOG(Warning, Renderer, "{0}", wrnStream.str());
 				break;

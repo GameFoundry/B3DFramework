@@ -92,7 +92,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 		const VertexElement* matchingElement = nullptr;
 		for(const auto& vertexBufferElement : vertexBufferElements)
 		{
-			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIdx() == vertexBufferElement.GetSemanticIdx())
+			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
 			{
 				matchingElement = &vertexBufferElement;
 				break;
@@ -105,7 +105,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 			continue;
 		}
 
-		bindingCount = Math::Max(bindingCount, (u32)matchingElement->GetStreamIdx() + 1);
+		bindingCount = Math::Max(bindingCount, (u32)matchingElement->GetStreamIndex() + 1);
 	}
 
 	// Add extra binding to store the empty vertex buffer for missing attributes
@@ -144,7 +144,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 		const VertexElement* matchingElement = nullptr;
 		for(auto& vertexBufferElement : vertexBufferElements)
 		{
-			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIdx() == vertexBufferElement.GetSemanticIdx())
+			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
 			{
 				matchingElement = &vertexBufferElement;
 				break;
@@ -156,7 +156,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 		bool isSteppingPerVertex;
 		if(matchingElement != nullptr)
 		{
-			attribute.binding = matchingElement->GetStreamIdx();
+			attribute.binding = matchingElement->GetStreamIndex();
 			attribute.format = VulkanUtility::GetVertexType(matchingElement->GetType());
 			attribute.offset = matchingElement->GetOffset();
 

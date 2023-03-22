@@ -10,7 +10,7 @@ using namespace bs;
 
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc)
 {
-	VertexDeclaration* decl = new(B3DAllocate<VertexDeclaration>()) VertexDeclaration(desc->CreateElements());
+	VertexDeclaration* decl = new(B3DAllocate<VertexDeclaration>()) VertexDeclaration(Vector<VertexElement>(desc->GetElements().begin(), desc->GetElements().end()));
 
 	SPtr<VertexDeclaration> declPtr = B3DMakeCoreFromExisting<VertexDeclaration>(decl);
 	declPtr->SetShared(declPtr);
@@ -40,7 +40,7 @@ size_t HardwareBufferManager::VertexDeclarationKey::HashFunction::operator()(con
 {
 	size_t hash = 0;
 	for(auto& entry : v.Elements)
-		B3DCombineHash(hash, VertexElement::GetHash(entry));
+		B3DCombineHash(hash, VertexElement::CalculateHash(entry));
 
 	return hash;
 }
@@ -67,7 +67,7 @@ bool HardwareBufferManager::VertexDeclarationKey::EqualFunction::operator()(cons
 
 SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& createInformation, GpuDeviceFlags deviceMask)
 {
-	Vector<VertexElement> elements = createInformation->CreateElements();
+	Vector<VertexElement> elements(createInformation->GetElements().begin(), createInformation->GetElements().end());
 
 	return CreateVertexDeclaration(elements, deviceMask);
 }

@@ -692,9 +692,10 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
-	SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	mPositionOnlyVD = VertexDeclaration::Create(vertexDesc);
 
 	// Create plane index and vertex buffers

@@ -23,9 +23,11 @@ RendererUtility::RendererUtility()
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
 	{
-		mFullscreenQuadVDesc = B3DMakeShared<VertexDataDesc>();
-		mFullscreenQuadVDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-		mFullscreenQuadVDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+
+		mFullscreenQuadVDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 		GpuBufferCreateInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
@@ -49,8 +51,10 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
@@ -68,20 +72,22 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
 
 		AABox localBox(-Vector3::kOne, Vector3::kOne);
-		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0);
+		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDescription->GetVertexStride(), indexData, 0);
 
 		mUnitBoxStencilMesh = Mesh::Create(meshData);
 	}
@@ -90,17 +96,19 @@ RendererUtility::RendererUtility()
 		u32 numSides = Light::kLightConeNumSides;
 		u32 numSlices = Light::kLightConeNumSlices;
 
-		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 		u32 numVertices = numSides * numSlices * 2;
 		u32 numIndices = ((numSides * 2) * (numSlices - 1) * 2) * 3;
 
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
-		u32 stride = vertexDesc->GetVertexStride();
+		u32 stride = vertexDescription->GetVertexStride();
 
 		// Dummy vertex positions, actual ones generated in shader
 		for(u32 i = 0; i < numVertices; i++)
@@ -145,20 +153,22 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
 
 		ShapeMeshes3D::GetNumElementsAaBox(numVertices, numIndices);
-		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc);
+		SPtr<MeshData> meshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDescription);
 
 		u32* indexData = meshData->GetIndices32();
 		u8* positionData = meshData->GetElementData(VES_POSITION);
 
 		AABox localBox(-Vector3::kOne * 1500.0f, Vector3::kOne * 1500.0f);
-		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDesc->GetVertexStride(), indexData, 0);
+		ShapeMeshes3D::SolidAaBox(localBox, positionData, nullptr, nullptr, 0, vertexDescription->GetVertexStride(), indexData, 0);
 
 		mSkyBoxMesh = Mesh::Create(meshData);
 	}

@@ -284,7 +284,7 @@ void Mesh::Initialize()
 	mVertexData->VertexCount = mProperties.VertexCount;
 	mVertexData->VertexDeclaration = VertexDeclaration::Create(mVertexDesc, mDeviceMask);
 
-	for(u32 i = 0; i <= mVertexDesc->GetMaxStreamIdx(); i++)
+	for(u32 i = 0; i <= mVertexDesc->GetLargestStreamIndex(); i++)
 	{
 		if(!mVertexDesc->HasStream(i))
 			continue;
@@ -377,7 +377,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 	mIndexBuffer->WriteData(0, indicesSize, srcIdxData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, queueIdx);
 
 	// Vertices
-	for(u32 i = 0; i <= mVertexDesc->GetMaxStreamIdx(); i++)
+	for(u32 i = 0; i <= mVertexDesc->GetLargestStreamIndex(); i++)
 	{
 		if(!mVertexDesc->HasStream(i))
 			continue;

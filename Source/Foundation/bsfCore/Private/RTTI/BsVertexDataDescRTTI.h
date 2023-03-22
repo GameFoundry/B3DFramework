@@ -31,6 +31,12 @@ namespace bs
 			AddPlainArrayField("mVertexData", 0, &VertexDataDescRTTI::GetVertexElementData, &VertexDataDescRTTI::GetNumVertexElementData, &VertexDataDescRTTI::SetVertexElementData, &VertexDataDescRTTI::SetNumVertexElementData);
 		}
 
+		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		{
+			VertexDataDesc* vertexDescription = static_cast<VertexDataDesc*>(obj);
+			vertexDescription->CalculateOffsets();
+		}
+
 		SPtr<IReflectable> NewRttiObject()
 		{
 			return B3DMakeSharedFromExisting<VertexDataDesc>(new(B3DAllocate<VertexDataDesc>()) VertexDataDesc());

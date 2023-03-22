@@ -396,20 +396,22 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
 	// Prepare vertex declaration for rendering tiles
-	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>();
-	tileVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+	SmallVector<VertexElement, 8> tileVertexElements;
+	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
+	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>(tileVertexElements);
 	TileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
 
 	// Prepare vertex declaration for injecting new particles
-	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>();
-	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Position & time, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1); // Velocity, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1); // Size, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT1, VES_TEXCOORD, 3, 0, 1); // Rotation, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1); // Data UV, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 5, 1); // Sprite texture coordinates
+	SmallVector<VertexElement, 8> injectVertexElements;
+	injectVertexElements.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1)); // Position & time, per instance
+	injectVertexElements.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1)); // Velocity, per instance
+	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1)); // Size, per instance
+	injectVertexElements.Add(VertexElement(VET_FLOAT1, VES_TEXCOORD, 3, 0, 1)); // Rotation, per instance
+	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1)); // Data UV, per instance
+	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 5, 1)); // Sprite texture coordinates
 
+	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>(injectVertexElements);
 	InjectVertexDecl = VertexDeclaration::Create(injectVertexDesc);
 
 	// Prepare UV coordinates for rendering tiles
@@ -1359,11 +1361,12 @@ GpuParticleCurves::GpuParticleCurves()
 	mRT = RenderTexture::Create(rtDesc);
 
 	// Prepare vertex declaration for injecting new curves
-	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>();
-	injectVertexDesc->AddVertElem(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1); // Color, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1); // Data UV, per instance
-	injectVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 2, 1); // Pixel texture coordinates
+	SmallVector<VertexElement, 8> injectVertexElement;
+	injectVertexElement.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1)); // Color, per instance
+	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1)); // Data UV, per instance
+	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 2, 1)); // Pixel texture coordinates
 
+	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>(injectVertexElement);
 	mInjectVertexDecl = VertexDeclaration::Create(injectVertexDesc);
 
 	// Prepare UV coordinates for injecting curves

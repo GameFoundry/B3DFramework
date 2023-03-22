@@ -6,54 +6,38 @@
 
 using namespace bs;
 
-void VertexDataDesc::AddVertElem(VertexElementType type, VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx, u32 instanceStepRate)
+VertexDataDesc::VertexDataDesc(const SmallVector<VertexElement, 8>& elements)
+	:mVertexElements(elements)
 {
-	ClearIfItExists(type, semantic, semanticIdx, streamIdx);
-
-	VertexElement newElement(streamIdx, 0, type, semantic, semanticIdx, instanceStepRate);
-
-	// Insert it so it is sorted by stream
-	u32 insertToIndex = (u32)mVertexElements.size();
-	u32 idx = 0;
-	for(auto& elem : mVertexElements)
+	// Sort by stream, but preserve remaining ordering
+	std::stable_sort(mVertexElements.begin(), mVertexElements.end(), [](const VertexElement& lhs, const VertexElement& rhs)
 	{
-		if(elem.GetStreamIdx() > streamIdx)
-		{
-			insertToIndex = idx;
-			break;
-		}
+		return lhs.GetStreamIndex() < rhs.GetStreamIndex();
+	});
 
-		idx++;
-	}
-
-	mVertexElements.insert(mVertexElements.begin() + insertToIndex, newElement);
+	CalculateOffsets();
 }
 
-Vector<VertexElement> VertexDataDesc::CreateElements() const
+void VertexDataDesc::CalculateOffsets()
 {
-	u32 maxStreamIdx = GetMaxStreamIdx();
+	const u32 largestStreamIndex = GetLargestStreamIndex();
+	const u32 streamCount = largestStreamIndex + 1;
 
-	u32 numStreams = maxStreamIdx + 1;
-	u32* streamOffsets = B3DNewMultiple<u32>(numStreams);
-	for(u32 i = 0; i < numStreams; i++)
-		streamOffsets[i] = 0;
+	u32* streamOffsets = B3DStackAllocate<u32>(streamCount);
+	B3DZeroOut(streamOffsets, streamCount);
 
-	Vector<VertexElement> declarationElements;
-	for(auto& vertElem : mVertexElements)
+	for(auto& element : mVertexElements)
 	{
-		u32 streamIdx = vertElem.GetStreamIdx();
+		const u32 streamIndex = element.GetStreamIndex();
 
-		declarationElements.push_back(VertexElement(streamIdx, streamOffsets[streamIdx], vertElem.GetType(), vertElem.GetSemantic(), vertElem.GetSemanticIdx(), vertElem.GetInstanceStepRate()));
-
-		streamOffsets[streamIdx] += vertElem.GetSize();
+		element.mOffset = streamOffsets[streamIndex];
+		streamOffsets[streamIndex] += element.GetSize();
 	}
 
-	B3DDeleteMultiple(streamOffsets, numStreams);
-
-	return declarationElements;
+	B3DStackFree(streamOffsets);
 }
 
-u32 VertexDataDesc::GetMaxStreamIdx() const
+u32 VertexDataDesc::GetLargestStreamIndex() const
 {
 	u32 maxStreamIdx = 0;
 	u32 numElems = (u32)mVertexElements.size();
@@ -61,18 +45,18 @@ u32 VertexDataDesc::GetMaxStreamIdx() const
 	{
 		for(auto& vertElem : mVertexElements)
 		{
-			maxStreamIdx = std::max((u32)maxStreamIdx, (u32)vertElem.GetStreamIdx());
+			maxStreamIdx = std::max((u32)maxStreamIdx, (u32)vertElem.GetStreamIndex());
 		}
 	}
 
 	return maxStreamIdx;
 }
 
-bool VertexDataDesc::HasStream(u32 streamIdx) const
+bool VertexDataDesc::HasStream(u32 streamIndex) const
 {
 	for(auto& vertElem : mVertexElements)
 	{
-		if(vertElem.GetStreamIdx() == streamIdx)
+		if(vertElem.GetStreamIndex() == streamIndex)
 			return true;
 	}
 
@@ -82,7 +66,7 @@ bool VertexDataDesc::HasStream(u32 streamIdx) const
 bool VertexDataDesc::HasElement(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx) const
 {
 	auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(), [semantic, semanticIdx, streamIdx](const VertexElement& x)
-								 { return x.GetSemantic() == semantic && x.GetSemanticIdx() == semanticIdx && x.GetStreamIdx() == streamIdx; });
+								 { return x.GetSemantic() == semantic && x.GetSemanticIndex() == semanticIdx && x.GetStreamIndex() == streamIdx; });
 
 	if(findIter != mVertexElements.end())
 	{
@@ -96,7 +80,7 @@ u32 VertexDataDesc::GetElementSize(VertexElementSemantic semantic, u32 semanticI
 {
 	for(auto& element : mVertexElements)
 	{
-		if(element.GetSemantic() == semantic && element.GetSemanticIdx() == semanticIdx && element.GetStreamIdx() == streamIdx)
+		if(element.GetSemantic() == semantic && element.GetSemanticIndex() == semanticIdx && element.GetStreamIndex() == streamIdx)
 			return element.GetSize();
 	}
 
@@ -108,10 +92,10 @@ u32 VertexDataDesc::GetElementOffsetFromStream(VertexElementSemantic semantic, u
 	u32 vertexOffset = 0;
 	for(auto& element : mVertexElements)
 	{
-		if(element.GetStreamIdx() != streamIdx)
+		if(element.GetStreamIndex() != streamIdx)
 			continue;
 
-		if(element.GetSemantic() == semantic && element.GetSemanticIdx() == semanticIdx)
+		if(element.GetSemantic() == semantic && element.GetSemanticIndex() == semanticIdx)
 			break;
 
 		vertexOffset += element.GetSize();
@@ -125,7 +109,7 @@ u32 VertexDataDesc::GetVertexStride(u32 streamIdx) const
 	u32 vertexStride = 0;
 	for(auto& element : mVertexElements)
 	{
-		if(element.GetStreamIdx() == streamIdx)
+		if(element.GetStreamIndex() == streamIdx)
 			vertexStride += element.GetSize();
 	}
 
@@ -148,7 +132,7 @@ u32 VertexDataDesc::GetStreamOffset(u32 streamIdx) const
 	u32 streamOffset = 0;
 	for(auto& element : mVertexElements)
 	{
-		if(element.GetStreamIdx() == streamIdx)
+		if(element.GetStreamIndex() == streamIdx)
 			break;
 
 		streamOffset += element.GetSize();
@@ -157,31 +141,15 @@ u32 VertexDataDesc::GetStreamOffset(u32 streamIdx) const
 	return streamOffset;
 }
 
-const VertexElement* VertexDataDesc::GetElement(VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx) const
+const VertexElement* VertexDataDesc::GetElement(VertexElementSemantic semantic, u32 semanticIndex, u32 streamIndex) const
 {
-	auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(), [semantic, semanticIdx, streamIdx](const VertexElement& x)
-								 { return x.GetSemantic() == semantic && x.GetSemanticIdx() == semanticIdx && x.GetStreamIdx() == streamIdx; });
+	auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(), [semantic, semanticIndex, streamIndex](const VertexElement& x)
+								 { return x.GetSemantic() == semantic && x.GetSemanticIndex() == semanticIndex && x.GetStreamIndex() == streamIndex; });
 
 	if(findIter != mVertexElements.end())
 		return &(*findIter);
 
 	return nullptr;
-}
-
-void VertexDataDesc::ClearIfItExists(VertexElementType type, VertexElementSemantic semantic, u32 semanticIdx, u32 streamIdx)
-{
-	auto findIter = std::find_if(mVertexElements.begin(), mVertexElements.end(), [semantic, semanticIdx, streamIdx](const VertexElement& x)
-								 { return x.GetSemantic() == semantic && x.GetSemanticIdx() == semanticIdx && x.GetStreamIdx() == streamIdx; });
-
-	if(findIter != mVertexElements.end())
-	{
-		mVertexElements.erase(findIter);
-	}
-}
-
-SPtr<VertexDataDesc> VertexDataDesc::Create()
-{
-	return B3DMakeShared<VertexDataDesc>();
 }
 
 /************************************************************************/

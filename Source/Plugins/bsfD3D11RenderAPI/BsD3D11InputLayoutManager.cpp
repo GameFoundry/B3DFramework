@@ -88,9 +88,9 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 		D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
 		elementDesc.SemanticName = D3D11Mappings::Get(iter->GetSemantic());
-		elementDesc.SemanticIndex = iter->GetSemanticIdx();
+		elementDesc.SemanticIndex = iter->GetSemanticIndex();
 		elementDesc.Format = D3D11Mappings::Get(iter->GetType());
-		elementDesc.InputSlot = iter->GetStreamIdx();
+		elementDesc.InputSlot = iter->GetStreamIndex();
 		elementDesc.AlignedByteOffset = static_cast<WORD>(iter->GetOffset());
 
 		if(iter->GetInstanceStepRate() == 0)
@@ -104,7 +104,7 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 			elementDesc.InstanceDataStepRate = iter->GetInstanceStepRate();
 		}
 
-		maxStreamIdx = std::max(maxStreamIdx, (i32)iter->GetStreamIdx());
+		maxStreamIdx = std::max(maxStreamIdx, (i32)iter->GetStreamIndex());
 	}
 
 	// Find elements missing in buffer and add a dummy stream for them
@@ -113,7 +113,7 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 		bool foundElement = false;
 		for(auto bufferIter = bufferElems.begin(); bufferIter != bufferElems.end(); ++bufferIter)
 		{
-			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIdx() == bufferIter->GetSemanticIdx())
+			if(shaderIter->GetSemantic() == bufferIter->GetSemantic() && shaderIter->GetSemanticIndex() == bufferIter->GetSemanticIndex())
 			{
 				foundElement = true;
 				break;
@@ -126,7 +126,7 @@ void D3D11InputLayoutManager::AddNewInputLayout(const SPtr<VertexDeclaration>& v
 			D3D11_INPUT_ELEMENT_DESC& elementDesc = declElements.back();
 
 			elementDesc.SemanticName = D3D11Mappings::Get(shaderIter->GetSemantic());
-			elementDesc.SemanticIndex = shaderIter->GetSemanticIdx();
+			elementDesc.SemanticIndex = shaderIter->GetSemanticIndex();
 			elementDesc.Format = D3D11Mappings::Get(shaderIter->GetType());
 			elementDesc.InputSlot = (u32)(maxStreamIdx + 1);
 			elementDesc.AlignedByteOffset = 0;

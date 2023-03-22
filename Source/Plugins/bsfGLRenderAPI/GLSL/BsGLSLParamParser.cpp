@@ -48,7 +48,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 			u32 slot = glGetAttribLocation(glProgram, attributeName);
 			B3D_CHECK_GL_ERROR();
 
-			elementList.push_back(VertexElement(0, slot, type, semantic, index));
+			elementList.push_back(VertexElement(type, semantic, index, 0, 0, slot));
 		}
 		else
 		{

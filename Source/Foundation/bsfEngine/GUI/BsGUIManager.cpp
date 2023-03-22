@@ -1808,10 +1808,11 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 			u32 numVertices = numQuads * 4;
 			u32 numIndices = numQuads * 6;
 
-			SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-			vertexDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
-			vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+			SmallVector<VertexElement, 8> vertexElements;
+			vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
+			vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
+			SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 			SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDesc);
 
 			auto vertexData = (Vector2*)meshData->GetElementData(VES_POSITION);

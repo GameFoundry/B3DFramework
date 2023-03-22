@@ -235,11 +235,13 @@ void FPhysXMesh::Initialize()
 
 SPtr<MeshData> FPhysXMesh::GetMeshData() const
 {
-	SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+
+	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 	if(mConvexMesh == nullptr && mTriangleMesh == nullptr)
-		return MeshData::Create(0, 0, vertexDesc);
+		return MeshData::Create(0, 0, vertexDescription);
 
 	u32 numVertices = 0;
 	u32 numIndices = 0;
@@ -264,7 +266,7 @@ SPtr<MeshData> FPhysXMesh::GetMeshData() const
 		numIndices = mTriangleMesh->getNbTriangles() * 3;
 	}
 
-	SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDesc);
+	SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDescription);
 
 	auto posIter = meshData->GetVec3DataIter(VES_POSITION);
 	u32* outIndices = meshData->GetIndices32();

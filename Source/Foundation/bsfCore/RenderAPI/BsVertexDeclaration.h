@@ -66,13 +66,13 @@ namespace bs
 	{
 	public:
 		VertexElement() = default;
-		VertexElement(u16 source, u32 offset, VertexElementType theType, VertexElementSemantic semantic, u16 index = 0, u32 instanceStepRate = 0);
+		VertexElement(VertexElementType type, VertexElementSemantic semantic, u16 semanticIndex = 0, u32 streamIndex = 0, u32 instanceStepRate = 0, u32 offset = 0);
 
 		bool operator==(const VertexElement& rhs) const;
 		bool operator!=(const VertexElement& rhs) const;
 
 		/**	Returns index of the vertex buffer from which this element is stored. */
-		u16 GetStreamIdx() const { return mSource; }
+		u16 GetStreamIndex() const { return mStreamIndex; }
 
 		/**
 		 * Returns an offset into the buffer where this vertex is stored. This value might be in bytes but doesn't have to
@@ -90,7 +90,7 @@ namespace bs
 		 * Gets an index of this element. Only relevant when you have multiple elements with the same semantic,
 		 * for example uv0, uv1.
 		 */
-		u16 GetSemanticIdx() const { return mIndex; }
+		u16 GetSemanticIndex() const { return mIndex; }
 
 		/** Returns the size of this element in bytes. */
 		u32 GetSize() const;
@@ -105,19 +105,21 @@ namespace bs
 		u32 GetInstanceStepRate() const { return mInstanceStepRate; }
 
 		/**	Returns the size of a base element type. */
-		static u32 GetTypeSize(VertexElementType etype);
+		static u32 GetSizeForType(VertexElementType type);
 
 		/** Returns the number of values in the provided base element type. For example float4 has four values. */
-		static u16 GetTypeCount(VertexElementType etype);
+		static u16 GetComponentCountForType(VertexElementType type);
 
 		/**	Gets packed color vertex element type used by the active render system. */
 		static VertexElementType GetBestColorVertexElementType();
 
 		/** Calculates a hash value for the provided vertex element. */
-		static size_t GetHash(const VertexElement& element);
+		static size_t CalculateHash(const VertexElement& element);
 
 	protected:
-		u16 mSource;
+		friend class VertexDataDesc;
+
+		u16 mStreamIndex;
 		u32 mOffset;
 		VertexElementType mType;
 		VertexElementSemantic mSemantic;
@@ -247,6 +249,7 @@ namespace bs
 			friend class HardwareBufferManager;
 
 			VertexDeclaration(const Vector<VertexElement>& elements, GpuDeviceFlags deviceMask);
+			VertexDeclaration(const SmallVector<VertexElement, 8>& elements);
 
 			VertexDeclarationProperties mProperties;
 			u32 mId;

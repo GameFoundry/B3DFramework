@@ -127,7 +127,7 @@ namespace bs
 		float mLastAnimationDeltaTime = 0.0f;
 		bool mPaused = false;
 
-		SPtr<VertexDataDesc> mBlendShapeVertexDesc;
+		SPtr<VertexDataDesc> mBlendShapeVertexDescription;
 
 		// Animation thread
 		Vector<SPtr<AnimationProxy>> mProxies;

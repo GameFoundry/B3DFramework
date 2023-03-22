@@ -340,38 +340,37 @@ SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
 
 SPtr<VertexDataDesc> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 {
-	SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-
+	SmallVector<VertexElement, 8> vertexElements;
 	i32 intType = (i32)type;
 
 	if(intType == 0)
 		type = VertexLayout::Position;
 
 	if((intType & (i32)VertexLayout::Position) != 0)
-		vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 	if((intType & (i32)VertexLayout::Normal) != 0)
-		vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL);
+		vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL));
 
 	if((intType & (i32)VertexLayout::Tangent) != 0)
-		vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_TANGENT);
+		vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_TANGENT));
 
 	if((intType & (i32)VertexLayout::UV0) != 0)
-		vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 0);
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 0));
 
 	if((intType & (i32)VertexLayout::UV1) != 0)
-		vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD, 1);
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 1));
 
 	if((intType & (i32)VertexLayout::Color) != 0)
-		vertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+		vertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
 	if((intType & (i32)VertexLayout::BoneWeights) != 0)
 	{
-		vertexDesc->AddVertElem(VET_UBYTE4, VES_BLEND_INDICES);
-		vertexDesc->AddVertElem(VET_FLOAT4, VES_BLEND_WEIGHTS);
+		vertexElements.Add(VertexElement(VET_UBYTE4, VES_BLEND_INDICES));
+		vertexElements.Add(VertexElement(VET_FLOAT4, VES_BLEND_WEIGHTS));
 	}
 
-	return vertexDesc;
+	return B3DMakeShared<VertexDataDesc>(vertexElements);
 }
 
 SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)

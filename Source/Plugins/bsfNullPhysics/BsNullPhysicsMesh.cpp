@@ -38,9 +38,10 @@ FNullPhysicsMesh::FNullPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshTy
 
 SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
 {
-	SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	return MeshData::Create(0, 0, vertexDesc);
 }
 

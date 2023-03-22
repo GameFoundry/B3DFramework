@@ -205,17 +205,19 @@ void GenerateTextures()
 
 void GenerateMeshes()
 {
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
-	vertexDesc->AddVertElem(VET_FLOAT4, VES_TANGENT);
-	vertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
+	vertexElements.Add(VertexElement(VET_FLOAT4, VES_TANGENT));
+	vertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
+
+	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 
 	u32 boxNumVertices = 0;
 	u32 boxNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsAaBox(boxNumVertices, boxNumIndices);
-	SPtr<MeshData> boxMeshData = MeshData::Create(boxNumVertices, boxNumIndices, vertexDesc);
+	SPtr<MeshData> boxMeshData = MeshData::Create(boxNumVertices, boxNumIndices, vertexDescription);
 	AABox box(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
 
 	ShapeMeshes3D::SolidAaBox(box, boxMeshData, 0, 0);
@@ -224,7 +226,7 @@ void GenerateMeshes()
 	u32 sphereNumVertices = 0;
 	u32 sphereNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsSphere(3, sphereNumVertices, sphereNumIndices);
-	SPtr<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDesc);
+	SPtr<MeshData> sphereMeshData = B3DMakeShared<MeshData>(sphereNumVertices, sphereNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidSphere(Sphere(Vector3::kZero, 1.0f), sphereMeshData, 0, 0, 3);
 	SPtr<Mesh> sphereMesh = Mesh::CreateShared(RendererMeshData::Convert(sphereMeshData));
@@ -232,7 +234,7 @@ void GenerateMeshes()
 	u32 coneNumVertices = 0;
 	u32 coneNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCone(10, coneNumVertices, coneNumIndices);
-	SPtr<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDesc);
+	SPtr<MeshData> coneMeshData = B3DMakeShared<MeshData>(coneNumVertices, coneNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidCone(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, coneMeshData, 0, 0);
 	SPtr<Mesh> coneMesh = Mesh::CreateShared(RendererMeshData::Convert(coneMeshData));
@@ -240,7 +242,7 @@ void GenerateMeshes()
 	u32 cylinderNumVertices = 0;
 	u32 cylinderNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsCylinder(10, cylinderNumVertices, cylinderNumIndices);
-	SPtr<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDesc);
+	SPtr<MeshData> cylinderMeshData = B3DMakeShared<MeshData>(cylinderNumVertices, cylinderNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidCylinder(Vector3::kZero, Vector3::kUnitY, 1.0f, 1.0f, Vector2::kOne, cylinderMeshData, 0, 0);
 	SPtr<Mesh> cylinderMesh = Mesh::CreateShared(RendererMeshData::Convert(cylinderMeshData));
@@ -248,7 +250,7 @@ void GenerateMeshes()
 	u32 quadNumVertices = 8;
 	u32 quadNumIndices = 12;
 	ShapeMeshes3D::GetNumElementsQuad(quadNumVertices, quadNumIndices);
-	SPtr<MeshData> quadMeshData = B3DMakeShared<MeshData>(quadNumVertices, quadNumIndices, vertexDesc);
+	SPtr<MeshData> quadMeshData = B3DMakeShared<MeshData>(quadNumVertices, quadNumIndices, vertexDescription);
 
 	std::array<Vector3, 2> axes = { { Vector3::kUnitX, Vector3::kUnitZ } };
 	std::array<float, 2> sizes = { { 1.0f, 1.0f } };
@@ -259,7 +261,7 @@ void GenerateMeshes()
 	u32 discNumVertices = 0;
 	u32 discNumIndices = 0;
 	ShapeMeshes3D::GetNumElementsDisc(10, discNumVertices, discNumIndices);
-	SPtr<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDesc);
+	SPtr<MeshData> discMeshData = B3DMakeShared<MeshData>(discNumVertices, discNumIndices, vertexDescription);
 
 	ShapeMeshes3D::SolidDisc(Vector3::kZero, 1.0f, Vector3::kUnitY, discMeshData, 0, 0);
 	SPtr<Mesh> discMesh = Mesh::CreateShared(RendererMeshData::Convert(discMeshData));

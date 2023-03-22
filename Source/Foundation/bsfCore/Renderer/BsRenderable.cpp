@@ -719,13 +719,12 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 		// Create special vertex declaration if using morph shapes
 		if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
-			SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::Create();
-			*vertexDesc = *mMesh->GetVertexDescription();
+			SmallVector<VertexElement, 8> vertexElements = mMesh->GetVertexDescription()->GetElements();
+			vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
+			vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 
-			vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
-			vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
-
-			mMorphVertexDeclaration = VertexDeclaration::Create(vertexDesc);
+			const SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+			mMorphVertexDeclaration = VertexDeclaration::Create(vertexDescription);
 		}
 		else
 			mMorphVertexDeclaration = nullptr;

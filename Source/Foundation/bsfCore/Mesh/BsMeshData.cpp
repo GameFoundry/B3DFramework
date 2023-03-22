@@ -63,7 +63,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		totalIndexCount += meshData->GetIndexCount();
 	}
 
-	SPtr<VertexDataDesc> vertexData = B3DMakeShared<VertexDataDesc>();
+	SmallVector<VertexElement, 8> vertexElements;
 
 	Vector<VertexElement> combinedVertexElements;
 	for(auto& meshData : meshes)
@@ -77,7 +77,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 
 			for(auto& existingElement : combinedVertexElements)
 			{
-				if(newElement.GetSemantic() == existingElement.GetSemantic() && newElement.GetSemanticIdx() == existingElement.GetSemanticIdx() && newElement.GetStreamIdx() == existingElement.GetStreamIdx())
+				if(newElement.GetSemantic() == existingElement.GetSemantic() && newElement.GetSemanticIndex() == existingElement.GetSemanticIndex() && newElement.GetStreamIndex() == existingElement.GetStreamIndex())
 				{
 					if(newElement.GetType() != existingElement.GetType())
 					{
@@ -94,12 +94,13 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 			if(alreadyExistsIdx == -1)
 			{
 				combinedVertexElements.push_back(newElement);
-				vertexData->AddVertElem(newElement.GetType(), newElement.GetSemantic(), newElement.GetSemanticIdx(), newElement.GetStreamIdx());
+				vertexElements.Add(VertexElement(newElement.GetType(), newElement.GetSemantic(), newElement.GetSemanticIndex(), newElement.GetStreamIndex()));
 			}
 		}
 	}
 
-	SPtr<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexData);
+	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexDescription);
 
 	// Copy indices
 	u32 vertexOffset = 0;
@@ -141,17 +142,17 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	{
 		for(auto& element : combinedVertexElements)
 		{
-			u32 dstVertexStride = vertexData->GetVertexStride(element.GetStreamIdx());
-			u8* dstData = combinedMeshData->GetElementData(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
+			u32 dstVertexStride = vertexDescription->GetVertexStride(element.GetStreamIndex());
+			u8* dstData = combinedMeshData->GetElementData(element.GetSemantic(), element.GetSemanticIndex(), element.GetStreamIndex());
 			dstData += vertexOffset * dstVertexStride;
 
 			u32 sourceVertexCount = meshData->GetVertexCount();
-			u32 vertexSize = vertexData->GetElementSize(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
+			u32 vertexSize = vertexDescription->GetElementSize(element.GetSemantic(), element.GetSemanticIndex(), element.GetStreamIndex());
 
-			if(meshData->GetVertexDescription()->HasElement(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx()))
+			if(meshData->GetVertexDescription()->HasElement(element.GetSemantic(), element.GetSemanticIndex(), element.GetStreamIndex()))
 			{
-				u32 srcVertexStride = meshData->GetVertexDescription()->GetVertexStride(element.GetStreamIdx());
-				u8* srcData = meshData->GetElementData(element.GetSemantic(), element.GetSemanticIdx(), element.GetStreamIdx());
+				u32 srcVertexStride = meshData->GetVertexDescription()->GetVertexStride(element.GetStreamIndex());
+				u8* srcData = meshData->GetElementData(element.GetSemantic(), element.GetSemanticIndex(), element.GetStreamIndex());
 
 				for(u32 i = 0; i < sourceVertexCount; i++)
 				{
@@ -351,8 +352,8 @@ Bounds MeshData::CalculateBounds() const
 		if(curElement.GetSemantic() != VES_POSITION || (curElement.GetType() != VET_FLOAT3 && curElement.GetType() != VET_FLOAT4))
 			continue;
 
-		u8* data = GetElementData(curElement.GetSemantic(), curElement.GetSemanticIdx(), curElement.GetStreamIdx());
-		u32 stride = vertexDesc->GetVertexStride(curElement.GetStreamIdx());
+		u8* data = GetElementData(curElement.GetSemantic(), curElement.GetSemanticIndex(), curElement.GetStreamIndex());
+		u32 stride = vertexDesc->GetVertexStride(curElement.GetStreamIndex());
 
 		if(GetVertexCount() > 0)
 		{

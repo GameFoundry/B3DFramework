@@ -22,23 +22,31 @@ DrawHelper::DrawHelper()
 {
 	mTransform = Matrix4::kIdentity;
 
-	mSolidVertexDesc = B3DMakeShared<VertexDataDesc>();
-	mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	mSolidVertexDesc->AddVertElem(VET_FLOAT3, VES_NORMAL);
-	mSolidVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+	SmallVector<VertexElement, 8> solidVertexElements;
+	solidVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	solidVertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
+	solidVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mWireVertexDesc = B3DMakeShared<VertexDataDesc>();
-	mWireVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	mWireVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+	mSolidVertexDesc = B3DMakeShared<VertexDataDesc>(solidVertexElements);
 
-	mLineVertexDesc = B3DMakeShared<VertexDataDesc>();
-	mLineVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	mLineVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+	SmallVector<VertexElement, 8> wireVertexElements;
+	wireVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	wireVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mTextVertexDesc = B3DMakeShared<VertexDataDesc>();
-	mTextVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	mTextVertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
-	mTextVertexDesc->AddVertElem(VET_COLOR, VES_COLOR);
+	mWireVertexDesc = B3DMakeShared<VertexDataDesc>(wireVertexElements);
+
+	SmallVector<VertexElement, 8> lineVertexElements;
+	lineVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	lineVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
+
+	mLineVertexDesc = B3DMakeShared<VertexDataDesc>(lineVertexElements);
+
+	SmallVector<VertexElement, 8> textVertexElements;
+	textVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	textVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+	textVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
+
+	mTextVertexDesc = B3DMakeShared<VertexDataDesc>(textVertexElements);
 }
 
 void DrawHelper::SetColor(const Color& color)

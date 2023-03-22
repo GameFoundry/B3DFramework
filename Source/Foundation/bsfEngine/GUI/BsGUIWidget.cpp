@@ -23,9 +23,11 @@ SPtr<VertexDataDesc> GetGUITriangleMeshDesc()
 
 	if(!sDesc)
 	{
-		sDesc = B3DMakeShared<VertexDataDesc>();
-		sDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
-		sDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+
+		sDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	}
 
 	return sDesc;
@@ -37,8 +39,10 @@ SPtr<VertexDataDesc> GetGUILineMeshDesc()
 
 	if(!sDesc)
 	{
-		sDesc = B3DMakeShared<VertexDataDesc>();
-		sDesc->AddVertElem(VET_FLOAT2, VES_POSITION);
+		SmallVector<VertexElement, 8> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
+
+		sDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	}
 
 	return sDesc;

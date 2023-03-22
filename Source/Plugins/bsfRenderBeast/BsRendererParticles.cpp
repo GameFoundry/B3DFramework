@@ -373,12 +373,13 @@ ParticleRenderer::ParticleRenderer()
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>();
-	vertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION);
-	vertexDesc->AddVertElem(VET_FLOAT2, VES_TEXCOORD);
-	vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL);
-	vertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_TANGENT);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
+	vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL));
+	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_TANGENT));
 
+	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
 	m->BillboardVd = VertexDeclaration::Create(vertexDesc);
 
 	GpuBufferCreateInformation vbDesc;

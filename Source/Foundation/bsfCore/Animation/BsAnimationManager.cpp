@@ -15,9 +15,11 @@ using namespace bs;
 
 AnimationManager::AnimationManager()
 {
-	mBlendShapeVertexDesc = VertexDataDesc::Create();
-	mBlendShapeVertexDesc->AddVertElem(VET_FLOAT3, VES_POSITION, 1, 1);
-	mBlendShapeVertexDesc->AddVertElem(VET_UBYTE4_NORM, VES_NORMAL, 1, 1);
+	SmallVector<VertexElement, 8> vertexElements;
+	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
+	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
+
+	mBlendShapeVertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
 }
 
 void AnimationManager::SetPaused(bool paused)
@@ -442,7 +444,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 		// Generate morph shape vertices
 		if(anim->MorphChannelWeightsDirty || hasMorphCurves)
 		{
-			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->NumMorphVertices, 0, mBlendShapeVertexDesc);
+			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->NumMorphVertices, 0, mBlendShapeVertexDescription);
 
 			u8* bufferData = meshData->GetData();
 			memset(bufferData, 0, meshData->GetSize());
@@ -457,7 +459,7 @@ void AnimationManager::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 			u8* positions = meshData->GetElementData(VES_POSITION, 1, 1);
 			u8* normals = meshData->GetElementData(VES_NORMAL, 1, 1);
 
-			u32 stride = mBlendShapeVertexDesc->GetVertexStride(1);
+			u32 stride = mBlendShapeVertexDescription->GetVertexStride(1);
 
 			for(u32 i = 0; i < anim->NumMorphShapes; i++)
 			{

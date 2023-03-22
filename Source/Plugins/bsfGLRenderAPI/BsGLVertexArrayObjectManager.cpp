@@ -76,7 +76,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 	u16 maxStreamIdx = 0;
 	const Vector<VertexElement>& decl = vertexDecl->GetProperties().GetElements();
 	for(auto& elem : decl)
-		maxStreamIdx = std::max(maxStreamIdx, elem.GetStreamIdx());
+		maxStreamIdx = std::max(maxStreamIdx, elem.GetStreamIndex());
 
 	u32 numStreams = maxStreamIdx + 1;
 	u32 numUsedBuffers = 0;
@@ -90,7 +90,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 
 	for(auto& elem : decl)
 	{
-		u16 streamIdx = elem.GetStreamIdx();
+		u16 streamIdx = elem.GetStreamIndex();
 		if(streamIdx >= (u32)boundBuffers.size())
 			continue;
 
@@ -130,7 +130,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 
 	for(auto& elem : decl)
 	{
-		u16 streamIdx = elem.GetStreamIdx();
+		u16 streamIdx = elem.GetStreamIndex();
 		i32 seqIdx = streamToSeqIdx[streamIdx];
 
 		if(seqIdx == -1)
@@ -140,7 +140,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 		GLint attribLocation = 0;
 		for(auto iter = inputAttributes.begin(); iter != inputAttributes.end(); ++iter)
 		{
-			if(iter->GetSemantic() == elem.GetSemantic() && iter->GetSemanticIdx() == elem.GetSemanticIdx())
+			if(iter->GetSemantic() == elem.GetSemantic() && iter->GetSemanticIndex() == elem.GetSemanticIndex())
 			{
 				foundSemantic = true;
 				attribLocation = iter->GetOffset();
@@ -161,7 +161,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 
 		void* bufferData = VBO_BUFFER_OFFSET(elem.GetOffset());
 
-		u16 typeCount = VertexElement::GetTypeCount(elem.GetType());
+		u16 typeCount = VertexElement::GetComponentCountForType(elem.GetType());
 		GLenum glType = GLHardwareBufferManager::GetGlType(elem.GetType());
 		bool isInteger = glType == GL_SHORT || glType == GL_UNSIGNED_SHORT || glType == GL_INT || glType == GL_UNSIGNED_INT || glType == GL_UNSIGNED_BYTE;
 
