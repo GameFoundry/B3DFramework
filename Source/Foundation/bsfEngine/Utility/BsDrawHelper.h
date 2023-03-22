@@ -248,10 +248,10 @@ namespace bs
 		Vector<Text2DData> mText2DData;
 		Vector<WireMeshData> mWireMeshData;
 
-		SPtr<VertexDataDesc> mSolidVertexDesc;
-		SPtr<VertexDataDesc> mWireVertexDesc;
-		SPtr<VertexDataDesc> mLineVertexDesc;
-		SPtr<VertexDataDesc> mTextVertexDesc;
+		SPtr<VertexDescription> mSolidVertexDesc;
+		SPtr<VertexDescription> mWireVertexDesc;
+		SPtr<VertexDescription> mLineVertexDesc;
+		SPtr<VertexDescription> mTextVertexDesc;
 	};
 
 	/** @} */

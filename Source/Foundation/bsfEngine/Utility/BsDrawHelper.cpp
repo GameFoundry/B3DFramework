@@ -4,7 +4,7 @@
 #include "Mesh/BsMesh.h"
 #include "Math/BsAABox.h"
 #include "Math/BsSphere.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Text/BsTextData.h"
 #include "Math/BsVector2.h"
@@ -27,26 +27,26 @@ DrawHelper::DrawHelper()
 	solidVertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
 	solidVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mSolidVertexDesc = B3DMakeShared<VertexDataDesc>(solidVertexElements);
+	mSolidVertexDesc = B3DMakeShared<VertexDescription>(solidVertexElements);
 
 	SmallVector<VertexElement, 8> wireVertexElements;
 	wireVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	wireVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mWireVertexDesc = B3DMakeShared<VertexDataDesc>(wireVertexElements);
+	mWireVertexDesc = B3DMakeShared<VertexDescription>(wireVertexElements);
 
 	SmallVector<VertexElement, 8> lineVertexElements;
 	lineVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	lineVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mLineVertexDesc = B3DMakeShared<VertexDataDesc>(lineVertexElements);
+	mLineVertexDesc = B3DMakeShared<VertexDescription>(lineVertexElements);
 
 	SmallVector<VertexElement, 8> textVertexElements;
 	textVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	textVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 	textVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	mTextVertexDesc = B3DMakeShared<VertexDataDesc>(textVertexElements);
+	mTextVertexDesc = B3DMakeShared<VertexDescription>(textVertexElements);
 }
 
 void DrawHelper::SetColor(const Color& color)
@@ -872,7 +872,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 		indexCount[typeIdx] += batch.NumIndices;
 	}
 
-	SPtr<VertexDataDesc> vertexDesc[4] = { mSolidVertexDesc, mWireVertexDesc, mLineVertexDesc, mTextVertexDesc };
+	SPtr<VertexDescription> vertexDesc[4] = { mSolidVertexDesc, mWireVertexDesc, mLineVertexDesc, mTextVertexDesc };
 	SPtr<MeshData> meshData[4];
 	for(u32 i = 0; i < 4; i++)
 	{

@@ -316,7 +316,7 @@ namespace bs
 
 			SPtr<GpuBuffer> mFullScreenQuadIB;
 			SPtr<GpuBuffer> mFullScreenQuadVB;
-			SPtr<VertexDataDesc> mFullscreenQuadVDesc;
+			SPtr<VertexDescription> mFullscreenQuadVDesc;
 			SPtr<VertexDeclaration> mFullscreenQuadVDecl;
 			u32 mNextQuadVBSlot = 0;
 

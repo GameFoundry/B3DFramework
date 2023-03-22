@@ -6,7 +6,7 @@
 #include "Utility/BsModule.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Math/BsConvexVolume.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs
 {
@@ -127,7 +127,7 @@ namespace bs
 		float mLastAnimationDeltaTime = 0.0f;
 		bool mPaused = false;
 
-		SPtr<VertexDataDesc> mBlendShapeVertexDescription;
+		SPtr<VertexDescription> mBlendShapeVertexDescription;
 
 		// Animation thread
 		Vector<SPtr<AnimationProxy>> mProxies;

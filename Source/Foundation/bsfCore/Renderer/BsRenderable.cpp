@@ -723,7 +723,7 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 			vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
 			vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 
-			const SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+			const SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 			mMorphVertexDeclaration = VertexDeclaration::Create(vertexDescription);
 		}
 		else

@@ -8,7 +8,7 @@
 #include "Managers/BsMeshManager.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Threading/BsAsyncOp.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Resources/BsResources.h"
 #include "RenderAPI/BsRenderAPI.h"
 
@@ -174,7 +174,7 @@ RTTITypeBase* Mesh::GetRtti() const
 /* 								STATICS		                     		*/
 /************************************************************************/
 
-HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType)
+HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = vertexCount;
@@ -324,7 +324,7 @@ SPtr<GpuBuffer> Mesh::GetIndexBuffer() const
 	return mIndexBuffer;
 }
 
-SPtr<VertexDataDesc> Mesh::GetVertexDescription() const
+SPtr<VertexDescription> Mesh::GetVertexDescription() const
 {
 	THROW_IF_NOT_CORE_THREAD;
 
@@ -515,7 +515,7 @@ void Mesh::UpdateBounds(const MeshData& meshData)
 	// TODO - Sync this to sim-thread possibly?
 }
 
-SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType, GpuDeviceFlags deviceMask)
+SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType, GpuDeviceFlags deviceMask)
 {
 	MeshCreateInformation meshCreateInformation;
 	meshCreateInformation.VertexCount = vertexCount;

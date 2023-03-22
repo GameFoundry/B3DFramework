@@ -5,7 +5,7 @@
 #include "BsRendererView.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
@@ -374,7 +374,7 @@ void LightProbes::UpdateProbes()
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	vertexElements.Add(VertexElement(VET_UINT1, VES_TEXCOORD));
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	SPtr<MeshData> meshData = MeshData::Create(numVertices, numVertices, vertexDesc);
 	auto posIter = meshData->GetVec3DataIter(VES_POSITION);
 	auto idIter = meshData->GetDwordDataIter(VES_TEXCOORD);

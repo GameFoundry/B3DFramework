@@ -16,60 +16,6 @@ namespace bs
 	class SmallVector final
 	{
 	public:
-		/** Iterator for SmallVector<Type, N>. */
-		template<bool IsConst>
-		struct TIterator
-		{
-			using iterator_category = std::random_access_iterator_tag; // NOLINT
-			using difference_type = std::ptrdiff_t; // NOLINT
-			using value_type = Type; // NOLINT
-			using pointer = std::conditional_t<IsConst, const Type*, Type*>; // NOLINT
-			using reference = std::conditional_t<IsConst, const Type&, Type&>; // NOLINT
-			using MyType = TIterator;
-
-			TIterator()
-				: mPointer(nullptr)
-			{}
-
-			TIterator(pointer pointer)
-				: mPointer(pointer)
-			{ }
-
-			TIterator(const MyType& rhs)
-				: mPointer(rhs.mPointer)
-			{ }
-
-			reference operator*() const { return *mPointer; }
-			pointer operator->() { return mPointer; }
-			reference operator[](difference_type rhs) const { return mPointer[rhs]; }
-
-			MyType& operator+=(difference_type rhs) { mPointer += rhs; return *this; }
-			MyType& operator-=(difference_type rhs) { mPointer -= rhs; return *this; }
-
-			MyType& operator++() { ++mPointer; return *this; }
-			MyType& operator--() { --mPointer; return *this; }
-
-			MyType operator++(i32) { MyType current(*this); ++mPointer; return current; }
-			MyType operator--(i32) { MyType current(*this); --mPointer; return current; }
-
-			difference_type operator-(const MyType& rhs) const { return mPointer - rhs.mPointer; }
-
-			MyType operator+(difference_type rhs) const { return MyType(mPointer + rhs); }
-			MyType operator-(difference_type rhs) const { return MyType(mPointer - rhs); }
-
-			bool operator==(const MyType& rhs) const { return mPointer == rhs.mPointer; }
-			bool operator!=(const MyType& rhs) const { return mPointer != rhs.mPointer; }
-			bool operator>(const MyType& rhs) const { return mPointer > rhs.mPointer; }
-			bool operator<(const MyType& rhs) const { return mPointer < rhs.mPointer; }
-			bool operator>=(const MyType& rhs) const { return mPointer >= rhs.mPointer; }
-			bool operator<=(const MyType& rhs) const { return mPointer <= rhs.mPointer; }
-
-			friend MyType operator+(difference_type lhs, const MyType& rhs) { return Iterator(lhs + rhs.mPointer); }
-			friend MyType operator-(difference_type lhs, const MyType& rhs) { return Iterator(lhs - rhs.mPointer); }
-		private:
-			pointer mPointer;
-		};
-
 		typedef Type ValueType;
 		typedef Type* Iterator;
 		typedef const Type* ConstIterator;

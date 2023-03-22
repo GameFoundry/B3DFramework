@@ -11,7 +11,7 @@
 #include "BsRendererView.h"
 #include "BsRenderBeast.h"
 #include "Utility/BsRendererTextures.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs { namespace ct {
 
@@ -1258,7 +1258,7 @@ void BokehDOFMat::Initialize()
 	SmallVector<VertexElement, 8> tileVertexElements;
 	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>(tileVertexElements);
+	SPtr<VertexDescription> tileVertexDesc = B3DMakeShared<VertexDescription>(tileVertexElements);
 	mTileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
 
 	// Prepare vertex buffer for rendering tiles

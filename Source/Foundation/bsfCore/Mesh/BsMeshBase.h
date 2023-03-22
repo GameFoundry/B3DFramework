@@ -152,7 +152,7 @@ namespace bs
 			virtual u32 GetIndexOffset() const { return 0; }
 
 			/** Returns a structure that describes how are the vertices stored in the mesh's vertex buffer. */
-			virtual SPtr<VertexDataDesc> GetVertexDescription() const = 0;
+			virtual SPtr<VertexDescription> GetVertexDescription() const = 0;
 
 			/**
 			 * Called whenever this mesh starts being used on the GPU.

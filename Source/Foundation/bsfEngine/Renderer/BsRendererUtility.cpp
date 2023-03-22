@@ -3,7 +3,7 @@
 #include "Renderer/BsRendererUtility.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Material/BsMaterial.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Material/BsPass.h"
@@ -27,7 +27,7 @@ RendererUtility::RendererUtility()
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-		mFullscreenQuadVDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+		mFullscreenQuadVDesc = B3DMakeShared<VertexDescription>(vertexElements);
 
 		GpuBufferCreateInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
@@ -54,7 +54,7 @@ RendererUtility::RendererUtility()
 		SmallVector<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+		SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
@@ -75,7 +75,7 @@ RendererUtility::RendererUtility()
 		SmallVector<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;
@@ -99,7 +99,7 @@ RendererUtility::RendererUtility()
 		SmallVector<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 numVertices = numSides * numSlices * 2;
 		u32 numIndices = ((numSides * 2) * (numSlices - 1) * 2) * 3;
@@ -156,7 +156,7 @@ RendererUtility::RendererUtility()
 		SmallVector<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-		SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		u32 numVertices = 0;
 		u32 numIndices = 0;

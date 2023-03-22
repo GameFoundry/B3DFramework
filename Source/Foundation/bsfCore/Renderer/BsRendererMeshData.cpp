@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/BsRendererMeshData.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Math/BsVector2.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector4.h"
@@ -15,7 +15,7 @@ using namespace bs;
 
 RendererMeshData::RendererMeshData(u32 numVertices, u32 numIndices, VertexLayout layout, IndexType indexType)
 {
-	SPtr<VertexDataDesc> vertexDesc = VertexLayoutVertexDesc(layout);
+	SPtr<VertexDescription> vertexDesc = VertexLayoutVertexDesc(layout);
 
 	mMeshData = B3DMakeShared<MeshData>(numVertices, numIndices, vertexDesc, indexType);
 }
@@ -202,7 +202,7 @@ void RendererMeshData::SetUV1(Vector2* buffer, u32 size)
 
 void RendererMeshData::GetBoneWeights(BoneWeight* buffer, u32 size)
 {
-	SPtr<VertexDataDesc> vertexDesc = mMeshData->GetVertexDescription();
+	SPtr<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
 
 	if(!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
 	   !vertexDesc->HasElement(VES_BLEND_INDICES))
@@ -240,7 +240,7 @@ void RendererMeshData::GetBoneWeights(BoneWeight* buffer, u32 size)
 
 void RendererMeshData::SetBoneWeights(BoneWeight* buffer, u32 size)
 {
-	SPtr<VertexDataDesc> vertexDesc = mMeshData->GetVertexDescription();
+	SPtr<VertexDescription> vertexDesc = mMeshData->GetVertexDescription();
 
 	if(!vertexDesc->HasElement(VES_BLEND_WEIGHTS) ||
 	   !vertexDesc->HasElement(VES_BLEND_INDICES))
@@ -338,7 +338,7 @@ SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
 	return RendererManager::Instance().GetActive()->CreateMeshDataInternal(meshData);
 }
 
-SPtr<VertexDataDesc> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
+SPtr<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 {
 	SmallVector<VertexElement, 8> vertexElements;
 	i32 intType = (i32)type;
@@ -370,13 +370,13 @@ SPtr<VertexDataDesc> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 		vertexElements.Add(VertexElement(VET_FLOAT4, VES_BLEND_WEIGHTS));
 	}
 
-	return B3DMakeShared<VertexDataDesc>(vertexElements);
+	return B3DMakeShared<VertexDescription>(vertexElements);
 }
 
 SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 {
 	// Note: Only converting between packed normals/tangents for now
-	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDescription();
+	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 
 	u32 numVertices = meshData->GetVertexCount();
 	u32 numIndices = meshData->GetIndexCount();
@@ -435,7 +435,7 @@ SPtr<MeshData> RendererMeshData::Convert(const SPtr<MeshData>& meshData)
 	SPtr<RendererMeshData> rendererMeshData = Create(numVertices, numIndices, (VertexLayout)type, meshData->GetIndexType());
 
 	SPtr<MeshData> output = rendererMeshData->mMeshData;
-	SPtr<VertexDataDesc> outputVertexDesc = output->GetVertexDescription();
+	SPtr<VertexDescription> outputVertexDesc = output->GetVertexDescription();
 	u32 outputStride = outputVertexDesc->GetVertexStride();
 
 	if((type & (i32)VertexLayout::Position) != 0)

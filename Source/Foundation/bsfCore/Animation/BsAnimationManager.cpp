@@ -19,7 +19,7 @@ AnimationManager::AnimationManager()
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 
-	mBlendShapeVertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+	mBlendShapeVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 }
 
 void AnimationManager::SetPaused(bool paused)

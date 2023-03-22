@@ -117,7 +117,7 @@ namespace bs
 		static size_t CalculateHash(const VertexElement& element);
 
 	protected:
-		friend class VertexDataDesc;
+		friend class VertexDescription;
 
 		u16 mStreamIndex;
 		u32 mOffset;
@@ -180,7 +180,7 @@ namespace bs
 		SPtr<ct::VertexDeclaration> GetCore() const;
 
 		/** @copydoc HardwareBufferManager::CreateVertexDeclaration */
-		static SPtr<VertexDeclaration> Create(const SPtr<VertexDataDesc>& desc);
+		static SPtr<VertexDeclaration> Create(const SPtr<VertexDescription>& desc);
 
 	protected:
 		friend class HardwareBufferManager;
@@ -243,7 +243,7 @@ namespace bs
 			Vector<VertexElement> GetMissingElements(const SPtr<VertexDeclaration>& shaderDecl);
 
 			/** @copydoc HardwareBufferManager::CreateVertexDeclaration */
-			static SPtr<VertexDeclaration> Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<VertexDeclaration> Create(const SPtr<VertexDescription>& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 		protected:
 			friend class HardwareBufferManager;

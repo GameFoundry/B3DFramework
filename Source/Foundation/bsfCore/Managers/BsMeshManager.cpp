@@ -4,7 +4,7 @@
 #include "BsCoreApplication.h"
 #include "Math/BsVector3.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 using namespace bs;
 
@@ -13,7 +13,7 @@ void MeshManager::OnStartUp()
 	SmallVector<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 
 	mDummyMeshData = B3DMakeShared<MeshData>(1, 3, vertexDesc);
 

@@ -8,13 +8,13 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "Private/RTTI/BsMeshDataRTTI.h"
 #include "RenderAPI/BsVertexDeclaration.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
 
 using namespace bs;
 
-MeshData::MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, IndexType indexType)
+MeshData::MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType)
 	: mVertexCount(vertexCount), mIndexCount(indexCount), mIndexType(indexType), mVertexDescription(vertexDescription)
 {
 	AllocateInternalBuffer();
@@ -68,7 +68,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 	Vector<VertexElement> combinedVertexElements;
 	for(auto& meshData : meshes)
 	{
-		for(u32 i = 0; i < meshData->GetVertexDescription()->GetNumElements(); i++)
+		for(u32 i = 0; i < meshData->GetVertexDescription()->GetElementCount(); i++)
 		{
 			const VertexElement& newElement = meshData->GetVertexDescription()->GetElement(i);
 
@@ -99,7 +99,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		}
 	}
 
-	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 	SPtr<MeshData> combinedMeshData = B3DMakeShared<MeshData>(totalVertexCount, totalIndexCount, vertexDescription);
 
 	// Copy indices
@@ -344,8 +344,8 @@ Bounds MeshData::CalculateBounds() const
 {
 	Bounds bounds;
 
-	SPtr<VertexDataDesc> vertexDesc = GetVertexDescription();
-	for(u32 i = 0; i < vertexDesc->GetNumElements(); i++)
+	SPtr<VertexDescription> vertexDesc = GetVertexDescription();
+	for(u32 i = 0; i < vertexDesc->GetElementCount(); i++)
 	{
 		const VertexElement& curElement = vertexDesc->GetElement(i);
 

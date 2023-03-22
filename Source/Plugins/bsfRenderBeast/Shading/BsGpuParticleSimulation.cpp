@@ -4,7 +4,7 @@
 #include "Renderer/BsParamBlocks.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsGpuResourcePool.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "RenderAPI/BsGpuPipelineParamInfo.h"
 #include "Particles/BsVectorField.h"
 #include "Particles/BsParticleDistribution.h"
@@ -399,7 +399,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	SmallVector<VertexElement, 8> tileVertexElements;
 	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-	SPtr<VertexDataDesc> tileVertexDesc = B3DMakeShared<VertexDataDesc>(tileVertexElements);
+	SPtr<VertexDescription> tileVertexDesc = B3DMakeShared<VertexDescription>(tileVertexElements);
 	TileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
 
 	// Prepare vertex declaration for injecting new particles
@@ -411,7 +411,7 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 4, 0, 1)); // Data UV, per instance
 	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 5, 1)); // Sprite texture coordinates
 
-	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>(injectVertexElements);
+	SPtr<VertexDescription> injectVertexDesc = B3DMakeShared<VertexDescription>(injectVertexElements);
 	InjectVertexDecl = VertexDeclaration::Create(injectVertexDesc);
 
 	// Prepare UV coordinates for rendering tiles
@@ -1366,7 +1366,7 @@ GpuParticleCurves::GpuParticleCurves()
 	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1)); // Data UV, per instance
 	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 2, 1)); // Pixel texture coordinates
 
-	SPtr<VertexDataDesc> injectVertexDesc = B3DMakeShared<VertexDataDesc>(injectVertexElement);
+	SPtr<VertexDescription> injectVertexDesc = B3DMakeShared<VertexDescription>(injectVertexElement);
 	mInjectVertexDecl = VertexDeclaration::Create(injectVertexDesc);
 
 	// Prepare UV coordinates for injecting curves

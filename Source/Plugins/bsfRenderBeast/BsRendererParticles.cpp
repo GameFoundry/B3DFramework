@@ -5,7 +5,7 @@
 #include "Renderer/BsRendererUtility.h"
 #include "Mesh/BsMeshData.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Material/BsGpuParamsSet.h"
 #include "BsRendererView.h"
@@ -379,7 +379,7 @@ ParticleRenderer::ParticleRenderer()
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL));
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_TANGENT));
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	m->BillboardVd = VertexDeclaration::Create(vertexDesc);
 
 	GpuBufferCreateInformation vbDesc;

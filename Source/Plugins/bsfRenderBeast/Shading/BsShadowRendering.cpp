@@ -9,7 +9,7 @@
 #include "Mesh/BsMesh.h"
 #include "Renderer/BsCamera.h"
 #include "Utility/BsBitwise.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Renderer/BsRenderer.h"
 #include "BsRendererRenderable.h"
 
@@ -695,7 +695,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 	SmallVector<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	mPositionOnlyVD = VertexDeclaration::Create(vertexDesc);
 
 	// Create plane index and vertex buffers

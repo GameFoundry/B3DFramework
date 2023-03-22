@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Debug/BsDebugDraw.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Image/BsSpriteTexture.h"
 #include "CoreThread/BsCoreThread.h"

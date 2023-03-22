@@ -12,14 +12,14 @@
 #include "RenderAPI/BsViewport.h"
 #include "Scene/BsSceneObject.h"
 #include "Resources/BsBuiltinResources.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Image/BsSpriteTexture.h"
 
 using namespace bs;
 
-SPtr<VertexDataDesc> GetGUITriangleMeshDesc()
+SPtr<VertexDescription> GetGUITriangleMeshDesc()
 {
-	static SPtr<VertexDataDesc> sDesc;
+	static SPtr<VertexDescription> sDesc;
 
 	if(!sDesc)
 	{
@@ -27,22 +27,22 @@ SPtr<VertexDataDesc> GetGUITriangleMeshDesc()
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-		sDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+		sDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	}
 
 	return sDesc;
 }
 
-SPtr<VertexDataDesc> GetGUILineMeshDesc()
+SPtr<VertexDescription> GetGUILineMeshDesc()
 {
-	static SPtr<VertexDataDesc> sDesc;
+	static SPtr<VertexDescription> sDesc;
 
 	if(!sDesc)
 	{
 		SmallVector<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 
-		sDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+		sDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	}
 
 	return sDesc;
@@ -663,7 +663,7 @@ void GUIDrawGroups::RebuildMeshes()
 		}
 
 		SPtr<MeshData> meshData[2];
-		SPtr<VertexDataDesc> vertexDesc[2] = { GetGUITriangleMeshDesc(), GetGUILineMeshDesc() };
+		SPtr<VertexDescription> vertexDesc[2] = { GetGUITriangleMeshDesc(), GetGUILineMeshDesc() };
 
 		u8* vertices[2] = { nullptr, nullptr };
 		u32* indices[2] = { nullptr, nullptr };

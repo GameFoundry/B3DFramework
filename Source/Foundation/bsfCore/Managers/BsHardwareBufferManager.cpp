@@ -3,12 +3,12 @@
 #include "Managers/BsHardwareBufferManager.h"
 #include "RenderAPI/BsVertexData.h"
 #include "RenderAPI/BsVertexDeclaration.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "RenderAPI/BsGpuParams.h"
 
 using namespace bs;
 
-SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc)
+SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDescription>& desc)
 {
 	VertexDeclaration* decl = new(B3DAllocate<VertexDeclaration>()) VertexDeclaration(Vector<VertexElement>(desc->GetElements().begin(), desc->GetElements().end()));
 
@@ -65,7 +65,7 @@ bool HardwareBufferManager::VertexDeclarationKey::EqualFunction::operator()(cons
 	return true;
 }
 
-SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDataDesc>& createInformation, GpuDeviceFlags deviceMask)
+SPtr<VertexDeclaration> HardwareBufferManager::CreateVertexDeclaration(const SPtr<VertexDescription>& createInformation, GpuDeviceFlags deviceMask)
 {
 	Vector<VertexElement> elements(createInformation->GetElements().begin(), createInformation->GetElements().end());
 

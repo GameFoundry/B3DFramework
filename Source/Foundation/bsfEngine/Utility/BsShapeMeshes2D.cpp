@@ -6,7 +6,7 @@
 #include "Math/BsVector2.h"
 #include "Math/BsLine2.h"
 #include "Material/BsPass.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 using namespace bs;
 

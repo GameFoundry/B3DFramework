@@ -3,7 +3,7 @@
 #include "BsParticleEmitter.h"
 #include "Mesh/BsMeshData.h"
 #include "Mesh/BsMeshUtility.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Math/BsRandom.h"
 #include "Components/BsCRenderable.h"
 #include "Private/Particles/BsParticleSet.h"
@@ -29,7 +29,7 @@ void MeshWeightedTriangles::Calculate(const MeshData& meshData)
 
 	u8* vertices = meshData.GetElementData(VES_POSITION);
 
-	const SPtr<VertexDataDesc>& vertexDesc = meshData.GetVertexDescription();
+	const SPtr<VertexDescription>& vertexDesc = meshData.GetVertexDescription();
 	const u32 stride = vertexDesc->GetVertexStride();
 
 	float totalArea = 0.0f;
@@ -759,7 +759,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 		return false;
 	}
 
-	const SPtr<VertexDataDesc>& vertexDesc = mMeshData->GetVertexDescription();
+	const SPtr<VertexDescription>& vertexDesc = mMeshData->GetVertexDescription();
 	const VertexElement* positionElement = vertexDesc->GetElement(VES_POSITION);
 	if(positionElement == nullptr)
 	{

@@ -262,7 +262,7 @@ SPtr<ct::CoreObject> VertexDeclaration::CreateCore() const
 	return ct::HardwareBufferManager::Instance().CreateVertexDeclarationInternal(mProperties.mElementList);
 }
 
-SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc)
+SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDescription>& desc)
 {
 	return HardwareBufferManager::Instance().CreateVertexDeclaration(desc);
 }
@@ -332,7 +332,7 @@ void VertexDeclaration::Initialize()
 	CoreObject::Initialize();
 }
 
-SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDataDesc>& desc, GpuDeviceFlags deviceMask)
+SPtr<VertexDeclaration> VertexDeclaration::Create(const SPtr<VertexDescription>& desc, GpuDeviceFlags deviceMask)
 {
 	return HardwareBufferManager::Instance().CreateVertexDeclaration(desc, deviceMask);
 }

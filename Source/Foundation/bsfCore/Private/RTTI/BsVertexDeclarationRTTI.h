@@ -6,7 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Managers/BsHardwareBufferManager.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs
 {
@@ -65,7 +65,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return HardwareBufferManager::Instance().CreateVertexDeclaration(B3DMakeShared<VertexDataDesc>(SmallVector<VertexElement, 8>()));
+			return HardwareBufferManager::Instance().CreateVertexDeclaration(B3DMakeShared<VertexDescription>(SmallVector<VertexElement, 8>()));
 		}
 
 		const String& GetRttiName()

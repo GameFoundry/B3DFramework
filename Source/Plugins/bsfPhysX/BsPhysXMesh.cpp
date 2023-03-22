@@ -3,7 +3,7 @@
 #include "BsPhysXMesh.h"
 #include "RTTI/BsPhysXMeshRTTI.h"
 #include "Mesh/BsMeshData.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "BsPhysX.h"
 #include "Math/BsAABox.h"
 #include "foundation/PxAllocatorCallback.h"
@@ -24,7 +24,7 @@ using namespace bs;
  */
 bool CookConvex(PxCooking* cooking, const SPtr<MeshData>& meshData, u8** data, u32& size)
 {
-	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDescription();
+	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 
 	// Try to create hull from points
 	PxConvexMeshDesc convexDesc;
@@ -110,7 +110,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 		return false;
 	}
 
-	SPtr<VertexDataDesc> vertexDesc = meshData->GetVertexDescription();
+	SPtr<VertexDescription> vertexDesc = meshData->GetVertexDescription();
 	if(!vertexDesc->HasElement(VES_POSITION))
 	{
 		B3D_LOG(Warning, Physics, "Provided PhysicsMesh mesh data has no vertex positions.");
@@ -238,7 +238,7 @@ SPtr<MeshData> FPhysXMesh::GetMeshData() const
 	SmallVector<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	if(mConvexMesh == nullptr && mTriangleMesh == nullptr)
 		return MeshData::Create(0, 0, vertexDescription);

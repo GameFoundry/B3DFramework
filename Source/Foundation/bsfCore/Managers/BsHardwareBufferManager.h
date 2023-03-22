@@ -32,7 +32,7 @@ namespace bs
 		 *
 		 * @param[in]	desc	Description of the object to create.
 		 */
-		SPtr<VertexDeclaration> CreateVertexDeclaration(const SPtr<VertexDataDesc>& desc);
+		SPtr<VertexDeclaration> CreateVertexDeclaration(const SPtr<VertexDescription>& desc);
 
 		/** @copydoc GpuParams::Create(const SPtr<GpuPipelineParamInfo>&) */
 		SPtr<GpuParams> CreateGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
@@ -55,7 +55,7 @@ namespace bs
 			 * @copydoc bs::HardwareBufferManager::CreateVertexDeclaration
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
-			SPtr<VertexDeclaration> CreateVertexDeclaration(const SPtr<VertexDataDesc>& createInformation, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			SPtr<VertexDeclaration> CreateVertexDeclaration(const SPtr<VertexDescription>& createInformation, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Creates a new vertex declaration from a list of vertex elements.

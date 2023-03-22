@@ -3,7 +3,7 @@
 #include "BsNullPhysicsMesh.h"
 #include "RTTI/BsNullPhysicsMeshRTTI.h"
 #include "Mesh/BsMeshData.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "BsNullPhysics.h"
 #include "Math/BsAABox.h"
 
@@ -41,7 +41,7 @@ SPtr<MeshData> FNullPhysicsMesh::GetMeshData() const
 	SmallVector<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 	return MeshData::Create(0, 0, vertexDesc);
 }
 

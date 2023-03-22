@@ -10,7 +10,7 @@
 #include "Math/BsVector2.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector4.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "BsFBXUtility.h"
 #include "Mesh/BsMeshUtility.h"
 #include "Renderer/BsRendererMeshData.h"

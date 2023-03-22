@@ -8,7 +8,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Material/BsMaterial.h"
 #include "Mesh/BsMeshData.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Mesh/BsMesh.h"
 #include "Managers/BsRenderWindowManager.h"
 #include "Platform/BsPlatform.h"
@@ -1812,7 +1812,7 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 			vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 			vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-			SPtr<VertexDataDesc> vertexDesc = B3DMakeShared<VertexDataDesc>(vertexElements);
+			SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
 			SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDesc);
 
 			auto vertexData = (Vector2*)meshData->GetElementData(VES_POSITION);

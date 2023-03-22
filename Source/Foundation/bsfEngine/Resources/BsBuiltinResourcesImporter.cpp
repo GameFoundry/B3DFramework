@@ -12,7 +12,7 @@
 #include "Mesh/BsMesh.h"
 #include "Renderer/BsRendererMeshData.h"
 #include "Image/BsTexture.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Serialization/BsFileSerializer.h"
 #include "Importer/BsImporter.h"
 #include "Importer/BsTextureImportOptions.h"
@@ -212,7 +212,7 @@ void GenerateMeshes()
 	vertexElements.Add(VertexElement(VET_FLOAT4, VES_TANGENT));
 	vertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
-	SPtr<VertexDataDesc> vertexDescription = B3DMakeShared<VertexDataDesc>(vertexElements);
+	SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	u32 boxNumVertices = 0;
 	u32 boxNumIndices = 0;

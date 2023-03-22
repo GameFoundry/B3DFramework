@@ -31,7 +31,7 @@ namespace bs
 		 * to the pipeline you must ensure vertex description at least partially matches the input description of the
 		 * currently bound vertex GPU program.
 		 */
-		SPtr<VertexDataDesc> VertexDescription;
+		SPtr<VertexDescription> VertexDescription;
 
 		/**
 		 * Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be
@@ -149,7 +149,7 @@ namespace bs
 
 		mutable SPtr<MeshData> mCPUData;
 
-		SPtr<VertexDataDesc> mVertexDescription;
+		SPtr<VertexDescription> mVertexDescription;
 		int mUsage = MU_STATIC;
 		IndexType mIndexType = IT_32BIT;
 		SPtr<Skeleton> mSkeleton; // Immutable
@@ -186,7 +186,7 @@ namespace bs
 		 * @param[in]	indexType		Size of indices, use smaller size for better performance, however be careful not to
 		 *								go over the number of vertices limited by the size.
 		 */
-		static HMesh Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
+		static HMesh Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT);
 
 		/**
 		 * Creates a new empty mesh.
@@ -276,7 +276,7 @@ namespace bs
 
 			SPtr<VertexData> GetVertexData() const override;
 			SPtr<GpuBuffer> GetIndexBuffer() const override;
-			SPtr<VertexDataDesc> GetVertexDescription() const override;
+			SPtr<VertexDescription> GetVertexDescription() const override;
 
 			/** Returns a skeleton that can be used for animating the mesh. */
 			SPtr<Skeleton> GetSkeleton() const { return mSkeleton; }
@@ -326,7 +326,7 @@ namespace bs
 			 *									go over the number of vertices limited by the size.
 			 * @param[in]	deviceMask			Mask that determines on which GPU devices should the object be created on.
 			 */
-			static SPtr<Mesh> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<Mesh> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, int usage = MU_STATIC, DrawOperationType primitiveType = DOT_TRIANGLE_LIST, IndexType indexType = IT_32BIT, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/**
 			 * Creates a new empty mesh.
@@ -369,7 +369,7 @@ namespace bs
 			SPtr<VertexData> mVertexData;
 			SPtr<GpuBuffer> mIndexBuffer;
 
-			SPtr<VertexDataDesc> mVertexDesc;
+			SPtr<VertexDescription> mVertexDesc;
 			int mUsage;
 			IndexType mIndexType;
 			GpuDeviceFlags mDeviceMask;

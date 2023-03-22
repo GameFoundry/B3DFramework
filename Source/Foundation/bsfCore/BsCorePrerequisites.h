@@ -395,7 +395,7 @@ namespace bs
 	struct RenderOperation;
 	class RenderQueue;
 	struct ProfilerReport;
-	class VertexDataDesc;
+	class VertexDescription;
 	class FrameAlloc;
 	class FolderMonitor;
 	class VideoMode;
@@ -541,7 +541,7 @@ namespace bs
 		TID_GameObject = 1060,
 		TID_PixelData = 1062,
 		TID_GpuResourceData = 1063,
-		TID_VertexDataDesc = 1064,
+		TID_VertexDescription = 1064,
 		TID_MeshBase = 1065,
 		TID_GameObjectHandleBase = 1066,
 		TID_ResourceManifest = 1067,

@@ -8,7 +8,7 @@
 #include "Math/BsSphere.h"
 #include "Material/BsPass.h"
 #include "Components/BsCCamera.h"
-#include "RenderAPI/BsVertexDataDesc.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Mesh/BsMeshUtility.h"
 
 using namespace bs;
@@ -41,7 +41,7 @@ void ShapeMeshes3D::WireAaBox(const AABox& box, const SPtr<MeshData>& meshData, 
 
 void ShapeMeshes3D::SolidAaBox(const AABox& box, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -105,7 +105,7 @@ void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& m
 
 void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -160,7 +160,7 @@ void ShapeMeshes3D::WireArc(const Vector3& center, float radius, const Vector3& 
 
 void ShapeMeshes3D::SolidArc(const Vector3& center, float radius, const Vector3& normal, Degree startAngle, Degree amountAngle, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -202,7 +202,7 @@ void ShapeMeshes3D::WireFrustum(const Vector3& position, float aspect, Degree FO
 
 void ShapeMeshes3D::SolidCone(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -247,7 +247,7 @@ void ShapeMeshes3D::WireCone(const Vector3& base, const Vector3& normal, float h
 
 void ShapeMeshes3D::SolidCylinder(const Vector3& base, const Vector3& normal, float height, float radius, Vector2 scale, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);
@@ -292,7 +292,7 @@ void ShapeMeshes3D::WireCylinder(const Vector3& base, const Vector3& normal, flo
 
 void ShapeMeshes3D::SolidQuad(const Rect3& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
-	const SPtr<VertexDataDesc>& desc = meshData->GetVertexDescription();
+	const SPtr<VertexDescription>& desc = meshData->GetVertexDescription();
 
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);

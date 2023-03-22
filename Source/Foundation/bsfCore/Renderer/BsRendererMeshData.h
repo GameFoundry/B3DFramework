@@ -213,7 +213,7 @@ namespace bs
 		static SPtr<RendererMeshData> Create(const SPtr<MeshData>& meshData);
 
 		/**	Creates a vertex descriptor from a vertex layout enum. */
-		static SPtr<VertexDataDesc> VertexLayoutVertexDesc(VertexLayout type);
+		static SPtr<VertexDescription> VertexLayoutVertexDesc(VertexLayout type);
 
 		/** Converts a generic mesh data into mesh data format expected by the renderer. */
 		static SPtr<MeshData> Convert(const SPtr<MeshData>& meshData);

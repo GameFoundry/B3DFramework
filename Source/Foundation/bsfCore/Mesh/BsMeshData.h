@@ -99,7 +99,7 @@ namespace bs
 		 * Constructs a new object that can hold number of vertices described by the provided vertex data description. As
 		 * well as a number of indices of the provided type.
 		 */
-		MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, IndexType indexType = IT_32BIT);
+		MeshData(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT);
 		~MeshData();
 
 		/**
@@ -218,7 +218,7 @@ namespace bs
 		u32 GetStreamSize() const;
 
 		/** Returns an object that describes data contained in a single vertex. */
-		const SPtr<VertexDataDesc>& GetVertexDescription() const { return mVertexDescription; }
+		const SPtr<VertexDescription>& GetVertexDescription() const { return mVertexDescription; }
 
 		/**	Return the size (in bytes) of the entire buffer. */
 		u32 GetSize() const { return GetInternalBufferSize(); }
@@ -244,7 +244,7 @@ namespace bs
 		 * Constructs a new object that can hold number of vertices described by the provided vertex data description. As
 		 * well as a number of indices of the provided type.
 		 */
-		static SPtr<MeshData> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDataDesc>& vertexDescription, IndexType indexType = IT_32BIT)
+		static SPtr<MeshData> Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, IndexType indexType = IT_32BIT)
 		{
 			return B3DMakeShared<MeshData>(vertexCount, indexCount, vertexDescription, indexType);
 		}
@@ -285,7 +285,7 @@ namespace bs
 		u32 mIndexCount;
 		IndexType mIndexType;
 
-		SPtr<VertexDataDesc> mVertexDescription;
+		SPtr<VertexDescription> mVertexDescription;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
