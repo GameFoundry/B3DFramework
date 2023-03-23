@@ -369,7 +369,7 @@ namespace bs
 			SPtr<VertexData> mVertexData;
 			SPtr<GpuBuffer> mIndexBuffer;
 
-			SPtr<VertexDescription> mVertexDesc;
+			SPtr<VertexDescription> mVertexDescription;
 			int mUsage;
 			IndexType mIndexType;
 			GpuDeviceFlags mDeviceMask;

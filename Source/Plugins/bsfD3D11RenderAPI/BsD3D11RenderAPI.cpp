@@ -688,7 +688,7 @@ void D3D11RenderAPI::SetIndexBuffer(const SPtr<IndexBuffer>& buffer, const SPtr<
 	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
-void D3D11RenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
+void D3D11RenderAPI::SetVertexDescription(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
 {
 	auto executeRef = [&](const SPtr<VertexDeclaration>& vertexDeclaration)
 	{
@@ -1403,6 +1403,6 @@ void D3D11RenderAPI::ApplyInputLayout()
 		return;
 	}
 
-	ID3D11InputLayout* ia = mIAManager->RetrieveInputLayout(mActiveVertexShader->GetInputDeclaration(), mActiveVertexDeclaration, *mActiveVertexShader);
+	ID3D11InputLayout* ia = mIAManager->RetrieveInputLayout(mActiveVertexShader->GetVertexInputDescription(), mActiveVertexDeclaration, *mActiveVertexShader);
 	mDevice->GetImmediateContext()->IASetInputLayout(ia);
 }

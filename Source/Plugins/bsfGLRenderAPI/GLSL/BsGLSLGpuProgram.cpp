@@ -259,7 +259,7 @@ void GLSLGpuProgram::Initialize()
 		if(mType == GPT_VERTEX_PROGRAM)
 		{
 			Vector<VertexElement> elementList = paramParser.BuildVertexDeclaration(mGLHandle);
-			mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(elementList);
+			mVertexInputDescription = HardwareBufferManager::Instance().CreateVertexDeclaration(elementList);
 		}
 	}
 

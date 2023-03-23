@@ -51,9 +51,9 @@ void RenderAPI::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
 	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetIndexBuffer, ct::RenderAPI::InstancePtr(), buffer->GetCore(), nullptr));
 }
 
-void RenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration)
+void RenderAPI::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription)
 {
-	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetVertexDeclaration, ct::RenderAPI::InstancePtr(), vertexDeclaration->GetCore(), nullptr));
+	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetVertexDescription, ct::RenderAPI::InstancePtr(), vertexDescription, nullptr));
 }
 
 void RenderAPI::SetViewport(const Rect2& vp)

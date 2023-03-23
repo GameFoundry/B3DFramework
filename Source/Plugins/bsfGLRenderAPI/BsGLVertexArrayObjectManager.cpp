@@ -120,7 +120,7 @@ const GLVertexArrayObject& GLVertexArrayObjectManager::GetVao(const SPtr<GLSLGpu
 	}
 
 	// Need to create new VAO
-	const Vector<VertexElement>& inputAttributes = vertexProgram->GetInputDeclaration()->GetProperties().GetElements();
+	const Vector<VertexElement>& inputAttributes = vertexProgram->GetVertexInputDescription()->GetProperties().GetElements();
 
 	glGenVertexArrays(1, &wantedVAO.mHandle);
 	B3D_CHECK_GL_ERROR();

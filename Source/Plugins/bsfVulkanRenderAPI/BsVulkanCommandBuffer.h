@@ -344,7 +344,7 @@ namespace bs
 			void SetIndexBuffer(const SPtr<GpuBuffer>& buffer);
 
 			/** Sets a declaration that determines how are vertex buffer contents interpreted. */
-			void SetVertexDeclaration(const SPtr<VertexDeclaration>& decl);
+			void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription);
 
 			/** Executes a draw command using the currently bound graphics pipeline, vertex buffer and render target. */
 			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance);
@@ -754,7 +754,7 @@ namespace bs
 
 			SPtr<VulkanGraphicsPipelineState> mGraphicsPipeline;
 			SPtr<VulkanComputePipelineState> mComputePipeline;
-			SPtr<VertexDeclaration> mVertexDecl;
+			SPtr<VertexDescription> mVertexDescription;
 			SPtr<VulkanGpuBuffer> mIndexBuffer;
 			Vector<SPtr<VulkanGpuBuffer>> mVertexBuffers;
 			Rect2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };

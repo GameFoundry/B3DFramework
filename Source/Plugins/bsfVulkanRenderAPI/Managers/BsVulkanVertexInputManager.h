@@ -80,15 +80,15 @@ namespace bs
 			/**
 			 * Returns an object that describes how vertex buffer elements map to vertex shader inputs.
 			 *
-			 * @param[in]	vbDecl		Describes the structure of a single vertex in a vertex buffer.
-			 * @param[in]	shaderDecl	Describes the vertex element inputs expected by a vertex shader.
-			 * @return					Vertex input state description, usable by Vulkan.
+			 * @param[in]	vertexBufferDescription		Describes the structure of a single vertex in a vertex buffer.
+			 * @param[in]	shaderInputDescription		Describes the vertex element inputs expected by a vertex shader.
+			 * @return									Vertex input state description, usable by Vulkan.
 			 */
-			SPtr<VulkanVertexInput> GetVertexInfo(const SPtr<VertexDeclaration>& vbDecl, const SPtr<VertexDeclaration>& shaderDecl);
+			SPtr<VulkanVertexInput> GetVertexInfo(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription);
 
 		private:
 			/**	Creates a vertex input using the specified parameters and stores it in the input layout map. */
-			void AddNew(const SPtr<VertexDeclaration>& vertexBufferDeclaration, const SPtr<VertexDeclaration>& shaderInputDeclaration);
+			void AddNew(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription);
 
 			/**	Removes the least used vertex input. */
 			void RemoveLeastUsed();

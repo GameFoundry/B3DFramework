@@ -161,12 +161,12 @@ void VulkanRenderAPI::SetIndexBuffer(const SPtr<GpuBuffer>& buffer, const SPtr<C
 	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
 
-void VulkanRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
+void VulkanRenderAPI::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
-	vkCB->SetVertexDeclaration(vertexDeclaration);
+	vkCB->SetVertexDescription(vertexDescription);
 }
 
 void VulkanRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<CommandBuffer>& commandBuffer)

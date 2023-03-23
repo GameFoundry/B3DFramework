@@ -1,12 +1,160 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsVertexDescription.h"
+
+#include "BsGpuBackend.h"
+#include "BsGpuDevice.h"
+#include "BsGpuDeviceCapabilities.h"
+#include "Image/BsColor.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "Private/RTTI/BsVertexDescriptionRTTI.h"
 
 using namespace bs;
 
-VertexDescription::VertexDescription(const SmallVector<VertexElement, 8>& elements)
+VertexElement::VertexElement(VertexElementType type, VertexElementSemantic semantic, u16 semanticIndex, u32 streamIndex, u32 instanceStepRate, u32 offset)
+	: mStreamIndex(streamIndex), mOffset(offset), mType(type), mSemantic(semantic), mIndex(semanticIndex), mInstanceStepRate(instanceStepRate)
+{
+}
+
+u32 VertexElement::GetSize(void) const
+{
+	return GetSizeForType(mType);
+}
+
+u32 VertexElement::GetSizeForType(VertexElementType type)
+{
+	switch(type)
+	{
+	case VET_COLOR:
+	case VET_COLOR_ABGR:
+	case VET_COLOR_ARGB:
+		return sizeof(RGBA);
+	case VET_UBYTE4_NORM:
+		return sizeof(u32);
+	case VET_FLOAT1:
+		return sizeof(float);
+	case VET_FLOAT2:
+		return sizeof(float) * 2;
+	case VET_FLOAT3:
+		return sizeof(float) * 3;
+	case VET_FLOAT4:
+		return sizeof(float) * 4;
+	case VET_USHORT1:
+		return sizeof(u16);
+	case VET_USHORT2:
+		return sizeof(u16) * 2;
+	case VET_USHORT4:
+		return sizeof(u16) * 4;
+	case VET_SHORT1:
+		return sizeof(i16);
+	case VET_SHORT2:
+		return sizeof(i16) * 2;
+	case VET_SHORT4:
+		return sizeof(i16) * 4;
+	case VET_UINT1:
+		return sizeof(u32);
+	case VET_UINT2:
+		return sizeof(u32) * 2;
+	case VET_UINT3:
+		return sizeof(u32) * 3;
+	case VET_UINT4:
+		return sizeof(u32) * 4;
+	case VET_INT4:
+		return sizeof(i32) * 4;
+	case VET_INT1:
+		return sizeof(i32);
+	case VET_INT2:
+		return sizeof(i32) * 2;
+	case VET_INT3:
+		return sizeof(i32) * 3;
+	case VET_UBYTE4:
+		return sizeof(u8) * 4;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+unsigned short VertexElement::GetComponentCountForType(VertexElementType type)
+{
+	switch(type)
+	{
+	case VET_COLOR:
+	case VET_COLOR_ABGR:
+	case VET_COLOR_ARGB:
+		return 4;
+	case VET_FLOAT1:
+	case VET_SHORT1:
+	case VET_USHORT1:
+	case VET_INT1:
+	case VET_UINT1:
+		return 1;
+	case VET_FLOAT2:
+	case VET_SHORT2:
+	case VET_USHORT2:
+	case VET_INT2:
+	case VET_UINT2:
+		return 2;
+	case VET_FLOAT3:
+	case VET_INT3:
+	case VET_UINT3:
+		return 3;
+	case VET_FLOAT4:
+	case VET_SHORT4:
+	case VET_USHORT4:
+	case VET_INT4:
+	case VET_UINT4:
+	case VET_UBYTE4:
+	case VET_UBYTE4_NORM:
+		return 4;
+	default:
+		break;
+	}
+
+	B3D_EXCEPT(InvalidParametersException, "Invalid type");
+	return 0;
+}
+
+VertexElementType VertexElement::GetBestColorVertexElementType()
+{
+	// Use the current render system to determine if possible
+	if(GpuBackend::InstancePtr() != nullptr && GpuBackend::Instance().GetDevice(0) != nullptr)
+	{
+		return GpuBackend::Instance().GetDevice(0)->GetCapabilities().VertexColorType;
+	}
+	else
+	{
+		// We can't know the specific type right now, so pick a type based on platform
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+		return VET_COLOR_ARGB; // prefer D3D format on Windows
+#else
+		return VET_COLOR_ABGR; // prefer GL format on everything else
+#endif
+	}
+}
+
+bool VertexElement::operator==(const VertexElement& rhs) const
+{
+	if(mType != rhs.mType || mIndex != rhs.mIndex || mOffset != rhs.mOffset ||
+	   mSemantic != rhs.mSemantic || mStreamIndex != rhs.mStreamIndex || mInstanceStepRate != rhs.mInstanceStepRate)
+	{
+		return false;
+	}
+	else
+		return true;
+}
+
+bool VertexElement::operator!=(const VertexElement& rhs) const
+{
+	return !(*this == rhs);
+}
+
+static Mutex gVertexDescriptionCacheMutex;
+static UnorderedMap<VertexDescription, u32> gVertexDescriptionCache;
+static u32 gNextVertexDescriptionId = 1;
+
+VertexDescription::VertexDescription(const SmallVector<VertexElement, 8>& elements, bool calculateOffsets)
 	:mVertexElements(elements)
 {
 	// Sort by stream, but preserve remaining ordering
@@ -15,7 +163,38 @@ VertexDescription::VertexDescription(const SmallVector<VertexElement, 8>& elemen
 		return lhs.GetStreamIndex() < rhs.GetStreamIndex();
 	});
 
-	CalculateOffsets();
+	if(calculateOffsets)
+		CalculateOffsets();
+
+	Lock lock(gVertexDescriptionCacheMutex);
+	auto found = gVertexDescriptionCache.find(*this);
+	if(found != gVertexDescriptionCache.end())
+		mId = found->second;
+	else
+	{
+		mId = gNextVertexDescriptionId++;
+		gVertexDescriptionCache[*this] = mId;
+	}
+}
+
+VertexDescription::VertexDescription(const Vector<VertexElement>& elements, bool calculateOffsets)
+	: VertexDescription(SmallVector<VertexElement, 8>(elements.begin(), elements.end()), calculateOffsets)
+{ }
+
+bool VertexDescription::operator==(const VertexDescription& rhs) const
+{
+	const SmallVector<VertexElement, 8>& otherElements = rhs.GetElements();
+
+	if(mVertexElements.size() != otherElements.size())
+		return false;
+
+	for(u32 elementIndex = 0; elementIndex < mVertexElements.size(); ++elementIndex)
+	{
+		if(mVertexElements[elementIndex] != otherElements[elementIndex])
+			return false;
+	}
+
+	return true;
 }
 
 void VertexDescription::CalculateOffsets()
@@ -152,6 +331,55 @@ const VertexElement* VertexDescription::GetElement(VertexElementSemantic semanti
 	return nullptr;
 }
 
+bool VertexDescription::IsCompatibleWithShaderInputs(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
+{
+	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
+	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
+
+	for(const auto& shaderInputElement : shaderInputElements)
+	{
+		bool isElementFound = false;
+		for(const auto& vertexBufferElement : vertexBufferElements)
+		{
+			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
+			{
+				isElementFound = true;
+				break;
+			}
+		}
+
+		if(!isElementFound)
+			return false;
+	}
+
+	return true;
+}
+
+SmallVector<VertexElement, 8> VertexDescription::GetMissingElementsForShaderInput(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
+{
+	SmallVector<VertexElement, 8> missingElements;
+
+	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
+	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
+
+	for(const auto& shaderInputElement : shaderInputElements)
+	{
+		bool isElementFound = false;
+		for(const auto& vertexBufferElement : vertexBufferElements)
+		{
+			if(shaderInputElement.GetSemantic() == vertexBufferElement.GetSemantic() && shaderInputElement.GetSemanticIndex() == vertexBufferElement.GetSemanticIndex())
+			{
+				isElementFound = true;
+				break;
+			}
+		}
+
+		if(!isElementFound)
+			missingElements.Add(shaderInputElement);
+	}
+
+	return missingElements;
+}
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/

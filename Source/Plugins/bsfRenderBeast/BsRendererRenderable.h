@@ -84,7 +84,7 @@ namespace bs
 			SPtr<GpuBuffer> MorphShapeBuffer;
 
 			/** Vertex declaration used for rendering meshes containing morph shape information. */
-			SPtr<VertexDeclaration> MorphVertexDeclaration;
+			SPtr<VertexDescription> MorphVertexDefinition;
 
 			/** Time to used for evaluating material animation. */
 			float MaterialAnimationTime = 0.0f;

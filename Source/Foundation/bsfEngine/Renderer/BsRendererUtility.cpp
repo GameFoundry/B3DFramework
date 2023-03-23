@@ -27,7 +27,7 @@ RendererUtility::RendererUtility()
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-		mFullscreenQuadVDesc = B3DMakeShared<VertexDescription>(vertexElements);
+		mFullscreenQuadVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 		GpuBufferCreateInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
@@ -36,12 +36,11 @@ RendererUtility::RendererUtility()
 		indexBufferCreateInformation.Index.Count = 6;
 
 		mFullScreenQuadIB = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
-		mFullscreenQuadVDecl = VertexDeclaration::Create(mFullscreenQuadVDesc);
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
-		vertexBufferCreateInformation.Vertex.ElementSize = mFullscreenQuadVDecl->GetProperties().GetVertexSize(0);
+		vertexBufferCreateInformation.Vertex.ElementSize = mFullscreenQuadVertexDescription->GetVertexStride(0);
 		vertexBufferCreateInformation.Vertex.Count = 4 * kNumQuadVbSlots;
 
 		mFullScreenQuadVB = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
@@ -211,7 +210,7 @@ void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u
 	RenderAPI& rapi = RenderAPI::Instance();
 	SPtr<VertexData> vertexData = mesh->GetVertexData();
 
-	rapi.SetVertexDeclaration(mesh->GetVertexData()->VertexDeclaration);
+	rapi.SetVertexDescription(mesh->GetVertexData()->VertexDescription);
 
 	auto& vertexBuffers = vertexData->GetBuffers();
 	if(vertexBuffers.size() > 0)
@@ -248,13 +247,13 @@ void RendererUtility::Draw(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u
 	mesh->NotifyUsedOnGPU();
 }
 
-void RendererUtility::DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDeclaration>& morphVertexDeclaration)
+void RendererUtility::DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription)
 {
 	// Bind buffers and draw
 	RenderAPI& rapi = RenderAPI::Instance();
 
 	SPtr<VertexData> vertexData = mesh->GetVertexData();
-	rapi.SetVertexDeclaration(morphVertexDeclaration);
+	rapi.SetVertexDescription(morphVertexDescription);
 
 	auto& meshBuffers = vertexData->GetBuffers();
 	SPtr<GpuBuffer> allBuffers[BS_MAX_BOUND_VERTEX_BUFFERS];
@@ -352,7 +351,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 		uvs[i].Y /= (float)textureSize.Y;
 	}
 
-	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(4, 6, mFullscreenQuadVDesc);
+	SPtr<MeshData> meshData = B3DMakeShared<MeshData>(4, 6, mFullscreenQuadVertexDescription);
 
 	auto vecIter = meshData->GetVec3DataIter(VES_POSITION);
 	for(u32 i = 0; i < 4; i++)
@@ -371,7 +370,7 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 
 	RenderAPI& rapi = RenderAPI::Instance();
 
-	rapi.SetVertexDeclaration(mFullscreenQuadVDecl);
+	rapi.SetVertexDescription(mFullscreenQuadVertexDescription);
 	rapi.SetVertexBuffers(0, &mFullScreenQuadVB, 1);
 	rapi.SetIndexBuffer(mFullScreenQuadIB);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);

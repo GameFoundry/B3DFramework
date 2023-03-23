@@ -676,7 +676,7 @@ namespace bs
 			Vector<LightShadows> mRadialLightShadows;
 			Vector<PerViewLightShadows> mDirectionalLightShadows;
 
-			SPtr<VertexDeclaration> mPositionOnlyVD;
+			SPtr<VertexDescription> mPositionOnlyVertexDescription;
 
 			// Mesh information used for drawing near & far planes
 			mutable SPtr<GpuBuffer> mPlaneIB;

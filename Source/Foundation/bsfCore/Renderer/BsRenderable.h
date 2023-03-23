@@ -270,7 +270,7 @@ namespace bs
 			const SPtr<GpuBuffer>& GetMorphShapeBuffer() const { return mMorphShapeBuffer; }
 
 			/** Returns vertex declaration used for rendering meshes containing morph shape information. */
-			const SPtr<VertexDeclaration>& GetMorphVertexDeclaration() const { return mMorphVertexDeclaration; }
+			const SPtr<VertexDescription>& GetMorphVertexDescription() const { return mMorphVertexDescription; }
 
 		protected:
 			friend class bs::Renderable;
@@ -293,7 +293,7 @@ namespace bs
 			SPtr<GpuBuffer> mBoneMatrixBuffer;
 			SPtr<GpuBuffer> mBonePrevMatrixBuffer;
 			SPtr<GpuBuffer> mMorphShapeBuffer;
-			SPtr<VertexDeclaration> mMorphVertexDeclaration;
+			SPtr<VertexDescription> mMorphVertexDescription;
 		};
 	} // namespace ct
 

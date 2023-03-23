@@ -235,12 +235,12 @@ namespace bs
 			 * @param[in]	subMesh					Portion of the mesh to draw.
 			 * @param[in]	morphVertices			Buffer containing the morph shape vertices. Will be bound to stream 1.
 			 *										Expected to contain the same number of vertices as the source mesh.
-			 * @param[in]	morphVertexDeclaration	Vertex declaration describing vertices of the provided mesh and the vertices
+			 * @param[in]	morphVertexDescription	Object describing vertices of the provided mesh and the vertices
 			 *										provided in the morph vertex buffer.
 			 *
 			 * @note	Core thread.
 			 */
-			void DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDeclaration>& morphVertexDeclaration);
+			void DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription);
 
 			/**
 			 * Blits contents of the provided texture into the currently bound render target. If the provided texture contains
@@ -316,8 +316,7 @@ namespace bs
 
 			SPtr<GpuBuffer> mFullScreenQuadIB;
 			SPtr<GpuBuffer> mFullScreenQuadVB;
-			SPtr<VertexDescription> mFullscreenQuadVDesc;
-			SPtr<VertexDeclaration> mFullscreenQuadVDecl;
+			SPtr<VertexDescription> mFullscreenQuadVertexDescription;
 			u32 mNextQuadVBSlot = 0;
 
 			SPtr<Mesh> mUnitSphereStencilMesh;

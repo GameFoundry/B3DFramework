@@ -6,7 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Mesh/BsMeshData.h"
-#include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "FileSystem/BsDataStream.h"
 
 namespace bs

@@ -3,6 +3,7 @@
 #include "Extensions/BsMeshDataEx.h"
 #include "Image/BsPixelUtil.h"
 #include "Math/BsVector2.h"
+#include "Image/BsColor.h"
 
 using namespace bs;
 template <int Semantic>

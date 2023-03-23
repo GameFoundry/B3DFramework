@@ -1450,12 +1450,12 @@ void VulkanInternalCommandBuffer::SetIndexBuffer(const SPtr<GpuBuffer>& buffer)
 	mVertexInputsDirty = true;
 }
 
-void VulkanInternalCommandBuffer::SetVertexDeclaration(const SPtr<VertexDeclaration>& decl)
+void VulkanInternalCommandBuffer::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription)
 {
-	if(mVertexDecl == decl)
+	if(mVertexDescription == vertexDescription)
 		return;
 
-	mVertexDecl = decl;
+	mVertexDescription = vertexDescription;
 	mGfxPipelineRequiresBind = true;
 
 	// Potentially need to rebind vertex buffers as we bind dummy vertex buffers for shaders attributes not provided by the user
@@ -1467,17 +1467,17 @@ bool VulkanInternalCommandBuffer::IsReadyForRender()
 	if(mGraphicsPipeline == nullptr)
 		return false;
 
-	SPtr<VertexDeclaration> inputDecl = mGraphicsPipeline->GetInputDeclaration();
-	if(inputDecl == nullptr)
+	SPtr<VertexDescription> shaderInputVertexDescription = mGraphicsPipeline->GetInputDeclaration();
+	if(shaderInputVertexDescription == nullptr)
 		return false;
 
-	return mFramebuffer != nullptr && mVertexDecl != nullptr;
+	return mFramebuffer != nullptr && mVertexDescription != nullptr;
 }
 
 bool VulkanInternalCommandBuffer::BindGraphicsPipeline()
 {
-	const SPtr<VertexDeclaration> vertexShaderInputDeclaration = mGraphicsPipeline->GetInputDeclaration();
-	const SPtr<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDecl, vertexShaderInputDeclaration);
+	const SPtr<VertexDescription> vertexShaderInputDescription = mGraphicsPipeline->GetInputDeclaration();
+	const SPtr<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDescription, vertexShaderInputDescription);
 
 	VulkanRenderPass *const renderPass = mFramebuffer->GetRenderPass();
 	VulkanPipeline *const pipeline = mGraphicsPipeline->GetPipeline(mDevice.GetIndex(), renderPass, mRenderTargetReadOnlyFlags, mDrawOp, vertexShaderInput);

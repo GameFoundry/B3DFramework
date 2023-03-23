@@ -884,7 +884,7 @@ namespace bs
 			GpuParameterSampledTexture mBokehTexture;
 			GpuParameterSampledTexture mDepthTexture;
 
-			SPtr<VertexDeclaration> mTileVertexDecl;
+			SPtr<VertexDescription> mTileVertexDescription;
 			SPtr<GpuBuffer> mTileIndexBuffer;
 			SPtr<GpuBuffer> mTileVertexBuffer;
 		};

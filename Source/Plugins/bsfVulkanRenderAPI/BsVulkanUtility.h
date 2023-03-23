@@ -4,7 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "Image/BsPixelUtil.h"
-#include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs
 {

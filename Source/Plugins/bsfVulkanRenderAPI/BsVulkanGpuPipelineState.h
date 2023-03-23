@@ -51,7 +51,7 @@ namespace bs
 			~VulkanGraphicsPipelineState();
 
 			/** Returns the vertex input declaration from the vertex GPU program bound on the pipeline. */
-			SPtr<VertexDeclaration> GetInputDeclaration() const { return mVertexDecl; }
+			const SPtr<VertexDescription>& GetInputDeclaration() const { return mVertexDescription; }
 
 			/**
 			 * Attempts to find an existing pipeline matching the provided parameters, or creates a new one if one cannot be
@@ -148,7 +148,7 @@ namespace bs
 			VkPipelineDynamicStateCreateInfo mDynamicStateInfo;
 			VkDynamicState mDynamicStates[3];
 			VkGraphicsPipelineCreateInfo mPipelineInfo;
-			SPtr<VertexDeclaration> mVertexDecl;
+			SPtr<VertexDescription> mVertexDescription;
 
 			GpuDeviceFlags mDeviceMask;
 			PerDeviceData mPerDeviceData[B3D_MAX_DEVICES];

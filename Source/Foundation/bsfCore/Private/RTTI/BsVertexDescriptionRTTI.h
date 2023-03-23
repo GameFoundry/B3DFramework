@@ -14,6 +14,8 @@ namespace bs
 	 *  @{
 	 */
 
+	B3D_ALLOW_MEMCPY_SERIALIZATION(VertexElement);
+
 	class B3D_CORE_EXPORT VertexDescriptionRTTI : public RTTIType<VertexDescription, IReflectable, VertexDescriptionRTTI>
 	{
 	private:

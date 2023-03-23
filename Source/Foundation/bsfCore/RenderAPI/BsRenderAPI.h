@@ -10,7 +10,7 @@
 #include "RenderAPI/BsRenderTexture.h"
 #include "RenderAPI/BsRenderWindow.h"
 #include "RenderAPI/BsGpuProgram.h"
-#include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
 #include "Math/BsPlane.h"
 #include "Utility/BsModule.h"
@@ -71,11 +71,11 @@ namespace bs
 		static void SetIndexBuffer(const SPtr<GpuBuffer>& buffer);
 
 		/**
-		 * @see ct::RenderAPI::SetVertexDeclaration()
+		 * @see ct::RenderAPI::SetVertexDescription()
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration);
+		static void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription);
 
 		/**
 		 * @see ct::RenderAPI::SetViewport()
@@ -276,15 +276,14 @@ namespace bs
 			virtual void SetIndexBuffer(const SPtr<GpuBuffer>& buffer, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/**
-			 * Sets the vertex declaration to use when drawing. Vertex declaration is used to decode contents of a single
-			 * vertex in a vertex buffer.
+			 * Sets the description of vertex elements in the vertex buffers that will be bound when executing the vertex GPU program.
 			 *
-			 * @param[in]	vertexDeclaration	Vertex declaration to bind.
+			 * @param[in]	vertexDescription	Vertex description to bind.
 			 * @param[in]	commandBuffer		Optional command buffer to queue the operation on. If not provided operation
 			 *									is executed immediately. Otherwise it is executed when executeCommands() is
 			 *									called. Buffer must support graphics operations.
 			 */
-			virtual void SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/**
 			 * Sets the draw operation that determines how to interpret the elements of the index or vertex buffers.

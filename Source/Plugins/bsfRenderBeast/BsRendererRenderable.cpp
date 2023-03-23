@@ -24,10 +24,10 @@ void PerObjectBuffer::Update(SPtr<GpuBuffer>& buffer, const Matrix4& tfrm, const
 
 void RenderableElement::Draw() const
 {
-	if(MorphVertexDeclaration == nullptr)
+	if(MorphVertexDefinition == nullptr)
 		GetRendererUtility().Draw(Mesh, SubMesh);
 	else
-		GetRendererUtility().DrawMorph(Mesh, SubMesh, MorphShapeBuffer, MorphVertexDeclaration);
+		GetRendererUtility().DrawMorph(Mesh, SubMesh, MorphShapeBuffer, MorphVertexDefinition);
 }
 
 RendererRenderable::RendererRenderable()

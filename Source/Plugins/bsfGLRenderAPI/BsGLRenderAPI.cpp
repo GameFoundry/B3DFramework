@@ -1008,7 +1008,7 @@ void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 n
 	cb->QueueCommand(execute);
 }
 
-void GLRenderAPI::SetVertexDeclaration(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
+void GLRenderAPI::SetVertexDescription(const SPtr<VertexDeclaration>& vertexDeclaration, const SPtr<CommandBuffer>& commandBuffer)
 {
 	auto executeRef = [&](const SPtr<VertexDeclaration>& vertexDeclaration)
 	{

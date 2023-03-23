@@ -6,7 +6,7 @@
 #include "CoreThread/BsCoreObject.h"
 #include "Reflection/BsIReflectable.h"
 #include "Utility/BsDataBlob.h"
-#include "BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs
 {
@@ -202,8 +202,8 @@ namespace bs
 			/** @copydoc bs::GpuProgram::GetParamDesc */
 			SPtr<GpuParamDesc> GetParamDesc() const { return mParametersDesc; }
 
-			/**	Returns GPU program input declaration. Only relevant for vertex programs. */
-			SPtr<VertexDeclaration> GetInputDeclaration() const { return mInputDeclaration; }
+			/**	Returns a list of vertex elements that a vertex program expects as inputs. Only relevant for vertex programs. */
+			SPtr<VertexDescription> GetVertexInputDescription() const { return mVertexInputDescription; }
 
 			/** Returns the compiled bytecode of this program. */
 			SPtr<GpuProgramBytecode> GetBytecode() const { return mBytecode; }
@@ -229,7 +229,7 @@ namespace bs
 			String mCompileMessages;
 
 			SPtr<GpuParamDesc> mParametersDesc;
-			SPtr<VertexDeclaration> mInputDeclaration;
+			SPtr<VertexDescription> mVertexInputDescription;
 
 			GpuProgramType mType;
 			String mName;

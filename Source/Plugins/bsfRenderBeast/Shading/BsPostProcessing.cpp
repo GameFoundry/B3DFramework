@@ -1258,14 +1258,13 @@ void BokehDOFMat::Initialize()
 	SmallVector<VertexElement, 8> tileVertexElements;
 	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
-	SPtr<VertexDescription> tileVertexDesc = B3DMakeShared<VertexDescription>(tileVertexElements);
-	mTileVertexDecl = VertexDeclaration::Create(tileVertexDesc);
+	mTileVertexDescription = B3DMakeShared<VertexDescription>(tileVertexElements);
 
 	// Prepare vertex buffer for rendering tiles
 	GpuBufferCreateInformation tileVertexBufferCreateInformation;
 	tileVertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 	tileVertexBufferCreateInformation.Vertex.Count = kQuadsPerTile * 4;
-	tileVertexBufferCreateInformation.Vertex.ElementSize = tileVertexDesc->GetVertexStride();
+	tileVertexBufferCreateInformation.Vertex.ElementSize = mTileVertexDescription->GetVertexStride();
 
 	mTileVertexBuffer = mGpuDevice->CreateGpuBuffer(tileVertexBufferCreateInformation);
 
@@ -1364,7 +1363,7 @@ void BokehDOFMat::Execute(const SPtr<Texture>& input, const RendererView& view, 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 	rapi.ClearRenderTarget(FBT_COLOR, Color::kZero);
-	rapi.SetVertexDeclaration(mTileVertexDecl);
+	rapi.SetVertexDescription(mTileVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { mTileVertexBuffer };
 	rapi.SetVertexBuffers(0, buffers, (u32)B3DSize(buffers));

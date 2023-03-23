@@ -256,7 +256,7 @@ namespace bs
 
 			SPtr<GpuBuffer> mInjectUV;
 			SPtr<GpuBuffer> mInjectIndices;
-			SPtr<VertexDeclaration> mInjectVertexDecl;
+			SPtr<VertexDescription> mInjectVertexDescription;
 			SPtr<GpuBuffer> mInjectScratch;
 		};
 

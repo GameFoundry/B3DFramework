@@ -7,7 +7,7 @@
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "Managers/BsGpuProgramManager.h"
-#include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
 #include "FileSystem/BsFileSystem.h"
@@ -149,8 +149,7 @@ void VulkanGpuProgram::Initialize()
 
 		if(mType == GPT_VERTEX_PROGRAM)
 		{
-			mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(
-				mBytecode->VertexInput, mDeviceMask);
+			mVertexInputDescription = B3DMakeShared<VertexDescription>(mBytecode->VertexInput, false);
 		}
 	}
 

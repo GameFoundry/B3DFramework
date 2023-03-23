@@ -15,6 +15,7 @@
 #include "BsRenderBeast.h"
 #include "BsRendererDecal.h"
 #include "Image/BsSpriteTexture.h"
+#include "RenderAPI/BsVertexDescription.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Renderer/BsDecal.h"
 #include "Renderer/BsRendererUtility.h"
@@ -119,7 +120,7 @@ static u32 InitAndRetrieveBasePassTechnique(Material& material, bool useForwardR
 	return techniqueIdx;
 }
 
-static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, u32 techniqueIdx, VertexDeclaration& vertexDecl)
+static void ValidateBasePassMaterial(Material& material, RenderableAnimType animType, u32 techniqueIdx, VertexDescription& vertexBufferDescription)
 {
 	// Validate mesh <-> shader vertex bindings
 	u32 numPasses = material.GetNumPasses(techniqueIdx);
@@ -128,10 +129,10 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 		SPtr<Pass> pass = material.GetPass(j, techniqueIdx);
 		SPtr<GraphicsPipelineState> graphicsPipeline = pass->GetGraphicsPipelineState();
 
-		SPtr<VertexDeclaration> shaderDecl = graphicsPipeline->GetVertexProgram()->GetInputDeclaration();
-		if(shaderDecl && !vertexDecl.IsCompatible(shaderDecl))
+		SPtr<VertexDescription> shaderVertexDescription = graphicsPipeline->GetVertexProgram()->GetVertexInputDescription();
+		if(shaderVertexDescription && !VertexDescription::IsCompatibleWithShaderInputs(vertexBufferDescription, *shaderVertexDescription))
 		{
-			Vector<VertexElement> missingElements = vertexDecl.GetMissingElements(shaderDecl);
+			SmallVector<VertexElement, 8> missingElements = VertexDescription::GetMissingElementsForShaderInput(vertexBufferDescription, *shaderVertexDescription);
 
 			// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
 			if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)
@@ -143,7 +144,7 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 				missingElements.erase(removeIter, missingElements.end());
 			}
 
-			if(!missingElements.empty())
+			if(!missingElements.Empty())
 			{
 				StringStream wrnStream;
 				wrnStream << "Provided mesh is missing required vertex attributes to render with the \
@@ -378,7 +379,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 	if(mesh != nullptr)
 	{
 		const MeshProperties& meshProps = mesh->GetProperties();
-		SPtr<VertexDeclaration> vertexDecl = mesh->GetVertexData()->VertexDeclaration;
+		SPtr<VertexDescription> vertexDescription = mesh->GetVertexData()->VertexDescription;
 
 		for(u32 i = 0; i < (u32)meshProps.SubMeshes.size(); i++)
 		{
@@ -394,7 +395,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 			renElement.MorphShapeBuffer = renderable->GetMorphShapeBuffer();
 			renElement.BoneMatrixBuffer = renderable->GetBoneMatrixBuffer();
 			renElement.BonePrevMatrixBuffer = renderable->GetBonePrevMatrixBuffer();
-			renElement.MorphVertexDeclaration = renderable->GetMorphVertexDeclaration();
+			renElement.MorphVertexDefinition = renderable->GetMorphVertexDescription();
 
 			renElement.Material = renderable->GetMaterial(i);
 			if(renElement.Material == nullptr)
@@ -426,7 +427,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 			renElement.DefaultTechniqueIdx = InitAndRetrieveBasePassTechnique(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, false, animType);
 
 #if B3D_DEBUG
-			ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultTechniqueIdx, *vertexDecl);
+			ValidateBasePassMaterial(*renElement.Material, animType, renElement.DefaultTechniqueIdx, *vertexDescription);
 #endif
 
 			// Generate or assigned renderer specific data for the material
@@ -438,7 +439,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 				renElement.WriteVelocityTechniqueIdx = InitAndRetrieveBasePassTechnique(*renElement.Material, useForwardRendering, supportsClusteredForward, shaderCanWriteVelocity, true, animType);
 
 #if B3D_DEBUG
-				ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityTechniqueIdx, *vertexDecl);
+				ValidateBasePassMaterial(*renElement.Material, animType, renElement.WriteVelocityTechniqueIdx, *vertexDescription);
 #endif
 
 				// Note: Using the same params as the non-velocity technique. There are assumed to be no differences

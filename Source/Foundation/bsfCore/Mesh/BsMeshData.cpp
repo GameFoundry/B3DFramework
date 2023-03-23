@@ -7,7 +7,6 @@
 #include "Math/BsAABox.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "Private/RTTI/BsMeshDataRTTI.h"
-#include "RenderAPI/BsVertexDeclaration.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"

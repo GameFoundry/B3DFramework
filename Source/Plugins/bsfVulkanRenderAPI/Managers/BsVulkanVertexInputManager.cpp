@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanUtility.h"
-#include "RenderAPI/BsVertexDeclaration.h"
 #include "Profiling/BsRenderStats.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 using namespace bs;
 using namespace bs::ct;
@@ -54,14 +54,13 @@ VulkanVertexInputManager::~VulkanVertexInputManager()
 	}
 }
 
-SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(
-	const SPtr<VertexDeclaration>& vbDecl, const SPtr<VertexDeclaration>& shaderDecl)
+SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription)
 {
 	Lock lock(mMutex);
 
 	VertexDeclarationKey pair;
-	pair.BufferDeclarationId = vbDecl->GetId();
-	pair.ShaderDeclarationId = shaderDecl->GetId();
+	pair.BufferDeclarationId = vertexBufferDescription->GetId();
+	pair.ShaderDeclarationId = shaderInputDescription->GetId();
 
 	auto iterFind = mVertexInputMap.find(pair);
 	if(iterFind == mVertexInputMap.end())
@@ -69,7 +68,7 @@ SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(
 		if(mVertexInputMap.size() >= kDeclarationBufferSize)
 			RemoveLeastUsed(); // Prune so the buffer doesn't just infinitely grow
 
-		AddNew(vbDecl, shaderDecl);
+		AddNew(vertexBufferDescription, shaderInputDescription);
 
 		iterFind = mVertexInputMap.find(pair);
 	}
@@ -78,10 +77,10 @@ SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(
 	return iterFind->second.VertexInput;
 }
 
-void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBufferDeclaration, const SPtr<VertexDeclaration>& shaderInputDeclaration)
+void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription)
 {
-	const Vector<VertexElement>& vertexBufferElements = vertexBufferDeclaration->GetProperties().GetElements();
-	const Vector<VertexElement>& shaderInputElements = shaderInputDeclaration->GetProperties().GetElements();
+	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription->GetElements();
+	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription->GetElements();
 
 	const u32 attributeCount = (u32)shaderInputElements.size();
 
@@ -131,7 +130,7 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 		VkVertexInputBindingDescription& binding = newEntry.Bindings[i];
 		binding.binding = i;
 		binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		binding.stride = isNullBinding ? 0 : vertexBufferDeclaration->GetProperties().GetVertexSize(i);
+		binding.stride = isNullBinding ? 0 : vertexBufferDescription->GetVertexStride(i);
 
 		isFirstAttributeInVertexBuffer[i] = true;
 	}
@@ -204,8 +203,8 @@ void VulkanVertexInputManager::AddNew(const SPtr<VertexDeclaration>& vertexBuffe
 
 	// Create key and add to the layout map
 	VertexDeclarationKey pair;
-	pair.BufferDeclarationId = vertexBufferDeclaration->GetId();
-	pair.ShaderDeclarationId = shaderInputDeclaration->GetId();
+	pair.BufferDeclarationId = vertexBufferDescription->GetId();
+	pair.ShaderDeclarationId = shaderInputDescription->GetId();
 
 	newEntry.VertexInput = B3DMakeShared<VulkanVertexInput>(mNextId++, vertexInputCI, bindingCount);
 	newEntry.LastUsedIdx = ++mLastUsedCounter;

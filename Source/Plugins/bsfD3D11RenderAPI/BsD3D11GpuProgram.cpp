@@ -25,7 +25,7 @@ D3D11GpuProgram::D3D11GpuProgram(const GpuProgramCreateInformation& desc, GpuDev
 
 D3D11GpuProgram::~D3D11GpuProgram()
 {
-	mInputDeclaration = nullptr;
+	mVertexInputDescription = nullptr;
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_GpuProgram);
 }
@@ -64,7 +64,7 @@ void D3D11GpuProgram::Initialize()
 		LoadFromMicrocode(rapi->GetPrimaryDevice(), mBytecode->Instructions);
 
 		if(mType == GPT_VERTEX_PROGRAM)
-			mInputDeclaration = HardwareBufferManager::Instance().CreateVertexDeclaration(mBytecode->VertexInput);
+			mVertexInputDescription = HardwareBufferManager::Instance().CreateVertexDeclaration(mBytecode->VertexInput);
 	}
 
 	mProgramId = GlobalProgramId++;

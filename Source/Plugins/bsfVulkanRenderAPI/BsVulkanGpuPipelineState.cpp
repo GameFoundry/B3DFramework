@@ -280,7 +280,7 @@ void VulkanGraphicsPipelineState::Initialize()
 	mPipelineInfo.basePipelineIndex = -1;
 
 	if(mData.VertexProgram != nullptr)
-		mVertexDecl = mData.VertexProgram->GetInputDeclaration();
+		mVertexDescription = mData.VertexProgram->GetVertexInputDescription();
 
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
 

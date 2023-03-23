@@ -365,7 +365,7 @@ ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 struct ParticleRenderer::Members
 {
 	SPtr<GpuBuffer> BillboardVb;
-	SPtr<VertexDeclaration> BillboardVd;
+	SPtr<VertexDescription> BillboardVertexDescription;
 };
 
 ParticleRenderer::ParticleRenderer()
@@ -379,16 +379,15 @@ ParticleRenderer::ParticleRenderer()
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL));
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_TANGENT));
 
-	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
-	m->BillboardVd = VertexDeclaration::Create(vertexDesc);
+	m->BillboardVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	GpuBufferCreateInformation vbDesc;
 	vbDesc.Type = GpuBufferType::Vertex;
 	vbDesc.Vertex.Count = 4;
-	vbDesc.Vertex.ElementSize = m->BillboardVd->GetProperties().GetVertexSize(0);
+	vbDesc.Vertex.ElementSize = m->BillboardVertexDescription->GetVertexStride(0);
 	m->BillboardVb = gpuDevice->CreateGpuBuffer(vbDesc);
 
-	MeshData meshData(4, 0, vertexDesc);
+	MeshData meshData(4, 0, m->BillboardVertexDescription);
 	auto vecIter = meshData.GetVec3DataIter(VES_POSITION);
 	vecIter.AddValue(Vector3(-0.5f, -0.5f, 0.0f));
 	vecIter.AddValue(Vector3(-0.5f, 0.5f, 0.0f));
@@ -433,7 +432,7 @@ void ParticleRenderer::DrawBillboards(u32 count)
 	SPtr<GpuBuffer> vertexBuffers[] = { m->BillboardVb };
 
 	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetVertexDeclaration(m->BillboardVd);
+	rapi.SetVertexDescription(m->BillboardVertexDescription);
 	rapi.SetVertexBuffers(0, vertexBuffers, 1);
 	rapi.SetDrawOperation(DOT_TRIANGLE_STRIP);
 	rapi.Draw(0, 4, count);

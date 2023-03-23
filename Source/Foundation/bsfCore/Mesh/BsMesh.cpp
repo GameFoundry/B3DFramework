@@ -248,7 +248,7 @@ SPtr<Mesh> Mesh::CreateEmptyShared()
 namespace bs { namespace ct
 {
 Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation, GpuDeviceFlags deviceMask)
-	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDesc(meshCreateInformation.VertexDescription), mUsage(meshCreateInformation.Usage), mIndexType(meshCreateInformation.IndexType), mDeviceMask(deviceMask), mTempInitialMeshData(initialMeshData), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
+	: MeshBase(meshCreateInformation.VertexCount, meshCreateInformation.IndexCount, meshCreateInformation.SubMeshes), mVertexData(nullptr), mIndexBuffer(nullptr), mVertexDescription(meshCreateInformation.VertexDescription), mUsage(meshCreateInformation.Usage), mIndexType(meshCreateInformation.IndexType), mDeviceMask(deviceMask), mTempInitialMeshData(initialMeshData), mSkeleton(meshCreateInformation.Skeleton), mMorphShapes(meshCreateInformation.MorphShapes)
 
 {}
 
@@ -258,7 +258,7 @@ Mesh::~Mesh()
 
 	mVertexData = nullptr;
 	mIndexBuffer = nullptr;
-	mVertexDesc = nullptr;
+	mVertexDescription = nullptr;
 	mTempInitialMeshData = nullptr;
 }
 
@@ -282,17 +282,17 @@ void Mesh::Initialize()
 
 	mVertexData = B3DMakeShared<VertexData>();
 	mVertexData->VertexCount = mProperties.VertexCount;
-	mVertexData->VertexDeclaration = VertexDeclaration::Create(mVertexDesc, mDeviceMask);
+	mVertexData->VertexDescription = mVertexDescription;
 
-	for(u32 i = 0; i <= mVertexDesc->GetLargestStreamIndex(); i++)
+	for(u32 i = 0; i <= mVertexDescription->GetLargestStreamIndex(); i++)
 	{
-		if(!mVertexDesc->HasStream(i))
+		if(!mVertexDescription->HasStream(i))
 			continue;
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = flags;
-		vertexBufferCreateInformation.Vertex.ElementSize = mVertexData->VertexDeclaration->GetProperties().GetVertexSize(i);
+		vertexBufferCreateInformation.Vertex.ElementSize = mVertexData->VertexDescription->GetVertexStride(i);
 		vertexBufferCreateInformation.Vertex.Count = mVertexData->VertexCount;
 
 		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
@@ -328,7 +328,7 @@ SPtr<VertexDescription> Mesh::GetVertexDescription() const
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	return mVertexDesc;
+	return mVertexDescription;
 }
 
 void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, u32 queueIdx)
@@ -377,16 +377,16 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 	mIndexBuffer->WriteData(0, indicesSize, srcIdxData, discardEntireBuffer ? BWT_DISCARD : BWT_NORMAL, queueIdx);
 
 	// Vertices
-	for(u32 i = 0; i <= mVertexDesc->GetLargestStreamIndex(); i++)
+	for(u32 i = 0; i <= mVertexDescription->GetLargestStreamIndex(); i++)
 	{
-		if(!mVertexDesc->HasStream(i))
+		if(!mVertexDescription->HasStream(i))
 			continue;
 
 		if(!meshData.GetVertexDescription()->HasStream(i))
 			continue;
 
 		// Ensure both have the same sized vertices
-		u32 myVertSize = mVertexDesc->GetVertexStride(i);
+		u32 myVertSize = mVertexDescription->GetVertexStride(i);
 		u32 otherVertSize = meshData.GetVertexDescription()->GetVertexStride(i);
 		if(myVertSize != otherVertSize)
 		{
@@ -476,7 +476,7 @@ void Mesh::ReadData(MeshData& meshData, u32 deviceIdx, u32 queueIdx)
 			B3D_ENSURE(vertexBufferInformation.Type == GpuBufferType::Vertex);
 
 			// Ensure both have the same sized vertices
-			u32 myVertSize = mVertexDesc->GetVertexStride(streamIdx);
+			u32 myVertSize = mVertexDescription->GetVertexStride(streamIdx);
 			u32 otherVertSize = meshData.GetVertexDescription()->GetVertexStride(streamIdx);
 			if(myVertSize != otherVertSize)
 			{

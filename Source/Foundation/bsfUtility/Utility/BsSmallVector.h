@@ -53,6 +53,14 @@ namespace bs
 			Append(list);
 		}
 
+		template <
+			typename IteratorType,
+			typename = std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::input_iterator_tag>>>
+		SmallVector(IteratorType start, IteratorType end)
+		{
+			this->Append(start, end);
+		}
+
 		~SmallVector()
 		{
 			for(auto& entry : *this)
@@ -320,7 +328,10 @@ namespace bs
 			new(&mElements[mSize++]) Type(std::move(element));
 		}
 
-		void Append(ConstIterator start, ConstIterator end)
+		template <
+			typename IteratorType,
+			typename = std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::input_iterator_tag>>>
+		void Append(IteratorType start, IteratorType end)
 		{
 			const u32 count = (u32)std::distance(start, end);
 
@@ -362,6 +373,28 @@ namespace bs
 			Pop();
 
 			return toErase;
+		}
+
+		Iterator Erase(ConstIterator start, ConstIterator end)
+		{
+			B3D_ASSERT(start >= Begin() && "Iterator to erase is out of bounds.");
+			B3D_ASSERT(start <= end && "Trying to erase invalid range.");
+			B3D_ASSERT(end <= End() && "Erasing at past-the-end iterator.");
+
+			Iterator mutableStart = const_cast<Iterator>(start);
+			Iterator mutableEnd = const_cast<Iterator>(end);
+
+			Iterator current = mutableStart;
+			Iterator iter = std::move(mutableEnd, End(), mutableStart);
+
+			while(mutableStart != mutableEnd)
+			{
+				--mutableEnd;
+				mutableEnd->~Type();
+			}
+
+			mSize = iter - Begin();
+			return current;
 		}
 
 		void Remove(u32 index)
@@ -427,51 +460,40 @@ namespace bs
 
 		// STD compatible API
 		Iterator begin() { return Begin(); } // NOLINT
-
 		Iterator end() { return End(); } // NOLINT
 
 		ConstIterator begin() const { return Begin(); } // NOLINT
-
 		ConstIterator end() const { return End(); } // NOLINT
 
 		ConstIterator cbegin() const { return Cbegin(); } // NOLINT
-
 		ConstIterator cend() const { return Cend(); } // NOLINT
 
 		ReverseIterator rbegin() { return Rbegin(); } // NOLINT
-
 		ReverseIterator rend() { return Rend(); } // NOLINT
 
 		ConstReverseIterator rbegin() const { return Rbegin(); } // NOLINT
-
 		ConstReverseIterator rend() const { return Rend(); } // NOLINT
 
 		ConstReverseIterator crbegin() const { return Crbegin(); } // NOLINT
-
 		ConstReverseIterator crend() const { return Crend(); } // NOLINT
 
 		u32 size() const { return Size(); } // NOLINT
-
 		u32 capacity() const { return Capacity(); } // NOLINT
 
 		Type* data() { return Data(); } // NOLINT
-
 		const Type* data() const { return Data(); } // NOLINT
 
 		Type& front() { return Front(); } // NOLINT
-
 		const Type& front() const { return Front(); } // NOLINT
 
 		Type& back() { return Back(); } // NOLINT
-
 		const Type& back() const { return Back(); } // NOLINT
 
 		Iterator erase(ConstIterator iter) { return Erase(iter); } // NOLINT
+		Iterator erase(ConstIterator start, ConstIterator end) { return Erase(start, end); } // NOLINT
 
 		void clear() { Clear(); } // NOLINT
-
 		void reserve(u32 capacity) { Reserve(capacity); } // NOLINT
-
 		void resize(u32 size, const Type& value = Type()) { Resize(size, value); } // NOLINT
 
 	private:

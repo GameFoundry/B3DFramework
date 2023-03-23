@@ -507,10 +507,10 @@ public:
 					{
 						const RenderableElement& element = *command.Element;
 
-						if(element.MorphVertexDeclaration == nullptr)
+						if(element.MorphVertexDefinition == nullptr)
 							GetRendererUtility().Draw(element.Mesh, element.SubMesh);
 						else
-							GetRendererUtility().DrawMorph(element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDeclaration);
+							GetRendererUtility().DrawMorph(element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDefinition);
 					}
 					else
 						opt.BindRenderable(command);
@@ -695,8 +695,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 	SmallVector<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
-	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
-	mPositionOnlyVD = VertexDeclaration::Create(vertexDesc);
+	mPositionOnlyVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
 
 	// Create plane index and vertex buffers
 	{
@@ -704,7 +703,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 		vertexBufferCreateInformation.Vertex.Count = 8;
-		vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVD->GetProperties().GetVertexSize(0);
+		vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVertexDescription->GetVertexStride(0);
 
 		mPlaneVB = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
@@ -734,7 +733,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
 		vertexBufferCreateInformation.Vertex.Count = 8;
-		vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVD->GetProperties().GetVertexSize(0);
+		vertexBufferCreateInformation.Vertex.ElementSize = mPositionOnlyVertexDescription->GetVertexStride(0);
 
 		mFrustumVB = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
@@ -1701,7 +1700,7 @@ void ShadowRendering::DrawNearFarPlanes(float near, float far, bool drawNear) co
 
 	// Draw the mesh
 	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetVertexDeclaration(mPositionOnlyVD);
+	rapi.SetVertexDescription(mPositionOnlyVertexDescription);
 	rapi.SetVertexBuffers(0, &mPlaneVB, 1);
 	rapi.SetIndexBuffer(mPlaneIB);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);
@@ -1717,7 +1716,7 @@ void ShadowRendering::DrawFrustum(const std::array<Vector3, 8>& corners) const
 	mFrustumVB->WriteData(0, sizeof(Vector3) * 8, corners.data(), BWT_DISCARD);
 
 	// Draw the mesh
-	rapi.SetVertexDeclaration(mPositionOnlyVD);
+	rapi.SetVertexDescription(mPositionOnlyVertexDescription);
 	rapi.SetVertexBuffers(0, &mFrustumVB, 1);
 	rapi.SetIndexBuffer(mFrustumIB);
 	rapi.SetDrawOperation(DOT_TRIANGLE_LIST);

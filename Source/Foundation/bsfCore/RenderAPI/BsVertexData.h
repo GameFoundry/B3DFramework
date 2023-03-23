@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "RenderAPI/BsVertexDeclaration.h"
+#include "RenderAPI/BsVertexDescription.h"
 
 namespace bs
 {
@@ -43,7 +43,7 @@ namespace bs
 			u32 GetMaxBufferIndex() const { return mMaxBufferIdx; }
 
 			/**	Declaration used for the contained vertex buffers. */
-			SPtr<VertexDeclaration> VertexDeclaration;
+			SPtr<VertexDescription> VertexDescription;
 
 			/**	Number of vertices to use. */
 			u32 VertexCount = 0;
