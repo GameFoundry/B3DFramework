@@ -12,7 +12,6 @@
 #include "BsVulkanGpuPipelineParamInfo.h"
 #include "BsVulkanCommandBuffer.h"
 #include "Managers/BsVulkanTextureManager.h"
-#include "Managers/BsVulkanHardwareBufferManager.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 
 using namespace bs;
@@ -63,8 +62,8 @@ static bool EnsureImageViewValidForShader(const VulkanImageView& view, const Gpu
 	return isViewValid;
 }
 
-VulkanGpuParams::VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask)
-	: GpuParams(paramInfo, deviceMask), mPerDeviceData(), mDeviceMask(deviceMask)
+VulkanGpuParams::VulkanGpuParams(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout)
+	: GpuParams(parameterLayout), mGpuDevice(gpuDevice), mPerDeviceData()
 {
 }
 
@@ -72,37 +71,22 @@ VulkanGpuParams::~VulkanGpuParams()
 {
 	Lock lock(mMutex);
 
-	u32 numSets = mParamInfo->GetSetCount();
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
+	u32 numSets = mParameterLayout->GetSetCount();
+	if(mPerDeviceData.PerSetData == nullptr)
+		return;
+
+	for(u32 j = 0; j < numSets; j++)
 	{
-		if(mPerDeviceData[i].PerSetData == nullptr)
-			continue;
+		for(auto& entry : mPerDeviceData.PerSetData[j].Sets)
+			entry->Destroy();
 
-		for(u32 j = 0; j < numSets; j++)
-		{
-			for(auto& entry : mPerDeviceData[i].PerSetData[j].Sets)
-				entry->Destroy();
-
-			mPerDeviceData[i].PerSetData[j].Sets.~Vector<VulkanDescriptorSet*>();
-		}
+		mPerDeviceData.PerSetData[j].Sets.~Vector<VulkanDescriptorSet*>();
 	}
 }
 
 void VulkanGpuParams::Initialize()
 {
-	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
-
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanGpuDevice* devices[B3D_MAX_DEVICES];
-
-	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
-
-	u32 deviceCount = 0;
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
-	{
-		if(devices[deviceIndex] != nullptr)
-			deviceCount++;
-	}
+	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 
 	const u32 parameterBlockCount = vkParamInfo.GetResourceCount(GpuPipelineParamInfo::GpuParameterType::UniformBuffer);
 	const u32 sampledTextureCount = vkParamInfo.GetResourceCount(GpuPipelineParamInfo::GpuParameterType::SampledTexture);
@@ -119,16 +103,16 @@ void VulkanGpuParams::Initialize()
 	// Note: I'm assuming a single WriteInfo per binding, but if arrays sizes larger than 1 are eventually supported
 	// I'll need to adjust the code.
 	mAlloc.Reserve<bool>(setCount)
-		.Reserve<PerSetData>(setCount * deviceCount)
-		.Reserve<VkWriteDescriptorSet>(bindingCount * deviceCount)
-		.Reserve<VkDescriptorImageInfo>(resourceCount * deviceCount)
-		.Reserve<VkDescriptorBufferInfo>(resourceCount * deviceCount)
-		.Reserve<VkBufferView>(resourceCount * deviceCount)
-		.Reserve<VkImage>(sampledTextureCount * deviceCount)
-		.Reserve<VkImage>(storageTextureCount * deviceCount)
-		.Reserve<VkBuffer>(parameterBlockCount * deviceCount)
-		.Reserve<VkBuffer>(bufferCount * deviceCount)
-		.Reserve<VkSampler>(samplerCount * deviceCount)
+		.Reserve<PerSetData>(setCount)
+		.Reserve<VkWriteDescriptorSet>(bindingCount)
+		.Reserve<VkDescriptorImageInfo>(resourceCount)
+		.Reserve<VkDescriptorBufferInfo>(resourceCount)
+		.Reserve<VkBufferView>(resourceCount)
+		.Reserve<VkImage>(sampledTextureCount)
+		.Reserve<VkImage>(storageTextureCount)
+		.Reserve<VkBuffer>(parameterBlockCount)
+		.Reserve<VkBuffer>(bufferCount)
+		.Reserve<VkSampler>(samplerCount)
 		.Init();
 
 	Lock lock(mMutex); // Set write operations need to be thread safe
@@ -138,82 +122,119 @@ void VulkanGpuParams::Initialize()
 
 	VulkanSamplerState* defaultSampler = static_cast<VulkanSamplerState*>(SamplerState::GetDefault().get());
 	VulkanTextureManager& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
-	VulkanHardwareBufferManager& vkBufManager = static_cast<VulkanHardwareBufferManager&>(
-		HardwareBufferManager::Instance());
+	const VulkanBuiltinResources& builtinResources = (mGpuDevice.GetBuiltinResources());
 
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	mPerDeviceData.PerSetData = mAlloc.Alloc<PerSetData>(setCount);
+	mPerDeviceData.SampledImages = mAlloc.Alloc<VkImage>(sampledTextureCount);
+	mPerDeviceData.StorageImages = mAlloc.Alloc<VkImage>(storageTextureCount);
+	mPerDeviceData.UniformBuffers = mAlloc.Alloc<VkBuffer>(parameterBlockCount);
+	mPerDeviceData.Buffers = mAlloc.Alloc<VkBuffer>(bufferCount);
+	mPerDeviceData.Samplers = mAlloc.Alloc<VkSampler>(samplerCount);
+
+	B3DZeroOut(mPerDeviceData.SampledImages, sampledTextureCount);
+	B3DZeroOut(mPerDeviceData.StorageImages, storageTextureCount);
+	B3DZeroOut(mPerDeviceData.UniformBuffers, parameterBlockCount);
+	B3DZeroOut(mPerDeviceData.Buffers, bufferCount);
+	B3DZeroOut(mPerDeviceData.Samplers, samplerCount);
+
+	VulkanDescriptorManager& descManager = mGpuDevice.GetDescriptorManager();
+	VulkanSampler* vkDefaultSampler = defaultSampler->GetResource(0);
+
+	for(u32 setIndex = 0; setIndex < setCount; setIndex++)
 	{
-		if(devices[deviceIndex] == nullptr)
+		const u32 layoutBindingCount = vkParamInfo.GetLayoutBindingCount(setIndex);
+		const u32 layoutResourceCount = vkParamInfo.GetLayoutResourceCount(setIndex);
+
+		PerSetData& perSetData = mPerDeviceData.PerSetData[setIndex];
+		new(&perSetData.Sets) Vector<VulkanDescriptorSet*>();
+
+		perSetData.WriteSetInfos = mAlloc.Alloc<VkWriteDescriptorSet>(layoutBindingCount);
+		perSetData.ImageWriteInfos = mAlloc.Alloc<VkDescriptorImageInfo>(layoutResourceCount);
+		perSetData.BufferWriteInfos = mAlloc.Alloc<VkDescriptorBufferInfo>(layoutResourceCount);
+		perSetData.BufferViews = mAlloc.Alloc<VkBufferView>(layoutResourceCount);
+
+		VulkanDescriptorLayout* layout = vkParamInfo.GetLayout(0, setIndex);
+		perSetData.ElementCount = layoutBindingCount;
+		perSetData.LastFreeSetIndex = 0;
+		perSetData.LastUsedSet = descManager.CreateSet(layout);
+		perSetData.Sets.push_back(perSetData.LastUsedSet);
+
+		VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(setIndex);
+		GpuParameterObjectType* types = vkParamInfo.GetLayoutTypes(setIndex);
+		GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(setIndex);
+		for(u32 layoutBindingIndex = 0; layoutBindingIndex < layoutBindingCount; layoutBindingIndex++)
 		{
-			mPerDeviceData[deviceIndex].PerSetData = nullptr;
+			// Note: Instead of using one structure per binding, it's possible to update multiple at once
+			// by specifying larger descriptorCount, if they all share type and shader stages.
+			VkWriteDescriptorSet& writeSetInfo = perSetData.WriteSetInfos[layoutBindingIndex];
+			writeSetInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeSetInfo.pNext = nullptr;
+			writeSetInfo.dstSet = VK_NULL_HANDLE;
+			writeSetInfo.dstBinding = perSetBindings[layoutBindingIndex].binding;
+			writeSetInfo.dstArrayElement = 0;
+			writeSetInfo.descriptorCount = perSetBindings[layoutBindingIndex].descriptorCount;
+			writeSetInfo.descriptorType = perSetBindings[layoutBindingIndex].descriptorType;
 
-			continue;
-		}
+			const u32 slot = perSetBindings[layoutBindingIndex].binding;
 
-		mPerDeviceData[deviceIndex].PerSetData = mAlloc.Alloc<PerSetData>(setCount);
-		mPerDeviceData[deviceIndex].SampledImages = mAlloc.Alloc<VkImage>(sampledTextureCount);
-		mPerDeviceData[deviceIndex].StorageImages = mAlloc.Alloc<VkImage>(storageTextureCount);
-		mPerDeviceData[deviceIndex].UniformBuffers = mAlloc.Alloc<VkBuffer>(parameterBlockCount);
-		mPerDeviceData[deviceIndex].Buffers = mAlloc.Alloc<VkBuffer>(bufferCount);
-		mPerDeviceData[deviceIndex].Samplers = mAlloc.Alloc<VkSampler>(samplerCount);
-
-		B3DZeroOut(mPerDeviceData[deviceIndex].SampledImages, sampledTextureCount);
-		B3DZeroOut(mPerDeviceData[deviceIndex].StorageImages, storageTextureCount);
-		B3DZeroOut(mPerDeviceData[deviceIndex].UniformBuffers, parameterBlockCount);
-		B3DZeroOut(mPerDeviceData[deviceIndex].Buffers, bufferCount);
-		B3DZeroOut(mPerDeviceData[deviceIndex].Samplers, samplerCount);
-
-		VulkanDescriptorManager& descManager = devices[deviceIndex]->GetDescriptorManager();
-		VulkanSampler* vkDefaultSampler = defaultSampler->GetResource(deviceIndex);
-
-		for(u32 setIndex = 0; setIndex < setCount; setIndex++)
-		{
-			const u32 layoutBindingCount = vkParamInfo.GetLayoutBindingCount(setIndex);
-			const u32 layoutResourceCount = vkParamInfo.GetLayoutResourceCount(setIndex);
-
-			PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[setIndex];
-			new(&perSetData.Sets) Vector<VulkanDescriptorSet*>();
-
-			perSetData.WriteSetInfos = mAlloc.Alloc<VkWriteDescriptorSet>(layoutBindingCount);
-			perSetData.ImageWriteInfos = mAlloc.Alloc<VkDescriptorImageInfo>(layoutResourceCount);
-			perSetData.BufferWriteInfos = mAlloc.Alloc<VkDescriptorBufferInfo>(layoutResourceCount);
-			perSetData.BufferViews = mAlloc.Alloc<VkBufferView>(layoutResourceCount);
-
-			VulkanDescriptorLayout* layout = vkParamInfo.GetLayout(deviceIndex, setIndex);
-			perSetData.ElementCount = layoutBindingCount;
-			perSetData.LastFreeSetIndex = 0;
-			perSetData.LastUsedSet = descManager.CreateSet(layout);
-			perSetData.Sets.push_back(perSetData.LastUsedSet);
-
-			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(setIndex);
-			GpuParameterObjectType* types = vkParamInfo.GetLayoutTypes(setIndex);
-			GpuBufferFormat* elementTypes = vkParamInfo.GetLayoutElementTypes(setIndex);
-			for(u32 layoutBindingIndex = 0; layoutBindingIndex < layoutBindingCount; layoutBindingIndex++)
+			const bool isSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER;
+			if(isSampler)
 			{
-				// Note: Instead of using one structure per binding, it's possible to update multiple at once
-				// by specifying larger descriptorCount, if they all share type and shader stages.
-				VkWriteDescriptorSet& writeSetInfo = perSetData.WriteSetInfos[layoutBindingIndex];
-				writeSetInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				writeSetInfo.pNext = nullptr;
-				writeSetInfo.dstSet = VK_NULL_HANDLE;
-				writeSetInfo.dstBinding = perSetBindings[layoutBindingIndex].binding;
-				writeSetInfo.dstArrayElement = 0;
-				writeSetInfo.descriptorCount = perSetBindings[layoutBindingIndex].descriptorCount;
-				writeSetInfo.descriptorType = perSetBindings[layoutBindingIndex].descriptorType;
+				const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
 
-				const u32 slot = perSetBindings[layoutBindingIndex].binding;
-
-				const bool isSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLER;
-				if(isSampler)
+				VkDescriptorImageInfo* imageInfos = &perSetData.ImageWriteInfos[usedResourceSequentialIndex];
+				for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
 				{
+					imageInfos[arrayIndex].sampler = vkDefaultSampler->GetHandle();
+					imageInfos[arrayIndex].imageView = VK_NULL_HANDLE;
+					imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				}
+
+				writeSetInfo.pImageInfo = imageInfos;
+				writeSetInfo.pBufferInfo = nullptr;
+				writeSetInfo.pTexelBufferView = nullptr;
+			}
+			else
+			{
+				const bool isImage = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
+					writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
+					writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+
+				if(isImage)
+				{
+					const VulkanImage *const imageResource = vkTexManager.GetDummyTexture(types[layoutBindingIndex])->GetResource(0);
+					const VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[layoutBindingIndex]);
+
+					const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 					const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
+					const u32 sequentialResourceIndex = isLoadStore
+						? vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageTexture, setIndex, slot, 0)
+						: vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::SampledTexture, setIndex, slot, 0);
 
 					VkDescriptorImageInfo* imageInfos = &perSetData.ImageWriteInfos[usedResourceSequentialIndex];
 					for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
 					{
-						imageInfos[arrayIndex].sampler = vkDefaultSampler->GetHandle();
-						imageInfos[arrayIndex].imageView = VK_NULL_HANDLE;
-						imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+						if(isLoadStore)
+						{
+							imageInfos[arrayIndex].sampler = VK_NULL_HANDLE;
+							imageInfos[arrayIndex].imageView = imageResource->GetView(format, false).Handle;
+							imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+
+							mPerDeviceData.StorageImages[sequentialResourceIndex + arrayIndex] = imageResource->GetHandle();
+						}
+						else
+						{
+							const bool isCombinedImageSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+							if(isCombinedImageSampler)
+								imageInfos[arrayIndex].sampler = vkDefaultSampler->GetHandle();
+							else
+								imageInfos[arrayIndex].sampler = VK_NULL_HANDLE;
+
+							imageInfos[arrayIndex].imageView = imageResource->GetView(format, false).Handle;
+							imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+							mPerDeviceData.SampledImages[sequentialResourceIndex + arrayIndex] = imageResource->GetHandle();
+						}
 					}
 
 					writeSetInfo.pImageInfo = imageInfos;
@@ -222,126 +243,78 @@ void VulkanGpuParams::Initialize()
 				}
 				else
 				{
-					const bool isImage = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
-						writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE ||
-						writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+					const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER &&
+						writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC &&
+						writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER &&
+						writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 
-					if(isImage)
+					if(!useView)
 					{
-						const VulkanImage *const imageResource = vkTexManager.GetDummyTexture(types[layoutBindingIndex])->GetResource(deviceIndex);
-						const VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[layoutBindingIndex]);
+						const bool isParameterBlock =
+							writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+							writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 
-						const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 						const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
-						const u32 sequentialResourceIndex = isLoadStore
-							? vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageTexture, setIndex, slot, 0)
-							: vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::SampledTexture, setIndex, slot, 0);
+						const u32 sequentialResourceIndex = isParameterBlock
+							? vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::UniformBuffer, setIndex, slot, 0)
+							: vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, setIndex, slot, 0);
 
-						VkDescriptorImageInfo* imageInfos = &perSetData.ImageWriteInfos[usedResourceSequentialIndex];
+						VkDescriptorBufferInfo* bufferInfos = &perSetData.BufferWriteInfos[usedResourceSequentialIndex];
 						for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
 						{
-							if(isLoadStore)
-							{
-								imageInfos[arrayIndex].sampler = VK_NULL_HANDLE;
-								imageInfos[arrayIndex].imageView = imageResource->GetView(format, false).Handle;
-								imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+							bufferInfos[arrayIndex].offset = 0;
+							bufferInfos[arrayIndex].range = VK_WHOLE_SIZE;
 
-								mPerDeviceData[deviceIndex].StorageImages[sequentialResourceIndex + arrayIndex] = imageResource->GetHandle();
+							if(isParameterBlock)
+							{
+								VulkanGpuBuffer* const buffer = builtinResources.DummyUniformBuffer.get();
+								bufferInfos[arrayIndex].buffer = buffer->GetResource(0)->GetHandle();
+
+								mPerDeviceData.UniformBuffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;
 							}
 							else
 							{
-								const bool isCombinedImageSampler = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-								if(isCombinedImageSampler)
-									imageInfos[arrayIndex].sampler = vkDefaultSampler->GetHandle();
-								else
-									imageInfos[arrayIndex].sampler = VK_NULL_HANDLE;
+								VulkanGpuBuffer* const buffer = builtinResources.DummyUniformBuffer.get();
+								bufferInfos[arrayIndex].buffer = buffer->GetResource(0)->GetHandle();
 
-								imageInfos[arrayIndex].imageView = imageResource->GetView(format, false).Handle;
-								imageInfos[arrayIndex].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-								mPerDeviceData[deviceIndex].SampledImages[sequentialResourceIndex + arrayIndex] = imageResource->GetHandle();
+								mPerDeviceData.Buffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;
 							}
 						}
 
-						writeSetInfo.pImageInfo = imageInfos;
-						writeSetInfo.pBufferInfo = nullptr;
+						writeSetInfo.pBufferInfo = bufferInfos;
 						writeSetInfo.pTexelBufferView = nullptr;
 					}
 					else
 					{
-						const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER &&
-							writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC &&
-							writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER &&
-							writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+						writeSetInfo.pBufferInfo = nullptr;
 
-						if(!useView)
-						{
-							const bool isParameterBlock =
-								writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
-								writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+						const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 
-							const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
-							const u32 sequentialResourceIndex = isParameterBlock
-								? vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::UniformBuffer, setIndex, slot, 0)
-								: vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, setIndex, slot, 0);
-
-							VkDescriptorBufferInfo* bufferInfos = &perSetData.BufferWriteInfos[usedResourceSequentialIndex];
-							for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
-							{
-								bufferInfos[arrayIndex].offset = 0;
-								bufferInfos[arrayIndex].range = VK_WHOLE_SIZE;
-
-								if(isParameterBlock)
-								{
-									VulkanGpuBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
-									bufferInfos[arrayIndex].buffer = buffer->GetResource(deviceIndex)->GetHandle();
-
-									mPerDeviceData[deviceIndex].UniformBuffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;
-								}
-								else
-								{
-									VulkanGpuBuffer* const buffer = vkBufManager.GetDummyUniformBuffer();
-									bufferInfos[arrayIndex].buffer = buffer->GetResource(deviceIndex)->GetHandle();
-
-									mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex + arrayIndex] = bufferInfos[arrayIndex].buffer;
-								}
-							}
-
-							writeSetInfo.pBufferInfo = bufferInfos;
-							writeSetInfo.pTexelBufferView = nullptr;
-						}
+						VulkanBuffer* buffer;
+						if(isLoadStore)
+							buffer = builtinResources.DummyStorageBuffer->GetResource(0);
 						else
+							buffer = builtinResources.DummyReadBuffer->GetResource(0);
+
+						const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[layoutBindingIndex]);
+						const VkBufferView bufferView = buffer->GetOrCreateView(format);
+
+						const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
+						const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, setIndex, slot, 0);
+
+						VkBufferView* const bufferViews = &perSetData.BufferViews[usedResourceSequentialIndex];
+						for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
 						{
-							writeSetInfo.pBufferInfo = nullptr;
+							bufferViews[arrayIndex] = bufferView;
 
-							const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-
-							VulkanBuffer* buffer;
-							if(isLoadStore)
-								buffer = vkBufManager.GetDummyStorageBuffer()->GetResource(deviceIndex);
-							else
-								buffer = vkBufManager.GetDummyReadBuffer()->GetResource(deviceIndex);
-
-							const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[layoutBindingIndex]);
-							const VkBufferView bufferView = buffer->GetOrCreateView(format);
-
-							const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(setIndex, slot, 0);
-							const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, setIndex, slot, 0);
-
-							VkBufferView* const bufferViews = &perSetData.BufferViews[usedResourceSequentialIndex];
-							for(u32 arrayIndex = 0; arrayIndex < writeSetInfo.descriptorCount; arrayIndex++)
-							{
-								bufferViews[arrayIndex] = bufferView;
-
-								mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex + arrayIndex] = buffer->GetHandle();
-							}
-
-							writeSetInfo.pBufferInfo = nullptr;
-							writeSetInfo.pTexelBufferView = bufferViews;
+							mPerDeviceData.Buffers[sequentialResourceIndex + arrayIndex] = buffer->GetHandle();
 						}
 
-						writeSetInfo.pImageInfo = nullptr;
+						writeSetInfo.pBufferInfo = nullptr;
+						writeSetInfo.pTexelBufferView = bufferViews;
 					}
+
+					writeSetInfo.pImageInfo = nullptr;
 				}
 			}
 		}
@@ -355,7 +328,7 @@ bool VulkanGpuParams::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffer>& 
 	if (!GpuParams::SetUniformBuffer(set, slot, paramBlockBuffer, arrayIndex, offset))
 		return false;
 
-	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 	const u32 usedResourceSequentialIndex = pipelineParameterInformation.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
@@ -368,45 +341,42 @@ bool VulkanGpuParams::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffer>& 
 	Lock lock(mMutex);
 
 	auto* vulkanParamBlockBuffer = static_cast<VulkanGpuBuffer*>(paramBlockBuffer.get());
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	if(mPerDeviceData.PerSetData == nullptr)
+		return false;
+
+	VulkanBuffer* vulkanBuffer;
+	VkDeviceSize bufferSize;
+	if(vulkanParamBlockBuffer != nullptr)
 	{
-		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
-			continue;
+		vulkanBuffer = vulkanParamBlockBuffer->GetResource(0);
+		bufferSize = vulkanParamBlockBuffer->GetSize();
+	}
+	else
+	{
+		vulkanBuffer = nullptr;
+		bufferSize = VK_WHOLE_SIZE;
+	}
 
-		VulkanBuffer* vulkanBuffer;
-		VkDeviceSize bufferSize;
-		if(vulkanParamBlockBuffer != nullptr)
-		{
-			vulkanBuffer = vulkanParamBlockBuffer->GetResource(deviceIndex);
-			bufferSize = vulkanParamBlockBuffer->GetSize();
-		}
-		else
-		{
-			vulkanBuffer = nullptr;
-			bufferSize = VK_WHOLE_SIZE;
-		}
+	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
 
-		PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[set];
+	VkBuffer vkBuffer = VK_NULL_HANDLE;
+	if(vulkanBuffer != nullptr)
+	{
+		vkBuffer = vulkanBuffer->GetHandle();
+	}
+	else
+	{
+		const VulkanBuiltinResources& builtinResources = (mGpuDevice.GetBuiltinResources());
+		vkBuffer = builtinResources.DummyUniformBuffer->GetResource(0)->GetHandle();
+	}
 
-		VkBuffer vkBuffer = VK_NULL_HANDLE;
-		if(vulkanBuffer != nullptr)
-		{
-			vkBuffer = vulkanBuffer->GetHandle();
-		}
-		else
-		{
-			auto& vulkanBufferManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-			vkBuffer = vulkanBufferManager.GetDummyUniformBuffer()->GetResource(deviceIndex)->GetHandle();
-		}
+	if(vkBuffer != mPerDeviceData.UniformBuffers[sequentialResourceIndex])
+	{
+		perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
+		perSetData.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize;
+		mPerDeviceData.UniformBuffers[sequentialResourceIndex] = vkBuffer;
 
-		if(vkBuffer != mPerDeviceData[deviceIndex].UniformBuffers[sequentialResourceIndex])
-		{
-			perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
-			perSetData.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize;
-			mPerDeviceData[deviceIndex].UniformBuffers[sequentialResourceIndex] = vkBuffer;
-
-			mSetsDirty[set] = true;
-		}
+		mSetsDirty[set] = true;
 	}
 
 	return true;
@@ -417,7 +387,7 @@ bool VulkanGpuParams::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	if (!GpuParams::SetSampledTexture(set, slot, texture, surface, arrayIndex))
 		return false;
 
-	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 
 	const u32 usedBindingSequentialIndex = pipelineParameterInformation.GetUsedBindingSequentialIndex(set, slot);
 	const u32 usedResourceSequentialIndex = pipelineParameterInformation.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
@@ -433,52 +403,49 @@ bool VulkanGpuParams::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	Lock lock(mMutex);
 
 	VulkanTexture* vulkanTexture = static_cast<VulkanTexture*>(texture.get());
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	if(mPerDeviceData.PerSetData == nullptr)
+		return false;
+
+	VulkanImage* vulkanImage;
+	if(vulkanTexture != nullptr)
+		vulkanImage = vulkanTexture->GetResource(0);
+	else
+		vulkanImage = nullptr;
+
+	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
+	const GpuParameterObjectType* const types = pipelineParameterInformation.GetLayoutTypes(set);
+	const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
+
+	VulkanImageView imageView;
+	VkImage vkImage = VK_NULL_HANDLE;
+	if(vulkanImage != nullptr)
 	{
-		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
-			continue;
+		imageView = vulkanImage->GetView(surface, false);
+		vkImage = vulkanImage->GetHandle();
 
-		VulkanImage* vulkanImage;
-		if(vulkanTexture != nullptr)
-			vulkanImage = vulkanTexture->GetResource(deviceIndex);
-		else
+		if(!EnsureImageViewValidForShader(imageView, objectType))
 			vulkanImage = nullptr;
+	}
 
-		PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[set];
-		const GpuParameterObjectType* const types = pipelineParameterInformation.GetLayoutTypes(set);
-		const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
+	if(vulkanImage == nullptr)
+	{
+		auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-		VulkanImageView imageView;
-		VkImage vkImage = VK_NULL_HANDLE;
-		if(vulkanImage != nullptr)
-		{
-			imageView = vulkanImage->GetView(surface, false);
-			vkImage = vulkanImage->GetHandle();
+		GpuBufferFormat* elementTypes = pipelineParameterInformation.GetLayoutElementTypes(set);
 
-			if(!EnsureImageViewValidForShader(imageView, objectType))
-				vulkanImage = nullptr;
-		}
+		vulkanImage = vkTexManager.GetDummyTexture(types[usedBindingSequentialIndex])->GetResource(0);
+		VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[usedBindingSequentialIndex]);
 
-		if(vulkanImage == nullptr)
-		{
-			auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
+		imageView = vulkanImage->GetView(format, false);
+		vkImage = vulkanImage->GetHandle();
+	}
 
-			GpuBufferFormat* elementTypes = pipelineParameterInformation.GetLayoutElementTypes(set);
+	if(vkImage != mPerDeviceData.SampledImages[sequentialResourceIndex] || imageView.Handle != perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView)
+	{
+		perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView = imageView.Handle;
+		mPerDeviceData.SampledImages[sequentialResourceIndex] = vkImage;
 
-			vulkanImage = vkTexManager.GetDummyTexture(types[usedBindingSequentialIndex])->GetResource(deviceIndex);
-			VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[usedBindingSequentialIndex]);
-
-			imageView = vulkanImage->GetView(format, false);
-			vkImage = vulkanImage->GetHandle();
-		}
-
-		if(vkImage != mPerDeviceData[deviceIndex].SampledImages[sequentialResourceIndex] || imageView.Handle != perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView)
-		{
-			perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView = imageView.Handle;
-			mPerDeviceData[deviceIndex].SampledImages[sequentialResourceIndex] = vkImage;
-
-			mSetsDirty[set] = true;
-		}
+		mSetsDirty[set] = true;
 	}
 
 	return true;
@@ -489,7 +456,7 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	if (!GpuParams::SetStorageTexture(set, slot, texture, surface, arrayIndex))
 		return false;
 
-	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 	const u32 usedBindingSequentialIndex = pipelineParameterInformation.GetUsedBindingSequentialIndex(set, slot);
 	const u32 usedResourceSequentialIndex = pipelineParameterInformation.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 
@@ -504,52 +471,49 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	Lock lock(mMutex);
 
 	VulkanTexture* vulkanTexture = static_cast<VulkanTexture*>(texture.get());
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	if(mPerDeviceData.PerSetData == nullptr)
+		return false;
+
+	VulkanImage* vulkanImage;
+	if(vulkanTexture != nullptr)
+		vulkanImage = vulkanTexture->GetResource(0);
+	else
+		vulkanImage = nullptr;
+
+	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
+	const GpuParameterObjectType* const types = pipelineParameterInformation.GetLayoutTypes(set);
+	const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
+
+	VulkanImageView imageView;
+	VkImage vkImage = VK_NULL_HANDLE;
+	if(vulkanImage != nullptr)
 	{
-		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
-			continue;
+		imageView = vulkanImage->GetView(surface, false);
+		vkImage = vulkanImage->GetHandle();
 
-		VulkanImage* vulkanImage;
-		if(vulkanTexture != nullptr)
-			vulkanImage = vulkanTexture->GetResource(deviceIndex);
-		else
+		if(!EnsureImageViewValidForShader(imageView, objectType))
 			vulkanImage = nullptr;
+	}
 
-		PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[set];
-		const GpuParameterObjectType* const types = pipelineParameterInformation.GetLayoutTypes(set);
-		const GpuParameterObjectType objectType = types[usedBindingSequentialIndex];
+	if(vulkanImage == nullptr)
+	{
+		auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
 
-		VulkanImageView imageView;
-		VkImage vkImage = VK_NULL_HANDLE;
-		if(vulkanImage != nullptr)
-		{
-			imageView = vulkanImage->GetView(surface, false);
-			vkImage = vulkanImage->GetHandle();
+		GpuBufferFormat* elementTypes = pipelineParameterInformation.GetLayoutElementTypes(set);
 
-			if(!EnsureImageViewValidForShader(imageView, objectType))
-				vulkanImage = nullptr;
-		}
+		vulkanImage = vkTexManager.GetDummyTexture(types[usedBindingSequentialIndex])->GetResource(0);
+		VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[usedBindingSequentialIndex]);
 
-		if(vulkanImage == nullptr)
-		{
-			auto& vkTexManager = static_cast<VulkanTextureManager&>(TextureManager::Instance());
+		imageView = vulkanImage->GetView(format, false);
+		vkImage = vulkanImage->GetHandle();
+	}
 
-			GpuBufferFormat* elementTypes = pipelineParameterInformation.GetLayoutElementTypes(set);
+	if(vkImage != mPerDeviceData.StorageImages[sequentialResourceIndex] || imageView.Handle != perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView)
+	{
+		perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView = imageView.Handle;
+		mPerDeviceData.StorageImages[sequentialResourceIndex] = vkImage;
 
-			vulkanImage = vkTexManager.GetDummyTexture(types[usedBindingSequentialIndex])->GetResource(deviceIndex);
-			VkFormat format = VulkanTextureManager::GetDummyViewFormat(elementTypes[usedBindingSequentialIndex]);
-
-			imageView = vulkanImage->GetView(format, false);
-			vkImage = vulkanImage->GetHandle();
-		}
-
-		if(vkImage != mPerDeviceData[deviceIndex].StorageImages[sequentialResourceIndex] || imageView.Handle != perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView)
-		{
-			perSetData.ImageWriteInfos[usedResourceSequentialIndex].imageView = imageView.Handle;
-			mPerDeviceData[deviceIndex].StorageImages[sequentialResourceIndex] = vkImage;
-
-			mSetsDirty[set] = true;
-		}
+		mSetsDirty[set] = true;
 	}
 
 	return true;
@@ -560,7 +524,7 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>&
 	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
 		return false;
 
-	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 	const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 	const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 
@@ -575,72 +539,69 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>&
 	Lock lock(mMutex);
 
 	VulkanGpuBuffer* vulkanBuffer = static_cast<VulkanGpuBuffer*>(buffer.get());
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	if(mPerDeviceData.PerSetData == nullptr)
+		return false;
+
+	VulkanBuffer* bufferResource;
+	if(vulkanBuffer != nullptr)
+		bufferResource = vulkanBuffer->GetResource(0);
+	else
+		bufferResource = nullptr;
+
+	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
+	VkWriteDescriptorSet& writeSetInfo = perSetData.WriteSetInfos[usedBindingSequentialIndex];
+
+	const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+	VkBufferView vkBufferView = VK_NULL_HANDLE;
+	if(bufferResource == nullptr)
 	{
-		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
-			continue;
-
-		VulkanBuffer* bufferResource;
-		if(vulkanBuffer != nullptr)
-			bufferResource = vulkanBuffer->GetResource(deviceIndex);
-		else
-			bufferResource = nullptr;
-
-		PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[set];
-		VkWriteDescriptorSet& writeSetInfo = perSetData.WriteSetInfos[usedBindingSequentialIndex];
-
-		const bool useView = writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER && writeSetInfo.descriptorType != VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-		VkBufferView vkBufferView = VK_NULL_HANDLE;
-		if(bufferResource == nullptr)
+		const VulkanBuiltinResources& builtinResources = (mGpuDevice.GetBuiltinResources());
+		if(useView)
 		{
-			auto& vulkanBufferManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-			if(useView)
-			{
-				const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-				if(isLoadStore)
-					bufferResource = vulkanBufferManager.GetDummyStorageBuffer()->GetResource(deviceIndex);
-				else
-					bufferResource = vulkanBufferManager.GetDummyReadBuffer()->GetResource(deviceIndex);
-
-				const GpuBufferFormat* const elementTypes = vkParamInfo.GetLayoutElementTypes(set);
-				const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[usedBindingSequentialIndex]);
-				vkBufferView = bufferResource->GetOrCreateView(format);
-			}
+			const bool isLoadStore = writeSetInfo.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+			if(isLoadStore)
+				bufferResource = builtinResources.DummyStorageBuffer->GetResource(0);
 			else
-			{
-				bufferResource = vulkanBufferManager.GetDummyStructuredBuffer()->GetResource(deviceIndex);
-			}
+				bufferResource = builtinResources.DummyReadBuffer->GetResource(0);
+
+			const GpuBufferFormat* const elementTypes = vkParamInfo.GetLayoutElementTypes(set);
+			const VkFormat format = VulkanUtility::GetBufferFormat(elementTypes[usedBindingSequentialIndex]);
+			vkBufferView = bufferResource->GetOrCreateView(format);
 		}
 		else
 		{
-			if(useView)
-			{
-				const GpuBufferFormat format = mStorageBufferData[sequentialResourceIndex].View.Format;
-				vkBufferView = vulkanBuffer->GetOrCreateView(format);
-			}
+			bufferResource = builtinResources.DummyStructuredBuffer->GetResource(0);
 		}
-
-		const VkBuffer vkBuffer = bufferResource->GetHandle();
-
-		const bool isBufferViewChanged = useView && perSetData.BufferViews[usedResourceSequentialIndex] != vkBufferView;
-		if(mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex] != vkBuffer || isBufferViewChanged)
+	}
+	else
+	{
+		if(useView)
 		{
-			if(useView)
-			{
-				perSetData.BufferViews[usedResourceSequentialIndex] = vkBufferView;
-				writeSetInfo.pTexelBufferView = &perSetData.BufferViews[usedResourceSequentialIndex];
-			}
-			else // Structured storage buffer
-			{
-				perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
-				mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex] = vkBuffer;
-
-				writeSetInfo.pTexelBufferView = nullptr;
-			}
-
-			mPerDeviceData[deviceIndex].Buffers[sequentialResourceIndex] = vkBuffer;
-			mSetsDirty[set] = true;
+			const GpuBufferFormat format = mStorageBufferData[sequentialResourceIndex].View.Format;
+			vkBufferView = vulkanBuffer->GetOrCreateView(format);
 		}
+	}
+
+	const VkBuffer vkBuffer = bufferResource->GetHandle();
+
+	const bool isBufferViewChanged = useView && perSetData.BufferViews[usedResourceSequentialIndex] != vkBufferView;
+	if(mPerDeviceData.Buffers[sequentialResourceIndex] != vkBuffer || isBufferViewChanged)
+	{
+		if(useView)
+		{
+			perSetData.BufferViews[usedResourceSequentialIndex] = vkBufferView;
+			writeSetInfo.pTexelBufferView = &perSetData.BufferViews[usedResourceSequentialIndex];
+		}
+		else // Structured storage buffer
+		{
+			perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
+			mPerDeviceData.Buffers[sequentialResourceIndex] = vkBuffer;
+
+			writeSetInfo.pTexelBufferView = nullptr;
+		}
+
+		mPerDeviceData.Buffers[sequentialResourceIndex] = vkBuffer;
+		mSetsDirty[set] = true;
 	}
 
 	return true;
@@ -651,7 +612,7 @@ bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState
 	if (!GpuParams::SetSamplerState(set, slot, sampler, arrayIndex))
 		return false;
 
-	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 	const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 	if(usedResourceSequentialIndex == ~0u)
 	{
@@ -664,32 +625,29 @@ bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState
 	Lock lock(mMutex);
 
 	VulkanSamplerState* vulkanSampler = static_cast<VulkanSamplerState*>(sampler.get());
-	for(u32 deviceIndex = 0; deviceIndex < B3D_MAX_DEVICES; deviceIndex++)
+	if(mPerDeviceData.PerSetData == nullptr)
+		return false;
+
+	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
+
+	VulkanSampler* samplerRes;
+	if(vulkanSampler != nullptr)
+		samplerRes = vulkanSampler->GetResource(0);
+	else
 	{
-		if(mPerDeviceData[deviceIndex].PerSetData == nullptr)
-			continue;
+		const VulkanSamplerState* const defaultSampler =
+			static_cast<const VulkanSamplerState* const>(SamplerState::GetDefault().get());
 
-		PerSetData& perSetData = mPerDeviceData[deviceIndex].PerSetData[set];
+		samplerRes = defaultSampler->GetResource(0);
+	}
 
-		VulkanSampler* samplerRes;
-		if(vulkanSampler != nullptr)
-			samplerRes = vulkanSampler->GetResource(deviceIndex);
-		else
-		{
-			const VulkanSamplerState* const defaultSampler =
-				static_cast<const VulkanSamplerState* const>(SamplerState::GetDefault().get());
+	VkSampler vkSampler = samplerRes->GetHandle();
+	if(mPerDeviceData.Samplers[sequentialResourceIndex] != vkSampler)
+	{
+		perSetData.ImageWriteInfos[usedResourceSequentialIndex].sampler = vkSampler;
+		mPerDeviceData.Samplers[sequentialResourceIndex] = vkSampler;
 
-			samplerRes = defaultSampler->GetResource(deviceIndex);
-		}
-
-		VkSampler vkSampler = samplerRes->GetHandle();
-		if(mPerDeviceData[deviceIndex].Samplers[sequentialResourceIndex] != vkSampler)
-		{
-			perSetData.ImageWriteInfos[usedResourceSequentialIndex].sampler = vkSampler;
-			mPerDeviceData[deviceIndex].Samplers[sequentialResourceIndex] = vkSampler;
-
-			mSetsDirty[set] = true;
-		}
+		mSetsDirty[set] = true;
 	}
 
 	mSetsDirty[set] = true;
@@ -698,18 +656,18 @@ bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState
 
 u32 VulkanGpuParams::GetSetCount() const
 {
-	return mParamInfo->GetSetCount();
+	return mParameterLayout->GetSetCount();
 }
 
 void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
 {
 	u32 deviceIdx = buffer.GetDeviceIndex();
 
-	PerDeviceData& perDeviceData = mPerDeviceData[deviceIdx];
+	PerDeviceData& perDeviceData = mPerDeviceData;
 	if(perDeviceData.PerSetData == nullptr)
 		return;
 
-	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParamInfo);
+	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 
 	u32 parameterBlockBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParamInfo::GpuParameterType::UniformBuffer);
 	u32 sampledTextureBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParamInfo::GpuParameterType::SampledTexture);
@@ -733,7 +691,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParamInfoBase::GpuParameterType::UniformBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParamInfo->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
@@ -755,8 +713,8 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 
 			if(resource == nullptr)
 			{
-				auto& vkBufManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-				resource = vkBufManager.GetDummyUniformBuffer()->GetResource(deviceIdx);
+				const VulkanBuiltinResources& builtinResources = mGpuDevice.GetBuiltinResources();
+				resource = builtinResources.DummyUniformBuffer->GetResource(deviceIdx);
 
 				if(resource == nullptr)
 					continue;
@@ -790,7 +748,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParamInfoBase::GpuParameterType::StorageBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParamInfo->GetBinding(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParamInfo::GpuParameterType::StorageBuffer, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
 		{
@@ -821,20 +779,20 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 
 			if(resource == nullptr)
 			{
-				auto& vkBufManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
+				const VulkanBuiltinResources& builtinResources = mGpuDevice.GetBuiltinResources();
 
 				switch(type)
 				{
 				case GPOT_BYTE_BUFFER:
-					resource = vkBufManager.GetDummyReadBuffer()->GetResource(deviceIdx);
+					resource = builtinResources.DummyReadBuffer->GetResource(deviceIdx);
 					break;
 				case GPOT_RWBYTE_BUFFER:
-					resource = vkBufManager.GetDummyStorageBuffer()->GetResource(deviceIdx);
+					resource = builtinResources.DummyStorageBuffer->GetResource(deviceIdx);
 					useFlags |= VulkanAccessFlag::Write;
 					break;
 				case GPOT_STRUCTURED_BUFFER:
 				case GPOT_RWSTRUCTURED_BUFFER:
-					resource = vkBufManager.GetDummyStructuredBuffer()->GetResource(deviceIdx);
+					resource = builtinResources.DummyStructuredBuffer->GetResource(deviceIdx);
 					useFlags |= VulkanAccessFlag::Write;
 					break;
 				default:
@@ -899,7 +857,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParamInfoBase::GpuParameterType::Sampler, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParamInfo->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
@@ -937,7 +895,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParamInfoBase::GpuParameterType::StorageTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParamInfo->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
@@ -1009,7 +967,7 @@ void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDesc
 		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParamInfoBase::GpuParameterType::SampledTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParamInfo->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParamInfoBase::GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 

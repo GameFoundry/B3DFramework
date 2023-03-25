@@ -18,6 +18,7 @@ namespace bs
 		class VulkanGpuParams : public GpuParams
 		{
 		public:
+			VulkanGpuParams(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout);
 			~VulkanGpuParams() override;
 
 			bool SetUniformBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& paramBlockBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
@@ -72,14 +73,10 @@ namespace bs
 				VkSampler* Samplers;
 			};
 
-			friend class VulkanHardwareBufferManager;
-
-			VulkanGpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
-
 			void Initialize() override;
 
-			PerDeviceData mPerDeviceData[B3D_MAX_DEVICES];
-			GpuDeviceFlags mDeviceMask;
+			VulkanGpuDevice& mGpuDevice;
+			PerDeviceData mPerDeviceData;
 			bool* mSetsDirty = nullptr;
 
 			GroupAlloc mAlloc;

@@ -6,7 +6,6 @@
 #include "BsGpuDevice.h"
 #include "BsGpuDeviceCapabilities.h"
 #include "Image/BsColor.h"
-#include "Managers/BsHardwareBufferManager.h"
 #include "Private/RTTI/BsVertexDescriptionRTTI.h"
 
 using namespace bs;

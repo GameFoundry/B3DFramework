@@ -268,7 +268,7 @@ namespace bs
 		SPtr<GpuParamDesc> GetParameterInformation(GpuProgramType type) const;
 
 		/** Gets the object that contains the processed information about all parameters. */
-		SPtr<GpuPipelineParamInfoBase> GetPipelineParameterInformation() const { return mParamInfo; }
+		SPtr<GpuPipelineParamInfoBase> GetPipelineParameterInformation() const { return mParameterLayout; }
 
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
@@ -306,12 +306,12 @@ namespace bs
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
-		GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& paramInfo);
+		GpuParamsBase(const SPtr<GpuPipelineParamInfoBase>& parameterLayout);
 
 		/**	Gets a descriptor for a data parameter with the specified name. */
 		GpuDataParameterInformation* GetDataParameterInformation(GpuProgramType type, const String& name) const;
 
-		SPtr<GpuPipelineParamInfoBase> mParamInfo;
+		SPtr<GpuPipelineParamInfoBase> mParameterLayout;
 	};
 
 	/** Templated version of GpuParams that contains functionality for both sim and core thread versions of stored data. */
@@ -515,7 +515,7 @@ namespace bs
 		}
 
 	protected:
-		TGpuParams(const SPtr<GpuPipelineParamInfoBase>& paramInfo);
+		TGpuParams(const SPtr<GpuPipelineParamInfoBase>& parameterLayout);
 
 		/** @copydoc CoreObject::GetThisPtr */
 		virtual SPtr<GpuParamsType> GetThisPtrInternal() const = 0;
@@ -586,9 +586,9 @@ namespace bs
 		/**
 		 * Creates a new set of GPU parameters using an object describing the parameters for a pipeline.
 		 *
-		 * @param[in]	paramInfo	Description of GPU parameters for a specific GPU pipeline state.
+		 * @param[in]	parameterLayout	Description of GPU parameters for a specific GPU pipeline state.
 		 */
-		static SPtr<GpuParams> Create(const SPtr<GpuPipelineParamInfo>& paramInfo);
+		static SPtr<GpuParams> Create(const SPtr<GpuPipelineParamInfo>& parameterLayout);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParameterTypeInformationLookup kParamSizes;
@@ -602,8 +602,6 @@ namespace bs
 
 		/** @} */
 	protected:
-		friend class HardwareBufferManager;
-
 		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
 		SPtr<GpuParams> GetThisPtrInternal() const override;
@@ -632,31 +630,12 @@ namespace bs
 		class B3D_CORE_EXPORT GpuParams : public CoreObject, public TGpuParams<true>
 		{
 		public:
-			virtual ~GpuParams() {}
-
-			/**
-			 * @copydoc bs::GpuParams::Create(const SPtr<GraphicsPipelineState>&)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
-			 */
-			static SPtr<GpuParams> Create(const SPtr<GraphicsPipelineState>& pipelineState, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/**
-			 * @copydoc bs::GpuParams::Create(const SPtr<ComputePipelineState>&)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
-			 */
-			static SPtr<GpuParams> Create(const SPtr<ComputePipelineState>& pipelineState, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/**
-			 * @copydoc bs::GpuParams::Create(const SPtr<GpuPipelineParamInfo>&)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
-			 */
-			static SPtr<GpuParams> Create(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			virtual ~GpuParams() = default;
 
 		protected:
 			friend class bs::GpuParams;
-			friend class HardwareBufferManager;
 
-			GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo, GpuDeviceFlags deviceMask);
+			GpuParams(const SPtr<GpuPipelineParamInfo>& parameterLayout);
 
 			SPtr<GpuParams> GetThisPtrInternal() const override;
 			void SyncToCore(const CoreSyncData& data) override;

@@ -47,7 +47,6 @@ namespace bs
 		 *
 		 * @param	createInformation		Object describing the buffer to create.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
-		 * 
 		 */
 		virtual SPtr<ct::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
@@ -73,9 +72,16 @@ namespace bs
 		 *
 		 * @param	createInformation		Object describing the program to create.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
-		 * 
 		 */
 		virtual SPtr<ct::GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+
+		/**
+		 * Creates a set of GPU parameters that allow you to bind values to be used as input to GPU programs within a GPU pipeline with the provided layout.
+		 *
+		 * @param	parameterLayout			Layout that describes the GPU parameters, as retrieved from the GPU pipeline.
+		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
+		 */
+		virtual SPtr<ct::GpuParams> CreateGpuParameters(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize = false) = 0;
 	};
 
 	/** @} */

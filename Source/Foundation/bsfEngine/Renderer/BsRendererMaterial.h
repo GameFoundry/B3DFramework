@@ -510,11 +510,11 @@ namespace bs
 
 			mGraphicsPipeline = pass->GetGraphicsPipelineState();
 			if(mGraphicsPipeline != nullptr)
-				mGPUParameters = GpuParams::Create(mGraphicsPipeline);
+				mGPUParameters = mGpuDevice->CreateGpuParameters(mGraphicsPipeline->GetParamInfo());
 			else
 			{
 				mComputePipeline = pass->GetComputePipelineState();
-				mGPUParameters = GpuParams::Create(mComputePipeline);
+				mGPUParameters = mGpuDevice->CreateGpuParameters(mComputePipeline->GetParamInfo());
 			}
 
 			// Assign default values from the shader

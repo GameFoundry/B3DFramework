@@ -485,6 +485,25 @@ SPtr<ct::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferC
 	return device->CreateGpuBuffer(gpuBufferCreateInformation);
 }
 
+template<bool Core>
+SPtr<CoreVariantType<GpuParams, Core>> CreateGpuParameters(const SPtr<CoreVariantType<GpuPipelineParamInfo, Core>>& parameterLayout)
+{
+	return nullptr;
+}
+
+template<>
+SPtr<GpuParams> CreateGpuParameters<false>(const SPtr<GpuPipelineParamInfo>& parameterLayout)
+{
+	return GpuParams::Create(parameterLayout);
+}
+
+template<>
+SPtr<ct::GpuParams> CreateGpuParameters<true>(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout)
+{
+	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	return device->CreateGpuParameters(parameterLayout);
+}
+
 template <bool Core>
 const u32 TGpuParamsSet<Core>::kNumStages = 6;
 
@@ -501,11 +520,11 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 		SPtr<GraphicsPipelineStateType> gfxPipeline = curPass->GetGraphicsPipelineState();
 		if(gfxPipeline != nullptr)
-			mPassParams[i] = GpuParamsType::Create(gfxPipeline);
+			mPassParams[i] = CreateGpuParameters<Core>(gfxPipeline->GetParamInfo());
 		else
 		{
 			SPtr<ComputePipelineStateType> computePipeline = curPass->GetComputePipelineState();
-			mPassParams[i] = GpuParamsType::Create(computePipeline);
+			mPassParams[i] = CreateGpuParameters<Core>(computePipeline->GetParamInfo());
 		}
 	}
 

@@ -7,7 +7,6 @@
 #include "RenderAPI/BsGpuParams.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "RenderAPI/BsVertexDescription.h"
-#include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsDataStream.h"

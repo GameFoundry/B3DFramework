@@ -4,7 +4,6 @@
 #include "BsVulkanGpuDevice.h"
 #include "Managers/BsVulkanTextureManager.h"
 #include "Managers/BsVulkanRenderWindowManager.h"
-#include "Managers/BsVulkanHardwareBufferManager.h"
 #include "Managers/BsVulkanRenderStateManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
@@ -433,10 +432,6 @@ void VulkanGpuBackend::OnStartUp()
 	VulkanRenderPassCache::StartUp();
 	VulkanFramebufferCache::StartUp();
 
-	// Create hardware buffer manager
-	HardwareBufferManager::StartUp();
-	ct::HardwareBufferManager::StartUp<VulkanHardwareBufferManager>();
-
 	// Start the submit thread
 	VulkanSubmitThread::StartUp();
 
@@ -460,8 +455,6 @@ void VulkanGpuBackend::OnShutDown()
 	ct::RenderStateManager::ShutDown();
 	ct::RenderWindowManager::ShutDown();
 	RenderWindowManager::ShutDown();
-	ct::HardwareBufferManager::ShutDown();
-	HardwareBufferManager::ShutDown();
 	VulkanFramebufferCache::ShutDown();
 	VulkanRenderPassCache::ShutDown();
 	ct::TextureManager::ShutDown();

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsVulkanBuiltinResources.h"
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsVulkanDescriptorManager.h"
@@ -40,6 +41,11 @@ namespace bs
 			VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx);
 			~VulkanGpuDevice();
 
+			/**
+			 * @name GpuDevice Interface
+			 * @{
+			 */
+
 			bool IsInitialized() const override { return true; }
 			bool Initialize() override { return true; } // Initialized on construction
 
@@ -54,6 +60,9 @@ namespace bs
 			SPtr<TimerQuery> CreateTimerQuery() override;
 			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
 			SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize = false) override;
+			SPtr<GpuParams> CreateGpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize) override;
+
+			/** @} */
 
 			/** Returns an object describing the physical properties of the device. */
 			VkPhysicalDevice GetPhysical() const { return mPhysicalDevice; }
@@ -119,6 +128,14 @@ namespace bs
 			/** Returns a manager that can be used for allocating Vulkan objects wrapped as managed resources. */
 			VulkanResourceManager& GetResourceManager() const { return *mResourceManager; }
 
+			/** Returns a set of resources that are always available. */
+			const VulkanBuiltinResources& GetBuiltinResources() const { return mBuiltinResources;  }
+
+			/**
+			 * @name Memory Allocation
+			 * @{
+			 */
+
 			/**
 			 * Allocates memory for the provided image, and binds it to the image. Returns null if it cannot find memory
 			 * with the specified flags.
@@ -182,6 +199,8 @@ namespace bs
 			 */
 			void GetAllocationInfo(VmaAllocation allocation, VkDeviceMemory& memory, VkDeviceSize& offset);
 
+			/** @} */
+
 		private:
 			friend class VulkanRenderAPI;
 			friend class bs::VulkanGpuBackend;
@@ -207,6 +226,7 @@ namespace bs
 			VulkanQueryPool* mQueryPool;
 			VulkanDescriptorManager* mDescriptorManager;
 			VulkanResourceManager* mResourceManager;
+			VulkanBuiltinResources mBuiltinResources;
 			VmaAllocator mAllocator;
 
 			VkPhysicalDeviceProperties mDeviceProperties;

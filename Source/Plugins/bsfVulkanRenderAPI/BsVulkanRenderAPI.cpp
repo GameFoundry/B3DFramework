@@ -7,7 +7,6 @@
 #include "BsVulkanGpuDevice.h"
 #include "Managers/BsVulkanTextureManager.h"
 #include "Managers/BsVulkanRenderWindowManager.h"
-#include "Managers/BsVulkanHardwareBufferManager.h"
 #include "Managers/BsVulkanRenderStateManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 #include "Managers/BsVulkanCommandBufferManager.h"

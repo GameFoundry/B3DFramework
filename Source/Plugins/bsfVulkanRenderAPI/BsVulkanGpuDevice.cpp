@@ -24,6 +24,7 @@ static_assert(false, "Other platform includes go here.");
 #include "BsVulkanEventQuery.h"
 #include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanGpuBuffer.h"
+#include "BsVulkanGpuParams.h"
 #include "BsVulkanGpuProgram.h"
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanTimerQuery.h"
@@ -33,7 +34,7 @@ using namespace bs;
 using namespace bs::ct;
 
 VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
-	: mPhysicalDevice(device), mDeviceIdx(deviceIdx), mQueueInfos()
+	: mPhysicalDevice(device), mDeviceIdx(deviceIdx), mQueueInfos(), mBuiltinResources(*this)
 {
 	// Set to default
 	for(u32 i = 0; i < GQT_COUNT; i++)
@@ -221,6 +222,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 	mQueryPool = B3DNew<VulkanQueryPool>(*this);
 	mDescriptorManager = B3DNew<VulkanDescriptorManager>(*this);
 	mResourceManager = B3DNew<VulkanResourceManager>(*this);
+	mBuiltinResources.Initialize();
 
 	// Initialize video mode information
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
@@ -236,6 +238,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 
 VulkanGpuDevice::~VulkanGpuDevice()
 {
+	mBuiltinResources.Cleanup();
+
 	B3DDelete(mDescriptorManager);
 	B3DDelete(mQueryPool);
 	B3DDelete(mCommandBufferPool);
@@ -498,6 +502,17 @@ SPtr<OcclusionQuery> VulkanGpuDevice::CreateOcclusionQuery(bool isBinary)
 SPtr<ct::GpuProgram> VulkanGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize)
 {
 	SPtr<GpuProgram> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuProgram>()) VulkanGpuProgram(*this, createInformation));
+	output->SetShared(output);
+
+	if(!deferredInitialize)
+		output->Initialize();
+
+	return output;
+}
+
+SPtr<ct::GpuParams> VulkanGpuDevice::CreateGpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize)
+{
+	SPtr<GpuParams> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuParams>()) VulkanGpuParams(*this, parameterLayout));
 	output->SetShared(output);
 
 	if(!deferredInitialize)

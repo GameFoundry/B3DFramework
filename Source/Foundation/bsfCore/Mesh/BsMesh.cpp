@@ -4,7 +4,6 @@
 #include "Private/RTTI/BsMeshRTTI.h"
 #include "Mesh/BsMeshData.h"
 #include "Debug/BsDebug.h"
-#include "Managers/BsHardwareBufferManager.h"
 #include "Managers/BsMeshManager.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Threading/BsAsyncOp.h"

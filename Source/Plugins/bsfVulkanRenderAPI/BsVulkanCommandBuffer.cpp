@@ -17,7 +17,6 @@
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanRenderTexture.h"
-#include "Managers/BsVulkanHardwareBufferManager.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Win32/BsWin32RenderWindow.h"
@@ -1566,8 +1565,8 @@ void VulkanInternalCommandBuffer::BindVertexInputs()
 {
 	if(mRequiredVertexBufferBindingCount > 0)
 	{
-		auto& vulkanHardwareBufferManager = static_cast<VulkanHardwareBufferManager&>(HardwareBufferManager::Instance());
-		VulkanBuffer *const dummyVertexBuffer = vulkanHardwareBufferManager.GetDummyVertexBuffer()->GetResource(mDevice.GetIndex());
+		const VulkanBuiltinResources& vulkanBuiltinResources = mDevice.GetBuiltinResources();
+		VulkanBuffer *const dummyVertexBuffer = vulkanBuiltinResources.DummyVertexBuffer->GetResource(mDevice.GetIndex());
 
 		for(u32 bindingIndex = 0; bindingIndex < mRequiredVertexBufferBindingCount; bindingIndex++)
 		{

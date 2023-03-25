@@ -286,6 +286,7 @@ namespace bs
 	CORE_OBJECT_FORWARD_DECLARE(Renderable)
 	CORE_OBJECT_FORWARD_DECLARE(GraphicsPipelineState)
 	CORE_OBJECT_FORWARD_DECLARE(ComputePipelineState)
+	CORE_OBJECT_FORWARD_DECLARE(GpuPipelineParamInfo)
 	CORE_OBJECT_FORWARD_DECLARE(ReflectionProbe)
 	CORE_OBJECT_FORWARD_DECLARE(ParticleSystem)
 	CORE_OBJECT_FORWARD_DECLARE(Texture)
@@ -373,7 +374,6 @@ namespace bs
 	class Input;
 	struct PointerEvent;
 	class RendererFactory;
-	class HardwareBufferManager;
 	class FontManager;
 	class RenderStateManager;
 	class GpuParamBlock;
@@ -417,7 +417,6 @@ namespace bs
 	class ShaderImportOptions;
 	class AudioClipImportOptions;
 	class AnimationClip;
-	class GpuPipelineParamInfo;
 	class GpuDevice;
 	template <class T>
 	class TAnimationCurve;
@@ -487,7 +486,6 @@ namespace bs
 		class MeshBase;
 		class TransientMesh;
 		class MeshHeap;
-		class GpuPipelineParamInfo;
 		class CommandBuffer;
 		class EventQuery;
 		class TimerQuery;
@@ -496,7 +494,6 @@ namespace bs
 		class RenderElement;
 		class RenderWindowManager;
 		class RenderStateManager;
-		class HardwareBufferManager;
 		class GpuBuffer;
 	} // namespace ct
 } // namespace bs
