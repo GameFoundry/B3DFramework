@@ -1,0 +1,48 @@
+//************************************ bs::framework - Copyright 2023 Marko Pintera **************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "BsVulkanPrerequisites.h"
+
+namespace bs
+{
+	namespace ct
+	{
+		/** @addtogroup Vulkan
+		 *  @{
+		 */
+
+		/** Contains various resources that are often required by the Vulkan backend. */
+		class VulkanBuiltinResources
+		{
+		public:
+			VulkanBuiltinResources(VulkanGpuDevice& gpuDevice);
+
+			/** Initializes all the builtin resources. */
+			void Initialize();
+
+			/** Destroys all the builtin resources. */
+			void Cleanup();
+
+			/** Buffer that can be used for buffer read operations when no other buffer is bound. */
+			SPtr<VulkanGpuBuffer> DummyReadBuffer;
+
+			/** Buffer that can be used for buffer storage operations when no other buffer is bound. */
+			SPtr<VulkanGpuBuffer> DummyStorageBuffer;
+
+			/** Buffer that can be used for uniform storage when no other buffer is bound. */
+			SPtr<VulkanGpuBuffer> DummyUniformBuffer;
+
+			/** Buffer that can be used for structured storage when no other buffer is bound. */
+			SPtr<VulkanGpuBuffer> DummyStructuredBuffer;
+
+			/** Buffer that can be used for vertex buffers when no other buffer is bound. */
+			SPtr<VulkanGpuBuffer> DummyVertexBuffer;
+
+		private:
+			VulkanGpuDevice& mGpuDevice;
+		};
+
+		/** @} */
+	} // namespace ct
+} // namespace bs
