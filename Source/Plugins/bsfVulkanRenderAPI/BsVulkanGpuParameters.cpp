@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGpuParams.h"
+#include "BsVulkanGpuParameters.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
@@ -62,12 +62,12 @@ static bool EnsureImageViewValidForShader(const VulkanImageView& view, const Gpu
 	return isViewValid;
 }
 
-VulkanGpuParams::VulkanGpuParams(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout)
-	: GpuParams(parameterLayout), mGpuDevice(gpuDevice), mPerDeviceData()
+VulkanGpuParameters::VulkanGpuParameters(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout)
+	: GpuParameters(parameterLayout), mGpuDevice(gpuDevice), mPerDeviceData()
 {
 }
 
-VulkanGpuParams::~VulkanGpuParams()
+VulkanGpuParameters::~VulkanGpuParameters()
 {
 	Lock lock(mMutex);
 
@@ -84,7 +84,7 @@ VulkanGpuParams::~VulkanGpuParams()
 	}
 }
 
-void VulkanGpuParams::Initialize()
+void VulkanGpuParameters::Initialize()
 {
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
 
@@ -320,12 +320,12 @@ void VulkanGpuParams::Initialize()
 		}
 	}
 
-	GpuParams::Initialize();
+	GpuParameters::Initialize();
 }
 
-bool VulkanGpuParams::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffer>& paramBlockBuffer, u32 arrayIndex, u32 offset)
+bool VulkanGpuParameters::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffer>& paramBlockBuffer, u32 arrayIndex, u32 offset)
 {
-	if (!GpuParams::SetUniformBuffer(set, slot, paramBlockBuffer, arrayIndex, offset))
+	if (!GpuParameters::SetUniformBuffer(set, slot, paramBlockBuffer, arrayIndex, offset))
 		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
@@ -382,9 +382,9 @@ bool VulkanGpuParams::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffer>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+bool VulkanGpuParameters::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 {
-	if (!GpuParams::SetSampledTexture(set, slot, texture, surface, arrayIndex))
+	if (!GpuParameters::SetSampledTexture(set, slot, texture, surface, arrayIndex))
 		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
@@ -451,9 +451,9 @@ bool VulkanGpuParams::SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
+bool VulkanGpuParameters::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface, u32 arrayIndex)
 {
-	if (!GpuParams::SetStorageTexture(set, slot, texture, surface, arrayIndex))
+	if (!GpuParameters::SetStorageTexture(set, slot, texture, surface, arrayIndex))
 		return false;
 
 	VulkanGpuPipelineParamInfo& pipelineParameterInformation = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
@@ -519,9 +519,9 @@ bool VulkanGpuParams::SetStorageTexture(u32 set, u32 slot, const SPtr<Texture>& 
 	return true;
 }
 
-bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
+bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
 {
-	if (!GpuParams::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
+	if (!GpuParameters::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
 		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
@@ -607,9 +607,9 @@ bool VulkanGpuParams::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>&
 	return true;
 }
 
-bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
+bool VulkanGpuParameters::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex)
 {
-	if (!GpuParams::SetSamplerState(set, slot, sampler, arrayIndex))
+	if (!GpuParameters::SetSamplerState(set, slot, sampler, arrayIndex))
 		return false;
 
 	VulkanGpuPipelineParamInfo& vkParamInfo = static_cast<VulkanGpuPipelineParamInfo&>(*mParameterLayout);
@@ -654,12 +654,12 @@ bool VulkanGpuParams::SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState
 	return true;
 }
 
-u32 VulkanGpuParams::GetSetCount() const
+u32 VulkanGpuParameters::GetSetCount() const
 {
 	return mParameterLayout->GetSetCount();
 }
 
-void VulkanGpuParams::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
+void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
 {
 	u32 deviceIdx = buffer.GetDeviceIndex();
 

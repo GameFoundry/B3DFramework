@@ -317,7 +317,7 @@ namespace bs
 			void SetPipelineState(const SPtr<ComputePipelineState>& state);
 
 			/** Assign GPU params to the GPU programs bound by the pipeline state. */
-			void SetGpuParams(const SPtr<GpuParams>& gpuParams);
+			void SetGpuParams(const SPtr<GpuParameters>& gpuParams);
 
 			/** Sets the current viewport which determine to which portion of the render target to render to. */
 			void SetNormalizedViewportArea(const Rect2& area);
@@ -774,7 +774,7 @@ namespace bs
 			bool mIsRenderPassInterrupted = false;
 			bool mIsDebugLabelOpen = false;
 			DescriptorSetBindFlags mDescriptorSetsBindState;
-			SPtr<VulkanGpuParams> mBoundParams;
+			SPtr<VulkanGpuParameters> mBoundParams;
 
 			std::array<VkClearValue, B3D_MAXIMUM_RENDER_TARGET_COUNT + 1> mClearValues{};
 			RenderSurfaceMask mClearMask;

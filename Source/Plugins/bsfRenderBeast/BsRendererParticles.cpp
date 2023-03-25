@@ -163,7 +163,7 @@ void RendererParticles::BindCpuSimulatedInputs(const ParticleRenderData* renderD
 	gParticlesParamDef.gTexSize.Set(ParticlesParamBuffer, texSize);
 	gParticlesParamDef.gBufferOffset.Set(ParticlesParamBuffer, 0);
 
-	SPtr<GpuParams> gpuParams = RenderElement.Params->GetGpuParams();
+	SPtr<GpuParameters> gpuParams = RenderElement.Params->GetGpuParams();
 	for(u32 j = 0; j < GPT_COUNT; j++)
 	{
 		const GpuParamBinding& binding = RenderElement.PerCameraBindings[j];
@@ -198,7 +198,7 @@ void RendererParticles::BindGpuSimulatedInputs(const GpuParticleResources& gpuSi
 	const u32 texSize = GpuParticleResources::kTexSize;
 	gParticlesParamDef.gTexSize.Set(ParticlesParamBuffer, texSize);
 
-	SPtr<GpuParams> gpuParams = RenderElement.Params->GetGpuParams();
+	SPtr<GpuParameters> gpuParams = RenderElement.Params->GetGpuParams();
 	for(u32 j = 0; j < GPT_COUNT; j++)
 	{
 		const GpuParamBinding& binding = RenderElement.PerCameraBindings[j];

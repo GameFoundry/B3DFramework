@@ -63,7 +63,7 @@ namespace bs
 		class VulkanBuffer;
 		class VulkanImage;
 		class VulkanDescriptorPool;
-		class VulkanGpuParams;
+		class VulkanGpuParameters;
 		class VulkanTransferBuffer;
 		class VulkanEvent;
 		class VulkanQuery;

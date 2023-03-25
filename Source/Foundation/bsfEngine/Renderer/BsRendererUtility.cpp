@@ -7,7 +7,7 @@
 #include "Material/BsMaterial.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Material/BsPass.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Renderer/BsLight.h"
 #include "Material/BsShader.h"
@@ -192,7 +192,7 @@ void RendererUtility::SetComputePass(const SPtr<Material>& material, u32 passIdx
 
 void RendererUtility::SetPassParams(const SPtr<GpuParamsSet>& params, u32 passIdx)
 {
-	SPtr<GpuParams> gpuParams = params->GetGpuParams(passIdx);
+	SPtr<GpuParameters> gpuParams = params->GetGpuParams(passIdx);
 	if(gpuParams == nullptr)
 		return;
 

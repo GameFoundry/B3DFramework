@@ -26,7 +26,7 @@ void D3D11CommandBuffer::QueueCommand(const std::function<void()> command)
 
 	// We don't support command buffer queuing on DX11, so we just execute the command right away. This means
 	// if caller uses a non-main command buffer the behaviour will likely be incorrect. To properly support
-	// command queuing we'd need to remember state of GpuParams when first bound and handles updates to
+	// command queuing we'd need to remember state of GpuParameters when first bound and handles updates to
 	// buffers after they are bound (and potentially other things).
 	command();
 	mCommandQueued = true;

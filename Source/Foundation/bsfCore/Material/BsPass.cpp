@@ -8,7 +8,7 @@
 #include "RenderAPI/BsDepthStencilState.h"
 #include "Private/RTTI/BsPassRTTI.h"
 #include "Material/BsMaterial.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsGpuProgram.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "CoreThread/BsCoreObjectSync.h"

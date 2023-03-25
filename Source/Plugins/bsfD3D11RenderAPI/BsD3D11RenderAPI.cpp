@@ -22,7 +22,7 @@
 #include "BsD3D11InputLayoutManager.h"
 #include "BsD3D11TextureView.h"
 #include "BsD3D11RenderUtility.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "CoreThread/BsCoreThread.h"
 #include "BsD3D11QueryManager.h"
 #include "Debug/BsDebug.h"
@@ -322,9 +322,9 @@ void D3D11RenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipeli
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
-void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+void D3D11RenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 {
-	auto executeRef = [&](const SPtr<GpuParams>& gpuParams)
+	auto executeRef = [&](const SPtr<GpuParameters>& gpuParams)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -1315,7 +1315,7 @@ GpuParameterBlockInformation D3D11RenderAPI::GenerateParamBlockDesc(const String
 
 	for(auto& param : params)
 	{
-		const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[param.Type];
+		const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[param.Type];
 
 		if(param.ArraySize > 1)
 		{

@@ -4,7 +4,7 @@
 #include "BsD3D11Device.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "BsD3D11RenderAPI.h"
 #include "Managers/BsGpuProgramManager.h"
 #include "Managers/BsHardwareBufferManager.h"

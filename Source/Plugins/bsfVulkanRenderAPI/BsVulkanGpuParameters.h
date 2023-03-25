@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Allocators/BsGroupAlloc.h"
 
 namespace bs
@@ -14,12 +14,12 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Vulkan implementation of GpuParams, containing resource descriptors for all shader stages. */
-		class VulkanGpuParams : public GpuParams
+		/** Vulkan implementation of GpuParameters, containing resource descriptors for all shader stages. */
+		class VulkanGpuParameters : public GpuParameters
 		{
 		public:
-			VulkanGpuParams(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout);
-			~VulkanGpuParams() override;
+			VulkanGpuParameters(VulkanGpuDevice& gpuDevice, const SPtr<GpuPipelineParamInfo>& parameterLayout);
+			~VulkanGpuParameters() override;
 
 			bool SetUniformBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& paramBlockBuffer, u32 arrayIndex = 0, u32 offset = 0) override;
 			bool SetSampledTexture(u32 set, u32 slot, const SPtr<Texture>& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) override;

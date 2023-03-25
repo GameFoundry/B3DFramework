@@ -97,7 +97,7 @@ namespace bs
 	{
 	private:
 		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 
 	public:
 		TGpuParameterPrimitive();
@@ -140,7 +140,7 @@ namespace bs
 	{
 	public:
 		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 
 		TGpuParameterStruct();
 		TGpuParameterStruct(GpuDataParameterInformation* paramDesc, const GpuParamsType& parent);
@@ -173,10 +173,10 @@ namespace bs
 	class B3D_CORE_EXPORT TGpuParameterSampledTexture
 	{
 	private:
-		friend class GpuParams;
-		friend class ct::GpuParams;
+		friend class GpuParameters;
+		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
@@ -208,10 +208,10 @@ namespace bs
 	class B3D_CORE_EXPORT TGpuParameterStorageTexture
 	{
 	private:
-		friend class GpuParams;
-		friend class ct::GpuParams;
+		friend class GpuParameters;
+		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 
 	public:
@@ -243,10 +243,10 @@ namespace bs
 	class B3D_CORE_EXPORT TGpuParameterBuffer
 	{
 	private:
-		friend class GpuParams;
-		friend class ct::GpuParams;
+		friend class GpuParameters;
+		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 
 	public:
@@ -278,10 +278,10 @@ namespace bs
 	class B3D_CORE_EXPORT TGpuParameterSampler
 	{
 	private:
-		friend class GpuParams;
-		friend class ct::GpuParams;
+		friend class GpuParameters;
+		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParams, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 		using SamplerStateType = SPtr<CoreVariantType<SamplerState, Core>>;
 
 	public:

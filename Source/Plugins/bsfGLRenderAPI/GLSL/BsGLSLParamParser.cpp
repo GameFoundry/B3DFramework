@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GLSL/BsGLSLParamParser.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 
 using namespace bs;
 using namespace bs::ct;
@@ -67,7 +67,7 @@ Vector<VertexElement> GLSLParamParser::BuildVertexDeclaration(GLuint glProgram)
 
 u32 GLSLParamParser::CalcInterfaceBlockElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset)
 {
-	const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[type];
+	const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[type];
 	u32 size = (typeInfo.BaseTypeSize * typeInfo.NumColumns * typeInfo.NumRows) / 4;
 	u32 alignment = typeInfo.Alignment / 4;
 

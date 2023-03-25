@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 
 #include "BsCoreApplication.h"
 #include "BsGpuDevice.h"
@@ -682,24 +682,24 @@ template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4>(GpuProgram
 template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4x2>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x2, true>&) const;
 template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4x3>(GpuProgramType type, const String&, TGpuParameterPrimitive<Matrix4x3, true>&) const;
 
-const GpuDataParameterTypeInformationLookup GpuParams::kParamSizes;
+const GpuDataParameterTypeInformationLookup GpuParameters::kParamSizes;
 
-GpuParams::GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo)
+GpuParameters::GpuParameters(const SPtr<GpuPipelineParamInfo>& paramInfo)
 	: TGpuParams(paramInfo)
 {
 }
 
-SPtr<GpuParams> GpuParams::GetThisPtrInternal() const
+SPtr<GpuParameters> GpuParameters::GetThisPtrInternal() const
 {
-	return std::static_pointer_cast<GpuParams>(GetShared());
+	return std::static_pointer_cast<GpuParameters>(GetShared());
 }
 
-SPtr<ct::GpuParams> GpuParams::GetCore() const
+SPtr<ct::GpuParameters> GpuParameters::GetCore() const
 {
-	return std::static_pointer_cast<ct::GpuParams>(mCoreSpecific);
+	return std::static_pointer_cast<ct::GpuParameters>(mCoreSpecific);
 }
 
-SPtr<ct::CoreObject> GpuParams::CreateCore() const
+SPtr<ct::CoreObject> GpuParameters::CreateCore() const
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	if(!gpuDevice)
@@ -709,37 +709,37 @@ SPtr<ct::CoreObject> GpuParams::CreateCore() const
 	return gpuDevice->CreateGpuParameters(parameterLayout->GetCore(), true);
 }
 
-void GpuParams::MarkCoreDirtyInternal()
+void GpuParameters::MarkCoreDirtyInternal()
 {
 	MarkCoreDirty();
 }
 
-void GpuParams::MarkResourcesDirtyInternal()
+void GpuParameters::MarkResourcesDirtyInternal()
 {
 	MarkListenerResourcesDirty();
 }
 
-SPtr<GpuParams> GpuParams::Create(const SPtr<GraphicsPipelineState>& pipelineState)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<GraphicsPipelineState>& pipelineState)
 {
 	return Create(pipelineState->GetParamInfo());
 }
 
-SPtr<GpuParams> GpuParams::Create(const SPtr<ComputePipelineState>& pipelineState)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<ComputePipelineState>& pipelineState)
 {
 	return Create(pipelineState->GetParamInfo());
 }
 
-SPtr<GpuParams> GpuParams::Create(const SPtr<GpuPipelineParamInfo>& parameterLayout)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuPipelineParamInfo>& parameterLayout)
 {
-	GpuParams* const output = new(B3DAllocate<GpuParams>()) GpuParams(parameterLayout);
-	SPtr<GpuParams> shared = B3DMakeCoreFromExisting<GpuParams>(output);
+	GpuParameters* const output = new(B3DAllocate<GpuParameters>()) GpuParameters(parameterLayout);
+	SPtr<GpuParameters> shared = B3DMakeCoreFromExisting<GpuParameters>(output);
 	shared->SetShared(shared);
 	shared->Initialize();
 
 	return shared;
 }
 
-CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
+CoreSyncData GpuParameters::SyncToCore(FrameAlloc* allocator)
 {
 	const u32 uniformBufferCount = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::UniformBuffer);
 	const u32 sampledTextureCount = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::SampledTexture);
@@ -849,7 +849,7 @@ CoreSyncData GpuParams::SyncToCore(FrameAlloc* allocator)
 	return CoreSyncData(data, totalSize);
 }
 
-void GpuParams::GetListenerResources(Vector<HResource>& resources)
+void GpuParameters::GetListenerResources(Vector<HResource>& resources)
 {
 	u32 numTextures = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::SampledTexture);
 	u32 numStorageTextures = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::StorageTexture);
@@ -869,17 +869,17 @@ void GpuParams::GetListenerResources(Vector<HResource>& resources)
 
 namespace bs { namespace ct
 {
-GpuParams::GpuParams(const SPtr<GpuPipelineParamInfo>& parameterLayout)
+GpuParameters::GpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout)
 	: TGpuParams(parameterLayout)
 {
 }
 
-SPtr<GpuParams> GpuParams::GetThisPtrInternal() const
+SPtr<GpuParameters> GpuParameters::GetThisPtrInternal() const
 {
-	return std::static_pointer_cast<GpuParams>(GetShared());
+	return std::static_pointer_cast<GpuParameters>(GetShared());
 }
 
-void GpuParams::SyncToCore(const CoreSyncData& data)
+void GpuParameters::SyncToCore(const CoreSyncData& data)
 {
 	const u32 uniformBufferCount = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::UniformBuffer);
 	const u32 sampledTextureCount = mParameterLayout->GetResourceCount(GpuPipelineParamInfo::GpuParameterType::SampledTexture);

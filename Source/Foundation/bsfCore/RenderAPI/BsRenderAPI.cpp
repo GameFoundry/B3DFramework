@@ -7,7 +7,7 @@
 #include "RenderAPI/BsRenderTarget.h"
 #include "RenderAPI/BsRenderWindow.h"
 #include "Mesh/BsMesh.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsDepthStencilState.h"
 #include "RenderAPI/BsRasterizerState.h"
 #include "RenderAPI/BsGpuPipelineState.h"
@@ -16,7 +16,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-void RenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams)
+void RenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams)
 {
 	GetCoreThread().QueueCommand(std::bind(&ct::RenderAPI::SetGpuParams, ct::RenderAPI::InstancePtr(), gpuParams->GetCore(), nullptr));
 }

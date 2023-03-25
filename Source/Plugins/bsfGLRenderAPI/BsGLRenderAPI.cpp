@@ -17,7 +17,7 @@
 #include "GLSL/BsGLSLProgramPipelineManager.h"
 #include "BsGLVertexArrayObjectManager.h"
 #include "Managers/BsRenderStateManager.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "BsGLGpuParamBlockBuffer.h"
 #include "CoreThread/BsCoreThread.h"
 #include "BsGLQueryManager.h"
@@ -374,9 +374,9 @@ void GLRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipelineS
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
-void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+void GLRenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 {
-	auto executeRef = [&](const SPtr<GpuParams>& gpuParams)
+	auto executeRef = [&](const SPtr<GpuParameters>& gpuParams)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -726,7 +726,7 @@ void GLRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<Comm
 							const u8* ptrData = uniformBufferData + param.CpuMemOffset * sizeof(u32);
 
 							// Note: We don't transpose matrices here even though we don't use column major format
-							// because they are assumed to be pre-transposed in the GpuParams buffer
+							// because they are assumed to be pre-transposed in the GpuParameters buffer
 							switch(param.Type)
 							{
 							case GPDT_FLOAT1:

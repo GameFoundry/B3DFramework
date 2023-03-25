@@ -101,7 +101,7 @@ namespace bs
 			 * @param[in]	gridIndices	Set to true if grid indices (used by light grid) parameter is required.
 			 * @param[in]	probeArray	True if the refl. probe data is to be provided in a structured buffer.
 			 */
-			void Populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
+			void Populate(const SPtr<GpuParameters>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray);
 
 			GpuParameterSampledTexture SkyReflectionsTexParam;
 			GpuParameterSampledTexture AmbientOcclusionTexParam;

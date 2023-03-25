@@ -40,7 +40,7 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void SetGpuParams(const SPtr<GpuParams>& gpuParams);
+		static void SetGpuParams(const SPtr<GpuParameters>& gpuParams);
 
 		/**
 		 * @see ct::RenderAPI::SetGraphicsPipeline()
@@ -190,7 +190,7 @@ namespace bs
 			 * like textures, samplers, or uniform buffers. Caller is expected to ensure the provided parameters actually
 			 * match the currently bound programs.
 			 */
-			virtual void SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
+			virtual void SetGpuParams(const SPtr<GpuParameters>& gpuParams, const SPtr<CommandBuffer>& commandBuffer = nullptr) = 0;
 
 			/**
 			 * Sets a pipeline state that controls how will subsequent draw commands render primitives.

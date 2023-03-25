@@ -299,7 +299,7 @@ static u32 CalculateStructSize(i32 structIndex, const std::vector<Xsc::Reflectio
 			// needed (i.e. add padding variables manually).
 			GpuDataParameterType type = XSCConvertDataType((Xsc::Reflection::DataType)entry.baseType);
 
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::kParamSizes.Lookup[(int)type];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::kParamSizes.Lookup[(int)type];
 			size += typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize * entry.arraySize;
 		}
 		else if(entry.type == Xsc::Reflection::VariableType::Struct)

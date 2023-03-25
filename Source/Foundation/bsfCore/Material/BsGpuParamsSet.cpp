@@ -486,19 +486,19 @@ SPtr<ct::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferC
 }
 
 template<bool Core>
-SPtr<CoreVariantType<GpuParams, Core>> CreateGpuParameters(const SPtr<CoreVariantType<GpuPipelineParamInfo, Core>>& parameterLayout)
+SPtr<CoreVariantType<GpuParameters, Core>> CreateGpuParameters(const SPtr<CoreVariantType<GpuPipelineParamInfo, Core>>& parameterLayout)
 {
 	return nullptr;
 }
 
 template<>
-SPtr<GpuParams> CreateGpuParameters<false>(const SPtr<GpuPipelineParamInfo>& parameterLayout)
+SPtr<GpuParameters> CreateGpuParameters<false>(const SPtr<GpuPipelineParamInfo>& parameterLayout)
 {
-	return GpuParams::Create(parameterLayout);
+	return GpuParameters::Create(parameterLayout);
 }
 
 template<>
-SPtr<ct::GpuParams> CreateGpuParameters<true>(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout)
+SPtr<ct::GpuParameters> CreateGpuParameters<true>(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout)
 {
 	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
 	return device->CreateGpuParameters(parameterLayout);
@@ -513,7 +513,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 {
 	u32 numPasses = technique->GetPassCount();
 
-	// Create GpuParams for each pass and shader stage
+	// Create GpuParameters for each pass and shader stage
 	for(u32 i = 0; i < numPasses; i++)
 	{
 		SPtr<PassType> curPass = technique->GetPass(i);
@@ -937,7 +937,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 
 		if(materialParamInfo->DataType != GPDT_STRUCT)
 		{
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::kParamSizes.Lookup[(int)materialParamInfo->DataType];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::kParamSizes.Lookup[(int)materialParamInfo->DataType];
 
 			u32 paramSize;
 			if(materialParamInfo->DataType != GPDT_COLOR)

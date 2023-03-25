@@ -100,7 +100,7 @@ void RendererReflectionProbe::GetParameters(ReflProbeData& output) const
 	output.InvBoxTransform.SetInverseTrs(output.Position, tfrm.GetRotation(), output.BoxExtents);
 }
 
-void ImageBasedLightingParams::Populate(const SPtr<GpuParams>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
+void ImageBasedLightingParams::Populate(const SPtr<GpuParameters>& params, GpuProgramType programType, bool optional, bool gridIndices, bool probeArray)
 {
 	// Sky
 	if(!optional || params->HasSampledTexture(programType, "gSkyReflectionTex"))

@@ -78,13 +78,13 @@ namespace bs
 		{
 		public:
 			/** Initializes the required parameters. To be called once before use. */
-			void Initialize(GpuProgramType type, const SPtr<GpuParams>& gpuParams);
+			void Initialize(GpuProgramType type, const SPtr<GpuParameters>& gpuParams);
 
 			/** Binds the GBuffer textures to the pipeline. */
 			void Bind(const GBufferTextures& gbuffer);
 
 		private:
-			SPtr<GpuParams> mParams;
+			SPtr<GpuParameters> mParams;
 
 			GpuParameterSampledTexture mGBufferA;
 			GpuParameterSampledTexture mGBufferB;
@@ -102,7 +102,7 @@ namespace bs
 			 * @param[in]	clustered	If true, set up parameters for clustered forward rendering. If false, set up parameters
 			 *							for normal forward rendering.
 			 */
-			void Populate(const SPtr<GpuParams>& params, bool clustered);
+			void Populate(const SPtr<GpuParameters>& params, bool clustered);
 
 			/** Binding indices representing where should lights param block buffer be bound to. */
 			GpuParamBinding GridParamsBindings[GPT_COUNT];

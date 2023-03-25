@@ -127,7 +127,7 @@ namespace bs
 			SPtr<Shader> GetShader() const { return mShader; }
 
 			/** Returns the internal parameter set containing GPU bindable parameters. */
-			SPtr<GpuParams> GetParams() const { return mGPUParameters; }
+			SPtr<GpuParameters> GetParams() const { return mGPUParameters; }
 
 			/**
 			 * Binds the materials and its parameters to the pipeline. This material will be used for rendering any subsequent
@@ -142,7 +142,7 @@ namespace bs
 		protected:
 			friend class bs::RendererMaterialManager;
 
-			SPtr<GpuParams> mGPUParameters;
+			SPtr<GpuParameters> mGPUParameters;
 			SPtr<GraphicsPipelineState> mGraphicsPipeline;
 			SPtr<ComputePipelineState> mComputePipeline;
 			u32 mStencilReferenceValue = 0;

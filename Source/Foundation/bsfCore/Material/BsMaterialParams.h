@@ -6,7 +6,7 @@
 #include "Reflection/BsIReflectable.h"
 #include "Allocators/BsStaticAlloc.h"
 #include "Math/BsVector2.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Allocators/BsPoolAlloc.h"
 
 namespace bs
@@ -112,7 +112,7 @@ namespace bs
 
 			const DataParamInfo& paramInfo = mDataParams[param->index + arrayIdx];
 
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::PARAM_SIZES.lookup[dataType];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::PARAM_SIZES.lookup[dataType];
 			u32 paramTypeSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
 
 			memcpy(output, &mDataParamsBuffer[paramInfo.offset], sizeof(paramTypeSize));
@@ -140,7 +140,7 @@ namespace bs
 
 			const DataParamInfo& paramInfo = mDataParams[param->index + arrayIdx];
 
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::PARAM_SIZES.lookup[dataType];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::PARAM_SIZES.lookup[dataType];
 			u32 paramTypeSize = typeInfo.numColumns * typeInfo.numRows * typeInfo.baseTypeSize;
 
 			memcpy(&mDataParamsBuffer[paramInfo.offset], input, sizeof(paramTypeSize));
@@ -285,7 +285,7 @@ namespace bs
 
 			const DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::kParamSizes.Lookup[dataType];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::kParamSizes.Lookup[dataType];
 			u32 paramTypeSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 
 			B3D_ASSERT(sizeof(output) == paramTypeSize);
@@ -315,7 +315,7 @@ namespace bs
 				paramInfo.ColorGradient = nullptr;
 			}
 
-			const GpuDataParameterTypeInformation& typeInfo = GpuParams::kParamSizes.Lookup[dataType];
+			const GpuDataParameterTypeInformation& typeInfo = GpuParameters::kParamSizes.Lookup[dataType];
 			u32 paramTypeSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 
 			B3D_ASSERT(sizeof(input) == paramTypeSize);
@@ -512,7 +512,7 @@ namespace bs
 	class B3D_CORE_EXPORT TMaterialParams : public MaterialParamsBase
 	{
 	public:
-		using GpuParamsType = CoreVariantType<GpuParams, Core>;
+		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using ShaderType = CoreVariantHandleType<Shader, Core>;
 		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
@@ -796,17 +796,17 @@ namespace bs
 	};
 
 	/**
-	 * Contains all parameter values set in a Material. This is similar to GpuParams which also stores parameter values,
-	 * however GpuParams are built for use on the GPU-side and don't store parameters that don't exist in a compiled GPU
+	 * Contains all parameter values set in a Material. This is similar to GpuParameters which also stores parameter values,
+	 * however GpuParameters are built for use on the GPU-side and don't store parameters that don't exist in a compiled GPU
 	 * program. This object on the other hand stores all parameters defined in a shader, regardless or not if they actually
-	 * exist in the GPU program. Additionally GpuParams are defined per-program (for example vertex, fragment) while this
+	 * exist in the GPU program. Additionally GpuParameters are defined per-program (for example vertex, fragment) while this
 	 * object exists for the entire material.
 	 *
 	 * @note
-	 * This introduces redundancy as parameters stored by GpuParams and this object are duplicated. If this is an issue the
-	 * implementation can be modified to only store parameters not included in GpuParams.
+	 * This introduces redundancy as parameters stored by GpuParameters and this object are duplicated. If this is an issue the
+	 * implementation can be modified to only store parameters not included in GpuParameters.
 	 * @note
-	 * The reason why parameters in this class and GpuParams differ is most often compiler optimizations. If a compiler
+	 * The reason why parameters in this class and GpuParameters differ is most often compiler optimizations. If a compiler
 	 * optimizes out a variable in a GPU program we should still be able to store it, either for later when the variable
 	 * will be introduced, or for other techniques that might have that variable implemented.
 	 */

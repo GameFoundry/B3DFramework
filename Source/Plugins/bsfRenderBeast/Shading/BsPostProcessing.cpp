@@ -15,7 +15,7 @@
 
 namespace bs { namespace ct {
 
-void SetSamplerState(const SPtr<GpuParams>& params, GpuProgramType gpType, const String& name, const String& secondaryName, const SPtr<SamplerState>& samplerState, bool optional = false)
+void SetSamplerState(const SPtr<GpuParameters>& params, GpuProgramType gpType, const String& name, const String& secondaryName, const SPtr<SamplerState>& samplerState, bool optional = false)
 {
 	if(params->HasSamplerState(gpType, name))
 		params->SetSamplerState(gpType, name, samplerState);

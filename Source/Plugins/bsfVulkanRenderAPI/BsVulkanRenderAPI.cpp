@@ -11,7 +11,7 @@
 #include "Managers/BsVulkanQueryManager.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanCommandBuffer.h"
-#include "BsVulkanGpuParams.h"
+#include "BsVulkanGpuParameters.h"
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanGpuBuffer.h"
 
@@ -104,7 +104,7 @@ void VulkanRenderAPI::SetComputePipeline(const SPtr<ComputePipelineState>& pipel
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
 
-void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParams>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
+void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const SPtr<CommandBuffer>& commandBuffer)
 {
 	VulkanCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
 	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();

@@ -262,7 +262,7 @@ namespace bs
 					if(entry.Type != MaterialParams::ParamType::Data)
 						continue;
 
-					const GpuDataParameterTypeInformation& typeInfo = GpuParams::kParamSizes.Lookup[(int)entry.DataType];
+					const GpuDataParameterTypeInformation& typeInfo = GpuParameters::kParamSizes.Lookup[(int)entry.DataType];
 					const u32 paramSize = typeInfo.NumColumns * typeInfo.NumRows * typeInfo.BaseTypeSize;
 					for(u32 i = 0; i < entry.ArraySize; i++)
 					{

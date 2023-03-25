@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "BsCoreApplication.h"
 #include "RenderAPI/BsGpuParamDesc.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsGpuBuffer.h"
 

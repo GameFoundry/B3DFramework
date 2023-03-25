@@ -3,7 +3,7 @@
 #include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanGpuProgram.h"
 #include "BsVulkanUtility.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "Math/BsMath.h"
 
@@ -815,7 +815,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuParamDesc& desc, 
 				u32 arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
 				if(paramType != GPDT_STRUCT)
 				{
-					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[paramType];
+					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[paramType];
 					elementSize = typeInfo.Size / 4;
 
 					// Array elements in std140 are always rounded to vec4
@@ -835,7 +835,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuParamDesc& desc, 
 				else if(paramTType->isMatrix())
 				{
 					// Matrices get rounded up to vec4
-					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[paramType];
+					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[paramType];
 
 					stride = Math::DivideAndRoundUp(typeInfo.BaseTypeSize * typeInfo.NumColumns / 4U, 4U) * 4 * typeInfo.NumRows;
 					bufferOffset = Math::DivideAndRoundUp(bufferOffset, 4U) * 4;

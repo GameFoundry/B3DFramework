@@ -8,7 +8,7 @@
 #include "Debug/BsDebug.h"
 #include "Private/RTTI/BsShaderRTTI.h"
 #include "Resources/BsResources.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Material/BsPass.h"
 #include "RenderAPI/BsSamplerState.h"
 #include "Image/BsTexture.h"
@@ -649,8 +649,8 @@ u32 Shader::GetDataParamSize(GpuDataParameterType type)
 	static const GpuDataParameterTypeInformationLookup kParamSizes;
 
 	u32 idx = (u32)type;
-	if(idx < sizeof(GpuParams::kParamSizes.Lookup))
-		return GpuParams::kParamSizes.Lookup[idx].Size;
+	if(idx < sizeof(GpuParameters::kParamSizes.Lookup))
+		return GpuParameters::kParamSizes.Lookup[idx].Size;
 
 	return 0;
 }

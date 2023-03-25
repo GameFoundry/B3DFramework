@@ -4,7 +4,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "Error/BsException.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 
 using namespace bs;
 using namespace bs::ct;
@@ -839,7 +839,7 @@ bool VulkanUtility::RangeOverlaps(const VkImageSubresourceRange& a, const VkImag
 
 u32 VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset)
 {
-	const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[type];
+	const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[type];
 	u32 size = (typeInfo.BaseTypeSize * typeInfo.NumColumns * typeInfo.NumRows) / 4;
 	u32 alignment = typeInfo.Alignment / 4;
 

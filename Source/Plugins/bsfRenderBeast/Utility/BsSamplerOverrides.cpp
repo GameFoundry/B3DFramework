@@ -3,7 +3,7 @@
 #include "BsSamplerOverrides.h"
 #include "BsRenderBeastOptions.h"
 #include "Material/BsMaterial.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Material/BsGpuParamsSet.h"
 #include "RenderAPI/BsGpuParamDesc.h"
 #include "Material/BsMaterialParams.h"
@@ -70,7 +70,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		{
 			u32 maxSamplerSet = 0;
 
-			SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
 			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
@@ -96,7 +96,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		u32* slotsPerSetIter = slotsPerSet;
 		for(u32 i = 0; i < numPasses; i++)
 		{
-			SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
 			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
 			{
 				GpuProgramType progType = (GpuProgramType)j;
@@ -137,7 +137,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(const
 		slotsPerSetIter = slotsPerSet;
 		for(u32 i = 0; i < numPasses; i++)
 		{
-			SPtr<GpuParams> paramsPtr = paramsSet->GetGpuParams(i);
+			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
 
 			PassSamplerOverrides& passOverrides = output->Passes[i];
 			passOverrides.NumSets = numSetsPerPass[i];

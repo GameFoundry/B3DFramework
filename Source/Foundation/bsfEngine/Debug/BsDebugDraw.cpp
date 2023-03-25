@@ -7,7 +7,7 @@
 #include "Image/BsSpriteTexture.h"
 #include "CoreThread/BsCoreThread.h"
 #include "Material/BsMaterial.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Material/BsGpuParamsSet.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Renderer/BsRenderer.h"

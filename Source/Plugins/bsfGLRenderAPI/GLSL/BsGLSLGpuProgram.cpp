@@ -6,7 +6,7 @@
 #include "GLSL/BsGLSLParamParser.h"
 #include "Managers/BsHardwareBufferManager.h"
 #include "Profiling/BsRenderStats.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 
 using namespace bs;
 using namespace bs::ct;

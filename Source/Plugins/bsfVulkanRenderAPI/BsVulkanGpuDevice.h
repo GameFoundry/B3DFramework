@@ -60,7 +60,7 @@ namespace bs
 			SPtr<TimerQuery> CreateTimerQuery() override;
 			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
 			SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize = false) override;
-			SPtr<GpuParams> CreateGpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize) override;
+			SPtr<GpuParameters> CreateGpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize) override;
 
 			/** @} */
 

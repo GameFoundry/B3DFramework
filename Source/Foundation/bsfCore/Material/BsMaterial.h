@@ -179,9 +179,9 @@ namespace bs
 		SPtr<PassType> GetPass(u32 passIdx = 0, u32 techniqueIdx = 0) const;
 
 		/**
-		 * Creates a set of GpuParams that may be used for binding material parameters to the GPU. The expected behaviour
-		 * is to create a set of GpuParams per-technique once, and then before binding them to the GPU call
-		 * UpdateParamsSet() to ensure any dirty parameters are transfered from the material to GpuParams. You may also
+		 * Creates a set of GpuParameters that may be used for binding material parameters to the GPU. The expected behaviour
+		 * is to create a set of GpuParameters per-technique once, and then before binding them to the GPU call
+		 * UpdateParamsSet() to ensure any dirty parameters are transfered from the material to GpuParameters. You may also
 		 * use the parameter set to manually modify parameters on a per-program basis, in which case no further updates from
 		 * the material are necessary.
 		 */

@@ -462,7 +462,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 			continue;
 		}
 
-		SPtr<GpuParams> gpuParams = element.Params->GetGpuParams();
+		SPtr<GpuParameters> gpuParams = element.Params->GetGpuParams();
 
 		// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 		// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
@@ -805,7 +805,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	renElement.Params = renElement.Material->CreateParamsSet(techniqueIdx);
 	renElement.Material->UpdateParamsSet(renElement.Params, 0.0f, true);
 
-	SPtr<GpuParams> gpuParams = renElement.Params->GetGpuParams();
+	SPtr<GpuParameters> gpuParams = renElement.Params->GetGpuParams();
 
 	if(gpu)
 	{
@@ -1035,7 +1035,7 @@ void RendererScene::RegisterDecal(Decal* decal)
 	renElement.SamplerOverrides = AllocSamplerStateOverrides(renElement);
 
 	// Prepare all parameter bindings
-	SPtr<GpuParams> gpuParams = renElement.Params->GetGpuParams();
+	SPtr<GpuParameters> gpuParams = renElement.Params->GetGpuParams();
 
 	// Note: Perhaps perform buffer validation to ensure expected buffer has the same size and layout as the
 	// provided buffer, and show a warning otherwise. But this is perhaps better handled on a higher level.
@@ -1288,7 +1288,7 @@ void RendererScene::RefreshSamplerOverrides(bool force)
 				u32 numPasses = element.Material->GetNumPasses();
 				for(u32 j = 0; j < numPasses; j++)
 				{
-					SPtr<GpuParams> params = element.Params->GetGpuParams(j);
+					SPtr<GpuParameters> params = element.Params->GetGpuParams(j);
 
 					const u32 numStages = 6;
 					for(u32 k = 0; k < numStages; k++)

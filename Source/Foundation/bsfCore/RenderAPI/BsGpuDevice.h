@@ -81,7 +81,7 @@ namespace bs
 		 * @param	parameterLayout			Layout that describes the GPU parameters, as retrieved from the GPU pipeline.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<ct::GpuParams> CreateGpuParameters(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize = false) = 0;
+		virtual SPtr<ct::GpuParameters> CreateGpuParameters(const SPtr<ct::GpuPipelineParamInfo>& parameterLayout, bool deferredInitialize = false) = 0;
 	};
 
 	/** @} */

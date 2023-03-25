@@ -3,7 +3,7 @@
 #include "BsRendererLight.h"
 #include "Material/BsMaterial.h"
 #include "Material/BsGpuParamsSet.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Renderer/BsLight.h"
 #include "Renderer/BsRendererUtility.h"
 #include "BsRenderBeast.h"
@@ -102,7 +102,7 @@ Vector3 RendererLight::GetShiftedLightPosition() const
 		return tfrm.GetPosition();
 }
 
-void GBufferParams::Initialize(GpuProgramType type, const SPtr<GpuParams>& gpuParams)
+void GBufferParams::Initialize(GpuProgramType type, const SPtr<GpuParameters>& gpuParams)
 {
 	mParams = gpuParams;
 
@@ -141,7 +141,7 @@ void GBufferParams::Bind(const GBufferTextures& gbuffer)
 	mGBufferDepth.Set(gbuffer.Depth);
 }
 
-void ForwardLightingParams::Populate(const SPtr<GpuParams>& params, bool clustered)
+void ForwardLightingParams::Populate(const SPtr<GpuParameters>& params, bool clustered)
 {
 	if(clustered)
 	{

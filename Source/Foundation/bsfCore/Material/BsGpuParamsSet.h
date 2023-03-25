@@ -13,11 +13,11 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Contains a set of GpuParams used for a single technique within a Material. */
+	/** Contains a set of GpuParameters used for a single technique within a Material. */
 	template <bool Core>
 	class B3D_CORE_EXPORT TGpuParamsSet
 	{
-		using GpuParamsType = CoreVariantType<GpuParams, Core>;
+		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
 		using ParamBlockPtrType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 		using TechniqueType = CoreVariantType<Technique, Core>;
@@ -119,7 +119,7 @@ namespace bs
 		u32 GetParamBlockBufferIndex(const String& name) const;
 
 		/**
-		 * Assign a parameter block buffer with the specified index to all the relevant child GpuParams.
+		 * Assign a parameter block buffer with the specified index to all the relevant child GpuParameters.
 		 *
 		 * @param[in]	index			Index of the buffer, as retrieved from GetParamBlockBufferIndex().
 		 * @param[in]	paramBlock		Parameter block to assign.
@@ -135,7 +135,7 @@ namespace bs
 		void SetParamBlockBuffer(u32 index, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate = false);
 
 		/**
-		 * Assign a parameter block buffer with the specified name to all the relevant child GpuParams.
+		 * Assign a parameter block buffer with the specified name to all the relevant child GpuParameters.
 		 *
 		 * @param[in]	name			Name of the buffer to set.
 		 * @param[in]	paramBlock		Parameter block to assign.

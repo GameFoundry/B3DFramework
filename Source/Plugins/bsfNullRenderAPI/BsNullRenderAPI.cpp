@@ -4,7 +4,7 @@
 #include "CoreThread/BsCoreThread.h"
 #include "Math/BsMatrix4.h"
 #include "RenderAPI/BsGpuParamDesc.h"
-#include "RenderAPI/BsGpuParams.h"
+#include "RenderAPI/BsGpuParameters.h"
 #include "Managers/BsGpuProgramManager.h"
 #include "BsNullCommandBuffer.h"
 #include "BsNullTexture.h"
@@ -110,7 +110,7 @@ GpuParameterBlockInformation NullRenderAPI::GenerateParamBlockDesc(const String&
 
 	for(auto& param : params)
 	{
-		const GpuDataParameterTypeInformation& typeInfo = bs::GpuParams::kParamSizes.Lookup[param.Type];
+		const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[param.Type];
 
 		if(param.ArraySize > 1)
 		{

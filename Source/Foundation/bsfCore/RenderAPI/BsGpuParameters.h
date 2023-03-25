@@ -253,7 +253,7 @@ namespace bs
 
 	class GpuPipelineParamInfoBase;
 
-	/** Contains functionality common for both sim and core thread version of GpuParams. */
+	/** Contains functionality common for both sim and core thread version of GpuParameters. */
 	class B3D_CORE_EXPORT GpuParamsBase
 	{
 	public:
@@ -314,12 +314,12 @@ namespace bs
 		SPtr<GpuPipelineParamInfoBase> mParameterLayout;
 	};
 
-	/** Templated version of GpuParams that contains functionality for both sim and core thread versions of stored data. */
+	/** Templated version of GpuParameters that contains functionality for both sim and core thread versions of stored data. */
 	template <bool Core>
 	class B3D_CORE_EXPORT TGpuParams : public GpuParamsBase
 	{
 	public:
-		using GpuParamsType = CoreVariantType<GpuParams, Core>;
+		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
 		using TextureType = CoreVariantHandleType<Texture, Core>;
 		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
 		using SamplerType = SPtr<CoreVariantType<SamplerState, Core>>;
@@ -333,7 +333,7 @@ namespace bs
 		 *
 		 * Throws exception if parameter with that name and type doesn't exist.
 		 *
-		 * Parameter handles will be invalidated when their parent GpuParams object changes.
+		 * Parameter handles will be invalidated when their parent GpuParameters object changes.
 		 */
 		template <class T>
 		void GetParameter(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const;
@@ -564,31 +564,31 @@ namespace bs
 	 *
 	 * @note	Sim thread only.
 	 */
-	class B3D_CORE_EXPORT GpuParams : public CoreObject, public TGpuParams<false>, public IResourceListener
+	class B3D_CORE_EXPORT GpuParameters : public CoreObject, public TGpuParams<false>, public IResourceListener
 	{
 	public:
-		~GpuParams() {}
+		~GpuParameters() {}
 
 		/** Retrieves a core implementation of a mesh usable only from the core thread. */
-		SPtr<ct::GpuParams> GetCore() const;
+		SPtr<ct::GpuParameters> GetCore() const;
 
 		/**
-		 * Creates new GpuParams object that can serve for changing the GPU program parameters on the specified pipeline.
+		 * Creates new GpuParameters object that can serve for changing the GPU program parameters on the specified pipeline.
 		 *
 		 * @param[in]	pipelineState	Pipeline state for which this object can set parameters for.
-		 * @return						New GpuParams object.
+		 * @return						New GpuParameters object.
 		 */
-		static SPtr<GpuParams> Create(const SPtr<GraphicsPipelineState>& pipelineState);
+		static SPtr<GpuParameters> Create(const SPtr<GraphicsPipelineState>& pipelineState);
 
-		/** @copydoc GpuParams::Create(const SPtr<GraphicsPipelineState>&) */
-		static SPtr<GpuParams> Create(const SPtr<ComputePipelineState>& pipelineState);
+		/** @copydoc GpuParameters::Create(const SPtr<GraphicsPipelineState>&) */
+		static SPtr<GpuParameters> Create(const SPtr<ComputePipelineState>& pipelineState);
 
 		/**
 		 * Creates a new set of GPU parameters using an object describing the parameters for a pipeline.
 		 *
 		 * @param[in]	parameterLayout	Description of GPU parameters for a specific GPU pipeline state.
 		 */
-		static SPtr<GpuParams> Create(const SPtr<GpuPipelineParamInfo>& parameterLayout);
+		static SPtr<GpuParameters> Create(const SPtr<GpuPipelineParamInfo>& parameterLayout);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParameterTypeInformationLookup kParamSizes;
@@ -602,9 +602,9 @@ namespace bs
 
 		/** @} */
 	protected:
-		GpuParams(const SPtr<GpuPipelineParamInfo>& paramInfo);
+		GpuParameters(const SPtr<GpuPipelineParamInfo>& paramInfo);
 
-		SPtr<GpuParams> GetThisPtrInternal() const override;
+		SPtr<GpuParameters> GetThisPtrInternal() const override;
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
@@ -623,21 +623,21 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread version of bs::GpuParams.
+		 * Core thread version of bs::GpuParameters.
 		 *
 		 * @note	Core thread only.
 		 */
-		class B3D_CORE_EXPORT GpuParams : public CoreObject, public TGpuParams<true>
+		class B3D_CORE_EXPORT GpuParameters : public CoreObject, public TGpuParams<true>
 		{
 		public:
-			virtual ~GpuParams() = default;
+			virtual ~GpuParameters() = default;
 
 		protected:
-			friend class bs::GpuParams;
+			friend class bs::GpuParameters;
 
-			GpuParams(const SPtr<GpuPipelineParamInfo>& parameterLayout);
+			GpuParameters(const SPtr<GpuPipelineParamInfo>& parameterLayout);
 
-			SPtr<GpuParams> GetThisPtrInternal() const override;
+			SPtr<GpuParameters> GetThisPtrInternal() const override;
 			void SyncToCore(const CoreSyncData& data) override;
 		};
 

@@ -4,7 +4,7 @@
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanGpuParams.h"
+#include "BsVulkanGpuParameters.h"
 #include "BsVulkanQueue.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanGpuBuffer.h"
@@ -1344,13 +1344,13 @@ void VulkanInternalCommandBuffer::SetPipelineState(const SPtr<ComputePipelineSta
 	mCmpPipelineRequiresBind = true;
 }
 
-void VulkanInternalCommandBuffer::SetGpuParams(const SPtr<GpuParams>& gpuParams)
+void VulkanInternalCommandBuffer::SetGpuParams(const SPtr<GpuParameters>& gpuParams)
 {
 	// Note: We keep an internal reference to GPU params even though we shouldn't keep a reference to a core thread
 	// object. But it should be fine since we expect the resource to be externally synchronized so it should never
 	// be allowed to go out of scope on a non-core thread anyway.
 
-	mBoundParams = std::static_pointer_cast<VulkanGpuParams>(gpuParams);
+	mBoundParams = std::static_pointer_cast<VulkanGpuParameters>(gpuParams);
 
 	if(mBoundParams != nullptr)
 		mBoundParamsDirty = true;

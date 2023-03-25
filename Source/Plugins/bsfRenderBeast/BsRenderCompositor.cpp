@@ -343,7 +343,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 		for(auto& element : inputs.Scene.Renderables[i]->Elements)
 		{
-			SPtr<GpuParams> gpuParams = element.Params->GetGpuParams();
+			SPtr<GpuParameters> gpuParams = element.Params->GetGpuParams();
 			for(u32 j = 0; j < GPT_COUNT; j++)
 			{
 				const GpuParamBinding& binding = element.PerCameraBindings[j];
@@ -398,7 +398,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 		rendererDecal.UpdatePerCallBuffer(viewProps.ViewProjTransform);
 
-		SPtr<GpuParams> gpuParams = renderElement.Params->GetGpuParams();
+		SPtr<GpuParameters> gpuParams = renderElement.Params->GetGpuParams();
 		for(u32 j = 0; j < GPT_COUNT; j++)
 		{
 			const GpuParamBinding& binding = renderElement.PerCameraBindings[j];
@@ -1298,7 +1298,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	if(skybox)
 		skyFilteredRadiance = skybox->GetFilteredRadiance();
 
-	const auto bindParamsForClustered = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData](GpuParams& gpuParams, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
+	const auto bindParamsForClustered = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData](GpuParameters& gpuParams, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
 	{
 		for(u32 j = 0; j < GPT_COUNT; j++)
 		{
@@ -1317,7 +1317,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		iblParams.ReflectionProbesParam.Set(visibleReflProbeData.GetProbeBuffer());
 	};
 
-	const auto bindParamsForStandardForward = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData](GpuParams& gpuParams, const Bounds& bounds, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
+	const auto bindParamsForStandardForward = [&standardForwardBuffers, &visibleLightData, &visibleReflProbeData](GpuParameters& gpuParams, const Bounds& bounds, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
 	{
 		// Populate light & probe buffers
 		Vector3I lightCounts;
@@ -1367,7 +1367,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 		}
 	};
 
-	const auto bindCommonIBLParams = [&reflProbeParamBuffer, &skyFilteredRadiance, &sceneInfo](GpuParams& gpuParams, ImageBasedLightingParams& iblParams)
+	const auto bindCommonIBLParams = [&reflProbeParamBuffer, &skyFilteredRadiance, &sceneInfo](GpuParameters& gpuParams, ImageBasedLightingParams& iblParams)
 	{
 		// Note: Ideally these should be bound once (they are the same for all renderables)
 		if(iblParams.ReflProbeParamBindings.Set != (u32)-1)
@@ -1435,7 +1435,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
 			// change (e.g. when growing).
-			const SPtr<GpuParams> gpuParams = element.Params->GetGpuParams();
+			const SPtr<GpuParameters> gpuParams = element.Params->GetGpuParams();
 			if(supportsClusteredForward)
 				bindParamsForClustered(*gpuParams, element.ForwardLightingParams, element.ImageBasedParams);
 			else
@@ -1475,7 +1475,7 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 			if(!renderElement.IsValid())
 				continue;
 
-			const SPtr<GpuParams> gpuParams = renderElement.Params->GetGpuParams();
+			const SPtr<GpuParameters> gpuParams = renderElement.Params->GetGpuParams();
 
 			// Note: It would be nice to be able to set this once and keep it, only updating if the buffers actually
 			// change (e.g. when growing).
