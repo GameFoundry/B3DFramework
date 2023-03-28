@@ -4,7 +4,7 @@
 
 #include "BsRenderBeastPrerequisites.h"
 #include "Renderer/BsRenderElement.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "RenderAPI/BsGpuPipelineParamInfo.h"
 #include "Material/BsShaderVariation.h"
 #include "Particles/BsParticleSystem.h"

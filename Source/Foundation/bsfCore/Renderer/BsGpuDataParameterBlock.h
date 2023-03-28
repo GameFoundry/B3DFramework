@@ -19,45 +19,45 @@ namespace bs
 
 		/** Wrapper for a single parameter in a parameter block buffer. */
 		template <class T>
-		class ParamBlockParam
+		class GpuDataParameterBlockElement
 		{
 		public:
-			ParamBlockParam() = default;
+			GpuDataParameterBlockElement() = default;
 
-			ParamBlockParam(const GpuDataParameterInformation& paramDesc)
-				: mParamDesc(paramDesc)
+			GpuDataParameterBlockElement(const GpuDataParameterInformation& parameterInformation)
+				: mParameterInformation(parameterInformation)
 			{}
 
 			/**
 			 * Sets the parameter in the provided parameter block buffer. Caller is responsible for ensuring the param block
 			 * buffer contains this parameter.
 			 */
-			void Set(const SPtr<GpuBuffer>& paramBlock, const T& value, u32 arrayIdx = 0) const
+			void Set(const SPtr<GpuBuffer>& parameterBlockBuffer, const T& value, u32 arrayIdx = 0) const
 			{
 #if B3D_DEBUG
-				if(arrayIdx >= mParamDesc.ArraySize)
+				if(arrayIdx >= mParameterInformation.ArraySize)
 				{
-					B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc.ArraySize) + ". Requested size: " + ToString(arrayIdx));
+					B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterInformation.ArraySize) + ". Requested size: " + ToString(arrayIdx));
 				}
 #endif
 
-				u32 elementSizeBytes = mParamDesc.ElementSize * sizeof(u32);
+				u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
 				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
 				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);
-					paramBlock->WriteCached((mParamDesc.CpuOffset + arrayIdx * mParamDesc.ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
+					parameterBlockBuffer->WriteCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
 				}
 				else
-					paramBlock->WriteCached((mParamDesc.CpuOffset + arrayIdx * mParamDesc.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+					parameterBlockBuffer->WriteCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
 
 				// Set unused bytes to 0
 				if(sizeBytes < elementSizeBytes)
 				{
 					u32 diffSize = elementSizeBytes - sizeBytes;
-					paramBlock->ZeroOutCached((mParamDesc.CpuOffset + arrayIdx * mParamDesc.ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
+					parameterBlockBuffer->ZeroOutCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
 				}
 			}
 
@@ -71,16 +71,16 @@ namespace bs
 			void Set(u8* const destination, const T& value, u32 arrayIndex = 0) const
 			{
 #if B3D_DEBUG
-				if(arrayIndex >= mParamDesc.ArraySize)
+				if(arrayIndex >= mParameterInformation.ArraySize)
 				{
-					B3D_LOG(Error, RenderBackend, "Array index out of range. Array size: {0}. Requested size: {1}", mParamDesc.ArraySize, arrayIndex);
+					B3D_LOG(Error, RenderBackend, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation.ArraySize, arrayIndex);
 					return;
 				}
 #endif
 
-				const u32 elementSizeBytes = mParamDesc.ElementSize * sizeof(u32);
+				const u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
 				const u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
-				const u32 offset = (mParamDesc.CpuOffset + arrayIndex * mParamDesc.ArrayElementStride) * sizeof(u32);
+				const u32 offset = (mParameterInformation.CpuOffset + arrayIndex * mParameterInformation.ArrayElementStride) * sizeof(u32);
 
 				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
@@ -105,33 +105,33 @@ namespace bs
 			 * Gets the parameter in the provided parameter block buffer. Caller is responsible for ensuring the param block
 			 * buffer contains this parameter.
 			 */
-			T Get(const SPtr<GpuBuffer>& paramBlock, u32 arrayIdx = 0) const
+			T Get(const SPtr<GpuBuffer>& parameterBlockBuffer, u32 arrayIdx = 0) const
 			{
 #if B3D_DEBUG
-				if(arrayIdx >= mParamDesc.ArraySize)
+				if(arrayIdx >= mParameterInformation.ArraySize)
 				{
-					B3D_LOG(Error, Material, "Array index out of range. Array size: {0}. Requested size: {1}", mParamDesc.ArraySize, arrayIdx);
+					B3D_LOG(Error, Material, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation.ArraySize, arrayIdx);
 					return T();
 				}
 #endif
 
-				u32 elementSizeBytes = mParamDesc.ElementSize * sizeof(u32);
+				u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
 				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
 
 				T value;
-				paramBlock->ReadCached((mParamDesc.CpuOffset + arrayIdx * mParamDesc.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+				parameterBlockBuffer->ReadCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
 
 				return value;
 			}
 
 		protected:
-			GpuDataParameterInformation mParamDesc;
+			GpuDataParameterInformation mParameterInformation;
 		};
 
 		/** Base class for all parameter blocks. */
-		struct B3D_CORE_EXPORT ParamBlock
+		struct B3D_CORE_EXPORT GpuDataParameterBlock
 		{
-			virtual ~ParamBlock();
+			virtual ~GpuDataParameterBlock();
 			virtual void Initialize() = 0;
 		};
 
@@ -139,19 +139,19 @@ namespace bs
 		 * Takes care of initializing param block definitions in a delayed manner since they depend on engine systems yet
 		 * are usually used as global variables which are initialized before engine systems are ready.
 		 */
-		class B3D_CORE_EXPORT ParamBlockManager : public Module<ParamBlockManager>
+		class B3D_CORE_EXPORT GpuDataParameterBlockManager : public Module<GpuDataParameterBlockManager>
 		{
 		public:
-			ParamBlockManager();
+			GpuDataParameterBlockManager();
 
 			/** Registers a new param block, and initializes it when ready. */
-			static void RegisterBlock(ParamBlock* paramBlock);
+			static void RegisterBlock(GpuDataParameterBlock* parameterBlock);
 
 			/** Removes the param block from the initialization list. */
-			static void UnregisterBlock(ParamBlock* paramBlock);
+			static void UnregisterBlock(GpuDataParameterBlock* parameterBlock);
 
 		private:
-			static Vector<ParamBlock*> sToInitialize;
+			static Vector<GpuDataParameterBlock*> sToInitialize;
 		};
 
 /**
@@ -160,11 +160,11 @@ namespace bs
  * B3D_PARAM_BLOCK_END.
  */
 #define B3D_PARAM_BLOCK_BEGIN(Name)                                                                  \
-	struct Name : ParamBlock                                                                         \
+	struct Name : GpuDataParameterBlock                                                              \
 	{                                                                                                \
 		Name()                                                                                       \
 		{                                                                                            \
-			ParamBlockManager::RegisterBlock(this);                                                  \
+			GpuDataParameterBlockManager::RegisterBlock(this);                                       \
 		}                                                                                            \
                                                                                                      \
 		SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const             \
@@ -223,11 +223,11 @@ namespace bs
 	void META_InitPrevEntry(const Vector<GpuDataParameterInformation>& params, u32 idx, META_NextEntry_##Name_ id) \
 	{                                                                                                   \
 		META_InitPrevEntry(params, idx - 1, META_Entry_##Name_());                                      \
-		Name_ = ParamBlockParam<Type_>(params[idx]);                                                    \
+		Name_ = GpuDataParameterBlockElement<Type_>(params[idx]);                                       \
 	}                                                                                                   \
                                                                                                         \
 public:                                                                                                 \
-	ParamBlockParam<Type_> Name_;                                                                       \
+	GpuDataParameterBlockElement<Type_> Name_;                                                          \
                                                                                                         \
 private:                                                                                                \
 	typedef META_NextEntry_##Name_

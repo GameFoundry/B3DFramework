@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Renderer/BsRendererMaterial.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "Renderer/BsGpuResourcePool.h"
 
 namespace bs

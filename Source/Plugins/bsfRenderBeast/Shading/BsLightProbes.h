@@ -8,7 +8,7 @@
 #include "Math/BsMatrixNxM.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsGpuResourcePool.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "BsRendererLight.h"
 
 namespace bs

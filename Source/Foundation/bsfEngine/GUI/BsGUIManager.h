@@ -14,7 +14,7 @@
 #include "Math/BsMatrix4.h"
 #include "Utility/BsEvent.h"
 #include "Material/BsMaterialParam.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "GUI/BsGUIWidget.h"
 
 namespace bs

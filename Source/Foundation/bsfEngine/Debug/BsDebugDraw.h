@@ -5,7 +5,7 @@
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Utility/BsDrawHelper.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "Renderer/BsRendererExtension.h"
 #include "Renderer/BsRendererMaterial.h"
 

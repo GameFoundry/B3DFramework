@@ -6,7 +6,7 @@
 #include "Utility/BsModule.h"
 #include "Math/BsMatrix4.h"
 #include "Math/BsConvexVolume.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsLight.h"
 #include "Image/BsTextureAtlasLayout.h"

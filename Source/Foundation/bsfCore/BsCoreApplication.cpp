@@ -42,7 +42,7 @@
 #include "Animation/BsAnimationManager.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Material/BsShaderCompiler.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsVectorField.h"
 
@@ -93,7 +93,7 @@ CoreApplication::~CoreApplication()
 
 	Input::ShutDown();
 
-	ct::ParamBlockManager::ShutDown();
+	ct::GpuDataParameterBlockManager::ShutDown();
 	StringTableManager::ShutDown();
 	Resources::ShutDown();
 	GameObjectManager::ShutDown();
@@ -181,7 +181,7 @@ void CoreApplication::OnStartUp()
 	mPrimaryGpu = GpuBackend::Instance().GetDevice(0);
 	B3D_ENSURE(mPrimaryGpu->IsInitialized()); // Must have already been initialized by RenderAPI
 
-	ct::ParamBlockManager::StartUp();
+	ct::GpuDataParameterBlockManager::StartUp();
 	Input::StartUp();
 	RendererManager::StartUp();
 

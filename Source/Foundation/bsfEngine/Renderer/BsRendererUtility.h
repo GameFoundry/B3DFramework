@@ -8,7 +8,7 @@
 #include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "Renderer/BsRendererMaterial.h"
-#include "Renderer/BsParamBlocks.h"
+#include "Renderer/BsGpuDataParameterBlock.h"
 
 namespace bs
 {
