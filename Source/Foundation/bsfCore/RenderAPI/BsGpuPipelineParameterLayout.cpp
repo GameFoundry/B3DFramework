@@ -1,24 +1,27 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuPipelineParameterLayout.h"
+
+#include "BsCoreApplication.h"
+#include "BsGpuDevice.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 #include "Managers/BsRenderStateManager.h"
 #include "Math/BsMath.h"
 
 using namespace bs;
 
-GpuPipelineParameterLayoutBase::GpuPipelineParameterLayoutBase(const GpuPipelineParameterDescription& parameterDescription)
+GpuPipelineParameterLayoutBase::GpuPipelineParameterLayoutBase(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 	: mResourceInfos()
 {
 	B3DZeroOut(mBindingSlotCountPerType);
 	B3DZeroOut(mResourceCountPerType);
 
-	mPerProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM] = parameterDescription.Fragment;
-	mPerProgramParameterDescriptions[GPT_VERTEX_PROGRAM] = parameterDescription.Vertex;
-	mPerProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM] = parameterDescription.Geometry;
-	mPerProgramParameterDescriptions[GPT_HULL_PROGRAM] = parameterDescription.Hull;
-	mPerProgramParameterDescriptions[GPT_DOMAIN_PROGRAM] = parameterDescription.Domain;
-	mPerProgramParameterDescriptions[GPT_COMPUTE_PROGRAM] = parameterDescription.Compute;
+	mPerProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM] = createInformation.Fragment;
+	mPerProgramParameterDescriptions[GPT_VERTEX_PROGRAM] = createInformation.Vertex;
+	mPerProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM] = createInformation.Geometry;
+	mPerProgramParameterDescriptions[GPT_HULL_PROGRAM] = createInformation.Hull;
+	mPerProgramParameterDescriptions[GPT_DOMAIN_PROGRAM] = createInformation.Domain;
+	mPerProgramParameterDescriptions[GPT_COMPUTE_PROGRAM] = createInformation.Compute;
 
 	auto fnCountElementsForType = [this](auto& entry, GpuParameterType type)
 	{
@@ -410,11 +413,11 @@ u32 GpuPipelineParameterLayoutBase::GetArraySize(GpuParameterType type, u32 sequ
 	return mResourceInfos[(u32)type][sequentialBindingIndex].ArraySize;
 }
 
-GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterDescription& desc)
+GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterLayoutInformation& desc)
 	: GpuPipelineParameterLayoutBase(desc)
 {}
 
-SPtr<GpuPipelineParameterLayout> GpuPipelineParameterLayout::Create(const GpuPipelineParameterDescription& desc)
+SPtr<GpuPipelineParameterLayout> GpuPipelineParameterLayout::Create(const GpuPipelineParameterLayoutInformation& desc)
 {
 	SPtr<GpuPipelineParameterLayout> paramInfo =
 		B3DMakeCoreFromExisting<GpuPipelineParameterLayout>(new(B3DAllocate<GpuPipelineParameterLayout>()) GpuPipelineParameterLayout(desc));
@@ -431,25 +434,24 @@ SPtr<ct::GpuPipelineParameterLayout> GpuPipelineParameterLayout::GetCore() const
 
 SPtr<ct::CoreObject> GpuPipelineParameterLayout::CreateCore() const
 {
-	GpuPipelineParameterDescription desc;
-	desc.Fragment = mPerProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM];
-	desc.Vertex = mPerProgramParameterDescriptions[GPT_VERTEX_PROGRAM];
-	desc.Geometry = mPerProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM];
-	desc.Hull = mPerProgramParameterDescriptions[GPT_HULL_PROGRAM];
-	desc.Domain = mPerProgramParameterDescriptions[GPT_DOMAIN_PROGRAM];
-	desc.Compute = mPerProgramParameterDescriptions[GPT_COMPUTE_PROGRAM];
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(!gpuDevice)
+		return nullptr;
 
-	return ct::RenderStateManager::Instance().CreatePipelineParamInfoInternal(desc);
+	GpuPipelineParameterLayoutCreateInformation createInformation;
+	createInformation.Fragment = mPerProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM];
+	createInformation.Vertex = mPerProgramParameterDescriptions[GPT_VERTEX_PROGRAM];
+	createInformation.Geometry = mPerProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM];
+	createInformation.Hull = mPerProgramParameterDescriptions[GPT_HULL_PROGRAM];
+	createInformation.Domain = mPerProgramParameterDescriptions[GPT_DOMAIN_PROGRAM];
+	createInformation.Compute = mPerProgramParameterDescriptions[GPT_COMPUTE_PROGRAM];
+
+	return gpuDevice->CreateGpuPipelineParameterLayout(createInformation, true);
 }
 
 namespace bs { namespace ct
 {
-GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask)
-	: GpuPipelineParameterLayoutBase(desc)
+GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
+	: GpuPipelineParameterLayoutBase(createInformation)
 {}
-
-SPtr<GpuPipelineParameterLayout> GpuPipelineParameterLayout::Create(const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask)
-{
-	return RenderStateManager::Instance().CreatePipelineParamInfo(desc, deviceMask);
-}
 }}

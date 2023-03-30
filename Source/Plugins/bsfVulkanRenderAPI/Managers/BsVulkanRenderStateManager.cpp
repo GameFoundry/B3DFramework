@@ -38,14 +38,3 @@ SPtr<ct::ComputePipelineState> VulkanRenderStateManager::CreateComputePipelineSt
 
 	return pipelineState;
 }
-
-SPtr<ct::GpuPipelineParameterLayout> VulkanRenderStateManager::CreatePipelineParamInfoInternal(
-	const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask) const
-{
-	SPtr<VulkanGpuPipelineParameterLayout> paramInfo =
-		B3DMakeSharedFromExisting<VulkanGpuPipelineParameterLayout>(new(B3DAllocate<VulkanGpuPipelineParameterLayout>())
-													  VulkanGpuPipelineParameterLayout(desc, deviceMask));
-	paramInfo->SetShared(paramInfo);
-
-	return paramInfo;
-}

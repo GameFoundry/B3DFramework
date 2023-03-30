@@ -52,9 +52,9 @@ String GpuProgram::GetCompileErrorMessage() const
 	return GetCore()->GetCompileErrorMessage();
 }
 
-SPtr<GpuProgramParameterDescription> GpuProgram::GetParamDesc() const
+SPtr<GpuProgramParameterDescription> GpuProgram::GetParameterDescription() const
 {
-	return GetCore()->GetParamDesc();
+	return GetCore()->GetParameterDescription();
 }
 
 SPtr<ct::GpuProgram> GpuProgram::GetCore() const

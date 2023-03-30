@@ -295,7 +295,7 @@ void VulkanGraphicsPipelineState::Initialize()
 		mPerDeviceData[i].Device = devices[i];
 
 		VulkanDescriptorManager& descManager = mPerDeviceData[i].Device->GetDescriptorManager();
-		VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParamInfo);
+		VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
 		u32 numLayouts = vkParamInfo.GetSetCount();
 		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);
@@ -544,7 +544,7 @@ void VulkanComputePipelineState::Initialize()
 
 		VulkanDescriptorManager& descManager = devices[i]->GetDescriptorManager();
 		VulkanResourceManager& rescManager = devices[i]->GetResourceManager();
-		VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParamInfo);
+		VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
 		u32 numLayouts = vkParamInfo.GetSetCount();
 		VulkanDescriptorLayout** layouts = (VulkanDescriptorLayout**)B3DStackAllocate(sizeof(VulkanDescriptorLayout*) * numLayouts);

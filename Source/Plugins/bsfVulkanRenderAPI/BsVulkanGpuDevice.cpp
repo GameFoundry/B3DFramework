@@ -25,6 +25,7 @@ static_assert(false, "Other platform includes go here.");
 #include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanGpuBuffer.h"
 #include "BsVulkanGpuParameters.h"
+#include "BsVulkanGpuPipelineParameterLayout.h"
 #include "BsVulkanGpuProgram.h"
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanTimerQuery.h"
@@ -515,6 +516,17 @@ SPtr<ct::GpuParameters> VulkanGpuDevice::CreateGpuParameters(const SPtr<GpuPipel
 	SPtr<GpuParameters> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuParameters>()) VulkanGpuParameters(*this, parameterLayout));
 	output->SetShared(output);
 
+	if(!deferredInitialize)
+		output->Initialize();
+
+	return output;
+}
+
+SPtr<ct::GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize)
+{
+	SPtr<VulkanGpuPipelineParameterLayout> output = B3DMakeSharedFromExisting<VulkanGpuPipelineParameterLayout>(new(B3DAllocate<VulkanGpuPipelineParameterLayout>()) VulkanGpuPipelineParameterLayout(*this, createInformation));
+	output->SetShared(output);
+	
 	if(!deferredInitialize)
 		output->Initialize();
 

@@ -9,23 +9,13 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(const GpuPipelineParameterDescription& parameterDescription, GpuDeviceFlags deviceMask)
-	: GpuPipelineParameterLayout(parameterDescription, deviceMask), mDeviceMask(deviceMask), mLayouts(), mLayoutInfos()
+VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(VulkanGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation)
+	: GpuPipelineParameterLayout(createInformation), mGpuDevice(gpuDevice), mLayouts(), mLayoutInfos()
 {}
 
 void VulkanGpuPipelineParameterLayout::Initialize()
 {
 	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-
-	VulkanGpuDevice* devices[B3D_MAX_DEVICES];
-	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
-
-	u32 deviceCount = 0;
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(devices[i] != nullptr)
-			deviceCount++;
-	}
 
 	u32 totalSlotCount = 0;
 	for(u32 i = 0; i < mSetCount; i++)
@@ -36,7 +26,7 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 		.Reserve<GpuBufferFormat>(mBindingSlotCount)
 		.Reserve<GpuBufferFormat>(mBindingSlotCount)
 		.Reserve<LayoutInfo>(mSetCount)
-		.Reserve<VulkanDescriptorLayout*>(mSetCount * deviceCount)
+		.Reserve<VulkanDescriptorLayout*>(mSetCount)
 		.Reserve<SetExtraInfo>(mSetCount)
 		.Reserve<u32>(totalSlotCount)
 		.Reserve<u32>(totalSlotCount)
@@ -48,17 +38,7 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 	GpuBufferFormat* elementTypes = mAlloc.Alloc<GpuBufferFormat>(mBindingSlotCount);
 	u32* elementArraySizes = mAlloc.Alloc<u32>(mBindingSlotCount);
 
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(devices[i] == nullptr)
-		{
-			mLayouts[i] = nullptr;
-			continue;
-		}
-
-		mLayouts[i] = mAlloc.Alloc<VulkanDescriptorLayout*>(mSetCount);
-	}
-
+	mLayouts = mAlloc.Alloc<VulkanDescriptorLayout*>(mSetCount);
 	mSetExtraInfos = mAlloc.Alloc<SetExtraInfo>(mSetCount);
 
 	if(bindings != nullptr)
@@ -229,22 +209,16 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 		}
 	}
 
-	// Allocate layouts per-device
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(mLayouts[i] == nullptr)
-			continue;
-
-		VulkanDescriptorManager& descManager = devices[i]->GetDescriptorManager();
-		for(u32 j = 0; j < mSetCount; j++)
-			mLayouts[i][j] = descManager.GetLayout(mLayoutInfos[j].Bindings, mLayoutInfos[j].BindingCount);
-	}
+	// Allocate layouts
+	VulkanDescriptorManager& descriptorManager = mGpuDevice.GetDescriptorManager();
+	for(u32 setIndex = 0; setIndex < mSetCount; setIndex++)
+		mLayouts[setIndex] = descriptorManager.GetLayout(mLayoutInfos[setIndex].Bindings, mLayoutInfos[setIndex].BindingCount);
 }
 
 VulkanDescriptorLayout* VulkanGpuPipelineParameterLayout::GetLayout(u32 deviceIdx, u32 layoutIdx) const
 {
-	if(deviceIdx >= B3D_MAX_DEVICES || mLayouts[deviceIdx] == nullptr)
+	if(!B3D_ENSURE(deviceIdx == 0))
 		return nullptr;
 
-	return mLayouts[deviceIdx][layoutIdx];
+	return mLayouts[layoutIdx];
 }

@@ -224,15 +224,6 @@ SPtr<ComputePipelineState> RenderStateManager::CreateComputePipelineState(const 
 	return state;
 }
 
-SPtr<GpuPipelineParameterLayout> RenderStateManager::CreatePipelineParamInfo(
-	const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask) const
-{
-	SPtr<GpuPipelineParameterLayout> paramInfo = CreatePipelineParamInfoInternal(desc, deviceMask);
-	paramInfo->Initialize();
-
-	return paramInfo;
-}
-
 SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const
 {
 	SPtr<SamplerState> state = FindCachedState(desc);
@@ -317,18 +308,6 @@ SPtr<ComputePipelineState> RenderStateManager::CreateComputePipelineStateInterna
 	pipelineState->SetShared(pipelineState);
 
 	return pipelineState;
-}
-
-SPtr<GpuPipelineParameterLayout> RenderStateManager::CreatePipelineParamInfoInternal(
-	const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask) const
-{
-	SPtr<GpuPipelineParameterLayout> paramInfo =
-		B3DMakeSharedFromExisting<GpuPipelineParameterLayout>(new(B3DAllocate<GpuPipelineParameterLayout>())
-												GpuPipelineParameterLayout(desc, deviceMask));
-
-	paramInfo->SetShared(paramInfo);
-
-	return paramInfo;
 }
 
 void RenderStateManager::OnShutDown()

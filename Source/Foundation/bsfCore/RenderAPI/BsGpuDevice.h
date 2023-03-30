@@ -6,6 +6,7 @@
 
 namespace bs
 {
+	struct GpuPipelineParameterLayoutCreateInformation;
 	struct GpuProgramBytecode;
 	struct GpuBufferCreateInformation;
 	struct GpuProgramCreateInformation;
@@ -82,6 +83,14 @@ namespace bs
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
 		virtual SPtr<ct::GpuParameters> CreateGpuParameters(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize = false) = 0;
+
+		/**
+		 * Creates a pipeline layout from a set of GPU program parameter descriptions. 
+		 *
+		 * @param	createInformation		Object describing the layout to create.
+		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
+		 */
+		virtual SPtr<ct::GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 	};
 
 	/** @} */

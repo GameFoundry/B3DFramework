@@ -88,35 +88,35 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<Techniq
 			if(vertProgram)
 			{
 				vertProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(vertProgram->GetParamDesc());
+				allParamDescs.push_back(vertProgram->GetParameterDescription());
 			}
 
 			SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
 			if(fragProgram)
 			{
 				fragProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(fragProgram->GetParamDesc());
+				allParamDescs.push_back(fragProgram->GetParameterDescription());
 			}
 
 			SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
 			if(geomProgram)
 			{
 				geomProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(geomProgram->GetParamDesc());
+				allParamDescs.push_back(geomProgram->GetParameterDescription());
 			}
 
 			SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
 			if(hullProgram)
 			{
 				hullProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(hullProgram->GetParamDesc());
+				allParamDescs.push_back(hullProgram->GetParameterDescription());
 			}
 
 			SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
 			if(domainProgram)
 			{
 				domainProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(domainProgram->GetParamDesc());
+				allParamDescs.push_back(domainProgram->GetParameterDescription());
 			}
 		}
 
@@ -127,7 +127,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<Techniq
 			if(computeProgram)
 			{
 				computeProgram->BlockUntilCoreInitialized();
-				allParamDescs.push_back(computeProgram->GetParamDesc());
+				allParamDescs.push_back(computeProgram->GetParameterDescription());
 			}
 		}
 	}
@@ -149,23 +149,23 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<ct::Tec
 		{
 			SPtr<ct::GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
 			if(vertProgram)
-				allParamDescs.push_back(vertProgram->GetParamDesc());
+				allParamDescs.push_back(vertProgram->GetParameterDescription());
 
 			SPtr<ct::GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
 			if(fragProgram)
-				allParamDescs.push_back(fragProgram->GetParamDesc());
+				allParamDescs.push_back(fragProgram->GetParameterDescription());
 
 			SPtr<ct::GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
 			if(geomProgram)
-				allParamDescs.push_back(geomProgram->GetParamDesc());
+				allParamDescs.push_back(geomProgram->GetParameterDescription());
 
 			SPtr<ct::GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
 			if(hullProgram)
-				allParamDescs.push_back(hullProgram->GetParamDesc());
+				allParamDescs.push_back(hullProgram->GetParameterDescription());
 
 			SPtr<ct::GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
 			if(domainProgram)
-				allParamDescs.push_back(domainProgram->GetParamDesc());
+				allParamDescs.push_back(domainProgram->GetParameterDescription());
 		}
 
 		const SPtr<ct::ComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
@@ -173,7 +173,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<ct::Tec
 		{
 			SPtr<ct::GpuProgram> computeProgram = computePipeline->GetProgram();
 			if(computeProgram)
-				allParamDescs.push_back(computeProgram->GetParamDesc());
+				allParamDescs.push_back(computeProgram->GetParameterDescription());
 		}
 	}
 
@@ -520,11 +520,11 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 		SPtr<GraphicsPipelineStateType> gfxPipeline = curPass->GetGraphicsPipelineState();
 		if(gfxPipeline != nullptr)
-			mPassParams[i] = CreateGpuParameters<Core>(gfxPipeline->GetParamInfo());
+			mPassParams[i] = CreateGpuParameters<Core>(gfxPipeline->GetParameterLayout());
 		else
 		{
 			SPtr<ComputePipelineStateType> computePipeline = curPass->GetComputePipelineState();
-			mPassParams[i] = CreateGpuParameters<Core>(computePipeline->GetParamInfo());
+			mPassParams[i] = CreateGpuParameters<Core>(computePipeline->GetParameterLayout());
 		}
 	}
 

@@ -58,7 +58,7 @@ void D3D11GpuProgram::Initialize()
 
 	if(mIsCompiled)
 	{
-		mParametersDesc = mBytecode->ParamDesc;
+		mParametersDesc = mBytecode->ParameterDescription;
 
 		D3D11RenderAPI* rapi = static_cast<D3D11RenderAPI*>(RenderAPI::InstancePtr());
 		LoadFromMicrocode(rapi->GetPrimaryDevice(), mBytecode->Instructions);

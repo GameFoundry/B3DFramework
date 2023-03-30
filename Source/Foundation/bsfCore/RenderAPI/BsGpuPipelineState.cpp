@@ -1,6 +1,10 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuPipelineState.h"
+
+#include "BsCoreApplication.h"
+#include "BsGpuBackend.h"
+#include "BsGpuDevice.h"
 #include "RenderAPI/BsRasterizerState.h"
 #include "RenderAPI/BsBlendState.h"
 #include "RenderAPI/BsDepthStencilState.h"
@@ -35,38 +39,38 @@ template class TGraphicsPipelineState<true>;
 GraphicsPipelineState::GraphicsPipelineState(const PIPELINE_STATE_DESC& desc)
 	: TGraphicsPipelineState(desc)
 {
-	GpuPipelineParameterDescription paramsDesc;
+	GpuPipelineParameterLayoutInformation paramsDesc;
 	if(desc.VertexProgram != nullptr)
 	{
 		desc.VertexProgram->BlockUntilCoreInitialized();
-		paramsDesc.Vertex = desc.VertexProgram->GetParamDesc();
+		paramsDesc.Vertex = desc.VertexProgram->GetParameterDescription();
 	}
 
 	if(desc.FragmentProgram != nullptr)
 	{
 		desc.FragmentProgram->BlockUntilCoreInitialized();
-		paramsDesc.Fragment = desc.FragmentProgram->GetParamDesc();
+		paramsDesc.Fragment = desc.FragmentProgram->GetParameterDescription();
 	}
 
 	if(desc.GeometryProgram != nullptr)
 	{
 		desc.GeometryProgram->BlockUntilCoreInitialized();
-		paramsDesc.Geometry = desc.GeometryProgram->GetParamDesc();
+		paramsDesc.Geometry = desc.GeometryProgram->GetParameterDescription();
 	}
 
 	if(desc.HullProgram != nullptr)
 	{
 		desc.HullProgram->BlockUntilCoreInitialized();
-		paramsDesc.Hull = desc.HullProgram->GetParamDesc();
+		paramsDesc.Hull = desc.HullProgram->GetParameterDescription();
 	}
 
 	if(desc.DomainProgram != nullptr)
 	{
 		desc.DomainProgram->BlockUntilCoreInitialized();
-		paramsDesc.Domain = desc.DomainProgram->GetParamDesc();
+		paramsDesc.Domain = desc.DomainProgram->GetParameterDescription();
 	}
 
-	mParamInfo = GpuPipelineParameterLayout::Create(paramsDesc);
+	mParameterLayout = GpuPipelineParameterLayout::Create(paramsDesc);
 }
 
 SPtr<ct::GraphicsPipelineState> GraphicsPipelineState::GetCore() const
@@ -102,11 +106,11 @@ template class TComputePipelineState<true>;
 ComputePipelineState::ComputePipelineState(const SPtr<GpuProgram>& program)
 	: TComputePipelineState(program)
 {
-	GpuPipelineParameterDescription paramsDesc;
+	GpuPipelineParameterLayoutInformation paramsDesc;
 	program->BlockUntilCoreInitialized();
-	paramsDesc.Compute = program->GetParamDesc();
+	paramsDesc.Compute = program->GetParameterDescription();
 
-	mParamInfo = GpuPipelineParameterLayout::Create(paramsDesc);
+	mParameterLayout = GpuPipelineParameterLayout::Create(paramsDesc);
 }
 
 SPtr<ct::ComputePipelineState> ComputePipelineState::GetCore() const
@@ -132,23 +136,25 @@ GraphicsPipelineState::GraphicsPipelineState(const PIPELINE_STATE_DESC& desc, Gp
 
 void GraphicsPipelineState::Initialize()
 {
-	GpuPipelineParameterDescription paramsDesc;
+	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
 	if(mData.VertexProgram != nullptr)
-		paramsDesc.Vertex = mData.VertexProgram->GetParamDesc();
+		parameterLayoutCreateInformation.Vertex = mData.VertexProgram->GetParameterDescription();
 
 	if(mData.FragmentProgram != nullptr)
-		paramsDesc.Fragment = mData.FragmentProgram->GetParamDesc();
+		parameterLayoutCreateInformation.Fragment = mData.FragmentProgram->GetParameterDescription();
 
 	if(mData.GeometryProgram != nullptr)
-		paramsDesc.Geometry = mData.GeometryProgram->GetParamDesc();
+		parameterLayoutCreateInformation.Geometry = mData.GeometryProgram->GetParameterDescription();
 
 	if(mData.HullProgram != nullptr)
-		paramsDesc.Hull = mData.HullProgram->GetParamDesc();
+		parameterLayoutCreateInformation.Hull = mData.HullProgram->GetParameterDescription();
 
 	if(mData.DomainProgram != nullptr)
-		paramsDesc.Domain = mData.DomainProgram->GetParamDesc();
+		parameterLayoutCreateInformation.Domain = mData.DomainProgram->GetParameterDescription();
 
-	mParamInfo = GpuPipelineParameterLayout::Create(paramsDesc, mDeviceMask);
+	B3D_ENSURE(mDeviceMask == GDF_PRIMARY || mDeviceMask == GDF_DEFAULT);
+	const SPtr<GpuDevice>& gpuDevice = GpuBackend::Instance().GetDevice((mDeviceMask == GDF_PRIMARY || mDeviceMask == GDF_DEFAULT) ? 0 : ~0u);
+	mParameterLayout = gpuDevice->CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 
 	CoreObject::Initialize();
 }
@@ -164,10 +170,12 @@ ComputePipelineState::ComputePipelineState(const SPtr<GpuProgram>& program, GpuD
 
 void ComputePipelineState::Initialize()
 {
-	GpuPipelineParameterDescription paramsDesc;
-	paramsDesc.Compute = mProgram->GetParamDesc();
+	GpuPipelineParameterLayoutInformation parameterLayoutCreateInformation;
+	parameterLayoutCreateInformation.Compute = mProgram->GetParameterDescription();
 
-	mParamInfo = GpuPipelineParameterLayout::Create(paramsDesc, mDeviceMask);
+	B3D_ENSURE(mDeviceMask == GDF_PRIMARY || mDeviceMask == GDF_DEFAULT);
+	const SPtr<GpuDevice>& gpuDevice = GpuBackend::Instance().GetDevice((mDeviceMask == GDF_PRIMARY || mDeviceMask == GDF_DEFAULT) ? 0 : ~0u);
+	mParameterLayout = gpuDevice->CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 
 	CoreObject::Initialize();
 }

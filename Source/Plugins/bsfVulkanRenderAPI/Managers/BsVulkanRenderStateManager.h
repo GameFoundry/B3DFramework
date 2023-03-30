@@ -20,7 +20,6 @@ namespace bs
 			SPtr<SamplerState> CreateSamplerStateInternalInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const override;
 			SPtr<GraphicsPipelineState> CreateGraphicsPipelineStateInternal(const PIPELINE_STATE_DESC& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 			SPtr<ComputePipelineState> CreateComputePipelineStateInternal(const SPtr<GpuProgram>& program, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
-			SPtr<GpuPipelineParameterLayout> CreatePipelineParamInfoInternal(const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const override;
 		};
 
 		/** @} */

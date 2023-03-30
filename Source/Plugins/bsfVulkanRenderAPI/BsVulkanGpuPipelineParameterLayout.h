@@ -18,8 +18,10 @@ namespace bs
 		class VulkanGpuPipelineParameterLayout : public GpuPipelineParameterLayout
 		{
 		public:
-			VulkanGpuPipelineParameterLayout(const GpuPipelineParameterDescription& parameterDescription, GpuDeviceFlags deviceMask);
+			VulkanGpuPipelineParameterLayout(VulkanGpuDevice& gpuDevice, const GpuPipelineParameterLayoutCreateInformation& createInformation);
 			~VulkanGpuPipelineParameterLayout() = default;
+
+			void Initialize() override;
 
 			/** Returns the number of bindings present at the layout at the specified index. */
 			u32 GetLayoutBindingCount(u32 layoutIndex) const { return mLayoutInfos[layoutIndex].BindingCount; }
@@ -52,8 +54,6 @@ namespace bs
 			VulkanDescriptorLayout* GetLayout(u32 deviceIdx, u32 layoutIndex) const;
 
 		private:
-			void Initialize() override;
-
 			/** Data related to a single descriptor set layout. */
 			struct LayoutInfo
 			{
@@ -72,10 +72,10 @@ namespace bs
 				u32* SlotToUsedResourceSequentialIndex;
 			};
 
-			GpuDeviceFlags mDeviceMask;
+			VulkanGpuDevice& mGpuDevice;
 
 			SetExtraInfo* mSetExtraInfos = nullptr;
-			VulkanDescriptorLayout** mLayouts[B3D_MAX_DEVICES];
+			VulkanDescriptorLayout** mLayouts;
 			LayoutInfo* mLayoutInfos;
 
 			GroupAlloc mAlloc;

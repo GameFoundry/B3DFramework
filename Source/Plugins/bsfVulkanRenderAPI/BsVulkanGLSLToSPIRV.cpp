@@ -962,8 +962,8 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation&
 	GlslangToSpv(*program->getIntermediate(glslType), spirv, &logger);
 
 	// Parse uniforms
-	bytecode->ParamDesc = B3DMakeShared<GpuProgramParameterDescription>();
-	if(!ParseUniforms(program, *bytecode->ParamDesc, bytecode->Messages))
+	bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
+	if(!ParseUniforms(program, *bytecode->ParameterDescription, bytecode->Messages))
 		goto cleanup;
 
 	// If vertex program, retrieve information about vertex inputs

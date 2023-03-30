@@ -210,12 +210,12 @@ SPtr<GpuProgramBytecode> D3D11HLSLProgramFactory::CompileBytecode(const GpuProgr
 		memcpy(bytecode->Instructions.Data, microcode->GetBufferPointer(), bytecode->Instructions.Size);
 
 		D3D11HLSLParamParser parser;
-		bytecode->ParamDesc = B3DMakeShared<GpuProgramParameterDescription>();
+		bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
 
 		if(desc.Type == GPT_VERTEX_PROGRAM)
-			parser.Parse(microcode, desc.Type, *bytecode->ParamDesc, &bytecode->VertexInput);
+			parser.Parse(microcode, desc.Type, *bytecode->ParameterDescription, &bytecode->VertexInput);
 		else
-			parser.Parse(microcode, desc.Type, *bytecode->ParamDesc, nullptr);
+			parser.Parse(microcode, desc.Type, *bytecode->ParameterDescription, nullptr);
 	}
 
 	SAFE_RELEASE(microcode);

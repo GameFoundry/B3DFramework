@@ -22,7 +22,7 @@ namespace bs
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_PLAIN(Instructions, 0)
-			B3D_RTTI_MEMBER_REFLPTR(ParamDesc, 1)
+			B3D_RTTI_MEMBER_REFLPTR(ParameterDescription, 1)
 			B3D_RTTI_MEMBER_PLAIN(VertexInput, 2)
 			B3D_RTTI_MEMBER_PLAIN(Messages, 3)
 			B3D_RTTI_MEMBER_PLAIN(CompilerId, 4)

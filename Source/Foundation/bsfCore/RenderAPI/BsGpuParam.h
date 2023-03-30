@@ -121,17 +121,17 @@ namespace bs
 		T Get(u32 arrayIdx = 0) const;
 
 		/** Returns meta-data about the parameter. */
-		const GpuDataParameterInformation& GetDesc() const { return *mParamDesc; }
+		const GpuDataParameterInformation& GetDesc() const { return *mParameterDescription; }
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return mParameterDescription == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuDataParameterInformation* mParamDesc;
+		GpuDataParameterInformation* mParameterDescription;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -155,17 +155,17 @@ namespace bs
 		u32 GetElementSize() const;
 
 		/** Returns meta-data about the parameter. */
-		const GpuDataParameterInformation& GetDesc() const { return *mParamDesc; }
+		const GpuDataParameterInformation& GetDesc() const { return *mParameterDescription; }
 
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return mParameterDescription == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuDataParameterInformation* mParamDesc;
+		GpuDataParameterInformation* mParameterDescription;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -190,17 +190,17 @@ namespace bs
 		TextureType Get(u32 arrayIndex = 0) const;
 
 		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParamDesc; }
+		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return mParameterDescription == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParamDesc;
+		GpuObjectParameterInformation* mParameterDescription;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -225,17 +225,17 @@ namespace bs
 		TextureType Get(u32 arrayIndex = 0) const;
 
 		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParamDesc; }
+		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
 
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return mParameterDescription == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParamDesc;
+		GpuObjectParameterInformation* mParameterDescription;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -260,17 +260,17 @@ namespace bs
 		BufferType Get(u32 arrayIndex = 0) const;
 
 		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParamDesc; }
+		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
 
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return mParameterDescription == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParamDesc;
+		GpuObjectParameterInformation* mParameterDescription;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */

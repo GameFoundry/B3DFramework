@@ -13,12 +13,12 @@ using namespace bs;
 
 template <class T, bool Core>
 TGpuParameterPrimitive<T, Core>::TGpuParameterPrimitive()
-	: mParamDesc(nullptr)
+	: mParameterDescription(nullptr)
 {}
 
 template <class T, bool Core>
 TGpuParameterPrimitive<T, Core>::TGpuParameterPrimitive(GpuDataParameterInformation* paramDesc, const GpuParamsType& parent)
-	: mParent(parent), mParamDesc(paramDesc)
+	: mParent(parent), mParameterDescription(paramDesc)
 {}
 
 template <class T, bool Core>
@@ -27,34 +27,34 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterDescription->ParamBlockSet, mParameterDescription->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
 #if B3D_DEBUG
-	if(arrayIdx >= mParamDesc->ArraySize)
+	if(arrayIdx >= mParameterDescription->ArraySize)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
+		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterDescription->ArraySize) + ". Requested size: " + ToString(arrayIdx));
 	}
 #endif
 
-	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
+	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
 	const bool transposeMatrices = ct::GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 	if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 	{
 		auto transposed = TransposePolicy<T>::Transpose(value);
-		paramBlock->WriteCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
+		paramBlock->WriteCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
 	}
 	else
-		paramBlock->WriteCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+		paramBlock->WriteCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
 
 	// Set unused bytes to 0
 	if(sizeBytes < elementSizeBytes)
 	{
 		u32 diffSize = elementSizeBytes - sizeBytes;
-		paramBlock->ZeroOutCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
+		paramBlock->ZeroOutCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
 	}
 
 	mParent->MarkCoreDirtyInternal();
@@ -66,34 +66,34 @@ T TGpuParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
 	if(mParent == nullptr)
 		return T();
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterDescription->ParamBlockSet, mParameterDescription->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return T();
 
 #if B3D_DEBUG
-	if(arrayIdx >= mParamDesc->ArraySize)
+	if(arrayIdx >= mParameterDescription->ArraySize)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
+		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterDescription->ArraySize) + ". Requested size: " + ToString(arrayIdx));
 	}
 #endif
 
-	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
+	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T));
 
 	T value;
-	paramBlock->ReadCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
+	paramBlock->ReadCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
 
 	return value;
 }
 
 template <bool Core>
 TGpuParameterStruct<Core>::TGpuParameterStruct()
-	: mParamDesc(nullptr)
+	: mParameterDescription(nullptr)
 {}
 
 template <bool Core>
 TGpuParameterStruct<Core>::TGpuParameterStruct(GpuDataParameterInformation* paramDesc, const GpuParamsType& parent)
-	: mParent(parent), mParamDesc(paramDesc)
+	: mParent(parent), mParameterDescription(paramDesc)
 {}
 
 template <bool Core>
@@ -102,11 +102,11 @@ void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayI
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterDescription->ParamBlockSet, mParameterDescription->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
-	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
+	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
 
 #if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
@@ -116,21 +116,21 @@ void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayI
 			   elementSizeBytes, sizeBytes);
 	}
 
-	if(arrayIdx >= mParamDesc->ArraySize)
+	if(arrayIdx >= mParameterDescription->ArraySize)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
+		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterDescription->ArraySize) + ". Requested size: " + ToString(arrayIdx));
 	}
 #endif
 
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-	paramBlock->WriteCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32), sizeBytes, value);
+	paramBlock->WriteCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, value);
 
 	// Set unused bytes to 0
 	if(sizeBytes < elementSizeBytes)
 	{
 		u32 diffSize = elementSizeBytes - sizeBytes;
-		paramBlock->ZeroOutCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
+		paramBlock->ZeroOutCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
 	}
 
 	mParent->MarkCoreDirtyInternal();
@@ -142,11 +142,11 @@ void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) co
 	if(mParent == nullptr)
 		return;
 
-	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParamDesc->ParamBlockSet, mParamDesc->ParamBlockSlot);
+	GpuParamBufferType paramBlock = mParent->GetUniformBuffer(mParameterDescription->ParamBlockSet, mParameterDescription->ParamBlockSlot);
 	if(paramBlock == nullptr)
 		return;
 
-	u32 elementSizeBytes = mParamDesc->ElementSize * sizeof(u32);
+	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
 
 #if B3D_DEBUG
 	if(sizeBytes > elementSizeBytes)
@@ -156,14 +156,14 @@ void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) co
 			   elementSizeBytes, sizeBytes);
 	}
 
-	if(arrayIdx >= mParamDesc->ArraySize)
+	if(arrayIdx >= mParameterDescription->ArraySize)
 	{
-		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParamDesc->ArraySize) + ". Requested size: " + ToString(arrayIdx));
+		B3D_EXCEPT(InvalidParametersException, "Array index out of range. Array size: " + ToString(mParameterDescription->ArraySize) + ". Requested size: " + ToString(arrayIdx));
 	}
 #endif
 	sizeBytes = std::min(elementSizeBytes, sizeBytes);
 
-	paramBlock->ReadCached((mParamDesc->CpuOffset + arrayIdx * mParamDesc->ArrayElementStride) * sizeof(u32), sizeBytes, value);
+	paramBlock->ReadCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, value);
 }
 
 template <bool Core>
@@ -172,17 +172,17 @@ u32 TGpuParameterStruct<Core>::GetElementSize() const
 	if(mParent == nullptr)
 		return 0;
 
-	return mParamDesc->ElementSize * sizeof(u32);
+	return mParameterDescription->ElementSize * sizeof(u32);
 }
 
 template <bool Core>
 TGpuParameterSampledTexture<Core>::TGpuParameterSampledTexture()
-	: mParamDesc(nullptr)
+	: mParameterDescription(nullptr)
 {}
 
 template <bool Core>
 TGpuParameterSampledTexture<Core>::TGpuParameterSampledTexture(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent)
-	: mParent(parent), mParamDesc(paramDesc)
+	: mParent(parent), mParameterDescription(paramDesc)
 {}
 
 template <bool Core>
@@ -191,7 +191,7 @@ void TGpuParameterSampledTexture<Core>::Set(const TextureType& texture, const Te
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetSampledTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
+	mParent->SetSampledTexture(mParameterDescription->Set, mParameterDescription->Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();
@@ -203,17 +203,17 @@ typename TGpuParameterSampledTexture<Core>::TextureType TGpuParameterSampledText
 	if(mParent == nullptr)
 		return TextureType();
 
-	return mParent->GetSampledTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetSampledTexture(mParameterDescription->Set, mParameterDescription->Slot, arrayIndex);
 }
 
 template <bool Core>
 TGpuParameterBuffer<Core>::TGpuParameterBuffer()
-	: mParamDesc(nullptr)
+	: mParameterDescription(nullptr)
 {}
 
 template <bool Core>
 TGpuParameterBuffer<Core>::TGpuParameterBuffer(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent)
-	: mParent(parent), mParamDesc(paramDesc)
+	: mParent(parent), mParameterDescription(paramDesc)
 {}
 
 template <bool Core>
@@ -222,7 +222,7 @@ void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, Gp
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetStorageBuffer(mParamDesc->Set, mParamDesc->Slot, buffer, arrayIndex, view);
+	mParent->SetStorageBuffer(mParameterDescription->Set, mParameterDescription->Slot, buffer, arrayIndex, view);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();
@@ -234,17 +234,17 @@ typename TGpuParameterBuffer<Core>::BufferType TGpuParameterBuffer<Core>::Get(u3
 	if(mParent == nullptr)
 		return BufferType();
 
-	return mParent->GetStorageBuffer(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetStorageBuffer(mParameterDescription->Set, mParameterDescription->Slot, arrayIndex);
 }
 
 template <bool Core>
 TGpuParameterStorageTexture<Core>::TGpuParameterStorageTexture()
-	: mParamDesc(nullptr)
+	: mParameterDescription(nullptr)
 {}
 
 template <bool Core>
 TGpuParameterStorageTexture<Core>::TGpuParameterStorageTexture(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent)
-	: mParent(parent), mParamDesc(paramDesc)
+	: mParent(parent), mParameterDescription(paramDesc)
 {}
 
 template <bool Core>
@@ -253,7 +253,7 @@ void TGpuParameterStorageTexture<Core>::Set(const TextureType& texture, const Te
 	if(mParent == nullptr)
 		return;
 
-	mParent->SetStorageTexture(mParamDesc->Set, mParamDesc->Slot, texture, surface, arrayIndex);
+	mParent->SetStorageTexture(mParameterDescription->Set, mParameterDescription->Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
 	mParent->MarkCoreDirtyInternal();
@@ -265,7 +265,7 @@ typename TGpuParameterStorageTexture<Core>::TextureType TGpuParameterStorageText
 	if(mParent == nullptr)
 		return TextureType();
 
-	return mParent->GetSampledTexture(mParamDesc->Set, mParamDesc->Slot, arrayIndex);
+	return mParent->GetSampledTexture(mParameterDescription->Set, mParameterDescription->Slot, arrayIndex);
 }
 
 template <bool Core>

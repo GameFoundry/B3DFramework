@@ -12,8 +12,8 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Helper structure used for initializing GpuPipelineParameterLayout. */
-	struct GpuPipelineParameterDescription
+	/** Stores parameter description for all GPU programs used in a particular GPU pipeline. */
+	struct GpuPipelineParameterLayoutInformation
 	{
 		SPtr<GpuProgramParameterDescription> Fragment;
 		SPtr<GpuProgramParameterDescription> Vertex;
@@ -21,6 +21,15 @@ namespace bs
 		SPtr<GpuProgramParameterDescription> Hull;
 		SPtr<GpuProgramParameterDescription> Domain;
 		SPtr<GpuProgramParameterDescription> Compute;
+	};
+
+	/** Descriptor structure used for initialization of a GpuPipelineParameterLayout. */
+	struct GpuPipelineParameterLayoutCreateInformation : GpuPipelineParameterLayoutInformation
+	{
+		GpuPipelineParameterLayoutCreateInformation() = default;
+		GpuPipelineParameterLayoutCreateInformation(const GpuPipelineParameterLayoutInformation& other)
+			:GpuPipelineParameterLayoutInformation(other)
+		{ }
 	};
 
 	/** Binding location for a single GPU program parameter. */
@@ -46,7 +55,7 @@ namespace bs
 		};
 
 		/** Constructs the object using the provided GPU parameter descriptors. */
-		GpuPipelineParameterLayoutBase(const GpuPipelineParameterDescription& parameterDescription);
+		GpuPipelineParameterLayoutBase(const GpuPipelineParameterLayoutCreateInformation& createInformation);
 		virtual ~GpuPipelineParameterLayoutBase() = default;
 
 		/** Gets the total number of sets. */
@@ -98,7 +107,7 @@ namespace bs
 		u32 GetArraySize(GpuParameterType type, u32 sequentialBindingIndex);
 
 		/** Returns descriptions of individual parameters for the specified GPU program type. */
-		const SPtr<GpuProgramParameterDescription>& GetParamDesc(GpuProgramType type) const { return mPerProgramParameterDescriptions[(int)type]; }
+		const SPtr<GpuProgramParameterDescription>& GetParameterDescriptionForProgram(GpuProgramType type) const { return mPerProgramParameterDescriptions[(int)type]; }
 
 	protected:
 		/** Information about a single set in the param info object. */
@@ -153,10 +162,10 @@ namespace bs
 		 *
 		 * @param[in]	desc	Object containing parameter descriptions for individual GPU program stages.
 		 */
-		static SPtr<GpuPipelineParameterLayout> Create(const GpuPipelineParameterDescription& desc);
+		static SPtr<GpuPipelineParameterLayout> Create(const GpuPipelineParameterLayoutInformation& desc);
 
 	private:
-		GpuPipelineParameterLayout(const GpuPipelineParameterDescription& desc);
+		GpuPipelineParameterLayout(const GpuPipelineParameterLayoutInformation& desc);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 	};
@@ -169,16 +178,10 @@ namespace bs
 		public:
 			virtual ~GpuPipelineParameterLayout() = default;
 
-			/**
-			 * @copydoc bs::GpuPipelineParameterLayout::Create
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the buffer be created on.
-			 */
-			static SPtr<GpuPipelineParameterLayout> Create(const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
 		protected:
 			friend class RenderStateManager;
 
-			GpuPipelineParameterLayout(const GpuPipelineParameterDescription& desc, GpuDeviceFlags deviceMask);
+			GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation);
 		};
 	} // namespace ct
 

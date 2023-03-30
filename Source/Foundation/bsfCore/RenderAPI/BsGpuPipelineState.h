@@ -62,14 +62,14 @@ namespace bs
 	template <>
 	struct TGpuPipelineStateTypes<false>
 	{
-		typedef GpuPipelineParameterLayout GpuPipelineParamInfoType;
+		typedef GpuPipelineParameterLayout GpuPipelineParameterLayoutType;
 		typedef PIPELINE_STATE_DESC StateDescType;
 	};
 
 	template <>
 	struct TGpuPipelineStateTypes<true>
 	{
-		typedef ct::GpuPipelineParameterLayout GpuPipelineParamInfoType;
+		typedef ct::GpuPipelineParameterLayout GpuPipelineParameterLayoutType;
 		typedef ct::PIPELINE_STATE_DESC StateDescType;
 	};
 
@@ -86,45 +86,35 @@ namespace bs
 		using DepthStencilStateType = SPtr<CoreVariantType<DepthStencilState, Core>>;
 		using GpuProgramType = SPtr<CoreVariantType<GpuProgram, Core>>;
 		using StateDescType = typename TGpuPipelineStateTypes<Core>::StateDescType;
-		using GpuPipelineParamInfoType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParamInfoType;
+		using GpuPipelineParameterLayoutType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParameterLayoutType;
 
 		virtual ~TGraphicsPipelineState() = default;
 
 		bool HasVertexProgram() const { return mData.VertexProgram != nullptr; }
-
 		bool HasFragmentProgram() const { return mData.FragmentProgram != nullptr; }
-
 		bool HasGeometryProgram() const { return mData.GeometryProgram != nullptr; }
-
 		bool HasHullProgram() const { return mData.HullProgram != nullptr; }
-
 		bool HasDomainProgram() const { return mData.DomainProgram != nullptr; }
 
 		BlendStateType GetBlendState() const { return mData.BlendState; }
-
 		RasterizerStateType GetRasterizerState() const { return mData.RasterizerState; }
-
 		DepthStencilStateType GetDepthStencilState() const { return mData.DepthStencilState; }
 
 		const GpuProgramType& GetVertexProgram() const { return mData.VertexProgram; }
-
 		const GpuProgramType& GetFragmentProgram() const { return mData.FragmentProgram; }
-
 		const GpuProgramType& GetGeometryProgram() const { return mData.GeometryProgram; }
-
 		const GpuProgramType& GetHullProgram() const { return mData.HullProgram; }
-
 		const GpuProgramType& GetDomainProgram() const { return mData.DomainProgram; }
 
-		/** Returns an object containing meta-data for parameters of all GPU programs used in this pipeline state. */
-		const SPtr<GpuPipelineParamInfoType>& GetParamInfo() const { return mParamInfo; }
+		/** Returns an object containing the layout of all parameters in all the GPU programs used in this pipeline state. */
+		const SPtr<GpuPipelineParameterLayoutType>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		TGraphicsPipelineState() = default;
 		TGraphicsPipelineState(const StateDescType& desc);
 
 		StateDescType mData;
-		SPtr<GpuPipelineParamInfoType> mParamInfo;
+		SPtr<GpuPipelineParameterLayoutType> mParameterLayout;
 	};
 
 	/**
@@ -136,21 +126,21 @@ namespace bs
 	{
 	public:
 		using GpuProgramType = SPtr<CoreVariantType<GpuProgram, Core>>;
-		using GpuPipelineParamInfoType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParamInfoType;
+		using GpuPipelineParameterLayoutType = typename TGpuPipelineStateTypes<Core>::GpuPipelineParameterLayoutType;
 
 		virtual ~TComputePipelineState() = default;
 
 		const GpuProgramType& GetProgram() const { return mProgram; }
 
-		/** Returns an object containing meta-data for parameters of the GPU program used in this pipeline state. */
-		const SPtr<GpuPipelineParamInfoType>& GetParamInfo() const { return mParamInfo; }
+		/** Returns an object containing the layout of all parameters in the GPU program used in this pipeline state. */
+		const SPtr<GpuPipelineParameterLayoutType>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		TComputePipelineState();
 		TComputePipelineState(const GpuProgramType& program);
 
 		GpuProgramType mProgram;
-		SPtr<GpuPipelineParamInfoType> mParamInfo;
+		SPtr<GpuPipelineParameterLayoutType> mParameterLayout;
 	};
 
 	/** @} */
