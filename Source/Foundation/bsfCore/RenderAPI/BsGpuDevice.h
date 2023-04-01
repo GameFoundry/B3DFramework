@@ -92,7 +92,7 @@ namespace bs
 		 * @param	createInformation		Object describing the pipeline to create.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<ct::GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+		virtual SPtr<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Creates a compute pipeline.
@@ -100,7 +100,7 @@ namespace bs
 		 * @param	createInformation		Object describing the pipeline to create.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<ct::GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+		virtual SPtr<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Creates a pipeline layout from a set of GPU program parameter descriptions. 

@@ -81,7 +81,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<Techniq
 	{
 		SPtr<Pass> curPass = technique->GetPass(i);
 
-		const SPtr<ct::GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
+		const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
 		if(graphicsPipeline)
 		{
 			SPtr<ct::GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
@@ -115,7 +115,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<Techniq
 			}
 		}
 
-		const SPtr<ct::GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
+		const SPtr<GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
 		if(computePipeline)
 		{
 			SPtr<ct::GpuProgram> computeProgram = computePipeline->GetProgram();
@@ -138,7 +138,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<ct::Tec
 	{
 		SPtr<ct::Pass> curPass = technique->GetPass(i);
 
-		const SPtr<ct::GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
+		const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
 		if(graphicsPipeline)
 		{
 			SPtr<ct::GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
@@ -162,7 +162,7 @@ Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<ct::Tec
 				allParamDescs.push_back(domainProgram->GetParameterDescription());
 		}
 
-		const SPtr<ct::GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
+		const SPtr<GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
 		if(computePipeline)
 		{
 			SPtr<ct::GpuProgram> computeProgram = computePipeline->GetProgram();
@@ -512,12 +512,12 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	{
 		SPtr<PassType> curPass = technique->GetPass(passIndex);
 
-		SPtr<ct::GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
+		SPtr<GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
 		if(gfxPipeline != nullptr)
 			mPassParams[passIndex] = CreateGpuParameters<Core>(gfxPipeline->GetParameterLayout());
 		else
 		{
-			SPtr<ct::GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
+			SPtr<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
 			mPassParams[passIndex] = CreateGpuParameters<Core>(computePipeline->GetParameterLayout());
 		}
 	}

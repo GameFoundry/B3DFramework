@@ -12,6 +12,7 @@
 #include <vulkan/vulkan.h>
 
 #include "BsVulkanFramebuffer.h"
+#include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanSubmitThread.h"
 
@@ -421,6 +422,8 @@ void VulkanGpuBackend::OnStartUp()
 	GET_DEVICE_PROC_ADDR(presentDevice, AcquireNextImageKHR)
 	GET_DEVICE_PROC_ADDR(presentDevice, QueuePresentKHR)
 
+	GLSLToSPIRV::StartUp();
+
 	// Create command buffer manager
 	ct::CommandBufferManager::StartUp<VulkanCommandBufferManager>();
 
@@ -461,6 +464,7 @@ void VulkanGpuBackend::OnShutDown()
 	TextureManager::ShutDown();
 
 	CommandBufferManager::ShutDown();
+	GLSLToSPIRV::ShutDown();
 
 	mPresentDevice = nullptr;
 	mDevices.clear();

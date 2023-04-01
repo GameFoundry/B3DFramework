@@ -128,11 +128,9 @@ u64 DepthStencilStateInformation::GenerateHash(const DepthStencilStateInformatio
 	return (u64)hash;
 }
 
-namespace bs { namespace ct
-{
 GpuGraphicsPipelineState::GpuGraphicsPipelineState(GpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation)
-			: mGpuDevice(gpuDevice), mData(createInformation)
-		{}
+		: mGpuDevice(gpuDevice), mData(createInformation)
+	{}
 
 void GpuGraphicsPipelineState::Initialize()
 {
@@ -166,4 +164,4 @@ void GpuComputePipelineState::Initialize()
 
 	mParameterLayout = mGpuDevice.CreateGpuPipelineParameterLayout(parameterLayoutCreateInformation);
 }
-}}
+

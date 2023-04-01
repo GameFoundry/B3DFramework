@@ -60,13 +60,13 @@ namespace bs
 		 * Returns the graphics pipeline state describing this pass, or null if its a compute pass.
 		 * Only valid after Compile() has been called.
 		 */
-		const SPtr<ct::GpuGraphicsPipelineState>& GetGraphicsPipelineState() const { return mGraphicsPipelineState; }
+		const SPtr<GpuGraphicsPipelineState>& GetGraphicsPipelineState() const { return mGraphicsPipelineState; }
 
 		/**
 		 * Returns the compute pipeline state describing this pass, or null if its a graphics pass.
 		 * Only valid after compile has been called.
 		 */
-		const SPtr<ct::GpuComputePipelineState>& GetComputePipelineState() const { return mComputePipelineState; }
+		const SPtr<GpuComputePipelineState>& GetComputePipelineState() const { return mComputePipelineState; }
 
 		/**
 		 * @name Internal
@@ -86,8 +86,8 @@ namespace bs
 		void CreatePipelineState();
 
 		PassCreateInformation mData;
-		SPtr<ct::GpuGraphicsPipelineState> mGraphicsPipelineState;
-		SPtr<ct::GpuComputePipelineState> mComputePipelineState;
+		SPtr<GpuGraphicsPipelineState> mGraphicsPipelineState;
+		SPtr<GpuComputePipelineState> mComputePipelineState;
 	};
 
 	/** @} */

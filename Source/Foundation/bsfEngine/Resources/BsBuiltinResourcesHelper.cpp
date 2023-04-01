@@ -633,7 +633,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 
 			std::array<SPtr<ct::GpuProgram>, 6> gpuPrograms;
 
-			const SPtr<ct::GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
+			const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
 			if(graphicsPipeline)
 			{
 				gpuPrograms[0] = graphicsPipeline->GetVertexProgram();
@@ -643,7 +643,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 				gpuPrograms[4] = graphicsPipeline->GetDomainProgram();
 			}
 
-			const SPtr<ct::GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
+			const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
 			if(computePipeline)
 				gpuPrograms[5] = computePipeline->GetProgram();
 

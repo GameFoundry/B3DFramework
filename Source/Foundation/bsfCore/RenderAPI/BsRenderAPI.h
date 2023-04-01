@@ -18,12 +18,6 @@
 
 namespace bs
 {
-	namespace ct
-	{
-		class GpuGraphicsPipelineState;
-		class GpuComputePipelineState;
-	}
-
 	class RenderAPIManager;
 
 	/** @addtogroup RenderAPI
@@ -53,14 +47,14 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void SetGraphicsPipeline(const SPtr<ct::GpuGraphicsPipelineState>& pipelineState);
+		static void SetGraphicsPipeline(const SPtr<GpuGraphicsPipelineState>& pipelineState);
 
 		/**
 		 * @see ct::RenderAPI::SetComputePipeline()
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		static void SetComputePipeline(const SPtr<ct::GpuComputePipelineState>& pipelineState);
+		static void SetComputePipeline(const SPtr<GpuComputePipelineState>& pipelineState);
 
 		/**
 		 * @see ct::RenderAPI::SetVertexBuffers()

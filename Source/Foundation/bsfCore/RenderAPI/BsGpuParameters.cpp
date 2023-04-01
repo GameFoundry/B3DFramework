@@ -719,12 +719,12 @@ void GpuParameters::MarkResourcesDirtyInternal()
 	MarkListenerResourcesDirty();
 }
 
-SPtr<GpuParameters> GpuParameters::Create(const SPtr<ct::GpuGraphicsPipelineState>& pipelineState)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuGraphicsPipelineState>& pipelineState)
 {
 	return Create(pipelineState->GetParameterLayout());
 }
 
-SPtr<GpuParameters> GpuParameters::Create(const SPtr<ct::GpuComputePipelineState>& pipelineState)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuComputePipelineState>& pipelineState)
 {
 	return Create(pipelineState->GetParameterLayout());
 }

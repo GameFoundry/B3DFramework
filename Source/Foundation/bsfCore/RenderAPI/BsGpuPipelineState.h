@@ -270,80 +270,71 @@ namespace bs
 		{}
 	};
 
-	/** @} */
-
-	namespace ct
+	/**
+	 * Describes the state of the GPU pipeline that determines how are primitives rendered. It consists of programmable
+	 * states (vertex, fragment, geometry, etc. GPU programs), as well as a set of fixed states (blend, rasterizer,
+	 * depth-stencil).
+	 *
+	 * @note	Thread safe (Immutable).
+	 */
+	class B3D_CORE_EXPORT GpuGraphicsPipelineState
 	{
-		/** @addtogroup RenderAPI-Internal
-		 *  @{
-		 */
+	public:
+		GpuGraphicsPipelineState(GpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation);
+		virtual ~GpuGraphicsPipelineState() = default;
 
-		/**
-		 * Describes the state of the GPU pipeline that determines how are primitives rendered. It consists of programmable
-		 * states (vertex, fragment, geometry, etc. GPU programs), as well as a set of fixed states (blend, rasterizer,
-		 * depth-stencil).
-		 *
-		 * @note	Thread safe (Immutable).
-		 */
-		class B3D_CORE_EXPORT GpuGraphicsPipelineState
-		{
-		public:
-			GpuGraphicsPipelineState(GpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation);
-			virtual ~GpuGraphicsPipelineState() = default;
+		virtual void Initialize();
 
-			virtual void Initialize();
+		bool HasVertexProgram() const { return mData.VertexProgram != nullptr; }
+		bool HasFragmentProgram() const { return mData.FragmentProgram != nullptr; }
+		bool HasGeometryProgram() const { return mData.GeometryProgram != nullptr; }
+		bool HasHullProgram() const { return mData.HullProgram != nullptr; }
+		bool HasDomainProgram() const { return mData.DomainProgram != nullptr; }
 
-			bool HasVertexProgram() const { return mData.VertexProgram != nullptr; }
-			bool HasFragmentProgram() const { return mData.FragmentProgram != nullptr; }
-			bool HasGeometryProgram() const { return mData.GeometryProgram != nullptr; }
-			bool HasHullProgram() const { return mData.HullProgram != nullptr; }
-			bool HasDomainProgram() const { return mData.DomainProgram != nullptr; }
+		const BlendStateInformation& GetBlendState() const { return mData.BlendState; }
+		const RasterizerStateInformation& GetRasterizerState() const { return mData.RasterizerState; }
+		const DepthStencilStateInformation& GetDepthStencilState() const { return mData.DepthStencilState; }
 
-			const BlendStateInformation& GetBlendState() const { return mData.BlendState; }
-			const RasterizerStateInformation& GetRasterizerState() const { return mData.RasterizerState; }
-			const DepthStencilStateInformation& GetDepthStencilState() const { return mData.DepthStencilState; }
+		const SPtr<ct::GpuProgram>& GetVertexProgram() const { return mData.VertexProgram; }
+		const SPtr<ct::GpuProgram>& GetFragmentProgram() const { return mData.FragmentProgram; }
+		const SPtr<ct::GpuProgram>& GetGeometryProgram() const { return mData.GeometryProgram; }
+		const SPtr<ct::GpuProgram>& GetHullProgram() const { return mData.HullProgram; }
+		const SPtr<ct::GpuProgram>& GetDomainProgram() const { return mData.DomainProgram; }
 
-			const SPtr<GpuProgram>& GetVertexProgram() const { return mData.VertexProgram; }
-			const SPtr<GpuProgram>& GetFragmentProgram() const { return mData.FragmentProgram; }
-			const SPtr<GpuProgram>& GetGeometryProgram() const { return mData.GeometryProgram; }
-			const SPtr<GpuProgram>& GetHullProgram() const { return mData.HullProgram; }
-			const SPtr<GpuProgram>& GetDomainProgram() const { return mData.DomainProgram; }
+		/** Returns an object containing the layout of all parameters in all the GPU programs used in this pipeline state. */
+		const SPtr<ct::GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
-			/** Returns an object containing the layout of all parameters in all the GPU programs used in this pipeline state. */
-			const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+	protected:
+		GpuDevice& mGpuDevice;
+		GpuGraphicsPipelineStateInformation mData;
+		SPtr<ct::GpuPipelineParameterLayout> mParameterLayout;
+	};
 
-		protected:
-			GpuDevice& mGpuDevice;
-			GpuGraphicsPipelineStateInformation mData;
-			SPtr<GpuPipelineParameterLayout> mParameterLayout;
-		};
+	/**
+	 * Describes the state of the GPU pipeline that determines how are compute programs executed. It consists of
+	 * of a single programmable state (GPU program). 
+	 *
+	 * @note	Thread safe (Immutable).
+	 */
+	class B3D_CORE_EXPORT GpuComputePipelineState
+	{
+	public:
+		GpuComputePipelineState(GpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation);
+		virtual ~GpuComputePipelineState() = default;
 
-		/**
-		 * Describes the state of the GPU pipeline that determines how are compute programs executed. It consists of
-		 * of a single programmable state (GPU program). 
-		 *
-		 * @note	Thread safe (Immutable).
-		 */
-		class B3D_CORE_EXPORT GpuComputePipelineState
-		{
-		public:
-			GpuComputePipelineState(GpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation);
-			virtual ~GpuComputePipelineState() = default;
+		virtual void Initialize();
 
-			virtual void Initialize();
+		const SPtr<ct::GpuProgram>& GetProgram() const { return mData.Program; }
 
-			const SPtr<GpuProgram>& GetProgram() const { return mData.Program; }
+		/** Returns an object containing the layout of all parameters in the GPU program used in this pipeline state. */
+		const SPtr<ct::GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
-			/** Returns an object containing the layout of all parameters in the GPU program used in this pipeline state. */
-			const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+	protected:
+		GpuDevice& mGpuDevice;
 
-		protected:
-			GpuDevice& mGpuDevice;
+		GpuComputePipelineStateInformation mData;
+		SPtr<ct::GpuPipelineParameterLayout> mParameterLayout;
+	};
 
-			GpuComputePipelineStateInformation mData;
-			SPtr<GpuPipelineParameterLayout> mParameterLayout;
-		};
-
-		/** @} */
-	} // namespace ct
+	/** @} */
 } // namespace bs

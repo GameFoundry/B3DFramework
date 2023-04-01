@@ -406,8 +406,9 @@ namespace bs
 	 *
 	 * @see		RTTIPlainType<T>
 	 */
-#define B3D_ALLOW_MEMCPY_SERIALIZATION(type)                                                                           \
+#define B3D_ALLOW_MEMCPY_SERIALIZATION(type)                                                                          \
 	static_assert(std::is_trivially_copyable<type>() == true, #type " is not trivially copyable");                    \
+	static_assert(sizeof(type) <= 256, #type " doesn't fit. Use memcpy variant with size header.");			  \
 	template <>                                                                                                       \
 	struct RTTIPlainType<type>                                                                                        \
 	{                                                                                                                 \
@@ -433,6 +434,53 @@ namespace bs
 		}                                                                                                             \
 	};
 
+#define B3D_ALLOW_MEMCPY_SERIALIZATION_WITH_SIZE_HEADER(Type, Id)                                                     \
+	static_assert(std::is_trivially_copyable<Type>() == true, #Type " is not trivially copyable");                    \
+	template <>                                                                                                       \
+	struct RTTIPlainType<Type>                                                                                        \
+	{                                                                                                                 \
+		enum                                                                                                          \
+		{                                                                                                             \
+			id = Id                                                                                                   \
+		};                                                                                                            \
+		enum                                                                                                          \
+		{                                                                                                             \
+			hasDynamicSize = 1                                                                                        \
+		};                                                                                                            \
+		static constexpr u8 kVersion = 0;                                                                             \
+                                                                                                                      \
+		static BitLength ToMemory(const Type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress) \
+		{                                                                                                             \
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]() {							  \
+					BitLength size = stream.WriteBytes(kVersion);													  \
+					size += stream.WriteBytes(data);																  \
+																													  \
+					return size; });																				  \
+		}                                                                                                             \
+                                                                                                                      \
+		static BitLength FromMemory(Type& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)     \
+		{                                                                                                             \
+			BitLength size;                                                                                           \
+			B3DRTTIReadSizeHeader(stream, compress, size);                                                            \
+                                                                                                                      \
+			u8 version;                                                                                               \
+			stream.ReadBytes(version);                                                                                \
+			if(!B3D_ENSURE(version == 0))                                                                             \
+				return 0;                                                                                             \
+                                                                                                                      \
+			stream.ReadBytes(data);                                                                                   \
+                                                                                                                      \
+			return size;                                                                                              \
+		}                                                                                                             \
+                                                                                                                      \
+		static BitLength GetSize(const Type& data, const RTTIFieldInfo& fieldInfo, bool compress)                     \
+		{                                                                                                             \
+			BitLength dataSize = sizeof(kVersion) + sizeof(data);                                                     \
+			B3DRTTIAddHeaderSize(dataSize, compress);                                                                 \
+                                                                                                                      \
+			return dataSize;                                                                                          \
+		}                                                                                                             \
+	};
 	/** @} */
 	/** @} */
 } // namespace bs

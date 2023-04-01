@@ -489,8 +489,6 @@ namespace bs
 		class RenderWindowManager;
 		class RenderStateManager;
 		class GpuBuffer;
-		class GpuGraphicsPipelineState;
-		class GpuComputePipelineState;
 	} // namespace ct
 } // namespace bs
 
@@ -517,8 +515,8 @@ namespace bs
 		TID_Material = 1017,
 		TID_SamplerState = 1021,
 		TID_BlendState = 1023,
-		TID_RasterizerState = 1024,
-		TID_DepthStencilState = 1025,
+		TID_RasterizerStateInformation = 1024,
+		TID_DepthStencilStateInformation = 1025,
 		TID_BlendStateInformation = 1034,
 		TID_SHADER_DATA_PARAM_DESC = 1035,
 		TID_SHADER_OBJECT_PARAM_DESC = 1036,

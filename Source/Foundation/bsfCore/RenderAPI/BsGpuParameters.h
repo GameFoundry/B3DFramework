@@ -9,12 +9,7 @@
 #include "Math/BsMatrixNxM.h"
 
 namespace bs
-{namespace ct
-	{
-		class GpuComputePipelineState;
-		class GpuGraphicsPipelineState;
-	}
-
+{
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -583,10 +578,10 @@ namespace bs
 		 * @param[in]	pipelineState	Pipeline state for which this object can set parameters for.
 		 * @return						New GpuParameters object.
 		 */
-		static SPtr<GpuParameters> Create(const SPtr<ct::GpuGraphicsPipelineState>& pipelineState);
+		static SPtr<GpuParameters> Create(const SPtr<GpuGraphicsPipelineState>& pipelineState);
 
 		/** @copydoc GpuParameters::Create(const SPtr<GraphicsPipelineState>&) */
-		static SPtr<GpuParameters> Create(const SPtr<ct::GpuComputePipelineState>& pipelineState);
+		static SPtr<GpuParameters> Create(const SPtr<GpuComputePipelineState>& pipelineState);
 
 		/**
 		 * Creates a new set of GPU parameters using an object describing the parameters for a pipeline.
