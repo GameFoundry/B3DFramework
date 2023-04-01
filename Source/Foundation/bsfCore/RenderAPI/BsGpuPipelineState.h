@@ -303,12 +303,12 @@ namespace bs
 		const SPtr<GpuProgram>& GetDomainProgram() const { return mData.DomainProgram; }
 
 		/** Returns an object containing the layout of all parameters in all the GPU programs used in this pipeline state. */
-		const SPtr<ct::GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+		const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		GpuDevice& mGpuDevice;
 		GpuGraphicsPipelineStateInformation mData;
-		SPtr<ct::GpuPipelineParameterLayout> mParameterLayout;
+		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/**
@@ -329,13 +329,13 @@ namespace bs
 		const SPtr<GpuProgram>& GetProgram() const { return mData.Program; }
 
 		/** Returns an object containing the layout of all parameters in the GPU program used in this pipeline state. */
-		const SPtr<ct::GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
+		const SPtr<GpuPipelineParameterLayout>& GetParameterLayout() const { return mParameterLayout; }
 
 	protected:
 		GpuDevice& mGpuDevice;
 
 		GpuComputePipelineStateInformation mData;
-		SPtr<ct::GpuPipelineParameterLayout> mParameterLayout;
+		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/** @} */

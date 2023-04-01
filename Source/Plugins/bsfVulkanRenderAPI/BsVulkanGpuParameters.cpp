@@ -688,14 +688,14 @@ void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, Vk
 	// not be modified on another thread while being bound.
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < parameterBlockBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
-			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer, set, slot, arrayIndex);
+			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer, set, slot, arrayIndex);
 			const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 			const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 
@@ -745,7 +745,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, Vk
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < bufferBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayoutBase::GpuParameterType::StorageBuffer, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
 		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer, sequentialBindingIndex, set, slot);
@@ -854,14 +854,14 @@ void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, Vk
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < samplerBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayoutBase::GpuParameterType::Sampler, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::Sampler, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayoutBase::GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
-			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayoutBase::GpuParameterType::Sampler, set, slot, arrayIndex);
+			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayout::GpuParameterType::Sampler, set, slot, arrayIndex);
 
 			if(mSamplerStates[sequentialResourceIndex] == nullptr)
 				continue;
@@ -892,15 +892,15 @@ void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, Vk
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < storageTextureBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayoutBase::GpuParameterType::StorageTexture, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::StorageTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayoutBase::GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
-			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayoutBase::GpuParameterType::StorageTexture, set, slot, arrayIndex);
+			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayout::GpuParameterType::StorageTexture, set, slot, arrayIndex);
 
 			VulkanImage* vulkanImage = nullptr;
 			if(mStorageTextureData[sequentialResourceIndex].Texture != nullptr)
@@ -964,16 +964,16 @@ void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, Vk
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < sampledTextureBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayoutBase::GpuParameterType::SampledTexture, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::SampledTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayoutBase::GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
-			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayoutBase::GpuParameterType::SampledTexture, set, slot, arrayIndex);
+			const u32 sequentialResourceIndex = vkParamInfo.GetSequentialResourceIndex(GpuPipelineParameterLayout::GpuParameterType::SampledTexture, set, slot, arrayIndex);
 			const u32 usedResourceSequentialIndex = vkParamInfo.GetUsedResourceSequentialIndex(set, slot, arrayIndex);
 
 			VulkanImage* vulkanImage = nullptr;

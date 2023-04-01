@@ -280,7 +280,6 @@ namespace bs
 	CORE_OBJECT_FORWARD_DECLARE(Light)
 	CORE_OBJECT_FORWARD_DECLARE(Camera)
 	CORE_OBJECT_FORWARD_DECLARE(Renderable)
-	CORE_OBJECT_FORWARD_DECLARE(GpuPipelineParameterLayout)
 	CORE_OBJECT_FORWARD_DECLARE(ReflectionProbe)
 	CORE_OBJECT_FORWARD_DECLARE(ParticleSystem)
 	CORE_OBJECT_FORWARD_DECLARE(Texture)
@@ -383,6 +382,7 @@ namespace bs
 	class MeshImportOptions;
 	class GpuGraphicsPipelineState;
 	class GpuComputePipelineState;
+	class GpuPipelineParameterLayout;
 	struct FontBitmap;
 	class GameObject;
 	class GpuResourceData;

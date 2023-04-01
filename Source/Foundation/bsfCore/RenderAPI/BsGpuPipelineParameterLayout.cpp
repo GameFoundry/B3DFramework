@@ -10,8 +10,7 @@
 
 using namespace bs;
 
-GpuPipelineParameterLayoutBase::GpuPipelineParameterLayoutBase(const GpuPipelineParameterLayoutCreateInformation& createInformation)
-	: mResourceInfos()
+GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
 {
 	B3DZeroOut(mBindingSlotCountPerType);
 	B3DZeroOut(mResourceCountPerType);
@@ -253,7 +252,7 @@ GpuPipelineParameterLayoutBase::GpuPipelineParameterLayoutBase(const GpuPipeline
 	}
 }
 
-u32 GpuPipelineParameterLayoutBase::GetSequentialResourceIndex(GpuParameterType type, u32 set, u32 slot, u32 arrayIndex) const
+u32 GpuPipelineParameterLayout::GetSequentialResourceIndex(GpuParameterType type, u32 set, u32 slot, u32 arrayIndex) const
 {
 #if B3D_DEBUG
 	if(set >= mSetCount)
@@ -295,7 +294,7 @@ u32 GpuPipelineParameterLayoutBase::GetSequentialResourceIndex(GpuParameterType 
 }
 
 
-u32 GpuPipelineParameterLayoutBase::GetSequentialBindingIndex(GpuParameterType type, u32 set, u32 slot) const
+u32 GpuPipelineParameterLayout::GetSequentialBindingIndex(GpuParameterType type, u32 set, u32 slot) const
 {
 #if B3D_DEBUG
 	if(set >= mSetCount)
@@ -328,7 +327,7 @@ u32 GpuPipelineParameterLayoutBase::GetSequentialBindingIndex(GpuParameterType t
 	return mSetInfos[set].SlotToSequentialBindingIndex[slot];
 }
 
-void GpuPipelineParameterLayoutBase::GetBinding(GpuParameterType type, u32 sequentialBindingIndex, u32& set, u32& slot) const
+void GpuPipelineParameterLayout::GetBinding(GpuParameterType type, u32 sequentialBindingIndex, u32& set, u32& slot) const
 {
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mBindingSlotCountPerType[(int)type])
@@ -345,7 +344,7 @@ void GpuPipelineParameterLayoutBase::GetBinding(GpuParameterType type, u32 seque
 	slot = mResourceInfos[(u32)type][sequentialBindingIndex].Slot;
 }
 
-void GpuPipelineParameterLayoutBase::GetBindings(GpuParameterType type, const String& name, GpuParameterBinding (&bindings)[GPT_COUNT])
+void GpuPipelineParameterLayout::GetBindings(GpuParameterType type, const String& name, GpuParameterBinding (&bindings)[GPT_COUNT])
 {
 	constexpr u32 numParamDescs = sizeof(mPerProgramParameterDescriptions) / sizeof(mPerProgramParameterDescriptions[0]);
 	static_assert(
@@ -356,7 +355,7 @@ void GpuPipelineParameterLayoutBase::GetBindings(GpuParameterType type, const St
 		GetBinding((GpuProgramType)i, type, name, bindings[i]);
 }
 
-void GpuPipelineParameterLayoutBase::GetBinding(GpuProgramType progType, GpuParameterType type, const String& name, GpuParameterBinding& binding)
+void GpuPipelineParameterLayout::GetBinding(GpuProgramType progType, GpuParameterType type, const String& name, GpuParameterBinding& binding)
 {
 	auto findBinding = [](auto& paramMap, const String& name, GpuParameterBinding& binding)
 	{
@@ -399,7 +398,7 @@ void GpuPipelineParameterLayoutBase::GetBinding(GpuProgramType progType, GpuPara
 	}
 }
 
-u32 GpuPipelineParameterLayoutBase::GetArraySize(GpuParameterType type, u32 sequentialBindingIndex)
+u32 GpuPipelineParameterLayout::GetArraySize(GpuParameterType type, u32 sequentialBindingIndex)
 {
 #if B3D_DEBUG
 	if(sequentialBindingIndex >= mBindingSlotCountPerType[(int)type])
@@ -412,46 +411,3 @@ u32 GpuPipelineParameterLayoutBase::GetArraySize(GpuParameterType type, u32 sequ
 
 	return mResourceInfos[(u32)type][sequentialBindingIndex].ArraySize;
 }
-
-GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterLayoutInformation& desc)
-	: GpuPipelineParameterLayoutBase(desc)
-{}
-
-SPtr<GpuPipelineParameterLayout> GpuPipelineParameterLayout::Create(const GpuPipelineParameterLayoutInformation& desc)
-{
-	SPtr<GpuPipelineParameterLayout> paramInfo =
-		B3DMakeCoreFromExisting<GpuPipelineParameterLayout>(new(B3DAllocate<GpuPipelineParameterLayout>()) GpuPipelineParameterLayout(desc));
-	paramInfo->SetShared(paramInfo);
-	paramInfo->Initialize();
-
-	return paramInfo;
-}
-
-SPtr<ct::GpuPipelineParameterLayout> GpuPipelineParameterLayout::GetCore() const
-{
-	return std::static_pointer_cast<ct::GpuPipelineParameterLayout>(mCoreSpecific);
-}
-
-SPtr<ct::CoreObject> GpuPipelineParameterLayout::CreateCore() const
-{
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
-	if(!gpuDevice)
-		return nullptr;
-
-	GpuPipelineParameterLayoutCreateInformation createInformation;
-	createInformation.Fragment = mPerProgramParameterDescriptions[GPT_FRAGMENT_PROGRAM];
-	createInformation.Vertex = mPerProgramParameterDescriptions[GPT_VERTEX_PROGRAM];
-	createInformation.Geometry = mPerProgramParameterDescriptions[GPT_GEOMETRY_PROGRAM];
-	createInformation.Hull = mPerProgramParameterDescriptions[GPT_HULL_PROGRAM];
-	createInformation.Domain = mPerProgramParameterDescriptions[GPT_DOMAIN_PROGRAM];
-	createInformation.Compute = mPerProgramParameterDescriptions[GPT_COMPUTE_PROGRAM];
-
-	return gpuDevice->CreateGpuPipelineParameterLayout(createInformation, true);
-}
-
-namespace bs { namespace ct
-{
-GpuPipelineParameterLayout::GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation)
-	: GpuPipelineParameterLayoutBase(createInformation)
-{}
-}}

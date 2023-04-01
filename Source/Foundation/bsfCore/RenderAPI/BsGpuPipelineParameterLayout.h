@@ -3,12 +3,11 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "CoreThread/BsCoreObject.h"
 #include "Allocators/BsGroupAlloc.h"
 
 namespace bs
 {
-	/** @addtogroup RenderAPI-Internal
+	/** @addtogroup RenderAPI
 	 *  @{
 	 */
 
@@ -39,8 +38,12 @@ namespace bs
 		u32 Slot = ~0u;
 	};
 
-	/** Contains code common to both sim and core thread implementations of GpuPipelineParameterLayout. */
-	class B3D_CORE_EXPORT GpuPipelineParameterLayoutBase
+	/**
+	 * Contains information about all GPU program parameters required when binding a particular GPU pipeline for execution.
+	 *
+	 * @note	Thread safe (Immutable).
+	 */
+	class B3D_CORE_EXPORT GpuPipelineParameterLayout
 	{
 	public:
 		/** Types of GPU parameters. */
@@ -54,9 +57,10 @@ namespace bs
 			Count
 		};
 
-		/** Constructs the object using the provided GPU parameter descriptors. */
-		GpuPipelineParameterLayoutBase(const GpuPipelineParameterLayoutCreateInformation& createInformation);
-		virtual ~GpuPipelineParameterLayoutBase() = default;
+		virtual ~GpuPipelineParameterLayout() = default;
+
+		/** Initializes the object. The object should not be used before this is called. */
+		virtual void Initialize() { }
 
 		/** Gets the total number of sets. */
 		u32 GetSetCount() const { return mSetCount; }
@@ -110,6 +114,8 @@ namespace bs
 		const SPtr<GpuProgramParameterDescription>& GetParameterDescriptionForProgram(GpuProgramType type) const { return mPerProgramParameterDescriptions[(int)type]; }
 
 	protected:
+		GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation);
+
 		/** Information about a single set in the param info object. */
 		struct SetInfo
 		{
@@ -136,58 +142,13 @@ namespace bs
 		SetInfo* mSetInfos = nullptr;
 
 		u32 mBindingSlotCount = 0;
-		u32 mBindingSlotCountPerType[(int)GpuParameterType::Count];
+		u32 mBindingSlotCountPerType[(int)GpuParameterType::Count]{};
 		u32 mResourceCount = 0;
-		u32 mResourceCountPerType[(int)GpuParameterType::Count];
-		ResourceInfo* mResourceInfos[(int)GpuParameterType::Count];
+		u32 mResourceCountPerType[(int)GpuParameterType::Count]{};
+		ResourceInfo* mResourceInfos[(int)GpuParameterType::Count]{};
 
 		GroupAlloc mAlloc;
 	};
-
-	/** Holds meta-data about a set of GPU parameters used by a single pipeline state. */
-	class B3D_CORE_EXPORT GpuPipelineParameterLayout : public CoreObject, public GpuPipelineParameterLayoutBase
-	{
-	public:
-		virtual ~GpuPipelineParameterLayout() = default;
-
-		/**
-		 * Retrieves a core implementation of this object usable only from the core thread.
-		 *
-		 * @note	Core thread only.
-		 */
-		SPtr<ct::GpuPipelineParameterLayout> GetCore() const;
-
-		/**
-		 * Constructs the object using the provided GPU parameter descriptors.
-		 *
-		 * @param[in]	desc	Object containing parameter descriptions for individual GPU program stages.
-		 */
-		static SPtr<GpuPipelineParameterLayout> Create(const GpuPipelineParameterLayoutInformation& desc);
-
-	private:
-		GpuPipelineParameterLayout(const GpuPipelineParameterLayoutInformation& desc);
-
-		SPtr<ct::CoreObject> CreateCore() const override;
-	};
-
-	namespace ct
-	{
-		/**
-		 * Contains information about all GPU program parameters required when binding a particular GPU pipeline for execution.
-		 *
-		 * @note	Thread safe (Immutable).
-		 */
-		class B3D_CORE_EXPORT GpuPipelineParameterLayout : public CoreObject, public GpuPipelineParameterLayoutBase
-		{
-		public:
-			virtual ~GpuPipelineParameterLayout() = default;
-
-		protected:
-			friend class RenderStateManager;
-
-			GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation);
-		};
-	} // namespace ct
 
 	/** @} */
 } // namespace bs

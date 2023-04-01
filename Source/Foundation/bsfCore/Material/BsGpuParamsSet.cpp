@@ -480,19 +480,19 @@ SPtr<ct::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferC
 }
 
 template <bool Core>
-SPtr<CoreVariantType<GpuParameters, Core>> CreateGpuParameters(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout)
+SPtr<CoreVariantType<GpuParameters, Core>> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	return nullptr;
 }
 
 template <>
-SPtr<GpuParameters> CreateGpuParameters<false>(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout)
+SPtr<GpuParameters> CreateGpuParameters<false>(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	return GpuParameters::Create(parameterLayout);
 }
 
 template <>
-SPtr<ct::GpuParameters> CreateGpuParameters<true>(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout)
+SPtr<ct::GpuParameters> CreateGpuParameters<true>(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
 	return device->CreateGpuParameters(parameterLayout);

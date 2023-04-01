@@ -251,8 +251,6 @@ namespace bs
 		};
 	};
 
-	class GpuPipelineParameterLayoutBase;
-
 	/** Contains functionality common for both sim and core thread version of GpuParameters. */
 	class B3D_CORE_EXPORT GpuParamsBase
 	{
@@ -268,7 +266,7 @@ namespace bs
 		SPtr<GpuProgramParameterDescription> GetParameterInformation(GpuProgramType type) const;
 
 		/** Gets the object that contains the processed information about all parameters. */
-		SPtr<GpuPipelineParameterLayoutBase> GetPipelineParameterInformation() const { return mParameterLayout; }
+		SPtr<GpuPipelineParameterLayout> GetPipelineParameterInformation() const { return mParameterLayout; }
 
 		/**
 		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
@@ -306,12 +304,12 @@ namespace bs
 		virtual void MarkResourcesDirtyInternal() {}
 
 	protected:
-		GpuParamsBase(const SPtr<GpuPipelineParameterLayoutBase>& parameterLayout);
+		GpuParamsBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
 		/**	Gets a descriptor for a data parameter with the specified name. */
 		GpuDataParameterInformation* GetDataParameterInformation(GpuProgramType type, const String& name) const;
 
-		SPtr<GpuPipelineParameterLayoutBase> mParameterLayout;
+		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
 	/** Templated version of GpuParameters that contains functionality for both sim and core thread versions of stored data. */
@@ -515,7 +513,7 @@ namespace bs
 		}
 
 	protected:
-		TGpuParams(const SPtr<GpuPipelineParameterLayoutBase>& parameterLayout);
+		TGpuParams(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
 		/** @copydoc CoreObject::GetThisPtr */
 		virtual SPtr<GpuParamsType> GetThisPtrInternal() const = 0;
@@ -588,7 +586,7 @@ namespace bs
 		 *
 		 * @param[in]	parameterLayout	Description of GPU parameters for a specific GPU pipeline state.
 		 */
-		static SPtr<GpuParameters> Create(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout);
+		static SPtr<GpuParameters> Create(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
 		/** Contains a lookup table for sizes of all data parameters. Sizes are in bytes. */
 		const static GpuDataParameterTypeInformationLookup kParamSizes;
@@ -602,7 +600,7 @@ namespace bs
 
 		/** @} */
 	protected:
-		GpuParameters(const SPtr<ct::GpuPipelineParameterLayout>& paramInfo);
+		GpuParameters(const SPtr<GpuPipelineParameterLayout>& paramInfo);
 
 		SPtr<GpuParameters> GetThisPtrInternal() const override;
 		SPtr<ct::CoreObject> CreateCore() const override;

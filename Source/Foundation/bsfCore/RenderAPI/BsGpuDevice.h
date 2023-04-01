@@ -84,7 +84,7 @@ namespace bs
 		 * @param	parameterLayout			Layout that describes the GPU parameters, as retrieved from the GPU pipeline.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<ct::GpuParameters> CreateGpuParameters(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize = false) = 0;
+		virtual SPtr<ct::GpuParameters> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Creates a graphics pipeline.
@@ -108,7 +108,7 @@ namespace bs
 		 * @param	createInformation		Object describing the layout to create.
 		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
 		 */
-		virtual SPtr<ct::GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize = false) = 0;
+		virtual SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 	};
 
 	/** @} */

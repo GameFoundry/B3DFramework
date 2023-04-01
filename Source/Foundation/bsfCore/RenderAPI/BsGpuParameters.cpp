@@ -20,7 +20,7 @@ using namespace bs;
 
 const TextureSurface TextureSurface::kComplete = TextureSurface(0, 0, 0, 0);
 
-GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParameterLayoutBase>& parameterLayout)
+GpuParamsBase::GpuParamsBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 	: mParameterLayout(parameterLayout)
 {}
 
@@ -147,7 +147,7 @@ GpuDataParameterBlockInformation* GpuParamsBase::GetParameterBlockDesc(GpuProgra
 }
 
 template <bool Core>
-TGpuParams<Core>::TGpuParams(const SPtr<GpuPipelineParameterLayoutBase>& parameterLayout)
+TGpuParams<Core>::TGpuParams(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 	: GpuParamsBase(parameterLayout)
 {
 	const u32 uniformBufferCount = mParameterLayout->GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer);
@@ -684,8 +684,8 @@ template B3D_CORE_EXPORT void TGpuParams<true>::GetParameter<Matrix4x3>(GpuProgr
 
 const GpuDataParameterTypeInformationLookup GpuParameters::kParamSizes;
 
-GpuParameters::GpuParameters(const SPtr<ct::GpuPipelineParameterLayout>& paramInfo)
-	: TGpuParams(paramInfo)
+GpuParameters::GpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
+	: TGpuParams(parameterLayout)
 {
 }
 
@@ -706,7 +706,7 @@ SPtr<ct::CoreObject> GpuParameters::CreateCore() const
 		return nullptr;
 
 	SPtr<GpuPipelineParameterLayout> parameterLayout = std::static_pointer_cast<GpuPipelineParameterLayout>(mParameterLayout);
-	return gpuDevice->CreateGpuParameters(parameterLayout->GetCore(), true);
+	return gpuDevice->CreateGpuParameters(parameterLayout, true);
 }
 
 void GpuParameters::MarkCoreDirtyInternal()
@@ -729,7 +729,7 @@ SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuComputePipelineState>& p
 	return Create(pipelineState->GetParameterLayout());
 }
 
-SPtr<GpuParameters> GpuParameters::Create(const SPtr<ct::GpuPipelineParameterLayout>& parameterLayout)
+SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	GpuParameters* const output = new(B3DAllocate<GpuParameters>()) GpuParameters(parameterLayout);
 	SPtr<GpuParameters> shared = B3DMakeCoreFromExisting<GpuParameters>(output);

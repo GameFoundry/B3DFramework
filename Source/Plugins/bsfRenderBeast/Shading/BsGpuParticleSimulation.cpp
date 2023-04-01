@@ -1107,13 +1107,13 @@ void GpuParticleSimulateMat::Initialize()
 
 	mGPUParameters->GetPipelineParameterInformation()->GetBinding(
 		GPT_FRAGMENT_PROGRAM,
-		GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer,
+		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
 		"Params",
 		mParamsBinding);
 
 	mGPUParameters->GetPipelineParameterInformation()->GetBinding(
 		GPT_FRAGMENT_PROGRAM,
-		GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer,
+		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
 		"VectorFieldParams",
 		mVectorFieldBinding);
 
@@ -1127,19 +1127,19 @@ void GpuParticleSimulateMat::Initialize()
 	{
 		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer,
+			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
 			"PerCamera",
 			mPerCameraBinding);
 
 		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer,
+			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
 			"PerObject",
 			mPerObjectBinding);
 
 		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
 			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayoutBase::GpuParameterType::UniformBuffer,
+			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
 			"DepthCollisionParams",
 			mDepthCollisionBinding);
 

@@ -542,10 +542,9 @@ SPtr<GpuComputePipelineState> VulkanGpuDevice::CreateGpuComputePipelineState(con
 	
 }
 
-SPtr<ct::GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize)
+SPtr<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize)
 {
 	SPtr<VulkanGpuPipelineParameterLayout> output = B3DMakeSharedFromExisting<VulkanGpuPipelineParameterLayout>(new(B3DAllocate<VulkanGpuPipelineParameterLayout>()) VulkanGpuPipelineParameterLayout(*this, createInformation));
-	output->SetShared(output);
 	
 	if(!deferredInitialize)
 		output->Initialize();
