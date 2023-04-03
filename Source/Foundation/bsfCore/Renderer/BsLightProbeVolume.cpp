@@ -226,7 +226,9 @@ void LightProbeVolume::RunRenderProbeTask()
 	SPtr<ct::LightProbeVolume> coreProbeVolume = GetCore();
 	auto renderProbes = [coreProbeVolume]()
 	{
-		return coreProbeVolume->RenderProbes(3);
+		SPtr<ct::CommandBuffer> commandBuffer = ct::GetRenderAPI().GetMainCommandBuffer();
+
+		return coreProbeVolume->RenderProbes(*commandBuffer, 3);
 	};
 
 	mRendererTask = ct::RendererTask::Create("RenderLightProbes", renderProbes);
@@ -439,7 +441,7 @@ void LightProbeVolume::Initialize()
 	CoreObject::Initialize();
 }
 
-bool LightProbeVolume::RenderProbes(u32 maxProbes)
+bool LightProbeVolume::RenderProbes(CommandBuffer& commandBuffer, u32 maxProbes)
 {
 	// Probe map only contains active probes
 	u32 numUsedProbes = (u32)mProbeMap.size();
@@ -471,7 +473,7 @@ bool LightProbeVolume::RenderProbes(u32 maxProbes)
 			Vector3 transformedPos = rotation.Rotate(localPos) + position;
 
 			GetRenderer()->CaptureSceneCubeMap(cubemap, transformedPos, CaptureSettings());
-			GetIBLUtility().FilterCubemapForIrradiance(cubemap, mCoefficients, probeInfo.BufferIdx);
+			GetIBLUtility().FilterCubemapForIrradiance(commandBuffer, cubemap, mCoefficients, probeInfo.BufferIdx);
 
 			probeInfo.Flags = LightProbeFlags::Clean;
 			numProbeUpdates++;

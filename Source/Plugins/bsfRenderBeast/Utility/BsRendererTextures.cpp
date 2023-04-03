@@ -9,6 +9,7 @@
 #include "Image/BsPixelData.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Image/BsColorGradient.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 namespace bs {
 namespace ct {
@@ -179,6 +180,8 @@ SPtr<ct::Texture> GeneratePreintegratedEnvBrdf()
 
 SPtr<ct::Texture> GenerateDefaultIndirect()
 {
+	SPtr<CommandBuffer> commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+
 	TextureCreateInformation dummySkyDesc;
 	dummySkyDesc.Name = "Dummy Sky";
 	dummySkyDesc.Type = TEX_TYPE_CUBE_MAP;
@@ -236,7 +239,7 @@ SPtr<ct::Texture> GenerateDefaultIndirect()
 	irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
 	SPtr<ct::Texture> irradiance = ct::Texture::Create(irradianceCubemapDesc);
-	GetIBLUtility().FilterCubemapForIrradiance(skyTexture, irradiance);
+	GetIBLUtility().FilterCubemapForIrradiance(*commandBuffer, skyTexture, irradiance);
 
 	return irradiance;
 }

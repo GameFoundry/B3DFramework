@@ -54,7 +54,7 @@ namespace bs
 			ShadowDepthNormalMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(const SPtr<GpuBuffer>& shadowParams);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
 			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
@@ -88,7 +88,7 @@ namespace bs
 			ShadowDepthNormalNoPSMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(const SPtr<GpuBuffer>& shadowParams);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
 			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
@@ -122,7 +122,7 @@ namespace bs
 			ShadowDepthDirectionalMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(const SPtr<GpuBuffer>& shadowParams);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
 			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
@@ -168,7 +168,7 @@ namespace bs
 			ShadowDepthCubeMat() = default;
 
 			/** Binds the material to the pipeline, ready to be used on subsequent draw calls. */
-			void Bind(const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& shadowCubeParams);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& shadowCubeParams);
 
 			/** Sets a new buffer that determines per-object properties. */
 			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks);
@@ -209,7 +209,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
-			void Bind(const SPtr<GpuBuffer>& perCamera);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perCamera);
 
 			/** Returns the material variation matching the provided parameters.
 			 *
@@ -284,7 +284,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
-			void Bind(const ShadowProjectParams& params);
+			void Bind(CommandBuffer& commandBuffer, const ShadowProjectParams& params);
 
 			/** Returns the material variation matching the provided parameters.
 			 *
@@ -337,7 +337,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material and its parameters to the pipeline. */
-			void Bind(const ShadowProjectParams& params);
+			void Bind(CommandBuffer& commandBuffer, const ShadowProjectParams& params);
 
 			/** Returns the material variation matching the provided parameters.
 			 *
@@ -541,26 +541,26 @@ namespace bs
 			ShadowRendering(u32 shadowMapSize);
 
 			/** For each visible shadow casting light, renders a shadow map from its point of view. */
-			void RenderShadowMaps(RendererScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
+			void RenderShadowMaps(CommandBuffer& commandBuffer, RendererScene& scene, const RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders shadow occlusion values for the specified light, through the provided view, into the currently bound
 			 * render target. The system uses shadow maps rendered by renderShadowMaps().
 			 */
-			void RenderShadowOcclusion(const RendererView& view, const RendererLight& light, GBufferTextures gbuffer) const;
+			void RenderShadowOcclusion(CommandBuffer& commandBuffer, const RendererView& view, const RendererLight& light, GBufferTextures gbuffer) const;
 
 			/** Changes the default shadow map size. Will cause all shadow maps to be rebuilt. */
 			void SetShadowMapSize(u32 size);
 
 		private:
 			/** Renders cascaded shadow maps for the provided directional light viewed from the provided view. */
-			void RenderCascadedShadowMaps(const RendererView& view, u32 lightIdx, RendererScene& scene, const FrameInfo& frameInfo);
+			void RenderCascadedShadowMaps(CommandBuffer& commandBuffer, const RendererView& view, u32 lightIdx, RendererScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided spot light. */
-			void RenderSpotShadowMap(const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene, const FrameInfo& frameInfo);
+			void RenderSpotShadowMap(CommandBuffer& commandBuffer, const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene, const FrameInfo& frameInfo);
 
 			/** Renders shadow maps for the provided radial light. */
-			void RenderRadialShadowMap(const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene, const FrameInfo& frameInfo);
+			void RenderRadialShadowMap(CommandBuffer& commandBuffer, const RendererLight& light, const ShadowMapOptions& options, RendererScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Calculates optimal shadow map size, taking into account all views in the scene. Also calculates a fade value
@@ -581,17 +581,18 @@ namespace bs
 			 * normalized device coordinates and requires no perspective transform. Near plane will be drawn using front facing
 			 * triangles, and the far plane will be drawn using back facing triangles.
 			 *
-			 * @param[in]	near		Location of the near plane, in NDC.
-			 * @param[in]	far			Location of the far plane, in NDC.
-			 * @param[in]	drawNear	If disabled, only the far plane will be drawn.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	near			Location of the near plane, in NDC.
+			 * @param	far				Location of the far plane, in NDC.
+			 * @param	drawNear		If disabled, only the far plane will be drawn.
 			 */
-			void DrawNearFarPlanes(float near, float far, bool drawNear = true) const;
+			void DrawNearFarPlanes(CommandBuffer& commandBuffer, float near, float far, bool drawNear = true) const;
 
 			/**
 			 * Draws a frustum mesh using the provided vertices as its corners. Corners should be in the order specified
 			 * by AABox::Corner enum.
 			 */
-			void DrawFrustum(const std::array<Vector3, 8>& corners) const;
+			void DrawFrustum(CommandBuffer& commandBuffer, const std::array<Vector3, 8>& corners) const;
 
 			/**
 			 * Calculates optimal shadow quality based on the quality set in the options and the actual shadow map resolution.

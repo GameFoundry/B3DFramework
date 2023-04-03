@@ -145,13 +145,13 @@ namespace bs { namespace ct
 
 DebugDrawParamsDef gDebugDrawParamsDef;
 
-void DebugDrawMat::Execute(const SPtr<GpuBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
+void DebugDrawMat::Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
 	mGPUParameters->SetUniformBuffer("Params", params);
 
-	Bind();
+	Bind(commandBuffer);
 	GetRendererUtility().Draw(mesh, subMesh);
 }
 
@@ -204,7 +204,7 @@ void DebugDrawRenderer::Render(const Camera& camera, const RendererViewContext& 
 	for(auto& entry : mMeshes)
 	{
 		DebugDrawMat* mat = DebugDrawMat::GetVariation(entry.Type);
-		mat->Execute(mParamBuffer, entry.Mesh, entry.SubMesh);
+		mat->Execute(*viewContext.CommandBuffer, mParamBuffer, entry.Mesh, entry.SubMesh);
 	}
 }
 }}

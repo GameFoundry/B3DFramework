@@ -47,7 +47,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -86,7 +86,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -141,7 +141,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -185,7 +185,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuBuffer>& reflProbeParams);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -230,7 +230,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -273,7 +273,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams);
+			void Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -298,14 +298,14 @@ namespace bs
 			StandardDeferred();
 
 			/** Calculates lighting for the specified light, using the standard deferred renderer. */
-			void RenderLight(LightType type, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
+			void RenderLight(CommandBuffer& commandBuffer, LightType type, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion);
 
 			/**
 			 * Evaluates filtered radiance from a single reflection probe and blends it into the current render target.
 			 * Alpha value of the render target is used for determining the contribution and will be updated with new
 			 * contibution after blending.
 			 */
-			void RenderReflProbe(const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams);
+			void RenderReflProbe(CommandBuffer& commandBuffer, const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams);
 
 		private:
 			SPtr<GpuBuffer> mPerLightBuffer;

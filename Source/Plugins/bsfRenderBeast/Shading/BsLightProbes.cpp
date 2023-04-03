@@ -38,7 +38,7 @@ void TetrahedraRenderMat::Initialize()
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
-void TetrahedraRenderMat::Execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
+void TetrahedraRenderMat::Execute(CommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -53,7 +53,7 @@ void TetrahedraRenderMat::Execute(const RendererView& view, const SPtr<Texture>&
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output);
 
-	Bind();
+	Bind(commandBuffer);
 	GetRendererUtility().Draw(mesh);
 }
 
@@ -103,7 +103,7 @@ void IrradianceEvaluateMat::Initialize()
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
-void IrradianceEvaluateMat::Execute(const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output)
+void IrradianceEvaluateMat::Execute(CommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -150,7 +150,7 @@ void IrradianceEvaluateMat::Execute(const RendererView& view, const GBufferTextu
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
 
-	Bind();
+	Bind(commandBuffer);
 
 	GetRendererUtility().DrawScreenQuad(Rect2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
 

@@ -78,6 +78,9 @@ CommandBuffer::~CommandBuffer()
 
 SPtr<CommandBuffer> CommandBuffer::Create(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
 {
-	return CommandBufferManager::Instance().Create(type, deviceIdx, queueIdx, secondary);
+	SPtr<CommandBuffer> commandBuffer = CommandBufferManager::Instance().Create(type, deviceIdx, queueIdx, secondary);
+	commandBuffer->SetShared(commandBuffer);
+
+	return commandBuffer;
 }
 }}

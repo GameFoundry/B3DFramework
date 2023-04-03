@@ -108,21 +108,21 @@ namespace bs
 			 *
 			 * @note	Core thread only.
 			 */
-			bool RenderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
+			bool RenderViews(const SPtr<CommandBuffer>& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all objects visible by the provided view.
 			 *
 			 * @note	Core thread only.
 			 */
-			void RenderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
+			void RenderView(const SPtr<CommandBuffer>& commandBuffer, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all overlay callbacks of the provided view. Returns true if anything has been rendered in any of the views.
 			 *
 			 * @note	Core thread only.
 			 */
-			bool RenderOverlay(RendererView& view, const FrameInfo& frameInfo);
+			bool RenderOverlay(const SPtr<CommandBuffer>& commandBuffer, RendererView& view, const FrameInfo& frameInfo);
 
 			/**	Creates data used by the renderer on the core thread. */
 			void InitializeCore(const LoadedRendererTextures& rendererTextures);

@@ -8,6 +8,7 @@
 #include "Utility/BsUUID.h"
 #include "Renderer/BsIBLUtility.h"
 #include "CoreThread/BsCoreObjectSync.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 using namespace bs;
 
@@ -79,14 +80,16 @@ void Skybox::FilterTexture()
 
 	auto filterSkybox = [coreFilteredRadiance, coreIrradiance, coreSkybox]()
 	{
+		const SPtr<ct::CommandBuffer> commandBuffer = ct::GetRenderAPI().GetMainCommandBuffer();
+
 		// Filter radiance
-		ct::GetIBLUtility().ScaleCubemap(coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
-		ct::GetIBLUtility().FilterCubemapForSpecular(coreFilteredRadiance, nullptr);
+		ct::GetIBLUtility().ScaleCubemap(*commandBuffer, coreSkybox->GetTexture(), 0, coreFilteredRadiance, 0);
+		ct::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, coreFilteredRadiance, nullptr);
 
 		coreSkybox->mFilteredRadiance = coreFilteredRadiance;
 
 		// Generate irradiance
-		ct::GetIBLUtility().FilterCubemapForIrradiance(coreSkybox->GetTexture(), coreIrradiance);
+		ct::GetIBLUtility().FilterCubemapForIrradiance(*commandBuffer, coreSkybox->GetTexture(), coreIrradiance);
 		coreSkybox->mIrradiance = coreIrradiance;
 
 		return true;

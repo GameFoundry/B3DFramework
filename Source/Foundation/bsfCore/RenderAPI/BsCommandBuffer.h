@@ -111,6 +111,9 @@ namespace bs
 			 */
 			virtual void Reset() = 0;
 
+			/** Returns the shared pointer to the current object. */
+			SPtr<CommandBuffer> GetShared() const { return mSelf.lock(); }
+
 			/** Triggers when the command buffer finishes execution on the GPU. */
 			Event<void()> OnDidComplete;
 
@@ -120,12 +123,17 @@ namespace bs
 		protected:
 			CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
 
+			/** Sets a pointer to itself. */
+			void SetShared(const SPtr<CommandBuffer>& value) { mSelf = value; }
+
 			GpuQueueType mType;
 			String mName;
 			u32 mDeviceIdx;
 			u32 mQueueIdx;
 			bool mIsSecondary;
 			bool mIsSubmitted = false;
+
+			WeakSPtr<CommandBuffer> mSelf;
 		};
 
 		/** @} */

@@ -209,7 +209,7 @@ namespace bs
 			DebugDrawMat() = default;
 
 			/** Executes the material using the provided parameters. */
-			void Execute(const SPtr<GpuBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh);
 
 			/** Returns the material variation matching the provided parameters. */
 			static DebugDrawMat* GetVariation(DebugDrawMaterial drawMat);

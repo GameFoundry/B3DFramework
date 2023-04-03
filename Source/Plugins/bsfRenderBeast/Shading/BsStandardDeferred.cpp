@@ -20,14 +20,14 @@ void DeferredDirectionalLightMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
-void DeferredDirectionalLightMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
+void DeferredDirectionalLightMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
 {
 	mGBufferParams.Bind(gBufferInput);
 	mLightOcclusionTexParam.Set(lightOcclusion);
 	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
 	mGPUParameters->SetUniformBuffer("PerLight", perLight);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -49,14 +49,14 @@ void DeferredPointLightMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
-void DeferredPointLightMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
+void DeferredPointLightMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
 {
 	mGBufferParams.Bind(gBufferInput);
 	mLightOcclusionTexParam.Set(lightOcclusion);
 	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
 	mGPUParameters->SetUniformBuffer("PerLight", perLight);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredPointLightMat* DeferredPointLightMat::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -95,7 +95,7 @@ void DeferredIBLSetupMat::Initialize()
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 }
 
-void DeferredIBLSetupMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams)
+void DeferredIBLSetupMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& ssr, const SPtr<Texture>& ao, const SPtr<GpuBuffer>& reflProbeParams)
 {
 	mGBufferParams.Bind(gBufferInput);
 
@@ -105,7 +105,7 @@ void DeferredIBLSetupMat::Bind(const GBufferTextures& gBufferInput, const SPtr<G
 	mIBLParams.AmbientOcclusionTexParam.Set(ao);
 	mIBLParams.SsrTexParam.Set(ssr);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredIBLSetupMat* DeferredIBLSetupMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -132,7 +132,7 @@ void DeferredIBLProbeMat::Initialize()
 	mGPUParameters->SetUniformBuffer("PerProbe", mParamBuffer);
 }
 
-void DeferredIBLProbeMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuBuffer>& reflProbeParams)
+void DeferredIBLProbeMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SceneInfo& sceneInfo, const ReflProbeData& probeData, const SPtr<GpuBuffer>& reflProbeParams)
 {
 	mGBufferParams.Bind(gBufferInput);
 
@@ -156,7 +156,7 @@ void DeferredIBLProbeMat::Bind(const GBufferTextures& gBufferInput, const SPtr<G
 
 	mIBLParams.ReflectionProbeCubemapsTexParam.Set(sceneInfo.ReflProbeCubemapsTex);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredIBLProbeMat* DeferredIBLProbeMat::GetVariation(bool inside, bool msaa, bool singleSampleMSAA)
@@ -193,7 +193,7 @@ void DeferredIBLSkyMat::Initialize()
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 }
 
-void DeferredIBLSkyMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams)
+void DeferredIBLSkyMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const Skybox* skybox, const SPtr<GpuBuffer>& reflProbeParams)
 {
 	mGBufferParams.Bind(gBufferInput);
 
@@ -203,7 +203,7 @@ void DeferredIBLSkyMat::Bind(const GBufferTextures& gBufferInput, const SPtr<Gpu
 	if(skybox != nullptr)
 		mIBLParams.SkyReflectionsTexParam.Set(skybox->GetFilteredRadiance());
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredIBLSkyMat* DeferredIBLSkyMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -229,7 +229,7 @@ void DeferredIBLFinalizeMat::Initialize()
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 }
 
-void DeferredIBLFinalizeMat::Bind(const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams)
+void DeferredIBLFinalizeMat::Bind(CommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& iblRadiance, const SPtr<Texture>& preintegratedBrdf, const SPtr<GpuBuffer>& reflProbeParams)
 {
 	mGBufferParams.Bind(gBufferInput);
 
@@ -240,7 +240,7 @@ void DeferredIBLFinalizeMat::Bind(const GBufferTextures& gBufferInput, const SPt
 
 	mIBLRadiance.Set(iblRadiance);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 DeferredIBLFinalizeMat* DeferredIBLFinalizeMat::GetVariation(bool msaa, bool singleSampleMSAA)
@@ -263,7 +263,7 @@ StandardDeferred::StandardDeferred()
 	mPerLightBuffer = gPerLightParamDef.CreateBuffer();
 }
 
-void StandardDeferred::RenderLight(LightType lightType, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
+void StandardDeferred::RenderLight(CommandBuffer& commandBuffer, LightType lightType, const RendererLight& light, const RendererView& view, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion)
 {
 	const auto& viewProps = view.GetProperties();
 
@@ -275,7 +275,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 	if(lightType == LightType::Directional)
 	{
 		DeferredDirectionalLightMat* material = DeferredDirectionalLightMat::GetVariation(isMSAA, true);
-		material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+		material->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 		GetRendererUtility().DrawScreenQuad();
 
@@ -283,7 +283,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 		if(isMSAA)
 		{
 			DeferredDirectionalLightMat* msaaMaterial = DeferredDirectionalLightMat::GetVariation(true, false);
-			msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+			msaaMaterial->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			GetRendererUtility().DrawScreenQuad();
 		}
@@ -307,7 +307,7 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 			stencilMesh = RendererUtility::Instance().GetSpotLightStencil();
 
 		DeferredPointLightMat* material = DeferredPointLightMat::GetVariation(isInside, isMSAA, true);
-		material->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+		material->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 		// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
 		GetRendererUtility().Draw(stencilMesh);
@@ -316,14 +316,14 @@ void StandardDeferred::RenderLight(LightType lightType, const RendererLight& lig
 		if(isMSAA)
 		{
 			DeferredPointLightMat* msaaMaterial = DeferredPointLightMat::GetVariation(isInside, true, false);
-			msaaMaterial->Bind(gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
+			msaaMaterial->Bind(commandBuffer, gBufferInput, lightOcclusion, perViewBuffer, mPerLightBuffer);
 
 			GetRendererUtility().Draw(stencilMesh);
 		}
 	}
 }
 
-void StandardDeferred::RenderReflProbe(const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams)
+void StandardDeferred::RenderReflProbe(CommandBuffer& commandBuffer, const ReflProbeData& probeData, const RendererView& view, const GBufferTextures& gBufferInput, const SceneInfo& sceneInfo, const SPtr<GpuBuffer>& reflProbeParams)
 {
 	const auto& viewProps = view.GetProperties();
 	bool isMSAA = viewProps.Target.NumSamples > 1;
@@ -356,7 +356,7 @@ void StandardDeferred::RenderReflProbe(const ReflProbeData& probeData, const Ren
 	}
 
 	DeferredIBLProbeMat* material = DeferredIBLProbeMat::GetVariation(isInside, isMSAA, true);
-	material->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
+	material->Bind(commandBuffer, gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
 	// Note: If MSAA is enabled this will be rendered multisampled (on polygon edges), see if this can be avoided
 	GetRendererUtility().Draw(stencilMesh);
@@ -365,7 +365,7 @@ void StandardDeferred::RenderReflProbe(const ReflProbeData& probeData, const Ren
 	if(isMSAA)
 	{
 		DeferredIBLProbeMat* msaaMaterial = DeferredIBLProbeMat::GetVariation(isInside, true, false);
-		msaaMaterial->Bind(gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
+		msaaMaterial->Bind(commandBuffer, gBufferInput, perViewBuffer, sceneInfo, probeData, reflProbeParams);
 
 		GetRendererUtility().Draw(stencilMesh);
 	}

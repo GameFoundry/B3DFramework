@@ -56,12 +56,13 @@ namespace bs
 			/**
 			 * Executes the material using the provided parameters.
 			 *
-			 * @param[in]	view		View that is currently being rendered.
-			 * @param[in]	sceneDepth	Depth of scene objects that should be lit.
-			 * @param[in]	mesh		Mesh to render.
-			 * @param[in]	output		Output texture created using the descriptor returned by getOutputDesc().
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	view			View that is currently being rendered.
+			 * @param	sceneDepth		Depth of scene objects that should be lit.
+			 * @param	mesh			Mesh to render.
+			 * @param	output			Output texture created using the descriptor returned by getOutputDesc().
 			 */
-			void Execute(const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output);
+			void Execute(CommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output);
 
 			/**
 			 * Returns the descriptors that can be used for creating the output render texture for this material. The render
@@ -115,17 +116,18 @@ namespace bs
 			/**
 			 * Executes the material using the provided parameters.
 			 *
-			 * @param[in]	view				View that is currently being rendered.
-			 * @param[in]	gbuffer				Previously rendered GBuffer textures.
-			 * @param[in]	lightProbeIndices	Indices calculated by TetrahedraRenderMat.
-			 * @param[in]	lightProbesInfo		Information about light probes.
-			 * @param[in]	skybox				Skybox, if available. If sky is not available, but sky rendering is enabled,
-			 *									the system will instead use a default irradiance texture.
-			 * @param[in]	ambientOcclusion	Texture containing per-pixel ambient occlusion.
-			 * @param[in]	output				Output texture to write the radiance to. The evaluated value will be added to
-			 *									existing radiance in the texture, using blending.
+			 * @param	commandBuffer		Command buffer to execute on.
+			 * @param	view				View that is currently being rendered.
+			 * @param	gbuffer				Previously rendered GBuffer textures.
+			 * @param	lightProbeIndices	Indices calculated by TetrahedraRenderMat.
+			 * @param	lightProbesInfo		Information about light probes.
+			 * @param	skybox				Skybox, if available. If sky is not available, but sky rendering is enabled,
+			 *								the system will instead use a default irradiance texture.
+			 * @param	ambientOcclusion	Texture containing per-pixel ambient occlusion.
+			 * @param	output				Output texture to write the radiance to. The evaluated value will be added to
+			 *								existing radiance in the texture, using blending.
 			 */
-			void Execute(const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output);
+			void Execute(CommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

@@ -32,7 +32,7 @@ public:
 	void Initialize() override;
 
 	/** Binds the material to the pipeline, along with the @p tileUVs buffer containing locations of tiles to clear. */
-	void Bind(const SPtr<GpuBuffer>& tileUVs);
+	void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs);
 
 private:
 	GpuParameterBuffer mTileUVParam;
@@ -113,20 +113,21 @@ public:
 	void Initialize() override;
 
 	/** Binds the material to the pipeline along with any frame-static parameters. */
-	void BindGlobal(GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams);
+	void BindGlobal(CommandBuffer& commandBuffer, GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams);
 
 	/**
 	 * Binds parameters that change with every material dispatch.
 	 *
-	 * @param[in]	tileUVs					Sets the UV offsets of individual tiles for a particular particle system
+	 * @param	commandBuffer			Command buffer to bind the parameters on.
+	 * @param	tileUVs					Sets the UV offsets of individual tiles for a particular particle system
 	 *										that's being rendered.
-	 * @param[in]	perObjectParams			General purpose particle system parameters.
-	 * @param[in]	vectorFieldParams		Information about the currently bound vector field, if any.
-	 * @param[in]	vectorFieldTexture		3D texture representing the vector field, or null if none.
-	 * @param[in]	depthCollisionParams	Parameter buffer for controlling depth buffer collisions, if enabled.
+	 * @param	perObjectParams			General purpose particle system parameters.
+	 * @param	vectorFieldParams		Information about the currently bound vector field, if any.
+	 * @param	vectorFieldTexture		3D texture representing the vector field, or null if none.
+	 * @param	depthCollisionParams	Parameter buffer for controlling depth buffer collisions, if enabled.
 	 *
 	 */
-	void BindPerCallParams(const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams);
+	void BindPerCallParams(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams);
 
 	/** Returns the material variation matching the provided parameters. */
 	static GpuParticleSimulateMat* GetVariation(bool depthCollisions, bool localSpace);
@@ -171,16 +172,17 @@ public:
 	void Initialize() override;
 
 	/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
-	void Bind(const SPtr<Texture>& positionAndTime);
+	void Bind(CommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime);
 
 	/**
 	 * Executes the material, calculating the bounds. Note that this function reads back from the GPU and should not
 	 * be called at runtime.
 	 *
-	 * @param[in]	indices			Buffer containing offsets into the position texture for each particle.
-	 * @param[in]	numParticles	Number of particle in the provided indices buffer.
+	 * @param		commandBuffer	Command buffer to execute on.
+	 * @param		indices			Buffer containing offsets into the position texture for each particle.
+	 * @param		numParticles	Number of particle in the provided indices buffer.
 	 */
-	AABox Execute(const SPtr<GpuBuffer>& indices, u32 numParticles);
+	AABox Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& indices, u32 numParticles);
 
 private:
 	GpuParameterBuffer mParticleIndicesParam;
@@ -212,24 +214,25 @@ public:
 	void Initialize() override;
 
 	/** Binds the material to the pipeline along with the global input texture containing particle positions and times. */
-	void Bind(const SPtr<Texture>& positionAndTime);
+	void Bind(CommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime);
 
 	/**
 	 * Executes the material, generating sort data for a particular particle system and injecting it into the specified
 	 * location in the key and index buffers.
 	 *
-	 * @param[in]	system			System whose particles to insert into the sort key/index buffers.
-	 * @param[in]	systemIdx		Sequential index of the system to insert into the sort buffers.
-	 * @param[in]	offset			Offset into the key/index buffer at which to insert the sort data.
-	 * @param[in]	viewOrigin		View origin to use for determining sorting keys, in world space.
-	 * @param[out]	outKeys			Pre-allocated buffer that will receive the keys used for sorting. The buffer must
+	 * @param	commandBuffer	Command buffer to execute on.
+	 * @param	system			System whose particles to insert into the sort key/index buffers.
+	 * @param	systemIdx		Sequential index of the system to insert into the sort buffers.
+	 * @param	offset			Offset into the key/index buffer at which to insert the sort data.
+	 * @param	viewOrigin		View origin to use for determining sorting keys, in world space.
+	 * @param	outKeys			Pre-allocated buffer that will receive the keys used for sorting. The buffer must
 	 *								be GPU writable and use a 1x 32-bit integer format.
-	 * @param[out]	outIndices		Pre-allocated buffer that will receive the indices to be sorted. The buffer must
+	 * @param	outIndices		Pre-allocated buffer that will receive the indices to be sorted. The buffer must
 	 *								be GPU writable and use a 2x 16-bit integer format. Must have the same capacity
 	 *								as @p outKeys.
 	 * @return						Number of particle that were written to the buffers.
 	 */
-	u32 Execute(const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices);
+	u32 Execute(CommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices);
 
 private:
 	GpuParameterBuffer mInputIndicesParam;
@@ -740,10 +743,10 @@ void GpuParticleSimulation::RemoveSystem(GpuParticleSystem* system)
 	m->Systems.erase(system);
 }
 
-void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, const SPtr<GpuBuffer>& viewParams, const GBufferTextures& gbuffer, float dt)
+void GpuParticleSimulation::Simulate(CommandBuffer& commandBuffer, const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, const SPtr<GpuBuffer>& viewParams, const GBufferTextures& gbuffer, float dt)
 {
 	m->Resources.Swap();
-	m->Resources.GetCurveTexture().ApplyChanges();
+	m->Resources.GetCurveTexture().ApplyChanges(commandBuffer);
 
 	Vector<u32> newTiles;
 	Vector<GpuParticle> allNewParticles;
@@ -771,8 +774,8 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(m->Resources.GetInjectTarget());
 
-	ClearTiles(newTiles);
-	InjectParticles(allNewParticles);
+	ClearTiles(commandBuffer, newTiles);
+	InjectParticles(commandBuffer, allNewParticles);
 
 	// Simulate
 	// TODO - Run multiple iterations for more stable simulation at lower/erratic framerates
@@ -803,7 +806,7 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 		const bool localSpace = type == SimType::DepthCollisionsLocal;
 
 		GpuParticleSimulateMat* simulateMat = GpuParticleSimulateMat::GetVariation(simulateDepthCollisions, localSpace);
-		simulateMat->BindGlobal(m->Resources, viewParams, gbuffer.Depth, gbuffer.Normals, m->SimulationParams);
+		simulateMat->BindGlobal(commandBuffer, m->Resources, viewParams, gbuffer.Depth, gbuffer.Normals, m->SimulationParams);
 
 		for(auto& entry : m->Systems)
 		{
@@ -832,7 +835,7 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 			if(simSettings.VectorField.VectorField)
 				vfTexture = simSettings.VectorField.VectorField->GetTexture();
 
-			simulateMat->BindPerCallParams(entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
+			simulateMat->BindPerCallParams(commandBuffer, entry->GetTileUVs(), rendererParticles.PerObjectParamBuffer, m->VectorFieldParams, vfTexture, m->DepthCollisionParams);
 
 			const u32 tileCount = entry->GetNumTiles();
 			const u32 numInstances = Math::DivideAndRoundUp(tileCount, kTilesPerInstance);
@@ -841,7 +844,7 @@ void GpuParticleSimulation::Simulate(const SceneInfo& sceneInfo, const ParticleP
 	}
 }
 
-void GpuParticleSimulation::Sort(const RendererView& view)
+void GpuParticleSimulation::Sort(CommandBuffer& commandBuffer, const RendererView& view)
 {
 	const bool supportsCompute = GetRenderBeast()->GetFeatureSet() == RenderBeastFeatureSet::Desktop;
 	if(!supportsCompute)
@@ -854,7 +857,7 @@ void GpuParticleSimulation::Sort(const RendererView& view)
 	const Vector3& viewOrigin = view.GetProperties().ViewOrigin;
 
 	GpuParticleSortPrepareMat* prepareMat = GpuParticleSortPrepareMat::Get();
-	prepareMat->Bind(m->Resources.GetCurrentState().PositionAndTimeTex);
+	prepareMat->Bind(commandBuffer, m->Resources.GetCurrentState().PositionAndTimeTex);
 
 	u32 systemIdx = 0;
 	u32 offset = 0;
@@ -877,7 +880,7 @@ void GpuParticleSimulation::Sort(const RendererView& view)
 
 		entry->SetSortInfo(true, offset);
 
-		offset += prepareMat->Execute(*entry, systemIdx, viewOrigin, offset, m->Resources.mSortBuffers.Keys[0], m->Resources.mSortedIndices[0]);
+		offset += prepareMat->Execute(commandBuffer, *entry, systemIdx, viewOrigin, offset, m->Resources.mSortBuffers.Keys[0], m->Resources.mSortedIndices[0]);
 
 		systemIdx++;
 	}
@@ -888,7 +891,7 @@ void GpuParticleSimulation::Sort(const RendererView& view)
 
 	const u32 totalNumKeys = offset;
 	const u32 keyMask = 0xFFFF | (Math::CeilToInt(Math::Log2((float)(numSystemsToSort + 1))) << 16);
-	const u32 outputBufferIdx = GpuSort::Instance().Sort(m->Resources.mSortBuffers, totalNumKeys, keyMask);
+	const u32 outputBufferIdx = GpuSort::Instance().Sort(commandBuffer, m->Resources.mSortBuffers, totalNumKeys, keyMask);
 
 	m->Resources.mSortedIndicesBufferIdx = outputBufferIdx;
 }
@@ -967,7 +970,7 @@ void GpuParticleSimulation::PrepareBuffers(const GpuParticleSystem* system, cons
 	}
 }
 
-void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
+void GpuParticleSimulation::ClearTiles(CommandBuffer& commandBuffer, const Vector<u32>& tiles)
 {
 	const auto numTiles = (u32)tiles.size();
 	if(numTiles == 0)
@@ -976,7 +979,7 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 	const u32 numIterations = Math::DivideAndRoundUp(numTiles, GpuParticleHelperBuffers::kNumScratchTiles);
 
 	GpuParticleClearMat* clearMat = GpuParticleClearMat::Get();
-	clearMat->Bind(m->HelperBuffers.TileScratch);
+	clearMat->Bind(commandBuffer, m->HelperBuffers.TileScratch);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
@@ -1010,13 +1013,13 @@ void GpuParticleSimulation::ClearTiles(const Vector<u32>& tiles)
 	}
 }
 
-void GpuParticleSimulation::InjectParticles(const Vector<GpuParticle>& particles)
+void GpuParticleSimulation::InjectParticles(CommandBuffer& commandBuffer, const Vector<GpuParticle>& particles)
 {
 	const auto numParticles = (u32)particles.size();
 	const u32 numIterations = Math::DivideAndRoundUp(numParticles, GpuParticleHelperBuffers::kNumScratchParticles);
 
 	GpuParticleInjectMat* injectMat = GpuParticleInjectMat::Get();
-	injectMat->Bind();
+	injectMat->Bind(commandBuffer);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetVertexDescription(m->HelperBuffers.InjectVertexDescription);
@@ -1081,11 +1084,11 @@ void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
-void GpuParticleClearMat::Bind(const SPtr<GpuBuffer>& tileUVs)
+void GpuParticleClearMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs)
 {
 	mTileUVParam.Set(tileUVs);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 void GpuParticleInjectMat::Initialize()
@@ -1155,7 +1158,7 @@ void GpuParticleSimulateMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("TILES_PER_INSTANCE", kTilesPerInstance);
 }
 
-void GpuParticleSimulateMat::BindGlobal(GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams)
+void GpuParticleSimulateMat::BindGlobal(CommandBuffer& commandBuffer, GpuParticleResources& resources, const SPtr<GpuBuffer>& viewParams, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<GpuBuffer>& simulationParams)
 {
 	GpuParticleStateTextures& prevState = resources.GetPreviousState();
 	const GpuParticleStaticTextures& staticTextures = resources.GetStaticTextures();
@@ -1176,10 +1179,10 @@ void GpuParticleSimulateMat::BindGlobal(GpuParticleResources& resources, const S
 		mNormalsTexParam.Set(normals);
 	}
 
-	RendererMaterial::Bind(false);
+	RendererMaterial::Bind(commandBuffer,false);
 }
 
-void GpuParticleSimulateMat::BindPerCallParams(const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams)
+void GpuParticleSimulateMat::BindPerCallParams(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& tileUVs, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& vectorFieldParams, const SPtr<Texture>& vectorFieldTexture, const SPtr<GpuBuffer>& depthCollisionParams)
 {
 	mTileUVParam.Set(tileUVs);
 	mGPUParameters->SetUniformBuffer(mVectorFieldBinding.Set, mVectorFieldBinding.Slot, vectorFieldParams);
@@ -1191,7 +1194,7 @@ void GpuParticleSimulateMat::BindPerCallParams(const SPtr<GpuBuffer>& tileUVs, c
 		mGPUParameters->SetUniformBuffer(mDepthCollisionBinding.Set, mDepthCollisionBinding.Slot, depthCollisionParams);
 	}
 
-	BindParameters();
+	BindParameters(commandBuffer);
 }
 
 GpuParticleSimulateMat* GpuParticleSimulateMat::GetVariation(bool depthCollisions, bool localSpace)
@@ -1222,14 +1225,14 @@ void GpuParticleBoundsMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("NUM_THREADS", kNumThreads);
 }
 
-void GpuParticleBoundsMat::Bind(const SPtr<Texture>& positionAndTime)
+void GpuParticleBoundsMat::Bind(CommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime)
 {
 	mPosAndTimeTexParam.Set(positionAndTime);
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
-AABox GpuParticleBoundsMat::Execute(const SPtr<GpuBuffer>& indices, u32 numParticles)
+AABox GpuParticleBoundsMat::Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& indices, u32 numParticles)
 {
 	static constexpr u32 kMaxNumGroups = 128;
 
@@ -1287,14 +1290,14 @@ void GpuParticleSortPrepareMat::InitDefinesInternal(ShaderDefines& defines)
 	defines.Set("NUM_THREADS", kNumThreads);
 }
 
-void GpuParticleSortPrepareMat::Bind(const SPtr<Texture>& positionAndTime)
+void GpuParticleSortPrepareMat::Bind(CommandBuffer& commandBuffer, const SPtr<Texture>& positionAndTime)
 {
 	mPosAndTimeTexParam.Set(positionAndTime);
 
-	RendererMaterial::Bind(false);
+	RendererMaterial::Bind(commandBuffer, false);
 }
 
-u32 GpuParticleSortPrepareMat::Execute(const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices)
+u32 GpuParticleSortPrepareMat::Execute(CommandBuffer& commandBuffer, const GpuParticleSystem& system, u32 systemIdx, const Vector3& viewOrigin, u32 offset, const SPtr<GpuBuffer>& outKeys, const SPtr<GpuBuffer>& outIndices)
 {
 	static constexpr u32 kMaxNumGroups = 128;
 
@@ -1329,7 +1332,7 @@ u32 GpuParticleSortPrepareMat::Execute(const GpuParticleSystem& system, u32 syst
 	mOutputKeysParam.Set(outKeys);
 	mOutputIndicesParam.Set(outIndices);
 
-	BindParameters();
+	BindParameters(commandBuffer);
 	RenderAPI::Instance().DispatchCompute(numGroups);
 	return numParticles;
 }
@@ -1456,14 +1459,14 @@ void GpuParticleCurves::Free(const TextureRowAllocation& alloc)
 	mRowAllocator.Free(alloc);
 }
 
-void GpuParticleCurves::ApplyChanges()
+void GpuParticleCurves::ApplyChanges(CommandBuffer& commandBuffer)
 {
 	const auto numCurves = (u32)mPendingAllocations.size();
 	if(numCurves == 0)
 		return;
 
 	GpuParticleCurveInjectMat* injectMat = GpuParticleCurveInjectMat::Get();
-	injectMat->Bind();
+	injectMat->Bind(commandBuffer);
 
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(mRT);

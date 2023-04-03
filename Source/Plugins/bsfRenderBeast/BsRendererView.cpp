@@ -31,7 +31,7 @@ void SkyboxMat::Initialize()
 		mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
-void SkyboxMat::Bind(const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
+void SkyboxMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor)
 {
 	mGPUParameters->SetUniformBuffer("PerCamera", perCamera);
 
@@ -40,7 +40,7 @@ void SkyboxMat::Bind(const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& text
 	gSkyboxParamDef.gClearColor.Set(mParamBuffer, solidColor);
 	mParamBuffer->FlushCache();
 
-	RendererMaterial::Bind();
+	RendererMaterial::Bind(commandBuffer);
 }
 
 SkyboxMat* SkyboxMat::GetVariation(bool color)
@@ -830,9 +830,9 @@ Vector4 RendererView::GetNdcToUv() const
 	return ndcToUV;
 }
 
-void RendererView::UpdateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData)
+void RendererView::UpdateLightGrid(CommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData)
 {
-	mLightGrid.UpdateGrid(*this, visibleLightData, visibleReflProbeData, !mRenderSettings->EnableLighting);
+	mLightGrid.UpdateGrid(commandBuffer, *this, visibleLightData, visibleReflProbeData, !mRenderSettings->EnableLighting);
 }
 
 RendererViewGroup::RendererViewGroup(RendererView** views, u32 numViews, bool mainPass, u32 shadowMapSize)
@@ -852,7 +852,7 @@ void RendererViewGroup::SetViews(RendererView** views, u32 numViews)
 	}
 }
 
-void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
+void RendererViewGroup::DetermineVisibility(CommandBuffer& commandBuffer, const SceneInfo& sceneInfo)
 {
 	const auto numViews = (u32)mViews.size();
 
@@ -946,7 +946,7 @@ void RendererViewGroup::DetermineVisibility(const SceneInfo& sceneInfo)
 			if(!mViews[i]->ShouldDraw3D())
 				continue;
 
-			mViews[i]->UpdateLightGrid(mVisibleLightData, mVisibleReflProbeData);
+			mViews[i]->UpdateLightGrid(commandBuffer, mVisibleLightData, mVisibleReflProbeData);
 		}
 	}
 }

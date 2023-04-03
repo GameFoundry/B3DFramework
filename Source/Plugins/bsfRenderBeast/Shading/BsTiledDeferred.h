@@ -49,7 +49,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
+			void Execute(CommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage);
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredLightingMat* GetVariation(u32 msaaCount);
@@ -84,7 +84,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& inputArray, const SPtr<Texture>& target);
 
 		private:
 			GpuParameterSampledTexture mInputParam;
@@ -127,13 +127,13 @@ namespace bs
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for textures and texture arrays.
 			 */
-			void Execute(const SPtr<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue = Color::kZero, const TextureSurface& surface = TextureSurface::kComplete);
 
 			/**
 			 * Binds the material for rendering, sets up parameters and executes it. Only works on variations of
 			 * this material intended for buffers.
 			 */
-			void Execute(const SPtr<GpuBuffer>& target, const Color& clearValue = Color::kZero);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue = Color::kZero);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -197,7 +197,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering, sets up parameters and executes it. */
-			void Execute(const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs);
+			void Execute(CommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs);
 
 			/** Returns the material variation matching the provided parameters. */
 			static TiledDeferredImageBasedLightingMat* GetVariation(u32 msaaCount);

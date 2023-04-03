@@ -76,7 +76,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Binds the material for rendering and sets up any parameters. */
-			void Bind(const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor);
+			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perCamera, const SPtr<Texture>& texture, const Color& solidColor);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -412,10 +412,7 @@ namespace bs
 			const LightGrid& GetLightGrid() const { return mLightGrid; }
 
 			/** Updates the light grid used for forward rendering. */
-			void UpdateLightGrid(const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData);
-
-			/** Returns a context that reflects the state of the view as it changes during rendering. */
-			const RendererViewContext& GetContext() const { return mContext; }
+			void UpdateLightGrid(CommandBuffer& commandBuffer, const VisibleLightData& visibleLightData, const VisibleReflProbeData& visibleReflProbeData);
 
 			/**
 			 * Returns a value that can be used for transforming x, y coordinates from NDC into UV coordinates that can be used
@@ -467,7 +464,12 @@ namespace bs
 			 * rendering of a single frame. This should be set to null if the renderer is not currently rendering the
 			 * view.
 			 */
-			void NotifyCompositorTargetChangedInternal(const SPtr<RenderTarget>& target) const { mContext.CurrentTarget = target; }
+			void NotifyCompositorTargetChangedInternal(const SPtr<RenderTarget>& target) const { mCurrentRenderTarget = target; }
+
+			/**
+			 * Returns the render target that is currently being rendered to by the render compositor.
+			 */
+			SPtr<RenderTarget> GetCompositorRenderTarget() const { return mCurrentRenderTarget; }
 
 			/**
 			 * Notifies the view that a new average luminance is being calculated on the provided command buffer. The results
@@ -515,7 +517,7 @@ namespace bs
 			};
 
 			RendererViewProperties mProperties;
-			mutable RendererViewContext mContext;
+			mutable SPtr<RenderTarget> mCurrentRenderTarget;
 			Camera* mCamera;
 
 			SPtr<RenderQueue> mDeferredOpaqueQueue;
@@ -602,7 +604,7 @@ namespace bs
 			 * and updates the render queues of each individual view. Use getVisibilityInfo() to retrieve the calculated
 			 * visibility information.
 			 */
-			void DetermineVisibility(const SceneInfo& sceneInfo);
+			void DetermineVisibility(CommandBuffer& commandBuffer, const SceneInfo& sceneInfo);
 
 		private:
 			Vector<RendererView*> mViews;

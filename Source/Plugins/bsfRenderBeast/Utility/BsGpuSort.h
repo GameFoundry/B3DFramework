@@ -45,9 +45,10 @@ namespace bs
 			/**
 			 * Executes the material, running the compute kernel.
 			 *
-			 * @param[in]	outputCounts	Pre-allocated buffer to zero out.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	outputCounts	Pre-allocated buffer to zero out.
 			 */
-			void Execute(const SPtr<GpuBuffer>& outputCounts);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& outputCounts);
 
 			GpuParameterBuffer MOutputParam;
 		};
@@ -68,13 +69,14 @@ namespace bs
 			/**
 			 * Executes the material, running the compute kernel.
 			 *
-			 * @param[in]	numGroups		Number of groups to separate the key inputs in.
-			 * @param[in]	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
-			 * @param[in]	inputKeys		A set of keys to sort. @p params buffer needs to be initialized with data
-			 *								representing this buffer.
-			 * @param[in]	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	numGroups		Number of groups to separate the key inputs in.
+			 * @param	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
+			 * @param	inputKeys		A set of keys to sort. @p params buffer needs to be initialized with data
+			 *							representing this buffer.
+			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputCounts);
+			void Execute(CommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputCounts);
 
 			GpuParameterBuffer MInputKeysParam;
 			GpuParameterBuffer MOutputCountsParam;
@@ -96,11 +98,12 @@ namespace bs
 			/*
 			 * Executes the material, running the compute kernel.
 			 *
-			 * @param[in]	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
-			 * @param[in]	inputCounts		Counts as output by the RadixSortCountMat material.
-			 * @param[in]	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
+			 * @param	inputCounts		Counts as output by the RadixSortCountMat material.
+			 * @param	outputCounts	Pre-allocated buffer to contain the resulting per-digit counts for each group.
 			 */
-			void Execute(const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets);
 
 			GpuParameterBuffer MInputCountsParam;
 			GpuParameterBuffer MOutputOffsetsParam;
@@ -121,17 +124,18 @@ namespace bs
 			/*
 			 * Executes the material, running the compute kernel.
 			 *
-			 * @param[in]	numGroups		Number of groups to separate the key inputs in.
-			 * @param[in]	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
-			 * @param[in]	inputOffsets	Offsets as output by the RadixSortPrefixScanMat material.
-			 * @param[in]	buffers			A set of input and output buffers. Key buffers are required, while value buffers
-			 *								are optional.
-			 * @param[in]	inputBufferIdx	Determines which of the two key/value buffers are considered to be inputs. The other
-			 *								buffers are considered outputs and will contain the output data.
-			 * @return						Index of the buffer that should be used as input for the next iteration of the
-			 *								algorithm. (In case the keys were only partially sorted)
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	numGroups		Number of groups to separate the key inputs in.
+			 * @param	params			Allocated and initialized parameter buffer using RadixSortParamsDef definition.
+			 * @param	inputOffsets	Offsets as output by the RadixSortPrefixScanMat material.
+			 * @param	buffers			A set of input and output buffers. Key buffers are required, while value buffers
+			 *							are optional.
+			 * @param	inputBufferIdx	Determines which of the two key/value buffers are considered to be inputs. The other
+			 *							buffers are considered outputs and will contain the output data.
+			 * @return					Index of the buffer that should be used as input for the next iteration of the
+			 *							algorithm. (In case the keys were only partially sorted)
 			 */
-			void Execute(u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
+			void Execute(CommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputOffsets, const GpuSortBuffers& buffers, u32 inputBufferIdx);
 
 			GpuParameterBuffer MInputOffsetsBufferParam;
 			GpuParameterBuffer MInputKeysBufferParam;
@@ -153,7 +157,8 @@ namespace bs
 			 * Sorts the input keys and outputs them in the provided buffer. Optionally also moves a set of values along with
 			 * the keys.
 			 *
-			 * @param[in]	buffers		Buffers that contain the keys and values to sort, as well as space to put sorted keys
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	buffers			Buffers that contain the keys and values to sort, as well as space to put sorted keys
 			 *							and values in. Both key buffers must be provided however value buffers are optional and
 			 *							only required if you need to move values along with keys. All buffers must be be
 			 *							standard buffers with 32-bit unsigned integer elements, with random writes enabled.
@@ -162,15 +167,15 @@ namespace bs
 			 *
 			 *							Buffers at index 0 will be used as input, and final output will be a buffer at the
 			 *							index as returned by this method.
-			 * @param[in]	numKeys		Number of keys to sort. This must be smaller or equal to the number of elements in the
+			 * @param	numKeys			Number of keys to sort. This must be smaller or equal to the number of elements in the
 			 *							provided buffers.
-			 * @param[in]	keyMask		Mask that controls which portion of the keys are relevant for sorting. This serves as
+			 * @param	keyMask			Mask that controls which portion of the keys are relevant for sorting. This serves as
 			 *							an optimization as less bits that need to be sorted, the faster can the algorithm run.
 			 *							(e.g. if you only need to sort the first 16 bits of the key, provide 0xFFFF as the
 			 *							mask).
 			 * @return					Index of the buffer in @p buffers that will contain the final sorted keys and/or values.
 			 */
-			u32 Sort(const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask = 0xFFFFFFFF);
+			u32 Sort(CommandBuffer& commandBuffer, const GpuSortBuffers& buffers, u32 numKeys, u32 keyMask = 0xFFFFFFFF);
 
 			/**
 			 * Creates a set of buffers buffer that can be used when calling the sort() method.

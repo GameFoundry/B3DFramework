@@ -73,6 +73,9 @@ namespace bs
 		{
 			/** Current target the view is rendering to. */
 			SPtr<RenderTarget> CurrentTarget;
+
+			/** Command buffer that's currently being recorded. */
+			SPtr<CommandBuffer> CommandBuffer;
 		};
 
 		/** Settings that control renderer scene capture. */

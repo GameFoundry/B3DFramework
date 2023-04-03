@@ -41,7 +41,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, copying from @p source. */
-			void Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const Rect2& area, bool flipUV);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -81,11 +81,12 @@ namespace bs
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
 			 * render target.
 			 *
-			 * @param[in]	source			Texture to blend with the target.
-			 * @param[in]	target			Render target to blend with and write the results to.
-			 * @param[in]	tint			Optional value to multiply all the values from @p source before blending.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	source			Texture to blend with the target.
+			 * @param	target			Render target to blend with and write the results to.
+			 * @param	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -124,12 +125,13 @@ namespace bs
 			 * Executes the post-process effect with the provided parameters and writes the results to the provided
 			 * render target.
 			 *
-			 * @param[in]	source			Texture to filter.
-			 * @param[in]	target			Render target to write the results to. Results will be additively blended
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	source			Texture to filter.
+			 * @param	target			Render target to write the results to. Results will be additively blended
 			 *								with the target.
-			 * @param[in]	tint			Optional value to multiply all the values from @p source before blending.
+			 * @param	tint			Optional value to multiply all the values from @p source before blending.
 			 */
-			void Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
+			void Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint = Color::kWhite);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -159,7 +161,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, clearing to to @p value. */
-			void Execute(u32 value);
+			void Execute(CommandBuffer& commandBuffer, u32 value);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -246,17 +248,18 @@ namespace bs
 			 * Blits contents of the provided texture into the currently bound render target. If the provided texture contains
 			 * multiple samples, they will be resolved.
 			 *
-			 * @param[in]	texture	Source texture to blit.
-			 * @param[in]	area	Area of the source texture to blit in pixels. If width or height is zero it is assumed
-			 *						the entire texture should be blitted.
-			 * @param[in]	flipUV	If true, vertical UV coordinate will be flipped upside down.
-			 * @param[in]	isDepth	If true, the input texture is assumed to be a depth texture (instead of a color one).
-			 *						Multisampled depth textures will be resolved by taking the minimum value of all samples,
-			 *						unlike color textures which wil be averaged.
-			 * @param	isFiltered	True if to apply bilinear filtering to the sampled texture. Only relevant for color
-			 *						textures with no multiple samples.
+			 * @param	commandBuffer	Command buffer to encode the operation on.
+			 * @param	texture			Source texture to blit.
+			 * @param	area			Area of the source texture to blit in pixels. If width or height is zero it is assumed
+			 *							the entire texture should be blitted.
+			 * @param	flipUV			If true, vertical UV coordinate will be flipped upside down.
+			 * @param	isDepth			If true, the input texture is assumed to be a depth texture (instead of a color one).
+			 *							Multisampled depth textures will be resolved by taking the minimum value of all samples,
+			 *							unlike color textures which wil be averaged.
+			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture. Only relevant for color
+			 *							textures with no multiple samples.
 			 */
-			void Blit(const SPtr<Texture>& texture, const Rect2I& area = Rect2I::kEmpty, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
+			void Blit(CommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Rect2I& area = Rect2I::kEmpty, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
 
 			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.
@@ -294,7 +297,7 @@ namespace bs
 			 * Clears the currently bound render target to the provided integer value. This is similar to
 			 * RenderAPI::clearRenderTarget(), except it supports integer clears.
 			 */
-			void Clear(u32 value);
+			void Clear(CommandBuffer& commandBuffer, u32 value);
 
 			/** Returns a unit sphere stencil mesh. */
 			SPtr<Mesh> GetSphereStencil() const { return mUnitSphereStencilMesh; }

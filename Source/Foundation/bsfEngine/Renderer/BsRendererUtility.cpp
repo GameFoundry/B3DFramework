@@ -289,7 +289,7 @@ void RendererUtility::DrawMorph(const SPtr<MeshBase>& mesh, const SubMesh& subMe
 	mesh->NotifyUsedOnGPU();
 }
 
-void RendererUtility::Blit(const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)
+void RendererUtility::Blit(CommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Rect2I& area, bool flipUV, bool isDepth, bool isFiltered)
 {
 	auto& texProps = texture->GetProperties();
 
@@ -303,7 +303,7 @@ void RendererUtility::Blit(const SPtr<Texture>& texture, const Rect2I& area, boo
 	}
 
 	BlitMat* blitMat = BlitMat::GetVariation(texProps.SampleCount, !isDepth, isFiltered);
-	blitMat->Execute(texture, fArea, flipUV);
+	blitMat->Execute(commandBuffer, texture, fArea, flipUV);
 }
 
 void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSize, u32 numInstances, bool flipUV)
@@ -379,10 +379,10 @@ void RendererUtility::DrawScreenQuad(const Rect2& uv, const Vector2I& textureSiz
 	mNextQuadVBSlot = (mNextQuadVBSlot + 1) % kNumQuadVbSlots;
 }
 
-void RendererUtility::Clear(u32 value)
+void RendererUtility::Clear(CommandBuffer& commandBuffer, u32 value)
 {
 	ClearMat* clearMat = ClearMat::Get();
-	clearMat->Execute(value);
+	clearMat->Execute(commandBuffer, value);
 }
 
 RendererUtility& GetRendererUtility()
@@ -396,12 +396,12 @@ void BlitMat::Initialize()
 	mIsFiltered = mVariationParameters.GetInt("MODE") == 1;
 }
 
-void BlitMat::Execute(const SPtr<Texture>& source, const Rect2& area, bool flipUV)
+void BlitMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const Rect2& area, bool flipUV)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
 	mSource.Set(source);
-	Bind();
+	Bind(commandBuffer);
 
 	if(!mIsFiltered)
 		GetRendererUtility().DrawScreenQuad(area, Vector2I(1, 1), 1, flipUV);
@@ -457,13 +457,13 @@ void ClearMat::Initialize()
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 
-void ClearMat::Execute(u32 value)
+void ClearMat::Execute(CommandBuffer& commandBuffer, u32 value)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
 	gClearParamDef.gClearValue.Set(mParamBuffer, value);
 
-	Bind();
+	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad();
 }
 
@@ -477,7 +477,7 @@ void CompositeMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
-void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+void CompositeMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -490,7 +490,7 @@ void CompositeMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(target);
 
-	Bind();
+	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad();
 }
 
@@ -504,7 +504,7 @@ void BicubicUpsampleMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
 }
 
-void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
+void BicubicUpsampleMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -526,7 +526,7 @@ void BicubicUpsampleMat::Execute(const SPtr<Texture>& source, const SPtr<RenderT
 	RenderAPI& rapi = RenderAPI::Instance();
 	rapi.SetRenderTarget(target);
 
-	Bind();
+	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad();
 }
 

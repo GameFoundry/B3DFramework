@@ -329,6 +329,8 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	GetProfilerGPU().BeginFrame();
 	GetProfilerCPU().BeginSample("Render");
 
+	RenderAPI& renderAPI = GetRenderAPI();
+	SPtr<CommandBuffer> commandBuffer = renderAPI.GetMainCommandBuffer();
 	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 
 	// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
@@ -351,7 +353,6 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	// Make sure any renderer tasks finish first, as rendering might depend on them
 	ProcessTasks(false, timings.FrameIdx);
 
-	RenderAPI& renderAPI = GetRenderAPI();
 	renderAPI.BeginFrame();
 
 	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
@@ -383,13 +384,14 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 		}
 
 		mMainViewGroup->SetViews(views.data(), (u32)views.size());
-		PROFILE_CALL(mMainViewGroup->DetermineVisibility(sceneInfo), "Determine visibility")
+		PROFILE_CALL(mMainViewGroup->DetermineVisibility(*commandBuffer, sceneInfo), "Determine visibility")
 
 		// Render everything
-		const bool anythingDrawn = RenderViews(*mMainViewGroup, frameInfo);
+		const bool anythingDrawn = RenderViews(commandBuffer, *mMainViewGroup, frameInfo);
 		if(anythingDrawn)
 		{
 			RenderAPI::Instance().SubmitCommandBuffer(nullptr);
+			commandBuffer = RenderAPI::Instance().GetMainCommandBuffer();
 
 			if(rtInfo.Target->GetProperties().IsWindow)
 			{
@@ -407,7 +409,7 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 	GetProfilerCPU().EndSample("Render");
 }
 
-bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+bool RenderBeast::RenderViews(const SPtr<CommandBuffer>& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 {
 	bool needs3DRender = false;
 	u32 numViews = viewGroup.GetNumViews();
@@ -429,7 +431,7 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 
 		// Render shadow maps
 		ShadowRendering& shadowRenderer = viewGroup.GetShadowRenderer();
-		shadowRenderer.RenderShadowMaps(*mScene, viewGroup, frameInfo);
+		shadowRenderer.RenderShadowMaps(*commandBuffer,*mScene, viewGroup, frameInfo);
 
 		// Update various buffers required by each renderable
 		u32 numRenderables = (u32)sceneInfo.Renderables.size();
@@ -462,12 +464,12 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 		const RenderSettings& settings = view->GetRenderSettings();
 		if(settings.OverlayOnly)
 		{
-			if(RenderOverlay(*view, frameInfo))
+			if(RenderOverlay(commandBuffer, *view, frameInfo))
 				anythingDrawn = true;
 		}
 		else
 		{
-			RenderView(viewGroup, *view, frameInfo);
+			RenderView(commandBuffer, viewGroup, *view, frameInfo);
 			anythingDrawn = true;
 		}
 
@@ -477,7 +479,7 @@ bool RenderBeast::RenderViews(RendererViewGroup& viewGroup, const FrameInfo& fra
 	return anythingDrawn;
 }
 
-void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
+void RenderBeast::RenderView(const SPtr<CommandBuffer>& commandBuffer, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 {
 	GetProfilerCPU().BeginSample("Render view");
 
@@ -494,6 +496,7 @@ void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& v
 	view.BeginFrame(frameInfo);
 
 	RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo, mFeatureSet);
+	inputs.ActiveCommandBuffer = GetRenderAPI().GetMainCommandBuffer();
 
 	// Register callbacks
 	if(viewProps.TriggerCallbacks)
@@ -538,7 +541,7 @@ void RenderBeast::RenderView(const RendererViewGroup& viewGroup, RendererView& v
 	GetProfilerCPU().EndSample("Render view");
 }
 
-bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
+bool RenderBeast::RenderOverlay(const SPtr<CommandBuffer>& commandBuffer, RendererView& view, const FrameInfo& frameInfo)
 {
 	GetProfilerCPU().BeginSample("Render overlay");
 
@@ -599,7 +602,13 @@ bool RenderBeast::RenderOverlay(RendererView& view, const FrameInfo& frameInfo)
 			mOverlayExtensions.clear();
 
 		for(auto& entry : mOverlayExtensions)
-			entry->Render(*camera, view.GetContext());
+		{
+			RendererViewContext context;
+			context.CurrentTarget = view.GetCompositorRenderTarget();
+			context.CommandBuffer = commandBuffer;
+
+			entry->Render(*camera, context);
+		}
 	}
 
 	view.EndFrame();
@@ -698,6 +707,8 @@ void RenderBeast::UpdateReflProbeArray()
 
 void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)
 {
+	const SPtr<CommandBuffer> commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+
 	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
 	auto& texProps = cubemap->GetProperties();
 
@@ -821,10 +832,10 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
 
 	RendererViewGroup viewGroup(viewPtrs, 6, false, mCoreOptions->ShadowMapSize);
-	viewGroup.DetermineVisibility(sceneInfo);
+	viewGroup.DetermineVisibility(*commandBuffer, sceneInfo);
 
 	FrameInfo frameInfo({ 0.0f, 1.0f / 60.0f, 0 }, PerFrameData());
-	RenderViews(viewGroup, frameInfo);
+	RenderViews(commandBuffer, viewGroup, frameInfo);
 
 	// Make sure the render texture is available for reads
 	RenderAPI::Instance().SetRenderTarget(nullptr);

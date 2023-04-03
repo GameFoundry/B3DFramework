@@ -153,20 +153,21 @@ namespace bs
 			/**
 			 * Performs GPU particle simulation on all registered particle systems.
 			 *
-			 * @param[in]	sceneInfo	Information about the scene currently being rendered.
-			 * @param[in]	simData		Particle simulation data output on the simulation thread.
-			 * @param[in]	viewParams	Buffer containing properties of the view that's currently being rendered.
-			 * @param[in]	gbuffer		Populated GBuffer with depths and normals.
-			 * @param[in]	dt			Time step to advance the simulation by.
+			 * @param	commandBuffer	Command buffer to execute on.
+			 * @param	sceneInfo	Information about the scene currently being rendered.
+			 * @param	simData		Particle simulation data output on the simulation thread.
+			 * @param	viewParams	Buffer containing properties of the view that's currently being rendered.
+			 * @param	gbuffer		Populated GBuffer with depths and normals.
+			 * @param	dt			Time step to advance the simulation by.
 			 */
-			void Simulate(const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, const SPtr<GpuBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
+			void Simulate(CommandBuffer& commandBuffer, const SceneInfo& sceneInfo, const ParticlePerFrameData* simData, const SPtr<GpuBuffer>& viewParams, const GBufferTextures& gbuffer, float dt);
 
 			/**
 			 * Sorts the particle systems for the provided view. Only sorts systems using distance based sorting and only
 			 * works on systems supporting compute. Sort results are written to a global buffer accessible through
 			 * getResources(), with offsets into the buffer written into particle system objects in @p sceneInfo.
 			 */
-			void Sort(const RendererView& view);
+			void Sort(CommandBuffer& commandBuffer, const RendererView& view);
 
 			/** Returns textures used for storing particle data. */
 			GpuParticleResources& GetResources() const;
@@ -176,10 +177,10 @@ namespace bs
 			void PrepareBuffers(const GpuParticleSystem* system, const RendererParticles& rendererInfo);
 
 			/** Clears out all the areas in particle textures as marked by the provided tiles to their default values. */
-			void ClearTiles(const Vector<u32>& tiles);
+			void ClearTiles(CommandBuffer& commandBuffer, const Vector<u32>& tiles);
 
 			/** Inserts the provided set of particles into the particle textures. */
-			void InjectParticles(const Vector<GpuParticle>& particles);
+			void InjectParticles(CommandBuffer& commandBuffer, const Vector<GpuParticle>& particles);
 
 			Pimpl* m;
 		};
@@ -224,7 +225,7 @@ namespace bs
 			 * Injects all the newly added pixels into the curve texture (since the last call to this method). Should be
 			 * called after alloc() has been called for all new entries, but before the texture is used for reading.
 			 */
-			void ApplyChanges();
+			void ApplyChanges(CommandBuffer& commandBuffer);
 
 			/** Returns the internal texture the curve data is written to. */
 			const SPtr<Texture>& GetTexture() const { return mCurveTexture; }

@@ -9,6 +9,7 @@
 #include "Utility/BsUUID.h"
 #include "Renderer/BsIBLUtility.h"
 #include "CoreThread/BsCoreObjectSync.h"
+#include "RenderAPI/BsRenderAPI.h"
 
 using namespace bs;
 
@@ -108,6 +109,7 @@ void ReflectionProbe::CaptureAndFilter()
 	{
 		auto renderReflProbe = [coreTexture, coreProbe]()
 		{
+			const SPtr<ct::CommandBuffer> commandBuffer = ct::GetRenderAPI().GetMainCommandBuffer();
 			float radius = coreProbe->mType == ReflectionProbeType::Sphere ? coreProbe->mRadius : coreProbe->mExtents.Length();
 
 			ct::CaptureSettings settings;
@@ -116,7 +118,7 @@ void ReflectionProbe::CaptureAndFilter()
 			settings.DepthEncodeFar = radius + 1; // + 1 arbitrary, make it a customizable value?
 
 			ct::GetRenderer()->CaptureSceneCubeMap(coreTexture, coreProbe->GetTransform().GetPosition(), settings);
-			ct::GetIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
+			ct::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, coreTexture, nullptr);
 
 			coreProbe->mFilteredTexture = coreTexture;
 			ct::GetRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
@@ -131,8 +133,10 @@ void ReflectionProbe::CaptureAndFilter()
 		SPtr<ct::Texture> coreCustomTex = mCustomTexture->GetCore();
 		auto filterReflProbe = [coreCustomTex, coreTexture, coreProbe]()
 		{
-			ct::GetIBLUtility().ScaleCubemap(coreCustomTex, 0, coreTexture, 0);
-			ct::GetIBLUtility().FilterCubemapForSpecular(coreTexture, nullptr);
+			const SPtr<ct::CommandBuffer> commandBuffer = ct::GetRenderAPI().GetMainCommandBuffer();
+
+			ct::GetIBLUtility().ScaleCubemap(*commandBuffer, coreCustomTex, 0, coreTexture, 0);
+			ct::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, coreTexture, nullptr);
 
 			coreProbe->mFilteredTexture = coreTexture;
 			ct::GetRenderer()->NotifyReflectionProbeUpdated(coreProbe.get(), true);
