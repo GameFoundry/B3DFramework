@@ -1696,7 +1696,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				// changed, and apply only those + the modified constant buffers and/or texture.
 
 				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, true);
+				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, true);
 			}
 
 			// Draw the color values
@@ -1708,7 +1708,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				// changed, and apply only those + the modified constant buffers and/or texture.
 
 				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
+				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
 			}
 
 			drawGroup.RequiresRedraw = false;
@@ -1729,14 +1729,14 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 				// changed, and apply only those + the modified constant buffers and/or texture.
 
 				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
+				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
 			}
 
 			// Draw the group itself
 			const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[drawGroup.BufferIdx];
 
 			SpriteMaterial* batchedMat = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied, false);
-			batchedMat->Render(widget.DrawGroupMesh, drawGroup.SubMesh, drawGroup.Destination->GetColorTexture(0), mSamplerState, buffer, nullptr, false);
+			batchedMat->Render(*viewContext.CommandBuffer, widget.DrawGroupMesh, drawGroup.SubMesh, drawGroup.Destination->GetColorTexture(0), mSamplerState, buffer, nullptr, false);
 		}
 	}
 }

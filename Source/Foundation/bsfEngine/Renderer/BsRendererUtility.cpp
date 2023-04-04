@@ -13,6 +13,7 @@
 #include "Material/BsShader.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Math/BsAABox.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 using namespace bs;
 
@@ -173,31 +174,28 @@ RendererUtility::RendererUtility()
 	}
 }
 
-void RendererUtility::SetPass(const SPtr<Material>& material, u32 passIdx, u32 techniqueIdx)
+void RendererUtility::SetPass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx, u32 techniqueIdx)
 {
 	RenderAPI& rapi = RenderAPI::Instance();
 
 	SPtr<Pass> pass = material->GetPass(passIdx, techniqueIdx);
-	rapi.SetGraphicsPipeline(pass->GetGraphicsPipelineState());
+	commandBuffer.SetGpuGraphicsPipelineState(pass->GetGraphicsPipelineState());
 	rapi.SetStencilRef(pass->GetStencilRefValue());
 }
 
-void RendererUtility::SetComputePass(const SPtr<Material>& material, u32 passIdx)
+void RendererUtility::SetComputePass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx)
 {
-	RenderAPI& rapi = RenderAPI::Instance();
-
 	SPtr<Pass> pass = material->GetPass(passIdx);
-	rapi.SetComputePipeline(pass->GetComputePipelineState());
+	commandBuffer.SetGpuComputePipelineState(pass->GetComputePipelineState());
 }
 
-void RendererUtility::SetPassParams(const SPtr<GpuParamsSet>& params, u32 passIdx)
+void RendererUtility::SetPassParams(CommandBuffer& commandBuffer, const SPtr<GpuParamsSet>& params, u32 passIdx)
 {
 	SPtr<GpuParameters> gpuParams = params->GetGpuParams(passIdx);
 	if(gpuParams == nullptr)
 		return;
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetGpuParams(gpuParams);
+	commandBuffer.SetGpuParameters(gpuParams);
 }
 
 void RendererUtility::Draw(const SPtr<MeshBase>& mesh, u32 numInstances)

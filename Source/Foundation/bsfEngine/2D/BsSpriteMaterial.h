@@ -110,18 +110,19 @@ namespace bs
 		/**
 		 * Renders the provided mesh using the current material.
 		 *
-		 * @param[in]	mesh			Mesh to render, containing vertices in screen space.
-		 * @param[in]	subMesh			Portion of @p mesh to render.
-		 * @param[in]	texture			Optional texture to render the mesh with.
-		 * @param[in]	sampler			Optional sampler to render the texture with.
-		 * @param[in]	paramBuffer		Buffer containing data GPU parameters.
-		 * @param[in]	additionalData	Optional additional data that might be required by the renderer.
-		 * @param[in]	alphaOnly		If true the material will only render the alpha value. Render target is expected to
-		 *								have a stencil buffer attached and the value will be written only if stencil value is 0,
-		 *								after which the stencil value will be incremented by one. (i.e. only first element that
-		 *								writes to a pixel stores its alpha value).
+		 * @param	commandBuffer	Command buffer to encode the render commands  on.
+		 * @param	mesh			Mesh to render, containing vertices in screen space.
+		 * @param	subMesh			Portion of @p mesh to render.
+		 * @param	texture			Optional texture to render the mesh with.
+		 * @param	sampler			Optional sampler to render the texture with.
+		 * @param	paramBuffer		Buffer containing data GPU parameters.
+		 * @param	additionalData	Optional additional data that might be required by the renderer.
+		 * @param	alphaOnly		If true the material will only render the alpha value. Render target is expected to
+		 *							have a stencil buffer attached and the value will be written only if stencil value is 0,
+		 *							after which the stencil value will be incremented by one. (i.e. only first element that
+		 *							writes to a pixel stores its alpha value).
 		 */
-		virtual void Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const;
+		virtual void Render(ct::CommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const;
 
 	protected:
 		/** Perform initialization of core-thread specific objects. */

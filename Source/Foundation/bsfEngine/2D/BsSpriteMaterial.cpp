@@ -104,7 +104,7 @@ u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 	return (u64)hash;
 }
 
-void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const
+void SpriteMaterial::Render(ct::CommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<ct::SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const
 {
 	SPtr<ct::Texture> spriteTexture;
 	if(texture != nullptr)
@@ -121,8 +121,8 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 			mParams->SetParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
 
 		mMaterial->UpdateParamsSet(mParams);
-		ct::GetRendererUtility().SetPass(mMaterial, 0, mTechnique);
-		ct::GetRendererUtility().SetPassParams(mParams);
+		ct::GetRendererUtility().SetPass(commandBuffer, mMaterial, 0, mTechnique);
+		ct::GetRendererUtility().SetPassParams(commandBuffer, mParams);
 	}
 	else
 	{
@@ -130,8 +130,8 @@ void SpriteMaterial::Render(const SPtr<ct::MeshBase>& mesh, const SubMesh& subMe
 			mAlphaParams->SetParamBlockBuffer(mAlphaParamBufferIdx, paramBuffer, true);
 
 		mMaterial->UpdateParamsSet(mAlphaParams);
-		ct::GetRendererUtility().SetPass(mMaterial, 0, mAlphaTechnique);
-		ct::GetRendererUtility().SetPassParams(mAlphaParams);
+		ct::GetRendererUtility().SetPass(commandBuffer, mMaterial, 0, mAlphaTechnique);
+		ct::GetRendererUtility().SetPassParams(commandBuffer, mAlphaParams);
 	}
 
 	ct::GetRendererUtility().Draw(mesh, subMesh);

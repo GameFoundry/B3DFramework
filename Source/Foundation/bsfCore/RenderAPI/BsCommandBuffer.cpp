@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsCommandBuffer.h"
+
+#include "BsRenderAPI.h"
 #include "Managers/BsCommandBufferManager.h"
 
 using namespace bs;
@@ -82,5 +84,20 @@ SPtr<CommandBuffer> CommandBuffer::Create(GpuQueueType type, u32 deviceIdx, u32 
 	commandBuffer->SetShared(commandBuffer);
 
 	return commandBuffer;
+}
+
+void CommandBuffer::SetGpuParameters(const SPtr<GpuParameters>& parameters)
+{
+	GetRenderAPI().SetGpuParams(parameters, GetShared());
+}
+
+void CommandBuffer::SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState)
+{
+	GetRenderAPI().SetGraphicsPipeline(pipelineState);
+}
+
+void CommandBuffer::SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState)
+{
+	GetRenderAPI().SetComputePipeline(pipelineState);
 }
 }}

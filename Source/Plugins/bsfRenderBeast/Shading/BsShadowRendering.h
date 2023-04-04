@@ -57,7 +57,7 @@ namespace bs
 			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
-			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
+			void SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -91,7 +91,7 @@ namespace bs
 			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
-			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
+			void SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -125,7 +125,7 @@ namespace bs
 			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams);
 
 			/** Sets a new buffer that determines per-object properties. */
-			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams);
+			void SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -171,7 +171,7 @@ namespace bs
 			void Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& shadowParams, const SPtr<GpuBuffer>& shadowCubeParams);
 
 			/** Sets a new buffer that determines per-object properties. */
-			void SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks);
+			void SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

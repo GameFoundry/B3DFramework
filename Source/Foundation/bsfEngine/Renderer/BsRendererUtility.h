@@ -181,33 +181,36 @@ namespace bs
 			/**
 			 * Activates the specified material pass for rendering. Any further draw calls will be executed using this pass.
 			 *
-			 * @param[in]	material		Material containing the pass.
-			 * @param[in]	passIdx			Index of the pass in the material.
-			 * @param[in]	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
+			 * @param	commandBuffer	Command buffer to bind the material pass to.
+			 * @param	material		Material containing the pass.
+			 * @param	passIdx			Index of the pass in the material.
+			 * @param	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
 			 *
 			 * @note	Core thread.
 			 */
-			void SetPass(const SPtr<Material>& material, u32 passIdx = 0, u32 techniqueIdx = 0);
+			void SetPass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx = 0, u32 techniqueIdx = 0);
 
 			/**
 			 * Activates the specified material pass for compute. Any further dispatch calls will be executed using this pass.
 			 *
-			 * @param[in]	material		Material containing the pass.
-			 * @param[in]	passIdx			Index of the pass in the material.
+			 * @param	commandBuffer	Command buffer to bind the pass to.
+			 * @param	material		Material containing the pass.
+			 * @param	passIdx			Index of the pass in the material.
 			 *
 			 * @note	Core thread.
 			 */
-			void SetComputePass(const SPtr<Material>& material, u32 passIdx = 0);
+			void SetComputePass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx = 0);
 
 			/**
 			 * Sets parameters (textures, samplers, buffers) for the currently active pass.
 			 *
-			 * @param[in]	params		Object containing the parameters.
-			 * @param[in]	passIdx		Pass for which to set the parameters.
+			 * @param	commandBuffer	Command buffer to bind the pass parameters to.
+			 * @param	params		Object containing the parameters.
+			 * @param	passIdx		Pass for which to set the parameters.
 			 *
 			 * @note	Core thread.
 			 */
-			void SetPassParams(const SPtr<GpuParamsSet>& params, u32 passIdx = 0);
+			void SetPassParams(CommandBuffer& commandBuffer, const SPtr<GpuParamsSet>& params, u32 passIdx = 0);
 
 			/**
 			 * Draws the specified mesh.

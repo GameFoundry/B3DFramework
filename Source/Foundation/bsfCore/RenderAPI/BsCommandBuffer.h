@@ -106,10 +106,17 @@ namespace bs
 			virtual CommandBufferState GetState() const = 0;
 
 			/**
-			 * Resets the command buffer back into initial state. Must only be used if the command buffer is
-			 * not in the executing state.
+			 * Binds the parameters so that the following draw or dispatch call uses the provided parameters
+			 * in their GPU programs. The caller must ensure the provided parameters match the bound graphics/compute pipeline
+			 * at the time of the draw/dispatch call.
 			 */
-			virtual void Reset() = 0;
+			virtual void SetGpuParameters(const SPtr<GpuParameters>& parameters);
+
+			/** Sets a pipeline state that controls how will subsequent draw commands render primitives. */
+			virtual void SetGpuGraphicsPipelineState(const SPtr<GpuGraphicsPipelineState>& pipelineState);
+
+			/** Sets a pipeline state that controls how will subsequent dispatch commands execute. */
+			virtual void SetGpuComputePipelineState(const SPtr<GpuComputePipelineState>& pipelineState);
 
 			/** Returns the shared pointer to the current object. */
 			SPtr<CommandBuffer> GetShared() const { return mSelf.lock(); }

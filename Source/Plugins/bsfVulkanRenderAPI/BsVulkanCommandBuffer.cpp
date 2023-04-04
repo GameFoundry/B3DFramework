@@ -3093,13 +3093,6 @@ CommandBufferState VulkanCommandBuffer::GetState() const
 	return CommandBufferState::Empty;
 }
 
-void VulkanCommandBuffer::Reset()
-{
-	AcquireNewBuffer();
-	mIsSubmitted = false;
-	mIsCompleted = false;
-}
-
 void VulkanCommandBuffer::NotifyExecutionCompleted()
 {
 	mIsCompleted = true;

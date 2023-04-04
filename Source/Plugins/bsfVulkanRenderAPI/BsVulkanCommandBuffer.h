@@ -822,7 +822,6 @@ namespace bs
 
 			void SetName(const StringView& name) override;
 			CommandBufferState GetState() const override;
-			void Reset() override;
 
 		private:
 			friend class VulkanCommandBufferManager;

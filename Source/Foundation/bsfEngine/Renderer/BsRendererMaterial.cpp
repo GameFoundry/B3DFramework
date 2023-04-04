@@ -13,17 +13,17 @@ void RendererMaterialBase::Bind(CommandBuffer& commandBuffer, bool bindParameter
 
 	if(mGraphicsPipeline)
 	{
-		renderAPI.SetGraphicsPipeline(mGraphicsPipeline, commandBuffer.GetShared());
+		commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
 		renderAPI.SetStencilRef(mStencilReferenceValue, commandBuffer.GetShared());
 	}
 	else
-		renderAPI.SetComputePipeline(mComputePipeline, commandBuffer.GetShared());
+		commandBuffer.SetGpuComputePipelineState(mComputePipeline);
 
 	if(bindParameters)
-		renderAPI.SetGpuParams(mGPUParameters, commandBuffer.GetShared());
+		commandBuffer.SetGpuParameters(mGPUParameters);
 }
 
 void RendererMaterialBase::BindParameters(CommandBuffer& commandBuffer) const
 {
-	GetRenderAPI().SetGpuParams(mGPUParameters, commandBuffer.GetShared());
+	commandBuffer.SetGpuParameters(mGPUParameters);
 }

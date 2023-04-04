@@ -12,6 +12,7 @@
 #include "RenderAPI/BsVertexDescription.h"
 #include "Renderer/BsRenderer.h"
 #include "BsRendererRenderable.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs { namespace ct {
 
@@ -21,15 +22,15 @@ void ShadowDepthNormalMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuff
 {
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
 	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
-void ShadowDepthNormalMat::SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams)
+void ShadowDepthNormalMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
 {
 	mGPUParameters->SetUniformBuffer("PerObject", perObjectParams);
 
-	RenderAPI::Instance().SetGpuParams(mGPUParameters);
+	commandBuffer.SetGpuParameters(mGPUParameters);
 }
 
 ShadowDepthNormalMat* ShadowDepthNormalMat::GetVariation(bool skinned, bool morph)
@@ -54,15 +55,15 @@ void ShadowDepthNormalNoPSMat::Bind(CommandBuffer& commandBuffer, const SPtr<Gpu
 {
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
 	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
-void ShadowDepthNormalNoPSMat::SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams)
+void ShadowDepthNormalNoPSMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
 {
 	mGPUParameters->SetUniformBuffer("PerObject", perObjectParams);
 
-	RenderAPI::Instance().SetGpuParams(mGPUParameters);
+	commandBuffer.SetGpuParameters(mGPUParameters);
 }
 
 ShadowDepthNormalNoPSMat* ShadowDepthNormalNoPSMat::GetVariation(bool skinned, bool morph)
@@ -87,14 +88,14 @@ void ShadowDepthDirectionalMat::Bind(CommandBuffer& commandBuffer, const SPtr<Gp
 {
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
 	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
-void ShadowDepthDirectionalMat::SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams)
+void ShadowDepthDirectionalMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
 {
 	mGPUParameters->SetUniformBuffer("PerObject", perObjectParams);
-	RenderAPI::Instance().SetGpuParams(mGPUParameters);
+	commandBuffer.SetGpuParameters(mGPUParameters);
 }
 
 ShadowDepthDirectionalMat* ShadowDepthDirectionalMat::GetVariation(bool skinned, bool morph)
@@ -123,16 +124,16 @@ void ShadowDepthCubeMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 	mGPUParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 
-	RenderAPI::Instance().SetGraphicsPipeline(mGraphicsPipeline);
+	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
 	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
 }
 
-void ShadowDepthCubeMat::SetPerObjectBuffer(const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks)
+void ShadowDepthCubeMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks)
 {
 	mGPUParameters->SetUniformBuffer("PerObject", perObjectParams);
 	mGPUParameters->SetUniformBuffer("ShadowCubeMasks", shadowCubeMasks);
 
-	RenderAPI::Instance().SetGpuParams(mGPUParameters);
+	commandBuffer.SetGpuParameters(mGPUParameters);
 }
 
 ShadowDepthCubeMat* ShadowDepthCubeMat::GetVariation(bool skinned, bool morph)
@@ -513,7 +514,7 @@ public:
 							GetRendererUtility().DrawMorph(element.Mesh, element.SubMesh, element.MorphShapeBuffer, element.MorphVertexDefinition);
 					}
 					else
-						opt.BindRenderable(command);
+						opt.BindRenderable(commandBuffer, command);
 				}
 			}
 		}
@@ -550,14 +551,14 @@ struct ShadowRenderQueueCubeOptions
 		Material->Bind(commandBuffer, ShadowParamsBuffer, ShadowCubeMatricesBuffer);
 	}
 
-	void BindRenderable(ShadowRenderQueue::Command& command) const
+	void BindRenderable(CommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
 	{
 		RendererRenderable* renderable = command.Renderable;
 
 		for(u32 j = 0; j < 6; j++)
 			gShadowCubeMasksDef.gFaceMasks.Set(ShadowCubeMasksBuffer, (command.Mask & (1 << j)), j);
 
-		Material->SetPerObjectBuffer(renderable->PerObjectParamBuffer, ShadowCubeMasksBuffer);
+		Material->SetPerObjectBuffer(commandBuffer, renderable->PerObjectParamBuffer, ShadowCubeMasksBuffer);
 	}
 
 	const ConvexVolume (&Frustums)[6];
@@ -593,11 +594,11 @@ struct ShadowRenderQueueCubeSingleOptions
 		Material->Bind(commandBuffer, ShadowParamsBuffer);
 	}
 
-	void BindRenderable(ShadowRenderQueue::Command& command) const
+	void BindRenderable(CommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
 	{
 		RendererRenderable* renderable = command.Renderable;
 
-		Material->SetPerObjectBuffer(renderable->PerObjectParamBuffer);
+		Material->SetPerObjectBuffer(commandBuffer, renderable->PerObjectParamBuffer);
 	}
 
 	const ConvexVolume& BoundingVolume;
@@ -630,11 +631,11 @@ struct ShadowRenderQueueSpotOptions
 		Material->Bind(commandBuffer, ShadowParamsBuffer);
 	}
 
-	void BindRenderable(ShadowRenderQueue::Command& command) const
+	void BindRenderable(CommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
 	{
 		RendererRenderable* renderable = command.Renderable;
 
-		Material->SetPerObjectBuffer(renderable->PerObjectParamBuffer);
+		Material->SetPerObjectBuffer(commandBuffer, renderable->PerObjectParamBuffer);
 	}
 
 	const ConvexVolume& BoundingVolume;
@@ -667,11 +668,11 @@ struct ShadowRenderQueueDirOptions
 		Material->Bind(commandBuffer, ShadowParamsBuffer);
 	}
 
-	void BindRenderable(ShadowRenderQueue::Command& command) const
+	void BindRenderable(CommandBuffer& commandBuffer, ShadowRenderQueue::Command& command) const
 	{
 		RendererRenderable* renderable = command.Renderable;
 
-		Material->SetPerObjectBuffer(renderable->PerObjectParamBuffer);
+		Material->SetPerObjectBuffer(commandBuffer, renderable->PerObjectParamBuffer);
 	}
 
 	const ConvexVolume& BoundingVolume;

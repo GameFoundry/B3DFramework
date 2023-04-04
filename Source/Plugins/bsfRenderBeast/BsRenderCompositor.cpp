@@ -32,14 +32,14 @@ namespace bs { namespace ct {
 UnorderedMap<StringID, RenderCompositor::NodeType*> RenderCompositor::mNodeTypes;
 
 /** Renders all elements in a render queue. */
-void RenderQueueElements(const Vector<RenderQueueElement>& elements)
+void RenderQueueElements(CommandBuffer& commandBuffer, const Vector<RenderQueueElement>& elements)
 {
 	for(auto& entry : elements)
 	{
 		if(entry.ApplyPass)
-			GetRendererUtility().SetPass(entry.RenderElem->Material, entry.PassIdx, entry.TechniqueIdx);
+			GetRendererUtility().SetPass(commandBuffer, entry.RenderElem->Material, entry.PassIdx, entry.TechniqueIdx);
 
-		GetRendererUtility().SetPassParams(entry.RenderElem->Params, entry.PassIdx);
+		GetRendererUtility().SetPassParams(commandBuffer, entry.RenderElem->Params, entry.PassIdx);
 
 		entry.RenderElem->Draw();
 	}
@@ -452,7 +452,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Render all visible opaque elements that use the deferred pipeline
 	const Vector<RenderQueueElement>& opaqueElements = inputs.View.GetOpaqueQueue(false)->GetSortedElements();
-	RenderQueueElements(opaqueElements);
+	RenderQueueElements(*inputs.ActiveCommandBuffer, opaqueElements);
 
 	// Determine MSAA coverage if required
 	if(viewProps.Target.NumSamples > 1)
@@ -478,7 +478,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	rapi.SetRenderTarget(RenderTargetNoMask, FBT_DEPTH, RT_ALL);
 
 	const Vector<RenderQueueElement>& decalElements = inputs.View.GetDecalQueue()->GetSortedElements();
-	RenderQueueElements(decalElements);
+	RenderQueueElements(*inputs.ActiveCommandBuffer, decalElements);
 
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -1521,10 +1521,10 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	RenderQueue* transparentQueue = inputs.View.GetTransparentQueue().get();
 
 	rapi.SetRenderTarget(renderTarget, 0, RT_ALL);
-	RenderQueueElements(opaqueQueue->GetSortedElements());
+	RenderQueueElements(*inputs.ActiveCommandBuffer, opaqueQueue->GetSortedElements());
 
 	rapi.SetRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
-	RenderQueueElements(transparentQueue->GetSortedElements());
+	RenderQueueElements(*inputs.ActiveCommandBuffer, transparentQueue->GetSortedElements());
 
 	// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
 	ParticleRenderer::Instance().GetTexturePool().Clear();
