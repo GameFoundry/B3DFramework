@@ -176,22 +176,20 @@ RendererUtility::RendererUtility()
 
 void RendererUtility::SetPass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx, u32 techniqueIdx)
 {
-	RenderAPI& rapi = RenderAPI::Instance();
-
-	SPtr<Pass> pass = material->GetPass(passIdx, techniqueIdx);
+	const SPtr<Pass>& pass = material->GetPass(passIdx, techniqueIdx);
 	commandBuffer.SetGpuGraphicsPipelineState(pass->GetGraphicsPipelineState());
-	rapi.SetStencilRef(pass->GetStencilRefValue());
+	commandBuffer.SetStencilReferenceValue(pass->GetStencilRefValue());
 }
 
 void RendererUtility::SetComputePass(CommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx)
 {
-	SPtr<Pass> pass = material->GetPass(passIdx);
+	const SPtr<Pass>& pass = material->GetPass(passIdx);
 	commandBuffer.SetGpuComputePipelineState(pass->GetComputePipelineState());
 }
 
 void RendererUtility::SetPassParams(CommandBuffer& commandBuffer, const SPtr<GpuParamsSet>& params, u32 passIdx)
 {
-	SPtr<GpuParameters> gpuParams = params->GetGpuParams(passIdx);
+	const SPtr<GpuParameters>& gpuParams = params->GetGpuParams(passIdx);
 	if(gpuParams == nullptr)
 		return;
 
@@ -480,8 +478,7 @@ void CompositeMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& so
 	gCompositeParamDef.gTint.Set(mParamBuffer, tint);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
+	commandBuffer.SetRenderTarget(target);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -516,8 +513,7 @@ void BicubicUpsampleMat::Execute(CommandBuffer& commandBuffer, const SPtr<Textur
 	gBicubicUpsampleParamDef.gInvTwoPixels.Set(mParamBuffer, invTwoPixelSize);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
+	commandBuffer.SetRenderTarget(target);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);

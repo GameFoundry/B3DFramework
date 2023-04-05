@@ -118,16 +118,71 @@ void CommandBuffer::SetVertexDescription(const SPtr<VertexDescription>& vertexDe
 
 void CommandBuffer::SetDrawOperation(DrawOperationType operation)
 {
-	GetRenderAPI().SetDrawOperation(operation);
+	GetRenderAPI().SetDrawOperation(operation, GetShared());
 }
 
 void CommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
-	GetRenderAPI().Draw(vertexOffset, vertexCount, instanceCount, firstInstance);
+	GetRenderAPI().Draw(vertexOffset, vertexCount, instanceCount, firstInstance, GetShared());
 }
 
 void CommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance)
 {
-	GetRenderAPI().DrawIndexed(startIndex, indexCount, vertexOffset, vertexCount, instanceCount, firstInstance);
+	GetRenderAPI().DrawIndexed(startIndex, indexCount, vertexOffset, vertexCount, instanceCount, firstInstance, GetShared());
+}
+
+void CommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ)
+{
+	GetRenderAPI().DispatchCompute(groupCountX, groupCountY, groupCountZ, GetShared());
+}
+
+void CommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask)
+{
+	GetRenderAPI().SetRenderTarget(target, readOnlyFlags, loadMask, GetShared());
+}
+
+void CommandBuffer::SetViewport(const Rect2& area)
+{
+	GetRenderAPI().SetViewport(area, GetShared());
+}
+
+void CommandBuffer::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+{
+	GetRenderAPI().ClearRenderTarget(buffers, color, depth, stencil, targetMask, GetShared());
+}
+
+void CommandBuffer::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)
+{
+	GetRenderAPI().ClearViewport(buffers, color, depth, stencil, targetMask, GetShared());
+}
+
+void CommandBuffer::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom)
+{
+	GetRenderAPI().EnableScissorTest(left, top, right, bottom, GetShared());
+}
+
+void CommandBuffer::DisableScissorTest()
+{
+	GetRenderAPI().DisableScissorTest(GetShared());
+}
+
+void CommandBuffer::SetStencilReferenceValue(u32 value)
+{
+	GetRenderAPI().SetStencilRef(value, GetShared());
+}
+
+void CommandBuffer::BeginLabel(const StringView& name)
+{
+	GetRenderAPI().BeginLabel(name);
+}
+
+void CommandBuffer::EndLabel()
+{
+	GetRenderAPI().EndLabel();
+}
+
+void CommandBuffer::InsertLabel(const StringView& name)
+{
+	GetRenderAPI().InsertLabel(name);
 }
 }}

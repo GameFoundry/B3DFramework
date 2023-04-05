@@ -5,6 +5,7 @@
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
 #include "BsRenderBeast.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs {
 namespace ct {
@@ -112,7 +113,7 @@ void TiledDeferredLightingMat::Execute(CommandBuffer& commandBuffer, const Rende
 	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);
+	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 
 TiledDeferredLightingMat* TiledDeferredLightingMat::GetVariation(u32 msaaCount)
@@ -198,7 +199,7 @@ void ClearLoadStoreMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture
 	u32 numGroupsX = Math::DivideAndRoundUp(width, kNumThreads * kTileSize);
 	u32 numGroupsY = Math::DivideAndRoundUp(height, kNumThreads * kTileSize);
 
-	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY);
+	commandBuffer.DispatchCompute(numGroupsX, numGroupsY);
 }
 
 void ClearLoadStoreMat::Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue)
@@ -226,7 +227,7 @@ void ClearLoadStoreMat::Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuff
 	Bind(commandBuffer);
 
 	u32 numGroupsX = Math::DivideAndRoundUp(width, kNumThreads * (kTileSize * kTileSize));
-	RenderAPI::Instance().DispatchCompute(numGroupsX, 1);
+	commandBuffer.DispatchCompute(numGroupsX, 1);
 }
 
 /** Helper method used for initializing variations of the ClearLoadStore material. */
@@ -379,7 +380,7 @@ void TiledDeferredImageBasedLightingMat::Execute(CommandBuffer& commandBuffer, c
 	u32 numTilesY = (u32)Math::CeilToInt(height / (float)kTileSize);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numTilesX, numTilesY);
+	commandBuffer.DispatchCompute(numTilesX, numTilesY);
 }
 
 TiledDeferredImageBasedLightingMat* TiledDeferredImageBasedLightingMat::GetVariation(u32 msaaCount)

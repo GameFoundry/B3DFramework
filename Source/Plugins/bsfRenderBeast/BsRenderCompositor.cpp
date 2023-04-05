@@ -26,6 +26,7 @@
 #include "Profiling/BsProfilerGPU.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Profiling/BsProfilerCPU.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs { namespace ct {
 
@@ -171,9 +172,9 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 			GetProfilerCPU().BeginSample(sampleName.c_str());
 #endif
 
-			GetRenderAPI().BeginLabel(entry.NodeType->Id);
+			inputs.ActiveCommandBuffer->BeginLabel(entry.NodeType->Id);
 			entry.Node->Render(inputs);
-			GetRenderAPI().EndLabel();
+			inputs.ActiveCommandBuffer->EndLabel();
 
 #if B3D_PROFILING_ENABLED
 			GetProfilerCPU().EndSample(sampleName.c_str());
@@ -426,14 +427,14 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	// Render base pass
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(RenderTarget);
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
+	commandBuffer.SetRenderTarget(RenderTarget);
 
 	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-	rapi.SetViewport(area);
+	commandBuffer.SetViewport(area);
 
 	// Clear all targets
-	rapi.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1.0f, 0);
+	commandBuffer.ClearViewport(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1.0f, 0);
 
 	// Trigger pre-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -452,7 +453,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 	// Render all visible opaque elements that use the deferred pipeline
 	const Vector<RenderQueueElement>& opaqueElements = inputs.View.GetOpaqueQueue(false)->GetSortedElements();
-	RenderQueueElements(*inputs.ActiveCommandBuffer, opaqueElements);
+	RenderQueueElements(commandBuffer, opaqueElements);
 
 	// Determine MSAA coverage if required
 	if(viewProps.Target.NumSamples > 1)
@@ -466,19 +467,19 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
 		MSAACoverageMat* mat = MSAACoverageMat::GetVariation(viewProps.Target.NumSamples);
-		rapi.SetRenderTarget(msaaCoverageNode->Output->RenderTexture);
-		mat->Execute(*inputs.ActiveCommandBuffer, inputs.View, gbuffer);
+		commandBuffer.SetRenderTarget(msaaCoverageNode->Output->RenderTexture);
+		mat->Execute(commandBuffer, inputs.View, gbuffer);
 
 		MSAACoverageStencilMat* stencilMat = MSAACoverageStencilMat::Get();
-		rapi.SetRenderTarget(sceneDepthNode->DepthTex->RenderTexture);
-		stencilMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, msaaCoverageNode->Output->Texture);
+		commandBuffer.SetRenderTarget(sceneDepthNode->DepthTex->RenderTexture);
+		stencilMat->Execute(commandBuffer, inputs.View, msaaCoverageNode->Output->Texture);
 	}
 
 	// Render decals after all normal objects, using a read-only depth buffer
-	rapi.SetRenderTarget(RenderTargetNoMask, FBT_DEPTH, RT_ALL);
+	commandBuffer.SetRenderTarget(RenderTargetNoMask, FBT_DEPTH, RT_ALL);
 
 	const Vector<RenderQueueElement>& decalElements = inputs.View.GetDecalQueue()->GetSortedElements();
-	RenderQueueElements(*inputs.ActiveCommandBuffer, decalElements);
+	RenderQueueElements(commandBuffer, decalElements);
 
 	// Trigger post-base-pass callbacks
 	if(sceneCamera != nullptr)
@@ -496,7 +497,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	// Make sure that any compute shaders are able to read g-buffer by unbinding it
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 void RCNodeBasePass::Clear()
@@ -577,11 +578,10 @@ void RCNodeSceneColor::Clear()
 
 void RCNodeSceneColor::MsaaTexArrayToTexture(CommandBuffer& commandBuffer)
 {
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+	commandBuffer.SetRenderTarget(RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-	rapi.SetViewport(area);
+	commandBuffer.SetViewport(area);
 
 	TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::Get();
 	material->Execute(commandBuffer, SceneColorTexArray->Texture, SceneColorTex->Texture);
@@ -820,8 +820,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 
 void RCNodeLightAccumulation::MsaaTexArrayToTexture(CommandBuffer& commandBuffer)
 {
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+	commandBuffer.SetRenderTarget(RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 	TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::Get();
 	material->Execute(commandBuffer, LightAccumulationTexArray->Texture, LightAccumulationTex->Texture);
@@ -861,6 +860,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 	gbuffer.RoughMetal = gbufferNode->RoughMetalTex->Texture;
 	gbuffer.Depth = sceneDepthNode->DepthTex->Texture;
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	if(!inputs.View.GetRenderSettings().EnableShadows)
@@ -885,10 +885,10 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		if(Output->LightAccumulationTexArray)
 			lightAccumTexArray = Output->LightAccumulationTexArray->Texture;
 
-		tiledDeferredMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
+		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
 
 		if(viewProps.Target.NumSamples > 1)
-			Output->MsaaTexArrayToTexture(*inputs.ActiveCommandBuffer);
+			Output->MsaaTexArrayToTexture(commandBuffer);
 
 		// If shadows are disabled we handle all lights through tiled deferred so we can exit immediately
 		if(!inputs.View.GetRenderSettings().EnableShadows)
@@ -902,14 +902,12 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 	const VisibleLightData& lightData = inputs.ViewGroup.GetVisibleLightData();
 
-	RenderAPI& rapi = RenderAPI::Instance();
-
 	// Render unshadowed lights
 	if(!tiledDeferredSupported)
 	{
 		ProfileGPUBlock sampleBlock("Standard deferred unshadowed lights");
 
-		rapi.SetRenderTarget(Output->RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+		commandBuffer.SetRenderTarget(Output->RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 		for(u32 i = 0; i < (u32)LightType::Count; i++)
 		{
@@ -923,7 +921,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 				u32 lightIdx = j;
 				const RendererLight& light = *lights[lightIdx];
 
-				StandardDeferred::Instance().RenderLight(*inputs.ActiveCommandBuffer, lightType, light, inputs.View, gbuffer, Texture::kBlack);
+				StandardDeferred::Instance().RenderLight(commandBuffer, lightType, light, inputs.View, gbuffer, Texture::kBlack);
 			}
 		}
 	}
@@ -972,25 +970,25 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 			for(u32 j = 0; j < count; j++)
 			{
-				rapi.SetRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
+				commandBuffer.SetRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
 
 				Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-				rapi.SetViewport(area);
+				commandBuffer.SetViewport(area);
 
-				rapi.ClearViewport(FBT_COLOR, Color::kZero);
+				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
 
 				u32 lightIdx = offset + j;
 				const RendererLight& light = *lights[lightIdx];
-				shadowRenderer.RenderShadowOcclusion(*inputs.ActiveCommandBuffer, inputs.View, light, gbuffer);
+				shadowRenderer.RenderShadowOcclusion(commandBuffer, inputs.View, light, gbuffer);
 
-				rapi.SetRenderTarget(Output->RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
-				StandardDeferred::Instance().RenderLight(*inputs.ActiveCommandBuffer, lightType, light, inputs.View, gbuffer, lightOcclusionTex->Texture);
+				commandBuffer.SetRenderTarget(Output->RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+				StandardDeferred::Instance().RenderLight(commandBuffer, lightType, light, inputs.View, gbuffer, lightOcclusionTex->Texture);
 			}
 		}
 	}
 
 	// Makes sure light accumulation can be read by following passes
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 void RCNodeDeferredDirectLighting::Clear()
@@ -1020,6 +1018,7 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.InputNodes[2]);
 	RCNodeSSAO* ssaoNode = static_cast<RCNodeSSAO*>(inputs.InputNodes[3]);
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
@@ -1043,14 +1042,13 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 
 		SPtr<RenderTexture> rt = RenderTexture::Create(rtDesc);
 
-		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.SetRenderTarget(rt);
-		rapi.ClearRenderTarget(FBT_DEPTH);
-		GetRendererUtility().Clear(*inputs.ActiveCommandBuffer, -1);
+		commandBuffer.SetRenderTarget(rt);
+		commandBuffer.ClearRenderTarget(FBT_DEPTH);
+		GetRendererUtility().Clear(commandBuffer, -1);
 
 		TetrahedraRenderMat* renderTetrahedra =
 			TetrahedraRenderMat::GetVariation(viewProps.Target.NumSamples > 1, true);
-		renderTetrahedra->Execute(*inputs.ActiveCommandBuffer, inputs.View, sceneDepthNode->DepthTex->Texture, lpInfo.TetrahedraVolume, rt);
+		renderTetrahedra->Execute(commandBuffer, inputs.View, sceneDepthNode->DepthTex->Texture, lpInfo.TetrahedraVolume, rt);
 
 		rt = nullptr;
 		depthTex = nullptr;
@@ -1076,7 +1074,7 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	if(inputs.View.GetRenderSettings().EnableSkybox)
 		skybox = inputs.Scene.Skybox;
 
-	evaluateMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, gbuffer, volumeIndicesTex, lpInfo, skybox, ssaoNode->Output, lightAccumNode->RenderTarget);
+	evaluateMat->Execute(commandBuffer, inputs.View, gbuffer, volumeIndicesTex, lpInfo, skybox, ssaoNode->Output, lightAccumNode->RenderTarget);
 
 	volumeIndices = nullptr;
 }
@@ -1155,8 +1153,6 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 		u32 height = viewProps.Target.ViewRect.Height;
 		u32 numSamples = viewProps.Target.NumSamples;
 
-		RenderAPI& rapi = RenderAPI::Instance();
-
 		bool isMSAA = viewProps.Target.NumSamples > 1;
 
 		SPtr<PooledRenderTexture> iblRadianceTex = GetGpuResourcePool().Get(
@@ -1169,7 +1165,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 		SPtr<GpuBuffer> perViewBuffer = inputs.View.GetPerViewBuffer();
 
 		SPtr<RenderTexture> iblRadianceRT = RenderTexture::Create(rtDesc);
-		rapi.SetRenderTarget(iblRadianceRT, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+		commandBuffer.SetRenderTarget(iblRadianceRT, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 		const VisibleReflProbeData& probeData = inputs.ViewGroup.GetVisibleReflProbeData();
 
@@ -1233,7 +1229,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 		// Finalize rendered reflections and output them to main render target
 		{
-			rapi.SetRenderTarget(outputRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
+			commandBuffer.SetRenderTarget(outputRT, FBT_DEPTH | FBT_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
 
 			DeferredIBLFinalizeMat* mat = DeferredIBLFinalizeMat::GetVariation(isMSAA, true);
 			mat->Bind(commandBuffer, gbuffer, perViewBuffer, iblRadianceTex->Texture, RendererTextures::preintegratedEnvGF, reflProbeParams.Buffer);
@@ -1251,7 +1247,7 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 		}
 
 		// Makes sure light accumulation can be read by following passes
-		rapi.SetRenderTarget(nullptr);
+		commandBuffer.SetRenderTarget(nullptr);
 	}
 }
 
@@ -1517,16 +1513,16 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	// arrays for this, or to avoid sampling many textures, perhaps just jam it all in one or few texture channels.
 
 	// Render everything
-	RenderAPI& rapi = RenderAPI::Instance();
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 
 	RenderQueue* opaqueQueue = inputs.View.GetOpaqueQueue(true).get();
 	RenderQueue* transparentQueue = inputs.View.GetTransparentQueue().get();
 
-	rapi.SetRenderTarget(renderTarget, 0, RT_ALL);
-	RenderQueueElements(*inputs.ActiveCommandBuffer, opaqueQueue->GetSortedElements());
+	commandBuffer.SetRenderTarget(renderTarget, 0, RT_ALL);
+	RenderQueueElements(commandBuffer, opaqueQueue->GetSortedElements());
 
-	rapi.SetRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
-	RenderQueueElements(*inputs.ActiveCommandBuffer, transparentQueue->GetSortedElements());
+	commandBuffer.SetRenderTarget(renderTarget, FBT_DEPTH, RT_ALL);
+	RenderQueueElements(commandBuffer, transparentQueue->GetSortedElements());
 
 	// Note: Perhaps delay clearing this one frame, so previous frame textures have a better chance of being done
 	ParticleRenderer::Instance().GetTexturePool().Clear();
@@ -1591,11 +1587,10 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	RCNodeSceneColor* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.InputNodes[0]);
 	int readOnlyFlags = FBT_DEPTH | FBT_STENCIL;
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(sceneColorNode->RenderTarget, readOnlyFlags, RT_COLOR0 | RT_DEPTH_STENCIL);
+	commandBuffer.SetRenderTarget(sceneColorNode->RenderTarget, readOnlyFlags, RT_COLOR0 | RT_DEPTH_STENCIL);
 
 	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
-	rapi.SetViewport(area);
+	commandBuffer.SetViewport(area);
 
 	SPtr<Mesh> mesh = GetRendererUtility().GetSkyBoxMesh();
 	GetRendererUtility().Draw(commandBuffer, mesh, mesh->GetProperties().SubMeshes[0]);
@@ -1633,18 +1628,18 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 
 	SPtr<RenderTarget> target = viewProps.Target.Target;
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
-	rapi.SetViewport(viewProps.Target.NrmViewRect);
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
+	commandBuffer.SetRenderTarget(target);
+	commandBuffer.SetViewport(viewProps.Target.NrmViewRect);
 
-	GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, input, Rect2I::kEmpty, viewProps.FlipView);
+	GetRendererUtility().Blit(commandBuffer, input, Rect2I::kEmpty, viewProps.FlipView);
 
 	if(viewProps.EncodeDepth)
 	{
 		RCNodeResolvedSceneDepth* resolvedSceneDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.InputNodes[0]);
 
 		EncodeDepthMat* encodeDepthMat = EncodeDepthMat::Get();
-		encodeDepthMat->Execute(*inputs.ActiveCommandBuffer, resolvedSceneDepthNode->Output->Texture, viewProps.DepthEncodeNear, viewProps.DepthEncodeFar, target);
+		encodeDepthMat->Execute(commandBuffer, resolvedSceneDepthNode->Output->Texture, viewProps.DepthEncodeNear, viewProps.DepthEncodeFar, target);
 	}
 
 	// Trigger overlay callbacks
@@ -1742,6 +1737,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 {
 	GpuResourcePool& resPool = GetGpuResourcePool();
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
 	const bool hdr = settings.EnableHdr;
@@ -1758,7 +1754,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			SPtr<PooledRenderTexture> eyeAdaptHistogram =
 				resPool.Get(EyeAdaptHistogramMat::GetOutputDesc(downsampledScene->Texture));
 			EyeAdaptHistogramMat* eyeAdaptHistogramMat = EyeAdaptHistogramMat::Get();
-			eyeAdaptHistogramMat->Execute(*inputs.ActiveCommandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
+			eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
 
 			// Reduce histogram
 			SPtr<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMat::GetOutputDesc());
@@ -1768,7 +1764,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				prevFrameEyeAdaptation = previous->Texture;
 
 			EyeAdaptHistogramReduceMat* eyeAdaptHistogramReduce = EyeAdaptHistogramReduceMat::Get();
-			eyeAdaptHistogramReduce->Execute(*inputs.ActiveCommandBuffer, 
+			eyeAdaptHistogramReduce->Execute(commandBuffer, 
 				downsampledScene->Texture,
 				eyeAdaptHistogram->Texture,
 				prevFrameEyeAdaptation,
@@ -1779,7 +1775,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			// Generate eye adaptation value
 			Output = resPool.Get(EyeAdaptationMat::GetOutputDesc());
 			EyeAdaptationMat* eyeAdaptationMat = EyeAdaptationMat::Get();
-			eyeAdaptationMat->Execute(*inputs.ActiveCommandBuffer, 
+			eyeAdaptationMat->Execute(commandBuffer,
 				reducedHistogram->Texture,
 				Output->RenderTexture,
 				inputs.FrameInfo.Timings.TimeDelta,
@@ -1793,7 +1789,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				resPool.Get(EyeAdaptationBasicSetupMat::GetOutputDesc(downsampledScene->Texture));
 
 			EyeAdaptationBasicSetupMat* setupMat = EyeAdaptationBasicSetupMat::Get();
-			setupMat->Execute(*inputs.ActiveCommandBuffer, 
+			setupMat->Execute(commandBuffer,
 				downsampledScene->Texture,
 				luminanceTex->RenderTexture,
 				inputs.FrameInfo.Timings.TimeDelta,
@@ -1810,7 +1806,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				SPtr<PooledRenderTexture> downsampledLuminance =
 					resPool.Get(DownsampleMat::GetOutputDesc(downsampleInput));
 
-				downsampleMat->Execute(*inputs.ActiveCommandBuffer, downsampleInput, downsampledLuminance->RenderTexture);
+				downsampleMat->Execute(commandBuffer, downsampleInput, downsampledLuminance->RenderTexture);
 				downsampleInput = downsampledLuminance->Texture;
 			}
 
@@ -1822,7 +1818,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 				prevFrameEyeAdaptation = previous->Texture;
 
 			Output = resPool.Get(EyeAdaptationBasicMat::GetOutputDesc());
-			eyeAdaptationMat->Execute(*inputs.ActiveCommandBuffer, 
+			eyeAdaptationMat->Execute(commandBuffer,
 				downsampleInput,
 				prevFrameEyeAdaptation,
 				Output->RenderTexture,
@@ -1869,7 +1865,7 @@ SmallVector<StringID, 4> RCNodeEyeAdaptation::GetDependencies(const RendererView
 
 void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 {
-	const RendererViewProperties& viewProps = inputs.View.GetProperties();
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 
 	auto* eyeAdaptationNode = static_cast<RCNodeEyeAdaptation*>(inputs.InputNodes[0]);
@@ -1898,7 +1894,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 					if(mTonemapLUT == nullptr)
 						mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
 
-					createLUT->Execute(*inputs.ActiveCommandBuffer, mTonemapLUT->Texture, settings);
+					createLUT->Execute(commandBuffer, mTonemapLUT->Texture, settings);
 				}
 				else
 				{
@@ -1906,7 +1902,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 					if(mTonemapLUT == nullptr)
 						mTonemapLUT = GetGpuResourcePool().Get(createLUT->GetOutputDesc());
 
-					createLUT->Execute(*inputs.ActiveCommandBuffer, mTonemapLUT->RenderTexture, settings);
+					createLUT->Execute(commandBuffer, mTonemapLUT->RenderTexture, settings);
 					
 				}
 
@@ -1950,7 +1946,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 		bloomTex = bloomNode->Output;
 	}
 
-	tonemapping->Execute(*inputs.ActiveCommandBuffer, sceneColor, eyeAdaptationTex, bloomTex, tonemapLUTTex, ppOutput, settings);
+	tonemapping->Execute(commandBuffer, sceneColor, eyeAdaptationTex, bloomTex, tonemapLUTTex, ppOutput, settings);
 }
 
 void RCNodeTonemapping::Clear()
@@ -1983,6 +1979,7 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	if(!settings.Enabled || settings.Type != DepthOfFieldType::Bokeh)
 		return;
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 	const bool msaa = viewProps.Target.NumSamples > 1;
 
@@ -2000,16 +1997,16 @@ void RCNodeBokehDOF::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<PooledRenderTexture> halfResSceneAndDepth =
 		GetGpuResourcePool().Get(BokehDOFPrepareMat::GetOutputDesc(sceneColorNode->SceneColorTex->Texture));
 
-	prepareMat->Execute(*inputs.ActiveCommandBuffer, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, halfResSceneAndDepth->RenderTexture);
+	prepareMat->Execute(commandBuffer, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, halfResSceneAndDepth->RenderTexture);
 
 	SPtr<PooledRenderTexture> unfocusedTex =
 		GetGpuResourcePool().Get(BokehDOFMat::GetOutputDesc(halfResSceneAndDepth->Texture));
 
-	renderMat->Execute(*inputs.ActiveCommandBuffer, halfResSceneAndDepth->Texture, inputs.View, settings, unfocusedTex->RenderTexture);
+	renderMat->Execute(commandBuffer, halfResSceneAndDepth->Texture, inputs.View, settings, unfocusedTex->RenderTexture);
 	halfResSceneAndDepth = nullptr;
 
 	// Combine the unfocused and focused textures to form the final image
-	combineMat->Execute(*inputs.ActiveCommandBuffer, unfocusedTex->Texture, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, lightAccumNode->LightAccumulationTex->RenderTexture);
+	combineMat->Execute(commandBuffer, unfocusedTex->Texture, sceneColorNode->SceneColorTex->Texture, depth, inputs.View, settings, lightAccumNode->LightAccumulationTex->RenderTexture);
 
 	// TODO - This might be incorrect when not supporting tiled deferred? As light accum is the same as scene color
 	sceneColorNode->Swap(lightAccumNode);
@@ -2050,7 +2047,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 		return;
 	}
 
-	RenderAPI& rapi = RenderAPI::Instance();
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 
 	// TODO - Resolve scene color MSAA (in a way that can be shared by multiple effects)
 
@@ -2069,8 +2066,8 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		rapi.SetRenderTarget(resolvedSceneColor->RenderTexture);
-		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, sceneColor->Texture);
+		commandBuffer.SetRenderTarget(resolvedSceneColor->RenderTexture);
+		GetRendererUtility().Blit(commandBuffer, sceneColor->Texture);
 
 		sceneColor = resolvedSceneColor;
 	}
@@ -2079,8 +2076,8 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		mPooledOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		rapi.SetRenderTarget(mPooledOutput->RenderTexture);
-		rapi.ClearRenderTarget(FBT_COLOR);
+		commandBuffer.SetRenderTarget(mPooledOutput->RenderTexture);
+		commandBuffer.ClearRenderTarget(FBT_COLOR);
 
 		SPtr<Texture> velocityTex;
 		if(basePassNode->VelocityTex)
@@ -2090,14 +2087,14 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 
 		TemporalFilteringMat* temporalFilteringMat =
 			TemporalFilteringMat::GetVariation(TemporalFilteringType::FullScreenAA, true, viewProps.Target.NumSamples > 1);
-		temporalFilteringMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, mPrevFrame->Texture, sceneColor->Texture, velocityTex, sceneDepthNode->DepthTex->Texture, viewProps.TemporalJitter, exposure, mPooledOutput->RenderTexture);
+		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPrevFrame->Texture, sceneColor->Texture, velocityTex, sceneDepthNode->DepthTex->Texture, viewProps.TemporalJitter, exposure, mPooledOutput->RenderTexture);
 
 		sceneColorNode->SetExternalTexture(mPooledOutput);
 	}
 	else
 		mPooledOutput = sceneColor;
 
-	RenderAPI::Instance().SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 	Output = mPooledOutput->Texture;
 }
 
@@ -2165,6 +2162,7 @@ SmallVector<StringID, 4> RCNodeMotionBlur::GetDependencies(const RendererView& v
 
 void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 {
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[1]);
 	RCNodePostProcess* postProcessNode = static_cast<RCNodePostProcess*>(inputs.InputNodes[2]);
 
@@ -2184,7 +2182,7 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> ppLastFrame;
 	postProcessNode->GetAndSwitch(inputs.View, ppOutput, ppLastFrame);
 
-	separateMat->Execute(*inputs.ActiveCommandBuffer, ppLastFrame, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
+	separateMat->Execute(commandBuffer, ppLastFrame, sceneDepthNode->DepthTex->Texture, inputs.View, settings);
 
 	SPtr<PooledRenderTexture> nearTex, farTex;
 	if(near && far)
@@ -2209,7 +2207,7 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> blurredNearTex;
 	if(nearTex)
 	{
-		blurMat->Execute(*inputs.ActiveCommandBuffer, nearTex->Texture, settings.NearBlurAmount, tempTexture->RenderTexture);
+		blurMat->Execute(commandBuffer, nearTex->Texture, settings.NearBlurAmount, tempTexture->RenderTexture);
 		blurredNearTex = tempTexture->Texture;
 	}
 
@@ -2219,17 +2217,17 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 		// If temporary texture is used up, re-use the original near texture for the blurred result
 		if(blurredNearTex)
 		{
-			blurMat->Execute(*inputs.ActiveCommandBuffer, farTex->Texture, settings.FarBlurAmount, nearTex->RenderTexture);
+			blurMat->Execute(commandBuffer, farTex->Texture, settings.FarBlurAmount, nearTex->RenderTexture);
 			blurredFarTex = nearTex->Texture;
 		}
 		else // Otherwise just use the temporary
 		{
-			blurMat->Execute(*inputs.ActiveCommandBuffer, farTex->Texture, settings.FarBlurAmount, tempTexture->RenderTexture);
+			blurMat->Execute(commandBuffer, farTex->Texture, settings.FarBlurAmount, tempTexture->RenderTexture);
 			blurredFarTex = tempTexture->Texture;
 		}
 	}
 
-	combineMat->Execute(*inputs.ActiveCommandBuffer, ppLastFrame, blurredNearTex, blurredFarTex, sceneDepthNode->DepthTex->Texture, ppOutput, inputs.View, settings);
+	combineMat->Execute(commandBuffer, ppLastFrame, blurredNearTex, blurredFarTex, sceneDepthNode->DepthTex->Texture, ppOutput, inputs.View, settings);
 
 	separateMat->Release();
 }
@@ -2403,9 +2401,9 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		Output = GetGpuResourcePool().Get(
 			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
 
-		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.SetRenderTarget(Output->RenderTexture);
-		rapi.ClearRenderTarget(FBT_STENCIL);
+		CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
+		commandBuffer.SetRenderTarget(Output->RenderTexture);
+		commandBuffer.ClearRenderTarget(FBT_STENCIL);
 		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, sceneDepthNode->DepthTex->Texture, Rect2I::kEmpty, false, true);
 	}
 	else
@@ -2425,6 +2423,7 @@ SmallVector<StringID, 4> RCNodeResolvedSceneDepth::GetDependencies(const Rendere
 
 void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 {
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
 	RCNodeResolvedSceneDepth* resolvedSceneDepth = static_cast<RCNodeResolvedSceneDepth*>(inputs.InputNodes[0]);
@@ -2466,15 +2465,14 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 		// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
 		destRect = Rect2(0, 0, Math::CeilToInt(viewProps.Target.ViewRect.Width / 2.0f) / (float)size, Math::CeilToInt(viewProps.Target.ViewRect.Height / 2.0f) / (float)size);
 
-		material->Execute(*inputs.ActiveCommandBuffer, resolvedSceneDepth->Output->Texture, 0, srcRect, destRect, rt);
+		material->Execute(commandBuffer, resolvedSceneDepth->Output->Texture, 0, srcRect, destRect, rt);
 	}
 	else // First level is just a copy of the depth buffer
 	{
 		destRect = Rect2(0, 0, viewProps.Target.ViewRect.Width / (float)size, viewProps.Target.ViewRect.Height / (float)size);
 
-		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.SetRenderTarget(rt);
-		rapi.SetViewport(destRect);
+		commandBuffer.SetRenderTarget(rt);
+		commandBuffer.SetViewport(destRect);
 
 		Rect2I srcAreaInt;
 		srcAreaInt.X = (i32)(srcRect.X * viewProps.Target.ViewRect.Width);
@@ -2482,8 +2480,8 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 		srcAreaInt.Width = (u32)(srcRect.Width * viewProps.Target.ViewRect.Width);
 		srcAreaInt.Height = (u32)(srcRect.Height * viewProps.Target.ViewRect.Height);
 
-		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, resolvedSceneDepth->Output->Texture, srcAreaInt);
-		rapi.SetViewport(Rect2(0, 0, 1, 1));
+		GetRendererUtility().Blit(commandBuffer, resolvedSceneDepth->Output->Texture, srcAreaInt);
+		commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
 	}
 
 	// Generate remaining mip levels
@@ -2492,7 +2490,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 		rtDesc.ColorSurfaces[0].MipLevel = i;
 		rt = RenderTexture::Create(rtDesc);
 
-		material->Execute(*inputs.ActiveCommandBuffer, Output->Texture, i - 1, destRect, destRect, rt);
+		material->Execute(commandBuffer, Output->Texture, i - 1, destRect, destRect, rt);
 	}
 }
 
@@ -2522,6 +2520,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		return;
 	}
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
@@ -2534,14 +2533,13 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 	const TextureProperties& normalsProps = sceneNormals->GetProperties();
 	SPtr<PooledRenderTexture> resolvedNormals;
 
-	RenderAPI& rapi = RenderAPI::Instance();
 	if(sceneNormals->GetProperties().SampleCount > 1)
 	{
 		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(normalsProps.Format, normalsProps.Width, normalsProps.Height, TU_RENDERTARGET);
 		resolvedNormals = resPool.Get(desc);
 
-		rapi.SetRenderTarget(resolvedNormals->RenderTexture);
-		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, sceneNormals);
+		commandBuffer.SetRenderTarget(resolvedNormals->RenderTexture);
+		GetRendererUtility().Blit(commandBuffer, sceneNormals);
 
 		sceneNormals = resolvedNormals->Texture;
 	}
@@ -2567,7 +2565,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex0 = resPool.Get(desc);
 
-		downsample->Execute(*inputs.ActiveCommandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex0->RenderTexture, kDepthRange);
+		downsample->Execute(commandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex0->RenderTexture, kDepthRange);
 	}
 
 	SPtr<PooledRenderTexture> setupTex1;
@@ -2580,7 +2578,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex1 = resPool.Get(desc);
 
-		downsample->Execute(*inputs.ActiveCommandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex1->RenderTexture, kDepthRange);
+		downsample->Execute(commandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex1->RenderTexture, kDepthRange);
 	}
 
 	SSAOTextureInputs textures;
@@ -2601,7 +2599,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		downAOTex1 = resPool.Get(desc);
 
 		SSAOMat* ssaoMat = SSAOMat::GetVariation(false, false, quality);
-		ssaoMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, textures, downAOTex1->RenderTexture, settings);
+		ssaoMat->Execute(commandBuffer, inputs.View, textures, downAOTex1->RenderTexture, settings);
 
 		setupTex1 = nullptr;
 	}
@@ -2623,7 +2621,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 
 		bool upsample = numDownsampleLevels > 1;
 		SSAOMat* ssaoMat = SSAOMat::GetVariation(upsample, false, quality);
-		ssaoMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, textures, downAOTex0->RenderTexture, settings);
+		ssaoMat->Execute(commandBuffer, inputs.View, textures, downAOTex0->RenderTexture, settings);
 
 		if(upsample)
 			downAOTex1 = nullptr;
@@ -2642,7 +2640,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 
 		bool upsample = numDownsampleLevels > 0;
 		SSAOMat* ssaoMat = SSAOMat::GetVariation(upsample, true, quality);
-		ssaoMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, textures, mPooledOutput->RenderTexture, settings);
+		ssaoMat->Execute(commandBuffer, inputs.View, textures, mPooledOutput->RenderTexture, settings);
 	}
 
 	resolvedNormals = nullptr;
@@ -2666,11 +2664,11 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		SSAOBlurMat* blurHorz = SSAOBlurMat::GetVariation(true);
 		SSAOBlurMat* blurVert = SSAOBlurMat::GetVariation(false);
 
-		blurHorz->Execute(*inputs.ActiveCommandBuffer, inputs.View, mPooledOutput->Texture, sceneDepth, blurIntermediateTex->RenderTexture, kDepthRange);
-		blurVert->Execute(*inputs.ActiveCommandBuffer, inputs.View, blurIntermediateTex->Texture, sceneDepth, mPooledOutput->RenderTexture, kDepthRange);
+		blurHorz->Execute(commandBuffer, inputs.View, mPooledOutput->Texture, sceneDepth, blurIntermediateTex->RenderTexture, kDepthRange);
+		blurVert->Execute(commandBuffer, inputs.View, blurIntermediateTex->Texture, sceneDepth, mPooledOutput->RenderTexture, kDepthRange);
 	}
 
-	RenderAPI::Instance().SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 	Output = mPooledOutput->Texture;
 }
 
@@ -2710,6 +2708,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	RCNodeHiZ* hiZNode = static_cast<RCNodeHiZ*>(inputs.InputNodes[3]);
 	RCNodeResolvedSceneDepth* resolvedSceneDepthNode = static_cast<RCNodeResolvedSceneDepth*>(inputs.InputNodes[4]);
 
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GpuResourcePool& resPool = GetGpuResourcePool();
 	const RendererViewProperties& viewProps = inputs.View.GetProperties();
 
@@ -2727,8 +2726,8 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		rapi.SetRenderTarget(resolvedSceneColor->RenderTexture);
-		GetRendererUtility().Blit(*inputs.ActiveCommandBuffer, sceneColor);
+		commandBuffer.SetRenderTarget(resolvedSceneColor->RenderTexture);
+		GetRendererUtility().Blit(commandBuffer, sceneColor);
 
 		sceneColor = resolvedSceneColor->Texture;
 	}
@@ -2742,8 +2741,8 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	SSRStencilMat* stencilMat = SSRStencilMat::GetVariation(viewProps.Target.NumSamples > 1, true);
 
 	// Note: Making the assumption that the stencil buffer is clear at this point
-	rapi.SetRenderTarget(resolvedSceneDepthNode->Output->RenderTexture, FBT_DEPTH, RT_DEPTH_STENCIL);
-	stencilMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, gbuffer, settings);
+	commandBuffer.SetRenderTarget(resolvedSceneDepthNode->Output->RenderTexture, FBT_DEPTH, RT_DEPTH_STENCIL);
+	stencilMat->Execute(commandBuffer, inputs.View, gbuffer, settings);
 
 	SPtr<PooledRenderTexture> traceOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
@@ -2753,11 +2752,11 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 
 	SPtr<RenderTexture> traceRt = RenderTexture::Create(traceRtDesc);
 
-	rapi.SetRenderTarget(traceRt, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-	rapi.ClearRenderTarget(FBT_COLOR, Color::kZero);
+	commandBuffer.SetRenderTarget(traceRt, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+	commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
 
 	SSRTraceMat* traceMat = SSRTraceMat::GetVariation(settings.Quality, viewProps.Target.NumSamples > 1, true);
-	traceMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, gbuffer, sceneColor, hiZ, settings, traceRt);
+	traceMat->Execute(commandBuffer, inputs.View, gbuffer, sceneColor, hiZ, settings, traceRt);
 
 	resolvedSceneColor = nullptr;
 
@@ -2766,19 +2765,19 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		mPooledOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-		rapi.SetRenderTarget(mPooledOutput->RenderTexture);
-		rapi.ClearRenderTarget(FBT_COLOR);
+		commandBuffer.SetRenderTarget(mPooledOutput->RenderTexture);
+		commandBuffer.ClearRenderTarget(FBT_COLOR);
 
 		TemporalFilteringMat* temporalFilteringMat =
 			TemporalFilteringMat::GetVariation(TemporalFilteringType::SSR, false, viewProps.Target.NumSamples > 1);
-		temporalFilteringMat->Execute(*inputs.ActiveCommandBuffer, inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::kZero, 1.0f, mPooledOutput->RenderTexture);
+		temporalFilteringMat->Execute(commandBuffer, inputs.View, mPrevFrame->Texture, traceOutput->Texture, nullptr, sceneDepthNode->DepthTex->Texture, Vector2::kZero, 1.0f, mPooledOutput->RenderTexture);
 
 		traceOutput = nullptr;
 	}
 	else
 		mPooledOutput = traceOutput;
 
-	RenderAPI::Instance().SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 	Output = mPooledOutput->Texture;
 }
 
@@ -2899,6 +2898,7 @@ SmallVector<StringID, 4> RCNodeBloom::GetDependencies(const RendererView& view)
 
 void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs)
 {
+	CommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	GpuResourcePool& resPool = GpuResourcePool::Instance();
 	const RenderSettings& settings = inputs.View.GetRenderSettings();
 	const ScreenSpaceLensFlareSettings& lensFlareSettings = settings.ScreenSpaceLensFlare;
@@ -2926,18 +2926,18 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 		lensFlareSettings.Halo,
 		haloAspect,
 		lensFlareSettings.ChromaticAberration);
-	lensFlareMat->Execute(*inputs.ActiveCommandBuffer, downsampledTex->Texture, lensFlareSettings, featureTex->RenderTexture);
+	lensFlareMat->Execute(commandBuffer, downsampledTex->Texture, lensFlareSettings, featureTex->RenderTexture);
 
 	// Blur
 	GaussianBlurMat* filterMat = GaussianBlurMat::Get();
-	filterMat->Execute(*inputs.ActiveCommandBuffer, featureTex->Texture, lensFlareSettings.FilterSize, downsampledTex->RenderTexture, Color::kWhite);
+	filterMat->Execute(commandBuffer, featureTex->Texture, lensFlareSettings.FilterSize, downsampledTex->RenderTexture, Color::kWhite);
 
 	auto* sceneColorNode = static_cast<RCNodeSceneColor*>(inputs.InputNodes[1]);
 
 	if(lensFlareSettings.BicubicUpsampling)
 	{
 		BicubicUpsampleMat* upsampleMat = BicubicUpsampleMat::GetVariation(false);
-		upsampleMat->Execute(*inputs.ActiveCommandBuffer, 
+		upsampleMat->Execute(commandBuffer, 
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
 			Color::kWhite * lensFlareSettings.Brightness);
@@ -2945,7 +2945,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 	else
 	{
 		CompositeMat* upsampleMat = CompositeMat::Get();
-		upsampleMat->Execute(*inputs.ActiveCommandBuffer, 
+		upsampleMat->Execute(commandBuffer, 
 			downsampledTex->Texture,
 			sceneColorNode->RenderTarget,
 			Color::kWhite * lensFlareSettings.Brightness);

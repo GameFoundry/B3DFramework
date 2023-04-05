@@ -71,8 +71,7 @@ void DownsampleMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& i
 		gDownsampleParamDef.gOffsets.Set(mParamBuffer, invTextureSize * Vector2(1.0f, 1.0f));
 	}
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
 	Bind(commandBuffer);
 
@@ -81,7 +80,7 @@ void DownsampleMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& i
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC DownsampleMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -152,8 +151,7 @@ void EyeAdaptHistogramMat::Execute(CommandBuffer& commandBuffer, const SPtr<Text
 
 	Bind(commandBuffer);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.DispatchCompute(threadGroupCount.X, threadGroupCount.Y);
+	commandBuffer.DispatchCompute(threadGroupCount.X, threadGroupCount.Y);
 }
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramMat::GetOutputDesc(const SPtr<Texture>& target)
@@ -218,15 +216,14 @@ void EyeAdaptHistogramReduceMat::Execute(CommandBuffer& commandBuffer, const SPt
 
 	gEyeAdaptHistogramReduceParamDef.gThreadGroupCount.Set(mParamBuffer, numHistograms);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
 	Bind(commandBuffer);
 
 	Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::kHistogramNumTexels, 2.0f);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, drawUV);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptHistogramReduceMat::GetOutputDesc()
@@ -260,13 +257,12 @@ void EyeAdaptationMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>
 	PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
+	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptationMat::GetOutputDesc()
@@ -330,13 +326,12 @@ void EyeAdaptationBasicSetupMat::Execute(CommandBuffer& commandBuffer, const SPt
 	EyeAdaptationMat::PopulateParams(mParamBuffer, frameDelta, settings, exposureScale);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicSetupMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -378,13 +373,12 @@ void EyeAdaptationBasicMat::Execute(CommandBuffer& commandBuffer, const SPtr<Tex
 	gEyeAdaptationBasicParamsMatDef.gInputTexSize.Set(mParamsBuffer, texSize);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC EyeAdaptationBasicMat::GetOutputDesc()
@@ -417,13 +411,12 @@ void CreateTonemap2DLUTMat::Execute(CommandBuffer& commandBuffer, const SPtr<Ren
 	PopulateWhiteBalanceParameterBuffer(settings, mWhiteBalanceParamBuffer);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 void CreateTonemap2DLUTMat::PopulateTonemappingParameterBuffer(const RenderSettings& settings, const SPtr<GpuBuffer>& parameterBuffer)
@@ -494,9 +487,7 @@ void CreateTonemap3DLUTMat::Execute(CommandBuffer& commandBuffer, const SPtr<Tex
 	mOutputTex.Set(output);
 
 	Bind(commandBuffer);
-
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.DispatchCompute(CreateTonemap2DLUTMat::kLutSize / 8, CreateTonemap2DLUTMat::kLutSize / 8, CreateTonemap2DLUTMat::kLutSize);
+	commandBuffer.DispatchCompute(CreateTonemap2DLUTMat::kLutSize / 8, CreateTonemap2DLUTMat::kLutSize / 8, CreateTonemap2DLUTMat::kLutSize);
 }
 
 POOLED_RENDER_TEXTURE_DESC CreateTonemap3DLUTMat::GetOutputDesc() const
@@ -543,8 +534,7 @@ void TonemappingMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& 
 	mBloomTex.Set(bloom != nullptr ? bloom : Texture::kBlack);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -651,9 +641,7 @@ void BloomClipMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& in
 	mEyeAdaptationTex.Set(eyeAdaptation);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -696,8 +684,7 @@ void ScreenSpaceLensFlareMat::Execute(CommandBuffer& commandBuffer, const SPtr<T
 	mGradientTex.Set(RendererTextures::lensFlareGradient);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -765,8 +752,7 @@ void ChromaticAberrationMat::Execute(CommandBuffer& commandBuffer, const SPtr<Te
 	mFringeTex.Set(fringeTex);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -806,8 +792,7 @@ void FilmGrainMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& in
 	mInputTex.Set(input);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -850,8 +835,7 @@ void GaussianBlurMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>&
 		if(mIsAdditive)
 			mAdditiveTexture.Set(Texture::kBlack);
 
-		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.SetRenderTarget(tempTexture->RenderTexture);
+		commandBuffer.SetRenderTarget(tempTexture->RenderTexture);
 
 		Bind(commandBuffer);
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -870,8 +854,7 @@ void GaussianBlurMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>&
 				mAdditiveTexture.Set(Texture::kBlack);
 		}
 
-		RenderAPI& rapi = RenderAPI::Instance();
-		rapi.SetRenderTarget(destination);
+		commandBuffer.SetRenderTarget(destination);
 
 		Bind(commandBuffer);
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1083,8 +1066,7 @@ void GaussianDOFSeparateMat::Execute(CommandBuffer& commandBuffer, const SPtr<Te
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(rt);
+	commandBuffer.SetRenderTarget(rt);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1157,8 +1139,7 @@ void GaussianDOFCombineMat::Execute(CommandBuffer& commandBuffer, const SPtr<Tex
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1209,8 +1190,7 @@ void BokehDOFPrepareMat::Execute(CommandBuffer& commandBuffer, const SPtr<Textur
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 
@@ -1361,9 +1341,8 @@ void BokehDOFMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& inp
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
-	rapi.ClearRenderTarget(FBT_COLOR, Color::kZero);
+	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+	commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
 	commandBuffer.SetVertexDescription(mTileVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { mTileVertexBuffer };
@@ -1460,8 +1439,7 @@ void BokehDOFCombineMat::Execute(CommandBuffer& commandBuffer, const SPtr<Textur
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1529,8 +1507,7 @@ void MotionBlurMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& i
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1564,8 +1541,6 @@ void BuildHiZMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& sou
 {
 	BS_RENMAT_PROFILE_BLOCK
 
-	RenderAPI& rapi = RenderAPI::Instance();
-
 	// If no texture view support, we must manually pick a valid mip level in the shader
 	if(mNoTextureViews)
 	{
@@ -1583,13 +1558,13 @@ void BuildHiZMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& sou
 	else
 		mInputTexture.Set(source, TextureSurface(srcMip));
 
-	rapi.SetRenderTarget(output);
-	rapi.SetViewport(dstRect);
+	commandBuffer.SetRenderTarget(output);
+	commandBuffer.SetViewport(dstRect);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, srcRect);
 
-	rapi.SetViewport(Rect2(0, 0, 1, 1));
+	commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
 }
 
 BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
@@ -1621,8 +1596,7 @@ void FXAAMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& source,
 
 	mInputTexture.Set(source);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination);
+	commandBuffer.SetRenderTarget(destination);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1778,8 +1752,7 @@ void SSAOMat::Execute(CommandBuffer& commandBuffer, const RendererView& view, co
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination);
+	commandBuffer.SetRenderTarget(destination);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1867,8 +1840,7 @@ void SSAODownsampleMat::Execute(CommandBuffer& commandBuffer, const RendererView
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination);
+	commandBuffer.SetRenderTarget(destination);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -1931,8 +1903,7 @@ void SSAOBlurMat::Execute(CommandBuffer& commandBuffer, const RendererView& view
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination);
+	commandBuffer.SetRenderTarget(destination);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -2073,8 +2044,7 @@ void SSRTraceMat::Execute(CommandBuffer& commandBuffer, const RendererView& view
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
+	commandBuffer.SetRenderTarget(destination, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
 	Bind(commandBuffer);
 
@@ -2294,8 +2264,7 @@ void TemporalFilteringMat::Execute(CommandBuffer& commandBuffer, const RendererV
 	SPtr<GpuBuffer> perView = view.GetPerViewBuffer();
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(destination);
+	commandBuffer.SetRenderTarget(destination);
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const Rect2I& viewRect = viewProps.Target.ViewRect;
@@ -2372,8 +2341,7 @@ void EncodeDepthMat::Execute(CommandBuffer& commandBuffer, const SPtr<Texture>& 
 	gEncodeDepthParamDef.gNear.Set(mParamBuffer, near);
 	gEncodeDepthParamDef.gFar.Set(mParamBuffer, far);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, 0, RT_COLOR0);
+	commandBuffer.SetRenderTarget(output, 0, RT_COLOR0);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);

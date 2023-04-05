@@ -9,12 +9,10 @@ using namespace ct;
 
 void RendererMaterialBase::Bind(CommandBuffer& commandBuffer, bool bindParameters) const
 {
-	RenderAPI& renderAPI = GetRenderAPI();
-
 	if(mGraphicsPipeline)
 	{
 		commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
-		renderAPI.SetStencilRef(mStencilReferenceValue, commandBuffer.GetShared());
+		commandBuffer.SetStencilReferenceValue(mStencilReferenceValue);
 	}
 	else
 		commandBuffer.SetGpuComputePipelineState(mComputePipeline);

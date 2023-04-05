@@ -7,6 +7,7 @@
 #include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Material/BsGpuParamsSet.h"
+#include "RenderAPI/BsCommandBuffer.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
 #include "Utility/BsRendererTextures.h"
@@ -50,8 +51,7 @@ void TetrahedraRenderMat::Execute(CommandBuffer& commandBuffer, const RendererVi
 	mDepthBufferTex.Set(sceneDepth);
 	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().Draw(commandBuffer, mesh);
@@ -147,14 +147,12 @@ void IrradianceEvaluateMat::Execute(CommandBuffer& commandBuffer, const Renderer
 	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
+	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
 
 	Bind(commandBuffer);
-
 	GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 IrradianceEvaluateMat* IrradianceEvaluateMat::GetVariation(bool msaa, bool singleSampleMSAA, bool skyOnly)

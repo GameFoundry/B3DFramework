@@ -7,6 +7,7 @@
 #include "BsRendererLight.h"
 #include "BsRendererReflectionProbe.h"
 #include "BsTiledDeferred.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs {
 namespace ct {
@@ -113,7 +114,7 @@ void LightGridLLCreationMat::Execute(CommandBuffer& commandBuffer, const Rendere
 	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
 void LightGridLLCreationMat::GetOutputs(SPtr<GpuBuffer>& lightsLLHeads, SPtr<GpuBuffer>& lightsLL, SPtr<GpuBuffer>& probesLLHeads, SPtr<GpuBuffer>& probesLL) const
@@ -213,7 +214,7 @@ void LightGridLLReductionMat::Execute(CommandBuffer& commandBuffer, const Render
 	u32 numGroupsZ = (mGridSize[2] + kThreadgroupSize - 1) / kThreadgroupSize;
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
+	commandBuffer.DispatchCompute(numGroupsX, numGroupsY, numGroupsZ);
 }
 
 void LightGridLLReductionMat::GetOutputs(SPtr<GpuBuffer>& gridLightOffsetsAndSize, SPtr<GpuBuffer>& gridLightIndices, SPtr<GpuBuffer>& gridProbeOffsetsAndSize, SPtr<GpuBuffer>& gridProbeIndices) const

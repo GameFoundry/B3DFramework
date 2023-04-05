@@ -23,7 +23,7 @@ void ShadowDepthNormalMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuff
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
 	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
+	commandBuffer.SetStencilReferenceValue(mStencilReferenceValue);
 }
 
 void ShadowDepthNormalMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
@@ -56,7 +56,7 @@ void ShadowDepthNormalNoPSMat::Bind(CommandBuffer& commandBuffer, const SPtr<Gpu
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
 	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
+	commandBuffer.SetStencilReferenceValue(mStencilReferenceValue);
 }
 
 void ShadowDepthNormalNoPSMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
@@ -89,7 +89,7 @@ void ShadowDepthDirectionalMat::Bind(CommandBuffer& commandBuffer, const SPtr<Gp
 	mGPUParameters->SetUniformBuffer("ShadowParams", shadowParams);
 
 	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
+	commandBuffer.SetStencilReferenceValue(mStencilReferenceValue);
 }
 
 void ShadowDepthDirectionalMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams)
@@ -125,7 +125,7 @@ void ShadowDepthCubeMat::Bind(CommandBuffer& commandBuffer, const SPtr<GpuBuffer
 	mGPUParameters->SetUniformBuffer("ShadowCubeMatrices", shadowCubeMatrices);
 
 	commandBuffer.SetGpuGraphicsPipelineState(mGraphicsPipeline);
-	RenderAPI::Instance().SetStencilRef(mStencilReferenceValue);
+	commandBuffer.SetStencilReferenceValue(mStencilReferenceValue);
 }
 
 void ShadowDepthCubeMat::SetPerObjectBuffer(CommandBuffer& commandBuffer, const SPtr<GpuBuffer>& perObjectParams, const SPtr<GpuBuffer>& shadowCubeMasks)
@@ -1204,8 +1204,6 @@ void ShadowRendering::RenderCascadedShadowMaps(CommandBuffer& commandBuffer, con
 	const RendererLight& rendererLight = sceneInfo.DirectionalLights[lightIdx];
 	Light* light = rendererLight.Internal;
 
-	RenderAPI& rapi = RenderAPI::Instance();
-
 	const Transform& tfrm = light->GetTransform();
 	Vector3 lightDir = -tfrm.GetRotation().ZAxis();
 	SPtr<GpuBuffer> shadowParamsBuffer = gShadowParamsDef.CreateBuffer();
@@ -1305,8 +1303,8 @@ void ShadowRendering::RenderCascadedShadowMaps(CommandBuffer& commandBuffer, con
 		gShadowParamsDef.gMatViewProj.Set(shadowParamsBuffer, shadowInfo.ShadowVpTransform);
 		gShadowParamsDef.gNDCZToDeviceZ.Set(shadowParamsBuffer, RendererView::GetNdczToDeviceZ());
 
-		rapi.SetRenderTarget(shadowMap.GetTarget(i));
-		rapi.ClearRenderTarget(FBT_DEPTH);
+		commandBuffer.SetRenderTarget(shadowMap.GetTarget(i));
+		commandBuffer.ClearRenderTarget(FBT_DEPTH);
 
 		ShadowDepthDirectionalMat* depthDirMat = ShadowDepthDirectionalMat::Get();
 		depthDirMat->Bind(commandBuffer, shadowParamsBuffer);
@@ -1364,10 +1362,9 @@ void ShadowRendering::RenderSpotShadowMap(CommandBuffer& commandBuffer, const Re
 
 	ProfileGPUBlock profileSample("Project spot light shadows");
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(atlas.GetTarget());
-	rapi.SetViewport(mapInfo.NormArea);
-	rapi.ClearViewport(FBT_DEPTH);
+	commandBuffer.SetRenderTarget(atlas.GetTarget());
+	commandBuffer.SetViewport(mapInfo.NormArea);
+	commandBuffer.ClearViewport(FBT_DEPTH);
 
 	mapInfo.DepthNear = 0.05f;
 	mapInfo.DepthFar = light->GetAttenuationRadius();
@@ -1413,7 +1410,7 @@ void ShadowRendering::RenderSpotShadowMap(CommandBuffer& commandBuffer, const Re
 	ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, spotOptions);
 
 	// Restore viewport
-	rapi.SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+	commandBuffer.SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
 
 	LightShadows& lightShadows = mSpotLightShadows[options.LightIdx];
 
@@ -1584,8 +1581,8 @@ void ShadowRendering::RenderRadialShadowMap(CommandBuffer& commandBuffer, const 
 
 			SPtr<RenderTarget> faceRt = RenderTexture::Create(rtDesc);
 
-			rapi.SetRenderTarget(faceRt);
-			rapi.ClearRenderTarget(FBT_DEPTH);
+			commandBuffer.SetRenderTarget(faceRt);
+			commandBuffer.ClearRenderTarget(FBT_DEPTH);
 
 			// Render all renderables into the shadow map
 			ConvexVolume boundingVolume(boundingPlanes);
@@ -1599,8 +1596,8 @@ void ShadowRendering::RenderRadialShadowMap(CommandBuffer& commandBuffer, const 
 
 	if(renderAllFacesAtOnce)
 	{
-		rapi.SetRenderTarget(cubemap.GetTarget());
-		rapi.ClearRenderTarget(FBT_DEPTH);
+		commandBuffer.SetRenderTarget(cubemap.GetTarget());
+		commandBuffer.ClearRenderTarget(FBT_DEPTH);
 
 		// Render all renderables into the shadow map
 		ConvexVolume boundingVolume(boundingPlanes);

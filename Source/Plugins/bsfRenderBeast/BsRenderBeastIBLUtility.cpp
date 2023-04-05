@@ -5,6 +5,7 @@
 #include "Material/BsGpuParamsSet.h"
 #include "Renderer/BsRendererUtility.h"
 #include "BsRenderBeast.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 namespace bs { namespace ct {
 
@@ -36,8 +37,7 @@ void ReflectionCubeDownsampleMat::Execute(CommandBuffer& commandBuffer, const SP
 		gReflectionCubeDownsampleParamDef.gMipLevel.Set(mParamBuffer, mip);
 	}
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
+	commandBuffer.SetRenderTarget(target);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -76,8 +76,7 @@ void ReflectionCubeImportanceSampleMat::Execute(CommandBuffer& commandBuffer, co
 	float mipFactor = 0.5f * std::log2(width * height / kNumSamples);
 	gReflectionCubeImportanceSampleParamDef.gPrecomputedMipFactor.Set(mParamBuffer, mipFactor);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
+	commandBuffer.SetRenderTarget(target);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -127,10 +126,8 @@ void IrradianceComputeSHMat::Execute(CommandBuffer& commandBuffer, const SPtr<Te
 
 	mOutputBuffer.Set(output);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-
 	Bind(commandBuffer);
-	rapi.DispatchCompute(dispatchSize.X, dispatchSize.Y);
+	commandBuffer.DispatchCompute(dispatchSize.X, dispatchSize.Y);
 }
 
 SPtr<GpuBuffer> IrradianceComputeSHMat::CreateOutputBuffer(const SPtr<Texture>& source, u32& numCoeffSets)
@@ -189,13 +186,12 @@ void IrradianceComputeSHFragMat::Execute(CommandBuffer& commandBuffer, const SPt
 	gIrradianceComputeSHFragParamDef.gCoeffComponentIdx.Set(mParamBuffer, coefficientIdx % 4);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC IrradianceComputeSHFragMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -229,13 +225,12 @@ void IrradianceAccumulateSHMat::Execute(CommandBuffer& commandBuffer, const SPtr
 	gIrradianceAccumulateSHParamDef.gHalfPixel.Set(mParamBuffer, halfPixel);
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
+	commandBuffer.SetRenderTarget(output);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateSHMat::GetOutputDesc(const SPtr<Texture>& input)
@@ -281,15 +276,14 @@ void IrradianceAccumulateCubeSHMat::Execute(CommandBuffer& commandBuffer, const 
 	viewRect.Height = 1.0f / rtProps.Height;
 
 	// Render
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(output);
-	rapi.SetViewport(viewRect);
+	commandBuffer.SetRenderTarget(output);
+	commandBuffer.SetViewport(viewRect);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
-	rapi.SetRenderTarget(nullptr);
-	rapi.SetViewport(Rect2(0, 0, 1, 1));
+	commandBuffer.SetRenderTarget(nullptr);
+	commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
 }
 
 POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateCubeSHMat::GetOutputDesc()
@@ -322,9 +316,7 @@ void IrradianceReduceSHMat::Execute(CommandBuffer& commandBuffer, const SPtr<Gpu
 	mOutputTexture.Set(output);
 
 	Bind(commandBuffer);
-
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.DispatchCompute(1);
+	commandBuffer.DispatchCompute(1);
 }
 
 SPtr<Texture> IrradianceReduceSHMat::CreateOutputTexture(u32 numCoeffSets)
@@ -368,8 +360,7 @@ void IrradianceProjectSHMat::Execute(CommandBuffer& commandBuffer, const SPtr<Te
 
 	mInputTexture.Set(shCoeffs);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(target);
+	commandBuffer.SetRenderTarget(target);
 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
@@ -440,8 +431,7 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(CommandBuffer& commandBuffe
 		}
 	}
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 }
 
 bool SupportsComputeSh()

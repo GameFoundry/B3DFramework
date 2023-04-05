@@ -38,6 +38,7 @@
 #include "Managers/BsRenderStateManager.h"
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
+#include "RenderAPI/BsCommandBuffer.h"
 
 using namespace std::placeholders;
 
@@ -1617,7 +1618,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	float invViewportHeight = 1.0f / (camera.GetViewport()->GetPixelArea().Height * 0.5f);
 	bool viewflipYFlip = GetGpuDeviceCapabilities().Conventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 
-	RenderAPI& rapi = RenderAPI::Instance();
+	CommandBuffer& commandBuffer = *viewContext.CommandBuffer;
 	for(auto& widget : widgetRenderData)
 	{
 		for(auto& drawGroup : widget.DrawGroups)
@@ -1687,8 +1688,8 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			// Draw the alpha only first
 			// Note: Can we avoid drawing each element twice?
 			SPtr<RenderTexture> alphaRenderTexture = RenderTexture::Create(rtDesc);
-			rapi.SetRenderTarget(alphaRenderTexture);
-			rapi.ClearRenderTarget(FBT_COLOR | FBT_STENCIL, Color::kZero, 1.0f, 0);
+			commandBuffer.SetRenderTarget(alphaRenderTexture);
+			commandBuffer.ClearRenderTarget(FBT_COLOR | FBT_STENCIL, Color::kZero, 1.0f, 0);
 
 			for(auto& entry : drawGroup.CachedElements)
 			{
@@ -1700,7 +1701,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			}
 
 			// Draw the color values
-			rapi.SetRenderTarget(drawGroup.Destination, 0, RT_ALL);
+			commandBuffer.SetRenderTarget(drawGroup.Destination, 0, RT_ALL);
 
 			for(auto& entry : drawGroup.CachedElements)
 			{
@@ -1716,7 +1717,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	}
 
 	// Restore original render target
-	rapi.SetRenderTarget(viewContext.CurrentTarget);
+	commandBuffer.SetRenderTarget(viewContext.CurrentTarget);
 
 	for(auto& widget : widgetRenderData)
 	{

@@ -772,8 +772,7 @@ void GpuParticleSimulation::Simulate(CommandBuffer& commandBuffer, const SceneIn
 			entry->UpdateGpuBuffers();
 	}
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(m->Resources.GetInjectTarget());
+	commandBuffer.SetRenderTarget(m->Resources.GetInjectTarget());
 
 	ClearTiles(commandBuffer, newTiles);
 	InjectParticles(commandBuffer, allNewParticles);
@@ -783,7 +782,7 @@ void GpuParticleSimulation::Simulate(CommandBuffer& commandBuffer, const SceneIn
 	gGpuParticleSimulateParamsDef.gDT.Set(m->SimulationParams, dt);
 	gGpuParticleSimulateParamsDef.gNumIterations.Set(m->SimulationParams, 1);
 
-	rapi.SetRenderTarget(m->Resources.GetSimulationTarget());
+	commandBuffer.SetRenderTarget(m->Resources.GetSimulationTarget());
 	commandBuffer.SetVertexDescription(m->HelperBuffers.TileVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { m->HelperBuffers.TileUVs };
@@ -852,8 +851,7 @@ void GpuParticleSimulation::Sort(CommandBuffer& commandBuffer, const RendererVie
 		return;
 
 	// Make sure that the position texture isn't bound for rendering
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(nullptr);
+	commandBuffer.SetRenderTarget(nullptr);
 
 	const Vector3& viewOrigin = view.GetProperties().ViewOrigin;
 
@@ -1256,7 +1254,7 @@ AABox GpuParticleBoundsMat::Execute(CommandBuffer& commandBuffer, const SPtr<Gpu
 	mParticleIndicesParam.Set(indices);
 	mOutputParam.Set(output);
 
-	RenderAPI::Instance().DispatchCompute(numGroups);
+	commandBuffer.DispatchCompute(numGroups);
 
 	Vector3 min = Vector3::kInf;
 	Vector3 max = -Vector3::kInf;
@@ -1332,7 +1330,7 @@ u32 GpuParticleSortPrepareMat::Execute(CommandBuffer& commandBuffer, const GpuPa
 	mOutputIndicesParam.Set(outIndices);
 
 	BindParameters(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numGroups);
+	commandBuffer.DispatchCompute(numGroups);
 	return numParticles;
 }
 
@@ -1467,8 +1465,7 @@ void GpuParticleCurves::ApplyChanges(CommandBuffer& commandBuffer)
 	GpuParticleCurveInjectMat* injectMat = GpuParticleCurveInjectMat::Get();
 	injectMat->Bind(commandBuffer);
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.SetRenderTarget(mRT);
+	commandBuffer.SetRenderTarget(mRT);
 	commandBuffer.SetVertexDescription(mInjectVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { mInjectScratch, mInjectUV };

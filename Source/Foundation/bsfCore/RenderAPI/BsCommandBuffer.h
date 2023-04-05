@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Image/BsColor.h"
 
 namespace bs
 {
@@ -172,6 +173,96 @@ namespace bs
 			 * @param	firstInstance	ID of the first instance to draw.
 			 */
 			virtual void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount = 0, u32 firstInstance = 0);
+
+			/**
+			 * Executes the currently bound compute shader.
+			 *
+			 * @param	groupCountX		Number of groups to start in the X direction. Must be in range [1, 65535].
+			 * @param	groupCountY		Number of groups to start in the Y direction. Must be in range [1, 65535].
+			 * @param	groupCountZ		Number of groups to start in the Z direction. Must be in range [1, 64].
+			 */
+			virtual void DispatchCompute(u32 groupCountX, u32 groupCountY = 1, u32 groupCountZ = 1);
+
+			/**
+			 * Change the render target into which to draw into.
+			 *
+			 * @param	target			Render target to draw to.
+			 * @param	readOnlyFlags	Combination of one or more elements of FrameBufferType denoting which buffers
+			 *							will be bound for read-only operations. This is useful for depth or stencil
+			 *							buffers which need to be bound both for depth/stencil tests, as well as
+			 *							shader reads.
+			 * @param	loadMask		Determines which render target surfaces will have their current contents
+			 *							preserved. By default when a render target is bound its contents will be
+			 *							lost. You might need to preserve contents if you need to perform blending
+			 *							or similar operations with the existing contents of the render target.
+			 *
+			 *							Use the mask to select exactly which surfaces of the render target need
+			 *							their contents preserved.
+			 */
+			virtual void SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags = 0, RenderSurfaceMask loadMask = RT_NONE);
+
+			/**
+			 * Sets the active viewport that will be used for all following render operations.
+			 *
+			 * @param	area			Area of the viewport, in normalized ([0,1] range) coordinates.
+			 */
+			virtual void SetViewport(const Rect2& area);
+
+			/**
+			 * Clears the currently active render target.
+			 *
+			 * @param	buffers			Combination of one or more elements of FrameBufferType denoting which buffers are to be cleared.
+			 * @param	color			The color to clear the color buffer with, if enabled.
+			 * @param	depth			The value to initialize the depth buffer with, if enabled.
+			 * @param	stencil			The value to initialize the stencil buffer with, if enabled.
+			 * @param	targetMask		In case multiple render targets are bound, this allows you to control which ones to clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
+			 */
+			virtual void ClearRenderTarget(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
+
+			/**
+			 * Clears the currently active viewport (meaning it clears just a sub-area of a render-target that is covered by the
+			 * viewport, as opposed to ClearRenderTarget() which always clears the entire render target).
+			 *
+			 * @param	buffers			Combination of one or more elements of FrameBufferType denoting which buffers are to be cleared.
+			 * @param	color			The color to clear the color buffer with, if enabled.
+			 * @param	depth			The value to initialize the depth buffer with, if enabled.
+			 * @param	stencil			The value to initialize the stencil buffer with, if enabled.
+			 * @param	targetMask		In case multiple render targets are bound, this allows you to control which ones to clear (0x01 first, 0x02 second, 0x04 third, etc., and combinations).
+			 */
+			virtual void ClearViewport(u32 buffers, const Color& color = Color::kBlack, float depth = 1.0f, u16 stencil = 0, u8 targetMask = 0xFF);
+
+			/**
+			 * Allows you to set up a region in which rendering can take place. Coordinates are in pixels. No rendering will be
+			 * done to render target pixels outside of the provided region.
+			 *
+			 * @param	left			Left border of the scissor rectangle, in pixels.
+			 * @param	top				Top border of the scissor rectangle, in pixels.
+			 * @param	right			Right border of the scissor rectangle, in pixels.
+			 * @param	bottom			Bottom border of the scissor rectangle, in pixels.
+			 */
+			virtual void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom);
+
+			/** Disables scissor test set via EnableScissorTest(). */
+			virtual void DisableScissorTest();
+
+			/**
+			 * Sets a reference value that will be used for stencil compare operations.
+			 *
+			 * @param	value			Reference value to set.
+			 */
+			virtual void SetStencilReferenceValue(u32 value);
+
+			/**
+			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
+			 * tools for easier debugging.
+			 */
+			virtual void BeginLabel(const StringView& name);
+
+			/** Closes the label scope as provided by the previous call to BeginLabel(). */
+			virtual void EndLabel();
+
+			/** Inserts a label at the specified location in the command buffer. This may be used by external tools for easier debugging. */
+			virtual void InsertLabel(const StringView& name);
 
 			/** Returns the shared pointer to the current object. */
 			SPtr<CommandBuffer> GetShared() const { return mSelf.lock(); }

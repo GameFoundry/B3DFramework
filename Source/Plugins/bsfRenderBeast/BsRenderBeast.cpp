@@ -32,6 +32,7 @@
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "BsRenderCompositor.h"
+#include "RenderAPI/BsCommandBuffer.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Resources/BsBuiltinResources.h"
 
@@ -564,16 +565,15 @@ bool RenderBeast::RenderOverlay(const SPtr<CommandBuffer>& commandBuffer, Render
 	if(clearFlags.IsSet(ClearFlagBits::Stencil))
 		clearBuffers |= FBT_STENCIL;
 
-	RenderAPI& rapi = RenderAPI::Instance();
 	if(clearBuffers != 0)
 	{
-		rapi.SetRenderTarget(target);
-		rapi.ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
+		commandBuffer->SetRenderTarget(target);
+		commandBuffer->ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
 	}
 	else
-		rapi.SetRenderTarget(target, 0, RT_COLOR0);
+		commandBuffer->SetRenderTarget(target, 0, RT_COLOR0);
 
-	rapi.SetViewport(viewport->GetArea());
+	commandBuffer->SetViewport(viewport->GetArea());
 
 	// Trigger overlay callbacks
 	bool needsRedraw = false;
@@ -838,7 +838,7 @@ void RenderBeast::CaptureSceneCubeMap(const SPtr<Texture>& cubemap, const Vector
 	RenderViews(commandBuffer, viewGroup, frameInfo);
 
 	// Make sure the render texture is available for reads
-	RenderAPI::Instance().SetRenderTarget(nullptr);
+	commandBuffer->SetRenderTarget(nullptr);
 }
 
 SPtr<RenderBeast> GetRenderBeast()

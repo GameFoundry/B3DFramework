@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsGpuSort.h"
 #include "Math/BsRandom.h"
+#include "RenderAPI/BsCommandBuffer.h"
 #include "Renderer/BsRendererUtility.h"
 
 namespace bs {
@@ -120,7 +121,7 @@ void RadixSortClearMat::Execute(CommandBuffer& commandBuffer, const SPtr<GpuBuff
 	MOutputParam.Set(outputOffsets);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(1);
+	commandBuffer.DispatchCompute(1);
 }
 
 void RadixSortCountMat::Initialize()
@@ -144,7 +145,7 @@ void RadixSortCountMat::Execute(CommandBuffer& commandBuffer, u32 numGroups, con
 	mGPUParameters->SetUniformBuffer("Params", params);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numGroups);
+	commandBuffer.DispatchCompute(numGroups);
 }
 
 void RadixSortPrefixScanMat::Initialize()
@@ -168,7 +169,7 @@ void RadixSortPrefixScanMat::Execute(CommandBuffer& commandBuffer, const SPtr<Gp
 	mGPUParameters->SetUniformBuffer("Params", params);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(1);
+	commandBuffer.DispatchCompute(1);
 }
 
 void RadixSortReorderMat::Initialize()
@@ -200,7 +201,7 @@ void RadixSortReorderMat::Execute(CommandBuffer& commandBuffer, u32 numGroups, c
 	mGPUParameters->SetUniformBuffer("Params", params);
 
 	Bind(commandBuffer);
-	RenderAPI::Instance().DispatchCompute(numGroups);
+	commandBuffer.DispatchCompute(numGroups);
 }
 
 GpuSort::GpuSort()
