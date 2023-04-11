@@ -372,17 +372,17 @@ SPtr<CommandBuffer> VulkanRenderAPI::GetMainCommandBuffer() const
 	return mMainCommandBuffer;
 }
 
-void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask)
+void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 queueIndex, u32 syncMask)
 {
 	THROW_IF_NOT_CORE_THREAD;
 
 	VulkanCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
 
 	// Submit all transfer buffers first
-	VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance());
-	commandBufferManager.FlushTransferBuffers(vulkanCommandBuffer->GetDeviceIdx());
+	VulkanCommandBufferManager& commandBufferManager = static_cast<VulkanCommandBufferManager&>(CommandBufferManager::Instance()); // TODO - Get the manager from the GpuDevice associated with the command buffer
+	commandBufferManager.FlushTransferBuffers(0);
 
-	vulkanCommandBuffer->Submit(syncMask);
+	vulkanCommandBuffer->Submit(queueIndex, syncMask);
 
 	if(vulkanCommandBuffer == mMainCommandBuffer.get())
 	{

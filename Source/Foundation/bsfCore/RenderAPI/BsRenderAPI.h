@@ -433,20 +433,21 @@ namespace bs
 			/**
 			 * Executes all commands in the provided command buffer. Command buffer cannot be secondary.
 			 *
-			 * @param[in]	commandBuffer	Command buffer whose commands to execute. Set to null to submit the main command
-			 *								buffer.
-			 * @param[in]	syncMask		Optional synchronization mask that determines if the submitted command buffer
-			 *								depends on any other command buffers. Use the CommandSyncMask class to generate
-			 *								a mask using existing command buffers.
+			 * @param	commandBuffer	Command buffer whose commands to execute. Set to null to submit the main command buffer.
+			 * @param	queueIndex		Index of the queue to submit the command buffer on. This is the local index specific
+			 *							to the type of the queue family the command buffer is allowed to be submitted on.
+			 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
+			 *							depends on any other command buffers. Use the CommandSyncMask class to generate
+			 *							a mask using existing command buffers.
 			 *
-			 *								This mask is only relevant if your command buffers are executing on different
-			 *								hardware queues, and are somehow dependant. If they are executing on the same queue
-			 *								(default) then they will execute sequentially in the order they are submitted.
-			 *								Otherwise, if there is a dependency, you must make state it explicitly here.
+			 *							This mask is only relevant if your command buffers are executing on different
+			 *							hardware queues, and are somehow dependant. If they are executing on the same queue
+			 *							(default) then they will execute sequentially in the order they are submitted.
+			 *							Otherwise, if there is a dependency, you must make state it explicitly here.
 			 *
 			 * @note	Core thread only.
 			 */
-			virtual void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) = 0;
+			virtual void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 queueIndex = 0, u32 syncMask = 0xFFFFFFFF) = 0;
 
 			/**	Waits until all the command buffers submitted thus far have finished executing on the GPU. */
 			virtual void WaitUntilIdle() const = 0;

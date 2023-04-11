@@ -46,14 +46,14 @@ VulkanSubmitThread::~VulkanSubmitThread()
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnDestroy), "Cleanup submit thread", true);
 }
 
-void VulkanSubmitThread::QueueSubmit(VulkanInternalCommandBuffer& commandBuffer, VulkanQueue& queue, u32 queueIndex, u32 syncMask, bool blocking)
+void VulkanSubmitThread::QueueSubmit(VulkanInternalCommandBuffer& commandBuffer, VulkanQueue& queue, u32 syncMask, bool blocking)
 {
-	auto fnCommand = [&commandBuffer, &queue, queueIndex, syncMask]()
+	auto fnCommand = [&commandBuffer, &queue, syncMask]()
 	{
 		if(!commandBuffer.IsReadyForSubmit())
 			return;
 
-		commandBuffer.Submit(&queue, queueIndex, syncMask);
+		commandBuffer.Submit(&queue, syncMask);
 	};
 
 	commandBuffer.NotifyWillQueueForSubmit();

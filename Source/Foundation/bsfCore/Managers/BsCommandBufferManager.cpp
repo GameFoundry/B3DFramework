@@ -5,9 +5,7 @@
 using namespace bs;
 using namespace bs::ct;
 
-SPtr<CommandBuffer> CommandBufferManager::Create(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
+SPtr<CommandBuffer> CommandBufferManager::Create(GpuQueueType queueType)
 {
-	B3D_ASSERT(deviceIdx < B3D_MAX_DEVICES);
-
-	return CreateInternal(type, deviceIdx, queueIdx, secondary);
+	return CreateInternal(queueType);
 }

@@ -9,14 +9,6 @@ using namespace bs;
 
 namespace bs { namespace ct
 {
-void CommandSyncMask::AddDependency(const SPtr<CommandBuffer>& buffer)
-{
-	if(buffer == nullptr)
-		return;
-
-	mMask |= GetGlobalQueueMask(buffer->GetType(), buffer->GetQueueIdx());
-}
-
 u32 CommandSyncMask::GetGlobalQueueMask(GpuQueueType type, u32 queueIdx)
 {
 	u32 bitShift = 0;
@@ -68,19 +60,19 @@ u32 CommandSyncMask::GetQueueIdxAndType(u32 globalQueueIdx, GpuQueueType& type)
 	return globalQueueIdx;
 }
 
-CommandBuffer::CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
-	: mType(type), mDeviceIdx(deviceIdx), mQueueIdx(queueIdx), mIsSecondary(secondary)
-{
-}
+CommandBuffer::CommandBuffer(GpuQueueType queueType)
+	:mQueueType(queueType)
+{ }
+
 
 CommandBuffer::~CommandBuffer()
 {
 	OnDestroyed(mIsSubmitted);
 }
 
-SPtr<CommandBuffer> CommandBuffer::Create(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
+SPtr<CommandBuffer> CommandBuffer::Create(GpuQueueType queueType)
 {
-	SPtr<CommandBuffer> commandBuffer = CommandBufferManager::Instance().Create(type, deviceIdx, queueIdx, secondary);
+	SPtr<CommandBuffer> commandBuffer = CommandBufferManager::Instance().Create(queueType);
 	commandBuffer->SetShared(commandBuffer);
 
 	return commandBuffer;

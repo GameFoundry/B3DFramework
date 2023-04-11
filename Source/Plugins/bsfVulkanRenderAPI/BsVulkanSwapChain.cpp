@@ -388,7 +388,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask)
 
 		const u32 queueFamily = device.GetQueueFamily(queue.GetType());
 
-		VulkanInternalCommandBuffer* const commandBuffer = commandBufferPool.GetBuffer(queueFamily, false);
+		VulkanInternalCommandBuffer* const commandBuffer = commandBufferPool.GetBuffer(queueFamily);
 		commandBuffer->SetName("Swap chain image layout transition");
 
 		VkCommandBuffer vkCommandBuffer = commandBuffer->GetHandle();

@@ -13,19 +13,10 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Mask that determines synchronization between command buffers executing on different hardware queues. */
+		/** Creates a mask that determines synchronization between command buffers executing on different hardware queues. */
 		class B3D_CORE_EXPORT CommandSyncMask
 		{
 		public:
-			/**
-			 * Registers a dependency on a command buffer. Use getMask() to get the new mask value after registering all
-			 * dependencies.
-			 */
-			void AddDependency(const SPtr<CommandBuffer>& buffer);
-
-			/** Returns a combined mask that contains all the required dependencies. */
-			u32 GetMask() const { return mMask; }
-
 			/** Uses the queue type and index to generate a mask with a bit set for that queue's global index. */
 			static u32 GetGlobalQueueMask(GpuQueueType type, u32 queueIdx);
 
@@ -34,9 +25,6 @@ namespace bs
 
 			/** Uses the global queue index to retrieve local queue index and queue type. */
 			static u32 GetQueueIdxAndType(u32 globalQueueIdx, GpuQueueType& type);
-
-		private:
-			u32 mMask = 0;
 		};
 
 		/** Possible states that a CommandBuffer can be in. */
@@ -72,36 +60,12 @@ namespace bs
 			/**
 			 * Creates a new CommandBuffer.
 			 *
-			 * @param[in]	type		Determines what type of commands can be added to the command buffer.
-			 * @param[in]	deviceIdx	Index of the GPU the command buffer will be used to queue commands on. 0 is always
-			 *							the primary available GPU.
-			 * @param[in]	queueIdx	Index of the GPU queue the command buffer will be used on. Command buffers with
-			 *							the same index will execute sequentially, but command buffers with different queue
-			 *							indices may execute in parallel, for a potential performance improvement.
-			 *
-			 *							Caller must ensure to synchronize operations executing on different queues via
-			 *							sync masks. Command buffer dependant on another command buffer should provide a sync
-			 *							mask when being submitted (see RenderAPI::executeCommands).
-			 *
-			 *							Queue indices are unique per buffer type (e.g. upload index 0 and graphics index 0 may
-			 *							map to different queues internally). Must be in range [0, 7].
-			 * @param[in]	secondary	If true the command buffer will not be allowed to execute on its own, but it can
-			 *							be appended to a primary command buffer.
-			 * @return					New CommandBuffer instance.
+			 * @param	queueType		Type of GPU queue the command buffer is allowed to be submitted on.
 			 */
-			static SPtr<CommandBuffer> Create(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
+			static SPtr<CommandBuffer> Create(GpuQueueType queueType);
 
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
-
-			/** Returns the type of queue the command buffer will execute on. */
-			GpuQueueType GetType() const { return mType; }
-
-			/** Returns the index of the queue the command buffer will execute on. */
-			u32 GetQueueIdx() const { return mQueueIdx; }
-
-			/** Returns the device index this buffer will execute on. */
-			u32 GetDeviceIdx() const { return mDeviceIdx; }
 
 			/** Returns the current state of the command buffer. */
 			virtual CommandBufferState GetState() const = 0;
@@ -274,16 +238,13 @@ namespace bs
 			Event<void(bool)> OnDestroyed;
 
 		protected:
-			CommandBuffer(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
+			CommandBuffer(GpuQueueType queueType);
 
 			/** Sets a pointer to itself. */
 			void SetShared(const SPtr<CommandBuffer>& value) { mSelf = value; }
 
-			GpuQueueType mType;
+			const GpuQueueType mQueueType;
 			String mName;
-			u32 mDeviceIdx;
-			u32 mQueueIdx;
-			bool mIsSecondary;
 			bool mIsSubmitted = false;
 
 			WeakSPtr<CommandBuffer> mSelf;

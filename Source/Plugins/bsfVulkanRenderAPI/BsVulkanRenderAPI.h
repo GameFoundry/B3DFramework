@@ -46,7 +46,7 @@ namespace bs
 			void InsertLabel(const StringView& name, const SPtr<CommandBuffer>& commandBuffer = nullptr) override;
 			void BeginFrame() override;
 			void EndFrame() override;
-			void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF) override;
+			void SubmitCommandBuffer(const SPtr<CommandBuffer>& commandBuffer, u32 queueIndex = 0, u32 syncMask = 0xFFFFFFFF) override;
 			void WaitUntilIdle() const override;
 			SPtr<CommandBuffer> GetMainCommandBuffer() const override;
 			SPtr<GpuDevice> GetPrimaryGpuDevice() const override { return mPrimaryGpuDevice; }

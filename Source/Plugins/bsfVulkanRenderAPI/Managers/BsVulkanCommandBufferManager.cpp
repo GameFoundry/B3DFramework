@@ -38,7 +38,7 @@ void VulkanTransferBuffer::Allocate()
 		return;
 
 	const u32 queueFamily = mDevice->GetQueueFamily(mType);
-	mCommandBuffer = mDevice->GetCommandBufferPool().GetBuffer(queueFamily, false);
+	mCommandBuffer = mDevice->GetCommandBufferPool().GetBuffer(queueFamily);
 }
 
 void VulkanTransferBuffer::Flush(bool wait)
@@ -84,19 +84,11 @@ VulkanCommandBufferManager::~VulkanCommandBufferManager()
 	B3DDeleteMultiple(mDeviceData, mDeviceCount);
 }
 
-SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
+SPtr<CommandBuffer> VulkanCommandBufferManager::CreateInternal(GpuQueueType queueType)
 {
-	const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
-	if(deviceIdx >= deviceCount)
-	{
-		B3D_LOG(Error, RenderBackend, "Cannot create command buffer, invalid device index: {0}. Valid range: [0, {1}).", deviceIdx, deviceCount);
+	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(0);
 
-		return nullptr;
-	}
-
-	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-
-	CommandBuffer* buffer = new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, type, deviceIdx, queueIdx, secondary);
+	CommandBuffer* buffer = new(B3DAllocate<VulkanCommandBuffer>()) VulkanCommandBuffer(*device, queueType);
 
 	return B3DMakeSharedFromExisting(buffer);
 }

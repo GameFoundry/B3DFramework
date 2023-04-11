@@ -53,7 +53,7 @@ namespace bs
 			 * Attempts to find a free command buffer, or creates a new one if not found. Caller must guarantee the provided
 			 * queue family is valid.
 			 */
-			VulkanInternalCommandBuffer* GetBuffer(u32 queueFamily, bool secondary);
+			VulkanInternalCommandBuffer* GetBuffer(u32 queueFamily);
 
 		private:
 			/** Command buffer pool and related information. */
@@ -65,7 +65,7 @@ namespace bs
 			};
 
 			/** Creates a new command buffer. */
-			VulkanInternalCommandBuffer* CreateBuffer(u32 queueFamily, bool secondary);
+			VulkanInternalCommandBuffer* CreateBuffer(u32 queueFamily);
 
 			VulkanGpuDevice& mDevice;
 			UnorderedMap<u32, PoolInfo> mPools;
@@ -132,14 +132,11 @@ namespace bs
 			};
 
 		public:
-			VulkanInternalCommandBuffer(VulkanGpuDevice& device, VulkanThread ownerThread, u32 id, VkCommandPool pool, u32 queueFamily, bool secondary);
+			VulkanInternalCommandBuffer(VulkanGpuDevice& device, VulkanThread ownerThread, u32 id, VkCommandPool pool);
 			~VulkanInternalCommandBuffer();
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
-
-			/** Returns the index of the queue family this command buffer is executing on. */
-			u32 GetQueueFamily() const { return mQueueFamily; }
 
 			/** Returns the index of the device this command buffer will execute on. */
 			u32 GetDeviceIndex() const;
@@ -160,9 +157,6 @@ namespace bs
 			 * Submits the command buffer for execution.
 			 *
 			 * @param	queue		Queue to submit the command buffer on.
-			 * @param	queueIdx	Index of the queue the command buffer was submitted on. Note that this may be different
-			 *						from the actual VulkanQueue index since multiple command buffer queue indices can map
-			 *						to the same queue.
 			 * @param	syncMask	Mask that controls which other command buffers does this command buffer depend upon
 			 *						(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
 			 *						This will be ORed with the internal sync mask.
@@ -170,7 +164,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			u32 Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask);
+			u32 Submit(VulkanQueue* queue, u32 syncMask);
 
 			/**
 			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
@@ -741,7 +735,6 @@ namespace bs
 			void NotifyRenderTargetModified();
 
 			u32 mId;
-			u32 mQueueFamily;
 			State mState = State::Ready;
 			VulkanGpuDevice& mDevice;
 			VulkanCommandBuffer* mOwner = nullptr;
@@ -768,7 +761,7 @@ namespace bs
 			Vector<ImageInfo> mImageInfos;
 			Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
 			Set<u32> mShaderBoundSubresourceInfos;
-			u32 mGlobalQueueIdx = -1;
+			u32 mSubmittedQueueGlobalIndex = ~0u; // Global index of the queue the command buffer was submitted on. Undefined if not submitted.
 
 			bool mNeedsWARMemoryBarrier : 1;
 			bool mNeedsRAWMemoryBarrier : 1;
@@ -830,10 +823,11 @@ namespace bs
 			/**
 			 * Submits the command buffer for execution.
 			 *
+			 * @param	queueIndex		Index of the queue to submit the command buffer on. This is local index unique to GPU queue type.
 			 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
 			 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
 			 */
-			void Submit(u32 syncMask);
+			void Submit(u32 queueIndex, u32 syncMask);
 
 			/** Called by the backend when we have been notified the command buffer has finished executing on the GPU. */
 			void NotifyExecutionCompleted();
@@ -851,7 +845,7 @@ namespace bs
 		private:
 			friend class VulkanCommandBufferManager;
 
-			VulkanCommandBuffer(VulkanGpuDevice& device, GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary);
+			VulkanCommandBuffer(VulkanGpuDevice& device, GpuQueueType queueType);
 
 			/**
 			 * Tasks the command buffer to find a new internal command buffer. Call this after the command buffer has been
@@ -861,8 +855,6 @@ namespace bs
 
 			VulkanInternalCommandBuffer* mBuffer;
 			VulkanGpuDevice& mDevice;
-			VulkanQueue* mQueue;
-			u32 mIdMask;
 			bool mIsCompleted = false;
 		};
 

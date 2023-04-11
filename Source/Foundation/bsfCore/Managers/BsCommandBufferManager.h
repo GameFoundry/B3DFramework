@@ -24,13 +24,13 @@ namespace bs
 			virtual ~CommandBufferManager() = default;
 
 			/** @copydoc CommandBuffer::Create */
-			SPtr<CommandBuffer> Create(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false);
+			SPtr<CommandBuffer> Create(GpuQueueType queueType);
 
 		protected:
 			friend CommandBuffer;
 
 			/** Creates a command buffer with the specified ID. See create(). */
-			virtual SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false) = 0;
+			virtual SPtr<CommandBuffer> CreateInternal(GpuQueueType queueType) = 0;
 		};
 
 		/** @} */

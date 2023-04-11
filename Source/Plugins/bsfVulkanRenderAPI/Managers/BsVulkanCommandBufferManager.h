@@ -70,7 +70,7 @@ namespace bs
 			VulkanCommandBufferManager();
 			~VulkanCommandBufferManager();
 
-			SPtr<CommandBuffer> CreateInternal(GpuQueueType type, u32 deviceIdx = 0, u32 queueIdx = 0, bool secondary = false) override;
+			SPtr<CommandBuffer> CreateInternal(GpuQueueType queueType) override;
 
 			/**
 			 * Returns a set of command buffer semaphores depending on the provided sync mask.

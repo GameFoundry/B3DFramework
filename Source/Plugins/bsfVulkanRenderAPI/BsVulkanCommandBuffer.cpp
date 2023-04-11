@@ -93,7 +93,7 @@ VulkanCommandBufferPool::~VulkanCommandBufferPool()
 	}
 }
 
-VulkanInternalCommandBuffer* VulkanCommandBufferPool::GetBuffer(u32 queueFamily, bool secondary)
+VulkanInternalCommandBuffer* VulkanCommandBufferPool::GetBuffer(u32 queueFamily)
 {
 	auto iterFind = mPools.find(queueFamily);
 	if(iterFind == mPools.end())
@@ -116,13 +116,13 @@ VulkanInternalCommandBuffer* VulkanCommandBufferPool::GetBuffer(u32 queueFamily,
 
 	B3D_ASSERT(i < BS_MAX_VULKAN_CB_PER_QUEUE_FAMILY && "Too many command buffers allocated. Increment BS_MAX_VULKAN_CB_PER_QUEUE_FAMILY to a higher value. ");
 
-	buffers[i] = CreateBuffer(queueFamily, secondary);
+	buffers[i] = CreateBuffer(queueFamily);
 	buffers[i]->Begin();
 
 	return buffers[i];
 }
 
-VulkanInternalCommandBuffer* VulkanCommandBufferPool::CreateBuffer(u32 queueFamily, bool secondary)
+VulkanInternalCommandBuffer* VulkanCommandBufferPool::CreateBuffer(u32 queueFamily)
 {
 	auto iterFind = mPools.find(queueFamily);
 	if(iterFind == mPools.end())
@@ -130,7 +130,7 @@ VulkanInternalCommandBuffer* VulkanCommandBufferPool::CreateBuffer(u32 queueFami
 
 	const PoolInfo& poolInfo = iterFind->second;
 
-	return B3DNew<VulkanInternalCommandBuffer>(mDevice, mOwnerThread, mNextId++, poolInfo.Pool, poolInfo.QueueFamily, secondary);
+	return B3DNew<VulkanInternalCommandBuffer>(mDevice, mOwnerThread, mNextId++, poolInfo.Pool);
 }
 
 template <class T>
@@ -152,8 +152,8 @@ void GetPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src,
 const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
-VulkanInternalCommandBuffer::VulkanInternalCommandBuffer(VulkanGpuDevice& device, VulkanThread ownerThread, u32 id, VkCommandPool pool, u32 queueFamily, bool secondary)
-	: mId(id), mQueueFamily(queueFamily), mDevice(device), mPool(pool), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mOwnerThread(ownerThread)
+VulkanInternalCommandBuffer::VulkanInternalCommandBuffer(VulkanGpuDevice& device, VulkanThread ownerThread, u32 id, VkCommandPool pool)
+	: mId(id), mDevice(device), mPool(pool), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false), mOwnerThread(ownerThread)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -162,7 +162,7 @@ VulkanInternalCommandBuffer::VulkanInternalCommandBuffer(VulkanGpuDevice& device
 	cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmdBufferAllocInfo.pNext = nullptr;
 	cmdBufferAllocInfo.commandPool = pool;
-	cmdBufferAllocInfo.level = secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	cmdBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	cmdBufferAllocInfo.commandBufferCount = 1;
 
 	VkResult result = vkAllocateCommandBuffers(mDevice.GetLogical(), &cmdBufferAllocInfo, &mCmdBuffer);
@@ -485,12 +485,20 @@ VulkanSemaphore* VulkanInternalCommandBuffer::RequestInterQueueSemaphore() const
 	return mInterQueueSemaphores[mNumUsedInterQueueSemaphores++];
 }
 
-u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 syncMask)
+u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 
 	B3D_ASSERT(IsReadyForSubmit());
+
+	// Add in sync mask that was requested earlier
 	syncMask |= mSyncMask;
+
+	// No need to explicitly sync with any entries on the same queue
+	const u32 queueMask = mDevice.GetQueueMask(queue->GetType(), queue->GetIndex());
+	syncMask &= ~queueMask;
+
+	const u32 queueFamily = mDevice.GetQueueFamily(queue->GetType());
 
 	VulkanGpuDevice& device = queue->GetDevice();
 	VulkanCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex());
@@ -498,7 +506,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 	// If there are any query resets needed, execute those first
 	if(!mQueuedQueryResets.empty())
 	{
-		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(mQueueFamily, false);
+		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(queueFamily);
 		cmdBuffer->SetName("Query reset");
 
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
@@ -521,7 +529,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 			continue;
 
 		u32 currentQueueFamily = resource->GetQueueFamily();
-		if(currentQueueFamily != (u32)-1 && currentQueueFamily != mQueueFamily)
+		if(currentQueueFamily != (u32)-1 && currentQueueFamily != queueFamily)
 		{
 			Vector<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[currentQueueFamily].BufferBarriers;
 
@@ -532,7 +540,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = 0;
 			barrier.srcQueueFamilyIndex = currentQueueFamily;
-			barrier.dstQueueFamilyIndex = mQueueFamily;
+			barrier.dstQueueFamilyIndex = queueFamily;
 			barrier.buffer = resource->GetHandle();
 			barrier.offset = 0;
 			barrier.size = VK_WHOLE_SIZE;
@@ -540,14 +548,14 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 	}
 
 	// For images issue queue transitions, as above. Also issue layout transitions to their inital layouts.
-	Vector<VkImageMemoryBarrier>& localBarriers = mTransitionInfoTemp[mQueueFamily].ImageBarriers;
+	Vector<VkImageMemoryBarrier>& localBarriers = mTransitionInfoTemp[queueFamily].ImageBarriers;
 	for(auto& entry : mImages)
 	{
 		VulkanImage* resource = static_cast<VulkanImage*>(entry.first);
 		ImageInfo& imageInfo = mImageInfos[entry.second];
 
 		u32 currentQueueFamily = resource->GetQueueFamily();
-		bool queueMismatch = resource->IsExclusive() && currentQueueFamily != (u32)-1 && currentQueueFamily != mQueueFamily;
+		bool queueMismatch = resource->IsExclusive() && currentQueueFamily != (u32)-1 && currentQueueFamily != queueFamily;
 
 		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
 		if(queueMismatch)
@@ -568,7 +576,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 					barrier.dstAccessMask = 0;
 					barrier.newLayout = barrier.oldLayout;
 					barrier.srcQueueFamilyIndex = currentQueueFamily;
-					barrier.dstQueueFamilyIndex = mQueueFamily;
+					barrier.dstQueueFamilyIndex = queueFamily;
 				}
 			}
 		}
@@ -619,7 +627,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 					{
 						barrier.srcAccessMask = 0;
 						barrier.srcQueueFamilyIndex = currentQueueFamily;
-						barrier.dstQueueFamilyIndex = mQueueFamily;
+						barrier.dstQueueFamilyIndex = queueFamily;
 					}
 				}
 			}
@@ -644,10 +652,10 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 		u32 entryQueueFamily = entry.first;
 
 		// No queue transition needed for entries on this queue (this entry is most likely an image layout transition)
-		if(entryQueueFamily == (u32)-1 || entryQueueFamily == mQueueFamily)
+		if(entryQueueFamily == (u32)-1 || entryQueueFamily == queueFamily)
 			continue;
 
-		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(entryQueueFamily, false);
+		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(entryQueueFamily);
 		cmdBuffer->SetName("Layout transition");
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
 
@@ -725,10 +733,10 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 			continue;
 
 		u32 entryQueueFamily = entry.first;
-		if(entryQueueFamily != (u32)-1 && entryQueueFamily != mQueueFamily)
+		if(entryQueueFamily != (u32)-1 && entryQueueFamily != queueFamily)
 			continue;
 
-		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(mQueueFamily, false);
+		VulkanInternalCommandBuffer* cmdBuffer = commandBufferPool.GetBuffer(queueFamily);
 		cmdBuffer->SetName("Queue ownership");
 
 		VkCommandBuffer vkCmdBuffer = cmdBuffer->GetHandle();
@@ -752,14 +760,14 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 	queue->QueueSubmit(this, mSemaphoresTemp.data(), semaphoreCount);
 	const u32 submitIndex = queue->SubmitQueued();
 
-	mGlobalQueueIdx = CommandSyncMask::GetGlobalQueueIdx(queue->GetType(), queueIdx);
+	mSubmittedQueueGlobalIndex = CommandSyncMask::GetGlobalQueueIdx(queue->GetType(), queue->GetIndex());
 	for(auto& entry : mResources)
 	{
 		ResourceUseHandle& useHandle = entry.second;
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
-		entry.first->NotifyUsed(mGlobalQueueIdx, mQueueFamily, useHandle.Flags);
+		entry.first->NotifyUsed(mSubmittedQueueGlobalIndex, queueFamily, useHandle.Flags);
 	}
 
 	for(auto& entry : mImages)
@@ -771,7 +779,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
-		entry.first->NotifyUsed(mGlobalQueueIdx, mQueueFamily, useHandle.Flags);
+		entry.first->NotifyUsed(mSubmittedQueueGlobalIndex, queueFamily, useHandle.Flags);
 	}
 
 	for(auto& entry : mBuffers)
@@ -780,7 +788,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
-		entry.first->NotifyUsed(mGlobalQueueIdx, mQueueFamily, useHandle.Flags);
+		entry.first->NotifyUsed(mSubmittedQueueGlobalIndex, queueFamily, useHandle.Flags);
 	}
 
 	for(auto& entry : mSwapChains)
@@ -789,7 +797,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 queueIdx, u32 sy
 		B3D_ASSERT(!useHandle.Used);
 
 		useHandle.Used = true;
-		entry.first->NotifyUsed(mGlobalQueueIdx, mQueueFamily, useHandle.Flags);
+		entry.first->NotifyUsed(mSubmittedQueueGlobalIndex, queueFamily, useHandle.Flags);
 	}
 
 	// Note: Uncomment for debugging only, prevents any device concurrency issues.
@@ -856,7 +864,7 @@ void VulkanInternalCommandBuffer::Reset()
 			ResourceUseHandle& useHandle = entry.second;
 			B3D_ASSERT(useHandle.Used);
 
-			entry.first->NotifyDone(mGlobalQueueIdx, useHandle.Flags);
+			entry.first->NotifyDone(mSubmittedQueueGlobalIndex, useHandle.Flags);
 		}
 
 		for(auto& entry : mImages)
@@ -867,7 +875,7 @@ void VulkanInternalCommandBuffer::Reset()
 			ResourceUseHandle& useHandle = imageInfo.UseHandle;
 			B3D_ASSERT(useHandle.Used);
 
-			entry.first->NotifyDone(mGlobalQueueIdx, useHandle.Flags);
+			entry.first->NotifyDone(mSubmittedQueueGlobalIndex, useHandle.Flags);
 		}
 
 		for(auto& entry : mBuffers)
@@ -875,7 +883,7 @@ void VulkanInternalCommandBuffer::Reset()
 			ResourceUseHandle& useHandle = entry.second.UseHandle;
 			B3D_ASSERT(useHandle.Used);
 
-			entry.first->NotifyDone(mGlobalQueueIdx, useHandle.Flags);
+			entry.first->NotifyDone(mSubmittedQueueGlobalIndex, useHandle.Flags);
 		}
 
 		// Must be done after images & framebuffer because swap chain does error checking if those were freed
@@ -884,7 +892,7 @@ void VulkanInternalCommandBuffer::Reset()
 			ResourceUseHandle& useHandle = entry.second;
 			B3D_ASSERT(useHandle.Used);
 
-			entry.first->NotifyDone(mGlobalQueueIdx, useHandle.Flags);
+			entry.first->NotifyDone(mSubmittedQueueGlobalIndex, useHandle.Flags);
 		}
 	}
 	else
@@ -2936,19 +2944,9 @@ void VulkanInternalCommandBuffer::NotifyRenderTargetModified()
 	mRenderTargetModified = true;
 }
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanGpuDevice& device, GpuQueueType type, u32 deviceIdx, u32 queueIdx, bool secondary)
-	: CommandBuffer(type, deviceIdx, queueIdx, secondary), mBuffer(nullptr), mDevice(device), mQueue(nullptr), mIdMask(0)
+VulkanCommandBuffer::VulkanCommandBuffer(VulkanGpuDevice& device, GpuQueueType queueType)
+	: CommandBuffer(queueType), mBuffer(nullptr), mDevice(device)
 {
-	u32 numQueues = device.GetQueueCountForType(mType);
-	if(numQueues == 0) // Fall back to graphics queue
-	{
-		mType = GQT_GRAPHICS;
-		numQueues = device.GetQueueCountForType(GQT_GRAPHICS);
-	}
-
-	mQueue = device.GetQueue(mType, mQueueIdx % numQueues);
-	mIdMask = device.GetQueueMask(mType, mQueueIdx);
-
 	AcquireNewBuffer();
 }
 
@@ -3038,22 +3036,19 @@ void VulkanCommandBuffer::AcquireNewBuffer()
 
 	VulkanCommandBufferPool& pool = mDevice.GetCommandBufferPool();
 
-	const u32 queueFamily = mDevice.GetQueueFamily(mType);
-	mBuffer = pool.GetBuffer(queueFamily, mIsSecondary);
+	const u32 queueFamily = mDevice.GetQueueFamily(mQueueType);
+	mBuffer = pool.GetBuffer(queueFamily);
 	mBuffer->SetOwner(this);
 	mBuffer->SetName(mName);
 }
 
-void VulkanCommandBuffer::Submit(u32 syncMask)
+void VulkanCommandBuffer::Submit(u32 queueIndex, u32 syncMask)
 {
 	if(GetState() == CommandBufferState::Executing)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot submit a command buffer that's still executing.");
 		return;
 	}
-
-	// Ignore myself
-	syncMask &= ~mIdMask;
 
 	if(mBuffer->IsInRenderPass())
 		mBuffer->EndRenderPass();
@@ -3082,7 +3077,11 @@ void VulkanCommandBuffer::Submit(u32 syncMask)
 	if(mBuffer->IsRecording())
 		mBuffer->End();
 
-	GetVulkanSubmitThread().QueueSubmit(*mBuffer, *mQueue, mQueueIdx, syncMask);
+	VulkanQueue* const queue = mDevice.GetQueue(mQueueType, queueIndex);
+	if(!B3D_ENSURE(queue))
+		return;
+
+	GetVulkanSubmitThread().QueueSubmit(*mBuffer, *queue, syncMask);
 
 	mBuffer = nullptr;
 	mIsSubmitted = true;
