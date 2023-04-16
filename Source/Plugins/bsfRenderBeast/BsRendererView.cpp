@@ -12,7 +12,7 @@
 #include "BsRenderBeast.h"
 #include "BsRendererDecal.h"
 #include "Animation/BsAnimationManager.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs {
 namespace ct {

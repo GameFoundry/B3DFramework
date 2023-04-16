@@ -10,7 +10,7 @@
 #include "BsVulkanDescriptorLayout.h"
 #include "BsVulkanSamplerState.h"
 #include "BsVulkanGpuPipelineParameterLayout.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "Managers/BsVulkanTextureManager.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 

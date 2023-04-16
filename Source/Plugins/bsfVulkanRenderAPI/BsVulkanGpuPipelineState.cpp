@@ -7,7 +7,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuPipelineParameterLayout.h"
 #include "Managers/BsVulkanVertexInputManager.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "Profiling/BsRenderStats.h"
 #include "BsVulkanRenderPass.h"
 

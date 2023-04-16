@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanQueue.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuBackend.h"
 #include "BsVulkanSubmitThread.h"

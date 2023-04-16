@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuDevice.h"
@@ -121,7 +121,10 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBuffer
 
 void VulkanGpuCommandBufferPool::Reset()
 {
-	// TODO - Implement and assert correct thread
+	EnsureValidThread();
+
+	// TODO - Not implemented
+	B3D_ASSERT(false && "Not implemented");
 }
 
 template <class T>

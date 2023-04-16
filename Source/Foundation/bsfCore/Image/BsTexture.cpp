@@ -9,7 +9,7 @@
 #include "Threading/BsAsyncOp.h"
 #include "Resources/BsResources.h"
 #include "Image/BsPixelUtil.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 using namespace bs;
 

@@ -13,7 +13,7 @@
 #include "Material/BsShader.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Math/BsAABox.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 using namespace bs;
 

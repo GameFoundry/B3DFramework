@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanEventQuery.h"
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
 using namespace bs;

@@ -6,7 +6,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsVulkanDescriptorManager.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
 

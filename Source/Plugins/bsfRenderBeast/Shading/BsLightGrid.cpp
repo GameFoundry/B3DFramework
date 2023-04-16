@@ -7,7 +7,7 @@
 #include "BsRendererLight.h"
 #include "BsRendererReflectionProbe.h"
 #include "BsTiledDeferred.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs {
 namespace ct {

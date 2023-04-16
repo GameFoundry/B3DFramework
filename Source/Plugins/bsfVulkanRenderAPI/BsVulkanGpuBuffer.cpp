@@ -5,7 +5,7 @@
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanUtility.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanTexture.h"
 
 using namespace bs;

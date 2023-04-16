@@ -10,7 +10,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanSwapChain.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuBackend.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanQueue.h"

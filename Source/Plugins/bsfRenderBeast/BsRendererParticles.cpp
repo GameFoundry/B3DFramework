@@ -10,7 +10,7 @@
 #include "Material/BsGpuParamsSet.h"
 #include "BsRendererView.h"
 #include "Mesh/BsMeshUtility.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs {
 namespace ct {

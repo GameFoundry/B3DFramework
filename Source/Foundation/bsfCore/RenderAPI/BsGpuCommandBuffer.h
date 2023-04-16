@@ -60,6 +60,16 @@ namespace bs
 			GpuCommandBufferPoolCreateInformation(const GpuCommandBufferPoolInformation& other)
 				:GpuCommandBufferPoolInformation(other)
 			{ }
+
+			/** Allocates a create information for a command buffer pool owned by the calling thread. */
+			static GpuCommandBufferPoolCreateInformation CreateForThisThread(GpuQueueUsage usage = GQT_GRAPHICS)
+			{
+				GpuCommandBufferPoolCreateInformation createInformation;
+				createInformation.Thread = B3D_CURRENT_THREAD_ID;
+				createInformation.Usage = usage;
+
+				return createInformation;
+			}
 		};
 
 		/** Object describing a GpuCommandBuffer. */
@@ -75,6 +85,15 @@ namespace bs
 			GpuCommandBufferCreateInformation(const GpuCommandBufferInformation& other)
 				:GpuCommandBufferInformation(other)
 			{ }
+
+			/** Allocates a create information for a command buffer with the specified name. */
+			static GpuCommandBufferCreateInformation Create(const StringView& name = "")
+			{
+				GpuCommandBufferCreateInformation createInformation;
+				createInformation.Name = name;
+
+				return createInformation;
+			}
 		};
 
 		/**

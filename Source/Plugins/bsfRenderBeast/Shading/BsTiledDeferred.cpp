@@ -5,7 +5,7 @@
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
 #include "BsRenderBeast.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs {
 namespace ct {

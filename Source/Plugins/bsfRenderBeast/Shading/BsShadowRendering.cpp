@@ -12,7 +12,7 @@
 #include "RenderAPI/BsVertexDescription.h"
 #include "Renderer/BsRenderer.h"
 #include "BsRendererRenderable.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs { namespace ct {
 

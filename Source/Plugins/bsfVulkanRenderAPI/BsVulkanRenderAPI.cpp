@@ -10,7 +10,7 @@
 #include "Managers/BsVulkanRenderStateManager.h"
 #include "Managers/BsVulkanQueryManager.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuParameters.h"
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanGpuBuffer.h"
@@ -45,7 +45,7 @@ void VulkanRenderAPI::Initialize()
 	mPrimaryGpuDevice->Initialize();
 
 	// Create main command buffer
-	mMainCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(static_cast<VulkanGpuDevice&>(*mPrimaryGpuDevice).GetCommandBufferPool(GQT_GRAPHICS).Create(GpuCommandBufferCreateInformation()));
+	mMainCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(static_cast<VulkanGpuDevice&>(*mPrimaryGpuDevice).GetCommandBufferPool(GQT_GRAPHICS).Create(GpuCommandBufferCreateInformation::Create("Main")));
 
 	RenderAPI::Initialize();
 }
@@ -387,7 +387,7 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandB
 	if(vulkanCommandBuffer == mMainCommandBuffer.get())
 	{
 		mSubmittedCommandBuffers.push_back(mMainCommandBuffer);
-		mMainCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(static_cast<VulkanGpuDevice&>(*mPrimaryGpuDevice).GetCommandBufferPool(GQT_GRAPHICS).Create(GpuCommandBufferCreateInformation()));
+		mMainCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(static_cast<VulkanGpuDevice&>(*mPrimaryGpuDevice).GetCommandBufferPool(GQT_GRAPHICS).Create(GpuCommandBufferCreateInformation::Create("Main")));
 	}
 	else
 	{

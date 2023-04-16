@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanResource.h"
 #include "BsVulkanGpuPipelineState.h"

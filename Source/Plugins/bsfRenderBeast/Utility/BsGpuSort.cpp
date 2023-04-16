@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsGpuSort.h"
 #include "Math/BsRandom.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "Renderer/BsRendererUtility.h"
 
 namespace bs {
@@ -303,7 +303,15 @@ GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 // just make sure to run the test below if you modify any of the GpuSort code.
 void RunSortTest()
 {
-	SPtr<GpuCommandBuffer> commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+	SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return;
+
+	const SPtr<GpuCommandBufferPool> commandBufferPool = gpuDevice->CreateGpuCommandBufferPool(GpuCommandBufferPoolCreateInformation::CreateForThisThread());
+
+	GpuCommandBufferCreateInformation commandBufferCreateInformation;
+	commandBufferCreateInformation.Name = "GpuSort Test";
+	SPtr<GpuCommandBuffer> commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
 
 	// Generate test keys
 	static constexpr u32 kNumInputKeys = 10000;
@@ -455,8 +463,9 @@ void RunSortTest()
 	// PARALLEL:
 	RadixSortClearMat::Get()->Execute(*commandBuffer, helperBuffers[0]);
 	RadixSortCountMat::Get()->Execute(*commandBuffer, gpuSortProps.NumGroups, params, sortBuffers.Keys[0], helperBuffers[0]);
-	RenderAPI::Instance().SubmitCommandBuffer(nullptr);
-	commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+	RenderAPI::Instance().SubmitCommandBuffer(commandBuffer);
+
+	commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
 
 	// Compare with GPU count
 	const u32 helperBufferLength = helperBuffers[0]->GetInformation().SimpleStorage.Count;
@@ -553,8 +562,9 @@ void RunSortTest()
 
 	// PARALLEL:
 	RadixSortPrefixScanMat::Get()->Execute(*commandBuffer, params, helperBuffers[0], helperBuffers[1]);
-	RenderAPI::Instance().SubmitCommandBuffer(nullptr);
-	commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+	RenderAPI::Instance().SubmitCommandBuffer(commandBuffer);
+	
+	commandBuffer = commandBufferPool->Create(commandBufferCreateInformation);
 
 	// Compare with GPU offsets
 	Vector<u32> bufferOffsets(helperBufferLength);
@@ -785,8 +795,7 @@ void RunSortTest()
 
 	// PARALLEL:
 	RadixSortReorderMat::Get()->Execute(*commandBuffer, gpuSortProps.NumGroups, params, helperBuffers[1], sortBuffers, 0);
-	RenderAPI::Instance().SubmitCommandBuffer(nullptr);
-	commandBuffer = GetRenderAPI().GetMainCommandBuffer();
+	RenderAPI::Instance().SubmitCommandBuffer(commandBuffer);
 
 	// Compare with GPU keys
 	Vector<u32> bufferSortedKeys(count);

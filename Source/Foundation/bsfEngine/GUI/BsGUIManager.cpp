@@ -38,7 +38,7 @@
 #include "Managers/BsRenderStateManager.h"
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 using namespace std::placeholders;
 

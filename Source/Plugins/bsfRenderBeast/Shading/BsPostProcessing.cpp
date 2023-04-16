@@ -10,7 +10,7 @@
 #include "Renderer/BsGpuResourcePool.h"
 #include "BsRendererView.h"
 #include "BsRenderBeast.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "Utility/BsRendererTextures.h"
 #include "RenderAPI/BsVertexDescription.h"
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsNullPrerequisites.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "Managers/BsCommandBufferManager.h"
 
 namespace bs

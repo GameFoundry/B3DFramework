@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2022 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanSubmitThread.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanQueue.h"
 #include "BsVulkanSwapChain.h"
@@ -31,7 +31,6 @@ VulkanSubmitThread::VulkanSubmitThread()
 			{
 				const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 
-				// TODO - Need to match queue with submitted command buffers
 				GpuCommandBufferPoolCreateInformation poolCreateInformation;
 				poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
 				poolCreateInformation.Usage = (GpuQueueUsage)gpuQueueUsageIndex;

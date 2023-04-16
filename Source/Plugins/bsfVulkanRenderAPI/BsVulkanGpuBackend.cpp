@@ -364,12 +364,6 @@ void VulkanGpuBackend::OnStartUp()
 	result = vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices.data());
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	// For now always initialize a single device, as otherwise we run into problems with RenderDoc
-	mDevices.resize(1);
-
-	for(uint32_t i = 0; i < (u32)mDevices.size(); i++)
-		mDevices[i] = B3DMakeShared<VulkanGpuDevice>(physicalDevices[i], i);
-
 	// Find primary device
 	uint32_t primaryDeviceIndex = ~0u;
 
@@ -395,6 +389,9 @@ void VulkanGpuBackend::OnStartUp()
 		if(primaryDeviceIndex == ~0u)
 			primaryDeviceIndex = 0;
 	}
+
+	// For now always initialize a single device, as otherwise we run into problems with RenderDoc
+	mDevices.resize(1);
 
 	mDevices[0] = B3DMakeShared<VulkanGpuDevice>(physicalDevices[primaryDeviceIndex], 0);
 	mDevices[0]->SetIsPrimary();

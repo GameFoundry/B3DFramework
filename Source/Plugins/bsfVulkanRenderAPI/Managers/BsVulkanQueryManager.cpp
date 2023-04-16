@@ -6,7 +6,7 @@
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 
 using namespace bs;
 using namespace bs::ct;

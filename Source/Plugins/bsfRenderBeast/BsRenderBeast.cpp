@@ -32,7 +32,7 @@
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "BsRenderCompositor.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Resources/BsBuiltinResources.h"
 

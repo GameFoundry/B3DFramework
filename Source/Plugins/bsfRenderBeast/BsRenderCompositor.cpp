@@ -26,7 +26,7 @@
 #include "Profiling/BsProfilerGPU.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Profiling/BsProfilerCPU.h"
-#include "RenderAPI/BsCommandBuffer.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace bs { namespace ct {
 
@@ -1830,8 +1830,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 		const RendererView& view = inputs.View;
 
 		// Notify the view eye adaptation value will change
-		SPtr<GpuCommandBuffer> cb = RenderAPI::Instance().GetMainCommandBuffer();
-		view.NotifyLuminanceUpdated(inputs.FrameInfo.Timings.FrameIdx, cb, Output);
+		view.NotifyLuminanceUpdated(inputs.FrameInfo.Timings.FrameIdx, inputs.ActiveCommandBuffer, Output);
 	}
 	else
 	{

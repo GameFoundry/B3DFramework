@@ -4,7 +4,7 @@
 #include "BsVulkanGpuDevice.h"
 #include "Managers/BsVulkanQueryManager.h"
 #include "BsVulkanRenderAPI.h"
-#include "BsVulkanCommandBuffer.h"
+#include "BsVulkanGpuCommandBuffer.h"
 #include "Profiling/BsRenderStats.h"
 
 using namespace bs;
