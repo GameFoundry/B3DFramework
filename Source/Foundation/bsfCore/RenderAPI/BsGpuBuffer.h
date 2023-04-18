@@ -8,6 +8,7 @@
 
 namespace bs
 {
+	class GpuQueue;
 	/** @addtogroup RenderAPI-Internal
 	 *  @{
 	 */
@@ -305,10 +306,10 @@ namespace bs::ct
 		 *
 		 * @param	offset			Offset in bytes from which to copy the data.
 		 * @param	length			Length of the area you want to copy, in bytes.
-		 * @param	destination		Destination buffer large enough to store the read data. Data is written from the start
-		 *							of the buffer (@p offset is only applied to the source).
+		 * @param	destination		Destination buffer large enough to store the read data. Data is written from the start of the buffer (@p offset is only applied to the source).
+		 * @param	gpuQueue		GPU queue on which to perform the read. If not specified the default queue will be used.
 		 */
-		virtual void ReadData(u32 offset, u32 length, void* destination) = 0;
+		virtual void ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue = nullptr) = 0;
 
 		/**
 		 * Writes data into a portion of the buffer from the source memory.

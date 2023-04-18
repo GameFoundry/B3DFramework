@@ -5,7 +5,7 @@
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuParameters.h"
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanGpuBuffer.h"
 #include "BsVulkanFramebuffer.h"
@@ -479,7 +479,7 @@ VulkanSemaphore* VulkanInternalCommandBuffer::RequestInterQueueSemaphore() const
 	return mInterQueueSemaphores[mNumUsedInterQueueSemaphores++];
 }
 
-u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
+u32 VulkanInternalCommandBuffer::Submit(VulkanGpuQueue* queue, u32 syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -489,13 +489,13 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 	syncMask |= mSyncMask;
 
 	// No need to explicitly sync with any entries on the same queue
-	const u32 queueMask = mDevice.GetQueueMask(queue->GetType(), queue->GetIndex());
+	const u32 queueMask = mDevice.GetQueueMask(queue->GetUsage(), queue->GetIndex());
 	syncMask &= ~queueMask;
 
-	const u32 queueFamily = mDevice.GetQueueFamily(queue->GetType());
+	const u32 queueFamily = mDevice.GetQueueFamily(queue->GetUsage());
 
 	VulkanGpuDevice& device = queue->GetDevice();
-	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(mDevice.GetIndex(), queue->GetType());
+	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(mDevice.GetIndex(), queue->GetUsage());
 
 	// If there are any query resets needed, execute those first
 	if(!mQueuedQueryResets.empty())
@@ -665,7 +665,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 
 		// Find an appropriate queue to execute on
 		u32 otherQueueIdx = 0;
-		VulkanQueue* otherQueue = nullptr;
+		SPtr<VulkanGpuQueue> otherQueue = nullptr;
 		GpuQueueUsage otherQueueType = GQT_GRAPHICS;
 		for(u32 i = 0; i < GQT_COUNT; i++)
 		{
@@ -673,11 +673,11 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 			if(device.GetQueueFamily(otherQueueType) != entryQueueFamily)
 				continue;
 
-			u32 numQueues = device.GetQueueCountForType(otherQueueType);
+			u32 numQueues = device.GetQueueCount(otherQueueType);
 			for(u32 j = 0; j < numQueues; j++)
 			{
 				// Try to find a queue not currently executing
-				VulkanQueue* curQueue = device.GetQueue(otherQueueType, j);
+				const SPtr<VulkanGpuQueue>& curQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(otherQueueType, j));
 				if(!curQueue->IsExecuting())
 				{
 					otherQueue = curQueue;
@@ -688,7 +688,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 			// Can't find empty one, use the first one then
 			if(otherQueue == nullptr)
 			{
-				otherQueue = device.GetQueue(otherQueueType, 0);
+				otherQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(otherQueueType, 0));
 				otherQueueIdx = 0;
 			}
 
@@ -754,7 +754,7 @@ u32 VulkanInternalCommandBuffer::Submit(VulkanQueue* queue, u32 syncMask)
 	queue->QueueSubmit(this, mSemaphoresTemp.data(), semaphoreCount);
 	const u32 submitIndex = queue->SubmitQueued();
 
-	mSubmittedQueueGlobalIndex = CommandSyncMask::GetGlobalQueueIdx(queue->GetType(), queue->GetIndex());
+	mSubmittedQueueGlobalIndex = CommandSyncMask::GetGlobalQueueIdx(queue->GetUsage(), queue->GetIndex());
 	for(auto& entry : mResources)
 	{
 		ResourceUseHandle& useHandle = entry.second;
@@ -3028,15 +3028,18 @@ void VulkanGpuCommandBuffer::AcquireNewBuffer()
 {
 	B3D_ASSERT(mBuffer == nullptr || mBuffer->IsDone());
 
-	VulkanGpuCommandBufferPool& pool = mDevice.GetCommandBufferPool(mQueueType);
+	VulkanGpuCommandBufferPool& pool = mDevice.GetCommandBufferPool(mUsage);
 
 	mBuffer = pool.GetBuffer();
 	mBuffer->SetOwner(this);
 	mBuffer->SetName(mName);
 }
 
-void VulkanGpuCommandBuffer::Submit(u32 queueIndex, u32 syncMask)
+void VulkanGpuCommandBuffer::Submit(VulkanGpuQueue& gpuQueue, u32 syncMask)
 {
+	if (!B3D_ENSURE(gpuQueue.GetUsage() == mUsage))
+		return;
+
 	if(GetState() == CommandBufferState::Executing)
 	{
 		B3D_LOG(Error, RenderBackend, "Cannot submit a command buffer that's still executing.");
@@ -3070,11 +3073,7 @@ void VulkanGpuCommandBuffer::Submit(u32 queueIndex, u32 syncMask)
 	if(mBuffer->IsRecording())
 		mBuffer->End();
 
-	VulkanQueue* const queue = mDevice.GetQueue(mQueueType, queueIndex);
-	if(!B3D_ENSURE(queue))
-		return;
-
-	GetVulkanSubmitThread().QueueSubmit(*mBuffer, *queue, syncMask);
+	GetVulkanSubmitThread().QueueSubmit(*mBuffer, gpuQueue, syncMask);
 
 	mBuffer = nullptr;
 	mIsSubmitted = true;

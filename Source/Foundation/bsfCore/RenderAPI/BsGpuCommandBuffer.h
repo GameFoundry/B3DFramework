@@ -136,6 +136,9 @@ namespace bs
 		public:
 			virtual ~GpuCommandBuffer();
 
+			/** Returns the usage that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
+			GpuQueueUsage GetUsage() const { return mUsage; }
+
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
 			virtual void SetName(const StringView& name) { mName = name; }
 
@@ -325,7 +328,7 @@ namespace bs
 			GpuCommandBuffer(ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			const GpuCommandBufferCreateInformation mInformation;
-			const GpuQueueUsage mQueueType;
+			const GpuQueueUsage mUsage;
 			const ThreadId mOwnerThread;
 			String mName;
 			bool mIsSubmitted = false;

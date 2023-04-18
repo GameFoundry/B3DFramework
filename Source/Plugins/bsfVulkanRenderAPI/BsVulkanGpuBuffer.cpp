@@ -404,7 +404,7 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 	vkCB->RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 }
 
-void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination)
+void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
 {
 	if((offset + length) > mSize)
 	{
@@ -418,8 +418,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination)
 	if(mBuffer == nullptr)
 		return;
 
-	// We always use the graphics queue. As we do a wait idle below, it really doesn't matter.
-	VulkanQueue* const queue = mDevice.GetQueue(GQT_GRAPHICS, 0);
+	GpuQueue& transferGpuQueue = gpuQueue != nullptr ? *gpuQueue : *mDevice.GetQueue(GQT_GRAPHICS, 0);
 
 	VulkanInternalCommandBuffer* vulkanCommandBuffer = nullptr;
 	VulkanTransferBuffer* transferBuffer = nullptr;
@@ -439,6 +438,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination)
 		{
 			if(transferBuffer == nullptr || vulkanCommandBuffer == nullptr)
 			{
+				// We always use the graphics queue. As we do a wait idle below, it really doesn't matter.
 				transferBuffer = GetVulkanCommandBufferManager().GetTransferBuffer(0, GQT_GRAPHICS, 0);
 				vulkanCommandBuffer = transferBuffer->GetInternalCommandBuffer();
 			}

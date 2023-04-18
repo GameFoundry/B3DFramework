@@ -63,7 +63,7 @@ GpuCommandBufferPool::GpuCommandBufferPool(GpuDevice& gpuDevice, const GpuComman
 {}
 
 GpuCommandBuffer::GpuCommandBuffer(ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation)
-	:mQueueType(queueType), mOwnerThread(ownerThread), mInformation(createInformation)
+	:mUsage(queueType), mOwnerThread(ownerThread), mInformation(createInformation)
 { }
 
 

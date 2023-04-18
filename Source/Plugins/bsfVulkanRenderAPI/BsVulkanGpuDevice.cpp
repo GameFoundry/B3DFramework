@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuBackend.h"
@@ -72,7 +72,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 		mQueueInfos[type].Queues.resize(createInfo.queueCount, nullptr);
 	};
 
-	auto fnFindQueueWithMinimalMatchingSubset = [&queueFamilyProperties](VkQueueFlags requiredFlags)
+	auto fnFindQueueWithMinimalMatchingSubset = [this, &queueFamilyProperties](VkQueueFlags requiredFlags)
 	{
 		static constexpr VkQueueFlags kAllQueueFlags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT | VK_QUEUE_PROTECTED_BIT;
 
@@ -82,7 +82,22 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 		// Look for dedicated compute queues
 		for(u32 i = 0; i < (u32)queueFamilyProperties.size(); i++)
 		{
+			// Skip queue families that don't have the minimum set of required flags
 			if(Bitwise::CountSetBits(queueFamilyProperties[i].queueFlags & requiredFlags) != Bitwise::CountSetBits(requiredFlags))
+				continue;
+
+			// Skip already assigned queue families
+			bool familyAlreadyInUse = false;
+			for(u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; ++queueUsageIndex)
+			{
+				if(mQueueInfos[queueUsageIndex].FamilyIndex == queueUsageIndex)
+				{
+					familyAlreadyInUse = true;
+					break;
+				}
+			}
+
+			if (familyAlreadyInUse)
 				continue;
 
 			const VkQueueFlags kExtraFlags = kAllQueueFlags & ~requiredFlags;
@@ -103,11 +118,11 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 		fnPopulateQueueInfo(GQT_GRAPHICS, graphicsQueueFamilyIndex);
 
 	const u32 computeQueueFamilyIndex = fnFindQueueWithMinimalMatchingSubset(VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT);
-	if(B3D_ENSURE(computeQueueFamilyIndex != ~0u))
+	if(computeQueueFamilyIndex != ~0u)
 		fnPopulateQueueInfo(GQT_COMPUTE, computeQueueFamilyIndex);
 
 	const u32 transferQueueFamilyIndex = fnFindQueueWithMinimalMatchingSubset(VK_QUEUE_TRANSFER_BIT);
-	if(B3D_ENSURE(transferQueueFamilyIndex != ~0u))
+	if(transferQueueFamilyIndex != ~0u)
 		fnPopulateQueueInfo(GQT_TRANSFER, transferQueueFamilyIndex);
 
 	// Set up extensions
@@ -173,7 +188,7 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 			VkQueue queue;
 			vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIndex, j, &queue);
 
-			mQueueInfos[i].Queues[j] = B3DNew<VulkanQueue>(*this, queue, (GpuQueueUsage)i, j);
+			mQueueInfos[i].Queues[j] = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanGpuQueue>()) VulkanGpuQueue(*this, (GpuQueueUsage)i, j, queue));
 		}
 	}
 
@@ -195,9 +210,13 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
 	// Create pools/managers
 	for (u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; ++queueUsageIndex)
 	{
+		const GpuQueueUsage queueUsage = (GpuQueueUsage)queueUsageIndex;
+		if (GetQueueCount(queueUsage) == 0)
+			continue;
+
 		GpuCommandBufferPoolCreateInformation createInformation;
 		createInformation.Thread = B3D_CURRENT_THREAD_ID;
-		createInformation.Usage = (GpuQueueUsage)queueUsageIndex;
+		createInformation.Usage = queueUsage;
 
 		mCommandBufferPools[queueUsageIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(CreateGpuCommandBufferPool(createInformation));
 	}
@@ -455,7 +474,14 @@ SPtr<GpuProgramBytecode> VulkanGpuDevice::CompileGpuProgramBytecode(const GpuPro
 #else
 	return spirv;
 #endif
-	
+}
+
+SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
+{
+	if (index >= GetQueueCount(usage))
+		return nullptr;
+
+	return mQueueInfos[(u32)usage].Queues[index];
 }
 
 SPtr<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const ct::GpuCommandBufferPoolCreateInformation& createInformation)
@@ -549,16 +575,30 @@ void VulkanGpuDevice::WaitUntilIdle() const
 	B3D_ASSERT(result == VK_SUCCESS);
 }
 
-void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanQueue&)>&& callback) const
+void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
+{
+	DoForEachQueue([](VulkanGpuQueue& queue)
+	{
+		queue.SubmitTransferCommandBuffers();
+	});
+	
+	if(wait)
+	{
+		GetVulkanSubmitThread().WaitUntilIdle();
+		GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
+	}
+}
+
+void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const
 {
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
 		GpuQueueUsage queueType = (GpuQueueUsage)queueTypeIndex;
 
-		const u32 queueCount = GetQueueCountForType(queueType);
+		const u32 queueCount = GetQueueCount(queueType);
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
-			VulkanQueue* const queue = GetQueue(queueType, queueIndex);
+			const SPtr<VulkanGpuQueue>& queue = std::static_pointer_cast<VulkanGpuQueue>(GetQueue(queueType, queueIndex));
 			callback(*queue);
 		}
 	}
@@ -566,7 +606,7 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanQueue&)>&& c
 
 u32 VulkanGpuDevice::GetQueueMask(GpuQueueUsage type, u32 queueIdx) const
 {
-	u32 numQueues = GetQueueCountForType(type);
+	u32 numQueues = GetQueueCount(type);
 	if(numQueues == 0)
 		return 0;
 

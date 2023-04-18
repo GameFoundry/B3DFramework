@@ -51,7 +51,7 @@ namespace bs
 			VulkanGpuDevice* mDevice = nullptr;
 			GpuQueueUsage mType = GQT_GRAPHICS;
 			u32 mQueueIndex = 0;
-			VulkanQueue* mQueue = nullptr;
+			VulkanGpuQueue* mQueue = nullptr;
 			u32 mQueueMask = 0;
 
 			VulkanInternalCommandBuffer* mCommandBuffer = nullptr;
@@ -97,7 +97,7 @@ namespace bs
 			/** Contains command buffers specific to one device. */
 			struct PerDeviceData
 			{
-				VulkanTransferBuffer TransferBuffers[GQT_COUNT][BS_MAX_QUEUES_PER_TYPE]; // TODO - Move this to VulkanQueue
+				VulkanTransferBuffer TransferBuffers[GQT_COUNT][BS_MAX_QUEUES_PER_TYPE]; // TODO - Move this to VulkanGpuQueue
 			};
 
 			PerDeviceData* mDeviceData;

@@ -133,8 +133,12 @@ AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 		[&](const SPtr<ct::Texture>& texture, u32 _face, u32 _mipLevel, const SPtr<PixelData>& _pixData,
 			AsyncOp& asyncOp)
 	{
+
 		// Make sure any queued command start executing before reading
 		ct::RenderAPI::Instance().SubmitCommandBuffer(nullptr);
+		// TODO - Should flush all transfer buffers that have write operations queued on them (For meshes as well)
+		// - This won't work if writes are done on some custom command buffer
+		// - Register the writes somewhere, and the wait on them, or just warn if we attempt to read?
 
 		texture->ReadData(*_pixData, _mipLevel, _face);
 		_pixData->UnlockInternal();

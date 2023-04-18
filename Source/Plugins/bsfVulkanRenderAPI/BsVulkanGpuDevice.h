@@ -56,6 +56,10 @@ namespace bs
 			bool IsGpuProgramLanguageSupported(const StringView& language) const override { return language == kGpuProgramLanguageName; }
 			SPtr<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const override;
 
+			u32 GetQueueCount(GpuQueueUsage usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
+			SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
+			void SubmitTransferCommandBuffers(bool wait) override;
+
 			SPtr<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) override;
 			SPtr<EventQuery> CreateEventQuery() override;
@@ -97,12 +101,6 @@ namespace bs
 			/** Returns a set of properties describing the memory of the physical device. */
 			const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return mMemoryProperties; }
 
-			/** Returns the number of queue supported on the device, per type. */
-			u32 GetQueueCountForType(GpuQueueUsage type) const { return (u32)mQueueInfos[(int)type].Queues.size(); }
-
-			/** Returns queue of the specified type at the specified index. Index must be in range [0, getNumQueues()). */
-			VulkanQueue* GetQueue(GpuQueueUsage type, u32 idx) const { return mQueueInfos[(int)type].Queues[idx]; }
-
 			/**
 			 * Returns index of the queue family for the specified queue type. Returns -1 if no queues for the specified type
 			 * exist. There will always be a queue family for the graphics type.
@@ -116,7 +114,7 @@ namespace bs
 			u32 GetQueueMask(GpuQueueUsage type, u32 queueIdx) const;
 
 			/** Perform an operation for each queue on the device. */
-			void DoForEachQueue(const std::function<void(VulkanQueue&)>&& callback) const;
+			void DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const;
 
 			/** Returns the best matching surface format according to the provided parameters. */
 			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const;
@@ -243,8 +241,8 @@ namespace bs
 			/** Contains data about a set of queues of a specific type. */
 			struct QueueInfo
 			{
-				u32 FamilyIndex;
-				Vector<VulkanQueue*> Queues;
+				u32 FamilyIndex = ~0u;
+				Vector<SPtr<VulkanGpuQueue>> Queues;
 			};
 
 			QueueInfo mQueueInfos[GQT_COUNT];

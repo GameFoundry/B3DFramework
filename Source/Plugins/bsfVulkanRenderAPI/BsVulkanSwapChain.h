@@ -112,7 +112,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			void Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask);
+			void Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMask);
 
 			/** Returns the number of available color images. */
 			u32 GetColorImageCount() const { return (u32)mSurfaces.size(); }

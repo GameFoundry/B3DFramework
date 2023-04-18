@@ -1436,9 +1436,6 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
 	VulkanImageSubresource* subresource = mImages[deviceIdx]->GetSubresource(face, mipLevel);
 
-	// We always use the graphics queue. As we do a wait idle below, it really doesn't matter.
-	VulkanQueue* const queue = device.GetQueue(GQT_GRAPHICS, 0);
-
 	VulkanInternalCommandBuffer* vulkanCommandBuffer = nullptr;
 	VulkanTransferBuffer* transferBuffer = nullptr;
 
@@ -1462,6 +1459,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		{
 			if(transferBuffer == nullptr || vulkanCommandBuffer == nullptr)
 			{
+				// We always use the graphics queue. As we do a wait idle below, it really doesn't matter.
 				transferBuffer = GetVulkanCommandBufferManager().GetTransferBuffer(0, GQT_GRAPHICS, 0);
 				vulkanCommandBuffer = transferBuffer->GetInternalCommandBuffer();
 			}

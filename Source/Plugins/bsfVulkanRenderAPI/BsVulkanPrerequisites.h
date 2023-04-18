@@ -58,7 +58,7 @@ namespace bs
 		class VulkanGpuCommandBufferPool;
 		class VulkanInternalCommandBuffer;
 		class VulkanGpuCommandBuffer;
-		class VulkanQueue;
+		class VulkanGpuQueue;
 		class VulkanResourceManager;
 		class VulkanBuffer;
 		class VulkanImage;

@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanSubmitThread.h"
 #include "BsVulkanSwapChain.h"
@@ -8,14 +8,24 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanQueue::VulkanQueue(VulkanGpuDevice& device, VkQueue queue, GpuQueueUsage type, u32 index)
-	: mDevice(device), mQueue(queue), mType(type), mIndex(index)
+VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue)
+	: GpuQueue(device, usage, index), mQueue(vulkanQueue)
 {
 	for(u32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
 		mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 }
 
-bool VulkanQueue::IsExecuting() const
+void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<ct::GpuCommandBuffer>& commandBuffer, u32 syncMask)
+{
+	// TODO
+}
+
+void VulkanGpuQueue::SubmitCommandBuffers(const ArrayView<SPtr<ct::GpuCommandBuffer>>& commandBuffer, u32 syncMask)
+{
+	// TODO
+}
+
+bool VulkanGpuQueue::IsExecuting() const
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -25,7 +35,7 @@ bool VulkanQueue::IsExecuting() const
 	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
 }
 
-u32 VulkanQueue::Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+u32 VulkanGpuQueue::Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -55,7 +65,7 @@ u32 VulkanQueue::Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaph
 	return submitIndex;
 }
 
-void VulkanQueue::QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+void VulkanGpuQueue::QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -65,7 +75,7 @@ void VulkanQueue::QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, Vulkan
 		mQueuedSemaphores.push_back(waitSemaphores[i]);
 }
 
-u32 VulkanQueue::SubmitQueued()
+u32 VulkanGpuQueue::SubmitQueued()
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -132,7 +142,7 @@ u32 VulkanQueue::SubmitQueued()
 	return submitIndex;
 }
 
-void VulkanQueue::GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* signalSemaphores, u32 signalSemaphoreCount, VkSemaphore* waitSemaphores, u32 waitSemaphoreCount, VkSubmitInfo& submitInfo)
+void VulkanGpuQueue::GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* signalSemaphores, u32 signalSemaphoreCount, VkSemaphore* waitSemaphores, u32 waitSemaphoreCount, VkSubmitInfo& submitInfo)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -156,7 +166,7 @@ void VulkanQueue::GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* s
 	}
 }
 
-VkResult VulkanQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -193,7 +203,7 @@ VkResult VulkanQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageInde
 	return result;
 }
 
-void VulkanQueue::WaitUntilIdle() const
+void VulkanGpuQueue::WaitUntilIdle() const
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -201,7 +211,7 @@ void VulkanQueue::WaitUntilIdle() const
 	B3D_ASSERT(result == VK_SUCCESS);
 }
 
-void VulkanQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
+void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -287,7 +297,7 @@ void VulkanQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queu
 	}
 }
 
-void VulkanQueue::RefreshCompletionStateOnRenderThread()
+void VulkanGpuQueue::RefreshCompletionStateOnRenderThread()
 {
 	Lock lock(mMutex);
 	for(const auto& entry : mSemaphoresToReleaseOnRenderThread)
@@ -307,7 +317,7 @@ void VulkanQueue::RefreshCompletionStateOnRenderThread()
 	mPresentedSwapChainsToUnbindOnRenderThread.clear();
 }
 
-void VulkanQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, u32& semaphoresCount)
+void VulkanGpuQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, u32& semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 

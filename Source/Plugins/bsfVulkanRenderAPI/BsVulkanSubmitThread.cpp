@@ -3,7 +3,7 @@
 #include "BsVulkanSubmitThread.h"
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuDevice.h"
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanSwapChain.h"
 #include "Threading/BsTaskScheduler.h"
 
@@ -27,13 +27,17 @@ VulkanSubmitThread::VulkanSubmitThread()
 		const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
 		for (u32 deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
 		{
+			const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
+
 			for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
 			{
-				const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
+				const GpuQueueUsage queueUsage = (GpuQueueUsage)gpuQueueUsageIndex;
+				if (device->GetQueueCount(queueUsage) == 0)
+					continue;
 
 				GpuCommandBufferPoolCreateInformation poolCreateInformation;
 				poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
-				poolCreateInformation.Usage = (GpuQueueUsage)gpuQueueUsageIndex;
+				poolCreateInformation.Usage = queueUsage;
 
 				mCommandBufferPools[deviceIndex][gpuQueueUsageIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(device->CreateGpuCommandBufferPool(poolCreateInformation));
 			}
@@ -59,7 +63,7 @@ VulkanSubmitThread::~VulkanSubmitThread()
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnDestroy), "Cleanup submit thread", true);
 }
 
-void VulkanSubmitThread::QueueSubmit(VulkanInternalCommandBuffer& commandBuffer, VulkanQueue& queue, u32 syncMask, bool blocking)
+void VulkanSubmitThread::QueueSubmit(VulkanInternalCommandBuffer& commandBuffer, VulkanGpuQueue& queue, u32 syncMask, bool blocking)
 {
 	auto fnCommand = [&commandBuffer, &queue, syncMask]()
 	{
@@ -79,7 +83,7 @@ void VulkanSubmitThread::QueueSubmit(VulkanInternalCommandBuffer& commandBuffer,
 	}
 }
 
-void VulkanSubmitThread::QueuePresent(VulkanQueue& queue, VulkanSwapChain& swapChain, u32 syncMask)
+void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& swapChain, u32 syncMask)
 {
 	u32 acquiredImageIndex;
 	const bool acquireSuccess = swapChain.TryGetFirstAcquiredImageIndex(acquiredImageIndex);
@@ -96,7 +100,7 @@ void VulkanSubmitThread::QueuePresent(VulkanQueue& queue, VulkanSwapChain& swapC
 		TaskScheduler::Instance().AddWorker();
 		device.WaitUntilIdle();
 
-		device.DoForEachQueue([](VulkanQueue& queue)
+		device.DoForEachQueue([](VulkanGpuQueue& queue)
 		{
 			queue.RefreshCompletionStateOnSubmitThread(true, false);
 		});
@@ -135,7 +139,7 @@ void VulkanSubmitThread::QueueRefreshCommandBufferCompletionStates(const VulkanG
 
 	auto fnCommand = [this, device]
 	{
-		device->DoForEachQueue([](VulkanQueue& queue) { queue.RefreshCompletionStateOnSubmitThread(false, false); });
+		device->DoForEachQueue([](VulkanGpuQueue& queue) { queue.RefreshCompletionStateOnSubmitThread(false, false); });
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Queue command buffer refresh");
@@ -154,7 +158,7 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 			device->WaitUntilIdle();
 			TaskScheduler::Instance().RemoveWorker();
 
-			device->DoForEachQueue([performCleanupForShutdown](VulkanQueue& queue)
+			device->DoForEachQueue([performCleanupForShutdown](VulkanGpuQueue& queue)
 			{
 				queue.RefreshCompletionStateOnSubmitThread(true, performCleanupForShutdown);
 			});
@@ -177,7 +181,7 @@ void VulkanSubmitThread::RefreshCommandBufferCompletionStates() const
 	{
 		const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 
-		device->DoForEachQueue([](VulkanQueue& queue) { queue.RefreshCompletionStateOnRenderThread(); });
+		device->DoForEachQueue([](VulkanGpuQueue& queue) { queue.RefreshCompletionStateOnRenderThread(); });
 	}
 
 	Lock lock(mImageAcquireMutex);

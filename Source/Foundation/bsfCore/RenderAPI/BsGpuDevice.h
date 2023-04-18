@@ -24,6 +24,68 @@ namespace bs
 	 */
 
 	/**
+	 * Specifies a queue on which command buffers can be submitted on.
+	 *
+	 * @note	Thread safe.
+	 */
+	class B3D_CORE_EXPORT GpuQueue
+	{
+	public:
+		virtual ~GpuQueue() = default;
+
+		/** Determines which type of command buffer commands can be used on the command buffers submitted on the queue. */
+		GpuQueueUsage GetUsage() const { return mUsage; }
+
+		/** Returns the unique index of the queue, for its type. */
+		u32 GetIndex() const { return mIndex; }
+
+		/**
+		 * Submits the command buffer for execution on the specified queue.
+		 *
+		 * @param	commandBuffer	Command buffer to submit.
+		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
+		 *							depends on any other command buffers submitted on other queues. You may use the
+		 *							CommandSyncMask class to generate a mask.
+		 *
+		 *							This mask is only relevant if your command buffers are executing on different
+		 *							queues, and are dependent. If they are executing on the same queue then they will
+		 *							execute sequentially in the order they are submitted. Otherwise, if there is a
+		 *							dependency you must make state it explicitly here.
+		 */
+		virtual void SubmitCommandBuffer(const SPtr<ct::GpuCommandBuffer>& commandBuffer, u32 syncMask = 0) = 0;
+
+		/** Submits multiple command buffers at the same time. See SubmitCommandBuffer(). */
+		virtual void SubmitCommandBuffers(const ArrayView<SPtr<ct::GpuCommandBuffer>>& commandBuffer, u32 syncMask = 0) = 0;
+
+		/**
+		 * Returns a command buffer that is to be used for transfer operations when user doesn't provide an explicit command buffer.
+		 * Transfer command buffers on all queues should be submitted before any regular explicit command buffer submission, or at the end of frame.
+		 * Each thread calling this method will retrieve a separate command buffer.
+		 */
+		virtual SPtr<ct::GpuCommandBuffer> GetOrCreateTransferCommandBuffer();
+
+		/** Submits the active transfer command buffers for all threads. All existing command buffers are invalidated. */
+		virtual void SubmitTransferCommandBuffers();
+
+	protected:
+		/** Information about a transfer command buffer associated with a particular thread. */
+		struct PerThreadTransferCommandBufferInformation
+		{
+			SPtr<ct::GpuCommandBufferPool> CommandBufferPool; /**< Pool for allocating the command buffers. */
+			SPtr<ct::GpuCommandBuffer> CurrentTransferCommandBuffer; /**< Currently active transfer buffer, if any. */
+		};
+
+		GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index);
+
+		GpuDevice& mGpuDevice;
+		GpuQueueUsage mUsage;
+		u32 mIndex;
+
+		mutable Mutex mMutex;
+		mutable UnorderedMap<ThreadId, PerThreadTransferCommandBufferInformation> mTransferCommandBuffers;
+	};
+
+	/**
 	 * Provides access to a particular GPU device.
 	 *
 	 * @note	Thread safe.
@@ -45,13 +107,22 @@ namespace bs
 		/** Query if a GPU program language is supported (for example "hlsl", "glsl"). Thread safe. */
 		virtual bool IsGpuProgramLanguageSupported(const StringView& language) const = 0;
 
+		/** Returns the number of queues supported for the specific usage. */
+		virtual u32 GetQueueCount(GpuQueueUsage usage) const = 0;
+
+		/** Retrieves a queue with the specified usage and index. */
+		virtual SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const = 0;
+
+		/** Submits all non-empty transfer command buffers on all queues and optionally waits until the GPU is done processing them. */
+		virtual void SubmitTransferCommandBuffers(bool wait = false) = 0;
+
 		/**
 		 * Compiles the GPU program to an intermediate bytecode format. The bytecode can be cached and used for
 		 * quicker compilation/creation of GPU programs.
 		 */
 		virtual SPtr<GpuProgramBytecode> CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const = 0;
 
-		/** Creates a new command buffer pool that may be used for allocating new command buffers.  */
+		/** Creates a command buffer pool that may be used for allocating command buffers. */
 		virtual SPtr<ct::GpuCommandBufferPool> CreateGpuCommandBufferPool(const ct::GpuCommandBufferPoolCreateInformation& createInformation) = 0;
 
 		/**

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
+#include "BsVulkanGpuDevice.h"
 
 namespace bs
 {
@@ -12,23 +13,20 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Wrapper for the Vulkan device queue. */
-		class VulkanQueue
+		/** Vulkan implementation of a GPU queue. */
+		class VulkanGpuQueue : public GpuQueue
 		{
 		public:
-			VulkanQueue(VulkanGpuDevice& device, VkQueue queue, GpuQueueUsage type, u32 index);
+			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue);
+
+			void SubmitCommandBuffer(const SPtr<ct::GpuCommandBuffer>& commandBuffer, u32 syncMask) override;
+			void SubmitCommandBuffers(const ArrayView<SPtr<ct::GpuCommandBuffer>>& commandBuffer, u32 syncMask) override;
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetHandle() const { return mQueue; }
 
 			/** Returns the device that owns the queue. */
-			VulkanGpuDevice& GetDevice() const { return mDevice; }
-
-			/** Returns the type of the queue. */
-			GpuQueueUsage GetType() const { return mType; }
-
-			/** Returns the unique index of the queue, for its type. */
-			u32 GetIndex() const { return mIndex; }
+			VulkanGpuDevice& GetDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }
 
 			/**
 			 * Checks if anything is currently executing on this queue.
@@ -152,10 +150,7 @@ namespace bs
 				u32 SemaphoreCount;
 			};
 
-			VulkanGpuDevice& mDevice;
 			VkQueue mQueue;
-			GpuQueueUsage mType;
-			u32 mIndex;
 			VkPipelineStageFlags mSubmitDstWaitMask[BS_MAX_UNIQUE_QUEUES];
 
 			Vector<QueueSubmissionEntryInformation> mQueuedCommandBuffers;

@@ -14,15 +14,16 @@
 #include "BsVulkanGpuParameters.h"
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanGpuBuffer.h"
-
-#include <vulkan/vulkan.h>
-
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanSubmitThread.h"
 #include "BsVulkanSwapChain.h"
 #include "Win32/BsWin32RenderWindow.h"
+
+#include <vulkan/vulkan.h>
+
 
 using namespace bs;
 using namespace bs::ct;
@@ -321,7 +322,7 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 	window->SwapBuffers();
 	swapChain = window->GetSwapChain();
 
-	VulkanQueue* const presentQueue = GetVulkanGpuBackend().GetPresentDevice()->GetQueue(GQT_GRAPHICS, 0);
+	VulkanGpuQueue* const presentQueue = static_cast<VulkanGpuQueue*>(GetVulkanGpuBackend().GetPresentDevice()->GetQueue(GQT_GRAPHICS, 0).get());
 	GetVulkanSubmitThread().QueuePresent(*presentQueue, *swapChain, syncMask);
 
 	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
@@ -382,7 +383,12 @@ void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandB
 	VulkanCommandBufferManager& commandBufferManager = GetVulkanCommandBufferManager(); // TODO - Get the manager from the GpuDevice associated with the command buffer
 	commandBufferManager.FlushTransferBuffers(0);
 
-	vulkanCommandBuffer->Submit(queueIndex, syncMask);
+	const SPtr<VulkanGpuQueue> queue = std::static_pointer_cast<VulkanGpuQueue>(mPrimaryGpuDevice->GetQueue(vulkanCommandBuffer->GetUsage(), queueIndex));
+	if (!B3D_ENSURE(queue))
+		return;
+
+	B3D_ASSERT(queue != nullptr);
+	vulkanCommandBuffer->Submit(*queue, syncMask);
 
 	if(vulkanCommandBuffer == mMainCommandBuffer.get())
 	{

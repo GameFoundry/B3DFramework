@@ -154,7 +154,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			u32 Submit(VulkanQueue* queue, u32 syncMask);
+			u32 Submit(VulkanGpuQueue* queue, u32 syncMask);
 
 			/**
 			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
@@ -500,7 +500,7 @@ namespace bs
 		private:
 			friend class VulkanGpuCommandBufferPool;
 			friend class VulkanGpuCommandBuffer;
-			friend class VulkanQueue;
+			friend class VulkanGpuQueue;
 			friend class VulkanGpuBuffer;
 			friend class VulkanTexture;
 
@@ -813,11 +813,11 @@ namespace bs
 			/**
 			 * Submits the command buffer for execution.
 			 *
-			 * @param	queueIndex		Index of the queue to submit the command buffer on. This is local index unique to GPU queue type.
+			 * @param	gpuQueue		Queue to submit the command buffer on. Must match the usage the command buffer was created with.
 			 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
 			 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
 			 */
-			void Submit(u32 queueIndex, u32 syncMask);
+			void Submit(VulkanGpuQueue& gpuQueue, u32 syncMask);
 
 			/** Called by the backend when we have been notified the command buffer has finished executing on the GPU. */
 			void NotifyExecutionCompleted();

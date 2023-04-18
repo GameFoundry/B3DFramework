@@ -13,7 +13,7 @@
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuBackend.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "BsVulkanSubmitThread.h"
 #include "Math/BsMath.h"
 

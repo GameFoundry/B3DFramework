@@ -5,7 +5,7 @@
 #include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuBackend.h"
-#include "BsVulkanQueue.h"
+#include "BsVulkanGpuQueue.h"
 #include "Managers/BsVulkanCommandBufferManager.h"
 #include "BsVulkanRenderPass.h"
 #include "Threading/BsTaskScheduler.h"
@@ -368,7 +368,7 @@ void VulkanSwapChain::WaitUntilFirstImageAcquired()
 	mImageAcquireResults.clear();
 }
 
-void VulkanSwapChain::Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask)
+void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
@@ -384,9 +384,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask)
 	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 	{
 		VulkanGpuDevice& device = queue.GetDevice();
-		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex(), queue.GetType());
-
-		const u32 queueFamily = device.GetQueueFamily(queue.GetType());
+		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex(), queue.GetUsage());
 
 		VulkanInternalCommandBuffer* const commandBuffer = commandBufferPool.GetBuffer();
 		commandBuffer->SetName("Swap chain image layout transition");
@@ -418,9 +416,9 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanQueue& queue, u32 syncMask)
 	}
 
 	VulkanGpuDevice& presentDevice = queue.GetDevice();
-	const u32 queueMask = presentDevice.GetQueueMask(queue.GetType(), queue.GetIndex());
+	const u32 queueMask = presentDevice.GetQueueMask(queue.GetUsage(), queue.GetIndex());
 
-	// Ignore myself as we handle this in VulkanQueue::Present() already
+	// Ignore myself as we handle this in VulkanGpuQueue::Present() already
 	syncMask &= ~queueMask;
 
 	const u32 deviceIndex = presentDevice.GetIndex();
