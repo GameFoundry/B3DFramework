@@ -302,9 +302,9 @@ VkPipelineLayout VulkanGpuGraphicsPipelineState::GetPipelineLayout(u32 deviceIdx
 	return mPipelineLayout;
 }
 
-void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer)
+void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer)
 {
-	u32 deviceIdx = cmdBuffer->GetDeviceIndex();
+	u32 deviceIdx = cmdBuffer.GetDeviceIndex();
 
 	std::array<VulkanGpuProgram*, 5> programs = {
 		static_cast<VulkanGpuProgram*>(mData.VertexProgram.get()),
@@ -321,7 +321,7 @@ void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanInternalCom
 			VulkanShaderModule* module = entry->GetShaderModule(deviceIdx);
 
 			if(module != nullptr)
-				cmdBuffer->RegisterResource(module, VulkanAccessFlag::Read);
+				cmdBuffer.RegisterResource(module, VulkanAccessFlag::Read);
 		}
 	}
 }
@@ -536,9 +536,9 @@ VkPipelineLayout VulkanGpuComputePipelineState::GetPipelineLayout(u32 deviceInde
 	return mPipelineLayout;
 }
 
-void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanInternalCommandBuffer* cmdBuffer)
+void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer)
 {
-	u32 deviceIdx = cmdBuffer->GetDeviceIndex();
+	u32 deviceIdx = cmdBuffer.GetDeviceIndex();
 
 	VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(mData.Program.get());
 	if(program != nullptr)
@@ -546,6 +546,6 @@ void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanInternalComm
 		VulkanShaderModule* module = program->GetShaderModule(deviceIdx);
 
 		if(module != nullptr)
-			cmdBuffer->RegisterResource(module, VulkanAccessFlag::Read);
+			cmdBuffer.RegisterResource(module, VulkanAccessFlag::Read);
 	}
 }

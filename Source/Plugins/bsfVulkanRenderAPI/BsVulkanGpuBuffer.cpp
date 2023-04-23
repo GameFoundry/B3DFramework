@@ -374,11 +374,8 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 		return;
 	}
 
-	VulkanGpuBuffer& vkSource = static_cast<VulkanGpuBuffer&>(srcBuffer);
-	VulkanInternalCommandBuffer* vkCB = static_cast<VulkanGpuCommandBuffer*>(commandBuffer.get())->GetInternal();
-
-	u32 deviceIdx = vkCB->GetDeviceIndex();
-	B3D_ASSERT(deviceIdx == 0);
+	auto& vkSource = static_cast<VulkanGpuBuffer&>(srcBuffer);
+	auto& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*commandBuffer);
 
 	VulkanBuffer* src = vkSource.mBuffer;
 	VulkanBuffer* dst = mBuffer;
@@ -386,15 +383,15 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 	if(src == nullptr || dst == nullptr)
 		return;
 
-	if(vkCB->IsInRenderPass())
-		vkCB->EndRenderPass(true);
+	if(vulkanCommandBuffer.IsInRenderPass())
+		vulkanCommandBuffer.EndRenderPass(true);
 
-	vkCB->CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
+	vulkanCommandBuffer.CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
 
 	// Notify the command buffer that these resources are being used on it
 	// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-	vkCB->RegisterBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-	vkCB->RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
+	vulkanCommandBuffer.RegisterBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
+	vulkanCommandBuffer.RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 }
 
 void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
@@ -412,7 +409,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 		return;
 
 	GpuQueue& transferGpuQueue = gpuQueue != nullptr ? *gpuQueue : *mDevice.GetQueue(GQT_GRAPHICS, 0);
-	VulkanInternalCommandBuffer* vulkanCommandBuffer = nullptr;
+	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer;
 
 	// Check is the GPU currently writing to the buffer
 	const u32 writeUseMask = mBuffer->GetUseInfo(VulkanAccessFlag::Write);
@@ -427,8 +424,8 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
 		{
-			if(vulkanCommandBuffer == nullptr)
-				vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*transferGpuQueue.GetOrCreateTransferCommandBuffer()).GetInternal();
+			if (vulkanCommandBuffer == nullptr)
+				vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 			// Make any writes visible before mapping
 			if(mSupportsGPUWrites)
@@ -464,8 +461,8 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 		syncMask = writeUseMask;
 	}
 
-	if(vulkanCommandBuffer == nullptr)
-		vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*transferGpuQueue.GetOrCreateTransferCommandBuffer()).GetInternal();
+	if (vulkanCommandBuffer == nullptr)
+		vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 	// Queue copy command
 	vulkanCommandBuffer->CopyBufferToBuffer(mBuffer, stagingBuffer, offset, 0, length);
@@ -539,9 +536,10 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 	// Create a staging buffer if needed
 	VulkanBuffer* const stagingBuffer = !useStagingMemory ? CreateBuffer(mDevice, length, true, false) : nullptr;
 
-	VulkanInternalCommandBuffer* vulkanCommandBuffer = commandBuffer != nullptr
-		? static_cast<VulkanGpuCommandBuffer*>(commandBuffer.get())->GetInternal()
-		: static_cast<VulkanGpuCommandBuffer*>(mDevice.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer().get())->GetInternal();
+	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBuffer != nullptr
+		? commandBuffer
+		: mDevice.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer()
+	);
 
 	// Copy the source into the staging buffer
 	if(stagingBuffer != nullptr)

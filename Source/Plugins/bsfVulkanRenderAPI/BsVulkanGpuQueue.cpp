@@ -37,7 +37,7 @@ bool VulkanGpuQueue::IsExecuting() const
 	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
 }
 
-u32 VulkanGpuQueue::Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+u32 VulkanGpuQueue::Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -67,7 +67,7 @@ u32 VulkanGpuQueue::Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSem
 	return submitIndex;
 }
 
-void VulkanGpuQueue::QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+void VulkanGpuQueue::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -131,7 +131,7 @@ u32 VulkanGpuQueue::SubmitQueued()
 
 	const u32 submitIndex = mNextSubmitIndex;
 
-	VulkanInternalCommandBuffer* lastSubmittedCommandBuffer = mQueuedCommandBuffers[queuedCommandBufferCount - 1].CommandBuffer;
+	const SPtr<VulkanGpuCommandBuffer> lastSubmittedCommandBuffer = mQueuedCommandBuffers[queuedCommandBufferCount - 1].CommandBuffer;
 	mActiveSubmissions.push_back(QueueSubmissionInformation(lastSubmittedCommandBuffer, mNextSubmitIndex++, queuedCommandBufferCount));
 
 	VkResult result = vkQueueSubmit(mQueue, queuedCommandBufferCount, submitInfos, mLastSubmittedCommandBuffer->GetFence());
@@ -220,7 +220,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 	auto it = mActiveSubmissions.begin();
 	while(it != mActiveSubmissions.end())
 	{
-		VulkanInternalCommandBuffer* cmdBuffer = it->LastSubmittedCommandBuffer;
+		const SPtr<VulkanGpuCommandBuffer> cmdBuffer = it->LastSubmittedCommandBuffer;
 		if(cmdBuffer == nullptr)
 		{
 			++it;
@@ -283,7 +283,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 
 			if(isOwnedBySubmitThread)
 			{
-				queueSubmissionInformation.CommandBuffer->mState = VulkanInternalCommandBuffer::State::Done;
+				queueSubmissionInformation.CommandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
 				queueSubmissionInformation.CommandBuffer->Reset();
 			}
 			else
@@ -305,7 +305,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnRenderThread()
 
 	for(const auto& entry : mCommandBuffersToResetOnRenderThread)
 	{
-		entry->mState = VulkanInternalCommandBuffer::State::Done;
+		entry->mState = VulkanGpuCommandBuffer::State::Done;
 		entry->Reset();
 	}
 

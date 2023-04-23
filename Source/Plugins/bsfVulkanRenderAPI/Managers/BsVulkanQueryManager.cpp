@@ -101,53 +101,53 @@ VulkanQuery* VulkanQueryPool::GetQuery(VkQueryType type)
 	return query;
 }
 
-VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanInternalCommandBuffer* cb)
+VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanGpuCommandBuffer& commandBuffer)
 {
 	Lock lock(mMutex);
 
 	VulkanQuery* query = GetQuery(VK_QUERY_TYPE_TIMESTAMP);
 	query->mFree = false;
 
-	VkCommandBuffer vkCmdBuf = cb->GetHandle();
-	cb->ResetQuery(query);
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	commandBuffer.ResetQuery(query);
 	vkCmdWriteTimestamp(vkCmdBuf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, query->mPool, query->mQueryIdx);
 
 	// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-	cb->RegisterResource(query, VulkanAccessFlag::Write);
+	commandBuffer.RegisterResource(query, VulkanAccessFlag::Write);
 
 	return query;
 }
 
-VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanInternalCommandBuffer* cb, bool precise)
+VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanGpuCommandBuffer& commandBuffer, bool precise)
 {
 	Lock lock(mMutex);
 
 	VulkanQuery* query = GetQuery(VK_QUERY_TYPE_OCCLUSION);
 	query->mFree = false;
 
-	VkCommandBuffer vkCmdBuf = cb->GetHandle();
-	cb->ResetQuery(query);
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	commandBuffer.ResetQuery(query);
 	vkCmdBeginQuery(vkCmdBuf, query->mPool, query->mQueryIdx, precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
 
 	// Note: Must happen only here because we need to check VulkanResource::isBound under the same mutex
-	cb->RegisterResource(query, VulkanAccessFlag::Write);
+	commandBuffer.RegisterResource(query, VulkanAccessFlag::Write);
 
 	return query;
 }
 
-void VulkanQueryPool::EndOcclusionQuery(VulkanQuery* query, VulkanInternalCommandBuffer* cb)
+void VulkanQueryPool::EndOcclusionQuery(VulkanGpuCommandBuffer& commandBuffer, VulkanQuery& query)
 {
 	Lock lock(mMutex);
 
-	VkCommandBuffer vkCmdBuf = cb->GetHandle();
-	vkCmdEndQuery(vkCmdBuf, query->mPool, query->mQueryIdx);
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	vkCmdEndQuery(vkCmdBuf, query.mPool, query.mQueryIdx);
 }
 
-void VulkanQueryPool::ReleaseQuery(VulkanQuery* query)
+void VulkanQueryPool::ReleaseQuery(VulkanQuery& query)
 {
 	Lock lock(mMutex);
 
-	query->mFree = true;
+	query.mFree = true;
 }
 
 VulkanQuery::VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx)

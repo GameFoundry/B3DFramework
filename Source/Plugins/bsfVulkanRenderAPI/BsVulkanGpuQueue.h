@@ -43,7 +43,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			u32 Submit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			u32 Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
 
 			/**
 			 * Stores information about a submit internally, but doesn't actually execute it. The intended use is to queue
@@ -52,7 +52,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			void QueueSubmit(VulkanInternalCommandBuffer* commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
 
 			/**
 			 * Submits all previously queued commands buffers, as recorded by QueueSubmit(). Returns a sequential index of the last submitted buffer on the queue, or ~0u if nothing was submitted.
@@ -98,7 +98,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			VulkanInternalCommandBuffer* GetLastCommandBuffer() const { return mLastSubmittedCommandBuffer; }
+			SPtr<VulkanGpuCommandBuffer> GetLastCommandBuffer() const { return mLastSubmittedCommandBuffer; }
 
 		protected:
 			/**
@@ -120,7 +120,7 @@ namespace bs
 			/** Information about one or multiple submitted command buffers on a queue. */
 			struct QueueSubmissionInformation
 			{
-				QueueSubmissionInformation(VulkanInternalCommandBuffer* lastSubmittedCommandBuffer, u32 submitIndex, u32 commandBufferCount)
+				QueueSubmissionInformation(const SPtr<VulkanGpuCommandBuffer>& lastSubmittedCommandBuffer, u32 submitIndex, u32 commandBufferCount)
 					: LastSubmittedCommandBuffer(lastSubmittedCommandBuffer), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
 				{}
 
@@ -128,7 +128,7 @@ namespace bs
 					: PresentOperationSwapChain(swapChain), SubmitIndex(submitIndex), CommandBufferCount(commandBufferCount)
 				{}
 
-				VulkanInternalCommandBuffer* LastSubmittedCommandBuffer = nullptr; /**< Last command buffer that was submitted, if the submit operation had any command buffers. */
+				SPtr<VulkanGpuCommandBuffer> LastSubmittedCommandBuffer; /**< Last command buffer that was submitted, if the submit operation had any command buffers. */
 				VulkanSwapChain* PresentOperationSwapChain = nullptr; /**< Swap chain in case the submit operation was a present operation. */
 				u32 SubmitIndex;
 				u32 CommandBufferCount;
@@ -137,11 +137,11 @@ namespace bs
 			/** Information about a single submitted command buffer. */
 			struct QueueSubmissionEntryInformation
 			{
-				QueueSubmissionEntryInformation(VulkanInternalCommandBuffer* commandBuffer, u32 semaphoreCount)
+				QueueSubmissionEntryInformation(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, u32 semaphoreCount)
 					: CommandBuffer(commandBuffer), SemaphoreCount(semaphoreCount)
 				{}
 
-				VulkanInternalCommandBuffer* CommandBuffer; /**< Submitted command buffer. If null, the submission is a present call. */
+				SPtr<VulkanGpuCommandBuffer> CommandBuffer; /**< Submitted command buffer. If null, the submission is a present call. */
 				u32 SemaphoreCount;
 			};
 
@@ -156,14 +156,14 @@ namespace bs
 
 			List<QueueSubmissionInformation> mActiveSubmissions;
 
-			VulkanInternalCommandBuffer* mLastSubmittedCommandBuffer = nullptr;
+			SPtr<VulkanGpuCommandBuffer> mLastSubmittedCommandBuffer;
 			bool mLastCBSemaphoreUsed = false;
 			u32 mNextSubmitIndex = 1;
 
 			Vector<VkSemaphore> mSemaphoresTemp;
 
 			Mutex mMutex;
-			Vector<VulkanInternalCommandBuffer*> mCommandBuffersToResetOnRenderThread;
+			Vector<SPtr<VulkanGpuCommandBuffer>> mCommandBuffersToResetOnRenderThread;
 			Vector<VulkanSemaphore*> mSemaphoresToReleaseOnRenderThread;
 			Vector<VulkanSwapChain*> mPresentedSwapChainsToUnbindOnRenderThread;
 		};

@@ -659,7 +659,7 @@ u32 VulkanGpuParameters::GetSetCount() const
 	return mParameterLayout->GetSetCount();
 }
 
-void VulkanGpuParameters::PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
+void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
 {
 	u32 deviceIdx = buffer.GetDeviceIndex();
 

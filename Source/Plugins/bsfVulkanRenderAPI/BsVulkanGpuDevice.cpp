@@ -901,7 +901,7 @@ void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, VulkanSemaphore** semaphor
 		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
 		{
 			VulkanGpuQueue* queue = static_cast<VulkanGpuQueue*>(GetQueue(queueType, queueIndex).get());
-			VulkanInternalCommandBuffer* lastCommandBuffer = queue->GetLastCommandBuffer();
+			SPtr<VulkanGpuCommandBuffer> lastCommandBuffer = queue->GetLastCommandBuffer();
 
 			// Check if a buffer is currently executing on the queue
 			if(lastCommandBuffer == nullptr || (!lastCommandBuffer->IsSubmitted() && !lastCommandBuffer->IsDone()))

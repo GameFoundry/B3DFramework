@@ -47,18 +47,11 @@ namespace bs
 			VulkanGpuCommandBufferPool(VulkanGpuDevice& device, const GpuCommandBufferPoolCreateInformation& createInformation);
 			~VulkanGpuCommandBufferPool() override;
 
-			/** Attempts to find a free command buffer, or creates a new one if not found. */
-			VulkanInternalCommandBuffer* GetBuffer();
-
 			SPtr<GpuCommandBuffer> Create(const GpuCommandBufferCreateInformation& createInformation) override;
 			void Reset() override;
 
 		private:
-			/** Creates a new command buffer. */
-			VulkanInternalCommandBuffer* CreateBuffer();
-
 			VkCommandPool mVulkanPool = VK_NULL_HANDLE;
-			SmallVector<VulkanInternalCommandBuffer*, 128> mAllocatedBuffers;
 			u32 mQueueFamily = ~0u;
 			u32 mNextCommandBufferId = 1;
 		};
@@ -98,11 +91,8 @@ namespace bs
 		typedef Flags<BufferUseFlagBits> BufferUseFlags;
 		B3D_FLAGS_OPERATORS(BufferUseFlagBits)
 
-		/**
-		 * Represents a direct wrapper over an internal Vulkan command buffer. This is unlike VulkanCommandBuffer which is a
-		 * higher level class, and it allows for re-use by internally using multiple low-level command buffers.
-		 */
-		class VulkanInternalCommandBuffer
+		/** CommandBuffer implementation for Vulkan. */
+		class VulkanGpuCommandBuffer : public GpuCommandBuffer
 		{
 			/** Possible states a command buffer can be in. */
 			enum class State
@@ -122,8 +112,20 @@ namespace bs
 			};
 
 		public:
-			VulkanInternalCommandBuffer(VulkanGpuDevice& device, ThreadId ownerThread, u32 id, VkCommandPool pool);
-			~VulkanInternalCommandBuffer();
+			~VulkanGpuCommandBuffer() override;
+		
+			/**
+			 * Submits the command buffer for execution.
+			 *
+			 * @param	gpuQueue		Queue to submit the command buffer on. Must match the usage the command buffer was created with.
+			 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
+			 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
+			 */
+			void Submit(VulkanGpuQueue& gpuQueue, u32 syncMask);
+
+			void SetName(const StringView& name) override;
+			CommandBufferState GetState() const override;
+			void End() override;
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
@@ -135,13 +137,13 @@ namespace bs
 			ThreadId GetOwnerThread() const { return mOwnerThread; }
 
 			/** Assigns an name to the command buffer, primarily used for easier debugging. */
-			void SetName(const StringView& name);
+			void SetNameInternal(const StringView& name);
 
 			/** Makes the command buffer ready to start recording commands. */
 			void Begin();
 
 			/** Ends command buffer command recording (as started with begin()). */
-			void End();
+			void CmdEnd();
 
 			/**
 			 * Submits the command buffer for execution.
@@ -154,7 +156,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			u32 Submit(VulkanGpuQueue* queue, u32 syncMask);
+			u32 ExecuteSubmitOnSubmitThread(VulkanGpuQueue* queue, u32 syncMask);
 
 			/**
 			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
@@ -195,9 +197,6 @@ namespace bs
 			 *							(BS_MAX_VULKAN_CB_DEPENDENCIES + 1).
 			 */
 			void AllocateSemaphores(VkSemaphore* semaphores);
-
-			/** Sets the VulkanCommandBuffer that currently owns this command buffer. */
-			void SetOwner(VulkanGpuCommandBuffer* owner) { mOwner = owner; }
 
 			/** Returns true if the command buffer is currently being processed by the device. */
 			bool IsSubmitted() const { return mState == State::Submitted; }
@@ -294,58 +293,58 @@ namespace bs
 			 * Assigns a render target the the command buffer. This render target's framebuffer and render pass will be used
 			 * when beginRenderPass() is called. Command buffer must not be currently recording a render pass.
 			 */
-			void SetRenderTarget(const SPtr<RenderTarget>& renderTarget, u32 readOnlyFlags, RenderSurfaceMask loadMask);
+			void CmdSetRenderTarget(const SPtr<RenderTarget>& renderTarget, u32 readOnlyFlags, RenderSurfaceMask loadMask);
 
 			/** Clears the entirety currently bound render target. */
-			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
+			void CmdClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
 
 			/** Clears the viewport portion of the currently bound render target. */
-			void ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
+			void CmdClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask);
 
 			/** Assigns a pipeline state to use for subsequent draw commands. */
-			void SetPipelineState(const SPtr<GpuGraphicsPipelineState>& state);
+			void CmdSetPipelineState(const SPtr<GpuGraphicsPipelineState>& state);
 
 			/** Assigns a pipeline state to use for subsequent dispatch commands. */
-			void SetPipelineState(const SPtr<GpuComputePipelineState>& state);
+			void CmdSetPipelineState(const SPtr<GpuComputePipelineState>& state);
 
 			/** Assign GPU params to the GPU programs bound by the pipeline state. */
-			void SetGpuParams(const SPtr<GpuParameters>& gpuParams);
+			void CmdSetGpuParams(const SPtr<GpuParameters>& gpuParams);
 
 			/** Sets the current viewport which determine to which portion of the render target to render to. */
-			void SetNormalizedViewportArea(const Rect2& area);
+			void CmdSetNormalizedViewportArea(const Rect2& area);
 
 			/**
 			 * Enables scissor test and sets the scissor rectangle area which determines in which area if the viewport are the fragments allowed to be
 			 * generated.
 			 */
-			void EnableScissorTest(const Rect2I& area);
+			void CmdEnableScissorTest(const Rect2I& area);
 
 			/** Disables the scissor test enabled via EnableScissorTest(). */
-			void DisableScissorTest();
+			void CmdDisableScissorTest();
 
 			/** Sets a stencil reference value that will be used for comparisons in stencil operations, if enabled. */
-			void SetStencilRef(u32 value);
+			void CmdSetStencilRef(u32 value);
 
 			/** Changes how are primitives interpreted as during rendering. */
-			void SetDrawOp(DrawOperationType drawOp);
+			void CmdSetDrawOp(DrawOperationType drawOp);
 
 			/** Sets one or multiple vertex buffers that will be used for subsequent draw() or drawIndexed() calls. */
-			void SetVertexBuffers(u32 startIndex, SPtr<GpuBuffer>* buffers, u32 bufferCount);
+			void CmdSetVertexBuffers(u32 startIndex, SPtr<GpuBuffer>* buffers, u32 bufferCount);
 
 			/** Sets an index buffer that will be used for subsequent drawIndexed() calls. */
-			void SetIndexBuffer(const SPtr<GpuBuffer>& buffer);
+			void CmdSetIndexBuffer(const SPtr<GpuBuffer>& buffer);
 
 			/** Sets a declaration that determines how are vertex buffer contents interpreted. */
-			void SetVertexDescription(const SPtr<VertexDescription>& vertexDescription);
+			void CmdSetVertexDescription(const SPtr<VertexDescription>& vertexDescription);
 
 			/** Executes a draw command using the currently bound graphics pipeline, vertex buffer and render target. */
-			void Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance);
+			void CmdDraw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance);
 
 			/** Executes a draw command using the currently bound graphics pipeline, index & vertex buffer and render target. */
-			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 instanceCount, u32 firstInstance);
+			void CmdDrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 instanceCount, u32 firstInstance);
 
 			/** Executes a dispatch command using the currently bound compute pipeline. */
-			void Dispatch(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ);
+			void CmdDispatch(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ);
 
 			/**
 			 * Registers a command that signals the event when executed. Will be delayed until the end of the current
@@ -469,16 +468,16 @@ namespace bs
 			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
 			 * tools for easier debugging.
 			 */
-			void BeginLabel(const StringView& name);
+			void CmdBeginLabel(const StringView& name);
 
 			/** Closes the label scope as provided by the previous call to BeginLabel(). */
-			void EndLabel();
+			void CmdEndLabel();
 
 			/**
 			 * Inserts a label at the specified location in the command buffer. This may be used by external tools
 			 * for easier debugging.
 			 */
-			void InsertLabel(const StringView& name);
+			void CmdInsertLabel(const StringView& name);
 
 			/**
 			 * Returns the current layout of the specified image, as seen by this command buffer. This is different from the
@@ -613,6 +612,8 @@ namespace bs
 				VkImageLayout RenderPassLayout;
 			};
 
+			VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+
 			/**
 			 * Ends render pass recording (as started with BeginRenderPass().
 			 *
@@ -727,8 +728,6 @@ namespace bs
 			u32 mId;
 			State mState = State::Ready;
 			VulkanGpuDevice& mDevice;
-			VulkanGpuCommandBuffer* mOwner = nullptr;
-			VkCommandPool mPool;
 			VkCommandBuffer mCmdBuffer;
 			VkFence mFence;
 			ThreadId mOwnerThread;
@@ -802,44 +801,6 @@ namespace bs
 
 			SPtr<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
-		};
-
-		/** CommandBuffer implementation for Vulkan. */
-		class VulkanGpuCommandBuffer : public GpuCommandBuffer
-		{
-		public:
-			~VulkanGpuCommandBuffer();
-		
-			/**
-			 * Submits the command buffer for execution.
-			 *
-			 * @param	gpuQueue		Queue to submit the command buffer on. Must match the usage the command buffer was created with.
-			 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
-			 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
-			 */
-			void Submit(VulkanGpuQueue& gpuQueue, u32 syncMask);
-
-			/** Called by the backend when we have been notified the command buffer has finished executing on the GPU. */
-			void NotifyExecutionCompleted();
-
-			/**
-			 * Returns the internal command buffer.
-			 *
-			 * @note	This buffer will change after a submit() call.
-			 */
-			VulkanInternalCommandBuffer* GetInternal() const { return mBuffer; }
-
-			void SetName(const StringView& name) override;
-			CommandBufferState GetState() const override;
-			void End() override;
-		private:
-			friend class VulkanGpuCommandBufferPool;
-
-			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanInternalCommandBuffer* internalCommandBuffer, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
-
-			VulkanInternalCommandBuffer* mBuffer;
-			VulkanGpuDevice& mDevice;
-			bool mIsCompleted = false;
 		};
 
 		/** @} */

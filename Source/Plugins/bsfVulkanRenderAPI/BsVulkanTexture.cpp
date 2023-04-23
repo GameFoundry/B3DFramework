@@ -893,7 +893,7 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanGpuDevice& device, const PixelD
 	return vulkanBuffer;
 }
 
-void VulkanTexture::CopyImageToImage(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
+void VulkanTexture::CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage)
 {
 	const u32 faceCount = mProperties.GetFaceCount();
 	const u32 mipCount = mProperties.MipMapCount + 1;
@@ -944,7 +944,7 @@ void VulkanTexture::CopyImageToImage(VulkanInternalCommandBuffer* commandBuffer,
 		transferDestinationLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 	}
 
-	commandBuffer->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
+	commandBuffer.CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, range, range, mipCount, imageRegions);
 
 	B3DStackFree(imageRegions);
 }
@@ -971,7 +971,7 @@ ImageSubresourcePitch VulkanTexture::GetPitchForSubresource(VulkanImage* image, 
 	return VulkanImage::ConvertSubresourceLayoutToBlocks(subresourceLayout, mProperties.Format);
 }
 
-void VulkanTexture::CopyImageSubresourceToBuffer(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
+void VulkanTexture::CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly)
 {
 	VkExtent3D extent;
 	PixelUtil::GetSizeForMipLevel(mProperties.Width, mProperties.Height, mProperties.Depth, sourceMipLevel, extent.width, extent.height, extent.depth);
@@ -989,10 +989,10 @@ void VulkanTexture::CopyImageSubresourceToBuffer(VulkanInternalCommandBuffer* co
 	else
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-	commandBuffer->CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
+	commandBuffer.CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
 
 	const VkAccessFlags stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | (isBufferReadOnly ? 0 : VK_ACCESS_HOST_WRITE_BIT);
-	commandBuffer->MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+	commandBuffer.MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
 void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation)
@@ -1022,9 +1022,9 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 		}
 	}
 
-	VulkanInternalCommandBuffer* internalCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer).GetInternal();
+	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
-	const u32 deviceIndex = internalCommandBuffer->GetDeviceIndex();
+	const u32 deviceIndex = vulkanCommandBuffer.GetDeviceIndex();
 	if (mInternalFormats[deviceIndex] != other->mInternalFormats[deviceIndex])
 	{
 		B3D_LOG(Error, Texture, "Cannot perform texture copy. Source and destination texture formats must match.");
@@ -1081,8 +1081,8 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	if(sourceImage == nullptr || destinationImage == nullptr)
 		return;
 
-	if(internalCommandBuffer->IsInRenderPass())
-		internalCommandBuffer->EndRenderPass(true);
+	if(vulkanCommandBuffer.IsInRenderPass())
+		vulkanCommandBuffer.EndRenderPass(true);
 
 	if(sourceHasMultipleSamples && !destinationHasMultipleSamples) // Resolving from MS to non-MS texture
 	{
@@ -1099,7 +1099,7 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 		resolveRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
 		resolveRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		internalCommandBuffer->Resolve(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
+		vulkanCommandBuffer.Resolve(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &resolveRegion);
 	}
 	else // Just a normal copy
 	{
@@ -1116,7 +1116,7 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 		imageRegion.dstSubresource.mipLevel = copyInformation.DestinationMip;
 		imageRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
-		internalCommandBuffer->CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageRegion);
+		vulkanCommandBuffer.CopyImageToImage(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageRegion);
 	}
 }
 
@@ -1197,9 +1197,9 @@ void VulkanTexture::BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	destinationRange.baseMipLevel = blitInformation.DestinationMip;
 	destinationRange.levelCount = 1;
 
-	VulkanInternalCommandBuffer* internalCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer).GetInternal();
+	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
-	const u32 deviceIndex = internalCommandBuffer->GetDeviceIndex();
+	const u32 deviceIndex = vulkanCommandBuffer.GetDeviceIndex();
 
 	VulkanImage* sourceImage = mImages[deviceIndex];
 	VulkanImage* destinationImage = other->GetResource(deviceIndex);
@@ -1207,8 +1207,8 @@ void VulkanTexture::BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	if (sourceImage == nullptr || destinationImage == nullptr)
 		return;
 
-	if (internalCommandBuffer->IsInRenderPass())
-		internalCommandBuffer->EndRenderPass(true);
+	if (vulkanCommandBuffer.IsInRenderPass())
+		vulkanCommandBuffer.EndRenderPass(true);
 
 	VkImageBlit imageBlit;
 	imageBlit.srcSubresource.baseArrayLayer = blitInformation.SourceFace;
@@ -1224,7 +1224,7 @@ void VulkanTexture::BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	imageBlit.dstOffsets[0] = { (i32)destinationVolume.Left, (i32)destinationVolume.Top, (i32)destinationVolume.Front };
 	imageBlit.dstOffsets[1] = { (i32)destinationVolume.Right, (i32)destinationVolume.Bottom, (i32)destinationVolume.Back };
 
-	internalCommandBuffer->Blit(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageBlit);
+	vulkanCommandBuffer.Blit(sourceImage, destinationImage, transferSourceLayout, transferDestinationLayout, sourceRange, destinationRange, 1, &imageBlit);
 }
 
 PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 face)
@@ -1352,14 +1352,12 @@ TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(GpuCommandBuffer& command
 	if(image == nullptr)
 	{
 		TAsyncOp<SPtr<PixelData>> operation;
-		operation.CompleteOperation(nullptr);
 
 		return operation;
 	}
 
 	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
-
-	VulkanInternalCommandBuffer* vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer).GetInternal();
+	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
 	const u32 mipWidth = Math::Max(1u, mProperties.Width >> mipLevel);
 	const u32 mipHeight = Math::Max(1u, mProperties.Height >> mipLevel);
@@ -1422,7 +1420,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 	VulkanImageSubresource* subresource = mImages[deviceIdx]->GetSubresource(face, mipLevel);
 
 	GpuQueue& transferGpuQueue = gpuQueue != nullptr ? *gpuQueue : *device.GetQueue(GQT_GRAPHICS, 0);
-	VulkanInternalCommandBuffer* vulkanCommandBuffer = nullptr;
+	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer;
 
 	// If memory is host visible try mapping it directly
 	if(mDirectlyMappable)
@@ -1442,8 +1440,8 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
 		{
-			if(vulkanCommandBuffer == nullptr)
-				vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*transferGpuQueue.GetOrCreateTransferCommandBuffer()).GetInternal();
+			if (vulkanCommandBuffer == nullptr)
+				vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 			// Submit the command buffer and wait until it finishes
 			vulkanCommandBuffer->AppendSyncMask(writeUseMask);
@@ -1473,11 +1471,11 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		syncMask = writeUseMask;
 	}
 
-	if(vulkanCommandBuffer == nullptr)
-		vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(*transferGpuQueue.GetOrCreateTransferCommandBuffer()).GetInternal();
+	if (vulkanCommandBuffer == nullptr)
+		vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 	// Queue copy command
-	CopyImageSubresourceToBuffer(vulkanCommandBuffer, mImages[0], face, mipLevel, stagingBuffer, true);
+	CopyImageSubresourceToBuffer(*vulkanCommandBuffer, mImages[0], face, mipLevel, stagingBuffer, true);
 
 	// Submit the command buffer and wait until it finishes
 	vulkanCommandBuffer->AppendSyncMask(syncMask);
@@ -1567,9 +1565,9 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 	PixelUtil::BulkPixelConversion(source, lockedArea);
 	stagingBuffer->Unmap();
 
-	VulkanInternalCommandBuffer* vulkanCommandBuffer = commandBuffer != nullptr
-		? static_cast<VulkanGpuCommandBuffer*>(commandBuffer.get())->GetInternal()
-		: static_cast<VulkanGpuCommandBuffer*>(device.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer().get())->GetInternal();
+	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBuffer != nullptr
+		? commandBuffer
+		: device.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer());
 
 	const TextureProperties& props = GetProperties();
 

@@ -386,7 +386,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 		VulkanGpuDevice& device = queue.GetDevice();
 		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex(), queue.GetUsage());
 
-		VulkanInternalCommandBuffer* const commandBuffer = commandBufferPool.GetBuffer();
+		const SPtr<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
 		commandBuffer->SetName("Swap chain image layout transition");
 
 		VkCommandBuffer vkCommandBuffer = commandBuffer->GetHandle();

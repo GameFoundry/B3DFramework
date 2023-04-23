@@ -78,9 +78,7 @@ void VulkanRenderAPI::DestroyCore()
 void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GpuGraphicsPipelineState>& pipelineState, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetPipelineState(pipelineState);
+	cb->CmdSetPipelineState(pipelineState);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
@@ -88,9 +86,7 @@ void VulkanRenderAPI::SetGraphicsPipeline(const SPtr<GpuGraphicsPipelineState>& 
 void VulkanRenderAPI::SetComputePipeline(const SPtr<GpuComputePipelineState>& pipelineState, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetPipelineState(pipelineState);
+	cb->CmdSetPipelineState(pipelineState);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumPipelineStateChanges);
 }
@@ -98,7 +94,6 @@ void VulkanRenderAPI::SetComputePipeline(const SPtr<GpuComputePipelineState>& pi
 void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
 
 	for(u32 i = 0; i < GPT_COUNT; i++)
 	{
@@ -116,7 +111,7 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const S
 		}
 	}
 
-	vkCB->SetGpuParams(gpuParams);
+	cb->CmdSetGpuParams(gpuParams);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumGpuParamBinds);
 }
@@ -124,17 +119,13 @@ void VulkanRenderAPI::SetGpuParams(const SPtr<GpuParameters>& gpuParams, const S
 void VulkanRenderAPI::SetViewport(const Rect2& vp, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetNormalizedViewportArea(vp);
+	cb->CmdSetNormalizedViewportArea(vp);
 }
 
 void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 numBuffers, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetVertexBuffers(index, buffers, numBuffers);
+	cb->CmdSetVertexBuffers(index, buffers, numBuffers);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumVertexBufferBinds);
 }
@@ -142,9 +133,7 @@ void VulkanRenderAPI::SetVertexBuffers(u32 index, SPtr<GpuBuffer>* buffers, u32 
 void VulkanRenderAPI::SetIndexBuffer(const SPtr<GpuBuffer>& buffer, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetIndexBuffer(buffer);
+	cb->CmdSetIndexBuffer(buffer);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumIndexBufferBinds);
 }
@@ -152,17 +141,13 @@ void VulkanRenderAPI::SetIndexBuffer(const SPtr<GpuBuffer>& buffer, const SPtr<G
 void VulkanRenderAPI::SetVertexDescription(const SPtr<VertexDescription>& vertexDescription, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetVertexDescription(vertexDescription);
+	cb->CmdSetVertexDescription(vertexDescription);
 }
 
 void VulkanRenderAPI::SetDrawOperation(DrawOperationType op, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetDrawOp(op);
+	cb->CmdSetDrawOp(op);
 }
 
 void VulkanRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance, const SPtr<GpuCommandBuffer>& commandBuffer)
@@ -170,9 +155,7 @@ void VulkanRenderAPI::Draw(u32 vertexOffset, u32 vertexCount, u32 instanceCount,
 	u32 primCount = 0;
 
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->Draw(vertexOffset, vertexCount, instanceCount, firstInstance);
+	cb->CmdDraw(vertexOffset, vertexCount, instanceCount, firstInstance);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
 	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
@@ -184,9 +167,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 	u32 primCount = 0;
 
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->DrawIndexed(startIndex, indexCount, vertexOffset, instanceCount, firstInstance);
+	cb->CmdDrawIndexed(startIndex, indexCount, vertexOffset, instanceCount, firstInstance);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
 	B3D_ADD_RENDER_STATISTIC(NumVertices, vertexCount);
@@ -196,9 +177,7 @@ void VulkanRenderAPI::DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffs
 void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGroupsZ, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->Dispatch(numGroupsX, numGroupsY, numGroupsZ);
+	cb->CmdDispatch(numGroupsX, numGroupsY, numGroupsZ);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumComputeCalls);
 }
@@ -206,34 +185,27 @@ void VulkanRenderAPI::DispatchCompute(u32 numGroupsX, u32 numGroupsY, u32 numGro
 void VulkanRenderAPI::EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
 
 	Rect2I area(left, top, right - left, bottom - top);
-	internalCommandBuffer->EnableScissorTest(area);
+	vulkanCommandBuffer->CmdEnableScissorTest(area);
 }
 
 void VulkanRenderAPI::DisableScissorTest(const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
-
-	internalCommandBuffer->DisableScissorTest();
+	vulkanCommandBuffer->CmdDisableScissorTest();
 }
 
 void VulkanRenderAPI::SetStencilRef(u32 value, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetStencilRef(value);
+	cb->CmdSetStencilRef(value);
 }
 
 void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->ClearViewport(buffers, color, depth, stencil, targetMask);
+	cb->CmdClearViewport(buffers, color, depth, stencil, targetMask);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
@@ -241,9 +213,7 @@ void VulkanRenderAPI::ClearViewport(u32 buffers, const Color& color, float depth
 void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->ClearRenderTarget(buffers, color, depth, stencil, targetMask);
+	cb->CmdClearRenderTarget(buffers, color, depth, stencil, targetMask);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumClears);
 }
@@ -251,9 +221,7 @@ void VulkanRenderAPI::ClearRenderTarget(u32 buffers, const Color& color, float d
 void VulkanRenderAPI::SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	VulkanGpuCommandBuffer* cb = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* vkCB = cb->GetInternal();
-
-	vkCB->SetRenderTarget(target, readOnlyFlags, loadMask);
+	cb->CmdSetRenderTarget(target, readOnlyFlags, loadMask);
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumRenderTargetChanges);
 }
@@ -331,9 +299,7 @@ void VulkanRenderAPI::BeginLabel(const StringView& name, const SPtr<GpuCommandBu
 	THROW_IF_NOT_CORE_THREAD
 
 	VulkanGpuCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCommandBuffer->GetInternal();
-
-	internalCommandBuffer->BeginLabel(name);
+	vulkanCommandBuffer->CmdBeginLabel(name);
 }
 
 void VulkanRenderAPI::EndLabel(const SPtr<GpuCommandBuffer>& commandBuffer)
@@ -341,19 +307,15 @@ void VulkanRenderAPI::EndLabel(const SPtr<GpuCommandBuffer>& commandBuffer)
 	THROW_IF_NOT_CORE_THREAD
 
 	VulkanGpuCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* internalCommmandBuffer = vulkanCommandBuffer->GetInternal();
-
-	internalCommmandBuffer->EndLabel();
+	vulkanCommandBuffer->CmdEndLabel();
 }
 
 void VulkanRenderAPI::InsertLabel(const StringView& name, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
 	THROW_IF_NOT_CORE_THREAD
 
-	VulkanGpuCommandBuffer* vulkanCOmmandBuffer = EnsureCommandBuffer(commandBuffer);
-	VulkanInternalCommandBuffer* internalCommandBuffer = vulkanCOmmandBuffer->GetInternal();
-
-	internalCommandBuffer->InsertLabel(name);
+	VulkanGpuCommandBuffer* vulkanCommandBuffer = EnsureCommandBuffer(commandBuffer);
+	vulkanCommandBuffer->CmdInsertLabel(name);
 }
 
 void VulkanRenderAPI::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 queueIndex, u32 syncMask)

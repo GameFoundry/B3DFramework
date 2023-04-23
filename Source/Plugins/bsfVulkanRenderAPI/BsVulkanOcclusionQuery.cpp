@@ -19,7 +19,7 @@ VulkanOcclusionQuery::VulkanOcclusionQuery(VulkanGpuDevice& device, bool binary)
 VulkanOcclusionQuery::~VulkanOcclusionQuery()
 {
 	for(auto& query : mQueries)
-		mDevice.GetQueryPool().ReleaseQuery(query);
+		mDevice.GetQueryPool().ReleaseQuery(*query);
 
 	mQueries.clear();
 
@@ -32,7 +32,7 @@ void VulkanOcclusionQuery::Begin(GpuCommandBuffer& commandBuffer)
 
 	// Clear any existing queries
 	for(auto& query : mQueries)
-		mDevice.GetQueryPool().ReleaseQuery(query);
+		mDevice.GetQueryPool().ReleaseQuery(*query);
 
 	mQueries.clear();
 
@@ -41,9 +41,8 @@ void VulkanOcclusionQuery::Begin(GpuCommandBuffer& commandBuffer)
 
 	// Retrieve and queue new query
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-	VulkanInternalCommandBuffer* internalCB = vulkanCommandBuffer.GetInternal();
-	mQueries.push_back(queryPool.BeginOcclusionQuery(internalCB, !mBinary));
-	internalCB->RegisterQuery(this);
+	mQueries.push_back(queryPool.BeginOcclusionQuery(vulkanCommandBuffer, !mBinary));
+	vulkanCommandBuffer.RegisterQuery(this);
 }
 
 void VulkanOcclusionQuery::End(GpuCommandBuffer& commandBuffer)
@@ -64,8 +63,7 @@ void VulkanOcclusionQuery::End(GpuCommandBuffer& commandBuffer)
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	VulkanInternalCommandBuffer* internalCB = vulkanCommandBuffer.GetInternal();
-	queryPool.EndOcclusionQuery(mQueries.back(), internalCB);
+	queryPool.EndOcclusionQuery(vulkanCommandBuffer, *mQueries.back());
 }
 
 bool VulkanOcclusionQuery::IsInProgress() const
@@ -73,7 +71,7 @@ bool VulkanOcclusionQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
-void VulkanOcclusionQuery::Interrupt(VulkanInternalCommandBuffer& cb)
+void VulkanOcclusionQuery::Interrupt(VulkanGpuCommandBuffer& commandBuffer)
 {
 	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
 
@@ -81,7 +79,7 @@ void VulkanOcclusionQuery::Interrupt(VulkanInternalCommandBuffer& cb)
 	mQueryFinalized = false;
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	queryPool.EndOcclusionQuery(mQueries.back(), &cb);
+	queryPool.EndOcclusionQuery(commandBuffer, *mQueries.back());
 }
 
 bool VulkanOcclusionQuery::IsReady() const
@@ -121,7 +119,7 @@ u32 VulkanOcclusionQuery::GetSampleCount()
 
 			VulkanQueryPool& queryPool = mDevice.GetQueryPool();
 			for(auto& query : mQueries)
-				queryPool.ReleaseQuery(query);
+				queryPool.ReleaseQuery(*query);
 
 			mQueries.clear();
 		}

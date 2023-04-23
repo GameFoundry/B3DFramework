@@ -21,10 +21,10 @@ VulkanTimerQuery::~VulkanTimerQuery()
 	for(auto& query : mQueries)
 	{
 		if(query.first != nullptr)
-			mDevice.GetQueryPool().ReleaseQuery(query.first);
+			mDevice.GetQueryPool().ReleaseQuery(*query.first);
 
 		if(query.second != nullptr)
-			mDevice.GetQueryPool().ReleaseQuery(query.second);
+			mDevice.GetQueryPool().ReleaseQuery(*query.second);
 	}
 
 	mQueries.clear();
@@ -40,10 +40,10 @@ void VulkanTimerQuery::Begin(GpuCommandBuffer& commandBuffer)
 	for(auto& query : mQueries)
 	{
 		if(query.first != nullptr)
-			queryPool.ReleaseQuery(query.first);
+			queryPool.ReleaseQuery(*query.first);
 
 		if(query.second != nullptr)
-			queryPool.ReleaseQuery(query.second);
+			queryPool.ReleaseQuery(*query.second);
 	}
 
 	mQueries.clear();
@@ -53,9 +53,8 @@ void VulkanTimerQuery::Begin(GpuCommandBuffer& commandBuffer)
 
 	// Retrieve and queue new query
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-	VulkanInternalCommandBuffer* internalCB = vulkanCommandBuffer.GetInternal();
-	VulkanQuery* beginQuery = queryPool.BeginTimerQuery(internalCB);
-	internalCB->RegisterQuery(this);
+	VulkanQuery* beginQuery = queryPool.BeginTimerQuery(vulkanCommandBuffer);
+	vulkanCommandBuffer.RegisterQuery(this);
 
 	mQueries.push_back(std::make_pair(beginQuery, nullptr));
 }
@@ -74,9 +73,8 @@ void VulkanTimerQuery::End(GpuCommandBuffer& commandBuffer)
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	VulkanInternalCommandBuffer* internalCB = vulkanCommandBuffer.GetInternal();
-	VulkanQuery* endQuery = queryPool.BeginTimerQuery(internalCB);
-	internalCB->RegisterQuery(this);
+	VulkanQuery* endQuery = queryPool.BeginTimerQuery(vulkanCommandBuffer);
+	vulkanCommandBuffer.RegisterQuery(this);
 
 	mQueries.back().second = endQuery;
 }
@@ -86,7 +84,7 @@ bool VulkanTimerQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
-void VulkanTimerQuery::Interrupt(VulkanInternalCommandBuffer& cb)
+void VulkanTimerQuery::Interrupt(VulkanGpuCommandBuffer& commandBuffer)
 {
 	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
 
@@ -94,8 +92,8 @@ void VulkanTimerQuery::Interrupt(VulkanInternalCommandBuffer& cb)
 	mQueryFinalized = false;
 
 	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	VulkanQuery* endQuery = queryPool.BeginTimerQuery(&cb);
-	cb.RegisterQuery(this);
+	VulkanQuery* endQuery = queryPool.BeginTimerQuery(commandBuffer);
+	commandBuffer.RegisterQuery(this);
 
 	mQueries.back().second = endQuery;
 }
@@ -146,10 +144,10 @@ float VulkanTimerQuery::GetTimeMs()
 			for(auto& query : mQueries)
 			{
 				if(query.first != nullptr)
-					queryPool.ReleaseQuery(query.first);
+					queryPool.ReleaseQuery(*query.first);
 
 				if(query.second != nullptr)
-					queryPool.ReleaseQuery(query.second);
+					queryPool.ReleaseQuery(*query.second);
 			}
 
 			mQueries.clear();

@@ -43,7 +43,7 @@ namespace bs
 			 *
 			 * @note	Thread safe.
 			 */
-			void PrepareForBind(VulkanInternalCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets);
+			void PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets);
 
 		protected:
 			/** All GPU param data related to a single descriptor set. */

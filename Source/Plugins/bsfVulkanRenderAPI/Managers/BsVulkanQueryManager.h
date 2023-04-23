@@ -27,34 +27,34 @@ namespace bs
 			/**
 			 * Begins a timer query on the provided command buffer.
 			 *
-			 * @param[in]	cb			Command buffer to begin the query on.
-			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
+			 * @param	commandBuffer	Command buffer to begin the query on.
+			 * @return					Relevant query object that was queued. It must be released via ReleaseQuery() once the
 			 *							caller is done accessing it.
 			 */
-			VulkanQuery* BeginTimerQuery(VulkanInternalCommandBuffer* cb);
+			VulkanQuery* BeginTimerQuery(VulkanGpuCommandBuffer& commandBuffer);
 
 			/**
-			 * Begins an occlusion query on the provided command buffer. Must be followed with a call to endOcclusionQuery
+			 * Begins an occlusion query on the provided command buffer. Must be followed with a call to EndOcclusionQuery
 			 * on the same command buffer, before the command buffer gets submitted.
 			 *
-			 * @param[in]	cb			Command buffer to begin the query on.
-			 * @param[in]	precise		When true the query will be able to return the precise number of processed samples,
+			 * @param	commandBuffer	Command buffer to begin the query on.
+			 * @param	precise			When true the query will be able to return the precise number of processed samples,
 			 *							otherwise it just returns a boolean value if anything was drawn.
-			 * @return					Relevant query object that was queued. It must be released via releaseQuery() once the
+			 * @return					Relevant query object that was queued. It must be released via ReleaseQuery() once the
 			 *							caller is done accessing it.
 			 */
-			VulkanQuery* BeginOcclusionQuery(VulkanInternalCommandBuffer* cb, bool precise);
+			VulkanQuery* BeginOcclusionQuery(VulkanGpuCommandBuffer& commandBuffer, bool precise);
 
 			/**
 			 * End am occlusion query query on the provided command buffer.
 			 *
-			 * @param[in]	query		Query previously begun with beginOcclusionQuery().
-			 * @param[in]	cb			Command buffer to end the query on.
+			 * @param	commandBuffer	Command buffer to begin the query on.
+			 * @param	query			Query previously begun with BeginOcclusionQuery().
 			 */
-			void EndOcclusionQuery(VulkanQuery* query, VulkanInternalCommandBuffer* cb);
+			void EndOcclusionQuery(VulkanGpuCommandBuffer& commandBuffer, VulkanQuery& query);
 
 			/** Releases a previously retrieved query, ensuring it can be re-used. */
-			void ReleaseQuery(VulkanQuery* query);
+			void ReleaseQuery(VulkanQuery& query);
 
 		private:
 			/** Query buffer pool and related information. */

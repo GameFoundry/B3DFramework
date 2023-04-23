@@ -76,11 +76,8 @@ void VulkanEventQuery::Begin(GpuCommandBuffer& commandBuffer)
 		mEvent = mDevice.GetResourceManager().Create<VulkanEvent>();
 
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-
-	VulkanInternalCommandBuffer* internalCB = vulkanCommandBuffer.GetInternal();
-	internalCB->RegisterResource(mEvent, VulkanAccessFlag::Read);
-
-	internalCB->SetEvent(mEvent);
+	vulkanCommandBuffer.RegisterResource(mEvent, VulkanAccessFlag::Read);
+	vulkanCommandBuffer.SetEvent(mEvent);
 }
 
 bool VulkanEventQuery::IsReady() const

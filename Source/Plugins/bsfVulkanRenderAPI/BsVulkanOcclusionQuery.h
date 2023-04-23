@@ -32,7 +32,7 @@ namespace bs
 			 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
 			 * open during command buffer submission.
 			 */
-			void Interrupt(VulkanInternalCommandBuffer& cb);
+			void Interrupt(VulkanGpuCommandBuffer& commandBuffer);
 
 		private:
 			VulkanGpuDevice& mDevice;

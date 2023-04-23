@@ -314,13 +314,13 @@ namespace bs
 			 * are of the same size. The operation will be queued on the provided command buffer. The system assumes the
 			 * provided image matches the current texture properties (i.e. num faces, mips, size).
 			 */
-			void CopyImageToImage(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
+			void CopyImageToImage(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, VulkanImage* destinationImage);
 
 			/**
 			 * Copies a single subresource from the source image into the destination buffer. Caller must ensure the destination buffer provides adequate
 			 * space for the texture data. Set @p isBufferReadOnly to true if the CPU only needs to read from the destination buffer, or false if it also needs to write to it.
 			 */
-			void CopyImageSubresourceToBuffer(VulkanInternalCommandBuffer* commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
+			void CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& commandBuffer, VulkanImage* sourceImage, u32 sourceFace, u32 sourceMipLevel, VulkanBuffer* destinationBuffer, bool isBufferReadOnly);
 
 			/** Returns pitch information for a particular image subresource. */
 			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;
