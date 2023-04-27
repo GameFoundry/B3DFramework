@@ -886,13 +886,12 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.AddShaderProfile("glsl");
 }
 
-void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, VulkanSemaphore** semaphores, u32& count)
+void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, SmallVector<VulkanSemaphore*, 8> outSemaphores) const
 {
 	AssertIfNotVulkanSubmitThread();
 
 	bool semaphoreRequestFailed = false;
 
-	u32 semaphoreIndex = 0;
 	for(u32 queueTypeIndex = 0; queueTypeIndex < GQT_COUNT; queueTypeIndex++)
 	{
 		const GpuQueueUsage queueType = (GpuQueueUsage)queueTypeIndex;
@@ -919,11 +918,9 @@ void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, VulkanSemaphore** semaphor
 				continue;
 			}
 
-			semaphores[semaphoreIndex++] = semaphore;
+			outSemaphores.Add(semaphore);
 		}
 	}
-
-	count = semaphoreIndex;
 
 	if(semaphoreRequestFailed)
 	{

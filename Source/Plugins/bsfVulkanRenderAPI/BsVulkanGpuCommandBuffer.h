@@ -91,6 +91,16 @@ namespace bs
 		typedef Flags<BufferUseFlagBits> BufferUseFlags;
 		B3D_FLAGS_OPERATORS(BufferUseFlagBits)
 
+		/** All the information required for submitting a VulkanGpuCommandBuffer */
+		struct GpuCommandBufferSubmitInformation
+		{
+			SPtr<VulkanGpuCommandBuffer> QueryResetCommandBuffer; /**< Helper command buffer on which to reset queries. Should be submitted first. */
+			SPtr<VulkanGpuCommandBuffer> SourceQueueTransitionCommandBuffer[GQT_COUNT]; /**< Contains resource transitions from their current queue to the destination queue, if there is a queue change. May be empty if there are no queue changes. To be executed on the source queue, rather than on the queue you are submitting on. */
+			SPtr<VulkanGpuCommandBuffer> DestinationQueueTransitionCommandBuffer; /**< Contains image layout transitions and transitions from source to the destination queue, if there are any. Should be submitted after the query reset command buffer. This submit should contain the provided semaphores if not empty. */
+			SPtr<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
+			SmallVector<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
+		};
+
 		/** CommandBuffer implementation for Vulkan. */
 		class VulkanGpuCommandBuffer final : public GpuCommandBuffer
 		{
@@ -159,17 +169,15 @@ namespace bs
 			ThreadId GetOwnerThread() const { return mOwnerThread; }
 
 			/**
-			 * Submits the command buffer for execution.
+			 * Prepares the command buffer to be submitted on a GpuQueue.
 			 *
-			 * @param	queue		Queue to submit the command buffer on.
-			 * @param	syncMask	Mask that controls which other command buffers does this command buffer depend upon
-			 *						(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
-			 *						This will be ORed with the internal sync mask.
-			 * @return				Sequential index of the submit on the queue, or ~0u if nothing was submitted.
-			 *
-			 * @note	Submit thread only.
+			 * @param queueUsage			Usage of the queue the command buffer will be submitted on.
+			 * @param queueIndex			Index of the queue the command buffer will be submitted on.
+			 * @return						Information required for submitting the command buffer on the queue.
+			 * 
+			 * @note Submit thread only.
 			 */
-			u32 ExecuteSubmitOnSubmitThread(VulkanGpuQueue* queue, u32 syncMask);
+			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueUsage queueUsage, u32 queueIndex);
 
 			/**
 			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
@@ -177,6 +185,9 @@ namespace bs
 			 * a sync mask.
 			 */
 			void AppendSyncMask(u32 syncMask) { mSyncMask |= syncMask; }
+
+			/** Returns the sync mask as set by AppendSyncMask(). */
+			u32 GetSyncMask() const { return mSyncMask; }
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit();
@@ -206,10 +217,9 @@ namespace bs
 			 * Releases the previously allocated semaphores, if they exist. Use getIntraQueueSemaphore() &
 			 * requestInterQueueSemaphore() to retrieve latest allocated semaphores.
 			 *
-			 * @param[out]	semaphores	Output array to place all allocated semaphores in. The array must be of size
-			 *							(BS_MAX_VULKAN_CB_DEPENDENCIES + 1).
+			 * @param	outSemaphores	Output array to append all allocated semaphores in. 
 			 */
-			void AllocateSemaphores(VkSemaphore* semaphores);
+			u32 AllocateSemaphores(SmallVector<VkSemaphore, 8>& outSemaphores);
 
 			/** Returns true if the command buffer is currently being processed by the device. */
 			bool IsSubmitted() const { return mState == State::Submitted; }
@@ -731,11 +741,10 @@ namespace bs
 			RenderSurfaceMask mClearMask;
 			Rect2I mClearArea;
 
-			Vector<VulkanSemaphore*> mSemaphoresTemp{ BS_MAX_UNIQUE_QUEUES };
 			VkBuffer mVertexBuffersTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDescriptorSet* mDescriptorSetsTemp;
-			UnorderedMap<u32, TransitionInfo> mTransitionInfoTemp;
+			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
 			Vector<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;
 			UnorderedMap<VulkanImage*, u32> mQueuedLayoutTransitions;
 			Vector<VulkanEvent*> mQueuedEvents;

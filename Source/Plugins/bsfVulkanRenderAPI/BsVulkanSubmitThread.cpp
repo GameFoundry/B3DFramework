@@ -65,9 +65,12 @@ VulkanSubmitThread::~VulkanSubmitThread()
 
 void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, u32 syncMask, bool blocking)
 {
-	auto fnCommand = [commandBuffer, &queue, syncMask]()
+	auto fnCommand = [commandBuffer, &queue, syncMask]() mutable
 	{
-		commandBuffer->ExecuteSubmitOnSubmitThread(&queue, syncMask);
+		GpuCommandBufferSubmitInformation submitInformation = commandBuffer->PrepareForSubmitOnSubmitThread(queue.GetUsage(), queue.GetIndex());
+
+		syncMask |= commandBuffer->GetSyncMask();
+		queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask);
 	};
 
 	commandBuffer->NotifyWillQueueForSubmit();

@@ -128,15 +128,13 @@ namespace bs
 			/**
 			 * Returns a set of command buffer semaphores depending on the provided sync mask.
 			 *
-			 * @param	syncMask	Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
-			 *						If the command buffer is not currently executing, semaphore won't be returned.
-			 * @param	semaphores	List containing all the required semaphores. Semaphores are tightly packed at the
-			 *						beginning of the array. Must be able to hold at least BS_MAX_UNIQUE_QUEUES entries.
-			 * @param	count		Number of semaphores provided in the @p semaphores array.
+			 * @param	syncMask		Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
+			 *							If the command buffer is not currently executing, semaphore won't be returned.
+			 * @param	outSemaphores	Array into which all required semaphores will be appended to. 
 			 *
 			 * @note	Submit thread only.
 			 */
-			void GetSyncSemaphores(u32 syncMask, VulkanSemaphore** semaphores, u32& count);
+			void GetSyncSemaphores(u32 syncMask, SmallVector<VulkanSemaphore*, 8> outSemaphores) const;
 
 			/**
 			 * @name Memory Allocation

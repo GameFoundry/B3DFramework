@@ -530,7 +530,8 @@ namespace bs
 		GQT_COMPUTE,
 		/** Queue used for memory transfer operations only. No draw or compute commands allowed. */
 		GQT_TRANSFER,
-		GQT_COUNT // Keep at end
+		GQT_COUNT, // Keep in front of GQT_UNKNOWN
+		GQT_UNKNOWN
 	};
 
 	/** These values represent a hint to the driver when writing to a GPU buffer. */

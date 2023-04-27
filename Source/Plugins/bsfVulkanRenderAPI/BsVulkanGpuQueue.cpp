@@ -20,13 +20,6 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 	static_cast<VulkanGpuCommandBuffer&>(*commandBuffer).Submit(*this, syncMask);
 }
 
-void VulkanGpuQueue::SubmitCommandBuffers(const ArrayView<SPtr<GpuCommandBuffer>>& commandBuffers, u32 syncMask)
-{
-	// TODO - Add a way to bulk-submit these
-	for(const auto& entry : commandBuffers)
-		static_cast<VulkanGpuCommandBuffer&>(*entry).Submit(*this, syncMask);
-}
-
 bool VulkanGpuQueue::IsExecuting() const
 {
 	AssertIfNotVulkanSubmitThread();
@@ -37,22 +30,22 @@ bool VulkanGpuQueue::IsExecuting() const
 	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
 }
 
-u32 VulkanGpuQueue::Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+u32 VulkanGpuQueue::Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
 	const u32 submitIndex = mNextSubmitIndex;
 
-	VkSemaphore signalSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES + 1];
-	commandBuffer->AllocateSemaphores(signalSemaphores);
+	B3D_ENSURE(mSignalSemaphoreHandleBuffer.Empty());
+	commandBuffer->AllocateSemaphores(mSignalSemaphoreHandleBuffer);
 
 	VkCommandBuffer vkCmdBuffer = commandBuffer->GetHandle();
 
-	mSemaphoresTemp.resize(semaphoresCount + 1); // +1 for self semaphore
-	PrepareSemaphores(waitSemaphores, mSemaphoresTemp.data(), semaphoresCount);
+	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
+	PrepareSemaphores(waitSemaphores, mWaitSemaphoreHandleBuffer);
 
 	VkSubmitInfo submitInfo;
-	GetSubmitInfo(&vkCmdBuffer, signalSemaphores, BS_MAX_VULKAN_CB_DEPENDENCIES + 1, mSemaphoresTemp.data(), semaphoresCount, submitInfo);
+	GetSubmitInfo(&vkCmdBuffer, mSignalSemaphoreHandleBuffer, mWaitSemaphoreHandleBuffer, submitInfo);
 
 	VkResult result = vkQueueSubmit(mQueue, 1, &submitInfo, commandBuffer->GetFence());
 	B3D_ASSERT(result == VK_SUCCESS);
@@ -62,19 +55,22 @@ u32 VulkanGpuQueue::Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, Vu
 	mLastCBSemaphoreUsed = false;
 
 	mActiveSubmissions.push_back(QueueSubmissionInformation(commandBuffer, mNextSubmitIndex++, 1));
-	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(commandBuffer, semaphoresCount));
+	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(commandBuffer, mWaitSemaphoreHandleBuffer.Size()));
+
+	mSignalSemaphoreHandleBuffer.Clear();
+	mWaitSemaphoreHandleBuffer.Clear();
 
 	return submitIndex;
 }
 
-void VulkanGpuQueue::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+void VulkanGpuQueue::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
-	mQueuedCommandBuffers.push_back(QueueSubmissionEntryInformation(commandBuffer, semaphoresCount));
+	mQueuedCommandBuffers.push_back(QueueSubmissionEntryInformation(commandBuffer, waitSemaphores.Size()));
 
-	for(u32 i = 0; i < semaphoresCount; i++)
-		mQueuedSemaphores.push_back(waitSemaphores[i]);
+	for(const auto& semaphore : waitSemaphores)
+		mQueuedSemaphores.push_back(semaphore);
 }
 
 u32 VulkanGpuQueue::SubmitQueued()
@@ -85,10 +81,7 @@ u32 VulkanGpuQueue::SubmitQueued()
 	if(queuedCommandBufferCount == 0)
 		return ~0u;
 
-	u32 totalNumWaitSemaphores = (u32)mQueuedSemaphores.size() + queuedCommandBufferCount;
-	u32 signalSemaphoresPerCB = (BS_MAX_VULKAN_CB_DEPENDENCIES + 1);
-
-	u8* data = (u8*)B3DStackAllocate((sizeof(VkSubmitInfo) + sizeof(VkCommandBuffer)) * queuedCommandBufferCount + sizeof(VkSemaphore) * signalSemaphoresPerCB * queuedCommandBufferCount + sizeof(VkSemaphore) * totalNumWaitSemaphores);
+	u8* data = (u8*)B3DStackAllocate((sizeof(VkSubmitInfo) + sizeof(VkCommandBuffer)) * queuedCommandBufferCount);
 	u8* dataPtr = data;
 
 	VkSubmitInfo* submitInfos = (VkSubmitInfo*)dataPtr;
@@ -97,26 +90,22 @@ u32 VulkanGpuQueue::SubmitQueued()
 	VkCommandBuffer* commandBuffers = (VkCommandBuffer*)dataPtr;
 	dataPtr += sizeof(VkCommandBuffer) * queuedCommandBufferCount;
 
-	VkSemaphore* signalSemaphores = (VkSemaphore*)dataPtr;
-	dataPtr += sizeof(VkSemaphore) * signalSemaphoresPerCB * queuedCommandBufferCount;
+	B3D_ENSURE(mSignalSemaphoreHandleBuffer.Empty());
+	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
 
-	VkSemaphore* waitSemaphores = (VkSemaphore*)dataPtr;
-	dataPtr += sizeof(VkSemaphore) * totalNumWaitSemaphores;
-
-	u32 readSemaphoreIdx = 0;
-	u32 writeSemaphoreIdx = 0;
-	u32 signalSemaphoreIdx = 0;
+	u32 waitSemaphoreInputIndex = 0;
+	u32 waitSemaphoreOutputIndex = 0;
+	u32 signalSemaphoreIndex = 0;
 	for(u32 i = 0; i < queuedCommandBufferCount; i++)
 	{
 		QueueSubmissionEntryInformation& entry = mQueuedCommandBuffers[i];
 
 		commandBuffers[i] = entry.CommandBuffer->GetHandle();
-		entry.CommandBuffer->AllocateSemaphores(&signalSemaphores[signalSemaphoreIdx]);
 
-		const u32 initialSemaphoresCount = entry.SemaphoreCount;
-		PrepareSemaphores(mQueuedSemaphores.data() + readSemaphoreIdx, &waitSemaphores[writeSemaphoreIdx], entry.SemaphoreCount);
+		const u32 allocatedSignalSemaphoreCount = entry.CommandBuffer->AllocateSemaphores(mSignalSemaphoreHandleBuffer);
+		const u32 allocatedWaitSemaphoreCount = PrepareSemaphores(ArrayView(mQueuedSemaphores.data() + waitSemaphoreInputIndex, entry.SemaphoreCount), mWaitSemaphoreHandleBuffer);
 
-		GetSubmitInfo(&commandBuffers[i], &signalSemaphores[signalSemaphoreIdx], signalSemaphoresPerCB, &waitSemaphores[writeSemaphoreIdx], entry.SemaphoreCount, submitInfos[i]);
+		GetSubmitInfo(&commandBuffers[i], ArrayView(mSignalSemaphoreHandleBuffer.Data() + signalSemaphoreIndex, allocatedSignalSemaphoreCount), ArrayView(mWaitSemaphoreHandleBuffer.data() + waitSemaphoreOutputIndex, allocatedWaitSemaphoreCount), submitInfos[i]);
 
 		entry.CommandBuffer->SetIsSubmitted();
 		mLastSubmittedCommandBuffer = entry.CommandBuffer; // Needs to be set because GetSubmitInfo depends on it
@@ -124,9 +113,9 @@ u32 VulkanGpuQueue::SubmitQueued()
 
 		mActiveCommandBuffers.push(entry);
 
-		readSemaphoreIdx += initialSemaphoresCount;
-		writeSemaphoreIdx += entry.SemaphoreCount;
-		signalSemaphoreIdx += signalSemaphoresPerCB;
+		waitSemaphoreInputIndex += entry.SemaphoreCount;
+		waitSemaphoreOutputIndex += allocatedWaitSemaphoreCount;
+		signalSemaphoreIndex += allocatedSignalSemaphoreCount;
 	}
 
 	const u32 submitIndex = mNextSubmitIndex;
@@ -141,39 +130,43 @@ u32 VulkanGpuQueue::SubmitQueued()
 	mQueuedSemaphores.clear();
 
 	B3DStackFree(data);
+
+	mSignalSemaphoreHandleBuffer.Clear();
+	mWaitSemaphoreHandleBuffer.Clear();
+
 	return submitIndex;
 }
 
-void VulkanGpuQueue::GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* signalSemaphores, u32 signalSemaphoreCount, VkSemaphore* waitSemaphores, u32 waitSemaphoreCount, VkSubmitInfo& submitInfo)
+void VulkanGpuQueue::GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, const ArrayView<VkSemaphore>& signalSemaphores, const ArrayView<VkSemaphore>& waitSemaphores, VkSubmitInfo& outSubmitInfo)
 {
 	AssertIfNotVulkanSubmitThread();
 
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.pNext = nullptr;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = vkCommandBuffer;
-	submitInfo.signalSemaphoreCount = signalSemaphoreCount;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-	submitInfo.waitSemaphoreCount = waitSemaphoreCount;
+	outSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	outSubmitInfo.pNext = nullptr;
+	outSubmitInfo.commandBufferCount = 1;
+	outSubmitInfo.pCommandBuffers = vkCommandBuffer;
+	outSubmitInfo.signalSemaphoreCount = signalSemaphores.Size();
+	outSubmitInfo.pSignalSemaphores = signalSemaphores.Data();
+	outSubmitInfo.waitSemaphoreCount = waitSemaphores.Size();
 
-	if(waitSemaphoreCount > 0)
+	if(waitSemaphores.Size() > 0)
 	{
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = mSubmitDstWaitMask;
+		outSubmitInfo.pWaitSemaphores = waitSemaphores.Data();
+		outSubmitInfo.pWaitDstStageMask = mSubmitDstWaitMask;
 	}
 	else
 	{
-		submitInfo.pWaitSemaphores = nullptr;
-		submitInfo.pWaitDstStageMask = nullptr;
+		outSubmitInfo.pWaitSemaphores = nullptr;
+		outSubmitInfo.pWaitDstStageMask = nullptr;
 	}
 }
 
-VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, VulkanSemaphore** waitSemaphores, u32 semaphoresCount)
+VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, ArrayView<VulkanSemaphore*> waitSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
-	mSemaphoresTemp.resize(semaphoresCount + 1); // +1 for self semaphore
-	PrepareSemaphores(waitSemaphores, mSemaphoresTemp.data(), semaphoresCount);
+	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
+	PrepareSemaphores(waitSemaphores, mWaitSemaphoreHandleBuffer);
 
 	VkSwapchainKHR vkSwapChain = swapChain->GetHandle();
 	VkPresentInfoKHR presentInfo;
@@ -185,10 +178,10 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	presentInfo.pResults = nullptr;
 
 	// Wait before presenting, if required
-	if(semaphoresCount > 0)
+	if(mWaitSemaphoreHandleBuffer.Size() > 0)
 	{
-		presentInfo.pWaitSemaphores = mSemaphoresTemp.data();
-		presentInfo.waitSemaphoreCount = semaphoresCount;
+		presentInfo.pWaitSemaphores = mWaitSemaphoreHandleBuffer.data();
+		presentInfo.waitSemaphoreCount = mWaitSemaphoreHandleBuffer.Size();
 	}
 	else
 	{
@@ -200,8 +193,9 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 	B3D_ASSERT(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR);
 
 	mActiveSubmissions.push_back(QueueSubmissionInformation(swapChain, mNextSubmitIndex++, 1));
-	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(nullptr, semaphoresCount));
+	mActiveCommandBuffers.push(QueueSubmissionEntryInformation(nullptr, mWaitSemaphoreHandleBuffer.Size()));
 
+	mWaitSemaphoreHandleBuffer.Clear();
 	return result;
 }
 
@@ -209,6 +203,74 @@ void VulkanGpuQueue::WaitUntilIdle()
 {
 	GetVulkanSubmitThread().WaitUntilIdle(*this);
 	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
+}
+
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, u32 syncMask)
+{
+	AssertIfNotVulkanSubmitThread();
+
+	VulkanGpuDevice& device = static_cast<VulkanGpuDevice&>(mGpuDevice);
+
+	if (submitInformation.QueryResetCommandBuffer != nullptr)
+		QueueSubmit(submitInformation.QueryResetCommandBuffer, {});
+
+	// No need to explicitly sync with any entries on the same queue
+	const u32 queueMask = device.GetQueueMask(mUsage, mIndex);
+	syncMask &= ~queueMask;
+
+	B3D_ASSERT(B3DSize(submitInformation.SourceQueueTransitionCommandBuffer) == GQT_COUNT);
+	for(u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; ++queueUsageIndex)
+	{
+		if (submitInformation.SourceQueueTransitionCommandBuffer[queueUsageIndex] == nullptr)
+			continue;
+
+		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
+		
+		// Find an appropriate queue to execute on
+		u32 transitionQueueIndex = 0;
+		SPtr<VulkanGpuQueue> transitionQueue = nullptr;
+
+		const u32 queueCount = device.GetQueueCount(transitionQueueUsage);
+		for(u32 queueIndex = 0; queueIndex < queueCount; queueIndex++)
+		{
+			// Try to find a queue not currently executing
+			const SPtr<VulkanGpuQueue>& curQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueUsage, queueIndex));
+			if(!curQueue->IsExecuting())
+			{
+				transitionQueue = curQueue;
+				transitionQueueIndex = queueIndex;
+			}
+		}
+
+		// Can't find empty one, use the first one then
+		if(transitionQueue == nullptr)
+		{
+			transitionQueue = std::static_pointer_cast<VulkanGpuQueue>(device.GetQueue(transitionQueueUsage, 0));
+			transitionQueueIndex = 0;
+		}
+
+		syncMask |= CommandSyncMask::GetGlobalQueueMask(transitionQueueUsage, transitionQueueIndex);
+
+		transitionQueue->Submit(submitInformation.SourceQueueTransitionCommandBuffer[queueUsageIndex], {});
+	}
+
+	B3D_ENSURE(mWaitSemaphoreBuffer.Empty());
+	mWaitSemaphoreBuffer.Append(submitInformation.Semaphores.begin(), submitInformation.Semaphores.end());
+
+	device.GetSyncSemaphores(syncMask, mWaitSemaphoreBuffer);
+
+	if(submitInformation.DestinationQueueTransitionCommandBuffer != nullptr)
+	{
+		QueueSubmit(submitInformation.DestinationQueueTransitionCommandBuffer, mWaitSemaphoreBuffer);
+
+		// No need to submit them with the primary command buffer if they were submitted here
+		mWaitSemaphoreBuffer.Clear();
+	}
+
+	QueueSubmit(submitInformation.PrimaryCommandBuffer, mWaitSemaphoreBuffer);
+	SubmitQueued();
+
+	mWaitSemaphoreBuffer.Clear();
 }
 
 void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty, u32 lastSubmitIndex)
@@ -319,19 +381,20 @@ void VulkanGpuQueue::RefreshCompletionStateOnRenderThread()
 	mPresentedSwapChainsToUnbindOnRenderThread.clear();
 }
 
-void VulkanGpuQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, u32& semaphoresCount)
+u32 VulkanGpuQueue::PrepareSemaphores(const ArrayView<VulkanSemaphore*>& inSemaphores, SmallVector<VkSemaphore, 8>& outSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
-	u32 semaphoreIdx = 0;
-	for(u32 i = 0; i < semaphoresCount; i++)
+	u32 count = 0;
+	const u32 globalQueueIndex = CommandSyncMask::GetGlobalQueueIdx(mUsage, mIndex);
+
+	for(const auto& semaphore : inSemaphores)
 	{
-		VulkanSemaphore* semaphore = inSemaphores[i];
-
 		semaphore->NotifyBound();
-		semaphore->NotifyUsed(0, 0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+		semaphore->NotifyUsed(globalQueueIndex, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
-		outSemaphores[semaphoreIdx++] = semaphore->GetHandle();
+		outSemaphores.Add(semaphore->GetHandle());
+		count++;
 		mActiveSemaphores.push(semaphore);
 	}
 
@@ -341,9 +404,10 @@ void VulkanGpuQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemapho
 		VulkanSemaphore* prevSemaphore = mLastSubmittedCommandBuffer->GetIntraQueueSemaphore();
 
 		prevSemaphore->NotifyBound();
-		prevSemaphore->NotifyUsed(0, 0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+		prevSemaphore->NotifyUsed(globalQueueIndex, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
 
-		outSemaphores[semaphoreIdx++] = prevSemaphore->GetHandle();
+		outSemaphores.Add(prevSemaphore->GetHandle());
+		count++;
 		mActiveSemaphores.push(prevSemaphore);
 
 		// This will prevent command buffers submitted after present() to use the same semaphore. This also means that
@@ -352,5 +416,5 @@ void VulkanGpuQueue::PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemapho
 		mLastCBSemaphoreUsed = true;
 	}
 
-	semaphoresCount = semaphoreIdx;
+	return count;
 }

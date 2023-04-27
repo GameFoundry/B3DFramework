@@ -62,7 +62,7 @@ namespace bs
 		{ }
 
 		template<typename U, std::enable_if_t<!std::is_rvalue_reference_v<U&&>, i32> = 0>
-		explicit ArrayView(U&& other) : ArrayView(other.data(), other.size())
+		ArrayView(U&& other) : ArrayView(other.data(), other.size())
 		{ }
 
 		bool operator==(const ArrayView& other)

@@ -9,6 +9,7 @@ namespace bs
 {
 	namespace ct
 	{
+		struct GpuCommandBufferSubmitInformation;
 		/** @addtogroup Vulkan
 		 *  @{
 		 */
@@ -20,9 +21,14 @@ namespace bs
 			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue);
 
 			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 syncMask) override;
-			void SubmitCommandBuffers(const ArrayView<SPtr<GpuCommandBuffer>>& commandBuffers, u32 syncMask) override;
-
 			void WaitUntilIdle() override;
+
+			/**
+			 * Submits a command buffer on the queue using information prepared by the command buffer.
+			 *
+			 * @note	Submit thread only.
+			 */
+			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, u32 syncMask);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetHandle() const { return mQueue; }
@@ -43,7 +49,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			u32 Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			u32 Submit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores);
 
 			/**
 			 * Stores information about a submit internally, but doesn't actually execute it. The intended use is to queue
@@ -52,7 +58,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores);
 
 			/**
 			 * Submits all previously queued commands buffers, as recorded by QueueSubmit(). Returns a sequential index of the last submitted buffer on the queue, or ~0u if nothing was submitted.
@@ -67,12 +73,11 @@ namespace bs
 			 * @param	swapChain			Swap chain whose back buffer to present.
 			 * @param	swapChainImageIndex	Index of the swap chain image to be presented. Must have been acquired previously.
 			 * @param	waitSemaphores		Optional semaphores to wait on before presenting the queue.
-			 * @param	semaphoresCount		Number of semaphores in the @p semaphores array.
 			 * @return						Return code of the present operation.
 			 *
 			 * @note	Submit thread only.
 			 */
-			VkResult Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, VulkanSemaphore** waitSemaphores, u32 semaphoresCount);
+			VkResult Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, ArrayView<VulkanSemaphore*> waitSemaphores);
 
 			/**
 			 * Checks if any of the active command buffers finished executing on the queue and updates their states accordingly. Note that you must follow this call
@@ -105,17 +110,16 @@ namespace bs
 			 * Generates a submit-info structure that can be used for submitting the command buffer to the queue, but doesn't
 			 * perform the actual submit.
 			 */
-			void GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, VkSemaphore* signalSemaphores, u32 signalSemaphoreCount, VkSemaphore* waitSemaphores, u32 waitSemaphoreCount, VkSubmitInfo& submitInfo);
+			void GetSubmitInfo(VkCommandBuffer* vkCommandBuffer, const ArrayView<VkSemaphore >& signalSemaphores, const ArrayView<VkSemaphore>& waitSemaphores, VkSubmitInfo& outSubmitInfo);
 
 			/**
-			 * Prepares a list of semaphores that can be provided to submit or present calls. *
+			 * Prepares a list of semaphores that can be provided to submit or present calls.
 			 *
-			 * @param[in]		inSemaphores	External wait semaphores that need to be waited on.
-			 * @param[out]		outSemaphores	All semaphores (external ones, and possibly additional ones), as Vulkan handles.
-			 * @param[in, out]	semaphoresCount	Number of semaphores in @p inSemaphores when calling. When method returns this
-			 *									will contain number of semaphores in @p outSemaphores.
+			 * @param		inSemaphores	External wait semaphores that need to be waited on.
+			 * @param		outSemaphores	All semaphores (external ones, and possibly additional ones), as Vulkan handles. To be appended to this array.
+			 * @return						Number of semaphores appended to the output array.
 			 */
-			void PrepareSemaphores(VulkanSemaphore** inSemaphores, VkSemaphore* outSemaphores, u32& semaphoresCount);
+			u32 PrepareSemaphores(const ArrayView<VulkanSemaphore*>& inSemaphores, SmallVector<VkSemaphore, 8>& outSemaphores);
 
 			/** Information about one or multiple submitted command buffers on a queue. */
 			struct QueueSubmissionInformation
@@ -160,7 +164,9 @@ namespace bs
 			bool mLastCBSemaphoreUsed = false;
 			u32 mNextSubmitIndex = 1;
 
-			Vector<VkSemaphore> mSemaphoresTemp;
+			SmallVector<VkSemaphore, 8> mSignalSemaphoreHandleBuffer; // Helper to avoid re-allocating memory
+			SmallVector<VkSemaphore, 8> mWaitSemaphoreHandleBuffer; // Helper to avoid re-allocating memory
+			SmallVector<VulkanSemaphore*, 8> mWaitSemaphoreBuffer; // Helper to avoid re-allocating memory
 
 			Mutex mMutex;
 			Vector<SPtr<VulkanGpuCommandBuffer>> mCommandBuffersToResetOnRenderThread;

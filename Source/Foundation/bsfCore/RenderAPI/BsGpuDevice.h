@@ -54,9 +54,6 @@ namespace bs
 		 */
 		virtual void SubmitCommandBuffer(const SPtr<ct::GpuCommandBuffer>& commandBuffer, u32 syncMask = 0) = 0;
 
-		/** Submits multiple command buffers at the same time. See SubmitCommandBuffer(). */
-		virtual void SubmitCommandBuffers(const ArrayView<SPtr<ct::GpuCommandBuffer>>& commandBuffers, u32 syncMask = 0) = 0;
-
 		/**
 		 * Returns a command buffer that is to be used for transfer operations when user doesn't provide an explicit command buffer.
 		 * Transfer command buffers on all queues should be submitted before any regular explicit command buffer submission, or at the end of frame.

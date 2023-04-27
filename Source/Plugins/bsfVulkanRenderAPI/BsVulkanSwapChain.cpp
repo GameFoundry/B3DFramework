@@ -410,7 +410,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 		vkCmdPipelineBarrier(vkCommandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0, nullptr, 0, nullptr, 1, &layoutTransitionBarrier);
 
 		commandBuffer->End();
-		queue.Submit(commandBuffer, nullptr, 0);
+		queue.Submit(commandBuffer, {});
 
 		imageSubresource->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
@@ -421,14 +421,15 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 	// Ignore myself as we handle this in VulkanGpuQueue::Present() already
 	syncMask &= ~queueMask;
 
-	u32 semaphoreCount;
-	presentDevice.GetSyncSemaphores(syncMask, mSemaphoresBuffer, semaphoreCount);
+	B3D_ENSURE(mSemaphoresBuffer.Empty());
+	presentDevice.GetSyncSemaphores(syncMask, mSemaphoresBuffer);
 
 	// Wait on present (i.e. until the back buffer becomes available), if we haven't already done so
-	if(AppendWaitSemaphoreIfRequired(imageIndex, semaphoreCount, mSemaphoresBuffer))
-		semaphoreCount++;
+	AppendWaitSemaphoreIfRequired(imageIndex, mSemaphoresBuffer);
 
-	const VkResult result = queue.Present(this, imageIndex, mSemaphoresBuffer, semaphoreCount);
+	const VkResult result = queue.Present(this, imageIndex, mSemaphoresBuffer);
+	mSemaphoresBuffer.Clear();
+
 	if(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
 	{
 		// As far as validation layers are concerned, when present fails the image is no longer considered as acquired.
@@ -443,14 +444,14 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 	}
 }
 
-bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, u32 semaphoreIndex, VulkanSemaphore** outSemaphores)
+bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, SmallVector<VulkanSemaphore*, 8>& outSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
 	if(!mSurfaces[imageIndex].NeedsWait)
 		return false;
 
-	outSemaphores[semaphoreIndex] = mSurfaces[imageIndex].Semaphore;
+	outSemaphores.Add(mSurfaces[imageIndex].Semaphore);
 	mSurfaces[imageIndex].NeedsWait = false;
 
 	return true;

@@ -12,7 +12,6 @@ VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
 	Lock lock(mMutex);
 
 	mOwner = owner;
-	mQueueFamily = -1;
 	mState = concurrency ? State::Shared : State::Normal;
 	mNumUsedHandles = 0;
 	mNumBoundHandles = 0;
@@ -35,19 +34,22 @@ void VulkanResource::NotifyBound()
 	mNumBoundHandles++;
 }
 
-void VulkanResource::NotifyUsed(u32 globalQueueIdx, u32 queueFamily, VulkanAccessFlags useFlags)
+void VulkanResource::NotifyUsed(u32 globalQueueIdx, VulkanAccessFlags useFlags)
 {
 	Lock lock(mMutex);
 	B3D_ASSERT(useFlags != VulkanAccessFlag::None);
 
+	GpuQueueUsage queueUsage;
+	CommandSyncMask::GetQueueIdxAndType(globalQueueIdx, queueUsage);
+
 	bool isUsed = mNumUsedHandles > 0;
 	if(isUsed && mState == State::Normal) // Used without support for concurrency
 	{
-		B3D_ASSERT(mQueueFamily == queueFamily && "Vulkan resource without concurrency support can only be used by one queue family at once.");
+		B3D_ASSERT(mQueueUsage == queueUsage && "Vulkan resource without concurrency support can only be used by one queue family at once.");
 	}
 
 	mNumUsedHandles++;
-	mQueueFamily = queueFamily;
+	mQueueUsage = queueUsage;
 
 	B3D_ASSERT(globalQueueIdx < kMaximumUniqueQueueCount);
 

@@ -57,10 +57,9 @@ namespace bs
 			 * Must follow a notifyBound(). Must eventually be followed by a notifyDone().
 			 *
 			 * @param[in]	globalQueueIdx	Global index of the queue the resource is being used in.
-			 * @param[in]	queueFamily		Family of the queue the resource is being used in.
 			 * @param[in]	useFlags		Flags that determine in what way is the resource being used.
 			 */
-			void NotifyUsed(u32 globalQueueIdx, u32 queueFamily, VulkanAccessFlags useFlags);
+			void NotifyUsed(u32 globalQueueIdx, VulkanAccessFlags useFlags);
 
 			/**
 			 * Notifies the resource that it is no longer used by on the GPU. This makes the resource usable on other command
@@ -116,15 +115,15 @@ namespace bs
 			}
 
 			/**
-			 * Returns the queue family the resource is currently owned by. Returns -1 if owned by no queue.
+			 * Returns the queue usage the resource is currently owned by. Returns -1 if owned by no queue.
 			 *
 			 * @note	If resource concurrency is enabled, then this value has no meaning as the resource can be used on
 			 *			multiple queue families at once.
 			 */
-			u32 GetQueueFamily() const
+			GpuQueueUsage GetQueueUsage() const
 			{
 				Lock lock(mMutex);
-				return mQueueFamily;
+				return mQueueUsage;
 			}
 
 			/**
@@ -168,7 +167,7 @@ namespace bs
 			};
 
 			VulkanResourceManager* mOwner;
-			u32 mQueueFamily;
+			GpuQueueUsage mQueueUsage = GQT_UNKNOWN;
 			State mState;
 
 			u8 mReadUses[kMaximumUniqueQueueCount];
