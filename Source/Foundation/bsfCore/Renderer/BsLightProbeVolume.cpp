@@ -465,6 +465,8 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			oldTexture->Copy(commandBuffer, mCoefficients);
 	}
 
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+
 	u32 numProbeUpdates = 0;
 	for(; mFirstDirtyProbe < (u32)mProbeInfos.size(); ++mFirstDirtyProbe)
 	{
@@ -480,7 +482,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			cubemapDesc.Height = 256;
 			cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-			SPtr<Texture> cubemap = Texture::Create(cubemapDesc);
+			SPtr<Texture> cubemap = gpuDevice->CreateTexture(cubemapDesc);
 
 			Vector3 localPos = mProbePositions[mFirstDirtyProbe];
 
@@ -674,6 +676,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 
 void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	Vector2I texSize = IBLUtility::GetShCoeffTextureSize(count, 3);
 
 	TextureCreateInformation desc;
@@ -683,7 +686,7 @@ void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 	desc.Usage = TU_LOADSTORE | TU_RENDERTARGET;
 	desc.Format = PF_RGBA32F;
 
-	mCoefficients = Texture::Create(desc);
+	mCoefficients = gpuDevice->CreateTexture(desc);
 	mCoeffBufferSize = count;
 }
 }}

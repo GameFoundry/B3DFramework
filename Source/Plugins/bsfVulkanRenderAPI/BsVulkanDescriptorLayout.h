@@ -20,7 +20,7 @@ namespace bs
 			~VulkanDescriptorLayout();
 
 			/** Returns a handle to the Vulkan set layout object. */
-			VkDescriptorSetLayout GetHandle() const { return mLayout; }
+			VkDescriptorSetLayout GetVulkanHandle() const { return mLayout; }
 
 			/** Returns a hash value for the descriptor layout. */
 			size_t GetHash() const { return mHash; }

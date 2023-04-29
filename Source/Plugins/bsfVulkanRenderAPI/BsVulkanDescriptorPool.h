@@ -20,7 +20,7 @@ namespace bs
 			~VulkanDescriptorPool();
 
 			/** Returns a handle to the internal Vulkan descriptor pool. */
-			VkDescriptorPool GetHandle() const { return mPool; }
+			VkDescriptorPool GetVulkanHandle() const { return mPool; }
 
 		private:
 			static const u32 sMaxSets = 8192;

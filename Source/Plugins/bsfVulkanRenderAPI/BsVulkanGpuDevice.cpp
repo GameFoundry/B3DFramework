@@ -28,6 +28,7 @@ static_assert(false, "Other platform includes go here.");
 #include "BsVulkanGpuPipelineParameterLayout.h"
 #include "BsVulkanGpuProgram.h"
 #include "BsVulkanOcclusionQuery.h"
+#include "BsVulkanTexture.h"
 #include "BsVulkanTimerQuery.h"
 #include "ThirdParty/vk_mem_alloc.h"
 #include "Utility/BsBitwise.h"
@@ -35,8 +36,8 @@ static_assert(false, "Other platform includes go here.");
 using namespace bs;
 using namespace bs::ct;
 
-VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx)
-	: mPhysicalDevice(device), mDeviceIdx(deviceIdx), mQueueInfos(), mBuiltinResources(*this)
+VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
+	: mPhysicalDevice(device), mQueueInfos(), mBuiltinResources(*this)
 {
 	// Set to default
 	for(u32 i = 0; i < GQT_COUNT; i++)
@@ -470,6 +471,17 @@ SPtr<GpuQueue> VulkanGpuDevice::GetQueue(GpuQueueUsage usage, u32 index) const
 SPtr<GpuCommandBufferPool> VulkanGpuDevice::CreateGpuCommandBufferPool(const ct::GpuCommandBufferPoolCreateInformation& createInformation)
 {
 	return B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBufferPool>()) VulkanGpuCommandBufferPool(*this, createInformation));
+}
+
+SPtr<ct::Texture> VulkanGpuDevice::CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize)
+{
+	SPtr<Texture> output = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanTexture>()) VulkanTexture(*this, createInformation));
+	output->SetShared(output);
+
+	if(!deferredInitialize)
+		output->Initialize();
+
+	return output;
 }
 
 SPtr<ct::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize)

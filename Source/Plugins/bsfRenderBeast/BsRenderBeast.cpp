@@ -646,7 +646,7 @@ void RenderBeast::UpdateReflProbeArray(GpuCommandBuffer& commandBuffer)
 			cubeMapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
 			cubeMapDesc.ArraySliceCount = std::min(kMaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
 
-			sceneInfo.ReflProbeCubemapsTex = Texture::Create(cubeMapDesc);
+			sceneInfo.ReflProbeCubemapsTex = mDevice->CreateTexture(cubeMapDesc);
 
 			forceArrayUpdate = true;
 		}

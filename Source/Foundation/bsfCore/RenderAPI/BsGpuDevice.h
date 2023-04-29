@@ -6,6 +6,8 @@
 
 namespace bs
 {
+	struct TextureCreateInformation;
+
 	namespace ct
 	{
 		struct GpuCommandBufferPoolCreateInformation;
@@ -146,6 +148,14 @@ namespace bs
 
 		/** Creates a command buffer pool that may be used for allocating command buffers. */
 		virtual SPtr<ct::GpuCommandBufferPool> CreateGpuCommandBufferPool(const ct::GpuCommandBufferPoolCreateInformation& createInformation) = 0;
+
+		/**
+		 * Creates a new GPU texture.
+		 *
+		 * @param	createInformation		Object describing the texture to create.
+		 * @param	deferredInitialize		If true, Initialize() will not be called on the returned object, and the caller is expected to call it himself, before first using the object.
+		 */
+		virtual SPtr<ct::Texture> CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
 		/**
 		 * Creates a new GPU buffer.

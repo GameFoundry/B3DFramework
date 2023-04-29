@@ -21,7 +21,7 @@ namespace bs
 			~VulkanDescriptorSet();
 
 			/** Returns a handle to the Vulkan descriptor set object. */
-			VkDescriptorSet GetHandle() const { return mSet; }
+			VkDescriptorSet GetVulkanHandle() const { return mSet; }
 
 			/** Updates the descriptor set with the provided values. */
 			void Write(VkWriteDescriptorSet* entries, u32 count);

@@ -17,8 +17,8 @@ VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc)
 
 namespace bs {
 namespace ct {
-VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-	: RenderTexture(desc, deviceIdx), mProperties(desc, false), mDeviceIdx(deviceIdx), mFramebuffer(nullptr)
+VulkanRenderTexture::VulkanRenderTexture(VulkanGpuDevice& gpuDevice, const RENDER_TEXTURE_DESC& desc)
+	: RenderTexture(desc), mGpuDevice(gpuDevice), mProperties(desc, false), mFramebuffer(nullptr)
 {
 }
 
@@ -34,7 +34,6 @@ void VulkanRenderTexture::Initialize()
 	framebufferInformation.Width = mProperties.Width;
 	framebufferInformation.Height = mProperties.Height;
 
-	const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(mDeviceIdx);
 	for(u32 renderTargetIndex = 0; renderTargetIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; ++renderTargetIndex)
 	{
 		if(mColorSurfaces[renderTargetIndex] == nullptr)
@@ -43,7 +42,7 @@ void VulkanRenderTexture::Initialize()
 		const SPtr<TextureView>& view = mColorSurfaces[renderTargetIndex];
 		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.ColorSurfaces[renderTargetIndex].Texture.get());
 
-		VulkanImage* image = texture->GetResource(mDeviceIdx);
+		VulkanImage* image = texture->GetVulkanResource();
 		if(image == nullptr)
 			continue;
 
@@ -87,7 +86,7 @@ void VulkanRenderTexture::Initialize()
 		renderPassInformation.ColorAttachments[renderTargetIndex].IsShaderReadAllowed = image->IsShaderReadAllowed();
 
 		const TextureProperties& textureProperties = texture->GetProperties();
-		const PixelFormat internalFormat = texture->GetInternalFormat(mDeviceIdx);
+		const PixelFormat internalFormat = texture->GetInternalFormat();
 
 		renderPassInformation.ColorAttachments[renderTargetIndex].Format = VulkanUtility::GetPixelFormat(internalFormat, textureProperties.UseHardwareSRGB);
 	}
@@ -97,7 +96,7 @@ void VulkanRenderTexture::Initialize()
 		const SPtr<TextureView>& view = mDepthStencilSurface;
 		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.DepthStencilSurface.Texture.get());
 
-		VulkanImage* image = texture->GetResource(mDeviceIdx);
+		VulkanImage* image = texture->GetVulkanResource();
 		if(image != nullptr)
 		{
 			const TextureSurface& viewSurface = view->GetInformation().Surface;
@@ -134,13 +133,13 @@ void VulkanRenderTexture::Initialize()
 			renderPassInformation.DepthAttachment.IsShaderReadAllowed = image->IsShaderReadAllowed();
 
 			const TextureProperties& textureProperties = texture->GetProperties();
-			const PixelFormat internalFormat = texture->GetInternalFormat(mDeviceIdx);
+			const PixelFormat internalFormat = texture->GetInternalFormat();
 
 			renderPassInformation.DepthAttachment.Format = VulkanUtility::GetPixelFormat(internalFormat, textureProperties.UseHardwareSRGB);
 		}
 	}
 
-	mFramebuffer = VulkanFramebufferCache::Instance().FindOrCreateFramebuffer(*device, framebufferInformation, renderPassInformation);
+	mFramebuffer = VulkanFramebufferCache::Instance().FindOrCreateFramebuffer(mGpuDevice, framebufferInformation, renderPassInformation);
 }
 
 void VulkanRenderTexture::GetCustomAttribute(const String& name, void* data) const

@@ -85,15 +85,6 @@ namespace bs
 			static VkViewport ToVulkanViewport(const Rect2I& input, float minDepth, float maxDepth);
 
 			/**
-			 * Populates the provided array with Vulkan devices that correspond to provided flags. Sets null in unused slots.
-			 * Each device is placed at its own index in the output array.
-			 */
-			static void GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanGpuDevice* (&devices)[B3D_MAX_DEVICES]);
-
-			/** Checks is a flag for a particular device enabled. */
-			static bool IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags);
-
-			/**
 			 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the
 			 * @p cutWith range completely overs the @p toCut range, the original @p toCut range is output.
 			 *

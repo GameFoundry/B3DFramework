@@ -51,7 +51,7 @@ namespace bs
 			 * Returns a layout for the specified device, at the specified index. Returns null if no layout for the specified
 			 * device index.
 			 */
-			VulkanDescriptorLayout* GetLayout(u32 deviceIdx, u32 layoutIndex) const;
+			VulkanDescriptorLayout* GetLayout(u32 layoutIndex) const { return mLayouts[layoutIndex]; }
 
 		private:
 			/** Data related to a single descriptor set layout. */

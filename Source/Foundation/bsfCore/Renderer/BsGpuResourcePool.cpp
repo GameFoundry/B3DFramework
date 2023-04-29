@@ -37,21 +37,21 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 	SPtr<PooledRenderTexture> newTexture = B3DMakeShared<PooledRenderTexture>(mCurrentFrame);
 	mTextures.Add(newTexture);
 
-	TextureCreateInformation texDesc;
-	texDesc.Type = desc.type;
-	texDesc.Width = desc.width;
-	texDesc.Height = desc.height;
-	texDesc.Depth = desc.depth;
-	texDesc.Format = desc.format;
-	texDesc.Usage = desc.flag;
-	texDesc.UseHardwareSRGB = desc.hwGamma;
-	texDesc.SampleCount = desc.numSamples;
-	texDesc.MipMapCount = desc.numMipLevels;
+	TextureCreateInformation textureCreateInformation;
+	textureCreateInformation.Type = desc.type;
+	textureCreateInformation.Width = desc.width;
+	textureCreateInformation.Height = desc.height;
+	textureCreateInformation.Depth = desc.depth;
+	textureCreateInformation.Format = desc.format;
+	textureCreateInformation.Usage = desc.flag;
+	textureCreateInformation.UseHardwareSRGB = desc.hwGamma;
+	textureCreateInformation.SampleCount = desc.numSamples;
+	textureCreateInformation.MipMapCount = desc.numMipLevels;
 
 	if(desc.type != TEX_TYPE_3D)
-		texDesc.ArraySliceCount = desc.arraySize;
+		textureCreateInformation.ArraySliceCount = desc.arraySize;
 
-	newTexture->Texture = Texture::Create(texDesc);
+	newTexture->Texture = mDevice->CreateTexture(textureCreateInformation);
 
 	if((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 	{

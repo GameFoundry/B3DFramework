@@ -792,13 +792,15 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 
 void LightProbes::ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 numRows)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+
 	TextureCreateInformation desc;
 	desc.Width = 4096;
 	desc.Height = numRows;
 	desc.Usage = TU_LOADSTORE | TU_RENDERTARGET;
 	desc.Format = PF_RGBA32F;
 
-	SPtr<Texture> newTexture = Texture::Create(desc);
+	SPtr<Texture> newTexture = gpuDevice->CreateTexture(desc);
 	if (mProbeCoefficientsGPU)
 		mProbeCoefficientsGPU->Copy(commandBuffer, newTexture);
 

@@ -153,9 +153,6 @@ namespace bs
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
 
-			/** Returns the index of the device this command buffer will execute on. */
-			u32 GetDeviceIndex() const;
-
 			/** Returns the thread that the command buffer is allowed to be used on. */
 			ThreadId GetOwnerThread() const { return mOwnerThread; }
 
@@ -184,7 +181,7 @@ namespace bs
 			void NotifyWillQueueForSubmit();
 
 			/** Returns the handle to the internal Vulkan command buffer wrapped by this object. */
-			VkCommandBuffer GetHandle() const { return mCmdBuffer; }
+			VkCommandBuffer GetVulkanHandle() const { return mCommandBufferHandle; }
 
 			/** Returns a fence that can be used for tracking when the command buffer is done executing. */
 			VkFence GetFence() const { return mFence; }
@@ -673,7 +670,7 @@ namespace bs
 			u32 mId;
 			State mState = State::Ready;
 			VulkanGpuDevice& mDevice;
-			VkCommandBuffer mCmdBuffer;
+			VkCommandBuffer mCommandBufferHandle;
 			VkFence mFence;
 			ThreadId mOwnerThread;
 			u32 mSyncMask;

@@ -19,28 +19,22 @@ static void RunSubmitThreadCommand(bs::WorkerThreadWithCommandQueue& commandQueu
 		function();
 }
 
-VulkanSubmitThread::VulkanSubmitThread()
-	: mCommandQueue("VulkanSubmitThread")
+VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
+	: mGpuDevice(gpuDevice), mCommandQueue("VulkanSubmitThread")
 {
 	auto fnInitialize = [this]()
 	{
-		const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
-		for (u32 deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++)
+		for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
 		{
-			const SPtr<VulkanGpuDevice>& device = GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
+			const GpuQueueUsage queueUsage = (GpuQueueUsage)gpuQueueUsageIndex;
+			if (mGpuDevice.GetQueueCount(queueUsage) == 0)
+				continue;
 
-			for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
-			{
-				const GpuQueueUsage queueUsage = (GpuQueueUsage)gpuQueueUsageIndex;
-				if (device->GetQueueCount(queueUsage) == 0)
-					continue;
+			GpuCommandBufferPoolCreateInformation poolCreateInformation;
+			poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
+			poolCreateInformation.Usage = queueUsage;
 
-				GpuCommandBufferPoolCreateInformation poolCreateInformation;
-				poolCreateInformation.Thread = B3D_CURRENT_THREAD_ID;
-				poolCreateInformation.Usage = queueUsage;
-
-				mCommandBufferPools[deviceIndex][gpuQueueUsageIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(device->CreateGpuCommandBufferPool(poolCreateInformation));
-			}
+			mCommandBufferPools[gpuQueueUsageIndex] = std::static_pointer_cast<VulkanGpuCommandBufferPool>(mGpuDevice.CreateGpuCommandBufferPool(poolCreateInformation));
 		}
 	};
 
@@ -51,12 +45,9 @@ VulkanSubmitThread::~VulkanSubmitThread()
 {
 	auto fnDestroy = [this]()
 	{
-		for (auto& poolsOnDevice : mCommandBufferPools)
+		for (auto& pool : mCommandBufferPools)
 		{
-			for (auto& pool : poolsOnDevice)
-			{
-				pool = nullptr;
-			}
+			pool = nullptr;
 		}
 	};
 
@@ -185,7 +176,7 @@ void VulkanSubmitThread::WaitUntilIdle(VulkanGpuQueue& queue)
 	{
 		TaskScheduler::Instance().AddWorker();
 
-		const VkResult result = vkQueueWaitIdle(queue.GetHandle());
+		const VkResult result = vkQueueWaitIdle(queue.GetVulkanHandle());
 		B3D_ASSERT(result == VK_SUCCESS);
 
 		TaskScheduler::Instance().RemoveWorker();

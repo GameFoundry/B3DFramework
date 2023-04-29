@@ -66,7 +66,7 @@ namespace bs
 			void Destroy() override;
 
 			/** Returns the internal handle to the Vulkan object. */
-			VkImage GetHandle() const { return mImage; }
+			VkImage GetVulkanHandle() const { return mImage; }
 
 			/** Assigns an name to the image, primarily used for easier debugging. */
 			void SetName(const StringView& name);
@@ -266,25 +266,18 @@ namespace bs
 		public:
 			~VulkanTexture();
 
-			/**
-			 * Gets the resource wrapping the Vulkan image object, on the specified device. If texture device mask doesn't
-			 * include the provided device, null is returned.
-			 */
-			VulkanImage* GetResource(u32 deviceIdx) const { return mImages[deviceIdx]; }
+			/** Gets the resource wrapping the Vulkan image object. */
+			VulkanImage* GetVulkanResource() const { return mImage; }
 
 			/** Returns the internal format of the texture when used on the specified device. This may differ from the requested format if the device doesn't support it. */
-			PixelFormat GetInternalFormat(u32 deviceIndex) const
-			{
-				B3D_ASSERT(deviceIndex < B3DSize(mInternalFormats));
-				return mInternalFormats[deviceIndex];
-			}
+			PixelFormat GetInternalFormat() const { return mInternalFormat; }
 
 			void SetName(const StringView& name) override;
 
 		protected:
-			friend class VulkanTextureManager;
+			friend class VulkanGpuDevice;
 
-			VulkanTexture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask);
+			VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation);
 
 			void Initialize() override;
 			PixelData LockInternal(GpuLockOptions options, u32 mipLevel = 0, u32 face = 0) override;
@@ -297,17 +290,16 @@ namespace bs
 
 		private:
 			/** Creates a new image for the specified device, matching the current properties. */
-			VulkanImage* CreateImage(VulkanGpuDevice& device, PixelFormat format);
+			VulkanImage* CreateImage(PixelFormat format);
 
 			/**
 			 * Creates a staging buffer that can be used for texture transfer operations.
 			 *
-			 * @param[in]	device		Device to create the buffer on.
-			 * @param[in]	pixelData	Object that describes the image sub-resource that will be in the buffer.
-			 * @param[in]	needsRead	True if we will be copying data from the buffer, false if just reading. True if both.
+			 * @param	pixelData	Object that describes the image sub-resource that will be in the buffer.
+			 * @param	needsRead	True if we will be copying data from the buffer, false if just reading. True if both.
 			 * @return					Newly allocated buffer.
 			 */
-			VulkanBuffer* CreateStaging(VulkanGpuDevice& device, const PixelData& pixelData, bool needsRead);
+			VulkanBuffer* CreateStaging(const PixelData& pixelData, bool needsRead);
 
 			/**
 			 * Copies all sub-resources from the source image to the destination image. Caller must ensure the images
@@ -325,11 +317,11 @@ namespace bs
 			/** Returns pitch information for a particular image subresource. */
 			ImageSubresourcePitch GetPitchForSubresource(VulkanImage* image, u32 face, u32 mipLevel) const;
 
-			VulkanImage* mImages[B3D_MAX_DEVICES];
-			PixelFormat mInternalFormats[B3D_MAX_DEVICES];
-			GpuDeviceFlags mDeviceMask;
+			VulkanGpuDevice& mGpuDevice;
+			VulkanImage* mImage = nullptr;
+			PixelFormat mInternalFormat = PF_UNKNOWN;
 
-			VkImageCreateInfo mImageCI;
+			VkImageCreateInfo mImageCreateInformation;
 			bool mDirectlyMappable : 1;
 			bool mSupportsGPUWrites : 1;
 			bool mIsMapped : 1;

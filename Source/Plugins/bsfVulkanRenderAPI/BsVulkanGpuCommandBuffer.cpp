@@ -91,7 +91,7 @@ SPtr<GpuCommandBuffer> VulkanGpuCommandBufferPool::Create(const GpuCommandBuffer
 	SPtr<VulkanGpuCommandBuffer> commandBuffer = B3DMakeSharedFromExisting(new(B3DAllocate<VulkanGpuCommandBuffer>()) VulkanGpuCommandBuffer(static_cast<VulkanGpuDevice&>(mGpuDevice), mNextCommandBufferId++, commandBufferHandle, mInformation.Thread, mInformation.Usage, createInformation),
 		[this](VulkanGpuCommandBuffer* commandBuffer)
 		{
-			VkCommandBuffer commandBufferHandle = commandBuffer->GetHandle();
+			VkCommandBuffer commandBufferHandle = commandBuffer->GetVulkanHandle();
 			vkFreeCommandBuffers(static_cast<VulkanGpuDevice&>(mGpuDevice).GetLogical(), mVulkanPool, 1, &commandBufferHandle);
 
 			B3DDelete(commandBuffer);
@@ -132,7 +132,7 @@ const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
 VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation)
-	: GpuCommandBuffer(ownerThread, queueType, createInformation), mId(id), mDevice(device), mCmdBuffer(commandBufferHandle), mOwnerThread(ownerThread), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
+	: GpuCommandBuffer(ownerThread, queueType, createInformation), mId(id), mDevice(device), mCommandBufferHandle(commandBufferHandle), mOwnerThread(ownerThread), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -225,11 +225,6 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 	B3DFree(mDescriptorSetsTemp);
 }
 
-u32 VulkanGpuCommandBuffer::GetDeviceIndex() const
-{
-	return mDevice.GetIndex();
-}
-
 void VulkanGpuCommandBuffer::Begin()
 {
 	EnsureValidThread();
@@ -241,7 +236,7 @@ void VulkanGpuCommandBuffer::Begin()
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	beginInfo.pInheritanceInfo = nullptr;
 
-	VkResult result = vkBeginCommandBuffer(mCmdBuffer, &beginInfo);
+	VkResult result = vkBeginCommandBuffer(mCommandBufferHandle, &beginInfo);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	mState = State::Recording;
@@ -259,7 +254,7 @@ void VulkanGpuCommandBuffer::End()
 	if(mIsDebugLabelOpen)
 		EndLabel();
 
-	VkResult result = vkEndCommandBuffer(mCmdBuffer);
+	VkResult result = vkEndCommandBuffer(mCommandBufferHandle);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	mRenderTarget = nullptr;
@@ -684,10 +679,9 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 	{
 		if(mBoundDescriptorSetCount > 0)
 		{
-			u32 deviceIdx = mDevice.GetIndex();
-			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayout(deviceIdx);
+			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
 
-			vkCmdBindDescriptorSets(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
@@ -696,7 +690,7 @@ void VulkanGpuCommandBuffer::Draw(u32 vertexOffset, u32 vertexCount, u32 instanc
 	if(instanceCount <= 0)
 		instanceCount = 1;
 
-	vkCmdDraw(mCmdBuffer, vertexCount, instanceCount, vertexOffset, firstInstance);
+	vkCmdDraw(mCommandBufferHandle, vertexCount, instanceCount, vertexOffset, firstInstance);
 	NotifyRenderTargetModified();
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
@@ -739,10 +733,9 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 	{
 		if(mBoundDescriptorSetCount > 0)
 		{
-			u32 deviceIdx = mDevice.GetIndex();
-			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayout(deviceIdx);
+			VkPipelineLayout pipelineLayout = mGraphicsPipeline->GetPipelineLayoutHandle();
 
-			vkCmdBindDescriptorSets(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Graphics);
@@ -751,7 +744,7 @@ void VulkanGpuCommandBuffer::DrawIndexed(u32 startIndex, u32 indexCount, u32 ver
 	if(instanceCount <= 0)
 		instanceCount = 1;
 
-	vkCmdDrawIndexed(mCmdBuffer, indexCount, instanceCount, startIndex, vertexOffset, firstInstance);
+	vkCmdDrawIndexed(mCommandBufferHandle, indexCount, instanceCount, startIndex, vertexOffset, firstInstance);
 	NotifyRenderTargetModified();
 
 	B3D_INCREMENT_RENDER_STATISTIC(NumDrawCalls);
@@ -778,17 +771,16 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 	ExecuteWriteHazardBarrier();
 	ExecuteLayoutTransitions();
 
-	u32 deviceIdx = mDevice.GetIndex();
 	if(mCmpPipelineRequiresBind)
 	{
-		VulkanPipeline* pipeline = mComputePipeline->GetPipeline(deviceIdx);
+		VulkanPipeline* pipeline = mComputePipeline->GetVulkanResource();
 		if(pipeline == nullptr)
 			return;
 
 		RegisterResource(pipeline, VulkanAccessFlag::Read);
 		mComputePipeline->RegisterPipelineResources(*this);
 
-		vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->GetHandle());
+		vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->GetVulkanHandle());
 		mCmpPipelineRequiresBind = false;
 	}
 
@@ -796,14 +788,14 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 	{
 		if(mBoundDescriptorSetCount > 0)
 		{
-			VkPipelineLayout pipelineLayout = mComputePipeline->GetPipelineLayout(deviceIdx);
-			vkCmdBindDescriptorSets(mCmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
+			VkPipelineLayout pipelineLayout = mComputePipeline->GetPipelineLayoutHandle();
+			vkCmdBindDescriptorSets(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, mBoundDescriptorSetCount, mDescriptorSetsTemp, (u32)mDynamicDescriptorOffsetsToBind.size(), mDynamicDescriptorOffsetsToBind.data());
 		}
 
 		mDescriptorSetsBindState.Unset(DescriptorSetBindFlag::Compute);
 	}
 
-	vkCmdDispatch(mCmdBuffer, groupCountX, groupCountY, groupCountZ);
+	vkCmdDispatch(mCommandBufferHandle, groupCountX, groupCountY, groupCountZ);
 
 	// Remove any shader use flags on images. Note this relies on the fact that we re-bind all parameters on every
 	// dispatch call and render pass, so they can reset this flags. Otherwise clearing the flags is wrong if the
@@ -837,7 +829,7 @@ void VulkanGpuCommandBuffer::BeginLabel(const StringView& name)
 	labelInfo.color[2] = kDebugLabelColor.B;
 	labelInfo.color[3] = kDebugLabelColor.A;
 
-	vkCmdBeginDebugUtilsLabelEXT(mCmdBuffer, &labelInfo);
+	vkCmdBeginDebugUtilsLabelEXT(mCommandBufferHandle, &labelInfo);
 	mIsDebugLabelOpen = true;
 }
 
@@ -848,7 +840,7 @@ void VulkanGpuCommandBuffer::EndLabel()
 	if(!IsRecording() || vkCmdBeginDebugUtilsLabelEXT == nullptr)
 		return;
 
-	vkCmdEndDebugUtilsLabelEXT(mCmdBuffer);
+	vkCmdEndDebugUtilsLabelEXT(mCommandBufferHandle);
 	mIsDebugLabelOpen = false;
 }
 
@@ -868,7 +860,7 @@ void VulkanGpuCommandBuffer::InsertLabel(const StringView& name)
 	labelInfo.color[2] = kDebugLabelColor.B;
 	labelInfo.color[3] = kDebugLabelColor.A;
 
-	vkCmdInsertDebugUtilsLabelEXT(mCmdBuffer, &labelInfo);
+	vkCmdInsertDebugUtilsLabelEXT(mCommandBufferHandle, &labelInfo);
 }
 
 void VulkanGpuCommandBuffer::BeginRenderPass()
@@ -974,13 +966,13 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 	VkRenderPassBeginInfo renderPassBeginInfo;
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.pNext = nullptr;
-	renderPassBeginInfo.framebuffer = mFramebuffer->GetVkFramebuffer();
+	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
 	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(loadMask, readMask, clearMask);
 	renderPassBeginInfo.renderArea = VulkanUtility::ToVulkanRect(renderArea);
 	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(clearMask);
 	renderPassBeginInfo.pClearValues = mClearValues.data();
 
-	vkCmdBeginRenderPass(mCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	mClearMask = RT_NONE;
 	mState = State::RecordingRenderPass;
@@ -995,11 +987,11 @@ void VulkanGpuCommandBuffer::EndRenderPass(bool isInternalInterrupt)
 {
 	B3D_ASSERT(mState == State::RecordingRenderPass);
 
-	vkCmdEndRenderPass(mCmdBuffer);
+	vkCmdEndRenderPass(mCommandBufferHandle);
 
 	// Execute any queued events
 	for(auto& entry : mQueuedEvents)
-		vkCmdSetEvent(mCmdBuffer, entry->GetHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		vkCmdSetEvent(mCommandBufferHandle, entry->GetVulkanHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
 	mQueuedEvents.clear();
 
@@ -1066,14 +1058,14 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	B3D_ASSERT(IsSubmitted()); // Caller should already have set this flag
 
 	GpuCommandBufferSubmitInformation submitInformation;
-	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(mDevice.GetIndex(), queueUsage);
+	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queueUsage);
 
 	// If there are any query resets needed, execute those first
 	if(!mQueuedQueryResets.empty())
 	{
 		const SPtr<VulkanGpuCommandBuffer> queryResetCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Query reset")));
 
-		const VkCommandBuffer vkCommandBuffer = queryResetCommandBuffer->GetHandle();
+		const VkCommandBuffer vkCommandBuffer = queryResetCommandBuffer->GetVulkanHandle();
 
 		for(auto& entry : mQueuedQueryResets)
 			entry->Reset(vkCommandBuffer);
@@ -1105,7 +1097,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			barrier.dstAccessMask = 0;
 			barrier.srcQueueFamilyIndex = mDevice.GetQueueFamily(oldQueueUsage);
 			barrier.dstQueueFamilyIndex = mDevice.GetQueueFamily(queueUsage);
-			barrier.buffer = resource->GetHandle();
+			barrier.buffer = resource->GetVulkanHandle();
 			barrier.offset = 0;
 			barrier.size = VK_WHOLE_SIZE;
 		}
@@ -1222,7 +1214,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			continue;
 
 		const SPtr<VulkanGpuCommandBuffer> sourceTransitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Source queue transition")));
-		VkCommandBuffer vkCmdBuffer = sourceTransitionCommandBuffer->GetHandle();
+		VkCommandBuffer vkCmdBuffer = sourceTransitionCommandBuffer->GetVulkanHandle();
 
 		const u32 imageBarrierCount = (u32)transitionInformation.ImageBarriers.size();
 		const u32 bufferBarrierCount = (u32)transitionInformation.BufferBarriers.size();
@@ -1260,7 +1252,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 
 		SPtr<VulkanGpuCommandBuffer> transitionCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Queue and layout transitions")));
 
-		VkCommandBuffer vkCmdBuffer = transitionCommandBuffer->GetHandle();
+		VkCommandBuffer vkCmdBuffer = transitionCommandBuffer->GetVulkanHandle();
 
 		u32 numImgBarriers = (u32)transitionInformation.ImageBarriers.size();
 		u32 numBufferBarriers = (u32)transitionInformation.BufferBarriers.size();
@@ -1370,7 +1362,7 @@ void VulkanGpuCommandBuffer::Reset()
 	bool wasSubmitted = mState == State::Submitted || mState == State::Done;
 
 	mState = State::Ready;
-	vkResetCommandBuffer(mCmdBuffer, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
+	vkResetCommandBuffer(mCommandBufferHandle, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
 
 	const VkResult result = vkResetFences(mDevice.GetLogical(), 1, &mFence);
 	B3D_ASSERT(result == VK_SUCCESS);
@@ -1610,7 +1602,7 @@ void VulkanGpuCommandBuffer::ExecuteClearCommand(const Rect2I& area, RenderSurfa
 	clearRect.rect.extent.width = area.Width;
 	clearRect.rect.extent.height = area.Height;
 
-	vkCmdClearAttachments(mCmdBuffer, attachmentsToClearCount, attachments.data(), 1, &clearRect);
+	vkCmdClearAttachments(mCommandBufferHandle, attachmentsToClearCount, attachments.data(), 1, &clearRect);
 }
 
 bool VulkanGpuCommandBuffer::IsReadyForRender()
@@ -1631,7 +1623,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 	const SPtr<VulkanVertexInput> vertexShaderInput = VulkanVertexInputManager::Instance().GetVertexInfo(mVertexDescription, vertexShaderInputDescription);
 
 	VulkanRenderPass *const renderPass = mFramebuffer->GetRenderPass();
-	VulkanPipeline *const pipeline = mGraphicsPipeline->GetPipeline(mDevice.GetIndex(), renderPass, mRenderTargetReadOnlyFlags, mDrawOp, vertexShaderInput);
+	VulkanPipeline *const pipeline = mGraphicsPipeline->FindOrCreateVulkanResource(renderPass, mRenderTargetReadOnlyFlags, mDrawOp, vertexShaderInput);
 
 	if(pipeline == nullptr)
 		return false;
@@ -1665,7 +1657,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 	mGraphicsPipeline->RegisterPipelineResources(*this);
 	RegisterResource(pipeline, VulkanAccessFlag::Read);
 
-	vkCmdBindPipeline(mCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetHandle());
+	vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVulkanHandle());
 	BindDynamicStates(true);
 
 	mRequiredVertexBufferBindingCount = pipeline->GetVertexBufferBindingCount();
@@ -1679,13 +1671,13 @@ void VulkanGpuCommandBuffer::BindDynamicStates(bool forceAll)
 	{
 		const VkViewport viewport = VulkanUtility::ToVulkanViewport(GetViewportArea(), 0.0f, 1.0f);
 
-		vkCmdSetViewport(mCmdBuffer, 0, 1, &viewport);
+		vkCmdSetViewport(mCommandBufferHandle, 0, 1, &viewport);
 		mViewportRequiresBind = false;
 	}
 
 	if(mStencilRefRequiresBind || forceAll)
 	{
-		vkCmdSetStencilReference(mCmdBuffer, VK_STENCIL_FRONT_AND_BACK, mStencilRef);
+		vkCmdSetStencilReference(mCommandBufferHandle, VK_STENCIL_FRONT_AND_BACK, mStencilRef);
 		mStencilRefRequiresBind = false;
 	}
 
@@ -1707,7 +1699,7 @@ void VulkanGpuCommandBuffer::BindDynamicStates(bool forceAll)
 			scissorRect.extent.height = mFramebuffer->GetHeight();
 		}
 
-		vkCmdSetScissor(mCmdBuffer, 0, 1, &scissorRect);
+		vkCmdSetScissor(mCommandBufferHandle, 0, 1, &scissorRect);
 
 		mScissorRequiresBind = false;
 	}
@@ -1718,30 +1710,30 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 	if(mRequiredVertexBufferBindingCount > 0)
 	{
 		const VulkanBuiltinResources& vulkanBuiltinResources = mDevice.GetBuiltinResources();
-		VulkanBuffer *const dummyVertexBuffer = vulkanBuiltinResources.DummyVertexBuffer->GetResource(mDevice.GetIndex());
+		VulkanBuffer *const dummyVertexBuffer = vulkanBuiltinResources.DummyVertexBuffer->GetVulkanResource();
 
 		for(u32 bindingIndex = 0; bindingIndex < mRequiredVertexBufferBindingCount; bindingIndex++)
 		{
 			VulkanBuffer* resource = nullptr;
 			if(bindingIndex < (u32)mVertexBuffers.size() && mVertexBuffers[bindingIndex] != nullptr)
-				resource = mVertexBuffers[bindingIndex]->GetResource(mDevice.GetIndex());
+				resource = mVertexBuffers[bindingIndex]->GetVulkanResource();
 
 			if(resource == nullptr)
 				resource = dummyVertexBuffer;
 
-			mVertexBuffersTemp[bindingIndex] = resource->GetHandle();
+			mVertexBuffersTemp[bindingIndex] = resource->GetVulkanHandle();
 			RegisterBuffer(resource, BufferUseFlagBits::Vertex, VulkanAccessFlag::Read);
 		}
 
-		vkCmdBindVertexBuffers(mCmdBuffer, 0, mRequiredVertexBufferBindingCount, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
+		vkCmdBindVertexBuffers(mCommandBufferHandle, 0, mRequiredVertexBufferBindingCount, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
 	}
 
 	if(mIndexBuffer != nullptr)
 	{
-		VulkanBuffer* resource = mIndexBuffer->GetResource(mDevice.GetIndex());
+		VulkanBuffer* resource = mIndexBuffer->GetVulkanResource();
 		if(resource != nullptr)
 		{
-			VkBuffer vkBuffer = resource->GetHandle();
+			VkBuffer vkBuffer = resource->GetVulkanHandle();
 			VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 
 			if(B3D_ENSURE(mIndexBuffer->GetInformation().Type == GpuBufferType::Index))
@@ -1749,7 +1741,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 
 			RegisterBuffer(resource, BufferUseFlagBits::Index, VulkanAccessFlag::Read);
 
-			vkCmdBindIndexBuffer(mCmdBuffer, vkBuffer, 0, indexType);
+			vkCmdBindIndexBuffer(mCommandBufferHandle, vkBuffer, 0, indexType);
 		}
 	}
 }
@@ -1803,7 +1795,7 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.oldLayout = subresourceInfo.CurrentLayout;
 			barrier.newLayout = subresourceInfo.RequiredLayout;
-			barrier.image = image->GetHandle();
+			barrier.image = image->GetVulkanHandle();
 			barrier.subresourceRange = subresourceInfo.Range;
 
 			subresourceInfo.CurrentLayout = subresourceInfo.RequiredLayout;
@@ -1828,7 +1820,7 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 	if(!mLayoutTransitionBarriersTemp.empty())
 	{
 		vkCmdPipelineBarrier(
-			mCmdBuffer,
+			mCommandBufferHandle,
 			srcStage, dstStage,
 			0, 0, nullptr,
 			0, nullptr,
@@ -1854,11 +1846,11 @@ void VulkanGpuCommandBuffer::ExecuteWriteHazardBarrier()
 		barrier.srcAccessMask = mMemoryBarrierSrcAccess;
 		barrier.dstAccessMask = mMemoryBarrierDstAccess;
 
-		vkCmdPipelineBarrier(GetHandle(), mMemoryBarrierSrcStages, mMemoryBarrierDstStages, 0, 1, &barrier, 0, nullptr, 0, nullptr);
+		vkCmdPipelineBarrier(GetVulkanHandle(), mMemoryBarrierSrcStages, mMemoryBarrierDstStages, 0, 1, &barrier, 0, nullptr, 0, nullptr);
 	}
 	else
 	{
-		vkCmdPipelineBarrier(GetHandle(), mMemoryBarrierSrcStages, mMemoryBarrierDstStages, 0, 0, nullptr, 0, nullptr, 0, nullptr);
+		vkCmdPipelineBarrier(GetVulkanHandle(), mMemoryBarrierSrcStages, mMemoryBarrierDstStages, 0, 0, nullptr, 0, nullptr, 0, nullptr);
 	}
 
 	mNeedsRAWMemoryBarrier = false;
@@ -1933,7 +1925,7 @@ void VulkanGpuCommandBuffer::ExecuteClearPass()
 	VkRenderPassBeginInfo renderPassBeginInfo;
 	renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassBeginInfo.pNext = nullptr;
-	renderPassBeginInfo.framebuffer = mFramebuffer->GetVkFramebuffer();
+	renderPassBeginInfo.framebuffer = mFramebuffer->GetVulkanHandle();
 	renderPassBeginInfo.renderPass = renderPass->GetVkRenderPass(mRenderTargetLoadMask, RT_NONE, renderPassClearMask);
 	renderPassBeginInfo.renderArea.offset.x = mClearArea.X;
 	renderPassBeginInfo.renderArea.offset.y = mClearArea.Y;
@@ -1942,14 +1934,14 @@ void VulkanGpuCommandBuffer::ExecuteClearPass()
 	renderPassBeginInfo.clearValueCount = renderPass->GetClearEntryCount(renderPassClearMask);
 	renderPassBeginInfo.pClearValues = mClearValues.data();
 
-	vkCmdBeginRenderPass(mCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBeginRenderPass(mCommandBufferHandle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	if(isClearCommandRequired)
 	{
 		ExecuteClearCommand(mClearArea, mClearMask, mClearValues);
 	}
 
-	vkCmdEndRenderPass(mCmdBuffer);
+	vkCmdEndRenderPass(mCommandBufferHandle);
 
 	UpdateFinalLayouts();
 
@@ -1961,7 +1953,7 @@ void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)
 	if(IsInRenderPass())
 		mQueuedEvents.push_back(event);
 	else
-		vkCmdSetEvent(mCmdBuffer, event->GetHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		vkCmdSetEvent(mCommandBufferHandle, event->GetVulkanHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 }
 
 void VulkanGpuCommandBuffer::ResetQuery(VulkanQuery* query)
@@ -1969,14 +1961,14 @@ void VulkanGpuCommandBuffer::ResetQuery(VulkanQuery* query)
 	if(IsInRenderPass())
 		mQueuedQueryResets.push_back(query);
 	else
-		query->Reset(mCmdBuffer);
+		query->Reset(mCommandBufferHandle);
 }
 
 void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length)
 {
-	MemoryBarrier(destination->GetHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
-	vkCmdUpdateBuffer(GetHandle(), destination->GetHandle(), offset, length, (uint32_t*)data);
-	MemoryBarrier(destination->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
+	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
+	vkCmdUpdateBuffer(GetVulkanHandle(), destination->GetVulkanHandle(), offset, length, (uint32_t*)data);
+	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
 }
 
 void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuffer* destination, VkDeviceSize sourceOffset, VkDeviceSize destinationOffset, VkDeviceSize length)
@@ -1986,13 +1978,13 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 	region.srcOffset = sourceOffset;
 	region.dstOffset = destinationOffset;
 
-	MemoryBarrier(source->GetHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
-	MemoryBarrier(destination->GetHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_WRITE_BIT);
+	MemoryBarrier(source->GetVulkanHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
+	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_WRITE_BIT);
 
-	vkCmdCopyBuffer(GetHandle(), source->GetHandle(), destination->GetHandle(), 1, &region);
+	vkCmdCopyBuffer(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), 1, &region);
 
-	MemoryBarrier(source->GetHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
-	MemoryBarrier(destination->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
+	MemoryBarrier(source->GetVulkanHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
+	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
 
 }
 
@@ -2017,10 +2009,10 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	MemoryBarrier(source->GetHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
+	MemoryBarrier(source->GetVulkanHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
 	// TODO - Barriers for the image
-	vkCmdCopyBufferToImage(GetHandle(), source->GetHandle(), destination->GetHandle(), layout, 1, &copyRegion);
-	MemoryBarrier(source->GetHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
+	vkCmdCopyBufferToImage(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), layout, 1, &copyRegion);
+	MemoryBarrier(source->GetVulkanHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
 }
 
 void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
@@ -2044,10 +2036,10 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	MemoryBarrier(destination->GetHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
+	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
 	// TODO - Barriers for the image
-	vkCmdCopyImageToBuffer(GetHandle(), source->GetHandle(), layout, destination->GetHandle(), 1, &copyRegion);
-	MemoryBarrier(destination->GetHandle(), VK_ACCESS_TRANSFER_READ_BIT, destination->GetAccessFlags());
+	vkCmdCopyImageToBuffer(GetVulkanHandle(), source->GetVulkanHandle(), layout, destination->GetVulkanHandle(), 1, &copyRegion);
+	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_READ_BIT, destination->GetAccessFlags());
 }
 
 void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions)
@@ -2055,7 +2047,7 @@ void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* 
 	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
 	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
 
-	vkCmdCopyImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions);
+	vkCmdCopyImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions);
 }
 
 void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageBlit* regions)
@@ -2063,7 +2055,7 @@ void VulkanGpuCommandBuffer::Blit(VulkanImage* source, VulkanImage* destination,
 	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
 	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
 
-	vkCmdBlitImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions, VK_FILTER_LINEAR);
+	vkCmdBlitImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions, VK_FILTER_LINEAR);
 }
 
 void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageResolve* regions)
@@ -2071,7 +2063,7 @@ void VulkanGpuCommandBuffer::Resolve(VulkanImage* source, VulkanImage* destinati
 	RegisterImageTransfer(source, sourceSubresourceRange, sourceLayout, VulkanAccessFlag::Read);
 	RegisterImageTransfer(destination, destinationSubresourceRange, destinationLayout, VulkanAccessFlag::Write);
 
-	vkCmdResolveImage(GetHandle(), source->GetHandle(), sourceLayout, destination->GetHandle(), destinationLayout, regionCount, regions);
+	vkCmdResolveImage(GetVulkanHandle(), source->GetVulkanHandle(), sourceLayout, destination->GetVulkanHandle(), destinationLayout, regionCount, regions);
 }
 
 void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags sourceAccessFlags, VkAccessFlags destinationAccessFlags, VkPipelineStageFlags sourceStage, VkPipelineStageFlags destinationStage)
@@ -2087,7 +2079,7 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	barrier.offset = 0;
 	barrier.size = VK_WHOLE_SIZE;
 
-	vkCmdPipelineBarrier(GetHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
+	vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 1, &barrier, 0, nullptr);
 }
 
 void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags sourceAccessFlags, VkAccessFlags destinationAccessFlags)
@@ -2874,13 +2866,13 @@ void VulkanGpuCommandBuffer::UpdateTransferSubresource(VulkanImage* image, Image
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.oldLayout = subresourceInfo.CurrentLayout;
 		barrier.newLayout = layout;
-		barrier.image = image->GetHandle();
+		barrier.image = image->GetVulkanHandle();
 		barrier.subresourceRange = subresourceInfo.Range;
 
 		const VkPipelineStageFlags sourceStage = GetPipelineStageFlags(sourceAccessFlags);
 		const VkPipelineStageFlags destinationStage = GetPipelineStageFlags(destinationAccessFlags);
 
-		vkCmdPipelineBarrier(GetHandle(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(GetVulkanHandle(), sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 
 	subresourceInfo.CurrentLayout = layout;
@@ -3016,7 +3008,7 @@ void VulkanGpuCommandBuffer::SetName(const StringView& name)
 	objectNameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
 	objectNameInfo.pNext = nullptr;
 	objectNameInfo.objectType = VK_OBJECT_TYPE_COMMAND_BUFFER;
-	objectNameInfo.objectHandle = (uint64_t)mCmdBuffer;
+	objectNameInfo.objectHandle = (uint64_t)mCommandBufferHandle;
 	objectNameInfo.pObjectName = name.data();
 
 	vkSetDebugUtilsObjectNameEXT(mDevice.GetLogical(), &objectNameInfo);

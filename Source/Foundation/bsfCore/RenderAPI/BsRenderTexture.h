@@ -131,13 +131,13 @@ namespace bs
 		class B3D_CORE_EXPORT RenderTexture : public RenderTarget
 		{
 		public:
-			RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
+			RenderTexture(const RENDER_TEXTURE_DESC& desc);
 			virtual ~RenderTexture() = default;
 
 			void Initialize() override;
 
 			/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&, u32) */
-			static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+			static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc);
 
 			/**
 			 * Returns a color surface texture you may bind as an input to an GPU program.

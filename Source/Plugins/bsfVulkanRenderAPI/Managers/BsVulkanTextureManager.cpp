@@ -1,10 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/BsVulkanTextureManager.h"
+
+#include "BsCoreApplication.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanRenderTexture.h"
 #include "BsVulkanResource.h"
 #include "BsVulkanUtility.h"
+#include "BsVulkanGpuDevice.h"
 
 using namespace bs;
 
@@ -71,12 +74,12 @@ void VulkanTextureManager::OnStartUp()
 		createInformation.Usage = TU_STATIC | TU_MUTABLEFORMAT;
 
 		createInformation.Name = "VulkanDummyRead";
-		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(createInformation));
+		mDummyReadTextures[idx] = std::static_pointer_cast<VulkanTexture>(mGpuDevice.CreateTexture(createInformation));
 		mDummyReadTextures[idx]->WriteData(*pixelData);
 
 		createInformation.Name = "VulkanDummyStorage";
 		createInformation.Usage = TU_LOADSTORE;
-		mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(CreateTexture(createInformation));
+		mDummyStorageTextures[idx] = std::static_pointer_cast<VulkanTexture>(mGpuDevice.CreateTexture(createInformation));
 
 		idx++;
 	}
@@ -170,19 +173,9 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	}
 }
 
-SPtr<Texture> VulkanTextureManager::CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
+SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc)
 {
-	VulkanTexture* tex = new(B3DAllocate<VulkanTexture>()) VulkanTexture(desc, initialData, deviceMask);
-
-	SPtr<VulkanTexture> texPtr = B3DMakeSharedFromExisting<VulkanTexture>(tex);
-	texPtr->SetShared(texPtr);
-
-	return texPtr;
-}
-
-SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-{
-	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(desc, deviceIdx);
+	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetCoreApplication().GetPrimaryGpuDevice()), desc);
 	texPtr->SetShared(texPtr);
 
 	return texPtr;

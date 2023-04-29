@@ -31,12 +31,12 @@ const SPtr<SamplerState>& RenderStateManager::GetDefaultSamplerState() const
 
 namespace bs { namespace ct
 {
-SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const
+SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SamplerStateCreateInformation& desc) const
 {
 	SPtr<SamplerState> state = FindCachedState(desc);
 	if(state == nullptr)
 	{
-		state = CreateSamplerStateInternalInternal(desc, deviceMask);
+		state = CreateSamplerStateInternalInternal(desc);
 		state->Initialize();
 
 		NotifySamplerStateCreated(desc, state);
@@ -45,12 +45,12 @@ SPtr<SamplerState> RenderStateManager::CreateSamplerState(const SamplerStateCrea
 	return state;
 }
 
-SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const
+SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternal(const SamplerStateCreateInformation& desc) const
 {
 	SPtr<SamplerState> state = FindCachedState(desc);
 	if(state == nullptr)
 	{
-		state = CreateSamplerStateInternalInternal(desc, deviceMask);
+		state = CreateSamplerStateInternalInternal(desc);
 
 		NotifySamplerStateCreated(desc, state);
 	}
@@ -96,10 +96,10 @@ SPtr<SamplerState> RenderStateManager::FindCachedState(const SamplerStateInforma
 	return nullptr;
 }
 
-SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternalInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const
+SPtr<SamplerState> RenderStateManager::CreateSamplerStateInternalInternal(const SamplerStateCreateInformation& desc) const
 {
 	SPtr<SamplerState> state =
-		B3DMakeSharedFromExisting<SamplerState>(new(B3DAllocate<SamplerState>()) SamplerState(desc, deviceMask));
+		B3DMakeSharedFromExisting<SamplerState>(new(B3DAllocate<SamplerState>()) SamplerState(desc));
 	state->SetShared(state);
 
 	return state;

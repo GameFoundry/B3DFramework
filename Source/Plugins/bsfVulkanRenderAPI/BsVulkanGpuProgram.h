@@ -22,7 +22,7 @@ namespace bs
 			~VulkanShaderModule();
 
 			/** Returns the internal handle to the Vulkan object. */
-			VkShaderModule GetHandle() const { return mModule; }
+			VkShaderModule GetVulkanHandle() const { return mModule; }
 
 			/** Assigns an name to the shader module, primarily used for easier debugging. */
 			void SetName(const StringView& name);
@@ -38,15 +38,8 @@ namespace bs
 			VulkanGpuProgram(VulkanGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation);
 			virtual ~VulkanGpuProgram();
 
-			/**
-			 * Returns the shader module for the specified device. If program device mask doesn't include the provided device,
-			 * null is returned.
-			 */
-			VulkanShaderModule* GetShaderModule(u32 deviceIdx) const
-			{
-				B3D_ASSERT(deviceIdx == 0);
-				return mModule;
-			}
+			/** Returns the internal shader module. */
+			VulkanShaderModule* GetVulkanResource() const { return mModule; }
 
 			/** Returns the name of the program entry point function. */
 			const String& GetEntryPoint() const { return mEntryPoint; }

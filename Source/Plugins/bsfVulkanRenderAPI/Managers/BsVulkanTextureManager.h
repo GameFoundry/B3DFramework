@@ -27,6 +27,10 @@ namespace bs
 		class VulkanTextureManager : public TextureManager
 		{
 		public:
+			VulkanTextureManager(GpuDevice& gpuDevice)
+				:TextureManager(gpuDevice)
+			{ }
+
 			void OnStartUp() override;
 
 			/** Returns a dummy (empty) texture that can be bound in a shader slot of the requested type. */
@@ -39,8 +43,7 @@ namespace bs
 			static VkFormat GetDummyViewFormat(GpuBufferFormat format);
 
 		protected:
-			SPtr<Texture> CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) override;
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0) override;
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc) override;
 
 			SPtr<VulkanTexture> mDummyReadTextures[7];
 			SPtr<VulkanTexture> mDummyStorageTextures[7];

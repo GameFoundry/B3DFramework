@@ -117,12 +117,12 @@ VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* 
 	// that requires additional tracking. Since the assumption is that the first pool will be large enough for all
 	// descriptors, and the only reason to create a second pool is fragmentation, this approach should not result in
 	// a major resource waste.
-	VkDescriptorSetLayout setLayout = layout->GetHandle();
+	VkDescriptorSetLayout setLayout = layout->GetVulkanHandle();
 
 	VkDescriptorSetAllocateInfo allocateInfo;
 	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocateInfo.pNext = nullptr;
-	allocateInfo.descriptorPool = mPools.back()->GetHandle();
+	allocateInfo.descriptorPool = mPools.back()->GetVulkanHandle();
 	allocateInfo.descriptorSetCount = 1;
 	allocateInfo.pSetLayouts = &setLayout;
 
@@ -131,7 +131,7 @@ VulkanDescriptorSet* VulkanDescriptorManager::CreateSet(VulkanDescriptorLayout* 
 	if(result < 0) // Possible fragmentation, try in a new pool
 	{
 		mPools.push_back(B3DNew<VulkanDescriptorPool>(mDevice));
-		allocateInfo.descriptorPool = mPools.back()->GetHandle();
+		allocateInfo.descriptorPool = mPools.back()->GetVulkanHandle();
 
 		result = vkAllocateDescriptorSets(mDevice.GetLogical(), &allocateInfo, &set);
 		B3D_ASSERT(result == VK_SUCCESS);
@@ -151,7 +151,7 @@ VkPipelineLayout VulkanDescriptorManager::GetPipelineLayout(VulkanDescriptorLayo
 	// Create new
 	VkDescriptorSetLayout* setLayouts = (VkDescriptorSetLayout*)B3DStackAllocate(sizeof(VkDescriptorSetLayout) * numLayouts);
 	for(u32 i = 0; i < numLayouts; i++)
-		setLayouts[i] = layouts[i]->GetHandle();
+		setLayouts[i] = layouts[i]->GetVulkanHandle();
 
 	VkPipelineLayoutCreateInfo layoutCI;
 	layoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

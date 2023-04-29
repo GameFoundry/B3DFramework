@@ -31,7 +31,7 @@ namespace bs
 			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, u32 syncMask);
 
 			/** Returns the internal handle to the Vulkan queue object. */
-			VkQueue GetHandle() const { return mQueue; }
+			VkQueue GetVulkanHandle() const { return mQueue; }
 
 			/** Returns the device that owns the queue. */
 			VulkanGpuDevice& GetDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }

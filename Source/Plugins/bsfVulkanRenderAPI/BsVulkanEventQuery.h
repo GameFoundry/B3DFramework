@@ -22,7 +22,7 @@ namespace bs
 			~VulkanEvent() override;
 
 			/** Returns the internal handle to the Vulkan object. */
-			VkEvent GetHandle() const { return mEvent; }
+			VkEvent GetVulkanHandle() const { return mEvent; }
 
 			/** Checks if the event has been signaled on the device. */
 			bool IsSignaled() const;

@@ -15,7 +15,7 @@ namespace bs::ct
 	class VulkanSubmitThread : public Module<VulkanSubmitThread>
 	{
 	public:
-		VulkanSubmitThread();
+		VulkanSubmitThread(VulkanGpuDevice& gpuDevice);
 		~VulkanSubmitThread();
 
 		/**
@@ -66,14 +66,15 @@ namespace bs::ct
 		void RefreshCommandBufferCompletionStates() const;
 
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
-		VulkanGpuCommandBufferPool& GetCommandBufferPool(u32 deviceIndex, GpuQueueUsage queueUsage) const { return *mCommandBufferPools[deviceIndex][queueUsage]; }
+		VulkanGpuCommandBufferPool& GetCommandBufferPool(GpuQueueUsage queueUsage) const { return *mCommandBufferPools[queueUsage]; }
 
 		/** Returns the ID of submit worker thread. */
 		ThreadId GetThreadId() const { return mCommandQueue.GetThreadId(); }
 
 	protected:
+		VulkanGpuDevice& mGpuDevice;
 		WorkerThreadWithCommandQueue mCommandQueue;
-		Array<Array<SPtr<VulkanGpuCommandBufferPool>, GQT_COUNT>, B3D_MAX_DEVICES> mCommandBufferPools{ {} };
+		Array<SPtr<VulkanGpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
 
 		mutable Mutex mImageAcquireMutex;
 		mutable Vector<VulkanSwapChain*> mSwapChainsWithAcquiredImages;

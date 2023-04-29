@@ -536,7 +536,7 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 	defaultBarrier.pNext = nullptr;
 	defaultBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	defaultBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	defaultBarrier.image = GetHandle();
+	defaultBarrier.image = GetVulkanHandle();
 	defaultBarrier.subresourceRange.aspectMask = range.aspectMask;
 	defaultBarrier.subresourceRange.layerCount = 1;
 	defaultBarrier.subresourceRange.levelCount = 1;
@@ -677,20 +677,15 @@ VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkI
 	: VulkanResource(owner, false), mLayout(layout)
 {}
 
-VulkanTexture::VulkanTexture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initialData, GpuDeviceFlags deviceMask)
-	: Texture(createInformation, initialData, deviceMask), mImages(), mInternalFormats(), mDeviceMask(deviceMask), mDirectlyMappable(false), mSupportsGPUWrites(false), mIsMapped(false)
+VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)
+	: Texture(createInformation), mGpuDevice(gpuDevice), mDirectlyMappable(false), mSupportsGPUWrites(false), mIsMapped(false)
 {
 }
 
 VulkanTexture::~VulkanTexture()
 {
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(mImages[i] == nullptr)
-			return;
-
-		mImages[i]->Destroy();
-	}
+	if (mImage != nullptr)
+		mImage->Destroy();
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResDestroyed, RenderStatObject_Texture);
 }
@@ -701,52 +696,52 @@ void VulkanTexture::Initialize()
 
 	const TextureProperties& props = mProperties;
 
-	mImageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	mImageCI.pNext = nullptr;
-	mImageCI.flags = 0;
+	mImageCreateInformation.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	mImageCreateInformation.pNext = nullptr;
+	mImageCreateInformation.flags = 0;
 
 	TextureType texType = props.Type;
 	switch(texType)
 	{
 	case TEX_TYPE_1D:
-		mImageCI.imageType = VK_IMAGE_TYPE_1D;
+		mImageCreateInformation.imageType = VK_IMAGE_TYPE_1D;
 		break;
 	case TEX_TYPE_2D:
-		mImageCI.imageType = VK_IMAGE_TYPE_2D;
+		mImageCreateInformation.imageType = VK_IMAGE_TYPE_2D;
 		break;
 	case TEX_TYPE_3D:
-		mImageCI.imageType = VK_IMAGE_TYPE_3D;
+		mImageCreateInformation.imageType = VK_IMAGE_TYPE_3D;
 
 		if((mProperties.Usage & TU_RENDERTARGET) != 0)
-			mImageCI.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+			mImageCreateInformation.flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
 		break;
 	case TEX_TYPE_CUBE_MAP:
-		mImageCI.imageType = VK_IMAGE_TYPE_2D;
-		mImageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		mImageCreateInformation.imageType = VK_IMAGE_TYPE_2D;
+		mImageCreateInformation.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		break;
 	}
 
 	// Note: I force rendertarget and depthstencil types to be readable in shader. Depending on performance impact
 	// it might be beneficial to allow the user to enable this explicitly only when needed.
 
-	mImageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	mImageCreateInformation.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	int usage = props.Usage;
 	if((usage & TU_RENDERTARGET) != 0)
 	{
-		mImageCI.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		mImageCreateInformation.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		mSupportsGPUWrites = true;
 	}
 	else if((usage & TU_DEPTHSTENCIL) != 0)
 	{
-		mImageCI.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		mImageCreateInformation.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		mSupportsGPUWrites = true;
 	}
 
 	if((usage & TU_LOADSTORE) != 0)
 	{
-		mImageCI.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+		mImageCreateInformation.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 		mSupportsGPUWrites = true;
 	}
 
@@ -758,7 +753,7 @@ void VulkanTexture::Initialize()
 		// (Optionally check vkGetPhysicalDeviceFormatProperties & vkGetPhysicalDeviceImageFormatProperties for
 		// additional supported configs, but right now there doesn't seem to be any additional support)
 		if(texType == TEX_TYPE_2D && props.SampleCount <= 1 && props.MipMapCount == 0 &&
-		   props.GetFaceCount() == 1 && (mImageCI.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
+		   props.GetFaceCount() == 1 && (mImageCreateInformation.usage & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
 		{
 			// Also, only support normal textures, not render targets or storage textures
 			if(!mSupportsGPUWrites)
@@ -771,7 +766,7 @@ void VulkanTexture::Initialize()
 	}
 
 	if((usage & TU_MUTABLEFORMAT) != 0)
-		mImageCI.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+		mImageCreateInformation.flags |= VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
 	u32 width = mProperties.Width;
 	u32 height = mProperties.Height;
@@ -782,34 +777,20 @@ void VulkanTexture::Initialize()
 	height = std::max(height, 1U);
 	depth = std::max(depth, 1U);
 
-	mImageCI.extent = { width, height, depth };
-	mImageCI.mipLevels = props.MipMapCount + 1;
-	mImageCI.arrayLayers = props.GetFaceCount();
-	mImageCI.samples = VulkanUtility::GetSampleFlags(props.SampleCount);
-	mImageCI.tiling = tiling;
-	mImageCI.initialLayout = layout;
-	mImageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	mImageCI.queueFamilyIndexCount = 0;
-	mImageCI.pQueueFamilyIndices = nullptr;
-
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanGpuDevice* devices[B3D_MAX_DEVICES];
-	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
-
-	// Allocate buffers per-device
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(devices[i] == nullptr)
-			continue;
+	mImageCreateInformation.extent = { width, height, depth };
+	mImageCreateInformation.mipLevels = props.MipMapCount + 1;
+	mImageCreateInformation.arrayLayers = props.GetFaceCount();
+	mImageCreateInformation.samples = VulkanUtility::GetSampleFlags(props.SampleCount);
+	mImageCreateInformation.tiling = tiling;
+	mImageCreateInformation.initialLayout = layout;
+	mImageCreateInformation.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	mImageCreateInformation.queueFamilyIndexCount = 0;
+	mImageCreateInformation.pQueueFamilyIndices = nullptr;
 
 		bool optimalTiling = tiling == VK_IMAGE_TILING_OPTIMAL;
 
-		mInternalFormats[i] = VulkanUtility::GetClosestSupportedPixelFormat(
-			*devices[i], props.Format, props.Type, props.Usage, optimalTiling,
-			props.UseHardwareSRGB);
-
-		mImages[i] = CreateImage(*devices[i], mInternalFormats[i]);
-	}
+	mInternalFormat = VulkanUtility::GetClosestSupportedPixelFormat(mGpuDevice, props.Format, props.Type, props.Usage, optimalTiling, props.UseHardwareSRGB);
+	mImage = CreateImage(mInternalFormat);
 
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_Texture);
 	Texture::Initialize();
@@ -819,37 +800,31 @@ void VulkanTexture::SetName(const StringView& name)
 {
 	Texture::SetName(name);
 
-	for(UINT32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(mImages[i] == nullptr)
-			continue;
-
-		mImages[i]->SetName(name);
-	}
+	if(mImage != nullptr)
+		mImage->SetName(name);
 }
 
-VulkanImage* VulkanTexture::CreateImage(VulkanGpuDevice& device, PixelFormat format)
+VulkanImage* VulkanTexture::CreateImage(PixelFormat format)
 {
-	bool directlyMappable = mImageCI.tiling == VK_IMAGE_TILING_LINEAR;
+	bool directlyMappable = mImageCreateInformation.tiling == VK_IMAGE_TILING_LINEAR;
 	VmaMemoryUsage memoryUsage = directlyMappable ? VMA_MEMORY_USAGE_CPU_TO_GPU : VMA_MEMORY_USAGE_GPU_ONLY;
 
-	VkDevice vkDevice = device.GetLogical();
+	VkDevice vkDevice = mGpuDevice.GetLogical();
 
-	mImageCI.format = VulkanUtility::GetPixelFormat(format, mProperties.UseHardwareSRGB);
-	;
+	mImageCreateInformation.format = VulkanUtility::GetPixelFormat(format, mProperties.UseHardwareSRGB);
 
 	VkImage image;
-	VkResult result = vkCreateImage(vkDevice, &mImageCI, gVulkanAllocator, &image);
+	VkResult result = vkCreateImage(vkDevice, &mImageCreateInformation, gVulkanAllocator, &image);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VmaAllocation allocation = device.AllocateMemory(image, memoryUsage);
-	VulkanImage *const vulkanImage = device.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCI.initialLayout, mImageCI.format, GetProperties());
+	VmaAllocation allocation = mGpuDevice.AllocateMemory(image, memoryUsage);
+	VulkanImage *const vulkanImage = mGpuDevice.GetResourceManager().Create<VulkanImage>(image, allocation, mImageCreateInformation.initialLayout, mImageCreateInformation.format, GetProperties());
 	vulkanImage->SetName(mName);
 
 	return vulkanImage;
 }
 
-VulkanBuffer* VulkanTexture::CreateStaging(VulkanGpuDevice& device, const PixelData& pixelData, bool readable)
+VulkanBuffer* VulkanTexture::CreateStaging(const PixelData& pixelData, bool readable)
 {
 	VkBufferCreateInfo bufferCI;
 	bufferCI.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -864,13 +839,13 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanGpuDevice& device, const PixelD
 	if(readable)
 		bufferCI.usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-	VkDevice vkDevice = device.GetLogical();
+	VkDevice vkDevice = mGpuDevice.GetLogical();
 
 	VkBuffer buffer;
 	VkResult result = vkCreateBuffer(vkDevice, &bufferCI, gVulkanAllocator, &buffer);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	VmaAllocation allocation = device.AllocateMemory(buffer, VMA_MEMORY_USAGE_CPU_ONLY);
+	VmaAllocation allocation = mGpuDevice.AllocateMemory(buffer, VMA_MEMORY_USAGE_CPU_ONLY);
 
 	u32 blockSize = PixelUtil::GetBlockSize(pixelData.GetFormat());
 
@@ -887,7 +862,7 @@ VulkanBuffer* VulkanTexture::CreateStaging(VulkanGpuDevice& device, const PixelD
 		slicePitchInPixels *= blockDim.X * blockDim.Y;
 	}
 
-	VulkanBuffer *const vulkanBuffer = device.GetResourceManager().Create<VulkanBuffer>(readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite, (GpuBufferFlags)0, buffer, allocation, rowPitchInPixels, slicePitchInPixels);
+	VulkanBuffer *const vulkanBuffer = mGpuDevice.GetResourceManager().Create<VulkanBuffer>(readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite, (GpuBufferFlags)0, buffer, allocation, rowPitchInPixels, slicePitchInPixels);
 	vulkanBuffer->SetName(StringUtil::Format("Staging buffer ({0})", mName));
 
 	return vulkanBuffer;
@@ -992,7 +967,7 @@ void VulkanTexture::CopyImageSubresourceToBuffer(VulkanGpuCommandBuffer& command
 	commandBuffer.CopyImageToBuffer(sourceImage, destinationBuffer, extent, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, pitch.RowPitch, pitch.SliceHeight);
 
 	const VkAccessFlags stagingAccessFlags = VK_ACCESS_HOST_READ_BIT | (isBufferReadOnly ? 0 : VK_ACCESS_HOST_WRITE_BIT);
-	commandBuffer.MemoryBarrier(destinationBuffer->GetHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+	commandBuffer.MemoryBarrier(destinationBuffer->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, stagingAccessFlags, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
 void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation)
@@ -1023,9 +998,7 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	}
 
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
-
-	const u32 deviceIndex = vulkanCommandBuffer.GetDeviceIndex();
-	if (mInternalFormats[deviceIndex] != other->mInternalFormats[deviceIndex])
+	if (mInternalFormat != other->mInternalFormat)
 	{
 		B3D_LOG(Error, Texture, "Cannot perform texture copy. Source and destination texture formats must match.");
 		return;
@@ -1075,8 +1048,8 @@ void VulkanTexture::CopyInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 	destinationRange.baseMipLevel = copyInformation.DestinationMip;
 	destinationRange.levelCount = 1;
 
-	VulkanImage* sourceImage = mImages[deviceIndex];
-	VulkanImage* destinationImage = other->GetResource(deviceIndex);
+	VulkanImage* sourceImage = mImage;
+	VulkanImage* destinationImage = other->GetVulkanResource();
 
 	if(sourceImage == nullptr || destinationImage == nullptr)
 		return;
@@ -1199,10 +1172,8 @@ void VulkanTexture::BlitInternal(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
-	const u32 deviceIndex = vulkanCommandBuffer.GetDeviceIndex();
-
-	VulkanImage* sourceImage = mImages[deviceIndex];
-	VulkanImage* destinationImage = other->GetResource(deviceIndex);
+	VulkanImage* sourceImage = mImage;
+	VulkanImage* destinationImage = other->GetVulkanResource();
 
 	if (sourceImage == nullptr || destinationImage == nullptr)
 		return;
@@ -1253,10 +1224,9 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 	u32 mipHeight = std::max(1u, props.Height >> mipLevel);
 	u32 mipDepth = std::max(1u, props.Depth >> mipLevel);
 
-	static constexpr u32 deviceIdx = 0;
-	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormats[deviceIdx]);
+	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
-	if(mImages[deviceIdx] == nullptr)
+	if(mImage == nullptr)
 		return PixelData();
 
 	if(!mDirectlyMappable)
@@ -1267,8 +1237,7 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 
 	mIsMapped = true;
 
-	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-	VulkanImageSubresource* const subresource = mImages[0]->GetSubresource(face, mipLevel);
+	VulkanImageSubresource* const subresource = mImage->GetSubresource(face, mipLevel);
 
 	// Initially the texture will be in preinitialized layout, and it will transition to general layout on first
 	// use in shader. No further transitions are allowed for directly mappable textures.
@@ -1295,7 +1264,7 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 			// Warn if we have already bound the texture to a command buffer previously, as that could have unintended consequences since previous commands could be affected
 			if(!subresource->IsBound() || !isWrite)
 			{
-				mImages[deviceIdx]->Map(face, mipLevel, lockedArea, isReadRequired);
+				mImage->Map(face, mipLevel, lockedArea, isReadRequired);
 				return lockedArea;
 			}
 			else if(canDiscardImage)
@@ -1306,7 +1275,7 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 			{
 				B3D_LOG(Warning, RenderBackend, "Writing to a texture that is currently bound on a command buffer. Previous usages of the texture will be affected. Texture: {0}", mName);
 
-				mImages[deviceIdx]->Map(face, mipLevel, lockedArea, isReadRequired);
+				mImage->Map(face, mipLevel, lockedArea, isReadRequired);
 				return lockedArea;
 			}
 		}
@@ -1316,11 +1285,11 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 	if(canDiscardImage)
 	{
 		// We need to discard the entire image, even though we're only writing to a single sub-resource
-		mImages[deviceIdx]->Destroy();
+		mImage->Destroy();
 
-		mImages[deviceIdx] = CreateImage(device, mInternalFormats[deviceIdx]);
+		mImage = CreateImage(mInternalFormat);
+		mImage->Map(face, mipLevel, lockedArea);
 
-		mImages[deviceIdx]->Map(face, mipLevel, lockedArea);
 		return lockedArea;
 	}
 
@@ -1334,21 +1303,19 @@ void VulkanTexture::UnlockInternal()
 	if(!mIsMapped)
 		return;
 
-	if(!B3D_ENSURE(mImages[0] != nullptr))
+	if(!B3D_ENSURE(mImage != nullptr))
 		return;
 
 	// Note: If we did any writes they need to be made visible to the GPU. However there is no need to execute
 	// a pipeline barrier because (as per spec) host writes are implicitly visible to the device.
 
-	mImages[0]->Unmap(true);
+	mImage->Unmap(true);
 	mIsMapped = false;
 }
 
 TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(GpuCommandBuffer& commandBuffer, u32 mipLevel, u32 face)
 {
-	static constexpr u32 deviceIndex = 0;
-
-	VulkanImage *const image = mImages[deviceIndex];
+	VulkanImage* const image = mImage;
 	if(image == nullptr)
 	{
 		TAsyncOp<SPtr<PixelData>> operation;
@@ -1356,16 +1323,15 @@ TAsyncOp<SPtr<PixelData>> VulkanTexture::ReadDataAsync(GpuCommandBuffer& command
 		return operation;
 	}
 
-	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIndex);
 	VulkanGpuCommandBuffer& vulkanCommandBuffer = static_cast<VulkanGpuCommandBuffer&>(commandBuffer);
 
 	const u32 mipWidth = Math::Max(1u, mProperties.Width >> mipLevel);
 	const u32 mipHeight = Math::Max(1u, mProperties.Height >> mipLevel);
 	const u32 mipDepth = Math::Max(1u, mProperties.Depth >> mipLevel);
 
-	const SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, mInternalFormats[deviceIndex]);
+	const SPtr<PixelData> pixelData = B3DMakeShared<PixelData>(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
-	VulkanBuffer* const buffer = CreateStaging(device, *pixelData, true);
+	VulkanBuffer* const buffer = CreateStaging( *pixelData, true);
 	CopyImageSubresourceToBuffer(vulkanCommandBuffer, image, face, mipLevel, buffer, true); // TODO - No need for staging if directly mappable
 
 	TAsyncOp<SPtr<PixelData>> op;
@@ -1410,16 +1376,14 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 	const u32 mipHeight = std::max(1u, mProperties.Height >> mipLevel);
 	const u32 mipDepth = std::max(1u, mProperties.Depth >> mipLevel);
 
-	static constexpr u32 deviceIdx = 0;
-	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormats[deviceIdx]);
+	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
-	if(mImages[deviceIdx] == nullptr)
+	if(mImage == nullptr)
 		return;
 
-	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(deviceIdx);
-	VulkanImageSubresource* subresource = mImages[deviceIdx]->GetSubresource(face, mipLevel);
+	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mipLevel);
 
-	GpuQueue& transferGpuQueue = gpuQueue != nullptr ? *gpuQueue : *device.GetQueue(GQT_GRAPHICS, 0);
+	GpuQueue& transferGpuQueue = gpuQueue != nullptr ? *gpuQueue : *mGpuDevice.GetQueue(GQT_GRAPHICS, 0);
 	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer;
 
 	// If memory is host visible try mapping it directly
@@ -1434,7 +1398,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		B3D_ASSERT(!mSupportsGPUWrites);
 
 		// Check is the GPU currently writing to the texture
-		const u32 writeUseMask = mImages[deviceIdx]->GetUseInfo(VulkanAccessFlag::Write);
+		const u32 writeUseMask = mImage->GetUseInfo(VulkanAccessFlag::Write);
 		const bool isUsedOnGPU = writeUseMask != 0;
 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
@@ -1458,7 +1422,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 	// Can't use direct mapping, so use a staging buffer
 
 	// Allocate a staging buffer
-	VulkanBuffer* const stagingBuffer = CreateStaging(device, lockedArea, true);
+	VulkanBuffer* const stagingBuffer = CreateStaging(lockedArea, true);
 
 	// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
 	// potential writes to complete
@@ -1475,7 +1439,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 	// Queue copy command
-	CopyImageSubresourceToBuffer(*vulkanCommandBuffer, mImages[0], face, mipLevel, stagingBuffer, true);
+	CopyImageSubresourceToBuffer(*vulkanCommandBuffer, mImage, face, mipLevel, stagingBuffer, true);
 
 	// Submit the command buffer and wait until it finishes
 	vulkanCommandBuffer->AppendSyncMask(syncMask);
@@ -1511,19 +1475,19 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 		return;
 	}
 
-	if(mImages[0] == nullptr)
+	if(mImage == nullptr)
 		return;
 
 	const u32 mipWidth = std::max(1u, mProperties.Width >> mipLevel);
 	const u32 mipHeight = std::max(1u, mProperties.Height >> mipLevel);
 	const u32 mipDepth = std::max(1u, mProperties.Depth >> mipLevel);
-	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormats[0]);
+	PixelData lockedArea(mipWidth, mipHeight, mipDepth, mInternalFormat);
 
 	const GpuLockOptions options = discardWholeBuffer ? GBL_WRITE_ONLY_DISCARD : GBL_WRITE_ONLY; // TODO - Add NO_OVERWRITE option
 	const bool canDiscardSubresource = (options == GBL_WRITE_ONLY_DISCARD) || (options == GBL_WRITE_ONLY_DISCARD_RANGE);
 
 	VulkanGpuDevice& device = *GetVulkanGpuBackend().GetVulkanDevice(0);
-	VulkanImageSubresource* subresource = mImages[0]->GetSubresource(face, mipLevel);
+	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mipLevel);
 
 	// Check is the GPU currently reading or writing from the image
 	const u32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
@@ -1544,7 +1508,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 		// Even if the texture is directly mappable we might wish to avoid mapping it directly in these situations:
 		const bool shouldMapDirectly =
 			(!isUsedOnGPU || options == GBL_WRITE_ONLY_NO_OVERWRITE) && // GPU is currently using the texture and we cannot map it safely (unless user specifically requested the no-overwrite flag)
-			(!mImages[0]->IsBound() || (commandBuffer == nullptr && canDiscardSubresource)); // Image is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original texture and lock a new copy of the texture.
+			(!mImage->IsBound() || (commandBuffer == nullptr && canDiscardSubresource)); // Image is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original texture and lock a new copy of the texture.
 
 		if(shouldMapDirectly)
 		{
@@ -1558,7 +1522,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 
 	// Can't use direct mapping, so use a staging buffer
 	// Allocate a staging buffer
-	VulkanBuffer* const stagingBuffer = CreateStaging(device, lockedArea, false);
+	VulkanBuffer* const stagingBuffer = CreateStaging(lockedArea, false);
 
 	u8* data = stagingBuffer->Map(0, lockedArea.GetSize());
 	lockedArea.SetExternalBuffer(data);
@@ -1587,9 +1551,9 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 		}
 		else
 		{
-			VulkanImage* const newImage = CreateImage(device, mInternalFormats[0]);
-			mImages[0]->Destroy();
-			mImages[0] = newImage;
+			VulkanImage* const newImage = CreateImage(mInternalFormat);
+			mImage->Destroy();
+			mImage = newImage;
 			
 		}
 	}
@@ -1598,7 +1562,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 		vulkanCommandBuffer->EndRenderPass();
 
 	VkImageSubresourceRange range;
-	range.aspectMask = mImages[0]->GetAspectFlags();
+	range.aspectMask = mImage->GetAspectFlags();
 	range.baseArrayLayer = face;
 	range.layerCount = 1;
 	range.baseMipLevel = mipLevel;
@@ -1613,10 +1577,10 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 	else
 		transferLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-	const ImageSubresourcePitch pitch = GetPitchForSubresource(mImages[0], face, mipLevel);
+	const ImageSubresourcePitch pitch = GetPitchForSubresource(mImage, face, mipLevel);
 
 	// Queue copy command
-	vulkanCommandBuffer->CopyBufferToImage(stagingBuffer, mImages[0], extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
+	vulkanCommandBuffer->CopyBufferToImage(stagingBuffer, mImage, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
 	vulkanCommandBuffer->AppendSyncMask(useMask);
 
 	stagingBuffer->Destroy();

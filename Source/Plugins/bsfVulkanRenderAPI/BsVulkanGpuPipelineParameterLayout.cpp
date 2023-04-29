@@ -214,11 +214,3 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 	for(u32 setIndex = 0; setIndex < mSetCount; setIndex++)
 		mLayouts[setIndex] = descriptorManager.GetLayout(mLayoutInfos[setIndex].Bindings, mLayoutInfos[setIndex].BindingCount);
 }
-
-VulkanDescriptorLayout* VulkanGpuPipelineParameterLayout::GetLayout(u32 deviceIdx, u32 layoutIdx) const
-{
-	if(!B3D_ENSURE(deviceIdx == 0))
-		return nullptr;
-
-	return mLayouts[layoutIdx];
-}

@@ -383,20 +383,19 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 
 	if(imageLayout != VK_IMAGE_LAYOUT_PRESENT_SRC_KHR)
 	{
-		VulkanGpuDevice& device = queue.GetDevice();
-		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(device.GetIndex(), queue.GetUsage());
+		VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queue.GetUsage());
 
 		const SPtr<VulkanGpuCommandBuffer> commandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("SwapChainImageLayoutTransition")));
 		commandBuffer->SetName("Swap chain image layout transition");
 
-		VkCommandBuffer vkCommandBuffer = commandBuffer->GetHandle();
+		VkCommandBuffer vkCommandBuffer = commandBuffer->GetVulkanHandle();
 
 		VkImageMemoryBarrier layoutTransitionBarrier;
 		layoutTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		layoutTransitionBarrier.pNext = nullptr;
 		layoutTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		layoutTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		layoutTransitionBarrier.image = image->GetHandle();
+		layoutTransitionBarrier.image = image->GetVulkanHandle();
 		layoutTransitionBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		layoutTransitionBarrier.subresourceRange.layerCount = 1;
 		layoutTransitionBarrier.subresourceRange.levelCount = 1;

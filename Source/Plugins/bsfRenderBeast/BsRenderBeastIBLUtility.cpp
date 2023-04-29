@@ -331,7 +331,7 @@ SPtr<Texture> IrradianceReduceSHMat::CreateOutputTexture(u32 numCoeffSets)
 	textureDesc.Format = PF_RGBA32F;
 	textureDesc.Usage = TU_STATIC | TU_LOADSTORE;
 
-	return Texture::Create(textureDesc);
+	return mGpuDevice->CreateTexture(textureDesc);
 }
 
 IrradianceReduceSHMat* IrradianceReduceSHMat::GetVariation(int order)
@@ -368,6 +368,7 @@ void IrradianceProjectSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	auto& props = cubemap->GetProperties();
 
 	SPtr<Texture> scratchCubemap = scratch;
@@ -382,7 +383,7 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBu
 		cubemapDesc.MipMapCount = PixelUtil::GetMaxMipmaps(cubemapDesc.Width, cubemapDesc.Height, 1, cubemapDesc.Format);
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-		scratchCubemap = Texture::Create(cubemapDesc);
+		scratchCubemap = gpuDevice->CreateTexture(cubemapDesc);
 	}
 
 	// We sample the cubemaps using importance sampling to generate roughness
@@ -503,6 +504,8 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 
 void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+
 	auto& srcProps = src->GetProperties();
 	auto& dstProps = dst->GetProperties();
 
@@ -528,7 +531,7 @@ void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const 
 		cubemapDesc.MipMapCount = numDownsamples - 1;
 		cubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-		scratchTex = Texture::Create(cubemapDesc);
+		scratchTex = gpuDevice->CreateTexture(cubemapDesc);
 
 		DownsampleCubemap(commandBuffer, src, srcMip, scratchTex, 0);
 		for(u32 i = 0; i < cubemapDesc.MipMapCount; i++)

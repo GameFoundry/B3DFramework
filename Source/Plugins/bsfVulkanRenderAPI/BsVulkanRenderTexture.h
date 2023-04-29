@@ -42,7 +42,7 @@ namespace bs
 		class VulkanRenderTexture : public RenderTexture
 		{
 		public:
-			VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx);
+			VulkanRenderTexture(VulkanGpuDevice& device, const RENDER_TEXTURE_DESC& desc);
 			~VulkanRenderTexture() override = default;
 
 			void GetCustomAttribute(const String& name, void* data) const override;
@@ -54,8 +54,8 @@ namespace bs
 			void Initialize() override;
 			const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
+			VulkanGpuDevice& mGpuDevice;
 			RenderTextureProperties mProperties;
-			u32 mDeviceIdx;
 			VulkanFramebuffer* mFramebuffer;
 		};
 

@@ -108,7 +108,7 @@ VulkanQuery* VulkanQueryPool::BeginTimerQuery(VulkanGpuCommandBuffer& commandBuf
 	VulkanQuery* query = GetQuery(VK_QUERY_TYPE_TIMESTAMP);
 	query->mFree = false;
 
-	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetVulkanHandle();
 	commandBuffer.ResetQuery(query);
 	vkCmdWriteTimestamp(vkCmdBuf, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, query->mPool, query->mQueryIdx);
 
@@ -125,7 +125,7 @@ VulkanQuery* VulkanQueryPool::BeginOcclusionQuery(VulkanGpuCommandBuffer& comman
 	VulkanQuery* query = GetQuery(VK_QUERY_TYPE_OCCLUSION);
 	query->mFree = false;
 
-	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetVulkanHandle();
 	commandBuffer.ResetQuery(query);
 	vkCmdBeginQuery(vkCmdBuf, query->mPool, query->mQueryIdx, precise ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
 
@@ -139,7 +139,7 @@ void VulkanQueryPool::EndOcclusionQuery(VulkanGpuCommandBuffer& commandBuffer, V
 {
 	Lock lock(mMutex);
 
-	VkCommandBuffer vkCmdBuf = commandBuffer.GetHandle();
+	VkCommandBuffer vkCmdBuf = commandBuffer.GetVulkanHandle();
 	vkCmdEndQuery(vkCmdBuf, query.mPool, query.mQueryIdx);
 }
 

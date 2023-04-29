@@ -32,7 +32,7 @@ namespace bs
 			~VulkanBuffer();
 
 			/** Returns the internal handle to the Vulkan object. */
-			VkBuffer GetHandle() const { return mBuffer; }
+			VkBuffer GetVulkanHandle() const { return mBuffer; }
 
 			/** Assigns an name to the buffer, primarily used for easier debugging. */
 			void SetName(const StringView& name);
@@ -118,15 +118,8 @@ namespace bs
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;
 			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;
 
-			/**
-			 * Gets the resource wrapping the buffer object, on the specified device. If hardware buffer device mask doesn't
-			 * include the provided device, null is returned.
-			 */
-			VulkanBuffer* GetResource(u32 deviceIdx) const
-			{
-				B3D_ASSERT(deviceIdx == 0);
-				return mBuffer;
-			}
+			/** Gets the resource wrapping the buffer object. */
+			VulkanBuffer* GetVulkanResource() const { return mBuffer; }
 
 			/** Returns a view of the buffer object using the provided format. Only relevant for simple storage buffers. If Unknown format is provided, returns the default view. If the view was previously created, returns the existing buffer view. */
 			VkBufferView GetOrCreateView(GpuBufferFormat format) const;

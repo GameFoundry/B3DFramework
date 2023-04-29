@@ -136,7 +136,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return TextureManager::Instance().CreateEmptyInternal();
+			return Texture::CreateEmpty();
 		}
 
 	private:

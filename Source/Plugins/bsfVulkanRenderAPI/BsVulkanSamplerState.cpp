@@ -17,19 +17,14 @@ VulkanSampler::~VulkanSampler()
 	vkDestroySampler(mOwner->GetDevice().GetLogical(), mSampler, gVulkanAllocator);
 }
 
-VulkanSamplerState::VulkanSamplerState(const SamplerStateInformation& desc, GpuDeviceFlags deviceMask)
-	: SamplerState(desc, deviceMask), mSamplers(), mDeviceMask(deviceMask)
+VulkanSamplerState::VulkanSamplerState(VulkanGpuDevice& gpuDevice, const SamplerStateInformation& desc)
+	: SamplerState(desc), mGpuDevice(gpuDevice)
 {}
 
 VulkanSamplerState::~VulkanSamplerState()
 {
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(mSamplers[i] == nullptr)
-			return;
-
-		mSamplers[i]->Destroy();
-	}
+	if(mSampler != nullptr)
+		mSampler->Destroy();
 }
 
 void VulkanSamplerState::CreateInternal()
@@ -63,20 +58,9 @@ void VulkanSamplerState::CreateInternal()
 	samplerInfo.borderColor = VulkanUtility::GetBorderColor(GetProperties().GetBorderColor());
 	samplerInfo.unnormalizedCoordinates = false;
 
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-	VulkanGpuDevice* devices[B3D_MAX_DEVICES];
-	VulkanUtility::GetDevices(rapi, mDeviceMask, devices);
+	VkSampler sampler;
+	VkResult result = vkCreateSampler(mGpuDevice.GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
+	B3D_ASSERT(result == VK_SUCCESS);
 
-	// Allocate samplers per-device
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(devices[i] == nullptr)
-			break;
-
-		VkSampler sampler;
-		VkResult result = vkCreateSampler(devices[i]->GetLogical(), &samplerInfo, gVulkanAllocator, &sampler);
-		B3D_ASSERT(result == VK_SUCCESS);
-
-		mSamplers[i] = devices[i]->GetResourceManager().Create<VulkanSampler>(sampler);
-	}
+	mSampler = mGpuDevice.GetResourceManager().Create<VulkanSampler>(sampler);
 }

@@ -23,26 +23,6 @@ namespace bs
 	public:
 		virtual ~TextureManager() = default;
 
-		/** @copydoc Texture::Create(const TEXTURE_DESC&) */
-		SPtr<Texture> CreateTexture(const TextureCreateInformation& desc);
-
-		/**
-		 * Creates a new 2D or 3D texture initialized using the provided pixel data. Texture will not have any mipmaps.
-		 *
-		 * @param[in]	desc  		Description of the texture to create. Must match the pixel data.
-		 * @param[in]	pixelData	Data to initialize the texture width.
-		 */
-		SPtr<Texture> CreateTexture(const TextureCreateInformation& desc, const SPtr<PixelData>& pixelData);
-
-		/**
-		 * Creates a completely empty and uninitialized Texture.
-		 *
-		 * @note
-		 * Internal method. Should only be used for very specific purposes, like deserialization, as it requires additional
-		 * manual initialization that is not required normally.
-		 */
-		SPtr<Texture> CreateEmptyInternal();
-
 		/**
 		 * Creates a new RenderTexture and automatically generates a single color surface and (optionally) a depth/stencil
 		 * surface.
@@ -74,8 +54,6 @@ namespace bs
 		 * systems with their own implementations.
 		 */
 		virtual SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) = 0;
-
-		mutable HTexture mDummyTexture;
 	};
 
 	namespace ct
@@ -88,36 +66,26 @@ namespace bs
 		class B3D_CORE_EXPORT TextureManager : public Module<TextureManager>
 		{
 		public:
+			TextureManager(GpuDevice& gpuDevice)
+				:mGpuDevice(gpuDevice)
+			{ }
 			virtual ~TextureManager() = default;
 
 			void OnStartUp() override;
 			void OnShutDown() override;
 
 			/**
-			 * @copydoc	bs::TextureManager::CreateTexture(const TEXTURE_DESC&)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
-			 */
-			SPtr<Texture> CreateTexture(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/**
 			 * @copydoc bs::TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&)
-			 * @param[in]	deviceIdx		Index of the GPU device to create the object on.
 			 */
-			SPtr<RenderTexture> CreateRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0);
+			SPtr<RenderTexture> CreateRenderTexture(const RENDER_TEXTURE_DESC& desc);
 
 		protected:
-			friend class bs::Texture;
-			friend class Texture;
 			friend class bs::RenderTexture;
 
-			/**
-			 * Creates an empty and uninitialized texture of a specific type. This is to be implemented	by render systems with
-			 * their own implementations.
-			 */
-			virtual SPtr<Texture> CreateTextureInternal(const TextureCreateInformation& desc, const SPtr<PixelData>& initialData = nullptr, GpuDeviceFlags deviceMask = GDF_DEFAULT) = 0;
-
 			/** @copydoc CreateRenderTexture */
-			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx = 0) = 0;
+			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc) = 0;
+
+			GpuDevice& mGpuDevice;
 		};
 	} // namespace ct
 

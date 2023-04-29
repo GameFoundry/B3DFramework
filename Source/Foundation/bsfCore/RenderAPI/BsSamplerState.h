@@ -196,7 +196,7 @@ namespace bs
 			const SamplerProperties& GetProperties() const;
 
 			/**	@copydoc RenderStateManager::CreateSamplerState */
-			static SPtr<SamplerState> Create(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
+			static SPtr<SamplerState> Create(const SamplerStateCreateInformation& desc);
 
 			/**	Returns the default sampler state. */
 			static const SPtr<SamplerState>& GetDefault();
@@ -204,7 +204,7 @@ namespace bs
 		protected:
 			friend class RenderStateManager;
 
-			SamplerState(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask);
+			SamplerState(const SamplerStateCreateInformation& desc);
 
 			/** @copydoc CoreObject::Initialize */
 			void Initialize() override;

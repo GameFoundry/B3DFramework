@@ -82,12 +82,16 @@ namespace bs
 	};
 
 	/** Descriptor structure used for initialization of a Texture. */
-	struct TextureCreateInformation : TextureInformation
+	struct B3D_CORE_EXPORT TextureCreateInformation : TextureInformation
 	{
 		TextureCreateInformation() = default;
 		TextureCreateInformation(const TextureInformation& other)
 			:TextureInformation(other)
 		{ }
+
+		TextureCreateInformation(const SPtr<PixelData>& initialData);
+
+		SPtr<PixelData> InitialData;
 	};
 
 	/** Structure used for specifying information about a texture copy operation. */
@@ -280,31 +284,21 @@ namespace bs
 		/************************************************************************/
 
 		/**
-		 * Creates a new empty texture.
+		 * Creates a new texture.
 		 *
-		 * @param[in]	desc  	Description of the texture to create.
+		 * @param	createInformation  	Description of the texture to create.
 		 */
-		static HTexture Create(const TextureCreateInformation& desc);
-
-		/**
-		 * Creates a new 2D or 3D texture initialized using the provided pixel data. Texture will not have any mipmaps.
-		 *
-		 * @param[in]	pixelData			Data to initialize the texture width.
-		 * @param[in]	usage				Describes planned texture use.
-		 * @param[in]	hwGammaCorrection	If true the texture data is assumed to have been gamma corrected and will be
-		 *									converted back to linear space when sampled on GPU.
-		 */
-		static HTexture Create(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
+		static HTexture Create(const TextureCreateInformation& createInformation);
 
 		/** @name Internal
 		 *  @{
 		 */
 
 		/** Same as Create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> CreateShared(const TextureCreateInformation& desc);
+		static SPtr<Texture> CreateShared(const TextureCreateInformation& createInformation);
 
-		/** Same as Create() excepts it creates a pointer to the texture instead of a texture handle. */
-		static SPtr<Texture> CreateShared(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false);
+		/** Creates an empty texture with default parameters. Requires an explicit call to Initialize() before use. Primarily intended for deserialization. */
+		static SPtr<Texture> CreateEmpty();
 
 		/** @} */
 
@@ -362,7 +356,7 @@ namespace bs
 		class B3D_CORE_EXPORT Texture : public CoreObject
 		{
 		public:
-			Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask);
+			Texture(const TextureCreateInformation& createInformation);
 			virtual ~Texture() {}
 
 			void Initialize() override;
@@ -469,22 +463,6 @@ namespace bs
 
 			/**	Returns properties that contain information about the texture. */
 			const TextureProperties& GetProperties() const { return mProperties; }
-
-			/************************************************************************/
-			/* 								STATICS		                     		*/
-			/************************************************************************/
-
-			/**
-			 * @copydoc bs::Texture::Create(const TEXTURE_DESC&)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
-			 */
-			static SPtr<Texture> Create(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT);
-
-			/**
-			 * @copydoc bs::Texture::Create(const SPtr<PixelData>&, int, bool)
-			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
-			 */
-			static SPtr<Texture> Create(const SPtr<PixelData>& pixelData, int usage = TU_DEFAULT, bool hwGammaCorrection = false, GpuDeviceFlags deviceMask = GDF_DEFAULT);
 
 			/************************************************************************/
 			/* 								TEXTURE VIEW                      		*/

@@ -294,32 +294,32 @@ void ParticleTexturePool::Clear()
 
 ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 size)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
-	TextureCreateInformation texDesc;
-	texDesc.Name = "Particle Billboard Position & Size";
-	texDesc.Type = TEX_TYPE_2D;
-	texDesc.Width = size;
-	texDesc.Height = size;
-	texDesc.Usage = TU_DYNAMIC;
+	TextureCreateInformation textureCreateInformation;
+	textureCreateInformation.Name = "Particle Billboard Position & Size";
+	textureCreateInformation.Type = TEX_TYPE_2D;
+	textureCreateInformation.Width = size;
+	textureCreateInformation.Height = size;
+	textureCreateInformation.Usage = TU_DYNAMIC;
 
-	texDesc.Format = PF_RGBA32F;
-	output->PositionAndRotation = Texture::Create(texDesc);
+	textureCreateInformation.Format = PF_RGBA32F;
+	output->PositionAndRotation = gpuDevice->CreateTexture(textureCreateInformation);
 
-	texDesc.Format = PF_RGBA8;
-	texDesc.Name = "Particle Billboard Color";
-	output->Color = Texture::Create(texDesc);
+	textureCreateInformation.Format = PF_RGBA8;
+	textureCreateInformation.Name = "Particle Billboard Color";
+	output->Color = gpuDevice->CreateTexture(textureCreateInformation);
 
-	texDesc.Format = PF_RGBA16F;
-	texDesc.Name = "Particle Billboard Size & Frame Index";
-	output->SizeAndFrameIdx = Texture::Create(texDesc);
+	textureCreateInformation.Format = PF_RGBA16F;
+	textureCreateInformation.Name = "Particle Billboard Size & Frame Index";
+	output->SizeAndFrameIdx = gpuDevice->CreateTexture(textureCreateInformation);
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
 	bufferCreateInformation.SimpleStorage.Count = size * size;
 	bufferCreateInformation.SimpleStorage.Format = BF_16X2U;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	output->Indices = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	mBillboardBufferList[size].Buffers.push_back(output);
@@ -328,6 +328,7 @@ ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 s
 
 ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
 	TextureCreateInformation texDesc;
@@ -338,26 +339,25 @@ ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 
 	texDesc.Format = PF_RGBA32F;
 	texDesc.Name = "Particle Mesh Position";
-	output->Position = Texture::Create(texDesc);
+	output->Position = gpuDevice->CreateTexture(texDesc);
 
 	texDesc.Format = PF_RGBA8;
 	texDesc.Name = "Particle Mesh Color";
-	output->Color = Texture::Create(texDesc);
+	output->Color = gpuDevice->CreateTexture(texDesc);
 
 	texDesc.Format = PF_RGBA16F;
 	texDesc.Name = "Particle Mesh Size";
-	output->Size = Texture::Create(texDesc);
+	output->Size = gpuDevice->CreateTexture(texDesc);
 
 	texDesc.Format = PF_RGBA16F;
 	texDesc.Name = "Particle Mesh Rotation";
-	output->Rotation = Texture::Create(texDesc);
+	output->Rotation = gpuDevice->CreateTexture(texDesc);
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
 	bufferCreateInformation.SimpleStorage.Count = size * size;
 	bufferCreateInformation.SimpleStorage.Format = BF_16X2U;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	output->Indices = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	mMeshBufferList[size].Buffers.push_back(output);

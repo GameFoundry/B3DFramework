@@ -84,7 +84,7 @@ namespace bs
 			u32 GetHeight() const { return mHeight; }
 
 			/** Gets the internal Vulkan framebuffer object. */
-			VkFramebuffer GetVkFramebuffer() const { return mVkFramebuffer; }
+			VkFramebuffer GetVulkanHandle() const { return mVkFramebuffer; }
 
 			/** Returns the render pass that this framebuffer is tied to. */
 			VulkanRenderPass* GetRenderPass() const { return mRenderPass; }

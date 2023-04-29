@@ -1,42 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/BsTextureManager.h"
+
+#include "BsCoreApplication.h"
 #include "Error/BsException.h"
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsRenderAPI.h"
 
 using namespace bs;
-
-SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc)
-{
-	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc);
-	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
-
-	ret->SetShared(ret);
-	ret->Initialize();
-
-	return ret;
-}
-
-SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc, const SPtr<PixelData>& pixelData)
-{
-	Texture* tex = new(B3DAllocate<Texture>()) Texture(desc, pixelData);
-	SPtr<Texture> ret = B3DMakeCoreFromExisting<Texture>(tex);
-
-	ret->SetShared(ret);
-	ret->Initialize();
-
-	return ret;
-}
-
-SPtr<Texture> TextureManager::CreateEmptyInternal()
-{
-	Texture* tex = new(B3DAllocate<Texture>()) Texture();
-	SPtr<Texture> texture = B3DMakeCoreFromExisting<Texture>(tex);
-	texture->SetShared(texture);
-
-	return texture;
-}
 
 SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInformation& colorDesc, bool createDepth, PixelFormat depthStencilFormat)
 {
@@ -85,16 +56,16 @@ namespace bs { namespace ct
 {
 void TextureManager::OnStartUp()
 {
-	TextureCreateInformation desc;
-	desc.Type = TEX_TYPE_2D;
-	desc.Width = 2;
-	desc.Height = 2;
-	desc.Format = PF_RGBA8;
-	desc.Usage = TU_STATIC;
+	TextureCreateInformation createInformation;
+	createInformation.Type = TEX_TYPE_2D;
+	createInformation.Width = 2;
+	createInformation.Height = 2;
+	createInformation.Format = PF_RGBA8;
+	createInformation.Usage = TU_STATIC;
 
 	// White built-in texture
-	desc.Name = "Builtin White";
-	SPtr<Texture> whiteTexture = CreateTexture(desc);
+	createInformation.Name = "Builtin White";
+	SPtr<Texture> whiteTexture = mGpuDevice.CreateTexture(createInformation);
 
 	SPtr<PixelData> whitePixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	whitePixelData->SetColorAt(Color::kWhite, 0, 0);
@@ -106,8 +77,8 @@ void TextureManager::OnStartUp()
 	Texture::kWhite = whiteTexture;
 
 	// Black built-in texture
-	desc.Name = "Builtin Black";
-	SPtr<Texture> blackTexture = CreateTexture(desc);
+	createInformation.Name = "Builtin Black";
+	SPtr<Texture> blackTexture = mGpuDevice.CreateTexture(createInformation);
 
 	SPtr<PixelData> blackPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 	blackPixelData->SetColorAt(Color::kZero, 0, 0);
@@ -119,8 +90,8 @@ void TextureManager::OnStartUp()
 	Texture::kBlack = blackTexture;
 
 	// Normal (Y = Up) built-in texture
-	desc.Name = "Builtin Normal";
-	SPtr<Texture> normalTexture = CreateTexture(desc);
+	createInformation.Name = "Builtin Normal";
+	SPtr<Texture> normalTexture = mGpuDevice.CreateTexture(createInformation);
 	SPtr<PixelData> normalPixelData = PixelData::Create(2, 2, 1, PF_RGBA8);
 
 	Color encodedNormal(0.5f, 0.5f, 1.0f);
@@ -141,17 +112,9 @@ void TextureManager::OnShutDown()
 	Texture::kNormal = nullptr;
 }
 
-SPtr<Texture> TextureManager::CreateTexture(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask)
+SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC& desc)
 {
-	SPtr<Texture> newTex = CreateTextureInternal(desc, nullptr, deviceMask);
-	newTex->Initialize();
-
-	return newTex;
-}
-
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
-{
-	SPtr<RenderTexture> newRT = CreateRenderTextureInternal(desc, deviceIdx);
+	SPtr<RenderTexture> newRT = CreateRenderTextureInternal(desc);
 	newRT->Initialize();
 
 	return newRT;

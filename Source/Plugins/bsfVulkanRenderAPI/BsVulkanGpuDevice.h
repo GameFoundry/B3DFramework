@@ -39,7 +39,7 @@ namespace bs
 #endif
 
 
-			VulkanGpuDevice(VkPhysicalDevice device, u32 deviceIdx);
+			VulkanGpuDevice(VkPhysicalDevice device);
 			~VulkanGpuDevice();
 
 			/**
@@ -62,6 +62,7 @@ namespace bs
 			void WaitUntilIdle() override;
 
 			SPtr<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
+			SPtr<Texture> CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize) override;
 			SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) override;
 			SPtr<EventQuery> CreateEventQuery() override;
 			SPtr<TimerQuery> CreateTimerQuery() override;
@@ -82,9 +83,6 @@ namespace bs
 
 			/** Returns true if the device is one of the primary GPU's. */
 			bool IsPrimary() const { return mIsPrimary; }
-
-			/** Returns the unique index of the device. */
-			u32 GetIndex() const { return mDeviceIdx; }
 
 			/** Returns a set of properties describing the physical device. */
 			const VkPhysicalDeviceProperties& GetDeviceProperties() const { return mDeviceProperties; }
@@ -221,13 +219,9 @@ namespace bs
 			/** Marks the device as a primary device. */
 			void SetIsPrimary() { mIsPrimary = true; }
 
-			/** Changes the index of the device in the global device list. */
-			void SetIndex(u32 index) { mDeviceIdx = index; }
-
 			VkPhysicalDevice mPhysicalDevice;
 			VkDevice mLogicalDevice = nullptr;
 			bool mIsPrimary = false;
-			u32 mDeviceIdx;
 
 			VulkanQueryPool* mQueryPool;
 			VulkanDescriptorManager* mDescriptorManager;

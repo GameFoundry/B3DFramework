@@ -110,7 +110,7 @@ RTTITypeBase* SamplerState::GetRtti() const
 namespace bs { namespace ct
 {
 
-SamplerState::SamplerState(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask)
+SamplerState::SamplerState(const SamplerStateCreateInformation& desc)
 	: mProperties(desc)
 {
 }
@@ -136,9 +136,9 @@ const SamplerProperties& SamplerState::GetProperties() const
 	return mProperties;
 }
 
-SPtr<SamplerState> SamplerState::Create(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask)
+SPtr<SamplerState> SamplerState::Create(const SamplerStateCreateInformation& desc)
 {
-	return RenderStateManager::Instance().CreateSamplerState(desc, deviceMask);
+	return RenderStateManager::Instance().CreateSamplerState(desc);
 }
 
 const SPtr<SamplerState>& SamplerState::GetDefault()

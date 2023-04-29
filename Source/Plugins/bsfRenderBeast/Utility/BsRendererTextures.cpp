@@ -18,6 +18,10 @@ namespace ct {
 
 SPtr<ct::Texture> Generate4x4RandomizationTexture()
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return nullptr;
+
 	u32 mapping[16] = { 13, 5, 1, 9, 14, 3, 7, 11, 15, 2, 6, 12, 4, 8, 0, 10 };
 	Vector2 bases[16];
 	for(u32 i = 0; i < 16; ++i)
@@ -40,7 +44,7 @@ SPtr<ct::Texture> Generate4x4RandomizationTexture()
 			pixelData->SetColorAt(color, x, y);
 		}
 
-	return ct::Texture::Create(pixelData);
+	return gpuDevice->CreateTexture(pixelData);
 }
 
 // Reverse bits functions used for Hammersley sequence
@@ -91,25 +95,29 @@ float CalcMicrofacetShadowingSmithGgx(float roughness4, float NoV, float NoL)
 
 SPtr<ct::Texture> GeneratePreintegratedEnvBrdf()
 {
-	TextureCreateInformation desc;
-	desc.Name = "Preintegrated BRDF";
-	desc.Type = TEX_TYPE_2D;
-	desc.Format = PF_RG16F;
-	desc.Width = 128;
-	desc.Height = 32;
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return nullptr;
 
-	SPtr<ct::Texture> texture = ct::Texture::Create(desc);
+	TextureCreateInformation createInformation;
+	createInformation.Name = "Preintegrated BRDF";
+	createInformation.Type = TEX_TYPE_2D;
+	createInformation.Format = PF_RG16F;
+	createInformation.Width = 128;
+	createInformation.Height = 32;
+
+	SPtr<ct::Texture> texture = gpuDevice->CreateTexture(createInformation);
 	const SPtr<PixelData> pixelData = texture->GetProperties().AllocBuffer(0, 0);
 
-	for(u32 y = 0; y < desc.Height; y++)
+	for(u32 y = 0; y < createInformation.Height; y++)
 	{
-		float roughness = (float)(y + 0.5f) / desc.Height;
+		float roughness = (float)(y + 0.5f) / createInformation.Height;
 		float m = roughness * roughness;
 		float m2 = m * m;
 
-		for(u32 x = 0; x < desc.Width; x++)
+		for(u32 x = 0; x < createInformation.Width; x++)
 		{
-			float NoV = (float)(x + 0.5f) / desc.Width;
+			float NoV = (float)(x + 0.5f) / createInformation.Width;
 
 			Vector3 V;
 			V.X = sqrt(1.0f - NoV * NoV); // sine
@@ -182,6 +190,10 @@ SPtr<ct::Texture> GeneratePreintegratedEnvBrdf()
 
 SPtr<ct::Texture> GenerateDefaultIndirect()
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return nullptr;
+
 	const SPtr<GpuCommandBufferPool>& commandBufferPool = GetRenderBeast()->GetCommandBufferPool();
 	if (!B3D_ENSURE(commandBufferPool))
 		return nullptr;
@@ -198,7 +210,7 @@ SPtr<ct::Texture> GenerateDefaultIndirect()
 	// Note: Eventually replace this with a time of day model
 	float intensity = 1.0f;
 	Color skyColor = Color::kWhite * intensity;
-	SPtr<ct::Texture> skyTexture = ct::Texture::Create(dummySkyDesc);
+	SPtr<ct::Texture> skyTexture = gpuDevice->CreateTexture(dummySkyDesc);
 
 	u32 sides[] = { CF_PositiveX, CF_NegativeX, CF_PositiveZ, CF_NegativeZ };
 	for(u32 i = 0; i < 4; ++i)
@@ -244,10 +256,9 @@ SPtr<ct::Texture> GenerateDefaultIndirect()
 	irradianceCubemapDesc.MipMapCount = 0;
 	irradianceCubemapDesc.Usage = TU_STATIC | TU_RENDERTARGET;
 
-	SPtr<ct::Texture> irradiance = ct::Texture::Create(irradianceCubemapDesc);
+	SPtr<ct::Texture> irradiance = gpuDevice->CreateTexture(irradianceCubemapDesc);
 	GetIBLUtility().FilterCubemapForIrradiance(*commandBuffer, skyTexture, irradiance);
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 	return irradiance;
@@ -255,6 +266,10 @@ SPtr<ct::Texture> GenerateDefaultIndirect()
 
 SPtr<ct::Texture> GenerateLensFlareGradientTint()
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return nullptr;
+
 	Vector<ColorGradientKey> keys = {
 		ColorGradientKey(Color(1.0f, 1.0f, 1.0f), 0.0f),
 		ColorGradientKey(Color(0.631f, 1.0f, 0.792f), 0.066f),
@@ -275,17 +290,21 @@ SPtr<ct::Texture> GenerateLensFlareGradientTint()
 	for(u32 i = 16; i < 32; i++)
 		pixels->SetColorAt(Color::kBlack, i, 0);
 
-	return ct::Texture::Create(pixels);
+	return gpuDevice->CreateTexture(pixels);
 }
 
 SPtr<ct::Texture> GenerateChromaticAberrationFringe()
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return nullptr;
+
 	SPtr<PixelData> pixels = PixelData::Create(3, 1, 1, PF_RGBA8);
 	pixels->SetColorAt(Color(1.0f, 0.0f, 0.0f, 1.0f), 0, 0);
 	pixels->SetColorAt(Color(0.0f, 1.0f, 0.0f, 1.0f), 1, 0);
 	pixels->SetColorAt(Color(0.0f, 0.0f, 1.0f, 1.0f), 2, 0);
 
-	return ct::Texture::Create(pixels);
+	return gpuDevice->CreateTexture(pixels);
 }
 
 SPtr<ct::Texture> RendererTextures::preintegratedEnvGF;

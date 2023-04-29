@@ -15,6 +15,19 @@
 
 using namespace bs;
 
+TextureCreateInformation::TextureCreateInformation(const SPtr<PixelData>& initialData)
+	:InitialData(initialData)
+{
+	if(initialData != nullptr)
+	{
+		Type = initialData->GetDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
+		Width = initialData->GetWidth();
+		Height = initialData->GetHeight();
+		Depth = initialData->GetDepth();
+		Format = initialData->GetFormat();
+	}
+}
+
 const TextureCopyInformation TextureCopyInformation::kDefault = TextureCopyInformation();
 const TextureBlitInformation TextureBlitInformation::kDefault = TextureBlitInformation();
 
@@ -97,15 +110,15 @@ void Texture::Initialize()
 
 SPtr<ct::CoreObject> Texture::CreateCore() const
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(!gpuDevice)
+		return nullptr;
+
 	TextureCreateInformation createInformation = mProperties;
-	createInformation.Name = GetName();
+	if((mProperties.Usage & TU_CPUCACHED) != 0)
+		createInformation.InitialData = mInitData;
 
-	SPtr<ct::CoreObject> coreObject = ct::TextureManager::Instance().CreateTextureInternal(createInformation, mInitData);
-
-	if((mProperties.Usage & TU_CPUCACHED) == 0)
-		mInitData = nullptr;
-
-	return coreObject;
+	return gpuDevice->CreateTexture(createInformation, true);
 }
 
 AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
@@ -297,37 +310,31 @@ RTTITypeBase* Texture::GetRtti() const
 /************************************************************************/
 /* 								STATICS	                      			*/
 /************************************************************************/
-HTexture Texture::Create(const TextureCreateInformation& desc)
+HTexture Texture::Create(const TextureCreateInformation& createInformation)
 {
-	SPtr<Texture> texturePtr = CreateShared(desc);
+	SPtr<Texture> texture = CreateShared(createInformation);
 
-	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
+	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texture));
 }
 
-HTexture Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
+SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& createInformation)
 {
-	SPtr<Texture> texturePtr = CreateShared(pixelData, usage, hwGammaCorrection);
+	Texture* const texture = new(B3DAllocate<Texture>()) Texture(createInformation);
+	SPtr<Texture> shared = B3DMakeCoreFromExisting<Texture>(texture);
 
-	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texturePtr));
+	shared->SetShared(shared);
+	shared->Initialize();
+
+	return shared;
 }
 
-SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& desc)
+SPtr<Texture> Texture::CreateEmpty()
 {
-	return TextureManager::Instance().CreateTexture(desc);
-}
+	Texture* const texture = new(B3DAllocate<Texture>()) Texture();
+	SPtr<Texture> shared = B3DMakeCoreFromExisting<Texture>(texture);
 
-SPtr<Texture> Texture::CreateShared(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection)
-{
-	TextureCreateInformation desc;
-	desc.Type = pixelData->GetDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
-	desc.Width = pixelData->GetWidth();
-	desc.Height = pixelData->GetHeight();
-	desc.Depth = pixelData->GetDepth();
-	desc.Format = pixelData->GetFormat();
-	desc.Usage = usage;
-	desc.UseHardwareSRGB = hwGammaCorrection;
-
-	return TextureManager::Instance().CreateTexture(desc, pixelData);
+	shared->SetShared(shared);
+	return shared;
 }
 
 namespace bs { namespace ct
@@ -336,8 +343,8 @@ SPtr<Texture> Texture::kWhite;
 SPtr<Texture> Texture::kBlack;
 SPtr<Texture> Texture::kNormal;
 
-Texture::Texture(const TextureCreateInformation& createInformation, const SPtr<PixelData>& initData, GpuDeviceFlags deviceMask)
-	: mProperties(createInformation), mInitData(initData), mName(createInformation.Name)
+Texture::Texture(const TextureCreateInformation& createInformation)
+	: mProperties(createInformation), mInitData(createInformation.InitialData), mName(createInformation.Name)
 {}
 
 void Texture::Initialize()
@@ -625,8 +632,6 @@ SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsa
 {
 	THROW_IF_NOT_CORE_THREAD;
 
-	const TextureProperties& texProps = GetProperties();
-
 	TextureViewInformation key;
 	key.Surface = surface;
 	key.Usage = usage;
@@ -640,30 +645,5 @@ SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsa
 	}
 
 	return iterFind->second;
-}
-
-/************************************************************************/
-/* 								STATICS	                      			*/
-/************************************************************************/
-SPtr<Texture> Texture::Create(const TextureCreateInformation& desc, GpuDeviceFlags deviceMask)
-{
-	return TextureManager::Instance().CreateTexture(desc, deviceMask);
-}
-
-SPtr<Texture> Texture::Create(const SPtr<PixelData>& pixelData, int usage, bool hwGammaCorrection, GpuDeviceFlags deviceMask)
-{
-	TextureCreateInformation createInformation;
-	createInformation.Type = pixelData->GetDepth() > 1 ? TEX_TYPE_3D : TEX_TYPE_2D;
-	createInformation.Width = pixelData->GetWidth();
-	createInformation.Height = pixelData->GetHeight();
-	createInformation.Depth = pixelData->GetDepth();
-	createInformation.Format = pixelData->GetFormat();
-	createInformation.Usage = usage;
-	createInformation.UseHardwareSRGB = hwGammaCorrection;
-
-	SPtr<Texture> newTex = TextureManager::Instance().CreateTextureInternal(createInformation, pixelData, deviceMask);
-	newTex->Initialize();
-
-	return newTex;
 }
 }}

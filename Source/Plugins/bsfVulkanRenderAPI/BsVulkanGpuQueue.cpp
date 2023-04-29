@@ -141,7 +141,7 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const Array
 			continue;
 
 		entry->SetIsSubmitted();
-		mCommandBufferHandleBuffer.Add(entry->GetHandle());
+		mCommandBufferHandleBuffer.Add(entry->GetVulkanHandle());
 		mActiveCommandBuffers.push(QueueSubmissionEntryInformation(entry, waitSemaphores.Size()));
 		commandBufferCount++;
 	}

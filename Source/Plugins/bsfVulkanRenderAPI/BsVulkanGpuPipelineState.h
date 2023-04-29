@@ -25,7 +25,7 @@ namespace bs
 			~VulkanPipeline();
 
 			/** Returns the internal handle to the Vulkan object. */
-			VkPipeline GetHandle() const { return mPipeline; }
+			VkPipeline GetVulkanHandle() const { return mPipeline; }
 
 			/** Checks is the specified color attachment read-only. Only relevant for graphics pipelines. */
 			bool IsColorReadOnly(u32 colorIdx) const { return mReadOnlyColor[colorIdx]; }
@@ -60,23 +60,19 @@ namespace bs
 			 * Attempts to find an existing pipeline matching the provided parameters, or creates a new one if one cannot be
 			 * found.
 			 *
-			 * @param[in]	deviceIdx			Index of the device to retrieve the pipeline for.
-			 * @param[in]	renderPass			Render pass that the pipeline will be used with, or one compatible.
-			 * @param[in]	readOnlyFlags		Flags that control which portion of the framebuffer is read-only. Accepts
-			 *									combinations of FrameBufferType enum.
-			 * @param[in]	drawOp				Type of geometry that will be drawn using the pipeline.
-			 * @param[in]	vertexInput			State describing inputs to the vertex program.
-			 * @return							Vulkan graphics pipeline object.
+			 * @param	renderPass			Render pass that the pipeline will be used with, or one compatible.
+			 * @param	readOnlyFlags		Flags that control which portion of the framebuffer is read-only. Accepts
+			 *								combinations of FrameBufferType enum.
+			 * @param	drawOp				Type of geometry that will be drawn using the pipeline.
+			 * @param	vertexInput			State describing inputs to the vertex program.
+			 * @return						Vulkan graphics pipeline object.
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* GetPipeline(u32 deviceIdx, VulkanRenderPass* renderPass, u32 readOnlyFlags, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* FindOrCreateVulkanResource(VulkanRenderPass* renderPass, u32 readOnlyFlags, DrawOperationType drawOp, const SPtr<VulkanVertexInput>& vertexInput);
 
-			/**
-			 * Returns a pipeline layout object for the specified device index. If the device index doesn't match a bit in the
-			 * device mask provided on pipeline creation, null is returned.
-			 */
-			VkPipelineLayout GetPipelineLayout(u32 deviceIdx) const;
+			/** Returns the pipeline layout object. */
+			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
 
 			/**
 			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever
@@ -88,17 +84,16 @@ namespace bs
 			/**
 			 * Create a new Vulkan graphics pipeline.
 			 *
-			 * @param[in]	deviceIndex			Index of the device to create the pipeline for.
-			 * @param[in]	renderPass			Render pass that the pipeline will be used with, or one compatible.
-			 * @param[in]	readOnlyFlags		Flags that control which portion of the framebuffer is read-only. Accepts
-			 *									combinations of FrameBufferType enum.
-			 * @param[in]	primitiveType		Type of geometry that will be drawn using the pipeline.
-			 * @param[in]	vertexInput			State describing inputs to the vertex program.
-			 * @return							Vulkan graphics pipeline object.
+			 * @param	renderPass			Render pass that the pipeline will be used with, or one compatible.
+			 * @param	readOnlyFlags		Flags that control which portion of the framebuffer is read-only. Accepts
+			 *								combinations of FrameBufferType enum.
+			 * @param	primitiveType		Type of geometry that will be drawn using the pipeline.
+			 * @param	vertexInput			State describing inputs to the vertex program.
+			 * @return						Vulkan graphics pipeline object.
 			 *
 			 * @note	Thread safe.
 			 */
-			VulkanPipeline* CreatePipeline(u32 deviceIndex, VulkanRenderPass* renderPass, u32 readOnlyFlags, DrawOperationType primitiveType, const SPtr<VulkanVertexInput>& vertexInput);
+			VulkanPipeline* CreatePipeline(VulkanRenderPass* renderPass, u32 readOnlyFlags, DrawOperationType primitiveType, const SPtr<VulkanVertexInput>& vertexInput);
 
 			/**	Key uniquely identifying GPU pipelines. */
 			struct GpuPipelineKey
@@ -154,17 +149,11 @@ namespace bs
 
 			void Initialize() override;
 
-			/**
-			 * Returns a pipeline object for the specified device index. If the device index doesn't match a bit in the
-			 * device mask provided on pipeline creation, null is returned.
-			 */
-			VulkanPipeline* GetPipeline(u32 deviceIndex) const;
+			/** Returns the internal pipeline object. */
+			VulkanPipeline* GetVulkanResource() const { return mPipeline; }
 
-			/**
-			 * Returns a pipeline layout object for the specified device index. If the device index doesn't match a bit in the
-			 * device mask provided on pipeline creation, null is returned.
-			 */
-			VkPipelineLayout GetPipelineLayout(u32 deviceIndex) const;
+			/** Returns the pipeline layout object. */
+			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
 
 			/**
 			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever

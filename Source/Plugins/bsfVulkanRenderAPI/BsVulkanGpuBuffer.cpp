@@ -433,7 +433,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 				// Issue a barrier so :
 				//  - If reading: the device makes the written memory available for read (read-after-write hazard)
 				//  - If writing: ensures our writes properly overlap with GPU writes (write-after-write hazard)
-				vulkanCommandBuffer->MemoryBarrier(mBuffer->GetHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+				vulkanCommandBuffer->MemoryBarrier(mBuffer->GetVulkanHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
 										  // Last stages that could have written to the buffer:
 										  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
 			}

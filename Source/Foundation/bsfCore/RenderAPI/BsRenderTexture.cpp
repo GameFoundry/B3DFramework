@@ -182,7 +182,7 @@ RTTITypeBase* RenderTexture::GetRtti() const
 
 namespace bs { namespace ct
 {
-RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
+RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc)
 	: mDesc(desc)
 {}
 
@@ -218,9 +218,9 @@ void RenderTexture::Initialize()
 	ThrowIfBuffersDontMatch();
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc, u32 deviceIdx)
+SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc)
 {
-	return TextureManager::Instance().CreateRenderTexture(desc, deviceIdx);
+	return TextureManager::Instance().CreateRenderTexture(desc);
 }
 
 void RenderTexture::SyncToCore(const CoreSyncData& data)

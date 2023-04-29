@@ -392,7 +392,7 @@ void VulkanGpuBackend::OnStartUp()
 	// For now always initialize a single device, as otherwise we run into problems with RenderDoc
 	mDevices.resize(1);
 
-	mDevices[0] = B3DMakeShared<VulkanGpuDevice>(physicalDevices[primaryDeviceIndex], 0);
+	mDevices[0] = B3DMakeShared<VulkanGpuDevice>(physicalDevices[primaryDeviceIndex]);
 	mDevices[0]->SetIsPrimary();
 
 	mPresentDevice = mDevices[0];
@@ -422,14 +422,14 @@ void VulkanGpuBackend::OnStartUp()
 
 	// Create the texture manager for use by others
 	TextureManager::StartUp<VulkanTextureManager>();
-	ct::TextureManager::StartUp<ct::VulkanTextureManager>();
+	ct::TextureManager::StartUp<ct::VulkanTextureManager>(*mDevices[0]);
 
 	// Create the render pass manager
 	VulkanRenderPassCache::StartUp();
 	VulkanFramebufferCache::StartUp();
 
 	// Start the submit thread
-	VulkanSubmitThread::StartUp();
+	VulkanSubmitThread::StartUp(*mDevices[0]);
 
 	// Create render window manager
 	RenderWindowManager::StartUp<VulkanRenderWindowManager>();

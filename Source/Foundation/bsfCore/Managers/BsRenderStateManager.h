@@ -48,10 +48,10 @@ namespace bs
 			 * @copydoc bs::RenderStateManager::CreateSamplerState
 			 * @param[in]	deviceMask		Mask that determines on which GPU devices should the object be created on.
 			 */
-			SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
+			SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& desc) const;
 
 			/** Creates an uninitialized sampler state. Requires manual initialization after creation. */
-			SPtr<SamplerState> CreateSamplerStateInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask = GDF_DEFAULT) const;
+			SPtr<SamplerState> CreateSamplerStateInternal(const SamplerStateCreateInformation& desc) const;
 
 			/** Gets a sampler state initialized with default options. */
 			const SPtr<SamplerState>& GetDefaultSamplerState() const;
@@ -63,7 +63,7 @@ namespace bs
 			void OnShutDown() override;
 
 			/** @copydoc CreateSamplerState */
-			virtual SPtr<SamplerState> CreateSamplerStateInternalInternal(const SamplerStateCreateInformation& desc, GpuDeviceFlags deviceMask) const;
+			virtual SPtr<SamplerState> CreateSamplerStateInternalInternal(const SamplerStateCreateInformation& desc) const;
 
 		private:
 			/**	Triggered when a new sampler state is created. */

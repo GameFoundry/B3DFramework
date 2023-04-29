@@ -615,27 +615,6 @@ VkSamplerMipmapMode VulkanUtility::GetMipFilter(FilterOptions filter)
 	return VK_SAMPLER_MIPMAP_MODE_LINEAR;
 }
 
-void VulkanUtility::GetDevices(const VulkanRenderAPI& rapi, GpuDeviceFlags flags, VulkanGpuDevice* (&devices)[B3D_MAX_DEVICES])
-{
-	const u32 deviceCount = GetVulkanGpuBackend().GetDeviceCount();
-
-	for(u32 i = 0; i < B3D_MAX_DEVICES; i++)
-	{
-		if(i >= deviceCount)
-		{
-			devices[i] = nullptr;
-			continue;
-		}
-
-		VulkanGpuDevice* device = GetVulkanGpuBackend().GetVulkanDevice(i).get();
-
-		if(IsDeviceIdxSet(rapi, i, flags))
-			devices[i] = device;
-		else
-			devices[i] = nullptr;
-	}
-}
-
 VkPipelineStageFlags VulkanUtility::ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags)
 {
 	VkPipelineStageFlags output = 0;
@@ -683,13 +662,6 @@ VkViewport VulkanUtility::ToVulkanViewport(const Rect2I& input, float minDepth, 
 	output.maxDepth = maxDepth;
 	
 	return output;
-}
-
-bool VulkanUtility::IsDeviceIdxSet(const VulkanRenderAPI& rapi, u32 idx, GpuDeviceFlags flags)
-{
-	VulkanGpuDevice* device = GetVulkanGpuBackend().GetVulkanDevice(idx).get();
-
-	return ((flags & (1 << idx)) != 0 || (flags == GDF_DEFAULT && device->IsPrimary()));
 }
 
 void cutHorizontal(const VkImageSubresourceRange& toCut, const VkImageSubresourceRange& cutWith, VkImageSubresourceRange* output, u32& numAreas)

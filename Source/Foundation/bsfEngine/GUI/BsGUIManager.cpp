@@ -1612,6 +1612,7 @@ RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 
 void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
 {
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	Vector<GUIWidgetRenderData>& widgetRenderData = mPerCameraData[&camera];
 
 	float invViewportWidth = 1.0f / (camera.GetViewport()->GetPixelArea().Width * 0.5f);
@@ -1679,7 +1680,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 			textureCreateInformation.Format = PF_D24S8; // TODO: Can we create a stencil only texture here?
 			textureCreateInformation.Usage = TU_DEPTHSTENCIL;
 
-			SPtr<Texture> stencilTexture = Texture::Create(textureCreateInformation);
+			SPtr<Texture> stencilTexture = gpuDevice->CreateTexture(textureCreateInformation);
 
 			RENDER_TEXTURE_DESC rtDesc;
 			rtDesc.ColorSurfaces[0].Texture = colorTex;
