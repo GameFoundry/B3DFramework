@@ -18,7 +18,7 @@ namespace bs
 		class VulkanShaderModule : public VulkanResource
 		{
 		public:
-			VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module);
+			VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module, const StringView& name = "");
 			~VulkanShaderModule();
 
 			/** Returns the internal handle to the Vulkan object. */

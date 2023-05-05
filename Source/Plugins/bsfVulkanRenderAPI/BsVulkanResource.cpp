@@ -7,7 +7,10 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency)
+VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency, const StringView& name)
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+	: mDebugName(name)
+#endif
 {
 	Lock lock(mMutex);
 

@@ -37,8 +37,16 @@ namespace bs
 		public:
 			static constexpr u32 kMaximumUniqueQueueCount = BS_MAX_QUEUES_PER_TYPE * GQT_COUNT;
 
-			VulkanResource(VulkanResourceManager* owner, bool concurrency);
+			VulkanResource(VulkanResourceManager* owner, bool concurrency, const StringView& name);
 			virtual ~VulkanResource();
+
+			/** Sets a name of the resource, primarily used for debugging. */
+			void SetDebugName(const StringView& name)
+			{
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+				mDebugName = name;
+#endif
+			}
 
 			/**
 			 * Notifies the resource that it is currently bound to a command buffer. Buffer hasn't yet been submitted so the
@@ -169,6 +177,7 @@ namespace bs
 			VulkanResourceManager* mOwner;
 			GpuQueueUsage mQueueUsage = GQT_UNKNOWN;
 			State mState;
+			String mDebugName;
 
 			u8 mReadUses[kMaximumUniqueQueueCount];
 			u8 mWriteUses[kMaximumUniqueQueueCount];

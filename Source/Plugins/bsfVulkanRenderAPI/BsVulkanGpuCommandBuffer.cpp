@@ -32,8 +32,8 @@ static_assert(false, "Other platforms go here");
 using namespace bs;
 using namespace bs::ct;
 
-VulkanSemaphore::VulkanSemaphore(VulkanResourceManager* owner)
-	: VulkanResource(owner, true)
+VulkanSemaphore::VulkanSemaphore(VulkanResourceManager* owner, const StringView& name)
+	: VulkanResource(owner, true, name)
 {
 	VkSemaphoreCreateInfo semaphoreCI;
 	semaphoreCI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -183,7 +183,7 @@ VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, 
 	const VkResult result = vkCreateFence(mDevice.GetLogical(), &fenceCI, gVulkanAllocator, &mFence);
 	B3D_ASSERT(result == VK_SUCCESS);
 
-	SetName(mName);
+	SetName(createInformation.Name);
 }
 
 VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
@@ -1064,7 +1064,8 @@ u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>
 	if(mIntraQueueSemaphore != nullptr)
 		mIntraQueueSemaphore->Destroy();
 
-	mIntraQueueSemaphore = mDevice.GetResourceManager().Create<VulkanSemaphore>();
+	mIntraQueueSemaphore = mDevice.GetResourceManager().Create<VulkanSemaphore>("IntraQueue");
+
 	outSemaphores.Add(mIntraQueueSemaphore->GetHandle());
 	count++;
 
@@ -1073,7 +1074,7 @@ u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>
 		if(mInterQueueSemaphores[i] != nullptr)
 			mInterQueueSemaphores[i]->Destroy();
 
-		mInterQueueSemaphores[i] = mDevice.GetResourceManager().Create<VulkanSemaphore>();
+		mInterQueueSemaphores[i] = mDevice.GetResourceManager().Create<VulkanSemaphore>("InterQueue");
 		outSemaphores.Add(mInterQueueSemaphores[i]->GetHandle());
 		count++;
 	}

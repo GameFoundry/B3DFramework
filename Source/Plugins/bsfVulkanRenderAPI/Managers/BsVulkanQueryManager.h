@@ -87,7 +87,7 @@ namespace bs
 		class VulkanQuery : public VulkanResource
 		{
 		public:
-			VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx);
+			VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx, const StringView& name = "");
 
 			/**
 			 * Attempts to retrieve the result from the query. The result is only valid if the query stopped executing on the

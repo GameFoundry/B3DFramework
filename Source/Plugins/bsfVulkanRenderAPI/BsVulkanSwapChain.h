@@ -62,7 +62,7 @@ namespace bs
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
 			 * ensure the swap chain is not used at the device when this is called.
 			 */
-			VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr);
+			VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr, const StringView& name = "");
 			~VulkanSwapChain();
 
 			/**

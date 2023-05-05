@@ -134,6 +134,9 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const Array
 	const u32 waitSemaphoreOffset = mWaitSemaphoreHandleBuffer.Size();
 	const u32 signalSemaphoreOffset = mSignalSemaphoreHandleBuffer.Size();
 
+	RegisterSemaphoresAndGetHandles(waitSemaphores, mWaitSemaphoreHandleBuffer);
+	const u32 waitSemaphoreCount = mWaitSemaphoreHandleBuffer.Size() - waitSemaphoreOffset;
+
 	u32 commandBufferCount = 0;
 	for (const auto& entry : commandBuffers)
 	{
@@ -142,7 +145,7 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const Array
 
 		entry->SetIsSubmitted();
 		mCommandBufferHandleBuffer.Add(entry->GetVulkanHandle());
-		mActiveCommandBuffers.push(QueueSubmissionEntryInformation(entry, waitSemaphores.Size()));
+		mActiveCommandBuffers.push(QueueSubmissionEntryInformation(entry, waitSemaphoreCount));
 		commandBufferCount++;
 	}
 
@@ -155,8 +158,6 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const Array
 		mLastCBSemaphoreUsed = false;
 	}
 
-	RegisterSemaphoresAndGetHandles(waitSemaphores, mWaitSemaphoreHandleBuffer);
-
 	VkSubmitInfo vkSubmitInfo;
 	vkSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	vkSubmitInfo.pNext = nullptr;
@@ -164,9 +165,9 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const Array
 	vkSubmitInfo.pCommandBuffers = commandBufferCount > 0 ? &mCommandBufferHandleBuffer[commandBufferOffset] : nullptr;
 	vkSubmitInfo.signalSemaphoreCount = signalSemaphoreCount;
 	vkSubmitInfo.pSignalSemaphores = signalSemaphoreCount > 0 ? &mSignalSemaphoreHandleBuffer[signalSemaphoreOffset] : nullptr;
-	vkSubmitInfo.waitSemaphoreCount = waitSemaphores.Size();
+	vkSubmitInfo.waitSemaphoreCount = waitSemaphoreCount;
 
-	if(!waitSemaphores.IsEmpty())
+	if(waitSemaphoreCount != 0)
 	{
 		vkSubmitInfo.pWaitSemaphores = &mWaitSemaphoreHandleBuffer[waitSemaphoreOffset];
 		vkSubmitInfo.pWaitDstStageMask = mSubmitDstWaitMask;

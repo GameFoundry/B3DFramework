@@ -14,12 +14,12 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly, u32 vertexBufferBindingCount)
-	: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor(colorReadOnly), mReadOnlyDepth(depthStencilReadOnly), mVertexBufferBindingCount(vertexBufferBindingCount)
+VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly, u32 vertexBufferBindingCount, const StringView& name)
+	: VulkanResource(owner, true, name), mPipeline(pipeline), mReadOnlyColor(colorReadOnly), mReadOnlyDepth(depthStencilReadOnly), mVertexBufferBindingCount(vertexBufferBindingCount)
 {}
 
-VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline)
-	: VulkanResource(owner, true), mPipeline(pipeline), mReadOnlyColor()
+VulkanPipeline::VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const StringView& name)
+	: VulkanResource(owner, true, name), mPipeline(pipeline), mReadOnlyColor()
 {}
 
 VulkanPipeline::~VulkanPipeline()

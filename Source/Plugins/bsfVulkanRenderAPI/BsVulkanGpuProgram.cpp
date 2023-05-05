@@ -18,8 +18,8 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanShaderModule::VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module)
-	: VulkanResource(owner, true), mModule(module)
+VulkanShaderModule::VulkanShaderModule(VulkanResourceManager* owner, VkShaderModule module, const StringView& name)
+	: VulkanResource(owner, true, name), mModule(module)
 {}
 
 VulkanShaderModule::~VulkanShaderModule()

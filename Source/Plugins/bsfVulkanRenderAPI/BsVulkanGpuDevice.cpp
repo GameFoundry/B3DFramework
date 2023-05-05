@@ -231,6 +231,12 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	mCachedSamplerStates.clear();
 	mBuiltinResources.Cleanup();
 
+	for (u32 queueUsageIndex = 0; queueUsageIndex < GQT_COUNT; queueUsageIndex++)
+	{
+		for (auto& queue : mQueueInfos[queueUsageIndex].Queues)
+			queue = nullptr;
+	}
+
 	B3DDelete(mDescriptorManager);
 	B3DDelete(mQueryPool);
 

@@ -18,7 +18,7 @@ namespace bs
 		class VulkanEvent : public VulkanResource
 		{
 		public:
-			VulkanEvent(VulkanResourceManager* owner);
+			VulkanEvent(VulkanResourceManager* owner, const StringView& name = "");
 			~VulkanEvent() override;
 
 			/** Returns the internal handle to the Vulkan object. */

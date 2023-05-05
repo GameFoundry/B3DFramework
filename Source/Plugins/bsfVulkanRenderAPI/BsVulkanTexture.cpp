@@ -31,12 +31,12 @@ static VulkanImageCreateInformation BuildImageCreateInformation(VkImage image, V
 	return desc;
 }
 
-VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage, bool isShaderReadAllowed)
-	: VulkanImage(owner, BuildImageCreateInformation(image, allocation, layout, actualFormat, props), ownsImage, isShaderReadAllowed)
+VulkanImage::VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
+	: VulkanImage(owner, BuildImageCreateInformation(image, allocation, layout, actualFormat, props), ownsImage, isShaderReadAllowed, name)
 {}
 
-VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage, bool isShaderReadAllowed)
-	: VulkanResource(owner, false), mImage(desc.Image), mAllocation(desc.Allocation), mUsage(desc.Usage), mOwnsImage(ownsImage), mIsShaderReadAllowed(isShaderReadAllowed), mFaceCount(desc.FaceCount), mDepthSliceCount(desc.DepthSliceCount), mMipLevelCount(desc.MipLevelCount)
+VulkanImage::VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage, bool isShaderReadAllowed, const StringView& name)
+	: VulkanResource(owner, false, name), mImage(desc.Image), mAllocation(desc.Allocation), mUsage(desc.Usage), mOwnsImage(ownsImage), mIsShaderReadAllowed(isShaderReadAllowed), mFaceCount(desc.FaceCount), mDepthSliceCount(desc.DepthSliceCount), mMipLevelCount(desc.MipLevelCount)
 {
 	mImageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	mImageViewCI.pNext = nullptr;
@@ -673,8 +673,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 	B3DClearAllocatorFrame();
 }
 
-VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout)
-	: VulkanResource(owner, false), mLayout(layout)
+VulkanImageSubresource::VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, const StringView& name)
+	: VulkanResource(owner, false, name), mLayout(layout)
 {}
 
 VulkanTexture::VulkanTexture(VulkanGpuDevice& gpuDevice, const TextureCreateInformation& createInformation)

@@ -153,6 +153,14 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 		{
 			queue.RefreshCompletionStateOnSubmitThread(true, performCleanupForShutdown);
 		});
+
+		if (performCleanupForShutdown)
+		{
+			for (auto& pool : mCommandBufferPools)
+			{
+				pool = nullptr;
+			}
+		}
 	};
 
 	if(kEnableSubmitThread)

@@ -64,14 +64,15 @@ namespace bs
 		public:
 			/** Creates a new frame buffer with the specified image views attached.
 			 *
-			 * @param[in]	owner		Resource manager that allocated this resource.
-			 * @param[in]	renderPass	Render pass that will be used for rendering to the frame buffer. Note that the
-			 *							framebuffer will be usable with this specific render pass, but also with any compatible
-			 *							render pass. Render passes are compatible if they use the same attachments and their
-			 *							formats and sample counts match.
-			 * @param[in]	desc		Description of the frame buffer.
+			 * @param	owner		Resource manager that allocated this resource.
+			 * @param	renderPass	Render pass that will be used for rendering to the frame buffer. Note that the
+			 *						framebuffer will be usable with this specific render pass, but also with any compatible
+			 *						render pass. Render passes are compatible if they use the same attachments and their
+			 *						formats and sample counts match.
+			 * @param	desc		Description of the frame buffer.
+			 * @param	name		Optional name of the resource, for debugging purposes.
 			 */
-			VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, const VulkanFramebufferInformation& desc);
+			VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, const VulkanFramebufferInformation& desc, const StringView& name = "");
 			~VulkanFramebuffer();
 
 			/** Returns a unique ID of this framebuffer. */

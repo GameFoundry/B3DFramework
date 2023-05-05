@@ -27,8 +27,9 @@ namespace bs
 			 * @param	allocation	Information about memory mapped to the buffer.
 			 * @param	rowPitch	If buffer maps to an image sub-resource, length of a single row (in elements).
 			 * @param	slicePitch	If buffer maps to an image sub-resource, size of a single 2D surface (in elements).
+			 * @param	name		Optional name of the resource, for debugging purposes.
 			 */
-			VulkanBuffer(VulkanResourceManager* owner, GpuBufferType type, GpuBufferFlags flags, VkBuffer buffer, VmaAllocation allocation, u32 rowPitch = 0, u32 slicePitch = 0);
+			VulkanBuffer(VulkanResourceManager* owner, GpuBufferType type, GpuBufferFlags flags, VkBuffer buffer, VmaAllocation allocation, u32 rowPitch = 0, u32 slicePitch = 0, const StringView& name = "");
 			~VulkanBuffer();
 
 			/** Returns the internal handle to the Vulkan object. */

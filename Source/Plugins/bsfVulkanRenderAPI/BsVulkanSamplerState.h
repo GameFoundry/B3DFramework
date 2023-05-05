@@ -18,7 +18,7 @@ namespace bs
 		class VulkanSampler : public VulkanResource
 		{
 		public:
-			VulkanSampler(VulkanResourceManager* owner, VkSampler sampler);
+			VulkanSampler(VulkanResourceManager* owner, VkSampler sampler, const StringView& name = "");
 			~VulkanSampler();
 
 			/** Returns the internal handle to the Vulkan object. */

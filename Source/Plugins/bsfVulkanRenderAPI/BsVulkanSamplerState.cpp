@@ -8,8 +8,8 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanSampler::VulkanSampler(VulkanResourceManager* owner, VkSampler sampler)
-	: VulkanResource(owner, true), mSampler(sampler)
+VulkanSampler::VulkanSampler(VulkanResourceManager* owner, VkSampler sampler, const StringView& name)
+	: VulkanResource(owner, true, name), mSampler(sampler)
 {}
 
 VulkanSampler::~VulkanSampler()

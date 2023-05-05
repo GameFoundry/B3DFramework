@@ -6,8 +6,8 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool)
-	: VulkanResource(owner, true), mSet(set), mPool(pool)
+VulkanDescriptorSet::VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool, const StringView& name)
+	: VulkanResource(owner, true, name), mSet(set), mPool(pool)
 {}
 
 VulkanDescriptorSet::~VulkanDescriptorSet()

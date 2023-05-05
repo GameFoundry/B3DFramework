@@ -8,8 +8,8 @@
 using namespace bs;
 using namespace bs::ct;
 
-VulkanEvent::VulkanEvent(VulkanResourceManager* owner)
-	: VulkanResource(owner, false)
+VulkanEvent::VulkanEvent(VulkanResourceManager* owner, const StringView& name)
+	: VulkanResource(owner, false, name)
 {
 	VkDevice vkDevice = owner->GetDevice().GetLogical();
 

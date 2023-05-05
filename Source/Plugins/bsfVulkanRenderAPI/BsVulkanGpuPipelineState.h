@@ -20,8 +20,8 @@ namespace bs
 		class VulkanPipeline : public VulkanResource
 		{
 		public:
-			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly, u32 vertexBufferBindingCount);
-			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline);
+			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const std::array<bool, B3D_MAXIMUM_RENDER_TARGET_COUNT>& colorReadOnly, bool depthStencilReadOnly, u32 vertexBufferBindingCount, const StringView& name = "");
+			VulkanPipeline(VulkanResourceManager* owner, VkPipeline pipeline, const StringView& name = "");
 			~VulkanPipeline();
 
 			/** Returns the internal handle to the Vulkan object. */

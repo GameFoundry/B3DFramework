@@ -150,8 +150,8 @@ void VulkanQueryPool::ReleaseQuery(VulkanQuery& query)
 	query.mFree = true;
 }
 
-VulkanQuery::VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx)
-	: VulkanResource(owner, false), mPool(pool), mQueryIdx(queryIdx)
+VulkanQuery::VulkanQuery(VulkanResourceManager* owner, VkQueryPool pool, u32 queryIdx, const StringView& name)
+	: VulkanResource(owner, false, name), mPool(pool), mQueryIdx(queryIdx)
 {
 }
 

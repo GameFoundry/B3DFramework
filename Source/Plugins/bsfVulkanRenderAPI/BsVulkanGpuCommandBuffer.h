@@ -28,7 +28,7 @@ namespace bs
 		class VulkanSemaphore : public VulkanResource
 		{
 		public:
-			VulkanSemaphore(VulkanResourceManager* owner);
+			VulkanSemaphore(VulkanResourceManager* owner, const StringView& name = "");
 			~VulkanSemaphore();
 
 			/** Returns the internal handle to the Vulkan object. */

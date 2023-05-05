@@ -11,8 +11,8 @@ using namespace bs::ct;
 
 u32 VulkanFramebuffer::sNextValidId = 1;
 
-VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, const VulkanFramebufferInformation& desc)
-	: VulkanResource(owner, false), mRenderPass(renderPass), mWidth(desc.Width), mHeight(desc.Height), mNumLayers(desc.Layers)
+VulkanFramebuffer::VulkanFramebuffer(VulkanResourceManager* owner, VulkanRenderPass* renderPass, const VulkanFramebufferInformation& desc, const StringView& name)
+	: VulkanResource(owner, false, name), mRenderPass(renderPass), mWidth(desc.Width), mHeight(desc.Height), mNumLayers(desc.Layers)
 {
 	mId = sNextValidId++;
 

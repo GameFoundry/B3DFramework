@@ -17,7 +17,7 @@ namespace bs
 		class VulkanDescriptorSet : public VulkanResource
 		{
 		public:
-			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool);
+			VulkanDescriptorSet(VulkanResourceManager* owner, VkDescriptorSet set, VkDescriptorPool pool, const StringView& name = "");
 			~VulkanDescriptorSet();
 
 			/** Returns a handle to the Vulkan descriptor set object. */

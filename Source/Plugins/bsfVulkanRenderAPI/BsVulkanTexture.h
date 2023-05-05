@@ -52,7 +52,7 @@ namespace bs
 			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
 			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage = true, bool isShaderReadAllowed = true);
+			VulkanImage(VulkanResourceManager* owner, VkImage image, VmaAllocation allocation, VkImageLayout layout, VkFormat actualFormat, const TextureProperties& props, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
 
 			/**
 			 * @param	owner					Resource manager that keeps track of lifetime of this resource.
@@ -60,7 +60,7 @@ namespace bs
 			 * @param	ownsImage				If true, this object will take care of releasing the image and its memory, otherwise it is expected they will be released externally.
 			 * @param	isShaderReadAllowed		True if the image is allowed to be read in the shader. If not, it can only be used as a framebuffer attachment.
 			 */
-			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage = true, bool isShaderReadAllowed = true);
+			VulkanImage(VulkanResourceManager* owner, const VulkanImageCreateInformation& desc, bool ownsImage = true, bool isShaderReadAllowed = true, const StringView& name = "");
 			~VulkanImage();
 
 			void Destroy() override;
@@ -228,7 +228,7 @@ namespace bs
 		class VulkanImageSubresource : public VulkanResource
 		{
 		public:
-			VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout);
+			VulkanImageSubresource(VulkanResourceManager* owner, VkImageLayout layout, const StringView& name = "");
 
 			/**
 			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between

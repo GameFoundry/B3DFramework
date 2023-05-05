@@ -18,8 +18,8 @@ VulkanSurface::~VulkanSurface()
 	vkDestroySurfaceKHR(GetVulkanGpuBackend().GetVkInstance(), mSurface, gVulkanAllocator);
 }
 
-VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain)
-	: VulkanResource(owner, false), mSurface(surface)
+VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain, const StringView& name)
+	: VulkanResource(owner, false, name), mSurface(surface)
 {
 	VulkanGpuDevice& device = owner->GetDevice();
 	mDevice = device.GetLogical();
@@ -152,7 +152,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 
 		mSurfaces[imageIndex].Acquired = false;
 		mSurfaces[imageIndex].NeedsWait = false;
-		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(imageDesc, false, false);
+		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(imageDesc, false, false, "SwapChainSurface");
 		mSurfaces[imageIndex].Semaphore = owner->Create<VulkanSemaphore>();
 
 		if(mSurfaces[imageIndex].Image != nullptr)
