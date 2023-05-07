@@ -26,8 +26,6 @@ namespace bs
 			void BeginFrame() override;
 			void EndFrame() override;
 			SPtr<GpuDevice> GetPrimaryGpuDevice() const override { return mPrimaryGpuDevice; }
-			void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) override;
-			GpuDataParameterBlockInformation GenerateParamBlockDesc(const String& name, Vector<GpuDataParameterInformation>& params) override;
 		protected:
 			friend class VulkanRenderAPIFactory;
 

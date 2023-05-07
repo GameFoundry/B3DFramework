@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/BsCamera.h"
+
+#include "BsCoreApplication.h"
 #include "Private/RTTI/BsCameraRTTI.h"
 #include "Math/BsMath.h"
 #include "Math/BsMatrix3.h"
@@ -265,8 +267,11 @@ void CameraBase::UpdateFrustum() const
 			}
 		}
 
-		ct::RenderAPI* renderAPI = ct::RenderAPI::InstancePtr();
-		renderAPI->ConvertProjectionMatrix(mProjMatrix, mProjMatrixRS);
+		if (const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice())
+			gpuDevice->ConvertProjectionMatrix(mProjMatrix, mProjMatrixRS);
+		else
+			mProjMatrixRS = mProjMatrix;
+
 		mProjMatrixInv = mProjMatrix.Inverse();
 		mProjMatrixRSInv = mProjMatrixRS.Inverse();
 

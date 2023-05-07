@@ -168,8 +168,12 @@ namespace bs
 		}                                                                                            \
                                                                                                      \
 		SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const             \
-		{                                                                                            \
-			return GetCoreApplication().GetPrimaryGpuDevice()->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags));	\
+		{																												\
+			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();								\
+			if (gpuDevice)																								\
+				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags));		\
+																														\
+			return nullptr;																								\
 		}                                                                                            \
 																									 \
 		u32 GetSize() const																			 \
@@ -183,10 +187,17 @@ namespace bs
 		void Initialize() override                                                                   \
 		{                                                                                            \
 			mParams = GetEntries();                                                                  \
-			RenderAPI& rapi = RenderAPI::Instance();                                                 \
-                                                                                                     \
-			GpuDataParameterBlockInformation blockInformation = rapi.GenerateParamBlockDesc(#Name, mParams);  \
-			mBlockSize = blockInformation.BlockSize * sizeof(u32);                                   \
+			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();			 \
+			if(gpuDevice)																			 \
+			{																						 \
+																									 \
+				GpuDataParameterBlockInformation blockInformation = gpuDevice->GenerateUniformBlockInformation(#Name, mParams);  \
+				mBlockSize = blockInformation.BlockSize * sizeof(u32);								 \
+			}																						 \
+			else																					 \
+			{																						 \
+				mBlockSize = 0;																		 \
+			}																						 \
                                                                                                      \
 			InitEntries();                                                                           \
 		}                                                                                            \

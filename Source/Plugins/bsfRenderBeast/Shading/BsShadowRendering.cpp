@@ -1277,7 +1277,8 @@ void ShadowRendering::RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, 
 
 		Matrix4 proj = Matrix4::ProjectionOrthographic(-orthoSize, orthoSize, orthoSize, -orthoSize, 0.0f, shadowInfo.DepthRange);
 
-		RenderAPI::Instance().ConvertProjectionMatrix(proj, proj);
+		GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
+		gpuDevice.ConvertProjectionMatrix(proj, proj);
 
 		shadowInfo.CascadeIdx = i;
 		shadowInfo.ShadowVpTransform = proj * offsetViewMat;
@@ -1380,7 +1381,9 @@ void ShadowRendering::RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const
 	Matrix4 proj = Matrix4::ProjectionPerspective(light->GetSpotAngle(), 1.0f, 0.05f, light->GetAttenuationRadius());
 
 	ConvexVolume localFrustum = ConvexVolume(proj);
-	RenderAPI::Instance().ConvertProjectionMatrix(proj, proj);
+
+	GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
+	gpuDevice.ConvertProjectionMatrix(proj, proj);
 
 	mapInfo.ShadowVpTransform = proj * view;
 
@@ -1471,10 +1474,9 @@ void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, con
 	ProfileGPUBlock profileSample(commandBuffer, "Project radial light shadows");
 
 	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
 
-	RenderAPI& rapi = RenderAPI::Instance();
-	rapi.ConvertProjectionMatrix(proj, proj);
+	GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
+	gpuDevice.ConvertProjectionMatrix(proj, proj);
 
 	// Render cubemaps upside down if necessary
 	Matrix4 adjustedProj = proj;

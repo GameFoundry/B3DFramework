@@ -73,6 +73,9 @@ namespace bs
 			SPtr<GpuComputePipelineState> CreateGpuComputePipelineState(const GpuComputePipelineStateCreateInformation& createInformation, bool deferredInitialize) override;
 			SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize) override;
 
+			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
+			GpuDataParameterBlockInformation GenerateUniformBlockInformation(const String& name, Vector<GpuDataParameterInformation>& inOutUniforms) override;
+
 			/** @} */
 
 			/** Returns an object describing the physical properties of the device. */

@@ -31,6 +31,7 @@ static_assert(false, "Other platform includes go here.");
 #include "BsVulkanSamplerState.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanTimerQuery.h"
+#include "RenderAPI/BsGpuProgramParameterDescription.h"
 #include "ThirdParty/vk_mem_alloc.h"
 #include "Utility/BsBitwise.h"
 
@@ -597,6 +598,57 @@ void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 		GetVulkanSubmitThread().WaitUntilIdle();
 		GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 	}
+}
+
+void VulkanGpuDevice::ConvertProjectionMatrix(const Matrix4& input, Matrix4& output)
+{
+	output = input;
+
+	// Flip Y axis
+	output[1][1] = -output[1][1];
+
+	// Convert depth range from [-1,1] to [0,1]
+	output[2][0] = (output[2][0] + output[3][0]) / 2;
+	output[2][1] = (output[2][1] + output[3][1]) / 2;
+	output[2][2] = (output[2][2] + output[3][2]) / 2;
+	output[2][3] = (output[2][3] + output[3][3]) / 2;
+}
+
+GpuDataParameterBlockInformation VulkanGpuDevice::GenerateUniformBlockInformation(const String& name, Vector<GpuDataParameterInformation>& inOutUniforms)
+{
+	GpuDataParameterBlockInformation block;
+	block.BlockSize = 0;
+	block.IsShareable = true;
+	block.Name = name;
+	block.Slot = 0;
+	block.Set = 0;
+
+	for(auto& param : inOutUniforms)
+	{
+		u32 size;
+		if(param.Type == GPDT_STRUCT)
+		{
+			// Structs are always aligned and rounded up to vec4
+			size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
+			block.BlockSize = Math::DivideAndRoundUp(block.BlockSize, 4U) * 4;
+		}
+		else
+			size = VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(param.Type, param.ArraySize, block.BlockSize);
+
+		param.ElementSize = size;
+		param.ArrayElementStride = size;
+		param.CpuOffset = block.BlockSize;
+		param.GpuOffset = 0;
+		block.BlockSize += size * param.ArraySize;
+		param.ParamBlockSlot = 0;
+		param.ParamBlockSet = 0;
+	}
+
+	// Constant buffer size must always be a multiple of 16
+	if(block.BlockSize % 4 != 0)
+		block.BlockSize += (4 - (block.BlockSize % 4));
+
+	return block;
 }
 
 void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const

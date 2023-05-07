@@ -139,6 +139,9 @@ namespace bs
 		public:
 			virtual ~GpuCommandBuffer();
 
+			/** Returns the GPU device the command buffer is created on. */
+			GpuDevice& GetGpuDevice() const { return mGpuDevice; }
+
 			/** Returns the usage that determines on which queue is the command buffer allowed to be submitted on, and which commands may be recorded. */
 			GpuQueueUsage GetUsage() const { return mUsage; }
 
@@ -331,11 +334,12 @@ namespace bs
 		protected:
 			friend class GpuCommandBufferPool;
 
-			GpuCommandBuffer(ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+			GpuCommandBuffer(GpuDevice& gpuDevice, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Reports an error if the current thread is not the thread associated with the object. */
 			void EnsureValidThread() const { B3D_DEBUG_ONLY(B3D_ENSURE(B3D_CURRENT_THREAD_ID == mOwnerThread)); }
 
+			GpuDevice& mGpuDevice;
 			const GpuCommandBufferCreateInformation mInformation;
 			const GpuQueueUsage mUsage;
 			const ThreadId mOwnerThread;

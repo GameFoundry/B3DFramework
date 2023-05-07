@@ -14,11 +14,6 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-void RenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
-{
-	ct::RenderAPI::Instance().ConvertProjectionMatrix(matrix, dest);
-}
-
 namespace bs { namespace ct
 {
 RenderAPI::RenderAPI()

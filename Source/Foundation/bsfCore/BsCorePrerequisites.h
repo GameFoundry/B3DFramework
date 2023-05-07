@@ -485,7 +485,6 @@ namespace bs
 		class TextureView;
 		class RenderElement;
 		class RenderWindowManager;
-		class RenderStateManager;
 		class GpuBuffer;
 	} // namespace ct
 } // namespace bs

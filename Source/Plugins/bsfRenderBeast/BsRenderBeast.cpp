@@ -717,7 +717,9 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 
 	Matrix4 projTransform = Matrix4::ProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
 	ConvexVolume localFrustum(projTransform);
-	RenderAPI::Instance().ConvertProjectionMatrix(projTransform, projTransform);
+
+	GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
+	gpuDevice.ConvertProjectionMatrix(projTransform, projTransform);
 
 	RENDERER_VIEW_DESC viewDesc;
 	viewDesc.Target.ClearFlags = FBT_COLOR | FBT_DEPTH;

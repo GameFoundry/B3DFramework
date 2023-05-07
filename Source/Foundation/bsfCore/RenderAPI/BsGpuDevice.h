@@ -239,6 +239,26 @@ namespace bs
 		 */
 		virtual SPtr<GpuPipelineParameterLayout> CreateGpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
+		/************************************************************************/
+		/* 								UTILITY METHODS                    		*/
+		/************************************************************************/
+
+		/** Contains a default matrix into a matrix suitable for use by this specific render system. */
+		virtual void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) = 0;
+
+		/**
+		 * Generates a uniform block description and calculates per-uniform offsets for the provided gpu data
+		 * parameters. The offsets are render API specific and correspond to std140 layout for OpenGL, and the default
+		 * layout in DirectX.
+		 *
+		 * @param	name			Name to assign the uniform block.
+		 * @param	inOutUniforms	List of uniforms in the uniform block. Only name, type and array size fields need to be
+		 * 							populated, the rest will be populated when the method returns. If a parameter is a struct
+		 * 							then the elementSize field needs to be populated with the size of the struct in bytes.
+		 * @return					Descriptor for the parameter block holding the provided parameters as laid out by the
+		 *							default render API layout.
+		 */
+		virtual GpuDataParameterBlockInformation GenerateUniformBlockInformation(const String& name, Vector<GpuDataParameterInformation>& inOutUniforms) = 0;
 	protected:
 		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;

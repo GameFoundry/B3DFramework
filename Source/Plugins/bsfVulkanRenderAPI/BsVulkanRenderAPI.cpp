@@ -111,57 +111,6 @@ void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask
 	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
 }
 
-void VulkanRenderAPI::ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest)
-{
-	dest = matrix;
-
-	// Flip Y axis
-	dest[1][1] = -dest[1][1];
-
-	// Convert depth range from [-1,1] to [0,1]
-	dest[2][0] = (dest[2][0] + dest[3][0]) / 2;
-	dest[2][1] = (dest[2][1] + dest[3][1]) / 2;
-	dest[2][2] = (dest[2][2] + dest[3][2]) / 2;
-	dest[2][3] = (dest[2][3] + dest[3][3]) / 2;
-}
-
-GpuDataParameterBlockInformation VulkanRenderAPI::GenerateParamBlockDesc(const String& name, Vector<GpuDataParameterInformation>& params)
-{
-	GpuDataParameterBlockInformation block;
-	block.BlockSize = 0;
-	block.IsShareable = true;
-	block.Name = name;
-	block.Slot = 0;
-	block.Set = 0;
-
-	for(auto& param : params)
-	{
-		u32 size;
-		if(param.Type == GPDT_STRUCT)
-		{
-			// Structs are always aligned and rounded up to vec4
-			size = Math::DivideAndRoundUp(param.ElementSize, 16U) * 4;
-			block.BlockSize = Math::DivideAndRoundUp(block.BlockSize, 4U) * 4;
-		}
-		else
-			size = VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(param.Type, param.ArraySize, block.BlockSize);
-
-		param.ElementSize = size;
-		param.ArrayElementStride = size;
-		param.CpuOffset = block.BlockSize;
-		param.GpuOffset = 0;
-		block.BlockSize += size * param.ArraySize;
-		param.ParamBlockSlot = 0;
-		param.ParamBlockSet = 0;
-	}
-
-	// Constant buffer size must always be a multiple of 16
-	if(block.BlockSize % 4 != 0)
-		block.BlockSize += (4 - (block.BlockSize % 4));
-
-	return block;
-}
-
 namespace bs { namespace ct {
 VulkanRenderAPI& GetVulkanRenderAPI()
 {

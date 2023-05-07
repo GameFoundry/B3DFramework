@@ -170,7 +170,7 @@ const Color kDebugLabelColor = Color::kBansheeOrange;
 constexpr u32 kMaximumBoundDescriptorSets = 64;
 
 VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation)
-	: GpuCommandBuffer(ownerThread, queueType, createInformation), mId(id), mDevice(device), mCommandBufferHandle(commandBufferHandle), mOwnerThread(ownerThread), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
+	: GpuCommandBuffer(device, ownerThread, queueType, createInformation), mId(id), mCommandBufferHandle(commandBufferHandle), mOwnerThread(ownerThread), mNeedsWARMemoryBarrier(false), mNeedsRAWMemoryBarrier(false), mGfxPipelineRequiresBind(true), mCmpPipelineRequiresBind(true), mViewportRequiresBind(true), mStencilRefRequiresBind(true), mScissorRequiresBind(true), mBoundParamsDirty(false), mVertexInputsDirty(false)
 {
 	const u32 maximumBoundDescriptorSets = Math::Min(kMaximumBoundDescriptorSets, device.GetDeviceProperties().limits.maxBoundDescriptorSets);
 	mDescriptorSetsTemp = (VkDescriptorSet*)B3DAllocate(sizeof(VkDescriptorSet) * maximumBoundDescriptorSets);
@@ -180,7 +180,7 @@ VulkanGpuCommandBuffer::VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, 
 	fenceCI.pNext = nullptr;
 	fenceCI.flags = 0;
 
-	const VkResult result = vkCreateFence(mDevice.GetLogical(), &fenceCI, gVulkanAllocator, &mFence);
+	const VkResult result = vkCreateFence(GetVulkanGpuDevice().GetLogical(), &fenceCI, gVulkanAllocator, &mFence);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	SetName(createInformation.Name);
@@ -195,7 +195,7 @@ VulkanGpuCommandBuffer::~VulkanGpuCommandBuffer()
 		Reset();
 	}
 
-	VkDevice device = mDevice.GetLogical();
+	VkDevice device = GetVulkanGpuDevice().GetLogical();
 
 	if(mState == State::Submitted || mState == State::Done)
 	{
@@ -1064,7 +1064,7 @@ u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>
 	if(mIntraQueueSemaphore != nullptr)
 		mIntraQueueSemaphore->Destroy();
 
-	mIntraQueueSemaphore = mDevice.GetResourceManager().Create<VulkanSemaphore>("IntraQueue");
+	mIntraQueueSemaphore = GetVulkanGpuDevice().GetResourceManager().Create<VulkanSemaphore>("IntraQueue");
 
 	outSemaphores.Add(mIntraQueueSemaphore->GetHandle());
 	count++;
@@ -1074,7 +1074,7 @@ u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>
 		if(mInterQueueSemaphores[i] != nullptr)
 			mInterQueueSemaphores[i]->Destroy();
 
-		mInterQueueSemaphores[i] = mDevice.GetResourceManager().Create<VulkanSemaphore>("InterQueue");
+		mInterQueueSemaphores[i] = GetVulkanGpuDevice().GetResourceManager().Create<VulkanSemaphore>("InterQueue");
 		outSemaphores.Add(mInterQueueSemaphores[i]->GetHandle());
 		count++;
 	}
@@ -1134,8 +1134,8 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			barrier.pNext = nullptr;
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = 0;
-			barrier.srcQueueFamilyIndex = mDevice.GetQueueFamily(oldQueueUsage);
-			barrier.dstQueueFamilyIndex = mDevice.GetQueueFamily(queueUsage);
+			barrier.srcQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(oldQueueUsage);
+			barrier.dstQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(queueUsage);
 			barrier.buffer = resource->GetVulkanHandle();
 			barrier.offset = 0;
 			barrier.size = VK_WHOLE_SIZE;
@@ -1170,8 +1170,8 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 
 					barrier.dstAccessMask = 0;
 					barrier.newLayout = barrier.oldLayout;
-					barrier.srcQueueFamilyIndex = mDevice.GetQueueFamily(oldQueueUsage);
-					barrier.dstQueueFamilyIndex = mDevice.GetQueueFamily(queueUsage);
+					barrier.srcQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(oldQueueUsage);
+					barrier.dstQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(queueUsage);
 				}
 			}
 		}
@@ -1221,8 +1221,8 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 					if(queueMismatch)
 					{
 						barrier.srcAccessMask = 0;
-						barrier.srcQueueFamilyIndex = mDevice.GetQueueFamily(oldQueueUsage);
-						barrier.dstQueueFamilyIndex = mDevice.GetQueueFamily(queueUsage);
+						barrier.srcQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(oldQueueUsage);
+						barrier.dstQueueFamilyIndex = GetVulkanGpuDevice().GetQueueFamily(queueUsage);
 					}
 				}
 			}
@@ -1390,7 +1390,7 @@ bool VulkanGpuCommandBuffer::UpdateExecutionStatus(bool block)
 {
 	AssertIfNotVulkanSubmitThread();
 
-	VkResult result = vkWaitForFences(mDevice.GetLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
+	VkResult result = vkWaitForFences(GetVulkanGpuDevice().GetLogical(), 1, &mFence, true, block ? 1'000'000'000 : 0);
 	B3D_ASSERT(result == VK_SUCCESS || result == VK_TIMEOUT);
 
 	return result == VK_SUCCESS;
@@ -1403,7 +1403,7 @@ void VulkanGpuCommandBuffer::Reset()
 	mState = State::Ready;
 	vkResetCommandBuffer(mCommandBufferHandle, VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT); // Note: Maybe better not to release resources?
 
-	const VkResult result = vkResetFences(mDevice.GetLogical(), 1, &mFence);
+	const VkResult result = vkResetFences(GetVulkanGpuDevice().GetLogical(), 1, &mFence);
 	B3D_ASSERT(result == VK_SUCCESS);
 
 	if(wasSubmitted)
@@ -1748,7 +1748,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 {
 	if(mRequiredVertexBufferBindingCount > 0)
 	{
-		const VulkanBuiltinResources& vulkanBuiltinResources = mDevice.GetBuiltinResources();
+		const VulkanBuiltinResources& vulkanBuiltinResources = GetVulkanGpuDevice().GetBuiltinResources();
 		VulkanBuffer *const dummyVertexBuffer = vulkanBuiltinResources.DummyVertexBuffer->GetVulkanResource();
 
 		for(u32 bindingIndex = 0; bindingIndex < mRequiredVertexBufferBindingCount; bindingIndex++)
@@ -3050,7 +3050,7 @@ void VulkanGpuCommandBuffer::SetName(const StringView& name)
 	objectNameInfo.objectHandle = (uint64_t)mCommandBufferHandle;
 	objectNameInfo.pObjectName = name.data();
 
-	vkSetDebugUtilsObjectNameEXT(mDevice.GetLogical(), &objectNameInfo);
+	vkSetDebugUtilsObjectNameEXT(GetVulkanGpuDevice().GetLogical(), &objectNameInfo);
 }
 
 CommandBufferState VulkanGpuCommandBuffer::GetState() const

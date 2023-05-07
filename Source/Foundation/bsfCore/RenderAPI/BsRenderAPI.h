@@ -20,27 +20,6 @@ namespace bs
 {
 	class RenderAPIManager;
 
-	/** @addtogroup RenderAPI
-	 *  @{
-	 */
-
-	/**
-	 * Provides access to ct::RenderAPI from the simulation thread. All the commands get queued on the core thread queue
-	 * for the calling thread.
-	 *
-	 * @see		ct::RenderAPI
-	 *
-	 * @note	Sim thread only.
-	 */
-	class B3D_CORE_EXPORT RenderAPI
-	{
-	public:
-		/** @copydoc ct::RenderAPI::ConvertProjectionMatrix */
-		static void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest);
-	};
-
-	/** @} */
-
 	namespace ct
 	{
 		/** @addtogroup RenderAPI-Internal
@@ -96,31 +75,6 @@ namespace bs
 
 			/** Returns the primary GPU on which to perform rendering. */
 			virtual SPtr<GpuDevice> GetPrimaryGpuDevice() const = 0;
-
-			/************************************************************************/
-			/* 								UTILITY METHODS                    		*/
-			/************************************************************************/
-
-			/**
-			 * Contains a default matrix into a matrix suitable for use by this specific render system.
-			 *
-			 * @note	Thread safe.
-			 */
-			virtual void ConvertProjectionMatrix(const Matrix4& matrix, Matrix4& dest) = 0;
-
-			/**
-			 * Generates a parameter block description and calculates per-parameter offsets for the provided gpu data
-			 * parameters. The offsets are render API specific and correspond to std140 layout for OpenGL, and the default
-			 * layout in DirectX.
-			 *
-			 * @param[in]	name	Name to assign the parameter block.
-			 * @param[in]	params	List of parameters in the parameter block. Only name, type and array size fields need to be
-			 * 						populated, the rest will be populated when the method returns. If a parameter is a struct
-			 * 						then the elementSize field needs to be populated with the size of the struct in bytes.
-			 * @return				Descriptor for the parameter block holding the provided parameters as laid out by the
-			 *						default render API layout.
-			 */
-			virtual GpuDataParameterBlockInformation GenerateParamBlockDesc(const String& name, Vector<GpuDataParameterInformation>& params) = 0;
 
 			/************************************************************************/
 			/* 							INTERNAL METHODS				        	*/

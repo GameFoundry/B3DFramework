@@ -81,8 +81,6 @@ namespace bs
 		/**	Generates a hash value from a sampler state descriptor. */
 		static u64 GenerateHash(const SamplerStateInformation& information);
 	protected:
-		friend class RenderStateManager;
-
 		SamplerState(const SamplerStateCreateInformation& createInformation);
 
 		SamplerStateInformation mInformation;

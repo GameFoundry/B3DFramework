@@ -670,9 +670,11 @@ namespace bs
 			/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
 			void NotifyRenderTargetModified();
 
+			/** Returns the owner GPU device, cast as a VulkanGpuDevice. */
+			VulkanGpuDevice& GetVulkanGpuDevice() const { return static_cast<VulkanGpuDevice&>(mGpuDevice); }
+
 			u32 mId;
 			State mState = State::Ready;
-			VulkanGpuDevice& mDevice;
 			VkCommandBuffer mCommandBufferHandle;
 			VkFence mFence;
 			ThreadId mOwnerThread;
