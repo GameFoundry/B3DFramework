@@ -79,38 +79,6 @@ void VulkanRenderAPI::EndFrame()
 	GetVulkanSubmitThread().QueueRefreshCommandBufferCompletionStates(vulkanGpuDevice);
 }
 
-void VulkanRenderAPI::SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask)
-{
-	THROW_IF_NOT_CORE_THREAD
-
-	if(target == nullptr || !target->GetProperties().IsWindow)
-		return;
-
-	// Retrieve the swap chain before command buffer submit, as the submit might internally rebuild the swap chain.
-	VulkanSwapChain* swapChain = nullptr;
-
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-	Win32RenderWindow* window = static_cast<Win32RenderWindow*>(target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-	LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(target.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-	MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(target.get());
-#endif
-
-	window->SwapBuffers();
-	swapChain = window->GetSwapChain();
-
-	VulkanGpuQueue* const presentQueue = static_cast<VulkanGpuQueue*>(GetVulkanGpuBackend().GetPresentDevice()->GetQueue(GQT_GRAPHICS, 0).get());
-	GetVulkanSubmitThread().QueuePresent(*presentQueue, *swapChain, syncMask);
-
-	// Ensure the acquire operation we queued the previous frame has finished. This also means the old image was presented.
-	swapChain->WaitUntilFirstImageAcquired();
-
-	GetVulkanSubmitThread().QueueImageAcquire(*swapChain);
-
-	B3D_INCREMENT_RENDER_STATISTIC(NumPresents);
-}
-
 namespace bs { namespace ct {
 VulkanRenderAPI& GetVulkanRenderAPI()
 {

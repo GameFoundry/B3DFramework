@@ -600,6 +600,15 @@ void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 	}
 }
 
+void VulkanGpuDevice::PresentRenderWindow(const SPtr<ct::RenderWindow>& renderWindow, u32 syncMask)
+{
+	SPtr<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
+	if (!B3D_ENSURE(queue))
+		return;
+
+	queue->PresentRenderWindow(renderWindow, syncMask);
+}
+
 void VulkanGpuDevice::ConvertProjectionMatrix(const Matrix4& input, Matrix4& output)
 {
 	output = input;

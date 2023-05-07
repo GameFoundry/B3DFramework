@@ -400,7 +400,7 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 
 			if(rtInfo.Target->GetProperties().IsWindow)
 			{
-				renderAPI.SwapBuffers(rtInfo.Target);
+				mDevice->PresentRenderWindow(std::static_pointer_cast<RenderWindow>(rtInfo.Target));
 			}
 		}
 	}

@@ -22,6 +22,7 @@ namespace bs
 
 			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 syncMask, bool flushTransferCommandBuffer) override;
 			void WaitUntilIdle() override;
+			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
 
 			/**
 			 * Submits a command buffer on the queue using information prepared by the command buffer.

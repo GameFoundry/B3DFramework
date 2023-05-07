@@ -53,18 +53,6 @@ namespace bs
 			virtual const StringID& GetName() const = 0;
 
 			/**
-			 * Swap the front and back buffer of the specified render target.
-			 *
-			 * @param[in]	target		Render target to perform the buffer swap on.
-			 * @param[in]	syncMask	Optional synchronization mask that determines for which queues should the system wait
-			 *							before performing the swap buffer operation. By default the system waits for all queues.
-			 *							However if certain queues are performing non-rendering operations, or operations not
-			 *							related to the provided render target, you can exclude them from the sync mask for
-			 *							potentially better performance. You can use CommandSyncMask to generate a valid sync mask.
-			 */
-			virtual void SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask = 0xFFFFFFFF) = 0;
-
-			/**
 			 * Prepares the backend for rendering a single frame. A frame involves a set of submitted command buffers followed by any optional present operations on the window surfaces.
 			 * Must be followed by an EndFrame() call after all command buffers and present operations have been submitted.
 			 */
@@ -80,6 +68,8 @@ namespace bs
 			/* 							INTERNAL METHODS				        	*/
 			/************************************************************************/
 		protected:
+			friend class RenderAPIManager;
+
 			/**
 			 * Initializes the render API system and creates a primary render window.
 			 *
@@ -108,15 +98,6 @@ namespace bs
 
 			/** Converts the number of vertices to number of primitives based on the specified draw operation. */
 			u32 VertexCountToPrimCount(DrawOperationType type, u32 elementCount);
-
-			/************************************************************************/
-			/* 								INTERNAL DATA					       	*/
-			/************************************************************************/
-		protected:
-			friend class bs::RenderAPIManager;
-
-			SPtr<RenderTarget> mActiveRenderTarget;
-			bool mActiveRenderTargetModified = false;
 		};
 
 		/** Shorthand for GpuDevice::GetCapabilities(). */

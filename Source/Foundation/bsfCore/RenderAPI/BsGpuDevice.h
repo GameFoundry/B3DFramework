@@ -59,6 +59,16 @@ namespace bs
 		void SubmitCommandBuffer(const SPtr<ct::GpuCommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF);
 
 		/**
+		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
+		 *
+		 * @param	renderWindow		Window whose back-buffer to present.
+		 * @param	syncMask			Optional synchronization mask that determines if the present operation
+		 *								depends on any command buffers submitted on other queues. You may use
+		 *								CommandSyncMask class to generate a mask.
+		 */
+		virtual void PresentRenderWindow(const SPtr<ct::RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) = 0;
+
+		/**
 		 * Returns a command buffer that is to be used for transfer operations when user doesn't provide an explicit command buffer.
 		 * Transfer command buffers on all queues should be submitted before any regular explicit command buffer submission, or at the end of frame.
 		 * Each thread calling this method will retrieve a separate command buffer.
@@ -138,6 +148,16 @@ namespace bs
 
 		/** Submits all non-empty transfer command buffers on all queues, for the current thread. Optionally waits until the GPU is done processing them. */
 		virtual void SubmitTransferCommandBuffers(bool wait = false) = 0;
+
+		/**
+		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
+		 *
+		 * @param	renderWindow		Window whose back-buffer to present.
+		 * @param	syncMask			Optional synchronization mask that determines if the present operation
+		 *								depends on any command buffers submitted on other queues. You may use
+		 *								CommandSyncMask class to generate a mask.
+		 */
+		virtual void PresentRenderWindow(const SPtr<ct::RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) = 0;
 
 		/** Blocks the calling thread until all operations on the device finish. */
 		virtual void WaitUntilIdle() = 0;

@@ -22,7 +22,6 @@ namespace bs
 			~VulkanRenderAPI() override = default;
 
 			const StringID& GetName() const override;
-			void SwapBuffers(const SPtr<RenderTarget>& target, u32 syncMask = 0xFFFFFFFF) override;
 			void BeginFrame() override;
 			void EndFrame() override;
 			SPtr<GpuDevice> GetPrimaryGpuDevice() const override { return mPrimaryGpuDevice; }

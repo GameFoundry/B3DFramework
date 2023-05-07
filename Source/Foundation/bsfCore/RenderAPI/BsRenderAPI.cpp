@@ -58,7 +58,6 @@ void RenderAPI::Destroy()
 
 void RenderAPI::DestroyCore()
 {
-	mActiveRenderTarget = nullptr;
 }
 
 u32 RenderAPI::VertexCountToPrimCount(DrawOperationType type, u32 elementCount)
