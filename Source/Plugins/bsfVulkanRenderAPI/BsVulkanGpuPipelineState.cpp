@@ -4,7 +4,6 @@
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuProgram.h"
 #include "BsVulkanUtility.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuPipelineParameterLayout.h"
 #include "Managers/BsVulkanVertexInputManager.h"
 #include "BsVulkanGpuCommandBuffer.h"

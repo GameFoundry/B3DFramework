@@ -3,7 +3,6 @@
 #include "BsVulkanSamplerState.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanUtility.h"
-#include "BsVulkanRenderAPI.h"
 
 using namespace bs;
 using namespace bs::ct;

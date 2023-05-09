@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/BsRenderer.h"
 #include "CoreThread/BsCoreThread.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsMaterial.h"
 #include "Renderer/BsRendererExtension.h"
@@ -13,6 +12,7 @@
 #include "Profiling/BsProfilerGPU.h"
 #include "Profiling/BsProfilerCPU.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 

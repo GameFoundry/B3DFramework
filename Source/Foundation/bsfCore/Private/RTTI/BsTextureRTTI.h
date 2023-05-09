@@ -8,7 +8,6 @@
 #include "Image/BsTexture.h"
 #include "Math/BsMath.h"
 #include "CoreThread/BsCoreThread.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsTextureManager.h"
 #include "Image/BsPixelData.h"
 

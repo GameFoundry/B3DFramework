@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGpuPipelineParameterLayout.h"
 #include "BsVulkanUtility.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 
@@ -15,8 +14,6 @@ VulkanGpuPipelineParameterLayout::VulkanGpuPipelineParameterLayout(VulkanGpuDevi
 
 void VulkanGpuPipelineParameterLayout::Initialize()
 {
-	VulkanRenderAPI& rapi = static_cast<VulkanRenderAPI&>(RenderAPI::Instance());
-
 	u32 totalSlotCount = 0;
 	for(u32 i = 0; i < mSetCount; i++)
 		totalSlotCount += mSetInfos[i].SlotCount;

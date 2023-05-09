@@ -9,7 +9,6 @@
 #include "Material/BsMaterial.h"
 #include "RenderAPI/BsGpuParameters.h"
 #include "Material/BsGpuParamsSet.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Utility/BsDrawHelper.h"

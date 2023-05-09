@@ -11,7 +11,6 @@
 #include "Image/BsPixelData.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Image/BsColorGradient.h"
-#include "RenderAPI/BsRenderAPI.h"
 
 namespace bs {
 namespace ct {

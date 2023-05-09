@@ -1,10 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/BsGpuParam.h"
+
+#include "BsCoreApplication.h"
+#include "BsGpuDevice.h"
+#include "BsGpuDeviceCapabilities.h"
 #include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Debug/BsDebug.h"
 #include "Error/BsException.h"
 #include "Math/BsVector2I.h"
@@ -41,7 +44,10 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
 	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-	const bool transposeMatrices = ct::GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
+
+	const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 	if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 	{
 		auto transposed = TransposePolicy<T>::Transpose(value);

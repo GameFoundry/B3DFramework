@@ -12,6 +12,7 @@
 #include "Resources/BsResources.h"
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 

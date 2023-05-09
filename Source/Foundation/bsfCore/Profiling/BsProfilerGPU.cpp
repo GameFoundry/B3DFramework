@@ -1,11 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Profiling/BsProfilerGPU.h"
+
+#include "BsCoreApplication.h"
 #include "Profiling/BsRenderStats.h"
 #include "RenderAPI/BsTimerQuery.h"
 #include "RenderAPI/BsOcclusionQuery.h"
 #include "Error/BsException.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 
@@ -332,11 +334,11 @@ SPtr<ct::TimerQuery> ProfilerGPU::GetTimerQuery() const
 		return timerQuery;
 	}
 
-	const SPtr<GpuDevice>& device = ct::RenderAPI::Instance().GetPrimaryGpuDevice();
-	if(device == nullptr)
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(gpuDevice == nullptr)
 		return nullptr;
 
-	return device->CreateTimerQuery();
+	return gpuDevice->CreateTimerQuery();
 }
 
 SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
@@ -349,11 +351,11 @@ SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 		return occlusionQuery;
 	}
 
-	const SPtr<GpuDevice>& device = ct::RenderAPI::Instance().GetPrimaryGpuDevice();
-	if(device == nullptr)
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(gpuDevice == nullptr)
 		return nullptr;
 
-	return device->CreateOcclusionQuery(false);
+	return gpuDevice->CreateOcclusionQuery(false);
 }
 
 namespace bs

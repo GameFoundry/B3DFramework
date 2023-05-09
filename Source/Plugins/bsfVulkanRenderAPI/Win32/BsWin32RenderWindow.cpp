@@ -1,13 +1,14 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Win32/BsWin32RenderWindow.h"
+
+#include "BsCoreApplication.h"
 #include "Private/Win32/BsWin32Platform.h"
 #include "Private/Win32/BsWin32Window.h"
 #include "Win32/BsWin32VideoModeInfo.h"
 #include "Corethread/BsCoreThread.h"
 #include "Profiling/BsRenderStats.h"
 #include "Managers/BsRenderWindowManager.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanSwapChain.h"
 #include "BsVulkanGpuCommandBuffer.h"
@@ -71,10 +72,8 @@ void Win32RenderWindow::SyncProperties()
 
 SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
 {
-	ct::VulkanRenderAPI& rapi = static_cast<ct::VulkanRenderAPI&>(ct::RenderAPI::Instance());
-
 	RENDER_WINDOW_DESC desc = mDesc;
-	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::Win32RenderWindow>(desc, mWindowId, rapi);
+	SPtr<ct::CoreObject> coreObj = B3DMakeShared<ct::Win32RenderWindow>(desc, mWindowId);
 	coreObj->SetShared(coreObj);
 
 	return coreObj;
@@ -82,8 +81,8 @@ SPtr<ct::CoreObject> Win32RenderWindow::CreateCore() const
 
 namespace bs {
 namespace ct {
-Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, VulkanRenderAPI& renderAPI)
-	: RenderWindow(desc, windowId), mProperties(desc), mSyncedProperties(desc), mWindow(nullptr), mIsChild(false), mShowOnSwap(false), mDisplayFrequency(0), mRenderAPI(renderAPI)
+Win32RenderWindow::Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId)
+	: RenderWindow(desc, windowId), mProperties(desc), mSyncedProperties(desc), mWindow(nullptr), mIsChild(false), mShowOnSwap(false), mDisplayFrequency(0)
 {}
 
 Win32RenderWindow::~Win32RenderWindow()
@@ -138,7 +137,7 @@ void Win32RenderWindow::Initialize()
 	if(opt != mDesc.PlatformSpecific.end())
 		windowDesc.External = (HWND)Parseu64(opt->second);
 
-	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	u32 numOutputs = videoModeInfo.GetNumOutputs();
 	if(numOutputs > 0)
 	{
@@ -341,7 +340,7 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	if(mIsChild)
 		return;
 
-	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(RenderAPI::Instance().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const Win32VideoModeInfo& videoModeInfo = static_cast<const Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	u32 numOutputs = videoModeInfo.GetNumOutputs();
 	if(numOutputs == 0)
 		return;

@@ -3,7 +3,6 @@
 #include "BsBSLParser.h"
 #include "Material/BsShader.h"
 #include "Material/BsPass.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Debug/BsDebug.h"
 #include "Math/BsMatrix4.h"
 #include "Resources/BsBuiltinResources.h"

@@ -1,7 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/BsRendererUtility.h"
-#include "RenderAPI/BsRenderAPI.h"
+
+#include "Image/BsTexture.h"
 #include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Material/BsMaterial.h"
@@ -14,6 +15,7 @@
 #include "Renderer/BsIBLUtility.h"
 #include "Math/BsAABox.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 using namespace bs;
 
@@ -304,7 +306,7 @@ void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Rect
 	// Note: Consider drawing the quad using a single large triangle for possibly better performance
 	// Note2: Consider setting quad size in shader instead of rebuilding the mesh every time
 
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = commandBuffer.GetGpuDevice().GetCapabilities().Conventions;
 	Vector3 vertices[4];
 
 	if(rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down)

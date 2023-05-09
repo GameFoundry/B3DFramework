@@ -5,7 +5,7 @@
 #include "BsCoreApplication.h"
 #include "Error/BsException.h"
 #include "Image/BsPixelUtil.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 

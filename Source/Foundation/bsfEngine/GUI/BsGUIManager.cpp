@@ -38,6 +38,7 @@
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 using namespace std::placeholders;
 
@@ -1553,7 +1554,9 @@ bool GUIManager::SendVirtualButtonEvent(GUIElement* element, const GUIVirtualBut
 
 namespace bs
 {
-GUIManager& GetGUIManager()
+	struct GpuBackendConventions;
+
+	GUIManager& GetGUIManager()
 {
 	return GUIManager::Instance();
 }
@@ -1614,11 +1617,13 @@ RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
+
 	Vector<GUIWidgetRenderData>& widgetRenderData = mPerCameraData[&camera];
 
 	float invViewportWidth = 1.0f / (camera.GetViewport()->GetPixelArea().Width * 0.5f);
 	float invViewportHeight = 1.0f / (camera.GetViewport()->GetPixelArea().Height * 0.5f);
-	bool viewflipYFlip = GetGpuDeviceCapabilities().Conventions.NdcYAxis == GpuBackendConventions::Axis::Down;
+	bool viewflipYFlip = gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 
 	GpuCommandBuffer& commandBuffer = *viewContext.CommandBuffer;
 	for(auto& widget : widgetRenderData)
@@ -1755,6 +1760,9 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 	if(iterFind == mPerCameraData.end())
 		mReferencedCameras.insert(camera);
 
+	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = device->GetCapabilities().Conventions;
+
 	Vector<GUIWidgetRenderData>& widgets = mPerCameraData[camera.get()];
 	GUIWidgetRenderData* widget;
 
@@ -1804,7 +1812,7 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 		auto numQuads = (u32)widget->DrawGroups.size();
 		if(numQuads > 0)
 		{
-			bool flipUVY = GetGpuDeviceCapabilities().Conventions.UvYAxis == GpuBackendConventions::Axis::Up;
+			bool flipUVY = gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up;
 			float uvTop = flipUVY ? 1.0f : 0.0f;
 			float uvBottom = flipUVY ? 0.0f : 1.0f;
 

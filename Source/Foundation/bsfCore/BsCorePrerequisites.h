@@ -403,7 +403,7 @@ namespace bs
 	class PrefabDiff;
 	class RendererMeshData;
 	class Win32Window;
-	class RenderAPIFactory;
+	class GpuBackendFactory;
 	class PhysicsManager;
 	class Physics;
 	class FCollider;
@@ -476,7 +476,6 @@ namespace bs
 	{
 		class Renderer;
 		class VertexData;
-		class RenderAPI;
 		class CoreObject;
 		class GpuCommandBuffer;
 		class EventQuery;

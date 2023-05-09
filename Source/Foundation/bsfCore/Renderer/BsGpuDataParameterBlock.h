@@ -6,8 +6,9 @@
 #include "BsCoreApplication.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 #include "RenderAPI/BsGpuParameters.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsGpuBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 namespace bs
 {
@@ -44,7 +45,10 @@ namespace bs
 				u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
 				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
 
-				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
+				const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
+
+				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);

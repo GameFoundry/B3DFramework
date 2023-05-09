@@ -10,10 +10,11 @@
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "Material/BsMaterialParams.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Animation/BsAnimationCurve.h"
 #include "Image/BsColorGradient.h"
 #include "Image/BsSpriteTexture.h"
+#include "RenderAPI/BsGpuDevice.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 using namespace bs;
 
@@ -908,6 +909,9 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 	// a ring buffer and a version number. Then we could just iterate over the ring buffer and only access dirty
 	// parameters. If the version number is too high (larger than ring buffer can store), then we force update for all.
 
+	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = device->GetCapabilities().Conventions;
+
 	// Update data params
 	for(auto& paramInfo : mDataParamInfos)
 	{
@@ -942,7 +946,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 			u8* data = params->GetData(materialParamInfo->Index);
 			if(!isAnimated)
 			{
-				const bool transposeMatrices = ct::GetGpuDeviceCapabilities().Conventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
+				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 				if(transposeMatrices)
 				{
 					auto writeTransposed = [&paramInfo, &paramSize, &arraySize, &paramBlock, data](auto& temp)

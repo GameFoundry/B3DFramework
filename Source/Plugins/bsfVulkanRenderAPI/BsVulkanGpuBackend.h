@@ -12,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	// TODO - Doc
+	/** Handles initialization and shutdown of Vulkan GPU backend, and provides access to GPU device objects. */
 	class VulkanGpuBackend : public GpuBackend
 	{
 		using Super = GpuBackend;

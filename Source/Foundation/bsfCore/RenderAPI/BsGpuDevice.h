@@ -163,6 +163,15 @@ namespace bs
 		virtual void WaitUntilIdle() = 0;
 
 		/**
+		 * Prepares the device for rendering a single frame. A frame involves a set of submitted command buffers followed by any optional present operations on the window surfaces.
+		 * Must be followed by an EndFrame() call after all command buffers and present operations have been submitted.
+		 */
+		virtual void BeginFrame() = 0;
+
+		/** Notifies the device the rendering for the current frame has ended. See BeginFrame(). */
+		virtual void EndFrame() = 0;
+
+		/**
 		 * Compiles the GPU program to an intermediate bytecode format. The bytecode can be cached and used for
 		 * quicker compilation/creation of GPU programs.
 		 */

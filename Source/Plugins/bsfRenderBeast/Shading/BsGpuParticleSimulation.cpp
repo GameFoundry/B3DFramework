@@ -13,6 +13,7 @@
 #include "BsRendererScene.h"
 #include "BsRenderBeast.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
 #include "Utility/BsGpuSort.h"
 
 namespace bs { namespace ct {
@@ -468,12 +469,12 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 
 	auto* const indices = (u16*)B3DStackAllocate(SpriteIndices->GetSize());
 
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 	for(u32 i = 0; i < kParticlesPerInstance; i++)
 	{
 		// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 		// get culled.
-		if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
+		if(gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		{
 			indices[i * 6 + 0] = i * 4 + 2;
 			indices[i * 6 + 1] = i * 4 + 1;
@@ -1061,10 +1062,11 @@ SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
 
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
+	if((gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 	{
 		uvToNdc.Y = -uvToNdc.Y;
 		uvToNdc.W = -uvToNdc.W;
@@ -1401,13 +1403,13 @@ GpuParticleCurves::GpuParticleCurves()
 
 	mInjectIndices = gpuDevice->CreateGpuBuffer(injectIndexBufferCreateInformation);
 
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	auto* const indices = (u16*)B3DStackAllocate(mInjectIndices->GetSize());
 
 	// If UV is flipped, then our tile will be upside down so we need to change index order so it doesn't
 	// get culled.
-	if(rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up)
+	if(gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 	{
 		indices[0] = 2;
 		indices[1] = 1;

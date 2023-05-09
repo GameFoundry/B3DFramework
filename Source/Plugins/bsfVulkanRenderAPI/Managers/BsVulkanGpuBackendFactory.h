@@ -2,9 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Managers/BsRenderAPIFactory.h"
-#include "Managers/BsRenderAPIManager.h"
-#include "BsVulkanRenderAPI.h"
+#include "Managers/BsGpuBackendManager.h"
 
 namespace bs
 {
@@ -14,8 +12,8 @@ namespace bs
 		 *  @{
 		 */
 
-		/**	Handles creation of the Vulkan render system. */
-		class VulkanRenderAPIFactory : public RenderAPIFactory
+		/**	Handles creation of the VulkanGpuBackend. */
+		class VulkanGpuBackendFactory : public GpuBackendFactory
 		{
 		public:
 			static constexpr const char* SystemName = "bsfVulkanRenderAPI";
@@ -30,11 +28,11 @@ namespace bs
 			public:
 				InitOnStart()
 				{
-					static SPtr<RenderAPIFactory> newFactory;
+					static SPtr<GpuBackendFactory> newFactory;
 					if(newFactory == nullptr)
 					{
-						newFactory = B3DMakeShared<VulkanRenderAPIFactory>();
-						RenderAPIManager::Instance().RegisterFactory(newFactory);
+						newFactory = B3DMakeShared<VulkanGpuBackendFactory>();
+						GpuBackendManager::Instance().RegisterFactory(newFactory);
 					}
 				}
 			};

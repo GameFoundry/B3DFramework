@@ -1,9 +1,9 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanTexture.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanFramebuffer.h"
+#include "BsVulkanGpuBackend.h"
 #include "BsVulkanUtility.h"
 #include "BsVulkanGpuBuffer.h"
 #include "BsVulkanGpuCommandBuffer.h"

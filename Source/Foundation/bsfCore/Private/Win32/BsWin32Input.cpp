@@ -3,10 +3,13 @@
 #include "Input/BsInput.h"
 #include "Error/BsException.h"
 #include "Private/Win32/BsWin32Input.h"
+
+#include "BsCoreApplication.h"
 #include "Input/BsMouse.h"
 #include "Input/BsKeyboard.h"
 #include "Input/BsGamepad.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "RenderAPI/BsGpuDevice.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 
 using namespace bs;
 
@@ -154,7 +157,9 @@ void Input::InitRawInput()
 {
 	mPlatformData = B3DNew<InputPrivateData>();
 
-	bool isHeadless = ct::GetGpuDeviceCapabilities().DeviceName == "Null";
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+
+	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null";
 	if(isHeadless)
 		return;
 

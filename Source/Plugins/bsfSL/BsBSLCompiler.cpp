@@ -6,13 +6,13 @@
 #include "Material/BsShader.h"
 #include "Material/BsTechnique.h"
 #include "Material/BsPass.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Math/BsMatrix4.h"
 #include "Resources/BsBuiltinResources.h"
 #include "Material/BsShaderVariation.h"
 
 #include "BsBSLParser.h"
 #include "BsHLSLCrossCompiler.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace std;
 using namespace bs;

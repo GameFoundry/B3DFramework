@@ -2,9 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsCoreApplication.h"
 
-#include "RenderAPI/BsRenderAPI.h"
-#include "Managers/BsRenderAPIManager.h"
-
 #include "Platform/BsPlatform.h"
 #include "RenderAPI/BsRenderWindow.h"
 #include "Math/BsVector2.h"
@@ -40,10 +37,13 @@
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationManager.h"
 #include "FileSystem/BsFileSystem.h"
+#include "Managers/BsGpuBackendManager.h"
 #include "Material/BsShaderCompiler.h"
 #include "Renderer/BsGpuDataParameterBlock.h"
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsVectorField.h"
+#include "RenderAPI/BsGpuBackend.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 namespace bs
 {
@@ -118,7 +118,7 @@ CoreApplication::~CoreApplication()
 	UnloadPlugin(mStartUpDesc.Renderer);
 
 	mPrimaryGpu = nullptr;
-	RenderAPIManager::ShutDown();
+	GpuBackendManager::ShutDown();
 
 	CoreObjectManager::ShutDown(); // Must shut down before DynLibManager to ensure all objects are destroyed before unloading their libraries
 
@@ -170,13 +170,14 @@ void CoreApplication::OnStartUp()
 	GameObjectManager::StartUp();
 	Resources::StartUp();
 	ResourceListenerManager::StartUp();
-	RenderAPIManager::StartUp();
 
-	mPrimaryWindow = RenderAPIManager::Instance().Initialize(mStartUpDesc.RenderApi, mStartUpDesc.PrimaryWindowDesc);
+	GpuBackendManager::StartUp();
+	GpuBackendManager::Instance().Initialize(mStartUpDesc.RenderApi);
 
-	// TODO - Currently the GpuBackend always only initializes a single device. Once we change it to support multiple, pick the device here and initialize it1
 	mPrimaryGpu = GpuBackend::Instance().GetDevice(0);
-	B3D_ENSURE(mPrimaryGpu->IsInitialized()); // Must have already been initialized by RenderAPI
+	mPrimaryGpu->Initialize();
+
+	mPrimaryWindow = RenderWindow::Create(mStartUpDesc.PrimaryWindowDesc, nullptr);
 
 	ct::GpuDataParameterBlockManager::StartUp();
 	Input::StartUp();

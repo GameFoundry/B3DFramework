@@ -13,6 +13,7 @@
 #include "Renderer/BsRenderer.h"
 #include "BsRendererRenderable.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
 
 namespace bs { namespace ct {
 
@@ -920,7 +921,8 @@ std::array<Vector3, 8> GetFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
 {
 	std::array<Vector3, 8> output;
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 
 	float flipY = 1.0f;
 	if(caps.Conventions.NdcYAxis == GpuBackendConventions::Axis::Down)
@@ -969,11 +971,12 @@ Matrix4 CreateMixedToShadowUvMatrix(const Matrix4& viewP, const Matrix4& viewInv
 
 	// Convert shadow clip space coordinates to UV coordinates relative to the shadow map rectangle, and normalize
 	// depth
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	float flipY = -1.0f;
 	// Either of these flips the Y axis, but if they're both true they cancel out
-	if((rapiConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
+	if((gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up) ^ (gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down))
 		flipY = -flipY;
 
 	Matrix4 shadowMapTfrm(
@@ -1001,7 +1004,7 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 
 	ProfileGPUBlock sampleBlock(commandBuffer, "Render shadow occlusion");
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const GpuDeviceCapabilities& caps = commandBuffer.GetGpuDevice().GetCapabilities();
 	// TODO - Calculate and set a scissor rectangle for the light
 
 	SPtr<GpuBuffer> shadowParamBuffer = gShadowProjectParamsDef.CreateBuffer();
@@ -1473,7 +1476,7 @@ void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, con
 
 	ProfileGPUBlock profileSample(commandBuffer, "Project radial light shadows");
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const GpuDeviceCapabilities& caps = commandBuffer.GetGpuDevice().GetCapabilities();
 
 	GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
 	gpuDevice.ConvertProjectionMatrix(proj, proj);
@@ -1678,7 +1681,7 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 
 void ShadowRendering::DrawNearFarPlanes(GpuCommandBuffer& commandBuffer, float near, float far, bool drawNear) const
 {
-	const GpuBackendConventions& rapiConventions = GetGpuDeviceCapabilities().Conventions;
+	const GpuBackendConventions& rapiConventions = commandBuffer.GetGpuDevice().GetCapabilities().Conventions;
 	float flipY = (rapiConventions.NdcYAxis == GpuBackendConventions::Axis::Down) ? -1.0f : 1.0f;
 
 	// Update VB with new vertices
@@ -1924,7 +1927,8 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 	if(light.GetType() == LightType::Spot)
 		rangeScale = 1.0f / depthRange;
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 	float deviceDepthRange = caps.MaxDepth - caps.MinDepth;
 
 	float defaultBias = 1.0f;

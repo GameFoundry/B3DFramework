@@ -12,7 +12,7 @@
 #include "Renderer/BsIBLUtility.h"
 #include "CoreThread/BsCoreObjectSync.h"
 #include "Profiling/BsProfilerGPU.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 

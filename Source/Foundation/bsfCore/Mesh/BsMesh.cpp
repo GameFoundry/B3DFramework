@@ -6,10 +6,11 @@
 #include "Debug/BsDebug.h"
 #include "Managers/BsMeshManager.h"
 #include "CoreThread/BsCoreThread.h"
+#include "RenderAPI/BsGpuBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
 #include "Threading/BsAsyncOp.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Resources/BsResources.h"
-#include "RenderAPI/BsRenderAPI.h"
 
 using namespace bs;
 

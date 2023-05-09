@@ -4,7 +4,6 @@
 
 #include "BsVulkanBuiltinResources.h"
 #include "BsVulkanPrerequisites.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Managers/BsVulkanDescriptorManager.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
@@ -61,6 +60,8 @@ namespace bs
 			void SubmitTransferCommandBuffers(bool wait = false) override;
 			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
 			void WaitUntilIdle() override;
+			void BeginFrame() override;
+			void EndFrame() override;
 
 			SPtr<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			SPtr<Texture> CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize) override;

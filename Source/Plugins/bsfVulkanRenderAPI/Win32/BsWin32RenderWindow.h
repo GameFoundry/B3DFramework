@@ -57,7 +57,7 @@ namespace bs
 		class Win32RenderWindow : public RenderWindow
 		{
 		public:
-			Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId, VulkanRenderAPI& renderAPI);
+			Win32RenderWindow(const RENDER_WINDOW_DESC& desc, u32 windowId);
 			~Win32RenderWindow();
 
 			void Move(i32 left, i32 top) override;
@@ -99,7 +99,6 @@ namespace bs
 			bool mShowOnSwap;
 			i32 mDisplayFrequency;
 
-			VulkanRenderAPI& mRenderAPI;
 			SPtr<VulkanSurface> mSurface;
 			VkColorSpaceKHR mColorSpace;
 			VkFormat mColorFormat;

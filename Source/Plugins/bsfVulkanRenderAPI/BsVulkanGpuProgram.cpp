@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanGpuProgram.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanUtility.h"
 #include "RenderAPI/BsGpuParameters.h"
@@ -10,6 +9,7 @@
 #include "Profiling/BsRenderStats.h"
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsDataStream.h"
+#include "BsVulkanGpuBackend.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include <MoltenVK/vk_mvk_moltenvk.h>

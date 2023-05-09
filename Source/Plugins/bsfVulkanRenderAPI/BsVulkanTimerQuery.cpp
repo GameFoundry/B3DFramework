@@ -3,7 +3,6 @@
 #include "BsVulkanTimerQuery.h"
 #include "BsVulkanGpuDevice.h"
 #include "Managers/BsVulkanQueryManager.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuCommandBuffer.h"
 #include "Profiling/BsRenderStats.h"
 

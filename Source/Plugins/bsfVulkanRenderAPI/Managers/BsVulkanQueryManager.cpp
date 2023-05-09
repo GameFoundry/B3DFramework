@@ -4,7 +4,6 @@
 #include "BsVulkanEventQuery.h"
 #include "BsVulkanTimerQuery.h"
 #include "BsVulkanOcclusionQuery.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuCommandBuffer.h"
 

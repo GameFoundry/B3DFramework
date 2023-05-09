@@ -16,6 +16,7 @@
 #include "BsVulkanOcclusionQuery.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanRenderTexture.h"
+#include "BsVulkanGpuBackend.h"
 #include "Profiling/BsRenderStats.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 

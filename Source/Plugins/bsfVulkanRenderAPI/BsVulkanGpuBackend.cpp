@@ -13,6 +13,7 @@
 #include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanSubmitThread.h"
+#include "CoreThread/BsCoreThread.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Win32/BsWin32VideoModeInfo.h"
@@ -442,26 +443,45 @@ void VulkanGpuBackend::OnStartUp()
 
 void VulkanGpuBackend::OnShutDown()
 {
-	VulkanSubmitThread::ShutDown();
-	VulkanVertexInputManager::ShutDown();
-	ct::RenderWindowManager::ShutDown();
-	RenderWindowManager::ShutDown();
-	VulkanFramebufferCache::ShutDown();
-	VulkanRenderPassCache::ShutDown();
-	ct::TextureManager::ShutDown();
-	TextureManager::ShutDown();
-	GLSLToSPIRV::ShutDown();
+	auto fnShutdown = [this]()
+	{
+		for (const auto& device : mDevices)
+		{
+			if (!device->IsInitialized())
+				continue;
 
-	mPresentDevice = nullptr;
-	mDevices.clear();
+			device->WaitUntilIdle();
+		}
 
-	if(mDebugReportCallback != nullptr)
-		vkDestroyDebugReportCallbackEXT(mInstance, mDebugReportCallback, gVulkanAllocator);
+		VulkanSubmitThread::ShutDown();
+		VulkanVertexInputManager::ShutDown();
+		ct::RenderWindowManager::ShutDown();
+		RenderWindowManager::ShutDown();
+		VulkanFramebufferCache::ShutDown();
+		VulkanRenderPassCache::ShutDown();
+		ct::TextureManager::ShutDown();
+		TextureManager::ShutDown();
+		GLSLToSPIRV::ShutDown();
 
-	if(mDebugUtilsMessenger != nullptr)
-		vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugUtilsMessenger, gVulkanAllocator);
+		mPresentDevice = nullptr;
+		mDevices.clear();
 
-	vkDestroyInstance(mInstance, gVulkanAllocator);
+		if (mDebugReportCallback != nullptr)
+			vkDestroyDebugReportCallbackEXT(mInstance, mDebugReportCallback, gVulkanAllocator);
+
+		if (mDebugUtilsMessenger != nullptr)
+			vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugUtilsMessenger, gVulkanAllocator);
+
+		vkDestroyInstance(mInstance, gVulkanAllocator);
+	};
+
+		// TODO - Device::WaitUntilIdle is not thread safe yet, ensure it only triggers on the core thread
+	if (B3D_CURRENT_THREAD_ID == CoreThread::Instance().GetCoreThreadId())
+		fnShutdown();
+	else
+	{
+		CoreThread::Instance().QueueCommand(fnShutdown, CTQF_InternalQueue | CTQF_BlockUntilComplete);
+	}
 
 	Super::OnShutDown();
 }

@@ -44,7 +44,6 @@ namespace bs
 
 	namespace ct
 	{
-		class VulkanRenderAPI;
 		class Win32RenderWindow;
 		class VulkanTexture;
 		class Win32VideoMode;

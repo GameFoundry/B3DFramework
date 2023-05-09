@@ -8,6 +8,7 @@
 #include "RenderAPI/BsVertexDescription.h"
 #include "Material/BsGpuParamsSet.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Renderer/BsSkybox.h"
 #include "Utility/BsRendererTextures.h"

@@ -11,6 +11,7 @@
 #include "Scene/BsSceneObject.h"
 #include "CoreThread/BsCoreObjectSync.h"
 #include "Profiling/BsProfilerGPU.h"
+#include "RenderAPI/BsGpuDevice.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 
 using namespace bs;

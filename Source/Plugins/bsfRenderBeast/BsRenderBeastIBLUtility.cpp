@@ -6,6 +6,7 @@
 #include "Renderer/BsRendererUtility.h"
 #include "BsRenderBeast.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
 
 namespace bs { namespace ct {
 
@@ -25,8 +26,8 @@ void ReflectionCubeDownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const
 
 	gReflectionCubeDownsampleParamDef.gCubeFace.Set(mParamBuffer, face);
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
-	if(caps.HasCapability(RSC_TEXTURE_VIEWS))
+	const GpuDeviceCapabilities& gpuDeviceCapabilities = mGpuDevice->GetCapabilities();
+	if(gpuDeviceCapabilities.HasCapability(RSC_TEXTURE_VIEWS))
 	{
 		mInputTexture.Set(source, TextureSurface(mip, 1, 0, 6));
 		gReflectionCubeDownsampleParamDef.gMipLevel.Set(mParamBuffer, 0);

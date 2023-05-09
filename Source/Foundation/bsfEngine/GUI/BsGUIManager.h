@@ -16,6 +16,7 @@
 #include "Material/BsMaterialParam.h"
 #include "Renderer/BsGpuDataParameterBlock.h"
 #include "GUI/BsGUIWidget.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 namespace bs
 {

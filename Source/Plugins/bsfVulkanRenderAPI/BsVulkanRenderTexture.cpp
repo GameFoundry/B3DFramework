@@ -4,7 +4,6 @@
 #include "BsVulkanFramebuffer.h"
 #include "BsVulkanTexture.h"
 #include "BsVulkanUtility.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanRenderPass.h"
 

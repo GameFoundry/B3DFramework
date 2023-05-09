@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "RenderAPI/BsGpuDevice.h"
 #include "Utility/BsModule.h"
 #include "Utility/BsDrawHelper.h"
 #include "Renderer/BsGpuDataParameterBlock.h"

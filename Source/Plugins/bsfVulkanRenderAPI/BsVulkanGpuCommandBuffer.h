@@ -4,9 +4,12 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanResource.h"
 #include "BsVulkanGpuPipelineState.h"
+#include "BsVulkanGpuDevice.h"
+#include "Math/BsRect2.h"
+#include "Math/BsRect2I.h"
+#include "RenderAPI/BsGpuDeviceCapabilities.h"
 #include "Utility/BsDenseMap.h"
 
 namespace bs

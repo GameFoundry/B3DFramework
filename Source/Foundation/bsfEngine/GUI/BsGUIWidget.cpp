@@ -14,6 +14,7 @@
 #include "Resources/BsBuiltinResources.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Image/BsSpriteTexture.h"
+#include "RenderAPI/BsRenderTexture.h"
 
 using namespace bs;
 

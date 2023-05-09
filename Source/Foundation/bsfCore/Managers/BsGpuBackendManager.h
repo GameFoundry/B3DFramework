@@ -1,0 +1,46 @@
+//************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "BsCorePrerequisites.h"
+#include "Utility/BsModule.h"
+
+namespace bs
+{
+	/** @addtogroup RenderAPI-Internal
+	 *  @{
+	 */
+
+	/** Factory class registered when a plugin supporting a new GpuBackend is loaded. */
+	class GpuBackendFactory
+	{
+	public:
+		virtual ~GpuBackendFactory() = default;
+
+		/**	Creates and starts up the GPU backend managed by this factory.  */
+		virtual void Create() = 0;
+
+		/**	Returns the name of the GPU backend this factory creates. */
+		virtual const char* Name() const = 0;
+	};
+
+	/** Manager that handles GPU backend initialization. */
+	class B3D_CORE_EXPORT GpuBackendManager : public Module<GpuBackendManager>
+	{
+	public:
+		GpuBackendManager() = default;
+		~GpuBackendManager();
+
+		/** Loads a plugin with the provided name and initializes the GpuBackend from the plugin. */
+		void Initialize(const String& pluginFilename);
+
+		/**	Registers a new GPU backend factory responsible for creating a specific GpuBackend. */
+		void RegisterFactory(SPtr<GpuBackendFactory> factory);
+
+	private:
+		Vector<SPtr<GpuBackendFactory>> mAvailableFactories;
+		bool mRenderAPIInitialized = false;
+	};
+
+	/** @} */
+} // namespace bs

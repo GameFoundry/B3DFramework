@@ -5,11 +5,11 @@
 #include "BsCoreApplication.h"
 #include "BsShaderCompiler.h"
 #include "Error/BsException.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "Renderer/BsRendererManager.h"
 #include "Material/BsPass.h"
 #include "Renderer/BsRenderer.h"
 #include "Private/RTTI/BsTechniqueRTTI.h"
+#include "RenderAPI/BsGpuDevice.h"
 #include "Utility/BsPersistentCache.h"
 
 using namespace bs;

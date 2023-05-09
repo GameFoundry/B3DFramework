@@ -9,7 +9,6 @@
 #include "Material/BsShader.h"
 #include "Material/BsPass.h"
 #include "Material/BsShaderCompiler.h"
-#include "RenderAPI/BsRenderAPI.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "Resources/BsBuiltinResources.h"
 #include "Threading/BsTaskScheduler.h"

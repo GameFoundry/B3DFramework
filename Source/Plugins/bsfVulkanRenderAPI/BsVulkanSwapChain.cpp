@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanSwapChain.h"
 #include "BsVulkanTexture.h"
-#include "BsVulkanRenderAPI.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuBackend.h"
 #include "BsVulkanGpuCommandBuffer.h"

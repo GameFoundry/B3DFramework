@@ -27,6 +27,7 @@
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Profiling/BsProfilerCPU.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
 
 namespace bs { namespace ct {
 
@@ -2446,7 +2447,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	srcRect.Width += (viewProps.Target.ViewRect.Width % 2) * (1.0f / viewProps.Target.ViewRect.Width);
 	srcRect.Height += (viewProps.Target.ViewRect.Height % 2) * (1.0f / viewProps.Target.ViewRect.Height);
 
-	bool noTextureViews = !GetGpuDeviceCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
+	bool noTextureViews = !commandBuffer.GetGpuDevice().GetCapabilities().HasCapability(RSC_TEXTURE_VIEWS);
 
 	BuildHiZMat* material = BuildHiZMat::GetVariation(noTextureViews);
 
@@ -2698,8 +2699,6 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 		Output = Texture::kBlack;
 		return;
 	}
-
-	RenderAPI& rapi = RenderAPI::Instance();
 
 	RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[0]);
 	RCNodeLightAccumulation* lightAccumNode = static_cast<RCNodeLightAccumulation*>(inputs.InputNodes[1]);

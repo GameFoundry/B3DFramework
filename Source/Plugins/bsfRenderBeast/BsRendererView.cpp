@@ -642,10 +642,11 @@ Vector2 RendererView::GetDeviceZToViewZ(const Matrix4& projMatrix)
 	// Are we reorganize it because it needs to fit the "(1.0f / (depth + y)) * x" format used in the shader:
 	// z = 1.0f / (depth + minDepth/(maxDepth - minDepth) - A/((maxDepth - minDepth) * C)) * B/((maxDepth - minDepth) * C)
 
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuDeviceCapabilities& gpuDeviceCapabilities = gpuDevice->GetCapabilities();
 
-	float depthRange = caps.MaxDepth - caps.MinDepth;
-	float minDepth = caps.MinDepth;
+	float depthRange = gpuDeviceCapabilities.MaxDepth - gpuDeviceCapabilities.MinDepth;
+	float minDepth = gpuDeviceCapabilities.MinDepth;
 
 	float a = projMatrix[2][2];
 	float b = projMatrix[2][3];
@@ -705,11 +706,12 @@ Vector2 RendererView::GetNdczToViewZ(const Matrix4& projMatrix)
 
 Vector2 RendererView::GetNdczToDeviceZ()
 {
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuDeviceCapabilities& gpuDeviceCapabilities = gpuDevice->GetCapabilities();
 
 	Vector2 ndcZToDeviceZ;
-	ndcZToDeviceZ.X = 1.0f / (caps.MaxDepth - caps.MinDepth);
-	ndcZToDeviceZ.Y = -caps.MinDepth;
+	ndcZToDeviceZ.X = 1.0f / (gpuDeviceCapabilities.MaxDepth - gpuDeviceCapabilities.MinDepth);
+	ndcZToDeviceZ.Y = -gpuDeviceCapabilities.MinDepth;
 
 	return ndcZToDeviceZ;
 }
@@ -808,7 +810,8 @@ void RendererView::UpdatePerViewBuffer()
 
 Vector4 RendererView::GetNdcToUv() const
 {
-	const GpuDeviceCapabilities& caps = GetGpuDeviceCapabilities();
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 	const Rect2I& viewRect = mProperties.Target.ViewRect;
 
 	float halfWidth = viewRect.Width * 0.5f;

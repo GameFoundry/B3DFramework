@@ -1,36 +1,32 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Managers/BsRenderAPIManager.h"
-#include "Error/BsException.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "Managers/BsGpuBackendManager.h"
+#include "RenderAPI/BsGpuBackend.h"
 #include "Utility/BsDynamicLibrary.h"
 #include "Utility/BsDynamicLibraryManager.h"
 
 using namespace bs;
 
-RenderAPIManager::~RenderAPIManager()
+GpuBackendManager::~GpuBackendManager()
 {
 	if(mRenderAPIInitialized)
-	{
-		ct::RenderAPI::Instance().Destroy();
-		ct::RenderAPI::ShutDown();
-	}
+		GpuBackend::ShutDown();
 }
 
-SPtr<RenderWindow> RenderAPIManager::Initialize(const String& pluginFilename, RENDER_WINDOW_DESC& primaryWindowDesc)
+void GpuBackendManager::Initialize(const String& pluginFilename)
 {
-	if(mRenderAPIInitialized)
-		return nullptr;
+	if (!B3D_ENSURE(!mRenderAPIInitialized))
+		return;
 
 	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginFilename);
 	const char* name = "";
 
 	if(loadedLibrary != nullptr)
 	{
-		typedef const char* (*GetPluginNameFunc)();
+		typedef const char* (*FnGetPluginName)();
 
-		GetPluginNameFunc getPluginNameFunc = (GetPluginNameFunc)loadedLibrary->GetSymbol("GetPluginName");
-		name = getPluginNameFunc();
+		FnGetPluginName fnGetPluginName = (FnGetPluginName)loadedLibrary->GetSymbol("GetPluginName");
+		name = fnGetPluginName();
 	}
 
 	for(auto iter = mAvailableFactories.begin(); iter != mAvailableFactories.end(); ++iter)
@@ -39,14 +35,11 @@ SPtr<RenderWindow> RenderAPIManager::Initialize(const String& pluginFilename, RE
 		{
 			(*iter)->Create();
 			mRenderAPIInitialized = true;
-			return ct::RenderAPI::Instance().Initialize(primaryWindowDesc);
 		}
 	}
-
-	return nullptr;
 }
 
-void RenderAPIManager::RegisterFactory(SPtr<RenderAPIFactory> factory)
+void GpuBackendManager::RegisterFactory(SPtr<GpuBackendFactory> factory)
 {
 	B3D_ASSERT(factory != nullptr);
 

@@ -583,7 +583,20 @@ SPtr<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayo
 void VulkanGpuDevice::WaitUntilIdle()
 {
 	GetVulkanSubmitThread().WaitUntilIdle();
+	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates(); // TODO - NOT THREAD SAFE!
+}
+
+void VulkanGpuDevice::BeginFrame() // TODO - This and EndFrame() should be removed, as it doesn't make sense with multiple threads
+{
+	// TODO - NOT THREAD SAFE!
 	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
+}
+
+void VulkanGpuDevice::EndFrame()
+{
+	SubmitTransferCommandBuffers();
+
+	GetVulkanSubmitThread().QueueRefreshCommandBufferCompletionStates(this);
 }
 
 void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
@@ -911,7 +924,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 		break;
 	};
 
-	mCapabilities.BackendName = GetVulkanRenderAPI().GetName();
+	mCapabilities.BackendName = "Vulkan";
 
 	if(deviceFeatures.textureCompressionBC)
 		mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
