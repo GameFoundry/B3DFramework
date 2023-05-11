@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "Prerequisites/BsPrerequisitesUtil.h"
 #include "ThirdParty/marl/include/marl/debug.h"
-#include "ThirdParty/marl/include/marl/memory.h"
 
 #include <functional>
 #include <memory>
@@ -29,14 +29,12 @@ class OSFiber {
 
   // createFiberFromCurrentThread() returns a fiber created from the current
   // thread.
-  static inline Allocator::unique_ptr<OSFiber> createFiberFromCurrentThread(
-      Allocator* allocator);
+  static inline bs::UPtr<OSFiber> createFiberFromCurrentThread();
 
   // createFiber() returns a new fiber with the given stack size that will
   // call func when switched to. func() must end by switching back to another
   // fiber, and must not return.
-  static inline Allocator::unique_ptr<OSFiber> createFiber(
-      Allocator* allocator,
+  static inline bs::UPtr<OSFiber> createFiber(
       size_t stackSize,
       const std::function<void()>& func);
 
@@ -61,9 +59,8 @@ OSFiber::~OSFiber() {
   }
 }
 
-Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
-    Allocator* allocator) {
-  auto out = allocator->make_unique<OSFiber>();
+bs::UPtr<OSFiber> OSFiber::createFiberFromCurrentThread() {
+  auto out = bs::B3DMakeUnique<OSFiber>();
   out->fiber = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
   out->isFiberFromThread = true;
   MARL_ASSERT(out->fiber != nullptr,
@@ -72,11 +69,10 @@ Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
   return out;
 }
 
-Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
-    Allocator* allocator,
+bs::UPtr<OSFiber> OSFiber::createFiber(
     size_t stackSize,
     const std::function<void()>& func) {
-  auto out = allocator->make_unique<OSFiber>();
+  auto out = bs::B3DMakeUnique<OSFiber>();
   // stackSize is rounded up to the system's allocation granularity (typically
   // 64 KB).
   out->fiber = CreateFiberEx(stackSize - 1, stackSize, FIBER_FLAG_FLOAT_SWITCH,

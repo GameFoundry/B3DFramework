@@ -22,6 +22,8 @@
 // problem as the marl scheduler requires fibers to be executed on the same
 // thread throughout their lifetime.
 
+#include "Prerequisites/BsPrerequisitesUtil.h"
+
 #if defined(__x86_64__)
 #include "osfiber_asm_x64.h"
 #elif defined(__i386__)
@@ -75,19 +77,17 @@ namespace marl {
 
 class OSFiber {
  public:
-  inline OSFiber(Allocator*);
+  inline OSFiber();
   inline ~OSFiber();
 
   // createFiberFromCurrentThread() returns a fiber created from the current
   // thread.
-  MARL_NO_EXPORT static inline Allocator::unique_ptr<OSFiber>
-  createFiberFromCurrentThread(Allocator* allocator);
+  MARL_NO_EXPORT static inline bs::UPtr<OSFiber> createFiberFromCurrentThread();
 
   // createFiber() returns a new fiber with the given stack size that will
   // call func when switched to. func() must end by switching back to another
   // fiber, and must not return.
-  MARL_NO_EXPORT static inline Allocator::unique_ptr<OSFiber> createFiber(
-      Allocator* allocator,
+  MARL_NO_EXPORT static inline bs::UPtr<OSFiber> createFiber(
       size_t stackSize,
       const std::function<void()>& func);
 
@@ -99,46 +99,36 @@ class OSFiber {
   MARL_NO_EXPORT
   static inline void run(OSFiber* self);
 
-  Allocator* allocator;
   marl_fiber_context context;
   std::function<void()> target;
-  Allocation stack;
+  void* stack = nullptr;
 };
 
-OSFiber::OSFiber(Allocator* allocator) : allocator(allocator) {}
+OSFiber::OSFiber() {}
 
 OSFiber::~OSFiber() {
-  if (stack.ptr != nullptr) {
-    allocator->free(stack);
+  if (stack != nullptr) {
+    bs::B3DFreeAligned16(stack);
   }
 }
 
-Allocator::unique_ptr<OSFiber> OSFiber::createFiberFromCurrentThread(
-    Allocator* allocator) {
-  auto out = allocator->make_unique<OSFiber>(allocator);
+bs::UPtr<OSFiber> OSFiber::createFiberFromCurrentThread() {
+  auto out = bs::B3DMakeUnique<OSFiber>();
   out->context = {};
   marl_main_fiber_init(&out->context);
   return out;
 }
 
-Allocator::unique_ptr<OSFiber> OSFiber::createFiber(
-    Allocator* allocator,
+bs::UPtr<OSFiber> OSFiber::createFiber(
     size_t stackSize,
     const std::function<void()>& func) {
-  Allocation::Request request;
-  request.size = stackSize;
-  request.alignment = 16;
-  request.usage = Allocation::Usage::Stack;
-#if MARL_USE_FIBER_STACK_GUARDS
-  request.useGuards = true;
-#endif
 
-  auto out = allocator->make_unique<OSFiber>(allocator);
+  auto out = bs::B3DMakeUnique<OSFiber>();
   out->context = {};
   out->target = func;
-  out->stack = allocator->allocate(request);
+  out->stack = bs::B3DAllocateAligned16(stackSize);
   marl_fiber_set_target(
-      &out->context, out->stack.ptr, static_cast<uint32_t>(stackSize),
+      &out->context, out->stack, static_cast<uint32_t>(stackSize),
       reinterpret_cast<void (*)(void*)>(&OSFiber::run), out.get());
   return out;
 }

@@ -15,7 +15,8 @@
 #ifndef marl_scheduler_h
 #define marl_scheduler_h
 
-#include "containers.h"
+#include "Prerequisites/BsPrerequisitesUtil.h"
+
 #include "debug.h"
 #include "export.h"
 #include "memory.h"
@@ -68,9 +69,6 @@ class Scheduler {
 
     WorkerThread workerThread;
 
-    // Memory allocator to use for the scheduler and internal allocations.
-    Allocator* allocator = Allocator::Default;
-
     // Size of each fiber stack. This may be rounded up to the nearest
     // allocation granularity for the given platform.
     size_t fiberStackSize = DefaultFiberStackSize;
@@ -81,7 +79,6 @@ class Scheduler {
     static Config allCores();
 
     // Fluent setters that return this Config so set calls can be chained.
-    MARL_NO_EXPORT inline Config& setAllocator(Allocator*);
     MARL_NO_EXPORT inline Config& setFiberStackSize(size_t);
     MARL_NO_EXPORT inline Config& setWorkerThreadCount(int);
     MARL_NO_EXPORT inline Config& setWorkerThreadInitializer(
@@ -134,6 +131,8 @@ class Scheduler {
   // thread that previously executed it.
   class Fiber {
    public:
+    Fiber(bs::UPtr<OSFiber>&&, uint32_t id);
+
     // current() returns the currently executing fiber, or nullptr if called
     // without a bound scheduler.
     MARL_EXPORT
@@ -218,7 +217,6 @@ class Scheduler {
     uint32_t const id;
 
    private:
-    friend class Allocator;
     friend class Scheduler;
 
     enum class State {
@@ -242,31 +240,26 @@ class Scheduler {
       Running,
     };
 
-    Fiber(Allocator::unique_ptr<OSFiber>&&, uint32_t id);
-
     // switchTo() switches execution to the given fiber.
     // switchTo() must only be called on the currently executing fiber.
     void switchTo(Fiber*);
 
     // create() constructs and returns a new fiber with the given identifier,
     // stack size and func that will be executed when switched to.
-    static Allocator::unique_ptr<Fiber> create(
-        Allocator* allocator,
+    static bs::UPtr<Fiber> create(
         uint32_t id,
         size_t stackSize,
         const std::function<void()>& func);
 
     // createFromCurrentThread() constructs and returns a new fiber with the
     // given identifier for the current thread.
-    static Allocator::unique_ptr<Fiber> createFromCurrentThread(
-        Allocator* allocator,
-        uint32_t id);
+    static bs::UPtr<Fiber> createFromCurrentThread(uint32_t id);
 
     // toString() returns a string representation of the given State.
     // Used for debugging.
     static const char* toString(State state);
 
-    Allocator::unique_ptr<OSFiber> const impl;
+    bs::UPtr<OSFiber> const impl;
     Worker* const worker;
     State state = State::Running;  // Guarded by Worker's work.mutex.
   };
@@ -282,7 +275,7 @@ class Scheduler {
 
   // WaitingFibers holds all the fibers waiting on a timeout.
   struct WaitingFibers {
-    inline WaitingFibers(Allocator*);
+    inline WaitingFibers();
 
     // operator bool() returns true iff there are any wait fibers.
     inline operator bool() const;
@@ -310,15 +303,15 @@ class Scheduler {
       Fiber* fiber;
       inline bool operator<(const Timeout&) const;
     };
-    containers::set<Timeout, std::less<Timeout>> timeouts;
-    containers::unordered_map<Fiber*, TimePoint> fibers;
+    bs::Set<Timeout, std::less<Timeout>> timeouts;
+    bs::UnorderedMap<Fiber*, TimePoint> fibers;
   };
 
   // TODO: Implement a queue that recycles elements to reduce number of
   // heap allocations.
-  using TaskQueue = containers::deque<Task>;
-  using FiberQueue = containers::deque<Fiber*>;
-  using FiberSet = containers::unordered_set<Fiber*>;
+  using TaskQueue = bs::Deque<Task>;
+  using FiberQueue = bs::Deque<Fiber*>;
+  using FiberSet = bs::UnorderedSet<Fiber*>;
 
   // Workers execute Tasks on a single thread.
   // Once a task is started, it may yield to other tasks on the same Worker.
@@ -430,7 +423,7 @@ class Scheduler {
 
     // Work holds tasks and fibers that are enqueued on the Worker.
     struct Work {
-      inline Work(Allocator*);
+      inline Work();
 
       std::atomic<uint64_t> num = {0};  // tasks.size() + fibers.size()
       uint64_t numBlockedFibers = 0;
@@ -464,12 +457,12 @@ class Scheduler {
 
     Mode const mode;
     Scheduler* const scheduler;
-    Allocator::unique_ptr<Fiber> mainFiber;
+    bs::UPtr<Fiber> mainFiber;
     Fiber* currentFiber = nullptr;
     Thread thread;
     Work work;
     FiberSet idleFibers;  // Fibers that have completed which can be reused.
-    containers::vector<Allocator::unique_ptr<Fiber>, 16>
+    bs::SmallVector<bs::UPtr<Fiber>, 16>
         workerFibers;  // All fibers created by this worker.
     FastRnd rng;
     bool shutdown = false;
@@ -500,11 +493,11 @@ class Scheduler {
   std::array<Worker*, MaxWorkerThreads> workerThreads;
 
   struct SingleThreadedWorkers {
-    inline SingleThreadedWorkers(Allocator*);
+    inline SingleThreadedWorkers();
 
     using WorkerByTid =
-        containers::unordered_map<std::thread::id,
-                                  Allocator::unique_ptr<Worker>>;
+        bs::UnorderedMap<std::thread::id,
+                                  bs::UPtr<Worker>>;
     marl::mutex mutex;
     std::condition_variable unbind;
     WorkerByTid byTid;
@@ -515,11 +508,6 @@ class Scheduler {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Config
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::Config& Scheduler::Config::setAllocator(Allocator* alloc) {
-  allocator = alloc;
-  return *this;
-}
-
 Scheduler::Config& Scheduler::Config::setFiberStackSize(size_t size) {
   fiberStackSize = size;
   return *this;

@@ -62,7 +62,7 @@ inline marl::Scheduler::Config setConfigDefaults(
   marl::Scheduler::Config cfg{cfgIn};
   if (cfg.workerThread.count > 0 && !cfg.workerThread.affinityPolicy) {
     cfg.workerThread.affinityPolicy = marl::Thread::Affinity::Policy::anyOf(
-        marl::Thread::Affinity::all(cfg.allocator), cfg.allocator);
+        marl::Thread::Affinity::all());
   }
   return cfg;
 }
@@ -70,6 +70,23 @@ inline marl::Scheduler::Config setConfigDefaults(
 }  // anonymous namespace
 
 namespace marl {
+
+// take() takes and returns the front value from the deque.
+template <typename T>
+static T take(bs::Deque<T>& queue) {
+  auto out = std::move(queue.front());
+  queue.pop_front();
+  return out;
+}
+
+// take() takes and returns the first value from the unordered_set.
+template <typename T, typename H, typename E>
+static T take(bs::UnorderedSet<T, H, E>& set) {
+  auto it = set.begin();
+  auto out = std::move(*it);
+  set.erase(it);
+  return out;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler
@@ -89,7 +106,7 @@ void Scheduler::bind() {
   setBound(this);
   {
     marl::lock lock(singleThreadedWorkers.mutex);
-    auto worker = cfg.allocator->make_unique<Worker>(
+    auto worker = bs::B3DMakeUnique<Worker>(
         this, Worker::Mode::SingleThreaded, -1);
     worker->start();
     auto tid = std::this_thread::get_id();
@@ -119,13 +136,13 @@ void Scheduler::unbind() {
 Scheduler::Scheduler(const Config& config)
     : cfg(setConfigDefaults(config)),
       workerThreads{},
-      singleThreadedWorkers(config.allocator) {
+      singleThreadedWorkers() {
   for (size_t i = 0; i < spinningWorkers.size(); i++) {
     spinningWorkers[i] = -1;
   }
   for (int i = 0; i < cfg.workerThread.count; i++) {
     workerThreads[i] =
-        cfg.allocator->create<Worker>(this, Worker::Mode::MultiThreaded, i);
+        bs::B3DNew<Worker>(this, Worker::Mode::MultiThreaded, i);
   }
   for (int i = 0; i < cfg.workerThread.count; i++) {
     workerThreads[i]->start();
@@ -148,7 +165,7 @@ Scheduler::~Scheduler() {
     workerThreads[i]->stop();
   }
   for (int i = cfg.workerThread.count - 1; i >= 0; i--) {
-    cfg.allocator->destroy(workerThreads[i]);
+    bs::B3DDelete(workerThreads[i]);
   }
 }
 
@@ -216,7 +233,7 @@ Scheduler::Config Scheduler::Config::allCores() {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Fiber
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::Fiber::Fiber(Allocator::unique_ptr<OSFiber>&& impl, uint32_t id)
+Scheduler::Fiber::Fiber(bs::UPtr<OSFiber>&& impl, uint32_t id)
     : id(id), impl(std::move(impl)), worker(Worker::getCurrent()) {
   MARL_ASSERT(worker != nullptr, "No Scheduler::Worker bound");
 }
@@ -246,19 +263,18 @@ void Scheduler::Fiber::switchTo(Fiber* to) {
   }
 }
 
-Allocator::unique_ptr<Scheduler::Fiber> Scheduler::Fiber::create(
-    Allocator* allocator,
+bs::UPtr<Scheduler::Fiber> Scheduler::Fiber::create(
     uint32_t id,
     size_t stackSize,
     const std::function<void()>& func) {
-  return allocator->make_unique<Fiber>(
-      OSFiber::createFiber(allocator, stackSize, func), id);
+  return bs::B3DMakeUnique<Fiber>(
+      OSFiber::createFiber(stackSize, func), id);
 }
 
-Allocator::unique_ptr<Scheduler::Fiber>
-Scheduler::Fiber::createFromCurrentThread(Allocator* allocator, uint32_t id) {
-  return allocator->make_unique<Fiber>(
-      OSFiber::createFiberFromCurrentThread(allocator), id);
+bs::UPtr<Scheduler::Fiber>
+Scheduler::Fiber::createFromCurrentThread(uint32_t id) {
+  return bs::B3DMakeUnique<Fiber>(
+      OSFiber::createFiberFromCurrentThread(), id);
 }
 
 const char* Scheduler::Fiber::toString(State state) {
@@ -281,8 +297,8 @@ const char* Scheduler::Fiber::toString(State state) {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::WaitingFibers
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::WaitingFibers::WaitingFibers(Allocator* allocator)
-    : timeouts(allocator), fibers(allocator) {}
+Scheduler::WaitingFibers::WaitingFibers()
+    : timeouts(), fibers() {}
 
 Scheduler::WaitingFibers::operator bool() const {
   return !fibers.empty();
@@ -348,15 +364,14 @@ Scheduler::Worker::Worker(Scheduler* scheduler, Mode mode, uint32_t id)
     : id(id),
       mode(mode),
       scheduler(scheduler),
-      work(scheduler->cfg.allocator),
-      idleFibers(scheduler->cfg.allocator) {}
+      work(),
+      idleFibers() {}
 
 void Scheduler::Worker::start() {
   switch (mode) {
     case Mode::MultiThreaded: {
-      auto allocator = scheduler->cfg.allocator;
       auto& affinityPolicy = scheduler->cfg.workerThread.affinityPolicy;
-      auto affinity = affinityPolicy->get(id, allocator);
+      auto affinity = affinityPolicy->get(id);
       thread = Thread(std::move(affinity), [=] {
         Thread::setName("Thread<%.2d>", int(id));
 
@@ -366,7 +381,7 @@ void Scheduler::Worker::start() {
 
         Scheduler::setBound(scheduler);
         Worker::current = this;
-        mainFiber = Fiber::createFromCurrentThread(scheduler->cfg.allocator, 0);
+        mainFiber = Fiber::createFromCurrentThread(0);
         currentFiber = mainFiber.get();
         {
           marl::lock lock(work.mutex);
@@ -379,7 +394,7 @@ void Scheduler::Worker::start() {
     }
     case Mode::SingleThreaded: {
       Worker::current = this;
-      mainFiber = Fiber::createFromCurrentThread(scheduler->cfg.allocator, 0);
+      mainFiber = Fiber::createFromCurrentThread(0);
       currentFiber = mainFiber.get();
       break;
     }
@@ -470,12 +485,12 @@ void Scheduler::Worker::suspend(
   if (!work.fibers.empty()) {
     // There's another fiber that has become unblocked, resume that.
     work.num--;
-    auto to = containers::take(work.fibers);
+    auto to = take(work.fibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Queued);
     switchToFiber(to);
   } else if (!idleFibers.empty()) {
     // There's an old fiber we can reuse, resume that.
-    auto to = containers::take(idleFibers);
+    auto to = take(idleFibers);
     ASSERT_FIBER_STATE(to, Fiber::State::Idle);
     switchToFiber(to);
   } else {
@@ -550,7 +565,7 @@ bool Scheduler::Worker::steal(Task& out) {
     return false;
   }
   work.num--;
-  out = containers::take(work.tasks);
+  out = take(work.tasks);
   work.mutex.unlock();
   return true;
 }
@@ -665,7 +680,7 @@ void Scheduler::Worker::runUntilIdle() {
 
     while (!work.fibers.empty()) {
       work.num--;
-      auto fiber = containers::take(work.fibers);
+      auto fiber = take(work.fibers);
       // Sanity checks,
       MARL_ASSERT(idleFibers.count(fiber) == 0, "dequeued fiber is idle");
       MARL_ASSERT(fiber != currentFiber, "dequeued fiber is currently running");
@@ -682,7 +697,7 @@ void Scheduler::Worker::runUntilIdle() {
 
     if (!work.tasks.empty()) {
       work.num--;
-      auto task = containers::take(work.tasks);
+      auto task = take(work.tasks);
       work.mutex.unlock();
 
       // Run the task.
@@ -700,11 +715,11 @@ void Scheduler::Worker::runUntilIdle() {
 Scheduler::Fiber* Scheduler::Worker::createWorkerFiber() {
   auto fiberId = static_cast<uint32_t>(workerFibers.size() + 1);
   DBG_LOG("%d: CREATE(%d)", (int)id, (int)fiberId);
-  auto fiber = Fiber::create(scheduler->cfg.allocator, fiberId,
+  auto fiber = Fiber::create(fiberId,
                              scheduler->cfg.fiberStackSize,
                              [&]() { run(); });
   auto ptr = fiber.get();
-  workerFibers.emplace_back(std::move(fiber));
+  workerFibers.Add(std::move(fiber));
   return ptr;
 }
 
@@ -720,8 +735,8 @@ void Scheduler::Worker::switchToFiber(Fiber* to) {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Worker::Work
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::Worker::Work::Work(Allocator* allocator)
-    : tasks(allocator), fibers(allocator), waiting(allocator) {}
+Scheduler::Worker::Work::Work()
+    : tasks(), fibers(), waiting() {}
 
 template <typename F>
 void Scheduler::Worker::Work::wait(F&& f) {
@@ -737,7 +752,7 @@ void Scheduler::Worker::Work::wait(F&& f) {
 ////////////////////////////////////////////////////////////////////////////////
 // Scheduler::Worker::Work
 ////////////////////////////////////////////////////////////////////////////////
-Scheduler::SingleThreadedWorkers::SingleThreadedWorkers(Allocator* allocator)
-    : byTid(allocator) {}
+Scheduler::SingleThreadedWorkers::SingleThreadedWorkers()
+    : byTid() {}
 
 }  // namespace marl

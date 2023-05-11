@@ -114,31 +114,28 @@ const ProcessorGroups& getProcessorGroups() {
 // Thread::Affinty
 ////////////////////////////////////////////////////////////////////////////////
 
-Thread::Affinity::Affinity(Allocator* allocator) : cores(allocator) {}
+Thread::Affinity::Affinity() : cores() {}
 Thread::Affinity::Affinity(Affinity&& other) : cores(std::move(other.cores)) {}
 Thread::Affinity& Thread::Affinity::operator=(Affinity&& other) {
   cores = std::move(other.cores);
   return *this;
 }
-Thread::Affinity::Affinity(const Affinity& other, Allocator* allocator)
-    : cores(other.cores, allocator) {}
+Thread::Affinity::Affinity(const Affinity& other)
+    : cores(other.cores) {}
 
-Thread::Affinity::Affinity(std::initializer_list<Core> list,
-                           Allocator* allocator)
-    : cores(allocator) {
+Thread::Affinity::Affinity(std::initializer_list<Core> list)
+    : cores() {
   cores.reserve(list.size());
   for (auto core : list) {
-    cores.push_back(core);
+    cores.Add(core);
   }
 }
 
-Thread::Affinity::Affinity(const containers::vector<Core, 32>& coreList,
-                           Allocator* allocator)
-    : cores(coreList, allocator) {}
+Thread::Affinity::Affinity(const bs::SmallVector<Core, 32>& coreList)
+    : cores(coreList) {}
 
-Thread::Affinity Thread::Affinity::all(
-    Allocator* allocator /* = Allocator::Default */) {
-  Thread::Affinity affinity(allocator);
+Thread::Affinity Thread::Affinity::all() {
+  Thread::Affinity affinity;
 
 #if defined(_WIN32)
   const auto& groups = getProcessorGroups();
@@ -149,7 +146,7 @@ Thread::Affinity Thread::Affinity::all(
     for (unsigned int coreIdx = 0; coreIdx < group.count; coreIdx++) {
       if ((group.affinity >> coreIdx) & 1) {
         core.windows.index = static_cast<decltype(core.windows.index)>(coreIdx);
-        affinity.cores.emplace_back(std::move(core));
+        affinity.cores.Add(std::move(core));
       }
     }
   }
@@ -186,25 +183,23 @@ Thread::Affinity Thread::Affinity::all(
   return affinity;
 }
 
-std::shared_ptr<Thread::Affinity::Policy> Thread::Affinity::Policy::anyOf(
-    Affinity&& affinity,
-    Allocator* allocator /* = Allocator::Default */) {
+std::shared_ptr<Thread::Affinity::Policy> Thread::Affinity::Policy::anyOf(Affinity&& affinity) {
   struct Policy : public Thread::Affinity::Policy {
     Affinity affinity;
     Policy(Affinity&& affinity) : affinity(std::move(affinity)) {}
 
-    Affinity get(uint32_t threadId, Allocator* allocator) const override {
+    Affinity get(uint32_t threadId) const override {
 #if defined(_WIN32)
       auto count = affinity.count();
       if (count == 0) {
-        return Affinity(affinity, allocator);
+        return Affinity(affinity);
       }
       auto group = affinity[threadId % affinity.count()].windows.group;
-      Affinity out(allocator);
+      Affinity out;
       out.cores.reserve(count);
       for (auto core : affinity.cores) {
         if (core.windows.group == group) {
-          out.cores.push_back(core);
+          out.cores.Add(core);
         }
       }
       return out;
@@ -214,26 +209,24 @@ std::shared_ptr<Thread::Affinity::Policy> Thread::Affinity::Policy::anyOf(
     }
   };
 
-  return allocator->make_shared<Policy>(std::move(affinity));
+  return bs::B3DMakeShared<Policy>(std::move(affinity));
 }
 
-std::shared_ptr<Thread::Affinity::Policy> Thread::Affinity::Policy::oneOf(
-    Affinity&& affinity,
-    Allocator* allocator /* = Allocator::Default */) {
+std::shared_ptr<Thread::Affinity::Policy> Thread::Affinity::Policy::oneOf(Affinity&& affinity) {
   struct Policy : public Thread::Affinity::Policy {
     Affinity affinity;
     Policy(Affinity&& affinity) : affinity(std::move(affinity)) {}
 
-    Affinity get(uint32_t threadId, Allocator* allocator) const override {
+    Affinity get(uint32_t threadId) const override {
       auto count = affinity.count();
       if (count == 0) {
-        return Affinity(affinity, allocator);
+        return Affinity(affinity);
       }
-      return Affinity({affinity[threadId % affinity.count()]}, allocator);
+      return Affinity({affinity[threadId % affinity.count()]});
     }
   };
 
-  return allocator->make_shared<Policy>(std::move(affinity));
+  return bs::B3DMakeShared<Policy>(std::move(affinity));
 }
 
 size_t Thread::Affinity::count() const {
@@ -245,13 +238,13 @@ Thread::Core Thread::Affinity::operator[](size_t index) const {
 }
 
 Thread::Affinity& Thread::Affinity::add(const Thread::Affinity& other) {
-  containers::unordered_set<Core, CoreHasher> set(cores.allocator);
+  bs::UnorderedSet<Core, CoreHasher> set;
   for (auto core : cores) {
     set.emplace(core);
   }
   for (auto core : other.cores) {
     if (set.count(core) == 0) {
-      cores.push_back(core);
+      cores.Add(core);
     }
   }
   std::sort(cores.begin(), cores.end());
@@ -259,7 +252,7 @@ Thread::Affinity& Thread::Affinity::add(const Thread::Affinity& other) {
 }
 
 Thread::Affinity& Thread::Affinity::remove(const Thread::Affinity& other) {
-  containers::unordered_set<Core, CoreHasher> set(cores.allocator);
+  bs::UnorderedSet<Core, CoreHasher> set;
   for (auto core : other.cores) {
     set.emplace(core);
   }

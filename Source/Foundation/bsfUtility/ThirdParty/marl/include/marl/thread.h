@@ -15,10 +15,12 @@
 #ifndef marl_thread_h
 #define marl_thread_h
 
-#include "containers.h"
+#include "Prerequisites/BsPrerequisitesUtil.h"
 #include "export.h"
 
 #include <functional>
+
+#include "memory.h"
 
 namespace marl {
 
@@ -72,38 +74,32 @@ class Thread {
       // Windows requires that each thread is only associated with a
       // single affinity group, so the Policy's returned affinity will contain
       // cores all from the same group.
-      MARL_EXPORT static std::shared_ptr<Policy> anyOf(
-          Affinity&& affinity,
-          Allocator* allocator = Allocator::Default);
+      MARL_EXPORT static std::shared_ptr<Policy> anyOf( Affinity&& affinity);
 
       // oneOf() returns a Policy that returns an affinity with a single enabled
       // core from affinity. The single enabled core in the Policy's returned
       // affinity is:
       //      affinity[threadId % affinity.count()]
-      MARL_EXPORT static std::shared_ptr<Policy> oneOf(
-          Affinity&& affinity,
-          Allocator* allocator = Allocator::Default);
+      MARL_EXPORT static std::shared_ptr<Policy> oneOf( Affinity&& affinity);
 
       // get() returns the thread Affinity for the given thread by id.
-      MARL_EXPORT virtual Affinity get(uint32_t threadId,
-                                       Allocator* allocator) const = 0;
+      MARL_EXPORT virtual Affinity get(uint32_t threadId) const = 0;
     };
 
-    MARL_EXPORT Affinity(Allocator*);
+    MARL_EXPORT Affinity();
 
     MARL_EXPORT Affinity(Affinity&&);
 
     MARL_EXPORT Affinity& operator=(Affinity&&);
 
-    MARL_EXPORT Affinity(const Affinity&, Allocator* allocator);
+    MARL_EXPORT Affinity(const Affinity&);
 
     // all() returns an Affinity with all the cores available to the process.
-    MARL_EXPORT static Affinity all(Allocator* allocator = Allocator::Default);
+    MARL_EXPORT static Affinity all();
 
-    MARL_EXPORT Affinity(std::initializer_list<Core>, Allocator* allocator);
+    MARL_EXPORT Affinity(std::initializer_list<Core>);
 
-    MARL_EXPORT Affinity(const containers::vector<Core, 32>&,
-                         Allocator* allocator);
+    MARL_EXPORT Affinity(const bs::SmallVector<Core, 32>&);
 
     // count() returns the number of enabled cores in the affinity.
     MARL_EXPORT size_t count() const;
@@ -120,9 +116,7 @@ class Thread {
     MARL_EXPORT Affinity& remove(const Affinity&);
 
    private:
-    Affinity(const Affinity&) = delete;
-
-    containers::vector<Core, 32> cores;
+    bs::SmallVector<Core, 32> cores;
   };
 
   MARL_EXPORT Thread() = default;
