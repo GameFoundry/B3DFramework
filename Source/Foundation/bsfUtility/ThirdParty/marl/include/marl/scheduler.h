@@ -17,13 +17,11 @@
 
 #include "containers.h"
 #include "debug.h"
-#include "deprecated.h"
 #include "export.h"
 #include "memory.h"
 #include "mutex.h"
 #include "task.h"
 #include "thread.h"
-#include "thread_local.h"
 
 #include <array>
 #include <atomic>
@@ -464,7 +462,7 @@ class Scheduler {
     };
 
     // The current worker bound to the current thread.
-    MARL_DECLARE_THREAD_LOCAL(Worker*, current);
+    static thread_local Worker* current;
 
     Mode const mode;
     Scheduler* const scheduler;
@@ -492,7 +490,7 @@ class Scheduler {
   static void setBound(Scheduler* scheduler);
 
   // The scheduler currently bound to the current thread.
-  MARL_DECLARE_THREAD_LOCAL(Scheduler*, bound);
+  static thread_local Scheduler* bound;
 
   // The immutable configuration used to build the scheduler.
   const Config cfg;
