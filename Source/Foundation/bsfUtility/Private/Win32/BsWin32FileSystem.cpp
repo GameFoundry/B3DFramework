@@ -514,7 +514,7 @@ std::time_t FileSystem::GetLastModifiedTime(const Path& fullPath)
 Path FileSystem::GetWorkingDirectoryPath()
 {
 	wchar_t path[MAX_PATH];
-	DWORD characterCount = GetModuleFileNameW(nullptr, path, B3DSize(path));
+	DWORD characterCount = GetModuleFileNameW(nullptr, path, (DWORD)B3DSize(path));
 	if(characterCount == 0)
 	{
 		B3D_LOG(Error, FileSystem, "Internal error. Failed to retrieve current module path.");

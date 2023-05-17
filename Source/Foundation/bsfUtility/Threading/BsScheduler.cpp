@@ -592,10 +592,10 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 	for (size_t i = 0; i < mSpinningWorkers.size(); i++) {
 		mSpinningWorkers[i] = ~0u;
 	}
-	for (int i = 0; i < mInformation.WorkerThreadCount; i++)
+	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
 		mWorkerThreads[i] = bs::B3DNew<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i);
 
-	for (int i = 0; i < mInformation.WorkerThreadCount; i++)
+	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
 		mWorkerThreads[i]->Start();
 }
 

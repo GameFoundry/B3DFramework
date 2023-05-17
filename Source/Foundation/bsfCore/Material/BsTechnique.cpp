@@ -66,7 +66,7 @@ u32 TTechnique<Core>::GetPassCount() const
 		return 0;
 	}
 	
-	return mPasses.size();
+	return (u32)mPasses.size();
 }
 
 template <bool Core>
@@ -227,7 +227,7 @@ CoreSyncData Technique::SyncToCore(FrameAlloc* allocator)
 	if(dirtyFlags.IsSet(ShaderVariationDirtyFlag::Parent))
 		size += sizeof(SPtr<ct::Shader>);
 
-	const u32 passCount = mPasses.size();
+	const u32 passCount = (u32)mPasses.size();
 	if(dirtyFlags.IsSet(ShaderVariationDirtyFlag::Passes))
 		size += sizeof(SPtr<ct::Pass>) * passCount + sizeof(passCount) + sizeof(mHasPassData);
 

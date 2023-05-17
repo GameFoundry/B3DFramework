@@ -38,11 +38,11 @@ namespace bs
 		ArrayView& operator=(const ArrayView& other) = default;
 		ArrayView& operator=(ArrayView&& other) = default;
 
-		ArrayView(ValueType* data, u32 size)
+		ArrayView(ValueType* data, u64 size)
 			: mData(data), mSize(size)
 		{ }
 
-		ArrayView(std::nullptr_t, u32)
+		ArrayView(std::nullptr_t, u64)
 			: ArrayView(nullptr, 0)
 		{ }
 
@@ -96,13 +96,13 @@ namespace bs
 			return !(*this < other);
 		}
 
-		Type& operator[](u32 index)
+		Type& operator[](u64 index)
 		{
 			B3D_ASSERT(index < mSize && "Array index out-of-range.");
 			return mData[index];
 		}
 
-		const Type& operator[](u32 index) const
+		const Type& operator[](u64 index) const
 		{
 			B3D_ASSERT(index < mSize && "Array index out-of-range.");
 			return mData[index];
@@ -134,7 +134,7 @@ namespace bs
 
 		ConstReverseIterator Crend() const { return ConstReverseIterator(Begin()); }
 
-		u32 Size() const { return mSize; }
+		u64 Size() const { return mSize; }
 
 		Type* Data() { return mData; }
 
@@ -166,7 +166,7 @@ namespace bs
 
 		bool Contains(const Type& element)
 		{
-			for(u32 i = 0; i < mSize; i++)
+			for(u64 i = 0; i < mSize; i++)
 			{
 				if(mData[i] == element)
 					return true;
@@ -194,7 +194,7 @@ namespace bs
 		ConstReverseIterator crbegin() const { return Crbegin(); } // NOLINT
 		ConstReverseIterator crend() const { return Crend(); } // NOLINT
 
-		u32 size() const { return Size(); } // NOLINT
+		u64 size() const { return Size(); } // NOLINT
 
 		Type* data() { return Data(); } // NOLINT
 		const Type* data() const { return Data(); } // NOLINT
@@ -207,7 +207,7 @@ namespace bs
 
 	private:
 		Type* mData = nullptr;
-		u32 mSize = 0;
+		u64 mSize = 0;
 	};
 
 	/** @} */

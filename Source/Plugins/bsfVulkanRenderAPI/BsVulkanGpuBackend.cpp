@@ -398,7 +398,7 @@ void VulkanGpuBackend::OnStartUp()
 	mPresentDevice = mDevices[0];
 
 	GPUInfo gpuInfo;
-	gpuInfo.NumGpUs = std::min(5U, mDevices.size());
+	gpuInfo.NumGpUs = std::min(5U, (u32)mDevices.size());
 
 	for(u32 i = 0; i < gpuInfo.NumGpUs; i++)
 		gpuInfo.Names[i] = mDevices[i]->GetDeviceProperties().deviceName;

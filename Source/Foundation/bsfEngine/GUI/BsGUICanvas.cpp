@@ -226,7 +226,7 @@ void GUICanvas::UpdateRenderElementsInternal()
 	mRenderElements.Clear();
 	for(auto& element : mElements)
 	{
-		element.RenderElemStart = mRenderElements.Size();
+		element.RenderElemStart = (u32)mRenderElements.Size();
 
 		switch(element.Type)
 		{
@@ -300,7 +300,7 @@ void GUICanvas::UpdateRenderElementsInternal()
 			}
 		}
 
-		element.RenderElemEnd = mRenderElements.Size();
+		element.RenderElemEnd = (u32)mRenderElements.Size();
 	}
 
 	GUIElement::UpdateRenderElementsInternal();

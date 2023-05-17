@@ -332,7 +332,7 @@ namespace bs
 		if(force && leftoverBits > 0)
 		{
 			// Pad the last quant
-			uint32_t bitsToPad = Bitstream::kBitsPerQuant - leftoverBits;
+			uint32_t bitsToPad = (u32)(((u64)Bitstream::kBitsPerQuant) - leftoverBits);
 			mBitstream->WriteBits(&quant, bitsToPad);
 			bitsInBuffer += bitsToPad;
 
