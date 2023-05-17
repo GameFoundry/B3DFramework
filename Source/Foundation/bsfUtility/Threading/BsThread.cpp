@@ -218,7 +218,7 @@ ThreadCoreMask OneOfThreadAffinityPolicy::GetMaskForThread(u32 threadIndex) cons
 
 #if defined(_WIN32)
 
-class B3DThread::Implementation
+class Thread::Implementation
 {
 public:
 	Implementation(Function<void()>&& workerFunction, _PROC_THREAD_ATTRIBUTE_LIST* attributes)
@@ -243,7 +243,7 @@ public:
 	const HANDLE ThreadHandle;
 };
 
-B3DThread::B3DThread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction)
+Thread::Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction)
 {
 	SIZE_T attributeListSize = 0;
 	InitializeProcThreadAttributeList(nullptr, 1, 0, &attributeListSize);
@@ -274,12 +274,18 @@ B3DThread::B3DThread(const ThreadCoreMask& affinity, Function<void()>&& workerFu
 	m = B3DNew<Implementation>(std::move(workerFunction), attributes);
 }
 
-B3DThread::~B3DThread()
+Thread::Thread(Function<void()>&& workerFunction)
+	:Thread(ThreadCoreMask::CreateAnyThreadAffinity(), std::move(workerFunction))
+{
+	
+}
+
+Thread::~Thread()
 {
 	B3DDelete(m);
 }
 
-void B3DThread::WaitUntilComplete()
+void Thread::WaitUntilComplete()
 {
 	if (!m)
 		return;
@@ -287,7 +293,7 @@ void B3DThread::WaitUntilComplete()
 	m->Join();
 }
 
-void B3DThread::SetName(const char* format, ...)
+void Thread::SetName(const char* format, ...)
 {
 	static auto fnSetThreadDescription = reinterpret_cast<HRESULT(WINAPI*)(HANDLE, PCWSTR)>(GetProcAddress(GetModuleHandleA("kernelbase.dll"), "SetThreadDescription"));
 	if (fnSetThreadDescription == nullptr)
@@ -304,7 +310,7 @@ void B3DThread::SetName(const char* format, ...)
 	fnSetThreadDescription(GetCurrentThread(), wname);
 }
 
-u32 B3DThread::GetLogicalCoreCount()
+u32 Thread::GetLogicalCoreCount()
 {
 	u32 coreCount = 0;
 	const Win32ProcessorGroups& processorGroups = GetProcessorGroups();
@@ -407,12 +413,12 @@ u32 B3DThread::GetLogicalCoreCount()
 
 #endif  // OS
 
-B3DThread::B3DThread(B3DThread&& rhs) : m(rhs.m)
+Thread::Thread(Thread&& rhs) : m(rhs.m)
 {
 	rhs.m = nullptr;
 }
 
-B3DThread& B3DThread::operator=(B3DThread&& rhs)
+Thread& Thread::operator=(Thread&& rhs)
 {
 	if (m)
 	{

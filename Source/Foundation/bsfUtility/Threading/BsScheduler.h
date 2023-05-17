@@ -319,7 +319,7 @@ namespace bs
 		UPtr<Fiber> mMainFiber;
 		Fiber* mCurrentFiber = nullptr;
 
-		B3DThread mThread;
+		Thread mThread;
 		Random mRandomNumberGenerator;
 
 		std::atomic<u64> mReadyOperationCount = { 0 };

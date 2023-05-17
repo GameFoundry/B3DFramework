@@ -155,9 +155,9 @@ void SchedulerThread::Start()
 		{
 			auto& affinityPolicy = mOwnerScheduler->GetInformation().AffinityPolicy;
 			auto affinity = affinityPolicy->GetMaskForThread(Id);
-			mThread = B3DThread(std::move(affinity), [=]
+			mThread = Thread(std::move(affinity), [=]
 			{
-				B3DThread::SetName("Thread<%.2d>", int(Id));
+				Thread::SetName("Thread<%.2d>", int(Id));
 
 				if (const auto& initializer = mOwnerScheduler->GetInformation().ThreadInitializeCallback)
 					initializer(Id);

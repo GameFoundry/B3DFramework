@@ -39,9 +39,6 @@ namespace bs
 	/** Wrapper for the C++ std::condition_variable. */
 	using Signal = std::condition_variable;
 
-	/** Wrapper for the C++ std::thread. */
-	using Thread = std::thread;
-
 	/** Wrapper for the C++ std::thread::id. */
 	using ThreadId = std::thread::id;
 

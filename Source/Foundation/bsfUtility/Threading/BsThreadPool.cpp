@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Threading/BsThreadPool.h"
+
+#include "BsThread.h"
 #include "Debug/BsDebug.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
@@ -54,7 +56,7 @@ void HThread::BlockUntilComplete()
 
 void PooledThread::Initialize()
 {
-	mThread = B3DNew<Thread>(std::bind(&PooledThread::Run, this));
+	mThread = B3DNew<Thread>([this]() { Run(); });
 
 	Lock lock(mMutex);
 
@@ -153,7 +155,7 @@ void PooledThread::Destroy()
 	}
 
 	mReadyCond.notify_one();
-	mThread->join();
+	mThread->WaitUntilComplete();
 	B3DDelete(mThread);
 }
 

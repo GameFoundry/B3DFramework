@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class Thread;
 	/** @addtogroup Threading
 	 *  @{
 	 */

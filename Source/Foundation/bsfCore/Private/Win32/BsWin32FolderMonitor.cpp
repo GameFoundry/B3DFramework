@@ -6,6 +6,12 @@
 
 #include <windows.h>
 #include "String/BsUnicode.h"
+#include "Threading/BsThread.h"
+
+namespace bs
+{
+	class Thread;
+}
 
 using namespace bs;
 
@@ -374,7 +380,7 @@ void FolderMonitor::StartMonitor(const Path& folderPath, bool subdirectories, Fo
 
 	if(m->MWorkerThread == nullptr)
 	{
-		m->MWorkerThread = B3DNew<Thread>(std::bind(&FolderMonitor::WorkerThreadMain, this));
+		m->MWorkerThread = B3DNew<Thread>([this]() { WorkerThreadMain(); });
 
 		if(m->MWorkerThread == nullptr)
 		{
@@ -437,7 +443,7 @@ void FolderMonitor::StopMonitorAll()
 	{
 		PostQueuedCompletionStatus(m->MCompPortHandle, 0, 0, nullptr);
 
-		m->MWorkerThread->join();
+		m->MWorkerThread->WaitUntilComplete();
 		B3DDelete(m->MWorkerThread);
 		m->MWorkerThread = nullptr;
 	}

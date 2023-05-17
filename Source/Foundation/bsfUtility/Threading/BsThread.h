@@ -131,15 +131,16 @@ namespace bs
 	};
 
 	/** Wrapper for an OS thread. */
-	class B3D_UTILITY_EXPORT B3DThread final : INonCopyable
+	class B3D_UTILITY_EXPORT Thread final : INonCopyable
 	{
 	public:
-		B3DThread() = default;
-		B3DThread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
-		B3DThread(B3DThread&&);
-		~B3DThread();
+		Thread() = default;
+		Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
+		Thread(Function<void()>&& workerFunction);
+		Thread(Thread&&);
+		~Thread();
 
-		B3DThread& operator=(B3DThread&&);
+		Thread& operator=(Thread&&);
 
 		/** Blocks the calling thread until this thread completes. */
 		void WaitUntilComplete();
