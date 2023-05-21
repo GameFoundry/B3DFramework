@@ -4,55 +4,11 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "CoreThread/BsWorkerThreadWithCommandQueue.h"
-
-namespace bs
-{
-	class Fiber;
-}
+#include "Threading/BsFiberSignal.h"
+#include "Threading/BsSingleConsumerQueue.h"
 
 namespace bs::ct
 {
-	/** Wraps a queue whose commands are processed on their own fiber. */
-	class FiberQueue
-	{
-	public:
-		/** Command queue for execution. */
-		struct QueuedCommand
-		{
-			QueuedCommand(Function<void()>&& callback = nullptr, const char* debugName = nullptr)
-				: Callback(std::move(callback)), DebugName(debugName)
-			{}
-
-			Function<void()> Callback; /**< Callback associated with the command. */
-			const char* DebugName; /**< Name of the command, for easier debugging. */
-		};
-
-		FiberQueue();
-		~FiberQueue();
-
-		/** Returns the fiber that queue commands will be processed on. Only valid after RunUntilShutdown() is called. */
-		Fiber* GetFiber() const { return mFiber; }
-
-		void PostCommand(Function<void()>&& callback, const char* debugName = nullptr, bool waitUntilComplete = false);
-		void ProcessCommands();
-		void RunUntilShutdown();
-		void RequestShutdown(bool waitUntilComplete);
-
-		/** Cancels all currently queued commands. */
-		void CancelAll();
-
-		/**	Returns true if no commands are queued. */
-		bool IsEmpty();
-
-	private:
-		Fiber* mFiber = nullptr;
-
-		Queue<QueuedCommand>* mCommandQueue;
-		Stack<Queue<QueuedCommand>*> mEmptyCommandQueues; /**< List of empty queues for reuse. */
-		bool mIsShutdownRequested = false;
-		Mutex mCommandQueueMutex;
-	};
-
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
@@ -114,12 +70,12 @@ namespace bs::ct
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
 		VulkanGpuCommandBufferPool& GetCommandBufferPool(GpuQueueUsage queueUsage) const { return *mCommandBufferPools[queueUsage]; }
 
-		/** Returns the thread that submit work is being performed on. */
-		const Thread* GetThread() const;
+		/** Returns the id of the thread that submit work is being performed on. */
+		u32 GetThreadId() const;
 
 	protected:
 		VulkanGpuDevice& mGpuDevice;
-		FiberQueue mCommandQueue;
+		SingleConsumerQueue mCommandQueue;
 		Array<SPtr<VulkanGpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
 
 		mutable Mutex mImageAcquireMutex;

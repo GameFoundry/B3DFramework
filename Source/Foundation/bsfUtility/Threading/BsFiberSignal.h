@@ -11,10 +11,11 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_UTILITY_EXPORT B3DSignal
+	/** Similar to Signal, but works with fibers by yielding the fiber when waiting, rather than blocking the thread. */
+	class FiberSignal
 	{
 	public:
-		B3DSignal() = default;
+		FiberSignal() = default;
 
 		inline void notify_one();
 		inline void notify_all();
@@ -29,10 +30,10 @@ namespace bs
 		bool wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate);
 
 	private:
-		B3DSignal(const B3DSignal&) = delete;
-		B3DSignal(B3DSignal&&) = delete;
-		B3DSignal& operator=(const B3DSignal&) = delete;
-		B3DSignal& operator=(B3DSignal&&) = delete;
+		FiberSignal(const FiberSignal&) = delete;
+		FiberSignal(FiberSignal&&) = delete;
+		FiberSignal& operator=(const FiberSignal&) = delete;
+		FiberSignal& operator=(FiberSignal&&) = delete;
 
 		Mutex mMutex;
 		List<Fiber*> mWaitingFibers;
@@ -41,7 +42,7 @@ namespace bs
 		std::atomic<int> mThreadWaitingCount = { 0 };
 	};
 
-	void B3DSignal::notify_one()
+	void FiberSignal::notify_one()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -59,7 +60,7 @@ namespace bs
 			mCondition.notify_one();
 	}
 
-	void B3DSignal::notify_all()
+	void FiberSignal::notify_all()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -75,7 +76,7 @@ namespace bs
 	}
 
 	template <typename Predicate>
-	void B3DSignal::wait(Lock& lock, Predicate&& predicate)
+	void FiberSignal::wait(Lock& lock, Predicate&& predicate)
 	{
 		if (predicate())
 			return;
@@ -84,13 +85,13 @@ namespace bs
 		if (Fiber* const fiber = Fiber::Get())
 		{
 			mMutex.lock();
-			auto it = mWaitingFibers.emplace_front(fiber);
+			mWaitingFibers.emplace_front(fiber);
 			mMutex.unlock();
 
 			fiber->Wait(lock, predicate);
 
 			mMutex.lock();
-			mWaitingFibers.erase(it);
+			mWaitingFibers.erase(std::find(mWaitingFibers.begin(), mWaitingFibers.end(), fiber));
 			mMutex.unlock();
 		}
 		else
@@ -104,13 +105,13 @@ namespace bs
 	}
 
 	template <typename Rep, typename Period, typename Predicate>
-	bool B3DSignal::wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
+	bool FiberSignal::wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
 	{
 		return wait_until(lock, std::chrono::system_clock::now() + duration, predicate);
 	}
 
 	template <typename Clock, typename Duration, typename Predicate>
-	bool B3DSignal::wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
+	bool FiberSignal::wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
 	{
 		if (predicate())
 			return true;
@@ -120,13 +121,13 @@ namespace bs
 			mTotalWaitingCount++;
 
 			mMutex.lock();
-			auto it = mWaitingFibers.emplace_front(fiber);
+			mWaitingFibers.emplace_front(fiber);
 			mMutex.unlock();
 
 			auto res = fiber->Wait(lock, timeout, predicate);
 
 			mMutex.lock();
-			mWaitingFibers.erase(it);
+			mWaitingFibers.erase(std::find(mWaitingFibers.begin(), mWaitingFibers.end(), fiber));
 			mMutex.unlock();
 
 			mTotalWaitingCount--;
