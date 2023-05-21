@@ -13,7 +13,6 @@
 // limitations under the License.
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
-#include "ThirdParty/marl/include/marl/debug.h"
 
 #include <functional>
 #include <memory>
@@ -63,9 +62,7 @@ bs::UPtr<OSFiber> OSFiber::createFiberFromCurrentThread() {
   auto out = bs::B3DMakeUnique<OSFiber>();
   out->fiber = ConvertThreadToFiberEx(nullptr, FIBER_FLAG_FLOAT_SWITCH);
   out->isFiberFromThread = true;
-  MARL_ASSERT(out->fiber != nullptr,
-              "ConvertThreadToFiberEx() failed with error 0x%x",
-              int(GetLastError()));
+  B3D_ASSERT(out->fiber != nullptr && "ConvertThreadToFiberEx() failed.");
   return out;
 }
 
@@ -78,8 +75,7 @@ bs::UPtr<OSFiber> OSFiber::createFiber(
   out->fiber = CreateFiberEx(stackSize - 1, stackSize, FIBER_FLAG_FLOAT_SWITCH,
                              &OSFiber::run, out.get());
   out->target = func;
-  MARL_ASSERT(out->fiber != nullptr, "CreateFiberEx() failed with error 0x%x",
-              int(GetLastError()));
+  B3D_ASSERT(out->fiber != nullptr && "CreateFiberEx() failed");
   return out;
 }
 
