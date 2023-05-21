@@ -10,7 +10,8 @@
 
 namespace bs
 {
-class GpuDevice;
+	class Scheduler;
+	class GpuDevice;
 /** @addtogroup Application-Core
 	 *  @{
 	 */
@@ -120,6 +121,9 @@ class GpuDevice;
 		/** Returns cache for storing application-wide data that persists application reset. */
 		PersistentCache& GetApplicationCache() { return *mApplicationCache; }
 
+		/** Returns the scheduler on which you can queue tasks on for execution on worker threads. */
+		Scheduler& GetTaskScheduler() const { return *mTaskScheduler; }
+
 		/**
 		 * Loads a plugin.
 		 *
@@ -177,6 +181,7 @@ class GpuDevice;
 
 		SPtr<RenderWindow> mPrimaryWindow;
 		SPtr<GpuDevice> mPrimaryGpu;
+		SPtr<Scheduler> mTaskScheduler;
 		START_UP_DESC mStartUpDesc;
 
 		// Frame limiting

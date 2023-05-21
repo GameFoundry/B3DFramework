@@ -15,14 +15,14 @@ using namespace bs;
 // Implementation based on Marl Scheduler (See ThirdParty/Marl)
 
 Fiber::Fiber(UPtr<marl::OSFiber>&& osFiber, u32 id)
-	: Id(id), mOSFiber(std::move(osFiber)), mOwningThread(SchedulerThread::GetCurrent())
+	: Id(id), mOSFiber(std::move(osFiber)), mOwningThread(SchedulerThread::Get())
 {
 	B3D_ASSERT(mOwningThread != nullptr && "No Scheduler thread found for fiber.");
 }
 
-Fiber* Fiber::GetCurrent()
+Fiber* Fiber::Get()
 {
-	SchedulerThread* const schedulerThread = SchedulerThread::GetCurrent();
+	SchedulerThread* const schedulerThread = SchedulerThread::Get();
 	return schedulerThread != nullptr ? schedulerThread->GetCurrentFiber() : nullptr;
 }
 
@@ -36,13 +36,13 @@ void Fiber::TryResume()
 
 void Fiber::Wait(Lock& lock, const Function<bool()>& predicate)
 {
-	B3D_ASSERT(mOwningThread == SchedulerThread::GetCurrent() && "Fiber::Wait() must only be called on the currently executing fiber.");
+	B3D_ASSERT(mOwningThread == SchedulerThread::Get() && "Fiber::Wait() must only be called on the currently executing fiber.");
 	mOwningThread->Wait(lock, nullptr, predicate);
 }
 
 void Fiber::SwitchExecutionTo(Fiber* to)
 {
-	B3D_ASSERT(mOwningThread == SchedulerThread::GetCurrent() && "Fiber::SwitchExecutionTo() must only be called on the currently executing fiber.");
+	B3D_ASSERT(mOwningThread == SchedulerThread::Get() && "Fiber::SwitchExecutionTo() must only be called on the currently executing fiber.");
 	if (to != this)
 		mOSFiber->switchTo(to->mOSFiber.get());
 }
@@ -564,7 +564,7 @@ void Scheduler::UnbindFromCurrentThread()
 {
 	B3D_ASSERT(Get() != nullptr && "No scheduler bound to this thread.");
 
-	SchedulerThread* schedulerThread = SchedulerThread::GetCurrent();
+	SchedulerThread* schedulerThread = SchedulerThread::Get();
 	schedulerThread->Stop();
 
 	{
@@ -593,10 +593,10 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 		mSpinningWorkers[i] = ~0u;
 	}
 	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
-		mWorkerThreads[i] = bs::B3DNew<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i);
+		mWorkerThreads.push_back(B3DNew<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i));
 
-	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
-		mWorkerThreads[i]->Start();
+	for(auto& thread : mWorkerThreads)
+		thread->Start();
 }
 
 Scheduler::~Scheduler()
@@ -609,18 +609,18 @@ Scheduler::~Scheduler()
 
 	// Release all worker threads.
 	// This will wait for all in-flight tasks to complete before returning.
-	for (u32 i = mInformation.WorkerThreadCount - 1; i >= 0; i--)
-		mWorkerThreads[i]->Stop();
+	for(auto& thread : mWorkerThreads)
+		thread->Stop();
 
-	for (u32 i = mInformation.WorkerThreadCount - 1; i >= 0; i--)
-		B3DDelete(mWorkerThreads[i]);
+	for (auto& thread : mWorkerThreads)
+		B3DDelete(thread);
 }
 
 void Scheduler::Post(SchedulerTask&& task)
 {
 	if (task.GetFlags().IsSet(SchedulerTaskFlag::SameThread))
 	{
-		SchedulerThread::GetCurrent()->Enqueue(std::move(task));
+		SchedulerThread::Get()->Enqueue(std::move(task));
 		return;
 	}
 
@@ -647,7 +647,7 @@ void Scheduler::Post(SchedulerTask&& task)
 	}
 	else
 	{
-		if (auto worker = SchedulerThread::GetCurrent())
+		if (auto worker = SchedulerThread::Get())
 		{
 			worker->Enqueue(std::move(task));
 		}

@@ -6,6 +6,11 @@
 #include "Math/BsRandom.h"
 #include "Prerequisites/BsPrerequisitesUtil.h"
 
+namespace marl
+{
+	class OSFiber;
+}
+
 namespace bs
 {
 	/** @addtogroup Threading
@@ -99,6 +104,9 @@ namespace bs
 	public:
 		Fiber(UPtr<marl::OSFiber>&& osFiber, u32 id);
 
+		/** Returns the thread that the fiber is running on. */
+		const SchedulerThread& GetSchedulerThread() const { return *mOwningThread; }
+
 		/**
 		 * Yields execution of the current fiber and continues yielding until the provided predicate returns true.
 		 * Fiber must be explicitly woken up with a call to TryResume() to re-check the predicate, otherwise it will
@@ -126,7 +134,8 @@ namespace bs
 		 * Yields execution of the current fiber so other tasks may run. Execution will be resumed after TryResume() has been called.
 		 * Must only be called on the active fiber for the current thread.
 		 *
-		 * When using this form of wait, no lock is used, and therefore it is only safe to call Wait() and TryResume() from the same thread.
+		 * Note that this call requires no explicit lock, and therefore you cannot guarantee that a Wait() and TryResume() call from different
+		 * threads will happen in the correct order. Only use if this ordering is not important.
 		 */
 		inline void Wait();
 
@@ -134,7 +143,8 @@ namespace bs
 		 * Yields execution of the current fiber so other tasks may run. Execution will be resumed after TryResume() has been called, or
 		 * the timeout expired. Must only be called on the active fiber for the current thread.
 		 *
-		 * When using this form of wait, no lock is used, and therefore it is only safe to call Wait() and TryResume() from the same thread.
+		 * Note that this call requires no explicit lock, and therefore you cannot guarantee that a Wait() and TryResume() call from different
+		 * threads will happen in the correct order. Only use if this ordering is not important.
 		 */
 		template <typename Clock, typename Duration>
 		bool Wait(const std::chrono::time_point<Clock, Duration>& timeout);
@@ -164,7 +174,7 @@ namespace bs
 		static UPtr<Fiber> CreateFromCurrentThread(u32 id);
 
 		/** Returns the currently executing fiber, or null if no scheduler is bound to this thread. */
-		static Fiber* GetCurrent();
+		static Fiber* Get();
 
 		const u32 Id; /**< Unique identifier of the fiber within the thread. */
 
@@ -188,7 +198,7 @@ namespace bs
 		/** Performs a context switch from the current fiber to the provided fiber. This fiber must be the currently executing fiber. */
 		void SwitchExecutionTo(Fiber* other);
 
-		const UPtr<marl::OSFiber> mOSFiber;
+		const SPtr<marl::OSFiber> mOSFiber;
 		SchedulerThread* const mOwningThread;
 		State mState = State::Running;
 	};
@@ -245,6 +255,9 @@ namespace bs
 
 		B3D_UTILITY_EXPORT SchedulerThread(Scheduler* scheduler, Mode mode, u32 id);
 
+		/** Returns the underlying thread object. */
+		B3D_UTILITY_EXPORT const Thread& GetThread() const { return mThread; }
+
 		/** Starts execution of the thread. Must be called before enqueuing any work. */
 		B3D_UTILITY_EXPORT void Start();
 
@@ -281,7 +294,7 @@ namespace bs
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
-		B3D_UTILITY_EXPORT static SchedulerThread* GetCurrent() { return Current; }
+		B3D_UTILITY_EXPORT static SchedulerThread* Get() { return Current; }
 
 	private:
 		/** Processes all tasks until Stop() is called. */
@@ -382,7 +395,14 @@ namespace bs
 		{ }
 	};
 
-	// TODO - Doc
+	/**
+	 * Schedules provided tasks to one or multiple threads managed by the scheduler. Scheduler can operate in two modes:
+	 *	 - Single threaded - Scheduler can be bound to a single thread
+	 *	 - Multi threaded - Scheduler will launch N threads as provided by the user
+	 *
+	 * All executing tasks are allowed to yield mid-execution, at which point a new task will start executing on the thread. The suspended
+	 * task can be resumed from the point it yielded as the scheduler will preserve it context in a fiber.
+	 */
 	class Scheduler final
 	{
 	public:
@@ -426,7 +446,7 @@ namespace bs
 		std::atomic<u32> mNextSpinningWorkerIndex = { 0x8000000 };
 
 		std::atomic<u32> mNextEnqueueIndex = { 0 };
-		SmallVector<SchedulerThread*, 64> mWorkerThreads;
+		Vector<SchedulerThread*> mWorkerThreads;
 
 		Mutex mSingleThreadWorkerMutex;
 		Signal mSingleThreadWorkerUnbindSignal;

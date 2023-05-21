@@ -44,6 +44,7 @@
 #include "Particles/BsVectorField.h"
 #include "RenderAPI/BsGpuBackend.h"
 #include "RenderAPI/BsGpuDevice.h"
+#include "Threading/BsScheduler.h"
 
 namespace bs
 {
@@ -149,6 +150,12 @@ void CoreApplication::OnStartUp()
 
 	Platform::StartUpInternal();
 	MemStack::BeginThread();
+
+	SchedulerCreateInformation schedulerCreateInformation;
+	schedulerCreateInformation.WorkerThreadCount = 1;// DEBUG ONLY (u32)Math::Max(1, (i32)Thread::GetLogicalCoreCount() - 2); // Reserve two threads for main + render thread
+	schedulerCreateInformation.AffinityPolicy = B3DMakeShared<AnyOfThreadAffinityPolicy>(ThreadCoreMask::CreateAnyThreadMask()); // TODO - Mask out main + render threads
+
+	mTaskScheduler = B3DMakeShared<Scheduler>(schedulerCreateInformation);
 
 	mApplicationCache = B3DMakeShared<PersistentCache>();
 	mApplicationCache->Initialize(FileSystem::GetApplicationDataFolder());

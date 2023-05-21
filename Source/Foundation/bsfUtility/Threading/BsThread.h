@@ -78,7 +78,7 @@ namespace bs
 		ThreadCoreMask& Remove(const ThreadCoreMask&);
 
 		/** Creates a mask that allows the thread to run on any available CPU core. */
-		static ThreadCoreMask CreateAnyThreadAffinity();
+		static ThreadCoreMask CreateAnyThreadMask();
 
 	private:
 		SmallVector<CPUCore, 32> mCores;
@@ -131,29 +131,37 @@ namespace bs
 	};
 
 	/** Wrapper for an OS thread. */
-	class B3D_UTILITY_EXPORT Thread final : INonCopyable
+	class Thread final : INonCopyable
 	{
 	public:
-		Thread() = default;
-		Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
-		Thread(Function<void()>&& workerFunction);
-		Thread(Thread&&);
-		~Thread();
+		B3D_UTILITY_EXPORT Thread() = default;
+		B3D_UTILITY_EXPORT Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
+		B3D_UTILITY_EXPORT Thread(Function<void()>&& workerFunction);
+		B3D_UTILITY_EXPORT Thread(Thread&&);
+		B3D_UTILITY_EXPORT ~Thread();
 
-		Thread& operator=(Thread&&);
+		B3D_UTILITY_EXPORT Thread& operator=(Thread&&);
+
+		/** Returns a unique identifier for the thread. */
+		B3D_UTILITY_EXPORT u32 GetId() const;
 
 		/** Blocks the calling thread until this thread completes. */
-		void WaitUntilComplete();
+		B3D_UTILITY_EXPORT void WaitUntilComplete();
 
 		/** Assigns a name to the current thread, primarily for debugging purposes. */
-		static void SetName(const char* format, ...);
+		B3D_UTILITY_EXPORT static void SetName(const char* format, ...);
 
 		/** Returns the total available number of logical CPU cores. */
-		static u32 GetLogicalCoreCount();
+		B3D_UTILITY_EXPORT static u32 GetLogicalCoreCount();
+
+		/** Gets the id of the current thread. */
+		B3D_UTILITY_EXPORT static u32 GetCurrentThreadId() { return CurrentId; }
 
 	private:
 		class Implementation;
 		Implementation* m = nullptr;
+
+		static thread_local u32 CurrentId;
 	};
 
 	/** @} */

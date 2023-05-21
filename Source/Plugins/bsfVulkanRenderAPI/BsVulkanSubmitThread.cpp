@@ -1,27 +1,184 @@
 //************************************ bs::framework - Copyright 2022 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsVulkanSubmitThread.h"
+
+#include "BsCoreApplication.h"
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuDevice.h"
 #include "BsVulkanGpuQueue.h"
 #include "BsVulkanSwapChain.h"
+#include "Threading/BsScheduler.h"
 #include "Threading/BsTaskScheduler.h"
 
+using namespace bs;
 using namespace bs::ct;
 
 static constexpr bool kEnableSubmitThread = true;
 
-static void RunSubmitThreadCommand(bs::WorkerThreadWithCommandQueue& commandQueue, std::function<void()>&& function, const char* commandName, bool waitUntilComplete = false)
+FiberQueue::FiberQueue()
 {
-	if(kEnableSubmitThread)
-		commandQueue.QueueCommand(std::move(function), commandName, waitUntilComplete);
+	mCommandQueue = B3DNew<Queue<QueuedCommand>>();
+}
+
+FiberQueue::~FiberQueue()
+{
+	Lock lock(mCommandQueueMutex);
+	B3D_ENSURE(mCommandQueue == nullptr || mCommandQueue->empty());
+
+	if(mCommandQueue != nullptr)
+		B3DDelete(mCommandQueue);
+
+	while(!mEmptyCommandQueues.empty())
+	{
+		B3DDelete(mEmptyCommandQueues.top());
+		mEmptyCommandQueues.pop();
+	}
+}
+
+void FiberQueue::RunUntilShutdown()
+{
+	mFiber = Fiber::Get();
+
+	while(true)
+	{
+		ProcessCommands();
+
+		if (mIsShutdownRequested)
+			break;
+
+		auto fnIsNotEmpty = [this]() { return mCommandQueue != nullptr && !mCommandQueue->empty(); };
+
+		Lock lock(mCommandQueueMutex);
+		mFiber->Wait(lock, fnIsNotEmpty);
+	}
+}
+
+void FiberQueue::RequestShutdown(bool waitUntilComplete)
+{
+	PostCommand([this]() { mIsShutdownRequested = true; }, "Request shutdown", waitUntilComplete);
+}
+
+void FiberQueue::PostCommand(Function<void()>&& callback, const char* debugName, bool waitUntilComplete)
+{
+	if (waitUntilComplete)
+	{
+		Mutex completionMutex;
+		Signal completionSignal;
+		bool isCompleted = false;
+
+		auto fnRunBlocking = [&completionMutex, &completionSignal, &isCompleted, function = std::move(callback)]()
+		{
+			function();
+
+			{
+				Lock lock(completionMutex);
+				isCompleted = true;
+			}
+
+			completionSignal.notify_one();
+		};
+
+		QueuedCommand newCommand(std::move(fnRunBlocking), debugName);
+
+		{
+			Lock lock(mCommandQueueMutex);
+			mCommandQueue->push(newCommand);
+
+			if(mFiber) // Might not have been created yet
+				mFiber->TryResume();
+		}
+
+		{
+			Lock lock(completionMutex);
+			while (!isCompleted)
+				completionSignal.wait(lock);
+		}
+	}
+	else
+	{
+		QueuedCommand newCommand(std::move(callback), debugName);
+
+		{
+			Lock lock(mCommandQueueMutex);
+			mCommandQueue->push(newCommand);
+
+			if(mFiber) // Might not have been created yet
+				mFiber->TryResume();
+		}
+	}
+}
+
+void FiberQueue::ProcessCommands()
+{
+	if (!B3D_ENSURE_LOG(mFiber == Fiber::Get(), "FiberQueue::ProcessCommands called from incorrect fiber."))
+		return;
+
+	Queue<QueuedCommand>* commandsToProcess = nullptr;
+
+	{
+		Lock lock(mCommandQueueMutex);
+		commandsToProcess = mCommandQueue;
+
+		if (!mEmptyCommandQueues.empty())
+		{
+			mCommandQueue = mEmptyCommandQueues.top();
+			mEmptyCommandQueues.pop();
+		}
+		else
+		{
+			mCommandQueue = B3DNew<Queue<QueuedCommand>>();
+		}
+	}
+
+	if(commandsToProcess == nullptr)
+		return;
+
+	while(!commandsToProcess->empty())
+	{
+		QueuedCommand& command = commandsToProcess->front();
+
+		if(command.Callback != nullptr)
+			command.Callback();
+
+		commandsToProcess->pop();
+	}
+
+	Lock lock(mCommandQueueMutex);
+	mEmptyCommandQueues.push(commandsToProcess);
+}
+
+void FiberQueue::CancelAll()
+{
+	Lock lock(mCommandQueueMutex);
+
+	while(!mCommandQueue->empty())
+		mCommandQueue->pop();
+}
+
+bool FiberQueue::IsEmpty()
+{
+	Lock lock(mCommandQueueMutex);
+
+	return mCommandQueue == nullptr || mCommandQueue->empty();
+}
+
+static void RunSubmitThreadCommand(FiberQueue& commandQueue, std::function<void()>&& function, const char* commandName, bool waitUntilComplete = false)
+{
+	if (kEnableSubmitThread)
+		commandQueue.PostCommand(std::move(function), commandName, waitUntilComplete);
 	else
 		function();
 }
 
 VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
-	: mGpuDevice(gpuDevice), mCommandQueue("VulkanSubmitThread")
+	: mGpuDevice(gpuDevice)
 {
+	if (kEnableSubmitThread)
+	{
+		auto fnRun = [this]() { mCommandQueue.RunUntilShutdown(); };
+		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnRun)));
+	}
+
 	auto fnInitialize = [this]()
 	{
 		for (u32 gpuQueueUsageIndex = 0; gpuQueueUsageIndex < GQT_COUNT; gpuQueueUsageIndex++)
@@ -38,7 +195,8 @@ VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
 		}
 	};
 
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnInitialize), "Initialize submit thread");
+	// Must wait until it starts so we have a fiber assigned for thread id checks
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnInitialize), "Initialize submit thread", true);
 }
 
 VulkanSubmitThread::~VulkanSubmitThread()
@@ -51,7 +209,8 @@ VulkanSubmitThread::~VulkanSubmitThread()
 		}
 	};
 
-	RunSubmitThreadCommand(mCommandQueue, std::move(fnDestroy), "Cleanup submit thread", true);
+	RunSubmitThreadCommand(mCommandQueue, std::move(fnDestroy), "Cleanup submit thread");
+	mCommandQueue.RequestShutdown(true);
 }
 
 void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, u32 syncMask, bool blocking)
@@ -88,8 +247,7 @@ void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& sw
 	{
 		VulkanGpuDevice& device = queue.GetDevice();
 
-		TaskScheduler::Instance().AddWorker();
-
+		// TODO - BlockingCall()
 		VkResult result = vkDeviceWaitIdle(device.GetLogical());
 		B3D_ASSERT(result == VK_SUCCESS);
 
@@ -99,8 +257,6 @@ void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& sw
 		});
 
 		swapChain.Present(acquiredImageIndex, queue, syncMask);
-
-		TaskScheduler::Instance().RemoveWorker();
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Swap chain present");
@@ -111,9 +267,8 @@ void VulkanSubmitThread::QueueImageAcquire(VulkanSwapChain& swapChain)
 {
 	auto fnCommand = [this, &swapChain]
 	{
-		TaskScheduler::Instance().AddWorker();
+		// TODO - BlockingCall()
 		swapChain.AcquireImage();
-		TaskScheduler::Instance().RemoveWorker();
 
 		Lock acquireLock(mImageAcquireMutex);
 		mSwapChainsWithAcquiredImages.push_back(&swapChain);
@@ -142,12 +297,9 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [this, performCleanupForShutdown]()
 	{
-		TaskScheduler::Instance().AddWorker();
-
+		// TODO - BlockingCall()
 		const VkResult result = vkDeviceWaitIdle(mGpuDevice.GetLogical());
 		B3D_ASSERT(result == VK_SUCCESS);
-
-		TaskScheduler::Instance().RemoveWorker();
 
 		mGpuDevice.DoForEachQueue([performCleanupForShutdown](VulkanGpuQueue& queue)
 		{
@@ -176,12 +328,9 @@ void VulkanSubmitThread::WaitUntilIdle(VulkanGpuQueue& queue)
 {
 	auto fnCommand = [&queue]()
 	{
-		TaskScheduler::Instance().AddWorker();
-
+		// TODO - BlockingCall()
 		const VkResult result = vkQueueWaitIdle(queue.GetVulkanHandle());
 		B3D_ASSERT(result == VK_SUCCESS);
-
-		TaskScheduler::Instance().RemoveWorker();
 
 		queue.RefreshCompletionStateOnSubmitThread(true);
 	};
@@ -209,6 +358,15 @@ void VulkanSubmitThread::RefreshCommandBufferCompletionStates() const
 	mSwapChainsWithAcquiredImages.clear();
 }
 
+const Thread* VulkanSubmitThread::GetThread() const
+{
+	const Fiber* const fiber = mCommandQueue.GetFiber();
+	if (!B3D_ENSURE(fiber))
+		return nullptr;
+
+	return &fiber->GetSchedulerThread().GetThread();
+}
+
 namespace bs::ct {
 	VulkanSubmitThread& GetVulkanSubmitThread()
 	{
@@ -220,6 +378,9 @@ namespace bs::ct {
 		if(!kEnableSubmitThread)
 			return;
 
-		B3D_ASSERT((B3D_CURRENT_THREAD_ID == VulkanSubmitThread::Instance().GetThreadId()) && "This method can only be accessed from the submit thread.");
+		const u32 currentThreadId = Thread::GetCurrentThreadId();
+		const u32 submitThreadId = VulkanSubmitThread::Instance().GetThread()->GetId();
+
+		B3D_ASSERT((currentThreadId == submitThreadId) && "This method can only be accessed from the submit thread.");
 	}
 } // namespace bs::ct

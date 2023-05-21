@@ -139,7 +139,7 @@ ThreadCoreMask& ThreadCoreMask::Remove(const ThreadCoreMask& other)
 	return *this;
 }
 
-ThreadCoreMask ThreadCoreMask::CreateAnyThreadAffinity()
+ThreadCoreMask ThreadCoreMask::CreateAnyThreadMask()
 {
 	ThreadCoreMask output;
 
@@ -223,7 +223,8 @@ class Thread::Implementation
 public:
 	Implementation(Function<void()>&& workerFunction, _PROC_THREAD_ATTRIBUTE_LIST* attributes)
 		: WorkerFunction(std::move(workerFunction))
-		, ThreadHandle(CreateRemoteThreadEx(GetCurrentProcess(), nullptr, 0, &Implementation::Run, this, 0, attributes, nullptr)) {}
+		, ThreadHandle(CreateRemoteThreadEx(GetCurrentProcess(), nullptr, 0, &Implementation::Run, this, 0, attributes, &ThreadId))
+	{ }
 	~Implementation() { CloseHandle(ThreadHandle); }
 
 	Implementation(const Implementation&) = delete;
@@ -235,13 +236,20 @@ public:
 
 	static DWORD WINAPI Run(void* self)
 	{
-		reinterpret_cast<Implementation*>(self)->WorkerFunction();
+		Implementation* implementation = static_cast<Implementation*>(self);
+		Thread::CurrentId = (u32)implementation->ThreadId;
+
+		implementation->WorkerFunction();
 		return 0;
 	}
 
 	const Function<void()> WorkerFunction;
+	const Thread* Owner;
 	const HANDLE ThreadHandle;
+	DWORD ThreadId = 0;
 };
+
+thread_local u32 Thread::CurrentId = 0;
 
 Thread::Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction)
 {
@@ -275,14 +283,15 @@ Thread::Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction
 }
 
 Thread::Thread(Function<void()>&& workerFunction)
-	:Thread(ThreadCoreMask::CreateAnyThreadAffinity(), std::move(workerFunction))
+	:Thread(ThreadCoreMask::CreateAnyThreadMask(), std::move(workerFunction))
 {
 	
 }
 
 Thread::~Thread()
 {
-	B3DDelete(m);
+	if(m != nullptr)
+		B3DDelete(m);
 }
 
 void Thread::WaitUntilComplete()
@@ -291,6 +300,11 @@ void Thread::WaitUntilComplete()
 		return;
 
 	m->Join();
+}
+
+u32 Thread::GetId() const
+{
+	return m->ThreadId;
 }
 
 void Thread::SetName(const char* format, ...)
@@ -333,6 +347,8 @@ public:
 		, mWorkerFunction(std::move(workerFunction))
 		, mThread([this]
 		{
+			Thread::CurrentId = (u32)mThread::get_id();
+
 			SetAffinity(); 
 			mWorkerFunction();
 		})
@@ -372,6 +388,8 @@ public:
 	std::thread mThread;
 };
 
+thread_local u32 Thread::CurrentId = 0;
+
 B3DThread::B3DThread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction)
 	: m(B3DNew<B3DThread::Implementation(std::move(affinity), std::move(workerFunction)))
 	{}
@@ -387,6 +405,11 @@ void B3DThread::WaitUntilComplete()
 
 	B3D_Delete(m);
 	m = nullptr;
+}
+
+u32 Thread::GetId() const
+{
+	return (u32)m->mThread::get_id();
 }
 
 void B3DThread::SetName(const char* format, ...)
