@@ -91,7 +91,7 @@ namespace bs
 		static Mutex sAppStartedMutex;
 		static Signal sAppStartedCondition;
 #else
-		HThread mCoreThread;
+		SPtr<PooledThread> mCoreThread;
 #endif
 
 		SingleConsumerQueue mCommandQueue;

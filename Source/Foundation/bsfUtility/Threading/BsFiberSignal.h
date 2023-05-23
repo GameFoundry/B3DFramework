@@ -11,23 +11,29 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Similar to Signal, but works with fibers by yielding the fiber when waiting, rather than blocking the thread. */
+	/** Similar to std::condition_variable, but also works with fibers in a way that allows waiting fibers to yield rather than blocking the thread. */
 	class FiberSignal
 	{
 	public:
 		FiberSignal() = default;
 
-		inline void notify_one();
-		inline void notify_all();
+		/** Notifies one waiting fiber or thread. */
+		inline void NotifyOne();
 
+		/** Notifies all waiting fibers and threads. */
+		inline void NotifyAll();
+
+		/** Yields the current fiber, or blocks the thread (if not running in fiber context) until it is woken via one of the Notify*() calls and the predicate returns true. */
 		template <typename Predicate>
-		void wait(Lock& lock, Predicate&& predicate);
+		void Wait(Lock& lock, Predicate&& predicate);
 
+		/** Yields the current fiber, or blocks the thread (if not running in fiber context) until it is woken via one of the Notify*() calls and the predicate returns true, or the timeout expires. Returns the value of the predicate (can be false in case the timeout expired, otherwise true). */
 		template <typename Rep, typename Period, typename Predicate>
-		bool wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate);
+		bool WaitFor(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate);
 
+		/** Yields the current fiber, or blocks the thread (if not running in fiber context) until it is woken via one of the Notify*() calls and the predicate returns true, or the provided time point is reached. Returns the value of the predicate (can be false in case the time point was reached, otherwise true). */
 		template <typename Clock, typename Duration, typename Predicate>
-		bool wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate);
+		bool WaitUntil(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate);
 
 	private:
 		FiberSignal(const FiberSignal&) = delete;
@@ -42,7 +48,7 @@ namespace bs
 		std::atomic<int> mThreadWaitingCount = { 0 };
 	};
 
-	void FiberSignal::notify_one()
+	void FiberSignal::NotifyOne()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -60,7 +66,7 @@ namespace bs
 			mCondition.notify_one();
 	}
 
-	void FiberSignal::notify_all()
+	void FiberSignal::NotifyAll()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -76,7 +82,7 @@ namespace bs
 	}
 
 	template <typename Predicate>
-	void FiberSignal::wait(Lock& lock, Predicate&& predicate)
+	void FiberSignal::Wait(Lock& lock, Predicate&& predicate)
 	{
 		if (predicate())
 			return;
@@ -105,13 +111,13 @@ namespace bs
 	}
 
 	template <typename Rep, typename Period, typename Predicate>
-	bool FiberSignal::wait_for(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
+	bool FiberSignal::WaitFor(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
 	{
-		return wait_until(lock, std::chrono::system_clock::now() + duration, predicate);
+		return WaitUntil(lock, std::chrono::system_clock::now() + duration, predicate);
 	}
 
 	template <typename Clock, typename Duration, typename Predicate>
-	bool FiberSignal::wait_until(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
+	bool FiberSignal::WaitUntil(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
 	{
 		if (predicate())
 			return true;

@@ -41,12 +41,10 @@ void CoreObject::Destroy()
 
 	if(RequiresInitOnCoreThread())
 	{
-#if !BS_FORCE_SINGLETHREADED_RENDERING
 		B3D_ASSERT(B3D_CURRENT_THREAD_ID != CoreThread::Instance().GetCoreThreadId() && "Cannot destroy sim thead object from core thread.");
-#endif
 
 		// This will only destroy the ct::CoreObject if this was the last reference
-		QueueDestroyGpuCommand(mCoreSpecific);
+		QueueDestroyGpuCommand(mCoreSpecific); // TODO - Need an explicit Destroy method here, otherwise clearing mCoreSpecific pointer below can still be the last reference if this code runs fast enough. Which means it gets destroyed on the wrong thread.
 	}
 
 	mCoreSpecific = nullptr;
@@ -63,9 +61,7 @@ void CoreObject::Initialize()
 		{
 			mCoreSpecific->SetScheduledToBeInitialized(true);
 
-#if !BS_FORCE_SINGLETHREADED_RENDERING
 			B3D_ASSERT(B3D_CURRENT_THREAD_ID != CoreThread::Instance().GetCoreThreadId() && "Cannot initialize sim thread object from core thread.");
-#endif
 
 			QueueInitializeGpuCommand(mCoreSpecific);
 		}

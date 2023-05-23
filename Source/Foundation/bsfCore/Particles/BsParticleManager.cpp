@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Particles/BsParticleManager.h"
+
+#include "BsCoreApplication.h"
 #include "Particles/BsParticleSystem.h"
 #include "Utility/BsTime.h"
 #include "Threading/BsTaskScheduler.h"
@@ -431,8 +433,7 @@ ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& anim
 			mWorkerDoneSignal.notify_one();
 		};
 
-		SPtr<Task> task = Task::Create("ParticleWorker", evaluateWorker);
-		TaskScheduler::Instance().AddTask(task);
+		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask("ParticleWorker", evaluateWorker));
 	}
 
 	// Wait for tasks to complete

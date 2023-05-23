@@ -182,7 +182,7 @@ namespace bs
 		/**	Method used for sorting tasks. */
 		static bool TaskCompare(const SPtr<Task>& lhs, const SPtr<Task>& rhs);
 
-		HThread mTaskSchedulerThread;
+		SPtr<PooledThread> mTaskSchedulerThread;
 		Set<SPtr<Task>, std::function<bool(const SPtr<Task>&, const SPtr<Task>&)>> mTaskQueue;
 		Vector<SPtr<Task>> mActiveTasks;
 		u32 mMaxActiveTasks = 0;

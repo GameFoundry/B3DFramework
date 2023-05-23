@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Resources/BsResources.h"
+
+#include "BsApplication.h"
 #include "Resources/BsResource.h"
 #include "Resources/BsResourceManifest.h"
 #include "Error/BsException.h"
@@ -17,6 +19,7 @@
 #include "Serialization/BsBinarySerializer.h"
 #include "Reflection/BsRTTIType.h"
 #include "BsCoreApplication.h"
+#include "Threading/BsScheduler.h"
 
 using namespace bs;
 
@@ -351,7 +354,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 	// Check if resource load already started on another thread (in case it was already being loaded), in which case
 	// we want to wait
 	bool waitOnLoadInProgress = false;
-	SPtr<Task> loadTask;
+	SPtr<SignalEvent> loadingEvent;
 	{
 		Lock inProgressLock(mInProgressResourcesMutex);
 
@@ -361,7 +364,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 			if(iterFind->second->LoadStarted)
 			{
 				waitOnLoadInProgress = true;
-				loadTask = iterFind->second->Task;
+				loadingEvent = iterFind->second->LoadingEvent;
 			}
 			else
 				iterFind->second->LoadStarted = true;
@@ -371,8 +374,8 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 	// Previously being loaded as async but now we want it synced, so we wait
 	if(loadInProgress && synchronous && waitOnLoadInProgress)
 	{
-		if(loadTask)
-			loadTask->Wait();
+		if(loadingEvent)
+			loadingEvent->Wait();
 
 		output.Resource.BlockUntilLoaded(false);
 	}
@@ -391,17 +394,22 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 			String taskName = "Resource load: " + fileName;
 
 			bool keepSourceData = loadFlags.IsSet(ResourceLoadFlag::KeepSourceData);
-			SPtr<Task> task = Task::Create(taskName, std::bind(&Resources::LoadCallback, this, filePath, output.Resource, keepSourceData));
 
 			// Register the task
 			{
 				Lock inProgressLock(mInProgressResourcesMutex);
 
-				const auto iterFind = mInProgressResources.find(uuid);
-				if(iterFind != mInProgressResources.end())
-					iterFind->second->Task = task;
+				SPtr<SignalEvent> loadingEvent = B3DMakeShared<SignalEvent>();
 
-				TaskScheduler::Instance().AddTask(task);
+				const auto iterFind = mInProgressResources.find(uuid);
+				if (iterFind != mInProgressResources.end())
+					iterFind->second->LoadingEvent = loadingEvent;
+
+				GetCoreApplication().GetTaskScheduler().Post(SchedulerTask("Resource load", [this, loadingEvent, filePath, resource = output.Resource, keepSourceData]() mutable
+				{
+					LoadCallback(filePath, resource, keepSourceData);
+					loadingEvent->Signal();
+				}, SchedulerTaskFlag::None, fileName));
 			}
 		}
 	}

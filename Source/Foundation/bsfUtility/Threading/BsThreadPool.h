@@ -7,50 +7,25 @@
 
 namespace bs
 {
-	class Thread;
 	/** @addtogroup Threading
 	 *  @{
 	 */
 
+	class Thread;
 	class ThreadPool;
-
-	/** Handle to a thread managed by ThreadPool. */
-	class B3D_UTILITY_EXPORT HThread
-	{
-	public:
-		HThread() = default;
-		;
-		HThread(ThreadPool* pool, u32 threadId);
-
-		/**	Block the calling thread until the thread this handle points to completes. */
-		void BlockUntilComplete();
-
-	private:
-		u32 mThreadId = 0;
-		ThreadPool* mPool = nullptr;
-	};
-
-	/** @} */
-	/** @addtogroup Internal-Utility
-	 *  @{
-	 */
-
-	/** @addtogroup Threading-Internal
-	 *  @{
-	 */
 
 	/**	Wrapper around a thread that is used within ThreadPool. */
 	class B3D_UTILITY_EXPORT PooledThread
 	{
 	public:
-		PooledThread(const String& name)
-			: mName(name)
-		{}
-
+		PooledThread(const String& name);
 		virtual ~PooledThread() = default;
 
-		/**	Initializes the pooled thread. Must be called right after the object is constructed. */
+		/** Initializes the pooled thread. Must be called right after construction. */
 		void Initialize();
+
+		/** Returns the underlying thread. */
+		Thread& GetThread() const { return *mThread; }
 
 		/**
 		 * Starts executing the given worker method.
@@ -59,7 +34,7 @@ namespace bs
 		 * Caller must ensure worker method is not null and that the thread is currently idle, otherwise undefined behavior
 		 * will occur.
 		 */
-		void Start(std::function<void()> workerMethod, u32 id);
+		void Start(std::function<void()> workerMethod);
 
 		/**
 		 * Attempts to join the currently running thread and destroys it. Caller must ensure that any worker method
@@ -75,9 +50,6 @@ namespace bs
 
 		/**	Sets a name of the thread. */
 		void SetName(const String& name);
-
-		/**	Gets unique ID of the currently executing thread. */
-		u32 GetId() const;
 
 		/**	Blocks the current thread until this thread completes. Returns immediately if the thread is idle. */
 		void BlockUntilComplete();
@@ -101,18 +73,17 @@ namespace bs
 	protected:
 		std::function<void()> mWorkerMethod;
 		String mName;
-		u32 mId = 0;
-		bool mIdle = true;
-		bool mThreadStarted = false;
-		bool mThreadReady = false;
+		bool mIsThreadIdle = true;
+		bool mIsThreadStarted = false;
+		bool mIsThreadReady = false;
 
 		time_t mIdleTime = 0;
 
 		Thread* mThread;
 		mutable Mutex mMutex;
-		Signal mStartedCond;
-		Signal mReadyCond;
-		Signal mWorkerEndedCond;
+		Signal mThreadStartedSignal;
+		Signal mThreadReadySignal;
+		Signal mWorkerFinishedSignal;
 	};
 
 	/**
@@ -138,13 +109,6 @@ namespace bs
 		}
 	};
 
-	/** @} */
-	/** @} */
-
-	/** @addtogroup Threading
-	 *  @{
-	 */
-
 	/**
 	 * Class that maintains a pool of threads we can easily retrieve and use for any task. This saves on the cost of
 	 * creating and destroying threads.
@@ -156,11 +120,9 @@ namespace bs
 		 * Constructs a new thread pool
 		 *
 		 * @param[in]	threadCapacity	Default thread capacity, the pool will always try to keep this many threads available.
-		 * @param[in]	maxCapacity   	(optional) Maximum number of threads the pool can create. If we go over this limit an
-		 *								exception will be thrown.
 		 * @param[in]	idleTimeout   	(optional) How many seconds do threads need to be idle before we remove them from the pool.
 		 */
-		ThreadPool(u32 threadCapacity, u32 maxCapacity = 16, u32 idleTimeout = 60);
+		ThreadPool(u32 threadCapacity, u32 idleTimeout = 60);
 		virtual ~ThreadPool();
 
 		/**
@@ -170,7 +132,7 @@ namespace bs
 		 * @param[in]	workerMethod	The worker method to be called by the thread.
 		 * @return						A thread handle you may use for monitoring the thread execution.
 		 */
-		HThread Run(const String& name, std::function<void()> workerMethod);
+		SPtr<PooledThread> Run(const String& name, std::function<void()> workerMethod);
 
 		/**
 		 * Stops all threads and destroys them. Caller must ensure each threads worker method returns otherwise this will
@@ -181,9 +143,6 @@ namespace bs
 		/** Clear any unused threads that are over the capacity. */
 		void ClearUnused();
 
-		/**	Returns the number of unused threads in the pool. */
-		u32 GetNumAvailable() const;
-
 		/**	Returns the number of running threads in the pool. */
 		u32 GetNumActive() const;
 
@@ -193,13 +152,10 @@ namespace bs
 	protected:
 		friend class HThread;
 
-		Vector<PooledThread*> mThreads;
+		Vector<SPtr<PooledThread>> mThreads;
 
 		/**	Creates a new thread to be used by the pool. */
-		virtual PooledThread* CreateThread(const String& name) = 0;
-
-		/**	Destroys the specified thread. Caller needs to make sure the thread is actually shut down beforehand. */
-		void DestroyThread(PooledThread* thread);
+		virtual SPtr<PooledThread> CreateThread(const String& name) = 0;
 
 		/**
 		 * Returns the first unused thread if one exists, otherwise creates a new one.
@@ -208,15 +164,13 @@ namespace bs
 		 *
 		 * @note	Throws an exception if we have reached our maximum thread capacity.
 		 */
-		PooledThread* GetThread(const String& name);
+		SPtr<PooledThread> GetThread(const String& name);
 
 		u32 mDefaultCapacity;
-		u32 mMaxCapacity;
 		u32 mIdleTimeout;
 		/** unused check counter */
 		u32 mAge = 0;
 
-		std::atomic_uint mUniqueId;
 		mutable Mutex mMutex;
 	};
 
@@ -248,18 +202,22 @@ namespace bs
 	class TThreadPool : public ThreadPool
 	{
 	public:
-		TThreadPool(u32 threadCapacity, u32 maxCapacity = 16, u32 idleTimeout = 60)
-			: ThreadPool(threadCapacity, maxCapacity, idleTimeout)
+		TThreadPool(u32 threadCapacity, u32 idleTimeout = 60)
+			: ThreadPool(threadCapacity, idleTimeout)
 		{
 		}
 
 	protected:
-		PooledThread* CreateThread(const String& name) override
+		SPtr<PooledThread> CreateThread(const String& name) override
 		{
-			PooledThread* newThread = B3DNew<TPooledThread<ThreadPolicy>>(name);
-			newThread->Initialize();
+			SPtr<PooledThread> output(B3DNew<TPooledThread<ThreadPolicy>>(name), [](PooledThread* pooledThread)
+				{
+					pooledThread->Destroy();
+					B3DDelete(pooledThread);
+				});
+			output->Initialize();
 
-			return newThread;
+			return output;
 		}
 	};
 

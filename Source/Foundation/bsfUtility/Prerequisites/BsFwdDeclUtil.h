@@ -186,7 +186,7 @@ namespace bs
 	class StringTable;
 	struct LocalizedStringData;
 	class Path;
-	class HThread;
+	class PooledThread;
 	class TestSuite;
 	class TestOutput;
 	class AsyncOpSyncData;

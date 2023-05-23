@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Threading/BsSignalEvent.h"
 #include "Utility/BsModule.h"
 
 namespace bs
@@ -73,7 +74,7 @@ namespace bs
 			Vector<HResource> Dependencies;
 			bool NotifyImmediately;
 			bool LoadStarted = false;
-			SPtr<Task> Task;
+			SPtr<SignalEvent> LoadingEvent;
 
 			// Progress reporting
 			u32 DependencySize = 0;

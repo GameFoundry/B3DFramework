@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "ThirdParty/marl/src/osfiber.h"  // Must come first. See osfiber_ucontext.h.
 #include "Threading/BsScheduler.h"
+
+#include "BsThreadPool.h"
 #include "Debug/BsDebug.h"
 
 using namespace bs;
@@ -155,8 +157,11 @@ void SchedulerThread::Start()
 		{
 			auto& affinityPolicy = mOwnerScheduler->GetInformation().AffinityPolicy;
 			auto affinity = affinityPolicy->GetMaskForThread(Id);
+
 			mThread = Thread(std::move(affinity), [=]
 			{
+				MemStack::BeginThread();
+
 				Thread::SetName("Thread<%.2d>", int(Id));
 
 				if (const auto& initializer = mOwnerScheduler->GetInformation().ThreadInitializeCallback)
@@ -175,6 +180,8 @@ void SchedulerThread::Start()
 
 				mMainFiber.reset();
 				Current = nullptr;
+
+				MemStack::EndThread();
 			});
 
 			break;

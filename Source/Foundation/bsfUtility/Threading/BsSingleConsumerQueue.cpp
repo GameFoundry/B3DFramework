@@ -41,7 +41,7 @@ void SingleConsumerQueue::RunUntilShutdown()
 		auto fnIsNotEmpty = [this]() { return mCommandQueue != nullptr && !mCommandQueue->empty(); };
 
 		Lock lock(mCommandQueueMutex);
-		mSignal.wait(lock, fnIsNotEmpty);
+		mSignal.Wait(lock, fnIsNotEmpty);
 	}
 }
 
@@ -67,7 +67,7 @@ void SingleConsumerQueue::PostCommand(Function<void()>&& callback, const char* d
 				isCompleted = true;
 			}
 
-			completionSignal.notify_one();
+			completionSignal.NotifyOne();
 		};
 
 		QueuedCommand newCommand(std::move(fnRunBlocking), debugName);
@@ -76,12 +76,12 @@ void SingleConsumerQueue::PostCommand(Function<void()>&& callback, const char* d
 			Lock lock(mCommandQueueMutex);
 			mCommandQueue->push(newCommand);
 
-			mSignal.notify_all();
+			mSignal.NotifyAll();
 		}
 
 		{
 			Lock lock(completionMutex);
-			completionSignal.wait(lock, [&isCompleted] { return isCompleted; });
+			completionSignal.Wait(lock, [&isCompleted] { return isCompleted; });
 		}
 	}
 	else
@@ -92,7 +92,7 @@ void SingleConsumerQueue::PostCommand(Function<void()>&& callback, const char* d
 			Lock lock(mCommandQueueMutex);
 			mCommandQueue->push(newCommand);
 
-			mSignal.notify_all();
+			mSignal.NotifyAll();
 		}
 	}
 }

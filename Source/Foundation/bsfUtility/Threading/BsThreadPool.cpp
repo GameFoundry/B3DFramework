@@ -21,37 +21,9 @@ using namespace bs;
 /** The thread pool will check for unused threads every UNUSED_CHECK_PERIOD getThread() calls*/
 static constexpr int kUnusedCheckPeriod = 32;
 
-HThread::HThread(ThreadPool* pool, u32 threadId)
-	: mThreadId(threadId), mPool(pool)
-{}
-
-void HThread::BlockUntilComplete()
+PooledThread::PooledThread(const String& name)
+	:mName(name)
 {
-	PooledThread* parentThread = nullptr;
-
-	{
-		Lock lock(mPool->mMutex);
-
-		for(auto& thread : mPool->mThreads)
-		{
-			if(thread->GetId() == mThreadId)
-			{
-				parentThread = thread;
-				break;
-			}
-		}
-	}
-
-	if(parentThread != nullptr)
-	{
-		Lock lock(parentThread->mMutex);
-
-		if(parentThread->mId == mThreadId) // Check again in case it changed
-		{
-			while(!parentThread->mIdle)
-				parentThread->mWorkerEndedCond.wait(lock);
-		}
-	}
 }
 
 void PooledThread::Initialize()
@@ -60,23 +32,22 @@ void PooledThread::Initialize()
 
 	Lock lock(mMutex);
 
-	while(!mThreadStarted)
-		mStartedCond.wait(lock);
+	while(!mIsThreadStarted)
+		mThreadStartedSignal.wait(lock);
 }
 
-void PooledThread::Start(std::function<void()> workerMethod, u32 id)
+void PooledThread::Start(std::function<void()> workerMethod)
 {
 	{
 		Lock lock(mMutex);
 
 		mWorkerMethod = workerMethod;
-		mIdle = false;
+		mIsThreadIdle = false;
 		mIdleTime = std::time(nullptr);
-		mThreadReady = true;
-		mId = id;
+		mIsThreadReady = true;
 	}
 
-	mReadyCond.notify_one();
+	mThreadReadySignal.notify_one();
 }
 
 void PooledThread::Run()
@@ -85,10 +56,10 @@ void PooledThread::Run()
 
 	{
 		Lock lock(mMutex);
-		mThreadStarted = true;
+		mIsThreadStarted = true;
 	}
 
-	mStartedCond.notify_one();
+	mThreadStartedSignal.notify_one();
 
 	while(true)
 	{
@@ -98,8 +69,8 @@ void PooledThread::Run()
 			{
 				Lock lock(mMutex);
 
-				while(!mThreadReady)
-					mReadyCond.wait(lock);
+				while(!mIsThreadReady)
+					mThreadReadySignal.wait(lock);
 
 				worker = mWorkerMethod;
 			}
@@ -120,12 +91,12 @@ void PooledThread::Run()
 		{
 			Lock lock(mMutex);
 
-			mIdle = true;
+			mIsThreadIdle = true;
 			mIdleTime = std::time(nullptr);
-			mThreadReady = false;
+			mIsThreadReady = false;
 			mWorkerMethod = nullptr; // Make sure to clear as it could have bound shared pointers and similar
 
-			mWorkerEndedCond.notify_one();
+			mWorkerFinishedSignal.notify_one();
 		}
 	}
 }
@@ -151,10 +122,10 @@ void PooledThread::Destroy()
 	{
 		Lock lock(mMutex);
 		mWorkerMethod = nullptr;
-		mThreadReady = true;
+		mIsThreadReady = true;
 	}
 
-	mReadyCond.notify_one();
+	mThreadReadySignal.notify_one();
 	mThread->WaitUntilComplete();
 	B3DDelete(mThread);
 }
@@ -163,15 +134,15 @@ void PooledThread::BlockUntilComplete()
 {
 	Lock lock(mMutex);
 
-	while(!mIdle)
-		mWorkerEndedCond.wait(lock);
+	while(!mIsThreadIdle)
+		mWorkerFinishedSignal.wait(lock);
 }
 
 bool PooledThread::IsIdle()
 {
 	Lock lock(mMutex);
 
-	return mIdle;
+	return mIsThreadIdle;
 }
 
 time_t PooledThread::IdleTime()
@@ -186,15 +157,8 @@ void PooledThread::SetName(const String& name)
 	mName = name;
 }
 
-u32 PooledThread::GetId() const
-{
-	Lock lock(mMutex);
-
-	return mId;
-}
-
-ThreadPool::ThreadPool(u32 threadCapacity, u32 maxCapacity, u32 idleTimeout)
-	: mDefaultCapacity(threadCapacity), mMaxCapacity(maxCapacity), mIdleTimeout(idleTimeout)
+ThreadPool::ThreadPool(u32 threadCapacity, u32 idleTimeout)
+	: mDefaultCapacity(threadCapacity), mIdleTimeout(idleTimeout)
 {
 }
 
@@ -203,12 +167,12 @@ ThreadPool::~ThreadPool()
 	StopAll();
 }
 
-HThread ThreadPool::Run(const String& name, std::function<void()> workerMethod)
+SPtr<PooledThread> ThreadPool::Run(const String& name, std::function<void()> workerMethod)
 {
-	PooledThread* thread = GetThread(name);
-	thread->Start(workerMethod, mUniqueId++);
+	SPtr<PooledThread> thread = GetThread(name);
+	thread->Start(workerMethod);
 
-	return HThread(this, thread->GetId());
+	return thread;
 }
 
 void ThreadPool::StopAll()
@@ -216,7 +180,7 @@ void ThreadPool::StopAll()
 	Lock lock(mMutex);
 	for(auto& thread : mThreads)
 	{
-		DestroyThread(thread);
+		thread->BlockUntilComplete();
 	}
 
 	mThreads.clear();
@@ -230,9 +194,9 @@ void ThreadPool::ClearUnused()
 	if(mThreads.size() <= mDefaultCapacity)
 		return;
 
-	Vector<PooledThread*> idleThreads;
-	Vector<PooledThread*> expiredThreads;
-	Vector<PooledThread*> activeThreads;
+	SmallVector<SPtr<PooledThread>, 4> idleThreads;
+	SmallVector<SPtr<PooledThread>, 4> expiredThreads;
+	SmallVector<SPtr<PooledThread>, 4> activeThreads;
 
 	idleThreads.reserve(mThreads.size());
 	expiredThreads.reserve(mThreads.size());
@@ -243,15 +207,14 @@ void ThreadPool::ClearUnused()
 		if(thread->IsIdle())
 		{
 			if(thread->IdleTime() >= mIdleTimeout)
-				expiredThreads.push_back(thread);
-			else
-				idleThreads.push_back(thread);
+				expiredThreads.Add(thread);
+
+			idleThreads.Add(thread);
 		}
 		else
-			activeThreads.push_back(thread);
+			activeThreads.Add(thread);
 	}
 
-	idleThreads.insert(idleThreads.end(), expiredThreads.begin(), expiredThreads.end());
 	u32 limit = std::min((u32)idleThreads.size(), mDefaultCapacity);
 
 	u32 i = 0;
@@ -264,20 +227,12 @@ void ThreadPool::ClearUnused()
 			mThreads.push_back(thread);
 			i++;
 		}
-		else
-			DestroyThread(thread);
 	}
 
 	mThreads.insert(mThreads.end(), activeThreads.begin(), activeThreads.end());
 }
 
-void ThreadPool::DestroyThread(PooledThread* thread)
-{
-	thread->Destroy();
-	B3DDelete(thread);
-}
-
-PooledThread* ThreadPool::GetThread(const String& name)
+SPtr<PooledThread> ThreadPool::GetThread(const String& name)
 {
 	u32 age = 0;
 	{
@@ -299,27 +254,10 @@ PooledThread* ThreadPool::GetThread(const String& name)
 		}
 	}
 
-	if(mThreads.size() >= mMaxCapacity)
-		B3D_EXCEPT(InvalidStateException, "Unable to create a new thread in the pool because maximum capacity has been reached.");
-
-	PooledThread* newThread = CreateThread(name);
+	SPtr<PooledThread> newThread = CreateThread(name);
 	mThreads.push_back(newThread);
 
 	return newThread;
-}
-
-u32 ThreadPool::GetNumAvailable() const
-{
-	u32 numAvailable = mMaxCapacity;
-
-	Lock lock(mMutex);
-	for(auto& thread : mThreads)
-	{
-		if(!thread->IsIdle())
-			numAvailable--;
-	}
-
-	return numAvailable;
 }
 
 u32 ThreadPool::GetNumActive() const

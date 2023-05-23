@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Animation/BsAnimationManager.h"
+
+#include "BsCoreApplication.h"
 #include "Animation/BsAnimation.h"
 #include "Animation/BsAnimationClip.h"
 #include "Threading/BsTaskScheduler.h"
@@ -138,8 +140,7 @@ const EvaluatedAnimationData* AnimationManager::Update(bool async)
 			mWorkerDoneSignal.notify_one();
 		};
 
-		SPtr<Task> task = Task::Create("AnimWorker", evaluateAnimWorker);
-		TaskScheduler::Instance().AddTask(task);
+		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask("AnimWorker", evaluateAnimWorker));
 
 		if(anim->Skeleton != nullptr)
 			curBoneIdx += anim->Skeleton->GetNumBones();
