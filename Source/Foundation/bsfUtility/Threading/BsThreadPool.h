@@ -81,9 +81,9 @@ namespace bs
 
 		Thread* mThread;
 		mutable Mutex mMutex;
-		Signal mThreadStartedSignal;
-		Signal mThreadReadySignal;
-		Signal mWorkerFinishedSignal;
+		ConditionVariable mThreadStartedSignal;
+		ConditionVariable mThreadReadySignal;
+		ConditionVariable mWorkerFinishedSignal;
 	};
 
 	/**

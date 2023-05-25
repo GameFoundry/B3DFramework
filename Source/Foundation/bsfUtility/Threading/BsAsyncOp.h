@@ -38,7 +38,7 @@ namespace bs
 			SmallVector<Function<void(const AsyncOpBase&)>, 1> CompletionCallbacks;
 			bool IsCompleted = false;
 			Mutex Mutex;
-			Signal Signal;
+			ConditionVariable Signal;
 		};
 
 	public:

@@ -7,7 +7,7 @@ using namespace bs;
 
 namespace bs { namespace ct
 {
-Signal CoreObject::mCoreGpuObjectLoadedCondition;
+ConditionVariable CoreObject::mCoreGpuObjectLoadedCondition;
 Mutex CoreObject::mCoreGpuObjectLoadedMutex;
 
 CoreObject::CoreObject()

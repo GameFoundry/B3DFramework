@@ -195,7 +195,7 @@ namespace bs
 		Vector<SpecificImporter*> mAssetImporters;
 
 		mutable Mutex mLastTaskMutex;
-		mutable Signal mTaskCompleted;
+		mutable ConditionVariable mTaskCompleted;
 		mutable Mutex mImportMutex;
 		mutable u64 mTaskId = 0;
 

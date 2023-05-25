@@ -107,7 +107,7 @@ namespace bs
 	private:
 		friend class Resources;
 
-		static Signal mResourceCreatedCondition;
+		static ConditionVariable mResourceCreatedCondition;
 		static Mutex mResourceCreatedMutex;
 
 	protected:

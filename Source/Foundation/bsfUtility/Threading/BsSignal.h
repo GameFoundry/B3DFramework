@@ -12,10 +12,10 @@ namespace bs
 	 */
 
 	/** Similar to std::condition_variable, but also works with fibers in a way that allows waiting fibers to yield rather than blocking the thread. */
-	class FiberSignal
+	class Signal
 	{
 	public:
-		FiberSignal() = default;
+		Signal() = default;
 
 		/** Notifies one waiting fiber or thread. */
 		inline void NotifyOne();
@@ -36,10 +36,10 @@ namespace bs
 		bool WaitUntil(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate);
 
 	private:
-		FiberSignal(const FiberSignal&) = delete;
-		FiberSignal(FiberSignal&&) = delete;
-		FiberSignal& operator=(const FiberSignal&) = delete;
-		FiberSignal& operator=(FiberSignal&&) = delete;
+		Signal(const Signal&) = delete;
+		Signal(Signal&&) = delete;
+		Signal& operator=(const Signal&) = delete;
+		Signal& operator=(Signal&&) = delete;
 
 		Mutex mMutex;
 		List<Fiber*> mWaitingFibers;
@@ -48,7 +48,7 @@ namespace bs
 		std::atomic<int> mThreadWaitingCount = { 0 };
 	};
 
-	void FiberSignal::NotifyOne()
+	void Signal::NotifyOne()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -66,7 +66,7 @@ namespace bs
 			mCondition.notify_one();
 	}
 
-	void FiberSignal::NotifyAll()
+	void Signal::NotifyAll()
 	{
 		if (mTotalWaitingCount == 0)
 			return;
@@ -82,7 +82,7 @@ namespace bs
 	}
 
 	template <typename Predicate>
-	void FiberSignal::Wait(Lock& lock, Predicate&& predicate)
+	void Signal::Wait(Lock& lock, Predicate&& predicate)
 	{
 		if (predicate())
 			return;
@@ -111,13 +111,13 @@ namespace bs
 	}
 
 	template <typename Rep, typename Period, typename Predicate>
-	bool FiberSignal::WaitFor(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
+	bool Signal::WaitFor(Lock& lock, const std::chrono::duration<Rep, Period>& duration, Predicate&& predicate)
 	{
 		return WaitUntil(lock, std::chrono::system_clock::now() + duration, predicate);
 	}
 
 	template <typename Clock, typename Duration, typename Predicate>
-	bool FiberSignal::WaitUntil(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
+	bool Signal::WaitUntil(Lock& lock, const std::chrono::time_point<Clock, Duration>& timeout, Predicate&& predicate)
 	{
 		if (predicate())
 			return true;

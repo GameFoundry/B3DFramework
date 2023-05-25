@@ -246,7 +246,7 @@ namespace bs
 		mutable u32 mTotalActiveWriteOperationCount = 0;
 
 		mutable Mutex mMutex;
-		mutable Signal mOperationCompletedSignal;
+		mutable ConditionVariable mOperationCompletedSignal;
 	};
 
 	/** @} */

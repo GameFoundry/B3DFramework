@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
-#include "Threading/BsFiberSignal.h"
+#include "Threading/BsSignal.h"
 #include "Threading/BsSingleConsumerQueue.h"
 
 namespace bs::ct

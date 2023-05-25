@@ -58,7 +58,7 @@ struct FolderMonitor::FolderWatchInfo
 	WString MCachedOldFileName; // Used during rename notifications as they are handled in two steps
 
 	Mutex MStatusMutex;
-	Signal MStartStopEvent;
+	ConditionVariable MStartStopEvent;
 };
 
 FolderMonitor::FolderWatchInfo::FolderWatchInfo(const Path& folderToMonitor, HANDLE dirHandle, bool monitorSubdirectories, DWORD monitorFlags)

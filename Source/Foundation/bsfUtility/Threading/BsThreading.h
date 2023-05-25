@@ -37,7 +37,7 @@ namespace bs
 	using RecursiveMutex = std::recursive_mutex;
 
 	/** Wrapper for the C++ std::condition_variable. */
-	using Signal = std::condition_variable;
+	using ConditionVariable = std::condition_variable;
 
 	/** Wrapper for the C++ std::thread::id. */
 	using ThreadId = std::thread::id;

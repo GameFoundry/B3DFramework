@@ -344,7 +344,7 @@ namespace bs
 		WaitingFibers mWaitingFibers;
 
 		bool mTriggerNotifyOnAdd = true;
-		Signal mAddedSignal;
+		ConditionVariable mAddedSignal;
 		Mutex mMutex;
 
 		UnorderedSet<Fiber*> mFreeFibers;
@@ -451,7 +451,7 @@ namespace bs
 		Vector<SchedulerThread*> mWorkerThreads;
 
 		Mutex mSingleThreadWorkerMutex;
-		Signal mSingleThreadWorkerUnbindSignal;
+		ConditionVariable mSingleThreadWorkerUnbindSignal;
 		UnorderedMap<std::thread::id, bs::UPtr<SchedulerThread>> mSingleThreadWorkers;
 
 		SchedulerInformation mInformation;

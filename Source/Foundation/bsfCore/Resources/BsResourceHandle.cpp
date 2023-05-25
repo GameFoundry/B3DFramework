@@ -10,7 +10,7 @@
 
 using namespace bs;
 
-Signal ResourceHandleBase::mResourceCreatedCondition;
+ConditionVariable ResourceHandleBase::mResourceCreatedCondition;
 Mutex ResourceHandleBase::mResourceCreatedMutex;
 
 bool ResourceHandleBase::IsLoaded(bool checkDependencies) const

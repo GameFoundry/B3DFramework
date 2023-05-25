@@ -193,7 +193,7 @@ namespace bs
 
 		bool mIsFrameRenderingFinished;
 		Mutex mFrameRenderingFinishedMutex;
-		Signal mFrameRenderingFinishedCondition;
+		ConditionVariable mFrameRenderingFinishedCondition;
 		ThreadId mSimThreadId;
 
 		volatile bool mRunMainLoop;

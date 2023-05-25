@@ -137,7 +137,7 @@ namespace bs
 		u32 mPoseReadBufferIdx = 2;
 		u32 mPoseWriteBufferIdx = 0;
 
-		Signal mWorkerDoneSignal;
+		ConditionVariable mWorkerDoneSignal;
 		Mutex mMutex;
 
 		u32 mNumActiveWorkers = 0;

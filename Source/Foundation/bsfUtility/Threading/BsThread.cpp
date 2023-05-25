@@ -244,7 +244,6 @@ public:
 	}
 
 	const Function<void()> WorkerFunction;
-	const Thread* Owner;
 	const HANDLE ThreadHandle;
 	DWORD ThreadId = 0;
 };

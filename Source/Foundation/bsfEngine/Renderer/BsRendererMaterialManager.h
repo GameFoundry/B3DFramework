@@ -64,7 +64,7 @@ namespace bs
 		static Mutex& GetMutex();
 
 		Mutex mAsyncCompilationMutex;
-		Signal mQueuedOperationCompletedSignal;
+		ConditionVariable mQueuedOperationCompletedSignal;
 		Queue<Function<void()>> mQueuedOperationsOnWorkerThread;
 		Queue<Function<void()>> mQueuedOperationsOnRenderThread;
 	};

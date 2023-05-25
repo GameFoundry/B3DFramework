@@ -158,7 +158,7 @@ void SchedulerThread::Start()
 			auto& affinityPolicy = mOwnerScheduler->GetInformation().AffinityPolicy;
 			auto affinity = affinityPolicy->GetMaskForThread(Id);
 
-			mThread = Thread(std::move(affinity), [=]
+			mThread = Thread(std::move(affinity), [this]
 			{
 				MemStack::BeginThread();
 

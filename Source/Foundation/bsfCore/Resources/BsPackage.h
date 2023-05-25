@@ -184,7 +184,7 @@ namespace bs
 
 			PackageResourceLoadState LoadState = PackageResourceLoadState::Unloaded; /**< Load state of the resource. */
 			std::atomic<float> LoadProgress { 0 }; /**< State of resource load, in case resource loading is in progress. */
-			mutable Signal LoadSignal; /**< Signal that triggers when resource load completes. */
+			mutable ConditionVariable LoadSignal; /**< Signal that triggers when resource load completes. */
 		};
 
 	public:

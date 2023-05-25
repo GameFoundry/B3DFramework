@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFiberSignal.h"
+#include "BsSignal.h"
 #include "Prerequisites/BsPrerequisitesUtil.h"
 
 namespace bs

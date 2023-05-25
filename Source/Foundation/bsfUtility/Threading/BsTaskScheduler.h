@@ -192,8 +192,8 @@ namespace bs
 
 		Mutex mReadyMutex;
 		Mutex mCompleteMutex;
-		Signal mTaskReadyCond;
-		Signal mTaskCompleteCond;
+		ConditionVariable mTaskReadyCond;
+		ConditionVariable mTaskCompleteCond;
 	};
 
 	/** @} */

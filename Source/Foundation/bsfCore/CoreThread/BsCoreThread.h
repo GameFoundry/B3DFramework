@@ -85,7 +85,7 @@ namespace bs
 		Scheduler mScheduler;
 		ThreadId mCoreThreadId;
 		Mutex mThreadStartedMutex;
-		Signal mCoreThreadStartedCondition;
+		ConditionVariable mCoreThreadStartedCondition;
 #if BS_CORE_THREAD_IS_MAIN
 		static bool sAppStarted;
 		static Mutex sAppStartedMutex;
