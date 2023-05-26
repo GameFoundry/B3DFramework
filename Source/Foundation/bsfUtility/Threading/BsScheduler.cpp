@@ -18,14 +18,14 @@ using namespace bs;
 // Implementation based on Marl Scheduler (See ThirdParty/Marl)
 
 Fiber::Fiber(UPtr<marl::OSFiber>&& osFiber, u32 id)
-	: Id(id), mOSFiber(std::move(osFiber)), mOwningThread(SchedulerThread::Get())
+	: Id(id), mOSFiber(std::move(osFiber)), mOwningThread(SchedulerThread::Get().get())
 {
 	B3D_ASSERT(mOwningThread != nullptr && "No Scheduler thread found for fiber.");
 }
 
 Fiber* Fiber::Get()
 {
-	SchedulerThread* const schedulerThread = SchedulerThread::Get();
+	SchedulerThread* const schedulerThread = SchedulerThread::Get().get();
 	return schedulerThread != nullptr ? schedulerThread->GetCurrentFiber() : nullptr;
 }
 
@@ -39,13 +39,13 @@ void Fiber::TryResume()
 
 void Fiber::Wait(Lock& lock, const Function<bool()>& predicate)
 {
-	B3D_ASSERT(mOwningThread == SchedulerThread::Get() && "Fiber::Wait() must only be called on the currently executing fiber.");
+	B3D_ASSERT(mOwningThread == SchedulerThread::Get().get() && "Fiber::Wait() must only be called on the currently executing fiber.");
 	mOwningThread->Wait(lock, nullptr, predicate);
 }
 
 void Fiber::SwitchExecutionTo(Fiber* to)
 {
-	B3D_ASSERT(mOwningThread == SchedulerThread::Get() && "Fiber::SwitchExecutionTo() must only be called on the currently executing fiber.");
+	B3D_ASSERT(mOwningThread == SchedulerThread::Get().get() && "Fiber::SwitchExecutionTo() must only be called on the currently executing fiber.");
 	if (to != this)
 		mOSFiber->switchTo(to->mOSFiber.get());
 }
@@ -144,7 +144,7 @@ static T take(UnorderedSet<T, H, E>& set) {
 	return out;
 }
 
-thread_local SchedulerThread* SchedulerThread::Current{ nullptr };
+thread_local SPtr<SchedulerThread> SchedulerThread::Current{ nullptr };
 
 SchedulerThread::SchedulerThread(Scheduler* scheduler, Mode mode, u32 id)
 	: Id(id), mMode(mode), mOwnerScheduler(scheduler)
@@ -152,8 +152,10 @@ SchedulerThread::SchedulerThread(Scheduler* scheduler, Mode mode, u32 id)
 
 void SchedulerThread::Start()
 {
+#if 0 // Disabled as it's causing a hang on shutdown
 	if (mMessageQueue == nullptr)
 		mMessageQueue = B3DNew<SingleConsumerQueue>();
+#endif
 
 	switch (mMode)
 	{
@@ -173,7 +175,7 @@ void SchedulerThread::Start()
 
 				Scheduler::Current = mOwnerScheduler;
 
-				Current = this;
+				Current = shared_from_this();
 				mMainFiber = Fiber::CreateFromCurrentThread(0);
 
 				mCurrentFiber = mMainFiber.get();
@@ -192,20 +194,22 @@ void SchedulerThread::Start()
 		}
 		case Mode::SingleThreaded:
 		{
-			Current = this;
+			Current = shared_from_this();
 			mMainFiber = Fiber::CreateFromCurrentThread(0);
 			mCurrentFiber = mMainFiber.get();
 			break;
 		}
 	}
 
+#if 0 // Disabled as it's causing a hang on shutdown
 	Post(SchedulerTask("Scheduler thread message queue", [this] { mMessageQueue->RunUntilShutdown(); }));
+#endif
 }
 
 void SchedulerThread::Stop()
 {
 	if(mMessageQueue != nullptr)
-		mMessageQueue->PostRequestShutdownCommand(false);
+		mMessageQueue->PostRequestShutdownCommand(true);
 
 	switch (mMode)
 	{
@@ -580,7 +584,7 @@ void Scheduler::BindToCurrentThread()
 
 	{
 		Lock lock(mSingleThreadWorkerMutex);
-		UPtr<SchedulerThread> schedulerThread = bs::B3DMakeUnique<SchedulerThread>(this, SchedulerThread::Mode::SingleThreaded, ~0u);
+		SPtr<SchedulerThread> schedulerThread = bs::B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::SingleThreaded, ~0u);
 		schedulerThread->Start();
 
 		const std::thread::id threadId = std::this_thread::get_id();
@@ -592,7 +596,7 @@ void Scheduler::UnbindFromCurrentThread()
 {
 	B3D_ASSERT(Get() != nullptr && "No scheduler bound to this thread.");
 
-	SchedulerThread* schedulerThread = SchedulerThread::Get();
+	const SPtr<SchedulerThread> schedulerThread = SchedulerThread::Get();
 	schedulerThread->Stop();
 
 	{
@@ -603,7 +607,7 @@ void Scheduler::UnbindFromCurrentThread()
 		auto& workers = Get()->mSingleThreadWorkers;
 		auto it = workers.find(threadId);
 		B3D_ASSERT(it != workers.end() && "Cannot find worker in the single threaded worker list.");
-		B3D_ASSERT(it->second.get() == schedulerThread && "Scheduler running a single threaded worker that is not currently bound.");
+		B3D_ASSERT(it->second.get() == schedulerThread.get() && "Scheduler running a single threaded worker that is not currently bound.");
 
 		workers.erase(it);
 
@@ -621,7 +625,7 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 		mSpinningWorkers[i] = ~0u;
 	}
 	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
-		mWorkerThreads.push_back(B3DNew<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i));
+		mWorkerThreads.push_back(B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i));
 
 	for(auto& thread : mWorkerThreads)
 		thread->Start();
@@ -639,9 +643,6 @@ Scheduler::~Scheduler()
 	// This will wait for all in-flight tasks to complete before returning.
 	for(auto& thread : mWorkerThreads)
 		thread->Stop();
-
-	for (auto& thread : mWorkerThreads)
-		B3DDelete(thread);
 }
 
 void Scheduler::Post(SchedulerTask&& task)
@@ -665,7 +666,7 @@ void Scheduler::Post(SchedulerTask&& task)
 				workerId = mNextEnqueueIndex++ % mInformation.WorkerThreadCount;
 			}
 
-			SchedulerThread* const worker = mWorkerThreads[workerId];
+			const SPtr<SchedulerThread>& worker = mWorkerThreads[workerId];
 			if (worker->TryLockForEnqueue())
 			{
 				worker->EnqueueAndUnlock(std::move(task));
@@ -690,7 +691,7 @@ bool Scheduler::TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& 
 {
 	if (mInformation.WorkerThreadCount > 0)
 	{
-		auto thread = mWorkerThreads[random % mInformation.WorkerThreadCount];
+		auto thread = mWorkerThreads[random % mInformation.WorkerThreadCount].get();
 		if (thread != thief)
 		{
 			if (thread->TryStealTask(out))

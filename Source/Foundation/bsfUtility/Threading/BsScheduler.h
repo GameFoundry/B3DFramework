@@ -210,7 +210,7 @@ namespace bs
 	class Scheduler;
 
 	/** Represents a single worker thread within Scheduler. */
-	class SchedulerThread
+	class SchedulerThread : public std::enable_shared_from_this<SchedulerThread>
 	{
 		using TimePoint = std::chrono::system_clock::time_point;
 
@@ -263,7 +263,7 @@ namespace bs
 		B3D_UTILITY_EXPORT const Thread& GetThread() const { return mThread; }
 
 		/** Returns a message queue that may be used for posting messages to this thread. */
-		B3D_UTILITY_EXPORT SingleConsumerQueue& GetMessageQueue() { return *mMessageQueue; }
+		B3D_UTILITY_EXPORT SingleConsumerQueue& GetMessageQueue() const { return *mMessageQueue; }
 
 		/** Queues a new task for execution on this thread. */
 		B3D_UTILITY_EXPORT void Post(SchedulerTask&& task);
@@ -274,7 +274,7 @@ namespace bs
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
-		B3D_UTILITY_EXPORT static SchedulerThread* Get() { return Current; }
+		B3D_UTILITY_EXPORT static const SPtr<SchedulerThread>& Get() { return Current; }
 
 	private:
 		friend class Scheduler;
@@ -337,7 +337,7 @@ namespace bs
 		/** Waits until the mAddedSignal is notified and predicate returns true. */
 		void WaitOnAddedSignal(const Function<bool()>& predicate);
 
-		B3D_UTILITY_HIDDEN static thread_local SchedulerThread* Current;
+		B3D_UTILITY_HIDDEN static thread_local SPtr<SchedulerThread> Current;
 
 		const Mode mMode;
 		Scheduler* const mOwnerScheduler;
@@ -460,11 +460,11 @@ namespace bs
 		std::atomic<u32> mNextSpinningWorkerIndex = { 0x8000000 };
 
 		std::atomic<u32> mNextEnqueueIndex = { 0 };
-		Vector<SchedulerThread*> mWorkerThreads;
+		Vector<SPtr<SchedulerThread>> mWorkerThreads;
 
 		Mutex mSingleThreadWorkerMutex;
 		ConditionVariable mSingleThreadWorkerUnbindSignal;
-		UnorderedMap<std::thread::id, bs::UPtr<SchedulerThread>> mSingleThreadWorkers;
+		UnorderedMap<std::thread::id, SPtr<SchedulerThread>> mSingleThreadWorkers;
 
 		SchedulerInformation mInformation;
 	};
