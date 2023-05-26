@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "CoreThread/BsCoreThread.h"
 #include "Material/BsMaterial.h"
 #include "Renderer/BsRendererMaterialManager.h"
 #include "Material/BsShaderVariation.h"
@@ -58,7 +59,6 @@ namespace bs
 		{
 			NotInitialized, /**< Shader has not been initialized and is not in the process of being initialized. */
 			InitializeInProgressOnWorkerThread, /**< Initialization in progress on the worker thread. */
-			WaitingForFinalizeOnRenderThread, /**< Initialization finished on worker, waiting to be finalized on the render thread. */
 			Initialized /**< Shader has finished initialization. */
 		};
 
@@ -68,7 +68,6 @@ namespace bs
 			NotCompiled, /**< Variation has not been compiled and is not in progress. */
 			CompilationWaitingOnShader, /**< Variation compilation is waiting for the parent Shader to be initialized first. */
 			CompilationInProgressOnWorkerThread, /**< Compilation is in progress on the worker thread. */
-			WaitingForFinalizeOnRenderThread, /**< Compilation finished on worker, waiting to be finalized on the render thread. */
 			Compiled /**< Variation has been compiled. */
 		};
 
@@ -266,7 +265,7 @@ namespace bs
 		{
 			B3D_ASSERT(!IsShaderInitialized());
 
-			if(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread || mMetaData.ShaderState == RendererMaterialShaderState::WaitingForFinalizeOnRenderThread)
+			if(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread)
 				return mMetaData.ShaderInitializeOperation;
 
 			mMetaData.ShaderState = RendererMaterialShaderState::InitializeInProgressOnWorkerThread;
@@ -328,32 +327,22 @@ namespace bs
 				}
 			};
 
+			AsyncOp initializeAsyncOp;
+			initializeAsyncOp.DoWhenComplete(std::move(fnFinishInitializeShader));
+
 			// Performs shader initialization asynchronously on a worker thread.
-			auto fnInitializeShader = [fnFinishInitializeShader]() mutable
+			auto fnInitializeShader = [initializeAsyncOp]() mutable
 			{
 				static const String kRendererMaterialShaderCachePrefix = "RendererMaterialShaders/";
 
 				const Path fullPathToShader = GetBuiltinResources().GetRawShaderFolder() + mMetaData.ShaderPath;
 				mMetaData.Shader = ShaderCompilers::Instance().GetOrCompileShader<true>(fullPathToShader, kRendererMaterialShaderCachePrefix, mMetaData.Defines);
-				mMetaData.ShaderState = RendererMaterialShaderState::WaitingForFinalizeOnRenderThread;
 
-				RendererMaterialManager::Instance().QueueOnRenderThread(fnFinishInitializeShader);
-			};
-
-			const SPtr<Task> compileShaderTask = Task::Create("Compile shader meta-data", fnInitializeShader);
-			auto fnFlush = [taskWeak = WeakSPtr<Task>(compileShaderTask)]()
-			{
-				const SPtr<Task> task = taskWeak.lock();
-				if(task != nullptr)
-					task->Wait();
-
-				RendererMaterialManager::Instance().BlockUntilQueueEmpty();
+				initializeAsyncOp.CompleteOperation();
 			};
 
 			mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>();
-			mMetaData.ShaderInitializeOperation.SetFlushCallback(fnFlush);
-
-			TaskScheduler::Instance().AddTask(compileShaderTask);
+			GetCoreApplication().GetTaskScheduler().Post(SchedulerTask("Compile shader meta-data", std::move(fnInitializeShader)));
 
 			return mMetaData.ShaderInitializeOperation;
 		}
@@ -363,20 +352,7 @@ namespace bs
 		{
 			if(!IsShaderInitialized())
 			{
-				B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread || mMetaData.ShaderState == RendererMaterialShaderState::WaitingForFinalizeOnRenderThread);
-
-				auto fnFlush = [variationParameters]()
-				{
-					mMetaData.ShaderInitializeOperation.BlockUntilComplete();
-
-					const u32 variationIndex = mMetaData.VariationParameterSet.Find(variationParameters);
-					B3D_ASSERT(variationIndex != ~0u);
-
-					RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
-					variationInformation.BackendCompileOperation.BlockUntilComplete();
-
-					RendererMaterialManager::Instance().BlockUntilQueueEmpty();
-				};
+				B3D_ASSERT(mMetaData.ShaderState == RendererMaterialShaderState::InitializeInProgressOnWorkerThread);
 
 				// Until the shader is ready we use the parameter set only for variations that are queued for compilation
 				const u32 foundVariationIndex = mMetaData.VariationParameterSet.Find(variationParameters);
@@ -385,7 +361,6 @@ namespace bs
 					RendererMaterialVariationInformation variationInformation;
 					variationInformation.State = RendererMaterialVariationState::CompilationWaitingOnShader;
 					variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>();
-					variationInformation.VariationCompileOperation.SetFlushCallback(fnFlush);
 
 					mMetaData.VariationInformation.Add(variationInformation);
 					mMetaData.VariationParameterSet.Add(variationParameters);
@@ -416,20 +391,10 @@ namespace bs
 			B3D_ASSERT(!IsRendereMaterialVariationCompiled(variationIndex));
 
 			RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
-			if(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader || variationInformation.State == RendererMaterialVariationState::WaitingForFinalizeOnRenderThread)
+			if(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread || variationInformation.State == RendererMaterialVariationState::CompilationWaitingOnShader)
 				return variationInformation.VariationCompileOperation;
 
-			auto fnFlush = [variationIndex]()
-			{
-				RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
-				variationInformation.BackendCompileOperation.BlockUntilComplete();
-
-				RendererMaterialManager::Instance().BlockUntilQueueEmpty();
-			};
-
 			variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>();
-			variationInformation.VariationCompileOperation.SetFlushCallback(fnFlush);
-
 			CompileShaderVariation(variationIndex);
 
 			return variationInformation.VariationCompileOperation;
@@ -445,28 +410,23 @@ namespace bs
 
 			variationInformation.State = RendererMaterialVariationState::CompilationInProgressOnWorkerThread;
 			variationInformation.BackendCompileOperation = variationInformation.ShaderVariation->Compile();
-			variationInformation.BackendCompileOperation.DoOnComplete([variationIndex](const AsyncOpBase&)
+			variationInformation.BackendCompileOperation.DoWhenComplete([variationIndex]
 			{
 				B3D_ASSERT(mMetaData.VariationInformation[variationIndex].State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
-				mMetaData.VariationInformation[variationIndex].State = RendererMaterialVariationState::WaitingForFinalizeOnRenderThread;
 
-				RendererMaterialManager::Instance().QueueOnRenderThread([this, variationIndex]
-				{
-					RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
-					B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::WaitingForFinalizeOnRenderThread);
-					B3D_ASSERT(variationInformation.RendererMaterialInstance == nullptr);
+				RendererMaterialVariationInformation& variationInformation = mMetaData.VariationInformation[variationIndex];
+				B3D_ASSERT(variationInformation.State == RendererMaterialVariationState::CompilationInProgressOnWorkerThread);
+				B3D_ASSERT(variationInformation.RendererMaterialInstance == nullptr);
 
-					RendererMaterial* const rendererMaterialInstance = new(B3DAllocate<T>()) T();
-					rendererMaterialInstance->InitializeInternal(variationIndex);
+				RendererMaterial* const rendererMaterialInstance = new(B3DAllocate<T>()) T();
+				rendererMaterialInstance->InitializeInternal(variationIndex);
 
-					variationInformation.RendererMaterialInstance = rendererMaterialInstance;
+				variationInformation.RendererMaterialInstance = rendererMaterialInstance;
 
-					variationInformation.BackendCompileOperation = TAsyncOp<bool>(AsyncOpEmpty());
-					variationInformation.State = RendererMaterialVariationState::Compiled;
+				variationInformation.BackendCompileOperation = TAsyncOp<bool>(AsyncOpEmpty());
+				variationInformation.State = RendererMaterialVariationState::Compiled;
 
-					variationInformation.VariationCompileOperation.CompleteOperation(variationInformation.RendererMaterialInstance);
-					variationInformation.VariationCompileOperation = TAsyncOp<RendererMaterialBase*>(AsyncOpEmpty());
-				});
+				variationInformation.VariationCompileOperation.CompleteOperation(variationInformation.RendererMaterialInstance);
 			});
 		}
 	

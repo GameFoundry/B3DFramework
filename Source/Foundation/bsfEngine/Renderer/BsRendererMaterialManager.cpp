@@ -43,42 +43,6 @@ void RendererMaterialManager::InitOnCore()
 	}
 }
 
-void RendererMaterialManager::QueueOnRenderThread(Function<void()> callback)
-{
-	Lock lock(mAsyncCompilationMutex);
-	mQueuedOperationsOnWorkerThread.push(std::move(callback));
-}
-
-void RendererMaterialManager::BlockUntilQueueEmpty()
-{
-	THROW_IF_NOT_CORE_THREAD
-
-	{
-		Lock lock(mAsyncCompilationMutex);
-
-		B3D_ASSERT(mQueuedOperationsOnRenderThread.empty());
-		std::swap(mQueuedOperationsOnWorkerThread, mQueuedOperationsOnRenderThread);
-	}
-
-	while(!mQueuedOperationsOnRenderThread.empty())
-	{
-		Function<void()> callback = std::move(mQueuedOperationsOnRenderThread.front());
-		mQueuedOperationsOnRenderThread.pop();
-
-		if(callback != nullptr)
-			callback();
-	}
-}
-
-void RendererMaterialManager::Update()
-{
-	auto fnUpdateOnRenderThread = [this]() {
-		BlockUntilQueueEmpty();
-	};
-
-	GetCoreThread().PostCommand(fnUpdateOnRenderThread);
-}
-
 ShaderDefines RendererMaterialManager::GetDefinesInternal(const Path& shaderPath)
 {
 	ShaderDefines output;

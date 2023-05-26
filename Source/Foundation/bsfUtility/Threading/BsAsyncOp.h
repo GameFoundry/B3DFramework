@@ -2,8 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsSignal.h"
+#include "BsSignalEvent.h"
+#include "BsWaitGroup.h"
 #include "Prerequisites/BsPrerequisitesUtil.h"
-#include "Error/BsException.h"
 #include "Utility/BsAny.h"
 
 namespace bs
@@ -33,12 +35,11 @@ namespace bs
 	protected:
 		struct AsyncOpData
 		{
-			Any ReturnValue;
-			Function<void()> FlushCallback;
-			SmallVector<Function<void(const AsyncOpBase&)>, 1> CompletionCallbacks;
+			Any ReturnValue; // TODO - TAsyncOp should be specialized so we don't need another heap allocation here
 			bool IsCompleted = false;
+			WaitGroup ContinuationWaitGroup;
 			Mutex Mutex;
-			ConditionVariable Signal;
+			Signal Signal;
 		};
 
 	public:
@@ -75,43 +76,56 @@ namespace bs
 			return mData->IsCompleted;
 		}
 
-		/** Assigns a callback that will trigger during a BlockUntilComplete() call. Allows the operation to perform additional work before waiting on completion. */
-		void SetFlushCallback(Function<void()> callback)
+		/** Calls the provided callback when the async operation completes. Callback is guaranteed to happen on the calling thread. */
+		template<class F>
+		void DoWhenComplete(F&& callback)
 		{
+			// If not initialized, nothing to wait on
 			if(mData == nullptr)
-				mData = B3DMakeShared<AsyncOpData>();
-
-			Lock lock(mData->Mutex);
-			mData->FlushCallback = std::move(callback);
-		}
-
-		/** Assigns a callback that triggers when the async operation completes. Triggers immediately if already completed. */
-		void DoOnComplete(Function<void(const AsyncOpBase&)> callback)
-		{
-			if(mData == nullptr)
-				mData = B3DMakeShared<AsyncOpData>();
-
 			{
-				Lock lock(mData->Mutex);
-
-				if(!mData->IsCompleted)
-				{
-					mData->CompletionCallbacks.Add(std::move(callback));
-					return;
-				}
+				B3D_LOG(Error, Generic, "Unable to trigger callback. Async operation was never initialized with data.");
+				return;
 			}
 
-			callback(*this);
+			bool isCompleted = false;
+			{
+				Lock lock(mData->Mutex);
+				isCompleted = mData->IsCompleted;
+
+				if(!isCompleted)
+					mData->ContinuationWaitGroup.Increment();
+			}
+
+			if (isCompleted)
+			{
+				callback();
+				return;
+			}
+
+			auto fnContinuation = [data = mData, callback = std::move(callback)]()
+			{
+				Lock lock(data->Mutex);
+				data->Signal.Wait(lock, [data = data.get()]() { return data->IsCompleted; });
+
+				callback();
+
+				data->ContinuationWaitGroup.NotifyDone();
+			};
+
+			Scheduler* const scheduler = Scheduler::Get();
+			if (!B3D_ENSURE(scheduler))
+				return;
+
+			scheduler->Post(SchedulerTask("AsyncOp continuation", std::move(fnContinuation), SchedulerTaskFlag::SameThread));
 		}
 
 		/**
 		 * Blocks the caller thread until the AsyncOp completes.
 		 *
-		 * @note
-		 * Do not call this on the thread that is completing the async op, as it will cause a deadlock. Make sure the
-		 * command you are waiting for is actually queued for execution because a deadlock will occur otherwise.
+		 * @param	blockUntilCallbacksComplete		If true, this method will block until all registered completion callbacks finished executing as well. Otherwise, it will just wait
+		 *											until the operation has completed, but callbacks might have not been triggered yet.
 		 */
-		void BlockUntilComplete() const
+		void BlockUntilComplete(bool blockUntilCallbacksComplete = true) const
 		{
 			// If not initialized, nothing to wait on
 			if(mData == nullptr)
@@ -120,30 +134,14 @@ namespace bs
 				return;
 			}
 
-			Function<void()> flushCallback;
-			{
-				Lock lock(mData->Mutex);
-				flushCallback = mData->FlushCallback;
-			}
-
-			if(flushCallback != nullptr)
-			{
-				if(mData->IsCompleted)
-					return;
-
-				// No need to flush if already completed
-				{
-					Lock lock(mData->Mutex);
-					if(mData->IsCompleted)
-						return;
-				}
-
-				flushCallback();
-			}
-
 			Lock lock(mData->Mutex);
-			while(!mData->IsCompleted)
-				mData->Signal.wait(lock);
+			mData->Signal.Wait(lock, [this]() { return mData->IsCompleted; });
+
+			if (blockUntilCallbacksComplete)
+			{
+				// Also need to wait for all continuation callbacks to fire
+				mData->ContinuationWaitGroup.Wait();
+			}
 		}
 
 		/**
@@ -224,22 +222,11 @@ namespace bs
 			if(mData == nullptr)
 				mData = B3DMakeShared<AsyncOpData>();
 
-			SmallVector<Function<void(const AsyncOpBase&)>, 1> callbacks;
 			{
 				Lock lock(mData->Mutex);
 
 				mData->IsCompleted = true;
-				mData->Signal.notify_all();
-
-				std::swap(callbacks, mData->CompletionCallbacks);
-			}
-
-			for(auto& callback : callbacks)
-			{
-				if(callback == nullptr)
-					continue;
-
-				callback(*this);
+				mData->Signal.NotifyAll();
 			}
 		}
 
@@ -249,23 +236,12 @@ namespace bs
 			if(mData == nullptr)
 				mData = B3DMakeShared<AsyncOpData>();
 
-			SmallVector<Function<void(const AsyncOpBase&)>, 1> callbacks;
 			{
 				Lock lock(mData->Mutex);
 
 				mData->ReturnValue = returnValue;
 				mData->IsCompleted = true;
-				mData->Signal.notify_all();
-
-				std::swap(callbacks, mData->CompletionCallbacks);
-			}
-
-			for(auto& callback : callbacks)
-			{
-				if(callback == nullptr)
-					continue;
-
-				callback(*this);
+				mData->Signal.NotifyAll();
 			}
 		}
 

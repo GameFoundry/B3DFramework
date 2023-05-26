@@ -22,6 +22,9 @@ namespace bs
 
 		inline SignalEvent(Mode mode = Mode::AutomaticallyReset, bool isInitiallySignalled = false);
 
+		/** Returns true if the event has been signalled. */
+		inline bool IsSignalled() const;
+
 		/** Signals the event. If anything is waiting on the signal, the wait will be unblocked. */
 		inline void Signal();
 
@@ -40,7 +43,7 @@ namespace bs
 		bool WaitUntil(const std::chrono::time_point<Clock, Duration>& timeout);
 
 	private:
-		Mutex mMutex;
+		mutable Mutex mMutex;
 		class Signal mSignal;
 		const Mode mMode;
 		bool mIsSignalled;
@@ -49,6 +52,12 @@ namespace bs
 	SignalEvent::SignalEvent(Mode mode, bool isInitiallySignalled)
 		: mMode(mode), mIsSignalled(isInitiallySignalled)
 	{ }
+
+	inline bool SignalEvent::IsSignalled() const
+	{
+		Lock lock(mMutex);
+		return mIsSignalled;
+	}
 
 	void SignalEvent::Signal()
 	{
