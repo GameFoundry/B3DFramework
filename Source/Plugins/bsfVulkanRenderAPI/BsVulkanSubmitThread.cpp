@@ -8,7 +8,6 @@
 #include "BsVulkanSwapChain.h"
 #include "Threading/BsBlockingCall.h"
 #include "Threading/BsScheduler.h"
-#include "Threading/BsTaskScheduler.h"
 
 using namespace bs;
 using namespace bs::ct;
@@ -28,8 +27,7 @@ VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
 {
 	if (kEnableSubmitThread)
 	{
-		auto fnRun = [this]() { mCommandQueue.RunUntilShutdown(); };
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnRun)));
+		mCommandQueue.ScheduleRunUntilShutdown(GetCoreApplication().GetTaskScheduler(), false);
 	}
 
 	auto fnInitialize = [this]()
@@ -79,10 +77,9 @@ void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& command
 	commandBuffer->NotifyWillQueueForSubmit();
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Command buffer submit");
 
-	if(blocking)
+	if (blocking)
 	{
 		WaitUntilIdle();
-		RefreshCommandBufferCompletionStates();
 	}
 }
 
@@ -121,8 +118,7 @@ void VulkanSubmitThread::QueueImageAcquire(VulkanSwapChain& swapChain)
 	{
 		RunBlockingCallAsYieldable([&swapChain] { swapChain.AcquireImage(); });
 
-		Lock acquireLock(mImageAcquireMutex);
-		mSwapChainsWithAcquiredImages.push_back(&swapChain);
+		swapChain.GetMessageQueue().PostCommand([&swapChain] { swapChain.NotifyUnbound(); });
 	};
 
 	B3D_ASSERT(!swapChain.IsRetired());
@@ -179,20 +175,6 @@ void VulkanSubmitThread::WaitUntilIdle(VulkanGpuQueue& queue)
 	};
 
 	RunSubmitThreadCommand(mCommandQueue, std::move(fnCommand), "Queue wait idle", true);
-}
-
-void VulkanSubmitThread::RefreshCommandBufferCompletionStates() const
-{
-	mGpuDevice.DoForEachQueue([](VulkanGpuQueue& queue) { queue.RefreshCompletionStateOnRenderThread(); });
-
-	Lock lock(mImageAcquireMutex);
-	for(VulkanSwapChain* swapChain : mSwapChainsWithAcquiredImages)
-	{
-		B3D_ASSERT(swapChain != nullptr);
-		swapChain->NotifyUnbound();
-	}
-
-	mSwapChainsWithAcquiredImages.clear();
 }
 
 u32 VulkanSubmitThread::GetThreadId() const

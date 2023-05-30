@@ -20,7 +20,7 @@ namespace bs
 			ManuallyReset
 		};
 
-		inline SignalEvent(Mode mode = Mode::AutomaticallyReset, bool isInitiallySignalled = false);
+		inline SignalEvent(Mode mode = Mode::ManuallyReset, bool isInitiallySignalled = false);
 
 		/** Returns true if the event has been signalled. */
 		inline bool IsSignalled() const;

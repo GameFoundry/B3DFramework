@@ -46,6 +46,9 @@
 #include <iomanip>
 #include <sstream>
 
+// Time
+#include <chrono>
+
 // C limits
 #include <float.h>
 
@@ -182,6 +185,24 @@ namespace bs
 	 */
 	template <typename K, typename V, typename H = HashType<K>, typename C = std::equal_to<K>, typename A = StdAlloc<std::pair<const K, V>>>
 	using UnorderedMultimap = std::unordered_multimap<K, V, H, C, A>;
+
+	/** @} */
+
+	/** @addtogroup Time
+	 *  @{
+	 */
+
+	using namespace std::chrono_literals;
+
+	using Nanoseconds = std::chrono::nanoseconds;
+	using Microseconds = std::chrono::microseconds;
+	using Milliseconds = std::chrono::milliseconds;
+	using Seconds = std::chrono::seconds;
+	using Minutes = std::chrono::minutes;
+	using Hours = std::chrono::hours;
+
+	using Clock = std::chrono::high_resolution_clock;
+	using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
 	/** @} */
 

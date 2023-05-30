@@ -556,7 +556,10 @@ namespace bs
 				VkImageLayout RenderPassLayout;
 			};
 
-			VulkanGpuCommandBuffer(VulkanGpuDevice& device, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
+
+			/** Returns the pool the command buffer was allocated from. */
+			VulkanGpuCommandBufferPool& GetPool() const { return mPool; }
 
 			/** Makes the command buffer ready to start recording commands. */
 			void Begin();
@@ -684,6 +687,7 @@ namespace bs
 			u32 mId;
 			State mState = State::Ready;
 			VkCommandBuffer mCommandBufferHandle;
+			VulkanGpuCommandBufferPool& mPool;
 			VkFence mFence;
 			ThreadId mOwnerThread;
 			u32 mSyncMask;

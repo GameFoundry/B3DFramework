@@ -35,10 +35,11 @@ void CoreThread::OnStartUp()
 			mCoreThreadId = B3D_CURRENT_THREAD_ID;
 		}
 
+		Thread::SetName("Render Thread");
 		mCoreThreadStartedCondition.notify_one();
 
 		mScheduler.BindToCurrentThread();
-		mCommandQueue.RunUntilShutdown();
+		mCommandQueue.ScheduleRunUntilShutdown(mScheduler, true, 10ms, true);
 		mScheduler.UnbindFromCurrentThread();
 	};
 

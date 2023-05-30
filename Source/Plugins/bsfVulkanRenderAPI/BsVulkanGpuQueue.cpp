@@ -152,7 +152,6 @@ VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageI
 void VulkanGpuQueue::WaitUntilIdle()
 {
 	GetVulkanSubmitThread().WaitUntilIdle(*this);
-	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 }
 
 VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores)
@@ -347,36 +346,34 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 			mActiveCommandBuffers.pop();
 
 			const bool isPresentCall = queueSubmissionInformation.CommandBuffer == nullptr;
-			const bool isOwnedBySubmitThread = isPresentCall || queueSubmissionInformation.CommandBuffer->GetOwnerThread() == B3D_CURRENT_THREAD_ID;
+			SingleConsumerQueue& messageBackQueue = isPresentCall ? it->PresentOperationSwapChain->GetMessageQueue() : queueSubmissionInformation.CommandBuffer->GetPool().GetMessageQueue();
 
-			for(u32 semaphoreIndex = 0; semaphoreIndex < queueSubmissionInformation.SemaphoreCount; semaphoreIndex++)
+			SmallVector<VulkanSemaphore*, 8> semaphoresToRelease;
+			for (u32 semaphoreIndex = 0; semaphoreIndex < queueSubmissionInformation.SemaphoreCount; semaphoreIndex++)
 			{
 				VulkanSemaphore* const semaphore = mActiveSemaphores.front();
 				mActiveSemaphores.pop();
 
-				if(isOwnedBySubmitThread)
+				semaphoresToRelease.Add(semaphore);
+			}
+
+			messageBackQueue.PostCommand([semaphoresToRelease]()
+			{
+				for (const auto& semaphore : semaphoresToRelease)
 					semaphore->NotifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
-				else
-					mSemaphoresToReleaseOnRenderThread.push_back(semaphore);
-			}
+			});
 
-			if(isPresentCall)
-			{
-				B3D_ASSERT(it->PresentOperationSwapChain != nullptr);
-				mPresentedSwapChainsToUnbindOnRenderThread.push_back(it->PresentOperationSwapChain);
-			}
-
-			if(queueSubmissionInformation.CommandBuffer == nullptr)
-				continue;
-
-			if(isOwnedBySubmitThread)
-			{
-				queueSubmissionInformation.CommandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
-				queueSubmissionInformation.CommandBuffer->OnDidComplete();
-				queueSubmissionInformation.CommandBuffer->Reset();
-			}
+			if (isPresentCall)
+				messageBackQueue.PostCommand([swapChain = it->PresentOperationSwapChain] { swapChain->NotifyUnbound(); });
 			else
-				mCommandBuffersToResetOnRenderThread.push_back(queueSubmissionInformation.CommandBuffer);
+			{
+				messageBackQueue.PostCommand([commandBuffer = queueSubmissionInformation.CommandBuffer]()
+				{
+					commandBuffer->mState = VulkanGpuCommandBuffer::State::Done;
+					commandBuffer->OnDidComplete();
+					commandBuffer->Reset();
+				});
+			}
 
 			if(mLastSubmittedCommandBuffer == queueSubmissionInformation.CommandBuffer)
 				mLastSubmittedCommandBuffer = nullptr;
@@ -384,27 +381,6 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 
 		it = mActiveSubmissions.erase(it);
 	}
-}
-
-void VulkanGpuQueue::RefreshCompletionStateOnRenderThread()
-{
-	Lock lock(mMutex);
-	for(const auto& entry : mSemaphoresToReleaseOnRenderThread)
-		entry->NotifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
-
-	for(const auto& entry : mCommandBuffersToResetOnRenderThread)
-	{
-		entry->mState = VulkanGpuCommandBuffer::State::Done;
-		entry->OnDidComplete();
-		entry->Reset();
-	}
-
-	for(const auto& entry : mPresentedSwapChainsToUnbindOnRenderThread)
-		entry->NotifyUnbound();
-
-	mSemaphoresToReleaseOnRenderThread.clear();
-	mCommandBuffersToResetOnRenderThread.clear();
-	mPresentedSwapChainsToUnbindOnRenderThread.clear();
 }
 
 u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const ArrayView<VulkanSemaphore*>& inSemaphores, SmallVector<VkSemaphore, 8>& outSemaphores)

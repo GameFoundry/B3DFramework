@@ -20,6 +20,13 @@ VulkanSurface::~VulkanSurface()
 VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain, const StringView& name)
 	: VulkanResource(owner, false, name), mSurface(surface)
 {
+	// Process messages related to this swap chain on this thread. Mostly these are notifies when a swap chain is done being used for a present operation. */
+	Scheduler* const scheduler = Scheduler::Get();
+	if(B3D_ENSURE(scheduler))
+	{
+		mMessageQueue.ScheduleRunUntilShutdown(*scheduler, true);
+	}
+
 	VulkanGpuDevice& device = owner->GetDevice();
 	mDevice = device.GetLogical();
 
@@ -239,6 +246,8 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 
 VulkanSwapChain::~VulkanSwapChain()
 {
+	mMessageQueue.PostRequestShutdownCommand(true);
+
 	if(mSwapChain != VK_NULL_HANDLE)
 	{
 		for(auto& surface : mSurfaces)
@@ -266,6 +275,14 @@ VulkanSwapChain::~VulkanSwapChain()
 		mDepthStencilImage->Destroy();
 		mDepthStencilImage = nullptr;
 	}
+}
+
+void VulkanSwapChain::Destroy()
+{
+	// Ensure we process all pending messages as those could contain unbind notifies, so we can ensure the resource gets destroyed immediately (important for shutdown)
+	mMessageQueue.RunUntilIdle();
+
+	Base::Destroy();
 }
 
 ImageAcquireResult VulkanSwapChain::AcquireImage()

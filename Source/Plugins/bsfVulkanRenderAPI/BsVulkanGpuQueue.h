@@ -71,12 +71,6 @@ namespace bs
 			void RefreshCompletionStateOnSubmitThread(bool forceWait, bool queueEmpty = false, u32 lastSubmitIndex = ~0u);
 
 			/**
-			 * Refreshes states of the command buffers that were marked as completed by the previous call to RefreshCompletionStateOnSubmitThread. This will mark as
-			 * resources as done being used by the command buffer and reset the command buffer.
-			 */
-			void RefreshCompletionStateOnRenderThread();
-
-			/**
 			 * Returns the last command buffer that was submitted on this queue.
 			 *
 			 * @note	Submit thread only.
@@ -153,11 +147,6 @@ namespace bs
 			SmallVector<VkSemaphore, 8> mWaitSemaphoreHandleBuffer; // Helper to avoid re-allocating memory
 			SmallVector<VulkanSemaphore*, 8> mWaitSemaphoreBuffer; // Helper to avoid re-allocating memory
 			SmallVector<VkCommandBuffer, 8> mCommandBufferHandleBuffer; // Helper to avoid re-allocating memory
-
-			Mutex mMutex;
-			Vector<SPtr<VulkanGpuCommandBuffer>> mCommandBuffersToResetOnRenderThread;
-			Vector<VulkanSemaphore*> mSemaphoresToReleaseOnRenderThread;
-			Vector<VulkanSwapChain*> mPresentedSwapChainsToUnbindOnRenderThread;
 		};
 
 		/** @} */

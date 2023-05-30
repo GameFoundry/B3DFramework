@@ -583,13 +583,10 @@ SPtr<GpuPipelineParameterLayout> VulkanGpuDevice::CreateGpuPipelineParameterLayo
 void VulkanGpuDevice::WaitUntilIdle()
 {
 	GetVulkanSubmitThread().WaitUntilIdle();
-	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates(); // TODO - NOT THREAD SAFE!
 }
 
-void VulkanGpuDevice::BeginFrame() // TODO - This and EndFrame() should be removed, as it doesn't make sense with multiple threads
+void VulkanGpuDevice::BeginFrame()
 {
-	// TODO - NOT THREAD SAFE!
-	GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 }
 
 void VulkanGpuDevice::EndFrame()
@@ -606,10 +603,9 @@ void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 		queue.SubmitTransferCommandBuffer(false);
 	});
 	
-	if(wait)
+	if (wait)
 	{
 		GetVulkanSubmitThread().WaitUntilIdle();
-		GetVulkanSubmitThread().RefreshCommandBufferCompletionStates();
 	}
 }
 

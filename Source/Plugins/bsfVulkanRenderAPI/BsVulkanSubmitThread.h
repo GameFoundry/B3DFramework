@@ -63,9 +63,6 @@ namespace bs::ct
 		/** Blocks the calling thread until all commands on the provided queue have finished executing. */
 		void WaitUntilIdle(VulkanGpuQueue& queue);
 
-		/** Refreshes the internal states of all command buffers that finished executing thus far. */
-		void RefreshCommandBufferCompletionStates() const;
-
 		/** Returns a pool that may be used for allocating command buffers for the submit thread. */
 		VulkanGpuCommandBufferPool& GetCommandBufferPool(GpuQueueUsage queueUsage) const { return *mCommandBufferPools[queueUsage]; }
 
@@ -76,9 +73,6 @@ namespace bs::ct
 		VulkanGpuDevice& mGpuDevice;
 		SingleConsumerQueue mCommandQueue;
 		Array<SPtr<VulkanGpuCommandBufferPool>, GQT_COUNT> mCommandBufferPools;
-
-		mutable Mutex mImageAcquireMutex;
-		mutable Vector<VulkanSwapChain*> mSwapChainsWithAcquiredImages;
 	};
 
 	/** Retrieves an instance of VulkanSubmitThread. */

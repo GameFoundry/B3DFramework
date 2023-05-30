@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanFramebuffer.h"
+#include "Threading/BsSingleConsumerQueue.h"
 
 namespace bs
 {
@@ -57,6 +58,7 @@ namespace bs
 		/** Vulkan swap chain containing two or more buffers for rendering and presenting onto the screen. */
 		class VulkanSwapChain : public VulkanResource, INonCopyable
 		{
+			using Base = VulkanResource;
 		public:
 			/**
 			 * Creates the swap chain with the provided properties. Destroys any previously existing swap chain. Caller must
@@ -64,6 +66,11 @@ namespace bs
 			 */
 			VulkanSwapChain(VulkanResourceManager* owner, const SPtr<VulkanSurface>& surface, u32 width, u32 height, bool vsync, VkFormat colorFormat, VkColorSpaceKHR colorSpace, bool createDepth, VkFormat depthFormat, VulkanSwapChain* oldSwapChain = nullptr, const StringView& name = "");
 			~VulkanSwapChain();
+
+			void Destroy() override;
+
+			/** Returns a thread safe message queue that may be used for posting messages to the thread responsible for the swap chain. */
+			SingleConsumerQueue& GetMessageQueue() { return mMessageQueue; }
 
 			/**
 			 * Returns the actual width of the swap chain, in pixels. This might differ from the requested size in case it
@@ -173,6 +180,8 @@ namespace bs
 
 			VulkanImage* mDepthStencilImage = nullptr;
 			SmallVector<VulkanSemaphore*, 8> mSemaphoresBuffer;
+
+			SingleConsumerQueue mMessageQueue;
 		};
 
 		/** @} */

@@ -371,6 +371,9 @@ void SchedulerThread::EnqueueAndUnlock(SchedulerTask&& task)
 
 void SchedulerThread::Post(SchedulerTask&& task)
 {
+	if (B3D_ENSURE(!mIsShutdownRequested))
+		return;
+
 	task.GetFlags().Set(SchedulerTaskFlag::NoStealing);
 	Enqueue(std::move(task));
 }
