@@ -7,7 +7,6 @@
 #include "BsOAAudioListener.h"
 #include "BsOAAudioSource.h"
 #include "Math/BsMath.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Audio/BsAudioUtility.h"
 #include "AL/al.h"
 #include "Threading/BsSignalEvent.h"

@@ -8,7 +8,6 @@
 #include "Error/BsException.h"
 #include "Serialization/BsFileSerializer.h"
 #include "FileSystem/BsFileSystem.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Utility/BsUUID.h"
 #include "Debug/BsDebug.h"
 #include "Utility/BsUtility.h"

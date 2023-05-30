@@ -5,7 +5,6 @@
 #include "BsCoreApplication.h"
 #include "Animation/BsAnimation.h"
 #include "Animation/BsAnimationClip.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Utility/BsTime.h"
 #include "Scene/BsSceneManager.h"
 #include "Renderer/BsCamera.h"

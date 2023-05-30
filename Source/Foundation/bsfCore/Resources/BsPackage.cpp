@@ -9,7 +9,6 @@
 #include "Serialization/BsBinaryCloner.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "Serialization/BsFileSerializer.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Utility/BsScopeGuard.h"
 #include "Utility/BsUtility.h"
 

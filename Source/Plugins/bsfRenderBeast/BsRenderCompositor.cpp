@@ -22,7 +22,6 @@
 #include "BsRenderBeast.h"
 #include "Particles/BsParticleManager.h"
 #include "Particles/BsParticleSystem.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Profiling/BsProfilerCPU.h"

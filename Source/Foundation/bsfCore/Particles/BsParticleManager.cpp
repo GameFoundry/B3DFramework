@@ -5,7 +5,6 @@
 #include "BsCoreApplication.h"
 #include "Particles/BsParticleSystem.h"
 #include "Utility/BsTime.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Allocators/BsPoolAlloc.h"
 #include "Private/Particles/BsParticleSet.h"
 #include "Animation/BsAnimationManager.h"

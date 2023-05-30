@@ -19,7 +19,6 @@
 #include "BsPhysXSliderJoint.h"
 #include "BsPhysXD6Joint.h"
 #include "BsPhysXCharacterController.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Components/BsCCollider.h"
 #include "BsFPhysXCollider.h"
 #include "Utility/BsTime.h"

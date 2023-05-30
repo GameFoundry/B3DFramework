@@ -26,7 +26,6 @@
 #include "Profiling/BsProfilerCPU.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "Threading/BsThreadPool.h"
-#include "Threading/BsTaskScheduler.h"
 #include "Profiling/BsRenderStats.h"
 #include "Utility/BsMessageHandler.h"
 #include "Managers/BsResourceListenerManager.h"
@@ -130,7 +129,6 @@ CoreApplication::~CoreApplication()
 	DeferredCallManager::ShutDown();
 	CoreThread::ShutDown();
 	RenderStats::ShutDown();
-	TaskScheduler::ShutDown();
 	ProfilingManager::ShutDown();
 	ProfilerCPU::ShutDown();
 	MessageHandler::ShutDown();
@@ -169,7 +167,6 @@ void CoreApplication::OnStartUp()
 	MessageHandler::StartUp();
 	ProfilerCPU::StartUp();
 	ProfilingManager::StartUp();
-	TaskScheduler::StartUp();
 	RenderStats::StartUp();
 	CoreThread::StartUp();
 	StringTableManager::StartUp();

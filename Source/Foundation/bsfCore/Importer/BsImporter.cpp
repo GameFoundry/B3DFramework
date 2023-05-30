@@ -15,7 +15,6 @@
 #include "Resources/BsResources.h"
 #include "Threading/BsSingleConsumerQueue.h"
 #include "Threading/BsThreadPool.h"
-#include "Threading/BsTaskScheduler.h"
 
 using namespace bs;
 

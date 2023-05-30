@@ -12,7 +12,6 @@
 #include "Material/BsShaderCompiler.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 #include "Resources/BsBuiltinResources.h"
-#include "Threading/BsTaskScheduler.h"
 
 #if B3D_PROFILING_ENABLED
 #	include "Profiling/BsProfilerGPU.h"

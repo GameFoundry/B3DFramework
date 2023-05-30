@@ -7,7 +7,6 @@
 #include "BsVulkanGpuCommandBuffer.h"
 #include "BsVulkanGpuQueue.h"
 #include "BsVulkanRenderPass.h"
-#include "Threading/BsTaskScheduler.h"
 
 using namespace bs;
 using namespace bs::ct;
