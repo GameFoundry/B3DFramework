@@ -148,8 +148,6 @@ void VulkanGpuBuffer::Initialize()
 	{
 	case GpuBufferType::Vertex:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	if(mInformation.Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
-		usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 		break;
 	case GpuBufferType::Index:
 		usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;

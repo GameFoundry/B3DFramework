@@ -416,6 +416,9 @@ void VulkanImage::Map(u32 face, u32 mipLevel, PixelData& output, bool isInvalida
 	VkSubresourceLayout layout;
 	vkGetImageSubresourceLayout(device.GetLogical(), mImage, &range, &layout);
 
+	if (layout.depthPitch == 0)
+		layout.depthPitch = layout.rowPitch * output.GetHeight();
+
 	output.SetRowPitch((u32)layout.rowPitch);
 	output.SetSlicePitch((u32)layout.depthPitch);
 
@@ -520,10 +523,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 {
 	AssertIfNotVulkanSubmitThread();
 
-	u32 subresourceCount = range.levelCount * range.layerCount;
-
 	// Nothing to do
-	if(subresourceCount == 0)
+	if (range.levelCount == 0 || range.layerCount == 0)
 		return;
 
 	u32 mipLevel = range.baseMipLevel;
@@ -558,7 +559,10 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 
 	B3DMarkAllocatorFrame();
 	{
-		FrameVector<bool> processed(subresourceCount, false);
+		const u32 totalSubresourceCount = (range.baseMipLevel + range.levelCount) * (range.baseArrayLayer + range.layerCount);
+		FrameVector<bool> processed(totalSubresourceCount, false);
+
+		u32 subresourceCount = range.levelCount * range.layerCount;
 
 		// Add first subresource
 		VulkanImageSubresource* subresource = GetSubresource(face, mipLevel);
@@ -579,10 +583,12 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 				{
 					for(u32 i = 0; i < barrier->subresourceRange.levelCount; i++)
 					{
-						u32 curMip = barrier->subresourceRange.baseMipLevel + i;
-						VulkanImageSubresource* subresource = GetSubresource(face + 1, curMip);
-						if(barrier->oldLayout != subresource->GetLayout())
-						{
+						const u32 currentMipLevel = barrier->subresourceRange.baseMipLevel + i;
+						const u32 currentFace = face + 1;
+						const u32 sequentialIndex = currentMipLevel * range.layerCount + (currentFace - range.baseArrayLayer);
+
+						VulkanImageSubresource* currentSubresource = GetSubresource(currentFace, currentMipLevel);
+						if (processed[sequentialIndex] || barrier->oldLayout != currentSubresource->GetLayout()) {
 							expandedFace = false;
 							break;
 						}
@@ -591,6 +597,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 					if(expandedFace)
 					{
 						barrier->subresourceRange.layerCount++;
+
+						B3D_ASSERT(subresourceCount >= barrier->subresourceRange.levelCount);
 						subresourceCount -= barrier->subresourceRange.levelCount;
 						face++;
 
@@ -611,10 +619,12 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 				{
 					for(u32 i = 0; i < barrier->subresourceRange.layerCount; i++)
 					{
-						u32 curFace = barrier->subresourceRange.baseArrayLayer + i;
-						VulkanImageSubresource* subresource = GetSubresource(curFace, mipLevel + 1);
-						if(barrier->oldLayout != subresource->GetLayout())
-						{
+						const u32 currentMipLevel = mipLevel + 1;
+						const u32 currentFace = barrier->subresourceRange.baseArrayLayer + i;
+						const u32 sequentialIndex = currentMipLevel * range.layerCount + (currentFace - range.baseArrayLayer);
+
+						VulkanImageSubresource* currentSubresource = GetSubresource(currentFace, currentMipLevel);
+						if (processed[sequentialIndex] || barrier->oldLayout != currentSubresource->GetLayout()) {
 							expandedMip = false;
 							break;
 						}
@@ -623,6 +633,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 					if(expandedMip)
 					{
 						barrier->subresourceRange.levelCount++;
+
+						B3D_ASSERT(subresourceCount >= barrier->subresourceRange.layerCount);
 						subresourceCount -= barrier->subresourceRange.layerCount;
 						mipLevel++;
 
@@ -664,6 +676,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 				{
 					VulkanImageSubresource* subresource = GetSubresource(face, mipLevel);
 					addNewBarrier(subresource, face, mipLevel);
+
+					B3D_ASSERT(subresourceCount > 0);
 					subresourceCount--;
 					break;
 				}

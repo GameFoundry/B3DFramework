@@ -915,6 +915,9 @@ void VulkanGpuDevice::InitializeCapabilities()
 	case 0x8086:
 		mCapabilities.DeviceVendor = GPU_INTEL;
 		break;
+	case 0x106B:
+		mCapabilities.DeviceVendor = GPU_APPLE;
+		break;
 	default:
 		mCapabilities.DeviceVendor = GPU_UNKNOWN;
 		break;

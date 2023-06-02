@@ -128,7 +128,8 @@ namespace bs
 		GPU_NVIDIA = 1,
 		GPU_AMD = 2,
 		GPU_INTEL = 3,
-		GPU_VENDOR_COUNT = 4
+		GPU_APPLE = 4,
+		GPU_VENDOR_COUNT = 5
 	};
 
 	/** Information about hardware (GPU) and driver capabilities, such as supported features, limits and conventions. */
