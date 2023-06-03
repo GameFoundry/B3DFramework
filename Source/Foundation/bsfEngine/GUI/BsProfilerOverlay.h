@@ -182,6 +182,7 @@ namespace bs
 		GUILabel* mGPUClearsLbl = nullptr;
 		GUILabel* mGPUVerticesLbl = nullptr;
 		GUILabel* mGPUPrimitivesLbl = nullptr;
+		GUILabel* mGPUSamplesLbl = nullptr;
 		GUILabel* mGPUPipelineStateChangesLbl = nullptr;
 
 		GUILabel* mGPUObjectsCreatedLbl = nullptr;
@@ -200,6 +201,7 @@ namespace bs
 		HString mGPUClearsStr;
 		HString mGPUVerticesStr;
 		HString mGPUPrimitivesStr;
+		HString mGPUSamplesStr;
 		HString mGPUPipelineStateChangesStr;
 
 		HString mGPUObjectsCreatedStr;

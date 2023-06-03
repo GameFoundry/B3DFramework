@@ -2967,6 +2967,21 @@ VulkanGpuCommandBuffer::ImageSubresourceInfo& VulkanGpuCommandBuffer::FindSubres
 	return subresourceInfos[0];
 }
 
+void VulkanGpuCommandBuffer::GetInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vector<VulkanOcclusionQuery*>& occlusion) const
+{
+	for(auto& query : mTimerQueries)
+	{
+		if(query->IsInProgress())
+			timer.push_back(query);
+	}
+
+	for(auto& query : mOcclusionQueries)
+	{
+		if(query->IsInProgress())
+			occlusion.push_back(query);
+	}
+}
+
 void VulkanGpuCommandBuffer::NotifyRenderTargetModified()
 {
 	if(mRenderTarget == nullptr || mRenderTargetModified)

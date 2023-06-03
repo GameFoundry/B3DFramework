@@ -83,6 +83,20 @@ bool VulkanTimerQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
+void VulkanTimerQuery::Interrupt(VulkanGpuCommandBuffer& commandBuffer)
+{
+	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
+
+	mQueryEndCalled = true;
+	mQueryFinalized = false;
+
+	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
+	VulkanQuery* endQuery = queryPool.BeginTimerQuery(commandBuffer);
+	commandBuffer.RegisterQuery(this);
+
+	mQueries.back().second = endQuery;
+}
+
 bool VulkanTimerQuery::IsReady() const
 {
 	if(!mQueryEndCalled)
