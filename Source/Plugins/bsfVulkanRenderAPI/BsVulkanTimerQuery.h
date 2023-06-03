@@ -28,12 +28,6 @@ namespace bs
 			/** Returns true if the query begin() was called, but not end(). */
 			bool IsInProgress() const;
 
-			/**
-			 * Interrupts an in-progress query allowing the command buffer to submitted. Gets called on queries that are still
-			 * open during command buffer submission.
-			 */
-			void Interrupt(VulkanGpuCommandBuffer& commandBuffer);
-
 		private:
 			VulkanGpuDevice& mDevice;
 			Vector<std::pair<VulkanQuery*, VulkanQuery*>> mQueries;

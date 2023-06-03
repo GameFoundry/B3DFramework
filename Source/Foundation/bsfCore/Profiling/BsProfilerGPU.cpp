@@ -88,7 +88,7 @@ void ProfilerGPU::BeginView(ct::GpuCommandBuffer& commandBuffer, u64 id, Profile
 
 	mActiveFrame.ViewSamples.push_back(sample);
 
-	BeginSampleInternal(*sample, commandBuffer, true);
+	BeginSampleInternal(*sample, commandBuffer);
 	mIsViewActive = true;
 }
 
@@ -117,7 +117,7 @@ void ProfilerGPU::BeginSample(ct::GpuCommandBuffer& commandBuffer, ProfilerStrin
 
 	auto sample = mSamplePool.Construct<ProfiledSample>();
 	sample->Name = std::move(name);
-	BeginSampleInternal(*sample, commandBuffer, false);
+	BeginSampleInternal(*sample, commandBuffer);
 
 	if(mActiveSamples.empty())
 	{
@@ -185,22 +185,31 @@ void ProfilerGPU::UpdateInternal()
 		// Make sure all the top-level queries have finished. If they have that implies
 		// all their children have finished as well
 		bool isReady = true;
+
+		auto fnCheckAreQueriesReady = [&isReady](auto& queries) {
+			if (!isReady)
+				return;
+
+			for (auto& query : queries)
+			{
+				if (!query->isReady())
+				{
+					isReady = false;
+					break;
+				}
+			}
+		};
+
 		for(auto& entry : frame.ViewSamples)
 		{
-			if(!entry->ActiveTimeQuery->IsReady())
-			{
-				isReady = false;
-				break;
-			}
+			fnCheckAreQueriesReady(entry->BeginQueries);
+			fnCheckAreQueriesReady(entry->EndQueries);
 		}
 
 		for(auto& entry : frame.UncategorizedSamples)
 		{
-			if(!entry->ActiveTimeQuery->IsReady())
-			{
-				isReady = false;
-				break;
-			}
+			fnCheckAreQueriesReady(entry->BeginQueries);
+			fnCheckAreQueriesReady(entry->EndQueries);
 		}
 
 		if(!isReady)
@@ -240,10 +249,11 @@ void ProfilerGPU::FreeSample(ProfiledSample& sample)
 
 	sample.Children.clear();
 
-	mFreeTimerQueries.push(sample.ActiveTimeQuery);
+	for (const SPtr<ct::TimerQuery>& query : sample.BeginQueries)
+		mFreeTimerQueries.push(query);
 
-	if(sample.ActiveOcclusionQuery)
-		mFreeOcclusionQueries.push(sample.ActiveOcclusionQuery);
+	for (const SPtr<ct::TimerQuery>& query : sample.EndQueries)
+		mFreeTimerQueries.push(query);
 }
 
 void ProfilerGPU::FreeFrame(ProfiledFrame& frame)
@@ -267,12 +277,21 @@ void ProfilerGPU::FreeFrame(ProfiledFrame& frame)
 void ProfilerGPU::ResolveSample(const ProfiledSample& sample, GPUProfileSample& reportSample)
 {
 	reportSample.Name.assign(sample.Name.data(), sample.Name.size());
-	reportSample.TimeMs = sample.ActiveTimeQuery->GetTimeMs();
+	reportSample.TimeMs = 0.0f;
 
-	if(sample.ActiveOcclusionQuery)
-		reportSample.NumDrawnSamples = sample.ActiveOcclusionQuery->GetSampleCount();
-	else
-		reportSample.NumDrawnSamples = 0;
+	if (B3D_ENSURE(sample.BeginQueries.size() == sample.EndQueries.size())
+	{
+		for (size_t queryIndex : Indices(sample.BeginTimeQueries))
+		{
+			ct::TimerQuery* const beginQuery = sample.BeginTimeQueries[(uint32)queryIndex].get();
+				ct::TimerQuery* const endQuery = sample.EndTimeQueries[(uint32)queryIndex].get();
+
+				RSX_ASSERT(beginQuery != nullptr);
+				RSX_ASSERT(endQuery != nullptr);
+
+				reportSample.TimeMs += (float)endQuery->convertTimestampToMilliseconds(endQuery->getTimestamp() - beginQuery->getTimestamp());
+		}
+	}
 
 	reportSample.NumDrawCalls = (u32)(sample.EndStats.NumDrawCalls - sample.StartStats.NumDrawCalls);
 	reportSample.NumRenderTargetChanges = (u32)(sample.EndStats.NumRenderTargetChanges - sample.StartStats.NumRenderTargetChanges);
@@ -301,26 +320,16 @@ void ProfilerGPU::ResolveSample(const ProfiledSample& sample, GPUProfileSample& 
 	}
 }
 
-void ProfilerGPU::BeginSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer, bool issueOcclusion)
+void ProfilerGPU::BeginSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer)
 {
 	sample.StartStats = RenderStats::Instance().GetData();
 	sample.ActiveTimeQuery = GetTimerQuery();
 	sample.ActiveTimeQuery->Begin(commandBuffer);
-
-	if(issueOcclusion)
-	{
-		sample.ActiveOcclusionQuery = GetOcclusionQuery();
-		sample.ActiveOcclusionQuery->Begin(commandBuffer);
-	}
 }
 
 void ProfilerGPU::EndSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer)
 {
 	sample.EndStats = RenderStats::Instance().GetData();
-
-	if(sample.ActiveOcclusionQuery)
-		sample.ActiveOcclusionQuery->End(commandBuffer);
-
 	sample.ActiveTimeQuery->End(commandBuffer);
 }
 
@@ -339,23 +348,6 @@ SPtr<ct::TimerQuery> ProfilerGPU::GetTimerQuery() const
 		return nullptr;
 
 	return gpuDevice->CreateTimerQuery();
-}
-
-SPtr<ct::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
-{
-	if(!mFreeOcclusionQueries.empty())
-	{
-		SPtr<ct::OcclusionQuery> occlusionQuery = mFreeOcclusionQueries.top();
-		mFreeOcclusionQueries.pop();
-
-		return occlusionQuery;
-	}
-
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
-	if(gpuDevice == nullptr)
-		return nullptr;
-
-	return gpuDevice->CreateOcclusionQuery(false);
 }
 
 namespace bs

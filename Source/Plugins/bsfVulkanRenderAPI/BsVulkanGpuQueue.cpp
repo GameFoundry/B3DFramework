@@ -46,24 +46,6 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 	// Execute any queued layout transitions that weren't already handled by the render pass
 	vulkanCommandBuffer.ExecuteLayoutTransitions();
 
-	// Interrupt any in-progress queries (no in-progress queries allowed during command buffer submit)
-	Vector<VulkanTimerQuery*> timerQueries;
-	Vector<VulkanOcclusionQuery*> occlusionQueries;
-	vulkanCommandBuffer.GetInProgressQueries(timerQueries, occlusionQueries);
-
-	if (!timerQueries.empty() || !occlusionQueries.empty())
-	{
-		B3D_LOG(Warning, RenderBackend, "Submitting a command buffer with {0} timer queries "
-			"and {1} occlusion queries that are still open. The queries will be closed automatically.",
-			timerQueries.size(), occlusionQueries.size());
-
-		for (auto& query : timerQueries)
-			query->Interrupt(vulkanCommandBuffer);
-
-		for (auto& query : occlusionQueries)
-			query->Interrupt(vulkanCommandBuffer);
-	}
-
 	if (vulkanCommandBuffer.IsRecording())
 		vulkanCommandBuffer.End();
 

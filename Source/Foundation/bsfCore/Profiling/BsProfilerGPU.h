@@ -26,7 +26,6 @@ namespace bs
 
 		u32 NumVertices; /**< Total number of vertices sent to the GPU. */
 		u32 NumPrimitives; /**< Total number of primitives sent to the GPU. */
-		u32 NumDrawnSamples; /**< Number of samples drawn by the GPU. */
 
 		u32 NumPipelineStateChanges; /**< How many times did the pipeline state change. */
 
@@ -69,8 +68,8 @@ namespace bs
 			ProfilerString Name;
 			RenderStatsData StartStats;
 			RenderStatsData EndStats;
-			SPtr<ct::TimerQuery> ActiveTimeQuery;
-			SPtr<ct::OcclusionQuery> ActiveOcclusionQuery;
+			SmallVector<SPtr<ct::TimerQuery>, 1> BeginQueries;
+			SmallVector<SPtr<ct::TimerQuery>, 1> EndQueries;
 
 			Vector<ProfiledSample*> Children;
 		};
@@ -179,16 +178,13 @@ namespace bs
 
 	private:
 		/** Assigns start values for the provided sample. */
-		void BeginSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer, bool issueOcclusion);
+		void BeginSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer);
 
 		/**	Assigns end values for the provided sample. */
 		void EndSampleInternal(ProfiledSample& sample, ct::GpuCommandBuffer& commandBuffer);
 
 		/**	Creates a new timer query or returns an existing free query. */
 		SPtr<ct::TimerQuery> GetTimerQuery() const;
-
-		/**	Creates a new occlusion query or returns an existing free query. */
-		SPtr<ct::OcclusionQuery> GetOcclusionQuery() const;
 
 		/** Frees the memory used by all the child samples. */
 		void FreeSample(ProfiledSample& sample);
@@ -216,7 +212,6 @@ namespace bs
 		PoolAlloc<sizeof(ProfiledSample), 256> mSamplePool;
 
 		mutable Stack<SPtr<ct::TimerQuery>> mFreeTimerQueries;
-		mutable Stack<SPtr<ct::OcclusionQuery>> mFreeOcclusionQueries;
 
 		Mutex mMutex;
 	};

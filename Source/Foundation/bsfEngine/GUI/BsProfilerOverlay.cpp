@@ -422,7 +422,6 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	mGPUClearsStr = HEString(u8"__ProfOvClears", u8"Clears: {0}");
 	mGPUVerticesStr = HEString(u8"__ProfOvVertices", u8"Num. vertices: {0}");
 	mGPUPrimitivesStr = HEString(u8"__ProfOvPrimitives", u8"Num. primitives: {0}");
-	mGPUSamplesStr = HEString(u8"__ProfOvSamples", u8"Samples drawn: {0}");
 	mGPUPipelineStateChangesStr = HEString(u8"__ProfOvPSChanges", u8"Pipeline state changes: {0}");
 
 	mGPUObjectsCreatedStr = HEString(u8"__ProfOvObjsCreated", u8"Objects created: {0}");
@@ -441,7 +440,6 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	mGPUClearsLbl = GUILabel::Create(mGPUClearsStr, GUIOptions(GUIOption::FixedWidth(200)));
 	mGPUVerticesLbl = GUILabel::Create(mGPUVerticesStr, GUIOptions(GUIOption::FixedWidth(200)));
 	mGPUPrimitivesLbl = GUILabel::Create(mGPUPrimitivesStr, GUIOptions(GUIOption::FixedWidth(200)));
-	mGPUSamplesLbl = GUILabel::Create(mGPUSamplesStr, GUIOptions(GUIOption::FixedWidth(200)));
 	mGPUPipelineStateChangesLbl = GUILabel::Create(mGPUPipelineStateChangesStr, GUIOptions(GUIOption::FixedWidth(200)));
 
 	mGPUObjectsCreatedLbl = GUILabel::Create(mGPUObjectsCreatedStr, GUIOptions(GUIOption::FixedWidth(200)));
@@ -460,7 +458,6 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	mGPULayoutFrameContentsLeft->AddElement(mGPUClearsLbl);
 	mGPULayoutFrameContentsLeft->AddElement(mGPUVerticesLbl);
 	mGPULayoutFrameContentsLeft->AddElement(mGPUPrimitivesLbl);
-	mGPULayoutFrameContentsLeft->AddElement(mGPUSamplesLbl);
 	mGPULayoutFrameContentsLeft->AddElement(mGPUPipelineStateChangesLbl);
 	mGPULayoutFrameContentsLeft->AddNewElement<GUIFlexibleSpace>();
 
@@ -714,7 +711,6 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 	mGPUClearsStr.SetParameter(0, ToString(frameSample.NumClears));
 	mGPUVerticesStr.SetParameter(0, ToString(frameSample.NumVertices));
 	mGPUPrimitivesStr.SetParameter(0, ToString(frameSample.NumPrimitives));
-	mGPUSamplesStr.SetParameter(0, ToString(frameSample.NumDrawnSamples));
 	mGPUPipelineStateChangesStr.SetParameter(0, ToString(frameSample.NumPipelineStateChanges));
 
 	mGPUObjectsCreatedStr.SetParameter(0, ToString(frameSample.NumObjectsCreated));
@@ -733,7 +729,6 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 	mGPUClearsLbl->SetContent(mGPUClearsStr);
 	mGPUVerticesLbl->SetContent(mGPUVerticesStr);
 	mGPUPrimitivesLbl->SetContent(mGPUPrimitivesStr);
-	mGPUSamplesLbl->SetContent(mGPUSamplesStr);
 	mGPUPipelineStateChangesLbl->SetContent(mGPUPipelineStateChangesStr);
 
 	mGPUObjectsCreatedLbl->SetContent(mGPUObjectsCreatedStr);

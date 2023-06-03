@@ -70,17 +70,6 @@ bool VulkanOcclusionQuery::IsInProgress() const
 	return !mQueries.empty() && !mQueryEndCalled;
 }
 
-void VulkanOcclusionQuery::Interrupt(VulkanGpuCommandBuffer& commandBuffer)
-{
-	B3D_ASSERT(!mQueries.empty() && !mQueryEndCalled);
-
-	mQueryEndCalled = true;
-	mQueryFinalized = false;
-
-	VulkanQueryPool& queryPool = mDevice.GetQueryPool();
-	queryPool.EndOcclusionQuery(commandBuffer, *mQueries.back());
-}
-
 bool VulkanOcclusionQuery::IsReady() const
 {
 	if(!mQueryEndCalled)

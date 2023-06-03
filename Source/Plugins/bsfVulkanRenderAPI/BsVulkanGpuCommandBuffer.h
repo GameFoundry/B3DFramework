@@ -292,12 +292,6 @@ namespace bs
 			 */
 			void RegisterResource(VulkanSwapChain* res);
 
-			/** Notifies the command buffer that the provided query has been queued on it. */
-			void RegisterQuery(VulkanOcclusionQuery* query) { mOcclusionQueries.insert(query); }
-
-			/** Notifies the command buffer that the provided query has been queued on it. */
-			void RegisterQuery(VulkanTimerQuery* query) { mTimerQueries.insert(query); }
-
 			/************************************************************************/
 			/* 								COMMANDS	                     		*/
 			/************************************************************************/
@@ -675,9 +669,6 @@ namespace bs
 			/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
 			ImageSubresourceInfo& FindSubresourceInfo(VulkanImage* image, u32 face, u32 mip);
 
-			/** Gets all queries registered on this command buffer that haven't been ended. */
-			void GetInProgressQueries(Vector<VulkanTimerQuery*>& timer, Vector<VulkanOcclusionQuery*>& occlusion) const;
-
 			/** Returns the read mask for the current framebuffer. */
 			RenderSurfaceMask GetFramebufferReadMask();
 
@@ -713,8 +704,6 @@ namespace bs
 			DenseMap<VulkanResource*, u32> mImages;
 			DenseMap<VulkanResource*, BufferInfo> mBuffers;
 			UnorderedMap<VulkanSwapChain*, ResourceUseHandle> mSwapChains;
-			UnorderedSet<VulkanOcclusionQuery*> mOcclusionQueries;
-			UnorderedSet<VulkanTimerQuery*> mTimerQueries;
 			Vector<ImageInfo> mImageInfos;
 			Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
 			Set<u32> mShaderBoundSubresourceInfos;
