@@ -60,7 +60,7 @@ mixin VertexInput
 			#endif			
 		
 			#if SKINNED
-				#if PREV_CLIP_POS
+				#if VERTEX_INPUT_PREVIOUS_CLIP_SPACE
 					position = float4(mul(intermediate.prevBlendMatrix, position), 1.0f);
 				#endif
 			#endif

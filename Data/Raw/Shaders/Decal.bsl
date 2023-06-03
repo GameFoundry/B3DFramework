@@ -1,4 +1,4 @@
-#define CLIP_POS 1
+#define VERTEX_INPUT_CLIP_SPACE 1
 #define NO_ANIMATION 1
 #include "$ENGINE$\PerCameraData.bslinc"
 #include "$ENGINE$\PerObjectData.bslinc"
