@@ -534,7 +534,7 @@ function(install_binaries_on_build target srcDir subDir extension)
 		endif()
 
 		set(SRC ${BIN_SRC_DIR}/${CUR_PATH})
-		set(DST ${BIN_DST_DIR}/${CUR_PATH})
+		set(DST $<TARGET_FILE_DIR:${target}>/${CUR_PATH})
 		add_custom_command(
 			TARGET ${target} POST_BUILD
 			COMMAND ${CMAKE_COMMAND}

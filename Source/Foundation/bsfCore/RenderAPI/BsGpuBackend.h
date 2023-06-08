@@ -6,6 +6,7 @@
 
 namespace bs
 {
+	class GpuFrameCapture;
 	class GpuDevice;
 
 	/** @addtogroup RenderAPI
@@ -24,6 +25,19 @@ namespace bs
 
 		virtual u32 GetDeviceCount() const = 0;
 		virtual SPtr<GpuDevice> GetDevice(u32 index) const = 0;
+
+		/************************************************************************/
+		/* 								DEBUGGING/PROFILING						*/
+		/************************************************************************/
+
+		/** Captures all GPU commands following this point for analysis by an external tool (e.g. RenderDoc or nSight). */
+		virtual void StartCapture();
+
+		/** Stops capture started by StartCapture() and makes the captured commands ready for analysis. */
+		virtual void StopCapture();
+
+	protected:
+		SPtr<GpuFrameCapture> mFrameCapture;
 	};
 
 	/** @} */

@@ -4,6 +4,8 @@ if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 	set(BS_TOP_LEVEL True)
 endif()
 
+set (BSF_DEPENDENCY_DIRECTORY ${BSF_DIRECTORY}/Dependencies)
+
 # Options
 set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
 

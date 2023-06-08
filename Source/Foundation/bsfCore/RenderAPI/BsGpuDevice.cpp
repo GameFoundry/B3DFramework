@@ -3,6 +3,7 @@
 #include "BsGpuDevice.h"
 #include "BsGpuCommandBuffer.h"
 #include "BsEventQuery.h"
+#include "BsGpuFrameCapture.h"
 #include "BsTimerQuery.h"
 #include "BsOcclusionQuery.h"
 

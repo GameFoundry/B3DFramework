@@ -1,0 +1,30 @@
+//************************************ bs::framework - Copyright 2023 Marko Pintera **************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "BsCorePrerequisites.h"
+#include "RenderAPI/BsGpuFrameCapture.h"
+
+// TODO - Surround if an #if so this can be included from non-Vulkan render backends (all other Vulkan specific code too)
+#include <vulkan/vulkan.h>
+
+namespace bs
+{
+	/** Captures GPU commands for the RenderDoc tool. */
+	class RenderDocFrameCapture : public GpuFrameCapture
+	{
+	public:
+		explicit RenderDocFrameCapture(VkInstance vulkanInstance);
+		virtual ~RenderDocFrameCapture();
+
+		void Start() override;
+		void Stop() override;
+
+	private:
+		const VkInstance mVulkanInstance;
+		DynamicLibrary* mRenderDocLibrary;
+		void* mRenderDocAPIPointers = nullptr;
+		bool mIsCaptureInProgress = false;
+
+	};
+} // namespace bs

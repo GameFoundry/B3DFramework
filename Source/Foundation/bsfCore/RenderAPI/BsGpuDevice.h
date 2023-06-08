@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class GpuFrameCapture;
 	struct SamplerStateCreateInformation;
 	struct TextureCreateInformation;
 

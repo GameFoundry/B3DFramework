@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsDynamicLibrary.h"
+
+#include "Debug/BsDebug.h"
 #include "Error/BsException.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
@@ -37,7 +39,7 @@ void DynamicLibrary::Load()
 
 	if(!mHandle)
 	{
-		B3D_EXCEPT(InternalErrorException, "Could not load dynamic library " + mName + ".  System Error: " + DynlibError());
+		B3D_LOG(Error, Generic, "Could not load dynamic library {0}. System Error: {1}", mName, DynlibError());
 	}
 }
 
@@ -48,7 +50,7 @@ void DynamicLibrary::Unload()
 
 	if(DYNLIB_UNLOAD(mHandle))
 	{
-		B3D_EXCEPT(InternalErrorException, "Could not unload dynamic library " + mName + ".  System Error: " + DynlibError());
+		B3D_LOG(Error, Generic, "Could not unload dynamic library {0}. System Error: {1}", mName, DynlibError());
 	}
 
 	mHandle = nullptr;

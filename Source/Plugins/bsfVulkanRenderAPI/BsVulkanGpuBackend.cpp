@@ -14,6 +14,7 @@
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanSubmitThread.h"
 #include "CoreThread/BsCoreThread.h"
+#include "Win32/BsRenderDocFrameCapture.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Win32/BsWin32VideoModeInfo.h"
@@ -437,6 +438,8 @@ void VulkanGpuBackend::OnStartUp()
 
 	// Create vertex input manager
 	VulkanVertexInputManager::StartUp();
+
+	mFrameCapture = B3DMakeShared<RenderDocFrameCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
 
 	Super::OnStartUp();
 }

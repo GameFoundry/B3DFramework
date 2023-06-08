@@ -23,6 +23,10 @@ if(B3D_RENDER_BACKEND MATCHES "Vulkan" OR B3D_INCLUDE_ALL_IN_WORKFLOW OR B3D_BUI
 	else()
 		find_package(Vulkan)
 	endif()
+
+	if(WIN32)
+		find_package(RenderDoc)
+	endif()
 endif()
 	
 # Target
@@ -48,6 +52,13 @@ if(APPLE) # MacOS
 	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${SPIRVCross_LIBRARIES})
 else()
 	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${Vulkan_LIBRARIES})
+endif()
+
+if(WIN32)
+	message(STATUS "Status: ${BSF_DEPENDENCY_DIRECTORY}")
+
+	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${RenderDoc_LIBRARIES})
+	install_dll_on_build(bsfVulkanRenderAPI ${BSF_DEPENDENCY_DIRECTORY}/RenderDoc)
 endif()
 
 ## OS libs
