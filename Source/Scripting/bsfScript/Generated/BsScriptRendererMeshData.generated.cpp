@@ -5,12 +5,12 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
-#include "BsScriptRendererMeshData.generated.h"
 #include "Wrappers/BsScriptVector.h"
+#include "BsScriptRendererMeshData.generated.h"
 #include "../Extensions/BsMeshDataEx.h"
 #include "Wrappers/BsScriptVector.h"
-#include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptColor.h"
+#include "Wrappers/BsScriptVector.h"
 #include "BsScriptBoneWeight.generated.h"
 
 namespace bs
@@ -63,7 +63,7 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetPositions(ScriptMeshData* thisPtr)
 	{
-		Vector<Vector3> vec__output;
+		Vector<TVector3<float>> vec__output;
 		vec__output = MeshDataEx::GetPositions(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -80,14 +80,14 @@ namespace bs
 
 	void ScriptMeshData::InternalSetPositions(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Vector3> vecvalue;
+		Vector<TVector3<float>> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<Vector3>(i);
+				vecvalue[i] = arrayvalue.Get<TVector3<float>>(i);
 			}
 		}
 		MeshDataEx::SetPositions(thisPtr->GetInternal(), vecvalue);
@@ -95,7 +95,7 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetNormals(ScriptMeshData* thisPtr)
 	{
-		Vector<Vector3> vec__output;
+		Vector<TVector3<float>> vec__output;
 		vec__output = MeshDataEx::GetNormals(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -112,14 +112,14 @@ namespace bs
 
 	void ScriptMeshData::InternalSetNormals(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Vector3> vecvalue;
+		Vector<TVector3<float>> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<Vector3>(i);
+				vecvalue[i] = arrayvalue.Get<TVector3<float>>(i);
 			}
 		}
 		MeshDataEx::SetNormals(thisPtr->GetInternal(), vecvalue);
@@ -127,7 +127,7 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetTangents(ScriptMeshData* thisPtr)
 	{
-		Vector<Vector4> vec__output;
+		Vector<TVector4<float>> vec__output;
 		vec__output = MeshDataEx::GetTangents(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -144,14 +144,14 @@ namespace bs
 
 	void ScriptMeshData::InternalSetTangents(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Vector4> vecvalue;
+		Vector<TVector4<float>> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<Vector4>(i);
+				vecvalue[i] = arrayvalue.Get<TVector4<float>>(i);
 			}
 		}
 		MeshDataEx::SetTangents(thisPtr->GetInternal(), vecvalue);
@@ -191,7 +191,7 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetUV0(ScriptMeshData* thisPtr)
 	{
-		Vector<Vector2> vec__output;
+		Vector<TVector2<float>> vec__output;
 		vec__output = MeshDataEx::GetUV0(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -208,14 +208,14 @@ namespace bs
 
 	void ScriptMeshData::InternalSetUV0(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Vector2> vecvalue;
+		Vector<TVector2<float>> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<Vector2>(i);
+				vecvalue[i] = arrayvalue.Get<TVector2<float>>(i);
 			}
 		}
 		MeshDataEx::SetUV0(thisPtr->GetInternal(), vecvalue);
@@ -223,7 +223,7 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetUV1(ScriptMeshData* thisPtr)
 	{
-		Vector<Vector2> vec__output;
+		Vector<TVector2<float>> vec__output;
 		vec__output = MeshDataEx::GetUV1(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -240,14 +240,14 @@ namespace bs
 
 	void ScriptMeshData::InternalSetUV1(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Vector2> vecvalue;
+		Vector<TVector2<float>> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<Vector2>(i);
+				vecvalue[i] = arrayvalue.Get<TVector2<float>>(i);
 			}
 		}
 		MeshDataEx::SetUV1(thisPtr->GetInternal(), vecvalue);

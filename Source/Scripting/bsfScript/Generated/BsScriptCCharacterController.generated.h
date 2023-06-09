@@ -33,15 +33,15 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnControllerHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnControllerHitThunkDef OnControllerHitThunk;
 
-		static CharacterCollisionFlag InternalMove(ScriptCharacterController* thisPtr, Vector3* displacement);
-		static void InternalGetFootPosition(ScriptCharacterController* thisPtr, Vector3* __output);
-		static void InternalSetFootPosition(ScriptCharacterController* thisPtr, Vector3* position);
+		static CharacterCollisionFlag InternalMove(ScriptCharacterController* thisPtr, TVector3<float>* displacement);
+		static void InternalGetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* __output);
+		static void InternalSetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* position);
 		static float InternalGetRadius(ScriptCharacterController* thisPtr);
 		static void InternalSetRadius(ScriptCharacterController* thisPtr, float radius);
 		static float InternalGetHeight(ScriptCharacterController* thisPtr);
 		static void InternalSetHeight(ScriptCharacterController* thisPtr, float height);
-		static void InternalGetUp(ScriptCharacterController* thisPtr, Vector3* __output);
-		static void InternalSetUp(ScriptCharacterController* thisPtr, Vector3* up);
+		static void InternalGetUp(ScriptCharacterController* thisPtr, TVector3<float>* __output);
+		static void InternalSetUp(ScriptCharacterController* thisPtr, TVector3<float>* up);
 		static CharacterClimbingMode InternalGetClimbingMode(ScriptCharacterController* thisPtr);
 		static void InternalSetClimbingMode(ScriptCharacterController* thisPtr, CharacterClimbingMode mode);
 		static CharacterNonWalkableMode InternalGetNonWalkableMode(ScriptCharacterController* thisPtr);
@@ -52,8 +52,8 @@ namespace bs
 		static void InternalSetContactOffset(ScriptCharacterController* thisPtr, float value);
 		static float InternalGetStepOffset(ScriptCharacterController* thisPtr);
 		static void InternalSetStepOffset(ScriptCharacterController* thisPtr, float value);
-		static void InternalGetSlopeLimit(ScriptCharacterController* thisPtr, Radian* __output);
-		static void InternalSetSlopeLimit(ScriptCharacterController* thisPtr, Radian* value);
+		static void InternalGetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* __output);
+		static void InternalSetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* value);
 		static uint64_t InternalGetLayer(ScriptCharacterController* thisPtr);
 		static void InternalSetLayer(ScriptCharacterController* thisPtr, uint64_t layer);
 	};

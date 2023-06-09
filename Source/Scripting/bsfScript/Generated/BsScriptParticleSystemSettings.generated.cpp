@@ -245,9 +245,9 @@ namespace bs
 		thisPtr->GetInternal()->OrientationLockY = value;
 	}
 
-	void ScriptParticleSystemSettings::InternalGetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* __output)
+	void ScriptParticleSystemSettings::InternalGetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->OrientationPlaneNormal;
 
 		*__output = tmp__output;
@@ -255,7 +255,7 @@ namespace bs
 
 	}
 
-	void ScriptParticleSystemSettings::InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* value)
+	void ScriptParticleSystemSettings::InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, TVector3<float>* value)
 	{
 		thisPtr->GetInternal()->OrientationPlaneNormal = *value;
 	}

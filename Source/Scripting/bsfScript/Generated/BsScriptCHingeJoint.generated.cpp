@@ -5,8 +5,8 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCHingeJoint.h"
-#include "BsScriptHingeJointDrive.generated.h"
 #include "BsScriptLimitAngularRange.generated.h"
+#include "BsScriptHingeJointDrive.generated.h"
 
 namespace bs
 {
@@ -28,9 +28,9 @@ namespace bs
 
 	}
 
-	void ScriptHingeJoint::InternalGetAngle(ScriptHingeJoint* thisPtr, Radian* __output)
+	void ScriptHingeJoint::InternalGetAngle(ScriptHingeJoint* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetAngle();
 
 		*__output = tmp__output;

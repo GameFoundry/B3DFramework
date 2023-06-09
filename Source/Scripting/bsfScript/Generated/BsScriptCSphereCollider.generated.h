@@ -20,7 +20,7 @@ namespace bs
 	private:
 		static void InternalSetRadius(ScriptSphereCollider* thisPtr, float radius);
 		static float InternalGetRadius(ScriptSphereCollider* thisPtr);
-		static void InternalSetCenter(ScriptSphereCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptSphereCollider* thisPtr, Vector3* __output);
+		static void InternalSetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* center);
+		static void InternalGetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* __output);
 	};
 }

@@ -7,8 +7,8 @@
 #include "BsScriptRandom.generated.h"
 #include "BsScriptTAnimationCurve.generated.h"
 #include "Wrappers/BsScriptVector.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptTAnimationCurve.generated.h"
+#include "Wrappers/BsScriptVector.h"
 #include "BsScriptTAnimationCurve.generated.h"
 
 namespace bs
@@ -173,7 +173,7 @@ namespace bs
 		return __output;
 	}
 
-	ScriptVector3Distribution::ScriptVector3Distribution(MonoObject* managedInstance, const SPtr<TDistribution<Vector3>>& value)
+	ScriptVector3Distribution::ScriptVector3Distribution(MonoObject* managedInstance, const SPtr<TDistribution<TVector3<float>>>& value)
 		:ScriptObject(managedInstance), mInternal(value)
 	{
 	}
@@ -195,7 +195,7 @@ namespace bs
 
 	}
 
-	MonoObject* ScriptVector3Distribution::Create(const SPtr<TDistribution<Vector3>>& value)
+	MonoObject* ScriptVector3Distribution::Create(const SPtr<TDistribution<TVector3<float>>>& value)
 	{
 		if(value == nullptr) return nullptr; 
 
@@ -208,46 +208,46 @@ namespace bs
 	}
 	void ScriptVector3Distribution::InternalTDistribution(MonoObject* managedInstance)
 	{
-		SPtr<TDistribution<Vector3>> instance = B3DMakeShared<TDistribution<Vector3>>();
+		SPtr<TDistribution<TVector3<float>>> instance = B3DMakeShared<TDistribution<TVector3<float>>>();
 		new (B3DAllocate<ScriptVector3Distribution>())ScriptVector3Distribution(managedInstance, instance);
 	}
 
-	void ScriptVector3Distribution::InternalTDistribution0(MonoObject* managedInstance, Vector3* value)
+	void ScriptVector3Distribution::InternalTDistribution0(MonoObject* managedInstance, TVector3<float>* value)
 	{
-		SPtr<TDistribution<Vector3>> instance = B3DMakeShared<TDistribution<Vector3>>(*value);
+		SPtr<TDistribution<TVector3<float>>> instance = B3DMakeShared<TDistribution<TVector3<float>>>(*value);
 		new (B3DAllocate<ScriptVector3Distribution>())ScriptVector3Distribution(managedInstance, instance);
 	}
 
-	void ScriptVector3Distribution::InternalTDistribution1(MonoObject* managedInstance, Vector3* minValue, Vector3* maxValue)
+	void ScriptVector3Distribution::InternalTDistribution1(MonoObject* managedInstance, TVector3<float>* minValue, TVector3<float>* maxValue)
 	{
-		SPtr<TDistribution<Vector3>> instance = B3DMakeShared<TDistribution<Vector3>>(*minValue, *maxValue);
+		SPtr<TDistribution<TVector3<float>>> instance = B3DMakeShared<TDistribution<TVector3<float>>>(*minValue, *maxValue);
 		new (B3DAllocate<ScriptVector3Distribution>())ScriptVector3Distribution(managedInstance, instance);
 	}
 
 	void ScriptVector3Distribution::InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmpcurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpcurve;
 		ScriptVector3Curve* scriptcurve;
 		scriptcurve = ScriptVector3Curve::ToNative(curve);
 		if(scriptcurve != nullptr)
 			tmpcurve = scriptcurve->GetInternal();
-		SPtr<TDistribution<Vector3>> instance = B3DMakeShared<TDistribution<Vector3>>(*tmpcurve);
+		SPtr<TDistribution<TVector3<float>>> instance = B3DMakeShared<TDistribution<TVector3<float>>>(*tmpcurve);
 		new (B3DAllocate<ScriptVector3Distribution>())ScriptVector3Distribution(managedInstance, instance);
 	}
 
 	void ScriptVector3Distribution::InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmpminCurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpminCurve;
 		ScriptVector3Curve* scriptminCurve;
 		scriptminCurve = ScriptVector3Curve::ToNative(minCurve);
 		if(scriptminCurve != nullptr)
 			tmpminCurve = scriptminCurve->GetInternal();
-		SPtr<TAnimationCurve<Vector3>> tmpmaxCurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpmaxCurve;
 		ScriptVector3Curve* scriptmaxCurve;
 		scriptmaxCurve = ScriptVector3Curve::ToNative(maxCurve);
 		if(scriptmaxCurve != nullptr)
 			tmpmaxCurve = scriptmaxCurve->GetInternal();
-		SPtr<TDistribution<Vector3>> instance = B3DMakeShared<TDistribution<Vector3>>(*tmpminCurve, *tmpmaxCurve);
+		SPtr<TDistribution<TVector3<float>>> instance = B3DMakeShared<TDistribution<TVector3<float>>>(*tmpminCurve, *tmpmaxCurve);
 		new (B3DAllocate<ScriptVector3Distribution>())ScriptVector3Distribution(managedInstance, instance);
 	}
 
@@ -262,17 +262,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptVector3Distribution::InternalGetMinConstant(ScriptVector3Distribution* thisPtr, Vector3* __output)
+	void ScriptVector3Distribution::InternalGetMinConstant(ScriptVector3Distribution* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->GetMinConstant();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptVector3Distribution::InternalGetMaxConstant(ScriptVector3Distribution* thisPtr, Vector3* __output)
+	void ScriptVector3Distribution::InternalGetMaxConstant(ScriptVector3Distribution* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->GetMaxConstant();
 
 		*__output = tmp__output;
@@ -280,7 +280,7 @@ namespace bs
 
 	MonoObject* ScriptVector3Distribution::InternalGetMinCurve(ScriptVector3Distribution* thisPtr)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmp__output = B3DMakeShared<TAnimationCurve<Vector3>>();
+		SPtr<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetMinCurve();
 
 		MonoObject* __output;
@@ -291,7 +291,7 @@ namespace bs
 
 	MonoObject* ScriptVector3Distribution::InternalGetMaxCurve(ScriptVector3Distribution* thisPtr)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmp__output = B3DMakeShared<TAnimationCurve<Vector3>>();
+		SPtr<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetMaxCurve();
 
 		MonoObject* __output;
@@ -300,28 +300,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptVector3Distribution::InternalEvaluate(ScriptVector3Distribution* thisPtr, float t, float factor, Vector3* __output)
+	void ScriptVector3Distribution::InternalEvaluate(ScriptVector3Distribution* thisPtr, float t, float factor, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Evaluate(t, factor);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptVector3Distribution::InternalEvaluate0(ScriptVector3Distribution* thisPtr, float t, MonoObject* factor, Vector3* __output)
+	void ScriptVector3Distribution::InternalEvaluate0(ScriptVector3Distribution* thisPtr, float t, MonoObject* factor, TVector3<float>* __output)
 	{
 		SPtr<Random> tmpfactor;
 		ScriptRandom* scriptfactor;
 		scriptfactor = ScriptRandom::ToNative(factor);
 		if(scriptfactor != nullptr)
 			tmpfactor = scriptfactor->GetInternal();
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Evaluate(t, *tmpfactor);
 
 		*__output = tmp__output;
 	}
 
-	ScriptVector2Distribution::ScriptVector2Distribution(MonoObject* managedInstance, const SPtr<TDistribution<Vector2>>& value)
+	ScriptVector2Distribution::ScriptVector2Distribution(MonoObject* managedInstance, const SPtr<TDistribution<TVector2<float>>>& value)
 		:ScriptObject(managedInstance), mInternal(value)
 	{
 	}
@@ -343,7 +343,7 @@ namespace bs
 
 	}
 
-	MonoObject* ScriptVector2Distribution::Create(const SPtr<TDistribution<Vector2>>& value)
+	MonoObject* ScriptVector2Distribution::Create(const SPtr<TDistribution<TVector2<float>>>& value)
 	{
 		if(value == nullptr) return nullptr; 
 
@@ -356,46 +356,46 @@ namespace bs
 	}
 	void ScriptVector2Distribution::InternalTDistribution(MonoObject* managedInstance)
 	{
-		SPtr<TDistribution<Vector2>> instance = B3DMakeShared<TDistribution<Vector2>>();
+		SPtr<TDistribution<TVector2<float>>> instance = B3DMakeShared<TDistribution<TVector2<float>>>();
 		new (B3DAllocate<ScriptVector2Distribution>())ScriptVector2Distribution(managedInstance, instance);
 	}
 
-	void ScriptVector2Distribution::InternalTDistribution0(MonoObject* managedInstance, Vector2* value)
+	void ScriptVector2Distribution::InternalTDistribution0(MonoObject* managedInstance, TVector2<float>* value)
 	{
-		SPtr<TDistribution<Vector2>> instance = B3DMakeShared<TDistribution<Vector2>>(*value);
+		SPtr<TDistribution<TVector2<float>>> instance = B3DMakeShared<TDistribution<TVector2<float>>>(*value);
 		new (B3DAllocate<ScriptVector2Distribution>())ScriptVector2Distribution(managedInstance, instance);
 	}
 
-	void ScriptVector2Distribution::InternalTDistribution1(MonoObject* managedInstance, Vector2* minValue, Vector2* maxValue)
+	void ScriptVector2Distribution::InternalTDistribution1(MonoObject* managedInstance, TVector2<float>* minValue, TVector2<float>* maxValue)
 	{
-		SPtr<TDistribution<Vector2>> instance = B3DMakeShared<TDistribution<Vector2>>(*minValue, *maxValue);
+		SPtr<TDistribution<TVector2<float>>> instance = B3DMakeShared<TDistribution<TVector2<float>>>(*minValue, *maxValue);
 		new (B3DAllocate<ScriptVector2Distribution>())ScriptVector2Distribution(managedInstance, instance);
 	}
 
 	void ScriptVector2Distribution::InternalTDistribution2(MonoObject* managedInstance, MonoObject* curve)
 	{
-		SPtr<TAnimationCurve<Vector2>> tmpcurve;
+		SPtr<TAnimationCurve<TVector2<float>>> tmpcurve;
 		ScriptVector2Curve* scriptcurve;
 		scriptcurve = ScriptVector2Curve::ToNative(curve);
 		if(scriptcurve != nullptr)
 			tmpcurve = scriptcurve->GetInternal();
-		SPtr<TDistribution<Vector2>> instance = B3DMakeShared<TDistribution<Vector2>>(*tmpcurve);
+		SPtr<TDistribution<TVector2<float>>> instance = B3DMakeShared<TDistribution<TVector2<float>>>(*tmpcurve);
 		new (B3DAllocate<ScriptVector2Distribution>())ScriptVector2Distribution(managedInstance, instance);
 	}
 
 	void ScriptVector2Distribution::InternalTDistribution3(MonoObject* managedInstance, MonoObject* minCurve, MonoObject* maxCurve)
 	{
-		SPtr<TAnimationCurve<Vector2>> tmpminCurve;
+		SPtr<TAnimationCurve<TVector2<float>>> tmpminCurve;
 		ScriptVector2Curve* scriptminCurve;
 		scriptminCurve = ScriptVector2Curve::ToNative(minCurve);
 		if(scriptminCurve != nullptr)
 			tmpminCurve = scriptminCurve->GetInternal();
-		SPtr<TAnimationCurve<Vector2>> tmpmaxCurve;
+		SPtr<TAnimationCurve<TVector2<float>>> tmpmaxCurve;
 		ScriptVector2Curve* scriptmaxCurve;
 		scriptmaxCurve = ScriptVector2Curve::ToNative(maxCurve);
 		if(scriptmaxCurve != nullptr)
 			tmpmaxCurve = scriptmaxCurve->GetInternal();
-		SPtr<TDistribution<Vector2>> instance = B3DMakeShared<TDistribution<Vector2>>(*tmpminCurve, *tmpmaxCurve);
+		SPtr<TDistribution<TVector2<float>>> instance = B3DMakeShared<TDistribution<TVector2<float>>>(*tmpminCurve, *tmpmaxCurve);
 		new (B3DAllocate<ScriptVector2Distribution>())ScriptVector2Distribution(managedInstance, instance);
 	}
 
@@ -410,17 +410,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptVector2Distribution::InternalGetMinConstant(ScriptVector2Distribution* thisPtr, Vector2* __output)
+	void ScriptVector2Distribution::InternalGetMinConstant(ScriptVector2Distribution* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->GetMinConstant();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptVector2Distribution::InternalGetMaxConstant(ScriptVector2Distribution* thisPtr, Vector2* __output)
+	void ScriptVector2Distribution::InternalGetMaxConstant(ScriptVector2Distribution* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->GetMaxConstant();
 
 		*__output = tmp__output;
@@ -428,7 +428,7 @@ namespace bs
 
 	MonoObject* ScriptVector2Distribution::InternalGetMinCurve(ScriptVector2Distribution* thisPtr)
 	{
-		SPtr<TAnimationCurve<Vector2>> tmp__output = B3DMakeShared<TAnimationCurve<Vector2>>();
+		SPtr<TAnimationCurve<TVector2<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector2<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetMinCurve();
 
 		MonoObject* __output;
@@ -439,7 +439,7 @@ namespace bs
 
 	MonoObject* ScriptVector2Distribution::InternalGetMaxCurve(ScriptVector2Distribution* thisPtr)
 	{
-		SPtr<TAnimationCurve<Vector2>> tmp__output = B3DMakeShared<TAnimationCurve<Vector2>>();
+		SPtr<TAnimationCurve<TVector2<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector2<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetMaxCurve();
 
 		MonoObject* __output;
@@ -448,22 +448,22 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptVector2Distribution::InternalEvaluate(ScriptVector2Distribution* thisPtr, float t, float factor, Vector2* __output)
+	void ScriptVector2Distribution::InternalEvaluate(ScriptVector2Distribution* thisPtr, float t, float factor, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Evaluate(t, factor);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptVector2Distribution::InternalEvaluate0(ScriptVector2Distribution* thisPtr, float t, MonoObject* factor, Vector2* __output)
+	void ScriptVector2Distribution::InternalEvaluate0(ScriptVector2Distribution* thisPtr, float t, MonoObject* factor, TVector2<float>* __output)
 	{
 		SPtr<Random> tmpfactor;
 		ScriptRandom* scriptfactor;
 		scriptfactor = ScriptRandom::ToNative(factor);
 		if(scriptfactor != nullptr)
 			tmpfactor = scriptfactor->GetInternal();
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Evaluate(t, *tmpfactor);
 
 		*__output = tmp__output;

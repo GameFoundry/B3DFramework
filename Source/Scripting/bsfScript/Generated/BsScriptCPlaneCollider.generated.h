@@ -18,8 +18,8 @@ namespace bs
 		ScriptPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value);
 
 	private:
-		static void InternalSetNormal(ScriptPlaneCollider* thisPtr, Vector3* normal);
-		static void InternalGetNormal(ScriptPlaneCollider* thisPtr, Vector3* __output);
+		static void InternalSetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* normal);
+		static void InternalGetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* __output);
 		static void InternalSetDistance(ScriptPlaneCollider* thisPtr, float distance);
 		static float InternalGetDistance(ScriptPlaneCollider* thisPtr);
 	};

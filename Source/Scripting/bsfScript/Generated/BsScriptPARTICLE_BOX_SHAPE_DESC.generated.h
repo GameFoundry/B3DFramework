@@ -13,7 +13,7 @@ namespace bs
 	struct __PARTICLE_BOX_SHAPE_DESCInterop
 	{
 		ParticleEmitterBoxType Type;
-		Vector3 Extents;
+		TVector3<float> Extents;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBoxShapeOptions : public ScriptObject<ScriptParticleBoxShapeOptions>

@@ -23,27 +23,27 @@ namespace bs
 
 	}
 
-	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* thisPtr, Vector3* extents)
+	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* extents)
 	{
 		thisPtr->GetHandle()->SetExtents(*extents);
 	}
 
-	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* thisPtr, Vector3* __output)
+	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetExtents();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* thisPtr, Vector3* center)
+	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* thisPtr, Vector3* __output)
+	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();
 
 		*__output = tmp__output;

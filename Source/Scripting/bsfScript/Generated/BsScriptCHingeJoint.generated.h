@@ -5,9 +5,9 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCJoint.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
 
 namespace bs { class CHingeJoint; }
@@ -22,7 +22,7 @@ namespace bs
 		ScriptHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
 
 	private:
-		static void InternalGetAngle(ScriptHingeJoint* thisPtr, Radian* __output);
+		static void InternalGetAngle(ScriptHingeJoint* thisPtr, TRadian<float>* __output);
 		static float InternalGetSpeed(ScriptHingeJoint* thisPtr);
 		static void InternalGetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* __output);
 		static void InternalSetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* limit);

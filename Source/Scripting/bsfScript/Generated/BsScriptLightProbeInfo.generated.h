@@ -12,7 +12,7 @@ namespace bs
 	struct __LightProbeInfoInterop
 	{
 		uint32_t Handle;
-		Vector3 Position;
+		TVector3<float> Position;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeInfo : public ScriptObject<ScriptLightProbeInfo>

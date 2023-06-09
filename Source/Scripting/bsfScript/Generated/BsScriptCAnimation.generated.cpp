@@ -9,8 +9,8 @@
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
 #include "BsScriptBlend1DInfo.generated.h"
-#include "BsScriptBlend2DInfo.generated.h"
 #include "Wrappers/BsScriptVector.h"
+#include "BsScriptBlend2DInfo.generated.h"
 #include "BsScriptAnimationClipState.generated.h"
 
 namespace bs
@@ -179,7 +179,7 @@ namespace bs
 		thisPtr->GetHandle()->Blend1D(tmpinfo, t);
 	}
 
-	void ScriptAnimation::InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, Vector2* t)
+	void ScriptAnimation::InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, TVector2<float>* t)
 	{
 		Blend2DInfo tmpinfo;
 		tmpinfo = ScriptBlend2DInfo::FromInterop(*info);

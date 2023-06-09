@@ -23,14 +23,14 @@ namespace bs
 
 	}
 
-	void ScriptPlaneCollider::InternalSetNormal(ScriptPlaneCollider* thisPtr, Vector3* normal)
+	void ScriptPlaneCollider::InternalSetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* normal)
 	{
 		thisPtr->GetHandle()->SetNormal(*normal);
 	}
 
-	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* thisPtr, Vector3* __output)
+	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetNormal();
 
 		*__output = tmp__output;

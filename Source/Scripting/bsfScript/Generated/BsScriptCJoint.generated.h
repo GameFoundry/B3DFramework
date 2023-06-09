@@ -4,8 +4,8 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Physics/BsFJoint.h"
 #include "Math/BsVector3.h"
+#include "../../../Foundation/bsfCore/Physics/BsFJoint.h"
 #include "Math/BsQuaternion.h"
 
 namespace bs { class CJoint; }
@@ -33,9 +33,9 @@ namespace bs
 
 		static MonoObject* InternalGetBody(ScriptJointBase* thisPtr, JointBody body);
 		static void InternalSetBody(ScriptJointBase* thisPtr, JointBody body, MonoObject* value);
-		static void InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, Vector3* __output);
+		static void InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, TVector3<float>* __output);
 		static void InternalGetRotation(ScriptJointBase* thisPtr, JointBody body, Quaternion* __output);
-		static void InternalSetTransform(ScriptJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation);
+		static void InternalSetTransform(ScriptJointBase* thisPtr, JointBody body, TVector3<float>* position, Quaternion* rotation);
 		static float InternalGetBreakForce(ScriptJointBase* thisPtr);
 		static void InternalSetBreakForce(ScriptJointBase* thisPtr, float force);
 		static float InternalGetBreakTorque(ScriptJointBase* thisPtr);

@@ -12,9 +12,9 @@ namespace bs
 {
 	struct __PhysicsQueryHitInterop
 	{
-		Vector3 Point;
-		Vector3 Normal;
-		Vector2 Uv;
+		TVector3<float> Point;
+		TVector3<float> Normal;
+		TVector2<float> Uv;
 		float Distance;
 		uint32_t TriangleIdx;
 		uint32_t UnmappedTriangleIdx;

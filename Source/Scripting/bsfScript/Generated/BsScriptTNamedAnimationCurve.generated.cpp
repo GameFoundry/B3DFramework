@@ -24,17 +24,17 @@ namespace bs
 	void ScriptNamedFloatCurve::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptNamedFloatCurve::Box(const __TNamedAnimationCurvefloatInterop& value)
+	MonoObject*ScriptNamedFloatCurve::Box(const __TNamedAnimationCurve_float_Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TNamedAnimationCurvefloatInterop ScriptNamedFloatCurve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_float_Interop ScriptNamedFloatCurve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurvefloatInterop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_float_Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<float> ScriptNamedFloatCurve::FromInterop(const __TNamedAnimationCurvefloatInterop& value)
+	TNamedAnimationCurve<float> ScriptNamedFloatCurve::FromInterop(const __TNamedAnimationCurve_float_Interop& value)
 	{
 		TNamedAnimationCurve<float> output;
 		String tmpName;
@@ -52,9 +52,9 @@ namespace bs
 		return output;
 	}
 
-	__TNamedAnimationCurvefloatInterop ScriptNamedFloatCurve::ToInterop(const TNamedAnimationCurve<float>& value)
+	__TNamedAnimationCurve_float_Interop ScriptNamedFloatCurve::ToInterop(const TNamedAnimationCurve<float>& value)
 	{
-		__TNamedAnimationCurvefloatInterop output;
+		__TNamedAnimationCurve_float_Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
@@ -76,24 +76,24 @@ namespace bs
 	void ScriptNamedVector3Curve::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptNamedVector3Curve::Box(const __TNamedAnimationCurveVector3Interop& value)
+	MonoObject*ScriptNamedVector3Curve::Box(const __TNamedAnimationCurve_TVector3_float__Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TNamedAnimationCurveVector3Interop ScriptNamedVector3Curve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_TVector3_float__Interop ScriptNamedVector3Curve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurveVector3Interop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_TVector3_float__Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<Vector3> ScriptNamedVector3Curve::FromInterop(const __TNamedAnimationCurveVector3Interop& value)
+	TNamedAnimationCurve<TVector3<float>> ScriptNamedVector3Curve::FromInterop(const __TNamedAnimationCurve_TVector3_float__Interop& value)
 	{
-		TNamedAnimationCurve<Vector3> output;
+		TNamedAnimationCurve<TVector3<float>> output;
 		String tmpName;
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<Vector3>> tmpCurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpCurve;
 		ScriptVector3Curve* scriptCurve;
 		scriptCurve = ScriptVector3Curve::ToNative(value.Curve);
 		if(scriptCurve != nullptr)
@@ -104,16 +104,16 @@ namespace bs
 		return output;
 	}
 
-	__TNamedAnimationCurveVector3Interop ScriptNamedVector3Curve::ToInterop(const TNamedAnimationCurve<Vector3>& value)
+	__TNamedAnimationCurve_TVector3_float__Interop ScriptNamedVector3Curve::ToInterop(const TNamedAnimationCurve<TVector3<float>>& value)
 	{
-		__TNamedAnimationCurveVector3Interop output;
+		__TNamedAnimationCurve_TVector3_float__Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<Vector3>> tmpCurvecopy;
-		tmpCurvecopy = B3DMakeShared<TAnimationCurve<Vector3>>(value.Curve);
+		SPtr<TAnimationCurve<TVector3<float>>> tmpCurvecopy;
+		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector3<float>>>(value.Curve);
 		tmpCurve = ScriptVector3Curve::Create(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
@@ -128,24 +128,24 @@ namespace bs
 	void ScriptNamedVector2Curve::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptNamedVector2Curve::Box(const __TNamedAnimationCurveVector2Interop& value)
+	MonoObject*ScriptNamedVector2Curve::Box(const __TNamedAnimationCurve_TVector2_float__Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TNamedAnimationCurveVector2Interop ScriptNamedVector2Curve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_TVector2_float__Interop ScriptNamedVector2Curve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurveVector2Interop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_TVector2_float__Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<Vector2> ScriptNamedVector2Curve::FromInterop(const __TNamedAnimationCurveVector2Interop& value)
+	TNamedAnimationCurve<TVector2<float>> ScriptNamedVector2Curve::FromInterop(const __TNamedAnimationCurve_TVector2_float__Interop& value)
 	{
-		TNamedAnimationCurve<Vector2> output;
+		TNamedAnimationCurve<TVector2<float>> output;
 		String tmpName;
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<Vector2>> tmpCurve;
+		SPtr<TAnimationCurve<TVector2<float>>> tmpCurve;
 		ScriptVector2Curve* scriptCurve;
 		scriptCurve = ScriptVector2Curve::ToNative(value.Curve);
 		if(scriptCurve != nullptr)
@@ -156,16 +156,16 @@ namespace bs
 		return output;
 	}
 
-	__TNamedAnimationCurveVector2Interop ScriptNamedVector2Curve::ToInterop(const TNamedAnimationCurve<Vector2>& value)
+	__TNamedAnimationCurve_TVector2_float__Interop ScriptNamedVector2Curve::ToInterop(const TNamedAnimationCurve<TVector2<float>>& value)
 	{
-		__TNamedAnimationCurveVector2Interop output;
+		__TNamedAnimationCurve_TVector2_float__Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<Vector2>> tmpCurvecopy;
-		tmpCurvecopy = B3DMakeShared<TAnimationCurve<Vector2>>(value.Curve);
+		SPtr<TAnimationCurve<TVector2<float>>> tmpCurvecopy;
+		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector2<float>>>(value.Curve);
 		tmpCurve = ScriptVector2Curve::Create(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
@@ -180,17 +180,17 @@ namespace bs
 	void ScriptNamedQuaternionCurve::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptNamedQuaternionCurve::Box(const __TNamedAnimationCurveQuaternionInterop& value)
+	MonoObject*ScriptNamedQuaternionCurve::Box(const __TNamedAnimationCurve_Quaternion_Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TNamedAnimationCurveQuaternionInterop ScriptNamedQuaternionCurve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_Quaternion_Interop ScriptNamedQuaternionCurve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurveQuaternionInterop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_Quaternion_Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<Quaternion> ScriptNamedQuaternionCurve::FromInterop(const __TNamedAnimationCurveQuaternionInterop& value)
+	TNamedAnimationCurve<Quaternion> ScriptNamedQuaternionCurve::FromInterop(const __TNamedAnimationCurve_Quaternion_Interop& value)
 	{
 		TNamedAnimationCurve<Quaternion> output;
 		String tmpName;
@@ -208,9 +208,9 @@ namespace bs
 		return output;
 	}
 
-	__TNamedAnimationCurveQuaternionInterop ScriptNamedQuaternionCurve::ToInterop(const TNamedAnimationCurve<Quaternion>& value)
+	__TNamedAnimationCurve_Quaternion_Interop ScriptNamedQuaternionCurve::ToInterop(const TNamedAnimationCurve<Quaternion>& value)
 	{
-		__TNamedAnimationCurveQuaternionInterop output;
+		__TNamedAnimationCurve_Quaternion_Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
@@ -232,17 +232,17 @@ namespace bs
 	void ScriptNamedIntegerCurve::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptNamedIntegerCurve::Box(const __TNamedAnimationCurveint32_tInterop& value)
+	MonoObject*ScriptNamedIntegerCurve::Box(const __TNamedAnimationCurve_int32_t_Interop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	__TNamedAnimationCurveint32_tInterop ScriptNamedIntegerCurve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_int32_t_Interop ScriptNamedIntegerCurve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurveint32_tInterop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_int32_t_Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<int32_t> ScriptNamedIntegerCurve::FromInterop(const __TNamedAnimationCurveint32_tInterop& value)
+	TNamedAnimationCurve<int32_t> ScriptNamedIntegerCurve::FromInterop(const __TNamedAnimationCurve_int32_t_Interop& value)
 	{
 		TNamedAnimationCurve<int32_t> output;
 		String tmpName;
@@ -260,9 +260,9 @@ namespace bs
 		return output;
 	}
 
-	__TNamedAnimationCurveint32_tInterop ScriptNamedIntegerCurve::ToInterop(const TNamedAnimationCurve<int32_t>& value)
+	__TNamedAnimationCurve_int32_t_Interop ScriptNamedIntegerCurve::ToInterop(const TNamedAnimationCurve<int32_t>& value)
 	{
-		__TNamedAnimationCurveint32_tInterop output;
+		__TNamedAnimationCurve_int32_t_Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;

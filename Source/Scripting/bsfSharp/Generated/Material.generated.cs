@@ -53,7 +53,7 @@ namespace bs
 		[NotNull]
 		[PassByCopy]
 		[NativeWrapper]
-		public ShaderVariation Variation
+		public ShaderVariationParameters Variation
 		{
 			get { return Internal_GetVariation(mCachedPtr); }
 			set { Internal_SetVariation(mCachedPtr, value); }
@@ -283,13 +283,13 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetShader(IntPtr thisPtr, RRef<Shader> shader);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetVariation(IntPtr thisPtr, ShaderVariation variation);
+		private static extern void Internal_SetVariation(IntPtr thisPtr, ShaderVariationParameters variation);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Material> Internal_Clone(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Shader> Internal_GetShader(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ShaderVariation Internal_GetVariation(IntPtr thisPtr);
+		private static extern ShaderVariationParameters Internal_GetVariation(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetFloat(IntPtr thisPtr, string name, float value, int arrayIdx);
 		[MethodImpl(MethodImplOptions.InternalCall)]

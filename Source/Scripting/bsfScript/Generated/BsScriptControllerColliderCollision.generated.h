@@ -13,9 +13,9 @@ namespace bs
 	{
 		MonoObject* Collider;
 		uint32_t TriangleIndex;
-		Vector3 Position;
-		Vector3 Normal;
-		Vector3 MotionDir;
+		TVector3<float> Position;
+		TVector3<float> Normal;
+		TVector3<float> MotionDir;
 		float MotionAmount;
 	};
 

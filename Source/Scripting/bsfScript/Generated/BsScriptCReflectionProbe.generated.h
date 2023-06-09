@@ -22,8 +22,8 @@ namespace bs
 		static void InternalSetType(ScriptReflectionProbe* thisPtr, ReflectionProbeType type);
 		static float InternalGetRadius(ScriptReflectionProbe* thisPtr);
 		static void InternalSetRadius(ScriptReflectionProbe* thisPtr, float radius);
-		static void InternalGetExtents(ScriptReflectionProbe* thisPtr, Vector3* __output);
-		static void InternalSetExtents(ScriptReflectionProbe* thisPtr, Vector3* extents);
+		static void InternalGetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* __output);
+		static void InternalSetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* extents);
 		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* thisPtr);
 		static void InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture);
 		static void InternalCapture(ScriptReflectionProbe* thisPtr);

@@ -50,8 +50,8 @@ namespace bs
 		static void InternalSetApertureSize(ScriptDepthOfFieldSettings* thisPtr, float value);
 		static float InternalGetFocalLength(ScriptDepthOfFieldSettings* thisPtr);
 		static void InternalSetFocalLength(ScriptDepthOfFieldSettings* thisPtr, float value);
-		static void InternalGetSensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* __output);
-		static void InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* value);
+		static void InternalGetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* __output);
+		static void InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* value);
 		static bool InternalGetBokehOcclusion(ScriptDepthOfFieldSettings* thisPtr);
 		static void InternalSetBokehOcclusion(ScriptDepthOfFieldSettings* thisPtr, bool value);
 		static float InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr);

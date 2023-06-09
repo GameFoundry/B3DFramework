@@ -15,13 +15,13 @@ namespace bs
 	/// control shader compilation.
 	/// </summary>
 	[ShowInInspector]
-	public partial class ShaderVariation : ScriptObject
+	public partial class ShaderVariationParameters : ScriptObject
 	{
-		private ShaderVariation(bool __dummy0) { }
+		private ShaderVariationParameters(bool __dummy0) { }
 
-		public ShaderVariation()
+		public ShaderVariationParameters()
 		{
-			Internal_ShaderVariation(this);
+			Internal_ShaderVariationParameters(this);
 		}
 
 		/// <summary>Returns a list of names of all registered parameters.</summary>
@@ -118,7 +118,7 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_ShaderVariation(ShaderVariation managedInstance);
+		private static extern void Internal_ShaderVariationParameters(ShaderVariationParameters managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_GetInt(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -11,11 +11,11 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs { struct __TNamedAnimationCurvefloatInterop; }
-namespace bs { struct __TNamedAnimationCurveQuaternionInterop; }
 namespace bs { struct AnimationCurves; }
-namespace bs { struct __TNamedAnimationCurveVector3Interop; }
+namespace bs { struct __TNamedAnimationCurve_float_Interop; }
 namespace bs { class AnimationCurvesEx; }
+namespace bs { struct __TNamedAnimationCurve_TVector3_float__Interop; }
+namespace bs { struct __TNamedAnimationCurve_Quaternion_Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public ScriptObject<ScriptAnimationCurves>

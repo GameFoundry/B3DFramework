@@ -247,7 +247,7 @@ namespace bs
 
 	void ScriptParticleEmitter::InternalSetInitialSize3D(ScriptParticleEmitter* thisPtr, MonoObject* value)
 	{
-		SPtr<TDistribution<Vector3>> tmpvalue;
+		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptvalue;
 		scriptvalue = ScriptVector3Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -257,7 +257,7 @@ namespace bs
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialSize3D(ScriptParticleEmitter* thisPtr)
 	{
-		SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
+		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetInitialSize3D();
 
 		MonoObject* __output;
@@ -305,7 +305,7 @@ namespace bs
 
 	void ScriptParticleEmitter::InternalSetInitialRotation3D(ScriptParticleEmitter* thisPtr, MonoObject* value)
 	{
-		SPtr<TDistribution<Vector3>> tmpvalue;
+		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptvalue;
 		scriptvalue = ScriptVector3Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -315,7 +315,7 @@ namespace bs
 
 	MonoObject* ScriptParticleEmitter::InternalGetInitialRotation3D(ScriptParticleEmitter* thisPtr)
 	{
-		SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
+		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		*tmp__output = thisPtr->GetInternal()->GetInitialRotation3D();
 
 		MonoObject* __output;

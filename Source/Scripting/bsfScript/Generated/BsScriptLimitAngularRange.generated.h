@@ -12,8 +12,8 @@ namespace bs
 {
 	struct __LimitAngularRangeInterop
 	{
-		Radian Lower;
-		Radian Upper;
+		TRadian<float> Lower;
+		TRadian<float> Upper;
 		float ContactDist;
 		float Restitution;
 		Spring Spring;

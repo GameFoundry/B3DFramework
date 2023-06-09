@@ -8,8 +8,6 @@
 #include "BsScriptSkeleton.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptMotionBlurSettings.generated.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
-#include "BsScriptAmbientOcclusionSettings.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
@@ -58,6 +56,8 @@
 #include "BsScriptShaderImportOptions.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptColorGradingSettings.generated.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
+#include "BsScriptAmbientOcclusionSettings.generated.h"
 #if !B3D_IS_ENGINE
 #include "../../../Foundation/bsfEngine/Resources/BsScriptCodeImportOptions.h"
 #endif
@@ -130,6 +130,8 @@
 #include "../../../Foundation/bsfCore/Importer/BsMeshImportOptions.h"
 #endif
 #include "BsScriptMeshImportOptions.generated.h"
+#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
+#include "BsScriptShaderVariationParameters.generated.h"
 #if !B3D_IS_ENGINE
 #include "../../../Foundation/bsfCore/Resources/BsResourceManifest.h"
 #endif
@@ -138,8 +140,6 @@
 #include "../../../Foundation/bsfCore/Importer/BsTextureImportOptions.h"
 #endif
 #include "BsScriptTextureImportOptions.generated.h"
-#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
-#include "BsScriptShaderVariation.generated.h"
 #if !B3D_IS_ENGINE
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #endif
@@ -152,7 +152,6 @@ namespace bs
 	LOOKUP_BEGIN(BuiltinReflectableTypes)
 		ADD_ENTRY(Skeleton, ScriptSkeleton)
 		ADD_ENTRY(MotionBlurSettings, ScriptMotionBlurSettings)
-		ADD_ENTRY(AmbientOcclusionSettings, ScriptAmbientOcclusionSettings)
 		ADD_ENTRY(ParticleEvolver, ScriptParticleEvolver)
 		ADD_ENTRY(RenderTexture, ScriptRenderTexture)
 #if !B3D_IS_ENGINE
@@ -180,6 +179,7 @@ namespace bs
 		ADD_ENTRY(ShaderImportOptions, ScriptShaderImportOptions)
 #endif
 		ADD_ENTRY(ColorGradingSettings, ScriptColorGradingSettings)
+		ADD_ENTRY(AmbientOcclusionSettings, ScriptAmbientOcclusionSettings)
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(ScriptCodeImportOptions, ScriptScriptCodeImportOptions)
 #endif
@@ -220,13 +220,13 @@ namespace bs
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(MeshImportOptions, ScriptMeshImportOptions)
 #endif
+		ADD_ENTRY(ShaderVariationParameters, ScriptShaderVariationParameters)
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(ResourceManifest, ScriptResourceManifest)
 #endif
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(TextureImportOptions, ScriptTextureImportOptions)
 #endif
-		ADD_ENTRY(ShaderVariationParameters, ScriptShaderVariation)
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(FontImportOptions, ScriptFontImportOptions)
 #endif

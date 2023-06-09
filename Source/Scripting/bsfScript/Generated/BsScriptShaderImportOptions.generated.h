@@ -6,7 +6,7 @@
 #include "Wrappers/BsScriptReflectable.h"
 #include "BsScriptImportOptions.generated.h"
 #include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
-#include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
+#include "../../../Foundation/bsfCore/Material/BsShaderCompiler.h"
 
 namespace bs { class ShaderImportOptions; }
 namespace bs

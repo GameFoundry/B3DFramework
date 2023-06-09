@@ -62,8 +62,8 @@ namespace bs
 
 		public Vector2UI(int x, int y)
 		{
-			this.X = 0;
-			this.Y = 0;
+			this.X = x;
+			this.Y = y;
 		}
 
 		public Vector2UI(int value)

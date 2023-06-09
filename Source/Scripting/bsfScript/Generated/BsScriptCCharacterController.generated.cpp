@@ -5,9 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
-#include "BsScriptControllerColliderCollision.generated.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptControllerControllerCollision.generated.h"
+#include "Wrappers/BsScriptVector.h"
+#include "BsScriptControllerColliderCollision.generated.h"
 
 namespace bs
 {
@@ -68,7 +68,7 @@ namespace bs
 		tmpp0 = ScriptControllerControllerCollision::Box(interopp0);
 		MonoUtil::InvokeThunk(OnControllerHitThunk, GetManagedInstance(), tmpp0);
 	}
-	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* thisPtr, Vector3* displacement)
+	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* thisPtr, TVector3<float>* displacement)
 	{
 		Flags<CharacterCollisionFlag> tmp__output;
 		tmp__output = thisPtr->GetHandle()->Move(*displacement);
@@ -79,15 +79,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalGetFootPosition(ScriptCharacterController* thisPtr, Vector3* __output)
+	void ScriptCharacterController::InternalGetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetFootPosition();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetFootPosition(ScriptCharacterController* thisPtr, Vector3* position)
+	void ScriptCharacterController::InternalSetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* position)
 	{
 		thisPtr->GetHandle()->SetFootPosition(*position);
 	}
@@ -124,15 +124,15 @@ namespace bs
 		thisPtr->GetHandle()->SetHeight(height);
 	}
 
-	void ScriptCharacterController::InternalGetUp(ScriptCharacterController* thisPtr, Vector3* __output)
+	void ScriptCharacterController::InternalGetUp(ScriptCharacterController* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetUp();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetUp(ScriptCharacterController* thisPtr, Vector3* up)
+	void ScriptCharacterController::InternalSetUp(ScriptCharacterController* thisPtr, TVector3<float>* up)
 	{
 		thisPtr->GetHandle()->SetUp(*up);
 	}
@@ -217,15 +217,15 @@ namespace bs
 		thisPtr->GetHandle()->SetStepOffset(value);
 	}
 
-	void ScriptCharacterController::InternalGetSlopeLimit(ScriptCharacterController* thisPtr, Radian* __output)
+	void ScriptCharacterController::InternalGetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSlopeLimit();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetSlopeLimit(ScriptCharacterController* thisPtr, Radian* value)
+	void ScriptCharacterController::InternalSetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* value)
 	{
 		thisPtr->GetHandle()->SetSlopeLimit(*value);
 	}

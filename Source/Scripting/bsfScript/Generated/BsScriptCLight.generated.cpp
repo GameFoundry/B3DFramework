@@ -133,27 +133,27 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetSpotAngle(ScriptLight* thisPtr, Degree* spotAngle)
+	void ScriptLight::InternalSetSpotAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle)
 	{
 		thisPtr->GetHandle()->SetSpotAngle(*spotAngle);
 	}
 
-	void ScriptLight::InternalGetSpotAngle(ScriptLight* thisPtr, Degree* __output)
+	void ScriptLight::InternalGetSpotAngle(ScriptLight* thisPtr, TDegree<float>* __output)
 	{
-		Degree tmp__output;
+		TDegree<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSpotAngle();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLight::InternalSetSpotFalloffAngle(ScriptLight* thisPtr, Degree* spotAngle)
+	void ScriptLight::InternalSetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle)
 	{
 		thisPtr->GetHandle()->SetSpotFalloffAngle(*spotAngle);
 	}
 
-	void ScriptLight::InternalGetSpotFalloffAngle(ScriptLight* thisPtr, Degree* __output)
+	void ScriptLight::InternalGetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* __output)
 	{
-		Degree tmp__output;
+		TDegree<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSpotFalloffAngle();
 
 		*__output = tmp__output;

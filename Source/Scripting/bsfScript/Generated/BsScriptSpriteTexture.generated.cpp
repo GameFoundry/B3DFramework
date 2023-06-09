@@ -123,27 +123,27 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSpriteTexture::InternalSetOffset(ScriptSpriteTexture* thisPtr, Vector2* offset)
+	void ScriptSpriteTexture::InternalSetOffset(ScriptSpriteTexture* thisPtr, TVector2<float>* offset)
 	{
 		thisPtr->GetHandle()->SetOffset(*offset);
 	}
 
-	void ScriptSpriteTexture::InternalGetOffset(ScriptSpriteTexture* thisPtr, Vector2* __output)
+	void ScriptSpriteTexture::InternalGetOffset(ScriptSpriteTexture* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetOffset();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptSpriteTexture::InternalSetScale(ScriptSpriteTexture* thisPtr, Vector2* scale)
+	void ScriptSpriteTexture::InternalSetScale(ScriptSpriteTexture* thisPtr, TVector2<float>* scale)
 	{
 		thisPtr->GetHandle()->SetScale(*scale);
 	}
 
-	void ScriptSpriteTexture::InternalGetScale(ScriptSpriteTexture* thisPtr, Vector2* __output)
+	void ScriptSpriteTexture::InternalGetScale(ScriptSpriteTexture* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetScale();
 
 		*__output = tmp__output;
@@ -189,7 +189,7 @@ namespace bs
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
-	void ScriptSpriteTexture::InternalCreate0(MonoObject* managedInstance, Vector2* uvOffset, Vector2* uvScale, MonoObject* texture)
+	void ScriptSpriteTexture::InternalCreate0(MonoObject* managedInstance, TVector2<float>* uvOffset, TVector2<float>* uvScale, MonoObject* texture)
 	{
 		ResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;

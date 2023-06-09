@@ -18,14 +18,14 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
 namespace bs { template<class T0> class TAnimationCurve; }
-namespace bs { struct __TKeyframeVector2Interop; }
-namespace bs { struct __TKeyframeVector3Interop; }
-namespace bs { struct __TKeyframeQuaternionInterop; }
+namespace bs { struct __TKeyframe_TVector3_float__Interop; }
+namespace bs { struct __TKeyframe_TVector2_float__Interop; }
+namespace bs { struct __TKeyframe_Quaternion_Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurve : public ScriptObject<ScriptAnimationCurve>
@@ -51,16 +51,16 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector3Curve")
 
-		ScriptVector3Curve(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector3>>& value);
+		ScriptVector3Curve(MonoObject* managedInstance, const SPtr<TAnimationCurve<TVector3<float>>>& value);
 
-		SPtr<TAnimationCurve<Vector3>> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<TAnimationCurve<Vector3>>& value);
+		SPtr<TAnimationCurve<TVector3<float>>> GetInternal() const { return mInternal; }
+		static MonoObject* Create(const SPtr<TAnimationCurve<TVector3<float>>>& value);
 
 	private:
-		SPtr<TAnimationCurve<Vector3>> mInternal;
+		SPtr<TAnimationCurve<TVector3<float>>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptVector3Curve* thisPtr, float time, bool loop, Vector3* __output);
+		static void InternalEvaluate(ScriptVector3Curve* thisPtr, float time, bool loop, TVector3<float>* __output);
 		static MonoArray* InternalGetKeyFrames(ScriptVector3Curve* thisPtr);
 	};
 
@@ -69,16 +69,16 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector2Curve")
 
-		ScriptVector2Curve(MonoObject* managedInstance, const SPtr<TAnimationCurve<Vector2>>& value);
+		ScriptVector2Curve(MonoObject* managedInstance, const SPtr<TAnimationCurve<TVector2<float>>>& value);
 
-		SPtr<TAnimationCurve<Vector2>> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<TAnimationCurve<Vector2>>& value);
+		SPtr<TAnimationCurve<TVector2<float>>> GetInternal() const { return mInternal; }
+		static MonoObject* Create(const SPtr<TAnimationCurve<TVector2<float>>>& value);
 
 	private:
-		SPtr<TAnimationCurve<Vector2>> mInternal;
+		SPtr<TAnimationCurve<TVector2<float>>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptVector2Curve* thisPtr, float time, bool loop, Vector2* __output);
+		static void InternalEvaluate(ScriptVector2Curve* thisPtr, float time, bool loop, TVector2<float>* __output);
 		static MonoArray* InternalGetKeyFrames(ScriptVector2Curve* thisPtr);
 	};
 

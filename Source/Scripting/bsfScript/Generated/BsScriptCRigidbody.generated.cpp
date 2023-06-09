@@ -5,9 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCRigidbody.h"
+#include "BsScriptCollisionData.generated.h"
 #include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptQuaternion.h"
-#include "BsScriptCollisionData.generated.h"
 
 namespace bs
 {
@@ -98,7 +98,7 @@ namespace bs
 		tmpp0 = ScriptCollisionData::Box(interopp0);
 		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
 	}
-	void ScriptRigidbody::InternalMove(ScriptRigidbody* thisPtr, Vector3* position)
+	void ScriptRigidbody::InternalMove(ScriptRigidbody* thisPtr, TVector3<float>* position)
 	{
 		thisPtr->GetHandle()->Move(*position);
 	}
@@ -193,27 +193,27 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRigidbody::InternalSetVelocity(ScriptRigidbody* thisPtr, Vector3* velocity)
+	void ScriptRigidbody::InternalSetVelocity(ScriptRigidbody* thisPtr, TVector3<float>* velocity)
 	{
 		thisPtr->GetHandle()->SetVelocity(*velocity);
 	}
 
-	void ScriptRigidbody::InternalGetVelocity(ScriptRigidbody* thisPtr, Vector3* __output)
+	void ScriptRigidbody::InternalGetVelocity(ScriptRigidbody* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetVelocity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRigidbody::InternalSetAngularVelocity(ScriptRigidbody* thisPtr, Vector3* velocity)
+	void ScriptRigidbody::InternalSetAngularVelocity(ScriptRigidbody* thisPtr, TVector3<float>* velocity)
 	{
 		thisPtr->GetHandle()->SetAngularVelocity(*velocity);
 	}
 
-	void ScriptRigidbody::InternalGetAngularVelocity(ScriptRigidbody* thisPtr, Vector3* __output)
+	void ScriptRigidbody::InternalGetAngularVelocity(ScriptRigidbody* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetAngularVelocity();
 
 		*__output = tmp__output;
@@ -251,14 +251,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRigidbody::InternalSetInertiaTensor(ScriptRigidbody* thisPtr, Vector3* tensor)
+	void ScriptRigidbody::InternalSetInertiaTensor(ScriptRigidbody* thisPtr, TVector3<float>* tensor)
 	{
 		thisPtr->GetHandle()->SetInertiaTensor(*tensor);
 	}
 
-	void ScriptRigidbody::InternalGetInertiaTensor(ScriptRigidbody* thisPtr, Vector3* __output)
+	void ScriptRigidbody::InternalGetInertiaTensor(ScriptRigidbody* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetInertiaTensor();
 
 		*__output = tmp__output;
@@ -280,14 +280,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRigidbody::InternalSetCenterOfMassPosition(ScriptRigidbody* thisPtr, Vector3* position)
+	void ScriptRigidbody::InternalSetCenterOfMassPosition(ScriptRigidbody* thisPtr, TVector3<float>* position)
 	{
 		thisPtr->GetHandle()->SetCenterOfMassPosition(*position);
 	}
 
-	void ScriptRigidbody::InternalGetCenterOfMassPosition(ScriptRigidbody* thisPtr, Vector3* __output)
+	void ScriptRigidbody::InternalGetCenterOfMassPosition(ScriptRigidbody* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenterOfMassPosition();
 
 		*__output = tmp__output;
@@ -370,24 +370,24 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRigidbody::InternalAddForce(ScriptRigidbody* thisPtr, Vector3* force, ForceMode mode)
+	void ScriptRigidbody::InternalAddForce(ScriptRigidbody* thisPtr, TVector3<float>* force, ForceMode mode)
 	{
 		thisPtr->GetHandle()->AddForce(*force, mode);
 	}
 
-	void ScriptRigidbody::InternalAddTorque(ScriptRigidbody* thisPtr, Vector3* torque, ForceMode mode)
+	void ScriptRigidbody::InternalAddTorque(ScriptRigidbody* thisPtr, TVector3<float>* torque, ForceMode mode)
 	{
 		thisPtr->GetHandle()->AddTorque(*torque, mode);
 	}
 
-	void ScriptRigidbody::InternalAddForceAtPoint(ScriptRigidbody* thisPtr, Vector3* force, Vector3* position, PointForceMode mode)
+	void ScriptRigidbody::InternalAddForceAtPoint(ScriptRigidbody* thisPtr, TVector3<float>* force, TVector3<float>* position, PointForceMode mode)
 	{
 		thisPtr->GetHandle()->AddForceAtPoint(*force, *position, mode);
 	}
 
-	void ScriptRigidbody::InternalGetVelocityAtPoint(ScriptRigidbody* thisPtr, Vector3* point, Vector3* __output)
+	void ScriptRigidbody::InternalGetVelocityAtPoint(ScriptRigidbody* thisPtr, TVector3<float>* point, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetVelocityAtPoint(*point);
 
 		*__output = tmp__output;

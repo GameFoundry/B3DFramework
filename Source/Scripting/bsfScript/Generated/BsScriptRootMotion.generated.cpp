@@ -36,7 +36,7 @@ namespace bs
 	}
 	MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* thisPtr)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmp__output = B3DMakeShared<TAnimationCurve<Vector3>>();
+		SPtr<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
 		*tmp__output = RootMotionEx::GetPositionCurves(thisPtr->GetInternal());
 
 		MonoObject* __output;

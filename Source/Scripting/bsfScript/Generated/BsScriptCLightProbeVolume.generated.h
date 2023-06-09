@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
 #include "../../../Foundation/bsfCore/Renderer/BsLightProbeVolume.h"
+#include "Math/BsVector3.h"
 #include "Math/BsAABox.h"
 
 namespace bs { class CLightProbeVolume; }
@@ -21,9 +21,9 @@ namespace bs
 		ScriptLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value);
 
 	private:
-		static uint32_t InternalAddProbe(ScriptLightProbeVolume* thisPtr, Vector3* position);
-		static void InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* position);
-		static void InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* __output);
+		static uint32_t InternalAddProbe(ScriptLightProbeVolume* thisPtr, TVector3<float>* position);
+		static void InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* position);
+		static void InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* __output);
 		static void InternalRemoveProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle);
 		static MonoArray* InternalGetProbes(ScriptLightProbeVolume* thisPtr);
 		static void InternalRenderProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle);

@@ -6,9 +6,9 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCCamera.h"
 #include "BsScriptTVector2I.generated.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptRenderSettings.generated.h"
 #include "BsScriptViewport.generated.h"
+#include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptVector.h"
 
 namespace bs
@@ -95,14 +95,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCamera::InternalSetHorzFov(ScriptCamera* thisPtr, Radian* fovy)
+	void ScriptCamera::InternalSetHorzFov(ScriptCamera* thisPtr, TRadian<float>* fovy)
 	{
 		thisPtr->GetHandle()->SetHorzFov(*fovy);
 	}
 
-	void ScriptCamera::InternalGetHorzFov(ScriptCamera* thisPtr, Radian* __output)
+	void ScriptCamera::InternalGetHorzFov(ScriptCamera* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetHorzFov();
 
 		*__output = tmp__output;
@@ -294,7 +294,7 @@ namespace bs
 		thisPtr->GetHandle()->NotifyNeedsRedraw();
 	}
 
-	void ScriptCamera::InternalWorldToScreenPoint(ScriptCamera* thisPtr, Vector3* worldPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalWorldToScreenPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector2I<int32_t>* __output)
 	{
 		TVector2I<int32_t> tmp__output;
 		tmp__output = thisPtr->GetHandle()->WorldToScreenPoint(*worldPoint);
@@ -302,55 +302,55 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalWorldToNdcPoint(ScriptCamera* thisPtr, Vector3* worldPoint, Vector2* __output)
+	void ScriptCamera::InternalWorldToNdcPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->WorldToNdcPoint(*worldPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalWorldToViewPoint(ScriptCamera* thisPtr, Vector3* worldPoint, Vector3* __output)
+	void ScriptCamera::InternalWorldToViewPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->WorldToViewPoint(*worldPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToWorldPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, Vector3* __output)
+	void ScriptCamera::InternalScreenToWorldPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ScreenToWorldPoint(*screenPoint, depth);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToViewPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, Vector3* __output)
+	void ScriptCamera::InternalScreenToViewPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ScreenToViewPoint(*screenPoint, depth);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToNdcPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, Vector2* __output)
+	void ScriptCamera::InternalScreenToNdcPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ScreenToNdcPoint(*screenPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalViewToWorldPoint(ScriptCamera* thisPtr, Vector3* viewPoint, Vector3* __output)
+	void ScriptCamera::InternalViewToWorldPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ViewToWorldPoint(*viewPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalViewToScreenPoint(ScriptCamera* thisPtr, Vector3* viewPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalViewToScreenPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector2I<int32_t>* __output)
 	{
 		TVector2I<int32_t> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ViewToScreenPoint(*viewPoint);
@@ -358,31 +358,31 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalViewToNdcPoint(ScriptCamera* thisPtr, Vector3* viewPoint, Vector2* __output)
+	void ScriptCamera::InternalViewToNdcPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ViewToNdcPoint(*viewPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalNdcToWorldPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, float depth, Vector3* __output)
+	void ScriptCamera::InternalNdcToWorldPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, float depth, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->NdcToWorldPoint(*ndcPoint, depth);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalNdcToViewPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, float depth, Vector3* __output)
+	void ScriptCamera::InternalNdcToViewPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, float depth, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->NdcToViewPoint(*ndcPoint, depth);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalNdcToScreenPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalNdcToScreenPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, TVector2I<int32_t>* __output)
 	{
 		TVector2I<int32_t> tmp__output;
 		tmp__output = thisPtr->GetHandle()->NdcToScreenPoint(*ndcPoint);
@@ -398,17 +398,17 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalProjectPoint(ScriptCamera* thisPtr, Vector3* point, Vector3* __output)
+	void ScriptCamera::InternalProjectPoint(ScriptCamera* thisPtr, TVector3<float>* point, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->ProjectPoint(*point);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalUnprojectPoint(ScriptCamera* thisPtr, Vector3* point, Vector3* __output)
+	void ScriptCamera::InternalUnprojectPoint(ScriptCamera* thisPtr, TVector3<float>* point, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->UnprojectPoint(*point);
 
 		*__output = tmp__output;

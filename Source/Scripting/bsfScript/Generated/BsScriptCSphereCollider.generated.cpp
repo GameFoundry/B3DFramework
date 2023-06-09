@@ -39,14 +39,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSphereCollider::InternalSetCenter(ScriptSphereCollider* thisPtr, Vector3* center)
+	void ScriptSphereCollider::InternalSetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* thisPtr, Vector3* __output)
+	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();
 
 		*__output = tmp__output;

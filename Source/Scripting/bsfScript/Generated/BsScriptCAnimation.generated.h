@@ -6,10 +6,10 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
-#include "Math/BsAABox.h"
 #include "Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
+#include "Math/BsAABox.h"
 
 namespace bs { struct __Blend2DInfoInterop; }
 namespace bs { class CAnimation; }
@@ -44,7 +44,7 @@ namespace bs
 		static void InternalPlay(ScriptAnimation* thisPtr, MonoObject* clip);
 		static void InternalBlendAdditive(ScriptAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer);
 		static void InternalBlend1D(ScriptAnimation* thisPtr, __Blend1DInfoInterop* info, float t);
-		static void InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, Vector2* t);
+		static void InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, TVector2<float>* t);
 		static void InternalCrossFade(ScriptAnimation* thisPtr, MonoObject* clip, float fadeLength);
 		static void InternalSample(ScriptAnimation* thisPtr, MonoObject* clip, float time);
 		static void InternalStop(ScriptAnimation* thisPtr, uint32_t layer);

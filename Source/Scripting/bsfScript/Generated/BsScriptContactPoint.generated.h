@@ -11,8 +11,8 @@ namespace bs
 {
 	struct __ContactPointInterop
 	{
-		Vector3 Position;
-		Vector3 Normal;
+		TVector3<float> Position;
+		TVector3<float> Normal;
 		float Impulse;
 		float Separation;
 	};

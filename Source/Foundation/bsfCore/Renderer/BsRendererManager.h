@@ -17,7 +17,7 @@ namespace bs
 	 *
 	 * @note	No renderer is active by default. You must make a renderer active before doing any rendering.
 	 */
-	class B3D_CORE_EXPORT RendererManager : public Module<RendererManager>
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RendererManager : public Module<RendererManager>
 	{
 	public:
 		~RendererManager();
@@ -31,6 +31,10 @@ namespace bs
 
 		/** Initializes the currently active renderer on the provided GPU device, making it ready to render. */
 		void Initialize(const SPtr<GpuDevice>& gpuDevice);
+
+		/** Queues GPU command capture of the next frame, if a frame capture is set up. */
+		B3D_SCRIPT_EXPORT()
+		void RequestFrameCapture();
 
 		/**	Returns the currently active renderer. Null if no renderer is active. */
 		SPtr<ct::Renderer> GetActive() { return mActiveRenderer; }

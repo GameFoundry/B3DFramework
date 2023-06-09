@@ -7,8 +7,8 @@
 #include "../../../Foundation/bsfCore/Components/BsCDecal.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
-#include "Wrappers/BsScriptVector.h"
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
+#include "Wrappers/BsScriptVector.h"
 
 namespace bs
 {
@@ -58,14 +58,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetSize(ScriptDecal* thisPtr, Vector2* size)
+	void ScriptDecal::InternalSetSize(ScriptDecal* thisPtr, TVector2<float>* size)
 	{
 		thisPtr->GetHandle()->SetSize(*size);
 	}
 
-	void ScriptDecal::InternalGetSize(ScriptDecal* thisPtr, Vector2* __output)
+	void ScriptDecal::InternalGetSize(ScriptDecal* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSize();
 
 		*__output = tmp__output;

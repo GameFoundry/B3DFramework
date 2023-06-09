@@ -63,15 +63,15 @@ namespace bs
 		thisPtr->GetHandle()->SetRadius(radius);
 	}
 
-	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* thisPtr, Vector3* __output)
+	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetExtents();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptReflectionProbe::InternalSetExtents(ScriptReflectionProbe* thisPtr, Vector3* extents)
+	void ScriptReflectionProbe::InternalSetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* extents)
 	{
 		thisPtr->GetHandle()->SetExtents(*extents);
 	}

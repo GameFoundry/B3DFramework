@@ -7,13 +7,13 @@
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
-#include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptColor.h"
 #include "../../../Foundation/bsfCore/Material/BsMaterial.h"
 #include "../../../Foundation/bsfCore/Material/BsShader.h"
-#include "BsScriptShaderVariation.generated.h"
+#include "BsScriptShaderVariationParameters.generated.h"
 #include "BsScriptColorGradientHDR.generated.h"
 #include "BsScriptTAnimationCurve.generated.h"
+#include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptVector.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
@@ -88,8 +88,8 @@ namespace bs
 	void ScriptMaterial::InternalSetVariation(ScriptMaterial* thisPtr, MonoObject* variation)
 	{
 		SPtr<ShaderVariationParameters> tmpvariation;
-		ScriptShaderVariation* scriptvariation;
-		scriptvariation = ScriptShaderVariation::ToNative(variation);
+		ScriptShaderVariationParameters* scriptvariation;
+		scriptvariation = ScriptShaderVariationParameters::ToNative(variation);
 		if(scriptvariation != nullptr)
 			tmpvariation = scriptvariation->GetInternal();
 		thisPtr->GetHandle()->SetVariation(*tmpvariation);
@@ -133,7 +133,7 @@ namespace bs
 		*tmp__output = thisPtr->GetHandle()->GetVariation();
 
 		MonoObject* __output;
-		__output = ScriptShaderVariation::Create(tmp__output);
+		__output = ScriptShaderVariationParameters::Create(tmp__output);
 
 		return __output;
 	}
@@ -176,21 +176,21 @@ namespace bs
 		thisPtr->GetHandle()->SetColorGradient(tmpname, *tmpvalue, arrayIdx);
 	}
 
-	void ScriptMaterial::InternalSetVec2(ScriptMaterial* thisPtr, MonoString* name, Vector2* value, uint32_t arrayIdx)
+	void ScriptMaterial::InternalSetVec2(ScriptMaterial* thisPtr, MonoString* name, TVector2<float>* value, uint32_t arrayIdx)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		thisPtr->GetHandle()->SetVec2(tmpname, *value, arrayIdx);
 	}
 
-	void ScriptMaterial::InternalSetVec3(ScriptMaterial* thisPtr, MonoString* name, Vector3* value, uint32_t arrayIdx)
+	void ScriptMaterial::InternalSetVec3(ScriptMaterial* thisPtr, MonoString* name, TVector3<float>* value, uint32_t arrayIdx)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		thisPtr->GetHandle()->SetVec3(tmpname, *value, arrayIdx);
 	}
 
-	void ScriptMaterial::InternalSetVec4(ScriptMaterial* thisPtr, MonoString* name, Vector4* value, uint32_t arrayIdx)
+	void ScriptMaterial::InternalSetVec4(ScriptMaterial* thisPtr, MonoString* name, TVector4<float>* value, uint32_t arrayIdx)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
@@ -260,31 +260,31 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMaterial::InternalGetVec2(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, Vector2* __output)
+	void ScriptMaterial::InternalGetVec2(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, TVector2<float>* __output)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetVec2(tmpname, arrayIdx);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptMaterial::InternalGetVec3(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, Vector3* __output)
+	void ScriptMaterial::InternalGetVec3(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, TVector3<float>* __output)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetVec3(tmpname, arrayIdx);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptMaterial::InternalGetVec4(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, Vector4* __output)
+	void ScriptMaterial::InternalGetVec4(ScriptMaterial* thisPtr, MonoString* name, uint32_t arrayIdx, TVector4<float>* __output)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		Vector4 tmp__output;
+		TVector4<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetVec4(tmpname, arrayIdx);
 
 		*__output = tmp__output;

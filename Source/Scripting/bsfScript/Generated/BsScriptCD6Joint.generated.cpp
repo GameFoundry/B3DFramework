@@ -5,11 +5,11 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCD6Joint.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptD6JointDrive.generated.h"
 #include "BsScriptLimitLinear.generated.h"
 #include "BsScriptLimitAngularRange.generated.h"
 #include "BsScriptLimitConeRange.generated.h"
+#include "Wrappers/BsScriptVector.h"
 #include "Wrappers/BsScriptQuaternion.h"
 
 namespace bs
@@ -59,25 +59,25 @@ namespace bs
 		thisPtr->GetHandle()->SetMotion(axis, motion);
 	}
 
-	void ScriptD6Joint::InternalGetTwist(ScriptD6Joint* thisPtr, Radian* __output)
+	void ScriptD6Joint::InternalGetTwist(ScriptD6Joint* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetTwist();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetSwingY(ScriptD6Joint* thisPtr, Radian* __output)
+	void ScriptD6Joint::InternalGetSwingY(ScriptD6Joint* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSwingY();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetSwingZ(ScriptD6Joint* thisPtr, Radian* __output)
+	void ScriptD6Joint::InternalGetSwingZ(ScriptD6Joint* thisPtr, TRadian<float>* __output)
 	{
-		Radian tmp__output;
+		TRadian<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetSwingZ();
 
 		*__output = tmp__output;
@@ -147,9 +147,9 @@ namespace bs
 		thisPtr->GetHandle()->SetDrive(type, *drive);
 	}
 
-	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* thisPtr, Vector3* __output)
+	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDrivePosition();
 
 		*__output = tmp__output;
@@ -163,28 +163,28 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* thisPtr, Vector3* position, Quaternion* rotation)
+	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* thisPtr, TVector3<float>* position, Quaternion* rotation)
 	{
 		thisPtr->GetHandle()->SetDriveTransform(*position, *rotation);
 	}
 
-	void ScriptD6Joint::InternalGetDriveLinearVelocity(ScriptD6Joint* thisPtr, Vector3* __output)
+	void ScriptD6Joint::InternalGetDriveLinearVelocity(ScriptD6Joint* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDriveLinearVelocity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetDriveAngularVelocity(ScriptD6Joint* thisPtr, Vector3* __output)
+	void ScriptD6Joint::InternalGetDriveAngularVelocity(ScriptD6Joint* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDriveAngularVelocity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalSetDriveVelocity(ScriptD6Joint* thisPtr, Vector3* linear, Vector3* angular)
+	void ScriptD6Joint::InternalSetDriveVelocity(ScriptD6Joint* thisPtr, TVector3<float>* linear, TVector3<float>* angular)
 	{
 		thisPtr->GetHandle()->SetDriveVelocity(*linear, *angular);
 	}

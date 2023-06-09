@@ -653,7 +653,7 @@
 			<doc>Returns a list of all keyframes in the curve.</doc>
 		</property>
 	</class>
-	<class native="TAnimationCurve&lt;Vector3&gt;" script="Vector3Curve">
+	<class native="TAnimationCurve&lt;TVector3&lt;float&gt;&gt;" script="Vector3Curve">
 		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
 		<ctor>
 			<doc>Creates a new animation curve.</doc>
@@ -677,7 +677,7 @@
 			<doc>Returns a list of all keyframes in the curve.</doc>
 		</property>
 	</class>
-	<class native="TAnimationCurve&lt;Vector2&gt;" script="Vector2Curve">
+	<class native="TAnimationCurve&lt;TVector2&lt;float&gt;&gt;" script="Vector2Curve">
 		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
 		<ctor>
 			<doc>Creates a new animation curve.</doc>
@@ -792,170 +792,67 @@
 		<field name="Y" type="int">
 		</field>
 	</struct>
-	<class native="CCamera" script="Camera">
-		<method native="NotifyNeedsRedraw" script="NotifyNeedsRedraw" static="false">
-		</method>
-		<method native="WorldToScreenPoint" script="WorldToScreenPoint" static="false">
-			<param name="worldPoint" type="Vector3">
-			</param>
-			<returns type="Vector2I">
-			</returns>
-		</method>
-		<method native="WorldToNdcPoint" script="WorldToNdcPoint" static="false">
-			<param name="worldPoint" type="Vector3">
-			</param>
-			<returns type="Vector2">
-			</returns>
-		</method>
-		<method native="WorldToViewPoint" script="WorldToViewPoint" static="false">
-			<param name="worldPoint" type="Vector3">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="ScreenToWorldPoint" script="ScreenToWorldPoint" static="false">
-			<param name="screenPoint" type="Vector2I">
-			</param>
-			<param name="depth" type="float">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="ScreenToViewPoint" script="ScreenToViewPoint" static="false">
-			<param name="screenPoint" type="Vector2I">
-			</param>
-			<param name="depth" type="float">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="ScreenToNdcPoint" script="ScreenToNdcPoint" static="false">
-			<param name="screenPoint" type="Vector2I">
-			</param>
-			<returns type="Vector2">
-			</returns>
-		</method>
-		<method native="ViewToWorldPoint" script="ViewToWorldPoint" static="false">
-			<param name="viewPoint" type="Vector3">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="ViewToScreenPoint" script="ViewToScreenPoint" static="false">
-			<param name="viewPoint" type="Vector3">
-			</param>
-			<returns type="Vector2I">
-			</returns>
-		</method>
-		<method native="ViewToNdcPoint" script="ViewToNdcPoint" static="false">
-			<param name="viewPoint" type="Vector3">
-			</param>
-			<returns type="Vector2">
-			</returns>
-		</method>
-		<method native="NdcToWorldPoint" script="NdcToWorldPoint" static="false">
-			<param name="ndcPoint" type="Vector2">
-			</param>
-			<param name="depth" type="float">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="NdcToViewPoint" script="NdcToViewPoint" static="false">
-			<param name="ndcPoint" type="Vector2">
-			</param>
-			<param name="depth" type="float">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="NdcToScreenPoint" script="NdcToScreenPoint" static="false">
-			<param name="ndcPoint" type="Vector2">
-			</param>
-			<returns type="Vector2I">
-			</returns>
-		</method>
-		<method native="ScreenPointToRay" script="ScreenPointToRay" static="false">
-			<param name="screenPoint" type="Vector2I">
-			</param>
-			<returns type="Ray">
-			</returns>
-		</method>
-		<method native="ProjectPoint" script="ProjectPoint" static="false">
-			<param name="point" type="Vector3">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="UnprojectPoint" script="UnprojectPoint" static="false">
-			<param name="point" type="Vector3">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<property name="Flags" type="CameraFlag" getter="GetFlags" setter="SetFlags" static="false">
-		</property>
-		<property name="Viewport" type="Viewport" getter="GetViewport" setter="" static="false">
-		</property>
-		<property name="FieldOfView" type="Radian" getter="GetHorzFov" setter="SetHorzFov" static="false">
-		</property>
-		<property name="NearClipPlane" type="float" getter="GetNearClipDistance" setter="SetNearClipDistance" static="false">
-		</property>
-		<property name="FarClipPlane" type="float" getter="GetFarClipDistance" setter="SetFarClipDistance" static="false">
-		</property>
-		<property name="AspectRatio" type="float" getter="GetAspectRatio" setter="SetAspectRatio" static="false">
-		</property>
-		<property name="ProjMatrix" type="Matrix4" getter="GetProjectionMatrixRs" setter="" static="false">
-		</property>
-		<property name="ViewMatrix" type="Matrix4" getter="GetViewMatrix" setter="" static="false">
-		</property>
-		<property name="ProjectionType" type="ProjectionType" getter="GetProjectionType" setter="SetProjectionType" static="false">
-		</property>
-		<property name="OrthoHeight" type="float" getter="GetOrthoWindowHeight" setter="SetOrthoWindowHeight" static="false">
-		</property>
-		<property name="OrthoWidth" type="float" getter="GetOrthoWindowWidth" setter="SetOrthoWindowWidth" static="false">
-		</property>
-		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
-		</property>
-		<property name="Layers" type="ulong" getter="GetLayers" setter="SetLayers" static="false">
-		</property>
-		<property name="SampleCount" type="int" getter="GetMsaaCount" setter="SetMsaaCount" static="false">
-		</property>
-		<property name="RenderSettings" type="RenderSettings" getter="GetRenderSettings" setter="SetRenderSettings" static="false">
-		</property>
-		<property name="Main" type="bool" getter="IsMain" setter="SetMain" static="false">
-		</property>
-	</class>
-	<class native="AmbientOcclusionSettings" script="AmbientOcclusionSettings">
-		<doc>Settings that control screen space ambient occlusion.</doc>
+	<struct native="VideoMode" script="VideoMode">
+		<doc>Video mode contains information about how a render window presents its information to an output device like a monitor.</doc>
 		<ctor>
 		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the screen space ambient occlusion effect.</doc>
-		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-			<doc>Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range is roughly [0.05, 5.0].</doc>
-		</property>
-		<property name="Bias" type="float" getter="GetBias" setter="SetBias" static="false">
-			<doc>Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause details to be lost in areas where occlusion isn&apos;t high. Value is in millimeters. Usually best to keep at a few dozen millimeters, valid range is roughly [0, 200].</doc>
-		</property>
-		<property name="FadeDistance" type="float" getter="GetFadeDistance" setter="SetFadeDistance" static="false">
-			<doc>Distance (in view space, in meters) after which AO starts fading out. The fade process will happen over the range as specified by <see cref="fadeRange"/>.</doc>
-		</property>
-		<property name="FadeRange" type="float" getter="GetFadeRange" setter="SetFadeRange" static="false">
-			<doc>Range (in view space, in meters) in which AO fades out from 100% to 0%. AO starts fading out after the distance specified in <see cref="fadeDistance"/>.</doc>
-		</property>
-		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
-			<doc>Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice versa. Valid range is roughly [0.2, 2].</doc>
-		</property>
-		<property name="Power" type="float" getter="GetPower" setter="SetPower" static="false">
-			<doc>Controls how quickly does the AO darkening effect increase with higher occlusion percent. This is a non-linear control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no extra darkening will occur.</doc>
-		</property>
-		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost of performance.</doc>
-		</property>
-	</class>
-	<struct native="Vector4I" script="Vector4I">
+		<ctor>
+			<doc>Creates a new video mode.</doc>
+			<param name="width" type="int">
+				<doc>Width of the frame buffer in pixels.</doc>
+			</param>
+			<param name="height" type="int">
+				<doc>Height of the frame buffer in pixels.</doc>
+			</param>
+			<param name="refreshRate" type="float">
+				<doc>How often should the output device refresh the output image in hertz.</doc>
+			</param>
+			<param name="outputIdx" type="int">
+				<doc>Output index of the output device. Normally this means output monitor. 0th index always represents the primary device while order of others is undefined.</doc>
+			</param>
+		</ctor>
+		<field name="Width" type="int">
+			<doc>Width of the front/back buffer in pixels.</doc>
+		</field>
+		<field name="Height" type="int">
+			<doc>Height of the front/back buffer in pixels.</doc>
+		</field>
+		<field name="RefreshRate" type="float">
+			<doc>Refresh rate in hertz.</doc>
+		</field>
+		<field name="OutputIdx" type="int">
+			<doc>Index of the parent video output.</doc>
+		</field>
+		<field name="IsCustom" type="bool">
+			<doc>Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain additional information that allows the video mode to be used more accurately and you should use them when possible.</doc>
+		</field>
+	</struct>
+	<enum native="ShaderParameterType" script="ShaderParameterType">
+		<doc>Type of parameters that can be defined by a shader.</doc>
+		<enumentry native="Float" script="Float">
+		</enumentry>
+		<enumentry native="Vector2" script="Vector2">
+		</enumentry>
+		<enumentry native="Vector3" script="Vector3">
+		</enumentry>
+		<enumentry native="Vector4" script="Vector4">
+		</enumentry>
+		<enumentry native="Color" script="Color">
+		</enumentry>
+		<enumentry native="Matrix3" script="Matrix3">
+		</enumentry>
+		<enumentry native="Matrix4" script="Matrix4">
+		</enumentry>
+		<enumentry native="Texture2D" script="Texture2D">
+		</enumentry>
+		<enumentry native="Texture3D" script="Texture3D">
+		</enumentry>
+		<enumentry native="TextureCube" script="TextureCube">
+		</enumentry>
+		<enumentry native="Sampler" script="Sampler">
+		</enumentry>
+	</enum>
+	<struct native="TVector4I&lt;int32_t&gt;" script="Vector4I">
 		<doc>A four dimensional vector with integer coordinates.</doc>
 		<ctor>
 		</ctor>
@@ -967,6 +864,37 @@
 			<param name="z" type="int">
 			</param>
 			<param name="w" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+		<field name="W" type="int">
+		</field>
+	</struct>
+	<struct native="TVector4I&lt;uint32_t&gt;" script="Vector4UI">
+		<doc>A four dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+			<param name="w" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
 			</param>
 		</ctor>
 		<field name="X" type="int">
@@ -1760,7 +1688,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Position of the key along the animation spline.</doc>
 		</field>
 	</struct>
-	<struct native="TKeyframe&lt;Vector3&gt;" script="KeyFrameVec3">
+	<struct native="TKeyframe&lt;TVector3&lt;float&gt;&gt;" script="KeyFrameVec3">
 		<doc>Animation keyframe, represented as an endpoint of a cubic hermite spline.</doc>
 		<field name="Value" type="Vector3">
 			<doc>Value of the key.</doc>
@@ -1775,7 +1703,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Position of the key along the animation spline.</doc>
 		</field>
 	</struct>
-	<struct native="TKeyframe&lt;Vector2&gt;" script="KeyFrameVec2">
+	<struct native="TKeyframe&lt;TVector2&lt;float&gt;&gt;" script="KeyFrameVec2">
 		<doc>Animation keyframe, represented as an endpoint of a cubic hermite spline.</doc>
 		<field name="Value" type="Vector2">
 			<doc>Value of the key.</doc>
@@ -1864,7 +1792,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Actual curve containing animation data.</doc>
 		</field>
 	</struct>
-	<struct native="TNamedAnimationCurve&lt;Vector3&gt;" script="NamedVector3Curve">
+	<struct native="TNamedAnimationCurve&lt;TVector3&lt;float&gt;&gt;" script="NamedVector3Curve">
 		<doc>An animation curve and its name.</doc>
 		<ctor>
 		</ctor>
@@ -1899,7 +1827,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Actual curve containing animation data.</doc>
 		</field>
 	</struct>
-	<struct native="TNamedAnimationCurve&lt;Vector2&gt;" script="NamedVector2Curve">
+	<struct native="TNamedAnimationCurve&lt;TVector2&lt;float&gt;&gt;" script="NamedVector2Curve">
 		<doc>An animation curve and its name.</doc>
 		<ctor>
 		</ctor>
@@ -2605,41 +2533,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="SampleCount" type="int" getter="GetSampleCount" setter="" static="false">
 		</property>
 	</class>
-	<struct native="VideoMode" script="VideoMode">
-		<doc>Video mode contains information about how a render window presents its information to an output device like a monitor.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<doc>Creates a new video mode.</doc>
-			<param name="width" type="int">
-				<doc>Width of the frame buffer in pixels.</doc>
-			</param>
-			<param name="height" type="int">
-				<doc>Height of the frame buffer in pixels.</doc>
-			</param>
-			<param name="refreshRate" type="float">
-				<doc>How often should the output device refresh the output image in hertz.</doc>
-			</param>
-			<param name="outputIdx" type="int">
-				<doc>Output index of the output device. Normally this means output monitor. 0th index always represents the primary device while order of others is undefined.</doc>
-			</param>
-		</ctor>
-		<field name="Width" type="int">
-			<doc>Width of the front/back buffer in pixels.</doc>
-		</field>
-		<field name="Height" type="int">
-			<doc>Height of the front/back buffer in pixels.</doc>
-		</field>
-		<field name="RefreshRate" type="float">
-			<doc>Refresh rate in hertz.</doc>
-		</field>
-		<field name="OutputIdx" type="int">
-			<doc>Index of the parent video output.</doc>
-		</field>
-		<field name="IsCustom" type="bool">
-			<doc>Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain additional information that allows the video mode to be used more accurately and you should use them when possible.</doc>
-		</field>
-	</struct>
 	<class native="CAudioListener" script="AudioListener">
 	</class>
 	<class native="CAudioSource" script="AudioSource">
@@ -3128,6 +3021,169 @@ In range [-1.0f, 1.0f].</doc>
 		</property>
 		<property name="Offset" type="Vector3" getter="GetOffset" setter="SetOffset" static="false">
 			<doc>Gain to be applied during color grading. Simply offsets all color values by an equal amount. In range [-1.0f, 1.0f].</doc>
+		</property>
+	</class>
+	<class native="CCamera" script="Camera">
+		<method native="NotifyNeedsRedraw" script="NotifyNeedsRedraw" static="false">
+		</method>
+		<method native="WorldToScreenPoint" script="WorldToScreenPoint" static="false">
+			<param name="worldPoint" type="Vector3">
+			</param>
+			<returns type="Vector2I">
+			</returns>
+		</method>
+		<method native="WorldToNdcPoint" script="WorldToNdcPoint" static="false">
+			<param name="worldPoint" type="Vector3">
+			</param>
+			<returns type="Vector2">
+			</returns>
+		</method>
+		<method native="WorldToViewPoint" script="WorldToViewPoint" static="false">
+			<param name="worldPoint" type="Vector3">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="ScreenToWorldPoint" script="ScreenToWorldPoint" static="false">
+			<param name="screenPoint" type="Vector2I">
+			</param>
+			<param name="depth" type="float">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="ScreenToViewPoint" script="ScreenToViewPoint" static="false">
+			<param name="screenPoint" type="Vector2I">
+			</param>
+			<param name="depth" type="float">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="ScreenToNdcPoint" script="ScreenToNdcPoint" static="false">
+			<param name="screenPoint" type="Vector2I">
+			</param>
+			<returns type="Vector2">
+			</returns>
+		</method>
+		<method native="ViewToWorldPoint" script="ViewToWorldPoint" static="false">
+			<param name="viewPoint" type="Vector3">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="ViewToScreenPoint" script="ViewToScreenPoint" static="false">
+			<param name="viewPoint" type="Vector3">
+			</param>
+			<returns type="Vector2I">
+			</returns>
+		</method>
+		<method native="ViewToNdcPoint" script="ViewToNdcPoint" static="false">
+			<param name="viewPoint" type="Vector3">
+			</param>
+			<returns type="Vector2">
+			</returns>
+		</method>
+		<method native="NdcToWorldPoint" script="NdcToWorldPoint" static="false">
+			<param name="ndcPoint" type="Vector2">
+			</param>
+			<param name="depth" type="float">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="NdcToViewPoint" script="NdcToViewPoint" static="false">
+			<param name="ndcPoint" type="Vector2">
+			</param>
+			<param name="depth" type="float">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="NdcToScreenPoint" script="NdcToScreenPoint" static="false">
+			<param name="ndcPoint" type="Vector2">
+			</param>
+			<returns type="Vector2I">
+			</returns>
+		</method>
+		<method native="ScreenPointToRay" script="ScreenPointToRay" static="false">
+			<param name="screenPoint" type="Vector2I">
+			</param>
+			<returns type="Ray">
+			</returns>
+		</method>
+		<method native="ProjectPoint" script="ProjectPoint" static="false">
+			<param name="point" type="Vector3">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="UnprojectPoint" script="UnprojectPoint" static="false">
+			<param name="point" type="Vector3">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<property name="Flags" type="CameraFlag" getter="GetFlags" setter="SetFlags" static="false">
+		</property>
+		<property name="Viewport" type="Viewport" getter="GetViewport" setter="" static="false">
+		</property>
+		<property name="FieldOfView" type="Radian" getter="GetHorzFov" setter="SetHorzFov" static="false">
+		</property>
+		<property name="NearClipPlane" type="float" getter="GetNearClipDistance" setter="SetNearClipDistance" static="false">
+		</property>
+		<property name="FarClipPlane" type="float" getter="GetFarClipDistance" setter="SetFarClipDistance" static="false">
+		</property>
+		<property name="AspectRatio" type="float" getter="GetAspectRatio" setter="SetAspectRatio" static="false">
+		</property>
+		<property name="ProjMatrix" type="Matrix4" getter="GetProjectionMatrixRs" setter="" static="false">
+		</property>
+		<property name="ViewMatrix" type="Matrix4" getter="GetViewMatrix" setter="" static="false">
+		</property>
+		<property name="ProjectionType" type="ProjectionType" getter="GetProjectionType" setter="SetProjectionType" static="false">
+		</property>
+		<property name="OrthoHeight" type="float" getter="GetOrthoWindowHeight" setter="SetOrthoWindowHeight" static="false">
+		</property>
+		<property name="OrthoWidth" type="float" getter="GetOrthoWindowWidth" setter="SetOrthoWindowWidth" static="false">
+		</property>
+		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
+		</property>
+		<property name="Layers" type="ulong" getter="GetLayers" setter="SetLayers" static="false">
+		</property>
+		<property name="SampleCount" type="int" getter="GetMsaaCount" setter="SetMsaaCount" static="false">
+		</property>
+		<property name="RenderSettings" type="RenderSettings" getter="GetRenderSettings" setter="SetRenderSettings" static="false">
+		</property>
+		<property name="Main" type="bool" getter="IsMain" setter="SetMain" static="false">
+		</property>
+	</class>
+	<class native="AmbientOcclusionSettings" script="AmbientOcclusionSettings">
+		<doc>Settings that control screen space ambient occlusion.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the screen space ambient occlusion effect.</doc>
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+			<doc>Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range is roughly [0.05, 5.0].</doc>
+		</property>
+		<property name="Bias" type="float" getter="GetBias" setter="SetBias" static="false">
+			<doc>Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause details to be lost in areas where occlusion isn&apos;t high. Value is in millimeters. Usually best to keep at a few dozen millimeters, valid range is roughly [0, 200].</doc>
+		</property>
+		<property name="FadeDistance" type="float" getter="GetFadeDistance" setter="SetFadeDistance" static="false">
+			<doc>Distance (in view space, in meters) after which AO starts fading out. The fade process will happen over the range as specified by <see cref="fadeRange"/>.</doc>
+		</property>
+		<property name="FadeRange" type="float" getter="GetFadeRange" setter="SetFadeRange" static="false">
+			<doc>Range (in view space, in meters) in which AO fades out from 100% to 0%. AO starts fading out after the distance specified in <see cref="fadeDistance"/>.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
+			<doc>Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice versa. Valid range is roughly [0.2, 2].</doc>
+		</property>
+		<property name="Power" type="float" getter="GetPower" setter="SetPower" static="false">
+			<doc>Controls how quickly does the AO darkening effect increase with higher occlusion percent. This is a non-linear control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no extra darkening will occur.</doc>
+		</property>
+		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost of performance.</doc>
 		</property>
 	</class>
 	<enum native="DepthOfFieldType" script="DepthOfFieldType">
@@ -4418,7 +4474,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Returns the type of the represented distribution.</doc>
 		</property>
 	</class>
-	<class native="TDistribution&lt;Vector3&gt;" script="Vector3Distribution">
+	<class native="TDistribution&lt;TVector3&lt;float&gt;&gt;" script="Vector3Distribution">
 		<doc>Specifies a value as a distribution, which can include a constant value, random range or a curve.</doc>
 		<ctor>
 			<doc>Creates a new empty distribution.</doc>
@@ -4495,7 +4551,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Returns the type of the represented distribution.</doc>
 		</property>
 	</class>
-	<class native="TDistribution&lt;Vector2&gt;" script="Vector2Distribution">
+	<class native="TDistribution&lt;TVector2&lt;float&gt;&gt;" script="Vector2Distribution">
 		<doc>Specifies a value as a distribution, which can include a constant value, random range or a curve.</doc>
 		<ctor>
 			<doc>Creates a new empty distribution.</doc>
@@ -5840,18 +5896,133 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Set of events that will be added to the animation clip, if animation import is enabled.</doc>
 		</property>
 	</class>
+	<class native="ShaderVariationParameters" script="ShaderVariationParameters">
+		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
+		<ctor>
+		</ctor>
+		<method native="GetInt" script="GetInt" static="false">
+			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetUInt" script="GetUInt" static="false">
+			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetFloat" script="GetFloat" static="false">
+			<doc>Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="GetBool" script="GetBool" static="false">
+			<doc>Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="SetInt" script="SetInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="SetUInt" script="SetUInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="SetFloat" script="SetFloat" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="float">
+			</param>
+		</method>
+		<method native="SetBool" script="SetBool" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="bool">
+			</param>
+		</method>
+		<method native="RemoveParam" script="RemoveParam" static="false">
+			<doc>Removes a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+		</method>
+		<method native="HasParam" script="HasParam" static="false">
+			<doc>Checks if the variation has a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="ClearParams" script="ClearParams" static="false">
+			<doc>Removes all parameters.</doc>
+		</method>
+		<property name="ParamNames" type="string" getter="GetParamNames" setter="" static="false">
+			<doc>Returns a list of names of all registered parameters.</doc>
+		</property>
+	</class>
+	<struct native="ShaderVariationParameterValue" script="ShaderVariationParameterValue">
+		<doc>Represents a single potential value of a shader variation parameter and optionally its name.</doc>
+		<ctor>
+		</ctor>
+		<field name="Name" type="string">
+			<doc>Optional human-readable name describing what this particular value represents.</doc>
+		</field>
+		<field name="Value" type="int">
+			<doc>Integer value of the parameter.</doc>
+		</field>
+	</struct>
+	<struct native="ShaderVariationParameterInformation" script="ShaderVariationParameterInformation">
+		<doc>Represents a single shader variation parameter and a set of all possible values.</doc>
+		<ctor>
+		</ctor>
+		<field name="Name" type="string">
+			<doc>Optional human-readable name describing the variation parameter.</doc>
+		</field>
+		<field name="Identifier" type="string">
+			<doc>BSL identifier for the parameter.</doc>
+		</field>
+		<field name="IsInternal" type="bool">
+			<doc>True if the parameter is for internal use by the renderer, and false if its intended to be set by the user.</doc>
+		</field>
+		<field name="Values" type="ShaderVariationParameterValue">
+			<doc>A list of potential values this parameter can take on.</doc>
+		</field>
+	</struct>
+	<class native="RendererManager" script="RendererManager">
+		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
+		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
+			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
+		</method>
+	</class>
 	<enum native="ShadingLanguageFlag" script="ShadingLanguageFlags">
 		<doc>Supported types of low-level shading languages.</doc>
+		<enumentry native="MSL" script="MSL">
+			<doc>Metal shading language.</doc>
+		</enumentry>
+		<enumentry native="Unknown" script="Unknown">
+		</enumentry>
 		<enumentry native="HLSL" script="HLSL">
 			<doc>High level shading language used by DirectX backend.</doc>
 		</enumentry>
 		<enumentry native="GLSL" script="GLSL">
 			<doc>OpenGL shading language.</doc>
 		</enumentry>
-		<enumentry native="VKSL" script="VKSL">
-			<doc>Variant of GLSL used for Vulkan.</doc>
-		</enumentry>
-		<enumentry native="MSL" script="MSL">
+		<enumentry native="Count" script="Count">
 			<doc>Metal shading language.</doc>
 		</enumentry>
 		<enumentry native="All" script="All">
@@ -6424,85 +6595,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>All mesh data will also be cached in CPU memory, making it available for fast read access from the CPU. Can be combined with other usage flags.</doc>
 		</enumentry>
 	</enum>
-	<class native="ShaderVariation" script="ShaderVariation">
-		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
-		<ctor>
-		</ctor>
-		<method native="GetInt" script="GetInt" static="false">
-			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetUInt" script="GetUInt" static="false">
-			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetFloat" script="GetFloat" static="false">
-			<doc>Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="float">
-			</returns>
-		</method>
-		<method native="GetBool" script="GetBool" static="false">
-			<doc>Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetInt" script="SetInt" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="int">
-			</param>
-		</method>
-		<method native="SetUInt" script="SetUInt" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="int">
-			</param>
-		</method>
-		<method native="SetFloat" script="SetFloat" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="float">
-			</param>
-		</method>
-		<method native="SetBool" script="SetBool" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="bool">
-			</param>
-		</method>
-		<method native="RemoveParam" script="RemoveParam" static="false">
-			<doc>Removes a parameter with the specified name.</doc>
-			<param name="paramName" type="string">
-			</param>
-		</method>
-		<method native="HasParam" script="HasParam" static="false">
-			<doc>Checks if the variation has a parameter with the specified name.</doc>
-			<param name="paramName" type="string">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="ClearParams" script="ClearParams" static="false">
-			<doc>Removes all parameters.</doc>
-		</method>
-		<property name="ParamNames" type="string" getter="GetParamNames" setter="" static="false">
-			<doc>Returns a list of names of all registered parameters.</doc>
-		</property>
-	</class>
 	<class native="Material" script="Material">
 		<method native="Clone" script="Clone" static="false">
 			<doc>Creates a deep copy of the material and returns the new object.</doc>
@@ -6707,38 +6799,10 @@ Optionally if the parameter is an array you may provide an array index you which
 		<property name="Shader" type="RRef&lt;Shader&gt;" getter="GetShader" setter="SetShader" static="false">
 			<doc>Sets a shader that will be used by the material. Material will be initialized using all compatible techniques from the shader. Shader must be set before doing any other operations with the material.</doc>
 		</property>
-		<property name="Variation" type="ShaderVariation" getter="GetVariation" setter="SetVariation" static="false">
+		<property name="Variation" type="ShaderVariationParameters" getter="GetVariation" setter="SetVariation" static="false">
 			<doc>Set of parameters that determine which subset of techniques in the assigned shader should be used. Only the techniques that have the provided parameters with the provided values will match. This will control which technique is considered the default technique and which subset of techniques are searched during a call to findTechnique().</doc>
 		</property>
 	</class>
-	<struct native="ShaderVariationParameterValue" script="ShaderVariationParameterValue">
-		<doc>Represents a single potential value of a shader variation parameter and optionally its name.</doc>
-		<ctor>
-		</ctor>
-		<field name="Name" type="string">
-			<doc>Optional human-readable name describing what this particular value represents.</doc>
-		</field>
-		<field name="Value" type="int">
-			<doc>Integer value of the parameter.</doc>
-		</field>
-	</struct>
-	<struct native="ShaderVariationParameterInformation" script="ShaderVariationParameterInformation">
-		<doc>Represents a single shader variation parameter and a set of all possible values.</doc>
-		<ctor>
-		</ctor>
-		<field name="Name" type="string">
-			<doc>Optional human-readable name describing the variation parameter.</doc>
-		</field>
-		<field name="Identifier" type="string">
-			<doc>BSL identifier for the parameter.</doc>
-		</field>
-		<field name="IsInternal" type="bool">
-			<doc>True if the parameter is for internal use by the renderer, and false if its intended to be set by the user.</doc>
-		</field>
-		<field name="Values" type="ShaderVariationParameterValue">
-			<doc>A list of potential values this parameter can take on.</doc>
-		</field>
-	</struct>
 	<class native="Physics" script="Physics">
 		<doc>Provides global physics settings, factory methods for physics objects and scene queries.</doc>
 		<method native="ToggleCollision" script="ToggleCollision" static="false">
@@ -7601,91 +7665,6 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<enumentry native="TVA_Bottom" script="Bottom">
 		</enumentry>
 	</enum>
-	<enum native="GUIElementState" script="GUIElementState">
-		<doc>Type of GUI element states.</doc>
-		<enumentry native="HoverOn" script="HoverOn">
-			<doc>Same as Hover, if the element is also in the &quot;on&quot; state.</doc>
-		</enumentry>
-		<enumentry native="Normal" script="Normal">
-			<doc>Normal state when element is not being iteracted with.</doc>
-		</enumentry>
-		<enumentry native="NormalOn" script="NormalOn">
-			<doc>Same as Normal, if the element is also in the &quot;on&quot; state.</doc>
-		</enumentry>
-		<enumentry native="Hover" script="Hover">
-			<doc>State when pointer is hovering over the element.</doc>
-		</enumentry>
-		<enumentry native="Active" script="Active">
-			<doc>State when element is being clicked.</doc>
-		</enumentry>
-		<enumentry native="FocusedHover" script="FocusedHover">
-			<doc>State when the element has input focus and pointer is hovering over the element.</doc>
-		</enumentry>
-		<enumentry native="Focused" script="Focused">
-			<doc>State when the element has input focus and pointer is not hovering over the element.</doc>
-		</enumentry>
-		<enumentry native="ActiveOn" script="ActiveOn">
-			<doc>Same as Active, if the element is also in the &quot;on&quot; state.</doc>
-		</enumentry>
-		<enumentry native="FocusedOn" script="FocusedOn">
-			<doc>Same as Focused, if the element is also in the &quot;on&quot; state.</doc>
-		</enumentry>
-		<enumentry native="FocusedHoverOn" script="FocusedHoverOn">
-			<doc>Same as FocusedHover, if the element is also in the &quot;on&quot; state.</doc>
-		</enumentry>
-	</enum>
-	<struct native="GUIContent" script="GUIContent">
-		<doc>Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of those.</doc>
-		<ctor>
-			<doc>Constructs an empty content.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with just a string.</doc>
-			<param name="text" type="LocString">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with a string and a tooltip.</doc>
-			<param name="text" type="LocString">
-			</param>
-			<param name="tooltip" type="LocString">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with just an image.</doc>
-			<param name="image" type="GUIContentImages">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with an image and a tooltip.</doc>
-			<param name="image" type="GUIContentImages">
-			</param>
-			<param name="tooltip" type="LocString">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with a string and an image.</doc>
-			<param name="text" type="LocString">
-			</param>
-			<param name="image" type="GUIContentImages">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs content with a string, an image and a tooltip.</doc>
-			<param name="text" type="LocString">
-			</param>
-			<param name="image" type="GUIContentImages">
-			</param>
-			<param name="tooltip" type="LocString">
-			</param>
-		</ctor>
-		<field name="Text" type="LocString">
-		</field>
-		<field name="Images" type="GUIContentImages">
-		</field>
-		<field name="Tooltip" type="LocString">
-		</field>
-	</struct>
 	<enum native="GUIImagePosition" script="GUIImagePosition">
 		<doc>Possible positions used for positioning content image within a GUI element.</doc>
 		<enumentry native="Left" script="Left">
@@ -7849,31 +7828,91 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<doc>Special shader used for rendering decals that project onto other geometry.</doc>
 		</enumentry>
 	</enum>
-	<enum native="ShaderParameterType" script="ShaderParameterType">
-		<doc>Type of parameters that can be defined by a shader.</doc>
-		<enumentry native="Float" script="Float">
+	<enum native="GUIElementState" script="GUIElementState">
+		<doc>Type of GUI element states.</doc>
+		<enumentry native="HoverOn" script="HoverOn">
+			<doc>Same as Hover, if the element is also in the &quot;on&quot; state.</doc>
 		</enumentry>
-		<enumentry native="Vector2" script="Vector2">
+		<enumentry native="Normal" script="Normal">
+			<doc>Normal state when element is not being iteracted with.</doc>
 		</enumentry>
-		<enumentry native="Vector3" script="Vector3">
+		<enumentry native="NormalOn" script="NormalOn">
+			<doc>Same as Normal, if the element is also in the &quot;on&quot; state.</doc>
 		</enumentry>
-		<enumentry native="Vector4" script="Vector4">
+		<enumentry native="Hover" script="Hover">
+			<doc>State when pointer is hovering over the element.</doc>
 		</enumentry>
-		<enumentry native="Color" script="Color">
+		<enumentry native="Active" script="Active">
+			<doc>State when element is being clicked.</doc>
 		</enumentry>
-		<enumentry native="Matrix3" script="Matrix3">
+		<enumentry native="FocusedHover" script="FocusedHover">
+			<doc>State when the element has input focus and pointer is hovering over the element.</doc>
 		</enumentry>
-		<enumentry native="Matrix4" script="Matrix4">
+		<enumentry native="Focused" script="Focused">
+			<doc>State when the element has input focus and pointer is not hovering over the element.</doc>
 		</enumentry>
-		<enumentry native="Texture2D" script="Texture2D">
+		<enumentry native="ActiveOn" script="ActiveOn">
+			<doc>Same as Active, if the element is also in the &quot;on&quot; state.</doc>
 		</enumentry>
-		<enumentry native="Texture3D" script="Texture3D">
+		<enumentry native="FocusedOn" script="FocusedOn">
+			<doc>Same as Focused, if the element is also in the &quot;on&quot; state.</doc>
 		</enumentry>
-		<enumentry native="TextureCube" script="TextureCube">
-		</enumentry>
-		<enumentry native="Sampler" script="Sampler">
+		<enumentry native="FocusedHoverOn" script="FocusedHoverOn">
+			<doc>Same as FocusedHover, if the element is also in the &quot;on&quot; state.</doc>
 		</enumentry>
 	</enum>
+	<struct native="GUIContent" script="GUIContent">
+		<doc>Holds data used for displaying content in a GUIElement. Content can consist of a string, image, a tooltip or none of those.</doc>
+		<ctor>
+			<doc>Constructs an empty content.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with just a string.</doc>
+			<param name="text" type="LocString">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with a string and a tooltip.</doc>
+			<param name="text" type="LocString">
+			</param>
+			<param name="tooltip" type="LocString">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with just an image.</doc>
+			<param name="image" type="GUIContentImages">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with an image and a tooltip.</doc>
+			<param name="image" type="GUIContentImages">
+			</param>
+			<param name="tooltip" type="LocString">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with a string and an image.</doc>
+			<param name="text" type="LocString">
+			</param>
+			<param name="image" type="GUIContentImages">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs content with a string, an image and a tooltip.</doc>
+			<param name="text" type="LocString">
+			</param>
+			<param name="image" type="GUIContentImages">
+			</param>
+			<param name="tooltip" type="LocString">
+			</param>
+		</ctor>
+		<field name="Text" type="LocString">
+		</field>
+		<field name="Images" type="GUIContentImages">
+		</field>
+		<field name="Tooltip" type="LocString">
+		</field>
+	</struct>
 	<struct native="ShaderParameter" script="ShaderParameter">
 		<doc>Contains information about a single shader parameter.</doc>
 		<field name="Name" type="string">

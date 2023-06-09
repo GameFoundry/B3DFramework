@@ -18,9 +18,9 @@ namespace bs
 		ScriptBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value);
 
 	private:
-		static void InternalSetExtents(ScriptBoxCollider* thisPtr, Vector3* extents);
-		static void InternalGetExtents(ScriptBoxCollider* thisPtr, Vector3* __output);
-		static void InternalSetCenter(ScriptBoxCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptBoxCollider* thisPtr, Vector3* __output);
+		static void InternalSetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* extents);
+		static void InternalGetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* __output);
+		static void InternalSetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* center);
+		static void InternalGetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* __output);
 	};
 }

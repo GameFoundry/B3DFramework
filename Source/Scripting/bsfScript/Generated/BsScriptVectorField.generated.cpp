@@ -8,8 +8,8 @@
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Particles/BsVectorField.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptVECTOR_FIELD_DESC.generated.h"
+#include "Wrappers/BsScriptVector.h"
 
 namespace bs
 {
@@ -41,14 +41,14 @@ namespace bs
 	{
 		VECTOR_FIELD_DESC tmpdesc;
 		tmpdesc = ScriptVectorFieldOptions::FromInterop(*desc);
-		Vector<Vector3> vecvalues;
+		Vector<TVector3<float>> vecvalues;
 		if(values != nullptr)
 		{
 			ScriptArray arrayvalues(values);
 			vecvalues.resize(arrayvalues.Size());
 			for(int i = 0; i < (int)arrayvalues.Size(); i++)
 			{
-				vecvalues[i] = arrayvalues.Get<Vector3>(i);
+				vecvalues[i] = arrayvalues.Get<TVector3<float>>(i);
 			}
 		}
 		ResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, vecvalues);

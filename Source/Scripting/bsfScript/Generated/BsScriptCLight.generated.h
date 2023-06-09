@@ -32,10 +32,10 @@ namespace bs
 		static float InternalGetAttenuationRadius(ScriptLight* thisPtr);
 		static void InternalSetSourceRadius(ScriptLight* thisPtr, float radius);
 		static float InternalGetSourceRadius(ScriptLight* thisPtr);
-		static void InternalSetSpotAngle(ScriptLight* thisPtr, Degree* spotAngle);
-		static void InternalGetSpotAngle(ScriptLight* thisPtr, Degree* __output);
-		static void InternalSetSpotFalloffAngle(ScriptLight* thisPtr, Degree* spotAngle);
-		static void InternalGetSpotFalloffAngle(ScriptLight* thisPtr, Degree* __output);
+		static void InternalSetSpotAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle);
+		static void InternalGetSpotAngle(ScriptLight* thisPtr, TDegree<float>* __output);
+		static void InternalSetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle);
+		static void InternalGetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* __output);
 		static void InternalSetCastsShadow(ScriptLight* thisPtr, bool castsShadow);
 		static bool InternalGetCastsShadow(ScriptLight* thisPtr);
 		static void InternalSetShadowBias(ScriptLight* thisPtr, float bias);

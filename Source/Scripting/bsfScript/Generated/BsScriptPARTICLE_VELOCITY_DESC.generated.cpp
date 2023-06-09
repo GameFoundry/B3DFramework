@@ -29,7 +29,7 @@ namespace bs
 	PARTICLE_VELOCITY_DESC ScriptParticleVelocityOptions::FromInterop(const __PARTICLE_VELOCITY_DESCInterop& value)
 	{
 		PARTICLE_VELOCITY_DESC output;
-		SPtr<TDistribution<Vector3>> tmpVelocity;
+		SPtr<TDistribution<TVector3<float>>> tmpVelocity;
 		ScriptVector3Distribution* scriptVelocity;
 		scriptVelocity = ScriptVector3Distribution::ToNative(value.Velocity);
 		if(scriptVelocity != nullptr)
@@ -45,8 +45,8 @@ namespace bs
 	{
 		__PARTICLE_VELOCITY_DESCInterop output;
 		MonoObject* tmpVelocity;
-		SPtr<TDistribution<Vector3>> tmpVelocitycopy;
-		tmpVelocitycopy = B3DMakeShared<TDistribution<Vector3>>(value.Velocity);
+		SPtr<TDistribution<TVector3<float>>> tmpVelocitycopy;
+		tmpVelocitycopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Velocity);
 		tmpVelocity = ScriptVector3Distribution::Create(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		output.WorldSpace = value.WorldSpace;

@@ -27,27 +27,27 @@ namespace bs
 
 	}
 
-	void ScriptCapsuleCollider::InternalSetNormal(ScriptCapsuleCollider* thisPtr, Vector3* normal)
+	void ScriptCapsuleCollider::InternalSetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* normal)
 	{
 		thisPtr->GetHandle()->SetNormal(*normal);
 	}
 
-	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* thisPtr, Vector3* __output)
+	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetNormal();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCapsuleCollider::InternalSetCenter(ScriptCapsuleCollider* thisPtr, Vector3* center)
+	void ScriptCapsuleCollider::InternalSetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* center)
 	{
 		thisPtr->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* thisPtr, Vector3* __output)
+	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCenter();
 
 		*__output = tmp__output;

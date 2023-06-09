@@ -9,8 +9,8 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
-#include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
+#include "Math/BsVector3.h"
 
 namespace bs { struct ParticleSystemSettings; }
 namespace bs
@@ -45,8 +45,8 @@ namespace bs
 		static void InternalSetRenderMode(ScriptParticleSystemSettings* thisPtr, ParticleRenderMode value);
 		static bool InternalGetOrientationLockY(ScriptParticleSystemSettings* thisPtr);
 		static void InternalSetOrientationLockY(ScriptParticleSystemSettings* thisPtr, bool value);
-		static void InternalGetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* __output);
-		static void InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, Vector3* value);
+		static void InternalGetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* thisPtr, TVector3<float>* value);
 		static ParticleSortMode InternalGetSortMode(ScriptParticleSystemSettings* thisPtr);
 		static void InternalSetSortMode(ScriptParticleSystemSettings* thisPtr, ParticleSortMode value);
 		static bool InternalGetUseAutomaticSeed(ScriptParticleSystemSettings* thisPtr);

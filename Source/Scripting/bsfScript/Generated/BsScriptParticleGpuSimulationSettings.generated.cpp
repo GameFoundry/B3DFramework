@@ -6,9 +6,9 @@
 #include "BsMonoUtil.h"
 #include "BsScriptParticleDepthCollisionSettings.generated.h"
 #include "BsScriptParticleVectorFieldSettings.generated.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptTColorDistribution.generated.h"
 #include "BsScriptTDistribution.generated.h"
+#include "Wrappers/BsScriptVector.h"
 
 namespace bs
 {
@@ -89,7 +89,7 @@ namespace bs
 
 	MonoObject* ScriptParticleGpuSimulationSettings::InternalGetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr)
 	{
-		SPtr<TDistribution<Vector2>> tmp__output = B3DMakeShared<TDistribution<Vector2>>();
+		SPtr<TDistribution<TVector2<float>>> tmp__output = B3DMakeShared<TDistribution<TVector2<float>>>();
 		*tmp__output = thisPtr->GetInternal()->SizeScaleOverLifetime;
 
 		MonoObject* __output;
@@ -100,7 +100,7 @@ namespace bs
 
 	void ScriptParticleGpuSimulationSettings::InternalSetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value)
 	{
-		SPtr<TDistribution<Vector2>> tmpvalue;
+		SPtr<TDistribution<TVector2<float>>> tmpvalue;
 		ScriptVector2Distribution* scriptvalue;
 		scriptvalue = ScriptVector2Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -108,9 +108,9 @@ namespace bs
 		thisPtr->GetInternal()->SizeScaleOverLifetime = *tmpvalue;
 	}
 
-	void ScriptParticleGpuSimulationSettings::InternalGetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, Vector3* __output)
+	void ScriptParticleGpuSimulationSettings::InternalGetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Acceleration;
 
 		*__output = tmp__output;
@@ -118,7 +118,7 @@ namespace bs
 
 	}
 
-	void ScriptParticleGpuSimulationSettings::InternalSetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, Vector3* value)
+	void ScriptParticleGpuSimulationSettings::InternalSetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, TVector3<float>* value)
 	{
 		thisPtr->GetInternal()->Acceleration = *value;
 	}

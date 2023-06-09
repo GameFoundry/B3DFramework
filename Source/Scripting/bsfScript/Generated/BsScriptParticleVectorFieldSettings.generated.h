@@ -28,10 +28,10 @@ namespace bs
 		static void InternalSetIntensity(ScriptParticleVectorFieldSettings* thisPtr, float value);
 		static float InternalGetTightness(ScriptParticleVectorFieldSettings* thisPtr);
 		static void InternalSetTightness(ScriptParticleVectorFieldSettings* thisPtr, float value);
-		static void InternalGetScale(ScriptParticleVectorFieldSettings* thisPtr, Vector3* __output);
-		static void InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value);
-		static void InternalGetOffset(ScriptParticleVectorFieldSettings* thisPtr, Vector3* __output);
-		static void InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value);
+		static void InternalGetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value);
+		static void InternalGetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value);
 		static void InternalGetRotation(ScriptParticleVectorFieldSettings* thisPtr, Quaternion* __output);
 		static void InternalSetRotation(ScriptParticleVectorFieldSettings* thisPtr, Quaternion* value);
 		static MonoObject* InternalGetRotationRate(ScriptParticleVectorFieldSettings* thisPtr);

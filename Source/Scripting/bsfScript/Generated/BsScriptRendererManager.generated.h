@@ -4,20 +4,18 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4I.h"
 
+namespace bs { class RendererManager; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4I : public ScriptObject<ScriptVector4I>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRendererManager : public ScriptObject<ScriptRendererManager>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Vector4I")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RendererManager")
 
-		static MonoObject* Box(const Vector4I& value);
-		static Vector4I Unbox(MonoObject* value);
+		ScriptRendererManager(MonoObject* managedInstance);
 
 	private:
-		ScriptVector4I(MonoObject* managedInstance);
-
+		static void InternalRequestFrameCapture();
 	};
 }

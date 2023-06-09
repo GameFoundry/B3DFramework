@@ -45,11 +45,11 @@ namespace bs
 
 	};
 
-	struct __TKeyframeVector3Interop
+	struct __TKeyframe_TVector3_float__Interop
 	{
-		Vector3 Value;
-		Vector3 InTangent;
-		Vector3 OutTangent;
+		TVector3<float> Value;
+		TVector3<float> InTangent;
+		TVector3<float> OutTangent;
 		float Time;
 	};
 
@@ -58,21 +58,21 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec3")
 
-		static MonoObject* Box(const __TKeyframeVector3Interop& value);
-		static __TKeyframeVector3Interop Unbox(MonoObject* value);
-		static TKeyframe<Vector3> FromInterop(const __TKeyframeVector3Interop& value);
-		static __TKeyframeVector3Interop ToInterop(const TKeyframe<Vector3>& value);
+		static MonoObject* Box(const __TKeyframe_TVector3_float__Interop& value);
+		static __TKeyframe_TVector3_float__Interop Unbox(MonoObject* value);
+		static TKeyframe<TVector3<float>> FromInterop(const __TKeyframe_TVector3_float__Interop& value);
+		static __TKeyframe_TVector3_float__Interop ToInterop(const TKeyframe<TVector3<float>>& value);
 
 	private:
 		ScriptKeyFrameVec3(MonoObject* managedInstance);
 
 	};
 
-	struct __TKeyframeVector2Interop
+	struct __TKeyframe_TVector2_float__Interop
 	{
-		Vector2 Value;
-		Vector2 InTangent;
-		Vector2 OutTangent;
+		TVector2<float> Value;
+		TVector2<float> InTangent;
+		TVector2<float> OutTangent;
 		float Time;
 	};
 
@@ -81,17 +81,17 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameVec2")
 
-		static MonoObject* Box(const __TKeyframeVector2Interop& value);
-		static __TKeyframeVector2Interop Unbox(MonoObject* value);
-		static TKeyframe<Vector2> FromInterop(const __TKeyframeVector2Interop& value);
-		static __TKeyframeVector2Interop ToInterop(const TKeyframe<Vector2>& value);
+		static MonoObject* Box(const __TKeyframe_TVector2_float__Interop& value);
+		static __TKeyframe_TVector2_float__Interop Unbox(MonoObject* value);
+		static TKeyframe<TVector2<float>> FromInterop(const __TKeyframe_TVector2_float__Interop& value);
+		static __TKeyframe_TVector2_float__Interop ToInterop(const TKeyframe<TVector2<float>>& value);
 
 	private:
 		ScriptKeyFrameVec2(MonoObject* managedInstance);
 
 	};
 
-	struct __TKeyframeQuaternionInterop
+	struct __TKeyframe_Quaternion_Interop
 	{
 		Quaternion Value;
 		Quaternion InTangent;
@@ -104,10 +104,10 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "KeyFrameQuat")
 
-		static MonoObject* Box(const __TKeyframeQuaternionInterop& value);
-		static __TKeyframeQuaternionInterop Unbox(MonoObject* value);
-		static TKeyframe<Quaternion> FromInterop(const __TKeyframeQuaternionInterop& value);
-		static __TKeyframeQuaternionInterop ToInterop(const TKeyframe<Quaternion>& value);
+		static MonoObject* Box(const __TKeyframe_Quaternion_Interop& value);
+		static __TKeyframe_Quaternion_Interop Unbox(MonoObject* value);
+		static TKeyframe<Quaternion> FromInterop(const __TKeyframe_Quaternion_Interop& value);
+		static __TKeyframe_Quaternion_Interop ToInterop(const TKeyframe<Quaternion>& value);
 
 	private:
 		ScriptKeyFrameQuat(MonoObject* managedInstance);

@@ -38,7 +38,7 @@ namespace bs
 			tmpSize = scriptSize->GetInternal();
 		if(tmpSize != nullptr)
 		output.Size = *tmpSize;
-		SPtr<TDistribution<Vector3>> tmpSize3D;
+		SPtr<TDistribution<TVector3<float>>> tmpSize3D;
 		ScriptVector3Distribution* scriptSize3D;
 		scriptSize3D = ScriptVector3Distribution::ToNative(value.Size3D);
 		if(scriptSize3D != nullptr)
@@ -59,8 +59,8 @@ namespace bs
 		tmpSize = ScriptFloatDistribution::Create(tmpSizecopy);
 		output.Size = tmpSize;
 		MonoObject* tmpSize3D;
-		SPtr<TDistribution<Vector3>> tmpSize3Dcopy;
-		tmpSize3Dcopy = B3DMakeShared<TDistribution<Vector3>>(value.Size3D);
+		SPtr<TDistribution<TVector3<float>>> tmpSize3Dcopy;
+		tmpSize3Dcopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Size3D);
 		tmpSize3D = ScriptVector3Distribution::Create(tmpSize3Dcopy);
 		output.Size3D = tmpSize3D;
 		output.Use3DSize = value.Use3DSize;

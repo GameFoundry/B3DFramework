@@ -20,13 +20,13 @@ namespace bs
 		static MonoObject* Create(const SPtr<ColorGradingSettings>& value);
 
 	private:
-		static void InternalGetSaturation(ScriptColorGradingSettings* thisPtr, Vector3* __output);
-		static void InternalSetSaturation(ScriptColorGradingSettings* thisPtr, Vector3* value);
-		static void InternalGetContrast(ScriptColorGradingSettings* thisPtr, Vector3* __output);
-		static void InternalSetContrast(ScriptColorGradingSettings* thisPtr, Vector3* value);
-		static void InternalGetGain(ScriptColorGradingSettings* thisPtr, Vector3* __output);
-		static void InternalSetGain(ScriptColorGradingSettings* thisPtr, Vector3* value);
-		static void InternalGetOffset(ScriptColorGradingSettings* thisPtr, Vector3* __output);
-		static void InternalSetOffset(ScriptColorGradingSettings* thisPtr, Vector3* value);
+		static void InternalGetSaturation(ScriptColorGradingSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetSaturation(ScriptColorGradingSettings* thisPtr, TVector3<float>* value);
+		static void InternalGetContrast(ScriptColorGradingSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetContrast(ScriptColorGradingSettings* thisPtr, TVector3<float>* value);
+		static void InternalGetGain(ScriptColorGradingSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetGain(ScriptColorGradingSettings* thisPtr, TVector3<float>* value);
+		static void InternalGetOffset(ScriptColorGradingSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetOffset(ScriptColorGradingSettings* thisPtr, TVector3<float>* value);
 	};
 }

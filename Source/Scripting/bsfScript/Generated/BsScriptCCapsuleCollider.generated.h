@@ -18,10 +18,10 @@ namespace bs
 		ScriptCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value);
 
 	private:
-		static void InternalSetNormal(ScriptCapsuleCollider* thisPtr, Vector3* normal);
-		static void InternalGetNormal(ScriptCapsuleCollider* thisPtr, Vector3* __output);
-		static void InternalSetCenter(ScriptCapsuleCollider* thisPtr, Vector3* center);
-		static void InternalGetCenter(ScriptCapsuleCollider* thisPtr, Vector3* __output);
+		static void InternalSetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* normal);
+		static void InternalGetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output);
+		static void InternalSetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* center);
+		static void InternalGetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output);
 		static void InternalSetHalfHeight(ScriptCapsuleCollider* thisPtr, float halfHeight);
 		static float InternalGetHalfHeight(ScriptCapsuleCollider* thisPtr);
 		static void InternalSetRadius(ScriptCapsuleCollider* thisPtr, float radius);

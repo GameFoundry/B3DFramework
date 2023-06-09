@@ -4,13 +4,13 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
-#include "Math/BsVector2.h"
 #include "Math/BsMatrix4.h"
 #include "../../../Foundation/bsfCore/Renderer/BsCamera.h"
+#include "Math/BsRadian.h"
 #include "Math/BsVector3.h"
+#include "Math/BsVector2.h"
 #include "Math/BsRay.h"
 
 namespace bs { class CCamera; }
@@ -27,8 +27,8 @@ namespace bs
 		static void InternalSetFlags(ScriptCamera* thisPtr, CameraFlag flags);
 		static CameraFlag InternalGetFlags(ScriptCamera* thisPtr);
 		static MonoObject* InternalGetViewport(ScriptCamera* thisPtr);
-		static void InternalSetHorzFov(ScriptCamera* thisPtr, Radian* fovy);
-		static void InternalGetHorzFov(ScriptCamera* thisPtr, Radian* __output);
+		static void InternalSetHorzFov(ScriptCamera* thisPtr, TRadian<float>* fovy);
+		static void InternalGetHorzFov(ScriptCamera* thisPtr, TRadian<float>* __output);
 		static void InternalSetNearClipDistance(ScriptCamera* thisPtr, float nearDist);
 		static float InternalGetNearClipDistance(ScriptCamera* thisPtr);
 		static void InternalSetFarClipDistance(ScriptCamera* thisPtr, float farDist);
@@ -52,21 +52,21 @@ namespace bs
 		static void InternalSetRenderSettings(ScriptCamera* thisPtr, MonoObject* settings);
 		static MonoObject* InternalGetRenderSettings(ScriptCamera* thisPtr);
 		static void InternalNotifyNeedsRedraw(ScriptCamera* thisPtr);
-		static void InternalWorldToScreenPoint(ScriptCamera* thisPtr, Vector3* worldPoint, TVector2I<int32_t>* __output);
-		static void InternalWorldToNdcPoint(ScriptCamera* thisPtr, Vector3* worldPoint, Vector2* __output);
-		static void InternalWorldToViewPoint(ScriptCamera* thisPtr, Vector3* worldPoint, Vector3* __output);
-		static void InternalScreenToWorldPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, Vector3* __output);
-		static void InternalScreenToViewPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, Vector3* __output);
-		static void InternalScreenToNdcPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, Vector2* __output);
-		static void InternalViewToWorldPoint(ScriptCamera* thisPtr, Vector3* viewPoint, Vector3* __output);
-		static void InternalViewToScreenPoint(ScriptCamera* thisPtr, Vector3* viewPoint, TVector2I<int32_t>* __output);
-		static void InternalViewToNdcPoint(ScriptCamera* thisPtr, Vector3* viewPoint, Vector2* __output);
-		static void InternalNdcToWorldPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, float depth, Vector3* __output);
-		static void InternalNdcToViewPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, float depth, Vector3* __output);
-		static void InternalNdcToScreenPoint(ScriptCamera* thisPtr, Vector2* ndcPoint, TVector2I<int32_t>* __output);
+		static void InternalWorldToScreenPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector2I<int32_t>* __output);
+		static void InternalWorldToNdcPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector2<float>* __output);
+		static void InternalWorldToViewPoint(ScriptCamera* thisPtr, TVector3<float>* worldPoint, TVector3<float>* __output);
+		static void InternalScreenToWorldPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output);
+		static void InternalScreenToViewPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output);
+		static void InternalScreenToNdcPoint(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, TVector2<float>* __output);
+		static void InternalViewToWorldPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector3<float>* __output);
+		static void InternalViewToScreenPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector2I<int32_t>* __output);
+		static void InternalViewToNdcPoint(ScriptCamera* thisPtr, TVector3<float>* viewPoint, TVector2<float>* __output);
+		static void InternalNdcToWorldPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, float depth, TVector3<float>* __output);
+		static void InternalNdcToViewPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, float depth, TVector3<float>* __output);
+		static void InternalNdcToScreenPoint(ScriptCamera* thisPtr, TVector2<float>* ndcPoint, TVector2I<int32_t>* __output);
 		static void InternalScreenPointToRay(ScriptCamera* thisPtr, TVector2I<int32_t>* screenPoint, Ray* __output);
-		static void InternalProjectPoint(ScriptCamera* thisPtr, Vector3* point, Vector3* __output);
-		static void InternalUnprojectPoint(ScriptCamera* thisPtr, Vector3* point, Vector3* __output);
+		static void InternalProjectPoint(ScriptCamera* thisPtr, TVector3<float>* point, TVector3<float>* __output);
+		static void InternalUnprojectPoint(ScriptCamera* thisPtr, TVector3<float>* point, TVector3<float>* __output);
 		static void InternalSetMain(ScriptCamera* thisPtr, bool main);
 		static bool InternalIsMain(ScriptCamera* thisPtr);
 	};

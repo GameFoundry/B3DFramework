@@ -14,7 +14,7 @@ namespace bs
 	{
 		float Radius;
 		float Thickness;
-		Degree Arc;
+		TDegree<float> Arc;
 		ParticleEmissionMode Mode;
 	};
 

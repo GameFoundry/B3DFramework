@@ -307,9 +307,9 @@ namespace bs
 		thisPtr->GetInternal()->FocalLength = value;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalGetSensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* __output)
+	void ScriptDepthOfFieldSettings::InternalGetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* __output)
 	{
-		Vector2 tmp__output;
+		TVector2<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->SensorSize;
 
 		*__output = tmp__output;
@@ -317,7 +317,7 @@ namespace bs
 
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, Vector2* value)
+	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* value)
 	{
 		thisPtr->GetInternal()->SensorSize = *value;
 	}

@@ -15,10 +15,10 @@ namespace bs
 	{
 		ParticleEmitterConeType Type;
 		float Radius;
-		Degree Angle;
+		TDegree<float> Angle;
 		float Length;
 		float Thickness;
-		Degree Arc;
+		TDegree<float> Arc;
 		ParticleEmissionMode Mode;
 	};
 

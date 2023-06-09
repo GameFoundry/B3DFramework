@@ -14,14 +14,15 @@ namespace bs
 	/// <summary>Supported types of low-level shading languages.</summary>
 	public enum ShadingLanguageFlags
 	{
+		/// <summary>Metal shading language.</summary>
+		MSL = 8,
+		Unknown = 0,
 		/// <summary>High level shading language used by DirectX backend.</summary>
 		HLSL = 1,
 		/// <summary>OpenGL shading language.</summary>
 		GLSL = 2,
-		/// <summary>Variant of GLSL used for Vulkan.</summary>
-		VKSL = 4,
 		/// <summary>Metal shading language.</summary>
-		MSL = 8,
+		Count = 4,
 		/// <summary>Helper entry that includes all languages.</summary>
 		All = 15
 	}

@@ -29,7 +29,7 @@ namespace bs
 	PARTICLE_FORCE_DESC ScriptParticleForceOptions::FromInterop(const __PARTICLE_FORCE_DESCInterop& value)
 	{
 		PARTICLE_FORCE_DESC output;
-		SPtr<TDistribution<Vector3>> tmpForce;
+		SPtr<TDistribution<TVector3<float>>> tmpForce;
 		ScriptVector3Distribution* scriptForce;
 		scriptForce = ScriptVector3Distribution::ToNative(value.Force);
 		if(scriptForce != nullptr)
@@ -45,8 +45,8 @@ namespace bs
 	{
 		__PARTICLE_FORCE_DESCInterop output;
 		MonoObject* tmpForce;
-		SPtr<TDistribution<Vector3>> tmpForcecopy;
-		tmpForcecopy = B3DMakeShared<TDistribution<Vector3>>(value.Force);
+		SPtr<TDistribution<TVector3<float>>> tmpForcecopy;
+		tmpForcecopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Force);
 		tmpForce = ScriptVector3Distribution::Create(tmpForcecopy);
 		output.Force = tmpForce;
 		output.WorldSpace = value.WorldSpace;

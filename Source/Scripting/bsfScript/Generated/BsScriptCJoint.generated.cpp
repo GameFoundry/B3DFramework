@@ -72,9 +72,9 @@ namespace bs
 		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBody(body, tmpvalue);
 	}
 
-	void ScriptJoint::InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, Vector3* __output)
+	void ScriptJoint::InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->GetPosition(body);
 
 		*__output = tmp__output;
@@ -88,7 +88,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptJoint::InternalSetTransform(ScriptJointBase* thisPtr, JointBody body, Vector3* position, Quaternion* rotation)
+	void ScriptJoint::InternalSetTransform(ScriptJointBase* thisPtr, JointBody body, TVector3<float>* position, Quaternion* rotation)
 	{
 		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetTransform(body, *position, *rotation);
 	}

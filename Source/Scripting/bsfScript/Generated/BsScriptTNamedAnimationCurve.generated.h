@@ -22,7 +22,7 @@
 
 namespace bs
 {
-	struct __TNamedAnimationCurvefloatInterop
+	struct __TNamedAnimationCurve_float_Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -34,17 +34,17 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedFloatCurve")
 
-		static MonoObject* Box(const __TNamedAnimationCurvefloatInterop& value);
-		static __TNamedAnimationCurvefloatInterop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<float> FromInterop(const __TNamedAnimationCurvefloatInterop& value);
-		static __TNamedAnimationCurvefloatInterop ToInterop(const TNamedAnimationCurve<float>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_float_Interop& value);
+		static __TNamedAnimationCurve_float_Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<float> FromInterop(const __TNamedAnimationCurve_float_Interop& value);
+		static __TNamedAnimationCurve_float_Interop ToInterop(const TNamedAnimationCurve<float>& value);
 
 	private:
 		ScriptNamedFloatCurve(MonoObject* managedInstance);
 
 	};
 
-	struct __TNamedAnimationCurveVector3Interop
+	struct __TNamedAnimationCurve_TVector3_float__Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -56,17 +56,17 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedVector3Curve")
 
-		static MonoObject* Box(const __TNamedAnimationCurveVector3Interop& value);
-		static __TNamedAnimationCurveVector3Interop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<Vector3> FromInterop(const __TNamedAnimationCurveVector3Interop& value);
-		static __TNamedAnimationCurveVector3Interop ToInterop(const TNamedAnimationCurve<Vector3>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_TVector3_float__Interop& value);
+		static __TNamedAnimationCurve_TVector3_float__Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<TVector3<float>> FromInterop(const __TNamedAnimationCurve_TVector3_float__Interop& value);
+		static __TNamedAnimationCurve_TVector3_float__Interop ToInterop(const TNamedAnimationCurve<TVector3<float>>& value);
 
 	private:
 		ScriptNamedVector3Curve(MonoObject* managedInstance);
 
 	};
 
-	struct __TNamedAnimationCurveVector2Interop
+	struct __TNamedAnimationCurve_TVector2_float__Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -78,17 +78,17 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedVector2Curve")
 
-		static MonoObject* Box(const __TNamedAnimationCurveVector2Interop& value);
-		static __TNamedAnimationCurveVector2Interop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<Vector2> FromInterop(const __TNamedAnimationCurveVector2Interop& value);
-		static __TNamedAnimationCurveVector2Interop ToInterop(const TNamedAnimationCurve<Vector2>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_TVector2_float__Interop& value);
+		static __TNamedAnimationCurve_TVector2_float__Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<TVector2<float>> FromInterop(const __TNamedAnimationCurve_TVector2_float__Interop& value);
+		static __TNamedAnimationCurve_TVector2_float__Interop ToInterop(const TNamedAnimationCurve<TVector2<float>>& value);
 
 	private:
 		ScriptNamedVector2Curve(MonoObject* managedInstance);
 
 	};
 
-	struct __TNamedAnimationCurveQuaternionInterop
+	struct __TNamedAnimationCurve_Quaternion_Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -100,17 +100,17 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
 
-		static MonoObject* Box(const __TNamedAnimationCurveQuaternionInterop& value);
-		static __TNamedAnimationCurveQuaternionInterop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<Quaternion> FromInterop(const __TNamedAnimationCurveQuaternionInterop& value);
-		static __TNamedAnimationCurveQuaternionInterop ToInterop(const TNamedAnimationCurve<Quaternion>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_Quaternion_Interop& value);
+		static __TNamedAnimationCurve_Quaternion_Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<Quaternion> FromInterop(const __TNamedAnimationCurve_Quaternion_Interop& value);
+		static __TNamedAnimationCurve_Quaternion_Interop ToInterop(const TNamedAnimationCurve<Quaternion>& value);
 
 	private:
 		ScriptNamedQuaternionCurve(MonoObject* managedInstance);
 
 	};
 
-	struct __TNamedAnimationCurveint32_tInterop
+	struct __TNamedAnimationCurve_int32_t_Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -122,10 +122,10 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "NamedIntegerCurve")
 
-		static MonoObject* Box(const __TNamedAnimationCurveint32_tInterop& value);
-		static __TNamedAnimationCurveint32_tInterop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<int32_t> FromInterop(const __TNamedAnimationCurveint32_tInterop& value);
-		static __TNamedAnimationCurveint32_tInterop ToInterop(const TNamedAnimationCurve<int32_t>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_int32_t_Interop& value);
+		static __TNamedAnimationCurve_int32_t_Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<int32_t> FromInterop(const __TNamedAnimationCurve_int32_t_Interop& value);
+		static __TNamedAnimationCurve_int32_t_Interop ToInterop(const TNamedAnimationCurve<int32_t>& value);
 
 	private:
 		ScriptNamedIntegerCurve(MonoObject* managedInstance);

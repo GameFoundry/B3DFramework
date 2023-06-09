@@ -67,9 +67,9 @@ namespace bs
 
 		public Vector3UI(int x, int y, int z)
 		{
-			this.X = 0;
-			this.Y = 0;
-			this.Z = 0;
+			this.X = x;
+			this.Y = y;
+			this.Z = z;
 		}
 
 		public Vector3UI(int value)

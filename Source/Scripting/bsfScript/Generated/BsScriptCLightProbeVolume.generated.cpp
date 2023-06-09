@@ -5,9 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCLightProbeVolume.h"
-#include "Wrappers/BsScriptVector.h"
 #include "BsScriptTVector3I.generated.h"
 #include "BsScriptLightProbeInfo.generated.h"
+#include "Wrappers/BsScriptVector.h"
 
 namespace bs
 {
@@ -33,7 +33,7 @@ namespace bs
 
 	}
 
-	uint32_t ScriptLightProbeVolume::InternalAddProbe(ScriptLightProbeVolume* thisPtr, Vector3* position)
+	uint32_t ScriptLightProbeVolume::InternalAddProbe(ScriptLightProbeVolume* thisPtr, TVector3<float>* position)
 	{
 		uint32_t tmp__output;
 		tmp__output = thisPtr->GetHandle()->AddProbe(*position);
@@ -44,14 +44,14 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* position)
+	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* position)
 	{
 		thisPtr->GetHandle()->SetProbePosition(handle, *position);
 	}
 
-	void ScriptLightProbeVolume::InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, Vector3* __output)
+	void ScriptLightProbeVolume::InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetProbePosition(handle);
 
 		*__output = tmp__output;

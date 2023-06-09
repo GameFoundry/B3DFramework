@@ -43,7 +43,7 @@ namespace bs
 	MonoObject* ScriptAnimationUtility::InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
 		SPtr<TAnimationCurve<Quaternion>> tmp__output;
-		SPtr<TAnimationCurve<Vector3>> tmpeulerCurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpeulerCurve;
 		ScriptVector3Curve* scripteulerCurve;
 		scripteulerCurve = ScriptVector3Curve::ToNative(eulerCurve);
 		if(scripteulerCurve != nullptr)
@@ -58,7 +58,7 @@ namespace bs
 
 	MonoObject* ScriptAnimationUtility::InternalQuaternionToEulerCurve(MonoObject* quatCurve)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmp__output;
+		SPtr<TAnimationCurve<TVector3<float>>> tmp__output;
 		SPtr<TAnimationCurve<Quaternion>> tmpquatCurve;
 		ScriptQuaternionCurve* scriptquatCurve;
 		scriptquatCurve = ScriptQuaternionCurve::ToNative(quatCurve);
@@ -75,7 +75,7 @@ namespace bs
 	MonoArray* ScriptAnimationUtility::InternalSplitCurve3D(MonoObject* compoundCurve)
 	{
 		Vector<SPtr<TAnimationCurve<float>>> vec__output;
-		SPtr<TAnimationCurve<Vector3>> tmpcompoundCurve;
+		SPtr<TAnimationCurve<TVector3<float>>> tmpcompoundCurve;
 		ScriptVector3Curve* scriptcompoundCurve;
 		scriptcompoundCurve = ScriptVector3Curve::ToNative(compoundCurve);
 		if(scriptcompoundCurve != nullptr)
@@ -99,7 +99,7 @@ namespace bs
 
 	MonoObject* ScriptAnimationUtility::InternalCombineCurve3D(MonoArray* curveComponents)
 	{
-		SPtr<TAnimationCurve<Vector3>> tmp__output;
+		SPtr<TAnimationCurve<TVector3<float>>> tmp__output;
 		Vector<SPtr<TAnimationCurve<float>>> veccurveComponents;
 		if(curveComponents != nullptr)
 		{
@@ -127,7 +127,7 @@ namespace bs
 	MonoArray* ScriptAnimationUtility::InternalSplitCurve2D(MonoObject* compoundCurve)
 	{
 		Vector<SPtr<TAnimationCurve<float>>> vec__output;
-		SPtr<TAnimationCurve<Vector2>> tmpcompoundCurve;
+		SPtr<TAnimationCurve<TVector2<float>>> tmpcompoundCurve;
 		ScriptVector2Curve* scriptcompoundCurve;
 		scriptcompoundCurve = ScriptVector2Curve::ToNative(compoundCurve);
 		if(scriptcompoundCurve != nullptr)
@@ -151,7 +151,7 @@ namespace bs
 
 	MonoObject* ScriptAnimationUtility::InternalCombineCurve2D(MonoArray* curveComponents)
 	{
-		SPtr<TAnimationCurve<Vector2>> tmp__output;
+		SPtr<TAnimationCurve<TVector2<float>>> tmp__output;
 		Vector<SPtr<TAnimationCurve<float>>> veccurveComponents;
 		if(curveComponents != nullptr)
 		{

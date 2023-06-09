@@ -38,7 +38,7 @@ namespace bs
 			tmpRotation = scriptRotation->GetInternal();
 		if(tmpRotation != nullptr)
 		output.Rotation = *tmpRotation;
-		SPtr<TDistribution<Vector3>> tmpRotation3D;
+		SPtr<TDistribution<TVector3<float>>> tmpRotation3D;
 		ScriptVector3Distribution* scriptRotation3D;
 		scriptRotation3D = ScriptVector3Distribution::ToNative(value.Rotation3D);
 		if(scriptRotation3D != nullptr)
@@ -59,8 +59,8 @@ namespace bs
 		tmpRotation = ScriptFloatDistribution::Create(tmpRotationcopy);
 		output.Rotation = tmpRotation;
 		MonoObject* tmpRotation3D;
-		SPtr<TDistribution<Vector3>> tmpRotation3Dcopy;
-		tmpRotation3Dcopy = B3DMakeShared<TDistribution<Vector3>>(value.Rotation3D);
+		SPtr<TDistribution<TVector3<float>>> tmpRotation3Dcopy;
+		tmpRotation3Dcopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Rotation3D);
 		tmpRotation3D = ScriptVector3Distribution::Create(tmpRotation3Dcopy);
 		output.Rotation3D = tmpRotation3D;
 		output.Use3DRotation = value.Use3DRotation;

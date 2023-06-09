@@ -4,8 +4,8 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
-#include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Particles/BsVectorField.h"
+#include "Math/BsVector3.h"
 
 namespace bs { class VectorField; }
 namespace bs { struct __VECTOR_FIELD_DESCInterop; }

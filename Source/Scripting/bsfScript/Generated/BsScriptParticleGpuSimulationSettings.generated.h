@@ -7,9 +7,9 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 
 namespace bs { struct ParticleGpuSimulationSettings; }
 namespace bs
@@ -30,8 +30,8 @@ namespace bs
 		static void InternalSetColorOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value);
 		static MonoObject* InternalGetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr);
 		static void InternalSetSizeScaleOverLifetime(ScriptParticleGpuSimulationSettings* thisPtr, MonoObject* value);
-		static void InternalGetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, Vector3* __output);
-		static void InternalSetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, Vector3* value);
+		static void InternalGetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, TVector3<float>* __output);
+		static void InternalSetAcceleration(ScriptParticleGpuSimulationSettings* thisPtr, TVector3<float>* value);
 		static float InternalGetDrag(ScriptParticleGpuSimulationSettings* thisPtr);
 		static void InternalSetDrag(ScriptParticleGpuSimulationSettings* thisPtr, float value);
 		static MonoObject* InternalGetDepthCollision(ScriptParticleGpuSimulationSettings* thisPtr);

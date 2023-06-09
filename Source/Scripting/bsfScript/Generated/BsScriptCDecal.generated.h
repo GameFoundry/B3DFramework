@@ -19,8 +19,8 @@ namespace bs
 	private:
 		static void InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material);
 		static MonoObject* InternalGetMaterial(ScriptDecal* thisPtr);
-		static void InternalSetSize(ScriptDecal* thisPtr, Vector2* size);
-		static void InternalGetSize(ScriptDecal* thisPtr, Vector2* __output);
+		static void InternalSetSize(ScriptDecal* thisPtr, TVector2<float>* size);
+		static void InternalGetSize(ScriptDecal* thisPtr, TVector2<float>* __output);
 		static void InternalSetMaxDistance(ScriptDecal* thisPtr, float distance);
 		static float InternalGetMaxDistance(ScriptDecal* thisPtr);
 		static void InternalSetLayer(ScriptDecal* thisPtr, uint64_t layer);

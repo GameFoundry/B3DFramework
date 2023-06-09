@@ -12,8 +12,8 @@ namespace bs
 {
 	struct __LimitConeRangeInterop
 	{
-		Radian YLimitAngle;
-		Radian ZLimitAngle;
+		TRadian<float> YLimitAngle;
+		TRadian<float> ZLimitAngle;
 		float ContactDist;
 		float Restitution;
 		Spring Spring;

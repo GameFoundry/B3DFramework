@@ -11,7 +11,7 @@ namespace bs
 {
 	struct __PARTICLE_RECT_SHAPE_DESCInterop
 	{
-		Vector2 Extents;
+		TVector2<float> Extents;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRectShapeOptions : public ScriptObject<ScriptParticleRectShapeOptions>

@@ -112,9 +112,9 @@ namespace bs
 		thisPtr->GetInternal()->Tightness = value;
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalGetScale(ScriptParticleVectorFieldSettings* thisPtr, Vector3* __output)
+	void ScriptParticleVectorFieldSettings::InternalGetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Scale;
 
 		*__output = tmp__output;
@@ -122,14 +122,14 @@ namespace bs
 
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value)
+	void ScriptParticleVectorFieldSettings::InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value)
 	{
 		thisPtr->GetInternal()->Scale = *value;
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalGetOffset(ScriptParticleVectorFieldSettings* thisPtr, Vector3* __output)
+	void ScriptParticleVectorFieldSettings::InternalGetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output)
 	{
-		Vector3 tmp__output;
+		TVector3<float> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Offset;
 
 		*__output = tmp__output;
@@ -137,7 +137,7 @@ namespace bs
 
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, Vector3* value)
+	void ScriptParticleVectorFieldSettings::InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value)
 	{
 		thisPtr->GetInternal()->Offset = *value;
 	}
@@ -159,7 +159,7 @@ namespace bs
 
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetRotationRate(ScriptParticleVectorFieldSettings* thisPtr)
 	{
-		SPtr<TDistribution<Vector3>> tmp__output = B3DMakeShared<TDistribution<Vector3>>();
+		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
 		*tmp__output = thisPtr->GetInternal()->RotationRate;
 
 		MonoObject* __output;
@@ -170,7 +170,7 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetRotationRate(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value)
 	{
-		SPtr<TDistribution<Vector3>> tmpvalue;
+		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptvalue;
 		scriptvalue = ScriptVector3Distribution::ToNative(value);
 		if(scriptvalue != nullptr)
