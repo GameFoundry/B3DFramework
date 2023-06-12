@@ -53,6 +53,6 @@ void RendererManager::RegisterFactoryInternal(SPtr<RendererFactory> factory)
 
 void RendererManager::RequestFrameCapture()
 {
-	// GetCoreThread().PostCommand([this] { mActiveRenderer->RequestFrameCapture(); });
+	GetCoreThread().PostCommand([this] { mActiveRenderer->RequestFrameCapture(); });
 }
 

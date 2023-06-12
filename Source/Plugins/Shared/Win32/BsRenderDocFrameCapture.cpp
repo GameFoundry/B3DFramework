@@ -10,21 +10,7 @@ using namespace bs;
 RenderDocFrameCapture::RenderDocFrameCapture(VkInstance vulkanInstance) :
 	mVulkanInstance(vulkanInstance), mRenderDocLibrary(nullptr)
 {
-	mRenderDocLibrary = DynamicLibraryManager::Instance().Load("renderdoc.dll");
-
-	if (mRenderDocLibrary == nullptr)
-	{
-		B3D_LOG(Error, RenderBackend, "Failed loading RenderDoc API. renderdoc.dll cannot be found/loaded.");
-		return;
-	}
-
-	pRENDERDOC_GetAPI fnGetAPI = static_cast<pRENDERDOC_GetAPI>(mRenderDocLibrary->GetSymbol("RENDERDOC_GetAPI"));
-
-	if (!B3D_ENSURE(fnGetAPI))
-		return;
-
-	if (!B3D_ENSURE(fnGetAPI(eRENDERDOC_API_Version_1_0_0, &mRenderDocAPIPointers) == 1))
-		return;
+	LoadRenderDocAPI();
 }
 
 RenderDocFrameCapture::~RenderDocFrameCapture()
@@ -52,8 +38,37 @@ void RenderDocFrameCapture::Stop()
 	if (mRenderDocAPIPointers)
 	{
 		RENDERDOC_API_1_0_0* renderDocAPI = static_cast<RENDERDOC_API_1_0_0*>(mRenderDocAPIPointers);
-		renderDocAPI->EndFrameCapture(RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE(mVulkanInstance), nullptr);
+		B3D_ENSURE(renderDocAPI->EndFrameCapture(RENDERDOC_DEVICEPOINTER_FROM_VKINSTANCE(mVulkanInstance), nullptr) == 1);
+
+		renderDocAPI->ShowReplayUI();
 	}
 
 	mIsCaptureInProgress = false;
 }
+
+void RenderDocFrameCapture::LoadRenderDocAPI()
+{
+	if(mRenderDocLibrary != nullptr)
+	{
+		mRenderDocLibrary->Unload();
+		DynamicLibraryManager::Instance().Unload(mRenderDocLibrary);
+		mRenderDocLibrary = nullptr;
+	}
+
+	mRenderDocLibrary = DynamicLibraryManager::Instance().Load("renderdoc.dll");
+
+	if (mRenderDocLibrary == nullptr)
+	{
+		B3D_LOG(Error, RenderBackend, "Failed loading RenderDoc API. renderdoc.dll cannot be found/loaded.");
+		return;
+	}
+
+	pRENDERDOC_GetAPI fnGetAPI = static_cast<pRENDERDOC_GetAPI>(mRenderDocLibrary->GetSymbol("RENDERDOC_GetAPI"));
+
+	if (!B3D_ENSURE(fnGetAPI))
+		return;
+
+	if (!B3D_ENSURE(fnGetAPI(eRENDERDOC_API_Version_1_0_0, &mRenderDocAPIPointers) == 1))
+		return;
+}
+

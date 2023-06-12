@@ -256,7 +256,7 @@ void RendererView::EndFrame()
 	mRedrawThisFrame = false;
 }
 
-void RendererView::NotifyNeedsRedrawInternal()
+void RendererView::NotifyNeedsRedraw()
 {
 	mRedrawThisFrame = true;
 

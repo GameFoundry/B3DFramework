@@ -201,7 +201,7 @@ void RendererScene::UpdateCamera(Camera* camera, u32 updateFlag)
 	RendererView* view = mInfo.Views[cameraId];
 
 	if((updateFlag & (u32)CameraDirtyFlag::Redraw) != 0)
-		view->NotifyNeedsRedrawInternal();
+		view->NotifyNeedsRedraw();
 
 	u32 updateEverythingFlag = (u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active | (u32)CameraDirtyFlag::Viewport;
 

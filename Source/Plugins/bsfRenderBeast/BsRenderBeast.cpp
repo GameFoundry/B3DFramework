@@ -32,6 +32,7 @@
 #include "BsRenderBeastOptions.h"
 #include "BsRenderBeastIBLUtility.h"
 #include "BsRenderCompositor.h"
+#include "RenderAPI/BsGpuBackend.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsRenderTexture.h"
 #include "Shading/BsGpuParticleSimulation.h"
@@ -357,6 +358,9 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 
 	mDevice->BeginFrame();
 
+	if (mIsFrameCaptureRequested)
+		GpuBackend::Instance().StartCapture();
+
 	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
 	UpdateReflProbeArray(*commandBuffer);
 
@@ -382,6 +386,10 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 		{
 			u32 viewIdx = sceneInfo.CameraToView.at(cameras[i]);
 			RendererView* viewInfo = sceneInfo.Views[viewIdx];
+
+			if (mIsFrameCaptureRequested)
+				viewInfo->NotifyNeedsRedraw();
+
 			views.push_back(viewInfo);
 		}
 
@@ -410,6 +418,14 @@ void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 
 	GetProfilerGPU().EndFrame();
 	GetProfilerCPU().EndSample("Render");
+
+	if(mIsFrameCaptureRequested)
+	{
+		mDevice->WaitUntilIdle();
+		GpuBackend::Instance().StopCapture();
+
+		mIsFrameCaptureRequested = false;
+	}
 }
 
 bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
@@ -742,7 +758,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 	viewDesc.VisibleLayers = 0xFFFFFFFFFFFFFFFF;
 	viewDesc.NearPlane = 0.5f;
 	viewDesc.FarPlane = 1000.0f;
-viewDesc.FlipView = mDevice->GetCapabilities().Conventions.UvYAxis != GpuBackendConventions::Axis::Up;
+	viewDesc.FlipView = mDevice->GetCapabilities().Conventions.UvYAxis != GpuBackendConventions::Axis::Up;
 
 	viewDesc.ViewOrigin = position;
 	viewDesc.ProjTransform = projTransform;

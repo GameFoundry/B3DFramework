@@ -456,7 +456,7 @@ namespace bs
 			void SetViewIdxInternal(u32 viewIdx) { mViewIdx = viewIdx; }
 
 			/** Lets an on-demand view know that it should be redrawn this frame. */
-			void NotifyNeedsRedrawInternal();
+			void NotifyNeedsRedraw();
 
 			/**
 			 * Notifies the view that the render target the compositor is rendering to has changed. Note that this does not

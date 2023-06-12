@@ -354,6 +354,9 @@ namespace bs
 			 */
 			virtual SPtr<RendererMeshData> CreateMeshDataInternal(const SPtr<MeshData>& meshData);
 
+			/** Queues GPU command capture of the next frame, if a frame capture is set up. */
+			virtual void RequestFrameCapture() { }
+
 			/**
 			 * Registers an extension object that will be called every frame by the renderer. Allows external code to perform
 			 * custom rendering interleaved with the renderer's output.

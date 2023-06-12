@@ -21,6 +21,9 @@ namespace bs
 		void Stop() override;
 
 	private:
+		/** Loads the RenderDoc library and initializes the API pointers. */
+		void LoadRenderDocAPI();
+
 		const VkInstance mVulkanInstance;
 		DynamicLibrary* mRenderDocLibrary;
 		void* mRenderDocAPIPointers = nullptr;

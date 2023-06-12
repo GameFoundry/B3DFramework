@@ -60,6 +60,7 @@ namespace bs
 			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
 			void CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
+			void RequestFrameCapture() override { mIsFrameCaptureRequested = true; }
 
 		private:
 			void NotifyCameraAdded(Camera* camera) override;
@@ -135,6 +136,7 @@ namespace bs
 
 			// Core thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
+			bool mIsFrameCaptureRequested = false;
 
 			// Scene data
 			SPtr<RendererScene> mScene;
