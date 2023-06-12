@@ -38,6 +38,23 @@ void GpuBuffer::WriteCached(u32 offset, u32 length, const void* source)
 	MarkCoreDirty();
 }
 
+u32 GpuBuffer::WriteCachedType(u32 offset, const GpuDataParameterTypeInformation& typeInformation, const void* source)
+{
+	const u8* value = (const u8*)source;
+
+	const u32 startOffset = offset;
+	for(u32 row = 0; row < typeInformation.NumRows; ++row)
+	{
+		const u32 rowSize = typeInformation.NumColumns * typeInformation.BaseTypeSize;
+		WriteCached(offset, rowSize, value);
+
+		offset += typeInformation.Alignment;
+		value += rowSize;
+	}
+
+	return offset - startOffset;
+}
+
 void GpuBuffer::ZeroOutCached(u32 offset, u32 length)
 {
 	if(!B3D_ENSURE(mCache != nullptr))
@@ -207,6 +224,23 @@ namespace bs::ct
 
 		memcpy(mCache + offset, source, length);
 		mIsCacheDirty = true;
+	}
+
+	u32 GpuBuffer::WriteCachedType(u32 offset, const GpuDataParameterTypeInformation& typeInformation, const void* source)
+	{
+		const u8* value = (const u8*)source;
+
+		const u32 startOffset = offset;
+		for(u32 row = 0; row < typeInformation.NumRows; ++row)
+		{
+			const u32 rowSize = typeInformation.NumColumns * typeInformation.BaseTypeSize;
+			WriteCached(offset, rowSize, value);
+
+			offset += typeInformation.Alignment;
+			value += rowSize;
+		}
+
+		return offset - startOffset;
 	}
 
 	void GpuBuffer::ZeroOutCached(u32 offset, u32 length)

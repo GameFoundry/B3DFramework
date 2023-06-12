@@ -41,8 +41,7 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	}
 #endif
 
-	u32 elementSizeBytes = mParameterDescription->ElementSize * sizeof(u32);
-	u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
+	const GpuDataParameterTypeInformation& typeInformation = bs::GpuParameters::kParamSizes.Lookup[mParameterDescription->Type];
 
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
@@ -50,18 +49,11 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
 	if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 	{
-		auto transposed = TransposePolicy<T>::Transpose(value);
-		paramBlock->WriteCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
+		const auto transposed = TransposePolicy<T>::Transpose(value);
+		paramBlock->WriteCachedType((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), typeInformation, &transposed);
 	}
 	else
-		paramBlock->WriteCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), sizeBytes, &value);
-
-	// Set unused bytes to 0
-	if(sizeBytes < elementSizeBytes)
-	{
-		u32 diffSize = elementSizeBytes - sizeBytes;
-		paramBlock->ZeroOutCached((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
-	}
+		paramBlock->WriteCachedType((mParameterDescription->CpuOffset + arrayIdx * mParameterDescription->ArrayElementStride) * sizeof(u32), typeInformation, &value);
 
 	mParent->MarkCoreDirtyInternal();
 }

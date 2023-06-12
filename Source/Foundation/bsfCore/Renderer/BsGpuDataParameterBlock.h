@@ -42,8 +42,7 @@ namespace bs
 				}
 #endif
 
-				u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
-				u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
+				const GpuDataParameterTypeInformation& typeInformation = bs::GpuParameters::kParamSizes.Lookup[mParameterInformation.Type];
 
 				const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
@@ -52,57 +51,10 @@ namespace bs
 				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
 				{
 					auto transposed = TransposePolicy<T>::Transpose(value);
-					parameterBlockBuffer->WriteCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &transposed);
+					parameterBlockBuffer->WriteCachedType((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), typeInformation, &transposed);
 				}
 				else
-					parameterBlockBuffer->WriteCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), sizeBytes, &value);
-
-				// Set unused bytes to 0
-				if(sizeBytes < elementSizeBytes)
-				{
-					u32 diffSize = elementSizeBytes - sizeBytes;
-					parameterBlockBuffer->ZeroOutCached((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
-				}
-			}
-
-			/**
-			 * Writes parameter data to the provided memory location.
-			 *
-			 * @param	destination		Parameter block memory origin. The per-parameter offset is applied internally to determine the final destination.
-			 * @param	value			Value to write to the memory.
-			 * @param	arrayIndex		Optional array index, in case the parameter represents an array.
-			 */
-			void Set(u8* const destination, const T& value, u32 arrayIndex = 0) const
-			{
-#if B3D_DEBUG
-				if(arrayIndex >= mParameterInformation.ArraySize)
-				{
-					B3D_LOG(Error, RenderBackend, "Array index out of range. Array size: {0}. Requested size: {1}", mParameterInformation.ArraySize, arrayIndex);
-					return;
-				}
-#endif
-
-				const u32 elementSizeBytes = mParameterInformation.ElementSize * sizeof(u32);
-				const u32 sizeBytes = std::min(elementSizeBytes, (u32)sizeof(T)); // Truncate if it doesn't fit within parameter size
-				const u32 offset = (mParameterInformation.CpuOffset + arrayIndex * mParameterInformation.ArrayElementStride) * sizeof(u32);
-
-				const bool transposeMatrices = GetGpuDeviceCapabilities().Conventions.MatrixOrder == Conventions::MatrixOrder::ColumnMajor;
-				if(TransposePolicy<T>::TransposeEnabled(transposeMatrices))
-				{
-					auto transposed = TransposePolicy<T>::Transpose(value);
-					memcpy(destination + offset, &transposed, sizeBytes);
-				}
-				else
-				{
-					memcpy(destination + offset, &value, sizeBytes);
-				}
-
-				// Set unused bytes to 0
-				if(sizeBytes < elementSizeBytes)
-				{
-					const u32 diffSize = elementSizeBytes - sizeBytes;
-					memset(destination + offset + sizeBytes, 0, diffSize);
-				}
+					parameterBlockBuffer->WriteCachedType((mParameterInformation.CpuOffset + arrayIdx * mParameterInformation.ArrayElementStride) * sizeof(u32), typeInformation, &value);
 			}
 
 			/**

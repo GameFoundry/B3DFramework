@@ -277,7 +277,7 @@ GpuParticleResources::GpuParticleResources()
 	positionAndTimeDesc.Usage = TU_RENDERTARGET;
 
 	TextureCreateInformation velocityDesc;
-	positionAndTimeDesc.Name = "GPU Particles Velocity";
+	velocityDesc.Name = "GPU Particles Velocity";
 	velocityDesc.Format = PF_RGBA16F;
 	velocityDesc.Width = kTexSize;
 	velocityDesc.Height = kTexSize;
@@ -290,7 +290,7 @@ GpuParticleResources::GpuParticleResources()
 	}
 
 	TextureCreateInformation sizeAndRotationDesc;
-	positionAndTimeDesc.Name = "GPU Particles Size & Rotation";
+	sizeAndRotationDesc.Name = "GPU Particles Size & Rotation";
 	sizeAndRotationDesc.Format = PF_RGBA16F;
 	sizeAndRotationDesc.Width = kTexSize;
 	sizeAndRotationDesc.Height = kTexSize;
@@ -778,7 +778,7 @@ void GpuParticleSimulation::Simulate(GpuCommandBuffer& commandBuffer, const Scen
 			entry->UpdateGpuBuffers();
 	}
 
-	commandBuffer.SetRenderTarget(m->Resources.GetInjectTarget());
+	commandBuffer.SetRenderTarget(m->Resources.GetInjectTarget(), 0, RT_ALL);
 
 	ClearTiles(commandBuffer, newTiles);
 	InjectParticles(commandBuffer, allNewParticles);
@@ -1006,7 +1006,7 @@ void GpuParticleSimulation::ClearTiles(GpuCommandBuffer& commandBuffer, const Ve
 
 		const u32 alignedTileEnd = Math::DivideAndRoundUp(tileEnd, kTilesPerInstance) * kTilesPerInstance;
 		for(u32 j = tileEnd; j < alignedTileEnd; j++)
-			tileUVs[j - tileEnd] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
+			tileUVs[j] = Vector2(2.0f, 2.0f); // Out of bounds (we don't want to accidentaly clear used tiles)
 
 		m->HelperBuffers.TileScratch->WriteData(0, m->HelperBuffers.TileScratch->GetSize(), tileUVs, BWT_DISCARD); // TODO - Write using the command buffer below? It wouldn't require discard.
 		B3DStackFree(tileUVs);
@@ -1478,7 +1478,7 @@ void GpuParticleCurves::ApplyChanges(GpuCommandBuffer& commandBuffer)
 	GpuParticleCurveInjectMat* injectMat = GpuParticleCurveInjectMat::Get();
 	injectMat->Bind(commandBuffer);
 
-	commandBuffer.SetRenderTarget(mRT);
+	commandBuffer.SetRenderTarget(mRT, 0, RT_ALL);
 	commandBuffer.SetVertexDescription(mInjectVertexDescription);
 
 	SPtr<GpuBuffer> buffers[] = { mInjectScratch, mInjectUV };

@@ -204,6 +204,12 @@ namespace bs
 		void WriteCached(u32 offset, u32 length, const void* source);
 
 		/**
+		 * Same as WriteCached(), but takes care of respecting the padding/alignment requirements of the provided type. (e.g. a 3x3 matrix will be padded with 4 bytes in each row).
+		 * @p source must contain at least as many bytes as the size provided in @p typeInformation. Returns the total number of written bytes, including the padding.
+		 */
+		u32 WriteCachedType(u32 offset, const GpuDataParameterTypeInformation& typeInformation, const void* source);
+
+		/**
 		 * Clears the specified area of the cache. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
 		 * with the core thread counterpart on the next sync call.
 		 */
@@ -359,6 +365,12 @@ namespace bs::ct
 		 * for the data to actually reach the underlying buffer you must call FlushCache().
 		 */
 		virtual void WriteCached(u32 offset, u32 length, const void* source);
+
+		/**
+		 * Same as WriteCached(), but takes care of respecting the padding/alignment requirements of the provided type. (e.g. a 3x3 matrix will be padded with 4 bytes in each row).
+		 * @p source must contain at least as many bytes as the size provided in @p typeInformation. Returns the total number of written bytes, including the padding.
+		 */
+		u32 WriteCachedType(u32 offset, const GpuDataParameterTypeInformation& typeInformation, const void* source);
 
 		/**
 		 * Clears the specified area of the cache. Buffer must have been created with AllowWriteCachingOnCPU flag. In order
