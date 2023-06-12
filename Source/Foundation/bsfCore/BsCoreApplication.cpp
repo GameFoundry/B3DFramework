@@ -336,7 +336,7 @@ void CoreApplication::RunMainLoopFrame()
 
 	GetCoreThread().PostCommand([this] { BeginCoreProfiling(); });
 	GetCoreThread().PostCommand([] { Platform::CoreUpdateInternal(); });
-	GetCoreThread().PostCommand([] { RenderWindowManager::Instance().UpdateInternal(); });
+	GetCoreThread().PostCommand([] { ct::RenderWindowManager::Instance().UpdateInternal(); });
 
 	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
