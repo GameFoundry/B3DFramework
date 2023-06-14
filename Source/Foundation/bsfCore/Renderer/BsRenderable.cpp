@@ -327,37 +327,93 @@ void Renderable::MarkResourcesDirtyInternal()
 	MarkListenerResourcesDirty();
 }
 
+namespace bs
+{
+
+
+	template<bool Core, class FieldTypeA, class FieldTypeB>
+	void CoreSyncField(FieldTypeA&& a, FieldTypeB&& b, std::enable_if_t<!Core>* = 0)
+	{
+		// TODO - Also add CoreSyncVector that is enabled for all std::vector types, and returns a SyncFrameVector
+
+		a = std::move(GetCoreObject(RemoveHandle(b)));
+	}
+
+	template<bool Core, class FieldTypeA, class FieldTypeB>
+	void CoreSyncField(FieldTypeA&& a, FieldTypeB&& b, std::enable_if_t<Core>* = 0)
+	{
+		b = std::move(a);
+	}
+
+	template <typename T, typename A = StdFrameAlloc<T>>
+	using SyncFrameVector = std::vector<T, A>;
+
+	struct Renderable::FullSyncData
+	{
+		FullSyncData(const Renderable& source, FrameAlloc* allocator)
+			: Layer(source.mLayer)
+			, OverrideBounds(source.mOverrideBounds)
+			, UseOverrideBounds(source.mUseOverrideBounds)
+			, WriteVelocity(source.mWriteVelocity)
+			, AnimationType(source.mAnimType)
+			, AnimationId(source.mAnimation != nullptr ? source.mAnimation->GetIdInternal() : (u64)-1)
+			, CullDistanceFactor(source.mCullDistanceFactor)
+			, Mesh(B3DGetCoreObject(source.mMesh))
+			, Materials(allocator)
+		{
+			Materials.resize(source.mMaterials.size());
+			for(size_t materialIndex = 0; materialIndex < source.mMaterials.size(); ++materialIndex)
+				Materials[materialIndex] = B3DGetCoreObject(source.mMaterials[materialIndex]);
+		}
+
+		void Apply(ct::Renderable& destination)
+		{
+			destination.mLayer = Layer;
+			destination.mOverrideBounds = OverrideBounds;
+			destination.mUseOverrideBounds = UseOverrideBounds;
+			destination.mWriteVelocity = WriteVelocity;
+			destination.mAnimType = AnimationType;
+			destination.mAnimationId = AnimationId;
+			destination.mCullDistanceFactor = CullDistanceFactor;
+			destination.mMesh = std::move(Mesh);
+
+			destination.mMaterials.resize(Materials.size());
+			for(size_t materialIndex = 0; materialIndex < Materials.size(); ++materialIndex)
+				destination.mMaterials[materialIndex] = std::move(Materials[materialIndex]);
+		}
+
+		template<bool Core>
+		void Sync(CoreVariantType<Renderable, Core>& object)
+		{
+			CoreSyncField<Core>(Layer, object.mLayer);
+			CoreSyncField<Core>(OverrideBounds, object.mOverrideBounds);
+			CoreSyncField<Core>(Mesh, object.mMesh);
+
+
+			// SyncLast()
+			// SyncPrevious_1
+			// SyncPrevious_2 ... etc, similar to B3D_PARAMS
+		}
+
+		u64 Layer;
+		AABox OverrideBounds;
+		bool UseOverrideBounds;
+		bool WriteVelocity;
+		RenderableAnimType AnimationType;
+		u64 AnimationId;
+		float CullDistanceFactor;
+		SPtr<ct::Mesh> Mesh;
+		SyncFrameVector<SPtr<ct::Material>> Materials;
+	};
+}
+
 CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 {
 	const u32 dirtyFlags = GetCoreDirtyFlags();
 	u32 size = B3DRTTISize(dirtyFlags).Bytes;
 	SceneActor::RttiEnumFields(RttiB3DCoreSyncSize(size), (ActorDirtyFlags)dirtyFlags);
 
-	// The most common case if only the transform changed, so we sync only transform related options
-	u32 numMaterials = 0;
-	u64 animationId = 0;
-	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
-	{
-		numMaterials = (u32)mMaterials.size();
-
-		if(mAnimation != nullptr)
-			animationId = mAnimation->GetIdInternal();
-		else
-			animationId = (u64)-1;
-
-		size +=
-			B3DRTTISize(mLayer).Bytes +
-			B3DRTTISize(mOverrideBounds).Bytes +
-			B3DRTTISize(mUseOverrideBounds).Bytes +
-			B3DRTTISize(mWriteVelocity).Bytes +
-			B3DRTTISize(numMaterials).Bytes +
-			B3DRTTISize(animationId).Bytes +
-			B3DRTTISize(mAnimType).Bytes +
-			B3DRTTISize(mCullDistanceFactor).Bytes +
-			sizeof(SPtr<ct::Mesh>) +
-			numMaterials * sizeof(SPtr<ct::Material>);
-	}
-
+	size = Math::DivideAndRoundUp(size, 4u) * 4u;
 	u8* data = allocator->Alloc(size);
 	Bitstream stream(data, size);
 
@@ -366,29 +422,11 @@ CoreSyncData Renderable::SyncToCore(FrameAlloc* allocator)
 
 	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
 	{
-		B3DRTTIWrite(mLayer, stream);
-		B3DRTTIWrite(mOverrideBounds, stream);
-		B3DRTTIWrite(mUseOverrideBounds, stream);
-		B3DRTTIWrite(mWriteVelocity, stream);
-		B3DRTTIWrite(numMaterials, stream);
-		B3DRTTIWrite(animationId, stream);
-		B3DRTTIWrite(mAnimType, stream);
-		B3DRTTIWrite(mCullDistanceFactor, stream);
+		FullSyncData* output = allocator->Construct<FullSyncData>(*this, allocator);
+		output->Sync<false>(*this);
 
-		SPtr<ct::Mesh>* mesh = new(stream.Cursor()) SPtr<ct::Mesh>();
-		if(mMesh.IsLoaded())
-			*mesh = mMesh->GetCore();
-
-		stream.SkipBytes(sizeof(SPtr<ct::Mesh>));
-
-		for(u32 i = 0; i < numMaterials; i++)
-		{
-			SPtr<ct::Material>* material = new(stream.Cursor()) SPtr<ct::Material>();
-			if(mMaterials[i].IsLoaded())
-				*material = mMaterials[i]->GetCore();
-
-			stream.SkipBytes(sizeof(SPtr<ct::Material>));
-		}
+		FullSyncData* dataR = (FullSyncData*)(data + size);
+		int a = 5;
 	}
 
 	return CoreSyncData(data, size);
@@ -694,27 +732,10 @@ void Renderable::SyncToCore(const CoreSyncData& data)
 
 	if(dirtyFlags != (u32)ActorDirtyFlag::Transform)
 	{
-		B3DRTTIRead(mLayer, stream);
-		B3DRTTIRead(mOverrideBounds, stream);
-		B3DRTTIRead(mUseOverrideBounds, stream);
-		B3DRTTIRead(mWriteVelocity, stream);
-		B3DRTTIRead(numMaterials, stream);
-		B3DRTTIRead(mAnimationId, stream);
-		B3DRTTIRead(mAnimType, stream);
-		B3DRTTIRead(mCullDistanceFactor, stream);
+		bs::Renderable::FullSyncData* fullSyncData = (bs::Renderable::FullSyncData*)(data.GetBuffer() + data.GetBufferSize());
+		fullSyncData->Apply(*this);
 
-		SPtr<Mesh>* mesh = (SPtr<Mesh>*)stream.Cursor();
-		mMesh = *mesh;
-		mesh->~SPtr<Mesh>();
-		stream.SkipBytes(sizeof(SPtr<Mesh>));
-
-		for(u32 i = 0; i < numMaterials; i++)
-		{
-			SPtr<Material>* material = (SPtr<Material>*)stream.Cursor();
-			mMaterials.push_back(*material);
-			material->~SPtr<Material>();
-			stream.SkipBytes(sizeof(SPtr<Material>));
-		}
+		fullSyncData->~FullSyncData(); // TODO - Destruct this properly through FrameAllocator it was constructed with
 	}
 
 	u32 updateEverythingFlag = (u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active | (u32)ActorDirtyFlag::Dependency;
