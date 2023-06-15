@@ -192,6 +192,9 @@ namespace bs
 
 		/** @} */
 	protected:
+		friend class ct::Renderable;
+		struct FullSyncData;
+		
 		SPtr<ct::CoreObject> CreateCore() const override;
 
 		void OnMeshChanged() override;

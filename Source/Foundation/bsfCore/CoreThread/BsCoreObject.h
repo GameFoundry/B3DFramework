@@ -294,5 +294,20 @@ namespace bs
 		return SPtr<Type>(data, &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
+	/** Returns associated core object, or null if the object is null. */
+	template<class Type>
+	auto B3DGetCoreObject(const SPtr<Type>& object)
+	{
+		return object == nullptr ? nullptr : object->GetCore();
+	}
+
+	/** Returns associated core object, or null if the object is null. */
+	template<class Type>
+	auto B3DGetCoreObject(const ResourceHandle<Type>& object)
+	{
+		return !object.IsLoaded() ? nullptr : object->GetCore();
+	}
+
+
 	/** @} */
 } // namespace bs
