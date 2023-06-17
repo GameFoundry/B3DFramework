@@ -267,7 +267,7 @@ void ReflectionProbe::Initialize()
 	CoreObject::Initialize();
 }
 
-void ReflectionProbe::SyncToCore(const CoreSyncData& data)
+void ReflectionProbe::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

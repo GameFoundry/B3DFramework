@@ -157,7 +157,7 @@ namespace bs
 			const RenderTextureProperties& GetProperties() const;
 
 		protected:
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 		private:
 			/**	Throws an exception of the color and depth/stencil buffers aren't compatible. */

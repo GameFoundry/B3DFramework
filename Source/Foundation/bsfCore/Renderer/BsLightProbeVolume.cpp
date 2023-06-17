@@ -507,7 +507,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 	return mFirstDirtyProbe == (u32)mProbeInfos.size();
 }
 
-void LightProbeVolume::SyncToCore(const CoreSyncData& data)
+void LightProbeVolume::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

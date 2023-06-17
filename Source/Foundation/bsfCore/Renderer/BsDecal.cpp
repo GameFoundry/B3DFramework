@@ -176,7 +176,7 @@ void Decal::Initialize()
 	CoreObject::Initialize();
 }
 
-void Decal::SyncToCore(const CoreSyncData& data)
+void Decal::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

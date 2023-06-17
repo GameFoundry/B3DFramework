@@ -233,7 +233,7 @@ SpriteTexture::SpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, SP
 	mPlayback = playback;
 }
 
-void SpriteTexture::SyncToCore(const CoreSyncData& data)
+void SpriteTexture::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 	B3DCoreSyncRead(*this, stream);

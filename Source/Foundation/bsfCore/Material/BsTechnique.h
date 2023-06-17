@@ -196,7 +196,7 @@ namespace bs
 			static SPtr<Technique> CreateEmpty();
 
 		protected:
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 			SPtr<Technique> GetSelf() override { return std::static_pointer_cast<Technique>(GetShared()); }
 
 		private:

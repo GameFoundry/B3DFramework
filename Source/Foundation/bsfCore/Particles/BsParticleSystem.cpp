@@ -518,7 +518,7 @@ void ParticleSystem::SetLayer(u64 layer)
 	MarkCoreDirtyInternal();
 }
 
-void ParticleSystem::SyncToCore(const CoreSyncData& data)
+void ParticleSystem::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream((uint8_t*)data.GetBuffer(), data.GetBufferSize());
 

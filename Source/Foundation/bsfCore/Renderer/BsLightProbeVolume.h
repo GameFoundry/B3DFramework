@@ -268,7 +268,7 @@ namespace bs
 			LightProbeVolume(const UnorderedMap<u32, bs::LightProbeVolume::ProbeInfo>& probes);
 
 			void Initialize() override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			/**
 			 * Renders dirty probes and updates their SH coefficients in the local GPU buffer.

@@ -292,7 +292,7 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 		for(auto riter = data.rbegin(); riter != data.rend(); ++riter)
 		{
 			const IndividualCoreSyncData& entry = *riter;
-			entry.Destination->SyncToCore(entry.SyncData);
+			entry.Destination->SyncToCore(entry.SyncData, *entry.Allocator);
 
 			u8* dataPtr = entry.SyncData.GetBuffer();
 
@@ -419,7 +419,7 @@ void CoreObjectManager::SyncUpload()
 	{
 		SPtr<ct::CoreObject> destinationObj = objSyncData.DestinationObj;
 		if(destinationObj != nullptr)
-			destinationObj->SyncToCore(objSyncData.SyncData);
+			destinationObj->SyncToCore(objSyncData.SyncData, *syncData.Alloc);
 
 		u8* data = objSyncData.SyncData.GetBuffer();
 

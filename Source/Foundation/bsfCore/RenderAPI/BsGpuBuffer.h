@@ -400,7 +400,7 @@ namespace bs::ct
 		/** Constructs a new GPU buffer. */
 		GpuBuffer(const GpuBufferCreateInformation& createInformation);
 
-		void SyncToCore(const CoreSyncData& data) override;
+		void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 		/** @copydoc Lock */
 		virtual void* Map(u32 offset, u32 length, GpuLockOptions options) { return nullptr; }

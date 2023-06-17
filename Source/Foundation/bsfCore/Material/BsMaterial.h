@@ -875,7 +875,7 @@ namespace bs
 			Material(const SPtr<Shader>& shader, const ShaderVariationParameters& variation);
 			Material(const SPtr<Shader>& shader, const Vector<SPtr<Technique>>& techniques, const SPtr<MaterialParams>& materialParams, const ShaderVariationParameters& variation);
 
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 		};
 
 		/** @} */

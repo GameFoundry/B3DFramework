@@ -315,5 +315,172 @@ namespace bs
 		v.RttiEnumFields(RttiCoreSyncReader(stream));
 	}
 
+	/** Packet containing data for synchronizing a CoreObject with its render thread counter-part. */
+	struct CoreSyncPacket
+	{
+		CoreSyncPacket(FrameAlloc& allocator)
+			: mAllocator(allocator)
+		{ }
+
+		virtual ~CoreSyncPacket()
+		{
+			if(NextPacket)
+			{
+				mAllocator.Destruct(NextPacket);
+			}
+		}
+
+		/** Next packet, in case multiple packets are created by a single core object. */
+		CoreSyncPacket* NextPacket = nullptr;
+		
+	protected:
+		FrameAlloc& mAllocator;
+	};
+
+	namespace implementation
+	{
+		/** Vector type that can be allocated using FrameAllocator, to be use for core object sync. */
+		template <typename T, typename A = StdFrameAlloc<T>>
+		using CoreSyncVector = std::vector<T, A>;
+
+		/** Copies a field from the non-core object into the field in the CoreSyncPacket. */
+		template <bool Core, class FieldTypeA, class FieldTypeB>
+		void CoreSyncField(FieldTypeA&& a, FieldTypeB&& b, std::enable_if_t<!Core>* = 0)
+		{
+			a = GetCoreObject(RemoveHandle(b));
+		}
+
+		/** Copies a field from the CoreSyncPacket to a core object. */
+		template <bool Core, class FieldTypeA, class FieldTypeB>
+		void CoreSyncField(FieldTypeA&& a, FieldTypeB&& b, std::enable_if_t<Core>* = 0)
+		{
+			b = std::forward<FieldTypeA>(a);
+		}
+
+		/** Copies an array from the non-core object into the field in the CoreSyncPacket. */
+		template <bool Core, class FieldTypeA, class FieldTypeB>
+		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, Vector<FieldTypeB>& b, std::enable_if_t<!Core>* = 0)
+		{
+			a.resize(b.size());
+			for(size_t index = 0; index < b.size(); ++index)
+				a[index] = GetCoreObject(RemoveHandle(b[index]));
+		}
+
+		/** Copies an array from the CoreSyncPacket to a core object. */
+		template <bool Core, class FieldTypeA, class FieldTypeB>
+		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, Vector<FieldTypeB>& b, std::enable_if_t<Core>* = 0)
+		{
+			b.resize(a.size());
+			for(size_t index = 0; index < a.size(); ++index)
+				a[index] = std::move(b[index]);
+		}
+
+		/** Defines an intermediate type used for storing data of type T in a CoreSyncPacket. */
+		template <class T>
+		struct CoreSyncPacketType
+		{
+			typedef decltype(GetCoreObject(RemoveHandle(T()))) Type;
+		};
+
+		/** Defines an intermediate type used for storing data of type T in a CoreSyncPacket. */
+		template <class T>
+		struct CoreSyncPacketType<Vector<T>>
+		{
+			typedef CoreSyncVector<decltype(GetCoreObject(RemoveHandle(T())))> Type;
+		};
+
+		/** Initializes an intermediate type used for storing data of type T in a CoreSyncPacket with an allocator if needed. */
+		template <class T>
+		struct CoreSyncPacketTypeInitializeWithAllocator
+		{
+			static std::decay_t<T> Initialize(FrameAlloc& allocator)
+			{
+				return std::decay_t<T>();
+			}
+		};
+
+		/** Initializes an intermediate type used for storing data of type T in a CoreSyncPacket with an allocator if needed. */
+		template <class T>
+		struct CoreSyncPacketTypeInitializeWithAllocator<CoreSyncVector<T>>
+		{
+			static CoreSyncVector<std::decay_t<T>> Initialize(FrameAlloc& allocator)
+			{
+				return CoreSyncVector<std::decay_t<T>>(&allocator);
+			}
+		};
+	} // namespace implementation
+
+#define B3D_SYNC_BLOCK_BEGIN(ClassType, Name)                                            \
+	struct ClassType::Name : CoreSyncPacket                                              \
+	{                                                                                    \
+		Name(FrameAlloc& allocator)                                                      \
+			: CoreSyncPacket(allocator)                                                  \
+		{}                                                                               \
+		typedef ClassType Type;                                                          \
+		template <bool Core>                                                             \
+		void Sync(CoreVariantType<Type, Core>& object)                                   \
+		{                                                                                \
+			SyncEntries<Core>(object);                                                   \
+		}                                                                                \
+                                                                                         \
+	private:                                                                             \
+		struct META_FirstEntry                                                           \
+		{};                                                                              \
+		template <bool Core>                                                             \
+		void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_FirstEntry id) \
+		{}                                                                               \
+                                                                                         \
+		typedef META_FirstEntry
+
+#define B3D_SYNC_BLOCK_ENTRY(EntryName)                                                                                            \
+	META_Entry_##EntryName;                                                                                                        \
+                                                                                                                                   \
+	struct META_NextEntry_##EntryName                                                                                              \
+	{};                                                                                                                            \
+                                                                                                                                   \
+	template <bool Core>                                                                                                           \
+	void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_NextEntry_##EntryName id)                                    \
+	{                                                                                                                              \
+		META_SyncPrevEntry<Core>(object, META_Entry_##EntryName());                                                                \
+		implementation::CoreSyncField<Core>(EntryName, object.EntryName);                                                          \
+	}                                                                                                                              \
+                                                                                                                                   \
+public:                                                                                                                            \
+	using Type##EntryName = typename implementation::CoreSyncPacketType<decltype(Type::EntryName)>::Type;                          \
+	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
+                                                                                                                                   \
+private:                                                                                                                           \
+	typedef META_NextEntry_##EntryName
+
+#define B3D_SYNC_BLOCK_ENTRY_CUSTOM(EntryType, EntryName)                                                                           \
+	META_Entry_##EntryName;                                                                                                         \
+                                                                                                                                    \
+	struct META_NextEntry_##EntryName                                                                                               \
+	{};                                                                                                                             \
+                                                                                                                                    \
+	template <bool Core>                                                                                                            \
+	void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_NextEntry_##EntryName id)                                     \
+	{                                                                                                                               \
+		META_SyncPrevEntry<Core>(object, META_Entry_##EntryName());                                                                 \
+	}                                                                                                                               \
+                                                                                                                                    \
+public:                                                                                                                             \
+	using Type##EntryName = typename implementation::CoreSyncPacketType<EntryType>::Type;                                           \
+	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
+                                                                                                                                    \
+private:                                                                                                                            \
+	typedef META_NextEntry_##EntryName
+
+#define B3D_SYNC_BLOCK_END                                  \
+	META_LastEntry;                                         \
+                                                            \
+	template <bool Core>                                    \
+	void SyncEntries(CoreVariantType<Type, Core>& object)   \
+	{                                                       \
+		META_SyncPrevEntry<Core>(object, META_LastEntry()); \
+	}                                                       \
+	}                                                       \
+	;
+
 	/** @} */
 } // namespace bs

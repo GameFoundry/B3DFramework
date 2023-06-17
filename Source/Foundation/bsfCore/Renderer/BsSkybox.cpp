@@ -218,7 +218,7 @@ void Skybox::Initialize()
 	CoreObject::Initialize();
 }
 
-void Skybox::SyncToCore(const CoreSyncData& data)
+void Skybox::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

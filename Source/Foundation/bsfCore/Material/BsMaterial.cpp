@@ -1062,7 +1062,7 @@ void Material::SetVariation(const ShaderVariationParameters& variation)
 	mVariation = variation;
 }
 
-void Material::SyncToCore(const CoreSyncData& data)
+void Material::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

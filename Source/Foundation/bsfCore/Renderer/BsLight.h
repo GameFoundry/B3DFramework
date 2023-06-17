@@ -277,7 +277,7 @@ namespace bs
 			Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 			void Initialize() override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			u32 mRendererId;
 		};

@@ -284,7 +284,7 @@ namespace bs
 			void Initialize() override;
 
 			/** @copydoc CoreObject::syncToCore */
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();

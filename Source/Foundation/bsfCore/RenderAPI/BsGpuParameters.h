@@ -635,7 +635,7 @@ namespace bs
 			GpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
 
 			SPtr<GpuParameters> GetThisPtrInternal() const override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 		};
 
 		/** @} */

@@ -170,7 +170,7 @@ namespace bs
 			const MeshProperties& GetProperties() const { return mProperties; }
 
 		protected:
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			MeshProperties mProperties;
 		};

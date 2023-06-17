@@ -843,7 +843,7 @@ Rect2I Camera::GetViewportRect() const
 	return mViewport->GetPixelArea();
 }
 
-void Camera::SyncToCore(const CoreSyncData& data)
+void Camera::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

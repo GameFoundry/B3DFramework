@@ -216,7 +216,7 @@ namespace bs
 			u32 GetTargetWidth() const override;
 			u32 GetTargetHeight() const override;
 
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 		};
 
 		/** @} */

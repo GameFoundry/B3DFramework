@@ -286,7 +286,7 @@ void Light::Initialize()
 	CoreObject::Initialize();
 }
 
-void Light::SyncToCore(const CoreSyncData& data)
+void Light::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

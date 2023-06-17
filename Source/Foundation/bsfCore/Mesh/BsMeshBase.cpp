@@ -69,7 +69,7 @@ MeshBase::MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMe
 	: mProperties(vertexCount, indexCount, subMeshes)
 {}
 
-void MeshBase::SyncToCore(const CoreSyncData& data)
+void MeshBase::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	mProperties.Bounds = data.GetData<Bounds>();
 }

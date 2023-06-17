@@ -220,7 +220,7 @@ u32 Viewport::GetTargetHeight() const
 	return 0;
 }
 
-void Viewport::SyncToCore(const CoreSyncData& data)
+void Viewport::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 	B3DCoreSyncRead(*this, stream);

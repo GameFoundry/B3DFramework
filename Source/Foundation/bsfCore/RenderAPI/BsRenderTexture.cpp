@@ -223,7 +223,7 @@ SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc)
 	return TextureManager::Instance().CreateRenderTexture(desc);
 }
 
-void RenderTexture::SyncToCore(const CoreSyncData& data)
+void RenderTexture::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	RenderTextureProperties& props = const_cast<RenderTextureProperties&>(GetProperties());
 	props = data.GetData<RenderTextureProperties>();

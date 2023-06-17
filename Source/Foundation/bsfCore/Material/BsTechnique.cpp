@@ -325,7 +325,7 @@ SPtr<Technique> Technique::CreateEmpty()
 	return techniqueShared;
 }
 
-void Technique::SyncToCore(const CoreSyncData& data)
+void Technique::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 

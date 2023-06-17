@@ -151,7 +151,7 @@ namespace bs
 			Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
 
 			void Initialize() override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			SPtr<Texture> mFilteredRadiance;
 			SPtr<Texture> mIrradiance;

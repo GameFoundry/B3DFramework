@@ -593,7 +593,7 @@ namespace bs
 
 			void Initialize() override;
 			Rect2I GetViewportRect() const override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			u32 mRendererId;
 		};

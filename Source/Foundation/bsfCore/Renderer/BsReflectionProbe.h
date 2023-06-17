@@ -245,7 +245,7 @@ namespace bs
 			ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture);
 
 			void Initialize() override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			u32 mRendererId;
 		};

@@ -212,7 +212,7 @@ namespace bs
 			Decal(const SPtr<Material>& material, const Vector2& size, float maxDistance);
 
 			void Initialize() override;
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			u32 mRendererId = 0;
 		};

@@ -278,7 +278,7 @@ namespace bs::ct
 		memcpy(destination, mCache + offset, length);
 	}
 
-	void GpuBuffer::SyncToCore(const CoreSyncData& data)
+	void GpuBuffer::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 	{
 		if(data.GetBuffer() == nullptr)
 			return;

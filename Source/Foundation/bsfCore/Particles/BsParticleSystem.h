@@ -704,7 +704,7 @@ namespace bs
 				: mId(id)
 			{}
 
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			u32 mRendererId = 0;
 			u32 mId;

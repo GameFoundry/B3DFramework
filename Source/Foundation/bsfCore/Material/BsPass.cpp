@@ -206,7 +206,7 @@ void Pass::Compile()
 	CreatePipelineState();
 }
 
-void Pass::SyncToCore(const CoreSyncData& data)
+void Pass::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
 	B3DCoreSyncRead(*this, stream);

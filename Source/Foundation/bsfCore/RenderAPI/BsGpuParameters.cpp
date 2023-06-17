@@ -875,7 +875,7 @@ SPtr<GpuParameters> GpuParameters::GetThisPtrInternal() const
 	return std::static_pointer_cast<GpuParameters>(GetShared());
 }
 
-void GpuParameters::SyncToCore(const CoreSyncData& data)
+void GpuParameters::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
 	const u32 uniformBufferCount = mParameterLayout->GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer);
 	const u32 sampledTextureCount = mParameterLayout->GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::SampledTexture);

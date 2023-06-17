@@ -178,7 +178,7 @@ namespace bs
 			Pass() = default;
 			Pass(const PassCreateInformation& desc);
 
-			void SyncToCore(const CoreSyncData& data) override;
+			void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
 			/************************************************************************/
 			/* 								RTTI		                     		*/
