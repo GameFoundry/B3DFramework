@@ -329,7 +329,7 @@ void Renderable::MarkResourcesDirtyInternal()
 
 namespace bs
 {
-	B3D_SYNC_BLOCK_BEGIN_WITH_BASE(Renderable, SyncPacket, SceneActor)
+	B3D_SYNC_BLOCK_BEGIN(Renderable, SyncPacket)
 		B3D_SYNC_BLOCK_ENTRY(mLayer)
 		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
 		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
@@ -338,7 +338,8 @@ namespace bs
 		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
 		B3D_SYNC_BLOCK_ENTRY(mMesh)
 		B3D_SYNC_BLOCK_ENTRY(mMaterials)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(u64, mAnimationId)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
+		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
 }
 
@@ -349,7 +350,7 @@ CoreSyncPacket* Renderable::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
 	{
 		SyncPacket* renderableSyncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
 		renderableSyncPacket->mAnimationId = mAnimation != nullptr ? mAnimation->GetIdInternal() : (u64)-1;
-		renderableSyncPacket->NextPacket = sceneActorSyncPacket;
+		renderableSyncPacket->SceneActorPacket = sceneActorSyncPacket;
 
 		return renderableSyncPacket;
 	}
@@ -647,17 +648,14 @@ void Renderable::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 
 	bool oldIsActive = mActive;
 
-	syncPacket->SyncToCoreObject(this);
+	syncPacket->ApplySyncData(this);
 
 	mTfrmMatrix = mTransform.GetMatrix();
 	mTfrmMatrixNoScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::kOne);
 
 	const u32 flags = syncPacket->Flags;
-	if(flags != (u32)ActorDirtyFlag::Transform)
-		mAnimationId = data.GetSyncPacket<bs::Renderable::SyncPacket>()->mAnimationId;
-
 	const u32 updateEverythingFlag = (u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active | (u32)ActorDirtyFlag::Dependency;
-	if((syncPacket->Flags & updateEverythingFlag) != 0)
+	if((flags & updateEverythingFlag) != 0)
 	{
 		CreateAnimationBuffers();
 

@@ -322,22 +322,13 @@ namespace bs
 			: mAllocator(allocator), Flags(flags)
 		{ }
 
-		virtual ~CoreSyncPacket()
-		{
-			if(NextPacket)
-			{
-				mAllocator.Destruct(NextPacket);
-			}
-		}
+		virtual ~CoreSyncPacket() = default;
 
 		/** Transfers the data from this object into the provided render thread variant of the core object. */
-		virtual void SyncToCoreObject(void* coreObject) { }
+		virtual void ApplySyncData(void* object) { }
 
 		/** Optional user-specified flags. */
 		u32 Flags = 0;
-
-		/** Next packet, in case multiple packets are created by a single core object. */
-		CoreSyncPacket* NextPacket = nullptr;
 		
 	protected:
 		FrameAlloc& mAllocator;
@@ -416,108 +407,256 @@ namespace bs
 		};
 	} // namespace implementation
 
-#define B3D_SYNC_BLOCK_BEGIN_WITH_BASE(ClassType, Name, BaseType)                                            \
-	struct ClassType::Name : CoreSyncPacket                                              \
-	{                                                                                    \
-		Name(ClassType& object, FrameAlloc& allocator, u32 flags = 0)                    \
-			: CoreSyncPacket(allocator, flags)                                           \
-		{                                                                                \
-			SyncEntries<false>(object);                                                  \
-		}                                                                                \
-                                                                                         \
-		typedef ClassType Type;                                                          \
-                                                                                         \
-		void SyncToCoreObject(void* object) \
-		{                                                                                \
-			CoreVariantType<Type, true>& coreObject = *static_cast<CoreVariantType<Type, true>*>(object); \
-			SyncEntries<true>(coreObject);\
-			if(NextPacket) NextPacket->SyncToCoreObject(&(static_cast<CoreVariantType<BaseType, true>&>(coreObject))); \
-		}                                                                                \
-                                                                                         \
-	private:                                                                             \
-		struct META_FirstEntry                                                           \
-		{};                                                                              \
-		template <bool Core>                                                             \
-		void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_FirstEntry id) \
-		{}                                                                               \
-                                                                                         \
+	/**
+	 * Begins a new object sync packet definition. All specified entries will be gathered from the source object on construction of the packet,
+	 * and can be applied to a destination object by calling ApplySyncData(). All packet data is internally allocated using a frame allocator.
+	 *
+	 * The packet definition will be created as part of @p ClassType, so you must declare `struct @p Name;` in your class.
+	 *
+	 * @param	ClassType		Type of the source object from which the data will be gathered. Destination object type will be automatically deduced using
+	 *							CoreVariantType<Type, Core> helper.
+	 * @param	Name			Name of the packet structure.
+	 */
+#define B3D_SYNC_BLOCK_BEGIN(ClassType, Name)                                                         \
+	struct ClassType::Name : CoreSyncPacket                                                           \
+	{                                                                                                 \
+		Name(ClassType& object, FrameAlloc& allocator, u32 flags = 0)                                 \
+			: CoreSyncPacket(allocator, flags)                                                        \
+		{                                                                                             \
+			PopulateSyncData(object);                                                                 \
+		}                                                                                             \
+                                                                                                      \
+		~Name() override                                                                              \
+		{                                                                                             \
+			FreeEntries();                                                                            \
+		}                                                                                             \
+                                                                                                      \
+		typedef ClassType Type;                                                                       \
+                                                                                                      \
+		void ApplySyncData(void* object) override                                                     \
+		{                                                                                             \
+			ApplySyncData(*static_cast<CoreVariantType<Type, true>*>(object));                        \
+		}                                                                                             \
+                                                                                                      \
+	private:                                                                                          \
+		struct META_FirstEntry                                                                        \
+		{};                                                                                           \
+                                                                                                      \
+		void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_FirstEntry id) \
+		{}                                                                                            \
+                                                                                                      \
+		void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_FirstEntry id)     \
+		{}                                                                                            \
+                                                                                                      \
+		void META_FreePrevEntry(META_FirstEntry id)                                                   \
+		{}                                                                                            \
+                                                                                                      \
 		typedef META_FirstEntry
 
-#define B3D_SYNC_BLOCK_BEGIN(ClassType, Name)                                            \
-	struct ClassType::Name : CoreSyncPacket                                              \
-	{                                                                                    \
-		Name(ClassType& object, FrameAlloc& allocator, u32 flags = 0)                    \
-			: CoreSyncPacket(allocator, flags)                                           \
-		{                                                                                \
-			SyncEntries<false>(object);                                                  \
-		}                                                                                \
-                                                                                         \
-		typedef ClassType Type;                                                          \
-                                                                                         \
-		void SyncToCoreObject(void* object) \
-		{                                                                                \
-			CoreVariantType<Type, true>& coreObject = *static_cast<CoreVariantType<Type, true>*>(object); \
-			SyncEntries<true>(coreObject);\
-			if(NextPacket) NextPacket->SyncToCoreObject((static_cast<CoreVariantType<Type, true>*>(object))); \
-		}                                                                                \
-                                                                                         \
-	private:                                                                             \
-		struct META_FirstEntry                                                           \
-		{};                                                                              \
-		template <bool Core>                                                             \
-		void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_FirstEntry id) \
-		{}                                                                               \
-                                                                                         \
-		typedef META_FirstEntry
-
-#define B3D_SYNC_BLOCK_ENTRY(EntryName)                                                                                            \
-	META_Entry_##EntryName;                                                                                                        \
-                                                                                                                                   \
-	struct META_NextEntry_##EntryName                                                                                              \
-	{};                                                                                                                            \
-                                                                                                                                   \
-	template <bool Core>                                                                                                           \
-	void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_NextEntry_##EntryName id)                                    \
-	{                                                                                                                              \
-		META_SyncPrevEntry<Core>(object, META_Entry_##EntryName());                                                                \
-		implementation::CoreSyncField<Core>(EntryName, object.EntryName);                                                          \
-	}                                                                                                                              \
-                                                                                                                                   \
-public:                                                                                                                            \
-	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<decltype(Type::EntryName)>::Type>;                          \
+	/**
+	 * Specifies an entry in the object sync packet definition. Both source and destination objects must have a field matching
+	 * the entry name. The destination object type must be a friend of the source object type, so this object can access it's
+	 * private fields.
+	 *
+	 * @param	EntryName		Name of the field to sync.
+	 */
+#define B3D_SYNC_BLOCK_ENTRY(EntryName)                                                                                             \
+	META_Entry_##EntryName;                                                                                                         \
+                                                                                                                                    \
+	struct META_NextEntry_##EntryName                                                                                               \
+	{};                                                                                                                             \
+                                                                                                                                    \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	{                                                                                                                               \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
+		implementation::CoreSyncField<false>(EntryName, object.EntryName);                                                          \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	{                                                                                                                               \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
+		implementation::CoreSyncField<true>(EntryName, object.EntryName);                                                           \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                                          \
+	{                                                                                                                               \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                                               \
+	}                                                                                                                               \
+                                                                                                                                    \
+public:                                                                                                                             \
+	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<decltype(Type::EntryName)>::Type>;             \
 	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
-                                                                                                                                   \
-private:                                                                                                                           \
+                                                                                                                                    \
+private:                                                                                                                            \
 	typedef META_NextEntry_##EntryName
 
+	/**
+	 * Equivalent to B3D_SYNC_BLOCK_ENTRY, but the caller must populate the packet field entry manually after construction. This is
+	 * useful if a field exists in the destination object, but not in the source object.
+	 *
+	 * @param	EntryType		Type of the field (always specify the non-core type).
+	 * @param	EntryName		Name of the field to sync.
+	 */
+#define B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(EntryType, EntryName)                                                                    \
+	META_Entry_##EntryName;                                                                                                         \
+                                                                                                                                    \
+	struct META_NextEntry_##EntryName                                                                                               \
+	{};                                                                                                                             \
+                                                                                                                                    \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	{                                                                                                                               \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	{                                                                                                                               \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
+		implementation::CoreSyncField<true>(EntryName, object.EntryName);                                                           \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                                          \
+	{                                                                                                                               \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                                               \
+	}                                                                                                                               \
+                                                                                                                                    \
+public:                                                                                                                             \
+	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<EntryType>::Type>;                             \
+	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
+                                                                                                                                    \
+private:                                                                                                                            \
+	typedef META_NextEntry_##EntryName
+
+	/**
+	 * Equivalent to B3D_SYNC_BLOCK_ENTRY, but the caller must manually read the packet field to apply it to the destination object.
+	 * This is useful if a field exists in the source object, but not in the destination object.
+	 *
+	 * @param	EntryType		Type of the field (always specify the non-core type).
+	 * @param	EntryName		Name of the field to sync.
+	 */
+#define B3D_SYNC_BLOCK_ENTRY_CUSTOM_GETTER(EntryType, EntryName)                                                                    \
+	META_Entry_##EntryName;                                                                                                         \
+                                                                                                                                    \
+	struct META_NextEntry_##EntryName                                                                                               \
+	{};                                                                                                                             \
+                                                                                                                                    \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	{                                                                                                                               \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
+		implementation::CoreSyncField<false>(EntryName, object.EntryName);                                                          \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	{                                                                                                                               \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                                          \
+	{                                                                                                                               \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                                               \
+	}                                                                                                                               \
+                                                                                                                                    \
+public:                                                                                                                             \
+	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<EntryType>::Type>;                             \
+	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
+                                                                                                                                    \
+private:                                                                                                                            \
+	typedef META_NextEntry_##EntryName
+
+	/**
+	 * Specifies an entry in the object sync packet definition. Note unlike with other B3D_SYNC_BLOCK_ENTRY* approaches, the field
+	 * will not be automatically populated, nor automatically transferred to the destination object. Instead its fully up to the
+	 * user to utilize the field as needed. This is useful if you just need to transfer some data, with either source or destination
+	 * object having the field in its class.
+	 *
+	 * @param	EntryType		Type of the field (always specify the non-core type).
+	 * @param	EntryName		Name of the field in the sync packet definition.
+	 */
 #define B3D_SYNC_BLOCK_ENTRY_CUSTOM(EntryType, EntryName)                                                                           \
 	META_Entry_##EntryName;                                                                                                         \
                                                                                                                                     \
 	struct META_NextEntry_##EntryName                                                                                               \
 	{};                                                                                                                             \
                                                                                                                                     \
-	template <bool Core>                                                                                                            \
-	void META_SyncPrevEntry(CoreVariantType<Type, Core>& object, META_NextEntry_##EntryName id)                                     \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
 	{                                                                                                                               \
-		META_SyncPrevEntry<Core>(object, META_Entry_##EntryName());                                                                 \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	{                                                                                                                               \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
+	}                                                                                                                               \
+                                                                                                                                    \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                                          \
+	{                                                                                                                               \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                                               \
 	}                                                                                                                               \
                                                                                                                                     \
 public:                                                                                                                             \
-	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<EntryType>::Type>;                                           \
+	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<EntryType>::Type>;                             \
 	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
                                                                                                                                     \
 private:                                                                                                                            \
 	typedef META_NextEntry_##EntryName
 
-#define B3D_SYNC_BLOCK_END                                  \
-	META_LastEntry;                                         \
-                                                            \
-	template <bool Core>                                    \
-	void SyncEntries(CoreVariantType<Type, Core>& object)   \
-	{                                                       \
-		META_SyncPrevEntry<Core>(object, META_LastEntry()); \
-	}                                                       \
-	}                                                       \
+	/**
+	 * Specifies a child sync packet to sync along this one. Note the user must manually construct and populate the child sync
+	 * packet field, but the packet data will be applied automatically when the parent's data is applied. Child packet will
+	 * also be automatically be destructed when the parent is destructed.
+	 *
+	 * @param	ClassType		Type of the object the packet is responsible for syncing. In most cases the child packet is used for
+	 *							syncing the base class, in which case this would be the base class of the object this is a packet for.
+	 * @param	EntryName		Name of the field with the pointer to package.
+	 *
+	 */
+#define B3D_SYNC_BLOCK_ENTRY_PACKET(ClassType, EntryName)                                                    \
+	META_Entry_##EntryName;                                                                                  \
+                                                                                                             \
+	struct META_NextEntry_##EntryName                                                                        \
+	{};                                                                                                      \
+                                                                                                             \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id) \
+	{                                                                                                        \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                    \
+	}                                                                                                        \
+                                                                                                             \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)     \
+	{                                                                                                        \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                       \
+		if(EntryName) EntryName->ApplySyncData(&static_cast<CoreVariantType<ClassType, true>&>(object));     \
+	}                                                                                                        \
+                                                                                                             \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                   \
+	{                                                                                                        \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                        \
+		if(EntryName) mAllocator.Destruct(EntryName);                                                        \
+	}                                                                                                        \
+                                                                                                             \
+public:                                                                                                      \
+	CoreSyncPacket* EntryName = nullptr;                                                                     \
+                                                                                                             \
+private:                                                                                                     \
+	typedef META_NextEntry_##EntryName
+
+	/** Ends package definition started via B3D_SYNC_BLOCK_BEGIN. */
+#define B3D_SYNC_BLOCK_END                                        \
+	META_LastEntry;                                               \
+                                                                  \
+	void PopulateSyncData(CoreVariantType<Type, false>& object)   \
+	{                                                             \
+		META_PopulateSyncDataPrevEntry(object, META_LastEntry()); \
+	}                                                             \
+                                                                  \
+	void ApplySyncData(CoreVariantType<Type, true>& object)       \
+	{                                                             \
+		META_ApplySyncDataPrevEntry(object, META_LastEntry());    \
+	}                                                             \
+                                                                  \
+	void FreeEntries()                                            \
+	{                                                             \
+		META_FreePrevEntry(META_LastEntry());                     \
+	}                                                             \
+	}                                                             \
 	;
 
 	/** @} */
