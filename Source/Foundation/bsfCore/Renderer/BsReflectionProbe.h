@@ -122,10 +122,6 @@ namespace bs
 		 */
 		SPtr<TextureType> GetFilteredTexture() const { return mFilteredTexture; }
 
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P p);
-
 	protected:
 		SPtr<TextureType> mFilteredTexture;
 	};
@@ -195,11 +191,14 @@ namespace bs
 		static SPtr<ReflectionProbe> CreateBox(const Vector3& extents);
 
 	protected:
+		friend class ct::ReflectionProbe;
+		struct SyncPacket;
+
 		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
-		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 
 		/**
 		 * Captures the scene color at current probe location and generates a filtered map. If a custom texture is set then

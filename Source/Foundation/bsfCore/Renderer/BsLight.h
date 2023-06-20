@@ -174,10 +174,6 @@ namespace bs
 		 */
 		float GetLuminance() const;
 
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P p);
-
 	protected:
 		/** Updates the internal bounds for the light. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
@@ -233,11 +229,14 @@ namespace bs
 		static SPtr<Light> Create(LightType type = LightType::Radial, Color color = Color::kWhite, float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
 
 	protected:
+		friend class ct::Light;
+		struct SyncPacket;
+
 		Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 
 		/**	Creates a light with without initializing it. Used for serialization. */
 		static SPtr<Light> CreateEmpty();

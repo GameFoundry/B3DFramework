@@ -42,16 +42,17 @@ void ReflectionProbeBase::UpdateBounds()
 	}
 }
 
-template <bool Core>
-template <class P>
-void TReflectionProbe<Core>::RttiEnumFields(P p)
+namespace bs
 {
-	p(mType);
-	p(mRadius);
-	p(mExtents);
-	p(mTransitionDistance);
-	p(mBounds);
-	p(mFilteredTexture);
+	B3D_SYNC_BLOCK_BEGIN(ReflectionProbe, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mType)
+		B3D_SYNC_BLOCK_ENTRY(mRadius)
+		B3D_SYNC_BLOCK_ENTRY(mExtents)
+		B3D_SYNC_BLOCK_ENTRY(mTransitionDistance)
+		B3D_SYNC_BLOCK_ENTRY(mBounds)
+		B3D_SYNC_BLOCK_ENTRY(mFilteredTexture)
+		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
 }
 
 ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
@@ -211,21 +212,13 @@ SPtr<ct::CoreObject> ReflectionProbe::CreateCore() const
 	return probePtr;
 }
 
-CoreSyncData ReflectionProbe::SyncToCore(FrameAlloc* allocator)
+CoreSyncPacket* ReflectionProbe::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
 {
-	u32 size = 0;
-	size += B3DRTTISize(GetCoreDirtyFlags()).Bytes;
-	size += CoreSyncGetSize((SceneActor&)*this);
-	size += CoreSyncGetSize(*this);
+	SyncPacket* const syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
+	if(B3D_ENSURE(syncPacket))
+		syncPacket->SceneActorPacket = CreateSyncPacket(allocator, flags);
 
-	u8* buffer = allocator->Alloc(size);
-
-	Bitstream stream(buffer, size);
-	B3DRTTIWrite(GetCoreDirtyFlags(), stream);
-	B3DCoreSyncWrite((SceneActor&)*this, stream);
-	B3DCoreSyncWrite(*this, stream);
-
-	return CoreSyncData(buffer, size);
+	return syncPacket;
 }
 
 void ReflectionProbe::MarkCoreDirtyInternal(ActorDirtyFlag flags)
@@ -269,19 +262,18 @@ void ReflectionProbe::Initialize()
 
 void ReflectionProbe::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
-	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
+	auto* const syncPacket = data.GetSyncPacket<bs::ReflectionProbe::SyncPacket>();
+	if(!syncPacket)
+		return;
 
-	u32 dirtyFlags = 0;
 	bool oldIsActive = mActive;
 	ReflectionProbeType oldType = mType;
 
-	B3DRTTIRead(dirtyFlags, stream);
-	B3DCoreSyncRead((SceneActor&)*this, stream);
-	B3DCoreSyncRead(*this, stream);
+	syncPacket->ApplySyncData(this);
 
 	UpdateBounds();
 
-	if(dirtyFlags == (u32)ActorDirtyFlag::Transform)
+	if(syncPacket->Flags == (u32)ActorDirtyFlag::Transform)
 	{
 		if(mActive)
 			GetRenderer()->NotifyReflectionProbeUpdated(this, false);

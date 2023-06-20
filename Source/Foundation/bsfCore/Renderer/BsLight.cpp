@@ -173,21 +173,24 @@ void LightBase::SetTransform(const Transform& transform)
 	UpdateBounds();
 }
 
-template <class P>
-void LightBase::RttiEnumFields(P p)
+namespace bs
 {
-	p(mType);
-	p(mCastsShadows);
-	p(mColor);
-	p(mAttRadius);
-	p(mSourceRadius);
-	p(mIntensity);
-	p(mSpotAngle);
-	p(mSpotFalloffAngle);
-	p(mAutoAttenuation);
-	p(mBounds);
-	p(mShadowBias);
+	B3D_SYNC_BLOCK_BEGIN(Light, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mType)
+		B3D_SYNC_BLOCK_ENTRY(mCastsShadows)
+		B3D_SYNC_BLOCK_ENTRY(mColor)
+		B3D_SYNC_BLOCK_ENTRY(mAttRadius)
+		B3D_SYNC_BLOCK_ENTRY(mSourceRadius)
+		B3D_SYNC_BLOCK_ENTRY(mIntensity)
+		B3D_SYNC_BLOCK_ENTRY(mSpotAngle)
+		B3D_SYNC_BLOCK_ENTRY(mSpotFalloffAngle)
+		B3D_SYNC_BLOCK_ENTRY(mAutoAttenuation)
+		B3D_SYNC_BLOCK_ENTRY(mBounds)
+		B3D_SYNC_BLOCK_ENTRY(mShadowBias)
+		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
 }
+
 
 Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 	: LightBase(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
@@ -231,21 +234,13 @@ SPtr<ct::CoreObject> Light::CreateCore() const
 	return handlerPtr;
 }
 
-CoreSyncData Light::SyncToCore(FrameAlloc* allocator)
+CoreSyncPacket* Light::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
 {
-	u32 size = 0;
-	size += B3DRTTISize(GetCoreDirtyFlags()).Bytes;
-	size += CoreSyncGetSize((SceneActor&)*this);
-	size += CoreSyncGetSize(*this);
+	SyncPacket* const syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
+	if(B3D_ENSURE(syncPacket))
+		syncPacket->SceneActorPacket = CreateCoreSyncPacket(allocator, flags);
 
-	u8* buffer = allocator->Alloc(size);
-
-	Bitstream stream(buffer, size);
-	B3DRTTIWrite(GetCoreDirtyFlags(), stream);
-	B3DCoreSyncWrite((SceneActor&)*this, stream);
-	B3DCoreSyncWrite(*this, stream);
-
-	return CoreSyncData(buffer, size);
+	return syncPacket;
 }
 
 void Light::MarkCoreDirtyInternal(ActorDirtyFlag flag)
@@ -288,19 +283,19 @@ void Light::Initialize()
 
 void Light::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
-	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
+	auto* const syncPacket = data.GetSyncPacket<bs::Light::SyncPacket>();
+	if(!syncPacket)
+		return;
 
-	u32 dirtyFlags = 0;
 	bool oldIsActive = mActive;
 	LightType oldType = mType;
 
-	B3DRTTIRead(dirtyFlags, stream);
-	B3DCoreSyncRead((SceneActor&)*this, stream);
-	B3DCoreSyncRead(*this, stream);
+	syncPacket->ApplySyncData(this);
 
 	UpdateBounds();
 
-	if((dirtyFlags & ((u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active)) != 0)
+	const u32 flags = syncPacket->Flags;
+	if((flags & ((u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active)) != 0)
 	{
 		if(oldIsActive != mActive)
 		{
@@ -324,12 +319,12 @@ void Light::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 			GetRenderer()->NotifyLightAdded(this);
 		}
 	}
-	else if((dirtyFlags & (u32)ActorDirtyFlag::Mobility) != 0)
+	else if((flags & (u32)ActorDirtyFlag::Mobility) != 0)
 	{
 		GetRenderer()->NotifyLightRemoved(this);
 		GetRenderer()->NotifyLightAdded(this);
 	}
-	else if((dirtyFlags & (u32)ActorDirtyFlag::Transform) != 0)
+	else if((flags & (u32)ActorDirtyFlag::Transform) != 0)
 	{
 		if(mActive)
 			GetRenderer()->NotifyLightUpdated(this);
