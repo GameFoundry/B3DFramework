@@ -20,6 +20,25 @@ using namespace bs;
 
 static constexpr u32 kInitialParticleCapacity = 1000;
 
+namespace bs
+{
+	B3D_SYNC_BLOCK_BEGIN(ParticleSystemSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(GpuSimulation)
+		B3D_SYNC_BLOCK_ENTRY(SimulationSpace)
+		B3D_SYNC_BLOCK_ENTRY(Orientation)
+		B3D_SYNC_BLOCK_ENTRY(OrientationPlaneNormal)
+		B3D_SYNC_BLOCK_ENTRY(OrientationLockY)
+		B3D_SYNC_BLOCK_ENTRY(Duration)
+		B3D_SYNC_BLOCK_ENTRY(IsLooping)
+		B3D_SYNC_BLOCK_ENTRY(SortMode)
+		B3D_SYNC_BLOCK_ENTRY(Material)
+		B3D_SYNC_BLOCK_ENTRY(UseAutomaticBounds)
+		B3D_SYNC_BLOCK_ENTRY(CustomBounds)
+		B3D_SYNC_BLOCK_ENTRY(RenderMode)
+		B3D_SYNC_BLOCK_ENTRY(Mesh)
+	B3D_SYNC_BLOCK_END
+}
+
 RTTITypeBase* ParticleSystemSettings::GetRttiStatic()
 {
 	return ParticleSystemSettingsRTTI::Instance();
@@ -30,39 +49,20 @@ RTTITypeBase* ParticleSystemSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template <bool Core>
-template <class P>
-void TParticleSystemSettings<Core>::RttiEnumFields(P p)
+namespace bs
 {
-	p(GpuSimulation);
-	p(SimulationSpace);
-	p(Orientation);
-	p(OrientationPlaneNormal);
-	p(OrientationLockY);
-	p(Duration);
-	p(IsLooping);
-	p(SortMode);
-	p(Material);
-	p(UseAutomaticBounds);
-	p(CustomBounds);
-	p(RenderMode);
-	p(Mesh);
-}
-
-template <bool Core>
-template <class P>
-void TParticleVectorFieldSettings<Core>::RttiEnumFields(P p)
-{
-	p(Intensity);
-	p(Tightness);
-	p(Scale);
-	p(Offset);
-	p(Rotation);
-	p(RotationRate);
-	p(TilingX);
-	p(TilingY);
-	p(TilingZ);
-	p(VectorField);
+	B3D_SYNC_BLOCK_BEGIN(ParticleVectorFieldSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(Intensity)
+		B3D_SYNC_BLOCK_ENTRY(Tightness)
+		B3D_SYNC_BLOCK_ENTRY(Scale)
+		B3D_SYNC_BLOCK_ENTRY(Offset)
+		B3D_SYNC_BLOCK_ENTRY(Rotation)
+		B3D_SYNC_BLOCK_ENTRY(RotationRate)
+		B3D_SYNC_BLOCK_ENTRY(TilingX)
+		B3D_SYNC_BLOCK_ENTRY(TilingY)
+		B3D_SYNC_BLOCK_ENTRY(TilingZ)
+		B3D_SYNC_BLOCK_ENTRY(VectorField)
+	B3D_SYNC_BLOCK_END
 }
 
 RTTITypeBase* ParticleVectorFieldSettings::GetRttiStatic()
@@ -75,13 +75,14 @@ RTTITypeBase* ParticleVectorFieldSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template <class P>
-void ParticleDepthCollisionSettings::RttiEnumFields(P p)
+namespace bs
 {
-	p(Enabled);
-	p(Restitution);
-	p(Dampening);
-	p(RadiusScale);
+	B3D_SYNC_BLOCK_BEGIN(ParticleDepthCollisionSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(Enabled)
+		B3D_SYNC_BLOCK_ENTRY(Restitution)
+		B3D_SYNC_BLOCK_ENTRY(Dampening)
+		B3D_SYNC_BLOCK_ENTRY(RadiusScale)
+	B3D_SYNC_BLOCK_END
 }
 
 RTTITypeBase* ParticleDepthCollisionSettings::GetRttiStatic()
@@ -94,17 +95,17 @@ RTTITypeBase* ParticleDepthCollisionSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-template <bool Core>
-template <class P>
-void TParticleGpuSimulationSettings<Core>::RttiEnumFields(P p)
+namespace bs
 {
-	p(ColorOverLifetime);
-	p(SizeScaleOverLifetime);
-	p(Acceleration);
-	p(Drag);
-	p(DepthCollision);
-	p(VectorField);
-};
+	B3D_SYNC_BLOCK_BEGIN(ParticleGpuSimulationSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(ColorOverLifetime)
+		B3D_SYNC_BLOCK_ENTRY(SizeScaleOverLifetime)
+		B3D_SYNC_BLOCK_ENTRY(Acceleration)
+		B3D_SYNC_BLOCK_ENTRY(Drag)
+		B3D_SYNC_BLOCK_ENTRY(DepthCollision)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_FIELD(VectorField, SyncPacket)
+	B3D_SYNC_BLOCK_END
+}
 
 RTTITypeBase* ParticleGpuSimulationSettings::GetRttiStatic()
 {
@@ -436,23 +437,22 @@ void ParticleSystem::MarkCoreDirtyInternal(ActorDirtyFlag flag)
 	MarkCoreDirty((u32)flag);
 }
 
-CoreSyncData ParticleSystem::SyncToCore(FrameAlloc* allocator)
+namespace bs
 {
-	u32 size = B3DRTTISize(GetCoreDirtyFlags()).Bytes;
-	size += CoreSyncGetSize((SceneActor&)*this);
-	size += CoreSyncGetSize(mSettings);
-	size += CoreSyncGetSize(mGpuSimulationSettings);
-	size += B3DRTTISize(mLayer).Bytes;
+	B3D_SYNC_BLOCK_BEGIN(ParticleSystem, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_FIELD(mSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_FIELD(mGpuSimulationSettings, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mLayer)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
+}
 
-	u8* data = allocator->Alloc(size);
-	Bitstream stream(data, size);
-	B3DRTTIWrite(GetCoreDirtyFlags(), stream);
-	B3DCoreSyncWrite((SceneActor&)*this, stream);
-	B3DCoreSyncWrite(mSettings, stream);
-	B3DCoreSyncWrite(mGpuSimulationSettings, stream);
-	B3DRTTIWrite(mLayer, stream);
+CoreSyncPacket* ParticleSystem::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
+{
+	SyncPacket* syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
+	syncPacket->SceneActorPacket = CreateCoreSyncPacket(allocator, flags);
 
-	return CoreSyncData(data, size);
+	return syncPacket;
 }
 
 void ParticleSystem::GetCoreDependencies(Vector<CoreObject*>& dependencies)
@@ -520,20 +520,16 @@ void ParticleSystem::SetLayer(u64 layer)
 
 void ParticleSystem::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
-	Bitstream stream((uint8_t*)data.GetBuffer(), data.GetBufferSize());
+	auto* const syncPacket = data.GetSyncPacket<bs::ParticleSystem::SyncPacket>();
+	if(!syncPacket)
+		return;
 
-	u32 dirtyFlags = 0;
-	const bool oldIsActive = mActive;
-
-	B3DRTTIRead(dirtyFlags, stream);
-	B3DCoreSyncRead((SceneActor&)*this, stream);
-	B3DCoreSyncRead(mSettings, stream);
-	B3DCoreSyncRead(mGpuSimulationSettings, stream);
-	B3DRTTIRead(mLayer, stream);
+	bool oldIsActive = mActive;
+	syncPacket->ApplySyncData(this);
 
 	constexpr u32 updateEverythingFlag = (u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active | (u32)ActorDirtyFlag::Dependency;
 
-	if((dirtyFlags & updateEverythingFlag) != 0)
+	if((syncPacket->Flags & updateEverythingFlag) != 0)
 	{
 		if(oldIsActive != mActive)
 		{
@@ -548,7 +544,7 @@ void ParticleSystem::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 				GetRenderer()->NotifyParticleSystemUpdated(this, false);
 		}
 	}
-	else if((dirtyFlags & ((u32)ActorDirtyFlag::Mobility | (u32)ActorDirtyFlag::Transform)) != 0)
+	else if((syncPacket->Flags & ((u32)ActorDirtyFlag::Mobility | (u32)ActorDirtyFlag::Transform)) != 0)
 		GetRenderer()->NotifyParticleSystemUpdated(this, true);
 }
 }}

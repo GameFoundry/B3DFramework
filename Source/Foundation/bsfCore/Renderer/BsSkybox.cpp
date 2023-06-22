@@ -20,7 +20,7 @@ namespace bs
 	B3D_SYNC_BLOCK_BEGIN(Skybox, SyncPacket)
 		B3D_SYNC_BLOCK_ENTRY(mBrightness)
 		B3D_SYNC_BLOCK_ENTRY(mTexture)
-		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
 }
 

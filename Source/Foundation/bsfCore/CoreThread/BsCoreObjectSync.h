@@ -625,16 +625,15 @@ private:                                                                        
 	typedef META_NextEntry_##EntryName
 
 	/**
-	 * Specifies a child sync packet to sync along this one. Note the user must manually construct and populate the child sync
+	 * Specifies a base class sync packet to sync along this one. Note the user must manually construct and populate the child sync
 	 * packet field, but the packet data will be applied automatically when the parent's data is applied. Child packet will
 	 * also be automatically be destructed when the parent is destructed.
 	 *
-	 * @param	ClassType		Type of the object the packet is responsible for syncing. In most cases the child packet is used for
-	 *							syncing the base class, in which case this would be the base class of the object this is a packet for.
+	 * @param	ClassType		Base type of the object the packet is responsible for syncing. 
 	 * @param	EntryName		Name of the field with the pointer to package.
 	 *
 	 */
-#define B3D_SYNC_BLOCK_ENTRY_PACKET(ClassType, EntryName)                                                    \
+#define B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(ClassType, EntryName)                                                    \
 	META_Entry_##EntryName;                                                                                  \
                                                                                                              \
 	struct META_NextEntry_##EntryName                                                                        \
@@ -649,6 +648,45 @@ private:                                                                        
 	{                                                                                                        \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                       \
 		if(EntryName) EntryName->ApplySyncData(&static_cast<CoreVariantType<ClassType, true>&>(object));     \
+	}                                                                                                        \
+                                                                                                             \
+	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                   \
+	{                                                                                                        \
+		META_FreePrevEntry(META_Entry_##EntryName());                                                        \
+		if(EntryName) mAllocator.Destruct(EntryName);                                                        \
+	}                                                                                                        \
+                                                                                                             \
+public:                                                                                                      \
+	CoreSyncPacket* EntryName = nullptr;                                                                     \
+                                                                                                             \
+private:                                                                                                     \
+	typedef META_NextEntry_##EntryName
+
+	/**
+	 * Specifies a class field that gets synced as its own packet. The child packet will be automatically constructed and populated
+	 * on parent sync packet creation, and will be automatically applied when the parent is applied, as well as destructed when
+	 * the parent is destructed.
+	 *
+	 * @param	EntryName		Name of the field to sync.
+	 * @param	SyncPacketType	Type name of the sync packet of the child type. Must be part of the field's class.
+	 *
+	 */
+#define B3D_SYNC_BLOCK_ENTRY_PACKET_FIELD(EntryName, SyncPacketType)                                         \
+	META_Entry_##EntryName;                                                                                  \
+                                                                                                             \
+	struct META_NextEntry_##EntryName                                                                        \
+	{};                                                                                                      \
+                                                                                                             \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id) \
+	{                                                                                                        \
+		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                    \
+		EntryName = mAllocator.Construct<decltype(Type::EntryName)::SyncPacketType>(object.EntryName, mAllocator); \
+	}                                                                                                        \
+                                                                                                             \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)     \
+	{                                                                                                        \
+		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                       \
+		if(EntryName) EntryName->ApplySyncData(&object.EntryName);                                           \
 	}                                                                                                        \
                                                                                                              \
 	void META_FreePrevEntry(META_NextEntry_##EntryName id)                                                   \

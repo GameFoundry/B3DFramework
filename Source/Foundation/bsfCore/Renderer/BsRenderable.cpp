@@ -339,7 +339,7 @@ namespace bs
 		B3D_SYNC_BLOCK_ENTRY(mMesh)
 		B3D_SYNC_BLOCK_ENTRY(mMaterials)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
-		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
 }
 

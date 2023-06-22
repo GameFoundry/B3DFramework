@@ -51,7 +51,7 @@ namespace bs
 		B3D_SYNC_BLOCK_ENTRY(mTransitionDistance)
 		B3D_SYNC_BLOCK_ENTRY(mBounds)
 		B3D_SYNC_BLOCK_ENTRY(mFilteredTexture)
-		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
 }
 

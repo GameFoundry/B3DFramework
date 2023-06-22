@@ -28,6 +28,10 @@ namespace bs
 		class ParticleSystem;
 	}
 
+	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleSystemSettings)
+	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleVectorFieldSettings)
+	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleGpuSimulationSettings)
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -96,6 +100,8 @@ namespace bs
 	/** Controls depth buffer collisions for GPU simulated particles. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleDepthCollisionSettings : IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		ParticleDepthCollisionSettings() = default;
 
@@ -124,10 +130,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P p);
 
 	public:
 		friend class ParticleDepthCollisonSettingsRTTI;
@@ -247,10 +249,6 @@ namespace bs
 		/** Mesh used for representing individual particles when using the Mesh rendering mode. */
 		B3D_SCRIPT_EXPORT(LoadOnAssign(true), UIOrder(2))
 		MeshType Mesh;
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
 	};
 
 	/** Common base for both sim and core thread variants of ParticleVectorFieldSettings. */
@@ -319,10 +317,6 @@ namespace bs
 		/** Vector field resource used for influencing the particles. */
 		B3D_SCRIPT_EXPORT()
 		CoreVariantHandleType<VectorField, Core> VectorField;
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
 	};
 
 	/** @} */
@@ -332,9 +326,11 @@ namespace bs
 
 	/** Settings used for controlling a vector field in a GPU simulated particle system. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
-		ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>,
-									  IReflectable
+	ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>, IReflectable
 	{
+		friend struct ct::ParticleVectorFieldSettings;
+		struct SyncPacket;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -349,19 +345,15 @@ namespace bs
 	{
 		/** Core thread counterpart of bs::ParticleVectorFieldSettings. */
 		struct ParticleVectorFieldSettings : TParticleVectorFieldSettings<true>
-		{};
+		{
+			friend struct bs::ParticleVectorFieldSettings;
+		};
 	} // namespace ct
 
 	/** @} */
 	/** @addtogroup Implementation
 	 *  @{
 	 */
-
-	template <>
-	struct CoreThreadType<ParticleVectorFieldSettings>
-	{
-		typedef ct::ParticleVectorFieldSettings Type;
-	};
 
 	/** Common base for both sim and core threat variants of ParticleGpuSimulationSettings. */
 	struct ParticleGpuSimulationSettingsBase
@@ -393,10 +385,6 @@ namespace bs
 	{
 		B3D_SCRIPT_EXPORT()
 		CoreVariantType<ParticleVectorFieldSettings, Core> VectorField;
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
 	};
 
 	/** @} */
@@ -406,9 +394,11 @@ namespace bs
 
 	/** Generic settings used for controlling a ParticleSystem. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
-		ParticleSystemSettings : TParticleSystemSettings<false>,
-								 IReflectable
+	ParticleSystemSettings : TParticleSystemSettings<false>, IReflectable
 	{
+		friend struct ct::ParticleSystemSettings;
+		struct SyncPacket;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -420,9 +410,11 @@ namespace bs
 
 	/** Settings used for controlling particle system GPU simulation. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
-		ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>,
-										IReflectable
+	ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>, IReflectable
 	{
+		friend struct ct::ParticleGpuSimulationSettings;
+		struct SyncPacket;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -445,11 +437,15 @@ namespace bs
 
 		/** Core thread counterpart of bs::ParticleSystemSettings. */
 		struct ParticleSystemSettings : TParticleSystemSettings<true>
-		{};
+		{
+			friend struct bs::ParticleSystemSettings;
+		};
 
 		/** Core thread counterpart of bs::ParticleVectorFieldSettings. */
 		struct ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<true>
-		{};
+		{
+			friend struct bs::ParticleGpuSimulationSettings;
+		};
 	} // namespace ct
 
 	/** @} */
@@ -562,6 +558,7 @@ namespace bs
 		friend class ParticleSystemRTTI;
 		friend class ParticleEmitter;
 		friend class ct::ParticleSystem;
+		struct SyncPacket;
 
 		/** States the particle system can be in. */
 		enum class State
@@ -622,7 +619,7 @@ namespace bs
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
 		/**	Creates a new ParticleSystem instance without initializing it. */

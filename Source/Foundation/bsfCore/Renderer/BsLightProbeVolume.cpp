@@ -312,7 +312,7 @@ namespace bs
 	B3D_SYNC_BLOCK_BEGIN(LightProbeVolume, SyncPacket)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<u32>, RemovedProbes)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<DirtyProbeInfo>, DirtyProbes)
-		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
 }
 
