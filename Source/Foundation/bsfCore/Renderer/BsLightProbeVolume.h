@@ -95,6 +95,18 @@ namespace bs
 			LightProbeSHCoefficients Coefficients;
 		};
 
+		/** Information about a dirty probe to be synced to the render thread counterpart. */
+		struct DirtyProbeInfo
+		{
+			DirtyProbeInfo(u32 probeIndex = ~0u, const Vector3& position = Vector3::kZero, LightProbeFlags flags = LightProbeFlags::Clean)
+				: ProbeIndex(probeIndex), Position(position), Flags(flags)
+			{ }
+
+			u32 ProbeIndex;
+			Vector3 Position;
+			LightProbeFlags Flags;
+		};
+
 	public:
 		~LightProbeVolume();
 
@@ -178,6 +190,7 @@ namespace bs
 
 	protected:
 		friend class ct::LightProbeVolume;
+		struct SyncPacket;
 
 		LightProbeVolume(const AABox& volume, const Vector3I& cellCount);
 
@@ -192,7 +205,7 @@ namespace bs
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag dirtFlags = ActorDirtyFlag::Everything) override;
-		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 
 		/**	Creates a light volume with without initializing it. Used for serialization. */
 		static SPtr<LightProbeVolume> CreateEmpty();

@@ -307,61 +307,38 @@ SPtr<ct::CoreObject> LightProbeVolume::CreateCore() const
 	return handlerPtr;
 }
 
-CoreSyncData LightProbeVolume::SyncToCore(FrameAlloc* allocator)
+namespace bs
 {
-	u32 size = 0;
-	u8* buffer = nullptr;
+	B3D_SYNC_BLOCK_BEGIN(LightProbeVolume, SyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<u32>, RemovedProbes)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<DirtyProbeInfo>, DirtyProbes)
+		B3D_SYNC_BLOCK_ENTRY_PACKET(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
+}
 
-	B3DMarkAllocatorFrame();
+CoreSyncPacket* LightProbeVolume::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
+{
+	auto* const syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
+	
+	for(auto& probe : mProbes)
 	{
-		FrameVector<std::pair<u32, ProbeInfo>> dirtyProbes;
-		FrameVector<u32> removedProbes;
-		for(auto& probe : mProbes)
+		if(probe.second.Flags == LightProbeFlags::Dirty)
 		{
-			if(probe.second.Flags == LightProbeFlags::Dirty)
-			{
-				dirtyProbes.push_back(std::make_pair(probe.first, probe.second));
-				probe.second.Flags = LightProbeFlags::Clean;
-			}
-			else if(probe.second.Flags == LightProbeFlags::Removed)
-			{
-				removedProbes.push_back(probe.first);
-				probe.second.Flags = LightProbeFlags::Empty;
-			}
+			syncPacket->DirtyProbes.push_back(DirtyProbeInfo(probe.first, probe.second.Position, probe.second.Flags));
+			probe.second.Flags = LightProbeFlags::Clean;
 		}
-
-		for(auto& probe : removedProbes)
-			mProbes.erase(probe);
-
-		u32 numDirtyProbes = (u32)dirtyProbes.size();
-		u32 numRemovedProbes = (u32)removedProbes.size();
-
-		size += CoreSyncGetSize((SceneActor&)*this);
-		size += B3DRTTISize(numDirtyProbes).Bytes;
-		size += B3DRTTISize(numRemovedProbes).Bytes;
-		size += (sizeof(u32) + sizeof(Vector3) + sizeof(LightProbeFlags)) * numDirtyProbes;
-		size += sizeof(u32) * numRemovedProbes;
-
-		buffer = allocator->Alloc(size);
-		Bitstream stream(buffer, size);
-
-		B3DCoreSyncWrite((SceneActor&)*this, stream);
-		B3DRTTIWrite(numDirtyProbes, stream);
-		B3DRTTIWrite(numRemovedProbes, stream);
-
-		for(auto& entry : dirtyProbes)
+		else if(probe.second.Flags == LightProbeFlags::Removed)
 		{
-			B3DRTTIWrite(entry.first, stream);
-			B3DRTTIWrite(entry.second.Position, stream);
-			B3DRTTIWrite(entry.second.Flags, stream);
+			syncPacket->RemovedProbes.push_back(probe.first);
+			probe.second.Flags = LightProbeFlags::Empty;
 		}
-
-		for(auto& entry : removedProbes)
-			B3DRTTIWrite(entry, stream);
 	}
-	B3DClearAllocatorFrame();
 
-	return CoreSyncData(buffer, size);
+	for(auto& probe : syncPacket->RemovedProbes)
+		mProbes.erase(probe);
+
+	syncPacket->SceneActorPacket = CreateCoreSyncPacket(allocator, flags);
+	return syncPacket;
 }
 
 void LightProbeVolume::MarkCoreDirtyInternal(ActorDirtyFlag dirtyFlag)
@@ -509,35 +486,23 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 
 void LightProbeVolume::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
-	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
+	auto* const syncPacket = data.GetSyncPacket<bs::LightProbeVolume::SyncPacket>();
+	if(!syncPacket)
+		return;
 
 	bool oldIsActive = mActive;
+	syncPacket->ApplySyncData(this);
 
-	B3DCoreSyncRead((SceneActor&)*this, stream);
-
-	u32 numDirtyProbes, numRemovedProbes;
-	B3DRTTIRead(numDirtyProbes, stream);
-	B3DRTTIRead(numRemovedProbes, stream);
-
-	for(u32 i = 0; i < numDirtyProbes; ++i)
+	for(const auto& dirtyProbe : syncPacket->DirtyProbes)
 	{
-		u32 handle;
-		B3DRTTIRead(handle, stream);
-
-		Vector3 position;
-		B3DRTTIRead(position, stream);
-
-		LightProbeFlags flags;
-		B3DRTTIRead(flags, stream);
-
-		auto iterFind = mProbeMap.find(handle);
+		auto iterFind = mProbeMap.find(dirtyProbe.ProbeIndex);
 		if(iterFind != mProbeMap.end())
 		{
 			// Update existing probe information
 			u32 compactIdx = iterFind->second;
 
 			mProbeInfos[compactIdx].Flags = LightProbeFlags::Dirty;
-			mProbePositions[compactIdx] = position;
+			mProbePositions[compactIdx] = dirtyProbe.Position;
 
 			mFirstDirtyProbe = std::min(compactIdx, mFirstDirtyProbe);
 		}
@@ -566,32 +531,31 @@ void LightProbeVolume::SyncToCore(const CoreSyncData& data, FrameAlloc& allocato
 				LightProbeInfo info;
 				info.Flags = LightProbeFlags::Dirty;
 				info.BufferIdx = compactIdx;
-				info.Handle = handle;
+				info.Handle = dirtyProbe.ProbeIndex;
 
 				mProbeInfos.push_back(info);
-				mProbePositions.push_back(position);
+				mProbePositions.push_back(dirtyProbe.Position);
 			}
 			else // No empty slot, add a new one
 			{
 				LightProbeInfo& info = mProbeInfos[compactIdx];
 				info.Flags = LightProbeFlags::Dirty;
-				info.Handle = handle;
+				info.Handle = dirtyProbe.ProbeIndex;
 
-				mProbePositions[compactIdx] = position;
+				mProbePositions[compactIdx] = dirtyProbe.Position;
 			}
 
-			mProbeMap[handle] = compactIdx;
+			mProbeMap[dirtyProbe.ProbeIndex] = compactIdx;
 			mFirstDirtyProbe = std::min(compactIdx, mFirstDirtyProbe);
 		}
 	}
 
 	// Mark slots for removed probes as empty, and move them back to the end of the array
-	for(u32 i = 0; i < numRemovedProbes; ++i)
+	for(u32 index = 0; index < (u32)syncPacket->RemovedProbes.size(); ++index)
 	{
-		u32 idx;
-		B3DRTTIRead(idx, stream);
+		const u32 removedProbeIndex = syncPacket->RemovedProbes[index];
 
-		auto iterFind = mProbeMap.find(idx);
+		auto iterFind = mProbeMap.find(removedProbeIndex);
 		if(iterFind != mProbeMap.end())
 		{
 			u32 compactIdx = iterFind->second;
@@ -607,10 +571,10 @@ void LightProbeVolume::SyncToCore(const CoreSyncData& data, FrameAlloc& allocato
 				LightProbeFlags flags = mProbeInfos[lastSearchIdx].Flags;
 				if(flags != LightProbeFlags::Empty)
 				{
-					std::swap(mProbeInfos[i], mProbeInfos[lastSearchIdx]);
-					std::swap(mProbePositions[i], mProbePositions[lastSearchIdx]);
+					std::swap(mProbeInfos[index], mProbeInfos[lastSearchIdx]);
+					std::swap(mProbePositions[index], mProbePositions[lastSearchIdx]);
 
-					mProbeMap[mProbeInfos[lastSearchIdx].Handle] = i;
+					mProbeMap[mProbeInfos[lastSearchIdx].Handle] = index;
 					break;
 				}
 
