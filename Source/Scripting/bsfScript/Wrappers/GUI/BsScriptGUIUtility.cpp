@@ -10,7 +10,7 @@
 #include "GUI/BsGUIPanel.h"
 #include "GUI/BsGUIElementBase.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
-#include "GUI/BsGUILayoutUtility.h"
+#include "GUI/BsGUIUtility.h"
 #include "GUI/BsGUIHelper.h"
 
 #include "Generated/BsScriptFont.generated.h"
@@ -29,7 +29,7 @@ void ScriptGUILayoutUtility::InitRuntimeData()
 
 void ScriptGUILayoutUtility::InternalCalculateOptimalSize(ScriptGUIElementBaseTBase* guiElement, Vector2I* output)
 {
-	*output = GUILayoutUtility::CalcOptimalSize(guiElement->GetGuiElement());
+	*output = GUIUtility::CalcOptimalSize(guiElement->GetGuiElement());
 	;
 }
 

@@ -12,8 +12,8 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Helper class that performs various operations related to GUILayout and GUI element sizing/placement. */
-	class B3D_EXPORT GUILayoutUtility
+	/** Helper class that performs various operations related to GUI. */
+	class B3D_EXPORT GUIUtility
 	{
 	public:
 		/**

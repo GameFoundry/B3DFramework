@@ -1,17 +1,17 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUILayoutUtility.h"
+#include "GUI/BsGUIUtility.h"
 #include "GUI/BsGUIElementBase.h"
 #include "GUI/BsGUILayout.h"
 
 using namespace bs;
 
-Vector2I GUILayoutUtility::CalcOptimalSize(const GUIElementBase* elem)
+Vector2I GUIUtility::CalcOptimalSize(const GUIElementBase* elem)
 {
 	return elem->CalculateLayoutSizeRangeInternal().Optimal;
 }
 
-Vector2I GUILayoutUtility::CalcActualSize(u32 width, u32 height, GUILayout* layout, bool updateOptimalSizes)
+Vector2I GUIUtility::CalcActualSize(u32 width, u32 height, GUILayout* layout, bool updateOptimalSizes)
 {
 	if(updateOptimalSizes)
 		layout->UpdateOptimalLayoutSizesInternal();
@@ -19,7 +19,7 @@ Vector2I GUILayoutUtility::CalcActualSize(u32 width, u32 height, GUILayout* layo
 	return CalcActualSizeInternal(width, height, layout);
 }
 
-Vector2I GUILayoutUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* layout)
+Vector2I GUIUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* layout)
 {
 	u32 numElements = (u32)layout->GetNumChildrenInternal();
 	Rect2I* elementAreas = nullptr;

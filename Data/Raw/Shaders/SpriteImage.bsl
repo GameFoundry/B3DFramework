@@ -13,7 +13,6 @@ shader SpriteImage
 			2, // Premultiplied
 		};
 		ANIMATED = { false, true };
-		ALPHA = { false, true };
 	};
 
 	code

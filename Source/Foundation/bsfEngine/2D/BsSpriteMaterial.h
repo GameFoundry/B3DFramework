@@ -117,19 +117,15 @@ namespace bs
 		 * @param	sampler			Optional sampler to render the texture with.
 		 * @param	paramBuffer		Buffer containing data GPU parameters.
 		 * @param	additionalData	Optional additional data that might be required by the renderer.
-		 * @param	alphaOnly		If true the material will only render the alpha value. Render target is expected to
-		 *							have a stencil buffer attached and the value will be written only if stencil value is 0,
-		 *							after which the stencil value will be incremented by one. (i.e. only first element that
-		 *							writes to a pixel stores its alpha value).
 		 */
-		virtual void Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const;
+		virtual void Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
 	protected:
 		/** Perform initialization of core-thread specific objects. */
 		virtual void Initialize();
 
 		/** Destroys the core thread material. */
-		static void Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params, const SPtr<ct::GpuParamsSet>& alphaParams);
+		static void Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params);
 
 		u32 mId;
 		bool mAllowBatching;
@@ -137,13 +133,10 @@ namespace bs
 		// Core thread only (everything below)
 		SPtr<ct::Material> mMaterial;
 		u32 mTechnique;
-		u32 mAlphaTechnique;
 		std::atomic<bool> mMaterialStored;
 
 		SPtr<ct::GpuParamsSet> mParams;
-		SPtr<ct::GpuParamsSet> mAlphaParams;
 		u32 mParamBufferIdx;
-		u32 mAlphaParamBufferIdx;
 		mutable ct::MaterialParameterSampledTexture mTextureParam;
 		mutable ct::MaterialParameterSampler mSamplerParam;
 	};

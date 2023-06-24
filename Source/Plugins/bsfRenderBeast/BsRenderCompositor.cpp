@@ -172,7 +172,7 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 			GetProfilerCPU().BeginSample(sampleName.c_str());
 #endif
 
-			inputs.ActiveCommandBuffer->BeginLabel(entry.NodeType->Id);
+			inputs.ActiveCommandBuffer->BeginLabel(entry.NodeType->Id.CStr());
 			entry.Node->Render(inputs);
 			inputs.ActiveCommandBuffer->EndLabel();
 

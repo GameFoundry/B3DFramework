@@ -4,11 +4,6 @@
 shader SpriteLine
 {
 	mixin SpriteCommon;
-	
-	variations
-	{
-		ALPHA = { false, true };
-	};
 
 	raster
 	{

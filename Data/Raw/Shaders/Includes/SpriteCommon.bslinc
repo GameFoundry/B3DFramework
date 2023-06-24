@@ -20,31 +20,17 @@ mixin SpriteCommon
 			enabled = true;
 			#if TRANSPARENCY == 1
 			color = { srcA, srcIA, add };
+			alpha = { srcA, dstA, max };
 			#else
 			color = { one, srcIA, add };
+			alpha = { one, dstA, max };
 			#endif
 			
-			#if ALPHA
-			writemask = A;
-			#else
-			writemask = RGB;
-			#endif
+			writemask = RGBA;
 		};
 	};	
 	#endif
 	
-	#if ALPHA
-	stencil
-	{
-		enabled = true;
-		readmask = 0x1;
-		writemask = 0x1;
-		
-		front = { keep, keep, inc, eq };
-		reference = 0x0;
-	};
-	#endif
-
 	depth
 	{
 		read = false;
@@ -58,10 +44,11 @@ mixin SpriteCommon
 			float4x4 gWorldTransform;
 			float gInvViewportWidth;
 			float gInvViewportHeight;
-			float gViewportYFlip;
+			int2 gViewportOffset;
 			float4 gTint;
 			float4 gUVSizeOffset;
-		}	
+			float gViewportYFlip;
+		}
 
 		void vsmain(
 			in float3 inPos : POSITION
@@ -76,8 +63,8 @@ mixin SpriteCommon
 		{
 			float4 tfrmdPos = mul(gWorldTransform, float4(inPos.xy, 0, 1));
 
-			float tfrmdX = -1.0f + (tfrmdPos.x * gInvViewportWidth);
-			float tfrmdY = (1.0f - (tfrmdPos.y * gInvViewportHeight)) * gViewportYFlip;
+			float tfrmdX = -1.0f + ((gViewportOffset.x + tfrmdPos.x) * gInvViewportWidth);
+			float tfrmdY = (1.0f - ((gViewportOffset.y + tfrmdPos.y) * gInvViewportHeight)) * gViewportYFlip;
 
 			oPosition = float4(tfrmdX, tfrmdY, 0, 1);
 			

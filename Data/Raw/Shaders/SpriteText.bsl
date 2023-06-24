@@ -6,11 +6,6 @@ shader SpriteText
 {
 	mixin SpriteCommon;
 
-	variations
-	{
-		ALPHA = { false, true };
-	};
-	
 	code
 	{
 		[alias(gMainTexture)]
@@ -19,11 +14,7 @@ shader SpriteText
 
 		float4 fsmain(in float4 inPos : SV_Position, float2 uv : TEXCOORD0) : SV_Target
 		{
-			#if ALPHA
-			return gMainTexture.Sample(gMainTexSamp, uv).r * gTint.a;
-			#else
 			return float4(gTint.rgb, gMainTexture.Sample(gMainTexSamp, uv).r * gTint.a);
-			#endif
 		}
 	};
 };

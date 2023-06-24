@@ -1588,24 +1588,30 @@ RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 	if(iterFind == mPerCameraData.end())
 		return RendererExtensionRequest::DontRender;
 
-	Vector<GUIWidgetRenderData>& widgetRenderData = iterFind->second;
-	bool needsRedraw = false;
-	for(auto& widget : widgetRenderData)
+	GUICameraRenderData& cameraRenderData = iterFind->second;
+	Vector<GUIWidgetRenderData>& widgetRenderData = cameraRenderData.WidgetRenderData;
+	bool needsRedraw = !cameraRenderData.DirtyRegions.empty();
+	if(!needsRedraw)
 	{
-		for(auto& drawGroup : widget.DrawGroups)
+		for(auto& widget : widgetRenderData)
 		{
-			if(!drawGroup.NonCachedElements.empty() || drawGroup.RequiresRedraw)
-			{
-				needsRedraw = true;
-				break;
-			}
+			// TODO - If a widget was removed completely, I need to force a redraw as well
 
-			for(auto& renderTargetElem : drawGroup.RenderTargetElements)
+			for(auto& drawGroup : widget.DrawGroups)
 			{
-				if(renderTargetElem.LastUpdateCount != renderTargetElem.Target->GetUpdateCount())
+				if(!drawGroup.NonCachedElements.empty()) // TODO - Ensure non-cached elements register their dirty bounds every frame
 				{
 					needsRedraw = true;
 					break;
+				}
+
+				for(auto& renderTargetElem : drawGroup.RenderTargetElements)
+				{
+					if(renderTargetElem.LastUpdateCount != renderTargetElem.Target->GetUpdateCount())
+					{
+						needsRedraw = true;
+						break;
+					}
 				}
 			}
 		}
@@ -1616,137 +1622,146 @@ RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 
 void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
 {
+	FrameScope frameScope;
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
-	Vector<GUIWidgetRenderData>& widgetRenderData = mPerCameraData[&camera];
+	GUICameraRenderData& cameraRenderData = mPerCameraData[&camera];
+	Vector<GUIWidgetRenderData>& widgetRenderData = cameraRenderData.WidgetRenderData;
 
-	float invViewportWidth = 1.0f / (camera.GetViewport()->GetPixelArea().Width * 0.5f);
-	float invViewportHeight = 1.0f / (camera.GetViewport()->GetPixelArea().Height * 0.5f);
-	bool viewflipYFlip = gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down;
+	const bool viewflipYFlip = gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 
 	GpuCommandBuffer& commandBuffer = *viewContext.CommandBuffer;
+
+	// Re-create cached render texture if needed
+	const SPtr<RenderTarget> renderTarget = viewContext.CurrentTarget;
+	const u32 renderTargetWidth = renderTarget->GetProperties().Width;
+	const u32 renderTargetHeight = renderTarget->GetProperties().Height;
+
+	const bool rebuildCachedRenderTexture = cameraRenderData.CachedRenderTexture == nullptr ||
+		cameraRenderData.CachedRenderTexture->GetProperties().Width != renderTargetWidth ||
+		cameraRenderData.CachedRenderTexture->GetProperties().Height != renderTargetHeight;
+
+	if(rebuildCachedRenderTexture)
+	{
+		TextureCreateInformation cachedColorTextureCreateInformation;
+		cachedColorTextureCreateInformation.Width = renderTargetWidth;
+		cachedColorTextureCreateInformation.Height = renderTargetHeight;
+		cachedColorTextureCreateInformation.Format = PF_RGBA8;
+		cachedColorTextureCreateInformation.Usage = TU_RENDERTARGET;
+
+		const SPtr<Texture> cachedColorTexture = gpuDevice->CreateTexture(cachedColorTextureCreateInformation);
+
+		RENDER_TEXTURE_DESC cachedRenderTextureCreateInformation;
+		cachedRenderTextureCreateInformation.ColorSurfaces[0].Texture = cachedColorTexture;
+
+		cameraRenderData.CachedRenderTexture = RenderTexture::Create(cachedRenderTextureCreateInformation);
+	}
+
+	commandBuffer.SetRenderTarget(cameraRenderData.CachedRenderTexture, 0, RT_ALL);
+
+	if(rebuildCachedRenderTexture)
+		commandBuffer.ClearRenderTarget(FBT_COLOR, Color::kZero);
+
 	for(auto& widget : widgetRenderData)
 	{
 		for(auto& drawGroup : widget.DrawGroups)
 		{
-			for(auto& entry : drawGroup.NonCachedElements)
-			{
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				UpdateParamBlockBuffer(buffer, invViewportWidth, invViewportHeight, viewflipYFlip, widget.WorldTransform, entry);
-			}
-
 			for(auto& renderTargetElem : drawGroup.RenderTargetElements)
 			{
 				if(renderTargetElem.LastUpdateCount != renderTargetElem.Target->GetUpdateCount())
 				{
 					renderTargetElem.LastUpdateCount = renderTargetElem.Target->GetUpdateCount();
-					drawGroup.RequiresRedraw = true;
+					Rect2I::AddUnique(renderTargetElem.Area, cameraRenderData.DirtyRegions);
 				}
 			}
-
-			if(!drawGroup.RequiresRedraw)
-				continue;
-
-			float invDrawGroupWidth = 1.0f / (drawGroup.Bounds.Width * 0.5f);
-			float invDrawGroupHeight = 1.0f / (drawGroup.Bounds.Height * 0.5f);
-
-			for(auto& entry : drawGroup.CachedElements)
-			{
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				UpdateParamBlockBuffer(buffer, invDrawGroupWidth, invDrawGroupHeight, viewflipYFlip, Matrix4::kIdentity, entry);
-			}
-
-			// Update draw group param buffer
-			{
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[drawGroup.BufferIdx];
-
-				gGUISpriteParamBlockDef.gTint.Set(buffer, Color::kWhite);
-				gGUISpriteParamBlockDef.gWorldTransform.Set(buffer, widget.WorldTransform);
-				gGUISpriteParamBlockDef.gInvViewportWidth.Set(buffer, invViewportWidth);
-				gGUISpriteParamBlockDef.gInvViewportHeight.Set(buffer, invViewportHeight);
-				gGUISpriteParamBlockDef.gViewportYFlip.Set(buffer, viewflipYFlip ? -1.0f : 1.0f);
-				gGUISpriteParamBlockDef.gUVSizeOffset.Set(buffer, Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-
-				buffer->FlushCache();
-			}
-
-			// We need to write the alpha of the first (deepest) element for each pixel
-
-			// Note: We should cache/pool the stencil buffer texture (ideally just re-use a single one)
-			//  - If pooling we probably need to round draw group sizes to certain pow-2 sizes and then
-			//    use viewport to render to relevant bits
-			SPtr<Texture> colorTex = drawGroup.Destination->GetColorTexture(0);
-			const TextureProperties& colorProps = colorTex->GetProperties();
-
-			TextureCreateInformation textureCreateInformation;
-			textureCreateInformation.Name = "GUI Alpha Stencil";
-			textureCreateInformation.Width = colorProps.Width;
-			textureCreateInformation.Height = colorProps.Height;
-			textureCreateInformation.Format = PF_D24S8; // TODO: Can we create a stencil only texture here?
-			textureCreateInformation.Usage = TU_DEPTHSTENCIL;
-
-			SPtr<Texture> stencilTexture = gpuDevice->CreateTexture(textureCreateInformation);
-
-			RENDER_TEXTURE_DESC rtDesc;
-			rtDesc.ColorSurfaces[0].Texture = colorTex;
-			rtDesc.DepthStencilSurface.Texture = stencilTexture;
-
-			// Draw the alpha only first
-			// Note: Can we avoid drawing each element twice?
-			SPtr<RenderTexture> alphaRenderTexture = RenderTexture::Create(rtDesc);
-			commandBuffer.SetRenderTarget(alphaRenderTexture);
-			commandBuffer.ClearRenderTarget(FBT_COLOR | FBT_STENCIL, Color::kZero, 1.0f, 0);
-
-			for(auto& entry : drawGroup.CachedElements)
-			{
-				// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
-				// changed, and apply only those + the modified constant buffers and/or texture.
-
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, true);
-			}
-
-			// Draw the color values
-			commandBuffer.SetRenderTarget(drawGroup.Destination, 0, RT_ALL);
-
-			for(auto& entry : drawGroup.CachedElements)
-			{
-				// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
-				// changed, and apply only those + the modified constant buffers and/or texture.
-
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
-			}
-
-			drawGroup.RequiresRedraw = false;
 		}
 	}
 
-	// Restore original render target
-	commandBuffer.SetRenderTarget(viewContext.CurrentTarget);
-
-	for(auto& widget : widgetRenderData)
+	// Find and draw all GUI meshes overlapping dirty regions
+	// Note: Could use quad-tree here for faster search
+	for(const Rect2I& dirtyRegion : cameraRenderData.DirtyRegions)
 	{
-		for(auto& drawGroup : widget.DrawGroups)
+		const Rect2 normalizedRegionArea =
+			Rect2(
+				dirtyRegion.X / (float)renderTargetWidth,
+				dirtyRegion.Y / (float)renderTargetHeight,
+				dirtyRegion.Width / (float)renderTargetWidth,
+				dirtyRegion.Height / (float)renderTargetHeight);
+
+		commandBuffer.SetViewport(normalizedRegionArea);
+
+		if(!rebuildCachedRenderTexture)
+			commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
+
+		commandBuffer.EnableScissorTest(dirtyRegion);
+
+		const Vector2I viewportOffset(-dirtyRegion.X, -dirtyRegion.Y);
+		const float inverseRegionWidth = 1.0f / (dirtyRegion.Width * 0.5f);
+		const float inverseRegionHeight = 1.0f / (dirtyRegion.Height * 0.5f);
+
+		FrameVector<const GUIMeshRenderData*> meshesToRedraw;
+		for(const GUIWidgetRenderData& widget : widgetRenderData)
 		{
-			// Draw non-cached elements
-			for(auto& entry : drawGroup.NonCachedElements)
+			meshesToRedraw.clear();
+
+			for(auto drawGroupIterator = widget.DrawGroups.rbegin(); drawGroupIterator != widget.DrawGroups.rend(); ++drawGroupIterator)
 			{
-				// TODO - I shouldn't be re-applying the entire material for each entry, instead just check which programs
-				// changed, and apply only those + the modified constant buffers and/or texture.
+				const GUIDrawGroupRenderData& drawGroup = *drawGroupIterator;
 
-				const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[entry.BufferIdx];
-				entry.Material->Render(*viewContext.CommandBuffer, entry.IsLine ? widget.LineMesh : widget.TriangleMesh, entry.SubMesh, entry.Texture, mSamplerState, buffer, entry.AdditionalData, false);
+				for(const GUIMeshRenderData& meshRenderData : drawGroup.NonCachedElements)
+				{
+					if(!meshRenderData.Bounds.Overlaps(dirtyRegion))
+						continue;
+
+					// Note: We will unnecessarily do this update multiple times if the same mesh overlaps multiple dirty regions
+					const SPtr<GpuBuffer>& buffer = widget.GUIMeshUniformBuffers[meshRenderData.UniformBufferIndex];
+					UpdateParamBlockBuffer(buffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, widget.WorldTransform, meshRenderData);
+
+					meshesToRedraw.push_back(&meshRenderData);
+				}
+
+				if(!drawGroup.Bounds.Overlaps(dirtyRegion))
+					continue;
+
+				for(const GUIMeshRenderData& meshRenderData : drawGroup.CachedElements)
+				{
+					if(!meshRenderData.Bounds.Overlaps(dirtyRegion))
+						continue;
+
+					// Note: We will unnecessarily do this update multiple times if the same mesh overlaps multiple dirty regions
+					const SPtr<GpuBuffer>& buffer = widget.GUIMeshUniformBuffers[meshRenderData.UniformBufferIndex];
+					UpdateParamBlockBuffer(buffer, viewportOffset, inverseRegionWidth, inverseRegionHeight, viewflipYFlip, widget.WorldTransform, meshRenderData);
+
+					meshesToRedraw.push_back(&meshRenderData);
+				}
+
+				for(const GUIMeshRenderData* meshRenderData : meshesToRedraw)
+				{
+					SpriteMaterial* const material = meshRenderData->Material;
+
+					// Note: Sprite material is being re-bound for each draw. We should ensure the material is bound only when it actually changes.
+					const SPtr<GpuBuffer>& uniformBuffer = widget.GUIMeshUniformBuffers[meshRenderData->UniformBufferIndex];
+
+					material->Render(*viewContext.CommandBuffer, meshRenderData->IsLine ? widget.LineMesh : widget.TriangleMesh, meshRenderData->SubMesh, meshRenderData->Texture, mSamplerState, uniformBuffer, meshRenderData->AdditionalData);
+				}
 			}
-
-			// Draw the group itself
-			const SPtr<GpuBuffer>& buffer = widget.ParamBlocks[drawGroup.BufferIdx];
-
-			SpriteMaterial* batchedMat = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied, false);
-			batchedMat->Render(*viewContext.CommandBuffer, widget.DrawGroupMesh, drawGroup.SubMesh, drawGroup.Destination->GetColorTexture(0), mSamplerState, buffer, nullptr, false);
 		}
+
+		commandBuffer.DisableScissorTest();
 	}
+
+	cameraRenderData.DirtyRegions.clear();
+
+	// Blit cached texture into main output
+	// Note: This could be optimized by blitting only the modified regions
+	commandBuffer.SetRenderTarget(renderTarget, 0, RT_ALL);
+	commandBuffer.SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+
+	GetRendererUtility().Blit(commandBuffer, cameraRenderData.CachedRenderTexture->GetColorTexture(0));
+
+	// Restore original viewport
+	commandBuffer.SetViewport(camera.GetViewport()->GetArea());
 }
 
 void GUIRenderer::Update(float time)
@@ -1763,7 +1778,8 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = device->GetCapabilities().Conventions;
 
-	Vector<GUIWidgetRenderData>& widgets = mPerCameraData[camera.get()];
+	GUICameraRenderData& cameraRenderData = mPerCameraData[camera.get()];
+	Vector<GUIWidgetRenderData>& widgets = cameraRenderData.WidgetRenderData;
 	GUIWidgetRenderData* widget;
 
 	auto iterFind2 = std::find_if(widgets.begin(), widgets.end(), [widgetId](auto& x)
@@ -1787,108 +1803,32 @@ void GUIRenderer::UpdateDrawGroups(const SPtr<Camera>& camera, u64 widgetId, u32
 		for(auto& drawGroup : widget->DrawGroups)
 			numBuffers += (u32)drawGroup.NonCachedElements.size() + (u32)drawGroup.CachedElements.size();
 
-		auto numAllocatedBuffers = (u32)widget->ParamBlocks.size();
+		auto numAllocatedBuffers = (u32)widget->GUIMeshUniformBuffers.size();
 		if(numBuffers > numAllocatedBuffers)
 		{
-			widget->ParamBlocks.resize(numBuffers);
+			widget->GUIMeshUniformBuffers.resize(numBuffers);
 
 			for(u32 i = numAllocatedBuffers; i < numBuffers; i++)
-				widget->ParamBlocks[i] = gGUISpriteParamBlockDef.CreateBuffer();
+				widget->GUIMeshUniformBuffers[i] = gGUISpriteParamBlockDef.CreateBuffer();
 		}
 
 		u32 curBufferIdx = 0;
 		for(auto& drawGroup : widget->DrawGroups)
 		{
-			drawGroup.BufferIdx = curBufferIdx++;
-
 			for(auto& entry : drawGroup.NonCachedElements)
-				entry.BufferIdx = curBufferIdx++;
+				entry.UniformBufferIndex = curBufferIdx++;
 
 			for(auto& entry : drawGroup.CachedElements)
-				entry.BufferIdx = curBufferIdx++;
+				entry.UniformBufferIndex = curBufferIdx++;
 		}
-
-		// Rebuild draw group mesh
-		auto numQuads = (u32)widget->DrawGroups.size();
-		if(numQuads > 0)
-		{
-			bool flipUVY = gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up;
-			float uvTop = flipUVY ? 1.0f : 0.0f;
-			float uvBottom = flipUVY ? 0.0f : 1.0f;
-
-			u32 numVertices = numQuads * 4;
-			u32 numIndices = numQuads * 6;
-
-			SmallVector<VertexElement, 8> vertexElements;
-			vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
-			vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
-
-			SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
-			SPtr<MeshData> meshData = MeshData::Create(numVertices, numIndices, vertexDesc);
-
-			auto vertexData = (Vector2*)meshData->GetElementData(VES_POSITION);
-			u32* indices = meshData->GetIndices32();
-
-			u32 quadIdx = 0;
-			for(auto& drawGroup : widget->DrawGroups)
-			{
-				float left = (float)drawGroup.Bounds.X;
-				float top = (float)drawGroup.Bounds.Y;
-				float right = left + drawGroup.Bounds.Width;
-				float bottom = top + drawGroup.Bounds.Height;
-
-				*vertexData = Vector2(left, top);
-				vertexData++;
-
-				*vertexData = Vector2(0, uvTop);
-				vertexData++;
-
-				*vertexData = Vector2(right, top);
-				vertexData++;
-
-				*vertexData = Vector2(1.0f, uvTop);
-				vertexData++;
-
-				*vertexData = Vector2(left, bottom);
-				vertexData++;
-
-				*vertexData = Vector2(0.0f, uvBottom);
-				vertexData++;
-
-				*vertexData = Vector2(right, bottom);
-				vertexData++;
-
-				*vertexData = Vector2(1.0f, uvBottom);
-				vertexData++;
-
-				indices[quadIdx * 6 + 0] = quadIdx * 4 + 0;
-				indices[quadIdx * 6 + 1] = quadIdx * 4 + 1;
-				indices[quadIdx * 6 + 2] = quadIdx * 4 + 2;
-				indices[quadIdx * 6 + 3] = quadIdx * 4 + 1;
-				indices[quadIdx * 6 + 4] = quadIdx * 4 + 3;
-				indices[quadIdx * 6 + 5] = quadIdx * 4 + 2;
-
-				drawGroup.SubMesh = SubMesh(quadIdx * 6, 6, DOT_TRIANGLE_LIST);
-				quadIdx++;
-			}
-
-			widget->DrawGroupMesh = Mesh::Create(meshData, MU_STATIC, DOT_TRIANGLE_LIST);
-		}
-		else
-			widget->DrawGroupMesh = nullptr;
-	}
-
-	B3D_ASSERT(data.GroupDirtyState.size() == widget->DrawGroups.size());
-
-	for(u32 i = 0; i < (u32)data.GroupDirtyState.size(); i++)
-	{
-		if(data.GroupDirtyState[i])
-			widget->DrawGroups[i].RequiresRedraw = true;
 	}
 
 	widget->TriangleMesh = data.TriangleMesh;
 	widget->LineMesh = data.LineMesh;
 	widget->WorldTransform = worldTransform;
+
+	for(const Rect2I& dirtyRegion : data.DirtyRegions)
+		Rect2I::AddUnique(dirtyRegion, cameraRenderData.DirtyRegions);
 
 	if(widget->WidgetDepth != widgetDepth)
 	{
@@ -1905,7 +1845,7 @@ void GUIRenderer::ClearDrawGroups(const SPtr<Camera>& camera, u64 widgetId)
 	if(iterFind == mPerCameraData.end())
 		return;
 
-	Vector<GUIWidgetRenderData>& widgetData = iterFind->second;
+	Vector<GUIWidgetRenderData>& widgetData = iterFind->second.WidgetRenderData;
 	auto iterFind2 = std::find_if(widgetData.begin(), widgetData.end(), [widgetId](auto& x)
 								  { return x.WidgetId == widgetId; });
 	if(iterFind2 == widgetData.end())
@@ -1920,12 +1860,13 @@ void GUIRenderer::ClearDrawGroups(const SPtr<Camera>& camera, u64 widgetId)
 	}
 }
 
-void GUIRenderer::UpdateParamBlockBuffer(const SPtr<GpuBuffer>& buffer, float invViewportWidth, float invViewportHeight, bool flipY, const Matrix4& tfrm, GUIMeshRenderData& renderData) const
+void GUIRenderer::UpdateParamBlockBuffer(const SPtr<GpuBuffer>& buffer, const Vector2I& viewportOffset, float invViewportWidth, float invViewportHeight, bool flipY, const Matrix4& transform, const GUIMeshRenderData& renderData) const
 {
 	gGUISpriteParamBlockDef.gTint.Set(buffer, renderData.Tint);
-	gGUISpriteParamBlockDef.gWorldTransform.Set(buffer, tfrm);
+	gGUISpriteParamBlockDef.gWorldTransform.Set(buffer, transform);
 	gGUISpriteParamBlockDef.gInvViewportWidth.Set(buffer, invViewportWidth);
 	gGUISpriteParamBlockDef.gInvViewportHeight.Set(buffer, invViewportHeight);
+	gGUISpriteParamBlockDef.gViewportOffset.Set(buffer, viewportOffset);
 	gGUISpriteParamBlockDef.gViewportYFlip.Set(buffer, flipY ? -1.0f : 1.0f);
 
 	float t = std::max(0.0f, mTime - renderData.AnimationStartTime);

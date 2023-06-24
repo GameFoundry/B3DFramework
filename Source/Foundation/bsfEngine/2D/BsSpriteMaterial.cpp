@@ -20,11 +20,7 @@ SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariatio
 	FindVariationInformation findTechniqueDesc;
 	findTechniqueDesc.VariationParameters = &variation;
 
-	variation.SetBool("ALPHA", false);
 	mTechnique = mMaterial->FindTechnique(findTechniqueDesc);
-
-	variation.SetBool("ALPHA", true);
-	mAlphaTechnique = mMaterial->FindTechnique(findTechniqueDesc);
 
 	mMaterialStored.store(true, std::memory_order_release);
 
@@ -33,7 +29,7 @@ SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariatio
 
 SpriteMaterial::~SpriteMaterial()
 {
-	GetCoreThread().PostCommand(std::bind(&SpriteMaterial::Destroy, mMaterial, mParams, mAlphaParams));
+	GetCoreThread().PostCommand(std::bind(&SpriteMaterial::Destroy, mMaterial, mParams));
 }
 
 void SpriteMaterial::Initialize()
@@ -55,20 +51,13 @@ void SpriteMaterial::Initialize()
 	};
 
 	fnPrepareTechnique(mTechnique);
-	fnPrepareTechnique(mAlphaTechnique);
 
 	const SPtr<ct::Pass>& pass = mMaterial->GetPass(0, mTechnique);
 
 	if(pass)
 		pass->Compile();
 
-	const SPtr<ct::Pass>& alphaPass = mMaterial->GetPass(0, mAlphaTechnique);
-
-	if(alphaPass)
-		alphaPass->Compile();
-
 	mParams = mMaterial->CreateParamsSet(mTechnique);
-	mAlphaParams = mMaterial->CreateParamsSet(mAlphaTechnique);
 
 	SPtr<ct::Shader> shader = mMaterial->GetShader();
 	if(shader->HasTextureParam("gMainTexture"))
@@ -78,13 +67,12 @@ void SpriteMaterial::Initialize()
 	}
 
 	mParamBufferIdx = mParams->GetParamBlockBufferIndex("GUIParams");
-	mAlphaParamBufferIdx = mAlphaParams->GetParamBlockBufferIndex("GUIParams");
 
-	if(mParamBufferIdx == (u32)-1 || mAlphaParamBufferIdx == (u32)-1)
+	if(mParamBufferIdx == ~0u)
 		B3D_LOG(Error, GUI, "Sprite material shader missing \"GUIParams\" block.");
 }
 
-void SpriteMaterial::Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params, const SPtr<ct::GpuParamsSet>& alphaParams)
+void SpriteMaterial::Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params)
 {
 	// Do nothing, we just need to make sure the material pointer's last reference is lost while on the core thread
 }
@@ -104,7 +92,7 @@ u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const
 	return (u64)hash;
 }
 
-void SpriteMaterial::Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData, bool alphaOnly) const
+void SpriteMaterial::Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData) const
 {
 	SPtr<ct::Texture> spriteTexture;
 	if(texture != nullptr)
@@ -115,24 +103,12 @@ void SpriteMaterial::Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::
 	mTextureParam.Set(spriteTexture);
 	mSamplerParam.Set(sampler);
 
-	if(!alphaOnly)
-	{
-		if(mParamBufferIdx != (u32)-1)
-			mParams->SetParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
+	if(mParamBufferIdx != ~0u)
+		mParams->SetParamBlockBuffer(mParamBufferIdx, paramBuffer, true);
 
-		mMaterial->UpdateParamsSet(mParams);
-		ct::GetRendererUtility().SetPass(commandBuffer, mMaterial, 0, mTechnique);
-		ct::GetRendererUtility().SetPassParams(commandBuffer, mParams);
-	}
-	else
-	{
-		if(mAlphaParamBufferIdx != (u32)-1)
-			mAlphaParams->SetParamBlockBuffer(mAlphaParamBufferIdx, paramBuffer, true);
-
-		mMaterial->UpdateParamsSet(mAlphaParams);
-		ct::GetRendererUtility().SetPass(commandBuffer, mMaterial, 0, mAlphaTechnique);
-		ct::GetRendererUtility().SetPassParams(commandBuffer, mAlphaParams);
-	}
+	mMaterial->UpdateParamsSet(mParams);
+	ct::GetRendererUtility().SetPass(commandBuffer, mMaterial, 0, mTechnique);
+	ct::GetRendererUtility().SetPassParams(commandBuffer, mParams);
 
 	ct::GetRendererUtility().Draw(commandBuffer, mesh, subMesh);
 }

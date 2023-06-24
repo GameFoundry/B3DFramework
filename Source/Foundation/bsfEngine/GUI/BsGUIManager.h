@@ -411,9 +411,10 @@ namespace bs
 			B3D_PARAM_BLOCK_ENTRY(Matrix4, gWorldTransform)
 			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportWidth)
 			B3D_PARAM_BLOCK_ENTRY(float, gInvViewportHeight)
-			B3D_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
+			B3D_PARAM_BLOCK_ENTRY(Vector2I, gViewportOffset)
 			B3D_PARAM_BLOCK_ENTRY(Color, gTint)
 			B3D_PARAM_BLOCK_ENTRY(Vector4, gUVSizeOffset)
+			B3D_PARAM_BLOCK_ENTRY(float, gViewportYFlip)
 		B3D_PARAM_BLOCK_END
 
 		extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
@@ -441,22 +442,28 @@ namespace bs
 			void ClearDrawGroups(const SPtr<Camera>& camera, u64 widgetId);
 
 			/** Updates the parameter block buffer for the specified mesh. */
-			void UpdateParamBlockBuffer(const SPtr<GpuBuffer>& buffer, float invViewportWidth, float invViewportHeight, bool flipY, const Matrix4& tfrm, GUIMeshRenderData& renderData) const;
+			void UpdateParamBlockBuffer(const SPtr<GpuBuffer>& buffer, const Vector2I& viewportOffset, float invViewportWidth, float invViewportHeight, bool flipY, const Matrix4& transform, const GUIMeshRenderData& renderData) const;
 
 			struct GUIWidgetRenderData
 			{
 				u64 WidgetId;
 				u32 WidgetDepth = 0;
 				Vector<GUIDrawGroupRenderData> DrawGroups;
-				Vector<SPtr<GpuBuffer>> ParamBlocks;
+				Vector<SPtr<GpuBuffer>> GUIMeshUniformBuffers;
 
 				SPtr<Mesh> TriangleMesh;
 				SPtr<Mesh> LineMesh;
-				SPtr<Mesh> DrawGroupMesh;
 				Matrix4 WorldTransform = Matrix4::kIdentity;
 			};
 
-			UnorderedMap<const Camera*, Vector<GUIWidgetRenderData>> mPerCameraData;
+			struct GUICameraRenderData
+			{
+				Vector<GUIWidgetRenderData> WidgetRenderData;
+				SPtr<RenderTexture> CachedRenderTexture;
+				Vector<Rect2I> DirtyRegions;
+			};
+
+			UnorderedMap<const Camera*, GUICameraRenderData> mPerCameraData;
 			Set<SPtr<Camera>> mReferencedCameras;
 			SPtr<SamplerState> mSamplerState;
 			float mTime = 0.0f;

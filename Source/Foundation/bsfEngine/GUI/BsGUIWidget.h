@@ -30,7 +30,8 @@ namespace bs
 		float AnimationStartTime;
 		SPtr<SpriteMaterialExtraInfo> AdditionalData;
 		bool IsLine;
-		u32 BufferIdx;
+		Rect2I Bounds;
+		u32 UniformBufferIndex;
 	};
 
 	/** Information about a GUI element that is displaying a render target. */
@@ -38,23 +39,20 @@ namespace bs
 	{
 		GUIRenderTargetRenderData() = default;
 
-		GUIRenderTargetRenderData(SPtr<ct::RenderTarget> target)
-			: Target(std::move(target))
+		GUIRenderTargetRenderData(SPtr<ct::RenderTarget> target, const Rect2I& area)
+			: Target(std::move(target)), Area(area)
 		{}
 
 		SPtr<ct::RenderTarget> Target;
 		u64 LastUpdateCount = (u64)-1;
+		Rect2I Area;
 	};
 
 	/** Data required for rendering all the batches in a single GUI draw group. */
 	struct GUIDrawGroupRenderData
 	{
 		i32 Id = 0;
-		SPtr<ct::RenderTexture> Destination;
 		Rect2I Bounds;
-		SubMesh SubMesh;
-		bool RequiresRedraw = true;
-		u32 BufferIdx = 0;
 
 		Vector<GUIMeshRenderData> CachedElements;
 		Vector<GUIMeshRenderData> NonCachedElements;
@@ -68,14 +66,14 @@ namespace bs
 	struct GUIDrawGroupRenderDataUpdate
 	{
 		Vector<GUIDrawGroupRenderData> NewDrawGroups;
-		Vector<bool> GroupDirtyState;
+		Vector<Rect2I> DirtyRegions;
 		SPtr<ct::Mesh> TriangleMesh;
 		SPtr<ct::Mesh> LineMesh;
 	};
 
 	/**
-	 * Organizes elements within a GUIWidget into groups that can be drawn together, as well as cached into the same
-	 * output texture.
+	 * Organizes GUI elements within a single GUIWidget into groups that can be drawn together, and maintains a list of
+	 * dirty screen regions that need to be updated by the GUI renderer.
 	 **/
 	class B3D_EXPORT GUIDrawGroups
 	{
@@ -133,6 +131,7 @@ namespace bs
 			u32 IndexCount = 0;
 			SpriteMaterial* Material;
 			SpriteMaterialInfo MatInfo;
+			Rect2I Bounds;
 			bool IsLine;
 		};
 
@@ -143,13 +142,11 @@ namespace bs
 			u32 DepthRange = 0;
 			u32 MinDepth = 0;
 			bool DirtyBounds = true;
-			bool NeedsRedraw = true;
-			bool DirtyTexture = true;
 			Rect2I Bounds;
 			Vector<GUIGroupRenderElement> CachedElements;
 			Vector<GUIGroupRenderElement> NonCachedElements;
 			Vector<GUIMesh> Meshes;
-			SPtr<RenderTexture> OutputTexture;
+			Vector<Rect2I> DirtyRegions;
 		};
 
 		/** Splits the provided draw group at the specified depth. Returns the second half of the group. */
@@ -175,6 +172,21 @@ namespace bs
 
 		/** Removes a specific render element in the provided GUI element from their current draw group. */
 		void Remove(GUIGroupElement& element, u32 renderElementIdx);
+
+		/**
+		 * Marks region covered by @p element of all the draw groups associated with the element as dirty, so they
+		 * will be redrawn on the next frame. If element is being resized or moved, this should be called on the old
+		 * position/size, as well as on the new position/size.
+		 */
+		void MarkBoundsDirty(const GUIGroupElement& element);
+
+		/**
+		 * Marks region covered by @p element of a particular draw group associated with the element as dirty, so it
+		 * will be redrawn on the next frame. If element is being resized or moved, this should be called on the old
+		 * position/size, as well as on the new position/size.
+		 */
+		void MarkBoundsDirty(const GUIGroupElement& element, u32 groupIndex);
+
 
 		/** Builds a structure with information required for rendering the provided mesh. */
 		static GUIMeshRenderData GetRenderData(const GUIMesh& guiMesh);

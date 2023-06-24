@@ -218,3 +218,48 @@ void Rect2I::Transform(const Matrix4& matrix)
 	Width = (u32)Math::CeilToInt(maxX) - X;
 	Height = (u32)Math::CeilToInt(maxY) - Y;
 }
+
+template <typename T>
+void Rect2I::AddUnique(const Rect2I& area, T& inOutAreaList)
+{
+	if(area.Width == 0 || area.Height == 0)
+		return;
+
+	bool shouldAddArea = true;
+	for(auto it = inOutAreaList.begin(); it != inOutAreaList.end();)
+	{
+		const Rect2I& existingArea = *it;
+
+		if(existingArea.Contains(area))
+		{
+			shouldAddArea = false;
+			break;
+		}
+
+		if(area.Contains(existingArea))
+		{
+			it = inOutAreaList.erase(it);
+			continue;
+		}
+
+		if(area.Overlaps(existingArea))
+		{
+			Array<Rect2I, 4> cutImageAreas;
+			const u32 cutImageAreaCount = area.Cut(existingArea, cutImageAreas);
+
+			for(u32 cutImageAreaIndex = 0; cutImageAreaIndex < cutImageAreaCount; ++cutImageAreaIndex)
+				AddUnique(cutImageAreas[cutImageAreaIndex], inOutAreaList);
+
+			shouldAddArea = false;
+			break;
+		}
+
+		++it;
+	}
+
+	if(shouldAddArea)
+		inOutAreaList.push_back(area);
+}
+
+template B3D_UTILITY_EXPORT void Rect2I::AddUnique(const Rect2I&, Vector<Rect2I>&);
+template B3D_UTILITY_EXPORT void Rect2I::AddUnique(const Rect2I&, FrameVector<Rect2I>&);

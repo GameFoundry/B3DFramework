@@ -7,7 +7,7 @@
 #include "GUI/BsGUIScrollBarVert.h"
 #include "GUI/BsGUIScrollBarHorz.h"
 #include "GUI/BsGUIMouseEvent.h"
-#include "GUI/BsGUILayoutUtility.h"
+#include "GUI/BsGUIUtility.h"
 
 using namespace std::placeholders;
 
@@ -132,7 +132,7 @@ void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* el
 	u32 layoutWidth = std::max(optimalContentWidth, (u32)layoutArea.Width);
 	u32 layoutHeight = std::max(optimalContentHeight, (u32)layoutArea.Height);
 
-	contentSize = GUILayoutUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, false);
+	contentSize = GUIUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, false);
 	visibleSize = Vector2I(layoutArea.Width, layoutArea.Height);
 
 	bool addHorzScrollbar = (mHorzBarType == ScrollBarType::ShowIfDoesntFit && contentSize.X > visibleSize.X) ||
@@ -151,7 +151,7 @@ void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* el
 
 		layoutHeight = std::max(optimalContentHeight, (u32)visibleSize.Y); // Never go below optimal size
 
-		contentSize = GUILayoutUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
+		contentSize = GUIUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
 		hasHorzScrollbar = true;
 	}
 
@@ -169,7 +169,7 @@ void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* el
 
 		layoutWidth = std::max(optimalContentWidth, (u32)visibleSize.X); // Never go below optimal size
 
-		contentSize = GUILayoutUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
+		contentSize = GUIUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
 		hasVertScrollbar = true;
 
 		if(!hasHorzScrollbar) // Since width has been reduced, we need to check if we require the horizontal scrollbar
@@ -187,7 +187,7 @@ void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* el
 
 				layoutHeight = std::max(optimalContentHeight, (u32)visibleSize.Y); // Never go below optimal size
 
-				contentSize = GUILayoutUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
+				contentSize = GUIUtility::CalcActualSize(layoutWidth, layoutHeight, mContentLayout, true);
 				hasHorzScrollbar = true;
 			}
 		}

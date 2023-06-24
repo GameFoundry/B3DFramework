@@ -65,6 +65,16 @@ namespace bs
 		 */
 		void Transform(const Matrix4& matrix);
 
+		/**
+		 * Adds a unique area to the provided @p outAreas list. The list will be modified by adding, removing or cutting areas in the list to ensure
+		 * only non-overlapping areas are present in the list.
+		 *
+		 * @param	area		Area to try to add to the list.
+		 * @param	inOutAreas	List of unique areas to append the result to. Must be Vector<T> or FrameVector<T>.
+		 */
+		template<class T>
+		static void AddUnique(const Rect2I& area, T& inOutAreas);
+
 		bool operator==(const Rect2I& rhs) const
 		{
 			return X == rhs.X && Y == rhs.Y && Width == rhs.Width && Height == rhs.Height;
