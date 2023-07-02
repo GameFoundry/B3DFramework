@@ -130,8 +130,8 @@ namespace bs
 		 *  @{
 		 */
 
-		Vector2I GetOptimalSizeInternal() const override;
-		u32 GetRenderElementDepthRangeInternal() const override { return mDepthRange; }
+		Vector2I GetOptimalSize() const override;
+		u32 GetRenderElementDepthRange() const override { return mDepthRange; }
 
 		/** @} */
 	protected:
@@ -203,7 +203,7 @@ namespace bs
 		virtual ~GUICanvas();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 
 		/** Build an image sprite from the provided canvas element. */
 		void BuildImageElement(const CanvasElement& element);

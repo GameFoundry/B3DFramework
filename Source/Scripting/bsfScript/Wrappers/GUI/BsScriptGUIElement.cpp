@@ -173,7 +173,7 @@ bool ScriptGUIElement::InternalGetVisible(ScriptGUIElementBaseTBase* nativeInsta
 		return false;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	return guiElemBase->IsVisibleInternal();
+	return guiElemBase->IsVisible();
 }
 
 bool ScriptGUIElement::InternalGetActive(ScriptGUIElementBaseTBase* nativeInstance)
@@ -182,7 +182,7 @@ bool ScriptGUIElement::InternalGetActive(ScriptGUIElementBaseTBase* nativeInstan
 		return false;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	return guiElemBase->IsActiveInternal();
+	return guiElemBase->IsActive();
 }
 
 bool ScriptGUIElement::InternalGetDisabled(ScriptGUIElementBaseTBase* nativeInstance)
@@ -191,7 +191,7 @@ bool ScriptGUIElement::InternalGetDisabled(ScriptGUIElementBaseTBase* nativeInst
 		return false;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	return guiElemBase->IsDisabledInternal();
+	return guiElemBase->IsDisabled();
 }
 
 bool ScriptGUIElement::InternalGetBlocking(ScriptGUIElementBaseTBase* nativeInstance)

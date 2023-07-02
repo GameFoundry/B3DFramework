@@ -58,9 +58,9 @@ namespace bs
 		GUIDropDownHitBox(bool captureMouseOver, bool captureMousePresses, const GUIDimensions& dimensions);
 
 		void UpdateClippedBounds() override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-		bool IsInBoundsInternal(const Vector2I position) const override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
+		bool IsInBounds(const Vector2I position) const override;
 
 		Vector<Rect2I> mBounds;
 		bool mCaptureMouseOver;

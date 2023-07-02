@@ -71,7 +71,7 @@ Vector2I GUIInputTool::GetTextOffset() const
 {
 	Vector2I offset(mElement->GetLayoutDataInternal().Area.X, mElement->GetLayoutDataInternal().Area.Y);
 
-	return offset + mElement->GetTextInputOffsetInternal() + Vector2I(mElement->GetTextInputRectInternal().X, mElement->GetTextInputRectInternal().Y);
+	return offset + mElement->GetTextInputOffset() + Vector2I(mElement->GetTextInputRect().X, mElement->GetTextInputRect().Y);
 }
 
 Rect2I GUIInputTool::GetCharRect(u32 charIdx) const

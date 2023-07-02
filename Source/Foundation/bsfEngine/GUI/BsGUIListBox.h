@@ -95,8 +95,8 @@ namespace bs
 	private:
 		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUIDimensions& dimensions);
 
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
 		/**	Triggered when user clicks on an element. */
 		void ElementSelected(u32 idx);

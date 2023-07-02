@@ -54,8 +54,8 @@ namespace bs
 		/**	Change the internal button state, changing the button look depending on set style. */
 		void SetStateInternal(GUIElementState state);
 
-		Vector2I GetOptimalSizeInternal() const override;
-		u32 GetRenderElementDepthRangeInternal() const override;
+		Vector2I GetOptimalSize() const override;
+		u32 GetRenderElementDepthRange() const override;
 
 		/** @} */
 	protected:
@@ -63,10 +63,10 @@ namespace bs
 		virtual ~GUIButtonBase();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
-		String GetTooltipInternal() const override;
+		void UpdateRenderElements() override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
+		String GetTooltip() const override;
 		void StyleUpdated() override;
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */

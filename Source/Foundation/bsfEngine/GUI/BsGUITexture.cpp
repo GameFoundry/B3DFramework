@@ -27,7 +27,7 @@ GUITexture::GUITexture(const String& styleName, const HSpriteTexture& texture, T
 	}
 	else
 	{
-		mActiveTexture = GetStyleInternal()->Normal.Texture;
+		mActiveTexture = GetStyle()->Normal.Texture;
 		mUsingStyleTexture = true;
 	}
 
@@ -93,7 +93,7 @@ GUITexture* GUITexture::Create(const String& styleName)
 
 void GUITexture::SetTexture(const HSpriteTexture& texture)
 {
-	Vector2I origSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
+	Vector2I origSize = mDimensions.CalculateSizeRange(GetOptimalSize()).Optimal;
 
 	mActiveTexture = texture;
 
@@ -104,14 +104,14 @@ void GUITexture::SetTexture(const HSpriteTexture& texture)
 	mUsingStyleTexture = false;
 	mDesc.AnimationStartTime = GetTime().GetTime();
 
-	Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSizeInternal()).Optimal;
+	Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSize()).Optimal;
 	if(origSize != newSize)
-		MarkLayoutAsDirtyInternal();
+		MarkLayoutAsDirty();
 	else
-		MarkContentAsDirtyInternal();
+		MarkContentAsDirty();
 }
 
-void GUITexture::UpdateRenderElementsInternal()
+void GUITexture::UpdateRenderElements()
 {
 	Vector2I textureSize;
 	if(SpriteTexture::CheckIsLoaded(mActiveTexture))
@@ -153,10 +153,10 @@ void GUITexture::UpdateRenderElementsInternal()
 	mDesc.Width = (u32)destSize.X;
 	mDesc.Height = (u32)destSize.Y;
 
-	mDesc.BorderLeft = GetStyleInternal()->Border.Left;
-	mDesc.BorderRight = GetStyleInternal()->Border.Right;
-	mDesc.BorderTop = GetStyleInternal()->Border.Top;
-	mDesc.BorderBottom = GetStyleInternal()->Border.Bottom;
+	mDesc.BorderLeft = GetStyle()->Border.Left;
+	mDesc.BorderRight = GetStyle()->Border.Right;
+	mDesc.BorderTop = GetStyle()->Border.Top;
+	mDesc.BorderBottom = GetStyle()->Border.Bottom;
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
 
@@ -165,7 +165,7 @@ void GUITexture::UpdateRenderElementsInternal()
 	else
 		mDesc.UvScale = Vector2::kOne;
 
-	mImageSprite->Update(mDesc, (u64)GetParentWidgetInternal());
+	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
 	// Populate GUI render elements from the sprites
 	{
@@ -173,14 +173,14 @@ void GUITexture::UpdateRenderElementsInternal()
 		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElementsInternal();
+	GUIElement::UpdateRenderElements();
 }
 
 void GUITexture::StyleUpdated()
 {
 	if(mUsingStyleTexture)
 	{
-		mActiveTexture = GetStyleInternal()->Normal.Texture;
+		mActiveTexture = GetStyle()->Normal.Texture;
 		mDesc.AnimationStartTime = GetTime().GetTime();
 
 		bool isTexLoaded = SpriteTexture::CheckIsLoaded(mActiveTexture);
@@ -189,7 +189,7 @@ void GUITexture::StyleUpdated()
 	}
 }
 
-Vector2I GUITexture::GetOptimalSizeInternal() const
+Vector2I GUITexture::GetOptimalSize() const
 {
 	// TODO - Accounting for style dimensions might be redundant here, I'm pretty sure we do that on higher level anyway
 	Vector2I optimalSize;
@@ -198,24 +198,24 @@ Vector2I GUITexture::GetOptimalSizeInternal() const
 	// needed (size change is detected). Sprite texture could change without us knowing and by storing the size we can
 	// safely detect this. (In short, don't do mActiveTexture->getFrameWidth/Height() here)
 
-	if(GetDimensionsInternal().FixedWidth())
-		optimalSize.X = GetDimensionsInternal().MinWidth;
+	if(GetDimensions().FixedWidth())
+		optimalSize.X = GetDimensions().MinWidth;
 	else
 	{
 		if(SpriteTexture::CheckIsLoaded(mActiveTexture))
 			optimalSize.X = mActiveTextureWidth;
 		else
-			optimalSize.X = GetDimensionsInternal().MaxWidth;
+			optimalSize.X = GetDimensions().MaxWidth;
 	}
 
-	if(GetDimensionsInternal().FixedHeight())
-		optimalSize.Y = GetDimensionsInternal().MinHeight;
+	if(GetDimensions().FixedHeight())
+		optimalSize.Y = GetDimensions().MinHeight;
 	else
 	{
 		if(SpriteTexture::CheckIsLoaded(mActiveTexture))
 			optimalSize.Y = mActiveTextureHeight;
 		else
-			optimalSize.Y = GetDimensionsInternal().MaxHeight;
+			optimalSize.Y = GetDimensions().MaxHeight;
 	}
 
 	return optimalSize;

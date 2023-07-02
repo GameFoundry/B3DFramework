@@ -58,9 +58,9 @@ void GUIDropDownHitBox::UpdateClippedBounds()
 	}
 }
 
-bool GUIDropDownHitBox::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIDropDownHitBox::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	bool processed = GUIElementContainer::CommandEventInternal(ev);
+	bool processed = GUIElementContainer::DoOnCommandEvent(ev);
 
 	if(ev.GetType() == GUICommandEventType::FocusGained)
 	{
@@ -80,9 +80,9 @@ bool GUIDropDownHitBox::CommandEventInternal(const GUICommandEvent& ev)
 	return processed;
 }
 
-bool GUIDropDownHitBox::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUIDropDownHitBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
-	bool processed = GUIElementContainer::MouseEventInternal(ev);
+	bool processed = GUIElementContainer::DoOnMouseEvent(ev);
 
 	if(mCaptureMouseOver)
 	{
@@ -119,7 +119,7 @@ bool GUIDropDownHitBox::MouseEventInternal(const GUIMouseEvent& ev)
 	return processed;
 }
 
-bool GUIDropDownHitBox::IsInBoundsInternal(const Vector2I position) const
+bool GUIDropDownHitBox::IsInBounds(const Vector2I position) const
 {
 	for(auto& bound : mBounds)
 	{

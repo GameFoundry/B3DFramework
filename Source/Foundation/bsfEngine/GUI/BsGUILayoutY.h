@@ -34,14 +34,14 @@ namespace bs
 		 *  @{
 		 */
 
-		void UpdateOptimalLayoutSizesInternal() override;
-		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
+		void UpdateOptimalLayoutSizes() override;
+		LayoutSizeRange CalculateLayoutSizeRange() const override;
+		void GetElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** @} */
 
 	protected:
-		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
+		void UpdateLayoutRecursive(const GUILayoutData& data) override;
 	};
 
 	/** @} */

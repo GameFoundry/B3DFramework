@@ -40,7 +40,7 @@ GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleN
 	if(mHorizontal)
 	{
 		mLayout = GUILayoutX::Create();
-		RegisterChildElementInternal(mLayout);
+		RegisterChildElement(mLayout);
 
 		mUpBtn = GUIButton::Create(HString(""), "ScrollLeftBtn");
 		mDownBtn = GUIButton::Create(HString(""), "ScrollRightBtn");
@@ -50,7 +50,7 @@ GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleN
 	else
 	{
 		mLayout = GUILayoutY::Create();
-		RegisterChildElementInternal(mLayout);
+		RegisterChildElement(mLayout);
 
 		mUpBtn = GUIButton::Create(HString(""), "ScrollUpBtn");
 		mDownBtn = GUIButton::Create(HString(""), "ScrollDownBtn");
@@ -89,18 +89,18 @@ GUIScrollBar::~GUIScrollBar()
 	GUIElement::Destroy(mHandleBtn);
 }
 
-void GUIScrollBar::UpdateRenderElementsInternal()
+void GUIScrollBar::UpdateRenderElements()
 {
 	IMAGE_SPRITE_DESC desc;
 
-	if(GetStyleInternal()->Normal.Texture != nullptr && GetStyleInternal()->Normal.Texture.IsLoaded())
-		desc.Texture = GetStyleInternal()->Normal.Texture;
+	if(GetStyle()->Normal.Texture != nullptr && GetStyle()->Normal.Texture.IsLoaded())
+		desc.Texture = GetStyle()->Normal.Texture;
 
 	desc.Width = mLayoutData.Area.Width;
 	desc.Height = mLayoutData.Area.Height;
 	desc.Color = GetTint();
 
-	mImageSprite->Update(desc, (u64)GetParentWidgetInternal());
+	mImageSprite->Update(desc, (u64)GetParentWidget());
 
 	// Populate GUI render elements from the sprites
 	{
@@ -108,7 +108,7 @@ void GUIScrollBar::UpdateRenderElementsInternal()
 		T::Populate({ T::SpriteInfo(mImageSprite, 2) }, mRenderElements); // +2 depth because child buttons use +1
 	}
 
-	GUIElement::UpdateRenderElementsInternal();
+	GUIElement::UpdateRenderElements();
 }
 
 void GUIScrollBar::UpdateClippedBounds()
@@ -116,12 +116,12 @@ void GUIScrollBar::UpdateClippedBounds()
 	mClippedBounds = Rect2I(0, 0, 0, 0); // We don't want any mouse input for this element. This is just a container.
 }
 
-Vector2I GUIScrollBar::GetOptimalSizeInternal() const
+Vector2I GUIScrollBar::GetOptimalSize() const
 {
-	return mLayout->GetOptimalSizeInternal();
+	return mLayout->GetOptimalSize();
 }
 
-u32 GUIScrollBar::GetRenderElementDepthRangeInternal() const
+u32 GUIScrollBar::GetRenderElementDepthRange() const
 {
 	return 3;
 }
@@ -189,7 +189,7 @@ void GUIScrollBar::Scroll(float amount)
 
 	if(oldHandlePos != mHandleBtn->GetHandlePos())
 	{
-		mHandleBtn->MarkLayoutAsDirtyInternal();
+		mHandleBtn->MarkLayoutAsDirty();
 
 		if(!OnScrollOrResize.Empty())
 			OnScrollOrResize(newHandlePos, mHandleBtn->GetHandleSizePctInternal());
@@ -217,7 +217,7 @@ void GUIScrollBar::SetScrollPos(float pct)
 	mHandleBtn->SetHandlePosInternal(pct);
 
 	if(oldHandlePos != mHandleBtn->GetHandlePos())
-		mHandleBtn->MarkLayoutAsDirtyInternal();
+		mHandleBtn->MarkLayoutAsDirty();
 }
 
 float GUIScrollBar::GetHandleSize() const
@@ -228,7 +228,7 @@ float GUIScrollBar::GetHandleSize() const
 void GUIScrollBar::SetHandleSize(float pct)
 {
 	mHandleBtn->SetHandleSizeInternal(pct);
-	mHandleBtn->MarkLayoutAsDirtyInternal();
+	mHandleBtn->MarkLayoutAsDirty();
 }
 
 u32 GUIScrollBar::GetScrollableSize() const

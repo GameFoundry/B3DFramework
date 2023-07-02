@@ -69,10 +69,10 @@ void GUIRenderTexture::SetRenderTexture(const SPtr<RenderTexture>& texture)
 		SetTexture(SpriteTexture::Create(HTexture()));
 	}
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
-void GUIRenderTexture::UpdateRenderElementsInternal()
+void GUIRenderTexture::UpdateRenderElements()
 {
 	if(mActiveTexture != nullptr && mActiveTexture.IsLoaded())
 		mDesc.Texture = mActiveTexture;
@@ -82,7 +82,7 @@ void GUIRenderTexture::UpdateRenderElementsInternal()
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
 
-	mImageSprite->Update(mDesc, (u64)GetParentWidgetInternal());
+	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
 	// Populate GUI render elements from the sprites
 	{
@@ -90,5 +90,5 @@ void GUIRenderTexture::UpdateRenderElementsInternal()
 		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElementsInternal();
+	GUIElement::UpdateRenderElements();
 }

@@ -128,13 +128,13 @@ void GUIListBox::SetElementStates(const Vector<bool>& states)
 		OpenListBox();
 }
 
-bool GUIListBox::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUIListBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
-	bool processed = GUIButtonBase::MouseEventInternal(ev);
+	bool processed = GUIButtonBase::DoOnMouseEvent(ev);
 
 	if(ev.GetType() == GUIMouseEventType::MouseDown)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mDropDownBox == nullptr)
 				OpenListBox();
@@ -148,13 +148,13 @@ bool GUIListBox::MouseEventInternal(const GUIMouseEvent& ev)
 	return processed;
 }
 
-bool GUIListBox::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIListBox::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool processed = GUIButtonBase::CommandEventInternal(ev);
+	const bool processed = GUIButtonBase::DoOnCommandEvent(ev);
 
 	if(ev.GetType() == GUICommandEventType::Confirm)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mDropDownBox == nullptr)
 				OpenListBox();
@@ -212,7 +212,7 @@ void GUIListBox::OpenListBox()
 		i++;
 	}
 
-	GUIWidget* widget = GetParentWidgetInternal();
+	GUIWidget* widget = GetParentWidget();
 
 	desc.Camera = widget->GetCamera();
 	desc.Skin = widget->GetSkinResource();

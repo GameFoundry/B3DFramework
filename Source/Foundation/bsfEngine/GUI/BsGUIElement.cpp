@@ -24,7 +24,7 @@ GUIElement::GUIElement(const char* styleName, const GUIDimensions& dimensions, G
 	// is assigned to a parent (that's when the active GUI skin becomes known)
 }
 
-void GUIElement::UpdateRenderElementsInternal()
+void GUIElement::UpdateRenderElements()
 {
 	UpdateClippedBounds();
 }
@@ -38,20 +38,20 @@ void GUIElement::UpdateClippedBounds()
 void GUIElement::SetStyle(const String& styleName)
 {
 	mStyleName = styleName;
-	RefreshStyleInternal();
+	RefreshStyle();
 }
 
-bool GUIElement::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUIElement::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
 	return false;
 }
 
-bool GUIElement::TextInputEventInternal(const GUITextInputEvent& ev)
+bool GUIElement::DoOnTextInputEvent(const GUITextInputEvent& ev)
 {
 	return false;
 }
 
-bool GUIElement::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIElement::DoOnCommandEvent(const GUICommandEvent& ev)
 {
 	if(ev.GetType() == GUICommandEventType::FocusGained)
 	{
@@ -67,7 +67,7 @@ bool GUIElement::CommandEventInternal(const GUICommandEvent& ev)
 	return false;
 }
 
-bool GUIElement::VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev)
+bool GUIElement::DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& ev)
 {
 	return false;
 }
@@ -76,34 +76,34 @@ void GUIElement::SetTint(const Color& color)
 {
 	mColor = color;
 
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
-void GUIElement::SetElementDepthInternal(u8 depth)
+void GUIElement::SetElementDepth(u8 depth)
 {
 	mLayoutData.Depth = depth | (mLayoutData.Depth & 0xFFFFFF00);
-	MarkMeshAsDirtyInternal();
+	MarkMeshAsDirty();
 }
 
-u8 GUIElement::GetElementDepthInternal() const
+u8 GUIElement::GetElementDepth() const
 {
 	return mLayoutData.Depth & 0xFF;
 }
 
-void GUIElement::SetLayoutDataInternal(const GUILayoutData& data)
+void GUIElement::SetLayoutData(const GUILayoutData& data)
 {
 	// Preserve element depth as that is not controlled by layout but is stored
 	// there only for convenience
-	u8 elemDepth = GetElementDepthInternal();
-	GUIElementBase::SetLayoutDataInternal(data);
-	SetElementDepthInternal(elemDepth);
+	u8 elemDepth = GetElementDepth();
+	GUIElementBase::SetLayoutData(data);
+	SetElementDepth(elemDepth);
 
 	UpdateClippedBounds();
 }
 
-void GUIElement::ChangeParentWidgetInternal(GUIWidget* widget)
+void GUIElement::ChangeParentWidget(GUIWidget* widget)
 {
-	if(IsDestroyedInternal())
+	if(IsDestroyed())
 		return;
 
 	bool widgetChanged = false;
@@ -116,7 +116,7 @@ void GUIElement::ChangeParentWidgetInternal(GUIWidget* widget)
 		widgetChanged = true;
 	}
 
-	GUIElementBase::ChangeParentWidgetInternal(widget);
+	GUIElementBase::ChangeParentWidget(widget);
 
 	if(widgetChanged)
 	{
@@ -124,11 +124,11 @@ void GUIElement::ChangeParentWidgetInternal(GUIWidget* widget)
 		if(!mNavGroup && mParentWidget)
 			mParentWidget->GetDefaultNavGroupInternal()->RegisterElement(this);
 
-		RefreshStyleInternal();
+		RefreshStyle();
 	}
 }
 
-const RectOffset& GUIElement::GetPaddingInternal() const
+const RectOffset& GUIElement::GetPadding() const
 {
 	if(mStyle != nullptr)
 		return mStyle->Padding;
@@ -142,7 +142,7 @@ const RectOffset& GUIElement::GetPaddingInternal() const
 
 void GUIElement::SetNavGroup(const SPtr<GUINavGroup>& navGroup)
 {
-	SPtr<GUINavGroup> currentNavGroup = GetNavGroupInternal();
+	SPtr<GUINavGroup> currentNavGroup = GetNavGroup();
 	if(currentNavGroup == navGroup)
 		return;
 
@@ -157,12 +157,12 @@ void GUIElement::SetNavGroup(const SPtr<GUINavGroup>& navGroup)
 
 void GUIElement::SetNavGroupIndex(i32 index)
 {
-	SPtr<GUINavGroup> navGroup = GetNavGroupInternal();
+	SPtr<GUINavGroup> navGroup = GetNavGroup();
 	if(navGroup != nullptr)
 		navGroup->SetIndex(this, index);
 }
 
-SPtr<GUINavGroup> GUIElement::GetNavGroupInternal() const
+SPtr<GUINavGroup> GUIElement::GetNavGroup() const
 {
 	if(mNavGroup)
 		return mNavGroup;
@@ -190,12 +190,12 @@ void GUIElement::ResetDimensions()
 	if(isFixedBefore != isFixedAfter)
 		RefreshChildUpdateParents();
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 Rect2I GUIElement::GetCachedVisibleBounds() const
 {
-	Rect2I bounds = GetClippedBoundsInternal();
+	Rect2I bounds = GetClippedBounds();
 
 	bounds.X += mStyle->Margins.Left;
 	bounds.Y += mStyle->Margins.Top;
@@ -235,32 +235,32 @@ Rect2I GUIElement::GetCachedContentClipRect() const
 
 Color GUIElement::GetTint() const
 {
-	if(!IsDisabledInternal())
+	if(!IsDisabled())
 		return mColor;
 
 	return mColor * kDisabledColor;
 }
 
-bool GUIElement::IsInBoundsInternal(const Vector2I position) const
+bool GUIElement::IsInBounds(const Vector2I position) const
 {
 	Rect2I contentBounds = GetCachedVisibleBounds();
 
 	return contentBounds.Contains(position);
 }
 
-SPtr<GUIContextMenu> GUIElement::GetContextMenuInternal() const
+SPtr<GUIContextMenu> GUIElement::GetContextMenu() const
 {
-	if(!IsDisabledInternal())
+	if(!IsDisabled())
 		return mContextMenu;
 
 	return nullptr;
 }
 
-void GUIElement::RefreshStyleInternal()
+void GUIElement::RefreshStyle()
 {
 	const GUIElementStyle* newStyle = nullptr;
-	if(GetParentWidgetInternal() != nullptr && !mStyleName.empty())
-		newStyle = GetParentWidgetInternal()->GetSkin().GetStyle(mStyleName);
+	if(GetParentWidget() != nullptr && !mStyleName.empty())
+		newStyle = GetParentWidget()->GetSkin().GetStyle(mStyleName);
 	else
 		newStyle = &GUISkin::DefaultStyle;
 
@@ -277,7 +277,7 @@ void GUIElement::RefreshStyleInternal()
 			RefreshChildUpdateParents();
 
 		StyleUpdated();
-		MarkLayoutAsDirtyInternal();
+		MarkLayoutAsDirty();
 	}
 }
 
@@ -296,12 +296,12 @@ void GUIElement::Destroy(GUIElement* element)
 	if(element->mIsDestroyed)
 		return;
 
-	SPtr<GUINavGroup> currentNavGroup = element->GetNavGroupInternal();
+	SPtr<GUINavGroup> currentNavGroup = element->GetNavGroup();
 	if(currentNavGroup)
 		currentNavGroup->UnregisterElement(element);
 
 	if(element->mParentElement != nullptr)
-		element->mParentElement->UnregisterChildElementInternal(element);
+		element->mParentElement->UnregisterChildElement(element);
 
 	element->mIsDestroyed = true;
 

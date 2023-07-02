@@ -139,16 +139,16 @@ namespace bs
 	protected:
 		~GUIScrollArea() = default;
 
-		LayoutSizeRange GetLayoutSizeRangeInternal() const override;
+		LayoutSizeRange GetLayoutSizeRange() const override;
 		void UpdateClippedBounds() override;
-		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
-		void UpdateOptimalLayoutSizesInternal() override;
-		Vector2I GetOptimalSizeInternal() const override;
+		LayoutSizeRange CalculateLayoutSizeRange() const override;
+		void UpdateOptimalLayoutSizes() override;
+		Vector2I GetOptimalSize() const override;
 
 	private:
 		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle, const GUIDimensions& dimensions);
 
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 
 		/**
 		 * Called when the vertical scrollbar moves.
@@ -164,9 +164,9 @@ namespace bs
 		 */
 		void HorzScrollUpdate(float pct);
 
-		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
+		void UpdateLayoutRecursive(const GUILayoutData& data) override;
 
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
+		void GetElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/**
 		 * @copydoc	GUIElementContainer::GetElementAreasInternal:

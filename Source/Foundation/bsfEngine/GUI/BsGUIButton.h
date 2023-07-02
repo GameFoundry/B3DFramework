@@ -74,7 +74,7 @@ namespace bs
 		GUIButton(const String& styleName, const GUIContent& content, const GUIDimensions& dimensions);
 
 		/** @copydoc GUIButtonBase::CommandEventInternal */
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 	};
 
 	/** @} */

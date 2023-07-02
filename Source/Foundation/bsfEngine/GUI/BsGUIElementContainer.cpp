@@ -29,7 +29,7 @@ void GUIElementContainer::FillBuffer(
 	u32 renderElementIdx) const
 {}
 
-Vector2I GUIElementContainer::GetOptimalSizeInternal() const
+Vector2I GUIElementContainer::GetOptimalSize() const
 {
 	return Vector2I();
 }
@@ -42,7 +42,7 @@ void GUIElementContainer::SetFocus(bool enabled, bool clear)
 		GUIElement::SetFocus(enabled, clear);
 }
 
-bool GUIElementContainer::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIElementContainer::DoOnCommandEvent(const GUICommandEvent& ev)
 {
 	// Make sure to pass through focus events to elements below
 	if(ev.GetType() == GUICommandEventType::FocusGained)
@@ -50,5 +50,5 @@ bool GUIElementContainer::CommandEventInternal(const GUICommandEvent& ev)
 	else if(ev.GetType() == GUICommandEventType::FocusLost)
 		return false;
 
-	return GUIElement::CommandEventInternal(ev);
+	return GUIElement::DoOnCommandEvent(ev);
 }

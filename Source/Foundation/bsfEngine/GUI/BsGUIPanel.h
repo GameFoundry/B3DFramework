@@ -78,9 +78,9 @@ namespace bs
 		 */
 
 		Type GetTypeInternal() const override { return GUIElementBase::Type::Panel; }
-		void UpdateOptimalLayoutSizesInternal() override;
-		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
-		void GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
+		void UpdateOptimalLayoutSizes() override;
+		LayoutSizeRange CalculateLayoutSizeRange() const override;
+		void GetElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const override;
 
 		/** Calculates the size of the provided child within this layout with the provided dimensions. */
 		Rect2I GetElementAreaInternal(const Rect2I& layoutArea, const GUIElementBase* element, const LayoutSizeRange& sizeRange) const;
@@ -95,7 +95,7 @@ namespace bs
 		void UpdateChildLayoutInternal(GUIElementBase* element, const GUILayoutData& data);
 
 		/** @copydoc GUIElementBase::_updateLayoutInternal */
-		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
+		void UpdateLayoutRecursive(const GUILayoutData& data) override;
 
 		/**
 		 * Updates the provided depth range by taking into consideration the depth range of the panel. This depth range

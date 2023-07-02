@@ -79,7 +79,7 @@ u32 GUISliderHandle::GetScrollableSize() const
 	return GetMaxSize() - GetHandleSize();
 }
 
-void GUISliderHandle::UpdateRenderElementsInternal()
+void GUISliderHandle::UpdateRenderElements()
 {
 	IMAGE_SPRITE_DESC desc;
 
@@ -111,12 +111,12 @@ void GUISliderHandle::UpdateRenderElementsInternal()
 		desc.Height = handleSize;
 	}
 
-	desc.BorderLeft = GetStyleInternal()->Border.Left;
-	desc.BorderRight = GetStyleInternal()->Border.Right;
-	desc.BorderTop = GetStyleInternal()->Border.Top;
-	desc.BorderBottom = GetStyleInternal()->Border.Bottom;
+	desc.BorderLeft = GetStyle()->Border.Left;
+	desc.BorderRight = GetStyle()->Border.Right;
+	desc.BorderTop = GetStyle()->Border.Top;
+	desc.BorderBottom = GetStyle()->Border.Bottom;
 	desc.Color = GetTint();
-	mImageSprite->Update(desc, (u64)GetParentWidgetInternal());
+	mImageSprite->Update(desc, (u64)GetParentWidget());
 
 	// Populate GUI render elements from the sprites
 	{
@@ -124,7 +124,7 @@ void GUISliderHandle::UpdateRenderElementsInternal()
 		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElementsInternal();
+	GUIElement::UpdateRenderElements();
 }
 
 void GUISliderHandle::UpdateClippedBounds()
@@ -133,7 +133,7 @@ void GUISliderHandle::UpdateClippedBounds()
 	mClippedBounds.Clip(mLayoutData.ClipRect);
 }
 
-Vector2I GUISliderHandle::GetOptimalSizeInternal() const
+Vector2I GUISliderHandle::GetOptimalSize() const
 {
 	HSpriteTexture activeTex = GetActiveTexture();
 
@@ -174,13 +174,13 @@ void GUISliderHandle::FillBuffer(
 	mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
 }
 
-bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
 	u32 handleSize = GetHandleSize();
 
 	if(ev.GetType() == GUIMouseEventType::MouseMove)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mMouseOverHandle)
 			{
@@ -189,7 +189,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 					mMouseOverHandle = false;
 
 					mState = State::Normal;
-					MarkLayoutAsDirtyInternal();
+					MarkLayoutAsDirty();
 
 					return true;
 				}
@@ -201,7 +201,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 					mMouseOverHandle = true;
 
 					mState = State::Hover;
-					MarkLayoutAsDirtyInternal();
+					MarkLayoutAsDirty();
 
 					return true;
 				}
@@ -212,10 +212,10 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 	bool jumpOnClick = mFlags.IsSet(GUISliderHandleFlag::JumpOnClick);
 	if(ev.GetType() == GUIMouseEventType::MouseDown && (mMouseOverHandle || jumpOnClick))
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			mState = State::Active;
-			MarkLayoutAsDirtyInternal();
+			MarkLayoutAsDirty();
 
 			if(jumpOnClick)
 			{
@@ -282,7 +282,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 
 	if(ev.GetType() == GUIMouseEventType::MouseDrag && mHandleDragged)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mDragState == DragState::Normal)
 			{
@@ -341,7 +341,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 				OnHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 			}
 
-			MarkLayoutAsDirtyInternal();
+			MarkLayoutAsDirty();
 		}
 
 		return true;
@@ -349,14 +349,14 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 
 	if(ev.GetType() == GUIMouseEventType::MouseOut)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			mMouseOverHandle = false;
 
 			if(!mHandleDragged)
 			{
 				mState = State::Normal;
-				MarkLayoutAsDirtyInternal();
+				MarkLayoutAsDirty();
 			}
 		}
 
@@ -365,7 +365,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 
 	if(ev.GetType() == GUIMouseEventType::MouseUp)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mMouseOverHandle)
 				mState = State::Hover;
@@ -401,7 +401,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 				}
 			}
 			mHandleDragged = false;
-			MarkLayoutAsDirtyInternal();
+			MarkLayoutAsDirty();
 		}
 
 		return true;
@@ -409,7 +409,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 
 	if(ev.GetType() == GUIMouseEventType::MouseDragEnd)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			mHandleDragged = false;
 			if(mMouseOverHandle)
@@ -417,7 +417,7 @@ bool GUISliderHandle::MouseEventInternal(const GUIMouseEvent& ev)
 			else
 				mState = State::Normal;
 
-			MarkLayoutAsDirtyInternal();
+			MarkLayoutAsDirty();
 		}
 
 		return true;
@@ -442,7 +442,7 @@ void GUISliderHandle::MoveOneStep(bool forward)
 	SetHandlePosPx(handlePosPx);
 	OnHandleMovedOrResized(mPctHandlePos, GetHandleSizePctInternal());
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 bool GUISliderHandle::IsOnHandle(const Vector2I& pos) const
@@ -486,7 +486,7 @@ float GUISliderHandle::GetHandleSizePctInternal() const
 
 void GUISliderHandle::StyleUpdated()
 {
-	const GUIElementStyle* style = GetStyleInternal();
+	const GUIElementStyle* style = GetStyle();
 	if(style != nullptr)
 	{
 		if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
@@ -520,12 +520,12 @@ const HSpriteTexture& GUISliderHandle::GetActiveTexture() const
 	switch(mState)
 	{
 	case State::Active:
-		return GetStyleInternal()->Active.Texture;
+		return GetStyle()->Active.Texture;
 	case State::Hover:
-		return GetStyleInternal()->Hover.Texture;
+		return GetStyle()->Hover.Texture;
 	case State::Normal:
-		return GetStyleInternal()->Normal.Texture;
+		return GetStyle()->Normal.Texture;
 	}
 
-	return GetStyleInternal()->Normal.Texture;
+	return GetStyle()->Normal.Texture;
 }

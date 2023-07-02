@@ -20,13 +20,13 @@ GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarTyp
 	: GUIElementContainer(dimensions), mVertBarType(vertBarType), mHorzBarType(horzBarType), mScrollBarStyle(scrollBarStyle), mVertScroll(nullptr), mHorzScroll(nullptr), mVertOffset(0), mHorzOffset(0), mRecalculateVertOffset(false), mRecalculateHorzOffset(false)
 {
 	mContentLayout = GUILayoutY::Create();
-	RegisterChildElementInternal(mContentLayout);
+	RegisterChildElement(mContentLayout);
 
 	mHorzScroll = GUIScrollBarHorz::Create(mScrollBarStyle);
 	mVertScroll = GUIScrollBarVert::Create(mScrollBarStyle);
 
-	RegisterChildElementInternal(mHorzScroll);
-	RegisterChildElementInternal(mVertScroll);
+	RegisterChildElement(mHorzScroll);
+	RegisterChildElement(mVertScroll);
 
 	mHorzScroll->OnScrollOrResize.Connect(std::bind(&GUIScrollArea::HorzScrollUpdate, this, _1));
 	mVertScroll->OnScrollOrResize.Connect(std::bind(&GUIScrollArea::VertScrollUpdate, this, _1));
@@ -38,9 +38,9 @@ void GUIScrollArea::UpdateClippedBounds()
 	mClippedBounds.Clip(mLayoutData.ClipRect);
 }
 
-Vector2I GUIScrollArea::GetOptimalSizeInternal() const
+Vector2I GUIScrollArea::GetOptimalSize() const
 {
-	Vector2I optimalSize = mContentLayout->GetOptimalSizeInternal();
+	Vector2I optimalSize = mContentLayout->GetOptimalSize();
 
 	// Provide 10x10 in case underlying layout is empty because
 	// 0 doesn't work well with the layout system
@@ -50,27 +50,27 @@ Vector2I GUIScrollArea::GetOptimalSizeInternal() const
 	return optimalSize;
 }
 
-LayoutSizeRange GUIScrollArea::CalculateLayoutSizeRangeInternal() const
+LayoutSizeRange GUIScrollArea::CalculateLayoutSizeRange() const
 {
 	// I'm ignoring scroll bars here since if the content layout fits
 	// then they're not needed and the range is valid. And if it doesn't
 	// fit the area will get clipped anyway and including the scroll bars
 	// won't change the size much, but it would complicate this method significantly.
-	if(mContentLayout->IsActiveInternal())
-		return mDimensions.CalculateSizeRange(GetOptimalSizeInternal());
+	if(mContentLayout->IsActive())
+		return mDimensions.CalculateSizeRange(GetOptimalSize());
 
 	return mDimensions.CalculateSizeRange(Vector2I());
 }
 
-LayoutSizeRange GUIScrollArea::GetLayoutSizeRangeInternal() const
+LayoutSizeRange GUIScrollArea::GetLayoutSizeRange() const
 {
 	return mSizeRange;
 }
 
-void GUIScrollArea::UpdateOptimalLayoutSizesInternal()
+void GUIScrollArea::UpdateOptimalLayoutSizes()
 {
 	// Update all children first, otherwise we can't determine our own optimal size
-	GUIElementBase::UpdateOptimalLayoutSizesInternal();
+	GUIElementBase::UpdateOptimalLayoutSizes();
 
 	if(mChildren.size() != mChildSizeRanges.size())
 		mChildSizeRanges.resize(mChildren.size());
@@ -78,18 +78,18 @@ void GUIScrollArea::UpdateOptimalLayoutSizesInternal()
 	u32 childIdx = 0;
 	for(auto& child : mChildren)
 	{
-		if(child->IsActiveInternal())
-			mChildSizeRanges[childIdx] = child->GetLayoutSizeRangeInternal();
+		if(child->IsActive())
+			mChildSizeRanges[childIdx] = child->GetLayoutSizeRange();
 		else
 			mChildSizeRanges[childIdx] = LayoutSizeRange();
 
 		childIdx++;
 	}
 
-	mSizeRange = mDimensions.CalculateSizeRange(GetOptimalSizeInternal());
+	mSizeRange = mDimensions.CalculateSizeRange(GetOptimalSize());
 }
 
-void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
+void GUIScrollArea::GetElementAreas(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 {
 	Vector2I visibleSize, contentSize;
 	GetElementAreasInternal(layoutArea, elementAreas, numElements, sizeRanges, visibleSize, contentSize);
@@ -226,7 +226,7 @@ void GUIScrollArea::GetElementAreasInternal(const Rect2I& layoutArea, Rect2I* el
 	}
 }
 
-void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
+void GUIScrollArea::UpdateLayoutRecursive(const GUILayoutData& data)
 {
 	u32 numElements = (u32)mChildren.size();
 	Rect2I* elementAreas = nullptr;
@@ -239,7 +239,7 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	u32 vertScrollIdx = 0;
 	for(u32 i = 0; i < numElements; i++)
 	{
-		GUIElementBase* child = GetChildInternal(i);
+		GUIElementBase* child = GetChild(i);
 
 		if(child == mContentLayout)
 			layoutIdx = i;
@@ -280,7 +280,7 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	mHorzOffset = Math::Clamp(mHorzOffset, 0.0f, (float)scrollableWidth);
 
 	// Layout
-	if(mContentLayout->IsActiveInternal())
+	if(mContentLayout->IsActive())
 	{
 		layoutBounds.X -= Math::FloorToInt(mHorzOffset);
 		layoutBounds.Y -= Math::FloorToInt(mVertOffset);
@@ -294,8 +294,8 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 		layoutData.Area = layoutBounds;
 		layoutData.ClipRect = layoutClipRect;
 
-		mContentLayout->SetLayoutDataInternal(layoutData);
-		mContentLayout->UpdateLayoutInternalInternal(layoutData);
+		mContentLayout->SetLayoutData(layoutData);
+		mContentLayout->UpdateLayoutRecursive(layoutData);
 	}
 
 	// Vertical scrollbar
@@ -306,8 +306,8 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 		vertScrollData.ClipRect = vertScrollBounds;
 		vertScrollData.ClipRect.Clip(data.ClipRect);
 
-		mVertScroll->SetLayoutDataInternal(vertScrollData);
-		mVertScroll->UpdateLayoutInternalInternal(vertScrollData);
+		mVertScroll->SetLayoutData(vertScrollData);
+		mVertScroll->UpdateLayoutRecursive(vertScrollData);
 
 		// Set new handle size and update position to match the new size
 		u32 scrollableHeight = (u32)std::max(0, i32(mContentSize.Y) - i32(vertScrollBounds.Height));
@@ -328,8 +328,8 @@ void GUIScrollArea::UpdateLayoutInternalInternal(const GUILayoutData& data)
 		horzScrollData.ClipRect = horzScrollBounds;
 		horzScrollData.ClipRect.Clip(data.ClipRect);
 
-		mHorzScroll->SetLayoutDataInternal(horzScrollData);
-		mHorzScroll->UpdateLayoutInternalInternal(horzScrollData);
+		mHorzScroll->SetLayoutData(horzScrollData);
+		mHorzScroll->UpdateLayoutRecursive(horzScrollData);
 
 		// Set new handle size and update position to match the new size
 		u32 scrollableWidth = (u32)std::max(0, i32(mContentSize.X) - i32(horzScrollBounds.Width));
@@ -351,7 +351,7 @@ void GUIScrollArea::VertScrollUpdate(float scrollPos)
 	u32 scrollableHeight = (u32)std::max(0, i32(mContentSize.Y) - i32(mVisibleSize.Y));
 	mVertOffset = scrollableHeight * Math::Clamp01(scrollPos);
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 void GUIScrollArea::HorzScrollUpdate(float scrollPos)
@@ -359,7 +359,7 @@ void GUIScrollArea::HorzScrollUpdate(float scrollPos)
 	u32 scrollableWidth = (u32)std::max(0, i32(mContentSize.X) - i32(mVisibleSize.X));
 	mHorzOffset = scrollableWidth * Math::Clamp01(scrollPos);
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 void GUIScrollArea::ScrollToVertical(float pct)
@@ -367,7 +367,7 @@ void GUIScrollArea::ScrollToVertical(float pct)
 	mVertScroll->SetScrollPosInternal(pct);
 	mRecalculateVertOffset = true;
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 void GUIScrollArea::ScrollToHorizontal(float pct)
@@ -375,7 +375,7 @@ void GUIScrollArea::ScrollToHorizontal(float pct)
 	mHorzScroll->SetScrollPosInternal(pct);
 	mRecalculateHorzOffset = true;
 
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 float GUIScrollArea::GetVerticalScroll() const
@@ -487,7 +487,7 @@ void GUIScrollArea::ScrollRightPct(float percent)
 		mHorzScroll->Scroll(-percent);
 }
 
-bool GUIScrollArea::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUIScrollArea::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
 	if(ev.GetType() == GUIMouseEventType::MouseWheelScroll)
 	{

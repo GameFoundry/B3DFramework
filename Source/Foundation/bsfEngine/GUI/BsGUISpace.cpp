@@ -7,13 +7,13 @@ using namespace bs;
 GUIFixedSpace::~GUIFixedSpace()
 {
 	if(mParentElement != nullptr)
-		mParentElement->UnregisterChildElementInternal(this);
+		mParentElement->UnregisterChildElement(this);
 }
 
-LayoutSizeRange GUIFixedSpace::CalculateLayoutSizeRangeInternal() const
+LayoutSizeRange GUIFixedSpace::CalculateLayoutSizeRange() const
 {
 	LayoutSizeRange range;
-	range.Optimal = GetOptimalSizeInternal();
+	range.Optimal = GetOptimalSize();
 	range.Min = range.Optimal;
 	range.Max = range.Optimal;
 
@@ -33,13 +33,13 @@ void GUIFixedSpace::Destroy(GUIFixedSpace* space)
 GUIFlexibleSpace::~GUIFlexibleSpace()
 {
 	if(mParentElement != nullptr)
-		mParentElement->UnregisterChildElementInternal(this);
+		mParentElement->UnregisterChildElement(this);
 }
 
-LayoutSizeRange GUIFlexibleSpace::CalculateLayoutSizeRangeInternal() const
+LayoutSizeRange GUIFlexibleSpace::CalculateLayoutSizeRange() const
 {
 	LayoutSizeRange range;
-	range.Optimal = GetOptimalSizeInternal();
+	range.Optimal = GetOptimalSize();
 	range.Min = range.Optimal;
 	range.Max = range.Optimal;
 

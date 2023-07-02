@@ -24,8 +24,8 @@ namespace bs
 		virtual ~GUIElementContainer() = default;
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		Vector2I GetOptimalSizeInternal() const override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
+		Vector2I GetOptimalSize() const override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
 		GUIElement* mFocusElement = nullptr;
 	};

@@ -70,7 +70,7 @@ namespace bs
 		 */
 		void SetScrollPosInternal(float pct);
 
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -89,9 +89,9 @@ namespace bs
 		virtual ~GUIScrollBar();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 		void UpdateClippedBounds() override;
-		u32 GetRenderElementDepthRangeInternal() const override;
+		u32 GetRenderElementDepthRange() const override;
 		void StyleUpdated() override;
 
 		/**

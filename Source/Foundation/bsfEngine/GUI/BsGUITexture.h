@@ -142,7 +142,7 @@ namespace bs
 		 */
 
 		ElementType GetElementTypeInternal() const override { return ElementType::Texture; }
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -150,7 +150,7 @@ namespace bs
 		virtual ~GUITexture();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 		void StyleUpdated() override;
 
 		ImageSprite* mImageSprite;

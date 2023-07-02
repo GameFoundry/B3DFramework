@@ -8,20 +8,20 @@ using namespace bs;
 
 Vector2I GUIUtility::CalcOptimalSize(const GUIElementBase* elem)
 {
-	return elem->CalculateLayoutSizeRangeInternal().Optimal;
+	return elem->CalculateLayoutSizeRange().Optimal;
 }
 
 Vector2I GUIUtility::CalcActualSize(u32 width, u32 height, GUILayout* layout, bool updateOptimalSizes)
 {
 	if(updateOptimalSizes)
-		layout->UpdateOptimalLayoutSizesInternal();
+		layout->UpdateOptimalLayoutSizes();
 
 	return CalcActualSizeInternal(width, height, layout);
 }
 
 Vector2I GUIUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* layout)
 {
-	u32 numElements = (u32)layout->GetNumChildrenInternal();
+	u32 numElements = (u32)layout->GetChildCount();
 	Rect2I* elementAreas = nullptr;
 
 	if(numElements > 0)
@@ -31,12 +31,12 @@ Vector2I GUIUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* la
 	parentArea.Width = width;
 	parentArea.Height = height;
 
-	layout->GetElementAreasInternal(parentArea, elementAreas, numElements, layout->GetCachedChildSizeRangesInternal(), layout->GetCachedSizeRangeInternal());
+	layout->GetElementAreas(parentArea, elementAreas, numElements, layout->GetCachedChildSizeRangesInternal(), layout->GetCachedSizeRangeInternal());
 
 	Rect2I* actualAreas = elementAreas; // We re-use the same array
 	for(u32 i = 0; i < numElements; i++)
 	{
-		GUIElementBase* child = layout->GetChildInternal(i);
+		GUIElementBase* child = layout->GetChild(i);
 		Rect2I childArea = elementAreas[i];
 
 		if(child->GetTypeInternal() == GUIElementBase::Type::Layout || child->GetTypeInternal() == GUIElementBase::Type::Panel)
@@ -47,7 +47,7 @@ Vector2I GUIUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* la
 		}
 		else if(child->GetTypeInternal() == GUIElementBase::Type::Element)
 		{
-			RectOffset padding = child->GetPaddingInternal();
+			RectOffset padding = child->GetPadding();
 
 			actualAreas[i].Width = elementAreas[i].Width + padding.Left + padding.Right;
 			actualAreas[i].Height = elementAreas[i].Height + padding.Top + padding.Bottom;

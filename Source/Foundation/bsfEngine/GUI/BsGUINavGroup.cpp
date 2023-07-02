@@ -66,7 +66,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 
 	// Find next element to focus on
 	{
-		const Rect2I focusedElemBounds = anchor->GetClippedBoundsInternal();
+		const Rect2I focusedElemBounds = anchor->GetClippedBounds();
 
 		// We look for the element to the right of the current element, within some Y range (a 'row').
 		//// We search by rows in order to make the navigation perceptually nicer. Sometimes elements appear to be
@@ -81,8 +81,8 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 			{
 				bool operator()(const GUIElement* lhs, const GUIElement* rhs) const
 				{
-					const Rect2I boundsLHS = lhs->GetClippedBoundsInternal();
-					const Rect2I boundsRHS = rhs->GetClippedBoundsInternal();
+					const Rect2I boundsLHS = lhs->GetClippedBounds();
+					const Rect2I boundsRHS = rhs->GetClippedBounds();
 
 					if(boundsLHS.Y != boundsRHS.Y)
 						return boundsLHS.Y < boundsRHS.Y;
@@ -97,10 +97,10 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 			{
 				GUIElement* element = iter->second;
 				const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
-				if(!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
+				if(!acceptsKeyFocus || !element->IsVisible() || element->IsDisabled())
 					continue;
 
-				const Rect2I elemBounds = element->GetClippedBoundsInternal();
+				const Rect2I elemBounds = element->GetClippedBounds();
 				const bool isFullyClipped = elemBounds.Width == 0 || elemBounds.Height == 0;
 
 				if(isFullyClipped)
@@ -119,7 +119,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 			{
 				GUIElement* element = *iterElem;
 
-				const Rect2I elemBounds = element->GetClippedBoundsInternal();
+				const Rect2I elemBounds = element->GetClippedBounds();
 				if(iterElem == elements.begin())
 				{
 					firstRowY = elemBounds.Y;
@@ -155,7 +155,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				if(element == anchor)
 					continue;
 
-				const Rect2I elemBounds = element->GetClippedBoundsInternal();
+				const Rect2I elemBounds = element->GetClippedBounds();
 				const i32 yDiff = elemBounds.Y - rowY;
 
 				// New row
@@ -187,7 +187,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				{
 					GUIElement* element = *iterElem;
 
-					const Rect2I elemBounds = element->GetClippedBoundsInternal();
+					const Rect2I elemBounds = element->GetClippedBounds();
 					const i32 yDiff = elemBounds.Y - rowY;
 
 					// New row
@@ -236,11 +236,11 @@ void GUINavGroup::FocusTopLeft()
 
 		// Ignore elements that are hidden, disabled or just don't accept input focus
 		const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
-		if(!acceptsKeyFocus || !element->IsVisibleInternal() || element->IsDisabledInternal())
+		if(!acceptsKeyFocus || !element->IsVisible() || element->IsDisabled())
 			continue;
 
 		// Ignore elements that have been fully clipped
-		const Rect2I elemBounds = element->GetClippedBoundsInternal();
+		const Rect2I elemBounds = element->GetClippedBounds();
 		if(elemBounds.Width == 0 || elemBounds.Height == 0)
 			continue;
 

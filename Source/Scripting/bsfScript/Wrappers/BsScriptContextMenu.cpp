@@ -45,7 +45,7 @@ void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* posi
 {
 	GUIElementBase* layout = layoutPtr->GetGuiElement();
 
-	GUIWidget* widget = layout->GetParentWidgetInternal();
+	GUIWidget* widget = layout->GetParentWidget();
 	if(widget == nullptr)
 		return;
 

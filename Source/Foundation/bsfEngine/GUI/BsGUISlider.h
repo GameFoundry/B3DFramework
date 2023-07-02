@@ -75,20 +75,20 @@ namespace bs
 		 *  @{
 		 */
 
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
 		GUISlider(bool horizontal, const String& styleName, const GUIDimensions& dimensions);
 		virtual ~GUISlider();
 
-		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
+		void UpdateLayoutRecursive(const GUILayoutData& data) override;
 		void StyleUpdated();
 
 		/**	Triggered when the slider handles moves. */
 		void OnHandleMoved(float newPosition, float newSize);
 
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
 	private:
 		GUISliderHandle* mSliderHandle;

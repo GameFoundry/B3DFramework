@@ -38,7 +38,7 @@ void GUIInputSelection::UpdateSprite()
 
 	const GUIWidget* widget = nullptr;
 	if(mElement != nullptr)
-		widget = mElement->GetParentWidgetInternal();
+		widget = mElement->GetParentWidget();
 
 	u32 idx = 0;
 	for(auto& sprite : mSprites)
@@ -61,15 +61,15 @@ Vector2I GUIInputSelection::GetSelectionSpriteOffset(u32 spriteIdx) const
 Rect2I GUIInputSelection::GetSelectionSpriteClipRect(u32 spriteIdx, const Rect2I& parentClipRect) const
 {
 	Vector2I selectionOffset(mSelectionRects[spriteIdx].X, mSelectionRects[spriteIdx].Y);
-	Vector2I clipOffset = selectionOffset + mElement->GetTextInputOffsetInternal();
+	Vector2I clipOffset = selectionOffset + mElement->GetTextInputOffset();
 
 	Rect2I clipRect(-clipOffset.X, -clipOffset.Y, mTextDesc.Width, mTextDesc.Height);
 
 	Rect2I localParentCliprect = parentClipRect;
 
 	// Move parent rect to our space
-	localParentCliprect.X += mElement->GetTextInputOffsetInternal().X + clipRect.X;
-	localParentCliprect.Y += mElement->GetTextInputOffsetInternal().Y + clipRect.Y;
+	localParentCliprect.X += mElement->GetTextInputOffset().X + clipRect.X;
+	localParentCliprect.Y += mElement->GetTextInputOffset().Y + clipRect.Y;
 
 	// Clip our rectangle so its not larger then the parent
 	clipRect.Clip(localParentCliprect);

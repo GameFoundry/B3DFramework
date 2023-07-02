@@ -151,8 +151,8 @@ namespace bs
 	protected:
 		GUIToggle(const String& styleName, const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIDimensions& dimensions);
 
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
 	protected:
 		SPtr<GUIToggleGroup> mToggleGroup;

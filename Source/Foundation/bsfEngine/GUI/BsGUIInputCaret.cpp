@@ -29,15 +29,15 @@ Rect2I GUIInputCaret::GetSpriteClipRect(const Rect2I& parentClipRect) const
 	Vector2I offset(mElement->GetLayoutDataInternal().Area.X, mElement->GetLayoutDataInternal().Area.Y);
 
 	Vector2I clipOffset = GetSpriteOffset() - offset -
-		Vector2I(mElement->GetTextInputRectInternal().X, mElement->GetTextInputRectInternal().Y);
+		Vector2I(mElement->GetTextInputRect().X, mElement->GetTextInputRect().Y);
 
 	Rect2I clipRect(-clipOffset.X, -clipOffset.Y, mTextDesc.Width, mTextDesc.Height);
 
 	Rect2I localParentCliprect = parentClipRect;
 
 	// Move parent rect to our space
-	localParentCliprect.X += mElement->GetTextInputOffsetInternal().X + clipRect.X;
-	localParentCliprect.Y += mElement->GetTextInputOffsetInternal().Y + clipRect.Y;
+	localParentCliprect.X += mElement->GetTextInputOffset().X + clipRect.X;
+	localParentCliprect.Y += mElement->GetTextInputOffset().Y + clipRect.Y;
 
 	// Clip our rectangle so its not larger then the parent
 	clipRect.Clip(localParentCliprect);
@@ -57,7 +57,7 @@ void GUIInputCaret::UpdateSprite()
 
 	GUIWidget* widget = nullptr;
 	if(mElement != nullptr)
-		widget = mElement->GetParentWidgetInternal();
+		widget = mElement->GetParentWidget();
 
 	mCaretSprite->Update(mCaretDesc, (u64)widget);
 }
@@ -103,7 +103,7 @@ void GUIInputCaret::MoveCaretUp()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffsetInternal());
+	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffset());
 	caretCoords.Y -= GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);
@@ -128,7 +128,7 @@ void GUIInputCaret::MoveCaretDown()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffsetInternal());
+	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffset());
 	caretCoords.Y += GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);

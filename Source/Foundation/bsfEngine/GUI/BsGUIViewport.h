@@ -54,7 +54,7 @@ namespace bs
 		 *  @{
 		 */
 
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 
@@ -63,12 +63,12 @@ namespace bs
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
 		void UpdateClippedBounds() override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 
 	private:
 		GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUIDimensions& dimensions);
 
-		void ChangeParentWidgetInternal(GUIWidget* widget) override;
+		void ChangeParentWidget(GUIWidget* widget) override;
 
 		HCamera mCamera;
 		float mAspectRatio;

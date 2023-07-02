@@ -16,10 +16,10 @@ GUIProgressBar::GUIProgressBar(const String& styleName, const GUIDimensions& dim
 	mBar = GUITexture::Create(GetSubStyleName(GetBarStyleType()));
 	mBackground = GUITexture::Create(GetSubStyleName(GetBackgroundStyleType()));
 
-	mBackground->SetElementDepthInternal(mBar->GetRenderElementDepthRangeInternal());
+	mBackground->SetElementDepth(mBar->GetRenderElementDepthRange());
 
-	RegisterChildElementInternal(mBar);
-	RegisterChildElementInternal(mBackground);
+	RegisterChildElement(mBar);
+	RegisterChildElement(mBackground);
 }
 
 const String& GUIProgressBar::GetBarStyleType()
@@ -34,22 +34,22 @@ const String& GUIProgressBar::GetBackgroundStyleType()
 	return BACKGROUND_STYLE_TYPE;
 }
 
-Vector2I GUIProgressBar::GetOptimalSizeInternal() const
+Vector2I GUIProgressBar::GetOptimalSize() const
 {
-	Vector2I optimalSize = mBar->GetOptimalSizeInternal();
+	Vector2I optimalSize = mBar->GetOptimalSize();
 
-	Vector2I backgroundSize = mBackground->GetOptimalSizeInternal();
+	Vector2I backgroundSize = mBackground->GetOptimalSize();
 	optimalSize.X = std::max(optimalSize.X, backgroundSize.X);
 	optimalSize.Y = std::max(optimalSize.Y, backgroundSize.Y);
 
 	return optimalSize;
 }
 
-void GUIProgressBar::UpdateLayoutInternalInternal(const GUILayoutData& data)
+void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 {
-	mBackground->SetLayoutDataInternal(data);
+	mBackground->SetLayoutData(data);
 
-	const GUIElementStyle* style = GetStyleInternal();
+	const GUIElementStyle* style = GetStyle();
 
 	GUILayoutData barLayoutData = data;
 
@@ -62,7 +62,7 @@ void GUIProgressBar::UpdateLayoutInternalInternal(const GUILayoutData& data)
 	barLayoutData.Area.Width = (u32)Math::FloorToInt(maxProgressBarWidth * mPercent);
 	barLayoutData.Area.Height = progressBarHeight;
 
-	mBar->SetLayoutDataInternal(barLayoutData);
+	mBar->SetLayoutData(barLayoutData);
 }
 
 void GUIProgressBar::StyleUpdated()
@@ -74,7 +74,7 @@ void GUIProgressBar::StyleUpdated()
 void GUIProgressBar::SetPercent(float pct)
 {
 	mPercent = pct;
-	MarkLayoutAsDirtyInternal();
+	MarkLayoutAsDirty();
 }
 
 void GUIProgressBar::SetTint(const Color& color)

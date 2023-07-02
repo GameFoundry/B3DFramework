@@ -89,17 +89,17 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	GUILayoutData hitboxLayoutData = mFrontHitBox->GetLayoutDataInternal();
 	hitboxLayoutData.SetWidgetDepth(0);
 	hitboxLayoutData.SetPanelDepth(std::numeric_limits<i16>::min());
-	mFrontHitBox->SetLayoutDataInternal(hitboxLayoutData);
-	mFrontHitBox->ChangeParentWidgetInternal(GetInternalInternal());
-	mFrontHitBox->MarkLayoutAsDirtyInternal();
+	mFrontHitBox->SetLayoutData(hitboxLayoutData);
+	mFrontHitBox->ChangeParentWidget(GetInternalInternal());
+	mFrontHitBox->MarkLayoutAsDirty();
 
 	mBackHitBox = GUIDropDownHitBox::Create(false, true);
 	GUILayoutData backHitboxLayoutData = mBackHitBox->GetLayoutDataInternal();
 	backHitboxLayoutData.SetWidgetDepth(0);
 	backHitboxLayoutData.SetPanelDepth(std::numeric_limits<i16>::max());
-	mBackHitBox->SetLayoutDataInternal(backHitboxLayoutData);
-	mBackHitBox->ChangeParentWidgetInternal(GetInternalInternal());
-	mBackHitBox->MarkLayoutAsDirtyInternal();
+	mBackHitBox->SetLayoutData(backHitboxLayoutData);
+	mBackHitBox->ChangeParentWidget(GetInternalInternal());
+	mBackHitBox->MarkLayoutAsDirty();
 
 	SPtr<Viewport> viewport = desc.Camera->GetViewport();
 
@@ -112,9 +112,9 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	GUILayoutData captureHitboxLayoutData = mCaptureHitBox->GetLayoutDataInternal();
 	captureHitboxLayoutData.SetWidgetDepth(0);
 	captureHitboxLayoutData.SetPanelDepth(std::numeric_limits<i16>::max());
-	mCaptureHitBox->SetLayoutDataInternal(captureHitboxLayoutData);
-	mCaptureHitBox->ChangeParentWidgetInternal(GetInternalInternal());
-	mCaptureHitBox->MarkLayoutAsDirtyInternal();
+	mCaptureHitBox->SetLayoutData(captureHitboxLayoutData);
+	mCaptureHitBox->ChangeParentWidget(GetInternalInternal());
+	mCaptureHitBox->MarkLayoutAsDirty();
 
 	mAdditionalCaptureBounds = desc.AdditionalBounds;
 
@@ -367,7 +367,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 
 			MHandle = GUITexture::Create(MOwner->mHandleStyle);
 			GUITexture* background = GUITexture::Create(MOwner->mSideBackgroundStyle);
-			background->SetElementDepthInternal(2);
+			background->SetElementDepth(2);
 
 			MSidebarPanel->AddElement(background);
 			MSidebarPanel->AddElement(MScrollUpBtn);

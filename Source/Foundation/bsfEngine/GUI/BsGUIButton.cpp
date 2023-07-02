@@ -36,13 +36,13 @@ GUIButton* GUIButton::Create(const GUIContent& content, const GUIOptions& option
 	return new(B3DAllocate<GUIButton>()) GUIButton(GetStyleName<GUIButton>(styleName), content, GUIDimensions::Create(options));
 }
 
-bool GUIButton::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIButton::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool processed = GUIButtonBase::CommandEventInternal(ev);
+	const bool processed = GUIButtonBase::DoOnCommandEvent(ev);
 
 	if(ev.GetType() == GUICommandEventType::Confirm)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			OnClick();
 			return true;

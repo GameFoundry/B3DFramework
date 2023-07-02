@@ -62,11 +62,11 @@ GUIMeshBatches::GUIMeshBatches(GUIWidget* parentWidget)
 
 void GUIMeshBatches::Add(GUIElement* guiElement)
 {
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElementsInternal();
+	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 	BatchedGUIElement& batchedGuiElement = mElements[guiElement];
 	batchedGuiElement.GUIElement = guiElement;
-	batchedGuiElement.Bounds = guiElement->GetClippedBoundsInternal();
+	batchedGuiElement.Bounds = guiElement->GetClippedBounds();
 	batchedGuiElement.BatchPerRenderElement.Resize(guiRenderElements.Size(), ~0u);
 
 	for(u32 renderElementIndex = 0; renderElementIndex < (u32)guiRenderElements.Size(); renderElementIndex++)
@@ -78,10 +78,10 @@ void GUIMeshBatches::Add(GUIElement* guiElement)
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex)
 {
 	GUIElement* const guiElement = batchedGuiElement.GUIElement;
-	const SmallVector<GUIRenderElement, 4>& renderElements = guiElement->GetRenderElementsInternal();
+	const SmallVector<GUIRenderElement, 4>& renderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = renderElements[renderElementIndex];
-	const u32 renderElementDepth = guiElement->GetDepthInternal() + guiRenderElement.Depth;
+	const u32 renderElementDepth = guiElement->GetDepth() + guiRenderElement.Depth;
 
 	// Depth ranges are sorted by MinDepth
 	for(u32 depthRangeIndex = 0; depthRangeIndex < (u32)mDepthRanges.size(); depthRangeIndex++)
@@ -97,10 +97,10 @@ void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElement
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex, u32 depthRangeIndex)
 {
 	GUIElement* const guiElement = batchedGuiElement.GUIElement;
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElementsInternal();
+	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];
-	const u32 renderElementDepth = guiElement->GetDepthInternal() + guiRenderElement.Depth;
+	const u32 renderElementDepth = guiElement->GetDepth() + guiRenderElement.Depth;
 
 	SpriteMaterial* const spriteMaterial = guiRenderElement.Material;
 	B3D_ASSERT(spriteMaterial != nullptr);
@@ -262,7 +262,7 @@ GUIMeshBatches::Batch* GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement,
 
 	B3D_ASSERT(batchedGuiRenderElement.ParentGUIElement != nullptr);
 
-	const Rect2I bounds = batchedGuiRenderElement.ParentGUIElement->GetClippedBoundsInternal();
+	const Rect2I bounds = batchedGuiRenderElement.ParentGUIElement->GetClippedBounds();
 	foundBatch->Bounds.Encapsulate(bounds);
 
 	MarkBoundsDirty(batchedGuiElement, foundBatch->Id);
@@ -383,7 +383,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 
 		shouldRebuildMeshes = true;
 
-		const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElementsInternal();
+		const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 		BatchedGUIElement& batchedGuiElement = itFoundElement->second;
 
 		bool dirtyBounds = false;
@@ -401,7 +401,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 			}
 
 			// If bounds changed, rebuild the bounds of the draw groups
-			Rect2I bounds = guiElement->GetClippedBoundsInternal();
+			Rect2I bounds = guiElement->GetClippedBounds();
 			if(batchedGuiElement.Bounds != bounds)
 			{
 				MarkBoundsDirty(batchedGuiElement);
@@ -440,7 +440,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 
 			if((entry.second & DirtyMesh) != 0)
 			{
-				const u32 renderElementDepth = guiElement->GetDepthInternal() + guiRenderElement.Depth;
+				const u32 renderElementDepth = guiElement->GetDepth() + guiRenderElement.Depth;
 
 				if(renderElementDepth != depthRange.MinDepth)
 				{
@@ -577,7 +577,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 					if(batchRenderData.Id != batchId)
 						continue;
 
-					batchRenderData.RenderTargetElements.emplace_back(GUIRenderTargetRenderData(target->GetCore(), element->GetClippedBoundsInternal()));
+					batchRenderData.RenderTargetElements.emplace_back(GUIRenderTargetRenderData(target->GetCore(), element->GetClippedBounds()));
 				}
 			}
 		}
@@ -660,10 +660,10 @@ void GUIMeshBatches::RebuildMeshes()
 				const GUIElement* const guiElement = batchedGuiRenderElement.ParentGUIElement;
 				B3D_ASSERT(guiElement != nullptr);
 
-				if(!guiElement->IsVisibleInternal())
+				if(!guiElement->IsVisible())
 					continue;
 
-				const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElementsInternal();
+				const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 				const GUIRenderElement& guiRenderElement = guiRenderElements[batchedGuiRenderElement.RenderElementIndex];
 
 				batch.VertexCount += guiRenderElement.NumVertices;
@@ -733,10 +733,10 @@ void GUIMeshBatches::RebuildMeshes()
 				const GUIElement* const guiElement = batchedGuiRenderElement.ParentGUIElement;
 				B3D_ASSERT(guiElement != nullptr);
 
-				if(!guiElement->IsVisibleInternal())
+				if(!guiElement->IsVisible())
 					continue;
 
-				const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElementsInternal();
+				const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 				guiElement->FillBuffer(
 					vertices[meshTypeIndex], indices[meshTypeIndex],
@@ -793,7 +793,7 @@ u32 GUIMeshBatches::SplitDepthRange(u32 depthRangeIndex, u32 depth)
 
 		auto itPartitionEdge = std::partition(batch.RenderElements.begin(), batch.RenderElements.end(), [depth](const BatchedGUIRenderElement& batchedGuiRenderElement)
 			 {
-				 const u32 renderElementDepth = batchedGuiRenderElement.ParentGUIElement->GetDepthInternal() + batchedGuiRenderElement.ParentGUIElement->GetRenderElementsInternal()[batchedGuiRenderElement.RenderElementIndex].Depth;
+				 const u32 renderElementDepth = batchedGuiRenderElement.ParentGUIElement->GetDepth() + batchedGuiRenderElement.ParentGUIElement->GetRenderElements()[batchedGuiRenderElement.RenderElementIndex].Depth;
 				 return renderElementDepth < depth;
 			 });
 
@@ -961,10 +961,10 @@ Rect2I GUIMeshBatches::CalculateBounds(Batch& batch)
 
 	for(auto& entry : batch.RenderElements)
 	{
-		if(!entry.ParentGUIElement->IsVisibleInternal())
+		if(!entry.ParentGUIElement->IsVisible())
 			continue;
 
-		Rect2I elementBounds = entry.ParentGUIElement->GetClippedBoundsInternal();
+		Rect2I elementBounds = entry.ParentGUIElement->GetClippedBounds();
 		if(!boundsSet)
 		{
 			bounds = elementBounds;
@@ -987,7 +987,7 @@ GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const Batc
 
 GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const GUIElement& guiElement, u32 renderElementIndex)
 {
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement.GetRenderElementsInternal();
+	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement.GetRenderElements();
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];
 
 	BatchedMaterial batchedMaterial;
@@ -1028,7 +1028,7 @@ void GUIWidget::Construct(const SPtr<Camera>& camera)
 	GUIManager::Instance().RegisterWidget(this);
 
 	mPanel = GUIPanel::Create();
-	mPanel->ChangeParentWidgetInternal(this);
+	mPanel->ChangeParentWidget(this);
 	UpdateRootPanel();
 }
 
@@ -1164,7 +1164,7 @@ void GUIWidget::UpdateLayoutInternal()
 		GUIElementBase* currentElem = todo.top();
 		todo.pop();
 
-		if(currentElem->IsDirtyInternal())
+		if(currentElem->IsDirty())
 		{
 			GUIElementBase* updateParent = currentElem->GetUpdateParentInternal();
 			B3D_ASSERT(updateParent != nullptr || currentElem == mPanel);
@@ -1176,9 +1176,9 @@ void GUIWidget::UpdateLayoutInternal()
 		}
 		else
 		{
-			u32 numChildren = currentElem->GetNumChildrenInternal();
+			u32 numChildren = currentElem->GetChildCount();
 			for(u32 i = 0; i < numChildren; i++)
-				todo.push(currentElem->GetChildInternal(i));
+				todo.push(currentElem->GetChild(i));
 		}
 	}
 
@@ -1187,7 +1187,7 @@ void GUIWidget::UpdateLayoutInternal()
 
 void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 {
-	GUIElementBase* parent = elem->GetParentInternal();
+	GUIElementBase* parent = elem->GetParent();
 	bool isPanelOptimized = parent != nullptr && parent->GetTypeInternal() == GUIElementBase::Type::Panel;
 
 	GUIElementBase* updateParent = nullptr;
@@ -1204,7 +1204,7 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 		GUIPanel* panel = static_cast<GUIPanel*>(updateParent);
 
 		GUIElementBase* dirtyElement = elem;
-		dirtyElement->UpdateOptimalLayoutSizesInternal();
+		dirtyElement->UpdateOptimalLayoutSizes();
 
 		LayoutSizeRange elementSizeRange = panel->GetElementSizeRangeInternal(dirtyElement);
 		Rect2I elementArea = panel->GetElementAreaInternal(panel->GetLayoutDataInternal().Area, dirtyElement, elementSizeRange);
@@ -1218,7 +1218,7 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 	else
 	{
 		GUILayoutData childLayoutData = updateParent->GetLayoutDataInternal();
-		updateParent->UpdateLayoutInternal(childLayoutData);
+		updateParent->UpdateLayout(childLayoutData);
 	}
 
 	// Mark dirty contents
@@ -1233,11 +1233,11 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 			todo.pop();
 
 			MarkContentDirtyInternal(currentElem);
-			currentElem->MarkAsCleanInternal();
+			currentElem->MarkAsClean();
 
-			u32 numChildren = currentElem->GetNumChildrenInternal();
+			u32 numChildren = currentElem->GetChildCount();
 			for(u32 i = 0; i < numChildren; i++)
-				todo.push(currentElem->GetChildInternal(i));
+				todo.push(currentElem->GetChild(i));
 		}
 	}
 	B3DClearAllocatorFrame();
@@ -1245,7 +1245,7 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 
 void GUIWidget::RegisterElementInternal(GUIElementBase* elem)
 {
-	B3D_ASSERT(elem != nullptr && !elem->IsDestroyedInternal());
+	B3D_ASSERT(elem != nullptr && !elem->IsDestroyed());
 
 	if(elem->GetTypeInternal() == GUIElementBase::Type::Element)
 	{
@@ -1304,7 +1304,7 @@ void GUIWidget::SetSkin(const HGUISkin& skin)
 	mSkin = skin;
 
 	for(auto& element : mElements)
-		element->RefreshStyleInternal();
+		element->RefreshStyle();
 }
 
 const GUISkin& GUIWidget::GetSkin() const
@@ -1356,7 +1356,7 @@ GUIDrawGroupRenderDataUpdate GUIWidget::RebuildDirtyRenderData()
 			mDirtyContentsTemp.swap(mDirtyContents);
 
 			for(auto& dirtyElement : mDirtyContentsTemp)
-				dirtyElement->UpdateRenderElementsInternal();
+				dirtyElement->UpdateRenderElements();
 
 			mDirtyContentsTemp.clear();
 		}
@@ -1387,11 +1387,11 @@ bool GUIWidget::InBounds(const Vector2I& position) const
 void GUIWidget::UpdateBounds() const
 {
 	if(!mElements.empty())
-		mBounds = mElements[0]->GetClippedBoundsInternal();
+		mBounds = mElements[0]->GetClippedBounds();
 
 	for(auto& elem : mElements)
 	{
-		Rect2I elemBounds = elem->GetClippedBoundsInternal();
+		Rect2I elemBounds = elem->GetClippedBounds();
 		mBounds.Encapsulate(elemBounds);
 	}
 }
@@ -1420,6 +1420,6 @@ void GUIWidget::UpdateRootPanel()
 	mPanel->SetWidth(width);
 	mPanel->SetHeight(height);
 
-	mPanel->SetLayoutDataInternal(layoutData);
-	mPanel->MarkLayoutAsDirtyInternal();
+	mPanel->SetLayoutData(layoutData);
+	mPanel->MarkLayoutAsDirty();
 }

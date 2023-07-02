@@ -39,7 +39,7 @@ void GUIViewport::UpdateClippedBounds()
 	mClippedBounds.Clip(mLayoutData.ClipRect);
 }
 
-Vector2I GUIViewport::GetOptimalSizeInternal() const
+Vector2I GUIViewport::GetOptimalSize() const
 {
 	return Vector2I(0, 0);
 }
@@ -56,7 +56,7 @@ void GUIViewport::FillBuffer(
 {
 }
 
-void GUIViewport::UpdateRenderElementsInternal()
+void GUIViewport::UpdateRenderElements()
 {
 	// TODO - This doesn't get called if element mesh is dirty!!! and I need to update the viewport when offset changes (in which case mesh is marked as dirty)
 	float currentAspect = mLayoutData.Area.Width / (float)mLayoutData.Area.Height;
@@ -76,9 +76,9 @@ void GUIViewport::UpdateRenderElementsInternal()
 	viewport->SetArea(Rect2(x, y, width, height));
 }
 
-void GUIViewport::ChangeParentWidgetInternal(GUIWidget* widget)
+void GUIViewport::ChangeParentWidget(GUIWidget* widget)
 {
-	GUIElement::ChangeParentWidgetInternal(widget);
+	GUIElement::ChangeParentWidget(widget);
 
 	if(widget != nullptr)
 	{

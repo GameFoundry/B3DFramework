@@ -63,13 +63,13 @@ namespace bs
 		 *  @{
 		 */
 
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
 		GUIProgressBar(const String& styleName, const GUIDimensions& dimensions);
 
-		void UpdateLayoutInternalInternal(const GUILayoutData& data) override;
+		void UpdateLayoutRecursive(const GUILayoutData& data) override;
 		void StyleUpdated() override;
 
 	private:

@@ -129,20 +129,20 @@ namespace bs
 		/** Returns the size of the slider handle, in percent of the total area. */
 		float GetHandleSizePctInternal() const;
 
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
 		~GUISliderHandle();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 		void UpdateClippedBounds() override;
 
 	private:
 		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUIDimensions& dimensions);
 
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */
 		bool IsOnHandle(const Vector2I& pos) const;

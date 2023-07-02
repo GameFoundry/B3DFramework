@@ -76,7 +76,7 @@ void GUICanvas::DrawPolyLine(const Vector<Vector2I>& vertices, const Color& colo
 	}
 
 	mForceTriangleBuild = true;
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
 void GUICanvas::DrawTexture(const HSpriteTexture& texture, const Rect2I& area, TextureScaleMode scaleMode, const Color& color, u8 depth)
@@ -94,7 +94,7 @@ void GUICanvas::DrawTexture(const HSpriteTexture& texture, const Rect2I& area, T
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
 
 	mImageData.push_back({ texture, area });
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
 void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color& color, u8 depth)
@@ -140,7 +140,7 @@ void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color&
 	elemData.MatInfo.Tint = color;
 
 	mForceTriangleBuild = true;
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
 void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& color, u8 depth)
@@ -172,7 +172,7 @@ void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& 
 	elemData.MatInfo.Tint = color;
 
 	mForceTriangleBuild = true;
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
 void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size, const Color& color, u8 depth)
@@ -190,7 +190,7 @@ void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFo
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
 
 	mTextData.push_back({ text, font, position });
-	MarkContentAsDirtyInternal();
+	MarkContentAsDirty();
 }
 
 void GUICanvas::Clear()
@@ -217,7 +217,7 @@ void GUICanvas::Clear()
 	mForceTriangleBuild = false;
 }
 
-void GUICanvas::UpdateRenderElementsInternal()
+void GUICanvas::UpdateRenderElements()
 {
 	Vector2 offset((float)mLayoutData.Area.X, (float)mLayoutData.Area.Y);
 	Rect2I clipRect = mLayoutData.GetLocalClipRect();
@@ -273,7 +273,7 @@ void GUICanvas::UpdateRenderElementsInternal()
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Line;
 
-				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidgetInternal();
+				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidget();
 
 				// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 				break;
@@ -293,7 +293,7 @@ void GUICanvas::UpdateRenderElementsInternal()
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Triangle;
 
-				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidgetInternal();
+				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidget();
 
 				// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 				break;
@@ -303,10 +303,10 @@ void GUICanvas::UpdateRenderElementsInternal()
 		element.RenderElemEnd = (u32)mRenderElements.Size();
 	}
 
-	GUIElement::UpdateRenderElementsInternal();
+	GUIElement::UpdateRenderElements();
 }
 
-Vector2I GUICanvas::GetOptimalSizeInternal() const
+Vector2I GUICanvas::GetOptimalSize() const
 {
 	return Vector2I(10, 10);
 }
@@ -448,7 +448,7 @@ void GUICanvas::BuildImageElement(const CanvasElement& element)
 	Vector2I destSize(mLayoutData.Area.Width, mLayoutData.Area.Height);
 	desc.UvScale = ImageSprite::GetTextureUvScale(textureSize, destSize, element.ScaleMode);
 
-	element.ImageSprite->Update(desc, (u64)GetParentWidgetInternal());
+	element.ImageSprite->Update(desc, (u64)GetParentWidget());
 }
 
 void GUICanvas::BuildTextElement(const CanvasElement& element)
@@ -463,7 +463,7 @@ void GUICanvas::BuildTextElement(const CanvasElement& element)
 	desc.Text = textData.String;
 	desc.Color = element.Color;
 
-	element.TextSprite->Update(desc, (u64)GetParentWidgetInternal());
+	element.TextSprite->Update(desc, (u64)GetParentWidget());
 }
 
 void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2& offset, const Rect2I& clipRect) const

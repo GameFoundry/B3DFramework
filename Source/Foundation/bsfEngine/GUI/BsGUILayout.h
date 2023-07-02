@@ -67,7 +67,7 @@ namespace bs
 		 *  @{
 		 */
 
-		LayoutSizeRange GetLayoutSizeRangeInternal() const override { return GetCachedSizeRangeInternal(); }
+		LayoutSizeRange GetLayoutSizeRange() const override { return GetCachedSizeRangeInternal(); }
 
 		/** Returns a size range that was cached during the last GUIElementBase::_updateOptimalLayoutSizes call. */
 		LayoutSizeRange GetCachedSizeRangeInternal() const { return mSizeRange; }
@@ -78,8 +78,8 @@ namespace bs
 		 */
 		const Vector<LayoutSizeRange>& GetCachedChildSizeRangesInternal() const { return mChildSizeRanges; }
 
-		Vector2I GetOptimalSizeInternal() const override { return mSizeRange.Optimal; }
-		const RectOffset& GetPaddingInternal() const override;
+		Vector2I GetOptimalSize() const override { return mSizeRange.Optimal; }
+		const RectOffset& GetPadding() const override;
 		Type GetTypeInternal() const override { return GUIElementBase::Type::Layout; }
 
 		/** @} */

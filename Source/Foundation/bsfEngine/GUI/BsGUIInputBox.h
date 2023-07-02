@@ -89,7 +89,7 @@ namespace bs
 		 */
 
 		ElementType GetElementTypeInternal() const override { return ElementType::InputBox; }
-		Vector2I GetOptimalSizeInternal() const override;
+		Vector2I GetOptimalSize() const override;
 
 		/** @} */
 	protected:
@@ -97,12 +97,12 @@ namespace bs
 		virtual ~GUIInputBox();
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 		void UpdateClippedBounds() override;
-		bool MouseEventInternal(const GUIMouseEvent& ev) override;
-		bool TextInputEventInternal(const GUITextInputEvent& ev) override;
-		bool CommandEventInternal(const GUICommandEvent& ev) override;
-		bool VirtualButtonEventInternal(const GUIVirtualButtonEvent& ev) override;
+		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
+		bool DoOnTextInputEvent(const GUITextInputEvent& ev) override;
+		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
+		bool DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
 
 		/**
 		 * Returns how much to offset text due to scrolling.
@@ -111,14 +111,14 @@ namespace bs
 		 * This is used when text is larger than the input box itself. As the caret moves the text will scroll so that the
 		 * caret remains visible, and how much scroll is applied is determined by this value.
 		 */
-		Vector2I GetTextInputOffsetInternal() const override;
+		Vector2I GetTextInputOffset() const override;
 
 		/** Returns rectangle in which the text can be displayed, in local coordinates (text will start at 0, 0). */
-		Rect2I GetTextInputRectInternal() const override;
+		Rect2I GetTextInputRect() const override;
 
-		u32 GetRenderElementDepthRangeInternal() const override;
-		bool HasCustomCursorInternal(const Vector2I position, CursorType& type) const override;
-		SPtr<GUIContextMenu> GetContextMenuInternal() const override;
+		u32 GetRenderElementDepthRange() const override;
+		bool HasCustomCursor(const Vector2I position, CursorType& type) const override;
+		SPtr<GUIContextMenu> GetContextMenu() const override;
 
 	private:
 		/**

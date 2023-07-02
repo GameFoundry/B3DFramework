@@ -70,7 +70,7 @@ namespace bs
 		GUIRenderTexture(const String& styleName, const SPtr<RenderTexture>& texture, bool transparent, const GUIDimensions& dimensions);
 		virtual ~GUIRenderTexture();
 
-		void UpdateRenderElementsInternal() override;
+		void UpdateRenderElements() override;
 
 		SPtr<RenderTexture> mSourceTexture;
 		bool mTransparent;

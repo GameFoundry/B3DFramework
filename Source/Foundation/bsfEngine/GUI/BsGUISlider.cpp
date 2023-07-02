@@ -21,12 +21,12 @@ GUISlider::GUISlider(bool horizontal, const String& styleName, const GUIDimensio
 	mBackground = GUITexture::Create(GetSubStyleName(GetBackgroundStyleType()));
 	mFillBackground = GUITexture::Create(GetSubStyleName(GetFillStyleType()));
 
-	mBackground->SetElementDepthInternal(mSliderHandle->GetRenderElementDepthRangeInternal() + mFillBackground->GetRenderElementDepthRangeInternal());
-	mFillBackground->SetElementDepthInternal(mSliderHandle->GetRenderElementDepthRangeInternal());
+	mBackground->SetElementDepth(mSliderHandle->GetRenderElementDepthRange() + mFillBackground->GetRenderElementDepthRange());
+	mFillBackground->SetElementDepth(mSliderHandle->GetRenderElementDepthRange());
 
-	RegisterChildElementInternal(mSliderHandle);
-	RegisterChildElementInternal(mBackground);
-	RegisterChildElementInternal(mFillBackground);
+	RegisterChildElement(mSliderHandle);
+	RegisterChildElement(mBackground);
+	RegisterChildElement(mFillBackground);
 
 	mHandleMovedConn = mSliderHandle->OnHandleMovedOrResized.Connect(std::bind(&GUISlider::OnHandleMoved, this, _1, _2));
 }
@@ -54,43 +54,43 @@ const String& GUISlider::GetFillStyleType()
 	return FILL_STYLE_TYPE;
 }
 
-Vector2I GUISlider::GetOptimalSizeInternal() const
+Vector2I GUISlider::GetOptimalSize() const
 {
-	Vector2I optimalSize = mSliderHandle->GetOptimalSizeInternal();
+	Vector2I optimalSize = mSliderHandle->GetOptimalSize();
 
-	Vector2I backgroundSize = mBackground->GetOptimalSizeInternal();
+	Vector2I backgroundSize = mBackground->GetOptimalSize();
 	optimalSize.X = std::max(optimalSize.X, backgroundSize.X);
 	optimalSize.Y = std::max(optimalSize.Y, backgroundSize.Y);
 
 	return optimalSize;
 }
 
-void GUISlider::UpdateLayoutInternalInternal(const GUILayoutData& data)
+void GUISlider::UpdateLayoutRecursive(const GUILayoutData& data)
 {
 	GUILayoutData childData = data;
 
 	if(mHorizontal)
 	{
-		Vector2I optimalSize = mBackground->GetOptimalSizeInternal();
+		Vector2I optimalSize = mBackground->GetOptimalSize();
 		childData.Area.Height = optimalSize.Y;
 		childData.Area.Y = data.Area.Y + (i32)((data.Area.Height - childData.Area.Height) * 0.5f);
 
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mBackground->SetLayoutDataInternal(childData);
+		mBackground->SetLayoutData(childData);
 
-		optimalSize = mSliderHandle->GetOptimalSizeInternal();
+		optimalSize = mSliderHandle->GetOptimalSize();
 		childData.Area.Height = optimalSize.Y;
 		childData.Area.Y = data.Area.Y + (i32)((data.Area.Height - childData.Area.Height) * 0.5f);
 
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mSliderHandle->SetLayoutDataInternal(childData);
+		mSliderHandle->SetLayoutData(childData);
 		u32 handleWidth = optimalSize.X;
 
-		optimalSize = mFillBackground->GetOptimalSizeInternal();
+		optimalSize = mFillBackground->GetOptimalSize();
 		childData.Area.Height = optimalSize.Y;
 		childData.Area.Y = data.Area.Y + (i32)((data.Area.Height - childData.Area.Height) * 0.5f);
 		childData.Area.Width = mSliderHandle->GetHandlePosPx() + handleWidth / 2;
@@ -98,30 +98,30 @@ void GUISlider::UpdateLayoutInternalInternal(const GUILayoutData& data)
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mFillBackground->SetLayoutDataInternal(childData);
+		mFillBackground->SetLayoutData(childData);
 	}
 	else
 	{
-		Vector2I optimalSize = mBackground->GetOptimalSizeInternal();
+		Vector2I optimalSize = mBackground->GetOptimalSize();
 		childData.Area.Width = optimalSize.X;
 		childData.Area.X = data.Area.X + (i32)((data.Area.Width - childData.Area.Width) * 0.5f);
 
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mBackground->SetLayoutDataInternal(childData);
+		mBackground->SetLayoutData(childData);
 
-		optimalSize = mSliderHandle->GetOptimalSizeInternal();
+		optimalSize = mSliderHandle->GetOptimalSize();
 		childData.Area.Width = optimalSize.X;
 		childData.Area.X = data.Area.X + (i32)((data.Area.Width - childData.Area.Width) * 0.5f);
 
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mSliderHandle->SetLayoutDataInternal(childData);
+		mSliderHandle->SetLayoutData(childData);
 		u32 handleHeight = optimalSize.Y;
 
-		optimalSize = mFillBackground->GetOptimalSizeInternal();
+		optimalSize = mFillBackground->GetOptimalSize();
 		childData.Area.Width = optimalSize.X;
 		childData.Area.X = data.Area.X + (i32)((data.Area.Width - childData.Area.Width) * 0.5f);
 		childData.Area.Height = mSliderHandle->GetHandlePosPx() + handleHeight / 2;
@@ -129,7 +129,7 @@ void GUISlider::UpdateLayoutInternalInternal(const GUILayoutData& data)
 		childData.ClipRect = data.Area;
 		childData.ClipRect.Clip(data.ClipRect);
 
-		mFillBackground->SetLayoutDataInternal(childData);
+		mFillBackground->SetLayoutData(childData);
 	}
 }
 
@@ -139,7 +139,7 @@ void GUISlider::StyleUpdated()
 	mFillBackground->SetStyle(GetSubStyleName(GetFillStyleType()));
 	mSliderHandle->SetStyle(GetSubStyleName(GetHandleStyleType()));
 
-	const GUIElementStyle* bgStyle = mBackground->GetStyleInternal();
+	const GUIElementStyle* bgStyle = mBackground->GetStyle();
 	if(mHasFocus)
 		mBackground->SetTexture(bgStyle->Focused.Texture);
 	else
@@ -152,7 +152,7 @@ void GUISlider::SetPercent(float pct)
 	mSliderHandle->SetHandlePosInternal(pct);
 
 	if(oldHandlePos != mSliderHandle->GetHandlePos())
-		mSliderHandle->MarkLayoutAsDirtyInternal();
+		mSliderHandle->MarkLayoutAsDirty();
 }
 
 float GUISlider::GetPercent() const
@@ -217,16 +217,16 @@ void GUISlider::OnHandleMoved(float newPosition, float newSize)
 	OnChanged(GetValue());
 }
 
-bool GUISlider::CommandEventInternal(const GUICommandEvent& ev)
+bool GUISlider::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool baseReturnValue = GUIElement::CommandEventInternal(ev);
+	const bool baseReturnValue = GUIElement::DoOnCommandEvent(ev);
 
-	const GUIElementStyle* bgStyle = mBackground->GetStyleInternal();
+	const GUIElementStyle* bgStyle = mBackground->GetStyle();
 	if(ev.GetType() == GUICommandEventType::FocusGained)
 	{
 		mHasFocus = true;
 
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 			mBackground->SetTexture(bgStyle->Focused.Texture);
 
 		return true;

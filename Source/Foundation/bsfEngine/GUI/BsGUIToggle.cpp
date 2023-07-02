@@ -165,13 +165,13 @@ void GUIToggle::ToggleOffInternal(bool triggerEvent)
 	}
 }
 
-bool GUIToggle::MouseEventInternal(const GUIMouseEvent& ev)
+bool GUIToggle::DoOnMouseEvent(const GUIMouseEvent& ev)
 {
-	bool processed = GUIButtonBase::MouseEventInternal(ev);
+	bool processed = GUIButtonBase::DoOnMouseEvent(ev);
 
 	if(ev.GetType() == GUIMouseEventType::MouseUp)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mIsToggled)
 				ToggleOffInternal(true);
@@ -185,13 +185,13 @@ bool GUIToggle::MouseEventInternal(const GUIMouseEvent& ev)
 	return processed;
 }
 
-bool GUIToggle::CommandEventInternal(const GUICommandEvent& ev)
+bool GUIToggle::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool processed = GUIButtonBase::CommandEventInternal(ev);
+	const bool processed = GUIButtonBase::DoOnCommandEvent(ev);
 
 	if(ev.GetType() == GUICommandEventType::Confirm)
 	{
-		if(!IsDisabledInternal())
+		if(!IsDisabled())
 		{
 			if(mIsToggled)
 				ToggleOffInternal(true);

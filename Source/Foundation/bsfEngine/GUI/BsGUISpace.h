@@ -30,7 +30,7 @@ namespace bs
 			if(mSize != size)
 			{
 				mSize = size;
-				MarkLayoutAsDirtyInternal();
+				MarkLayoutAsDirty();
 			}
 		}
 
@@ -46,10 +46,10 @@ namespace bs
 		 */
 
 		Type GetTypeInternal() const override { return GUIElementBase::Type::FixedSpace; }
-		Vector2I GetOptimalSizeInternal() const override { return Vector2I(GetSize(), GetSize()); }
-		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
+		Vector2I GetOptimalSize() const override { return Vector2I(GetSize(), GetSize()); }
+		LayoutSizeRange CalculateLayoutSizeRange() const override;
 
-		const RectOffset& GetPaddingInternal() const override
+		const RectOffset& GetPadding() const override
 		{
 			static RectOffset padding;
 
@@ -89,10 +89,10 @@ namespace bs
 		 */
 
 		Type GetTypeInternal() const override { return GUIElementBase::Type::FlexibleSpace; }
-		Vector2I GetOptimalSizeInternal() const override { return Vector2I(0, 0); }
-		LayoutSizeRange CalculateLayoutSizeRangeInternal() const override;
+		Vector2I GetOptimalSize() const override { return Vector2I(0, 0); }
+		LayoutSizeRange CalculateLayoutSizeRange() const override;
 
-		const RectOffset& GetPaddingInternal() const override
+		const RectOffset& GetPadding() const override
 		{
 			static RectOffset padding;
 
