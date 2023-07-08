@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "CoreThread/BsCoreObjectSync.h"
 #include "Reflection/BsIReflectable.h"
 #include "Math/BsVector3.h"
 #include "Image/BsColor.h"
@@ -17,6 +18,8 @@ namespace bs
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AutoExposureSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		AutoExposureSettings() = default;
 
@@ -89,11 +92,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class AutoExposureSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -103,6 +101,8 @@ namespace bs
 	/** Settings that control tonemap post-process. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TonemappingSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		TonemappingSettings() = default;
 
@@ -149,11 +149,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class TonemappingSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -163,6 +158,8 @@ namespace bs
 	/** Settings that control white balance post-process. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) WhiteBalanceSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		WhiteBalanceSettings() = default;
 
@@ -187,11 +184,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class WhiteBalanceSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -201,6 +193,8 @@ namespace bs
 	/** Settings that control color grading post-process. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ColorGradingSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		ColorGradingSettings() = default;
 
 		/**
@@ -234,11 +228,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class ColorGradingSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -248,6 +237,8 @@ namespace bs
 	/** Settings that control screen space ambient occlusion. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AmbientOcclusionSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		AmbientOcclusionSettings() = default;
 
@@ -311,11 +302,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class AmbientOcclusionSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -470,11 +456,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	protected:
 		~TDepthOfFieldSettings() = default;
 	};
@@ -482,6 +463,8 @@ namespace bs
 	/** Settings that control the depth-of-field effect. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<false>, IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		DepthOfFieldSettings() = default;
 
@@ -553,6 +536,8 @@ namespace bs
 	/** Settings that control the motion blur effect. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		MotionBlurSettings() = default;
 
@@ -587,11 +572,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class MotionBlurSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -601,6 +581,8 @@ namespace bs
 	/** Settings that control temporal anti-aliasing. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TemporalAASettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		TemporalAASettings() = default;
 
@@ -623,11 +605,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class TemporalAASettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -644,6 +621,8 @@ namespace bs
 	 */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceReflectionsSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		ScreenSpaceReflectionsSettings() = default;
 
@@ -673,11 +652,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class ScreenSpaceReflectionsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -687,6 +661,8 @@ namespace bs
 	/** Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) BloomSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		BloomSettings() = default;
 
@@ -730,11 +706,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class BloomSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -744,6 +715,8 @@ namespace bs
 	/** Settings that control the screen-space lens flare effect. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceLensFlareSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		ScreenSpaceLensFlareSettings() = default;
 
@@ -842,11 +815,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class ScreenSpaceLensFlareSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -908,10 +876,6 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	protected:
 		~TChromaticAberrationSettings() = default;
 	};
@@ -919,6 +883,8 @@ namespace bs
 	/** Settings that control the chromatic aberration effect. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ChromaticAberrationSettings : TChromaticAberrationSettings<false>, IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		ChromaticAberrationSettings() = default;
 
@@ -943,6 +909,8 @@ namespace bs
 	/** Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) FilmGrainSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		FilmGrainSettings() = default;
 
@@ -961,11 +929,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class FilmGrainSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -975,6 +938,8 @@ namespace bs
 	/** Various options that control shadow rendering for a specific view. */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShadowSettings : public IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		ShadowSettings() = default;
 
@@ -1014,11 +979,6 @@ namespace bs
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	public:
 		friend class ShadowSettingsRTTI;
 		static RTTITypeBase* GetRttiStatic();
@@ -1202,14 +1162,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT()
 		CoreVariantType<ChromaticAberrationSettings, Core> ChromaticAberration;
 
-		/************************************************************************/
-		/* 								RTTI		                     		*/
-		/************************************************************************/
-
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P processor);
-
 	protected:
 		~TRenderSettings() = default;
 	};
@@ -1217,6 +1169,8 @@ namespace bs
 	/** Settings that control rendering for a specific camera (view). */
 	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<false>, IReflectable
 	{
+		struct SyncPacket;
+
 		B3D_SCRIPT_EXPORT()
 		RenderSettings() = default;
 		virtual ~RenderSettings() = default;

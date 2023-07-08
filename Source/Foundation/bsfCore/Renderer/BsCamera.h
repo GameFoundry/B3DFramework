@@ -496,10 +496,6 @@ namespace bs
 		/** @copydoc SetRenderSettings() */
 		const SPtr<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
 
-		/** Enumerates all the fields in the type and executes the specified processor action for each field. */
-		template <class P>
-		void RttiEnumFields(P p);
-
 	protected:
 		/** Viewport that describes a 2D rendering surface. */
 		SPtr<ViewportType> mViewport;
@@ -546,12 +542,18 @@ namespace bs
 
 		/** @} */
 	protected:
+		struct FullSyncPacket;
+		struct RedrawSyncPacket;
+		struct TransformSyncPacket;
+
+		friend class ct::Camera;
+
 		/** @copydoc CameraBase */
 		Rect2I GetViewportRect() const override;
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
-		CoreSyncData SyncToCore(FrameAlloc* allocator) override;
+		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 

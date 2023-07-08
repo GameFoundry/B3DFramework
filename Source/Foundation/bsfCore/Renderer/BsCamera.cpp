@@ -17,6 +17,7 @@
 #include "CoreThread/BsCoreObjectSync.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
+#include "BsRenderSettings.implementation.h"
 
 using namespace bs;
 
@@ -677,27 +678,6 @@ TCamera<Core>::TCamera()
 	mRenderSettings = B3DMakeShared<RenderSettingsType>();
 }
 
-template <bool Core>
-template <class P>
-void TCamera<Core>::RttiEnumFields(P p)
-{
-	p(mLayers);
-	p(mProjType);
-	p(mHorzFOV);
-	p(mFarDist);
-	p(mNearDist);
-	p(mAspect);
-	p(mOrthoHeight);
-	p(mPriority);
-	p(mCustomViewMatrix);
-	p(mCustomProjMatrix);
-	p(mFrustumExtentsManuallySet);
-	p(mMSAA);
-	p(mMain);
-	p(*mRenderSettings);
-	p(mCameraFlags);
-}
-
 template class TCamera<false>;
 template class TCamera<true>;
 
@@ -762,34 +742,59 @@ Rect2I Camera::GetViewportRect() const
 	return mViewport->GetPixelArea();
 }
 
-CoreSyncData Camera::SyncToCore(FrameAlloc* allocator)
+namespace bs
 {
-	u32 dirtyFlag = GetCoreDirtyFlags();
+	B3D_SYNC_BLOCK_BEGIN(Camera, FullSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mLayers)
+		B3D_SYNC_BLOCK_ENTRY(mProjType)
+		B3D_SYNC_BLOCK_ENTRY(mHorzFOV)
+		B3D_SYNC_BLOCK_ENTRY(mFarDist)
+		B3D_SYNC_BLOCK_ENTRY(mNearDist)
+		B3D_SYNC_BLOCK_ENTRY(mAspect)
+		B3D_SYNC_BLOCK_ENTRY(mOrthoHeight)
+		B3D_SYNC_BLOCK_ENTRY(mPriority)
+		B3D_SYNC_BLOCK_ENTRY(mCustomViewMatrix)
+		B3D_SYNC_BLOCK_ENTRY(mCustomProjMatrix)
+		B3D_SYNC_BLOCK_ENTRY(mFrustumExtentsManuallySet)
+		B3D_SYNC_BLOCK_ENTRY(mMSAA)
+		B3D_SYNC_BLOCK_ENTRY(mMain)
+		B3D_SYNC_BLOCK_ENTRY(mCameraFlags)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(CoreSyncPacket*, RenderSettingsPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
 
-	u32 size = B3DRTTISize(dirtyFlag).Bytes;
+	B3D_SYNC_BLOCK_BEGIN(Camera, RedrawSyncPacket)
+	B3D_SYNC_BLOCK_END
 
-	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
+	B3D_SYNC_BLOCK_BEGIN(Camera, TransformSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
+}
+
+CoreSyncPacket* Camera::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
+{
+	if(flags == 0)
+		return nullptr;
+
+	if((flags & ~(i32)CameraDirtyFlag::Redraw) != 0)
 	{
-		size += CoreSyncGetSize((SceneActor&)*this);
+		if(flags != (u32)ActorDirtyFlag::Transform)
+		{
+			FullSyncPacket* const syncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
+			syncPacket->SceneActorPacket = CreateCoreSyncPacket(allocator, flags);
+			syncPacket->RenderSettingsPacket = allocator.Construct<RenderSettings::SyncPacket>(*mRenderSettings, allocator, flags);
 
-		if(dirtyFlag != (u32)ActorDirtyFlag::Transform)
-			size += CoreSyncGetSize(*this);
+			return syncPacket;
+		}
+
+		TransformSyncPacket* const transformSyncPacket = allocator.Construct<TransformSyncPacket>(*this, allocator, flags);
+		transformSyncPacket->SceneActorPacket = CreateCoreSyncPacket(allocator, flags);
+
+		return transformSyncPacket;
 	}
 
-	u8* buffer = allocator->Alloc(size);
-	Bitstream stream(buffer, size);
-
-	B3DRTTIWrite(dirtyFlag, stream);
-
-	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
-	{
-		B3DCoreSyncWrite((SceneActor&)*this, stream);
-
-		if(dirtyFlag != (u32)ActorDirtyFlag::Transform)
-			B3DCoreSyncWrite(*this, stream);
-	}
-
-	return CoreSyncData(buffer, size);
+	// Redraw only
+	return allocator.Construct<RedrawSyncPacket>(*this, allocator, flags);
 }
 
 void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
@@ -845,23 +850,28 @@ Rect2I Camera::GetViewportRect() const
 
 void Camera::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 {
-	Bitstream stream(data.GetBuffer(), data.GetBufferSize());
+	auto* const syncPacket = data.GetSyncPacket<CoreSyncPacket>();
+	if(!syncPacket)
+		return;
 
-	u32 dirtyFlag;
-	B3DRTTIRead(dirtyFlag, stream);
+	syncPacket->ApplySyncData(this);
 
-	if((dirtyFlag & ~(i32)CameraDirtyFlag::Redraw) != 0)
+	if((syncPacket->Flags & ~(i32)CameraDirtyFlag::Redraw) != 0)
 	{
-		B3DCoreSyncRead((SceneActor&)*this, stream);
+		if(syncPacket->Flags != (u32)ActorDirtyFlag::Transform)
+		{
+			auto* const fullSyncPacket = static_cast<bs::Camera::FullSyncPacket*>(syncPacket);
+			fullSyncPacket->RenderSettingsPacket->ApplySyncData(mRenderSettings.get());
 
-		if(dirtyFlag != (u32)ActorDirtyFlag::Transform)
-			B3DCoreSyncRead(*this, stream);
+			allocator.Destruct(fullSyncPacket->RenderSettingsPacket);
+			fullSyncPacket->RenderSettingsPacket = nullptr;
+		}
 
 		mRecalcFrustum = true;
 		mRecalcFrustumPlanes = true;
 		mRecalcView = true;
 	}
 
-	RendererManager::Instance().GetActive()->NotifyCameraUpdated(this, (u32)dirtyFlag);
+	RendererManager::Instance().GetActive()->NotifyCameraUpdated(this, (u32)syncPacket->Flags);
 }
 }}

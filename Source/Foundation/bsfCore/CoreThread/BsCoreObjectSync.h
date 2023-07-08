@@ -456,21 +456,21 @@ namespace bs
 			FreeEntries();                                                                            \
 		}                                                                                             \
                                                                                                       \
-		typedef ClassType Type;                                                                       \
+		typedef ClassType _Type;                                                                      \
                                                                                                       \
 		void ApplySyncData(void* object) override                                                     \
 		{                                                                                             \
-			ApplySyncData(*static_cast<CoreVariantType<Type, true>*>(object));                        \
+			ApplySyncData(*static_cast<CoreVariantType<_Type, true>*>(object));                       \
 		}                                                                                             \
                                                                                                       \
 	private:                                                                                          \
 		struct META_FirstEntry                                                                        \
 		{};                                                                                           \
                                                                                                       \
-		void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_FirstEntry id) \
+		void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_FirstEntry id)\
 		{}                                                                                            \
                                                                                                       \
-		void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_FirstEntry id)     \
+		void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_FirstEntry id)    \
 		{}                                                                                            \
                                                                                                       \
 		void META_FreePrevEntry(META_FirstEntry id)                                                   \
@@ -491,13 +491,13 @@ namespace bs
 	struct META_NextEntry_##EntryName                                                                                               \
 	{};                                                                                                                             \
                                                                                                                                     \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                       \
 	{                                                                                                                               \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
 		implementation::CoreSyncField<false>(EntryName, object.EntryName);                                                          \
 	}                                                                                                                               \
                                                                                                                                     \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                           \
 	{                                                                                                                               \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
 		implementation::CoreSyncField<true>(EntryName, object.EntryName);                                                           \
@@ -509,7 +509,7 @@ namespace bs
 	}                                                                                                                               \
                                                                                                                                     \
 public:                                                                                                                             \
-	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<decltype(Type::EntryName)>::Type>;             \
+	using Type##EntryName = std::decay_t<typename implementation::CoreSyncPacketType<decltype(_Type::EntryName)>::Type>;            \
 	Type##EntryName EntryName = implementation::CoreSyncPacketTypeInitializeWithAllocator<Type##EntryName>::Initialize(mAllocator); \
                                                                                                                                     \
 private:                                                                                                                            \
@@ -528,12 +528,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                               \
 	{};                                                                                                                             \
                                                                                                                                     \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                       \
 	{                                                                                                                               \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
 	}                                                                                                                               \
                                                                                                                                     \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                           \
 	{                                                                                                                               \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
 		implementation::CoreSyncField<true>(EntryName, object.EntryName);                                                           \
@@ -564,13 +564,13 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                               \
 	{};                                                                                                                             \
                                                                                                                                     \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                       \
 	{                                                                                                                               \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
 		implementation::CoreSyncField<false>(EntryName, object.EntryName);                                                          \
 	}                                                                                                                               \
                                                                                                                                     \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                           \
 	{                                                                                                                               \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
 	}                                                                                                                               \
@@ -602,12 +602,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                                               \
 	{};                                                                                                                             \
                                                                                                                                     \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id)                        \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)                       \
 	{                                                                                                                               \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                                           \
 	}                                                                                                                               \
                                                                                                                                     \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)                            \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)                           \
 	{                                                                                                                               \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                                              \
 	}                                                                                                                               \
@@ -639,12 +639,12 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                        \
 	{};                                                                                                      \
                                                                                                              \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id) \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)\
 	{                                                                                                        \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                    \
 	}                                                                                                        \
                                                                                                              \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)     \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)    \
 	{                                                                                                        \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                       \
 		if(EntryName) EntryName->ApplySyncData(&static_cast<CoreVariantType<ClassType, true>&>(object));     \
@@ -677,13 +677,13 @@ private:                                                                        
 	struct META_NextEntry_##EntryName                                                                        \
 	{};                                                                                                      \
                                                                                                              \
-	void META_PopulateSyncDataPrevEntry(CoreVariantType<Type, false>& object, META_NextEntry_##EntryName id) \
+	void META_PopulateSyncDataPrevEntry(CoreVariantType<_Type, false>& object, META_NextEntry_##EntryName id)\
 	{                                                                                                        \
 		META_PopulateSyncDataPrevEntry(object, META_Entry_##EntryName());                                    \
-		EntryName = mAllocator.Construct<decltype(Type::EntryName)::SyncPacketType>(object.EntryName, mAllocator); \
+		EntryName = mAllocator.Construct<decltype(_Type::EntryName)::SyncPacketType>(object.EntryName, mAllocator); \
 	}                                                                                                        \
                                                                                                              \
-	void META_ApplySyncDataPrevEntry(CoreVariantType<Type, true>& object, META_NextEntry_##EntryName id)     \
+	void META_ApplySyncDataPrevEntry(CoreVariantType<_Type, true>& object, META_NextEntry_##EntryName id)    \
 	{                                                                                                        \
 		META_ApplySyncDataPrevEntry(object, META_Entry_##EntryName());                                       \
 		if(EntryName) EntryName->ApplySyncData(&object.EntryName);                                           \
@@ -705,12 +705,12 @@ private:                                                                        
 #define B3D_SYNC_BLOCK_END                                        \
 	META_LastEntry;                                               \
                                                                   \
-	void PopulateSyncData(CoreVariantType<Type, false>& object)   \
+	void PopulateSyncData(CoreVariantType<_Type, false>& object)  \
 	{                                                             \
 		META_PopulateSyncDataPrevEntry(object, META_LastEntry()); \
 	}                                                             \
                                                                   \
-	void ApplySyncData(CoreVariantType<Type, true>& object)       \
+	void ApplySyncData(CoreVariantType<_Type, true>& object)      \
 	{                                                             \
 		META_ApplySyncDataPrevEntry(object, META_LastEntry());    \
 	}                                                             \
