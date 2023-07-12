@@ -100,5 +100,102 @@ namespace bs
 		return swapped;
 	}
 
+	/** Encapsulates width/height in a single structure. */
+	template<class T>
+	struct TSize2
+	{
+		T Width, Height;
+		
+		constexpr TSize2() = default;
+
+		constexpr TSize2(BS_ZERO)
+			: Width((T)0), Height((T)0)
+		{}
+
+		constexpr TSize2(T width, T height)
+			: Width(width), Height(height)
+		{}
+
+		static const TSize2 kZero;
+	};
+
+	template<> const TSize2<u32> TSize2<u32>::kZero{BsZero};
+
+	/** Encapsulates width/height/depth in a single structure. */
+	template<class T>
+	struct TSize3
+	{
+		T Width, Height, Depth;
+		
+		constexpr TSize3() = default;
+
+		constexpr TSize3(BS_ZERO)
+			: Width((T)0), Height((T)0), Depth((T)0)
+		{}
+
+		constexpr TSize3(T width, T height, T depth)
+			: Width(width), Height(height), Depth(depth)
+		{}
+
+		static const TSize3 kZero;
+	};
+
+	template<> const TSize3<u32> TSize3<u32>::kZero{BsZero};
+
+	using Size2 = TSize2<u32>;
+	using Size3 = TSize3<u32>;
+
+	/**
+	 * Represents a range of memory containing sequential elements. Elements may be optionally separated by a stride.
+	 * Provides utility methods for easier reads and writes.
+	 */
+	struct DataRange
+	{
+		/**
+		 * Constructs the data range.
+		 *
+		 * @param	data			Beginning of raw memory the data range is viewing.
+		 * @param	elementCount	Number of elements in the range.
+		 * @param	strideInBytes	Stride between elements. If 0, the stride will be automatically deduced from provided data type during access.
+		 */
+		DataRange(void* const data = nullptr, u64 elementCount = 0, u64 strideInBytes = 0)
+			: Data((u8*)data), ElementCount(elementCount), ExplicitStrideInBytes(strideInBytes)
+		{
+		}
+
+		template <typename T>
+		const T& At(u32 index) const
+		{
+			B3D_ASSERT(index < ElementCount);
+
+			const u64 strideInBytes = ExplicitStrideInBytes == 0 ? sizeof(T) : ExplicitStrideInBytes;
+			const u64 offset = strideInBytes * index;
+
+			return *(const T*)(Data + offset);
+		}
+
+		template <typename T>
+		T& At(u32 index)
+		{
+			B3D_ASSERT(index < ElementCount);
+
+			const u64 strideInBytes = ExplicitStrideInBytes == 0 ? sizeof(T) : ExplicitStrideInBytes;
+			const u64 offset = strideInBytes * index;
+
+			return *(T*)(Data + offset);
+		}
+
+		template <typename T>
+		void Set(u32 index, const T& value)
+		{
+			T& destination = At<T>(index);
+			destination = value;
+		}
+
+		u8* Data;
+		size_t ElementCount;
+		size_t ExplicitStrideInBytes;
+	};
+
 	/** @} */
 } // namespace bs

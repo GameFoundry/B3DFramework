@@ -146,22 +146,22 @@ namespace bs
 		void SetBool(const StringID& name, bool value);
 
 		/** Registers a new parameter that controls the variation. */
-		void AddParam(const ShaderVariationParameter& param) { mParams[param.Name] = param; }
+		void AddParam(const ShaderVariationParameter& param);
 
 		/** Removes a parameter with the specified name. */
 		B3D_SCRIPT_EXPORT()
-
-		void RemoveParam(const StringID& paramName) { mParams.erase(paramName); }
+		void RemoveParam(const StringID& paramName);
 
 		/** Checks if the variation has a parameter with the specified name. */
 		B3D_SCRIPT_EXPORT()
-
-		bool HasParam(const StringID& paramName) { return mParams.find(paramName) != mParams.end(); }
+		bool HasParam(const StringID& paramName) { return FindParameter(paramName) != nullptr; }
 
 		/** Removes all parameters. */
 		B3D_SCRIPT_EXPORT()
-
 		void ClearParams() { mParams.clear(); }
+
+		/** Attempts to find a parameter with the provided name, or returns null if not found. */
+		const ShaderVariationParameter* FindParameter(const StringID& name) const;
 
 		/** Returns a list of names of all registered parameters. */
 		B3D_SCRIPT_EXPORT(ExportName(ParamNames), Property(Getter))
@@ -182,7 +182,7 @@ namespace bs
 		bool Matches(const ShaderVariationParameters& other, bool exact = true) const;
 
 		/** Returns all the variation parameters. */
-		const UnorderedMap<StringID, ShaderVariationParameter>& GetParams() const { return mParams; }
+		const SmallVector<ShaderVariationParameter, 4>& GetParams() const { return mParams; }
 
 		bool operator==(const ShaderVariationParameters& rhs) const;
 
@@ -211,7 +211,7 @@ namespace bs
 	private:
 		friend class ShaderVariations;
 
-		UnorderedMap<StringID, ShaderVariationParameter> mParams;
+		SmallVector<ShaderVariationParameter, 4> mParams;
 		mutable u32 mIdx = -1;
 
 		/************************************************************************/

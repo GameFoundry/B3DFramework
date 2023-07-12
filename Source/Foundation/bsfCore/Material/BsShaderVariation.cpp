@@ -25,48 +25,46 @@ void ShaderDefines::Set(const String& name, const String& value)
 	mDefines[name] = value;
 }
 
-const ShaderVariationParameters ShaderVariationParameters::kEmpty;
+const ShaderVariationParameters ShaderVariationParameters::kEmpty {};
 
 ShaderVariationParameters::ShaderVariationParameters(const SmallVector<ShaderVariationParameter, 4>& params)
-{
-	for(auto& entry : params)
-		mParams[entry.Name] = entry;
-}
+	: mParams(params)
+{ }
 
 i32 ShaderVariationParameters::GetInt(const StringID& name)
 {
-	auto iterFind = mParams.find(name);
-	if(iterFind == mParams.end())
+	const ShaderVariationParameter* const parameter = FindParameter(name);
+	if(parameter == nullptr)
 		return 0;
-	else
-		return iterFind->second.I;
+
+	return parameter->I;
 }
 
 u32 ShaderVariationParameters::GetUInt(const StringID& name)
 {
-	auto iterFind = mParams.find(name);
-	if(iterFind == mParams.end())
+	const ShaderVariationParameter* const parameter = FindParameter(name);
+	if(parameter == nullptr)
 		return 0;
-	else
-		return iterFind->second.Ui;
+
+	return parameter->Ui;
 }
 
 float ShaderVariationParameters::GetFloat(const StringID& name)
 {
-	auto iterFind = mParams.find(name);
-	if(iterFind == mParams.end())
+	const ShaderVariationParameter* const parameter = FindParameter(name);
+	if(parameter == nullptr)
 		return 0.0f;
-	else
-		return iterFind->second.F;
+
+	return parameter->F;
 }
 
 bool ShaderVariationParameters::GetBool(const StringID& name)
 {
-	auto iterFind = mParams.find(name);
-	if(iterFind == mParams.end())
+	const ShaderVariationParameter* const parameter = FindParameter(name);
+	if(parameter == nullptr)
 		return false;
-	else
-		return iterFind->second.I > 0 ? true : false;
+
+	return parameter->I > 0 ? true : false;
 }
 
 void ShaderVariationParameters::SetInt(const StringID& name, i32 value)
@@ -95,7 +93,7 @@ Vector<String> ShaderVariationParameters::GetParamNames() const
 	params.reserve(mParams.size());
 
 	for(auto& entry : mParams)
-		params.push_back(entry.first);
+		params.push_back(entry.Name);
 
 	return params;
 }
@@ -115,19 +113,19 @@ String ShaderVariationParameters::CreateVariationName() const
 			output << "-";
 		}
 
-		output << entry.first.CStr() << "=";
+		output << entry.Name.CStr() << "=";
 
-		switch(entry.second.Type)
+		switch(entry.Type)
 		{
 		case ShaderVariationParameterType::Int:
 		case ShaderVariationParameterType::Bool:
-			output << ToString(entry.second.I);
+			output << ToString(entry.I);
 			break;
 		case ShaderVariationParameterType::UInt:
-			output << ToString(entry.second.Ui);
+			output << ToString(entry.Ui);
 			break;
 		case ShaderVariationParameterType::Float:
-			output << ToString(entry.second.F);
+			output << ToString(entry.F);
 			break;
 		}
 	}
@@ -140,17 +138,17 @@ ShaderDefines ShaderVariationParameters::GetDefines() const
 	ShaderDefines defines;
 	for(auto& entry : mParams)
 	{
-		switch(entry.second.Type)
+		switch(entry.Type)
 		{
 		case ShaderVariationParameterType::Int:
 		case ShaderVariationParameterType::Bool:
-			defines.Set(entry.first.CStr(), entry.second.I);
+			defines.Set(entry.Name.CStr(), entry.I);
 			break;
 		case ShaderVariationParameterType::UInt:
-			defines.Set(entry.first.CStr(), entry.second.Ui);
+			defines.Set(entry.Name.CStr(), entry.Ui);
 			break;
 		case ShaderVariationParameterType::Float:
-			defines.Set(entry.first.CStr(), entry.second.F);
+			defines.Set(entry.Name.CStr(), entry.F);
 			break;
 		}
 	}
@@ -162,11 +160,11 @@ bool ShaderVariationParameters::Matches(const ShaderVariationParameters& other, 
 {
 	for(auto& entry : other.mParams)
 	{
-		const auto iterFind = mParams.find(entry.first);
-		if(iterFind == mParams.end())
+		const ShaderVariationParameter* const foundParameter = FindParameter(entry.Name);
+		if(foundParameter == nullptr)
 			return false;
 
-		if(entry.second.I != iterFind->second.I)
+		if(entry.I != foundParameter->I)
 			return false;
 	}
 
@@ -174,16 +172,47 @@ bool ShaderVariationParameters::Matches(const ShaderVariationParameters& other, 
 	{
 		for(auto& entry : mParams)
 		{
-			const auto iterFind = other.mParams.find(entry.first);
-			if(iterFind == other.mParams.end())
+		const ShaderVariationParameter* const foundParameter = other.FindParameter(entry.Name);
+			if(foundParameter == nullptr)
 				return false;
 
-			if(entry.second.I != iterFind->second.I)
+			if(entry.I != foundParameter->I)
 				return false;
 		}
 	}
 
 	return true;
+}
+
+void ShaderVariationParameters::AddParam(const ShaderVariationParameter& param)
+{
+	if(!B3D_ENSURE(FindParameter(param.Name) == nullptr))
+		return;
+	
+	mParams.Add(param);
+}
+
+void ShaderVariationParameters::RemoveParam(const StringID& paramName)
+{
+	for(auto it = mParams.begin(); it != mParams.end(); ++it)
+	{
+		if(it->Name == paramName)
+		{
+			mParams.erase(it);
+			return;
+		}
+	}
+}
+
+const ShaderVariationParameter* ShaderVariationParameters::FindParameter(const StringID& name) const
+{
+	for(auto& entry : mParams)
+	{
+		if(entry.Name == name)
+			return &entry;
+	}
+
+	return nullptr;
 }
 
 bool ShaderVariationParameters::operator==(const ShaderVariationParameters& rhs) const

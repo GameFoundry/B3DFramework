@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsStringIDRTTI.h"
 #include "RTTI/BsStdRTTI.h"
+#include "RTTI/BsSmallVectorRTTI.h"
 #include "Material/BsShaderVariation.h"
 
 namespace bs

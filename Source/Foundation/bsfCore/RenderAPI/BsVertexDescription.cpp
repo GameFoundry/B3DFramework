@@ -153,8 +153,8 @@ static Mutex gVertexDescriptionCacheMutex;
 static UnorderedMap<VertexDescription, u32> gVertexDescriptionCache;
 static u32 gNextVertexDescriptionId = 1;
 
-VertexDescription::VertexDescription(const SmallVector<VertexElement, 8>& elements, bool calculateOffsets)
-	:mVertexElements(elements)
+VertexDescription::VertexDescription(const ArrayView<VertexElement>& elements, bool calculateOffsets)
+	: mVertexElements(SmallVector<VertexElement, 8>(elements.begin(), elements.end()))
 {
 	// Sort by stream, but preserve remaining ordering
 	std::stable_sort(mVertexElements.begin(), mVertexElements.end(), [](const VertexElement& lhs, const VertexElement& rhs)
@@ -175,10 +175,6 @@ VertexDescription::VertexDescription(const SmallVector<VertexElement, 8>& elemen
 		gVertexDescriptionCache[*this] = mId;
 	}
 }
-
-VertexDescription::VertexDescription(const Vector<VertexElement>& elements, bool calculateOffsets)
-	: VertexDescription(SmallVector<VertexElement, 8>(elements.begin(), elements.end()), calculateOffsets)
-{ }
 
 bool VertexDescription::operator==(const VertexDescription& rhs) const
 {

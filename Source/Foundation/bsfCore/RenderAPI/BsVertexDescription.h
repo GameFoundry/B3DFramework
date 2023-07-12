@@ -130,8 +130,7 @@ namespace bs
 	class B3D_CORE_EXPORT VertexDescription : public IReflectable
 	{
 	public:
-		VertexDescription(const SmallVector<VertexElement, 8>& elements, bool calculateOffsets = true);
-		VertexDescription(const Vector<VertexElement>& elements, bool calculateOffsets = true);
+		VertexDescription(const ArrayView<VertexElement>& elements, bool calculateOffsets = true);
 
 		bool operator==(const VertexDescription& rhs) const;
 		bool operator!=(const VertexDescription& rhs) const { return !operator==(rhs); }

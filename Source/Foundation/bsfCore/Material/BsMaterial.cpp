@@ -98,16 +98,15 @@ u32 TMaterial<Core>::FindTechnique(const FindVariationInformation& desc) const
 			SearchResult matchesSearch = NoParam;
 			if(desc.VariationParameters)
 			{
-				const auto& searchVarParams = desc.VariationParameters->GetParams();
-				const auto findSearch = searchVarParams.find(param.first);
-				if(findSearch != searchVarParams.end())
-					matchesSearch = findSearch->second.I == param.second.I ? Matching : NotMatching;
+				const auto findSearch = desc.VariationParameters->FindParameter(param.Name);
+				if(findSearch != nullptr)
+					matchesSearch = findSearch->I == param.I ? Matching : NotMatching;
 			}
 
 			SearchResult matchesInternal = NoParam;
-			const auto findInternal = internalVarParams.find(param.first);
-			if(findInternal != internalVarParams.end())
-				matchesInternal = findInternal->second.I == param.second.I ? Matching : NotMatching;
+			const auto findInternal = mVariation.FindParameter(param.Name);
+			if(findInternal != nullptr)
+				matchesInternal = findInternal->I == param.I ? Matching : NotMatching;
 
 			switch(matchesSearch)
 			{
@@ -118,7 +117,7 @@ u32 TMaterial<Core>::FindTechnique(const FindVariationInformation& desc) const
 				default:
 				case NoParam:
 					// When it comes to parameters not part of the search, prefer those with 0 default value
-					currentScore += param.second.Ui;
+					currentScore += param.Ui;
 					break;
 				case NotMatching:
 					foundMatch = false;
@@ -226,16 +225,16 @@ u32 TMaterial<Core>::GetDefaultTechnique() const
 			};
 
 			SearchResult matches = NoParam;
-			const auto findInternal = internalVarParams.find(param.first);
-			if(findInternal != internalVarParams.end())
-				matches = findInternal->second.I == param.second.I ? Matching : NotMatching;
+			const auto findInternal = mVariation.FindParameter(param.Name);
+			if(findInternal != nullptr)
+				matches = findInternal->I == param.I ? Matching : NotMatching;
 
 			switch(matches)
 			{
 			default:
 			case NoParam:
 				// When it comes to parameters not part of the search, prefer those with 0 default value
-				currentScore += param.second.Ui;
+				currentScore += param.Ui;
 				break;
 			case NotMatching:
 				foundMatch = false;

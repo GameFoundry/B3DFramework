@@ -162,6 +162,22 @@ namespace bs
 		 */
 		VertexElemIter<u32> GetDwordDataIter(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0);
 
+		/**
+		 * Returns an iterator you can use for easily retrieving or setting vertex elements. This is the preferred
+		 * method of assigning or reading vertex data.
+		 *
+		 * @note	If vertex data of this type/semantic/index/stream doesn't exist and exception will be thrown.
+		 */
+		template<class T>
+		VertexElemIter<T> GetVertexIterator(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0)
+		{
+				u8* data;
+				u32 vertexStride;
+				GetDataForIterator(semantic, semanticIndex, streamIndex, data, vertexStride);
+
+				return VertexElemIter<T>(data, vertexStride, mVertexCount);
+		}
+
 		/** Returns the total number of vertices this object can hold. */
 		u32 GetVertexCount() const { return mVertexCount; }
 
