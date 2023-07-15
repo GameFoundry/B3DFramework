@@ -168,7 +168,7 @@ shader VectorGraphics
 
 	code
 	{
-		cbuffer Parameters
+		cbuffer RenderUniforms
 		{
 			float4x4 gScissorMatrix;
 			float4x4 gPaintMatrix;
@@ -181,6 +181,10 @@ shader VectorGraphics
 			float gFeather;
 			float gStrokeMultiplier;
 			float gStrokeThreshold;
+		}
+
+		cbuffer ViewUniforms
+		{
 			float2 gViewportOffset;
 			float2 gInverseViewportHalfSize;
 			float gViewportYFlip;
@@ -194,8 +198,8 @@ shader VectorGraphics
             out float2 outVertexPosition : VPOS
             )
         {
-            outPosition.x = -1.0f + ((gViewportOffset.x + inPosition.x) * gInverseViewportSize.x);
-            outPosition.y = (1.0f - ((gViewportOffset.y + inPosition.y) * gInverseViewportSize.y)) * gViewportYFlip;
+            outPosition.x = -1.0f + ((gViewportOffset.x + inPosition.x) * gInverseViewportHalfSize.x);
+            outPosition.y = (1.0f - ((gViewportOffset.y + inPosition.y) * gInverseViewportHalfSize.y)) * gViewportYFlip;
 			outPosition.zw = float2(0.0f, 1.0f);
 
 			outUV = inUV;

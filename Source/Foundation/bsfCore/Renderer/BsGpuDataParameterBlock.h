@@ -115,56 +115,65 @@ namespace bs
  * to GPU program buffers (for example uniform buffer in OpenGL or constant buffer in DX). Must be followed by
  * B3D_PARAM_BLOCK_END.
  */
-#define B3D_PARAM_BLOCK_BEGIN(Name)                                                                  \
-	struct Name : GpuDataParameterBlock                                                              \
-	{                                                                                                \
-		Name()                                                                                       \
-		{                                                                                            \
-			GpuDataParameterBlockManager::RegisterBlock(this);                                       \
-		}                                                                                            \
-                                                                                                     \
-		SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const             \
-		{																												\
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();								\
-			if (gpuDevice)																								\
-				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags));		\
-																														\
-			return nullptr;																								\
-		}                                                                                            \
-																									 \
-		u32 GetSize() const																			 \
-		{																						     \
-			return mBlockSize;																		 \
-		}																							 \
-                                                                                                     \
-	private:                                                                                         \
-		friend class ParamBlockManager;                                                              \
-                                                                                                     \
-		void Initialize() override                                                                   \
-		{                                                                                            \
-			mParams = GetEntries();                                                                  \
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();			 \
-			if(gpuDevice)																			 \
-			{																						 \
-																									 \
-				GpuDataParameterBlockInformation blockInformation = gpuDevice->GenerateUniformBlockInformation(#Name, mParams);  \
-				mBlockSize = blockInformation.BlockSize * sizeof(u32);								 \
-			}																						 \
-			else																					 \
-			{																						 \
-				mBlockSize = 0;																		 \
-			}																						 \
-                                                                                                     \
-			InitEntries();                                                                           \
-		}                                                                                            \
-                                                                                                     \
-		struct META_FirstEntry                                                                       \
-		{};                                                                                          \
-		static void META_GetPrevEntries(Vector<GpuDataParameterInformation>& params, META_FirstEntry id)        \
-		{}                                                                                           \
-		void META_InitPrevEntry(const Vector<GpuDataParameterInformation>& params, u32 idx, META_FirstEntry id) \
-		{}                                                                                           \
-                                                                                                     \
+#define B3D_PARAM_BLOCK_BEGIN(Name)                                                                                                                          \
+	struct Name : GpuDataParameterBlock                                                                                                                      \
+	{                                                                                                                                                        \
+		Name()                                                                                                                                               \
+		{                                                                                                                                                    \
+			GpuDataParameterBlockManager::RegisterBlock(this);                                                                                               \
+		}                                                                                                                                                    \
+                                                                                                                                                             \
+		SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const            \
+		{                                                                                                                                                    \
+			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			if(gpuDevice)                                                                                                                                    \
+				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags));                                             \
+                                                                                                                                                             \
+			return nullptr;                                                                                                                                  \
+		}                                                                                                                                                    \
+                                                                                                                                                             \
+		SPtr<GpuBuffer> CreateBuffer(u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const \
+		{                                                                                                                                                    \
+			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			if(gpuDevice)                                                                                                                                    \
+				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(Math::CeilToMultiple(mBlockSize, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment) * count, flags));                                     \
+                                                                                                                                                             \
+			return nullptr;                                                                                                                                  \
+		}                                                                                                                                                    \
+                                                                                                                                                             \
+		u32 GetSize() const                                                                                                                                  \
+		{                                                                                                                                                    \
+			return mBlockSize;                                                                                                                               \
+		}                                                                                                                                                    \
+                                                                                                                                                             \
+	private:                                                                                                                                                 \
+		friend class ParamBlockManager;                                                                                                                      \
+                                                                                                                                                             \
+		void Initialize() override                                                                                                                           \
+		{                                                                                                                                                    \
+			mParams = GetEntries();                                                                                                                          \
+			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			if(gpuDevice)                                                                                                                                    \
+			{                                                                                                                                                \
+                                                                                                                                                             \
+				GpuDataParameterBlockInformation blockInformation = gpuDevice->GenerateUniformBlockInformation(#Name, mParams);                              \
+				mBlockSize = blockInformation.BlockSize * sizeof(u32);                                                                                       \
+			}                                                                                                                                                \
+			else                                                                                                                                             \
+			{                                                                                                                                                \
+				mBlockSize = 0;                                                                                                                              \
+			}                                                                                                                                                \
+                                                                                                                                                             \
+			InitEntries();                                                                                                                                   \
+		}                                                                                                                                                    \
+                                                                                                                                                             \
+		struct META_FirstEntry                                                                                                                               \
+		{};                                                                                                                                                  \
+		static void META_GetPrevEntries(Vector<GpuDataParameterInformation>& params, META_FirstEntry id)                                                     \
+		{}                                                                                                                                                   \
+		void META_InitPrevEntry(const Vector<GpuDataParameterInformation>& params, u32 idx, META_FirstEntry id)                                              \
+		{}                                                                                                                                                   \
+                                                                                                                                                             \
 		typedef META_FirstEntry
 
 /**

@@ -19,7 +19,8 @@ namespace bs
 		float Scale = 1.0f;
 		Matrix4 Transform = Matrix4::kIdentity;
 		RectOffset Scale9GridBorder;
-		bool UseAntialiasing = false;
+		bool UseAntialiasing = true;
+		bool StencilStrokes = true;
 		float DevicePixelRatio = 1.0f;
 	};
 
