@@ -6,10 +6,245 @@
 #include <ThirdParty/nanovg.h>
 
 #include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsGpuPipelineParameterLayout.h"
 #include "Renderer/BsGpuDataParameterBlock.h"
 #include "Renderer/BsRendererMaterial.h"
+#include "Private/RTTI/BsVectorGraphicsRTTI.h"
 
 using namespace bs;
+
+namespace bs
+{
+	VectorPath& VectorPath::SetDrawCursor(const Vector2& cursor)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::SetDrawCursor;
+		command.SetDrawCursor.Position = cursor;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetWinding(VectorGraphicsPathWinding winding)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::SetPathWinding;
+		command.SetPathWinding.Winding = winding;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::ClosePath()
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::ClosePath;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawLineTo(const Vector2& target)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawLineTo;
+		command.DrawLineTo.Target = target;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawArcTo(const Vector2& middlePoint, const Vector2& endPoint, float radius)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawArcTo;
+		command.DrawArcTo.MiddlePoint = middlePoint;
+		command.DrawArcTo.EndPoint = endPoint;
+		command.DrawArcTo.Radius = radius;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawQuadraticBezierTo(const Vector2& controlPoint, const Vector2& endPoint)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawQuadraticBezierTo;
+		command.DrawQuadraticBezierTo.ControlPoint = controlPoint;
+		command.DrawQuadraticBezierTo.EndPoint = endPoint;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawCubicBezierTo(const Vector2& controlPoint1, const Vector2& controlPoint2, const Vector2& endPoint)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawCubicBezierTo;
+		command.DrawCubicBezierTo.ControlPoint1 = controlPoint1;
+		command.DrawCubicBezierTo.ControlPoint2 = controlPoint2;
+		command.DrawCubicBezierTo.EndPoint = endPoint;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawRectangle(const Rect2& area)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawRectangle;
+		command.DrawRectangle.Area = area;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawRoundedRectangle(const Rect2& area, float cornerRadius)
+	{
+		return DrawRoundedRectangle(area, cornerRadius, cornerRadius, cornerRadius, cornerRadius);
+	}
+
+	VectorPath& VectorPath::DrawRoundedRectangle(const Rect2& area, float topLeftCornerRadius, float topRightCornerRadius, float bottomLeftCornerRadius, float bottomRightCornerRadius)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawRoundedRectangle;
+	    command.DrawRoundedRectangle.Area = area;
+		command.DrawRoundedRectangle.RadiusTopLeft = topLeftCornerRadius;
+		command.DrawRoundedRectangle.RadiusTopRight = topRightCornerRadius;
+		command.DrawRoundedRectangle.RadiusBottomLeft = bottomLeftCornerRadius;
+		command.DrawRoundedRectangle.RadiusBottomRight = bottomRightCornerRadius;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawCircle(const Vector2& origin, float radius)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawEllipse;
+		command.DrawEllipse.Origin = origin;
+		command.DrawEllipse.Radius = Vector2(radius, radius);
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawEllipse(const Vector2& origin, const Vector2& radius)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawEllipse;
+		command.DrawEllipse.Origin = origin;
+		command.DrawEllipse.Radius = radius;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawArc(const Vector2& origin, float radius, Radian startAngle, Radian endAngle, VectorGraphicsPathWinding direction)
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::DrawArc;
+		command.DrawArc.Origin = origin;
+		command.DrawArc.Radius = radius;
+		command.DrawArc.StartAngle = startAngle;
+		command.DrawArc.EndAngle = endAngle;
+		command.DrawArc.Direction = direction;
+
+		mCommands.push_back(command);
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetFillPaint(const VectorGraphicsPaint& paint)
+	{
+		mCurrentState.FillPaint = paint;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetStrokePaint(const VectorGraphicsPaint& paint)
+	{
+		mCurrentState.StrokePaint = paint;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetStrokeWidth(float strokeWidth)
+	{
+		mCurrentState.StrokeWidth = strokeWidth;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetMiterLimit(float miterLimit)
+	{
+		mCurrentState.MiterLimit = miterLimit;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetLineCapType(VectorGraphicsLineCapType lineCap)
+	{
+		mCurrentState.LineCapType = lineCap;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetLineJoinType(VectorGraphicsLineJoinStyle lineJoin)
+	{
+		mCurrentState.LineJoinType = lineJoin;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetAlpha(float alpha)
+	{
+		mCurrentState.Alpha = alpha;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetBlendMode(VectorGraphicsBlendMode blendMode)
+	{
+		mCurrentState.BlendMode = blendMode;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetAntialiasShapes(bool antialiasShapes)
+	{
+		mCurrentState.AntialiasShape = antialiasShapes;
+		return *this;
+	}
+
+	VectorPath& VectorPath::SetScissorRectangle(const Rect2& scissorArea)
+	{
+		mCurrentState.ScissorArea = scissorArea;
+		return *this;
+	}
+
+	VectorPath& VectorPath::ClearScissor()
+	{
+		mCurrentState.ScissorArea = Rect2::kEmpty;
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawFill()
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::Fill;
+		command.Fill.StateIndex = (u32)mCommandStates.size();
+
+		mCommandStates.push_back(mCurrentState);
+		mCommands.push_back(command);
+
+		return *this;
+	}
+
+	VectorPath& VectorPath::DrawStroke()
+	{
+		VectorPathCommand command;
+		command.Type = VectorPathCommandType::Stroke;
+		command.Stroke.StateIndex = (u32)mCommandStates.size();
+
+		mCommandStates.push_back(mCurrentState);
+		mCommands.push_back(command);
+
+		return *this;
+	}
+
+} // namespace bs
 
 struct NVGVertex
 {
@@ -37,13 +272,6 @@ struct NVGRenderUniforms
 	float StrokeThreshold;
 };
 
-struct NVGViewUniforms
-{
-	Vector2 ViewportOffset;
-	Vector2 InverseViewportHalfSize;
-	float ViewportYFlip;
-};
-
 enum class NVGRenderCommandType
 {
 	Fill,
@@ -51,26 +279,11 @@ enum class NVGRenderCommandType
 	Stroke
 };
 
-enum class NVGBlendMode
-{
-	SourceOver,
-	SourceIn,
-	SourceOut,
-	Atop,
-	DestinationOver,
-	DestinationIn,
-	DestinationOut,
-	DestinationAtop,
-	Lighter,
-	Copy,
-	Xor
-};
-
 struct NVGRenderCommand
 {
 	NVGRenderCommandType Type;
 	u32 PathCount;
-	NVGBlendMode BlendMode;
+	VectorGraphicsBlendMode BlendMode;
 	NVGRenderUniforms PrimaryPassUniforms;
 	Optional<NVGRenderUniforms> SecondaryPassUniforms;
 	
@@ -78,7 +291,7 @@ struct NVGRenderCommand
 
 struct NVGUserContext
 {
-	VectorShapeSettings Settings;
+	VectorGraphicsSettings Settings;
 
 	// Note: All of these should be serializable so I can cache this information without having to re-play all the commands
 	Vector<NVGVertex> Vertices;
@@ -95,7 +308,7 @@ enum class NVGDrawMode
 	StrokeStencil,
 	StrokeAA,
 	ClearStencil,
-	FillConvex,
+	FillSimple,
 };
 
 namespace bs::ct
@@ -129,7 +342,7 @@ namespace bs::ct
 		RMAT_DEF("VectorGraphics.bsl");
 
 		/** Helper method used for initializing variations of this material. */
-		template <NVGDrawMode DrawMode, NVGBlendMode BlendMode, bool Antialiasing>
+		template <NVGDrawMode DrawMode, VectorGraphicsBlendMode BlendMode, bool Antialiasing>
 		static const ShaderVariationParameters& GetVariation()
 		{
 			static ShaderVariationParameters variation = ShaderVariationParameters(
@@ -148,7 +361,7 @@ namespace bs::ct
 
 		void Execute(const SPtr<Mesh>& mesh, const SubMesh& subMesh);
 
-		static VectorGraphicsMaterial* GetVariation(NVGDrawMode drawMode, NVGBlendMode blendMode, bool antialiasing);
+		static VectorGraphicsMaterial* GetVariation(NVGDrawMode drawMode, VectorGraphicsBlendMode blendMode, bool antialiasing);
 	};
 
 	void VectorGraphicsMaterial::Initialize()
@@ -161,7 +374,7 @@ namespace bs::ct
 		// TODO
 	}
 
-	VectorGraphicsMaterial* VectorGraphicsMaterial::GetVariation(NVGDrawMode drawMode, NVGBlendMode blendMode, bool antialiasing)
+	VectorGraphicsMaterial* VectorGraphicsMaterial::GetVariation(NVGDrawMode drawMode, VectorGraphicsBlendMode blendMode, bool antialiasing)
 	{
 		return Get(ShaderVariationParameters(
 			{
@@ -172,36 +385,36 @@ namespace bs::ct
 	}
 }
 
-static NVGBlendMode NVGCompositeOperationToBlendMode(const NVGcompositeOperationState& compositeOperationState)
+static VectorGraphicsBlendMode NVGCompositeOperationToBlendMode(const NVGcompositeOperationState& compositeOperationState)
 {
 	B3D_ASSERT(compositeOperationState.srcRGB == compositeOperationState.srcAlpha);
 	B3D_ASSERT(compositeOperationState.dstRGB == compositeOperationState.dstAlpha);
 
 	if(compositeOperationState.srcRGB == NVG_ONE && compositeOperationState.dstRGB == NVG_ONE_MINUS_SRC_ALPHA)
-		return NVGBlendMode::SourceOver;
+		return VectorGraphicsBlendMode::SourceOver;
 	else if(compositeOperationState.srcRGB == NVG_DST_ALPHA && compositeOperationState.dstRGB == NVG_ZERO)
-		return NVGBlendMode::SourceIn;
+		return VectorGraphicsBlendMode::SourceIn;
 	else if(compositeOperationState.srcRGB == NVG_ONE_MINUS_DST_ALPHA && compositeOperationState.dstRGB == NVG_ZERO)
-		return NVGBlendMode::SourceOut;
+		return VectorGraphicsBlendMode::SourceOut;
 	else if(compositeOperationState.srcRGB == NVG_DST_ALPHA && compositeOperationState.dstRGB == NVG_ONE_MINUS_SRC_ALPHA)
-		return NVGBlendMode::Atop;
+		return VectorGraphicsBlendMode::Atop;
 	else if(compositeOperationState.srcRGB == NVG_ONE_MINUS_DST_ALPHA && compositeOperationState.dstRGB == NVG_ONE)
-		return NVGBlendMode::DestinationOver;
+		return VectorGraphicsBlendMode::DestinationOver;
 	else if(compositeOperationState.srcRGB == NVG_ZERO && compositeOperationState.dstRGB == NVG_SRC_ALPHA)
-		return NVGBlendMode::DestinationIn;
+		return VectorGraphicsBlendMode::DestinationIn;
 	else if(compositeOperationState.srcRGB == NVG_ZERO && compositeOperationState.dstRGB == NVG_ONE_MINUS_SRC_ALPHA)
-		return NVGBlendMode::DestinationOut;
+		return VectorGraphicsBlendMode::DestinationOut;
 	else if(compositeOperationState.srcRGB == NVG_ONE_MINUS_DST_ALPHA && compositeOperationState.dstRGB == NVG_SRC_ALPHA)
-		return NVGBlendMode::DestinationAtop;
+		return VectorGraphicsBlendMode::DestinationAtop;
 	else if(compositeOperationState.srcRGB == NVG_ONE && compositeOperationState.dstRGB == NVG_ONE)
-		return NVGBlendMode::Lighter;
+		return VectorGraphicsBlendMode::Lighter;
 	else if(compositeOperationState.srcRGB == NVG_ONE && compositeOperationState.dstRGB == NVG_ZERO)
-		return NVGBlendMode::Copy;
+		return VectorGraphicsBlendMode::Copy;
 	else if(compositeOperationState.srcRGB == NVG_ONE_MINUS_DST_ALPHA && compositeOperationState.dstRGB == NVG_ONE_MINUS_SRC_ALPHA)
-		return NVGBlendMode::Xor;
+		return VectorGraphicsBlendMode::Xor;
 
 	B3D_ENSURE(false);
-	return NVGBlendMode::SourceOver;
+	return VectorGraphicsBlendMode::SourceOver;
 }
 
 static Matrix4 NVGTransformToB3DMatrix(float* transform)
@@ -251,12 +464,10 @@ static NVGRenderUniforms CreateNVGRenderUniformParameters(NVGpaint* paint, NVGsc
 	return uniformParameters;
 }
 
-static NVGViewUniforms CreateNVGViewUniformParameters(const Rect2I& viewRegion)
+static void PopulateViewUniformBuffer(const SPtr<ct::GpuBuffer>& uniformBuffer, const Rect2I& viewRegion)
 {
-	NVGViewUniforms uniformParameters;
-
-	uniformParameters.ViewportOffset = Vector2(-(float)viewRegion.X, -(float)viewRegion.Y);
-	uniformParameters.InverseViewportHalfSize = Vector2(1.0f / ((float)viewRegion.Width * 0.5f), 1.0f / ((float)viewRegion.Height * 0.5f));
+	ct::gVectorGraphicsViewUniforms.gViewportOffset.Set(uniformBuffer, Vector2(-(float)viewRegion.X, -(float)viewRegion.Y));
+	ct::gVectorGraphicsViewUniforms.gInverseViewportHalfSize.Set(uniformBuffer, Vector2(1.0f / ((float)viewRegion.Width * 0.5f), 1.0f / ((float)viewRegion.Height * 0.5f)));
 
 	bool viewportYFlip = true;
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -266,9 +477,7 @@ static NVGViewUniforms CreateNVGViewUniformParameters(const Rect2I& viewRegion)
 		viewportYFlip = gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 	}
 
-	uniformParameters.ViewportYFlip = viewportYFlip ? -1.0f : 1.0f;
-
-	return uniformParameters;
+	ct::gVectorGraphicsViewUniforms.gViewportYFlip.Set(uniformBuffer, viewportYFlip ? -1.0f : 1.0f);
 }
 
 static void NVGRenderFill(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, const float* bounds, const NVGpath* paths, int npaths)
@@ -453,8 +662,10 @@ static void NVGRenderStroke(void* uptr, NVGpaint* paint, NVGcompositeOperationSt
 	userContext.RenderCommands.push_back(renderCommand);
 }
 
-static void PlaybackNVGRenderCommands(const NVGUserContext& userContext)
+static void PlaybackNVGRenderCommands(const NVGUserContext& userContext, ct::GpuCommandBuffer& commandBuffer)
 {
+	const VectorGraphicsSettings& settings = userContext.Settings;
+
 	// TODO - Mesh and uniform buffers should be cached
 
 	// Create mesh
@@ -485,7 +696,25 @@ static void PlaybackNVGRenderCommands(const NVGUserContext& userContext)
 	if(vertexCount == 0 || indexCount == 0)
 		return;
 
-	const SPtr<ct::Mesh> mesh = ct::Mesh::Create(meshData, creationInformation);
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if(!gpuDevice)
+		return;
+
+	GpuBufferInformation indexBufferCreateInformation;
+	indexBufferCreateInformation.Type = GpuBufferType::Index;
+	indexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
+	indexBufferCreateInformation.Index.Type = IT_32BIT;
+	indexBufferCreateInformation.Index.Count = indexCount;
+
+	const SPtr<ct::GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
+
+	GpuBufferCreateInformation vertexBufferCreateInformation;
+	vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
+	vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
+	vertexBufferCreateInformation.Vertex.ElementSize = vertexDescription->GetVertexStride();
+	vertexBufferCreateInformation.Vertex.Count = vertexCount;
+
+	const SPtr<ct::GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 	u32 uniformBlockCount = 0;
 	for(const auto& command : userContext.RenderCommands)
@@ -493,19 +722,19 @@ static void PlaybackNVGRenderCommands(const NVGUserContext& userContext)
 		switch(command.Type)
 		{
 		case NVGRenderCommandType::Fill:
-			uniformBlockCount++;
-			break;
-		case NVGRenderCommandType::ConvexFill:
 			uniformBlockCount += 2;
 			break;
+		case NVGRenderCommandType::ConvexFill:
+			uniformBlockCount++;
+			break;
 		case NVGRenderCommandType::Stroke:
-			uniformBlockCount += userContext.Settings.StencilStrokes ? 2 : 1;
+			uniformBlockCount += settings.StencilStrokes ? 2 : 1;
 			break;
 		}
 	}
 
-	// Create uniform buffer
-	const SPtr<ct::GpuBuffer> uniformBuffer = ct::gVectorGraphicsRenderUniforms.CreateBuffer(uniformBlockCount);
+	// Create uniform buffers
+	const SPtr<ct::GpuBuffer> renderUniformBuffer = ct::gVectorGraphicsRenderUniforms.CreateBuffer(uniformBlockCount);
 	B3D_ASSERT(ct::gVectorGraphicsRenderUniforms.GetSize() == sizeof(NVGRenderUniforms)); // TODO - I need a way to assign parameter block entries into a particular uniform block, so I don't just do a memcpy (it might not work everywhere)
 
 	NVGRenderUniforms simplePassUniforms;
@@ -516,7 +745,7 @@ static void PlaybackNVGRenderCommands(const NVGUserContext& userContext)
 	if(const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice())
 		uniformBlockStride = Math::CeilToMultiple(uniformBlockStride, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
 
-	u8* uniformBufferData = (u8*)uniformBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
+	u8* uniformBufferData = (u8*)renderUniformBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 	for(const auto& command : userContext.RenderCommands)
 	{
@@ -532,63 +761,160 @@ static void PlaybackNVGRenderCommands(const NVGUserContext& userContext)
 			uniformBufferData += uniformBlockStride;
 			break;
 		case NVGRenderCommandType::Stroke:
-			memcpy(uniformBufferData, &command.PrimaryPassUniforms, sizeof(command.PrimaryPassUniforms));
-			uniformBufferData += uniformBlockStride;
-
-			if(userContext.Settings.StencilStrokes && B3D_ENSURE(command.SecondaryPassUniforms.has_value()))
+			if(settings.StencilStrokes && B3D_ENSURE(command.SecondaryPassUniforms.has_value()))
 			{
 				memcpy(uniformBufferData, &command.SecondaryPassUniforms.value(), sizeof(command.SecondaryPassUniforms.value()));
 				uniformBufferData += uniformBlockStride;
 			}
 
+			memcpy(uniformBufferData, &command.PrimaryPassUniforms, sizeof(command.PrimaryPassUniforms));
+			uniformBufferData += uniformBlockStride;
+
 			break;
 		}
 	}
 
-	uniformBuffer->Unlock();
+	renderUniformBuffer->Unlock();
 
-	//// Execute draw commands
-	//u32 uniformBlockIndex = 0;
-	//u32 submeshIndex = 0;
-	//for(const auto& command : userContext.RenderCommands)
-	//{
-	//	switch(command.Type)
-	//	{
-	//	case NVGRenderCommandType::Fill:
-	//		commandBuffer.SetGpuParameters()
+	const SPtr<ct::GpuBuffer> viewUniformBuffer = ct::gVectorGraphicsViewUniforms.CreateBuffer();
+	PopulateViewUniformBuffer(viewUniformBuffer, Rect2I(0, 0, settings.Size.Width, settings.Size.Height));
 
+	SPtr<ct::GpuBuffer> vertexBuffers[] = { vertexBuffer };
+	commandBuffer.SetVertexBuffers(0, vertexBuffers, 1);
+	commandBuffer.SetIndexBuffer(indexBuffer); // TODO - We shouldn't need one at all actually
+	commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
 
-	//		memcpy(uniformBufferData, &simplePassUniforms, sizeof(simplePassUniforms));
-	//		uniformBufferData += uniformBlockStride;
+	// Note: The parameter layout for all variations must match
+	const SPtr<ct::GpuParameters> gpuParameters = ct::VectorGraphicsMaterial::Get()->GetParams();
+	gpuParameters->SetUniformBuffer("RenderUniforms", renderUniformBuffer);
+	gpuParameters->SetUniformBuffer("ViewUniforms", viewUniformBuffer);
 
-	//		// Fallthrough
-	//	case NVGRenderCommandType::ConvexFill:
-	//		memcpy(uniformBufferData, &command.PrimaryPassUniforms, sizeof(command.PrimaryPassUniforms));
-	//		uniformBufferData += uniformBlockStride;
-	//		break;
-	//	case NVGRenderCommandType::Stroke:
-	//		memcpy(uniformBufferData, &command.PrimaryPassUniforms, sizeof(command.PrimaryPassUniforms));
-	//		uniformBufferData += uniformBlockStride;
+	const u32 renderUniformBufferDynamicIndex = gpuParameters->GetPipelineParameterInformation()->GetDynamicOffsetIndex(GPT_FRAGMENT_PROGRAM, "RenderUniforms");
+	B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
 
-	//		if(userContext.Settings.StencilStrokes && B3D_ENSURE(command.SecondaryPassUniforms.has_value()))
-	//		{
-	//			memcpy(uniformBufferData, &command.SecondaryPassUniforms.value(), sizeof(command.SecondaryPassUniforms.value()));
-	//			uniformBufferData += uniformBlockStride;
-	//		}
+	commandBuffer.SetGpuParameters(gpuParameters);
 
-	//		break;
-	//	}
-	//}
+	// Execute draw commands
+	u32 uniformBlockIndex = 0;
+	u32 submeshIndex = 0;
+	for(const auto& command : userContext.RenderCommands)
+	{
+
+		switch(command.Type)
+		{
+		case NVGRenderCommandType::Fill:
+			{
+				const SubMesh& fillShapeStencilSubmesh = userContext.Submeshes[submeshIndex++];
+				commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+				uniformBlockIndex++;
+
+				ct::VectorGraphicsMaterial* const fillShapeStencilMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillShapeStencil, command.BlendMode, settings.UseAntialiasing);
+				if(B3D_ENSURE(fillShapeStencilMaterial))
+				{
+					commandBuffer.SetGpuGraphicsPipelineState(fillShapeStencilMaterial->GetGraphicsPipeline());
+					commandBuffer.DrawIndexed(fillShapeStencilSubmesh.IndexOffset, fillShapeStencilSubmesh.IndexCount, 0, vertexCount, 1);
+				}
+
+				const SubMesh& strokeSubmesh = userContext.Submeshes[submeshIndex++];
+				commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+				uniformBlockIndex++;
+
+				if(settings.UseAntialiasing)
+				{
+					ct::VectorGraphicsMaterial* const fillAAMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillAA, command.BlendMode, settings.UseAntialiasing);
+					if(B3D_ENSURE(fillAAMaterial))
+					{
+						commandBuffer.SetGpuGraphicsPipelineState(fillAAMaterial->GetGraphicsPipeline());
+						commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+					}
+				}
+
+				const SubMesh& quadSubmesh = userContext.Submeshes[submeshIndex++];
+				ct::VectorGraphicsMaterial* const fillDrawMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillDraw, command.BlendMode, settings.UseAntialiasing);
+				if(B3D_ENSURE(fillDrawMaterial))
+				{
+					commandBuffer.SetGpuGraphicsPipelineState(fillDrawMaterial->GetGraphicsPipeline());
+					commandBuffer.DrawIndexed(quadSubmesh.IndexOffset, quadSubmesh.IndexCount, 0, vertexCount, 1);
+				}
+			}
+			break;
+		case NVGRenderCommandType::ConvexFill:
+		{
+			ct::VectorGraphicsMaterial* const simpleFillMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillSimple, command.BlendMode, settings.UseAntialiasing);
+			if(B3D_ENSURE(simpleFillMaterial))
+			{
+				commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+				uniformBlockIndex++;
+
+				commandBuffer.SetGpuGraphicsPipelineState(simpleFillMaterial->GetGraphicsPipeline());
+				for(u32 pathIndex = 0; pathIndex < command.PathCount; pathIndex++)
+				{
+					// TODO - No need for multiple draw calls here, I can just intertwine these in a single buffer
+					const SubMesh& fillSubmesh = userContext.Submeshes[submeshIndex++];
+					commandBuffer.DrawIndexed(fillSubmesh.IndexOffset, fillSubmesh.IndexCount, 0, vertexCount, 1);
+
+					const SubMesh& strokeSubmesh = userContext.Submeshes[submeshIndex++];
+					commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+				}
+			}
+		}
+			break;
+		case NVGRenderCommandType::Stroke:
+			{
+				const SubMesh& strokeSubmesh = userContext.Submeshes[submeshIndex++];
+
+				commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+				uniformBlockIndex++;
+
+				if(settings.StencilStrokes)
+				{
+					ct::VectorGraphicsMaterial* const strokeStencilMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::StrokeStencil, command.BlendMode, settings.UseAntialiasing);
+					if(B3D_ENSURE(strokeStencilMaterial))
+					{
+						commandBuffer.SetGpuGraphicsPipelineState(strokeStencilMaterial->GetGraphicsPipeline());
+						commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+					}
+
+					commandBuffer.SetDynamicBufferOffset(renderUniformBufferDynamicIndex, uniformBlockIndex * uniformBlockStride);
+					uniformBlockIndex++;
+
+					ct::VectorGraphicsMaterial* const strokeAAMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::StrokeAA, command.BlendMode, settings.UseAntialiasing);
+					if(B3D_ENSURE(strokeAAMaterial))
+					{
+						commandBuffer.SetGpuGraphicsPipelineState(strokeAAMaterial->GetGraphicsPipeline());
+						commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+					}
+
+					ct::VectorGraphicsMaterial* const clearStencilMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::ClearStencil, command.BlendMode, settings.UseAntialiasing);
+					if(B3D_ENSURE(clearStencilMaterial))
+					{
+						commandBuffer.SetGpuGraphicsPipelineState(clearStencilMaterial->GetGraphicsPipeline());
+						commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+					}
+				}
+				else
+				{
+					ct::VectorGraphicsMaterial* const simpleFillMaterial = ct::VectorGraphicsMaterial::GetVariation(NVGDrawMode::FillSimple, command.BlendMode, settings.UseAntialiasing);
+					if(B3D_ENSURE(simpleFillMaterial))
+					{
+						commandBuffer.SetGpuGraphicsPipelineState(simpleFillMaterial->GetGraphicsPipeline());
+						commandBuffer.DrawIndexed(strokeSubmesh.IndexOffset, strokeSubmesh.IndexCount, 0, vertexCount, 1);
+					}
+				}
+			}
+			break;
+		}
+	}
 }
 
-static void NVGDrawPath(NVGcontext* nvgContext, const VectorPath& path, const VectorShapeSettings& settings)
+static void NVGDrawPath(NVGcontext* nvgContext, const VectorPath& path, const VectorGraphicsSettings& settings)
 {
 	// TODO - Draw path commands here
 
 	// TODO - Make sure to add support for scaling (regular and scale 9 grid)
 }
 
-void VectorGraphics::Render(const VectorPath& path, const VectorShapeSettings& settings)
+void VectorGraphics::Render(const VectorPath& path, const VectorGraphicsSettings& settings)
 {
 	NVGUserContext userContext;
 	userContext.Settings = settings;
@@ -597,7 +923,8 @@ void VectorGraphics::Render(const VectorPath& path, const VectorShapeSettings& s
 	B3DZeroOut(nvgParameters);
 
 	nvgParameters.userPtr = &userContext;
-	nvgParameters.renderCreate = [](void* uptr) { return 1; };
+	nvgParameters.renderCreate = [](void* uptr)
+	{ return 1; };
 	nvgParameters.renderViewport = [](void* uptr, float width, float height, float devicePixelRatio) {};
 	nvgParameters.renderCancel = [](void* uptr) {};
 	nvgParameters.renderFlush = [](void* uptr) {};
@@ -621,5 +948,5 @@ void VectorGraphics::Render(const VectorPath& path, const VectorShapeSettings& s
 	nvgDeleteInternal(nvgContext);
 
 	// TODO - This should be split off to be done in a separate step. And everything in userContext should be serializable and cacheable. Additionally the gpu buffers created from playback should be runtime cacheable as well.
-	PlaybackNVGRenderCommands(userContext);
+	//PlaybackNVGRenderCommands(userContext);
 }
