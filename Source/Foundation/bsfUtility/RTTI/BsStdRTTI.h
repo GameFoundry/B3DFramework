@@ -475,6 +475,72 @@ namespace bs
 		}
 	};
 
+	/**
+	 * RTTIPlainType for std::optional.
+	 *
+	 * @see		RTTIPlainType
+	 */
+	template <class T>
+	struct RTTIPlainType<std::optional<T>>
+	{
+		enum
+		{
+			id = TID_Optional
+		};
+
+		enum
+		{
+			hasDynamicSize = 1
+		};
+
+		static BitLength ToMemory(const std::optional<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
+			{
+				const u8 hasValue = (u8)data.has_value();
+
+				BitLength size = 0;
+				size += B3DRTTIWrite(hasValue, stream);
+
+				if(hasValue)
+					size += B3DRTTIWrite(data.value(), stream);
+
+				return size; });
+		}
+
+		static BitLength FromMemory(std::optional<T>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength size;
+			B3DRTTIReadSizeHeader(stream, compress, size);
+
+			u8 hasValue;
+			B3DRTTIRead(hasValue, stream);
+
+			if(hasValue)
+			{
+				T value;
+				B3DRTTIRead(value, stream);
+
+				data = value;
+			}
+			else
+			{
+				data.reset();
+			}
+
+			return size;
+		}
+
+		static BitLength GetSize(const std::optional<T>& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength dataSize = sizeof(u8) + sizeof(T);
+
+			B3DRTTIAddHeaderSize(dataSize, compress);
+			return dataSize;
+		}
+	};
+
+
 	/** @} */
 	/** @endcond */
 } // namespace bs
