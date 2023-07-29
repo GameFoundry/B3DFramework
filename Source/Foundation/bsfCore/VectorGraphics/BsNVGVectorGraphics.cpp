@@ -50,6 +50,341 @@ namespace bs::ct
 			Vector3(transform[4], transform[5], 1.0f)));
 	}
 
+	static NVGcolor B3DColorToNVGColor(const Color& color)
+	{
+		return nvgRGBAf(color.R, color.G, color.B, color.A);
+	}
+
+	static Vector2 ApplyScale9GridTransform(const Vector2& input, const Size2& shapeSize, const RectOffset& scale9GridBorder, const Vector2& scale)
+	{
+		const float unscaledLeft = (float)scale9GridBorder.Left;
+		const float unscaledRight = shapeSize.Width - (float)scale9GridBorder.Right;
+		const float unscaledTop = (float)scale9GridBorder.Top;
+		const float unscaledBottom = shapeSize.Height - (float)scale9GridBorder.Bottom;
+
+		const float scaledWidth = shapeSize.Width * scale.X;
+		const float scaledHeight = shapeSize.Height * scale.Y;
+		const float scaledRight = scaledWidth - (float)scale9GridBorder.Right;
+		const float scaledBottom = scaledHeight - (float)scale9GridBorder.Bottom;
+
+		// Top left
+		if(input.Y <= unscaledTop && input.X <= unscaledLeft)
+		{
+			return input;
+		}
+		// Top right
+		else if(input.Y <= unscaledTop && input.X >= unscaledRight)
+		{
+			return Vector2(scaledRight + (input.X - unscaledRight), input.Y);
+		}
+		// Top center
+		else if(input.Y <= unscaledTop)
+		{
+			return Vector2(input.X * scale.X, input.Y);
+		}
+		// Bottom left
+		else if(input.Y >= unscaledBottom && input.X <= unscaledLeft)
+		{
+			return Vector2(input.X, scaledBottom + (input.Y - unscaledBottom));
+		}
+		// Bottom right
+		else if(input.Y >= unscaledBottom && input.X >= unscaledRight)
+		{
+			return Vector2(scaledRight + (input.X - unscaledRight), scaledBottom + (input.Y - unscaledBottom));
+		}
+		// Bottom center
+		else if(input.Y >= unscaledBottom)
+		{
+			return Vector2(input.X * scale.X, scaledBottom - (input.Y - unscaledBottom));
+		}
+		// Middle left
+		else if(input.X <= unscaledLeft)
+		{
+			return Vector2(input.X, input.Y * scale.Y);
+		}
+		// Middle right
+		else if(input.X >= unscaledRight)
+		{
+			return Vector2(scaledRight - (input.X - unscaledRight), input.Y * scale.Y);
+		}
+
+		// Middle center
+		return input * scale;
+	}
+
+	static Vector2 ApplyScaleTransform(const Vector2& input, const VectorGraphicsSettings& settings)
+	{
+		const bool useScale9Grid =
+			settings.Scale9GridBorder.Left != 0 ||
+			settings.Scale9GridBorder.Right != 0 ||
+			settings.Scale9GridBorder.Top != 0 ||
+			settings.Scale9GridBorder.Bottom != 0;
+
+		if(useScale9Grid)
+			return ApplyScale9GridTransform(input, settings.Size, settings.Scale9GridBorder, settings.Scale);
+
+		return input * settings.Scale;
+	}
+
+	static NVGpaint CreateNVGPaint(NVGcontext& context, const VectorGraphicsPaint& paint, const VectorGraphicsSettings& settings)
+	{
+		switch(paint.GetType())
+		{
+		default:
+			B3D_ENSURE(false);
+		case VectorGraphicsPaintType::Solid:
+			{
+				const NVGcolor& color = B3DColorToNVGColor(paint.GetSolidPaint().Color);
+				return nvgLinearGradient(&context, 0.0f, 0.0f, 1.0f, 1.0f, color, color);
+			}
+		case VectorGraphicsPaintType::LinearGradient:
+			{
+				const VectorGraphicsPaint::LinearGradientPaint& linearGradientPaint = paint.GetLinearGradientPaint();
+				const NVGcolor& startColor = B3DColorToNVGColor(linearGradientPaint.StartColor);
+				const NVGcolor& endColor = B3DColorToNVGColor(linearGradientPaint.EndColor);
+				const Vector2& startPoint = ApplyScaleTransform(linearGradientPaint.StartPoint, settings);
+				const Vector2& endPoint = ApplyScaleTransform(linearGradientPaint.EndPoint, settings);
+
+				return nvgLinearGradient(&context, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y, startColor, endColor);
+			}
+		case VectorGraphicsPaintType::BoxGradient:
+			{
+				const VectorGraphicsPaint::BoxGradientPaint& boxGradientPaint = paint.GetBoxGradientPaint();
+				const NVGcolor& innerColor = B3DColorToNVGColor(boxGradientPaint.InnerColor);
+				const NVGcolor& outerColor = B3DColorToNVGColor(boxGradientPaint.OuterColor);
+				const Vector2& topLeft = ApplyScaleTransform(Vector2(boxGradientPaint.Area.X, boxGradientPaint.Area.Y), settings);
+				const Vector2& bottomRight = ApplyScaleTransform(Vector2(boxGradientPaint.Area.X + boxGradientPaint.Area.Width, boxGradientPaint.Area.Y + boxGradientPaint.Area.Height), settings);
+
+				const Rect2 area(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+
+				return nvgBoxGradient(&context, area.X, area.Y, area.Width, area.Height, boxGradientPaint.CornerRadius, boxGradientPaint.Feather, innerColor, outerColor);
+			}
+		case VectorGraphicsPaintType::RadialGradient:
+			{
+				const VectorGraphicsPaint::RadialGradientPaint& radialGradientPaint = paint.GetRadialGradientPaint();
+				const NVGcolor& innerColor = B3DColorToNVGColor(radialGradientPaint.InnerColor);
+				const NVGcolor& outerColor = B3DColorToNVGColor(radialGradientPaint.OuterColor);
+				const Vector2& center = ApplyScaleTransform(radialGradientPaint.Center, settings);
+				const float innerRadius = radialGradientPaint.InnerRadius * settings.Scale.X;
+				const float outerRadius = radialGradientPaint.OuterRadius * settings.Scale.X;
+
+				return nvgRadialGradient(&context, center.X, center.Y, innerRadius, outerRadius, innerColor, outerColor);
+			}
+		}
+	}
+
+	static void ApplyNVGState(NVGcontext& context, const VectorPathState& state, const VectorGraphicsSettings& settings)
+	{
+		nvgFillPaint(&context, CreateNVGPaint(context, state.FillPaint, settings));
+		nvgStrokePaint(&context, CreateNVGPaint(context, state.StrokePaint, settings));
+
+		nvgMiterLimit(&context, state.MiterLimit);
+		nvgStrokeWidth(&context, state.StrokeWidth);
+
+		nvgGlobalAlpha(&context, state.Alpha);
+		nvgShapeAntiAlias(&context, state.AntialiasShape);
+
+		if(state.ScissorArea != Rect2::kEmpty)
+			nvgScissor(&context, state.ScissorArea.X, state.ScissorArea.Y, state.ScissorArea.Width, state.ScissorArea.Height);
+		else
+			nvgResetScissor(&context);
+
+		switch(state.LineCapType)
+		{
+		case VectorGraphicsLineCapType::Butt: nvgLineCap(&context, NVG_BUTT); break;
+		case VectorGraphicsLineCapType::Round: nvgLineCap(&context, NVG_ROUND); break;
+		case VectorGraphicsLineCapType::Square: nvgLineCap(&context, NVG_SQUARE); break;
+		}
+
+		switch(state.LineJoinType)
+		{
+		case VectorGraphicsLineJoinStyle::Miter: nvgLineJoin(&context, NVG_MITER); break;
+		case VectorGraphicsLineJoinStyle::Round: nvgLineJoin(&context, NVG_ROUND); break;
+		case VectorGraphicsLineJoinStyle::Bevel: nvgLineJoin(&context, NVG_BEVEL); break;
+		}
+
+		switch(state.BlendMode)
+		{
+		case VectorGraphicsBlendMode::SourceOver: nvgGlobalCompositeOperation(&context, NVG_SOURCE_OVER); break;
+		case VectorGraphicsBlendMode::SourceIn: nvgGlobalCompositeOperation(&context, NVG_SOURCE_IN); break;
+		case VectorGraphicsBlendMode::SourceOut: nvgGlobalCompositeOperation(&context, NVG_SOURCE_OUT); break;
+		case VectorGraphicsBlendMode::Atop: nvgGlobalCompositeOperation(&context, NVG_ATOP); break;
+		case VectorGraphicsBlendMode::DestinationOver: nvgGlobalCompositeOperation(&context, NVG_DESTINATION_OVER); break;
+		case VectorGraphicsBlendMode::DestinationIn: nvgGlobalCompositeOperation(&context, NVG_DESTINATION_IN); break;
+		case VectorGraphicsBlendMode::DestinationOut: nvgGlobalCompositeOperation(&context, NVG_DESTINATION_OUT); break;
+		case VectorGraphicsBlendMode::DestinationAtop: nvgGlobalCompositeOperation(&context, NVG_DESTINATION_ATOP); break;
+		case VectorGraphicsBlendMode::Lighter: nvgGlobalCompositeOperation(&context, NVG_LIGHTER); break;
+		case VectorGraphicsBlendMode::Copy: nvgGlobalCompositeOperation(&context, NVG_COPY); break;
+		case VectorGraphicsBlendMode::Xor: nvgGlobalCompositeOperation(&context, NVG_XOR); break;
+		}
+	}
+
+	static void ApplyPathCommands(NVGcontext& context, const VectorPath& path, const VectorGraphicsSettings& settings)
+	{
+		nvgBeginPath(&context);
+
+		bool pathClosed = false;
+		const auto fnEnsurePathOpen = [&context, &pathClosed]()
+		{
+			if(pathClosed)
+			{
+				nvgBeginPath(&context);
+				pathClosed = false;
+			}
+		};
+
+		const Vector<VectorPathCommand>& commands = path.GetCommands();
+		const Vector<VectorPathState>& commandStates = path.GetCommandStates();
+
+		for(const auto& command : commands)
+		{
+			switch(command.Type)
+			{
+			case VectorPathCommandType::Fill:
+				{
+					const VectorPathState& state = commandStates[command.Fill.StateIndex];
+					ApplyNVGState(context, state, settings);
+
+					nvgFill(&context);
+					break;
+				}
+
+			case VectorPathCommandType::Stroke:
+				{
+					const VectorPathState& state = commandStates[command.Stroke.StateIndex];
+					ApplyNVGState(context, state, settings);
+
+					nvgStroke(&context);
+					break;
+				}
+			case VectorPathCommandType::SetDrawCursor:
+				{
+					fnEnsurePathOpen();
+
+					const Vector2& position = ApplyScaleTransform(command.SetDrawCursor.Position, settings);
+					nvgMoveTo(&context, position.X, position.Y);
+					break;
+				}
+
+			case VectorPathCommandType::ClosePath:
+				{
+					nvgClosePath(&context);
+					pathClosed = true;
+					break;
+				}
+
+			case VectorPathCommandType::SetPathWinding:
+				{
+					switch(command.SetPathWinding.Winding)
+					{
+					case VectorGraphicsPathWinding::Clockwise:
+						nvgPathWinding(&context, NVG_CW);
+						break;
+					case VectorGraphicsPathWinding::Counterclockwise:
+						nvgPathWinding(&context, NVG_CCW);
+						break;
+					}
+					break;
+				}
+
+			case VectorPathCommandType::DrawLineTo:
+				{
+					fnEnsurePathOpen();
+
+					const Vector2& position = ApplyScaleTransform(command.DrawLineTo.Target, settings);
+					nvgLineTo(&context, position.X, position.Y);
+					break;
+				}
+			case VectorPathCommandType::DrawArcTo:
+				{
+					fnEnsurePathOpen();
+
+					const Vector2& middlePoint = ApplyScaleTransform(Vector2(command.DrawArcTo.MiddlePoint), settings);
+					const Vector2& endPoint = ApplyScaleTransform(Vector2(command.DrawArcTo.EndPoint), settings);
+					const float radius = command.DrawArcTo.Radius * settings.Scale.X;
+
+					nvgArcTo(&context, middlePoint.X, middlePoint.Y, endPoint.X, endPoint.Y, radius);
+					break;
+				}
+			case VectorPathCommandType::DrawCubicBezierTo:
+				{
+					fnEnsurePathOpen();
+
+					const Vector2 controlPoint1 = ApplyScaleTransform(command.DrawCubicBezierTo.ControlPoint1, settings);
+					const Vector2 controlPoint2 = ApplyScaleTransform(command.DrawCubicBezierTo.ControlPoint2, settings);
+					const Vector2 endPoint = ApplyScaleTransform(command.DrawCubicBezierTo.EndPoint, settings);
+
+					nvgBezierTo(&context, controlPoint1.X, controlPoint1.Y, controlPoint2.X, controlPoint2.Y, endPoint.X, endPoint.Y);
+					break;
+				}
+			case VectorPathCommandType::DrawQuadraticBezierTo:
+				{
+					fnEnsurePathOpen();
+
+					const Vector2 controlPoint = ApplyScaleTransform(command.DrawQuadraticBezierTo.ControlPoint, settings);
+					const Vector2 endPoint = ApplyScaleTransform(command.DrawQuadraticBezierTo.EndPoint, settings);
+
+					nvgQuadTo(&context, controlPoint.X, controlPoint.Y, endPoint.X, endPoint.Y);
+					break;
+				}
+
+			case VectorPathCommandType::DrawRectangle:
+				{
+					fnEnsurePathOpen();
+
+					const Rect2& area = command.DrawRectangle.Area;
+
+					const Vector2& topLeft = ApplyScaleTransform(Vector2(area.X, area.Y), settings);
+					const Vector2& bottomRight = ApplyScaleTransform(Vector2(area.X + area.Width, area.Y + area.Height), settings);
+
+					nvgRect(&context, topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+					break;
+				}
+
+			case VectorPathCommandType::DrawRoundedRectangle:
+				{
+					fnEnsurePathOpen();
+
+					const VectorPathCommand::DrawRoundedRectangleCommand& drawRoundedRectangle = command.DrawRoundedRectangle;
+					const Rect2& area = drawRoundedRectangle.Area;
+
+					const Vector2& topLeft = ApplyScaleTransform(Vector2(area.X, area.Y), settings);
+					const Vector2& bottomRight = ApplyScaleTransform(Vector2(area.X + area.Width, area.Y + area.Height), settings);
+
+					nvgRoundedRectVarying(&context, topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y,
+						drawRoundedRectangle.RadiusTopLeft, drawRoundedRectangle.RadiusTopRight,
+						drawRoundedRectangle.RadiusBottomRight, drawRoundedRectangle.RadiusBottomLeft);
+					break;
+				}
+
+			case VectorPathCommandType::DrawEllipse:
+				{
+					fnEnsurePathOpen();
+
+					const VectorPathCommand::DrawEllipseCommand& drawEllipse = command.DrawEllipse;
+					const Vector2& origin = ApplyScaleTransform(drawEllipse.Origin, settings);
+					const Vector2& radius = drawEllipse.Radius * settings.Scale;
+
+					nvgEllipse(&context, origin.X, origin.Y, radius.X, radius.Y);
+					break;
+				}
+
+			case VectorPathCommandType::DrawArc:
+				{
+					fnEnsurePathOpen();
+
+					const VectorPathCommand::DrawArcCommand& drawArc = command.DrawArc;
+					const Vector2 origin = ApplyScaleTransform(drawArc.Origin, settings);
+					const float radius = drawArc.Radius * settings.Scale.X;
+					const NVGwinding winding = drawArc.Direction == VectorGraphicsPathWinding::Clockwise ? NVG_CW : NVG_CCW;
+
+					nvgArc(&context, origin.X, origin.Y, radius, drawArc.StartAngle.GetValueInRadians(), drawArc.EndAngle.GetValueInRadians(), winding);
+					break;
+				}
+			}
+		}
+	}
+
 	static NVGRenderUniforms CreateNVGRenderUniformParameters(NVGpaint* paint, NVGscissor* scissor, float fringe, float width, float strokeThreshold)
 	{
 		auto fnConvertAndPremultiplyColor = [](NVGcolor& color) { return Color(color.r * color.a, color.g * color.a, color.b * color.a, color.a); };
@@ -598,63 +933,6 @@ namespace bs::ct
 				break;
 			}
 		}
-	}
-
-	Vector2 NVGVectorPathRenderable::ApplyScale9Grid(const Vector2& input, const Size2& shapeSize, const RectOffset& scale9GridBorder, const Vector2& scale)
-	{
-		const float unscaledLeft = (float)scale9GridBorder.Left;
-		const float unscaledRight = shapeSize.Width - (float)scale9GridBorder.Right;
-		const float unscaledTop = (float)scale9GridBorder.Top;
-		const float unscaledBottom = shapeSize.Height - (float)scale9GridBorder.Bottom;
-
-		const float scaledWidth = shapeSize.Width * scale.X;
-		const float scaledHeight = shapeSize.Height * scale.Y;
-		const float scaledRight = scaledWidth - (float)scale9GridBorder.Right;
-		const float scaledBottom = scaledHeight - (float)scale9GridBorder.Bottom;
-
-		// Top left
-		if(input.Y <= unscaledTop && input.X <= unscaledLeft)
-		{
-			return input;
-		}
-		// Top right
-		else if(input.Y <= unscaledTop && input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight + (input.X - unscaledRight), input.Y);
-		}
-		// Top center
-		else if(input.Y <= unscaledTop)
-		{
-			return Vector2(input.X * scale.X, input.Y);
-		}
-		// Bottom left
-		else if(input.Y >= unscaledBottom && input.X <= unscaledLeft)
-		{
-			return Vector2(input.X, scaledBottom + (input.Y - unscaledBottom));
-		}
-		// Bottom right
-		else if(input.Y >= unscaledBottom && input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight + (input.X - unscaledRight), scaledBottom + (input.Y - unscaledBottom));
-		}
-		// Bottom center
-		else if(input.Y >= unscaledBottom)
-		{
-			return Vector2(input.X * scale.X, scaledBottom - (input.Y - unscaledBottom));
-		}
-		// Middle left
-		else if(input.X <= unscaledLeft)
-		{
-			return Vector2(input.X, input.Y * scale.Y);
-		}
-		// Middle right
-		else if(input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight - (input.X - unscaledRight), input.Y * scale.Y);
-		}
-
-		// Middle center
-		return input * scale;
 	}
 
 	RTTITypeBase* NVGVectorPathRenderable::GetRttiStatic()

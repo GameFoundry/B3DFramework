@@ -24,8 +24,8 @@ namespace bs
 	// TODO - Doc
 	struct VectorGraphicsSettings
 	{
-		Size2UI Size = Size2UI::kZero;
-		float Scale = 1.0f;
+		Size2 Size = Size2::kZero;
+		Vector2 Scale = Vector2::kOne;
 		Matrix4 Transform = Matrix4::kIdentity;
 		RectOffset Scale9GridBorder;
 		bool UseAntialiasing = true;
@@ -79,30 +79,6 @@ namespace bs
 	struct VectorGraphicsPaint
 	{
 	public:
-		VectorGraphicsPaint()
-		{
-			Type = VectorGraphicsPaintType::Solid;
-			BoxGradient.InnerColor = Color::kBlack;
-			BoxGradient.OuterColor = Color::kBlack;
-			BoxGradient.Area = Rect2::kEmpty;
-			BoxGradient.CornerRadius = 0.0f;
-			BoxGradient.Feather = 0.0f;
-		}
-
-		VectorGraphicsPaint(const Color& color)
-		{
-			Type = VectorGraphicsPaintType::Solid;
-			Solid.Color = color;
-		}
-
-		static VectorGraphicsPaint CreateSolid(const Color& color);
-		static VectorGraphicsPaint CreateLinearGradient(const Color& startColor, const Color& endColor, const Vector2& startPoint, const Vector2& endPoint);
-		static VectorGraphicsPaint CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Rect2& area, float cornerRadius, float feather);
-		static VectorGraphicsPaint CreateRadialGradient(const Color& innerColor, const Color& outerColor, const Vector2& center, float innerRadius, float outerRadius);
-
-	private:
-		friend struct RTTIPlainType<VectorGraphicsPaint>;
-
 		struct SolidPaint
 		{
 			Color Color;
@@ -134,6 +110,36 @@ namespace bs
 			float OuterRadius;
 		};
 
+		VectorGraphicsPaint()
+		{
+			Type = VectorGraphicsPaintType::Solid;
+			BoxGradient.InnerColor = Color::kBlack;
+			BoxGradient.OuterColor = Color::kBlack;
+			BoxGradient.Area = Rect2::kEmpty;
+			BoxGradient.CornerRadius = 0.0f;
+			BoxGradient.Feather = 0.0f;
+		}
+
+		VectorGraphicsPaint(const Color& color)
+		{
+			Type = VectorGraphicsPaintType::Solid;
+			Solid.Color = color;
+		}
+
+		VectorGraphicsPaintType GetType() const { return Type; }
+		const SolidPaint& GetSolidPaint() const;
+		const LinearGradientPaint& GetLinearGradientPaint() const;
+		const BoxGradientPaint& GetBoxGradientPaint() const;
+		const RadialGradientPaint& GetRadialGradientPaint() const;
+
+		static VectorGraphicsPaint CreateSolid(const Color& color);
+		static VectorGraphicsPaint CreateLinearGradient(const Color& startColor, const Color& endColor, const Vector2& startPoint, const Vector2& endPoint);
+		static VectorGraphicsPaint CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Rect2& area, float cornerRadius, float feather);
+		static VectorGraphicsPaint CreateRadialGradient(const Color& innerColor, const Color& outerColor, const Vector2& center, float innerRadius, float outerRadius);
+
+	private:
+		friend struct RTTIPlainType<VectorGraphicsPaint>;
+
 		VectorGraphicsPaintType Type = VectorGraphicsPaintType::Solid;
 		union
 		{
@@ -143,6 +149,30 @@ namespace bs
 			RadialGradientPaint RadialGradient;
 		};
 	};
+
+	inline const VectorGraphicsPaint::SolidPaint& VectorGraphicsPaint::GetSolidPaint() const
+	{
+		B3D_ENSURE(Type == VectorGraphicsPaintType::Solid);
+		return Solid;
+	}
+
+	inline const VectorGraphicsPaint::LinearGradientPaint& VectorGraphicsPaint::GetLinearGradientPaint() const
+	{
+		B3D_ENSURE(Type == VectorGraphicsPaintType::LinearGradient);
+		return LinearGradient;
+	}
+
+	inline const VectorGraphicsPaint::BoxGradientPaint& VectorGraphicsPaint::GetBoxGradientPaint() const
+	{
+		B3D_ENSURE(Type == VectorGraphicsPaintType::BoxGradient);
+		return BoxGradient;
+	}
+
+	inline const VectorGraphicsPaint::RadialGradientPaint& VectorGraphicsPaint::GetRadialGradientPaint() const
+	{
+		B3D_ENSURE(Type == VectorGraphicsPaintType::RadialGradient);
+		return RadialGradient;
+	}
 
 	inline VectorGraphicsPaint VectorGraphicsPaint::CreateSolid(const Color& color)
 	{
@@ -439,6 +469,9 @@ namespace bs
 
 		VectorPath& DrawFill();
 		VectorPath& DrawStroke();
+
+		const Vector<VectorPathCommand>& GetCommands() const { return mCommands; }
+		const Vector<VectorPathState>& GetCommandStates() const { return mCommandStates; }
 
 		SPtr<ct::VectorPathRenderable> CreateRenderable(VectorGraphicsSettings& settings);
 

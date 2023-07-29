@@ -120,6 +120,7 @@ namespace bs
 	};
 
 	template<> const TSize2<u32> TSize2<u32>::kZero{BsZero};
+	template<> const TSize2<float> TSize2<float>::kZero{BsZero};
 
 	/** Encapsulates width/height/depth in a single structure. */
 	template<class T>
@@ -141,6 +142,7 @@ namespace bs
 	};
 
 	template<> const TSize3<u32> TSize3<u32>::kZero{BsZero};
+	template<> const TSize3<float> TSize3<float>::kZero{BsZero};
 
 	using Size2UI = TSize2<u32>;
 	using Size3UI = TSize3<u32>;

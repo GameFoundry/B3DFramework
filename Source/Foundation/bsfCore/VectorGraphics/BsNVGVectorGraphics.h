@@ -155,9 +155,6 @@ namespace bs
 			static void NVGRenderFillCallback(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, const float* bounds, const NVGpath* paths, int npaths);
 			static void NVGRenderStrokeCallback(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, float strokeWidth, const NVGpath* paths, int npaths);
 
-			static Vector2 ApplyScaleNormal(const Vector2& input, const Vector2& scale) { return input * scale; }
-			static Vector2 ApplyScale9Grid(const Vector2& input, const Size2& shapeSize, const RectOffset& scale9GridBorder, const Vector2& scale);
-
 			NVGPathRenderData mRawRenderData;
 
 			RenderGpuBuffers mRenderBuffers;
