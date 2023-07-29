@@ -113,6 +113,8 @@ TAsyncOp<bool> TTechnique<Core>::Compile()
 		const SPtr<ShaderCompilerMetaData>& shaderCompilerMetaData = owner->GetCompilerMetaData();
 		if(shaderCompilerMetaData != nullptr)
 		{
+			hashStringStream << shaderCompilerMetaData->Source;
+
 			for(const auto& cachedIncludePair : shaderCompilerMetaData->IncludeHashes)
 				hashStringStream << cachedIncludePair.first << " = " << StringUtil::HexToLiteral(cachedIncludePair.second.data(), (u32)cachedIncludePair.second.size()) << "\n";
 		}

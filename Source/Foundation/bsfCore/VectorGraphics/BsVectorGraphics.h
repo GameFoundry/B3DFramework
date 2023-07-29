@@ -433,7 +433,7 @@ namespace bs
 	};
 
 	// TODO
-	class VectorPath : public IReflectable
+	class B3D_CORE_EXPORT VectorPath : public IReflectable
 	{
 	public:
 		VectorPath() = default;
@@ -491,7 +491,7 @@ namespace bs
 
 	namespace ct
 	{
-		class VectorPathRenderable : public IReflectable
+		class B3D_CORE_EXPORT VectorPathRenderable : public IReflectable
 		{
 		public:
 			VectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings): mSettings(settings) { }

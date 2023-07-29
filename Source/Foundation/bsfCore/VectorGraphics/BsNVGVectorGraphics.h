@@ -40,6 +40,7 @@ namespace bs
 		float Feather;
 		float StrokeMultiplier;
 		float StrokeThreshold;
+		Vector2 Padding; // Making the struct a multiple of 16 bytes
 	};
 
 	enum class NVGRenderCommandType
@@ -137,6 +138,7 @@ namespace bs
 		private:
 			struct RenderGpuBuffers
 			{
+				SPtr<VertexDescription> VertexDescription;
 				SPtr<GpuBuffer> VertexBuffer;
 				SPtr<GpuBuffer> IndexBuffer;
 				SPtr<GpuBuffer> ViewUniformBuffer;

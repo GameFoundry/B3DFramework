@@ -49,76 +49,79 @@ shader VectorGraphics
 	{
 		target
 		{
-#if DRAW_MODE != 0 && DRAW_MODE != 5
-			enabled = true;
-            writemask = RGBA;
+#if DRAW_MODE == 0
+			enabled = false;
+			writemask = empty;
+#elif DRAW_MODE == 5
+			enabled = false;
+			writemask = empty;
 #else
-            enabled = false;
-            writemask = empty;
+			enabled = true;
+			writemask = RGBA;
 #endif
 
 			// NVG_SOURCE_OVER
-#if BLENDING_MODE == 0
+#if BLEND_MODE == 0
 			color = { one, srcIA, add };
 			alpha = { one, srcIA, add };
 #endif
 
 			// NVG_SOURCE_IN
-#if BLENDING_MODE == 1
+#if BLEND_MODE == 1
 			color = { dstA, zero, add };
 			alpha = { dstA, zero, add };
 #endif
 
 			// NVG_SOURCE_OUT
-#if BLENDING_MODE == 2
+#if BLEND_MODE == 2
 			color = { dstIA, zero, add };
 			alpha = { dstIA, zero, add };
 #endif
 
 			// NVG_ATOP
-#if BLENDING_MODE == 3
+#if BLEND_MODE == 3
 			color = { dstA, srcIA, add };
 			alpha = { dstA, srcIA, add };
 #endif
 
 			// NVG_DESTINATION_OVER
-#if BLENDING_MODE == 4
+#if BLEND_MODE == 4
 			color = { dstIA, one, add };
 			alpha = { dstIA, one, add };
 #endif
 
 			// NVG_DESTINATION_IN
-#if BLENDING_MODE == 5
+#if BLEND_MODE == 5
 			color = { zero, srcA, add };
 			alpha = { zero, srcA, add };
 #endif
 
 			// NVG_DESTINATION_OUT
-#if BLENDING_MODE == 6
+#if BLEND_MODE == 6
 			color = { zero, srcIA, add };
 			alpha = { zero, srcIA, add };
 #endif
 
 			// NVG_DESTINATION_ATOP
-#if BLENDING_MODE == 7
+#if BLEND_MODE == 7
 			color = { dstIA, srcA, add };
 			alpha = { dstIA, srcA, add };
 #endif
 
 			// NVG_LIGHTER
-#if BLENDING_MODE == 8
+#if BLEND_MODE == 8
 			color = { one, one, add };
 			alpha = { one, one, add };
 #endif
 
 			// NVG_COPY
-#if BLENDING_MODE == 9
+#if BLEND_MODE == 9
 			color = { one, zero, add };
 			alpha = { one, zero, add };
 #endif
 
 			// NVG_XOR
-#if BLENDING_MODE == 10
+#if BLEND_MODE == 10
 			color = { dstIA, srcIA, add };
 			alpha = { dstIA, srcIA, add };
 #endif
@@ -231,12 +234,12 @@ shader VectorGraphics
 		{
 #if DRAW_MODE != 0
 			const float scissor = NVGScissorMask(inVertexPosition);
-#if EDGE_AA
-			const float strokeAlpha = NVGStrokeMask(texCoord);
-			if (strokeAlpha < gStrokeThreshold) discard;
-#else
-            const float strokeAlpha = 1.0f;
-#endif
+#	if EDGE_AA
+			const float strokeAlpha = NVGStrokeMask(inUV);
+			if(strokeAlpha < gStrokeThreshold) discard;
+#	else
+			const float strokeAlpha = 1.0f;
+#	endif
 
 			// Calculate gradient color using box gradient
 			float2 pt = (mul((float3x3)gPaintMatrix, float3(inVertexPosition, 1.0f))).xy;
@@ -247,7 +250,8 @@ shader VectorGraphics
 			color *= strokeAlpha * scissor;
 			return color;
 #else
-            return float4(1.0f, 1.0f, 1.0f, 1.0f);
+			return float4(1.0f, 1.0f, 1.0f, 1.0f);
 #endif
+		}
 	};
 };

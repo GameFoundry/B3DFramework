@@ -454,7 +454,7 @@ namespace bs::ct
 	}
 
 	NVGVectorPathRenderable::NVGVectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
-		:mRawRenderData(PlaybackPathCommands(vectorPath, settings))
+		:VectorPathRenderable(vectorPath, settings), mRawRenderData(PlaybackPathCommands(vectorPath, settings))
 	{ }
 
 	void NVGVectorPathRenderable::NVGRenderFillCallback(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, const float* bounds, const NVGpath* paths, int npaths)
@@ -494,8 +494,8 @@ namespace bs::ct
 				for(u32 triangleIndex = 0; triangleIndex < triangleCount; ++triangleIndex)
 				{
 					outputRenderData.Indices.push_back(vertexOffset);
-					outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 					outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 2);
+					outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 				}
 
 				fillTriangleCount += triangleCount;
@@ -530,14 +530,14 @@ namespace bs::ct
 					if(triangleIndex % 2 == 0)
 					{
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
-						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 2);
+						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 					}
 					else
 					{
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
-						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 2);
+						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
 					}
 				}
 
@@ -563,12 +563,12 @@ namespace bs::ct
 				outputRenderData.Vertices.push_back(NVGVertex(quadVertexPositions[vertexIndex], Vector2(0.5f, 1.0f)));
 
 			outputRenderData.Indices.push_back(vertexOffset);
-			outputRenderData.Indices.push_back(vertexOffset + 1);
 			outputRenderData.Indices.push_back(vertexOffset + 2);
+			outputRenderData.Indices.push_back(vertexOffset + 1);
 
 			outputRenderData.Indices.push_back(vertexOffset + 2);
-			outputRenderData.Indices.push_back(vertexOffset + 1);
 			outputRenderData.Indices.push_back(vertexOffset + 3);
+			outputRenderData.Indices.push_back(vertexOffset + 1);
 
 			outputRenderData.Submeshes.push_back(SubMesh(fillIndexOffset, fillTriangleCount * 3, DOT_TRIANGLE_LIST));
 			outputRenderData.Submeshes.push_back(SubMesh(strokeIndexOffset, strokeTriangleCount * 3, DOT_TRIANGLE_LIST));
@@ -617,14 +617,14 @@ namespace bs::ct
 					if(triangleIndex % 2 == 0)
 					{
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
-						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 2);
+						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
 					}
 					else
 					{
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 1);
-						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
 						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 2);
+						outputRenderData.Indices.push_back(vertexOffset + triangleIndex + 0);
 					}
 				}
 
@@ -669,8 +669,7 @@ namespace bs::ct
 		nvgTranslate(nvgContext, translation.X, translation.Y);
 		nvgTransform(nvgContext, transform[0][0], transform[1][0], transform[0][1], transform[1][1], transform[0][2], transform[1][2]);
 
-		// TODO
-		//NVGDrawPath(nvgContext, path, settings);
+		ApplyPathCommands(*nvgContext, vectorPath, settings);
 
 		nvgEndFrame(nvgContext);
 		nvgDeleteInternal(nvgContext);
@@ -682,30 +681,9 @@ namespace bs::ct
 	{
 		RenderGpuBuffers renderBuffers;
 
-		// Create mesh
+		// Create vertex and index buffers
 		const u32 vertexCount = (u32)mRawRenderData.Vertices.size();
 		const u32 indexCount = (u32)mRawRenderData.Indices.size();
-
-		SmallVector<VertexElement, 2> vertexElements;
-		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
-		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
-
-		const SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
-		B3D_ASSERT(vertexDescription->GetVertexStride() == sizeof(NVGVertex));
-
-		const SPtr<MeshData> meshData = MeshData::Create(vertexCount, indexCount, vertexDescription);
-
-		NVGVertex* const vertices = (NVGVertex*)meshData->GetStreamData(0);
-		memcpy(vertices, mRawRenderData.Vertices.data(), vertexCount * sizeof(NVGVertex));
-
-		u32* const indices = meshData->GetIndices32();
-		memcpy(indices, mRawRenderData.Indices.data(), indexCount * sizeof(u32));
-
-		MeshCreateInformation creationInformation;
-		creationInformation.VertexCount = meshData->GetVertexCount();
-		creationInformation.IndexCount = meshData->GetIndexCount();
-		creationInformation.VertexDescription = meshData->GetVertexDescription();
-		creationInformation.SubMeshes = mRawRenderData.Submeshes;
 
 		if(vertexCount == 0 || indexCount == 0)
 			return renderBuffers;
@@ -714,21 +692,34 @@ namespace bs::ct
 		if(!gpuDevice)
 			return renderBuffers;
 
+		SmallVector<VertexElement, 2> vertexElements;
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
+		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
+
+		renderBuffers.VertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		B3D_ASSERT(renderBuffers.VertexDescription->GetVertexStride() == sizeof(NVGVertex));
+
 		GpuBufferInformation indexBufferCreateInformation;
 		indexBufferCreateInformation.Type = GpuBufferType::Index;
 		indexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
 		indexBufferCreateInformation.Index.Type = IT_32BIT;
 		indexBufferCreateInformation.Index.Count = indexCount;
 
-		const SPtr<GpuBuffer> indexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
+		renderBuffers.IndexBuffer = gpuDevice->CreateGpuBuffer(indexBufferCreateInformation);
+
+		const u32 indexBufferSize = indexCount * sizeof(u32);
+		renderBuffers.IndexBuffer->WriteData(0, indexBufferSize, mRawRenderData.Indices.data());
 
 		GpuBufferCreateInformation vertexBufferCreateInformation;
 		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
 		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnGPU;
-		vertexBufferCreateInformation.Vertex.ElementSize = vertexDescription->GetVertexStride();
+		vertexBufferCreateInformation.Vertex.ElementSize = renderBuffers.VertexDescription->GetVertexStride();
 		vertexBufferCreateInformation.Vertex.Count = vertexCount;
 
-		const SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+		renderBuffers.VertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+
+		const u32 vertexBufferSize = renderBuffers.VertexDescription->GetVertexStride() * vertexCount;
+		renderBuffers.VertexBuffer->WriteData(0, vertexBufferSize, mRawRenderData.Vertices.data());
 
 		u32 uniformBlockCount = 0;
 		for(const auto& command : mRawRenderData.RenderCommands)
@@ -748,7 +739,7 @@ namespace bs::ct
 		}
 
 		// Create uniform buffers
-		const SPtr<GpuBuffer> renderUniformBuffer = gVectorGraphicsRenderUniforms.CreateBuffer(uniformBlockCount);
+		renderBuffers.RenderUniformBuffer = gVectorGraphicsRenderUniforms.CreateBuffer(uniformBlockCount);
 		B3D_ASSERT(ct::gVectorGraphicsRenderUniforms.GetSize() == sizeof(NVGRenderUniforms)); // TODO - I need a way to assign parameter block entries into a particular uniform block, so I don't just do a memcpy (it might not work everywhere)
 
 		NVGRenderUniforms simplePassUniforms;
@@ -757,7 +748,7 @@ namespace bs::ct
 
 		const u32 uniformBlockStride = Math::CeilToMultiple(gVectorGraphicsRenderUniforms.GetSize(), gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
 
-		u8* uniformBufferData = (u8*)renderUniformBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
+		u8* uniformBufferData = (u8*)renderBuffers.RenderUniformBuffer->Lock(GBL_WRITE_ONLY_DISCARD);
 
 		for(const auto& command : mRawRenderData.RenderCommands)
 		{
@@ -786,10 +777,10 @@ namespace bs::ct
 			}
 		}
 
-		renderUniformBuffer->Unlock();
+		renderBuffers.RenderUniformBuffer->Unlock();
 
-		const SPtr<ct::GpuBuffer> viewUniformBuffer = ct::gVectorGraphicsViewUniforms.CreateBuffer();
-		PopulateNVGViewUniformBuffer(viewUniformBuffer, Rect2I(0, 0, mSettings.Size.Width, mSettings.Size.Height));
+		renderBuffers.ViewUniformBuffer = ct::gVectorGraphicsViewUniforms.CreateBuffer();
+		PopulateNVGViewUniformBuffer(renderBuffers.ViewUniformBuffer, Rect2I(0, 0, Math::RoundToU32(mSettings.Size.Width), Math::RoundToU32(mSettings.Size.Height)));
 
 		return renderBuffers;
 	}
@@ -803,6 +794,7 @@ namespace bs::ct
 		}
 
 		SPtr<GpuBuffer> vertexBuffers[] = { mRenderBuffers.VertexBuffer };
+		commandBuffer.SetVertexDescription(mRenderBuffers.VertexDescription);
 		commandBuffer.SetVertexBuffers(0, vertexBuffers, 1);
 		commandBuffer.SetIndexBuffer(mRenderBuffers.IndexBuffer); // TODO - We shouldn't need one at all actually
 		commandBuffer.SetDrawOperation(DOT_TRIANGLE_LIST);
