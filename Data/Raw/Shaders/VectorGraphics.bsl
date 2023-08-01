@@ -150,21 +150,21 @@ shader VectorGraphics
                 pass = decwrap;
                 compare = always;
             };
-#endif
-
-#if DRAW_MODE == 1 || DRAW_MODE == 4
+#elif DRAW_MODE == 1
         front = { keep, keep, keep, eq };
         back  = { keep, keep, keep, eq };
-#endif
-
-#if DRAW_MODE == 2 || DRAW_MODE == 5
-        front = { zero, zero, zero, always };
-        back  = { zero, zero, zero, always };
-#endif
-
-#if DRAW_MODE == 3
-    front = { keep, keep, inc, eq };
-    back  = { keep, keep, inc, eq };
+#elif DRAW_MODE == 2
+		front = { zero, zero, zero, always };
+		back  = { zero, zero, zero, always };
+#elif DRAW_MODE == 3
+		front = { keep, keep, inc, eq };
+		back  = { keep, keep, inc, eq };
+#elif DRAW_MODE == 4
+		front = { keep, keep, keep, eq };
+		back  = { keep, keep, keep, eq };
+#elif DRAW_MODE == 5
+		front = { zero, zero, zero, always };
+		back  = { zero, zero, zero, always };
 #endif
     };
 #endif
