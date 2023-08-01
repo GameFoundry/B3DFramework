@@ -80,7 +80,7 @@ void WriteIndices(GpuBuffer* buffer, const Vector<u32>& input, u32 texSize)
 	if(numParticles == 0)
 		return;
 
-	auto* const indices = (u32*)B3DStackAllocate(buffer->GetSize());
+	auto* const indices = (u32*)B3DStackAllocate(buffer->GetTotalSize());
 
 	u32 idx = 0;
 	for(auto& entry : input)
@@ -91,7 +91,7 @@ void WriteIndices(GpuBuffer* buffer, const Vector<u32>& input, u32 texSize)
 		indices[idx++] = (x & 0xFFFF) | (y << 16);
 	}
 
-	buffer->WriteData(0, buffer->GetSize(), indices, BWT_DISCARD);
+	buffer->WriteData(0, buffer->GetTotalSize(), indices, BWT_DISCARD);
 	B3DStackFree(indices);
 }
 

@@ -3,19 +3,44 @@
 #include "RenderAPI/BsGpuBuffer.h"
 #include "BsCoreApplication.h"
 #include "BsGpuDevice.h"
+#include "BsGpuDeviceCapabilities.h"
 #include "CoreThread/BsCoreObjectSync.h"
 
 using namespace bs;
 
+static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& information)
+{
+	switch(information.Type)
+	{
+	case GpuBufferType::Vertex:
+		return information.Vertex.Count * information.Vertex.ElementSize;
+	case GpuBufferType::Index:
+		return information.Index.Count * (GpuBuffer::GetIndexSize(information.Index.Type));
+	case GpuBufferType::Uniform: 
+		return information.Uniform.Size;
+	case GpuBufferType::SimpleStorage:
+		return information.SimpleStorage.Count * GpuBuffer::GetFormatSize(information.SimpleStorage.Format);
+	case GpuBufferType::StructuredStorage: 
+		return information.StructuredStorage.Count * information.StructuredStorage.ElementSize;
+	}
+
+	B3D_ENSURE(false);
+	return 128;
+}
+
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
-	: mInformation(createInformation), mSize(CalculateBufferSize(createInformation))
-{ }
+	: mInformation(createInformation)
+{
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	mSuballocationSize = CalculateSuballocatedBufferSize(createInformation, gpuDevice);
+	mTotalSize = CalculateTotalBufferSize(createInformation, gpuDevice);
+}
 
 void GpuBuffer::Initialize()
 {
 	if(mInformation.Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
 	{
-		mCache = (u8*)B3DAllocate(mSize);
+		mCache = (u8*)B3DAllocate(mTotalSize);
 	}
 }
 
@@ -32,7 +57,7 @@ void GpuBuffer::WriteCached(u32 offset, u32 length, const void* source)
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;
 
-	if(!B3D_ENSURE((offset + length) <= mSize))
+	if(!B3D_ENSURE((offset + length) <= mTotalSize))
 		return;
 
 	memcpy(mCache + offset, source, length);
@@ -61,7 +86,7 @@ void GpuBuffer::ZeroOutCached(u32 offset, u32 length)
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;
 
-	if(!B3D_ENSURE((offset + length) <= mSize))
+	if(!B3D_ENSURE((offset + length) <= mTotalSize))
 		return;
 
 	memset(mCache + offset, 0, length);
@@ -73,7 +98,7 @@ void GpuBuffer::ReadCached(u32 offset, u32 length, void* destination)
 	if(!B3D_ENSURE(mCache != nullptr))
 		return;
 
-	if(!B3D_ENSURE((offset + length) <= mSize))
+	if(!B3D_ENSURE((offset + length) <= mTotalSize))
 		return;
 
 	memcpy(destination, mCache + offset, length);
@@ -108,9 +133,9 @@ CoreSyncPacket* GpuBuffer::CreateSyncPacket(FrameAlloc& allocator, u32 flags)
 		return nullptr;
 
 	SyncPacket* syncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
-	syncPacket->BufferSize = mSize;
-	syncPacket->BufferData = allocator.Alloc(mSize);
-	ReadCached(0, mSize, syncPacket->BufferData);
+	syncPacket->BufferSize = mTotalSize;
+	syncPacket->BufferData = allocator.Alloc(mTotalSize);
+	ReadCached(0, mTotalSize, syncPacket->BufferData);
 
 	return syncPacket;
 }
@@ -186,34 +211,46 @@ u32 GpuBuffer::GetFormatSize(GpuBufferFormat format)
 	return lookup[(u32)format];
 }
 
-u32 GpuBuffer::CalculateBufferSize(const GpuBufferInformation& information)
+u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice)
 {
-	switch(information.Type)
-	{
-	case GpuBufferType::Vertex:
-		return information.Vertex.Count * information.Vertex.ElementSize;
-	case GpuBufferType::Index:
-		return information.Index.Count * (GetIndexSize(information.Index.Type));
-	case GpuBufferType::Uniform: 
-		return information.Uniform.Size;
-	case GpuBufferType::SimpleStorage:
-		return information.SimpleStorage.Count * GetFormatSize(information.SimpleStorage.Format);
-	case GpuBufferType::StructuredStorage: 
-		return information.StructuredStorage.Count * information.StructuredStorage.ElementSize;
-	}
+	const u32 unalignedBufferSize = CalculateUnalignedGpuBufferSize(information);
 
-	B3D_ENSURE(false);
-	return 128;
+	if(information.SuballocationCount > 1 && gpuDevice)
+	{
+		B3D_ENSURE(information.Type == GpuBufferType::Uniform); // Currently only supported for uniform buffers
+		return Math::CeilToMultiple(unalignedBufferSize, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
+	}
+	
+	return unalignedBufferSize;
+}
+
+u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const GpuDevice& gpuDevice)
+{
+	const u32 unalignedBufferSize = CalculateUnalignedGpuBufferSize(information);
+
+	if(information.SuballocationCount > 1)
+	{
+		B3D_ENSURE(information.Type == GpuBufferType::Uniform); // Currently only supported for uniform buffers
+		return Math::CeilToMultiple(unalignedBufferSize, gpuDevice.GetCapabilities().MinimumUniformBufferOffsetAlignment);
+	}
+	
+	return unalignedBufferSize;
+}
+
+u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice)
+{
+	const u32 stride = CalculateSuballocatedBufferSize(information, gpuDevice);
+	return stride * Math::Max(1, information.SuballocationCount);
 }
 
 namespace bs::ct
 {
-	GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
-		: mInformation(createInformation), mSize(bs::GpuBuffer::CalculateBufferSize(createInformation))
+	GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation, u32 suballocationSize)
+		: mInformation(createInformation), mSuballocationSize(suballocationSize), mTotalSize(createInformation.SuballocationCount * mSuballocationSize)
 	{
 		if(mInformation.Flags.IsSet(GpuBufferFlag::AllowWriteCachingOnCPU))
 		{
-			mCache = (u8*)B3DAllocate(mSize);
+			mCache = (u8*)B3DAllocate(mTotalSize);
 		}
 	}
 
@@ -230,7 +267,7 @@ namespace bs::ct
 		if(!B3D_ENSURE(mCache != nullptr))
 			return;
 
-		if(!B3D_ENSURE((offset + length) <= mSize))
+		if(!B3D_ENSURE((offset + length) <= mTotalSize))
 			return;
 
 		memcpy(mCache + offset, source, length);
@@ -259,7 +296,7 @@ namespace bs::ct
 		if(!B3D_ENSURE(mCache != nullptr))
 			return;
 
-		if(!B3D_ENSURE((offset + length) <= mSize))
+		if(!B3D_ENSURE((offset + length) <= mTotalSize))
 			return;
 
 		memset(mCache + offset, 0, length);
@@ -274,7 +311,7 @@ namespace bs::ct
 		if(!mIsCacheDirty)
 			return;
 
-		WriteData(0, mSize, mCache, BWT_NORMAL);
+		WriteData(0, mTotalSize, mCache, BWT_NORMAL);
 		mIsCacheDirty = false;
 	}
 
@@ -283,7 +320,7 @@ namespace bs::ct
 		if(!B3D_ENSURE(mCache != nullptr))
 			return;
 
-		if(!B3D_ENSURE((offset + length) <= mSize))
+		if(!B3D_ENSURE((offset + length) <= mTotalSize))
 			return;
 
 		memcpy(destination, mCache + offset, length);
@@ -298,7 +335,7 @@ namespace bs::ct
 		if(syncPacket->BufferData == nullptr)
 			return;
 
-		if(B3D_ENSURE(mSize == syncPacket->BufferSize))
+		if(B3D_ENSURE(mTotalSize == syncPacket->BufferSize))
 		{
 			WriteData(0, syncPacket->BufferSize, syncPacket->BufferData);
 		}

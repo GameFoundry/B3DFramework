@@ -127,7 +127,7 @@ namespace bs
 		{                                                                                                                                                    \
 			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
 			if(gpuDevice)                                                                                                                                    \
-				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags));                                             \
+				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags, 1));                                          \
                                                                                                                                                              \
 			return nullptr;                                                                                                                                  \
 		}                                                                                                                                                    \
@@ -136,7 +136,7 @@ namespace bs
 		{                                                                                                                                                    \
 			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
 			if(gpuDevice)                                                                                                                                    \
-				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(Math::CeilToMultiple(mBlockSize, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment) * count, flags));                                     \
+				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags, count));                                      \
                                                                                                                                                              \
 			return nullptr;                                                                                                                                  \
 		}                                                                                                                                                    \

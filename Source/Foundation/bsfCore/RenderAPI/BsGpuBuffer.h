@@ -117,6 +117,12 @@ namespace bs
 
 		GpuBufferType Type = GpuBufferType::Vertex; /**< Controls at which parts of the GPU pipeline is the buffer intended to be primarily used in. */
 		GpuBufferFlags Flags = GpuBufferFlag::StoreOnGPU; /**< Flags that control the behavior of the buffer. */
+
+		/**
+		 * Number of sub-allocated buffers to create. Internally this will allocate memory for this many buffers, which can be bound by providing a dynamic offset when
+		 * binding the buffer on GpuCommandBuffer. Binding buffers this way is more efficient than creating separate GpuBuffer for each entry.
+		 */
+		u32 SuballocationCount = 1;
 	};
 
 	/** Descriptor structure used for initialization of a GpuBuffer. */
@@ -127,56 +133,99 @@ namespace bs
 			:GpuBufferInformation(other)
 		{ }
 
-		static GpuBufferCreateInformation CreateVertex(u32 elementSize, u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer containing vertex information.
+		 *
+		 * @param elementSize	Size of a single vertex in the buffer.
+		 * @param elementCount	Number of vertices in the buffer.
+		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @return				Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateVertex(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Vertex;
 			output.Flags = flags;
 			output.Vertex.ElementSize = elementSize;
-			output.Vertex.Count = count;
+			output.Vertex.Count = elementCount;
 
 			return output;
 		}
 
-		static GpuBufferCreateInformation CreateIndex(IndexType indexType, u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer containing triangle indices.
+		 *
+		 * @param indexType		Type of index contained in the buffer.
+		 * @param indexCount	Number of indices in the buffer.
+		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @return				Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateIndex(IndexType indexType, u32 indexCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Index;
 			output.Flags = flags;
 			output.Index.Type = indexType;
-			output.Index.Count = count;
+			output.Index.Count = indexCount;
 
 			return output;
 		}
 
-		static GpuBufferCreateInformation CreateUniform(u32 size, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU)
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer containing uniform parameters.
+		 *
+		 * @param size					Size of the uniform buffer.
+		 * @param flags					Flags that control how is buffer accessed/used.
+		 * @param suballocationCount	Number of buffers of requested size to create. In case you need multiple buffers of the same size this is more efficient
+		 *								than creating a separate GpuBuffer for each. Sub-allocated buffers can be bound for rendering by using the dynamic
+		 *								offset functionality provided on GpuCommandBuffer.
+		 * @return						Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateUniform(u32 size, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU, u32 suballocationCount = 1)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::Uniform;
 			output.Flags = flags;
+			output.SuballocationCount = suballocationCount;
 			output.Uniform.Size = size;
 
 			return output;
 		}
 
-		static GpuBufferCreateInformation CreateSimpleStorage(GpuBufferFormat format, u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer that may be bound for arbitrary reads or writes, containing simple (primitive) elements.
+		 *
+		 * @param format		Format of elements in the buffer.
+		 * @param elementCount	Number of elements in the buffer.
+		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @return				Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateSimpleStorage(GpuBufferFormat format, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::SimpleStorage;
 			output.Flags = flags;
 			output.SimpleStorage.Format = format;
-			output.SimpleStorage.Count = count;
+			output.SimpleStorage.Count = elementCount;
 
 			return output;
 		}
 
-		static GpuBufferCreateInformation CreateStructuredStorage(u32 elementSize, u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
+		/**
+		 * Builds a structure that can be used for creating a GpuBuffer that may be bound for arbitrary reads or writes, containing arbitrary data.
+		 *
+		 * @param elementSize	Size of a single element in the buffer.
+		 * @param elementCount	Number of elements in the buffer.
+		 * @param flags			Flags that control how is buffer accessed/used.
+		 * @return				Structure that can be used for creating the buffer.
+		 */
+		static GpuBufferCreateInformation CreateStructuredStorage(u32 elementSize, u32 elementCount, GpuBufferFlags flags = GpuBufferFlag::StoreOnGPU)
 		{
 			GpuBufferCreateInformation output;
 			output.Type = GpuBufferType::StructuredStorage;
 			output.Flags = flags;
 			output.StructuredStorage.ElementSize = elementSize;
-			output.StructuredStorage.Count = count;
+			output.StructuredStorage.Count = elementCount;
 
 			return output;
 		}
@@ -188,8 +237,16 @@ namespace bs
 	public:
 		virtual ~GpuBuffer() = default;
 
-		/** Returns the size of the buffer, in bytes. */
-		u32 GetSize() const { return mSize; }
+		/** Returns the total size of this buffer in bytes. */
+		u32 GetTotalSize() const { return mTotalSize; }
+
+		/**
+		 * In case this buffer is containing multiple sub-allocated buffers, returns the size of one sub-allocation. Note this size might be different than requested
+		 * during creation as platform alignment requirements for suballocation must be respected.
+		 *
+		 * If the buffer doesn't have any suballocated buffers, this is equivalent to GetTotalSize().
+		 */
+		u32 GetSuballocationSize() const { return mSuballocationSize; }
 
 		/** Returns information describing the buffer. */
 		const GpuBufferInformation& GetInformation() const { return mInformation; }
@@ -232,7 +289,14 @@ namespace bs
 		static u32 GetIndexSize(IndexType type) { return type == IT_32BIT ? 4 : 2; }
 
 		/** Calculates the size of a buffer described by the provided information, in bytes. */
-		static u32 CalculateBufferSize(const GpuBufferInformation& information);
+		static u32 CalculateTotalBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice);
+
+		/**
+		 * Calculates the distance between two buffers, in case the buffer contains sub-allocated buffers. This is guaranteed to be at
+		 * least the request size of a single sub-allocated buffer, but may be larger due to alignment requirements.
+		 */
+		static u32 CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice);
+		static u32 CalculateSuballocatedBufferSize(const GpuBufferInformation& information, const GpuDevice& gpuDevice);
 
 	protected:
 		struct SyncPacket;
@@ -246,7 +310,8 @@ namespace bs
 		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
 
 		GpuBufferInformation mInformation;
-		u32 mSize = 0;
+		u32 mSuballocationSize = 0;
+		u32 mTotalSize = 0;
 		u8* mCache = nullptr;
 	};
 }
@@ -293,7 +358,7 @@ namespace bs::ct
 		 */
 		void* Lock(GpuLockOptions options)
 		{
-			return this->Lock(0, mSize, options);
+			return this->Lock(0, mTotalSize, options);
 		}
 
 		/**	Releases the lock on this buffer. */
@@ -359,7 +424,7 @@ namespace bs::ct
 		 */
 		virtual void CopyData(GpuBuffer& source, const SPtr<ct::GpuCommandBuffer>& commandBuffer = nullptr)
 		{
-			const u32 sizeToCopy = std::min(GetSize(), source.GetSize());
+			const u32 sizeToCopy = std::min(GetTotalSize(), source.GetTotalSize());
 			CopyData(source, 0, 0, sizeToCopy, true, commandBuffer);
 		}
 
@@ -391,8 +456,16 @@ namespace bs::ct
 		/** Flushes the cached to the underlying buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. */
 		virtual void FlushCache();
 
-		/** Returns the size of this buffer in bytes. */
-		u32 GetSize() const { return mSize; }
+		/** Returns the total size of this buffer in bytes. */
+		u32 GetTotalSize() const { return mTotalSize; }
+
+		/**
+		 * In case this buffer is containing multiple sub-allocated buffers, returns the size of one sub-allocation. Note this size might be different than requested
+		 * during creation as platform alignment requirements for suballocation must be respected.
+		 *
+		 * If the buffer doesn't have any suballocated buffers, this is equivalent to GetTotalSize().
+		 */
+		u32 GetSuballocationSize() const { return mSuballocationSize; }
 
 		/**	Returns whether or not this buffer is currently locked. */
 		bool IsLocked() const { return mIsLocked; }
@@ -402,7 +475,7 @@ namespace bs::ct
 		friend class bs::GpuBuffer;
 
 		/** Constructs a new GPU buffer. */
-		GpuBuffer(const GpuBufferCreateInformation& createInformation);
+		GpuBuffer(const GpuBufferCreateInformation& createInformation, u32 suballocationSize);
 
 		void SyncToCore(const CoreSyncData& data, FrameAlloc& allocator) override;
 
@@ -415,7 +488,8 @@ namespace bs::ct
 	protected:
 		GpuBufferInformation mInformation;
 		String mName;
-		u32 mSize;
+		u32 mSuballocationSize = 0;
+		u32 mTotalSize = 0;
 		u8* mCache = nullptr;
 		bool mIsCacheDirty = false;
 

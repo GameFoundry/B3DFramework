@@ -215,7 +215,7 @@ TGpuParameterBuffer<Core>::TGpuParameterBuffer(GpuObjectParameterInformation* pa
 {}
 
 template <bool Core>
-void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view) const
+void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, GpuBufferViewInformation view) const
 {
 	if(mParent == nullptr)
 		return;

@@ -60,19 +60,20 @@ namespace bs
 	};
 
 	/** Information that controls how is the buffer viewed when bound to a GPU pipeline. */
-	struct GpuStorageBufferViewInformation
+	struct GpuBufferViewInformation
 	{
-		GpuStorageBufferViewInformation() = default;
+		GpuBufferViewInformation() = default;
 
-		GpuStorageBufferViewInformation(u32 offset)
-			: Offset(offset)
+		GpuBufferViewInformation(u32 offset, u32 range)
+			: Offset(offset), Range(range)
 		{ }
 
-		GpuStorageBufferViewInformation(GpuBufferFormat format)
+		GpuBufferViewInformation(GpuBufferFormat format)
 			: Format(format)
 		{ }
 
-		u32 Offset = 0; /**< Offset from which to start reading the buffer. Only relevant for structured storage buffers. */
+		u32 Offset = 0; /**< Offset from which to start reading the buffer. Not relevant for simple storage buffers. */
+		u32 Range = 0; /**< Range of the buffer which to bind. In bytes. Not relevant for simple storage buffers. */
 		GpuBufferFormat Format = BF_UNKNOWN; /**< Format to interpret the buffer contents as. If not specified, default buffer format will be used. Only relevant for simple storage buffers. */
 	};
 
@@ -254,7 +255,7 @@ namespace bs
 		TGpuParameterBuffer(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
-		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation()) const;
+		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) const;
 
 		/** @copydoc TGpuDataParam::Get */
 		BufferType Get(u32 arrayIndex = 0) const;

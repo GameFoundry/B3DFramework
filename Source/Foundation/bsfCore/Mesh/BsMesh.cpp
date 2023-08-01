@@ -375,9 +375,9 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 		return;
 	}
 
-	if(indicesSize > mIndexBuffer->GetSize())
+	if(indicesSize > mIndexBuffer->GetTotalSize())
 	{
-		indicesSize = mIndexBuffer->GetSize();
+		indicesSize = mIndexBuffer->GetTotalSize();
 		B3D_LOG(Error, Mesh, "Index buffer values are being written out of valid range.");
 	}
 
@@ -409,9 +409,9 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 		u32 bufferSize = meshData.GetStreamSize(i);
 		u8* srcVertBufferData = meshData.GetStreamData(i);
 
-		if(bufferSize > vertexBuffer->GetSize())
+		if(bufferSize > vertexBuffer->GetTotalSize())
 		{
-			bufferSize = vertexBuffer->GetSize();
+			bufferSize = vertexBuffer->GetTotalSize();
 			B3D_LOG(Error, Mesh, "Vertex buffer values for stream \"{0}\" are being written out of valid range.", i);
 		}
 
@@ -493,7 +493,7 @@ void Mesh::ReadData(MeshData& meshData, const SPtr<GpuCommandBuffer>& commandBuf
 			u32 numVerticesToCopy = meshData.GetVertexCount();
 			u32 bufferSize = vertexBufferInformation.Vertex.ElementSize * numVerticesToCopy;
 
-			if(bufferSize > vertexBuffer->GetSize())
+			if(bufferSize > vertexBuffer->GetTotalSize())
 			{
 				B3D_LOG(Error, Mesh, "Vertex buffer values for stream \"{0}\" are being read out of valid range.", streamIdx);
 				continue;

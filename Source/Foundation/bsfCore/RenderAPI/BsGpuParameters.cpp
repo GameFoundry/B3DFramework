@@ -606,7 +606,7 @@ bool TGpuParams<Core>::SetStorageTexture(u32 set, u32 slot, const TextureType& t
 }
 
 template <bool Core>
-bool TGpuParams<Core>::SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
+bool TGpuParams<Core>::SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex, GpuBufferViewInformation view)
 {
 	const u32 sequentialArrayIndex = mParameterLayout->GetSequentialResourceIndex(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer, set, slot, arrayIndex);
 	if (sequentialArrayIndex == ~0u)
@@ -693,7 +693,7 @@ namespace bs
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<GpuBuffer>>, UniformBuffers)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<u32>, UniformBufferOffsets)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<GpuBuffer>>, StorageBuffers)
-		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<GpuStorageBufferViewInformation>, StorageBufferViews)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<GpuBufferViewInformation>, StorageBufferViews)
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM(Vector<SPtr<SamplerState>>, SamplerStates)
 	B3D_SYNC_BLOCK_END
 }

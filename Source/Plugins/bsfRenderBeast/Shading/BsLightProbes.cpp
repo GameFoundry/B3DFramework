@@ -651,7 +651,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		ResizeTetrahedronBuffer(newSize);
 	}
 
-	TetrahedronDataGPU* dst = (TetrahedronDataGPU*)B3DStackAllocate(mTetrahedronInfosGPU->GetSize());
+	TetrahedronDataGPU* dst = (TetrahedronDataGPU*)B3DStackAllocate(mTetrahedronInfosGPU->GetTotalSize());
 
 	// Write inner tetrahedron data
 	for(u32 i = 0; i < (u32)mTetrahedronInfos.size(); i++)
@@ -700,7 +700,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		dst++;
 	}
 
-	mTetrahedronInfosGPU->WriteData(0, mTetrahedronInfosGPU->GetSize(), dst, BWT_DISCARD);
+	mTetrahedronInfosGPU->WriteData(0, mTetrahedronInfosGPU->GetTotalSize(), dst, BWT_DISCARD);
 	B3DStackFree(dst);
 
 	// Write data specific to faces
@@ -710,7 +710,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		ResizeTetrahedronFaceBuffer(newSize);
 	}
 
-	TetrahedronFaceDataGPU* faceDst = (TetrahedronFaceDataGPU*)B3DStackAllocate(mTetrahedronFaceInfosGPU->GetSize());
+	TetrahedronFaceDataGPU* faceDst = (TetrahedronFaceDataGPU*)B3DStackAllocate(mTetrahedronFaceInfosGPU->GetTotalSize());
 
 	for(u32 i = 0; i < (u32)outerFaces.size(); i++)
 	{
@@ -729,7 +729,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 		faceDst++;
 	}
 
-	mTetrahedronFaceInfosGPU->WriteData(0, mTetrahedronFaceInfosGPU->GetSize(), faceDst, BWT_DISCARD);
+	mTetrahedronFaceInfosGPU->WriteData(0, mTetrahedronFaceInfosGPU->GetTotalSize(), faceDst, BWT_DISCARD);
 	B3DStackFree(faceDst);
 
 	B3DStackFree(validTets);

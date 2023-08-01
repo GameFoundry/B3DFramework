@@ -588,7 +588,7 @@ void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 bufferIndex, u32 offset)
 	// If GPU params were bound already, we retrieved the initial set of offsets, so just override it
 	if(!mBoundParamsDirty)
 	{
-		if(B3D_ENSURE(bufferIndex < (u32)mDynamicDescriptorOffsetsToBind.size()))
+		if(!B3D_ENSURE(bufferIndex < (u32)mDynamicDescriptorOffsetsToBind.size()))
 			return;
 
 		mDynamicDescriptorOffsetsToBind[bufferIndex] = offset;

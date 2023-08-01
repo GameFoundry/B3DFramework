@@ -348,7 +348,7 @@ bool VulkanGpuParameters::SetUniformBuffer(u32 set, u32 slot,const SPtr<GpuBuffe
 	if(vulkanParamBlockBuffer != nullptr)
 	{
 		vulkanBuffer = vulkanParamBlockBuffer->GetVulkanResource();
-		bufferSize = vulkanParamBlockBuffer->GetSize();
+		bufferSize = vulkanParamBlockBuffer->GetSuballocationSize();
 	}
 	else
 	{
@@ -518,7 +518,7 @@ bool VulkanGpuParameters::SetStorageTexture(u32 set, u32 slot, const SPtr<Textur
 	return true;
 }
 
-bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuStorageBufferViewInformation view)
+bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuffer>& buffer, u32 arrayIndex, GpuBufferViewInformation view)
 {
 	if (!GpuParameters::SetStorageBuffer(set, slot, buffer, arrayIndex, view))
 		return false;
@@ -541,11 +541,15 @@ bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuff
 	if(mPerDeviceData.PerSetData == nullptr)
 		return false;
 
-	VulkanBuffer* bufferResource;
+	VulkanBuffer* bufferResource = nullptr;
+	u32 bufferSize = 0;
+	u32 bufferOffset = 0;
 	if(vulkanBuffer != nullptr)
+	{
 		bufferResource = vulkanBuffer->GetVulkanResource();
-	else
-		bufferResource = nullptr;
+		bufferOffset = view.Offset;
+		bufferSize = view.Range == 0 ? vulkanBuffer->GetSuballocationSize() : view.Range;
+	}
 
 	PerSetData& perSetData = mPerDeviceData.PerSetData[set];
 	VkWriteDescriptorSet& writeSetInfo = perSetData.WriteSetInfos[usedBindingSequentialIndex];
@@ -583,7 +587,7 @@ bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuff
 
 	const VkBuffer vkBuffer = bufferResource->GetVulkanHandle();
 
-	const bool isBufferViewChanged = useView && perSetData.BufferViews[usedResourceSequentialIndex] != vkBufferView;
+	const bool isBufferViewChanged = (useView && perSetData.BufferViews[usedResourceSequentialIndex] != vkBufferView) || mStorageBufferData->View.Offset != bufferOffset || mStorageBufferData->View.Range != bufferSize;
 	if(mPerDeviceData.Buffers[sequentialResourceIndex] != vkBuffer || isBufferViewChanged)
 	{
 		if(useView)
@@ -594,6 +598,8 @@ bool VulkanGpuParameters::SetStorageBuffer(u32 set, u32 slot, const SPtr<GpuBuff
 		else // Structured storage buffer
 		{
 			perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
+			perSetData.BufferWriteInfos[usedResourceSequentialIndex].offset = bufferOffset;
+			perSetData.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize == 0 ? VK_WHOLE_SIZE : bufferSize;
 			mPerDeviceData.Buffers[sequentialResourceIndex] = vkBuffer;
 
 			writeSetInfo.pTexelBufferView = nullptr;
@@ -703,7 +709,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			{
 				VulkanGpuBuffer *const element = static_cast<VulkanGpuBuffer*>(mUniformBufferData[sequentialResourceIndex].Buffer.get());
 				resource = element->GetVulkanResource();
-				bufferSize = element->GetSize();
+				bufferSize = element->GetSuballocationSize();
 				dynamicOffset = mUniformBufferData[sequentialResourceIndex].Offset;
 			}
 
@@ -757,6 +763,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 			VulkanAccessFlags useFlags = VulkanAccessFlag::Read;
 			VulkanBuffer* resource = nullptr;
+			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
 
 			const bool supportsDynamicOffset = type == GPOT_STRUCTURED_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER;
 			u32 dynamicOffset = supportsDynamicOffset ? 0 : ~0u;
@@ -771,6 +778,8 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 				if(element->GetInformation().Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU))
 					useFlags |= VulkanAccessFlag::Write;
+
+				bufferSize = element->GetSuballocationSize();
 			}
 
 			if(resource == nullptr)
@@ -838,6 +847,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 				else // Structured storage buffer
 				{
 					perSetData.BufferWriteInfos[usedResourceSequentialIndex].buffer = vkBuffer;
+					perSetData.BufferWriteInfos[usedResourceSequentialIndex].range = bufferSize;
 					perSetData.WriteSetInfos[usedBindingSequentialIndex].pTexelBufferView = nullptr;
 				}
 

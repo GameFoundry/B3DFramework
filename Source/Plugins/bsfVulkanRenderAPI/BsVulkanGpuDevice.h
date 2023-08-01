@@ -49,7 +49,7 @@ namespace bs
 			bool IsInitialized() const override { return true; }
 			bool Initialize() override { return true; } // Initialized on construction
 
-			const GpuDeviceCapabilities& GetCapabilities() override { return mCapabilities; }
+			const GpuDeviceCapabilities& GetCapabilities() const override { return mCapabilities; }
 			const VideoModeInfo& GetVideoModeInfo() const override { return *mVideoModeInfo; }
 
 			bool IsGpuProgramLanguageSupported(const StringView& language) const override { return language == kGpuProgramLanguageName; }

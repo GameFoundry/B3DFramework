@@ -454,7 +454,7 @@ namespace bs
 		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
 		 */
-		virtual bool SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation());
+		virtual bool SetStorageBuffer(u32 set, u32 slot, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation());
 
 		/**
 		 * Sets a sampler state at the specified set/slot combination.
@@ -496,7 +496,7 @@ namespace bs
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
 		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 */
-		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuStorageBufferViewInformation view = GpuStorageBufferViewInformation())
+		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
 		{
 			TGpuParameterBuffer<Core> param;
 			GetStorageBufferParameter(type, name, param);
@@ -531,7 +531,7 @@ namespace bs
 			{ }
 
 			BufferType Buffer;
-			GpuStorageBufferViewInformation View; /**< Controls how is the buffer viewed when bound to the pipeline. */
+			GpuBufferViewInformation View; /**< Controls how is the buffer viewed when bound to the pipeline. */
 		};
 
 		/** Data for a single bound uniform buffer. */

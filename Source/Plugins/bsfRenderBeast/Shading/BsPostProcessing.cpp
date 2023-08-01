@@ -1249,7 +1249,7 @@ void BokehDOFMat::Initialize()
 
 	mTileVertexBuffer = mGpuDevice->CreateGpuBuffer(tileVertexBufferCreateInformation);
 
-	auto* const vertexData = (Vector2*)B3DStackAllocate(mTileVertexBuffer->GetSize());
+	auto* const vertexData = (Vector2*)B3DStackAllocate(mTileVertexBuffer->GetTotalSize());
 	for(u32 i = 0; i < kQuadsPerTile; i++)
 	{
 		vertexData[i * 4 + 0] = Vector2(0.0f, 0.0f);
@@ -1258,7 +1258,7 @@ void BokehDOFMat::Initialize()
 		vertexData[i * 4 + 3] = Vector2(1.0f, 1.0f);
 	}
 
-	mTileVertexBuffer->WriteData(0, mTileVertexBuffer->GetSize(), vertexData);
+	mTileVertexBuffer->WriteData(0, mTileVertexBuffer->GetTotalSize(), vertexData);
 	B3DStackFree(vertexData);
 
 	// Prepare indices for rendering tiles
@@ -1269,7 +1269,7 @@ void BokehDOFMat::Initialize()
 
 	mTileIndexBuffer = mGpuDevice->CreateGpuBuffer(tileIndexBufferCreateInformation);
 
-	auto* const indices = (u16*)B3DStackAllocate(mTileIndexBuffer->GetSize());
+	auto* const indices = (u16*)B3DStackAllocate(mTileIndexBuffer->GetTotalSize());
 
 	const GpuBackendConventions& gpuBackendConventions = mGpuDevice->GetCapabilities().Conventions;
 	for(u32 i = 0; i < kQuadsPerTile; i++)
@@ -1296,7 +1296,7 @@ void BokehDOFMat::Initialize()
 		}
 	}
 
-	mTileIndexBuffer->WriteData(0, mTileVertexBuffer->GetSize(), indices);
+	mTileIndexBuffer->WriteData(0, mTileVertexBuffer->GetTotalSize(), indices);
 	B3DStackFree(indices);
 }
 

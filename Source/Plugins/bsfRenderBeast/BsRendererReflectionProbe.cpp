@@ -49,7 +49,7 @@ void VisibleReflProbeData::Update(const SceneInfo& sceneInfo, const RendererView
 		u32 curBufferSize;
 
 		if(mProbeBuffer != nullptr)
-			curBufferSize = mProbeBuffer->GetSize();
+			curBufferSize = mProbeBuffer->GetTotalSize();
 		else
 			curBufferSize = 0;
 

@@ -132,8 +132,8 @@ VkAccessFlags VulkanBuffer::GetAccessFlags() const
 }
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
-	: GpuBuffer(createInformation), mDevice(device), mDirectlyMappable((createInformation.Flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess)) != 0 || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite), mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU)), mIsMapped(false)
-{ }
+	: GpuBuffer(createInformation, bs::GpuBuffer::CalculateSuballocatedBufferSize(createInformation, device)), mDevice(device), mDirectlyMappable((createInformation.Flags.IsSetAny(GpuBufferFlag::StoreOnCPUWithGPUAccess)) != 0 || createInformation.Type == GpuBufferType::StagingRead || createInformation.Type == GpuBufferType::StagingWrite), mSupportsGPUWrites(createInformation.Flags.IsSet(GpuBufferFlag::AllowWritesOnTheGPU)), mIsMapped(false)
+	{ }
 
 VulkanGpuBuffer::~VulkanGpuBuffer()
 {
@@ -185,7 +185,7 @@ void VulkanGpuBuffer::Initialize()
 	mBufferCI.queueFamilyIndexCount = 0;
 	mBufferCI.pQueueFamilyIndices = nullptr;
 
-	mBuffer = CreateBuffer(mDevice, mSize, false, true);
+	mBuffer = CreateBuffer(mDevice, mTotalSize, false, true);
 }
 
 VulkanBuffer* VulkanGpuBuffer::CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable)
@@ -264,9 +264,9 @@ void VulkanGpuBuffer::SetName(const StringView& name)
 
 void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 {
-	if((offset + length) > mSize)
+	if((offset + length) > mTotalSize)
 	{
-		B3D_LOG(Error, RenderBackend, "Cannot map GpuBuffer memory for buffer '{0}'. Provided offset:{1} + length:{2} is larger than the buffer size:{3}.", mName, offset, length, mSize);
+		B3D_LOG(Error, RenderBackend, "Cannot map GpuBuffer memory for buffer '{0}'. Provided offset:{1} + length:{2} is larger than the buffer size:{3}.", mName, offset, length, mTotalSize);
 
 		return nullptr;
 	}
@@ -289,7 +289,7 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 
 	const bool canDiscardBuffer =
 		(options == GBL_WRITE_ONLY_DISCARD) ||
-		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mSize);
+		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mTotalSize);
 
 	// Check is the GPU currently reading or writing from the buffer
 	u32 useMask = buffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
@@ -327,7 +327,7 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 	{
 		buffer->Destroy();
 
-		buffer = CreateBuffer(mDevice, mSize, false, true);
+		buffer = CreateBuffer(mDevice, mTotalSize, false, true);
 		mBuffer = buffer;
 
 		return buffer->Map(offset, length);
@@ -354,20 +354,20 @@ void VulkanGpuBuffer::Unmap()
 
 void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	if((dstOffset + length) > mSize)
+	if((dstOffset + length) > mTotalSize)
 	{
 		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the destination buffer {2}. "
 									 "Copy operation aborted.",
-			   dstOffset, length, mSize);
+			   dstOffset, length, mTotalSize);
 
 		return;
 	}
 
-	if((srcOffset + length) > srcBuffer.GetSize())
+	if((srcOffset + length) > srcBuffer.GetTotalSize())
 	{
 		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the source buffer {2}. "
 									 "Copy operation aborted.",
-			   srcOffset, length, srcBuffer.GetSize());
+			   srcOffset, length, srcBuffer.GetTotalSize());
 
 		return;
 	}
@@ -394,9 +394,9 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 
 void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
 {
-	if((offset + length) > mSize)
+	if((offset + length) > mTotalSize)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", offset, length, mSize);
+		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", offset, length, mTotalSize);
 		return;
 	}
 
@@ -480,9 +480,9 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 
 void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	if((offset + length) > mSize)
+	if((offset + length) > mTotalSize)
 	{
-		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", offset, length, mSize);
+		B3D_LOG(Error, RenderBackend, "Provided offset({0}) + length({1}) is larger than the buffer {2}.", offset, length, mTotalSize);
 		return;
 	}
 
@@ -500,7 +500,7 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 
 	const bool canDiscardBuffer =
 		(options == GBL_WRITE_ONLY_DISCARD) ||
-		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mSize);
+		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mTotalSize);
 
 	// Check is the GPU currently reading or writing from the buffer
 	const u32 useMask = mBuffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
@@ -570,7 +570,7 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 		}
 		else
 		{
-			VulkanBuffer* newBuffer = CreateBuffer(mDevice, mSize, false, true);
+			VulkanBuffer* newBuffer = CreateBuffer(mDevice, mTotalSize, false, true);
 			mBuffer->Destroy();
 			mBuffer = newBuffer;
 		}

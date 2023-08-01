@@ -116,7 +116,7 @@ namespace bs
 		virtual bool IsInitialized() const = 0;
 		virtual bool Initialize() = 0;
 
-		virtual const GpuDeviceCapabilities& GetCapabilities() = 0;
+		virtual const GpuDeviceCapabilities& GetCapabilities() const = 0;
 
 		/** Returns information about available output devices and their video modes. */
 		virtual const VideoModeInfo& GetVideoModeInfo() const = 0;

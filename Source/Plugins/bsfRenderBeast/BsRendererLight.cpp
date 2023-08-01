@@ -267,7 +267,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 		u32 curBufferSize;
 
 		if(mLightBuffer != nullptr)
-			curBufferSize = mLightBuffer->GetSize();
+			curBufferSize = mLightBuffer->GetTotalSize();
 		else
 			curBufferSize = 0;
 

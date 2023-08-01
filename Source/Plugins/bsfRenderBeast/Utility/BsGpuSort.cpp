@@ -237,11 +237,11 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 	}
 
 	// Check if all buffers have the same size
-	bool validSize = buffers.Keys[0]->GetSize() == buffers.Keys[1]->GetSize();
+	bool validSize = buffers.Keys[0]->GetTotalSize() == buffers.Keys[1]->GetTotalSize();
 	if(buffers.Values[0] && buffers.Values[1])
 	{
-		validSize = buffers.Keys[0]->GetSize() == buffers.Values[0]->GetSize() &&
-			buffers.Keys[0]->GetSize() == buffers.Values[1]->GetSize();
+		validSize = buffers.Keys[0]->GetTotalSize() == buffers.Values[0]->GetTotalSize() &&
+			buffers.Keys[0]->GetTotalSize() == buffers.Values[1]->GetTotalSize();
 	}
 
 	if(!validSize)
@@ -333,7 +333,7 @@ void RunSortTest()
 	gRadixSortParamsDef.gBitOffset.Set(params, bitOffset);
 
 	GpuSortBuffers sortBuffers = GpuSort::CreateSortBuffers(count);
-	sortBuffers.Keys[0]->WriteData(0, sortBuffers.Keys[0]->GetSize(), inputKeys.data(), BWT_DISCARD);
+	sortBuffers.Keys[0]->WriteData(0, sortBuffers.Keys[0]->GetTotalSize(), inputKeys.data(), BWT_DISCARD);
 
 	SPtr<GpuBuffer> helperBuffers[2];
 	helperBuffers[0] = CreateHelperBuffer();
