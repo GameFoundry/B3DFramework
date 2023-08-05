@@ -16,10 +16,10 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "../Shared/" "" BS_VULKANRENDERAP
 # Packages
 if(B3D_RENDER_BACKEND MATCHES "Vulkan" OR B3D_INCLUDE_ALL_IN_WORKFLOW OR B3D_BUILD_ALL_RENDER_BACKENDS)
 	find_package(glslang)
+	find_package(SPIRVCross)
 
 	if(APPLE)
 		find_package(MoltenVK)
-		find_package(SPIRVCross)
 	else()
 		find_package(Vulkan)
 	endif()
@@ -46,10 +46,10 @@ target_include_directories(bsfVulkanRenderAPI PRIVATE
 
 ### Note: It's important to link glslang before Vulkan, as it contains its own glslang libraries. This ensures the search finds out local version first.
 target_link_libraries(bsfVulkanRenderAPI PRIVATE ${glslang_LIBRARIES})
+target_link_libraries(bsfVulkanRenderAPI PRIVATE ${SPIRVCross_LIBRARIES})
 
 if(APPLE) # MacOS
 	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${MoltenVK_LIBRARIES})
-	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${SPIRVCross_LIBRARIES})
 else()
 	target_link_libraries(bsfVulkanRenderAPI PRIVATE ${Vulkan_LIBRARIES})
 endif()
