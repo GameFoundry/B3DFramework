@@ -122,8 +122,8 @@ Additionally, if the dependency structure still isn't clear, download one of the
 - Required by bsfVulkanRenderAPI
 - Compile as a static library
 
-**SPIR-V Cross** (macOS only)
-- Commit ID: 3cd89c0c0a2436f6ae8050a830243bf3536e4f4a
+**SPIR-V Cross**
+- Commit ID: bccaa94db814af33d8ef05c153e7c34d8bd4d685
 - https://github.com/KhronosGroup/SPIRV-Cross
 - Required by bsfVulkanRenderAPI
 - Compile as a static library
