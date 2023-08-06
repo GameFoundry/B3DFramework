@@ -187,6 +187,7 @@ static VertexElementType MapGLSLangToVertexElemType(const glslang::TType& type)
 	return VET_UNKNOWN;
 }
 
+/** Converts a SPIRVCross type into a B3D GPU data parameter type. */
 static GpuDataParameterType SPIRVCrossTypeToGpuDataParameterType(const spirv_cross::SPIRType& type)
 {
 	if(type.basetype == spirv_cross::SPIRType::Struct)
@@ -347,6 +348,7 @@ static GpuDataParameterType SPIRVCrossTypeToGpuDataParameterType(const spirv_cro
 	return GPDT_UNKNOWN;
 }
 
+/** Converts a SPIRVCross type into a B3D buffer format. */
 static GpuBufferFormat SPIRVCrossTypeToBufferFormat(const spirv_cross::SPIRType& type)
 {
 	switch(type.basetype)
@@ -451,279 +453,342 @@ static GpuBufferFormat SPIRVCrossTypeToBufferFormat(const spirv_cross::SPIRType&
 	}
 }
 
-static GpuDataParameterType MapGLSLangToGpuParamDataType(const glslang::TType& type)
+/** Parses a single struct member from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuDataParameterInformation> ParseSPIRVCrossStructMember(spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& structType, u32 memberIndex, StringStream& outLog)
 {
-	if(type.getBasicType() == glslang::EbtStruct)
-		return GPDT_STRUCT;
+	const spirv_cross::SPIRType& memberType = compiler.get_type(structType.member_types[memberIndex]);
+	u32 memberSize = (u32)compiler.get_declared_struct_member_size(structType, memberIndex);
+	u32 memberOffset = compiler.type_struct_member_offset(structType, memberIndex);
 
-	if(type.isVector())
+	if(!B3D_ENSURE(memberSize % 4 == 0))
+		return {};
+
+	if(!B3D_ENSURE(memberOffset % 4 == 0))
+		return {};
+
+	memberSize /= 4;
+	memberOffset /= 4;
+
+	u32 arrayStride = memberSize;
+	if(!memberType.array.empty())
 	{
-		u32 vectorSize = type.getVectorSize();
+		arrayStride = compiler.type_struct_member_array_stride(structType, memberIndex);
 
-		switch(type.getBasicType())
-		{
-		case glslang::EbtFloat:
-			switch(vectorSize)
-			{
-			case 2: return GPDT_FLOAT2;
-			case 3: return GPDT_FLOAT3;
-			case 4: return GPDT_FLOAT4;
-			default: return GPDT_UNKNOWN;
-			}
-		case glslang::EbtDouble:
-			switch(vectorSize)
-			{
-			case 2: return GPDT_DOUBLE2;
-			case 3: return GPDT_DOUBLE3;
-			case 4: return GPDT_DOUBLE4;
-			default: return GPDT_UNKNOWN;
-			}
-		case glslang::EbtFloat16:
-			switch(vectorSize)
-			{
-			case 2: return GPDT_HALF2;
-			case 3: return GPDT_HALF3;
-			case 4: return GPDT_HALF4;
-			default: return GPDT_UNKNOWN;
-			}
-		case glslang::EbtInt:
-			switch(vectorSize)
-			{
-			case 2: return GPDT_INT2;
-			case 3: return GPDT_INT3;
-			case 4: return GPDT_INT4;
-			default: return GPDT_UNKNOWN;
-			}
-		case glslang::EbtUint:
-			switch(vectorSize)
-			{
-			case 2: return GPDT_UINT2;
-			case 3: return GPDT_UINT3;
-			case 4: return GPDT_UINT4;
-			default: return GPDT_UNKNOWN;
-			}
-		default:
-			return GPDT_UNKNOWN;
-		}
+		if(!B3D_ENSURE(arrayStride % 4 == 0))
+			return {};
+
+		arrayStride /= 4;
 	}
 
-	if(type.isMatrix())
+	const std::string& name = compiler.get_member_name(structType.self, memberIndex);
+
+	GpuDataParameterInformation memberInformation;
+	memberInformation.Name = name;
+	memberInformation.Type = SPIRVCrossTypeToGpuDataParameterType(memberType);
+	memberInformation.ParamBlockSet = 0; // Must be assigned by the caller
+	memberInformation.ParamBlockSlot = 0; // Must be assigned by the caller
+	memberInformation.ElementSize = memberSize;
+	memberInformation.ArrayElementStride = arrayStride;
+	memberInformation.ArraySize = memberType.array.empty() ? 1 : memberType.array[0]; // Not supporting array of arrays
+	memberInformation.CpuOffset = memberOffset;
+	memberInformation.GpuOffset = memberOffset;
+
+	if(memberInformation.Type == GPDT_UNKNOWN)
 	{
-		switch(type.getBasicType())
-		{
-		case glslang::EbtFloat:
-			switch(type.getMatrixCols())
-			{
-			case 2:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_MATRIX_2X2;
-				case 3: return GPDT_MATRIX_3X2;
-				case 4: return GPDT_MATRIX_4X2;
-				default: return GPDT_UNKNOWN;
-				}
-			case 3:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_MATRIX_2X3;
-				case 3: return GPDT_MATRIX_3X3;
-				case 4: return GPDT_MATRIX_4X3;
-				default: return GPDT_UNKNOWN;
-				}
-			case 4:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_MATRIX_2X4;
-				case 3: return GPDT_MATRIX_3X4;
-				case 4: return GPDT_MATRIX_4X4;
-				default: return GPDT_UNKNOWN;
-				}
-			default: break;
-			}
-			break;
-		case glslang::EbtFloat16:
-			switch(type.getMatrixCols())
-			{
-			case 2:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_HALF_MATRIX_2X2;
-				case 3: return GPDT_HALF_MATRIX_3X2;
-				case 4: return GPDT_HALF_MATRIX_4X2;
-				default: return GPDT_UNKNOWN;
-				}
-			case 3:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_HALF_MATRIX_2X3;
-				case 3: return GPDT_HALF_MATRIX_3X3;
-				case 4: return GPDT_HALF_MATRIX_4X3;
-				default: return GPDT_UNKNOWN;
-				}
-			case 4:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_HALF_MATRIX_2X4;
-				case 3: return GPDT_HALF_MATRIX_3X4;
-				case 4: return GPDT_HALF_MATRIX_4X4;
-				default: return GPDT_UNKNOWN;
-				}
-			default: break;
-			}
-			break;
-		case glslang::EbtDouble:
-			switch(type.getMatrixCols())
-			{
-			case 2:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_DOUBLE_MATRIX_2X2;
-				case 3: return GPDT_DOUBLE_MATRIX_3X2;
-				case 4: return GPDT_DOUBLE_MATRIX_4X2;
-				default: return GPDT_UNKNOWN;
-				}
-			case 3:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_DOUBLE_MATRIX_2X3;
-				case 3: return GPDT_DOUBLE_MATRIX_3X3;
-				case 4: return GPDT_DOUBLE_MATRIX_4X3;
-				default: return GPDT_UNKNOWN;
-				}
-			case 4:
-				switch(type.getMatrixRows())
-				{
-				case 2: return GPDT_DOUBLE_MATRIX_2X4;
-				case 3: return GPDT_DOUBLE_MATRIX_3X4;
-				case 4: return GPDT_DOUBLE_MATRIX_4X4;
-				default: return GPDT_UNKNOWN;
-				}
-			default: break;
-			}
-			break;
-		default:
-			return GPDT_UNKNOWN;
-		}
+		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", memberInformation.Name);
+		return {};
 	}
 
-	if(type.getVectorSize() == 1)
-	{
-		switch(type.getBasicType())
-		{
-		case glslang::EbtFloat: return GPDT_FLOAT1;
-		case glslang::EbtDouble: return GPDT_DOUBLE1;
-		case glslang::EbtFloat16: return GPDT_HALF1;
-		case glslang::EbtInt: return GPDT_INT1;
-		case glslang::EbtUint: return GPDT_UINT1;
-		case glslang::EbtBool: return GPDT_BOOL;
-		default: return GPDT_UNKNOWN;
-		}
-	}
-
-	return GPDT_UNKNOWN;
+	return memberInformation;
 }
 
-static GpuBufferFormat MapSamplerBasicType(const glslang::TSampler& sampler)
+/** Parses a uniform buffer uniform from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuDataParameterBlockInformation> ParseSPIRVCrossUniformBuffer(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
 {
-	u32 vectorSize = sampler.vectorSize;
-	switch(sampler.type)
+	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationBinding))
 	{
-	case glslang::EbtFloat:
-		switch(vectorSize)
+		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no slot binding assigned. Each uniform must have a slot binding otherwise it cannot be assigned.", resource.name.c_str());
+		return {};
+	}
+
+	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationDescriptorSet))
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no set binding assigned. Each uniform must have a set binding otherwise it cannot be assigned.", resource.name.c_str());
+		return {};
+	}
+
+	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+	const u32 bufferSize = (u32)compiler.get_declared_struct_size(type);
+
+	GpuDataParameterBlockInformation uniformBufferInformation;
+	uniformBufferInformation.Name = resource.name;
+	uniformBufferInformation.BlockSize = Math::CeilToMultiple(bufferSize / 4u, 4u); // Round to multiple of 16 bytes
+	uniformBufferInformation.IsShareable = true;
+	uniformBufferInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
+	uniformBufferInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+
+	return uniformBufferInformation;
+}
+
+/**
+ * Parses common object information (name, binding, array size) from a SPIRVCross resource and its type. Helper to be used by other parsing methods.
+ * Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data.
+ */
+static Optional<GpuObjectParameterInformation> ParseSPIRVCrossObjectCommon(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, const spirv_cross::SPIRType& type, StringStream& outLog)
+{
+	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationBinding))
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no slot binding assigned. Each uniform must have a slot binding otherwise it cannot be assigned.", resource.name.c_str());
+		return {};
+	}
+
+	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationDescriptorSet))
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no set binding assigned. Each uniform must have a set binding otherwise it cannot be assigned.", resource.name.c_str());
+		return {};
+	}
+
+	if(type.array.size() > 1)
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Multi-dimension arrays are not supported.", resource.name.c_str());
+		return {};
+	}
+
+	GpuObjectParameterInformation objectInformation;
+	objectInformation.Type = GPOT_UNKNOWN;
+	objectInformation.Name = resource.name;
+	objectInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
+	objectInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+	objectInformation.ArraySize = type.array.empty() ? 1 : type.array[0];
+
+	return objectInformation;
+}
+
+/** Parses a sampled texture uniform from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuObjectParameterInformation> ParseSPIRVCrossSampledTexture(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
+{
+	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
+	if(!objectInformation)
+		return {};
+
+	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
+	if(!B3D_ENSURE(imageTypeInformation.sampled == 1)) // 1 means sampled images, 2 means load/store, 0 means nothing
+		return {};
+
+	switch(type.image.dim)
+	{
+	case spv::Dim1D:
+		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D;
+		break;
+	case spv::Dim2D:
+		if(imageTypeInformation.ms)
+			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DMS;
+		else
+			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE2D;
+		break;
+	case spv::Dim3D:
+		objectInformation->Type = GPOT_TEXTURE3D;
+		break;
+	case spv::DimCube:
+		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE;
+		break;
+	case spv::DimBuffer:
+		objectInformation->Type = GPOT_BYTE_BUFFER;
+		break;
+	}
+
+	if(objectInformation->Type == GPOT_UNKNOWN)
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", objectInformation->Type);
+		return {};
+	}
+
+	if(type.image.type != 0)
+	{
+		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
+		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
+	}
+	else
+	{
+		objectInformation->ElementType = BF_UNKNOWN;
+	}
+
+	return objectInformation;
+}
+
+/** Parses a sampler uniform from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuObjectParameterInformation> ParseSPIRVCrossSampler(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
+{
+	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
+	if(!objectInformation)
+		return {};
+
+	objectInformation->Type = GPOT_SAMPLER2D;
+	objectInformation->ElementType = BF_UNKNOWN;
+
+	return objectInformation;
+}
+
+/** Parses a storage texture uniform from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuObjectParameterInformation> ParseSPIRVCrossStorageTexture(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
+{
+	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
+	if(!objectInformation)
+		return {};
+
+	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
+	if(!B3D_ENSURE(imageTypeInformation.sampled == 2)) // 1 means sampled images, 2 means load/store, 0 means nothing
+		return {};
+
+	switch(type.image.dim)
+	{
+	case spv::Dim1D:
+		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE1DARRAY : GPOT_RWTEXTURE1D;
+		break;
+	case spv::Dim2D:
+		if(imageTypeInformation.ms)
+			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE2DMSARRAY : GPOT_RWTEXTURE2DMS;
+		else
+			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE2DARRAY : GPOT_RWTEXTURE2D;
+		break;
+	case spv::Dim3D:
+		objectInformation->Type = GPOT_RWTEXTURE3D;
+		break;
+	case spv::DimBuffer:
+		objectInformation->Type = GPOT_RWBYTE_BUFFER;
+		break;
+	}
+
+	if(objectInformation->Type == GPOT_UNKNOWN)
+	{
+		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", objectInformation->Type);
+		return {};
+	}
+
+	if(type.image.type != 0)
+	{
+		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
+		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
+	}
+	else
+	{
+		objectInformation->ElementType = BF_UNKNOWN;
+	}
+
+	return objectInformation;
+}
+
+/** Parses a storage buffer uniform from a SPIRVCross type. Returns null if parsing failed and logs an error into the provided log stream, otherwise returns the parsed data. */
+static Optional<GpuObjectParameterInformation> ParseSPIRVCrossStorageBuffer(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
+{
+	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
+	if(!objectInformation)
+		return {};
+
+	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
+	objectInformation->Type = GPOT_RWSTRUCTURED_BUFFER;
+
+	if(type.image.type != 0)
+	{
+		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
+		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
+	}
+	else
+	{
+		objectInformation->ElementType = BF_UNKNOWN;
+	}
+
+	return objectInformation;
+}
+
+/** Parses all uniforms as reflected by the provided SPIRVCross compiler. Appends the out data into @p outParameterDescription, and logs any warnings in @p outLog. */
+static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramParameterDescription& outParameterDescription, StringStream& outLog)
+{
+	const spirv_cross::ShaderResources& sprivResources = compiler.get_shader_resources();
+	for(const auto& resource : sprivResources.uniform_buffers)
+	{
+		Optional<GpuDataParameterBlockInformation> uniformBufferInformation = ParseSPIRVCrossUniformBuffer(compiler, resource, outLog);
+		if(!uniformBufferInformation)
+			continue;
+
+		const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
+		const u32 memberCount = (u32)type.member_types.size();
+		for(u32 memberIndex = 0; memberIndex < memberCount; memberIndex++)
 		{
-		case 1: return BF_32X1F;
-		case 2: return BF_32X2F;
-		case 3: return BF_32X3F;
-		case 4: return BF_32X4F;
-		default: return BF_UNKNOWN;
+			Optional<GpuDataParameterInformation> memberInformation = ParseSPIRVCrossStructMember(compiler, type, memberIndex, outLog);
+			if(!memberInformation)
+				continue;
+
+			memberInformation->ParamBlockSet = uniformBufferInformation->Set;
+			memberInformation->ParamBlockSlot = uniformBufferInformation->Slot;
+
+			outParameterDescription.UniformBufferMembers[memberInformation->Name] = std::move(memberInformation.value());
 		}
-	case glslang::EbtDouble:
-		switch(vectorSize)
+
+		outParameterDescription.UniformBuffers[uniformBufferInformation->Name] = std::move(uniformBufferInformation.value());
+	}
+
+	// Combined texture/sampler (e.g. sampler2D)
+	for(const auto& resource : sprivResources.sampled_images)
+	{
+		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
+		if(sampledImageInformation)
 		{
-		case 1: return BF_64X1F;
-		case 2: return BF_64X2F;
-		case 3: return BF_64X3F;
-		case 4: return BF_64X4F;
-		default: return BF_UNKNOWN;
+			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
+				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+			else
+				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 		}
-	case glslang::EbtFloat16:
-		switch(vectorSize)
+
+		Optional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
+		if(samplerInformation)
+			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
+	}
+
+	// Sampled texture or buffer (e.g. texture2D/Texture2D, samplerBuffer/Buffer)
+	for(const auto& resource : sprivResources.separate_images)
+	{
+		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
+		if(sampledImageInformation)
 		{
-		case 1: return BF_16X1F;
-		case 2: return BF_16X2F;
-		case 4: return BF_16X4F;
-		default: return BF_UNKNOWN;
+			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
+				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+			else
+				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 		}
-	case glslang::EbtInt16:
-		switch(vectorSize)
+	}
+
+	// Storage texture or buffer (e.g. image2D/RWTexture2D, imageBuffer/RWBuffer)
+	for(const auto& resource : sprivResources.storage_images)
+	{
+		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossStorageTexture(compiler, resource, outLog);
+		if(sampledImageInformation)
 		{
-		case 1: return BF_16X1U;
-		case 2: return BF_16X2U;
-		case 4: return BF_16X4U;
-		default: return BF_UNKNOWN;
+			if(sampledImageInformation->Type == GPOT_RWBYTE_BUFFER)
+				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+			else
+				outParameterDescription.StorageTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 		}
-	case glslang::EbtUint16:
-		switch(vectorSize)
-		{
-		case 1: return BF_16X1S;
-		case 2: return BF_16X2S;
-		case 4: return BF_16X4S;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtInt8:
-		switch(vectorSize)
-		{
-		case 1: return BF_8X1U;
-		case 2: return BF_8X2U;
-		case 4: return BF_8X4U;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtUint8:
-		switch(vectorSize)
-		{
-		case 1: return BF_8X1S;
-		case 2: return BF_8X2S;
-		case 4: return BF_8X4S;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtInt:
-		switch(vectorSize)
-		{
-		case 1: return BF_32X1S;
-		case 2: return BF_32X2S;
-		case 3: return BF_32X3S;
-		case 4: return BF_32X4S;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtUint:
-		switch(vectorSize)
-		{
-		case 1: return BF_32X1U;
-		case 2: return BF_32X2U;
-		case 3: return BF_32X3U;
-		case 4: return BF_32X4U;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtInt64:
-		switch(vectorSize)
-		{
-		case 1: return BF_64X1S;
-		case 2: return BF_64X2S;
-		case 3: return BF_64X3S;
-		case 4: return BF_64X4S;
-		default: return BF_UNKNOWN;
-		}
-	case glslang::EbtUint64:
-		switch(vectorSize)
-		{
-		case 1: return BF_64X1U;
-		case 2: return BF_64X2U;
-		case 3: return BF_64X3U;
-		case 4: return BF_64X4U;
-		default: return BF_UNKNOWN;
-		}
-	default:
-		return BF_UNKNOWN;
+	}
+
+	// Samplers (sampler/SamplerState)
+	for(const auto& resource : sprivResources.separate_samplers)
+	{
+		Optional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
+		if(samplerInformation)
+			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
+	}
+
+	// Structured buffers (e.g. buffer/StructuredBuffer/RWStructuredBuffer)
+	for(const auto& resource : sprivResources.storage_buffers)
+	{
+		Optional<GpuObjectParameterInformation> storageBufferInformation = ParseSPIRVCrossStorageBuffer(compiler, resource, outLog);
+		if(storageBufferInformation)
+			outParameterDescription.Buffers[storageBufferInformation->Name] = std::move(storageBufferInformation.value());
 	}
 }
 
@@ -835,320 +900,6 @@ static bool ParseVertexAttributes(const glslang::TProgram* program, Vector<Verte
 	return true;
 }
 
-static void ParseStruct(const glslang::TTypeList* typeList, u32& size)
-{
-	for(auto iter = typeList->begin(); iter != typeList->end(); ++iter)
-	{
-		const glslang::TType* ttype = iter->type;
-
-		if(ttype->getBasicType() == glslang::EbtStruct)
-		{
-			const glslang::TTypeList* childTypeList = ttype->getStruct();
-			ParseStruct(childTypeList, size);
-		}
-		else
-		{
-			u32 arraySize = 1;
-			if(ttype->isArray())
-				arraySize = (u32)ttype->getCumulativeArraySize();
-
-			GpuDataParameterType paramType = MapGLSLangToGpuParamDataType(*ttype);
-			if(paramType == GPDT_UNKNOWN)
-			{
-				B3D_LOG(Warning, RenderBackend, "Cannot determine type for uniform inside a struct.");
-				continue;
-			}
-
-			u32 elemSize = VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(paramType, arraySize, size);
-			size += elemSize;
-		}
-	}
-}
-
-static bool ParseUniforms(const glslang::TProgram* program, GpuProgramParameterDescription& desc, String& log)
-{
-	// Parse individual uniforms
-	struct UniformInfo
-	{
-		u32 BufferOffset;
-		u32 ArraySize;
-	};
-
-	UnorderedMap<String, UniformInfo> uniforms;
-
-	int numUniforms = program->getNumUniformVariables();
-	for(int i = 0; i < numUniforms; i++)
-	{
-		const glslang::TType* ttype = program->getUniformTType(i);
-		const glslang::TQualifier& qualifier = ttype->getQualifier();
-		const char* name = program->getUniformName(i);
-
-		if(ttype->getBasicType() == glslang::EbtSampler) // Object type
-		{
-			// Note: Even though the type is named EbtSampler, all object types are categorized under it (including non
-			// sampled images and buffers)
-
-			if(!qualifier.hasBinding())
-			{
-				log = "Uniform parsing error: Found an uniform without a binding qualifier. Each uniform must have an "
-					  "explicitly defined binding number.";
-
-				return false;
-			}
-
-			const glslang::TSampler& sampler = ttype->getSampler();
-
-			GpuObjectParameterInformation param;
-			param.Name = name;
-			param.Slot = qualifier.layoutBinding;
-			param.Set = qualifier.layoutSet;
-			param.Type = GPOT_UNKNOWN;
-			param.ElementType = MapSamplerBasicType(sampler);
-
-			if(param.Set == glslang::TQualifier::layoutSetEnd)
-				param.Set = 0;
-
-			if(sampler.isImage())
-			{
-				switch(sampler.dim)
-				{
-				case glslang::Esd1D: param.Type = sampler.isArrayed() ? GPOT_RWTEXTURE1DARRAY : GPOT_RWTEXTURE1D; break;
-				case glslang::Esd2D:
-					if(sampler.isArrayed())
-						param.Type = sampler.isMultiSample() ? GPOT_RWTEXTURE2DMSARRAY : GPOT_RWTEXTURE2DARRAY;
-					else
-						param.Type = sampler.isMultiSample() ? GPOT_RWTEXTURE2DMS : GPOT_RWTEXTURE2D;
-					break;
-				case glslang::Esd3D: param.Type = GPOT_RWTEXTURE3D; break;
-				case glslang::EsdBuffer: param.Type = GPOT_RWBYTE_BUFFER; break;
-				default:
-					break;
-				}
-
-				if(sampler.dim != glslang::EsdBuffer)
-					desc.StorageTextures[name] = param;
-				else
-					desc.Buffers[name] = param;
-
-				if(ttype->getArraySizes() != nullptr)
-					param.ArraySize = (u32)ttype->getCumulativeArraySize();
-				else
-					param.ArraySize = 1;
-			}
-			else
-			{
-				if(sampler.isPureSampler() || sampler.isCombined())
-				{
-					switch(sampler.dim)
-					{
-					case glslang::Esd1D: param.Type = GPOT_SAMPLER1D; break;
-					default:
-					case glslang::Esd2D: param.Type = sampler.isMultiSample() ? GPOT_SAMPLER2DMS : GPOT_SAMPLER2D; break;
-					case glslang::Esd3D: param.Type = GPOT_SAMPLER3D; break;
-					case glslang::EsdCube: param.Type = GPOT_SAMPLERCUBE; break;
-					}
-
-					desc.Samplers[name] = param;
-				}
-
-				if(!sampler.isPureSampler())
-				{
-					switch(sampler.dim)
-					{
-					case glslang::Esd1D: param.Type = sampler.isArrayed() ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D; break;
-					case glslang::Esd2D:
-						if(sampler.isArrayed())
-							param.Type = sampler.isMultiSample() ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DARRAY;
-						else
-							param.Type = sampler.isMultiSample() ? GPOT_TEXTURE2DMS : GPOT_TEXTURE2D;
-						break;
-					case glslang::Esd3D: param.Type = GPOT_TEXTURE3D; break;
-					case glslang::EsdCube: param.Type = sampler.isArrayed() ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE; break;
-					case glslang::EsdBuffer: param.Type = GPOT_BYTE_BUFFER; break;
-					default:
-						break;
-					}
-
-					if(sampler.dim != glslang::EsdBuffer)
-						desc.SampledTextures[name] = param;
-					else
-						desc.Buffers[name] = param;
-
-					if(ttype->getArraySizes() != nullptr)
-						param.ArraySize = (u32)ttype->getCumulativeArraySize();
-					else
-						param.ArraySize = 1;
-				}
-			}
-
-			if(param.Type == GPOT_UNKNOWN)
-				B3D_LOG(Error, RenderBackend, "Cannot determine type for uniform: {0}", name);
-		}
-		else
-		{
-			if(qualifier.storage == glslang::EvqUniform || qualifier.storage == glslang::EvqGlobal)
-			{
-				UniformInfo info;
-				info.ArraySize = program->getUniformArraySize(i);
-				info.BufferOffset = program->getUniformBufferOffset(i);
-
-				uniforms[String(name)] = info;
-			}
-		}
-	}
-
-	// Parse uniform blocks
-	int numBlocks = program->getNumUniformBlocks();
-	for(int i = 0; i < numBlocks; i++)
-	{
-		const glslang::TType* ttype = program->getUniformBlockTType(i);
-		const glslang::TQualifier& qualifier = ttype->getQualifier();
-		const char* name = program->getUniformBlockName(i);
-
-		if(!qualifier.hasBinding())
-		{
-			log = "Uniform parsing error: Found a uniform block without a binding qualifier. Each uniform block must "
-				  " have an explicitly defined binding number.";
-
-			return false;
-		}
-
-		if(qualifier.storage == glslang::EvqBuffer) // Shared storage buffer
-		{
-			GpuObjectParameterInformation param;
-			param.Name = name;
-			param.Slot = qualifier.layoutBinding;
-			param.Set = qualifier.layoutSet;
-
-			if(param.Set == glslang::TQualifier::layoutSetEnd)
-				param.Set = 0;
-
-			param.Type = GPOT_RWSTRUCTURED_BUFFER;
-			desc.Buffers[name] = param;
-		}
-		else // Uniform buffer
-		{
-			int size = Math::DivideAndRoundUp(program->getUniformBlockSize(i), 16) * 16;
-
-			GpuDataParameterBlockInformation blockDesc;
-			blockDesc.Name = name;
-			blockDesc.BlockSize = size / 4;
-			blockDesc.IsShareable = true;
-			blockDesc.Slot = qualifier.layoutBinding;
-			blockDesc.Set = qualifier.layoutSet;
-
-			if(blockDesc.Set == glslang::TQualifier::layoutSetEnd)
-				blockDesc.Set = 0;
-
-			desc.UniformBuffers[name] = blockDesc;
-
-			// Parse members of the uniform buffer
-			const glslang::TTypeList* typeList = ttype->getStruct();
-			if(typeList == nullptr)
-				continue;
-
-			u32 bufferOffset = 0;
-			for(auto iter = typeList->begin(); iter != typeList->end(); ++iter)
-			{
-				const glslang::TType* paramTType = iter->type;
-				String paramName = paramTType->getFieldName().c_str();
-
-				GpuDataParameterType paramType;
-				u32 elementSize = 0;
-				u32 arrayStride = 0;
-				if(paramTType->getBasicType() == glslang::EbtStruct)
-				{
-					paramType = GPDT_STRUCT;
-
-					const glslang::TTypeList* paramTypeList = paramTType->getStruct();
-					ParseStruct(paramTypeList, elementSize);
-
-					// Struct alignment always a multiple of vec4
-					arrayStride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
-				}
-				else
-				{
-					paramType = MapGLSLangToGpuParamDataType(*paramTType);
-				}
-
-				if(paramType == GPDT_UNKNOWN)
-				{
-					B3D_LOG(Warning, RenderBackend, "Cannot determine type for uniform: {0}", name);
-					continue;
-				}
-
-				u32 arraySize = paramTType->isArray() ? paramTType->getCumulativeArraySize() : 1;
-				if(paramType != GPDT_STRUCT)
-				{
-					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[paramType];
-					elementSize = typeInfo.Size / 4;
-
-					// Array elements in std140 are always rounded to vec4
-					if(arraySize > 1)
-						arrayStride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
-					else
-						arrayStride = elementSize;
-				}
-
-				u32 stride;
-				if(paramTType->getBasicType() == glslang::EbtStruct)
-				{
-					// Structs are always aligned and rounded up to vec4
-					stride = Math::DivideAndRoundUp(elementSize, 4U) * 4;
-					bufferOffset = Math::DivideAndRoundUp(bufferOffset, 4U) * 4;
-				}
-				else if(paramTType->isMatrix())
-				{
-					// Matrices get rounded up to vec4
-					const GpuDataParameterTypeInformation& typeInfo = bs::GpuParameters::kParamSizes.Lookup[paramType];
-
-					stride = Math::DivideAndRoundUp(typeInfo.BaseTypeSize * typeInfo.NumColumns / 4U, 4U) * 4 * typeInfo.NumRows;
-					bufferOffset = Math::DivideAndRoundUp(bufferOffset, 4U) * 4;
-				}
-				else
-					stride = VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(paramType, arraySize, bufferOffset);
-
-				bool unusedMember = false;
-				auto findIter = uniforms.find(paramName);
-				if(findIter != uniforms.end()) // Likely unused and was optimized out
-				{
-					// Ensure our calculation matches the glslang provided one. We don't use glslang directly because
-					// for some cases offset is not provided (e.g. structs that have members optimized out).
-					const UniformInfo& uniformInfo = findIter->second;
-					B3D_ASSERT((uniformInfo.BufferOffset / 4) == bufferOffset);
-				}
-				else
-				{
-					// Ignore unused members. We never ignore structs because their members get reported as individual
-					// uniforms rather than a whole struct, and we don't have the logic to check that case.
-					if(paramType != GPDT_STRUCT)
-						unusedMember = true;
-				}
-
-				if(!unusedMember)
-				{
-					GpuDataParameterInformation paramDesc;
-					paramDesc.Name = paramName;
-					paramDesc.Type = paramType;
-					paramDesc.ParamBlockSet = blockDesc.Set;
-					paramDesc.ParamBlockSlot = blockDesc.Slot;
-					paramDesc.ElementSize = elementSize;
-					paramDesc.ArrayElementStride = arrayStride;
-					paramDesc.ArraySize = arraySize;
-					paramDesc.CpuOffset = bufferOffset;
-					paramDesc.GpuOffset = bufferOffset;
-
-
-				}
-
-				bufferOffset += stride * arraySize;
-			}
-		}
-	}
-
-	return true;
-}
-
 GLSLToSPIRV::GLSLToSPIRV()
 {
 	glslang::InitializeProcess();
@@ -1157,334 +908,6 @@ GLSLToSPIRV::GLSLToSPIRV()
 GLSLToSPIRV::~GLSLToSPIRV()
 {
 	glslang::FinalizeProcess();
-}
-
-static Optional<GpuDataParameterInformation> ParseSPIRVCrossStructMember(spirv_cross::Compiler& compiler, const spirv_cross::SPIRType& structType, u32 memberIndex, StringStream& outLog)
-{
-	const spirv_cross::SPIRType& memberType = compiler.get_type(structType.member_types[memberIndex]);
-	u32 memberSize = (u32)compiler.get_declared_struct_member_size(structType, memberIndex);
-	u32 memberOffset = compiler.type_struct_member_offset(structType, memberIndex);
-
-	if(!B3D_ENSURE(memberSize % 4 == 0))
-		return {};
-
-	if(!B3D_ENSURE(memberOffset % 4 == 0))
-		return {};
-
-	memberSize /= 4;
-	memberOffset /= 4;
-
-	u32 arrayStride = memberSize;
-	if(!memberType.array.empty())
-	{
-		arrayStride = compiler.type_struct_member_array_stride(structType, memberIndex);
-
-		if(!B3D_ENSURE(arrayStride % 4 == 0))
-			return {};
-
-		arrayStride /= 4;
-	}
-
-	const std::string& name = compiler.get_member_name(structType.self, memberIndex);
-
-	GpuDataParameterInformation memberInformation;
-	memberInformation.Name = name;
-	memberInformation.Type = SPIRVCrossTypeToGpuDataParameterType(memberType);
-	memberInformation.ParamBlockSet = 0; // Must be assigned by the caller
-	memberInformation.ParamBlockSlot = 0; // Must be assigned by the caller
-	memberInformation.ElementSize = memberSize;
-	memberInformation.ArrayElementStride = arrayStride;
-	memberInformation.ArraySize = memberType.array.empty() ? 1 : memberType.array[0]; // Not supporting array of arrays
-	memberInformation.CpuOffset = memberOffset;
-	memberInformation.GpuOffset = memberOffset;
-
-	if(memberInformation.Type == GPDT_UNKNOWN)
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", memberInformation.Name);
-		return {};
-	}
-
-	return memberInformation;
-}
-static Optional<GpuDataParameterBlockInformation> ParseSPIRVCrossUniformBuffer(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
-{
-	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationBinding))
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no slot binding assigned. Each uniform must have a slot binding otherwise it cannot be assigned.", resource.name.c_str());
-		return {};
-	}
-
-	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationDescriptorSet))
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no set binding assigned. Each uniform must have a set binding otherwise it cannot be assigned.", resource.name.c_str());
-		return {};
-	}
-
-	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-	const u32 bufferSize = (u32)compiler.get_declared_struct_size(type);
-
-	GpuDataParameterBlockInformation uniformBufferInformation;
-	uniformBufferInformation.Name = resource.name;
-	uniformBufferInformation.BlockSize = Math::CeilToMultiple(bufferSize / 4u, 4u); // Round to multiple of 16 bytes
-	uniformBufferInformation.IsShareable = true;
-	uniformBufferInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
-	uniformBufferInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-
-	return uniformBufferInformation;
-}
-
-/** Parses common object information (name, binding) from a SPIRVCross resource. Helper to be used by other parsing methods. */
-static Optional<GpuObjectParameterInformation> ParseSPIRVCrossObjectCommon(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, const spirv_cross::SPIRType& type, StringStream& outLog)
-{
-	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationBinding))
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no slot binding assigned. Each uniform must have a slot binding otherwise it cannot be assigned.", resource.name.c_str());
-		return {};
-	}
-
-	if(!compiler.get_decoration_bitset(resource.id).get(spv::DecorationDescriptorSet))
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Uniform has no set binding assigned. Each uniform must have a set binding otherwise it cannot be assigned.", resource.name.c_str());
-		return {};
-	}
-
-	if(type.array.size() > 1)
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform {0}. Multi-dimension arrays are not supported.", resource.name.c_str());
-		return {};
-	}
-
-	GpuObjectParameterInformation objectInformation;
-	objectInformation.Type = GPOT_UNKNOWN;
-	objectInformation.Name = resource.name;
-	objectInformation.Slot = compiler.get_decoration(resource.id, spv::DecorationBinding);
-	objectInformation.Set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-	objectInformation.ArraySize = type.array.empty() ? 1 : type.array[0];
-
-	return objectInformation;
-}
-
-static Optional<GpuObjectParameterInformation> ParseSPIRVCrossSampledTexture(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
-{
-	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
-	if(!objectInformation)
-		return {};
-
-	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
-	if(!B3D_ENSURE(imageTypeInformation.sampled == 1)) // 1 means sampled images, 2 means load/store, 0 means nothing
-		return {};
-
-	switch(type.image.dim)
-	{
-	case spv::Dim1D:
-		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE1DARRAY : GPOT_TEXTURE1D;
-		break;
-	case spv::Dim2D:
-		if(imageTypeInformation.ms)
-			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE2DMSARRAY : GPOT_TEXTURE2DMS;
-		else
-			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURE2DARRAY : GPOT_TEXTURE2D;
-		break;
-	case spv::Dim3D:
-		objectInformation->Type = GPOT_TEXTURE3D;
-		break;
-	case spv::DimCube:
-		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_TEXTURECUBEARRAY : GPOT_TEXTURECUBE;
-		break;
-	case spv::DimBuffer:
-		objectInformation->Type = GPOT_BYTE_BUFFER;
-		break;
-	}
-
-	if(objectInformation->Type == GPOT_UNKNOWN)
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", objectInformation->Type);
-		return {};
-	}
-
-	if(type.image.type != 0)
-	{
-		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
-		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
-	}
-	else
-	{
-		objectInformation->ElementType = BF_UNKNOWN;
-	}
-
-	return objectInformation;
-}
-
-static Optional<GpuObjectParameterInformation> ParseSPIRVCrossSampler(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
-{
-	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
-	if(!objectInformation)
-		return {};
-
-	objectInformation->Type = GPOT_SAMPLER2D;
-	objectInformation->ElementType = BF_UNKNOWN;
-
-	return objectInformation;
-}
-
-static Optional<GpuObjectParameterInformation> ParseSPIRVCrossStorageTexture(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
-{
-	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
-	if(!objectInformation)
-		return {};
-
-	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
-	if(!B3D_ENSURE(imageTypeInformation.sampled == 2)) // 1 means sampled images, 2 means load/store, 0 means nothing
-		return {};
-
-	switch(type.image.dim)
-	{
-	case spv::Dim1D:
-		objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE1DARRAY : GPOT_RWTEXTURE1D;
-		break;
-	case spv::Dim2D:
-		if(imageTypeInformation.ms)
-			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE2DMSARRAY : GPOT_RWTEXTURE2DMS;
-		else
-			objectInformation->Type = imageTypeInformation.arrayed ? GPOT_RWTEXTURE2DARRAY : GPOT_RWTEXTURE2D;
-		break;
-	case spv::Dim3D:
-		objectInformation->Type = GPOT_RWTEXTURE3D;
-		break;
-	case spv::DimBuffer:
-		objectInformation->Type = GPOT_RWBYTE_BUFFER;
-		break;
-	}
-
-	if(objectInformation->Type == GPOT_UNKNOWN)
-	{
-		outLog << StringUtil::Format("Warning: Failed parsing uniform. Cannot determine type for uniform: {0}.\n", objectInformation->Type);
-		return {};
-	}
-
-	if(type.image.type != 0)
-	{
-		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
-		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
-	}
-	else
-	{
-		objectInformation->ElementType = BF_UNKNOWN;
-	}
-
-	return objectInformation;
-}
-
-static Optional<GpuObjectParameterInformation> ParseSPIRVCrossStorageBuffer(spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, StringStream& outLog)
-{
-	const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-	Optional<GpuObjectParameterInformation> objectInformation = ParseSPIRVCrossObjectCommon(compiler, resource, type, outLog);
-	if(!objectInformation)
-		return {};
-
-	const spirv_cross::SPIRType::ImageType imageTypeInformation = type.image;
-	objectInformation->Type = GPOT_RWSTRUCTURED_BUFFER;
-
-	if(type.image.type != 0)
-	{
-		const spirv_cross::SPIRType& elementType = compiler.get_type(type.image.type);
-		objectInformation->ElementType = SPIRVCrossTypeToBufferFormat(elementType);
-	}
-	else
-	{
-		objectInformation->ElementType = BF_UNKNOWN;
-	}
-
-	return objectInformation;
-}
-
-static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramParameterDescription& outParameterDescription, StringStream& outLog)
-{
-	const spirv_cross::ShaderResources& sprivResources = compiler.get_shader_resources();
-	for(const auto& resource : sprivResources.uniform_buffers)
-	{
-		Optional<GpuDataParameterBlockInformation> uniformBufferInformation = ParseSPIRVCrossUniformBuffer(compiler, resource, outLog);
-		if(!uniformBufferInformation)
-			continue;
-
-		const spirv_cross::SPIRType& type = compiler.get_type(resource.base_type_id);
-		const u32 memberCount = (u32)type.member_types.size();
-		for(u32 memberIndex = 0; memberIndex < memberCount; memberIndex++)
-		{
-			Optional<GpuDataParameterInformation> memberInformation = ParseSPIRVCrossStructMember(compiler, type, memberIndex, outLog);
-			if(!memberInformation)
-				continue;
-
-			memberInformation->ParamBlockSet = uniformBufferInformation->Set;
-			memberInformation->ParamBlockSlot = uniformBufferInformation->Slot;
-
-			outParameterDescription.UniformBufferMembers[memberInformation->Name] = std::move(memberInformation.value());
-		}
-
-		outParameterDescription.UniformBuffers[uniformBufferInformation->Name] = std::move(uniformBufferInformation.value());
-	}
-
-	// Combined texture/sampler (e.g. sampler2D)
-	for(const auto& resource : sprivResources.sampled_images)
-	{
-		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
-		if(sampledImageInformation)
-		{
-			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-			else
-				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-		}
-
-		Optional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
-		if(samplerInformation)
-			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
-	}
-
-	// Sampled texture or buffer (e.g. texture2D/Texture2D, samplerBuffer/Buffer)
-	for(const auto& resource : sprivResources.separate_images)
-	{
-		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossSampledTexture(compiler, resource, outLog);
-		if(sampledImageInformation)
-		{
-			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-			else
-				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-		}
-	}
-
-	// Storage texture or buffer (e.g. image2D/RWTexture2D, imageBuffer/RWBuffer)
-	for(const auto& resource : sprivResources.storage_images)
-	{
-		Optional<GpuObjectParameterInformation> sampledImageInformation = ParseSPIRVCrossStorageTexture(compiler, resource, outLog);
-		if(sampledImageInformation)
-		{
-			if(sampledImageInformation->Type == GPOT_RWBYTE_BUFFER)
-				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-			else
-				outParameterDescription.StorageTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
-		}
-	}
-
-	// Samplers (sampler/SamplerState)
-	for(const auto& resource : sprivResources.separate_samplers)
-	{
-		Optional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
-		if(samplerInformation)
-			outParameterDescription.Samplers[samplerInformation->Name] = std::move(samplerInformation.value());
-	}
-
-	// Structured buffers (e.g. buffer/StructuredBuffer/RWStructuredBuffer)
-	for(const auto& resource : sprivResources.storage_buffers)
-	{
-		Optional<GpuObjectParameterInformation> storageBufferInformation = ParseSPIRVCrossStorageBuffer(compiler, resource, outLog);
-		if(storageBufferInformation)
-			outParameterDescription.Buffers[storageBufferInformation->Name] = std::move(storageBufferInformation.value());
-	}
 }
 
 SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation& desc)
@@ -1558,8 +981,6 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation&
 
 	// Parse uniforms
 	bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
-	//if(!ParseUniforms(&program, *bytecode->ParameterDescription, bytecode->Messages))
-	//	return bytecode;
 
 	StringStream messageLog;
 	ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog);
