@@ -50,11 +50,11 @@ namespace bs
 	/** Contains information about all parameters (i.e. uniforms) for a single GPU program, including data/object parameters and parameter blocks. */
 	struct B3D_CORE_EXPORT GpuProgramParameterDescription : IReflectable
 	{
-		Map<String, GpuDataParameterBlockInformation> DataParameterBlocks;
-		Map<String, GpuDataParameterInformation> DataParameters;
+		Map<String, GpuDataParameterBlockInformation> UniformBuffers;
+		Map<String, GpuDataParameterInformation> UniformBufferMembers;
 
 		Map<String, GpuObjectParameterInformation> Samplers;
-		Map<String, GpuObjectParameterInformation> Textures;
+		Map<String, GpuObjectParameterInformation> SampledTextures;
 		Map<String, GpuObjectParameterInformation> StorageTextures;
 		Map<String, GpuObjectParameterInformation> Buffers;
 

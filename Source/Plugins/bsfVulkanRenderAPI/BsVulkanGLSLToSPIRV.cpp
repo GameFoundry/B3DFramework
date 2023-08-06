@@ -970,7 +970,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuProgramParameterD
 					}
 
 					if(sampler.dim != glslang::EsdBuffer)
-						desc.Textures[name] = param;
+						desc.SampledTextures[name] = param;
 					else
 						desc.Buffers[name] = param;
 
@@ -1040,7 +1040,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuProgramParameterD
 			if(blockDesc.Set == glslang::TQualifier::layoutSetEnd)
 				blockDesc.Set = 0;
 
-			desc.DataParameterBlocks[name] = blockDesc;
+			desc.UniformBuffers[name] = blockDesc;
 
 			// Parse members of the uniform buffer
 			const glslang::TTypeList* typeList = ttype->getStruct();
@@ -1138,7 +1138,7 @@ static bool ParseUniforms(const glslang::TProgram* program, GpuProgramParameterD
 					paramDesc.CpuOffset = bufferOffset;
 					paramDesc.GpuOffset = bufferOffset;
 
-					desc.DataParameters[paramName] = paramDesc;
+
 				}
 
 				bufferOffset += stride * arraySize;
@@ -1421,10 +1421,10 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 			memberInformation->ParamBlockSet = uniformBufferInformation->Set;
 			memberInformation->ParamBlockSlot = uniformBufferInformation->Slot;
 
-			outParameterDescription.DataParameters[memberInformation->Name] = std::move(memberInformation.value());
+			outParameterDescription.UniformBufferMembers[memberInformation->Name] = std::move(memberInformation.value());
 		}
 
-		outParameterDescription.DataParameterBlocks[uniformBufferInformation->Name] = std::move(uniformBufferInformation.value());
+		outParameterDescription.UniformBuffers[uniformBufferInformation->Name] = std::move(uniformBufferInformation.value());
 	}
 
 	// Combined texture/sampler (e.g. sampler2D)
@@ -1436,7 +1436,7 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
 				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 			else
-				outParameterDescription.Textures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 		}
 
 		Optional<GpuObjectParameterInformation> samplerInformation = ParseSPIRVCrossSampler(compiler, resource, outLog);
@@ -1453,7 +1453,7 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 			if(sampledImageInformation->Type == GPOT_BYTE_BUFFER)
 				outParameterDescription.Buffers[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 			else
-				outParameterDescription.Textures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
+				outParameterDescription.SampledTextures[sampledImageInformation->Name] = std::move(sampledImageInformation.value());
 		}
 	}
 
@@ -1558,15 +1558,15 @@ SPtr<GpuProgramBytecode> GLSLToSPIRV::Convert(const GpuProgramCreateInformation&
 
 	// Parse uniforms
 	bytecode->ParameterDescription = B3DMakeShared<GpuProgramParameterDescription>();
-	if(!ParseUniforms(&program, *bytecode->ParameterDescription, bytecode->Messages))
-		return bytecode;
+	//if(!ParseUniforms(&program, *bytecode->ParameterDescription, bytecode->Messages))
+	//	return bytecode;
 
-	//StringStream messageLog;
-	//ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog);
+	StringStream messageLog;
+	ParseSPIRVCrossUniforms(spirvCompiler, *bytecode->ParameterDescription, messageLog);
 
-	//const String& messageLogString = messageLog.str();
-	//if(!messageLogString.empty())
-	//	bytecode->Messages += messageLogString;
+	const String& messageLogString = messageLog.str();
+	if(!messageLogString.empty())
+		bytecode->Messages += messageLogString;
 
 	// If vertex program, retrieve information about vertex inputs
 	if(desc.Type == GPT_VERTEX_PROGRAM)

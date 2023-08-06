@@ -211,10 +211,10 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 
 		auto fnCrossCompilePass = [&shaderMetaData, &compileResult](const BSLParsedShaderPassData& parsedShaderPass, HLSLCrossCompileOutput language, CrossCompilePassOutput& crossCompiledOutput)
 		{
-			u32 binding = 0;
 			for(auto& type : shaderMetaData.GPUProgramTypes)
 			{
 				B3D_ASSERT((i32)type < GPT_COUNT);
+				u32 binding = 0;
 				compileResult = HLSLCrossCompiler::CrossCompile(parsedShaderPass.Code, type, language, binding, crossCompiledOutput.ProgramCodePerType[(i32)type]);
 
 				if(!compileResult.ErrorMessage.empty())

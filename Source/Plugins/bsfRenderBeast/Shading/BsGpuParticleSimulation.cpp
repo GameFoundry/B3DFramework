@@ -1113,18 +1113,9 @@ void GpuParticleSimulateMat::Initialize()
 {
 	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
 	mGPUParameters->SetUniformBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mGPUParameters->GetPipelineParameterInformation()->GetBinding("Params", mParamsBinding);
 
-	mGPUParameters->GetPipelineParameterInformation()->GetBinding(
-		GPT_FRAGMENT_PROGRAM,
-		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-		"Params",
-		mParamsBinding);
-
-	mGPUParameters->GetPipelineParameterInformation()->GetBinding(
-		GPT_FRAGMENT_PROGRAM,
-		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-		"VectorFieldParams",
-		mVectorFieldBinding);
+	mGPUParameters->GetPipelineParameterInformation()->GetBinding("VectorFieldParams", mVectorFieldBinding);
 
 	mGPUParameters->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
 	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
@@ -1134,23 +1125,9 @@ void GpuParticleSimulateMat::Initialize()
 	mSupportsDepthCollisions = mVariationParameters.GetUInt("DEPTH_COLLISIONS") > 0;
 	if(mSupportsDepthCollisions)
 	{
-		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
-			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-			"PerCamera",
-			mPerCameraBinding);
-
-		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
-			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-			"PerObject",
-			mPerObjectBinding);
-
-		mGPUParameters->GetPipelineParameterInformation()->GetBinding(
-			GPT_FRAGMENT_PROGRAM,
-			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-			"DepthCollisionParams",
-			mDepthCollisionBinding);
+		mGPUParameters->GetPipelineParameterInformation()->GetBinding("PerCamera", mPerCameraBinding);
+		mGPUParameters->GetPipelineParameterInformation()->GetBinding("PerObject", mPerObjectBinding);
+		mGPUParameters->GetPipelineParameterInformation()->GetBinding("DepthCollisionParams", mDepthCollisionBinding);
 
 		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
 		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);

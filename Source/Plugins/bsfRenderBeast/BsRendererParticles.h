@@ -168,7 +168,7 @@ namespace bs
 			};
 
 			/** Binding locations for the per-camera param block buffer. */
-			GpuParameterBinding PerCameraBindings[GPT_COUNT];
+			GpuParameterBinding PerCameraBinding;
 
 			/** Binding spot for the buffer containing instance id -> particle index mapping. */
 			GpuParameterBuffer IndicesBuffer;

@@ -53,10 +53,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(DataParameterBlocks, 0)
-			B3D_RTTI_MEMBER_PLAIN(DataParameters, 1)
+			B3D_RTTI_MEMBER_PLAIN(UniformBuffers, 0)
+			B3D_RTTI_MEMBER_PLAIN(UniformBufferMembers, 1)
 			B3D_RTTI_MEMBER_PLAIN(Samplers, 2)
-			B3D_RTTI_MEMBER_PLAIN(Textures, 3)
+			B3D_RTTI_MEMBER_PLAIN(SampledTextures, 3)
 			B3D_RTTI_MEMBER_PLAIN(StorageTextures, 4)
 			B3D_RTTI_MEMBER_PLAIN(Buffers, 5)
 		B3D_RTTI_END_MEMBERS

@@ -345,12 +345,9 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		for(auto& element : inputs.Scene.Renderables[i]->Elements)
 		{
 			SPtr<GpuParameters> gpuParams = element.Params->GetGpuParams();
-			for(u32 j = 0; j < GPT_COUNT; j++)
-			{
-				const GpuParameterBinding& binding = element.PerCameraBindings[j];
-				if(binding.Slot != (u32)-1)
-					gpuParams->SetUniformBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
-			}
+			const GpuParameterBinding& binding = element.PerCameraBinding;
+			if(binding.Slot != (u32)-1)
+				gpuParams->SetUniformBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
 		}
 	}
 
@@ -400,12 +397,9 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		rendererDecal.UpdatePerCallBuffer(viewProps.ViewProjTransform);
 
 		SPtr<GpuParameters> gpuParams = renderElement.Params->GetGpuParams();
-		for(u32 j = 0; j < GPT_COUNT; j++)
-		{
-			const GpuParameterBinding& binding = renderElement.PerCameraBindings[j];
-			if(binding.Slot != (u32)-1)
-				gpuParams->SetUniformBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
-		}
+		const GpuParameterBinding& binding = renderElement.PerCameraBinding;
+		if(binding.Slot != (u32)-1)
+			gpuParams->SetUniformBuffer(binding.Set, binding.Slot, inputs.View.GetPerViewBuffer());
 
 		renderElement.DepthInputTexture.Set(sceneDepthTex->Texture);
 		renderElement.MaskInputTexture.Set(IdTex->Texture);
@@ -1320,12 +1314,9 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	const auto bindParamsForClustered = [&lightGridOutputs, &visibleLightData, &visibleReflProbeData](GpuParameters& gpuParams, const ForwardLightingParams& fwdParams, const ImageBasedLightingParams& iblParams)
 	{
-		for(u32 j = 0; j < GPT_COUNT; j++)
-		{
-			const GpuParameterBinding& binding = fwdParams.GridParamsBindings[j];
-			if(binding.Slot != (u32)-1)
-				gpuParams.SetUniformBuffer(binding.Set, binding.Slot, lightGridOutputs.GridParams);
-		}
+		const GpuParameterBinding& binding = fwdParams.GridParamsBinding;
+		if(binding.Slot != (u32)-1)
+			gpuParams.SetUniformBuffer(binding.Set, binding.Slot, lightGridOutputs.GridParams);
 
 		fwdParams.GridLightOffsetsAndSizeParam.Set(lightGridOutputs.GridLightOffsetsAndSize);
 		fwdParams.GridProbeOffsetsAndSizeParam.Set(lightGridOutputs.GridProbeOffsetsAndSize);

@@ -552,7 +552,7 @@ void VulkanGpuCommandBuffer::SetGpuParameters(const SPtr<GpuParameters>& paramet
 				continue;
 
 			// Flush all param block buffers
-			for (auto iter = paramDesc->DataParameterBlocks.begin(); iter != paramDesc->DataParameterBlocks.end(); ++iter)
+			for (auto iter = paramDesc->UniformBuffers.begin(); iter != paramDesc->UniformBuffers.end(); ++iter)
 			{
 				SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(iter->second.Set, iter->second.Slot);
 

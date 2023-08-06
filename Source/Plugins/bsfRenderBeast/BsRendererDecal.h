@@ -74,7 +74,7 @@ namespace bs
 			MaterialSamplerOverrides* SamplerOverrides;
 
 			/** Binding indices representing where should the per-camera param block buffer be bound to. */
-			GpuParameterBinding PerCameraBindings[GPT_COUNT];
+			GpuParameterBinding PerCameraBinding;
 
 			/** Indices for different variations of the used material. */
 			u32 TechniqueIndices[2][3];

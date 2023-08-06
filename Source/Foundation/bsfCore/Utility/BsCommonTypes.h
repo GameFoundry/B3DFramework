@@ -187,6 +187,20 @@ namespace bs
 		GPT_COUNT // Keep at end
 	};
 
+	/** All possible GPU program stages as a bit mask. */
+	enum class GpuProgramStageBit
+	{
+		None = 0,
+		Vertex = 1 << GPT_VERTEX_PROGRAM,
+		Fragment = 1 << GPT_FRAGMENT_PROGRAM,
+		Hull = 1 << GPT_HULL_PROGRAM,
+		Domain = 1 << GPT_DOMAIN_PROGRAM,
+		Geometry = 1 << GPT_GEOMETRY_PROGRAM,
+		Compute = 1 << GPT_COMPUTE_PROGRAM
+	};
+
+	using GpuProgramStageBits = Flags<GpuProgramStageBit>;
+	B3D_FLAGS_OPERATORS(GpuProgramStageBit)
 	/** Types of valid formats used for standard GPU buffers. */
 	enum GpuBufferFormat
 	{

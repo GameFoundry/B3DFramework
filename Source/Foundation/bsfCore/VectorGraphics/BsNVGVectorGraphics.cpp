@@ -804,7 +804,7 @@ namespace bs::ct
 		gpuParameters->SetUniformBuffer("RenderUniforms", mRenderBuffers.RenderUniformBuffer);
 		gpuParameters->SetUniformBuffer("ViewUniforms", mRenderBuffers.ViewUniformBuffer);
 
-		const u32 renderUniformBufferDynamicIndex = gpuParameters->GetPipelineParameterInformation()->GetDynamicOffsetIndex(GPT_FRAGMENT_PROGRAM, "RenderUniforms");
+		const u32 renderUniformBufferDynamicIndex = gpuParameters->GetPipelineParameterInformation()->GetDynamicOffsetIndex("RenderUniforms");
 		B3D_ENSURE(renderUniformBufferDynamicIndex != ~0u);
 
 		commandBuffer.SetGpuParameters(gpuParameters);

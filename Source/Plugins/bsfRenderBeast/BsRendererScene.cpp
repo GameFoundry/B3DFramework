@@ -472,10 +472,7 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 		gpuParams->SetUniformBuffer("PerObject", rendererRenderable->PerObjectParamBuffer);
 		gpuParams->TrySetUniformBuffer("PerCall", rendererRenderable->PerCallParamBuffer);
 
-		gpuParams->GetPipelineParameterInformation()->GetBindings(
-			GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-			"PerCamera",
-			element.PerCameraBindings);
+		gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", element.PerCameraBinding);
 
 		if(gpuParams->HasStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices"))
 			gpuParams->SetStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.BoneMatrixBuffer);
@@ -853,10 +850,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	gpuParams->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
 
-	gpuParams->GetPipelineParameterInformation()->GetBindings(
-		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-		"PerCamera",
-		renElement.PerCameraBindings);
+	gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", renElement.PerCameraBinding);
 
 	if(gpu)
 	{
@@ -1046,10 +1040,7 @@ void RendererScene::RegisterDecal(Decal* decal)
 	gpuParams->SetUniformBuffer("PerObject", rendererDecal.PerObjectParamBuffer);
 	gpuParams->SetUniformBuffer("PerCall", rendererDecal.PerCallParamBuffer);
 
-	gpuParams->GetPipelineParameterInformation()->GetBindings(
-		GpuPipelineParameterLayout::GpuParameterType::UniformBuffer,
-		"PerCamera",
-		renElement.PerCameraBindings);
+	gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", renElement.PerCameraBinding);
 
 	if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
 		gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);

@@ -54,7 +54,8 @@ namespace bs
 			StorageTexture,
 			StorageBuffer,
 			Sampler,
-			Count
+			Count,
+			Unknown,
 		};
 
 		virtual ~GpuPipelineParameterLayout() = default;
@@ -63,7 +64,7 @@ namespace bs
 		virtual void Initialize() { }
 
 		/** Gets the total number of sets. */
-		u32 GetSetCount() const { return mSetCount; }
+		u32 GetSetCount() const { return (u32)mSets.Size(); }
 
 		/** Returns the total number of elements across all sets. */
 		u32 GetResourceCount() const { return mResourceCount; }
@@ -72,17 +73,17 @@ namespace bs
 		u32 GetResourceCount(GpuParameterType type) const { return mResourceCountPerType[(u32)type]; }
 
 		/** Returns the total number of slots across all sets. */
-		u32 GetBindingSlotCount() const { return mBindingSlotCount; }
+		u32 GetBindingSlotCount() const { return mBindingCount; }
 
 		/** Returns the number of slots in all sets for the specified parameter type. */
-		u32 GetBindingSlotCount(GpuParameterType type) { return mBindingSlotCountPerType[(u32)type]; }
+		u32 GetBindingSlotCount(GpuParameterType type) { return (u32)mUniformsPerType[(u32)type].Size(); }
 
 		/**
 		 * Converts a set/slot/array index combination into a sequential index that maps to the parameter in that parameter type's array.
 		 *
 		 * If the set, slot or array index is out of valid range, the method logs an error and returns ~0u. Only performs range checking in debug mode.
 		 */
-		u32 GetSequentialResourceIndex(GpuParameterType type, u32 set, u32 slot, u32 arrayIndex) const;
+		u32 GetSequentialResourceIndex(u32 set, u32 slot, u32 arrayIndex) const;
 
 		/**
 		 * Converts a set and slot combination into a sequential index that maps to the parameter in that parameter type's array. This is similar to
@@ -90,22 +91,16 @@ namespace bs
 		 *
 		 * If the set or slot is out of valid range, the method logs an error and returns ~0u. Only performs range checking in debug mode.
 		 */
-		u32 GetSequentialBindingIndex(GpuParameterType type, u32 set, u32 slot) const;
+		u32 GetSequentialBindingIndex(u32 set, u32 slot) const;
 
 		/** Converts a sequential binding index index into a set/slot combination. */
 		void GetBinding(GpuParameterType type, u32 sequentialBindingIndex, u32& set, u32& slot) const;
 
 		/**
-		 * Finds set/slot indices of a parameter with the specified name for the specified GPU program stage. Set/slot
-		 * indices are set to ~0u if a stage doesn't have a block with the specified name.
+		 * Finds set/slot indices of a parameter with the specified name. Set/slot indices are set to ~0u if
+		 * parameter cannot be found.
 		 */
-		void GetBinding(GpuProgramType progType, GpuParameterType type, const String& name, GpuParameterBinding& binding);
-
-		/**
-		 * Finds set/slot indices of a parameter with the specified name for every GPU program stage. Set/slot indices are
-		 * set to -1 if a stage doesn't have a block with the specified name.
-		 */
-		void GetBindings(GpuParameterType type, const String& name, GpuParameterBinding (&bindings)[GPT_COUNT]);
+		void GetBinding(const String& name, GpuParameterBinding& binding);
 
 		/** Returns the number of entries in the array at the specified binding index. */
 		u32 GetArraySize(GpuParameterType type, u32 sequentialBindingIndex);
@@ -126,7 +121,10 @@ namespace bs
 		 * Returns ~0u if parameter at the specific set/slot combination doesn't support dynamic offsets (supported on uniform and storage buffers),
 		 * or if the parameter is not found.
 		 */
-		u32 GetDynamicOffsetIndex(GpuProgramType gpuProgramType, const String& name, u32 arrayIndex = 0);
+		u32 GetDynamicOffsetIndex(const String& name, u32 arrayIndex = 0);
+
+		/** Returns true if the layout has a uniform with the specified name. */
+		bool HasUniform(const String& name) const { return mUniformMap.find(name) != mUniformMap.end(); }
 
 		/** Returns descriptions of individual parameters for the specified GPU program type. */
 		const SPtr<GpuProgramParameterDescription>& GetParameterDescriptionForProgram(GpuProgramType type) const { return mPerProgramParameterDescriptions[(int)type]; }
@@ -134,39 +132,37 @@ namespace bs
 	protected:
 		GpuPipelineParameterLayout(const GpuPipelineParameterLayoutCreateInformation& createInformation);
 
-		/** Information about a single set in the param info object. */
-		struct SetInfo
+		/** Information how a resource maps to a certain uniform set/slot. */
+		struct UniformInformation
 		{
-			u32* SlotToSequentialBindingIndex = nullptr;
-			u32* SlotToSequentialResourceIndex = nullptr;
-			u32* SlotToSequentialSamplerBindingIndex = nullptr;
-			u32* SlotToSequentialSamplerResourceIndex = nullptr;
-			u32* SlotArraySizes = nullptr;
-			GpuParameterType* SlotTypes = nullptr;
-			u32 SlotCount = 0;
-		};
-
-		/** Information how a resource maps to a certain set/slot. */
-		struct ResourceInfo
-		{
+			String Name;
+			GpuParameterType Type = GpuParameterType::Unknown;
 			u32 Set = 0;
 			u32 Slot = 0;
 			u32 ArraySize = 1;
 			u32 DynamicOffsetIndex = ~0u;
+			GpuProgramStageBits Usage = GpuProgramStageBit::None;
+
+			u32 SequentialBindingIndex = ~0u; /**< Mapping into the UniformsPerType array, for the current type. */
+			u32 SequentialResourceIndex = ~0u; /**< Similar to SequentialBindingIndex, but accounts for array size of each entry of the same type prior to this entry. */
+			u32 SequentialSamplerBindingIndex = ~0u; /**< Mapping into the UniformsPerType array for the sampler, if this uniform is a combined texture/sampler. */
+			u32 SequentialSamplerResourceIndex = ~0u; /**< Similar to SequentialSamplerBindingIndex, but accounts for array size of each entry of the same type prior to this entry. */
 		};
 
-		std::array<SPtr<GpuProgramParameterDescription>, 6> mPerProgramParameterDescriptions;
+		/** Information about a single set in the param info object. */
+		struct SetInformation
+		{
+			SmallVector<UniformInformation*, 32> Uniforms; /**< Uniform for each slot index. */
+		};
 
-		u32 mSetCount = 0;
-		SetInfo* mSetInfos = nullptr;
+		Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> mPerProgramParameterDescriptions;
 
-		u32 mBindingSlotCount = 0;
-		u32 mBindingSlotCountPerType[(int)GpuParameterType::Count]{};
+		UnorderedMap<String, UniformInformation> mUniformMap; /**< A map of all uniforms. */
+		Array<SmallVector<UniformInformation*, 16>, (u32)GpuParameterType::Count> mUniformsPerType; /**< List of uniforms per type. */
+		SmallVector<SetInformation, 2> mSets;
 		u32 mResourceCount = 0;
-		u32 mResourceCountPerType[(int)GpuParameterType::Count]{};
-		ResourceInfo* mResourceInfos[(int)GpuParameterType::Count]{};
-
-		GroupAlloc mAlloc;
+		u32 mBindingCount = 0;
+		Array<u32, (u32)GpuParameterType::Count> mResourceCountPerType;
 	};
 
 	/** @} */

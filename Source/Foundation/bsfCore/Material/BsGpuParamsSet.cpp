@@ -208,7 +208,7 @@ Vector<ShaderBlockDesc> DetermineValidShareableParamBlocks(const Vector<SPtr<Gpu
 	for(auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
 	{
 		const GpuProgramParameterDescription& curDesc = **iter;
-		for(auto blockIter = curDesc.DataParameterBlocks.begin(); blockIter != curDesc.DataParameterBlocks.end(); ++blockIter)
+		for(auto blockIter = curDesc.UniformBuffers.begin(); blockIter != curDesc.UniformBuffers.end(); ++blockIter)
 		{
 			const GpuDataParameterBlockInformation& curBlock = blockIter->second;
 
@@ -231,17 +231,17 @@ Vector<ShaderBlockDesc> DetermineValidShareableParamBlocks(const Vector<SPtr<Gpu
 			String otherBlockName = otherBlock.Name;
 			SPtr<GpuProgramParameterDescription> otherDesc = iterFind->second.ParamDesc;
 
-			for(auto myParamIter = curDesc.DataParameters.begin(); myParamIter != curDesc.DataParameters.end(); ++myParamIter)
+			for(auto myParamIter = curDesc.UniformBufferMembers.begin(); myParamIter != curDesc.UniformBufferMembers.end(); ++myParamIter)
 			{
 				const GpuDataParameterInformation& myParam = myParamIter->second;
 
 				if(myParam.ParamBlockSet != curBlock.Set || myParam.ParamBlockSlot != curBlock.Slot)
 					continue; // Param is in another block, so we will check it when its time for that block
 
-				auto otherParamFind = otherDesc->DataParameters.find(myParamIter->first);
+				auto otherParamFind = otherDesc->UniformBufferMembers.find(myParamIter->first);
 
 				// Cannot find other param, blocks aren't equal
-				if(otherParamFind == otherDesc->DataParameters.end())
+				if(otherParamFind == otherDesc->UniformBufferMembers.end())
 					break;
 
 				const GpuDataParameterInformation& otherParam = otherParamFind->second;
@@ -301,7 +301,7 @@ Map<String, const GpuDataParameterInformation*> DetermineValidDataParameters(con
 		const GpuProgramParameterDescription& curDesc = **iter;
 
 		// Check regular data params
-		for(auto iter2 = curDesc.DataParameters.begin(); iter2 != curDesc.DataParameters.end(); ++iter2)
+		for(auto iter2 = curDesc.UniformBufferMembers.begin(); iter2 != curDesc.UniformBufferMembers.end(); ++iter2)
 		{
 			const GpuDataParameterInformation& curParam = iter2->second;
 
@@ -346,7 +346,7 @@ Vector<const GpuObjectParameterInformation*> DetermineValidObjectParameters(cons
 		}
 
 		// Check texture params
-		for(auto iter2 = curDesc.Textures.begin(); iter2 != curDesc.Textures.end(); ++iter2)
+		for(auto iter2 = curDesc.SampledTextures.begin(); iter2 != curDesc.SampledTextures.end(); ++iter2)
 		{
 			validParams.push_back(&iter2->second);
 		}
@@ -374,7 +374,7 @@ Map<String, String> DetermineParameterToBlockMapping(const Vector<SPtr<GpuProgra
 	for(auto iter = paramDescs.begin(); iter != paramDescs.end(); ++iter)
 	{
 		const GpuProgramParameterDescription& curDesc = **iter;
-		for(auto iter2 = curDesc.DataParameters.begin(); iter2 != curDesc.DataParameters.end(); ++iter2)
+		for(auto iter2 = curDesc.UniformBufferMembers.begin(); iter2 != curDesc.UniformBufferMembers.end(); ++iter2)
 		{
 			const GpuDataParameterInformation& curParam = iter2->second;
 
@@ -382,7 +382,7 @@ Map<String, String> DetermineParameterToBlockMapping(const Vector<SPtr<GpuProgra
 			if(iterFind != paramToParamBlock.end())
 				continue;
 
-			for(auto iterBlock = curDesc.DataParameterBlocks.begin(); iterBlock != curDesc.DataParameterBlocks.end(); ++iterBlock)
+			for(auto iterBlock = curDesc.UniformBuffers.begin(); iterBlock != curDesc.UniformBuffers.end(); ++iterBlock)
 			{
 				if(iterBlock->second.Set == curParam.ParamBlockSet && iterBlock->second.Slot == curParam.ParamBlockSlot)
 				{
@@ -576,7 +576,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			if(desc == nullptr)
 				continue;
 
-			for(auto iterBlockDesc = desc->DataParameterBlocks.begin(); iterBlockDesc != desc->DataParameterBlocks.end(); ++iterBlockDesc)
+			for(auto iterBlockDesc = desc->UniformBuffers.begin(); iterBlockDesc != desc->UniformBuffers.end(); ++iterBlockDesc)
 			{
 				const GpuDataParameterBlockInformation& blockDesc = iterBlockDesc->second;
 
@@ -603,7 +603,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 				if(globalBlockIdx == (u32)-1)
 					continue;
 
-				for(auto& dataParam : desc->DataParameters)
+				for(auto& dataParam : desc->UniformBufferMembers)
 				{
 					if(dataParam.second.ParamBlockSet != blockDesc.Set || dataParam.second.ParamBlockSlot != blockDesc.Slot)
 						continue;
@@ -699,7 +699,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 					continue;
 				}
 
-				processObjectParams(desc->Textures, 0, MaterialParams::ParamType::Texture);
+				processObjectParams(desc->SampledTextures, 0, MaterialParams::ParamType::Texture);
 				processObjectParams(desc->StorageTextures, 1, MaterialParams::ParamType::Texture);
 				processObjectParams(desc->Buffers, 2, MaterialParams::ParamType::Buffer);
 				processObjectParams(desc->Samplers, 3, MaterialParams::ParamType::Sampler);
@@ -802,8 +802,8 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 						continue;
 					}
 
-					auto iterFind = curDesc->DataParameterBlocks.find(block.Name);
-					if(iterFind == curDesc->DataParameterBlocks.end())
+					auto iterFind = curDesc->UniformBuffers.find(block.Name);
+					if(iterFind == curDesc->UniformBuffers.end())
 					{
 						block.PassData[i].Bindings[j].Set = -1;
 						block.PassData[i].Bindings[j].Slot = -1;

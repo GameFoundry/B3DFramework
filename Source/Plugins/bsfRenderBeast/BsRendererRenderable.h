@@ -66,7 +66,7 @@ namespace bs
 			RenderableAnimType AnimType;
 
 			/** Binding indices representing where should the per-camera param block buffer be bound to. */
-			GpuParameterBinding PerCameraBindings[GPT_COUNT];
+			GpuParameterBinding PerCameraBinding;
 
 			/** Collection of parameters used for direct lighting using the forward rendering path. */
 			ForwardLightingParams ForwardLightingParams;

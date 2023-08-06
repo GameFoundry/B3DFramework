@@ -105,7 +105,7 @@ namespace bs
 			void Populate(const SPtr<GpuParameters>& params, bool clustered);
 
 			/** Binding indices representing where should lights param block buffer be bound to. */
-			GpuParameterBinding GridParamsBindings[GPT_COUNT];
+			GpuParameterBinding GridParamsBinding;
 
 			/**
 			 * Parameter to which to bind a buffer containing light grid offsets and size, per grid cell. Used for forward
