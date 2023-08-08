@@ -350,29 +350,6 @@ TShader<Core>::~TShader()
 {}
 
 template <bool Core>
-GpuParameterType TShader<Core>::GetParamType(const String& name) const
-{
-	auto findIterData = mInformation.DataParameters.find(name);
-	if(findIterData != mInformation.DataParameters.end())
-		return GPT_DATA;
-
-	auto findIterTexture = mInformation.TextureParameters.find(name);
-	if(findIterTexture != mInformation.TextureParameters.end())
-		return GPT_TEXTURE;
-
-	auto findIterBuffer = mInformation.BufferParameters.find(name);
-	if(findIterBuffer != mInformation.BufferParameters.end())
-		return GPT_BUFFER;
-
-	auto findIterSampler = mInformation.SamplerParameters.find(name);
-	if(findIterSampler != mInformation.SamplerParameters.end())
-		return GPT_SAMPLER;
-
-	B3D_EXCEPT(InternalErrorException, "Cannot find the parameter with the name: " + name);
-	return GPT_DATA;
-}
-
-template <bool Core>
 const ShaderDataParameterInformation& TShader<Core>::GetDataParamDesc(const String& name) const
 {
 	auto findIterData = mInformation.DataParameters.find(name);

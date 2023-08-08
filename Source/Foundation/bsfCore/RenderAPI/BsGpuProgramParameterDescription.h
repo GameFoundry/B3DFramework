@@ -19,11 +19,27 @@ namespace bs
 		u32 ArrayElementStride; /**< In multiples of 4 bytes. */
 		GpuDataParameterType Type;
 
-		u32 ParamBlockSlot;
-		u32 ParamBlockSet;
+		u32 ParentUniformBufferSlot;
+		u32 ParentUniformBufferSet;
 		u32 GpuOffset; /**< In multiples of 4 bytes, or index for parameters not in a buffer. */
 		u32 CpuOffset; /**< In multiples of 4 bytes. */
+
+		bool operator==(const GpuDataParameterInformation& other) const;
+		bool operator!=(const GpuDataParameterInformation& other) const { return !operator==(other); }
 	};
+
+	inline bool GpuDataParameterInformation::operator==(const GpuDataParameterInformation& other) const
+	{
+		return Name == other.Name &&
+			ElementSize == other.ElementSize &&
+			ArraySize == other.ArraySize &&
+			ArrayElementStride == other.ArrayElementStride &&
+			Type == other.Type &&
+			ParentUniformBufferSlot == other.ParentUniformBufferSlot &&
+			ParentUniformBufferSet == other.ParentUniformBufferSet &&
+			GpuOffset == other.GpuOffset &&
+			CpuOffset == other.CpuOffset;
+	}
 
 	/**	Describes a single GPU program object (for example texture, sampler state) parameter. */
 	struct GpuObjectParameterInformation

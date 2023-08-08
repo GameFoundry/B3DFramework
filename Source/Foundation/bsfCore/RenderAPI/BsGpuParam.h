@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "BsGpuPipelineParameterLayout.h"
 #include "Math/BsVector2.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector4.h"
@@ -102,7 +103,7 @@ namespace bs
 
 	public:
 		TGpuParameterPrimitive();
-		TGpuParameterPrimitive(GpuDataParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterPrimitive(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent);
 
 		/**
 		 * Sets a parameter value at the specified array index. If parameter does not contain an array leave the index at 0.
@@ -121,18 +122,15 @@ namespace bs
 		 */
 		T Get(u32 arrayIdx = 0) const;
 
-		/** Returns meta-data about the parameter. */
-		const GpuDataParameterInformation& GetDesc() const { return *mParameterDescription; }
-
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParameterDescription == nullptr;
+			return mParameterInformation == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuDataParameterInformation* mParameterDescription;
+		const GpuDataParameterInformation* mParameterInformation = nullptr;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -144,7 +142,7 @@ namespace bs
 		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
 
 		TGpuParameterStruct();
-		TGpuParameterStruct(GpuDataParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterStruct(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
@@ -155,18 +153,15 @@ namespace bs
 		/**	Returns the size of the struct in bytes. */
 		u32 GetElementSize() const;
 
-		/** Returns meta-data about the parameter. */
-		const GpuDataParameterInformation& GetDesc() const { return *mParameterDescription; }
-
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParameterDescription == nullptr;
+			return mParameterInformation == nullptr;
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuDataParameterInformation* mParameterDescription;
+		const GpuDataParameterInformation* mParameterInformation = nullptr;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -182,7 +177,7 @@ namespace bs
 
 	public:
 		TGpuParameterSampledTexture();
-		TGpuParameterSampledTexture(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterSampledTexture(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete, u32 arrayIndex = 0) const;
@@ -190,18 +185,15 @@ namespace bs
 		/** @copydoc TGpuDataParam::Get */
 		TextureType Get(u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
-
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParameterDescription == nullptr;
+			return !mBinding.IsValid();
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParameterDescription;
+		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -217,7 +209,7 @@ namespace bs
 
 	public:
 		TGpuParameterStorageTexture();
-		TGpuParameterStorageTexture(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterStorageTexture(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const TextureType& texture, const TextureSurface& surface = TextureSurface(), u32 arrayIndex = 0) const;
@@ -225,18 +217,15 @@ namespace bs
 		/** @copydoc TGpuDataParam::Get */
 		TextureType Get(u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
-
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParameterDescription == nullptr;
+			return !mBinding.IsValid();
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParameterDescription;
+		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -252,7 +241,7 @@ namespace bs
 
 	public:
 		TGpuParameterBuffer();
-		TGpuParameterBuffer(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation()) const;
@@ -260,18 +249,15 @@ namespace bs
 		/** @copydoc TGpuDataParam::Get */
 		BufferType Get(u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParameterDescription; }
-
 		/** Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParameterDescription == nullptr;
+			return !mBinding.IsValid();
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParameterDescription;
+		GpuParameterBinding mBinding;
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
@@ -286,7 +272,7 @@ namespace bs
 
 	public:
 		TGpuParameterSampler();
-		TGpuParameterSampler(GpuObjectParameterInformation* paramDesc, const GpuParamsType& parent);
+		TGpuParameterSampler(const GpuParameterBinding& binding, const GpuParamsType& parent);
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const SPtr<SamplerState>& samplerState, u32 arrayIndex = 0) const;
@@ -294,18 +280,15 @@ namespace bs
 		/** @copydoc TGpuDataParam::Get */
 		SPtr<SamplerState> Get(u32 arrayIndex = 0) const;
 
-		/** @copydoc TGpuDataParam::GetDesc */
-		const GpuObjectParameterInformation& GetDesc() const { return *mParamDesc; }
-
 		/**	Checks if param is initialized. */
 		bool operator==(const std::nullptr_t& nullval) const
 		{
-			return mParamDesc == nullptr;
+			return !mBinding.IsValid();
 		}
 
 	protected:
 		GpuParamsType mParent;
-		GpuObjectParameterInformation* mParamDesc;
+		GpuParameterBinding mBinding;
 	};
 
 	/** @} */

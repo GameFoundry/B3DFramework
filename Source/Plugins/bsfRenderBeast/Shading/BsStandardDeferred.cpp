@@ -17,7 +17,7 @@ PerLightParamDef gPerLightParamDef;
 void DeferredDirectionalLightMat::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
+	mGPUParameters->GetSampledTextureParameter("gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
 void DeferredDirectionalLightMat::Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
@@ -46,7 +46,7 @@ DeferredDirectionalLightMat* DeferredDirectionalLightMat::GetVariation(bool msaa
 void DeferredPointLightMat::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gLightOcclusionTex", mLightOcclusionTexParam);
+	mGPUParameters->GetSampledTextureParameter("gLightOcclusionTex", mLightOcclusionTexParam);
 }
 
 void DeferredPointLightMat::Bind(GpuCommandBuffer& commandBuffer, const GBufferTextures& gBufferInput, const SPtr<Texture>& lightOcclusion, const SPtr<GpuBuffer>& perCamera, const SPtr<GpuBuffer>& perLight)
@@ -224,7 +224,7 @@ DeferredIBLSkyMat* DeferredIBLSkyMat::GetVariation(bool msaa, bool singleSampleM
 void DeferredIBLFinalizeMat::Initialize()
 {
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gIBLRadianceTex", mIBLRadiance);
+	mGPUParameters->GetSampledTextureParameter("gIBLRadianceTex", mIBLRadiance);
 
 	mIBLParams.Populate(mGPUParameters, GPT_FRAGMENT_PROGRAM, true, false, false);
 }

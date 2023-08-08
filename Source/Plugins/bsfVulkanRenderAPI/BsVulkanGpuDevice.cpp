@@ -658,8 +658,8 @@ GpuDataParameterBlockInformation VulkanGpuDevice::GenerateUniformBlockInformatio
 		param.CpuOffset = block.BlockSize;
 		param.GpuOffset = 0;
 		block.BlockSize += size * param.ArraySize;
-		param.ParamBlockSlot = 0;
-		param.ParamBlockSet = 0;
+		param.ParentUniformBufferSlot = 0;
+		param.ParentUniformBufferSet = 0;
 	}
 
 	// Constant buffer size must always be a multiple of 16

@@ -105,109 +105,118 @@ void VulkanGpuPipelineParameterLayout::Initialize()
 		offset += mLayoutInfos[setIndex].BindingCount;
 	}
 
-	VkShaderStageFlags stageFlagsLookup[6];
-	stageFlagsLookup[GPT_VERTEX_PROGRAM] = VK_SHADER_STAGE_VERTEX_BIT;
-	stageFlagsLookup[GPT_HULL_PROGRAM] = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-	stageFlagsLookup[GPT_DOMAIN_PROGRAM] = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-	stageFlagsLookup[GPT_GEOMETRY_PROGRAM] = VK_SHADER_STAGE_GEOMETRY_BIT;
-	stageFlagsLookup[GPT_FRAGMENT_PROGRAM] = VK_SHADER_STAGE_FRAGMENT_BIT;
-	stageFlagsLookup[GPT_COMPUTE_PROGRAM] = VK_SHADER_STAGE_COMPUTE_BIT;
-
-	u32 numParamDescs = sizeof(mPerProgramParameterDescriptions) / sizeof(mPerProgramParameterDescriptions[0]);
-	for(u32 i = 0; i < numParamDescs; i++)
+	auto fnGetShaderStageFlags = [](const GpuProgramStageBits& bits)
 	{
-		const SPtr<GpuProgramParameterDescription>& paramDesc = mPerProgramParameterDescriptions[i];
-		if(paramDesc == nullptr)
-			continue;
+		VkShaderStageFlags flags = 0;
+		if(bits.IsSet(GpuProgramStageBit::Vertex))
+			flags |= VK_SHADER_STAGE_VERTEX_BIT;
 
-		auto setUpBlockBindings = [&](auto& params, VkDescriptorType descType)
+		if(bits.IsSet(GpuProgramStageBit::Fragment))
+			flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		if(bits.IsSet(GpuProgramStageBit::Hull))
+			flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+
+		if(bits.IsSet(GpuProgramStageBit::Domain))
+			flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+
+		if(bits.IsSet(GpuProgramStageBit::Geometry))
+			flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+
+		if(bits.IsSet(GpuProgramStageBit::Compute))
+			flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+		return flags;
+	};
+
+	using PerTypeUniformArray = std::decay_t<decltype(mUniformsPerType[0])>;
+	auto setUpBlockBindings = [this, &bindings, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	{
+		for(const auto& entry : uniforms)
 		{
-			for(auto& entry : params)
-			{
-				const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry.second.Set, entry.second.Slot);
-				B3D_ASSERT(usedBindingSequentialIndex != ~0u);
-
-				VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
-				binding.descriptorCount = 1;
-				binding.stageFlags |= stageFlagsLookup[i];
-				binding.descriptorType = descType;
-			}
-		};
-
-		auto setUpBindings = [&](auto& params, VkDescriptorType descType)
-		{
-			for(auto& entry : params)
-			{
-				const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry.second.Set, entry.second.Slot);
-				B3D_ASSERT(usedBindingSequentialIndex != ~0u);
-
-				VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
-				binding.descriptorCount = entry.second.ArraySize;
-				binding.stageFlags |= stageFlagsLookup[i];
-				binding.descriptorType = descType;
-
-				types[usedBindingSequentialIndex] = entry.second.Type;
-				elementTypes[usedBindingSequentialIndex] = entry.second.ElementType;
-				elementArraySizes[usedBindingSequentialIndex] = entry.second.ArraySize;
-			}
-		};
-
-		setUpBlockBindings(paramDesc->UniformBuffers, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
-		setUpBindings(paramDesc->SampledTextures, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
-		setUpBindings(paramDesc->StorageTextures, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-
-		// Set up sampler bindings
-		for(auto& entry : paramDesc->Samplers)
-		{
-			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry.second.Set, entry.second.Slot);
+			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
 			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
-
-			// If we already assigned an image to this binding slot, then it's a combined image/sampler
-			if(binding.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			else
-			{
-				binding.descriptorCount = entry.second.ArraySize;
-				binding.stageFlags |= stageFlagsLookup[i];
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-
-				types[usedBindingSequentialIndex] = entry.second.Type;
-				elementTypes[usedBindingSequentialIndex] = entry.second.ElementType;
-				elementArraySizes[usedBindingSequentialIndex] = entry.second.ArraySize;
-			}
+			binding.descriptorCount = 1;
+			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.descriptorType = descriptorType;
 		}
+	};
 
-		// Set up buffer bindings
-		for(auto& entry : paramDesc->Buffers)
+	auto setUpBindings = [this, &bindings, &types, &elementTypes, &elementArraySizes, fnGetShaderStageFlags](const PerTypeUniformArray& uniforms, VkDescriptorType descriptorType)
+	{
+		for(const auto& entry : uniforms)
 		{
-			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry.second.Set, entry.second.Slot);
+			const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
 			B3D_ASSERT(usedBindingSequentialIndex != ~0u);
 
 			VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
-			binding.descriptorCount = entry.second.ArraySize;
-			binding.stageFlags |= stageFlagsLookup[i];
+			binding.descriptorCount = entry->ArraySize;
+			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.descriptorType = descriptorType;
 
-			switch(entry.second.Type)
-			{
-			default:
-			case GPOT_BYTE_BUFFER:
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-				break;
-			case GPOT_RWBYTE_BUFFER:
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-				break;
-			case GPOT_STRUCTURED_BUFFER:
-			case GPOT_RWSTRUCTURED_BUFFER:
-				binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-				break;
-			}
-
-			types[usedBindingSequentialIndex] = entry.second.Type;
-			elementTypes[usedBindingSequentialIndex] = entry.second.ElementType;
-			elementArraySizes[usedBindingSequentialIndex] = entry.second.ArraySize;
+			types[usedBindingSequentialIndex] = entry->ObjectType;
+			elementTypes[usedBindingSequentialIndex] = entry->ElementType;
+			elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
 		}
+	};
+
+	setUpBlockBindings(mUniformsPerType[(u32)GpuParameterType::UniformBuffer], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC);
+	setUpBindings(mUniformsPerType[(u32)GpuParameterType::SampledTexture], VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+	setUpBindings(mUniformsPerType[(u32)GpuParameterType::StorageTexture], VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+
+	// Set up sampler bindings
+	for(auto& entry : mUniformsPerType[(u32)GpuParameterType::Sampler])
+	{
+		const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
+		B3D_ASSERT(usedBindingSequentialIndex != ~0u);
+
+		VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+
+		// If we already assigned an image to this binding slot, then it's a combined image/sampler
+		if(binding.descriptorType == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE)
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		else
+		{
+			binding.descriptorCount = entry->ArraySize;
+			binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+
+			types[usedBindingSequentialIndex] = entry->ObjectType;
+			elementTypes[usedBindingSequentialIndex] = entry->ElementType;
+			elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
+		}
+	}
+
+	// Set up buffer bindings
+	for(auto& entry : mUniformsPerType[(u32)GpuParameterType::StorageBuffer])
+	{
+		const u32 usedBindingSequentialIndex = GetUsedBindingSequentialIndex(entry->Set, entry->Slot);
+		B3D_ASSERT(usedBindingSequentialIndex != ~0u);
+
+		VkDescriptorSetLayoutBinding& binding = bindings[usedBindingSequentialIndex];
+		binding.descriptorCount = entry->ArraySize;
+		binding.stageFlags |= fnGetShaderStageFlags(entry->Usage);
+
+		switch(entry->ObjectType)
+		{
+		default:
+		case GPOT_BYTE_BUFFER:
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+			break;
+		case GPOT_RWBYTE_BUFFER:
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+			break;
+		case GPOT_STRUCTURED_BUFFER:
+		case GPOT_RWSTRUCTURED_BUFFER:
+			binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+			break;
+		}
+
+		types[usedBindingSequentialIndex] = entry->ObjectType;
+		elementTypes[usedBindingSequentialIndex] = entry->ElementType;
+		elementArraySizes[usedBindingSequentialIndex] = entry->ArraySize;
 	}
 
 	// Allocate layouts

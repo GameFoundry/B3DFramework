@@ -387,7 +387,7 @@ RendererUtility& GetRendererUtility()
 
 void BlitMat::Initialize()
 {
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSource);
+	mGPUParameters->GetSampledTextureParameter("gSource", mSource);
 	mIsFiltered = mVariationParameters.GetInt("MODE") == 1;
 }
 
@@ -469,7 +469,7 @@ void CompositeMat::Initialize()
 	mParamBuffer = gCompositeParamDef.CreateBuffer();
 	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
 
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mGPUParameters->GetSampledTextureParameter("gSource", mSourceTex);
 }
 
 void CompositeMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
@@ -495,7 +495,7 @@ void BicubicUpsampleMat::Initialize()
 	mParamBuffer = gBicubicUpsampleParamDef.CreateBuffer();
 	mGPUParameters->SetUniformBuffer("Input", mParamBuffer);
 
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSource", mSourceTex);
+	mGPUParameters->GetSampledTextureParameter("gSource", mSourceTex);
 }
 
 void BicubicUpsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)

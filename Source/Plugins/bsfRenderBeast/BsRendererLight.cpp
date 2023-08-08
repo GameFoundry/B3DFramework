@@ -106,22 +106,22 @@ void GBufferParams::Initialize(GpuDevice& gpuDevice, GpuProgramType type, const 
 {
 	mParams = gpuParams;
 
-	if(mParams->HasSampledTexture(type, "gGBufferATex"))
-		mParams->GetSampledTextureParameter(type, "gGBufferATex", mGBufferA);
+	if(mParams->HasSampledTexture("gGBufferATex"))
+		mParams->GetSampledTextureParameter("gGBufferATex", mGBufferA);
 
-	if(mParams->HasSampledTexture(type, "gGBufferBTex"))
-		mParams->GetSampledTextureParameter(type, "gGBufferBTex", mGBufferB);
+	if(mParams->HasSampledTexture("gGBufferBTex"))
+		mParams->GetSampledTextureParameter("gGBufferBTex", mGBufferB);
 
-	if(mParams->HasSampledTexture(type, "gGBufferCTex"))
-		mParams->GetSampledTextureParameter(type, "gGBufferCTex", mGBufferC);
+	if(mParams->HasSampledTexture("gGBufferCTex"))
+		mParams->GetSampledTextureParameter("gGBufferCTex", mGBufferC);
 
-	if(mParams->HasSampledTexture(type, "gDepthBufferTex"))
-		mParams->GetSampledTextureParameter(type, "gDepthBufferTex", mGBufferDepth);
+	if(mParams->HasSampledTexture("gDepthBufferTex"))
+		mParams->GetSampledTextureParameter("gDepthBufferTex", mGBufferDepth);
 
-	if(mParams->HasSamplerState(type, "gDepthBufferSamp"))
+	if(mParams->HasSamplerState("gDepthBufferSamp"))
 	{
 		GpuParameterSampler samplerStateParam;
-		mParams->GetSamplerStateParameter(type, "gDepthBufferSamp", samplerStateParam);
+		mParams->GetSamplerStateParameter("gDepthBufferSamp", samplerStateParam);
 
 		SamplerStateInformation desc;
 		desc.MinFilter = FO_POINT;
@@ -147,22 +147,22 @@ void ForwardLightingParams::Populate(const SPtr<GpuParameters>& params, bool clu
 	{
 		params->GetPipelineParameterInformation()->GetBinding("GridParams", GridParamsBinding);
 
-		if(params->HasStorageBuffer(GPT_FRAGMENT_PROGRAM, "gLights"))
-			params->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gLights", LightsBufferParam);
+		if(params->HasStorageBuffer("gLights"))
+			params->GetStorageBufferParameter("gLights", LightsBufferParam);
 
-		if(params->HasStorageBuffer(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize"))
-			params->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gGridLightOffsetsAndSize", GridLightOffsetsAndSizeParam);
+		if(params->HasStorageBuffer("gGridLightOffsetsAndSize"))
+			params->GetStorageBufferParameter("gGridLightOffsetsAndSize", GridLightOffsetsAndSizeParam);
 
-		if(params->HasStorageBuffer(GPT_FRAGMENT_PROGRAM, "gLightIndices"))
-			params->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gLightIndices", GridLightIndicesParam);
+		if(params->HasStorageBuffer("gLightIndices"))
+			params->GetStorageBufferParameter("gLightIndices", GridLightIndicesParam);
 
-		if(params->HasStorageBuffer(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize"))
-			params->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gGridProbeOffsetsAndSize", GridProbeOffsetsAndSizeParam);
+		if(params->HasStorageBuffer("gGridProbeOffsetsAndSize"))
+			params->GetStorageBufferParameter("gGridProbeOffsetsAndSize", GridProbeOffsetsAndSizeParam);
 	}
 	else
 	{
-		params->GetPipelineParameterInformation()->GetBinding("Lights", LightsParamBlockBinding);
-		params->GetPipelineParameterInformation()->GetBinding("LightAndReflProbeParams", LightAndReflProbeParamsParamBlockBinding);
+		params->GetPipelineParameterInformation()->GetBinding("Lights", LightsParamBlockBinding); 
+		params->GetPipelineParameterInformation()->GetBinding( "LightAndReflProbeParams", LightAndReflProbeParamsParamBlockBinding);
 	}
 }
 

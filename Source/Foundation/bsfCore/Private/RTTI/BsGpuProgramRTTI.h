@@ -179,8 +179,8 @@ namespace bs
 				size += B3DRTTIWrite(data.ArrayElementStride, stream);
 				size += B3DRTTIWrite(data.Type, stream);
 
-				size += B3DRTTIWrite(data.ParamBlockSlot, stream);
-				size += B3DRTTIWrite(data.ParamBlockSet, stream);
+				size += B3DRTTIWrite(data.ParentUniformBufferSlot, stream);
+				size += B3DRTTIWrite(data.ParentUniformBufferSet, stream);
 				size += B3DRTTIWrite(data.GpuOffset, stream);
 				size += B3DRTTIWrite(data.CpuOffset, stream);
 
@@ -202,8 +202,8 @@ namespace bs
 			B3DRTTIRead(data.ArrayElementStride, stream);
 			B3DRTTIRead(data.Type, stream);
 
-			B3DRTTIRead(data.ParamBlockSlot, stream);
-			B3DRTTIRead(data.ParamBlockSet, stream);
+			B3DRTTIRead(data.ParentUniformBufferSlot, stream);
+			B3DRTTIRead(data.ParentUniformBufferSet, stream);
 			B3DRTTIRead(data.GpuOffset, stream);
 			B3DRTTIRead(data.CpuOffset, stream);
 
@@ -214,7 +214,7 @@ namespace bs
 		{
 			BitLength dataSize = B3DRTTISize(kVersion) + B3DRTTISize(data.Name) + B3DRTTISize(data.ElementSize) +
 				B3DRTTISize(data.ArraySize) + B3DRTTISize(data.ArrayElementStride) + B3DRTTISize(data.Type) +
-				B3DRTTISize(data.ParamBlockSlot) + B3DRTTISize(data.ParamBlockSet) +
+				B3DRTTISize(data.ParentUniformBufferSlot) + B3DRTTISize(data.ParentUniformBufferSet) +
 				B3DRTTISize(data.GpuOffset) + B3DRTTISize(data.CpuOffset);
 
 			B3DRTTIAddHeaderSize(dataSize, compress);

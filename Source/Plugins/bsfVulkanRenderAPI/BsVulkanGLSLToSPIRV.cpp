@@ -485,8 +485,8 @@ static Optional<GpuDataParameterInformation> ParseSPIRVCrossStructMember(spirv_c
 	GpuDataParameterInformation memberInformation;
 	memberInformation.Name = name;
 	memberInformation.Type = SPIRVCrossTypeToGpuDataParameterType(memberType);
-	memberInformation.ParamBlockSet = 0; // Must be assigned by the caller
-	memberInformation.ParamBlockSlot = 0; // Must be assigned by the caller
+	memberInformation.ParentUniformBufferSet = 0; // Must be assigned by the caller
+	memberInformation.ParentUniformBufferSlot = 0; // Must be assigned by the caller
 	memberInformation.ElementSize = memberSize;
 	memberInformation.ArrayElementStride = arrayStride;
 	memberInformation.ArraySize = memberType.array.empty() ? 1 : memberType.array[0]; // Not supporting array of arrays
@@ -723,8 +723,8 @@ static void ParseSPIRVCrossUniforms(spirv_cross::Compiler& compiler, GpuProgramP
 			if(!memberInformation)
 				continue;
 
-			memberInformation->ParamBlockSet = uniformBufferInformation->Set;
-			memberInformation->ParamBlockSlot = uniformBufferInformation->Slot;
+			memberInformation->ParentUniformBufferSet = uniformBufferInformation->Set;
+			memberInformation->ParentUniformBufferSlot = uniformBufferInformation->Slot;
 
 			outParameterDescription.UniformBufferMembers[memberInformation->Name] = std::move(memberInformation.value());
 		}

@@ -21,15 +21,15 @@ LightGridParamDef gLightGridParamDefDef;
 
 void LightGridLLCreationMat::Initialize()
 {
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLights", mLightBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsCounter", mLightsCounterParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
+	mGPUParameters->GetStorageBufferParameter("gLights", mLightBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gLightsCounter", mLightsCounterParam);
+	mGPUParameters->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gReflectionProbes", mProbesBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesCounter", mProbesCounterParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+	mGPUParameters->GetStorageBufferParameter("gReflectionProbes", mProbesBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gProbesCounter", mProbesCounterParam);
+	mGPUParameters->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;
@@ -129,19 +129,19 @@ void LightGridLLReductionMat::Initialize()
 {
 	mBufferNumCells = 0;
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLLHeads", mLightsLLHeadsParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gLightsLL", mLightsLLParam);
+	mGPUParameters->GetStorageBufferParameter("gLightsLLHeads", mLightsLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter("gLightsLL", mLightsLLParam);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLLHeads", mProbesLLHeadsParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gProbesLL", mProbesLLParam);
+	mGPUParameters->GetStorageBufferParameter("gProbesLLHeads", mProbesLLHeadsParam);
+	mGPUParameters->GetStorageBufferParameter("gProbesLL", mProbesLLParam);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridDataCounter", mGridDataCounterParam);
+	mGPUParameters->GetStorageBufferParameter("gGridDataCounter", mGridDataCounterParam);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridLightIndices", mGridLightIndicesParam);
+	mGPUParameters->GetStorageBufferParameter("gGridLightOffsetAndSize", mGridLightOffsetAndSizeParam);
+	mGPUParameters->GetStorageBufferParameter("gGridLightIndices", mGridLightIndicesParam);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gGridProbeIndices", mGridProbeIndicesParam);
+	mGPUParameters->GetStorageBufferParameter("gGridProbeOffsetAndSize", mGridProbeOffsetAndSizeParam);
+	mGPUParameters->GetStorageBufferParameter("gGridProbeIndices", mGridProbeIndicesParam);
 
 	GpuBufferCreateInformation bufferCreateInformation;
 	bufferCreateInformation.Type = GpuBufferType::StructuredStorage;

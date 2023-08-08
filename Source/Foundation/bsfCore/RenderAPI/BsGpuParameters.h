@@ -262,40 +262,26 @@ namespace bs
 		GpuParamsBase(const GpuParamsBase& other) = delete;
 		GpuParamsBase& operator=(const GpuParamsBase& rhs) = delete;
 
-		/** Returns a description of all stored parameters. */
-		SPtr<GpuProgramParameterDescription> GetParameterInformation(GpuProgramType type) const;
-
 		/** Gets the object that contains the processed information about all parameters. */
 		SPtr<GpuPipelineParameterLayout> GetPipelineParameterInformation() const { return mParameterLayout; }
 
-		/**
-		 * Returns the size of a data parameter with the specified name, in bytes. Returns 0 if such parameter doesn't exist.
-		 */
-		u32 GetDataParameterSize(GpuProgramType type, const String& name) const;
-
 		/** Checks if parameter with the specified name exists. */
-		bool HasParameter(GpuProgramType type, const String& name) const;
+		bool HasParameter(const String& name) const;
 
 		/**	Checks if texture parameter with the specified name exists. */
-		bool HasSampledTexture(GpuProgramType type, const String& name) const;
+		bool HasSampledTexture(const String& name) const;
 
 		/**	Checks if load/store texture parameter with the specified name exists. */
-		bool HasStorageTexture(GpuProgramType type, const String& name) const;
+		bool HasStorageTexture(const String& name) const;
 
 		/**	Checks if buffer parameter with the specified name exists. */
-		bool HasStorageBuffer(GpuProgramType type, const String& name) const;
+		bool HasStorageBuffer(const String& name) const;
 
 		/**	Checks if sampler state parameter with the specified name exists. */
-		bool HasSamplerState(GpuProgramType type, const String& name) const;
+		bool HasSamplerState(const String& name) const;
 
 		/** Checks if a parameter block with the specified name exists for the specific GPU program type. */
-		bool HasUniformBuffer(GpuProgramType type, const String& name) const;
-
-		/** Checks if a parameter block with the specified name exists. */
 		bool HasUniformBuffer(const String& name) const;
-
-		/**	Gets a descriptor for a parameter block buffer with the specified name. */
-		GpuDataParameterBlockInformation* GetParameterBlockDesc(GpuProgramType type, const String& name) const;
 
 		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
 		virtual void MarkCoreDirtyInternal() {}
@@ -305,9 +291,6 @@ namespace bs
 
 	protected:
 		GpuParamsBase(const SPtr<GpuPipelineParameterLayout>& parameterLayout);
-
-		/**	Gets a descriptor for a data parameter with the specified name. */
-		GpuDataParameterInformation* GetDataParameterInformation(GpuProgramType type, const String& name) const;
 
 		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
@@ -333,40 +316,40 @@ namespace bs
 		 * Parameter handles will be invalidated when their parent GpuParameters object changes.
 		 */
 		template <class T>
-		void GetParameter(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const;
+		void GetParameter(const String& name, TGpuParameterPrimitive<T, Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const;
+		void GetStructParameter(const String& name, TGpuParameterStruct<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSampledTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		void GetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const;
+		void GetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
+		void GetStorageBufferParameter(const String& name, TGpuParameterBuffer<Core>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const;
+		void GetSamplerStateParameter(const String& name, TGpuParameterSampler<Core>& output) const;
 
 		/** Equivalent to GetParam(), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		template<class T> bool TryGetParameter(GpuProgramType type, const String& name, TGpuParameterPrimitive<T, Core>& output) const;
+		template<class T> bool TryGetParameter(const String& name, TGpuParameterPrimitive<T, Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStructParameter(GpuProgramType type, const String& name, TGpuParameterStruct<Core>& output) const;
+		bool TryGetStructParameter(const String& name, TGpuParameterStruct<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSampledTextureParameter(GpuProgramType type, const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		bool TryGetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageTextureParameter(GpuProgramType type, const String& name, TGpuParameterStorageTexture<Core>& output) const;
+		bool TryGetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageBufferParameter(GpuProgramType type, const String& name, TGpuParameterBuffer<Core>& output) const;
+		bool TryGetStorageBufferParameter(const String& name, TGpuParameterBuffer<Core>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSamplerStateParameter(GpuProgramType type, const String& name, TGpuParameterSampler<Core>& output) const;
+		bool TryGetSamplerStateParameter(const String& name, TGpuParameterSampler<Core>& output) const;
 
 		/**	Gets a uniform buffer from the specified set/slot/array index combination. */
 		UniformBufferType GetUniformBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
@@ -402,19 +385,6 @@ namespace bs
 		virtual bool SetUniformBuffer(u32 set, u32 slot, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/**
-		 * Sets an uniform buffer with the specified name in the specified GPU program type. It is up to the caller to guarantee the provided buffer matches
-		 * parameter block descriptor for this slot.
-		 *
-		 * @param	type		Type of the GPU program in which to bind the buffer.
-		 * @param	name		Name of the buffer to bind.
-		 * @param	buffer		Buffer to bind.
-		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
-		 * @param	offset		Dynamic offset in the buffer, at which the to start reading the buffer.
-		 * @return				Returns true if the operation succeeded, otherwise logs and errors and returns false.
-		 */
-		bool SetUniformBuffer(GpuProgramType type, const String& name, const UniformBufferType& buffer, u32 arrayIndex = 0, u32 offset = 0);
-
-		/**
 		 * Sets an uniform buffer with the specified name in all GPU programs containing a buffer with that name. It is up to the caller to guarantee the provided buffer matches
 		 * parameter block descriptor for this slot.
 		 *
@@ -428,9 +398,6 @@ namespace bs
 
 		/** Equivalent to SetParamBlockBuffer(const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
 		bool TrySetUniformBuffer(const String& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
-
-		/** Equivalent to SetParamBlockBuffer(GpuProgramType, const String&, const UniformBufferType&, u32, u32), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		bool TrySetUniformBuffer(GpuProgramType type, const String& name, const UniformBufferType& parameterBlockBuffer, u32 arrayIndex = 0, u32 offset = 0);
 
 		/**
 		 * Sets a texture at the specified set/slot combination.
@@ -464,50 +431,49 @@ namespace bs
 
 		/**	Assigns a data value to the parameter with the specified name. */
 		template <class T>
-		void SetParameter(GpuProgramType type, const String& name, const T& value)
+		void SetParameter(const String& name, const T& value)
 		{
 			TGpuParameterPrimitive<T, Core> param;
-			GetParameter(type, name, param);
+			GetParameter(name, param);
 			param.Set(value);
 		}
 
 		/**	Assigns a texture to the parameter with the specified name. */
-		void SetSampledTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
+		void SetSampledTexture(const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
 		{
 			TGpuParameterSampledTexture<Core> param;
-			GetSampledTextureParameter(type, name, param);
+			GetSampledTextureParameter(name, param);
 			param.Set(texture, surface);
 		}
 
 		/**	Assigns a load/store texture to the parameter with the specified name. */
-		void SetStorageTexture(GpuProgramType type, const String& name, const TextureType& texture, const TextureSurface& surface)
+		void SetStorageTexture(const String& name, const TextureType& texture, const TextureSurface& surface)
 		{
 			TGpuParameterStorageTexture<Core> param;
-			GetStorageTextureParameter(type, name, param);
+			GetStorageTextureParameter(name, param);
 			param.Set(texture, surface);
 		}
 
 		/**
-		 * Sets a storage buffer with the specified name in the specified GPU program type.
+		 * Sets a storage buffer with the specified name.
 		 *
-		 * @param	type		Type of the GPU program in which to bind the buffer.
 		 * @param	name		Name of the buffer to bind.
 		 * @param	buffer		Buffer to bind.
 		 * @param	arrayIndex	In case the bind point represents an array, index to bind the buffer to.
 		 * @param	view		Optional view information that controls how is the buffer viewed when bound to the pipeline.
 		 */
-		void SetStorageBuffer(GpuProgramType type, const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
+		void SetStorageBuffer(const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
 		{
 			TGpuParameterBuffer<Core> param;
-			GetStorageBufferParameter(type, name, param);
+			GetStorageBufferParameter(name, param);
 			param.Set(buffer, arrayIndex, view);
 		}
 
 		/**	Assigns a sampler state to the parameter with the specified name. */
-		void SetSamplerState(GpuProgramType type, const String& name, const SPtr<SamplerState>& sampler)
+		void SetSamplerState(const String& name, const SPtr<SamplerState>& sampler)
 		{
 			TGpuParameterSampler<Core> param;
-			GetSamplerStateParameter(type, name, param);
+			GetSamplerStateParameter(name, param);
 			param.Set(sampler);
 		}
 

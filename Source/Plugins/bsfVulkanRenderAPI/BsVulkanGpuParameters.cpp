@@ -87,14 +87,14 @@ void VulkanGpuParameters::Initialize()
 {
 	VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
-	const u32 parameterBlockCount = vkParamInfo.GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer);
-	const u32 sampledTextureCount = vkParamInfo.GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::SampledTexture);
-	const u32 storageTextureCount = vkParamInfo.GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::StorageTexture);
-	const u32 bufferCount = vkParamInfo.GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer);
-	const u32 samplerCount = vkParamInfo.GetResourceCount(GpuPipelineParameterLayout::GpuParameterType::Sampler);
+	const u32 parameterBlockCount = vkParamInfo.GetResourceCount(GpuParameterType::UniformBuffer);
+	const u32 sampledTextureCount = vkParamInfo.GetResourceCount(GpuParameterType::SampledTexture);
+	const u32 storageTextureCount = vkParamInfo.GetResourceCount(GpuParameterType::StorageTexture);
+	const u32 bufferCount = vkParamInfo.GetResourceCount(GpuParameterType::StorageBuffer);
+	const u32 samplerCount = vkParamInfo.GetResourceCount(GpuParameterType::Sampler);
 	const u32 setCount = vkParamInfo.GetSetCount();
 	const u32 resourceCount = vkParamInfo.GetResourceCount();
-	const u32 bindingCount = vkParamInfo.GetBindingSlotCount();
+	const u32 bindingCount = vkParamInfo.GetBindingCount();
 
 	if(setCount == 0)
 		return;
@@ -667,11 +667,11 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 	VulkanGpuPipelineParameterLayout& vkParamInfo = static_cast<VulkanGpuPipelineParameterLayout&>(*mParameterLayout);
 
-	u32 parameterBlockBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer);
-	u32 sampledTextureBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParameterLayout::GpuParameterType::SampledTexture);
-	u32 storageTextureBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParameterLayout::GpuParameterType::StorageTexture);
-	u32 bufferBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer);
-	u32 samplerBindingCount = vkParamInfo.GetBindingSlotCount(GpuPipelineParameterLayout::GpuParameterType::Sampler);
+	u32 parameterBlockBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::UniformBuffer);
+	u32 sampledTextureBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::SampledTexture);
+	u32 storageTextureBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::StorageTexture);
+	u32 bufferBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::StorageBuffer);
+	u32 samplerBindingCount = vkParamInfo.GetBindingCount(GpuParameterType::Sampler);
 	u32 setCount = vkParamInfo.GetSetCount();
 
 	FrameScope frameScope;
@@ -686,10 +686,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 	// not be modified on another thread while being bound.
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < parameterBlockBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuParameterType::UniformBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuParameterType::UniformBuffer, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
@@ -743,10 +743,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < bufferBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuParameterType::StorageBuffer, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::StorageBuffer, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuParameterType::StorageBuffer, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; ++arrayIndex)
 		{
@@ -856,10 +856,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < samplerBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::Sampler, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuParameterType::Sampler, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuParameterType::Sampler, sequentialBindingIndex, set, slot);
 
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
 		{
@@ -894,10 +894,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < storageTextureBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::StorageTexture, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuParameterType::StorageTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuParameterType::StorageTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 		for(u32 arrayIndex = 0; arrayIndex < arraySize; arrayIndex++)
@@ -966,10 +966,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 
 	for(u32 sequentialBindingIndex = 0; sequentialBindingIndex < sampledTextureBindingCount; sequentialBindingIndex++)
 	{
-		const u32 arraySize = vkParamInfo.GetArraySize(GpuPipelineParameterLayout::GpuParameterType::SampledTexture, sequentialBindingIndex);
+		const u32 arraySize = vkParamInfo.GetArraySize(GpuParameterType::SampledTexture, sequentialBindingIndex);
 
 		u32 set, slot;
-		mParameterLayout->GetBinding(GpuPipelineParameterLayout::GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
+		mParameterLayout->GetBinding(GpuParameterType::SampledTexture, sequentialBindingIndex, set, slot);
 
 		const u32 usedBindingSequentialIndex = vkParamInfo.GetUsedBindingSequentialIndex(set, slot);
 

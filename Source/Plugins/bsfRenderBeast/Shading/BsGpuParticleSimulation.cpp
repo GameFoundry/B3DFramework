@@ -1081,8 +1081,8 @@ void GpuParticleClearMat::Initialize()
 {
 	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
 
-	mGPUParameters->SetUniformBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
-	mGPUParameters->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
+	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
+	mGPUParameters->GetStorageBufferParameter("gTileUVs", mTileUVParam);
 }
 
 void GpuParticleClearMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1100,27 +1100,27 @@ void GpuParticleClearMat::Bind(GpuCommandBuffer& commandBuffer, const SPtr<GpuBu
 void GpuParticleInjectMat::Initialize()
 {
 	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mGPUParameters->SetUniformBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
 }
 
 void GpuParticleCurveInjectMat::Initialize()
 {
 	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mGPUParameters->SetUniformBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
 }
 
 void GpuParticleSimulateMat::Initialize()
 {
 	const SPtr<GpuBuffer> inputBuffer = CreateGpuParticleVertexInputBuffer();
-	mGPUParameters->SetUniformBuffer(GPT_VERTEX_PROGRAM, "Input", inputBuffer);
+	mGPUParameters->SetUniformBuffer("Input", inputBuffer);
 	mGPUParameters->GetPipelineParameterInformation()->GetBinding("Params", mParamsBinding);
 
 	mGPUParameters->GetPipelineParameterInformation()->GetBinding("VectorFieldParams", mVectorFieldBinding);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gTileUVs", mTileUVParam);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gVelocityTex", mVelocityTexParam);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gVectorFieldTex", mVectorFieldTexParam);
+	mGPUParameters->GetStorageBufferParameter("gTileUVs", mTileUVParam);
+	mGPUParameters->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
+	mGPUParameters->GetSampledTextureParameter("gVelocityTex", mVelocityTexParam);
+	mGPUParameters->GetSampledTextureParameter("gVectorFieldTex", mVectorFieldTexParam);
 
 	mSupportsDepthCollisions = mVariationParameters.GetUInt("DEPTH_COLLISIONS") > 0;
 	if(mSupportsDepthCollisions)
@@ -1129,10 +1129,10 @@ void GpuParticleSimulateMat::Initialize()
 		mGPUParameters->GetPipelineParameterInformation()->GetBinding("PerObject", mPerObjectBinding);
 		mGPUParameters->GetPipelineParameterInformation()->GetBinding("DepthCollisionParams", mDepthCollisionBinding);
 
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSizeRotationTex", mSizeRotationTexParam);
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gCurvesTex", mCurvesTexParam);
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthTex", mDepthTexParam);
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gNormalsTex", mNormalsTexParam);
+		mGPUParameters->GetSampledTextureParameter("gSizeRotationTex", mSizeRotationTexParam);
+		mGPUParameters->GetSampledTextureParameter("gCurvesTex", mCurvesTexParam);
+		mGPUParameters->GetSampledTextureParameter("gDepthTex", mDepthTexParam);
+		mGPUParameters->GetSampledTextureParameter("gNormalsTex", mNormalsTexParam);
 	}
 }
 
@@ -1196,11 +1196,11 @@ GpuParticleSimulateMat* GpuParticleSimulateMat::GetVariation(bool depthCollision
 void GpuParticleBoundsMat::Initialize()
 {
 	mInputBuffer = gGpuParticleBoundsParamsDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+	mGPUParameters->SetUniformBuffer("Input", mInputBuffer);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gParticleIndices", mParticleIndicesParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", mOutputParam);
-	mGPUParameters->GetSampledTextureParameter(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	mGPUParameters->GetStorageBufferParameter("gParticleIndices", mParticleIndicesParam);
+	mGPUParameters->GetStorageBufferParameter("gOutput", mOutputParam);
+	mGPUParameters->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
 }
 
 void GpuParticleBoundsMat::InitDefinesInternal(ShaderDefines& defines)
@@ -1262,12 +1262,12 @@ AABox GpuParticleBoundsMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<
 void GpuParticleSortPrepareMat::Initialize()
 {
 	mInputBuffer = gGpuParticleSortPrepareParamDef.CreateBuffer();
-	mGPUParameters->SetUniformBuffer(GPT_COMPUTE_PROGRAM, "Input", mInputBuffer);
+	mGPUParameters->SetUniformBuffer("Input", mInputBuffer);
 
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputIndices", mInputIndicesParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputKeys", mOutputKeysParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputIndices", mOutputIndicesParam);
-	mGPUParameters->GetSampledTextureParameter(GPT_COMPUTE_PROGRAM, "gPosAndTimeTex", mPosAndTimeTexParam);
+	mGPUParameters->GetStorageBufferParameter("gInputIndices", mInputIndicesParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputKeys", mOutputKeysParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputIndices", mOutputIndicesParam);
+	mGPUParameters->GetSampledTextureParameter("gPosAndTimeTex", mPosAndTimeTexParam);
 }
 
 void GpuParticleSortPrepareMat::InitDefinesInternal(ShaderDefines& defines)

@@ -71,18 +71,13 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 			u32 maxSamplerSet = 0;
 
 			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
-			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
-			{
-				GpuProgramType progType = (GpuProgramType)j;
-				SPtr<GpuProgramParameterDescription> paramDesc = paramsPtr->GetParameterInformation(progType);
-				if(paramDesc == nullptr)
-					continue;
+			const SPtr<GpuPipelineParameterLayout> uniformLayout = paramsPtr->GetPipelineParameterInformation();
 
-				for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
-				{
-					u32 set = iter->second.Set;
-					maxSamplerSet = std::max(maxSamplerSet, set + 1);
-				}
+			const u32 samplerCount = uniformLayout->GetBindingCount(GpuParameterType::Sampler);
+			for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
+			{
+				u32 set = uniformLayout->GetBinding(GpuParameterType::Sampler, samplerIndex).Set;
+				maxSamplerSet = std::max(maxSamplerSet, set + 1);
 			}
 
 			numSetsPerPass[i] = maxSamplerSet;
@@ -97,19 +92,13 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
-			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
-			{
-				GpuProgramType progType = (GpuProgramType)j;
-				SPtr<GpuProgramParameterDescription> paramDesc = paramsPtr->GetParameterInformation(progType);
-				if(paramDesc == nullptr)
-					continue;
+			const SPtr<GpuPipelineParameterLayout> uniformLayout = paramsPtr->GetPipelineParameterInformation();
 
-				for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
-				{
-					u32 set = iter->second.Set;
-					u32 slot = iter->second.Slot;
-					slotsPerSetIter[set] = std::max(slotsPerSetIter[set], slot + 1);
-				}
+			const u32 samplerCount = uniformLayout->GetBindingCount(GpuParameterType::Sampler);
+			for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
+			{
+				const GpuParameterBinding& binding = uniformLayout->GetBinding(GpuParameterType::Sampler, samplerIndex);
+				slotsPerSetIter[binding.Set] = std::max(slotsPerSetIter[binding.Set], binding.Slot + 1);
 			}
 
 			for(u32 j = 0; j < numSetsPerPass[i]; j++)
@@ -138,6 +127,7 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 		for(u32 i = 0; i < numPasses; i++)
 		{
 			SPtr<GpuParameters> paramsPtr = paramsSet->GetGpuParams(i);
+			const SPtr<GpuPipelineParameterLayout> uniformLayout = paramsPtr->GetPipelineParameterInformation();
 
 			PassSamplerOverrides& passOverrides = output->Passes[i];
 			passOverrides.NumSets = numSetsPerPass[i];
@@ -150,32 +140,28 @@ MaterialSamplerOverrides* SamplerOverrideUtility::GenerateSamplerOverrides(GpuDe
 				outputData += sizeof(u32) * slotsPerSetIter[j];
 			}
 
-			for(u32 j = 0; j < GpuParamsSet::kNumStages; j++)
+			u32 numStates = 0;
+			const u32 samplerCount = uniformLayout->GetBindingCount(GpuParameterType::Sampler);
+			for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
 			{
-				GpuProgramType progType = (GpuProgramType)j;
-				SPtr<GpuProgramParameterDescription> paramDesc = paramsPtr->GetParameterInformation(progType);
-				if(paramDesc == nullptr)
+				const GpuParameterBinding& binding = uniformLayout->GetBinding(GpuParameterType::Sampler, samplerIndex);
+				const UniformInformation* uniformInformation = uniformLayout->TryGetUniformInformation(GpuParameterType::Sampler, samplerIndex);
+				if(!B3D_ENSURE(uniformInformation))
 					continue;
 
-				u32 numStates = 0;
-				for(auto iter = paramDesc->Samplers.begin(); iter != paramDesc->Samplers.end(); ++iter)
+				while(binding.Slot > numStates)
 				{
-					u32 set = iter->second.Set;
-					u32 slot = iter->second.Slot;
-					while(slot > numStates)
-					{
-						passOverrides.StateOverrides[set][numStates] = (u32)-1;
-						numStates++;
-					}
-
-					numStates = std::max(numStates, slot + 1);
-
-					auto iterFind = overrideLookup.find(iter->first);
-					if(iterFind != overrideLookup.end())
-						passOverrides.StateOverrides[set][slot] = iterFind->second;
-					else
-						passOverrides.StateOverrides[set][slot] = (u32)-1;
+					passOverrides.StateOverrides[binding.Set][numStates] = (u32)-1;
+					numStates++;
 				}
+
+				numStates = std::max(numStates, binding.Slot + 1);
+
+				auto iterFind = overrideLookup.find(uniformInformation->Name);
+				if(iterFind != overrideLookup.end())
+					passOverrides.StateOverrides[binding.Set][binding.Slot] = iterFind->second;
+				else
+					passOverrides.StateOverrides[binding.Set][binding.Slot] = (u32)-1;
 			}
 
 			slotsPerSetIter += passOverrides.NumSets;

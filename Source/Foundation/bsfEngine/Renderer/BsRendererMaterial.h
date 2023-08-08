@@ -501,17 +501,12 @@ namespace bs
 				if(defaultValueIdx == (u32)-1)
 					continue;
 
-				for(u32 i = 0; i < GPT_COUNT; i++)
+				for(auto& varName : param.second.GpuVariableNames)
 				{
-					GpuProgramType progType = (GpuProgramType)i;
-
-					for(auto& varName : param.second.GpuVariableNames)
+					if(mGPUParameters->HasSampledTexture(varName))
 					{
-						if(mGPUParameters->HasSampledTexture(progType, varName))
-						{
-							const SPtr<Texture> texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(defaultValueIdx) : mShader->GetDefault2DTexture(defaultValueIdx);
-							mGPUParameters->SetSampledTexture(progType, varName, texture);
-						}
+						const SPtr<Texture> texture = param.second.Type == GPOT_TEXTURE3D ? mShader->GetDefault3DTexture(defaultValueIdx) : mShader->GetDefault2DTexture(defaultValueIdx);
+						mGPUParameters->SetSampledTexture(varName, texture);
 					}
 				}
 			}
@@ -523,17 +518,12 @@ namespace bs
 				if(defaultValueIdx == ~0u)
 					continue;
 
-				for(u32 i = 0; i < GPT_COUNT; i++)
+				for(auto& varName : param.second.GpuVariableNames)
 				{
-					GpuProgramType progType = (GpuProgramType)i;
-
-					for(auto& varName : param.second.GpuVariableNames)
+					if(mGPUParameters->HasSamplerState(varName))
 					{
-						if(mGPUParameters->HasSamplerState(progType, varName))
-						{
-							SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
-							mGPUParameters->SetSamplerState(progType, varName, samplerState);
-						}
+						SPtr<SamplerState> samplerState = mShader->GetDefaultSampler(defaultValueIdx);
+						mGPUParameters->SetSamplerState(varName, samplerState);
 					}
 				}
 			}

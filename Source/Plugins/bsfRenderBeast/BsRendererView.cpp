@@ -22,12 +22,12 @@ SkyboxParamDef gSkyboxParamDef;
 
 void SkyboxMat::Initialize()
 {
-	if(mGPUParameters->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gSkyTex"))
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyTex", mSkyTextureParam);
+	if(mGPUParameters->HasSampledTexture("gSkyTex"))
+		mGPUParameters->GetSampledTextureParameter("gSkyTex", mSkyTextureParam);
 
 	mParamBuffer = gSkyboxParamDef.CreateBuffer();
 
-	if(mGPUParameters->HasUniformBuffer(GPT_FRAGMENT_PROGRAM, "Params"))
+	if(mGPUParameters->HasUniformBuffer("Params"))
 		mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
 }
 

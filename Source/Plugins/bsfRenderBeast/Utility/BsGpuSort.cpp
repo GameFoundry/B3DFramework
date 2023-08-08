@@ -106,7 +106,7 @@ SPtr<GpuBuffer> CreateHelperBuffer()
 
 void RadixSortClearMat::Initialize()
 {
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutput", MOutputParam);
+	mGPUParameters->GetStorageBufferParameter("gOutput", MOutputParam);
 }
 
 void RadixSortClearMat::InitDefinesInternal(ShaderDefines& defines)
@@ -126,8 +126,8 @@ void RadixSortClearMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuB
 
 void RadixSortCountMat::Initialize()
 {
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputCounts", MOutputCountsParam);
+	mGPUParameters->GetStorageBufferParameter("gInputKeys", MInputKeysParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputCounts", MOutputCountsParam);
 }
 
 void RadixSortCountMat::InitDefinesInternal(ShaderDefines& defines)
@@ -150,8 +150,8 @@ void RadixSortCountMat::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, 
 
 void RadixSortPrefixScanMat::Initialize()
 {
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputCounts", MInputCountsParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputOffsets", MOutputOffsetsParam);
+	mGPUParameters->GetStorageBufferParameter("gInputCounts", MInputCountsParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputOffsets", MOutputOffsetsParam);
 }
 
 void RadixSortPrefixScanMat::InitDefinesInternal(ShaderDefines& defines)
@@ -174,11 +174,11 @@ void RadixSortPrefixScanMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 void RadixSortReorderMat::Initialize()
 {
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputOffsets", MInputOffsetsBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputKeys", MInputKeysBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gInputValues", MInputValuesBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputKeys", MOutputKeysBufferParam);
-	mGPUParameters->GetStorageBufferParameter(GPT_COMPUTE_PROGRAM, "gOutputValues", MOutputValuesBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gInputOffsets", MInputOffsetsBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gInputKeys", MInputKeysBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gInputValues", MInputValuesBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputKeys", MOutputKeysBufferParam);
+	mGPUParameters->GetStorageBufferParameter("gOutputValues", MOutputValuesBufferParam);
 }
 
 void RadixSortReorderMat::InitDefinesInternal(ShaderDefines& defines)

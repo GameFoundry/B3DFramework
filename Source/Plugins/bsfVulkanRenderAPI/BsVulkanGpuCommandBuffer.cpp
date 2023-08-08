@@ -545,20 +545,17 @@ void VulkanGpuCommandBuffer::SetGpuParameters(const SPtr<GpuParameters>& paramet
 
 	if (mBoundParams != nullptr)
 	{
-		for (u32 i = 0; i < GPT_COUNT; i++)
+		const SPtr<GpuPipelineParameterLayout>& uniformLayout = mBoundParams->GetPipelineParameterInformation();
+
+		// Flush all uniform buffers
+		const u32 uniformBufferCount = uniformLayout->GetBindingCount(GpuParameterType::UniformBuffer);
+		for (u32 uniformBufferIndex = 0; uniformBufferIndex < uniformBufferCount; uniformBufferIndex++)
 		{
-			SPtr<GpuProgramParameterDescription> paramDesc = parameters->GetParameterInformation((GpuProgramType)i);
-			if (paramDesc == nullptr)
-				continue;
+			const GpuParameterBinding& binding = uniformLayout->GetBinding(GpuParameterType::UniformBuffer, uniformBufferIndex);
+			SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(binding.Set, binding.Slot);
 
-			// Flush all param block buffers
-			for (auto iter = paramDesc->UniformBuffers.begin(); iter != paramDesc->UniformBuffers.end(); ++iter)
-			{
-				SPtr<GpuBuffer> buffer = parameters->GetUniformBuffer(iter->second.Set, iter->second.Slot);
-
-				if (buffer != nullptr)
-					buffer->FlushCache();
-			}
+			if (buffer != nullptr)
+				buffer->FlushCache();
 		}
 	}
 

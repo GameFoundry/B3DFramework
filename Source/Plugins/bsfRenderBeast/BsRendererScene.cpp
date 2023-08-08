@@ -474,11 +474,11 @@ void RendererScene::RegisterRenderable(Renderable* renderable)
 
 		gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", element.PerCameraBinding);
 
-		if(gpuParams->HasStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices"))
-			gpuParams->SetStorageBuffer(GPT_VERTEX_PROGRAM, "boneMatrices", element.BoneMatrixBuffer);
+		if(gpuParams->HasStorageBuffer("boneMatrices"))
+			gpuParams->SetStorageBuffer("boneMatrices", element.BoneMatrixBuffer);
 
-		if(gpuParams->HasStorageBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices"))
-			gpuParams->SetStorageBuffer(GPT_VERTEX_PROGRAM, "prevBoneMatrices", element.BonePrevMatrixBuffer);
+		if(gpuParams->HasStorageBuffer("prevBoneMatrices"))
+			gpuParams->SetStorageBuffer("prevBoneMatrices", element.BonePrevMatrixBuffer);
 
 		ShaderFlags shaderFlags = shader->GetFlags();
 		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
@@ -808,9 +808,9 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 
 	if(gpu)
 	{
-		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
-		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
-		gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gCurvesTex", renElement.ParamsGpu.CurvesTexture);
+		gpuParams->GetSampledTextureParameter("gPositionTimeTex", renElement.ParamsGpu.PositionTimeTexture);
+		gpuParams->GetSampledTextureParameter("gSizeRotationTex", renElement.ParamsGpu.SizeRotationTexture);
+		gpuParams->GetSampledTextureParameter("gCurvesTex", renElement.ParamsGpu.CurvesTexture);
 
 		rendererParticles.GpuParticlesParamBuffer = gGpuParticlesParamDef.CreateBuffer();
 		renElement.Is3D = false;
@@ -820,17 +820,17 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		switch(settings.RenderMode)
 		{
 		case ParticleRenderMode::Billboard:
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
+			gpuParams->GetSampledTextureParameter("gPositionAndRotTex", renElement.ParamsCpuBillboard.PositionAndRotTexture);
+			gpuParams->GetSampledTextureParameter("gColorTex", renElement.ParamsCpuBillboard.ColorTexture);
+			gpuParams->GetSampledTextureParameter("gSizeAndFrameIdxTex", renElement.ParamsCpuBillboard.SizeAndFrameIdxTexture);
 
 			renElement.Is3D = false;
 			break;
 		case ParticleRenderMode::Mesh:
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gColorTex", renElement.ParamsCpuMesh.ColorTexture);
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
-			gpuParams->GetSampledTextureParameter(GPT_VERTEX_PROGRAM, "gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
+			gpuParams->GetSampledTextureParameter("gPositionTex", renElement.ParamsCpuMesh.PositionTexture);
+			gpuParams->GetSampledTextureParameter("gColorTex", renElement.ParamsCpuMesh.ColorTexture);
+			gpuParams->GetSampledTextureParameter("gSizeTex", renElement.ParamsCpuMesh.SizeTexture);
+			gpuParams->GetSampledTextureParameter("gRotationTex", renElement.ParamsCpuMesh.RotationTexture);
 
 			renElement.Is3D = true;
 			renElement.Mesh = settings.Mesh;
@@ -848,7 +848,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	gpuParams->SetUniformBuffer("PerObject", rendererParticles.PerObjectParamBuffer);
 	gpuParams->SetUniformBuffer("GpuParticleParams", rendererParticles.GpuParticlesParamBuffer);
 
-	gpuParams->GetStorageBufferParameter(GPT_VERTEX_PROGRAM, "gIndices", renElement.IndicesBuffer);
+	gpuParams->GetStorageBufferParameter("gIndices", renElement.IndicesBuffer);
 
 	gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", renElement.PerCameraBinding);
 
@@ -936,8 +936,8 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 	if(isTransparent)
 	{
 		// Optional depth buffer input if requested
-		if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-			gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+		if(gpuParams->HasSampledTexture("gDepthBufferTex"))
+			gpuParams->GetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
 	}
 }
 
@@ -1042,11 +1042,11 @@ void RendererScene::RegisterDecal(Decal* decal)
 
 	gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", renElement.PerCameraBinding);
 
-	if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-		gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", renElement.DepthInputTexture);
+	if(gpuParams->HasSampledTexture("gDepthBufferTex"))
+		gpuParams->GetSampledTextureParameter("gDepthBufferTex", renElement.DepthInputTexture);
 
-	if(gpuParams->HasSampledTexture(GPT_FRAGMENT_PROGRAM, "gMaskTex"))
-		gpuParams->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gMaskTex", renElement.MaskInputTexture);
+	if(gpuParams->HasSampledTexture("gMaskTex"))
+		gpuParams->GetSampledTextureParameter("gMaskTex", renElement.MaskInputTexture);
 }
 
 void RendererScene::UpdateDecal(Decal* decal)
@@ -1282,27 +1282,18 @@ void RendererScene::RefreshSamplerOverrides(bool force)
 				for(u32 j = 0; j < numPasses; j++)
 				{
 					SPtr<GpuParameters> params = element.Params->GetGpuParams(j);
+					const SPtr<GpuPipelineParameterLayout>& uniformLayout = params->GetPipelineParameterInformation();
 
-					const u32 numStages = 6;
-					for(u32 k = 0; k < numStages; k++)
+					const u32 samplerCount = uniformLayout->GetBindingCount(GpuParameterType::Sampler);
+					for(u32 samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
 					{
-						GpuProgramType type = (GpuProgramType)k;
+						const GpuParameterBinding binding = uniformLayout->GetBinding(GpuParameterType::Sampler, samplerIndex);
 
-						SPtr<GpuProgramParameterDescription> paramDesc = params->GetParameterInformation(type);
-						if(paramDesc == nullptr)
+						u32 overrideIndex = overrides->Passes[j].StateOverrides[binding.Set][binding.Slot];
+						if(overrideIndex == (u32)-1)
 							continue;
 
-						for(auto& samplerDesc : paramDesc->Samplers)
-						{
-							u32 set = samplerDesc.second.Set;
-							u32 slot = samplerDesc.second.Slot;
-
-							u32 overrideIndex = overrides->Passes[j].StateOverrides[set][slot];
-							if(overrideIndex == (u32)-1)
-								continue;
-
-							params->SetSamplerState(set, slot, overrides->Overrides[overrideIndex].State);
-						}
+						params->SetSamplerState(binding.Set, binding.Slot, overrides->Overrides[overrideIndex].State);
 					}
 				}
 			}

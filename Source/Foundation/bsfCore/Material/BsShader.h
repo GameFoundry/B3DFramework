@@ -477,9 +477,6 @@ namespace bs
 		 */
 		ShaderFlags GetFlags() const { return mInformation.Flags; }
 
-		/** Returns type of the parameter with the specified name. Throws exception if the parameter doesn't exist. */
-		GpuParameterType GetParamType(const String& name) const;
-
 		/**
 		 * Returns description for a data parameter with the specified name. Throws exception if the parameter doesn't exist.
 		 */

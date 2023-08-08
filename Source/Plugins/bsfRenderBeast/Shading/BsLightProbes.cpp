@@ -19,7 +19,7 @@ TetrahedraRenderParamDef gTetrahedraRenderParamDef;
 
 void TetrahedraRenderMat::Initialize()
 {
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", mDepthBufferTex);
+	mGPUParameters->GetSampledTextureParameter("gDepthBufferTex", mDepthBufferTex);
 
 	SamplerStateInformation pointSamplerStateCreateInformation;
 	pointSamplerStateCreateInformation.MinFilter = FO_POINT;
@@ -31,10 +31,10 @@ void TetrahedraRenderMat::Initialize()
 
 	SPtr<SamplerState> pointSampState = mGpuDevice->FindOrCreateSamplerState(pointSamplerStateCreateInformation);
 
-	if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp"))
-		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferSamp", pointSampState);
-	else if(mGPUParameters->HasSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex"))
-		mGPUParameters->SetSamplerState(GPT_FRAGMENT_PROGRAM, "gDepthBufferTex", pointSampState);
+	if(mGPUParameters->HasSamplerState("gDepthBufferSamp"))
+		mGPUParameters->SetSamplerState("gDepthBufferSamp", pointSampState);
+	else if(mGPUParameters->HasSamplerState("gDepthBufferTex"))
+		mGPUParameters->SetSamplerState("gDepthBufferTex", pointSampState);
 
 	mParamBuffer = gTetrahedraRenderParamDef.CreateBuffer();
 	mGPUParameters->SetUniformBuffer("Params", mParamBuffer);
@@ -89,15 +89,15 @@ void IrradianceEvaluateMat::Initialize()
 	mGBufferParams.Initialize(*mGpuDevice, GPT_FRAGMENT_PROGRAM, mGPUParameters);
 	mSkyOnly = mVariationParameters.GetBool("SKY_ONLY");
 
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSkyIrradianceTex", mParamSkyIrradianceTex);
-	mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gAmbientOcclusionTex", mParamAmbientOcclusionTex);
+	mGPUParameters->GetSampledTextureParameter("gSkyIrradianceTex", mParamSkyIrradianceTex);
+	mGPUParameters->GetSampledTextureParameter("gAmbientOcclusionTex", mParamAmbientOcclusionTex);
 
 	if(!mSkyOnly)
 	{
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gInputTex", mParamInputTex);
-		mGPUParameters->GetSampledTextureParameter(GPT_FRAGMENT_PROGRAM, "gSHCoeffs", mParamSHCoeffsTexture);
-		mGPUParameters->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gTetrahedra", mParamTetrahedraBuffer);
-		mGPUParameters->GetStorageBufferParameter(GPT_FRAGMENT_PROGRAM, "gTetFaces", mParamTetFacesBuffer);
+		mGPUParameters->GetSampledTextureParameter("gInputTex", mParamInputTex);
+		mGPUParameters->GetSampledTextureParameter("gSHCoeffs", mParamSHCoeffsTexture);
+		mGPUParameters->GetStorageBufferParameter("gTetrahedra", mParamTetrahedraBuffer);
+		mGPUParameters->GetStorageBufferParameter("gTetFaces", mParamTetFacesBuffer);
 	}
 
 	mParamBuffer = gIrradianceEvaluateParamDef.CreateBuffer();

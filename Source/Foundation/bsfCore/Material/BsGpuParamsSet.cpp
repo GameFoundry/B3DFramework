@@ -73,106 +73,83 @@ struct ShaderBlockDesc
 	u32 Slot;
 };
 
-Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<Technique>& technique)
+Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const SPtr<Pass>& pass)
 {
-	Vector<SPtr<GpuProgramParameterDescription>> allParamDescs;
+	Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
 
-	// Make sure all gpu programs are fully loaded
-	for(u32 i = 0; i < technique->GetPassCount(); i++)
+	const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
+	if(graphicsPipeline)
 	{
-		SPtr<Pass> curPass = technique->GetPass(i);
+		SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
+		if(vertProgram)
+			parameterDescriptions[GPT_VERTEX_PROGRAM] = vertProgram->GetParameterDescription();
 
-		const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
-		if(graphicsPipeline)
-		{
-			SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
-			if(vertProgram)
-			{
-				allParamDescs.push_back(vertProgram->GetParameterDescription());
-			}
+		SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
+		if(fragProgram)
+			parameterDescriptions[GPT_FRAGMENT_PROGRAM] = fragProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
-			if(fragProgram)
-			{
-				allParamDescs.push_back(fragProgram->GetParameterDescription());
-			}
+		SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
+		if(geomProgram)
+			parameterDescriptions[GPT_GEOMETRY_PROGRAM] = geomProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
-			if(geomProgram)
-			{
-				allParamDescs.push_back(geomProgram->GetParameterDescription());
-			}
+		SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
+		if(hullProgram)
+			parameterDescriptions[GPT_HULL_PROGRAM] = hullProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
-			if(hullProgram)
-			{
-				allParamDescs.push_back(hullProgram->GetParameterDescription());
-			}
-
-			SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
-			if(domainProgram)
-			{
-				allParamDescs.push_back(domainProgram->GetParameterDescription());
-			}
-		}
-
-		const SPtr<GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
-		if(computePipeline)
-		{
-			SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
-			if(computeProgram)
-			{
-				allParamDescs.push_back(computeProgram->GetParameterDescription());
-			}
-		}
+		SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
+		if(domainProgram)
+			parameterDescriptions[GPT_DOMAIN_PROGRAM] = domainProgram->GetParameterDescription();
 	}
 
-	return allParamDescs;
+	const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
+	if(computePipeline)
+	{
+		SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
+		if(computeProgram)
+			parameterDescriptions[GPT_COMPUTE_PROGRAM] = computeProgram->GetParameterDescription();
+	}
+
+	return parameterDescriptions;
 }
 
-Vector<SPtr<GpuProgramParameterDescription>> getAllParamDescs(const SPtr<ct::Technique>& technique)
+Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> GatherParameterDescriptions(const SPtr<ct::Pass>& pass)
 {
-	Vector<SPtr<GpuProgramParameterDescription>> allParamDescs;
+	Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT> parameterDescriptions;
 
 	// Make sure all gpu programs are fully loaded
-	for(u32 i = 0; i < technique->GetPassCount(); i++)
+	const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
+	if(graphicsPipeline)
 	{
-		SPtr<ct::Pass> curPass = technique->GetPass(i);
+		SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
+		if(vertProgram)
+			parameterDescriptions[GPT_VERTEX_PROGRAM] = vertProgram->GetParameterDescription();
 
-		const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = curPass->GetGraphicsPipelineState();
-		if(graphicsPipeline)
-		{
-			SPtr<GpuProgram> vertProgram = graphicsPipeline->GetVertexProgram();
-			if(vertProgram)
-				allParamDescs.push_back(vertProgram->GetParameterDescription());
+		SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
+		if(fragProgram)
+			parameterDescriptions[GPT_FRAGMENT_PROGRAM] = fragProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> fragProgram = graphicsPipeline->GetFragmentProgram();
-			if(fragProgram)
-				allParamDescs.push_back(fragProgram->GetParameterDescription());
+		SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
+		if(geomProgram)
+			parameterDescriptions[GPT_GEOMETRY_PROGRAM] = geomProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> geomProgram = graphicsPipeline->GetGeometryProgram();
-			if(geomProgram)
-				allParamDescs.push_back(geomProgram->GetParameterDescription());
+		SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
+		if(hullProgram)
+			parameterDescriptions[GPT_HULL_PROGRAM] = hullProgram->GetParameterDescription();
 
-			SPtr<GpuProgram> hullProgram = graphicsPipeline->GetHullProgram();
-			if(hullProgram)
-				allParamDescs.push_back(hullProgram->GetParameterDescription());
-
-			SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
-			if(domainProgram)
-				allParamDescs.push_back(domainProgram->GetParameterDescription());
-		}
-
-		const SPtr<GpuComputePipelineState>& computePipeline = curPass->GetComputePipelineState();
-		if(computePipeline)
-		{
-			SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
-			if(computeProgram)
-				allParamDescs.push_back(computeProgram->GetParameterDescription());
-		}
+		SPtr<GpuProgram> domainProgram = graphicsPipeline->GetDomainProgram();
+		if(domainProgram)
+			parameterDescriptions[GPT_DOMAIN_PROGRAM] = domainProgram->GetParameterDescription();
 	}
 
-	return allParamDescs;
+	const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
+	if(computePipeline)
+	{
+		SPtr<GpuProgram> computeProgram = computePipeline->GetProgram();
+		if(computeProgram)
+			parameterDescriptions[GPT_COMPUTE_PROGRAM] = computeProgram->GetParameterDescription();
+	}
+
+	return parameterDescriptions;
 }
 
 bool AreParamsEqual(const GpuDataParameterInformation& paramA, const GpuDataParameterInformation& paramB, bool ignoreBufferOffsets)
@@ -235,7 +212,7 @@ Vector<ShaderBlockDesc> DetermineValidShareableParamBlocks(const Vector<SPtr<Gpu
 			{
 				const GpuDataParameterInformation& myParam = myParamIter->second;
 
-				if(myParam.ParamBlockSet != curBlock.Set || myParam.ParamBlockSlot != curBlock.Slot)
+				if(myParam.ParentUniformBufferSet != curBlock.Set || myParam.ParentUniformBufferSlot != curBlock.Slot)
 					continue; // Param is in another block, so we will check it when its time for that block
 
 				auto otherParamFind = otherDesc->UniformBufferMembers.find(myParamIter->first);
@@ -384,7 +361,7 @@ Map<String, String> DetermineParameterToBlockMapping(const Vector<SPtr<GpuProgra
 
 			for(auto iterBlock = curDesc.UniformBuffers.begin(); iterBlock != curDesc.UniformBuffers.end(); ++iterBlock)
 			{
-				if(iterBlock->second.Set == curParam.ParamBlockSet && iterBlock->second.Slot == curParam.ParamBlockSlot)
+				if(iterBlock->second.Set == curParam.ParentUniformBufferSet && iterBlock->second.Slot == curParam.ParentUniformBufferSlot)
 				{
 					paramToParamBlock[curParam.Name] = iterBlock->second.Name;
 					break;
@@ -509,6 +486,8 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	const u32 passCount = technique->GetPassCount();
 
 	// Create GpuParameters for each pass and shader stage
+	Vector<SPtr<GpuProgramParameterDescription>> allParameterDescriptions;
+	Vector<Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>> parameterDescriptionsPerPass;
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{
 		SPtr<PassType> curPass = technique->GetPass(passIndex);
@@ -521,15 +500,20 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			SPtr<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
 			mPassParams[passIndex] = CreateGpuParameters<Core>(computePipeline->GetParameterLayout());
 		}
+
+		parameterDescriptionsPerPass.push_back(GatherParameterDescriptions(curPass));
+		for(const auto& entry : parameterDescriptionsPerPass.back())
+		{
+			if(entry)
+				allParameterDescriptions.push_back(entry);
+		}
 	}
 
 	// Create and assign parameter block buffers
-	Vector<SPtr<GpuProgramParameterDescription>> allParamDescs = getAllParamDescs(technique);
-
 	//// Fill out various helper structures
-	Vector<ShaderBlockDesc> paramBlockData = DetermineValidShareableParamBlocks(allParamDescs, shader->GetParamBlocks());
+	Vector<ShaderBlockDesc> paramBlockData = DetermineValidShareableParamBlocks(allParameterDescriptions, shader->GetParamBlocks());
 	UnorderedMap<ValidParamKey, String> validParams = DetermineValidParameters(
-		allParamDescs,
+		allParameterDescriptions,
 		shader->GetDataParams(),
 		shader->GetTextureParams(),
 		shader->GetBufferParams(),
@@ -555,24 +539,24 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	for(u32 i = 0; i < passCount; i++)
 	{
 		SPtr<GpuParamsType> paramPtr = mPassParams[i];
+		const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
+
 		for(u32 j = 0; j < kNumStages; j++)
 		{
-			GpuProgramType progType = (GpuProgramType)j;
-
 			// Assign shareable buffers
 			for(auto& block : paramBlockData)
 			{
 				const String& paramBlockName = block.Name;
-				if(paramPtr->HasUniformBuffer(progType, paramBlockName))
+				if(paramPtr->HasUniformBuffer(paramBlockName))
 				{
 					ParamBlockPtrType blockBuffer = paramBlockBuffers[paramBlockName];
 
-					paramPtr->SetUniformBuffer(progType, paramBlockName, blockBuffer);
+					paramPtr->SetUniformBuffer(paramBlockName, blockBuffer);
 				}
 			}
 
 			// Create non-shareable ones (these are buffers defined by default by the RHI usually)
-			SPtr<GpuProgramParameterDescription> desc = paramPtr->GetParameterInformation(progType);
+			SPtr<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
 			if(desc == nullptr)
 				continue;
 
@@ -587,7 +571,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 					globalBlockIdx = (u32)mBlocks.size();
 
-					paramPtr->SetUniformBuffer(progType, iterBlockDesc->first, newParamBlockBuffer);
+					paramPtr->SetUniformBuffer(iterBlockDesc->first, newParamBlockBuffer);
 					mBlocks.emplace_back(iterBlockDesc->first, iterBlockDesc->second.Set, iterBlockDesc->second.Slot, newParamBlockBuffer, false);
 				}
 				else
@@ -605,7 +589,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 				for(auto& dataParam : desc->UniformBufferMembers)
 				{
-					if(dataParam.second.ParamBlockSet != blockDesc.Set || dataParam.second.ParamBlockSlot != blockDesc.Slot)
+					if(dataParam.second.ParentUniformBufferSet != blockDesc.Set || dataParam.second.ParentUniformBufferSlot != blockDesc.Slot)
 						continue;
 
 					ValidParamKey key(dataParam.first, MaterialParams::ParamType::Data);
@@ -660,10 +644,9 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 		for(u32 i = 0; i < passCount; i++)
 		{
 			SPtr<GpuParamsType> paramPtr = mPassParams[i];
+			const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 			for(u32 j = 0; j < kNumStages; j++)
 			{
-				GpuProgramType progType = (GpuProgramType)j;
-
 				auto processObjectParams = [&](const Map<String, GpuObjectParameterInformation>& gpuParams,
 											   u32 stageIdx, MaterialParams::ParamType paramType)
 				{
@@ -692,7 +675,7 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 					}
 				};
 
-				SPtr<GpuProgramParameterDescription> desc = paramPtr->GetParameterInformation(progType);
+				SPtr<GpuProgramParameterDescription> desc = parameterDescriptionsForPass[j];
 				if(desc == nullptr)
 				{
 					stageOffsets += 4;
@@ -789,11 +772,10 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 			for(u32 i = 0; i < passCount; i++)
 			{
 				SPtr<GpuParamsType> paramPtr = mPassParams[i];
+				const Array<SPtr<GpuProgramParameterDescription>, GPT_COUNT>& parameterDescriptionsForPass = parameterDescriptionsPerPass[i];
 				for(u32 j = 0; j < kNumStages; j++)
 				{
-					GpuProgramType progType = (GpuProgramType)j;
-
-					SPtr<GpuProgramParameterDescription> curDesc = paramPtr->GetParameterInformation(progType);
+					SPtr<GpuProgramParameterDescription> curDesc = parameterDescriptionsForPass[j];
 					if(curDesc == nullptr)
 					{
 						block.PassData[i].Bindings[j].Set = -1;

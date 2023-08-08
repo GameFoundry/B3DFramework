@@ -266,13 +266,16 @@ namespace bs
 		GVU_RANDOMWRITE = 0x08
 	};
 
-	/** Type of a parameter in a GPU program. */
-	enum GpuParameterType
+	/** Types of GPU parameters (i.e. uniform type). */
+	enum class GpuParameterType
 	{
-		GPT_DATA, /**< Raw data type like float, Vector3, Color, etc. */
-		GPT_TEXTURE, /**< Texture type (2D, 3D, cube, etc.) */
-		GPT_BUFFER, /**< Data buffer (raw, structured, etc.) */
-		GPT_SAMPLER /**< Sampler type (2D, 3D, cube, etc.) */
+		UniformBuffer,
+		SampledTexture,
+		StorageTexture,
+		StorageBuffer,
+		Sampler,
+		Count,
+		Unknown,
 	};
 
 	/**	Type of GPU data parameters that can be used as inputs to a GPU program. */
