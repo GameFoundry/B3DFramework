@@ -45,9 +45,9 @@ namespace bs::ct
 	static Matrix4 NVGTransformToB3DMatrix(float* transform)
 	{
 		return Matrix4(Matrix3(
-			Vector3(transform[0], transform[1], 0.0f),
-			Vector3(transform[2], transform[3], 0.0f),
-			Vector3(transform[4], transform[5], 1.0f)));
+			Vector3(transform[0], transform[2], transform[4]),
+			Vector3(transform[1], transform[3], transform[5]),
+			Vector3(0.0f, 0.0f, 1.0f)));
 	}
 
 	static NVGcolor B3DColorToNVGColor(const Color& color)
