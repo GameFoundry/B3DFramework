@@ -22,7 +22,7 @@ Rect2I Sprite::GetBounds(const Vector2I& offset, const Rect2I& clipRect) const
 
 u32 Sprite::FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset, u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip) const
 {
-	const auto& renderElem = mCachedRenderElements.at(renderElementIdx);
+	const auto& renderElem = mCachedRenderElements[renderElementIdx];
 
 	u32 startVert = vertexOffset;
 	u32 startIndex = indexOffset;

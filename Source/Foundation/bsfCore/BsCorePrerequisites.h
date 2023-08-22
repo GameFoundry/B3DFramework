@@ -442,6 +442,7 @@ namespace bs
 	class PhysicsMaterial;
 	class PhysicsMesh;
 	class AudioClip;
+	class VectorPath;
 	// Scene
 	class SceneObject;
 	class Component;
@@ -739,6 +740,7 @@ namespace bs
 	typedef ResourceHandle<AnimationClip> HAnimationClip;
 	typedef ResourceHandle<SpriteTexture> HSpriteTexture;
 	typedef ResourceHandle<VectorField> HVectorField;
+	typedef ResourceHandle<VectorPath> HVectorPath;
 
 	/** @} */
 } // namespace bs

@@ -7,6 +7,7 @@
 #include "Utility/BsRectOffset.h"
 #include "Math/BsMatrix4.h"
 #include "Math/BsRect2.h"
+#include "Resources/BsResource.h"
 
 namespace bs
 {
@@ -439,10 +440,10 @@ namespace bs
 	};
 
 	// TODO
-	class B3D_CORE_EXPORT VectorPath : public IReflectable
+	class B3D_CORE_EXPORT VectorPath : public Resource
 	{
 	public:
-		VectorPath() = default;
+		VectorPath();
 
 		VectorPath& SetDrawCursor(const Vector2& cursor);
 		VectorPath& SetSolidity(VectorGraphicsPathSolidity solidity);

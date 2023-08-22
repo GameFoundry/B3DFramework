@@ -8,6 +8,10 @@ using namespace bs;
 
 namespace bs
 {
+	VectorPath::VectorPath()
+		: Resource(false)
+	{ }
+
 	VectorPath& VectorPath::SetDrawCursor(const Vector2& cursor)
 	{
 		VectorPathCommand command;

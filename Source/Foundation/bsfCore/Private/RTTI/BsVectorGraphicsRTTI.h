@@ -7,6 +7,7 @@
 #include "RTTI/BsMathRTTI.h"
 #include "RTTI/BsColorRTTI.h"
 #include "RTTI/BsRectOffsetRTTI.h"
+#include "Private/RTTI/BsResourceRTTI.h"
 #include "VectorGraphics/BsVectorGraphics.h"
 
 namespace bs
@@ -152,7 +153,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT VectorPathRTTI : public RTTIType<VectorPath, IReflectable, VectorPathRTTI>
+	class B3D_CORE_EXPORT VectorPathRTTI : public RTTIType<VectorPath, Resource, VectorPathRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
