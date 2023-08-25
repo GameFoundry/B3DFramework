@@ -414,7 +414,8 @@ void TreeTextureAtlasLayout::RemoveElement(u32 pageId, u32 nodeId)
 	while(currentPageId == (u32)(mPages.size() - 1)) // Due to page IDs being indices, we can only free pages from the back
 	{
 		Page& currentPage = mPages[currentPageId];
-		if(mNodes[currentPage.RootNodeIndex].State != NodeState::Free)
+		Node& rootNode = mNodes[currentPage.RootNodeId];
+		if(rootNode.State != NodeState::Free || rootNode.Area.Width != mSettings.Size.Width || rootNode.Area.Height != mSettings.Size.Height)
 			break;
 
 		FreePage(currentPageId);
@@ -424,6 +425,139 @@ void TreeTextureAtlasLayout::RemoveElement(u32 pageId, u32 nodeId)
 			break;
 
 		--currentPageId;
+	}
+}
+
+void TreeTextureAtlasLayout::Grow(const Size2UI& newSize)
+{
+	if(!B3D_ENSURE(newSize.Width >= mSettings.Size.Width && newSize.Height >= mSettings.Size.Height))
+		return;
+
+	const Size2UI& oldSize = mSettings.Size;
+	mSettings.Size = newSize;
+
+	const u32 deltaX = newSize.Width - oldSize.Width;
+	const u32 deltaY = newSize.Height - oldSize.Height;
+
+	for(auto& page : mPages)
+	{
+		Node& rootNode = mNodes[page.RootNodeId];
+
+		// Just the root node, we can resize it directly
+		if(rootNode.State == NodeState::Free && rootNode.Area.Width == oldSize.Width && rootNode.Area.Height == oldSize.Height)
+		{
+			B3D_ENSURE(rootNode.Area.Width == oldSize.Width && rootNode.Area.Height == oldSize.Height);
+			rootNode.Area.Width = newSize.Width;
+			rootNode.Area.Height = newSize.Height;
+
+			continue;
+		}
+
+		const bool isGrowingInRootDirection = rootNode.Orientation == NodeOrientation::Horizontal ? deltaX > 0 : deltaY > 0;
+		const bool isGrowingInFlippedRootDirection = rootNode.Orientation == NodeOrientation::Horizontal ? deltaY > 0 : deltaX > 0;
+
+		// Find last sibling and either expend it (if free), or add a new free sibling
+		if(isGrowingInRootDirection)
+		{
+			u32 currentNodeId = page.RootNodeId;
+			while(mNodes[currentNodeId].NextSiblingId != ~0u)
+				currentNodeId = mNodes[currentNodeId].NextSiblingId;
+
+			Node& currentNode = mNodes[currentNodeId];
+			if(currentNode.State == NodeState::Free)
+			{
+				if(rootNode.Orientation == NodeOrientation::Horizontal)
+					currentNode.Area.Width += deltaX;
+				else
+					currentNode.Area.Height += deltaY;
+			}
+			else
+			{
+				Rect2I newArea;
+
+				if(rootNode.Orientation == NodeOrientation::Horizontal)
+				{
+					newArea.X = currentNode.Area.X + (i32)currentNode.Area.Width;
+					newArea.Y = currentNode.Area.Y;
+					newArea.Width = deltaX;
+					newArea.Height = currentNode.Area.Height;
+				}
+				else
+				{
+					newArea.X = currentNode.Area.X;
+					newArea.Y = currentNode.Area.Y + (i32)currentNode.Area.Height;
+					newArea.Width = currentNode.Area.Width;
+					newArea.Height = deltaY;
+				}
+
+				const u32 newSiblingNodeId = AllocateNode();
+				currentNode.NextSiblingId = newSiblingNodeId;
+
+				Node& newSiblingNode = mNodes[newSiblingNodeId];
+				newSiblingNode.PreviousSiblingId = currentNodeId;
+				newSiblingNode.Area = newArea;
+				newSiblingNode.State = NodeState::Free;
+				newSiblingNode.Orientation = currentNode.Orientation;
+
+				RegisterFreeNode(page, newSiblingNodeId, Size2UI(newArea.Width, newArea.Height));
+			}
+		}
+
+		// Create a new root node that as children has old root node and the free area
+		if(isGrowingInFlippedRootDirection)
+		{
+			const u32 freeNodeId = AllocateNode();
+			const u32 newRootNodeId = AllocateNode();
+
+			const u32 oldRootId = page.RootNodeId;
+			page.RootNodeId = newRootNodeId;
+
+			const NodeOrientation newRootOrientation = rootNode.Orientation == NodeOrientation::Horizontal ? NodeOrientation::Vertical : NodeOrientation::Horizontal;
+
+			Rect2I newArea;
+			if(newRootOrientation == NodeOrientation::Horizontal)
+			{
+				newArea.X = (i32)oldSize.Width;
+				newArea.Y = 0;
+				newArea.Width = deltaX;
+				newArea.Height = newSize.Height;
+			}
+			else
+			{
+				newArea.X = 0;
+				newArea.Y = (i32)oldSize.Height;
+				newArea.Width = newSize.Width;
+				newArea.Height = deltaY;
+			}
+
+			Node& freeNode = mNodes[freeNodeId];
+			freeNode.PreviousSiblingId = newRootNodeId;
+			freeNode.Area = newArea;
+			freeNode.State = NodeState::Free;
+			freeNode.Orientation = newRootOrientation;
+
+			Node& newRootNode = mNodes[newRootNodeId];
+			newRootNode.NextSiblingId = freeNodeId;
+			newRootNode.Area = Rect2I::kEmpty;
+			newRootNode.State = NodeState::Container;
+			newRootNode.Orientation = newRootOrientation;
+
+			RegisterFreeNode(page, freeNodeId, Size2UI(newArea.Width, newArea.Height));
+
+			u32 currentNodeId = oldRootId;
+			while(currentNodeId != ~0u)
+			{
+				mNodes[currentNodeId].ParentNodeId = newRootNodeId;
+				currentNodeId = mNodes[currentNodeId].NextSiblingId;
+			}
+
+			currentNodeId = mNodes[oldRootId].PreviousSiblingId;
+			while(currentNodeId != ~0u)
+			{
+				mNodes[currentNodeId].ParentNodeId = newRootNodeId;
+				currentNodeId = mNodes[currentNodeId].PreviousSiblingId;
+			}
+		}
 	}
 }
 
@@ -566,6 +700,8 @@ u32 TreeTextureAtlasLayout::AllocateNode()
 		mUnusedNodeListHead = mNodes[mUnusedNodeListHead].NextSiblingId;
 
 		B3D_ENSURE(mNodes[freeNodeId].State == NodeState::Unused);
+		mNodes[freeNodeId] = Node();
+
 		return freeNodeId;
 	}
 
@@ -626,7 +762,7 @@ void TreeTextureAtlasLayout::Clear()
 TreeTextureAtlasLayout::Page TreeTextureAtlasLayout::AllocatePage()
 {
 	Page page;
-	page.RootNodeIndex = AllocateNode();
+	page.RootNodeId = AllocateNode();
 
 	page.FreeNodeBuckets[0].Size = mSettings.SmallSizeLimit;
 	page.FreeNodeBuckets[1].Size = mSettings.LargeSizeLimit;
@@ -636,7 +772,7 @@ TreeTextureAtlasLayout::Page TreeTextureAtlasLayout::AllocatePage()
 	page.FreeNodeBuckets[1].Size = mSettings.LargeSizeLimit;
 	page.FreeNodeBuckets[2].Size = ~0u;
 
-	Node& rootNode = mNodes[page.RootNodeIndex];
+	Node& rootNode = mNodes[page.RootNodeId];
 	rootNode = Node();
 	rootNode.Area = Rect2I(0, 0, mSettings.Size.Width, mSettings.Size.Height);
 	rootNode.State = NodeState::Free;
@@ -650,8 +786,8 @@ TreeTextureAtlasLayout::Page TreeTextureAtlasLayout::AllocatePage()
 void TreeTextureAtlasLayout::FreePage(u32 pageId)
 {
 	Page& page = mPages[pageId];
-	Node& rootNode = mNodes[page.RootNodeIndex];
+	Node& rootNode = mNodes[page.RootNodeId];
 	B3D_ENSURE(rootNode.State == NodeState::Free);
 
-	FreeNode(page.RootNodeIndex);
+	FreeNode(page.RootNodeId);
 }

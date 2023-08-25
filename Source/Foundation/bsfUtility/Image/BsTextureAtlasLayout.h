@@ -199,6 +199,9 @@ namespace bs
 		/** Removes an element from the provided node. */
 		void RemoveElement(u32 pageId, u32 nodeId);
 
+		/** Grows the atlas without changing existing allocations. New size cannot be smaller than existing size. */
+		void Grow(const Size2UI& newSize);
+
 		/** Removes all entries from the layout. */
 		void Clear();
 
