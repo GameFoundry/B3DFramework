@@ -2,8 +2,16 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "2D/BsVectorSprite.h"
 #include "2D/BsSpriteManager.h"
+#include "CoreThread/BsCoreThread.h"
+#include "GUI/BsGUIManager.h"
 #include "Image/BsSpriteTexture.h"
 #include "Image/BsTexture.h"
+#include "RenderAPI/BsGpuBackend.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
+#include "RenderAPI/BsRenderTexture.h"
+#include "Renderer/BsRenderer.h"
+#include "Renderer/BsRendererManager.h"
+#include "Renderer/BsRendererUtility.h"
 
 using namespace bs;
 
@@ -24,25 +32,32 @@ void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupI
 	if(mCachedRenderElements.size() < 1)
 		mCachedRenderElements.resize(1);
 
+	VectorGraphicsSettings vectorGraphicsSettings;
+	vectorGraphicsSettings.Size = Size2((float)information.Width, (float)information.Height);
+
+	GUIVectorSpriteAtlas& vectorSpriteAtlas = GetGUIManager().GetVectorSpriteAtlas();
+
+	SPtr<GUIVectorSpriteAtlasAllocation> spriteAtlasAllocation = vectorSpriteAtlas.Allocate(*information.VectorPath, vectorGraphicsSettings);
+	if(!B3D_ENSURE(spriteAtlasAllocation))
+		return;
+
+	HSpriteTexture image = spriteAtlasAllocation->Image;
+
 	SpriteRenderElementData& renderElementData = mCachedRenderElements[0];
+	if(renderElementData.QuadCount != 1)
 	{
-		if(renderElementData.QuadCount != 1)
-		{
-			renderElementData.VertexPositions = mPositionBuffer.data();
-			renderElementData.VertexUVs = mUVBuffer.data();
-			renderElementData.Indices = mIndexBuffer.data();
-			renderElementData.QuadCount = 1;
-		}
-
-		SpriteMaterialInfo& matInfo = renderElementData.MaterialInformation;
-		matInfo.GroupId = groupId;
-		//matInfo.Texture = tex; // TODO
-		matInfo.Tint = information.Color;
-
-		// TODO - Use premultiplied material
-		//renderElementData.Material = SpriteManager::Instance().GetImageMaterial(
-		//	information.Transparent ? SpriteMaterialTransparency::Alpha : SpriteMaterialTransparency::Opaque, animated);
+		renderElementData.VertexPositions = mPositionBuffer.data();
+		renderElementData.VertexUVs = mUVBuffer.data();
+		renderElementData.Indices = mIndexBuffer.data();
+		renderElementData.QuadCount = 1;
 	}
+
+	SpriteMaterialInfo& matInfo = renderElementData.MaterialInformation;
+	matInfo.GroupId = groupId;
+	matInfo.Texture = image->GetTexture();
+	matInfo.Tint = information.Color;
+
+	renderElementData.Material = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied);
 
 	renderElementData.Indices[0] = 0;
 	renderElementData.Indices[1] = 1;
@@ -56,11 +71,10 @@ void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupI
 	renderElementData.VertexPositions[2] = Vector2(0.0f, (float)information.Height);
 	renderElementData.VertexPositions[3] = Vector2((float)information.Width, (float)information.Height);
 
-	// TODO
-	//renderElementData.VertexUVs[0] = Vector2(uvOffset.X, uvOffset.Y);
-	//renderElementData.VertexUVs[1] = Vector2(uvOffset.X + uvScale.X, uvOffset.Y);
-	//renderElementData.VertexUVs[2] = Vector2(uvOffset.X, uvOffset.Y + uvScale.Y);
-	//renderElementData.VertexUVs[3] = Vector2(uvOffset.X + uvScale.X, uvOffset.Y + uvScale.Y);
+	renderElementData.VertexUVs[0] = image->TransformUv(Vector2(0.0f, 0.0f));
+	renderElementData.VertexUVs[1] = image->TransformUv(Vector2(1.0f, 0.0f));
+	renderElementData.VertexUVs[2] = image->TransformUv(Vector2(0.0f, 1.0f));
+	renderElementData.VertexUVs[3] = image->TransformUv(Vector2(1.0f, 1.0f));
 
 	UpdateBounds();
 }
@@ -98,17 +112,17 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 
 	const SPtr<ct::VectorPathRenderable> renderable = vectorPath.CreateRenderable(settings);
 
-	HSpriteTexture spriteTexture;
+	HSpriteTexture image;
 	u32 textureId = ~0u;
 	Optional<TreeTextureAtlasLayout::Allocation> layoutAllocation;
 	if(useUniqueTexture)
 	{
 		const HTexture texture = CreateOrFindTexture(requestedSize);
 
-		textureId = mNextUniqueTextureId++; // TODO - Need to re-use these IDs?
+		textureId = GetNextUniqueTextureId();
 		mAtlasLayoutTextures[textureId] = texture;
 
-		spriteTexture = SpriteTexture::Create(Vector2::kZero, Vector2::kOne, texture);
+		image = SpriteTexture::Create(Vector2::kZero, Vector2::kOne, texture);
 	}
 	else
 	{
@@ -137,12 +151,10 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 			(float)requestedSize.Width / (float)atlasPageSize.Width,
 			(float)requestedSize.Height / (float)atlasPageSize.Height);
 
-		spriteTexture = SpriteTexture::Create(uvOffset, uvSize, texture);
+		image = SpriteTexture::Create(uvOffset, uvSize, texture);
 	}
 
-	// TODO - Need to mark allocations as dirty, and render them as needed
-
-	GUIVectorSpriteAtlasAllocation* const allocation = B3DNew<GUIVectorSpriteAtlasAllocation>(this, key.VectorPathId, spriteTexture, layoutAllocation, textureId, renderable);
+	GUIVectorSpriteAtlasAllocation* const allocation = B3DNew<GUIVectorSpriteAtlasAllocation>(this, key.VectorPathId, image, layoutAllocation, textureId, renderable);
 	SPtr<GUIVectorSpriteAtlasAllocation> allocationShared = B3DMakeSharedFromExisting<GUIVectorSpriteAtlasAllocation>(allocation,
 		[](GUIVectorSpriteAtlasAllocation* allocation)
 		{
@@ -153,6 +165,19 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 	});
 
 	mAllocations[key] = allocation;
+
+	DirtySpriteInformation dirtySpriteInformation;
+	dirtySpriteInformation.Texture = image->GetTexture()->GetCore();
+	dirtySpriteInformation.Renderable = renderable;
+	dirtySpriteInformation.UVRegion = Rect2(image->GetOffset().X, image->GetOffset().Y, image->GetScale().X, image->GetScale().Y);
+	dirtySpriteInformation.Size = Size2UI(image->GetWidth(), image->GetHeight());
+
+	{
+		Lock lock(mDirtySpriteMutex);
+
+		mDirtySprites.push_back(dirtySpriteInformation);
+	}
+
 	return allocationShared;
 }
 
@@ -183,11 +208,11 @@ void GUIVectorSpriteAtlas::Update()
 				if(mAtlasLayout.IsPageEmpty(layoutAllocation.PageId))
 					mAtlasLayoutTextures.erase(layoutAllocation.PageId);
 
-				ReleaseTexture(entry->Texture->GetTexture());
+				ReleaseTexture(entry->Image->GetTexture());
 			}
 			else
 			{
-				ReleaseTexture(entry->Texture->GetTexture());
+				ReleaseTexture(entry->Image->GetTexture());
 				ReleaseTextureId(entry->mTextureId);
 
 				mUniqueTextures.erase(entry->mTextureId);
@@ -215,8 +240,80 @@ void GUIVectorSpriteAtlas::Update()
 
 void GUIVectorSpriteAtlas::RenderDirtySprites()
 {
-	// TODO
-	// TODO - Check if core thread
+	if(!EnsureRenderThread())
+		return;
+
+	{
+		Lock lock(mDirtySpriteMutex);
+
+		if(!mDirtySprites.empty())
+			mDirtySprites.swap(mDirtySpritesTemp);
+	}
+
+	if(mDirtySpritesTemp.empty())
+		return;
+
+	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+
+	// Create a command buffer
+	const SPtr<ct::GpuCommandBufferPool>& commandBufferPool = RendererManager::Instance().GetActive()->GetCommandBufferPool();
+	SPtr<ct::GpuCommandBuffer> commandBuffer = commandBufferPool->Create(ct::GpuCommandBufferCreateInformation::Create("GUIVectorSpriteAtlas"));
+
+	FrameScope frameScope;
+	FrameUnorderedMap<ct::Texture*, SPtr<ct::RenderTexture>> atlasRenderTextures;
+
+	for(const auto& entry : mDirtySpritesTemp)
+	{
+		TextureCreateInformation colorTextureCreateInformation;
+		colorTextureCreateInformation.Width = entry.Size.Width;
+		colorTextureCreateInformation.Height = entry.Size.Height;
+		colorTextureCreateInformation.Format = PF_RGBA8;
+		colorTextureCreateInformation.Usage = TU_RENDERTARGET;
+
+		const SPtr<ct::Texture> colorTexture = gpuDevice->CreateTexture(colorTextureCreateInformation);
+
+		TextureCreateInformation stencilTextureCreateInformation;
+		stencilTextureCreateInformation.Width = entry.Size.Width;
+		stencilTextureCreateInformation.Height = entry.Size.Height;
+		stencilTextureCreateInformation.Format = PF_D32_S8X24;
+		stencilTextureCreateInformation.Usage = TU_DEPTHSTENCIL;
+
+		const SPtr<ct::Texture> stencilTexture = gpuDevice->CreateTexture(stencilTextureCreateInformation);
+
+		ct::RenderTextureCreateInformation renderTextureCreateInformation;
+		renderTextureCreateInformation.ColorSurfaces[0].Texture = colorTexture;
+		renderTextureCreateInformation.DepthStencilSurface.Texture = stencilTexture;
+
+		SPtr<ct::RenderTexture> renderTarget = ct::RenderTexture::Create(renderTextureCreateInformation);
+		
+		// Bind render surface & clear it
+		commandBuffer->SetRenderTarget(renderTarget, 0, RT_NONE);
+		commandBuffer->SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kWhite, 1, 0, 0xFF);
+
+		entry.Renderable->Render(*commandBuffer);
+
+		SPtr<ct::RenderTexture> atlasRenderTexture;
+		if(auto found = atlasRenderTextures.find(entry.Texture.get()); found != atlasRenderTextures.end())
+		{
+			atlasRenderTexture = found->second;
+		}
+		else
+		{
+			ct::RenderTextureCreateInformation atlasTextureCreateInformation;
+			atlasTextureCreateInformation.ColorSurfaces[0].Texture = entry.Texture;
+
+			atlasRenderTexture = ct::RenderTexture::Create(renderTextureCreateInformation);
+			atlasRenderTextures[entry.Texture.get()] = atlasRenderTexture;
+		}
+
+		commandBuffer->SetRenderTarget(atlasRenderTexture, 0, RT_COLOR0);
+		commandBuffer->SetViewport(entry.UVRegion);
+		ct::GetRendererUtility().Blit(*commandBuffer, colorTexture);
+	}
+
+	gpuDevice->SubmitCommandBuffer(commandBuffer);
+	mDirtySpritesTemp.clear();	
 }
 
 HTexture GUIVectorSpriteAtlas::CreateOrFindTexture(Size2UI size) const

@@ -16,7 +16,7 @@ GpuResourcePool::GpuResourcePool()
 	mDevice = GetCoreApplication().GetPrimaryGpuDevice();
 }
 
-SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC& desc)
+SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RenderTextureCreateInformation& desc)
 {
 	for(auto& entry : mTextures)
 	{
@@ -55,13 +55,13 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 
 	if((desc.flag & (TU_RENDERTARGET | TU_DEPTHSTENCIL)) != 0)
 	{
-		RENDER_TEXTURE_DESC rtDesc;
+		RenderTextureCreateInformation rtDesc;
 
 		if((desc.flag & TU_RENDERTARGET) != 0)
 		{
 			rtDesc.ColorSurfaces[0].Texture = newTexture->Texture;
 			rtDesc.ColorSurfaces[0].Face = 0;
-			rtDesc.ColorSurfaces[0].NumFaces = newTexture->Texture->GetProperties().GetFaceCount();
+			rtDesc.ColorSurfaces[0].FaceCount = newTexture->Texture->GetProperties().GetFaceCount();
 			rtDesc.ColorSurfaces[0].MipLevel = 0;
 		}
 
@@ -69,7 +69,7 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 		{
 			rtDesc.DepthStencilSurface.Texture = newTexture->Texture;
 			rtDesc.DepthStencilSurface.Face = 0;
-			rtDesc.DepthStencilSurface.NumFaces = newTexture->Texture->GetProperties().GetFaceCount();
+			rtDesc.DepthStencilSurface.FaceCount = newTexture->Texture->GetProperties().GetFaceCount();
 			rtDesc.DepthStencilSurface.MipLevel = 0;
 		}
 
@@ -79,7 +79,7 @@ SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RENDER_TEXTURE_DESC&
 	return newTexture;
 }
 
-void GpuResourcePool::Get(SPtr<PooledRenderTexture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
+void GpuResourcePool::Get(SPtr<PooledRenderTexture>& texture, const POOLED_RenderTextureCreateInformation& desc)
 {
 	if(texture && Matches(texture->Texture, desc))
 		return;
@@ -185,7 +185,7 @@ void GpuResourcePool::Prune(u32 age)
 	}
 }
 
-bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const POOLED_RENDER_TEXTURE_DESC& desc)
+bool GpuResourcePool::Matches(const SPtr<Texture>& texture, const POOLED_RenderTextureCreateInformation& desc)
 {
 	const TextureProperties& texProps = texture->GetProperties();
 
@@ -213,9 +213,9 @@ bool GpuResourcePool::Matches(const SPtr<GpuBuffer>& buffer, const POOLED_STORAG
 	return match;
 }
 
-POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::Create2D(PixelFormat format, u32 width, u32 height, i32 usage, u32 samples, bool hwGamma, u32 arraySize, u32 mipCount)
+POOLED_RenderTextureCreateInformation POOLED_RenderTextureCreateInformation::Create2D(PixelFormat format, u32 width, u32 height, i32 usage, u32 samples, bool hwGamma, u32 arraySize, u32 mipCount)
 {
-	POOLED_RENDER_TEXTURE_DESC desc;
+	POOLED_RenderTextureCreateInformation desc;
 	desc.width = width;
 	desc.height = height;
 	desc.depth = 1;
@@ -230,9 +230,9 @@ POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::Create2D(PixelFormat form
 	return desc;
 }
 
-POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::Create3D(PixelFormat format, u32 width, u32 height, u32 depth, i32 usage)
+POOLED_RenderTextureCreateInformation POOLED_RenderTextureCreateInformation::Create3D(PixelFormat format, u32 width, u32 height, u32 depth, i32 usage)
 {
-	POOLED_RENDER_TEXTURE_DESC desc;
+	POOLED_RenderTextureCreateInformation desc;
 	desc.width = width;
 	desc.height = height;
 	desc.depth = depth;
@@ -247,9 +247,9 @@ POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::Create3D(PixelFormat form
 	return desc;
 }
 
-POOLED_RENDER_TEXTURE_DESC POOLED_RENDER_TEXTURE_DESC::CreateCube(PixelFormat format, u32 width, u32 height, i32 usage, u32 arraySize)
+POOLED_RenderTextureCreateInformation POOLED_RenderTextureCreateInformation::CreateCube(PixelFormat format, u32 width, u32 height, i32 usage, u32 arraySize)
 {
-	POOLED_RENDER_TEXTURE_DESC desc;
+	POOLED_RenderTextureCreateInformation desc;
 	desc.width = width;
 	desc.height = height;
 	desc.depth = 1;

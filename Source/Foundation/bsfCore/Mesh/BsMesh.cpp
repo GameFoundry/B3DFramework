@@ -262,7 +262,7 @@ Mesh::Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& m
 
 Mesh::~Mesh()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mVertexData = nullptr;
 	mIndexBuffer = nullptr;
@@ -272,7 +272,7 @@ Mesh::~Mesh()
 
 void Mesh::Initialize()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	const bool isDynamic = (mUsage & MU_DYNAMIC) != 0;
 	const GpuBufferFlags flags = isDynamic ? GpuBufferFlag::StoreOnCPUWithGPUAccess : GpuBufferFlag::StoreOnGPU;
@@ -319,28 +319,28 @@ void Mesh::Initialize()
 
 SPtr<VertexData> Mesh::GetVertexData() const
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mVertexData;
 }
 
 SPtr<GpuBuffer> Mesh::GetIndexBuffer() const
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mIndexBuffer;
 }
 
 SPtr<VertexDescription> Mesh::GetVertexDescription() const
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	return mVertexDescription;
 }
 
 void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool performUpdateBounds, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(discardEntireBuffer)
 	{
@@ -424,7 +424,7 @@ void Mesh::WriteData(const MeshData& meshData, bool discardEntireBuffer, bool pe
 
 void Mesh::ReadData(MeshData& meshData, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	const GpuBufferInformation& indexBufferInformation = mIndexBuffer->GetInformation();
 	B3D_ENSURE(indexBufferInformation.Type == GpuBufferType::Index);

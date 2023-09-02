@@ -58,15 +58,15 @@ void TetrahedraRenderMat::Execute(GpuCommandBuffer& commandBuffer, const Rendere
 	GetRendererUtility().Draw(commandBuffer, mesh);
 }
 
-void TetrahedraRenderMat::GetOutputDesc(const RendererView& view, POOLED_RENDER_TEXTURE_DESC& colorDesc, POOLED_RENDER_TEXTURE_DESC& depthDesc)
+void TetrahedraRenderMat::GetOutputDesc(const RendererView& view, POOLED_RenderTextureCreateInformation& colorDesc, POOLED_RenderTextureCreateInformation& depthDesc)
 {
 	const RendererViewProperties& viewProps = view.GetProperties();
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
 	u32 numSamples = viewProps.Target.NumSamples;
 
-	colorDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R16U, width, height, TU_RENDERTARGET, numSamples);
-	depthDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32, width, height, TU_DEPTHSTENCIL, numSamples);
+	colorDesc = POOLED_RenderTextureCreateInformation::Create2D(PF_R16U, width, height, TU_RENDERTARGET, numSamples);
+	depthDesc = POOLED_RenderTextureCreateInformation::Create2D(PF_D32, width, height, TU_DEPTHSTENCIL, numSamples);
 }
 
 TetrahedraRenderMat* TetrahedraRenderMat::GetVariation(bool msaa, bool singleSampleMSAA)

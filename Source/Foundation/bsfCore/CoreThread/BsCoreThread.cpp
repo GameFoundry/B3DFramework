@@ -93,13 +93,13 @@ CoreThread& GetCoreThread()
 	return CoreThread::Instance();
 }
 
-void ThrowIfNotCoreThread()
+void AssertIfNotRenderThread()
 {
 	if(B3D_CURRENT_THREAD_ID != CoreThread::Instance().GetCoreThreadId())
 		B3D_EXCEPT(InternalErrorException, "This method can only be accessed from the core thread.");
 }
 
-void ThrowIfCoreThread()
+void AssertIfRenderThread()
 {
 	if(B3D_CURRENT_THREAD_ID == CoreThread::Instance().GetCoreThreadId())
 		B3D_EXCEPT(InternalErrorException, "This method cannot be accessed from the core thread.");

@@ -249,7 +249,7 @@ void Win32RenderWindow::Initialize()
 
 void Win32RenderWindow::Move(i32 left, i32 top)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	RenderWindowProperties& props = mProperties;
 
@@ -272,7 +272,7 @@ void Win32RenderWindow::Move(i32 left, i32 top)
 
 void Win32RenderWindow::Resize(u32 width, u32 height)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	RenderWindowProperties& props = mProperties;
 
@@ -295,7 +295,7 @@ void Win32RenderWindow::Resize(u32 width, u32 height)
 
 void Win32RenderWindow::SetActive(bool state)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mWindow->SetActive(state);
 
@@ -304,7 +304,7 @@ void Win32RenderWindow::SetActive(bool state)
 
 void Win32RenderWindow::SetHidden(bool hidden)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mShowOnSwap = false;
 	mWindow->SetHidden(hidden);
@@ -314,28 +314,28 @@ void Win32RenderWindow::SetHidden(bool hidden)
 
 void Win32RenderWindow::Minimize()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mWindow->Minimize();
 }
 
 void Win32RenderWindow::Maximize()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mWindow->Maximize();
 }
 
 void Win32RenderWindow::Restore()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mWindow->Restore();
 }
 
 void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, u32 monitorIdx)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(mIsChild)
 		return;
@@ -388,14 +388,14 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 
 void Win32RenderWindow::SetFullscreen(const VideoMode& mode)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	SetFullscreen(mode.Width, mode.Height, mode.RefreshRate, mode.OutputIdx);
 }
 
 void Win32RenderWindow::SetWindowed(u32 width, u32 height)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	RenderWindowProperties& props = mProperties;
 
@@ -465,7 +465,7 @@ void Win32RenderWindow::SetVSync(bool enabled, u32 interval)
 
 void Win32RenderWindow::SwapBuffers()
 {
-	THROW_IF_NOT_CORE_THREAD
+	ASSERT_IF_NOT_RENDER_THREAD
 
 	if(mShowOnSwap)
 		SetHidden(false);
@@ -488,7 +488,7 @@ void Win32RenderWindow::GetCustomAttribute(const String& name, void* data) const
 
 void Win32RenderWindow::WindowMovedOrResizedInternal()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(!mWindow)
 		return;

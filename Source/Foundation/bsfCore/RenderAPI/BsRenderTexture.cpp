@@ -12,13 +12,13 @@
 
 using namespace bs;
 
-RenderTextureProperties::RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping)
+RenderTextureProperties::RenderTextureProperties(const RenderTextureCreateInformation& createInformation, bool requiresFlipping)
 {
 	u32 firstIdx = (u32)-1;
 	bool requiresHwGamma = false;
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		HTexture texture = desc.ColorSurfaces[i].Texture;
+		HTexture texture = createInformation.ColorSurfaces[i].Texture;
 
 		if(!texture.IsLoaded())
 			continue;
@@ -31,29 +31,29 @@ RenderTextureProperties::RenderTextureProperties(const RENDER_TEXTURE_DESC& desc
 
 	if(firstIdx == (u32)-1)
 	{
-		HTexture texture = desc.DepthStencilSurface.Texture;
+		HTexture texture = createInformation.DepthStencilSurface.Texture;
 		if(texture.IsLoaded())
 		{
 			const TextureProperties& texProps = texture->GetProperties();
-			Construct(&texProps, desc.DepthStencilSurface.NumFaces, desc.DepthStencilSurface.MipLevel, requiresFlipping, false);
+			Construct(&texProps, createInformation.DepthStencilSurface.FaceCount, createInformation.DepthStencilSurface.MipLevel, requiresFlipping, false);
 		}
 	}
 	else
 	{
-		HTexture texture = desc.ColorSurfaces[firstIdx].Texture;
+		HTexture texture = createInformation.ColorSurfaces[firstIdx].Texture;
 
 		const TextureProperties& texProps = texture->GetProperties();
-		Construct(&texProps, desc.ColorSurfaces[firstIdx].NumFaces, desc.ColorSurfaces[firstIdx].MipLevel, requiresFlipping, requiresHwGamma);
+		Construct(&texProps, createInformation.ColorSurfaces[firstIdx].FaceCount, createInformation.ColorSurfaces[firstIdx].MipLevel, requiresFlipping, requiresHwGamma);
 	}
 }
 
-RenderTextureProperties::RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& desc, bool requiresFlipping)
+RenderTextureProperties::RenderTextureProperties(const ct::RenderTextureCreateInformation& createInformation, bool requiresFlipping)
 {
 	u32 firstIdx = (u32)-1;
 	bool requiresHwGamma = false;
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		SPtr<ct::Texture> texture = desc.ColorSurfaces[i].Texture;
+		SPtr<ct::Texture> texture = createInformation.ColorSurfaces[i].Texture;
 
 		if(texture == nullptr)
 			continue;
@@ -66,19 +66,19 @@ RenderTextureProperties::RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& 
 
 	if(firstIdx == (u32)-1)
 	{
-		SPtr<ct::Texture> texture = desc.DepthStencilSurface.Texture;
+		SPtr<ct::Texture> texture = createInformation.DepthStencilSurface.Texture;
 		if(texture != nullptr)
 		{
 			const TextureProperties& texProps = texture->GetProperties();
-			Construct(&texProps, desc.DepthStencilSurface.NumFaces, desc.DepthStencilSurface.MipLevel, requiresFlipping, false);
+			Construct(&texProps, createInformation.DepthStencilSurface.FaceCount, createInformation.DepthStencilSurface.MipLevel, requiresFlipping, false);
 		}
 	}
 	else
 	{
-		SPtr<ct::Texture> texture = desc.ColorSurfaces[firstIdx].Texture;
+		SPtr<ct::Texture> texture = createInformation.ColorSurfaces[firstIdx].Texture;
 
 		const TextureProperties& texProps = texture->GetProperties();
-		Construct(&texProps, desc.ColorSurfaces[firstIdx].NumFaces, desc.ColorSurfaces[firstIdx].MipLevel, requiresFlipping, requiresHwGamma);
+		Construct(&texProps, createInformation.ColorSurfaces[firstIdx].FaceCount, createInformation.ColorSurfaces[firstIdx].MipLevel, requiresFlipping, requiresHwGamma);
 	}
 }
 
@@ -97,14 +97,14 @@ void RenderTextureProperties::Construct(const TextureProperties* textureProps, u
 	this->HwGamma = hwGamma;
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const TextureCreateInformation& desc, bool createDepth, PixelFormat depthStencilFormat)
+SPtr<RenderTexture> RenderTexture::Create(const TextureCreateInformation& textureCreateInformation, bool createDepth, PixelFormat depthStencilFormat)
 {
-	return TextureManager::Instance().CreateRenderTexture(desc, createDepth, depthStencilFormat);
+	return TextureManager::Instance().CreateRenderTexture(textureCreateInformation, createDepth, depthStencilFormat);
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
 {
-	return TextureManager::Instance().CreateRenderTexture(desc);
+	return TextureManager::Instance().CreateRenderTexture(createInformation);
 }
 
 SPtr<ct::RenderTexture> RenderTexture::GetCore() const
@@ -112,42 +112,42 @@ SPtr<ct::RenderTexture> RenderTexture::GetCore() const
 	return std::static_pointer_cast<ct::RenderTexture>(mCoreSpecific);
 }
 
-RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc)
-	: mDesc(desc)
+RenderTexture::RenderTexture(const RenderTextureCreateInformation& createInformation)
+	: mInformation(createInformation)
 {
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		if(desc.ColorSurfaces[i].Texture != nullptr)
-			mBindableColorTex[i] = desc.ColorSurfaces[i].Texture;
+		if(createInformation.ColorSurfaces[i].Texture != nullptr)
+			mBindableColorTex[i] = createInformation.ColorSurfaces[i].Texture;
 	}
 
-	if(desc.DepthStencilSurface.Texture != nullptr)
-		mBindableDepthStencilTex = desc.DepthStencilSurface.Texture;
+	if(createInformation.DepthStencilSurface.Texture != nullptr)
+		mBindableDepthStencilTex = createInformation.DepthStencilSurface.Texture;
 }
 
 SPtr<ct::CoreObject> RenderTexture::CreateCore() const
 {
-	ct::RENDER_TEXTURE_DESC coreDesc;
+	ct::RenderTextureCreateInformation coreDesc;
 
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		ct::RENDER_SURFACE_DESC surfaceDesc;
-		if(mDesc.ColorSurfaces[i].Texture.IsLoaded())
-			surfaceDesc.Texture = mDesc.ColorSurfaces[i].Texture->GetCore();
+		ct::RenderSurfaceInformation surfaceDesc;
+		if(mInformation.ColorSurfaces[i].Texture.IsLoaded())
+			surfaceDesc.Texture = mInformation.ColorSurfaces[i].Texture->GetCore();
 
-		surfaceDesc.Face = mDesc.ColorSurfaces[i].Face;
-		surfaceDesc.NumFaces = mDesc.ColorSurfaces[i].NumFaces;
-		surfaceDesc.MipLevel = mDesc.ColorSurfaces[i].MipLevel;
+		surfaceDesc.Face = mInformation.ColorSurfaces[i].Face;
+		surfaceDesc.FaceCount = mInformation.ColorSurfaces[i].FaceCount;
+		surfaceDesc.MipLevel = mInformation.ColorSurfaces[i].MipLevel;
 
 		coreDesc.ColorSurfaces[i] = surfaceDesc;
 	}
 
-	if(mDesc.DepthStencilSurface.Texture.IsLoaded())
-		coreDesc.DepthStencilSurface.Texture = mDesc.DepthStencilSurface.Texture->GetCore();
+	if(mInformation.DepthStencilSurface.Texture.IsLoaded())
+		coreDesc.DepthStencilSurface.Texture = mInformation.DepthStencilSurface.Texture->GetCore();
 
-	coreDesc.DepthStencilSurface.Face = mDesc.DepthStencilSurface.Face;
-	coreDesc.DepthStencilSurface.NumFaces = mDesc.DepthStencilSurface.NumFaces;
-	coreDesc.DepthStencilSurface.MipLevel = mDesc.DepthStencilSurface.MipLevel;
+	coreDesc.DepthStencilSurface.Face = mInformation.DepthStencilSurface.Face;
+	coreDesc.DepthStencilSurface.FaceCount = mInformation.DepthStencilSurface.FaceCount;
+	coreDesc.DepthStencilSurface.MipLevel = mInformation.DepthStencilSurface.MipLevel;
 
 	return ct::TextureManager::Instance().CreateRenderTextureInternal(coreDesc);
 }
@@ -188,8 +188,8 @@ RTTITypeBase* RenderTexture::GetRtti() const
 
 namespace bs { namespace ct
 {
-RenderTexture::RenderTexture(const RENDER_TEXTURE_DESC& desc)
-	: mDesc(desc)
+RenderTexture::RenderTexture(const RenderTextureCreateInformation& createInformation)
+	: mInformation(createInformation)
 {}
 
 void RenderTexture::Initialize()
@@ -198,35 +198,35 @@ void RenderTexture::Initialize()
 
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
-		if(mDesc.ColorSurfaces[i].Texture != nullptr)
+		if(mInformation.ColorSurfaces[i].Texture != nullptr)
 		{
-			SPtr<Texture> texture = mDesc.ColorSurfaces[i].Texture;
+			SPtr<Texture> texture = mInformation.ColorSurfaces[i].Texture;
 
 			if((texture->GetProperties().Usage & TU_RENDERTARGET) == 0)
 				B3D_EXCEPT(InvalidParametersException, "Provided texture is not created with render target usage.");
 
-			const TextureSurface textureSurface(mDesc.ColorSurfaces[i].MipLevel, 1, mDesc.ColorSurfaces[i].Face, mDesc.ColorSurfaces[i].NumFaces);
+			const TextureSurface textureSurface(mInformation.ColorSurfaces[i].MipLevel, 1, mInformation.ColorSurfaces[i].Face, mInformation.ColorSurfaces[i].FaceCount);
 			mColorSurfaces[i] = texture->RequestView(textureSurface, GVU_RENDERTARGET);
 		}
 	}
 
-	if(mDesc.DepthStencilSurface.Texture != nullptr)
+	if(mInformation.DepthStencilSurface.Texture != nullptr)
 	{
-		SPtr<Texture> texture = mDesc.DepthStencilSurface.Texture;
+		SPtr<Texture> texture = mInformation.DepthStencilSurface.Texture;
 
 		if((texture->GetProperties().Usage & TU_DEPTHSTENCIL) == 0)
 			B3D_EXCEPT(InvalidParametersException, "Provided texture is not created with depth stencil usage.");
 
-		const TextureSurface textureSurface(mDesc.DepthStencilSurface.MipLevel, 1, mDesc.DepthStencilSurface.Face, mDesc.DepthStencilSurface.NumFaces);
+		const TextureSurface textureSurface(mInformation.DepthStencilSurface.MipLevel, 1, mInformation.DepthStencilSurface.Face, mInformation.DepthStencilSurface.FaceCount);
 		mDepthStencilSurface = texture->RequestView(textureSurface, GVU_DEPTHSTENCIL);
 	}
 
 	ThrowIfBuffersDontMatch();
 }
 
-SPtr<RenderTexture> RenderTexture::Create(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& createInformation)
 {
-	return TextureManager::Instance().CreateRenderTexture(desc);
+	return TextureManager::Instance().CreateRenderTexture(createInformation);
 }
 
 void RenderTexture::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
@@ -258,8 +258,8 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 			continue;
 		}
 
-		const TextureProperties& curTexProps = mDesc.ColorSurfaces[i].Texture->GetProperties();
-		const TextureProperties& firstTexProps = mDesc.ColorSurfaces[firstSurfaceIdx].Texture->GetProperties();
+		const TextureProperties& curTexProps = mInformation.ColorSurfaces[i].Texture->GetProperties();
+		const TextureProperties& firstTexProps = mInformation.ColorSurfaces[firstSurfaceIdx].Texture->GetProperties();
 
 		u32 curMsCount = curTexProps.SampleCount;
 		u32 firstMsCount = firstTexProps.SampleCount;
@@ -291,7 +291,7 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 
 	if(firstSurfaceIdx != (u32)-1)
 	{
-		const TextureProperties& firstTexProps = mDesc.ColorSurfaces[firstSurfaceIdx].Texture->GetProperties();
+		const TextureProperties& firstTexProps = mInformation.ColorSurfaces[firstSurfaceIdx].Texture->GetProperties();
 		const SPtr<TextureView> firstSurfaceView = mColorSurfaces[firstSurfaceIdx];
 		const TextureSurface& firstViewSurface = firstSurfaceView->GetInformation().Surface;
 
@@ -314,7 +314,7 @@ void RenderTexture::ThrowIfBuffersDontMatch() const
 		if(mDepthStencilSurface == nullptr)
 			return;
 
-		const TextureProperties& depthTexProps = mDesc.DepthStencilSurface.Texture->GetProperties();
+		const TextureProperties& depthTexProps = mInformation.DepthStencilSurface.Texture->GetProperties();
 		u32 depthMsCount = depthTexProps.SampleCount;
 		u32 colorMsCount = firstTexProps.SampleCount;
 

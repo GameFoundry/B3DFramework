@@ -74,11 +74,11 @@ namespace bs
 	class GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
 	{
 	public:
-		GUIVectorSpriteAtlasAllocation(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const HSpriteTexture& texture, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<ct::VectorPathRenderable>& renderable)
-			: Texture(texture), mVectorPathId(vectorPathId), mOwner(owner), mLayoutAllocation(layoutAllocation), mTextureId(textureId), mRenderable(renderable)
+		GUIVectorSpriteAtlasAllocation(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const HSpriteTexture& image, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<ct::VectorPathRenderable>& renderable)
+			: Image(image), mVectorPathId(vectorPathId), mOwner(owner), mLayoutAllocation(layoutAllocation), mTextureId(textureId), mRenderable(renderable)
 		{ }
 
-		const HSpriteTexture Texture;
+		const HSpriteTexture Image;
 
 	private:
 		friend GUIVectorSpriteAtlas;
@@ -182,6 +182,15 @@ namespace bs
 			u64 LastUsedFrame = 0;
 		};
 
+		/** Information about a vector path that should be re-rendered. */
+		struct DirtySpriteInformation
+		{
+			SPtr<ct::VectorPathRenderable> Renderable;
+			SPtr<ct::Texture> Texture;
+			Rect2 UVRegion = Rect2::kEmpty;
+			Size2UI Size = Size2UI::kZero;
+		};
+
 		const GUIVectorSpriteAtlasSettings mSettings;
 		TreeTextureAtlasLayout mAtlasLayout;
 		UnorderedMap<GUIVectorSpriteAtlasAllocation::Key, GUIVectorSpriteAtlasAllocation*, GUIVectorSpriteAtlasAllocation::Key::Hash> mAllocations;
@@ -190,8 +199,12 @@ namespace bs
 		UnorderedMap<u32, HTexture> mUniqueTextures;
 
 		Mutex mFreeAllocationMutex;
-		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocations;
-		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocationsTemp;
+		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocations; // Allocations recorded here in a thread safe manner
+		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocationsTemp; // Temporary buffer when iterating over the array on the main thread
+
+		Mutex mDirtySpriteMutex;
+		Vector<DirtySpriteInformation> mDirtySprites;// Dirty sprites recorded here in a thread safe manner
+		Vector<DirtySpriteInformation> mDirtySpritesTemp; // Dirty sprites iterated here on the core thread when rendering
 
 		mutable UnorderedMap<FreeTextureInformation::Key, FreeTextureInformation, FreeTextureInformation::Key::Hash> mFreeTextureCache;
 

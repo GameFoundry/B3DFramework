@@ -338,7 +338,7 @@ ShadowMapAtlas::ShadowMapAtlas(u32 size)
 	: mLayout(0, 0, size, size, true), mLastUsedCounter(0)
 {
 	mAtlas = GpuResourcePool::Instance().Get(
-		POOLED_RENDER_TEXTURE_DESC::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
+		POOLED_RenderTextureCreateInformation::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
 }
 
 bool ShadowMapAtlas::AddMap(u32 size, Rect2I& area, u32 border)
@@ -391,7 +391,7 @@ ShadowCubemap::ShadowCubemap(u32 size)
 	: ShadowMapBase(size)
 {
 	mShadowMap = GpuResourcePool::Instance().Get(
-		POOLED_RENDER_TEXTURE_DESC::CreateCube(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
+		POOLED_RenderTextureCreateInformation::CreateCube(kShadowMapFormat, size, size, TU_DEPTHSTENCIL));
 }
 
 SPtr<RenderTexture> ShadowCubemap::GetTarget() const
@@ -402,11 +402,11 @@ SPtr<RenderTexture> ShadowCubemap::GetTarget() const
 ShadowCascadedMap::ShadowCascadedMap(u32 size, u32 numCascades)
 	: ShadowMapBase(size), mNumCascades(numCascades), mTargets(numCascades), mShadowInfos(numCascades)
 {
-	mShadowMap = GpuResourcePool::Instance().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL, 0, false, numCascades));
+	mShadowMap = GpuResourcePool::Instance().Get(POOLED_RenderTextureCreateInformation::Create2D(kShadowMapFormat, size, size, TU_DEPTHSTENCIL, 0, false, numCascades));
 
-	RENDER_TEXTURE_DESC rtDesc;
+	RenderTextureCreateInformation rtDesc;
 	rtDesc.DepthStencilSurface.Texture = mShadowMap->Texture;
-	rtDesc.DepthStencilSurface.NumFaces = 1;
+	rtDesc.DepthStencilSurface.FaceCount = 1;
 
 	for(u32 i = 0; i < mNumCascades; ++i)
 	{
@@ -1579,10 +1579,10 @@ void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, con
 		{
 			gShadowParamsDef.gMatViewProj.Set(shadowParamsBuffer, shadowViewProj);
 
-			RENDER_TEXTURE_DESC rtDesc;
+			RenderTextureCreateInformation rtDesc;
 			rtDesc.DepthStencilSurface.Texture = cubemap.GetTexture();
 			rtDesc.DepthStencilSurface.Face = i;
-			rtDesc.DepthStencilSurface.NumFaces = 1;
+			rtDesc.DepthStencilSurface.FaceCount = 1;
 
 			SPtr<RenderTarget> faceRt = RenderTexture::Create(rtDesc);
 

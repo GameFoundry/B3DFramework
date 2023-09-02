@@ -37,6 +37,7 @@
 #include "RenderAPI/BsSamplerState.h"
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
+#include "2D/BsVectorSprite.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
 
@@ -77,6 +78,7 @@ GUIManager::GUIManager()
 	DeferredCall(std::bind(&GUIManager::UpdateCaretTexture, this));
 	DeferredCall(std::bind(&GUIManager::UpdateTextSelectionTexture, this));
 
+	mVectorSpriteAtlas = B3DMakeUnique<GUIVectorSpriteAtlas>(GUIVectorSpriteAtlasSettings());
 	mRenderer = RendererExtension::Create<ct::GUIRenderer>(nullptr);
 }
 
@@ -179,6 +181,8 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 void GUIManager::Update()
 {
 	DragAndDropManager::Instance().UpdateInternal();
+
+	mVectorSpriteAtlas->Update();
 
 	// Show tooltip if needed
 	if(mShowTooltip)
@@ -1619,6 +1623,9 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 {
 	// TODO - Sprite animation might be broken. I need to continually mark the animated region as dirty.
 
+	GUIVectorSpriteAtlas& vectorSpriteAtlas = GetGUIManager().GetVectorSpriteAtlas(); // Note: Might want to split the atlas into a Renderer part for use on the render thread
+	vectorSpriteAtlas.RenderDirtySprites();
+
 	FrameScope frameScope;
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
@@ -1649,7 +1656,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 
 		const SPtr<Texture> cachedColorTexture = gpuDevice->CreateTexture(cachedColorTextureCreateInformation);
 
-		RENDER_TEXTURE_DESC cachedRenderTextureCreateInformation;
+		RenderTextureCreateInformation cachedRenderTextureCreateInformation;
 		cachedRenderTextureCreateInformation.ColorSurfaces[0].Texture = cachedColorTexture;
 
 		cameraRenderData.CachedRenderTexture = RenderTexture::Create(cachedRenderTextureCreateInformation);

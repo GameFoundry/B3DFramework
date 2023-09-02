@@ -195,10 +195,10 @@ void IrradianceComputeSHFragMat::Execute(GpuCommandBuffer& commandBuffer, const 
 	commandBuffer.SetRenderTarget(nullptr);
 }
 
-POOLED_RENDER_TEXTURE_DESC IrradianceComputeSHFragMat::GetOutputDesc(const SPtr<Texture>& input)
+POOLED_RenderTextureCreateInformation IrradianceComputeSHFragMat::GetOutputDesc(const SPtr<Texture>& input)
 {
 	auto& props = input->GetProperties();
-	return POOLED_RENDER_TEXTURE_DESC::CreateCube(PF_RGBA16F, props.Width, props.Height, TU_RENDERTARGET);
+	return POOLED_RenderTextureCreateInformation::CreateCube(PF_RGBA16F, props.Width, props.Height, TU_RENDERTARGET);
 }
 
 IrradianceAccumulateSHParamDef gIrradianceAccumulateSHParamDef;
@@ -234,14 +234,14 @@ void IrradianceAccumulateSHMat::Execute(GpuCommandBuffer& commandBuffer, const S
 	commandBuffer.SetRenderTarget(nullptr);
 }
 
-POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateSHMat::GetOutputDesc(const SPtr<Texture>& input)
+POOLED_RenderTextureCreateInformation IrradianceAccumulateSHMat::GetOutputDesc(const SPtr<Texture>& input)
 {
 	auto& props = input->GetProperties();
 
 	// Assuming it's a cubemap
 	u32 size = std::max(1U, (u32)(props.Width * 0.5f));
 
-	return POOLED_RENDER_TEXTURE_DESC::CreateCube(PF_RGBA32F, size, size, TU_RENDERTARGET);
+	return POOLED_RenderTextureCreateInformation::CreateCube(PF_RGBA32F, size, size, TU_RENDERTARGET);
 }
 
 void IrradianceAccumulateCubeSHMat::Initialize()
@@ -287,9 +287,9 @@ void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, con
 	commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
 }
 
-POOLED_RENDER_TEXTURE_DESC IrradianceAccumulateCubeSHMat::GetOutputDesc()
+POOLED_RenderTextureCreateInformation IrradianceAccumulateCubeSHMat::GetOutputDesc()
 {
-	return POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA32F, 9, 1, TU_RENDERTARGET);
+	return POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA32F, 9, 1, TU_RENDERTARGET);
 }
 
 IrradianceReduceSHParamDef gIrradianceReduceSHParamDef;
@@ -420,10 +420,10 @@ void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBu
 	{
 		for(u32 face = 0; face < 6; face++)
 		{
-			RENDER_TEXTURE_DESC cubeFaceRTDesc;
+			RenderTextureCreateInformation cubeFaceRTDesc;
 			cubeFaceRTDesc.ColorSurfaces[0].Texture = cubemap;
 			cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-			cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+			cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 			cubeFaceRTDesc.ColorSurfaces[0].MipLevel = mip;
 
 			SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
@@ -468,10 +468,10 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 	IrradianceProjectSHMat* shProject = IrradianceProjectSHMat::Get();
 	for(u32 face = 0; face < 6; face++)
 	{
-		RENDER_TEXTURE_DESC cubeFaceRTDesc;
+		RenderTextureCreateInformation cubeFaceRTDesc;
 		cubeFaceRTDesc.ColorSurfaces[0].Texture = output;
 		cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-		cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+		cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 		cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
 		SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
@@ -495,7 +495,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 	}
 	else
 	{
-		RENDER_TEXTURE_DESC rtDesc;
+		RenderTextureCreateInformation rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = output;
 
 		SPtr<RenderTexture> target = RenderTexture::Create(rtDesc);
@@ -563,10 +563,10 @@ void RenderBeastIBLUtility::DownsampleCubemap(GpuCommandBuffer& commandBuffer, c
 {
 	for(u32 face = 0; face < 6; face++)
 	{
-		RENDER_TEXTURE_DESC cubeFaceRTDesc;
+		RenderTextureCreateInformation cubeFaceRTDesc;
 		cubeFaceRTDesc.ColorSurfaces[0].Texture = dst;
 		cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-		cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+		cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 		cubeFaceRTDesc.ColorSurfaces[0].MipLevel = dstMip;
 
 		SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
@@ -592,10 +592,10 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 		// Generate SH coefficients and weights per-texel
 		for(u32 face = 0; face < 6; face++)
 		{
-			RENDER_TEXTURE_DESC cubeFaceRTDesc;
+			RenderTextureCreateInformation cubeFaceRTDesc;
 			cubeFaceRTDesc.ColorSurfaces[0].Texture = coeffsTex->Texture;
 			cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-			cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+			cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 			cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
 			SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);
@@ -615,10 +615,10 @@ void RenderBeastIBLUtility::FilterCubemapForIrradianceNonCompute(GpuCommandBuffe
 
 			for(u32 face = 0; face < 6; face++)
 			{
-				RENDER_TEXTURE_DESC cubeFaceRTDesc;
+				RenderTextureCreateInformation cubeFaceRTDesc;
 				cubeFaceRTDesc.ColorSurfaces[0].Texture = accumCoeffsTex->Texture;
 				cubeFaceRTDesc.ColorSurfaces[0].Face = face;
-				cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+				cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 				cubeFaceRTDesc.ColorSurfaces[0].MipLevel = 0;
 
 				SPtr<RenderTarget> target = RenderTexture::Create(cubeFaceRTDesc);

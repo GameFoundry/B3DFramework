@@ -13,15 +13,24 @@ namespace bs
 	 */
 
 	/**	Structure that describes a render texture color and depth/stencil surfaces. */
-	struct B3D_CORE_EXPORT RENDER_TEXTURE_DESC
+	struct B3D_CORE_EXPORT RenderTextureInformation
 	{
-		RENDER_SURFACE_DESC ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
-		RENDER_SURFACE_DESC DepthStencilSurface;
+		RenderSurfaceInformation ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
+		RenderSurfaceInformation DepthStencilSurface;
+	};
+
+	/** Descriptor structure used for initialization of a RenderTexture. */
+	struct B3D_CORE_EXPORT RenderTextureCreateInformation : RenderTextureInformation 
+	{
+		RenderTextureCreateInformation() = default;
+		RenderTextureCreateInformation(const RenderTextureInformation& other)
+			: RenderTextureInformation(other)
+		{ }
 	};
 
 	namespace ct
 	{
-		struct RENDER_TEXTURE_DESC;
+		struct RenderTextureCreateInformation;
 	}
 
 	/**	Contains various properties that describe a render texture. */
@@ -29,8 +38,8 @@ namespace bs
 	{
 	public:
 		RenderTextureProperties() = default;
-		RenderTextureProperties(const RENDER_TEXTURE_DESC& desc, bool requiresFlipping);
-		RenderTextureProperties(const ct::RENDER_TEXTURE_DESC& desc, bool requiresFlipping);
+		RenderTextureProperties(const RenderTextureCreateInformation& createInformation, bool requiresFlipping);
+		RenderTextureProperties(const ct::RenderTextureCreateInformation& createInformation, bool requiresFlipping);
 
 		virtual ~RenderTextureProperties() {}
 
@@ -52,11 +61,11 @@ namespace bs
 	public:
 		virtual ~RenderTexture() = default;
 
-		/** @copydoc TextureManager::CreateRenderTexture(const TEXTURE_DESC&, bool, PixelFormat) */
-		static SPtr<RenderTexture> Create(const TextureCreateInformation& colorDesc, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
+		/** @copydoc TextureManager::CreateRenderTexture(const TextureCreateInformation&, bool, PixelFormat) */
+		static SPtr<RenderTexture> Create(const TextureCreateInformation& textureCreateInformation, bool createDepth = true, PixelFormat depthStencilFormat = PF_D32);
 
-		/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&) */
-		static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc);
+		/** @copydoc TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&) */
+		static SPtr<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
 
 		/**
 		 * Returns a color surface texture you may bind as an input to an GPU program.
@@ -87,7 +96,7 @@ namespace bs
 		friend class ct::RenderTexture;
 		struct SyncPacket;
 
-		RenderTexture(const RENDER_TEXTURE_DESC& desc);
+		RenderTexture(const RenderTextureCreateInformation& createInformation);
 
 		SPtr<ct::CoreObject> CreateCore() const override;
 		CoreSyncPacket* CreateSyncPacket(FrameAlloc& allocator, u32 flags) override;
@@ -96,7 +105,7 @@ namespace bs
 		HTexture mBindableColorTex[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 		HTexture mBindableDepthStencilTex;
 
-		RENDER_TEXTURE_DESC mDesc;
+		RenderTextureInformation mInformation;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -115,15 +124,20 @@ namespace bs
 		 *  @{
 		 */
 
-		/**
-		 * @see		bs::RENDER_TEXTURE_DESC
-		 *
-		 * @note	References core textures instead of texture handles.
-		 */
-		struct B3D_CORE_EXPORT RENDER_TEXTURE_DESC
+		/** @copydoc bs::RenderTextureInformation */
+		struct B3D_CORE_EXPORT RenderTextureInformation
 		{
-			RENDER_SURFACE_DESC ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
-			RENDER_SURFACE_DESC DepthStencilSurface;
+			RenderSurfaceInformation ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
+			RenderSurfaceInformation DepthStencilSurface;
+		};
+
+		/** @copydoc bs::RenderTextureCreateInformation */
+		struct B3D_CORE_EXPORT RenderTextureCreateInformation : RenderTextureInformation 
+		{
+			RenderTextureCreateInformation() = default;
+			RenderTextureCreateInformation(const RenderTextureInformation& other)
+				: RenderTextureInformation(other)
+			{ }
 		};
 
 		/**
@@ -134,27 +148,27 @@ namespace bs
 		class B3D_CORE_EXPORT RenderTexture : public RenderTarget
 		{
 		public:
-			RenderTexture(const RENDER_TEXTURE_DESC& desc);
+			RenderTexture(const RenderTextureCreateInformation& createInformation);
 			virtual ~RenderTexture() = default;
 
 			void Initialize() override;
 
-			/** @copydoc TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&, u32) */
-			static SPtr<RenderTexture> Create(const RENDER_TEXTURE_DESC& desc);
+			/** @copydoc TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&, u32) */
+			static SPtr<RenderTexture> Create(const RenderTextureCreateInformation& createInformation);
 
 			/**
 			 * Returns a color surface texture you may bind as an input to an GPU program.
 			 *
 			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 			 */
-			SPtr<Texture> GetColorTexture(u32 idx) const { return mDesc.ColorSurfaces[idx].Texture; }
+			SPtr<Texture> GetColorTexture(u32 idx) const { return mInformation.ColorSurfaces[idx].Texture; }
 
 			/**
 			 * Returns a depth/stencil surface texture you may bind as an input to an GPU program.
 			 *
 			 * @note	Be aware that you cannot bind a render texture for reading and writing at the same time.
 			 */
-			SPtr<Texture> GetDepthStencilTexture() const { return mDesc.DepthStencilSurface.Texture; }
+			SPtr<Texture> GetDepthStencilTexture() const { return mInformation.DepthStencilSurface.Texture; }
 
 			/**	Returns properties that describe the render texture. */
 			const RenderTextureProperties& GetProperties() const;
@@ -172,7 +186,7 @@ namespace bs
 			SPtr<TextureView> mColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			SPtr<TextureView> mDepthStencilSurface;
 
-			RENDER_TEXTURE_DESC mDesc;
+			RenderTextureInformation mInformation;
 		};
 
 		/** @} */

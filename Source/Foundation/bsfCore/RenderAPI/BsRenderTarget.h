@@ -15,9 +15,9 @@ namespace bs
 	 */
 
 	/** Structure that contains information about what part of the texture represents the render surface. */
-	struct B3D_CORE_EXPORT RENDER_SURFACE_DESC
+	struct B3D_CORE_EXPORT RenderSurfaceInformation
 	{
-		RENDER_SURFACE_DESC() {}
+		RenderSurfaceInformation() = default;
 
 		HTexture Texture;
 
@@ -28,7 +28,7 @@ namespace bs
 		 * Number of faces to bind (entries in a texture array, or Z slices in 3D textures). When zero the entire resource
 		 * will be bound.
 		 */
-		u32 NumFaces = 0;
+		u32 FaceCount = 0;
 
 		/** If the texture has multiple mips, which one to bind (only one can be bound for rendering). */
 		u32 MipLevel = 0;
@@ -36,14 +36,10 @@ namespace bs
 
 	namespace ct
 	{
-		/**
-		 * @see		bs::RENDER_SURFACE_DESC
-		 *
-		 * @note	References core textures instead of texture handles.
-		 */
-		struct B3D_CORE_EXPORT RENDER_SURFACE_DESC
+		/** @copydoc bs::RenderSurfaceInformation */
+		struct B3D_CORE_EXPORT RenderSurfaceInformation
 		{
-			RENDER_SURFACE_DESC() {}
+			RenderSurfaceInformation() = default;
 
 			SPtr<Texture> Texture;
 
@@ -54,7 +50,7 @@ namespace bs
 			 * Number of faces to bind (entries in a texture array, or Z slices in 3D textures). When zero the entire resource
 			 * will be bound.
 			 */
-			u32 NumFaces = 0;
+			u32 FaceCount = 0;
 
 			/** If the texture has multiple mips, which one to bind (only one can be bound for rendering). */
 			u32 MipLevel = 0;

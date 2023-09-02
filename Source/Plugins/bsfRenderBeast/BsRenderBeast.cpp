@@ -328,7 +328,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 
 void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	GetProfilerGPU().BeginFrame();
 	GetProfilerCPU().BeginSample("Render");
@@ -835,10 +835,10 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 		viewDesc.CullFrustum = ConvexVolume(worldPlanes);
 
 		// Set up face render target
-		RENDER_TEXTURE_DESC cubeFaceRTDesc;
+		RenderTextureCreateInformation cubeFaceRTDesc;
 		cubeFaceRTDesc.ColorSurfaces[0].Texture = cubemap;
 		cubeFaceRTDesc.ColorSurfaces[0].Face = i;
-		cubeFaceRTDesc.ColorSurfaces[0].NumFaces = 1;
+		cubeFaceRTDesc.ColorSurfaces[0].FaceCount = 1;
 
 		viewDesc.Target.Target = RenderTexture::Create(cubeFaceRTDesc);
 

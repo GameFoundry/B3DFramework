@@ -298,18 +298,18 @@ GpuParticleResources::GpuParticleResources()
 
 	mStaticTextures.SizeAndRotationTex = gpuDevice->CreateTexture(sizeAndRotationDesc);
 
-	RENDER_TEXTURE_DESC staticRtDesc;
+	RenderTextureCreateInformation staticRtDesc;
 	staticRtDesc.ColorSurfaces[0].Texture = mStaticTextures.SizeAndRotationTex;
 
 	for(u32 i = 0; i < 2; i++)
 	{
-		RENDER_TEXTURE_DESC simulationRTDesc;
+		RenderTextureCreateInformation simulationRTDesc;
 		simulationRTDesc.ColorSurfaces[0].Texture = mStateTextures[i].PositionAndTimeTex;
 		simulationRTDesc.ColorSurfaces[1].Texture = mStateTextures[i].VelocityTex;
 
 		mSimulateRT[i] = RenderTexture::Create(simulationRTDesc);
 
-		RENDER_TEXTURE_DESC injectRTDesc;
+		RenderTextureCreateInformation injectRTDesc;
 		injectRTDesc.ColorSurfaces[0].Texture = mStateTextures[i].PositionAndTimeTex;
 		injectRTDesc.ColorSurfaces[1].Texture = mStateTextures[i].VelocityTex;
 		injectRTDesc.ColorSurfaces[2].Texture = mStaticTextures.SizeAndRotationTex;
@@ -1341,7 +1341,7 @@ GpuParticleCurves::GpuParticleCurves()
 
 	mCurveTexture = gpuDevice->CreateTexture(textureCreateInformation);
 
-	RENDER_TEXTURE_DESC rtDesc;
+	RenderTextureCreateInformation rtDesc;
 	rtDesc.ColorSurfaces[0].Texture = mCurveTexture;
 
 	mRT = RenderTexture::Create(rtDesc);

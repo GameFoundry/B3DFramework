@@ -65,12 +65,12 @@ SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface
 
 SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurfaces, const HTexture& depthStencilSurface)
 {
-	RENDER_SURFACE_DESC depthStencilSurfaceDesc;
+	RenderSurfaceInformation depthStencilSurfaceDesc;
 	if(depthStencilSurface != nullptr)
 	{
 		depthStencilSurfaceDesc.Face = 0;
 		depthStencilSurfaceDesc.MipLevel = 0;
-		depthStencilSurfaceDesc.NumFaces = 1;
+		depthStencilSurfaceDesc.FaceCount = 1;
 
 		if(!depthStencilSurface.IsLoaded())
 			B3D_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");
@@ -80,13 +80,13 @@ SPtr<RenderTexture> RenderTextureEx::Create(const Vector<HTexture>& colorSurface
 
 	u32 numSurfaces = std::min((u32)colorSurfaces.size(), (u32)B3D_MAXIMUM_RENDER_TARGET_COUNT);
 
-	RENDER_TEXTURE_DESC desc;
+	RenderTextureCreateInformation desc;
 	for(u32 i = 0; i < numSurfaces; i++)
 	{
-		RENDER_SURFACE_DESC surfaceDesc;
+		RenderSurfaceInformation surfaceDesc;
 		surfaceDesc.Face = 0;
 		surfaceDesc.MipLevel = 0;
-		surfaceDesc.NumFaces = 1;
+		surfaceDesc.FaceCount = 1;
 
 		if(!colorSurfaces[i].IsLoaded())
 			B3D_LOG(Error, RenderBackend, "Render texture must be created using a fully loaded texture.");

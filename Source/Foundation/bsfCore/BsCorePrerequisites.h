@@ -456,7 +456,7 @@ namespace bs
 	struct RasterizerStateInformation;
 	struct BlendStateInformation;
 	struct RenderTargetBlendStateInformation;
-	struct RENDER_TEXTURE_DESC;
+	struct RenderTextureCreateInformation;
 	struct RENDER_WINDOW_DESC;
 	struct FONT_DESC;
 	struct CHAR_CONTROLLER_DESC;

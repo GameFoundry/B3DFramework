@@ -25,7 +25,7 @@ namespace bs
 	protected:
 		friend class VulkanTextureManager;
 
-		VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc);
+		VulkanRenderTexture(const RenderTextureCreateInformation& desc);
 
 		const RenderTargetProperties& GetPropertiesInternal() const override { return mProperties; }
 
@@ -42,7 +42,7 @@ namespace bs
 		class VulkanRenderTexture : public RenderTexture
 		{
 		public:
-			VulkanRenderTexture(VulkanGpuDevice& device, const RENDER_TEXTURE_DESC& desc);
+			VulkanRenderTexture(VulkanGpuDevice& device, const RenderTextureCreateInformation& desc);
 			~VulkanRenderTexture() override = default;
 
 			void GetCustomAttribute(const String& name, void* data) const override;

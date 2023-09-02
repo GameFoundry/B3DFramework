@@ -20,6 +20,7 @@
 
 namespace bs
 {
+	class GUIVectorSpriteAtlas;
 	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
@@ -171,6 +172,12 @@ namespace bs
 		 * your GUI controls.
 		 */
 		GUIInputSelection* GetInputSelectionTool() const { return mInputSelection; }
+
+		/**
+		 * Returns an atlas that vector paths are rasterized into. Any GUI element using vector paths will register the path in this atlas.
+		 * GUI manager will then rasterize the shapes before they are needed in GUI rendering.
+		 */
+		GUIVectorSpriteAtlas& GetVectorSpriteAtlas() const { return *mVectorSpriteAtlas; }
 
 		/**
 		 * Allows you to bridge GUI input from a GUI element into another render target.
@@ -388,6 +395,7 @@ namespace bs
 		Color mTextSelectionColor{ 0.0f, 114 / 255.0f, 188 / 255.0f };
 
 		Map<SPtr<const RenderTexture>, const GUIElement*> mInputBridge;
+		UPtr<GUIVectorSpriteAtlas> mVectorSpriteAtlas;
 
 		HEvent mOnPointerMovedConn;
 		HEvent mOnPointerPressedConn;

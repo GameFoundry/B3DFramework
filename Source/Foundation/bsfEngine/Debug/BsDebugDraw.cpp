@@ -172,7 +172,7 @@ DebugDrawRenderer::DebugDrawRenderer()
 
 void DebugDrawRenderer::Initialize(const Any& data)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	mParamBuffer = gDebugDrawParamsDef.CreateBuffer();
 }

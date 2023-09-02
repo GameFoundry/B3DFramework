@@ -221,7 +221,7 @@ void RCNodeSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 	u32 height = viewProps.Target.ViewRect.Height;
 	u32 numSamples = viewProps.Target.NumSamples;
 
-	DepthTex = GetGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, numSamples, false));
+	DepthTex = GetGpuResourcePool().Get(POOLED_RenderTextureCreateInformation::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, numSamples, false));
 }
 
 void RCNodeSceneDepth::Clear()
@@ -247,14 +247,14 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	bool needsVelocity = inputs.View.RequiresVelocityWrites();
 
 	// Note: Consider customizable formats. e.g. for testing if quality can be improved with higher precision normals.
-	AlbedoTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, width, height, TU_RENDERTARGET, numSamples, true));
-	NormalTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGB10A2, width, height, TU_RENDERTARGET, numSamples, false));
-	RoughMetalTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RG16F, width, height, TU_RENDERTARGET, numSamples, false)); // Note: Metal doesn't need 16-bit float
-	IdTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET, numSamples, false));
+	AlbedoTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA8, width, height, TU_RENDERTARGET, numSamples, true));
+	NormalTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGB10A2, width, height, TU_RENDERTARGET, numSamples, false));
+	RoughMetalTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RG16F, width, height, TU_RENDERTARGET, numSamples, false)); // Note: Metal doesn't need 16-bit float
+	IdTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_R8, width, height, TU_RENDERTARGET, numSamples, false));
 
 	if(needsVelocity)
 	{
-		VelocityTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RG16S, width, height, TU_RENDERTARGET, numSamples, false));
+		VelocityTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RG16S, width, height, TU_RENDERTARGET, numSamples, false));
 	}
 
 	auto sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[0]);
@@ -281,28 +281,28 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		u32 targetIdx = 0;
 
-		RENDER_TEXTURE_DESC gbufferDesc;
+		RenderTextureCreateInformation gbufferDesc;
 		gbufferDesc.ColorSurfaces[targetIdx].Texture = sceneColorTex->Texture;
 		gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-		gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+		gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 		gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 		targetIdx++;
 
 		gbufferDesc.ColorSurfaces[targetIdx].Texture = AlbedoTex->Texture;
 		gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-		gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+		gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 		gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 		targetIdx++;
 
 		gbufferDesc.ColorSurfaces[targetIdx].Texture = NormalTex->Texture;
 		gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-		gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+		gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 		gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 		targetIdx++;
 
 		gbufferDesc.ColorSurfaces[targetIdx].Texture = RoughMetalTex->Texture;
 		gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-		gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+		gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 		gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 		targetIdx++;
 
@@ -310,7 +310,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		{
 			gbufferDesc.ColorSurfaces[targetIdx].Texture = VelocityTex->Texture;
 			gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-			gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+			gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 			gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 			targetIdx++;
 		}
@@ -323,7 +323,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 
 		gbufferDesc.ColorSurfaces[targetIdx].Texture = IdTex->Texture;
 		gbufferDesc.ColorSurfaces[targetIdx].Face = 0;
-		gbufferDesc.ColorSurfaces[targetIdx].NumFaces = 1;
+		gbufferDesc.ColorSurfaces[targetIdx].FaceCount = 1;
 		gbufferDesc.ColorSurfaces[targetIdx].MipLevel = 0;
 		targetIdx++;
 
@@ -526,14 +526,14 @@ void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 		usageFlags |= TU_LOADSTORE;
 
 	// Note: Consider customizable HDR format via options? e.g. smaller PF_FLOAT_R11G11B10 or larger 32-bit format
-	SceneColorTex = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, usageFlags, numSamples, false));
+	SceneColorTex = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, usageFlags, numSamples, false));
 
 	RCNodeSceneDepth* sceneDepthNode = static_cast<RCNodeSceneDepth*>(inputs.InputNodes[0]);
 	SPtr<PooledRenderTexture> sceneDepthTex = sceneDepthNode->DepthTex;
 
 	if(tiledDeferredSupported && viewProps.Target.NumSamples > 1)
 	{
-		SceneColorTexArray = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_LOADSTORE, 1, false, viewProps.Target.NumSamples));
+		SceneColorTexArray = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_LOADSTORE, 1, false, viewProps.Target.NumSamples));
 	}
 	else
 		SceneColorTexArray = nullptr;
@@ -549,15 +549,15 @@ void RCNodeSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 
 	if(rebuildRT)
 	{
-		RENDER_TEXTURE_DESC sceneColorDesc;
+		RenderTextureCreateInformation sceneColorDesc;
 		sceneColorDesc.ColorSurfaces[0].Texture = SceneColorTex->Texture;
 		sceneColorDesc.ColorSurfaces[0].Face = 0;
-		sceneColorDesc.ColorSurfaces[0].NumFaces = 1;
+		sceneColorDesc.ColorSurfaces[0].FaceCount = 1;
 		sceneColorDesc.ColorSurfaces[0].MipLevel = 0;
 
 		sceneColorDesc.DepthStencilSurface.Texture = sceneDepthTex->Texture;
 		sceneColorDesc.DepthStencilSurface.Face = 0;
-		sceneColorDesc.DepthStencilSurface.NumFaces = 1;
+		sceneColorDesc.DepthStencilSurface.FaceCount = 1;
 		sceneColorDesc.DepthStencilSurface.MipLevel = 0;
 
 		RenderTarget = RenderTexture::Create(sceneColorDesc);
@@ -616,7 +616,7 @@ void RCNodeMSAACoverage::Render(const RenderCompositorNodeInputs& inputs)
 	u32 height = viewProps.Target.ViewRect.Height;
 
 	// We just allocate the texture, while the base pass is responsible for filling it out
-	Output = GetGpuResourcePool().Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET));
+	Output = GetGpuResourcePool().Get(POOLED_RenderTextureCreateInformation::Create2D(PF_R8, width, height, TU_RENDERTARGET));
 }
 
 void RCNodeMSAACoverage::Clear()
@@ -767,7 +767,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 	u32 usage = TU_RENDERTARGET;
 	if(numSamples > 1)
 	{
-		resPool.Get(LightAccumulationTexArray, POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_LOADSTORE, 1, false, numSamples));
+		resPool.Get(LightAccumulationTexArray, POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_LOADSTORE, 1, false, numSamples));
 
 		ClearLoadStoreMat* clearMat = ClearLoadStoreMat::GetVariation(ClearLoadStoreType::TextureArray, ClearLoadStoreDataType::Float, 4);
 
@@ -788,7 +788,7 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 		LightAccumulationTexArray = nullptr;
 	}
 
-	resPool.Get(LightAccumulationTex, POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, usage, numSamples, false));
+	resPool.Get(LightAccumulationTex, POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, usage, numSamples, false));
 
 	bool rebuildRT;
 	if(RenderTarget != nullptr)
@@ -801,15 +801,15 @@ void RCNodeLightAccumulation::Render(const RenderCompositorNodeInputs& inputs)
 
 	if(rebuildRT)
 	{
-		RENDER_TEXTURE_DESC lightAccumulationRTDesc;
+		RenderTextureCreateInformation lightAccumulationRTDesc;
 		lightAccumulationRTDesc.ColorSurfaces[0].Texture = LightAccumulationTex->Texture;
 		lightAccumulationRTDesc.ColorSurfaces[0].Face = 0;
-		lightAccumulationRTDesc.ColorSurfaces[0].NumFaces = 1;
+		lightAccumulationRTDesc.ColorSurfaces[0].FaceCount = 1;
 		lightAccumulationRTDesc.ColorSurfaces[0].MipLevel = 0;
 
 		lightAccumulationRTDesc.DepthStencilSurface.Texture = depthNode->DepthTex->Texture;
 		lightAccumulationRTDesc.DepthStencilSurface.Face = 0;
-		lightAccumulationRTDesc.DepthStencilSurface.NumFaces = 1;
+		lightAccumulationRTDesc.DepthStencilSurface.FaceCount = 1;
 		lightAccumulationRTDesc.DepthStencilSurface.MipLevel = 0;
 
 		RenderTarget = RenderTexture::Create(lightAccumulationRTDesc);
@@ -926,7 +926,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 	// Allocate light occlusion
 	SPtr<PooledRenderTexture> lightOcclusionTex = GetGpuResourcePool().Get(
-		POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET, numSamples, false));
+		POOLED_RenderTextureCreateInformation::Create2D(PF_R8, width, height, TU_RENDERTARGET, numSamples, false));
 
 	bool rebuildRT = false;
 	if(mLightOcclusionRT != nullptr)
@@ -939,15 +939,15 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 	if(rebuildRT)
 	{
-		RENDER_TEXTURE_DESC lightOcclusionRTDesc;
+		RenderTextureCreateInformation lightOcclusionRTDesc;
 		lightOcclusionRTDesc.ColorSurfaces[0].Texture = lightOcclusionTex->Texture;
 		lightOcclusionRTDesc.ColorSurfaces[0].Face = 0;
-		lightOcclusionRTDesc.ColorSurfaces[0].NumFaces = 1;
+		lightOcclusionRTDesc.ColorSurfaces[0].FaceCount = 1;
 		lightOcclusionRTDesc.ColorSurfaces[0].MipLevel = 0;
 
 		lightOcclusionRTDesc.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
 		lightOcclusionRTDesc.DepthStencilSurface.Face = 0;
-		lightOcclusionRTDesc.DepthStencilSurface.NumFaces = 1;
+		lightOcclusionRTDesc.DepthStencilSurface.FaceCount = 1;
 		lightOcclusionRTDesc.DepthStencilSurface.MipLevel = 0;
 
 		mLightOcclusionRT = RenderTexture::Create(lightOcclusionRTDesc);
@@ -1027,14 +1027,14 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	SPtr<PooledRenderTexture> volumeIndices;
 	if(lightProbes.HasAnyProbes())
 	{
-		POOLED_RENDER_TEXTURE_DESC volumeIndicesDesc;
-		POOLED_RENDER_TEXTURE_DESC depthDesc;
+		POOLED_RenderTextureCreateInformation volumeIndicesDesc;
+		POOLED_RenderTextureCreateInformation depthDesc;
 		TetrahedraRenderMat::GetOutputDesc(inputs.View, volumeIndicesDesc, depthDesc);
 
 		volumeIndices = resPool.Get(volumeIndicesDesc);
 		SPtr<PooledRenderTexture> depthTex = resPool.Get(depthDesc);
 
-		RENDER_TEXTURE_DESC rtDesc;
+		RenderTextureCreateInformation rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = volumeIndices->Texture;
 		rtDesc.DepthStencilSurface.Texture = depthTex->Texture;
 
@@ -1154,9 +1154,9 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 		bool isMSAA = viewProps.Target.NumSamples > 1;
 
 		SPtr<PooledRenderTexture> iblRadianceTex = GetGpuResourcePool().Get(
-			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET, numSamples, false));
+			POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET, numSamples, false));
 
-		RENDER_TEXTURE_DESC rtDesc;
+		RenderTextureCreateInformation rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = iblRadianceTex->Texture;
 		rtDesc.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
 
@@ -1413,15 +1413,15 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 
 	if(rebuildRT)
 	{
-		RENDER_TEXTURE_DESC rtDesc;
+		RenderTextureCreateInformation rtDesc;
 		rtDesc.ColorSurfaces[0].Texture = sceneColorNode->SceneColorTex->Texture;
 		rtDesc.ColorSurfaces[0].Face = 0;
-		rtDesc.ColorSurfaces[0].NumFaces = 1;
+		rtDesc.ColorSurfaces[0].FaceCount = 1;
 		rtDesc.ColorSurfaces[0].MipLevel = 0;
 
 		rtDesc.DepthStencilSurface.Texture = sceneDepthNode->DepthTex->Texture;
 		rtDesc.DepthStencilSurface.Face = 0;
-		rtDesc.DepthStencilSurface.NumFaces = 1;
+		rtDesc.DepthStencilSurface.FaceCount = 1;
 		rtDesc.DepthStencilSurface.MipLevel = 0;
 
 		renderTarget = RenderTexture::Create(rtDesc);
@@ -1690,7 +1690,7 @@ void RCNodePostProcess::GetAndSwitch(const RendererView& view, SPtr<RenderTextur
 	if(!mOutput[mCurrentIdx])
 	{
 		mOutput[mCurrentIdx] = GetGpuResourcePool().Get(
-			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA8, width, height, TU_RENDERTARGET, 1, false));
+			POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA8, width, height, TU_RENDERTARGET, 1, false));
 	}
 
 	output = mOutput[mCurrentIdx]->RenderTexture;
@@ -2058,7 +2058,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<PooledRenderTexture> resolvedSceneColor;
 	if(viewProps.Target.NumSamples > 1)
 	{
-		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+		resolvedSceneColor = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		commandBuffer.SetRenderTarget(resolvedSceneColor->RenderTexture);
 		GetRendererUtility().Blit(commandBuffer, sceneColor->Texture);
@@ -2068,7 +2068,7 @@ void RCNodeTemporalAA::Render(const RenderCompositorNodeInputs& inputs)
 
 	if(mPrevFrame)
 	{
-		mPooledOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+		mPooledOutput = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		commandBuffer.SetRenderTarget(mPooledOutput->RenderTexture);
 		commandBuffer.ClearRenderTarget(FBT_COLOR);
@@ -2195,7 +2195,7 @@ void RCNodeGaussianDOF::Render(const RenderCompositorNodeInputs& inputs)
 	// Blur the out of focus pixels
 	// Note: Perhaps set up stencil so I can avoid performing blur on unused parts of the textures?
 	const TextureProperties& texProps = nearTex ? nearTex->Texture->GetProperties() : farTex->Texture->GetProperties();
-	POOLED_RENDER_TEXTURE_DESC tempTexDesc = POOLED_RENDER_TEXTURE_DESC::Create2D(texProps.Format, texProps.Width, texProps.Height, TU_RENDERTARGET);
+	POOLED_RenderTextureCreateInformation tempTexDesc = POOLED_RenderTextureCreateInformation::Create2D(texProps.Format, texProps.Width, texProps.Height, TU_RENDERTARGET);
 	SPtr<PooledRenderTexture> tempTexture = GetGpuResourcePool().Get(tempTexDesc);
 
 	SPtr<Texture> blurredNearTex;
@@ -2393,7 +2393,7 @@ void RCNodeResolvedSceneDepth::Render(const RenderCompositorNodeInputs& inputs)
 		u32 height = viewProps.Target.ViewRect.Height;
 
 		Output = GetGpuResourcePool().Get(
-			POOLED_RENDER_TEXTURE_DESC::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
+			POOLED_RenderTextureCreateInformation::Create2D(PF_D32_S8X24, width, height, TU_DEPTHSTENCIL, 1, false));
 
 		GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 		commandBuffer.SetRenderTarget(Output->RenderTexture);
@@ -2433,7 +2433,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	// depth values).
 	//  - When I add UNORM 16-bit format I should be able to switch to that
 	Output = GetGpuResourcePool().Get(
-		POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R32F, size, size, TU_RENDERTARGET, 1, false, 1, numMips));
+		POOLED_RenderTextureCreateInformation::Create2D(PF_R32F, size, size, TU_RENDERTARGET, 1, false, 1, numMips));
 
 	Rect2 srcRect = viewProps.Target.NrmViewRect;
 
@@ -2446,7 +2446,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	BuildHiZMat* material = BuildHiZMat::GetVariation(noTextureViews);
 
 	// Generate first mip
-	RENDER_TEXTURE_DESC rtDesc;
+	RenderTextureCreateInformation rtDesc;
 	rtDesc.ColorSurfaces[0].Texture = Output->Texture;
 	rtDesc.ColorSurfaces[0].MipLevel = 0;
 
@@ -2529,7 +2529,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 
 	if(sceneNormals->GetProperties().SampleCount > 1)
 	{
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(normalsProps.Format, normalsProps.Width, normalsProps.Height, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(normalsProps.Format, normalsProps.Width, normalsProps.Height, TU_RENDERTARGET);
 		resolvedNormals = resPool.Get(desc);
 
 		commandBuffer.SetRenderTarget(resolvedNormals->RenderTexture);
@@ -2556,7 +2556,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Width, 2)),
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Height, 2)));
 
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex0 = resPool.Get(desc);
 
 		downsample->Execute(commandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex0->RenderTexture, kDepthRange);
@@ -2569,7 +2569,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Width, 4)),
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Height, 4)));
 
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		setupTex1 = resPool.Get(desc);
 
 		downsample->Execute(commandBuffer, inputs.View, sceneDepth, sceneNormals, setupTex1->RenderTexture, kDepthRange);
@@ -2589,7 +2589,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Width, 4)),
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Height, 4)));
 
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(PF_R8, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		downAOTex1 = resPool.Get(desc);
 
 		SSAOMat* ssaoMat = SSAOMat::GetVariation(false, false, quality);
@@ -2610,7 +2610,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Width, 2)),
 			std::max(1, Math::DivideAndRoundUp((i32)viewProps.Target.ViewRect.Height, 2)));
 
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(PF_R8, downsampledSize.X, downsampledSize.Y, TU_RENDERTARGET);
 		downAOTex0 = resPool.Get(desc);
 
 		bool upsample = numDownsampleLevels > 1;
@@ -2623,7 +2623,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 
 	u32 width = viewProps.Target.ViewRect.Width;
 	u32 height = viewProps.Target.ViewRect.Height;
-	mPooledOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, width, height, TU_RENDERTARGET));
+	mPooledOutput = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_R8, width, height, TU_RENDERTARGET));
 
 	{
 		if(setupTex0)
@@ -2652,7 +2652,7 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 	{
 		const RenderTargetProperties& rtProps = mPooledOutput->RenderTexture->GetProperties();
 
-		POOLED_RENDER_TEXTURE_DESC desc = POOLED_RENDER_TEXTURE_DESC::Create2D(PF_R8, rtProps.Width, rtProps.Height, TU_RENDERTARGET);
+		POOLED_RenderTextureCreateInformation desc = POOLED_RenderTextureCreateInformation::Create2D(PF_R8, rtProps.Width, rtProps.Height, TU_RENDERTARGET);
 		SPtr<PooledRenderTexture> blurIntermediateTex = resPool.Get(desc);
 
 		SSAOBlurMat* blurHorz = SSAOBlurMat::GetVariation(true);
@@ -2716,7 +2716,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<PooledRenderTexture> resolvedSceneColor;
 	if(viewProps.Target.NumSamples > 1)
 	{
-		resolvedSceneColor = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+		resolvedSceneColor = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		commandBuffer.SetRenderTarget(resolvedSceneColor->RenderTexture);
 		GetRendererUtility().Blit(commandBuffer, sceneColor);
@@ -2736,9 +2736,9 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	commandBuffer.SetRenderTarget(resolvedSceneDepthNode->Output->RenderTexture, FBT_DEPTH, RT_DEPTH_STENCIL);
 	stencilMat->Execute(commandBuffer, inputs.View, gbuffer, settings);
 
-	SPtr<PooledRenderTexture> traceOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+	SPtr<PooledRenderTexture> traceOutput = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
-	RENDER_TEXTURE_DESC traceRtDesc;
+	RenderTextureCreateInformation traceRtDesc;
 	traceRtDesc.ColorSurfaces[0].Texture = traceOutput->Texture;
 	traceRtDesc.DepthStencilSurface.Texture = resolvedSceneDepthNode->Output->Texture;
 
@@ -2755,7 +2755,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	mUsingTemporalAA = inputs.View.GetRenderSettings().TemporalAa.Enabled;
 	if(mPrevFrame && !mUsingTemporalAA)
 	{
-		mPooledOutput = resPool.Get(POOLED_RENDER_TEXTURE_DESC::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
+		mPooledOutput = resPool.Get(POOLED_RenderTextureCreateInformation::Create2D(PF_RGBA16F, width, height, TU_RENDERTARGET));
 
 		commandBuffer.SetRenderTarget(mPooledOutput->RenderTexture);
 		commandBuffer.ClearRenderTarget(FBT_COLOR);
@@ -2844,7 +2844,7 @@ void RCNodeBloom::Render(const RenderCompositorNodeInputs& inputs)
 		const TextureProperties& inputProps = downsampledTex->Texture->GetProperties();
 
 		SPtr<PooledRenderTexture> filterOutput = GetGpuResourcePool().Get(
-			POOLED_RENDER_TEXTURE_DESC::Create2D(
+			POOLED_RenderTextureCreateInformation::Create2D(
 				inputProps.Format,
 				inputProps.Width,
 				inputProps.Height,
@@ -2907,7 +2907,7 @@ void RCNodeScreenSpaceLensFlare::Render(const RenderCompositorNodeInputs& inputs
 
 	// Ghost features
 	SPtr<PooledRenderTexture> featureTex = resPool.Get(
-		POOLED_RENDER_TEXTURE_DESC::Create2D(
+		POOLED_RenderTextureCreateInformation::Create2D(
 			sceneTexProps.Format,
 			sceneTexProps.Width,
 			sceneTexProps.Height,

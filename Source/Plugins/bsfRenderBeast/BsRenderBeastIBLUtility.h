@@ -249,7 +249,7 @@ namespace bs
 			 * output texture is a cubemap but the execute() method expects a render target that is a single face of a
 			 * cubemap.
 			 */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& source);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -286,7 +286,7 @@ namespace bs
 			 * Returns the texture descriptor that can be used for initializing the output render target. Note the output
 			 * is a cubemap.
 			 */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& source);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& source);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -316,7 +316,7 @@ namespace bs
 			 * Returns the texture descriptor that can be used for initializing the output render target. The render target
 			 * will be able to hold all required SH coefficients (even though execute() outputs just one coefficient at a time).
 			 */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
+			static POOLED_RenderTextureCreateInformation GetOutputDesc();
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;

@@ -243,7 +243,7 @@ const RenderWindowProperties& RenderWindow::GetProperties() const
 
 void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 {
-	THROW_IF_CORE_THREAD;
+	ASSERT_IF_RENDER_THREAD;
 
 	ct::RenderWindow* coreWindow = GetCore().get();
 	RenderWindowProperties& syncProps = coreWindow->GetSyncedProperties();
@@ -425,7 +425,7 @@ RenderWindow::~RenderWindow()
 
 void RenderWindow::SetHidden(bool hidden)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	RenderWindowProperties& props = const_cast<RenderWindowProperties&>(GetProperties());
 
@@ -440,12 +440,12 @@ void RenderWindow::SetHidden(bool hidden)
 
 void RenderWindow::SetActive(bool state)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 }
 
 void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	RenderWindowProperties& syncProps = GetSyncedProperties();
 	RenderWindowProperties& props = const_cast<RenderWindowProperties&>(GetProperties());

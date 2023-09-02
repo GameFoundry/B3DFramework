@@ -49,7 +49,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& target);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Returns the downsample material variation matching the provided parameters. */
 			static DownsampleMat* GetVariation(u32 quality, bool msaa);
@@ -80,7 +80,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& target);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Calculates the number of thread groups that need to execute to cover the provided texture. */
 			static Vector2I GetThreadGroupCount(const SPtr<Texture>& target);
@@ -124,7 +124,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
+			static POOLED_RenderTextureCreateInformation GetOutputDesc();
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -152,7 +152,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
+			static POOLED_RenderTextureCreateInformation GetOutputDesc();
 
 			/**
 			 * Populates the provided paramater buffer with eye adaptation parameters. The parameter buffer is expected to be
@@ -184,7 +184,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& input);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& input);
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -213,7 +213,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc();
+			static POOLED_RenderTextureCreateInformation GetOutputDesc();
 
 		private:
 			SPtr<GpuBuffer> mEyeAdaptationParamsBuffer;
@@ -254,7 +254,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const RenderSettings& settings);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			POOLED_RENDER_TEXTURE_DESC GetOutputDesc() const;
+			POOLED_RenderTextureCreateInformation GetOutputDesc() const;
 
 			/** Populates a parameter block buffer of CreateTonemapLUTParamDef type using the provided settings. */
 			static void PopulateTonemappingParameterBuffer(const RenderSettings& settings, const SPtr<GpuBuffer>& parameterBuffer);
@@ -283,7 +283,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& output, const RenderSettings& settings);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			POOLED_RENDER_TEXTURE_DESC GetOutputDesc() const;
+			POOLED_RenderTextureCreateInformation GetOutputDesc() const;
 
 		private:
 			SPtr<GpuBuffer> mParamBuffer;
@@ -817,7 +817,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& target);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Returns the material variation matching the provided parameters. */
 			static BokehDOFPrepareMat* GetVariation(bool msaa);
@@ -877,7 +877,7 @@ namespace bs
 			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output);
 
 			/** Returns the texture descriptor that can be used for initializing the output render target. */
-			static POOLED_RENDER_TEXTURE_DESC GetOutputDesc(const SPtr<Texture>& target);
+			static POOLED_RenderTextureCreateInformation GetOutputDesc(const SPtr<Texture>& target);
 
 			/** Populates the common depth of field parameter buffers with values from the provided settings object. */
 			static void PopulateDofCommonParams(const SPtr<GpuBuffer>& buffer, const DepthOfFieldSettings& settings, const RendererView& view);

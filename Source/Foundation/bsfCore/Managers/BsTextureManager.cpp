@@ -27,15 +27,15 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInfor
 		depthStencil = Texture::Create(textureDesc);
 	}
 
-	RENDER_TEXTURE_DESC desc;
+	RenderTextureCreateInformation desc;
 	desc.ColorSurfaces[0].Texture = texture;
 	desc.ColorSurfaces[0].Face = 0;
-	desc.ColorSurfaces[0].NumFaces = 1;
+	desc.ColorSurfaces[0].FaceCount = 1;
 	desc.ColorSurfaces[0].MipLevel = 0;
 
 	desc.DepthStencilSurface.Texture = depthStencil;
 	desc.DepthStencilSurface.Face = 0;
-	desc.DepthStencilSurface.NumFaces = 1;
+	desc.DepthStencilSurface.FaceCount = 1;
 	desc.DepthStencilSurface.MipLevel = 0;
 
 	SPtr<RenderTexture> newRT = CreateRenderTexture(desc);
@@ -43,7 +43,7 @@ SPtr<RenderTexture> TextureManager::CreateRenderTexture(const TextureCreateInfor
 	return newRT;
 }
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
 {
 	SPtr<RenderTexture> newRT = CreateRenderTextureImpl(desc);
 	newRT->SetShared(newRT);
@@ -127,7 +127,7 @@ void TextureManager::OnShutDown()
 	Texture::kNormal = nullptr;
 }
 
-SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> TextureManager::CreateRenderTexture(const RenderTextureCreateInformation& desc)
 {
 	SPtr<RenderTexture> newRT = CreateRenderTextureInternal(desc);
 	newRT->Initialize();

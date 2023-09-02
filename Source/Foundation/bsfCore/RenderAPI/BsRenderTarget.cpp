@@ -32,7 +32,7 @@ SPtr<ct::RenderTarget> RenderTarget::GetCore() const
 
 const RenderTargetProperties& RenderTarget::GetProperties() const
 {
-	THROW_IF_CORE_THREAD;
+	ASSERT_IF_RENDER_THREAD;
 
 	return GetPropertiesInternal();
 }

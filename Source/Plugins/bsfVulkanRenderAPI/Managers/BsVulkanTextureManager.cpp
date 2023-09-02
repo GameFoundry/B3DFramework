@@ -30,7 +30,7 @@ const static DummyTexFormat DummyTexTypes[] = {
 	{ TEX_TYPE_CUBE_MAP, 2, 2, 2, 1 }
 };
 
-SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RenderTextureCreateInformation& desc)
 {
 	VulkanRenderTexture* tex = new(B3DAllocate<VulkanRenderTexture>()) VulkanRenderTexture(desc);
 
@@ -173,7 +173,7 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 	}
 }
 
-SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc)
+SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& desc)
 {
 	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetCoreApplication().GetPrimaryGpuDevice()), desc);
 	texPtr->SetShared(texPtr);

@@ -68,7 +68,7 @@ namespace bs
 			 * Returns the descriptors that can be used for creating the output render texture for this material. The render
 			 * texture is expected to have a single color attachment, and a depth attachment.
 			 */
-			static void GetOutputDesc(const RendererView& view, POOLED_RENDER_TEXTURE_DESC& colorDesc, POOLED_RENDER_TEXTURE_DESC& depthDesc);
+			static void GetOutputDesc(const RendererView& view, POOLED_RenderTextureCreateInformation& colorDesc, POOLED_RenderTextureCreateInformation& depthDesc);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

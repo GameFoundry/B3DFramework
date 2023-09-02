@@ -39,7 +39,7 @@ namespace bs
 		 *
 		 * @param[in]	desc	Description of the render texture to create.
 		 */
-		virtual SPtr<RenderTexture> CreateRenderTexture(const RENDER_TEXTURE_DESC& desc);
+		virtual SPtr<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
 
 		/**
 		 * Gets the format which will be natively used for a requested format given the constraints of the current device.
@@ -53,7 +53,7 @@ namespace bs
 		 * Creates an empty and uninitialized render texture of a specific type. This is to be implemented by render
 		 * systems with their own implementations.
 		 */
-		virtual SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) = 0;
+		virtual SPtr<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& desc) = 0;
 	};
 
 	namespace ct
@@ -75,15 +75,15 @@ namespace bs
 			void OnShutDown() override;
 
 			/**
-			 * @copydoc bs::TextureManager::CreateRenderTexture(const RENDER_TEXTURE_DESC&)
+			 * @copydoc bs::TextureManager::CreateRenderTexture(const RenderTextureCreateInformation&)
 			 */
-			SPtr<RenderTexture> CreateRenderTexture(const RENDER_TEXTURE_DESC& desc);
+			SPtr<RenderTexture> CreateRenderTexture(const RenderTextureCreateInformation& desc);
 
 		protected:
 			friend class bs::RenderTexture;
 
 			/** @copydoc CreateRenderTexture */
-			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc) = 0;
+			virtual SPtr<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& desc) = 0;
 
 			GpuDevice& mGpuDevice;
 		};

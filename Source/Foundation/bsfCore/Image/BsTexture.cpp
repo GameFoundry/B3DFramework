@@ -369,7 +369,7 @@ void Texture::Initialize()
 
 void Texture::WriteData(const PixelData& source, u32 mipLevel, u32 face, bool discardEntireBuffer, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(discardEntireBuffer)
 	{
@@ -385,7 +385,7 @@ void Texture::WriteData(const PixelData& source, u32 mipLevel, u32 face, bool di
 
 void Texture::ReadData(PixelData& destination, u32 mipLevel, u32 face, const SPtr<GpuQueue>& gpuQueue)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	PixelData& pixelData = static_cast<PixelData&>(destination);
 
@@ -417,7 +417,7 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadDataAsync(GpuCommandBuffer& commandBuffer
 
 PixelData Texture::Lock(GpuLockOptions options, u32 mipLevel, u32 face)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(mipLevel > mProperties.MipMapCount)
 	{
@@ -436,14 +436,14 @@ PixelData Texture::Lock(GpuLockOptions options, u32 mipLevel, u32 face)
 
 void Texture::Unlock()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	UnlockInternal();
 }
 
 void Texture::Copy(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureCopyInformation& copyInformation)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if (copyInformation.FaceCount == 0)
 	{
@@ -560,7 +560,7 @@ void Texture::Copy(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target,
 
 void Texture::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const TextureBlitInformation& blitInformation)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if (blitInformation.FaceCount == 0)
 	{
@@ -597,7 +597,7 @@ void Texture::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target,
 
 void Texture::Clear(const Color& value, u32 mipLevel, u32 face, const SPtr<GpuCommandBuffer>& commandBuffer)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	if(face >= mProperties.GetFaceCount())
 	{
@@ -638,7 +638,7 @@ void Texture::ClearBufferViews()
 
 SPtr<TextureView> Texture::RequestView(const TextureSurface& surface, GpuViewUsage usage)
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	TextureViewInformation key;
 	key.Surface = surface;

@@ -18,7 +18,7 @@ namespace bs
 		PixelFormat GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma) override;
 
 	protected:
-		SPtr<RenderTexture> CreateRenderTextureImpl(const RENDER_TEXTURE_DESC& desc) override;
+		SPtr<RenderTexture> CreateRenderTextureImpl(const RenderTextureCreateInformation& desc) override;
 	};
 
 	namespace ct
@@ -43,7 +43,7 @@ namespace bs
 			static VkFormat GetDummyViewFormat(GpuBufferFormat format);
 
 		protected:
-			SPtr<RenderTexture> CreateRenderTextureInternal(const RENDER_TEXTURE_DESC& desc) override;
+			SPtr<RenderTexture> CreateRenderTextureInternal(const RenderTextureCreateInformation& desc) override;
 
 			SPtr<VulkanTexture> mDummyReadTextures[7];
 			SPtr<VulkanTexture> mDummyStorageTextures[7];

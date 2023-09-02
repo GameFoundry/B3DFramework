@@ -104,18 +104,24 @@ namespace bs
 	 */
 	B3D_CORE_EXPORT CoreThread& GetCoreThread();
 
-	/**	Throws an exception if current thread isn't the core thread. */
-	B3D_CORE_EXPORT void ThrowIfNotCoreThread();
+	/**	Throws an exception if current thread isn't the render thread. */
+	B3D_CORE_EXPORT void AssertIfNotRenderThread();
 
-	/** Throws an exception if current thread is the core thread. */
-	B3D_CORE_EXPORT void ThrowIfCoreThread();
+	/** Throws an exception if current thread is the render thread. */
+	B3D_CORE_EXPORT void AssertIfRenderThread();
+
+	/** Returns false if currently not at the render thread, and triggers an ensure. */
+	B3D_CORE_EXPORT inline bool EnsureRenderThread()
+	{
+		return B3D_ENSURE(B3D_CURRENT_THREAD_ID == CoreThread::Instance().GetCoreThreadId());
+	}
 
 #if B3D_DEBUG
-#	define THROW_IF_NOT_CORE_THREAD ThrowIfNotCoreThread();
-#	define THROW_IF_CORE_THREAD ThrowIfCoreThread();
+#	define ASSERT_IF_NOT_RENDER_THREAD AssertIfNotRenderThread();
+#	define ASSERT_IF_RENDER_THREAD AssertIfRenderThread();
 #else
-#	define THROW_IF_NOT_CORE_THREAD
-#	define THROW_IF_CORE_THREAD
+#	define ASSERT_IF_NOT_RENDER_THREAD 
+#	defineASSERT_IF_RENDER_THREAD 
 #endif
 
 	/** @} */

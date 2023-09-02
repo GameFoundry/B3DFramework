@@ -9,14 +9,14 @@
 
 using namespace bs;
 
-VulkanRenderTexture::VulkanRenderTexture(const RENDER_TEXTURE_DESC& desc)
+VulkanRenderTexture::VulkanRenderTexture(const RenderTextureCreateInformation& desc)
 	: RenderTexture(desc), mProperties(desc, false)
 {
 }
 
 namespace bs {
 namespace ct {
-VulkanRenderTexture::VulkanRenderTexture(VulkanGpuDevice& gpuDevice, const RENDER_TEXTURE_DESC& desc)
+VulkanRenderTexture::VulkanRenderTexture(VulkanGpuDevice& gpuDevice, const RenderTextureCreateInformation& desc)
 	: RenderTexture(desc), mGpuDevice(gpuDevice), mProperties(desc, false), mFramebuffer(nullptr)
 {
 }
@@ -39,7 +39,7 @@ void VulkanRenderTexture::Initialize()
 			continue;
 
 		const SPtr<TextureView>& view = mColorSurfaces[renderTargetIndex];
-		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.ColorSurfaces[renderTargetIndex].Texture.get());
+		VulkanTexture* texture = static_cast<VulkanTexture*>(mInformation.ColorSurfaces[renderTargetIndex].Texture.get());
 
 		VulkanImage* image = texture->GetVulkanResource();
 		if(image == nullptr)
@@ -93,7 +93,7 @@ void VulkanRenderTexture::Initialize()
 	if(mDepthStencilSurface != nullptr)
 	{
 		const SPtr<TextureView>& view = mDepthStencilSurface;
-		VulkanTexture* texture = static_cast<VulkanTexture*>(mDesc.DepthStencilSurface.Texture.get());
+		VulkanTexture* texture = static_cast<VulkanTexture*>(mInformation.DepthStencilSurface.Texture.get());
 
 		VulkanImage* image = texture->GetVulkanResource();
 		if(image != nullptr)

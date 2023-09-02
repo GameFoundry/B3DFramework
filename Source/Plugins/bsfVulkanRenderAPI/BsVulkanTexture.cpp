@@ -706,7 +706,7 @@ VulkanTexture::~VulkanTexture()
 
 void VulkanTexture::Initialize()
 {
-	THROW_IF_NOT_CORE_THREAD;
+	ASSERT_IF_NOT_RENDER_THREAD;
 
 	const TextureProperties& props = mProperties;
 
