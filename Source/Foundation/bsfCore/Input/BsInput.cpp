@@ -303,7 +303,7 @@ void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
 
 	// Update sample times used for determining sampling rate. But only if something was
 	// actually sampled, and only if this isn't the first non-zero sample.
-	if(mLastMouseUpdateFrame != GetTime().GetFrameIdx())
+	if(mLastMouseUpdateFrame != GetTime().GetCurrentFrameIndex())
 	{
 		if(relX != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[0], 0.0f))
 			mTotalMouseSamplingTime[0] += GetTime().GetFrameDelta();
@@ -311,7 +311,7 @@ void Input::NotifyMouseMovedInternal(i32 relX, i32 relY, i32 relZ)
 		if(relY != 0 && !Math::ApproxEquals(mMouseSmoothedAxis[1], 0.0f))
 			mTotalMouseSamplingTime[1] += GetTime().GetFrameDelta();
 
-		mLastMouseUpdateFrame = GetTime().GetFrameIdx();
+		mLastMouseUpdateFrame = GetTime().GetCurrentFrameIndex();
 	}
 
 	AxisMoved(0, (float)relZ, (u32)InputAxis::MouseZ);

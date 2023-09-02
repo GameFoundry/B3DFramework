@@ -240,7 +240,7 @@ u32 GpuBuffer::CalculateSuballocatedBufferSize(const GpuBufferInformation& infor
 u32 GpuBuffer::CalculateTotalBufferSize(const GpuBufferInformation& information, const SPtr<GpuDevice>& gpuDevice)
 {
 	const u32 stride = CalculateSuballocatedBufferSize(information, gpuDevice);
-	return stride * Math::Max(1, information.SuballocationCount);
+	return stride * Math::Max(1u, information.SuballocationCount);
 }
 
 namespace bs::ct

@@ -36,6 +36,11 @@ namespace bs
 		bool UseAntialiasing = true; /**< If true, path will be rasterized using higher quality rendering. */
 		bool StencilStrokes = true; /**< If true, strokes will be rasterized using higher quality rendering. */
 		float DevicePixelRatio = 1.0f; /**< Allows high DPI rendering. */
+
+		bool operator==(const VectorGraphicsSettings& rhs) const
+		{
+			return Size == rhs.Size && Scale == rhs.Scale && Transform == rhs.Transform && Scale9GridBorder == rhs.Scale9GridBorder && UseAntialiasing == rhs.UseAntialiasing && StencilStrokes == rhs.StencilStrokes && DevicePixelRatio == rhs.DevicePixelRatio;
+		}
 	};
 
 	/** Type of paints supported by VectorPath. */
@@ -587,7 +592,7 @@ namespace bs
 		const Vector<VectorPathState>& GetCommandStates() const { return mCommandStates; }
 
 		/** Creates a renderable object that can be used for rasterizing the vector path into pixels. */
-		SPtr<ct::VectorPathRenderable> CreateRenderable(VectorGraphicsSettings& settings);
+		SPtr<ct::VectorPathRenderable> CreateRenderable(const VectorGraphicsSettings& settings) const;
 
 	private:
 		VectorPathState mCurrentState;
@@ -612,11 +617,15 @@ namespace bs
 			VectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings): mSettings(settings) { }
 			~VectorPathRenderable() override = default;
 
+			/** Returns the settings object used for creating this renderable. */
+			const VectorGraphicsSettings& GetSettings() const { return mSettings; }
+
 			/**
 			 * Records command required for rasterizing the path into pixels. Before calling this the user is required to have bound a render target containing
 			 * a color texture and a stencil buffer.
 			 */
 			virtual void Render(GpuCommandBuffer& commandBuffer) = 0;
+
 		protected:
 			VectorGraphicsSettings mSettings;
 
@@ -635,3 +644,29 @@ namespace bs
 	/** @} */
 
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for ValidParamKey. */
+template <>
+struct hash<bs::VectorGraphicsSettings>
+{
+	size_t operator()(const bs::VectorGraphicsSettings& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.Size);
+		bs::B3DCombineHash(hash, value.Scale);
+		bs::B3DCombineHash(hash, value.Transform);
+		bs::B3DCombineHash(hash, value.Scale9GridBorder);
+		bs::B3DCombineHash(hash, value.UseAntialiasing);
+		bs::B3DCombineHash(hash, value.StencilStrokes);
+		bs::B3DCombineHash(hash, value.DevicePixelRatio);
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

@@ -136,6 +136,16 @@ namespace bs
 			: Width(width), Height(height)
 		{}
 
+		bool operator==(const TSize2& rhs) const
+		{
+			return (Width == rhs.Width && Height == rhs.Height);
+		}
+
+		bool operator!=(const TSize2& rhs) const
+		{
+			return !operator==(rhs);
+		}
+
 		static const TSize2 kZero;
 	};
 
@@ -224,3 +234,39 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for TSize2<T>. */
+template<class T>
+struct hash<bs::TSize2<T>>
+{
+	size_t operator()(const bs::TSize2<T>& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.Width);
+		bs::B3DCombineHash(hash, value.Height);
+
+		return hash;
+	}
+};
+
+/** Hash value generator for TSize3<T>. */
+template<class T>
+struct hash<bs::TSize3<T>>
+{
+	size_t operator()(const bs::TSize3<T>& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.Width);
+		bs::B3DCombineHash(hash, value.Height);
+		bs::B3DCombineHash(hash, value.Depth);
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

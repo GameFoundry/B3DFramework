@@ -37,3 +37,26 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for bs::RectOffset. */
+template<>
+struct hash<bs::RectOffset>
+{
+	size_t operator()(const bs::RectOffset& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.Left);
+		bs::B3DCombineHash(hash, value.Right);
+		bs::B3DCombineHash(hash, value.Top);
+		bs::B3DCombineHash(hash, value.Bottom);
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

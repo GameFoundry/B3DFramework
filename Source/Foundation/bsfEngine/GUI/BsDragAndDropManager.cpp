@@ -50,7 +50,7 @@ void DragAndDropManager::UpdateInternal()
 	// This generally happens when window loses focus and capture is lost (for example alt+tab)
 	int captureActive = mCaptureActive.load();
 	if(!captureActive && mCaptureChanged.load() &&
-	   (GetTime().GetFrameIdx() > mCaptureChangeFrame.load())) // Wait one frame to ensure input (like mouse up) gets a chance to be processed
+	   (GetTime().GetCurrentFrameIndex() > mCaptureChangeFrame.load())) // Wait one frame to ensure input (like mouse up) gets a chance to be processed
 	{
 		EndDrag(false);
 		mCaptureChanged.store(false);
@@ -72,7 +72,7 @@ void DragAndDropManager::MouseCaptureChanged()
 {
 	mCaptureActive.fetch_xor(1); // mCaptureActive = !mCaptureActive;
 	mCaptureChanged.store(true);
-	mCaptureChangeFrame.store(GetTime().GetFrameIdx());
+	mCaptureChangeFrame.store(GetTime().GetCurrentFrameIndex());
 }
 
 void DragAndDropManager::CursorReleased(const PointerEvent& event)

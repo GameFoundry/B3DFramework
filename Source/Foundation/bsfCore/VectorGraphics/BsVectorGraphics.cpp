@@ -241,7 +241,7 @@ namespace bs
 		return *this;
 	}
 
-	SPtr<ct::VectorPathRenderable> VectorPath::CreateRenderable(VectorGraphicsSettings& settings)
+	SPtr<ct::VectorPathRenderable> VectorPath::CreateRenderable(const VectorGraphicsSettings& settings) const
 	{
 		return B3DMakeShared<ct::NVGVectorPathRenderable>(*this, settings);
 	}

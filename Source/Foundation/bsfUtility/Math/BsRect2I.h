@@ -90,3 +90,26 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for bs::Rect2I. */
+template<>
+struct hash<bs::Rect2I>
+{
+	size_t operator()(const bs::Rect2I& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.X);
+		bs::B3DCombineHash(hash, value.Y);
+		bs::B3DCombineHash(hash, value.Width);
+		bs::B3DCombineHash(hash, value.Height);
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

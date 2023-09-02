@@ -449,7 +449,7 @@ bool GUIInputBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 			}
 			else
 			{
-				bool focusGainedThisFrame = mHasFocus && mFocusGainedFrame == GetTime().GetFrameIdx();
+				bool focusGainedThisFrame = mHasFocus && mFocusGainedFrame == GetTime().GetCurrentFrameIndex();
 
 				// We want to select all on focus gain, so don't override that
 				if(!focusGainedThisFrame)
@@ -591,7 +591,7 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 		GetGUIManager().GetInputSelectionTool()->SelectAll();
 
 		mHasFocus = true;
-		mFocusGainedFrame = GetTime().GetFrameIdx();
+		mFocusGainedFrame = GetTime().GetCurrentFrameIndex();
 
 		Vector2I newSize = mDimensions.CalculateSizeRange(GetOptimalSize()).Optimal;
 		if(origSize != newSize)

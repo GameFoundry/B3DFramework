@@ -366,3 +366,24 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for TVector2<T>. */
+template<class T>
+struct hash<bs::TVector2<T>>
+{
+	size_t operator()(const bs::TVector2<T>& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.X);
+		bs::B3DCombineHash(hash, value.Y);
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

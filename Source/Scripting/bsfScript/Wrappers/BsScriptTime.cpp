@@ -39,7 +39,7 @@ float ScriptTime::InternalGetFrameDelta()
 
 u64 ScriptTime::InternalGetFrameNumber()
 {
-	return GetTime().GetFrameIdx();
+	return GetTime().GetCurrentFrameIndex();
 }
 
 u64 ScriptTime::InternalGetPrecise()

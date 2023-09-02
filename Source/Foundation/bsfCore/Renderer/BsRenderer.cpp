@@ -84,7 +84,7 @@ void Renderer::AddTask(const SPtr<RendererTask>& task)
 	B3D_ASSERT(task->mState != 1 && "Task is already executing, it cannot be executed again until it finishes.");
 	task->mState.store(0); // Reset state in case the task is getting re-queued
 
-	mQueuedTasks.push_back(RendererTaskQueuedInfo(task, GetTime().GetFrameIdx()));
+	mQueuedTasks.push_back(RendererTaskQueuedInfo(task, GetTime().GetCurrentFrameIndex()));
 	mUnresolvedTasks.push_back(task);
 }
 

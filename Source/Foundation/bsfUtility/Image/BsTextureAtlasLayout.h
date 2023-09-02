@@ -208,6 +208,9 @@ namespace bs
 		/** Checks have any elements been added to the layout. */
 		bool IsEmpty() const { return mPages.size() == 0; }
 
+		/** Checks is a specific page empty. */
+		bool IsPageEmpty(u32 pageId) const;
+
 		/** Returns the size of the atlas texture, in pixels. */
 		const Size2UI& GetSize() const { return mSettings.Size; }
 

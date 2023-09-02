@@ -491,3 +491,30 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for Matrix4. */
+template<>
+struct hash<bs::Matrix4>
+{
+	size_t operator()(const bs::Matrix4& value) const
+	{
+		using namespace bs;
+
+		size_t hash = 0;
+
+		for(u32 rowIndex = 0; rowIndex < 4; ++rowIndex)
+		{
+			for(u32 columnIndex = 0; columnIndex < 4; ++columnIndex)
+				B3DCombineHash(hash, value[rowIndex][columnIndex]);
+		}
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

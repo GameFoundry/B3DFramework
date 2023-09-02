@@ -118,7 +118,7 @@ float VirtualInput::GetAxisValue(const VirtualAxis& axis, u32 deviceIdx) const
 
 void VirtualInput::UpdateInternal()
 {
-	u64 frameIdx = GetTime().GetFrameIdx();
+	u64 frameIdx = GetTime().GetCurrentFrameIndex();
 	for(auto& deviceData : mDevices)
 	{
 		for(auto& state : deviceData.CachedStates)
@@ -238,7 +238,7 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 			data.Button = btn;
 			data.State = ButtonState::ToggledOn;
 			data.Timestamp = event.Timestamp;
-			data.UpdateFrameIdx = GetTime().GetFrameIdx();
+			data.UpdateFrameIdx = GetTime().GetCurrentFrameIndex();
 			data.AllowRepeat = btnDesc.Repeatable;
 
 			VirtualButtonEvent virtualEvent;
@@ -283,7 +283,7 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 			data.Button = btn;
 			data.State = ButtonState::ToggledOff;
 			data.Timestamp = event.Timestamp;
-			data.UpdateFrameIdx = GetTime().GetFrameIdx();
+			data.UpdateFrameIdx = GetTime().GetCurrentFrameIndex();
 			data.AllowRepeat = btnDesc.Repeatable;
 
 			VirtualButtonEvent virtualEvent;

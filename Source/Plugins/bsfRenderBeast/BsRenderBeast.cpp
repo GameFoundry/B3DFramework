@@ -321,7 +321,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 	FrameTimings timings;
 	timings.Time = GetTime().GetTime();
 	timings.TimeDelta = GetTime().GetFrameDelta();
-	timings.FrameIdx = GetTime().GetFrameIdx();
+	timings.FrameIdx = GetTime().GetCurrentFrameIndex();
 
 	GetCoreThread().PostCommand(std::bind(&::bs::ct::RenderBeast::RenderAllCore, this, timings, perFrameData));
 }

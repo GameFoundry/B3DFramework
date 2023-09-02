@@ -413,9 +413,7 @@ void TreeTextureAtlasLayout::RemoveElement(u32 pageId, u32 nodeId)
 	u32 currentPageId = pageId;
 	while(currentPageId == (u32)(mPages.size() - 1)) // Due to page IDs being indices, we can only free pages from the back
 	{
-		Page& currentPage = mPages[currentPageId];
-		Node& rootNode = mNodes[currentPage.RootNodeId];
-		if(rootNode.State != NodeState::Free || rootNode.Area.Width != mSettings.Size.Width || rootNode.Area.Height != mSettings.Size.Height)
+		if(!IsPageEmpty(currentPageId))
 			break;
 
 		FreePage(currentPageId);
@@ -426,6 +424,17 @@ void TreeTextureAtlasLayout::RemoveElement(u32 pageId, u32 nodeId)
 
 		--currentPageId;
 	}
+}
+
+bool TreeTextureAtlasLayout::IsPageEmpty(u32 pageId) const
+{
+	if(pageId >= (u32)mPages.size())
+		return true;
+
+	const Page& page = mPages[pageId];
+	const Node& rootNode = mNodes[page.RootNodeId];
+
+	return rootNode.State == NodeState::Free && rootNode.Area.Width == mSettings.Size.Width && rootNode.Area.Height == mSettings.Size.Height;
 }
 
 void TreeTextureAtlasLayout::Grow(const Size2UI& newSize)
