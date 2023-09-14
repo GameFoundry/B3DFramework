@@ -29,6 +29,9 @@ namespace bs
 			/** Returns the memory provided by the allocator. */
 			ElementType* GetElements() const { return mElements; }
 
+			/** Returns the minimum number of elements that are always allocated regardless if Resize() is called with a smaller requested capacity. */
+			u64 GetMinimumCapacity() const { return 0; }
+
 			/** Returns true if the allocator has any dynamic allocations. */
 			bool HasDynamicAllocations() const { return mElements != nullptr; }
 
@@ -102,6 +105,9 @@ namespace bs
 		public:
 			/** @copydoc DefaultContainerAllocator::ForElementType::GetElements */
 			ElementType* GetElements() const { return mElements; }
+
+			/** @copydoc DefaultContainerAllocator::ForElementType::GetMinimumCapacity */
+			u64 GetMinimumCapacity() const { return StackElementCount; }
 
 			/** @copydoc DefaultContainerAllocator::ForElementType::HasDynamicAllocations */
 			bool HasDynamicAllocations() const { return mElements != (ElementType*)mStackStorage; }

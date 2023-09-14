@@ -225,7 +225,7 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 			mDevices.push_back(DeviceData());
 
 		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIdx].CachedStates;
-		DynArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
+		TArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
 
 		u32 numButtons = (u32)tempButtons.size();
 		for(u32 i = 0; i < numButtons; i++)
@@ -270,7 +270,7 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 			mDevices.push_back(DeviceData());
 
 		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIdx].CachedStates;
-		DynArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
+		TArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
 
 		u32 numButtons = (u32)tempButtons.size();
 		for(u32 i = 0; i < numButtons; i++)

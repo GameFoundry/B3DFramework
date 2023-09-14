@@ -255,4 +255,4 @@ RTTITypeBase* ShaderVariationParameters::GetRtti() const
 // instantiated. This means external libraries linking with bsf, using the same SmallVector template parameters will
 // trigger an undefined reference linker error. And why doesn't the library instantiate it itself? Don't know, either
 // a Clang issue or maybe even some part of the standard.
-template SmallVector<ShaderVariationParameter, 4>::~SmallVector();
+template TArray<ShaderVariationParameter, InlineContainerAllocator<4>>::~TArray();

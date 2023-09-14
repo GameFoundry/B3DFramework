@@ -42,7 +42,7 @@ namespace bs
 		struct DeviceData
 		{
 			Map<u32, ButtonData> CachedStates;
-			DynArray<u32> HeldButtons;
+			TArray<u32> HeldButtons;
 		};
 
 		/**	Data container for a virtual button event. */

@@ -8,12 +8,9 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Dynamically sized container that statically allocates enough room for @p N elements of type @p Type. If the element
-	 * count exceeds the statically allocated buffer size the vector falls back to general purpose dynamic allocator.
-	 */
-	template <class Type, u64 N>
-	class SmallVector final
+	/** Dynamically sized array, similar to std::vector. */
+	template <class Type, class Allocator = DefaultContainerAllocator>
+	class TArray final
 	{
 	public:
 		typedef Type ValueType;
@@ -30,26 +27,26 @@ namespace bs
 		typedef std::reverse_iterator<Type*> reverse_iterator;
 		typedef std::reverse_iterator<const Type*> const_reverse_iterator;
 
-		SmallVector() = default;
+		TArray() = default;
 
-		SmallVector(const SmallVector<ValueType, N>& other)
+		TArray(const TArray& other)
 		{
 			if(!other.Empty())
 				*this = other;
 		}
 
-		SmallVector(SmallVector<ValueType, N>&& other)
+		TArray(TArray&& other)
 		{
 			if(!other.Empty())
 				*this = std::move(other);
 		}
 
-		SmallVector(u64 size, const Type& value = Type())
+		TArray(u64 size, const Type& value = Type())
 		{
 			Append(size, value);
 		}
 
-		SmallVector(std::initializer_list<Type> list)
+		TArray(std::initializer_list<Type> list)
 		{
 			Append(list);
 		}
@@ -57,18 +54,18 @@ namespace bs
 		template <
 			typename IteratorType,
 			typename = std::enable_if_t<std::is_convertible_v<typename std::iterator_traits<IteratorType>::iterator_category, std::input_iterator_tag>>>
-		SmallVector(IteratorType start, IteratorType end)
+		TArray(IteratorType start, IteratorType end)
 		{
 			this->Append(start, end);
 		}
 
-		~SmallVector()
+		~TArray()
 		{
 			for(auto& entry : *this)
 				entry.~Type();
 		}
 
-		SmallVector<ValueType, N>& operator=(const SmallVector<ValueType, N>& other)
+		TArray& operator=(const TArray& other)
 		{
 			if(this == &other)
 				return *this;
@@ -109,7 +106,7 @@ namespace bs
 			return *this;
 		}
 
-		SmallVector<ValueType, N>& operator=(SmallVector<ValueType, N>&& other)
+		TArray& operator=(TArray&& other)
 		{
 			if(this == &other)
 				return *this;
@@ -118,13 +115,13 @@ namespace bs
 			const u64 otherSize = other.Size();
 
 			mAllocator.Move(mySize, otherSize, std::move(other.mAllocator));
-			mCapacity = std::exchange(other.mCapacity, N);
+			mCapacity = std::exchange(other.mCapacity, other.mAllocator.GetMinimumCapacity());
 			mSize = std::exchange(other.mSize, 0);
 
 			return *this;
 		}
 
-		SmallVector<ValueType, N>& operator=(std::initializer_list<Type> list)
+		TArray& operator=(std::initializer_list<Type> list)
 		{
 			u64 mySize = Size();
 			const u64 otherSize = (u64)list.size();
@@ -162,33 +159,33 @@ namespace bs
 			return *this;
 		}
 
-		bool operator==(const SmallVector<ValueType, N>& other)
+		bool operator==(const TArray& other)
 		{
 			if(this->Size() != other.Size()) return false;
 			return std::equal(this->Begin(), this->End(), other.Begin());
 		}
 
-		bool operator!=(const SmallVector<ValueType, N>& other)
+		bool operator!=(const TArray& other)
 		{
 			return !(*this == other);
 		}
 
-		bool operator<(const SmallVector<ValueType, N>& other) const
+		bool operator<(const TArray& other) const
 		{
 			return std::lexicographical_compare(Begin(), End(), other.Begin(), other.End());
 		}
 
-		bool operator>(const SmallVector<ValueType, N>& other) const
+		bool operator>(const TArray& other) const
 		{
 			return other < *this;
 		}
 
-		bool operator<=(const SmallVector<ValueType, N>& other) const
+		bool operator<=(const TArray& other) const
 		{
 			return !(other < *this);
 		}
 
-		bool operator>=(const SmallVector<ValueType, N>& other) const
+		bool operator>=(const TArray& other) const
 		{
 			return !(*this < other);
 		}
@@ -568,13 +565,20 @@ namespace bs
 		void Grow(u64 capacity)
 		{
 			mAllocator.Resize(mSize, capacity);
-			mCapacity = std::max(capacity, N);
+			mCapacity = std::max(capacity, mAllocator.GetMinimumCapacity());
 		}
 
-		typename InlineContainerAllocator<N>::template ForElementType<Type> mAllocator;
+		typename Allocator::template ForElementType<Type> mAllocator;
 		u64 mSize = 0;
-		u64 mCapacity = N;
+		u64 mCapacity = mAllocator.GetMinimumCapacity();
 	};
+
+	/**
+	 * Dynamically sized container that statically allocates enough room for @p N elements of type @p Type. If the element
+	 * count exceeds the statically allocated buffer size the vector falls back to general purpose dynamic allocator.
+	 */
+	template<class T, u32 N>
+	using SmallVector = TArray<T, InlineContainerAllocator<N>>;
 
 	/** @} */
 } // namespace bs

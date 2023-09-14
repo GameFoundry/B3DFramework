@@ -9,8 +9,8 @@ namespace bs
 	 */
 
 	/**
-	 * Provides a way to access elements of any array type (e.g. Vector, FrameVector, SmallVector). The view provides direct access to the array data. The caller must ensure
-	 * the viewed array is not destroyed or reallocated while the view is active.
+	 * Provides a way to access elements of any array type (e.g. TArray, Vector, FrameVector, SmallVector). The view provides direct access to the array data.
+	 * The caller must ensure the viewed array is not destroyed or reallocated while the view is active.
 	 */
 	template <class Type>
 	class ArrayView final
