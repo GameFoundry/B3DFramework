@@ -7,7 +7,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsSmallVectorRTTI.h"
+#include "RTTI/BsTArrayRTTI.h"
 #include "RTTI/BsStdRTTI.h"
 #include "Private/RTTI/BsShaderVariationRTTI.h"
 

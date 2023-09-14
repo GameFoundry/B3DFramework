@@ -237,12 +237,13 @@ namespace bs
 		TID_ColorGradient = 71,
 		TID_SerializationContext = 72,
 		TID_List = 73,
-		TID_SmallVector = 74,
+		TID_TInlineArray = 74,
 		TID_ColorGradientHDR = 75,
 		TID_RTTISchema = 76,
 		TID_RTTIFieldSchema = 77,
 		TID_BitLength = 78,
 		TID_RTTIFieldInfo = 79,
 		TID_Optional = 80,
+		TID_TArray = 81,
 	};
 } // namespace bs

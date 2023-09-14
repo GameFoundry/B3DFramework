@@ -229,7 +229,7 @@
 #include "Utility/BsEvent.h"
 #include "Utility/BsPlatformUtility.h"
 #include "Utility/BsNonCopyable.h"
-#include "Utility/BsSmallVector.h"
+#include "Utility/BsTArray.h"
 #include "Utility/BsArrayView.h"
 #include "FileSystem/BsPath.h"
 #include "Error/BsCrashHandler.h"

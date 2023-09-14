@@ -5,7 +5,6 @@
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Input/BsInputConfiguration.h"
-#include "Utility/BsDynArray.h"
 
 namespace bs
 {
