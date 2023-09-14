@@ -38,7 +38,7 @@ SPtr<bs::RenderWindow> Win32GLSupport::NewWindow(RENDER_WINDOW_DESC& desc, u32 w
 	}
 
 	bs::Win32RenderWindow* window = new(B3DAllocate<bs::Win32RenderWindow>()) bs::Win32RenderWindow(desc, windowId, *this);
-	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::DeleteInternal<bs::Win32RenderWindow, GenAlloc>);
+	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::DeleteInternal<bs::Win32RenderWindow, DefaultAllocatorTag>);
 }
 
 void Win32GLSupport::NotifyWindowCreatedInternal(Win32RenderWindow* window)

@@ -20,6 +20,8 @@ namespace bs
 	 *  @{
 	 */
 
+	class FrameAllocatorTag;
+
 	/**
 	 * Frame allocator. Performs very fast allocations but can only free all of its memory at once. Perfect for allocations
 	 * that last just a single frame.
@@ -399,37 +401,37 @@ namespace bs
 	};
 
 	/** String allocated with a frame allocator. */
-	typedef std::basic_string<char, std::char_traits<char>, StdAlloc<char, FrameAlloc>> FrameString;
+	typedef std::basic_string<char, std::char_traits<char>, StdAlloc<char, FrameAllocatorTag>> FrameString;
 
 	/** WString allocated with a frame allocator. */
-	typedef std::basic_string<wchar_t, std::char_traits<wchar_t>, StdAlloc<wchar_t, FrameAlloc>> FrameWString;
+	typedef std::basic_string<wchar_t, std::char_traits<wchar_t>, StdAlloc<wchar_t, FrameAllocatorTag>> FrameWString;
 
 	/** Vector allocated with a frame allocator. */
-	template <typename T, typename A = StdAlloc<T, FrameAlloc>>
+	template <typename T, typename A = StdAlloc<T, FrameAllocatorTag>>
 	using FrameVector = std::vector<T, A>;
 
 	/** Stack allocated with a frame allocator. */
-	template <typename T, typename A = StdAlloc<T, FrameAlloc>>
+	template <typename T, typename A = StdAlloc<T, FrameAllocatorTag>>
 	using FrameStack = std::stack<T, std::deque<T, A>>;
 
 	/** Queue allocated with a frame allocator. */
-	template <typename T, typename A = StdAlloc<T, FrameAlloc>>
+	template <typename T, typename A = StdAlloc<T, FrameAllocatorTag>>
 	using FrameQueue = std::queue<T, std::deque<T, A>>;
 
 	/** Set allocated with a frame allocator. */
-	template <typename T, typename P = std::less<T>, typename A = StdAlloc<T, FrameAlloc>>
+	template <typename T, typename P = std::less<T>, typename A = StdAlloc<T, FrameAllocatorTag>>
 	using FrameSet = std::set<T, P, A>;
 
 	/** Map allocated with a frame allocator. */
-	template <typename K, typename V, typename P = std::less<K>, typename A = StdAlloc<std::pair<const K, V>, FrameAlloc>>
+	template <typename K, typename V, typename P = std::less<K>, typename A = StdAlloc<std::pair<const K, V>, FrameAllocatorTag>>
 	using FrameMap = std::map<K, V, P, A>;
 
 	/** UnorderedSet allocated with a frame allocator. */
-	template <typename T, typename H = std::hash<T>, typename C = std::equal_to<T>, typename A = StdAlloc<T, FrameAlloc>>
+	template <typename T, typename H = std::hash<T>, typename C = std::equal_to<T>, typename A = StdAlloc<T, FrameAllocatorTag>>
 	using FrameUnorderedSet = std::unordered_set<T, H, C, A>;
 
 	/** UnorderedMap allocated with a frame allocator. */
-	template <typename K, typename V, typename H = std::hash<K>, typename C = std::equal_to<K>, typename A = StdAlloc<std::pair<const K, V>, FrameAlloc>>
+	template <typename K, typename V, typename H = std::hash<K>, typename C = std::equal_to<K>, typename A = StdAlloc<std::pair<const K, V>, FrameAllocatorTag>>
 	using FrameUnorderedMap = std::unordered_map<K, V, H, C, A>;
 
 	/** @} */
@@ -448,7 +450,7 @@ namespace bs
 	 * new/delete/free/dealloc operators.
 	 */
 	template <>
-	class MemoryAllocator<FrameAlloc> : public MemoryAllocatorBase
+	class MemoryAllocator<FrameAllocatorTag> : public MemoryAllocatorBase
 	{
 	public:
 		/** @copydoc MemoryAllocator::Allocate */
@@ -461,7 +463,7 @@ namespace bs
 		static void* AllocateAligned(size_t bytes, size_t alignment)
 		{
 #if B3D_PROFILING_ENABLED
-			IncAllocCount();
+			IncrementAllocationCount();
 #endif
 
 			return B3DFrameAllocateAligned((u32)bytes, (u32)alignment);
@@ -471,7 +473,7 @@ namespace bs
 		static void* AllocateAligned16(size_t bytes)
 		{
 #if B3D_PROFILING_ENABLED
-			IncAllocCount();
+			IncrementAllocationCount();
 #endif
 
 			return B3DFrameAllocateAligned((u32)bytes, 16);
@@ -487,7 +489,7 @@ namespace bs
 		static void FreeAligned(void* ptr)
 		{
 #if B3D_PROFILING_ENABLED
-			IncFreeCount();
+			IncrementFreeCount();
 #endif
 
 			B3DFrameFreeAligned(ptr);
@@ -497,7 +499,7 @@ namespace bs
 		static void FreeAligned16(void* ptr)
 		{
 #if B3D_PROFILING_ENABLED
-			IncFreeCount();
+			IncrementFreeCount();
 #endif
 
 			B3DFrameFreeAligned(ptr);

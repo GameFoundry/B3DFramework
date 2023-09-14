@@ -263,7 +263,7 @@ namespace bs
 	template <class Type, class MainAlloc, class... Args>
 	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, GenAlloc>());
+		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, DefaultAllocatorTag>());
 	}
 
 	/**
@@ -276,7 +276,7 @@ namespace bs
 	template <class Type, class... Args>
 	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(B3DNew<Type, GenAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, GenAlloc>, StdAlloc<Type, GenAlloc>());
+		return SPtr<Type>(B3DNew<Type, DefaultAllocatorTag>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, DefaultAllocatorTag>, StdAlloc<Type, DefaultAllocatorTag>());
 	}
 
 	/**
@@ -286,7 +286,7 @@ namespace bs
 	 * All core thread object shared pointers must be created using this method or its overloads and you should not create
 	 * them manually.
 	 */
-	template <class Type, class MainAlloc = GenAlloc, class PtrDataAlloc = GenAlloc>
+	template <class Type, class MainAlloc = DefaultAllocatorTag, class PtrDataAlloc = DefaultAllocatorTag>
 	SPtr<Type> B3DMakeCoreFromExisting(Type* data)
 	{
 		return SPtr<Type>(data, &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());

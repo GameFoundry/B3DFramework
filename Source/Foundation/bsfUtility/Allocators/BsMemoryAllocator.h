@@ -103,12 +103,12 @@ namespace bs
 	class MemoryCounter
 	{
 	public:
-		static B3D_UTILITY_EXPORT uint64_t GetNumAllocs()
+		static B3D_UTILITY_EXPORT uint64_t GetAllocationCount()
 		{
 			return Allocs;
 		}
 
-		static B3D_UTILITY_EXPORT uint64_t GetNumFrees()
+		static B3D_UTILITY_EXPORT uint64_t GetFreeCount()
 		{
 			return Frees;
 		}
@@ -117,22 +117,32 @@ namespace bs
 		friend class MemoryAllocatorBase;
 
 		// Threadlocal data can't be exported, so some magic to make it accessible from MemoryAllocator
-		static B3D_UTILITY_EXPORT void IncAllocCount() { ++Allocs; }
+		static B3D_UTILITY_EXPORT void IncrementAllocationCount() { ++Allocs; }
 
-		static B3D_UTILITY_EXPORT void IncFreeCount() { ++Frees; }
+		static B3D_UTILITY_EXPORT void IncrementFreeCount() { ++Frees; }
 
 		static B3D_THREADLOCAL uint64_t Allocs;
 		static B3D_THREADLOCAL uint64_t Frees;
 	};
 
+	/**
+	 * General allocator provided by the OS. Use for persistent long term allocations, and allocations that don't
+	 * happen often.
+	 */
+	class DefaultAllocatorTag
+	{};
+
 	/** Base class all memory allocators need to inherit. Provides allocation and free counting. */
 	class MemoryAllocatorBase
 	{
 	protected:
-		static void IncAllocCount() { MemoryCounter::IncAllocCount(); }
-
-		static void IncFreeCount() { MemoryCounter::IncFreeCount(); }
+		static void IncrementAllocationCount() { MemoryCounter::IncrementAllocationCount(); }
+		static void IncrementFreeCount() { MemoryCounter::IncrementFreeCount(); }
 	};
+
+	template <class T>
+	class MemoryAllocator : public MemoryAllocatorBase
+	{};
 
 	/**
 	 * Memory allocator providing a generic implementation. Specialize for specific categories as needed.
@@ -140,15 +150,15 @@ namespace bs
 	 * @note	For example you might implement a pool allocator for specific types in order
 	 * 			to reduce allocation overhead. By default standard malloc/free are used.
 	 */
-	template <class T>
-	class MemoryAllocator : public MemoryAllocatorBase
+	template <>
+	class MemoryAllocator<DefaultAllocatorTag> : public MemoryAllocatorBase
 	{
 	public:
 		/** Allocates @p bytes bytes. */
 		static void* Allocate(size_t bytes)
 		{
 #if B3D_PROFILING_ENABLED
-			IncAllocCount();
+			IncrementAllocationCount();
 #endif
 
 			return malloc(bytes);
@@ -161,7 +171,7 @@ namespace bs
 		static void* AllocateAligned(size_t bytes, size_t alignment)
 		{
 #if B3D_PROFILING_ENABLED
-			IncAllocCount();
+			IncrementAllocationCount();
 #endif
 
 			return PlatformAlignedAlloc(bytes, alignment);
@@ -171,7 +181,7 @@ namespace bs
 		static void* AllocateAligned16(size_t bytes)
 		{
 #if B3D_PROFILING_ENABLED
-			IncAllocCount();
+			IncrementAllocationCount();
 #endif
 
 			return PlatformAlignedAlloc16(bytes);
@@ -181,7 +191,7 @@ namespace bs
 		static void Free(void* ptr)
 		{
 #if B3D_PROFILING_ENABLED
-			IncFreeCount();
+			IncrementFreeCount();
 #endif
 
 			::free(ptr);
@@ -191,7 +201,7 @@ namespace bs
 		static void FreeAligned(void* ptr)
 		{
 #if B3D_PROFILING_ENABLED
-			IncFreeCount();
+			IncrementFreeCount();
 #endif
 
 			PlatformAlignedFree(ptr);
@@ -201,19 +211,12 @@ namespace bs
 		static void FreeAligned16(void* ptr)
 		{
 #if B3D_PROFILING_ENABLED
-			IncFreeCount();
+			IncrementFreeCount();
 #endif
 
 			PlatformAlignedFree16(ptr);
 		}
 	};
-
-	/**
-	 * General allocator provided by the OS. Use for persistent long term allocations, and allocations that don't
-	 * happen often.
-	 */
-	class GenAlloc
-	{};
 
 	/** @} */
 	/** @} */
@@ -223,24 +226,24 @@ namespace bs
 	 */
 
 	/** Allocates the specified number of bytes. */
-	template <class Alloc>
+	template <class AllocatorTag>
 	void* B3DAllocate(size_t count)
 	{
-		return MemoryAllocator<Alloc>::Allocate(count);
+		return MemoryAllocator<AllocatorTag>::Allocate(count);
 	}
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
-	template <class T, class Alloc>
+	template <class T, class AllocatorTag>
 	T* B3DAllocate()
 	{
-		return (T*)MemoryAllocator<Alloc>::Allocate(sizeof(T));
+		return (T*)MemoryAllocator<AllocatorTag>::Allocate(sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
-	template <class T, class Alloc>
+	template <class T, class AllocatorTag>
 	T* B3DNewMultiple(size_t count)
 	{
-		T* ptr = (T*)MemoryAllocator<Alloc>::Allocate(sizeof(T) * count);
+		T* ptr = (T*)MemoryAllocator<AllocatorTag>::Allocate(sizeof(T) * count);
 
 		for(size_t i = 0; i < count; ++i)
 			new(&ptr[i]) T;
@@ -249,70 +252,70 @@ namespace bs
 	}
 
 	/** Create a new object with the specified allocator and the specified parameters. */
-	template <class Type, class Alloc, class... Args>
+	template <class Type, class AllocatorTag, class... Args>
 	Type* B3DNew(Args&&... args)
 	{
-		return new(B3DAllocate<Type, Alloc>()) Type(std::forward<Args>(args)...);
+		return new(B3DAllocate<Type, AllocatorTag>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
-	template <class Alloc>
+	template <class AllocatorTag>
 	void B3DFree(void* ptr)
 	{
-		MemoryAllocator<Alloc>::Free(ptr);
+		MemoryAllocator<AllocatorTag>::Free(ptr);
 	}
 
 	/** Destructs and frees the specified object. */
-	template <class T, class Alloc = GenAlloc>
+	template <class T, class AllocatorTag = DefaultAllocatorTag>
 	void B3DDelete(T* ptr)
 	{
 		(ptr)->~T();
 
-		MemoryAllocator<Alloc>::Free(ptr);
+		MemoryAllocator<AllocatorTag>::Free(ptr);
 	}
 
 	/** Callable struct that acts as a proxy for B3DDelete */
-	template <class T, class Alloc = GenAlloc>
+	template <class T, class AllocatorTag = DefaultAllocatorTag>
 	struct Deleter
 	{
 		constexpr Deleter() noexcept = default;
 
 		/** Constructor enabling deleter conversion and therefore polymorphism with smart points (if they use the same allocator). */
 		template <class T2, std::enable_if_t<std::is_convertible<T2*, T*>::value, int> = 0>
-		constexpr Deleter(const Deleter<T2, Alloc>& other) noexcept
+		constexpr Deleter(const Deleter<T2, AllocatorTag>& other) noexcept
 		{}
 
 		void operator()(T* ptr) const
 		{
-			B3DDelete<T, Alloc>(ptr);
+			B3DDelete<T, AllocatorTag>(ptr);
 		}
 	};
 
 	/** Destructs and frees the specified array of objects. */
-	template <class T, class Alloc = GenAlloc>
+	template <class T, class AllocatorTag = DefaultAllocatorTag>
 	void B3DDeleteMultiple(T* ptr, size_t count)
 	{
 		for(size_t i = 0; i < count; ++i)
 			ptr[i].~T();
 
-		MemoryAllocator<Alloc>::Free(ptr);
+		MemoryAllocator<AllocatorTag>::Free(ptr);
 	}
 
 	/*****************************************************************************/
-	/* Default versions of all alloc/free/new/delete methods which call GenAlloc */
+	/* Default versions of all alloc/free/new/delete methods which use DefaultAllocatorTag */
 	/*****************************************************************************/
 
 	/** Allocates the specified number of bytes. */
 	inline void* B3DAllocate(size_t count)
 	{
-		return MemoryAllocator<GenAlloc>::Allocate(count);
+		return MemoryAllocator<DefaultAllocatorTag>::Allocate(count);
 	}
 
 	/** Allocates enough bytes to hold the specified type, but doesn't construct it. */
 	template <class T>
 	T* B3DAllocate()
 	{
-		return (T*)MemoryAllocator<GenAlloc>::Allocate(sizeof(T));
+		return (T*)MemoryAllocator<DefaultAllocatorTag>::Allocate(sizeof(T));
 	}
 
 	/**
@@ -321,27 +324,27 @@ namespace bs
 	 */
 	inline void* B3DAllocateAligned(size_t count, size_t align)
 	{
-		return MemoryAllocator<GenAlloc>::AllocateAligned(count, align);
+		return MemoryAllocator<DefaultAllocatorTag>::AllocateAligned(count, align);
 	}
 
 	/** Allocates the specified number of bytes aligned to a 16 bytes boundary. */
 	inline void* B3DAllocateAligned16(size_t count)
 	{
-		return MemoryAllocator<GenAlloc>::AllocateAligned16(count);
+		return MemoryAllocator<DefaultAllocatorTag>::AllocateAligned16(count);
 	}
 
 	/** Allocates enough bytes to hold an array of @p count elements the specified type, but doesn't construct them. */
 	template <class T>
 	T* B3DAllocateMultiple(size_t count)
 	{
-		return (T*)MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
+		return (T*)MemoryAllocator<DefaultAllocatorTag>::Allocate(count * sizeof(T));
 	}
 
 	/** Creates and constructs an array of @p count elements. */
 	template <class T>
 	T* B3DNewMultiple(size_t count)
 	{
-		T* ptr = (T*)MemoryAllocator<GenAlloc>::Allocate(count * sizeof(T));
+		T* ptr = (T*)MemoryAllocator<DefaultAllocatorTag>::Allocate(count * sizeof(T));
 
 		for(size_t i = 0; i < count; ++i)
 			new(&ptr[i]) T;
@@ -353,25 +356,25 @@ namespace bs
 	template <class Type, class... Args>
 	Type* B3DNew(Args&&... args)
 	{
-		return new(B3DAllocate<Type, GenAlloc>()) Type(std::forward<Args>(args)...);
+		return new(B3DAllocate<Type, DefaultAllocatorTag>()) Type(std::forward<Args>(args)...);
 	}
 
 	/** Frees all the bytes allocated at the specified location. */
 	inline void B3DFree(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::Free(ptr);
+		MemoryAllocator<DefaultAllocatorTag>::Free(ptr);
 	}
 
 	/** Frees memory previously allocated with B3DAllocateAligned(). */
 	inline void B3DFreeAligned(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::FreeAligned(ptr);
+		MemoryAllocator<DefaultAllocatorTag>::FreeAligned(ptr);
 	}
 
 	/** Frees memory previously allocated with B3DAllocateAligned16(). */
 	inline void B3DFreeAligned16(void* ptr)
 	{
-		MemoryAllocator<GenAlloc>::FreeAligned16(ptr);
+		MemoryAllocator<DefaultAllocatorTag>::FreeAligned16(ptr);
 	}
 
 /************************************************************************/
@@ -382,7 +385,7 @@ namespace bs
 /************************************************************************/
 #define B3D_PVT_DELETE(T, ptr) \
 	(ptr)->~T();              \
-	MemoryAllocator<GenAlloc>::free(ptr);
+	MemoryAllocator<DefaultAllocatorTag>::free(ptr);
 
 #define B3D_PVT_DELETE_A(T, ptr, Alloc) \
 	(ptr)->~T();                       \
@@ -399,7 +402,7 @@ namespace bs
 
 	// NOLINTBEGIN(readability-identifier-naming)
 	/** Allocator for the standard library that internally uses bsf memory allocator. */
-	template <class T, class Alloc = GenAlloc>
+	template <class T, class AllocatorTag = DefaultAllocatorTag>
 	class StdAlloc
 	{
 	public:
@@ -433,7 +436,7 @@ namespace bs
 		class rebind
 		{
 		public:
-			using other = StdAlloc<U, Alloc>;
+			using other = StdAlloc<U, AllocatorTag>;
 		};
 
 		/** Allocate but don't initialize number elements of type T. */
@@ -445,7 +448,7 @@ namespace bs
 			if(num > max_size())
 				return nullptr; // Error
 
-			void* const pv = B3DAllocate<Alloc>(num * sizeof(T));
+			void* const pv = B3DAllocate<AllocatorTag>(num * sizeof(T));
 			if(!pv)
 				return nullptr; // Error
 
@@ -455,7 +458,7 @@ namespace bs
 		/** Deallocate storage p of deleted elements. */
 		static void deallocate(pointer p, size_type)
 		{
-			B3DFree<Alloc>(p);
+			B3DFree<AllocatorTag>(p);
 		}
 
 		static constexpr size_t max_size() { return std::numeric_limits<size_type>::max() / sizeof(T); }

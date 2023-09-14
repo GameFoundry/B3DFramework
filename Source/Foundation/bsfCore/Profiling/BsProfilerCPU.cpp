@@ -107,8 +107,8 @@ ProfilerCPU::ProfileData::ProfileData(FrameAlloc* alloc)
 
 void ProfilerCPU::ProfileData::BeginSample()
 {
-	MemAllocs = MemoryCounter::GetNumAllocs();
-	MemFrees = MemoryCounter::GetNumFrees();
+	MemAllocs = MemoryCounter::GetAllocationCount();
+	MemFrees = MemoryCounter::GetFreeCount();
 
 	Timer.Reset();
 	Timer.Start();
@@ -118,8 +118,8 @@ void ProfilerCPU::ProfileData::EndSample()
 {
 	Timer.Stop();
 
-	u64 numAllocs = MemoryCounter::GetNumAllocs() - MemAllocs;
-	u64 numFrees = MemoryCounter::GetNumFrees() - MemFrees;
+	u64 numAllocs = MemoryCounter::GetAllocationCount() - MemAllocs;
+	u64 numFrees = MemoryCounter::GetFreeCount() - MemFrees;
 
 	Samples.push_back(ProfileSample(Timer.Time, numAllocs, numFrees));
 }
@@ -136,8 +136,8 @@ ProfilerCPU::PreciseProfileData::PreciseProfileData(FrameAlloc* alloc)
 
 void ProfilerCPU::PreciseProfileData::BeginSample()
 {
-	MemAllocs = MemoryCounter::GetNumAllocs();
-	MemFrees = MemoryCounter::GetNumFrees();
+	MemAllocs = MemoryCounter::GetAllocationCount();
+	MemFrees = MemoryCounter::GetFreeCount();
 
 	Timer.Reset();
 	Timer.Start();
@@ -147,8 +147,8 @@ void ProfilerCPU::PreciseProfileData::EndSample()
 {
 	Timer.Stop();
 
-	u64 numAllocs = MemoryCounter::GetNumAllocs() - MemAllocs;
-	u64 numFrees = MemoryCounter::GetNumFrees() - MemFrees;
+	u64 numAllocs = MemoryCounter::GetAllocationCount() - MemAllocs;
+	u64 numFrees = MemoryCounter::GetFreeCount() - MemFrees;
 
 	Samples.push_back(PreciseProfileSample(Timer.Cycles, numAllocs, numFrees));
 }

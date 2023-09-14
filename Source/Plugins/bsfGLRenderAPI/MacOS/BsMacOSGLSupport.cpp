@@ -15,7 +15,7 @@ SPtr<bs::RenderWindow> MacOSGLSupport::newWindow(
 	SPtr<bs::RenderWindow> parentWindow)
 {
 	bs::MacOSRenderWindow* window = new(B3DAllocate<bs::MacOSRenderWindow>()) bs::MacOSRenderWindow(desc, windowId, *this);
-	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, GenAlloc>);
+	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::MacOSRenderWindow, DefaultAllocatorTag>);
 }
 
 void MacOSGLSupport::start()

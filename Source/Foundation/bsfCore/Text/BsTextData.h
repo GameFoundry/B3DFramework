@@ -346,7 +346,7 @@ namespace bs
 	 */
 
 	/** @copydoc TextDataBase */
-	template <class Alloc = GenAlloc>
+	template <class AllocatorTag = DefaultAllocatorTag>
 	class TextData : public TextDataBase
 	{
 	public:
@@ -357,14 +357,14 @@ namespace bs
 			u32 totalBufferSize = 0;
 			GeneratePersistentData(text, nullptr, totalBufferSize);
 
-			mData = (u8*)B3DAllocate<Alloc>(totalBufferSize);
+			mData = (u8*)B3DAllocate<AllocatorTag>(totalBufferSize);
 			GeneratePersistentData(text, (u8*)mData, totalBufferSize);
 		}
 
 		~TextData()
 		{
 			if(mData != nullptr)
-				B3DFree<Alloc>(mData);
+				B3DFree<AllocatorTag>(mData);
 		}
 
 	private:

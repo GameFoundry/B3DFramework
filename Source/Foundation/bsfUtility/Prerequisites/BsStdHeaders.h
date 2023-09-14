@@ -229,43 +229,43 @@ namespace bs
 	 * Smart pointer that retains shared ownership of an project through a pointer. Reference to the object must be unique.
 	 * The object is destroyed automatically when the pointer to the object is destroyed.
 	 */
-	template <typename T, typename Alloc = GenAlloc, typename Delete = Deleter<T, Alloc>>
+	template <typename T, typename AllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<T, AllocatorTag>>
 	using UPtr = std::unique_ptr<T, Delete>;
 
 	/** Create a new shared pointer using a custom allocator category. */
-	template <typename Type, typename AllocCategory = GenAlloc, typename... Args>
+	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename... Args>
 	SPtr<Type> B3DMakeShared(Args&&... args)
 	{
-		return std::allocate_shared<Type>(StdAlloc<Type, AllocCategory>(), std::forward<Args>(args)...);
+		return std::allocate_shared<Type>(StdAlloc<Type, AllocatorTag>(), std::forward<Args>(args)...);
 	}
 
 	/**
 	 * Create a new shared pointer from a previously constructed object.
 	 * Pointer specific data will be allocated using the provided allocator category.
 	 */
-	template <typename Type, typename MainAlloc = GenAlloc, typename PtrDataAlloc = GenAlloc, typename Delete = Deleter<Type, MainAlloc>>
+	template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, MainAllocatorTag>>
 	SPtr<Type> B3DMakeSharedFromExisting(Type* data, Delete del = Delete())
 	{
-		return SPtr<Type>(data, std::move(del), StdAlloc<Type, PtrDataAlloc>());
+		return SPtr<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());
 	}
 
 	/**
 	 * Create a new unique pointer from a previously constructed object.
 	 * Pointer specific data will be allocated using the provided allocator category.
 	 */
-	template <typename Type, typename Alloc = GenAlloc, typename Delete = Deleter<Type, Alloc>>
-	UPtr<Type, Alloc, Delete> B3DMakeUniqueFromExisting(Type* data, Delete del = Delete())
+	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, AllocatorTag>>
+	UPtr<Type, AllocatorTag, Delete> B3DMakeUniqueFromExisting(Type* data, Delete del = Delete())
 	{
 		return std::unique_ptr<Type, Delete>(data, std::move(del));
 	}
 
 	/** Create a new unique pointer using a custom allocator category. */
-	template <typename Type, typename Alloc = GenAlloc, typename Delete = Deleter<Type, Alloc>, typename... Args>
-	UPtr<Type, Alloc, Delete> B3DMakeUnique(Args&&... args)
+	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, AllocatorTag>, typename... Args>
+	UPtr<Type, AllocatorTag, Delete> B3DMakeUnique(Args&&... args)
 	{
-		Type* rawPtr = B3DNew<Type, Alloc>(std::forward<Args>(args)...);
+		Type* rawPtr = B3DNew<Type, AllocatorTag>(std::forward<Args>(args)...);
 
-		return B3DMakeUniqueFromExisting<Type, Alloc, Delete>(rawPtr);
+		return B3DMakeUniqueFromExisting<Type, AllocatorTag, Delete>(rawPtr);
 	}
 
 	/**

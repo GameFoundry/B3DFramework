@@ -92,7 +92,7 @@ SPtr<bs::RenderWindow> LinuxGLSupport::newWindow(RENDER_WINDOW_DESC& desc, u32 w
 	}
 
 	bs::LinuxRenderWindow* window = new(B3DAllocate<bs::LinuxRenderWindow>()) bs::LinuxRenderWindow(desc, windowId, *this);
-	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::LinuxRenderWindow, GenAlloc>);
+	return SPtr<bs::RenderWindow>(window, &bs::CoreObject::_delete<bs::LinuxRenderWindow, DefaultAllocatorTag>);
 }
 
 void LinuxGLSupport::start()

@@ -18,7 +18,7 @@ void TextSprite::Update(const TextSpriteInformation& information, u64 groupId)
 	B3DMarkAllocatorFrame();
 	{
 		const U32String utf32text = UTF8::ToUtF32(information.Text);
-		TextData<FrameAlloc> textData(utf32text, information.Font, information.FontSize, information.Width, information.Height, information.WordWrap, information.WordBreak);
+		TextData<FrameAllocatorTag> textData(utf32text, information.Font, information.FontSize, information.Width, information.Height, information.WordWrap, information.WordBreak);
 
 		u32 numPages = textData.GetNumPages();
 

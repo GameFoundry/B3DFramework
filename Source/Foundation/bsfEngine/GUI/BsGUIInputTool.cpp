@@ -20,7 +20,7 @@ void GUIInputTool::UpdateText(const GUIElement* element, const TextSpriteInforma
 	B3DMarkAllocatorFrame();
 	{
 		const U32String utf32text = UTF8::ToUtF32(mTextDesc.Text);
-		TextData<FrameAlloc> textData(utf32text, mTextDesc.Font, mTextDesc.FontSize, mTextDesc.Width, mTextDesc.Height, mTextDesc.WordWrap, mTextDesc.WordBreak);
+		TextData<FrameAllocatorTag> textData(utf32text, mTextDesc.Font, mTextDesc.FontSize, mTextDesc.Width, mTextDesc.Height, mTextDesc.WordWrap, mTextDesc.WordBreak);
 
 		u32 numLines = textData.GetNumLines();
 		u32 numPages = textData.GetNumPages();

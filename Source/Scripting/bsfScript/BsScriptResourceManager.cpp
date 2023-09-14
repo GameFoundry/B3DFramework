@@ -124,7 +124,7 @@ void ScriptResourceManager::DestroyScriptResource(ScriptResourceBase* resource)
 #endif
 
 	(resource)->~ScriptResourceBase();
-	MemoryAllocator<GenAlloc>::Free(resource);
+	MemoryAllocator<DefaultAllocatorTag>::Free(resource);
 
 	mScriptResources.erase(uuid);
 }
